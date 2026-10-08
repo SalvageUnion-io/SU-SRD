@@ -26,6 +26,8 @@ export function fakeSeat(seat: Partial<SeatView> = {}): { handle: SeatHandle; ca
       eject: record('eject'),
       setRange: record('setRange'),
       toggleEffect: record('toggleEffect'),
+      setResolving: record('setResolving'),
+      clearResolving: record('clearResolving'),
     },
   }
 }

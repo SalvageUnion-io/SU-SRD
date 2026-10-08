@@ -1,7 +1,8 @@
 /**
- * Tests for DisplayPanel — the Dashboard's main display. Verifies each focus
- * renders without throwing and reuses the real reference components:
- * a resolvable chassis → a ReferenceEntityCard card; Tables → a RollTable;
+ * Tests for DisplayPanel — what the display's Reference, Tables and SRD tabs
+ * show. Verifies each focus renders without throwing and reuses the real
+ * reference components: a resolvable chassis → a ReferenceEntityCard card;
+ * Tables → a RollTable whose rolls are handed on for the Game's log;
  * unresolvable slugs → a graceful note (never a crash).
  *
  * Reference content needs the ORM, so preload('all') runs once. A real chassis
@@ -14,8 +15,8 @@ import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
-import type { DisplayFocus } from '../DisplayPanel'
-import { DisplayPanel, DisplayPicker } from '../DisplayPanel'
+import type { DisplayFocus, ReferenceFocus } from '../DisplayPanel'
+import { DisplayPanel, DisplayPanelFrame, DisplayPicker } from '../DisplayPanel'
 import { boardedSeat } from './seatFixture'
 
 beforeAll(hydrateStores)
@@ -128,30 +129,25 @@ describe('DisplayPanel', () => {
     expect(container.querySelector('caption')?.textContent).toBe('Group Initiative')
   })
 
-  test('Tables → rolling records a roll-history row (D3)', async () => {
-    const { container } = renderDV(tablesFocus)
+  test('Tables → a roll is handed on for the Game log, and kept nowhere here', async () => {
+    const rolled: string[][] = []
+    const { container } = render(
+      <EntityHrefProvider value={() => undefined}>
+        <DisplayPanelFrame
+          content={{
+            kind: 'tables',
+            onRoll: (table, key, text) => rolled.push([table, key, text]),
+          }}
+        />
+      </EntityHrefProvider>
+    )
     const rollBtn = container.querySelector(
       'button[aria-label="Roll on this table"]'
     ) as HTMLButtonElement
     expect(rollBtn).toBeTruthy()
     fireEvent.click(rollBtn)
-    await waitFor(() => expect(container.querySelector('.pc-rollhist-row')).toBeTruthy())
-    // Clear empties the history.
-    fireEvent.click(
-      [...container.querySelectorAll('button')].find(
-        (b) => b.textContent === 'Clear'
-      ) as HTMLButtonElement
-    )
-    expect(container.querySelector('.pc-rollhist')).toBeNull()
-  })
-
-  test('Actions focus → the interactive ActionsDeck (Phase 5)', () => {
-    const focus: DisplayFocus = 'actions'
-    const { container } = renderDV(focus)
-    // The deck renders (list or empty state), never the generic placeholder note.
-    expect(container.querySelector('.pc-display-scroll')).toBeTruthy()
-    expect(container.querySelector('.pc-deck, .pc-deck-empty')).toBeTruthy()
-    expect(container.querySelector('.pc-display-note')).toBeNull()
+    await waitFor(() => expect(rolled).toHaveLength(1))
+    expect(rolled[0]?.[0]).toBe('Core Mechanic')
   })
 
   test('SRD focus → the interactive SrdExplorer (D4)', () => {
@@ -167,28 +163,28 @@ describe('DisplayPanel', () => {
   })
 })
 
-describe('DisplayPicker', () => {
+describe('DisplayPicker (the Reference tab’s entity)', () => {
   const options = [
-    { focus: 'actions', label: 'Actions' },
-    { focus: 'tables', label: 'Tables' },
+    { focus: 'pilot', label: 'Pilot' },
+    { focus: 'mech', label: 'Mech' },
   ] as const
 
-  test('marks the shown view pressed, and asks for another on click', () => {
-    const asked: DisplayFocus[] = []
+  test('marks the shown entity pressed, and asks for another on click', () => {
+    const asked: ReferenceFocus[] = []
     const { getByRole } = render(
-      <DisplayPicker focus="actions" options={options} onFocus={(f) => asked.push(f)} />
+      <DisplayPicker focus="pilot" options={options} onFocus={(f) => asked.push(f)} />
     )
-    expect(getByRole('button', { name: 'Actions' }).getAttribute('aria-pressed')).toBe('true')
-    expect(getByRole('button', { name: 'Tables' }).getAttribute('aria-pressed')).toBe('false')
-    fireEvent.click(getByRole('button', { name: 'Tables' }))
-    expect(asked).toEqual(['tables'])
+    expect(getByRole('button', { name: 'Pilot' }).getAttribute('aria-pressed')).toBe('true')
+    expect(getByRole('button', { name: 'Mech' }).getAttribute('aria-pressed')).toBe('false')
+    fireEvent.click(getByRole('button', { name: 'Mech' }))
+    expect(asked).toEqual(['mech'])
   })
 
   test('is a group of toggle buttons, not a tablist without a keyboard model', () => {
     const { container } = render(
-      <DisplayPicker focus="actions" options={options} onFocus={() => {}} />
+      <DisplayPicker focus="pilot" options={options} onFocus={() => {}} />
     )
-    expect(container.querySelector('fieldset')?.getAttribute('aria-label')).toBe('Display')
+    expect(container.querySelector('fieldset')?.getAttribute('aria-label')).toBe('Reference')
     expect(container.querySelector('[role="tablist"], [role="tab"], [role="listbox"]')).toBeNull()
   })
 })

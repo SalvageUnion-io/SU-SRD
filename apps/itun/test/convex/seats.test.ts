@@ -51,6 +51,7 @@ describe('reading seats', () => {
       mount: { kind: 'foot' },
       range: 'Close',
       activeEffects: [],
+      resolving: null,
       updatedAt: null,
     })
     // Reading creates nothing; rows are created on the first write.
@@ -149,6 +150,81 @@ describe('writing a seat', () => {
       mount: { kind: 'boarded', mechId: 'm2' },
       range: 'Far',
     })
+  })
+})
+
+describe('the resolve in progress (plan §8 A6)', () => {
+  const crush = { ref: 'system:crush', name: 'Crush', activated: false, applied: false }
+
+  test('each step replaces the last, and the crew reads it live', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seatedTable(t)
+    const seat = { gameId, pilotId: 'p1' }
+
+    await player.as.mutation(api.seats.setResolving, { ...seat, resolving: crush })
+    expect((await seatOf(organizer, gameId, 'p1'))?.resolving).toEqual(crush)
+
+    const rolled = { ...crush, activated: true, roll: { roll: 14, band: 'success' as const } }
+    await player.as.mutation(api.seats.setResolving, { ...seat, resolving: rolled })
+    // What a second client, or this one after a reload, reads back.
+    expect((await seatOf(organizer, gameId, 'p1'))?.resolving).toEqual(rolled)
+
+    await player.as.mutation(api.seats.clearResolving, seat)
+    expect((await seatOf(organizer, gameId, 'p1'))?.resolving).toBeNull()
+    expect((await seatRows(t))[0]?.resolving).toBeUndefined()
+  })
+
+  test('a change of mount ends the resolve; re-boarding the same mech does not', async () => {
+    const t = testConvex()
+    const { player, gameId } = await seatedTable(t)
+    const seat = { gameId, pilotId: 'p1' }
+    await player.as.mutation(api.seats.board, { ...seat, mechId: 'm1' })
+    await player.as.mutation(api.seats.setResolving, { ...seat, resolving: crush })
+
+    await player.as.mutation(api.seats.board, { ...seat, mechId: 'm1' })
+    expect((await seatOf(player, gameId, 'p1'))?.resolving).toEqual(crush)
+
+    await player.as.mutation(api.seats.dismount, seat)
+    expect((await seatOf(player, gameId, 'p1'))?.resolving).toBeNull()
+
+    await player.as.mutation(api.seats.setResolving, { ...seat, resolving: crush })
+    await player.as.mutation(api.seats.board, { ...seat, mechId: 'm1' })
+    expect((await seatOf(player, gameId, 'p1'))?.resolving).toBeNull()
+  })
+
+  test('losing the boarded mech ends the resolve', async () => {
+    const t = testConvex()
+    const { player, gameId } = await seatedTable(t)
+    const seat = { gameId, pilotId: 'p1' }
+    await player.as.mutation(api.seats.board, { ...seat, mechId: 'm1' })
+    await player.as.mutation(api.seats.setResolving, { ...seat, resolving: crush })
+    await player.as.mutation(api.entities.removeByAppId, { table: 'mechs', appId: 'm1' })
+    expect(await seatOf(player, gameId, 'p1')).toMatchObject({
+      mount: { kind: 'foot' },
+      resolving: null,
+    })
+  })
+
+  test("nobody else writes a pilot's resolve, the Mediator included", async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seatedTable(t)
+    await organizer.as.mutation(api.games.setMediator, {
+      gameId,
+      userId: organizer.userId,
+      mediator: true,
+    })
+    const seat = { gameId, pilotId: 'p1' }
+    await expect(
+      organizer.as.mutation(api.seats.setResolving, { ...seat, resolving: crush })
+    ).rejects.toThrow(/another player's entity/i)
+    await expect(organizer.as.mutation(api.seats.clearResolving, seat)).rejects.toThrow(
+      /another player's entity/i
+    )
+    const stranger = await makeUser(t, 'Stranger')
+    await expect(stranger.as.mutation(api.seats.clearResolving, seat)).rejects.toThrow(
+      /not a member/i
+    )
+    expect(await seatRows(t)).toHaveLength(0)
   })
 })
 

@@ -1,6 +1,6 @@
 # Dashboard redesign: the Flight Deck
 
-> **Status:** Plan, dated 2026-10-06. Layers 1 to 5 are built; the rest is
+> **Status:** Plan, dated 2026-10-06. Layers 1 to 6 are built; the rest is
 > not. The product decisions in §2 and the answers in §8 were made by the
 > product owner. The decision is recorded in
 > [ADR-038](../ARCHITECTURE.md#adr-038). The
@@ -82,16 +82,17 @@ seats: defineTable({
   ),
   range: v.union(/* 'Close' | 'Medium' | 'Long' | 'Far' */),
   activeEffects: v.array(v.string()), // refs that are switched on
+  // layer 6, optional so every earlier row still validates
+  resolving: v.optional(v.object({ ref, name, activated, roll?, applied })),
   updatedAt: v.number(),
-  // added in layer 6, as v.optional(...): every existing row still validates
-  // resolving: { action ref, step, roll }
 })
   // gameId alone is a prefix: the crew's seats in one read
   .index('by_game_pilot', ['gameId', 'pilotId'])
 ```
 
-Layer 1 built this (#1051). `resolving` is left to layer 6, whose display
-tabs define its shape, rather than guessed now.
+Layer 1 built this (#1051). Layer 6 added `resolving`, the deck action in
+progress: its ref and name, whether it is activated or applied, and the roll.
+A change of mount clears it.
 
 - **Source of truth** is a Zod schema in `apps/itun/src/lib/schemas/seat.ts`.
   `RangeBand` moves there from `dashboardRules.ts`. A parity test in the

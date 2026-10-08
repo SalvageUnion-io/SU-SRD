@@ -760,6 +760,29 @@ body {
   width: 36px;
 }
 
+/* ══ Tabs (`components/chrome/Tabs.tsx`) ════════════════════════════════════
+ *
+ * Colour only: geometry and type are the component's style objects. All three
+ * colour properties change on hover or selection, so each keeps its RESTING
+ * value here. Base UI marks the open tab `data-active`. Unselected text is
+ * ink-75, not ink-50, which fails AA at this size on paper.
+ */
+.su-tab {
+  background-color: var(--su-color-paper);
+  border-color: var(--su-color-ink-20);
+  color: var(--su-color-ink-75);
+}
+
+.su-tab:hover {
+  border-color: var(--su-color-ink-50);
+}
+
+.su-tab[data-active] {
+  background-color: var(--su-color-ink);
+  border-color: var(--su-color-ink);
+  color: var(--su-color-paper);
+}
+
 /* ══ The condensed-caps label ═══════════════════════════════════════════════
  *
  * The `capsLabel` recipe (`components/chrome/capsLabel.ts`), as classes.

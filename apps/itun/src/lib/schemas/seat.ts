@@ -15,8 +15,8 @@ import { z } from 'salvageunion-reference/zod'
  * step.
  *
  * "In Downtime" is deliberately absent: it is the Game's `downtime` row, not
- * per-seat state. The action being resolved joins the seat with the display
- * tabs layer, as an optional field.
+ * per-seat state. The deck action being resolved is on it, as an optional
+ * field, so a reload mid-roll keeps the roll and the crew watches it live.
  */
 
 /** Self-declared engagement range band. */
@@ -31,6 +31,27 @@ const SeatMountSchema = z.discriminatedUnion('kind', [
 ])
 export type SeatMount = z.infer<typeof SeatMountSchema>
 
+/** The Core Mechanic's five bands, as `salvageunion-reference/rules` names them. */
+export const CORE_ROLL_BAND_NAMES = ['nailed', 'success', 'tough', 'failure', 'cascade'] as const
+
+/**
+ * The deck action in progress: which one, and how far the player has got.
+ *
+ * `ref` is the deck's key for the action and `name` what the crew reads
+ * ("Rook is resolving Crush"). Activating, rolling and applying are separate
+ * flags because the flow is not a line: a player may roll before activating,
+ * and Push replaces the roll. The rest of a resolve (a Hot X, the EP-or-AP
+ * choice) stays on the screen that is showing it.
+ */
+const SeatResolvingSchema = z.object({
+  ref: z.string().min(1),
+  name: z.string(),
+  activated: z.boolean(),
+  roll: z.object({ roll: z.number(), band: z.enum(CORE_ROLL_BAND_NAMES) }).optional(),
+  applied: z.boolean(),
+})
+export type SeatResolving = z.infer<typeof SeatResolvingSchema>
+
 export const SeatSchema = z.object({
   /** The Game's Convex id. */
   gameId: z.string().min(1),
@@ -40,5 +61,7 @@ export const SeatSchema = z.object({
   range: RangeBandSchema,
   /** Refs of the activated contributions that are switched on (ADR-029 §4). */
   activeEffects: z.array(z.string()),
+  /** The deck action being resolved; absent when none is. */
+  resolving: SeatResolvingSchema.optional(),
   updatedAt: z.number(),
 })

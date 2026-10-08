@@ -7,7 +7,7 @@ import { linkIdOf, mutation, resolveLinkEnd, rowsInGame } from './model/entities
 import { NotAuthorized, requireMember, requireUser } from './model/permissions'
 import type { SeatState } from './model/seats'
 import { defaultSeat, readSeat, seatsInGame } from './model/seats'
-import { seatRange } from './schema'
+import { seatRange, seatResolving } from './schema'
 
 /**
  * Seats: each pilot's play state in a Game, shared with the crew and saved on
@@ -15,7 +15,9 @@ import { seatRange } from './schema'
  * docs/architecture/dashboard-redesign.md §3).
  *
  * A seat says whether its pilot is on foot or boarded (and in which mech), the
- * range band they declared, and which activated effects are switched on. It is
+ * range band they declared, which activated effects are switched on, and the
+ * deck action they are resolving, if any (plan §8 A6: the crew watches it
+ * live, and a reload mid-roll keeps the roll). It is
  * keyed on the pilot, not the member, so a member covering for an absent player
  * runs two. Mount never becomes a field on a pilot or mech: a seat is its own
  * row that points at both by app id.
@@ -30,6 +32,8 @@ import { seatRange } from './schema'
  *   `mech-to-pilot` link is untouched.
  * - **Rows are created lazily**, on the first write, like `downtime`'s row. A
  *   pilot without one reads as on foot, at Close, with nothing switched on.
+ * - **A change of mount ends a resolve.** The deck it came from is gone, so
+ *   board, dismount and eject clear `resolving` whenever the mount moves.
  *
  * Cleanup lives with the paths that would orphan a seat (`model/seats.ts`).
  */
@@ -77,6 +81,21 @@ async function writeSeat(
 
 const SEAT_ARGS = { gameId: v.id('games'), pilotId: v.string() }
 
+/** Move to `mount`, dropping the resolve in progress if the mount changed. */
+function remount(seat: SeatState, mount: SeatState['mount']): Partial<SeatState> {
+  const same =
+    seat.mount.kind === mount.kind &&
+    (mount.kind === 'foot' || (seat.mount.kind === 'boarded' && seat.mount.mechId === mount.mechId))
+  return same ? { mount } : { mount, resolving: undefined }
+}
+
+/** One pilot's seat as `forGame` returns it: `null`, not absent, for "none yet". */
+type SeatRead = Omit<SeatState, 'resolving'> & {
+  pilotId: string
+  resolving: NonNullable<SeatState['resolving']> | null
+  updatedAt: number | null
+}
+
 /**
  * Every pilot's seat in the Game, one entry per pilot in it.
  *
@@ -94,19 +113,20 @@ export const forGame = query({
     ])
     const byPilot = new Map(rows.map((row) => [row.pilotId, row]))
 
-    const seats = []
+    const seats: SeatRead[] = []
     for (const pilot of pilots) {
       const pilotId = linkIdOf(pilot)
       if (pilotId === undefined) continue
       const row = byPilot.get(pilotId)
       seats.push(
         row === undefined
-          ? { pilotId, ...defaultSeat(), updatedAt: null }
+          ? { pilotId, ...defaultSeat(), resolving: null, updatedAt: null }
           : {
               pilotId,
               mount: row.mount,
               range: row.range,
               activeEffects: row.activeEffects,
+              resolving: row.resolving ?? null,
               updatedAt: row.updatedAt,
             }
       )
@@ -146,9 +166,9 @@ export const board = mutation({
       }
     }
 
-    await writeSeat(ctx, args.gameId, args.pilotId, () => ({
-      mount: { kind: 'boarded', mechId },
-    }))
+    await writeSeat(ctx, args.gameId, args.pilotId, (seat) =>
+      remount(seat, { kind: 'boarded', mechId })
+    )
   },
 })
 
@@ -157,7 +177,7 @@ export const dismount = mutation({
   args: SEAT_ARGS,
   handler: async (ctx, args): Promise<void> => {
     await writablePilot(ctx, args.gameId, args.pilotId)
-    await writeSeat(ctx, args.gameId, args.pilotId, () => ({ mount: { kind: 'foot' } }))
+    await writeSeat(ctx, args.gameId, args.pilotId, (seat) => remount(seat, { kind: 'foot' }))
   },
 })
 
@@ -171,7 +191,7 @@ export const eject = mutation({
   args: SEAT_ARGS,
   handler: async (ctx, args): Promise<void> => {
     await writablePilot(ctx, args.gameId, args.pilotId)
-    await writeSeat(ctx, args.gameId, args.pilotId, () => ({ mount: { kind: 'foot' } }))
+    await writeSeat(ctx, args.gameId, args.pilotId, (seat) => remount(seat, { kind: 'foot' }))
   },
 })
 
@@ -197,5 +217,31 @@ export const toggleEffect = mutation({
         ? seat.activeEffects.filter((ref) => ref !== args.ref)
         : [...seat.activeEffects, args.ref],
     }))
+  },
+})
+
+/**
+ * Record the deck action being resolved and how far it has got: opened,
+ * activated, rolled (with the roll) or applied. Each step replaces the last,
+ * so the crew sees the resolve as it happens and a reload finds the roll.
+ *
+ * The roll itself is the client's: rules math is pure and runs where the
+ * player presses Roll (ADR-006). The seat records it; the Game's change log
+ * keeps it after the resolve is over.
+ */
+export const setResolving = mutation({
+  args: { ...SEAT_ARGS, resolving: seatResolving },
+  handler: async (ctx, args): Promise<void> => {
+    await writablePilot(ctx, args.gameId, args.pilotId)
+    await writeSeat(ctx, args.gameId, args.pilotId, () => ({ resolving: args.resolving }))
+  },
+})
+
+/** The resolve is over: back to the deck. */
+export const clearResolving = mutation({
+  args: SEAT_ARGS,
+  handler: async (ctx, args): Promise<void> => {
+    await writablePilot(ctx, args.gameId, args.pilotId)
+    await writeSeat(ctx, args.gameId, args.pilotId, () => ({ resolving: undefined }))
   },
 })

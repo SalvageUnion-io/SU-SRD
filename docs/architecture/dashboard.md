@@ -2,7 +2,8 @@
 
 > **Changing.** [ADR-038](../ARCHITECTURE.md#adr-038)
 > (accepted) makes the Dashboard Game-only and saves its play state on the
-> Game, and has replaced the Dial with Major and Minor slots. The plan is
+> Game, and has replaced the Dial with Major and Minor slots and the display
+> picker with tabs. The plan is
 > [dashboard-redesign.md](dashboard-redesign.md). This doc describes what is
 > built until the plan's last layer rewrites it.
 
@@ -34,7 +35,8 @@ A fixed **1280×800 canvas** (`DashboardCanvas`), scaled with one
 abandoned for the `.pc-reflow` "rotate to landscape" notice. Overlays may
 scroll internally; the frame never does. `DashboardGrid` places three surfaces:
 
-- **Rail** (`RailBar`) — exit, context stamp, settings; the one hard-bordered
+- **Rail** (`RailBar`) — exit, context stamp, whether play is saved
+  (`SavedIndicator`, from `useConnection()`), settings; the one hard-bordered
   frame besides the display.
 - **Slot row** (`SlotRow`) — one **Major** slot and two **Minors**, placed by
   the mount (`slotLayout.ts`). A Major (`MajorFrame`) is the entity's
@@ -44,10 +46,14 @@ scroll internally; the frame never does. `DashboardGrid` places three surfaces:
   Scrap; its verbs show to the Mediator only. A Minor (`MinorFrame`) shows a
   gauge or two and turns red on an injury, a damaged system or a damaged bay;
   ⤢ opens that entity's Major over the display (`SlotOverlay`).
-- **Display** (`DisplayPanel`) — the only element that reads "forward". A row
-  of toggle buttons (`DisplayPicker`) points it at the Actions deck, an
-  entity's reference card, the tables roller, or the SRD explorer; a deck
-  action enters its resolve flow.
+- **Display** — the only element that reads "forward". The deck
+  (`DeckList`: timing, range and source filters over the action tiles) sits
+  beside the display's tabs (`DisplayTabs`): Resolve (the chosen action,
+  `ResolvePanel`), Reference (the pilot's, mech's or crawler's card, picked by
+  `DisplayPicker`), Tables, SRD, then Log (the Game's rolls and the
+  Mediator's alerts, `LogTab`) and Crew (each crewmate's seat and the action
+  they are resolving, `CrewTab`). A strip along the bottom
+  (`DashboardStrip`) carries the latest alert and the proposal count.
 
 **Mount state** is `pilot | mech | downtime`: Board takes the pilot into a
 mech, Dismount or Eject (confirm-twice) takes them out, and Downtime is
@@ -79,9 +85,10 @@ rather than a description. Do not fork the display for the Dashboard.
 | --------------------------------------------------------- | ------------------------------------------------------- |
 | HP / SP / EP / Heat, conditions, item uses, cargo         | the pilot / mech records (persisted)                    |
 | maxima                                                    | derived (`lib/rules/derivedStats.ts`), never stored     |
-| on foot or boarded (and in which mech), range band, activated effects | the pilot's seat on the Game (`convex/seats.ts`, `useSeat`) |
+| on foot or boarded (and in which mech), range band, activated effects, the action being resolved | the pilot's seat on the Game (`convex/seats.ts`, `useSeat`) |
+| rolls                                                     | the Game's change log (`dashboardRolls.ts`, `changeLog.rolls`) |
 | in Downtime, Downtime wizard step                         | `playStateStore` — ephemeral, resets on reload          |
-| display focus, overlays, filters, resolve progress        | component state                                         |
+| open tab, Reference entity, overlays, deck filters, a Hot X | component state                                       |
 
 Mount state must never reach the pilot/mech schema or a shared sheet: there is no
 "pilot in mech" field, only a `mech-to-pilot` soft link and the seat, its own row
@@ -95,7 +102,12 @@ Live-play writes to the pilot, mech and crawler go through `entityStore.update`,
 exactly the sheet's path ([data flow](../ARCHITECTURE.md#data-flow)). The
 Dashboard's own server surface is the seat: `convex/seats.ts`, written through
 `useSeat`'s mutations with optimistic updates, and refused here while
-Disconnected rather than queued.
+Disconnected rather than queued. Each step of a resolve is a `setResolving`,
+so a reload keeps the roll and the crew watches it; a change of mount clears
+it. Every roll (core, Push, Heat Check, Criticals, tables, Area Salvage) is
+also a Game row in `changeLog` (`entityType 'game'`, `field 'roll'`,
+`source 'dashboard'`, the bot's shape), sent through `commitChangeLog` and
+read back by `changeLog.rolls`.
 
 ### 4.3 The ADR-007 boundary on every control
 
@@ -124,7 +136,8 @@ Vulnerable; it is not Shutdown.
 Actions resolve from the composed entities (`SalvageUnionReference.resolveActions`).
 Hot and Uses are traits, not costs, and the Dashboard derives economy **per
 action** rather than per item. The resolve flow is Activate → Roll → optional
-Push reroll → Apply; pure-effect actions skip to Apply.
+Push reroll → Apply; pure-effect actions skip to Apply. `useActionsDeck` drives
+it and hands `DeckList` and `ResolvePanel` their models.
 
 ### 5.3 Damage → Critical
 
@@ -138,8 +151,8 @@ here. `Dashboard.tsx` resolves `{ pilot, mech, crawler }` with the sheet's own
 `resolveSheetComposition()` and renders `DashboardCanvas` → `DashboardGrid` with
 the three surfaces above. The store-wired containers (`SlotRow` and its
 per-entity `PilotSlot` / `MechSlot` / `CrawlerSlot`, `DisplayPanel`,
-`ActionsDeck`, `DowntimeWizard`) build view models their presentational halves
-render. Memoize per surface so a Heat tick does not
+`useActionsDeck`, `DowntimeWizard`) build view models their presentational
+halves render; `useGameFeed` reads the rest of the table. Memoize per surface so a Heat tick does not
 re-render the display's reference card.
 
 ## 7. Mobile
@@ -169,7 +182,9 @@ open read-only. Shelf sheets show a "Play in a Game" hint instead of a launcher.
 
 Test the wiring, not the rules math: destructive outcomes surface a confirm and
 never auto-write a condition, mount state never reaches `entityStore`, and the
-canvas scale and threshold math holds.
+canvas scale and threshold math holds. A roll round-trips through the log
+(`test/convex/rolls.test.ts`), and the resolve survives a reload and reaches a
+second client (`useSeat.connected.test.tsx`).
 
 ## 10. Accessibility, risks & open questions
 
@@ -179,8 +194,10 @@ No `eval` or `new Function` ([ADR-013](../ARCHITECTURE.md#adr-013)).
 
 ### 10.2 Accessibility (WCAG 2.1 AA)
 
-The slot row and the display picker are plain buttons, the picker's with
-`aria-pressed`; neither claims a composite role it has no keyboard model for.
+The slot row is plain buttons. The display's tabs are component-lib's `Tabs`
+(Base UI): ArrowLeft/Right and Home/End select, and each tab controls its
+panel. The deck's timing, range and source filters and the Reference entity
+picker are toggle buttons with `aria-pressed`, not tabs.
 The ⤢ overlay is a modal dialog: it takes focus, keeps Tab inside, closes on
 Escape and returns focus to ⤢. The Board menu is a list of buttons in the
 Major's overlay, not a `menu`: it focuses the first boardable mech, closes on

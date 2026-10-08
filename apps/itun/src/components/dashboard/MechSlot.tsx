@@ -15,6 +15,9 @@
  * of a self-declared hit auto-apply on a single click; the Critical Damage roll
  * when a hit reaches 0, marking the mech Destroyed, and Eject each take an
  * explicit extra step.
+ *
+ * Every roll here (Push, Heat Check, Critical Damage) also goes to the Game's
+ * log (`dashboardRolls.ts`), where the crew's Log tab reads it.
  */
 
 import type { StepRule } from 'component-lib'
@@ -35,6 +38,7 @@ import type { Mech } from '../../lib/schemas/mech'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import { activatableEffects } from './dashboardEffects'
+import { recordRoll } from './dashboardRolls'
 import {
   critDamagePatch,
   describeCritDamage,
@@ -176,10 +180,19 @@ export function MechMajor({
       currentSP: resolvePoolStart(m.currentSP, spMax),
       roll: rollDie,
     })
+    const log = describePushOutcome(nextHeat, effect)
     runWrite(
       () => store.update('mech', mech.id, patch, DASHBOARD_TXN),
-      () => setPrompt({ kind: 'reactor', log: describePushOutcome(nextHeat, effect), meltdown })
+      () => setPrompt({ kind: 'reactor', log, meltdown })
     )
+    recordRoll(mech, {
+      description: `${mech.name} · Push: ${log}`,
+      result: {
+        kind: 'heat-check',
+        roll: effect.result.heatCheckRoll,
+        outcome: effect.result.outcome ?? 'safe',
+      },
+    })
   }
 
   function doHeatCheck() {
@@ -191,10 +204,19 @@ export function MechMajor({
       currentSP: resolvePoolStart(m.currentSP, spMax),
       roll: rollDie,
     })
+    const log = describeHeatCheck(effect)
     runWrite(
       () => store.update('mech', mech.id, patch, DASHBOARD_TXN),
-      () => setPrompt({ kind: 'reactor', log: describeHeatCheck(effect), meltdown })
+      () => setPrompt({ kind: 'reactor', log, meltdown })
     )
+    recordRoll(mech, {
+      description: `${mech.name} · ${log}`,
+      result: {
+        kind: 'heat-check',
+        roll: effect.result.heatCheckRoll,
+        outcome: effect.result.outcome ?? 'safe',
+      },
+    })
   }
 
   function doVent() {
@@ -236,10 +258,19 @@ export function MechMajor({
 
   function rollCritical() {
     const { patch, effect } = critDamagePatch(rollDie)
+    const log = describeCritDamage(effect)
     runWrite(
       () => store.update('mech', mech.id, patch, DASHBOARD_TXN),
-      () => setPrompt({ kind: 'crit', effect, log: describeCritDamage(effect) })
+      () => setPrompt({ kind: 'crit', effect, log })
     )
+    recordRoll(mech, {
+      description: `${mech.name} · ${log}`,
+      result: {
+        kind: 'critical-damage',
+        roll: effect.result.roll,
+        outcome: effect.result.outcome,
+      },
+    })
   }
 
   function confirmDestroyed() {

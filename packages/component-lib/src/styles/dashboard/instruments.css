@@ -657,7 +657,7 @@
   color: var(--color-ink-50);
 }
 /* ------------------------------------------------------------------------
- * D3 — Tables focus: 5-column category picker + roll history.
+ * D3 — the Tables tab: 5-column category picker (its rolls go to the Log tab).
  * All light-themed to sit on the display "paper" (var(--color-paper) / var(--color-ink)).
  * ------------------------------------------------------------------------ */
 
@@ -669,58 +669,6 @@
 /* The picker trigger is the RollTable header title itself (`titleSelect`), so
  * this focus has no mini-bar of its own — `.pc-tables-bar` / `.pc-tables-lab`
  * were removed with it. */
-
-/* Roll history — last N results with a clear. */
-.pc-rollhist {
-  margin-top: 14px;
-  border-top: var(--bw-chrome) solid var(--color-ink-30);
-  padding-top: 8px;
-}
-.pc-rollhist-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 6px;
-}
-.pc-rollhist-title {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-badge);
-  color: var(--color-ink-50);
-}
-.pc-rollhist-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.pc-rollhist-row {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding: 5px 7px;
-  border: var(--bw-chrome) solid var(--color-ink-30);
-  border-radius: var(--radius-card);
-  background: var(--color-paper);
-}
-.pc-rollhist-src {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-label);
-  color: var(--color-ink-50);
-}
-.pc-rollhist-text {
-  font-family: var(--font-body);
-  font-size: var(--text-note);
-  color: var(--color-ink);
-}
 
 /* Full picker overlay — covers the display area with the 5-column grid. */
 .pc-tablepick {

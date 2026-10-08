@@ -9,7 +9,7 @@ export default { title: 'Compositions/Dashboard/Display Panel' }
  * The main display, "forward" under glass. Here it shows a statful entity focus:
  * a real chassis reference card with entity-level foot controls (the app wires
  * the play verbs + sheet link). Other focuses render the Tables view, the SRD
- * Explorer, or the Actions deck slot.
+ * Explorer — what the Reference, Tables and SRD tabs show.
  */
 export const Default = () => {
   const chassis = SalvageUnionReference.Chassis.all()[0]

@@ -17,6 +17,15 @@
  * The top row is the `SlotRow`: one Major slot and two Minors, placed by the
  * mount (docs/architecture/dashboard-redesign.md D1). ⤢ on a Minor opens that
  * entity's Major over the display (`SlotOverlay`) without moving the slots.
+ *
+ * Below it, the deck (`DeckList`) sits beside the display's tabs
+ * (`DisplayTabs`, D5): an action chosen from the deck opens in the Resolve
+ * tab, and its progress is saved on the seat (`useActionsDeck`). A strip along
+ * the bottom carries the Mediator's latest alert and the proposal count, and
+ * the rail says whether play is being saved. What the rest of the table is
+ * doing — the Game's rolls, alerts and the crew's seats — is `useGameFeed`'s.
+ * Only the screen's arrangement stays on the device (D7): the open tab, the
+ * Reference tab's entity, the deck's filters and the ⤢ overlay.
  */
 
 import { buttonVariants } from 'component-lib'
@@ -25,6 +34,7 @@ import { buttonVariants } from 'component-lib'
 // the one app that renders a dashboard loads it here, and it lands in this
 // route's chunk rather than in every page's stylesheet.
 import 'component-lib/styles/dashboard.css'
+import { borderWidth, color } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
@@ -35,16 +45,27 @@ import type { EntityLookup } from '../sheet/composition'
 import { resolveSheetComposition } from '../sheet/composition'
 import type { BoardSources } from './boardMenu'
 import { boardMenu, NO_BOARD_SOURCES } from './boardMenu'
+import { CrewTab } from './CrewTab'
 import { DashboardCanvas } from './DashboardCanvas'
 import { DashboardGrid } from './DashboardGrid'
-import type { DisplayFocus } from './DisplayPanel'
+import { DashboardStrip } from './DashboardStrip'
+import { DeckList } from './DeckList'
+import type { ReferenceFocus } from './DisplayPanel'
 import { DisplayPanel, DisplayPicker } from './DisplayPanel'
+import type { DisplayTab } from './DisplayTabs'
+import { DisplayTabs } from './DisplayTabs'
 import { DowntimeWizard } from './DowntimeWizard'
+import { LogTab } from './LogTab'
 import { RailBar } from './RailBar'
+import { ResolvePanel } from './ResolvePanel'
+import { SavedIndicator } from './SavedIndicator'
 import { SlotOverlay } from './SlotOverlay'
 import { SlotMajor, SlotRow } from './SlotRow'
 import type { SlotKind } from './slotLayout'
+import { useActionsDeck } from './useActionsDeck'
 import { useBoardSources } from './useBoardSources'
+import type { GameFeed } from './useGameFeed'
+import { crewLines, NO_GAME_FEED, useGameFeed } from './useGameFeed'
 import type { MountState, SeatHandle } from './useSeat'
 import { NO_SEAT, useSeat } from './useSeat'
 
@@ -66,6 +87,7 @@ export function Dashboard({ pilotId, mediator = false }: DashboardProps) {
         pilotId={pilotId}
         seat={NO_SEAT}
         sources={NO_BOARD_SOURCES}
+        feed={NO_GAME_FEED}
         mediator={mediator}
       />
     )
@@ -80,6 +102,7 @@ function SeatedDashboard({ pilotId, mediator }: { pilotId: string; mediator: boo
       pilotId={pilotId}
       seat={useSeat(pilot)}
       sources={useBoardSources(pilot)}
+      feed={useGameFeed(pilot)}
       mediator={mediator}
     />
   )
@@ -87,12 +110,42 @@ function SeatedDashboard({ pilotId, mediator }: { pilotId: string; mediator: boo
 
 const SLOT_LABEL: Record<SlotKind, string> = { pilot: 'Pilot', mech: 'Mech', crawler: 'Crawler' }
 
-/** The display stacks the picker over the panel; the ⤢ overlay covers both. */
+/**
+ * The display region: the deck beside the tabs, over the strip. The ⤢ overlay
+ * covers all of it.
+ */
 const DISPLAY: CSSProperties = {
   position: 'relative',
   display: 'flex',
   flexDirection: 'column',
   height: '100%',
+}
+
+/**
+ * Deck and tabs side by side, the deck a little wider (its tiles pack in
+ * columns). The one row is pinned to the region's height, not its content's,
+ * so each side scrolls inside itself rather than pushing the strip off the
+ * canvas.
+ */
+const DECK_AND_TABS: CSSProperties = {
+  flex: 1,
+  minHeight: 0,
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1fr)',
+  gridTemplateRows: 'minmax(0, 1fr)',
+}
+
+const DECK: CSSProperties = {
+  minHeight: 0,
+  borderRight: `${borderWidth.chrome} solid ${color.ink20}`,
+}
+
+/** The Reference tab: its entity picker over the card. */
+const REFERENCE: CSSProperties = {
+  height: '100%',
+  minHeight: 0,
+  display: 'flex',
+  flexDirection: 'column',
 }
 
 const DISPLAY_BODY: CSSProperties = { flex: 1, minHeight: 0 }
@@ -104,19 +157,23 @@ function DashboardView({
   pilotId,
   seat,
   sources,
+  feed,
   mediator,
 }: {
   pilotId: string
   seat: SeatHandle
-  /** What the Board menu reads from the Game (`useBoardSources`). */
+  /** What the Board menu and the Crew tab read from the Game (`useBoardSources`). */
   sources: BoardSources
+  /** The rest of the table: rolls, alerts, the inbox (`useGameFeed`). */
+  feed: GameFeed
   mediator: boolean
 }) {
   const storeState = useEntityStore()
   const inDowntime = usePlayStateStore((s) => s.downtime)
   const leaveDowntime = usePlayStateStore((s) => s.leaveDowntime)
   // Screen arrangement stays on the device and resets with the page (D7).
-  const [focus, setFocus] = useState<DisplayFocus>('actions')
+  const [tab, setTab] = useState<DisplayTab>('resolve')
+  const [reference, setReference] = useState<ReferenceFocus | null>(null)
   const [expanded, setExpanded] = useState<Expanded | null>(null)
   const pilot = storeState.get('pilot', pilotId)
 
@@ -135,6 +192,17 @@ function DashboardView({
   const crawler = composition.crawler
   // The Major-slot entity drives the whole-canvas tint (proposed ADR-018).
   const mount: MountState = inDowntime ? 'downtime' : boarded ? 'mech' : 'pilot'
+
+  const deck = useActionsDeck({
+    mech,
+    pilot,
+    crawler,
+    mount,
+    range: seat.seat.range,
+    onRange: seat.setRange,
+    resolving: seat.seat.resolving,
+    onResolving: (next) => (next === null ? seat.clearResolving() : seat.setResolving(next)),
+  })
 
   if (!pilot) {
     return (
@@ -171,15 +239,28 @@ function DashboardView({
     mediator,
     store: storeState,
   }
-  const pickable: { focus: DisplayFocus; label: string }[] = [
-    { focus: 'actions', label: 'Actions' },
+  // The Reference tab shows the Major's entity until another is chosen.
+  const referable: { focus: ReferenceFocus; label: string }[] = [
     { focus: 'pilot', label: 'Pilot' },
     ...(mech ? [{ focus: 'mech' as const, label: 'Mech' }] : []),
     ...(crawler ? [{ focus: 'crawler' as const, label: 'Crawler' }] : []),
-    { focus: 'tables', label: 'Tables' },
-    { focus: 'srd', label: 'SRD' },
   ]
-  const shown: DisplayFocus = pickable.some((p) => p.focus === focus) ? focus : 'actions'
+  const majorRef: ReferenceFocus = onFoot || !mech ? 'pilot' : 'mech'
+  const shownRef: ReferenceFocus =
+    reference !== null && referable.some((r) => r.focus === reference) ? reference : majorRef
+  const panel = { mech, pilot, crawler, mount, seat }
+  // Choosing an action from the deck opens it in the Resolve tab.
+  const { list } = deck
+  const deckList =
+    list.kind === 'list'
+      ? {
+          ...list,
+          onOpen: (key: string) => {
+            list.onOpen(key)
+            setTab('resolve')
+          },
+        }
+      : list
   const expandedName =
     expanded === null
       ? ''
@@ -209,6 +290,7 @@ function DashboardView({
                 ◄ Return to Roster
               </AppLink>
             }
+            status={<SavedIndicator gameName={feed.gameName} />}
             onLeaveDowntime={isDowntime ? leaveDowntime : undefined}
           />
         }
@@ -222,22 +304,45 @@ function DashboardView({
         display={
           <div style={DISPLAY}>
             {isDowntime ? (
-              <DowntimeWizard crawler={crawler} mech={mech} pilot={pilot} />
+              <div style={DISPLAY_BODY}>
+                <DowntimeWizard crawler={crawler} mech={mech} pilot={pilot} />
+              </div>
             ) : (
-              <>
-                <DisplayPicker focus={shown} options={pickable} onFocus={setFocus} />
-                <div style={DISPLAY_BODY}>
-                  <DisplayPanel
-                    focus={shown}
-                    mech={mech}
-                    pilot={pilot}
-                    crawler={crawler}
-                    mount={mount}
-                    seat={seat}
-                  />
-                </div>
-              </>
+              <div style={DECK_AND_TABS}>
+                <section aria-label="Actions" style={DECK}>
+                  <DeckList view={deckList} />
+                </section>
+                <DisplayTabs
+                  tab={tab}
+                  onTab={setTab}
+                  panels={{
+                    resolve: <ResolvePanel view={deck.resolve} />,
+                    reference: (
+                      <div style={REFERENCE}>
+                        <DisplayPicker
+                          focus={shownRef}
+                          options={referable}
+                          onFocus={setReference}
+                        />
+                        <div style={DISPLAY_BODY}>
+                          <DisplayPanel focus={shownRef} {...panel} />
+                        </div>
+                      </div>
+                    ),
+                    tables: <DisplayPanel focus="tables" {...panel} />,
+                    srd: <DisplayPanel focus="srd" {...panel} />,
+                    log: <LogTab rolls={feed.rolls} alerts={feed.alerts} />,
+                    crew: <CrewTab crew={crewLines(sources, pilotId)} />,
+                  }}
+                />
+              </div>
             )}
+            <DashboardStrip
+              gameName={feed.gameName}
+              gameHref={feed.gameHref}
+              alerts={feed.alerts}
+              inbox={feed.inbox}
+            />
             {expanded ? (
               <SlotOverlay
                 title={`${SLOT_LABEL[expanded.kind]} · ${expandedName}`}

@@ -127,7 +127,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   heat check are assembled as patches in
   `src/components/dashboard/dashboardRules.ts` (`activationPatch`,
   `heatCheckOncePatch`, `pushPatch`, `mechDamagePatch`, …) and applied by
-  `ActionsDeck.tsx` and the slots (`MechSlot.tsx`, `PilotSlot.tsx`,
+  `useActionsDeck.ts` and the slots (`MechSlot.tsx`, `PilotSlot.tsx`,
   `CrawlerSlot.tsx`) as one write-through
   ([ADR-008](../../docs/ARCHITECTURE.md#adr-008),
   [ADR-021](../../docs/ARCHITECTURE.md#adr-021)).

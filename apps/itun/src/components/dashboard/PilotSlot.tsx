@@ -29,6 +29,7 @@ import { usePlayStateStore } from '../../stores/playStateStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import { BoardControl, BoardMenuList } from './BoardControl'
 import type { BoardMenu, BoardOption } from './boardMenu'
+import { recordRoll } from './dashboardRolls'
 import { critInjuryPatch, describeCritInjury, pilotDamagePatch } from './dashboardRules'
 import type { MajorModel } from './MajorFrame'
 import { MajorFrame } from './MajorFrame'
@@ -143,10 +144,20 @@ export function PilotMajor({
 
   function rollInjury() {
     const { patch, effect } = critInjuryPatch(rollDie)
+    const log = describeCritInjury(effect)
     runWrite(
       () => store.update('pilot', pilot.id, patch, DASHBOARD_TXN),
-      () => setPrompt({ kind: 'crit', effect, log: describeCritInjury(effect) })
+      () => setPrompt({ kind: 'crit', effect, log })
     )
+    // The Game's log, for the crew's Log tab (`dashboardRolls.ts`).
+    recordRoll(pilot, {
+      description: `${pilot.name} · ${log}`,
+      result: {
+        kind: 'critical-injury',
+        roll: effect.result.roll,
+        outcome: effect.result.outcome,
+      },
+    })
   }
 
   const overlay = ((): MajorModel['overlay'] => {

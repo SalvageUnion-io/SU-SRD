@@ -108,7 +108,7 @@ function clickButton(name: RegExp) {
 describe('MechSheet — no Use transaction on the Free-Edit sheet (ADR-021)', () => {
   test('a system offers no Use button — using a system is a Dashboard act', () => {
     // Push / Heat Check / "use a system" are Guided-Play transactions that live
-    // on the Dashboard (see play/ActionsDeck), never on the Free-Edit Live Sheet.
+    // on the Dashboard (see dashboard/useActionsDeck), never on the Free-Edit Live Sheet.
     const mech = makeMech({ systems: ['Smoke Machine'], currentEP: 5 })
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, [])} />)
 
