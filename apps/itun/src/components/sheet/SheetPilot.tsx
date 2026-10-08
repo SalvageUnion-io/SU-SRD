@@ -20,7 +20,6 @@ import { AssignPicker } from '../wiring/AssignPicker'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { PilotSheet } from './PilotSheet'
-import { PlayInGameHint } from './PlayInGameHint'
 import { crawlerRailItems, mechRailItems, mechStatusPill, rowStats } from './railStats'
 import { RailCta, WithheldUnitRow } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
@@ -190,18 +189,7 @@ export function SheetPilot({
       strip={strip}
       back={back}
       segments={segments}
-      actions={
-        editable ? (
-          <>
-            {/* The Dashboard is Game-only (ADR-038 §1): a Game pilot plays
-                from the roster's Play button, a shelf pilot is told where. */}
-            {container.kind === 'shelf' && <PlayInGameHint />}
-            {actions}
-          </>
-        ) : (
-          actions
-        )
-      }
+      actions={actions}
       renderBody={() => (
         <PilotSheet
           pilot={pilot}

@@ -157,11 +157,15 @@ who ejected and nothing else records it.
   open Dashboard falls back to the shell if the Game loses its Mediator.
 - Disconnected is not a refusal. The Dashboard stays open read-only, as
   `writesAllowed()` already does for the sheets.
-- **Entry point:** a Play button on your own pilot rows in the Game roster
-  (`GameRoster.tsx`), replacing the mech-row Dashboard button. The button
-  appears only when the Game has a Mediator. The `DashboardChooser`
+- **Entry point:** Launch Dashboard at the top of the Game hub
+  (`LaunchDashboard.tsx` in `GameHub.tsx`, #1103), for players and the
+  Mediator alike, shown only when the Game has a Mediator. Its dialog asks
+  only for the pilot, from those this browser holds (the gate opens no
+  other), pre-selecting one you own. It replaced the roster's
+  per-row Play button and the shelf sheets' "Play in a Game" hint, which
+  themselves replaced the mech-row Dashboard button. The `DashboardChooser`
   wizard and its mounts in `Roster.tsx`, `SheetPilot.tsx` and `SheetMech.tsx`
-  are retired. Shelf sheets show a "Play in a Game" hint instead.
+  are retired; no sheet launches the Dashboard.
 - `dashboardLaunch.ts` (stand-in mech from a pattern, base crawler of a Tech
   Level) and `dashboardLinks.ts` are deleted with the chooser. Stand-ins are
   dropped (§8 A5): in a Game a mech is a real crew asset, built on the sheet

@@ -79,7 +79,7 @@ export function DashboardGate({ id }: { id: string }) {
     return (
       <DashboardRefusal
         title="Sign in to play"
-        body="The Dashboard runs a pilot in a Game with a Mediator. Sign in, join a Game, and press Play on your pilot in its roster."
+        body="The Dashboard runs a pilot in a Game with a Mediator. Sign in, open your Game, and press Launch Dashboard."
         link={TO_ROSTER}
       />
     )
@@ -129,7 +129,7 @@ function SignedInGate({ id, offline }: { id: string; offline: boolean }) {
         body={
           mech === null
             ? 'It may have been deleted, or not reached this browser yet.'
-            : `The Dashboard runs a pilot now. Assign ${mech.name} to a pilot, then press Play on the pilot in its Game's roster.`
+            : `The Dashboard runs a pilot now. Assign ${mech.name} to a pilot, then press Launch Dashboard in its Game.`
         }
         link={TO_ROSTER}
       />

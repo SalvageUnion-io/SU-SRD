@@ -8,6 +8,9 @@
  * now: the hub at `/`, which already listed My Stuff, lists a Game the same way
  * and puts everything you can do about the table below the lists —
  *
+ *  0. **Launch Dashboard** (`LaunchDashboard`), at the top: the one way into
+ *     the Dashboard, for players and the Mediator alike, while the Game has a
+ *     Mediator. It asks only which pilot to play.
  *  1. **The roster** (`GameRoster`): the three columns, yours first.
  *  2. **Game** — every member: the answer queue, Downtime; and, for the
  *     Organizer, invites, who mediates, and ending the game.
@@ -37,6 +40,7 @@ import { DowntimePanel } from './DowntimePanel'
 import { GamePanel, GameSection } from './GamePanel'
 import { GameRoster } from './GameRoster'
 import { InvitePanel } from './InvitePanel'
+import { LaunchDashboard } from './LaunchDashboard'
 import { MediatorPanel } from './MediatorPanel'
 import { MediatorSection } from './MediatorTools'
 import { ProposalInbox } from './ProposalInbox'
@@ -159,6 +163,7 @@ export function GameHub({ gameId, activeSegment, onSegmentChange }: GameHubProps
 
   return (
     <>
+      <LaunchDashboard gameId={gameId} />
       <GameRoster
         gameId={gameId}
         gameName={game.name}

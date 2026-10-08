@@ -476,9 +476,8 @@ Zustand stores, with no combat RPCs, no turn enforcement and no undo (the
 `changeLog` is provenance). Each player updates their own mech. Rules math is
 pure and shared ([ADR-006](#adr-006)); bookkeeping
 auto-applies, destruction waits for the player
-([ADR-007](#adr-007)). The Dashboard opens only for a pilot in a Game with a
-Mediator ([ADR-038](#adr-038)); Solo play, and play in a Game with no
-Mediator, is on the live sheet.
+([ADR-007](#adr-007)). Without a Game and a Mediator
+([ADR-038](#adr-038)), play is on the live sheet.
 
 ```typescript
 // salvageunion-reference/rules — lib/rules/heatCheck.ts
@@ -5352,7 +5351,8 @@ The Dashboard opens only for a pilot in a Game that has a Mediator. A solo
 player can make themselves Mediator of their own Game. Shelf pilots, anonymous
 sessions and Games with no Mediator get no Dashboard. Those players use the
 live sheet, editing it by hand, including for Downtime. A disconnected session
-keeps an open Dashboard read-only, as the sheets do.
+keeps an open Dashboard read-only, as the sheets do. It launches
+only from the Game hub, which asks just for the pilot.
 
 The Dashboard is for pilots. A Mediator who plays a pilot uses it like anyone
 else. A Mediator Dashboard is a separate, later decision.

@@ -136,7 +136,8 @@ export function isTableRunner(viewerId: string | null, members: readonly GameMem
 /**
  * Whether anybody mediates this Game. Mirrors `gameHasMediator` in
  * `convex/model/permissions.ts`. The Dashboard opens only when this is true
- * (ADR-038 §1), so the roster offers Play by it and the route checks it live.
+ * (ADR-038 §1), so the Game hub offers Launch Dashboard by it and the route
+ * checks it live.
  */
 export function gameHasMediator(members: readonly GameMember[]): boolean {
   return members.some((m) => m.mediator)
@@ -247,14 +248,22 @@ export function groupColumn(rows: readonly RosterRow[]): RosterColumnGroups {
 }
 
 /**
+ * The id a route addresses a row by: the app id every link uses; a template
+ * pre-gen has none and goes by its body id, and a row with neither by its row
+ * id. The sheet route and the Dashboard's both take it.
+ */
+export function rosterEntityId(row: RosterRow): string {
+  const bodyId = typeof row.body.id === 'string' && row.body.id.length > 0 ? row.body.id : null
+  return row.appId ?? bodyId ?? row.serverId
+}
+
+/**
  * The sheet a row opens: the live sheet route, one address whoever looks —
- * `SheetView` makes it editable or read-only. Addressed by the app id every
- * link uses; a template pre-gen has none and goes by its body id, and a row with
- * neither by its row id, which the route also resolves.
+ * `SheetView` makes it editable or read-only — at `rosterEntityId`, which the
+ * route resolves in every form.
  */
 export function rosterSheetHref(row: RosterRow): string {
-  const bodyId = typeof row.body.id === 'string' && row.body.id.length > 0 ? row.body.id : null
-  return `/sheet/${row.kind}/${row.appId ?? bodyId ?? row.serverId}`
+  return `/sheet/${row.kind}/${rosterEntityId(row)}`
 }
 
 /** Best-effort display name off an opaque server body. */

@@ -211,9 +211,17 @@ No-scroll is a landscape-desktop contract.
 ## 8. Launch flow
 
 The Dashboard opens for a pilot in a Game that has a Mediator
-([ADR-038](../ARCHITECTURE.md#adr-038) §1),
-from the Play button on your own pilot rows in the Game roster
-(`GameRoster.tsx`), shown only while the Game has a Mediator. The route keys on
+([ADR-038](../ARCHITECTURE.md#adr-038) §1), and from one place: **Launch
+Dashboard** at the top of the Game hub, the page `/` shows once a Game is
+picked (`LaunchDashboard.tsx`, mounted by `GameHub.tsx`). Players and the
+Mediator see it alike, only while the Game has a Mediator; without one the hub
+says the Dashboard opens once it has one. It opens a dialog whose one choice is
+the pilot: the Game's pilots this browser holds, yours first, with your first
+one pre-selected. A viewer who owns none of them picks one, and **Launch** goes
+to `/dashboard/$pilotId`. The gate reads the pilot from the local store, which
+never holds a crewmate's pilot, so neither it nor a pre-gen made in another
+browser is offered; a viewer holding none is told so.
+No roster row, live sheet or Games-menu item launches it. The route keys on
 the pilot; its mech is the one its seat has boarded (§2), or on foot the one
 assigned to it (`mech-to-pilot`), and its crawler its own (`pilot-to-crawler`).
 A pilot with no assigned mech plays on foot and boards from the Board menu. An
@@ -223,14 +231,16 @@ old mech-keyed URL redirects to the mech's pilot.
 session, a shelf pilot, a non-member and a Game with no Mediator each get a
 shell saying what is missing, and an open Dashboard falls back to the shell if
 the Game loses its Mediator. Disconnected is not a refusal; the Dashboard stays
-open read-only. Shelf sheets show a "Play in a Game" hint instead of a launcher.
+open read-only. The gate does not open a crewmate's pilot: it is not in this
+browser, so it gets "Pilot not found". Their read-only sheet is on the roster.
 
 ## 9. Testing
 
 Test the wiring, not the rules math: destructive outcomes surface a confirm and
 never auto-write a condition, mount state never reaches `entityStore`, and the
 canvas scale and threshold math holds. The gate's refusals are
-`DashboardGate.connected.test.tsx`. The seat's permissions and cleanup are
+`DashboardGate.connected.test.tsx`; the launcher and its picker are
+`GameHub.connected.test.tsx`. The seat's permissions and cleanup are
 `test/convex/seats.test.ts`, its Zod and Convex unions are kept in step by
 `test/convex/seatSchemaParity.test.ts`, and the server's crew status equals the client's
 (`test/convex/crewStatus.test.ts`). A roll round-trips through the log
