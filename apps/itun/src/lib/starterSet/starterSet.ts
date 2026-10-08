@@ -19,7 +19,7 @@
  *     These rows used to sit in their own Workspace, which is what kept them
  *     out of the user's own builds; with Workspaces retired there is no such
  *     container, so isolation now comes from the seed being opt-in rather than
- *     from where the rows live. See `seedStarterSet.ts` for the full reasoning.
+ *     from where the rows live. Copied, never seeded, since: see `copyStarter.ts`.
  *
  * Slugs verified against the reference dataset — the seed test
  * (`__tests__/starterSet.test.ts`) fails if any ref stops resolving.

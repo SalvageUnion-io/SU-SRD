@@ -116,7 +116,7 @@ const MIGRATIONS: ReadonlyArray<Migration> = [
   },
   // NOTE: the built-in Starter Set is NOT seeded by a migration. It is spawned
   // on-demand into each browser the first time the user opens the Starter Set
-  // workspace — see lib/starterSet/seedStarterSet.ts. The built-in DEFAULT
+  // workspace — see seedStarterSet.ts (since deleted). The built-in DEFAULT
   // workspace, by contrast, IS created (and backfilled) by the v10 migration
   // above — it is mandatory, not on-demand.
 ]

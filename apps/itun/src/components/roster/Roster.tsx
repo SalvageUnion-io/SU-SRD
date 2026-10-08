@@ -30,20 +30,10 @@
  *      delete keeps the dialog open with the reason.
  */
 
-import type { EntityRowStat } from 'component-lib'
-import {
-  Button,
-  buttonVariants,
-  cn,
-  EntityRow,
-  PageShell,
-  RosterSkeleton,
-  Stat,
-} from 'component-lib'
+import { buttonVariants, cn, EntityRow, PageShell, RosterSkeleton, Stat } from 'component-lib'
 import { UserRound } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
 import {
   useCrawlers,
   useHydrateEntities,
@@ -56,9 +46,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import type { ContainerFields } from '../../lib/container'
 import { containerOf, sameContainer } from '../../lib/container'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
-import { readReference } from '../../lib/readReference'
 import type { SoftLink } from '../../lib/schemas/softLink'
-import { copyStarterSetToRoster, isStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
 import { setActiveContainer, useActiveContainer } from '../../stores/activeContainerStore'
 import type { EntityType } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
@@ -72,70 +60,14 @@ import { InvitationsForYou } from '../games/InvitationsForYou'
 import { NewGameControl } from '../games/NewGameControl'
 import { AppLink } from '../shared/AppLink'
 import { useConfirm } from '../shared/useConfirm'
+import { StarterSetRoster } from '../starterSet/StarterSetRoster'
 import type { SegmentKind } from './RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from './RosterColumn'
+import { crawlerStats, mechChassisStats, pilotStats } from './rowStats'
 
 // ---------------------------------------------------------------------------
 // Row-meta helpers
 // ---------------------------------------------------------------------------
-
-/**
- * A mech row's stats: `CHASSIS | Iron Mongrel`, and `TL | 1` beside it.
- *
- * These used to be one caption string, "Iron Mongrel · TL 1" — two facts joined
- * by a separator, which is the shape `Stat` exists to replace. TL is its own
- * stat rather than a suffix for the same reason.
- *
- * resolveChassisRef is slug/name/id tolerant; stored refs are slugs, so a
- * name-only match here would fall through to the raw slug for every mech.
- * `readReference` falls back to the raw ref when the Chassis model isn't
- * preloaded (some test/snapshot contexts) rather than crash.
- */
-function mechChassisStats(chassisRef: string): EntityRowStat[] | undefined {
-  if (!chassisRef) return undefined
-  const resolved = readReference(
-    'Roster.mechChassisStats',
-    () => resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null,
-    null
-  )
-
-  const stats: EntityRowStat[] = [{ label: 'Chassis', value: resolved?.name ?? chassisRef }]
-  if (resolved?.techLevel != null) stats.push({ label: 'TL', value: resolved.techLevel })
-  return stats
-}
-
-/**
- * A crawler row's stats: `TL | 2`, `BAYS | 3`.
- *
- * Was the caption string "TL 2 · 3 bays" — the same two-facts-one-separator
- * shape the chassis had, and the same fix. These are the labels the crew roster
- * already used, so the two surfaces now read identically.
- */
-function crawlerStats(techLevel: string, bayCount: number): EntityRowStat[] {
-  const tl = techLevel.replace(/[^0-9]/g, '')
-  const stats: EntityRowStat[] = []
-  if (tl) stats.push({ label: 'TL', value: tl })
-  stats.push({ label: 'Bays', value: bayCount })
-  return stats
-}
-
-/**
- * A pilot row's header stats: `CLASS | Scavenger`, `CALLSIGN | Ghost`.
- *
- * These lived in the body as tone-tinted chips. They are `label | value` facts
- * like any other, so they belong in the band with the rest, on the plain ink
- * label plate every other stat uses — the tint was a second way of saying what
- * the band already says.
- *
- * No HP/AP here: a roster answers "what have I got", not "how hurt is it".
- */
-function pilotStats(classRef: string, callsign?: string): EntityRowStat[] | undefined {
-  const stats: EntityRowStat[] = []
-  const className = resolveClassName(classRef)
-  if (className) stats.push({ label: 'Class', value: className })
-  if (callsign) stats.push({ label: 'Callsign', value: callsign })
-  return stats.length > 0 ? stats : undefined
-}
 
 /**
  * The row's body details, blanks dropped.
@@ -293,28 +225,6 @@ export function Roster() {
    */
   const isFirstRun = allPilots.length === 0 && allMechs.length === 0 && allCrawlers.length === 0
 
-  /**
-   * Copy the built-in Starter Set into this account (idempotent, opt-in).
-   *
-   * The templates are reference data that belong to nobody; this makes a copy
-   * the player owns, through the ordinary create path so it reaches the server
-   * of record like anything else they build.
-   *
-   * `isStarterSetSeeded` reads the entity store, so it re-evaluates on the
-   * rehydrate the seed performs — the button disappears on its own once the
-   * rows land, with no extra state to keep in sync.
-   */
-  const starterSeeded = allPilots.length > 0 && isStarterSetSeeded()
-  const [seedingStarter, setSeedingStarter] = useState(false)
-  async function handleLoadStarterSet() {
-    setSeedingStarter(true)
-    try {
-      await copyStarterSetToRoster()
-    } finally {
-      setSeedingStarter(false)
-    }
-  }
-
   function openDeleteDialog(type: EntityType, id: string, name: string) {
     confirm({
       ...ROW_ACTION_COPY.deleteBuild(name),
@@ -322,13 +232,14 @@ export function Roster() {
     })
   }
 
-  // Signed out, there is nothing to list and nothing may be built: every build
-  // lives in an account (ADR-034 as amended).
+  // Signed out, there is nothing of theirs to list and nothing may be built:
+  // every build lives in an account (ADR-034 as amended).
+  // The Starter Set stays open to them: reading it needs no account.
   if (mode === 'solo') {
     return (
       <PageShell>
-        <h1 className="sr-only">Saved Builds</h1>
         <SignInToBuild title="Welcome to In the Union Now" />
+        <StarterSetRoster />
       </PageShell>
     )
   }
@@ -344,22 +255,14 @@ export function Roster() {
           <div className="flex flex-wrap items-start gap-2.5">
             <ExportAllButton />
             <ImportButton />
-            {/* The built-in Starter Set, opt-in. It used to be an entry in the
-                Workspace switcher; with no Workspaces to switch between it
-                needs its own affordance, and it disappears once loaded so it
-                never becomes permanent chrome. It copies into My Stuff, so it
-                is not offered while a Game is showing: `create` stamps the
-                active container, and the set would land in the Game instead. */}
-            {!starterSeeded && shownGameId === null && (
-              <Button
-                variant="ghost"
-                size="compact"
-                disabled={seedingStarter}
-                onClick={() => void handleLoadStarterSet()}
-              >
-                {seedingStarter ? 'Loading…' : 'Load Starter Set'}
-              </Button>
-            )}
+            {/* The Starter Set: Leyline Press's pre-generated crew, read-only
+                reference you copy from rather than builds of your own. */}
+            <AppLink
+              href="/starter"
+              className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
+            >
+              Starter Set
+            </AppLink>
           </div>
           {/* What the hub shows, and how to get another table to show: the
               select lists My Stuff and every Game, and "+ New game" adds one.

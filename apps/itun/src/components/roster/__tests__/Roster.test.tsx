@@ -33,8 +33,6 @@ const { ConnectionContext } = await import('../../../lib/connection/connectionCo
 const { _clearAllStores, _resetDbSingleton } = await import('../../../lib/db/index')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { Roster } = await import('../Roster')
-const { STARTER_SOFT_LINKS } = await import('../../../lib/starterSet/starterSet')
-const STARTER_LINK_COUNT = STARTER_SOFT_LINKS.length
 
 withSignedInBackend()
 
@@ -207,22 +205,35 @@ describe('Roster — section headings', () => {
   })
 })
 
-describe('Roster — signed out, it is a sign-in panel and nothing else', () => {
+describe('Roster — signed out, it is a sign-in panel and the Starter Set', () => {
   // Outside any provider the connection is Solo: a signed-out visitor. Every
-  // build lives in an account (ADR-034 as amended), so there is nothing to
-  // list, nothing to create, and nothing to import into.
-  test('no roster, no create, no import, no game UI', async () => {
+  // build lives in an account (ADR-034 as amended), so there is nothing of
+  // theirs to list, create or import — but the Starter Set is reference, and
+  // reading it needs no account.
+  test('no create, no import, no game UI', async () => {
     await act(async () => {
       render(<Roster />)
     })
 
     expect(screen.getByRole('heading', { name: 'Welcome to In the Union Now' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
-    expect(screen.queryByRole('heading', { name: 'Pilots' })).toBeNull()
     expect(screen.queryByRole('link', { name: /Create Pilot|Build your first pilot/ })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Import…' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Load Starter Set' })).toBeNull()
     expect(screen.queryByRole('button', { name: '+ New game' })).toBeNull()
+  })
+
+  test('the Starter Set is listed read-only, owned by Leyline Press, with nothing to copy yet', async () => {
+    await act(async () => {
+      render(<Roster />)
+    })
+
+    expect(screen.getByRole('heading', { name: 'Starter Set' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'View Bonesaw' }).getAttribute('href')).toContain(
+      '/starter/pilot/'
+    )
+    expect(screen.getAllByText('Leyline Press').length).toBeGreaterThan(0)
+    expect(screen.getByText(/Sign in to copy one/)).toBeTruthy()
+    expect(screen.queryByLabelText(/^Copy .* to…$/)).toBeNull()
   })
 })
 
@@ -279,53 +290,16 @@ describe('Roster — first-run welcome', () => {
   })
 })
 
-describe('Roster — Starter Set (spawned on demand)', () => {
-  // The Starter Set is NOT pre-seeded. With Workspaces retired it is no longer
-  // an entry in a switcher; it has its own button, which spawns it onto the
-  // Shelf via copyStarterSetToRoster and then disappears.
-
-  test('a fresh user sees the welcome screen and a Load Starter Set button, nothing seeded yet', async () => {
+describe('Roster — Starter Set', () => {
+  // Reference, not builds: the header links its own page rather than seeding
+  // it into My Stuff.
+  test('the header links the Starter Set, and nothing is seeded into My Stuff', async () => {
     await renderRoster()
 
-    expect(screen.getByRole('heading', { name: /Welcome to In the Union Now/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Load Starter Set' })).toBeTruthy()
-    // Nothing spawned yet — no crew rendered.
-    expect(screen.queryByText('Bonesaw')).toBeFalsy()
-  })
-
-  test('loading the Starter Set spawns it into the browser and renders the crew', async () => {
-    await renderRoster()
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Load Starter Set' }))
-    })
-    // Seeding is async (IndexedDB write + rehydrate) — settle until the crew shows.
-    //
-    // getAll, not get: a crew member's name now appears BOTH in its own row's
-    // name tab and in the tone-tinted cross-link badge on every row wired to
-    // it. The badge used to read '↳ Bonesaw', which no exact-text query
-    // matched; it now reads 'Bonesaw' exactly, so a singular query throws on
-    // multiple matches instead of returning the row.
-    // Settle on the CRAWLER, which is created last.
-    //
-    // The copy is now incremental — every row goes through `entityStore.create`
-    // and commits to the server of record on its own, rather than landing as
-    // one bulk `atomicWrite` followed by a rehydrate. So pilots appear before
-    // mechs, and waiting on a pilot then asserting a mech is a race the old
-    // all-at-once write happened to hide.
-    //
-    // Incremental is the intended behaviour, not a regression: a row that saves
-    // is saved, where the bulk write lost everything if any part of it failed.
-    await settle(() => screen.queryAllByText("Crawler #430 'Tenacity'").length > 0)
-    // The soft links are created after the crawler. Wait for them too, or the
-    // copy is still writing when this file signs back out, and that write is
-    // refused as an unhandled error between tests.
-    await settle(() => useEntityStore.getState().list('softLink').length >= STARTER_LINK_COUNT)
-
-    expect(screen.getByRole('heading', { name: 'Pilots' })).toBeTruthy()
-    expect(screen.getAllByText('Bonesaw').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Scrapper').length).toBeGreaterThan(0)
-    expect(screen.getAllByText("Crawler #430 'Tenacity'").length).toBeGreaterThan(0)
+    const link = screen.getByRole('link', { name: 'Starter Set' })
+    expect((link as HTMLAnchorElement).href).toContain('/starter')
+    expect(screen.queryByRole('button', { name: 'Load Starter Set' })).toBeNull()
+    expect(screen.queryByText('Bonesaw')).toBeNull()
   })
 })
 
