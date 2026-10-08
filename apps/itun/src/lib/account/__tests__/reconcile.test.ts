@@ -30,7 +30,7 @@ function recordingClaim(
   const calls: Record<string, unknown>[] = []
   const fn = async (args: Record<string, unknown>) => {
     calls.push(args)
-    return { strandedIds: [], ...result, declined: 0, byKind: {} }
+    return { ...result, declined: 0, byKind: {} }
   }
   return { fn, calls }
 }

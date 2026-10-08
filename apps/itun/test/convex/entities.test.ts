@@ -488,7 +488,7 @@ describe('claiming local data on first sign-in', () => {
     expect(result.skipped).toBe(1)
   })
 
-  test('strandedIds names exactly the skipped and already-present rows', async () => {
+  test('a mixed pass counts skipped and already-present rows of every kind', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
     const link = {
@@ -509,34 +509,17 @@ describe('claiming local data on first sign-in', () => {
       pilots: [
         pilotBody(), // already present
         pilotBody({ id: 'p2' }), // lands
-        { id: 'broken-with-id', totally: 'broken' }, // skipped, nameable
-        { totally: 'broken' }, // skipped, has no id to name
+        { id: 'broken-with-id', totally: 'broken' }, // skipped
+        { totally: 'broken' }, // skipped
       ],
       mechs: [],
       softLinks: [link, { id: 'bad-link', from: { type: 'nope' } }],
       mechPatterns: [patternBody(), patternBody({ id: 'pat2' })],
     })
 
-    // A caller settles `work - strandedIds` as saved, so a landed row here
-    // would be resent forever and a refused one here would be lost.
     expect(result.claimed).toBe(2)
     expect(result.skipped).toBe(3)
     expect(result.alreadyPresent).toBe(3)
-    expect(new Set(result.strandedIds)).toEqual(
-      new Set(['p1', 'broken-with-id', 'l1', 'bad-link', 'pat1'])
-    )
-    expect(result.strandedIds).not.toContain('p2')
-    expect(result.strandedIds).not.toContain('pat2')
-  })
-
-  test('a fully landed claim names nothing as stranded', async () => {
-    const t = testConvex()
-    const u = await makeUser(t, 'A')
-    const result = await u.as.mutation(api.claim.claimLocal, {
-      pilots: [pilotBody()],
-      mechs: [],
-    })
-    expect(result.strandedIds).toEqual([])
   })
 
   test('an anonymous caller cannot claim', async () => {
