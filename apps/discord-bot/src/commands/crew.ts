@@ -1,8 +1,7 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
-import { buildCrewEmbed, buildSheetEmbed } from '../gameEmbed.js'
+import { crewCard, ITUN_ORIGIN, sheetCard } from '../gameCards.js'
 import type { EntityBody } from '../itun/types.js'
-import { itunSettings } from '../itunSettings.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { itun, respondWithItun } from './itunReply.js'
 
@@ -37,7 +36,7 @@ export const crewCommand = {
     await respondWithItun(interaction, {
       visibility: 'public',
       call: (client) => client.crew(interaction.user.id, channelId),
-      render: (value) => buildCrewEmbed(value, itunSettings().webUrl),
+      render: (value) => crewCard(value, ITUN_ORIGIN),
     })
   },
 }
@@ -76,13 +75,12 @@ export const sheetCommand = {
    */
   async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
     const channelId = interaction.channelId
-    const client = itun()
-    if (client === null || channelId === null) {
+    if (channelId === null) {
       await interaction.respond([])
       return
     }
 
-    const result = await client.crewForAutocomplete(interaction.user.id, channelId)
+    const result = await itun().crewForAutocomplete(interaction.user.id, channelId)
     if (result.kind !== 'ok') {
       await interaction.respond([])
       return
@@ -158,7 +156,7 @@ export const sheetCommand = {
     // future change that would break it silently.
     await respondWithItun(interaction, {
       call: (client) => client.sheet(interaction.user.id, channelId, table, entityId),
-      render: (value) => buildSheetEmbed(value, itunSettings().webUrl),
+      render: (value) => sheetCard(value, ITUN_ORIGIN),
     })
   },
 }

@@ -15,8 +15,8 @@ import type { APIMessageTopLevelComponent, MessageFlags } from 'discord-api-type
  * A top-level message component, either raw or as a builder.
  *
  * `@discordjs/builders`' `ContainerBuilder` / `ActionRowBuilder` satisfy this
- * through `toJSON()`, which is exactly what the HTTP adapter calls before the
- * payload goes over the wire (`http/adapter.ts`, `toPlainPayload`).
+ * through `toJSON()`, which `JSON.stringify` calls when the payload goes over
+ * the wire (`http/adapter.ts`).
  */
 export type ReplyComponent = APIMessageTopLevelComponent | { toJSON(): APIMessageTopLevelComponent }
 

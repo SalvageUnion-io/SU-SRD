@@ -1,5 +1,5 @@
 /**
- * Rich /su lookup embed builder — a full, layered representation of any
+ * Rich /su lookup card builder — a full, layered representation of any
  * Salvage Union entity, not a summary.
  *
  * The data model has layers: an entity (system, module, equipment, ability,
@@ -13,9 +13,10 @@
  *
  * Pure and data-shape-driven: one engine covers all ~27 schemas, with a
  * couple of genuinely structural special cases (chassis stat grid + patterns,
- * roll-table summaries). No discord.js here — returns plain data that
- * lookupContainer.ts maps onto container blocks. Everything degrades to bare
- * text on an unresolved reference; nothing throws.
+ * roll-table summaries). Returns `ContainerData` through `entityCard`, the
+ * same render layer the Game cards use, with the entity's artwork beside the
+ * heading when it has any. Everything degrades to bare text on an unresolved
+ * reference; nothing throws.
  */
 
 import type {
@@ -32,6 +33,7 @@ import type {
 import {
   extractVisibleActions,
   findEntityBySlug,
+  getAssetUrl,
   getChassisAbilities,
   getEntitySlug,
   getPageReference,
@@ -46,27 +48,9 @@ import {
   truncate,
   visiblePatterns,
 } from 'salvageunion-reference'
-import { V2_LIMIT } from './container.js'
-import { EMBED_LIMIT, NEUTRAL_EMBED_COLOR, stripDanglingLink } from './format.js'
-import { fieldText, footerLine, lookupHeading } from './lookupContainer.js'
-
-const NEUTRAL = NEUTRAL_EMBED_COLOR
-
-/**
- * Per-slot caps for the title, fields, description and footer. They shape the
- * `LookupEmbed`; the total that matters is `V2_LIMIT.totalText`, because the
- * reply is sent as a container (see `enforce`).
- */
-const LIMIT = EMBED_LIMIT
-
-export type LookupEmbed = {
-  title: string
-  url?: string
-  color: number
-  description?: string
-  fields: { name: string; value: string; inline?: boolean }[]
-  footer: string
-}
+import type { CardField, ContainerData, EntityCard } from './container.js'
+import { containerTextLength, entityCard, V2_LIMIT } from './container.js'
+import { NEUTRAL_ACCENT, stripDanglingLink } from './format.js'
 
 /**
  * Escape the chars that would break a markdown link label.
@@ -259,8 +243,8 @@ function renderAction(action: SURefMetaAction, ownName: string, chassisName?: st
   return lines.join('\n')
 }
 
-function statFields(entity: SURefEntity): LookupEmbed['fields'] {
-  const fields: LookupEmbed['fields'] = []
+function statFields(entity: SURefEntity): CardField[] {
+  const fields: CardField[] = []
   const push = (name: string, value: unknown) => {
     if (value !== undefined && value !== null && value !== '') {
       fields.push({ name, value: String(value), inline: true })
@@ -274,10 +258,10 @@ function statFields(entity: SURefEntity): LookupEmbed['fields'] {
 
 /** Chassis-specific stat grid + patterns (a genuine structural special case). */
 function chassisSections(entity: SURefChassis): {
-  fields: LookupEmbed['fields']
+  fields: CardField[]
   patterns: string
 } {
-  const fields: LookupEmbed['fields'] = []
+  const fields: CardField[] = []
   const push = (name: string, value: unknown) => {
     if (typeof value === 'number') fields.push({ name, value: String(value), inline: true })
   }
@@ -307,41 +291,30 @@ function footerFor(entity: SURefEntity): string {
   const page = getPageReference(entity)
   if (typeof page === 'number') parts.push(`p.${page}`)
   parts.push('Salvage Union Reference')
-  return truncate(parts.join(' · '), LIMIT.footer)
+  return parts.join(' · ')
 }
 
 /**
- * Trim an assembled entry to fit: slot caps first (title, field names/values,
- * field count, description), then the container's text budget,
- * `V2_LIMIT.totalText` — shed trailing description with a link-out note.
+ * Fit an assembled entry inside the container's text budget,
+ * `V2_LIMIT.totalText`, by shedding trailing description behind a link-out.
  *
- * The budget is measured as `lookupContainer.ts` renders the reply (heading
- * with its URL, each field line, the footer line), because that is what
- * Discord counts. Budgeting against the embed total (6000) let the container
- * guard shed whole blocks instead, leaving a reply that was only its heading.
+ * The budget is everything else the card renders — measured by rendering it,
+ * so it is exactly what Discord counts. Without this the container guard sheds
+ * whole blocks from the end instead, leaving a reply that is only its heading.
  *
  * Sheds **description**, because a lookup entry is one long description with
- * a few fields beside it. `stripDanglingLink` comes from `format.ts`.
+ * a few fields beside it.
  */
-function enforce(embed: LookupEmbed): LookupEmbed {
-  embed.title = truncate(embed.title, LIMIT.title)
-  embed.fields = embed.fields.slice(0, LIMIT.fields).map((f) => ({
-    name: truncate(f.name, LIMIT.fieldName),
-    value: truncate(f.value, LIMIT.fieldValue),
-    inline: f.inline,
-  }))
-  if (embed.description) embed.description = truncate(embed.description, LIMIT.description)
-
-  const fieldsLen = embed.fields.reduce((n, f) => n + fieldText(f).length, 0)
-  const fixed =
-    lookupHeading(embed.title, embed.url).length + footerLine(embed.footer).length + fieldsLen
-  const linkNote = embed.url ? `\n\n[Full entry on salvageunion.io](${embed.url})` : ''
+function fit(card: EntityCard): EntityCard {
+  if (!card.description) return card
+  const fixed = containerTextLength(entityCard({ ...card, description: undefined }))
+  const linkNote = card.url ? `\n\n[Full entry on salvageunion.io](${card.url})` : ''
   const budget = V2_LIMIT.totalText - fixed - linkNote.length
-  if (embed.description && embed.description.length > budget) {
-    embed.description =
-      stripDanglingLink(truncate(embed.description, Math.max(0, budget))) + linkNote
+  if (card.description.length <= budget) return card
+  return {
+    ...card,
+    description: stripDanglingLink(truncate(card.description, Math.max(0, budget))) + linkNote,
   }
-  return embed
 }
 
 /** The first number in a roll key ("11-19" → 11, "20" → 20). */
@@ -357,8 +330,8 @@ function renderTableRow(key: string, entry: SURefObjectTableContent): string {
 }
 
 /**
- * Render a roll-table's full contents into the embed. Flat-family tables go
- * into the description (which enforce() sheds to fit the container budget,
+ * Render a roll-table's full contents into the card. Flat-family tables go
+ * into the description (which fit() sheds to fit the container budget,
  * appending a link-out on the largest tables). A `columns` table is
  * two-dimensional — roll a column, then a 1-20 entry within it — so each column
  * bucket becomes its own field.
@@ -367,7 +340,7 @@ function rollTableSections(
   table: SURefObjectTable,
   name: string,
   sections: string[],
-  fields: LookupEmbed['fields']
+  fields: CardField[]
 ): void {
   const hint = `Roll it with \`/su roll table: ${name}\`.`
   if (table.type === 'columns') {
@@ -394,17 +367,17 @@ function rollTableSections(
 }
 
 /**
- * Build the full lookup embed for any entity. `entity` must carry its
+ * Build the full lookup card for any entity. `entity` must carry its
  * `schemaName` (the lookup command attaches it).
  */
-export function buildLookupEmbed(
+export function lookupCard(
   entity: SURefEntity & { schemaName?: SURefEnumSchemaName },
   schemaName: SURefEnumSchemaName
-): LookupEmbed {
+): ContainerData {
   const name = entity.name
   const displayType = SchemaToDisplayName[schemaName] ?? schemaName
 
-  const fields: LookupEmbed['fields'] = [{ name: 'Type', value: displayType, inline: true }]
+  const fields: CardField[] = [{ name: 'Type', value: displayType, inline: true }]
   const sections: string[] = []
 
   // Lead description: an entity's own `description`, then its content blocks.
@@ -438,12 +411,16 @@ export function buildLookupEmbed(
     }
   }
 
-  return enforce({
-    title: name,
-    url: srdEntityUrl(schemaName, getEntitySlug(entity)),
-    color: NEUTRAL,
-    description: sections.filter(Boolean).join('\n\n') || undefined,
-    fields,
-    footer: footerFor(entity),
-  })
+  const thumbnail = getAssetUrl(entity)
+  return entityCard(
+    fit({
+      title: name,
+      url: srdEntityUrl(schemaName, getEntitySlug(entity)),
+      accent: NEUTRAL_ACCENT,
+      description: sections.filter(Boolean).join('\n\n') || undefined,
+      fields,
+      footer: footerFor(entity),
+      ...(thumbnail === undefined ? {} : { thumbnail }),
+    })
+  )
 }

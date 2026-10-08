@@ -1,11 +1,10 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
 import { toContainer } from '../container.js'
-import { denialMessage } from '../gameEmbed.js'
+import { denialMessage, ITUN_ORIGIN } from '../gameCards.js'
 import { buildInviteDm, joinUrl } from '../inviteContainer.js'
-import { itunSettings } from '../itunSettings.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-import { itun, SOLO_NOTICE } from './itunReply.js'
+import { itun } from './itunReply.js'
 
 /**
  * `/su invite @user` — invite somebody to a Game by their Discord account
@@ -59,13 +58,7 @@ export const inviteCommand = {
    * listing the rest would only offer choices the server refuses.
    */
   async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
-    const client = itun()
-    if (client === null) {
-      await interaction.respond([])
-      return
-    }
-
-    const result = await client.gamesForAutocomplete(interaction.user.id)
+    const result = await itun().gamesForAutocomplete(interaction.user.id)
     if (result.kind !== 'ok') {
       await interaction.respond([])
       return
@@ -84,17 +77,12 @@ export const inviteCommand = {
     // Ephemeral throughout: only the Organizer learns how it went.
     await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
-    const client = itun()
-    if (client === null) {
-      await interaction.editReply({ content: SOLO_NOTICE })
-      return
-    }
     if (interaction.signed === null) {
       await interaction.editReply({ content: 'That invite could not be verified. Try again.' })
       return
     }
 
-    const webUrl = itunSettings().webUrl
+    const client = itun()
     const result = await client.invite(interaction.signed)
 
     if (result.kind === 'unavailable') {
@@ -108,7 +96,7 @@ export const inviteCommand = {
         content:
           result.reason === 'unbound'
             ? result.message
-            : denialMessage(result.reason, webUrl, result.message),
+            : denialMessage(result.reason, ITUN_ORIGIN, result.message),
       })
       return
     }
@@ -122,7 +110,7 @@ export const inviteCommand = {
     }
 
     const seat = invite.role === 'mediator' ? ' as its Mediator' : ''
-    const link = joinUrl(webUrl, invite.code)
+    const link = joinUrl(ITUN_ORIGIN, invite.code)
 
     // The server says no fresh DM: this person was DMed this invite recently.
     // Re-offer the link to the Organizer and leave the invitee alone.
@@ -138,7 +126,7 @@ export const inviteCommand = {
     }
 
     const dm = await interaction.directMessage(invite.inviteeDiscordId, {
-      components: [toContainer(buildInviteDm(invite, webUrl))],
+      components: [toContainer(buildInviteDm(invite, ITUN_ORIGIN))],
       flags: MessageFlags.IsComponentsV2,
     })
     const detail = dm.ok

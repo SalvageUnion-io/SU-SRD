@@ -3,7 +3,7 @@ import { MessageFlags } from 'discord-api-types/v10'
 import { gamesCommand, meCommand, shelfCommand } from '../commands/account.js'
 import { crewCommand, sheetCommand } from '../commands/crew.js'
 import { gameCommand } from '../commands/game.js'
-import { setItunClientForTests } from '../commands/itunReply.js'
+import { setItunClient } from '../commands/itunReply.js'
 import { rollCommand } from '../commands/roll.js'
 import { suCommand } from '../commands/su.js'
 import type { ItunClient } from '../itun/client.js'
@@ -17,8 +17,8 @@ import { buttonInteractionHandlerFor } from './helpers.js'
  *
  * Everything here goes through the named test seam in `itunReply.ts` rather
  * than through environment variables or `mock.module` — see that function's
- * comment for why neither works. `afterEach` restores Solo, which is what every
- * other test file expects to see.
+ * comment for why neither works. `afterEach` restores the unconfigured client,
+ * which is what every other test file expects to see.
  */
 
 let restore: (() => void) | null = null
@@ -48,15 +48,14 @@ function clientReturning(result: ItunResult<unknown>): ItunClient {
 }
 
 function connect(result: ItunResult<unknown>): void {
-  restore = setItunClientForTests(clientReturning(result))
+  restore = setItunClient(clientReturning(result))
 }
 
 /**
  * Assert a recorded reply carried exactly one rendered Game container.
  *
- * These used to read `reply.embeds`. The Game surfaces are Components V2 now,
- * so the payload carries `components` plus the flag and never an embed — V2 is
- * all-in per message.
+ * The Game surfaces are Components V2, so the payload carries `components`
+ * plus the flag and never an embed — V2 is all-in per message.
  */
 function expectContainer(reply: ReplyArg | undefined, options: { ephemeral: boolean }): void {
   if (!reply) throw new Error('expected a reply')
@@ -450,9 +449,8 @@ describe('/su dispatch', () => {
 })
 
 /**
- * The rendered text of a V2 container edit. The Game signal used to live in an
- * embed footer; it is now its own line in the container, so the assertion moves
- * with it.
+ * The rendered text of a V2 container edit, where the Game signal is its own
+ * line.
  */
 function editedText(edit: { components?: readonly unknown[] } | undefined): string {
   const container = edit?.components?.[0] as { toJSON(): { components: unknown[] } } | undefined
@@ -496,7 +494,7 @@ describe('roll attribution', () => {
   })
 
   test('a thrown client never escapes past the user’s roll', async () => {
-    restore = setItunClientForTests({
+    restore = setItunClient({
       ...clientReturning({ kind: 'unavailable', message: 'x' }),
       recordRoll: () => Promise.reject(new Error('network exploded')),
     })

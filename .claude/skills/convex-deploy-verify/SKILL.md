@@ -52,7 +52,7 @@ For production the frontend origin is the **custom domain**
 # deployment that has not opted in cannot be talked to by a bot at all.
 bunx convex env set ITUN_BOT_SECRET <a long random string>
 
-# The bot Worker — BOTH, or the bot silently stays in Solo mode.
+# The bot Worker — BOTH required; its /health answers 503 until they are set.
 cd apps/discord-bot
 bunx wrangler secret put ITUN_CONVEX_SITE_URL   # https://<deployment>.convex.site
 bunx wrangler secret put ITUN_BOT_SECRET        # the same value as above

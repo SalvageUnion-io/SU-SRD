@@ -60,26 +60,22 @@
   //   SENTRY_DSN         where this Worker reports errors.
   //   DISCORD_TOKEN      bot token — a bearer credential for follow-up webhook
   //                      calls.
-  //
-  // Two more secrets, and one plain value, stay optional, so they are not
-  // listed here:
-  //
-  //   ITUN_BOT_SECRET    ITUN bot credential. Omit it (and ITUN_CONVEX_SITE_URL)
-  //                      to run in Solo mode, which is the deliberate default and
-  //                      must keep working.
+  //   ITUN_BOT_SECRET    ITUN bot credential (the same value as the Convex
+  //                      deployment's ITUN_BOT_SECRET).
   //   ITUN_CONVEX_SITE_URL  the Convex HTTP-actions origin. Not itself a secret,
-  //                      but paired with the one above — set them together or
-  //                      not at all, or the bot reports itself unreachable
-  //                      rather than Solo.
+  //                      but paired with the one above; `/health` answers 503
+  //                      while either is missing.
+  //
+  // One plain value stays optional, so it is not listed here:
+  //
   //   ITUN_WEB_URL       the ITUN origin the bot links to; defaults to
   //                      https://intheunionnow.com.
   //
   // Declaring `secrets` makes a local `wrangler dev` bind only `vars` and these
-  // required names from .dev.vars, .env and process.env, so the three optional
-  // values above never reach a top-level local run, which is always Solo.
-  // `env.local` below is the local run.
+  // required names from .dev.vars, .env and process.env, so ITUN_WEB_URL never
+  // reaches a top-level local run. `env.local` below is the local run.
   "secrets": {
-    "required": ["SENTRY_DSN", "DISCORD_TOKEN"]
+    "required": ["SENTRY_DSN", "DISCORD_TOKEN", "ITUN_BOT_SECRET", "ITUN_CONVEX_SITE_URL"]
   },
 
   // Cron Trigger for the liveness heartbeat.
@@ -101,7 +97,7 @@
   //
   // `secrets` and `vars` are not inherited by a named environment, so this one
   // declares no `secrets` and wrangler binds everything in .dev.vars or .env,
-  // the ITUN values included: Connected mode works locally. wrangler warns that
+  // ITUN_WEB_URL included. wrangler warns that
   // "secrets" is missing here; that absence is the point. `vars` must repeat
   // the top-level block exactly. package.json's deploy scripts pass `--env=""`,
   // so a deploy always targets the top level.

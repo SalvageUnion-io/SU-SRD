@@ -1,34 +1,31 @@
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
+import { enforceContainerLimits } from '../container.js'
 import {
-  buildChannelEmbed,
-  buildCrewEmbed,
-  buildGamesEmbed,
-  buildShelfEmbed,
+  channelCard,
+  crewCard,
   denialMessage,
   gameSheetUrl,
+  gamesCard,
   gameUrl,
   gauge,
+  ITUN_ORIGIN,
   ownerLabel,
+  shelfCard,
   shelfSheetUrl,
-} from '../gameEmbed.js'
+} from '../gameCards.js'
 import type { CrewResult, OwnedEntity } from '../itun/types.js'
+import { blockStarting, cardText, cardTexts, cardUrl } from './cardText.js'
 
 /**
- * Embed builders for the ITUN Game commands.
+ * Card builders for the ITUN Game commands.
  *
- * These are pure `data → EmbedData`, so every one of them is exercised here
- * with no Discord client, no network and no mock — the same property that made
- * `lookupEmbed.ts` testable, for the same reason.
+ * These are pure `data → ContainerData`, so every one of them is exercised here
+ * with no Discord client, no network and no mock. The maxima are DERIVED from
+ * chassis and class data (the workspace preload loads the dataset); Convex's
+ * crew.vitals derives the same numbers, and moving the bot onto those is #1068.
  */
 
-const WEB = 'https://intheunionnow.com'
-
-beforeAll(async () => {
-  // The maxima are DERIVED from chassis and class data, so the builders are
-  // meaningless without the dataset loaded. That dependency is the point: the
-  // bot derives them itself from the package (Convex's crew.vitals derives the
-  // same numbers; moving the bot onto those is #1068).
-})
+const WEB = ITUN_ORIGIN
 
 function pilot(overrides: Partial<OwnedEntity> & { body?: Record<string, unknown> }): OwnedEntity {
   return {
@@ -80,7 +77,7 @@ describe('vital field names', () => {
     // `currentHP`, so every vital rendered as an em-dash indistinguishable
     // from an undamaged crew (#656). Nothing links these two workspaces at
     // build time, so only a test can hold the spelling.
-    const embed = buildCrewEmbed(
+    const card = crewCard(
       {
         game: { gameId: 'g1', name: 'Tenacity' },
         viewerId: 'u1',
@@ -98,7 +95,7 @@ describe('vital field names', () => {
       },
       WEB
     )
-    const value = embed.fields[0]?.value ?? ''
+    const value = cardText(card)
     expect(value).toContain('6/10')
     expect(value).toContain('3/5')
     expect(value).toContain('8/12')
@@ -108,7 +105,7 @@ describe('vital field names', () => {
   test('still reads the historical lower-case spelling', () => {
     // Salvage-tolerant, like ITUN's own data layer: rows written before the
     // spelling was settled must not render as an undamaged crew.
-    const embed = buildCrewEmbed(
+    const card = crewCard(
       {
         game: { gameId: 'g1', name: 'Tenacity' },
         viewerId: 'u1',
@@ -118,7 +115,7 @@ describe('vital field names', () => {
       },
       WEB
     )
-    expect(embed.fields[0]?.value).toContain('4/10')
+    expect(cardText(card)).toContain('4/10')
   })
 })
 
@@ -128,7 +125,7 @@ describe('absent vitals', () => {
     // sites in the app read it as `?? max`. Defaulting to 0 would render a
     // fresh, undamaged crew as wiped out — backwards on the one surface built
     // to show exactly this.
-    const embed = buildCrewEmbed(
+    const card = crewCard(
       {
         game: { gameId: 'g1', name: 'Tenacity' },
         viewerId: 'u1',
@@ -146,18 +143,18 @@ describe('absent vitals', () => {
       },
       WEB
     )
-    const value = embed.fields[0]?.value ?? ''
+    const value = cardText(card)
     expect(value).toContain('10/10')
     expect(value).toContain('5/5')
     expect(value).toContain('12/12')
     // ...and the crew is emphatically NOT flagged as critical.
-    expect(embed.color).not.toBe(0xb0432b)
+    expect(card.accent).not.toBe(0xb0432b)
   })
 
   test('an unwritten Heat means COLD, which is zero', () => {
     // The one field that reads the other way: a mech starts at no heat and
     // gains it, where SP starts full and is lost.
-    const embed = buildCrewEmbed(
+    const card = crewCard(
       {
         game: { gameId: 'g1', name: 'Tenacity' },
         viewerId: 'u1',
@@ -175,7 +172,7 @@ describe('absent vitals', () => {
       },
       WEB
     )
-    expect(embed.fields[0]?.value).toContain('0/6')
+    expect(cardText(card)).toContain('0/6')
   })
 })
 
@@ -217,7 +214,7 @@ describe('denialMessage', () => {
   })
 })
 
-describe('buildCrewEmbed', () => {
+describe('crewCard', () => {
   function crewOf(overrides: Partial<CrewResult> = {}): CrewResult {
     return {
       game: { gameId: 'g1', name: 'Tenacity' },
@@ -230,7 +227,7 @@ describe('buildCrewEmbed', () => {
   }
 
   test('groups by owner, one inline field each', () => {
-    const embed = buildCrewEmbed(
+    const card = crewCard(
       crewOf({
         pilots: [pilot({ id: 'p1', ownerId: 'u1', ownerName: 'alxjrvs' })],
         mechs: [
@@ -246,27 +243,24 @@ describe('buildCrewEmbed', () => {
       WEB
     )
 
-    // One owner, one field — the pilot and the mech read as one crewmate.
-    expect(embed.fields).toHaveLength(1)
-    expect(embed.fields[0]?.inline).toBe(true)
-    expect(embed.fields[0]?.name).toContain('alxjrvs')
+    // One owner, one field — the pilot and the mech read as one crewmate,
+    // on the rail (`**Name** value`, not a `**Name**` slab heading).
+    const text = cardText(card)
+    expect(text.split('**alxjrvs**')).toHaveLength(2)
+    expect(blockStarting(card, '**alxjrvs** ')).toBeDefined()
     // Derived from the `mule` chassis, which the server could not have done.
-    expect(embed.fields[0]?.value).toContain('8/12')
-    expect(embed.fields[0]?.value).toContain('3/6')
+    expect(text).toContain('8/12')
+    expect(text).toContain('3/6')
   })
 
   test('renders unclaimed entities in their own bucket rather than dropping them', () => {
-    const embed = buildCrewEmbed(
-      crewOf({ pilots: [pilot({ ownerId: null, ownerName: null })] }),
-      WEB
-    )
-    expect(embed.fields).toHaveLength(1)
-    expect(embed.fields[0]?.name).toContain('Unclaimed')
+    const card = crewCard(crewOf({ pilots: [pilot({ ownerId: null, ownerName: null })] }), WEB)
+    expect(blockStarting(card, '**Unclaimed** ')).toBeDefined()
   })
 
   test('marks the crew critical when a mech is wrecked', () => {
-    const healthy = buildCrewEmbed(crewOf(), WEB)
-    const wrecked = buildCrewEmbed(
+    const healthy = crewCard(crewOf(), WEB)
+    const wrecked = crewCard(
       crewOf({
         mechs: [
           {
@@ -282,25 +276,27 @@ describe('buildCrewEmbed', () => {
     )
     // The one sanctioned deviation from rust, reusing the warm ramp the design
     // system already shares with the bot's roll outcomes.
-    expect(wrecked.color).not.toBe(healthy.color)
-    expect(wrecked.fields[0]?.value).toContain('✖')
+    expect(wrecked.accent).not.toBe(healthy.accent)
+    expect(cardText(wrecked)).toContain('✖')
   })
 
   test('links back to the game in the app', () => {
-    expect(buildCrewEmbed(crewOf(), WEB).url).toContain('g1')
+    expect(cardUrl(crewCard(crewOf(), WEB))).toContain('g1')
   })
 
   test('says so plainly when nothing is in play', () => {
-    const embed = buildCrewEmbed(crewOf({ pilots: [], mechs: [] }), WEB)
-    expect(embed.fields).toHaveLength(0)
-    expect(embed.description).toContain('Nothing in play')
+    const card = crewCard(crewOf({ pilots: [], mechs: [] }), WEB)
+    // Heading, the line saying so, and the footer: no crewmate fields.
+    expect(cardTexts(card)).toHaveLength(3)
+    expect(cardText(card)).toContain('Nothing in play')
   })
 
-  test('never exceeds Discord’s 25-field ceiling', () => {
-    const many = Array.from({ length: 40 }, (_, i) =>
+  test('a full table arrives whole, shedding no block', () => {
+    const table = Array.from({ length: 8 }, (_, i) =>
       pilot({ id: `p${i}`, ownerId: `u${i}`, ownerName: `Crew ${i}` })
     )
-    expect(buildCrewEmbed(crewOf({ pilots: many }), WEB).fields.length).toBeLessThanOrEqual(25)
+    const card = crewCard(crewOf({ pilots: table }), WEB)
+    expect(enforceContainerLimits(card).blocks).toEqual(card.blocks)
   })
 })
 
@@ -342,7 +338,7 @@ describe('deep links', () => {
   })
 
   test('the crew board links every crewmate into the Game view', () => {
-    const embed = buildCrewEmbed(
+    const card = crewCard(
       {
         game: { gameId: 'g1', name: 'Tenacity' },
         viewerId: 'u1',
@@ -361,8 +357,9 @@ describe('deep links', () => {
       },
       WEB
     )
-    const linked = embed.fields.find((f) => f.name.includes('alxjrvs'))?.value ?? ''
-    const unclaimed = embed.fields.find((f) => f.name.includes('Unclaimed'))?.value ?? ''
+    const text = cardText(card)
+    const linked = text.slice(text.indexOf('**alxjrvs**'), text.indexOf('**Unclaimed**'))
+    const unclaimed = text.slice(text.indexOf('**Unclaimed**'))
 
     // By Convex id into the Game view, not by app id into /sheet/…: a crew
     // board is read by the whole table, and nobody but the owner has the
@@ -379,11 +376,11 @@ describe('deep links', () => {
   })
 
   test('the shelf renders an unlinkable entity as a bare name', () => {
-    const embed = buildShelfEmbed(
+    const card = shelfCard(
       { pilots: [{ id: 'p1', appId: null, body: { callsign: 'Rook' } }], mechs: [] },
       WEB
     )
-    expect(embed.fields[0]?.value).toBe('Rook')
+    expect(blockStarting(card, '**Pilots')).toBe('**Pilots (1)** Rook')
   })
 })
 
@@ -392,7 +389,7 @@ describe('unclaimed ordering', () => {
     // It is a state worth showing, not a crewmate — it should not be the first
     // thing the table reads. Previously it sorted FIRST, because the sentinel
     // key began with a space.
-    const embed = buildCrewEmbed(
+    const card = crewCard(
       {
         game: { gameId: 'g1', name: 'Tenacity' },
         viewerId: 'u1',
@@ -406,15 +403,14 @@ describe('unclaimed ordering', () => {
       },
       WEB
     )
-    const names = embed.fields.map((f) => f.name)
-    expect(names[names.length - 1]).toContain('Unclaimed')
-    // Owners stay alphabetical among themselves.
-    expect(names[0]).toContain('alxjrvs')
-    expect(names[1]).toContain('Zed')
+    const text = cardText(card)
+    // Owners stay alphabetical among themselves, and Unclaimed comes after.
+    expect(text.indexOf('**alxjrvs**')).toBeLessThan(text.indexOf('**Zed**'))
+    expect(text.indexOf('**Zed**')).toBeLessThan(text.indexOf('**Unclaimed**'))
   })
 
   test('the aboard count excludes the unclaimed bucket', () => {
-    const embed = buildCrewEmbed(
+    const card = crewCard(
       {
         game: { gameId: 'g1', name: 'Tenacity' },
         viewerId: 'u1',
@@ -427,39 +423,39 @@ describe('unclaimed ordering', () => {
       },
       WEB
     )
-    expect(embed.description).toContain('1 aboard')
+    expect(cardText(card)).toContain('1 aboard')
   })
 })
 
-describe('buildShelfEmbed', () => {
+describe('shelfCard', () => {
   test('explains an empty shelf rather than rendering a blank card', () => {
-    const embed = buildShelfEmbed({ pilots: [], mechs: [] }, WEB)
-    expect(embed.fields).toHaveLength(0)
-    expect(embed.description).toContain('Nothing in My Stuff')
+    const card = shelfCard({ pilots: [], mechs: [] }, WEB)
+    expect(cardText(card)).not.toContain('**Pilots')
+    expect(cardText(card)).toContain('Nothing in My Stuff')
   })
 
   test('links each entity to its sheet', () => {
-    const embed = buildShelfEmbed(
+    const card = shelfCard(
       { pilots: [{ id: 'p1', appId: 'app-p1', body: { callsign: 'Rook' } }], mechs: [] },
       WEB
     )
-    expect(embed.fields[0]?.value).toContain(`${WEB}/sheet/pilot/app-p1`)
+    expect(blockStarting(card, '**Pilots')).toContain(`${WEB}/sheet/pilot/app-p1`)
   })
 })
 
-describe('buildGamesEmbed and buildChannelEmbed', () => {
+describe('gamesCard and channelCard', () => {
   test('an empty game list is stated, not implied', () => {
-    expect(buildGamesEmbed([], WEB).description).toContain('No games yet')
+    expect(cardText(gamesCard([], WEB))).toContain('No games yet')
   })
 
   test('roles read as base role plus modifier, never as three roles', () => {
-    const embed = buildGamesEmbed(
+    const card = gamesCard(
       [{ gameId: 'g1', name: 'Tenacity', mediator: true, organizer: true }],
       WEB
     )
     // ADR-030 §3: Organizer is a flag ON a base role, so it renders alongside
     // Mediator rather than replacing it.
-    expect(embed.description).toContain('Mediator · Organizer')
+    expect(cardText(card)).toContain('Mediator · Organizer')
   })
 
   test('the channel card shows Downtime only while it is running', () => {
@@ -474,17 +470,16 @@ describe('buildGamesEmbed and buildChannelEmbed', () => {
         },
       ],
     }
-    const idle = buildChannelEmbed(
+    const idle = channelCard(
       { ...base, downtime: { running: false, stepIndex: null, completed: 0, upkeepSpent: false } },
       WEB
     )
-    const running = buildChannelEmbed(
+    const running = channelCard(
       { ...base, downtime: { running: true, stepIndex: 1, completed: 1, upkeepSpent: true } },
       WEB
     )
-    expect(idle.fields.map((f) => f.name)).not.toContain('Downtime')
-    expect(running.fields.map((f) => f.name)).toContain('Downtime')
+    expect(blockStarting(idle, '**Downtime**')).toBeUndefined()
     // stepIndex is zero-based on the server and one-based for humans.
-    expect(running.fields.find((f) => f.name === 'Downtime')?.value).toContain('Step 2')
+    expect(blockStarting(running, '**Downtime**')).toContain('Step 2')
   })
 })

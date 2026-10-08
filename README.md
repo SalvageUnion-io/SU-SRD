@@ -23,8 +23,9 @@ bun run build:package
 bun run dev
 ```
 
-Other dev servers: `bun run dev:itun` (character builder), or `bunx wrangler dev`
-in `apps/discord-bot` (the Discord bot's Worker).
+Other dev server: `bun run dev:itun` (character builder). The Discord bot has
+none — Discord only reaches the deployed Worker — so its loop is
+`bun --filter discord-bot test`.
 
 ## Structure
 

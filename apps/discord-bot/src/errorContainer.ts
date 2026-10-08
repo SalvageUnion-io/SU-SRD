@@ -21,7 +21,7 @@ import type { SURefRollTable } from 'salvageunion-reference'
 import { searchIn } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerData } from './container.js'
 import { makeCustomId } from './customId.js'
-import { NEUTRAL_EMBED_COLOR } from './format.js'
+import { NEUTRAL_ACCENT } from './format.js'
 import { rollHeadline } from './rollContainer.js'
 
 /** How many recovery buttons to offer. Three fits one row without crowding. */
@@ -46,7 +46,7 @@ function suggestionButtons(query: string): ButtonSpec[] {
 export function unknownTableContainer(query: string, indexed: number): ContainerData {
   const buttons = suggestionButtons(query)
   return {
-    accent: NEUTRAL_EMBED_COLOR,
+    accent: NEUTRAL_ACCENT,
     blocks: [
       { kind: 'text', content: '-# NO SUCH TABLE' },
       { kind: 'text', content: `## ${query.toUpperCase()}` },
@@ -91,7 +91,7 @@ export function noEffectContainer(
     : []
 
   return {
-    accent: NEUTRAL_EMBED_COLOR,
+    accent: NEUTRAL_ACCENT,
     blocks: [
       { kind: 'text', content: roller ? `-# ${name} · rolled by ${roller}` : `-# ${name}` },
       { kind: 'text', content: rollHeadline(String(roll), 'NO EFFECT') },

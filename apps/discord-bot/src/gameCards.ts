@@ -1,11 +1,5 @@
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import {
-  findEntityBySlug,
-  getAssetUrl,
-  getEntitySlug,
-  srdEntityUrl,
-  truncate,
-} from 'salvageunion-reference'
+import { findEntityBySlug, getAssetUrl, getEntitySlug, srdEntityUrl } from 'salvageunion-reference'
 import {
   mechMaxHeat,
   mechMaxSP,
@@ -14,7 +8,9 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { EMBED_LIMIT, NEUTRAL_EMBED_COLOR, ROLL_COLORS } from './format.js'
+import type { CardField, ContainerData } from './container.js'
+import { entityCard } from './container.js'
+import { NEUTRAL_ACCENT, ROLL_COLORS } from './format.js'
 import type {
   ChannelResult,
   CrewResult,
@@ -29,11 +25,11 @@ import type {
 } from './itun/types.js'
 
 /**
- * Embed builders for the ITUN Game commands (ADR-030 Phase 6).
+ * Card builders for the ITUN Game commands (ADR-030 Phase 6).
  *
- * Pure `data → EmbedData`, no discord.js — the same split `lookupEmbed.ts`
- * uses, for the same reason: every one of these is unit-testable without a
- * Discord client, a network, or a mock.
+ * Pure `data → ContainerData` through `entityCard`, the same render layer
+ * `lookupCard.ts` uses: every one of these is unit-testable without a Discord
+ * client, a network, or a mock.
  *
  * ## Where the numbers come from
  *
@@ -50,8 +46,8 @@ import type {
  * throw inside a slash command.
  */
 
-/** Neutral SU rust. Informational embeds are always this. */
-const NEUTRAL = NEUTRAL_EMBED_COLOR
+/** Neutral SU rust. Informational cards are always this. */
+const NEUTRAL = NEUTRAL_ACCENT
 
 /**
  * The one sanctioned deviation from rust (see the plan, §7 rule 4).
@@ -64,31 +60,10 @@ const NEUTRAL = NEUTRAL_EMBED_COLOR
 const CRITICAL = ROLL_COLORS.cascade
 
 /**
- * Shared with `lookupEmbed.ts` via `format.ts`. This module used to declare its
- * own, omitting `footer` and `total` — so nothing here enforced the 6000-char
- * ceiling, and an oversized embed would have been rejected by Discord with a
- * 400 rather than trimmed. Harmless while these embeds were three fields long;
- * not harmless now that a sheet renders its whole collection list.
+ * The canonical In The Union Now web origin. Cards link back here; it is only
+ * ever used to build a URL, never called.
  */
-const LIMIT = EMBED_LIMIT
-
-export type EmbedData = {
-  title: string
-  url?: string
-  color: number
-  description?: string
-  fields: { name: string; value: string; inline: boolean }[]
-  footer: string
-  /**
-   * Absolute URL of a small image shown top-right.
-   *
-   * Always a remote `https://` URL — the artwork CDN — never an attachment, so
-   * no bytes pass through the worker. Undefined when the entity has no artwork,
-   * which is the common case; an entity without art omits the field rather than
-   * rendering a broken image.
-   */
-  thumbnail?: string
-}
+export const ITUN_ORIGIN = 'https://intheunionnow.com'
 
 const FOOTER = 'In The Union Now'
 
@@ -137,14 +112,12 @@ function strArray(body: EntityBody, key: string): string[] {
  * Width tracks the real maximum up to ten segments so small SU values (AP 5,
  * Heat 6) read as exact ticks rather than as a scaled approximation, and only
  * larger ones (a heavily-modified mech's SP) compress. Ten is the ceiling
- * because these sit in a Discord inline field, which is roughly a third of the
- * embed width on desktop and much less on a phone.
+ * because a gauge shares its line with a label and has to fit a phone.
  *
- * Renders in Discord's PROPORTIONAL font, so these do not align across columns.
- * That is why the crew board gives every crewmate their own inline field —
- * within one field the bars are the same glyph count and read as aligned; no
- * code fence is needed, and none is used, because a fence would cost links and
- * colour for an alignment nothing here depends on.
+ * Renders in Discord's PROPORTIONAL font. Within one crewmate's lines the bars
+ * are the same glyph count and read as aligned; no code fence is needed, and
+ * none is used, because a fence would cost links for an alignment nothing here
+ * depends on.
  */
 export function gauge(current: number | null, max: number | null, filledGlyph = '█'): string {
   if (max === null || max <= 0) {
@@ -390,37 +363,36 @@ function gameLines(games: GameSummary[], webUrl: string, currentGameId?: string)
 }
 
 /** `/su me` — who the bot thinks you are, and what you are part of. */
-export function buildMeEmbed(me: MeResult, webUrl: string, currentGameId?: string): EmbedData {
-  return {
-    title: truncate(`${me.user.displayName} — In The Union Now`, LIMIT.title),
+export function meCard(me: MeResult, webUrl: string, currentGameId?: string): ContainerData {
+  return entityCard({
+    title: `${me.user.displayName} — In The Union Now`,
     url: `${webUrl.replace(/\/+$/, '')}/account`,
-    color: NEUTRAL,
+    accent: NEUTRAL,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',
     fields: [
       {
         name: `Your games (${me.games.length})`,
-        value: truncate(gameLines(me.games, webUrl, currentGameId), LIMIT.fieldValue),
-        inline: false,
+        value: gameLines(me.games, webUrl, currentGameId),
       },
     ],
     footer: FOOTER,
-  }
+  })
 }
 
 /** `/su games` — every Game you belong to. */
-export function buildGamesEmbed(games: GameSummary[], webUrl: string): EmbedData {
-  return {
+export function gamesCard(games: GameSummary[], webUrl: string): ContainerData {
+  return entityCard({
     title: `Your games (${games.length})`,
     url: `${webUrl.replace(/\/+$/, '')}/games`,
-    color: NEUTRAL,
-    description: truncate(gameLines(games, webUrl), LIMIT.description),
+    accent: NEUTRAL,
+    description: gameLines(games, webUrl),
     fields: [],
     footer: FOOTER,
-  }
+  })
 }
 
 /** `/su my-stuff` — what you own that is in no game (ITUN's My Stuff). */
-export function buildShelfEmbed(shelf: ShelfResult, webUrl: string): EmbedData {
+export function shelfCard(shelf: ShelfResult, webUrl: string): ContainerData {
   const name = (body: EntityBody, keys: string[]): string => {
     for (const key of keys) {
       const value = str(body, key)
@@ -429,45 +401,39 @@ export function buildShelfEmbed(shelf: ShelfResult, webUrl: string): EmbedData {
     return 'Unnamed'
   }
 
-  const fields: EmbedData['fields'] = []
+  const fields: CardField[] = []
   if (shelf.pilots.length > 0) {
     fields.push({
       name: `Pilots (${shelf.pilots.length})`,
-      value: truncate(
-        shelf.pilots
-          .map((p) =>
-            maybeLink(name(p.body, ['callsign', 'name']), shelfSheetUrl(webUrl, 'pilots', p.appId))
-          )
-          .join('\n'),
-        LIMIT.fieldValue
-      ),
+      value: shelf.pilots
+        .map((p) =>
+          maybeLink(name(p.body, ['callsign', 'name']), shelfSheetUrl(webUrl, 'pilots', p.appId))
+        )
+        .join('\n'),
       inline: true,
     })
   }
   if (shelf.mechs.length > 0) {
     fields.push({
       name: `Mechs (${shelf.mechs.length})`,
-      value: truncate(
-        shelf.mechs
-          .map((m) => maybeLink(name(m.body, ['name']), shelfSheetUrl(webUrl, 'mechs', m.appId)))
-          .join('\n'),
-        LIMIT.fieldValue
-      ),
+      value: shelf.mechs
+        .map((m) => maybeLink(name(m.body, ['name']), shelfSheetUrl(webUrl, 'mechs', m.appId)))
+        .join('\n'),
       inline: true,
     })
   }
 
-  return {
+  return entityCard({
     title: 'My Stuff',
     url: `${webUrl.replace(/\/+$/, '')}/`,
-    color: NEUTRAL,
+    accent: NEUTRAL,
     description:
       fields.length === 0
         ? 'Nothing in My Stuff — everything you own is in a game.'
         : 'Pilots and mechs you own that are in no game.',
     fields,
     footer: FOOTER,
-  }
+  })
 }
 
 /** One crewmate's block on the crew board: their pilots, then their mechs. */
@@ -507,11 +473,11 @@ function crewFieldValue(
 /**
  * `/su crew` — the reason to build any of this.
  *
- * Grouped by owner, one inline field each, so Discord lays them out in columns
- * of three and each crewmate reads as a unit. The unclaimed bucket is rendered
- * last and labelled, never omitted.
+ * Grouped by owner, one inline field each, so each crewmate reads as a unit
+ * on the rail. The unclaimed bucket is rendered last and labelled, never
+ * omitted.
  */
-export function buildCrewEmbed(crew: CrewResult, webUrl: string): EmbedData {
+export function crewCard(crew: CrewResult, webUrl: string): ContainerData {
   type Bucket = { label: string; pilots: OwnedEntity[]; mechs: OwnedEntity[] }
 
   // Owners in a map, unclaimed in its own variable — rather than one map with a
@@ -545,12 +511,9 @@ export function buildCrewEmbed(crew: CrewResult, webUrl: string): EmbedData {
   // Appended, so it is last without depending on how anything sorts.
   if (unclaimed !== null) ordered.push(unclaimed)
 
-  const fields = ordered.slice(0, LIMIT.fields).map((bucket) => ({
-    name: truncate(bucket.label, LIMIT.fieldName),
-    value: truncate(
-      crewFieldValue(bucket.pilots, bucket.mechs, webUrl, crew.game.gameId),
-      LIMIT.fieldValue
-    ),
+  const fields: CardField[] = ordered.map((bucket) => ({
+    name: bucket.label,
+    value: crewFieldValue(bucket.pilots, bucket.mechs, webUrl, crew.game.gameId),
     inline: true,
   }))
 
@@ -562,18 +525,18 @@ export function buildCrewEmbed(crew: CrewResult, webUrl: string): EmbedData {
 
   const aboard = owned.size
 
-  return {
-    title: truncate(`${crew.game.name} — Crew`, LIMIT.title),
+  return entityCard({
+    title: `${crew.game.name} — Crew`,
     url: gameUrl(webUrl, crew.game.gameId),
-    color: anyCritical || anyWrecked ? CRITICAL : NEUTRAL,
+    accent: anyCritical || anyWrecked ? CRITICAL : NEUTRAL,
     description: fields.length === 0 ? 'Nothing in play yet.' : `${aboard} aboard`,
     fields,
     footer: FOOTER,
-  }
+  })
 }
 
 /** `/su game info` — what this channel's table is. */
-export function buildChannelEmbed(channel: ChannelResult, webUrl: string): EmbedData {
+export function channelCard(channel: ChannelResult, webUrl: string): ContainerData {
   const crew = channel.members
     .map((m) => {
       const roles = [m.mediator ? 'Mediator' : 'Player']
@@ -582,37 +545,29 @@ export function buildChannelEmbed(channel: ChannelResult, webUrl: string): Embed
     })
     .join('\n')
 
-  const fields: EmbedData['fields'] = [
-    {
-      name: `Crew (${channel.members.length})`,
-      value: truncate(crew.length > 0 ? crew : '_Nobody yet._', LIMIT.fieldValue),
-      inline: false,
-    },
+  const fields: CardField[] = [
+    { name: `Crew (${channel.members.length})`, value: crew.length > 0 ? crew : '_Nobody yet._' },
   ]
 
   if (channel.downtime.running) {
     fields.push({
       name: 'Downtime',
-      value: truncate(
-        [
-          `Step ${(channel.downtime.stepIndex ?? 0) + 1}`,
-          `${channel.downtime.completed} of ${channel.members.length} done`,
-          channel.downtime.upkeepSpent ? 'upkeep spent' : 'upkeep outstanding',
-        ].join(' · '),
-        LIMIT.fieldValue
-      ),
-      inline: false,
+      value: [
+        `Step ${(channel.downtime.stepIndex ?? 0) + 1}`,
+        `${channel.downtime.completed} of ${channel.members.length} done`,
+        channel.downtime.upkeepSpent ? 'upkeep spent' : 'upkeep outstanding',
+      ].join(' · '),
     })
   }
 
-  return {
-    title: truncate(channel.game.name, LIMIT.title),
+  return entityCard({
+    title: channel.game.name,
     url: gameUrl(webUrl, channel.game.gameId),
-    color: NEUTRAL,
+    accent: NEUTRAL,
     description: 'This channel is bound to this game.',
     fields,
     footer: FOOTER,
-  }
+  })
 }
 
 /**
@@ -620,7 +575,7 @@ export function buildChannelEmbed(channel: ChannelResult, webUrl: string): Embed
  * `component-lib`'s `theme.css` (`--color-sheet-*`).
  *
  * This is a deliberate amendment to "colour carries one meaning only, and that
- * meaning is rust". The strip down an embed's left edge is the one thing
+ * meaning is rust". The strip down a container's left edge is the one thing
  * Discord renders that a sheet also has, and spending it on the sheet's own
  * accent is what makes the card read as *a sheet* rather than as another bot
  * reply. `CRITICAL` still wins wherever both apply — a wrecked mech is a
@@ -637,7 +592,7 @@ type RenderedSheet = {
   name: string
   /** Italic identity line — class/chassis/tech level — or '' for none. */
   subtitle: string
-  fields: EmbedData['fields']
+  fields: CardField[]
   thumbnail?: string
   critical: boolean
 }
@@ -653,7 +608,7 @@ type RenderedSheet = {
  *
  * Falls back to the bare slug rather than dropping the row: a slug the dataset
  * does not know is still something the player put on their sheet, and hiding it
- * would make the embed disagree with the app about what they own.
+ * would make the card disagree with the app about what they own.
  */
 function refLink(schemaName: SURefEnumSchemaName, slug: string): string {
   const entity = findEntityBySlug(schemaName, slug)
@@ -721,14 +676,12 @@ function collectionLines(
  * Pilot abilities, grouped by ability tree exactly as the live sheet groups
  * them under its dashed sub-slabs.
  *
- * Faithfulness is the reason, and the field cap is the dividend: a Salvager may
- * take twelve abilities, and twelve worst-case linked names run past Discord's
- * 1024-character-per-field limit. One field per tree keeps each comfortably
- * under it without inventing a pagination scheme the sheet does not have.
+ * Faithfulness is the reason: a Salvager may take twelve abilities, and one
+ * slab per tree reads the way the sheet does rather than as one long list.
  */
-function abilityFields(slugs: string[]): EmbedData['fields'] {
+function abilityFields(slugs: string[]): CardField[] {
   if (slugs.length === 0) {
-    return [{ name: 'Abilities', value: '_None yet._', inline: false }]
+    return [{ name: 'Abilities', value: '_None yet._' }]
   }
   const byTree = new Map<string, string[]>()
   for (const slug of slugs) {
@@ -746,7 +699,6 @@ function abilityFields(slugs: string[]): EmbedData['fields'] {
     .map(([tree, treeSlugs]) => ({
       name: `${tree} — ${treeSlugs.length} known`,
       value: collectionLines(treeSlugs, 'abilities'),
-      inline: false,
     }))
 }
 
@@ -760,7 +712,7 @@ function chipRun(values: string[]): string | null {
 function pilotSheet(body: EntityBody): RenderedSheet {
   const stats = pilotStats(body)
   const classRef = str(body, 'classRef')
-  const fields: EmbedData['fields'] = [
+  const fields: CardField[] = [
     { name: 'HP', value: gauge(stats.hp, stats.maxHp), inline: true },
     { name: 'AP', value: gauge(stats.ap, stats.maxAp), inline: true },
     { name: 'Class', value: refName('classes', classRef), inline: true },
@@ -772,7 +724,6 @@ function pilotSheet(body: EntityBody): RenderedSheet {
   fields.push({
     name: `Inventory — ${equipment.length}`,
     value: collectionLines(equipment, 'equipment'),
-    inline: false,
   })
 
   const conditions = chipRun(strArray(body, 'conditions'))
@@ -799,7 +750,7 @@ function pilotSheet(body: EntityBody): RenderedSheet {
 function mechSheet(body: EntityBody): RenderedSheet {
   const stats = mechStats(body)
   const chassisRef = str(body, 'chassisRef')
-  const fields: EmbedData['fields'] = [
+  const fields: CardField[] = [
     { name: 'SP', value: gauge(stats.sp, stats.maxSp), inline: true },
     { name: 'Heat', value: gauge(stats.heat, stats.maxHeat, '▲'), inline: true },
     { name: 'Chassis', value: refName('chassis', chassisRef), inline: true },
@@ -809,14 +760,12 @@ function mechSheet(body: EntityBody): RenderedSheet {
   fields.push({
     name: `Systems — ${systems.length}`,
     value: collectionLines(systems, 'systems', body, 'systemConditions'),
-    inline: false,
   })
 
   const modules = strArray(body, 'modules')
   fields.push({
     name: `Modules — ${modules.length}`,
     value: collectionLines(modules, 'modules', body, 'moduleConditions'),
-    inline: false,
   })
 
   const status = chipRun([
@@ -846,7 +795,7 @@ function mechSheet(body: EntityBody): RenderedSheet {
 function crawlerSheet(body: EntityBody): RenderedSheet {
   const typeRef = str(body, 'typeRef') ?? str(body, 'type')
   const techLevel = str(body, 'techLevel')
-  const fields: EmbedData['fields'] = []
+  const fields: CardField[] = []
 
   const sp = num(body, 'currentSP', 'currentSp')
   const maxSp = num(body, 'maxSpOverride')
@@ -867,7 +816,6 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
   fields.push({
     name: `Bays — ${bayRefs.length}`,
     value: collectionLines(bayRefs, 'crawler-bays'),
-    inline: false,
   })
 
   const systems = strArray(body, 'systems')
@@ -875,7 +823,6 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
     fields.push({
       name: `Armament — ${systems.length}`,
       value: collectionLines(systems, 'systems'),
-      inline: false,
     })
   }
 
@@ -885,7 +832,7 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
       .filter(([, v]) => typeof v === 'number' && v > 0)
       .map(([tier, v]) => `${tier.toUpperCase()} ×${String(v)}`)
     const run = chipRun(entries)
-    if (run !== null) fields.push({ name: 'Scrap Pool', value: run, inline: false })
+    if (run !== null) fields.push({ name: 'Scrap Pool', value: run })
   }
 
   const subtitleParts = [refName('crawlers', typeRef)]
@@ -901,25 +848,21 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
 }
 
 /**
- * `/su sheet` — a crewmate's sheet, folded into an embed.
+ * `/su sheet` — a crewmate's sheet, folded into a card.
  *
  * The live sheet is an identity band (fields beside a vitals rail) followed by
- * a stack of section slabs, each led by a stamp title and a count. An embed is
- * a title, a description, and fields that sit three-across or full width. Those
+ * a stack of section slabs, each led by a stamp title and a count. A card is a
+ * heading, prose, inline fields that run together and full-width slabs. Those
  * are the same structure, so the mapping is deliberate and one-to-one:
  *
  * - identity band fields   → description
- * - vitals rail            → inline fields, one gauge each
+ * - vitals rail            → inline fields, one gauge per line
  * - section slab + count   → one full-width field, count in the field NAME
  * - a `ReferenceEntityCard` → one line, linked to the reference site
- * - sheet accent           → embed colour strip
- * - reserved image seat    → thumbnail
- *
- * The one concession to the medium is the vitals rail, which is a vertical
- * stack on the sheet and a three-across row here. The crew board already reads
- * that way, so it is consistent rather than novel.
+ * - sheet accent           → accent strip
+ * - reserved image seat    → thumbnail beside the identity band
  */
-export function buildSheetEmbed(sheet: SheetResult, webUrl: string): EmbedData {
+export function sheetCard(sheet: SheetResult, webUrl: string): ContainerData {
   const body = sheet.body
   const owner = sheet.ownerName ?? UNCLAIMED
 
@@ -942,11 +885,10 @@ export function buildSheetEmbed(sheet: SheetResult, webUrl: string): EmbedData {
     // FIRST thing dropped on a large sheet — a Salvager with many ability
     // trees, a fully-fitted crawler. The one link that works without an
     // account should not be the one that goes.
-    const afterVitals = fields.findIndex((f) => !f.inline)
+    const afterVitals = fields.findIndex((f) => f.inline !== true)
     fields.splice(afterVitals === -1 ? fields.length : afterVitals, 0, {
       name: 'Share',
       value: `[Public sheet](${publicUrl}) — always current, no account needed`,
-      inline: false,
     })
   }
 
@@ -957,14 +899,14 @@ export function buildSheetEmbed(sheet: SheetResult, webUrl: string): EmbedData {
     sheet.table === 'crawlers' ? 'Communal · read-only' : `Owned by **${owner}** · read-only`
   const description = [rendered.subtitle, provenance].filter((line) => line.length > 0).join('\n')
 
-  return {
-    title: truncate(name, LIMIT.title),
+  return entityCard({
+    title: name,
     // Omitted rather than dead: an unclaimed entity has nothing to open.
     ...(url === null ? {} : { url }),
-    color: rendered.critical ? CRITICAL : SHEET_ACCENT[sheet.table],
+    accent: rendered.critical ? CRITICAL : SHEET_ACCENT[sheet.table],
     description,
     fields,
     footer: FOOTER,
     ...(rendered.thumbnail === undefined ? {} : { thumbnail: rendered.thumbnail }),
-  }
+  })
 }

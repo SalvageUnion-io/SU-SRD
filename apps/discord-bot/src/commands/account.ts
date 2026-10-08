@@ -1,6 +1,5 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
-import { buildGamesEmbed, buildMeEmbed, buildShelfEmbed } from '../gameEmbed.js'
-import { itunSettings } from '../itunSettings.js'
+import { gamesCard, ITUN_ORIGIN, meCard, shelfCard } from '../gameCards.js'
 import type { CommandExecuteInteraction } from './interactions.js'
 import { respondWithItun } from './itunReply.js'
 
@@ -27,7 +26,7 @@ export const meCommand = {
       // `currentGameId` is deliberately not resolved here: it would cost a
       // second round trip to mark one line, and `/su game info` answers
       // "what is this channel" properly.
-      render: (value) => buildMeEmbed(value, itunSettings().webUrl),
+      render: (value) => meCard(value, ITUN_ORIGIN),
     })
   },
 }
@@ -40,7 +39,7 @@ export const gamesCommand = {
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     await respondWithItun(interaction, {
       call: (client) => client.games(interaction.user.id),
-      render: (value) => buildGamesEmbed(value.games, itunSettings().webUrl),
+      render: (value) => gamesCard(value.games, ITUN_ORIGIN),
     })
   },
 }
@@ -53,7 +52,7 @@ export const shelfCommand = {
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     await respondWithItun(interaction, {
       call: (client) => client.shelf(interaction.user.id),
-      render: (value) => buildShelfEmbed(value, itunSettings().webUrl),
+      render: (value) => shelfCard(value, ITUN_ORIGIN),
     })
   },
 }

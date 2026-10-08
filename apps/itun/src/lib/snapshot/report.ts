@@ -8,9 +8,6 @@
  * a reporter; until one does, reporting is a no-op, which is exactly right for
  * tests.
  *
- * This is the same shape as `apps/discord-bot/src/report.ts`, deliberately —
- * two surfaces with the same problem should not invent two solutions.
- *
  * ## Why module-scope mutable state is safe
  *
  * Workers forbid async I/O, timers and randomness in global scope — not

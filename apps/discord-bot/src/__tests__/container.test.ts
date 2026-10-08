@@ -5,6 +5,7 @@ import {
   containerComponentCount,
   containerTextLength,
   enforceContainerLimits,
+  entityCard,
   toContainer,
   V2_LIMIT,
 } from '../container.js'
@@ -28,7 +29,7 @@ const base: ContainerData = {
 
 describe('toContainer', () => {
   test('carries the accent colour V2 would otherwise cost', () => {
-    // The whole risk of moving off embeds: the tier colour had to survive.
+    // The tier colour rides on the container's accent.
     const json = toContainer(base).toJSON()
     expect(json.type).toBe(17)
     expect(json.accent_color).toBe(0x4b86a0)
@@ -65,11 +66,12 @@ describe('toContainer', () => {
     expect(section.accessory.type).toBe(11)
   })
 
-  test('the built payload is what the Worker adapter will send', () => {
-    // adapter.ts walks plain objects and calls toJSON(); this is that shape.
+  test('the built payload serialises to what Discord receives', () => {
+    // adapter.ts hands builders over as they are; JSON.stringify calls their
+    // toJSON() on the way to the wire.
     const payload = {
       flags: MessageFlags.IsComponentsV2,
-      components: [toContainer(base).toJSON()],
+      components: [toContainer(base)],
     }
     expect(payload.flags).toBe(32768)
     expect(JSON.stringify(payload)).toContain('"accent_color":4949664')
@@ -127,5 +129,52 @@ describe('limit enforcement', () => {
     expect(() =>
       toContainer({ accent: 0, blocks: [{ kind: 'text', content: 'x'.repeat(9000) }] })
     ).not.toThrow()
+  })
+})
+
+describe('entityCard', () => {
+  const card = {
+    title: 'Rustjaw',
+    url: 'https://intheunionnow.com/games/g1',
+    accent: 0x7a978a,
+    description: '*Mule*',
+    fields: [
+      { name: 'SP', value: '8/12', inline: true },
+      { name: 'Heat', value: '3/6', inline: true },
+      { name: 'Systems — 1', value: 'Armour Plating' },
+    ],
+    footer: 'In The Union Now',
+  }
+
+  test('renders heading, prose, fields, then a rule and the footer', () => {
+    expect(entityCard(card)).toEqual({
+      accent: 0x7a978a,
+      blocks: [
+        { kind: 'text', content: '## [Rustjaw](https://intheunionnow.com/games/g1)' },
+        { kind: 'text', content: '*Mule*' },
+        // Consecutive inline fields run together as one rail.
+        { kind: 'text', content: '**SP** 8/12\n**Heat** 3/6' },
+        // A full-width field is a slab: bold heading, body beneath.
+        { kind: 'text', content: '**Systems — 1**\nArmour Plating' },
+        { kind: 'separator' },
+        { kind: 'text', content: '-# In The Union Now' },
+      ],
+    })
+  })
+
+  test('a bare title has no link', () => {
+    const { url: _url, ...unlinked } = card
+    expect(entityCard(unlinked).blocks[0]).toEqual({ kind: 'text', content: '## Rustjaw' })
+  })
+
+  test('artwork hangs beside the heading and prose in one section', () => {
+    const art = 'https://assets.salvageunion.io/chassis/mule.webp'
+    const blocks = entityCard({ ...card, thumbnail: art }).blocks
+    expect(blocks[0]).toEqual({
+      kind: 'section',
+      text: ['## [Rustjaw](https://intheunionnow.com/games/g1)', '*Mule*'],
+      thumbnail: { url: art, description: 'Rustjaw' },
+    })
+    expect(blocks[1]).toEqual({ kind: 'text', content: '**SP** 8/12\n**Heat** 3/6' })
   })
 })
