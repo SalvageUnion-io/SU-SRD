@@ -25,16 +25,14 @@ import { useEncounterStore } from '../../stores/encounterStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
 import { forgetVersions } from '../../stores/serverVersions'
-import { publishStoreChange } from '../db/broadcast'
 import { clearCache, readCacheMeta } from '../db/index'
-import { STORE_NAMES } from '../db/stores'
 
 /**
  * Empty the cache for `userId`, and everything that was reading it.
  *
  * The in-memory stores are reloaded from the now-empty database rather than
- * set to `[]` directly, so each one goes through its own read rule; other tabs
- * hear about it by broadcast and do the same.
+ * set to `[]` directly, so each one goes through its own read rule. Other tabs
+ * drop their own copies when they see the session end (`forgetLoadedRows`).
  */
 async function emptyFor(userId: string | null): Promise<void> {
   await clearCache(userId)
@@ -48,7 +46,30 @@ async function emptyFor(userId: string | null): Promise<void> {
     usePatternStore.getState().rehydrate(),
     useEncounterStore.getState().rehydrate(),
   ])
-  for (const name of Object.values(STORE_NAMES)) publishStoreChange(name)
+}
+
+/**
+ * Drop this tab's loaded rows when its session ends, leaving IndexedDB alone.
+ *
+ * The auth layer ends the session in every open tab, and each tab calls this
+ * for itself (`AccountReconciler`); only the tab that signed out empties the
+ * shared database (`forgetCache`). Without it, a tab that did not sign out
+ * would keep showing the last account's rows, and carry them into the next
+ * account's session. The stores stay hydrated and empty, which is what a
+ * signed-out read answers anyway (`readableRows`), and the adopted versions
+ * are forgotten so the next sign-in's `ShelfSync` adopts every row afresh.
+ */
+export function forgetLoadedRows(): void {
+  forgetVersions()
+  useEntityStore.setState({
+    pilots: [],
+    mechs: [],
+    crawlers: [],
+    softLinks: [],
+    hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
+  })
+  usePatternStore.setState({ mechPatterns: [], hydrated: true })
+  useEncounterStore.setState({ encounterNpcs: [], hydrated: true })
 }
 
 /**

@@ -80,12 +80,6 @@ afterAll(() => {
 const { useEntityStore } = await import('../entityStore')
 const { useCargo } = await import('../../lib/cargo/useCargo')
 
-/**
- * The real store, read without subscribing. A subscribed hook re-renders on
- * every cross-tab rehydrate the writes broadcast, which lands outside `act`.
- */
-const store = (() => useEntityStore.getState()) as unknown as typeof useEntityStore
-
 beforeEach(async () => {
   _resetDbSingleton()
   await clearCache()
@@ -159,7 +153,7 @@ describe("a player's crawler-side cargo move", () => {
   test('a refused stow leaves the mech and the crawler as they were, here and on the server', async () => {
     const crate = makeUnitLot('Crate')
     const { t, mech, crawler } = await seedHold('player', [crate], [])
-    const { result } = renderHook(() => useCargo({ mech, crawler, store }))
+    const { result } = renderHook(() => useCargo({ mech, crawler }))
 
     let outcome: Awaited<ReturnType<typeof result.current.stow>> | undefined
     await act(async () => {
@@ -178,7 +172,7 @@ describe("a player's crawler-side cargo move", () => {
   test('a refused load does not duplicate the lot', async () => {
     const crate = makeUnitLot('Crate')
     const { t, mech, crawler } = await seedHold('player', [], [crate])
-    const { result } = renderHook(() => useCargo({ mech, crawler, store }))
+    const { result } = renderHook(() => useCargo({ mech, crawler }))
 
     let outcome: Awaited<ReturnType<typeof result.current.load>> | undefined
     await act(async () => {
@@ -195,7 +189,7 @@ describe("a player's crawler-side cargo move", () => {
     // Control: the crawler-first order is not what refuses the move.
     const crate = makeUnitLot('Crate')
     const { t, mech, crawler } = await seedHold('organizer', [crate], [])
-    const { result } = renderHook(() => useCargo({ mech, crawler, store }))
+    const { result } = renderHook(() => useCargo({ mech, crawler }))
 
     let outcome: Awaited<ReturnType<typeof result.current.stow>> | undefined
     await act(async () => {

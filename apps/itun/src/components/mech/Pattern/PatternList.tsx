@@ -5,9 +5,7 @@
  * InstantiateFromPattern button.
  *
  * Data fetching: subscribes to usePatternStore (audit item 22) — patterns get
- * the same lazy hydration and cross-tab broadcast discipline
- * as every other collection (they previously bypassed the store layer with a
- * one-shot db read into local state).
+ * the same lazy hydration as every other collection.
  *
  * onInstantiated is forwarded from the route so navigation can happen at the
  * route boundary.
@@ -23,8 +21,9 @@ type PatternListProps = {
 }
 
 export function PatternList({ onInstantiated }: PatternListProps) {
-  // Subscribing keeps the list live — saves from this tab (or another tab,
-  // via broadcast) appear without a refetch. list() lazily hydrates.
+  // Subscribing keeps the list live — saves from this tab, and those
+  // `ShelfSync` adopts from elsewhere, appear without a refetch. list()
+  // lazily hydrates.
   const patterns = usePatternStore((s) => s.mechPatterns)
   const isLoading = !usePatternStore((s) => s.hydrated)
   usePatternStore.getState().list()

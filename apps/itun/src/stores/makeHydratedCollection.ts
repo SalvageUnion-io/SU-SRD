@@ -3,12 +3,13 @@
  * Zustand store (audit item 22).
  *
  * encounterStore and patternStore both follow the same
- * discipline (ADR-003): lazy auto-hydration from IndexedDB on first read,
- * write-through persistence (db first, then in-memory set()), and cross-tab
- * invalidation via lib/db/broadcast.
+ * discipline (ADR-003): lazy auto-hydration from IndexedDB on first read and
+ * write-through persistence (server, then db, then in-memory set()). Another
+ * tab's writes arrive through this tab's own Convex subscription (`ShelfSync`
+ * adopts them), not through a tab-to-tab channel.
  * Before this factory each store hand-rolled that skeleton (~650 lines
  * across three copies) — which is exactly how mechPatterns ended up
- * BYPASSING the layer entirely (direct db reads, no broadcast).
+ * BYPASSING the layer entirely (direct db reads).
  *
  * The collection key is parametrized (`encounterNpcs`,
  * `mechPatterns`) so each store's public state shape is unchanged —
@@ -21,8 +22,6 @@
  * the philosophy, not the shape.
  */
 
-import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
-import type { StoreName } from '../lib/db/stores'
 import { captureException } from '../lib/observability'
 import { readableRows, requireWritableBackend } from './entityBackend'
 
@@ -40,7 +39,7 @@ export type HydratedCollectionSlice<K extends string, T> = Record<K, T[]> & {
   hydrated: boolean
   /** Loads the collection from IndexedDB (nothing signed out). Idempotent. */
   hydrate: () => Promise<void>
-  /** Re-reads from IndexedDB even when already hydrated (cross-tab). */
+  /** Re-reads from IndexedDB even when already hydrated. */
   rehydrate: () => Promise<void>
   /** Sync list — returns in-memory records. Auto-triggers hydrate if needed. */
   list: () => T[]
@@ -80,8 +79,6 @@ type SliceConfig<K extends string, T, CreateInput> = {
    * signed out.
    */
   db: DbCollection<T, CreateInput>
-  /** Broadcast channel name; also drives the cross-tab subscription. */
-  storeName: StoreName
   /**
    * Mirror one write to the server of record, BEFORE it touches disk.
    *
@@ -99,20 +96,13 @@ type SliceConfig<K extends string, T, CreateInput> = {
 type SetLike = (partial: object | ((state: never) => object)) => void
 type GetLike<S> = () => S
 
-/**
- * Build the shared slice. Spread the result into the store's create()
- * callback, then call wireCrossTabInvalidation(useStore) once per store.
- */
+/** Build the shared slice. Spread the result into the store's create() callback. */
 export function makeHydratedCollectionSlice<
   K extends string,
   T extends { id: string },
   CreateInput,
 >(config: SliceConfig<K, T, CreateInput>) {
-  const { key, db, storeName, commit } = config
-
-  function afterWrite(): void {
-    publishStoreChange(storeName)
-  }
+  const { key, db, commit } = config
 
   return function slice(
     set: SetLike,
@@ -166,7 +156,6 @@ export function makeHydratedCollectionSlice<
               : [cached, ...list]
           })(),
         })
-        afterWrite()
         return cached
       },
 
@@ -191,7 +180,6 @@ export function makeHydratedCollectionSlice<
           throw err
         }
         set({ [key]: [record, ...records()] })
-        afterWrite()
         return record
       },
 
@@ -200,7 +188,6 @@ export function makeHydratedCollectionSlice<
         const updated = await db.update(id, patch)
         await commit({ kind: 'upsert', record: updated })
         set({ [key]: records().map((r) => (r.id === id ? updated : r)) })
-        afterWrite()
         return updated
       },
 
@@ -211,25 +198,7 @@ export function makeHydratedCollectionSlice<
         await commit({ kind: 'delete', id })
         await db.delete(id)
         set({ [key]: records().filter((r) => r.id !== id) })
-        afterWrite()
       },
     }
   }
-}
-
-/**
- * Cross-tab invalidation: when ANOTHER tab announces a write to this
- * collection's object store, re-read it (only when this tab already holds a
- * hydrated copy — lazy hydration covers the rest).
- */
-export function wireCrossTabInvalidation(
-  useStore: { getState: () => { hydrated: boolean; rehydrate: () => Promise<void> } },
-  storeName: StoreName
-): void {
-  subscribeStoreChanges((changed) => {
-    if (changed !== storeName) return
-    const state = useStore.getState()
-    if (!state.hydrated) return
-    void state.rehydrate()
-  })
 }

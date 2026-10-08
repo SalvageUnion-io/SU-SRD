@@ -18,8 +18,7 @@ import { knownVersion, noteVersion } from './serverVersions'
  * `entityStore` reaches its persistence through one indirection —
  * `dbStoreFor(type)` — so swapping the backend is a matter of changing what
  * that returns rather than rewriting the store. The store's public API, its
- * in-memory cache, its lazy hydration and its broadcast behaviour are all
- * untouched by this file.
+ * in-memory cache and its lazy hydration are untouched by this file.
  *
  * ## There are exactly three answers, and one of them is "nowhere"
  *

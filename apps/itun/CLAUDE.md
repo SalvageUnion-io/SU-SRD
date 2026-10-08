@@ -111,8 +111,8 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 - **Lazy auto-hydration:** first `list(type)` loads the IndexedDB cache (nothing
   signed out); later reads are synchronous.
 - **Write-through:** `update`/`create`/`delete` commit to Convex first when
-  signed in, then the IndexedDB cache, then in-memory state; cross-tab writes
-  invalidate via broadcast
+  signed in, then the IndexedDB cache, then in-memory state; other tabs hear
+  it from Convex
   ([ADR-003](../../docs/ARCHITECTURE.md#adr-003)).
 - Route persistent entity state through the store, **never** through a
   separate query cache (see `.claude/rules/itun-data-access.md`).

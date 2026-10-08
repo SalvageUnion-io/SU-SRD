@@ -60,7 +60,11 @@
  * not list a Game's crawlers. `WiringSync` fills both from
  * `entities.listWiring`, server wins, with the same prune guard; the rules are
  * the pure plans in `lib/links/linkSync.ts`. Like every adoption here it
- * writes through `adopt`/`forget`, so other tabs hear about it by broadcast.
+ * writes through `adopt`/`forget`.
+ *
+ * Every open tab mounts its own `ShelfSync`, so this is also how one tab hears
+ * another's writes: the write reaches Convex, and each tab's subscription
+ * re-emits. There is no tab-to-tab channel.
  */
 
 import { useQuery } from 'convex/react'

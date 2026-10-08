@@ -44,8 +44,7 @@ unaffected.
 - **Salvage-path reads**: records that fail strict Zod validation are
   re-parsed with unknown keys stripped (console warning) and only skipped as
   a last resort — one drifted record never bricks a store.
-- **Multi-tab**: writes broadcast store invalidations over a
-  `BroadcastChannel` (localStorage fallback) so concurrent tabs re-read
-  instead of clobbering each other.
+- **Multi-tab**: each tab hears every write, its own and other tabs', through
+  its own Convex subscription (`ShelfSync`); there is no tab-to-tab channel.
 - **Backups**: export (Download all) is the only backup path for local-first
   data.

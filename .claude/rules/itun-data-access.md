@@ -31,7 +31,7 @@ never `navigator.onLine` or an auth flag.
 ```typescript
 // read (synchronous after lazy hydration)
 const pilots = useEntityStore((s) => s.list('pilots'))
-// write (server-first, then the cache + cross-tab broadcast; refused signed out)
+// write (server-first, then the cache; refused signed out)
 await useEntityStore.getState().update('pilots', id, { hp: next })
 ```
 
