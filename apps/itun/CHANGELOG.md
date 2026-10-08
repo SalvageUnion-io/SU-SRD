@@ -2,6 +2,19 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.23.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.22.1...itun-v1.23.0) (2026-10-08)
+
+
+### Features
+
+* **itun:** signed out is read-only — building needs an account ([#1113](https://github.com/SalvageUnion-io/SU-SRD/issues/1113)) ([4c3a01a](https://github.com/SalvageUnion-io/SU-SRD/commit/4c3a01a28c9935871839c49e725c776e12637072))
+* **itun:** the Starter Set is read-only reference — browse it, copy from it ([#1114](https://github.com/SalvageUnion-io/SU-SRD/issues/1114)) ([24ce818](https://github.com/SalvageUnion-io/SU-SRD/commit/24ce818b2ef5dfa77160deafb2edc160719cf5e9))
+
+
+### Bug Fixes
+
+* **itun:** replace pre-network-first service workers at once and reload their tabs ([#1112](https://github.com/SalvageUnion-io/SU-SRD/issues/1112)) ([8739041](https://github.com/SalvageUnion-io/SU-SRD/commit/8739041079b7fe67ca01d99a4680918126adc885))
+
 ## [1.22.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.22.0...itun-v1.22.1) (2026-10-08)
 
 
