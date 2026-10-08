@@ -118,18 +118,14 @@ export function unsetCrawlerFields(
 /**
  * Load an ownable entity from a client-supplied id string, or throw.
  *
- * See the module header for why `normalizeId` is not optional here. `table`
- * accepts null so a caller that maps an entity *type* onto a table (see
- * `ownableTableFor` in `proposals.ts`) can hand the unmapped case straight in
- * and get the same "no longer exists" answer, rather than inventing a second
- * one for a case that means exactly the same thing to the caller.
+ * See the module header for why `normalizeId` is not optional here.
  */
 export async function loadOwnable(
   ctx: MutationCtx,
-  table: OwnableTable | null,
+  table: OwnableTable,
   entityId: string
 ): Promise<Doc<'pilots'> | Doc<'mechs'>> {
-  const id = table === null ? null : ctx.db.normalizeId(table, entityId)
+  const id = ctx.db.normalizeId(table, entityId)
   if (id === null) throw new Error('That entity no longer exists')
 
   const doc = await ctx.db.get(id)
