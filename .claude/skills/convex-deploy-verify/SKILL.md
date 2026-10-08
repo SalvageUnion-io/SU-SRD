@@ -1,6 +1,6 @@
 ---
 name: convex-deploy-verify
-description: Use when setting up or checking an ITUN Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot reports "not connected" or `unauthorized`, or when a Convex tool says "No CONVEX_DEPLOYMENT set". Covers the three required env vars, the bot credential, and the curl probe that tells the failure modes apart.
+description: Use when setting up or checking an ITUN Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot replies "In The Union Now is not configured for this bot", answers `unavailable` or `unauthorized`, or its `/health` returns 503, or when a Convex tool says "No CONVEX_DEPLOYMENT set". Covers the three required env vars, the bot credential, and the curl probe that tells the failure modes apart.
 allowed-tools: Bash, Read
 ---
 

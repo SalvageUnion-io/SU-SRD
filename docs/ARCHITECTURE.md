@@ -4012,7 +4012,7 @@ no account to open, is always current, and requires no publishing step.
   than to inherit.
 - **The link does not unfurl.** `index.html` carries no Open Graph tags and the
   route is client-rendered, so a bare link pasted into Discord or Slack shows
-  nothing. That is why the bot renders the URL inside its own embed. Giving this
+  nothing. That is why the bot renders the URL inside its own card. Giving this
   route server-rendered meta tags is a separate, later piece of work.
 
 ### Alternatives considered

@@ -70,7 +70,7 @@ describe('interpret', () => {
 
   test('an unrecognised 200 body is unavailable rather than silently ok', () => {
     // Failing closed matters: treating an unknown shape as success would render
-    // an embed full of "—" and look like real, empty data.
+    // a card full of "—" and look like real, empty data.
     expect(interpret(200, null).kind).toBe('unavailable')
     expect(interpret(200, { ok: false }).kind).toBe('unavailable')
     expect(interpret(200, { ok: false, reason: 'invented-reason' }).kind).toBe('unavailable')
