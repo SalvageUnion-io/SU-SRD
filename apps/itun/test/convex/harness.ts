@@ -56,6 +56,7 @@ const modules: Record<string, () => Promise<unknown>> = {
   './ownership.ts': () => import('../../convex/ownership'),
   './proposals.ts': () => import('../../convex/proposals'),
   './publicSheet.ts': () => import('../../convex/publicSheet'),
+  './seats.ts': () => import('../../convex/seats'),
   './shelf.ts': () => import('../../convex/shelf'),
   './templates.ts': () => import('../../convex/templates'),
   './model/bot.ts': () => import('../../convex/model/bot'),
@@ -63,6 +64,7 @@ const modules: Record<string, () => Promise<unknown>> = {
   './model/entities.ts': () => import('../../convex/model/entities'),
   './model/invites.ts': () => import('../../convex/model/invites'),
   './model/permissions.ts': () => import('../../convex/model/permissions'),
+  './model/seats.ts': () => import('../../convex/model/seats'),
 }
 
 export function testConvex() {

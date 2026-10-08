@@ -1,8 +1,9 @@
 /**
- * Unit tests for playStateStore — the ephemeral cockpit play-state.
+ * Unit tests for playStateStore — the Dashboard's remaining per-device state.
  *
- * Verifies the default mount (boarded mech) and the setters. This store is
- * intentionally non-persisted; there is no IndexedDB behaviour to test.
+ * Mount, range and effects live on the seat now (`useSeat`); what is left is
+ * Downtime on this device, the Dial index and the damage hand-off. This store
+ * is intentionally non-persisted; there is no IndexedDB behaviour to test.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test'
@@ -10,27 +11,13 @@ import { usePlayStateStore } from '../playStateStore'
 
 describe('playStateStore', () => {
   beforeEach(() => {
-    usePlayStateStore.setState({
-      mount: 'pilot',
-      wheel: 0,
-      priorMount: null,
-      dtStep: 0,
-      dtDone: {},
-    })
+    usePlayStateStore.setState({ downtime: false, wheel: 0, dtStep: 0, dtDone: {} })
   })
 
-  test('defaults to the on-foot pilot, dial at 0', () => {
+  test('defaults to out of Downtime, dial at 0', () => {
     const s = usePlayStateStore.getState()
-    expect(s.mount).toBe('pilot')
+    expect(s.downtime).toBe(false)
     expect(s.wheel).toBe(0)
-    expect(s.priorMount).toBeNull()
-  })
-
-  test('setMount switches the active-row entity', () => {
-    usePlayStateStore.getState().setMount('downtime')
-    expect(usePlayStateStore.getState().mount).toBe('downtime')
-    usePlayStateStore.getState().setMount('pilot')
-    expect(usePlayStateStore.getState().mount).toBe('pilot')
   })
 
   test('setWheel moves the dial index', () => {
@@ -38,37 +25,25 @@ describe('playStateStore', () => {
     expect(usePlayStateStore.getState().wheel).toBe(3)
   })
 
-  test('enterDowntime remembers the prior mount and resets the wizard', () => {
-    usePlayStateStore.setState({ mount: 'pilot', dtStep: 4, dtDone: { 0: true } })
+  test('enterDowntime enters it and resets the wizard', () => {
+    usePlayStateStore.setState({ dtStep: 4, dtDone: { 0: true } })
     usePlayStateStore.getState().enterDowntime()
     const s = usePlayStateStore.getState()
-    expect(s.mount).toBe('downtime')
-    expect(s.priorMount).toBe('pilot')
+    expect(s.downtime).toBe(true)
     expect(s.dtStep).toBe(0)
     expect(s.dtDone).toEqual({})
   })
 
-  test('enterDowntime while already in Downtime is a no-op (keeps priorMount)', () => {
-    usePlayStateStore.setState({ mount: 'downtime', priorMount: 'mech' })
+  test('enterDowntime while already in Downtime keeps the wizard where it is', () => {
+    usePlayStateStore.setState({ downtime: true, dtStep: 3 })
     usePlayStateStore.getState().enterDowntime()
-    const s = usePlayStateStore.getState()
-    expect(s.mount).toBe('downtime')
-    expect(s.priorMount).toBe('mech')
+    expect(usePlayStateStore.getState().dtStep).toBe(3)
   })
 
-  test('leaveDowntime restores the mount active when entered', () => {
-    usePlayStateStore.getState().setMount('pilot')
+  test('leaveDowntime leaves it', () => {
     usePlayStateStore.getState().enterDowntime()
     usePlayStateStore.getState().leaveDowntime()
-    const s = usePlayStateStore.getState()
-    expect(s.mount).toBe('pilot')
-    expect(s.priorMount).toBeNull()
-  })
-
-  test('leaveDowntime falls back to mech when no prior mount is set', () => {
-    usePlayStateStore.setState({ mount: 'downtime', priorMount: null })
-    usePlayStateStore.getState().leaveDowntime()
-    expect(usePlayStateStore.getState().mount).toBe('mech')
+    expect(usePlayStateStore.getState().downtime).toBe(false)
   })
 
   test('setDtStep + toggleDtDone drive the ephemeral wizard cursor', () => {

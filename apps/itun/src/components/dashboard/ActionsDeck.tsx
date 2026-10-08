@@ -48,9 +48,9 @@ import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
+import type { RangeBand } from '../../lib/schemas/seat'
 import { RANGE_BANDS } from '../../lib/schemas/seat'
 import { useEntityStore } from '../../stores/entityStore'
-import type { MountState } from '../../stores/playStateStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import type { MechItemEconomy } from '../sheet/mechItemRules'
@@ -72,6 +72,7 @@ import {
   TIMING_TABS,
   tabMatchesAction,
 } from './dashboardRules'
+import type { MountState } from './useSeat'
 
 /**
  * A render-ready action card. The action ENTITY drives a CATALOG-extent
@@ -441,17 +442,27 @@ type ActionsDeckProps = {
   crawler?: Crawler | null
   /** Which entity owns the cockpit; defaults to the boarded mech. */
   mount?: MountState
+  /** The engagement range band declared on the pilot's seat. */
+  range: RangeBand
+  /** Declare a new range band on the seat. */
+  onRange: (range: RangeBand) => void
   /** Injectable store (defaults to the live entity store). */
   store?: PlayStore
 }
 
 const HUGE_HEAT_CAP = Number.MAX_SAFE_INTEGER
 
-export function ActionsDeck({ mech, pilot, crawler, mount = 'mech', store }: ActionsDeckProps) {
+export function ActionsDeck({
+  mech,
+  pilot,
+  crawler,
+  mount = 'mech',
+  range,
+  onRange,
+  store,
+}: ActionsDeckProps) {
   const liveStore = useEntityStore()
   const s: PlayStore = store ?? liveStore
-  const range = usePlayStateStore((st) => st.range)
-  const setRange = usePlayStateStore((st) => st.setRange)
   const armDamagePrompt = usePlayStateStore((st) => st.armDamagePrompt)
 
   // On foot the mech's actions are unreachable; boarded, the pilot's own actions
@@ -729,7 +740,7 @@ export function ActionsDeck({ mech, pilot, crawler, mount = 'mech', store }: Act
     activeRange: range,
     onRange: (b) => {
       const next = RANGE_BANDS.find((x) => x === b)
-      if (next !== undefined) setRange(next)
+      if (next !== undefined) onRange(next)
     },
     reachText: `${reach.inReach} / ${reach.total} in reach`,
     sources,

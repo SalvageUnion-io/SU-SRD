@@ -4,6 +4,7 @@ import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { mutation } from './model/entities'
 import { requireUser } from './model/permissions'
+import { deleteGamePlayState, releaseSeatsOf } from './model/seats'
 
 /**
  * Account management (ADR-030 §6, D33).
@@ -180,6 +181,7 @@ export const deleteAccount = mutation({
               .collect()
             for (const row of rows) await ctx.db.delete(row._id)
           }
+          await deleteGamePlayState(ctx, membership.gameId)
           await ctx.db.delete(membership.gameId)
         }
       }
@@ -203,7 +205,18 @@ export const deleteAccount = mutation({
         .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
         .collect(),
     ])
-    for (const row of personal.flat()) await ctx.db.delete(row._id)
+    const [pilots, mechs, patterns] = personal
+    for (const row of patterns) await ctx.db.delete(row._id)
+    // A deleted pilot's seat goes with it, and a deleted mech leaves whoever
+    // was aboard it on foot (ADR-038).
+    for (const row of pilots) {
+      await ctx.db.delete(row._id)
+      await releaseSeatsOf(ctx, 'pilot', row, row.gameId)
+    }
+    for (const row of mechs) {
+      await ctx.db.delete(row._id)
+      await releaseSeatsOf(ctx, 'mech', row, row.gameId)
+    }
 
     // Auth rows, so the identity cannot be resurrected by signing in again.
     //

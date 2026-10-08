@@ -29,6 +29,7 @@ const SeatMountSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('foot') }),
   z.object({ kind: z.literal('boarded'), mechId: z.string().min(1) }),
 ])
+export type SeatMount = z.infer<typeof SeatMountSchema>
 
 export const SeatSchema = z.object({
   /** The Game's Convex id. */

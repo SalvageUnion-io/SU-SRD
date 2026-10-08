@@ -133,10 +133,14 @@ function makeMech(): Mech {
   })
 }
 
+function ignoreRange(): void {
+  // The range band lives on the seat; these tests read the deck at Close.
+}
+
 function renderDeck(mech: Mech, store: PlayStore) {
   return render(
     <EntityHrefProvider value={() => undefined}>
-      <ActionsDeck mech={mech} store={store} />
+      <ActionsDeck mech={mech} range="Close" onRange={ignoreRange} store={store} />
     </EntityHrefProvider>
   )
 }
@@ -262,6 +266,22 @@ describe('ActionsDeck', () => {
     expect(container.querySelector('.pc-deck-reach')?.textContent).toContain('in reach')
   })
 
+  test('the range band is read from the seat, and a new one is sent to it', () => {
+    const mech = makeMech()
+    const { store } = stubStore(mech)
+    const sent: string[] = []
+    render(
+      <EntityHrefProvider value={() => undefined}>
+        <ActionsDeck mech={mech} range="Long" onRange={(r) => sent.push(r)} store={store} />
+      </EntityHrefProvider>
+    )
+    expect(screen.getByTitle('Set engagement range to Long').getAttribute('aria-pressed')).toBe(
+      'true'
+    )
+    fireEvent.click(screen.getByTitle('Set engagement range to Far'))
+    expect(sent).toEqual(['Far'])
+  })
+
   test('resolve panel exposes Back / Clear and an Apply gated on a roll', () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
@@ -354,7 +374,14 @@ describe('ActionsDeck', () => {
     }).getState()
     const { container } = render(
       <EntityHrefProvider value={() => undefined}>
-        <ActionsDeck mech={mech} pilot={pilot} mount="mech" store={store} />
+        <ActionsDeck
+          mech={mech}
+          pilot={pilot}
+          mount="mech"
+          range="Close"
+          onRange={ignoreRange}
+          store={store}
+        />
       </EntityHrefProvider>
     )
     clickActionByName(container, mod.actionName)
@@ -375,7 +402,14 @@ describe('ActionsDeck', () => {
     const { store } = stubStore(mech)
     const { container } = render(
       <EntityHrefProvider value={() => undefined}>
-        <ActionsDeck mech={mech} pilot={pilot} mount="mech" store={store} />
+        <ActionsDeck
+          mech={mech}
+          pilot={pilot}
+          mount="mech"
+          range="Close"
+          onRange={ignoreRange}
+          store={store}
+        />
       </EntityHrefProvider>
     )
     const labels = deckCards(container).map((el) => el.getAttribute('aria-label'))
@@ -391,7 +425,14 @@ describe('ActionsDeck', () => {
     const { store } = stubStore(pilot)
     const { container } = render(
       <EntityHrefProvider value={() => undefined}>
-        <ActionsDeck mech={makeMech()} pilot={pilot} mount="pilot" store={store} />
+        <ActionsDeck
+          mech={makeMech()}
+          pilot={pilot}
+          mount="pilot"
+          range="Close"
+          onRange={ignoreRange}
+          store={store}
+        />
       </EntityHrefProvider>
     )
     const labels = deckCards(container).map((el) => el.getAttribute('aria-label'))
@@ -462,7 +503,14 @@ describe('ActionsDeck — unrecorded live stats default to full, not empty', () 
     }).getState()
     const { container } = render(
       <EntityHrefProvider value={() => undefined}>
-        <ActionsDeck mech={mech} pilot={pilot} mount="mech" store={store} />
+        <ActionsDeck
+          mech={mech}
+          pilot={pilot}
+          mount="mech"
+          range="Close"
+          onRange={ignoreRange}
+          store={store}
+        />
       </EntityHrefProvider>
     )
     clickActionByName(container, mod.actionName)

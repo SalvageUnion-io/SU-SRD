@@ -4,7 +4,7 @@ import { z } from 'salvageunion-reference/zod'
  * CockpitPrefs — persisted Play Cockpit ("Pit HUD") dial preferences
  * (docs/architecture/play-cockpit.md §9.7).
  *
- * These are PERSISTED (unlike the ephemeral mount/wheel state in
+ * These are PERSISTED (unlike the ephemeral wheel state in
  * playStateStore): which dial items the player has hidden and the order they
  * ride the rotary Dial. They are stored on the owning Workspace record
  * (local-first, IndexedDB — no backend), so a table's cockpit remembers its

@@ -2,11 +2,14 @@
  * Dashboard — the play surface for one pilot, with their assigned mech and
  * crawler (docs/architecture/dashboard.md).
  *
- * It is keyed on the pilot (ADR-038 §1): the mech is the one assigned to the
- * pilot (`mech-to-pilot`) and the crawler the pilot's own (`pilot-to-crawler`),
- * both resolved by the sheet's `resolveSheetComposition`. Whether this pilot
- * may be played at all is `DashboardGate`'s question, asked before this
- * renders.
+ * It is keyed on the pilot (ADR-038 §1), and the pilot's seat in its Game
+ * (`useSeat`) says whether they are on foot or boarded, and in which mech. A
+ * boarded pilot runs the mech the seat names, which need not be the one
+ * assigned to them; on foot, the mech shown is the assigned one
+ * (`mech-to-pilot`), which Board climbs into. The crawler is the pilot's own
+ * (`pilot-to-crawler`). Both links resolve through the sheet's
+ * `resolveSheetComposition`. Whether this pilot may be played at all is
+ * `DashboardGate`'s question, asked before this renders.
  */
 
 import { buttonVariants } from 'component-lib'
@@ -16,6 +19,7 @@ import { buttonVariants } from 'component-lib'
 // route's chunk rather than in every page's stylesheet.
 import 'component-lib/styles/dashboard.css'
 import { useCallback, useMemo } from 'react'
+import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { containerOf } from '../../lib/container'
 import type { CockpitPrefs } from '../../lib/schemas/cockpitPrefs'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
@@ -34,11 +38,24 @@ import { DisplayPanel } from './DisplayPanel'
 import { DowntimeWizard } from './DowntimeWizard'
 import { applyDialPrefs, configurableKinds, dialItems } from './dialItems'
 import { RailBar } from './RailBar'
+import type { MountState, SeatHandle } from './useSeat'
+import { NO_SEAT, useSeat } from './useSeat'
 
 export function Dashboard({ pilotId }: { pilotId: string }) {
+  // A build with no Convex mounts no provider, so `useSeat` would throw. The
+  // gate never opens the Dashboard in one, but tests and stories render it.
+  if (!isConvexConfigured) return <DashboardView pilotId={pilotId} seat={NO_SEAT} />
+  return <SeatedDashboard pilotId={pilotId} />
+}
+
+function SeatedDashboard({ pilotId }: { pilotId: string }) {
+  const pilot = useEntityStore((s) => s.get('pilot', pilotId))
+  return <DashboardView pilotId={pilotId} seat={useSeat(pilot)} />
+}
+
+function DashboardView({ pilotId, seat }: { pilotId: string; seat: SeatHandle }) {
   const storeState = useEntityStore()
-  // The active-row entity drives the whole-canvas tint (proposed ADR-018).
-  const mount = usePlayStateStore((s) => s.mount)
+  const inDowntime = usePlayStateStore((s) => s.downtime)
   const wheel = usePlayStateStore((s) => s.wheel)
   const setWheel = usePlayStateStore((s) => s.setWheel)
   const leaveDowntime = usePlayStateStore((s) => s.leaveDowntime)
@@ -73,11 +90,15 @@ export function Dashboard({ pilotId }: { pilotId: string }) {
     links: storeState.softLinks,
     store: lookup,
   })
-  const mech = composition.mech
+  const boardedId = seat.seat.mount.kind === 'boarded' ? seat.seat.mount.mechId : null
+  const boarded = boardedId === null ? null : storeState.get('mech', boardedId)
+  const mech = boarded ?? composition.mech
   const crawler = composition.crawler
+  // The active-row entity drives the whole-canvas tint (proposed ADR-018).
+  const mount: MountState = inDowntime ? 'downtime' : boarded ? 'mech' : 'pilot'
 
-  // The instruments are built around a mech; a pilot with none assigned is
-  // given one on their sheet. Choosing a mech here is the Board control's job.
+  // The instruments are built around a mech; a pilot with none assigned and
+  // none boarded is given one on their sheet.
   if (!pilot || !mech) {
     return (
       <DashboardCanvas>
@@ -141,12 +162,28 @@ export function Dashboard({ pilotId }: { pilotId: string }) {
             onLeaveDowntime={isDowntime ? leaveDowntime : undefined}
           />
         }
-        primary={<ActiveItemBand mech={mech} pilot={pilot} crawler={crawler} store={storeState} />}
+        primary={
+          <ActiveItemBand
+            mech={mech}
+            pilot={pilot}
+            crawler={crawler}
+            mount={mount}
+            seat={seat}
+            store={storeState}
+          />
+        }
         display={
           isDowntime ? (
             <DowntimeWizard crawler={crawler} mech={mech} pilot={pilot} />
           ) : (
-            <DisplayPanel focus={focus} mech={mech} pilot={pilot} crawler={crawler} />
+            <DisplayPanel
+              focus={focus}
+              mech={mech}
+              pilot={pilot}
+              crawler={crawler}
+              mount={mount}
+              seat={seat}
+            />
           )
         }
         wheel={

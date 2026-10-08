@@ -3,8 +3,9 @@
  * running, laid out as responsibility "bays" (a gauge cluster + its own button
  * grid), with a resolve overlay for player-confirmed steps.
  *
- * This file is only the dispatcher. It reads the mount state
- * (playStateStore) and hands off to one band per mount, each in its own file
+ * This file is only the dispatcher. It takes the mount the Dashboard derived
+ * from the pilot's seat (`useSeat`) and hands off to one band per mount, each
+ * in its own file
  * (audit AP-16 — the three used to share one 1,100-line module):
  *
  *   - `MechBand` (Boarded) — reactor, damage, cargo, effects, egress.
@@ -31,22 +32,26 @@ import { usePlayStateStore } from '../../stores/playStateStore'
 import { CrawlerBand } from './CrawlerBand'
 import { MechBand } from './MechBand'
 import { PilotBand } from './PilotBand'
+import type { MountState, SeatHandle } from './useSeat'
 
 /** The store surface the bands need — injectable so tests can assert patches. */
 export type PlayStore = Pick<EntityState, 'get' | 'update' | 'transfer'>
 
 type ActiveItemBandProps = {
+  /** The boarded mech, or on foot the pilot's assigned one. */
   mech: Mech
   pilot: Pilot | null
   /** The linked crawler — the Active Item while in Downtime (Phase 6). */
   crawler?: Crawler | null
+  /** Which entity runs the Dashboard, derived from the seat and Downtime. */
+  mount: MountState
+  /** The pilot's seat: Board, Dismount, Eject and the activated effects. */
+  seat: SeatHandle
   /** Injectable store (defaults to the live entity store). */
   store?: PlayStore
 }
 
-export function ActiveItemBand({ mech, pilot, crawler, store }: ActiveItemBandProps) {
-  const mount = usePlayStateStore((s) => s.mount)
-  const setMount = usePlayStateStore((s) => s.setMount)
+export function ActiveItemBand({ mech, pilot, crawler, mount, seat, store }: ActiveItemBandProps) {
   const leaveDowntime = usePlayStateStore((s) => s.leaveDowntime)
   // Unconditional hook; the prop wins when a stub is injected (tests / harness).
   const liveStore = useEntityStore()
@@ -61,7 +66,7 @@ export function ActiveItemBand({ mech, pilot, crawler, store }: ActiveItemBandPr
         pilot={pilot}
         crawler={crawler ?? null}
         store={s}
-        onBoard={() => setMount('mech')}
+        onBoard={() => seat.board(mech.id)}
       />
     )
   }
@@ -71,7 +76,10 @@ export function ActiveItemBand({ mech, pilot, crawler, store }: ActiveItemBandPr
       store={s}
       hasPilot={pilot !== null}
       pilotAbilities={pilot?.abilities}
-      onDismount={() => setMount('pilot')}
+      activeEffects={seat.seat.activeEffects}
+      onToggleEffect={seat.toggleEffect}
+      onDismount={seat.dismount}
+      onEject={seat.eject}
     />
   )
 }

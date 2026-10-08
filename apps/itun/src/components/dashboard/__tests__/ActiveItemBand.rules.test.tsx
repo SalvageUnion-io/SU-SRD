@@ -6,15 +6,15 @@
  * dashboardRules.test.ts against an injected roller).
  */
 
-import { beforeEach, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
-import { usePlayStateStore } from '../../../stores/playStateStore'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import type { PlayStore } from '../ActiveItemBand'
 import { ActiveItemBand } from '../ActiveItemBand'
+import { boardedSeat, fakeSeat } from './seatFixture'
 
 const mech = mechFixture({
   id: 'm1',
@@ -47,13 +47,17 @@ async function clickAndSettle(el: HTMLElement): Promise<void> {
 }
 
 describe('ActiveItemBand rules buttons', () => {
-  beforeEach(() => {
-    usePlayStateStore.setState({ mount: 'mech', wheel: 0 })
-  })
-
   test('Vent writes Heat 0 + Vulnerable (no auto-shutdown; Vent ≠ Shutdown, plan §5.1)', async () => {
     const { store, calls } = stubStore([mech])
-    render(<ActiveItemBand mech={mech} pilot={null} store={store} />)
+    render(
+      <ActiveItemBand
+        mech={mech}
+        pilot={null}
+        mount="mech"
+        seat={boardedSeat(mech.id).handle}
+        store={store}
+      />
+    )
     await clickAndSettle(screen.getByText('Vent'))
     expect(calls).toHaveLength(1)
     expect(calls[0]?.patch).toEqual({ currentHeat: 0, vulnerable: true })
@@ -61,14 +65,30 @@ describe('ActiveItemBand rules buttons', () => {
 
   test('Shutdn toggles the shutdown flag', () => {
     const { store, calls } = stubStore([mech])
-    render(<ActiveItemBand mech={mech} pilot={null} store={store} />)
+    render(
+      <ActiveItemBand
+        mech={mech}
+        pilot={null}
+        mount="mech"
+        seat={boardedSeat(mech.id).handle}
+        store={store}
+      />
+    )
     fireEvent.click(screen.getByText('Shutdn'))
     expect(calls[0]?.patch).toEqual({ shutdown: true })
   })
 
   test('Take Dmg applies the entered SP damage', async () => {
     const { store, calls } = stubStore([mech])
-    render(<ActiveItemBand mech={mech} pilot={null} store={store} />)
+    render(
+      <ActiveItemBand
+        mech={mech}
+        pilot={null}
+        mount="mech"
+        seat={boardedSeat(mech.id).handle}
+        store={store}
+      />
+    )
     fireEvent.click(screen.getByText('Take Dmg'))
     // Bump damage 1 → 3, then apply.
     fireEvent.click(screen.getByLabelText('Add one damage point'))
@@ -77,10 +97,17 @@ describe('ActiveItemBand rules buttons', () => {
     expect(calls[0]?.patch).toEqual({ currentSP: 7 })
   })
 
-  test('pilot Take Dmg applies HP damage after Dismount', async () => {
+  test('pilot Take Dmg applies HP damage on foot', async () => {
     const { store, calls } = stubStore([mech, pilot])
-    render(<ActiveItemBand mech={mech} pilot={pilot} store={store} />)
-    fireEvent.click(screen.getByText('Dismount'))
+    render(
+      <ActiveItemBand
+        mech={mech}
+        pilot={pilot}
+        mount="pilot"
+        seat={fakeSeat().handle}
+        store={store}
+      />
+    )
     fireEvent.click(screen.getByText('Take Dmg'))
     await clickAndSettle(screen.getByText('Apply −1 HP'))
     expect(calls[0]).toEqual({ type: 'pilot', id: 'p1', patch: { currentHP: 9 } })
@@ -88,12 +115,37 @@ describe('ActiveItemBand rules buttons', () => {
 
   test('Eject requires an explicit confirm (ADR-007)', () => {
     const { store } = stubStore([mech, pilot])
-    render(<ActiveItemBand mech={mech} pilot={pilot} store={store} />)
+    const seat = boardedSeat(mech.id)
+    render(
+      <ActiveItemBand mech={mech} pilot={pilot} mount="mech" seat={seat.handle} store={store} />
+    )
     fireEvent.click(screen.getByText('Eject'))
-    // Still boarded until confirmed.
-    expect(usePlayStateStore.getState().mount).toBe('mech')
+    // Nothing reaches the seat until confirmed.
+    expect(seat.calls).toEqual([])
     fireEvent.click(screen.getByText('Confirm Eject'))
-    expect(usePlayStateStore.getState().mount).toBe('pilot')
+    expect(seat.calls).toEqual([{ write: 'eject', args: [] }])
+  })
+
+  test('an activated effect is switched on the seat, and read back from it', () => {
+    // "Squeeze it in" is a pilot ability with an activated contribution (ADR-029).
+    const squeezer = { ...pilot, abilities: ['Squeeze it in'] }
+    const { store } = stubStore([mech, squeezer])
+    const off = boardedSeat(mech.id)
+    const { unmount } = render(
+      <ActiveItemBand mech={mech} pilot={squeezer} mount="mech" seat={off.handle} store={store} />
+    )
+    fireEvent.click(screen.getByText('○ Squeeze it in'))
+    expect(off.calls).toEqual([{ write: 'toggleEffect', args: ['Squeeze it in'] }])
+    unmount()
+
+    const on = fakeSeat({
+      mount: { kind: 'boarded', mechId: mech.id },
+      activeEffects: ['Squeeze it in'],
+    })
+    render(
+      <ActiveItemBand mech={mech} pilot={squeezer} mount="mech" seat={on.handle} store={store} />
+    )
+    expect(screen.getByText('● Squeeze it in')).toBeTruthy()
   })
 })
 
@@ -114,7 +166,15 @@ describe('blocked controls teach the rule (F6, ADR-021)', () => {
   test('a Push that would exceed the Heat Cap explains itself instead of greying out', () => {
     const blocked = { ...hotMech, currentHeat: 3 } // 3 + 2 > 4
     const { store, calls } = stubStore([blocked])
-    render(<ActiveItemBand mech={blocked} pilot={null} store={store} />)
+    render(
+      <ActiveItemBand
+        mech={blocked}
+        pilot={null}
+        mount="mech"
+        seat={boardedSeat(blocked.id).handle}
+        store={store}
+      />
+    )
 
     const push = screen.getByRole('button', { name: /push/i })
     expect(push.hasAttribute('disabled')).toBe(false)
@@ -130,7 +190,15 @@ describe('blocked controls teach the rule (F6, ADR-021)', () => {
   test('a legal Push still performs the action, not the explanation', async () => {
     const ok = { ...hotMech, currentHeat: 0 } // 0 + 2 <= 4
     const { store, calls } = stubStore([ok])
-    render(<ActiveItemBand mech={ok} pilot={null} store={store} />)
+    render(
+      <ActiveItemBand
+        mech={ok}
+        pilot={null}
+        mount="mech"
+        seat={boardedSeat(ok.id).handle}
+        store={store}
+      />
+    )
 
     await clickAndSettle(screen.getByRole('button', { name: /push/i }))
 

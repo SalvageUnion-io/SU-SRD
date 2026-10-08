@@ -27,8 +27,8 @@ import type { CockpitPrefs, DialKind } from '../../lib/schemas/cockpitPrefs'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
-import type { MountState } from '../../stores/playStateStore'
 import type { DialItem as DialCellItem } from './Dial'
+import type { MountState } from './useSeat'
 
 export type DialItem = DialCellItem & { kind: DialKind }
 

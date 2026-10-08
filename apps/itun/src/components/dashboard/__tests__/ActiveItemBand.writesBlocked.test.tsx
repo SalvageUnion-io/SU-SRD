@@ -25,11 +25,11 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { Toaster, toast } from 'component-lib'
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
 import { WritesBlockedOffline } from '../../../stores/entityBackend'
-import { usePlayStateStore } from '../../../stores/playStateStore'
 import { mechFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import type { PlayStore } from '../ActiveItemBand'
 import { ActiveItemBand } from '../ActiveItemBand'
+import { boardedSeat } from './seatFixture'
 
 // A mounting Toaster replays every toast still active, including ones other
 // files raised without a Toaster; their timers would then fire outside act().
@@ -71,10 +71,15 @@ function blockedStore(): PlayStore {
 
 describe('ActiveItemBand — writes refused by connectivity', () => {
   test('a refused Jettison tells the player instead of failing silently', async () => {
-    usePlayStateStore.setState({ mount: 'mech', wheel: 0 })
     render(
       <>
-        <ActiveItemBand mech={mech} pilot={null} store={blockedStore()} />
+        <ActiveItemBand
+          mech={mech}
+          pilot={null}
+          mount="mech"
+          seat={boardedSeat(mech.id).handle}
+          store={blockedStore()}
+        />
         <Toaster />
       </>
     )
@@ -90,10 +95,15 @@ describe('ActiveItemBand — writes refused by connectivity', () => {
   test('a refused reactor action is reported too, not just cargo', async () => {
     // Vent is a different handler on a different band control — the fix is the
     // chokepoint, not one button, so a second path pins that.
-    usePlayStateStore.setState({ mount: 'mech', wheel: 0 })
     render(
       <>
-        <ActiveItemBand mech={mech} pilot={null} store={blockedStore()} />
+        <ActiveItemBand
+          mech={mech}
+          pilot={null}
+          mount="mech"
+          seat={boardedSeat(mech.id).handle}
+          store={blockedStore()}
+        />
         <Toaster />
       </>
     )
@@ -112,10 +122,15 @@ describe('ActiveItemBand — writes refused by connectivity', () => {
     //
     // The readout is now passed as `onApplied`, so it is conditional on the
     // write it describes. The handlers stayed synchronous.
-    usePlayStateStore.setState({ mount: 'mech', wheel: 0 })
     render(
       <>
-        <ActiveItemBand mech={mech} pilot={null} store={blockedStore()} />
+        <ActiveItemBand
+          mech={mech}
+          pilot={null}
+          mount="mech"
+          seat={boardedSeat(mech.id).handle}
+          store={blockedStore()}
+        />
         <Toaster />
       </>
     )

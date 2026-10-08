@@ -94,8 +94,8 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 ## State flow (`src/stores/`)
 
 - `entityStore` (pilots/mechs/crawlers/softLinks), plus `activeContainerStore`,
-  `cockpitPrefsStore`, `patternStore`, `encounterStore`, and the ephemeral
-  `playStateStore` (Dashboard mount state).
+  `cockpitPrefsStore`, `patternStore`, `encounterStore`, and
+  `playStateStore` (Dashboard Downtime and Dial).
 - **Workspaces are retired.** An entity lives in exactly one **container** — a
   shared **Game** or the owner's **Shelf** ("My Stuff") — encoded as one
   nullable `gameId` and resolved through `src/lib/container.ts`, never by

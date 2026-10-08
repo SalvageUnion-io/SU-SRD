@@ -9,7 +9,7 @@
  * division ADR-001's honour system already relies on.
  *
  * Pure: this only enumerates what COULD be switched on. Whether it is on lives
- * in ephemeral play state (ADR-019), never on the entity.
+ * on the pilot's seat in the Game (ADR-038), never on the entity.
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
