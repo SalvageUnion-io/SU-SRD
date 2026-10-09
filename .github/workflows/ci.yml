@@ -96,8 +96,6 @@ jobs:
               - 'tools/**'
               # the hook scripts are exercised by tools/__tests__/claude-hooks.test.ts
               - '.claude/hooks/**'
-              # the agent workflow scripts, by tools/__tests__/claude-workflows.test.ts
-              - '.claude/workflows/**'
               # zizmor.yml and dependabot.yml, read only by the actionlint check
               - '.github/*.yml'
             # Prose and agent config. Runs the repo-invariant checks (doc

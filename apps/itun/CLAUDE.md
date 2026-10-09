@@ -155,7 +155,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   mutations have no `fetch`). **A quiet Sentry project is not evidence of a
   healthy backend:** re-verify by forcing an error and comparing against
   `bunx convex logs --deployment alex-jarvis:suref-itun:prod`. Runbook:
-  [convex-maintenance](../../.claude/skills/convex-maintenance/SKILL.md).
+  [convex-ops](../../.claude/skills/convex-ops/SKILL.md).
 - **Throw `ConvexError` when the message is for a player; plain `Error` when it
   is not.** Convex redacts every non-`ConvexError` throw to
   `"[CONVEX M(fn)] […] Server Error"` before the client sees it, so a

@@ -19,9 +19,7 @@
   // go de-duplicate files that no longer existed.
   "tags": ["-public", "-knipignore"],
   "workspaces": {
-    // The root holds no code of its own now that `tools/` is a workspace, and
-    // `.claude/workflows/` are entry points for tools outside the repo, which
-    // knip cannot see calling them.
+    // The root holds no code of its own now that `tools/` is a workspace.
     ".": {
       "project": []
     },

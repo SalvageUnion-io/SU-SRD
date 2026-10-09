@@ -62,5 +62,5 @@ old snapshot link (`/s/:id`) shows a static retired page (ADR-036).
 - **Multi-tab**: there is no tab-to-tab channel. Each tab's own Convex
   subscription (`ShelfSync`) adopts another tab's creates and edits and
   forgets its deletes, under the prune rules in `src/lib/db/pruneRules.ts`.
-- **Backups**: export (Download all) is the only backup path for local-first
-  data.
+- **Backups**: export (Download all) writes the signed-in player's pilots,
+  mechs, crawlers and soft links to one JSON file.

@@ -40,7 +40,7 @@ the corpus size, not just the finding count.
 | `knip` | `bun run knip` | — |
 | `biome` | `biome ci .`, plus the GritQL plugins in `biome/` | — |
 | `data` | `packages/salvageunion-reference/tools/validate.ts` (`--only=` runs a subset) | — |
-| `doc-drift` | `check-doc-drift.ts` | `OVER_BUDGET` in the script |
+| `doc-drift` | `check-doc-drift.ts` | `OVER_BUDGET`, `COLLAPSED_DOCS` and `RETIRED_CLAIMS` in the script |
 | `observability` | `check-observability.ts` | — |
 | `convex-callers` | `check-convex-callers.ts` (also: `api.d.ts` registers exactly the modules on disk) | — |
 | `barrel-consumers` | `check-barrel-consumers.ts` | `SINGLE_APP` in the script (storyless helpers only) |

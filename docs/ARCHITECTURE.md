@@ -284,11 +284,10 @@ so, and reads nothing.
 
 ## Accounts and Games operations
 
-Setup, the required deployment variables and diagnosis:
-[`convex-deploy-verify`](../.claude/skills/convex-deploy-verify/SKILL.md).
-Repairs, rotations, switching production on and error reporting:
-[`convex-maintenance`](../.claude/skills/convex-maintenance/SKILL.md). Values
-here are public; the OAuth client _secret_ lives only on the deployments.
+Procedures (setting a deployment up, the sign-in probe, rotations, error
+reporting, one-off repairs): the
+[`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill. Values here are
+public; secrets live only on the deployments.
 
 |  | Production |
 | --- | --- |
@@ -306,15 +305,36 @@ Development has no cloud deployment. `bun run dev:itun` runs a **local**
 deployment (`convex dev --start vite`) and signs in through the test seam,
 `ITUN_TEST_AUTH` on the local deployment and `VITE_TEST_AUTH` in the dev
 server, not Discord. One-time setup:
-[`apps/itun/README.md`](../apps/itun/README.md#local-backend).
+[`apps/itun/README.md`](../apps/itun/README.md#local-backend). The local
+deployment gets `SITE_URL` and the JWT pair from `bunx @convex-dev/auth`.
+
+### Deployment variables
+
+The Convex deployment's environment, all seven names. Without the first five,
+Discord sign-in fails.
+
+| Variable | What it is | Unset |
+| --- | --- | --- |
+| `AUTH_DISCORD_ID` | the Discord application's OAuth2 client id | sign-in fails |
+| `AUTH_DISCORD_SECRET` | its OAuth2 client secret (32 characters) | sign-in fails |
+| `SITE_URL` | the **frontend** origin, not a `.convex.site` host | the OAuth callback 500s with `Missing environment variable SITE_URL` |
+| `JWT_PRIVATE_KEY` | session-signing key, PKCS8 PEM with newlines as spaces; one pair with `JWKS` | sign-in fails after Discord redirects back |
+| `JWKS` | its public half, `{"keys":[…]}` | as above |
+| `ITUN_BOT_SECRET` | the bot's bearer credential, the same value as the bot Worker's secret | the `/bot/*` routes are off |
+| `DISCORD_PUBLIC_KEY` | the Discord application's public key, as committed in `apps/discord-bot/wrangler.jsonc` | `/su invite` answers that invites are not switched on |
+
+`ITUN_TEST_AUTH` belongs on a local or CI deployment only, never production.
+`ITUN_BOT_SECRET` can act as any Discord user who has linked an account
+(never their shelf or `encounterNpcs`); it lives in 1Password and on the two
+deployments, never in git.
 
 ### Convex error reporting
 
 Convex reports through the dashboard's Exception Reporting integration, not
 code: queries and mutations have no network egress. It feeds Sentry project
 `itun-convex` (org `susrd`, EU region). A quiet project is not evidence of a
-healthy backend; enabling and re-verifying are in the `convex-maintenance`
-skill. Client side, `src/lib/connection/serverError.ts` (`serverMessage`,
+healthy backend; re-verifying by probe is in the `convex-ops` skill. Client
+side, `src/lib/connection/serverError.ts` (`serverMessage`,
 `isServerRefusal`) is the only way to tell a `ConvexError` refusal from a
 redacted defect; never string-match `'Server Error'`.
 
@@ -328,12 +348,8 @@ leaves the bot token alone. Its one redirect URI is production's
 https://exuberant-porpoise-183.convex.site/api/auth/callback/discord
 ```
 
-### Verifying, secrets and denormalised columns
+### Secrets and denormalised columns
 
-- **Probe:** `curl -s -D - -o /dev/null https://<deployment>.convex.site/api/auth/callback/discord`
-  gives **302** to `SITE_URL` (correct), **500** `Missing environment variable`
-  (`SITE_URL` unset) or **404** (auth routes not mounted; check `convex/http.ts`).
-  The control `/api/auth/callback/bogusprovider` must be **500**.
 - **Secrets:** `.env.local` is gitignored and holds only URLs.
   `bunx convex env get` prints in the clear and exits 0 when missing; test by
   length (`| tr -d '[:space:]' | wc -c`). **`convex env list` prints every
@@ -345,12 +361,9 @@ https://exuberant-porpoise-183.convex.site/api/auth/callback/discord
   `internalMutation` from `model/entities.ts`** (Biome refuses the generated
   builders). A dashboard-written row bypasses them. `mechPatterns` and
   `encounterNpcs` lift `appId` into a column behind `by_owner_app_id`.
-- **Maintenance:** no repair lives in the repo. A one-off repair ships as an
-  internal function, runs once from the Convex dashboard's function runner, and
-  is deleted with its counts recorded. The `convex-maintenance` skill holds each
-  procedure: enabling error reporting, one-off repairs, switching production on
-  (no rollback by unsetting `VITE_CONVEX_URL`), rotating `JWT_PRIVATE_KEY` /
-  `JWKS` (signs everyone out) and `AUTH_DISCORD_SECRET`.
+- **No repair lives in the repo.** A one-off repair ships as an internal
+  function, runs once from the Convex dashboard's function runner, and is
+  deleted with its counts recorded.
 
 ## Rules and ITUN surfaces
 
@@ -610,7 +623,7 @@ An authenticated client of ITUN Games ([ADR-030](#adr-030)):
 `/su game bind|unbind|info`, `/su invite` ([ADR-039](#adr-039))
 and roll attribution on `/su roll`, on the `su-discord-bot` Worker. Conventions:
 [`apps/discord-bot/CLAUDE.md`](../apps/discord-bot/CLAUDE.md); variables:
-the [`convex-deploy-verify`](../.claude/skills/convex-deploy-verify/SKILL.md) skill.
+[deployment variables](#deployment-variables).
 
 It calls `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`); every `botClient`
 function is internal. Write both credential halves in one pass (one
@@ -1334,8 +1347,9 @@ Auto-applied (non-destructive, recoverable):
 Requires explicit player action (destructive, irreversible):
 
 - Any condition change on equipment (intact → damaged → destroyed), driven only
-  by the player via the `ConditionToggle`
-  (`apps/itun/src/components/shared/ConditionToggle.tsx`) — see
+  by the player via the card's status badge (`StatusBadge` from
+  `component-lib`, cycled by `cycleCondition` in
+  `apps/itun/src/components/sheet/mechItemRules.ts`) — see
   [ADR-009](#adr-009).
 - Destroying a Module or System from any source; catastrophic meltdown.
 
@@ -1419,20 +1433,19 @@ contain an unambiguous "this is destroyed" signal.
 ### Decision
 
 - Equipment condition is a **tri-state**: `intact` → `damaged` → `destroyed`,
-  cycling back to `intact`. It is modeled as `ItemCondition` and driven by a
-  single controlled component, `ConditionToggle`
-  (`apps/itun/src/components/shared/ConditionToggle.tsx`).
+  cycling back to `intact`. It is modeled as `ItemCondition` and driven by the
+  card's status badge (`StatusBadge` from `component-lib`), cycled by
+  `cycleCondition` in `apps/itun/src/components/sheet/mechItemRules.ts`.
 - The control is **player-driven and keyboard-accessible** (role="button",
-  Enter/Space, 44px touch target) and has a **`readOnly` static-badge mode** for
-  read-only contexts such as published snapshots
-  ([ADR-004](#adr-004)).
+  Enter/Space, 44px touch target) and has a **read-only static-badge mode** for
+  read-only sheets.
 - **Destroyed reads as semantic red** (`bg-roll-cascade`, Material red ≈
   `rgb(244, 67, 54)`), deliberately a semantic status color, **not** a Salvage
   Union brand token. Intact uses `bg-roll-success`, damaged `bg-roll-failure`.
 
 ### Consequences
 
-- Condition has one source of truth (`ItemCondition` + `ConditionToggle`) reused
+- Condition has one source of truth (`ItemCondition` + `cycleCondition`) reused
   wherever equipment condition is shown or edited.
 - "Destroyed" is unambiguous because it uses a conventional danger color rather
   than a brand tone that players might not read as a warning.
@@ -2049,6 +2062,10 @@ Accepted — **built**: the Convex `changeLog` table (`apps/itun/convex/changeLo
 is written at the `entityStore.update` chokepoint (`commitChangeLog`) and read
 through `ChangeLogDrawer` (`changeLog.forEntity`) behind the sheet menu; Live-Sheet
 cap overrides ship with the derived-baseline callout and revert.
+
+**Amended by [ADR-030](#adr-030) and [ADR-034](#adr-034)** — the log is
+account data on Convex, synchronized by the client on every write, not a
+device-local record.
 
 **Amended 2026-10 (#1130)** — the table is the log's only copy; IndexedDB v18
 drops the device store this ADR first built. Replay/time-travel
@@ -2937,7 +2954,7 @@ altering any of its enforcement modes.
 
 The operational reference (deployments, env vars, secrets, rotation) is
 [accounts and Games operations](#accounts-and-games-operations) and the
-`convex-maintenance` skill.
+`convex-ops` skill.
 
 **2026-10-06 — the Games pages are folded into the Roster hub.** §6's surfaces
 — the Games index (`/games`), a Game's crew page (`/games/:id`) and the
@@ -2948,6 +2965,10 @@ then the Mediator's instruments below the lists; "+ New game" starts or joins
 one. The old URLs redirect (the two with an id pick that Game first). §6 is
 otherwise unchanged: the Mediator keeps a surface of their own, as a section
 only they see.
+
+**§5 is amended by [ADR-032](#adr-032)**: a public read-only sheet is the one
+exception to its visibility rules. **§5a is amended by [ADR-037](#adr-037)**: a
+Game takes a player's crew before it has a crawler.
 
 **§5 and §6 are amended by [ADR-038](#adr-038)** (built): only the table runner
 edits a Game's crawler, and crew status reaches the Game-only Dashboard as a
@@ -3741,14 +3762,13 @@ project with two live surfaces and no frozen one.
 ### Status
 
 **Accepted and delivered.** Every production hostname is served by a
-Cloudflare Worker — `intheunionnow.com` since 2026-08-19, `salvageunion.io` and
-`assets.salvageunion.io` since 2026-08-31. The Render account is deleted;
-deleting the retired Netlify sites is the operator's step. The phased cutover
-plan was deleted once every phase closed; code comments that cite a phase
-(`ADR-033 P4`) mean that plan:
-`git show c2476d1c:docs/architecture/cloudflare-cutover.md`. Current
-identifiers (Workers, buckets, zones) are in
-[services and agent tooling](#services-and-agent-tooling).
+Cloudflare Worker: `intheunionnow.com` since 2026-08-19, `salvageunion.io` and
+`assets.salvageunion.io` since 2026-08-31; Netlify and Render serve none of them.
+Code comments that cite a cutover phase (`ADR-033 P4`) mean the deleted plan:
+`git show c2476d1c:docs/architecture/cloudflare-cutover.md`. The decision as
+first written, with the cutover's context and hazards:
+`git show bc9f08ce:docs/ARCHITECTURE.md`. Current identifiers (Workers,
+buckets, zones) are in [services and agent tooling](#services-and-agent-tooling).
 
 **Amended 2026-10-06 — §Credentials: the deploy secrets move into a `production`
 GitHub Environment** restricted to `main`, so a workflow copy
@@ -3757,222 +3777,76 @@ dispatched from a branch cannot read them.
 **Amended 2026-10-08 — §Credentials: the deploy runs on `push` to `main`**,
 gated by the strict `main` ruleset.
 
-Amends [ADR-004](#adr-004): snapshots keep the
-endpoint shape, the ID scheme, the payload cap and the unauthenticated contract
-that ADR-004 decided, and change only the platform underneath them — Netlify
-Functions + Blobs become a Cloudflare Worker + R2.
+**§3 is history since [ADR-036](#adr-036)** retired snapshots: nothing reads
+or binds the snapshot bucket.
+
+Amends [ADR-004](#adr-004), since superseded: snapshots moved from Netlify
+Functions + Blobs to a Worker + R2 with ADR-004's contract unchanged.
 
 Re-affirms [ADR-031](#adr-031) and
 [ADR-030](#adr-030) without changing either.
 `srd` remains a statically pre-rendered no-backend site; Convex remains the
-server of record for identity, ownership and sharing. **Only the host changes.**
-
-Supersedes nothing.
+server of record for identity, ownership and sharing. **Only the host changed.**
 
 ### Context
 
-Hosting is currently split three ways: Netlify serves `apps/srd`, `apps/itun`
-(SPA + three Functions + two Blobs stores) and `apps/su-assets`; Render runs
-`apps/discord-bot` as a gateway worker; Convex runs the accounts backend.
-
-Issue #830 proposed consolidating the first two onto Cloudflare. An audit
-against `1366cfdf` found the proposal sound in outline and wrong in four
-premises, and unexecutable in five respects — no acceptance criteria, no data
-migration procedure, no credential story, an unmeasured cost claim, and a
-storage choice that breaks a documented client invariant.
-
-The financial case is thin on its own: Render's worker is the only line item at
-$7/mo, and Workers Static Assets requests are free at this traffic. The reasons
-that survive scrutiny are consolidation onto one platform and the elimination of
-an entire class of Discord gateway failure.
-
-Three facts shaped the decision more than cost did.
-
-**`lp-assets` has no second copy.** The Leyline Press artwork behind
-`assets.salvageunion.io` exists only in Netlify Blobs, cannot enter this
-repository, and serves both production domains. The tool that uploaded it,
-`tools/upload-lp-assets.ts`, was deleted in #725 as dead code — so the store had
-no backup, no export path and no ingest path. That is a standing risk
-independent of this decision, and acting on it is the first phase of the plan.
-
-**The bot's data layer fits Workers Free, measured rather than assumed.** A
-probe carrying the reference corpus and the portable Discord dependencies
-deployed at 549.6 KiB compressed (18% of the 3 MB Free ceiling) with a Cloudflare-
-reported startup of 141 ms (14% of the 1 s budget). Cloudflare's deploy-time
-startup enforcement accepted it.
-
-**The bot already has a transport seam.** `apps/discord-bot/src/commands/interactions.ts`
-defines three narrow structural types that `discord.js` satisfies without
-adapters, and every runtime `discord.js` import outside `index.ts` and
-`events/ready.ts` has a portable equivalent in `@discordjs/builders`,
-`@discordjs/collection`, `@discordjs/rest` or `discord-api-types`.
+Hosting was split three ways: Netlify served `srd`, `itun` and `su-assets`,
+Render ran the Discord bot as a gateway worker, and Convex ran the accounts
+backend. Cost was not the reason to move (Render's $7/mo worker was the only
+line item). Consolidating onto one platform was, together with ending a class
+of Discord gateway failure. The bot's data layer fit Workers Free, measured
+rather than assumed: 549.6 KiB compressed and a 141 ms startup.
 
 ### Decision
 
-**1. Hosting consolidates onto Cloudflare. Netlify and Render are retired.**
-`srd` and the `itun` SPA move to Workers Static Assets; the `itun` snapshot API
-and `su-assets` become Workers; both Blobs stores become R2 buckets; the Discord
-bot moves from a Render gateway worker to Workers HTTP interactions.
+**1. Hosting is Cloudflare.** `srd` and `itun` are Workers Static Assets,
+`su-assets` is a Worker over R2, and the Discord bot is a Worker answering HTTP
+interactions.
 
-**2. This is a hard cutover with no rollback.** Deliberate. The consequence is
-that per-phase verification is the only safety mechanism, which is why every
-phase in the plan carries a gate written so that it can fail.
+**2. The cutover was hard, with no rollback.** Per-phase verification was the
+only safety mechanism, so every phase carried a gate written so that it could
+fail.
 
-**3. Snapshots use R2, not KV.** This reverses #830's proposal and is the single
-most consequential decision here, because the naive reading favours KV — payloads
-cap at 256 KB against a 25 MB value limit and access is by short ID.
-
-The disqualifying property is consistency, not shape. Cloudflare documents that
-KV writes take **up to 60 seconds to propagate globally** and that **negative
-lookups are cached**. The publish flow reads a key twice before creating it —
-once in `generateUniqueId`, once in `put`'s `onlyIfNew` check — so it primes a
-negative-cache entry for exactly the key it is about to write, and the client
-then immediately requests that key, because publish-then-share *is* the feature.
-
-`apps/itun/src/lib/snapshot/client.ts` makes this concrete. Its retry policy
-(#791) is `TRANSIENT_STATUSES = new Set([502, 504])`, and it excludes 404 with a
-written justification: *"not a blip, so retrying 400ms later just asks a store
-that has already said no."* That reasoning is true for Netlify Blobs and false
-for KV. **Choosing KV would silently invalidate a documented invariant in the
-client**, and the failure would reach users as a hard not-found with the retry
-deliberately disabled.
-
-**Do not revisit this without re-reading that comment.**
+**3. Snapshots used R2, not KV.** KV's up-to-60-second propagation and cached
+negative lookups would have turned publish-then-read into a hard not-found.
 
 **4. Builds run in GitHub Actions; deploys use `wrangler`.** Workers Builds is
-not adopted. `srd` forces this — its build provisions Chromium to render
-per-entity OG images — and applying it to all three surfaces keeps one build
-path, one place for path filtering, and the existing CI gates in front of every
-deploy.
+not adopted: `srd`'s build provisions Chromium to render per-entity OG images,
+and one build path keeps one place for path filtering and the CI gates in front
+of every deploy.
 
 **5. Convex stays, and nothing here may foreclose moving it.** Replacing Convex
-with D1 is a separate decision requiring its own ADR. It is materially harder
-than this migration — 15 application tables plus `@convex-dev/auth`'s own,
-18 function modules across 4,589 lines, Discord OAuth, and 27 `useQuery` call
-sites consuming a reactive model that D1 has no equivalent for.
-
-Two constraints follow and are binding on this migration: **snapshots go to R2
-and not into Convex**, and the Worker↔Convex boundary stays plain HTTP with a
-bearer token. Both keep the option open at no cost today.
+with D1 is a separate decision needing its own ADR (see the follow-up below).
+So the Worker↔Convex boundary stays plain HTTP with a bearer token.
 
 **6. Everything runs on the existing `alxjrvs@gmail.com` account.** A dedicated
-account was considered and declined.
+account was declined. Cloudflare isolates by account, not project, so this
+project shares the Workers Free quota (100k requests/day, 10 ms CPU) and the
+`alxjrvs.workers.dev` subdomain with RANDSUM's two Workers, `randsum-rdn` and
+`randsum-site`; preview URLs are `<worker>.alxjrvs.workers.dev`, and renaming
+the subdomain would move RANDSUM's Workers.
 
-Cloudflare's isolation boundary is the account — members and roles scope who may
-act, not which resources belong to which project, so there is no in-account
-"team". A separate account would therefore have been the only way to isolate the
-Workers Free quota and to scope the CI token so it could not reach anything else.
-Cloudflare also cannot create a second account on the same email, so it would
-have meant a second address and an invitation back.
-
-**Correction, 2026-08-18.** This section first claimed the account "holds no
-Workers, no KV namespaces, no D1 databases and no `workers.dev` subdomain, so
-the per-account Free quota is shared with nothing". **Two-thirds of that was
-wrong**, and the error is worth recording because of how it was made: KV and D1
-were verified directly (`wrangler kv namespace list`, `wrangler d1 list`, both
-empty), the attempt to list Workers was blocked, and "empty" was *inferred* from
-the other two rather than checked. An inference was written down in the voice of
-a measurement.
-
-What is actually on the account:
-
-- **Two Workers**, `randsum-rdn` (`notation.randsum.dev`) and `randsum-site`
-  (`randsum.dev` + one more route) — so `RANDSUM/randsum` is already hosted here.
-- **A `workers.dev` subdomain already registered: `alxjrvs.workers.dev`.** There
-  is one per account, so this project takes preview URLs under it rather than
-  choosing its own name. Renaming it would move RANDSUM's Workers.
-- KV and D1 remain empty, as verified.
-
-So the Free quota (100k requests/day, 10 ms CPU) **is** shared, with a project
-that is already live. That does not reverse the decision — the traffic on both
-sides is far from those ceilings — but it does mean the credential blast radius
-under Consequences is a live concern rather than a theoretical one, and it
-removes the argument that a dedicated account would isolate nothing.
-
-R2 is enabled on the account and holds this project's two buckets,
-`su-lp-assets` and `su-itun-snapshots`, beside one unrelated project's.
-
-**7. A failed gate halts the phase.** No gate is worked around, relaxed, or
-retried with different parameters to obtain a pass, and no later phase begins
-while an earlier gate is red. With no rollback, an agent or engineer who treats
+**7. A failed gate halts the deploy.** No gate is worked around, relaxed, or
+retried with different parameters to obtain a pass. With no rollback, treating
 a red gate as an obstacle converts a caught problem into an unrecoverable one.
 This rule exists to be cited.
 
 ### Consequences
 
-**The Discord bot will display as permanently offline** in every server. Presence
-requires an identified gateway session, which an HTTP-interactions app never has.
-It works when invoked. `setPresence` and the `client.guilds.cache.size` liveness
-signal both go away. Liveness is the bot's `/health` (token accepted, ITUN
-configured), which `tools/smoke-production.sh` checks after every deploy and
-nightly.
-
-**The bot cutover is atomic across every server.** Gateway and HTTP interactions
-are mutually exclusive — Discord: *"you can only receive Interactions one of the
-two ways"* — and the Interactions Endpoint URL is application-level, not
-per-guild. There is no canary and no test guild. Verification is therefore a
-signed offline replay harness, not a staged rollout.
-
-**Three CI guards must be ported before the config they read is deleted.**
-`tools/check-observability.ts`, `tools/check-bun-version.ts` and
-`tools/check-convex-parity.ts` all read `netlify.toml`, and each exists because
-of a documented silent-production incident. A fourth,
-`tools/check-ci-aggregator.ts`, will correctly fire as jobs are added and removed.
-
-`check-observability.ts`'s `FUNCTION_DIRS` check is a **retirement rather than a
-port**: a Worker declares one entry point, so the "every file in a functions
-directory is a public endpoint" failure class ceases to exist.
-
-**Module scope on Workers forbids timers, async I/O and randomness.**
-`new REST()` throws outright — its constructor registers sweeper timers — and the
-failure occurs at startup, not at build. This also applies to any module-scope
-observability initialisation.
-
-**Zod's `jitless` configuration becomes load-bearing for the runtime, not only
-for CSP.** Zod v4's JIT parser compiles validators with `new Function`, which
-workerd bans. `packages/salvageunion-reference/lib/zod.ts` already disables it;
-that must not be reverted as an optimisation.
-
-**Two standing security suppressions are already retired — but not by this
-migration.** `check:audit` used to ignore `GHSA-w3rx-r6r6-pgpr` and
-`GHSA-5p2g-fcmc-qvqq`, both reachable only via
-`@netlify/blobs → @netlify/dev-utils → image-size`. This ADR predicted they
-would come out when `@netlify/blobs` did. What actually happened is that
-`@netlify/dev-utils` stopped depending on `image-size`, so the package left the
-lockfile while `@netlify/blobs` stayed (10.7.13, still used by `itun` and
-`su-assets`). Both `--ignore` flags and the CLAUDE.md section are gone; this
-is no longer a benefit P8 has left to deliver.
-
-**The CI token's blast radius is the whole personal account** (§6), and that now
-includes **two live RANDSUM Workers**. Cloudflare API tokens scope by permission
-group and account, so *Workers Scripts: Edit* on this account authorises editing
-`randsum-rdn` and `randsum-site` as well as anything this project deploys.
-Cloudflare supports per-bucket R2 scoping but not per-Worker scoping, so that
-half cannot be narrowed; narrow the R2 half, and do not describe the other half
-as contained.
-
-This compounds with an agent PAT carrying `workflow` scope, no required human
-review, and pre-authorized `gh pr merge` — the path from "merge a PR" to "deploy
-production" closes with no human in it, and the production it can reach is not
-only this project's. **Accepted, not solved.** Revisit if RANDSUM's deployments
-ever become something this repository must not be able to touch.
-
-**The `workers.dev` subdomain is `alxjrvs.workers.dev`, already registered.**
-One per account, so this project takes preview URLs beneath it
-(`<worker>.alxjrvs.workers.dev`) rather than choosing its own. Renaming it would
-move RANDSUM's Workers and is out of scope.
-
-**Netlify deploy previews disappear** when the sites do. The Workers preview-URL
-equivalent must be working beforehand.
-
-**DNS is two zones, not one.** `salvageunion.io` and `intheunionnow.com` are both
-on Netlify DNS. Neither carries MX, TXT, DMARC or a DNSSEC DS record, so the two
-classic nameserver-migration hazards do not apply here — but both zones move.
-
-**Snapshots published during DNS propagation would otherwise be lost.** This is
-not a rollback concern; both origins answer for the length of the TTL regardless.
-The plan freezes snapshot writes at a known instant and reconciles a final delta
-before the flip.
+- **The Discord bot displays as permanently offline** in every server:
+  presence needs a gateway session, which an HTTP-interactions app never has.
+  It works when invoked. Liveness is the bot's `/health`, which
+  `tools/smoke-production.sh` checks after every deploy and nightly, so a
+  revoked token surfaces up to a day later.
+- **The bot's endpoint is application-level**, so a change reaches every server
+  at once, with no canary. Its pre-deploy gate is a signed replay harness, not
+  a staged rollout.
+- **Module scope on Workers forbids timers, async I/O and randomness.**
+  `new REST()` throws at startup, and so would any module-scope observability
+  initialisation.
+- **Zod's `jitless` configuration is load-bearing for the runtime**, not only
+  for CSP: workerd bans `new Function`. Do not revert
+  `packages/salvageunion-reference/lib/zod.ts` as an optimisation.
 
 ### Credentials
 
@@ -3995,13 +3869,13 @@ that can deploy production. The bar it is held to:
 ### Accepted risks
 
 - **No rollback**, chosen deliberately.
-- **The CI token reaches the whole personal account**, including RANDSUM's two
-  Workers (see Consequences). Adding anything else to the account widens this.
+- **The CI token reaches the whole personal account**, RANDSUM's two Workers
+  included. With an agent PAT carrying `workflow` scope and no required human
+  review, "merge a PR" reaches production with no human in it, and not only
+  this project's. Revisit if RANDSUM's deployments become something this
+  repository must not be able to touch; adding anything else to the account
+  widens it.
 - **The bot displays permanently offline** in every server.
-- **Bot liveness is checked daily, not continuously** — `client.guilds.cache.size`
-  does not exist under HTTP interactions, and no cron probes the bot: a revoked
-  token surfaces at the next deploy or nightly smoke of `/health`, up to a day
-  later.
 
 ### Configuration outside the repo
 
@@ -4536,9 +4410,8 @@ the old card**: the account owns it, so it is not isolated and nothing re-sends
 it — while its body still names a Workspace that migration v13 turned into a
 `gameId`. Owned, server-backed, and invisible.
 
-So `maintenance.repairContainers` applies decision 3 to rows already in the
-database, once, across every account (dispatched through
-`convex-maintenance.yml`). The rule is `body.gameId := row.gameId`, and two
+So `maintenance.repairContainers` applied decision 3 to rows already in the
+database, once, across every account (since deleted, with its workflow). The rule is `body.gameId := row.gameId`, and two
 things about it are deliberate:
 
 - **The column is the authority, not membership.** "Shelve anything whose Game I
@@ -4678,10 +4551,7 @@ rule this implies: device rows are sent only after comparing against
 
 **Accepted, 2026-10-06.** **Supersedes [ADR-004](#adr-004)**
 (snapshot sharing). [ADR-033](#adr-033)'s hosting decisions
-are untouched; its snapshot-specific reasoning (§3's publish-then-read
-consistency argument, the cutover's snapshot write freeze) describes a publish
-flow that no longer exists, though §3 still explains why the store being read is
-R2.
+are untouched; its §3, on the snapshot store, is history.
 
 Amends [ADR-032](#adr-032): its consequence that
 "ADR-004 is narrowed, not superseded" — snapshots kept as the way to hold a
@@ -4708,8 +4578,7 @@ public today. With nothing left to route, ITUN moved to Static Assets'
 security headers moved into `apps/itun/public/_headers`, and the Worker script
 answers only non-navigation misses — a missing hashed chunk 404s (#759), a
 crawler gets the shell. The retired-URL 301 table went with it. The deleted
-resolver, which ADR-033 §3 cites:
-`git show 162f01ae:apps/itun/src/lib/snapshot/client.ts`.
+resolver: `git show 162f01ae:apps/itun/src/lib/snapshot/client.ts`.
 
 Settles the four open decisions the unified-sheet-surfaces plan held for "a
 future ADR-036", by removing the second surface rather than merging it. That
@@ -4787,7 +4656,7 @@ the links that already exist: **"Redirect if public."**
    the link always goes through the redirect-or-retired resolver, never the
    frozen sheet. *Amended 2026-10-08 (#1128):* the rendered card at
    `/og/s/:id.png` was removed with `@resvg/resvg-wasm` — the renderer, the
-   worker fonts, `scripts/woff-to-ttf.ts`, the `.ttf` Data rule and the
+   worker fonts, the since-deleted `scripts/woff-to-ttf.ts`, the `.ttf` Data rule and the
    `OG_METRICS` dataset — once `bun audit --audit-level=high` (with the gate's
    `braces` ignore) stopped failing a PR that changes `bun.lock`. `/og/s/*` is no
    longer routed: it is a missing file, and the Worker answers it 404. It served

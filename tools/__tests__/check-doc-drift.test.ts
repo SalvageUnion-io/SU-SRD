@@ -8,12 +8,12 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import {
-  agentWorkflowScripts,
   checkBacktickedPathsExist,
   checkDecisions,
   checkDocSizes,
   checkMarkdownLinks,
   checkReferencedScripts,
+  checkRetiredClaims,
   citationReadsAsHistoryOrProposal,
   gitignoredMatcher,
   headingSlug,
@@ -216,15 +216,45 @@ describe('checkBacktickedPathsExist', () => {
     expect(failures[0]).toContain('docs/ARCHITECTURE.md:3 cites `apps/itun/src/stores/gone.ts`')
   })
 
-  it('does not scan the ADRs under # Decisions: their paths and scripts are history', () => {
+  it('scans only the Status and Decision of an ADR that still carries a Decision', () => {
     const root = fixture({
       'package.json': JSON.stringify({ scripts: {} }),
-      'docs/ARCHITECTURE.md':
-        '## Data flow\n\nWrites go through `apps/itun/src/stores/gone.ts`.\n\n# Decisions\n\n' +
-        '## ADR-001\n\nWe kept `apps/itun/old-host/functions/` and ran `bun run old-host`.\n',
+      'docs/ARCHITECTURE.md': [
+        '## Data flow',
+        '',
+        'Writes go through `apps/itun/src/stores/gone.ts`.',
+        '',
+        '# Decisions',
+        '',
+        '## ADR-001',
+        '',
+        '### Status',
+        '',
+        'Superseded. We kept `apps/itun/old-host/functions/` and ran `bun run old-host`.',
+        '',
+        '## ADR-002',
+        '',
+        '### Status',
+        '',
+        'Accepted. The rules are `apps/itun/src/rules.ts`.',
+        '',
+        '### Context',
+        '',
+        'We used to run `bun run old-host` against `apps/itun/old-host/`.',
+        '',
+        '### Decision',
+        '',
+        'Run `bun run new-host` over `apps/itun/src/host.ts`.',
+      ].join('\n'),
     })
-    expect(checkBacktickedPathsExist(root).failures).toHaveLength(1)
-    expect(checkReferencedScripts(root).failures).toEqual([])
+    const paths = checkBacktickedPathsExist(root).failures.join('\n')
+    expect(paths).toContain('docs/ARCHITECTURE.md:3 cites `apps/itun/src/stores/gone.ts`')
+    expect(paths).toContain('docs/ARCHITECTURE.md:17 cites `apps/itun/src/rules.ts`')
+    expect(paths).toContain('docs/ARCHITECTURE.md:25 cites `apps/itun/src/host.ts`')
+    expect(paths).not.toContain('old-host')
+    const scripts = checkReferencedScripts(root).failures
+    expect(scripts).toHaveLength(1)
+    expect(scripts[0]).toContain('`bun run new-host`')
   })
 
   it('does not let a negation in a NEIGHBOURING sentence excuse a stale path', () => {
@@ -292,46 +322,46 @@ describe('checkBacktickedPathsExist', () => {
     expect(failures[0]).toContain('`tools/gone.ts`')
   })
 
-  it('scans agent memory as a live-instruction doc', () => {
+  it('scans skills as live-instruction docs', () => {
     const root = fixture({
-      '.claude/agent-memory/ux/MEMORY.md': 'Tokens live in `packages/ui/theme.css`.\n',
+      '.claude/skills/ux/SKILL.md': 'Tokens live in `packages/ui/theme.css`.\n',
     })
     const { failures } = checkBacktickedPathsExist(root)
     expect(failures).toHaveLength(1)
-    expect(failures[0]).toContain('.claude/agent-memory/ux/MEMORY.md:1')
+    expect(failures[0]).toContain('.claude/skills/ux/SKILL.md:1')
+  })
+})
+
+describe('checkRetiredClaims', () => {
+  it('fails an agent doc that repeats a retired claim, and leaves the ADRs their history', () => {
+    const root = fixture({
+      '.claude/rules/x.md': 'Signed out, writes go to the in-memory backend.\n',
+      '.claude/hooks/h.sh': '# formats with prettier\n',
+      '.env.example': '# unset = in-memory only\n',
+      'CLAUDE.md': 'Commit with /ship.\n',
+      'docs/ARCHITECTURE.md':
+        '# Architecture\n\n# Decisions\n\n## ADR-001\n\nLocal-first, no backend.\n',
+    })
+    const failures = checkRetiredClaims(root).failures.join('\n')
+    expect(failures).toContain('.claude/rules/x.md:1 matches /in-memory (?:backend|only)/i')
+    expect(failures).toContain('.claude/hooks/h.sh:1 matches /prettier/i')
+    expect(failures).toContain('.env.example:1 matches /in-memory (?:backend|only)/i')
+    expect(failures).toContain('CLAUDE.md:1 matches /\\/ship\\b/')
+    expect(failures).not.toContain('ARCHITECTURE')
   })
 
-  it('scans workflow prompts for bare repo paths', () => {
-    const root = fixture({
-      '.claude/skills/stacked-pr/SKILL.md': '# skill\n',
-      '.claude/workflows/w.js': [
-        "const a = 'follow .claude/skills/stacked-pr/SKILL.md'",
-        "const b = 'then read .claude/skills/nope/SKILL.md'",
-      ].join('\n'),
-    })
-    expect(agentWorkflowScripts(root)).toEqual(['.claude/workflows/w.js'])
-    const { failures } = checkBacktickedPathsExist(root)
-    expect(failures).toHaveLength(1)
-    expect(failures[0]).toContain('.claude/workflows/w.js:2')
+  it('passes a doc that states the current design', () => {
+    const root = fixture({ 'CLAUDE.md': 'Signed out, ITUN is read-only. Use `bun run test`.\n' })
+    expect(checkRetiredClaims(root).failures).toEqual([])
   })
 })
 
 describe('checkReferencedScripts', () => {
-  it('checks the bun scripts a workflow prompt tells a subagent to run', () => {
-    const root = fixture({
-      'package.json': JSON.stringify({ scripts: { test: 'x', lint: 'x' } }),
-      '.claude/workflows/w.js': 'const s = \'run "bun run test" then "bun run verify"\'\n',
-    })
-    const { failures } = checkReferencedScripts(root)
-    expect(failures).toHaveLength(1)
-    expect(failures[0]).toContain('bun run verify')
-  })
-
   it('checks the ids after `bun run check` against the tools/check.ts registry', () => {
     const root = fixture({
       'package.json': JSON.stringify({ scripts: { check: 'x' } }),
-      '.claude/workflows/w.js':
-        'const s = \'run "bun run check styling data" then "bun run check tokens"; `bun run check` alone\'\n',
+      '.claude/hooks/h.sh':
+        "echo \"run 'bun run check styling data' then 'bun run check tokens'; `bun run check` alone\"\n",
       'CLAUDE.md':
         'Run bun run check before you push.\n\n```bash\nbun run check data   # one check\nbun run check nope\n```\n',
     })
@@ -446,6 +476,22 @@ describe('checkDecisions', () => {
     expect(failures).toContain('has no `## ADR-003`')
     expect(failures).toContain('has no `## ADR-004`')
   })
+
+  it("fails an amendment the amended ADR's Status does not name", () => {
+    const adr = (n: string, status: string): string =>
+      `## ADR-${n}\n\n**T**\n\n### Status\n\n${status}\n\n### Decision\n\nSee ADR-001.\n\n`
+    const root = fixture({
+      'docs/ARCHITECTURE.md': doc(
+        adr('001', 'Accepted. **Amended by [ADR-003](#adr-003).**') +
+          adr('002', 'Accepted. Superseded in part.') +
+          adr('003', 'Accepted. **Amends [ADR-001](#adr-001)** and supersedes ADR-002.')
+      ),
+    })
+    expect(checkDecisions(root, 3).failures).toEqual([
+      "docs/ARCHITECTURE.md: ADR-003 supersedes ADR-002, but ADR-002's Status does not name " +
+        'ADR-003. Add a dated line there ("**Amended by [ADR-003](#adr-003)** …").',
+    ])
+  })
 })
 
 describe('checkDocSizes', () => {
@@ -468,8 +514,10 @@ describe('checkDocSizes', () => {
     )
   })
 
-  it('holds a collapsed doc to its own budget, and fails an entry whose file is gone', () => {
-    const root = fixture({ 'docs/ARCHITECTURE.md': 'x'.repeat(101) })
+  it("holds a collapsed doc's live text to its own budget, and fails an entry whose file is gone", () => {
+    const root = fixture({
+      'docs/ARCHITECTURE.md': `${'x'.repeat(100)}\n# Decisions\n\n## ADR-001\n\n${'y'.repeat(500)}`,
+    })
     expect(checkDocSizes(root, {}, { 'docs/ARCHITECTURE.md': 101 }).failures).toEqual([])
     expect(checkDocSizes(root, {}, { 'docs/ARCHITECTURE.md': 100 }).failures.join('\n')).toContain(
       'docs/ARCHITECTURE.md is 101 characters, over its 100-character budget'

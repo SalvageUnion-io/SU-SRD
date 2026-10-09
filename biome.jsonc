@@ -264,11 +264,8 @@
           "level": "error",
           "options": { "style": "separatedType" }
         },
-        // "Named exports everywhere except route components" (CLAUDE.md:165,
-        // react-components.md:14) — stated three times at three strengths and
-        // enforced by nothing. It turned out to be genuinely obeyed (0
-        // violations outside the two legitimate exemptions below), which is
-        // exactly why it is cheap to lock in now rather than after it drifts.
+        // "Named exports everywhere except route components" (root CLAUDE.md's
+        // code conventions) is enforced here, not by prose.
         //
         // The two exemptions are real framework contracts, not preferences:
         // TanStack Router route modules, and story `meta` — both are read
