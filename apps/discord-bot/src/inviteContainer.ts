@@ -27,8 +27,7 @@ function plain(text: string): string {
   return text.replace(/([\\*_~`|>#[\]()-])/g, '\\$1')
 }
 
-function expiryLine(expiresAt: number | null, now: number): string | null {
-  if (expiresAt === null) return null
+function expiryLine(expiresAt: number, now: number): string {
   const days = Math.ceil((expiresAt - now) / DAY_MS)
   if (days <= 1) return 'It expires within a day.'
   return `It expires in ${days} days.`

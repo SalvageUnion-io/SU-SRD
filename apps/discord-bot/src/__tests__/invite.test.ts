@@ -35,7 +35,7 @@ const INVITED: InvitedResult = {
   inviteeName: 'Sam',
   role: 'player',
   grantCount: 0,
-  expiresAt: null,
+  expiresAt: 1_700_000_000_000 + 7 * 24 * 60 * 60 * 1000,
   reused: false,
   deliver: true,
 }

@@ -10,7 +10,6 @@ import type { LinkShape } from '../linkRules'
 import {
   conflictingLinks,
   endsMatchType,
-  impliedMechCrawlerLinks,
   linksBrokenByMove,
   linkTypeFor,
   resolveLinkType,
@@ -125,42 +124,5 @@ describe('linksBrokenByMove — the links a move cannot take along', () => {
   test('ignores links that do not touch the moved entity', () => {
     const links = [l('mech-to-crawler', 'm1', 'cg')]
     expect(linksBrokenByMove(links, { type: 'pilot', id: 'p1' }, game('g2'), lookup)).toEqual([])
-  })
-})
-
-describe('impliedMechCrawlerLinks — the backfill', () => {
-  const same = () => true
-
-  test('a mech with a pilot who crews a crawler is docked there', () => {
-    const links = [l('mech-to-pilot', 'm1', 'p1'), l('pilot-to-crawler', 'p1', 'c1')]
-    expect(impliedMechCrawlerLinks(links, same)).toEqual([l('mech-to-crawler', 'm1', 'c1')])
-  })
-
-  test('a mech that already has a crawler keeps it', () => {
-    const links = [
-      l('mech-to-pilot', 'm1', 'p1'),
-      l('pilot-to-crawler', 'p1', 'c1'),
-      l('mech-to-crawler', 'm1', 'c2'),
-    ]
-    expect(impliedMechCrawlerLinks(links, same)).toEqual([])
-  })
-
-  test('the first link in the given order wins — callers pass newest first', () => {
-    const links = [
-      l('mech-to-pilot', 'm1', 'p1'),
-      l('pilot-to-crawler', 'p1', 'c-new'),
-      l('pilot-to-crawler', 'p1', 'c-old'),
-    ]
-    expect(impliedMechCrawlerLinks(links, same)).toEqual([l('mech-to-crawler', 'm1', 'c-new')])
-  })
-
-  test('a crawler in another container is not followed', () => {
-    const links = [l('mech-to-pilot', 'm1', 'p1'), l('pilot-to-crawler', 'p1', 'c1')]
-    expect(impliedMechCrawlerLinks(links, () => false)).toEqual([])
-  })
-
-  test('a mech with no pilot, or a pilot with no crawler, gets nothing', () => {
-    expect(impliedMechCrawlerLinks([l('pilot-to-crawler', 'p1', 'c1')], same)).toEqual([])
-    expect(impliedMechCrawlerLinks([l('mech-to-pilot', 'm1', 'p1')], same)).toEqual([])
   })
 })

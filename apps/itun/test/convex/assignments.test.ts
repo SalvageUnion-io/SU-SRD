@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { ConvexError } from 'convex/values'
-import { api, internal } from '../../convex/_generated/api'
+import { api } from '../../convex/_generated/api'
 import { CROSS_CONTAINER_REFUSAL } from '../../src/lib/links/linkRules'
 import {
   addCrawler,
@@ -371,99 +371,5 @@ describe('listWiring — the way down', () => {
   test('requires a signed-in caller', async () => {
     const t = testConvex()
     await expect(t.query(api.entities.listWiring, {})).rejects.toThrow(/not signed in/i)
-  })
-})
-
-describe('maintenance.repairSoftLinks', () => {
-  /** Rows written raw, bypassing every writer — the state pre-ADR-037 code could leave. */
-  async function seedLegacy(t: ReturnType<typeof testConvex>) {
-    const { organizer: o, gameId } = await seedTable(t)
-    await addCrawler(o, 'c1', gameId)
-    await addCrawler(o, 'c2', gameId)
-    await addPilot(o, 'p1', gameId)
-    await addMech(o, 'm1', gameId)
-    await addCrawler(o, 'c-shelf', null)
-    // Wipe what the writers drew (the primary crawler assignment) so only the
-    // raw legacy rows below exist.
-    await t.run(async (ctx) => {
-      for (const l of await ctx.db.query('softLinks').collect()) await ctx.db.delete(l._id)
-    })
-    await t.run(async (ctx) => {
-      const put = (
-        type: 'mech-to-pilot' | 'pilot-to-crawler' | 'mech-to-crawler',
-        from: { type: 'pilot' | 'mech'; id: string },
-        to: { type: 'pilot' | 'crawler'; id: string },
-        filed: typeof gameId | null
-      ) => ctx.db.insert('softLinks', { gameId: filed, from, to, type })
-      // The two-hop the old model read as "m1 is docked in c2".
-      await put('mech-to-pilot', ref.mech('m1'), ref.pilot('p1'), gameId)
-      // p1 on two crawlers: the older (c1) loses to the newer (c2).
-      await put('pilot-to-crawler', ref.pilot('p1'), ref.crawler('c1'), gameId)
-      await put('pilot-to-crawler', ref.pilot('p1'), ref.crawler('c2'), null)
-      // A duplicate of the mech's pilot link.
-      await put('mech-to-pilot', ref.mech('m1'), ref.pilot('p1'), gameId)
-    })
-    // Added after the others so it is the NEWEST mech-to-crawler candidate the
-    // pilot could offer — and it crosses containers, so it simply goes.
-    await t.run(
-      async (ctx) =>
-        await ctx.db.insert('softLinks', {
-          gameId,
-          from: ref.mech('m-ghost'),
-          to: ref.crawler('c1'),
-          type: 'mech-to-crawler',
-        })
-    )
-    await t.run(
-      async (ctx) =>
-        await ctx.db.insert('softLinks', {
-          gameId,
-          from: ref.pilot('p1'),
-          to: ref.crawler('c-shelf'),
-          type: 'pilot-to-crawler',
-        })
-    )
-    return { gameId }
-  }
-
-  test('reports and changes nothing by default', async () => {
-    const t = testConvex()
-    await seedLegacy(t)
-    const before = await allLinks(t)
-
-    const report = await t.action(internal.maintenance.repairSoftLinks, {})
-
-    expect(report.applied).toBe(false)
-    expect(report.links.duplicates).toBe(1)
-    expect(report.links.crossContainer).toBe(1)
-    expect(report.links.orphaned).toBe(1)
-    expect(await allLinks(t)).toEqual(before)
-  })
-
-  test('applied: the invariants hold afterwards, and every docked mech has its own link', async () => {
-    const t = testConvex()
-    const { gameId } = await seedLegacy(t)
-
-    const report = await t.action(internal.maintenance.repairSoftLinks, {
-      apply: true,
-      pageSize: 2,
-    })
-
-    expect(report.applied).toBe(true)
-    expect(report.backfill.backfilled).toBe(1)
-    const after = (await allLinks(t)).filter((l) => l.from !== 'm-ghost')
-    expect(after.sort((a, b) => a.type.localeCompare(b.type))).toEqual([
-      // Docked in c2: its pilot's surviving crawler.
-      { type: 'mech-to-crawler', from: 'm1', to: 'c2', gameId },
-      { type: 'mech-to-pilot', from: 'm1', to: 'p1', gameId },
-      // The newest crew link survived and was re-filed under its container.
-      { type: 'pilot-to-crawler', from: 'p1', to: 'c2', gameId },
-    ])
-
-    // Idempotent: a second applied run has nothing left to do.
-    const again = await t.action(internal.maintenance.repairSoftLinks, { apply: true })
-    expect(again.links.duplicates + again.links.crossContainer).toBe(0)
-    expect(again.links.overCardinality + again.links.rehomed).toBe(0)
-    expect(again.backfill.backfilled).toBe(0)
   })
 })

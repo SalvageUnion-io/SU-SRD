@@ -343,8 +343,7 @@ seat (D12).
     are updated.
 - **Claiming as association** (#1064). Revisit what `ownership.claim` means for crew
   assets in a Game. This would be an ADR-030 amendment, not part of this plan.
-- **`games.cockpitPrefs`** (#1065). Drop the unused column. That's a one-way schema
-  step of its own.
+- **`games.cockpitPrefs`** (#1065). Dropped in #1132.
 - **The bot reads server-derived crew status** (#1068), retiring its own copy
   of the derivation.
 - **Player requests to the Mediator.** Proposals only go from the Mediator to a

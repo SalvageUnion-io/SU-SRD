@@ -40,7 +40,7 @@ export type InviteTarget = NonNullable<Doc<'invites'>['target']>
 export function statusOf(invite: Doc<'invites'>, now: number): InviteStatus {
   if (invite.revokedAt !== undefined) return 'revoked'
   if (invite.declinedAt !== undefined) return 'declined'
-  if (invite.expiresAt !== undefined && invite.expiresAt < now) return 'expired'
+  if (invite.expiresAt < now) return 'expired'
   if (invite.usesRemaining !== undefined && invite.usesRemaining <= 0) return 'exhausted'
   return 'active'
 }

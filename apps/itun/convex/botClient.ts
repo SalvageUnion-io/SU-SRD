@@ -502,7 +502,7 @@ export const invite = internalMutation({
     // — unless the seat changed, in which case the old one is closed and a new
     // one carries the seat the Organizer asked for this time.
     let live = retried ?? (await liveDiscordInvite(ctx, gameId, parsed.invitee.id))
-    if (live !== null && retried === null && (live.role ?? 'player') !== parsed.role) {
+    if (live !== null && retried === null && live.role !== parsed.role) {
       await ctx.db.patch(live._id, { revokedAt: Date.now() })
       live = null
     }
@@ -541,9 +541,9 @@ export const invite = internalMutation({
       invitedBy: displayNameOf(user),
       inviteeDiscordId: parsed.invitee.id,
       inviteeName,
-      role: row.role ?? 'player',
+      role: row.role,
       grantCount: row.grants?.length ?? 0,
-      expiresAt: row.expiresAt ?? null,
+      expiresAt: row.expiresAt,
       reused: live !== null,
       deliver,
     }

@@ -204,16 +204,6 @@ export default defineSchema({
     phoneVerificationTime: v.optional(v.number()),
 
     /**
-     * Discord snowflake. **Not the bot's resolution path and not written.**
-     *
-     * Identity resolves through `authAccounts.providerAccountId`, which
-     * `@convex-dev/auth` maintains on every sign-in — see
-     * `model/bot.ts#userByDiscordId`. This column and its `by_discord` index
-     * are retained only so existing rows keep validating; nothing reads them,
-     * and a value here resolves nobody.
-     */
-    discordId: v.optional(v.string()),
-    /**
      * Overridable display name (D33). Defaults from Discord but is editable —
      * people use different names at different tables. This is what every owner
      * chip renders, so it is read far more often than it is written.
@@ -223,8 +213,7 @@ export default defineSchema({
     avatarUrl: v.optional(v.string()),
   })
     .index('email', ['email'])
-    .index('phone', ['phone'])
-    .index('by_discord', ['discordId']),
+    .index('phone', ['phone']),
 
   /**
    * A Game is the shared container — campaign, group, and (formerly) workspace
@@ -235,8 +224,6 @@ export default defineSchema({
     name: v.string(),
     /** Which built-in template seeded this Game, if any (D34). */
     templateOrigin: v.optional(v.string()),
-    /** Dashboard dial show/hide + order. Carried over from Workspace unchanged. */
-    cockpitPrefs: v.optional(v.any()),
     /**
      * What a Game's summary says about this table — kept current by the triggers
      * in `model/entities.ts`, never written by a mutation directly.
@@ -304,23 +291,21 @@ export default defineSchema({
    * already decided when they minted it: which seat the joiner takes, and which
    * unclaimed entities are waiting for them. That turns "send code → they join →
    * find them in the crew list → assign a pilot → assign its mech" into one act.
-   *
-   * Everything past `usesRemaining` is optional so pre-existing rows stay valid.
    */
   invites: defineTable({
     gameId: v.id('games'),
     code: v.string(),
     createdBy: v.id('users'),
-    expiresAt: v.optional(v.number()),
+    expiresAt: v.number(),
     usesRemaining: v.optional(v.number()),
 
-    createdAt: v.optional(v.number()),
+    createdAt: v.number(),
 
     /** Organizer's private note ("for Sam"). Never shown to the redeemer. */
     label: v.optional(v.string()),
 
-    /** The seat granted on redeem. Absent means 'player'. */
-    role: v.optional(v.union(v.literal('player'), v.literal('mediator'))),
+    /** The seat granted on redeem. */
+    role: v.union(v.literal('player'), v.literal('mediator')),
 
     /**
      * Entities handed over on join. A list, not a single id: the Starter Set
@@ -342,7 +327,7 @@ export default defineSchema({
      * membership would otherwise hand a stranger read access to every
      * crewmate's sheet (ADR-030 §5).
      */
-    requiresApproval: v.optional(v.boolean()),
+    requiresApproval: v.boolean(),
 
     /**
      * Soft revoke. The row survives so `inviteRedemptions` keeps referring to
@@ -546,17 +531,12 @@ export default defineSchema({
     .index('by_owner_app_id', ['ownerId', 'appId']),
 
   /**
-   * A saved mech pattern. Personal — there is no sharing.
-   *
-   * This carried a `sharedToGame: v.boolean()` for D26 ('share a pattern with
-   * the crew'). It was written in exactly one place, hardcoded `false`, and no
-   * query ever returned it: `listForGame` serves pilots, mechs, crawlers and
-   * softLinks only. A one-way sink with a field nothing could set. Removed —
-   * add it back with the mutation that sets it and the query that reads it.
+   * A saved mech pattern. Personal — there is no sharing, so a pattern lives
+   * only on its owner's shelf and `gameId` is always null.
    */
   mechPatterns: defineTable({
     ownerId: v.id('users'),
-    gameId: v.union(v.id('games'), v.null()),
+    gameId: v.null(),
     /**
      * The id inside the body, lifted into a column.
      *
@@ -570,8 +550,7 @@ export default defineSchema({
     body: v.any(),
   })
     // `ownerId` alone is a prefix, so this also serves "all of mine".
-    .index('by_owner_app_id', ['ownerId', 'appId'])
-    .index('by_game', ['gameId']),
+    .index('by_owner_app_id', ['ownerId', 'appId']),
 
   /**
    * The Change Log (ADR-022), promoted from a local-only audit trail to the
@@ -624,8 +603,8 @@ export default defineSchema({
    * The bot authenticates as a **participant**, not an admin — the whole point
    * of closing the old #165 differently. A binding says "rolls in this channel
    * belong to this Game", and the actor is resolved from the Discord user id
-   * against `users.discordId`, so the bot can never act as somebody who has not
-   * linked their account.
+   * against `authAccounts.providerAccountId` (`model/bot.ts#userByDiscordId`),
+   * so the bot can never act as somebody who has not linked their account.
    *
    * One Game per channel: a channel that meant two Games would make every roll
    * ambiguous.

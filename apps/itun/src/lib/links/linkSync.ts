@@ -172,8 +172,8 @@ export function planRowSync<R extends ServedRow>(args: {
  * A crawler is adopted on `planRowSync`'s rule — this browser lacks it, or the
  * server row has moved on since it was last adopted — because the crawler is
  * the crew's, so the Mediator's edit has to reach every member's cache too. The body is stamped with the ROW's container,
- * because the column is the authority (`maintenance.repairContainers`) and a
- * template-seeded body names no Game at all.
+ * because the column is the authority and a template-seeded body names no Game
+ * at all.
  *
  * A local crawler filed in a covered Game that the server no longer returns
  * was scrapped or moved out, and is forgotten.

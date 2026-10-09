@@ -101,10 +101,10 @@ export const list = query({
         _id: invite._id,
         code: invite.code,
         label: invite.label ?? null,
-        role: invite.role ?? 'player',
+        role: invite.role,
         grantCount: invite.grants?.length ?? 0,
-        requiresApproval: invite.requiresApproval ?? false,
-        expiresAt: invite.expiresAt ?? null,
+        requiresApproval: invite.requiresApproval,
+        expiresAt: invite.expiresAt,
         usesRemaining: invite.usesRemaining ?? null,
         status: statusOf(invite, now),
         redeemers,
@@ -183,11 +183,11 @@ export const preview = query({
     return {
       gameName: game.name,
       invitedBy: inviter?.displayName ?? inviter?.name ?? 'the organizer',
-      role: invite.role ?? 'player',
-      requiresApproval: invite.requiresApproval ?? false,
+      role: invite.role,
+      requiresApproval: invite.requiresApproval,
       grantCount: invite.grants?.length ?? 0,
       status: statusOf(invite, Date.now()),
-      expiresAt: invite.expiresAt ?? null,
+      expiresAt: invite.expiresAt,
       addressed: invite.target?.kind ?? null,
       forYou,
     }
@@ -213,7 +213,7 @@ async function seat(
   await ctx.db.insert('memberships', {
     gameId: invite.gameId,
     userId,
-    mediator: (invite.role ?? 'player') === 'mediator',
+    mediator: invite.role === 'mediator',
     organizer: false,
     joinedAt: now,
   })
@@ -332,7 +332,7 @@ export const redeem = mutation({
     assertSpendable(invite)
     if (!(await mayRedeem(ctx, invite, userId))) throw new NotAuthorized(NOT_YOUR_INVITE)
 
-    if (invite.requiresApproval === true) {
+    if (invite.requiresApproval) {
       const prior = await ctx.db
         .query('joinRequests')
         .withIndex('by_invite_user', (q) => q.eq('inviteId', invite._id).eq('userId', userId))
@@ -435,9 +435,9 @@ export const forMe = query({
         code: invite.code,
         gameName: game.name,
         invitedBy: inviter?.displayName ?? inviter?.name ?? 'the organizer',
-        role: invite.role ?? 'player',
+        role: invite.role,
         grantCount: invite.grants?.length ?? 0,
-        expiresAt: invite.expiresAt ?? null,
+        expiresAt: invite.expiresAt,
       })
     }
     return out

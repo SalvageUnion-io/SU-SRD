@@ -6,11 +6,9 @@ import { testConvex } from './harness'
 /**
  * Surviving duplicate `appId` rows that already exist.
  *
- * This is the **second** half of the duplicate-appId story, and deliberately
- * not the first. Repairing old duplicates (`maintenance.dedupeAppIds`) is
- * covered by `maintenance.test.ts`. What is pinned here is what
- * happens to a player whose roster is duplicated *right now*, before anyone has
- * run the repair.
+ * What is pinned here is what happens to a player whose roster holds two
+ * rows for one app id: the write still lands, on a row chosen
+ * deterministically.
  *
  * That case mattered enough to earn its own answer. `byAppId` asked for
  * `.unique()` on `by_app_id` — an ordinary Convex index, not a uniqueness
@@ -22,9 +20,8 @@ import { testConvex } from './harness'
  *
  * So a duplicate is treated as a repair job rather than a reason to refuse the
  * write that would have kept client and server in step: the lookup resolves to
- * the oldest row and logs, the write lands, and `maintenance.dedupeAppIds`
- * clears up afterwards. Prevention closes the front door; this makes the
- * failure survivable if anything ever opens it again.
+ * the oldest row and logs, and the write lands. Prevention closes the front
+ * door; this makes the failure survivable if anything ever opens it again.
  */
 
 function pilotBody(over: Record<string, unknown> = {}) {
@@ -113,8 +110,7 @@ describe('byAppId tolerates duplicate rows', () => {
       expectedUpdatedAt: null,
     })
 
-    // Deterministic, and the SAME row `maintenance.dedupeAppIds` keeps — so a
-    // write that lands before the repair runs is not thrown away by it.
+    // Deterministic: the oldest row, the one every earlier write landed on.
     const oldest = await t.run(async (ctx) => await ctx.db.get(first))
     expect(oldest).not.toBeNull()
     expect((oldest?.body as { name: string } | undefined)?.name).toBe('Written')

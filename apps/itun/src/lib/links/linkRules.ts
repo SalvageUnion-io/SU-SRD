@@ -17,10 +17,8 @@
  * | `pilot-to-crawler` | pilot | crawler | ≤ 1        | many     |
  * | `mech-to-crawler`  | mech  | crawler | ≤ 1        | many     |
  *
- * A mech's crawler is its OWN link. It used to be reached through its pilot
- * (`mech-to-pilot` then `pilot-to-crawler`), which made a mech without a pilot
- * homeless and moved a mech whenever its pilot moved. Mechs are assigned
- * independently now; there is no transitive fallback anywhere.
+ * A mech's crawler is its OWN link, never reached through its pilot, so a mech
+ * is assigned independently of whoever flies it.
  *
  * ## Creating a link replaces what it conflicts with
  *
@@ -163,47 +161,4 @@ export function linksBrokenByMove<L extends LinkShape>(
     const where = containerOfEnd(other)
     return where === null || !sameContainer(where, destination)
   })
-}
-
-/**
- * The `mech-to-crawler` links the old transitive model implied but never drew.
- *
- * Before ADR-037 a mech reached a crawler only through its pilot. Data written
- * then has the two hops and not the direct link, so after the change those
- * mechs would leave the bay. This proposes the direct link for every mech that
- * has a pilot, has no crawler of its own, and whose pilot crews a crawler in
- * the mech's own container.
- *
- * `links` is read in the order given and the first match wins, so a caller that
- * wants "the newest" passes them newest-first — which is how a pair that broke
- * cardinality under the old code resolves to the link that survives repair.
- * Used by `maintenance.repairSoftLinks`.
- */
-export function impliedMechCrawlerLinks(
-  links: readonly LinkShape[],
-  sameContainerFor: (mechId: string, crawlerId: string) => boolean
-): LinkShape[] {
-  const hasCrawler = new Set(
-    links.filter((l) => l.type === 'mech-to-crawler').map((l) => l.from.id)
-  )
-  const out: LinkShape[] = []
-  for (const pilotLink of links) {
-    if (pilotLink.type !== 'mech-to-pilot') continue
-    const mechId = pilotLink.from.id
-    if (hasCrawler.has(mechId)) continue
-    const crewLink = links.find(
-      (l) => l.type === 'pilot-to-crawler' && l.from.id === pilotLink.to.id
-    )
-    if (crewLink === undefined) continue
-    // Claimed for this mech whatever the container answer, so a second, older
-    // pilot link for the same mech cannot propose a different crawler.
-    hasCrawler.add(mechId)
-    if (!sameContainerFor(mechId, crewLink.to.id)) continue
-    out.push({
-      from: { type: 'mech', id: mechId },
-      to: { type: 'crawler', id: crewLink.to.id },
-      type: 'mech-to-crawler',
-    })
-  }
-  return out
 }

@@ -350,12 +350,12 @@ https://exuberant-porpoise-183.convex.site/api/auth/callback/discord
   `internalMutation` from `model/entities.ts`** (Biome refuses the generated
   builders). A dashboard-written row bypasses them. `mechPatterns` and
   `encounterNpcs` lift `appId` into a column behind `by_owner_app_id`.
-- **Maintenance:** `convex/maintenance.ts` is operator-only (`bunx convex run`).
-  The `convex-maintenance` skill holds each procedure: enabling error reporting,
-  `dedupeAppIds`, `repairSoftLinks`, switching production on (no rollback by
-  unsetting `VITE_CONVEX_URL`), rotating `JWT_PRIVATE_KEY` / `JWKS` (signs
-  everyone out) and `AUTH_DISCORD_SECRET`. The workflow is
-  [CI: production maintenance](#ci-production-maintenance).
+- **Maintenance:** no repair lives in the repo. A one-off repair ships as an
+  internal function, runs once from the Convex dashboard's function runner, and
+  is deleted with its counts recorded. The `convex-maintenance` skill holds each
+  procedure: enabling error reporting, one-off repairs, switching production on
+  (no rollback by unsetting `VITE_CONVEX_URL`), rotating `JWT_PRIVATE_KEY` /
+  `JWKS` (signs everyone out) and `AUTH_DISCORD_SECRET`.
 
 ## Rules and ITUN surfaces
 
@@ -651,7 +651,7 @@ mutations for convenience (except `botClient.invite`, via
 - **Per-user OAuth: rejected.**
 
 No linking step: `authAccounts` stores the snowflake as `providerAccountId`,
-resolved by `model/bot.ts#userByDiscordId`; `users.discordId` is not read. There is always a
+resolved by `model/bot.ts#userByDiscordId`. There is always a
 client: when Convex is down or unreachable every call is `unavailable`, Game
 commands say so ephemerally, and `/su roll` and `/su lookup` behave the same. `resolveActor`
 returns `null` alike for no binding, account or membership; passive paths stay
@@ -761,7 +761,8 @@ One step, `bun tools/check.ts --profile=ci --areas=<code,docs>`: the registry
 (`tools/lint-workflows.sh`: pinned, sha256-verified actionlint and zizmor,
 `.github/zizmor.yml`, third-party actions SHA-pinned,
 `persist-credentials: false`). `deps`: the audit. `code` or `docs`: `data`,
-`doc-drift`, `observability`, `convex-codegen`, `convex-callers`. The test gate
+`doc-drift`, `observability`, `convex-callers` (which also holds
+`convex/_generated/api.d.ts` to the modules on disk). The test gate
 is `coverage`: `bun run test:coverage` (`tools/run-coverage.ts`) fails a
 workspace under its `FLOORS` total (bunfigs set
 `coveragePathIgnorePatterns = ["../**"]`).
@@ -844,14 +845,6 @@ top-level `env:`.
   dispatched `sha` reaches scripts through `env:`. The smoke list is
   `tools/smoke-production.sh`, also run daily by `e2e-nightly.yml`
   (`production-smoke`).
-
-### CI: production maintenance
-
-`convex-maintenance.yml` (`workflow_dispatch`, `main` only,
-`environment: production`) runs one allowlisted, idempotent function from
-`apps/itun/convex/maintenance.ts` (today `repairContainers`) with `--prod`,
-refusing a key that is not `prod:` or `project:`. A new function goes in both
-the `choice` input and the step's `case`.
 
 ## Dependencies
 
@@ -4381,9 +4374,9 @@ legacy guard and `claimLocal` are withdrawn: `claimLocal`,
 `legacyLocalData.ts`, `legacyMigration.ts`, the `legacy` cache origin and the
 IndexedDB migrations are deleted. Nothing on a device is sent to the account;
 an upgrade empties the cache and the server refills it. Decision 1 (anonymous
-is anonymous) and decisions 3 and 4 (a body agrees with its row;
-`maintenance.repairContainers`) stand. Read the rest of this record as
-history.
+is anonymous) and decisions 3 and 4 (a body agrees with its row) stand;
+`maintenance.repairContainers` ran once against production and was deleted
+(#1132). Read the rest of this record as history.
 
 **Accepted and delivered.** The exemption is gone from `backendForMode`, the
 migration runs from the root of the app, and `claimLocal` now writes a body whose
@@ -4799,7 +4792,8 @@ governing rule asked of a link that can no longer serve what it served before.
   resolves duplicates the way `entities.byAppId` does. Where an id was duplicated
   across accounts, an old link could land on a different owner's sheet — but only
   one that owner chose to make public, so nothing private is disclosed.
-  `maintenance.dedupeAppIds` is the repair.
+  Collapsing a duplicate is a one-off repair run from the Convex dashboard's
+  function runner, like every other repair.
 - **The browser cache still holds old answers.** `GET /api/snapshots/:id` used to
   return the whole blob with a year-long `immutable` Cache-Control. The client
   therefore reads either shape (`snapshotIdentity`), so a browser that opened a
@@ -4989,10 +4983,8 @@ lists only what would be accepted.
 
 #### Existing data
 
-`maintenance.repairSoftLinks` (dry run by default) deletes duplicates,
-cross-container links and cardinality losers (the newest surviving assignment
-wins), re-files the rest, then backfills `mech-to-crawler` for every mech whose
-pilot crews a crawler in its container.
+Rows written before these rules were brought into line by a one-off repair,
+run once against production and deleted (#1132).
 
 ### Consequences
 
@@ -5008,8 +5000,6 @@ pilot crews a crawler in its container.
 - `listWiring` reads the caller's own pilots and mechs to find their links, so
   it re-runs on their edits. The reconcile is idempotent and writes nothing
   when nothing changed.
-- Until `repairSoftLinks` runs after the deploy, a mech that reached its bay
-  through its pilot shows undocked.
 - A Game that predates `primaryCrawlerId` has its oldest crawler as primary;
   the first crawler event there writes that down. Nobody already in such a
   Game is auto-assigned — the backfill runs only when a Game gets its first
@@ -5196,7 +5186,7 @@ seat, never the pilot's `mech-to-pilot` link.
   Dashboard as a live subscription).
 - **Code is deleted.** The Dial, its settings overlay, `cockpitPrefsStore`,
   `playStateStore`, the launch chooser and stand-in mechs all go.
-  `games.cockpitPrefs` stays unused until a separate change drops it.
+  `games.cockpitPrefs` stayed unused until #1132 dropped it.
 - **The Dashboard's Tailwind-removal phase was to be absorbed.** The new
   components use style objects and add no `.pc-*` class, but 103 `.pc-*`
   classes remain, so [tailwind-removal.md](design-system/tailwind-removal.md)

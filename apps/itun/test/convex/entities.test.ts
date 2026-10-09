@@ -263,7 +263,7 @@ describe('reading is per-game, writing is per-entity', () => {
 
   test('a row from a table this endpoint does not serve is not writable at all', async () => {
     const t = testConvex()
-    const { player, gameId } = await seedGame(t)
+    const { player } = await seedGame(t)
     // Owned by the caller, so the ownership check would have passed it: the
     // table tag is the only thing standing between a pattern and the mech
     // write path.
@@ -271,7 +271,7 @@ describe('reading is per-game, writing is per-entity', () => {
       async (ctx) =>
         await ctx.db.insert('mechPatterns', {
           ownerId: player.userId,
-          gameId,
+          gameId: null,
           body: { name: 'Draft' },
         })
     )

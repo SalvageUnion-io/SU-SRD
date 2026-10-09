@@ -186,7 +186,7 @@ export type InviteResult =
       inviteeName: string
       role: 'player' | 'mediator'
       grantCount: number
-      expiresAt: number | null
+      expiresAt: number
       /** True when a live invite to this person was re-sent rather than minted. */
       reused: boolean
       /**

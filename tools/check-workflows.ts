@@ -28,9 +28,8 @@
  *   convex-guard  `deploy-cloudflare.yml` still runs `convex deploy` and still
  *                 fails a production deploy with no CONVEX_DEPLOY_KEY. Without
  *                 it, production ran a four-day-stale backend in 2026-08 with
- *                 nothing red. The LIVE half — what the deployment actually
- *                 serves — is `tools/check-convex-parity.ts`, run nightly.
- *                 The job pushing the backend must also need the guard's job.
+ *                 nothing red. The job pushing the backend must also need
+ *                 the guard's job.
  *   deploy-order  in `deploy-cloudflare.yml`, the Convex push needs every
  *                 build job, every deploy job needs every build job and the
  *                 push, the smoke job needs every deploy job, and the deploy

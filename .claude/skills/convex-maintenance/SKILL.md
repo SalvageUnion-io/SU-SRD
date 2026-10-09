@@ -1,6 +1,6 @@
 ---
 name: convex-maintenance
-description: Use when rotating ITUN auth secrets (JWT_PRIVATE_KEY/JWKS, AUTH_DISCORD_SECRET), running the dedupeAppIds or repairSoftLinks maintenance repairs, switching a Convex production deployment on, or enabling or re-verifying Convex error reporting to Sentry.
+description: Use when rotating ITUN auth secrets (JWT_PRIVATE_KEY/JWKS, AUTH_DISCORD_SECRET), running a one-off data repair against a Convex deployment, switching a Convex production deployment on, or enabling or re-verifying Convex error reporting to Sentry.
 allowed-tools: Bash, Read
 ---
 
@@ -88,7 +88,7 @@ tested:
 ```bash
 cd apps/itun
 bunx convex run --deployment alex-jarvis:suref-itun:prod \
-  maintenance:dedupeAppIds '{"apply":"not-a-boolean"}'      # forces one error
+  botClient:me '{"discordId":0}'      # forces one ArgumentValidationError
 bunx convex logs --deployment alex-jarvis:suref-itun:prod --history 6 --jsonl
 ```
 
@@ -127,68 +127,14 @@ ask which one you have (`serverMessage` / `isServerRefusal`). Never string-match
 `'Server Error'` at a call site, and never render `String(err)` from a mutation —
 that string is the redacted one.
 
-## Repairing duplicated app ids
+## Running a one-off data repair
 
-`convex/maintenance.ts` holds operator-only repairs, reachable through
-`bunx convex run` and not from any client: `dedupeAppIds` (below), the
-one-off `repairContainers` (see "Running a maintenance function in production"
-below), and `repairSoftLinks` (see "Repairing soft links" below). `dedupeAppIds` undoes the damage a since-deleted
-bulk upload left: rows sharing an
-`appId`, which make `byAppId`'s `.unique()` throw and so break every mirrored
-write for that entity, permanently and silently.
-
-```bash
-# report only — changes nothing
-bunx convex run maintenance:dedupeAppIds --prod
-# then, having read the report
-bunx convex run maintenance:dedupeAppIds '{"apply": true}' --prod
-```
-
-It is an action that walks each table a page at a time along `by_app_id`
-(where every copy of an app id sits next to its siblings), one mutation per
-page, so it keeps working as the tables grow past what one mutation may read.
-A run is therefore not one transaction; it is idempotent, so a failed run is
-resumed by running it again.
-
-It keeps one row per app id (an owned row over an unclaimed one, then the most
-recently written) and reports how many `changeLog` rows — audit history and
-pending Mediator proposals alike — still point at a copy it would delete. Rows
-name an entity by its `appId` and follow the survivor; the count is of the
-legacy rows written before #1130, which name it by Convex id and do not.
-
-### Running a maintenance function in production
-
-To run a maintenance function in production, dispatch the **Convex
-maintenance** workflow (`.github/workflows/convex-maintenance.yml`, `main`
-only); it runs the function with the `production` environment's
-`CONVEX_DEPLOY_KEY`. From a machine with production access the same thing is:
-
-```bash
-cd apps/itun
-bunx convex run maintenance:repairContainers --prod
-```
-
-## Repairing soft links
-
-[ADR-037](../../../docs/ARCHITECTURE.md#adr-037) gave mechs their own
-`mech-to-crawler` link and made the writers keep three invariants (cardinality,
-one container, `gameId` = that container). Rows written before it may break all
-three, and a mech that reached its bay through its pilot has no direct link.
-`repairSoftLinks` fixes both, across every account, **dry run by default**:
-
-```bash
-# report only — changes nothing
-bunx convex run maintenance:repairSoftLinks --prod
-# then, having read the report
-bunx convex run maintenance:repairSoftLinks '{"apply": true}' --prod
-```
-
-Run it once, right after the deploy that ships `mech-to-crawler`; until it has,
-those mechs show undocked. It pages, and is idempotent: a re-run resumes, and an
-applied run followed by a dry run reports nothing left (orphaned links — an end
-with no row — are only counted, never touched). It is not on the
-`convex-maintenance.yml` allowlist, which runs each task with `{}` and so could
-only ever dry-run it.
+A repair is not kept in the repo. Write it as an `internalMutation` (or an
+`internalAction` driving one mutation per page, once a table outgrows a single
+mutation's read limit) that reports what it would change unless passed
+`{ "apply": true }`. Ship it, run it from the Convex dashboard's function
+runner on the production deployment, dry run first, and apply only on a
+non-zero count. Record the counts in the PR that deletes it.
 
 ## Switching production on
 
