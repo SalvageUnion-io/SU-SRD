@@ -30,12 +30,18 @@ import { waitForReady } from './_helpers'
  *
  * ## When the seam is absent
  *
- * A build without it (the PR-blocking smoke tier, a contributor's
- * `bun run e2e:itun` with no Convex) cannot sign in, so a signed-in spec SKIPS
- * with the reason stated rather than failing — a spec that went red in every
- * ordinary run would be deleted the first time it annoyed somebody. Once a run
- * has deliberately provisioned the seam (`ITUN_E2E_EXPECT_AUTH_SEAM`), absence
- * means the seam broke, and it THROWS instead.
+ * A build without it (the PR-blocking smoke tier) cannot sign in, so a
+ * signed-in spec SKIPS with the reason stated rather than failing — a spec that
+ * went red in every ordinary run would be deleted the first time it annoyed
+ * somebody. Once a run has deliberately provisioned the seam
+ * (`ITUN_E2E_EXPECT_AUTH_SEAM`), absence means the seam broke, and it THROWS
+ * instead.
+ *
+ * A local `bun run e2e:itun` always has the seam: Playwright boots (or reuses)
+ * `bun run dev:itun`, which sets `VITE_TEST_AUTH` on a local Convex deployment.
+ * So it needs the one-time "Local backend" setup in `apps/itun/README.md`
+ * (`ITUN_TEST_AUTH`, the JWT keys, `SITE_URL`), and its signed-in specs FAIL
+ * without it.
  *
  * ## Opting out
  *

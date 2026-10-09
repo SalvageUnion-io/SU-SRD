@@ -106,10 +106,12 @@ export default defineConfig({
         // for the suite alone — so for months the specs proved a storage mode
         // no player could reach. Both are retired: an anonymous visitor is
         // in-memory everywhere, and every spec that needs a build to survive a
-        // reload signs in through `e2e/fixtures.ts`. A build with no Convex URL
-        // and no `VITE_TEST_AUTH` therefore SKIPS those specs, by design; the
+        // reload signs in through `e2e/fixtures.ts`. The CI bundle has no Convex
+        // URL and no `VITE_TEST_AUTH`, so it SKIPS those specs, by design; the
         // nightly `e2e-itun` job provisions a throwaway Convex backend and runs
-        // them for real.
+        // them for real. Locally, `dev:itun` always carries the seam on a local
+        // Convex deployment, so those specs need the one-time "Local backend"
+        // setup in apps/itun/README.md and FAIL without it.
         //
         // `scripts/preview.ts`, NOT `vite preview`. The latter loads the whole
         // Vite config — React plugin, PWA plugin, TanStack Router's filesystem

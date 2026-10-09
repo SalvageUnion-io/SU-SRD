@@ -41,8 +41,8 @@ bunx convex env set ITUN_TEST_AUTH true
 To sign in, run `await __itunTestSignIn('<any email>', '<8+ char password>')`
 in the browser console on `http://localhost:5173`. Each call signs up a new
 password account (a repeated email is refused); the session survives reloads.
-With the backend running, Playwright reuses the dev server and the signed-in
-e2e specs run instead of skipping.
+`bun run e2e:itun` starts `dev:itun` itself (or reuses a running one), so its
+signed-in specs always run locally, and fail until this setup is done.
 
 ## Sharing, and old snapshot links, in dev
 
