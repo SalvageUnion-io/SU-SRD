@@ -10,10 +10,11 @@
  *
  * ## Why the handler is a factory
  *
- * Injecting the bucket lets the tests drive every branch without a live R2 binding, and injecting the
- * reporter lets them assert *which* outcomes are reported and which deliberately
- * are not. Both are the dependency-injection seam this repo uses instead of
- * `mock.module()`, which is process-global in Bun.
+ * Injecting the bucket lets the tests drive every branch without a live R2
+ * binding — the dependency-injection seam this repo uses instead of
+ * `mock.module()`, which is process-global in Bun. Failures go to `reportError`
+ * directly; the tests spy on it to assert *which* outcomes are reported and
+ * which deliberately are not.
  *
  * ## What is reported, and what is not
  *
@@ -74,8 +75,6 @@ function parseDerivative(key: string): { masterKey: string; width: number } | nu
   return { masterKey: `${stem}${ext}`, width: Number(digits) }
 }
 
-export type AssetFailureReporter = (error: unknown, context?: Record<string, unknown>) => void
-
 const CONTENT_TYPES: Record<string, string> = {
   png: 'image/png',
   jpg: 'image/jpeg',
@@ -133,7 +132,6 @@ function plain(body: string, status: number): Response {
 
 export function makeAssetHandler(
   openBucket: () => AssetBucket,
-  report: AssetFailureReporter = () => undefined,
   images?: ImagesBinding,
   ctx?: ExecutionCtx
 ) {
@@ -199,7 +197,7 @@ export function makeAssetHandler(
       // A bucket that cannot answer breaks artwork for every visitor at once, so
       // it surfaces as a controlled 503 with an event rather than an unhandled
       // 500 nobody sees.
-      report(error, { fn: 'asset', op: 'r2.get', key })
+      reportError(error, { fn: 'asset', op: 'r2.get', key })
       return plain('Asset storage unavailable', 503)
     }
 
@@ -232,7 +230,7 @@ export function makeAssetHandler(
     try {
       master = await bucket.get(derivative.masterKey)
     } catch (error) {
-      report(error, { fn: 'asset', op: 'r2.get', key: derivative.masterKey })
+      reportError(error, { fn: 'asset', op: 'r2.get', key: derivative.masterKey })
       return plain('Asset storage unavailable', 503)
     }
     if (!master?.body) {
@@ -255,7 +253,7 @@ export function makeAssetHandler(
       // quota is exhausted (`9422`), the zone is misconfigured, or the master is
       // not a decodable image. All three break artwork silently and none is
       // visible from outside.
-      report(error, { fn: 'asset', op: 'images.transform', key, width: derivative.width })
+      reportError(error, { fn: 'asset', op: 'images.transform', key, width: derivative.width })
       return plain('Not found', 404)
     }
   }
@@ -325,25 +323,13 @@ export default withObservability('su-assets', {
   // two arguments, and because every use of it is already null-guarded — a
   // missing ctx costs the edge-cache write, not correctness.
   async fetch(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Response> {
-    const handler = makeAssetHandler(
-      () => env.LP_ASSETS,
-      (error, context) => {
-        // Both, deliberately: Workers Logs is what `wrangler tail` shows during
-        // an incident, Sentry is what alerts. Dropping either trades one blind
-        // spot for another.
-        console.error('[su-assets]', error, context ?? {})
-        reportError(error, context)
-      },
-      env.IMAGES,
-      ctx
-    )
+    const handler = makeAssetHandler(() => env.LP_ASSETS, env.IMAGES, ctx)
     try {
       return await handler(request)
     } catch (error) {
       // Nothing above should reach here — the store call has its own catch — so
       // anything that does is a bug in this Worker rather than a storage
       // outage, and is worth logging precisely because it was never anticipated.
-      console.error('[su-assets] unhandled', error)
       reportError(error, { fn: 'asset', op: 'unhandled' })
       return plain('Internal Server Error', 500)
     }

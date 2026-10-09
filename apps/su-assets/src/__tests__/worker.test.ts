@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'bun:test'
+import { afterAll, afterEach, describe, expect, it, spyOn } from 'bun:test'
+import * as observability from 'observability/cloudflare'
 import type { AssetBucket } from '../worker'
 import { makeAssetHandler } from '../worker'
 
@@ -9,6 +10,18 @@ import { makeAssetHandler } from '../worker'
  *
  * "Cannot open the store" is expressed as the bucket getter throwing.
  */
+
+// Recorded, not sent: the handler imports `reportError` directly, so the test
+// swaps that one export. Test files share a process: restore it after.
+const reportError = spyOn(observability, 'reportError').mockImplementation(() => undefined)
+
+afterEach(() => {
+  reportError.mockClear()
+})
+
+afterAll(() => {
+  reportError.mockRestore()
+})
 
 function bucketWith(entries: Record<string, string>): AssetBucket & { asked: string[] } {
   const asked: string[] = []
@@ -163,33 +176,29 @@ describe('asset worker — serving', () => {
 
 describe('asset worker — reporting policy', () => {
   it('reports a failing read as a 503, with the key as context', async () => {
-    const reported: Array<{ error: unknown; context?: Record<string, unknown> }> = []
     const bucket: AssetBucket = {
       async get() {
         throw new Error('r2 down')
       },
     }
-    const res = await makeAssetHandler(
-      () => bucket,
-      (error, context) => reported.push({ error, context })
-    )(get('/chassis/mule.webp'))
+    const res = await makeAssetHandler(() => bucket)(get('/chassis/mule.webp'))
 
     expect(res.status).toBe(503)
-    expect(reported).toHaveLength(1)
-    expect(reported[0]?.context).toEqual({ fn: 'asset', op: 'r2.get', key: 'chassis/mule.webp' })
+    expect(reportError).toHaveBeenCalledTimes(1)
+    expect(reportError.mock.calls[0]?.[1]).toEqual({
+      fn: 'asset',
+      op: 'r2.get',
+      key: 'chassis/mule.webp',
+    })
   })
 
   it('reports a bucket that cannot even be opened', async () => {
-    const reported: unknown[] = []
-    const res = await makeAssetHandler(
-      () => {
-        throw new Error('no binding')
-      },
-      (error) => reported.push(error)
-    )(get('/chassis/mule.webp'))
+    const res = await makeAssetHandler(() => {
+      throw new Error('no binding')
+    })(get('/chassis/mule.webp'))
 
     expect(res.status).toBe(503)
-    expect(reported).toHaveLength(1)
+    expect(reportError).toHaveBeenCalledTimes(1)
   })
 
   for (const [label, path] of [
@@ -200,14 +209,10 @@ describe('asset worker — reporting policy', () => {
     it(`reports nothing for ${label}`, async () => {
       // This Worker answers every path on a public, crawler-visible host.
       // Alerting on these would turn the Sentry project into a scanner log.
-      const reported: unknown[] = []
       const bucket = bucketWith({})
-      await makeAssetHandler(
-        () => bucket,
-        (error) => reported.push(error)
-      )(get(path))
+      await makeAssetHandler(() => bucket)(get(path))
 
-      expect(reported).toEqual([])
+      expect(reportError).not.toHaveBeenCalled()
     })
   }
 })

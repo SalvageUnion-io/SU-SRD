@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { reportError, withObservability } from '../cloudflare'
 
 /**
@@ -215,5 +215,22 @@ describe('reportError', () => {
 
     expect(response.status).toBe(200)
     expect(sent).toEqual([])
+  })
+
+  test('also writes the error and its context to Workers Logs', () => {
+    // `wrangler tail` is where an incident is watched; callers log nowhere else.
+    const log = spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      const error = new Error('tailed')
+      reportError(error, { op: 'r2.get' })
+      reportError(error)
+
+      expect(log.mock.calls).toEqual([
+        [error, { op: 'r2.get' }],
+        [error, {}],
+      ])
+    } finally {
+      log.mockRestore()
+    }
   })
 })

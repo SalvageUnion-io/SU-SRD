@@ -36,9 +36,9 @@
  * DSN, escaped and handled errors are sent with the release, environment and
  * server name, and a request body never is; with no DSN, nothing is sent at all.
  *
- * `console.error` is kept alongside Sentry rather than replaced: Workers Logs is
+ * `reportError` writes to `console.error` as well as Sentry: Workers Logs is
  * where you look during a `wrangler tail`, and losing that would trade one blind
- * spot for another.
+ * spot for another. It does both so no caller has to.
  */
 import * as Sentry from '@sentry/cloudflare'
 
@@ -131,9 +131,12 @@ export function withObservability<E extends ObservabilityEnv>(
  * transformation failure becomes a 404). Those are the events actually worth
  * alerting on, so they have to be reported explicitly.
  *
- * Safe to call when Sentry is disabled: `captureException` is a no-op without a
- * DSN, so callers need no guard of their own.
+ * Both sinks, every time: `console.error` for Workers Logs (what `wrangler tail`
+ * shows during an incident) and Sentry (what alerts). Safe to call when Sentry
+ * is disabled — `captureException` is a no-op without a DSN — and under Bun,
+ * so shared code and its tests import it directly.
  */
 export function reportError(error: unknown, context?: Record<string, unknown>): void {
+  console.error(error, context ?? {})
   Sentry.captureException(error, context ? { extra: context } : undefined)
 }

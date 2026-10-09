@@ -121,7 +121,6 @@ async function dispatch(
   }
 
   const guarded = work.catch(async (error) => {
-    console.error('interaction handler failed:', error)
     reportError(error, { fn: 'dispatch', type: raw.type })
 
     // Two different repairs, because the sink can already be spent.
@@ -143,7 +142,6 @@ async function dispatch(
         // The interaction token has a 15-minute life and Discord can refuse.
         // Nothing further can be said to the user at this point; make sure the
         // reason is at least visible to us.
-        console.error('failed to report handler error to Discord:', patchError)
         reportError(patchError, { fn: 'dispatch', op: 'patch-original' })
       }
       return
