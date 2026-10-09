@@ -71,7 +71,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   the precache entries it was still resolving chunks against. Navigations are **network-first** (`src/lib/sw/workbox.ts`): online
   boots the deployed shell, offline the precached one. No update toast; the
   build floor reloads stale tabs. See the headers of `vite.config.ts`,
-  `src/lib/sw/`, `src/lib/connection/buildFloor.ts`, `src/lib/chunkRecovery.ts`
+  `src/lib/sw/`, `src/lib/connection/buildFloor.ts`, `installChunkRecovery`
   and the Worker's `/assets/*` → 404 rule (`src/worker/index.ts`).
 
 ## Persistence (read before touching data)

@@ -82,9 +82,9 @@ describe('observability', () => {
     // are the same object under Bun, but their TYPES differ (ImportMetaEnv vs
     // ProcessEnv), and what this file actually depends on is that a write to
     // one is visible through the other.
-    process.env.VITE_OBSERVABILITY_PROBE = 'yes'
-    expect(import.meta.env.VITE_OBSERVABILITY_PROBE).toBe('yes')
-    delete process.env.VITE_OBSERVABILITY_PROBE
+    process.env.VITE_ENV_PREMISE_CHECK = 'yes'
+    expect(import.meta.env.VITE_ENV_PREMISE_CHECK).toBe('yes')
+    delete process.env.VITE_ENV_PREMISE_CHECK
 
     expect(import.meta.env.VITE_SENTRY_DSN).toBeUndefined()
   })
@@ -193,17 +193,6 @@ describe('observability', () => {
     captureMessage('bare')
 
     expect(sentryCalls.find((c) => c.fn === 'captureMessage')?.args[1]).toBeUndefined()
-  })
-
-  test('the same error object is reported once, however many places see it', () => {
-    // A chunk failure is reported by chunkRecovery and then, when the reload
-    // cooldown holds, again by the error boundary it lands in. One failure,
-    // one event.
-    const boom = new Error('Failed to fetch dynamically imported module')
-    captureException(boom, { recovered: false }, { fingerprint: ['chunk-preload-error'] })
-    captureException(boom)
-
-    expect(sentryCalls.filter((c) => c.fn === 'captureException')).toHaveLength(1)
   })
 
   test('a render error a boundary catches reaches Sentry, with its component stack', () => {

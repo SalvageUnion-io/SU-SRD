@@ -15,8 +15,7 @@
 
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
-import { initBrowserObservability } from '../lib/observability'
-import { installChunkRecovery } from './chunkRecovery.client'
+import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
 import type { IslandComponent } from './islandRegistry'
 import { islandRegistry } from './islandRegistry'
 
@@ -25,7 +24,7 @@ void initBrowserObservability()
 
 // Before any island is scheduled: a `load` island imports its chunk the moment
 // `mountIslands` runs, and on a page older than the deploy that import is the
-// first thing to fail. See chunkRecovery.client.ts.
+// first thing to fail. See `installChunkRecovery` in observability/browser.
 installChunkRecovery()
 
 type PropsById = Record<string, Record<string, unknown>>
@@ -91,7 +90,7 @@ function mountIslands(): void {
     schedule(directive, el, () => {
       loader()
         .then((Component: IslandComponent | undefined) => {
-          // A failed chunk that chunkRecovery is reloading for resolves to
+          // A failed chunk that chunk recovery is reloading for resolves to
           // `undefined`, not a rejection: its `preventDefault()` makes Vite's
           // preload helper swallow the error, and the registry's `.then` runs
           // inside that helper. The page is about to reload, so mount nothing —
@@ -104,7 +103,7 @@ function mountIslands(): void {
           createRoot(el).render(createElement(Component, props))
         })
         .catch((error: unknown) => {
-          // A chunk that failed to load has already reached chunkRecovery via
+          // A chunk that failed to load has already reached chunk recovery via
           // `vite:preloadError`, which reloads once; this line is what is left
           // when the reload is on cooldown, or the failure was something else.
           console.error(`[islands] failed to load "${name}"`, error)

@@ -68,8 +68,14 @@ other bots that register a bare `/roll`).
 5. Run the Worker locally:
 
    ```bash
-   cd apps/discord-bot && bunx wrangler dev
+   cd apps/discord-bot && bunx wrangler dev --env local
    ```
+
+   `--env local` is required for Connected mode: it binds everything in `.env`
+   (or `.dev.vars`), including `ITUN_BOT_SECRET`, `ITUN_CONVEX_SITE_URL` and
+   `ITUN_WEB_URL`. Without it, the top-level `secrets.required` in
+   `wrangler.jsonc` binds only `SENTRY_DSN` and `DISCORD_TOKEN` from those
+   files, so the bot runs in Solo mode.
 
 ### Registering slash commands
 

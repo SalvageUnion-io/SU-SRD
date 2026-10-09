@@ -68,8 +68,9 @@ await SalvageUnionReference.preload('all')
  * `wrangler tail` shows during an incident, Sentry is what alerts, and dropping
  * either trades one blind spot for another.
  *
- * With no `SENTRY_DSN` secret the SDK initialises disabled and this is a
- * logging Worker, not a dark SDK.
+ * A deploy cannot omit the `SENTRY_DSN` secret (wrangler.jsonc's
+ * `secrets.required`). A local or test run without it initialises the SDK
+ * disabled, and this is a logging Worker, not a dark SDK.
  *
  * Assignment at module scope is fine: workerd forbids I/O, timers and
  * randomness in global scope, not assignment. `reportError` performs no I/O

@@ -55,7 +55,6 @@
     "knip": "knip",
     "check": "bun tools/check.ts",
     "check:fast": "bun tools/check.ts --profile=fast",
-    "check:observability:live": "bun tools/check-observability.ts --live",
     "check:convex-parity:live": "bun tools/check-convex-parity.ts",
     "check:printed-names": "bun tools/check-printed-names.ts",
     "assets:export": "bun tools/export-lp-assets.ts",

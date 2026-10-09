@@ -45,7 +45,7 @@ export default defineConfig({
       // that stays open across a deploy — which is why register.ts checks for
       // updates while a tab is open, why the backend's build floor reloads a
       // tab older than it (src/lib/connection/buildFloor.ts), and why
-      // chunkRecovery.ts still exists as the backstop for the tab that was
+      // installChunkRecovery still exists as the backstop for the tab that was
       // already mid-flight when a deploy landed.
       registerType: 'prompt',
       includeAssets: ['favicon.svg'],

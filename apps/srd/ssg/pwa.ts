@@ -48,8 +48,8 @@
  * - **An srd document is short-lived.** Every navigation is a full document
  *   load, so what a takeover can strand is the one page being read when it
  *   happens, not a whole session the way an ITUN tab is — and that page
- *   recovers: `src/runtime/chunkRecovery.client.ts` reloads once on a failed
- *   chunk, and the reload fetches current HTML.
+ *   recovers: `installChunkRecovery` (`observability/browser`) reloads once
+ *   on a failed chunk, and the reload fetches current HTML.
  * - **There is nothing to prompt with.** srd has no update UI, and none is
  *   needed when the next navigation is already current.
  *
