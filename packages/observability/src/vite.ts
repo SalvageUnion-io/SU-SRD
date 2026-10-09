@@ -53,8 +53,7 @@ export function sentrySourcemaps(outDir: string) {
       // git would read CI's shallow clone and could silently mismatch, and a
       // mismatched release is a map that never applies.
       release: { name: process.env.VITE_COMMIT_REF, inject: false },
-      // Uploaded, then removed: the maps must not ship, and they must be gone
-      // before srd's `ssg/pwa.ts` globs dist for the precache manifest.
+      // Uploaded, then removed: the maps must not ship.
       sourcemaps: { filesToDeleteAfterUpload: [`${outDir}/**/*.map`] },
       // No plugin usage telemetry to Sentry from CI builds.
       telemetry: false,

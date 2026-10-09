@@ -2,14 +2,12 @@
  * build — the SSG orchestrator.
  *
  *   1. `vite build` (client only): the islands entry, the css entry and the
- *      static-asset entry, with a manifest.
+ *      static-asset entry, with a manifest. It also copies `public/` and
+ *      writes the service worker (`vite-plugin-pwa`, options in `ssg/pwa.ts`).
  *   2. read `dist/.vite/manifest.json` -> entry JS + CSS urls, and the emitted
  *      url of every asset under `src/assets/`.
  *   3. enumerate `ssg/routes.ts` and render each route.
  *   4. write endpoints and the sitemap.
- *   5. `ssg/pwa.ts`: registerSW.js, then workbox generateSW over the finished
- *      dist — LAST, because it globs whatever steps 1-4 left there.
- *   6. `public/` is copied by Vite in step 1.
  *
  * ## The css/SSR hazard
  *
@@ -38,7 +36,6 @@ import { build as viteBuild } from 'vite'
 // ahead of the css-stub plugin below.
 import type { BuildAssets } from './document'
 import { outputPathFor } from './outputPath'
-import { writeServiceWorker as pwaWriteServiceWorker } from './pwa'
 
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
 const distDir = join(appRoot, 'dist')
@@ -157,17 +154,6 @@ async function writeSitemap(routes: string[]): Promise<void> {
   console.log(`[ssg] wrote sitemap-index.xml + sitemap-0.xml (${count} url(s))`)
 }
 
-/**
- * `registerSW.js` + `sw.js` (workbox `generateSW`) over the FINISHED dist.
- *
- * Static import, unlike `./routes` and `./endpoints`: `ssg/pwa.ts` reaches only
- * `workbox-build` and `node:fs`, never the app module graph, so it cannot pull a
- * stylesheet through the SSR pass and does not need the css-stub plugin.
- */
-async function writeServiceWorker(): Promise<void> {
-  await pwaWriteServiceWorker(distDir)
-}
-
 async function main(): Promise<void> {
   const started = Date.now()
 
@@ -249,7 +235,6 @@ async function main(): Promise<void> {
 
   await writeEndpoints()
   await writeSitemap(sitemapRoutes)
-  await writeServiceWorker()
 
   // Entity links must use slugs, never UUIDs (CLAUDE.md, Data Conventions).
   // Asserted against the emitted HTML rather than the source, because that is

@@ -13,6 +13,8 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react-swc'
 import { sentrySourcemaps } from 'observability/vite'
 import { defineConfig } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
+import { WORKBOX_OPTIONS } from './pwa.ts'
 
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
 const outDir = fileURLToPath(new URL('../dist', import.meta.url))
@@ -24,6 +26,16 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    // The service worker; its options and their reasons are in ./pwa. No web
+    // manifest (public/site.webmanifest is hand-written) and no injected
+    // registration: there is no index.html to inject into, and
+    // public/registerSW.js carries the `.catch()` that silences SRD-2.
+    VitePWA({
+      injectRegister: false,
+      manifest: false,
+      registerType: 'autoUpdate',
+      workbox: WORKBOX_OPTIONS,
+    }),
     // Must run last; inert without SENTRY_AUTH_TOKEN (see observability/vite).
     ...sentrySourcemaps(outDir),
   ],
