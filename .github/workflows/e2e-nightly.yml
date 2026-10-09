@@ -39,24 +39,20 @@ jobs:
     # The full ITUN Playwright suite, SIGNED IN, against a THROWAWAY self-hosted
     # Convex backend and a production bundle built against it.
     #
-    # Why signed in: an anonymous visitor's builds are in-memory only (ADR-034),
-    # so a spec that builds something and reads it back after a reload is by
-    # definition a test of the signed-in path. The suite used to force
-    # `VITE_REQUIRE_ACCOUNT=false` to keep a durable anonymous backend (`local`)
-    # alive for itself — proving a storage mode no player could reach. That
-    # backend and the flag are retired; `apps/itun/e2e/fixtures.ts` signs each
-    # durable spec up with a fresh account through the `TestAuthBridge` seam,
-    # and the anonymous specs (first run, offline, the sign-in hand-off) opt out.
+    # Why signed in: signed out, ITUN is read-only (#1113, #1117), so a spec
+    # that builds something and reads it back is by definition a test of the
+    # signed-in path. `apps/itun/e2e/fixtures.ts` signs each such spec up with a
+    # fresh account through the `TestAuthBridge` seam; the specs about what a
+    # signed-out visitor sees opt out with `account: 'anonymous'`.
     #
     # Why a throwaway backend: enabling `ITUN_TEST_AUTH` on production would put
     # a password auth provider on the live app. A container destroyed with the
     # runner cannot do that and needs no credentials, which is why this job
     # requests no secrets at all.
     #
-    # This absorbed the old `e2e-itun-signin` job, which ran only
-    # `signin-save.e2e.ts` against the same backend. One job, one backend, one
-    # build: the hand-off spec and the specs that depend on its seam can no
-    # longer disagree about how the build was made.
+    # One job, one backend, one build: the sign-in hand-off spec
+    # (`signin-save.e2e.ts`) and the specs that depend on its seam cannot
+    # disagree about how the build was made.
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
