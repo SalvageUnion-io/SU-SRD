@@ -113,7 +113,8 @@ const COMMON_HEADERS: Record<string, string> = {
   // deployment, not a property of the Worker, which is exactly the kind of
   // assumption worth not depending on.
   //
-  // The other six are shared with itun's Worker (`observability/worker-http`).
+  // The other six are `observability/worker-http`'s, the same six srd and itun
+  // send from `public/_headers`.
   ...BASE_SECURITY_HEADERS,
   'content-security-policy': "default-src 'none'; sandbox",
   'access-control-allow-origin': '*',

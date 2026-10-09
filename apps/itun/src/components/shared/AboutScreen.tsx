@@ -56,8 +56,8 @@ export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: A
             >
               Leyline Press
             </a>
-            . Build pilots, mechs, and crawlers, then run them at the table with live sheets and
-            shareable snapshots.
+            . Build pilots, mechs, and crawlers, then run them at the table with live sheets you can
+            share.
           </p>
           <p>
             It's <strong>local-first</strong>: everything you create is stored privately in your own

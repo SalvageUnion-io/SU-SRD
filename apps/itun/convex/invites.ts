@@ -13,11 +13,9 @@ import { logOwnershipChange } from './ownership'
  * Game. Not §2: that section is Containers, and its only mention of invites is
  * that a shelf has none.
  *
- * Codes reuse `generateUniqueId` from the snapshot module rather than growing a
- * second generator: it is already Crockford base32 (no I/L/O/U, so a code read
- * aloud across a table cannot be mistyped), already collision-checked against a
- * caller-supplied `exists`, and already backed by `crypto.getRandomValues`.
- * Those are exactly the properties an invite code wants. Minting itself is
+ * Codes are Crockford base32 (no I/L/O/U, so a code read aloud across a table
+ * cannot be mistyped), collision-checked against the `by_code` index and drawn
+ * from `crypto.getRandomValues`. Minting itself is
  * `model/invites.ts#mintInvite`, shared with every other door that creates one.
  *
  * An invite carries four things beyond the code itself:

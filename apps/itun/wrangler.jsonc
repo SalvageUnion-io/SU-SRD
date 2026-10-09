@@ -1,12 +1,10 @@
 {
-  // intheunionnow.com — the ITUN SPA plus what is left of the retired snapshot
-  // shares: one read, and the unfurl text of links already posted (ADR-033,
-  // ADR-036).
+  // intheunionnow.com — the ITUN SPA on Workers Static Assets, in
+  // single-page-application mode (ADR-033).
   //
-  // Unlike srd, this one HAS a Worker: `/assets/*` needs a decision that no
-  // static-asset mode makes correctly (see below), and the retired-URL 301s and
-  // the method-conditioned `/api/snapshots/:id` are routing Cloudflare cannot
-  // express declaratively.
+  // The Worker script runs only for a miss that is not a navigation: it answers
+  // `/assets/*` and other missing files 404 and serves the shell to crawlers
+  // (see src/worker/index.ts). Every header is `public/_headers`.
   "name": "su-itun",
 
   // Custom domains. `www` is attached for the same reason as srd's: a hostname
@@ -47,46 +45,24 @@
     "directory": "./dist",
     "binding": "ASSETS",
 
-    // Every request reaches the Worker first. The alternative — letting static
-    // assets answer and running the Worker only on a miss — cannot express
-    // "/assets/* must 404 while /s/:id must serve the shell", because both are
-    // misses as far as the asset server is concerned.
-    "run_worker_first": true,
-
-    // "none", NOT "single-page-application".
+    // A navigation (`Sec-Fetch-Mode: navigate`) that matches no file gets
+    // index.html, 200, without running the Worker — the compatibility date is
+    // past 2025-04-01. Every other miss runs the Worker, which is what keeps a
+    // rotated hashed chunk a 404 rather than HTML pinned by the `immutable`
+    // header for a year (#759).
     //
-    // SPA mode answers 200 with index.html for EVERY miss, including a rotated
-    // hashed chunk. That is precisely the bug #759 fixed: the failed import
-    // rejected on MIME type and the `immutable` header pinned that HTML into the
-    // HTTP cache for a year under the chunk's URL. The Worker decides the
-    // fallback itself so `/assets/*` can 404 honestly while client-side routes
-    // still get the shell.
-    "not_found_handling": "none"
+    // No `run_worker_first`: it would route navigations through the Worker,
+    // and `_headers` — the CSP among them — is not applied to a response the
+    // Worker builds.
+    "not_found_handling": "single-page-application"
   },
-
-  // READ-ONLY. Snapshots are retired (ADR-036): nothing mints or revokes them.
-  // The Worker reads an object to learn which entity an old `/s/:id` link was
-  // taken of (so the client can redirect to that entity's live public sheet),
-  // and to name it in that link's unfurl text. The objects already here are
-  // kept untouched, by decision — do not delete them, and do not add a
-  // lifecycle rule that would.
-  // The store no longer grows, so the retention question it once raised is
-  // closed.
-  "r2_buckets": [
-    {
-      "binding": "SNAPSHOTS",
-      "bucket_name": "su-itun-snapshots"
-    }
-  ],
 
   // Build-time env for the client bundle (VITE_CONVEX_URL, VITE_SENTRY_DSN,
   // VITE_COMMIT_REF) is supplied by the GitHub Actions workflow, not here —
   // ADR-033 §4 keeps builds in Actions because srd's build provisions Chromium.
   //
-  // No rate limiter any more. `RATE_LIMITER` covered `POST /api/snapshots` and
-  // nothing else, and went with snapshot publishing (ADR-036). Convex is still
-  // reached by the browser directly, so — as before — no Convex query or
-  // mutation is rate-limited here, `invites.preview` and `invites.redeem`
+  // No rate limiter: the browser reaches Convex directly, so no Convex query or
+  // mutation passes through this Worker, `invites.preview` and `invites.redeem`
   // included.
 
   "observability": {

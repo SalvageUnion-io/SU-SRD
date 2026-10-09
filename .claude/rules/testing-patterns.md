@@ -71,8 +71,7 @@ is a latent flake on CI and dead wall-clock everywhere. Use one of:
   `act()` when the component's own timer must be driven — see
   `RollTable.test.tsx`, `SearchIsland.test.tsx`, `useSearchCombobox.test.tsx`.
 - `setSystemTime()` when the code under test reads `Date.now()` rather than a
-  timer — see the retry-backoff tests in
-  `apps/itun/src/lib/snapshot/__tests__/client.test.ts`.
+  timer — see the stale-write tests in `apps/itun/test/convex/appId.test.ts`.
 - `await screen.findByText(...)` / `waitFor(...)`, which poll.
 
 **Fake timers and `waitFor` do not mix.** RTL's `waitFor` polls on a real

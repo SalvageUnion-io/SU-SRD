@@ -2,10 +2,10 @@
  * PublicSheetPanel — turn one sheet into a public, always-current page
  * ([ADR-032](../../../../../docs/ARCHITECTURE.md#adr-032)).
  *
- * The whole of sharing now. Frozen snapshots were retired
- * ([ADR-036](../../../../../docs/ARCHITECTURE.md#adr-036)), so
- * this live, read-only page is the only account-free way to hand somebody a
- * sheet: a toggle, the `/p/:kind/:appId` link, a copy button and a QR of it.
+ * The whole of sharing
+ * ([ADR-036](../../../../../docs/ARCHITECTURE.md#adr-036)): this live,
+ * read-only page is the only account-free way to hand somebody a sheet — a
+ * toggle, the `/p/:kind/:appId` link, a copy button and a QR of it.
  *
  * It is headed **"Live public sheet"**, and the first word still earns its
  * place: the page follows the sheet as it changes, which is what a reader
@@ -26,10 +26,7 @@
  * The copy is deliberately blunt about what publishing means. "Share" would
  * undersell it: a published pilot's callsign, pronouns, motto, keepsake,
  * appearance and background become readable by anyone with the link, and the
- * person deciding should be told that rather than left to infer it. It also
- * says that an old snapshot link to this sheet opens the public page while it
- * is on — `/s/:id` redirects to it (ADR-036) — because that widens who can
- * reach it beyond the people sent this link.
+ * person deciding should be told that rather than left to infer it.
  */
 
 import { Button, FieldError } from 'component-lib'
@@ -101,15 +98,13 @@ export function PublicSheetPanel({
         {isPublic === true ? (
           <>
             On. Anyone with this link reads {entityName} as it stands right now, and it follows
-            every edit you make — older snapshot links to {entityName} open it too. Stopping sharing
-            revokes all of them, immediately and everywhere.
+            every edit you make. Stopping sharing revokes it, immediately and everywhere.
           </>
         ) : (
           <>
             Off. Publishing gives {entityName} one page that follows the sheet as you play — no
             account needed to read it, and no new link to send when something changes. Everything on
-            the sheet goes with it, including bio and appearance text, and any older snapshot link
-            to {entityName} will open it too.
+            the sheet goes with it, including bio and appearance text.
           </>
         )}
       </p>
@@ -149,11 +144,7 @@ export function PublicSheetPanel({
         disabled={busy || isPublic === null}
         onClick={() => void toggle(isPublic !== true)}
       >
-        {/*
-          "Stop sharing" is accurate again: with snapshots retired this switch
-          is the whole of sharing, and turning it off also stops old snapshot
-          links reaching the sheet.
-        */}
+        {/* "Stop sharing" is accurate: this switch is the whole of sharing. */}
         {isPublic === null ? 'Checking…' : isPublic ? 'Stop sharing' : 'Publish live sheet'}
       </Button>
 

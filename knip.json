@@ -84,8 +84,6 @@
         "src/lib/db/index.ts",
         "src/lib/db/stores.ts",
         "src/lib/db/crud.ts",
-        "src/lib/snapshot/storage.ts",
-        "src/lib/snapshot/id.ts",
         "src/stores/entityStore.ts",
         "src/stores/activeContainerStore.ts",
         "src/stores/types.ts",
