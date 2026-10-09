@@ -70,7 +70,7 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
         <link rel="apple-touch-icon" sizes="180x180" href="/favicons/su/favicon-180.png" />
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="theme-color" content={THEME_COLOR} />
-        {/* Service-worker registration emitted by ssg/pwa.ts. */}
+        {/* Service-worker registration: public/registerSW.js. */}
         <script defer src="/registerSW.js" />
 
         {/* Open Graph */}

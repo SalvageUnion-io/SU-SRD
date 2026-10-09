@@ -40,7 +40,7 @@ ephemerally/non-editably
 | `build.ts`      | orchestrator: vite client build → render every route → emit                   |
 | `dev.ts`        | dev server; Vite in middleware mode, **same `render.tsx` path**               |
 | `sitemap.ts`    | `sitemap-index.xml` + `sitemap-0.xml`                                         |
-| `pwa.ts`        | workbox `generateSW` over the finished `dist`                                 |
+| `pwa.ts`        | workbox options for `vite-plugin-pwa` in `vite.config.ts`                     |
 | `outputPath.ts` | URL → dist file mapping (`/404` → `404.html`, everything else `…/index.html`) |
 
 ### Routes are registered, not discovered

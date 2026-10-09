@@ -35,7 +35,7 @@ apps/srd/
     dev.ts                 dev server; SAME render path as prod
     endpoints.ts           non-HTML outputs (JSON, llms.txt, search-index)
     sitemap.ts             sitemap.xml + sitemap-index.xml
-    pwa.ts                 workbox generateSW over the finished dist
+    pwa.ts                 workbox options for vite-plugin-pwa (vite.config.ts)
   src/
     pages/**/*.page.tsx    route modules (see PageModule)
     endpoints/*.ts         endpoint modules
@@ -234,7 +234,7 @@ ships no JS. That path must stay exactly as it is; it is 82% of entity pages.
 | `ClientRouter` (view transitions)            | cross-document `@view-transition { navigation: auto; }` in `global.css`. Deletes the router JS. The `data-astro-rerun` `.js`-class script is gone too: `@media (scripting: enabled)` in `global.css` hides the no-JS fallback with no script at all. |
 | `prefetch: { prefetchAll, hover }`           | `<script type="speculationrules">` with `eagerness: "moderate"` — browser-native, zero JS.                                                                                                                                                                                                 |
 | `@astrojs/sitemap`                           | `ssg/sitemap.ts`. Must reproduce the same filter: exclude `/image`, `/greembeem`, `.og.png`, `/og-card`. Emit `sitemap-index.xml` + `sitemap-0.xml` as Astro did.                                                                                                                          |
-| `@vite-pwa/astro`                            | `workbox-build`'s `generateSW` in `ssg/pwa.ts`, run over the finished `dist`. Reuse the existing config verbatim: `globPatterns: ['**/*.{js,css,woff2,svg}']`, `navigateFallback: null`, `skipWaiting`, `clientsClaim`, and the two `runtimeCaching` rules. Keep emitting `registerSW.js`. (Since then the navigation rule became `NetworkFirst` and `/search-index.json` gained a rule — see `ssg/pwa.ts`.) |
+| `@vite-pwa/astro`                            | `vite-plugin-pwa` in `ssg/vite.config.ts`, with its workbox options in `ssg/pwa.ts`: `globPatterns: ['**/*.{js,css,woff2,svg}']`, `navigateFallback: null`, `skipWaiting`, `clientsClaim`, and the `runtimeCaching` rules. `registerSW.js` is a static file in `public/`. |
 | `astro:transitions` import                   | gone                                                                                                                                                                                                                                                                                       |
 | `Astro.props` / `Astro.params` / `Astro.url` | `RouteContext`                                                                                                                                                                                                                                                                             |
 | `astro check`                                | `tsc --noEmit` only                                                                                                                                                                                                                                                                        |
@@ -273,11 +273,11 @@ Playwright smoke and bundle-budget specs, and the axe-core scan.
    `src/runtime/styles.entry.ts`. Emit `manifest: true`. Keep the existing
    `react-vendor` `codeSplitting` group and the deliberate NON-chunking of
    `salvageunion-reference` (its JSON data must stay dynamically split).
+   Vite copies `public/` (`_headers`, `favicon.ico`, `registerSW.js`) and
+   `vite-plugin-pwa` then writes `sw.js` over the js/css/woff2/svg it emitted.
 2. Read `dist/.vite/manifest.json` -> entry JS + CSS urls.
 3. Enumerate routes from `ssg/routes.ts`; render each with `ssg/render.tsx`.
-4. Write endpoints, sitemap, `registerSW.js`.
-5. `workbox generateSW`.
-6. Copy `public/` (Vite does this; ensure `_headers` and `favicon.ico` land).
+4. Write endpoints and the sitemap.
 
 `ssg/dev.ts` runs Vite in **middleware mode** and renders through the SAME
 `render.tsx` path via `ssrLoadModule`. Do NOT serve a client-rendered SPA in
