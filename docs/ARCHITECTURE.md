@@ -285,8 +285,9 @@ sheet or shows a retired page. `snapshotIdentity`
 
 ## Accounts and Games operations
 
-Setup and diagnosis: the `convex-deploy-verify` skill. Repairs, rotations,
-switching production on and error reporting:
+Setup, the required deployment variables and diagnosis:
+[`convex-deploy-verify`](../.claude/skills/convex-deploy-verify/SKILL.md).
+Repairs, rotations, switching production on and error reporting:
 [`convex-maintenance`](../.claude/skills/convex-maintenance/SKILL.md). Values
 here are public; the OAuth client _secret_ lives only on the deployments.
 
@@ -327,58 +328,6 @@ leaves the bot token alone. Its one redirect URI is production's
 ```
 https://exuberant-porpoise-183.convex.site/api/auth/callback/discord
 ```
-
-### Required deployment variables
-
-**All three, or sign-in fails**, on production:
-
-```bash
-bunx convex env set --prod AUTH_DISCORD_ID     <client-id>
-bunx convex env set --prod AUTH_DISCORD_SECRET <client-secret>
-bunx convex env set --prod SITE_URL            <frontend origin>
-```
-
-`SITE_URL` is the one that bites. It is the **frontend** origin, _not_
-`VITE_CONVEX_SITE_URL`, nothing prompts for it, and omitting it fails with an
-opaque `Missing environment variable SITE_URL` 500 from the OAuth callback
-rather than anything pointing at configuration.
-
-**For the Discord bot**, one more on the Convex deployment and two on the bot's
-Cloudflare Worker, set with `wrangler secret put`:
-
-```bash
-# Convex — enables the /bot/* route. UNSET disables the whole surface, so a
-# deployment that has not opted in cannot be talked to by a bot at all.
-bunx convex env set ITUN_BOT_SECRET <a long random string>
-
-# The bot Worker (su-discord-bot) — both required; /health is 503 without them.
-ITUN_CONVEX_SITE_URL=https://<deployment>.convex.site
-ITUN_BOT_SECRET=<the same value>
-```
-
-**For `/su invite`** ([ADR-039](#adr-039)), one
-more on the Convex deployment. It is the Discord application's **public** key —
-the same value committed in `apps/discord-bot/wrangler.jsonc` — so it is not a
-secret and may be passed as an argument:
-
-```bash
-bunx convex env set DISCORD_PUBLIC_KEY <the application's public key, hex>
-```
-
-Unset, `/su invite` answers "invites from Discord are not switched on" and
-nothing else changes. Set to the wrong application's key, every `/su invite`
-fails as unverified while every other command keeps working — check this
-value first when only invites break.
-
-`ITUN_CONVEX_SITE_URL` is the **HTTP-actions** origin (`.convex.site`), not the
-client URL (`.convex.cloud`) and not the web origin. Getting it wrong presents
-as every Game command reporting the deployment unreachable — which is honest but
-points at the network rather than at the typo.
-
-The secret is a **bearer credential**: whoever holds it can act as any Discord
-user who has linked an account. That is bounded (it cannot invent a membership,
-reach an unlinked account, read somebody's shelf, or see `encounterNpcs`) but it
-is real. Store it in 1Password, never in git, and rotate on any suspicion.
 
 ### Verifying, secrets and denormalised columns
 
@@ -676,7 +625,7 @@ An authenticated client of ITUN Games ([ADR-030](#adr-030)):
 `/su game bind|unbind|info`, `/su invite` ([ADR-039](#adr-039))
 and roll attribution on `/su roll`, on the `su-discord-bot` Worker. Conventions:
 [`apps/discord-bot/CLAUDE.md`](../apps/discord-bot/CLAUDE.md); variables:
-[above](#required-deployment-variables).
+the [`convex-deploy-verify`](../.claude/skills/convex-deploy-verify/SKILL.md) skill.
 
 It calls `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`); every `botClient`
 function is internal. Write both credential halves in one pass (one
