@@ -79,9 +79,10 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 - Player data lives in **IndexedDB** via `idb` (`src/lib/db/`). Stores
   (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `workspaces`
   (retired; kept so migrations v10/v13 run),
-  `softLinks`, `mechPatterns`, `encounterNpcs`, and the append-only
-  `changeLog` provenance store ([ADR-022](../../docs/ARCHITECTURE.md#adr-022)),
-  keyed by `seq` and append/list only (`src/lib/db/changeLog.ts`), and `meta`.
+  `softLinks`, `mechPatterns`, `encounterNpcs`, and `meta`. The Change Log
+  ([ADR-022](../../docs/ARCHITECTURE.md#adr-022)) has no device store: it is
+  the Convex `changeLog` table, written by `commitChangeLog` and read by
+  `changeLog.forEntity`.
 - **The cache is one account's** (`src/lib/account/cacheOwner.ts`): sign-out
   or another account empties it, unless `meta` says `legacy`.
 - **Zod schemas (`src/lib/schemas/`) are the source of truth** for entity shape;

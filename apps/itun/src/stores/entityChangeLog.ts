@@ -1,13 +1,11 @@
 /**
  * The entity store's Change Log emitter (ADR-022) — split out of
  * `entityStore.ts` (audit AP-16) because it is a self-contained concern: given
- * a write's before/after images, work out which fields moved and append one
- * provenance row per field, locally and to the server of record.
+ * a write's before/after images, work out which fields moved and send one
+ * provenance row per field to the server of record, which holds the only copy.
  */
 
 import { containerOf } from '../lib/container'
-import * as db from '../lib/db/index'
-import { captureException } from '../lib/observability'
 import type { ChangeLogKind } from '../lib/schemas/changeLog'
 import { commitChangeLog } from './entityBackend'
 import type { EntityForType, EntityType } from './types'
@@ -56,24 +54,41 @@ function changedFields<T extends EntityType>(
 }
 
 /**
- * The single Change Log chokepoint (ADR-022): every entityStore.update appends
+ * The single Change Log chokepoint (ADR-022): every entityStore.update sends
  * one entry per changed field here. Failure to log never fails the write — the
- * entity is already persisted, so a lost log line is warned, not thrown.
+ * entity is already persisted, and `commitChangeLog` reports a lost batch
+ * rather than throwing it.
  */
-export async function emitChangeLog<T extends EntityType>(
+export function emitChangeLog<T extends EntityType>(
   type: T,
   id: string,
   patch: Partial<EntityForType<T>>,
   before: EntityForType<T> | null,
   after: EntityForType<T>,
   meta: ChangeMeta
-): Promise<void> {
-  try {
-    const changes = changedFields(patch, before, after)
-    if (changes.length === 0) return
-    const ts = Date.now()
-    const { kind, source } = meta
-    const rows = changes.map((c) => ({
+): void {
+  const changes = changedFields(patch, before, after)
+  if (changes.length === 0) return
+  const ts = Date.now()
+  const { kind, source } = meta
+
+  // `gameId` comes from the entity's own container, so a row logged against a
+  // build inside a Game is filed with that Game and the crew can see it.
+  // A soft link has no container of its own — it is addressed by its
+  // endpoints, and `ContainerFields` does not apply to it — so it files
+  // against the shelf. For everything else `containerOf` is a discriminated
+  // union whose shelf arm carries no gameId, which is exactly the `null` the
+  // server column expects.
+  const gameId =
+    type === 'softLink'
+      ? null
+      : (() => {
+          const container = containerOf(after as Parameters<typeof containerOf>[0])
+          return container.kind === 'game' ? container.gameId : null
+        })()
+  void commitChangeLog(
+    changes.map((c) => ({
+      gameId,
       entityType: type,
       entityId: id,
       ts,
@@ -83,36 +98,5 @@ export async function emitChangeLog<T extends EntityType>(
       after: c.after,
       source,
     }))
-    await db.changeLog.append(rows)
-
-    // Mirror to the server of record (ADR-034 P4b). Until this existed the log
-    // was TWO disconnected spines: this function terminated at IndexedDB, while
-    // the Convex table was written only by `ownership`, `proposals` and
-    // `botClient` — so each drawer showed half the history, and clearing site
-    // data destroyed the client half outright.
-    //
-    // `gameId` comes from the entity's own container, so a row logged against a
-    // build inside a Game is filed with that Game and the crew can see it.
-    // A soft link has no container of its own — it is addressed by its
-    // endpoints, and `ContainerFields` does not apply to it — so it files
-    // against the shelf. For everything else `containerOf` is a discriminated
-    // union whose shelf arm carries no gameId, which is exactly the `null` the
-    // server column expects.
-    const gameId =
-      type === 'softLink'
-        ? null
-        : (() => {
-            const container = containerOf(after as Parameters<typeof containerOf>[0])
-            return container.kind === 'game' ? container.gameId : null
-          })()
-    void commitChangeLog(rows.map((r) => ({ ...r, gameId }))).catch((err: unknown) => {
-      // Not fatal, and deliberately so: this is provenance ABOUT a write that
-      // has already landed and already committed. Failing the user's edit
-      // because its audit row did not arrive would trade the write for the
-      // record of it.
-      captureException(err)
-    })
-  } catch (err) {
-    console.warn('[itun-store] change-log append failed', err)
-  }
+  )
 }

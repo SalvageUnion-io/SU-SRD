@@ -67,7 +67,6 @@ describe('the Mediator proposes; the player writes', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
 
@@ -83,7 +82,6 @@ describe('the Mediator proposes; the player writes', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
 
@@ -111,7 +109,6 @@ describe('the Mediator proposes; the player writes', () => {
       entityType: 'mech',
       // The casing the Mediator surface used to offer. It is not a Mech field.
       field: 'currentSp',
-      before: 10,
       after: 6,
     })
     const [pending] = await player.as.query(api.proposals.pending, { gameId })
@@ -164,7 +161,6 @@ describe('the Mediator proposes; the player writes', () => {
       entityId: pilotId,
       entityType: 'pilot',
       field: 'currentHP',
-      before: 10,
       after: 7,
     })
     const [pending] = await player.as.query(api.proposals.pending, { gameId })
@@ -186,7 +182,6 @@ describe('the Mediator proposes; the player writes', () => {
         entityId: mechId,
         entityType: 'mech',
         field: 'currentSP',
-        before: 10,
         after: 999,
       })
     ).rejects.toThrow(/mediator/i)
@@ -205,7 +200,6 @@ describe('the Mediator proposes; the player writes', () => {
         entityId: orphan,
         entityType: 'mech',
         field: 'currentSP',
-        before: 0,
         after: 1,
       })
     ).rejects.toThrow(/unclaimed/i)
@@ -221,14 +215,12 @@ describe('supersession, not expiry', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
     await gm.as.mutation(api.proposals.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 4,
     })
 
@@ -251,14 +243,12 @@ describe('supersession, not expiry', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
     await gm.as.mutation(api.proposals.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentHeat',
-      before: 0,
       after: 3,
     })
 
@@ -273,7 +263,6 @@ describe('supersession, not expiry', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
 
@@ -295,7 +284,6 @@ describe('declining', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
 
@@ -322,7 +310,6 @@ describe('pending is scoped to the asker', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
 
@@ -350,7 +337,6 @@ describe('alerts share the proposal bus', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
     await gm.as.mutation(api.proposals.broadcast, { gameId, message: 'second' })

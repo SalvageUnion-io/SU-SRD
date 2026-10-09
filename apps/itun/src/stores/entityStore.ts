@@ -598,11 +598,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       }
     }
     // Provenance (ADR-022): one entry per changed field, at this one chokepoint.
-    // Deliberately awaited (not fire-and-forget): the ~1ms IDB append is
-    // negligible, and awaiting guarantees the log is
-    // consistent the moment update() resolves — a reader that opens the Change
-    // Log right after an edit sees the entry, and tests stay deterministic.
-    await emitChangeLog(type, id, patch, before, updated, meta)
+    emitChangeLog(type, id, patch, before, updated, meta)
     return updated
   },
 
@@ -740,11 +736,11 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       publishStoreChange(STORE_NAMES.softLinks)
     }
 
-    // Phase 4 — provenance (ADR-022), mirroring update()'s awaited emit. One
-    // entry per changed field per updated entity. Deletes are not logged: the
-    // per-entity log goes with the entity.
+    // Phase 4 — provenance (ADR-022), as update() emits it. One entry per
+    // changed field per updated entity. Deletes are not logged: the per-entity
+    // log goes with the entity.
     for (const pu of prepared) {
-      await emitChangeLog(
+      emitChangeLog(
         pu.type,
         pu.id,
         pu.patch,

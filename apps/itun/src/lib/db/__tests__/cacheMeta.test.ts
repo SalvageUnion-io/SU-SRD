@@ -93,12 +93,10 @@ describe('the real upgrade', () => {
       upgrade(db) {
         for (const name of Object.values(STORE_NAMES)) {
           if (name === STORE_NAMES.meta) continue
-          if (name === STORE_NAMES.changeLog) {
-            db.createObjectStore(name, { keyPath: 'seq', autoIncrement: true })
-          } else {
-            db.createObjectStore(name, { keyPath: 'id' })
-          }
+          db.createObjectStore(name, { keyPath: 'id' })
         }
+        // The device-only Change Log every build from v9 to v17 created.
+        db.createObjectStore('changeLog', { keyPath: 'seq', autoIncrement: true })
       },
     })
     if (withPilot) await db.put(STORE_NAMES.pilots, pilotFixture({ id: 'legacy-1' }))
@@ -114,6 +112,16 @@ describe('the real upgrade', () => {
         origin: 'legacy',
         userId: null,
       })
+    } finally {
+      db.close()
+    }
+  })
+
+  test('opening a v17 database at v18 drops the device-only Change Log', async () => {
+    await seedV17(true)
+    const db = await openItunDatabase(NAME)
+    try {
+      expect(db.objectStoreNames.contains('changeLog')).toBe(false)
     } finally {
       db.close()
     }

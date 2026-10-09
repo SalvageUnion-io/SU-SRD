@@ -127,7 +127,7 @@ pilots/mechs/crawlers that the change must mirror:
 | IndexedDB | new `npcs` store in `src/lib/db/stores.ts`, schema version bump + migration in `src/lib/db/` |
 | Convex | `npcs` table in `convex/schema.ts` with the same columns as `pilots` (`gameId`, `ownerId`, `appId`, `publicRead`, `body`, `updatedAt`, the three indexes); `NpcSchema` in `PARSERS` (`convex/model/entities.ts`); `entityRefType`, `softLinkType` and the change-log entity union extended |
 | Sync | the entity backend mirror, `ShelfSync`, claim/move-to-Game, legacy-migration exclusions |
-| Change log | `ChangeLogEntityTypeSchema` gains `'npc'` |
+| Change log | `appendChangeLog` and `forEntity` (`convex/changeLog.ts`) accept `'npc'` |
 | Public sheet | `/p/:kind/:appId` accepts `npc` if `publicRead` applies (ADR-032) |
 
 `tools/check-convex-codegen.ts`, `bun run check generated` and the export/import

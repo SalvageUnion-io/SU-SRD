@@ -96,10 +96,12 @@ type GroupReport = {
    * `changeLog` rows still pointing at a row this repair would delete.
    *
    * That table is the audit trail and the proposal bus at once — a Mediator's
-   * pending proposal is a row in `proposed` state — and it addresses an entity
-   * by **Convex id**, not by `appId` (see `loadOwnable`). So deleting the loser
-   * of a duplicate pair can leave a proposal aimed at nothing, and can detach
-   * history from the surviving row.
+   * pending proposal is a row in `proposed` state. Every writer now names an
+   * entity by its `appId` (`logIdOf`), and those rows follow the surviving copy
+   * (`loadLogged` resolves an `appId` to whichever row still carries it). This
+   * count is of the legacy rows written before #1130, which name the entity by
+   * **Convex id**: deleting the loser of a duplicate pair can leave such a
+   * proposal aimed at nothing, and detaches that history from the survivor.
    *
    * It degrades gracefully rather than corrupting: applying such a proposal
    * answers "That entity no longer exists". But it is a real consequence, so it

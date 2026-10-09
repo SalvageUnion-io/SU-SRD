@@ -154,9 +154,9 @@ resumed by running it again.
 
 It keeps one row per app id (an owned row over an unclaimed one, then the most
 recently written) and reports how many `changeLog` rows — audit history and
-pending Mediator proposals alike — still point at a copy it would delete. Those
-address entities by Convex id rather than `appId`, so they do not follow the
-survivor.
+pending Mediator proposals alike — still point at a copy it would delete. Rows
+name an entity by its `appId` and follow the survivor; the count is of the
+legacy rows written before #1130, which name it by Convex id and do not.
 
 ### Running a maintenance function in production
 
