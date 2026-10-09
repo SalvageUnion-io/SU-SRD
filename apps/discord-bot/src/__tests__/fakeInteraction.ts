@@ -21,10 +21,10 @@ import type {
  */
 
 /**
- * A recorded reply payload — a structural SUPERTYPE of both
- * `InteractionReplyOptions` and `InteractionEditReplyOptions` (readonly arrays,
- * wide flags, nullable content, which `editReply` permits and `reply` does not)
- * so the fakes satisfy the narrow contracts with no forced cast.
+ * A recorded reply payload: a structural supertype of both `ReplyPayload` and
+ * `EditReplyPayload` (readonly arrays, wide flags, and nullable content, which
+ * an edit permits and a fresh reply does not), so the fakes satisfy the narrow
+ * contracts with no forced cast.
  */
 export type ReplyArg = {
   content?: string | null

@@ -22,10 +22,8 @@ export type ReplyComponent = APIMessageTopLevelComponent | { toJSON(): APIMessag
 /**
  * What a handler may send as a reply or follow-up.
  *
- * Local rather than `discord.js`'s `InteractionReplyOptions`: the bot is an
- * HTTP-interactions Worker and has no `discord.js` dependency at all, and these
- * are the only three keys any handler sets. There is deliberately no `embeds`
- * — every surface moved to Components V2, which forbids them.
+ * These are the only three keys any handler sets. There is no `embeds`:
+ * every reply is Components V2, which forbids them.
  */
 export type ReplyPayload = {
   content?: string
