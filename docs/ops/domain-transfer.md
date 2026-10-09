@@ -100,6 +100,4 @@ warning.
    with the registration) and that no paid plan remains.
 4. **you:** delete the `salvageunion-io` team. `in-the-union-now` and
    `su-assets` are already gone.
-5. **agent:** close #839, remove the Netlify bullet from
-   [services and agent tooling](../ARCHITECTURE.md#services-and-agent-tooling),
-   and delete this runbook.
+5. **agent:** close #839 and delete this runbook.
