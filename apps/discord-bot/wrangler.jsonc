@@ -61,7 +61,8 @@
   //   DISCORD_TOKEN      bot token — a bearer credential for follow-up webhook
   //                      calls.
   //
-  // Two more secrets stay optional, so they are not listed here:
+  // Two more secrets, and one plain value, stay optional, so they are not
+  // listed here:
   //
   //   ITUN_BOT_SECRET    ITUN bot credential. Omit it (and ITUN_CONVEX_SITE_URL)
   //                      to run in Solo mode, which is the deliberate default and
@@ -70,6 +71,13 @@
   //                      but paired with the one above — set them together or
   //                      not at all, or the bot reports itself unreachable
   //                      rather than Solo.
+  //   ITUN_WEB_URL       the ITUN origin the bot links to; defaults to
+  //                      https://intheunionnow.com.
+  //
+  // Declaring `secrets` makes a local `wrangler dev` bind only `vars` and these
+  // required names from .dev.vars, .env and process.env, so the three optional
+  // values above never reach a top-level local run, which is always Solo.
+  // `env.local` below is the local run.
   "secrets": {
     "required": ["SENTRY_DSN", "DISCORD_TOKEN"]
   },
@@ -87,5 +95,22 @@
 
   "observability": {
     "enabled": true
+  },
+
+  // Local runs only: `bunx wrangler dev --env local`. Never deploy it.
+  //
+  // `secrets` and `vars` are not inherited by a named environment, so this one
+  // declares no `secrets` and wrangler binds everything in .dev.vars or .env,
+  // the ITUN values included: Connected mode works locally. wrangler warns that
+  // "secrets" is missing here; that absence is the point. `vars` must repeat
+  // the top-level block exactly. package.json's deploy scripts pass `--env=""`,
+  // so a deploy always targets the top level.
+  "env": {
+    "local": {
+      "vars": {
+        "DISCORD_APPLICATION_ID": "1442878052823470172",
+        "DISCORD_PUBLIC_KEY": "3cda4815a9676fee399a6475c5533f7d2375d1293af87993c5cd1f4e4f2c0200"
+      }
+    }
   }
 }

@@ -45,7 +45,9 @@ the bot uses.
 bun run deploy-commands            # Deploy slash commands to test guild
 bun run deploy-commands:global     # Deploy globally (production)
 # No dev:bot and no build:bot — the gateway they drove is gone. To exercise the
-# Worker locally: cd apps/discord-bot && bunx wrangler dev
+# Worker locally: cd apps/discord-bot && bunx wrangler dev --env local
+# (`--env local` is what binds the ITUN values from .env for Connected mode;
+# the top level's `secrets.required` drops them, so a plain run is Solo)
 ```
 
 ## In The Union Now (ADR-030 Phase 6)
