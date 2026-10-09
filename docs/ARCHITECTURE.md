@@ -1925,12 +1925,11 @@ a rule is enforced on which surface_:
   reclassification — the taxonomy already accounts for it.
 - The provenance log and stat-override model that this surface split requires are
   decided separately in [ADR-022](#adr-022).
-- The **Dashboard** (Guided Play) surface has its own design and sub-decisions:
-  [ADR-015](#adr-015) (it is a distinct surface)
-  through [ADR-020](#adr-020), with the full
-  design in [dashboard.md](architecture/dashboard.md). Those instantiate this
-  taxonomy; they do not compete with it (ADR-015 is the Guided-Play instance;
-  ADR-019's play-state obeys the ADR-007 boundary this ADR scopes).
+- The **Dashboard** (Guided Play) surface has its own design in
+  [ADR-038](#adr-038), with the full design in
+  [dashboard.md](architecture/dashboard.md). It instantiates this taxonomy; it
+  does not compete with it (ADR-038 §6 is the Guided-Play surface and obeys the
+  ADR-007 boundary this ADR scopes; §2 is its play state).
 - **Long-tail, out of scope** (all gated on revisiting
   [ADR-001](#adr-001), and none alter this taxonomy):
   - **Shared, live Dashboard** — several players on one Dashboard at once,
@@ -2742,9 +2741,8 @@ constraints:
 
 - They are **applied only by the Dashboard** (Guided Play). No other mode may
   switch one on — activating an effect is a lifecycle transaction.
-- They resolve against **ephemeral play state**, never the persisted entity, per
-  [ADR-019](#adr-019). **Amended by ADR-038:**
-  the play state they resolve against becomes the pilot's seat on the Game. Time does not enter the
+- They resolve against the **pilot's seat on the Game**, never the persisted
+  entity ([ADR-038](#adr-038) §2). Time does not enter the
   data layer; reference data declares _that_ an effect is activated and for how
   long, and play state records _when_.
 
@@ -2817,7 +2815,7 @@ carrier (a prose span) alongside it.
   overrides; amended by this work to make an override an absolute pin.
 - [ADR-026](#adr-026) — entity card design rules; §5's
   rust "modified" language, extended here to prose.
-- [ADR-019](#adr-019) — ephemeral play state, the
+- [ADR-038](#adr-038) §2 — the pilot's seat, the
   home of activated contributions.
 - [ADR-006](#adr-006) — rules as pure functions; breakdowns
   stay pure and side-effect-free.
@@ -3093,10 +3091,9 @@ Enforced in `convex/model/permissions.ts` (`requireTableRunner`) and
 
 The **Mediator gets its own surface**, the layer ADR-021 deferred; the Encounter
 tray is absorbed into it and `/encounter` retires. The player Dashboard's locked
-1280×800 canvas ([ADR-020](#adr-020)) is
-**not** reopened: ~~crew vitals arrive there as a **"Crew" dial item**, using the
-dial track's existing configurable show/hide and order.~~ **Amended by
-ADR-038:** they arrive as a Crew tab in the display.
+1280×800 canvas ([ADR-038](#adr-038) §9) is
+**not** reopened: crew vitals arrive as a Crew tab in the display
+([ADR-038](#adr-038) §4).
 
 **A Game's crew is rendered as the Roster renders a shelf.** `/games/:id` (any
 member) and `/mediator/:id` (the Mediator, who gets the private instruments

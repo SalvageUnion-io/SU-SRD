@@ -588,10 +588,9 @@ export const removeCrawler = mutation({
  *
  * In a Game the crawler is the Mediator's (ADR-038 §5): Salvage,
  * Craft, Trade, Upkeep, Upgrade, damage and Scrap a mech are all theirs, and a
- * player asks at the table. It was every member's (ADR-030 §5) until the
- * Dashboard made the Mediator the one who runs Downtime. While a Game has no
- * Mediator the Organizer holds it, as they hold raising and scrapping one
- * (`requireTableRunner`), so a crawler is never left with nobody to keep it.
+ * player asks at the table. While a Game has no Mediator the Organizer holds
+ * it, as they hold raising and scrapping one (`requireTableRunner`), so a
+ * crawler is never left with nobody to keep it.
  * On a shelf it is an ordinary owned entity and only its owner may touch it.
  *
  * Split out from the two call sites rather than inlined at each, because a
