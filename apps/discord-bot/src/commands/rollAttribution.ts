@@ -87,7 +87,6 @@ export async function attributeRoll(
       components: [toContainer({ ...data, blocks })],
     })
   } catch (error) {
-    console.error('roll attribution failed:', error)
     reportError(error, { source: 'roll-attribution' })
   }
 }

@@ -6,10 +6,10 @@
  * exactly what was retired.
  */
 
-import { afterEach, describe, expect, it } from 'bun:test'
+import { afterAll, afterEach, describe, expect, it, spyOn } from 'bun:test'
+import * as observability from 'observability/cloudflare'
 import { pilotFixture } from '../../../components/__tests__/fixtures'
 import { makeIdentityHandler } from '../handlers'
-import { setSnapshotReporter } from '../report'
 import type { SnapshotStorage } from '../storage'
 
 function storageWith(objects: Record<string, unknown>): SnapshotStorage {
@@ -23,8 +23,17 @@ const unreachable: SnapshotStorage = {
 const get = (id: string, init?: RequestInit) =>
   new Request(`https://example.test/api/snapshots/${id}`, init)
 
+// Recorded, not sent: the handler imports `reportError` directly, so the test
+// swaps that one export rather than installing a reporter.
+const reportError = spyOn(observability, 'reportError').mockImplementation(() => undefined)
+
 afterEach(() => {
-  setSnapshotReporter(() => undefined)
+  reportError.mockClear()
+})
+
+// Test files share a process (`--no-isolate`): hand the real export back.
+afterAll(() => {
+  reportError.mockRestore()
 })
 
 describe('makeIdentityHandler', () => {
@@ -67,17 +76,13 @@ describe('makeIdentityHandler', () => {
   }
 
   it('answers 503 and reports a storage fault', async () => {
-    const reports: Array<{ error: unknown; context?: Record<string, unknown> }> = []
-    setSnapshotReporter((error, context) => {
-      reports.push({ error, context })
-    })
-
     const res = await makeIdentityHandler(unreachable)(get('ABCD1234'))
 
     expect(res.status).toBe(503)
-    expect(reports).toHaveLength(1)
-    expect(String(reports[0]?.error)).toContain('R2 unavailable')
-    expect(reports[0]?.context).toEqual({
+    expect(reportError).toHaveBeenCalledTimes(1)
+    const [error, context] = reportError.mock.calls[0] ?? []
+    expect(String(error)).toContain('R2 unavailable')
+    expect(context).toEqual({
       fn: 'snapshot-identity',
       op: 'storage.get',
       id: 'ABCD1234',

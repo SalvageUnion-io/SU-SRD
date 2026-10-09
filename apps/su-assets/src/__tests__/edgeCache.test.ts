@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test'
+import * as observability from 'observability/cloudflare'
 import type { AssetBucket, ExecutionCtx } from '../worker'
 import { makeAssetHandler } from '../worker'
 
@@ -86,12 +87,7 @@ describe('su-assets edge cache', () => {
     const { puts } = installCache()
     const bucket = bucketWith({ 'classes/salvager.webp': 'bytes' })
     const ctx = collectingCtx()
-    const handler = makeAssetHandler(
-      () => bucket,
-      () => {},
-      undefined,
-      ctx
-    )
+    const handler = makeAssetHandler(() => bucket, undefined, ctx)
 
     const first = await handler(get('/classes/salvager.webp'))
     expect(first.status).toBe(200)
@@ -132,12 +128,7 @@ describe('su-assets edge cache', () => {
     const ctx = collectingCtx()
 
     const res = await Promise.race([
-      makeAssetHandler(
-        () => bucket,
-        () => {},
-        undefined,
-        ctx
-      )(get('/classes/salvager.webp')),
+      makeAssetHandler(() => bucket, undefined, ctx)(get('/classes/salvager.webp')),
       new Promise<'HUNG'>((resolve) => setTimeout(() => resolve('HUNG'), 50)),
     ])
 
@@ -153,12 +144,7 @@ describe('su-assets edge cache', () => {
     const bucket = bucketWith({})
     const ctx = collectingCtx()
 
-    const res = await makeAssetHandler(
-      () => bucket,
-      () => {},
-      undefined,
-      ctx
-    )(get('/classes/ghost.webp'))
+    const res = await makeAssetHandler(() => bucket, undefined, ctx)(get('/classes/ghost.webp'))
 
     expect(res.status).toBe(404)
     await ctx.settled()
@@ -172,7 +158,6 @@ describe('su-assets edge cache', () => {
 
     const res = await makeAssetHandler(
       () => bucket,
-      () => {},
       undefined,
       ctx
     )(new Request('https://assets.salvageunion.io/classes/salvager.webp', { method: 'POST' }))
@@ -192,16 +177,21 @@ describe('su-assets edge cache', () => {
       },
     }
 
-    const res = await makeAssetHandler(
-      () => exploding,
-      () => {},
-      undefined,
-      ctx
-    )(get('/classes/salvager.webp'))
+    // The 503 is reported; keep that out of the test output.
+    const reportError = spyOn(observability, 'reportError').mockImplementation(() => undefined)
+    try {
+      const res = await makeAssetHandler(
+        () => exploding,
+        undefined,
+        ctx
+      )(get('/classes/salvager.webp'))
 
-    expect(res.status).toBe(503)
-    await ctx.settled()
-    expect(puts).toHaveLength(0)
+      expect(res.status).toBe(503)
+      await ctx.settled()
+      expect(puts).toHaveLength(0)
+    } finally {
+      reportError.mockRestore()
+    }
   })
 
   it('serves correctly with no cache global at all', async () => {
@@ -239,7 +229,6 @@ describe('su-assets edge cache', () => {
 
     const res = await makeAssetHandler(
       () => bucket,
-      undefined,
       undefined,
       ctx
     )(new Request('https://assets.salvageunion.io/chassis/mule.webp', { method: 'HEAD' }))

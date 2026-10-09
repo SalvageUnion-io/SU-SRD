@@ -63,7 +63,6 @@ import type { ObservabilityEnv } from 'observability/cloudflare'
 import { reportError, withObservability } from 'observability/cloudflare'
 import { makeIdentityHandler } from '../lib/snapshot/handlers'
 import { isValidSnapshotId } from '../lib/snapshot/id'
-import { setSnapshotReporter } from '../lib/snapshot/report'
 import type { R2BucketLike } from '../lib/snapshot/storage'
 import { createR2Storage } from '../lib/snapshot/storage'
 import { retiredRedirect } from './retiredRoutes'
@@ -151,13 +150,6 @@ export default withObservability('su-itun', {
 })
 
 async function route(request: Request, env: Env): Promise<Response> {
-  setSnapshotReporter((error, context) => {
-    // Both, deliberately: Workers Logs is what `wrangler tail` shows during an
-    // incident, Sentry is what alerts.
-    console.error('[itun]', error, context ?? {})
-    reportError(error, context)
-  })
-
   const url = new URL(request.url)
   const path = url.pathname
 

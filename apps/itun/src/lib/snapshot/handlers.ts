@@ -12,9 +12,9 @@
  * drive every branch without an R2 binding; `src/worker/index.ts` wires it to R2.
  */
 
+import { reportError } from 'observability/cloudflare'
 import { isValidSnapshotId } from './id'
 import { snapshotIdentity } from './identity'
-import { reportSnapshotError } from './report'
 import type { SnapshotStorage } from './storage'
 
 /** The last path segment — the snapshot id. */
@@ -41,7 +41,7 @@ export function makeIdentityHandler(storage: SnapshotStorage) {
     try {
       stored = await storage.get(id)
     } catch (error) {
-      reportSnapshotError(error, { fn: 'snapshot-identity', op: 'storage.get', id })
+      reportError(error, { fn: 'snapshot-identity', op: 'storage.get', id })
       return new Response('Snapshot storage unavailable', { status: 503 })
     }
 

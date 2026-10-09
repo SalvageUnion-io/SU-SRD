@@ -181,7 +181,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   Catching is what keeps an error away from Sentry's global handlers, so a
   `catch` must do one of three things: produce an outcome the user or caller
   sees (an error state, a 4xx/5xx, a rethrow with `cause`), report through
-  `captureException` (browser) or `reportError` / `reportSnapshotError`
+  `captureException` (browser) or `reportError`
   (Worker), or carry a comment saying why dropping it is correct. Biome's
   `noEmptyBlockStatements` rejects a block with none of those. Reading
   reference data that may not be preloaded goes through
