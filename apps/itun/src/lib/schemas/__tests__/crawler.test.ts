@@ -26,7 +26,7 @@ describe('CrawlerSchema', () => {
     expect(result.schemaVersion).toBe(1)
   })
 
-  test('happy path: crawlerBays is optional (pre-change records load)', () => {
+  test('happy path: crawlerBays is optional', () => {
     const result = CrawlerSchema.parse(omit(validCrawler, 'crawlerBays'))
     expect(result.crawlerBays).toBeUndefined()
   })
@@ -46,7 +46,7 @@ describe('CrawlerSchema', () => {
     expect(result.crawlerBays).toEqual([{ bayRef: 'mech-bay' }])
   })
 
-  test('happy path: bayChoices is optional (pre-change records load)', () => {
+  test('happy path: bayChoices is optional', () => {
     const result = CrawlerSchema.parse(validCrawler)
     expect(result.bayChoices).toBeUndefined()
   })
@@ -63,7 +63,7 @@ describe('CrawlerSchema', () => {
     })
   })
 
-  test('happy path: type + typeNpc are optional (legacy records load)', () => {
+  test('happy path: type + typeNpc are optional', () => {
     const result = CrawlerSchema.parse(validCrawler)
     expect(result.type).toBeUndefined()
     expect(result.typeNpc).toBeUndefined()
@@ -91,7 +91,7 @@ describe('CrawlerSchema', () => {
     })
   })
 
-  test('happy path: legacy crawler with no type and a high tech level validates', () => {
+  test('happy path: an untyped crawler with a high tech level validates', () => {
     const result = CrawlerSchema.parse({ ...validCrawler, techLevel: 'tech-5' })
     expect(result.techLevel).toBe('tech-5')
     expect(result.type).toBeUndefined()

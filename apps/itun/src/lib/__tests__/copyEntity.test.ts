@@ -30,10 +30,9 @@ describe('copyForShelf', () => {
   test('lands on the shelf even when the source was in a game', () => {
     const copy = copyForShelf(SOURCE, 'Pilot')
 
-    // `null`, not absent. `undefined` would mean "not decided", which sends it
-    // through the legacy fallback AND lets `entityStore.create` stamp whatever
-    // container is open — for a copy made from a Game roster, the Game it just
-    // came out of.
+    // `null`, not absent. An absent `gameId` would let `entityStore.create`
+    // stamp whatever container is open — for a copy made from a Game roster,
+    // the Game it just came out of.
     expect(copy.gameId).toBeNull()
     expect(containerOf(copy).kind).toBe('shelf')
   })
