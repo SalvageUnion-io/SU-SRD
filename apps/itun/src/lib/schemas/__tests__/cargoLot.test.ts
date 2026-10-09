@@ -4,14 +4,7 @@
  * deposit/withdraw the matching crawler scrap-pool bucket.
  */
 import { describe, expect, test } from 'bun:test'
-import {
-  CargoLotSchema,
-  cargoLotsFromLegacyCargo,
-  makeScrapLot,
-  makeUnitLot,
-  normalizeLegacyCargoRecord,
-  totalLotUnits,
-} from '../cargoLot'
+import { CargoLotSchema, makeScrapLot, makeUnitLot, totalLotUnits } from '../cargoLot'
 
 const validUnitLot = {
   id: 'lot-1',
@@ -80,33 +73,5 @@ describe('lot helpers', () => {
   test('totalLotUnits sums units', () => {
     expect(totalLotUnits([{ units: 1 }, { units: 3 }, { units: 0 }])).toBe(4)
     expect(totalLotUnits([])).toBe(0)
-  })
-})
-
-describe('legacy cargo conversion', () => {
-  test('cargoLotsFromLegacyCargo: 1-unit SEALED unit-lots, fresh ids', () => {
-    const lots = cargoLotsFromLegacyCargo(['a', 'b'])
-    expect(lots).toHaveLength(2)
-    expect(new Set(lots.map((l) => l.id)).size).toBe(2)
-    for (const lot of lots) {
-      expect(CargoLotSchema.safeParse(lot).success).toBe(true)
-      expect(lot.units).toBe(1)
-    }
-  })
-
-  test('normalizeLegacyCargoRecord rewrites cargo → cargoLots and drops cargo', () => {
-    const out = normalizeLegacyCargoRecord({
-      id: 'm1',
-      cargo: ['x'],
-      name: 'Mech',
-    })
-    expect('cargo' in out).toBe(false)
-    expect(Array.isArray(out.cargoLots)).toBe(true)
-    expect((out.cargoLots as { name: string }[])[0]?.name).toBe('x')
-  })
-
-  test('normalizeLegacyCargoRecord passes through records without legacy cargo', () => {
-    const record = { id: 'm1', cargoLots: [validUnitLot] }
-    expect(normalizeLegacyCargoRecord(record)).toBe(record)
   })
 })

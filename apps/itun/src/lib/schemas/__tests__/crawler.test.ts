@@ -26,11 +26,6 @@ describe('CrawlerSchema', () => {
     expect(result.schemaVersion).toBe(1)
   })
 
-  test('happy path: workspaceId is optional', () => {
-    const result = CrawlerSchema.parse({ ...validCrawler, workspaceId: 'ws-abc' })
-    expect(result.workspaceId).toBe('ws-abc')
-  })
-
   test('happy path: crawlerBays is optional (pre-change records load)', () => {
     const result = CrawlerSchema.parse(omit(validCrawler, 'crawlerBays'))
     expect(result.crawlerBays).toBeUndefined()

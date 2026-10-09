@@ -1,6 +1,6 @@
 import { v } from 'convex/values'
 import { MechSchema } from '../src/lib/schemas/mech'
-import { StoredPilotSchema } from '../src/lib/schemas/pilot'
+import { PilotSchema } from '../src/lib/schemas/pilot'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
@@ -201,9 +201,7 @@ export const apply = mutation({
      * anything. The player applied a proposal, saw nothing move, and the sheet
      * quietly carried a field nothing reads. Parsing rejects that at the source.
      */
-    // The stored body, not this build's output, is what gets merged — so a pilot
-    // stored before a field was removed is normalised before the strict parse.
-    const parser = proposal.entityType === 'mech' ? MechSchema : StoredPilotSchema
+    const parser = proposal.entityType === 'mech' ? MechSchema : PilotSchema
     const merged = { ...(doc.body as Record<string, unknown>), [proposal.field]: proposal.after }
     const result = parser.safeParse(merged)
     if (!result.success) {

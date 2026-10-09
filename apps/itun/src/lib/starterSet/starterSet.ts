@@ -268,9 +268,9 @@ const PILOT_BIOS: Record<string, string> = {
 
 /**
  * Mech Description / Appearance / Quirk (Reclamation of the Wastes sheets),
- * folded into the single description field, keyed by mech id.
+ * folded into the single appearance field, keyed by mech id.
  */
-const MECH_DESCRIPTIONS: Record<string, string> = {
+const MECH_APPEARANCES: Record<string, string> = {
   'starter-mech-scrapper':
     'Originally built by Bonesaw to support his wasteland community, this build bakes in a wide range of utility — it can salvage, repair, and even hack, all of which have proved useful to the crew of Crawler #430.\n\nAppearance: Rugged and well worn, covered in anti-corpo graffiti.\nQuirk: Multiple cockpit mods including a coffee dispenser, vibrating pilot chair, and concealed mini-fridge.',
   'starter-mech-spectrum':
@@ -291,7 +291,7 @@ export const STARTER_PILOTS: readonly Pilot[] = CREW.map((c) => ({
 }))
 export const STARTER_MECHS: readonly Mech[] = CREW.map((c) => ({
   ...c.mech,
-  description: MECH_DESCRIPTIONS[c.mech.id],
+  appearance: MECH_APPEARANCES[c.mech.id],
 }))
 
 // ---------------------------------------------------------------------------

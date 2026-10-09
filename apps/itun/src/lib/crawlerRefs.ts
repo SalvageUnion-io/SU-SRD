@@ -7,8 +7,8 @@
  * choice by name (Keepsake / Motto). These helpers are the single source of
  * truth so both surfaces stay in lockstep.
  *
- * All lookups are id-or-name and salvage-tolerant: a missing catalog (e.g.
- * reference data not yet preloaded) resolves to null rather than throwing.
+ * All lookups are id-or-name, and a missing catalog (e.g. reference data not
+ * yet preloaded) resolves to null rather than throwing.
  */
 
 import type { SURefCrawler, SURefCrawlerBay } from 'salvageunion-reference'

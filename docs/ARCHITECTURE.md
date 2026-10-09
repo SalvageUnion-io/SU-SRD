@@ -1040,14 +1040,18 @@ Full text: `git show c2476d1c:docs/adrs/ADR-001-local-first-no-backend.md`
 
 ## ADR-002
 
-**IndexedDB via `idb`, Zod as the Schema Source, Salvage-Read Resilience**
+**IndexedDB via `idb`, Zod as the Schema Source, Strict Reads**
 
 ### Status
 
 Accepted. **Amended 2026-10-08 (#1152):** IndexedDB is a cache of Convex
 ([ADR-034](#adr-034)), so a version change no longer migrates records — the
 upgrade empties the cache and the server refills it. The migrations system the
-decision below once pointed to is deleted.
+decision below once pointed to is deleted. **Amended 2026-10-09 (#1181):**
+reads are strict. The lenient salvage re-parse and the read-time legacy
+normalizers are deleted: an unreadable cached row is skipped with a warning and
+refilled from Convex, and the build floor reloads a tab too old to read what
+the server serves.
 
 ### Context
 
@@ -1073,10 +1077,8 @@ Two forces shaped the choice:
   Dexie. Object stores are declared in `apps/itun/src/lib/db/`.
 - **Zod schemas are the single source of truth** for entity shape. The DB layer
   parses on read/write rather than maintaining a separate storage schema.
-- Reads are **salvage-tolerant**: a strict parse is attempted first; on failure
-  the row is re-parsed with a lenient "salvage" schema (`.strip()`) and a
-  warning is logged. The row heals on its next write (re-parsed strictly). See
-  `apps/itun/src/lib/db/crud.ts`.
+- Reads are **strict** (amended, #1181): an unreadable cached row is skipped
+  with a warning and refilled from Convex. See `apps/itun/src/lib/db/crud.ts`.
 - A schema/version change bumps `DB_VERSION` in `apps/itun/src/lib/db/index.ts`;
   the upgrade drops every store and the cache refills from Convex.
 - Reusable mech templates live in their own `mechPatterns` object store rather
@@ -1086,13 +1088,12 @@ Two forces shaped the choice:
 ### Consequences
 
 - No parallel schema DSL: change a Zod schema and the DB layer follows.
-- The app survives version skew across PWA updates instead of hard-failing on
-  unknown/missing fields; unknown references (e.g. a `workspaceId` from a newer
-  build) degrade gracefully (treated as unassigned).
+- One unreadable row never bricks hydration of its store: it is skipped, not
+  thrown on.
 - `idb` keeps the abstraction thin — complex querying is done in memory in the
   Zustand stores ([ADR-003](#adr-003)), not via a query DSL.
-- Salvage-on-read can silently strip data a tab is too old to understand;
-  warnings are logged, and writes from the newer build restore strict validity.
+- A tab too old to read a field a newer build wrote skips that row until the
+  build floor reloads it.
 
 ## ADR-003
 

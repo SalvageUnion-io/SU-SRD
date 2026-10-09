@@ -366,8 +366,8 @@ export async function commitSoftLink(
 ): Promise<void> {
   if (selectBackend() !== 'remote') return
   if (link === null) return
-  // A link whose endpoints did not survive a salvage-tolerant read has nothing
-  // to address, and half a link fails validation server-side for no benefit.
+  // A link without both endpoints has nothing to address, and half a link
+  // fails validation server-side for no benefit.
   if (link.from?.id === undefined || link.to?.id === undefined) return
 
   const args = { from: link.from, to: link.to, type: link.type }

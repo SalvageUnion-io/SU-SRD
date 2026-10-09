@@ -39,7 +39,7 @@ export const MechPatternSchema = z
     systems: z.array(z.string()),
     /** Slugs of mech module items — mirrors MechSchema.modules. */
     modules: z.array(z.string()),
-    /** Cargo lots — mirrors MechSchema.cargoLots (v3 migration rewrites legacy `cargo`). */
+    /** Cargo lots — mirrors MechSchema.cargoLots. */
     cargoLots: z.array(CargoLotSchema),
     createdAt: z.string().datetime(),
   })

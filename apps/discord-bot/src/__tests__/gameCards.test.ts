@@ -100,8 +100,8 @@ describe('vital field names', () => {
   })
 
   test('still reads the historical lower-case spelling', () => {
-    // Salvage-tolerant, like ITUN's own data layer: rows written before the
-    // spelling was settled must not render as an undamaged crew.
+    // Rows written before the spelling was settled must not render as an
+    // undamaged crew.
     const card = crewCard(
       {
         game: { gameId: 'g1', name: 'Tenacity' },

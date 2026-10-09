@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { FIXTURE_NOW } from '../../src/components/__tests__/fixtures'
 import { MechSchema } from '../../src/lib/schemas/mech'
 import type { Ctx } from './fixtures'
 import { makeUser, mechBody } from './fixtures'
@@ -111,57 +110,6 @@ describe('the Mediator proposes; the player writes', () => {
 
     const mech = await t.run(async (ctx) => await ctx.db.get(mechId as Id<'mechs'>))
     expect((mech?.body as { currentSP: number } | undefined)?.currentSP).toBe(10)
-  })
-
-  test('a pilot stored before a field was retired still takes a proposal', async () => {
-    // `equipmentLoadouts` left the strict PilotSchema (audit AP-18), but rows
-    // written while it existed still carry it. Apply re-parses the STORED body,
-    // so without the legacy normaliser every proposal to such a pilot would be
-    // refused as not fitting the sheet — and the row is healed on the way.
-    const t = testConvex()
-    const { gm, player, gameId } = await seedTable(t)
-    const pilotId = await t.run(
-      async (ctx) =>
-        await ctx.db.insert('pilots', {
-          gameId,
-          ownerId: player.userId,
-          body: {
-            id: 'p1',
-            schemaVersion: 1,
-            name: 'Yara Voss',
-            callsign: 'Ghost',
-            classRef: 'scavenger',
-            abilities: [],
-            equipment: [],
-            motto: '',
-            keepsake: '',
-            appearance: '',
-            background: '',
-            conditions: [],
-            currentHP: 10,
-            partners: [],
-            equipmentLoadouts: {},
-            createdAt: FIXTURE_NOW,
-            updatedAt: FIXTURE_NOW,
-          },
-          updatedAt: 1,
-        })
-    )
-    await gm.as.mutation(api.proposals.propose, {
-      entityId: pilotId,
-      entityType: 'pilot',
-      field: 'currentHP',
-      after: 7,
-    })
-    const [pending] = await player.as.query(api.proposals.pending, { gameId })
-    await player.as.mutation(api.proposals.apply, {
-      proposalId: pending?._id as Id<'changeLog'>,
-    })
-
-    const row = await t.run(async (ctx) => await ctx.db.get(pilotId as Id<'pilots'>))
-    const body = row?.body as Record<string, unknown> | undefined
-    expect(body?.currentHP).toBe(7)
-    expect(body && 'equipmentLoadouts' in body).toBe(false)
   })
 
   test("a player cannot propose to their own or a crewmate's entity", async () => {

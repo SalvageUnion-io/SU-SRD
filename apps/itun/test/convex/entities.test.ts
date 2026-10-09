@@ -231,7 +231,8 @@ describe('reading is per-game, writing is per-entity', () => {
         await ctx.db.insert('mechPatterns', {
           ownerId: player.userId,
           gameId: null,
-          body: { name: 'Draft' },
+          appId: 'pattern-1',
+          body: { id: 'pattern-1', name: 'Draft' },
         })
     )
 

@@ -74,9 +74,7 @@ export const CrawlerSchema = z
      * Chosen crawler-type ref (SRD `id` of the Augmented/Battle/Engineering/
      * Exploratory/Trade Caravan type; resolve by id-or-name like the bay refs).
      *
-     * Additive-optional — no DB migration, no `schemaVersion` bump. Legacy
-     * crawlers persisted before this feature (no `type`, any techLevel) validate
-     * unchanged; a missing value reads as an untyped crawler.
+     * Optional: a missing value reads as an untyped crawler.
      */
     type: z.string().optional(),
     /**
@@ -84,7 +82,7 @@ export const CrawlerSchema = z
      * Veteran, etc.). Same shape as a bay's embedded NPC state. The freeform
      * Keepsake/Motto persist in `bayChoices` keyed by the type ref.
      *
-     * Additive-optional — absent on legacy / untyped crawlers.
+     * Optional — absent on an untyped crawler.
      */
     typeNpc: CrawlerNpcStateSchema.optional(),
     /**
@@ -95,12 +93,9 @@ export const CrawlerSchema = z
      *
      * Each entry tracks the bay's embedded NPC's live state (name + current
      * HP). The NPC's max HP comes from the SRD bay's `npc.hitPoints` (4); the
-     * crew is the per-bay NPC, which replaces the legacy free-text `bays`
-     * (crew/mech assignment) field.
+     * crew is the per-bay NPC.
      *
-     * Optional so crawlers persisted before this field was added still validate
-     * on read (no version bump / migration required); read sites treat a
-     * missing value as an empty list.
+     * Optional: read sites treat a missing value as an empty list.
      */
     crawlerBays: z
       .array(
@@ -133,8 +128,7 @@ export const CrawlerSchema = z
     // Live-play current stat tracking (#245).
     // A freshly created crawler is seeded at its tech-level base SP from the
     // rules data (crawler-tech-levels `structurePoints`, via crawlerFormState).
-    // Kept optional so legacy/imported records still parse; read sites fall back
-    // to the derived `crawlerMaxSP`.
+    // Absent means full: see `resolvePool`.
     // ---------------------------------------------------------------------------
     /** Current structure points */
     currentSP: z.number().int().min(0).optional(),

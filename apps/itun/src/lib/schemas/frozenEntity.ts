@@ -14,13 +14,12 @@
  */
 
 import { isRecord } from '../isRecord'
-import { normalizeLegacyCargoRecord } from './cargoLot'
 import type { Crawler } from './crawler'
 import { CrawlerSchema } from './crawler'
 import type { Mech } from './mech'
 import { MechSchema } from './mech'
 import type { Pilot } from './pilot'
-import { normalizeLegacyPilotRecord, PilotSchema } from './pilot'
+import { PilotSchema } from './pilot'
 
 /** A parsed frozen entity, or the reason it could not be parsed. */
 export type FrozenParse =
@@ -44,18 +43,14 @@ export function parseFrozenEntity(kind: unknown, entity: unknown): FrozenParse {
   }
 
   if (kind === 'pilot') {
-    // Records written before the vestigial `rollResults` removal still carry
-    // the field — the same rewrite parseImportBundle applies.
-    const parsed = PilotSchema.safeParse(normalizeLegacyPilotRecord(entity))
+    const parsed = PilotSchema.safeParse(entity)
     return parsed.success
       ? { ok: true, kind: 'pilot', entity: parsed.data }
       : { ok: false, reason: `Invalid pilot data: ${parsed.error.message}` }
   }
 
   if (kind === 'mech') {
-    // Records written before the cargo→cargoLots rename carry a legacy
-    // `cargo: string[]` field — the same rewrite parseImportBundle applies.
-    const parsed = MechSchema.safeParse(normalizeLegacyCargoRecord(entity))
+    const parsed = MechSchema.safeParse(entity)
     return parsed.success
       ? { ok: true, kind: 'mech', entity: parsed.data }
       : { ok: false, reason: `Invalid mech data: ${parsed.error.message}` }

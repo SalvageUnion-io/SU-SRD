@@ -83,8 +83,8 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   or another account empties it.
 - **Zod schemas (`src/lib/schemas/`) are the source of truth** for entity shape;
   the DB layer parses on read/write ([ADR-002](../../docs/ARCHITECTURE.md#adr-002)).
-- Reads are salvage-tolerant (lenient re-parse + warning on version skew); rows
-  heal on next write. See `src/lib/db/crud.ts`.
+- Reads are strict: an unreadable cached row is skipped with a warning and
+  refilled from Convex. See `src/lib/db/crud.ts`.
 - A schema/version change bumps `DB_VERSION` (`src/lib/db/index.ts`) and
   nothing else: the upgrade drops every store, and `ShelfSync` refills the
   cache from Convex. No record is ever rewritten on the device.
@@ -98,8 +98,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   `patternStore` and `encounterStore`.
 - **Workspaces are retired.** An entity lives in exactly one **container** — a
   shared **Game** or the owner's **Shelf** ("My Stuff") — encoded as one
-  nullable `gameId` and resolved through `src/lib/container.ts`, never by
-  reading `workspaceId` (a pre-ADR-030 fallback). Filter with `containerOf` +
+  nullable `gameId` and resolved through `src/lib/container.ts`. Filter with `containerOf` +
   `sameContainer`, and only when `mode === 'connected'`: signed out there is
   nothing to show, and Disconnected has no live Game list to filter against, so
   it shows the cached pile whole. `/` (`Roster`)

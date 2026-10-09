@@ -52,15 +52,6 @@ describe('copyForShelf', () => {
     expect(copy.updatedAt).toBeUndefined()
   })
 
-  test('drops a legacy workspaceId rather than carrying it', () => {
-    // `containerOf` still reads `workspaceId` as a pre-ADR-030 fallback, so a
-    // stale one riding along could resolve the copy back into a Game.
-    const copy = copyForShelf({ ...SOURCE, gameId: undefined, workspaceId: 'ws-9' }, 'Pilot')
-
-    expect(copy.workspaceId).toBeUndefined()
-    expect(containerOf(copy).kind).toBe('shelf')
-  })
-
   test('copies the body verbatim otherwise', () => {
     const copy = copyForShelf(SOURCE, 'Pilot')
 

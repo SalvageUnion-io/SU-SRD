@@ -6,7 +6,7 @@ import { CrawlerSchema } from '../../src/lib/schemas/crawler'
 import { EncounterNpcSchema } from '../../src/lib/schemas/encounterNpc'
 import { MechSchema } from '../../src/lib/schemas/mech'
 import { MechPatternSchema } from '../../src/lib/schemas/pattern'
-import { StoredPilotSchema } from '../../src/lib/schemas/pilot'
+import { PilotSchema } from '../../src/lib/schemas/pilot'
 import type { SoftLink } from '../../src/lib/schemas/softLink'
 import type { DataModel, Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
@@ -70,10 +70,7 @@ const EncounterNpcBodySchema = EncounterNpcSchema.partial().extend({
 
 /** Every table whose `v.any()` body is validated at the edge, and by what. */
 export const PARSERS = {
-  // Behind the legacy normaliser: a pilot row stored before a field was
-  // removed from the schema (`equipmentLoadouts`, `rollResults`) must still
-  // validate when it is read back and re-parsed, not reject every write to it.
-  pilots: StoredPilotSchema,
+  pilots: PilotSchema,
   mechs: MechSchema,
   crawlers: CrawlerSchema,
   encounterNpcs: EncounterNpcBodySchema,
@@ -255,11 +252,6 @@ export function linkIdOf(row: ContainedRow): string | undefined {
   return row.appId ?? bodyAppId(row.body)
 }
 
-/** A row's owner. Absent on a crawler that has never been shelved, which means null. */
-function ownerOfRow(row: ContainedRow): Id<'users'> | null {
-  return row.ownerId ?? null
-}
-
 /**
  * Whether two rows are in the same container — the one assignment invariant
  * that is about *where*, not *how many*.
@@ -273,8 +265,7 @@ function ownerOfRow(row: ContainedRow): Id<'users'> | null {
 export function sameContainerRows(a: ContainedRow, b: ContainedRow): boolean {
   if (a.gameId !== b.gameId) return false
   if (a.gameId !== null) return true
-  const owner = ownerOfRow(a)
-  return owner !== null && owner === ownerOfRow(b)
+  return a.ownerId !== null && a.ownerId === b.ownerId
 }
 
 async function rowsByAppId(

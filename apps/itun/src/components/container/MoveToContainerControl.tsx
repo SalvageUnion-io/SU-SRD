@@ -80,7 +80,7 @@ import type { Confirm } from '../shared/useConfirm'
 type MoveToContainerControlProps = {
   entityType: AssignableType
   entityId: string
-  /** The entity's current container fields (`gameId`, legacy `workspaceId`). */
+  /** The entity's current container field (`gameId`). */
   entity: ContainerFields & { name: string }
   /**
    * Opens the confirm a move out of a Game — or one in that clears an
