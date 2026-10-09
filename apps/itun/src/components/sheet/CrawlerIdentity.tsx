@@ -38,8 +38,8 @@ const HIDE_CHOICES = { choices: true } as const
 
 /**
  * Resolve the crawler type's special-ability action refs (names) to their SRD
- * action entities. Salvage-tolerant like the other crawler ref lookups: a
- * missing catalog resolves to an empty list rather than throwing.
+ * action entities. Like the other crawler ref lookups, a missing catalog
+ * resolves to an empty list rather than throwing.
  */
 function resolveTypeAbilities(typeRef: string | undefined): SURefMetaAction[] {
   if (!typeRef) return []

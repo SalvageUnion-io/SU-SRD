@@ -74,7 +74,7 @@ describe('Starter Set seed — schema validity', () => {
 
   test('every pilot, mech, and the crawler carry seeded flavor text', () => {
     for (const p of STARTER_PILOTS) expect(p.description?.length ?? 0).toBeGreaterThan(0)
-    for (const m of STARTER_MECHS) expect(m.description?.length ?? 0).toBeGreaterThan(0)
+    for (const m of STARTER_MECHS) expect(m.appearance?.length ?? 0).toBeGreaterThan(0)
     for (const c of STARTER_CRAWLERS) expect(c.description?.length ?? 0).toBeGreaterThan(0)
   })
 

@@ -32,16 +32,6 @@ describe('PilotSchema', () => {
     expect(result.schemaVersion).toBe(1)
   })
 
-  test('happy path: workspaceId is optional', () => {
-    const result = PilotSchema.parse({ ...validPilot, workspaceId: 'ws-abc' })
-    expect(result.workspaceId).toBe('ws-abc')
-  })
-
-  test('happy path: workspaceId absent is fine', () => {
-    const result = PilotSchema.parse(validPilot)
-    expect(result.workspaceId).toBeUndefined()
-  })
-
   test('rejects missing required field: name', () => {
     expect(() => PilotSchema.parse(omit(validPilot, 'name'))).toThrow()
   })

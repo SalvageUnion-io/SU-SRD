@@ -227,9 +227,8 @@ export function useMechSheetActions({
     write({ quirk: next.trim() || undefined })
   }
 
-  /** Appearance heals the deprecated `description` field into `appearance`. */
   function saveAppearance(next: string) {
-    write({ appearance: next.trim() || undefined, description: undefined })
+    write({ appearance: next.trim() || undefined })
   }
 
   return {

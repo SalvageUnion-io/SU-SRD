@@ -179,7 +179,7 @@ export function planRowSync<R extends ServedRow>(args: {
  * was scrapped or moved out, and is forgotten.
  */
 export function planCrawlerSync(args: {
-  local: readonly { id: string; gameId?: string | null; workspaceId?: string }[]
+  local: readonly { id: string; gameId?: string | null }[]
   served: readonly ServedCrawler[]
   gameIds: ReadonlySet<string>
   adoptedAt: ReadonlyMap<string, number>

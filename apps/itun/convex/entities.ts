@@ -273,7 +273,7 @@ export const locate = query({
     }
     if (row === null) return null
 
-    const mine = (row.ownerId ?? null) === userId
+    const mine = row.ownerId === userId
     const membership = row.gameId === null ? null : await getMembership(ctx, row.gameId, userId)
     if (!mine && membership === null) return null
     // A Game's crawler has no owner: whoever runs the table writes it.

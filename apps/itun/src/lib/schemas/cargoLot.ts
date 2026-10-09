@@ -55,10 +55,8 @@ function codeFromName(name: string): string {
 }
 
 /**
- * Build a single-unit (atomic) cargo lot from a free-text name.
- * Used by the mech builder's custom-cargo entries and by the legacy-cargo
- * conversion path. `units` defaults to 1 slot — the historical accounting for
- * string cargo entries.
+ * Build a single-unit (atomic) cargo lot from a free-text name. `units`
+ * defaults to 1 slot.
  */
 export function makeUnitLot(
   name: string,
@@ -93,32 +91,4 @@ export function makeScrapLot(tl: number, qty: number): CargoLot {
 /** Total cargo-slot usage across a list of lots. */
 export function totalLotUnits(lots: ReadonlyArray<Pick<CargoLot, 'units'>>): number {
   return lots.reduce((sum, lot) => sum + lot.units, 0)
-}
-
-/**
- * Convert a legacy `cargo: string[]` value to `cargoLots`.
- * Each legacy string becomes a 1-unit SEALED unit-lot — faithful to how legacy
- * entries were counted (1 slot each, no category/TL metadata existed).
- */
-export function cargoLotsFromLegacyCargo(cargo: ReadonlyArray<string>): CargoLot[] {
-  return cargo.map((name) => makeUnitLot(name))
-}
-
-/**
- * Normalize a raw mech/pattern record that may carry the legacy `cargo`
- * string-array field: converts it to `cargoLots` and drops `cargo`.
- * Shared by the v3 IndexedDB migration and parseImportBundle (old export
- * bundles predate the rename). Records without legacy `cargo` pass through
- * untouched.
- */
-export function normalizeLegacyCargoRecord(
-  record: Record<string, unknown>
-): Record<string, unknown> {
-  if (!Array.isArray(record.cargo)) return record
-  const { cargo, ...rest } = record
-  const legacy = (cargo as unknown[]).map((entry) => String(entry))
-  return {
-    ...rest,
-    cargoLots: Array.isArray(rest.cargoLots) ? rest.cargoLots : cargoLotsFromLegacyCargo(legacy),
-  }
 }

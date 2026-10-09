@@ -21,7 +21,6 @@ import type * as entities from "../entities.js";
 import type * as games from "../games.js";
 import type * as http from "../http.js";
 import type * as invites from "../invites.js";
-import type * as legacyRows from "../legacyRows.js";
 import type * as mediator from "../mediator.js";
 import type * as model_bot from "../model/bot.js";
 import type * as model_botWire from "../model/botWire.js";
@@ -58,7 +57,6 @@ declare const fullApi: ApiFromModules<{
   games: typeof games;
   http: typeof http;
   invites: typeof invites;
-  legacyRows: typeof legacyRows;
   mediator: typeof mediator;
   "model/bot": typeof model_bot;
   "model/botWire": typeof model_botWire;

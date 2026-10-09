@@ -310,7 +310,7 @@ export function MechSheet({
                 Quirk is one line, so it rides the chassis row above instead. */}
             <Field
               label="Appearance"
-              value={mech.appearance ?? mech.description ?? ''}
+              value={mech.appearance ?? ''}
               multiline
               fill
               onSave={readOnly ? undefined : actions.saveAppearance}

@@ -16,13 +16,9 @@ import { requireUser } from './model/permissions'
 /**
  * Mirror one saved pattern, addressed by the id inside its body.
  *
- * These tables have no `appId` column and need none: a pattern's own id already
- * is its app id, which makes this naturally idempotent — the same write twice
- * is a patch, not a duplicate.
- *
- * Until this existed, a saved pattern lived only in that browser: invisible on
- * a second device, and gone with the site data. This is the per-write half
- * ADR-034 P4b calls for.
+ * That id is lifted into the row's `appId` column and found through
+ * `by_owner_app_id`, which makes this idempotent — the same write twice is a
+ * patch, not a duplicate.
  */
 export const upsertMechPattern = mutation({
   args: { body: v.any() },

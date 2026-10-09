@@ -1,6 +1,5 @@
 import { authTables } from '@convex-dev/auth/server'
 import { defineSchema, defineTable } from 'convex/server'
-import type { GenericId, Validator } from 'convex/values'
 import { v } from 'convex/values'
 
 /**
@@ -135,18 +134,12 @@ export const seatResolving = v.object({
   applied: v.boolean(),
 })
 
-/**
- * The columns and indexes `pilots`, `mechs` and `crawlers` share: one table
- * shape, three tables. Only `ownerId` differs — the crawler's is optional
- * (see the note on `crawlers`) — so it is the argument.
- */
-function containerTable<
-  Owner extends Validator<GenericId<'users'> | null | undefined, 'required' | 'optional', string>,
->(ownerId: Owner) {
+/** The columns and indexes `pilots`, `mechs` and `crawlers` share: one table shape, three tables. */
+function containerTable() {
   return (
     defineTable({
       gameId: v.union(v.id('games'), v.null()),
-      ownerId,
+      ownerId: v.union(v.id('users'), v.null()),
       /**
        * The app-level UUID this row mirrors (ADR-030 §1).
        *
@@ -410,9 +403,9 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_invite_user', ['inviteId', 'userId']),
 
-  pilots: containerTable(v.union(v.id('users'), v.null())),
+  pilots: containerTable(),
 
-  mechs: containerTable(v.union(v.id('users'), v.null())),
+  mechs: containerTable(),
 
   /**
    * The crawler is communal **inside a Game** (ADR-030 §5) — `ownerId: null` — and every
@@ -440,28 +433,12 @@ export default defineSchema({
    * A record with no server row to reflect is invisible on the player's other
    * devices and lost with the browser's storage.
    *
-   * `gameId == null && ownerId == null` stays the one invalid combination, for
-   * the crawler exactly as for everything else.
+   * `ownerId` is null while the crawler is in a Game — that is what communal
+   * means (ADR-030 §5) — and set only on the shelf. `gameId == null && ownerId
+   * == null` stays the one invalid combination, for the crawler exactly as for
+   * everything else.
    */
-  crawlers: containerTable(
-    /**
-     * Null while the crawler is in a Game — that is what communal means (ADR-030 §5).
-     * Set only on the shelf, where a container with no owner would be the
-     * invalid row.
-     *
-     * **`v.optional` is load-bearing and is not cosmetic.** Convex validates
-     * every existing document against the schema on push, and every crawler
-     * already in the database predates this column. A required field here would
-     * make the deploy fail on rows that are otherwise perfectly valid — the same
-     * reason `publicRead` above is optional, spelled out there as "the correct
-     * default for every row that already exists".
-     *
-     * So **absent means the same as null**: a crawler that has never been
-     * shelved. Readers must treat the two identically; `ownerOf` in
-     * `model/entities.ts` is the one place that decides it.
-     */
-    v.optional(v.union(v.id('users'), v.null()))
-  ),
+  crawlers: containerTable(),
 
   /**
    * An assignment: 'mech-to-pilot' | 'pilot-to-crawler' | 'mech-to-crawler'.
@@ -519,12 +496,12 @@ export default defineSchema({
      * the Mediator reaches it through their role rather than through ownership.
      * Set on a shelf, where a container with no owner would be the invalid row.
      */
-    ownerId: v.optional(v.union(v.id('users'), v.null())),
+    ownerId: v.union(v.id('users'), v.null()),
     /**
      * The id inside the body, lifted into a column so a write can find its row
      * with one indexed read. See `mechPatterns.appId` — same reason.
      */
-    appId: v.optional(v.string()),
+    appId: v.string(),
     body: v.any(),
   })
     .index('by_game', ['gameId'])
@@ -538,15 +515,10 @@ export default defineSchema({
     ownerId: v.id('users'),
     gameId: v.null(),
     /**
-     * The id inside the body, lifted into a column.
-     *
-     * A pattern's identity is `body.id`. Carrying it here lets the client's
-     * server-first write find the row with one read on `by_owner_app_id`.
-     *
-     * Optional because a body need not carry an id; a row without one cannot
-     * be addressed by `findOwnedByAppId`.
+     * The id inside the body (`body.id`), lifted into a column so a write
+     * finds its row with one read on `by_owner_app_id`.
      */
-    appId: v.optional(v.string()),
+    appId: v.string(),
     body: v.any(),
   })
     // `ownerId` alone is a prefix, so this also serves "all of mine".

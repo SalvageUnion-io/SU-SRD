@@ -188,7 +188,12 @@ describe('the surface cannot be pointed at the Mediator’s tray', () => {
     const t = testConvex()
     await t.run(async (ctx) =>
       ctx.db.insert('games', { name: 'Tenacity' }).then(async (gameId) => {
-        await ctx.db.insert('encounterNpcs', { gameId, ownerId: null, body: { name: 'Ambush' } })
+        await ctx.db.insert('encounterNpcs', {
+          gameId,
+          ownerId: null,
+          appId: 'npc-1',
+          body: { id: 'npc-1', name: 'Ambush' },
+        })
       })
     )
 

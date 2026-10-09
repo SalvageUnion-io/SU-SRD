@@ -30,10 +30,9 @@ describe('copyForShelf', () => {
   test('lands on the shelf even when the source was in a game', () => {
     const copy = copyForShelf(SOURCE, 'Pilot')
 
-    // `null`, not absent. `undefined` would mean "not decided", which sends it
-    // through the legacy fallback AND lets `entityStore.create` stamp whatever
-    // container is open — for a copy made from a Game roster, the Game it just
-    // came out of.
+    // `null`, not absent. An absent `gameId` would let `entityStore.create`
+    // stamp whatever container is open — for a copy made from a Game roster,
+    // the Game it just came out of.
     expect(copy.gameId).toBeNull()
     expect(containerOf(copy).kind).toBe('shelf')
   })
@@ -50,15 +49,6 @@ describe('copyForShelf', () => {
     expect(copy.id).toBeUndefined()
     expect(copy.createdAt).toBeUndefined()
     expect(copy.updatedAt).toBeUndefined()
-  })
-
-  test('drops a legacy workspaceId rather than carrying it', () => {
-    // `containerOf` still reads `workspaceId` as a pre-ADR-030 fallback, so a
-    // stale one riding along could resolve the copy back into a Game.
-    const copy = copyForShelf({ ...SOURCE, gameId: undefined, workspaceId: 'ws-9' }, 'Pilot')
-
-    expect(copy.workspaceId).toBeUndefined()
-    expect(containerOf(copy).kind).toBe('shelf')
   })
 
   test('copies the body verbatim otherwise', () => {

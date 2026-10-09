@@ -35,10 +35,6 @@ import { containerOf } from '../container'
  * both cases this browser's copy is no longer the caller's to hold — the same
  * reason `entityStore.forget` exists. The caller passes `false` for a crawler:
  * a Game's crawler is the crew's, and `WiringSync` prunes it.
- *
- * Reads the container through `containerOf` rather than testing `gameId`
- * directly, so a record written before the split — which still resolves through
- * `workspaceId` — is classified the way every other reader classifies it.
  */
 export function rowMayBePruned(entity: ContainerFields, knownMine: boolean): boolean {
   return knownMine || containerOf(entity).kind === 'shelf'
