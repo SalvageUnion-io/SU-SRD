@@ -1436,12 +1436,15 @@ contain an unambiguous "this is destroyed" signal.
   cycling back to `intact`. It is modeled as `ItemCondition` and driven by the
   card's status badge (`StatusBadge` from `component-lib`), cycled by
   `cycleCondition` in `apps/itun/src/components/sheet/mechItemRules.ts`.
-- The control is **player-driven and keyboard-accessible** (role="button",
-  Enter/Space, 44px touch target) and has a **read-only static-badge mode** for
+- The control is **player-driven and keyboard-accessible**: given an `onClick`,
+  `StatusBadge` wraps the badge in a native `<button type="button">`; without
+  one it renders a plain, non-interactive `Badge`, the **read-only mode** for
   read-only sheets.
-- **Destroyed reads as semantic red** (`bg-roll-cascade`, Material red ≈
-  `rgb(244, 67, 54)`), deliberately a semantic status color, **not** a Salvage
-  Union brand token. Intact uses `bg-roll-success`, damaged `bg-roll-failure`.
+- Condition maps onto the badge tones `ok` / `warn` / `bad` (intact, damaged,
+  destroyed), styled `bg-status-ok` / `bg-status-warn` / `bg-status-bad`.
+  **Destroyed reads as semantic red**: `--color-status-bad` is
+  `--color-roll-cascade`, `rgb(176, 67, 43)` — deliberately a semantic status
+  color, **not** a Salvage Union brand token.
 
 ### Consequences
 
@@ -1449,8 +1452,8 @@ contain an unambiguous "this is destroyed" signal.
   wherever equipment condition is shown or edited.
 - "Destroyed" is unambiguous because it uses a conventional danger color rather
   than a brand tone that players might not read as a warning.
-- The same component serves editable sheets and read-only snapshots, so condition
-  renders consistently across both.
+- The same component serves editable and read-only sheets, so condition renders
+  consistently across both.
 - Using a non-brand semantic color is intentional; don't "fix" it to a brand
   token — legibility of the destroyed state is the priority.
 
