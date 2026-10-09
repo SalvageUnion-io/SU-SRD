@@ -255,7 +255,7 @@ The Change Log commit is the one fire-and-forget write, and reports its own
 failure. If the schema cannot
 say where a record lives, the schema moves; nothing is local-only. No change may
 leave data reachable from fewer places than before; a gate asserts the row is
-in Convex, not the mechanism. An anonymous user's way out is export to file.
+in Convex, not the mechanism.
 
 ### Zustand stores
 
@@ -1144,51 +1144,17 @@ Two forces shaped the choice:
 
 ### Status
 
-Accepted. **Amended 2026-10-08 (#1153):** tabs stay in step through each
-tab's own Convex subscription.
+**Superseded by [ADR-034](#adr-034) and [ADR-030](#adr-030)**, except the
+lazy-hydration rule. IndexedDB is a cache of Convex: a write commits to the
+server first and reaches the cache only once the server accepts it, and tabs
+stay in step through their own Convex subscriptions
+([Zustand stores](#zustand-stores)). What stands: the Zustand stores in
+`apps/itun/src/stores/` hydrate a collection from the cache on its first
+`list(type)` and answer synchronously from memory after that, so no caller
+awaits hydration, and filtering happens in memory, which keeps the DB layer a
+thin `idb` wrapper.
 
-> **2026-09-25:** ITUN no longer depends on TanStack Query at all — it was
-> mounted and never called, and was removed (audit AP-10). The rule below that
-> persistent entity state flows through the Zustand stores is unchanged.
-
-### Context
-
-ITUN holds user entities in IndexedDB ([ADR-002](#adr-002)),
-but components need synchronous, reactive access to that data — IndexedDB is
-async and not reactive. With no backend ([ADR-001](#adr-001)),
-there is no server cache to lean on; the in-memory store _is_ the working copy.
-
-The store must: load on demand without every caller awaiting hydration, keep the
-in-memory copy and IndexedDB consistent, and stay correct when the user has the
-app open in multiple tabs.
-
-### Decision
-
-ITUN uses **Zustand** stores (`entityStore`, `workspaceStore` in
-`apps/itun/src/stores/`) with three properties:
-
-- **Lazy auto-hydration.** The first `list(type)` triggers hydration from
-  IndexedDB; subsequent calls return synchronously from memory.
-- **Write-through.** Mutations persist to IndexedDB **first**, then update
-  in-memory state. The DB is authoritative; memory is the cache.
-- **Cross-tab via Convex.** No tab-to-tab channel: each tab's `ShelfSync`
-  and `WiringSync` adopt another tab's creates and edits and forget its
-  deletes (`lib/db/pruneRules.ts`).
-
-TanStack Query is used only for transient/derived data, **not** as the
-persistence cache — persistent entity state flows through the Zustand stores.
-
-### Consequences
-
-- Components read entity data synchronously after first load; no per-component
-  hydration boilerplate.
-- A write in one tab reaches the others through the server.
-- The DB-first write order means a crash between persist and in-memory update
-  leaves the durable copy correct (the next read re-hydrates).
-- Querying/filtering happens in memory over hydrated collections, which is why
-  the DB layer can stay a thin `idb` wrapper rather than a query engine.
-- Do not route persistent entity state through TanStack Query; mixing the two
-  caches reintroduces the consistency problem this decision avoids.
+Full text: `git show c2476d1c:docs/adrs/ADR-003-zustand-hydration.md`
 
 ## ADR-004
 

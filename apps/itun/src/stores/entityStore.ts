@@ -1,5 +1,6 @@
 /**
- * entityStore — Zustand store wrapping the Wave 1 db/ CRUD layer.
+ * entityStore — Zustand store over the db/ CRUD layer, the account's IndexedDB
+ * cache of Convex (ADR-034).
  *
  * Hydration strategy: lazy auto-hydration.
  * When list(type) is called and that type is not yet hydrated, hydrate(type)
@@ -9,9 +10,9 @@
  * Subsequent calls after hydration return the in-memory array synchronously
  * (no extra db round-trip).
  *
- * Write-through: create/update/delete persist to IndexedDB first. On success
- * the in-memory state is updated atomically via Zustand's set(). On failure
- * the db error propagates to the caller; in-memory state is not mutated.
+ * Server first: create/update/delete commit to Convex, then write the
+ * IndexedDB cache, then update the in-memory state via Zustand's set(). A
+ * refused or failed write propagates to the caller and changes nothing local.
  *
  * Multi-tab: there is no tab-to-tab channel. Each tab hears another tab's
  * writes through its own Convex subscription: `ShelfSync` adopts creates and

@@ -147,10 +147,10 @@ export function openItunDatabase(
 /**
  * Best-effort request for persistent (eviction-resistant) storage.
  *
- * ITUN keeps every pilot/mech/crawler in this one browser's IndexedDB with no
- * backend, so a UA that evicts "best-effort" storage under disk pressure (or
- * Safari's ITP 7-day cap) can silently wipe all player data. Asking for the
- * `persistent` bucket makes the store eviction-resistant. This is hardening,
+ * IndexedDB is a cache of Convex, so an eviction loses no player data, but a
+ * UA that evicts "best-effort" storage under disk pressure (or Safari's ITP
+ * 7-day cap) empties what a Disconnected reader can still open. Asking for the
+ * `persistent` bucket makes the cache eviction-resistant. This is hardening,
  * never a hard requirement: we ask once (skip if already granted so we don't
  * re-prompt), guard on API existence, and swallow every error — the whole body
  * is try/caught so the returned promise can NEVER reject (a fire-and-forget

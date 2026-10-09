@@ -5,6 +5,8 @@ paths:
   - 'apps/itun/src/lib/db/**'
   - 'apps/itun/src/lib/connection/**'
   - 'apps/itun/src/lib/snapshot/**'
+  - 'apps/itun/src/lib/account/**'
+  - 'apps/itun/src/lib/export/**'
   - 'apps/itun/src/components/account/**'
   - 'apps/itun/src/components/container/**'
   - 'apps/itun/src/components/games/**'
@@ -74,8 +76,6 @@ const members = useQuery(api.games.members, { gameId })
   fire-and-forget write; everything else awaits.
 - Build a local duplicate of something Convex owns (membership, ownership,
   invites, proposals, crew vitals) — check `apps/itun/convex/` first.
-- Reintroduce `fetchEntity` / `updateEntity`, `Tables<...>` or `isLocalId` —
-  those are from the removed Postgres era.
 - Add a query cache. TanStack Query was removed (audit AP-10); entity reads are
   the typed hooks in `src/hooks/entities/` over the stores, and Connected reads
   use `convex/react`.

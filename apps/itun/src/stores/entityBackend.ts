@@ -30,14 +30,7 @@ import { knownVersion, noteVersion } from './serverVersions'
  *
  * `signedOut` is read-only and reads nothing: there is no anonymous store at
  * all (`readableRows`). Signed out, ITUN shows reference and nothing of a
- * player's own (ADR-034 decision 1, as amended).
- *
- * There used to be: `local`, the durable IndexedDB backend an anonymous visitor
- * got in any build that did not set `VITE_REQUIRE_ACCOUNT`. Production always
- * set it, so `local` only ever ran in CI, `bun run dev` and the e2e suite —
- * which meant the suite spent its effort proving a storage mode no player could
- * reach, and had to force the flag off to do it. It was retired along with the
- * flag, and the durable path the tests
+ * player's own (ADR-034 decision 1, as amended). The durable path the tests
  * exercise is the signed-in one (`src/stores/__tests__/signedInBackend.ts`
  * for unit tests, the `TestAuthBridge` seam for e2e).
  *
@@ -65,8 +58,8 @@ type AuthState = {
    * Whether a Convex deployment is compiled in. Defaults to the real answer
    * (`convexClient !== null`); `ConnectionProvider` never sets it.
    *
-   * It exists for the unit tests. With `local` retired, the only durable
-   * backend is `remote`, and the test build has no `VITE_CONVEX_URL` — so
+   * It exists for the unit tests. The only durable backend is `remote`, and
+   * the test build has no `VITE_CONVEX_URL` — so
    * without this there would be no way to exercise the IndexedDB cache a
    * signed-in player writes through. Setting it `true` with no client is
    * "signed in, with every server commit a no-op", which is exactly what the
@@ -218,30 +211,12 @@ export function crawlerPatchArgs(
 /**
  * Write one entity to the server of record, and **fail if it does not land**.
  *
- * ## This replaced a mirror, and the difference is the whole of ADR-034
+ * IndexedDB is a cache of Convex (ADR-034), and a cache cannot legitimately be
+ * ahead of its source: a write the server refused **did not happen**, so the
+ * store awaits this before touching the cache and lets the refusal throw.
  *
- * The predecessors — `mirrorWrite`, `mirrorCrawlerWrite`, `mirrorSoftLinkWrite`
- * — were **fire-and-forget by design**, and correctly so at the time: the local
- * write had already succeeded and was what the UI read, so a server refusal
- * could not be allowed to roll it back. They also **upserted rather than
- * updated**, because an entity built while Solo had no server row until the
- * account was claimed.
- *
- * Both properties describe a world where the local store is authoritative.
- * ADR-034 ends that world. A cache cannot legitimately be ahead of its source,
- * so a write the server refused **did not happen**, and the only honest thing to
- * do is say so — which means awaiting it and letting it throw.
- *
- * The failure mode being removed is not hypothetical. `byAppId` resolves a
- * duplicate to the oldest row and warns rather than throwing, precisely because
- * a throw inside a fire-and-forget mirror was invisible to the player: the
- * write never reached the server while every surface kept rendering it as saved.
- * That is how an evening of play went missing.
- *
- * ## No-ops off the server of record
- *
- * Returns immediately unless the backend is `remote`. An anonymous session has
- * no server to commit to, and must keep working.
+ * Returns immediately unless the backend is `remote`; the store has already
+ * refused any other write (`requireWritableBackend`).
  */
 export async function commitEntityWrite(
   type: EntityRef['type'] | 'softLink',
@@ -361,8 +336,8 @@ export async function commitChangeLog(
  * `mechPatterns` has none and needs none — a pattern's own id already is its app
  * id, which makes the upsert idempotent.
  *
- * Same early return as every other commit here: in an anonymous session there
- * is no server of record to reach, and this is a no-op rather than an error.
+ * Same early return as every other commit here: off the server of record this
+ * is a no-op rather than an error.
  */
 export async function commitPatternWrite(
   op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string }
@@ -511,8 +486,6 @@ export async function commitTransfer(
  *
  * `signedOut` is refused too: signed out, ITUN is read-only
  * ([ADR-034](../../../../docs/ARCHITECTURE.md#adr-034) decision 1, as amended).
- * Anonymous building used to be allowed and simply not kept, which lost the
- * work to any reload — a deploy's forced one included.
  */
 export function requireWritableBackend(): 'remote' {
   const backend = selectBackend()

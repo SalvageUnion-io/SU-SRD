@@ -4,11 +4,9 @@
  * condition ticks, and Mediator roll history) in their own IndexedDB object
  * store.
  *
- * Built on makeHydratedCollectionSlice (ADR-003 discipline: lazy
- * auto-hydration, write-through).
- * Container scoping mirrors the roster — records resolve through
- * `containerOf`; `listForContainer(null)` returns everything, which is what a
- * Solo user always gets (no account means no Games to scope to).
+ * Built on makeHydratedCollectionSlice (lazy auto-hydration, server-first
+ * writes). Container scoping mirrors the roster — records resolve through
+ * `containerOf`; `listForContainer(null)` returns everything.
  */
 
 import { create } from 'zustand'
@@ -26,8 +24,7 @@ export type EncounterNpcCreateInput = Omit<EncounterNpc, 'id' | 'createdAt' | 'u
 type EncounterState = HydratedCollectionSlice<'encounterNpcs', EncounterNpc> &
   HydratedCollectionActions<EncounterNpc, EncounterNpcCreateInput> & {
     /**
-     * Tracked NPCs in one container; null = all, mirroring the roster's
-     * unfiltered Solo view.
+     * Tracked NPCs in one container; null = all.
      */
     listForContainer: (container: Container | null) => EncounterNpc[]
   }

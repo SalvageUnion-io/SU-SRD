@@ -193,10 +193,9 @@ only ever dry-run it.
 ## Switching production on
 
 A build with no `VITE_CONVEX_URL` has no server of record, so every visitor is
-anonymous and gets the **in-memory backend** — nothing they build survives the
-tab. Since ADR-034/ADR-035 retired the durable anonymous backend there is no
-"pre-accounts app" to fall back to: such a build is fine for CI and a fresh
-checkout, and is **not** a working production configuration. To switch
+anonymous and ITUN is **read-only** — nobody can build anything (ADR-034). Such
+a build is fine for CI and a fresh checkout, and is **not** a working
+production configuration. To switch
 accounts on:
 
 1. Add the prod redirect URI to the Discord application (see
