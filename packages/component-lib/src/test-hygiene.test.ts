@@ -53,6 +53,10 @@ const PRELOAD_CALL_ALLOWLIST = new Map<string, string>([
     'apps/srd/src/lib/__tests__/schemaPreloadDeps.test.tsx',
     'resets the ORM and re-preloads to prove narrow schema lists render identically',
   ],
+  [
+    'apps/itun/test/convex/referenceSubset.test.ts',
+    'resets the ORM so Convex functions run on only the schemas the deployment installs',
+  ],
   ['packages/salvageunion-reference/lib/preload.test.ts', 'the preload API is the unit under test'],
   [
     'packages/salvageunion-reference/lib/search.test.ts',

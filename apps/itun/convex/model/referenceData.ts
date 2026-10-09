@@ -24,7 +24,9 @@ import systems from 'salvageunion-reference/data/systems.json'
  * Only the schemas something here reads are bundled: abilities (a pilot's and
  * a piloted mech's contributions), chassis, systems and modules (a mech's
  * maxima and its destroyed items by name), and guides (Downtime's steps).
- * Add a file here, never a `preload`, when a derivation needs another.
+ * Add a file here, never a `preload`, when a derivation needs another:
+ * `test/convex/referenceSubset.test.ts` runs the functions that call this on
+ * this set alone, so a derivation that reads a schema missing here fails there.
  */
 export function loadReferenceData(): void {
   SalvageUnionReference.install({ abilities, chassis, guides, modules, systems })
