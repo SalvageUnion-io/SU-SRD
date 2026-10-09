@@ -44,7 +44,17 @@ async function seed(t: Ctx) {
         usedAbilities: [ability.id],
         equipment: [item.id],
         equipmentConditions: { [item.id]: 'damaged' },
-        partners: [{ id: 'partner-1', hostRef: drone.id, hostSchema: 'drones' }],
+        partners: [
+          {
+            id: 'partner-1',
+            hostRef: item.id,
+            hostSchema: 'equipment',
+            systems: [system.id],
+            modules: [mechModule.id],
+            systemConditions: { [system.id]: 'damaged' },
+            itemUses: { [mechModule.id]: 1 },
+          },
+        ],
       }),
     })
     // The rewrite would strip `workspaceId`, but the name is empty, so the
@@ -67,6 +77,15 @@ async function seed(t: Ctx) {
         chassisRef: chassis.name,
         systems: [system.id],
         systemConditions: { [system.id]: 'damaged' },
+        partners: [
+          {
+            id: 'partner-2',
+            hostRef: drone.name,
+            hostSchema: 'drones',
+            modules: [mechModule.name],
+            moduleConditions: { [mechModule.name]: 'destroyed' },
+          },
+        ],
       }),
     })
     const unresolved = await ctx.db.insert('mechs', {
@@ -194,7 +213,16 @@ describe('legacyRows.rewrite', () => {
       usedAbilities: [getEntitySlug(ability)],
       equipment: [getEntitySlug(item)],
       equipmentConditions: { [getEntitySlug(item)]: 'damaged' },
-      partners: [{ id: 'partner-1', hostRef: getEntitySlug(drone) }],
+      partners: [
+        {
+          id: 'partner-1',
+          hostRef: getEntitySlug(item),
+          systems: [getEntitySlug(system)],
+          modules: [getEntitySlug(mechModule)],
+          systemConditions: { [getEntitySlug(system)]: 'damaged' },
+          itemUses: { [getEntitySlug(mechModule)]: 1 },
+        },
+      ],
     })
     expect(rows.pilot?.updatedAt).toBeGreaterThan(1)
 
@@ -205,6 +233,14 @@ describe('legacyRows.rewrite', () => {
       chassisRef: getEntitySlug(chassis),
       systems: [getEntitySlug(system)],
       systemConditions: { [getEntitySlug(system)]: 'damaged' },
+      partners: [
+        {
+          id: 'partner-2',
+          hostRef: getEntitySlug(drone),
+          modules: [getEntitySlug(mechModule)],
+          moduleConditions: { [getEntitySlug(mechModule)]: 'destroyed' },
+        },
+      ],
     })
 
     expect(rows.crawler?.ownerId).toBeNull()

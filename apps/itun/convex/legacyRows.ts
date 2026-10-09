@@ -41,12 +41,21 @@ import { internalMutation, PARSERS, resolveLinkEnd } from './model/entities'
  *  - mechs: `body.description` moves into `appearance` when that is unset
  *    (the order the sheet reads them in), and is dropped otherwise.
  *  - crawlers: a row with no `ownerId` column gets `ownerId: null`.
- *  - every reference into `salvageunion-reference` becomes the entity's slug:
- *    crawler `type`, `crawlerBays[].bayRef`, `systems` and the `bayChoices`
- *    keys; mech and pattern `chassisRef`, `systems`, `modules` and the mech's
- *    per-item maps; pilot `abilities`, `usedAbilities`, `equipment`, the keys
- *    of `equipmentChoices`, `equipmentConditions` and `equipmentUses`, and
- *    `partners[].hostRef`.
+ *  - these references into `salvageunion-reference`, and only these, become
+ *    the entity's slug:
+ *    - crawler `type`, `crawlerBays[].bayRef`, `systems` and the `bayChoices`
+ *      keys;
+ *    - mech `chassisRef`, `systems`, `modules` and the keys of
+ *      `systemConditions`, `moduleConditions` and `itemUses`; pattern
+ *      `chassisRef`, `systems` and `modules`;
+ *    - pilot `abilities`, `usedAbilities`, `equipment` and the keys of
+ *      `equipmentChoices`, `equipmentConditions` and `equipmentUses`;
+ *    - every partner, on a pilot or a mech: `hostRef`, `systems`, `modules`
+ *      and the keys of `systemConditions`, `moduleConditions` and `itemUses`.
+ *
+ *    Pilot `classRef` and `originClassRef` are NOT rewritten: they keep
+ *    whatever the writer stored (wizard ids, starter-set slugs), so a class
+ *    resolver must keep accepting ids and names after this runs.
  *
  * A ref nothing resolves is left as it is and its row listed under
  * `unresolvedRefs`; a rewritten body that fails its schema is not written and
@@ -57,6 +66,31 @@ import { internalMutation, PARSERS, resolveLinkEnd } from './model/entities'
  *
  * The run is paged, one mutation per page, so an applied page stays applied
  * if a later one fails; running it again finishes the job.
+ *
+ * ORDER: the dry run is safe at any time; `{"apply": true}` is NOT safe until
+ * the deployed client writes slugs and stops comparing these refs by id or
+ * name. Until then the client writes UUIDs into the fields above and matches
+ * stored refs against `entity.id` / `entity.name`, so slugged rows would read
+ * as unselected (the ability and equipment pickers, a crawler's type and
+ * weapons) and new writes would bring UUIDs straight back. Apply only after a
+ * client deploy that, at least:
+ *
+ *  - writes `getEntitySlug(entity)`: the pickers' `idOf` at
+ *    `PilotSheet.tsx:485` and `:509`, `CrawlerSystemsEditModal.tsx:80` and
+ *    `CrawlerTypeEditModal.tsx:105`; the pilot wizard's ability and equipment
+ *    picks (`PilotWizard.tsx`); `seedDefaultCrawlerBays`'s `bayRef: bay.id`
+ *    (`crawlerFormState.ts:139`) and the crawler wizard's type, which also
+ *    keys `bayChoices`; and the starter set's crawler type and bay ids
+ *    (`starterSet.ts:38-51`);
+ *  - resolves stored refs through the id-or-name-or-slug resolvers instead of
+ *    comparing `.id` / `.name`: `pilotSheetModel.ts:170`, `PilotSheet.tsx:483`
+ *    and `:507` (`selected`), `CrawlerSystemsEditModal.tsx:41`, `:48` and
+ *    `:74`, `crawlerFormState.ts:178`, `CrawlerTypeEditModal.tsx:59`,
+ *    `CrawlerTypeStep.tsx:32`, `CrawlerBuilder.tsx:195`, `:225`, `:244` and
+ *    `:252`, and `ReviewStep.tsx:36` and `:39`.
+ *
+ * The resolvers keep their id and name arms until the apply has run; only
+ * then can they become slug-only.
  */
 
 const DEFAULT_PAGE_SIZE = 200
@@ -176,6 +210,28 @@ function canonicalMechRefs(body: Record<string, unknown>, pass: Pass): void {
   rewriteField(body, 'modules', (list) => slugRefs(list, resolveModuleRef, change, pass))
 }
 
+/** A mech's (or partner's) installed items and the maps keyed by them. */
+function canonicalInstalled(body: Record<string, unknown>, change: Change, pass: Pass): void {
+  rewriteField(body, 'systems', (list) => slugRefs(list, resolveSystemRef, change, pass))
+  rewriteField(body, 'modules', (list) => slugRefs(list, resolveModuleRef, change, pass))
+  rewriteField(body, 'systemConditions', (map) => rekey(map, resolveSystemRef, change, pass))
+  rewriteField(body, 'moduleConditions', (map) => rekey(map, resolveModuleRef, change, pass))
+  rewriteField(body, 'itemUses', (map) => rekey(map, resolveInstalledRef, change, pass))
+}
+
+/** A pilot's or mech's `partners`: each `hostRef` and its installed items. */
+function canonicalPartners(partners: unknown, change: Change, pass: Pass): unknown {
+  if (!Array.isArray(partners)) return partners
+  return partners.map((partner) => {
+    if (!isRecord(partner)) return partner
+    const next: Record<string, unknown> = { ...partner }
+    const resolveHost = partner.hostSchema === 'drones' ? resolveDrone : resolveEquipment
+    rewriteField(next, 'hostRef', (ref) => slugRef(ref, resolveHost, change, pass))
+    canonicalInstalled(next, change, pass)
+    return next
+  })
+}
+
 function canonicalPilot(body: Record<string, unknown>, pass: Pass): void {
   const change = 'pilotRefsSlugged'
   rewriteField(body, 'abilities', (list) => slugRefs(list, resolveAbility, change, pass))
@@ -184,15 +240,7 @@ function canonicalPilot(body: Record<string, unknown>, pass: Pass): void {
   for (const key of ['equipmentChoices', 'equipmentConditions', 'equipmentUses']) {
     rewriteField(body, key, (map) => rekey(map, resolveEquipment, change, pass))
   }
-  rewriteField(body, 'partners', (partners) =>
-    Array.isArray(partners)
-      ? partners.map((partner) => {
-          if (!isRecord(partner)) return partner
-          const resolve = partner.hostSchema === 'drones' ? resolveDrone : resolveEquipment
-          return { ...partner, hostRef: slugRef(partner.hostRef, resolve, change, pass) }
-        })
-      : partners
-  )
+  rewriteField(body, 'partners', (partners) => canonicalPartners(partners, change, pass))
 }
 
 function canonicalMech(body: Record<string, unknown>, pass: Pass): void {
@@ -210,11 +258,10 @@ function canonicalMech(body: Record<string, unknown>, pass: Pass): void {
       pass.changes.add('descriptionDropped')
     }
   }
-  canonicalMechRefs(body, pass)
   const change = 'mechRefsSlugged'
-  rewriteField(body, 'systemConditions', (map) => rekey(map, resolveSystemRef, change, pass))
-  rewriteField(body, 'moduleConditions', (map) => rekey(map, resolveModuleRef, change, pass))
-  rewriteField(body, 'itemUses', (map) => rekey(map, resolveInstalledRef, change, pass))
+  rewriteField(body, 'chassisRef', (ref) => slugRef(ref, resolveChassisRef, change, pass))
+  canonicalInstalled(body, change, pass)
+  rewriteField(body, 'partners', (partners) => canonicalPartners(partners, change, pass))
 }
 
 function canonicalCrawler(body: Record<string, unknown>, pass: Pass): void {
