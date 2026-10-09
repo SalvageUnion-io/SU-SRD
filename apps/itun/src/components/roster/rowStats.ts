@@ -11,9 +11,8 @@ import type { EntityRowStat } from '../shared/EntityRow'
 /**
  * A mech row's stats: `CHASSIS | Iron Mongrel`, and `TL | 1` beside it.
  *
- * These used to be one caption string, "Iron Mongrel · TL 1" — two facts joined
- * by a separator, which is the shape `Stat` exists to replace. TL is its own
- * stat rather than a suffix for the same reason.
+ * Two stats, never one caption string ("Iron Mongrel · TL 1"): two facts joined
+ * by a separator is the shape `Stat` exists to replace.
  *
  * resolveChassisRef is slug/name/id tolerant; stored refs are slugs, so a
  * name-only match here would fall through to the raw slug for every mech.

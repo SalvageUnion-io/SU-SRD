@@ -224,7 +224,7 @@ export async function commitEntityWrite(
       // A container change is its own mutation: it writes the row's `gameId`,
       // the body's and `ownerId` together, and only the table runner may make
       // it (ADR-037). The field patch below never carries one — the server
-      // strips it — which is how a "moved" crawler used to stay put.
+      // strips it, so a move rides only `moveCrawler`.
       const { gameId, ...fields } = (op.patch ?? {}) as Record<string, unknown>
       if (op.patch !== null && typeof op.patch === 'object' && 'gameId' in op.patch) {
         await convexClient.mutation(api.entities.moveCrawler, {
@@ -270,7 +270,7 @@ export async function commitEntityWrite(
 }
 
 /**
- * Mirror a batch of Change Log rows to the server of record, which is the only
+ * Send a batch of Change Log rows to the server of record, which is the only
  * copy of the log there is (`changeLog.forEntity` is what the drawer reads).
  *
  * Never throws, and its callers do not await it: the log is provenance ABOUT a
@@ -312,7 +312,7 @@ export async function commitChangeLog(
 }
 
 /**
- * Mirror one saved-pattern write.
+ * Commit one saved-pattern write.
  *
  * Addressed by the id inside the body rather than by an `appId` column, because
  * `mechPatterns` has none and needs none — a pattern's own id already is its app
@@ -334,11 +334,11 @@ export async function commitPatternWrite(
 }
 
 /**
- * Mirror one shelf-NPC write.
+ * Commit one shelf-NPC write.
  *
  * Shelf only. A tray inside a Game belongs to the table rather than to a member
  * and is reached through `mediator.*` by the Mediator's role; this store holds
- * the personal tray, which is the one that had no server write at all.
+ * the personal tray.
  */
 export async function commitNpcWrite(
   op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string }

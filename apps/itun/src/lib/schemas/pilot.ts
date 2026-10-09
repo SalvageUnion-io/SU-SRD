@@ -174,14 +174,10 @@ export const PilotSchema = z
      * records which template it came from, so "is the Starter Set already
      * present?" can be answered without making the answer depend on two
      * different people's rows sharing an id.
-     *
-     * That is precisely what the Starter Set used to rely on: it wrote fixed
-     * ids (`starter-pilot-bonesaw`, …) so that re-seeding would overwrite
-     * rather than duplicate. Locally that worked; globally it was wrong. Every
-     * player who seeded the roster held byte-identical ids, and those ids are
-     * the `appId` a claimed entity is addressed by on the server — where two
-     * accounts bringing the same one resolve to a single row, so the later
-     * player's writes are refused as somebody else's entity.
+     * Ids are the `appId` an entity is addressed by on the server, where two
+     * accounts holding the same one resolve to a single row — so a fixed
+     * template id would make the later player's writes refused as somebody
+     * else's entity.
      *
      * Absent on everything a person built themselves, which is nearly every row.
      */

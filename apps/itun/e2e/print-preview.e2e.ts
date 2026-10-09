@@ -33,10 +33,9 @@ test.describe('sheet print preview', () => {
     // #334's print CSS hides the <header>, whose condensed copy of the name is
     // a <span>; role=heading targets the visible hero <h1> and dodges it.
     await expect(page.getByRole('heading', { name: 'Print Test' })).toBeVisible()
-    // The class must also survive print. It is no longer inside the hero
-    // landmark — the poster redesign left `… sheet header` holding just the
-    // <h1> and moved identity fields into the `… pilot details` region — so
-    // scope there. Still scoped rather than page-wide, so this fails if the
+    // The class must also survive print. `… sheet header` holds just the <h1>
+    // and the identity fields are in the `… pilot details` region, so scope
+    // there. Still scoped rather than page-wide, so this fails if the
     // class stops rendering rather than matching some unrelated occurrence.
     await expect(
       page

@@ -6,9 +6,8 @@
  * hero = entity-card-writ-large with live trackers, linked entities as rail
  * chips (live mini stats, whole-chip navigation), variant sheet as the body.
  *
- * This replaces the old multi-pane composition layout (SheetHeader +
- * SheetSegmentSwitcher + stand-ins): linked entities are no longer
- * co-rendered as full sheets — they live in the rail and navigate.
+ * Linked entities are not co-rendered as full sheets — they live in the rail
+ * and navigate.
  *
  * Stats are store-backed: hero trackers write current* fields through the
  * entity store; the condensed strip reads the same record, so hero and strip

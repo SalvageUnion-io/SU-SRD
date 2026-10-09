@@ -7,11 +7,8 @@ import type { OwnerChip } from '../../lib/ownership/ownerChip'
  *
  * ## One mark, three states
  *
- * Ownership is one fact, so it gets one mark. The surface previously said it
- * two ways at once: an owner chip in the caption for held characters, and a
- * separate UNCLAIMED stamp among the buttons for free ones — two vocabularies
- * for a single field, in two different places, so scanning a column meant
- * checking both. A seal that is always present and always in the same corner
+ * Ownership is one fact, so it gets one mark — never two vocabularies for a
+ * single field in two places. A seal that is always present and always in the same corner
  * can be read down a list without reading anything else.
  *
  * Stamped rather than chipped for the reason documents are stamped: it is a

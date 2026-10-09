@@ -80,7 +80,7 @@ function UsedChip({
     )
   }
   // Interactive: `aria-pressed` carries the state for assistive tech, since the
-  // surface no longer does it visually.
+  // surface does not show it visually.
   return (
     <Badge
       as="button"
@@ -248,9 +248,7 @@ export function PilotIdentityPanel({
         onSave={canEdit ? saveText('appearance') : undefined}
       />
 
-      {/* Bio — folded in from the dropped live-play Bio section (#409): the
-          freeform backstory previously rendered via SheetDescription now
-          lives as an extra full-width identity field. */}
+      {/* Bio — the freeform backstory, a full-width identity field. */}
       <div className="flex min-h-0 flex-1 flex-col">
         <Field
           label="Bio"

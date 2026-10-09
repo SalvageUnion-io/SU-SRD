@@ -1,11 +1,7 @@
 /**
  * GameHub — what `/` shows when a Game is picked in its "Showing" select.
  *
- * There used to be a Games page (`/games`, choose a table), a Game page
- * (`/games/:id`, its crew and panels) and a Mediator page (`/mediator/:id`, the
- * same crew plus the Mediator's instruments). Three pages for one table, and a
- * player had to know which one held the thing they wanted. They are one place
- * now: the hub at `/`, which already listed My Stuff, lists a Game the same way
+ * One place per table: the hub at `/` lists a Game the way it lists My Stuff
  * and puts everything you can do about the table below the lists —
  *
  *  0. **Launch Dashboard** (`LaunchDashboard`), at the top: the one way into

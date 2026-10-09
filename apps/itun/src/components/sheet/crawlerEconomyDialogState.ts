@@ -2,10 +2,9 @@
  * The state machines behind `CrawlerEconomyControl`'s Upkeep and Trading Bay
  * dialogs, as pure reducers (audit AP-16).
  *
- * Each dialog used to hold its state as a row of independent `useState`s —
- * three for Upkeep, five for the Trading Bay — and every transition had to set
- * the right subset of them by hand. The pairs that must move together are the
- * easy ones to get wrong: picking a new "from" Tech Level has to re-seat the
+ * Not a row of independent `useState`s, where every transition must set the
+ * right subset by hand. The pairs that must move together are the easy ones to
+ * get wrong: picking a new "from" Tech Level has to re-seat the
  * quantity on the new exchange step, or the stepper offers an amount the Trading
  * Bay can never convert; a Deterioration roll has to finish the dialog AND say
  * whether the player now owes a Bay pick. As reducers each transition is one

@@ -8,11 +8,9 @@ test.use({ account: 'anonymous' })
  * Offline — the one spec that proves ITUN is actually a PWA rather than merely
  * configured as one.
  *
- * ADR-034 decision 3 says an installed app works offline. That claim was
- * previously supported by nothing: the app ships a service worker and a
- * manifest, and **no test had ever exercised either** — the root Playwright
- * config even blocks service workers globally, with a comment saying no spec
- * needs them. This is the spec that does.
+ * ADR-034 decision 3 says an installed app works offline. The app ships a
+ * service worker and a manifest, and this is the spec that exercises them —
+ * the root Playwright config blocks service workers for every other spec.
  *
  * ## Why service workers are re-enabled only here
  *
@@ -160,8 +158,8 @@ test('an unvisited route also resolves offline — the shell is not one page', a
   // ITUN's offline story from `srd`'s, where an unvisited page genuinely 404s
   // offline because each one is its own HTML file (ADR-034 decision 3).
   // A REAL route this test has not visited: the SPA shell must serve it from
-  // cache and route it. (`/roster` used to be here — no such route exists, so
-  // it asserted only that the offline not-found page carried the app title.)
+  // cache and route it. (A route that does not exist would assert only that
+  // the offline not-found page carries the app title.)
   await page.goto('/about')
   await waitForReady(page)
   await expect(page).toHaveTitle(/In The Union Now/i)

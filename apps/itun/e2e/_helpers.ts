@@ -388,11 +388,10 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
  * Open the live sheet for the named entity from the Roster's saved rows.
  *
  * Each row is an <li> rendering component-lib's `EntityRow`, whose sheet link
- * is labelled **"View"**. It used to read "Sheet"; when the label changed this
- * helper kept waiting for the old name until the whole job hit its 30-minute
- * ceiling, so match the link by its `/sheet/` href instead of its text — the
- * href is the contract this helper actually depends on, and it survives the
- * next copy change.
+ * is labelled **"View"**. Match the link by its `/sheet/` href, not its text:
+ * the href is the contract this helper depends on, and it survives a copy
+ * change that would otherwise leave the helper waiting until the job's
+ * 30-minute ceiling.
  */
 export async function openSheetFor(page: Page, name: string): Promise<void> {
   await gotoStable(page, '/')

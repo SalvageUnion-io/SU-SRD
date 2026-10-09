@@ -265,13 +265,11 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
  *
  * ## Why this takes the table rather than sniffing the row
  *
- * It used to discriminate on `!('ownerId' in row)`, which worked only while the
- * crawler was the one entity without that column. It now has one (`schema.ts`),
- * so that test silently stopped separating anything — and the branch it guarded
- * narrowed to `never`. Passing the table makes the distinction explicit, and
- * the caller already has it in hand.
+ * Every row carries an `ownerId` column, so the row's shape cannot tell the
+ * tables apart. Passing the table makes the distinction explicit, and the
+ * caller already has it in hand.
  *
- * The two gates cannot simply be merged, even though all three rows now carry
+ * The two gates cannot simply be merged, even though all three rows carry
  * the same columns, because an **unclaimed** row means opposite things per
  * table. An unclaimed pilot is a character waiting for a taker and may not be
  * published until somebody owns it; an unclaimed crawler is the normal state of

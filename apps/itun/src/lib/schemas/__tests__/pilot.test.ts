@@ -65,7 +65,7 @@ describe('PilotSchema', () => {
     expect(() => PilotSchema.parse({ ...validPilot, callsign: '' })).toThrow()
   })
 
-  // Advancement (plan 2.2): the schema no longer caps abilities — growth past
+  // Advancement (plan 2.2): the schema does not cap abilities — growth past
   // the creation budget persists; the rules cap (10/12) is a SOFT warning.
   test(`accepts abilities array exceeding STARTING_ABILITY_BUDGET (${STARTING_ABILITY_BUDGET})`, () => {
     const grown = Array.from({ length: STARTING_ABILITY_BUDGET + 1 }, (_, i) => `ability-${i}`)

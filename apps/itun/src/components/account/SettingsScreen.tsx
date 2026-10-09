@@ -9,9 +9,8 @@ import { SignInControl } from './SignInControl'
 /**
  * The settings screen (ADR-030 §6), at `/settings`: profile, export, delete.
  *
- * It was the "account" page at `/account`, which now redirects here
- * (`routes/account.tsx`), so old links and the Discord bot's still land. It
- * also used to list your Games; that list moved to the masthead's Games menu
+ * `/account` redirects here (`routes/account.tsx`), so old links and the
+ * Discord bot's still land. Your Games are listed in the masthead's Games menu
  * (`components/container/GamesMenu.tsx`), which is where a player picks what
  * the Roster shows.
  *

@@ -16,9 +16,8 @@
  *   any of the above                                  → 'wired'
  *   no links                                          → '<kind>-only'
  *
- * A mech's crawler used to be its PILOT's crawler (two hops). It is its own
- * link now, and a mech with none has no crawler — there is deliberately no
- * fallback through the pilot, or a mech assigned elsewhere would still read as
+ * A mech's crawler is its own link, and a mech with none has no crawler —
+ * there is deliberately no fallback through the pilot, or a mech assigned elsewhere would still read as
  * docked wherever its pilot crews.
  *
  * All reads are dep-injectable: pass a snapshot `EntityLookup` + the full
@@ -35,8 +34,7 @@ import type { EntityForType } from '../../stores/types'
 type CompositionMode = 'wired' | 'pilot-only' | 'mech-only' | 'crawler-only'
 
 /**
- * Minimal read surface — matches the old Sheet.tsx dep-injection type.
- * Returns EntityForType<T> (the store's own mapping) so the live store's
+ * Minimal read surface. Returns EntityForType<T> (the store's own mapping) so the live store's
  * generic `get` is directly assignable without a cast.
  */
 export type EntityLookup = {

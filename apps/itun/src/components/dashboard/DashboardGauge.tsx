@@ -31,8 +31,7 @@ export type DashboardGaugeProps = {
   danger?: number
   /**
    * Ledger explaining how `max` was derived (ADR-029). Guided Play teaches as it
-   * enforces (ADR-021), so the instrument carries this too — it used to discard
-   * the gauge's override/provenance props entirely.
+   * enforces (ADR-021), so the instrument carries this too.
    */
   provenance?: ProvenanceLine[]
   /**

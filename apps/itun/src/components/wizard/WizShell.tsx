@@ -63,8 +63,7 @@ type WizShellProps = {
   onCancel: () => void
   /**
    * When true (a dirty form), Cancel asks for confirmation before
-   * discarding — a mis-tap can no longer destroy a multi-step build
-   * (audit item 3). Default false keeps pristine forms one-click.
+   * discarding, so a mis-tap cannot destroy a multi-step build. Default false keeps pristine forms one-click.
    */
   confirmCancel?: boolean
   /** Advances to the next step, or submits on the last step. */
@@ -366,10 +365,10 @@ export function WizShell({
                 /* `sm:pl-12` (48px) is LOAD-BEARING, not a taste-level inset: it
                    is the gutter the overhanging number tab below is measured
                    against. The tab is `w-14` (56px) at `-left-5` (-20px), so its
-                   right edge lands 36px inside the card — under the old `sm:pl-8`
-                   (32px) the content box started 4px to the LEFT of that, and the
-                   black tab printed on top of both the step title's first glyph
-                   and the RuleBrief panel's left edge. 48px clears it by 12px.
+                   right edge lands 36px inside the card — at 32px the content box
+                   would start 4px to the LEFT of that, and the black tab would
+                   print over the step title's first glyph and the RuleBrief
+                   panel's left edge. 48px clears it by 12px.
                    Same overhang-plus-clearance relationship as `ModeDoor`'s tab.
                    Move one of the three numbers and you must move the others. */
                 className="relative rounded-xl px-5 pb-6 pt-5 shadow-[0_14px_26px_-14px_var(--color-ink-40),inset_0_0_46px_var(--color-ink-8)] sm:pl-12"

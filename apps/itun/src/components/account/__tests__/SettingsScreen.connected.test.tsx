@@ -126,7 +126,7 @@ describe('the settings page', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Settings' })).toBeTruthy()
   })
 
-  test('no longer lists your games — that moved to the masthead Games menu', () => {
+  test('does not list your games — the masthead Games menu does', () => {
     withQueries(profileQueries(ME))
     wrap()
     expect(screen.queryByRole('heading', { name: /your games/i })).toBeNull()

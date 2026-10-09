@@ -55,9 +55,9 @@ export const entityRefType = v.union(v.literal('pilot'), v.literal('mech'), v.li
 /**
  * Mirrors `SoftLinkSchema.type` (src/lib/schemas/softLink.ts). Exported: see above.
  *
- * `mech-to-crawler` is the newest literal (ADR-037): a mech's crawler is its
- * own link, no longer reached through its pilot. Adding a literal is the
- * backward-compatible direction — every existing row still validates.
+ * `mech-to-crawler` (ADR-037): a mech's crawler is its own link, not reached
+ * through its pilot. Adding a literal is the backward-compatible direction —
+ * every existing row still validates.
  */
 export const softLinkType = v.union(
   v.literal('mech-to-pilot'),
@@ -141,11 +141,10 @@ function containerTable() {
       gameId: v.union(v.id('games'), v.null()),
       ownerId: v.union(v.id('users'), v.null()),
       /**
-       * The app-level UUID this row mirrors (ADR-030 §1).
+       * The app-level UUID this row carries (ADR-030 §1).
        *
-       * Convex mints its own `_id`, so a client holding only the local UUID has
-       * nothing to address a row by — which is what made an earlier
-       * write-mirroring attempt unworkable for updates and deletes. Carrying the
+       * Convex mints its own `_id`, so a client holding only the local UUID
+       * would have nothing to address a row by for updates and deletes. Carrying the
        * app id as an indexed column gives one cheap lookup per write instead of
        * a mapping table, and keeps `_id` idiomatic for everything server-side.
        *
@@ -172,7 +171,7 @@ function containerTable() {
       .index('by_game', ['gameId'])
       // `ownerId` alone is a prefix of this, so it also serves every "all of
       // mine" read; the second column is for "mine on the shelf" (`gameId:
-      // null`), which used to collect everything the owner held and filter.
+      // null`), so that read never collects everything the owner holds.
       .index('by_owner_game', ['ownerId', 'gameId'])
       .index('by_app_id', ['appId'])
   )
@@ -209,8 +208,8 @@ export default defineSchema({
     .index('phone', ['phone']),
 
   /**
-   * A Game is the shared container — campaign, group, and (formerly) workspace
-   * collapsed into one concept (ADR-030 §2). Membership lives in `memberships`, never
+   * A Game is the shared container — campaign and group in one concept
+   * (ADR-030 §2). Membership lives in `memberships`, never
    * as an array here, so authorization is a single indexed lookup.
    */
   games: defineTable({
@@ -222,11 +221,10 @@ export default defineSchema({
      * in `model/entities.ts`, never written by a mutation directly.
      *
      * Denormalised because `games.listMine` is subscribed from several screens
-     * at once and used to derive these by collecting every membership, pilot,
-     * mech and crawler of every Game the caller belongs to. That made the list
-     * as expensive as the whole account, and — worse, because it is reactive —
-     * made an HP tick on anybody's sheet in any of your Games re-run it. Read
-     * from here instead, the list depends on one document per Game, and that
+     * at once: deriving these from every membership, pilot, mech and crawler
+     * would make the list as expensive as the whole account, and — because it
+     * is reactive — re-run it on an HP tick on anybody's sheet in any of your
+     * Games. Read from here, the list depends on one document per Game, and that
      * document changes only when one of these four values does.
      *
      * Optional because a Game is inserted before the membership whose trigger
@@ -561,7 +559,7 @@ export default defineSchema({
     supersededBy: v.optional(v.id('changeLog')),
   })
     // `entityId` alone is a prefix of this. The rest is for `proposals.propose`,
-    // which supersedes live proposals against one field and used to collect an
+    // which supersedes live proposals against one field without collecting an
     // entity's entire history to find them.
     .index('by_entity_state_field', ['entityId', 'state', 'field'])
     // `gameId` alone is a prefix of this. `ts` last so `proposals.alerts` can
@@ -572,8 +570,7 @@ export default defineSchema({
   /**
    * Which Discord channel a Game is bound to (ADR-030, Phase 6).
    *
-   * The bot authenticates as a **participant**, not an admin — the whole point
-   * of closing the old #165 differently. A binding says "rolls in this channel
+   * The bot authenticates as a **participant**, not an admin. A binding says "rolls in this channel
    * belong to this Game", and the actor is resolved from the Discord user id
    * against `authAccounts.providerAccountId` (`model/bot.ts#userByDiscordId`),
    * so the bot can never act as somebody who has not linked their account.

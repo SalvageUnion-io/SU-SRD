@@ -114,10 +114,10 @@ export type EntityState = {
    * Cache a row from the server of record under the id it already has
    * (ADR-030 §1 — IndexedDB is the warm cache once you are signed in).
    *
-   * This is the *only* write path that does not mirror back, and that is the
-   * point rather than an optimisation: the record came from the server, so
-   * echoing it would be a write nobody asked for — and for a crawler, whose
-   * mirror is a field merge, a pointless round trip that could clobber an edit
+   * This is the *only* write path that does not commit to the server, and that
+   * is the point rather than an optimisation: the record came from the server,
+   * so echoing it would be a write nobody asked for — and for a crawler, whose
+   * write is a field merge, a pointless round trip that could clobber an edit
    * a crewmate made between the read and the echo.
    *
    * It is also not a Change Log event. Nothing changed; a copy arrived.
@@ -129,8 +129,8 @@ export type EntityState = {
    * — the exact inverse of `adopt`, and deliberately not `delete`.
    *
    * The case it exists for: you hand a character back to the crew. The entity
-   * is not gone, it is simply no longer yours, and `delete` would try to mirror
-   * a destruction the server rightly refuses. Keeping the copy instead is worse
+   * is not gone, it is simply no longer yours, and `delete` would ask the
+   * server for a destruction it rightly refuses. Keeping the copy instead is worse
    * still — it leaves a live sheet whose every save is rejected, which is the
    * most confusing failure this app can produce.
    */
@@ -141,9 +141,9 @@ export type EntityState = {
    * Change Log entry per changed field (provenance, ADR-022). `meta` tags those
    * entries and is **required**: pick the constant for your surface from
    * `surfaceProvenance.ts` (`LIVE_SHEET_MANUAL`, `DASHBOARD_TXN`, …) rather than
-   * writing the object inline. It used to be optional with a `manual`/`unknown`
-   * default, which quietly defeated the whole point of declaring provenance once
-   * per surface — an untagged call site logged as a hand edit and nothing said so.
+   * writing the object inline. A default would defeat the point of declaring
+   * provenance once per surface: an untagged call site would log as a hand edit
+   * and nothing would say so.
    */
   update: <T extends EntityType>(
     type: T,
@@ -155,7 +155,7 @@ export type EntityState = {
   /**
    * Merges a patch into ONE crawler bay entry (matched by bayRef) on top of
    * the freshest persisted record — concurrent edits to different bays from
-   * different tabs no longer clobber each other's whole-array writes.
+   * different tabs never clobber each other's whole-array writes.
    * Throws when the crawler or the bay entry does not exist.
    */
   updateCrawlerBay: (
@@ -238,11 +238,9 @@ const DB_STORES: { [K in EntityType]: DbStoreApi<K> } = {
 /**
  * Commit one record to the server of record, and throw if it refuses.
  *
- * The replacement for `mirrorEntityWrite`, and the shape change is the point:
- * this is **awaited before anything local is written**, so a refused write
- * leaves no trace on the device. Its predecessor ran after the local write and
- * swallowed failures into a warning, because back then the local store was the
- * source of truth and the UI read it. It is not any more.
+ * It is **awaited before anything local is written**, so a refused write leaves
+ * no trace on the device: the server, not the local store, is the source of
+ * truth.
  *
  * Each type still dispatches differently, and each difference is a rule rather
  * than an implementation detail: a crawler sends its *patch* so a write from a

@@ -6,10 +6,8 @@ import { expect, test } from './fixtures'
  * Armament Bay → Crew → Name → Review; three steps gate (type, at least one
  * weapon, a name) and the rest are informational.
  *
- * This previously described a Crawler → Systems → Crew → Identity flow and
- * filled a labelled `Crawler Name` input. The name is now a click-to-edit
- * control ("Edit crawler name"), and the systems grid is the Armament Bay step.
- * Steps are reached by their content rather than by counting Next clicks, so an
+ * The name is a click-to-edit control ("Edit crawler name"), and the systems
+ * grid is the Armament Bay step. Steps are reached by their content rather than by counting Next clicks, so an
  * inserted step does not strand these assertions on the wrong screen.
  *
  * Crawler types render as `ReferenceEntityCard` radio cells (role="radio",

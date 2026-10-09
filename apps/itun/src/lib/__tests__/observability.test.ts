@@ -15,8 +15,8 @@ import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
  * `captureException` earns its own cases here: catching is exactly what
  * PREVENTS an error reaching
  * Sentry's `globalHandlers` integration, so a deliberately-caught failure —
- * including a failed mirror to the server of record — is reportable ONLY
- * through this function. It previously had no test at all.
+ * including a failed Change Log commit — is reportable ONLY through this
+ * function.
  *
  * `mock.module` is process-global in Bun, not file-scoped, so the real
  * `@sentry/browser` namespace is captured BEFORE mocking and restored in
@@ -139,7 +139,7 @@ describe('observability', () => {
   })
 
   test('captureException forwards the error, with context as extra when given', () => {
-    const boom = new Error('mirror to server of record failed')
+    const boom = new Error('change log commit failed')
     captureException(boom, { entityKind: 'pilot' })
 
     const captured = sentryCalls.find((c) => c.fn === 'captureException')
@@ -160,14 +160,14 @@ describe('observability', () => {
     const boom = new Error('[CONVEX M(entities:upsertByAppId)] [Request ID: abc] Server Error')
     captureException(
       boom,
-      { source: 'mirrorWrite' },
-      { fingerprint: ['itun-mirror-write-failed', 'entities:upsertByAppId', 'defect'] }
+      { source: 'commitWrite' },
+      { fingerprint: ['itun-commit-write-failed', 'entities:upsertByAppId', 'defect'] }
     )
 
     const captured = sentryCalls.find((c) => c.fn === 'captureException')
     expect(captured?.args[1]).toEqual({
-      extra: { source: 'mirrorWrite' },
-      fingerprint: ['itun-mirror-write-failed', 'entities:upsertByAppId', 'defect'],
+      extra: { source: 'commitWrite' },
+      fingerprint: ['itun-commit-write-failed', 'entities:upsertByAppId', 'defect'],
     })
   })
 

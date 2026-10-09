@@ -11,8 +11,7 @@ import { SRD_SITE_URL } from 'salvageunion-reference'
  * collapses into the shared `NavDrawer`, with `mobileActions` beside the
  * hamburger and `drawerExtra` inside the drawer.
  *
- * One row, with no sub-header: the account cluster that used to sit on a
- * second row beneath the nav is now those menus.
+ * One row, with no sub-header: the account cluster is those menus.
  *
  * No search, either. ITUN's reference search is a floating button in the
  * bottom-right corner (`Fab`, wired in ITUN's `GlobalSearch.tsx`), so this

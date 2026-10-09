@@ -32,7 +32,7 @@ type EncounterState = HydratedCollectionSlice<'encounterNpcs', EncounterNpc> &
 const slice = makeHydratedCollectionSlice<'encounterNpcs', EncounterNpc, EncounterNpcCreateInput>({
   key: 'encounterNpcs',
   db: db.encounterNpcs,
-  /** The per-write mirror (ADR-034 P4b) — see `patternStore` for why. */
+  /** The server-first write (ADR-034) — see `patternStore` for why. */
   commit: commitNpcWrite,
 })
 

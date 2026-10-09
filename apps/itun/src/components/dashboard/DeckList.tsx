@@ -6,9 +6,9 @@
  *
  * Presentational: `useActionsDeck` builds the `DeckListModel` and this only
  * renders it and calls back. Every filter is a row of toggle buttons with
- * `aria-pressed` — the timing filter included. It used to be a
- * `role="tablist"` with no arrow keys and no panel, claiming a keyboard model
- * it did not have; filtering one list is a toggle, not a tab (audit UX-15).
+ * `aria-pressed` — the timing filter included: filtering one list is a
+ * toggle, not a tab, and a `role="tablist"` would claim a keyboard model it
+ * does not have.
  */
 
 import type { ReferenceCardEntity } from 'component-lib'

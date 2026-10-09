@@ -181,8 +181,8 @@ export function makeStore<T extends EntityBase>(
    * point of having a third verb:
    *
    *  - `create` mints a fresh UUID. A server row cached under a new id is a
-   *    *copy*, so the next edit would mirror back addressed by an appId the
-   *    server has never seen and land as a second entity.
+   *    *copy*, so the next edit would be committed under an appId the server
+   *    has never seen and land as a second entity.
    *  - `update` requires the row to exist locally, which by definition it does
    *    not the first time a Game's crawler or a claimed pre-gen is pulled down.
    *

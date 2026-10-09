@@ -135,7 +135,7 @@ export function CrawlerIdentityPanel({
 
         {/* The type's INTERNALS, laid out directly in identity: no card frame
             around them. The ability and the crew sit side by side and fill the
-            band of paper the dissolved type card used to leave empty. */}
+            band. */}
         {crawler.type && (
           <CrawlerTypeCard
             crawlerId={crawler.id}

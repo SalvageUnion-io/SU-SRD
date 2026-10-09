@@ -79,10 +79,9 @@ export type BandOverlay = {
   /**
    * Gauges to keep on screen while the overlay is up.
    *
-   * The overlay covers the whole band, so opening "Take Damage" used to hide
-   * SP, EP and Heat at exactly the moment you were deciding how much damage to
-   * apply — the number you are choosing and the number it changes were never
-   * visible together. Pass the gauge the overlay acts on and it stays readable.
+   * The overlay covers the whole band, so without these "Take Damage" would
+   * hide SP, EP and Heat at exactly the moment you decide how much damage to
+   * apply. Pass the gauge the overlay acts on and it stays readable.
    */
   gauges?: BandGauge[]
   body?: ReactNode
@@ -335,9 +334,9 @@ export function MajorFrame({ view }: { view: MajorModel }) {
       <div className="pc-bays" style={BAYS}>
         {main.map((bay) => (
           // A bay with only buttons (Mount) has nothing to fill its middle, and
-          // the button grid is floor-pinned — so it used to render as a label
-          // at the top, a button at the bottom, and a stripe of nothing
-          // between. Flagged so the stylesheet can centre those bays instead.
+          // the button grid is floor-pinned — so it would render as a label at
+          // the top, a button at the bottom, and a stripe of nothing between.
+          // Flagged so the stylesheet can centre those bays instead.
           // A bay of readouts or chips reads from the top like the rest.
           <div key={bay.label} className="pc-bay" data-nogauge={buttonsOnly(bay) || undefined}>
             <BayBody bay={bay} />

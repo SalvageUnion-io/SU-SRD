@@ -111,9 +111,8 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
   // preload('all') has already resolved, so these are synchronous. crawlers
   // drives the type selection (and its mutations-derived budgets);
   // crawler-bays seeds the default bays + the Crew step; crawler-tech-levels
-  // backs the Statistics step + the SP derivation. (A per-component
-  // `preload([...]).then(setState)` used to sit here — redundant behind the
-  // gate, and it cost an empty first render.)
+  // backs the Statistics step + the SP derivation. No per-component preload:
+  // it is redundant behind the gate and costs an empty first render.
   const techLevels = useMemo<SURefMetaCrawlerTechLevel[]>(
     () =>
       [...SalvageUnionReference.CrawlerTechLevels.all()].sort((a, b) => a.techLevel - b.techLevel),
@@ -247,8 +246,7 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
     .filter((s): s is SURefSystem & { schemaName: string } => s !== null)
 
   // The Armament-Bay cap comes from the type's STORED `mutations` rows
-  // (weapon_slots; Battle = 2) — plan §4.3, replacing the old action-name
-  // string match. Selection clamps at this.
+  // (weapon_slots; Battle = 2) — plan §4.3. Selection clamps at this.
   const weaponSlots = crawlerWeaponSlotsFor(form.type)
   const installedWeaponCount = form.systems.filter((slug) => {
     const system = resolveSystemRef(slug)

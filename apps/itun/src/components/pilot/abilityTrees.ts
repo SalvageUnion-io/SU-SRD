@@ -3,9 +3,7 @@
  * Add Abilities searcher: the set of trees a pilot may draw abilities from.
  *
  * The logic itself lives in `salvageunion-reference/rules` — this is the app's
- * seam onto it. It used to be implemented here AND, byte for byte, again in
- * `component-lib`'s ClassAbilityStep; both copies shared the same bug, which is
- * the argument for there being one.
+ * seam onto it, so there is one implementation, not one per consumer.
  */
 
 import { offeredAbilityTrees } from 'salvageunion-reference/rules'

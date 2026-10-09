@@ -6,7 +6,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
  * ## Why a second thing next to `NotConnectedBanner`
  *
  * The banner is app-wide and says *why*: the connection is gone. This says
- * *what it costs you here*, and it sits where the edit affordance used to be —
+ * *what it costs you here*, and it sits where the edit affordance would be —
  * which is the question a player actually asks. Withdrawing a Share button and
  * leaving a gap invites the reading "the app is broken"; withdrawing it and
  * saying "read-only — not connected" in its place does not.

@@ -270,8 +270,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  /* Wide enough that a catalog tile's description keeps a readable measure —
-     the old 260px was sized for the header-only badge these tiles replaced. */
+  /* Wide enough that a catalog tile's description keeps a readable measure. */
   column-width: 320px;
   column-gap: 8px;
 }

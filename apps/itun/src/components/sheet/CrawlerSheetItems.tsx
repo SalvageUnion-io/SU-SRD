@@ -415,14 +415,12 @@ export function CrawlerTypeCard({
     />
   ) : undefined
 
-  // NO card container. The crawler type used to render as a full entity card
-  // with its ability and crew folded into the `expand` slot — a frame around a
-  // frame around a frame, and the outer one left a band of empty paper down the
-  // identity card. Its INTERNALS are handed back instead, for the identity
+  // NO card container: a full entity card here would be a frame around a frame
+  // around a frame. Its INTERNALS are handed back instead, for the identity
   // panel to lay out beside its own fields.
   //
   // The type's own choices ride the ability column, so a type that carries a
-  // permanent pick is still editable without the card that used to host it.
+  // permanent pick is editable without a card to host it.
   // The type's own PROSE survives the dissolved card. Losing the frame was the
   // point; losing the paragraph that says what an Exploratory crawler IS was
   // not — it is the only place that text appears on the sheet.

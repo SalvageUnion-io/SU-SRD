@@ -17,10 +17,6 @@ const ability = SalvageUnionReference.Abilities.all()[0]
  * The live sheets' edit language, in the arrangement the sheets actually use: a
  * solid `Slab` section header whose `actions` slot carries an always-live Add
  * (COLLECTION sections).
- *
- * The FIELD archetype's per-section Edit/Done toggle used to be demonstrated
- * here too. `SectionEditButton` was built and exported but adopted by no sheet,
- * so it was deleted and this story lost that panel with it.
  */
 export const Default: Story = () => {
   const [open, setOpen] = useState(false)

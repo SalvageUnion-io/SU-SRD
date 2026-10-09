@@ -72,9 +72,8 @@ import { crawlerStats, mechChassisStats, pilotStats } from './rowStats'
 /**
  * The row's body details, blanks dropped.
  *
- * These used to be joined into one muted line with ' · ' separators, then became
- * chips, and are now `label | value` stats — each step removing an inference the
- * reader was making on the row's behalf.
+ * `label | value` stats, never one muted line joined with ' · ' separators: a
+ * stat removes an inference the reader would make on the row's behalf.
  */
 function metaParts(parts: Array<ReactNode | null | undefined>): ReactNode[] | undefined {
   const kept = parts.filter((part) => part != null && part !== '')
@@ -144,11 +143,10 @@ export function Roster() {
    * A cross-link to another entity's live sheet, as a Badge tinted with THAT
    * entity's ontology tone (design review U-4).
    *
-   * These used to be muted '↳ Name' underlined text. The row already tones its
-   * own rail by ontology, so a monochrome cross-link was the one place on the
-   * row where "which kind of thing is this?" had to be read rather than seen —
-   * and a pilot linking to both a mech and a crawler rendered two visually
-   * identical segments. The tone comes from the TARGET's kind, never the row's.
+   * The row already tones its band by ontology, so a monochrome cross-link
+   * would be the one place on the row where "which kind of thing is this?" had
+   * to be read rather than seen. The tone comes from the TARGET's kind, never
+   * the row's.
    *
    * Badge wrapped in the link rather than rendered `as={AppLink}`: its chip
    * props are typed for a span and carry no `href`. This is the same shape the
