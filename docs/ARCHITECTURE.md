@@ -291,17 +291,23 @@ switching production on and error reporting:
 [`convex-maintenance`](../.claude/skills/convex-maintenance/SKILL.md). Values
 here are public; the OAuth client _secret_ lives only on the deployments.
 
-|  | Dev | Production |
-| --- | --- | --- |
-| Deployment | `dev/alex-jarvis` (`perfect-donkey-72`) | `exuberant-porpoise-183` |
-| Client URL (`VITE_CONVEX_URL`) | `https://perfect-donkey-72.convex.cloud` | `https://exuberant-porpoise-183.convex.cloud` |
-| HTTP actions (`VITE_CONVEX_SITE_URL`) | `https://perfect-donkey-72.convex.site` | `https://exuberant-porpoise-183.convex.site` |
-| `SITE_URL` (the **frontend** origin) | `http://localhost:5173` | `https://intheunionnow.com` |
+|  | Production |
+| --- | --- |
+| Deployment | `exuberant-porpoise-183` |
+| Client URL (`VITE_CONVEX_URL`) | `https://exuberant-porpoise-183.convex.cloud` |
+| HTTP actions (`VITE_CONVEX_SITE_URL`) | `https://exuberant-porpoise-183.convex.site` |
+| `SITE_URL` (the **frontend** origin) | `https://intheunionnow.com` |
 
 Project `alex-jarvis:suref-itun`
 ([dashboard](https://dashboard.convex.dev/t/alex-jarvis/suref-itun)). The
 production origin is `https://intheunionnow.com`, never a `workers.dev`
 host. `apps/srd` has no accounts.
+
+Development has no cloud deployment. `bun run dev:itun` runs a **local**
+deployment (`convex dev --start vite`) and signs in through the test seam,
+`ITUN_TEST_AUTH` on the local deployment and `VITE_TEST_AUTH` in the dev
+server, not Discord. One-time setup:
+[`apps/itun/README.md`](../apps/itun/README.md#local-backend).
 
 ### Convex error reporting
 
@@ -316,23 +322,21 @@ redacted defect; never string-match `'Server Error'`.
 ### Discord
 
 One application serves the bot and web sign-in; resetting the OAuth2 secret
-leaves the bot token alone. One redirect URI per deployment
+leaves the bot token alone. Its one redirect URI is production's
 (`@convex-dev/auth` mounts `/api/auth/callback/` plus provider id `discord`):
 
 ```
-https://perfect-donkey-72.convex.site/api/auth/callback/discord      (dev)
-https://exuberant-porpoise-183.convex.site/api/auth/callback/discord (prod)
+https://exuberant-porpoise-183.convex.site/api/auth/callback/discord
 ```
 
 ### Required deployment variables
 
-**All three, or sign-in fails**, per deployment:
+**All three, or sign-in fails**, on production:
 
 ```bash
-bunx convex env set AUTH_DISCORD_ID     <client-id>
-bunx convex env set AUTH_DISCORD_SECRET <client-secret>
-bunx convex env set SITE_URL            <frontend origin>
-# add --prod to target production
+bunx convex env set --prod AUTH_DISCORD_ID     <client-id>
+bunx convex env set --prod AUTH_DISCORD_SECRET <client-secret>
+bunx convex env set --prod SITE_URL            <frontend origin>
 ```
 
 `SITE_URL` is the one that bites. It is the **frontend** origin, _not_
@@ -986,9 +990,11 @@ registration): use `gh`, or a local-scope `~/.claude.json` entry with a
 `headersHelper`. `convex` refuses production unless flagged
 (`--dangerously-enable-production-deployments`,
 `--cautiously-allow-production-pii`); never add either. Its pin matches
-`apps/itun/package.json`. It needs `CONVEX_DEPLOYMENT` in `apps/itun/.env.local`
-(from `bunx convex dev`; `.worktreeinclude` copies it into Claude Code
-worktrees), else every call fails `No CONVEX_DEPLOYMENT set`. `context7`
+`apps/itun/package.json`. It targets the local deployment named by
+`CONVEX_DEPLOYMENT` in `apps/itun/.env.local` (written by `bun run dev:itun`;
+`.worktreeinclude` copies it into Claude Code worktrees), which answers only
+while `bun run dev:itun` runs; with no file every call fails
+`No CONVEX_DEPLOYMENT set`. `context7`
 returns condensed docs: verify load-bearing APIs against `node_modules`.
 
 ### Cloud sessions

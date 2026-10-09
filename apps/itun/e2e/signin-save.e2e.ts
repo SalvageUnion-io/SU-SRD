@@ -24,24 +24,24 @@ test.use({ account: 'anonymous' })
  *  - `ITUN_TEST_AUTH=true` on that deployment, so the `password` provider exists,
  *  - `VITE_TEST_AUTH=true` in the build, so `TestAuthBridge` registers the seam.
  *
- * The ordinary suite builds with none of them, so this skips there with a
- * stated reason rather than failing — the same trade `offline.e2e.ts` makes for
+ * The PR-blocking CI suite builds with none of them, so this skips there with
+ * a stated reason rather than failing — the same trade `offline.e2e.ts` makes for
  * the dev-server case: a spec that went red in the ordinary run would be
  * deleted the first time it annoyed somebody.
  *
  * **It runs nightly.** `e2e-itun` in `.github/workflows/e2e-nightly.yml`
  * provides all three against a throwaway self-hosted Convex backend — a
- * container destroyed with the runner, so it needs no credentials, cannot
- * create junk accounts on a shared deployment, and never puts a password
- * provider on production. The same seam now signs in every other durable spec
- * too (`fixtures.ts`), since the anonymous backend is in-memory everywhere.
+ * container destroyed with the runner, so it needs no credentials and never
+ * puts a password provider on production. The same seam now signs in every
+ * other durable spec too (`fixtures.ts`), since the anonymous backend is
+ * in-memory everywhere.
  *
  * That job sets `ITUN_E2E_EXPECT_AUTH_SEAM`, which turns the skip into a throw.
  *
- * Run it for real with a test deployment:
+ * Run it for real against the local backend (one-time setup: "Local backend"
+ * in `apps/itun/README.md`; without it this fails locally). Playwright starts
+ * `bun run dev:itun`, or reuses a running one, which carries all three:
  *
- *   bunx convex env set ITUN_TEST_AUTH true      # on the test deployment
- *   VITE_TEST_AUTH=true VITE_CONVEX_URL=<url> bun --filter itun build
  *   bun --filter itun exec playwright test signin-save.e2e.ts
  */
 

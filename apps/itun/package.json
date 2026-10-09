@@ -5,7 +5,7 @@
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
-    "dev": "vite",
+    "dev": "VITE_TEST_AUTH=true convex dev --start vite",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
     "test": "bun test --parallel=4 --no-isolate",
