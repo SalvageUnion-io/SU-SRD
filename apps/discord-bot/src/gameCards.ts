@@ -268,12 +268,11 @@ export function shelfSheetUrl(
 /**
  * A link to a **crewmate's** entity: the read-only Game view.
  *
- * This route is addressed by the Convex row id precisely because the viewer has
- * no local copy of somebody else's build, and it is the only one that resolves
- * for them. The crew board and `/su sheet` both previously linked
- * `/sheet/$kind/$appId` instead, which reads the clicker's own IndexedDB — so
- * every link the bot handed a crewmate opened an entity they do not have.
- * Nothing errored; the page simply had nothing to show.
+ * The crew board and `/su sheet` never link a crewmate's entity to
+ * `/sheet/$kind/$appId`, because that route reads the CLICKER's IndexedDB: a
+ * crewmate does not have that entity locally, so such a link opens an empty
+ * page. This route is addressed by the Convex row id precisely because the
+ * viewer has no local copy of somebody else's build.
  */
 export function gameSheetUrl(
   webUrl: string,

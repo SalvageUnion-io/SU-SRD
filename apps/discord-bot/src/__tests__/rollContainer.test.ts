@@ -56,9 +56,8 @@ describe('the headline is never a bare die number', () => {
   })
 
   test('an unlabelled short value becomes the headline itself', () => {
-    // Callsign entries are bare words with no label — previously the value was
-    // the title only by accident of the columns branch, and flat tables put it
-    // in the body under "Roll: 14".
+    // Callsign entries are bare words with no label. An unlabelled short value
+    // is the headline on every table shape, never body copy under "Roll: N".
     expect(headline(rollOf('Callsign Table', 1))).toContain('SPARKLES')
   })
 

@@ -367,10 +367,10 @@ describe('deep links', () => {
     expect(linked).toContain(`${WEB}/games/g1/view/pilot/p1`)
     expect(linked).not.toContain(`${WEB}/sheet/pilot/app-p1`)
 
-    // An UNCLAIMED entity is now linkable, where it previously rendered bare.
-    // That is the point of addressing by row id: the entity exists on the
-    // server whether or not anyone has ever claimed it into a browser, so
-    // there is a real page to open. Only the local route needed an app id.
+    // An unclaimed entity is linkable, because it is addressed by row id: the
+    // entity exists on the server whether or not anyone has ever claimed it
+    // into a browser, so there is a real page to open. Only the local route
+    // needs an app id.
     expect(unclaimed).toContain('Nobody')
     expect(unclaimed).toContain(`${WEB}/games/g1/view/pilot/p2`)
   })
