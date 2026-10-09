@@ -272,9 +272,7 @@ Fixed, by layer 9 at the latest; each layer fixed the ones it made false.
 - `docs/ARCHITECTURE.md` § Combat loop and § Rules and ITUN surfaces:
   component names (`ActionsDeck`, `MechBand`, `PilotBand`) and "composes a
   player's" wording, if they change.
-- `docs/design-system/ruleset.md` Dashboard laws, and
-  `.claude/rules/react-components.md` (the `dashboard/` folder and `pc-*`
-  contract).
+- `docs/design-system/ruleset.md` Dashboard laws.
 - `apps/itun/CLAUDE.md`'s store list names `cockpitPrefsStore` (layer 4).
 - `DashboardCanvas.tsx`'s `MIN_SCALE` comment says a stacked fallback
   replaces the canvas; it is a notice (#1063).

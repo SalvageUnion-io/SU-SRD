@@ -1,7 +1,7 @@
 # SURef Monorepo
 
 A Bun monorepo of tools for **Salvage Union** (tabletop RPG): a static SRD
-reference site, a local-first character builder & game manager, a Discord dice
+reference site, a character builder & game manager, a Discord dice
 bot, and two shared packages.
 
 > **Detailed documentation lives in [docs/README.md](docs/README.md)** — it maps
