@@ -33,6 +33,7 @@ import { accentSurface } from '../referenceEntityHelpers'
 import { BonusPerTechLevel } from './BonusPerTechLevel'
 import { resolveBodyBlocks, resolveBodyLayout } from './bodyBlocks'
 import { interleaveBody } from './bodyInterleave'
+import { CardOuter } from './CardOuter'
 import type { CardProseContext } from './CardProse'
 import { CardProse, FoldedActionProse, PatternProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
@@ -439,7 +440,7 @@ function ReferenceEntityCardInner({
   )
 
   // WRITE LAYER — whole-card affordances (see `resolveCardInteraction`).
-  const { outerClassName, outerInteraction, frameStyle } = resolveCardInteraction({
+  const { outer, frameStyle } = resolveCardInteraction({
     onCardClick,
     controls,
     cardClickable,
@@ -491,8 +492,7 @@ function ReferenceEntityCardInner({
   if (size === 'small' && extent === 'head') {
     return (
       <CardShortform
-        outerClassName={outerClassName}
-        outerInteraction={outerInteraction}
+        outer={outer}
         accent={accentSurface(headerBg, headerBgColor)}
         frameStyle={frameStyle}
         onBandText={onBandText}
@@ -510,7 +510,7 @@ function ReferenceEntityCardInner({
   // seam escapes the clip.
   if (extent === 'head') {
     return (
-      <div className={outerClassName} {...outerInteraction}>
+      <CardOuter {...outer}>
         {seam}
         {topRightRail}
         <div
@@ -519,7 +519,7 @@ function ReferenceEntityCardInner({
         >
           {header}
         </div>
-      </div>
+      </CardOuter>
     )
   }
 
@@ -811,7 +811,7 @@ function ReferenceEntityCardInner({
     !afterExtraContent
 
   return (
-    <div className={outerClassName} {...outerInteraction}>
+    <CardOuter {...outer}>
       {seam}
       {topRightRail}
       <div
@@ -1030,7 +1030,7 @@ function ReferenceEntityCardInner({
             ))
           : null}
       </div>
-    </div>
+    </CardOuter>
   )
 }
 

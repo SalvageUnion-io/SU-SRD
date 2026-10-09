@@ -94,10 +94,7 @@ export function StatProvenance({
       <Popover.Portal>
         <Popover.Positioner side="top" sideOffset={6}>
           <Popover.Popup
-            className={cn(
-              'z-50 min-w-[15rem] max-w-[22rem] rounded-md bg-ink px-3 py-2.5 text-paper shadow-md',
-              'animate-in fade-in-0 zoom-in-95'
-            )}
+            className="z-50 min-w-[15rem] max-w-[22rem] rounded-md bg-ink px-3 py-2.5 text-paper shadow-md"
             onMouseEnter={() => setOpen(true)}
             onMouseLeave={() => setOpen(false)}
           >

@@ -746,7 +746,46 @@ body {
   }
 }
 
-/* ══ Nav drawer ═════════════════════════════════════════════════════════════ */
+/* ══ Overlays ═══════════════════════════════════════════════════════════════
+ *
+ * Every overlay is a Base UI part (Dialog, Drawer, Popover); these are the
+ * classes they share.
+ */
+
+/* The one scrim, behind every modal: ModalShell, EntityDetailDialog, NavDrawer
+   and srd's MobileSearchDialog. Fixed to the viewport; a ModalShell portalled
+   into a `container` sets `position: absolute` on it, so it covers that box. */
+.su-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background-color: color-mix(in srgb, var(--color-ink-deep) 80%, transparent);
+}
+
+/* A Base UI Drawer's panel slides in from the edge it is swiped away to
+   (`data-swipe-direction`), and follows the finger while it is being swiped.
+   A transition, not a keyframe: Base UI unmounts the panel when it ends, and
+   the reduced-motion backstop below shortens it rather than removing it. */
+.su-drawer {
+  transition: transform 200ms ease-out;
+}
+.su-drawer[data-swipe-direction='right'] {
+  transform: translateX(var(--drawer-swipe-movement-x, 0px));
+}
+.su-drawer[data-swipe-direction='right'][data-starting-style],
+.su-drawer[data-swipe-direction='right'][data-ending-style] {
+  transform: translateX(100%);
+}
+.su-drawer[data-swipe-direction='up'] {
+  transform: translateY(var(--drawer-swipe-movement-y, 0px));
+}
+.su-drawer[data-swipe-direction='up'][data-starting-style],
+.su-drawer[data-swipe-direction='up'][data-ending-style] {
+  transform: translateY(-100%);
+}
+.su-drawer[data-swiping] {
+  transition-duration: 0ms;
+}
 
 /* The app's `extra` block (components/shared/NavDrawer.tsx) collapses when the
    app renders nothing into it, so its rule never sits under an empty box. */

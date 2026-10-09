@@ -325,34 +325,11 @@
      claim this comment used to make ("EVERY animation token here is applied
      `motion-safe:`") was simply false — 3 call sites used `motion-safe:`, 4
      used `motion-reduce:`, one reached for `matchMedia` in JS, and 10 were
-     unguarded, including the `animate-slide-in-right`/`-out-right` drawer this
-     very block defines and 8 `animate-pulse` skeletons. A per-call-site
+     unguarded, among them 8 `animate-pulse` skeletons. A per-call-site
      convention that nothing enforces will drift. The
      `@media (prefers-reduced-motion: reduce)` backstop below the `@theme`
      block is what makes the guarantee true, and it holds for a call site
      nobody remembered to mark. */
-
-  /* Mobile nav-drawer slide — the shared NavDrawer + the SRD mobile-search
-     sheet. Lives here (not in each app's CSS) so the shared drawer animates
-     identically in both apps AND in Ladle. */
-  --animate-slide-in-right: slide-in-right 0.2s ease-out;
-  --animate-slide-out-right: slide-out-right 0.2s ease-in;
-  @keyframes slide-in-right {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-  @keyframes slide-out-right {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(100%);
-    }
-  }
 }
 
 /*
@@ -367,12 +344,10 @@
  *
  * `animation-duration: 0.01ms` + `animation-iteration-count: 1` does NOT strip
  * the animation — it runs it once, instantly, so the element lands on the
- * keyframes' END state rather than being left mid-transform. That is exactly
- * what each of this file's animations wants: `slide-in-right` ends at
- * `translateX(0)` (drawer open, in place), `slide-out-right` ends at
- * `translateX(100%)` (drawer gone, so Base UI's exit-animation unmount still
- * fires), and `animate-pulse` ends at full opacity (a static skeleton).
- * Simply disabling the animation would strand the exit case mounted forever.
+ * keyframes' END state rather than being left mid-transform: `animate-pulse`
+ * ends at full opacity (a static skeleton), and a Base UI exit transition (the
+ * `.su-drawer` slide) still ends, so its unmount still fires. Simply disabling
+ * the motion would strand an exit case mounted forever.
  *
  * The per-call-site `motion-safe:` marks stay and are still preferred — they
  * say what the author meant. This is the floor under them, not a replacement.

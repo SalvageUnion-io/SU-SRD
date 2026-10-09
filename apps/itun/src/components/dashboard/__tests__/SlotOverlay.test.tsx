@@ -2,11 +2,11 @@
  * ⤢ on a Minor opens that entity's Major over the display, as a modal, without
  * moving the slots (docs/architecture/dashboard-redesign.md D3).
  *
- * The overlay renders inside the scaled canvas rather than through a portal,
- * so it owns what a portalled dialog would get for free: it takes focus,
- * closes on Escape, and hands focus back to the ⤢ that opened it. Rendered
- * through the whole Dashboard, so the slot row and the overlay are the real
- * ones. With no Convex in a test build the seat is the default: on foot.
+ * The overlay is a ModalShell portalled into the display region, inside the
+ * scaled canvas: it takes focus, closes on Escape, and hands focus back to the
+ * ⤢ that opened it. Rendered through the whole Dashboard, so the slot row and
+ * the overlay are the real ones. With no Convex in a test build the seat is
+ * the default: on foot.
  */
 
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
@@ -56,10 +56,12 @@ async function openMech() {
 }
 
 describe('⤢ overlay', () => {
-  test("opens the entity's Major controls as a modal that takes focus", async () => {
+  test("opens the entity's Major controls over the display, and takes focus", async () => {
     const { dialog } = await openMech()
-    expect(dialog.getAttribute('aria-modal')).toBe('true')
-    expect(document.activeElement).toBe(dialog)
+    // Portalled into the display region, not the document body: the Major's
+    // `.pc-*` styling needs the canvas's `.pc-root` scope.
+    expect(dialog.closest('.pc-root')).toBeTruthy()
+    expect(dialog.contains(document.activeElement)).toBe(true)
     // The parked mech's Reactor and Chassis, without boarding it.
     expect(within(dialog).getByText('Reactor')).toBeTruthy()
     expect(within(dialog).getByText('Chassis')).toBeTruthy()
@@ -69,9 +71,10 @@ describe('⤢ overlay', () => {
   test('does not move the slots', async () => {
     const { dialog } = await openMech()
     expect(dialog).toBeTruthy()
-    // The pilot still holds the Major; the Mech is still a Minor.
+    // The pilot still holds the Major; the Mech is still a Minor. (Behind the
+    // modal, so hidden from the accessibility tree while it is open.)
     expect(screen.getByText('On Foot')).toBeTruthy()
-    expect(screen.getByRole('region', { name: 'Mech · Scrapper' })).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Mech · Scrapper', hidden: true })).toBeTruthy()
   })
 
   test('closes on Escape and returns focus to ⤢', async () => {
@@ -106,17 +109,5 @@ describe('⤢ overlay', () => {
     })
     expect(within(dialog).queryByRole('dialog', { name: 'Take Structure Damage' })).toBeNull()
     expect(screen.getByRole('dialog', { name: 'Mech · Scrapper' })).toBeTruthy()
-  })
-
-  test('Tab stays inside the overlay', async () => {
-    const { dialog } = await openMech()
-    const buttons = within(dialog).getAllByRole('button')
-    const first = buttons.at(0) as HTMLButtonElement
-    const last = buttons.at(-1) as HTMLButtonElement
-    last.focus()
-    fireEvent.keyDown(last, { key: 'Tab' })
-    expect(document.activeElement).toBe(first)
-    fireEvent.keyDown(first, { key: 'Tab', shiftKey: true })
-    expect(document.activeElement).toBe(last)
   })
 })

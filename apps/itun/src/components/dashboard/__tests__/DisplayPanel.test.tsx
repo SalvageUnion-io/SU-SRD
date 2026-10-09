@@ -10,7 +10,7 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { fireEvent, render, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
@@ -113,6 +113,22 @@ describe('DisplayPanel', () => {
     // Closing removes the overlay.
     fireEvent.click(getByLabelText('Close table picker'))
     expect(container.querySelector('.pc-tablepick')).toBeNull()
+  })
+
+  test('Tables picker → takes focus, closes on Escape and hands focus back', async () => {
+    const { container } = renderDV(tablesFocus)
+    const openBtn = container.querySelector('[aria-haspopup="dialog"]') as HTMLButtonElement
+    openBtn.focus()
+    await act(async () => {
+      fireEvent.click(openBtn)
+    })
+    const overlay = container.querySelector('[role="dialog"]') as HTMLElement
+    expect(overlay.contains(document.activeElement)).toBe(true)
+    await act(async () => {
+      fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Escape' })
+    })
+    expect(container.querySelector('.pc-tablepick')).toBeNull()
+    expect(document.activeElement).toBe(openBtn)
   })
 
   test('Tables picker → picking a table retitles the table and closes (D3)', () => {

@@ -269,17 +269,17 @@ A role here comes with its keyboard model; this list claims none without one.
 - A deck tile is a `Card` with `role="button"`: Enter and Space open it.
 - The SRD tab's search is a `combobox` over a `listbox`
   (`useSearchCombobox`): ArrowUp/Down move the active option, Enter opens it.
-- The ⤢ overlay (`SlotOverlay`) is a modal dialog: it takes focus, keeps Tab
-  inside, closes on Escape and returns focus to ⤢.
+- The ⤢ overlay (`SlotOverlay`) and the Tables picker (`TablePickerOverlay`)
+  are component-lib `ModalShell`s portalled into the region they cover: each
+  takes focus, keeps Tab inside, closes on Escape or a press outside it and
+  returns focus to what opened it (⤢, the table title).
 - A Major's prompt (a resolve, Take Damage, storage, the Board menu) is a
   non-modal `dialog` over the Major that closes on Escape. The Board menu is a
   list of buttons, not a `menu`: it focuses the first boardable mech and
   returns focus to ▾ on close, and each disabled mech's reason is visible text
   tied to it by `aria-describedby`.
 
-The Tables picker (`TablePickerOverlay`) is not claimed: it carries
-`role="dialog"` and `aria-modal`, but takes no focus, keeps no Tab inside and
-ignores Escape. Every hue pairs with a non-colour cue.
+Every hue pairs with a non-colour cue.
 
 ### 10.3 Scale-to-fit vs zoom
 

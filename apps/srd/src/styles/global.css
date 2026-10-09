@@ -203,9 +203,6 @@
   filter: url(#paint-peel);
 }
 
-/* The mobile-drawer slide (animate-slide-in-right/-out) now lives in the
-   component-lib theme so the shared NavDrawer animates from one source. */
-
 /* Base styles */
 body {
   background-color: var(--background);
