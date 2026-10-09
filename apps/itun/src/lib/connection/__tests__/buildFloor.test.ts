@@ -5,26 +5,7 @@
  * property are asserted without sleeping.
  */
 import { describe, expect, it } from 'bun:test'
-import {
-  bundleStamp,
-  FIRST_PROBE_MS,
-  isOutdated,
-  MAX_PROBE_MS,
-  reloadOnceServed,
-} from '../buildFloor'
-
-describe('bundleStamp', () => {
-  it('reads a commit time', () => {
-    expect(bundleStamp('1790000000')).toBe(1790000000)
-  })
-
-  it('is null for a build with no stamp, or a malformed one', () => {
-    expect(bundleStamp(undefined)).toBeNull()
-    expect(bundleStamp('')).toBeNull()
-    expect(bundleStamp('not-a-time')).toBeNull()
-    expect(bundleStamp('0')).toBeNull()
-  })
-})
+import { FIRST_PROBE_MS, isOutdated, MAX_PROBE_MS, reloadOnceServed } from '../buildFloor'
 
 describe('isOutdated', () => {
   it('is true only when the floor is newer than the bundle', () => {
@@ -33,8 +14,7 @@ describe('isOutdated', () => {
     expect(isOutdated(50, 100)).toBe(false)
   })
 
-  it('never refuses an unstamped bundle, or before the floor has loaded', () => {
-    expect(isOutdated(200, null)).toBe(false)
+  it('never refuses before the floor has loaded', () => {
     expect(isOutdated(undefined, 100)).toBe(false)
   })
 })

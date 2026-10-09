@@ -145,9 +145,6 @@ jobs:
     timeout-minutes: 15
     outputs:
       sha: ${{ steps.target.outputs.sha }}
-      # The commit's time in Unix seconds: itun's build stamp, and the build
-      # floor `push-convex` writes into the backend (see that job).
-      stamp: ${{ steps.target.outputs.stamp }}
       # `true` when HEAD is older than the recorded deploy on a push (a re-run
       # of an older merge's deploy): a newer commit already shipped. Nothing
       # builds or deploys, and `record` must not move the tag back.
@@ -177,7 +174,6 @@ jobs:
         id: target
         run: |
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "stamp=$(git log -1 --format=%ct HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
@@ -445,7 +441,6 @@ jobs:
         env:
           VITE_CONVEX_URL: ${{ env.ITUN_CONVEX_URL }}
           VITE_COMMIT_REF: ${{ needs.plan.outputs.sha }}
-          VITE_BUILD_STAMP: ${{ needs.plan.outputs.stamp }}
           VITE_SENTRY_DSN: ${{ env.ITUN_SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_PROJECT: itun
@@ -501,22 +496,6 @@ jobs:
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
-
-      # The build floor (apps/itun/convex/buildFloor.ts): the same commit time
-      # `build-itun` stamped into the bundle. Written into the pushed functions
-      # rather than set as a deployment variable so it moves atomically with
-      # them: a push that removes a function an older client still calls also
-      # tells that client, through its `build.floor` subscription, to stop
-      # writing and reload once the itun leg serves the new shell.
-      - name: Write the build floor
-        working-directory: apps/itun
-        env:
-          BUILD_STAMP: ${{ needs.plan.outputs.stamp }}
-        run: |
-          case "$BUILD_STAMP" in
-            '' | *[!0-9]*) echo "FATAL: plan reported no usable build stamp (got '$BUILD_STAMP')." >&2; exit 1 ;;
-          esac
-          echo "export const BUILD_FLOOR = $BUILD_STAMP" > convex/buildFloor.ts
 
       - name: Push Convex (after confirming the URL itun was built against)
         working-directory: apps/itun

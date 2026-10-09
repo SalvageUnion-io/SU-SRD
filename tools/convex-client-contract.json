@@ -1,0 +1,1971 @@
+{
+  "floor": 1791587077,
+  "functions": {
+    "account:deleteAccount": {
+      "type": "object",
+      "value": {}
+    },
+    "account:exportMine": {
+      "type": "object",
+      "value": {}
+    },
+    "account:me": {
+      "type": "object",
+      "value": {}
+    },
+    "account:updateProfile": {
+      "type": "object",
+      "value": {
+        "displayName": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": true
+        },
+        "avatarUrl": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": true
+        }
+      }
+    },
+    "auth:isAuthenticated": {
+      "type": "object",
+      "value": {}
+    },
+    "auth:signIn": {
+      "type": "object",
+      "value": {
+        "provider": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "params": {
+          "fieldType": {
+            "type": "any"
+          },
+          "optional": true
+        },
+        "verifier": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "refreshToken": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "calledBy": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    },
+    "auth:signOut": {
+      "type": "object",
+      "value": {}
+    },
+    "build:floor": {
+      "type": "object",
+      "value": {}
+    },
+    "changeLog:appendChangeLog": {
+      "type": "object",
+      "value": {
+        "entries": {
+          "fieldType": {
+            "type": "array",
+            "value": {
+              "type": "object",
+              "value": {
+                "gameId": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "id",
+                        "tableName": "games"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "optional": false
+                },
+                "entityType": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "literal",
+                        "value": "pilot"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "mech"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "crawler"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "softLink"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "game"
+                      }
+                    ]
+                  },
+                  "optional": false
+                },
+                "entityId": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                },
+                "ts": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "kind": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "literal",
+                        "value": "transaction"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "override"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "manual"
+                      }
+                    ]
+                  },
+                  "optional": false
+                },
+                "field": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                },
+                "before": {
+                  "fieldType": {
+                    "type": "any"
+                  },
+                  "optional": true
+                },
+                "after": {
+                  "fieldType": {
+                    "type": "any"
+                  },
+                  "optional": true
+                },
+                "source": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                }
+              }
+            }
+          },
+          "optional": false
+        }
+      }
+    },
+    "changeLog:forEntity": {
+      "type": "object",
+      "value": {
+        "entityType": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilot"
+              },
+              {
+                "type": "literal",
+                "value": "mech"
+              },
+              {
+                "type": "literal",
+                "value": "crawler"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "entityId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "changeLog:rolls": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "limit": {
+          "fieldType": {
+            "type": "number"
+          },
+          "optional": true
+        }
+      }
+    },
+    "crew:vitals": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:advance": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:begin": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:end": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:markStepDone": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "done": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:spendUpkeep": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:state": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "entities:createCrawler": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "body": {
+          "fieldType": {
+            "type": "any"
+          },
+          "optional": false
+        }
+      }
+    },
+    "entities:listForGame": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "entities:listMine": {
+      "type": "object",
+      "value": {}
+    },
+    "entities:listWiring": {
+      "type": "object",
+      "value": {}
+    },
+    "entities:locate": {
+      "type": "object",
+      "value": {
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilot"
+              },
+              {
+                "type": "literal",
+                "value": "mech"
+              },
+              {
+                "type": "literal",
+                "value": "crawler"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "id": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "entities:moveCrawler": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "gameId": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": false
+        }
+      }
+    },
+    "entities:patchCrawlerByAppId": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "patch": {
+          "fieldType": {
+            "type": "any"
+          },
+          "optional": false
+        },
+        "unset": {
+          "fieldType": {
+            "type": "array",
+            "value": {
+              "type": "string"
+            }
+          },
+          "optional": true
+        }
+      }
+    },
+    "entities:remove": {
+      "type": "object",
+      "value": {
+        "table": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilots"
+              },
+              {
+                "type": "literal",
+                "value": "mechs"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "entityId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "entities:removeByAppId": {
+      "type": "object",
+      "value": {
+        "table": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilots"
+              },
+              {
+                "type": "literal",
+                "value": "mechs"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "entities:removeCrawler": {
+      "type": "object",
+      "value": {
+        "crawlerId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "crawlers"
+          },
+          "optional": false
+        }
+      }
+    },
+    "entities:removeCrawlerByAppId": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "entities:removeSoftLink": {
+      "type": "object",
+      "value": {
+        "from": {
+          "fieldType": {
+            "type": "object",
+            "value": {
+              "type": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "literal",
+                      "value": "pilot"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "mech"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "crawler"
+                    }
+                  ]
+                },
+                "optional": false
+              },
+              "id": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              }
+            }
+          },
+          "optional": false
+        },
+        "to": {
+          "fieldType": {
+            "type": "object",
+            "value": {
+              "type": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "literal",
+                      "value": "pilot"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "mech"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "crawler"
+                    }
+                  ]
+                },
+                "optional": false
+              },
+              "id": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              }
+            }
+          },
+          "optional": false
+        },
+        "type": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "mech-to-pilot"
+              },
+              {
+                "type": "literal",
+                "value": "pilot-to-crawler"
+              },
+              {
+                "type": "literal",
+                "value": "mech-to-crawler"
+              }
+            ]
+          },
+          "optional": false
+        }
+      }
+    },
+    "entities:transfer": {
+      "type": "object",
+      "value": {
+        "updates": {
+          "fieldType": {
+            "type": "array",
+            "value": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "object",
+                  "value": {
+                    "table": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "literal",
+                            "value": "pilots"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "mechs"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    },
+                    "appId": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "gameId": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "id",
+                            "tableName": "games"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    },
+                    "body": {
+                      "fieldType": {
+                        "type": "any"
+                      },
+                      "optional": false
+                    },
+                    "expectedUpdatedAt": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "table": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "crawlers"
+                      },
+                      "optional": false
+                    },
+                    "appId": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "patch": {
+                      "fieldType": {
+                        "type": "any"
+                      },
+                      "optional": false
+                    },
+                    "unset": {
+                      "fieldType": {
+                        "type": "array",
+                        "value": {
+                          "type": "string"
+                        }
+                      },
+                      "optional": true
+                    },
+                    "gameId": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "id",
+                            "tableName": "games"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "optional": true
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "optional": false
+        },
+        "deletes": {
+          "fieldType": {
+            "type": "array",
+            "value": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "object",
+                  "value": {
+                    "table": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "literal",
+                            "value": "pilots"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "mechs"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    },
+                    "appId": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "table": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "crawlers"
+                      },
+                      "optional": false
+                    },
+                    "appId": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "table": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "softLinks"
+                      },
+                      "optional": false
+                    },
+                    "from": {
+                      "fieldType": {
+                        "type": "object",
+                        "value": {
+                          "type": {
+                            "fieldType": {
+                              "type": "union",
+                              "value": [
+                                {
+                                  "type": "literal",
+                                  "value": "pilot"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "mech"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "crawler"
+                                }
+                              ]
+                            },
+                            "optional": false
+                          },
+                          "id": {
+                            "fieldType": {
+                              "type": "string"
+                            },
+                            "optional": false
+                          }
+                        }
+                      },
+                      "optional": false
+                    },
+                    "to": {
+                      "fieldType": {
+                        "type": "object",
+                        "value": {
+                          "type": {
+                            "fieldType": {
+                              "type": "union",
+                              "value": [
+                                {
+                                  "type": "literal",
+                                  "value": "pilot"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "mech"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "crawler"
+                                }
+                              ]
+                            },
+                            "optional": false
+                          },
+                          "id": {
+                            "fieldType": {
+                              "type": "string"
+                            },
+                            "optional": false
+                          }
+                        }
+                      },
+                      "optional": false
+                    },
+                    "type": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "literal",
+                            "value": "mech-to-pilot"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "pilot-to-crawler"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "mech-to-crawler"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "optional": false
+        }
+      }
+    },
+    "entities:upsertByAppId": {
+      "type": "object",
+      "value": {
+        "table": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilots"
+              },
+              {
+                "type": "literal",
+                "value": "mechs"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "gameId": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "body": {
+          "fieldType": {
+            "type": "any"
+          },
+          "optional": false
+        },
+        "expectedUpdatedAt": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": false
+        }
+      }
+    },
+    "entities:upsertSoftLink": {
+      "type": "object",
+      "value": {
+        "from": {
+          "fieldType": {
+            "type": "object",
+            "value": {
+              "type": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "literal",
+                      "value": "pilot"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "mech"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "crawler"
+                    }
+                  ]
+                },
+                "optional": false
+              },
+              "id": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              }
+            }
+          },
+          "optional": false
+        },
+        "to": {
+          "fieldType": {
+            "type": "object",
+            "value": {
+              "type": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "literal",
+                      "value": "pilot"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "mech"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "crawler"
+                    }
+                  ]
+                },
+                "optional": false
+              },
+              "id": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              }
+            }
+          },
+          "optional": false
+        },
+        "type": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "mech-to-pilot"
+              },
+              {
+                "type": "literal",
+                "value": "pilot-to-crawler"
+              },
+              {
+                "type": "literal",
+                "value": "mech-to-crawler"
+              }
+            ]
+          },
+          "optional": false
+        }
+      }
+    },
+    "games:create": {
+      "type": "object",
+      "value": {
+        "name": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "templateOrigin": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    },
+    "games:destroy": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "games:get": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "games:listMine": {
+      "type": "object",
+      "value": {}
+    },
+    "games:members": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "games:setMediator": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "userId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "users"
+          },
+          "optional": false
+        },
+        "mediator": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "games:setPrimaryCrawler": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "crawlerId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "crawlers"
+          },
+          "optional": false
+        }
+      }
+    },
+    "invites:create": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "usesRemaining": {
+          "fieldType": {
+            "type": "number"
+          },
+          "optional": true
+        },
+        "expiresInMs": {
+          "fieldType": {
+            "type": "number"
+          },
+          "optional": true
+        },
+        "label": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "role": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "player"
+              },
+              {
+                "type": "literal",
+                "value": "mediator"
+              }
+            ]
+          },
+          "optional": true
+        },
+        "grants": {
+          "fieldType": {
+            "type": "array",
+            "value": {
+              "type": "object",
+              "value": {
+                "table": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "literal",
+                        "value": "pilots"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "mechs"
+                      }
+                    ]
+                  },
+                  "optional": false
+                },
+                "entityId": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                }
+              }
+            }
+          },
+          "optional": true
+        },
+        "requiresApproval": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": true
+        }
+      }
+    },
+    "invites:decideRequest": {
+      "type": "object",
+      "value": {
+        "requestId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "joinRequests"
+          },
+          "optional": false
+        },
+        "approve": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "invites:decline": {
+      "type": "object",
+      "value": {
+        "code": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "invites:forMe": {
+      "type": "object",
+      "value": {}
+    },
+    "invites:list": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "invites:pendingRequests": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "invites:preview": {
+      "type": "object",
+      "value": {
+        "code": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "invites:redeem": {
+      "type": "object",
+      "value": {
+        "code": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "invites:revoke": {
+      "type": "object",
+      "value": {
+        "inviteId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "invites"
+          },
+          "optional": false
+        }
+      }
+    },
+    "mediator:addNpc": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "body": {
+          "fieldType": {
+            "type": "any"
+          },
+          "optional": false
+        }
+      }
+    },
+    "mediator:amMediator": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "mediator:npcs": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "mediator:removeNpc": {
+      "type": "object",
+      "value": {
+        "npcId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "encounterNpcs"
+          },
+          "optional": false
+        }
+      }
+    },
+    "ownership:claim": {
+      "type": "object",
+      "value": {
+        "table": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilots"
+              },
+              {
+                "type": "literal",
+                "value": "mechs"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "entityId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "ownership:release": {
+      "type": "object",
+      "value": {
+        "table": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilots"
+              },
+              {
+                "type": "literal",
+                "value": "mechs"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "entityId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "proposals:alerts": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "limit": {
+          "fieldType": {
+            "type": "number"
+          },
+          "optional": true
+        }
+      }
+    },
+    "proposals:apply": {
+      "type": "object",
+      "value": {
+        "proposalId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "changeLog"
+          },
+          "optional": false
+        }
+      }
+    },
+    "proposals:broadcast": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "message": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "proposals:decline": {
+      "type": "object",
+      "value": {
+        "proposalId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "changeLog"
+          },
+          "optional": false
+        }
+      }
+    },
+    "proposals:pending": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "proposals:propose": {
+      "type": "object",
+      "value": {
+        "entityId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "entityType": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilot"
+              },
+              {
+                "type": "literal",
+                "value": "mech"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "field": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "after": {
+          "fieldType": {
+            "type": "any"
+          },
+          "optional": false
+        }
+      }
+    },
+    "publicSheet:get": {
+      "type": "object",
+      "value": {
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilot"
+              },
+              {
+                "type": "literal",
+                "value": "mech"
+              },
+              {
+                "type": "literal",
+                "value": "crawler"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "publicSheet:setPublic": {
+      "type": "object",
+      "value": {
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilot"
+              },
+              {
+                "type": "literal",
+                "value": "mech"
+              },
+              {
+                "type": "literal",
+                "value": "crawler"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "isPublic": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "seats:board": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "mechId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "seats:clearResolving": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "seats:dismount": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "seats:eject": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "seats:forGame": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "seats:setRange": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "range": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "Close"
+              },
+              {
+                "type": "literal",
+                "value": "Medium"
+              },
+              {
+                "type": "literal",
+                "value": "Long"
+              },
+              {
+                "type": "literal",
+                "value": "Far"
+              }
+            ]
+          },
+          "optional": false
+        }
+      }
+    },
+    "seats:setResolving": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "resolving": {
+          "fieldType": {
+            "type": "object",
+            "value": {
+              "ref": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "name": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "activated": {
+                "fieldType": {
+                  "type": "boolean"
+                },
+                "optional": false
+              },
+              "roll": {
+                "fieldType": {
+                  "type": "object",
+                  "value": {
+                    "roll": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "band": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "literal",
+                            "value": "nailed"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "success"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "tough"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "failure"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "cascade"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                "optional": true
+              },
+              "applied": {
+                "fieldType": {
+                  "type": "boolean"
+                },
+                "optional": false
+              }
+            }
+          },
+          "optional": false
+        }
+      }
+    },
+    "seats:toggleEffect": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "ref": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "shelf:removeEncounterNpc": {
+      "type": "object",
+      "value": {
+        "npcId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "shelf:removeMechPattern": {
+      "type": "object",
+      "value": {
+        "patternId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "shelf:upsertEncounterNpc": {
+      "type": "object",
+      "value": {
+        "body": {
+          "fieldType": {
+            "type": "any"
+          },
+          "optional": false
+        }
+      }
+    },
+    "shelf:upsertMechPattern": {
+      "type": "object",
+      "value": {
+        "body": {
+          "fieldType": {
+            "type": "any"
+          },
+          "optional": false
+        }
+      }
+    },
+    "templates:createGame": {
+      "type": "object",
+      "value": {
+        "templateId": {
+          "fieldType": {
+            "type": "literal",
+            "value": "starter-set"
+          },
+          "optional": false
+        },
+        "name": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    },
+    "templates:list": {
+      "type": "object",
+      "value": {}
+    }
+  }
+}

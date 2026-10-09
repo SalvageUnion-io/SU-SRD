@@ -151,6 +151,15 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
+    id: 'client-contract',
+    guards:
+      'a Convex argument change that refuses calls an open ITUN tab still makes raises the build floor',
+    fix: 'keep it compatible (optional argument, keep the old function) or raise BUILD_FLOOR in apps/itun/convex/buildFloor.ts to `date +%s`; then `bun tools/check-client-contract.ts --write`',
+    cmd: ['bun', 'tools/check-client-contract.ts'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
     id: 'barrel-consumers',
     guards:
       'every component-lib export has an app importer, and none is a composition only one app renders',
