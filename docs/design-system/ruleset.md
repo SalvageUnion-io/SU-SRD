@@ -120,7 +120,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 
 ## 3. Cross-cutting laws
 
-1. **Rust = action, only action.** `--color-rust` (#a85222) is the single mutator
+1. **Rust = action, only action.** `--color-rust` is the single mutator
    signal. A rust element in a read-only context (Reference, Tooltip) is a defect.
    The one Reference exception is an **inline link** (InlineRef resolved state).
 2. **Stamps label · slabs section · tags cite.** These three never trade jobs. A
@@ -190,45 +190,46 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 
 ### 4.1 Colour roles
 
-| Role                      | Token                     | Hex       | Use                                                                                  |
-| ------------------------- | ------------------------- | --------- | ------------------------------------------------------------------------------------ |
-| ink                       | `--color-ink`             | `#282019` | every stamp/label/tab, text, borders                                                 |
-| ink · secondary           | `--color-ink-2`           | `#463d31` | secondary ink                                                                        |
-| ink · deep                | `--color-ink-deep`        | `#1b1712` | the dark header ground                                                               |
-| ink ramp                  | `--color-ink-75…8`        | —         | hairlines, placeholders, ghosts, disabled fills — warm ink at opacity, never a grey  |
-| paper · system white      | `--color-paper`           | `#fbfaf7` | THE light surface: cards, stats, inputs, gauge tracks, value cells, and text on ink  |
-| band cream                | `--color-band-cream`      | `#f3ede2` | RollTable d20 banding (§2) **and** the Dashboard's card chassis (§1) — the one cream |
-| rust · action             | `--color-rust`            | `#a85222` | the one action colour                                                                |
-| pilot                     | `--color-pilot`           | `#ef894f` | pilot ontology                                                                       |
-| mech                      | `--color-mech`            | `#7a978a` | mech ontology                                                                        |
-| crawler                   | `--color-crawler`         | `#ce5898` | crawler ontology                                                                     |
-| adversary                 | `--color-adversary`       | `#8c4b38` | creatures · bio-titans · factions · npcs · meld · squads                             |
-| cargo                     | `--color-cargo`           | `#9c7a3e` | cargo fills                                                                          |
-| tier · core               | `--color-tier-core`       | `#a85947` | Core ability-tree tier (Advanced = pilot, Legendary = crawler)                       |
-| workshop ground           | `--color-wk-bg` / `-2`    | `#e6f0f5` | the step off-paper that makes a card read as a panel                                 |
-| workshop rules            | `--color-wk-line/-accent` | —         | advisory rule · game-state accent                                                    |
-| caution                   | `--color-caution`         | `#d7c37d` | attention fill that is neither ontology nor status                                   |
-| inert                     | `--color-inert`           | `#c0c0c0` | inert / non-numeric tier fill                                                        |
-| status-ok                 | `--color-status-ok`       | `#6f8a4a` | ok state overlay                                                                     |
-| status-warn               | `--color-status-warn`     | `#c07a2f` | warn state overlay                                                                   |
-| status-bad · damaged      | `--color-status-bad`      | `#b0432b` | damaged / destroyed / redline / over-cap                                             |
-| roll tiers · **BOT ONLY** | re-toned ramp             | —         | Discord roll outcomes only                                                           |
-| tech-level blues          | TL 1–6 · B · N            | —         | TL badge ramp                                                                        |
+The values live in `theme.css` alone; this table names each role and its use.
+
+| Role                      | Token                     | Use                                                                                  |
+| ------------------------- | ------------------------- | ------------------------------------------------------------------------------------ |
+| ink                       | `--color-ink`             | every stamp/label/tab, text, borders                                                 |
+| ink · secondary           | `--color-ink-2`           | secondary ink                                                                        |
+| ink · deep                | `--color-ink-deep`        | the dark header ground                                                               |
+| ink ramp                  | `--color-ink-75…8`        | hairlines, placeholders, ghosts, disabled fills — warm ink at opacity, never a grey  |
+| paper · system white      | `--color-paper`           | THE light surface: cards, stats, inputs, gauge tracks, value cells, and text on ink  |
+| band cream                | `--color-band-cream`      | RollTable d20 banding (§2) **and** the Dashboard's card chassis (§1) — the one cream |
+| rust · action             | `--color-rust`            | the one action colour                                                                |
+| pilot                     | `--color-pilot`           | pilot ontology                                                                       |
+| mech                      | `--color-mech`            | mech ontology                                                                        |
+| crawler                   | `--color-crawler`         | crawler ontology                                                                     |
+| adversary                 | `--color-adversary`       | creatures · bio-titans · factions · npcs · meld · squads                             |
+| cargo                     | `--color-cargo`           | cargo fills                                                                          |
+| tier · core               | `--color-tier-core`       | Core ability-tree tier (Advanced = pilot, Legendary = crawler)                       |
+| workshop ground           | `--color-wk-bg` / `-2`    | the step off-paper that makes a card read as a panel                                 |
+| workshop rules            | `--color-wk-line/-accent` | advisory rule · game-state accent                                                    |
+| caution                   | `--color-caution`         | attention fill that is neither ontology nor status                                   |
+| inert                     | `--color-inert`           | inert / non-numeric tier fill                                                        |
+| status-ok                 | `--color-status-ok`       | ok state overlay                                                                     |
+| status-warn               | `--color-status-warn`     | warn state overlay                                                                   |
+| status-bad · damaged      | `--color-status-bad`      | damaged / destroyed / redline / over-cap                                             |
+| roll tiers · **BOT ONLY** | re-toned ramp             | Discord roll outcomes only                                                           |
+| tech-level blues          | TL 1–6 · B · N            | TL badge ramp                                                                        |
 
 **There is no second spelling.** The `su-*` brand family that these tokens were
 once defined as aliases _of_ is deleted (see the note in `theme.css`). It was a
-shadow tokenset: `su-orange-dark` and `rust` were the same `#a85222`, which made
+shadow tokenset: `su-orange-dark` and `rust` were the same colour, which made
 "rust = action, only action" unauditable by search, and `su-paper` shipped a
 second cream reading surface beside `--color-paper`. Enforced by
 `bun run check styling`.
 
-**The paper flip (decided):** `--color-paper = #fbfaf7` — the dedicated system
+**The paper flip (decided):** `--color-paper` is the dedicated system
 white, **not cream** (the cream cutover read too beige, and `bg-paper` is already
 the dominant whitespace token). One token, every light surface. **Pure white is
 retired from the UI** — paper is used universally, including the value cell and
-text on ink. (The only remaining `#ffffff` are scoped exceptions: the print
-stylesheet's physical paper — the Dashboard is warm paper too, so the dark-skin
-exception this note used to carve out no longer exists. See §1.)
+text on ink. (The one remaining pure white is a scoped exception: the print
+stylesheet's physical paper. See §1.)
 
 ### 4.2 The tracking ladder
 
@@ -388,7 +389,7 @@ A component obeys the ruleset when:
 
 - [ ] It is **one primitive** for its kind×context — no sibling for a different size/theme (§0).
 - [ ] Every label/header is a **Stamp** at `--tracking-label` `0.04em`; stamps are square (§4.2, §5).
-- [ ] Every light surface is `--color-paper` **#fbfaf7** — no pure white in the UI, including the value cell and text on ink (§4.1, §7.1).
+- [ ] Every light surface is `--color-paper` — no pure white in the UI, including the value cell and text on ink (§4.1, §7.1).
 - [ ] The only **rust** is an action (or a Reference inline link) (§3.1).
 - [ ] Borders use `--bw-*` weight tokens; radius is 3px on cards/Btns only, `calc()` inside (§4.3–4.4).
 - [ ] Any label+value shows as a **framed** ink-on-paper value cell; a lone label is **frameless** (§7.1).

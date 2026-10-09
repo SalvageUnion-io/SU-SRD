@@ -1,6 +1,6 @@
 /**
  * DeckList — the Actions deck, beside the display
- * (docs/architecture/dashboard-redesign.md §4.2). It lists what the active
+ * (docs/architecture/dashboard.md §2). It lists what the active
  * entity can do, filtered by timing, range and source, and opens an action in
  * the display's Resolve tab (`ResolvePanel`).
  *

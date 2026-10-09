@@ -1,6 +1,6 @@
 /**
  * Tests for SlotRow — one Major slot and two Minors, placed by the mount
- * (docs/architecture/dashboard-redesign.md D1–D3).
+ * (ADR-038 §3).
  *
  * The mount comes from the pilot's seat and Downtime; the slots only send
  * Board, Dismount and Eject to the seat, recorded here by `fakeSeat`.
@@ -57,7 +57,7 @@ function minorNames(): string[] {
   return screen.getAllByRole('region').map((el) => el.getAttribute('aria-label') ?? '')
 }
 
-describe('slotsFor — who holds the Major (D1)', () => {
+describe('slotsFor — who holds the Major', () => {
   test('on foot, the Pilot is Major; Mech and Crawler are Minors', () => {
     expect(slotsFor('pilot')).toEqual({ major: 'pilot', minors: ['mech', 'crawler'] })
   })
@@ -127,7 +127,7 @@ describe('the Major sends mount changes to the seat', () => {
   })
 })
 
-describe('a Minor shows only what needs watching (D3)', () => {
+describe('a Minor shows only what needs watching', () => {
   test('the Pilot Minor shows HP and AP, and an injury in red', () => {
     const hurt = { ...pilot, injuries: [{ severity: 'major' as const, note: 'broken arm' }] }
     renderRow({ mount: 'mech', pilot: hurt })
@@ -184,7 +184,7 @@ describe('a Minor shows only what needs watching (D3)', () => {
   })
 })
 
-describe("the crawler is the Mediator's (D11)", () => {
+describe("the crawler is the Mediator's", () => {
   test('a player sees the numbers and bays, but no crawler verbs', () => {
     renderRow({ mount: 'downtime', mediator: false })
     expect(screen.getByText('Hull')).toBeTruthy()
@@ -202,7 +202,7 @@ describe("the crawler is the Mediator's (D11)", () => {
   })
 })
 
-describe('Upkeep is paid once per Downtime, by the Mediator (D8, D11)', () => {
+describe('Upkeep is paid once per Downtime, by the Mediator', () => {
   const stocked = crawlerFixture({
     id: 'c1',
     name: 'Mother Hen',

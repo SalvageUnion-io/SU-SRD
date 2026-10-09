@@ -2,8 +2,8 @@
  * Smoke test for the Dashboard shell, keyed on the pilot (ADR-038 §1).
  *
  * Renders the placeholder for a pilot not in the store, and a pilot with no
- * assigned mech, who plays on foot and boards one from the Board menu (plan
- * D4). Both exercise Dashboard + DashboardCanvas without router context and
+ * assigned mech, who plays on foot and boards one from the Board menu
+ * (ADR-038 §3). Both exercise Dashboard + DashboardCanvas without router context and
  * confirm the shell mounts rather than throwing. Who may open the
  * Dashboard at all is `DashboardGate`'s, tested in `DashboardGate.test.tsx`.
  */

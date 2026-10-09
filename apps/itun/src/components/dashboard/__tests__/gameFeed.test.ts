@@ -1,6 +1,6 @@
 /**
  * The pure halves of what the Dashboard reads and writes about the table:
- * how a crewmate's resolve reads (plan §8 A6), the Crew tab's lines, and the
+ * how a crewmate's resolve reads (ADR-038 §2), the Crew tab's lines, and the
  * change-log row a Dashboard roll becomes (`botClient.recordRoll`'s shape).
  */
 

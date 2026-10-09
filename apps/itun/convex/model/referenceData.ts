@@ -8,8 +8,7 @@ import modules from 'salvageunion-reference/data/modules.json'
 import systems from 'salvageunion-reference/data/systems.json'
 
 /**
- * The Salvage Union reference data Convex derives from (docs/architecture/
- * dashboard-redesign.md §8 A3).
+ * The Salvage Union reference data Convex derives from (ADR-038 §4).
  *
  * The server runs the same rules as the client (`salvageunion-reference/rules`,
  * ADR-006), so the Crew tab's maxima and status are one answer every client

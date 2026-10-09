@@ -95,7 +95,7 @@ describe('reactor patches', () => {
     expect(melt.patch.destroyed).toBeUndefined()
   })
 
-  test('VENT_PATCH dumps Heat to 0 + Vulnerable, no auto-shutdown (Vent ≠ Shutdown, plan §5.1)', () => {
+  test('VENT_PATCH dumps Heat to 0 + Vulnerable, no auto-shutdown (Vent ≠ Shutdown, dashboard.md §5.1)', () => {
     expect(VENT_PATCH).toEqual({ currentHeat: 0, vulnerable: true })
   })
 
@@ -318,7 +318,7 @@ describe('pilotActivationPatch', () => {
   })
 })
 
-describe('resolve flow helpers (D2)', () => {
+describe('resolve flow helpers', () => {
   type Act = PlayAction['action']
   const act = (over: Partial<Act>): Act => ({ id: 'a', name: 'A', ...over }) as Act
 

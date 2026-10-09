@@ -153,7 +153,7 @@ describe('writing a seat', () => {
   })
 })
 
-describe('the resolve in progress (plan §8 A6)', () => {
+describe('the resolve in progress (ADR-038 §2)', () => {
   const crush = { ref: 'system:crush', name: 'Crush', activated: false, applied: false }
 
   test('each step replaces the last, and the crew reads it live', async () => {

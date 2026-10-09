@@ -6,7 +6,7 @@ import { makeUser, mechBody, pilotBody, seedTable } from './fixtures'
 import { testConvex } from './harness'
 
 /**
- * Crew visibility (D12).
+ * Crew visibility (ADR-030 §5).
  *
  * The privacy boundary is what these tests are for. "Every member sees every
  * crewmate" is easy to get right; the cases that matter are the two things that

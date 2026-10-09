@@ -153,7 +153,7 @@ describe('destroying a game preserves everything anybody built', () => {
     // The crawler is the crew's HOME, and it used to be destroyed with the Game
     // — the one build that a deletion could take with it. It now falls back like
     // everything else. `ownerId` moving from null to the Organizer is not a
-    // change of heart about D8: communal is what a crawler is INSIDE a Game, and
+    // change of heart about ADR-030 §5: communal is what a crawler is INSIDE a Game, and
     // this one is no longer in one.
     const crawler = await t.run(async (ctx) => await ctx.db.get(crawlerId))
     expect(crawler).not.toBeNull()

@@ -12,7 +12,7 @@
  * everything, `--color-band-cream` for instrument chassis, `--color-paper` for
  * the display. Hue encodes ONTOLOGY (mech green / pilot orange / crawler pink),
  * never identity; the one hard 2.5px (--bw-rail) border marks a "forward" surface
- * (rail + display); everything else is flat/inset (ADR-018).
+ * (rail + display); everything else is flat/inset (ADR-038 §8).
  *
  * The layout shell lives beside this file: `.pc-root`/`.pc-canvas`
  * (DashboardCanvas.css) and the `.pc-grid` regions (DashboardGrid.css).
@@ -339,7 +339,7 @@
   color: var(--color-ink-50);
 }
 
-/* ---- Resolve flow: cost choice, Hot(X) stepper, Apply readouts (D2) ---- */
+/* ---- Resolve flow: cost choice, Hot(X) stepper, Apply readouts ---- */
 .pc-deck-cost-choice {
   display: flex;
   align-items: center;
@@ -405,7 +405,7 @@
   color: var(--color-sheet-crawler-deep);
 }
 
-/* ---- Deck controls bar (D1: timing tabs, grouping, range, source tags) ---- */
+/* ---- Deck controls bar (timing tabs, grouping, range, source tags) ---- */
 .pc-deck-controls-bar {
   display: flex;
   flex-direction: column;
@@ -657,7 +657,7 @@
   color: var(--color-ink-50);
 }
 /* ------------------------------------------------------------------------
- * D3 — the Tables tab: 5-column category picker (its rolls go to the Log tab).
+ * The Tables tab: 5-column category picker (its rolls go to the Log tab).
  * All light-themed to sit on the display "paper" (var(--color-paper) / var(--color-ink)).
  * ------------------------------------------------------------------------ */
 
@@ -763,7 +763,7 @@
   background: var(--color-ink-8);
 }
 
-/* ── SRD Explorer (D4) ───────────────────────────────────────────────── */
+/* ── SRD Explorer ────────────────────────────────────────────────────── */
 .pc-srd {
   position: relative;
 }

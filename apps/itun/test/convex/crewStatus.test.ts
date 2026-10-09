@@ -14,7 +14,7 @@ import { testConvex } from './harness'
 
 /**
  * The crew's maxima and status are derived on the server (`crew.vitals`;
- * docs/architecture/dashboard-redesign.md D6, §8 A3), and the Crew tab's ▲
+ * ADR-038 §4), and the Crew tab's ▲
  * and red outlines read them. These are the layer's two gates:
  *
  *   - **The server agrees with the client.** One set of records goes to both

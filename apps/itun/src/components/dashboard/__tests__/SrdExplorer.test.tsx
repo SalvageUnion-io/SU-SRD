@@ -1,5 +1,5 @@
 /**
- * Tests for SrdExplorer — the Dashboard's SRD Explorer focus (D4). It renders
+ * Tests for SrdExplorer — the Dashboard's SRD Explorer focus. It renders
  * the srd landing page's catalog without the site header, so the assertions are
  * against `buildCatalogSections()` (the shared source) rather than a hand-listed
  * set of tiles: that is the whole point of the change, and hard-coding the

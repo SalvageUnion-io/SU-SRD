@@ -169,7 +169,7 @@ export function resolveDomainTone(
 }
 
 /**
- * Ghosted action bands (D8): desaturate + lighten the HOST (summoning parent)
+ * Ghosted action bands: desaturate + lighten the HOST (summoning parent)
  * entity's tone toward a warm cream, so a nested action reads as a faded relative
  * of the entity that owns it — same colour family, clearly secondary. The light
  * band pairs with a contrast-aware (ink) compact title. The card and the

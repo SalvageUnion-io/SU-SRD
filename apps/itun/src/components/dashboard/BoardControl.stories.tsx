@@ -11,7 +11,7 @@ export default { title: 'Compositions/Dashboard/Board Control' }
 
 /*
  * The Pilot Major's Mount bay: the Board split button in each of its states,
- * and the ▾ menu with a mech in every state (plan D4). The bay sits in a Major
+ * and the ▾ menu with a mech in every state (ADR-038 §3). The bay sits in a Major
  * frame at the slot row's height, so the menu opens over it as it does in the
  * Dashboard. Presses are reported in a caption instead of written.
  */

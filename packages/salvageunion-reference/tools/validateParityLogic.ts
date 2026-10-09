@@ -111,7 +111,7 @@ export const PARITY_EXEMPTIONS: Record<string, string> = {
   'Offensive Protocols': "effect-of-an-effect — raises a Weapons System's damage, not a stat",
 
   // Activated: a per-use choice, not a standing property. Belongs to Dashboard
-  // play state (ADR-019) with the other duration-bound effects (F1).
+  // play state (ADR-038 §2) with the other duration-bound effects (F1).
   Snipe: 'activated — a per-attack Range Band increase, chosen at use',
   'Weapon Guidance': 'activated — grants Guided to a chosen system when activated',
 }

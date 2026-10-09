@@ -373,7 +373,7 @@ export const Boarded = () => (
   </div>
 )
 
-/** Downtime, as a player sees it: the crawler's numbers and bays, no verbs (D11). */
+/** Downtime, as a player sees it: the crawler's numbers and bays, no verbs. */
 export const DowntimePlayer = () => (
   <div style={STACK}>
     <Caption>Downtime, a player — Crawler Major read-only; Pilot and Mech as Minors.</Caption>

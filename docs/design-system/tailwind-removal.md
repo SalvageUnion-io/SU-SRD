@@ -1,4 +1,4 @@
-# Tailwind removal — the phased plan (#802)
+# Tailwind removal — the phased plan
 
 > **Status:** Funded plan, dated **2026-09-25**. Decision: fund the removal with
 > a plan, and run it phase by phase against the ratchets below. Executing the
@@ -6,9 +6,8 @@
 > its own PR series.
 >
 > **Supersedes nothing yet.** An ADR recording the styling change is a phase 6
-> prerequisite (see there); until it lands, this document and the epic
-> ([#802](https://github.com/SalvageUnion-io/SU-SRD/issues/802), layers
-> #798 → #799 → #800 → #801) are the record.
+> prerequisite (see there); until it lands, this document is the one record
+> of the plan and its progress. No issue tracks it.
 >
 > This file also holds the styling reasoning that used to live in
 > `packages/component-lib/CLAUDE.md` — cascade proofs, the focus-visible trap,
@@ -152,8 +151,7 @@ one most likely to be left behind "because it already works".
   deleted; no `apps/itun/src/components/dashboard/` file in the Tailwind list; the Dashboard
   stories and the ITUN dashboard route render identically to `main`.
 - **Status (2026-10-07): open.** The Dashboard redesign
-  ([dashboard-redesign.md](../architecture/dashboard-redesign.md) §4.3) was to
-  finish P5 and did not. Its new components are style objects with no `.pc-*`
+  ([ADR-038](../ARCHITECTURE.md#adr-038)) was to finish P5 and did not. Its new components are style objects with no `.pc-*`
   class, and its deletions took `pc-class-defined` from 129 to 103, but the
   Major's bays, the deck, resolve, Tables, SRD and Downtime surfaces still use
   `.pc-*` rules, and 13 files under `components/dashboard/` are still in the
@@ -219,7 +217,7 @@ compares markup or CSS, so each srd PR carries a visual check of the affected pa
 - Delete the `tailwind-utility-file` rule and `tools/lib/tailwindClasses.ts`;
   re-target the `tokens` rule set from `@theme` entries to `tokens.ts`.
 - **Exit:** `grep -ri tailwind` finds only historical references; `bun run
-  check` green; built CSS size recorded before and after (#802's success list).
+  check` green; built CSS size recorded before and after.
   None of those three notices an element that silently lost its styling, so
   P7 must not start until P6's
   DOM-intersection check has passed on the commit it branches from.

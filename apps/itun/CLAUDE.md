@@ -210,7 +210,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 ## Commands
 
 ```bash
-bun run dev:itun          # on local Convex; setup in README.md
+bun run dev:itun          # local Convex; setup in the convex-ops skill
 bun --filter itun test
 bun run e2e:itun          # Playwright e2e (chromium)
 bun --filter itun typecheck

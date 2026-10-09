@@ -37,14 +37,14 @@
  * archetype B): always-available '+ Add' opening the existing weapons
  * picker (CrawlerSystemsEditModal), per-card remove (✕). The poster has no
  * region for this (it's live mounted loadout, not a play-control panel, so
- * it's not part of the D6 drop list below) — it gets its own content-column
+ * it's not part of the drop list below) — it gets its own content-column
  * card.
  *
  * Storage Bay (The Hold) — the unlimited StorageManifest (side='crawler'),
  * in the full-height right rail; ← Load is cap-checked against the docked
  * mech. Keeps the Stow/Load transfer feature.
  *
- * Dropped (redesign D6 — no poster counterpart; tracking issues filed for
+ * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
  *   - the Tech Level stepper slab (#412) — Tech Level itself still reads
  *     live via the economy band's TL lozenge (built by SheetCrawler); only
@@ -333,7 +333,7 @@ export function CrawlerSheet({
       aria-label={`${crawler.name} crawler sheet`}
       // `.sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
-      // width (redesign D7), not the viewport.
+      // width, not the viewport.
       className="sheet-section @container flex flex-col gap-6"
     >
       {/* ===== Single-column region flow (Workshop-Manual crawler sheet):

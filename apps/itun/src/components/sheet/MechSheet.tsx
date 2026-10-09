@@ -28,7 +28,7 @@
  * Linked Units) — cards already carry their own frame, so a second frame
  * around them reads as one opaque block.
  *
- * Dropped (redesign D6 — no poster counterpart; tracking issues filed for
+ * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
  *   - `HeatCheckControl` (#407) — Heat Check / Push / Reactor Overload loop.
  *   - `TakeDamageControl` (#406) — Take Damage / Critical Damage loop.
@@ -211,7 +211,7 @@ export function MechSheet({
       aria-labelledby="mech-sheet-heading"
       // `.sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
-      // width (redesign D7), not the viewport.
+      // width, not the viewport.
       className="sheet-section @container flex flex-col gap-6"
     >
       {/* The hero already shows the name — this heading is for a11y/print. */}

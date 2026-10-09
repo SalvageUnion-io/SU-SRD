@@ -1,6 +1,6 @@
 /**
  * useBoardSources — what the Board menu reads from the pilot's Game
- * (`boardMenu.ts`; docs/architecture/dashboard-redesign.md D4).
+ * (`boardMenu.ts`; ADR-038 §3).
  *
  * The menu lists mechs that are not the viewer's (a crewmate's, an unclaimed
  * spare), which never reach this browser's entity store, so it reads the Game

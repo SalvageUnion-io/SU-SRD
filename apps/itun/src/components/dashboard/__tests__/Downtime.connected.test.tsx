@@ -14,7 +14,7 @@ import {
 
 /**
  * Downtime is the Game's, and every Dashboard follows it
- * (docs/architecture/dashboard-redesign.md D8, layer 8's gate).
+ * (ADR-038 §5).
  *
  * Two clients, one Game: the Mediator (Mara, playing Dex) and a player (Ash,
  * playing Rook), each rendering their own Dashboard. They share one stand-in

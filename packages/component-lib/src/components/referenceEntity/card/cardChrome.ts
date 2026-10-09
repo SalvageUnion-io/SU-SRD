@@ -40,7 +40,7 @@ export type CardColors = {
 
 /**
  * ACTIONS and NESTED NPCs inherit the summoning (parent) entity's tone,
- * GHOSTED (D8): the header + sub-header bands + 3px frame use the ghosted host
+ * GHOSTED: the header + sub-header bands + 3px frame use the ghosted host
  * tone; the body stays paper/ink. A standalone action (no host) falls back to a
  * neutral base.
  *

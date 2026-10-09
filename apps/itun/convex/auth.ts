@@ -4,7 +4,7 @@ import { Password } from '@convex-dev/auth/providers/Password'
 import { convexAuth } from '@convex-dev/auth/server'
 
 /**
- * Discord OAuth sign-in (D3).
+ * Discord OAuth sign-in (ADR-030 §1).
  *
  * Discord is the only provider, deliberately: the audience already lives there,
  * the project ships a Discord bot, and using one identity makes that bot a

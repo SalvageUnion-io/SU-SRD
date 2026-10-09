@@ -6,15 +6,15 @@ import { v } from 'convex/values'
 /**
  * Convex schema for ITUN accounts, Games, and entity ownership.
  *
- * This is the server-of-record introduced by the accounts plan (D1/D2), which
+ * This is the server of record introduced by ADR-030, which
  * supersedes ADR-001's "no backend, no auth". See docs/ARCHITECTURE.md#data-flow
  * and ADR-030 for the full record; the short version of what this file assumes:
  *
- *   - Two containers, not one (D18). An entity lives in a shared `games` row OR
+ *   - Two containers, not one (ADR-030 §2). An entity lives in a shared `games` row OR
  *     on its owner's personal shelf. `gameId` is nullable and null MEANS shelf.
- *   - Ownership is nullable too (D28). A null `ownerId` is an *unclaimed*
- *     entity — a normal state, arising when a player leaves (D16), when the
- *     Mediator pre-builds a character, or from a Game template (D34).
+ *   - Ownership is nullable too (ADR-030 §2). A null `ownerId` is an *unclaimed*
+ *     entity — a normal state, arising when a player leaves, when the
+ *     Mediator pre-builds a character, or from a Game template.
  *   - `gameId == null && ownerId == null` is the one invalid combination. It is
  *     unreachable through any mutation and should stay that way.
  *
@@ -204,7 +204,7 @@ export default defineSchema({
     phoneVerificationTime: v.optional(v.number()),
 
     /**
-     * Overridable display name (D33). Defaults from Discord but is editable —
+     * Overridable display name (ADR-030 §6). Defaults from Discord but is editable —
      * people use different names at different tables. This is what every owner
      * chip renders, so it is read far more often than it is written.
      */
@@ -217,12 +217,12 @@ export default defineSchema({
 
   /**
    * A Game is the shared container — campaign, group, and (formerly) workspace
-   * collapsed into one concept (D4). Membership lives in `memberships`, never
+   * collapsed into one concept (ADR-030 §2). Membership lives in `memberships`, never
    * as an array here, so authorization is a single indexed lookup.
    */
   games: defineTable({
     name: v.string(),
-    /** Which built-in template seeded this Game, if any (D34). */
+    /** Which built-in template seeded this Game, if any. */
     templateOrigin: v.optional(v.string()),
     /**
      * What a Game's summary says about this table — kept current by the triggers
@@ -268,7 +268,7 @@ export default defineSchema({
   /**
    * Membership = (account x Game), and the only place capabilities live.
    *
-   * Booleans rather than a role enum, deliberately (D15/D20): a Mediator who
+   * Booleans rather than a role enum, deliberately (ADR-030 §3): a Mediator who
    * also plays needs both, and the Organizer is an *orthogonal* administrative
    * flag layered on whichever base role the member holds — never a third role.
    * Exactly one membership per Game carries `organizer: true`.
@@ -415,15 +415,15 @@ export default defineSchema({
   mechs: containerTable(v.union(v.id('users'), v.null())),
 
   /**
-   * The crawler is communal **inside a Game** (D8) — `ownerId: null` — and every
+   * The crawler is communal **inside a Game** (ADR-030 §5) — `ownerId: null` — and every
    * member reads it, but only the table runner writes it (amended by ADR-038 §5:
    * the Mediator keeps the crawler; `assertMayEditCrawler`). Writes resolve by
-   * field-level merge (D19), enforced in the mutation rather than the schema, so
+   * field-level merge (ADR-030 §5), enforced in the mutation rather than the schema, so
    * a write from a stale copy never undoes a field it did not touch.
    *
    * ## Why this now carries the same two columns as `pilots`/`mechs`
    *
-   * D8 read as "no `ownerId` at all", and `gameId` was correspondingly
+   * ADR-030 §5 read as "no `ownerId` at all", and `gameId` was correspondingly
    * non-nullable: a crawler was a thing that could only exist inside a Game.
    * That is amended here, and the amendment is about **containers**, not about
    * ownership during play. Communal-while-in-a-Game is unchanged and still
@@ -445,7 +445,7 @@ export default defineSchema({
    */
   crawlers: containerTable(
     /**
-     * Null while the crawler is in a Game — that is what communal means (D8).
+     * Null while the crawler is in a Game — that is what communal means (ADR-030 §5).
      * Set only on the shelf, where a container with no owner would be the
      * invalid row.
      *
@@ -558,7 +558,7 @@ export default defineSchema({
    *
    * It is simultaneously the audit trail, the sync log, and the alert bus: a
    * Mediator's proposal is simply an entry in `proposed` state that the player
-   * commits by applying it. `supersededBy` implements D25 — a newer proposal
+   * commits by applying it. `supersededBy` implements ADR-030 §4 — a newer proposal
    * against the same (entityId, field) retires the older one, so a player never
    * faces two contradictory pending changes to one value. Nothing expires and
    * nothing is ever force-applied.

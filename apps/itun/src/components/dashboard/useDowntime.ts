@@ -1,6 +1,6 @@
 /**
  * useDowntime — the Game's Downtime, as the Dashboard follows it
- * (docs/architecture/dashboard-redesign.md D8; ADR-038 §5).
+ * (ADR-038 §5).
  *
  * Downtime is Game state, not the device's: the `downtime` row
  * (`convex/downtime.ts`) the Game hub's `DowntimePanel` already runs. The

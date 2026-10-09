@@ -7,12 +7,10 @@ scrolls, where every game action is a button. Components are in
 `apps/itun/src/styles/dashboard/`, and the route is
 `/dashboard/$pilotId` (`apps/itun/src/routes/dashboard/$pilotId.tsx`).
 
-The decisions are [ADR-015](../ARCHITECTURE.md#adr-015) and its merged
-Dashboard decisions (formerly ADRs 016–020), as amended by
-[ADR-038](../ARCHITECTURE.md#adr-038): Game-only, play state on a seat, Major
-and Minor slots, tabs. The Flight Deck plan that built it,
-[dashboard-redesign.md](dashboard-redesign.md), is done; code comments still
-cite its decisions D1–D12. The live-play state model it drives is
+The decisions are [ADR-038](../ARCHITECTURE.md#adr-038), the one Dashboard
+record: Game-only, play state on a seat, Major and Minor slots, tabs, the
+reused display and the fixed canvas. Code cites its §1–§9. The live-play state
+model it drives is
 [combat loop](../ARCHITECTURE.md#combat-loop). Section numbers below are cited
 from code comments; keep them stable.
 

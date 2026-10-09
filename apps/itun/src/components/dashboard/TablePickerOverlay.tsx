@@ -1,5 +1,5 @@
 /**
- * TablePickerOverlay — the Dashboard Tables full picker (D3).
+ * TablePickerOverlay — the Dashboard Tables full picker.
  *
  * A 5-column grid, one column per category (COMBAT / PILOT / SALVAGE /
  * CRAWLER / DOWNTIME), each a stamped column of table buttons. Categories come

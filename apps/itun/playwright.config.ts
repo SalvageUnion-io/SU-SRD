@@ -14,8 +14,8 @@ import { e2eConfig } from '../../tools/lib/playwrightBase'
  * URL but no `VITE_TEST_AUTH`, so it SKIPS those specs, by design; the nightly
  * `e2e-itun` job provisions a throwaway Convex backend and runs them for real.
  * Locally, `bun run dev` always carries the seam on a local Convex deployment,
- * so those specs need the one-time "Local backend" setup in apps/itun/README.md
- * and FAIL without it.
+ * so those specs need the one-time "Local backend" setup in
+ * .claude/skills/convex-ops/SKILL.md and FAIL without it.
  */
 export default e2eConfig({
   port: 5173,

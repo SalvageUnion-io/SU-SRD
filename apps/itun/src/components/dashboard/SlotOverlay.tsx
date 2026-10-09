@@ -1,7 +1,7 @@
 /**
  * SlotOverlay — what ⤢ on a Minor opens: that entity's Major controls, as a
  * modal over the display, without changing which entity holds the Major slot
- * (docs/architecture/dashboard-redesign.md D3).
+ * (ADR-038 §3).
  *
  * A `ModalShell` portalled into `container` — the display region — so it stays
  * inside the scaled canvas, where the Major's `.pc-*` styling lives in the

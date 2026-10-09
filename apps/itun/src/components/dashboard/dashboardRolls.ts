@@ -1,7 +1,6 @@
 /**
  * Dashboard rolls, written to the Game's log
- * ([ADR-038](../../../../../docs/ARCHITECTURE.md#adr-038) §2;
- * docs/architecture/dashboard-redesign.md §3).
+ * ([ADR-038](../../../../../docs/ARCHITECTURE.md#adr-038) §2).
  *
  * Every die the Dashboard rolls — the core roll and its Push, a Heat Check,
  * Critical Damage and Critical Injury, a roll table, Area Salvage — becomes one

@@ -19,7 +19,7 @@
  * `--color-*` tokens (component-lib theme.css) directly, not a `--pc-*` alias
  * set. `.pc-root` only marks the cockpit scope and sets the default ink text +
  * font. Colour encodes ONTOLOGY (mech green / pilot orange / crawler pink),
- * never identity (ADR-018).
+ * never identity (ADR-038 §8).
  */
 
 .pc-root {
