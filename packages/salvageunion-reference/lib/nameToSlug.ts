@@ -29,15 +29,13 @@ const MAX_SLUG_INPUT_LENGTH = 256
  * - Removes multiple consecutive hyphens
  * - Trims hyphens from start and end
  *
- * CodeQL js/polynomial-redos note: the trailing-hyphen-trim regex used to be
- * `/^-+|-+$/g`. The `-+$` branch has a quantifier immediately followed by an
- * anchor with nothing after it in the string to guarantee the match, which is
- * the classic superlinear (O(n^2)) backtracking shape for the query
- * (e.g. `"a" + "-".repeat(n) + "a"` forces a retry at every start position).
- * The fix collapses whitespace/hyphen runs into a single hyphen first
- * (`[\s-]+` — safe: nothing follows the quantifier, so no backtracking), which
- * guarantees at most one leading and one trailing hyphen remains. That lets
- * the final trim drop its quantifier entirely (`/^-|-$/g`), leaving no
+ * CodeQL js/polynomial-redos note: a trim like `/^-+|-+$/g` is the classic
+ * superlinear (O(n^2)) backtracking shape — a quantifier followed by an anchor
+ * (`"a" + "-".repeat(n) + "a"` forces a retry at every start position). So
+ * whitespace/hyphen runs collapse into a single hyphen first (`[\s-]+` — safe:
+ * nothing follows the quantifier, so no backtracking), which guarantees at most
+ * one leading and one trailing hyphen remains. That lets the final trim drop its
+ * quantifier entirely (`/^-|-$/g`), leaving no
  * superlinear regex in the function.
  */
 export function nameToSlug(name: string): string {

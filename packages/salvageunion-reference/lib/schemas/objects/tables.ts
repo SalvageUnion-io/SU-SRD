@@ -20,7 +20,7 @@ export const TableContentSchema = z
  * Column entries: flat 1-20 mapping used in multi-column roll tables (e.g. Callsign Table)
  *
  * Also spread into the `flat` table variant below, which is the same 1–20
- * mapping plus a discriminant — it used to re-list all twenty keys by hand.
+ * mapping plus a discriminant, so the twenty keys are listed once.
  */
 const ColumnEntriesSchema = z
   .object({

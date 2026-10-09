@@ -48,12 +48,9 @@ export function liveAdvancementDataset(): AdvancementDataset {
 /**
  * The ability trees a class may draw from, for a picker.
  *
- * This is the fix for a real defect: it used to begin from `coreTrees`, which
- * **hybrid classes do not have**, so every hybrid was offered only its own tree
- * and its Legendary tree — two of its four. A Cyborg could never be given a
- * Gladiatorial Combat or Augmentation ability, and advancing a pilot therefore
- * *shrank* the trees available to them. A hybrid's other two trees come from
- * `ability-tree-requirements`, which nothing read.
+ * It cannot begin from `coreTrees`: **hybrid classes do not have them**, and a
+ * hybrid would be offered only its own tree and its Legendary tree — two of its
+ * four. A hybrid's other two trees come from `ability-tree-requirements`.
  *
  * `selectedTrees` are appended so trees the pilot already holds abilities in
  * stay visible and toggleable — including SEALED ones, which are retained

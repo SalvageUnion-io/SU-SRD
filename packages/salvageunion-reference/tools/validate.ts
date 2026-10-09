@@ -17,10 +17,8 @@
  *   - parity           (validateParityLogic.ts)
  *
  * Every check's detection logic lives in its own `*Logic.ts` module, which is
- * where its tests live too. This file is the ONLY command-line entry: there
- * used to be one thin CLI wrapper per check as well — ten files, ~650 lines,
- * each re-loading the corpus and re-printing its own report format — and ten
- * of their eleven `validate:*` scripts had no caller. `--only` replaces them.
+ * where its tests live too. This file is the ONLY command-line entry: it loads
+ * the corpus once and prints one report format; `--only` picks checks.
  *
  * Usage:
  *   bun tools/validate.ts                      # run all checks, structured report

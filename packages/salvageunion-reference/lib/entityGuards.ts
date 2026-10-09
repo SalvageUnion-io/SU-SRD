@@ -1,17 +1,12 @@
 /**
  * Type guards over reference data.
  *
- * Every guard here has at least one non-test consumer. Six more used to live
- * beside them — `isSystem`, `isModule`, `isSystemOrModule`, `isChassis`,
- * `isClass` and `hasTechLevel`, plus `hasTraits` — with no consumer anywhere in
- * the repo, and two of them (`isSystem` / `isModule`) were byte-identical
- * predicates that could not actually tell a System from a Module: Systems and
- * Modules share one schema, and the only field that distinguishes them is the
- * `schemaName` stamped at load time. They were deleted rather than fixed; the
- * discriminant to use if the need returns is `entity.schemaName === 'systems'`.
+ * Every guard here has at least one non-test consumer. There is no shape guard
+ * for a System versus a Module: they share one schema, and the only field that
+ * distinguishes them is the `schemaName` stamped at load time, so the
+ * discriminant is `entity.schemaName === 'systems'`.
  *
- * Split out of the old `lib/utilities.ts` grab bag (deleted). The package
- * barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
+ * The package barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
  */
 
 import type {
@@ -73,10 +68,8 @@ export function isKeyword(entity: SURefMetaEntity): entity is SURefKeyword {
 export function isCoreClass(
   entity: SURefMetaEntity
 ): entity is SURefClass & { coreTrees: string[] } {
-  // `maxAbilities` and `advanceable` used to be part of this test. They are now
-  // carried by hybrid records too, so they no longer discriminate anything —
-  // `coreTrees` and the explicit `hybrid` flag are what actually separate the
-  // two branches.
+  // Not `maxAbilities` or `advanceable`: hybrid records carry them too.
+  // `coreTrees` and the explicit `hybrid` flag are what separate the branches.
   return (
     entity !== null &&
     typeof entity === 'object' &&
@@ -93,10 +86,7 @@ export function isCoreClass(
  */
 
 export function isBaseAdvancedClass(entity: SURefMetaEntity): entity is SURefObjectAdvancedClass {
-  // This used to read `!('hybridTree' in entity)` — a field that exists in no
-  // schema and no data file, making the clause a tautology that returned true
-  // for every hybrid it was named to exclude. The flag it wanted is `hybrid`,
-  // which every class record now carries.
+  // Every class record carries the `hybrid` flag; it is what excludes a hybrid.
   return (
     entity !== null &&
     typeof entity === 'object' &&

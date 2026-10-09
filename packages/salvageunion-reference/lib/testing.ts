@@ -2,12 +2,11 @@
  * Typed test fixtures for reference entities — the `salvageunion-reference/testing`
  * entry point. Test code only: nothing in a runtime graph imports it.
  *
- * Tests across this package and component-lib used to build entities as object
- * literals cast through `as unknown as SURefEntity`. That cast accepts anything,
- * so a misspelled field (`techlevel`), a field from the wrong schema, or a value
- * of the wrong type compiled silently and the test exercised something other
- * than what it claimed (audit PK-14). There are two honest cases, and one helper
- * for each:
+ * Not an object literal cast through `as unknown as SURefEntity`: that cast
+ * accepts anything, so a misspelled field (`techlevel`), a field from the wrong
+ * schema, or a value of the wrong type compiles silently and the test exercises
+ * something other than what it claims. There are two honest cases, and one
+ * helper for each:
  *
  *   - {@link entityFixture} — a WELL-FORMED entity of one named schema. The
  *     overrides are type-checked against that schema's inferred type, and the

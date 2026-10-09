@@ -85,12 +85,10 @@ export function srdEntityPath(schemaName: string, slug: string): string {
  * place (`apps/srd/src/lib/entityHref.ts`), so the slash is a rendering
  * decision of that app rather than part of the grammar.
  *
- * Keep this the only place either shape is spelled. Two modules previously each
- * claimed to be the single source of the route grammar and disagreed on the
- * trailing slash — the package emitted `/schema/x/item/y` while srd emitted
- * `/schema/x/item/y/`. Directory-style output meant the un-slashed form
- * redirected rather than 404ing, so the divergence cost a hop on every bot and
- * ITUN deep link and split the canonical URL in two, without ever failing.
+ * Keep this the only place either shape is spelled. Directory-style output
+ * redirects an un-slashed form rather than 404ing, so a second spelling would
+ * cost a hop on every bot and ITUN deep link and split the canonical URL in
+ * two, without ever failing.
  *
  * @param schemaName - The entity's schema id (e.g. `'chassis'`)
  * @returns The root-relative listing path

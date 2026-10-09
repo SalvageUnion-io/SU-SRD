@@ -3,10 +3,9 @@
  *
  * The per-entity SURef* aliases and the SURefEntity / SURefMetaEntity unions
  * are GENERATED from lib/schemas/registry.ts (tools/generateRegistry.ts) into
- * lib/generated/entityTypes.generated.ts and re-exported here. They used to be
- * hand-written in this file — 27 aliases plus two unions whose membership had
- * to be kept in step with the registry by hand. Only the object-level aliases
- * (SURefObject*), which have no registry entry, are still written below.
+ * lib/generated/entityTypes.generated.ts and re-exported here, so union
+ * membership cannot drift from the registry. Only the object-level aliases
+ * (SURefObject*), which have no registry entry, are written below.
  */
 
 import type { z } from '../zod.js'
