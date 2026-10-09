@@ -301,7 +301,7 @@ export function Card({
         </div>
       )}
 
-      <CardControlRail controls={railControls} compact={isCompact} />
+      <CardControlRail controls={railControls} />
 
       {/* Inner wrapper clips backgrounds to border-radius. */}
       <div

@@ -174,7 +174,6 @@ function ReferenceEntityCardInner({
   footMeta,
   rightContent: rightContentProp,
   className,
-  cardStyle,
   titleAs,
   scalingParent,
   expand,
@@ -447,7 +446,6 @@ function ReferenceEntityCardInner({
     disabled,
     selectable,
     className,
-    cardStyle,
     selectionRole,
     cardClickLabel,
     selected,
@@ -471,7 +469,6 @@ function ReferenceEntityCardInner({
       status={status}
       onStatusClick={onStatusClick}
       subject={entityName}
-      compact={compact}
       selected={selected}
       selectionSeal={selectionSeal}
       multiSelect={
@@ -1060,11 +1057,9 @@ export type ReferenceEntityCardWrapperProps = Omit<
 
 /**
  * `ReferenceEntityCard` — the public entry point for rendering a reference
- * entity. Accepts the ergonomic display sugar (`compact` / `listing` resolve
- * onto the `size` / `extent` axes; a nullable `data` renders nothing; a
- * damaged/destroyed `status` greys the whole tone) and renders the canonical
- * card. This replaced the former `ReferenceEntityCard` compat shim; the
- * recursive card body is `ReferenceEntityCardInner`.
+ * entity. It takes the `size` / `extent` axes (`shared/displayMode.ts`),
+ * renders nothing for a null `data`, and greys the whole tone for a damaged or
+ * destroyed `status`. The recursive card body is `ReferenceEntityCardInner`.
  */
 export function ReferenceEntityCard({
   data,
@@ -1081,7 +1076,7 @@ export function ReferenceEntityCard({
   if (!data) return null
 
   const folded = collapsible && collapsed
-  // The size / extent / compact / listing reconciliation is the Card
+  // The size / extent reconciliation is the Card
   // layer's rule — inherited, not restated here. Folding only overrides the
   // EXTENT axis, so a collapsed card keeps whatever size it was given.
   const display = resolveCardDisplay({ size, extent: folded ? 'head' : extent })

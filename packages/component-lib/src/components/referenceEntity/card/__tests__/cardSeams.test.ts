@@ -191,7 +191,6 @@ describe('cardChrome', () => {
       disabled: undefined,
       selectable: undefined,
       className: undefined,
-      cardStyle: undefined,
       cardClickLabel: 'Mule',
       frameColor: 'red',
     }

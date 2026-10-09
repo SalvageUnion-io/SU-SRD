@@ -107,7 +107,6 @@ export function resolveCardInteraction({
   disabled,
   selectable,
   className,
-  cardStyle,
   selectionRole,
   cardClickLabel,
   selected,
@@ -119,7 +118,6 @@ export function resolveCardInteraction({
   disabled: boolean | undefined
   selectable: boolean | undefined
   className: string | undefined
-  cardStyle: { className?: string } | undefined
   selectionRole: 'toggle' | 'radio' | undefined
   cardClickLabel: string | undefined
   selected: boolean | undefined
@@ -137,8 +135,7 @@ export function resolveCardInteraction({
     isHoverable &&
       'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]',
     resolvedCardClick && FOCUS_RING,
-    className,
-    cardStyle?.className
+    className
   )
   // Base a11y for a clickable card. A selection toggle announces its state:
   // `toggle` → role=button + aria-pressed; `radio` → a `RadioCard`
