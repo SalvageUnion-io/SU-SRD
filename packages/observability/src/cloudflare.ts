@@ -8,8 +8,8 @@
  * through one dependency declared in one place — a runtime `dependency` of this
  * package, not a devDependency (audit PK-07).
  *
- * `@sentry/cloudflare` is built for workerd: it hooks `fetch`/`scheduled`
- * through a wrapper instead of installing global instrumentation, and needs the
+ * `@sentry/cloudflare` is built for workerd: it hooks `fetch` through a
+ * wrapper instead of installing global instrumentation, and needs the
  * `nodejs_als` compatibility flag, which `tools/check-observability.ts`
  * asserts for every Worker.
  *
@@ -33,9 +33,8 @@
  *
  * `__tests__/cloudflare.test.ts` drives the real SDK with `fetch` (its workerd
  * transport) replaced, so it asserts what actually leaves the Worker: with a
- * DSN, escaped and handled errors, `scheduled` throws and cron check-ins are
- * sent with the release, environment and server name, and a request body never
- * is; with no DSN, nothing is sent at all.
+ * DSN, escaped and handled errors are sent with the release, environment and
+ * server name, and a request body never is; with no DSN, nothing is sent at all.
  *
  * `console.error` is kept alongside Sentry rather than replaced: Workers Logs is
  * where you look during a `wrangler tail`, and losing that would trade one blind
@@ -76,15 +75,6 @@ export type ObservabilityEnv = {
  */
 type ExportedHandler<E> = {
   fetch(request: Request, env: E, ctx?: ExecutionContext): Promise<Response> | Response
-  /**
-   * Cron Trigger entry point. Optional — only the Discord bot has one.
-   *
-   * `withSentry` wraps this alongside `fetch`, so a throw inside a scheduled
-   * run becomes an event too. That matters more here than for `fetch`: nobody
-   * is watching a cron run, so an unreported throw there is silent by
-   * definition.
-   */
-  scheduled?(event: unknown, env: E, ctx: ExecutionContext): Promise<void> | void
 }
 
 type ExecutionContext = {
@@ -146,38 +136,4 @@ export function withObservability<E extends ObservabilityEnv>(
  */
 export function reportError(error: unknown, context?: Record<string, unknown>): void {
   Sentry.captureException(error, context ? { extra: context } : undefined)
-}
-
-/**
- * Open a Sentry cron check-in. Returns the id the close call needs.
- *
- * ## Why a check-in rather than an event
- *
- * Sentry alerts on events ARRIVING, never on their absence. That is why the
- * Discord bot's original `ready` info event could not serve as a liveness
- * signal — the silence that meant "the process went dark" raised nothing. A
- * cron monitor inverts it: a missed check-in is the alarm.
- *
- * ## Why two functions rather than one
- *
- * Sentry's `CheckIn` is a discriminated union — an in-progress check-in carries
- * no id and a finished one requires one — so a single call taking every status
- * cannot be typed honestly. Splitting it also makes the two-phase protocol
- * impossible to half-use: reporting only on success would build a monitor that
- * cannot tell "failed" from "never ran".
- *
- * Exposed from here rather than importing `@sentry/cloudflare` in each Worker,
- * for the same reason `reportError` is: the SDK is this package's dependency.
- */
-export function startCheckIn(monitorSlug: string): string {
-  return Sentry.captureCheckIn({ monitorSlug, status: 'in_progress' })
-}
-
-/** Close a check-in opened by {@link startCheckIn}. */
-export function finishCheckIn(
-  monitorSlug: string,
-  checkInId: string,
-  status: 'ok' | 'error'
-): void {
-  Sentry.captureCheckIn({ checkInId, monitorSlug, status })
 }

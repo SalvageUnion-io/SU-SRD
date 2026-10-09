@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { finishCheckIn, reportError, startCheckIn, withObservability } from '../cloudflare'
+import { reportError, withObservability } from '../cloudflare'
 
 /**
  * `withObservability` is the whole of the three production Workers' error
@@ -172,25 +172,6 @@ describe('withObservability', () => {
     expect((outcome as Error).message).toBe('dark')
     expect(sent).toEqual([])
   })
-
-  test('an error thrown by a scheduled handler is reported too', async () => {
-    // Nobody watches a cron run, so an unreported throw there is silent by
-    // definition — this is the case the wrapper matters most for.
-    const worker = withObservability('test-worker', {
-      fetch: () => new Response('ok'),
-      scheduled() {
-        throw new Error('cron-failed')
-      },
-    })
-    const { ctx, drain } = makeCtx()
-
-    await Promise.resolve(
-      worker.scheduled?.({ cron: '*/5 * * * *', scheduledTime: 0 }, { SENTRY_DSN: DSN }, ctx)
-    ).catch(() => undefined)
-    await drain()
-
-    expect(errorEvents().map(exceptionValue)).toContain('cron-failed')
-  })
 })
 
 describe('reportError', () => {
@@ -234,34 +215,5 @@ describe('reportError', () => {
 
     expect(response.status).toBe(200)
     expect(sent).toEqual([])
-  })
-})
-
-describe('cron check-ins', () => {
-  test('open and close a check-in around a scheduled run', async () => {
-    const ids: string[] = []
-    const worker = withObservability('test-worker', {
-      fetch: () => new Response('ok'),
-      scheduled() {
-        const id = startCheckIn('test-monitor')
-        ids.push(id)
-        finishCheckIn('test-monitor', id, 'ok')
-      },
-    })
-    const { ctx, drain } = makeCtx()
-
-    await worker.scheduled?.({ cron: '*/5 * * * *', scheduledTime: 0 }, { SENTRY_DSN: DSN }, ctx)
-    await drain()
-
-    expect(ids).toHaveLength(1)
-    expect(typeof ids[0]).toBe('string')
-
-    const checkIns = sent
-      .flatMap((e) => e.items)
-      .filter((item) => item.monitor_slug === 'test-monitor')
-    // Both phases, same id: a monitor that only heard "ok" could not tell
-    // "failed" from "never ran".
-    expect(checkIns.map((c) => c.status)).toEqual(['in_progress', 'ok'])
-    expect(checkIns.every((c) => c.check_in_id === ids[0])).toBe(true)
   })
 })
