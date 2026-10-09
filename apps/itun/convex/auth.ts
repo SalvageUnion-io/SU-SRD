@@ -43,6 +43,20 @@ import { convexAuth } from '@convex-dev/auth/server'
 const discord = Discord({})
 
 /**
+ * Discord's issuer, as its `/.well-known/openid-configuration` declares it.
+ *
+ * Discord now appends the RFC 9207 `iss` parameter to its authorization
+ * response, and `oauth4webapi` rejects a callback whose `iss` differs from the
+ * provider's issuer. The stock provider declares none, so `@convex-dev/auth`
+ * falls back to the placeholder `theremustbeastringhere.dev` — and every
+ * sign-in failed with `unexpected "iss" (issuer) response parameter value`,
+ * logged rather than thrown, so nothing reached Sentry. Setting it does not
+ * trigger discovery: the provider already names all three endpoints, so this
+ * only changes what `iss` is compared against.
+ */
+const DISCORD_ISSUER = 'https://discord.com'
+
+/**
  * Auth.js types `OAuthConfig.profile` as optional, because a provider may lean
  * on the generic default mapping. Discord does not — it ships its own, and that
  * is the function being wrapped. Asserting here rather than at the call site
@@ -145,6 +159,7 @@ export function providersFor(testAuth: boolean) {
 
   const discordProvider = {
     ...discord,
+    issuer: DISCORD_ISSUER,
     profile: async (
       raw: Parameters<DiscordProfileFn>[0],
       tokens: Parameters<DiscordProfileFn>[1]

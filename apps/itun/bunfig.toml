@@ -1,5 +1,8 @@
 [test]
 preload = [
+  # First: `convex/auth.ts` reads the Discord client env at import, and
+  # `NATIVE_FETCH_GLOBALS` must be captured before happy-dom replaces them.
+  "./test/env.ts",
   "../../test/happydom.ts",
   "../../test/testing-library.ts",
   "../../test/reference-preload.ts",
