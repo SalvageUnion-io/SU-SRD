@@ -101,16 +101,11 @@ export default defineConfig({
         // meant a second `vite build` AND a second `tsc --noEmit` (itun's
         // `build` is both) on every PR. The nightly workflow has no build step,
         // so the fallback stays.
-        // No storage flag. This command used to force VITE_REQUIRE_ACCOUNT=false,
-        // which kept the anonymous `local` backend (durable IndexedDB) alive
-        // for the suite alone — so for months the specs proved a storage mode
-        // no player could reach. Both are retired: an anonymous visitor is
-        // in-memory everywhere, and every spec that needs a build to survive a
-        // reload signs in through `e2e/fixtures.ts`. The PR bundle (ci.yml's
-        // `build-itun`) has a Convex URL but no `VITE_TEST_AUTH`, so it SKIPS
-        // those specs, by design; the
-        // nightly `e2e-itun` job provisions a throwaway Convex backend and runs
-        // them for real. Locally, `dev:itun` always carries the seam on a local
+        // No storage flag: signed out, ITUN is read-only, so every spec that
+        // builds something signs in through `e2e/fixtures.ts`. The PR bundle
+        // (ci.yml's `build-itun`) has a Convex URL but no `VITE_TEST_AUTH`, so
+        // it SKIPS those specs, by design; the nightly `e2e-itun` job
+        // provisions a throwaway Convex backend and runs them for real. Locally, `dev:itun` always carries the seam on a local
         // Convex deployment, so those specs need the one-time "Local backend"
         // setup in apps/itun/README.md and FAIL without it.
         //

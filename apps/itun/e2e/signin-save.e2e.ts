@@ -32,9 +32,8 @@ test.use({ account: 'anonymous' })
  * **It runs nightly.** `e2e-itun` in `.github/workflows/e2e-nightly.yml`
  * provides all three against a throwaway self-hosted Convex backend — a
  * container destroyed with the runner, so it needs no credentials and never
- * puts a password provider on production. The same seam now signs in every
- * other durable spec too (`fixtures.ts`), since the anonymous backend is
- * in-memory everywhere.
+ * puts a password provider on production. The same seam signs in every other
+ * spec that builds something (`fixtures.ts`): signed out, ITUN is read-only.
  *
  * That job sets `ITUN_E2E_EXPECT_AUTH_SEAM`, which turns the skip into a throw.
  *

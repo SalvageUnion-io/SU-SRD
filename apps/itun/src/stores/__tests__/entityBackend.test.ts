@@ -15,12 +15,11 @@ import {
  *
  * Three answers, two of them refusals: `signedOut` for anybody not signed
  * in (read-only, and reads nothing), `remote` for a Connected session, `blocked` while Disconnected or still
- * settling the auth handshake. The `local` backend — durable IndexedDB for an
- * anonymous visitor in a build with the account gate off — is retired, and the
- * tests below pin that it cannot come back through any combination of inputs.
+ * settling the auth handshake. The tests below pin that no combination of
+ * inputs yields a durable anonymous backend.
  *
  * The test build has no `VITE_CONVEX_URL`, so `convexClient` is null. That is
- * the configuration CI and a fresh checkout run in, and it is now anonymous
+ * the configuration CI and a fresh checkout run in, and it is anonymous
  * whatever the auth state claims.
  */
 

@@ -1,12 +1,9 @@
 /**
  * The three backup controls, as a player drives them.
  *
- * Export is load-bearing under ADR-034: for somebody who will not make an
- * account it is the ONLY way to keep what they built, so these run on the
- * default anonymous (in-memory) backend — the one those players are on. The
- * bundle logic itself is covered in `lib/export/__tests__`; what is pinned here
- * is what the buttons add: the filename, the callback that must fire only after
- * a download really happened, and the error a failure leaves on screen.
+ * The bundle logic itself is covered in `lib/export/__tests__`; what is pinned
+ * here is what the buttons add: the filename, the callback that must fire only
+ * after a download really happened, and the error a failure leaves on screen.
  *
  * No `mock.module`: the download is observed by intercepting the two browser
  * calls `downloadJson` makes, restored after every test.
