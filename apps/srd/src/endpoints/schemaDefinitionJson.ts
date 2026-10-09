@@ -1,18 +1,18 @@
 /**
- * `/schema/[schemaId].schema.json` — a schema's JSON Schema definition.
+ * `/schema/[schemaId].schema.json` — a schema's JSON Schema definition: the
+ * committed `schemas/<id>.schema.json`, served verbatim (`readReferenceFile`).
+ * Its `$id` is this URL.
  *
  * Dotted pattern: emits `dist/schema/chassis.schema.json` as a FILE. See
  * `ssg/DESIGN.md`'s URL -> file table.
  */
 
-import { getJsonSchemaDefinition } from 'salvageunion-reference/schema-definitions'
 import type { EndpointModule, StaticPath } from '../../ssg/types'
-// From `lib/gameData`, NOT the package — importing that module is what runs the
-// build-time `preload('all')` that static generation depends on.
 import { getEntitySchemas } from '../lib/gameData'
+import { readReferenceFile } from '../lib/referenceFiles'
 
 type Params = { schemaId: string }
-type Props = { definition: ReturnType<typeof getJsonSchemaDefinition> }
+type Props = { schemaFile: string }
 
 /**
  * `getEntitySchemas()`, not the whole catalog — the JSON surface must cover the
@@ -29,18 +29,15 @@ type Props = { definition: ReturnType<typeof getJsonSchemaDefinition> }
  * correspond to. Pinned by `schemaSurfaceParity.test.ts`.
  */
 function getStaticPaths(): StaticPath<Params, Props>[] {
-  return getEntitySchemas().map((schema) => {
-    const definition = getJsonSchemaDefinition(schema.id)
-    return {
-      params: { schemaId: schema.id },
-      props: { definition },
-    }
-  })
+  return getEntitySchemas().map((schema) => ({
+    params: { schemaId: schema.id },
+    props: { schemaFile: schema.schemaFile },
+  }))
 }
 
 export const schemaDefinitionJsonEndpoint: EndpointModule<Params, Props> = {
   pattern: 'schema/[schemaId].schema.json',
   getStaticPaths,
   contentType: 'application/json',
-  body: ({ props }) => JSON.stringify(props.definition),
+  body: ({ props }) => readReferenceFile(props.schemaFile),
 }

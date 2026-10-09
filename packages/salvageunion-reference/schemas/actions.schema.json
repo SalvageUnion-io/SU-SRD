@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/actions.schema.json",
+  "$id": "https://salvageunion.io/schema/actions.schema.json",
   "title": "actions",
   "description": "Actions, abilities, and attacks that can be performed",
   "type": "array",
@@ -603,7 +603,7 @@
                         "duration": {
                           "type": "string",
                           "enum": ["permanent", "activated"],
-                          "description": "Permanent (default) applies whenever held/installed. `activated` applies only while the player has switched it on in Guided Play — ephemeral play state (ADR-019), never persisted on the entity."
+                          "description": "Permanent (default) applies whenever held/installed. `activated` applies only while the player has switched it on in Guided Play — saved on the pilot's seat in the Game (ADR-038), never on the entity."
                         },
                         "note": {
                           "type": "string",
@@ -1123,7 +1123,7 @@
                                 "duration": {
                                   "type": "string",
                                   "enum": ["permanent", "activated"],
-                                  "description": "Permanent (default) applies whenever held/installed. `activated` applies only while the player has switched it on in Guided Play — ephemeral play state (ADR-019), never persisted on the entity."
+                                  "description": "Permanent (default) applies whenever held/installed. `activated` applies only while the player has switched it on in Guided Play — saved on the pilot's seat in the Game (ADR-038), never on the entity."
                                 },
                                 "note": {
                                   "type": "string",

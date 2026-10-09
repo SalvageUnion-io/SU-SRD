@@ -46,7 +46,6 @@ PROTECTED_PATTERNS=(
   "*apps/itun/convex/_generated/*"
   "*bun.lock"
   "*tools/styling-baseline.json"
-  "*.vscode/settings.json"
 )
 
 for pattern in "${PROTECTED_PATTERNS[@]}"; do

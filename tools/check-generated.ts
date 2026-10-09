@@ -40,7 +40,6 @@ export const GENERATED_PATHS = [
   'packages/salvageunion-reference/schemas',
   'packages/salvageunion-reference/lib/generated',
   'packages/salvageunion-reference/lib/index.ts',
-  '.vscode/settings.json',
   'apps/itun/src/routeTree.gen.ts',
 ] as const
 

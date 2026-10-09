@@ -6,7 +6,7 @@ export type { CatalogSection } from './catalog/catalogHelpers'
 export { buildCatalogSections } from './catalog/catalogSections'
 export { Changelog } from './changelog/Changelog'
 // Changelog (shared markdown parser + presentational view)
-export { mergeChangelogs, parseChangelog } from './changelog/parseChangelog'
+export { parseChangelog } from './changelog/parseChangelog'
 // Base typography
 export { Text } from './components/base/Text'
 // Avatar — a person's picture in a circle, falling back to their initial

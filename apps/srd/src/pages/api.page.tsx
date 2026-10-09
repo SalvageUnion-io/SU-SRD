@@ -10,9 +10,10 @@
 import { PageHeading, Panel, Slab } from 'component-lib'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
+import { apiSampleChassis } from '../lib/apiSample'
 import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { schemaHref } from '../lib/entityHref'
-import { getEntitySchemas, SalvageUnionReference } from '../lib/gameData'
+import { getEntitySchemas } from '../lib/gameData'
 
 const TITLE = `API Reference${TITLE_SUFFIX}`
 const DESCRIPTION =
@@ -68,18 +69,9 @@ function CodeSample({ children, roomy = false }: { children: string; roomy?: boo
  * and throw "Schema not loaded". `page()` runs after that bootstrap.
  */
 function buildSamples() {
-  /**
-   * The entity the samples describe: the first chassis by slug.
-   *
-   * Deterministic on purpose: picking "whatever is first in the file" would
-   * change this page on unrelated data edits.
-   */
-  const entity = [...SalvageUnionReference.Chassis.all()].sort((a, b) =>
-    getEntitySlug(a).localeCompare(getEntitySlug(b))
-  )[0]
-
-  const slug = entity ? getEntitySlug(entity) : 'aegis'
-  const name = entity?.name ?? 'Aegis'
+  const entity = apiSampleChassis()
+  const slug = getEntitySlug(entity)
+  const name = entity.name
 
   /**
    * A readable excerpt of a real record: identity fields plus the first few
@@ -87,7 +79,6 @@ function buildSamples() {
    * skipped — the point is the SHAPE and the real field names, not a full dump.
    */
   const json = (indent: string): string => {
-    if (!entity) return `${indent}...`
     const record = entity as unknown as Record<string, unknown>
     const scalars = Object.entries(record)
       .filter(([key, value]) => {

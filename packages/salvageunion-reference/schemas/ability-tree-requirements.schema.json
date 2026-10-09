@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/ability-tree-requirements.schema.json",
+  "$id": "https://salvageunion.io/schema/ability-tree-requirements.schema.json",
   "title": "ability-tree-requirements",
   "description": "Requirements for unlocking ability trees",
   "type": "array",

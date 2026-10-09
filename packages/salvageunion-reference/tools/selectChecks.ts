@@ -1,7 +1,7 @@
 /**
  * `--only=a,b` parsing for `validate.ts`, kept in its own module so it can be
- * tested without importing the runner — which pulls every check adapter, the
- * `--fix` writer and the data loader into the coverage set on import.
+ * tested without importing the runner — which pulls every check adapter and
+ * the data loader into the coverage set on import.
  */
 
 /** The ids of every check `validate.ts` runs, in run order. */

@@ -27,21 +27,13 @@
  * Usage:
  *   bun tools/validate.ts                      # run all checks, structured report
  *   bun tools/validate.ts --only=ids,slugs     # run just these checks
- *   bun tools/validate.ts --fix                # apply mechanical fixes first (see below), then run all checks
  *
- * `--fix` is a *mechanical-only* tier: it currently does exactly what
- * `bun run fix:ids` already does (generateMissingIds.ts — fill in missing
- * IDs, replace invalid ones, and deduplicate collisions). It does NOT attempt
- * to fix anything requiring judgment (broken cross-references, orphaned
- * entities, trait issues, etc.) — those always remain diagnostics-only. Note
- * that generateMissingIds.ts rewrites whole files via
- * `JSON.stringify(data, null, 2)`, which reformats them — see its header
- * comment; that tradeoff is unchanged by this runner.
+ * It reports and never writes: `tools/edit-data.ts` is the one writer of
+ * `data/*.json`, and `edit-data add` mints a missing `id`.
  */
 
 import { zodSchemaMap } from '../lib/generated/zodSchemaMap.generated.js'
 import { checkAllFiles } from './checkUniqueIdsLogic.js'
-import { fixMissingIds } from './generateMissingIds.js'
 import type { DataBag } from './loadData.js'
 import { loadAllDataFiles } from './loadData.js'
 import type { CheckId } from './selectChecks.js'
@@ -328,23 +320,12 @@ function printReport(diagnostics: Diagnostic[]): void {
 
 function main(): void {
   const argv = process.argv.slice(2)
-  const fix = argv.includes('--fix')
   let checks: CheckDefinition[]
   try {
     checks = selectChecks(CHECKS, argv)
   } catch (error) {
     console.error(`✗ ${(error as Error).message}`)
     process.exit(2)
-  }
-
-  if (fix) {
-    console.log('🔧 --fix: applying mechanical fixes (missing/invalid/duplicate IDs)...\n')
-    const summary = fixMissingIds()
-    console.log(
-      summary.totalChanges === 0
-        ? '\nNo mechanical fixes were needed.\n'
-        : `\nApplied ${summary.totalChanges} mechanical fix(es) across ${summary.filesModified} file(s).\n`
-    )
   }
 
   // Single shared load: every check below reads from this one in-memory bag

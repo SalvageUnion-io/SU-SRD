@@ -5,8 +5,8 @@ import type { ChangelogEntry } from './parseChangelog'
 
 export default { title: 'Compositions/Changelog' }
 
-// Real-shaped release entries (version headline, area badge, merged newest-first)
-// as release-please produces them across the Site + Data changelogs.
+// Real-shaped release entries (version headline, area badge, newest first) as
+// release-please writes them into a site's changelog.
 const ENTRIES: ChangelogEntry[] = [
   {
     date: '2026-07-18',
@@ -20,7 +20,7 @@ const ENTRIES: ChangelogEntry[] = [
   {
     date: '2026-07-12',
     version: '1.3.0',
-    area: 'Data',
+    area: 'Site',
     items: [
       'Model Eldridge Coast companions as equipment loadouts',
       'Condition + uses tracking for drone loadout items',
@@ -29,12 +29,12 @@ const ENTRIES: ChangelogEntry[] = [
   {
     date: '2026-07-04',
     title: 'Crawler bays',
-    area: 'Data',
+    area: 'Site',
     items: ['One Crawler Bay type; homebrew bays grouped underneath'],
   },
 ]
 
-/** The merged release list — each entry a paper panel with an area badge. */
+/** The release list — each entry a paper panel with an area badge. */
 export const Default: Story = () => (
   <div className="flex max-w-2xl flex-col gap-3">
     <Caption>

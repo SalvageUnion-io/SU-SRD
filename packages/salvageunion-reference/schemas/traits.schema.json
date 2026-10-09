@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/traits.schema.json",
+  "$id": "https://salvageunion.io/schema/traits.schema.json",
   "title": "traits",
   "description": "Traits and special properties",
   "type": "array",

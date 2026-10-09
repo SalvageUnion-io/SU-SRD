@@ -124,12 +124,12 @@ All models provide a simple, consistent API with just three methods:
 ## Direct Data Access
 
 The package's public surface is its declared entry points and nothing else:
-`salvageunion-reference`, `/rules`, `/zod`, `/schema-definitions` and
-`/testing` (test code only), plus `./data/*`. That last subpath exposes the raw
-`data/*.json` files for one purpose: importing them statically to hand to
-`SalvageUnionReference.install` in a runtime without dynamic `import()` (Convex's
-default runtime). Everywhere else, and for `schemas/*.schema.json` (not an
-importable subpath), reach the data through the accessors below.
+`salvageunion-reference`, `/rules`, `/zod` and `/testing` (test code only), plus
+the committed files under `./data/*` and `./schemas/*`. Those file subpaths have
+two readers: Convex imports `data/*.json` statically to hand to
+`SalvageUnionReference.install` (its default runtime has no dynamic `import()`),
+and srd's JSON API serves both directories verbatim. Everywhere else, reach the
+data through the accessors below.
 
 ```typescript
 // Raw data, keyed by schema ID
@@ -137,10 +137,6 @@ import { getDataMaps, getSchemaCatalog } from 'salvageunion-reference'
 
 const { dataMap } = getDataMaps()
 const chassisData = dataMap['chassis']
-
-// JSON Schema definitions come from their own entry point, not getDataMaps()
-import { getJsonSchemaDefinition } from 'salvageunion-reference/schema-definitions'
-const chassisSchema = getJsonSchemaDefinition('chassis')
 
 // Get schema catalog metadata
 const catalog = getSchemaCatalog()
