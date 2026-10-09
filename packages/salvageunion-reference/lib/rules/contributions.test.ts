@@ -32,39 +32,39 @@ describe('resolveAmount', () => {
 
 describe('ability contributions resolve from the real dataset', () => {
   it('Bionic Legs grants the pilot +2 Max HP', () => {
-    const found = abilityContributions(['Bionic Legs'], 'pilot', 'maxHp')
+    const found = abilityContributions(['bionic-legs'], 'pilot', 'maxHp')
     expect(sumContributions(found)).toBe(2)
     expect(found[0]?.source).toBe('Bionic Legs')
   })
 
   it('Bionic Arms grants the pilot +2 Max HP', () => {
-    expect(sumContributions(abilityContributions(['Bionic Arms'], 'pilot', 'maxHp'))).toBe(2)
+    expect(sumContributions(abilityContributions(['bionic-arms'], 'pilot', 'maxHp'))).toBe(2)
   })
 
   it('two HP abilities stack across different abilities', () => {
-    const both = abilityContributions(['Bionic Arms', 'Bionic Legs'], 'pilot', 'maxHp')
+    const both = abilityContributions(['bionic-arms', 'bionic-legs'], 'pilot', 'maxHp')
     expect(both).toHaveLength(2)
     expect(sumContributions(both)).toBe(4)
   })
 
   it('Beefcake targets the PILOT and the PILOTED MECH from one record', () => {
-    expect(sumContributions(abilityContributions(['Beefcake'], 'pilot', 'maxHp'))).toBe(2)
-    expect(sumContributions(abilityContributions(['Beefcake'], 'pilot', 'inventorySlots'))).toBe(4)
+    expect(sumContributions(abilityContributions(['beefcake'], 'pilot', 'maxHp'))).toBe(2)
+    expect(sumContributions(abilityContributions(['beefcake'], 'pilot', 'inventorySlots'))).toBe(4)
     expect(
-      sumContributions(abilityContributions(['Beefcake'], 'pilotedMech', 'cargoCapacity'))
+      sumContributions(abilityContributions(['beefcake'], 'pilotedMech', 'cargoCapacity'))
     ).toBe(6)
   })
 
   it("Beefcake's Max SP scales with the mech's tech level (3+X)", () => {
-    const atTl1 = abilityContributions(['Beefcake'], 'pilotedMech', 'structurePoints', 1)
-    const atTl5 = abilityContributions(['Beefcake'], 'pilotedMech', 'structurePoints', 5)
+    const atTl1 = abilityContributions(['beefcake'], 'pilotedMech', 'structurePoints', 1)
+    const atTl5 = abilityContributions(['beefcake'], 'pilotedMech', 'structurePoints', 5)
     expect(sumContributions(atTl1)).toBe(4)
     expect(sumContributions(atTl5)).toBe(8)
   })
 
   it('Modular Face Implant grants the pilot a Module Slot', () => {
     expect(
-      sumContributions(abilityContributions(['Modular Face Implant'], 'pilot', 'moduleSlots'))
+      sumContributions(abilityContributions(['modular-face-implant'], 'pilot', 'moduleSlots'))
     ).toBe(1)
   })
 
@@ -73,14 +73,14 @@ describe('ability contributions resolve from the real dataset', () => {
   })
 
   it('a contribution is only returned for its own target and stat', () => {
-    expect(abilityContributions(['Beefcake'], 'pilot', 'structurePoints')).toEqual([])
-    expect(abilityContributions(['Bionic Legs'], 'pilotedMech', 'maxHp')).toEqual([])
+    expect(abilityContributions(['beefcake'], 'pilot', 'structurePoints')).toEqual([])
+    expect(abilityContributions(['bionic-legs'], 'pilotedMech', 'maxHp')).toEqual([])
   })
 })
 
 describe('contributions reach the derived maxima', () => {
   it('a pilot holding Bionic Legs has 12 Max HP, not 10', () => {
-    expect(pilotMaxHPParts({ abilities: ['Bionic Legs'] }).total).toBe(12)
+    expect(pilotMaxHPParts({ abilities: ['bionic-legs'] }).total).toBe(12)
     expect(pilotMaxHPParts({}).total).toBe(10)
   })
 
@@ -90,13 +90,13 @@ describe('contributions reach the derived maxima', () => {
     // Without the piloting context the mech derives its own cargo only.
     expect(mechMaxCargoParts(mech, chassis).total).toBe(6)
     // With it, Beefcake's +6 applies.
-    expect(mechMaxCargoParts(mech, chassis, { abilities: ['Beefcake'] }).total).toBe(12)
+    expect(mechMaxCargoParts(mech, chassis, { abilities: ['beefcake'] }).total).toBe(12)
   })
 
   it("the mech's tech level drives Beefcake's SP scaling", () => {
     const mech = { chassisRef: 'no-such-chassis' }
     const chassis = { structurePoints: 20 }
-    expect(mechMaxSPParts(mech, chassis, { abilities: ['Beefcake'], techLevel: 4 }).total).toBe(27)
+    expect(mechMaxSPParts(mech, chassis, { abilities: ['beefcake'], techLevel: 4 }).total).toBe(27)
   })
 })
 
@@ -105,7 +105,7 @@ describe("Beefcake's four contributions each reach a real consumer", () => {
   // most easily half-wired: two of its four contributions target the PILOT and
   // two target the PILOTED MECH, so a surface that forgets the piloting context
   // silently under-counts rather than failing.
-  const BEEFCAKE = ['Beefcake']
+  const BEEFCAKE = ['beefcake']
 
   it('pilot Max HP +2', () => {
     expect(pilotMaxHPParts({ abilities: BEEFCAKE }).total).toBe(12)
@@ -140,9 +140,9 @@ describe('named sources stay attributable', () => {
   // Beefcake's bonus to installed hardware — a provenance feature lying about
   // provenance. Named contributions therefore ride `sources`, never `installed`.
   it('an ability contributes nothing to a stat it does not name', () => {
-    const mech = { chassisRef: 'no-such-chassis', systems: ['Heat Sink'] }
+    const mech = { chassisRef: 'no-such-chassis', systems: ['heat-sink'] }
     const chassis = { heatCapacity: 5 }
-    const parts = mechMaxHeatParts(mech, chassis, { abilities: ['Beefcake'] })
+    const parts = mechMaxHeatParts(mech, chassis, { abilities: ['beefcake'] })
     // Heat Sink is real installed hardware and so a NAMED source, not the
     // anonymous `installed` slot; Beefcake contributes no heat at all.
     expect(parts.installed).toBe(0)
@@ -153,7 +153,7 @@ describe('named sources stay attributable', () => {
   it('a piloted-mech contribution arrives as a NAMED source, not as installed', () => {
     const mech = { chassisRef: 'no-such-chassis' }
     const chassis = { structurePoints: 20 }
-    const parts = mechMaxSPParts(mech, chassis, { abilities: ['Beefcake'], techLevel: 4 })
+    const parts = mechMaxSPParts(mech, chassis, { abilities: ['beefcake'], techLevel: 4 })
     expect(parts.installed).toBe(0)
     expect(parts.sources).toHaveLength(1)
     expect(parts.sources[0]?.source).toBe('Beefcake')
@@ -164,7 +164,7 @@ describe('named sources stay attributable', () => {
 
   it('a pilot ability is named while the injury penalty stays anonymous', () => {
     const parts = pilotMaxHPParts({
-      abilities: ['Bionic Legs'],
+      abilities: ['bionic-legs'],
       injuries: [{ severity: 'minor', note: '' }],
     })
     expect(parts.installed).toBe(-1) // the injury
@@ -178,18 +178,18 @@ describe('activated contributions — manual expiry (F1)', () => {
   // play clock: inventing one would put wall-time into the data layer and make a
   // sheet's numbers change while nobody is looking. The table keeps time, the
   // app keeps state — so an activated effect applies only while switched on.
-  const mech = { chassisRef: 'no-such-chassis', modules: ['Hull Magnetiser'] }
+  const mech = { chassisRef: 'no-such-chassis', modules: ['hull-magnetiser'] }
   const chassis = { cargoCapacity: 6, systemSlots: 15 }
 
   it('an activated ability contributes NOTHING while switched off', () => {
     expect(
-      sumContributions(abilityContributions(['Squeeze it in'], 'pilotedMech', 'cargoCapacity'))
+      sumContributions(abilityContributions(['squeeze-it-in'], 'pilotedMech', 'cargoCapacity'))
     ).toBe(0)
   })
 
   it('and contributes once switched on', () => {
-    const on = abilityContributions(['Squeeze it in'], 'pilotedMech', 'cargoCapacity', undefined, {
-      'Squeeze it in': true,
+    const on = abilityContributions(['squeeze-it-in'], 'pilotedMech', 'cargoCapacity', undefined, {
+      'squeeze-it-in': true,
     })
     expect(sumContributions(on)).toBe(4)
     expect(on[0]?.source).toBe('Squeeze it in')
@@ -197,7 +197,7 @@ describe('activated contributions — manual expiry (F1)', () => {
 
   it('a permanent contribution is unaffected by the active map', () => {
     expect(
-      sumContributions(abilityContributions(['Bionic Legs'], 'pilot', 'maxHp', undefined, {}))
+      sumContributions(abilityContributions(['bionic-legs'], 'pilot', 'maxHp', undefined, {}))
     ).toBe(2)
   })
 
@@ -207,7 +207,7 @@ describe('activated contributions — manual expiry (F1)', () => {
     const off = mechMaxCargoParts(mech, chassis)
     expect(off.total).toBe(6)
 
-    const on = mechMaxCargoParts(mech, chassis, { active: { 'Hull Magnetiser': true } })
+    const on = mechMaxCargoParts(mech, chassis, { active: { 'hull-magnetiser': true } })
     expect(on.total).toBe(6 + 15)
     expect(on.sources[0]?.source).toBe('Hull Magnetiser')
   })
@@ -216,7 +216,7 @@ describe('activated contributions — manual expiry (F1)', () => {
     const on = mechMaxCargoParts(
       mech,
       { cargoCapacity: 6 },
-      { active: { 'Hull Magnetiser': true } }
+      { active: { 'hull-magnetiser': true } }
     )
     expect(on.total).toBe(6)
   })

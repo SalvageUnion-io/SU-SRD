@@ -19,7 +19,6 @@
  * touched here — only crew/type-owned fields.
  */
 
-import type { SURefCrawler } from 'salvageunion-reference'
 import type { EntityState } from '../../stores/entityStore'
 import { WIZARD_TXN } from '../../stores/surfaceProvenance'
 import type { Crawler } from '../schemas/crawler'
@@ -33,7 +32,6 @@ import { crawlerFormCrewToPatches, defaultTypeNpcState } from './crawlerFormStat
  * @param crawlerId   The crawler being edited.
  * @param form        The edited form. Only `type` and `crew` are read here.
  * @param oldType     The crawler's type BEFORE this save, or null.
- * @param types       The SRD crawler-type catalog (for the type-NPC reset).
  * @param typeField   When provided, the new `type` value is written in the SAME
  *                    record update as bayChoices/typeNpc (atomic type change).
  *                    Omit when the caller has already written `type` itself.
@@ -43,7 +41,6 @@ export async function applyCrawlerCrewAndTypeEdit(
   crawlerId: string,
   form: CrawlerWizardFormState,
   oldType: string | null,
-  types: SURefCrawler[],
   typeField?: string
 ): Promise<void> {
   const typeChanged = oldType !== form.type
@@ -73,7 +70,7 @@ export async function applyCrawlerCrewAndTypeEdit(
   // The type NPC: reset to the new type's default on a type change (never a
   // merge onto the old NPC); merge on an unchanged type so live HP survives.
   if (typeChanged) {
-    const baseNpc = form.type ? defaultTypeNpcState(types, form.type) : undefined
+    const baseNpc = form.type ? defaultTypeNpcState(form.type) : undefined
     const nextTypeNpc = { ...(baseNpc ?? {}), ...(crewPatches.typeNpc ?? {}) }
     recordPatch.typeNpc = Object.keys(nextTypeNpc).length > 0 ? nextTypeNpc : undefined
   } else if (crewPatches.typeNpc) {

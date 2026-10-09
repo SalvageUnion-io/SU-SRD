@@ -61,8 +61,8 @@ export type PilotSheetActions = {
   overridePilotMax: (fields: Partial<Pilot>) => void
   toggleUsed: (key: UsedToggleKey, next: boolean) => void
   handleConditionsChange: (next: string[]) => void
-  toggleAbility: (abilityId: string) => void
-  toggleEquipment: (equipmentId: string) => void
+  toggleAbility: (slug: string) => void
+  toggleEquipment: (slug: string) => void
   handleEquipmentConditionChange: (slug: string, next: ItemCondition) => Promise<void>
   handleUsesChange: (slug: string, next: number) => Promise<void>
   handleSpendAP: (cost: number) => Promise<void>
@@ -173,13 +173,13 @@ export function usePilotSheetActions({
   // Advisory only (soft warnings), never rule-GATED: the cap, tree order and
   // the Advanced/Legendary prerequisites surface in a confirm dialog and the
   // user may always proceed.
-  function toggleAbility(abilityId: string) {
+  function toggleAbility(slug: string) {
     const current = freshPilot()
-    const removing = current.abilities.includes(abilityId)
-    const name = resolveAbility(abilityId)?.name ?? abilityId
+    const removing = current.abilities.includes(slug)
+    const name = resolveAbility(slug)?.name ?? slug
     const abilities = removing
-      ? current.abilities.filter((a) => a !== abilityId)
-      : [...current.abilities, abilityId]
+      ? current.abilities.filter((a) => a !== slug)
+      : [...current.abilities, slug]
     saveBuildEdit(
       {
         abilities,
@@ -203,14 +203,14 @@ export function usePilotSheetActions({
    * re-equipping grants a fresh one — that is the only lifecycle a partner has,
    * which is why no card offers a bare "remove" of its own.
    */
-  function toggleEquipment(equipmentId: string) {
+  function toggleEquipment(slug: string) {
     const current = freshPilot()
-    const equipment = current.equipment.includes(equipmentId)
-      ? current.equipment.filter((e) => e !== equipmentId)
-      : [...current.equipment, equipmentId]
+    const equipment = current.equipment.includes(slug)
+      ? current.equipment.filter((e) => e !== slug)
+      : [...current.equipment, slug]
     write({
       equipment,
-      ...(isPartnerEquipment(equipmentId)
+      ...(isPartnerEquipment(slug)
         ? {
             partners: syncPartners(
               current.partners,

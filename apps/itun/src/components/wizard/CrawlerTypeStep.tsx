@@ -1,11 +1,13 @@
 import { Callout, EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from 'component-lib'
 import type { SURefCrawler } from 'salvageunion-reference'
+import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
 
 type CrawlerTypeSelectStepProps = {
   types: SURefCrawler[]
+  /** The chosen type's slug. */
   selectedType: string | null
-  onSelect: (id: string) => void
+  onSelect: (slug: string) => void
 }
 
 /** The Augmented crawler type's stable id (data/crawlers.json) — the one type
@@ -29,7 +31,7 @@ export function CrawlerTypeSelectStep({
   selectedType,
   onSelect,
 }: CrawlerTypeSelectStepProps) {
-  const selected = types.find((t) => t.id === selectedType)
+  const selected = types.find((t) => getEntitySlug(t) === selectedType)
   const isAugmented = selected?.id === AUGMENTED_CRAWLER_ID
 
   return (
@@ -44,10 +46,10 @@ export function CrawlerTypeSelectStep({
               key={type.id}
               data={type}
               size="medium"
-              selected={type.id === selectedType}
+              selected={getEntitySlug(type) === selectedType}
               selectionRole="radio"
               cardClickLabel={type.name}
-              onCardClick={() => onSelect(type.id)}
+              onCardClick={() => onSelect(getEntitySlug(type))}
               hide={{ actions: true, choices: true }}
               footMeta={[
                 { label: 'Weapon slots', value: String(slots) },

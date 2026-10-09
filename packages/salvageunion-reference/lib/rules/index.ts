@@ -89,13 +89,11 @@ export { rollDie } from './dice.js'
 export { canActivateAction, clampHeat, performHeatCheck, performPush } from './heatCheck.js'
 export { enrichPilotSnapshot } from './pilotSnapshot.js'
 export {
-  matchesRef,
   resolveChassisRef,
   resolveCrawlerBayRef,
   resolveCrawlerRef,
   resolveInstalledRef,
   resolveModuleRef,
-  resolveRef,
   resolveSystemRef,
 } from './resolveRefs.js'
 export { statesMechanicalChange } from './rulesBearing.js'

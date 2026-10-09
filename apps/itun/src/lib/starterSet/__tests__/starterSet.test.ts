@@ -3,7 +3,7 @@
  *
  * The seed rows are written into IndexedDB by an upgrade migration that bypasses
  * crud.ts's Zod parse, and they reference the `salvageunion-reference` dataset
- * by hard-coded slug/id. These tests are the safety net for both:
+ * by hard-coded slug. These tests are the safety net for both:
  *   1. Every row strict-parses its Zod schema (an invalid row fails CI, not a
  *      user's disk).
  *   2. Every reference ref still resolves (a dataset rename fails CI instead of
@@ -36,6 +36,7 @@ import { CrawlerSchema } from '../../schemas/crawler'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
 import { SoftLinkSchema } from '../../schemas/softLink'
+import { seedDefaultCrawlerBays } from '../../wizard/crawlerFormState'
 import { copyStarter } from '../copyStarter'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS, STARTER_SOFT_LINKS } from '../starterSet'
 
@@ -116,6 +117,13 @@ describe('Starter Set seed — reference refs resolve (drift guard)', () => {
         expect(resolveCrawlerBay(bay.bayRef)).not.toBeNull()
       }
       for (const s of c.systems) expect(resolveSystemRef(s)).toBeTruthy()
+    }
+  })
+
+  test('the crawler carries the same bay slugs a wizard-built crawler is seeded with', () => {
+    const seeded = seedDefaultCrawlerBays().map((bay) => bay.bayRef)
+    for (const c of STARTER_CRAWLERS) {
+      expect((c.crawlerBays ?? []).map((bay) => bay.bayRef).sort()).toEqual(seeded.sort())
     }
   })
 

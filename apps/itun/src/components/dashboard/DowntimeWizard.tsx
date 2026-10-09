@@ -353,7 +353,7 @@ function StepGate({
     )
   }
   if (step.name === 'Trade') {
-    const trading = bayGate(crawler, 'Trading Bay')
+    const trading = bayGate(crawler, 'trading-bay')
     return (
       <ul className="pc-dt-gate">
         <li>

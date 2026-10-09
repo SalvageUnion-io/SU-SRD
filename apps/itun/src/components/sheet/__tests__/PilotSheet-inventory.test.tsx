@@ -66,7 +66,7 @@ describe('PilotSheet — inventory slot math (rules A13)', () => {
   test('counts equipment 1 / Heavy 2 / Scrap 3 against capacity 6', () => {
     // Rifle 1 + Rocket Launcher (Heavy) 2 + Scrap 3 = 6
     const pilot = makePilot({
-      equipment: ['Rifle', 'Rocket Launcher'],
+      equipment: ['rifle', 'rocket-launcher'],
       genericInventory: [SCRAP],
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
@@ -76,7 +76,7 @@ describe('PilotSheet — inventory slot math (rules A13)', () => {
 
   test('over-capacity totals render honestly (no clamp)', () => {
     const pilot = makePilot({
-      equipment: ['Rifle'],
+      equipment: ['rifle'],
       genericInventory: [
         { ...SCRAP, qty: 2 },
         { ...SCRAP, id: 'gen-scrap-2' },
@@ -96,8 +96,8 @@ describe('PilotSheet — inventory slot math (rules A13)', () => {
 describe('PilotSheet — per-item uses counters (rules A14)', () => {
   test('shows uses remaining out of the trait max', () => {
     const pilot = makePilot({
-      equipment: ['First Aid Kit'],
-      equipmentUses: { 'First Aid Kit': 1 },
+      equipment: ['first-aid-kit'],
+      equipmentUses: { 'first-aid-kit': 1 },
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
@@ -105,7 +105,7 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
   })
 
   test('absent key reads as full uses', () => {
-    const pilot = makePilot({ equipment: ['First Aid Kit'] })
+    const pilot = makePilot({ equipment: ['first-aid-kit'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
     expect(screen.getByText('3/3')).toBeTruthy()
@@ -113,8 +113,8 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
 
   test('Use decrements the per-item counter', async () => {
     const pilot = makePilot({
-      equipment: ['First Aid Kit'],
-      equipmentUses: { 'First Aid Kit': 2 },
+      equipment: ['first-aid-kit'],
+      equipmentUses: { 'first-aid-kit': 2 },
     })
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
@@ -128,7 +128,7 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
       'pilot',
       pilot.id,
       {
-        equipmentUses: { 'First Aid Kit': 1 },
+        equipmentUses: { 'first-aid-kit': 1 },
       },
       LIVE_SHEET_MANUAL
     )
@@ -136,8 +136,8 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
 
   test('Use is disabled at 0; Restock refills to max', async () => {
     const pilot = makePilot({
-      equipment: ['First Aid Kit'],
-      equipmentUses: { 'First Aid Kit': 0 },
+      equipment: ['first-aid-kit'],
+      equipmentUses: { 'first-aid-kit': 0 },
     })
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
@@ -156,14 +156,14 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
       'pilot',
       pilot.id,
       {
-        equipmentUses: { 'First Aid Kit': 3 },
+        equipmentUses: { 'first-aid-kit': 3 },
       },
       LIVE_SHEET_MANUAL
     )
   })
 
   test('no uses affordance on items without a uses trait', () => {
-    const pilot = makePilot({ equipment: ['Rifle'] })
+    const pilot = makePilot({ equipment: ['rifle'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
     expect(screen.queryByRole('button', { name: /use rifle/i })).toBeNull()
@@ -260,7 +260,7 @@ describe('PilotSheet — generic inventory entries (plan S7)', () => {
 describe('PilotSheet — inventory readOnly', () => {
   test('no use/restock/remove/add affordances', () => {
     const pilot = makePilot({
-      equipment: ['First Aid Kit'],
+      equipment: ['first-aid-kit'],
       genericInventory: [SCRAP],
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)

@@ -14,7 +14,7 @@ import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from './resolve
 import type { CapacityViolation, MechCapacityResult, MechInput } from './types.js'
 
 /**
- * Look up the slot cost of a system by ref (slug; legacy name/id tolerated).
+ * Look up the slot cost of a system by its slug.
  * Returns the canonical `slotsRequired` from the dataset, or 1 as fallback
  * if the system is not found (to still count it against the total).
  */
@@ -24,7 +24,7 @@ function resolveSystemSlotCost(ref: string, slotCostOverride?: number): number {
 }
 
 /**
- * Look up the slot cost of a module by ref (slug; legacy name/id tolerated).
+ * Look up the slot cost of a module by its slug.
  */
 function resolveModuleSlotCost(ref: string, slotCostOverride?: number): number {
   if (slotCostOverride !== undefined) return slotCostOverride

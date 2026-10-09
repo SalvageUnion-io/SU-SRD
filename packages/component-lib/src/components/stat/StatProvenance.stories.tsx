@@ -18,8 +18,8 @@ function atlasLedger(overrideValue?: number) {
   const atlas = SalvageUnionReference.Chassis.getByName('Atlas')
   const parts = mechMaxSPParts(
     {
-      chassisRef: atlas?.name ?? 'Atlas',
-      systems: ['Composite Armour', 'Composite Armour'],
+      chassisRef: 'atlas',
+      systems: ['composite-armour', 'composite-armour'],
       ...(overrideValue === undefined ? {} : { maxSpOverride: overrideValue }),
     },
     atlas

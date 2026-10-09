@@ -59,6 +59,7 @@ import {
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
+import { nameToSlug } from 'salvageunion-reference'
 import { pinFor } from 'salvageunion-reference/rules'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
@@ -481,7 +482,7 @@ export function PilotSheet({
           schema="abilities"
           selected={pilot.abilities}
           onToggle={actions.toggleAbility}
-          idOf={(item) => item.id}
+          idOf={(item) => nameToSlug(item.name)}
           filter={
             model.abilityTrees
               ? (item) => model.abilityTrees?.has((item as SURefAbility).tree) ?? false
@@ -505,7 +506,7 @@ export function PilotSheet({
           schema="equipment"
           selected={pilot.equipment}
           onToggle={actions.toggleEquipment}
-          idOf={(item) => item.id}
+          idOf={(item) => nameToSlug(item.name)}
           railName={pilot.name}
           chosenLabel="Equipped"
           emptyMessage="No equipment matches those filters."

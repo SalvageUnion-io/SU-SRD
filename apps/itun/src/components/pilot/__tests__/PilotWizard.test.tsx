@@ -15,7 +15,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
@@ -316,9 +316,9 @@ describe('PilotWizard — hard creation enforcement', () => {
 describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
   it('trims excess ability and equipment picks oldest-first on mount', async () => {
     const classId = idOf('Engineer', SalvageUnionReference.Classes)
-    const a1 = idOf('Engineering Expertise', SalvageUnionReference.Abilities)
-    const a2 = idOf('Jury Rig', SalvageUnionReference.Abilities)
-    const a3 = idOf('Mass Field Maintenance', SalvageUnionReference.Abilities)
+    const a1 = nameToSlug('Engineering Expertise')
+    const a2 = nameToSlug('Jury Rig')
+    const a3 = nameToSlug('Mass Field Maintenance')
     const item = firstTech1Equipment()
     sessionStorage.setItem(
       'itun-wizard-draft:pilot:new',
@@ -326,7 +326,7 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
         name: 'Legacy',
         classId,
         abilities: [a1, a2, a3],
-        equipment: [item.id, item.id, item.id],
+        equipment: [nameToSlug(item.name), nameToSlug(item.name), nameToSlug(item.name)],
         callsign: 'Old',
         motto: '',
         keepsake: '',

@@ -19,7 +19,6 @@
  */
 
 import { useState } from 'react'
-import { nameToSlug } from 'salvageunion-reference'
 import type { SoftWarning } from 'salvageunion-reference/rules'
 import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
 import { runWrite } from '../../lib/runWrite'
@@ -48,7 +47,7 @@ type MechSheetActionsOptions = {
 export type MechSheetActions = {
   patchMech: SheetPatch
   overrideMechMax: (fields: Partial<Mech>) => void
-  addItem: (kind: ItemKind, name: string) => void
+  addItem: (kind: ItemKind, slug: string) => void
   removeItem: (kind: ItemKind, index: number) => void
   cycleItemCondition: (kind: ItemKind, slug: string) => Promise<void>
   setItemUses: (slug: string, next: number) => Promise<void>
@@ -132,9 +131,8 @@ export function useMechSheetActions({
   // patternName — the pattern name IS the mech's identity now (redesign).
   // TODO(redesign): rule-gate add/remove (slot budgets / scrap economy) —
   // deferred; users self-manage for now.
-  function addItem(kind: ItemKind, name: string) {
+  function addItem(kind: ItemKind, slug: string) {
     const fresh = freshMech()
-    const slug = nameToSlug(name)
     write(
       kind === 'system'
         ? { systems: [...fresh.systems, slug] }

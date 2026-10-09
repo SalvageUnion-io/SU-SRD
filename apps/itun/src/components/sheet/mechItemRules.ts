@@ -17,13 +17,7 @@ import type { Mech } from '../../lib/schemas/mech'
 
 export type MechItem = SURefSystem | SURefModule
 
-/**
- * Installed system/module refs are stored as SLUGS (`escape-hatch`), so these
- * delegate to the canonical slug-aware resolvers (ADR-006) rather than the old
- * id/name-only match — which never matched a slug and rendered every installed
- * item as "(unknown reference)" (notably every Starter Set mech). The canonical
- * resolvers still tolerate legacy name/id refs.
- */
+/** Installed system/module refs are slugs (`escape-hatch`), resolved by the package (ADR-006). */
 export function resolveSystem(slug: string): SURefSystem | null {
   return resolveSystemRef(slug)
 }

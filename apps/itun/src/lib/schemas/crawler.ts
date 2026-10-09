@@ -71,8 +71,8 @@ export const CrawlerSchema = z
     /** Tech level (I–VI) expressed as a string slug, e.g. "tech-1" */
     techLevel: z.string(),
     /**
-     * Chosen crawler-type ref (SRD `id` of the Augmented/Battle/Engineering/
-     * Exploratory/Trade Caravan type; resolve by id-or-name like the bay refs).
+     * Chosen crawler-type slug (the Augmented/Battle/Engineering/Exploratory/
+     * Trade Caravan type, e.g. "battle").
      *
      * Optional: a missing value reads as an untyped crawler.
      */
@@ -80,7 +80,7 @@ export const CrawlerSchema = z
     /**
      * Live state for the crawler-type's special NPC (the Battle type's Grizzled
      * Veteran, etc.). Same shape as a bay's embedded NPC state. The freeform
-     * Keepsake/Motto persist in `bayChoices` keyed by the type ref.
+     * Keepsake/Motto persist in `bayChoices` keyed by the type slug.
      *
      * Optional — absent on an untyped crawler.
      */
@@ -100,7 +100,7 @@ export const CrawlerSchema = z
     crawlerBays: z
       .array(
         CrawlerNpcStateSchema.extend({
-          /** SRD crawler-bay id (or name) this entry installs. */
+          /** Slug of the SRD crawler bay this entry installs, e.g. "mech-bay". */
           bayRef: z.string(),
         })
       )
@@ -108,8 +108,8 @@ export const CrawlerSchema = z
     /** Slugs of crawler system items installed */
     systems: z.array(z.string()),
     /**
-     * Persisted crawler-bay choice selections, keyed by bay ref (the same
-     * `crawlerBays[].bayRef` slug/id used to resolve the SRD bay), then by
+     * Persisted crawler-bay choice selections, keyed by bay slug (the same
+     * `crawlerBays[].bayRef` used to resolve the SRD bay), then by
      * choiceId → selected option values. Some SRD bays carry `choices` (e.g.
      * the Armament Bay's "Armament Bay Weapons System" permanent pick); this
      * persists the player's selection so it survives reloads.

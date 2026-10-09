@@ -86,12 +86,12 @@ function coreTreesOf(cls: SURefClass | undefined): ClassCoreTrees | undefined {
   return cls && 'coreTrees' in cls ? cls.coreTrees : undefined
 }
 
-function findAbility(abilityId: string): SURefAbility | undefined {
-  return SalvageUnionReference.Abilities.getById(abilityId)
+function findAbility(slug: string): SURefAbility | undefined {
+  return SalvageUnionReference.Abilities.getBySlug(slug)
 }
 
-function findEquipment(equipmentId: string): SURefEquipment | undefined {
-  return SalvageUnionReference.Equipment.getById(equipmentId)
+function findEquipment(slug: string): SURefEquipment | undefined {
+  return SalvageUnionReference.Equipment.getBySlug(slug)
 }
 
 function classAbilityGate(form: PilotWizardFormState): StepGateResult {
@@ -102,8 +102,8 @@ function classAbilityGate(form: PilotWizardFormState): StepGateResult {
   if (!isPilotAbilityPickComplete(form.abilities.length)) {
     return { ok: false, reason: 'Choose your first Ability to continue' }
   }
-  const abilityId = form.abilities[0]
-  const ability = abilityId === undefined ? undefined : findAbility(abilityId)
+  const abilitySlug = form.abilities[0]
+  const ability = abilitySlug === undefined ? undefined : findAbility(abilitySlug)
   if (!ability || !isLegalCreationAbility(ability, coreTrees)) {
     return { ok: false, reason: 'Choose your first Ability to continue' }
   }
@@ -113,8 +113,8 @@ function classAbilityGate(form: PilotWizardFormState): StepGateResult {
 function equipmentGate(form: PilotWizardFormState): StepGateResult {
   const count = form.equipment.length
   if (isPilotEquipmentPickComplete(count)) {
-    const allLegal = form.equipment.every((id) => {
-      const item = findEquipment(id)
+    const allLegal = form.equipment.every((slug) => {
+      const item = findEquipment(slug)
       return item !== undefined && isLegalCreationEquipment(item)
     })
     if (allLegal) return OK
@@ -181,12 +181,12 @@ export type PilotDraftClampResult = {
   removed: string[]
 }
 
-function abilityName(id: string): string {
-  return findAbility(id)?.name ?? id
+function abilityName(slug: string): string {
+  return findAbility(slug)?.name ?? slug
 }
 
-function equipmentName(id: string): string {
-  return findEquipment(id)?.name ?? id
+function equipmentName(slug: string): string {
+  return findEquipment(slug)?.name ?? slug
 }
 
 /**
@@ -216,11 +216,11 @@ export function clampPilotCreationDraft(form: PilotWizardFormState): PilotDraftC
       classId = ''
       abilities = []
     } else {
-      const legal = abilities.filter((id) => {
-        const ability = findAbility(id)
+      const legal = abilities.filter((slug) => {
+        const ability = findAbility(slug)
         return ability !== undefined && isLegalCreationAbility(ability, coreTrees)
       })
-      removed.push(...abilities.filter((id) => !legal.includes(id)).map(abilityName))
+      removed.push(...abilities.filter((slug) => !legal.includes(slug)).map(abilityName))
       abilities = legal
     }
   } else if (abilities.length > 0) {
@@ -234,12 +234,12 @@ export function clampPilotCreationDraft(form: PilotWizardFormState): PilotDraftC
     abilities = abilities.slice(abilities.length - PILOT_CREATION_ABILITY_PICKS)
   }
 
-  const legalEquipment = equipment.filter((id) => {
-    const item = findEquipment(id)
+  const legalEquipment = equipment.filter((slug) => {
+    const item = findEquipment(slug)
     return item !== undefined && isLegalCreationEquipment(item)
   })
-  for (const id of equipment) {
-    if (!legalEquipment.includes(id)) removed.push(equipmentName(id))
+  for (const slug of equipment) {
+    if (!legalEquipment.includes(slug)) removed.push(equipmentName(slug))
   }
   equipment = legalEquipment
   if (equipment.length > PILOT_CREATION_EQUIPMENT_PICKS) {
@@ -501,9 +501,9 @@ export function clampMechCreationDraft(form: MechWizardFormState): MechDraftClam
 export type CrawlerWizardStepId = 'type' | 'stats' | 'weapons' | 'crew' | 'identity' | 'review'
 
 /**
- * Narrow a stored crawler-type ref (SRD id OR name, the bay-ref tolerance) to
- * the neutral `mutations` rows the package calculators read. Null/unknown
- * refs narrow to `undefined` — no mutations, the base rules.
+ * Narrow a stored crawler-type slug to the neutral `mutations` rows the
+ * package calculators read. Null/unknown refs narrow to `undefined` — no
+ * mutations, the base rules.
  */
 function crawlerTypeMutationsOf(
   typeRef: string | null
@@ -533,7 +533,7 @@ function isLegalCrawlerWeaponRef(ref: string): boolean {
   return system !== null && isWeaponSystem(system) && isLegalCreationCrawlerWeapon(system.techLevel)
 }
 
-/** Resolve a stored crawler-type ref (id or name) against the SRD catalog. */
+/** Resolve a stored crawler-type slug against the SRD catalog. */
 function crawlerTypeResolves(typeRef: string | null): boolean {
   if (typeRef === null || typeRef === '') return false
   return resolveCrawlerRef(typeRef) !== null

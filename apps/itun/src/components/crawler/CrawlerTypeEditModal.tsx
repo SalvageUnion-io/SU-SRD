@@ -13,9 +13,9 @@
  */
 
 import { Button, EntitySearcher, ModalShell, toast } from 'component-lib'
-import { useEffect, useMemo, useState } from 'react'
-import type { SURefCrawler } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { useEffect, useState } from 'react'
+import { nameToSlug } from 'salvageunion-reference'
+import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
@@ -36,8 +36,6 @@ export function CrawlerTypeEditModal({
   crawler,
   storeState,
 }: CrawlerTypeEditModalProps) {
-  // Synchronous: rendered inside GameDataReady, so the dataset is loaded.
-  const types = useMemo<SURefCrawler[]>(() => SalvageUnionReference.Crawlers.all(), [])
   const [selected, setSelected] = useState<string | null>(crawler.type ?? null)
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -56,7 +54,7 @@ export function CrawlerTypeEditModal({
 
   const currentType = crawler.type ?? null
   const changed = selected !== null && selected !== currentType
-  const selectedEntity = types.find((t) => t.id === selected)
+  const selectedEntity = selected ? resolveCrawlerType(selected) : null
 
   async function applyChange() {
     if (!selected || !changed) return
@@ -71,7 +69,7 @@ export function CrawlerTypeEditModal({
         type: selected,
         crew: {},
       }
-      await applyCrawlerCrewAndTypeEdit(storeState, crawler.id, form, currentType, types, selected)
+      await applyCrawlerCrewAndTypeEdit(storeState, crawler.id, form, currentType, selected)
 
       toast.success(`Changed crawler type to ${selectedEntity?.name ?? 'new type'}.`)
       onClose()
@@ -100,9 +98,8 @@ export function CrawlerTypeEditModal({
           // Single-select: picking replaces the prior pick, picking the current
           // one clears it (the confirm button then disables).
           onToggle={(ref) => setSelected((prev) => (prev === ref ? null : ref))}
-          // The crawler record stores its type by reference-entity ID, so that
-          // is the identity this picker has to emit.
-          idOf={(item) => item.id}
+          // The crawler record stores its type as a slug.
+          idOf={(item) => nameToSlug(item.name)}
           // Five types — a Tech-Level / status facet row would be chrome over a
           // list short enough to read whole.
           facets={{ status: false, techLevel: false, traits: false }}

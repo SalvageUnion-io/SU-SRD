@@ -29,6 +29,8 @@ import { PilotSheet } from '../PilotSheet'
 
 const ABILITY_L1 = 'Engineering Expertise'
 const ABILITY_L2 = 'Talk Shop'
+const ABILITY_L1_SLUG = 'engineering-expertise'
+const ABILITY_L2_SLUG = 'talk-shop'
 
 type CapturedUpdate = { type: string; id: string; patch: Record<string, unknown> }
 
@@ -39,7 +41,7 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
     name: 'Yara Voss',
     callsign: 'Ghost',
     classRef: 'Engineer',
-    abilities: [ABILITY_L1, ABILITY_L2],
+    abilities: [ABILITY_L1_SLUG, ABILITY_L2_SLUG],
     equipment: [],
     motto: '',
     keepsake: '',
@@ -90,7 +92,7 @@ function makeMech(overrides: Partial<Mech> = {}): Mech {
     schemaVersion: 1,
     name: 'Warning Test Mech',
     chassisRef: 'iron-mongrel',
-    systems: ['Smoke Machine'],
+    systems: ['smoke-machine'],
     modules: [],
     cargoLots: [],
     conditions: [],
@@ -161,7 +163,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
     await click(/save anyway/i)
 
     expect(captured).toHaveLength(1)
-    expect(captured[0]?.patch).toEqual({ abilities: [ABILITY_L2] })
+    expect(captured[0]?.patch).toEqual({ abilities: [ABILITY_L2_SLUG] })
   })
 
   test('cancelling discards the edit — nothing is persisted', async () => {
@@ -186,7 +188,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
 
     expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
     expect(captured).toHaveLength(1)
-    expect(captured[0]?.patch).toEqual({ abilities: [ABILITY_L1] })
+    expect(captured[0]?.patch).toEqual({ abilities: [ABILITY_L1_SLUG] })
   })
 })
 

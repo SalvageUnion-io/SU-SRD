@@ -11,8 +11,10 @@ import {
   crawlerMaxSP,
   isLegalCreationCrawlerWeapon,
   isWeaponSystem,
+  resolveSystemRef,
 } from 'salvageunion-reference/rules'
 import { useMechs, usePilots } from '../../hooks/entities'
+import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrawlerWizardStepId } from '../../lib/rules/creation'
 import {
   clampCrawlerCreationDraft,
@@ -192,7 +194,7 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
   }
 
   function weaponName(ref: string): string {
-    return allSystems.find((s) => s.id === ref)?.name ?? ref
+    return resolveSystemRef(ref)?.name ?? ref
   }
 
   /**
@@ -201,16 +203,16 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
    * Armament-Bay cap (newest dropped first) — never a silent mutation, the
    * toast names what was removed (§5.3). Switching away from a
    * previously-chosen type also drops that old type's crew entry (keyed by the
-   * old type id) so it can never persist as a phantom bay / stale type NPC on
-   * save.
+   * old type's slug) so it can never persist as a phantom bay / stale type NPC
+   * on save.
    */
-  function selectType(typeId: string) {
-    if (form.type === typeId) return
+  function selectType(typeSlug: string) {
+    if (form.type === typeSlug) return
     const nextCrew = { ...form.crew }
     if (form.type !== null) delete nextCrew[form.type]
 
     let nextSystems = form.systems
-    const slots = crawlerWeaponSlotsFor(typeId)
+    const slots = crawlerWeaponSlotsFor(typeSlug)
     if (form.systems.length > slots) {
       const dropped = form.systems.slice(slots).map(weaponName)
       nextSystems = form.systems.slice(0, slots)
@@ -218,11 +220,11 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
         `Type changed — this type mounts ${slots} Weapons System${slots === 1 ? '' : 's'}; removed ${dropped.join(', ')}.`
       )
     }
-    updateForm({ type: typeId, crew: nextCrew, systems: nextSystems })
+    updateForm({ type: typeSlug, crew: nextCrew, systems: nextSystems })
   }
 
   const selectedTechLevel = techLevels.find((t) => t.techLevel === form.techLevel)
-  const selectedType = types.find((t) => t.id === form.type || t.name === form.type)
+  const selectedType = form.type ? (resolveCrawlerType(form.type) ?? undefined) : undefined
   // Bays with an embedded crew NPC (the 10 base bays) — the Crew step's roster.
   const crewBays = allBays.filter((b) => (b as { npc?: unknown }).npc != null)
   // The auto-seeded base set (expansion-tagged bays never appear — a STORED
@@ -241,15 +243,15 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
   )
 
   const chosenSystems = form.systems
-    .map((id) => allSystems.find((s) => s.id === id))
-    .filter((s): s is SURefSystem => s !== undefined)
+    .map(resolveSystemRef)
+    .filter((s): s is SURefSystem & { schemaName: string } => s !== null)
 
   // The Armament-Bay cap comes from the type's STORED `mutations` rows
   // (weapon_slots; Battle = 2) — plan §4.3, replacing the old action-name
   // string match. Selection clamps at this.
   const weaponSlots = crawlerWeaponSlotsFor(form.type)
-  const installedWeaponCount = form.systems.filter((id) => {
-    const system = allSystems.find((s) => s.id === id)
+  const installedWeaponCount = form.systems.filter((slug) => {
+    const system = resolveSystemRef(slug)
     return system ? isWeaponSystem(system) : false
   }).length
 

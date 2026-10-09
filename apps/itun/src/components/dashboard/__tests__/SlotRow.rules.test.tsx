@@ -149,7 +149,7 @@ describe('Major slot rules buttons', () => {
 
   test('an activated effect is switched on the seat, and read back from it', () => {
     // "Squeeze it in" is a pilot ability with an activated contribution (ADR-029).
-    const squeezer = { ...pilot, abilities: ['Squeeze it in'] }
+    const squeezer = { ...pilot, abilities: ['squeeze-it-in'] }
     const { store } = stubStore([mech, squeezer])
     const off = boardedSeat(mech.id)
     const { unmount } = render(
@@ -164,12 +164,12 @@ describe('Major slot rules buttons', () => {
       />
     )
     fireEvent.click(screen.getByText('○ Squeeze it in'))
-    expect(off.calls).toEqual([{ write: 'toggleEffect', args: ['Squeeze it in'] }])
+    expect(off.calls).toEqual([{ write: 'toggleEffect', args: ['squeeze-it-in'] }])
     unmount()
 
     const on = fakeSeat({
       mount: { kind: 'boarded', mechId: mech.id },
-      activeEffects: ['Squeeze it in'],
+      activeEffects: ['squeeze-it-in'],
     })
     render(
       <SlotRow
