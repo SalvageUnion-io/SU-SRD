@@ -80,6 +80,8 @@ export type WorkflowContext = {
   files: WorkflowFile[]
   /** `package.json` path (repo-relative) -> manifest. Root is `package.json`. */
   manifests: Map<string, Manifest>
+  /** Package name -> the bins bun.lock records for it. */
+  lockBins: Map<string, string[]>
   /** The Bun running this, or null to skip that comparison (tests). */
   runningBun: string | null
   exists: (repoRelPath: string) => boolean
@@ -355,13 +357,18 @@ export function checkPathFilters(ctx: WorkflowContext): CheckResult {
 
 /**
  * Tools `bunx` resolves from the lockfile: EXACT dependency names of every
- * manifest. Not the unscoped half of scoped names — that once exempted `auth`,
- * `core`, `test` and 22 other real npm packages nobody had declared.
+ * manifest, and the bins bun.lock records for them (`bunx playwright` runs
+ * `@playwright/test`'s bin). Not the unscoped half of scoped names — that once
+ * exempted `auth`, `core`, `test` and 22 other real npm packages nobody had
+ * declared.
  */
 function locallyResolved(ctx: WorkflowContext): Set<string> {
   const names = new Set<string>()
   for (const pkg of ctx.manifests.values()) {
-    for (const name of Object.keys({ ...pkg.dependencies, ...pkg.devDependencies })) names.add(name)
+    for (const name of Object.keys({ ...pkg.dependencies, ...pkg.devDependencies })) {
+      names.add(name)
+      for (const bin of ctx.lockBins.get(name) ?? []) names.add(bin)
+    }
   }
   return names
 }
@@ -837,9 +844,23 @@ export function loadContext(root: string, runningBun: string | null): WorkflowCo
       if (entry.isDirectory()) readManifest(`${group}/${entry.name}/package.json`)
     }
   }
+  // A top-level `packages` key is the package's own name; nested keys
+  // (`parent/child`) are the copies one dependent resolved differently.
+  const lockBins = new Map<string, string[]>()
+  const lockPath = join(root, 'bun.lock')
+  if (existsSync(lockPath)) {
+    const lock = Bun.JSONC.parse(readFileSync(lockPath, 'utf8')) as {
+      packages?: Record<string, [string, string, { bin?: Record<string, string> }?]>
+    }
+    for (const [key, [spec, , meta]] of Object.entries(lock.packages ?? {})) {
+      if (spec.slice(0, spec.lastIndexOf('@')) === key && meta?.bin)
+        lockBins.set(key, Object.keys(meta.bin))
+    }
+  }
   return {
     files,
     manifests,
+    lockBins,
     runningBun,
     exists: (path) => existsSync(join(root, path)),
   }

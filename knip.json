@@ -1,6 +1,5 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "ignoreDependencies": ["tailwindcss"],
   "ignoreExportsUsedInFile": true,
   "includeEntryExports": true,
   // Exports tagged `@public` or `@knipignore` are excluded from analysis. The
@@ -78,8 +77,8 @@
       "entry": [
         "src/routes/**/*.tsx",
         // The Worker entry (`src/worker/index.ts`) is NOT listed: knip's
-        // wrangler plugin reads `main` from wrangler.jsonc now that wrangler
-        // is a declared devDependency, and flags a manual entry as redundant.
+        // wrangler plugin reads `main` from wrangler.jsonc (wrangler is a root
+        // devDependency), and flags a manual entry as redundant.
         "src/lib/db/index.ts",
         "src/lib/db/stores.ts",
         "src/lib/db/crud.ts",
@@ -112,7 +111,7 @@
       // `src/http/worker.ts` (the Worker) comes from wrangler.jsonc's `main`
       // via knip's wrangler plugin, and `src/deploy-commands.ts` from the
       // package.json scripts, so neither is listed. If the wrangler plugin
-      // ever stops applying (wrangler removed from this manifest), knip will
+      // ever stops applying (wrangler removed from the root manifest), knip will
       // report the whole HTTP-interactions transport as dead code; restore the
       // entry then.
       "project": ["src/**/*.ts"]

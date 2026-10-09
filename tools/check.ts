@@ -194,7 +194,7 @@ export const CHECKS: readonly CheckSpec[] = [
     guards: 'actionlint + zizmor over .github/ (pinned, hash-verified binaries)',
     fix: "fix the finding; zizmor's config is .github/zizmor.yml",
     cmd: ['tools/lint-workflows.sh'],
-    // Reads only .github/ (workflows, actions, zizmor.yml), all of it `code`.
+    // Reads only .github/ (workflows, actions and its two config files), all `code`.
     areas: ['code'],
     profiles: ['full', 'ci'],
   },

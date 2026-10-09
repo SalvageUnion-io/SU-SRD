@@ -208,6 +208,7 @@ function ctx(overrides: {
   return {
     files,
     manifests,
+    lockBins: new Map([['@playwright/test', ['playwright']]]),
     runningBun: overrides.running === undefined ? null : overrides.running,
     exists: (p) => !missing.has(p) && files.some((f) => f.path === p),
   }
@@ -311,6 +312,25 @@ describe('pinning', () => {
     expect(run('bunx wrangler@4 deploy')).toHaveLength(1)
     expect(run('bunx wrangler@4.132.0 deploy')).toEqual([])
     expect(run('bunx convex deploy')).toEqual([])
+  })
+
+  test("a declared package's lockfile bin is exempt; the same bin undeclared is not", () => {
+    const run = (declared: boolean) => {
+      const c = ctx({})
+      if (declared)
+        c.manifests.set('apps/srd/package.json', {
+          devDependencies: { '@playwright/test': '1.0.0' },
+        })
+      c.files.push(
+        yaml(
+          '.github/workflows/r.yml',
+          'jobs:\n  a:\n    steps:\n      - run: bunx playwright test\n'
+        )
+      )
+      return checkPinning(c).failures
+    }
+    expect(run(true)).toEqual([])
+    expect(run(false)[0]).toContain('bunx playwright')
   })
 
   test('a bare name that is only the suffix of a scoped dependency is NOT exempt', () => {

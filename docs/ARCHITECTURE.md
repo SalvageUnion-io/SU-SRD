@@ -829,7 +829,7 @@ axe scan on that `dist`; `mobile-chromium` (Pixel 7) runs smoke in both apps.
 `build-itun` also bundles the Worker (`bun --filter itun worker:bundle`);
 ITUN's full browser suite is nightly (`e2e-nightly.yml`). `build-discord-bot`
 and `build-su-assets` bundle Workers; `build-ladle` builds stories. wrangler is
-a devDependency of all four Worker apps; keep each `wrangler.jsonc`
+one root devDependency that all four Worker apps run; keep each `wrangler.jsonc`
 `compatibility_date` at or below its bundled workerd.
 
 ### CI: PR title
@@ -913,15 +913,17 @@ Dependabot updates GitHub Actions only ([`.github/dependabot.yml`](../.github/de
 one grouped Monday PR for `.github/workflows/` and `.github/actions/setup-bun`,
 7-day cooldown, merged by hand. **Bun dependencies are
 updated by hand:** `bun outdated --filter='*'`, then `bun update --latest <pkg>`
-or `bun add <pkg>@<version>` in every manifest naming it. The root
+or `bun add <pkg>@<version>` in the one place that names it
+([declare what you import](#declare-what-you-import)); `bunfig.toml`'s
+`install.exact` makes both write an exact pin. The root
 `packageManager` is the one Bun pin (setup-bun reads it), and `bun-types` moves
 with it (`workflows`, `bun-version`); `.mcp.json`'s `convex@` pin moves with
 `apps/itun/package.json`'s (`tools/__tests__/mcp-config.test.ts`).
 
 ### Install cooldown
 
-`bunfig.toml` refuses versions **under 3 days old**: an exact pin errors
-(`blocked by minimum-release-age`), a **caret range silently resolves down**.
+`bunfig.toml` refuses versions **under 3 days old**: a pin it cannot satisfy
+errors (`blocked by minimum-release-age`).
 `bun install --frozen-lockfile` is unaffected. The escape hatch is
 `minimumReleaseAgeExcludes` (`bun-types`), never a lower number.
 
@@ -942,21 +944,22 @@ Fix a transitive advisory by dedupe, then `bun update <pkg>`, then a floor.
 
 | Entry | Why |
 | --- | --- |
-| `fast-uri: >=3.1.6 <4` | ReDoS class; `ajv` asks `^3.0.1` |
-| `filelist: >=1.0.6` | `jake` asks `^1.0.4` |
-| `nanoid: >=3.3.18` | `GHSA-2v37-7h3g-55p8`; `postcss` asks `^3.3.17` |
-| `sharp: >=0.35.5` | `GHSA-wq5f-xc86-pv6w`; `miniflare` pins 0.35.4. Delete once `bun why sharp` shows ≥0.35.5 |
+| `sharp: >=0.35.5` | `GHSA-wq5f-xc86-pv6w`; `miniflare` pins 0.35.4. Delete once bun.lock's `miniflare` entry itself asks for ≥0.35.5 |
 
 Floors, never exact versions. `brace-expansion` cannot be floored (two
-majors). Delete an override `bun why` no longer needs; re-derive by emptying
-the block, `bun install`, `bun run check audit`.
+majors). Delete an override once the package that needed it asks for the fixed
+version itself (`bun why` shows the override's result, so it cannot tell you);
+re-derive by emptying the block, `bun install`, `bun run check audit`.
 
 ### Declare what you import
 
 Each workspace declares every package its shipping code imports as a
 `dependency` in its own manifest, never a devDependency or trusted peer;
-component-lib's `react` / `react-dom` are the exception. If deleting a
-devDependency breaks `bun run build` or a deploy, it was never one.
+component-lib's `react` / `react-dom` are the exception. Each version is
+written once: a package more than one workspace imports is a root
+`workspaces.catalog` entry that each manifest names as `catalog:`, and a dev
+tool (bundler, wrangler, test library) more than one workspace runs is a root
+devDependency, which every workspace resolves.
 
 ### Dead-code gate (knip)
 
