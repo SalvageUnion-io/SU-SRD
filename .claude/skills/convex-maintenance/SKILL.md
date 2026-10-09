@@ -209,8 +209,8 @@ accounts on:
    so a change only takes effect on the next deploy.
 
 **There is no rollback by unsetting it.** Doing so would silently turn off
-saving for every player: all writes would go to the tab's memory, and the
-account data would be unreachable until the variable came back. If Convex has
+saving for every player: the build would be the read-only one above, every
+write refused, and the account data unreachable until the variable came back. If Convex has
 to be taken out of the path, that is an outage to announce, not a toggle.
 
 ## Rotating `JWT_PRIVATE_KEY` / `JWKS`

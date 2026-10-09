@@ -162,7 +162,7 @@ const impl = await agent(
     '   from packages/component-lib/src/index.ts (read the barrel; never trust a component name from',
     '   memory). Do NOT add unrequested features, schema, or UI.',
     '   Persistence is account-gated (ADR-030, ADR-034, ADR-035): signed in, Convex is the server of',
-    '   record and IndexedDB is its cache; anonymous work is in-memory only. Read apps/itun/CLAUDE.md',
+    '   record and IndexedDB is its cache; signed out, ITUN is read-only. Read apps/itun/CLAUDE.md',
     '   and .claude/rules/itun-data-access.md before touching data, go through the existing stores and',
     '   Convex functions, and never add a device-only store or a second persistence path.',
     '4. Validate: "bun run check:fast" while iterating, then "bun run check" (the full gate) before',

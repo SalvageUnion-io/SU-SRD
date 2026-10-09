@@ -210,8 +210,8 @@ const triageAgent = (fb) =>
       '   name a real page. If the extract is unavailable, say so and return an empty rules list —',
       '   do NOT invent a rule or a page number. If no game rule applies (pure UX), also empty.',
       '3. Propose the smallest in-scope fix. Persistence is account-gated (ADR-030, ADR-034, ADR-035):',
-      '   signed in, Convex is the server of record and IndexedDB its cache; anonymous work is in-memory',
-      '   only. A fix may use the existing stores and Convex functions (see apps/itun/CLAUDE.md). Set',
+      '   signed in, Convex is the server of record and IndexedDB its cache; signed out, ITUN is',
+      '   read-only. A fix may use the existing stores and Convex functions (see apps/itun/CLAUDE.md). Set',
       '   inScope=false for anything that needs a NEW persistence path, a device-only store, a change',
       '   to the account model, or that is outside ITUN — and explain why in approach.',
     ]

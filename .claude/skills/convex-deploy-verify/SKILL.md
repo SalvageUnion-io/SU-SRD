@@ -1,6 +1,6 @@
 ---
 name: convex-deploy-verify
-description: Use when setting up or checking an ITUN Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot replies "In The Union Now is not configured for this bot", answers `unavailable` or `unauthorized`, or its `/health` returns 503, or when a Convex tool says "No CONVEX_DEPLOYMENT set". Covers the three required env vars, the bot credential, and the curl probe that tells the failure modes apart.
+description: Use when setting up or checking an ITUN Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot replies "In The Union Now is not configured for this bot", answers `unavailable` or `unauthorized`, or its `/health` returns 503, or when a Convex tool says "No CONVEX_DEPLOYMENT set". Covers the five required env vars, the bot credential and invite key, and the curl probe that tells the failure modes apart.
 allowed-tools: Bash, Read
 ---
 
@@ -29,15 +29,24 @@ through the test seam and needs no Discord credentials (its setup is
 [`apps/itun/README.md`](../../../apps/itun/README.md#local-backend)). Confirm
 which one you mean before running anything, and say so out loud in your report.
 
-## 1. Set the three required variables
+## 1. Set the five required variables
 
-**All three, or Discord sign-in fails.** On production.
+**All five, or Discord sign-in fails.** On production.
 
 ```bash
 bunx convex env set --prod AUTH_DISCORD_ID     <client-id>
 bunx convex env set --prod AUTH_DISCORD_SECRET <client-secret>
 bunx convex env set --prod SITE_URL            <frontend origin>
 ```
+
+plus the session-signing pair `JWT_PRIVATE_KEY` and `JWKS`, generated together
+and piped in on stdin exactly as the `convex-maintenance` skill's
+[rotation section](../convex-maintenance/SKILL.md#rotating-jwt_private_key--jwks)
+says; never pass the private key as an argument. Without the pair, sign-in
+fails only after Discord redirects back, when the session token is signed; the
+probe in step 3 never reaches that, so check both by length (step 4). The local deployment gets `SITE_URL`
+and the pair from `bunx @convex-dev/auth` instead
+([`apps/itun/README.md`](../../../apps/itun/README.md#local-backend)).
 
 **`SITE_URL` is the one that bites.** It is the **frontend** origin — _not_
 `VITE_CONVEX_SITE_URL`, not the `.convex.site` host. Nothing prompts for it, and
@@ -47,7 +56,7 @@ from the OAuth callback rather than anything that points at configuration.
 For production the frontend origin is the **custom domain**
 (`https://intheunionnow.com`), the ITUN Worker's own route.
 
-## 2. Bot credential, only if wiring the Discord bot
+## 2. Bot credential and invite key, only if wiring the Discord bot
 
 ```bash
 # Convex — enables the /bot/* route. UNSET disables the surface entirely, so a
@@ -68,6 +77,20 @@ Discord user who has linked an account. Bounded — it cannot invent a
 membership, reach an unlinked account, read somebody's shelf, or see
 `encounterNpcs` — but real. Keep it in 1Password, never git; `wrangler secret
 put` reads it from stdin, so it never lands in a transcript.
+
+**For `/su invite`** ([ADR-039](../../../docs/ARCHITECTURE.md#adr-039)), one
+more on the Convex deployment: the Discord application's **public** key, the
+same value committed in `apps/discord-bot/wrangler.jsonc`. It is not a secret,
+so it may be passed as an argument:
+
+```bash
+bunx convex env set DISCORD_PUBLIC_KEY <the application's public key, hex>
+```
+
+Unset, `/su invite` answers "invites from Discord are not switched on" and
+nothing else changes. Set to the wrong application's key, every `/su invite`
+fails as unverified while every other command keeps working — check this value
+first when only invites break.
 
 ## 3. Verify without signing in
 
