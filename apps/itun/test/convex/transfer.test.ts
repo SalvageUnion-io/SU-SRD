@@ -53,6 +53,7 @@ async function seedHold(holder: 'organizer' | 'player') {
     appId: 'm1',
     gameId,
     body: { ...mechBody('m1', gameId), cargoLots: [CRATE] },
+    expectedUpdatedAt: null,
   })
   /** The stow, mech first: the order the refusal used to split. */
   const stow = {
@@ -137,6 +138,7 @@ describe('entities.transfer', () => {
             appId: 'm1',
             gameId,
             body: { ...mechBody('m1', gameId), cargoLots: [] },
+            expectedUpdatedAt: null,
           },
         ],
         // The Organizer's mech: not the player's to scrap.

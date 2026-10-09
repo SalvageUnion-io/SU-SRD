@@ -4,22 +4,16 @@
  * Union Crawler #430 'Tenacity', each with their mech, plus the crawler and its
  * crew, wired together with SoftLinks.
  *
- * Design (see the seed migration, db/migrations/7-seed-starter-set.ts):
+ * Design:
  *   - Every record here is FULLY STATIC plain data — hard-coded reference slugs
  *     (chassis/systems/modules/class/ability/equipment) and reference UUIDs
- *     (crawler type + bays). A migration writes these straight into IndexedDB,
- *     and migrations may only await IndexedDB ops (never reference-data reads),
- *     so nothing here may resolve against `salvageunion-reference` at runtime.
- *   - IDs are DETERMINISTIC (`starter-*`) so the seed is idempotent: the v7
- *     upgrade seeds each row once per client and never resurrects a row the
- *     user later deletes (a same-version re-open doesn't re-run the upgrade).
+ *     (crawler type + bays), so nothing here resolves against
+ *     `salvageunion-reference` at runtime.
+ *   - IDs are DETERMINISTIC (`starter-*`), so every browser holds the same set.
  *   - `createdAt`/`updatedAt` are a FIXED constant for the same determinism —
  *     these rows never sort ahead of the user's own newest-first builds.
  *   - Every record is stamped `gameId: null` — the **Shelf** (ADR-030 §2).
- *     These rows used to sit in their own Workspace, which is what kept them
- *     out of the user's own builds; with Workspaces retired there is no such
- *     container, so isolation now comes from the seed being opt-in rather than
- *     from where the rows live. Copied, never seeded, since: see `copyStarter.ts`.
+ *     A player copies from the set, never into it: see `copyStarter.ts`.
  *
  * Slugs verified against the reference dataset — the seed test
  * (`__tests__/starterSet.test.ts`) fails if any ref stops resolving.

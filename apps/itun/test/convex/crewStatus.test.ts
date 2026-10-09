@@ -77,6 +77,7 @@ async function upsert(
     appId: body.id,
     gameId,
     body: { ...body, gameId },
+    expectedUpdatedAt: null,
   })
 }
 

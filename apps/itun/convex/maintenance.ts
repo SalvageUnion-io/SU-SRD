@@ -40,10 +40,9 @@ import {
  * that entity silently failed to reach the server of record. An account in that
  * state does not recover on its own and does not get better with time.
  *
- * `claimLocal` is what created the duplicates (it inserted unconditionally, and
- * a device-local marker was all that stopped it running twice) and it no longer
- * can. This is the other half: the rows already written are still there, and
- * still breaking every write, until something removes them.
+ * Every insert now looks its app id up first, so no new duplicates are made.
+ * The rows already written are still there, and still breaking every write,
+ * until something removes them.
  *
  * **Run the dry run first.** With no arguments this reports and changes
  * nothing:

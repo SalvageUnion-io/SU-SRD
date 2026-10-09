@@ -87,6 +87,7 @@ describe('every roster change reaches the stored summary', () => {
       appId: 'p1',
       gameId,
       body: pilotBody(),
+      expectedUpdatedAt: null,
     })
 
     expect(await storedSummary(t, gameId)).toEqual({
@@ -109,6 +110,7 @@ describe('every roster change reaches the stored summary', () => {
         appId: id,
         gameId,
         body: pilotBody({ id }),
+        expectedUpdatedAt: null,
       })
     }
     expect((await storedSummary(t, gameId))?.pilotCount).toBe(2)
@@ -118,6 +120,7 @@ describe('every roster change reaches the stored summary', () => {
       appId: 'p1',
       gameId: null,
       body: pilotBody({ id: 'p1' }),
+      expectedUpdatedAt: null,
     })
     expect((await storedSummary(t, gameId))?.pilotCount).toBe(1)
 
@@ -191,6 +194,7 @@ describe('an ordinary sheet edit does not touch the Game', () => {
       appId: 'p1',
       gameId,
       body: pilotBody(),
+      expectedUpdatedAt: null,
     })
     const before = await t.run(async (ctx) => await ctx.db.get(gameId))
 
@@ -201,6 +205,7 @@ describe('an ordinary sheet edit does not touch the Game', () => {
       appId: 'p1',
       gameId,
       body: pilotBody({ name: 'Took a hit' }),
+      expectedUpdatedAt: null,
     })
     const after = await t.run(async (ctx) => await ctx.db.get(gameId))
     expect(after).toEqual(before)

@@ -103,6 +103,7 @@ async function seedHold(holder: 'organizer' | 'player', mechLots: CargoLot[], ba
     appId: 'm1',
     gameId,
     body: mech,
+    expectedUpdatedAt: null,
   })
   await useEntityStore.getState().adopt('crawler', crawler)
   await useEntityStore.getState().adopt('mech', mech)

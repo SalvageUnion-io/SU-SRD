@@ -27,9 +27,8 @@ const slice = makeHydratedCollectionSlice<'mechPatterns', MechPattern, MechPatte
   /**
    * The per-write mirror (ADR-034 P4b).
    *
-   * Before this, a saved pattern reached Convex through one path only — the
-   * bulk `claimLocal` at sign-in — so every pattern saved afterwards was
-   * invisible on a second device and lost with the site data.
+   * Without it a saved pattern would be invisible on a second device and lost
+   * with the site data.
    */
   commit: commitPatternWrite,
 })

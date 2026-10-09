@@ -14,15 +14,15 @@
  *   - Typing: idb's `IDBPDatabase` generic is structurally compatible with
  *     our store; Dexie's `Table<T>` inference requires a full class pattern.
  *
- * Migration strategy (plan 2.1):
- *   - Object-store creation lives in the `upgrade` callback below.
- *   - Record rewrites live in `migrations/<n>-<description>.ts`, registered
- *     in `migrations/index.ts` and run via runMigrations() with the
- *     versionchange transaction.
+ * Version changes:
+ *   - The database is a cache of Convex (ADR-034), so an upgrade never
+ *     rewrites a record: it drops every store an older version holds and
+ *     creates the current set empty. `ShelfSync` and `WiringSync` refill them
+ *     from the server on the next signed-in load.
  *   - Reads additionally get a salvage path (see makeStore options): drifted
  *     records are stripped/defaulted with a console warning instead of
- *     bricking store hydration — the safety net for PWA autoUpdate version
- *     skew where new code may meet old data (or vice versa).
+ *     bricking store hydration — the safety net for version skew between a
+ *     tab's bundle and the rows the server hands it.
  */
 
 import type { IDBPDatabase } from 'idb'
@@ -35,33 +35,18 @@ import { MechPatternSchema } from '../schemas/pattern'
 import { normalizeLegacyPilotRecord, PilotSchema } from '../schemas/pilot'
 import { SoftLinkSchema } from '../schemas/softLink'
 import type { CacheMeta } from './cacheMeta'
-import { CACHE_META_ID, cacheMetaRecord, parseCacheMeta, writeInitialCacheMeta } from './cacheMeta'
+import { CACHE_META_ID, cacheMetaRecord, parseCacheMeta } from './cacheMeta'
 import { makeStore } from './crud'
-import { runMigrations } from './migrations/index'
 import { STORE_NAMES } from './stores'
-import { flushLegacyUpgrade, noteLegacyUpgrade } from './upgradeTelemetry'
 
 /**
- * Current IndexedDB schema version. Bump together with a migrations/ entry.
- * (v7 is a version-only bump — it once carried an eager Starter Set seed, now
- * replaced by on-demand seeding (seedStarterSet.ts, since deleted). v8 heals
- * Battle crawlers whose maxSpModifier hand-carried the type's +5 — the bonus
- * is now derived at read from the type's mutations. v9 created a device-only
- * `changeLog` (provenance) store; v18 drops it, because the Change Log lives
- * only on the server (`convex/changeLog.ts`, ADR-022).
- * v10 creates the built-in Default workspace and backfills every unassigned
- * pilot/mech/crawler/encounterNpc into it; v13 then maps that onto a Game or
- * the Shelf. Workspaces are retired, but v10 still has to run — v13 reads what
- * it writes. v17 draws the `mech-to-crawler` link the old two-hop model implied
- * — ADR-037. v18 creates the one-row `meta` store and records whether the
- * rows predate accounts — `cacheMeta.ts` — and drops `changeLog`.)
+ * Current IndexedDB schema version. Bump it whenever the set of stores or the
+ * shape of a cached record changes: the upgrade empties the cache and the
+ * server refills it, so there is nothing else to write.
  */
-export const DB_VERSION = 18
+export const DB_VERSION = 19
 
 const DB_NAME = 'itun-v1'
-
-/** The device-only Change Log store v9 created and v18 drops. */
-const RETIRED_CHANGE_LOG_STORE = 'changeLog'
 
 /**
  * How long to wait after a `blocked` event before giving up on the upgrade.
@@ -93,19 +78,18 @@ export class BlockedUpgradeError extends Error {
 let dbPromise: Promise<IDBPDatabase> | null = null
 
 /**
- * The canonical opener: object-store creation + registered record-rewrite
- * migrations. Exported (with a name parameter) so the migration test suite
- * can exercise the full upgrade path against a dedicated throwaway database
- * without touching the app database other test files share.
+ * The canonical opener. Exported (with a name parameter) so the upgrade tests
+ * can exercise it against a dedicated throwaway database without touching the
+ * app database other test files share.
  *
- * `runMigrationsFn` is a test-only seam: production callers omit it and get
- * the registered migrations. The migration suite injects a throwing runner to
- * verify that a failed migration aborts the upgrade and rejects the open
- * (rather than being swallowed) — see migrations.test.ts.
+ * The upgrade empties the cache rather than migrating it: every store an older
+ * version created is deleted — including stores this version no longer has —
+ * and the current set is created empty. With no `meta` row the cache belongs
+ * to nobody (`cacheMeta.ts`), so the next signed-in load claims it for that
+ * account and refills it from Convex.
  */
 export function openItunDatabase(
   name: string = DB_NAME,
-  runMigrationsFn: typeof runMigrations = runMigrations,
   blockedGraceMs: number = BLOCKED_UPGRADE_GRACE_MS
 ): Promise<IDBPDatabase> {
   return new Promise<IDBPDatabase>((resolve, reject) => {
@@ -120,76 +104,10 @@ export function openItunDatabase(
     }
 
     const open = openDB(name, DB_VERSION, {
-      async upgrade(db, oldVersion, _newVersion, transaction) {
-        // v1: create all core object stores with keyPath = 'id'
-        if (oldVersion < 1) {
-          for (const storeName of [
-            STORE_NAMES.pilots,
-            STORE_NAMES.mechs,
-            STORE_NAMES.crawlers,
-            STORE_NAMES.workspaces,
-            STORE_NAMES.softLinks,
-          ]) {
-            if (!db.objectStoreNames.contains(storeName)) {
-              db.createObjectStore(storeName, { keyPath: 'id' })
-            }
-          }
-        }
-        // v2 (Wave 4, cycle-1): add mechPatterns object store.
-        // See ADR in src/lib/schemas/pattern.ts.
-        if (oldVersion < 2) {
-          if (!db.objectStoreNames.contains(STORE_NAMES.mechPatterns)) {
-            db.createObjectStore(STORE_NAMES.mechPatterns, { keyPath: 'id' })
-          }
-        }
-        // v5 (design-review R-5): add encounterNpcs object store (GM encounter
-        // tray). Store creation only — no record rewrites.
-        if (oldVersion < 5) {
-          if (!db.objectStoreNames.contains(STORE_NAMES.encounterNpcs)) {
-            db.createObjectStore(STORE_NAMES.encounterNpcs, { keyPath: 'id' })
-          }
-        }
-        // v18: where the rows came from and whose they are (`cacheMeta.ts`).
-        // Created here; its first row is written after the rewrites below.
-        // The device-only Change Log v9 created goes: the log is the server's
-        // (`convex/changeLog.ts`), and no rewrite below reads it.
-        if (oldVersion < 18) {
-          if (!db.objectStoreNames.contains(STORE_NAMES.meta)) {
-            db.createObjectStore(STORE_NAMES.meta, { keyPath: 'id' })
-          }
-          if (db.objectStoreNames.contains(RETIRED_CHANGE_LOG_STORE)) {
-            db.deleteObjectStore(RETIRED_CHANGE_LOG_STORE)
-          }
-        }
-        // v3+: record rewrites live in migrations/ — one file per version.
-        // runMigrations only awaits IDB operations on `transaction`, so the
-        // versionchange transaction stays open until every rewrite lands.
-        // On failure we abort the transaction: that rolls back the version bump
-        // AND surfaces as an error on the open request, so openItunDatabase()
-        // rejects rather than handing back a half-migrated database. We do NOT
-        // rethrow — idb does not await the upgrade callback's promise, so a
-        // rejected upgrade would become an unhandled rejection; abort() alone
-        // already fails the open with the failure logged below.
-        try {
-          await runMigrationsFn(db, transaction, oldVersion)
-          if (oldVersion < 18) await writeInitialCacheMeta(transaction, oldVersion)
-          noteLegacyUpgrade(oldVersion, DB_VERSION)
-        } catch (err) {
-          console.error('[itun-db] Migration failed — aborting upgrade transaction.', err)
-          // Guard against a transaction that already settled (e.g. auto-committed
-          // if a migration ever awaited a non-IDB promise) so abort() throwing
-          // cannot itself become an unhandled rejection.
-          try {
-            // idb eagerly wires `transaction.done`; aborting rejects it. Nothing
-            // on the upgrade path awaits .done, so mark that rejection handled to
-            // keep it from surfacing as an unhandled rejection.
-            void transaction.done.catch(() => {
-              // Expected: this is the rejection abort() is about to cause.
-            })
-            transaction.abort()
-          } catch {
-            // already aborted/committed — nothing more to do
-          }
+      upgrade(db) {
+        for (const storeName of [...db.objectStoreNames]) db.deleteObjectStore(storeName)
+        for (const storeName of Object.values(STORE_NAMES)) {
+          db.createObjectStore(storeName, { keyPath: 'id' })
         }
       },
       blocked() {
@@ -220,9 +138,6 @@ export function openItunDatabase(
           return
         }
         finish(() => resolve(db))
-        // Only now: an upgrade whose transaction aborted did not happen, and
-        // must not be counted. See `upgradeTelemetry.ts`.
-        void flushLegacyUpgrade()
       },
       (err: unknown) => finish(() => reject(err))
     )
@@ -298,18 +213,16 @@ export async function writeCacheMeta(meta: CacheMeta): Promise<void> {
  * Empty the cache and hand it to `userId` (`null`: to nobody), in one
  * transaction.
  *
- * Every store goes, the retired `workspaces` included: the cache is one
- * account's, and another account's rows are not this one's to read. The meta row is rewritten rather than left, so the result is a `cache`
- * origin owned by `userId`, never a `legacy` one. A caller that must not
- * destroy an unclaimed pre-account roster checks the origin first
- * (`lib/account/cacheOwner.ts`); this does not.
+ * Every store goes: the cache is one account's, and another account's rows are
+ * not this one's to read. The meta row is rewritten rather than left, so the
+ * result is owned by `userId`.
  */
 export async function clearCache(userId: string | null = null): Promise<void> {
   const db = await getDb()
   const names = Object.values(STORE_NAMES)
   const tx = db.transaction(names, 'readwrite')
   await Promise.all(names.map((name) => tx.objectStore(name).clear()))
-  await tx.objectStore(STORE_NAMES.meta).put(cacheMetaRecord({ origin: 'cache', userId }))
+  await tx.objectStore(STORE_NAMES.meta).put(cacheMetaRecord({ userId }))
   await tx.done
 }
 
@@ -366,7 +279,7 @@ export async function atomicWrite(ops: AtomicWriteOp[]): Promise<string[]> {
 
 // Per-entity store accessors
 // hasUpdatedAt=true for Pilot, Mech, Crawler (their schemas include updatedAt)
-// hasUpdatedAt=false (default) for Workspace (createdAt only), SoftLink (createdAt only),
+// hasUpdatedAt=false (default) for SoftLink (createdAt only)
 // and MechPattern (createdAt only — patterns are immutable after creation).
 // salvageSchema = deepStrip(XSchema) — the same shape with EVERY object
 // (top-level and nested, e.g. CargoLotSchema/InjurySchema/EntityRefSchema
@@ -390,10 +303,6 @@ export const crawlers = makeStore(getDb, CrawlerSchema, STORE_NAMES.crawlers, {
   hasUpdatedAt: true,
   salvageSchema: deepStrip(CrawlerSchema),
 })
-// No `workspaces` CRUD store: Workspaces are retired (ADR-030 §2). The object
-// store itself is still CREATED in the upgrade path above and still written by
-// migration v10, because v13 reads what v10 writes when an old database is
-// opened — but nothing in the running app reads or writes it any more.
 export const softLinks = makeStore(getDb, SoftLinkSchema, STORE_NAMES.softLinks, {
   salvageSchema: deepStrip(SoftLinkSchema),
 })

@@ -1,16 +1,15 @@
 /**
- * Unit tests for the v11 record rewrite (equipmentLoadouts → partners).
- * The through-the-opener path is covered in migrations.test.ts; these pin the
- * pure rewrite semantics.
+ * Unit tests for lifting a stored pilot's `equipmentLoadouts` into partners
+ * (`normalizeLegacyPilotRecord` runs it on every stored or imported pilot).
  *
  * The case that matters most is the LAST one: two Mecha Companions. ADR-023
  * keyed loadouts by equipment slug, so Mecha Packmaster's second companion had
- * nowhere to live. The migration cannot recover data that was never storable —
- * what it must do is give the surviving loadout an id, so that adding the
- * second companion afterwards is possible at all.
+ * nowhere to live. The lift cannot recover data that was never storable — what
+ * it must do is give the surviving loadout an id, so that adding the second
+ * companion afterwards is possible at all.
  */
 import { describe, expect, test } from 'bun:test'
-import { partnersFromLoadouts } from '../migrations/11-equipment-loadouts-to-partners'
+import { partnersFromLoadouts } from '../pilot'
 
 let counter = 0
 const stableId = (): string => `partner-${++counter}`
@@ -24,7 +23,7 @@ const reset = (): void => {
   counter = 0
 }
 
-describe('partnersFromLoadouts (v11 loadouts → partners)', () => {
+describe('partnersFromLoadouts (loadouts → partners)', () => {
   test('lifts a loadout into a partner instance with an id', () => {
     reset()
     const partners = partnersFromLoadouts(

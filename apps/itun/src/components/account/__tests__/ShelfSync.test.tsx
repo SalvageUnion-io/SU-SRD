@@ -32,7 +32,6 @@ const { useEncounterStore } = await import('../../../stores/encounterStore')
 const { forgetVersions } = await import('../../../stores/serverVersions')
 const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
 const db = await import('../../../lib/db/index')
-const { _resetLegacyProbe, probeLegacyLocalData } = await import('../../../lib/db/legacyLocalData')
 
 afterAll(() => {
   convexMocks.restore()
@@ -90,11 +89,8 @@ function serve(roster: Partial<typeof EMPTY_ROSTER>) {
 beforeEach(async () => {
   mutations.length = 0
   forgetVersions()
-  _resetLegacyProbe()
   db._resetDbSingleton()
   await db.clearCache()
-  // A browser that never held a legacy roster: the only one that may prune.
-  await probeLegacyLocalData()
   useEntityStore.setState({
     pilots: [],
     mechs: [],

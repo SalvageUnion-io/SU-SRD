@@ -2,7 +2,6 @@ import { useConvexAuth } from 'convex/react'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { setEntityBackendAuthState } from '../../stores/entityBackend'
-import { probeLegacyLocalData } from '../db/legacyLocalData'
 import { useBuildFloor } from './buildFloor'
 import type { ConnectionState } from './connectionContext'
 import { ConnectionContext } from './connectionContext'
@@ -68,31 +67,6 @@ function useConnectionState(
   useEffect(() => {
     setEntityBackendAuthState({ signedIn, online, authSettled, outdated })
   }, [signedIn, online, authSettled, outdated])
-
-  /**
-   * Ask once, at boot, whether this browser is still holding a pre-account
-   * roster.
-   *
-   * It no longer decides a backend — anonymous is always in-memory since
-   * [ADR-035](../../../../../docs/ARCHITECTURE.md#adr-035).
-   * What still needs the answer is `ShelfSync`'s prune, which refuses to delete
-   * anything while this reads `unknown`: absence from `listMine` cannot be
-   * trusted to mean "deleted elsewhere" until we know there is nothing waiting
-   * to be migrated. Warming it here means the prune is not held off for the
-   * whole of a session in which nothing else happened to ask.
-   *
-   * It lives in this effect because this is already the one place that pushes
-   * session facts down to the stores, and `[]` because the probe caches its own
-   * result and must not re-run per render.
-   *
-   * The `setProbed` re-render this used to force is gone with the backend
-   * dependency: nothing renders differently the moment the probe resolves.
-   * `AccountReconciler` awaits the same cached promise itself, which is what makes
-   * the answer visible where it now matters.
-   */
-  useEffect(() => {
-    void probeLegacyLocalData()
-  }, [])
 
   return useMemo(() => {
     const mode = resolveConnectionMode({

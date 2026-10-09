@@ -91,7 +91,13 @@ async function mirrorPilot(
   body: Record<string, unknown> = pilotBody()
 ): Promise<Id<'pilots'>> {
   const appId = String(body.id)
-  await user.as.mutation(api.entities.upsertByAppId, { table: 'pilots', appId, gameId, body })
+  await user.as.mutation(api.entities.upsertByAppId, {
+    table: 'pilots',
+    appId,
+    gameId,
+    body,
+    expectedUpdatedAt: null,
+  })
   const row = await t.run(
     async (ctx) =>
       await ctx.db
@@ -301,6 +307,7 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
         appId: 'p1',
         gameId,
         body: pilotBody(),
+        expectedUpdatedAt: null,
       })
     ).rejects.toThrow(/not a member/i)
   })
@@ -316,6 +323,7 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
       appId: 'p1',
       gameId,
       body: pilotBody(),
+      expectedUpdatedAt: null,
     })
 
     // Without this the move looked like it worked locally and the server row
@@ -366,6 +374,7 @@ describe('unclaimed characters are offers; players pick them up', () => {
       appId: 'p1',
       gameId,
       body: pilotBody({ name: 'Renamed' }),
+      expectedUpdatedAt: null,
     })
 
     const row = await t.run(async (ctx) => await ctx.db.get(pilotId))

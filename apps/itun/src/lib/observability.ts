@@ -25,16 +25,6 @@ const observability = createBrowserObservability()
  * absent.
  */
 export async function initBrowserObservability(): Promise<void> {
-  // The latest call, not the first: a DSN-less call must not latch (the
-  // idempotency lives in `observability.init`, after the DSN check).
-  initializing = init()
-  await initializing
-}
-
-/** The most recent init, for `observabilityReady`. */
-let initializing: Promise<void> | null = null
-
-async function init(): Promise<void> {
   const dsn = import.meta.env.VITE_SENTRY_DSN
   // Keep this guard HERE, ahead of the import below: it is what Vite folds to
   // make `@sentry/browser` unreachable in a DSN-less build.
@@ -46,29 +36,6 @@ async function init(): Promise<void> {
     release: import.meta.env.VITE_COMMIT_REF,
   })
 }
-
-/**
- * Resolves once `initBrowserObservability` has finished — or at once, if it
- * was never called (tests, and any caller outside the app entry).
- *
- * For a report produced at boot: the SDK arrives through a dynamic import, and
- * a capture made before it lands is a silent no-op rather than a queued event.
- * Awaiting this first is the difference between counting an event and losing
- * it. A failed init resolves too — the capture then no-ops, which is the same
- * outcome as a build with no DSN.
- */
-export function observabilityReady(): Promise<void> {
-  return (initializing ?? Promise.resolve()).catch(() => {
-    // A failed init is "ready" too: captures then no-op, as with no DSN.
-  })
-}
-
-/**
- * Reports an informational message to Sentry when enabled; otherwise a no-op.
- * For a condition the app handled but someone should be able to count — e.g.
- * `lib/db/upgradeTelemetry.ts` reporting an old database it upgraded.
- */
-export const captureMessage = observability.captureMessage
 
 /**
  * Reports a caught exception to Sentry when enabled; otherwise a no-op.

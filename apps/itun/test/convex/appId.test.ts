@@ -48,6 +48,7 @@ describe('upsertByAppId', () => {
       appId: 'local-uuid-1',
       gameId: null,
       body: pilotBody(),
+      expectedUpdatedAt: null,
     })
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
@@ -64,12 +65,14 @@ describe('upsertByAppId', () => {
       appId: 'local-uuid-1',
       gameId: null,
       body: pilotBody(),
+      expectedUpdatedAt: null,
     })
     await u.as.mutation(api.entities.upsertByAppId, {
       table: 'pilots',
       appId: 'local-uuid-1',
       gameId: null,
       body: pilotBody({ name: 'Renamed' }),
+      expectedUpdatedAt: null,
     })
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
@@ -89,6 +92,7 @@ describe('upsertByAppId', () => {
       appId: 'local-uuid-1',
       gameId: null,
       body: pilotBody(),
+      expectedUpdatedAt: null,
     })
 
     // Addressing by a client-supplied id must not become a way to write
@@ -99,6 +103,7 @@ describe('upsertByAppId', () => {
         appId: 'local-uuid-1',
         gameId: null,
         body: pilotBody({ name: 'Hijacked' }),
+        expectedUpdatedAt: null,
       })
     ).rejects.toThrow(/another player/i)
   })
@@ -113,6 +118,7 @@ describe('upsertByAppId', () => {
         appId: 'local-uuid-1',
         gameId: null,
         body: { nonsense: true },
+        expectedUpdatedAt: null,
       })
     ).rejects.toThrow(/invalid pilots payload/i)
   })
@@ -127,6 +133,7 @@ describe('removeByAppId', () => {
       appId: 'local-uuid-1',
       gameId: null,
       body: pilotBody(),
+      expectedUpdatedAt: null,
     })
 
     await u.as.mutation(api.entities.removeByAppId, { table: 'pilots', appId: 'local-uuid-1' })
@@ -152,6 +159,7 @@ describe('removeByAppId', () => {
       appId: 'local-uuid-1',
       gameId: null,
       body: pilotBody(),
+      expectedUpdatedAt: null,
     })
 
     await expect(
@@ -175,6 +183,7 @@ describe('upsertByAppId refuses a write from a stale copy', () => {
       appId: 'local-uuid-1',
       gameId: null,
       body: pilotBody(),
+      expectedUpdatedAt: null,
     })
     expect(first.updatedAt).toBe(1_000)
 
@@ -223,6 +232,7 @@ describe('upsertByAppId refuses a write from a stale copy', () => {
       appId: 'local-uuid-1',
       gameId: null,
       body: pilotBody(),
+      expectedUpdatedAt: null,
     })
 
     setSystemTime(new Date(2_000))

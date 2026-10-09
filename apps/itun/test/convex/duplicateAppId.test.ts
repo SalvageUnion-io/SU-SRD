@@ -7,9 +7,8 @@ import { testConvex } from './harness'
  * Surviving duplicate `appId` rows that already exist.
  *
  * This is the **second** half of the duplicate-appId story, and deliberately
- * not the first. Preventing new duplicates (`claimLocal` + `appIdTaken`) and
- * repairing old ones (`maintenance.dedupeAppIds`) are covered by
- * `entities.test.ts` and `maintenance.test.ts`. What is pinned here is what
+ * not the first. Repairing old duplicates (`maintenance.dedupeAppIds`) is
+ * covered by `maintenance.test.ts`. What is pinned here is what
  * happens to a player whose roster is duplicated *right now*, before anyone has
  * run the repair.
  *
@@ -71,6 +70,7 @@ describe('byAppId tolerates duplicate rows', () => {
       appId: 'dupe-1',
       gameId: null,
       body: pilotBody({ name: 'Babe Renamed' }),
+      expectedUpdatedAt: null,
     })
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
@@ -110,6 +110,7 @@ describe('byAppId tolerates duplicate rows', () => {
       appId: 'dupe-2',
       gameId: null,
       body: pilotBody({ name: 'Written' }),
+      expectedUpdatedAt: null,
     })
 
     // Deterministic, and the SAME row `maintenance.dedupeAppIds` keeps — so a

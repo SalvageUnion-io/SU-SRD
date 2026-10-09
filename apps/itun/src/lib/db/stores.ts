@@ -7,14 +7,10 @@ export const STORE_NAMES = {
   pilots: 'pilots',
   mechs: 'mechs',
   crawlers: 'crawlers',
-  workspaces: 'workspaces',
   softLinks: 'softLinks',
-  // Wave 4 (cycle-1): patterns store. ADR in src/lib/schemas/pattern.ts.
   mechPatterns: 'mechPatterns',
-  // Design-review R-5: GM encounter-tray NPC instances.
   encounterNpcs: 'encounterNpcs',
-  // v18: one row saying where the rows above came from and whose they are
-  // (`cacheMeta.ts`). Keyed by `id`; the one row's id is always `cache`.
+  // Whose rows the stores above hold (`cacheMeta.ts`).
   meta: 'meta',
 } as const
 

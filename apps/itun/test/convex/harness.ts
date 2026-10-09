@@ -46,7 +46,6 @@ const modules: Record<string, () => Promise<unknown>> = {
   './account.ts': () => import('../../convex/account'),
   './botClient.ts': () => import('../../convex/botClient'),
   './changeLog.ts': () => import('../../convex/changeLog'),
-  './claim.ts': () => import('../../convex/claim'),
   './crew.ts': () => import('../../convex/crew'),
   './downtime.ts': () => import('../../convex/downtime'),
   './entities.ts': () => import('../../convex/entities'),

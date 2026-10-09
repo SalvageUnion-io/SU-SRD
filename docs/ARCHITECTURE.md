@@ -192,18 +192,15 @@ never `navigator.onLine` or an auth flag.
 ### IndexedDB cache
 
 `apps/itun/src/lib/db/` via `idb` ([ADR-002](#adr-002)):
-database `itun-v1`, `DB_VERSION = 18` (`src/lib/db/index.ts`), stores in
+database `itun-v1`, `DB_VERSION = 19` (`src/lib/db/index.ts`), stores in
 `src/lib/db/stores.ts`: `pilots`, `mechs`, `crawlers`, `mechPatterns`
-(immutable builds), `encounterNpcs`, `softLinks`, the retired `workspaces`
-(kept for migrations v10/v13) and `meta`.
+(immutable builds), `encounterNpcs`, `softLinks` and `meta`.
 
-- **One account's cache.** `meta` holds one row, `{ origin, userId }`
-  (`src/lib/db/cacheMeta.ts`). `origin` is `legacy` only when the v18 upgrade
-  found a roster from before v18, which may be in no account yet. Otherwise it
-  is `cache`. `userId` is the account whose rows these are. Sign-out empties
-  the cache (`clearCache`). So does a signed-in boot whose `userId` differs
-  (`src/lib/account/cacheOwner.ts`). Neither touches a `legacy` cache until
-  `AccountReconciler` has migrated it.
+- **One account's cache.** `meta` holds one row, `{ userId }`
+  (`src/lib/db/cacheMeta.ts`): the account whose rows these are. Sign-out
+  empties the cache (`clearCache`). So does a signed-in boot whose `userId`
+  differs (`src/lib/account/cacheOwner.ts`). Nothing in the cache is ever sent
+  up.
 - `ShelfSync` adopts a `listMine` row when its `updatedAt` is newer than the
   version this browser last saw (`planRowSync`). A pilot or mech write sends
   that version back, and `upsertByAppId` refuses it as stale when the row has
@@ -213,9 +210,10 @@ database `itun-v1`, `DB_VERSION = 18` (`src/lib/db/index.ts`), stores in
   with Zod on write; reads use `schema.strip()` so a drifted record loses
   unknown fields instead of bricking hydration. Pilot, Mech, Crawler stamp
   `updatedAt`; SoftLink and MechPattern only `createdAt`.
-- Stores are created in `openDB`'s `upgrade`; record rewrites are one file per
-  version in `src/lib/db/migrations/`, registered in `migrations/index.ts`, run by `runMigrations()` in the
-  `versionchange` transaction, so a throw aborts the whole upgrade.
+- An upgrade (`openDB`'s `upgrade`) rewrites no record: it deletes every store
+  an older version created and creates the current set empty, and `ShelfSync`
+  and `WiringSync` refill them from Convex on the next signed-in load. A schema
+  change bumps `DB_VERSION` and nothing else.
 - `atomicWrite()` writes several records in one transaction; a delete with
   `pruneSoftLinks` removes the entity's links with it.
 
@@ -1090,7 +1088,10 @@ Full text: `git show c2476d1c:docs/adrs/ADR-001-local-first-no-backend.md`
 
 ### Status
 
-Accepted
+Accepted. **Amended 2026-10-08 (#1152):** IndexedDB is a cache of Convex
+([ADR-034](#adr-034)), so a version change no longer migrates records — the
+upgrade empties the cache and the server refills it. The migrations system the
+decision below once pointed to is deleted.
 
 ### Context
 
@@ -1120,8 +1121,8 @@ Two forces shaped the choice:
   the row is re-parsed with a lenient "salvage" schema (`.strip()`) and a
   warning is logged. The row heals on its next write (re-parsed strictly). See
   `apps/itun/src/lib/db/crud.ts`.
-- Schema/version changes go through the migrations system documented in
-  `apps/itun/src/lib/db/migrations/README.md`.
+- A schema/version change bumps `DB_VERSION` in `apps/itun/src/lib/db/index.ts`;
+  the upgrade drops every store and the cache refills from Convex.
 - Reusable mech templates live in their own `mechPatterns` object store rather
   than as a boolean flag on mech records, so they can list and evolve
   independently (`apps/itun/src/lib/schemas/pattern.ts`).
@@ -4120,6 +4121,14 @@ Schema translation to SQLite is the easy part. Three things are not:
 
 ### Status
 
+**Superseded in part 2026-10-08 (#1152): there is no pre-account migration.**
+The consequence below that *"existing local data is never destroyed"* and that
+signing in claims it into the account is withdrawn, along with the claim path
+that carried it (`claimLocal`, `AccountReconciler`'s device pass, the `legacy`
+cache origin). An IndexedDB upgrade empties the cache and the server refills
+it; a roster that only ever lived in one browser is not carried forward. The
+three decisions stand.
+
 **Accepted and delivered; decision 1 amended 2026-10-08.** Signed out, ITUN is
 **read-only, in every build**: building needs an account, and an anonymous write
 is refused (`requireWritableBackend`, reason `signedOut`) rather than kept in
@@ -4432,6 +4441,17 @@ the part that rots.
 **No Isolated Local-Only Data — Closing the Migration Window**
 
 ### Status
+
+**Superseded in part 2026-10-08 (#1152): the legacy claim is retired.**
+Decision 2 (device rows are migrated on sign-in), decision 5 (what counts as
+isolated) and every consequence about the migration window, `mayPrune`'s
+legacy guard and `claimLocal` are withdrawn: `claimLocal`,
+`legacyLocalData.ts`, `legacyMigration.ts`, the `legacy` cache origin and the
+IndexedDB migrations are deleted. Nothing on a device is sent to the account;
+an upgrade empties the cache and the server refills it. Decision 1 (anonymous
+is anonymous) and decisions 3 and 4 (a body agrees with its row;
+`maintenance.repairContainers`) stand. Read the rest of this record as
+history.
 
 **Accepted and delivered.** The exemption is gone from `backendForMode`, the
 migration runs from the root of the app, and `claimLocal` now writes a body whose
@@ -4990,7 +5010,7 @@ editor whose every save the server refuses.
 | ---------------------- | --------------------------------------------------------- | ------------------------------------------------- |
 | type matches its ends  | `upsertSoftLink` (`endsMatchType`)                        | `createSoftLink` in `entityStore.ts`              |
 | cardinality / replace  | `writeSoftLink` (`model/entities.ts`), used by every writer | `createSoftLink` (`conflictingLinks`)            |
-| one container          | `upsertSoftLink` (`sameContainerRows`); `claimLocal` declines | `createSoftLink` (`sameContainer`)            |
+| one container          | `upsertSoftLink` (`sameContainerRows`)                    | `createSoftLink` (`sameContainer`)                |
 | move prunes            | `pruneLinksAcrossContainers` in `upsertByAppId`           | `pruneLinksAfterMove` in `entityStore.update`     |
 | scrap/delete cascades  | `pruneLinksOfRow` in every remove path                    | `atomicWrite` with `pruneSoftLinks`               |
 
@@ -5040,9 +5060,7 @@ lists only what would be accepted.
 `maintenance.repairSoftLinks` (dry run by default) deletes duplicates,
 cross-container links and cardinality losers (the newest surviving assignment
 wins), re-files the rest, then backfills `mech-to-crawler` for every mech whose
-pilot crews a crawler in its container. IndexedDB migration v17 draws the same
-backfill locally, so a pre-account roster still waiting to be claimed uploads
-with its mechs docked.
+pilot crews a crawler in its container.
 
 ### Consequences
 

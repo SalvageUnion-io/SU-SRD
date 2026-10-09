@@ -132,8 +132,8 @@ that string is the redacted one.
 `convex/maintenance.ts` holds operator-only repairs, reachable through
 `bunx convex run` and not from any client: `dedupeAppIds` (below), the
 one-off `repairContainers` (see "Running a maintenance function in production"
-below), and `repairSoftLinks` (see "Repairing soft links" below). `dedupeAppIds` undoes the damage described under "Claiming
-twice" in `convex/claim.ts`: rows sharing an
+below), and `repairSoftLinks` (see "Repairing soft links" below). `dedupeAppIds` undoes the damage a since-deleted
+bulk upload left: rows sharing an
 `appId`, which make `byAppId`'s `.unique()` throw and so break every mirrored
 write for that entity, permanently and silently.
 

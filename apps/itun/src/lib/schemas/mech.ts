@@ -93,9 +93,8 @@ export const CriticalDamageResultSchema = z
 /**
  * chassisRef / systems / modules store SLUG references into
  * salvageunion-reference (e.g. "ghost-chassis"), the same convention as pilot
- * `classRef` and encounter `refSlug`. The v6 IndexedDB migration
- * (lib/db/migrations/6-mech-refs-to-slugs.ts) rewrote legacy name-based refs;
- * resolution (lib/rules/resolveRefs.ts) stays tolerant of names/ids for
+ * `classRef` and encounter `refSlug`. Resolution (lib/rules/resolveRefs.ts)
+ * stays tolerant of names/ids for
  * snapshots published by older clients. Resolution against game data is
  * handled at the rules/presentation layer.
  */
@@ -117,8 +116,8 @@ export const MechSchema = z
 
     /**
      * Cargo lots carried in the mech (design §2.12). Replaces the legacy
-     * `cargo: string[]` field — the v3 IndexedDB migration
-     * (lib/db/migrations/3-cargo-to-cargo-lots.ts) rewrites old records.
+     * `cargo: string[]` field, which `normalizeLegacyCargoRecord` lifts into
+     * lots wherever an old body is read.
      */
     cargoLots: z.array(CargoLotSchema),
 

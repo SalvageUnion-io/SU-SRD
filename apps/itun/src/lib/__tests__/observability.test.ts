@@ -12,8 +12,8 @@ import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
  * makes, and this file follows its mocking discipline deliberately, as its
  * srd counterpart does.
  *
- * `captureException` earns its own cases here rather than riding along with
- * `captureMessage`: catching is exactly what PREVENTS an error reaching
+ * `captureException` earns its own cases here: catching is exactly what
+ * PREVENTS an error reaching
  * Sentry's `globalHandlers` integration, so a deliberately-caught failure —
  * including a failed mirror to the server of record — is reportable ONLY
  * through this function. It previously had no test at all.
@@ -49,8 +49,9 @@ mock.module('@sentry/browser', () => ({
   },
 }))
 
-const { captureException, captureMessage, initBrowserObservability, reactRootErrorHandlers } =
-  await import('../observability')
+const { captureException, initBrowserObservability, reactRootErrorHandlers } = await import(
+  '../observability'
+)
 
 /** Env keys this file writes, so `afterAll` can put the environment back. */
 const ENV_KEYS = ['VITE_SENTRY_DSN', 'VITE_COMMIT_REF'] as const
@@ -89,10 +90,9 @@ describe('observability', () => {
     expect(import.meta.env.VITE_SENTRY_DSN).toBeUndefined()
   })
 
-  test('with no DSN, init loads nothing and both capture verbs are silent no-ops', async () => {
+  test('with no DSN, init loads nothing and capture is a silent no-op', async () => {
     await initBrowserObservability()
     captureException(new Error('unreported'))
-    captureMessage('unreported')
 
     // Not merely "does not throw" — nothing reached Sentry at all, so an
     // un-provisioned deploy ships no Sentry code and makes no requests.
@@ -177,22 +177,6 @@ describe('observability', () => {
     expect(sentryCalls.find((c) => c.fn === 'captureException')?.args[1]).toEqual({
       tags: { convex_function: 'games:create' },
     })
-  })
-
-  test('captureMessage forwards too — a handled condition is not an exception', () => {
-    // `upgradeTelemetry.ts` reports a database upgrade it handled; without this
-    // verb that report stays silent and nobody learns how often it happens.
-    captureMessage('itun-db: upgraded a pre-v13 database', { fromVersion: 12 })
-
-    const captured = sentryCalls.find((c) => c.fn === 'captureMessage')
-    expect(captured?.args[0]).toBe('itun-db: upgraded a pre-v13 database')
-    expect(captured?.args[1]).toEqual({ extra: { fromVersion: 12 } })
-  })
-
-  test('captureMessage with no context sends undefined too', () => {
-    captureMessage('bare')
-
-    expect(sentryCalls.find((c) => c.fn === 'captureMessage')?.args[1]).toBeUndefined()
   })
 
   test('a render error a boundary catches reaches Sentry, with its component stack', () => {

@@ -1,13 +1,13 @@
 /**
- * The rules that decide whether a cached row may be deleted (ADR-034, P4b).
+ * The rule that decides whether a cached row may be deleted (ADR-034, P4b).
  *
  * Pruning — dropping local rows the server did not return — is what finally
  * makes "IndexedDB is a reflection of Convex" literally true rather than
  * aspirational. It is also the most destructive operation in the codebase, and
- * every guard below is the kind that looks like defensive noise right up until
- * the day somebody removes one.
+ * the guard below is the kind that looks like defensive noise right up until
+ * the day somebody removes it.
  *
- * They live here, as predicates, rather than inline in `ShelfSync`'s effect, so
+ * It lives here, as a predicate, rather than inline in `ShelfSync`'s effect, so
  * that the tests assert **the rule itself** instead of a copy of it. A parallel
  * implementation in a test file is a rule that can pass while the code does the
  * opposite.
@@ -15,32 +15,6 @@
 
 import type { ContainerFields } from '../container'
 import { containerOf } from '../container'
-import type { LegacyProbeState } from './legacyLocalData'
-
-/**
- * May this browser prune at all?
- *
- * Only when it has never held a pre-ADR-034 roster.
- *
- * The scenario this guard exists for: a long-standing Solo player signs in for
- * the first time and their roster has not been migrated yet. Every build they
- * own is a local shelf row the server has never heard of, so
- * {@link rowMayBePruned} would read every one of them as "deleted elsewhere"
- * and delete the lot. `absent` is the only state in which a local row can be
- * trusted to have come from a server-accepted write or from `ShelfSync` itself
- * — which is what makes absence mean deletion rather than not-yet-uploaded.
- *
- * `unknown` is refused for the same reason: the probe has not answered, so "no
- * legacy roster" is not yet known to be true.
- *
- * There was a second guard, for anonymous work still being uploaded after a
- * sign-in. Signing out is read-only now, so no row can be built outside the
- * account and that state cannot arise: every local row other than a legacy one
- * came from the server or from a write it accepted first.
- */
-export function mayPrune(legacy: LegacyProbeState): boolean {
-  return legacy === 'absent'
-}
 
 /**
  * May this pilot, mech or crawler be pruned, given `listMine` did not return it?

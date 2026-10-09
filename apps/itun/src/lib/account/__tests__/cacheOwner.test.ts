@@ -1,9 +1,6 @@
 /**
- * Sign-out forgets the cache, except a pre-account roster (`cacheOwner.ts`).
- *
- * The `legacy` guard is the only thing standing between sign-out and the one
- * copy of rows that may be in no account yet, so it is driven here through the
- * real database rather than asserted on a stand-in.
+ * The cache belongs to one account at a time (`cacheOwner.ts`), driven here
+ * through the real database rather than asserted on a stand-in.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test'
@@ -17,7 +14,7 @@ import {
   readCacheMeta,
   writeCacheMeta,
 } from '../../db/index'
-import { forgetCache } from '../cacheOwner'
+import { claimCacheFor, forgetCache } from '../cacheOwner'
 
 // The emptied cache is read back through the store, and only the signed-in
 // backend reads IndexedDB at all (`signedInBackend.ts`).
@@ -31,24 +28,44 @@ beforeEach(async () => {
 })
 
 describe('forgetCache', () => {
-  test('a legacy roster keeps its rows and its meta row', async () => {
-    await writeCacheMeta({ origin: 'legacy', userId: null })
-
-    await forgetCache()
-
-    expect((await dbPilots.list()).map((p) => p.id)).toEqual(['p1'])
-    expect(await readCacheMeta()).toEqual({ origin: 'legacy', userId: null })
-    expect(useEntityStore.getState().pilots.map((p) => p.id)).toEqual(['p1'])
-  })
-
   test("an account's cache is emptied and handed to nobody", async () => {
-    await writeCacheMeta({ origin: 'cache', userId: 'user-a' })
+    await writeCacheMeta({ userId: 'user-a' })
     expect(useEntityStore.getState().pilots.map((p) => p.id)).toEqual(['p1'])
 
     await forgetCache()
 
     expect(await dbPilots.list()).toEqual([])
-    expect(await readCacheMeta()).toEqual({ origin: 'cache', userId: null })
+    expect(await readCacheMeta()).toEqual({ userId: null })
     expect(useEntityStore.getState().pilots).toEqual([])
+  })
+})
+
+describe('claimCacheFor', () => {
+  test("the same account's cache is kept", async () => {
+    await writeCacheMeta({ userId: 'user-a' })
+
+    await claimCacheFor('user-a')
+
+    expect((await dbPilots.list()).map((p) => p.id)).toEqual(['p1'])
+    expect(await readCacheMeta()).toEqual({ userId: 'user-a' })
+  })
+
+  test("another account's cache is emptied and handed over", async () => {
+    await writeCacheMeta({ userId: 'user-a' })
+
+    await claimCacheFor('user-b')
+
+    expect(await dbPilots.list()).toEqual([])
+    expect(await readCacheMeta()).toEqual({ userId: 'user-b' })
+    expect(useEntityStore.getState().pilots).toEqual([])
+  })
+
+  test("a cache that is nobody's is emptied and handed over", async () => {
+    await writeCacheMeta({ userId: null })
+
+    await claimCacheFor('user-a')
+
+    expect(await dbPilots.list()).toEqual([])
+    expect(await readCacheMeta()).toEqual({ userId: 'user-a' })
   })
 })

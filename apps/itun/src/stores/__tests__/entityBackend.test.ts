@@ -176,24 +176,13 @@ describe('backendForMode — the whole rule', () => {
   })
 
   test('there is no input that yields a durable anonymous backend', () => {
-    // The rule takes the mode and nothing else. The build flag
-    // (`VITE_REQUIRE_ACCOUNT`) and the legacy-roster probe it once also read are
-    // both gone, which makes a `local` comeback unwritable rather than merely
-    // unwritten: there is no argument left to pass it through.
+    // The rule takes the mode and nothing else, which makes a `local` comeback
+    // unwritable rather than merely unwritten: there is no argument left to
+    // pass it through.
     expect(backendForMode.length).toBe(1)
     for (const mode of CONNECTION_MODES) {
       expect(['remote', 'blocked', 'signedOut']).toContain(backendForMode(mode))
     }
-  })
-
-  test('a pre-account roster is migrated, not served', () => {
-    // Stated here because this is the test somebody will read when they wonder
-    // whether retiring `local` stranded existing players. It did not: the rows
-    // stay in IndexedDB, and `AccountReconciler` moves them into the account on
-    // sign-in.
-    // See `lib/account/__tests__/legacyMigration.test.ts`.
-    expect(backendForMode('solo')).toBe('signedOut')
-    expect(backendForMode('connected')).toBe('remote')
   })
 })
 
@@ -211,8 +200,7 @@ describe('readableRows — what a store may show', () => {
   }
 
   test('signed out shows nothing, and does not even read the cache', async () => {
-    // The cache may hold a pre-account roster (ADR-035: migrated on sign-in,
-    // never shown signed out) or the last account's rows.
+    // The cache may still hold the last account's rows.
     const c = cache()
     expect(await readableRows(c)).toEqual([])
     expect(c.read.count).toBe(0)

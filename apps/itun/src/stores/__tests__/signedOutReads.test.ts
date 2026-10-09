@@ -3,9 +3,8 @@
  *
  * There is no anonymous store any more: signed out, ITUN is read-only (ADR-034
  * decision 1, as amended), so a store has nothing of the session's to show. The
- * one thing it must not do is fall back to the IndexedDB cache, which may hold a
- * pre-account roster (ADR-035: migrated on sign-in, never shown signed out) or
- * the last account's rows.
+ * one thing it must not do is fall back to the IndexedDB cache, which may still
+ * hold the last account's rows.
  *
  * Runs on the default (signed-out) backend on purpose: no `withSignedInBackend`.
  */

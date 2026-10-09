@@ -67,9 +67,9 @@ unaffected.
 ## Data durability
 
 - **IndexedDB schema**: database `itun-v1`, version pinned in
-  `src/lib/db/index.ts` (`DB_VERSION`). Object-store creation lives in the
-  `upgrade` callback; record rewrites live in `src/lib/db/migrations/` —
-  one file per version (see that directory's README).
+  `src/lib/db/index.ts` (`DB_VERSION`). The database is a cache of Convex, so
+  an upgrade rewrites nothing: it drops every store and creates the current
+  set empty, and `ShelfSync` refills it on the next signed-in load.
 - **Salvage-path reads**: records that fail strict Zod validation are
   re-parsed with unknown keys stripped (console warning) and only skipped as
   a last resort — one drifted record never bricks a store.

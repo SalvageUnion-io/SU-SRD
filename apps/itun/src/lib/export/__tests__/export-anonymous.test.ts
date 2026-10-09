@@ -41,9 +41,9 @@ describe('an anonymous backup', () => {
   })
 
   test('does not reach into IndexedDB for rows the session never built', async () => {
-    // A pre-account roster on disk is migrated on sign-in (ADR-035); folding it
-    // in here would hand the visitor a backup whose contents they cannot see
-    // anywhere in the app.
+    // Rows on disk are the last account's cache; folding them in here would
+    // hand the visitor a backup whose contents they cannot see anywhere in the
+    // app.
     await mechPatterns.create({ ...patternInput, name: 'On disk' })
 
     const bundle = await buildExportBundle(useEntityStore.getState())
