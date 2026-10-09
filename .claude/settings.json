@@ -127,13 +127,6 @@
     ]
   },
   "enableAllProjectMcpServers": true,
-  "sandbox": {
-    "network": {
-      "allowUnixSockets": [
-        "~/.cache/chrome-a11y"
-      ]
-    }
-  },
   "hooks": {
     "PostToolUse": [
       {
