@@ -186,15 +186,13 @@ export function Roster() {
   }
 
   /**
-   * Scope the roster to the current container — but ONLY when signed in.
+   * Scope the roster to the current container — but ONLY when Connected.
    *
-   * A Solo user has no Games (there is no account, so nothing to share with),
-   * which makes their builds one pile and any filter of it a filter on a
-   * distinction that does not exist for them. Worse, it would hide things:
-   * migration v13 mapped every non-Default workspace onto `gameId: <that
-   * workspace id>`, so a Solo user who once used Workspaces has entities
-   * addressed by ids matching no real Game. Showing the pile whole is both
-   * simpler and the only rendering that cannot lose a build.
+   * Signed out, the roster renders the sign-in prompt below and lists nothing.
+   * Connecting or Disconnected (including blocked), there is no live Game list
+   * to check the persisted container against, so filtering would be a guess
+   * that can hide builds. Showing the cached pile whole is both simpler and
+   * the only rendering that cannot lose a build.
    */
   const inContainer = <T extends ContainerFields>(list: T[]): T[] => {
     if (mode !== 'connected') return list

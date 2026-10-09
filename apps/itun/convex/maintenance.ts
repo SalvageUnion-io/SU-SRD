@@ -571,8 +571,8 @@ type BackfillPage = {
  * the old two-hop model implied, for every mech that has a pilot, has no
  * crawler of its own, and whose pilot crews a crawler in the mech's container.
  *
- * The same rule as IndexedDB migration v17 (`impliedMechCrawlerLinks`), fed
- * newest-first so the pilot link and crew link it follows are the ones the
+ * The rule (`impliedMechCrawlerLinks`): a mech's crawler is the crawler its
+ * pilot crews. Links are read newest-first so the pilot link and crew link it follows are the ones the
  * first pass keeps. Only links filed in the mech's own container are read,
  * which is also what keeps a template mech from following its twin's pilot in
  * another Game.

@@ -16,7 +16,9 @@
 /**
  * Id of the built-in Default workspace, inlined because Workspaces are retired
  * and the module that defined it is gone. It survives ONLY as a value to
- * recognise in pre-ADR-030 records — the same reason migration 13 inlines it.
+ * recognise in pre-ADR-030 records that still carry `workspaceId`: v1 export
+ * bundles, and server bodies written before the split that
+ * `maintenance.repairContainers` has not yet repaired.
  */
 const DEFAULT_WORKSPACE_ID = 'default-workspace'
 
