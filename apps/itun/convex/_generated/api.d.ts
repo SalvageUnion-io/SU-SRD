@@ -12,6 +12,8 @@ import type * as account from "../account.js";
 import type * as auth from "../auth.js";
 import type * as botClient from "../botClient.js";
 import type * as botHttp from "../botHttp.js";
+import type * as build from "../build.js";
+import type * as buildFloor from "../buildFloor.js";
 import type * as changeLog from "../changeLog.js";
 import type * as claim from "../claim.js";
 import type * as crew from "../crew.js";
@@ -48,6 +50,8 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   botClient: typeof botClient;
   botHttp: typeof botHttp;
+  build: typeof build;
+  buildFloor: typeof buildFloor;
   changeLog: typeof changeLog;
   claim: typeof claim;
   crew: typeof crew;

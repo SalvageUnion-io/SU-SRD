@@ -128,6 +128,21 @@ describe('the signed-in backend the durability tests run on', () => {
     expect(caught).toBeInstanceOf(WritesBlockedOffline)
     expect((caught as WritesBlockedOffline).reason).toBe('settling')
   })
+
+  test('a bundle below the build floor is blocked with the outdated reason', () => {
+    // Connected in every other respect: the backend has moved past this build,
+    // so a write may call a function it no longer has.
+    setEntityBackendAuthState({
+      signedIn: true,
+      online: true,
+      authSettled: true,
+      convexConfigured: true,
+      outdated: true,
+    })
+    expect(selectBackend()).toBe('blocked')
+    expect(refusalReason()).toBe('outdated')
+    expect(new WritesBlockedOffline('outdated').message).toMatch(/updated/i)
+  })
 })
 
 describe('WritesBlockedOffline', () => {

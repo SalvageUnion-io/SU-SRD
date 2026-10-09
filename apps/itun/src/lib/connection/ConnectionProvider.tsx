@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { setEntityBackendAuthState } from '../../stores/entityBackend'
 import { probeLegacyLocalData } from '../db/legacyLocalData'
+import { useBuildFloor } from './buildFloor'
 import type { ConnectionState } from './connectionContext'
 import { ConnectionContext } from './connectionContext'
 import {
@@ -54,15 +55,19 @@ function useOnline(): boolean {
   return online
 }
 
-function useConnectionState(signedIn: boolean, authSettled: boolean): ConnectionState {
+function useConnectionState(
+  signedIn: boolean,
+  authSettled: boolean,
+  outdated = false
+): ConnectionState {
   const online = useOnline()
 
   // The stores are not components and cannot call hooks, so the mode is PUSHED
   // to them from here rather than pulled. One writer, one direction — and it
   // happens in an effect so a render never has a side effect.
   useEffect(() => {
-    setEntityBackendAuthState({ signedIn, online, authSettled })
-  }, [signedIn, online, authSettled])
+    setEntityBackendAuthState({ signedIn, online, authSettled, outdated })
+  }, [signedIn, online, authSettled, outdated])
 
   /**
    * Ask once, at boot, whether this browser is still holding a pre-account
@@ -98,11 +103,12 @@ function useConnectionState(signedIn: boolean, authSettled: boolean): Connection
     })
     return {
       mode,
-      canWrite: writesAllowed(mode),
+      canWrite: writesAllowed(mode) && !outdated,
       showDisconnectedWarning: shouldWarnDisconnected(mode),
       settling: isSettlingConnection(mode),
+      outdated,
     }
-  }, [signedIn, online, authSettled])
+  }, [signedIn, online, authSettled, outdated])
 }
 
 function ConvexBackedConnection({ children }: { children: ReactNode }) {
@@ -110,7 +116,10 @@ function ConvexBackedConnection({ children }: { children: ReactNode }) {
   // the initial handshake masquerade as Solo: `isAuthenticated` is false for the
   // whole of it, and Solo silently routes writes to IndexedDB with no mirror.
   const { isAuthenticated, isLoading, isRefreshing } = useConvexAuth()
-  const state = useConnectionState(isAuthenticated, !isLoading && !isRefreshing)
+  // The one build-floor subscriber: signed in or not, a tab older than the
+  // backend stops writing and reloads onto the new build (buildFloor.ts).
+  const outdated = useBuildFloor()
+  const state = useConnectionState(isAuthenticated, !isLoading && !isRefreshing, outdated)
   return <ConnectionContext.Provider value={state}>{children}</ConnectionContext.Provider>
 }
 

@@ -154,7 +154,7 @@ export function reportRefusedWrite(err: unknown): void {
  * `NO_SEAT` otherwise.
  */
 export function useSeat(pilot: Pilot | null): SeatHandle {
-  const { mode, canWrite: connectionWrites } = useConnection()
+  const { mode, canWrite: connectionWrites, outdated } = useConnection()
   const container = pilot === null ? null : containerOf(pilot)
   const gameId = container?.kind === 'game' ? (container.gameId as Id<'games'>) : null
   const pilotId = pilot?.id ?? null
@@ -200,7 +200,11 @@ export function useSeat(pilot: Pilot | null): SeatHandle {
   function send(write: (args: { gameId: Id<'games'>; pilotId: string }) => Promise<unknown>) {
     if (gameId === null || pilotId === null) return
     if (!connectionWrites) {
-      reportWriteFailure(new WritesBlockedOffline(mode === 'connecting' ? 'settling' : 'offline'))
+      reportWriteFailure(
+        new WritesBlockedOffline(
+          outdated ? 'outdated' : mode === 'connecting' ? 'settling' : 'offline'
+        )
+      )
       return
     }
     write({ gameId, pilotId }).catch(reportRefusedWrite)

@@ -94,7 +94,7 @@ export const NO_DOWNTIME: DowntimeHandle = {
  * `NO_DOWNTIME` otherwise.
  */
 export function useDowntime(pilot: Pilot | null): DowntimeHandle {
-  const { mode, canWrite } = useConnection()
+  const { mode, canWrite, outdated } = useConnection()
   const container = pilot === null ? null : containerOf(pilot)
   const gameId = container?.kind === 'game' ? (container.gameId as Id<'games'>) : null
   const signedIn = mode === 'connected' || mode === 'disconnected'
@@ -123,7 +123,11 @@ export function useDowntime(pilot: Pilot | null): DowntimeHandle {
   function writableGame(): Id<'games'> | null {
     if (gameId === null) return null
     if (!canWrite) {
-      reportWriteFailure(new WritesBlockedOffline(mode === 'connecting' ? 'settling' : 'offline'))
+      reportWriteFailure(
+        new WritesBlockedOffline(
+          outdated ? 'outdated' : mode === 'connecting' ? 'settling' : 'offline'
+        )
+      )
       return null
     }
     return gameId
