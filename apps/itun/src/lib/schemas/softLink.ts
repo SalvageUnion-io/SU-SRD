@@ -4,7 +4,7 @@ import { EntityRefSchema } from './entity'
 /**
  * SoftLink captures a directional assignment between two entities. Deleting an
  * endpoint cascades its links (`entityStore.delete`, and server-side
- * `pruneSoftLinksFor`).
+ * `pruneLinksOfRow`).
  *
  * Relationship types (ADR-037 — cardinality and the same-container rule live in
  * `lib/links/linkRules.ts`):

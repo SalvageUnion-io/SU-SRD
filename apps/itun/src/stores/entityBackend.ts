@@ -1,3 +1,4 @@
+import type { FunctionArgs } from 'convex/server'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import type { ConnectionMode } from '../lib/connection/connectionMode'
@@ -425,6 +426,87 @@ export async function commitSoftLink(
   } else {
     await convexClient.mutation(api.entities.removeSoftLink, args)
   }
+}
+
+/** One record a transfer writes: the validated record, and the patch that made it. */
+export type TransferWrite = {
+  type: EntityRef['type']
+  record: { id: string; gameId?: string | null }
+  patch: object
+}
+
+/**
+ * One record a transfer removes. A link is named by its endpoints, so it is
+ * read before the local delete leaves nothing to name it by.
+ */
+export type TransferRemoval =
+  | { type: EntityRef['type']; id: string }
+  | { type: 'softLink'; link: SoftLink | null }
+
+type TransferArgs = FunctionArgs<typeof api.entities.transfer>
+
+/**
+ * The `entities.transfer` args for a transfer: each record in the shape its
+ * own mutation takes — a pilot or mech whole body with the version it was
+ * made against, a crawler field patch (and its move, when the patch carries
+ * `gameId`), a link by its endpoints.
+ */
+export function transferArgs(
+  writes: readonly TransferWrite[],
+  removals: readonly TransferRemoval[]
+): TransferArgs {
+  return {
+    updates: writes.map(({ type, record, patch }) => {
+      if (type === 'crawler') {
+        const move =
+          'gameId' in patch
+            ? {
+                gameId: ((patch as { gameId?: string | null }).gameId ??
+                  null) as Id<'games'> | null,
+              }
+            : {}
+        return { table: 'crawlers' as const, ...crawlerPatchArgs(record.id, patch), ...move }
+      }
+      return {
+        table: type === 'pilot' ? ('pilots' as const) : ('mechs' as const),
+        appId: record.id,
+        gameId: (record.gameId ?? null) as Id<'games'> | null,
+        body: record,
+        expectedUpdatedAt: knownVersion(record.id),
+      }
+    }),
+    deletes: removals.flatMap((removal): TransferArgs['deletes'] => {
+      if (removal.type !== 'softLink') {
+        const table = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as const
+        return [{ table: table[removal.type], appId: removal.id }]
+      }
+      const { link } = removal
+      // Half a link has nothing to address — see `commitSoftLink`.
+      if (link?.from?.id === undefined || link.to?.id === undefined) return []
+      return [{ table: 'softLinks' as const, from: link.from, to: link.to, type: link.type }]
+    }),
+  }
+}
+
+/**
+ * Commit a cross-entity transfer (`entityStore.transfer`) as ONE mutation,
+ * and fail if it does not land.
+ *
+ * `entities.transfer` is a single Convex transaction, so the server holds
+ * either every record of a stow, a load or a scrap hand-off, or none of them:
+ * a refusal on any record — a crawler only the table runner may write, a
+ * stale pilot or mech body — leaves every row as it was.
+ */
+export async function commitTransfer(
+  writes: readonly TransferWrite[],
+  removals: readonly TransferRemoval[]
+): Promise<void> {
+  if (selectBackend() !== 'remote' || convexClient === null) return
+  const { versions } = await convexClient.mutation(
+    api.entities.transfer,
+    transferArgs(writes, removals)
+  )
+  for (const { appId, updatedAt } of versions) noteVersion(appId, updatedAt)
 }
 
 /**

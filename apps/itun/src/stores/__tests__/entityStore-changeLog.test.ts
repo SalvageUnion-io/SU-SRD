@@ -7,7 +7,7 @@
  * the server refuses is reported once rather than failing the edit.
  *
  * The Convex client is a recorder (`appendChangeLog` batches are kept, every
- * other commit answers as `upsertByAppId` does), so the store runs signed in
+ * other commit answers as `upsertByAppId` and `transfer` do), so the store runs signed in
  * against fake-indexeddb with its server commits observed.
  */
 
@@ -44,7 +44,7 @@ const convexMocks = await installConvexMocks({
         appended.push(...(args.entries ?? []))
         return null
       }
-      return { updatedAt: 1 }
+      return { updatedAt: 1, versions: [] }
     },
   },
   also: {

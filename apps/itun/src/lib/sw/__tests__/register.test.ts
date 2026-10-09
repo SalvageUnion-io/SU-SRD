@@ -1,15 +1,16 @@
 /**
  * Service worker registration + activation tests.
  *
- * `registerServiceWorker()` itself is only smoke-testable: `import.meta.env.DEV`
- * is true in Bun's test runner and happy-dom leaves `navigator.serviceWorker`
- * undefined, so both guards fire before the register call. The parts that
- * carry risk take only the slice of the SW API they use, so plain objects
- * stand in: `activateWaitingWorker` / `reloadOntoNewBuild` (how a tab moves
- * onto a new build), `keepCheckingForUpdates` (when a long-lived tab asks for a
- * new worker) and `serverBootsAnotherBuild` (whether the server has moved on).
+ * `registerServiceWorker()` takes `virtual:pwa-register`'s `registerSW` as an
+ * argument, because the virtual module resolves only in Vite's build; a
+ * recording stand-in replaces it here. The other parts that carry risk take
+ * only the slice of the SW API they use, so plain objects stand in:
+ * `activateWaitingWorker` / `reloadOntoNewBuild` (how a tab moves onto a new
+ * build), `keepCheckingForUpdates` (when a long-lived tab asks for a new
+ * worker) and `serverBootsAnotherBuild` (whether the server has moved on).
  */
 import { describe, expect, it } from 'bun:test'
+import type { RegisterSWOptions } from 'vite-plugin-pwa/types'
 import {
   activateWaitingWorker,
   keepCheckingForUpdates,
@@ -48,20 +49,48 @@ function fakeContainer(controller: unknown) {
 const asAny = (value: unknown) => value as any
 
 describe('registerServiceWorker', () => {
-  it('returns without throwing in the test environment (DEV + no serviceWorker)', () => {
-    expect(() => registerServiceWorker()).not.toThrow()
+  /** A stand-in for `virtual:pwa-register`'s `registerSW`, recording its options. */
+  function fakeRegisterSW() {
+    const calls: RegisterSWOptions[] = []
+    return { calls, registerSW: (options: RegisterSWOptions) => void calls.push(options) }
+  }
+
+  it('registers through the one registerSW it is handed, once', () => {
+    const { calls, registerSW } = fakeRegisterSW()
+    registerServiceWorker(registerSW)
+    expect(calls).toHaveLength(1)
   })
 
-  it('does not throw when called multiple times', () => {
-    expect(() => {
-      registerServiceWorker()
-      registerServiceWorker()
-      registerServiceWorker()
-    }).not.toThrow()
+  it('starts the update checks once the worker is registered', () => {
+    const { calls, registerSW } = fakeRegisterSW()
+    registerServiceWorker(registerSW)
+    let updates = 0
+    const registration = asAny({
+      update: () => {
+        updates += 1
+        return Promise.resolve()
+      },
+    })
+    calls[0]?.onRegisteredSW?.('/sw.js', registration)
+    expect(updates).toBe(1)
   })
 
-  it('records an entry chunk without registering anything during the guarded exit', () => {
-    expect(() => registerServiceWorker({ entryChunk: '/assets/index-HASH.js' })).not.toThrow()
+  it('reports a failed registration without throwing', () => {
+    const { calls, registerSW } = fakeRegisterSW()
+    registerServiceWorker(registerSW)
+    expect(() => calls[0]?.onRegisterError?.(new Error('Rejected'))).not.toThrow()
+  })
+
+  it('records the entry chunk the server shell is compared against', async () => {
+    const { registerSW } = fakeRegisterSW()
+    registerServiceWorker(registerSW, { entryChunk: '/assets/index-OLD.js' })
+    const shell = (html: string) => () => Promise.resolve(new Response(html))
+    expect(
+      await serverBootsAnotherBuild(undefined, shell('<script src="/assets/index-NEW.js">'))
+    ).toBe(true)
+    expect(
+      await serverBootsAnotherBuild(undefined, shell('<script src="/assets/index-OLD.js">'))
+    ).toBe(false)
   })
 })
 

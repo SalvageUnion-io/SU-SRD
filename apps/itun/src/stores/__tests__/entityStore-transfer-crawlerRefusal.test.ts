@@ -3,12 +3,11 @@
  * as they were.
  *
  * In a Game only the table runner writes the crawler (ADR-038 §5). A stow or a
- * load is two server mutations, one per record, and `transfer` used to commit
- * them in the order the caller pushed them: the mech first, then the crawler.
- * For a player the mech write landed and the crawler write was refused, so a
- * stow lost the lot (gone from the mech, never in the Bay) and a load
- * duplicated it. `transfer` now commits the crawler first, so its refusal
- * aborts before anything else lands.
+ * load writes the mech and the crawler, and `transfer` commits both in ONE
+ * mutation (`entities.transfer`), mech first as `useCargo` pushes them. The
+ * crawler half is refused for a player, and because the mutation is one
+ * transaction the mech half is rolled back with it: a stow cannot lose the lot
+ * (gone from the mech, never in the Bay) and a load cannot duplicate it.
  *
  * These run the store and `useCargo` for real against the real Convex
  * functions (convex-test): only the commit seam is redirected, from the Convex
@@ -19,7 +18,6 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
 import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx, User } from '../../../test/convex/assignmentFixtures'
 import {
   addCrawler,
@@ -41,35 +39,20 @@ withSignedInBackend()
 // Captured with a SPREAD before mocking: a module namespace is a live view.
 const realBackend = { ...(await import('../entityBackend')) }
 
-type Commit = Parameters<typeof realBackend.commitEntityWrite>[1]
+type Writes = Parameters<typeof realBackend.commitTransfer>[0]
+type Removals = Parameters<typeof realBackend.commitTransfer>[1]
 
 /** Who the commit seam acts as, and which deployment it writes to. */
 let seam: { t: Ctx; as: User['as'] } | null = null
-/** The records the seam committed, in order. */
-const committed: string[] = []
+/** Each transfer the seam committed: its records, in order. */
+const committed: string[][] = []
 
 mock.module('../entityBackend', () => ({
   ...realBackend,
-  commitEntityWrite: async (type: string, op: Commit) => {
+  commitTransfer: async (writes: Writes, removals: Removals) => {
     if (seam === null) return
-    committed.push(`${type}:${op.appId}`)
-    if (type === 'crawler' && op.kind === 'patch') {
-      await seam.as.mutation(
-        api.entities.patchCrawlerByAppId,
-        realBackend.crawlerPatchArgs(op.appId, op.patch)
-      )
-      return
-    }
-    if (type === 'mech' && op.kind === 'upsert') {
-      await seam.as.mutation(api.entities.upsertByAppId, {
-        table: 'mechs',
-        appId: op.appId,
-        gameId: op.gameId as Id<'games'> | null,
-        body: op.body,
-      })
-      return
-    }
-    throw new Error(`unexpected commit: ${type} ${op.kind}`)
+    committed.push(writes.map((w) => `${w.type}:${w.record.id}`))
+    await seam.as.mutation(api.entities.transfer, realBackend.transferArgs(writes, removals))
   },
 }))
 
@@ -165,8 +148,8 @@ describe("a player's crawler-side cargo move", () => {
     // The lot is still on the mech, and nowhere else: not lost, not doubled.
     expect(await serverHolds(t)).toEqual({ mech: ['Crate'], bay: [] })
     expect(localHolds()).toEqual({ mech: ['Crate'], bay: [] })
-    // The crawler was asked first, so the mech write was never sent.
-    expect(committed).toEqual(['crawler:c1'])
+    // Both halves went in one mutation; the refusal rolled the mech half back.
+    expect(committed).toEqual([['mech:m1', 'crawler:c1']])
   })
 
   test('a refused load does not duplicate the lot', async () => {
@@ -186,7 +169,7 @@ describe("a player's crawler-side cargo move", () => {
   })
 
   test('the table runner stows the same lot, and both rows move', async () => {
-    // Control: the crawler-first order is not what refuses the move.
+    // Control: the same transfer lands for the table runner.
     const crate = makeUnitLot('Crate')
     const { t, mech, crawler } = await seedHold('organizer', [crate], [])
     const { result } = renderHook(() => useCargo({ mech, crawler }))
@@ -199,6 +182,6 @@ describe("a player's crawler-side cargo move", () => {
     expect(outcome?.ok).toBe(true)
     expect(await serverHolds(t)).toEqual({ mech: [], bay: ['Crate'] })
     expect(localHolds()).toEqual({ mech: [], bay: ['Crate'] })
-    expect(committed).toEqual(['crawler:c1', 'mech:m1'])
+    expect(committed).toEqual([['mech:m1', 'crawler:c1']])
   })
 })

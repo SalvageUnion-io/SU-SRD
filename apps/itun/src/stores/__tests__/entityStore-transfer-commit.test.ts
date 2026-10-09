@@ -1,25 +1,20 @@
 /**
- * `transfer()` commits its DELETES to the server, not just its updates.
+ * `transfer()` commits the whole transfer — its updates AND its deletes — to the
+ * server as ONE mutation (`entities.transfer`), before anything local is
+ * written.
  *
- * Phase 1b already committed every update before touching disk, and its comment
- * states the guarantee plainly — "a refusal aborts with nothing changed
- * locally". That only ever held for the updates. The `deletes` array went
- * straight into the phase-2 IndexedDB transaction with no commit at all, so a
- * transfer that consumed a stack of cargo deleted it locally and left it alive
- * on the server. `ShelfSync` then restored it on the next sync.
+ * A delete that skipped the server deleted the record locally and left it
+ * alive there, and `ShelfSync` restored it on the next sync: the value arrived
+ * at the target and the source kept it too. One mutation is also what makes
+ * the server side all-or-nothing (`test/convex/transfer.test.ts`).
  *
- * The end state is worse than a half-applied transfer: it is BOTH ends. The
- * value arrives at the target and the source keeps it too.
- *
- * These tests spy on the backend rather than running against a real server,
- * because with no Convex configured `selectBackend()` is `local` and the commit
- * is a no-op — the same reason `serverFirstWrites.test.ts` gives. What is
- * asserted is that the delete reaches the commit seam at all, which is exactly
- * what was missing.
+ * These spy on the commit seam rather than running against a server, because
+ * the test build has no Convex client and the real commit is a no-op there.
  */
 
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { _resetDbSingleton, clearCache } from '../../lib/db/index'
+import type { TransferRemoval, TransferWrite } from '../entityBackend'
 import { withSignedInBackend } from './signedInBackend'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -27,23 +22,23 @@ withSignedInBackend()
 
 // The namespace is captured with a SPREAD, before any mocking. A module
 // namespace is a live view, so holding the object itself would read as the mock
-// by the time `afterAll` restored it — this repo has been bitten by that.
+// by the time `afterAll` restored it.
 const realBackend = { ...(await import('../entityBackend')) }
 
-type EntityCommit = { kind: string; appId: string }
-const entityCommits: EntityCommit[] = []
-const softLinkCommits: string[] = []
+const transfers: { writes: readonly TransferWrite[]; removals: readonly TransferRemoval[] }[] = []
+let refuse = false
 
-// Every export is re-provided, not only the two under test. A partial mock
-// breaks importers nobody was thinking about — `requireWritableBackend` and
-// `WritesBlockedOffline` are both reached from `entityStore` on this path.
+// Every export is re-provided, not only the one under test: a partial mock
+// breaks importers nobody was thinking about.
 mock.module('../entityBackend', () => ({
   ...realBackend,
-  commitEntityWrite: async (_type: string, write: EntityCommit) => {
-    entityCommits.push(write)
-  },
-  commitSoftLink: async (kind: string) => {
-    softLinkCommits.push(kind)
+  commitEntityWrite: async () => {},
+  commitTransfer: async (
+    writes: readonly TransferWrite[],
+    removals: readonly TransferRemoval[]
+  ) => {
+    transfers.push({ writes, removals })
+    if (refuse) throw new Error('refused')
   },
 }))
 
@@ -64,8 +59,8 @@ beforeEach(async () => {
     softLinks: [],
     hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
   })
-  entityCommits.length = 0
-  softLinkCommits.length = 0
+  transfers.length = 0
+  refuse = false
 })
 
 async function seedMech(name: string) {
@@ -80,46 +75,8 @@ async function seedMech(name: string) {
   })
 }
 
-describe('transfer() commits deletes', () => {
-  test('a deleted entity reaches the commit seam', async () => {
-    const doomed = await seedMech('Doomed')
-    const keeper = await seedMech('Keeper')
-    entityCommits.length = 0
-
-    await useEntityStore.getState().transfer(
-      {
-        updates: [{ type: 'mech', id: keeper.id, patch: { name: 'Keeper Renamed' } }],
-        deletes: [{ type: 'mech', id: doomed.id }],
-      },
-      LIVE_SHEET_MANUAL
-    )
-
-    const deletes = entityCommits.filter((c) => c.kind === 'delete')
-    expect(deletes).toHaveLength(1)
-    expect(deletes[0]?.appId).toBe(doomed.id)
-  })
-
-  test('the update is still committed alongside it', async () => {
-    // Guards against a fix that swapped one loop for the other rather than
-    // adding to it.
-    const doomed = await seedMech('Doomed')
-    const keeper = await seedMech('Keeper')
-    entityCommits.length = 0
-
-    await useEntityStore.getState().transfer(
-      {
-        updates: [{ type: 'mech', id: keeper.id, patch: { name: 'Keeper Renamed' } }],
-        deletes: [{ type: 'mech', id: doomed.id }],
-      },
-      LIVE_SHEET_MANUAL
-    )
-
-    expect(entityCommits.some((c) => c.kind === 'delete')).toBe(true)
-    expect(entityCommits.some((c) => c.kind !== 'delete')).toBe(true)
-  })
-
-  test('the row is still gone locally', async () => {
-    // The fix must not have traded a server write for a local one.
+describe('transfer() commits once', () => {
+  test('the update and the delete reach the server in one commit', async () => {
     const doomed = await seedMech('Doomed')
     const keeper = await seedMech('Keeper')
 
@@ -131,23 +88,84 @@ describe('transfer() commits deletes', () => {
       LIVE_SHEET_MANUAL
     )
 
+    expect(transfers).toHaveLength(1)
+    expect(transfers[0]?.writes.map((w) => w.record.id)).toEqual([keeper.id])
+    expect(transfers[0]?.removals).toEqual([{ type: 'mech', id: doomed.id }])
     expect(useEntityStore.getState().get('mech', doomed.id)).toBeNull()
   })
 
-  test('a transfer with no deletes commits none', async () => {
-    // Control: the new loop must be driven by the deletes array, not fire
-    // unconditionally.
+  test('a refused commit changes nothing here', async () => {
+    const doomed = await seedMech('Doomed')
     const keeper = await seedMech('Keeper')
-    entityCommits.length = 0
+    refuse = true
 
-    await useEntityStore.getState().transfer(
-      {
-        updates: [{ type: 'mech', id: keeper.id, patch: { name: 'Renamed' } }],
-        deletes: [],
-      },
-      LIVE_SHEET_MANUAL
+    await expect(
+      useEntityStore.getState().transfer(
+        {
+          updates: [{ type: 'mech', id: keeper.id, patch: { name: 'Keeper Renamed' } }],
+          deletes: [{ type: 'mech', id: doomed.id }],
+        },
+        LIVE_SHEET_MANUAL
+      )
+    ).rejects.toThrow('refused')
+
+    expect(useEntityStore.getState().get('mech', doomed.id)).not.toBeNull()
+    expect(useEntityStore.getState().get('mech', keeper.id)?.name).toBe('Keeper')
+  })
+})
+
+describe('transferArgs', () => {
+  test('each record takes the shape its own mutation takes', () => {
+    const args = realBackend.transferArgs(
+      [
+        { type: 'mech', record: { id: 'm1', gameId: null }, patch: { cargoLots: [] } },
+        {
+          type: 'crawler',
+          record: { id: 'c1', gameId: null },
+          patch: { maxSpOverride: undefined },
+        },
+      ],
+      [
+        { type: 'pilot', id: 'p1' },
+        {
+          type: 'softLink',
+          link: {
+            id: 'l1',
+            type: 'mech-to-pilot',
+            from: { type: 'mech', id: 'm1' },
+            to: { type: 'pilot', id: 'p1' },
+            createdAt: '2026-01-01T00:00:00.000Z',
+          },
+        },
+        // Half a link has nothing to address and is dropped.
+        { type: 'softLink', link: null },
+      ]
     )
 
-    expect(entityCommits.filter((c) => c.kind === 'delete')).toHaveLength(0)
+    expect(args.updates[0]).toMatchObject({ table: 'mechs', appId: 'm1', gameId: null })
+    // A cleared crawler field travels as `unset`; no `gameId` means no move.
+    expect(args.updates[1]).toEqual({
+      table: 'crawlers',
+      appId: 'c1',
+      patch: { maxSpOverride: undefined },
+      unset: ['maxSpOverride'],
+    })
+    expect(args.deletes).toEqual([
+      { table: 'pilots', appId: 'p1' },
+      {
+        table: 'softLinks',
+        from: { type: 'mech', id: 'm1' },
+        to: { type: 'pilot', id: 'p1' },
+        type: 'mech-to-pilot',
+      },
+    ])
+  })
+
+  test('a crawler patch that changes container carries the move', () => {
+    const args = realBackend.transferArgs(
+      [{ type: 'crawler', record: { id: 'c1', gameId: null }, patch: { gameId: null } }],
+      []
+    )
+    expect(args.updates[0]).toMatchObject({ table: 'crawlers', appId: 'c1', gameId: null })
   })
 })
