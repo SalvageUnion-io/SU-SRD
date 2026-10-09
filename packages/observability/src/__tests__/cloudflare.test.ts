@@ -88,7 +88,7 @@ describe('withObservability', () => {
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ sheet: 'player-sheet' }),
         }),
-        { SENTRY_DSN: DSN, COMMIT_REF: 'abc123' },
+        { SENTRY_DSN: DSN, SENTRY_RELEASE: 'abc123' },
         ctx
       )
     ).catch((error: unknown) => error)
