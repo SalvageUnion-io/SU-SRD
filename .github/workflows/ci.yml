@@ -100,8 +100,6 @@ jobs:
               - 'apps/**'
               - 'packages/**'
               - 'tools/**'
-              # the design-sync previews, type-checked by the tools workspace
-              - '.design-sync/**'
               # the hook scripts are exercised by tools/__tests__/claude-hooks.test.ts
               - '.claude/hooks/**'
               # the agent workflow scripts, by tools/__tests__/claude-workflows.test.ts

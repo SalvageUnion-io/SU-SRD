@@ -43,7 +43,7 @@ import { buttonVariants } from 'component-lib'
 // import no CSS themselves — that rode the barrel into srd (audit PK-01) — so
 // the one app that renders a dashboard loads it here, and it lands in this
 // route's chunk rather than in every page's stylesheet.
-import 'component-lib/styles/dashboard.css'
+import '../../styles/dashboard.css'
 import { borderWidth, color } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'

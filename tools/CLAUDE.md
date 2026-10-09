@@ -2,8 +2,7 @@
 
 Every file here is run directly by Bun (`bun tools/<name>.ts`). `tools/` is a
 Bun workspace, so `bun run test` and `bun run typecheck` reach it like any
-other; its `typecheck` also checks the root `test/` preloads and the
-`.design-sync/` previews (`.design-sync/tsconfig.json`). Most are
+other; its `typecheck` also checks the root `test/` preloads. Most are
 **gates**, and every gate is registered in ONE place: the `CHECKS` list in
 [`check.ts`](check.ts). `bun run check`, `bun run check:fast`, lefthook's
 pre-push and CI's `static-checks` job all run that registry with a different

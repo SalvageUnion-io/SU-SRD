@@ -21,7 +21,7 @@ export default {
 const titleStyle = {
   color: color.ink,
   fontFamily: font.cond,
-  fontSize: fontSize.xl2,
+  fontSize: fontSize['2xl'],
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
 } satisfies CSSProperties

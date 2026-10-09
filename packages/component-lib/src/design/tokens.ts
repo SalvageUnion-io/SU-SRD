@@ -1,33 +1,31 @@
 /**
- * The typed token scale — the TypeScript half of the design system's source of
- * record.
+ * The typed token scale — the TypeScript mirror of `src/styles/theme.css`, the
+ * one token set.
  *
- * Layer 1 of the Tailwind removal (#798, epic #802). Every value here is
- * **ported verbatim** from `src/styles/theme.css`, which is still the live
- * source while Tailwind is in the build. Nothing is re-designed, re-toned or
- * rounded: this file is a re-shaping of what already ships, so the migration
- * layers that follow can move a call site off a utility class without also
- * changing what it looks like.
+ * Every value here is **ported verbatim** from `theme.css`. Nothing is
+ * re-designed, re-toned or rounded: a call site moved off a utility class onto
+ * a style object keeps exactly what it looked like.
  *
  * Three properties are deliberate:
  *
  *   - **Plain `as const` objects, no dependency.** Not a theme provider, not a
  *     context, not a function. A token is a value, and a value can be read from
  *     a style object, a test, a canvas, a PDF generator, or a Node script that
- *     has no DOM at all. Reaching for `var(--su-*)` here would have made the
+ *     has no DOM at all. Reaching for `var(--color-*)` here would have made the
  *     scale depend on the stylesheet being loaded, which is the one thing a
  *     token scale must not require.
- *   - **Literals, not aliases of each other's CSS variables.** The same values
- *     are emitted as `--su-*` custom properties by `src/styles/index.css`, for
- *     the half of the system a style object cannot express (see that file, and
- *     the split rule in this package's CLAUDE.md). Two files holding one set of
- *     numbers is a drift risk, so `tokens.parity.test.ts` asserts they agree —
- *     that test is what makes the duplication safe.
+ *   - **Literals, not aliases of each other's CSS variables.** `theme.css`
+ *     declares the same values as custom properties, which `src/styles/index.css`
+ *     reads for the half of the system a style object cannot express (see that
+ *     file, and the split rule in this package's CLAUDE.md). Two files holding
+ *     one set of numbers is a drift risk, so `tokens.parity.test.ts` asserts
+ *     they agree — that test is what makes the duplication safe.
  *   - **Names match theme.css.** `--color-ink-75` is `color.ink75`, `--text-label-lg`
- *     is `fontSize.labelLg`, `--bw-chrome` is `borderWidth.chrome`. A camelCase
- *     key maps to its kebab-case custom property mechanically (`inkDeep` →
- *     `ink-deep`, `wkBg2` → `wk-bg-2`, `tl1` → `tl-1`), which is what lets the
- *     parity test compare the two files without a hand-maintained mapping.
+ *     is `fontSize.labelLg`, `--bw-chrome` is `borderWidth.chrome`,
+ *     `--font-weight-bold` is `weight.bold`. A camelCase key maps to its
+ *     kebab-case custom property mechanically (`inkDeep` → `ink-deep`, `wkBg2` →
+ *     `wk-bg-2`, `tl1` → `tl-1`), which is what lets the parity test compare the
+ *     two files without a hand-maintained mapping.
  */
 
 /**
@@ -94,10 +92,9 @@ export const space = {
  *
  * The second block is the INHERITED rungs, and they are here for an honest
  * reason rather than a tidy one. They are Tailwind's built-in `text-xs` …
- * `text-3xl`, which ~340 call sites across the three workspaces use today.
- * They vanish the moment Tailwind leaves the build, so a scale that omitted
- * them would silently re-size a third of the app's type during migration —
- * exactly the class of regression the epic exists to avoid.
+ * `text-3xl`, which ~340 call sites across the three workspaces use today, at
+ * Tailwind's own rem values (theme.css restates them), so a style object and
+ * the utility it replaces scale identically with the reader's font size.
  *
  * They overlap the semantic ladder (14 sits between caption and lede; 24 and 30
  * sit either side of title and displayLg), and that overlap is real debt: two
@@ -123,13 +120,13 @@ export const fontSize = {
   displayLg: '31px',
   hero: '38px',
   // — inherited rungs (Tailwind built-ins in live use; see the note above) —
-  xs: '12px',
-  sm: '14px',
-  base: '16px',
-  lg: '18px',
-  xl: '20px',
-  xl2: '24px',
-  xl3: '30px',
+  xs: '0.75rem',
+  sm: '0.875rem',
+  base: '1rem',
+  lg: '1.125rem',
+  xl: '1.25rem',
+  '2xl': '1.5rem',
+  '3xl': '1.875rem',
 } as const
 
 /** Font weights in use. Barlow ships the whole range; these are the rungs used. */
@@ -255,14 +252,9 @@ const base = {
    *  shadows. Warm ink at opacity reads as the same material at distance,
    *  which a true-neutral grey does not against warm paper.
    *
-   *  `ink15` and `ink10` were added by #799, not invented by it: both are in
-   *  live use (`border-ink/15`, `border-ink/10`) and neither had a rung, so a
-   *  migrating call site had to round to `ink12` — the one thing the note at
-   *  the top of `space` promises never happens. They are the first two of a
-   *  LONGER list the migration turned up; the rest are recorded on #799 rather
-   *  than added speculatively here, because Tailwind's `/NN` modifier is an
-   *  open mechanism and this scale is a closed set, so which rungs the system
-   *  should actually own is a design call and not a port. */
+   *  A Tailwind `/NN` alpha with no rung here is never rounded to a
+   *  neighbouring one: it ports as the `color-mix()` Tailwind already emits
+   *  for it (tailwind-removal plan, P1). */
   ink85: 'rgb(40 32 25 / 0.85)',
   ink75: 'rgb(40 32 25 / 0.75)',
   /** ModalShell's scrim edge. */

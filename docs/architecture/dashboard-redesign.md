@@ -193,15 +193,15 @@ who ejected and nothing else records it.
 New components are written to `tailwind-removal.md` §4: style objects plus
 `.su-*` stylesheet classes. They add no `.pc-*` class, because `bun run check
 styling` fails a change that does. Each replaced file leaves the Tailwind list
-as it is deleted. When the last `.pc-*` rule goes, `styles/dashboard.css` and
-its package export go with it. That meets §P5's exit for the Dashboard, so P5
+as it is deleted. When the last `.pc-*` rule goes, ITUN's
+`styles/dashboard.css` goes with it. That meets §P5's exit for the Dashboard, so P5
 is done by this plan, not run separately.
 
 **Outcome (layer 9):** the new components follow §4 and added no `.pc-*`
 class, and the deletions took `pc-class-defined` from 129 to 103. The rest
 did not go: the Major reuses the band and bay rules, and the deck, resolve,
-Tables, SRD and Downtime surfaces kept theirs. So `styles/dashboard.css`, its
-export and the `pc-class-contract` guard stay, and P5 is still open.
+Tables, SRD and Downtime surfaces kept theirs. So `styles/dashboard.css` and
+the `pc-class-contract` guard stay, and P5 is still open.
 
 ## 5. Layers
 

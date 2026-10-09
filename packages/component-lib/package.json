@@ -9,8 +9,8 @@
     "./changelog/git": "./src/changelog/gitChangelog.ts",
     "./design/tokens": "./src/design/tokens.ts",
     "./stories/harness": "./src/stories/_harness.tsx",
-    "./styles/dashboard.css": "./src/styles/dashboard.css",
     "./styles/index.css": "./src/styles/index.css",
+    "./styles/tailwind.css": "./src/styles/tailwind.css",
     "./styles/theme.css": "./src/styles/theme.css"
   },
   "sideEffects": [

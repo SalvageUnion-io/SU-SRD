@@ -14,7 +14,7 @@
 
 import { color, radius, space } from 'component-lib/design/tokens'
 import type { ReactNode } from 'react'
-import 'component-lib/styles/dashboard.css'
+import '../../styles/dashboard.css'
 
 export function InstrumentStage({
   children,

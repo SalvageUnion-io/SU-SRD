@@ -97,7 +97,7 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'typecheck',
-    guards: 'TypeScript across every workspace, test/ and the .design-sync/ previews',
+    guards: 'TypeScript across every workspace and test/',
     fix: 'fix the type error',
     cmd: ['bun', 'run', 'typecheck'],
     areas: ['code'],

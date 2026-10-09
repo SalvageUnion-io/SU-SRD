@@ -34,8 +34,8 @@ component that does not exist.
 - Render it via SSR — `react-dom/server` `renderToStaticMarkup` (precedent:
   `apps/srd/ssg/document.tsx`), styled by the stylesheet `bun --filter srd build`
   emits (named in the build's Vite manifest under apps/srd/dist).
-  `packages/component-lib/src/styles/index.css` is only its Tailwind source,
-  which a browser cannot read. Use no package this repo does not declare.
+  `packages/component-lib/src/styles/tailwind.css` is only its Tailwind
+  source, which a browser cannot read. Use no package this repo does not declare.
   Capture HTML + CSS, not screenshots.
 - Feed it **real ORM data** (`SalvageUnionReference.*`), deliberately including
   the awkward records — longest name, empty description, missing artwork.

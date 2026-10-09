@@ -19,11 +19,9 @@ evidence behind the rules below live in
 
 - **Target pattern:** [`src/design/tokens.ts`](src/design/tokens.ts) (typed
   scale) + [`src/styles/index.css`](src/styles/index.css) (the one stylesheet
-  every consumer loads; `--su-*` properties and `.su-*` classes). ITUN also
-  loads `styles/dashboard.css` (the Dashboard `.pc-*` rules, whose three files
-  live in `src/styles/dashboard/`) via its `Dashboard.tsx`, and ITUN's
-  Dashboard stories load it through their `_dashboardStage.tsx` harness.
-  Nothing in this package imports it.
+  every consumer loads; `.su-*` classes over the `theme.css` tokens). The
+  Dashboard's `.pc-*` rules are ITUN's (`apps/itun/src/styles/dashboard/`),
+  not this package's.
 - **The split is per-PROPERTY.** A property with no stateful or responsive
   variant on that element → style object. A property with **any** (`:hover`,
   `:focus-visible`, `:disabled`, `@media`, pseudo-elements, sibling selectors)
@@ -32,14 +30,15 @@ evidence behind the rules below live in
 - **Class-string exports** (`buttonVariants`, `capsLabel`, the `FOCUS_*` /
   `DISABLED` / `SELECTION_RING*` vocabulary) are stylesheet-only, and their
   `.su-*` names are public API. The exemption does not extend to components.
-- **Edit `tokens.ts` and the `--su-*` properties together** —
-  `src/design/tokens.parity.test.ts` fails if they disagree.
+- **Edit `tokens.ts` and `theme.css` together** — `theme.css` is the one
+  token set, and `src/design/tokens.parity.test.ts` fails if they disagree.
 - **Do not add Tailwind or `.pc-*` classes.** `bun run check styling` ratchets
   both counts downward (`tailwind-utility-file`, `pc-class-defined`); if you
   removed some, lower the baseline with `--update-baseline` in the same PR.
-- `src/styles/ladle.css` must import `index.css` into `layer(su-base)` — load-
-  bearing while both systems are live. Catalog-only CSS goes in
-  `src/stories/_stories.css`, not `index.css`.
+- `src/styles/tailwind.css` is the one Tailwind entry: it imports `index.css`
+  into `layer(su-base)` (load-bearing while both systems are live), and the
+  two apps and `src/styles/ladle.css` import it rather than Tailwind. Catalog-only
+  CSS goes in `src/stories/_stories.css`, not `index.css`.
 - **Checking a focus ring with `el.focus()` lies**: `:focus-visible` needs a
   real key press. Checking layer order by block position lies: read the
   `@layer` declaration. Details in the plan, §6.
@@ -95,17 +94,6 @@ Component stories live beside their components (`*.stories.tsx`) and are served 
 - **Title + story naming is standardized, and enforced.** The group title is **Title Case with spaces** — `Atoms/Stat`, `Containers/Card`, `Compositions/Entity/Content` — and its **last segment must name the component**, so the sidebar can be navigated by the symbol you would grep for. The story **file keeps the component symbol name** (`Stat.stories.tsx`). A sub-group may absorb a shared prefix, so `Compositions/Dashboard/Gauge` legitimately names ITUN's DashboardGauge. A file whose only story is a catch-all "show everything" page exports it as **`Default`** (not Variants / Costs / etc.).
   - This is a guard assertion, not a convention, because it had already drifted four ways: `Containers/Modal` pointed at `ModalShell`, `Atoms/Activation Cost` at `ActivationCostBox`, `Containers/Toast` at `Toaster`, `Compositions/Live Sheet` at `LiveSheetPoster` — labels that read correctly but match nothing in the code. Where the **symbol** carried a banned implementation suffix it was renamed (`ChangelogView` → `Changelog`, `ActivationCostBox` → `ActivationCost`); where the symbol was fine the **title** was corrected to match it.
 - **Stories render on a global paper canvas.** `.ladle/components.tsx` frames every story on `bg-paper` (+ mono, padding), so a story does **not** need its own outer `bg-paper` wrapper. Shared caption/frame helpers that would otherwise be copy-pasted across story files live in `src/stories/_harness.tsx` (e.g. `Caption`) — import them instead of re-declaring a local copy.
-
-## Design sync (`.design-sync/`, repo root)
-
-The library is also published to claude.ai/design as a design system. That
-pipeline lives in `.design-sync/` at the **repo root**, not in this package:
-`config.json` drives the converter, `conventions.md` becomes the published
-README, and `previews/` holds hand-ported previews (the Ladle stories cannot be
-loaded there because they read reference data at module top level). Read
-`.design-sync/NOTES.md` before changing any of it. A new public component needs
-no preview, but renaming or deleting one fails `bun run typecheck`
-(`.design-sync/tsconfig.json`).
 
 ## Testing
 

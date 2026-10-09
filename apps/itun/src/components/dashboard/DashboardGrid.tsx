@@ -19,8 +19,8 @@ type DashboardGridProps = {
  * DashboardGrid — the Dashboard's fixed three-region scaffold (rail / primary /
  * display) laid inside {@link DashboardCanvas}. A pure slotted layout: it owns
  * the region wrappers + `data-mount` rail tint; callers pass the store-wired
- * instruments as slots. Its layout CSS lives in component-lib's
- * `styles/dashboard/DashboardGrid.css`.
+ * instruments as slots. Its layout CSS lives in ITUN's
+ * `src/styles/dashboard/DashboardGrid.css`.
  *
  * There used to be a `displayLight` boolean here, meaning "this display holds a
  * light SRD document rather than the dark placeholder". Both grounds are now
