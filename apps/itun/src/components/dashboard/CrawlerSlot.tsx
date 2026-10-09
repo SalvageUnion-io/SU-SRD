@@ -21,8 +21,6 @@
  * through `transfer` as one all-or-nothing write (ADR-007).
  */
 
-import type { StepRule } from 'component-lib'
-import { RuleBrief } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -39,6 +37,8 @@ import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import type { StepRule } from '../wizard/RuleBrief'
+import { RuleBrief } from '../wizard/RuleBrief'
 import {
   areaSalvageOutcome,
   craftOutcome,

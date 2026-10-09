@@ -1,6 +1,6 @@
-import type { Story } from '../../stories/_harness'
-import { Caption } from '../../stories/_harness'
-import type { CSSVarStyle } from '../../styles/cssVars'
+import type { CSSVarStyle } from 'component-lib'
+import type { Story } from 'component-lib/stories/harness'
+import { Caption } from 'component-lib/stories/harness'
 import { RuleBrief } from './RuleBrief'
 
 export default { title: 'Compositions/Rule Brief' }

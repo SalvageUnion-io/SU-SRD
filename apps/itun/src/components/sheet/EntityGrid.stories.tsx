@@ -1,9 +1,8 @@
+import { MasonryColumns, ReferenceEntityCard } from 'component-lib'
+import type { Story } from 'component-lib/stories/harness'
+import { Caption } from 'component-lib/stories/harness'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { Story } from '../../stories/_harness'
-import { Caption } from '../../stories/_harness'
-import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { EntityGridRow } from './EntityGrid'
-import { MasonryColumns } from './MasonryColumns'
 
 export default {
   title: 'Compositions/Catalog/Entity Grid Row',

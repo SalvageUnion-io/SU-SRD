@@ -44,6 +44,7 @@ the corpus size, not just the finding count.
 | `observability` | `check-observability.ts` | — |
 | `convex-codegen` | `check-convex-codegen.ts` | — |
 | `convex-callers` | `check-convex-callers.ts` | — |
+| `barrel-consumers` | `check-barrel-consumers.ts` | `SINGLE_APP` in the script (storyless helpers only) |
 | `workflows` | `check-workflows.ts` (`--only=` runs a subset) | — |
 | `styling` | `check-styling.ts` (`--report` lists every finding) | `styling-baseline.json` |
 | `audit` | `bun run audit` (CI: only when a manifest or `bun.lock` changed; also nightly) | one `--ignore`, in the root `audit` script |

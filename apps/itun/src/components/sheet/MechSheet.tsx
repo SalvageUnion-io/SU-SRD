@@ -53,15 +53,12 @@
  */
 
 import {
-  EntityGridRow,
   EntitySearcher,
   Field,
   FieldError,
   heatDangerFrom,
   MasonryColumns,
   ReferenceEntityCard,
-  SectionManageButton,
-  SheetPickerModal,
   SheetSectionSlab,
   VitalGauge,
 } from 'component-lib'
@@ -74,6 +71,7 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
+import { EntityGridRow } from './EntityGrid'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
 import { MechItemCard } from './MechItemCard'
@@ -84,6 +82,7 @@ import type { ChassisLike } from './mechSheetModel'
 import { useMechSheetModel } from './mechSheetModel'
 import { PartnerCard } from './PartnerCard'
 import { SheetHero } from './SheetHero'
+import { SectionManageButton, SheetPickerModal } from './SheetSection'
 import { StorageManifest } from './StorageManifest'
 
 type MechSheetProps = {

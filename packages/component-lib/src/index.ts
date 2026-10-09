@@ -37,6 +37,8 @@ export { EmptyState } from './components/chrome/EmptyState'
 export { Field, Input, Select } from './components/chrome/Field'
 // FieldError — the one single-message validation line (role="alert", danger tone)
 export { FieldError } from './components/chrome/FieldError'
+// Glyph — the hand-drawn UI glyph set (the sheet's edit/add/remove marks)
+export { Glyph } from './components/chrome/glyphs'
 export { InlineEditField } from './components/chrome/InlineEditField'
 export { Textarea } from './components/chrome/inputs'
 /**
@@ -67,6 +69,8 @@ export { Slab } from './components/chrome/Slab'
 // Every hand-assembled '-'/value/'+' cluster in the apps now renders through
 // Stat's stepper anatomy instead, so nothing outside this package needs it.
 export { StatusBadge } from './components/chrome/StatusBadge'
+// STAMP_SEAM — the border-riding stamp placement, as a class string (ruleset §5)
+export { STAMP_SEAM } from './components/chrome/stampSeam'
 export { Tab, TabList, TabPanel, Tabs } from './components/chrome/Tabs'
 export { Content } from './components/referenceEntity/Content'
 export {
@@ -95,10 +99,8 @@ export { useChassisPatternConfig } from './components/referenceEntity/pattern/us
 export { navigateControl } from './components/referenceEntity/referenceEntityControls'
 export type { ReferenceEntityControl } from './components/referenceEntity/referenceEntityControlTypes'
 export { useDetailModal } from './components/referenceEntity/useDetailModal'
-export { AboutScreen } from './components/shared/AboutScreen'
 export type { AppBarNavItem } from './components/shared/AppBar'
 export { AppBar } from './components/shared/AppBar'
-export { AppHeader } from './components/shared/AppHeader'
 // Deliberately its own module rather than the card-image component's file.
 // `story-coverage.test.ts` decides what is public by regex-matching each
 // component NAME against this barrel's text, so exporting from that file — or
@@ -122,48 +124,29 @@ export { ConfirmDialog } from './components/shared/ConfirmDialog'
 export { ControlButtons } from './components/shared/ControlButtons'
 export { cardImageSizes } from './components/shared/cardImageSizes'
 export { CopyFeedbackProvider } from './components/shared/copyFeedbackContext'
-export { EntityGridRow } from './components/shared/EntityGrid'
-export type { EntityRowStat } from './components/shared/EntityRow'
-export { EntityRow } from './components/shared/EntityRow'
 export { EntitySearcher } from './components/shared/EntitySearcher'
 // Fab — the bottom-right floating button that expands into an anchored panel
 // (ITUN's reference search); content-agnostic, the caller owns `open`
 export { Fab } from './components/shared/Fab'
 export { FilterRow } from './components/shared/FilterRow'
-// HeaderMenu — the masthead's dropdown menu (Base UI Menu); rows are data, so
-// the app supplies what each one does
-export type { HeaderMenuItem } from './components/shared/HeaderMenu'
-export { HeaderMenu } from './components/shared/HeaderMenu'
 export { Inset } from './components/shared/Inset'
 export { MasonryColumns } from './components/shared/MasonryColumns'
 export { ModalShell } from './components/shared/ModalShell'
 export type { NavDrawerItem } from './components/shared/NavDrawer'
 export { NavDrawer } from './components/shared/NavDrawer'
-export { OffRulesEscape } from './components/shared/OffRulesEscape'
 // PopoverPanel — a trigger and the small non-modal panel of controls it opens
 // (Base UI Popover); ITUN's sheet "⋯" overflow
 export { PopoverPanel } from './components/shared/PopoverPanel'
 // The searcher picker's modal width — for a bare ModalShell wrapping a
-// multi-select EntitySearcher (SheetPickerModal applies it itself).
+// multi-select EntitySearcher (ITUN's SheetPickerModal applies it itself).
 export { PICKER_MODAL_WIDTH } from './components/shared/pickerModalWidth'
 // RecoveryPanel — the shared error-recovery card (title / message / primary
 // action) behind srd's island error boundary and itun's root error component.
 export { RecoveryPanel } from './components/shared/RecoveryPanel'
 export { RollTable } from './components/shared/RollTable'
 export { RosterSkeleton } from './components/shared/RosterSkeleton'
-export type { StepRule } from './components/shared/RuleBrief'
-export { RuleBrief } from './components/shared/RuleBrief'
 export { SearchField } from './components/shared/SearchField'
-// Live-sheet section chrome — the unified EDIT LANGUAGE primitives (section
-// Edit/Add toggles, the one shared picker modal, per-card remove) lifted out of
-// ITUN so the sheet containers come from the design system like their cards do.
-export {
-  CardRemoveButton,
-  SectionManageButton,
-  SheetPickerModal,
-} from './components/shared/SheetSection'
 export { SheetSectionCard } from './components/shared/SheetSectionCard'
-// Promoted app compositions (legacy-tier — poster/sheet chrome lifted from ITUN)
 export { SheetSectionSlab } from './components/shared/SheetSectionSlab'
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
 export { SlotGrid } from './components/shared/SlotGrid'
@@ -175,7 +158,6 @@ export type { StatItem } from './components/shared/statsBarTypes'
 export { TECH_LEVEL_STYLES, techLevelLabel } from './components/shared/techLevelStyles'
 export type { SearchComboboxResult } from './components/shared/useSearchCombobox'
 export { useSearchCombobox } from './components/shared/useSearchCombobox'
-export { WizShell, WizTracker } from './components/shared/WizShell'
 // Skeletons
 export { Ghost, Skeleton } from './components/skeleton/Skeleton'
 // Only `heatDangerFrom` survives — `heatLevel`/`HeatLevel`/`HEAT_HIGH_RATIO`

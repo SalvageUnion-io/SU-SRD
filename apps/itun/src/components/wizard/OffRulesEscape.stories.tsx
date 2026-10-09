@@ -1,5 +1,5 @@
-import type { Story } from '../../stories/_harness'
-import { Caption } from '../../stories/_harness'
+import type { Story } from 'component-lib/stories/harness'
+import { Caption } from 'component-lib/stories/harness'
 import { OffRulesEscape } from './OffRulesEscape'
 
 export default { title: 'Compositions/Off Rules Escape' }

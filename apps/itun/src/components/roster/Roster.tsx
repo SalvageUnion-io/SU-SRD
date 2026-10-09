@@ -30,7 +30,7 @@
  *      delete keeps the dialog open with the reason.
  */
 
-import { buttonVariants, cn, EntityRow, PageShell, RosterSkeleton, Stat } from 'component-lib'
+import { buttonVariants, cn, PageShell, RosterSkeleton, Stat } from 'component-lib'
 import { UserRound } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
@@ -59,6 +59,7 @@ import { GameHub } from '../games/GameHub'
 import { InvitationsForYou } from '../games/InvitationsForYou'
 import { NewGameControl } from '../games/NewGameControl'
 import { AppLink } from '../shared/AppLink'
+import { EntityRow } from '../shared/EntityRow'
 import { useConfirm } from '../shared/useConfirm'
 import { StarterSetRoster } from '../starterSet/StarterSetRoster'
 import type { SegmentKind } from './RosterColumn'

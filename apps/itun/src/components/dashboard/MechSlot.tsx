@@ -20,8 +20,7 @@
  * log (`dashboardRolls.ts`), where the crew's Log tab reads it.
  */
 
-import type { StepRule } from 'component-lib'
-import { CountStepper, RuleBrief } from 'component-lib'
+import { CountStepper } from 'component-lib'
 import { useEffect, useState } from 'react'
 import type { CriticalDamageEffect } from 'salvageunion-reference/rules'
 import {
@@ -36,6 +35,8 @@ import { runWrite } from '../../lib/runWrite'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import type { StepRule } from '../wizard/RuleBrief'
+import { RuleBrief } from '../wizard/RuleBrief'
 import { activatableEffects } from './dashboardEffects'
 import { recordRoll } from './dashboardRolls'
 import {

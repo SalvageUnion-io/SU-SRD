@@ -3,10 +3,10 @@
  * player's Roster and the Starter Set, so the two read identically.
  */
 
-import type { EntityRowStat } from 'component-lib'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveClassName } from '../../lib/classRef'
 import { readReference } from '../../lib/readReference'
+import type { EntityRowStat } from '../shared/EntityRow'
 
 /**
  * A mech row's stats: `CHASSIS | Iron Mongrel`, and `TL | 1` beside it.

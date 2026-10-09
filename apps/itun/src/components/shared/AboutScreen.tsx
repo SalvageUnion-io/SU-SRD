@@ -8,9 +8,7 @@
  * it reads as part of this app.
  */
 
-import { PageHeading } from '../chrome/PageHeading'
-import { Slab } from '../chrome/Slab'
-import { Colophon } from './Colophon'
+import { Colophon, PageHeading, Slab } from 'component-lib'
 
 type AboutScreenProps = {
   /** The build the app is running: the deployed commit's short SHA (ADR-041).

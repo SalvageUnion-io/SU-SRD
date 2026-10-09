@@ -1,10 +1,11 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Avatar, HeaderMenu } from 'component-lib'
+import { Avatar } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { HeaderMenu } from '../shared/HeaderMenu'
 import { useSignOutAndForget } from './useSignOutAndForget'
 
 /**

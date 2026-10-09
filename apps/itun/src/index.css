@@ -6,6 +6,8 @@
 /* The app's ONE print stylesheet. index.css declares no print rules of its own
    — a second block here is what let six rules duplicate and one contradict. */
 @import './styles/print.css';
+/* HeaderMenu's hover/open/highlight colours (the per-property split rule). */
+@import './styles/headerMenu.css';
 
 /*
  * ITUN's own components keep their Ladle stories beside them (the Dashboard

@@ -16,7 +16,7 @@
 import '@testing-library/jest-dom'
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { AppHeader } from 'component-lib'
+import { AppHeader } from '../AppHeader'
 
 describe('AppHeader', () => {
   test('renders the "IN THE UNION NOW" wordmark with the Beta pill, linked home', () => {

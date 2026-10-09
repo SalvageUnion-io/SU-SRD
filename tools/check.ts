@@ -161,6 +161,15 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
+    id: 'barrel-consumers',
+    guards:
+      'every component-lib export has an app importer, and none is a composition only one app renders',
+    fix: "move a single-app composition into that app's src/components/; unexport what no app imports; a storyless single-app helper needs a SINGLE_APP reason",
+    cmd: ['bun', 'tools/check-barrel-consumers.ts'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
     id: 'workflows',
     guards:
       'CI aggregate gate, path filters, bunx pinning, Bun version, Convex deploy guard, deploy order, production-secret env',

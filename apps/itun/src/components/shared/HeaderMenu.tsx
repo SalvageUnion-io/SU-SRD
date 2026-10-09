@@ -1,7 +1,5 @@
 import { Menu } from '@base-ui/react/menu'
-import { ChevronDown } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
-import { Fragment } from 'react'
+import { FOCUS_RING } from 'component-lib'
 import {
   borderWidth,
   color,
@@ -11,8 +9,10 @@ import {
   space,
   tracking,
   weight,
-} from '../../design/tokens'
-import { FOCUS_RING } from '../chrome/interaction'
+} from 'component-lib/design/tokens'
+import { ChevronDown } from 'lucide-react'
+import type { CSSProperties, ReactNode } from 'react'
+import { Fragment } from 'react'
 
 /**
  * HeaderMenu — a dropdown menu for the masthead's action slot (`AppBar`'s
@@ -28,10 +28,10 @@ import { FOCUS_RING } from '../chrome/interaction'
  * ## Data, not children
  *
  * Rows are `sections` of plain `{ id, label, hint?, onSelect }` records, with a
- * rule drawn between sections. That keeps the library ignorant of what a row
- * DOES — ITUN hands in closures over its own router and Convex session — while
- * the library owns every pixel of the row, so the two menus in the masthead
- * cannot drift apart.
+ * rule drawn between sections. That keeps the menu ignorant of what a row DOES
+ * — its callers hand in closures over the router and the Convex session — while
+ * the menu owns every pixel of the row, so the two menus in the masthead cannot
+ * drift apart.
  *
  * A row with no `onSelect` is `disabled`: it is how an empty state ("No games
  * yet") or a loading row stays inside the `role="menu"` tree as a real, inert
@@ -42,8 +42,8 @@ import { FOCUS_RING } from '../chrome/interaction'
  * The trigger is the masthead's paper-on-ink nav-link treatment, so it sits
  * beside the bar's links as one of them. It is the only surface this renders on
  * today; a second surface earns its own modifier when it exists. Colour lives
- * in `.su-menu-trigger` / `.su-menu-item` because it changes on hover, on open
- * and on highlight (resting value included — the per-property split rule);
+ * in `.header-menu-trigger` / `.header-menu-item` (`styles/headerMenu.css`)
+ * because it changes on hover, on open and on highlight (resting value included — the per-property split rule);
  * everything static is a style object.
  */
 
@@ -172,7 +172,11 @@ export function HeaderMenu({
 
   return (
     <Menu.Root>
-      <Menu.Trigger className={`su-menu-trigger ${FOCUS_RING}`} style={TRIGGER} aria-label={label}>
+      <Menu.Trigger
+        className={`header-menu-trigger ${FOCUS_RING}`}
+        style={TRIGGER}
+        aria-label={label}
+      >
         {trigger}
         {chevron && <ChevronDown size={14} aria-hidden="true" />}
       </Menu.Trigger>
@@ -185,7 +189,7 @@ export function HeaderMenu({
                 {section.map((item) => (
                   <Menu.Item
                     key={item.id}
-                    className="su-menu-item"
+                    className="header-menu-item"
                     style={ITEM}
                     disabled={item.onSelect === undefined}
                     onClick={item.onSelect}
@@ -195,7 +199,7 @@ export function HeaderMenu({
                   >
                     <span style={ITEM_LABEL}>{item.label}</span>
                     {item.hint != null && (
-                      <span className="su-menu-item__hint" style={ITEM_HINT}>
+                      <span className="header-menu-item__hint" style={ITEM_HINT}>
                         {/* The two lines are separate blocks visually; this keeps
                             them separate words in the accessible name too. */}
                         <span style={VISUALLY_HIDDEN}>, </span>

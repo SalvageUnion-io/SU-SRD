@@ -6,15 +6,7 @@
  */
 
 import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from 'component-lib'
-import {
-  Button,
-  CardRemoveButton,
-  Input,
-  Panel,
-  ReferenceEntityCard,
-  Stat,
-  StatusBadge,
-} from 'component-lib'
+import { Button, Input, Panel, ReferenceEntityCard, Stat, StatusBadge } from 'component-lib'
 import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
@@ -23,6 +15,7 @@ import type { GenericInventoryEntry } from '../../lib/schemas/pilot'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { equipmentMaxUses, genericEntrySlots, resolveEquipment } from './pilotInventory'
+import { CardRemoveButton } from './SheetSection'
 
 const HIDE_CHOICES = { choices: true } as const
 

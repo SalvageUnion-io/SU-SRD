@@ -48,12 +48,9 @@
 import {
   Badge,
   EmptyState,
-  EntityGridRow,
   EntitySearcher,
   MasonryColumns,
   Panel,
-  SectionManageButton,
-  SheetPickerModal,
   SheetSectionSlab,
   Slab,
   Stat,
@@ -67,6 +64,7 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { ConditionsEditor } from './ConditionsEditor'
+import { EntityGridRow } from './EntityGrid'
 import { PartnerCard } from './PartnerCard'
 import { PilotIdentityPanel } from './PilotIdentity'
 import {
@@ -78,6 +76,7 @@ import {
 import { usePilotSheetActions } from './pilotSheetActions'
 import { GENERIC_TREE, usePilotSheetModel } from './pilotSheetModel'
 import { SheetHero } from './SheetHero'
+import { SectionManageButton, SheetPickerModal } from './SheetSection'
 
 // ---------------------------------------------------------------------------
 // TpBlock — pilot Training Points, in the Vitals card's dashed-topped `.vrow`

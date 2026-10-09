@@ -64,9 +64,7 @@
  */
 
 import {
-  CardRemoveButton,
   EmptyState,
-  EntityGridRow,
   MasonryColumns,
   ReferenceEntityCard,
   SheetSectionSlab,
@@ -89,7 +87,9 @@ import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
 import { BAY_REPAIR_COST, resolveCrawlerSystem } from './crawlerSheetItemRules'
+import { EntityGridRow } from './EntityGrid'
 import { SheetHero } from './SheetHero'
+import { CardRemoveButton } from './SheetSection'
 import { StorageManifest } from './StorageManifest'
 
 type CrawlerSheetProps = {
