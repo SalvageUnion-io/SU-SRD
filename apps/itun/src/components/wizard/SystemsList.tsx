@@ -1,5 +1,6 @@
 import { EmptyState, MasonryColumns, ReferenceEntityCard } from 'component-lib'
 import type { SURefSystem } from 'salvageunion-reference'
+import { getEntitySlug } from 'salvageunion-reference'
 
 type SystemsListProps = {
   /** Weapons systems available to install, already filtered by the parent. */
@@ -18,9 +19,9 @@ type SystemsListProps = {
    * only — NOT `selectedSystemSlugs.length`. A crawler may also carry
    * non-weapon systems (Cargo Pod, Armour Plating, …) which this rule does not
    * limit and which never appear in the weapons-only catalog, so counting all
-   * selected slugs would wrongly lock the picker for a legacy crawler that
-   * carries any non-weapon system (it could neither add the allowed weapon nor
-   * remove the stranded system).
+   * selected slugs would wrongly lock the picker for a crawler that carries
+   * any non-weapon system (it could neither add the allowed weapon nor remove
+   * the stranded system).
    */
   installedWeaponCount: number
   onChange: (slugs: string[]) => void
@@ -44,11 +45,11 @@ export function SystemsList({
 }: SystemsListProps) {
   const atCap = installedWeaponCount >= maxSelectable
 
-  function toggle(systemId: string) {
-    if (selectedSystemSlugs.includes(systemId)) {
-      onChange(selectedSystemSlugs.filter((s) => s !== systemId))
+  function toggle(slug: string) {
+    if (selectedSystemSlugs.includes(slug)) {
+      onChange(selectedSystemSlugs.filter((s) => s !== slug))
     } else if (!atCap) {
-      onChange([...selectedSystemSlugs, systemId])
+      onChange([...selectedSystemSlugs, slug])
     }
   }
 
@@ -59,7 +60,8 @@ export function SystemsList({
   return (
     <MasonryColumns maxColumns={2}>
       {systems.map((system) => {
-        const selected = selectedSystemSlugs.includes(system.id)
+        const slug = getEntitySlug(system)
+        const selected = selectedSystemSlugs.includes(slug)
         const disabled = !selected && atCap
         return (
           <ReferenceEntityCard
@@ -70,7 +72,7 @@ export function SystemsList({
             selectionRole="toggle"
             cardClickLabel={system.name}
             selectable={!disabled}
-            onCardClick={disabled ? undefined : () => toggle(system.id)}
+            onCardClick={disabled ? undefined : () => toggle(slug)}
             hide={{ actions: true, choices: true }}
             footMeta={
               disabled

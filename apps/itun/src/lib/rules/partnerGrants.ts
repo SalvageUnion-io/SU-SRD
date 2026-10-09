@@ -42,7 +42,7 @@
  */
 
 import { nameToSlug, normalizePatternName, SalvageUnionReference } from 'salvageunion-reference'
-import { resolveChassisRef, resolveRef } from 'salvageunion-reference/rules'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { PartnerInstance } from '../schemas/partner'
 
 /**
@@ -164,11 +164,9 @@ export function mechPartnerSeeds(chassisRef: string, patternName?: string): Part
  * Requires `equipment` preloaded.
  */
 function resolvePartnerEquipment(slug: string) {
-  // `resolveRef`, not `Equipment.find((e) => matchesRef(e, slug))` — the latter
-  // is a full-schema scan wearing a predicate's clothes, and this runs per
-  // partner card per render via `partnerCap`.
-  const record = resolveRef(SalvageUnionReference.Equipment, slug)
-  return record !== null && typeof (record as { systemSlots?: unknown }).systemSlots === 'number'
+  const record = SalvageUnionReference.Equipment.getBySlug(slug)
+  return record !== undefined &&
+    typeof (record as { systemSlots?: unknown }).systemSlots === 'number'
     ? record
     : undefined
 }
@@ -205,7 +203,7 @@ export function partnerGrantCount(hostRef: string, abilityRefs: readonly string[
 
   let most = 0
   for (const ref of abilityRefs) {
-    const ability = resolveRef(SalvageUnionReference.Abilities, ref)
+    const ability = SalvageUnionReference.Abilities.getBySlug(ref)
     if (!ability) continue
     const granted = (ability.grants ?? []).filter(
       (grant) => grant.schema === 'equipment' && nameToSlug(grant.name) === wanted

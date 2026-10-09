@@ -36,7 +36,6 @@
 import type { Roll, TechLevel } from 'salvageunion-reference/rules'
 import { tierUpgradeCost } from 'salvageunion-reference/rules'
 import { addToScrapPool, scrapPoolBucket } from '../cargo/cargoTransfer'
-import { resolveCrawlerBay } from '../crawlerRefs'
 import type { Crawler, ScrapPool } from '../schemas/crawler'
 import { DOWNTIME_UPKEEP_SCRAP } from './downtime'
 
@@ -419,13 +418,11 @@ export type BayGate = {
 }
 
 /**
- * Presence + condition gate for a named bay (e.g. 'Trading Bay'): a Damaged
- * Trading Bay blocks Scrap trading and the availability roll entirely.
+ * Presence + condition gate for one bay, by slug (e.g. 'trading-bay'): a
+ * Damaged Trading Bay blocks Scrap trading and the availability roll entirely.
  */
-export function bayGate(crawler: Pick<Crawler, 'crawlerBays'>, bayName: string): BayGate {
-  const entry = (crawler.crawlerBays ?? []).find(
-    (bay) => resolveCrawlerBay(bay.bayRef)?.name === bayName
-  )
+export function bayGate(crawler: Pick<Crawler, 'crawlerBays'>, slug: string): BayGate {
+  const entry = (crawler.crawlerBays ?? []).find((bay) => bay.bayRef === slug)
   const present = entry !== undefined
   const damaged = present && (entry.condition ?? 'intact') === 'damaged'
   return { present, damaged, operational: present && !damaged }

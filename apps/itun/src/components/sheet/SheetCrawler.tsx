@@ -105,7 +105,7 @@ export function SheetCrawler({
   // C11). On editable sheets the actionable lozenges (Upkeep/Upgrade/Trade)
   // are the R-4 action entry points (CrawlerEconomyControl); Tech LVL and
   // Crew are read-only readouts.
-  const trading = bayGate(crawler, 'Trading Bay')
+  const trading = bayGate(crawler, 'trading-bay')
   const econItems: EconLozItem[] = [
     // Tech LVL is NOT here any more: it is the crawler's own rung, and it
     // reads in the identity beside the crawler type. The economy rail keeps the

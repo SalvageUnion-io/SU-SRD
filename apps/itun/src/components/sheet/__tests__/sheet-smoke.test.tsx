@@ -292,7 +292,7 @@ describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
       ...fakeMech,
       id: 'mech-smoke-stat',
       // Real chassis (Scrapper, SP 9) — the hero derives maxima from the ORM.
-      chassisRef: 'Scrapper',
+      chassisRef: 'scrapper',
       currentSP: 5,
     }
     const captured: Array<{ id: string; patch: Partial<Mech> }> = []

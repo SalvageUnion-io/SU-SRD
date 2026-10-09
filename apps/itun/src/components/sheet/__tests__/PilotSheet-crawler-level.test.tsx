@@ -24,7 +24,7 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
@@ -42,7 +42,7 @@ let SNIPER_ID = ''
 beforeAll(async () => {
   const sniper = SalvageUnionReference.Equipment.getByName(SNIPER_NAME)
   if (!sniper) throw new Error(`Fixture setup: equipment "${SNIPER_NAME}" not found in reference`)
-  SNIPER_ID = sniper.id
+  SNIPER_ID = getEntitySlug(sniper)
 })
 
 // ---------------------------------------------------------------------------

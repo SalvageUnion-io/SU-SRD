@@ -30,15 +30,16 @@ import { CrawlerIdentityPanel } from '../CrawlerIdentity'
 // Patched crawler-type catalog
 // ---------------------------------------------------------------------------
 
-const BATTLE_REF = 'battle-type'
+/** The stored type refs: the slugs of the mock rows' names. */
+const BATTLE_REF = 'battle'
 const BATTLE_KEEPSAKE_ID = 'battle-keepsake-1'
 const BATTLE_MOTTO_ID = 'battle-motto-1'
 
-const AUGMENTED_REF = 'augmented-type'
+const AUGMENTED_REF = 'augmented'
 
 const MOCK_TYPES: Array<SURefCrawler & { schemaName: string }> = [
   {
-    id: BATTLE_REF,
+    id: 'battle-type',
     name: 'Battle',
     schemaName: 'crawlers',
     source: 'Salvage Union Workshop Manual',
@@ -57,7 +58,7 @@ const MOCK_TYPES: Array<SURefCrawler & { schemaName: string }> = [
     },
   },
   {
-    id: AUGMENTED_REF,
+    id: 'augmented-type',
     name: 'Augmented',
     schemaName: 'crawlers',
     source: 'Salvage Union Workshop Manual',

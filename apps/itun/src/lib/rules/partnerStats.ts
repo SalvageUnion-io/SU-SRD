@@ -29,9 +29,8 @@
  */
 
 import type { SURefEntity } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
-import { matchesRef } from 'salvageunion-reference/rules'
 import type { PartnerInstance } from '../schemas/partner'
 import { partnerGrantCount } from './partnerGrants'
 
@@ -74,7 +73,7 @@ export function resolvePartnerStatBlock(partner: PartnerInstance): SURefEntity |
     partner.hostSchema === 'equipment'
       ? SalvageUnionReference.Equipment
       : SalvageUnionReference.Drones
-  return model.find((entry) => matchesRef(entry, partner.hostRef)) ?? null
+  return model.getBySlug(partner.hostRef) ?? null
 }
 
 /** Read a numeric field off a resolved reference record. */
@@ -111,7 +110,7 @@ export function partnerTechLevel(
   if (partner.hostSchema === 'drones') return base
 
   const fromCrawler = crawlerTechLevel ?? base
-  const isMechaCompanion = statBlock !== null && matchesRef(statBlock, MECHA_COMPANION_REF)
+  const isMechaCompanion = statBlock !== null && getEntitySlug(statBlock) === MECHA_COMPANION_REF
   return isMechaCompanion ? Math.max(fromCrawler, MECHA_COMPANION_MIN_TECH_LEVEL) : fromCrawler
 }
 

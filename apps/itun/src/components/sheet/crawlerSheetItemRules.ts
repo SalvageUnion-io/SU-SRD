@@ -8,7 +8,7 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { resolveSystemRef } from 'salvageunion-reference/rules'
 import { readReference } from '../../lib/readReference'
 
-/** Resolve a stored crawler-system ref (id or name) to its SRD entity [gap 20]. */
+/** Resolve a stored crawler-system slug to its SRD entity [gap 20]. */
 export function resolveCrawlerSystem(ref: string): SURefEntity | null {
   return readReference('resolveCrawlerSystem', () => resolveSystemRef(ref), null)
 }

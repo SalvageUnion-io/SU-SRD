@@ -92,11 +92,7 @@ export function enrichPilotSnapshot(pilot: {
   const treeIndex = buildTreeTierIndex()
 
   const abilities: AbilityInput[] = pilot.abilities.map((ref) => {
-    // id-then-name via the model's indexes. Equivalent to the linear OR-scan
-    // this replaced — see BaseModel.indexes.test.ts, which verifies the
-    // id-first tie-break resolves every key exactly as data order did.
-    const ability =
-      SalvageUnionReference.Abilities.getById(ref) ?? SalvageUnionReference.Abilities.getByName(ref)
+    const ability = SalvageUnionReference.Abilities.getBySlug(ref)
     if (!ability) return { ref }
     const level = ability.level
     const tier = level === 'L' ? 'legendary' : tierForTree(ability.tree, treeIndex)

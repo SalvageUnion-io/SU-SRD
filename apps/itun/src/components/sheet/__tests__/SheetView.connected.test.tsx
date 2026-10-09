@@ -291,7 +291,7 @@ describe("your own mech's hold, against the Game's crawler", () => {
   const MY_MECH = mechFixture({
     id: 'm-mine',
     name: 'Rust Bucket',
-    chassisRef: 'Scrapper',
+    chassisRef: 'scrapper',
     gameId: GAME,
     cargoLots: [makeUnitLot('Sealed Crate')],
   })

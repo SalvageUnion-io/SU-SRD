@@ -64,6 +64,7 @@ import {
 } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
+import { nameToSlug } from 'salvageunion-reference'
 import { pinFor } from 'salvageunion-reference/rules'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import { runWrite } from '../../lib/runWrite'
@@ -491,7 +492,8 @@ export function MechSheet({
           schema="systems"
           mode="count"
           selected={mech.systems}
-          onAdd={(name) => actions.addItem('system', name)}
+          idOf={(item) => nameToSlug(item.name)}
+          onAdd={(slug) => actions.addItem('system', slug)}
           onRemove={(index) => actions.removeItem('system', index)}
           railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
           chosenLabel="Installed"
@@ -512,7 +514,8 @@ export function MechSheet({
           schema="modules"
           mode="count"
           selected={mech.modules}
-          onAdd={(name) => actions.addItem('module', name)}
+          idOf={(item) => nameToSlug(item.name)}
+          onAdd={(slug) => actions.addItem('module', slug)}
           onRemove={(index) => actions.removeItem('module', index)}
           railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
           chosenLabel="Installed"

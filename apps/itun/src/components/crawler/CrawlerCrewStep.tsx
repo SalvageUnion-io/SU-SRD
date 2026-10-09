@@ -1,12 +1,13 @@
 import { Field, navigateControl, ReferenceEntityCard } from 'component-lib'
 import { useState } from 'react'
 import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
+import { getEntitySlug } from 'salvageunion-reference'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
 import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { CrawlerWizardFormState, CrewNpcForm } from '../../lib/wizard/crawlerFormState'
 
 type NpcSource = {
-  /** Stable key — the bay ref or the type ref. */
+  /** Stable key — the bay slug or the type slug. */
   ref: string
   /** The SRD entity (bay or crawler type) — rendered as its entity card. */
   entity: SURefEntity
@@ -18,7 +19,7 @@ type CrawlerCrewStepProps = {
   bays: ReadonlyArray<SURefEntity>
   /** The selected crawler type (its special NPC heads the crew), if any. */
   selectedType: SURefCrawler | undefined
-  /** Crew form state keyed by bay/type ref. */
+  /** Crew form state keyed by bay/type slug. */
   crew: Record<string, CrewNpcForm>
   onChange: (patch: Partial<CrawlerWizardFormState>) => void
 }
@@ -48,7 +49,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
   const typeNpc = selectedType ? npcOf(selectedType) : undefined
   if (selectedType && typeNpc) {
     sources.push({
-      ref: selectedType.id,
+      ref: getEntitySlug(selectedType),
       entity: selectedType,
       npc: typeNpc,
     })
@@ -57,7 +58,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
   for (const bay of bays) {
     const npc = npcOf(bay)
     if (!npc) continue
-    sources.push({ ref: (bay as { id: string }).id, entity: bay, npc })
+    sources.push({ ref: getEntitySlug(bay), entity: bay, npc })
   }
 
   function toggle(ref: string) {

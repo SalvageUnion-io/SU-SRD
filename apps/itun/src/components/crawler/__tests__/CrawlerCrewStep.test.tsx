@@ -14,7 +14,7 @@
 
 import { describe, expect, it, mock } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { CrewNpcForm } from '../../../lib/wizard/crawlerFormState'
 import { must } from '../../__tests__/must'
 import { CrawlerCrewStep } from '../CrawlerCrewStep'
@@ -110,14 +110,14 @@ describe('CrawlerCrewStep', () => {
     fireEvent.change(input, { target: { value: 'Maddox' } })
     fireEvent.blur(input, { target: { value: 'Maddox' } })
     expect(onChange).toHaveBeenCalledWith({
-      crew: { [command.id]: { name: 'Maddox' } },
+      crew: { [getEntitySlug(command)]: { name: 'Maddox' } },
     })
   })
 
   it('renders existing crew values in the expanded row', () => {
     const command = bayByName('Command Bay')
     const crew: Record<string, CrewNpcForm> = {
-      [command.id]: { name: 'Maddox', motto: 'Hold the line' },
+      [getEntitySlug(command)]: { name: 'Maddox', motto: 'Hold the line' },
     }
     render(
       <CrawlerCrewStep bays={[command]} selectedType={undefined} crew={crew} onChange={() => {}} />

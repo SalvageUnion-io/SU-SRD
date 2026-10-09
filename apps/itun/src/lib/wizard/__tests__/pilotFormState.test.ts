@@ -42,10 +42,10 @@ describe('pilotFormToCreateInput', () => {
       ...EMPTY_PILOT_FORM_STATE,
       name: 'Mira Voss',
       callsign: 'Sparks',
-      abilities: ['Bionic Arms'],
+      abilities: ['bionic-arms'],
     })
     // Bionic Arms is +2 max HP; a new pilot is created at that max, not at 10.
-    expect(input.currentHP).toBe(pilotMaxHP({ abilities: ['Bionic Arms'] }))
+    expect(input.currentHP).toBe(pilotMaxHP({ abilities: ['bionic-arms'] }))
     expect(input.currentHP).toBe(12)
     expect(input.currentAP).toBe(5)
   })

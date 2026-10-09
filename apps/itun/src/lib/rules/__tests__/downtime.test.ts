@@ -9,7 +9,7 @@
  * pinned against the shipped dataset.
  */
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../schemas/crawler'
 import type { Mech } from '../../schemas/mech'
 import type { Pilot } from '../../schemas/pilot'
@@ -55,8 +55,8 @@ function makeMech(overrides: Partial<Mech> = {}): Mech {
     id: 'mech-1',
     schemaVersion: 1,
     name: 'Iron Fist',
-    // Real TL1 chassis (chassisRef stores the NAME).
-    chassisRef: 'Mule',
+    // Real TL1 chassis.
+    chassisRef: 'mule',
     systems: [],
     modules: [],
     cargoLots: [],
@@ -105,16 +105,16 @@ function noSteps(): DowntimeSteps {
 }
 
 // Real reference items with known Tech Levels.
-const TL1_SYSTEM = '.50 Cal Machine Gun'
-const TL1_MODULE = 'Comms Module'
-const ORBITAL_LANCE = 'Orbital Lance Controller'
+const TL1_SYSTEM = '50-cal-machine-gun'
+const TL1_MODULE = 'comms-module'
+const ORBITAL_LANCE = 'orbital-lance-controller'
 
-function findHighTlSystemName(minTl: number): string {
+function findHighTlSystemSlug(minTl: number): string {
   const system = SalvageUnionReference.Systems.find(
     (s) => typeof s.techLevel === 'number' && s.techLevel >= minTl
   )
   if (!system) throw new Error(`No system at TL >= ${minTl} in reference data`)
-  return system.name
+  return getEntitySlug(system)
 }
 
 // ---------------------------------------------------------------------------
@@ -123,7 +123,7 @@ function findHighTlSystemName(minTl: number): string {
 
 describe('medBayStatus', () => {
   it('no Med Bay installed → nothing heals', () => {
-    const status = medBayStatus(makeCrawler({ crawlerBays: [{ bayRef: 'Mech Bay' }] }))
+    const status = medBayStatus(makeCrawler({ crawlerBays: [{ bayRef: 'mech-bay' }] }))
     expect(status.present).toBe(false)
     expect(status.operational).toBe(false)
     expect(status.healsMinor).toBe(false)
@@ -134,7 +134,7 @@ describe('medBayStatus', () => {
     const status = medBayStatus(
       makeCrawler({
         techLevel: 'tech-6',
-        crawlerBays: [{ bayRef: 'Med Bay', condition: 'damaged' }],
+        crawlerBays: [{ bayRef: 'med-bay', condition: 'damaged' }],
       })
     )
     expect(status.present).toBe(true)
@@ -145,7 +145,7 @@ describe('medBayStatus', () => {
   })
 
   it('bands by crawler Tech Level: 1-2 HP only, 3-4 +minor, 5-6 +major', () => {
-    const bays: Crawler['crawlerBays'] = [{ bayRef: 'Med Bay' }]
+    const bays: Crawler['crawlerBays'] = [{ bayRef: 'med-bay' }]
     const t2 = medBayStatus(makeCrawler({ techLevel: 'tech-2', crawlerBays: bays }))
     expect(t2.operational).toBe(true)
     expect(t2.healsMinor).toBe(false)
@@ -159,17 +159,6 @@ describe('medBayStatus', () => {
     expect(t5.healsMinor).toBe(true)
     expect(t5.healsMajor).toBe(true)
   })
-
-  it('resolves the bay by id ref as well as by name', () => {
-    const medBayId = SalvageUnionReference.CrawlerBays.getByName('Med Bay')?.id
-    expect(medBayId).toBeDefined()
-    if (!medBayId) throw new Error('expected the Med Bay in reference data')
-    const status = medBayStatus(
-      makeCrawler({ techLevel: 'tech-4', crawlerBays: [{ bayRef: medBayId }] })
-    )
-    expect(status.present).toBe(true)
-    expect(status.healsMinor).toBe(true)
-  })
 })
 
 // ---------------------------------------------------------------------------
@@ -178,7 +167,7 @@ describe('medBayStatus', () => {
 
 describe('mechBayStatus', () => {
   it('intact Mech Bay → operational', () => {
-    const status = mechBayStatus(makeCrawler({ crawlerBays: [{ bayRef: 'Mech Bay' }] }))
+    const status = mechBayStatus(makeCrawler({ crawlerBays: [{ bayRef: 'mech-bay' }] }))
     expect(status.present).toBe(true)
     expect(status.damaged).toBe(false)
     expect(status.operational).toBe(true)
@@ -186,7 +175,7 @@ describe('mechBayStatus', () => {
 
   it('damaged Mech Bay → present but not operational (p.221)', () => {
     const status = mechBayStatus(
-      makeCrawler({ crawlerBays: [{ bayRef: 'Mech Bay', condition: 'damaged' }] })
+      makeCrawler({ crawlerBays: [{ bayRef: 'mech-bay', condition: 'damaged' }] })
     )
     expect(status.present).toBe(true)
     expect(status.damaged).toBe(true)
@@ -194,7 +183,7 @@ describe('mechBayStatus', () => {
   })
 
   it('no Mech Bay entry → not operational (surfaced, never silently restored)', () => {
-    const status = mechBayStatus(makeCrawler({ crawlerBays: [{ bayRef: 'Med Bay' }] }))
+    const status = mechBayStatus(makeCrawler({ crawlerBays: [{ bayRef: 'med-bay' }] }))
     expect(status.present).toBe(false)
     expect(status.operational).toBe(false)
   })
@@ -206,7 +195,7 @@ describe('mechBayStatus', () => {
 
 describe('repairableItems', () => {
   it('repairs damaged items at TL ≤ crawler TL; blocks higher-TL and unresolvable refs', () => {
-    const highTl = findHighTlSystemName(5)
+    const highTl = findHighTlSystemSlug(5)
     const mech = makeMech({
       systemConditions: {
         [TL1_SYSTEM]: 'damaged',
@@ -232,7 +221,7 @@ describe('repairableItems', () => {
     expect(repairableItems(mech, 3).chassisRepairable).toBe(true)
     // Unresolvable chassis ref → never auto-repaired.
     const custom = makeMech({
-      chassisRef: 'Custom Chassis',
+      chassisRef: 'custom-chassis',
       conditions: [CHASSIS_DAMAGED_CONDITION],
     })
     expect(repairableItems(custom, 6).chassisRepairable).toBe(false)
@@ -284,7 +273,7 @@ describe('downtimeMechPatch', () => {
   })
 
   it('repairs damaged system/module conditions and clears Chassis Damaged', () => {
-    const highTl = findHighTlSystemName(5)
+    const highTl = findHighTlSystemSlug(5)
     const mech = makeMech({
       systemConditions: { [TL1_SYSTEM]: 'damaged', [highTl]: 'damaged' },
       moduleConditions: { [TL1_MODULE]: 'damaged' },
@@ -411,19 +400,10 @@ describe('downtimePilotPatch', () => {
 
   it('recharges equipmentUses but keeps the Orbital Lance Controller count', () => {
     const pilot = makePilot({
-      equipmentUses: { 'First Aid Kit': 0, [ORBITAL_LANCE]: 1 },
+      equipmentUses: { 'first-aid-kit': 0, [ORBITAL_LANCE]: 1 },
     })
     const patch = downtimePilotPatch(pilot, medBay(), allDowntimeSteps())
     expect(patch.equipmentUses).toEqual({ [ORBITAL_LANCE]: 1 })
-  })
-
-  it('keeps the Orbital Lance exception when keyed by equipment id', () => {
-    const lanceId = SalvageUnionReference.Equipment.getByName(ORBITAL_LANCE)?.id
-    expect(lanceId).toBeDefined()
-    if (!lanceId) throw new Error('expected the Orbital Lance in reference data')
-    const pilot = makePilot({ equipmentUses: { 'First Aid Kit': 2, [lanceId]: 2 } })
-    const patch = downtimePilotPatch(pilot, medBay(), allDowntimeSteps())
-    expect(patch.equipmentUses).toEqual({ [lanceId]: 2 })
   })
 
   it('omits equipmentUses when nothing recharges', () => {
@@ -458,7 +438,7 @@ describe('downtimePilotPatch', () => {
       injuries: [{ severity: 'minor', note: 'sprain' }],
       usedAbilities: ['x'],
       usedToggles: { keepsake: true },
-      equipmentUses: { 'First Aid Kit': 0 },
+      equipmentUses: { 'first-aid-kit': 0 },
     })
     expect(downtimePilotPatch(pilot, medBay(), noSteps())).toEqual({})
   })

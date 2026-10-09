@@ -53,7 +53,7 @@ const ROOK = pilotFixture({
   classRef: 'salvager',
   currentHP: 7,
   currentAP: 3,
-  abilities: ['Squeeze it in'],
+  abilities: ['squeeze-it-in'],
 })
 const SCRAPPER = mechFixture({
   id: 'story-scrapper',
@@ -71,10 +71,10 @@ const HEN = crawlerFixture({
   scrapPool: { tl1: 12, tl2: 4 },
   upgradePool: 20,
   crawlerBays: [
-    { bayRef: 'Mech Bay' },
-    { bayRef: 'Med Bay' },
-    { bayRef: 'Crafting Bay' },
-    { bayRef: 'Trading Bay' },
+    { bayRef: 'mech-bay' },
+    { bayRef: 'med-bay' },
+    { bayRef: 'crafting-bay' },
+    { bayRef: 'trading-bay' },
   ],
 })
 const HURT: Pilot = { ...ROOK, injuries: [{ severity: 'major', note: 'broken arm' }] }
@@ -85,7 +85,7 @@ const DAMAGED: Mech = {
 }
 const WORN: Crawler = {
   ...HEN,
-  crawlerBays: [{ bayRef: 'Mech Bay' }, { bayRef: 'Cantina', condition: 'damaged' }],
+  crawlerBays: [{ bayRef: 'mech-bay' }, { bayRef: 'cantina', condition: 'damaged' }],
 }
 
 const STACK: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '16px' }

@@ -76,7 +76,7 @@ import {
 /** Which economy dialog is open (the lozenge that was clicked). */
 export type CrawlerEconomyDialog = 'upkeep' | 'upgrade' | 'trade'
 
-const TRADING_BAY = 'Trading Bay'
+const TRADING_BAY = 'trading-bay'
 
 type CrawlerEconomyControlProps = {
   crawler: Crawler

@@ -40,7 +40,7 @@ export function CrawlerReviewStep({
     .join(' · ')
 
   const sp = techLevel
-    ? crawlerMaxSPParts({ techLevel: `tech-${techLevel.techLevel}`, type: selectedType?.id })
+    ? crawlerMaxSPParts({ techLevel: `tech-${techLevel.techLevel}`, type: form.type ?? undefined })
     : undefined
   const spSummary = sp
     ? sp.typeBonus > 0

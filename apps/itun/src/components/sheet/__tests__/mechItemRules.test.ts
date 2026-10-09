@@ -22,19 +22,19 @@ import {
 
 describe('itemEconomy', () => {
   test('Smoke Machine: EP cost 2, no heat, no uses', () => {
-    const entity = resolveSystem('Smoke Machine')
+    const entity = resolveSystem('smoke-machine')
     expect(entity).toBeTruthy()
     expect(itemEconomy(must(entity))).toEqual({ epCost: 2, heat: 0, maxUses: 0 })
   })
 
   test('AFF Coolant Foam: EP cost 1 with Uses 5', () => {
-    const entity = resolveSystem('AFF Coolant Foam')
+    const entity = resolveSystem('aff-coolant-foam')
     expect(entity).toBeTruthy()
     expect(itemEconomy(must(entity))).toEqual({ epCost: 1, heat: 0, maxUses: 5 })
   })
 
   test('Mini Mortar: no EP cost, Uses 5', () => {
-    const entity = resolveSystem('Mini Mortar')
+    const entity = resolveSystem('mini-mortar')
     expect(entity).toBeTruthy()
     const economy = itemEconomy(must(entity))
     expect(economy.epCost).toBe(0)
@@ -42,7 +42,7 @@ describe('itemEconomy', () => {
   })
 
   test('Green Laser: Hot weapon — no EP cost, +2 heat per use', () => {
-    const entity = resolveSystem('Green Laser')
+    const entity = resolveSystem('green-laser')
     expect(entity).toBeTruthy()
     const economy = itemEconomy(must(entity))
     expect(economy.epCost).toBe(0)
@@ -51,13 +51,12 @@ describe('itemEconomy', () => {
 })
 
 describe('resolveSystem / resolveModule ref forms', () => {
-  // Installed loadout refs are stored as slugs (e.g. Starter Set mechs), so
-  // slug resolution is the load-bearing case — id/name are legacy-tolerated.
-  test('resolveSystem matches a slug ref', () => {
+  // Installed loadout refs are stored as slugs, and only slugs resolve.
+  test('resolveSystem matches a slug ref, and not the display name', () => {
     const bySlug = resolveSystem('mini-mortar')
     expect(bySlug).toBeTruthy()
     expect(bySlug?.name).toBe('Mini Mortar')
-    expect(resolveSystem('Mini Mortar')?.id).toBe(bySlug?.id)
+    expect(resolveSystem('Mini Mortar')).toBeNull()
   })
 
   test('resolveModule matches a slug ref', () => {

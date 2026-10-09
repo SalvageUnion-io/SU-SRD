@@ -15,12 +15,7 @@ import { CountStepper } from 'component-lib'
 import { useEffect, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CriticalInjuryEffect } from 'salvageunion-reference/rules'
-import {
-  pilotMaxHPParts,
-  resolvePoolStart,
-  resolveRef,
-  rollDie,
-} from 'salvageunion-reference/rules'
+import { pilotMaxHPParts, resolvePoolStart, rollDie } from 'salvageunion-reference/rules'
 import { readReference } from '../../lib/readReference'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -57,7 +52,7 @@ export function PilotMinor({
 }
 
 /** A reference name for a stored ref, or the ref itself when it doesn't resolve. */
-function refName(ref: string, find: (ref: string) => { name: string } | null): string {
+function refName(ref: string, find: (ref: string) => { name: string } | undefined): string {
   return readReference('dashboard.pilotKit', () => find(ref)?.name, undefined) ?? ref
 }
 
@@ -239,10 +234,10 @@ export function PilotMajor({
   })()
 
   const kit = pilot.equipment.map((ref) => ({
-    text: refName(ref, (r) => resolveRef(SalvageUnionReference.Equipment, r)),
+    text: refName(ref, (r) => SalvageUnionReference.Equipment.getBySlug(r)),
   }))
   const abilities = pilot.abilities.map((ref) => ({
-    text: refName(ref, (r) => resolveRef(SalvageUnionReference.Abilities, r)),
+    text: refName(ref, (r) => SalvageUnionReference.Abilities.getBySlug(r)),
   }))
 
   const view: MajorModel = {

@@ -1,6 +1,6 @@
 import { EmptyState, MasonryColumns, ReferenceEntityCard } from 'component-lib'
 import type { SURefEquipment } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
 
 type SUREquipmentAccessor = {
@@ -8,10 +8,10 @@ type SUREquipmentAccessor = {
 }
 
 type EquipmentStepProps = {
-  /** Picked ids — duplicates allowed (one entry per copy). */
+  /** Picked slugs — duplicates allowed (one entry per copy). */
   selectedEquipment: string[]
-  /** Set the count of copies for an id (count-stepper). */
-  onCountChange: (equipmentId: string, next: number) => void
+  /** Set the count of copies for a slug (count-stepper). */
+  onCountChange: (slug: string, next: number) => void
   /** Selection cap: the total picks the count-steppers are clamped at. */
   budget: number
   /** Injectable SUR for testing. */
@@ -41,10 +41,10 @@ export function EquipmentStep({
     isLegalCreationEquipment(e as SURefEquipment)
   ) as SURefEquipment[]
 
-  // Copies picked per id (duplicates allowed).
+  // Copies picked per slug (duplicates allowed).
   const counts = new Map<string, number>()
-  for (const id of selectedEquipment) {
-    counts.set(id, (counts.get(id) ?? 0) + 1)
+  for (const slug of selectedEquipment) {
+    counts.set(slug, (counts.get(slug) ?? 0) + 1)
   }
   const totalPicked = selectedEquipment.length
   const remaining = Math.max(0, budget - totalPicked)
@@ -53,7 +53,8 @@ export function EquipmentStep({
     <div className="w-full">
       <MasonryColumns maxColumns={2}>
         {equipment.map((item) => {
-          const count = counts.get(item.id) ?? 0
+          const slug = getEntitySlug(item)
+          const count = counts.get(slug) ?? 0
           return (
             <ReferenceEntityCard
               key={item.id}
@@ -64,7 +65,7 @@ export function EquipmentStep({
               cardClickLabel={item.name}
               // Card click adds a copy while the budget allows.
               onCardClick={() => {
-                if (remaining > 0) onCountChange(item.id, count + 1)
+                if (remaining > 0) onCountChange(slug, count + 1)
               }}
               hide={{ actions: true, choices: true }}
               controls={[
@@ -74,7 +75,7 @@ export function EquipmentStep({
                     subject: item.name,
                     count,
                     max: count + remaining,
-                    onChange: (next) => onCountChange(item.id, next),
+                    onChange: (next) => onCountChange(slug, next),
                   },
                 },
               ]}

@@ -23,15 +23,10 @@ function inventory(
   return { equipment, genericInventory }
 }
 
-describe('resolveEquipment — slug tolerance', () => {
-  // Seeded pilots store kebab slugs; resolveEquipment must be slug-tolerant
-  // (matchesRef), not id/name-only — else every seed slug renders as a raw chit.
-  test('resolves a kebab slug to the same entity as its display name', () => {
-    const byName = resolveEquipment('Remote Mine')
-    const bySlug = resolveEquipment('remote-mine')
-    expect(byName).not.toBeNull()
-    expect(bySlug).not.toBeNull()
-    expect(bySlug?.id).toBe(byName?.id as string)
+describe('resolveEquipment — slugs', () => {
+  test('resolves a kebab slug, and not the display name', () => {
+    expect(resolveEquipment('remote-mine')?.name).toBe('Remote Mine')
+    expect(resolveEquipment('Remote Mine')).toBeNull()
   })
 
   test('resolves the drone-equipment slug (survey-drone)', () => {
@@ -45,11 +40,11 @@ describe('resolveEquipment — slug tolerance', () => {
 
 describe('equipmentSlotCost', () => {
   test('standard equipment costs 1 slot', () => {
-    expect(equipmentSlotCost(resolveEquipment('Rifle'))).toBe(1)
+    expect(equipmentSlotCost(resolveEquipment('rifle'))).toBe(1)
   })
 
   test('Heavy equipment costs 2 slots', () => {
-    expect(equipmentSlotCost(resolveEquipment('Rocket Launcher'))).toBe(2)
+    expect(equipmentSlotCost(resolveEquipment('rocket-launcher'))).toBe(2)
   })
 
   test('unresolved equipment counts 1 slot (never undercounts to 0)', () => {
@@ -59,11 +54,11 @@ describe('equipmentSlotCost', () => {
 
 describe('equipmentMaxUses', () => {
   test('reads the uses trait (First Aid Kit = 3)', () => {
-    expect(equipmentMaxUses(resolveEquipment('First Aid Kit'))).toBe(3)
+    expect(equipmentMaxUses(resolveEquipment('first-aid-kit'))).toBe(3)
   })
 
   test('null for items without a uses trait', () => {
-    expect(equipmentMaxUses(resolveEquipment('Rifle'))).toBeNull()
+    expect(equipmentMaxUses(resolveEquipment('rifle'))).toBeNull()
   })
 
   test('null for unresolved items', () => {
@@ -81,7 +76,7 @@ describe('genericEntrySlots', () => {
 describe('pilotInventoryUsed / pilotInventoryCapacity', () => {
   test('sums equipment + generic entries truthfully', () => {
     const pilot = inventory(
-      ['Rifle', 'Rocket Launcher'],
+      ['rifle', 'rocket-launcher'],
       [{ id: 'g1', name: 'Scrap', slotCost: 3 }]
     )
     // 1 + 2 + 3

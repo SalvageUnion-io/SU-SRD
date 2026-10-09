@@ -91,14 +91,13 @@ case that needs a predicate (Biome's `noModelFindByKey` plugin,
 | You hold                                     | Use                                               |
 | -------------------------------------------- | ------------------------------------------------- |
 | a model + an id / name / slug                | `Model.getById` / `.getByName` / `.getBySlug`     |
-| a model + a ref (id **or** name **or** slug) | `resolveRef(Model, ref)` (`/rules`)               |
 | a schema **id** + a name                     | `SalvageUnionReference.getByNameIn(schema, name)` |
 | a schema **id** + an id                      | `SalvageUnionReference.get(schema, id)`           |
 | a schema **id** + a slug                     | `findEntityBySlug(schema, slug)`                  |
 
-`matchesRef` is for TESTING a candidate you already hold (is this row selected?
-how many picks match?). `SomeModel.find((e) => matchesRef(e, ref))` is a SEARCH
-wearing a predicate's clothes — use `resolveRef(SomeModel, ref)`.
+A ref an app stores (a mech's chassis, a crawler's bays, a pilot's abilities)
+is a slug, and only a slug: read it with `Model.getBySlug` or the `/rules`
+resolvers (`resolveChassisRef`, `resolveCrawlerBayRef`, …).
 
 ## Package Structure
 

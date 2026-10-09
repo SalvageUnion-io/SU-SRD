@@ -90,11 +90,10 @@ export const CriticalDamageResultSchema = z
 
 /**
  * chassisRef / systems / modules store SLUG references into
- * salvageunion-reference (e.g. "ghost-chassis"), the same convention as pilot
- * `classRef` and encounter `refSlug`. Resolution (lib/rules/resolveRefs.ts)
- * stays tolerant of names/ids for
- * snapshots published by older clients. Resolution against game data is
- * handled at the rules/presentation layer.
+ * salvageunion-reference (e.g. "ghost-chassis"), the same convention as
+ * encounter `refSlug`. They resolve through `salvageunion-reference/rules`
+ * (`resolveChassisRef`, `resolveSystemRef`, `resolveModuleRef`) at the
+ * rules/presentation layer.
  */
 
 export const MechSchema = z

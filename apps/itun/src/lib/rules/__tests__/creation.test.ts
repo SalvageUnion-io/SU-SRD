@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isWeaponSystem } from 'salvageunion-reference/rules'
 import type { CrawlerWizardFormState } from '../../wizard/crawlerFormState'
 import { EMPTY_CRAWLER_FORM_STATE } from '../../wizard/crawlerFormState'
@@ -32,20 +32,20 @@ function idOf(name: string, accessor: { find: (fn: (x: { name: string }) => bool
   return found.id
 }
 
-function tech1EquipmentId(): string {
+function tech1EquipmentSlug(): string {
   const item = SalvageUnionReference.Equipment.find(
     (e) => (e as { techLevel?: number }).techLevel === 1
-  ) as { id: string } | undefined
+  )
   if (!item) throw new Error('no Tech 1 equipment loaded')
-  return item.id
+  return getEntitySlug(item)
 }
 
-function higherTechEquipmentId(): string {
+function higherTechEquipmentSlug(): string {
   const item = SalvageUnionReference.Equipment.find(
     (e) => (e as { techLevel?: number }).techLevel === 2
-  ) as { id: string } | undefined
+  )
   if (!item) throw new Error('no Tech 2 equipment loaded')
-  return item.id
+  return getEntitySlug(item)
 }
 
 function legalForm(): PilotWizardFormState {
@@ -54,8 +54,8 @@ function legalForm(): PilotWizardFormState {
     name: 'Mira Voss',
     callsign: 'Sparks',
     classId: idOf('Engineer', SalvageUnionReference.Classes),
-    abilities: [idOf('Engineering Expertise', SalvageUnionReference.Abilities)],
-    equipment: [tech1EquipmentId(), tech1EquipmentId()],
+    abilities: [slugOf('Engineering Expertise', SalvageUnionReference.Abilities)],
+    equipment: [tech1EquipmentSlug(), tech1EquipmentSlug()],
   }
 }
 
@@ -93,7 +93,7 @@ describe('pilotCreationStepGate', () => {
   it("classAbility: an ability outside the class's core trees never passes", () => {
     const result = pilotCreationStepGate('classAbility', {
       ...legalForm(),
-      abilities: [idOf('Charge', SalvageUnionReference.Abilities)], // Soldier tree
+      abilities: [slugOf('Charge', SalvageUnionReference.Abilities)], // Soldier tree
     })
     expect(result.ok).toBe(false)
     expect(result.reason).toBe('Choose your first Ability to continue')
@@ -106,7 +106,7 @@ describe('pilotCreationStepGate', () => {
 
     const one = pilotCreationStepGate('equipment', {
       ...legalForm(),
-      equipment: [tech1EquipmentId()],
+      equipment: [tech1EquipmentSlug()],
     })
     expect(one.ok).toBe(false)
     expect(one.reason).toBe('Choose 1 more equipment item to continue')
@@ -115,14 +115,14 @@ describe('pilotCreationStepGate', () => {
   })
 
   it('equipment: duplicates are legal, higher-TL picks are not', () => {
-    const dup = tech1EquipmentId()
+    const dup = tech1EquipmentSlug()
     expect(pilotCreationStepGate('equipment', { ...legalForm(), equipment: [dup, dup] }).ok).toBe(
       true
     )
 
     const illegal = pilotCreationStepGate('equipment', {
       ...legalForm(),
-      equipment: [dup, higherTechEquipmentId()],
+      equipment: [dup, higherTechEquipmentSlug()],
     })
     expect(illegal.ok).toBe(false)
     expect(illegal.reason).toBe('Only Tech 1 equipment is legal at creation')
@@ -152,10 +152,10 @@ describe('clampPilotCreationDraft', () => {
   })
 
   it('trims excess picks OLDEST-FIRST to the 1/2 budgets', () => {
-    const a1 = idOf('Engineering Expertise', SalvageUnionReference.Abilities)
-    const a2 = idOf('Jury Rig', SalvageUnionReference.Abilities)
-    const a3 = idOf('Mass Field Maintenance', SalvageUnionReference.Abilities)
-    const item = tech1EquipmentId()
+    const a1 = slugOf('Engineering Expertise', SalvageUnionReference.Abilities)
+    const a2 = slugOf('Jury Rig', SalvageUnionReference.Abilities)
+    const a3 = slugOf('Mass Field Maintenance', SalvageUnionReference.Abilities)
+    const item = tech1EquipmentSlug()
     const result = clampPilotCreationDraft({
       ...legalForm(),
       abilities: [a1, a2, a3],
@@ -173,7 +173,7 @@ describe('clampPilotCreationDraft', () => {
     const result = clampPilotCreationDraft({
       ...legalForm(),
       classId: soldier,
-      abilities: [idOf('Engineering Expertise', SalvageUnionReference.Abilities)],
+      abilities: [slugOf('Engineering Expertise', SalvageUnionReference.Abilities)],
     })
     expect(result.form.abilities).toEqual([])
     expect(result.removed).toEqual(['Engineering Expertise'])
@@ -190,10 +190,10 @@ describe('clampPilotCreationDraft', () => {
   })
 
   it('drops non-Tech-1 equipment', () => {
-    const legal = tech1EquipmentId()
+    const legal = tech1EquipmentSlug()
     const result = clampPilotCreationDraft({
       ...legalForm(),
-      equipment: [higherTechEquipmentId(), legal],
+      equipment: [higherTechEquipmentSlug(), legal],
     })
     expect(result.form.equipment).toEqual([legal])
     expect(result.removed.length).toBe(1)
@@ -208,15 +208,15 @@ function slugOf(
   name: string,
   accessor: { find: (fn: (x: { name?: string }) => boolean) => unknown }
 ): string {
-  const found = accessor.find((x) => x.name === name) as { id: string } | undefined
-  if (!found) throw new Error(`Reference entity "${name}" not found`)
-  return found.id
+  if (!accessor.find((x) => x.name === name))
+    throw new Error(`Reference entity "${name}" not found`)
+  return nameToSlug(name)
 }
 
-function higherTlChassisId(): string {
+function higherTlChassisSlug(): string {
   const found = SalvageUnionReference.Chassis.find((c) => c.techLevel === 2)
   if (!found) throw new Error('no Tech 2 chassis loaded')
-  return found.id
+  return getEntitySlug(found)
 }
 
 /** Mule (SV 7) + Cargo Pod (SV 1) + Comms Module (SV 1): spent 9 / cap 20. */
@@ -258,7 +258,7 @@ describe('mechCreationStepGate', () => {
 
     const illegal = mechCreationStepGate('chassis', {
       ...legalMechForm(),
-      chassisName: higherTlChassisId(),
+      chassisName: higherTlChassisSlug(),
     })
     expect(illegal.ok).toBe(false)
     expect(illegal.reason).toBe('Craft your Chassis to continue')
@@ -280,7 +280,7 @@ describe('mechCreationStepGate', () => {
     if (!higherTlSystem) throw new Error('no Tech 2 system loaded')
     const illegalTl = mechCreationStepGate('review', {
       ...legalMechForm(),
-      systems: [higherTlSystem.id],
+      systems: [getEntitySlug(higherTlSystem)],
     })
     expect(illegalTl.ok).toBe(false)
     expect(illegalTl.reason).toBe('Only Tech 1 Systems and Modules are legal at creation')
@@ -354,7 +354,7 @@ describe('clampMechCreationDraft (knapsack, not truncation)', () => {
     const pod = slugOf('Cargo Pod', SalvageUnionReference.Systems)
     const result = clampMechCreationDraft({
       ...legalMechForm(),
-      systems: [pod, higherTlSystem.id],
+      systems: [pod, getEntitySlug(higherTlSystem)],
     })
     expect(result.form.systems).toEqual([pod])
     expect(result.removed).toContain(higherTlSystem.name)
@@ -363,7 +363,7 @@ describe('clampMechCreationDraft (knapsack, not truncation)', () => {
   it('clears an illegal chassis along with the whole loadout', () => {
     const result = clampMechCreationDraft({
       ...legalMechForm(),
-      chassisName: higherTlChassisId(),
+      chassisName: higherTlChassisSlug(),
     })
     expect(result.form.chassisName).toBe('')
     expect(result.form.systems).toEqual([])
@@ -400,43 +400,41 @@ function crawlerForm(overrides: Partial<CrawlerWizardFormState> = {}): CrawlerWi
   return { ...EMPTY_CRAWLER_FORM_STATE, ...overrides }
 }
 
-function typeIdOf(name: string): string {
+function typeSlugOf(name: string): string {
   const type = SalvageUnionReference.Crawlers.getByName(name)
   if (!type) throw new Error(`crawler type "${name}" not found`)
-  return type.id
+  return getEntitySlug(type)
 }
 
-function weaponIdAtTL(tl: number): string {
+function weaponSlugAtTL(tl: number): string {
   const found = SalvageUnionReference.Systems.find(
     (s) => typeof s.techLevel === 'number' && s.techLevel === tl && isWeaponSystem(s)
   )
   if (!found) throw new Error(`no weapons system at TL ${tl}`)
-  return found.id
+  return getEntitySlug(found)
 }
 
-function secondWeaponIdAtTL(tl: number): string {
+function secondWeaponSlugAtTL(tl: number): string {
   const found = SalvageUnionReference.Systems.findAll(
     (s) => typeof s.techLevel === 'number' && s.techLevel === tl && isWeaponSystem(s)
   )[1]
   if (!found) throw new Error(`no second weapons system at TL ${tl}`)
-  return found.id
+  return getEntitySlug(found)
 }
 
-function nonWeaponIdAtTL(tl: number): string {
+function nonWeaponSlugAtTL(tl: number): string {
   const found = SalvageUnionReference.Systems.find(
     (s) => typeof s.techLevel === 'number' && s.techLevel === tl && !isWeaponSystem(s)
   )
   if (!found) throw new Error(`no non-weapon system at TL ${tl}`)
-  return found.id
+  return getEntitySlug(found)
 }
 
 describe('crawlerWeaponSlotsFor (mutations-derived, never string-matched)', () => {
   it('Battle mounts 2; every other type (and no type) mounts 1', () => {
-    expect(crawlerWeaponSlotsFor(typeIdOf('Battle'))).toBe(2)
-    expect(crawlerWeaponSlotsFor(typeIdOf('Engineering'))).toBe(1)
+    expect(crawlerWeaponSlotsFor(typeSlugOf('Battle'))).toBe(2)
+    expect(crawlerWeaponSlotsFor(typeSlugOf('Engineering'))).toBe(1)
     expect(crawlerWeaponSlotsFor(null)).toBe(1)
-    // Stored refs resolve id-or-name (bay-ref tolerance).
-    expect(crawlerWeaponSlotsFor('Battle')).toBe(2)
   })
 })
 
@@ -444,7 +442,9 @@ describe('crawlerCreationStepGate', () => {
   it('type: blocked until a resolvable type is chosen', () => {
     expect(crawlerCreationStepGate('type', crawlerForm()).ok).toBe(false)
     expect(crawlerCreationStepGate('type', crawlerForm({ type: 'nonsense' })).ok).toBe(false)
-    expect(crawlerCreationStepGate('type', crawlerForm({ type: typeIdOf('Battle') })).ok).toBe(true)
+    expect(crawlerCreationStepGate('type', crawlerForm({ type: typeSlugOf('Battle') })).ok).toBe(
+      true
+    )
   })
 
   it('stats and crew never block', () => {
@@ -453,13 +453,13 @@ describe('crawlerCreationStepGate', () => {
   })
 
   it('weapons: minimum 1 Tech-1 weapon, capped at the type slots', () => {
-    const battle = typeIdOf('Battle')
+    const battle = typeSlugOf('Battle')
     const zero = crawlerCreationStepGate('weapons', crawlerForm({ type: battle }))
     expect(zero.ok).toBe(false)
     expect(zero.reason).toContain('at least one')
 
-    const w1 = weaponIdAtTL(1)
-    const w2 = secondWeaponIdAtTL(1)
+    const w1 = weaponSlugAtTL(1)
+    const w2 = secondWeaponSlugAtTL(1)
     expect(
       crawlerCreationStepGate('weapons', crawlerForm({ type: battle, systems: [w1] })).ok
     ).toBe(true)
@@ -470,24 +470,24 @@ describe('crawlerCreationStepGate', () => {
     // Over the Engineering (1-slot) cap — blocked with the excess named.
     const over = crawlerCreationStepGate(
       'weapons',
-      crawlerForm({ type: typeIdOf('Engineering'), systems: [w1, w2] })
+      crawlerForm({ type: typeSlugOf('Engineering'), systems: [w1, w2] })
     )
     expect(over.ok).toBe(false)
     expect(over.reason).toContain('mounts 1')
   })
 
   it('weapons: a non-Tech-1 weapon or a non-weapon system is illegal', () => {
-    const battle = typeIdOf('Battle')
+    const battle = typeSlugOf('Battle')
     const tl2 = crawlerCreationStepGate(
       'weapons',
-      crawlerForm({ type: battle, systems: [weaponIdAtTL(2)] })
+      crawlerForm({ type: battle, systems: [weaponSlugAtTL(2)] })
     )
     expect(tl2.ok).toBe(false)
     expect(tl2.reason).toContain('Tech 1')
 
     const nonWeapon = crawlerCreationStepGate(
       'weapons',
-      crawlerForm({ type: battle, systems: [nonWeaponIdAtTL(1)] })
+      crawlerForm({ type: battle, systems: [nonWeaponSlugAtTL(1)] })
     )
     expect(nonWeapon.ok).toBe(false)
   })
@@ -498,8 +498,8 @@ describe('crawlerCreationStepGate', () => {
 
     const complete = crawlerForm({
       name: 'Tin Lizzy',
-      type: typeIdOf('Battle'),
-      systems: [weaponIdAtTL(1)],
+      type: typeSlugOf('Battle'),
+      systems: [weaponSlugAtTL(1)],
     })
     expect(crawlerCreationStepGate('review', complete).ok).toBe(true)
     expect(crawlerCreationStepGate('review', { ...complete, systems: [] }).ok).toBe(false)
@@ -512,8 +512,8 @@ describe('clampCrawlerCreationDraft', () => {
   it('returns the same form when nothing violates', () => {
     const form = crawlerForm({
       name: 'Tin Lizzy',
-      type: typeIdOf('Battle'),
-      systems: [weaponIdAtTL(1)],
+      type: typeSlugOf('Battle'),
+      systems: [weaponSlugAtTL(1)],
     })
     const { form: clamped, removed } = clampCrawlerCreationDraft(form)
     expect(removed).toEqual([])
@@ -532,11 +532,11 @@ describe('clampCrawlerCreationDraft', () => {
   })
 
   it('drops illegal systems, then clamps weapons NEWEST-first to the type slots', () => {
-    const w1 = weaponIdAtTL(1)
-    const w2 = secondWeaponIdAtTL(1)
+    const w1 = weaponSlugAtTL(1)
+    const w2 = secondWeaponSlugAtTL(1)
     const form = crawlerForm({
-      type: typeIdOf('Engineering'), // 1 slot
-      systems: [nonWeaponIdAtTL(1), weaponIdAtTL(2), w1, w2],
+      type: typeSlugOf('Engineering'), // 1 slot
+      systems: [nonWeaponSlugAtTL(1), weaponSlugAtTL(2), w1, w2],
     })
     const { form: clamped, removed } = clampCrawlerCreationDraft(form)
     // Illegal entries (non-weapon, TL2) dropped; then w2 (newest) clamped.

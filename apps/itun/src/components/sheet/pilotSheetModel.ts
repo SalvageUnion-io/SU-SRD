@@ -16,7 +16,7 @@ import type { ProvenanceLine } from 'component-lib'
 import { linesFromBreakdown } from 'component-lib'
 import { useMemo } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
   isPilotDead,
   pilotMaxAPParts,
@@ -167,7 +167,7 @@ export function usePilotSheetModel({
     const cls: ClassLike | undefined = SalvageUnionReference.Classes.getById(pilot.classRef)
     if (!cls) return null
     const selectedTrees = SalvageUnionReference.Abilities.all()
-      .filter((a) => pilot.abilities.includes(a.id))
+      .filter((a) => pilot.abilities.includes(getEntitySlug(a)))
       .map((a) => a.tree)
     return new Set(treesFor(cls, true, selectedTrees))
   }, [picker, pilot.classRef, pilot.abilities])
@@ -176,9 +176,8 @@ export function usePilotSheetModel({
   // tree rather than one flat grid. Generic is excluded here and sourced
   // separately: it is intrinsic, so a pilot never "has" it in `abilities`.
   const abilityGroups = useMemo(() => {
-    // Keyed by the STORED slug, not `ability.id`: `pilot.abilities` (and
-    // `usedAbilities`, and every handler) speak slugs, and the two are not the
-    // same string — grouping by id silently broke the used/recharge lookups.
+    // Keyed by the stored slug: `pilot.abilities`, `usedAbilities` and every
+    // handler speak slugs.
     const byTree = new Map<string, AbilityEntry[]>()
     for (const slug of pilot.abilities) {
       const ability = resolveAbility(slug)
@@ -208,7 +207,7 @@ export function usePilotSheetModel({
         () =>
           SalvageUnionReference.Abilities.all()
             .filter((ability) => ability.tree === GENERIC_TREE)
-            .map((ability) => ({ slug: ability.id, ability })),
+            .map((ability) => ({ slug: getEntitySlug(ability), ability })),
         []
       ),
     []

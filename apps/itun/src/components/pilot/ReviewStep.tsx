@@ -1,6 +1,6 @@
 import { EmptyState, FieldError, KvRow, Panel, ReferenceEntityCard } from 'component-lib'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 
 /**
@@ -33,10 +33,10 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
 
   const selectedClass = form.classId ? surClasses.find((c) => c.id === form.classId) : undefined
   const chosenAbilities = form.abilities
-    .map((id) => surAbilities.findAll((a) => a.id === id)[0])
+    .map((slug) => surAbilities.findAll((a) => nameToSlug(a.name) === slug)[0])
     .filter((a) => a !== undefined)
   const chosenEquipment = form.equipment
-    .map((id) => surEquipment.findAll((e) => e.id === id)[0])
+    .map((slug) => surEquipment.findAll((e) => nameToSlug(e.name) === slug)[0])
     .filter((e) => e !== undefined)
 
   const rows: [string, string | null][] = [
