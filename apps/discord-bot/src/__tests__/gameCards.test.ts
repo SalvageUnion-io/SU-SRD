@@ -321,10 +321,10 @@ describe('deep links', () => {
   })
 
   test("a CREWMATE's sheet links to the Game view, by Convex id", () => {
-    // The regression this guards: the crew board and /su sheet both used to
-    // emit /sheet/$kind/$appId for other people's entities, which reads the
-    // CLICKER's IndexedDB. A crewmate does not have that entity locally, so
-    // every such link opened an empty page. /games/$gameId/view/... is the
+    // The rule this guards: the crew board and /su sheet never emit
+    // /sheet/$kind/$appId for other people's entities, because that route
+    // reads the CLICKER's IndexedDB. A crewmate does not have that entity
+    // locally, so such a link opens an empty page. /games/$gameId/view/... is the
     // read-only route addressed by the Convex row id precisely because the
     // viewer has no local copy.
     expect(gameSheetUrl(WEB, 'g1', 'pilots', 'cx-p1')).toBe(`${WEB}/games/g1/view/pilot/cx-p1`)

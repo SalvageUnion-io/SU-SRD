@@ -118,8 +118,8 @@ describe('/su sheet visibility', () => {
       // so BOTH visibilities are follow-ups and the flag alone decides who
       // sees them.
       //
-      // So the rule is asserted directly instead, which is stronger than the
-      // old shape: every message this command emits must carry Ephemeral.
+      // So the rule is asserted directly: every message this command emits
+      // must carry Ephemeral.
       for (const followUp of followUps) {
         expect(Number(followUp.flags) & MessageFlags.Ephemeral).toBe(MessageFlags.Ephemeral)
       }

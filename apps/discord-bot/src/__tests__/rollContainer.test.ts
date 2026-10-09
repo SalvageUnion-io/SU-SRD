@@ -161,9 +161,9 @@ describe('every roll renders the same furniture', () => {
   })
 
   test('one footer line, and it is the attribution', () => {
-    // The provenance line — `d20 14 · band 11-19 · Core Book p.219` — is gone;
-    // two lines of small print under every roll was the busiest part of the
-    // surface, and the die it spelled out is already the headline.
+    // A roll carries no provenance line (die, band, page): the die is already
+    // in the headline, so the only small print is the context line and the
+    // attribution.
     const small = text(rollOf('Crawler Damage', 14))
       .split('\n')
       .filter((line) => line.startsWith('-# '))

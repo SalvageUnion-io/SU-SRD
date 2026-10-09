@@ -150,11 +150,11 @@ describe('lookupCard — content depth', () => {
 
 /**
  * escapeLabel (module-private) guards every markdown label the card emits.
- * It used to escape only `[ ] ( )`, leaving a literal backslash in a name free
- * to pair with the backslash we add — `\]` became `\\]`, i.e. an ESCAPED
- * BACKSLASH followed by an UNESCAPED `]` that closes the label early and lets
- * the rest of the name leak out as raw markdown (CodeQL js/incomplete-sanitization).
- * The backslash is now in the class, escaped in the same single pass.
+ * It escapes `\ [ ] ( )` in one pass. The backslash must be in that class: a
+ * literal backslash left alone pairs with the one escaping adds — `\]` becomes
+ * `\\]`, an ESCAPED BACKSLASH followed by an UNESCAPED `]` that closes the
+ * label early and lets the rest of the name leak out as raw markdown (CodeQL
+ * js/incomplete-sanitization).
  *
  * These drive it black-box through the two labels it guards: a chassis pattern
  * name (chassisSections) and a trait name inside body text (linkifyTraitRefs).
@@ -185,8 +185,8 @@ describe('markdown label escaping', () => {
   test('a literal backslash in a label is itself escaped', () => {
     const e = cardWith({ patterns: [{ name: 'Evil\\', systems: [], modules: [] }] })
     // Two backslashes: `\\` renders as one literal backslash and cannot pair
-    // with whatever follows. The OLD class `[[\]()]` omitted the backslash, so
-    // it emitted a single `\` here — the exact breakout this pins against.
+    // with whatever follows. A single `\` here is the breakout this pins
+    // against.
     expect(cardText(e)).toContain('• **Evil\\\\** — 0 systems, 0 modules')
     expect(cardText(e)).not.toContain('**Evil\\** ')
   })
@@ -202,8 +202,8 @@ describe('markdown label escaping', () => {
       content: [{ type: 'paragraph', value: 'Gains the [[Vulnerable\\]] Trait.' }],
     })
     // The label must end `\\]` — an escaped backslash, then the REAL closing
-    // bracket. Under the old class this was `\]`, which escaped the closing
-    // bracket instead, so the link label ran on and Discord rendered raw text.
+    // bracket. A bare `\]` would escape the closing bracket instead, so the
+    // link label would run on and Discord would render raw text.
     expect(cardText(e)).toContain(
       '[Vulnerable\\\\](https://salvageunion.io/schema/traits/item/vulnerable)'
     )
