@@ -17,11 +17,9 @@
   // directory and Biome already linted it, so three tools disagreed about
   // whether it belonged to this workspace. A type error there merged green.
   //
-  // `e2e/**/*` and `playwright.config.ts` were the same hole one layer out:
-  // Playwright transpiles specs without type-checking them, and Biome's
-  // overrides disable the linter for both paths — so they were covered by the
-  // formatter and nothing else. They are included here (not in a separate
-  // project) because they import from `src/`.
+  // `e2e/**/*` and `playwright.config.ts` are the same hole one layer out:
+  // Playwright transpiles specs without type-checking them. They are included
+  // here (not in a separate project) because they import from `src/`.
   "include": [
     "src/**/*",
     "test/**/*",

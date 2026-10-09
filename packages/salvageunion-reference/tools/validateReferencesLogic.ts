@@ -21,7 +21,7 @@ function bag(filesByName: Record<string, unknown[]>, filename: string): Rec[] {
   return (filesByName[filename] ?? []) as Rec[]
 }
 
-interface Choice {
+type Choice = {
   id?: string
   name?: string
   /**
@@ -42,7 +42,7 @@ function catalogShortlist(choice: Choice): { entities: string[]; schema: string[
   return { entities: source.entities, schema: source.schema ?? [] }
 }
 
-interface EntityWithChoices {
+type EntityWithChoices = {
   name?: string
   choices?: Choice[]
   actions?: Array<{ name?: string; choices?: Choice[] }>

@@ -188,7 +188,7 @@ function hasEffectData(record: Json): boolean {
   // "unencoded" for every record the moment the duplicate is deleted.
   return choices.some((choice) => {
     const source = (choice as Json)?.source as Json | undefined
-    if (!source || source.kind !== 'options' || !Array.isArray(source.options)) return false
+    if (source?.kind !== 'options' || !Array.isArray(source.options)) return false
     return source.options.some((o) => Array.isArray((o as Json)?.effects))
   })
 }
@@ -355,7 +355,9 @@ function isObject(value: unknown): value is Json {
 /** Walk every `choices[]` array anywhere inside a record. */
 function eachChoice(node: unknown, visit: (choice: Json, path: string) => void, path = ''): void {
   if (Array.isArray(node)) {
-    node.forEach((item, i) => eachChoice(item, visit, `${path}[${i}]`))
+    node.forEach((item, i) => {
+      eachChoice(item, visit, `${path}[${i}]`)
+    })
     return
   }
   if (!isObject(node)) return
