@@ -120,7 +120,7 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'data',
-    guards: 'the reference dataset: ids, slugs, references, schemas, parity, …',
+    guards: 'the reference dataset: ids, slugs, references, orphans, parity, …',
     fix: 'fix the data: each diagnostic names the file and record',
     cmd: ['bun', 'tools/validate.ts'],
     cwd: 'packages/salvageunion-reference',

@@ -176,8 +176,9 @@ the generator's output.
 
 ## Testing & validation
 
-- `bun --filter salvageunion-reference test` — schema compliance and data integrity
+- `bun --filter salvageunion-reference test` — schema compliance
+  (`lib/dataCanonical.test.ts`) and data integrity
 - `bun run check data` (from the root) — every data check: IDs, slugs,
-  cross-references, action references, orphans, traits, parity, schemas
+  cross-references, action references, orphans, traits, parity
 - `bun run validate -- --only=ids,slugs` (in this package) — just the named
   checks; `tools/validate.ts` is the one validation CLI
