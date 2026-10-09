@@ -1,8 +1,12 @@
 import { v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
+import type { LoggedTable } from './model/entities'
 import { loadLogged, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMember, requireMemberAs, requireUser } from './model/permissions'
+
+/** The table each sheet kind's row lives in. */
+const LOGGED_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as const
 
 /**
  * Append client-originated Change Log rows (ADR-022 / ADR-034 P4b).
@@ -80,6 +84,32 @@ export const appendChangeLog = mutation({
     const gameIds = [...new Set(args.entries.flatMap((e) => (e.gameId === null ? [] : [e.gameId])))]
     await Promise.all(gameIds.map((gameId) => requireMemberAs(ctx, gameId, userId)))
 
+    // The entity, too, not only the game. `forEntity` returns every row filed
+    // under an entity's id to its owner and crew, so an entry is history the
+    // moment it lands: without this, a stranger who knew a pilot's id could
+    // append `{ gameId: null, entityType: 'pilot', entityId }` — no game to be
+    // a member of — and plant rows in its owner's drawer under their own
+    // `actorId`. The caller must be able to write the entity: its owner, or a
+    // member of the Game it is in. The client appends only after the entity's
+    // own write has committed, so a row that does not exist is refused too.
+    // Distinct, as the games are, so a batch about one entity is one read.
+    const logged = new Map<string, { table: LoggedTable; entityId: string }>()
+    for (const e of args.entries) {
+      if (e.entityType === 'pilot' || e.entityType === 'mech' || e.entityType === 'crawler') {
+        const table = LOGGED_TABLE[e.entityType]
+        logged.set(`${table}:${e.entityId}`, { table, entityId: e.entityId })
+      }
+    }
+    await Promise.all(
+      [...logged.values()].map(async ({ table, entityId }) => {
+        const row = await loadLogged(ctx, table, entityId)
+        if (row === null) throw new NotAuthorized('There is no such entity to log against')
+        if (row.ownerId === userId) return
+        if (row.gameId === null) throw new NotAuthorized('That is not yours to write')
+        await requireMemberAs(ctx, row.gameId, userId)
+      })
+    )
+
     // `Promise.all` rather than a serial loop: these are independent inserts and
     // this runs on every sheet edit, so the round trips are the cost.
     await Promise.all(
@@ -150,9 +180,6 @@ export const rolls = query({
 
 /** The most rows `forEntity` returns: the drawer's newest page, not the whole history. */
 const MAX_ENTITY_ROWS = 100
-
-/** The table each sheet kind's row lives in. */
-const LOGGED_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as const
 
 /**
  * One entity's Change Log, newest first: every applied row — a sheet edit from

@@ -3264,6 +3264,8 @@ only they see.
 edits a Game's crawler, and crew status reaches the Game-only Dashboard as a
 Crew tab.
 
+**Amended 2026-10 (#1130)** — §4: a proposal carries no before, only its value.
+
 ### Context
 
 [ADR-001](#adr-001) made ITUN local-first with no
@@ -3415,9 +3417,9 @@ closer to membership than to content — assigning a pilot never edits one.
 #### 4. Cross-player writes: propose, never impose
 
 **A Mediator never writes another person's sheet.** They push a **proposal**; it
-arrives on the player's Dashboard showing the proposed value (their sheet shows
-the current one), and the player applies or declines it. Proposals persist until
-answered — no timers, no expiry, and **no force-apply**, which would collapse this straight back into the direct
+arrives on the player's Dashboard with the before/after visible, and the player
+applies or declines it. Proposals persist until answered — no timers, no expiry,
+and **no force-apply**, which would collapse this straight back into the direct
 write this decision rejects. A newer proposal against the same field marks the
 older one superseded, so a player never faces two contradictory pending changes
 to one value.
