@@ -975,8 +975,10 @@ Everything runs here ([ADR-033](#adr-033)), account
 R2: `su-itun-snapshots` (read-only, never delete from it) and `su-lp-assets`.
 Zones `salvageunion.io` and `intheunionnow.com`. Previews under
 `alxjrvs.workers.dev`. Re-derive with `wrangler deployments list`,
-`wrangler r2 bucket list` and the `apps/*/wrangler.jsonc` files. **Outside the
-repo:** the `www` → apex Redirect Rule and per-zone Images Transformations.
+`wrangler r2 bucket list` and the `apps/*/wrangler.jsonc` files.
+**Outside the repo:** Always Use HTTPS (both zones), the `www` → apex Redirect
+Rule and per-zone Images Transformations; see
+[configuration outside the repo](#configuration-outside-the-repo).
 
 ### Sentry
 
