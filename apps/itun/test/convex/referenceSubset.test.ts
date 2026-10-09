@@ -21,7 +21,8 @@ import { testConvex } from './harness'
  * silently comes back empty on a missing schema fails here too.
  *
  * The records cover every chassis and every class, each pilot holding its
- * whole class's abilities and each mech flown by one of them.
+ * whole class's abilities and each mech flown by one of them, with every
+ * system and module installed and destroyed so a mech's status names each.
  */
 
 afterEach(async () => {
@@ -67,7 +68,16 @@ async function seedPilots(player: User, organizer: User, gameId: Id<'games'>) {
   return pilotIds
 }
 
-/** Each chassis as a mech with every system and module, assigned to a pilot in turn. */
+/** Every ref, each marked `destroyed`. */
+function allDestroyed(refs: string[]) {
+  return Object.fromEntries(refs.map((r) => [r, 'destroyed' as const]))
+}
+
+/**
+ * Each chassis as a mech with every system and module installed and destroyed,
+ * assigned to a pilot in turn. Destroyed items send `crew.vitals` through the
+ * status's system and module lookups by name.
+ */
 async function seedMechs(player: User, gameId: Id<'games'>, pilotIds: string[]) {
   const systems = SalvageUnionReference.Systems.all().map((s) => nameToSlug(s.name))
   const modules = SalvageUnionReference.Modules.all().map((m) => nameToSlug(m.name))
@@ -78,7 +88,14 @@ async function seedMechs(player: User, gameId: Id<'games'>, pilotIds: string[]) 
       table: 'mechs',
       appId: id,
       gameId,
-      body: { ...mechBody(id, gameId), chassisRef: nameToSlug(c.name), systems, modules },
+      body: {
+        ...mechBody(id, gameId),
+        chassisRef: nameToSlug(c.name),
+        systems,
+        modules,
+        systemConditions: allDestroyed(systems),
+        moduleConditions: allDestroyed(modules),
+      },
       expectedUpdatedAt: null,
     })
     const pilotId = pilotIds[i % pilotIds.length]
@@ -105,6 +122,8 @@ describe('Convex derives on the schemas it deploys', () => {
     expect(full.mechs).toHaveLength(mechCount)
     expect(full.pilots.every((p) => p.maxHP !== null)).toBe(true)
     expect(full.mechs.every((m) => m.maxSP !== null)).toBe(true)
+    expect(full.mechs.some((m) => (m.status?.destroyedSystems.length ?? 0) > 0)).toBe(true)
+    expect(full.mechs.some((m) => (m.status?.destroyedModules.length ?? 0) > 0)).toBe(true)
 
     deployedSchemasOnly()
     expect(await player.as.query(api.crew.vitals, { gameId })).toEqual(full)
