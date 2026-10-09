@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "clean": "true",
-    "deploy": "wrangler deploy --env=\"\"",
-    "worker:bundle": "wrangler deploy --env=\"\" --dry-run"
+    "deploy": "wrangler deploy",
+    "worker:bundle": "wrangler deploy --dry-run"
   },
   "dependencies": {
     "@discordjs/builders": "1.14.1",

@@ -65,15 +65,6 @@
   //   ITUN_CONVEX_SITE_URL  the Convex HTTP-actions origin. Not itself a secret,
   //                      but paired with the one above; `/health` answers 503
   //                      while either is missing.
-  //
-  // One plain value stays optional, so it is not listed here:
-  //
-  //   ITUN_WEB_URL       the ITUN origin the bot links to; defaults to
-  //                      https://intheunionnow.com.
-  //
-  // Declaring `secrets` makes a local `wrangler dev` bind only `vars` and these
-  // required names from .dev.vars, .env and process.env, so ITUN_WEB_URL never
-  // reaches a top-level local run. `env.local` below is the local run.
   "secrets": {
     "required": ["SENTRY_DSN", "DISCORD_TOKEN", "ITUN_BOT_SECRET", "ITUN_CONVEX_SITE_URL"]
   },
@@ -91,22 +82,5 @@
 
   "observability": {
     "enabled": true
-  },
-
-  // Local runs only: `bunx wrangler dev --env local`. Never deploy it.
-  //
-  // `secrets` and `vars` are not inherited by a named environment, so this one
-  // declares no `secrets` and wrangler binds everything in .dev.vars or .env,
-  // ITUN_WEB_URL included. wrangler warns that
-  // "secrets" is missing here; that absence is the point. `vars` must repeat
-  // the top-level block exactly. package.json's deploy scripts pass `--env=""`,
-  // so a deploy always targets the top level.
-  "env": {
-    "local": {
-      "vars": {
-        "DISCORD_APPLICATION_ID": "1442878052823470172",
-        "DISCORD_PUBLIC_KEY": "3cda4815a9676fee399a6475c5533f7d2375d1293af87993c5cd1f4e4f2c0200"
-      }
-    }
   }
 }
