@@ -108,7 +108,7 @@ than a hypothetical. See ADR-030 (`docs/ARCHITECTURE.md#adr-030`).
 ## Accessibility Patterns
 
 - Biome's `a11y` lint group (in `biome.jsonc`) for static checks;
-  `tools/a11y-scan.ts` (Playwright + axe-core) for runtime scanning.
+  each app's `e2e/a11y.e2e.ts` (Playwright + axe-core) for runtime scanning.
 - Clickable cards: `role="button"` + `tabIndex={0}` + Enter/Space keydown.
 - Search: ARIA combobox with `aria-activedescendant`.
 - Mobile touch targets: 44x44px min via `@media (pointer: coarse)`.

@@ -68,7 +68,9 @@
         // package.json, so they are deliberately not listed here.
         "src/runtime/islands.client.ts",
         "src/runtime/styles.entry.ts",
-        "src/runtime/assets.entry.ts"
+        "src/runtime/assets.entry.ts",
+        // The one spec whose import reaches `tools/` (`tools/lib/a11yScan.ts`).
+        "e2e/a11y.e2e.ts"
       ],
       "project": ["src/**/*.{ts,tsx}", "ssg/**/*.{ts,tsx}"],
       "includeEntryExports": false
@@ -86,7 +88,9 @@
         "src/lib/snapshot/id.ts",
         "src/stores/entityStore.ts",
         "src/stores/activeContainerStore.ts",
-        "src/stores/types.ts"
+        "src/stores/types.ts",
+        // The one spec whose import reaches `tools/` (`tools/lib/a11yScan.ts`).
+        "e2e/a11y.e2e.ts"
       ],
       // `test/**` covers the Convex test suite, which lives OUTSIDE `convex/`
       // so that codegen does not register the harness as a deployable module.

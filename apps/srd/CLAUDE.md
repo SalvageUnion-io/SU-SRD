@@ -126,8 +126,9 @@ renders exactly one placeholder:
 ## Verification
 
 There is no output snapshot. CI's `build-srd` job builds once, then runs
-`bun run check:examples` (`ssg/checkPageExamples.ts`), the Playwright smoke and
-bundle-budget specs, and the axe-core scan against that `dist`.
+`bun run check:examples` (`ssg/checkPageExamples.ts`), then the Playwright
+smoke, bundle-budget, JSON API and axe-core (`a11y.e2e.ts`) specs against that
+`dist`.
 `ssg/__tests__/routes.test.ts` asserts every registered route emits a page.
 
 ## Key Directories
