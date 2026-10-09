@@ -22,8 +22,9 @@ ephemerally/non-editably
   interactivity
 - **Game data:** `salvageunion-reference` workspace package
 - **Tooling:** Biome (`bun run lint`) and TypeScript 7 (`bun run typecheck`).
-- **Deployment:** Cloudflare Workers Static Assets (`wrangler.jsonc`; no Worker
-  script — `srd` is fully static, so every request is an asset lookup)
+- **Deployment:** Cloudflare Workers Static Assets (`wrangler.jsonc`). Every
+  page is pre-rendered; the Worker script (`src/worker/index.ts`) runs only for
+  a miss, answering it 404 with `no-store` so a missing chunk is never cached
 
 ## Architecture
 

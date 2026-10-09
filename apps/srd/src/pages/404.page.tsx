@@ -1,9 +1,9 @@
 /**
  * `/404` — the not-found page.
  *
- * Emitted as `dist/404.html`, NOT `dist/404/index.html`, so the host's
- * `not_found_handling: "404-page"` can serve it directly. See the URL -> file table in
- * `ssg/DESIGN.md`.
+ * Emitted as `dist/404.html`, NOT `dist/404/index.html`: the Worker answers every
+ * miss with it (`src/worker/index.ts`, reading `/404` through the asset binding).
+ * See the URL -> file table in `ssg/DESIGN.md`.
  */
 
 import { CatalogTile, getCatalogBg, getCatalogLabel } from 'component-lib'

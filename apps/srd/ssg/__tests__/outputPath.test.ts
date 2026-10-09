@@ -34,8 +34,9 @@ describe('outputPathFor', () => {
   })
 
   it('maps /404 to 404.html, NOT to a directory', () => {
-    // Workers Static Assets' `404-page` handling serves `404.html` for
-    // unmatched paths; `404/index.html` would never be reached.
+    // The Worker answers unmatched paths by reading `/404` through the asset
+    // binding (src/worker/index.ts), which serves `404.html` without a redirect;
+    // `404/index.html` would answer it with a redirect to `/404/` instead.
     expect(outputPathFor('/404')).toBe('404.html')
   })
 

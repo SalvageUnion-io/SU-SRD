@@ -449,7 +449,7 @@
         // Each entry location is named
         // explicitly rather than globbing `src/**`, so an ordinary module in the
         // same app cannot quietly acquire a default export under this exemption.
-        // These three are the `main` of the three wrangler configs; a fourth
+        // These three globs are the `main` of the four wrangler configs; another
         // Worker adds a fourth line here, deliberately.
         "apps/*/src/worker.ts",
         "apps/*/src/worker/index.ts",
