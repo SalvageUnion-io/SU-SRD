@@ -981,8 +981,7 @@ responses with Workers Caching (`cache.enabled`). Re-derive with
 `wrangler deployments list`, `wrangler r2 bucket list` and the
 `apps/*/wrangler.jsonc` files.
 **Outside the repo:** Always Use HTTPS (both zones), the `www` → apex Redirect
-Rule, the `/assets/*` 404 `no-store` Transform Rule and per-zone Images
-Transformations; see
+Rule and per-zone Images Transformations; see
 [configuration outside the repo](#configuration-outside-the-repo).
 
 ### Sentry
@@ -994,6 +993,8 @@ Four projects: `srd` and `itun` (`VITE_SENTRY_DSN` at build, from
 constants), `itun-convex` ([dashboard toggle](#convex-error-reporting); IP
 storage off), and `workers` (one `SENTRY_DSN` on `su-itun`, `su-discord-bot`
 and `su-assets`, told apart by `server_name`, which is the wrangler `name`).
+`su-srd`'s Worker reports into `srd` instead, beside the browser bundle, under
+`server_name` `su-srd`; its `SENTRY_DSN` secret is the `SRD_SENTRY_DSN` constant.
 One org alert rule on users or volume covers them, and the uptime monitor
 watches `intheunionnow.com`.
 
@@ -3658,6 +3659,15 @@ dispatched from a branch cannot read them.
 **Amended 2026-10-08 — §Credentials: the deploy runs on `push` to `main`**,
 gated by the strict `main` ruleset.
 
+**Amended 2026-10-09 — `srd` gains a Worker script that answers misses.**
+`_headers` matches by path, not status, and Static Assets applied its
+`/assets/*` rule to the `404-page` response, so a missing chunk's 404 was
+`immutable` for a year. The zone Transform Rule meant to override that was not
+in effect on `salvageunion.io` (production answered `immutable`, and the deploy
+smoke failed on it). `src/worker/index.ts` now runs for every miss, as itun's
+does, and answers it with `no-store`; real files never run it. No rule outside
+the repo is relied on for this any more.
+
 **§3 is history since [ADR-036](#adr-036)** retired snapshots: nothing reads
 or binds the snapshot bucket.
 
@@ -3760,14 +3770,15 @@ that can deploy production. The bar it is held to:
 
 ### Configuration outside the repo
 
-Four things are configured in the Cloudflare dashboard and are invisible to
+Three things are configured in the Cloudflare dashboard and are invisible to
 `grep`: Images Transformations (enabled per zone), **Always Use HTTPS** (SSL/TLS
-→ Edge Certificates, on both zones), one **Redirect Rule** per zone sending
-`www` to the apex, and one **Response Header Transform Rule** per zone setting
-`Cache-Control: no-store` when the path starts with `/assets/` and the status is
-404. `_headers` cannot match on status, so its `/assets/*` rule otherwise marks
-a missing chunk's 404 `immutable` for a year; `tools/smoke-production.sh`
-asserts it is not.
+→ Edge Certificates, on both zones), and one **Redirect Rule** per zone sending
+`www` to the apex.
+
+A missing chunk's 404 is NOT among them: each app's Worker answers every miss
+with `no-store`, where `_headers`' `/assets/*` `immutable` rule does not reach,
+and `tools/smoke-production.sh` asserts it on both sites. A Response Header
+Transform Rule doing the same, if one exists on either zone, is redundant.
 
 Always Use HTTPS answers every plain-http request on either zone, `www` and
 `assets.` included, with a 301 to its https twin. Without it plaintext reaches

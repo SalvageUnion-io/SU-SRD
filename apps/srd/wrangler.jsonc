@@ -1,9 +1,20 @@
 {
-  // salvageunion.io — the static SRD on Workers Static Assets (ADR-033). No
-  // `main`: there is no Worker script (ADR-031). Built in GitHub Actions, not
-  // Workers Builds (ADR-033 §4).
+  // salvageunion.io — the static SRD on Workers Static Assets (ADR-033). The
+  // script runs only for a miss (src/worker/index.ts); every header on a real
+  // file is public/_headers. Built in GitHub Actions, not Workers Builds
+  // (ADR-033 §4).
   "name": "su-srd",
+  "main": "src/worker/index.ts",
+  // At or below the workerd the wrangler devDependency bundles (deploy-cloudflare.yml).
   "compatibility_date": "2026-07-13",
+  // AsyncLocalStorage for @sentry/cloudflare; tools/check-observability.ts requires it.
+  "compatibility_flags": ["nodejs_als"],
+
+  // A deploy fails while one is unset; set with `wrangler secret put`. The
+  // `srd` Sentry project's DSN, the one the browser bundle inlines.
+  "secrets": {
+    "required": ["SENTRY_DSN"]
+  },
 
   // `www` is attached so the zone's Redirect Rule can act on it; the redirect
   // cannot live in `_redirects` (ADR-033, "Configuration outside the repo").
@@ -18,9 +29,17 @@
 
   "assets": {
     "directory": "./dist",
-    // dist/404.html with a 404 status. Not SPA mode: srd is pre-rendered, so a
-    // miss is genuinely a miss.
-    "not_found_handling": "404-page"
+    "binding": "ASSETS",
+    // A miss runs the Worker, which answers dist/404.html (or a bare 404 under
+    // `/assets/`) with `no-store`. Not `404-page`: Static Assets applies
+    // `_headers` to that response by path, so a missing chunk's 404 took the
+    // `/assets/*` rule's year of `immutable`. Not SPA mode either: srd is
+    // pre-rendered, so a miss is genuinely a miss.
+    "not_found_handling": "none"
+  },
+
+  "observability": {
+    "enabled": true
   },
 
   // `bun run preview` (`wrangler dev`) serves the built `dist/` exactly as

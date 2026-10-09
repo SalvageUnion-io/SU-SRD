@@ -91,6 +91,11 @@ type WorkerSurface = {
 
 const WORKER_SURFACES: WorkerSurface[] = [
   {
+    name: 'srd-worker',
+    entryPath: 'apps/srd/src/worker/index.ts',
+    configPath: 'apps/srd/wrangler.jsonc',
+  },
+  {
     name: 'itun-worker',
     entryPath: 'apps/itun/src/worker/index.ts',
     configPath: 'apps/itun/wrangler.jsonc',

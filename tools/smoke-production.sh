@@ -99,10 +99,11 @@ check_header https://intheunionnow.com/ strict-transport-security "itun HSTS rea
 # module import and an unfurl bot do.
 check https://intheunionnow.com/assets/index-DEADBEEF.js 404 "itun rotated chunk 404 (#759)"
 check https://intheunionnow.com/p/pilot/smoke 200 "itun client route without a navigation"
-# `_headers`' `/assets/*` rule marks a missing chunk's 404 `immutable` too, on
-# both sites, so a client that asks before a deploy finishes keeps the 404 for a
-# year. A zone Response Header Transform Rule sends `no-store` on those 404s
-# (ADR-033, "Configuration outside the repo").
+# `_headers` matches by path, not status, so its `/assets/*` rule would mark a
+# missing chunk's 404 `immutable` and a client that asks before a deploy
+# finishes would keep the 404 for a year. On both sites a Worker answers every
+# miss with `no-store` instead, where `_headers` does not reach
+# (apps/srd/src/worker/index.ts, apps/itun/src/worker/index.ts).
 check_header_lacks https://salvageunion.io/assets/index-DEADBEEF.js cache-control "srd rotated chunk 404 is not immutable" immutable
 check_header_lacks https://intheunionnow.com/assets/index-DEADBEEF.js cache-control "itun rotated chunk 404 is not immutable" immutable
 # A derivative, not the master: entity cards ask for `-440`/`-880` first. It
