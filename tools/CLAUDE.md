@@ -59,7 +59,7 @@ the corpus size, not just the finding count.
 | `check-convex-parity.ts` | `check:convex-parity:live` (nightly) | Every Convex function this repo defines exists on the deployment. Its static half is `workflows`' `convex-guard`. | — |
 | `deploy-surfaces.ts` | `.github/workflows/deploy-cloudflare.yml` | Diffs HEAD against the last successful deploy tag and decides which Cloudflare surfaces ship. Fails safe: when unsure it deploys everything. | — |
 | `environments.ts` | `e2e-nightly.yml` (`environments`); `--apply` by hand | The GitHub Environments declared once (branches, secret names) and compared against the live settings: no branch policy, a missing or repository-level secret, an undeclared Environment. `--apply` sets Environments and branch policies, never secrets. Its static half is `workflows`' `secrets-env`. | — |
-| `smoke-production.sh` | `deploy-cloudflare.yml` (`smoke` job) and `e2e-nightly.yml` (`production-smoke`) | Curls every production surface: status codes, www redirects, CSP/HSTS reaching the browser, the rotated-chunk 404, artwork robots.txt, bot token health. Runs every check, then exits 1 if any failed. | — |
+| `smoke-production.sh` | `deploy-cloudflare.yml` (`smoke` job) and `e2e-nightly.yml` (`production-smoke`) | Curls every production surface: status codes, www and http→https redirects, CSP/HSTS reaching the browser, the rotated-chunk 404, artwork robots.txt, bot token health. Runs every check, then exits 1 if any failed. | — |
 
 ## Local-only and by hand
 

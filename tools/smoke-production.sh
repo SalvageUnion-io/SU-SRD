@@ -63,6 +63,14 @@ check https://www.salvageunion.io/ 301 "srd www redirect"
 # itun's is checked for the same reason.
 check https://www.intheunionnow.com/ 301 "itun www redirect"
 check https://intheunionnow.com/ 200 "itun shell"
+# Plain http must never be served. Always Use HTTPS is a zone toggle, not repo
+# config (ADR-033, "Configuration outside the repo"); without it every hostname
+# answers http with 200 and HSTS never reaches a first-time visitor.
+check http://salvageunion.io/ 301 "srd http redirect"
+check http://www.salvageunion.io/ 301 "srd www http redirect"
+check http://intheunionnow.com/ 301 "itun http redirect"
+check http://www.intheunionnow.com/ 301 "itun www http redirect"
+check http://assets.salvageunion.io/robots.txt 301 "artwork http redirect"
 # The CSP must also admit Sentry's EU ingest host, or every event is blocked in
 # the browser while the project looks quiet (tools/check-observability.ts pins
 # the same host in the repo's CSP sources).

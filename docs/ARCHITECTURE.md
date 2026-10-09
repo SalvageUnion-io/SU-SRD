@@ -975,8 +975,10 @@ Everything runs here ([ADR-033](#adr-033)), account
 R2: `su-itun-snapshots` (read-only, never delete from it) and `su-lp-assets`.
 Zones `salvageunion.io` and `intheunionnow.com`. Previews under
 `alxjrvs.workers.dev`. Re-derive with `wrangler deployments list`,
-`wrangler r2 bucket list` and the `apps/*/wrangler.jsonc` files. **Outside the
-repo:** the `www` → apex Redirect Rule and per-zone Images Transformations.
+`wrangler r2 bucket list` and the `apps/*/wrangler.jsonc` files.
+**Outside the repo:** Always Use HTTPS (both zones), the `www` → apex Redirect
+Rule and per-zone Images Transformations; see
+[configuration outside the repo](#configuration-outside-the-repo).
 
 ### Sentry
 
@@ -4006,9 +4008,16 @@ that can deploy production. The bar it is held to:
 
 ### Configuration outside the repo
 
-Two things are configured in the Cloudflare dashboard and are invisible to
-`grep`: Images Transformations (enabled per zone), and one **Redirect Rule** per
-zone sending `www` to the apex.
+Three things are configured in the Cloudflare dashboard and are invisible to
+`grep`: Images Transformations (enabled per zone), **Always Use HTTPS** (SSL/TLS
+→ Edge Certificates, on both zones), and one **Redirect Rule** per zone sending
+`www` to the apex.
+
+Always Use HTTPS answers every plain-http request on either zone, `www` and
+`assets.` included, with a 301 to its https twin. Without it plaintext reaches
+the Workers and is served as-is: HSTS protects only a browser that has already
+seen an https response, and the Redirect Rule matches `www` over https only.
+`tools/smoke-production.sh` asserts the 301 on all five hostnames.
 
 | Zone                | When host equals        | Then                                          |
 | ------------------- | ----------------------- | --------------------------------------------- |
