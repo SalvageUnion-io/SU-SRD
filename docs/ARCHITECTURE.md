@@ -4006,9 +4006,16 @@ that can deploy production. The bar it is held to:
 
 ### Configuration outside the repo
 
-Two things are configured in the Cloudflare dashboard and are invisible to
-`grep`: Images Transformations (enabled per zone), and one **Redirect Rule** per
-zone sending `www` to the apex.
+Three things are configured in the Cloudflare dashboard and are invisible to
+`grep`: Images Transformations (enabled per zone), **Always Use HTTPS** (SSL/TLS
+→ Edge Certificates, on both zones), and one **Redirect Rule** per zone sending
+`www` to the apex.
+
+Always Use HTTPS answers every plain-http request on either zone, `www` and
+`assets.` included, with a 301 to its https twin. Without it plaintext reaches
+the Workers and is served as-is: HSTS protects only a browser that has already
+seen an https response, and the Redirect Rule matches `www` over https only.
+`tools/smoke-production.sh` asserts the 301 on all five hostnames.
 
 | Zone                | When host equals        | Then                                          |
 | ------------------- | ----------------------- | --------------------------------------------- |

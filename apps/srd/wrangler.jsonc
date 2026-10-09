@@ -21,8 +21,7 @@
   //
   // `www` is attached even though it must REDIRECT rather than serve, because
   // a hostname has to be proxied through Cloudflare before a Redirect Rule can
-  // act on it. The rule runs in the Rules phase, ahead of Workers and ahead of
-  // asset serving, so the redirect wins and this Worker never sees the request.
+  // act on it.
   //
   // The redirect itself is NOT in this repo and cannot be: `_redirects` does
   // not support domain-level rules — Cloudflare's own docs list them as

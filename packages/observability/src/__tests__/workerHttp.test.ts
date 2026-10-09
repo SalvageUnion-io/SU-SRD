@@ -35,7 +35,11 @@ describe('shared header constants', () => {
   test('the base set carries no CSP — that is per surface', () => {
     expect(Object.keys(BASE_SECURITY_HEADERS)).not.toContain('content-security-policy')
     expect(BASE_SECURITY_HEADERS['x-frame-options']).toBe('DENY')
-    expect(BASE_SECURITY_HEADERS['strict-transport-security']).toContain('preload')
+    // No `preload`: neither domain is on the HSTS preload list, so the token
+    // promised something nothing delivered.
+    expect(BASE_SECURITY_HEADERS['strict-transport-security']).toBe(
+      'max-age=63072000; includeSubDomains'
+    )
   })
 
   test('immutable cache-control is a year, immutable', () => {

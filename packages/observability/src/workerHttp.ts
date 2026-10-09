@@ -50,6 +50,6 @@ export const BASE_SECURITY_HEADERS: Readonly<Record<string, string>> = {
   'x-content-type-options': 'nosniff',
   'referrer-policy': 'strict-origin-when-cross-origin',
   'permissions-policy': 'geolocation=(), microphone=(), camera=()',
-  'strict-transport-security': 'max-age=63072000; includeSubDomains; preload',
+  'strict-transport-security': 'max-age=63072000; includeSubDomains',
   'x-dns-prefetch-control': 'on',
 }
