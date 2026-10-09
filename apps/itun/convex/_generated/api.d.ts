@@ -10,11 +10,13 @@
 
 import type * as account from "../account.js";
 import type * as auth from "../auth.js";
+import type * as authHealth from "../authHealth.js";
 import type * as botClient from "../botClient.js";
 import type * as botHttp from "../botHttp.js";
 import type * as changeLog from "../changeLog.js";
 import type * as claim from "../claim.js";
 import type * as crew from "../crew.js";
+import type * as crons from "../crons.js";
 import type * as downtime from "../downtime.js";
 import type * as entities from "../entities.js";
 import type * as games from "../games.js";
@@ -46,11 +48,13 @@ import type {
 declare const fullApi: ApiFromModules<{
   account: typeof account;
   auth: typeof auth;
+  authHealth: typeof authHealth;
   botClient: typeof botClient;
   botHttp: typeof botHttp;
   changeLog: typeof changeLog;
   claim: typeof claim;
   crew: typeof crew;
+  crons: typeof crons;
   downtime: typeof downtime;
   entities: typeof entities;
   games: typeof games;

@@ -448,8 +448,9 @@
     {
       // The other legitimate default-export contracts, each read by a framework
       // rather than imported by us: TanStack Router route modules, Cloudflare
-      // Worker entrypoints, the Convex http router and schema, and build/test
-      // config files. Listed here so the rule stays `error` everywhere else.
+      // Worker entrypoints, the Convex http router, schema and cron table, and
+      // build/test config files. Listed here so the rule stays `error`
+      // everywhere else.
       "includes": [
         "apps/itun/src/routes/**",
         // workerd reads `export default { fetch }` — the module IS the contract.
@@ -462,6 +463,7 @@
         "apps/*/src/worker/index.ts",
         "apps/*/src/http/worker.ts",
         "apps/itun/convex/http.ts",
+        "apps/itun/convex/crons.ts",
         "apps/itun/convex/schema.ts",
         "**/*.config.ts",
         "**/*.config.mts",
