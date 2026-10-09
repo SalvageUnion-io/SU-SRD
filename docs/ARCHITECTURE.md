@@ -608,19 +608,11 @@ enforced by `src/story-coverage.test.ts`.
   Dashboard, Wizard, Shell; edit `SUBGROUPS` and `storyOrder` together). No
   args or controls; real SRD data; don't churn export names.
 
-### Ladle shell relayout
-
-`appendToHead` turns the nav (`.ladle-aside`) into a right-edge overlay toggled
-by a button outside React, state as a class on `<html>`; desktop only. It
-targets Ladle's internal classes (`.ladle-aside`, `.ladle-main`,
-`.ladle-addons`): re-verify them on any upgrade.
-
 ### Ladle pin and type imports
 
 `@ladle/react` is pinned to 5.1.1; its types drag Ladle's UI source under
 `tsc`, which TypeScript 7 rejects, so nothing imports it (Biome's
-`noRestrictedImports`). To bump: `ladle:build`, check no story is blank,
-re-verify the relayout.
+`noRestrictedImports`). To bump: `ladle:build`, check no story is blank.
 
 ## Discord bot as a Game client
 
