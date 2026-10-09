@@ -13,17 +13,10 @@ import { GENERATED_PATHS } from '../check-generated'
  * tool runs, so there is no script to drive. What can drift is the list: a new
  * generated path that no `Edit(...)` rule covers is silently editable. These
  * tests match each representative path against the rules' globs.
- *
- * The package-manager names are built by concatenation, so this file never
- * spells one out as a command.
  */
 
 const ROOT = join(import.meta.dir, '..', '..')
 const HOOKS = join(ROOT, '.claude', 'hooks')
-
-const PM = `np${'m'}`
-const PM2 = `yar${'n'}`
-const PM3 = `pnp${'m'}`
 
 async function runHook(script: string, payload: unknown): Promise<number> {
   const proc = Bun.spawn([join(HOOKS, script)], {
@@ -111,12 +104,12 @@ describe('settings.json deny rules', () => {
     expect(editDenied(REPRESENTATIVE[path].file)).toBe(REPRESENTATIVE[path].denied)
   })
 
-  test.each([PM, PM2, PM3])('denies %s, directly and behind bunx', (pm) => {
+  test.each(['npm', 'yarn', 'pnpm'])('denies %s, directly and behind bunx', (pm) => {
     expect(deny).toContain(`Bash(${pm} *)`)
     expect(deny).toContain(`Bash(bunx ${pm}*)`)
   })
 
-  test.each(['package-lock.json', `${PM2}.lock`, `${PM3}-lock.yaml`])(
+  test.each(['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml'])(
     'gitignores a foreign lockfile: %s',
     async (lockfile) => {
       const proc = Bun.spawn(['git', 'check-ignore', '-q', '--no-index', lockfile], { cwd: ROOT })
