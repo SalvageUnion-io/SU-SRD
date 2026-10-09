@@ -5292,7 +5292,7 @@ Nothing else consumed a version. Sentry tags every event with the deployed SHA
 
 ### Status
 
-**Accepted; built** (2026-10-09).
+**Accepted; built** (2026-10-09). Decision 4, the soft update, was added in the same stack.
 
 ### Context
 
@@ -5325,10 +5325,22 @@ pilot it had just built.
    `tools/convex-client-contract.json`. A change that refuses a call the
    snapshot accepted fails unless the floor was raised. A compatible change
    only rewrites the snapshot.
+4. **A compatible build is picked up at the next page change.** A tab learns
+   a new build is live when its update check installs the new worker
+   (`onNeedRefresh`), or when another tab activates it (`onNeedReload`, which
+   no longer reloads this tab). From then on, its next in-app navigation to
+   another page is a full load of that page (`src/lib/sw/softUpdate.ts`).
+   Same-page updates and back/forward stay in-app. Intent preloading stops,
+   because an old chunk name would fail and chunk recovery would reload the
+   page.
 
 ### Consequences
 
-- A compatible deploy leaves every open tab writing.
+- A compatible deploy leaves every open tab writing. The tab moves onto the
+  new build when the player next changes page, and nothing reloads under
+  them. A wizard draft survives that load (`lib/wizard/wizardDraft.ts`).
+- A tab that never changes page keeps running the build it loaded. That is
+  safe, because the floor did not move.
 - A breaking deploy behaves as before: open tabs stop writing at once and
   reload onto the new build.
 - The gate sees argument validators only. A `v.any()` body whose meaning

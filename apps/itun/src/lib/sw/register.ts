@@ -34,10 +34,10 @@
  * `vite.config.ts` sets `registerType: 'prompt'`, which emits a worker that
  * installs and WAITS. Nothing is swapped under a live page. The update lands
  * when this page asks for it (`reloadOntoNewBuild`: post `SKIP_WAITING`, then
- * reload on `controllerchange`) or when every tab has closed. In prompt mode
- * `virtual:pwa-register` also reloads a tab that saw the worker waiting once
- * that worker takes control, so every open tab moves onto the new build
- * together.
+ * reload on `controllerchange`) or when every tab has closed. In prompt mode,
+ * `virtual:pwa-register` would also reload every other tab that saw the worker
+ * waiting, once that worker takes control. `onNewBuild` replaces that reload:
+ * the other tabs move at their own next page change (`softUpdate.ts`).
  *
  * ---------------------------------------------------------------------------
  * WHO ASKS: THE BACKEND'S BUILD FLOOR
@@ -68,6 +68,14 @@ export type RegisterOptions = {
    * page's build (see `serverBootsAnotherBuild`).
    */
   entryChunk?: string
+  /**
+   * Called once a new build is live, whether this tab's update check installed
+   * its worker or another tab activated it. main.tsx passes the soft update's
+   * signal (`softUpdate.ts`), which moves this tab onto the new build at its
+   * next page change. Without it, another tab's activation reloads this one on
+   * the spot, which is `virtual:pwa-register`'s default.
+   */
+  onNewBuild?: () => void
 }
 
 /** How often a visible tab asks the server whether a new build exists. */
@@ -248,6 +256,11 @@ export type RegisterSW = (options: RegisterSWOptions) => unknown
 export function registerServiceWorker(registerSW: RegisterSW, options: RegisterOptions = {}): void {
   bootedEntryChunk = options.entryChunk
   registerSW({
+    onNeedRefresh: options.onNewBuild,
+    // Replaces the plugin's reload of this tab when another tab activates the
+    // waiting worker. A tab below the build floor still reloads: its own loop
+    // does that (`src/lib/connection/buildFloor.ts`).
+    ...(options.onNewBuild ? { onNeedReload: options.onNewBuild } : {}),
     onRegisteredSW: (_swUrl, registration) => {
       if (registration !== undefined) keepCheckingForUpdates(registration, document)
     },
