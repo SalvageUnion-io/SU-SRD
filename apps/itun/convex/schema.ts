@@ -560,9 +560,8 @@ export default defineSchema({
     /**
      * The id inside the body, lifted into a column.
      *
-     * A pattern's identity has always been `body.id`, and the mirror found its
-     * row by collecting every pattern the owner had and comparing bodies in JS.
-     * Carrying it here makes that one read on `by_owner_app_id`.
+     * A pattern's identity is `body.id`. Carrying it here lets the client's
+     * server-first write find the row with one read on `by_owner_app_id`.
      *
      * Optional because a body need not carry an id; a row without one cannot
      * be addressed by `findOwnedByAppId`.

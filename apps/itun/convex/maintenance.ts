@@ -33,16 +33,15 @@ import {
  * ## The duplicate-appId repair
  *
  * `pilots`, `mechs` and `crawlers` are addressed by the client's own `appId`,
- * and the lookups that address them — `byAppId` and `patchCrawlerByAppId` —
- * use `.unique()`, which **throws** when a second row shares an app id. Because
- * mirrored writes are fire-and-forget, that throw never reached a player: the
- * local write succeeded, the UI looked correct, and every subsequent edit to
- * that entity silently failed to reach the server of record. An account in that
- * state does not recover on its own and does not get better with time.
+ * and `by_app_id` is not a uniqueness constraint. The lookups that address
+ * them — `byAppId` and `crawlerByAppId` in `entities.ts` — tolerate a
+ * duplicate: they resolve to the oldest row, `console.warn`, and let the write
+ * land, so a duplicate never blocks a player's write.
  *
- * Every insert now looks its app id up first, so no new duplicates are made.
- * The rows already written are still there, and still breaking every write,
- * until something removes them.
+ * Every insert looks its app id up first, so no new duplicates are made. The
+ * rows already written stay until something removes them, and every lookup of
+ * that entity warns about them. `dedupeAppIds` is that removal: data hygiene,
+ * not an unblocker for broken writes.
  *
  * **Run the dry run first.** With no arguments this reports and changes
  * nothing:

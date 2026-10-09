@@ -138,8 +138,8 @@ export function useRowActions(confirm: Confirm): RowActions {
         ...ROW_ACTION_COPY.deleteFromGame(row.name),
         onConfirm: async () => {
           // Server first, addressed by server id: the row may never have been
-          // in this browser, and a template pre-gen has no appId for the mirror
-          // to address it by.
+          // in this browser, and a template pre-gen has no appId for
+          // `commitEntityWrite` to address it by.
           await removeEntity({ table: ownableTable(row), entityId: row.serverId })
           // Then drop the cached copy, exactly as release and scrap do.
           // `forget`, not `delete`: the server row is already gone, so a second

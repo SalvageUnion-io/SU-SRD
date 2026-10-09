@@ -19,13 +19,9 @@
  *
  * And a fourth state that is *not* one of the three, which is why it is named:
  *
- *   **Connecting is not Solo.** While Convex is still completing its initial
- *   auth handshake nobody knows yet whether there is a session. Collapsing that
- *   window into Solo is what made it dangerous: writes went to IndexedDB and
- *   the mirror early-returned, so a crawler edit made in the first few hundred
- *   milliseconds after load was persisted locally and never sent — permanently,
- *   because the crawler mirror is a field patch that is never resent. Naming the
- *   window means writes are refused for it instead of silently forked.
+ *   **Connecting is its own state.** While Convex is still completing its
+ *   initial auth handshake nobody knows yet whether there is a session, so
+ *   writes are refused for as long as it lasts.
  */
 
 export const CONNECTION_MODES = ['solo', 'connecting', 'connected', 'disconnected'] as const
