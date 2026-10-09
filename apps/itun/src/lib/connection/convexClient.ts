@@ -4,7 +4,7 @@ import { ConvexReactClient } from 'convex/react'
  * The Convex client, or `null` when this build has no deployment configured.
  *
  * `VITE_CONVEX_URL` is written into `.env.local` by `bunx convex dev` and that
- * file is gitignored, so a checkout that has never run it — CI, a fresh
+ * file is gitignored, so a checkout that has never run it — a fresh
  * contributor, a deliberately backend-free deploy — compiles with the variable
  * undefined. That is a **supported build**, not a misconfiguration: it runs in
  * Solo mode, read-only (ADR-034 — nothing is built without an account).

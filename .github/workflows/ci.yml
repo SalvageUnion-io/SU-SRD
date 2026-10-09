@@ -264,8 +264,21 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Build itun
-        run: bun --filter itun build
+      # The variant production ships: compiled against a Convex URL, so the
+      # specs and the scan below see the signed-out read-only UI players get.
+      # The URL is a throwaway backend carrying this PR's own functions, not
+      # production: a PR's client must run against the backend it ships with,
+      # and a PR gate makes no production calls.
+      - name: Start a throwaway Convex backend
+        id: convex
+        uses: ./.github/actions/convex-backend
+
+      - name: Push functions and build itun against the backend
+        working-directory: apps/itun
+        env:
+          CONVEX_SELF_HOSTED_URL: ${{ steps.convex.outputs.url }}
+          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.convex.outputs.admin-key }}
+        run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
 
       # The build emits the assets; this bundles the Worker `main` that ships.
       - name: Bundle the Worker that actually deploys
@@ -318,6 +331,10 @@ jobs:
           name: playwright-report-e2e-itun
           path: apps/itun/playwright-report/
           retention-days: 7
+
+      - name: Backend logs on failure
+        if: failure()
+        run: docker logs convex-e2e || true
 
   build-discord-bot:
     needs: [changes]

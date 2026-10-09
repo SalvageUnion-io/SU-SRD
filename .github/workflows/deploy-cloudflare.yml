@@ -46,10 +46,10 @@ name: Deploy (Cloudflare)
 # Neither CI build is the production artifact:
 #   - srd: CI builds with no Sentry DSN, and production must ship the DSN,
 #     source maps and the OG images, none of which CI produces.
-#   - itun: CI builds a Solo client with no `VITE_CONVEX_URL`, so its smoke and
-#     bundle-budget specs run with the account gate off. Production must be
-#     compiled against the production deployment's URL (`ITUN_CONVEX_URL`
-#     below, checked against Convex's canonical URL before the push).
+#   - itun: CI builds against a throwaway Convex backend carrying the PR's own
+#     functions. Production must be compiled against the production
+#     deployment's URL (`ITUN_CONVEX_URL` below, checked against Convex's
+#     canonical URL before the push), and with the Sentry DSN.
 # And CI path-filters per PR while this workflow deploys per LAST RECORDED
 # DEPLOY (CI-01), so a surface can need deploying on a commit where CI skipped
 # its build — a CI-artifact path would need this build path as a fallback

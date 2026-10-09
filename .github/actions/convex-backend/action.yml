@@ -1,0 +1,83 @@
+name: Throwaway Convex backend
+description: Start a self-hosted Convex backend in a container and generate its admin key
+
+# The backend a CI job builds itun against when it must not touch production:
+# ci.yml's `build-itun` (the PR browser gate) and e2e-nightly.yml's `e2e-itun`
+# (the signed-in suite). The container dies with the runner, holds no data and
+# needs no credentials, so a job using it requests no secrets.
+#
+# Push functions to it and build in one step, from apps/itun:
+#
+#   env:
+#     CONVEX_SELF_HOSTED_URL: ${{ steps.<id>.outputs.url }}
+#     CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.<id>.outputs.admin-key }}
+#   run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
+#
+# The container is named `convex-e2e`; a job reads its logs with
+# `docker logs convex-e2e`.
+outputs:
+  url:
+    description: The backend's client URL (VITE_CONVEX_URL, CONVEX_SELF_HOSTED_URL)
+    value: http://127.0.0.1:3210
+  admin-key:
+    description: The admin key `bunx convex` needs to push to it (masked)
+    value: ${{ steps.adminkey.outputs.key }}
+runs:
+  using: composite
+  steps:
+    # `docker run`, not a `services:` block: the admin key has to be produced
+    # by exec-ing into the container after it starts, and `services:` gives no
+    # predictable name to exec into.
+    - name: Start a self-hosted Convex backend
+      shell: bash
+      run: |
+        # CONVEX_CLOUD_ORIGIN / CONVEX_SITE_ORIGIN are NOT optional here.
+        # `run_backend.sh` passes `--convex-origin "$CONVEX_CLOUD_ORIGIN"
+        # --convex-site "$CONVEX_SITE_ORIGIN"` unconditionally, so leaving
+        # them unset supplies EMPTY STRING arguments rather than omitting the
+        # flags — and the backend deliberately accepts an empty origin ("so
+        # you can start up a self-hosted backend without knowing its url
+        # yet"), which means the built-in defaults never fire. Upstream's
+        # defaults live in their docker-compose.yml, which a bare `docker run`
+        # skips.
+        #
+        # Downstream that lands exactly where a signed-in job is meant to be
+        # immune: `convex/auth.config.ts` is `domain: process.env.CONVEX_SITE_URL`,
+        # and @convex-dev/auth signs tokens with `setIssuer(requireEnv(...))`,
+        # whose guard rejects only `undefined` — so an empty string is signed
+        # in as the issuer and sign-in fails for a reason nothing names.
+        #
+        # Pinned by digest, not `:latest`. This stack's whole argument is that
+        # a mutable tag in CI is an unreviewed fetch; shipping one in the job
+        # that makes the argument would be a poor look, and the pinning gate
+        # cannot see `docker run` to catch it.
+        docker run -d --name convex-e2e \
+          -p 3210:3210 -p 3211:3211 \
+          -e INSTANCE_NAME=e2e \
+          -e CONVEX_CLOUD_ORIGIN=http://127.0.0.1:3210 \
+          -e CONVEX_SITE_ORIGIN=http://127.0.0.1:3211 \
+          -e DISABLE_BEACON=true \
+          ghcr.io/get-convex/convex-backend@sha256:1f2044e3eac463ac78973b136c0baf72d4ada602611d853d6f99f280e29e0a98
+        for i in $(seq 1 60); do
+          if curl -fsS http://127.0.0.1:3210/version >/dev/null 2>&1; then
+            echo "backend ready after ${i}s"
+            exit 0
+          fi
+          sleep 1
+        done
+        echo "::error::Convex backend did not become ready within 60s"
+        docker logs convex-e2e || true
+        exit 1
+
+    - name: Generate an admin key
+      id: adminkey
+      shell: bash
+      run: |
+        KEY="$(docker exec convex-e2e ./generate_admin_key.sh | tail -n1 | tr -d '\r')"
+        if [ -z "$KEY" ]; then
+          echo "::error::generate_admin_key.sh produced no key"
+          docker logs convex-e2e || true
+          exit 1
+        fi
+        echo "::add-mask::$KEY"
+        printf 'key=%s\n' "$KEY" >> "$GITHUB_OUTPUT"
