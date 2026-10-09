@@ -2,8 +2,8 @@
 import { Changelog } from 'component-lib'
 import { Caption } from '../preview-lib/harness'
 
-// Real-shaped release entries, as release-please produces them across the Site
-// and Data changelogs.
+// Real-shaped release entries, as release-please writes them into a site's
+// changelog.
 const ENTRIES = [
   {
     date: '2026-07-18',
@@ -17,7 +17,7 @@ const ENTRIES = [
   {
     date: '2026-07-12',
     version: '1.3.0',
-    area: 'Data',
+    area: 'Site',
     items: [
       'Model Eldridge Coast companions as equipment loadouts',
       'Condition + uses tracking for drone loadout items',
@@ -26,12 +26,12 @@ const ENTRIES = [
   {
     date: '2026-07-04',
     title: 'Crawler bays',
-    area: 'Data',
+    area: 'Site',
     items: ['One Crawler Bay type; homebrew bays grouped underneath'],
   },
 ]
 
-/** The merged release list — each entry a paper panel with an area badge. */
+/** The release list — each entry a paper panel with an area badge. */
 export function Releases() {
   return (
     <div className="flex max-w-2xl flex-col gap-3 bg-paper p-4">
