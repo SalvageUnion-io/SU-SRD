@@ -21,14 +21,6 @@ import { convexAuth } from '@convex-dev/auth/server'
  * exception and why it is not one.
  */
 /**
- * No `afterUserCreatedOrUpdated` callback stamps the Discord snowflake here,
- * and deliberately so: `@convex-dev/auth` destructures `id` out of the OAuth
- * profile before any callback sees it, so such a stamp is always `undefined`
- * and fails silently. The bot resolves a Discord id through `authAccounts`
- * instead — see `model/bot.ts#userByDiscordId`.
- */
-
-/**
  * The stock Discord provider, materialized so its `profile()` can be wrapped.
  *
  * `Discord` is a factory; `convexAuth` accepts either the factory or a

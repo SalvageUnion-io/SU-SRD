@@ -6,18 +6,10 @@ import { getMembership, NotAuthorized, requireOrganizerAs } from './permissions'
 /**
  * Shared logic for the Discord bot as a Game participant (ADR-030 Phase 6).
  *
- * Two callers reach this module and they authenticate differently:
- *
- *   - `bot.ts` — the **web** surface. The caller holds a Convex auth token, so
- *     the actor comes from `getAuthUserId`.
- *   - `botClient.ts` — the **bot** surface, reached over HTTP with a bot
- *     credential. There is no token; the actor is resolved from a linked
- *     Discord id.
- *
- * Both funnel through the same functions here and the same
- * `model/permissions.ts` checks, so "who may bind a channel" has one answer
- * regardless of which door the request came through. That is the whole reason
- * this module exists rather than the logic living in either caller.
+ * The caller is `botClient.ts`, reached over HTTP with a bot credential. There
+ * is no Convex auth token, so the actor is resolved from a linked Discord id
+ * and then held to the same `model/permissions.ts` checks as a signed-in web
+ * caller.
  */
 
 type AnyCtx = QueryCtx | MutationCtx
@@ -31,21 +23,6 @@ export type BotResolution<T> = { ok: true; value: T } | { ok: false; reason: Bot
  * writes on every Discord sign-in — `{ provider: 'discord', providerAccountId:
  * <snowflake> }`, indexed as `providerAndAccountId`. It is therefore correct by
  * construction, with nothing to stamp, backfill, or keep in step.
- *
- * This replaces an earlier attempt that denormalized the snowflake onto
- * `users.discordId` from an `afterUserCreatedOrUpdated` callback. That could
- * never have worked, and silently: the library destructures `id` out of the
- * OAuth profile before the callback sees it
- * (`implementation/index.js`: `const { id, ...profileFromCallback } = await
- * provider.profile(...)`), so the value was always `undefined` and every bot
- * command would have answered "no account" forever. Reading `authAccounts`
- * removes the copy rather than fixing the copier — there is no second place for
- * the truth to drift to.
- *
- * Note the ordering that also rules out doing this *inside* that callback:
- * `upsertUserAndAccount` runs `createOrUpdateUser` (which fires the callback)
- * **before** `createOrUpdateAccount`, so on a first sign-in the account row does
- * not exist yet.
  */
 export async function userByDiscordId(
   ctx: AnyCtx,

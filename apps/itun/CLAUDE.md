@@ -28,8 +28,8 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
   `ShelfSync`; signed out it renders nothing. No surface uploads rows from
   IndexedDB: every cached row came from the server or from a write it accepted.
 - **A container written twice must be written together** — the row's `gameId`
-  column and the body's `gameId` (`maintenance.repairContainers` repairs old
-  rows toward the column).
+  column and the body's `gameId`. Where they disagree, the column is the
+  authority.
 - **e2e durability specs need an account.** Without `VITE_CONVEX_URL` +
   `VITE_TEST_AUTH` in the build and `ITUN_TEST_AUTH` on the deployment they
   SKIP; the nightly `e2e-itun` job provisions a throwaway Convex backend and
@@ -190,12 +190,10 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   `pilots`, `mechs` and `crawlers` are looked up by the client's `appId`, and
   `by_app_id` is an ordinary index — **not** a uniqueness constraint — so
   nothing in the database stops a second row. Prevention is the rule: look the
-  app id up (`byAppId`) before any insert. `convex/maintenance.ts` repairs rows already
-  in that state (`dedupeAppIds`, dry-run by default).
+  app id up (`byAppId`) before any insert.
 
   The lookups (`byAppId` / `crawlerByAppId`) do **not** throw on a duplicate:
-  they resolve to the oldest row (the one `dedupeAppIds` keeps) and
-  `console.warn`.
+  they resolve to the oldest row and `console.warn`.
 - **A copy gets a new UUID; a move keeps its own.** These pull in opposite
   directions, so both matter:
   - **Copy → new id.** Importing a bundle (`mergeImport`) and seeding the

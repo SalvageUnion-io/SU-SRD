@@ -62,9 +62,8 @@ async function byAppId(
 ): Promise<Doc<PublicTable> | null> {
   // `by_app_id` is an ordinary index and NOT a uniqueness constraint, so a
   // duplicate is possible. Resolving to the OLDEST match is what the rest of
-  // the codebase does (`entities.byAppId`) and matters here for the same
-  // reason: it is the row `maintenance.dedupeAppIds` keeps, so a public link
-  // does not start pointing somewhere else after a repair runs.
+  // the codebase does (`entities.byAppId`), so a public link and a write agree
+  // on which row is the entity.
   const rows = await ctx.db
     .query(table)
     .withIndex('by_app_id', (q) => q.eq('appId', appId))

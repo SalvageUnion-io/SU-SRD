@@ -130,7 +130,7 @@ pilots/mechs/crawlers that the change must mirror:
 | Change log | `appendChangeLog` and `forEntity` (`convex/changeLog.ts`) accept `'npc'` |
 | Public sheet | `/p/:kind/:appId` accepts `npc` if `publicRead` applies (ADR-032) |
 
-`tools/check-convex-codegen.ts`, `bun run check generated` and the export/import
+`tools/check-convex-callers.ts` (its `api.d.ts` module check), `bun run check generated` and the export/import
 round-trip tests are the guards that will say when one of these was missed.
 
 ---

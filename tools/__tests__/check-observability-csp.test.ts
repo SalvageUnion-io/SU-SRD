@@ -239,8 +239,7 @@ describe('check-observability Workers static-assets headers', () => {
   /**
    * The `assets` match must survive the prose. These configs mention `/assets/*`
    * repeatedly in comments before declaring anything, so a substring match on
-   * "assets" would keep passing after the real binding was deleted — the exact
-   * trap `check-convex-parity.ts` fell into with `convex deploy`.
+   * "assets" would keep passing after the real binding was deleted.
    */
   test('a commented-out assets binding does not satisfy the rule', async () => {
     await withFileContents(

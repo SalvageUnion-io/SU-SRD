@@ -644,9 +644,8 @@ async function assertMayScrapCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Pr
  *
  * `.unique()` would turn that *data* condition into a thrown `Server Error` on
  * every write to the entity, locking the player out of their own build over a
- * row they cannot see. A duplicate is a repair job (`dedupeAppIds`), not a
- * reason to refuse the write, so this resolves one row, warns, and lets the
- * write land.
+ * row they cannot see. A duplicate is a repair job, not a reason to refuse
+ * the write, so this resolves one row, warns, and lets the write land.
  *
  * **The oldest row wins, deterministically.** It is the row every earlier
  * write already landed on, so choosing it keeps editing the copy the client has

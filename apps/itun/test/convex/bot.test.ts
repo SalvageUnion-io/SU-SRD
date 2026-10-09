@@ -25,8 +25,7 @@ type Ctx = ReturnType<typeof testConvex>
  *
  * The Discord identity is seeded as an `authAccounts` row — the row
  * `@convex-dev/auth` writes on a real sign-in — because that is what the bot
- * resolves against. Writing `users.discordId` instead would test a field
- * nothing reads.
+ * resolves against.
  */
 async function makeUser(t: Ctx, name: string, discordId?: string) {
   const userId = await t.run(async (ctx) => {
@@ -405,27 +404,9 @@ describe('identity comes from the sign-in itself', () => {
     const t = testConvex()
     await seedBoundGame(t)
 
-    // No stamping, no backfill, no `users.discordId`: `authAccounts` already
-    // holds the snowflake, and reading it removes the copy rather than fixing
-    // the copier. An earlier attempt stamped it from an
-    // `afterUserCreatedOrUpdated` callback, which could never work — the
-    // library destructures `id` out of the OAuth profile before any callback
-    // sees it, so the value was always undefined and every bot command would
-    // have answered "no account" forever.
+    // `authAccounts` holds the snowflake; nothing copies it onto `users`.
     const result = await t.query(internal.botClient.me, { discordId: 'discord-player' })
     expect(result).toMatchObject({ ok: true })
-  })
-
-  test('a users.discordId column alone resolves nothing', async () => {
-    const t = testConvex()
-    await t.run(
-      async (ctx) => await ctx.db.insert('users', { name: 'Ghost', discordId: 'discord-ghost' })
-    )
-
-    // Guards against reintroducing the denormalized column as a second source
-    // of truth: it is not where identity lives.
-    const result = await t.query(internal.botClient.me, { discordId: 'discord-ghost' })
-    expect(result).toMatchObject({ ok: false, reason: 'unlinked' })
   })
 })
 

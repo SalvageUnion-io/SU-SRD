@@ -145,17 +145,10 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
-    id: 'convex-codegen',
-    guards: 'convex/_generated/api.d.ts registers exactly the modules on disk',
-    fix: 'regenerate with `bunx convex dev` (needs a deployment); never hand-edit convex/_generated/',
-    cmd: ['bun', 'tools/check-convex-codegen.ts'],
-    areas: REPO_INVARIANT,
-    profiles: ALL,
-  },
-  {
     id: 'convex-callers',
-    guards: 'every public Convex function has a shipped caller',
-    fix: 'delete the function, or make it `internal*` if only the server calls it',
+    guards:
+      'every public Convex function has a shipped caller; api.d.ts registers the modules on disk',
+    fix: 'delete the function or make it `internal*`; for api.d.ts drift, regenerate with `bunx convex dev`',
     cmd: ['bun', 'tools/check-convex-callers.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,

@@ -277,10 +277,11 @@ describe('container parity — every local store can reach the server', () => {
    * ADR-034 decision 2 extends that to every entity-shaped table — which is
    * what let a crawler survive a deleted Game (#871) and, in this change, an
    * encounter NPC too. A table that can only be in a Game cannot express the
-   * shelf half, and that is precisely the gap both of those had.
+   * shelf half, and that is precisely the gap both of those had. A mech
+   * pattern is personal, so it is shelf-only and not one of them.
    */
   test('every entity-shaped table can express BOTH containers', () => {
-    const ENTITY_TABLES = ['pilots', 'mechs', 'crawlers', 'encounterNpcs', 'mechPatterns'] as const
+    const ENTITY_TABLES = ['pilots', 'mechs', 'crawlers', 'encounterNpcs'] as const
 
     for (const name of ENTITY_TABLES) {
       const table = schema.tables[name]
