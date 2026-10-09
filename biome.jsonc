@@ -768,8 +768,7 @@
       // This sits AFTER the `apps/itun/**` / `packages/component-lib/**` block
       // that sets that rule to "warn", because Biome applies overrides in array
       // order and the later one wins. Placed near the top of this array, it was
-      // silently overridden back to "warn" — the same ordering trap documented
-      // in the not-linted section below.
+      // silently overridden back to "warn".
       "includes": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],
       "linter": {
         "rules": {
@@ -782,67 +781,16 @@
         }
       }
     },
-
-    // ===================================================================
-    // NOT-LINTED PATHS — these three blocks MUST SORT LAST.
-    //
-    // Biome applies overrides in array order, and a later override that
-    // supplies a `linter` object resets `enabled` back to true for any file it
-    // also matches. These blocks used to sit near the TOP, above the
-    // `apps/itun/**`, `apps/srd/**` and `packages/salvageunion-reference/**`
-    // rule blocks — so every path below was declared unlinted and linted
-    // anyway. It was not theoretical: `biome lint
-    // packages/salvageunion-reference/tools` reported 2 warnings against a
-    // directory the repo had decided not to lint at all.
-    //
-    // The previous response to that was to re-state individual rule exemptions
-    // in extra overrides further down, which papered over one rule at a time
-    // and had to be repeated for every new rule. Sorting these last fixes the
-    // mechanism instead, so "enabled: false" simply means what it says.
-    //
-    // Keep any future not-linted path in this section, and keep this section
-    // at the bottom of the array.
-    // ===================================================================
     {
-      // ESLint never covered these (see packages/salvageunion-reference/eslint.config.js
-      // ignores: lib/*.template.ts, tools/**, examples/**), but Prettier did — that
-      // package's .prettierignore only excludes dist/node_modules/.git/*.tsbuildinfo/
-      // lib/generated. Keep formatting on, linting off, to match.
-      "includes": [
-        "packages/salvageunion-reference/lib/*.template.ts",
-        "packages/salvageunion-reference/tools/**",
-        "packages/salvageunion-reference/examples/**"
-      ],
-      "linter": {
-        "enabled": false
-      }
-    },
-    {
-      // *.d.ts was ESLint-ignored repo-wide (root + salvageunion-reference configs
-      // both list '**/*.d.ts') but never Prettier-ignored.
+      // Ambient declarations extend globals by interface merging (`ImportMetaEnv`,
+      // `ImportMeta` in the Vite env files), which a `type` alias cannot do.
       "includes": ["**/*.d.ts"],
       "linter": {
-        "enabled": false
-      }
-    },
-    {
-      // These live outside the app tsconfig project (own TS pipeline at
-      // `playwright test` time), so ESLint skipped them; Prettier still
-      // formatted them (only lib/generated + build-output dirs are
-      // Prettier-ignored). Keep formatting on, linting off, to match.
-      //
-      // NOTE: as of this change they ARE type-checked — the e2e dirs and both
-      // playwright configs joined their workspace tsconfig `include`. Linting
-      // stays off; type-checking is the coverage that was actually missing.
-      "includes": [
-        "apps/itun/playwright.config.ts",
-        "apps/itun/e2e/**",
-        "apps/srd/playwright.config.ts",
-        "apps/srd/e2e/**",
-        "packages/component-lib/vite.config.ts"
-      ],
-      "linter": {
-        "enabled": false
+        "rules": {
+          "style": {
+            "useConsistentTypeDefinitions": "off"
+          }
+        }
       }
     }
   ]

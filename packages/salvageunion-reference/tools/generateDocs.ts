@@ -7,7 +7,7 @@ import path from 'node:path'
  */
 const PACKAGE_DIR = path.join(import.meta.dir, '..')
 
-interface SchemaInfo {
+type SchemaInfo = {
   id: string
   title: string
   description: string
@@ -39,7 +39,7 @@ function getItemCount(dataFile: string): number {
   }
 }
 
-interface JSONSchema {
+type JSONSchema = {
   items?: {
     required?: string[]
     oneOf?: Array<{ required?: string[] }>
@@ -134,7 +134,7 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
  * No `version` field: the package has no release stream (ADR-040), the
  * repository's release is the deployed commit (ADR-041), and nothing reads one.
  */
-interface SchemaIndex {
+type SchemaIndex = {
   $schema: string
   title: string
   description: string
