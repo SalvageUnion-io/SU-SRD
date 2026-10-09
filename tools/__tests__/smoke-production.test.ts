@@ -33,11 +33,14 @@ describe('smoke-production wiring', () => {
     expect(smoke?.steps.some((step) => step.run === 'bash tools/smoke-production.sh')).toBe(true)
   })
 
-  test('the nightly workflow runs it and its notifier treats it as always-run', () => {
+  test('the nightly workflow runs it unconditionally and its notifier judges it', () => {
     const nightly = workflow('e2e-nightly.yml')
+    const jobs = (Bun.YAML.parse(nightly) as { jobs: Record<string, { if?: string }> }).jobs
     expect(nightly).toContain('run: bash tools/smoke-production.sh')
+    expect(jobs['production-smoke']?.if).toBeUndefined()
     expect(nightly).toMatch(/needs: \[[^\]]*\bproduction-smoke\b[^\]]*\]/)
-    expect(nightly).toMatch(/ALWAYS_RUNS = new Set\(\[[^\]]*'production-smoke'/)
+    // Anything but `success` is broken, so a skipped smoke still opens the issue.
+    expect(nightly).toContain("results.filter(([, result]) => result !== 'success')")
   })
 })
 
