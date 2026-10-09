@@ -2,10 +2,12 @@
  * Rich /su lookup embed tests.
  *
  * The load-bearing test is the exhaustive pass: EVERY entity in EVERY schema
- * goes through buildLookupEmbed and must yield a Discord-valid embed. We
- * can't see embeds in Discord, so this is what proves the formatter never
- * emits something Discord would reject — across all 27 schemas, not the
- * three we'd pick by hand.
+ * goes through buildLookupEmbed and lookupContainerData, and the container
+ * guard must have nothing to shed. We can't see replies in Discord, so this is
+ * what proves a lookup arrives whole (description, fields and footer) across
+ * all 27 schemas, not the three we'd pick by hand. The guard sheds whole
+ * blocks from the end, so a description that overruns the budget leaves a
+ * reply that is only its heading (#1124).
  */
 import { describe, expect, test } from 'bun:test'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
@@ -16,41 +18,21 @@ import {
   SalvageUnionReference,
   search,
 } from 'salvageunion-reference'
+import { enforceContainerLimits } from '../container.js'
+import { lookupContainerData } from '../lookupContainer.js'
 import type { LookupEmbed } from '../lookupEmbed.js'
 import { buildLookupEmbed } from '../lookupEmbed.js'
 
-// Discord's hard limits (mirrors lookupEmbed.ts).
-const LIMIT = {
-  title: 256,
-  description: 4096,
-  fieldName: 256,
-  fieldValue: 1024,
-  fields: 25,
-  footer: 2048,
-  total: 6000,
-}
+type Entity = SURefEntity & { schemaName: SURefEnumSchemaName }
 
-function embedCharTotal(e: LookupEmbed): number {
-  const fields = e.fields.reduce((n, f) => n + f.name.length + f.value.length, 0)
-  return e.title.length + (e.description?.length ?? 0) + e.footer.length + fields
-}
-
-function assertValid(e: LookupEmbed, label: string): void {
-  expect(e.title.length, `${label}: title`).toBeLessThanOrEqual(LIMIT.title)
-  expect(e.description?.length ?? 0, `${label}: description`).toBeLessThanOrEqual(LIMIT.description)
-  expect(e.fields.length, `${label}: field count`).toBeLessThanOrEqual(LIMIT.fields)
-  expect(e.footer.length, `${label}: footer`).toBeLessThanOrEqual(LIMIT.footer)
-  for (const f of e.fields) {
-    expect(f.name.length, `${label}: field name "${f.name}"`).toBeLessThanOrEqual(LIMIT.fieldName)
-    expect(f.value.length, `${label}: field value for "${f.name}"`).toBeLessThanOrEqual(
-      LIMIT.fieldValue
-    )
-  }
-  expect(embedCharTotal(e), `${label}: total chars`).toBeLessThanOrEqual(LIMIT.total)
+/** The reply as sent must arrive whole: the container guard sheds no block. */
+function assertFits(e: LookupEmbed, entity: Entity, label: string): void {
+  const data = lookupContainerData(e, entity)
+  expect(enforceContainerLimits(data).blocks, `${label}: shed a block`).toEqual(data.blocks)
 }
 
 describe('buildLookupEmbed — exhaustive validity across the whole dataset', () => {
-  test('every entity in every non-meta schema yields a Discord-valid embed', () => {
+  test('every entity in every non-meta schema renders whole, shedding no block', () => {
     const schemas = getSchemaCatalog().schemas.filter((s) => !s.meta)
     const { dataMap } = getDataMaps()
     let checked = 0
@@ -58,11 +40,8 @@ describe('buildLookupEmbed — exhaustive validity across the whole dataset', ()
       if (!isSchemaName(schema.id)) throw new Error(`non-canonical schema id: ${schema.id}`)
       const entities = (dataMap[schema.id] as SURefEntity[] | undefined) ?? []
       for (const entity of entities) {
-        const embed = buildLookupEmbed(
-          entity as SURefEntity & { schemaName?: SURefEnumSchemaName },
-          schema.id
-        )
-        assertValid(embed, `${schema.id}/${entity.id}`)
+        const withSchema: Entity = { ...entity, schemaName: schema.id }
+        assertFits(buildLookupEmbed(withSchema, schema.id), withSchema, `${schema.id}/${entity.id}`)
         checked++
       }
     }
@@ -191,13 +170,12 @@ describe('markdown label escaping', () => {
     return chassis
   }
 
+  function chassisWith(overrides: Record<string, unknown>): Entity {
+    return { ...goliath(), schemaName: 'chassis', ...overrides } as Entity
+  }
+
   function embedWith(overrides: Record<string, unknown>): LookupEmbed {
-    return buildLookupEmbed(
-      { ...goliath(), schemaName: 'chassis', ...overrides } as SURefEntity & {
-        schemaName: SURefEnumSchemaName
-      },
-      'chassis'
-    )
+    return buildLookupEmbed(chassisWith(overrides), 'chassis')
   }
 
   test('real pattern names pass through untouched', () => {
@@ -238,9 +216,10 @@ describe('markdown label escaping', () => {
   test('escaping stays linear on a pathological label', () => {
     const pathological = '['.repeat(50_000)
     const start = performance.now()
-    const e = embedWith({ patterns: [{ name: pathological, systems: [], modules: [] }] })
+    const overrides = { patterns: [{ name: pathological, systems: [], modules: [] }] }
+    const e = embedWith(overrides)
     expect(performance.now() - start).toBeLessThan(1000)
-    // Still a valid embed after the escape doubles the length (enforce() trims).
-    assertValid(e, 'pathological pattern name')
+    // Still arrives whole after the escape doubles the length (enforce() trims).
+    assertFits(e, chassisWith(overrides), 'pathological pattern name')
   })
 })

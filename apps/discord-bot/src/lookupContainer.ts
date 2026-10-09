@@ -6,7 +6,8 @@
  * `lookupEmbed.ts` is the most carefully-tested surface the bot has: it linkifies
  * trait references, resolves slugs to printed names, renders patterns and
  * columns tables, and `lookupEmbed.test.ts` asserts that **every entity in every
- * non-meta schema** yields a Discord-valid embed. Rewriting that to emit blocks
+ * non-meta schema** renders here whole, with nothing for the container guard to
+ * shed. Rewriting that to emit blocks
  * directly would put all of it at risk to change a presentation layer.
  *
  * So the builder keeps producing a `LookupEmbed`, and this maps that to blocks.
@@ -38,21 +39,28 @@ import type { ContainerBlock, ContainerData } from './container.js'
 import type { LookupEmbed } from './lookupEmbed.js'
 
 /**
- * A field rendered as a block.
+ * A field as the text of its block. Exported with `lookupHeading` and
+ * `footerLine` so `lookupEmbed.ts` budgets against the text this module sends.
  *
  * An embed lays inline fields out in columns; a container has no columns, so an
  * inline field becomes `**Name** value` on one line and a full-width field
  * becomes a bolded heading with its value beneath. That keeps short label/value
  * pairs compact without pretending the column layout survived.
  */
-function fieldBlock(field: { name: string; value: string; inline?: boolean }): ContainerBlock {
-  return {
-    kind: 'text',
-    content:
-      field.inline === true
-        ? `**${field.name}** ${field.value}`
-        : `**${field.name}**\n${field.value}`,
-  }
+export function fieldText(field: { name: string; value: string; inline?: boolean }): string {
+  return field.inline === true
+    ? `**${field.name}** ${field.value}`
+    : `**${field.name}**\n${field.value}`
+}
+
+/** The title as a `##` heading, a masked link when the entity has a page. */
+export function lookupHeading(title: string, url: string | undefined): string {
+  return url ? `## [${title}](${url})` : `## ${title}`
+}
+
+/** The footer as a `-#` subtext line. */
+export function footerLine(footer: string): string {
+  return `-# ${footer}`
 }
 
 /** The artwork URL for an entity, or undefined when it has none. */
@@ -70,7 +78,7 @@ export function lookupContainerData(
   data: LookupEmbed,
   entity: SURefEntity & { schemaName: SURefEnumSchemaName }
 ): ContainerData {
-  const heading = data.url ? `## [${data.title}](${data.url})` : `## ${data.title}`
+  const heading = lookupHeading(data.title, data.url)
   const artwork = artworkFor(entity)
 
   const blocks: ContainerBlock[] = []
@@ -90,10 +98,10 @@ export function lookupContainerData(
     if (data.description) blocks.push({ kind: 'text', content: data.description })
   }
 
-  for (const field of data.fields) blocks.push(fieldBlock(field))
+  for (const field of data.fields) blocks.push({ kind: 'text', content: fieldText(field) })
 
   blocks.push({ kind: 'separator' })
-  blocks.push({ kind: 'text', content: `-# ${data.footer}` })
+  blocks.push({ kind: 'text', content: footerLine(data.footer) })
 
   return { accent: data.color, blocks }
 }

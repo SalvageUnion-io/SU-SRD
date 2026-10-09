@@ -9,12 +9,12 @@
  * as the entity's own text — and then LINK everything those actions point at
  * (traits, tables, drones) to their own pages rather than inlining them.
  * That is "keep the same layers of data, link out to nested entities", and
- * it is also what keeps big entities inside Discord's embed budget.
+ * it is also what keeps big entities inside Discord's message budget.
  *
  * Pure and data-shape-driven: one engine covers all ~27 schemas, with a
  * couple of genuinely structural special cases (chassis stat grid + patterns,
- * roll-table summaries). No discord.js here — returns plain EmbedData that
- * commands/lookup.ts maps onto an EmbedBuilder. Everything degrades to bare
+ * roll-table summaries). No discord.js here — returns plain data that
+ * lookupContainer.ts maps onto container blocks. Everything degrades to bare
  * text on an unresolved reference; nothing throws.
  */
 
@@ -46,16 +46,16 @@ import {
   truncate,
   visiblePatterns,
 } from 'salvageunion-reference'
+import { V2_LIMIT } from './container.js'
 import { EMBED_LIMIT, NEUTRAL_EMBED_COLOR, stripDanglingLink } from './format.js'
+import { fieldText, footerLine, lookupHeading } from './lookupContainer.js'
 
 const NEUTRAL = NEUTRAL_EMBED_COLOR
 
 /**
- * Discord embed limits (per the API): a single embed's total rendered text
- * across title/description/fields/footer must not exceed 6000 chars.
- *
- * Now shared with `gameEmbed.ts` via `format.ts`; aliased here so the many
- * `LIMIT.*` references below read unchanged.
+ * Per-slot caps for the title, fields, description and footer. They shape the
+ * `LookupEmbed`; the total that matters is `V2_LIMIT.totalText`, because the
+ * reply is sent as a container (see `enforce`).
  */
 const LIMIT = EMBED_LIMIT
 
@@ -311,14 +311,17 @@ function footerFor(entity: SURefEntity): string {
 }
 
 /**
- * Trim an assembled embed to Discord's limits: field caps first (title,
- * field names/values, field count, description), then the 6000-char total —
- * shed trailing description with a link-out note rather than emit an invalid
- * embed. Measures rendered markdown (URLs included).
+ * Trim an assembled entry to fit: slot caps first (title, field names/values,
+ * field count, description), then the container's text budget,
+ * `V2_LIMIT.totalText` — shed trailing description with a link-out note.
+ *
+ * The budget is measured as `lookupContainer.ts` renders the reply (heading
+ * with its URL, each field line, the footer line), because that is what
+ * Discord counts. Budgeting against the embed total (6000) let the container
+ * guard shed whole blocks instead, leaving a reply that was only its heading.
  *
  * Sheds **description**, because a lookup entry is one long description with
- * a few fields beside it. `stripDanglingLink` and the caps come from
- * `format.ts`.
+ * a few fields beside it. `stripDanglingLink` comes from `format.ts`.
  */
 function enforce(embed: LookupEmbed): LookupEmbed {
   embed.title = truncate(embed.title, LIMIT.title)
@@ -329,10 +332,11 @@ function enforce(embed: LookupEmbed): LookupEmbed {
   }))
   if (embed.description) embed.description = truncate(embed.description, LIMIT.description)
 
-  const fieldsLen = embed.fields.reduce((n, f) => n + f.name.length + f.value.length, 0)
-  const fixed = embed.title.length + embed.footer.length + fieldsLen
+  const fieldsLen = embed.fields.reduce((n, f) => n + fieldText(f).length, 0)
+  const fixed =
+    lookupHeading(embed.title, embed.url).length + footerLine(embed.footer).length + fieldsLen
   const linkNote = embed.url ? `\n\n[Full entry on salvageunion.io](${embed.url})` : ''
-  const budget = LIMIT.total - fixed - linkNote.length
+  const budget = V2_LIMIT.totalText - fixed - linkNote.length
   if (embed.description && embed.description.length > budget) {
     embed.description =
       stripDanglingLink(truncate(embed.description, Math.max(0, budget))) + linkNote
@@ -354,7 +358,7 @@ function renderTableRow(key: string, entry: SURefObjectTableContent): string {
 
 /**
  * Render a roll-table's full contents into the embed. Flat-family tables go
- * into the description (which enforce() sheds to fit the 6000-char budget,
+ * into the description (which enforce() sheds to fit the container budget,
  * appending a link-out on the largest tables). A `columns` table is
  * two-dimensional — roll a column, then a 1-20 entry within it — so each column
  * bucket becomes its own field.
