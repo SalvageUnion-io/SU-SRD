@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test'
 import { InteractionResponseType, InteractionType } from 'discord-api-types/v10'
-import type { Env } from '../worker.js'
 import worker from '../worker.js'
 
 /**
@@ -55,7 +54,7 @@ async function generateKeyPair(): Promise<KeyPairHex> {
     'sign',
     'verify',
   ])) as unknown as CryptoKeyPair
-  const raw = new Uint8Array(await crypto.subtle.exportKey('raw', pair.publicKey))
+  const raw = new Uint8Array((await crypto.subtle.exportKey('raw', pair.publicKey)) as ArrayBuffer)
   return { privateKey: pair.privateKey, publicKeyHex: bytesToHex(raw) }
 }
 
@@ -104,6 +103,8 @@ function envFor(keys: KeyPairHex): Env {
     // Unconfigured: every ITUN call degrades to `unavailable` with no request.
     ITUN_CONVEX_SITE_URL: '',
     ITUN_BOT_SECRET: '',
+    // Unset: the SDK initialises disabled.
+    SENTRY_DSN: '',
   }
 }
 
@@ -183,7 +184,7 @@ describe('signature verification', () => {
     const res = await worker.fetch(await signedRequest(interaction.ping(), keys), envFor(keys), ctx)
 
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ type: InteractionResponseType.Pong })
+    expect((await res.json()) as unknown).toEqual({ type: InteractionResponseType.Pong })
   })
 
   test('a bad signature is rejected with 401', async () => {

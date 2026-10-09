@@ -962,11 +962,14 @@ Everything runs here ([ADR-033](#adr-033)), account
 
 R2: `su-lp-assets`, and `su-itun-snapshots`, which nothing binds since
 [ADR-036](#adr-036)'s amendment (deleting it is the owner's call).
-Zones `salvageunion.io` and `intheunionnow.com`. Previews under
-`alxjrvs.workers.dev`. Re-derive with `wrangler deployments list`,
-`wrangler r2 bucket list` and the `apps/*/wrangler.jsonc` files.
+Zones `salvageunion.io` and `intheunionnow.com`. Only `su-srd` and
+`su-discord-bot` answer on `alxjrvs.workers.dev`. `su-assets` caches its
+responses with Workers Caching (`cache.enabled`). Re-derive with
+`wrangler deployments list`, `wrangler r2 bucket list` and the
+`apps/*/wrangler.jsonc` files.
 **Outside the repo:** Always Use HTTPS (both zones), the `www` → apex Redirect
-Rule and per-zone Images Transformations; see
+Rule, the `/assets/*` 404 `no-store` Transform Rule and per-zone Images
+Transformations; see
 [configuration outside the repo](#configuration-outside-the-repo).
 
 ### Sentry
@@ -3997,10 +4000,14 @@ that can deploy production. The bar it is held to:
 
 ### Configuration outside the repo
 
-Three things are configured in the Cloudflare dashboard and are invisible to
+Four things are configured in the Cloudflare dashboard and are invisible to
 `grep`: Images Transformations (enabled per zone), **Always Use HTTPS** (SSL/TLS
-→ Edge Certificates, on both zones), and one **Redirect Rule** per zone sending
-`www` to the apex.
+→ Edge Certificates, on both zones), one **Redirect Rule** per zone sending
+`www` to the apex, and one **Response Header Transform Rule** per zone setting
+`Cache-Control: no-store` when the path starts with `/assets/` and the status is
+404. `_headers` cannot match on status, so its `/assets/*` rule otherwise marks
+a missing chunk's 404 `immutable` for a year; `tools/smoke-production.sh`
+asserts it is not.
 
 Always Use HTTPS answers every plain-http request on either zone, `www` and
 `assets.` included, with a 301 to its https twin. Without it plaintext reaches

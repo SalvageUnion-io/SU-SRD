@@ -25,13 +25,7 @@
  * silently breaks entity artwork in both srd and itun at once.
  */
 
-import type { ObservabilityEnv } from 'observability/cloudflare'
 import { reportError, withObservability } from 'observability/cloudflare'
-import {
-  BASE_SECURITY_HEADERS,
-  edgeCache,
-  IMMUTABLE_CACHE_CONTROL,
-} from 'observability/worker-http'
 
 /** The slice of an R2 bucket binding this Worker uses. */
 export type AssetBucket = {
@@ -63,9 +57,6 @@ export type ImagesBinding = {
  */
 const ALLOWED_WIDTHS = new Set([440, 880])
 
-/** The slice of workerd's ExecutionContext this Worker uses. */
-export type ExecutionCtx = { waitUntil(promise: Promise<unknown>): void }
-
 /** `chassis/mule-440.webp` -> `{ masterKey: 'chassis/mule.webp', width: 440 }`. */
 function parseDerivative(key: string): { masterKey: string; width: number } | null {
   const match = /^(.*)-(\d+)(\.[a-z0-9]+)$/i.exec(key)
@@ -86,35 +77,30 @@ const CONTENT_TYPES: Record<string, string> = {
 }
 
 /**
+ * The security headers srd and itun send from `public/_headers` (`/*`), which
+ * Static Assets applies there and nothing applies here: this Worker builds every
+ * response itself. `headers.test.ts` holds the three in agreement.
+ */
+export const BASE_SECURITY_HEADERS: Readonly<Record<string, string>> = {
+  'x-frame-options': 'DENY',
+  'x-content-type-options': 'nosniff',
+  'referrer-policy': 'strict-origin-when-cross-origin',
+  'permissions-policy': 'geolocation=(), microphone=(), camera=()',
+  'strict-transport-security': 'max-age=63072000; includeSubDomains',
+  'x-dns-prefetch-control': 'on',
+}
+
+/**
  * Headers every response carries.
  *
  * `Access-Control-Allow-Origin: *` is required, not decorative: this host is
  * addressed cross-origin from both salvageunion.io and intheunionnow.com.
  *
- * The security headers match what the other two sites send (#778) — deliberately
- * including HSTS and X-Frame-Options. Being a pure CDN is not a reason to skip
- * them: HSTS still matters on a host served over TLS, and an image origin is a
- * fine thing to frame for a clickjacking overlay.
- *
- * No Content-Security-Policy: this origin serves image bytes and short error
- * strings, never HTML or script, so a CSP would govern nothing. That is also why
- * the Sentry `connect-src` clause the other two sites carry has no counterpart
- * here.
+ * `default-src 'none'; sandbox` because the extension allowlist admits `svg`,
+ * and SVG is script-capable: fetched by direct navigation it executes in this
+ * origin. No Sentry `connect-src`: nothing here runs the SDK.
  */
 const COMMON_HEADERS: Record<string, string> = {
-  // `default-src 'none'; sandbox` because the extension allowlist admits `svg`,
-  // and SVG is SCRIPT-CAPABLE: fetched by direct navigation it executes in this
-  // origin. The block below used to justify having no CSP with "this origin
-  // serves image bytes and short error strings, never HTML or script" — true of
-  // the other formats, not of SVG.
-  //
-  // Defence in depth rather than a live hole: the R2 bucket has no user-write
-  // path, so every object is one we uploaded. That is a fact about today's
-  // deployment, not a property of the Worker, which is exactly the kind of
-  // assumption worth not depending on.
-  //
-  // The other six are `observability/worker-http`'s, the same six srd and itun
-  // send from `public/_headers`.
   ...BASE_SECURITY_HEADERS,
   'content-security-policy': "default-src 'none'; sandbox",
   'access-control-allow-origin': '*',
@@ -127,27 +113,24 @@ const COMMON_HEADERS: Record<string, string> = {
  */
 const ROBOTS_TXT = 'User-agent: *\nDisallow: /\n'
 
+/**
+ * Every error and 404 says `no-store`. Workers Caching (`cache.enabled` in
+ * wrangler.jsonc) stores what `Cache-Control` allows, and a 404 without one is
+ * left to heuristics — a cached negative entry hides a newly uploaded image for
+ * as long as it lives.
+ */
 function plain(body: string, status: number): Response {
-  return new Response(body, { status, headers: COMMON_HEADERS })
+  return new Response(body, {
+    status,
+    headers: { ...COMMON_HEADERS, 'cache-control': 'no-store' },
+  })
 }
 
-export function makeAssetHandler(
-  openBucket: () => AssetBucket,
-  images?: ImagesBinding,
-  ctx?: ExecutionCtx
-) {
+export function makeAssetHandler(openBucket: () => AssetBucket, images?: ImagesBinding) {
   return async (req: Request): Promise<Response> => {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       return plain('Method not allowed', 405)
     }
-
-    // Edge cache first. Only successful image responses are ever stored (see
-    // `cached`), so a hit here is always a real asset — a 404 is cheap to
-    // recompute and caching it would make a newly-uploaded image invisible for
-    // as long as the negative entry lived.
-    const cache = edgeCache()
-    const hit = await cache?.match(req)
-    if (hit) return hit
 
     const { pathname } = new URL(req.url)
 
@@ -206,7 +189,7 @@ export function makeAssetHandler(
     // derivatives serving unchanged until someone prunes them, so this change
     // needs no coordinated bucket edit to be safe.
     if (object?.body) {
-      return cached(req, imageResponse(object.body, contentType), cache, ctx)
+      return imageResponse(object.body, contentType)
     }
 
     // No stored object. If the key names a derivative, render it from the master
@@ -243,12 +226,7 @@ export function makeAssetHandler(
         .input(master.body)
         .transform({ width: derivative.width })
         .output({ format: contentType })
-      return cached(
-        req,
-        imageResponse(rendered.response().body as ReadableStream, contentType),
-        cache,
-        ctx
-      )
+      return imageResponse(rendered.response().body as ReadableStream, contentType)
     } catch (error) {
       // A transformation failure IS worth reporting — unlike a 404 it means the
       // quota is exhausted (`9422`), the zone is misconfigured, or the master is
@@ -261,70 +239,26 @@ export function makeAssetHandler(
 }
 
 /**
- * One image response, with the caching every path shares.
- *
- * Artwork is addressed by name and never mutated in place — a new image gets a
- * new name — so an immutable year is safe. A rendered derivative is equally
- * immutable: it is a pure function of a master that cannot change under it.
+ * One image response. Artwork is addressed by name and never mutated in place,
+ * and a derivative is a pure function of its master, so an immutable year is
+ * safe — and it is what lets Workers Caching answer a repeat request at the edge
+ * without running this Worker or Cloudflare Images again.
  */
-/**
- * Store a successful image response at the edge and return it to the caller.
- *
- * The `put` runs under `waitUntil` rather than being awaited. Awaiting it would
- * serialize a cache write into every cache MISS's response time, which is
- * exactly the latency this change exists to remove — `apps/itun`'s og:image
- * path had that bug and is fixed alongside this one.
- *
- * The body must be `clone()`d because a Response body is a single-use stream:
- * hand the same one to both the cache and the client and whichever reads second
- * gets nothing.
- *
- * With no `ctx` (the tests, and any caller that does not pass one) the response
- * is returned uncached rather than the write being dropped silently.
- */
-function cached(
-  req: Request,
-  response: Response,
-  cache: Cache | null,
-  ctx: ExecutionCtx | undefined
-): Response {
-  // GET only. The handler admits HEAD (see `makeAssetHandler`), and the Cache
-  // API throws a TypeError on a non-GET `put` — inside `waitUntil`, where the
-  // response has already been returned, so the request still succeeds and the
-  // failure is invisible. Every HEAD was quietly throwing here.
-  //
-  // The test double accepted any method, which is why the suite could not see
-  // it; `edgeCache.test.ts` now has a fake that throws on non-GET, matching the
-  // real API.
-  if (cache && ctx && req.method === 'GET') ctx.waitUntil(cache.put(req, response.clone()))
-  return response
-}
-
 function imageResponse(body: ReadableStream, contentType: string): Response {
   return new Response(body, {
     status: 200,
     headers: {
       ...COMMON_HEADERS,
       'content-type': contentType,
-      'cache-control': IMMUTABLE_CACHE_CONTROL,
+      'cache-control': 'public, max-age=31536000, immutable',
     },
   })
 }
 
-export type Env = ObservabilityEnv & {
-  LP_ASSETS: AssetBucket
-  /** Cloudflare Images. Optional: absent means derivatives 404 rather than crash. */
-  IMAGES?: ImagesBinding
-}
-
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
 export default withObservability('su-assets', {
-  // `ctx` is optional in the SIGNATURE only. workerd always supplies it; the
-  // parameter is optional so the routing tests can call this entrypoint with
-  // two arguments, and because every use of it is already null-guarded — a
-  // missing ctx costs the edge-cache write, not correctness.
-  async fetch(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Response> {
-    const handler = makeAssetHandler(() => env.LP_ASSETS, env.IMAGES, ctx)
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const handler = makeAssetHandler(() => env.LP_ASSETS, env.IMAGES)
     try {
       return await handler(request)
     } catch (error) {

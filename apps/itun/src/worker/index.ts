@@ -40,8 +40,10 @@
  * 404 rather than an indexable soft-404 for every crawler that asks for
  * `/sitemap.xml` or `/favicon.ico`.
  *
- * Responses built here are not given `_headers`; none of them is a document
- * that runs script — the shell in rule 3 comes back from the binding.
+ * None of these responses is a document that runs script — the shell in rule 3
+ * comes back from the binding. The 404s say `no-store`: `_headers`' `/assets/*`
+ * rule also reaches them in production, and a 404 pinned `immutable` outlives
+ * the deploy that brings the chunk (smoke-production.sh probes it).
  */
 
 import type { ObservabilityEnv } from 'observability/cloudflare'
@@ -60,7 +62,7 @@ export default withObservability('su-itun', {
 
     // 1 and 2. A file that is not there — a rotated chunk above all (#759).
     if (path.startsWith('/assets/') || lastSegment.includes('.')) {
-      return new Response('Not found', { status: 404 })
+      return new Response('Not found', { status: 404, headers: { 'cache-control': 'no-store' } })
     }
 
     // 3. A client route asked for without a navigation: the shell.

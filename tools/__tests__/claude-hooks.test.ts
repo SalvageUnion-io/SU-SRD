@@ -283,6 +283,14 @@ describe('protect-generated-files.sh', () => {
       outcome: ALLOW,
     },
     'apps/itun/src/routeTree.gen.ts': { file: 'apps/itun/src/routeTree.gen.ts', outcome: BLOCK },
+    'apps/su-assets/worker-configuration.d.ts': {
+      file: 'apps/su-assets/worker-configuration.d.ts',
+      outcome: BLOCK,
+    },
+    'apps/discord-bot/worker-configuration.d.ts': {
+      file: 'apps/discord-bot/worker-configuration.d.ts',
+      outcome: BLOCK,
+    },
   }
 
   test.each([...GENERATED_PATHS])('mirrors GENERATED_PATHS entry %s', async (path) => {

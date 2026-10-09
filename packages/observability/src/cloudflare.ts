@@ -70,8 +70,7 @@ export type ObservabilityEnv = {
  * A Worker's default export, as much of it as this wrapper needs.
  *
  * `ctx` is optional so the Workers' own routing tests can call `fetch(req, env)`
- * with two arguments. workerd always supplies it; every consumer null-guards its
- * use, so a missing ctx costs a deferred cache write, not correctness.
+ * with two arguments. workerd always supplies it.
  */
 type ExportedHandler<E> = {
   fetch(request: Request, env: E, ctx?: ExecutionContext): Promise<Response> | Response

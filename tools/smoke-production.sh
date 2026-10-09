@@ -52,6 +52,20 @@ check_header() {
   fi
 }
 
+# A header value must NOT contain a fixed string; an absent header passes.
+check_header_lacks() {
+  local url="$1" header="$2" label="$3" unwanted="$4"
+  local headers line
+  headers=$(curl -sSI --max-time 20 "$url" 2>/dev/null) || true
+  line=$(printf '%s\n' "$headers" | grep -i "^${header}:" || true)
+  if printf '%s' "$line" | grep -F "$unwanted" >/dev/null; then
+    echo "  FAIL $label — '${header}' contains '${unwanted}'" >&2
+    fail=1
+  else
+    echo "  ok   $label"
+  fi
+}
+
 # The PRODUCTION hostnames, not workers.dev: a broken route binding, a missing
 # DNS record or a custom domain detached from its Worker all pass a workers.dev
 # check while production is down.
@@ -85,6 +99,12 @@ check_header https://intheunionnow.com/ strict-transport-security "itun HSTS rea
 # module import and an unfurl bot do.
 check https://intheunionnow.com/assets/index-DEADBEEF.js 404 "itun rotated chunk 404 (#759)"
 check https://intheunionnow.com/p/pilot/smoke 200 "itun client route without a navigation"
+# `_headers`' `/assets/*` rule marks a missing chunk's 404 `immutable` too, on
+# both sites, so a client that asks before a deploy finishes keeps the 404 for a
+# year. A zone Response Header Transform Rule sends `no-store` on those 404s
+# (ADR-033, "Configuration outside the repo").
+check_header_lacks https://salvageunion.io/assets/index-DEADBEEF.js cache-control "srd rotated chunk 404 is not immutable" immutable
+check_header_lacks https://intheunionnow.com/assets/index-DEADBEEF.js cache-control "itun rotated chunk 404 is not immutable" immutable
 # A derivative, not the master: entity cards ask for `-440`/`-880` first. It
 # reaches Cloudflare Images only once the baked `-440`/`-880` objects are gone
 # from su-lp-assets; while one is stored, the Worker serves that copy.
