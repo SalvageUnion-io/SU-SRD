@@ -4802,22 +4802,31 @@ governing rule asked of a link that can no longer serve what it served before.
   sheet, not the frozen copy. That widens who can reach it beyond the people sent
   the `/p/` link, so the Share dialog says it in the same breath as what
   publishing exposes. Switching it off closes both at once.
+  *Amended 2026-10-09 (#1137):* no longer true. Old links never reach a sheet,
+  so publishing widens nothing beyond the `/p/` link, and the Share dialog no
+  longer mentions them.
 - **Some old links can never redirect.** A snapshot taken before its entity
   reached an account, of a build later re-imported (a copy gets a new id), or of
   an entity that was deleted, names an `appId` no public row has; it shows the
   retired page. So does every link while its entity is private — deliberately
   indistinguishable from "gone", as ADR-032 §4 requires of the public query.
+  *Amended 2026-10-09 (#1137):* now no link redirects; every one shows the
+  retired page.
 - **A duplicated `appId` redirects to the oldest row.** `publicSheet.get`
   resolves duplicates the way `entities.byAppId` does. Where an id was duplicated
   across accounts, an old link could land on a different owner's sheet — but only
   one that owner chose to make public, so nothing private is disclosed.
   Collapsing a duplicate is a one-off repair run from the Convex dashboard's
   function runner, like every other repair.
+  *Amended 2026-10-09 (#1137):* moot, since old links no longer redirect.
 - **The browser cache still holds old answers.** `GET /api/snapshots/:id` used to
   return the whole blob with a year-long `immutable` Cache-Control. The client
   therefore reads either shape (`snapshotIdentity`), so a browser that opened a
   link before this change still resolves it. Those cached bodies contain the old
   frozen build; nothing renders them.
+  *Amended 2026-10-09 (#1137):* the client no longer requests
+  `/api/snapshots/:id` and `snapshotIdentity` is deleted, so nothing reads a
+  cached answer either.
 - **The Worker shrinks.** It no longer bundles the snapshot payload's Zod
   schemas, binds no rate limiter, and (since the decision 5 amendment) carries
   no resvg wasm, fonts or Analytics Engine dataset. ADR-033's open question —
@@ -4829,6 +4838,8 @@ governing rule asked of a link that can no longer serve what it served before.
   even while the entity is private and the link itself opens the retired page.
   Nothing more of the build is shown, and it is what that link already displayed
   wherever it was posted. It ends when `/s/:id` gets the sitewide defaults.
+  *Amended 2026-10-09 (#1137):* it has ended. `/s/:id` unfurls with the
+  sitewide defaults and names no build.
 - **A still-open tab on an older build degrades honestly.** Its feature-detect
   read a 405 on `HEAD /api/snapshots` as "available"; it now gets a 404 and shows
   "publishing unavailable" instead of a button that cannot work. It also reports
@@ -4836,6 +4847,10 @@ governing rule asked of a link that can no longer serve what it served before.
   expected noise that ends as those tabs reload onto the current build, not an
   outage. Its `/s/:id` page, handed `{ kind, appId }` where it expected a build,
   shows its own "Could not render snapshot" state rather than crashing.
+  *Amended 2026-10-09 (#1137):* `/api/snapshots/:id` is gone, so such a tab's
+  `/s/:id` page gets no snapshot at all and shows its error state; a tab on the
+  redirect build reports `snapshot-identity-failed` once and shows the retired
+  page. Neither redirects.
 
 ### Alternatives considered
 

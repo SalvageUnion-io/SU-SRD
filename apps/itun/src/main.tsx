@@ -23,7 +23,7 @@ const router = createRouter({
   // Every route is a lazy chunk (`autoCodeSplitting`, routeTree.config.ts), so a
   // hover or touchstart starts the chunk and the loader before the tap lands.
   // Loaders must therefore be safe to run early: the entity ones are idempotent
-  // hydrates, and `/s/$id`, which fetches, opts out with `preload: false`.
+  // hydrates.
   defaultPreload: 'intent',
   // Backing out of a sheet returns the Roster to where the player left it.
   scrollRestoration: true,
