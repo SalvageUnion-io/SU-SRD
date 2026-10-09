@@ -223,11 +223,9 @@ function page(): PageResult {
                 In The Union Now
               </a>
               {/*
-                Signed out, ITUN is read-only: `requireWritableBackend` in
-                `entityBackend.ts` refuses every write (reason `signedOut`). So
-                "no-account" means browsing and reading without an account,
-                never building or keeping work without one. If this line is
-                ever reworded, it must not claim either.
+                "no-account" means usable without one: signed out, ITUN is
+                read-only, and building needs an account (ADR-034). It must
+                never be reworded to claim building or keeping work without one.
               */}
               , the no-account character builder &amp; game manager — sheets can be shared into
               Discord as live public links.

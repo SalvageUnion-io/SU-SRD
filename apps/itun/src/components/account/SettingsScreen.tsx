@@ -152,8 +152,8 @@ function SettingsBody() {
     <Card>
       <div className="flex flex-col gap-3 p-4">
         <Text>
-          You are not signed in. You can build anything without an account, but nothing is kept — it
-          lives in this tab until you sign in or download it.
+          You are not signed in. Signed out, In the Union Now is read-only: you can browse the
+          Starter Set, but building anything needs an account.
         </Text>
         <Text variant="hint" className="text-left">
           Signing in saves your builds to your account, carries them between devices, and lets you

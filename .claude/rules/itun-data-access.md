@@ -68,14 +68,13 @@ const members = useQuery(api.games.members, { gameId })
   the only source of truth; a row with no Convex counterpart is a defect. If
   the schema cannot say where a record lives, **the schema moves** (#871:
   `crawlers` gained `ownerId` and a nullable `gameId`).
-- Add a new mirrored collection by hand: copy the `commit` seam on
+- Add a new Convex-backed collection by hand: copy the `commit` seam on
   `makeHydratedCollectionSlice` (`mechPatterns`, `encounterNpcs`) or
   `commitChangeLog`. The Change Log commit is the one deliberate
   fire-and-forget write; everything else awaits.
 - Build a local duplicate of something Convex owns (membership, ownership,
   invites, proposals, crew vitals) — check `apps/itun/convex/` first.
-- Add a query cache. TanStack Query was removed (audit AP-10); entity reads are
-  the typed hooks in `src/hooks/entities/` over the stores, and Connected reads
+- Add a query cache: entity reads are the typed hooks in `src/hooks/entities/` over the stores, and Connected reads
   use `convex/react`.
 
 Full picture: [data flow](../../docs/ARCHITECTURE.md#data-flow),

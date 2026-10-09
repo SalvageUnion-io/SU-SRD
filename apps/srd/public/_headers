@@ -45,9 +45,8 @@
   # style injection is not script execution.
   Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io;
 
-# Content-hashed bundle output. `/assets/*`, not the old `/_astro/*`: the
-# in-house SSG emits through Vite's default assetsDir. If ssg/vite.config.ts
-# ever sets a different build.assetsDir, change this with it.
+# Content-hashed bundle output (`ssg/vite.config.ts` uses Vite's default
+# assetsDir). If it ever sets a different build.assetsDir, change this with it.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
