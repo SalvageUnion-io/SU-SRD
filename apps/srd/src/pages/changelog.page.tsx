@@ -47,7 +47,7 @@ function page(): PageResult {
             Features, fixes and speed-ups to the SRD site, newest first. For full commit history see
             the{' '}
             <a
-              href="https://github.com/alxjrvs/SU-SRD/commits/main"
+              href="https://github.com/SalvageUnion-io/SU-SRD/commits/main"
               target="_blank"
               rel="noopener noreferrer"
               className="font-bold text-rust hover:underline"
