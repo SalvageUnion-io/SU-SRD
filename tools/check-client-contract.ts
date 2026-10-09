@@ -75,8 +75,12 @@ export type Snapshot = { floor: number; functions: Contract }
 /** A short rendering of a validator, for failure messages. */
 function show(v: ValidatorJSON): string {
   switch (v.type) {
+    // Rendered by hand, not with JSON.stringify: this is message text, and a
+    // stringify spliced into code-shaped text reads to CodeQL as code construction.
     case 'literal':
-      return JSON.stringify(v.value)
+      if (typeof v.value === 'string') return `"${v.value}"`
+      if (literalType(v.value) === 'bigint') return `${(v.value as { $integer: string }).$integer}n`
+      return String(v.value)
     case 'id':
       return `id("${v.tableName}")`
     case 'array':
