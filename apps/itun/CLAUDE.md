@@ -66,8 +66,10 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   `skipWaiting` + `clientsClaim` (a plugin assignment the `workbox` block
   cannot override), which activated a new worker under a live page and dropped
   the precache entries it was still resolving chunks against. Navigations are **network-first** (`src/lib/sw/workbox.ts`): online
-  boots the deployed shell, offline the precached one. No update toast; the
-  build floor reloads stale tabs. See the headers of `vite.config.ts`,
+  boots the deployed shell, offline the precached one. No update toast. A
+  compatible build is picked up at the next page change
+  (`src/lib/sw/softUpdate.ts`); a breaking one raises the build floor
+  (`convex/buildFloor.ts`, by hand), which reloads stale tabs. See the headers of `vite.config.ts`,
   `src/lib/sw/`, `src/lib/connection/buildFloor.ts`, `installChunkRecovery`
   and the Worker's `/assets/*` → 404 rule (`src/worker/index.ts`).
 

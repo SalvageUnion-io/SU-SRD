@@ -10,6 +10,7 @@ import {
   reactRootErrorHandlers,
 } from './lib/observability'
 import { registerServiceWorker } from './lib/sw/register'
+import { installSoftUpdate, newBuild } from './lib/sw/softUpdate'
 import { routeTree } from './routeTree.gen'
 
 const router = createRouter({
@@ -56,11 +57,17 @@ createRoot(rootEl, reactRootErrorHandlers).render(
 
 // The one service-worker registration: `virtual:pwa-register`, handed to
 // lib/sw/register.ts. `registerType: 'prompt'` (vite.config.ts) means a new
-// worker installs and then waits rather than claiming this page mid-session;
-// the backend's build floor decides when an open tab moves onto a new build
-// (lib/connection/buildFloor.ts), and it reloads through lib/sw/register.ts.
+// worker installs and then waits rather than claiming this page mid-session.
+// A breaking deploy's build floor reloads an open tab at once
+// (lib/connection/buildFloor.ts); a compatible one waits for its next page
+// change (lib/sw/softUpdate.ts).
 registerServiceWorker(registerSW, {
   // This module IS the entry chunk, so its URL carries this build's content
   // hash — which is what the server's current shell is compared against.
   entryChunk: new URL(import.meta.url).pathname,
+  onNewBuild: newBuild.markLive,
 })
+
+// A compatible new build is picked up at the next page change, as a full load
+// of that page (lib/sw/softUpdate.ts). Nothing reloads under the player.
+installSoftUpdate(router)

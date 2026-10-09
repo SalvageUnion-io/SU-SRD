@@ -81,6 +81,25 @@ describe('registerServiceWorker', () => {
     expect(() => calls[0]?.onRegisterError?.(new Error('Rejected'))).not.toThrow()
   })
 
+  it('hands both new-build signals to onNewBuild, so another tab no longer reloads this one', () => {
+    const { calls, registerSW } = fakeRegisterSW()
+    let signals = 0
+    registerServiceWorker(registerSW, {
+      onNewBuild: () => {
+        signals += 1
+      },
+    })
+    calls[0]?.onNeedRefresh?.()
+    calls[0]?.onNeedReload?.()
+    expect(signals).toBe(2)
+  })
+
+  it("leaves the plugin's own reload in place without onNewBuild", () => {
+    const { calls, registerSW } = fakeRegisterSW()
+    registerServiceWorker(registerSW)
+    expect(calls[0]?.onNeedReload).toBeUndefined()
+  })
+
   it('records the entry chunk the server shell is compared against', async () => {
     const { registerSW } = fakeRegisterSW()
     registerServiceWorker(registerSW, { entryChunk: '/assets/index-OLD.js' })
