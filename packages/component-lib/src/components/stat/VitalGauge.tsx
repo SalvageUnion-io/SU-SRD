@@ -43,9 +43,8 @@ export type VitalGaugeProps = {
    * switch for every override mark — the `--tone-deep` numeral, the `*`, the
    * ↺ revert and the "overridden from N" caption — and `derived` is the value
    * named in them. The gauge never decides this by comparing numbers (ADR-022
-   * amendment): it used to treat "baseline ≠ max" as overridden, which
-   * disagreed with the breakdown's own ledger on a pin equal to its
-   * derivation. Omit (or pass on a read-only surface) to show no override.
+   * amendment): "baseline ≠ max" disagrees with the breakdown's own ledger on a
+   * pin equal to its derivation. Omit (or pass on a read-only surface) to show no override.
    */
   breakdown?: VitalGaugeBreakdown
   /**
@@ -274,9 +273,8 @@ export function VitalGauge({
     )
     /*
      * Guided Play teaches as it enforces (ADR-021), so the compact instrument
-     * carries provenance too. This branch used to return before any of the
-     * override/provenance chrome, which is why the Dashboard silently dropped
-     * both props.
+     * carries provenance too: this branch must not return before the
+     * override/provenance chrome, or the Dashboard drops both props.
      *
      * The trigger is held to the WCAG 2.5.8 24×24px target: as a bare glyph it
      * measured about 10×8px, and stacked gauges sit too close for the spacing
@@ -382,11 +380,9 @@ export function VitalGauge({
           >
             {shown}
           </b>
-          {/* The `current / max` cluster all sits on ONE ink rung. It used to be
-              two off-ramp alphas — the separator at `ink/55` (3.64:1 on paper)
-              and the max at `ink/70` — and the separator failed AA outright at
-              17px. `ink-75` (6.87:1) is the nearest rung that clears it; the
-              max moves onto the same rung rather than staying 5pp above it,
+          {/* The `current / max` cluster all sits on ONE ink rung. `ink-75`
+              (6.87:1) is the nearest rung that clears AA at 17px (`ink/55` is
+              3.64:1); the max sits on the same rung rather than a step above,
               because the hierarchy this gauge is built on is the 31px bold
               numeral against this whole cluster, not the 1-rung step inside it. */}
           <i className={cn('px-0.5 not-italic text-readout text-ink-75')}>/</i>

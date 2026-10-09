@@ -13,8 +13,8 @@ export { Avatar } from './components/chrome/Avatar'
 export type { BadgeTone } from './components/chrome/Badge'
 // Chrome primitives (ITUN design handoff — design-spec §2)
 // Badge — the unified stamp-chip family. No named presets: the quiet keyword
-// chip is `surface="quiet"`, the status badge is StatusBadge (domain vocabulary).
-// (use `Badge surface="outline"`/`"tone"` directly for the former Pill).
+// chip is `surface="quiet"`, the status badge is StatusBadge (domain vocabulary),
+// and a pill is `Badge surface="outline"`/`"tone"`.
 export { Badge } from './components/chrome/Badge'
 // BandTitle — the paper-on-tone title inside a Card's header band. NOT a
 // stamp: it fills its track and truncates, where a stamp sizes to its text.

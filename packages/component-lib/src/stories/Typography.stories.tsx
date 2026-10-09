@@ -66,19 +66,9 @@ const FONTS = [
 /**
  * The caps tracking ladder.
  *
- * THIS TABLE WAS WRONG BEFORE #799, and the migration is what surfaced it. It
- * listed three rows — `--tracking-label` (0.04em), `--tracking-display`
- * (0.01em) and `--tracking-eyebrow` — of which only the last exists. Neither
- * `--tracking-label` nor `--tracking-display` is declared in `theme.css` or
- * anywhere else in the repo, and the `tracking-label` / `tracking-display`
- * utility classes the specimens rendered with had no definition to resolve, so
- * two of the three rows rendered at the browser's default tracking while
- * captioning a value they were not showing. (Foundations/Theme repeats the same
- * two names; that page is corrected in the same change.)
- *
- * The real ladder is five rungs, and it is the one `tokens.ts` and `theme.css`
- * agree on. Deriving the table from the token object is what stops this
- * recurring: a rung cannot be listed here unless it exists.
+ * Five rungs — the ones `tokens.ts` and `theme.css` agree on. The table is
+ * derived from the token object, so a rung cannot be listed here unless it
+ * exists.
  */
 const TRACKING_USE: Record<keyof typeof tracking, string> = {
   capsTight: 'the canonical stamp / label / tab tracking',

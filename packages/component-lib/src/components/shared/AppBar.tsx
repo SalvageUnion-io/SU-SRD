@@ -16,9 +16,7 @@ import { FOCUS_RING } from '../chrome/interaction'
  * `LinkComponent` (external ones open in a new tab), so the shared library
  * stays free of a router/search/account dependency.
  *
- * The masthead is ONE row. It used to carry an optional second row
- * (`utilityRow`) for ITUN's account links; those became the `actions` menus,
- * and the sub-header went with them.
+ * The masthead is ONE row; ITUN's account links are the `actions` menus.
  */
 
 export type AppBarNavItem = {

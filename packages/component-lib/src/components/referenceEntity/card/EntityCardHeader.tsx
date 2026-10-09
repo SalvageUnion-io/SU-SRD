@@ -63,10 +63,9 @@ const HYSTERESIS = 24
  *
  * A full card's stat cluster is a fixed-width block: 8 chassis stats want ~416px
  * before the name has any room at all, which a phone (or a narrow grid column)
- * does not have — the cluster used to be `shrink-0`, so it neither shrank nor
- * wrapped and simply ran off the card, over the header and out of the viewport.
- * The cluster now wraps, and on top of that the header measures itself and
- * swaps to the compact `[label | value]` cells — the same badge anatomy a
+ * does not have — a `shrink-0` cluster would run off the card, over the header
+ * and out of the viewport. So the cluster wraps, and on top of that the header
+ * measures itself and swaps to the compact `[label | value]` cells — the same badge anatomy a
  * listing card already uses — which fit a phone at 2 rows instead of 3 stacks
  * of boxes.
  *
@@ -194,13 +193,9 @@ export function EntityCardHeader({
   //   the description's) makes it absorb essentially all the overflow, wrapping
   //   down toward its longest word instead of holding a share it isn't filling.
   //
-  //   That last part is the fix. A name too long for one line used to sit at
-  //   the flat 60% cap and wrap INSIDE it, so "Mass Field Maintenance" showed
-  //   two lines of title, four of description, and a ~110px dead channel down
-  //   the middle. Measured in-browser over the Engineer + Fabricator trees at
-  //   1440/768/390: the two worst cards drop from 4 description lines to 2–3,
-  //   total header height falls 680px→648px, and every title that already fit
-  //   on one line still does.
+  //   That last part matters: a name capped at a flat 60% wraps INSIDE the
+  //   cap, so "Mass Field Maintenance" would show two lines of title, four of
+  //   description, and a ~110px dead channel down the middle.
   //
   //   55% is a safe ask because a description is never short — across the 100
   //   abilities that carry one the minimum is 34 characters (median 67), which
@@ -211,10 +206,9 @@ export function EntityCardHeader({
   //     it can be squeezed to one word per line but never INTO one. Without it
   //     `break-words` splits names mid-word ("ENGINEERIN / G EXPERTISE").
   //   · The 75% ceiling is deliberately loose. `max-width` also clamps that
-  //     min-content floor, so the old 60% cap re-introduced mid-word breaks on
-  //     narrow cards — at 768px it split "Engineerin|g" and "Maintenan|ce"
-  //     before this change too. The description's ask, not the ceiling, is what
-  //     bounds the title in practice.
+  //     min-content floor, so a tighter cap re-introduces mid-word breaks on
+  //     narrow cards ("Engineerin|g" at 768px). The description's ask, not the
+  //     ceiling, is what bounds the title in practice.
   //   · The ask is a BASIS, not a `min-width`: a hard floor cannot yield to
   //     that min-content floor, and the two together overflow the card on
   //     narrow screens.

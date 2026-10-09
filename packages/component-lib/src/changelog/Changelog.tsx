@@ -23,13 +23,10 @@ type ChangelogProps = {
  * so they render identically.
  *
  * Each entry is a **`Card`** — the generic four-band container — not a bespoke
- * listing. It previously hand-assembled a `Panel` around its own header row
- * (heading + `Badge` + `<time>`), which is the exact shape Card already models:
- * the area is the card's SEAM stamp (`label`), the date is the header band, and
- * the bullets are the body. Rebuilding that by hand meant the
- * changelog drifted from every other listing surface in the apps — its frame
- * weight, radius, seam placement and header padding were all set independently
- * of the card language rather than inherited from it.
+ * listing: the area is the card's SEAM stamp (`label`), the date is the header
+ * band, and the bullets are the body. Hand-assembling that shape would let its
+ * frame weight, radius, seam placement and header padding drift from every
+ * other listing surface instead of inheriting the card language.
  *
  * The rungs it picks: `size="medium"` (this is a LIST of entries, so it takes
  * the listing density, not the dominant solo scale), `frame="chrome"` for the

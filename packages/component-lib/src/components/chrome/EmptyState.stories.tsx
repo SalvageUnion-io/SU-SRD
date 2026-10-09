@@ -29,8 +29,8 @@ export const HeadlineOnly: Story = () => (
   </div>
 )
 
-/** quiet — the muted app-chrome placeholder (absorbed from `Panel`'s retired
- *  `Empty`): centered, faint dashed frame, decorative glyph, no stamp. */
+/** quiet — the muted app-chrome placeholder: centered, faint dashed frame,
+ *  decorative glyph, no stamp. */
 export const Quiet: Story = () => (
   <div className="max-w-sm bg-paper p-4">
     <EmptyState

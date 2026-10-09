@@ -77,10 +77,9 @@ function ControlButton({
   const hasCustomColors = !!(control.bgColor || control.textColor)
   const onClick = control.onClick ?? (() => undefined)
 
-  // Every rail control is stamp-sized. The rail sits beside the card's seam
-  // stamp, and the buttons used to run a rung larger than it (and the icon-only
-  // ones larger again, as fixed 28/32px squares), so one row carried three
-  // different heights. These are the `mini` stamp's own metrics — the same
+  // Every rail control is stamp-sized: the rail sits beside the card's seam
+  // stamp, and one row should carry one height. These are the `mini` stamp's
+  // own metrics — the same
   // constants `Badge shape="stamp" size="mini"` resolves — so the row and the
   // seam agree by construction rather than by matching numbers by eye.
   const segmentClasses = cn(

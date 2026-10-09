@@ -2,16 +2,13 @@
  * THE card sizing vocabulary — owned here, at the `Card` layer, and
  * inherited by every card that composes it (notably `ReferenceEntityCard`).
  *
- * Two axes, deliberately ORTHOGONAL. They used to be one conflated enum
- * (`full | compact | listing | badge | catalog`), which is why there was no way
- * to ask for a small card that still showed its content: picking the small
- * scale (`badge`) also picked the header-only extent. Splitting them is what
- * makes every combination expressible.
+ * Two axes, deliberately ORTHOGONAL, so every combination is expressible — a
+ * small card can still show its content.
  *
  * SIZE — how big the card renders. Three rungs, and only three:
- * - `large`  — the dominant solo card (the former `full`).
- * - `medium` — reduced density; nested cards are always at least this (`compact`).
- * - `small`  — the shortform scale (the former `badge`).
+ * - `large`  — the dominant solo card.
+ * - `medium` — reduced density; nested cards are always at least this.
+ * - `small`  — the shortform scale.
  *
  * EXTENT — how much of the entity renders, at whatever size:
  * - `full`    — the whole card: header, body, expand slot, footer.

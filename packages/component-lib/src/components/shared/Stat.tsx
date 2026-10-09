@@ -19,7 +19,7 @@ import type { EntityStatus } from './entityStatus'
  *   orientation="horizontal"  -> the horizontal [label | value] cell, in either
  *                                material: `surface="plate"` (default, the
  *                                stamp pair) or `surface="plain"` (running
- *                                text — the former StatLine).
+ *                                text).
  *   (default)                 -> the centred value box with Badge stamps
  *                                above/below; mode="edit" adds +/- steppers.
  *
@@ -44,7 +44,7 @@ export type StatState = EntityStatus
  * `critical` for Heat).
  *
  *   default  -> ink border (the resting state)
- *   good     -> mech   (full / at-cap-good — the former isOverMax)
+ *   good     -> mech   (full / at-cap-good)
  *   modified -> rust       (value changed from its base, e.g. a modified TL)
  *   caution  -> status-warn
  *   critical -> status-bad
@@ -106,7 +106,7 @@ type StatPropKey =
 type Exact<T extends Partial<Record<StatPropKey, unknown>>> = T &
   Partial<Record<Exclude<StatPropKey, keyof T>, never>>
 
-/** [horizontal] `orientation="horizontal"` — the former ValueDisplay. With
+/** [horizontal] `orientation="horizontal"`. With
  * `onChange` + `mode="edit"` it grows a compact +/- stepper column. */
 type HorizontalValueProps = Exact<{
   /** Header code / label ('HP', 'Range', or a numeric tier). */
@@ -142,10 +142,9 @@ type HorizontalValueProps = Exact<{
   bottomLabel?: StatValue
   /**
    * Ladder rung (styles/sizing.ts). This anatomy's resting state is a reading
-   * cell, so it defaults to `full`; `compact` is the listing-row scale (the
-   * former `compact` boolean) and `mini` the seam-tag size (text-label / 10px,
-   * the former `xs`). One axis — the old compact+xs boolean pair could be
-   * combined into a rung that didn't exist; a single `size` cannot.
+   * cell, so it defaults to `full`; `compact` is the listing-row scale and
+   * `mini` the seam-tag size (text-label / 10px). One axis: a pair of booleans
+   * could be combined into a rung that doesn't exist; a single `size` cannot.
    */
   size?: SizeRung
   inverse?: boolean
@@ -225,16 +224,11 @@ type ValueBoxProps = Exact<{
    *
    * `full` is the readout-as-destination rung — a 64px box with a
    * `text-display` (26px) numeral, for figures meant to carry a panel at a
-   * glance (the crawler economy's Scrap / Tech Level / Crew). It exists
-   * because those readouts were previously hand-assembled in spans with an
-   * arbitrary 26px numeral and a hand-built `/max` slash — the library's
-   * worst §3.7 offender. Folding them onto Stat without a top rung shrank
-   * them to a 13px annotation, which was a legible loss on a headline number.
-   * The primitive was missing an anatomy, so the surface grew its own; the
-   * fix is the rung, not the hand-rolled markup.
+   * glance (the crawler economy's Scrap / Tech Level / Crew), so a headline
+   * number never hand-assembles its own numeral and `/max` slash.
    *
-   * One axis: the old `display` and `compact` booleans could contradict each
-   * other; a single `size` cannot.
+   * One axis: two booleans could contradict each other; a single `size`
+   * cannot.
    */
   size?: SizeRung
   flash?: boolean
@@ -258,7 +252,7 @@ export function Stat(props: StatProps) {
   const entityTooltip = 'entityTooltip' in props ? props.entityTooltip : undefined
   if (entityTooltip) {
     // Resolve the trait/keyword to a real entity; wrap in the hover-tooltip when
-    // found (the former TraitKeywordDisplayView), else render plain.
+    // found, else render plain.
     const { schemaName, label } = entityTooltip
     const entity = isEntitySchemaName(schemaName)
       ? SalvageUnionReference.findIn(
@@ -283,7 +277,7 @@ function renderStat(props: StatProps) {
 }
 
 /* ------------------------------------------------------------------ *
- * Horizontal [label | value] — the former ValueDisplay. Ink/paper     *
+ * Horizontal [label | value]. Ink/paper                               *
  * stamp pair, rounded; state rides the border.                        *
  * ------------------------------------------------------------------ */
 function HorizontalValue({
@@ -463,9 +457,9 @@ function HorizontalValue({
 }
 
 /* ------------------------------------------------------------------ *
- * Centred value box — the former Stat; rounded, ink-on-paper.         *
+ * Centred value box; rounded, ink-on-paper.                          *
  * A `max` reads as `current /max`; state rides the border.            *
- * mode="edit" grows the +/- stepper column (the former StatControl).  *
+ * mode="edit" grows the +/- stepper column.                           *
  * ------------------------------------------------------------------ */
 function ValueBox({
   label,
@@ -661,14 +655,9 @@ function ValueBox({
   // The ± column stretches to the box's full height and centres its buttons in
   // it, so the pair sits on the box's midline whatever the button count or size.
   //
-  // This previously mirrored the box's [label][cell][label] stack with a pair of
-  // invisible label-height spacers, on the reasoning that the buttons should
-  // align to the value CELL rather than the label-inclusive box. That
-  // indirection is unnecessary: the bottom label Badge is always rendered
-  // (merely `invisible` when there is no bottom label), so the box is symmetric
-  // about its cell and centring on the box centres on the cell. Rebuilding the
-  // stack by hand also had to be kept in sync with it, and had drifted — the
-  // buttons were riding high.
+  // Centring on the box centres on the value cell: the bottom label Badge is
+  // always rendered (merely `invisible` when there is no bottom label), so the
+  // box is symmetric about its cell, and no spacer stack has to track it.
   const content = canEdit ? (
     <div className="flex items-stretch gap-0.5">
       {box}

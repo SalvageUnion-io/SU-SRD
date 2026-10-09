@@ -271,8 +271,8 @@ function ReferenceEntityCardInner({
   // pattern is a LIST ROW: name-tab left, description on the header right.
   const isPattern = !!pattern
   const isPatternListing = isPattern && extent === 'head'
-  // A pattern's title is its name in QUOTES — `"SURVEYOR"`. The word "Pattern"
-  // is no longer carried in the data (chassis.json), so nothing to strip here.
+  // A pattern's title is its name in QUOTES — `"SURVEYOR"`. The data
+  // (chassis.json) carries no "Pattern" word, so nothing to strip here.
   // A nested ACTION drops its ` (Host)` disambiguation suffix when the host is
   // this card's own context (display only — `entityName` keeps the full name).
   const name =
@@ -996,7 +996,7 @@ function ReferenceEntityCardInner({
           {afterExtraContent}
         </div>
         {/* SLOT: expand — on the accent field after the body box, before the
-            footer (legacy `expand`, e.g. a crawler bay's crew inset). */}
+            footer (e.g. a crawler bay's crew inset). */}
         {expand && <div className={compact ? 'px-2 pb-2' : 'px-3 pb-3'}>{expand}</div>}
         {/* FOOTER — `footerOverride` replaces the identity footer; `hide.footer`
             and the catalog extent suppress it entirely (see `rendersFooter`,

@@ -77,7 +77,7 @@ type BadgeChipProps = {
   /**
    * Optional leading 14×14 colour swatch (an inline CSS `background` value, e.g.
    * `var(--color-tl-1)`) rendered before the label. This is the tech-level
-   * filter-chip rung — a swatch-prefixed chip, no longer its own component.
+   * filter-chip rung — a swatch-prefixed chip, not its own component.
    */
   swatch?: string
   /**
@@ -96,9 +96,8 @@ type BadgeChipProps = {
  * The SQUARE stamp (`shape="stamp"`): the one ink label/header/tab/eyebrow atom
  * (ruleset §5, atom 1). Square (no radius), condensed-bold uppercase, line-height
  * 1, `tracking-caps-tight`; adds the `size` / `surface` / `seam` axes. This is
- * the SOLE implementation of the ink stamp — `Text`'s `pseudoheader` /
- * `pseudoheaderInverse` variants rendered the same plate and were retired onto
- * it (ruleset §0: one kind × one context = one primitive).
+ * the SOLE implementation of the ink stamp (ruleset §0: one kind × one
+ * context = one primitive).
  */
 type BadgeStampProps = {
   children: ReactNode
