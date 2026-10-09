@@ -95,8 +95,8 @@ type ExecutionContext = {
 /**
  * Wrap a Worker's default export so unhandled errors reach Sentry.
  *
- * `serverName` names the surface in Sentry, since all three Workers report into
- * the same account and "an error in a Worker" is not actionable on its own.
+ * `serverName` is the Worker's wrangler `name`: all three Workers report into
+ * the one `workers` Sentry project, and `server_name` is what tells them apart.
  *
  * With no `SENTRY_DSN` the SDK initialises disabled: the Worker runs exactly as
  * before and events go nowhere. That is the same env-gated shape the browser
