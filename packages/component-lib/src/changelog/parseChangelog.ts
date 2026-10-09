@@ -1,7 +1,7 @@
 /**
- * Hand-written changelog markdown parser (no npm deps) shared by both sites so
- * they render an identical, merged changelog. Understands two H2 heading
- * shapes:
+ * Hand-written changelog markdown parser (no npm deps) shared by both sites,
+ * each of which renders its own release-please `CHANGELOG.md` (newest first, as
+ * release-please writes it). Understands two H2 heading shapes:
  *   (a) release-please:  `## [1.2.3](url) (2026-07-14)`  /  `## 1.2.3 (2026-07-14)`
  *   (b) historical:      `## 2026-07-14 — Some Title`     /  `## 2026-07-14`
  */
@@ -93,16 +93,4 @@ export function parseChangelog(markdown: string, area: string): ChangelogEntry[]
   }
 
   return entries
-}
-
-export function mergeChangelogs(...lists: ChangelogEntry[][]): ChangelogEntry[] {
-  const all = lists.flat()
-  // Stable sort by date descending; equal dates keep input order.
-  return all
-    .map((entry, index) => ({ entry, index }))
-    .sort((a, b) => {
-      if (a.entry.date === b.entry.date) return a.index - b.index
-      return a.entry.date < b.entry.date ? 1 : -1
-    })
-    .map(({ entry }) => entry)
 }

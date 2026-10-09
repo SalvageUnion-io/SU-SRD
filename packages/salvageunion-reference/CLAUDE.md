@@ -38,9 +38,8 @@ blocks it):
 
 Everything else in `lib/` is hand-written: `lib/schemas/` (Zod), `lib/index.ts`,
 `lib/BaseModel.ts`, `lib/ModelFactory.ts`, `lib/LazyModel.ts`, `lib/naming.ts`,
-`lib/search.ts`, `lib/helpers.ts`, `lib/slug.ts`. (`lib/types/index.ts` was deleted: it
-re-exported `lib/schemas/index.ts` and existed only as an indirection — import
-types from `lib/schemas/index.ts`.)
+`lib/search.ts`, `lib/helpers.ts`, `lib/slug.ts`. Import types from
+`lib/schemas/index.ts`.
 
 ### The public barrels are explicit lists
 
@@ -50,7 +49,6 @@ either (the one exception is the generated entity-type family). Package-internal
 code imports from the module that owns the function — `entityFields.ts`,
 `actionResolution.ts`, `entityGuards.ts`, `patterns.ts`, `assets.ts`,
 `traitText.ts`, `inventorySlots.ts`, `helpers.ts` — never through the barrel.
-`lib/utilities.ts` was deleted — it was a wildcard barrel over those seven modules.
 
 To expose a new name, add it to the barrel's list in the same change as its
 first outside consumer.
@@ -127,7 +125,8 @@ some other field (`findAll((e) => e.techLevel === 3)`), not an identity lookup.
 
 ## Adding New Data
 
-**Rows in an existing schema need no code:** edit the JSON file in `data/`, then
+**Rows in an existing schema need no code:** `bun run edit-data add|set` (in
+this package; `add` mints the id) is the one writer of `data/`, then
 `bun run check data`. A **new schema** is the next section.
 
 ## Adding a New Entity **Type** (schema)

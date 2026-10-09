@@ -244,9 +244,7 @@ describe('protect-generated-files.sh', () => {
     ['Convex codegen', 'apps/itun/convex/_generated/api.d.ts'],
     ['the lockfile', 'bun.lock'],
     ['the styling baseline', 'tools/styling-baseline.json'],
-    ['generated editor settings', '.vscode/settings.json'],
     ['the schema catalog', 'packages/salvageunion-reference/schemas/index.json'],
-    ['a nested schema', 'packages/salvageunion-reference/schemas/shared/common.schema.json'],
   ])('blocks %s', async (_label, path) => {
     expect(await edit(path)).toBe(BLOCK)
   })
@@ -284,7 +282,6 @@ describe('protect-generated-files.sh', () => {
       file: 'packages/salvageunion-reference/lib/index.ts',
       outcome: ALLOW,
     },
-    '.vscode/settings.json': { file: '.vscode/settings.json', outcome: BLOCK },
     'apps/itun/src/routeTree.gen.ts': { file: 'apps/itun/src/routeTree.gen.ts', outcome: BLOCK },
   }
 

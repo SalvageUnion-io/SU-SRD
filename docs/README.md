@@ -30,7 +30,7 @@ Read with an offset and limit, never the whole file.
 
 ## ADRs
 
-39 ADRs, the [Decisions](ARCHITECTURE.md#decisions) that close ARCHITECTURE.md,
+40 ADRs, the [Decisions](ARCHITECTURE.md#decisions) that close ARCHITECTURE.md,
 one `## ADR-NNN` each. Each one's own Status block is authoritative.
 
 | ADR                                                                  | Decision                                                                    |
@@ -48,7 +48,7 @@ one `## ADR-NNN` each. Each one's own Status block is authoritative.
 | [ADR-011](ARCHITECTURE.md#adr-011)             | `component-lib` ships source, no build                                       |
 | [ADR-012](ARCHITECTURE.md#adr-012)                          | `srd` on Astro — superseded by ADR-031                                       |
 | [ADR-013](ARCHITECTURE.md#adr-013)                           | CSP-safe jitless Zod                                                         |
-| [ADR-014](ARCHITECTURE.md#adr-014)     | The JSON API is the dataset's public interface; partially superseded by ADR-025 |
+| [ADR-014](ARCHITECTURE.md#adr-014)     | The JSON API is the dataset's public interface; amended by ADR-040            |
 | [ADR-015](ARCHITECTURE.md#adr-015)           | The Dashboard is a distinct play surface, with its merged sub-decisions; amended by ADR-038 |
 | [ADR-016](ARCHITECTURE.md#adr-016)    | Merged into ADR-015 (rotary dial); replaced by ADR-038                       |
 | [ADR-017](ARCHITECTURE.md#adr-017)      | Merged into ADR-015 (reuse the SRD display)                                  |
@@ -58,8 +58,8 @@ one `## ADR-NNN` each. Each one's own Status block is authoritative.
 | [ADR-021](ARCHITECTURE.md#adr-021)                     | **Governing** — surface/mode taxonomy: where a rule is enforced              |
 | [ADR-022](ARCHITECTURE.md#adr-022)              | Change Log provenance + stat overrides                                       |
 | [ADR-023](ARCHITECTURE.md#adr-023)         | Drone loadouts — superseded by ADR-027, then ADR-028                         |
-| [ADR-024](ARCHITECTURE.md#adr-024)                | Derived per-app release changelogs                                           |
-| [ADR-025](ARCHITECTURE.md#adr-025) | Versioned internal releases + the reference surface gate                     |
+| [ADR-024](ARCHITECTURE.md#adr-024)                | Derived per-app release changelogs; amended by ADR-040                       |
+| [ADR-025](ARCHITECTURE.md#adr-025) | Reference release stream — superseded by ADR-040                             |
 | [ADR-026](ARCHITECTURE.md#adr-026)                  | Entity card design rules                                                     |
 | [ADR-027](ARCHITECTURE.md#adr-027)                    | Partners owned by host — superseded by ADR-028                               |
 | [ADR-028](ARCHITECTURE.md#adr-028)                  | Partners render in place; carries ADR-027's model                            |
@@ -74,6 +74,7 @@ one `## ADR-NNN` each. Each one's own Status block is authoritative.
 | [ADR-037](ARCHITECTURE.md#adr-037)                          | Assignments (direct links, cardinality, one container) + the primary crawler |
 | [ADR-038](ARCHITECTURE.md#adr-038) | The Dashboard is Game-only, with play state as a seat saved on the Game      |
 | [ADR-039](ARCHITECTURE.md#adr-039)                          | Addressed invites — by Discord account, verified by Discord’s signature      |
+| [ADR-040](ARCHITECTURE.md#adr-040)                          | The dataset is served verbatim; no reference release stream                  |
 
 ## Per-package guidance
 

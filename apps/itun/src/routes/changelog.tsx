@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Changelog, mergeChangelogs, PageHeading, parseChangelog } from 'component-lib'
-import refMd from '../../../../packages/salvageunion-reference/CHANGELOG.md?raw'
+import { Changelog, PageHeading, parseChangelog } from 'component-lib'
 import itunMd from '../../CHANGELOG.md?raw'
 import { pageTitle } from '../lib/pageTitle'
 
@@ -9,7 +8,7 @@ export const Route = createFileRoute('/changelog')({
   component: ChangelogPage,
 })
 
-const entries = mergeChangelogs(parseChangelog(itunMd, 'App'), parseChangelog(refMd, 'Data'))
+const entries = parseChangelog(itunMd, 'App')
 
 function ChangelogPage() {
   return (
@@ -17,9 +16,7 @@ function ChangelogPage() {
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
         <header className="border-b-2 border-ink pb-5">
           <PageHeading className="w-fit">Changelog</PageHeading>
-          <p className="mt-2 font-body text-sm text-wk-muted">
-            What's new in In the Union Now and the Salvage Union reference data.
-          </p>
+          <p className="mt-2 font-body text-sm text-wk-muted">What's new in In the Union Now.</p>
         </header>
 
         <Changelog entries={entries} />

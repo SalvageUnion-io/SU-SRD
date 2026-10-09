@@ -98,7 +98,7 @@ Each workspace's own `CLAUDE.md` loads when you work in it; "Build & Validation"
 
 ### Data conventions
 
-- Entity links use slugs, never UUIDs: `/chassis/iron-mongrel`.
+- Entity links use slugs, never UUIDs: `/schema/chassis/item/mule/`.
 - Never run JSON data files through an automated formatter such as `json.dump` that reflows arrays; insert at the text level to preserve formatting.
 
 ### Debugging

@@ -45,17 +45,20 @@ Private, never published. The dataset's public interface is srd's CORS-enabled
 JSON API: `apps/srd/src/endpoints/schemaJson.ts`, `schemaDefinitionJson.ts`,
 `itemJson.ts` (plus `searchIndexJson.ts`, `llmsTxt.ts`), registered in
 `apps/srd/ssg/endpoints.ts`, documented at `apps/srd/src/pages/api.page.tsx`
-([ADR-014](#adr-014)).
+([ADR-014](#adr-014), [ADR-040](#adr-040)). The package has no version or
+release stream.
 
-- **Entry points** `.`, `./rules`, `./zod`, `./schema-definitions`,
+- **Entry points** `.`, `./rules`, `./zod`,
   `./testing`, each `types` and `default` on one `lib/*.ts` source (the
   `exports` map in `packages/salvageunion-reference/package.json`); no build.
   `./rules` is the pure rules math ([ADR-006](#adr-006)).
   `./zod` is the one Zod import ([ADR-013](#adr-013)).
-  `./schema-definitions` (`getJsonSchemaDefinition`) keeps the ~783 KB JSON
-  Schema corpus off the barrel; only srd's `/schema/[id].schema.json` endpoint
-  imports it. `./testing` is test-only: `entityFixture(schema, fields)` and
-  `malformed<T>(value)`, never `as unknown as SURef*`. `./data/*` is the JSON.
+  `./testing` is test-only: `entityFixture(schema, fields)` and
+  `malformed<T>(value)`, never `as unknown as SURef*`. `./data/*` and
+  `./schemas/*` are the committed JSON files, which srd's
+  `/schema/[id].json` and `/schema/[id].schema.json` serve verbatim
+  (`apps/srd/src/lib/referenceFiles.ts`); each schema's `$id` is the URL it is
+  served at.
 - **The barrel is an explicit list.** `lib/index.ts` and `lib/rules/index.ts`
   name each export that has an outside consumer; no `export *`, no Zod schemas.
   `lib/index.ts` is the API's source of truth: 27 model accessors, `.get` /
@@ -878,8 +881,7 @@ top-level `env:`.
   `deployed/cloudflare`; the next run diffs against it. No record, a shared
   path or `force_all` deploys everything; the shared set includes the root
   prose files and excludes `test/` and every `.github/` file but this workflow
-  and `.github/actions/`. A version-only `packages/*/package.json` change ships
-  nothing. The decision is
+  and `.github/actions/`. The decision is
   `tools/deploy-surfaces.ts` (`tools/__tests__/deploy-surfaces.test.ts`). When
   HEAD is an ancestor of the record (a re-run of an older merge's deploy) the
   run is `stale`; only a dispatch (`--allow-backwards`) rolls back.
@@ -1666,15 +1668,13 @@ module** wherever schemas are constructed, rather than importing `zod` directly.
 
 ### Status
 
-Accepted, **but partially superseded by
-[ADR-025](#adr-025)** — its CHANGELOG-freeze
-clause only. ADR-014's substantive decision (the served JSON API is the public
-interface; npm publishing stays retired) is **preserved** and still governs.
+Accepted. Its substantive decision (the served JSON API is the public
+interface; npm publishing stays retired) still governs.
 
-Recorded here as well as on ADR-025 because a supersession written on only the
-successor is a trap: this file read a plain "Accepted" for as long as ADR-025
-existed, so anyone opening it directly — or citing its changelog clause — got a
-dead rule with nothing to warn them.
+**Amended by [ADR-040](#adr-040) (2026-10-08).** The CHANGELOG clause is
+replaced: [ADR-025](#adr-025) had unfrozen the package's `CHANGELOG.md` into a
+release stream, and ADR-040 deletes the file and the stream. ADR-040 also
+fixes what the API serves: the committed data and schema files, verbatim.
 
 ### Context
 
@@ -2419,6 +2419,11 @@ Full text: `git show c2476d1c:docs/adrs/ADR-023-drone-equipment-installed-loadou
 
 Accepted.
 
+**Amended by [ADR-040](#adr-040) (2026-10-08).** The reference package is no
+longer a release-please component, so each site's `/changelog` renders its own
+`CHANGELOG.md` alone; the "merged with the ref's" decision below and its
+_Data_ area tag are withdrawn. srd and itun remain the two streams.
+
 ### Context
 
 The two user-facing sites announce changes very differently today:
@@ -2565,105 +2570,12 @@ config.
 
 ### Status
 
-Accepted. **Partially supersedes [ADR-014](#adr-014)**
-(the CHANGELOG-freeze clause only; ADR-014's no-npm stance is preserved).
+**Superseded by [ADR-040](#adr-040)** (2026-10-08). The reference package has no
+release stream: no version, no `CHANGELOG.md`, no release-please component. Its
+API-report half had already been withdrawn (2026-09-28); the JSON-schema drift
+check it relied on is `bun run check generated`, which predates it.
 
-**The TypeScript API-report half of the surface gate is withdrawn (2026-09-28).**
-The package is private and every consumer is typechecked in this repo, so a
-changed export already fails the typecheck of whatever imports it. The report,
-its generator and `tsconfig.api.json` are deleted. The versioned releases and
-the JSON-schema drift check stand.
-
-### Context
-
-[ADR-014](#adr-014) established that the
-dataset's public distribution is the **served JSON API** (`apps/srd`
-`/schema/*.json` + `.schema.json` + item endpoints + the `/api` page + `llms.txt`),
-retired npm publishing, kept the package **`private: true`, workspace-internal**
-(consumed only via `workspace:*` TypeScript source, no build step), and
-**froze** `packages/salvageunion-reference/CHANGELOG.md` "since there is no
-future npm release for it to document." `bun run build:package` regenerates
-`schemas/*.schema.json` + registry codegen from the Zod sources, and a CI
-`build-package` job fails on any generated-file drift.
-
-Two new goals motivate this decision:
-
-1. Give the ref **formal (internal) versioned releases** so its changelog can
-   participate in the sites' on-site release history
-   ([ADR-024](#adr-024)) — a dataset update _is_
-   user-visible "what's new" on both sites.
-2. **Gate the ref's public surface** on that version. The public surface is the
-   exported **TypeScript API** (models/types consumed via `workspace:*`) **and**
-   the generated **JSON schemas** (already the served public API per ADR-014).
-
-**The load-bearing nuance:** because apps consume the ref as TS **source** via
-`workspace:*`, they always compile against `HEAD` — a version _number_ does
-**not** gate consumers at build or runtime. The real gate is a **committed
-surface snapshot that CI diffs** (the exact mechanism the `build-package` job
-already uses for schemas). The version is the human-facing label a release
-attaches to an _acknowledged_ surface change, not itself an enforcement
-mechanism.
-
-### Decision
-
-- **The ref becomes a release-please component** (in the shared
-  [ADR-024](#adr-024) config), versioned with a
-  maintained `CHANGELOG.md`. This **unfreezes** the CHANGELOG that ADR-014
-  froze — but does **not** resume npm publishing. The package stays
-  `private: true`, workspace-internal; ADR-014's core stance (the JSON API is
-  the public distribution, no npm) is preserved. Only ADR-014's
-  changelog-freeze clause is superseded.
-
-- **Public-surface gate = a committed API report, CI-diffed.** A snapshot of
-  the ref's exported TypeScript surface is committed
-  (`etc/salvageunion-reference.api.md` via `@microsoft/api-extractor`, or a
-  normalized `.d.ts` snapshot if TS7 toolchain compatibility forces the
-  fallback — see Consequences). Its generation **folds into `build:package`**,
-  and the existing **`build-package` CI drift job's diff check is extended to
-  the report path**. A change to the public TS surface **fails CI** until the
-  report is regenerated and committed — and that commit is a release-worthy
-  conventional commit, so release-please attaches a version bump + changelog
-  entry. The JSON-schema surface is **already** gated by the same job.
-  Together: **TS exports + JSON schemas are both gated**, in one command
-  (`build:package`) behind one job (`build-package`).
-
-  The chain is: _change the public surface → regenerate + commit the report
-  (CI-enforced) → that commit is a `feat:`/`fix:` release-please turns into a
-  version + changelog entry._ No bespoke "did you bump the version?" check is
-  needed — the report **is** the forced acknowledgement, and the release falls
-  out of it.
-
-- **Seed version `2.3.5`** — the local `package.json` source-of-record per
-  ADR-014 — with `bootstrap-sha` at the adopting commit. The orphaned npm
-  `2.4.0` (an out-of-band publish outside this repo's history, per ADR-014) is
-  ignored, consistent with ADR-014.
-
-- **Optional, not in this decision's required scope:** the served JSON API
-  (the `/api` page + `llms.txt`) may now surface the ref version so external
-  consumers know which dataset version they fetched. Noted as a follow-on.
-
-### Consequences
-
-- The ref's **public TS surface can no longer change silently** — CI forces an
-  acknowledged, released change. This closes the gap ADR-014 left: schemas were
-  drift-checked, but the TS export surface was not.
-- ADR-014's version-discrepancy note is **resolved forward** — local `2.3.5`
-  becomes the live source-of-record and advances from there under
-  release-please. npm's orphaned `2.4.0` remains untouched and unpublished-to
-  (still out of scope).
-- **Tooling risk:** `@microsoft/api-extractor` is built on the TypeScript
-  compiler API and may not yet support the **TS7** compiler the repo runs
-  (the repo already keeps a TS6 `typescript-classic` foothold for exactly this
-  class of lag). The fallback is a committed, normalized `.d.ts` snapshot. The
-  **gate is identical either way** (a CI diff of a committed surface file); only
-  the report _format_ differs. The implementation resolves this early and
-  falls back if needed.
-- The ref's changelog now appears in **both sites' `/changelog`**
-  ([ADR-024](#adr-024) merge), so a data update
-  reads as "what's new" on the sites — the primary user-facing benefit.
-- `build:package` becomes slightly slower (it now also emits declarations +
-  the report). Accepted: it is a dev/CI tool step, not a hot path, and keeping
-  one command + one gate matches the least-processing goal.
+Full text: `git show bc9f08ce:docs/ARCHITECTURE.md` (its `## ADR-025` section)
 
 ## ADR-026
 
@@ -5602,3 +5514,62 @@ the closed PR #1047; if it returns, `target` is where a second kind goes.
 - An invitee who declines must ask for a new invite to change their mind. That
   is deliberate: a decline the Organizer can see is worth more than a decline
   that might quietly reverse.
+
+## ADR-040
+
+**The Reference Dataset Is Served Verbatim and Has No Release Stream**
+
+### Status
+
+**Accepted; built** (2026-10-08, audit-4 P16, #1136). Supersedes
+[ADR-025](#adr-025); amends [ADR-014](#adr-014) and [ADR-024](#adr-024).
+
+### Context
+
+[ADR-014](#adr-014) made srd's JSON API the dataset's only public interface.
+By audit 4 that API broke its own contract three ways. `/schema/<id>.json`
+re-serialised the models, so every row carried the `schemaName` that
+`BaseModel` stamps on its copy, and every `/schema/<id>.schema.json` forbids
+that key: 4 of 4 sampled datasets failed their own schema. Every schema's `$id`
+named `salvageunion.com/schemas/…`, a host that times out. `llms.txt` taught an
+item URL that 404'd.
+
+[ADR-025](#adr-025)'s release stream for the package had stopped meaning
+anything. Release-please attributes a squash commit to every component whose
+files it touches, so the live changelog listed ITUN PRs under "Data v2.14.0"
+and one PR twice; in 60 days only two refactor commits touched `data/`. Each
+data release also redeployed ITUN and pushed Convex, and `deploy-surfaces.ts`
+carried two narrowings (the CHANGELOG's readers, a version-only manifest bump)
+for those commits alone.
+
+Two tools wrote `data/*.json`: `edit-data`, which edits the text in place, and
+`fix:ids`, which rewrote whole files with `JSON.stringify` against the data
+rule.
+
+### Decision
+
+1. **The API serves the committed files.** `/schema/<id>.json` and
+   `/schema/<id>.schema.json` are the package's `data/<id>.json` and
+   `schemas/<id>.schema.json`, byte for byte, read through its `./data/*` and
+   `./schemas/*` exports (`apps/srd/src/lib/referenceFiles.ts`). An item
+   endpoint serves its committed row, without `schemaName`.
+2. **A schema's `$id` is the URL it is served at**,
+   `https://salvageunion.io/schema/<id>.schema.json`.
+3. **No reference release stream.** The package is not a release-please
+   component and has no `CHANGELOG.md`; its version is `0.0.0`, as
+   `component-lib`'s is. A data change reaches users through the site that
+   renders it.
+4. **`edit-data` is the one writer of `data/*.json`.** `edit-data add` mints a
+   missing `id`; `validate` reports and never writes.
+
+### Consequences
+
+- Dropping `schemaName` from served rows is a public-API change. A consumer
+  that read it already knew the schema from the URL it fetched.
+- `apps/srd/src/lib/__tests__/jsonApi.test.ts` validates every emitted dataset
+  and item against its emitted schema, checks each `$id`, and checks that every
+  concrete `/schema/…json` URL in `llms.txt` is an emitted endpoint.
+- A data-only PR appears in neither site's changelog; that is the gap
+  [ADR-024](#adr-024) already accepts for `component-lib`.
+- npm still serves the orphaned `salvageunion-reference@2.4.0`. Deprecating it
+  needs the owner's npm credentials (`npm deprecate`), outside this repo.

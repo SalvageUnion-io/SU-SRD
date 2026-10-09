@@ -1,12 +1,12 @@
 /**
  * `/changelog` — the release history.
  *
- * Rendered at BUILD time: the two `CHANGELOG.md` files are read off disk with
- * `node:fs` during the SSR pass and merged via the shared `parseChangelog` /
- * `mergeChangelogs` helpers. This is never a client fetch — the markdown is not
- * shipped to the browser at all, only the rendered entries are.
+ * Rendered at BUILD time: `apps/srd/CHANGELOG.md` is read off disk with
+ * `node:fs` during the SSR pass and parsed by the shared `parseChangelog`. This
+ * is never a client fetch — the markdown is not shipped to the browser at all,
+ * only the rendered entries are.
  *
- * The paths are resolved from `import.meta.url`, not `process.cwd()`: `bun
+ * The path is resolved from `import.meta.url`, not `process.cwd()`: `bun
  * ssg/build.ts` makes no promise about the cwd (`ssg/build.ts` itself derives its app
  * root the same way), and a wrong cwd would fail the build with an ENOENT far
  * from its cause.
@@ -14,7 +14,7 @@
 
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { Changelog, mergeChangelogs, PageHeading, parseChangelog } from 'component-lib'
+import { Changelog, PageHeading, parseChangelog } from 'component-lib'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 
@@ -23,16 +23,9 @@ const DESCRIPTION = 'Major changes to salvageunion.io and its companion tools ov
 
 /** `apps/srd/CHANGELOG.md` — changes to this site and its companion tools. */
 const SITE_CHANGELOG = fileURLToPath(new URL('../../CHANGELOG.md', import.meta.url))
-/** `packages/salvageunion-reference/CHANGELOG.md` — game-data package changes. */
-const DATA_CHANGELOG = fileURLToPath(
-  new URL('../../../../packages/salvageunion-reference/CHANGELOG.md', import.meta.url)
-)
 
 function page(): PageResult {
-  const entries = mergeChangelogs(
-    parseChangelog(readFileSync(SITE_CHANGELOG, 'utf8'), 'Site'),
-    parseChangelog(readFileSync(DATA_CHANGELOG, 'utf8'), 'Data')
-  )
+  const entries = parseChangelog(readFileSync(SITE_CHANGELOG, 'utf8'), 'Site')
 
   return {
     meta: {

@@ -20,6 +20,7 @@
  * string transforms so they're trivially testable without touching disk.
  */
 
+import { randomUUID } from 'node:crypto'
 import type { FormattingOptions } from 'jsonc-parser'
 import { applyEdits, modify, parse as parseJsonc } from 'jsonc-parser'
 
@@ -39,6 +40,18 @@ function findEntityIndex(entities: unknown[], matcher: EntityMatcher): number {
     if ('id' in matcher) return record.id === matcher.id
     return record.name === matcher.name
   })
+}
+
+/**
+ * The entity with an `id`: an object that has none gets a fresh UUID, first in
+ * key order, so a new row never needs a second tool to make it valid. Anything
+ * else (an object that already has an `id`, or a non-object) comes back as is.
+ */
+export function withId(entity: unknown): unknown {
+  if (entity === null || typeof entity !== 'object' || Array.isArray(entity) || 'id' in entity) {
+    return entity
+  }
+  return { id: randomUUID(), ...entity }
 }
 
 /**

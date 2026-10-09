@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { ChangelogEntry } from './parseChangelog'
-import { mergeChangelogs, parseChangelog } from './parseChangelog'
+import { parseChangelog } from './parseChangelog'
 
 const RELEASE_PLEASE = `# Changelog
 
@@ -103,29 +103,5 @@ describe('parseChangelog — historical shape', () => {
 describe('parseChangelog — skips', () => {
   test('skips a section with no date and no items', () => {
     expect(parseChangelog('## Unreleased\n\nnothing here yet', 'x')).toHaveLength(0)
-  })
-})
-
-describe('mergeChangelogs', () => {
-  test('merges and sorts by date descending, stable within a date', () => {
-    const itun = parseChangelog(RELEASE_PLEASE, 'itun')
-    const web = parseChangelog(HISTORICAL, 'web')
-    const merged = mergeChangelogs(itun, web)
-
-    expect(merged.map((e) => e.date)).toEqual([
-      '2026-07-20',
-      '2026-07-14',
-      '2026-07-10',
-      '2026-07-01',
-    ])
-    expect(at(merged, 0).area).toBe('itun')
-    expect(at(merged, 1).area).toBe('web')
-  })
-
-  test('equal dates keep input order (list order, then within-list order)', () => {
-    const a = parseChangelog('## 2026-05-05 — A\n- one', 'a')
-    const b = parseChangelog('## 2026-05-05 — B\n- two', 'b')
-    const merged = mergeChangelogs(a, b)
-    expect(merged.map((e) => e.title)).toEqual(['A', 'B'])
   })
 })
