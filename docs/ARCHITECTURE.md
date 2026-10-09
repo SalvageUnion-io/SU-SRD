@@ -993,6 +993,8 @@ Four projects: `srd` and `itun` (`VITE_SENTRY_DSN` at build, from
 constants), `itun-convex` ([dashboard toggle](#convex-error-reporting); IP
 storage off), and `workers` (one `SENTRY_DSN` on `su-itun`, `su-discord-bot`
 and `su-assets`, told apart by `server_name`, which is the wrangler `name`).
+`su-srd`'s Worker reports into `srd` instead, beside the browser bundle, under
+`server_name` `su-srd`; its `SENTRY_DSN` secret is the `SRD_SENTRY_DSN` constant.
 One org alert rule on users or volume covers them, and the uptime monitor
 watches `intheunionnow.com`.
 

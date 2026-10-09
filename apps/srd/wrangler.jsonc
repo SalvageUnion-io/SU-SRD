@@ -10,6 +10,12 @@
   // AsyncLocalStorage for @sentry/cloudflare; tools/check-observability.ts requires it.
   "compatibility_flags": ["nodejs_als"],
 
+  // A deploy fails while one is unset; set with `wrangler secret put`. The
+  // `srd` Sentry project's DSN, the one the browser bundle inlines.
+  "secrets": {
+    "required": ["SENTRY_DSN"]
+  },
+
   // `www` is attached so the zone's Redirect Rule can act on it; the redirect
   // cannot live in `_redirects` (ADR-033, "Configuration outside the repo").
   "routes": [
