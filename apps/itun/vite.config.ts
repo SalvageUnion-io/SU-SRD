@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react-swc'
+import { readChangelog } from 'component-lib/changelog/git'
 import { sentrySourcemaps } from 'observability/vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -9,6 +10,8 @@ import { WORKBOX_OPTIONS } from './src/lib/sw/workbox'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // `feat`/`fix`/`perf` squash titles scoped `itun` (ADR-041).
+  define: { __ITUN_CHANGELOG__: JSON.stringify(readChangelog('itun', 'App')) },
   plugins: [
     TanStackRouterVite(ROUTER_PLUGIN_OPTIONS),
     tailwindcss(),

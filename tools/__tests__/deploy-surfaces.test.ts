@@ -66,7 +66,6 @@ describe('deploy-surfaces — decideSurfaces', () => {
     '.github/workflows/ci.yml',
     '.github/workflows/codeql.yml',
     '.github/dependabot.yml',
-    '.release-please-manifest.json',
   ])('a path that ships in no artifact (%s) deploys nothing', (path) => {
     expect(decideSurfaces([path], false)).toEqual(NOTHING)
   })

@@ -131,26 +131,8 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
 }
 
 /**
- * NOTE: there is deliberately no `version` field here, and re-adding one will
- * break every release.
- *
- * This catalog used to embed `package.json`'s version. Nothing ever read it —
- * the package is `private: true` (never published to npm), no endpoint serves
- * the catalog, and no caller touches `getSchemaCatalog().version`. What it did
- * do was couple a GENERATED artifact to a version release-please bumps in
- * `package.json` alone: every release PR therefore arrived with a stale
- * `version` here, the generated-file drift check regenerated it, saw the mismatch, and failed.
- * Release PRs were unmergeable by construction (#786).
- *
- * release-please's `extra-files` is the usual fix for a file that carries a
- * version, but it does not work here: its JSON updater re-serializes through
- * `JSON.stringify(parsed, replacer, indent)`, which expands every
- * `requiredFields` array onto multiple lines, and `format:check` then rejects
- * the file Biome wants collapsed. That trades a `static-checks` failure for a
- * `quality-checks` one.
- *
- * So the coupling is gone instead of maintained. Two files tracking one version
- * stay in sync only by convention, and this one had no reader to justify it.
+ * No `version` field: the package has no release stream (ADR-040), the
+ * repository's release is the deployed commit (ADR-041), and nothing reads one.
  */
 interface SchemaIndex {
   $schema: string

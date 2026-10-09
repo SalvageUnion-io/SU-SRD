@@ -1,31 +1,21 @@
 /**
- * `/changelog` — the release history.
+ * `/changelog` — the site's history.
  *
- * Rendered at BUILD time: `apps/srd/CHANGELOG.md` is read off disk with
- * `node:fs` during the SSR pass and parsed by the shared `parseChangelog`. This
- * is never a client fetch — the markdown is not shipped to the browser at all,
- * only the rendered entries are.
- *
- * The path is resolved from `import.meta.url`, not `process.cwd()`: `bun
- * ssg/build.ts` makes no promise about the cwd (`ssg/build.ts` itself derives its app
- * root the same way), and a wrong cwd would fail the build with an ENOENT far
- * from its cause.
+ * Rendered at BUILD time from `main`'s history: `readChangelog` keeps the
+ * `feat`/`fix`/`perf` squash titles scoped `srd` (ADR-041). Never a client
+ * fetch — only the rendered entries ship.
  */
 
-import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { Changelog, PageHeading, parseChangelog } from 'component-lib'
+import { Changelog, PageHeading } from 'component-lib'
+import { readChangelog } from 'component-lib/changelog/git'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 
 const TITLE = `Changelog${TITLE_SUFFIX}`
-const DESCRIPTION = 'Major changes to salvageunion.io and its companion tools over time.'
-
-/** `apps/srd/CHANGELOG.md` — changes to this site and its companion tools. */
-const SITE_CHANGELOG = fileURLToPath(new URL('../../CHANGELOG.md', import.meta.url))
+const DESCRIPTION = 'Changes to the salvageunion.io reference site over time.'
 
 function page(): PageResult {
-  const entries = parseChangelog(readFileSync(SITE_CHANGELOG, 'utf8'), 'Site')
+  const entries = readChangelog('srd', 'Site')
 
   return {
     meta: {
@@ -54,8 +44,8 @@ function page(): PageResult {
           <PageHeading>Changelog</PageHeading>
 
           <p className="text-sm leading-relaxed">
-            Major changes to the SRD site, the In The Union Now builder, and the Discord bot. For
-            full commit history see the{' '}
+            Features, fixes and speed-ups to the SRD site, newest first. For full commit history see
+            the{' '}
             <a
               href="https://github.com/alxjrvs/SU-SRD/commits/main"
               target="_blank"

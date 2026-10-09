@@ -363,8 +363,9 @@ describe('Ladle catalog: co-location', () => {
    * exploration that nonetheless had to be read, moved and kept compiling by
    * everyone who touched this package.
    *
-   * Only a production module counts as an importer: a test that renders a
-   * component proves the test runs, not that anything ships it. Delete such a
+   * Only a production module, or the package's `exports` map, counts as an
+   * importer: a test that renders a component proves the test runs, not that
+   * anything ships it. Delete such a
    * module, or move it to a harness location where its role is explicit.
    *
    * HARNESS FILES ARE EXEMPT BY NAMING, not by allowlist: a leading underscore
@@ -387,7 +388,14 @@ describe('Ladle catalog: co-location', () => {
       )
     }
 
-    const productionImports = new Set(modules.flatMap(importsOf))
+    // A package export is an entry the apps import, so it counts as shipped.
+    const exported = Object.values(
+      JSON.parse(readFileSync(join(SRC, '../package.json'), 'utf8')).exports as Record<
+        string,
+        string
+      >
+    ).map((target) => target.replace(/^\.\/src\//, '').replace(/\.tsx?$/, ''))
+    const productionImports = new Set([...modules.flatMap(importsOf), ...exported])
     const catalogOrTestImports = new Set(
       [...libStoryFiles, ...files.filter(isTest)].flatMap(importsOf)
     )

@@ -58,7 +58,7 @@ one `## ADR-NNN` each. Each one's own Status block is authoritative.
 | [ADR-021](ARCHITECTURE.md#adr-021)                     | **Governing** — surface/mode taxonomy: where a rule is enforced              |
 | [ADR-022](ARCHITECTURE.md#adr-022)              | Change Log provenance + stat overrides                                       |
 | [ADR-023](ARCHITECTURE.md#adr-023)         | Drone loadouts — superseded by ADR-027, then ADR-028                         |
-| [ADR-024](ARCHITECTURE.md#adr-024)                | Derived per-app release changelogs; amended by ADR-040                       |
+| [ADR-024](ARCHITECTURE.md#adr-024)                | Release-please changelogs — superseded by ADR-041                            |
 | [ADR-025](ARCHITECTURE.md#adr-025) | Reference release stream — superseded by ADR-040                             |
 | [ADR-026](ARCHITECTURE.md#adr-026)                  | Entity card design rules                                                     |
 | [ADR-027](ARCHITECTURE.md#adr-027)                    | Partners owned by host — superseded by ADR-028                               |
@@ -75,6 +75,7 @@ one `## ADR-NNN` each. Each one's own Status block is authoritative.
 | [ADR-038](ARCHITECTURE.md#adr-038) | The Dashboard is Game-only, with play state as a seat saved on the Game      |
 | [ADR-039](ARCHITECTURE.md#adr-039)                          | Addressed invites — by Discord account, verified by Discord’s signature      |
 | [ADR-040](ARCHITECTURE.md#adr-040)                          | The dataset is served verbatim; no reference release stream                  |
+| [ADR-041](ARCHITECTURE.md#adr-041)                          | The deployed commit is the release; changelogs read `main`'s history         |
 
 ## Per-package guidance
 

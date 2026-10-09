@@ -13,10 +13,9 @@ import { Slab } from '../chrome/Slab'
 import { Colophon } from './Colophon'
 
 type AboutScreenProps = {
-  /** The consuming app's version — passed in so this stays app-agnostic
-   * (it used to import ITUN's package.json directly, which is what kept it
-   * pinned to that one app). */
-  version: string
+  /** The build the app is running: the deployed commit's short SHA (ADR-041).
+   * Passed in so this stays app-agnostic. */
+  build: string
   /** Raw `ABOUT_JRVS.md`, passed in for the same reason: the library reads no
    * files, so each app inlines the repo-root documents its own way. */
   aboutJrvs: string
@@ -26,7 +25,7 @@ type AboutScreenProps = {
   specialThanks: string
 }
 
-export function AboutScreen({ version, aboutJrvs, llmStatement, specialThanks }: AboutScreenProps) {
+export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: AboutScreenProps) {
   return (
     <main className="min-h-screen bg-wk-bg px-4 py-8 sm:px-8 sm:py-12 lg:px-12">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
@@ -103,7 +102,7 @@ export function AboutScreen({ version, aboutJrvs, llmStatement, specialThanks }:
           specialThanksMarkdown={specialThanks}
           kofiCode="C3Z82382ZC"
           className="border-t-2 border-ink pt-6 font-body text-ink"
-          footer={<p className="font-body text-xs text-wk-muted">Version {version}</p>}
+          footer={<p className="font-body text-xs text-wk-muted">Build {build}</p>}
         />
       </div>
     </main>

@@ -827,11 +827,10 @@ a devDependency of all four Worker apps; keep each `wrangler.jsonc`
 
 ### CI: PR title
 
-The squash title is what release-please reads. `pr-title.yml` runs on
-`opened`, `edited`, `reopened`, `synchronize`, with no `if:` or path filter (a
-required context), because `ci.yml` does not run on `edited`. The squash body
-is the PR body (`squash_merge_commit_message: PR_BODY`): a line starting with a conventional type or containing
-`BREAKING CHANGE` changes the version bump.
+The squash title is the changelog entry ([ADR-041](#adr-041)). `pr-title.yml`
+runs on `opened`, `edited`, `reopened`, `synchronize`, with no `if:` or path
+filter (a required context), because `ci.yml` does not run on `edited`. The
+squash body is the PR body (`squash_merge_commit_message: PR_BODY`).
 
 ### CI: aggregate gate
 
@@ -853,8 +852,8 @@ Owner-applied; no gate reads them.
   `code_scanning` (`CodeQL`, `security_alerts_threshold: high_or_higher`,
   `alerts_threshold: errors`); no `merge_queue`.
 - **Actions** (`gh api repos/SalvageUnion-io/SU-SRD/actions/permissions`):
-  `allowed_actions: selected`, GitHub-owned plus `dorny/paths-filter@*`,
-  `googleapis/release-please-action@*`, `oven-sh/setup-bun@*`, with
+  `allowed_actions: selected`, GitHub-owned plus `dorny/paths-filter@*` and
+  `oven-sh/setup-bun@*`, with
   `verified_allowed: false`; a PR adding a third-party action says so.
 - Code scanning default setup `state: not-configured`; private vulnerability
   reporting `enabled: true` ([`SECURITY.md`](../SECURITY.md)).
@@ -862,8 +861,8 @@ Owner-applied; no gate reads them.
 ### CI: deploy set
 
 It runs on `push` to `main` and on dispatch from `main` (`sha` rolls back;
-`force_all` ships everything). `CLOUDFLARE_API_TOKEN`, `CONVEX_DEPLOY_KEY`, `SENTRY_AUTH_TOKEN` and
-`RELEASE_PLEASE_TOKEN` live only in the `production` Environment; each job
+`force_all` ships everything). `CLOUDFLARE_API_TOKEN`, `CONVEX_DEPLOY_KEY` and
+`SENTRY_AUTH_TOKEN` live only in the `production` Environment; each job
 reading one declares it (`secrets-env`; declared in `tools/environments.ts`,
 drift-checked nightly). Public values (Convex URL, Sentry DSNs and org) are
 top-level `env:`.
@@ -1046,8 +1045,7 @@ the literal project `srd` or `itun`).
   `.convex.site` is HTTP actions, `.convex.cloud` the client; swapped, they
   read as "unreachable". Modules: [`apps/itun/convex/`](../apps/itun/convex/).
 - **GitHub:** [`SalvageUnion-io/SU-SRD`](https://github.com/SalvageUnion-io/SU-SRD),
-  `main`; releases are release-please
-  ([ADR-024](#adr-024)).
+  `main`; the deployed commit is the release ([ADR-041](#adr-041)).
 
 Re-derive: `claude mcp list`; Sentry MCP `find_organizations` /
 `find_projects`; `bunx convex mcp start` → `status`.
@@ -2417,152 +2415,12 @@ Full text: `git show c2476d1c:docs/adrs/ADR-023-drone-equipment-installed-loadou
 
 ### Status
 
-Accepted.
+**Superseded by [ADR-041](#adr-041)** (2026-10-08). Each site's changelog is
+still derived from conventional squash titles, but read from `main`'s history
+at build time and filtered by scope; release-please, its versions, its release
+PRs and the `CHANGELOG.md` files are gone.
 
-**Amended by [ADR-040](#adr-040) (2026-10-08).** The reference package is no
-longer a release-please component, so each site's `/changelog` renders its own
-`CHANGELOG.md` alone; the "merged with the ref's" decision below and its
-_Data_ area tag are withdrawn. srd and itun remain the two streams.
-
-### Context
-
-The two user-facing sites announce changes very differently today:
-
-- **`apps/srd`** has a hand-maintained changelog: a typed array in
-  `src/lib/changelog.ts` (`{ date, title, items[] }`) rendered at `/changelog`
-  and linked from the top/mobile nav. Its upkeep is governed by a "Changelog
-  Maintenance" section in [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md)
-  — one hand-authored entry **per PR**, edited in place on the branch.
-- **`apps/itun`** has **no** release changelog at all. Its About
-  page is static, and its in-app "Change Log" is a **per-entity provenance
-  trail** ([ADR-022](#adr-022)), not release
-  notes.
-
-The repo already squash-merges with **conventional-commit PR titles**
-(`feat:`, `fix:`, …) and gates every PR behind a single aggregate
-`CI Success` status check. That is exactly the structured input release
-tooling consumes.
-
-The stated goal is **formal releases + on-site release history at the least
-ongoing processing**. Two approaches were weighed:
-
-- **Enforce a hand-written changelog via CI** — a paths-filter gate that fails
-  a PR touching app source without a changelog edit. This is the _highest_
-  processing path: hand-authored prose on every PR **plus** a nag gate. It is
-  explicitly rejected.
-- **Derive the changelog from the commits already written** — no per-PR prose;
-  the notes fall out of the conventional titles. This is the least-processing
-  path and is the decision below.
-
-### Decision
-
-Release notes are **derived from conventional squash-commit titles via
-[release-please](https://github.com/googleapis/release-please) (manifest
-mode)**, never hand-authored. A single `release-please-config.json` +
-`.release-please-manifest.json` at the repo root governs all versioned
-components. This ADR covers the two **site** components;
-[ADR-025](#adr-025) covers the
-`salvageunion-reference` component and its surface gate. They share the one
-config.
-
-- **Two separate site streams.** `apps/srd` and `apps/itun`
-  are each independently versioned with their **own** generated `CHANGELOG.md`.
-  Streams are separate so an SRD-site visitor never sees ITUN entries and vice
-  versa — preserving the scoping the current hand-written web changelog already
-  enforces.
-
-- **On-site render = the app's own changelog merged with the ref's.** Each
-  site's `/changelog` renders a **build-time merge** of its own `CHANGELOG.md`
-  **and** the `salvageunion-reference` `CHANGELOG.md`. Rationale: for a
-  _reference_ tool, "what's new" is largely **new game data**, which lives in
-  the ref package, not the app — a web-only stream would regress the current
-  changelog's usefulness. The merge is **hermetic**: it parses committed
-  markdown files at build time, with **no network / GitHub-API call**. Entries carry a small area
-  tag (e.g. _App_ vs _Data_).
-
-- **`component-lib` is deliberately not its own stream.** It is an internal
-  shared library with no independent release surface. A pure-`component-lib` PR
-  with no app file touched will **not** appear on either site's changelog — an
-  accepted gap (in practice a user-visible shared-UI change rides with an app
-  change). Promote it to a component later if the gap ever bites. The
-  `discord-bot` is likewise excluded (no on-site history to render).
-
-- **The release PR is the batched, optional curation point.** Default behaviour
-  is **zero-processing** auto-generated notes. If polish is wanted, edit the
-  release PR's `CHANGELOG.md`/body **before merging** — a batched, per-release
-  choice, not per-PR work.
-
-- **Seeding & migration.** `.release-please-manifest.json` seeds `srd`
-  at `1.0.0` and `itun` at `0.1.0`, with `bootstrap-sha` at the
-  adopting commit so the first release PR is forward-looking. The existing
-  ~35 `changelog.ts` entries are **backfilled** into
-  `apps/srd/CHANGELOG.md` as a historical tail (nothing is lost);
-  `changelog.ts` is then removed and the `/changelog` page reads the markdown.
-
-- **This supersedes the "Changelog Maintenance" section of
-  `apps/srd/CLAUDE.md`** (per-PR hand-authored entries). It is replaced by
-  guidance to write a good conventional PR title; the changelog is generated.
-
-- **CI / merge interplay.** release-please runs as a workflow on push to `main`.
-  It must authenticate with a **PAT**, not the default `GITHUB_TOKEN`, so its
-  release PRs trigger `ci.yml` and the required `CI Success` check reports
-  (a `GITHUB_TOKEN`-opened PR triggers no workflows and would be unmergeable).
-  This is a one-time repo-secret setup step, documented at rollout. Release PRs
-  touch only `CHANGELOG.md` / `package.json` version / the manifest, so they
-  pass the suite cleanly, and land via the existing squash-only + auto-merge
-  flow.
-
-- **One release PR for all components, not one per component.**
-  `separate-pull-requests` is **`false`**. It was `true`, and that was the
-  systemic cause of the release lag this ADR was meant to eliminate: all three
-  components share a single `.release-please-manifest.json`, and their version
-  entries are **adjacent lines**, so any two open release PRs conflict by
-  construction. The moment one merged, every other open release PR went
-  `CONFLICTING` — and release-please does not repair them, because it only
-  force-pushes a release branch when _its own_ component has new commits. A
-  component with no new commits keeps a stale manifest forever.
-
-  Observed three times in one evening: #677 (itun) died when `srd 2.0.0` landed,
-  its recreation #698 died when `srd 2.0.1` landed, and #698 stayed frozen
-  through two successful release-please runs afterwards. The only recovery is to
-  close the PR and let it be recreated, which is a human step — exactly what
-  this ADR set out to avoid.
-
-  A single PR removes the contention: one branch, one manifest edit, nothing to
-  conflict with. Versioning is **unchanged** — each component still gets its own
-  independent version bump, its own `CHANGELOG.md` section, and its own
-  component-tagged GitHub Release on merge. Only PR granularity changes. The
-  cost is that one component's release notes can no longer be reviewed or
-  delayed in isolation; given the alternative was releases silently not shipping
-  at all, that is the right trade.
-
-- **Auto-merge is armed by the workflow, not by a human.** This sentence used to
-  read as though "the existing auto-merge flow" would pick release PRs up on its
-  own. It does not: nothing enables auto-merge on a PR unless something asks it
-  to, so the release PRs simply sat open — `srd` #688 for a day, `itun` #677 for
-  two — and `main`'s `CHANGELOG.md` fell behind by exactly that much. The
-  release-please workflow now re-arms auto-merge on every open
-  `release-please--*` PR on each run, so a release lands as soon as
-  `CI Success` is green with no human step. It is re-asserted every run
-  rather than only on creation, because a rebased release PR (both edit
-  `.release-please-manifest.json`, so one always rebases) loses auto-merge
-  silently; the push that merges the first re-arms the second.
-
-### Consequences
-
-- **Less ongoing work than today** — no per-PR prose — and **ITUN gains a
-  changelog for free**.
-- **Auto-notes are terser** than the current curated prose. The release PR is
-  the place to optionally polish. Accepted trade for least-processing.
-- **Pure-`component-lib` PRs may not surface** on either site changelog
-  (documented gap above).
-- **New moving parts:** a release-please workflow + a PAT repo secret (admin,
-  one-time). If the secret is absent, release PRs won't get the required check
-  and won't be mergeable — a visible failure, not a silent one.
-- Each site's build gains a small, unit-tested markdown parser (validated
-  against real release-please output fixtures) to render the merged changelog.
-- Versioning is per-app and independent; a site's version advances only when it
-  (or the ref) has unreleased conventional commits.
+Full text: `git show bc9f08ce:docs/ARCHITECTURE.md` (its `## ADR-024` section)
 
 ## ADR-025
 
@@ -5569,7 +5427,59 @@ rule.
 - `apps/srd/src/lib/__tests__/jsonApi.test.ts` validates every emitted dataset
   and item against its emitted schema, checks each `$id`, and checks that every
   concrete `/schema/…json` URL in `llms.txt` is an emitted endpoint.
-- A data-only PR appears in neither site's changelog; that is the gap
-  [ADR-024](#adr-024) already accepts for `component-lib`.
+- A data-only PR appears in neither site's changelog: each lists only its own
+  scope ([ADR-041](#adr-041)).
 - npm still serves the orphaned `salvageunion-reference@2.4.0`. Deprecating it
   needs the owner's npm credentials (`npm deprecate`), outside this repo.
+
+## ADR-041
+
+**The Deployed Commit Is the Release; Changelogs Read `main`'s History**
+
+### Status
+
+**Accepted; built** (2026-10-08, audit-4 P17, #1138). Supersedes
+[ADR-024](#adr-024).
+
+### Context
+
+[ADR-024](#adr-024) derived each site's changelog from conventional squash
+titles through release-please. By audit 4 that machinery cost more than the
+changelog it produced. In the 30 days to 2026-10-08, 16 of 112 commits on
+`main` were release commits, and 14 of the 16 release PRs merged within about
+two minutes of opening: nobody curated them. Each one bumped
+`apps/itun/package.json`, so each redeployed ITUN and pushed Convex for a
+version string only ITUN's About page read. The stream also leaked: release-please
+attributes a commit to every component whose files it touches, so the SRD's
+changelog listed `feat(itun)` entries. Keeping it ran on a PAT in the
+`production` Environment and a 108-line parser for release-please's markdown.
+
+Nothing else consumed a version. Sentry tags every event with the deployed SHA
+(`VITE_COMMIT_REF`, `SENTRY_RELEASE`), the deploy record is the
+`deployed/cloudflare` tag, and a rollback dispatches a SHA.
+
+### Decision
+
+1. **The deployed commit is the release.** No app carries a version
+   (`package.json` says `0.0.0`); ITUN's About page shows the build's short
+   SHA (`VITE_COMMIT_REF`).
+2. **Each site's changelog is `main`'s history, read at build time.**
+   `readChangelog(scope, area)` (`packages/component-lib/src/changelog/gitChangelog.ts`,
+   the `component-lib/changelog/git` export) runs `git log --first-parent` and
+   keeps `feat`, `fix` and `perf` subjects whose scope is the app's own, one
+   entry per day with each PR linked. srd calls it during its SSR pass; ITUN's
+   `vite.config.ts` inlines the result as `__ITUN_CHANGELOG__`.
+3. **The scope is the filter.** `feat(itun): …` appears on ITUN's page and
+   nowhere else; `feat(srd): …` on the SRD's. An unscoped title, or one scoped
+   to a package, appears on neither.
+
+### Consequences
+
+- No release PRs, no release commits, no PAT: `RELEASE_PLEASE_TOKEN` is no
+  longer declared in `tools/environments.ts`.
+- The deploy's build jobs check out full history (`fetch-depth: 0`). A shallow
+  clone (CI, e2e) renders a shorter changelog, never a failed build.
+- A site's changelog is as current as its last deploy. A scoped title that
+  touched none of that app's deploy paths shows on the next deploy that does.
+- A change to a site has to say so in its title. The PR title gate already
+  requires a conventional title; it cannot know the right scope.

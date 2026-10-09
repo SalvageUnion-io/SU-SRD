@@ -43,8 +43,8 @@
  *                 function in its `if:` — the implicit `success()` is false
  *                 whenever any ancestor was skipped.
  *   secrets-env   every job that reads an Environment secret declared in
- *                 `tools/environments.ts` (today: Cloudflare, Convex, Sentry,
- *                 the release PAT, all `production`) declares that Environment,
+ *                 `tools/environments.ts` (today: Cloudflare, Convex and
+ *                 Sentry, all `production`) declares that Environment,
  *                 and every Environment a job names is declared there. The
  *                 secrets live only in the Environment, which admits `main`
  *                 alone, so a workflow copy dispatched from a branch cannot
