@@ -6,10 +6,10 @@
  * ReferenceEntityCard entity cards (max 2 columns), then the Description
  * panel.
  *
- * FIELD-section archetype (unified edit language), but the section's own
- * Edit/Done button now lives in the parent `SheetSectionCard`'s header (Phase
- * 2 lifts the chead row into the card chrome) — this panel is CONTROLLED via
- * the `editing` prop rather than owning its own toggle state, mirroring
+ * FIELD-section archetype (unified edit language). The parent
+ * `SheetSectionCard`'s header owns the section's Edit/Done button, so this
+ * panel is CONTROLLED via the `editing` prop rather than owning its own toggle
+ * state, mirroring
  * `PilotIdentityPanel` / `MechIdentityPanel`. Type is picker-backed — its
  * edit affordance opens the existing CrawlerTypeEditModal (destructive:
  * resets the special NPC, with its own confirm step).

@@ -38,9 +38,8 @@ export function OwnerSeal({
 }) {
   // The default stamp plate: ink ground, paper text, at the smallest rung —
   // a plate riveted across the row's top border, subordinate to the name it
-  // sits beside. It was `inverse` (paper ground, ink text) at `compact`, which
-  // read as another chip floating near the corner rather than as a mark
-  // stamped ON the record.
+  // sits beside, so it reads as a mark stamped ON the record rather than as
+  // another chip floating near the corner.
   const stamp = (
     <Badge shape="stamp" size="mini" className="tracking-caps-wide">
       {owner.label}

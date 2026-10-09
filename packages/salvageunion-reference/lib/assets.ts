@@ -8,8 +8,8 @@
  * the grammar belongs with the dataset rather than being retyped by every
  * surface that links out.
  *
- * Split out of the old `lib/utilities.ts` grab bag (deleted). The package
- * barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
+ * The package barrel (`lib/index.ts`) re-exports, by name, only what
+ * consumers import.
  */
 
 import type { SURefMetaEntity } from './schemas/index.js'

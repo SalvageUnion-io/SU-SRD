@@ -8,8 +8,8 @@
  * that has to RESOLVE something (an action name, a self-action fallback, a
  * pattern) lives in `actionResolution.ts` or `patterns.ts` instead.
  *
- * Split out of the old `lib/utilities.ts` grab bag (deleted). The package
- * barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
+ * The package barrel (`lib/index.ts`) re-exports, by name, only what
+ * consumers import.
  */
 
 import type { SURefMetaEntity, SURefObjectGrant } from './schemas/index.js'

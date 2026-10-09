@@ -474,15 +474,12 @@ export default defineSchema({
    * null`, `ownerId` set) it is somebody's own tray, where they prep before a
    * Game exists or after one ends.
    *
-   * ## Why this grew two columns
+   * ## Why two columns
    *
-   * It was `gameId: v.id('games')` with no `ownerId` — *precisely* the shape
-   * `crawlers` had before #871, and it produced the same two problems. An NPC
-   * could not exist outside a Game, so deleting a Game destroyed the Mediator's
-   * prep; and the client kept a local-only tray of its own under the same name,
-   * holding a different set of rows that no server table could receive. One
-   * name, two disjoint meanings, and a container model that could express only
-   * one of them.
+   * An NPC lives in a Game or on its owner's shelf, so it carries a nullable
+   * `gameId` and an `ownerId`, like `crawlers`. Prep on a shelf survives the
+   * Game it was made for, and there is one tray under one name, held by the
+   * server in either container.
    *
    * `gameId == null && ownerId == null` stays the invalid row here as
    * everywhere else.

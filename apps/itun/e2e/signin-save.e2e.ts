@@ -11,10 +11,10 @@ test.use({ account: 'anonymous' })
  * Signed out, ITUN is read-only: a visitor who opens a wizard is asked to sign
  * in instead, so there is never unsaved anonymous work to hand off. This pins
  * both halves — the refusal, and that what is built after signing in is
- * durable — and it is the reason the test-only password provider exists. Without this spec that provider
- * is an auth surface with no consumer — which is the state it was in until this
- * landed, and is worth remembering if anyone is tempted to delete this file
- * rather than fix it: **deleting the spec means deleting the provider too.**
+ * durable — and it is the reason the test-only password provider exists.
+ * Without this spec that provider is an auth surface with no consumer, so fix
+ * this file rather than delete it: **deleting the spec means deleting the
+ * provider too.**
  *
  * ## What it needs, and why it skips without it
  *

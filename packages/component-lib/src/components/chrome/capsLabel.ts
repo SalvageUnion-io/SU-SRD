@@ -5,13 +5,12 @@ import { cva } from 'class-variance-authority'
  * is made of.
  *
  * `font-cond` + `uppercase` + a size + a weight + a tracking is the single most
- * repeated class shape in this repo: ~188 hand-spelled occurrences across ~98
- * files, and until this existed there was no primitive for it. `Text`
+ * repeated class shape in this repo, and this is its primitive. `Text`
  * deliberately has no stamp/label variant (that role is `Badge shape="stamp"`),
- * so every caps label in a rail, a section header, a gauge cap or a key/value
- * row re-derived the same five decisions from scratch — which is exactly how
- * four sites ended up on Tailwind's built-in `tracking-wide` while their
- * siblings sat on a semantic rung.
+ * so without this recipe every caps label in a rail, a section header, a gauge
+ * cap or a key/value row re-derives the same five decisions from scratch, and
+ * siblings drift between Tailwind's built-in `tracking-wide` and a semantic
+ * rung.
  *
  * ## Emits `.su-*` class names now, not Tailwind classes (#799, epic #802)
  *

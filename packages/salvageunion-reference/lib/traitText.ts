@@ -4,8 +4,8 @@
  *
  * Pure string work — nothing here touches entities or the ORM.
  *
- * Split out of the old `lib/utilities.ts` grab bag (deleted). The package
- * barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
+ * The package barrel (`lib/index.ts`) re-exports, by name, only what
+ * consumers import.
  */
 
 /**

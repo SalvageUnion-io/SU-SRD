@@ -8,8 +8,8 @@
  * function here therefore has a resolution step — which is exactly what
  * separates it from the plain readers in `entityFields.ts`.
  *
- * Split out of the old `lib/utilities.ts` grab bag (deleted). The package
- * barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
+ * The package barrel (`lib/index.ts`) re-exports, by name, only what
+ * consumers import.
  */
 
 import { getGrants } from './entityFields.js'

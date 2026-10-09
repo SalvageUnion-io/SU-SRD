@@ -2,8 +2,8 @@
  * Mech patterns: reading a chassis's patterns, the hidden-pattern rule that
  * every render surface funnels through, and pattern-name normalisation.
  *
- * Split out of the old `lib/utilities.ts` grab bag. The package barrel
- * (`lib/index.ts`) re-exports the names consumers use, by name.
+ * The package barrel (`lib/index.ts`) re-exports the names consumers use, by
+ * name.
  */
 
 import type { SURefMetaEntity, SURefObjectPattern } from './schemas/index.js'
