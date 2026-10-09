@@ -28,8 +28,9 @@ on:
 permissions:
   contents: read
 
+# Per ref, so a branch dispatch cannot cancel the scheduled run on `main`.
 concurrency:
-  group: e2e-nightly
+  group: e2e-nightly-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -368,9 +369,13 @@ jobs:
   # ALWAYS_RUNS, which has no `if:` and so can only be skipped by a broken
   # upstream. `!cancelled()` still exempts a genuine cancellation of the whole
   # run, which is a human action rather than a regression.
+  #
+  # Only `main` reports: the tracking issue is about `main`, and a branch
+  # dispatch (blocked by the production environment's main-only policy, so red
+  # with zero steps) would otherwise open a false alarm or close a real one.
   notify:
     needs: [e2e-itun, observability-probe, convex-parity, production-smoke, environments]
-    if: always() && !cancelled()
+    if: always() && !cancelled() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # Two REST calls. A wedged notifier is the worst one to leave unbounded —
     # it is the thing that tells you the rest broke.
