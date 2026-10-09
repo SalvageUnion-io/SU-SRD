@@ -1034,7 +1034,7 @@ change CSP or region in lockstep. Sourcemaps upload only from
 (gated on `SENTRY_AUTH_TOKEN`; one org token and `vars.SENTRY_ORG`; project
 `vars.SENTRY_PROJECT` for itun, literal `srd` for srd).
 
-### Convex, GitHub and retired hosts
+### Convex and GitHub
 
 - **Convex:** project `alex-jarvis:suref-itun`; deployments in
   [Accounts and Games operations](#accounts-and-games-operations).
@@ -1043,11 +1043,6 @@ change CSP or region in lockstep. Sourcemaps upload only from
 - **GitHub:** [`SalvageUnion-io/SU-SRD`](https://github.com/SalvageUnion-io/SU-SRD),
   `main`; releases are release-please
   ([ADR-024](#adr-024)).
-- **Netlify (retired, deletion pending, ADR-033 P8):** team `salvageunion-io`
-  (`6a3b41d74a67a34e3aae3ede`); delete by id: `suindex` (`apps/srd`,
-  `62482841-12dd-4e35-a4ed-900f357675dc`), `in-the-union-now`
-  (`801d6f8d-1ad4-42c1-a29d-126b2d69ee69`), `su-assets`
-  (`19faf088-1c54-4bae-9312-74d7b0a94cea`). Render is gone.
 
 Re-derive: `claude mcp list`; Sentry MCP `find_organizations` /
 `find_projects`; `bunx convex mcp start` → `status`;
@@ -1185,47 +1180,7 @@ persistence cache — persistent entity state flows through the Zustand stores.
 
 **Superseded by [ADR-036](#adr-036)** (2026-10-06) — snapshots are retired; previously Accepted, and amended by ADR-033.
 
-### Context
-
-The local-first decision ([ADR-001](#adr-001)) keeps
-user data on-device, but players still want to share a built pilot or mech —
-post a link in a Discord channel, open it on a phone, hand it to a GM. That needs
-a server endpoint, but introducing accounts or a database would undo the reasons
-local-first was chosen.
-
-### Decision
-
-ITUN shares **immutable snapshots** through two **Netlify Functions** backed by
-**Netlify Blobs** (`apps/itun/netlify/functions/`):
-
-- `snapshot-publish` (POST) stores a snapshot and returns a short ID;
-  `snapshot-retrieve` (GET) returns it by ID.
-- **No authentication.** Snapshots are opaque blobs, not user records.
-- **Immutable.** Writes use `onlyIfNew: true`; a snapshot ID never changes
-  content.
-- **Short IDs.** 8-character Crockford base32 (~40 bits), generated in
-  `apps/itun/src/lib/snapshot/id.ts`.
-- **Rate limited.** ~10 requests/minute per client IP, tracked in memory
-  per function instance (`apps/itun/src/lib/snapshot/rateLimit.ts`).
-- **Bounded.** Payloads are capped (~256 KB) and **no PII is logged**.
-- **Storage is abstracted.** `SnapshotStorage` (`src/lib/snapshot/storage.ts`)
-  has a `NetlifyBlobsStorage` production implementation and an in-memory
-  implementation for tests. Error reporting via Sentry is optional and
-  env-gated (`SENTRY_DSN`).
-
-### Consequences
-
-- Sharing works with zero accounts: publish → get a link → anyone retrieves it.
-- Immutability means a shared link is a stable, point-in-time copy — editing your
-  local entity does not change a previously shared snapshot.
-- Rate limiting is best-effort: in-memory per-instance counters reset on cold
-  start and don't coordinate across instances. Acceptable for abuse-dampening,
-  not a hard quota.
-- This is the **only** server surface in the project; keep it limited to opaque
-  snapshot storage. Anything that needs user identity or mutable shared state
-  belongs in a new ADR, not here.
-- The storage abstraction keeps the functions testable without Netlify Blobs and
-  leaves room to swap providers.
+Full text: `git show c2476d1c:docs/adrs/ADR-004-snapshot-netlify-functions.md`
 
 ## ADR-005
 
@@ -2512,8 +2467,7 @@ config.
   _reference_ tool, "what's new" is largely **new game data**, which lives in
   the ref package, not the app — a web-only stream would regress the current
   changelog's usefulness. The merge is **hermetic**: it parses committed
-  markdown files at build time, with **no network / GitHub-API call** (Netlify
-  builds must not depend on a live API or token). Entries carry a small area
+  markdown files at build time, with **no network / GitHub-API call**. Entries carry a small area
   tag (e.g. _App_ vs _Data_).
 
 - **`component-lib` is deliberately not its own stream.** It is an internal
@@ -3863,8 +3817,7 @@ left, and no available version fixed it.
   value around the Vite call. Anything else that invokes Vite programmatically in
   the same process needs the same guard.
 - **srd reads Vite's default `VITE_` env prefix — do not re-add
-  `envPrefix: 'PUBLIC_'`.** The override existed only because Netlify's UI held
-  `PUBLIC_`-named values; the build env is now set only by
+  `envPrefix: 'PUBLIC_'`.** The build env is set only by
   `deploy-cloudflare.yml`. Re-adding it makes `VITE_SENTRY_DSN` inline as
   `undefined`, and srd's Sentry goes dark with every check green. The workflow
   still sets the `PUBLIC_` names alongside, solely so a rollback dispatch to a

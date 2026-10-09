@@ -83,10 +83,10 @@ describe('compare', () => {
   })
 
   test('an Environment secret still at repository level fails; a stray one too', () => {
-    const f = failures(live({ repositorySecrets: ['A_TOKEN', 'NETLIFY_SITE_ID'] }))
+    const f = failures(live({ repositorySecrets: ['A_TOKEN', 'OLD_HOST_SITE_ID'] }))
     expect(f).toEqual([
       expect.stringContaining('A_TOKEN is still a repository secret, readable from any branch'),
-      expect.stringContaining('NETLIFY_SITE_ID is an undeclared repository secret'),
+      expect.stringContaining('OLD_HOST_SITE_ID is an undeclared repository secret'),
     ])
   })
 
@@ -189,7 +189,7 @@ describe('readLive', () => {
           { name: 'old', deployment_branch_policy: null },
         ],
       }),
-      [`repos/${REPO}/actions/secrets`]: ok({ secrets: [{ name: 'NETLIFY_SITE_ID' }] }),
+      [`repos/${REPO}/actions/secrets`]: ok({ secrets: [{ name: 'OLD_HOST_SITE_ID' }] }),
     })
     expect(readLive(false, api, {})).toEqual({
       environments: [
@@ -202,7 +202,7 @@ describe('readLive', () => {
         { name: 'github-pages', policy: 'protected', branches: null, secrets: null },
         { name: 'old', policy: 'none', branches: null, secrets: null },
       ],
-      repositorySecrets: ['NETLIFY_SITE_ID'],
+      repositorySecrets: ['OLD_HOST_SITE_ID'],
       readableOutside: null,
     })
   })

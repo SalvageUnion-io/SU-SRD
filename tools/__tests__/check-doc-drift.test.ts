@@ -159,8 +159,8 @@ describe('citationReadsAsHistoryOrProposal', () => {
       '`b.md` used to hold this',
       '`docs/rules/` never existed',
       'The planned `tools/y.ts` does not exist yet',
-      'Three tools read `netlify.toml` (since deleted) at the time',
-      'the method-conditioned redirect in the since-deleted `netlify.toml` never matched',
+      'Three tools read `old-host.toml` (since deleted) at the time',
+      'the method-conditioned redirect in the since-deleted `old-host.toml` never matched',
     ]) {
       expect(excused(sentence)).toBe(true)
     }
@@ -221,7 +221,7 @@ describe('checkBacktickedPathsExist', () => {
       'package.json': JSON.stringify({ scripts: {} }),
       'docs/ARCHITECTURE.md':
         '## Data flow\n\nWrites go through `apps/itun/src/stores/gone.ts`.\n\n# Decisions\n\n' +
-        '## ADR-001\n\nWe kept `apps/itun/netlify/functions/` and ran `bun run netlify`.\n',
+        '## ADR-001\n\nWe kept `apps/itun/old-host/functions/` and ran `bun run old-host`.\n',
     })
     expect(checkBacktickedPathsExist(root).failures).toHaveLength(1)
     expect(checkReferencedScripts(root).failures).toEqual([])
@@ -230,7 +230,7 @@ describe('checkBacktickedPathsExist', () => {
   it('does not let a negation in a NEIGHBOURING sentence excuse a stale path', () => {
     const root = fixture({
       'docs/architecture/x.md':
-        'Netlify is not a host any more. Deploys run from `.github/workflows/deploy.yml`.\n',
+        'The old host is not used any more. Deploys run from `.github/workflows/deploy.yml`.\n',
     })
     expect(checkBacktickedPathsExist(root).failures).toHaveLength(1)
   })
@@ -238,11 +238,11 @@ describe('checkBacktickedPathsExist', () => {
   it('allows a path marked as history beside it, but not by its section heading alone', () => {
     const root = fixture({
       'docs/architecture/x.md':
-        '`tools/sync.ts` was deleted after P6.\n\n## Netlify — retired\n\nSee `apps/srd/netlify.toml`.\n',
+        '`tools/sync.ts` was deleted after P6.\n\n## Old host — retired\n\nSee `apps/srd/old-host.toml`.\n',
     })
     const { failures } = checkBacktickedPathsExist(root)
     expect(failures).toHaveLength(1)
-    expect(failures[0]).toContain('`apps/srd/netlify.toml`')
+    expect(failures[0]).toContain('`apps/srd/old-host.toml`')
   })
 
   it('judges live paths in the shapes that used to hide them (end to end)', () => {
