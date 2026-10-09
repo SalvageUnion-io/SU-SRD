@@ -641,19 +641,14 @@ async function assertMayScrapCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Pr
  * production several did (a since-deleted bulk upload inserted blindly, so
  * running it from a second browser duplicated the roster).
  *
- * `.unique()` turned that *data* condition into a thrown `Server Error` on
- * every subsequent mirrored write. `mirrorWrite` is fire-and-forget, so it
- * swallowed the throw: the local copy went on accepting edits, the server never
- * heard another one, and the two silently diverged forever — with the entity
- * still rendering perfectly on the shelf that had already saved it. That is the
- * worst failure this app can produce, and it was reachable from a duplicate row.
- *
- * A duplicate is a repair job. It is not a reason to refuse the write that
- * would have kept client and server in step, so this resolves one row and lets
- * the write land.
+ * `.unique()` would turn that *data* condition into a thrown `Server Error` on
+ * every write to the entity, locking the player out of their own build over a
+ * row they cannot see. A duplicate is a repair job (`dedupeAppIds`), not a
+ * reason to refuse the write, so this resolves one row, warns, and lets the
+ * write land.
  *
  * **The oldest row wins, deterministically.** It is the row every earlier
- * mirror already wrote to, so choosing it keeps editing the copy the client has
+ * write already landed on, so choosing it keeps editing the copy the client has
  * been addressing all along rather than silently migrating to a younger one.
  * `_creationTime` is used rather than index order because index order is not a
  * documented guarantee, and a winner that moves between calls would be worse

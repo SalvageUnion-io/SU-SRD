@@ -37,7 +37,7 @@ one `## ADR-NNN` each. Each one's own Status block is authoritative.
 | -------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | [ADR-001](ARCHITECTURE.md#adr-001)                    | Local-first, no backend — superseded by ADR-030                              |
 | [ADR-002](ARCHITECTURE.md#adr-002)                         | IndexedDB via `idb`, Zod as schema source (a cache since ADR-034)            |
-| [ADR-003](ARCHITECTURE.md#adr-003)                         | Zustand: lazy hydration, write-through, cross-tab via Convex                 |
+| [ADR-003](ARCHITECTURE.md#adr-003)                         | Zustand lazy hydration — superseded by ADR-034/ADR-030 except lazy hydration |
 | [ADR-004](ARCHITECTURE.md#adr-004)                | Snapshot sharing, unauthenticated — superseded by ADR-036                    |
 | [ADR-005](ARCHITECTURE.md#adr-005)                        | Game-data ORM with lazy loading                                              |
 | [ADR-006](ARCHITECTURE.md#adr-006)                          | Rules logic as pure functions                                                |
