@@ -69,12 +69,12 @@ the over-capacity red idiom, heat escalation, roll colour scope.
 
 ## Storage modes (ADR-030) — every surface needs all three
 
-- **Solo** — not signed in. The in-memory backend, in EVERY build (the durable
-  `local` backend and `VITE_REQUIRE_ACCOUNT` were retired 2026-09-25): work does
-  not survive a reload. A build with no `VITE_CONVEX_URL` (CI, a fresh checkout,
-  `bun run dev`) is permanently Solo, so no surface may call a Convex hook
-  unconditionally. Design for that — an anonymous user needs to be told their
-  work is temporary, never handed copy like "saved on this device".
+- **Solo** — not signed in, in EVERY build: **read-only**. Writes are refused
+  and nothing of the player's own shows; there is no Dashboard. A build with no
+  `VITE_CONVEX_URL` (CI, a fresh checkout, `bun run dev`) is permanently Solo,
+  so no surface may call a Convex hook unconditionally. Design for that — a
+  signed-out user needs an inviting route to sign in, never a disabled control
+  with no explanation or copy like "saved on this device".
 - **Connected** — signed in. Convex is the server of record, IndexedDB is a cache.
 - **Disconnected** — signed in and offline = **read-only**, not a write queue.
   Design the read-only state deliberately; do not show a disabled control with

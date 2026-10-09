@@ -9,11 +9,9 @@
  *
  * ## It renders nothing in Solo
  *
- * Games require an account. Somebody who is not signed in has one pile of
- * builds and no second container to switch to, so offering a one-option select
- * would be furniture that never does anything. Surfaces show that whole pile
- * unfiltered — which is also the only rendering that cannot hide a build (see
- * `stores/activeContainerStore.ts` on the v13 phantom-container ids).
+ * Games require an account. Somebody who is not signed in has no builds and no
+ * container to switch to, so a select would be furniture that never does
+ * anything.
  *
  * ## Why the Convex read lives in a child
  *

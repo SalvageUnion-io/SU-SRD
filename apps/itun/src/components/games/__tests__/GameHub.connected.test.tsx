@@ -356,7 +356,7 @@ describe('Launch Dashboard', () => {
   const listing = (pilots: unknown[]) => ({ pilots, mechs: [], crawlers: [], softLinks: [] })
 
   beforeAll(async () => {
-    // Filling the cache only; the in-memory backend keeps it to this process.
+    // Filling the cache only: `adopt` is not a user write, so it needs no account.
     setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
     const store = useEntityStore.getState()
     for (const [id, name] of HELD) {

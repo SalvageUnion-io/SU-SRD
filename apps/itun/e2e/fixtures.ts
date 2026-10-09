@@ -5,18 +5,11 @@ import { waitForReady } from './_helpers'
 /**
  * The ITUN e2e `test`, signed in by default.
  *
- * ## Why every spec signs in now
+ * ## Why every spec signs in
  *
- * There are two places a build can land: the in-memory backend for an
- * anonymous visitor, and the account. Only the second survives a reload, so
- * every spec that builds something and reads it back after a `goto` or a
- * `reload` is, by definition, a test of the signed-in path.
- *
- * It used to be a test of a third path instead. The suite built a production
- * bundle with `VITE_REQUIRE_ACCOUNT=false` forced on, which kept the retired
- * `local` backend alive — durable IndexedDB for an anonymous visitor — so the
- * suite spent its whole run proving a storage mode no player could reach.
- * `local` and the flag are gone; the suite now runs the way production does.
+ * A build lands in exactly one place: the account. Signed out, ITUN is
+ * read-only and refuses every write, so every spec that builds something is a
+ * test of the signed-in path, run the way production runs.
  *
  * ## How it signs in
  *

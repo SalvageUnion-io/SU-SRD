@@ -75,8 +75,8 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 
 ## Persistence (read before touching data)
 
-- Player data lives in **IndexedDB** via `idb` (`src/lib/db/`). Stores
-  (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `softLinks`,
+- Player data lives in **Convex**; IndexedDB (`idb`, `src/lib/db/`) is a
+  per-account cache of it. Stores (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `softLinks`,
   `mechPatterns`, `encounterNpcs`, and `meta`. The Change Log
   ([ADR-022](../../docs/ARCHITECTURE.md#adr-022)) has no device store: it is
   the Convex `changeLog` table, written by `commitChangeLog` and read by
@@ -102,18 +102,20 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   shared **Game** or the owner's **Shelf** ("My Stuff") — encoded as one
   nullable `gameId` and resolved through `src/lib/container.ts`, never by
   reading `workspaceId` (a pre-ADR-030 fallback). Filter with `containerOf` +
-  `sameContainer`, and only when `mode === 'connected'`: an anonymous user has
-  no Games, so their surfaces render the whole pile unfiltered. `/` (`Roster`)
+  `sameContainer`, and only when `mode === 'connected'`: signed out there is
+  nothing to show, and Disconnected has no live Game list to filter against, so
+  it shows the cached pile whole. `/` (`Roster`)
   shows one container at a time; there are no Games pages.
 - **Assignments** ([ADR-037](../../docs/ARCHITECTURE.md#adr-037)):
   draw soft links only via `assignLink`; the rules are
   `src/lib/links/linkRules.ts`, shared with `convex/`.
 - **Lazy auto-hydration:** first `list(type)` loads the IndexedDB cache (nothing
-  signed out); later reads are synchronous.
-- **Write-through:** `update`/`create`/`delete` commit to Convex first when
-  signed in, then the IndexedDB cache, then in-memory state; other tabs hear
-  it from Convex
+  signed out); later reads are synchronous
   ([ADR-003](../../docs/ARCHITECTURE.md#adr-003)).
+- **Server first:** `update`/`create`/`delete` commit to Convex, then the
+  IndexedDB cache, then in-memory state; a refused write changes nothing, and
+  other tabs hear it from Convex
+  ([ADR-034](../../docs/ARCHITECTURE.md#adr-034)).
 - Route persistent entity state through the store, **never** through a
   separate query cache (see `.claude/rules/itun-data-access.md`).
 
@@ -197,16 +199,14 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 
   The lookups (`byAppId` / `crawlerByAppId`) do **not** throw on a duplicate:
   they resolve to the oldest row (the one `dedupeAppIds` keeps) and
-  `console.warn`, because a throw in a fire-and-forget mirrored write silently
-  stops the write reaching the server.
+  `console.warn`.
 - **A copy gets a new UUID; a move keeps its own.** These pull in opposite
   directions, so both matter:
   - **Copy → new id.** Importing a bundle (`mergeImport`) and seeding the
     Starter Set (`seedStarterSet`) each mint a fresh UUID per row and remap the
     soft links onto them. An entity id becomes its `appId` on the server, so a
     copy that kept its id would put one id in two accounts — and since a
-    duplicate now resolves to the oldest row, the second account's mirrored
-    writes aim at the first account's entity and are refused by `assertMayWrite`
+    duplicate resolves to the oldest row, the second account's writes aim at the first account's entity and are refused by `assertMayWrite`
     as somebody else's. Never write a fixed or template id into
     `pilots`/`mechs`/`crawlers`; record provenance in `seedRef`, which is what
     it is for.

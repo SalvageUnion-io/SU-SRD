@@ -35,7 +35,7 @@ You are an elite UX designer and interaction architect with 15+ years of experie
 
 - **Styling is tokens + `.su-*` classes; Tailwind is being removed** (#802, `docs/design-system/tailwind-removal.md`). Base UI (`@base-ui/react`) is the headless primitive layer; no Radix, no app-local `src/components/ui/`.
 - **All design tokens live in one file**: `packages/component-lib/src/styles/theme.css`. Apps may not declare an `@theme` block or define a `--color-*` / `--text-*` / `--tracking-*` / `--bw-*` / `--radius-*` / `--font-*` / `--shadow-*` token — `tools/check-styling.ts` fails the build on it at pre-push. When you recommend a colour, spacing or type value, it must be an existing token, or an explicit proposal to add one to `theme.css`.
-- **Three storage modes** in the builder app (`apps/itun/CLAUDE.md` owns them): **Solo** — not signed in, in every build: the in-memory backend; writes do not survive a reload. **Connected** — signed in, online: Convex; IndexedDB is a cache. **Disconnected** — signed in, offline: read-only, not a write queue. Every surface needs an answer for all three.
+- **Three storage modes** in the builder app (`apps/itun/CLAUDE.md` owns them): **Solo** — not signed in, in every build: read-only; writes are refused and nothing of the player's own shows. **Connected** — signed in, online: Convex; IndexedDB is a cache. **Disconnected** — signed in, offline: read-only, not a write queue. Every surface needs an answer for all three.
 
 ### The design system you are designing inside
 

@@ -3,8 +3,8 @@
  * Zustand store (audit item 22).
  *
  * encounterStore and patternStore both follow the same
- * discipline (ADR-003): lazy auto-hydration from IndexedDB on first read and
- * write-through persistence (server, then db, then in-memory set()). Another
+ * discipline: lazy auto-hydration from IndexedDB on first read (ADR-003) and
+ * server-first persistence (server, then db, then in-memory set(); ADR-034). Another
  * tab's writes arrive through this tab's own Convex subscription: `ShelfSync`
  * adopts its creates and edits and forgets its deletes. There is no tab-to-tab
  * channel.

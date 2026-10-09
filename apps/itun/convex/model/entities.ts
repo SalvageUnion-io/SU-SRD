@@ -216,7 +216,8 @@ export async function findOwnedByAppId(
  * Soft links carry no `appId` and need none: `from.id` and `to.id` already ARE
  * app-level ids, so the (from, to, kind) triple is the link's identity. Two
  * links with the same endpoints and the same kind are the same link, whichever
- * browser drew it — which is what makes the mirror idempotent for free.
+ * browser drew it — which is what makes the client's server-first link write
+ * idempotent for free.
  *
  * Shared by every mutation that writes a link, so the triple is the link's
  * identity everywhere and no two copies of that rule can disagree.

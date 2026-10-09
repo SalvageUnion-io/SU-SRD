@@ -13,7 +13,7 @@
  *
  * "+ New game" (`NewGameControl`) heads the band, beside the select it adds
  * to. Signed out — or in a build with no account service — there is no game
- * UI at all: no select, no New game, and the whole pile unfiltered (see
+ * UI at all: no select, no New game, only the sign-in prompt (see
  * `inContainer`).
  *
  * On mount: hydrates all three entity types + softLinks. At the mobile
@@ -204,9 +204,9 @@ export function Roster() {
   const crawlers = inContainer(allCrawlers)
 
   /**
-   * Which container the body shows. A Game only when Connected: a Solo or
-   * Disconnected viewer has no Games to show (see `inContainer`), so for them a
-   * remembered Game selection falls through to the whole pile. While the
+   * Which container the body shows. A Game only when Connected: a Disconnected
+   * viewer has no live Games to show (see `inContainer`), so for them a
+   * remembered Game selection falls through to the whole cached pile. While the
    * connection is still being worked out, a remembered Game shows a skeleton
    * rather than flashing that unfiltered pile first.
    */

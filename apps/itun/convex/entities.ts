@@ -353,7 +353,7 @@ export const listMine = query({
     // Bodies, not documents. The caller is filling a local store whose records
     // are keyed by the app-level id inside the body, so a Convex `_id` would be
     // noise — and `appId` rides along separately for the rows that carry one,
-    // because that is what the mirror addresses by.
+    // because that is what the client's server-first write addresses by.
     //
     // `updatedAt` is the row's version. `ShelfSync` adopts a row only when it
     // is newer than the one it last saw, and a pilot or mech write sends it
@@ -488,7 +488,8 @@ export const listWiring = query({
 /**
  * Delete an entity, addressed by its **server** id. Owner only.
  *
- * The twin of `removeByAppId`, which the mirror uses, and necessary because the
+ * The twin of `removeByAppId`, which `commitEntityWrite` uses, and necessary
+ * because the
  * Game roster cannot use that one: it is looking at rows this browser may never
  * have held, and at pre-gens seeded from a template that have no `appId` at all
  * (production holds a dozen). Addressing by `_id` is the only way to name those,
@@ -641,19 +642,14 @@ async function assertMayScrapCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Pr
  * production several did (a since-deleted bulk upload inserted blindly, so
  * running it from a second browser duplicated the roster).
  *
- * `.unique()` turned that *data* condition into a thrown `Server Error` on
- * every subsequent mirrored write. `mirrorWrite` is fire-and-forget, so it
- * swallowed the throw: the local copy went on accepting edits, the server never
- * heard another one, and the two silently diverged forever — with the entity
- * still rendering perfectly on the shelf that had already saved it. That is the
- * worst failure this app can produce, and it was reachable from a duplicate row.
- *
- * A duplicate is a repair job. It is not a reason to refuse the write that
- * would have kept client and server in step, so this resolves one row and lets
- * the write land.
+ * `.unique()` would turn that *data* condition into a thrown `Server Error` on
+ * every write to the entity, locking the player out of their own build over a
+ * row they cannot see. A duplicate is a repair job (`dedupeAppIds`), not a
+ * reason to refuse the write, so this resolves one row, warns, and lets the
+ * write land.
  *
  * **The oldest row wins, deterministically.** It is the row every earlier
- * mirror already wrote to, so choosing it keeps editing the copy the client has
+ * write already landed on, so choosing it keeps editing the copy the client has
  * been addressing all along rather than silently migrating to a younger one.
  * `_creationTime` is used rather than index order because index order is not a
  * documented guarantee, and a winner that moves between calls would be worse
@@ -748,14 +744,11 @@ async function writeOwnable(
   }
 
   /**
-   * A mirrored write also re-homes the row when the client has moved it.
+   * The write also re-homes the row when the client has moved it.
    *
-   * Until this existed, `MoveToContainerControl` re-stamped the local record
-   * and the mirror patched only the body — so moving a build onto a Game
-   * looked like it worked, the roster filtered by the new container, and the
-   * server row never left the shelf. The move is a create *into* the target
-   * container as far as the rules are concerned, so it answers to the same
-   * gate; leaving the source is unconditional.
+   * The move is a create *into* the target container as far as the rules are
+   * concerned, so it answers to the same gate; leaving the source is
+   * unconditional.
    */
   const previousGameId = existing.gameId
   const moved = previousGameId !== args.gameId
@@ -931,12 +924,14 @@ async function moveCrawlerRow(
 }
 
 /**
- * The crawler mirroring a local build, addressed by app id.
+ * Look a crawler up by the app-level UUID the client holds.
  *
- * Tolerant of duplicates for exactly the reasons `byAppId` is — same
- * non-unique index, same fire-and-forget mirror, same silent divergence if it
- * throws. The crawler has no duplicates in production today, and that is luck
- * rather than a constraint: nothing in the index stops a second row.
+ * Tolerant of duplicates for exactly the reasons `byAppId` is: `by_app_id` is
+ * not a uniqueness constraint, and `.unique()` would turn a duplicate into a
+ * thrown error on every write, locking the player out of their own crawler
+ * over a row they cannot see. So this resolves the oldest row, warns, and lets
+ * the write land. The crawler has no duplicates in production today, and that
+ * is luck rather than a constraint: nothing in the index stops a second row.
  */
 async function crawlerByAppId(ctx: MutationCtx, appId: string): Promise<Doc<'crawlers'> | null> {
   const matches = await ctx.db
@@ -959,7 +954,7 @@ async function crawlerByAppId(ctx: MutationCtx, appId: string): Promise<Doc<'cra
  *
  * The `from` end is always ownable — a mech in `mech-to-pilot` and
  * `mech-to-crawler`, a pilot in `pilot-to-crawler` — which is what lets one
- * lookup answer both questions the mirror has to ask: may this user draw the
+ * lookup answer both questions a link write has to ask: may this user draw the
  * link, and which container does it belong to.
  */
 const SOFT_LINK_FROM_TABLE: Record<SoftLink['type'], OwnableTable> = {
