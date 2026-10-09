@@ -7,8 +7,8 @@
 import { writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-// The canonical schema-id -> Zod map lives in ModelFactory (one registry,
-// audit item 23) — the generator no longer keeps its own copy.
+// The canonical schema-id -> Zod map lives in ModelFactory (one registry); the
+// generator keeps no copy.
 import { zodSchemaMap } from '../lib/generated/zodSchemaMap.generated.js'
 import { z } from '../lib/zod.js'
 import { formatWithBiome } from './formatWithBiome.js'

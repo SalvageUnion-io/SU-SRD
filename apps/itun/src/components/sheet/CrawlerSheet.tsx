@@ -75,7 +75,6 @@ import { useState } from 'react'
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
-import { resolveCrawlerBay } from '../../lib/crawlerRefs'
 import { drawFromPool, poolAvailableAtOrAbove, SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -291,18 +290,17 @@ export function CrawlerSheet({
 
   /** Which special bay is this? Drives what gets rendered INSIDE it. */
   function bayKind(entry: CrawlerBayEntry): 'mech' | 'armament' | 'storage' | 'plain' {
-    const name = resolveCrawlerBay(entry.bayRef)?.name ?? entry.bayRef
-    if (entry.bayRef === 'mech-bay' || name === 'Mech Bay') return 'mech'
-    if (entry.bayRef === 'armament-bay' || name === 'Armament Bay') return 'armament'
-    if (entry.bayRef === 'storage-bay' || name === 'Storage Bay') return 'storage'
+    if (entry.bayRef === 'mech-bay') return 'mech'
+    if (entry.bayRef === 'armament-bay') return 'armament'
+    if (entry.bayRef === 'storage-bay') return 'storage'
     return 'plain'
   }
 
   /**
    * One bay card, with whatever that bay HOLDS rendered inside it: the
    * Armament Bay's mounted weapons, the Storage Bay's scrap pool and hold.
-   * A bay's contents belong in the bay — they used to sit in sections
-   * elsewhere on the sheet, describing a bay from a distance.
+   * A bay's contents belong in the bay, not in a section elsewhere on the
+   * sheet describing it from a distance.
    */
   function renderBay(entry: CrawlerBayEntry, i: number) {
     const kind = bayKind(entry)

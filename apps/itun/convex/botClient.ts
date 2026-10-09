@@ -98,11 +98,8 @@ function asFailure(error: unknown): BotFailure {
 /**
  * Owner display names for a Game, resolved once per request.
  *
- * This used to return a `present` flag alongside the name, read from a
- * `presence` table. Nothing ever wrote that table — `heartbeat` had no caller —
- * so the flag was false for everybody, forever, and the bot dutifully rendered
- * "0 at the table" to rooms full of people. The table and the flag are both
- * gone; see `mediator.ts`'s header.
+ * Names only: ITUN tracks no presence, so there is no "who is at the table"
+ * flag to report; see `mediator.ts`'s header.
  */
 async function ownerNames(ctx: QueryCtx, gameId: Id<'games'>): Promise<Map<string, string>> {
   const members = await ctx.db
@@ -276,13 +273,8 @@ export const crew = internalQuery({
  * pilot, mech or the communal crawler, which is what "lean over and look at
  * their sheet" means at a physical table. The entity must belong to *this
  * channel's* Game, so a member of one table cannot read another table's sheets
- * by id.
- *
- * `crawlers` joined the union after the fact. It was reachable on the crew
- * board and openable nowhere, which made the crawler the one thing a table
- * could see and not inspect. It carries **no `ownerId` at all** (it is
- * communal, ADR-030 §5), so ownership is read off the row optionally rather
- * than assumed present — a crawler reports no owner rather than an absent one.
+ * by id. A crawler in a Game is communal (ADR-030 §5): its `ownerId` is null,
+ * so it reports no owner.
  */
 export const sheet = internalQuery({
   args: {
@@ -309,8 +301,7 @@ export const sheet = internalQuery({
 
     const row = doc as unknown as {
       gameId: Id<'games'> | null
-      // Optional, not nullable: `crawlers` has no such column at all.
-      ownerId?: Id<'users'> | null
+      ownerId: Id<'users'> | null
       appId?: string
     }
     // Not `forbidden` — telling somebody an id exists but is another table's is
@@ -318,7 +309,7 @@ export const sheet = internalQuery({
     if (row.gameId !== actor.value.gameId) return fail('not-found')
 
     const names = await ownerNames(ctx, actor.value.gameId)
-    const ownerId = row.ownerId ?? null
+    const ownerId = row.ownerId
     return {
       ok: true,
       table: args.table,

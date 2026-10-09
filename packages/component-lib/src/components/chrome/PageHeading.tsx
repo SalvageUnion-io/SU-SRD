@@ -43,10 +43,9 @@ type PageHeadingProps = {
  */
 /** The three rungs, spelled once so the variant switch stays a lookup. */
 const HEADING_VARIANTS = {
-  // The former `.page-heading` set an off-ladder `letter-spacing: 0.01em`
-  // (~0.3px at this display size — imperceptible, and below the tracking
-  // ladder's tightest rung). Promoting it onto the library snaps it to the
-  // default spacing to stay on-system (ruleset §4.2, tokens-only tracking).
+  // Default letter-spacing: an off-ladder `0.01em` would be ~0.3px at this
+  // display size — imperceptible, and below the tracking ladder's tightest
+  // rung (ruleset §4.2, tokens-only tracking).
   heading:
     'box-decoration-clone bg-ink px-2 py-1 font-cond text-3xl/[1] font-bold uppercase text-paper',
   subheading: 'font-cond text-lg font-bold uppercase',

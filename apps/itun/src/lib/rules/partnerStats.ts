@@ -29,9 +29,8 @@
  */
 
 import type { SURefEntity } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
-import { matchesRef } from 'salvageunion-reference/rules'
 import type { PartnerInstance } from '../schemas/partner'
 import { partnerGrantCount } from './partnerGrants'
 
@@ -74,7 +73,7 @@ export function resolvePartnerStatBlock(partner: PartnerInstance): SURefEntity |
     partner.hostSchema === 'equipment'
       ? SalvageUnionReference.Equipment
       : SalvageUnionReference.Drones
-  return model.find((entry) => matchesRef(entry, partner.hostRef)) ?? null
+  return model.getBySlug(partner.hostRef) ?? null
 }
 
 /** Read a numeric field off a resolved reference record. */
@@ -111,7 +110,7 @@ export function partnerTechLevel(
   if (partner.hostSchema === 'drones') return base
 
   const fromCrawler = crawlerTechLevel ?? base
-  const isMechaCompanion = statBlock !== null && matchesRef(statBlock, MECHA_COMPANION_REF)
+  const isMechaCompanion = statBlock !== null && getEntitySlug(statBlock) === MECHA_COMPANION_REF
   return isMechaCompanion ? Math.max(fromCrawler, MECHA_COMPANION_MIN_TECH_LEVEL) : fromCrawler
 }
 
@@ -189,12 +188,10 @@ export function partnerDerivedStatsParts(
  * and the Little Sestra's Sestra Drone). Two things raise it, and neither is
  * legible from the stat block:
  *
- *   - A PILOT ABILITY THAT GRANTS MORE THAN ONE. This used to string-match
- *     `mecha-packmaster`, which was both a hardcode and a duplicate: the fact
- *     already lives in the data, since Packmaster's `grants` lists Mecha
- *     Companion twice. Reading it means the cap and the number actually seeded
- *     can no longer drift apart, and a future ability that grants two needs no
- *     edit here. See `partnerGrantCount` for why it is a MAX, not a sum.
+ *   - A PILOT ABILITY THAT GRANTS MORE THAN ONE, read from the data:
+ *     Packmaster's `grants` lists Mecha Companion twice. Reading it means the
+ *     cap and the number actually seeded cannot drift apart, and a future
+ *     ability that grants two needs no edit here. See `partnerGrantCount` for why it is a MAX, not a sum.
  *   - THE STAT BLOCK'S OWN CONTROLLER. The Big Brother "can control up to 4 Big
  *     Brother Drones", and its DronTek pattern fields exactly that many — so
  *     without this, every one of those four would read "4 of 1" the moment the

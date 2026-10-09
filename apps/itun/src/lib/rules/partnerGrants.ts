@@ -2,17 +2,17 @@
  * partnerGrants — where a partner comes from, and when it goes away.
  *
  * A partner has no independent existence: it is granted, and it "cannot outlive
- * the thing that grants it" (see `lib/schemas/partner.ts`). Until now that
- * sentence was only a comment — nothing in the app ever CREATED a
- * `PartnerInstance`, so the two grant paths both leaked:
+ * the thing that grants it" (see `lib/schemas/partner.ts`). This module is what
+ * CREATES a `PartnerInstance`, on both grant paths:
  *
- *   - Building a Little Sestra silently dropped its Sestra Drone, and a Big
- *     Brother on the DronTek pattern dropped all four of its drones. The mech
- *     sheet's Partners region was live code that could never render.
- *   - Equipping a pilot's Survey Drone / Auto-Turret / Mecha Companion produced
- *     an inert equipment card with no structure, no energy and no loadout.
+ *   - Building a Little Sestra fields its Sestra Drone, and a Big Brother on
+ *     the DronTek pattern fields all four of its drones, in the mech sheet's
+ *     Partners region.
+ *   - Equipping a pilot's Survey Drone / Auto-Turret / Mecha Companion fields a
+ *     partner with its own structure, energy and loadout, not an inert
+ *     equipment card.
  *
- * This module is the missing half. It answers "what does this host's current
+ * It answers "what does this host's current
  * configuration grant?" as a list of SEEDS, and reconciles that list against
  * whatever instances the host already carries.
  *
@@ -42,7 +42,7 @@
  */
 
 import { nameToSlug, normalizePatternName, SalvageUnionReference } from 'salvageunion-reference'
-import { resolveChassisRef, resolveRef } from 'salvageunion-reference/rules'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { PartnerInstance } from '../schemas/partner'
 
 /**
@@ -164,11 +164,9 @@ export function mechPartnerSeeds(chassisRef: string, patternName?: string): Part
  * Requires `equipment` preloaded.
  */
 function resolvePartnerEquipment(slug: string) {
-  // `resolveRef`, not `Equipment.find((e) => matchesRef(e, slug))` — the latter
-  // is a full-schema scan wearing a predicate's clothes, and this runs per
-  // partner card per render via `partnerCap`.
-  const record = resolveRef(SalvageUnionReference.Equipment, slug)
-  return record !== null && typeof (record as { systemSlots?: unknown }).systemSlots === 'number'
+  const record = SalvageUnionReference.Equipment.getBySlug(slug)
+  return record !== undefined &&
+    typeof (record as { systemSlots?: unknown }).systemSlots === 'number'
     ? record
     : undefined
 }
@@ -205,7 +203,7 @@ export function partnerGrantCount(hostRef: string, abilityRefs: readonly string[
 
   let most = 0
   for (const ref of abilityRefs) {
-    const ability = resolveRef(SalvageUnionReference.Abilities, ref)
+    const ability = SalvageUnionReference.Abilities.getBySlug(ref)
     if (!ability) continue
     const granted = (ability.grants ?? []).filter(
       (grant) => grant.schema === 'equipment' && nameToSlug(grant.name) === wanted

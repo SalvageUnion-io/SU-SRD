@@ -10,15 +10,9 @@ import { testConvex } from './harness'
  * rows for one app id: the write still lands, on a row chosen
  * deterministically.
  *
- * That case mattered enough to earn its own answer. `byAppId` asked for
- * `.unique()` on `by_app_id` — an ordinary Convex index, not a uniqueness
- * constraint — so it threw; and because mirrored writes are fire-and-forget,
- * `mirrorWrite` swallowed the throw. The local copy went on accepting edits,
- * every surface went on rendering them as saved, and nothing reached the game
- * for the better part of an hour. Production held four `Babe`s and four
- * `Reaper`s, and the feedback was "the game mechs didn't save".
- *
- * So a duplicate is treated as a repair job rather than a reason to refuse the
+ * `by_app_id` is an ordinary Convex index, not a uniqueness constraint, so
+ * `.unique()` on it would throw and refuse every write to that entity. So a
+ * duplicate is treated as a repair job rather than a reason to refuse the
  * write that would have kept client and server in step: the lookup resolves to
  * the oldest row and logs, and the write lands. Prevention closes the front
  * door; this makes the failure survivable if anything ever opens it again.

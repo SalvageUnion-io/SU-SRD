@@ -21,11 +21,7 @@ import type { NestedGroup } from './resolveNestedEntities'
  *
  * NO float handling here, deliberately: a pattern card takes the ASIDE LEAD,
  * which drops the float entirely, so this always renders full width beneath
- * the lead row. (An earlier revision took a `flat` argument and documented how
- * the grid would sit beside the floated artwork. Once patterns moved below the
- * fold that state became unreachable — `flat` is `hasAnchor && !asideLead`,
- * and a pattern's `asideLead` is gated on the same artwork — so the parameter
- * was dead and the comment described a layout that can no longer happen.)
+ * the lead row.
  */
 export function PatternLoadout({
   groups,

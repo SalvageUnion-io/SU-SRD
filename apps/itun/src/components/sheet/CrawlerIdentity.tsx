@@ -6,10 +6,10 @@
  * ReferenceEntityCard entity cards (max 2 columns), then the Description
  * panel.
  *
- * FIELD-section archetype (unified edit language), but the section's own
- * Edit/Done button now lives in the parent `SheetSectionCard`'s header (Phase
- * 2 lifts the chead row into the card chrome) — this panel is CONTROLLED via
- * the `editing` prop rather than owning its own toggle state, mirroring
+ * FIELD-section archetype (unified edit language). The parent
+ * `SheetSectionCard`'s header owns the section's Edit/Done button, so this
+ * panel is CONTROLLED via the `editing` prop rather than owning its own toggle
+ * state, mirroring
  * `PilotIdentityPanel` / `MechIdentityPanel`. Type is picker-backed — its
  * edit affordance opens the existing CrawlerTypeEditModal (destructive:
  * resets the special NPC, with its own confirm step).
@@ -38,8 +38,8 @@ const HIDE_CHOICES = { choices: true } as const
 
 /**
  * Resolve the crawler type's special-ability action refs (names) to their SRD
- * action entities. Salvage-tolerant like the other crawler ref lookups: a
- * missing catalog resolves to an empty list rather than throwing.
+ * action entities. Like the other crawler ref lookups, a missing catalog
+ * resolves to an empty list rather than throwing.
  */
 function resolveTypeAbilities(typeRef: string | undefined): SURefMetaAction[] {
   if (!typeRef) return []
@@ -135,7 +135,7 @@ export function CrawlerIdentityPanel({
 
         {/* The type's INTERNALS, laid out directly in identity: no card frame
             around them. The ability and the crew sit side by side and fill the
-            band of paper the dissolved type card used to leave empty. */}
+            band. */}
         {crawler.type && (
           <CrawlerTypeCard
             crawlerId={crawler.id}

@@ -111,8 +111,8 @@ export function useRowActions(confirm: Confirm): RowActions {
     /**
      * The move the live sheet's "In:" select makes, offered from the row. It
      * goes through the store like that one does — it is a container patch on
-     * the copy this browser holds, which the store mirrors up (and routes a
-     * crawler through `entities.moveCrawler`). The surface offers it only on a
+     * the copy this browser holds, which the store commits server-first (and
+     * routes a crawler through `entities.moveCrawler`). The surface offers it only on a
      * row whose copy has arrived (`row.localId`), so there is always one here.
      */
     removeFromGame: (row, gameName) =>
@@ -143,7 +143,7 @@ export function useRowActions(confirm: Confirm): RowActions {
           await removeEntity({ table: ownableTable(row), entityId: row.serverId })
           // Then drop the cached copy, exactly as release and scrap do.
           // `forget`, not `delete`: the server row is already gone, so a second
-          // mirrored destruction would be a no-op at best.
+          // server delete would be a no-op at best.
           await forgetLocal(row)
         },
       }),

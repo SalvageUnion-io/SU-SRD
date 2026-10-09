@@ -3,12 +3,12 @@
  *
  * The crawler wizard (lib/wizard/crawlerFormState.ts) and the live sheet
  * (components/sheet/CrawlerSheet.tsx) both need to resolve a stored crawler
- * type / bay ref (id OR name) to its SRD entity, and to find an NPC's freeform
- * choice by name (Keepsake / Motto). These helpers are the single source of
- * truth so both surfaces stay in lockstep.
+ * type / bay slug to its SRD entity, and to find an NPC's freeform choice by
+ * name (Keepsake / Motto). These helpers are the single source of truth so
+ * both surfaces stay in lockstep.
  *
- * All lookups are id-or-name and salvage-tolerant: a missing catalog (e.g.
- * reference data not yet preloaded) resolves to null rather than throwing.
+ * A missing catalog (e.g. reference data not yet preloaded) resolves to null
+ * rather than throwing.
  */
 
 import type { SURefCrawler, SURefCrawlerBay } from 'salvageunion-reference'
@@ -26,14 +26,14 @@ export type ResolvedNpc = {
 }
 
 /**
- * Resolve a stored crawler-type ref (id or name) to its SRD entity — the full
+ * Resolve a stored crawler-type slug to its SRD entity — the full
  * reference record, so consumers can hand it straight to entity cards.
  */
 export function resolveCrawlerType(ref: string): (SURefCrawler & { schemaName: string }) | null {
   return readReference('resolveCrawlerType', () => resolveCrawlerRef(ref), null)
 }
 
-/** Resolve a stored crawler-bay ref (id or name) to its SRD entity. */
+/** Resolve a stored crawler-bay slug to its SRD entity. */
 export function resolveCrawlerBay(ref: string): (SURefCrawlerBay & { schemaName: string }) | null {
   return readReference('resolveCrawlerBay', () => resolveCrawlerBayRef(ref), null)
 }

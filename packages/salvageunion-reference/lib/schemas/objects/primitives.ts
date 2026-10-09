@@ -28,16 +28,10 @@ export const TraitSchema = z
 /**
  * Structure Points on a stat block — the ONE declaration, composed everywhere.
  *
- * It was previously spelled four ways for the same concept: `NonNegativeInteger`
- * here, `PositiveInteger` on `MechanicalEntitySchema` (same field, same
- * `describe()`), and two inline `z.number().int()` copies in `entities.ts`, one
- * positive and one not. So whether a stat block could carry 0 depended on which
- * schema happened to validate it.
- *
- * It can. A destroyed or fully-salvaged chassis at 0 SP is a real game state,
- * and the derived-stat code already clamps to 0 rather than treating it as
- * impossible — so `positive()` was the outlier, not the rule. No shipped record
- * carries 0 today (checked), which is why widening is purely permissive.
+ * One declaration, so whether a stat block may carry 0 never depends on which
+ * schema happens to validate it. It may: a destroyed or fully-salvaged chassis
+ * at 0 SP is a real game state, and the derived-stat code clamps to 0 rather
+ * than treating it as impossible.
  *
  * NOT for the SP *modifier* on an action: that is signed (`-2 SP` is a normal
  * effect) and is declared separately in `objects/actions.ts`.

@@ -11,8 +11,7 @@ import { CATALOG_TILE_CHROME, CATALOG_TILE_FILL, CATALOG_TILE_LABEL } from '../c
  * `catalogLabel` colour strings, applied as CSS custom properties so a caller
  * can pass any gradient or token. The frame, hover lift, focus ring and name
  * plate come from `chrome/catalogTile` — shared with `NavDrawer`, which renders
- * the same tile in its mobile drawer and used to carry a verbatim second copy
- * of both strings.
+ * the same tile in its mobile drawer.
  */
 
 type CatalogTileProps = {
@@ -53,7 +52,7 @@ const NAME =
   'font-cond text-lede font-semibold uppercase leading-[1.2] tracking-caps-tight text-paper [text-shadow:0_1px_2px_var(--color-ink-75)]'
 
 // Ghost name — cond/bold/uppercase at text-lg with no text-shadow (ink on paper
-// needs none), matching the former `.catalog-item--ghost`.
+// needs none).
 const NAME_GHOST = 'font-cond text-lg font-bold uppercase tracking-caps-tight text-ink'
 
 export function CatalogTile({

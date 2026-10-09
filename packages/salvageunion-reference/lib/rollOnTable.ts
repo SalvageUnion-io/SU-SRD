@@ -3,9 +3,9 @@
  * roll table (ADR-006 pure rules logic).
  *
  * Both the Discord bot's /roll command and ITUN's pilot-identity roll buttons
- * previously reimplemented the same dance: detect the table shape
- * (isColumnsTable), roll one or two d20s, unpack resultForTable /
- * resultForColumnsTable. This helper owns that branch; consumers own dice
+ * need the same dance: detect the table shape (isColumnsTable), roll one or two
+ * d20s, unpack resultForTable / resultForColumnsTable. This helper owns that
+ * branch; consumers own dice
  * presentation. The roller is injected so tests (and future "roll with
  * advantage" features) control the dice.
  */

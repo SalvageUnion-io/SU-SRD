@@ -344,21 +344,21 @@ describe('bayGate', () => {
   it('resolves presence + condition of a named bay by ref', () => {
     const crawler = {
       crawlerBays: [
-        { bayRef: 'Trading Bay' },
-        { bayRef: 'Med Bay', condition: 'damaged' as const },
+        { bayRef: 'trading-bay' },
+        { bayRef: 'med-bay', condition: 'damaged' as const },
       ],
     }
-    expect(bayGate(crawler, 'Trading Bay')).toEqual({
+    expect(bayGate(crawler, 'trading-bay')).toEqual({
       present: true,
       damaged: false,
       operational: true,
     })
-    expect(bayGate(crawler, 'Med Bay')).toEqual({
+    expect(bayGate(crawler, 'med-bay')).toEqual({
       present: true,
       damaged: true,
       operational: false,
     })
-    expect(bayGate(crawler, 'Crafting Bay')).toEqual({
+    expect(bayGate(crawler, 'crafting-bay')).toEqual({
       present: false,
       damaged: false,
       operational: false,
@@ -366,7 +366,7 @@ describe('bayGate', () => {
   })
 
   it('a damaged Trading Bay is present but not operational', () => {
-    const crawler = { crawlerBays: [{ bayRef: 'Trading Bay', condition: 'damaged' as const }] }
-    expect(bayGate(crawler, 'Trading Bay').operational).toBe(false)
+    const crawler = { crawlerBays: [{ bayRef: 'trading-bay', condition: 'damaged' as const }] }
+    expect(bayGate(crawler, 'trading-bay').operational).toBe(false)
   })
 })

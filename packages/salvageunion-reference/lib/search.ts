@@ -24,10 +24,7 @@ let indexableSchemaNames: ReadonlySet<string> | null = null
  * `ability-tree-requirements`). Narrowing on the catalog rather than the enum is
  * what makes this usable as an untrusted-input guard.
  *
- * The canonical implementation, and now the ONLY one. Two byte-equivalent
- * forks used to exist — `apps/discord-bot/src/schemaName.ts` and
- * `packages/component-lib/src/catalog/schemaName.ts` — created only because
- * this was not exported. Both files are gone; every consumer imports this.
+ * The canonical implementation, and the ONLY one: every consumer imports this.
  *
  * `getSchemaCatalog()` reads the static schema index and needs no `preload()`,
  * so this is safe from any build-time or test context.
@@ -217,8 +214,7 @@ export type SearchResult = {
  * Extract all text from content blocks recursively.
  *
  * The canonical implementation of "flatten a ContentBlock tree to searchable
- * text". `apps/srd/src/lib/searchIndexBuild.ts` used to carry a verbatim fork;
- * it now imports this one.
+ * text"; `apps/srd/src/lib/searchIndexBuild.ts` imports it.
  */
 export function extractContentText(content: unknown): string {
   if (!content) return ''

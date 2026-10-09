@@ -141,10 +141,9 @@ export function rowVersion(row: ServedRow): number {
  * id). Newer, not merely different: an emission that predates a write this
  * browser already made must not be adopted over it.
  *
- * This replaced a stamp of the served **ids**, which re-adopted only when a row
- * was added or removed. An edit made on another device changed no id, so it
- * never came down — and the next whole-body write from here sent the old body
- * back up over it.
+ * Versions, not served **ids**: an edit made on another device changes no id,
+ * so an id stamp would never bring it down — and the next whole-body write
+ * from here would send the old body back up over it.
  */
 export function planRowSync<R extends ServedRow>(args: {
   local: readonly { id: string }[]
@@ -179,7 +178,7 @@ export function planRowSync<R extends ServedRow>(args: {
  * was scrapped or moved out, and is forgotten.
  */
 export function planCrawlerSync(args: {
-  local: readonly { id: string; gameId?: string | null; workspaceId?: string }[]
+  local: readonly { id: string; gameId?: string | null }[]
   served: readonly ServedCrawler[]
   gameIds: ReadonlySet<string>
   adoptedAt: ReadonlyMap<string, number>

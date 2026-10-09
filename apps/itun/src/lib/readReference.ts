@@ -30,8 +30,7 @@ export function makeReferenceReader(report: Report) {
 /**
  * Read reference data, falling back when it cannot be read.
  *
- * Two failures used to look identical here, because every caller wrapped the
- * read in a bare `catch {}` (audit AP-15):
+ * Two failures that a bare `catch {}` would make look identical:
  *
  * - **The schema is not preloaded.** Expected: read-only snapshot renders never
  *   preload, and neither do most unit tests. The fallback is the right answer,

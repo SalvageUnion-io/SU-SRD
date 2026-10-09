@@ -34,16 +34,15 @@
  * it restates the canonical rung instead of importing Tailwind utilities into
  * markup that is otherwise class-driven.
  *
- * It now READS the canonical token rather than transcribing a literal. It was
- * `color-mix(… rust 25%, transparent)`, mirroring the canonical rung's old
- * `rust/25` wash — but that wash measured 1.42:1 on paper and 1.27:1 on
- * `ink-deep` against the 3:1 WCAG 2.4.11 / 1.4.11 require, and this deck is the
- * DARK skin, where it was the least visible instance of it anywhere in the app.
+ * It READS the canonical token rather than transcribing a literal, because the
+ * ring must hold at least 3:1 against its ground (WCAG 2.4.11 / 1.4.11) and a
+ * translucent rust wash cannot: it measures 1.42:1 on paper and 1.27:1 on
+ * `ink-deep`, and this deck is the DARK skin.
  *
  * Deliberately NOT "the same literal, made solid". These controls sit on both
  * `--color-paper` and `--color-ink` grounds (`.is-active` is ink-filled), and
- * solid rust measures 2.97:1 on ink — that would have traded an invisible ring
- * for one that fails on half of this file's own surfaces.
+ * solid rust measures 2.97:1 on ink — a ring that fails on half of this file's
+ * own surfaces.
  * `--focus-ring-shadow` is the two-ring construction that holds on every
  * ground; see the table above `.su-focus-ring` in `styles/index.css`.
  *
@@ -270,8 +269,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  /* Wide enough that a catalog tile's description keeps a readable measure —
-     the old 260px was sized for the header-only badge these tiles replaced. */
+  /* Wide enough that a catalog tile's description keeps a readable measure. */
   column-width: 320px;
   column-gap: 8px;
 }
@@ -594,8 +592,8 @@
   display: flex;
   gap: 8px;
 }
-/* DashboardGauge's bespoke segmented bar was retired — it now renders through
-   the shared VitalGauge (surface="instrument"); see DashboardGauge.tsx. */
+/* DashboardGauge renders through the shared VitalGauge (surface="instrument");
+   no bar styles live here. */
 
 /* ---- Phase 7 — cargo-hold overlay, table picker ---- */
 
@@ -667,8 +665,7 @@
 }
 
 /* The picker trigger is the RollTable header title itself (`titleSelect`), so
- * this focus has no mini-bar of its own — `.pc-tables-bar` / `.pc-tables-lab`
- * were removed with it. */
+ * this focus has no mini-bar of its own. */
 
 /* Full picker overlay — covers the display area with the 5-column grid. */
 .pc-tablepick {

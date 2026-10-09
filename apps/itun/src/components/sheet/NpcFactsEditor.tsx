@@ -4,9 +4,8 @@
  *
  * Composes the canonical `Conditions` chip row (chrome/Conditions) at its
  * `quiet` tone — the neutral, prose-cased rung — inside the sheet's bordered
- * well, exactly as its sibling ConditionsEditor composes the warn tone. This
- * used to hand-roll the chip geometry, the × remove button and the dashed
- * '+ Add' affordance; that fork is what the one-label-chip rule exists to kill.
+ * well, exactly as its sibling ConditionsEditor composes the warn tone, never
+ * hand-rolled chip geometry — the fork the one-label-chip rule exists to kill.
  *
  * Facts are a LIST, not a set: they may legitimately repeat, so a commit never
  * de-dupes (unlike ConditionsEditor) and a removal is by index.

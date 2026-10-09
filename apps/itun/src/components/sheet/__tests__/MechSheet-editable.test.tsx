@@ -109,7 +109,7 @@ describe('MechSheet — no Use transaction on the Free-Edit sheet (ADR-021)', ()
   test('a system offers no Use button — using a system is a Dashboard act', () => {
     // Push / Heat Check / "use a system" are Guided-Play transactions that live
     // on the Dashboard (see dashboard/useActionsDeck), never on the Free-Edit Live Sheet.
-    const mech = makeMech({ systems: ['Smoke Machine'], currentEP: 5 })
+    const mech = makeMech({ systems: ['smoke-machine'], currentEP: 5 })
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, [])} />)
 
     // The system card IS rendered (so the absent-Use assertion is meaningful)…
@@ -122,8 +122,8 @@ describe('MechSheet — no Use transaction on the Free-Edit sheet (ADR-021)', ()
 describe('MechSheet — Damaged promotes Repair (S12)', () => {
   test('Damaged: Repair primary with half-SV cost', () => {
     const mech = makeMech({
-      systems: ['Smoke Machine'],
-      systemConditions: { 'Smoke Machine': 'damaged' },
+      systems: ['smoke-machine'],
+      systemConditions: { 'smoke-machine': 'damaged' },
     })
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, [])} />)
 
@@ -137,8 +137,8 @@ describe('MechSheet — Damaged promotes Repair (S12)', () => {
   test('Repair without deducting flips the item to Intact (never blocks)', async () => {
     const captured: CapturedUpdate[] = []
     const mech = makeMech({
-      systems: ['Smoke Machine'],
-      systemConditions: { 'Smoke Machine': 'damaged' },
+      systems: ['smoke-machine'],
+      systemConditions: { 'smoke-machine': 'damaged' },
     })
     // No crawler linked — the deduction option is disabled, repair is not.
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
@@ -157,15 +157,15 @@ describe('MechSheet — Damaged promotes Repair (S12)', () => {
     expect(captured.length).toBe(1)
     expect(must(captured[0]).type).toBe('mech')
     expect(must(captured[0]).patch).toEqual({
-      systemConditions: { 'Smoke Machine': 'intact' },
+      systemConditions: { 'smoke-machine': 'intact' },
     })
   })
 
   test('Repair with deduction decrements the crawler TL pool bucket', async () => {
     const captured: CapturedUpdate[] = []
     const mech = makeMech({
-      systems: ['Smoke Machine'],
-      systemConditions: { 'Smoke Machine': 'damaged' },
+      systems: ['smoke-machine'],
+      systemConditions: { 'smoke-machine': 'damaged' },
     })
     const crawler = makeCrawler({ scrapPool: { tl2: 5 } })
     render(
@@ -186,7 +186,7 @@ describe('MechSheet — Damaged promotes Repair (S12)', () => {
 
     expect(captured.length).toBe(2)
     expect(must(captured[0]).patch).toEqual({
-      systemConditions: { 'Smoke Machine': 'intact' },
+      systemConditions: { 'smoke-machine': 'intact' },
     })
     expect(must(captured[1]).type).toBe('crawler')
     expect(must(captured[1]).patch).toEqual({ scrapPool: { tl2: 4 } })
@@ -197,8 +197,8 @@ describe('MechSheet — per-item uses counters (rules B13)', () => {
   test('the stepper decrements the per-item uses counter', async () => {
     const captured: CapturedUpdate[] = []
     const mech = makeMech({
-      systems: ['AFF Coolant Foam'],
-      itemUses: { 'AFF Coolant Foam': 3 },
+      systems: ['aff-coolant-foam'],
+      itemUses: { 'aff-coolant-foam': 3 },
     })
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
 
@@ -207,14 +207,14 @@ describe('MechSheet — per-item uses counters (rules B13)', () => {
       clickButton(/remove one aff coolant foam/i)
     })
 
-    expect(must(captured[0]).patch).toEqual({ itemUses: { 'AFF Coolant Foam': 2 } })
+    expect(must(captured[0]).patch).toEqual({ itemUses: { 'aff-coolant-foam': 2 } })
   })
 
   test('the stepper increments back up (downtime recharge by hand)', async () => {
     const captured: CapturedUpdate[] = []
     const mech = makeMech({
-      systems: ['AFF Coolant Foam'],
-      itemUses: { 'AFF Coolant Foam': 3 },
+      systems: ['aff-coolant-foam'],
+      itemUses: { 'aff-coolant-foam': 3 },
     })
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
 
@@ -222,7 +222,7 @@ describe('MechSheet — per-item uses counters (rules B13)', () => {
       clickButton(/add one aff coolant foam/i)
     })
 
-    expect(must(captured[0]).patch).toEqual({ itemUses: { 'AFF Coolant Foam': 4 } })
+    expect(must(captured[0]).patch).toEqual({ itemUses: { 'aff-coolant-foam': 4 } })
   })
 })
 
@@ -230,7 +230,7 @@ describe('MechSheet — chassis ability slab (no activation on the sheet, ADR-02
   test('the ability + its EP cost show, but there is no Use button', () => {
     // Spectrum's Data Scanner costs 2 EP. Real chassis → real ability slab.
     // Activating an ability is a Dashboard transaction, not a Free-Edit act.
-    const mech = makeMech({ chassisRef: 'Spectrum', currentEP: 5 })
+    const mech = makeMech({ chassisRef: 'spectrum', currentEP: 5 })
     render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
 
     // The ability card + EP-cost readout are present…

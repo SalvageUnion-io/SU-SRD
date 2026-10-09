@@ -29,9 +29,8 @@ import {
  * the canonical rust `SELECTION_RING` when chosen. Read-only shows every option
  * full and static (the choices are readable; they just aren't choosable).
  *
- * A drop-in for the legacy `ChoiceGroups` — it reuses the identical selection
- * state machinery (controlled / ephemeral, id-keyed, cap resolution) so ITUN
- * persistence and the SRD ephemeral case both keep working unchanged.
+ * One selection state machinery (controlled / ephemeral, id-keyed, cap
+ * resolution) serves ITUN persistence and the SRD ephemeral case alike.
  */
 
 type ChoiceGroupsProps = {

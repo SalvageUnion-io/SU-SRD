@@ -5,8 +5,8 @@
  * success payload with these types, so changing what a handler returns without
  * changing this file fails to compile here; and the bot imports them with
  * `import type` (`apps/discord-bot/src/itun/types.ts`), so the same change is a
- * compile error there too. The bot used to hand-copy these shapes, which meant
- * a `botClient` change compiled cleanly on both sides and drifted silently.
+ * compile error there too. A hand-copied shape would let a `botClient` change
+ * compile cleanly on both sides and drift silently.
  *
  * ## Why this module imports NOTHING
  *

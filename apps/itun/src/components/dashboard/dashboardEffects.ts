@@ -13,7 +13,7 @@
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { matchesRef } from 'salvageunion-reference/rules'
+import { resolveInstalledRef } from 'salvageunion-reference/rules'
 import type { Mech } from '../../lib/schemas/mech'
 
 export type ActivatableEffect = {
@@ -57,16 +57,12 @@ export function activatableEffects(
 
   const installed = [...(mech.systems ?? []), ...(mech.modules ?? [])]
   for (const ref of installed) {
-    const item =
-      (SalvageUnionReference.Systems.find((s) => matchesRef(s, ref)) as WithContributions) ??
-      (SalvageUnionReference.Modules.find((m) => matchesRef(m, ref)) as WithContributions)
+    const item = (resolveInstalledRef(ref) ?? undefined) as WithContributions | undefined
     for (const e of activatedOf(item, ref)) out.set(e.ref, e)
   }
 
   for (const ref of pilotAbilities ?? []) {
-    const ability = SalvageUnionReference.Abilities.find((a) =>
-      matchesRef(a, ref)
-    ) as WithContributions
+    const ability = SalvageUnionReference.Abilities.getBySlug(ref) as WithContributions | undefined
     for (const e of activatedOf(ability, ref)) out.set(e.ref, e)
   }
 

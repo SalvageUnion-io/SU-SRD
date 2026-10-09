@@ -35,10 +35,9 @@ name: Deploy (Cloudflare)
 #   smoke      the production smoke list, once, after every deploy.
 #   record     moves `deployed/cloudflare`, only after smoke passed.
 #
-# This used to be ONE serial 30-minute job: srd built, OG-rendered and deployed
-# before itun started building, so an itun build failure left srd on the new
-# commit and itun on the old — a partial deploy nobody chose. Now every build
-# finishes before any traffic moves, and the two long builds overlap.
+# Every build finishes before any traffic moves, so a failed itun build cannot
+# leave srd on the new commit and itun on the old — a partial deploy nobody
+# chose — and the two long builds overlap.
 # `tools/check-workflows.ts` (deploy-order) asserts that ordering, so a future
 # edit cannot quietly let the deploy run ahead of a build.
 #

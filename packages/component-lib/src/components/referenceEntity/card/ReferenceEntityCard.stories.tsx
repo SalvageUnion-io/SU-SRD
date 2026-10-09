@@ -312,8 +312,7 @@ export const StatusCycleItem: Story = () => {
 /**
  * EDITABLE SP/EP steppers: a live mech sheet card. The header stat axis carries
  * SP + EP `StatItem`s with `onChange`, which render the `Stat` edit-mode
- * +/- stepper column. Legacy has no multi-stat editable path, so its column is
- * the plain reference card.
+ * +/- stepper column.
  */
 export const EditableStats: Story = () => {
   const [sp, setSp] = useState(15)
@@ -332,7 +331,7 @@ export const EditableStats: Story = () => {
 
 /**
  * SUGGESTED — a rust "Suggested" stamp leading the sub-header, marking a
- * recommended pick (replaces the old `subtitleExtra` Pill).
+ * recommended pick.
  */
 export const SuggestedItem: Story = () => (
   <Compare

@@ -10,13 +10,12 @@
  * other test files leave open (deleteDatabase blocks while any connection is
  * alive), wedging the whole suite.
  *
- * Salvage-path read tests live here too; they use the shared db accessors
+ * Strict read-path tests live here too; they use the shared db accessors
  * (no version games, no deletes — safe to share).
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { openDB } from 'idb'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { must } from '../../../components/__tests__/must'
 import { CACHE_META_ID } from '../cacheMeta'
 import { clearCache, DB_VERSION, openItunDatabase, pilots } from '../index'
 import { STORE_NAMES } from '../stores'
@@ -129,10 +128,10 @@ describe('opening the database', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Salvage read path — uses the SHARED db (no deletes, no version games).
+// Strict read path — uses the SHARED db (no deletes, no version games).
 // ---------------------------------------------------------------------------
 
-describe('salvage read path', () => {
+describe('strict read path', () => {
   beforeEach(async () => {
     await clearCache()
   })
@@ -141,12 +140,10 @@ describe('salvage read path', () => {
     await clearCache()
   })
 
-  test('a drifted record (unknown field) is stripped with a console warning, not a brick', async () => {
+  test('a record with an unknown field is skipped with a console warning, not a brick', async () => {
     // getDb is module-private — raw writes use a second connection to the
     // same shared app database via the canonical opener.
     const db = await openItunDatabase()
-    // Simulate version skew: a record written by some other build with a
-    // field the current strict schema does not know.
     await db.put(STORE_NAMES.pilots, {
       ...stalePilot,
       id: 'pilot-drifted',
@@ -160,15 +157,9 @@ describe('salvage read path', () => {
       warnings.push(args.map(String).join(' '))
     }
     try {
-      const record = await pilots.get('pilot-drifted')
-      expect(record).not.toBeNull()
-      expect('fieldFromTheFuture' in must(record)).toBe(false)
-
-      // list() hydration also survives — the drifted record is included.
-      const all = await pilots.list()
-      expect(all.some((p) => p.id === 'pilot-drifted')).toBe(true)
-
-      expect(warnings.some((w) => w.includes('salvage path'))).toBe(true)
+      expect(await pilots.get('pilot-drifted')).toBeNull()
+      expect((await pilots.list()).some((p) => p.id === 'pilot-drifted')).toBe(false)
+      expect(warnings.some((w) => w.includes('Skipping unreadable record'))).toBe(true)
     } finally {
       console.warn = originalWarn
     }
@@ -189,7 +180,7 @@ describe('salvage read path', () => {
       background: '',
       conditions: [],
     })
-    // Garbage beyond salvage: required fields missing entirely.
+    // Required fields missing entirely.
     await db.put(STORE_NAMES.pilots, { id: 'pilot-garbage', createdAt: FIXTURE_NOW })
     db.close()
 
@@ -204,26 +195,27 @@ describe('salvage read path', () => {
     }
   })
 
-  test('a drifted record heals on its next write (strict shape persisted)', async () => {
+  test('updating a record that does not parse throws and leaves it untouched', async () => {
     const db = await openItunDatabase()
     try {
       await db.put(STORE_NAMES.pilots, {
         ...stalePilot,
-        id: 'pilot-heal',
+        id: 'pilot-unreadable',
         fieldFromTheFuture: true,
       })
 
       const originalWarn = console.warn
       console.warn = () => {}
       try {
-        await pilots.update('pilot-heal', { motto: 'Healed.' })
+        await expect(pilots.update('pilot-unreadable', { motto: 'Edited.' })).rejects.toThrow(
+          'does not parse'
+        )
       } finally {
         console.warn = originalWarn
       }
 
-      const raw = await db.get(STORE_NAMES.pilots, 'pilot-heal')
-      expect('fieldFromTheFuture' in (raw as Record<string, unknown>)).toBe(false)
-      expect((raw as Record<string, unknown>).motto).toBe('Healed.')
+      const raw = await db.get(STORE_NAMES.pilots, 'pilot-unreadable')
+      expect((raw as Record<string, unknown>).motto).toBe('')
     } finally {
       db.close()
     }

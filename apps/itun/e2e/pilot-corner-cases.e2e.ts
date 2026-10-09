@@ -12,9 +12,8 @@ import { expect, test } from './fixtures'
  *
  * The budgets are the rulebook's: exactly 1 Ability (Core Book p.18) and 2
  * Tech 1 Equipment (p.19) — `PILOT_CREATION_ABILITY_PICKS` /
- * `PILOT_CREATION_EQUIPMENT_PICKS`. These cases previously asserted a 3-pick
- * budget and a `3 / 3 selected` counter, neither of which matched the rules or
- * the UI; if they disagree again, check the book before touching the app.
+ * `PILOT_CREATION_EQUIPMENT_PICKS`. If they disagree with the app, check the
+ * book before touching the app.
  */
 
 test('cancel mid-wizard leaves the dashboard with no new pilot', async ({ page }) => {
@@ -46,8 +45,8 @@ test('switching class after picking an ability resets the ability list', async (
   await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
 
-  // Class and first Ability now share one step, so switching class no longer
-  // needs a trip Back — the ability pool re-renders underneath the new class.
+  // Class and first Ability share one step, so switching class needs no trip
+  // Back — the ability pool re-renders underneath the new class.
   await pickByName(page, 'Engineer')
   await pickByName(page, 'Engineering Expertise')
   await expect(page.getByTestId('ability-count')).toHaveText('1 / 1')

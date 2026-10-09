@@ -19,7 +19,6 @@
  */
 
 import { useState } from 'react'
-import { nameToSlug } from 'salvageunion-reference'
 import type { SoftWarning } from 'salvageunion-reference/rules'
 import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
 import { runWrite } from '../../lib/runWrite'
@@ -48,7 +47,7 @@ type MechSheetActionsOptions = {
 export type MechSheetActions = {
   patchMech: SheetPatch
   overrideMechMax: (fields: Partial<Mech>) => void
-  addItem: (kind: ItemKind, name: string) => void
+  addItem: (kind: ItemKind, slug: string) => void
   removeItem: (kind: ItemKind, index: number) => void
   cycleItemCondition: (kind: ItemKind, slug: string) => Promise<void>
   setItemUses: (slug: string, next: number) => Promise<void>
@@ -111,11 +110,10 @@ export function useMechSheetActions({
   // ABSOLUTELY in max*Override. The derivation keeps running underneath, so the
   // gauge can show "overridden from N" and revert by clearing the pin.
   //
-  // These used to be signed max*Modifier deltas with the baseline recovered by
-  // subtraction — which meant the same field carried both a hand pin and every
-  // rules modifier, so an automatic contribution would have rendered as an
-  // override. max*Modifier now means only "manual adjustment" and contributes to
-  // the derivation. See ADR-029.
+  // A pin is its own field, never a signed max*Modifier delta: one field
+  // carrying both a hand pin and every rules modifier would render an automatic
+  // contribution as an override. max*Modifier means only "manual adjustment"
+  // and contributes to the derivation. See ADR-029.
   //
   // Callers normalise the pin with `pinFor` (a pin equal to the derivation is
   // written as none); a commit that changes nothing is not written at all.
@@ -128,13 +126,12 @@ export function useMechSheetActions({
   // available, writes through immediately (ITUN auto-saves; no Save button).
   // Reads the FRESHEST record so rapid picker clicks don't race the async
   // store write. Duplicates are rules-legal; capacity stays soft.
-  // Unlike the old build editor, hand-editing the loadout no longer clears
-  // patternName — the pattern name IS the mech's identity now (redesign).
+  // Hand-editing the loadout never clears patternName — the pattern name IS
+  // the mech's identity.
   // TODO(redesign): rule-gate add/remove (slot budgets / scrap economy) —
   // deferred; users self-manage for now.
-  function addItem(kind: ItemKind, name: string) {
+  function addItem(kind: ItemKind, slug: string) {
     const fresh = freshMech()
-    const slug = nameToSlug(name)
     write(
       kind === 'system'
         ? { systems: [...fresh.systems, slug] }
@@ -222,14 +219,13 @@ export function useMechSheetActions({
     }
   }
 
-  /** Quirk / Appearance field save — mirrors the old SheetDescription saves. */
+  /** Quirk / Appearance field save: trimmed, and blank clears the field. */
   function saveQuirk(next: string) {
     write({ quirk: next.trim() || undefined })
   }
 
-  /** Appearance heals the deprecated `description` field into `appearance`. */
   function saveAppearance(next: string) {
-    write({ appearance: next.trim() || undefined, description: undefined })
+    write({ appearance: next.trim() || undefined })
   }
 
   return {

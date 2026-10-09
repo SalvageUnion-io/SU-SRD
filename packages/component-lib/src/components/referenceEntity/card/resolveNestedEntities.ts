@@ -15,7 +15,7 @@ export type NestedGroup = {
 /**
  * Resolve every NESTED reference entity a card surfaces, GROUPED for the body's
  * `Slab`-separated sections — the single collection point so nested entities
- * always route back through the unified NEW card (never the legacy path):
+ * always route back through the card:
  *
  * - **Grants** — `resolveGrantedEntities` (ability-granted equipment/drones/…).
  * - **Drones** — chassis-ability drones (object-shaped abilities naming a drone).
@@ -103,13 +103,11 @@ export function resolveNestedEntities(entity: SURefMetaEntity): NestedGroup[] {
  * pattern block (Atlas's Thunder Storm reads ".50 Cal Machine Gun x6") and the
  * wizard's own expansion in `useChassisPatternConfig`.
  *
- * This function used to de-duplicate by `label:schema:id`, which silently
- * collapsed every multiple in the SRD pattern view — 60 of 209 patterns, so
- * Leviathan's Destroyer showed one .50 Cal instead of six, one Red Laser
- * instead of three, one 30mm Autocannon instead of two. It also swallowed the
- * OTHER way the data spells a multiple: Trooper's DronTek pattern repeats
- * `Articulated Rigging Arm` and `Chaff Launcher` as separate entries with no
- * `count`, so both spellings have to survive the walk.
+ * Never de-duplicate by `label:schema:id`: that collapses every multiple in
+ * the SRD pattern view (Leviathan's Destroyer would show one .50 Cal instead
+ * of six). The data spells a multiple two ways — a `count`, or repeated entries
+ * with no `count` (Trooper's DronTek pattern repeats `Articulated Rigging Arm`
+ * and `Chaff Launcher`) — so both spellings have to survive the walk.
  *
  * Duplicate cards are safe to render: the card's `cardKey` disambiguates by
  * index, not by entity id.
@@ -196,9 +194,8 @@ export function resolveChassisDrone(entity: SURefMetaEntity): DroneLoadout | und
  * EVERY drone a PATTERN fields — each with its own name and loadout.
  *
  * Plural because patterns are: Little Sestra's three patterns ship one Sestra
- * Drone each, but Big Brother's DronTek pattern ships FOUR. This used to read
- * `pattern.drones[0]` and returned a single loadout, which silently dropped
- * three of Big Brother's four.
+ * Drone each, but Big Brother's DronTek pattern ships FOUR, so reading
+ * `pattern.drones[0]` alone would drop three of them.
  *
  * A config's stat block is `ref ?? name` — `ref` is what lets an instance name
  * ("Shield Drone") sit over a shared stat block ("Big Brother Drone"). Configs

@@ -25,7 +25,7 @@ const slice = makeHydratedCollectionSlice<'mechPatterns', MechPattern, MechPatte
   key: 'mechPatterns',
   db: db.mechPatterns,
   /**
-   * The per-write mirror (ADR-034 P4b).
+   * The server-first write (ADR-034).
    *
    * Without it a saved pattern would be invisible on a second device and lost
    * with the site data.

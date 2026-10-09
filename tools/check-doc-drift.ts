@@ -482,6 +482,13 @@ export const RETIRED_CLAIMS: [RegExp, string][] = [
   [/"bun test"/, 'the gate is `bun run test`'],
   [/docs\/rules\//, 'there is no rules digest: `bun run rules:extract`'],
   [/\/ship\b/, 'there is no /ship skill'],
+  [
+    /anonymous (?:play|visitors?)[^.\n]*first-class|first-class for \*?building/i,
+    'signed out, ITUN is read-only; building needs an account (ADR-034)',
+  ],
+  [/\bin[- ]memory (?:work|play)\b/i, 'signed out holds no work: it is read-only (#1117)'],
+  [/\bSolo (?:build|client)\b|isConvexConfigured/, 'every ITUN build has a Convex deployment'],
+  [/salvage-tolerant/i, 'cache reads are strict: an unreadable row is skipped and refilled'],
 ]
 
 /** Every doc an agent reads as instructions: live text only, so ADRs keep their history. */

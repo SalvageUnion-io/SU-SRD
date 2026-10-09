@@ -1,13 +1,7 @@
 import { toast } from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import {
-  computeMechCapacity,
-  MECH_CREATION_SCRAP_CAP,
-  matchesRef,
-  resolveModuleRef,
-  resolveSystemRef,
-} from 'salvageunion-reference/rules'
+import { computeMechCapacity, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import type { MechWizardStepId } from '../../lib/rules/creation'
 import {
   clampMechCreationDraft,
@@ -223,11 +217,7 @@ export function MechWizard({ onComplete, onCancel, onOffRules }: MechWizardProps
    */
   function setInstallCount(kind: 'systems' | 'modules', itemName: string, next: number) {
     const slug = nameToSlug(itemName)
-    // Resolve the reference item so the count/match uses matchesRef (slug OR
-    // legacy name OR id), matching CraftItemsStep's counting — otherwise a
-    // legacy-name draft copy shows in the count but the `−` can't remove it.
-    const item = kind === 'systems' ? resolveSystemRef(slug) : resolveModuleRef(slug)
-    const isThis = (ref: string) => (item ? matchesRef(item, ref) : ref === slug)
+    const isThis = (ref: string) => ref === slug
     setForm((prev) => {
       const list = prev[kind]
       const current = list.filter(isThis).length

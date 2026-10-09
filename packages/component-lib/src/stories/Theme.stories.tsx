@@ -16,14 +16,9 @@ export default {
   title: 'Foundations/Theme',
 }
 
-// Migrated off Tailwind in #799 (epic #802). Every specimen on this page now
-// resolves through `design/tokens.ts`, where it previously resolved through a
-// `var(--color-*)` string or a utility class. That is the same guarantee in a
-// stronger form: the maps below used to be the drift risk this page exists to
-// prevent (they once carried hardcoded rgb values that had gone stale against
-// theme.css in TEN places), and `var(--color-*)` fixed that by referencing.
-// Reading the token object goes one further — a name that is not on the scale
-// is now a TYPE ERROR rather than a variable that silently resolves to nothing.
+// Every specimen on this page resolves through `design/tokens.ts`, so a name
+// that is not on the scale is a TYPE ERROR rather than a variable that
+// silently resolves to nothing.
 
 // Shared caption in the catalog's canonical voice (design ruleset §4).
 const captionStyle = {
@@ -63,7 +58,7 @@ const tokenNameStyle = {
 // Every swatch renders a REAL token, never a raw hex, so the catalog stays
 // ground-truth against the scale.
 type ColorRole = {
-  /** A key on the token scale — mistyping one no longer compiles. */
+  /** A key on the token scale — mistyping one does not compile. */
   swatch: keyof typeof color
   role: string
 }
@@ -107,12 +102,8 @@ function RoleSwatch({ swatch, role }: ColorRole) {
 }
 
 /* Each specimen map is a list of KEYS on the token scale rather than a list of
-   values. This is load-bearing, not stylistic: these maps used to hardcode rgb
-   values and had silently drifted from theme.css in TEN places — `paper`,
-   `ink-2`, `wk-muted`, `wk-faint`, the old `su-orange-dark`, and all five roll
-   tiers, which still showed the stock-Material hues that the warm re-tone
-   retired. The page whose entire job is to be the ground truth for the token
-   system was misreporting it. A key cannot drift from the value it names. */
+   values. This is load-bearing, not stylistic: this page is the ground truth
+   for the token system, and a key cannot drift from the value it names. */
 const coreColors = ['ink', 'ink2', 'inkDeep', 'paper', 'bandCream', 'rust', 'rustHi'] as const
 
 const inkRamp = ['ink75', 'ink50', 'ink30', 'ink20', 'ink15', 'ink12', 'ink10', 'ink8'] as const

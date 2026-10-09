@@ -130,10 +130,7 @@ function validateTableNames(
   }
 }
 
-/**
- * Run every cross-reference check over the supplied data bag. Mirrors the
- * detection logic that previously lived directly in tools/validateReferences.ts.
- */
+/** Run every cross-reference check over the supplied data bag. */
 export function findReferenceErrors(filesByName: Record<string, unknown[]>): ValidationError[] {
   const errors: ValidationError[] = []
 

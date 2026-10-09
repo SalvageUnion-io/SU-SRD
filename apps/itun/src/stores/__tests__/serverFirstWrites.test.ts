@@ -1,11 +1,8 @@
 /**
  * Server-first writes (ADR-034 decision 2, plan phase P4b).
  *
- * The demotion's last act: a write goes to Convex **before** anything local is
- * touched, so a record the server refused leaves no trace on the device. Its
- * predecessor did the opposite — wrote locally, then fired a mirror at the
- * server and swallowed the failure into a console warning — because back then
- * the local store was the source of truth and the UI read it.
+ * A write goes to Convex **before** anything local is touched, so a record the
+ * server refused leaves no trace on the device.
  *
  * These tests run signed in against the test client
  * (`apps/itun/test/convexClientStub.ts`), which accepts every commit. That is

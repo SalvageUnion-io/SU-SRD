@@ -161,10 +161,10 @@ function checkClassPrerequisite(before: PilotSnapshot, after: PilotSnapshot): So
 
 /**
  * The pilot ability soft cap (plan 2.2): 10 abilities, 12 for Salvager.
- * The schema no longer caps the array — exceeding the rules cap is a soft
+ * The schema does not cap the array — exceeding the rules cap is a soft
  * warning, never a parse failure or a blocked save.
  *
- * These are now the FALLBACK, not the source. Every class record carries its
+ * These are the FALLBACK, not the source. Every class record carries its
  * own `maxAbilities`, and `PilotSnapshot.maxAbilities` passes it through — so a
  * resolvable class is capped by its own data. They stay for a snapshot whose
  * class did not resolve, and because they are public API.

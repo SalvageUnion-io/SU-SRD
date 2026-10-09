@@ -7,9 +7,9 @@ import { color } from './tokens'
  * Card bands are painted with CSS strings, not with literals: a theme variable
  * (`var(--color-tl-3)`), or a `color-mix()` of one (the deep shade under a
  * header, the ghosted band of a nested action, the grey of a damaged card).
- * Picking the text colour used to be a rule of thumb — "solid tones read
- * paper" — and the rule was wrong for half the palette: paper measures 1.79:1
- * on TL1, 2.41:1 on pilot and 3.03:1 on mech. So this resolves the band to the
+ * A rule of thumb ("solid tones read paper") is wrong for half the palette:
+ * paper measures 1.79:1 on TL1, 2.41:1 on pilot and 3.03:1 on mech. So this
+ * resolves the band to the
  * sRGB triple the browser will paint, by the same arithmetic, and lets WCAG's
  * relative luminance choose.
  *

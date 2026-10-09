@@ -115,7 +115,7 @@ export type ReferenceEntityCardProps = {
    * Sniper Rifle damage) — the crawler level in ITUN. */
   scalingParent?: Record<string, unknown>
   /** Extra content on the accent field after the body box, before the footer
-   * (legacy `expand` — e.g. a crawler bay's crew inset). */
+   * (e.g. a crawler bay's crew inset). */
   expand?: ReactNode
 
   // ─── SLOT OVERRIDES (generic extension seams — additive) ───

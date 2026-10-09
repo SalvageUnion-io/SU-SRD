@@ -36,7 +36,7 @@ export function CardTopRail({
 }) {
   const railControls = foldStatusControl(controls, status, { onClick: onStatusClick, subject })
   // Selection seal — an `ok`-tone "chosen" stamp riding the top-right frame when
-  // selected (the picker-cell affordance formerly overlaid by SelCard).
+  // selected (the picker-cell affordance).
   const selectionSealNode =
     selected && selectionSeal ? (
       <Badge surface="tone" tone="ok" className="pointer-events-none">{`${selectionSeal} ✓`}</Badge>

@@ -76,10 +76,10 @@ type NavDrawerProps = {
   panelClassName?: string
 }
 
-// Full-width catalog tile (former `.catalog-item`, compact drawer variant).
-// The frame, fill and name plate are the SHARED tile treatment; the drawer only
-// adds its own layout (full-width block, centred, one step down in type). This
-// file used to carry a verbatim copy of both strings, so the two tiles drifted.
+// Full-width catalog tile (compact drawer variant). The frame, fill and name
+// plate are the SHARED tile treatment, so the two tiles cannot drift; the
+// drawer only adds its own layout (full-width block, centred, one step down in
+// type).
 const TILE = cn(CATALOG_TILE_CHROME, CATALOG_TILE_FILL, 'block w-full text-center text-sm')
 
 const TILE_LABEL = CATALOG_TILE_LABEL

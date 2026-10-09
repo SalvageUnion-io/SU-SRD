@@ -108,9 +108,9 @@ export function StatProvenance({
             </Popover.Title>
             <ul className="m-0 list-none p-0 text-caption tabular-nums">
               {/* Keyed by CONTENT, not by array index. kind+label alone can
-                  collide (two +1 bonuses of the same source type), which is why
-                  the index used to be mixed in; including detail and amount
-                  disambiguates those without keying on position. Two lines
+                  collide (two +1 bonuses of the same source type); including
+                  detail and amount disambiguates those without keying on
+                  position. Two lines
                   identical in all four fields render interchangeably, so a
                   collision there is harmless. */}
               {lines.map((line) => (

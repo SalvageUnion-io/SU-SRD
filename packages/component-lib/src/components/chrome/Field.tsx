@@ -179,7 +179,7 @@ export function Field(props: FieldProps) {
 
   // ---- Edit-in-place: the InlineEditField engine inside the value box. --------
   // A handler is the ONLY gate: if the caller can persist it, the reader can
-  // edit it. (This used to also require a section-level `editing` flag.)
+  // edit it.
   const editable = onSave !== undefined
   return (
     <div className={cn('relative block', fill && 'flex h-full flex-col', className)}>

@@ -1,5 +1,4 @@
 import { z } from 'salvageunion-reference/zod'
-import { isRecord } from '../isRecord'
 import { containerFields } from './entity'
 import { ItemConditionMapSchema } from './itemCondition'
 import { PartnerInstanceSchema } from './partner'
@@ -175,14 +174,10 @@ export const PilotSchema = z
      * records which template it came from, so "is the Starter Set already
      * present?" can be answered without making the answer depend on two
      * different people's rows sharing an id.
-     *
-     * That is precisely what the Starter Set used to rely on: it wrote fixed
-     * ids (`starter-pilot-bonesaw`, …) so that re-seeding would overwrite
-     * rather than duplicate. Locally that worked; globally it was wrong. Every
-     * player who seeded the roster held byte-identical ids, and those ids are
-     * the `appId` a claimed entity is addressed by on the server — where two
-     * accounts bringing the same one resolve to a single row, so the later
-     * player's writes are refused as somebody else's entity.
+     * Ids are the `appId` an entity is addressed by on the server, where two
+     * accounts holding the same one resolve to a single row — so a fixed
+     * template id would make the later player's writes refused as somebody
+     * else's entity.
      *
      * Absent on everything a person built themselves, which is nearly every row.
      */
@@ -192,8 +187,7 @@ export const PilotSchema = z
     // Live-play current stat tracking (#245).
     // A freshly created pilot is seeded with the base HP/AP rule constants
     // (PILOT_BASE_HP / PILOT_BASE_AP in lib/rules/derivedStats, via
-    // pilotFormState). Kept optional so legacy/imported records still parse;
-    // read sites fall back to the derived maxHP/maxAP.
+    // pilotFormState). Absent means full: see `resolvePool`.
     // ---------------------------------------------------------------------------
     /** Current hit points */
     currentHP: z.number().int().min(0).optional(),
@@ -220,10 +214,7 @@ export const PilotSchema = z
      * Statted Drones / Companions this pilot's abilities grant (Auto-Turret,
      * Survey Drone, Mecha Companion). Each carries its own id, so Mecha
      * Packmaster's TWO Mecha Companions are two distinct partners rather than
-     * one shared entry — the bug the retired slug-keyed `equipmentLoadouts`
-     * field could not express (see `normalizeLegacyPilotRecord` for what
-     * happens to a record still carrying it).
-     * Additive-optional; absent reads as none.
+     * one shared entry. Absent reads as none.
      */
     partners: z.array(PartnerInstanceSchema).optional(),
 
@@ -341,127 +332,3 @@ export const PilotSchema = z
   .strict()
 
 export type Pilot = z.infer<typeof PilotSchema>
-
-/**
- * Choice names carrying a partner's identity, as they appear in
- * `equipmentChoices`. Free-text choices store their value as a single-element
- * array (see `ChoiceSelectionsSchema`).
- */
-const NAME_KEYS = ['Name', 'name']
-const APPEARANCE_KEYS = ['Appearance', 'appearance']
-const PERSONALITY_KEYS = ['A.I. Personality', 'AI Personality', 'aiPersonality']
-
-/** First non-empty single-value choice matching any of `keys`. */
-function readChoice(choices: unknown, keys: readonly string[]): string | undefined {
-  if (!isRecord(choices)) return undefined
-  for (const key of keys) {
-    const value = choices[key]
-    if (typeof value === 'string' && value.trim() !== '') return value
-    if (Array.isArray(value)) {
-      const first = value.find((v) => typeof v === 'string' && v.trim() !== '')
-      if (typeof first === 'string') return first
-    }
-  }
-  return undefined
-}
-
-function stringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
-}
-
-/**
- * Lift a pilot's slug-keyed `equipmentLoadouts` into `PartnerInstance`s, one
- * per loadout, pulling identity across from the parallel `equipmentChoices`
- * map. Returns the partners array to attach, or `null` when
- * the record needs no rewrite — no loadouts, or partners already present.
- *
- * `mintId` is injected so tests get stable ids; production passes
- * `crypto.randomUUID`.
- */
-export function partnersFromLoadouts(
-  raw: unknown,
-  mintId: () => string = () => crypto.randomUUID()
-): Record<string, unknown>[] | null {
-  if (!isRecord(raw)) return null
-  if (!isRecord(raw.equipmentLoadouts)) return null
-  // Idempotent: a record that already has partners is left alone, so a
-  // partially-lifted record never duplicates them.
-  if (Array.isArray(raw.partners)) return null
-
-  const choicesBySlug = isRecord(raw.equipmentChoices) ? raw.equipmentChoices : {}
-
-  const partners = Object.entries(raw.equipmentLoadouts).flatMap(([slug, loadout]) => {
-    if (!isRecord(loadout)) return []
-    const choices = choicesBySlug[slug]
-    const name = readChoice(choices, NAME_KEYS)
-    const appearance = readChoice(choices, APPEARANCE_KEYS)
-    const aiPersonality = readChoice(choices, PERSONALITY_KEYS)
-    return [
-      {
-        // A fresh id per lifted loadout. The old shape held exactly one
-        // loadout per slug, so this cannot un-merge a pair that was already
-        // collapsed — it only stops future pairs from colliding.
-        id: mintId(),
-        hostRef: slug,
-        hostSchema: 'equipment' as const,
-        ...(name ? { name } : {}),
-        ...(appearance ? { appearance } : {}),
-        ...(aiPersonality ? { aiPersonality } : {}),
-        systems: stringArray(loadout.systems),
-        modules: stringArray(loadout.modules),
-        ...(isRecord(loadout.systemConditions)
-          ? { systemConditions: loadout.systemConditions }
-          : {}),
-        ...(isRecord(loadout.moduleConditions)
-          ? { moduleConditions: loadout.moduleConditions }
-          : {}),
-        ...(isRecord(loadout.itemUses) ? { itemUses: loadout.itemUses } : {}),
-        conditions: [],
-      },
-    ]
-  })
-
-  return partners.length > 0 ? partners : null
-}
-
-/**
- * Drop the fields a strict `PilotSchema` no longer knows from a pilot that was
- * stored, exported or published before they were removed.
- *
- * - `rollResults` — vestigial, always `[]`, never read.
- * - `equipmentLoadouts` — the slug-keyed drone/companion loadouts that
- *   `partners` replaced (ADR-027). A record still carrying it has each entry
- *   lifted into a partner first ({@link partnersFromLoadouts}), so its
- *   loadouts survive rather than being dropped. A record that already has
- *   `partners` keeps them untouched.
- *
- * Mirrors normalizeLegacyCargoRecord. Every place a pilot body arrives from
- * storage or the network runs through this — the IndexedDB store, import,
- * snapshots and public sheets (`frozenEntity`), and the Convex edge parse
- * (`StoredPilotSchema`) — so a row written before a removal is healed on read
- * rather than rejected by the strict schema.
- */
-export function normalizeLegacyPilotRecord(
-  record: Record<string, unknown>
-): Record<string, unknown> {
-  if (!('rollResults' in record) && !('equipmentLoadouts' in record)) return record
-  const rest = { ...record }
-  delete rest.rollResults
-  if ('equipmentLoadouts' in rest) {
-    const lifted = partnersFromLoadouts(rest)
-    delete rest.equipmentLoadouts
-    if (lifted) rest.partners = lifted
-  }
-  return rest
-}
-
-/**
- * `PilotSchema` behind `normalizeLegacyPilotRecord`: the parser for a pilot
- * body that comes out of storage rather than out of this build — the Convex
- * edge parse, above all, where a row stored before a field was removed must
- * still validate.
- */
-export const StoredPilotSchema = z.preprocess(
-  (raw) => (isRecord(raw) ? normalizeLegacyPilotRecord(raw) : raw),
-  PilotSchema
-)

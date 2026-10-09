@@ -7,14 +7,10 @@ import { testConvex } from './harness'
 /**
  * Addressing server rows by the client's own app id.
  *
- * This exists because the first write-mirroring attempt could not work at all:
- * Convex mints its own `_id`, so a client holding only its local UUID had
- * nothing to address a row by. Creates mirrored and edits silently no-opped —
- * a mirror that looked synced and was not.
- *
- * The cases below pin the two properties that fix it: **an edit finds its row**,
- * and **a missing row is created rather than dropped**, which is what makes the
- * mirror converge for entities built while Solo and claimed afterwards.
+ * Convex mints its own `_id`, so a client holding only its local UUID would
+ * have nothing to address a row by. The cases below pin the two properties
+ * that make the app id work: **an edit finds its row**, and **a missing row is
+ * created rather than dropped** — an entity's first write is its create.
  */
 
 describe('upsertByAppId', () => {
@@ -126,8 +122,8 @@ describe('removeByAppId', () => {
   test('a row that is already gone is not an error', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
-    // The mirror is fire-and-forget and may retry or arrive out of order; a
-    // delete of something already deleted must be a no-op, not a throw.
+    // A delete may be retried or arrive after another device's; deleting
+    // something already deleted must be a no-op, not a throw.
     await u.as.mutation(api.entities.removeByAppId, { table: 'pilots', appId: 'never-existed' })
   })
 

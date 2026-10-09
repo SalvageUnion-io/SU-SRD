@@ -60,7 +60,6 @@ type MechWizardPatch = Pick<
   | 'cargoLots'
   | 'quirk'
   | 'appearance'
-  | 'description'
 >
 
 export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatch {
@@ -73,8 +72,6 @@ export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatc
     cargoLots: form.cargoLots,
     quirk: form.quirk.trim() || undefined,
     appearance: form.appearance.trim() || undefined,
-    // The deprecated notes field stays unset (its content lives in `appearance`).
-    description: undefined,
   }
 }
 

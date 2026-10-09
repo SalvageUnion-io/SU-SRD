@@ -1,10 +1,9 @@
 /**
  * `entities.listMine` — the read that makes "IndexedDB is a cache" true.
  *
- * Until this existed, writes mirrored up and nothing outside a Game read back
- * down, so a signed-in player on a second device saw an empty roster while
- * their builds sat in Convex. These tests pin the two things that were easy to
- * get wrong: it returns what you own **wherever it lives**, and it returns
+ * Without it a signed-in player on a second device would see an empty roster
+ * while their builds sat in Convex. These tests pin the two things that are
+ * easy to get wrong: it returns what you own **wherever it lives**, and it returns
  * nothing that is not yours.
  */
 

@@ -13,15 +13,13 @@
  *
  * ## Pages: the network first, the cache only when the network will not answer
  *
- * Navigations used to be `StaleWhileRevalidate` into the `pages` cache, so a
- * returning visitor was always shown the copy from their LAST visit — one deploy
- * behind, every time — while the fresh one downloaded for next time. Worse,
- * that copy names the previous build's hashed chunks, and by the time its
- * islands asked for them the new worker had usually activated (below) and
- * dropped them from the precache, while the server no longer had them either:
- * header search and the mobile nav silently failed to mount.
+ * Not `StaleWhileRevalidate`: that shows a returning visitor the copy from
+ * their LAST visit — one deploy behind, every time — and that copy names the
+ * previous build's hashed chunks, which by the time its islands ask for them
+ * the new worker has usually dropped from the precache (below) and the server
+ * no longer serves either: header search and the mobile nav fail to mount.
  *
- * Now a navigation goes to the network, and `pages` answers only when the
+ * A navigation goes to the network, and `pages` answers only when the
  * network fails or is slower than `NAVIGATION_TIMEOUT_SECONDS`. Every
  * successful navigation still refreshes its entry, so offline reading of
  * visited pages is unchanged, and after a timeout workbox still lets the

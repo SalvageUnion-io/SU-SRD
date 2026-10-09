@@ -36,7 +36,7 @@ function makeCrawler(overrides: Partial<Crawler> = {}): Crawler {
     id: 'crawler-econ-1',
     name: 'Iron Tortoise',
     techLevel: 'tech-2',
-    crawlerBays: [{ bayRef: 'Trading Bay' }, { bayRef: 'Med Bay' }],
+    crawlerBays: [{ bayRef: 'trading-bay' }, { bayRef: 'med-bay' }],
     scrapPool: { tl2: 6 },
     upgradePool: 10,
     ...overrides,
@@ -141,7 +141,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
     expect(updateCrawlerBay).toHaveBeenCalledTimes(1)
     expect(updateCrawlerBay.mock.calls[0]).toEqual([
       crawler.id,
-      'Med Bay',
+      'med-bay',
       { condition: 'damaged' },
       1,
       LIVE_SHEET_TXN,
@@ -198,7 +198,7 @@ describe('CrawlerEconomyControl — Upgrade Crawler', () => {
   test('upgrading consumes the pool, bumps the TL and repairs damaged Bays', async () => {
     const crawler = makeCrawler({
       upgradePool: 32,
-      crawlerBays: [{ bayRef: 'Trading Bay', condition: 'damaged' }, { bayRef: 'Med Bay' }],
+      crawlerBays: [{ bayRef: 'trading-bay', condition: 'damaged' }, { bayRef: 'med-bay' }],
     })
     const { store, update } = makeStubStore(crawler)
     const onClose = mock(() => {})
@@ -217,8 +217,8 @@ describe('CrawlerEconomyControl — Upgrade Crawler', () => {
         techLevel: 'tech-3',
         upgradePool: 2,
         crawlerBays: [
-          { bayRef: 'Trading Bay', condition: 'intact' },
-          { bayRef: 'Med Bay', condition: 'intact' },
+          { bayRef: 'trading-bay', condition: 'intact' },
+          { bayRef: 'med-bay', condition: 'intact' },
         ],
       },
       LIVE_SHEET_TXN,
@@ -307,7 +307,7 @@ describe('CrawlerEconomyControl — Trading Bay', () => {
 
   test('a Damaged Trading Bay blocks both trading and the roll', () => {
     const crawler = makeCrawler({
-      crawlerBays: [{ bayRef: 'Trading Bay', condition: 'damaged' }, { bayRef: 'Med Bay' }],
+      crawlerBays: [{ bayRef: 'trading-bay', condition: 'damaged' }, { bayRef: 'med-bay' }],
     })
     const { store } = makeStubStore(crawler)
     render(

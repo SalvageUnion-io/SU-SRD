@@ -1,8 +1,7 @@
 /**
  * Shared data-loading helper for the validation tooling.
  *
- * Every validator used to independently `readFileSync` + `JSON.parse` the
- * data files it needed. This module centralizes that so:
+ * One loader for every validator, so:
  *   - `tools/validate.ts` (the one validation CLI) can load every
  *     `data/*.json` file exactly once and hand the same in-memory bag to all
  *     checks.

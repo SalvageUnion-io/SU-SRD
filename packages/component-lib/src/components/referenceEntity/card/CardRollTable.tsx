@@ -19,9 +19,8 @@ import { RollTable } from '../../shared/RollTable'
  * as its own nested card and resolves its own table there, so pulling it up
  * here would print it twice.
  *
- * `showCommand` keeps the header band (and its Roll button) on every rung — the
- * legacy renderer passed it unconditionally, and it is the affordance that makes
- * a roll table a table you can USE. No `tableName`: the card it sits in already
+ * `showCommand` keeps the header band (and its Roll button) on every rung — it
+ * is the affordance that makes a roll table a table you can USE. No `tableName`: the card it sits in already
  * carries that name in its header.
  */
 export function CardRollTable({

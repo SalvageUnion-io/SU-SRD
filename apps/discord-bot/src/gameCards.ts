@@ -83,8 +83,8 @@ const FOOTER = 'In The Union Now'
  * (found and fixed in #656). This code was written from that same wrong
  * spelling.
  *
- * So reads are salvage-tolerant, exactly as ITUN's own data layer is: the
- * canonical name is tried first and the historical variant second. Being
+ * So these reads try the canonical name first and the historical variant
+ * second. Being
  * tolerant costs one array lookup; being wrong costs a table a session.
  */
 function num(body: EntityBody, ...keys: string[]): number | null {

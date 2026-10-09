@@ -5,16 +5,12 @@ import { cn } from '../../utils/cn'
  * The full-bleed page shell: the `<main>` landmark every top-level app screen
  * sits in, with the standard ground and responsive gutters.
  *
- * It exists because the literal was written out seven times — five Games
- * screens plus the Roster and the encounter tray — in two variants that differ
- * only in whether they stack their children with a gap. That is the shape a
- * primitive is for, and its absence is why a `gameChrome.ts` constant was
- * invented for it locally before this existed.
+ * Two variants, differing only in whether they stack their children with a
+ * gap.
  *
  * It renders the landmark itself, so a screen using it must not nest another
- * `<main>`. That matters: the wizards previously rendered a `<main>` in the
- * route AND another inside `WizShell`, which is a duplicate-landmark
- * accessibility violation rather than a style problem.
+ * `<main>`: a duplicate landmark is an accessibility violation, not a style
+ * problem.
  */
 export type PageShellProps = {
   children: ReactNode

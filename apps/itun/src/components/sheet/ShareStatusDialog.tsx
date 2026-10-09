@@ -1,13 +1,11 @@
 /**
  * ShareStatusDialog — sharing, answered on the sheet itself.
  *
- * ## Why this replaced a screen
+ * ## Why a dialog, not a screen
  *
- * Sharing used to be its own route (`/sheet/:kind/:id/share`) whose left half
- * was a "preview" that hand-rolled a hero band and disagreed with what the
- * recipient actually saw. The sheet you are standing on IS the preview, so
- * sharing is a status you check, not a place you go: a dialog over the live
- * sheet, and one less route and one less duplicate of the derived-stat math.
+ * The sheet you are standing on IS the preview, so sharing is a status you
+ * check, not a place you go: a dialog over the live sheet, with no second
+ * rendering of the derived-stat math to disagree with what the recipient sees.
  *
  * ## One way to share
  *

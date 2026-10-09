@@ -145,15 +145,7 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-      id: _id,
-      createdAt: _ca,
-      updatedAt: _ua,
-      workspaceId: _ws,
-      gameId: _g,
-      seedRef: _sr,
-      ...rest
-    } = pilot
+    const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, seedRef: _sr, ...rest } = pilot
 
     const created = await entityStore.create('pilot', {
       ...rest,
@@ -173,15 +165,7 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-      id: _id,
-      createdAt: _ca,
-      updatedAt: _ua,
-      workspaceId: _ws,
-      gameId: _g,
-      seedRef: _sr,
-      ...rest
-    } = mech
+    const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, seedRef: _sr, ...rest } = mech
 
     const created = await entityStore.create('mech', {
       ...rest,
@@ -201,15 +185,7 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-      id: _id,
-      createdAt: _ca,
-      updatedAt: _ua,
-      workspaceId: _ws,
-      gameId: _g,
-      seedRef: _sr,
-      ...rest
-    } = crawler
+    const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, seedRef: _sr, ...rest } = crawler
 
     const created = await entityStore.create('crawler', {
       ...rest,
@@ -280,7 +256,7 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, createdAt: _ca, updatedAt: _ua, workspaceId: _ws, gameId: _g, ...rest } = npc
+    const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, ...rest } = npc
 
     await encounterNpcStore.create({
       ...rest,

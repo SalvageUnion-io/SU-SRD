@@ -26,7 +26,7 @@ function makeMech(overrides: Partial<Mech>): Mech {
   return mechFixture({
     id: 'mech-hold-1',
     name: 'Hold Test Mech',
-    chassisRef: 'Scrapper', // real chassis — useCargo derives cargo cap (6) from the ORM
+    chassisRef: 'scrapper', // real chassis — useCargo derives cargo cap (6) from the ORM
     ...overrides,
   })
 }

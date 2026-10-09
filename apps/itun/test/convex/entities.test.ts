@@ -65,13 +65,13 @@ async function seedGame(t: Ctx) {
 }
 
 /**
- * Mirror a pilot up the way the client does, and return its server id.
+ * Write a pilot the way the client does, and return its server id.
  *
  * `upsertByAppId` is the one path a client creates and edits an ownable entity
  * through — a generic `create` / `update` pair that no client called was
  * removed — so the tests exercise the rules where they are actually enforced.
  */
-async function mirrorPilot(
+async function writePilot(
   t: Ctx,
   user: { as: ReturnType<Ctx['withIdentity']> },
   gameId: Id<'games'> | null,
@@ -92,7 +92,7 @@ async function mirrorPilot(
         .withIndex('by_app_id', (q) => q.eq('appId', appId))
         .first()
   )
-  if (row === null) throw new Error(`pilot ${appId} was not mirrored`)
+  if (row === null) throw new Error(`pilot ${appId} was not written`)
   return row._id
 }
 
@@ -119,7 +119,7 @@ describe('every write Zod-parses first', () => {
   test('a well-formed pilot body is stored', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
-    await mirrorPilot(t, u, null)
+    await writePilot(t, u, null)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
     expect(rows).toHaveLength(1)
@@ -132,7 +132,7 @@ describe('reading is per-game, writing is per-entity', () => {
   test('a member sees the whole crew, including entities they do not own', async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedGame(t)
-    await mirrorPilot(t, player, gameId)
+    await writePilot(t, player, gameId)
 
     const seen = await organizer.as.query(api.entities.listForGame, { gameId })
     // This is what makes crew vitals and read-only drill-in possible.
@@ -152,7 +152,7 @@ describe('reading is per-game, writing is per-entity', () => {
   test("a crewmate cannot write another player's pilot", async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedGame(t)
-    await mirrorPilot(t, player, gameId)
+    await writePilot(t, player, gameId)
 
     await expect(
       organizer.as.mutation(api.entities.upsertByAppId, {
@@ -197,9 +197,9 @@ describe('reading is per-game, writing is per-entity', () => {
   test('the owner can write their own', async () => {
     const t = testConvex()
     const { player, gameId } = await seedGame(t)
-    const pilotId = await mirrorPilot(t, player, gameId)
+    const pilotId = await writePilot(t, player, gameId)
 
-    await mirrorPilot(t, player, gameId, pilotBody({ name: 'Renamed' }))
+    await writePilot(t, player, gameId, pilotBody({ name: 'Renamed' }))
 
     const row = await t.run(async (ctx) => await ctx.db.get(pilotId))
     expect(row).not.toBeNull()
@@ -209,7 +209,7 @@ describe('reading is per-game, writing is per-entity', () => {
   test("an id from another table cannot be reached through the table it isn't in", async () => {
     const t = testConvex()
     const { player, gameId } = await seedGame(t)
-    const pilotId = await mirrorPilot(t, player, gameId)
+    const pilotId = await writePilot(t, player, gameId)
 
     // A Convex id is table-tagged, but `db.get` returns a document from ANY
     // table — so a handler that casts the string would fetch this pilot
@@ -231,7 +231,8 @@ describe('reading is per-game, writing is per-entity', () => {
         await ctx.db.insert('mechPatterns', {
           ownerId: player.userId,
           gameId: null,
-          body: { name: 'Draft' },
+          appId: 'pattern-1',
+          body: { id: 'pattern-1', name: 'Draft' },
         })
     )
 
@@ -453,7 +454,7 @@ describe('refusals say why', () => {
  * `appId` column now carries so the lookup is one indexed read rather than a
  * scan of everything the owner holds.
  */
-describe('patterns and shelf NPCs mirror by their body id', () => {
+describe('patterns and shelf NPCs are addressed by their body id', () => {
   test('a pattern saved twice is one row, carrying its id as appId', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')

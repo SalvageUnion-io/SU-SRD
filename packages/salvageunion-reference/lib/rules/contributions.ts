@@ -12,7 +12,7 @@
  */
 
 import { SalvageUnionReference } from '../index.js'
-import { resolveInstalledRef, resolveRef } from './resolveRefs.js'
+import { resolveInstalledRef } from './resolveRefs.js'
 
 /** The stat keys a contribution may target. Mirrors `ContributionStatSchema`. */
 export type ContributionStat =
@@ -122,9 +122,7 @@ export function abilityContributions(
   for (const ref of abilityRefs) {
     let ability: ContributionHost | undefined
     try {
-      ability = (resolveRef(SalvageUnionReference.Abilities, ref) ?? undefined) as
-        | ContributionHost
-        | undefined
+      ability = SalvageUnionReference.Abilities.getBySlug(ref) as ContributionHost | undefined
     } catch {
       // A missing catalog is a data problem, not a crash: an unresolvable ref
       // contributes 0, exactly as an unresolvable installed item does.

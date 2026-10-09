@@ -43,7 +43,6 @@ import {
   performHeatCheck,
   performPush,
   resolveChassisRef,
-  resolveRef,
 } from 'salvageunion-reference/rules'
 import { heatCheckPatch } from '../../lib/rules/heatCheck'
 import type { ItemCondition } from '../../lib/schemas/itemCondition'
@@ -345,9 +344,9 @@ export function buildMechActions(mech: Mech): PlayAction[] {
   return out
 }
 
-/** Resolve a pilot ability slug (id or name) against the reference ORM. */
+/** Resolve a pilot ability slug against the reference ORM. */
 function resolveAbilityBySlug(slug: string): SURefAbility | null {
-  return resolveRef(SalvageUnionReference.Abilities, slug)
+  return SalvageUnionReference.Abilities.getBySlug(slug) ?? null
 }
 
 /**

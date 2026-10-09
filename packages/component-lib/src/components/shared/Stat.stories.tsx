@@ -63,7 +63,7 @@ export const Anatomies: Story = () => (
 
 /** The centred value box (default). A `max` reads as `current /max`; mode="edit" adds steppers. */
 export const ValueBox: Story = () => (
-  <Gallery rule="The centred value box (default anatomy) — rounded, ink on paper. A max renders as current /max (current prominent, /max muted); a bare value centres. mode='edit' grows the +/- stepper column (the former StatControl).">
+  <Gallery rule="The centred value box (default anatomy) — rounded, ink on paper. A max renders as current /max (current prominent, /max muted); a bare value centres. mode='edit' grows the +/- stepper column.">
     <Cell label="read">
       <Stat label="SP" value={sp} />
     </Cell>
@@ -127,7 +127,7 @@ export const States: Story = () => (
 
 /** The [label | value] readout — a Stat, never a badge (Tech level, Range, traits). */
 export const Horizontal: Story = () => (
-  <Gallery rule="orientation='horizontal' → the rounded [label | value] cell (the former ValueDisplay). Ink on paper, a max reads as value /max, state rides the border. With mode='edit' it grows a compact +/- stepper column.">
+  <Gallery rule="orientation='horizontal' → the rounded [label | value] cell. Ink on paper, a max reads as value /max, state rides the border. With mode='edit' it grows a compact +/- stepper column.">
     <Cell label="range">
       <Stat label="RANGE" value={rangeLabel} orientation="horizontal" />
     </Cell>

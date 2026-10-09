@@ -54,8 +54,7 @@ function Row({ children }: { children: ReactNode }) {
 const BADGE_TONES: BadgeTone[] = ['pilot', 'mech', 'crawler', 'game', 'ok', 'warn', 'bad']
 
 /**
- * The unified `Badge` — Pill / Chip were named presets, now retired into this one
- * implementation (ruleset §6). Badges are LABEL-ONLY: a label+value readout is a
+ * The unified `Badge` — one implementation, no named presets (ruleset §6). Badges are LABEL-ONLY: a label+value readout is a
  * Stat (`Stat orientation="horizontal"`), never a badge (value-cell law).
  */
 export const Unified: Story = () => (
@@ -80,7 +79,7 @@ export const Unified: Story = () => (
       </Row>
     </div>
     <div>
-      <Caption>surface=outline · the former Pill (ink-on-paper)</Caption>
+      <Caption>surface=outline · ink-on-paper</Caption>
       <Row>
         <Badge surface="outline">Legal Starting</Badge>
         <Badge surface="outline">{techLabel}</Badge>
@@ -114,8 +113,7 @@ export const Keywords: Story = () => (
   </div>
 )
 
-// The interactive filter-chip rung (`as="button"`) — the former FilterChip,
-// now a Badge that toggles. The call site owns the pressed state: it drives
+// The interactive filter-chip rung (`as="button"`) — a Badge that toggles. The call site owns the pressed state: it drives
 // `surface` (solid pressed / ghost unpressed) and passes `aria-pressed`, so the
 // Badge stays presentational. `swatch` prefixes a colour swatch (tech-level
 // filters). Numeric tiers carry the swatch; Bio/Nanite tint the active fill.
@@ -184,8 +182,8 @@ export const Filter: Story = () => {
   )
 }
 
-// The SQUARE stamp shape (shape="stamp") — the ink label/header/tab/eyebrow atom
-// (the former Stamp). Sizes, plates, and the seam that rides a container's border.
+// The SQUARE stamp shape (shape="stamp") — the ink label/header/tab/eyebrow
+// atom. Sizes, plates, and the seam that rides a container's border.
 export const Stamps: Story = () => (
   <div className="flex flex-col gap-4">
     <div>

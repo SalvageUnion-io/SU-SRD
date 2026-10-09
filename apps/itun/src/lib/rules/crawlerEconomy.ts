@@ -36,7 +36,6 @@
 import type { Roll, TechLevel } from 'salvageunion-reference/rules'
 import { tierUpgradeCost } from 'salvageunion-reference/rules'
 import { addToScrapPool, scrapPoolBucket } from '../cargo/cargoTransfer'
-import { resolveCrawlerBay } from '../crawlerRefs'
 import type { Crawler, ScrapPool } from '../schemas/crawler'
 import { DOWNTIME_UPKEEP_SCRAP } from './downtime'
 
@@ -44,8 +43,7 @@ import { DOWNTIME_UPKEEP_SCRAP } from './downtime'
  * The numeric scrap tech levels (pool bucket keys are tl1..tl6).
  *
  * Exported as the ONE home for this list: the crawler sheet's bucket steppers
- * and the exchange dialog's TL pickers used to each keep a private copy, so a
- * seventh tech level would have had to be found in three places.
+ * and the exchange dialog's TL pickers read it.
  */
 export const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const
 
@@ -419,13 +417,11 @@ export type BayGate = {
 }
 
 /**
- * Presence + condition gate for a named bay (e.g. 'Trading Bay'): a Damaged
- * Trading Bay blocks Scrap trading and the availability roll entirely.
+ * Presence + condition gate for one bay, by slug (e.g. 'trading-bay'): a
+ * Damaged Trading Bay blocks Scrap trading and the availability roll entirely.
  */
-export function bayGate(crawler: Pick<Crawler, 'crawlerBays'>, bayName: string): BayGate {
-  const entry = (crawler.crawlerBays ?? []).find(
-    (bay) => resolveCrawlerBay(bay.bayRef)?.name === bayName
-  )
+export function bayGate(crawler: Pick<Crawler, 'crawlerBays'>, slug: string): BayGate {
+  const entry = (crawler.crawlerBays ?? []).find((bay) => bay.bayRef === slug)
   const present = entry !== undefined
   const damaged = present && (entry.condition ?? 'intact') === 'damaged'
   return { present, damaged, operational: present && !damaged }

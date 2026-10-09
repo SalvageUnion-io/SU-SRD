@@ -25,13 +25,8 @@
  *     `--color-rust`, three times over).
  *   - `arbitrary-font-size` — `WizShell.tsx` and `LiveSheet.tsx`.
  *
- * ONE SANCTIONED upward rebaseline is on record, and it is the only kind there
- * may be: when a rule is made STRICTER its count rises without anyone having
- * written a new violation. That happened once, to `raw-color` (11 -> 35), when
- * its `rgb()` arm stopped using `\b` — a boundary that could never fire inside a
- * Tailwind arbitrary value, because `_` is a word character. The newly-counted
- * literals were all pre-existing `shadow-[..._rgba(...)]` values; baselined
- * rather than fixed because there is no shadow token ladder to convert them to.
+ * An upward rebaseline is sanctioned only when a rule is made STRICTER, so its
+ * count rises without anyone having written a new violation.
  * A stricter rule may raise its baseline ONCE, in the commit that tightens it,
  * with `--allow-increase` and the reason written down. Drift may not.
  */
@@ -46,13 +41,10 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 export const SCAN_DIRS = [
   'packages/component-lib/src',
   'packages/salvageunion-reference/lib',
-  // The DATASET, not just the code that reads it. `data/guides.json` carried
-  // five raw hexes in a `guideColor` field — one byte-identical to
-  // `--color-mech`, two near-misses of `--color-pilot`/`--color-crawler` — and
-  // `entityCardTone.ts` gave them precedence over the domain tone, so they
-  // shipped on 15 entity cards. Two blind spots hid it: this list stopped at
-  // `lib`, and SCAN_EXTENSIONS excluded `.json`. The field now names a theme
-  // tone and this directory is clean; scanning it is what keeps it that way.
+  // The DATASET, not just the code that reads it (`.json` included): a raw hex
+  // in the data would be a second palette, and `entityCardTone.ts` gives a
+  // guide's tone precedence over the domain tone. Guides name a theme tone
+  // (`guideTone`); scanning this directory is what keeps it that way.
   'packages/salvageunion-reference/data',
   'apps/srd/src',
   'apps/itun/src',
@@ -64,11 +56,9 @@ export const SCAN_DIRS = [
   'packages/observability/src',
 ]
 
-// `.astro` was here until apps/srd moved off Astro. Nothing in the repo emits
-// that extension any more, and the pages it used to cover are now .tsx. The
-// one page that needed a raw-color exemption, greembeem (a MediaWiki-palette
-// novelty page), now ships as a static file under apps/srd/public/, which this
-// check does not scan, so it carries no exemption here.
+// greembeem (a MediaWiki-palette novelty page) ships as a static file under
+// apps/srd/public/, which this check does not scan, so it needs no raw-color
+// exemption here.
 const SCAN_EXTENSIONS = ['.ts', '.tsx', '.css', '.json']
 
 type TokenRule = Rule & {
@@ -99,9 +89,9 @@ export const TOKEN_RULES: TokenRule[] = [
     // 1. Length is restricted to VALID CSS hex-colour lengths — 3, 4, 6, 8. A
     //    run of any OTHER length is not a colour, so `#30581` and `#10005`
     //    (5-digit GitHub issue references, e.g. `microsoft/TypeScript#30581`,
-    //    and the `&#10005;` ✕ character entity) no longer match. Previously the
-    //    open `{3,8}` matched them and the rule punished citing an issue number
-    //    in a comment — the same provenance-degrading false positive as PR refs.
+    //    and the `&#10005;` ✕ character entity) do not match. An open `{3,8}`
+    //    would punish citing an issue number in a comment — the same
+    //    provenance-degrading false positive as PR refs.
     //
     // 2. `(?!\d{1,3}\b)` still excludes a 3-digit ALL-numeric run (`#466`, a PR
     //    ref, is a valid *length* but never a colour anyone means). That also
@@ -115,14 +105,12 @@ export const TOKEN_RULES: TokenRule[] = [
     //    entity like `&#8599;` (↗) or `&#9670;` (◆) in JSX. A 4-digit entity is
     //    a valid hex *length*, so only the lookbehind can tell it from a colour.
     //
-    // 4. The `rgb()` arm uses `(?<![a-zA-Z0-9])` where it used to use `\b`. This
-    //    is not a cosmetic tidy: `_` is a WORD character, so `\b` never fired
-    //    inside a Tailwind arbitrary value, where `_` is the space separator.
-    //    Every `shadow-[0_5px_18px_rgba(...)]` in the codebase — the hover lifts
-    //    on the catalog tile, the entity row, the wizard door — was invisible to
-    //    this rule, which is the exact place raw colour is most likely to hide,
-    //    since there is no shadow token ladder to reach for instead. The new
-    //    lookbehind still refuses a letter or digit before `rgb`, so an
+    // 4. The `rgb()` arm uses `(?<![a-zA-Z0-9])`, not `\b`: `_` is a WORD
+    //    character, so `\b` never fires inside a Tailwind arbitrary value, where
+    //    `_` is the space separator, and every `shadow-[0_5px_18px_rgba(...)]`
+    //    would be invisible to this rule — the exact place raw colour is most
+    //    likely to hide, since there is no shadow token ladder to reach for
+    //    instead. The lookbehind still refuses a letter or digit before `rgb`, so an
     //    identifier ending in it (`srgb(`) is not a false positive, while `_`,
     //    `(`, space and line-start all correctly count as a boundary.
     pattern:
@@ -146,13 +134,8 @@ export const TOKEN_RULES: TokenRule[] = [
     id: 'arbitrary-tracking',
     mode: 'zero',
     rule: 'ruleset §4.2 — the tracking ladder is tokens only',
-    // (This note used to say canon and code DISAGREED — that ruleset §4.2
-    // declared a three-token set while theme.css shipped five, leaving a
-    // reconciliation open. That is stale and was actively misleading: §4.2 has
-    // since been rewritten to describe the five rungs theme.css really ships,
-    // and it RATIFIES them — "ratified as-is rather than re-lettering every
-    // label in the app". There is no open decision. Five rungs are canon; the
-    // three-token set never existed as tokens.)
+    // Ruleset §4.2 ratifies the five rungs theme.css ships; there is no open
+    // decision.
     fix: 'Use the tracking ladder: `tracking.capsTight` / `var(--tracking-caps-tight)` (0.04em, the canonical label/stamp tracking), then capsSnug / caps / capsWide, and `tracking.eyebrow` (0.22em, brand caption only).',
     pattern: /tracking-\[[^\]]+\]/g,
   },
@@ -278,12 +261,6 @@ const EXEMPTIONS: Exemption[] = [
     rules: ['arbitrary-border-width'],
     reason:
       "Not a border WEIGHT — a shape. The two matches (`border-x-[9px]`, `border-t-[14px]`) sit on an `h-0 w-0` span with `border-x-transparent`: the CSS-triangle idiom, drawing the caret under the wizard step marker. Those numbers are the triangle's half-width and height, so snapping them to the 1.5/2/2.5/3px weight ladder would not tidy a border, it would resize a glyph. The rule is right to look here and wrong about this one.",
-  },
-  {
-    file: 'packages/salvageunion-reference/lib/schemas/entities.ts',
-    rules: ['raw-color'],
-    reason:
-      "A DATA contract, not a styling call site. `guideColor` is an authored per-guide hex whose Zod schema enforces `^#[0-9a-fA-F]{6}$` — `var(--color-ink)` is not a legal value for that field, so its default cannot be a token reference no matter how much we would like it to be. The rule the guard is really enforcing (use OUR palette) is still applied: the default is the canonical ink's own hex, #282019, not the pure black it used to be.",
   },
   {
     file: 'packages/component-lib/src/components/shared/KofiButton.tsx',

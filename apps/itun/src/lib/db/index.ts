@@ -19,20 +19,15 @@
  *     rewrites a record: it drops every store an older version holds and
  *     creates the current set empty. `ShelfSync` and `WiringSync` refill them
  *     from the server on the next signed-in load.
- *   - Reads additionally get a salvage path (see makeStore options): drifted
- *     records are stripped/defaulted with a console warning instead of
- *     bricking store hydration — the safety net for version skew between a
- *     tab's bundle and the rows the server hands it.
  */
 
 import type { IDBPDatabase } from 'idb'
 import { openDB } from 'idb'
 import { CrawlerSchema } from '../schemas/crawler'
-import { deepStrip } from '../schemas/deepStrip'
 import { EncounterNpcSchema } from '../schemas/encounterNpc'
 import { MechSchema } from '../schemas/mech'
 import { MechPatternSchema } from '../schemas/pattern'
-import { normalizeLegacyPilotRecord, PilotSchema } from '../schemas/pilot'
+import { PilotSchema } from '../schemas/pilot'
 import { SoftLinkSchema } from '../schemas/softLink'
 import type { CacheMeta } from './cacheMeta'
 import { CACHE_META_ID, cacheMetaRecord, parseCacheMeta } from './cacheMeta'
@@ -281,35 +276,14 @@ export async function atomicWrite(ops: AtomicWriteOp[]): Promise<string[]> {
 // hasUpdatedAt=true for Pilot, Mech, Crawler (their schemas include updatedAt)
 // hasUpdatedAt=false (default) for SoftLink (createdAt only)
 // and MechPattern (createdAt only — patterns are immutable after creation).
-// salvageSchema = deepStrip(XSchema) — the same shape with EVERY object
-// (top-level and nested, e.g. CargoLotSchema/InjurySchema/EntityRefSchema
-// inside cargoLots/injuries/from/to) relaxed to `.strip()` instead of
-// `.strict()`. A plain `XSchema.strip()` only relaxes the outermost object;
-// an unknown key introduced at any nested depth by a newer build would still
-// fail the salvage parse and drop the whole record. See deepStrip.ts.
 
-export const pilots = makeStore(getDb, PilotSchema, STORE_NAMES.pilots, {
-  hasUpdatedAt: true,
-  salvageSchema: deepStrip(PilotSchema),
-  // A pilot cached from a Convex row stored before a field was removed still
-  // carries it; heal it on the way in rather than warning through salvage.
-  normalize: normalizeLegacyPilotRecord,
-})
-export const mechs = makeStore(getDb, MechSchema, STORE_NAMES.mechs, {
-  hasUpdatedAt: true,
-  salvageSchema: deepStrip(MechSchema),
-})
+export const pilots = makeStore(getDb, PilotSchema, STORE_NAMES.pilots, { hasUpdatedAt: true })
+export const mechs = makeStore(getDb, MechSchema, STORE_NAMES.mechs, { hasUpdatedAt: true })
 export const crawlers = makeStore(getDb, CrawlerSchema, STORE_NAMES.crawlers, {
   hasUpdatedAt: true,
-  salvageSchema: deepStrip(CrawlerSchema),
 })
-export const softLinks = makeStore(getDb, SoftLinkSchema, STORE_NAMES.softLinks, {
-  salvageSchema: deepStrip(SoftLinkSchema),
-})
-export const mechPatterns = makeStore(getDb, MechPatternSchema, STORE_NAMES.mechPatterns, {
-  salvageSchema: deepStrip(MechPatternSchema),
-})
+export const softLinks = makeStore(getDb, SoftLinkSchema, STORE_NAMES.softLinks)
+export const mechPatterns = makeStore(getDb, MechPatternSchema, STORE_NAMES.mechPatterns)
 export const encounterNpcs = makeStore(getDb, EncounterNpcSchema, STORE_NAMES.encounterNpcs, {
   hasUpdatedAt: true,
-  salvageSchema: deepStrip(EncounterNpcSchema),
 })

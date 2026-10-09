@@ -47,12 +47,10 @@ export type TableRoll = (tableName: string, key: string, text: string) => void
  * TablesView — the Tables tab: the selected table rendered via the reused
  * `RollTable`, whose header TITLE is the trigger for the 5-column category
  * picker overlay. Self-contained (reads the ORM roll tables). Its rolls go to
- * `onRoll`, which writes them to the Game's log; they used to be a history
- * kept here, on this device only, until the Log tab replaced it.
+ * `onRoll`, which writes them to the Game's log (the Log tab).
  *
- * The trigger used to be a separate bar above the table — a "Roll table" label
- * and a button repeating the name the header band printed directly beneath it.
- * `titleSelect` folds the two into one control (see `RollTable`).
+ * The header title is the trigger (`titleSelect`, see `RollTable`), so no
+ * separate bar repeats the name the header band prints.
  */
 function TablesView({ onRoll }: { onRoll?: TableRoll }) {
   const tables: RollTableEntity[] = SalvageUnionReference.RollTables.all()

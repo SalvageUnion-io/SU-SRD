@@ -134,7 +134,7 @@ export const release = mutation({
     const doc = await loadOwnable(ctx, args.table, args.entityId)
     if (doc.gameId === null) {
       /*
-       * A shelved entity is NOT unclaimed, and this used to say it was.
+       * A shelved entity is NOT unclaimed.
        *
        * ADR-030 §2 allows three states, and they are not interchangeable:
        * `gameId` set + `ownerId` null is **unclaimed** — in a Game, waiting for

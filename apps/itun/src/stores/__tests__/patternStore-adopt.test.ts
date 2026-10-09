@@ -6,11 +6,10 @@
  * description asserted otherwise, which is the exact defect class the branch
  * they belong to was opened to remove.
  *
- * What `adopt` is for: `entities.listMine` returns the account's saved patterns,
- * and before this they were fetched and discarded — a signed-in player on a
- * second device got their roster and an empty pattern library. It places a
- * server record into the cache WITHOUT that placement being mistaken for a user
- * write and mirrored back up.
+ * What `adopt` is for: `entities.listMine` returns the account's saved
+ * patterns, so a signed-in player on a second device gets their pattern library
+ * with their roster. It places a server record into the cache WITHOUT that
+ * placement being mistaken for a user write and sent back up.
  *
  * Signed in, because that is the only place `ShelfSync` runs: signed out a
  * store reads nothing (`readableRows`), so a reload there shows no library by

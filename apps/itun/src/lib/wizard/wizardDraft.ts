@@ -1,17 +1,17 @@
 /**
  * Wizard draft persistence (audit item 3).
  *
- * All wizard form state lived in plain useState, so a refresh, back-nav,
- * PWA autoUpdate reload, or mis-tap silently destroyed a multi-step build.
- * Drafts now mirror to sessionStorage on every change and restore on mount.
+ * Wizard form state is plain useState, so on its own a refresh, back-nav, PWA
+ * autoUpdate reload, or mis-tap would silently destroy a multi-step build.
+ * Drafts mirror to sessionStorage on every change and restore on mount.
  *
  * sessionStorage (not localStorage) is deliberate: drafts are a
  * crash/refresh safety net for the CURRENT session, not long-lived state —
  * they expire with the tab, never sync across tabs, and cannot go stale for
  * weeks. The serialized form is a plain `lib/wizard/*FormState.ts` object.
  *
- * Storage failures (quota, disabled storage) degrade silently to the old
- * behavior — drafts are best-effort, never load-bearing.
+ * Storage failures (quota, disabled storage) degrade silently to an unsaved
+ * draft — drafts are best-effort, never load-bearing.
  */
 
 import { useEffect, useMemo, useRef } from 'react'

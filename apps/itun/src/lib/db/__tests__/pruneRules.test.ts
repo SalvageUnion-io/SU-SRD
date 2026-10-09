@@ -32,12 +32,4 @@ describe('a shelf row, or a Game row this browser knows is mine', () => {
   test('a shelf row is prunable', () => {
     expect(rowMayBePruned({ gameId: null }, false)).toBe(true)
   })
-
-  test('a pre-ADR-030 record resolves through workspaceId, like every other reader', () => {
-    // `containerOf` rather than a bare `gameId === null` check, so a record
-    // written before the container split is classified the same way the rest of
-    // the app classifies it — a Game-shaped one is protected.
-    expect(rowMayBePruned({ workspaceId: 'ws-1' }, false)).toBe(false)
-    expect(rowMayBePruned({ workspaceId: 'default-workspace' }, false)).toBe(true)
-  })
 })

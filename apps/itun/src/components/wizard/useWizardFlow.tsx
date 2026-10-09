@@ -12,7 +12,7 @@
  * own, and `failureMessage` is passed verbatim because the three wizards'
  * failure copy differs.
  *
- * `shell` is every `WizShell` prop the three wizards used to spell out alike
+ * `shell` is every `WizShell` prop the three wizards share
  * (stepper, Back / Next / Cancel, the step gate and the Off-Rules escape);
  * each wizard spreads it and adds only its own kind, copy and trackers.
  */

@@ -207,8 +207,8 @@ database `itun-v1`, `DB_VERSION = 19` (`src/lib/db/index.ts`), stores in
   moved on.
 
 - `makeStore(getDb, schema, storeName, opts)` (`src/lib/db/crud.ts`) parses
-  with Zod on write; reads use `schema.strip()` so a drifted record loses
-  unknown fields instead of bricking hydration. Pilot, Mech, Crawler stamp
+  with Zod on write and strictly on read: an unreadable record is skipped with
+  a warning and refilled from Convex. Pilot, Mech, Crawler stamp
   `updatedAt`; SoftLink and MechPattern only `createdAt`.
 - An upgrade (`openDB`'s `upgrade`) rewrites no record: it deletes every store
   an older version created and creates the current set empty, and `ShelfSync`
@@ -1040,14 +1040,18 @@ Full text: `git show c2476d1c:docs/adrs/ADR-001-local-first-no-backend.md`
 
 ## ADR-002
 
-**IndexedDB via `idb`, Zod as the Schema Source, Salvage-Read Resilience**
+**IndexedDB via `idb`, Zod as the Schema Source, Strict Reads**
 
 ### Status
 
 Accepted. **Amended 2026-10-08 (#1152):** IndexedDB is a cache of Convex
 ([ADR-034](#adr-034)), so a version change no longer migrates records — the
 upgrade empties the cache and the server refills it. The migrations system the
-decision below once pointed to is deleted.
+decision below once pointed to is deleted. **Amended 2026-10-09 (#1181):**
+reads are strict. The lenient salvage re-parse and the read-time legacy
+normalizers are deleted: an unreadable cached row is skipped with a warning and
+refilled from Convex, and the build floor reloads a tab too old to read what
+the server serves.
 
 ### Context
 
@@ -1073,10 +1077,8 @@ Two forces shaped the choice:
   Dexie. Object stores are declared in `apps/itun/src/lib/db/`.
 - **Zod schemas are the single source of truth** for entity shape. The DB layer
   parses on read/write rather than maintaining a separate storage schema.
-- Reads are **salvage-tolerant**: a strict parse is attempted first; on failure
-  the row is re-parsed with a lenient "salvage" schema (`.strip()`) and a
-  warning is logged. The row heals on its next write (re-parsed strictly). See
-  `apps/itun/src/lib/db/crud.ts`.
+- Reads are **strict** (amended, #1181): an unreadable cached row is skipped
+  with a warning and refilled from Convex. See `apps/itun/src/lib/db/crud.ts`.
 - A schema/version change bumps `DB_VERSION` in `apps/itun/src/lib/db/index.ts`;
   the upgrade drops every store and the cache refills from Convex.
 - Reusable mech templates live in their own `mechPatterns` object store rather
@@ -1086,13 +1088,12 @@ Two forces shaped the choice:
 ### Consequences
 
 - No parallel schema DSL: change a Zod schema and the DB layer follows.
-- The app survives version skew across PWA updates instead of hard-failing on
-  unknown/missing fields; unknown references (e.g. a `workspaceId` from a newer
-  build) degrade gracefully (treated as unassigned).
+- One unreadable row never bricks hydration of its store: it is skipped, not
+  thrown on.
 - `idb` keeps the abstraction thin — complex querying is done in memory in the
   Zustand stores ([ADR-003](#adr-003)), not via a query DSL.
-- Salvage-on-read can silently strip data a tab is too old to understand;
-  warnings are logged, and writes from the newer build restore strict validity.
+- A tab too old to read a field a newer build wrote skips that row until the
+  build floor reloads it.
 
 ## ADR-003
 
@@ -2306,11 +2307,8 @@ taxonomy — which surface may enforce vs. free-edit), [ADR-023](#adr-023)
 #### 1. One renderer — `ReferenceEntityCard`, and nothing else
 
 `ReferenceEntityCard` (`components/referenceEntity/card/`) is the **only**
-reference-entity renderer. The legacy RED core is deleted, and so is the
-`ReferenceEntityDisplay` compat shim that briefly carried the legacy sugar
-(`mode` / `compact` / `listing` → `size`; `status` → `damaged`; the old
-single-SV `statsOverride` `{value, bottomLabel}` → `StatItem[]`) across the
-migration: the barrel no longer exports that name. Call the card.
+reference-entity renderer, with no compat shim in front of it: size is `size`,
+damage is `damaged`, and stat overrides are `StatItem[]`. Call the card.
 
 #### 2. Entities always render as the card — layer UI on top
 
@@ -2410,8 +2408,6 @@ equipment was already TL1.)
 - Rule 7 is a shared-data change: it changes the tech-level badge on srd /
   the Discord bot as well as ITUN. It is a data ruling, not a computed value —
   future granted-only equipment should be authored at TL1 directly.
-- The compat shim (rule 1) is intentionally retained; there is no plan to rewrite
-  every call site to the card's native API. It is the stable public entry.
 
 ## ADR-027
 
@@ -2835,7 +2831,7 @@ carrier (a prose span) alongside it.
 and the partial is the important word: §1 promises Solo mode — not signed in,
 IndexedDB as the source of truth — "must keep working forever", and **that one
 guarantee is withdrawn**. Persistence requires an account and IndexedDB is a
-cache of Convex; read §1's Solo row as history. Everything else here — Games,
+cache of Convex. Everything else here — Games,
 memberships, roles, ownership, the two containers, Convex as server of record —
 stands, so citing this ADR remains correct for all of it.
 
@@ -2916,19 +2912,12 @@ subscription and writes to Convex; IndexedDB is demoted from source of truth to 
 warm cache. Reactive subscriptions are the product feature here — synchronized
 alerts and a live table are the point — not an add-on.
 
-This produces **three modes**, and every surface must be legible in all three:
-
-| Mode             | Truth        | Reads                 | Writes                     |
-| ---------------- | ------------ | --------------------- | -------------------------- |
-| **Solo**         | IndexedDB    | local                 | local — nothing is blocked |
-| **Connected**    | Convex       | reactive subscription | to Convex                  |
-| **Disconnected** | Convex, gone | cache, fully legible  | **blocked**                |
-
-**Solo is not Disconnected.** Anonymous play stays first-class: no sign-in is
-required to build a pilot and play alone, nothing is gated, and no banner
-appears. Signing in is an _upgrade_ taken to join a table. A **NOT CONNECTED**
-banner and read-only state are the honest cost of choosing a server of record,
-and only people who opted into a Game ever pay it.
+This produces **three modes**, and every surface must be legible in all three.
+The current table — Solo is signed out and read-only, Connected writes to
+Convex, Disconnected is a read-only cache — is [data flow](#data-flow) and
+[`apps/itun/CLAUDE.md`](../apps/itun/CLAUDE.md). A **NOT CONNECTED** banner and
+read-only state are the honest cost of choosing a server of record, and only a
+signed-in user offline ever pays it.
 
 Offline writes are **blocked, not queued**. An outbox would reintroduce conflict
 resolution through the back door, which is the thing choosing a server of record

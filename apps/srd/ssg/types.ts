@@ -94,10 +94,9 @@ export type PageModule<Params = Record<string, string>, Props = unknown> = {
 /**
  * A non-HTML build output.
  *
- * Part of the SSG contract in `ssg/DESIGN.md`. The tag that used to sit here
- * said its consumer "lands in a later phase of the migration" — it landed:
+ * Part of the SSG contract in `ssg/DESIGN.md`.
  * `src/endpoints/{itemJson,llmsTxt,schemaDefinitionJson,schemaJson,searchIndexJson}.ts`
- * all implement this type today.
+ * implement it.
  */
 export type EndpointModule<Params = Record<string, string>, Props = unknown> = {
   /** Concrete output path relative to dist, may contain [params]. */

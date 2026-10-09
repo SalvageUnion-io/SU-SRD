@@ -3,9 +3,8 @@
  *
  * Functionally the **srd landing page, minus the site header**: the same
  * category sections and the same `CatalogTile`s, built from the same
- * `buildCatalogSections()` the landing page and top nav use. It used to carry
- * its own hand-listed 8 categories, so a schema added to the SRD catalog
- * silently never appeared here.
+ * `buildCatalogSections()` the landing page and top nav use, so a schema added
+ * to the SRD catalog appears here too.
  *
  * Two differences from the landing page, both forced by living in a panel:
  *

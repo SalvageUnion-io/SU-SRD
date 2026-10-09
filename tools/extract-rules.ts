@@ -10,12 +10,6 @@
  * local, regenerable substrate: a greppable full-text fallback for "what does
  * the book actually say".
  *
- * This used to feed a `docs/rules/` digest pipeline (`tools/rules-digest/`).
- * That pipeline was retired: it generated *authoring briefs*, not documents, so
- * an agent still had to hand-write every `docs/rules/<slug>.md` — and none was
- * ever written. The directory sat empty for months while CLAUDE.md told every
- * session to read it instead of the PDFs. Grep this extract instead.
- *
  * Requires `pdftotext` (poppler) on PATH.
  *
  * Run directly:  bun tools/extract-rules.ts [rulesDir=rules]

@@ -15,7 +15,7 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../__tests__/expandCards'
@@ -31,20 +31,19 @@ beforeAll(hydrateStores)
 // nested lookups (TraitKeywordDisplayView) resolve.
 //
 // SNIPER_ID is resolved from the reference (not hardcoded) so the fixture keys
-// pilot.equipment and equipmentChoices by the equipment's real production id —
-// the same key PilotWizard/EquipmentStep persist (onToggle(item.id)) — rather
-// than the display name.
+// pilot.equipment and equipmentChoices by the equipment's slug — the same key
+// PilotWizard/EquipmentStep persist.
 beforeAll(async () => {
   const sniper = SalvageUnionReference.Equipment.getByName(SNIPER_NAME)
   if (!sniper) throw new Error(`Fixture setup: equipment "${SNIPER_NAME}" not found in reference`)
-  SNIPER_ID = sniper.id
+  SNIPER_ID = getEntitySlug(sniper)
 })
 
 // ---------------------------------------------------------------------------
 // Constants — Custom Sniper Rifle carries a "Weapon Type" permanent choice with
 // Ballistic / Energy schema-entity options. The choice id is stable in the
 // dataset; the options render as buttons labelled with their entity name.
-// SNIPER_ID is the equipment's real id (resolved in beforeAll) — the persistence
+// SNIPER_ID is the equipment's slug (resolved in beforeAll) — the persistence
 // key used in production.
 // ---------------------------------------------------------------------------
 

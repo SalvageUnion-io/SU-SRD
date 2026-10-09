@@ -73,10 +73,8 @@ import { entityRefType, softLinkType } from './schema'
  * and keeps its scrap, cargo and bays (ADR-038 §5).
  *
  * Pilots and mechs are the other way round: **any member may bring their own
- * into any Game they belong to**, crawler or no crawler. There used to be a
- * gate — a player's builds waited until the table runner had raised one — and
- * it is gone (ADR-037): the crew can gather first, and the first crawler to
- * arrive becomes the **primary** and picks up everybody without one. Whoever
+ * into any Game they belong to**, crawler or no crawler (ADR-037): the crew can
+ * gather first, and the first crawler to arrive becomes the **primary** and picks up everybody without one. Whoever
  * enters a Game that already has a primary is assigned to it on the way in, by
  * an explicit link the server writes as part of the add or the move.
  *
@@ -86,9 +84,9 @@ import { entityRefType, softLinkType } from './schema'
  *
  * ## What lives elsewhere
  *
- * This module is the ownable-entity API: the reads, and the per-write mirror
- * the store calls on every edit. Two concerns that used to share it were
- * split out (audit AP-07), each into a module that says what it is:
+ * This module is the ownable-entity API: the reads, and the server-first
+ * writes the store awaits on every edit (`commitEntityWrite`). Two neighbours
+ * live in modules that say what they are:
  *
  *  - `shelf.ts` — the shelf-only collections, saved patterns and the NPC tray.
  *  - `changeLog.ts` — the client's Change Log append.
@@ -273,7 +271,7 @@ export const locate = query({
     }
     if (row === null) return null
 
-    const mine = (row.ownerId ?? null) === userId
+    const mine = row.ownerId === userId
     const membership = row.gameId === null ? null : await getMembership(ctx, row.gameId, userId)
     if (!mine && membership === null) return null
     // A Game's crawler has no owner: whoever runs the table writes it.
@@ -294,18 +292,12 @@ export const locate = query({
 /**
  * Everything this account owns, for filling the local cache.
  *
- * ## Why this did not exist, and why that was a bug
+ * ## Why it exists
  *
- * Writes have mirrored **up** since ADR-030, but nothing ever read back **down**
- * outside a Game (`listForGame`). The consequence is not subtle: a signed-in
- * player opening ITUN on a second device saw an **empty roster**. Their builds
- * were in Convex the whole time; there was simply no query that would return
- * them. The only path down was `GameRoster`, which is scoped to one Game.
- *
- * That is the gap that makes "IndexedDB is a cache" untrue as a description: a
- * cache is something that can be *filled*, and until this there was nothing to
- * fill it from ([ADR-034](../../../docs/ARCHITECTURE.md#adr-034)
- * decision 2).
+ * It is the way down outside a Game (`listForGame` is scoped to one): without
+ * it a signed-in player opening ITUN on a second device would see an **empty
+ * roster**. A cache is something that can be *filled*, and this is what fills
+ * it ([ADR-034](../../../docs/ARCHITECTURE.md#adr-034) decision 2).
  *
  * ## Owned, not shelved
  *
@@ -384,15 +376,13 @@ export const listMine = query({
  * Every assignment the caller can see, plus every crawler in their Games — the
  * download half of the assignment model (ADR-037).
  *
- * ## Why links needed a way down
+ * ## Why links need a way down
  *
- * Links mirrored up and never came back. `listMine` returned none, and
- * `listForGame` returned a Game's but nothing on the client read them, so a
- * pilot assigned to a crawler from one device — or by the server, or through
- * somebody else's mech — showed as unassigned everywhere else. The same gap hid
- * the crawler itself: a Game's crawler has no owner, so it is never in
- * `listMine`, and a pilot sheet had nothing to resolve its Home Crawler to
- * unless somebody happened to have pressed "Edit" on the crawler's row.
+ * `listMine` returns no links, so without this a pilot assigned to a crawler
+ * from one device — or by the server, or through somebody else's mech — would
+ * show as unassigned everywhere else. The crawler needs it too: a Game's
+ * crawler has no owner, so it is never in `listMine`, and a pilot sheet would
+ * have nothing to resolve its Home Crawler to.
  *
  * ## What "can see" means here
  *
@@ -489,8 +479,7 @@ export const listWiring = query({
  * Delete an entity, addressed by its **server** id. Owner only.
  *
  * The twin of `removeByAppId`, which `commitEntityWrite` uses, and necessary
- * because the
- * Game roster cannot use that one: it is looking at rows this browser may never
+ * because the Game roster cannot use that one: it is looking at rows this browser may never
  * have held, and at pre-gens seeded from a template that have no `appId` at all
  * (production holds a dozen). Addressing by `_id` is the only way to name those,
  * and it is exactly how `ownership.release` and `removeCrawler` already
@@ -525,17 +514,15 @@ export const remove = mutation({
  *
  * ## `gameId: null` raises one on your own shelf
  *
- * A crawler can now also live on a shelf (`schema.ts`), and that is the only
- * case where it has an owner. There is no table to run, so there is no table
- * runner to require and no crew to be communal with — the caller is simply the
- * owner. This is the path the local mirror uses for a Solo crawler, which
- * previously had no server row at all.
+ * A crawler can also live on a shelf (`schema.ts`), and that is the only case
+ * where it has an owner. There is no table to run, so there is no table runner
+ * to require and no crew to be communal with — the caller is simply the owner.
  */
 export const createCrawler = mutation({
   args: {
     /** The Game this crawler is raised in, or `null` to raise it on your shelf. */
     gameId: v.union(v.id('games'), v.null()),
-    /** The local UUID this row mirrors — see `pilots.appId`. */
+    /** The app-level UUID this row carries — see `pilots.appId`. */
     appId: v.optional(v.string()),
     body: v.any(),
   },
@@ -678,7 +665,8 @@ async function byAppId(
 }
 
 /**
- * Mirror a local write to the server of record, addressed by app id.
+ * Write an entity to the server of record, addressed by app id — the target of
+ * the store's awaited `commitEntityWrite`.
  *
  * Upsert rather than update: an entity's first write is its create, addressed
  * by the app id the client minted, so a missing row means "create it".
@@ -686,8 +674,7 @@ async function byAppId(
  * The insert branch is a **create into a container**, so it answers to
  * `assertMayAddToContainer`. Leaving it open would have made the whole rule
  * cosmetic: this is the client's ordinary write path, so a player blocked from
- * adding to a Game would simply have built the pilot locally and had the
- * mirror place it there a moment later.
+ * adding to a Game could otherwise place a pilot there by writing it.
  *
  * ## A write from a stale copy is refused
  *
@@ -775,10 +762,10 @@ async function writeOwnable(
 }
 
 /**
- * Mirror a local crawler write, addressed by app id, as a **field-level merge**
+ * Write a crawler, addressed by app id, as a **field-level merge**
  * (ADR-030 §5).
  *
- * The crawler needs its own mirror because it has no owner in a Game: its
+ * The crawler needs its own write because it has no owner in a Game: its
  * writer is the table runner (`assertMayEditCrawler`), not whoever created
  * the row.
  *
@@ -788,17 +775,15 @@ async function writeOwnable(
  * top-level field means two edits to different things both succeed, and only
  * a genuine same-field collision contends.
  *
- * Unlike the ownable tables this **never inserts**. A missing row means the
- * crawler is not in this Game — either it is a purely local build (Solo, or on
- * the shelf, neither of which has a server row to reach) or it was scrapped by
- * the table runner. Creating one here would route around the rule that raising
+ * Unlike the ownable tables this **never inserts** (`createCrawler` raises
+ * one). A missing row means the crawler was scrapped. Creating one here would route around the rule that raising
  * a crawler is the table runner's act, which is precisely the hole the ownable
  * upsert had to be closed against.
  *
  * **Clearing a field needs `unset`.** A patch cannot carry `undefined`: the
  * Convex client drops undefined object fields when it serialises the args, so
- * `{ maxSpOverride: undefined }` (the ↺ revert of a pinned Max SP) arrived as
- * `{}`, the merge kept the old value, and the pin came back on the next pull.
+ * `{ maxSpOverride: undefined }` (the ↺ revert of a pinned Max SP) would arrive
+ * as `{}` and the merge would keep the pinned value.
  * The client names each cleared key in `unset` instead; each must be a field of
  * the crawler schema, and the merged body still has to parse — so a required
  * field cannot be unset either.
@@ -819,10 +804,9 @@ async function patchCrawler(
   await assertMayEditCrawler(ctx, existing)
 
   // A field patch never moves a crawler. Its container is the row's column
-  // and the body's `gameId` together, and only `moveCrawler` writes them —
-  // a body-only `gameId` here is how a "moved" crawler used to stay put on
-  // the server while every client read it somewhere else. The same goes for
-  // `unset`: clearing `gameId` would split the body from the column.
+  // and the body's `gameId` together, and only `moveCrawler` writes them — a
+  // body-only `gameId` here would leave a "moved" crawler put on the server
+  // while every client read it somewhere else. The same goes for `unset`: clearing `gameId` would split the body from the column.
   const { gameId: _container, ...fields } = (args.patch ?? {}) as Record<string, unknown>
   const merged = unsetCrawlerFields(
     { ...(existing.body as Record<string, unknown>), ...fields },
@@ -856,9 +840,8 @@ async function removeCrawlerRow(ctx: MutationCtx, appId: string): Promise<void> 
  * A crawler's container is three fields, and this is the one writer of all
  * three together — the row's `gameId` column, the body's `gameId`, and
  * `ownerId` (null in a Game, where it is communal; the mover on a shelf, where
- * an owner is required). The field-level mirror (`patchCrawlerByAppId`) used
- * to carry the move as a body patch and nothing else, so the column never
- * changed and nobody checked who was moving it.
+ * an owner is required). The field-level write (`patchCrawlerByAppId`) never
+ * moves one.
  *
  * Only the table runner moves a crawler, in both directions:
  *
@@ -962,16 +945,9 @@ const SOFT_LINK_FROM_TABLE: Record<SoftLink['type'], OwnableTable> = {
 }
 
 /**
- * Mirror a soft link to the server of record — an **assignment** (ADR-037).
- *
- * ## Why this exists
- *
- * Soft links were the one part of a roster that never left the browser.
- * `mirrorEntityWrite` returned early for them — they were called "derived", and
- * for a shelf they effectively are — while `listForGame` *read* them back. So a
- * Game showed whatever links existed when the account was claimed, and every
- * wiring change made afterwards was invisible to the rest of the table. A link
- * is not derived once a Game shares it; it is the assignment.
+ * Write a soft link to the server of record — an **assignment** (ADR-037). A
+ * link is not derived once a Game shares it; it is the assignment, so every
+ * wiring change reaches the rest of the table.
  *
  * ## Permission comes from the `from` end; the container from both
  *
@@ -979,9 +955,8 @@ const SOFT_LINK_FROM_TABLE: Record<SoftLink['type'], OwnableTable> = {
  * entity's container. Wiring your own mech to a crewmate's pilot is your
  * business because the mech is yours.
  *
- * The `to` end used to be a free-form string nobody looked up. It is resolved
- * now, because the assignment model has three invariants and two of them are
- * about it:
+ * The `to` end is resolved, because the assignment model has three invariants
+ * and two of them are about it:
  *
  *  - **one container** — both ends in the same Game, or on the same owner's
  *    shelf. Anything else is refused with a player-facing `ConvexError`; the

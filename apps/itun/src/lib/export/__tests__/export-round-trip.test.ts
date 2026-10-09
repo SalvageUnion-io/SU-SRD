@@ -64,14 +64,7 @@ afterEach(async () => {
 /** Strip the fields mergeImport intentionally re-mints/remaps on import. */
 function stable(record: Record<string, unknown>): Record<string, unknown> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {
-    id: _id,
-    createdAt: _ca,
-    updatedAt: _ua,
-    workspaceId: _wsId,
-    gameId: _gid,
-    ...rest
-  } = record
+  const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _gid, ...rest } = record
   return rest
 }
 
@@ -155,7 +148,7 @@ const richMechInput = {
     },
   ],
   patternName: 'Scout Rig',
-  description: 'Rust-streaked hull.',
+  appearance: 'Rust-streaked hull.',
   conditions: ['vulnerable'],
   maxSpModifier: -5,
   maxEpModifier: 2,
@@ -341,7 +334,7 @@ describe('export round-trip — field fidelity', () => {
     expect(stable(importedCrawler)).toEqual(stable(created))
   })
 
-  test('mechPattern: bulk SCRAP cargo lot survives (no workspaceId field to remap)', async () => {
+  test('mechPattern: bulk SCRAP cargo lot survives', async () => {
     const entityStore = useEntityStore.getState()
 
     const created = await mechPatterns.create(richPatternInput)

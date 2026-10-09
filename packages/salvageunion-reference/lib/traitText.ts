@@ -4,8 +4,8 @@
  *
  * Pure string work — nothing here touches entities or the ORM.
  *
- * Split out of the old `lib/utilities.ts` grab bag (deleted). The package
- * barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
+ * The package barrel (`lib/index.ts`) re-exports, by name, only what
+ * consumers import.
  */
 
 /**
@@ -51,11 +51,10 @@ export function parseTraitReferences(text: string): ParsedTraitReference[] {
   // closing one, so every scan is bounded at the next `[` / `(` instead of
   // running to end-of-string from each of many `[[` starts (quadratic).
   //
-  // The word-shape requirement that used to live in the regex
-  // (`[A-Z][A-Za-z-]+(?:\s+[A-Z][A-Za-z-]+)*`) moved to `isTraitName` below:
-  // as a regex it nested a quantifier inside a quantifier, which backtracks
-  // quadratically on input like `[[[Aa Aa Aa Aa …`. The predicate is a linear
-  // scan and accepts exactly the same set of names.
+  // The word-shape requirement lives in `isTraitName` below, not the regex: as
+  // a regex (`[A-Z][A-Za-z-]+(?:\s+[A-Z][A-Za-z-]+)*`) it nests a quantifier
+  // inside a quantifier, which backtracks quadratically on input like
+  // `[[[Aa Aa Aa Aa …`. The predicate is a linear scan.
 
   // Pattern for parameterized traits: [[[TraitName] (param)]]
   //

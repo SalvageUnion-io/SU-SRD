@@ -128,8 +128,8 @@ function perUnitCost(lot: CargoLot): number {
 
 /**
  * The cap-checked move affordance shared by both Hold layouts — the single
- * source of the button label + disabled reason that the linear mech chit and
- * the poster crawler tile previously duplicated.
+ * source of the button label + disabled reason for the linear mech chit and
+ * the poster crawler tile.
  *
  *   - The boundary gate is per-`side`: the mech STOWS a lot to the crawler's
  *     Storage Bay ('Stow →', disabled when no crawler is linked), the crawler
@@ -188,8 +188,8 @@ type CargoLotItemProps = {
 
 /**
  * CargoLotItem — one lot, rendered for either side of the mech ⇄ crawler
- * boundary. Both presentations and their (formerly duplicated) cap-checked
- * move affordance now live here:
+ * boundary. Both presentations and their shared cap-checked move affordance
+ * live here:
  *   - `side === 'mech'`    → the linear chit (marker cell + name + units cell)
  *     with a 'Stow →' button, laid out in the mech Hold's flat list.
  *   - `side === 'crawler'` → the poster `.slot` tile (magenta `--tone`, name

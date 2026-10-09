@@ -3,11 +3,8 @@
  * Workflow invariants — `bun run check workflows`.
  *
  * Seven properties of `.github/`, checked from one parse of every workflow and
- * composite action. They used to be five scripts, and two of them carried a
- * hand-written YAML state machine "because there is no parser in this repo" —
- * while `Bun.YAML.parse` shipped in the runtime that ran them. Each of those
- * parsers was a few hundred lines that could be fooled by a `run: |` body
- * shaped like YAML; a real parse cannot be.
+ * composite action, with `Bun.YAML.parse`: a hand-written YAML state machine
+ * can be fooled by a `run: |` body shaped like YAML; a real parse cannot be.
  *
  *   aggregator    `CI Success` (`quality-checks` in ci.yml) `needs:` every job
  *                 in ci.yml. It is ci.yml's one required status check, and it

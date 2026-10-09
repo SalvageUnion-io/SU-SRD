@@ -42,7 +42,7 @@ export async function initBrowserObservability(): Promise<void> {
  *
  * This exists because catching is exactly what PREVENTS an error reaching
  * Sentry's `globalHandlers` integration, so every deliberately-caught error in
- * the app — including a failed mirror to the server of record — is reportable
+ * the app — including a failed Change Log commit — is reportable
  * only through this function.
  */
 export const captureException = observability.captureException

@@ -1,9 +1,9 @@
 /**
  * Grouping and consequence copy for the live sheet's Change Class picker.
  *
- * The picker used to be one flat list of all eleven classes, which offered a
- * Hacker three hybrids they cannot reach and said nothing about what changing
- * would cost. This shapes the same list by the ring instead.
+ * Not one flat list of all eleven classes, which would offer a Hacker three
+ * hybrids they cannot reach and say nothing about what changing would cost:
+ * this shapes the list by the ring.
  *
  * ## Free Edit, so nothing is removed
  *

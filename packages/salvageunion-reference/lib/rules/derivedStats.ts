@@ -2,9 +2,7 @@
  * Derived maxima for all three entities (plan 2.5, gap 11).
  *
  * "Many maxima are derived, not fixed" (rules digest): store modifiers,
- * compute totals. This module is the single source for those computations —
- * it replaces the old PILOT_MAX_HP/PILOT_MAX_AP constants (lib/pilotStats.ts)
- * and the crawler SP slug-regex previously local to CrawlerSheet.
+ * compute totals. This module is the single source for those computations.
  *
  *   Pilot:   maxHP = 10 + 2×(crawler tech − 1) + maxHpModifier
  *                     − Σ(minor injury: 1, major: 2)
@@ -24,7 +22,7 @@ import { SalvageUnionReference } from '../index.js'
 import type { ActiveEffects, ResolvedContribution } from './contributions.js'
 import { abilityContributions, installedContributions, sumContributions } from './contributions.js'
 import { crawlerMaxSpBonus } from './creation.js'
-import { resolveChassisRef } from './resolveRefs.js'
+import { resolveChassisRef, resolveCrawlerRef } from './resolveRefs.js'
 
 // ---------------------------------------------------------------------------
 // Pilot
@@ -573,7 +571,7 @@ type CrawlerDerivationInput = {
   techLevel: string
   maxSpOverride?: number
   /**
-   * Chosen crawler-type ref (SRD id OR name) — the type's stored
+   * Chosen crawler-type slug — the type's stored
    * `max_sp_bonus` mutations (Battle +5) apply AT READ, so the record keeps
    * the BARE tech-level value and type swaps re-derive in both directions
    * (wizard-refresh Phase 5). Absent/unresolvable = no type bonus.
@@ -602,21 +600,14 @@ function parseCrawlerTechLevel(techLevel: string): number | undefined {
 }
 
 /**
- * The type's stored `max_sp_bonus` mutations, resolved by id-or-name (the
- * same tolerance as bay refs). Salvage-tolerant: a missing `crawlers` catalog
- * (not yet preloaded) or an unresolvable ref contributes 0 rather than
- * throwing.
+ * The type's stored `max_sp_bonus` mutations, resolved by slug. A missing
+ * `crawlers` catalog (not yet preloaded) or an unresolvable ref contributes 0
+ * rather than throwing.
  */
 function crawlerTypeMaxSpBonus(typeRef: string | undefined): number {
   if (!typeRef) return 0
   try {
-    // id-then-name via the model's indexes. Equivalent to the linear OR-scan
-    // this replaced — see BaseModel.indexes.test.ts, which verifies the
-    // id-first tie-break resolves every key exactly as data order did.
-    const type =
-      SalvageUnionReference.Crawlers.getById(typeRef) ??
-      SalvageUnionReference.Crawlers.getByName(typeRef)
-    return crawlerMaxSpBonus(type?.mutations)
+    return crawlerMaxSpBonus(resolveCrawlerRef(typeRef)?.mutations)
   } catch {
     return 0
   }
