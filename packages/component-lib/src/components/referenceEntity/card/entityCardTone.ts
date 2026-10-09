@@ -123,15 +123,14 @@ export function resolveDomainTone(
 ): DomainTone {
   const domain = SCHEMA_DOMAIN[schemaName]
 
-  // GUIDES carry their OWN stored hue (`guideColor`), and it must win over the
-  // glossary-ink domain default. The SRD index already paints each guide's
-  // catalog tile with this exact hex (`catalogHelpers.ts` → `catalogBg`), so
-  // resolving the card to `bg-ink-2` made every guide page a different colour
-  // from the link that opened it — the one entity type whose tone is authored
-  // per-item rather than derived from its domain.
+  // GUIDES carry their OWN stored tone (`guideTone`), and it must win over the
+  // glossary-ink domain default: the SRD index paints each guide's catalog tile
+  // with the same colour (`catalogHelpers.ts` → `catalogBg`), so a guide page
+  // matches the link that opened it — the one entity type whose tone is
+  // authored per-item rather than derived from its domain.
   //
-  // A DATA-SHAPE check, not a schema-name one (display-system rule): the hue
-  // rides the stored field, so anything carrying a `guideColor` is toned by it.
+  // A DATA-SHAPE check, not a schema-name one (display-system rule): the tone
+  // rides the stored field, so anything carrying a `guideTone` is toned by it.
   // Returned as `bgColor` (a raw CSS colour) rather than `bg` (a Tailwind
   // class) — the card threads `bgColor` to the header, sub-header, footer,
   // frame and nested children, and `accentSurface` applies it as an inline

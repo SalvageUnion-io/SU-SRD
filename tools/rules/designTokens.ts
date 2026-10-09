@@ -41,13 +41,10 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 export const SCAN_DIRS = [
   'packages/component-lib/src',
   'packages/salvageunion-reference/lib',
-  // The DATASET, not just the code that reads it. `data/guides.json` carried
-  // five raw hexes in a `guideColor` field — one byte-identical to
-  // `--color-mech`, two near-misses of `--color-pilot`/`--color-crawler` — and
-  // `entityCardTone.ts` gave them precedence over the domain tone, so they
-  // shipped on 15 entity cards. Two blind spots hid it: this list stopped at
-  // `lib`, and SCAN_EXTENSIONS excluded `.json`. The field now names a theme
-  // tone and this directory is clean; scanning it is what keeps it that way.
+  // The DATASET, not just the code that reads it (`.json` included): a raw hex
+  // in the data would be a second palette, and `entityCardTone.ts` gives a
+  // guide's tone precedence over the domain tone. Guides name a theme tone
+  // (`guideTone`); scanning this directory is what keeps it that way.
   'packages/salvageunion-reference/data',
   'apps/srd/src',
   'apps/itun/src',
@@ -264,12 +261,6 @@ const EXEMPTIONS: Exemption[] = [
     rules: ['arbitrary-border-width'],
     reason:
       "Not a border WEIGHT — a shape. The two matches (`border-x-[9px]`, `border-t-[14px]`) sit on an `h-0 w-0` span with `border-x-transparent`: the CSS-triangle idiom, drawing the caret under the wizard step marker. Those numbers are the triangle's half-width and height, so snapping them to the 1.5/2/2.5/3px weight ladder would not tidy a border, it would resize a glyph. The rule is right to look here and wrong about this one.",
-  },
-  {
-    file: 'packages/salvageunion-reference/lib/schemas/entities.ts',
-    rules: ['raw-color'],
-    reason:
-      "A DATA contract, not a styling call site. `guideColor` is an authored per-guide hex whose Zod schema enforces `^#[0-9a-fA-F]{6}$` — `var(--color-ink)` is not a legal value for that field, so its default cannot be a token reference no matter how much we would like it to be. The rule the guard is really enforcing (use OUR palette) is still applied: the default is the canonical ink's own hex, #282019, not the pure black it used to be.",
   },
   {
     file: 'packages/component-lib/src/components/shared/KofiButton.tsx',
