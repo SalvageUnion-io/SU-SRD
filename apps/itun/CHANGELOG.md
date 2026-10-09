@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.23.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.23.0...itun-v1.23.1) (2026-10-09)
+
+
+### Bug Fixes
+
+* **itun:** declare Discord's OAuth issuer so sign-in stops failing ([#1270](https://github.com/SalvageUnion-io/SU-SRD/issues/1270)) ([3e89740](https://github.com/SalvageUnion-io/SU-SRD/commit/3e897406060396d4f6d4f069c3152998106e2fe3))
+
 ## [1.23.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.22.1...itun-v1.23.0) (2026-10-08)
 
 
