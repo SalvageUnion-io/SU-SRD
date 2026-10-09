@@ -1,6 +1,5 @@
 import { Search } from 'lucide-react'
-import type { InputHTMLAttributes } from 'react'
-import { forwardRef } from 'react'
+import type { ComponentPropsWithRef } from 'react'
 import { cn } from '../../utils/cn'
 import { FOCUS_WITHIN } from '../chrome/interaction'
 
@@ -17,17 +16,20 @@ import { FOCUS_WITHIN } from '../chrome/interaction'
  * padding/size via `containerClassName` and width/etc. via `className`.
  */
 
-type SearchFieldProps = InputHTMLAttributes<HTMLInputElement> & {
+type SearchFieldProps = ComponentPropsWithRef<'input'> & {
   /** Overrides merged onto the bordered container (e.g. taller padding, larger text). */
   containerClassName?: string
   /** Magnifier glyph size in px. */
   glyphSize?: number
 }
 
-export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(function SearchField(
-  { containerClassName, glyphSize = 14, className, ...inputProps },
-  ref
-) {
+export function SearchField({
+  containerClassName,
+  glyphSize = 14,
+  className,
+  ref,
+  ...inputProps
+}: SearchFieldProps) {
   return (
     <div
       className={cn(
@@ -62,4 +64,4 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
       />
     </div>
   )
-})
+}
