@@ -100,8 +100,9 @@ export function SheetView({ kind, id }: SheetViewProps) {
     [store]
   )
 
-  // An address the server knows by another id — a Convex row id from the
-  // retired crew-view URL — is replaced by the one every other link uses.
+  // A Convex row id is what the Discord bot's /sheet/ links carry, and what
+  // links already posted to the retired crew-view URL redirect with. Once
+  // located, it is replaced by the canonical app id every other link uses.
   const canonical = held === null && located ? located.id : id
   useEffect(() => {
     if (canonical === id) return
