@@ -2,8 +2,8 @@
  * Export/import round-trip fidelity harness (durability audit, item 3).
  *
  * export.test.ts and export-patterns.test.ts already cover the mechanics
- * (fresh-id assignment, dedup, dangling-link pruning, legacy-bundle
- * normalization) with minimal fixtures (mostly just checking `name`). This
+ * (fresh-id assignment, dedup, dangling-link pruning, version refusal)
+ * with minimal fixtures (mostly just checking `name`). This
  * file is table-driven over RICH fixtures — every optional/nested field
  * filled in for each entity type — pushed through the full pipeline:
  *
@@ -655,8 +655,6 @@ describe('export round-trip — cross-entity full backup', () => {
     expect(bundle.entities.mechs).toHaveLength(1)
     expect(bundle.entities.crawlers).toHaveLength(1)
     expect(bundle.softLinks).toHaveLength(2)
-    // Workspaces are retired: the key survives for old bundles, always empty.
-    expect(bundle.workspaces).toHaveLength(0)
     expect(bundle.mechPatterns).toHaveLength(1)
     expect(bundle.encounterNpcs).toHaveLength(1)
 

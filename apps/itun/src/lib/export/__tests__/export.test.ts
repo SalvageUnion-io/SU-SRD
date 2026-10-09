@@ -92,17 +92,14 @@ afterEach(async () => {
 describe('parseImportBundle', () => {
   test('accepts a valid minimal bundle', () => {
     const bundle: ExportBundle = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       exportedAt: FIXTURE_NOW,
       entities: { pilots: [], mechs: [], crawlers: [] },
-      workspaces: [],
       softLinks: [],
       mechPatterns: [],
       encounterNpcs: [],
     }
     const result = parseImportBundle(JSON.stringify(bundle))
-    // A v1 payload is normalised to the current version on the way in, so the
-    // rest of the pipeline sees one format (ADR-030 containers).
     expect(result.schemaVersion).toBe(2)
     expect(result.entities.pilots).toEqual([])
   })
@@ -111,12 +108,23 @@ describe('parseImportBundle', () => {
     expect(() => parseImportBundle('{not json')).toThrow('not valid JSON')
   })
 
+  test('rejects a schemaVersion 1 bundle', () => {
+    const v1Bundle = {
+      schemaVersion: 1,
+      exportedAt: FIXTURE_NOW,
+      entities: { pilots: [], mechs: [], crawlers: [] },
+      softLinks: [],
+    }
+    expect(() => parseImportBundle(JSON.stringify(v1Bundle))).toThrow(
+      'Import failed: unsupported schemaVersion "1". This build reads version 2.'
+    )
+  })
+
   test('rejects bundle with wrong schemaVersion', () => {
     const badBundle = {
       schemaVersion: 99,
       exportedAt: FIXTURE_NOW,
       entities: { pilots: [], mechs: [], crawlers: [] },
-      workspaces: [],
       softLinks: [],
       mechPatterns: [],
       encounterNpcs: [],
@@ -124,8 +132,20 @@ describe('parseImportBundle', () => {
     expect(() => parseImportBundle(JSON.stringify(badBundle))).toThrow('unsupported schemaVersion')
   })
 
+  test('a v2 bundle carrying a `workspaces` key parses, and the key is dropped', () => {
+    const withWorkspaces = {
+      schemaVersion: 2,
+      exportedAt: FIXTURE_NOW,
+      entities: { pilots: [], mechs: [], crawlers: [] },
+      workspaces: [],
+      softLinks: [],
+    }
+    const result = parseImportBundle(JSON.stringify(withWorkspaces))
+    expect('workspaces' in result).toBe(false)
+  })
+
   test('rejects bundle missing required fields', () => {
-    const incomplete = { schemaVersion: 1, exportedAt: FIXTURE_NOW }
+    const incomplete = { schemaVersion: 2, exportedAt: FIXTURE_NOW }
     expect(() => parseImportBundle(JSON.stringify(incomplete))).toThrow('Import failed')
   })
 })
@@ -148,14 +168,13 @@ describe('buildExportBundle', () => {
     expect(bundle.entities.pilots[0]?.name).toBe('Test Pilot')
     expect(bundle.entities.mechs).toHaveLength(0)
     expect(bundle.softLinks).toHaveLength(0)
-    expect(bundle.workspaces).toHaveLength(0)
 
     // Must be parseable again
     const reparsed = parseImportBundle(JSON.stringify(bundle))
     expect(reparsed.entities.pilots[0]?.name).toBe('Test Pilot')
   })
 
-  test('includes softLinks in a full backup, and no workspaces', async () => {
+  test('includes softLinks and containers in a full backup', async () => {
     const entityStore = useEntityStore.getState()
 
     await entityStore.hydrate('pilot')
@@ -176,8 +195,6 @@ describe('buildExportBundle', () => {
 
     const bundle = await buildExportBundle(entityStore)
 
-    // Workspaces are retired: the key survives for old bundles, always empty.
-    expect(bundle.workspaces).toHaveLength(0)
     expect(bundle.entities.pilots).toHaveLength(1)
     expect(bundle.entities.pilots[0]?.gameId).toBe('game-alpha')
     expect(bundle.entities.mechs).toHaveLength(1)
@@ -226,8 +243,6 @@ describe('buildEntityExport', () => {
     // Only the link touching pilotA
     expect(bundle.softLinks).toHaveLength(1)
     expect(bundle.softLinks[0]?.to.id).toBe(pilotA.id)
-    // Workspaces are not included in single-entity export
-    expect(bundle.workspaces).toHaveLength(0)
   })
 
   test('returns empty entities array when id not found', async () => {
@@ -385,14 +400,13 @@ describe('mergeImport — round-trip', () => {
 
     // Build a bundle that contains the same pilot id.
     const bundle: ExportBundle = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       exportedAt: FIXTURE_NOW,
       entities: {
         pilots: [existingPilot],
         mechs: [],
         crawlers: [],
       },
-      workspaces: [],
       softLinks: [],
       mechPatterns: [],
       encounterNpcs: [],
