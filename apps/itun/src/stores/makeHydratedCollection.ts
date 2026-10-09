@@ -85,18 +85,15 @@ type SliceConfig<K extends string, T, CreateInput> = {
   /**
    * Mirror one write to the server of record, BEFORE it touches disk.
    *
-   * Optional only so a collection with no server table keeps working; every
-   * collection that has one must pass it. Without this the slice was purely
-   * local, which is how `mechPatterns` and `encounterNpcs` spent P4b reaching
-   * Convex through exactly one path — the bulk `claimLocal` at sign-in — while
-   * every write after that lived only in the browser that made it.
+   * Required: a collection with no server table would persist only on a
+   * device, which `lib/db/__tests__/storeSeams.test.ts` refuses.
    *
    * Awaited and allowed to throw, matching `entityStore`'s server-first order:
    * a cache cannot legitimately be ahead of its source, so a write the server
    * refused did not happen. The alternative — fire-and-forget with a swallowed
    * warning — is the exact shape that lost an evening of play before ADR-034.
    */
-  commit?: (op: { kind: 'upsert'; record: T } | { kind: 'delete'; id: string }) => Promise<void>
+  commit: (op: { kind: 'upsert'; record: T } | { kind: 'delete'; id: string }) => Promise<void>
 }
 
 type SetLike = (partial: object | ((state: never) => object)) => void
@@ -180,20 +177,18 @@ export function makeHydratedCollectionSlice<
         // ordering that matters (nothing local survives a refusal) still holds,
         // because a throw here aborts before `set`.
         const record = await db.create(input)
-        if (commit !== undefined) {
-          try {
-            await commit({ kind: 'upsert', record })
-          } catch (err) {
-            // The local row already landed, so undo it rather than leave the
-            // cache ahead of the server — the one state ADR-034 forbids.
-            // If the undo itself fails, that forbidden state is exactly what is
-            // left behind — so it is reported, not swallowed. The commit error
-            // is still what the caller sees.
-            await db.delete((record as { id: string }).id).catch((undoErr: unknown) => {
-              captureException(undoErr, { source: 'makeHydratedCollection.undoCreate', key })
-            })
-            throw err
-          }
+        try {
+          await commit({ kind: 'upsert', record })
+        } catch (err) {
+          // The local row already landed, so undo it rather than leave the
+          // cache ahead of the server — the one state ADR-034 forbids.
+          // If the undo itself fails, that forbidden state is exactly what is
+          // left behind — so it is reported, not swallowed. The commit error
+          // is still what the caller sees.
+          await db.delete((record as { id: string }).id).catch((undoErr: unknown) => {
+            captureException(undoErr, { source: 'makeHydratedCollection.undoCreate', key })
+          })
+          throw err
         }
         set({ [key]: [record, ...records()] })
         afterWrite()
@@ -203,7 +198,7 @@ export function makeHydratedCollectionSlice<
       async update(id, patch) {
         requireWritableBackend()
         const updated = await db.update(id, patch)
-        if (commit !== undefined) await commit({ kind: 'upsert', record: updated })
+        await commit({ kind: 'upsert', record: updated })
         set({ [key]: records().map((r) => (r.id === id ? updated : r)) })
         afterWrite()
         return updated
@@ -213,7 +208,7 @@ export function makeHydratedCollectionSlice<
         requireWritableBackend()
         // Committed BEFORE the local delete, like `entityStore.delete`: once the
         // row is gone there is nothing left to address it by.
-        if (commit !== undefined) await commit({ kind: 'delete', id })
+        await commit({ kind: 'delete', id })
         await db.delete(id)
         set({ [key]: records().filter((r) => r.id !== id) })
         afterWrite()

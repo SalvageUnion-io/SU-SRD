@@ -61,7 +61,8 @@ const members = useQuery(api.games.members, { gameId })
 
 ## Do not
 
-- **Persist anything only on a device.**
+- **Add an IndexedDB store without a Convex commit seam** —
+  `apps/itun/src/lib/db/__tests__/storeSeams.test.ts` fails on one.
   [ADR-034](../../docs/ARCHITECTURE.md#adr-034) and
   [ADR-035](../../docs/ARCHITECTURE.md#adr-035) make Convex
   the only source of truth; a row with no Convex counterpart is a defect. If
