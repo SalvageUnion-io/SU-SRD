@@ -1,10 +1,11 @@
 /**
  * The pre-account roster probe, and the read that migrates it (ADR-035).
  *
- * The probe used to choose a BACKEND — a `present` answer kept the durable local
- * store alive indefinitely. It no longer does: it says whether there is anything
- * left to move into the account, and `markLegacyLocalDataMigrated` is what
- * finally answers "no".
+ * The probe says whether there is anything left to move into the account, and
+ * `markLegacyLocalDataMigrated` is what finally — and durably — answers "no".
+ * It reads the cache's recorded origin (`cacheMeta.ts`) rather than counting
+ * rows: a signed-in browser's cache is full of rows, and counting them is how
+ * every load re-claimed builds deleted on another device.
  *
  * Runs against `fake-indexeddb` (preloaded via `bunfig.toml`), so these are real
  * IndexedDB reads rather than a stubbed answer.
@@ -22,7 +23,7 @@ import {
 } from '../legacyLocalData'
 
 beforeEach(async () => {
-  await db._clearAllStores()
+  await db.clearCache()
   _resetLegacyProbe()
 })
 
@@ -42,24 +43,34 @@ afterAll(() => {
   _resetLegacyProbe()
 })
 
+/** Record the browser as holding a pre-account roster, as the v18 upgrade does. */
+async function markLegacy(): Promise<void> {
+  await db.writeCacheMeta({ origin: 'legacy', userId: null })
+}
+
 describe('an empty browser', () => {
-  test('reports absent, which is what lets a new visitor work in memory', async () => {
+  test('reports absent: there is nothing to migrate', async () => {
     expect(await probeLegacyLocalData()).toBe('absent')
   })
 })
 
-describe('a browser with a roster', () => {
-  test('one pilot is enough to report present', async () => {
+describe('a browser recorded as holding a roster', () => {
+  test('reports present', async () => {
+    await markLegacy()
     await db.pilots.put(pilotFixture({ id: 'legacy-1' }))
     expect(await probeLegacyLocalData()).toBe('present')
   })
+})
 
-  test('a crawler alone counts too — it is not just the pilots store', async () => {
-    // The probe has to look past `pilots`: somebody whose only local build is a
-    // crawler has just as much to lose, and checking one store would strand them
-    // while cheerfully reporting 'absent'.
-    await db.crawlers.put(crawlerFixture({ id: 'legacy-crawler' }))
-    expect(await probeLegacyLocalData()).toBe('present')
+describe('a signed-in cache full of rows', () => {
+  test('reports absent: its rows are the account’s, not a roster to migrate', async () => {
+    // The defect this replaced: the probe counted rows, so the cache `ShelfSync`
+    // filled read as a roster on every load, and a cached build deleted on
+    // another device was claimed straight back into the account.
+    await db.writeCacheMeta({ origin: 'cache', userId: 'user-a' })
+    await db.pilots.put(pilotFixture({ id: 'cached-1' }))
+    await db.crawlers.put(crawlerFixture({ id: 'cached-c' }))
+    expect(await probeLegacyLocalData()).toBe('absent')
   })
 })
 
@@ -72,26 +83,32 @@ describe('the state it exposes', () => {
   })
 
   test('is remembered, so the answer is stable across calls', async () => {
-    await db.pilots.put(pilotFixture({ id: 'legacy-2' }))
+    await markLegacy()
     await probeLegacyLocalData()
     expect(legacyLocalDataState()).toBe('present')
 
-    // Clearing the store afterwards must NOT flip the answer back by itself.
-    // Only a completed migration closes the window, and it says so explicitly.
-    await db._clearAllStores()
+    // The disk changing underneath must NOT flip the answer by itself. Only a
+    // completed migration closes the window, and it says so explicitly.
+    await db.writeCacheMeta({ origin: 'cache', userId: null })
     expect(await probeLegacyLocalData()).toBe('present')
   })
 
-  test('a completed migration is what closes it — nothing else does', async () => {
+  test('a completed migration is what closes it, and the close outlives the page', async () => {
     // The window ADR-034 said would close "per browser rather than on a date"
-    // never closed, because nothing ever set this. That is the whole reason a
-    // roster could sit on a device forever, invisible to the account.
+    // never closed, because nothing ever set this — and once something did, it
+    // set a module variable the next load forgot.
+    await markLegacy()
     await db.pilots.put(pilotFixture({ id: 'legacy-3' }))
     await probeLegacyLocalData()
     expect(legacyLocalDataState()).toBe('present')
 
-    markLegacyLocalDataMigrated()
+    await markLegacyLocalDataMigrated('user-a')
     expect(legacyLocalDataState()).toBe('absent')
+
+    // A fresh page load asks again, and the answer is on disk now.
+    _resetLegacyProbe()
+    expect(await probeLegacyLocalData()).toBe('absent')
+    expect(await db.readCacheMeta()).toEqual({ origin: 'cache', userId: 'user-a' })
   })
 })
 
@@ -110,7 +127,7 @@ describe('concurrent and stale probes', () => {
     // on top — that is what arms the prune against a roster nobody migrated.
     const stale = probeLegacyLocalData()
     _resetLegacyProbe()
-    await db.pilots.put(pilotFixture({ id: 'late' }))
+    await markLegacy()
 
     await stale
     expect(await probeLegacyLocalData()).toBe('present')
@@ -118,10 +135,11 @@ describe('concurrent and stale probes', () => {
   })
 
   test('a migration finished mid-probe is not reopened by the probe', async () => {
-    await db.pilots.put(pilotFixture({ id: 'racing' }))
+    await markLegacy()
     const running = probeLegacyLocalData()
-    markLegacyLocalDataMigrated()
+    const closing = markLegacyLocalDataMigrated('user-a')
     expect(await running).toBe('absent')
+    await closing
   })
 })
 

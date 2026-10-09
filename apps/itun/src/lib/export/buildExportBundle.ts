@@ -36,8 +36,9 @@ type ExportEncounterNpcStore = {
  *
  * `rehydrate`, not the IndexedDB table: the store answers with the account's
  * cache signed in and with nothing signed out (`readableRows`), so an anonymous
- * backup cannot reach into IndexedDB for rows the visitor cannot see — a
- * pre-account roster is exported by its own path (`buildLegacyExportBundle`).
+ * backup cannot reach into IndexedDB for rows the visitor cannot see. A
+ * pre-account roster still on the device is migrated on sign-in (ADR-035), and
+ * exported from the account like everything else.
  */
 function fromStore<T>(store: {
   getState: () => { rehydrate: () => Promise<void>; list: () => T[] }

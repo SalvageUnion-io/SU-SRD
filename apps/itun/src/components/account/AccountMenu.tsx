@@ -1,4 +1,3 @@
-import { useAuthActions } from '@convex-dev/auth/react'
 import { useNavigate } from '@tanstack/react-router'
 import { Avatar, HeaderMenu } from 'component-lib'
 import { useQuery } from 'convex/react'
@@ -6,6 +5,7 @@ import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { useSignOutAndForget } from './useSignOutAndForget'
 
 /**
  * The account menu — who is signed in, and the two things to do about it.
@@ -48,7 +48,7 @@ const NAME = {
 
 function SignedInAccountMenu({ compact = false }: AccountMenuProps) {
   const me = useQuery(api.account.me, {})
-  const { signOut } = useAuthActions()
+  const signOut = useSignOutAndForget()
   const navigate = useNavigate()
 
   const name = me?.displayName ?? null
@@ -70,7 +70,7 @@ function SignedInAccountMenu({ compact = false }: AccountMenuProps) {
             label: 'Settings',
             onSelect: () => void navigate({ to: '/settings' }),
           },
-          { id: 'sign-out', label: 'Sign out', onSelect: () => void signOut() },
+          { id: 'sign-out', label: 'Sign out', onSelect: signOut },
         ],
       ]}
     />

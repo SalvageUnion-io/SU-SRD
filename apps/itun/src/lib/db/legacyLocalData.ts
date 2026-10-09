@@ -1,34 +1,27 @@
 /**
  * The pre-account roster this browser is still holding, and how to get it out.
  *
- * ## What this used to be, and why it changed
+ * ## What this answers
  *
- * This module used to answer one question for `backendForMode`: *does this
- * browser hold a roster from before accounts were required?* — and a `present`
- * answer kept the whole durable IndexedDB backend alive for an anonymous
- * visitor, indefinitely. That was the migration window, and it was described as
- * closing "per browser rather than on a date".
+ * Whether this browser holds rows that may not be in any account yet — a
+ * roster built before accounts were required — and therefore whether there is
+ * anything left to migrate ([ADR-035](../../../../../docs/ARCHITECTURE.md#adr-035)).
+ * `present` is a to-do, not a mode: `AccountReconciler` migrates the rows on
+ * sign-in, and `markLegacyLocalDataMigrated` closes the window. Until it is
+ * closed, `ShelfSync` may not prune (`db/pruneRules.ts`) and nothing may wipe
+ * the cache (`lib/account/cacheOwner.ts`).
  *
- * It never closed. Nothing in the app ever set it to `absent`, and the only
- * path off the device was a card on the Account screen that the player had to
- * find, could dismiss forever, and which counted the *entity store* rather than
- * IndexedDB. So a browser that had ever held a build stayed on a second source
- * of truth for good: a durable local roster, invisible to the account, that
- * reappeared the moment its owner signed out. That is precisely the state
- * [ADR-035](../../../../../docs/ARCHITECTURE.md#adr-035) exists
- * to end.
+ * ## It reads the meta row, not the rows
  *
- * ## What it is now
- *
- * The probe survives, and its answer is unchanged — but nothing reads it to
- * *choose a backend* any more. Anonymous is always in-memory (see
- * `stores/entityBackend.ts`), and this module's job is to say **whether there
- * is anything left to migrate**, and to hand those rows over so it can be.
- *
- * `present` therefore now means "this browser has rows that may not be in the
- * account yet", which is a to-do rather than a mode. `markLegacyLocalDataMigrated`
- * is what finally makes it `absent` — the close this window never had — and it
- * is what re-enables cache pruning (`db/pruneRules.ts`).
+ * The answer is the cache's recorded `origin` (`cacheMeta.ts`): `legacy` is
+ * `present`, `cache` is `absent`. It used to count the roster stores at boot
+ * and keep the verdict in module memory, and both halves were wrong. A
+ * signed-in browser's cache is full of rows `ShelfSync` put there, so every
+ * load counted them as a roster, re-ran the migration, and re-claimed any
+ * cached build that had since been deleted on another device. And a verdict in
+ * memory is forgotten by the next load, so the window closed for a page view at
+ * a time. The origin is written once, by the v18 upgrade, and a completed
+ * migration persists the close.
  *
  * ## Reads are salvage-tolerant, deliberately
  *
@@ -40,8 +33,7 @@
  */
 
 import * as db from './index'
-import { openItunDatabase } from './index'
-import { STORE_NAMES } from './stores'
+import { readCacheMeta, writeCacheMeta } from './index'
 
 export type LegacyProbeState = 'unknown' | 'present' | 'absent'
 
@@ -53,47 +45,22 @@ export function legacyLocalDataState(): LegacyProbeState {
 }
 
 /**
- * Record that this browser's pre-account rows are now in the account.
+ * Record that this browser's pre-account rows are now in `userId`'s account.
  *
- * The close the migration window never had. Until this is called
- * `mayPrune` refuses to delete anything, because a local row absent from
- * `listMine` might be un-uploaded rather than deleted-elsewhere — and once it
- * is called that ambiguity is gone, so the cache can finally behave like one.
+ * The close the migration window never had, and now a durable one: the cache's
+ * origin becomes `cache`, owned by `userId`, so the next load neither re-runs
+ * the migration nor treats the account's cached rows as somebody's roster.
+ * Until this is called `mayPrune` refuses to delete anything, because a local
+ * row absent from `listMine` might be un-uploaded rather than deleted-elsewhere.
  *
- * Called **only** after a claim that stranded nothing. A claim that skipped or
- * declined even one row leaves the state `present`, which costs nothing but a
+ * Called **only** after a pass that stranded nothing. A pass that skipped or
+ * declined even one row leaves the origin `legacy`, which costs nothing but a
  * disabled prune and is the only answer that cannot delete work.
  */
-export function markLegacyLocalDataMigrated(): void {
+export async function markLegacyLocalDataMigrated(userId: string): Promise<void> {
   state = 'absent'
+  await writeCacheMeta({ origin: 'cache', userId })
 }
-
-/**
- * The stores whose contents mean "this browser has something left to migrate".
- *
- * Only the ones a *person* built. `workspaces` is the retired container and
- * `changeLog` is provenance about entities rather than an entity, so neither
- * would justify a migration pass on its own — and a stray log row from a
- * since-deleted pilot is exactly the kind of leftover that would.
- *
- * **`encounterNpcs` belongs here now, and did not before.** While this probe
- * only chose a backend, an NPC tray was not a reason to keep one. The question
- * it answers changed with ADR-035 — `readLegacyLocalData` and `claimLocal` both
- * cover the tray — so a browser holding nothing but a tray used to probe
- * `absent` and was never migrated and never warned.
- *
- * **`softLinks` is deliberately still out.** A link is wiring between entities
- * rather than a thing somebody built, so a browser holding only orphaned links
- * has nothing to migrate — and counting them would hold that browser at
- * `present` forever, which keeps `mayPrune` off for good over junk.
- */
-const ROSTER_STORES = [
-  STORE_NAMES.pilots,
-  STORE_NAMES.mechs,
-  STORE_NAMES.crawlers,
-  STORE_NAMES.mechPatterns,
-  STORE_NAMES.encounterNpcs,
-] as const
 
 /**
  * Look once, at boot, and remember.
@@ -104,7 +71,7 @@ const ROSTER_STORES = [
 export function probeLegacyLocalData(): Promise<LegacyProbeState> {
   if (state !== 'unknown') return Promise.resolve(state)
   // Two callers ask at boot (`ConnectionProvider` and `AccountReconciler`);
-  // sharing the in-flight probe means one set of counts, not two.
+  // sharing the in-flight probe means one read, not two.
   inFlight ??= runProbe(generation)
   return inFlight
 }
@@ -119,18 +86,8 @@ let inFlight: Promise<LegacyProbeState> | null = null
 async function runProbe(started: number): Promise<LegacyProbeState> {
   let answer: LegacyProbeState = 'absent'
   try {
-    const idb = await openItunDatabase()
-    for (const store of ROSTER_STORES) {
-      // `count` rather than `getAll`: the question is "is there anything", and
-      // reading a whole roster to answer it would parse every record at boot
-      // for no reason. The read that does parse is `readLegacyLocalData`, and
-      // it only runs when there is something to migrate.
-      const n = await idb.count(store)
-      if (n > 0) {
-        answer = 'present'
-        break
-      }
-    }
+    const meta = await readCacheMeta()
+    answer = meta.origin === 'legacy' ? 'present' : 'absent'
   } catch (err) {
     // A browser that refuses IndexedDB — private mode, a locked-down profile,
     // a blocked upgrade — cannot be holding a roster this app can read.
@@ -141,7 +98,7 @@ async function runProbe(started: number): Promise<LegacyProbeState> {
 
   if (started !== generation) return state
   inFlight = null
-  // `markLegacyLocalDataMigrated` may have run while this was counting; an
+  // `markLegacyLocalDataMigrated` may have run while this was reading; an
   // answer it already settled is not reopened by a slower probe.
   if (state === 'unknown') state = answer
   return state

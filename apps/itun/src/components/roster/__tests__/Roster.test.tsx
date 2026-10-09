@@ -24,13 +24,14 @@ import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 // player builds into is a Connected one. Module scope, before the imports
 // below — `mock.module` only affects imports that resolve after it runs.
 const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => null },
+  // `upsertByAppId` answers with the row's new version.
+  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
   // The signed-out panel's "Sign in with Discord".
   authReact: true,
 })
 
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { _clearAllStores, _resetDbSingleton } = await import('../../../lib/db/index')
+const { clearCache, _resetDbSingleton } = await import('../../../lib/db/index')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { Roster } = await import('../Roster')
 
@@ -145,7 +146,7 @@ beforeEach(async () => {
   // My Stuff, with no Games and no invitations.
   setQueryAnswers({ 'games:listMine': [], 'invites:forMe': [] })
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 
@@ -153,7 +154,7 @@ afterEach(async () => {
   // Unmount before the reset: this hook runs before the preload's cleanup, and a
   // mounted Roster answers the reset by starting hydrations that resolve after act().
   cleanup()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 

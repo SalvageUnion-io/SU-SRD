@@ -38,6 +38,8 @@ const convexMocks = await installConvexMocks({
         mutation: async (ref: unknown, args: Record<string, unknown>) => {
           if (failWrites) throw new Error('[CONVEX M(entities:upsertByAppId)] Server Error')
           serverWrites.push({ name: getFunctionName(ref as FunctionReference<'mutation'>), args })
+          // `upsertByAppId` answers with the row's new version.
+          return { updatedAt: 1 }
         },
       },
     }),
@@ -69,7 +71,7 @@ beforeEach(async () => {
   failWrites = false
   serverWrites.length = 0
   db._resetDbSingleton()
-  await db._clearAllStores()
+  await db.clearCache()
   useEntityStore.setState({
     pilots: [],
     mechs: [],

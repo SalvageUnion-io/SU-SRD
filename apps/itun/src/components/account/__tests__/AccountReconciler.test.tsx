@@ -8,8 +8,9 @@ import type { ReactElement } from 'react'
  *
  * What these pin is behaviour a player can see or lose work to: signed out it
  * renders nothing and sends nothing; signed in, a device roster is compared
- * before it is sent; and a result that resolved with stranded rows is shown,
- * with a retry that actually retries.
+ * before it is sent; a result that resolved with stranded rows is shown, with a
+ * retry that actually retries; and an ordinary cache — the account's own rows,
+ * or another account's — is never sent at all.
  *
  * Queries are answered by name and mutations are recorded by name — see
  * `convexMock.ts` for the capture/restore discipline.
@@ -125,6 +126,27 @@ const EMPTY_ROSTER = {
 /** `ShelfSync` also mounts `WiringSync`, which reads assignments and Game crawlers. */
 const EMPTY_WIRING = { gameIds: [], softLinks: [], crawlers: [] }
 
+/** Who is signed in, as `account.me` answers. */
+function me(id: string) {
+  return { _id: id, displayName: id, avatarUrl: null, email: null }
+}
+
+/** The answers every signed-in render needs, as `user-a` with an empty account. */
+function answers(over: Record<string, unknown> = {}) {
+  return {
+    'account:me': me('user-a'),
+    'entities:listMine': EMPTY_ROSTER,
+    'games:listMine': [],
+    'entities:listWiring': EMPTY_WIRING,
+    ...over,
+  }
+}
+
+/** Record this browser as holding a pre-account roster, as the v18 upgrade does. */
+async function markLegacy(): Promise<void> {
+  await db.writeCacheMeta({ origin: 'legacy', userId: null })
+}
+
 beforeEach(async () => {
   authed = false
   claimResult = { ...NOTHING_CLAIMED }
@@ -133,7 +155,7 @@ beforeEach(async () => {
   mutations.length = 0
   _resetLegacyProbe()
   db._resetDbSingleton()
-  await db._clearAllStores()
+  await db.clearCache()
   useEntityStore.setState({
     pilots: [],
     mechs: [],
@@ -141,11 +163,7 @@ beforeEach(async () => {
     softLinks: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
   })
-  setQueryAnswers({
-    'entities:listMine': EMPTY_ROSTER,
-    'games:listMine': [],
-    'entities:listWiring': EMPTY_WIRING,
-  })
+  setQueryAnswers(answers())
 })
 
 afterEach(() => {
@@ -167,6 +185,7 @@ describe('signed out', () => {
   test('rows on the device: nothing is rendered, and nothing is sent', async () => {
     // A pre-account roster stays on disk, unseen, until somebody signs in
     // (ADR-035). Signed out there is no account to send it to.
+    await markLegacy()
     await db.pilots.put(pilotFixture({ id: 'disk-1' }))
     const { container } = render(<Tree />)
     await act(async () => {
@@ -194,6 +213,7 @@ describe('signed in', () => {
   })
 
   test('device rows missing from the account are sent, on the shelf', async () => {
+    await markLegacy()
     await db.pilots.put(pilotFixture({ id: 'disk-1', gameId: 'phantom-workspace' }))
     authed = true
     render(<Tree />)
@@ -205,18 +225,23 @@ describe('signed in', () => {
     expect(sent[0]?.gameId).toBeNull()
     await waitFor(() => expect(legacyLocalDataState()).toBe('absent'))
     expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull()
+    // Closed on disk, and handed to the account that took the rows.
+    await waitFor(async () =>
+      expect(await db.readCacheMeta()).toEqual({ origin: 'cache', userId: 'user-a' })
+    )
   })
 
   test('device rows the account already owns are not re-sent', async () => {
+    await markLegacy()
     await db.pilots.put(pilotFixture({ id: 'owned-1' }))
-    setQueryAnswers({
-      'entities:listMine': {
-        ...EMPTY_ROSTER,
-        pilots: [{ appId: 'owned-1', body: { id: 'owned-1' } }],
-      },
-      'games:listMine': [],
-      'entities:listWiring': EMPTY_WIRING,
-    })
+    setQueryAnswers(
+      answers({
+        'entities:listMine': {
+          ...EMPTY_ROSTER,
+          pilots: [{ appId: 'owned-1', updatedAt: 1, body: pilotFixture({ id: 'owned-1' }) }],
+        },
+      })
+    )
     authed = true
     render(<Tree />)
 
@@ -226,6 +251,7 @@ describe('signed in', () => {
   })
 
   test('a resolved-but-partial move is shown, and Try again sends only what did not land', async () => {
+    await markLegacy()
     await db.pilots.put(pilotFixture({ id: 'disk-1' }))
     await db.pilots.put(pilotFixture({ id: 'disk-2' }))
     server = { owned: new Set(), unparseable: new Set(['disk-2']) }
@@ -240,14 +266,14 @@ describe('signed in', () => {
     expect(legacyLocalDataState()).toBe('present')
 
     // The account now serves what the first pass moved, as `listMine` would.
-    setQueryAnswers({
-      'entities:listMine': {
-        ...EMPTY_ROSTER,
-        pilots: [{ appId: 'disk-1', body: { id: 'disk-1' } }],
-      },
-      'games:listMine': [],
-      'entities:listWiring': EMPTY_WIRING,
-    })
+    setQueryAnswers(
+      answers({
+        'entities:listMine': {
+          ...EMPTY_ROSTER,
+          pilots: [{ appId: 'disk-1', updatedAt: 1, body: pilotFixture({ id: 'disk-1' }) }],
+        },
+      })
+    )
     view.rerender(<Tree />)
     server.unparseable.clear()
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
@@ -261,6 +287,7 @@ describe('signed in', () => {
   })
 
   test('a failure from one sign-in does not stop the next one from moving the rows', async () => {
+    await markLegacy()
     await db.pilots.put(pilotFixture({ id: 'disk-1' }))
     server = { owned: new Set(), unparseable: new Set(['disk-1']) }
     const view = render(<Tree />)
@@ -281,6 +308,7 @@ describe('signed in', () => {
   })
 
   test('a remount while the move is in flight does not send it twice', async () => {
+    await markLegacy()
     await db.pilots.put(pilotFixture({ id: 'disk-1' }))
     server = { owned: new Set(), unparseable: new Set() }
     let release: () => void = () => {}
@@ -307,5 +335,61 @@ describe('signed in', () => {
     await waitFor(() => expect(legacyLocalDataState()).toBe('absent'))
     expect(claims()).toHaveLength(1)
     expect(screen.queryByText(/could not be moved/i)).toBeNull()
+  })
+})
+
+describe('an ordinary cache is never sent', () => {
+  test('a build deleted on another device is not claimed back from this cache', async () => {
+    // The resurrection: this browser cached p1 for user-a, p1 was then deleted
+    // on another device, and the next load counted the cache as a pre-account
+    // roster — found p1 missing from `listMine` and claimed it straight back.
+    await db.writeCacheMeta({ origin: 'cache', userId: 'user-a' })
+    await db.pilots.put(pilotFixture({ id: 'p1' }))
+    useEntityStore.setState({ pilots: [pilotFixture({ id: 'p1' })] })
+    server = { owned: new Set(), unparseable: new Set() }
+    authed = true
+    render(<Tree />)
+
+    // The cache follows the server instead: the deleted build leaves it.
+    await waitFor(async () => expect(await db.pilots.list()).toEqual([]))
+    expect(claims()).toHaveLength(0)
+    expect(server.owned.has('p1')).toBe(false)
+  })
+
+  test('a second account on this browser gets none of the first account’s rows', async () => {
+    await db.writeCacheMeta({ origin: 'cache', userId: 'user-a' })
+    await db.pilots.put(pilotFixture({ id: 'a-1' }))
+    useEntityStore.setState({ pilots: [pilotFixture({ id: 'a-1' })] })
+    setQueryAnswers(answers({ 'account:me': me('user-b') }))
+    authed = true
+    render(<Tree />)
+
+    await waitFor(async () =>
+      expect(await db.readCacheMeta()).toEqual({ origin: 'cache', userId: 'user-b' })
+    )
+    expect(await db.pilots.list()).toEqual([])
+    await waitFor(() => expect(useEntityStore.getState().pilots).toEqual([]))
+    expect(claims()).toHaveLength(0)
+    expect(screen.queryByText(/could not be moved/i)).toBeNull()
+  })
+
+  test('a newer version of a cached build is adopted, though no id changed', async () => {
+    await db.writeCacheMeta({ origin: 'cache', userId: 'user-a' })
+    const served = (name: string, updatedAt: number) =>
+      answers({
+        'entities:listMine': {
+          ...EMPTY_ROSTER,
+          pilots: [{ appId: 'p1', updatedAt, body: pilotFixture({ id: 'p1', name }) }],
+        },
+      })
+    setQueryAnswers(served('Before', 1))
+    authed = true
+    const view = render(<Tree />)
+    await waitFor(async () => expect((await db.pilots.get('p1'))?.name).toBe('Before'))
+
+    // Edited on another device: same id, newer row.
+    setQueryAnswers(served('After', 2))
+    view.rerender(<Tree />)
+    await waitFor(async () => expect((await db.pilots.get('p1'))?.name).toBe('After'))
   })
 })

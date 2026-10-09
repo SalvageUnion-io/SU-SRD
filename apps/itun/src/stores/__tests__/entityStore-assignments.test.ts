@@ -13,7 +13,7 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { ConvexError } from 'convex/values'
-import { _clearAllStores, _resetDbSingleton, softLinks as dbSoftLinks } from '../../lib/db/index'
+import { _resetDbSingleton, clearCache, softLinks as dbSoftLinks } from '../../lib/db/index'
 import { assignLink } from '../../lib/links/assignLink'
 import { LinkRefused } from '../../lib/links/linkRefused'
 import { CROSS_CONTAINER_REFUSAL } from '../../lib/links/linkRules'
@@ -67,7 +67,7 @@ function reset(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   reset()
   const store = useEntityStore.getState()
   await Promise.all([
@@ -79,7 +79,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
   reset()
 })
 

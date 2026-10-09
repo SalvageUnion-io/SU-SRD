@@ -28,7 +28,7 @@ import {
   seedTable,
 } from '../../../test/convex/assignmentFixtures'
 import { testConvex } from '../../../test/convex/harness'
-import { _clearAllStores, _resetDbSingleton } from '../../lib/db/index'
+import { _resetDbSingleton, clearCache } from '../../lib/db/index'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
 import { makeUnitLot } from '../../lib/schemas/cargoLot'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -88,7 +88,7 @@ const store = (() => useEntityStore.getState()) as unknown as typeof useEntitySt
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   useEntityStore.setState({
     pilots: [],
     mechs: [],

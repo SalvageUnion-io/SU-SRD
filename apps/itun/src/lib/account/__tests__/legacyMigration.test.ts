@@ -9,14 +9,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import type { LegacyLocalData } from '../../db/legacyLocalData'
-import {
-  buildLegacyExportBundle,
-  countStranded,
-  isStranded,
-  mergeExportBundles,
-  selectStranded,
-  shelve,
-} from '../legacyMigration'
+import { countStranded, isStranded, selectStranded, shelve } from '../legacyMigration'
 
 const NO_GAMES: ReadonlySet<string> = new Set()
 const NOTHING: ReadonlySet<string> = new Set()
@@ -176,52 +169,5 @@ describe('countStranded', () => {
     // "3 builds" reads correctly to a player; "5 builds" with two links does
     // not. Same rule as `countAnonymousWork`.
     expect(countStranded({ ...empty, pilots: [{}], softLinks: [{}, {}] } as never)).toBe(1)
-  })
-})
-
-describe('buildLegacyExportBundle', () => {
-  test('is built from the device rows, not from a store', () => {
-    // `buildExportBundle` reads the entity store, which for an anonymous session
-    // is the in-memory backend — so it would hand somebody downloading their
-    // pre-account roster an empty file. This is the whole reason it exists.
-    const bundle = buildLegacyExportBundle({
-      ...empty,
-      pilots: [{ id: 'p1' }],
-      mechPatterns: [{ id: 'pat1' }],
-    })
-    expect(bundle.entities.pilots).toHaveLength(1)
-    expect(bundle.mechPatterns).toHaveLength(1)
-    expect(bundle.schemaVersion).toBe(2)
-  })
-})
-
-describe('mergeExportBundles', () => {
-  const empty: LegacyLocalData = {
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    mechPatterns: [],
-    encounterNpcs: [],
-  }
-
-  test('unions both, and the primary copy wins on a shared id', () => {
-    const tab = buildLegacyExportBundle({ ...empty, pilots: [{ id: 'a', name: 'tab' }] })
-    const device = buildLegacyExportBundle({
-      ...empty,
-      pilots: [
-        { id: 'a', name: 'device' },
-        { id: 'b', name: 'device' },
-      ],
-      mechPatterns: [{ id: 'p' }],
-    })
-
-    const merged = mergeExportBundles(tab, device)
-
-    expect(merged.entities.pilots).toEqual([
-      { id: 'a', name: 'tab' },
-      { id: 'b', name: 'device' },
-    ] as never)
-    expect(merged.mechPatterns).toEqual([{ id: 'p' }] as never)
   })
 })

@@ -8,7 +8,7 @@
  *   3. Deletes cascade SoftLinks, same as delete().
  */
 import { beforeEach, describe, expect, test } from 'bun:test'
-import { _clearAllStores, _resetDbSingleton, crawlers, mechs, softLinks } from '../../lib/db/index'
+import { _resetDbSingleton, clearCache, crawlers, mechs, softLinks } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
 import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
 import { withSignedInBackend } from './signedInBackend'
@@ -48,7 +48,7 @@ async function seed() {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
   await useEntityStore.getState().hydrate('mech')
   await useEntityStore.getState().hydrate('crawler')

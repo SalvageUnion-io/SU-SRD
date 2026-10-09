@@ -8,7 +8,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test'
-import { _clearAllStores, _resetDbSingleton, changeLog } from '../../lib/db/index'
+import { _resetDbSingleton, changeLog, clearCache } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
 import { DASHBOARD_TXN, LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../surfaceProvenance'
 import { withSignedInBackend } from './signedInBackend'
@@ -42,7 +42,7 @@ function resetEntityStore(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 

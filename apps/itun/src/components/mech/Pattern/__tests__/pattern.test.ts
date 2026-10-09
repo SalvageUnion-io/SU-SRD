@@ -14,7 +14,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import type { MonotonicClock } from '../../../../lib/db/__tests__/monotonicClock'
 import { installMonotonicClock } from '../../../../lib/db/__tests__/monotonicClock'
-import { _clearAllStores, _resetDbSingleton, mechPatterns, mechs } from '../../../../lib/db/index'
+import { _resetDbSingleton, clearCache, mechPatterns, mechs } from '../../../../lib/db/index'
 import { MechPatternSchema } from '../../../../lib/schemas/pattern'
 import { FIXTURE_NOW } from '../../../__tests__/fixtures'
 import { must } from '../../../__tests__/must'
@@ -38,11 +38,11 @@ afterAll(() => {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
 })
 
 // ---------------------------------------------------------------------------

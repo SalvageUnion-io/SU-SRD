@@ -15,7 +15,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
-import { _clearAllStores, _resetDbSingleton } from '../../db/index'
+import { _resetDbSingleton, clearCache } from '../../db/index'
 import type { ExportBundle } from '../../schemas/exportBundle'
 import { buildEntityExport, buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
@@ -76,12 +76,12 @@ function resetEntityStore(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 
@@ -270,7 +270,7 @@ describe('mergeImport — round-trip', () => {
 
     // ---- reset to simulate a fresh target store ----
     _resetDbSingleton()
-    await _clearAllStores()
+    await clearCache()
     resetEntityStore()
 
     const targetEntityStore = useEntityStore.getState()
@@ -341,7 +341,7 @@ describe('mergeImport — round-trip', () => {
     const bundle = await buildExportBundle(sourceEntityStore)
 
     _resetDbSingleton()
-    await _clearAllStores()
+    await clearCache()
     resetEntityStore()
 
     const targetEntityStore = useEntityStore.getState()
@@ -437,7 +437,7 @@ describe('mergeImport — remappedLinks counter', () => {
     const bundle = await buildExportBundle(sourceEntityStore)
 
     _resetDbSingleton()
-    await _clearAllStores()
+    await clearCache()
     resetEntityStore()
 
     const targetEntityStore = useEntityStore.getState()

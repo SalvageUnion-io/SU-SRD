@@ -1,6 +1,7 @@
 /**
- * What `WiringSync` does to this browser's links and Game crawlers, as pure
- * plans (ADR-037).
+ * What `ShelfSync` and `WiringSync` do to this browser's cache, as pure plans:
+ * which served rows to adopt (`planRowSync`), and which links and Game
+ * crawlers to adopt or forget (ADR-037).
  *
  * `entities.listWiring` is the server's answer to "every assignment you can
  * see, and every crawler at your tables". These functions turn one answer plus
@@ -109,19 +110,72 @@ export function planLinkSync(args: {
   return { adopt, prune }
 }
 
-/** The id a crawler body carries, or null. */
+/** The id a served body carries, or null. */
 function bodyId(body: unknown): string | null {
   const id = (body as { id?: unknown } | null)?.id
   return typeof id === 'string' && id.length > 0 ? id : null
 }
 
 /**
+ * A row as `entities.listMine` serves it. `updatedAt` is the row's version;
+ * patterns and the tray have no such column, so theirs is absent.
+ */
+export type ServedRow = { updatedAt?: number; body: unknown }
+
+/**
+ * A served row's version: its `updatedAt` column, or for a pattern or a tray
+ * NPC — which have none — the body's own `updatedAt` (else `createdAt`) stamp.
+ * Those two are written only by their owner's client, as whole bodies, so the
+ * body's stamp moves exactly when the row does. `0` when there is nothing to
+ * read, which adopts once and then never again.
+ */
+export function rowVersion(row: ServedRow): number {
+  if (row.updatedAt !== undefined) return row.updatedAt
+  const body = (row.body ?? {}) as { updatedAt?: unknown; createdAt?: unknown }
+  const stamp = typeof body.updatedAt === 'string' ? body.updatedAt : body.createdAt
+  const ms = typeof stamp === 'string' ? Date.parse(stamp) : Number.NaN
+  return Number.isNaN(ms) ? 0 : ms
+}
+
+/**
+ * Served rows to adopt into this browser's cache, one decision per row.
+ *
+ * A row is adopted when this browser lacks it, has never recorded its version,
+ * or holds an older version than the server now serves (`adoptedAt`, keyed by
+ * id). Newer, not merely different: an emission that predates a write this
+ * browser already made must not be adopted over it.
+ *
+ * This replaced a stamp of the served **ids**, which re-adopted only when a row
+ * was added or removed. An edit made on another device changed no id, so it
+ * never came down — and the next whole-body write from here sent the old body
+ * back up over it.
+ */
+export function planRowSync<R extends ServedRow>(args: {
+  local: readonly { id: string }[]
+  served: readonly R[]
+  adoptedAt: ReadonlyMap<string, number>
+}): Array<{ id: string; updatedAt: number; row: R }> {
+  const localIds = new Set(args.local.map((r) => r.id))
+  const seen = new Set<string>()
+  const adopt: Array<{ id: string; updatedAt: number; row: R }> = []
+  for (const row of args.served) {
+    const id = bodyId(row.body)
+    if (id === null || seen.has(id)) continue
+    seen.add(id)
+    const updatedAt = rowVersion(row)
+    const known = args.adoptedAt.get(id)
+    if (localIds.has(id) && known !== undefined && known >= updatedAt) continue
+    adopt.push({ id, updatedAt, row })
+  }
+  return adopt
+}
+
+/**
  * Game crawlers to adopt, and local crawler ids to forget.
  *
- * A crawler is adopted when this browser lacks it or the server row has moved
- * on since it was last adopted (`adoptedAt`, keyed by id, holds the row's
- * `updatedAt` at that adoption) — the crawler is the crew's, so the
- * Mediator's edit has to reach every member's cache too. The body is stamped with the ROW's container,
+ * A crawler is adopted on `planRowSync`'s rule — this browser lacks it, or the
+ * server row has moved on since it was last adopted — because the crawler is
+ * the crew's, so the Mediator's edit has to reach every member's cache too. The body is stamped with the ROW's container,
  * because the column is the authority (`maintenance.repairContainers`) and a
  * template-seeded body names no Game at all.
  *
@@ -138,20 +192,14 @@ export function planCrawlerSync(args: {
   adopt: Array<{ id: string; updatedAt: number; body: Record<string, unknown> }>
   prune: string[]
 } {
-  const localIds = new Set(args.local.map((c) => c.id))
-  const servedIds = new Set<string>()
-  const adopt: Array<{ id: string; updatedAt: number; body: Record<string, unknown> }> = []
-  for (const row of args.served) {
-    const id = bodyId(row.body)
-    if (id === null || servedIds.has(id)) continue
-    servedIds.add(id)
-    if (localIds.has(id) && args.adoptedAt.get(id) === row.updatedAt) continue
-    adopt.push({
-      id,
-      updatedAt: row.updatedAt,
-      body: { ...(row.body as Record<string, unknown>), gameId: row.gameId },
-    })
-  }
+  const servedIds = new Set(
+    args.served.map((row) => bodyId(row.body)).filter((id): id is string => id !== null)
+  )
+  const adopt = planRowSync(args).map(({ id, updatedAt, row }) => ({
+    id,
+    updatedAt,
+    body: { ...(row.body as Record<string, unknown>), gameId: row.gameId },
+  }))
 
   if (!args.mayPrune) return { adopt, prune: [] }
   const prune = args.local

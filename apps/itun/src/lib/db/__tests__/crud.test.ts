@@ -3,7 +3,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } fr
 // fake-indexeddb/auto is loaded via bunfig.toml preload — it patches the global
 // indexedDB so that idb's openDB() works in the test environment.
 
-import { _clearAllStores, pilots } from '../index'
+import { clearCache, pilots } from '../index'
 import type { MonotonicClock } from './monotonicClock'
 import { installMonotonicClock } from './monotonicClock'
 
@@ -26,11 +26,11 @@ afterAll(() => {
  * a single in-memory instance per module load), but wipe records between cases.
  */
 beforeEach(async () => {
-  await _clearAllStores()
+  await clearCache()
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
 })
 
 const basePilotInput = {

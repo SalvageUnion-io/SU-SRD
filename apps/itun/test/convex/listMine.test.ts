@@ -29,6 +29,9 @@ describe('listMine returns what the caller owns', () => {
 
     const mine = await me.as.query(api.entities.listMine, {})
     expect(mine.pilots).toHaveLength(1)
+    // The row's version rides along: `ShelfSync` adopts by it, and a write
+    // sends it back as the version the edit was made against.
+    expect(mine.pilots[0]?.updatedAt).toBe(1)
   })
 
   test('a pilot you own INSIDE a game comes back too', async () => {

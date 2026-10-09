@@ -32,17 +32,18 @@
  */
 
 import { toast } from 'component-lib'
-import { WritesBlockedOffline } from '../stores/entityBackend'
+import { StaleWriteRefused, WritesBlockedOffline } from '../stores/entityBackend'
 
 /**
  * Turn a rejected write into something the player can see.
  *
  * A blocked write is expected and gets its own copy — `WritesBlockedOffline`'s
- * message is already written for a human. Anything else is a bug, so it keeps
+ * message is already written for a human, and so is `StaleWriteRefused`'s (the
+ * sheet changed before the edit reached it, and now shows that version). Anything else is a bug, so it keeps
  * its console trace as well as saying, plainly, that the change did not stick.
  */
 export function reportWriteFailure(err: unknown): void {
-  if (err instanceof WritesBlockedOffline) {
+  if (err instanceof WritesBlockedOffline || err instanceof StaleWriteRefused) {
     toast(err.message)
     return
   }

@@ -80,9 +80,10 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `workspaces`
   (retired; kept so migrations v10/v13 run),
   `softLinks`, `mechPatterns`, `encounterNpcs`, and the append-only
-  `changeLog` provenance store ([ADR-022](../../docs/ARCHITECTURE.md#adr-022)) —
-  the last is keyed by an autoIncrement `seq`, not `id`, and has no CRUD
-  surface (`src/lib/db/changeLog.ts` exposes append/list only).
+  `changeLog` provenance store ([ADR-022](../../docs/ARCHITECTURE.md#adr-022)),
+  keyed by `seq` and append/list only (`src/lib/db/changeLog.ts`), and `meta`.
+- **The cache is one account's** (`src/lib/account/cacheOwner.ts`): sign-out
+  or another account empties it, unless `meta` says `legacy`.
 - **Zod schemas (`src/lib/schemas/`) are the source of truth** for entity shape;
   the DB layer parses on read/write ([ADR-002](../../docs/ARCHITECTURE.md#adr-002)).
 - Reads are salvage-tolerant (lenient re-parse + warning on version skew); rows

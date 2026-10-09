@@ -18,7 +18,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { _clearAllStores, _resetDbSingleton } from '../../lib/db/index'
+import { _resetDbSingleton, clearCache } from '../../lib/db/index'
 import type { MechPattern } from '../../lib/schemas/pattern'
 import { usePatternStore } from '../patternStore'
 import { withSignedInBackend } from './signedInBackend'
@@ -40,12 +40,12 @@ function pattern(id: string, name = 'Mule Pattern'): MechPattern {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   usePatternStore.setState({ mechPatterns: [], hydrated: false })
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
 })
 
 describe('adopt', () => {

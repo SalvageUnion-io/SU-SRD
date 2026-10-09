@@ -1,10 +1,8 @@
-import type { ContainerFields } from '../container'
 import { isRecord } from '../isRecord'
 import { normalizeLegacyCargoRecord } from '../schemas/cargoLot'
 import type { ExportBundle } from '../schemas/exportBundle'
 import { ExportBundleSchema } from '../schemas/exportBundle'
 import { normalizeLegacyPilotRecord } from '../schemas/pilot'
-import { assignContainers } from './legacyContainers'
 
 /**
  * Bundles written before the cargo→cargoLots rename carry mechs (and
@@ -90,18 +88,11 @@ export function parseImportBundle(jsonText: string): ExportBundle {
     )
   }
 
-  // A v1 bundle predates containers, so give every entity one on the way in,
-  // using the SAME rule migration 13 applies on an existing device. A roster
-  // must not land somewhere different depending on how it arrived.
-  if (isRecord(raw) && Number(raw.schemaVersion) === 1 && isRecord(raw.entities)) {
-    const e = raw.entities as Record<string, unknown>
-    for (const kind of ['pilots', 'mechs', 'crawlers'] as const) {
-      if (Array.isArray(e[kind])) {
-        e[kind] = assignContainers(e[kind] as ContainerFields[])
-      }
-    }
-    // Normalised to the current shape so the rest of the pipeline sees one
-    // format rather than branching on version at every step.
+  // A v1 bundle predates containers. It needs none on the way in: an import is a
+  // copy, and `mergeImport` lands every copy on the shelf whatever container
+  // the bundle names. The version is normalised so the rest of the pipeline
+  // sees one format rather than branching on version at every step.
+  if (isRecord(raw) && Number(raw.schemaVersion) === 1) {
     ;(raw as Record<string, unknown>).schemaVersion = CURRENT_VERSION
   }
 

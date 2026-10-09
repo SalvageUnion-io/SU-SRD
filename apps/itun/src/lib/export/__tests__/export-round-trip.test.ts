@@ -30,7 +30,7 @@ import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../../stores/surfaceProvenance'
-import { _clearAllStores, _resetDbSingleton, encounterNpcs, mechPatterns } from '../../db/index'
+import { _resetDbSingleton, clearCache, encounterNpcs, mechPatterns } from '../../db/index'
 import type { ExportBundle } from '../../schemas/exportBundle'
 import { buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
@@ -52,12 +52,12 @@ function resetStores(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetStores()
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
   resetStores()
 })
 
@@ -79,7 +79,7 @@ function stable(record: Record<string, unknown>): Record<string, unknown> {
 async function roundTrip(bundle: ExportBundle): Promise<ExportBundle> {
   const json = JSON.stringify(bundle)
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetStores()
   const summary = await mergeImport(parseImportBundle(json), useEntityStore.getState())
   void summary

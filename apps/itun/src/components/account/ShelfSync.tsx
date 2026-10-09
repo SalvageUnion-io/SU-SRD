@@ -10,10 +10,13 @@
  *
  * ## Server wins, and that is the point
  *
- * Every row that comes down is adopted over whatever the cache held. There is no
- * merge and no conflict resolution, because with one source of truth there is no
- * second writer to conflict with — that is the whole benefit ADR-034 buys, and
- * reintroducing a merge here would spend it.
+ * A row that comes down newer than the version this browser last saw is
+ * adopted over whatever the cache held (`planRowSync`, per row, by the row's
+ * `updatedAt`). There is no merge and no conflict resolution, because with one
+ * source of truth there is no second writer to conflict with — that is the
+ * whole benefit ADR-034 buys, and reintroducing a merge here would spend it.
+ * The other half of that guarantee is on the write side: a pilot or mech write
+ * made against an older version is refused (`entities.upsertByAppId`).
  *
  * `adopt` keeps each record's own id, so the local copy **is** the entity rather
  * than a fork of it, and it deliberately skips `requireWritableBackend`: filling
@@ -41,10 +44,11 @@
  * that is easy to miss and fatal to omit. For a pre-ADR-034 user who has signed
  * in but not yet claimed, their entire roster is local shelf rows the server has
  * never heard of — and rule 1 would read every one of them as "deleted
- * elsewhere" and destroy the lot. `legacyLocalDataState() === 'absent'` is the
- * only state in which a local row can be trusted to have come from a
- * server-accepted write or from this component, which is what makes absence
- * mean deletion rather than not-yet-uploaded.
+ * elsewhere" and destroy the lot. `legacyLocalDataState() === 'absent'` (the
+ * cache's recorded origin is `cache`, `db/cacheMeta.ts`) is the only state in
+ * which a local row can be trusted to have come from a server-accepted write or
+ * from this component, which is what makes absence mean deletion rather than
+ * not-yet-uploaded.
  *
  * ## …and its sibling, `WiringSync`, for assignments and Game crawlers
  *
@@ -66,7 +70,8 @@ import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { containerOf } from '../../lib/container'
 import { legacyLocalDataState } from '../../lib/db/legacyLocalData'
 import { mayPrune, rowMayBePruned } from '../../lib/db/pruneRules'
-import { planCrawlerSync, planLinkSync } from '../../lib/links/linkSync'
+import type { ServedRow } from '../../lib/links/linkSync'
+import { planCrawlerSync, planLinkSync, planRowSync } from '../../lib/links/linkSync'
 import { captureException } from '../../lib/observability'
 import type { EncounterNpc } from '../../lib/schemas/encounterNpc'
 import type { MechPattern } from '../../lib/schemas/pattern'
@@ -74,45 +79,34 @@ import { useEncounterStore } from '../../stores/encounterStore'
 import { selectBackend } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
-
-type Row = { appId?: string | null; body: unknown }
+import { noteVersion, serverVersions } from '../../stores/serverVersions'
 
 function ConnectedShelfSync() {
   // `undefined` while in flight — the Convex convention, not a loading flag.
   const mine = useQuery(api.entities.listMine, {})
-  /**
-   * Which payload has already been adopted.
-   *
-   * `listMine` is a live subscription, so it re-emits on every server change —
-   * including the ones this component's own adoptions do not cause but a
-   * mirrored write does. Without this guard each emission would re-adopt the
-   * whole roster, which is a write storm rather than a sync.
-   */
-  const lastAdopted = useRef<string | null>(null)
 
   useEffect(() => {
     if (mine === undefined) return
+    // A newer emission supersedes this one; stop before pruning against an
+    // answer that is already out of date.
+    let superseded = false
 
-    // Keyed on the ids the server returned, not on how many there are.
-    //
-    // Counts are not enough, and the gap is not theoretical now that this
-    // prunes: one row created and another deleted in the same emission leaves
-    // every count identical, so the effect would skip — no adoption, and more
-    // seriously no prune, leaving a row that was deleted on another device
-    // cached here forever and looking like it still exists.
-    const stamp = JSON.stringify(
-      [mine.pilots, mine.mechs, mine.crawlers, mine.mechPatterns, mine.encounterNpcs].map((rows) =>
-        (rows as Row[])
-          .map((r) => (r.body as { id?: unknown } | null)?.id)
-          .filter((id): id is string => typeof id === 'string')
-          .sort()
-      )
-    )
-    if (lastAdopted.current === stamp) return
-    lastAdopted.current = stamp
-
+    // `listMine` is a live subscription, so it re-emits on every server change,
+    // this browser's own writes included. Each emission is planned per row
+    // against the versions already adopted (`planRowSync`), so an emission that
+    // changed nothing writes nothing, and one that changed a single body — an
+    // edit on another device — adopts exactly that row.
     void (async () => {
       const store = useEntityStore.getState()
+      const patterns = usePatternStore.getState()
+      const npcs = useEncounterStore.getState()
+      await Promise.all([
+        store.hydrate('pilot'),
+        store.hydrate('mech'),
+        store.hydrate('crawler'),
+        patterns.hydrate(),
+        npcs.hydrate(),
+      ])
       const kinds = [
         ['pilot', mine.pilots],
         ['mech', mine.mechs],
@@ -120,9 +114,15 @@ function ConnectedShelfSync() {
       ] as const
 
       for (const [kind, rows] of kinds) {
-        for (const row of rows as Row[]) {
+        const plan = planRowSync({
+          local: useEntityStore.getState().list(kind),
+          served: rows as ServedRow[],
+          adoptedAt: serverVersions(),
+        })
+        for (const { id, updatedAt, row } of plan) {
           try {
             await store.adopt(kind, row.body as never)
+            noteVersion(id, updatedAt)
           } catch (err) {
             // One unreadable row must not stop the rest of the roster arriving.
             // A body the server accepted that this build cannot parse is a real
@@ -133,21 +133,19 @@ function ConnectedShelfSync() {
         }
       }
 
-      // Patterns live in their own store, and until now were fetched and then
-      // thrown away: `entities.listMine` returns `mechPatterns`, the stamp
-      // above already keys on them — so this effect re-runs when they change —
-      // and the `kinds` table above simply had no entry for them. A signed-in
-      // player on a second device got their pilots, mechs and crawlers and an
-      // empty pattern library, which is the exact gap ADR-034 P4b exists to
-      // close. The fetch half had landed; the adopt half had not.
-      //
-      // Pattern rows carry only `{ body }` — no `appId` — because a pattern is
-      // addressed by the id inside its body, which is likely why they were
-      // skipped when the `{ appId, body }` kinds were written.
-      const patterns = usePatternStore.getState()
-      for (const row of mine.mechPatterns as { body: unknown }[]) {
+      // Patterns and the NPC tray live in their own stores. Their rows carry
+      // only `{ body }` — no `appId`, no `updatedAt` column — because each is
+      // addressed by the id inside its body, so `rowVersion` reads the body's
+      // own stamp.
+      const patternPlan = planRowSync({
+        local: usePatternStore.getState().list(),
+        served: mine.mechPatterns as ServedRow[],
+        adoptedAt: serverVersions(),
+      })
+      for (const { id, updatedAt, row } of patternPlan) {
         try {
           await patterns.adopt(row.body as MechPattern)
+          noteVersion(id, updatedAt)
         } catch (err) {
           // Same rule as the roster loop above: one unreadable pattern must not
           // stop the rest of the library arriving.
@@ -155,13 +153,15 @@ function ConnectedShelfSync() {
         }
       }
 
-      // The NPC tray, same shape and same reason. `listMine` returns it now;
-      // before that it was written by `claimLocal` and `games.destroy` and read
-      // back by nothing, so a claimed tray went up and never came down.
-      const npcs = useEncounterStore.getState()
-      for (const row of mine.encounterNpcs as { body: unknown }[]) {
+      const npcPlan = planRowSync({
+        local: useEncounterStore.getState().list(),
+        served: mine.encounterNpcs as ServedRow[],
+        adoptedAt: serverVersions(),
+      })
+      for (const { id, updatedAt, row } of npcPlan) {
         try {
           await npcs.adopt(row.body as EncounterNpc)
+          noteVersion(id, updatedAt)
         } catch (err) {
           captureException(err)
         }
@@ -175,11 +175,11 @@ function ConnectedShelfSync() {
 
       // Prune only where absence is unambiguous — see the header. Every guard
       // matters; dropping any one turns this into a roster-deleter.
-      if (!mayPrune(legacyLocalDataState())) return
+      if (superseded || !mayPrune(legacyLocalDataState())) return
 
       for (const [kind, rows] of kinds) {
         const served = new Set(
-          (rows as Row[])
+          (rows as ServedRow[])
             .map((r) => (r.body as { id?: unknown } | null)?.id)
             .filter((id): id is string => typeof id === 'string')
         )
@@ -197,6 +197,10 @@ function ConnectedShelfSync() {
         }
       }
     })()
+
+    return () => {
+      superseded = true
+    }
   }, [mine])
 
   return null

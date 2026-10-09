@@ -32,13 +32,13 @@
  *      the top-level case in section 1.
  *
  * Isolation: uses the SHARED app db (no version games, no deletes beyond
- * `_clearAllStores()`), matching migrations.test.ts's "salvage read path"
+ * `clearCache()`), matching migrations.test.ts's "salvage read path"
  * section. Every raw connection opened here is closed before the test ends.
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { must } from '../../../components/__tests__/must'
 import {
-  _clearAllStores,
+  clearCache,
   crawlers,
   encounterNpcs,
   mechPatterns,
@@ -69,11 +69,11 @@ function captureWarnings(): { warnings: string[]; restore: () => void } {
 }
 
 beforeEach(async () => {
-  await _clearAllStores()
+  await clearCache()
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
 })
 
 // ---------------------------------------------------------------------------

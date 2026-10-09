@@ -22,8 +22,8 @@ import { requireUser } from './model/permissions'
  * `claimLocal` is run by the client's one local → account reconciler
  * (`AccountReconciler`, over `src/lib/account/reconcile.ts`), and nothing else.
  * It uploads what a browser holds and the account does not — onto the
- * **shelf**, never into a Game, and idempotently, because it runs on every
- * signed-in load rather than once per account.
+ * **shelf**, never into a Game, and idempotently, because a browser retries it
+ * on every signed-in load until its migration completes.
  *
  * Split out of `entities.ts` (audit AP-07). The claim is a migration path with
  * its own identity rules and its own failure modes — declining a crewmate's

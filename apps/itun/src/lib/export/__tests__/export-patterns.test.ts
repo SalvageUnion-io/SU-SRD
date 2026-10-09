@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { must } from '../../../components/__tests__/must'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
-import { _clearAllStores, _resetDbSingleton, mechPatterns } from '../../db/index'
+import { _resetDbSingleton, clearCache, mechPatterns } from '../../db/index'
 import { buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
 import { parseImportBundle } from '../parseImportBundle'
@@ -34,12 +34,12 @@ function resetStores(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetStores()
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
   resetStores()
 })
 
@@ -78,7 +78,7 @@ describe('mergeImport — mech patterns', () => {
     const bundle = await buildExportBundle(useEntityStore.getState())
 
     // Simulate a different browser: wipe everything, then import.
-    await _clearAllStores()
+    await clearCache()
     resetStores()
 
     const summary = await mergeImport(bundle, useEntityStore.getState())
