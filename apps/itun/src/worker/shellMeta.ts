@@ -31,8 +31,6 @@ export type ShellMeta = {
   description: string
   /** Absolute URL of the page being served. */
   url: string
-  /** Absolute URL of the preview image. */
-  image: string
 }
 
 const META_START = '<!-- itun:meta:start -->'
@@ -58,7 +56,6 @@ export function renderMeta(meta: ShellMeta): string {
   const title = escapeAttr(tidy(meta.title, 70))
   const description = escapeAttr(tidy(meta.description, 200))
   const url = escapeAttr(meta.url)
-  const image = escapeAttr(meta.image)
   return [
     META_START,
     `<meta name="description" content="${description}" />`,
@@ -67,24 +64,11 @@ export function renderMeta(meta: ShellMeta): string {
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
     `<meta property="og:url" content="${url}" />`,
-    `<meta property="og:image" content="${image}" />`,
-    `<meta property="og:image:alt" content="${title}" />`,
-    // Stated so a consumer can lay the card out before it has fetched the
-    // bytes. Discord in particular decides between the small and the large
-    // presentation from the metadata alone.
-    `<meta property="og:image:width" content="1200" />`,
-    `<meta property="og:image:height" content="630" />`,
-    // `summary_large_image` here, `summary` in index.html, and the difference
-    // is deliberate rather than drift: the sitewide default image is the
-    // 512x512 app icon, which a large card would letterbox, while every image
-    // this function emits is the 1200x630 rendered snapshot card. Declaring
-    // `summary` for that one would render a purpose-built wide card as a small
-    // square thumbnail — the whole point of rendering it, thrown away in the
-    // one tag that decides how it is shown.
-    `<meta name="twitter:card" content="summary_large_image" />`,
+    // No image. The rendered snapshot card is retired (ADR-036), and this block
+    // replaces the shell's defaults wholesale, so an old link unfurls as text.
+    `<meta name="twitter:card" content="summary" />`,
     `<meta name="twitter:title" content="${title}" />`,
     `<meta name="twitter:description" content="${description}" />`,
-    `<meta name="twitter:image" content="${image}" />`,
     `<link rel="canonical" href="${url}" />`,
     META_END,
   ].join('\n    ')
@@ -132,11 +116,7 @@ const KIND_LABEL: Record<string, string> = {
  * a snapshot that cannot be summarised must fall back rather than throw — an
  * unfurl is never worth a 500 on a page that would otherwise render.
  */
-export function metaForSnapshot(
-  snapshot: unknown,
-  url: string,
-  defaults: { image: string }
-): ShellMeta | null {
+export function metaForSnapshot(snapshot: unknown, url: string): ShellMeta | null {
   if (!snapshot || typeof snapshot !== 'object') return null
   const { kind, entity } = snapshot as SnapshotLike
   const name = typeof entity?.name === 'string' ? entity.name.trim() : ''
@@ -151,6 +131,5 @@ export function metaForSnapshot(
       ? `${label}: ${name}. Chassis: ${chassis}. A shared Salvage Union sheet on In The Union Now.`
       : `${label}: ${name}. A shared Salvage Union sheet on In The Union Now.`,
     url,
-    image: defaults.image,
   }
 }

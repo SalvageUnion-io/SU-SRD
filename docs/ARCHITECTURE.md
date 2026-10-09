@@ -102,7 +102,7 @@ TypeScript source, no build ([ADR-011](#adr-011)).
 Exports `.` (`src/index.ts`, the source of truth; never trust a count),
 `./design/tokens`, `./styles/dashboard.css`, `./styles/index.css`,
 `./styles/theme.css`. `src/design/tokens.ts` is a zero-import leaf for
-consumers with no stylesheet (the itun og:image renderer); never copy a token
+consumers with no stylesheet; never copy a token
 literal (`tokens.parity.test.ts`). Code only one app renders lives in that app
 (`apps/itun/src/components/`, `apps/srd/src/components/`) until a second app
 renders it; the Dashboard's `.pc-*` styles stay in `src/styles/dashboard/`.
@@ -262,7 +262,7 @@ through the `publicRead` column, read by `publicSheet.get`, toggled in
 retired ([ADR-036](#adr-036)); the blobs stay
 read-only in `su-itun-snapshots`. `GET /api/snapshots/:id`
 (`src/lib/snapshot/handlers.ts`) answers only `{ kind, appId }`, and posted
-`/s/:id` links still unfurl (`/og/s/:id.png`). The `/s/$id` loader
+`/s/:id` links still unfurl as text, with no image. The `/s/$id` loader
 (`src/routes/s/$id.tsx`) calls `retrieveSnapshotIdentity`
 (`src/lib/snapshot/client.ts`); `SnapshotLinkView` redirects to the public
 sheet or shows a retired page. `snapshotIdentity`
@@ -1002,7 +1002,7 @@ Everything runs here ([ADR-033](#adr-033)), account
 | Worker | Serves | Bindings |
 | --- | --- | --- |
 | `su-srd` | `salvageunion.io`, `www.` | none (Static Assets) |
-| `su-itun` | `intheunionnow.com`, `www.`, `/api/snapshots/:id`, old unfurls | `ASSETS`, R2 `SNAPSHOTS`, `OG_METRICS` |
+| `su-itun` | `intheunionnow.com`, `www.`, `/api/snapshots/:id`, old unfurls | `ASSETS`, R2 `SNAPSHOTS` |
 | `su-assets` | `assets.salvageunion.io` | R2 `LP_ASSETS`, `IMAGES` |
 | `su-discord-bot` | Discord interactions, 5-minute cron | secrets only |
 
@@ -4918,6 +4918,11 @@ frozen copy beside the live one — is withdrawn. Every other decision in ADR-03
 stands, and the public sheet it introduced is now the only account-free way to
 share.
 
+**Decision 5 amended, 2026-10-08 (#1128):** the rendered unfurl image is
+removed. The dependency audit gate that held it now passes a PR that changes
+`bun.lock`, so the renderer went with `@resvg/resvg-wasm`; `/og/s/*` answers
+404 rather than the 301 to the app icon this ADR first planned.
+
 Settles the four open decisions the unified-sheet-surfaces plan held for "a
 future ADR-036", by removing the second surface rather than merging it. That
 plan is deleted with this ADR:
@@ -4977,21 +4982,20 @@ the links that already exist: **"Redirect if public."**
    yet applied (2026-09-01) is **withdrawn**: the store no longer grows, and
    expiring objects would turn redirectable links into retired ones.
 
-5. **Links already posted keep their unfurl, for now.** Snapshot links sit in
-   Discord channels, and Discord re-fetches an unfurl, so the Worker still
-   injects the shell metadata at `/s/:id` and still renders `/og/s/:id.png` — a
-   neutral title naming the entity and its kind, read from the stored blob. The
-   card is the only thing the stored build still feeds; opening the link always
-   goes through the redirect-or-retired resolver, never the frozen sheet. The
-   pipeline (`shellMeta.ts`, `ogImage.ts`, `ogCard.ts`, the worker fonts,
-   `scripts/woff-to-ttf.ts`, the `.ttf` Data rule and the `OG_METRICS` dataset)
-   is **removed together with `@resvg/resvg-wasm`** once the dependency audit
-   gate can pass a PR that changes `bun.lock` — today `bun audit
-   --audit-level=high` fails any such PR on advisories with no published fix
-   (`braces` GHSA-vfj7-8cjw-p6xm, and `miniflare`'s pinned `undici`), so removing
-   the package now would block every PR stacked on it. When it goes, `/og/s/*`
-   should 301 to the app icon the renderer already falls back to, and `/s/:id`
-   should get the sitewide defaults.
+5. **Links already posted keep their unfurl text; the image is gone.** Snapshot
+   links sit in Discord channels, and Discord re-fetches an unfurl, so the
+   Worker still injects the shell metadata at `/s/:id` (`shellMeta.ts`) — a
+   neutral title naming the entity and its kind, read from the stored blob, with
+   no image. That text is the only thing the stored build still feeds; opening
+   the link always goes through the redirect-or-retired resolver, never the
+   frozen sheet. *Amended 2026-10-08 (#1128):* the rendered card at
+   `/og/s/:id.png` was removed with `@resvg/resvg-wasm` — the renderer, the
+   worker fonts, `scripts/woff-to-ttf.ts`, the `.ttf` Data rule and the
+   `OG_METRICS` dataset — once `bun audit --audit-level=high` (with the gate's
+   `braces` ignore) stopped failing a PR that changes `bun.lock`. `/og/s/*` is no
+   longer routed: it is a missing file, and the Worker answers it 404. It served
+   two renders in the seven days before that, none since this ADR shipped.
+   Whether `/s/:id` should drop to the sitewide defaults is still open.
 
 How this answers the plan's four open decisions: (a) snapshots gain no owner and
 no index — the entity they name is read off the blob per request, and only ever
@@ -5031,17 +5035,17 @@ governing rule asked of a link that can no longer serve what it served before.
   therefore reads either shape (`snapshotIdentity`), so a browser that opened a
   link before this change still resolves it. Those cached bodies contain the old
   frozen build; nothing renders them.
-- **The Worker shrinks a little now, and a lot later.** It no longer bundles the
-  snapshot payload's Zod schemas and binds no rate limiter. The resvg wasm, two
-  fonts and the Analytics Engine dataset stay until the og pipeline goes (decision
-  5); ADR-033's open question — whether the og:image render fits the Free plan's
-  CPU budget — stays open until then, and is closed by removing the render, not
-  by pre-rendering it, since there is no publish step left to pre-render at.
+- **The Worker shrinks.** It no longer bundles the snapshot payload's Zod
+  schemas, binds no rate limiter, and (since the decision 5 amendment) carries
+  no resvg wasm, fonts or Analytics Engine dataset. ADR-033's open question —
+  whether the og:image render fits the Free plan's CPU budget — was closed by
+  removing the render, never measured: there is no publish step left to
+  pre-render at, and nothing left to size.
 - **An old link's preview names the build as it was.** The unfurl reads the
   stored blob, so it shows the entity's name and kind when the snapshot was taken,
   even while the entity is private and the link itself opens the retired page.
   Nothing more of the build is shown, and it is what that link already displayed
-  wherever it was posted. It ends when the og pipeline is removed.
+  wherever it was posted. It ends when `/s/:id` gets the sitewide defaults.
 - **A still-open tab on an older build degrades honestly.** Its feature-detect
   read a 405 on `HEAD /api/snapshots` as "available"; it now gets a 404 and shows
   "publishing unavailable" instead of a button that cannot work. It also reports

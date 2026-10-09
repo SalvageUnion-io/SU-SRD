@@ -26,7 +26,6 @@ const META = {
   title: 'Rusty — Pilot',
   description: 'Pilot: Rusty. A shared Salvage Union sheet.',
   url: 'https://intheunionnow.com/s/AAAAAAAA',
-  image: 'https://intheunionnow.com/icon-512.png',
 }
 
 describe('applyMeta', () => {
@@ -75,28 +74,24 @@ describe('renderMeta', () => {
 })
 
 describe('metaForSnapshot', () => {
-  const defaults = { image: 'https://intheunionnow.com/icon-512.png' }
-
   it('summarises a pilot snapshot', () => {
     const meta = metaForSnapshot(
       { kind: 'pilot', entity: { name: 'Rusty' } },
-      'https://intheunionnow.com/s/AAAAAAAA',
-      defaults
+      'https://intheunionnow.com/s/AAAAAAAA'
     )
     expect(meta?.title).toBe('Rusty — Pilot')
     expect(meta?.description).toContain('Pilot: Rusty')
   })
 
   it('names a crawler with the game’s own term', () => {
-    const meta = metaForSnapshot({ kind: 'crawler', entity: { name: 'Haven' } }, 'u', defaults)
+    const meta = metaForSnapshot({ kind: 'crawler', entity: { name: 'Haven' } }, 'u')
     expect(meta?.title).toBe('Haven — Union Crawler')
   })
 
   it('includes the chassis when a mech snapshot carries one', () => {
     const meta = metaForSnapshot(
       { kind: 'mech', entity: { name: 'Bruiser', chassis: 'Aegis' } },
-      'u',
-      defaults
+      'u'
     )
     expect(meta?.description).toContain('Chassis: Aegis')
   })
@@ -111,46 +106,28 @@ describe('metaForSnapshot', () => {
     it(`falls back to the defaults for ${label}`, () => {
       // A snapshot that cannot be summarised must degrade, never throw: an
       // unfurl is not worth a 500 on a page that would otherwise render.
-      expect(metaForSnapshot(payload, 'u', defaults)).toBeNull()
+      expect(metaForSnapshot(payload, 'u')).toBeNull()
     })
   }
 
   it('still summarises a snapshot whose kind is unknown', () => {
     // Older snapshots and future kinds both land here; a generic label beats
     // dropping the metadata entirely.
-    const meta = metaForSnapshot({ kind: 'zzz', entity: { name: 'Thing' } }, 'u', defaults)
+    const meta = metaForSnapshot({ kind: 'zzz', entity: { name: 'Thing' } }, 'u')
     expect(meta?.title).toBe('Thing — Sheet')
   })
 })
 
 /**
- * The tags that decide how the rendered card is PRESENTED, as opposed to which
- * image is used. Getting these wrong wastes the render rather than breaking it,
- * which is why they are asserted rather than left to inspection: a 1200x630
- * card shown as a small square thumbnail looks like a design choice, not a bug.
+ * The rendered snapshot card is retired (ADR-036). The block replaces the
+ * shell's defaults wholesale, so an image tag here would have to point at
+ * something real; there is none, and an old link unfurls as text.
  */
 describe('unfurl presentation', () => {
-  const meta = {
-    title: 'Rusty — Pilot',
-    description: 'A shared sheet.',
-    url: 'https://intheunionnow.com/s/AAAAAAAA',
-    image: 'https://intheunionnow.com/og/s/AAAAAAAA.png',
-  }
-
-  it('asks for the large card, not the thumbnail', () => {
-    expect(renderMeta(meta)).toContain('name="twitter:card" content="summary_large_image"')
-  })
-
-  it('declares the card dimensions so a consumer need not fetch to lay it out', () => {
-    const html = renderMeta(meta)
-    expect(html).toContain('property="og:image:width" content="1200"')
-    expect(html).toContain('property="og:image:height" content="630"')
-  })
-
-  it('differs from index.html on purpose — that default is a square icon', () => {
-    // If someone ever "fixes the inconsistency" by making these match, one of
-    // the two is then wrong: the shell default points at the 512x512 app icon,
-    // which a large card would letterbox.
-    expect(renderMeta(meta)).not.toContain('content="summary"')
+  it('carries no image, and asks for the small text card', () => {
+    const html = renderMeta(META)
+    expect(html).not.toContain('og:image')
+    expect(html).not.toContain('twitter:image')
+    expect(html).toContain('name="twitter:card" content="summary"')
   })
 })
