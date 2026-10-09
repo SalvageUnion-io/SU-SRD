@@ -51,6 +51,9 @@ export default defineConfig({
       // installChunkRecovery still exists as the backstop for the tab that was
       // already mid-flight when a deploy landed.
       registerType: 'prompt',
+      // main.tsx registers through `virtual:pwa-register`; the plugin injects
+      // no second registration script into index.html.
+      injectRegister: false,
       includeAssets: ['favicon.svg'],
       workbox: WORKBOX_OPTIONS,
       manifest: {

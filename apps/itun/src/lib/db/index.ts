@@ -313,17 +313,6 @@ export async function clearCache(userId: string | null = null): Promise<void> {
   await tx.done
 }
 
-/**
- * Atomically deletes an entity and every SoftLink that references it (by
- * `from.id` or `to.id`) in a single readwrite transaction spanning the entity
- * store and the softLinks store. Either the entity and all its links are
- * removed together, or — on any error — the transaction aborts and nothing
- * changes (no orphaned links, no half-applied delete). Returns the ids of the
- * pruned SoftLinks so the caller can update in-memory state to match.
- *
- * `entityStoreName` must be a pilot/mech/crawler store — the only entities
- * SoftLinks point at.
- */
 /** One write inside an atomicWrite() transaction. */
 export type AtomicWriteOp =
   | { op: 'put'; storeName: string; record: { id: string } }
@@ -336,8 +325,10 @@ export type AtomicWriteOp =
  * all-or-nothing; two sequential writes can duplicate or vanish player value
  * if the second fails). On any error the transaction aborts and nothing
  * changes. Records passed to `put` must already be schema-validated (use
- * the store's prepareUpdate()). Returns the ids of SoftLinks pruned by
- * `pruneSoftLinks` deletes so callers can sync in-memory state.
+ * the store's prepareUpdate()). A delete with `pruneSoftLinks` also removes
+ * every SoftLink whose `from.id` or `to.id` is the deleted id — the one way an
+ * entity delete cascades on this device. Returns the ids of the pruned
+ * SoftLinks so callers can sync in-memory state.
  */
 export async function atomicWrite(ops: AtomicWriteOp[]): Promise<string[]> {
   if (ops.length === 0) return []
@@ -369,30 +360,6 @@ export async function atomicWrite(ops: AtomicWriteOp[]): Promise<string[]> {
     }
     await tx.objectStore(op.storeName).delete(op.id)
   }
-  await tx.done
-  return prunedIds
-}
-
-export async function deleteEntityWithSoftLinks(
-  entityStoreName: string,
-  id: string
-): Promise<string[]> {
-  const db = await getDb()
-  const tx = db.transaction([entityStoreName, STORE_NAMES.softLinks], 'readwrite')
-  const linkStore = tx.objectStore(STORE_NAMES.softLinks)
-  const allLinks = (await linkStore.getAll()) as Array<{
-    id: string
-    from: { id: string }
-    to: { id: string }
-  }>
-  const prunedIds: string[] = []
-  for (const link of allLinks) {
-    if (link.from.id === id || link.to.id === id) {
-      await linkStore.delete(link.id)
-      prunedIds.push(link.id)
-    }
-  }
-  await tx.objectStore(entityStoreName).delete(id)
   await tx.done
   return prunedIds
 }

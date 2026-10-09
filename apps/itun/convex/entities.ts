@@ -1,4 +1,5 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
+import type { ObjectType } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
 import { staleWriteError } from '../src/lib/connection/staleWrite'
 import { CROSS_CONTAINER_REFUSAL, endsMatchType } from '../src/lib/links/linkRules'
@@ -95,6 +96,29 @@ import { entityRefType, softLinkType } from './schema'
  */
 
 const OWNABLE = v.union(v.literal('pilots'), v.literal('mechs'))
+
+/** A pilot or mech body write, addressed by app id (`upsertByAppId`). */
+const OWNABLE_WRITE = {
+  table: OWNABLE,
+  appId: v.string(),
+  gameId: v.union(v.id('games'), v.null()),
+  body: v.any(),
+  expectedUpdatedAt: v.optional(v.number()),
+}
+
+/** A crawler field patch, addressed by app id (`patchCrawlerByAppId`). */
+const CRAWLER_PATCH = {
+  appId: v.string(),
+  patch: v.any(),
+  unset: v.optional(v.array(v.string())),
+}
+
+/** A soft link, addressed by its endpoints. */
+const LINK = {
+  from: v.object({ type: entityRefType, id: v.string() }),
+  to: v.object({ type: entityRefType, id: v.string() }),
+  type: softLinkType,
+}
 
 /**
  * Who may write an entity.
@@ -689,77 +713,78 @@ async function byAppId(
  * Returns the row's new version, which is what the client sends next time.
  */
 export const upsertByAppId = mutation({
-  args: {
-    table: OWNABLE,
-    appId: v.string(),
-    gameId: v.union(v.id('games'), v.null()),
-    body: v.any(),
-    expectedUpdatedAt: v.optional(v.number()),
-  },
-  handler: async (ctx, args): Promise<{ updatedAt: number }> => {
-    const userId = await requireUser(ctx)
-    const body = parseBody(args.table, args.body)
-
-    const kind = args.table === 'pilots' ? 'pilot' : 'mech'
-    const existing = await byAppId(ctx, args.table, args.appId)
-    const updatedAt = Date.now()
-    if (existing === null) {
-      await assertMayAddToContainer(ctx, args.gameId, userId)
-      const id = await ctx.db.insert(args.table, {
-        gameId: args.gameId,
-        ownerId: userId,
-        appId: args.appId,
-        body,
-        updatedAt,
-      })
-      // Created in a Game: aboard its primary crawler from the start (ADR-037).
-      const created = await ctx.db.get(id)
-      if (created !== null) await assignToPrimary(ctx, kind, created)
-      return { updatedAt }
-    }
-
-    assertMayWrite(existing, userId)
-    // After the ownership check, so the refusal hands the row only to its owner.
-    if (args.expectedUpdatedAt !== undefined && existing.updatedAt > args.expectedUpdatedAt) {
-      throw staleWriteError(existing)
-    }
-
-    /**
-     * A mirrored write also re-homes the row when the client has moved it.
-     *
-     * Until this existed, `MoveToContainerControl` re-stamped the local record
-     * and the mirror patched only the body — so moving a build onto a Game
-     * looked like it worked, the roster filtered by the new container, and the
-     * server row never left the shelf. The move is a create *into* the target
-     * container as far as the rules are concerned, so it answers to the same
-     * gate; leaving the source is unconditional.
-     */
-    const previousGameId = existing.gameId
-    const moved = previousGameId !== args.gameId
-    if (moved) {
-      await assertMayAddToContainer(ctx, args.gameId, userId)
-      await ctx.db.patch(existing._id, { gameId: args.gameId })
-    }
-
-    await ctx.db.patch(existing._id, { body, updatedAt })
-
-    // A link may not straddle two containers (ADR-037), so a move takes with
-    // it only the links whose other end is already where it is going, and
-    // drops the rest in the same mutation.
-    if (moved) {
-      const row = await ctx.db.get(existing._id)
-      if (row !== null) {
-        await pruneLinksAcrossContainers(ctx, row, previousGameId)
-        // Moved out of a Game: a pilot's seat there goes, and a mech leaves
-        // whoever was aboard it on foot (ADR-038).
-        await releaseSeatsOf(ctx, kind, row, previousGameId)
-        // Moved into a Game: aboard its primary crawler (ADR-037).
-        await assignToPrimary(ctx, kind, row)
-      }
-    }
-    return { updatedAt }
-  },
+  args: OWNABLE_WRITE,
+  handler: async (ctx, args): Promise<{ updatedAt: number }> =>
+    writeOwnable(ctx, await requireUser(ctx), args),
 })
+
+/** `upsertByAppId`'s write, shared with `transfer`. */
+async function writeOwnable(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  args: ObjectType<typeof OWNABLE_WRITE>
+): Promise<{ updatedAt: number }> {
+  const body = parseBody(args.table, args.body)
+
+  const kind = args.table === 'pilots' ? 'pilot' : 'mech'
+  const existing = await byAppId(ctx, args.table, args.appId)
+  const updatedAt = Date.now()
+  if (existing === null) {
+    await assertMayAddToContainer(ctx, args.gameId, userId)
+    const id = await ctx.db.insert(args.table, {
+      gameId: args.gameId,
+      ownerId: userId,
+      appId: args.appId,
+      body,
+      updatedAt,
+    })
+    // Created in a Game: aboard its primary crawler from the start (ADR-037).
+    const created = await ctx.db.get(id)
+    if (created !== null) await assignToPrimary(ctx, kind, created)
+    return { updatedAt }
+  }
+
+  assertMayWrite(existing, userId)
+  // After the ownership check, so the refusal hands the row only to its owner.
+  if (args.expectedUpdatedAt !== undefined && existing.updatedAt > args.expectedUpdatedAt) {
+    throw staleWriteError(existing)
+  }
+
+  /**
+   * A mirrored write also re-homes the row when the client has moved it.
+   *
+   * Until this existed, `MoveToContainerControl` re-stamped the local record
+   * and the mirror patched only the body — so moving a build onto a Game
+   * looked like it worked, the roster filtered by the new container, and the
+   * server row never left the shelf. The move is a create *into* the target
+   * container as far as the rules are concerned, so it answers to the same
+   * gate; leaving the source is unconditional.
+   */
+  const previousGameId = existing.gameId
+  const moved = previousGameId !== args.gameId
+  if (moved) {
+    await assertMayAddToContainer(ctx, args.gameId, userId)
+    await ctx.db.patch(existing._id, { gameId: args.gameId })
+  }
+
+  await ctx.db.patch(existing._id, { body, updatedAt })
+
+  // A link may not straddle two containers (ADR-037), so a move takes with
+  // it only the links whose other end is already where it is going, and
+  // drops the rest in the same mutation.
+  if (moved) {
+    const row = await ctx.db.get(existing._id)
+    if (row !== null) {
+      await pruneLinksAcrossContainers(ctx, row, previousGameId)
+      // Moved out of a Game: a pilot's seat there goes, and a mech leaves
+      // whoever was aboard it on foot (ADR-038).
+      await releaseSeatsOf(ctx, kind, row, previousGameId)
+      // Moved into a Game: aboard its primary crawler (ADR-037).
+      await assignToPrimary(ctx, kind, row)
+    }
+  }
+  return { updatedAt }
+}
 
 /**
  * Mirror a local crawler write, addressed by app id, as a **field-level merge**
@@ -791,42 +816,51 @@ export const upsertByAppId = mutation({
  * field cannot be unset either.
  */
 export const patchCrawlerByAppId = mutation({
-  args: { appId: v.string(), patch: v.any(), unset: v.optional(v.array(v.string())) },
-  handler: async (ctx, args): Promise<void> => {
-    const existing = await crawlerByAppId(ctx, args.appId)
-    if (existing === null) return
-
-    await assertMayEditCrawler(ctx, existing)
-
-    // A field patch never moves a crawler. Its container is the row's column
-    // and the body's `gameId` together, and only `moveCrawler` writes them —
-    // a body-only `gameId` here is how a "moved" crawler used to stay put on
-    // the server while every client read it somewhere else. The same goes for
-    // `unset`: clearing `gameId` would split the body from the column.
-    const { gameId: _container, ...fields } = (args.patch ?? {}) as Record<string, unknown>
-    const merged = unsetCrawlerFields(
-      { ...(existing.body as Record<string, unknown>), ...fields },
-      (args.unset ?? []).filter((key) => key !== 'gameId')
-    )
-    const body = parseBody('crawlers', merged)
-
-    await ctx.db.patch(existing._id, { body, updatedAt: Date.now() })
-  },
+  args: CRAWLER_PATCH,
+  handler: async (ctx, args): Promise<void> => patchCrawler(ctx, args),
 })
+
+/** `patchCrawlerByAppId`'s write, shared with `transfer`. */
+async function patchCrawler(
+  ctx: MutationCtx,
+  args: ObjectType<typeof CRAWLER_PATCH>
+): Promise<void> {
+  const existing = await crawlerByAppId(ctx, args.appId)
+  if (existing === null) return
+
+  await assertMayEditCrawler(ctx, existing)
+
+  // A field patch never moves a crawler. Its container is the row's column
+  // and the body's `gameId` together, and only `moveCrawler` writes them —
+  // a body-only `gameId` here is how a "moved" crawler used to stay put on
+  // the server while every client read it somewhere else. The same goes for
+  // `unset`: clearing `gameId` would split the body from the column.
+  const { gameId: _container, ...fields } = (args.patch ?? {}) as Record<string, unknown>
+  const merged = unsetCrawlerFields(
+    { ...(existing.body as Record<string, unknown>), ...fields },
+    (args.unset ?? []).filter((key) => key !== 'gameId')
+  )
+  const body = parseBody('crawlers', merged)
+
+  await ctx.db.patch(existing._id, { body, updatedAt: Date.now() })
+}
 
 /** Scrap a crawler addressed by app id. Table runner only, like `removeCrawler`. */
 export const removeCrawlerByAppId = mutation({
   args: { appId: v.string() },
-  handler: async (ctx, args): Promise<void> => {
-    const existing = await crawlerByAppId(ctx, args.appId)
-    if (existing === null) return
-
-    await assertMayScrapCrawler(ctx, existing)
-    await ctx.db.delete(existing._id)
-    await pruneSoftLinksFor(ctx, args.appId)
-    if (existing.gameId !== null) await crawlerLeftGame(ctx, existing.gameId, existing._id)
-  },
+  handler: async (ctx, args): Promise<void> => removeCrawlerRow(ctx, args.appId),
 })
+
+/** `removeCrawlerByAppId`'s delete, shared with `transfer`. */
+async function removeCrawlerRow(ctx: MutationCtx, appId: string): Promise<void> {
+  const existing = await crawlerByAppId(ctx, appId)
+  if (existing === null) return
+
+  await assertMayScrapCrawler(ctx, existing)
+  await ctx.db.delete(existing._id)
+  await pruneLinksOfRow(ctx, existing)
+  if (existing.gameId !== null) await crawlerLeftGame(ctx, existing.gameId, existing._id)
+}
 
 /**
  * Move a crawler between a Game and its table runner's shelf (ADR-037).
@@ -851,46 +885,53 @@ export const removeCrawlerByAppId = mutation({
  */
 export const moveCrawler = mutation({
   args: { appId: v.string(), gameId: v.union(v.id('games'), v.null()) },
-  handler: async (ctx, args): Promise<void> => {
-    const userId = await requireUser(ctx)
-    const existing = await crawlerByAppId(ctx, args.appId)
-    if (existing === null) return
-    const from = existing.gameId
-    const to = args.gameId
-    if (from === to) return
-
-    if (from !== null && to !== null) {
-      throw new NotAuthorized(
-        'Move the crawler to My Stuff first, then into the other game — a crawler changes tables one step at a time'
-      )
-    }
-    if (from === null) {
-      if (existing.ownerId !== userId) {
-        throw new NotAuthorized("You cannot move another player's crawler")
-      }
-      await requireTableRunner(ctx, to as Id<'games'>)
-    } else {
-      await requireTableRunner(ctx, from)
-    }
-
-    const body = parseBody('crawlers', {
-      ...(existing.body as Record<string, unknown>),
-      gameId: to,
-    })
-    await ctx.db.patch(existing._id, {
-      gameId: to,
-      ownerId: to === null ? userId : null,
-      body,
-      updatedAt: Date.now(),
-    })
-
-    const row = await ctx.db.get(existing._id)
-    if (row === null) return
-    await pruneLinksAcrossContainers(ctx, row, from)
-    if (from !== null) await crawlerLeftGame(ctx, from, row._id)
-    if (to !== null) await crawlerEnteredGame(ctx, row)
-  },
+  handler: async (ctx, args): Promise<void> =>
+    moveCrawlerRow(ctx, await requireUser(ctx), args.appId, args.gameId),
 })
+
+/** `moveCrawler`'s write, shared with `transfer`. */
+async function moveCrawlerRow(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  appId: string,
+  to: Id<'games'> | null
+): Promise<void> {
+  const existing = await crawlerByAppId(ctx, appId)
+  if (existing === null) return
+  const from = existing.gameId
+  if (from === to) return
+
+  if (from !== null && to !== null) {
+    throw new NotAuthorized(
+      'Move the crawler to My Stuff first, then into the other game — a crawler changes tables one step at a time'
+    )
+  }
+  if (from === null) {
+    if (existing.ownerId !== userId) {
+      throw new NotAuthorized("You cannot move another player's crawler")
+    }
+    await requireTableRunner(ctx, to as Id<'games'>)
+  } else {
+    await requireTableRunner(ctx, from)
+  }
+
+  const body = parseBody('crawlers', {
+    ...(existing.body as Record<string, unknown>),
+    gameId: to,
+  })
+  await ctx.db.patch(existing._id, {
+    gameId: to,
+    ownerId: to === null ? userId : null,
+    body,
+    updatedAt: Date.now(),
+  })
+
+  const row = await ctx.db.get(existing._id)
+  if (row === null) return
+  await pruneLinksAcrossContainers(ctx, row, from)
+  if (from !== null) await crawlerLeftGame(ctx, from, row._id)
+  if (to !== null) await crawlerEnteredGame(ctx, row)
+}
 
 /**
  * The crawler mirroring a local build, addressed by app id.
@@ -972,11 +1013,7 @@ const SOFT_LINK_FROM_TABLE: Record<SoftLink['type'], OwnableTable> = {
  * lets every row it writes satisfy all three invariants.
  */
 export const upsertSoftLink = mutation({
-  args: {
-    from: v.object({ type: entityRefType, id: v.string() }),
-    to: v.object({ type: entityRefType, id: v.string() }),
-    type: softLinkType,
-  },
+  args: LINK,
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
     if (!endsMatchType(args)) {
@@ -1011,60 +1048,109 @@ export const upsertSoftLink = mutation({
 
 /** Unwire a soft link. Addressed by endpoints; already-gone is not an error. */
 export const removeSoftLink = mutation({
-  args: {
-    from: v.object({ type: entityRefType, id: v.string() }),
-    to: v.object({ type: entityRefType, id: v.string() }),
-    type: softLinkType,
-  },
-  handler: async (ctx, args): Promise<void> => {
-    const userId = await requireUser(ctx)
-
-    const anchor = await byAppId(ctx, SOFT_LINK_FROM_TABLE[args.type], args.from.id)
-    if (anchor === null) return
-    assertMayWrite(anchor, userId)
-
-    const existing = await findSoftLink(ctx, args.from.id, args.to.id, args.type)
-    if (existing === null) return
-
-    await ctx.db.delete(existing._id)
-  },
+  args: LINK,
+  handler: async (ctx, args): Promise<void> => unwireSoftLink(ctx, await requireUser(ctx), args),
 })
+
+/** `removeSoftLink`'s delete, shared with `transfer`. */
+async function unwireSoftLink(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  args: ObjectType<typeof LINK>
+): Promise<void> {
+  const anchor = await byAppId(ctx, SOFT_LINK_FROM_TABLE[args.type], args.from.id)
+  if (anchor === null) return
+  assertMayWrite(anchor, userId)
+
+  const existing = await findSoftLink(ctx, args.from.id, args.to.id, args.type)
+  if (existing === null) return
+
+  await ctx.db.delete(existing._id)
+}
 
 /** Delete by app id. A row that is already gone is not an error. */
 export const removeByAppId = mutation({
   args: { table: OWNABLE, appId: v.string() },
-  handler: async (ctx, args): Promise<void> => {
-    const userId = await requireUser(ctx)
-    const existing = await byAppId(ctx, args.table, args.appId)
-    if (existing === null) return
-
-    assertMayWrite(existing, userId)
-    await ctx.db.delete(existing._id)
-    await pruneSoftLinksFor(ctx, args.appId)
-    await releaseSeatsOf(ctx, args.table === 'pilots' ? 'pilot' : 'mech', existing, existing.gameId)
-  },
+  handler: async (ctx, args): Promise<void> =>
+    removeOwnable(ctx, await requireUser(ctx), args.table, args.appId),
 })
 
 /**
- * Drop every link with this entity on either end.
- *
- * The client has cascaded this since well before Games existed
- * (`deleteEntityWithSoftLinks`), and the server not doing the same is how a
- * Game accumulates wires to characters that are gone — rendered as the "Unknown
- * pilot (id)" rows the local cascade was written to abolish. Both ends are
- * swept because a link is directional but a deletion is not.
+ * `removeByAppId`'s delete, shared with `transfer`. The row's links go with it
+ * (`pruneLinksOfRow`), as they do on every remove path.
  */
-async function pruneSoftLinksFor(ctx: MutationCtx, appId: string): Promise<void> {
-  const [outgoing, incoming] = await Promise.all([
-    ctx.db
-      .query('softLinks')
-      .withIndex('by_from', (q) => q.eq('from.id', appId))
-      .collect(),
-    ctx.db
-      .query('softLinks')
-      .withIndex('by_to', (q) => q.eq('to.id', appId))
-      .collect(),
-  ])
+async function removeOwnable(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  table: OwnableTable,
+  appId: string
+): Promise<void> {
+  const existing = await byAppId(ctx, table, appId)
+  if (existing === null) return
 
-  await Promise.all([...outgoing, ...incoming].map((link) => ctx.db.delete(link._id)))
+  assertMayWrite(existing, userId)
+  await ctx.db.delete(existing._id)
+  await pruneLinksOfRow(ctx, existing)
+  await releaseSeatsOf(ctx, table === 'pilots' ? 'pilot' : 'mech', existing, existing.gameId)
 }
+
+/**
+ * Move value between entities — cargo stow/load, a scrap hand-off — in ONE
+ * mutation, so it lands whole or not at all (`entityStore.transfer`).
+ *
+ * Every record answers to the rule its own mutation enforces: only an owner
+ * writes their pilot or mech, a body from a stale copy is refused, only the
+ * table runner writes or scraps a Game's crawler. A Convex mutation is a
+ * transaction, so a refusal anywhere rolls back every write before it — a stow
+ * cannot land on the mech and be refused on the crawler.
+ *
+ * Returns the new version of each pilot and mech it wrote, as `upsertByAppId`
+ * does for one.
+ */
+export const transfer = mutation({
+  args: {
+    updates: v.array(
+      v.union(
+        v.object(OWNABLE_WRITE),
+        v.object({
+          table: v.literal('crawlers'),
+          ...CRAWLER_PATCH,
+          /** Present when the patch moves the crawler (`moveCrawler`). */
+          gameId: v.optional(v.union(v.id('games'), v.null())),
+        })
+      )
+    ),
+    deletes: v.array(
+      v.union(
+        v.object({ table: OWNABLE, appId: v.string() }),
+        v.object({ table: v.literal('crawlers'), appId: v.string() }),
+        v.object({ table: v.literal('softLinks'), ...LINK })
+      )
+    ),
+  },
+  handler: async (ctx, args): Promise<{ versions: { appId: string; updatedAt: number }[] }> => {
+    const userId = await requireUser(ctx)
+    const versions: { appId: string; updatedAt: number }[] = []
+    for (const update of args.updates) {
+      if (update.table === 'crawlers') {
+        const { table: _table, gameId, ...patch } = update
+        if (gameId !== undefined) await moveCrawlerRow(ctx, userId, update.appId, gameId)
+        await patchCrawler(ctx, patch)
+        continue
+      }
+      const { updatedAt } = await writeOwnable(ctx, userId, update)
+      versions.push({ appId: update.appId, updatedAt })
+    }
+    for (const removal of args.deletes) {
+      if (removal.table === 'softLinks') {
+        const { table: _table, ...link } = removal
+        await unwireSoftLink(ctx, userId, link)
+      } else if (removal.table === 'crawlers') {
+        await removeCrawlerRow(ctx, removal.appId)
+      } else {
+        await removeOwnable(ctx, userId, removal.table, removal.appId)
+      }
+    }
+    return { versions }
+  },
+})

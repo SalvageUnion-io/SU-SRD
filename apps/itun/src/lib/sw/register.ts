@@ -11,60 +11,52 @@
  *   - Wraps workbox under the hood — precaching plus per-route strategies.
  *     Which strategy answers a navigation (network first, precached shell
  *     offline) is `workbox.ts`.
- *   - The plugin also auto-injects registration into the built index.html,
- *     but this file provides an explicit registration call so the boot
- *     sequence is visible in main.tsx rather than hidden in injected HTML.
- *     Both register `/sw.js` at scope `/`, which the spec makes idempotent —
- *     they resolve to the same ServiceWorkerRegistration, so the update
- *     checks below cover it regardless of which call created it.
  *   - Hand-written SW alternative would require: manual glob patterns,
  *     cache versioning, skipWaiting/clientsClaim logic — all solved by
  *     workbox already.
  *
- * Trade-offs accepted:
- *   - SW is skipped in DEV mode so HMR works correctly (see guard below).
- *   - We register `/sw.js` directly (the workbox output filename from
- *     vite-plugin-pwa) rather than importing `virtual:pwa-register`, because
- *     the virtual module only resolves in Vite's build context and cannot be
- *     mocked in Bun's test runner without modifying bunfig.toml.
+ * ONE registration: the plugin's `virtual:pwa-register`. main.tsx imports it
+ * and hands its `registerSW` to `registerServiceWorker` below; the plugin
+ * injects no `/registerSW.js` into the built index.html (`injectRegister:
+ * false` in vite.config.ts). The virtual module resolves
+ * only in Vite's build, so this file takes it as an argument and the tests
+ * pass a stand-in. Under `vite dev` the plugin serves a no-op `registerSW`, so
+ * HMR runs without a worker.
  *
  * ---------------------------------------------------------------------------
  * WHY THIS IS A PROMPT AND NOT A SILENT AUTO-UPDATE
  *
- * This file used to say `registerType: 'autoUpdate'` "silently swaps in new SW
- * versions on next page load, appropriate for a local-first app". That was the
- * bug. Under `autoUpdate` the plugin forces `skipWaiting` + `clientsClaim`, so
- * a newly-installed worker activated immediately, claimed the page the user was
- * already looking at, and ran `cleanupOutdatedCaches()` — destroying the
- * precache that page was still resolving its code-split chunks against. Every
- * subsequent lazy import asked for a hash the server no longer served. Share
- * links (then `/s/:id`, now `/p/:kind/:appId`) took it worst, because they are opened
- * cold from a link on a device whose worker is whatever build it last saw.
+ * Under `registerType: 'autoUpdate'` the plugin forces `skipWaiting` +
+ * `clientsClaim`, so a newly installed worker would claim the page already
+ * open and run `cleanupOutdatedCaches()`, deleting the precache entries that
+ * page still resolves its code-split chunks against.
  *
- * `vite.config.ts` is now `registerType: 'prompt'`, which emits a worker that
+ * `vite.config.ts` sets `registerType: 'prompt'`, which emits a worker that
  * installs and WAITS. Nothing is swapped under a live page. The update lands
  * when this page asks for it (`reloadOntoNewBuild`: post `SKIP_WAITING`, then
- * reload on `controllerchange`) or when every tab has closed.
+ * reload on `controllerchange`) or when every tab has closed. In prompt mode
+ * `virtual:pwa-register` also reloads a tab that saw the worker waiting once
+ * that worker takes control, so every open tab moves onto the new build
+ * together.
  *
  * ---------------------------------------------------------------------------
- * WHO ASKS, NOW THAT THE BACKEND SETS A BUILD FLOOR
+ * WHO ASKS: THE BACKEND'S BUILD FLOOR
  *
  * `workbox.ts` sends every navigation to the network, so a page load already
  * boots the deployed build; the waiting worker only brings the precache up to
  * date. The tab that runs an old build is the one that stays open across a
- * deploy — and an installed PWA that is never closed. It used to get a
- * dismissible "a new version is ready" toast, which let it stay stale for
- * weeks, calling functions the backend had since removed.
+ * deploy, and an installed PWA that is never closed.
  *
- * Now the backend decides. Every deploy raises the Convex build floor
- * (`convex/build.ts`); a tab whose bundle is older stops writing at once and,
- * as soon as the Worker serves a different shell (`serverBootsAnotherBuild`),
- * reloads through `reloadOntoNewBuild` — `src/lib/connection/buildFloor.ts`
- * owns that loop. `keepCheckingForUpdates` still asks for a new worker on
- * registration, whenever the tab becomes visible and hourly, so the matching
- * precache is usually already installed and waiting when the floor moves.
+ * Every deploy raises the Convex build floor (`convex/build.ts`); a tab whose
+ * bundle is older stops writing at once and, as soon as the Worker serves a
+ * different shell (`serverBootsAnotherBuild`), reloads through
+ * `reloadOntoNewBuild` — `src/lib/connection/buildFloor.ts` owns that loop.
+ * `keepCheckingForUpdates` asks for a new worker on registration, whenever the
+ * tab becomes visible and hourly, so the matching precache is usually already
+ * installed and waiting when the floor moves.
  */
 
+import type { RegisterSWOptions } from 'vite-plugin-pwa/types'
 import { captureException } from '../observability'
 
 export type RegisterOptions = {
@@ -242,36 +234,28 @@ export function keepCheckingForUpdates(
   }
 }
 
-export function registerServiceWorker(options: RegisterOptions = {}): void {
+/** The registration function `virtual:pwa-register` exports. */
+export type RegisterSW = (options: RegisterSWOptions) => unknown
+
+/**
+ * Registers the service worker through `virtual:pwa-register` and keeps a
+ * long-lived tab asking for a new one (`keepCheckingForUpdates`).
+ *
+ * A failed registration is not fatal — the app runs fine uncached — but it is
+ * reported under one fingerprint rather than left as an anonymous rejection.
+ */
+export function registerServiceWorker(registerSW: RegisterSW, options: RegisterOptions = {}): void {
   bootedEntryChunk = options.entryChunk
-
-  if (import.meta.env.DEV) {
-    // Skip SW registration in development so Vite HMR is not disrupted.
-    return
-  }
-
-  // Check both key existence and value truthiness: happy-dom and some
-  // older browser stubs set `navigator.serviceWorker = undefined`.
-  if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
-    return
-  }
-
-  navigator.serviceWorker
-    .register('/sw.js', { scope: '/' })
-    .then((registration) => {
-      keepCheckingForUpdates(registration, document)
-    })
-    .catch((error: unknown) => {
-      // Previously `void`-ed with no catch, which surfaced in Sentry as two
-      // untitled "Error: Rejected" issues via the unhandled-rejection handler.
-      // Registration failing is not fatal — the app runs fine uncached — but it
-      // should be legible rather than anonymous.
+  registerSW({
+    onRegisteredSW: (_swUrl, registration) => {
+      if (registration !== undefined) keepCheckingForUpdates(registration, document)
+    },
+    onRegisterError: (error: unknown) => {
       captureException(
         error,
         { stage: 'serviceWorker.register' },
-        {
-          fingerprint: ['sw-register-failed'],
-        }
+        { fingerprint: ['sw-register-failed'] }
       )
-    })
+    },
+  })
 }

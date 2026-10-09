@@ -1,3 +1,4 @@
+import { registerSW } from 'virtual:pwa-register'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -53,11 +54,12 @@ createRoot(rootEl, reactRootErrorHandlers).render(
   </StrictMode>
 )
 
-// `registerType: 'prompt'` (vite.config.ts) means a new worker installs and then
-// waits rather than claiming this page mid-session. There is no update toast:
+// The one service-worker registration: `virtual:pwa-register`, handed to
+// lib/sw/register.ts. `registerType: 'prompt'` (vite.config.ts) means a new
+// worker installs and then waits rather than claiming this page mid-session;
 // the backend's build floor decides when an open tab moves onto a new build
 // (lib/connection/buildFloor.ts), and it reloads through lib/sw/register.ts.
-registerServiceWorker({
+registerServiceWorker(registerSW, {
   // This module IS the entry chunk, so its URL carries this build's content
   // hash — which is what the server's current shell is compared against.
   entryChunk: new URL(import.meta.url).pathname,

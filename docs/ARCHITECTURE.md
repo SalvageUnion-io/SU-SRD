@@ -216,8 +216,8 @@ database `itun-v1`, `DB_VERSION = 18` (`src/lib/db/index.ts`), stores in
 - Stores are created in `openDB`'s `upgrade`; record rewrites are one file per
   version in `src/lib/db/migrations/`, registered in `migrations/index.ts`, run by `runMigrations()` in the
   `versionchange` transaction, so a throw aborts the whole upgrade.
-- `deleteEntityWithSoftLinks()` removes an entity and its links in one
-  transaction.
+- `atomicWrite()` writes several records in one transaction; a delete with
+  `pruneSoftLinks` removes the entity's links with it.
 
 ### Convex, the server of record
 
@@ -246,7 +246,8 @@ the entity rows.
   (`src/lib/links/linkRules.ts`, [ADR-037](#adr-037)),
   never across containers.
 
-**Every store reaches Convex:** `commitEntityWrite` (pilots, mechs, crawlers)
+**Every store reaches Convex:** `commitEntityWrite` (pilots, mechs, crawlers),
+`commitTransfer` (a cross-entity transfer, one `entities.transfer` mutation)
 and `commitSoftLink` from `entityStore.ts`, `commitPatternWrite` from
 `patternStore.ts`, `commitNpcWrite` from `encounterStore.ts`,
 and `commitChangeLog` from `entityChangeLog.ts` sends the Change Log, whose only
@@ -266,7 +267,7 @@ in Convex, not the mechanism. An anonymous user's way out is export to file.
 lazily, then reads synchronously. `update()` validates, commits to Convex
 (remote only), writes the backend store, then `set()`s and emits the Change
 Log; a refused write changes nothing. `entityStore.transfer()` moves value between entities in
-one transaction. `activeContainerStore` is the current Game or Shelf. There is
+one Convex mutation and one IndexedDB transaction. `activeContainerStore` is the current Game or Shelf. There is
 no TanStack Query: reads are the hooks in `src/hooks/entities/` and
 `convex/react`; do not add a query cache.
 
@@ -4991,7 +4992,7 @@ editor whose every save the server refuses.
 | cardinality / replace  | `writeSoftLink` (`model/entities.ts`), used by every writer | `createSoftLink` (`conflictingLinks`)            |
 | one container          | `upsertSoftLink` (`sameContainerRows`); `claimLocal` declines | `createSoftLink` (`sameContainer`)            |
 | move prunes            | `pruneLinksAcrossContainers` in `upsertByAppId`           | `pruneLinksAfterMove` in `entityStore.update`     |
-| scrap/delete cascades  | `pruneSoftLinksFor` in every remove path                  | `deleteEntityWithSoftLinks`                       |
+| scrap/delete cascades  | `pruneLinksOfRow` in every remove path                    | `atomicWrite` with `pruneSoftLinks`               |
 
 `assignLink` (`src/lib/links/assignLink.ts`) is the one client entry point:
 type from the ends, rules in the store, a refusal surfaced as `LinkRefused`.
