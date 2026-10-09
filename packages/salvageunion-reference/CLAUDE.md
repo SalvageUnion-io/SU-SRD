@@ -17,7 +17,7 @@ The package ships TypeScript source — there is no compile step.
 `bun run build:package` (from the repo root) regenerates everything generated,
 in order: `generate:registry` (`tools/generateRegistry.ts`), then
 `generate:json-schemas` (which imports the generated `zodSchemaMap`, so the
-registry must come first), then the docs and API-report generators.
+registry must come first), then the docs generator.
 `bun run check generated` (`tools/check-generated.ts`, also at pre-push and in
 CI) re-runs them and fails on any drift, including a new untracked file.
 
@@ -127,7 +127,9 @@ some other field (`findAll((e) => e.techLevel === 3)`), not an identity lookup.
 
 **Rows in an existing schema need no code:** `bun run edit-data add|set` (in
 this package; `add` mints the id) is the one writer of `data/`, then
-`bun run check data`. A **new schema** is the next section.
+`bun run check data`. A **new schema** is the next section. Copy rules text
+from the source word-for-word: descriptions and effects are verbatim, never
+paraphrased.
 
 ## Adding a New Entity **Type** (schema)
 
