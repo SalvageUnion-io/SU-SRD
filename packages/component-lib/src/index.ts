@@ -4,9 +4,8 @@ export type { CatalogSection } from './catalog/catalogHelpers'
 // Shared so srd's landing page/top nav and ITUN's Dashboard SRD Explorer
 // render one catalog rather than two hand-listed ones.
 export { buildCatalogSections } from './catalog/catalogSections'
+// Changelog view; its build-time git reader is the `./changelog/git` subpath
 export { Changelog } from './changelog/Changelog'
-// Changelog (shared markdown parser + presentational view)
-export { parseChangelog } from './changelog/parseChangelog'
 // Base typography
 export { Text } from './components/base/Text'
 // Avatar — a person's picture in a circle, falling back to their initial

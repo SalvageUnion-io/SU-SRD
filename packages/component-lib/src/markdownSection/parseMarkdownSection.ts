@@ -169,7 +169,7 @@ function headingOf(block: string[]): string | null {
  * Parse one of the repo-root prose documents (`ABOUT_JRVS.md`,
  * `LLM_STATEMENT.md`, `SPECIAL_THANKS.md`) into its heading + blocks.
  *
- * Deliberately minimal, like `parseChangelog`: these are short documents we
+ * Deliberately minimal: these are short documents we
  * control, so they have a fixed shape and need no markdown library.
  *
  * This splits blocks only — paragraphs, plus `- ` bullet lists (added for

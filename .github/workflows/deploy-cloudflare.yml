@@ -327,6 +327,9 @@ jobs:
         with:
           persist-credentials: false
           ref: ${{ needs.plan.outputs.sha }}
+          # The changelog page is `main`'s history (ADR-041); a shallow clone
+          # would render one commit of it.
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
@@ -447,6 +450,9 @@ jobs:
         with:
           persist-credentials: false
           ref: ${{ needs.plan.outputs.sha }}
+          # The changelog page is `main`'s history (ADR-041); a shallow clone
+          # would render one commit of it.
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun

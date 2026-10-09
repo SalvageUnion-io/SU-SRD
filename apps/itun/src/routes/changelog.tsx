@@ -1,14 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Changelog, PageHeading, parseChangelog } from 'component-lib'
-import itunMd from '../../CHANGELOG.md?raw'
+import { Changelog, PageHeading } from 'component-lib'
 import { pageTitle } from '../lib/pageTitle'
 
 export const Route = createFileRoute('/changelog')({
   head: () => ({ meta: [{ title: pageTitle('Changelog') }] }),
   component: ChangelogPage,
 })
-
-const entries = parseChangelog(itunMd, 'App')
 
 function ChangelogPage() {
   return (
@@ -19,7 +16,7 @@ function ChangelogPage() {
           <p className="mt-2 font-body text-sm text-wk-muted">What's new in In the Union Now.</p>
         </header>
 
-        <Changelog entries={entries} />
+        <Changelog entries={__ITUN_CHANGELOG__} />
       </div>
     </main>
   )

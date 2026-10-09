@@ -150,7 +150,7 @@ test.describe('bundle-size budget', () => {
 
     // Other routes' component chunks must not ride along on the roster.
     // These two route chunks have unambiguous names, so a future eager
-    // import of the changelog parser or the encounter tray into shared code
+    // import of the changelog or the encounter tray into shared code
     // fails here instead of silently widening every route.
     //
     // `Sheet-` is the live-sheet tree. It rode along on EVERY route — share

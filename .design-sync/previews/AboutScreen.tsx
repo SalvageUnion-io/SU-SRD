@@ -8,15 +8,15 @@ import statementMd from '../../LLM_STATEMENT.md'
 import thanksMd from '../../SPECIAL_THANKS.md'
 
 /**
- * The app's About page. `version`, `aboutJrvs`, `llmStatement` and
+ * The app's About page. `build`, `aboutJrvs`, `llmStatement` and
  * `specialThanks` are props rather than imports, so the screen stays
- * app-agnostic — each app passes its own version and inlines the repo-root
+ * app-agnostic — each app passes its own build and inlines the repo-root
  * documents the way its build allows.
  */
 export function AboutPage() {
   return (
     <AboutScreen
-      version="1.4.2"
+      build="bc9f08c"
       aboutJrvs={aboutMd}
       llmStatement={statementMd}
       specialThanks={thanksMd}

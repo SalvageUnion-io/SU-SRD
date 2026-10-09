@@ -66,12 +66,7 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
     // date with `main` and passed `CI Success` (ADR-033 §Credentials).
     name: 'production',
     branches: ['main'],
-    secrets: [
-      'CLOUDFLARE_API_TOKEN',
-      'CONVEX_DEPLOY_KEY',
-      'SENTRY_AUTH_TOKEN',
-      'RELEASE_PLEASE_TOKEN',
-    ],
+    secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN'],
   },
 ]
 

@@ -25,3 +25,12 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+/**
+ * ITUN's changelog, read from `main`'s history when `vite.config.ts` loads and
+ * inlined by `define` (ADR-041). Only `routes/changelog.tsx` reads it, so it
+ * ships in that route's chunk.
+ */
+declare const __ITUN_CHANGELOG__: ReturnType<
+  typeof import('component-lib/changelog/git').readChangelog
+>
