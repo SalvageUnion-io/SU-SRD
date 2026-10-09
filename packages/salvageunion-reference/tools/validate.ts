@@ -4,7 +4,7 @@
  * Unified validation runner.
  *
  * One shared data-load pass over the ~1.3MB `data/*.json` corpus, fed to all
- * 11 checks (it replaced 11 separate processes, each re-reading the corpus):
+ * 10 checks (it replaced separate per-check processes, each re-reading the corpus):
  *
  *   - ids              (checkUniqueIdsLogic.ts)
  *   - slugs            (validateSlugsLogic.ts)
@@ -14,7 +14,6 @@
  *   - orphans          (validateOrphansLogic.ts)
  *   - content-dupes    (validateContentDupesLogic.ts)
  *   - traits           (validateTraitsLogic.ts)
- *   - schemas          (validateSchemasLogic.ts)
  *   - parity           (validateParityLogic.ts)
  *   - double-encoding  (validateParityLogic.ts)
  *
@@ -32,7 +31,6 @@
  * `data/*.json`, and `edit-data add` mints a missing `id`.
  */
 
-import { zodSchemaMap } from '../lib/generated/zodSchemaMap.generated.js'
 import { checkAllFiles } from './checkUniqueIdsLogic.js'
 import type { DataBag } from './loadData.js'
 import { loadAllDataFiles } from './loadData.js'
@@ -50,7 +48,6 @@ import {
   unresolvedFindings,
 } from './validateParityLogic.js'
 import { findReferenceErrors } from './validateReferencesLogic.js'
-import { validateAllFilesAgainstSchemas } from './validateSchemasLogic.js'
 import { findSlugCollisions } from './validateSlugsLogic.js'
 import { findTraitIssues } from './validateTraitsLogic.js'
 import type { Diagnostic } from './validationTypes.js'
@@ -255,22 +252,6 @@ function doubleEncodingCheck(data: DataBag): Diagnostic[] {
   return diagnostics
 }
 
-function schemasCheck(data: DataBag): Diagnostic[] {
-  const diagnostics: Diagnostic[] = []
-  for (const report of validateAllFilesAgainstSchemas(data, zodSchemaMap)) {
-    if (report.status !== 'fail') continue
-    for (const { index, name, errors } of report.failures) {
-      diagnostics.push({
-        check: 'schemas',
-        file: report.file,
-        path: `[${index}] "${name}"`,
-        message: errors.join('; '),
-      })
-    }
-  }
-  return diagnostics
-}
-
 // ─── runner ──────────────────────────────────────────────────────────────
 
 type CheckDefinition = {
@@ -291,7 +272,6 @@ const CHECK_TABLE: Record<CheckId, Omit<CheckDefinition, 'id'>> = {
   traits: { label: 'Trait data', run: traitsCheck },
   parity: { label: 'Rules parity', run: parityCheck },
   'double-encoding': { label: 'One concept, one encoding', run: doubleEncodingCheck },
-  schemas: { label: 'Zod schema validation', run: schemasCheck },
 }
 
 const CHECKS: CheckDefinition[] = CHECK_IDS.map((id) => ({ id, ...CHECK_TABLE[id] }))
