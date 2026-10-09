@@ -8,10 +8,8 @@ import type {
 /**
  * Fakes for the narrow interaction contracts in `commands/interactions.ts`.
  *
- * Every command test used to build its own inline fake, which meant adding one
- * member to `CommandExecuteInteraction` broke four files at once and had to be
- * fixed four times identically. They live here now, so widening the contract is
- * a one-file change — which is the point of the contract being narrow in the
+ * Every command test builds its fake here, so widening the contract is a
+ * one-file change — which is the point of the contract being narrow in the
  * first place.
  *
  * These satisfy the types **structurally**, with no casts. That is deliberate:
@@ -24,7 +22,8 @@ import type {
  * A recorded reply payload: a structural supertype of both `ReplyPayload` and
  * `EditReplyPayload` (readonly arrays, wide flags, and nullable content, which
  * an edit permits and a fresh reply does not), so the fakes satisfy the narrow
- * contracts with no forced cast.
+ * contracts with no forced cast. `embeds` is here only so a test can assert a
+ * V2 reply never carries one.
  */
 export type ReplyArg = {
   content?: string | null

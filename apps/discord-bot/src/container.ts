@@ -4,8 +4,8 @@
  * ## Why containers
  *
  * A container is an ordered list of blocks. Text is text, rules are rules, and
- * the layout is whatever the content needs — a roll result is a headline with a
- * body and a provenance line, not a set of fixed slots.
+ * the layout is whatever the content needs — a roll result is a headline and a
+ * body, not a set of fixed slots.
  *
  * With `MessageFlags.IsComponentsV2` set, Discord rejects `content` and
  * `embeds` outright — it is all-in per message. `ContainerBuilder.

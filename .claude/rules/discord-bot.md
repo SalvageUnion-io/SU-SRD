@@ -7,7 +7,7 @@ paths:
 
 The architecture (HTTP-interactions Worker, the ITUN Game client and how it
 degrades) is in [`apps/discord-bot/CLAUDE.md`](../../apps/discord-bot/CLAUDE.md);
-the roll surface's design and its retractions are in the header of
+the roll surface's design is in the header of
 `src/rollContainer.ts`.
 This rule is the checklist for the work that keeps landing here: reshaping what
 a reply looks like.

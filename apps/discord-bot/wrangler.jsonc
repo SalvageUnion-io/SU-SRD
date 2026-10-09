@@ -5,14 +5,10 @@
   // setting is application-wide, so this Worker serves every server at once.
   //
   // No `nodejs_compat`: the portable Discord packages (@discordjs/builders,
-  // /collection, /rest and discord-api-types) run on workerd unaided, and the
-  // Node shim would both grow the bundle and make it easy to reintroduce a
-  // Node-only import without noticing.
-  //
-  // That note asked anything that genuinely needed a flag to "add it
-  // deliberately and say what". `@sentry/cloudflare` did — see
-  // `compatibility_flags` above, which grants AsyncLocalStorage and nothing
-  // else.
+  // /rest and discord-api-types) run on workerd unaided, and the Node shim would
+  // both grow the bundle and make it easy to reintroduce a Node-only import
+  // without noticing. Anything that genuinely needs a flag adds it deliberately
+  // and says what — see `compatibility_flags` below.
   "name": "su-discord-bot",
   "main": "src/http/worker.ts",
 
@@ -28,7 +24,7 @@
   // request. Without a flag wrangler warns and the Worker throws at runtime.
   //
   // This is the narrow flag on purpose, and it is the deliberate exception the
-  // note below reserved. `nodejs_compat` would pull the whole Node shim and
+  // note above reserves. `nodejs_compat` would pull the whole Node shim and
   // make it easy to reintroduce a Node-only import without noticing; measured,
   // `nodejs_als` alone clears the warning, so the broad flag buys nothing.
   "compatibility_flags": ["nodejs_als"],

@@ -66,8 +66,8 @@ logic do **not** require re-registering.
   up to ~1 hour to propagate). Run this deliberately, only after changing the
   command shape.
 
-Both scripts bulk-overwrite the registered set, so retired commands (e.g. the
-old standalone `/roll` and `/lookup`) deregister automatically on the next run.
+Both scripts bulk-overwrite the registered set, so a command removed from the
+registry deregisters on the next run.
 
 ### Production Deployment
 
