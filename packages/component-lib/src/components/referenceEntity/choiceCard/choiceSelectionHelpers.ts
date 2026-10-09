@@ -9,8 +9,9 @@ export type { ChoiceSelections } from 'salvageunion-reference'
 
 /**
  * A single selectable option distilled from a choice. Either a structured
- * `choiceOption` (value/label/description) or a `schemaEntities` entry (the
- * entity name doubles as value and label, e.g. Ballistic / Energy).
+ * `source.options` entry (value/label/description) or a catalog's
+ * `source.entities` entry (the entity name doubles as value and label, e.g.
+ * Ballistic / Energy).
  */
 export type ChoiceCardOption = {
   /** Stable selection value (option.value, or the entity name). */
@@ -19,7 +20,7 @@ export type ChoiceCardOption = {
   label: string
   /** Optional descriptive body (may contain `[[trait]]` references). */
   description?: string
-  /** The schema this option deep-links into, when it is a schemaEntities option. */
+  /** The schema this option deep-links into, when it is a catalog option. */
   schema?: string
 }
 
@@ -27,46 +28,32 @@ export type ChoiceCardOption = {
 export type ChoiceSourceKind = 'text' | 'table' | 'options' | 'catalog' | 'systemVariant'
 
 /**
- * The choice's source kind — the ONE axis the renderer switches on. Reads the
- * discriminated `source.kind` when present (the unified model); otherwise
- * derives it from the legacy fields (kept during the migration).
+ * The choice's source kind — the ONE axis the renderer switches on. A choice
+ * without a `source` is free text.
  */
 export function getChoiceSourceKind(choice: SURefObjectChoice): ChoiceSourceKind {
-  if (choice.source) {
-    return choice.source.kind
-  }
-  if (typeof choice.rollTable === 'string') return 'table'
-  if (Array.isArray(choice.choiceOptions) && choice.choiceOptions.length > 0) return 'options'
-  if (Array.isArray(choice.customSystemOptions) && choice.customSystemOptions.length > 0)
-    return 'systemVariant'
-  const hasSchema = Array.isArray(choice.schema) && choice.schema.length > 0
-  const hasSchemaEntities = Array.isArray(choice.schemaEntities) && choice.schemaEntities.length > 0
-  if (hasSchema || hasSchemaEntities) return 'catalog'
-  return 'text'
+  return choice.source?.kind ?? 'text'
 }
 
 /** The named roll table a `table` choice points at (or undefined). */
 export function getChoiceTableName(choice: SURefObjectChoice): string | undefined {
-  if (choice.source?.kind === 'table') return choice.source.rollTable
-  return typeof choice.rollTable === 'string' ? choice.rollTable : undefined
+  return choice.source?.kind === 'table' ? choice.source.rollTable : undefined
 }
 
 /**
- * Whether a choice allows multiple selections. Reads `cardinality` (max > 1, or
- * a `scalesWith` cap) when present; otherwise the legacy `multiSelect`.
+ * Whether a choice allows multiple selections: its `cardinality` max is above
+ * one, or a `scalesWith` cap.
  */
 export function isMultiSelectChoice(choice: SURefObjectChoice): boolean {
   const c = choice.cardinality
-  if (c) {
-    return typeof c.max === 'object' ? true : c.max > 1
-  }
-  return choice.multiSelect === true
+  if (!c) return false
+  return typeof c.max === 'object' ? true : c.max > 1
 }
 
 /**
- * Distil a choice's selectable options into a flat option list. Reads the
- * discriminated `source` (options / systemVariant inline, or a catalog's named
- * entities) when present; otherwise the legacy fields.
+ * Distil a choice's selectable options into a flat option list from its
+ * discriminated `source`: options / systemVariant inline, or a catalog's named
+ * entities.
  */
 export function getChoiceCardOptions(choice: SURefObjectChoice): ChoiceCardOption[] {
   const source = choice.source
@@ -86,26 +73,14 @@ export function getChoiceCardOptions(choice: SURefObjectChoice): ChoiceCardOptio
     const schema = source.schema?.[0]
     return (source.entities ?? []).map((name) => ({ value: name, label: name, schema }))
   }
-  // Legacy fallback (source not yet populated).
-  if (Array.isArray(choice.choiceOptions) && choice.choiceOptions.length > 0) {
-    return choice.choiceOptions.map((option) => ({
-      value: option.value,
-      label: option.label,
-      description: option.description,
-    }))
-  }
-  if (Array.isArray(choice.schemaEntities) && choice.schemaEntities.length > 0) {
-    const schema = choice.schema?.[0]
-    return choice.schemaEntities.map((name) => ({ value: name, label: name, schema }))
-  }
   return []
 }
 
 /**
  * Resolve the multi-select cap for a choice against its parent entity.
  *
- * - `constraints.max` is an explicit cap.
- * - `constraints.scalesWithField` resolves a numeric field on the parent entity
+ * - A numeric `cardinality.max` is an explicit cap (a cap only when > 1).
+ * - `cardinality.max.scalesWith` resolves a numeric field on the parent entity
  *   (e.g. `techLevel`) to use as the cap.
  *
  * Returns `undefined` when no cap applies (unbounded multi-select).
@@ -114,32 +89,14 @@ export function resolveMultiSelectCap(
   choice: SURefObjectChoice,
   parent: Record<string, unknown> | undefined
 ): number | undefined {
-  // Unified model: cardinality.max is a fixed number (a cap only when > 1) or a
-  // `{ scalesWith }` field resolved on the parent.
   const cardinality = choice.cardinality
-  if (cardinality) {
-    if (typeof cardinality.max === 'number') {
-      return cardinality.max > 1 ? cardinality.max : undefined
-    }
-    if (parent) {
-      const fieldValue = parent[cardinality.max.scalesWith]
-      if (typeof fieldValue === 'number') return fieldValue
-    }
-    return undefined
+  if (!cardinality) return undefined
+  if (typeof cardinality.max === 'number') {
+    return cardinality.max > 1 ? cardinality.max : undefined
   }
-  // Legacy fallback.
-  const constraints = choice.constraints
-  if (!constraints) {
-    return undefined
-  }
-  if (typeof constraints.max === 'number') {
-    return constraints.max
-  }
-  if (typeof constraints.scalesWithField === 'string' && parent) {
-    const fieldValue = parent[constraints.scalesWithField]
-    if (typeof fieldValue === 'number') {
-      return fieldValue
-    }
+  if (parent) {
+    const fieldValue = parent[cardinality.max.scalesWith]
+    if (typeof fieldValue === 'number') return fieldValue
   }
   return undefined
 }

@@ -132,7 +132,7 @@ type PilotEquipmentItemProps = {
   onRemove?: () => void
   readOnly: boolean
   /**
-   * Scaling parent for `scalesWithField` choice caps (e.g. the Modification
+   * Scaling parent for `cardinality.max.scalesWith` choice caps (e.g. the Modification
    * choice scaling with `techLevel`). Undefined leaves the cap unbounded.
    */
   scalingParent: Record<string, unknown> | undefined

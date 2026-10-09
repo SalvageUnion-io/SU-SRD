@@ -370,10 +370,8 @@ describe('pilot inventory capacity', () => {
 
 describe('installed system/module contributions', () => {
   const bare = { chassisRef: 'no-such-chassis' }
-  // These totals are unchanged from when the same nine systems declared a flat
-  // `statBonus` summed by `installedStatBonus`. The convergence onto
-  // `contributions` moves them from the ANONYMOUS `installed` slot into named
-  // `sources`, so the numbers below pin that the arithmetic did not move.
+  // Installed systems' `contributions` land in named `sources`, never the
+  // ANONYMOUS `installed` slot; the numbers below pin the arithmetic.
   const sourceOf = (parts: { sources: { source: string; amount: number }[] }) =>
     parts.sources.map((s) => [s.source, s.amount])
 

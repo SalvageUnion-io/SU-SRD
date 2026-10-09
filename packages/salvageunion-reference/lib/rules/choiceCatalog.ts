@@ -23,8 +23,10 @@ import type { SURefMetaAction, SURefMetaEntity, SURefObjectChoice } from '../sch
 
 type DamageType = 'HP' | 'SP'
 
-/** The schema-name list a catalog references (the choice's own `schema` type). */
-type CatalogSchema = NonNullable<SURefObjectChoice['schema']>
+/** The schema-name list a catalog references (`source.schema`). */
+type CatalogSchema = NonNullable<
+  Extract<NonNullable<SURefObjectChoice['source']>, { kind: 'catalog' }>['schema']
+>
 
 type CatalogFilter = {
   field?: string
@@ -64,12 +66,7 @@ function byTechThenName(a: SURefMetaEntity, b: SURefMetaEntity): number {
   return an.localeCompare(bn)
 }
 
-/**
- * The catalog fields, read from the unified `source` — never the legacy
- * `schema`/`schemaEntities` duplicates. A reader that falls back to the legacy
- * half keeps working right up to the moment the duplicate is deleted, and then
- * quietly resolves an empty catalog.
- */
+/** The catalog fields, read from the choice's `source`. */
 function catalogSpec(choice: SURefObjectChoice): {
   schema?: CatalogSchema
   shortlist?: string[]

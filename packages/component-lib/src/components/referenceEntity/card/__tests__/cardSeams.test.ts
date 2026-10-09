@@ -48,7 +48,9 @@ describe('cardCells', () => {
 
   test('the host scaling level wins, floored at the entity base', () => {
     const entity = entityFixture('systems', { content: [] })
-    const scalable = [{ id: 'c', constraints: { scalesWithField: 'techLevel' } }] as never
+    const scalable = [
+      { id: 'c', cardinality: { min: 0, max: { scalesWith: 'techLevel' } } },
+    ] as never
     expect(resolveTechScaling(entity, 2, scalable, { techLevel: 4 })).toMatchObject({
       effTechLevel: 4,
       techLevelDisplay: 4,

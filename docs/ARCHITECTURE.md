@@ -2328,14 +2328,14 @@ changing the _data shape_ over special-casing the renderer.
 
 **Choice placement splits by kind:**
 
-- **Freeform choices** (`choiceType: "freeform"` — a simple free-text field, e.g.
+- **Freeform choices** (`source.kind: 'text'`, or no `source` — a simple free-text field, e.g.
   a companion's Name / a crawler's Keepsake / Motto) are treated as **simple
   inputs**. In **read-only** they surface as **`Choose | <name>` sub-header cells**
   (a `Stat` hint that there's a field to fill), never a body block. In
   **editable** mode they stay in the body as a real text input (you type into it).
-- **Multiple-choice choices** (a `rollTable` / `choiceOptions` / `schema` /
-  `schemaEntities` / `constraints.scalesWithField` — "choose from the list below")
-  always render **inline in the body**, in both modes.
+- **Multiple-choice choices** (`source.kind` is `table` / `options` / `catalog` /
+  `systemVariant`, or `cardinality.max` is above one or `{ scalesWith }` —
+  "choose from the list below") always render **inline in the body**, in both modes.
 
 - **Read-only choices render SOLID** — every option at full strength (a static,
   readable list). The **dim-until-chosen** affordance is **editable-only**: an
@@ -2376,7 +2376,7 @@ also gets a rust label ground. The value itself updates. This applies to
 
 Some granted, TL-scalable pilot equipment (e.g. Custom Sniper Rifle) resolves an
 **effective tech level** that drives its Modification-choice cap
-(`constraints.scalesWithField: techLevel`) AND any `perTechLevel` datavalue
+(`cardinality.max.scalesWith: techLevel`) AND any `perTechLevel` datavalue
 (e.g. "+1 SP damage per Tech Level after the first").
 
 - Effective TL = `max(baseTL, effectiveTechLevel ?? scalingParent.techLevel ??

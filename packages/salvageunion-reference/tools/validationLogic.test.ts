@@ -180,7 +180,7 @@ describe('validate.ts --only', () => {
   const checks = CHECK_IDS.map((id) => ({ id }))
 
   test('selects the named checks, all of them by default, and rejects an unknown id', () => {
-    expect(selectChecks(checks, []).length).toBe(10)
+    expect(selectChecks(checks, []).length).toBe(9)
     expect(selectChecks(checks, ['--only=ids,slugs']).map((c) => c.id)).toEqual(['ids', 'slugs'])
     expect(() => selectChecks(checks, ['--only=nope'])).toThrow('unknown check(s): nope')
   })

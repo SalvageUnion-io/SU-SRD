@@ -36,7 +36,7 @@ import {
 
 type ChoiceGroupsProps = {
   choices: SURefObjectChoice[]
-  /** Parent entity — resolves `scalesWithField` caps (e.g. techLevel). */
+  /** Parent entity — resolves `cardinality.max.scalesWith` caps (e.g. techLevel). */
   parent?: Record<string, unknown>
   /** Controlled selections (id-keyed). With `onSelectionChange` → controlled. */
   selections?: ChoiceSelections

@@ -4,7 +4,7 @@
  *
  * Some choice caps scale with a crawler's Tech Level — e.g. the Custom Sniper
  * Rifle's Modification choice ("at each Tech Level you may select an additional
- * Modification"), encoded as `constraints.scalesWithField: "techLevel"`. To
+ * Modification"), encoded as `cardinality.max.scalesWith: "techLevel"`. To
  * resolve such a cap a pilot needs an effective Tech Level:
  *
  *   1. If the pilot is linked to a crawler (pilot-to-crawler SoftLink), use that

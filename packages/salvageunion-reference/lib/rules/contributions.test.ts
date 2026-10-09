@@ -143,9 +143,8 @@ describe('named sources stay attributable', () => {
     const mech = { chassisRef: 'no-such-chassis', systems: ['Heat Sink'] }
     const chassis = { heatCapacity: 5 }
     const parts = mechMaxHeatParts(mech, chassis, { abilities: ['Beefcake'] })
-    // Heat Sink is real installed hardware and is now a NAMED source (it used
-    // to sum into the anonymous `installed` slot as a flat `statBonus`);
-    // Beefcake contributes no heat at all.
+    // Heat Sink is real installed hardware and so a NAMED source, not the
+    // anonymous `installed` slot; Beefcake contributes no heat at all.
     expect(parts.installed).toBe(0)
     expect(parts.sources.map((s) => [s.source, s.amount])).toEqual([['Heat Sink', 1]])
     expect(parts.total).toBe(6)

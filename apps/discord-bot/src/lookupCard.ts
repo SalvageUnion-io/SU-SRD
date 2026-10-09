@@ -237,7 +237,8 @@ function renderAction(action: SURefMetaAction, ownName: string, chassisName?: st
   }
   for (const c of action.choices ?? []) {
     const cbody = flattenContent(c.content, chassisName)
-    const table = c.rollTable ? ` (${entityLink('roll-tables', c.rollTable)})` : ''
+    const table =
+      c.source?.kind === 'table' ? ` (${entityLink('roll-tables', c.source.rollTable)})` : ''
     lines.push(`**Choice — ${escapeLabel(c.name)}:**${table}${cbody ? ` ${cbody}` : ''}`)
   }
   return lines.join('\n')

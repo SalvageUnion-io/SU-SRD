@@ -35,7 +35,7 @@ export function CatalogChoiceModal({
   selected,
   onSelect,
 }: CatalogChoiceModalProps) {
-  const schema = choice.source?.kind === 'catalog' ? choice.source.schema?.[0] : choice.schema?.[0]
+  const schema = choice.source?.kind === 'catalog' ? choice.source.schema?.[0] : undefined
   // Resolve the eligible pool once (ids), then narrow the searcher to it — the
   // searcher then derives its own facets from that exact pool.
   const eligibleIds = useMemo(() => {

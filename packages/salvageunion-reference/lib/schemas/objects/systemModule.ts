@@ -25,11 +25,8 @@ export const SystemModuleSchema = StatsSchema.extend({
   contributions: z
     .array(ContributionSchema)
     .describe(
-      'Every flat mechanical change this item makes to a stat (ADR-029). This is ' +
-        'the ONE numeric encoding: the older `statBonus` shape — a bare per-copy ' +
-        'map with no target, duration or expression amounts — was a strict subset ' +
-        'of it, and two encodings summed independently by the same derivation is a ' +
-        'double-count waiting to be authored.'
+      'Every flat mechanical change this item makes to a stat (ADR-029) — the one ' +
+        'numeric encoding.'
     )
     .optional(),
   appliedEffects: z

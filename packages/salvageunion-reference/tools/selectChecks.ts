@@ -15,7 +15,6 @@ export const CHECK_IDS = [
   'content-dupes',
   'traits',
   'parity',
-  'double-encoding',
 ] as const
 
 export type CheckId = (typeof CHECK_IDS)[number]

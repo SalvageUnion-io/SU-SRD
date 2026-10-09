@@ -109,7 +109,7 @@ export type ReferenceEntityCardProps = {
   selections?: ChoiceSelections
   /** Selection-change handler — its presence flips choices to editable body cards. */
   onSelectionChange?: (selections: ChoiceSelections) => void
-  /** Parent entity for choice-cap resolution (`scalesWithField`, e.g. techLevel) —
+  /** Parent entity for choice-cap resolution (`cardinality.max.scalesWith`, e.g. techLevel) —
    * when a host (mech/pilot) supplies the scaling field instead of the entity.
    * Its `techLevel` also drives `perTechLevel` datavalue scaling (e.g. Custom
    * Sniper Rifle damage) — the crawler level in ITUN. */

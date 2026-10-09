@@ -11,7 +11,7 @@ import { FOCUS_RING } from '../chrome/interaction'
  * the maths and hands us a ledger to render:
  *
  *   `base`         the rules baseline (chassis stat, tech-level SP, a constant)
- *   `contribution` a rules-sourced addend (installed statBonus, type bonus,
+ *   `contribution` a rules-sourced addend (an installed item, type bonus,
  *                  an injury penalty — negative amounts are contributions too)
  *   `adjustment`   the player's hand-entered manual adjustment
  *   `derived`      the subtotal of everything above
