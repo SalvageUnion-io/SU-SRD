@@ -61,8 +61,9 @@ export type EnvironmentSpec = {
 
 export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
   {
-    // Every job that can act on production. No reviewers: a deploy is gated
-    // on CI succeeding for the same commit on `main` (ADR-033 §Credentials).
+    // Every job that can act on production. No reviewers: every deploy follows
+    // a merge, and the strict `main` ruleset merges only a branch that is up to
+    // date with `main` and passed `CI Success` (ADR-033 §Credentials).
     name: 'production',
     branches: ['main'],
     secrets: [
