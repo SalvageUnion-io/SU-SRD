@@ -1,20 +1,13 @@
 ---
 name: triage
-description: Use at the start of a working session, or when asked "what should I work on" / "what is broken". Reads nightly E2E, Sentry, deploys, dependency PRs and in-flight work, reports any signal it could not reach, and proposes at most five items in priority order.
-allowed-tools: Bash, Read, ToolSearch, mcp__github__actions_list, mcp__github__list_issues, mcp__github__list_pull_requests
+description: Use at the start of a working session, or when asked "what should I work on" / "what is broken" / "any Sentry issues" / "is prod healthy". Reads nightly E2E, Sentry, deploys, dependency PRs and in-flight work, reports any signal it could not reach, and proposes at most five items in priority order.
+allowed-tools: Bash, Read, ToolSearch, mcp__sentry__search_issues, mcp__sentry__get_sentry_resource, mcp__github__actions_list, mcp__github__list_issues, mcp__github__list_pull_requests
 ---
 
 # Triage
 
 Read what the systems are actually reporting, then propose what to work on. Run
 this before starting work, not after deciding what to do.
-
-This exists because the repo has a **backlog problem, not a capacity problem**.
-Throughput is ~3 PRs/day with a 40-minute median cycle time; the constraint is
-knowing which change is worth making. Nothing currently routes an observed
-production signal into the work queue — zero of the last 60 merged PRs
-referenced an issue, and the open backlog is mostly issues filed on one day in
-March. This closes that loop by hand until it earns being automated.
 
 ## Steps
 
@@ -45,14 +38,19 @@ For every step, use the first route that works and record which one you used:
    A failure here outranks almost everything: the suite is the only automated
    check on whole user journeys, and a suite that stays red stops being read.
 
-2. **Production error tracking** — what did it report?
+2. **Production error tracking** — what is Sentry reporting?
 
-   Read the new Sentry issues since yesterday (org `susrd`) and treat anything
-   affecting more than one user as a candidate for today. Whether production
-   can report at all is gated elsewhere: each deploy greps its built bundles
-   for an inlined DSN, and `tools/smoke-production.sh` (post-deploy and
-   nightly) asserts each served CSP admits the ingest host. A red run of
-   either is the "production is blind" finding.
+   Call `mcp__sentry__search_issues` (load it with ToolSearch) with
+   `organizationSlug: susrd`, `regionUrl: https://de.sentry.io`,
+   `query: is:unresolved` and `sort: freq`, and no project or `environment:`
+   filter: `itun-convex` reports as `prod` and every other project as
+   `production`, so an environment filter silently drops the backend. Rank
+   anything affecting more than one user first; `mcp__sentry__get_sentry_resource`
+   opens one issue. Whether production can report at all is gated elsewhere:
+   each deploy greps its built bundles for an inlined DSN, and
+   `tools/smoke-production.sh` (post-deploy and nightly) asserts each served
+   CSP admits the ingest host. A red run of either is the "production is
+   blind" finding.
 
 3. **Deploys** — did the last deploy succeed? All four surfaces ship from one
    workflow, `.github/workflows/deploy-cloudflare.yml`, so check that workflow's
