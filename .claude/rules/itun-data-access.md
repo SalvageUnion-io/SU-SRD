@@ -56,8 +56,8 @@ const members = useQuery(api.games.members, { gameId })
 ```
 
 - **Loading is `undefined`**, not a flag (`CrewVitals.tsx` is the reference).
-- **There may be no provider.** A build with no `VITE_CONVEX_URL` (CI, a fresh
-  checkout) mounts no Convex context, so gate the subtree on
+- **There may be no provider.** A build with no `VITE_CONVEX_URL` (a fresh
+  checkout, the unit tests) mounts no Convex context, so gate the subtree on
   `isConvexConfigured` (`src/lib/connection/convexClient.ts`) as
   `HeaderAccount.tsx` does; never call a Convex hook unconditionally.
 

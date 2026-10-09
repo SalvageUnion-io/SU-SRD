@@ -74,8 +74,8 @@ describe('the unsettled auth handshake is its own mode, not Solo', () => {
   })
 
   test('a build with no Convex URL never reaches connecting', () => {
-    // There is no auth layer to wait for. CI and a fresh checkout stay Solo, and
-    // their writes are never refused.
+    // There is no auth layer to wait for. A fresh checkout stays Solo, and
+    // its writes are never refused.
     expect(resolveConnectionMode(inputs({ convexConfigured: false, authSettled: false }))).toBe(
       'solo'
     )

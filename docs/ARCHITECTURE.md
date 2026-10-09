@@ -825,8 +825,11 @@ workspace under its `FLOORS` total (bunfigs set
 All `needs: [changes]` only. `build-srd` builds once, runs `check:examples`,
 srd's whole Playwright suite (add a spec to its run line, not a job) and the
 axe scan on that `dist`; `mobile-chromium` (Pixel 7) runs smoke in both apps.
-`build-itun` also bundles the Worker (`bun --filter itun worker:bundle`);
-ITUN's full browser suite is nightly (`e2e-nightly.yml`). `build-discord-bot`
+`build-itun` builds against a throwaway self-hosted Convex backend
+(`.github/actions/convex-backend`, the one `e2e-nightly.yml` uses) carrying the
+PR's own functions, so its specs and axe scan see the signed-out UI production
+ships, never production itself; it also bundles the Worker (`bun --filter itun
+worker:bundle`). ITUN's full browser suite is nightly (`e2e-nightly.yml`). `build-discord-bot`
 and `build-su-assets` bundle Workers; `build-ladle` builds stories. wrangler is
 one root devDependency that all four Worker apps run; keep each `wrangler.jsonc`
 `compatibility_date` at or below its bundled workerd.

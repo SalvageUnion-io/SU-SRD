@@ -71,7 +71,7 @@ the over-capacity red idiom, heat escalation, roll colour scope.
 
 - **Solo** — not signed in, in EVERY build: **read-only**. Writes are refused
   and nothing of the player's own shows; there is no Dashboard. A build with no
-  `VITE_CONVEX_URL` (CI, a fresh checkout, `bun run dev`) is permanently Solo,
+  `VITE_CONVEX_URL` (a fresh checkout, `bun run dev`) is permanently Solo,
   so no surface may call a Convex hook unconditionally. Design for that — a
   signed-out user needs an inviting route to sign in, never a disabled control
   with no explanation or copy like "saved on this device".

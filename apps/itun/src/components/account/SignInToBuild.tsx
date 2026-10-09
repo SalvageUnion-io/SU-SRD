@@ -8,7 +8,7 @@
  * render this in place of their create affordances, so a visitor meets the
  * sign-in rather than a wizard whose last step would be refused.
  *
- * A build with no Convex URL (CI, a fresh checkout) can never sign in, and
+ * A build with no Convex URL (a fresh checkout) can never sign in, and
  * `SignInControl` renders nothing there — so this says so instead of leaving a
  * prompt with no button.
  */

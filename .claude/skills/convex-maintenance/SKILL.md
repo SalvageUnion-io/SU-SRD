@@ -194,7 +194,7 @@ only ever dry-run it.
 
 A build with no `VITE_CONVEX_URL` has no server of record, so every visitor is
 anonymous and ITUN is **read-only** — nobody can build anything (ADR-034). Such
-a build is fine for CI and a fresh checkout, and is **not** a working
+a build is fine for a fresh checkout and the unit tests, and is **not** a working
 production configuration. To switch
 accounts on:
 
