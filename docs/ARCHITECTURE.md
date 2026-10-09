@@ -3973,6 +3973,9 @@ becomes a cache of Convex.
 time. ADR-030 already claimed the Change Log is "now synchronized"; this ADR
 makes that a requirement on the client too, not only a statement.
 
+**Amended by [ADR-038](#adr-038)** (built): in "What is not data", mount state
+is no longer a device preference.
+
 Re-affirms [ADR-032](#adr-032) without changing it: a
 public sheet stays an unauthenticated **read** of a row that an account owns.
 Reading has never required an account and still does not.

@@ -492,6 +492,26 @@ describe('checkDecisions', () => {
         'ADR-003. Add a dated line there ("**Amended by [ADR-003](#adr-003)** …").',
     ])
   })
+
+  it('fails an ADR named in an "**Also amends:**" list whose Status does not name the amender', () => {
+    const adr = (n: string, status: string): string =>
+      `## ADR-${n}\n\n**T**\n\n### Status\n\n${status}\n\n### Decision\n\nSee ADR-001.\n\n`
+    const root = fixture({
+      'docs/ARCHITECTURE.md': doc(
+        adr('001', 'Accepted. **Amended by [ADR-003](#adr-003).**') +
+          adr('002', 'Accepted.') +
+          adr(
+            '003',
+            'Accepted.\n\n**Also amends:**\n- [ADR-001](#adr-001) §1: one thing.\n' +
+              '- [ADR-002](#adr-002)\'s "Scope": another,\n  wrapped onto a second line.'
+          )
+      ),
+    })
+    expect(checkDecisions(root, 3).failures).toEqual([
+      "docs/ARCHITECTURE.md: ADR-003 amends ADR-002, but ADR-002's Status does not name " +
+        'ADR-003. Add a dated line there ("**Amended by [ADR-003](#adr-003)** …").',
+    ])
+  })
 })
 
 describe('checkDocSizes', () => {

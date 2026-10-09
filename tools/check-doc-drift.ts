@@ -629,6 +629,37 @@ const adrId = (n: number): string => `ADR-${String(n).padStart(3, '0')}`
 /** "Amends [ADR-022]", "**Supersedes ADR-004**", "reverses ADR-019": one ADR acting on another. */
 const ACTS_ON = /\b(amends|supersedes|reverses|replaces)\b[\s*_]*\[?ADR-(\d{3})\b/gi
 
+/** "**Also amends:**": a lead-in whose list items below it each open on the ADR acted on. */
+const ACTS_ON_LIST = /\b(amends|supersedes|reverses|replaces)\b[^\n]*:[\s*_]*$/i
+
+/** "- [ADR-030](#adr-030) §5: …": the ADR a list item under an ACTS_ON_LIST lead-in names first. */
+const LIST_ITEM_ADR = /^\s*[-*+]\s+[*_]*\[?ADR-(\d{3})\b/
+
+/** Every (verb, target ADR) a Status states, inline or as a list under a lead-in. */
+function actsOn(status: string): { verb: string; target: number }[] {
+  const acts = [...status.matchAll(ACTS_ON)].map((m) => ({
+    verb: (m[1] as string).toLowerCase(),
+    target: Number(m[2]),
+  }))
+  let listVerb: string | undefined
+  for (const line of status.split('\n')) {
+    const leadIn = line.match(ACTS_ON_LIST)
+    if (leadIn) {
+      listVerb = (leadIn[1] as string).toLowerCase()
+      continue
+    }
+    if (listVerb === undefined) continue
+    // The list runs while its lines are items or their indented continuations.
+    if (!/^(\s+\S|[-*+]\s)/.test(line)) {
+      listVerb = undefined
+      continue
+    }
+    const item = line.match(LIST_ITEM_ADR)
+    if (item) acts.push({ verb: listVerb, target: Number(item[1]) })
+  }
+  return acts
+}
+
 /**
  * An ADR whose Status amends, supersedes or reverses another must be named in
  * that other ADR's Status, which is where a reader of it looks first.
@@ -639,12 +670,11 @@ export function missingBackReferences(source: string): string[] {
   const failures: string[] = []
   for (const section of sections) {
     const self = adrId(section.n)
-    for (const m of (status.get(section.n) ?? '').matchAll(ACTS_ON)) {
-      const target = Number(m[2])
+    for (const { verb, target } of actsOn(status.get(section.n) ?? '')) {
       if (target === section.n || !status.has(target)) continue
       if (status.get(target)?.includes(self)) continue
       failures.push(
-        `${DECISIONS_DOC}: ${self} ${(m[1] as string).toLowerCase()} ${adrId(target)}, but ` +
+        `${DECISIONS_DOC}: ${self} ${verb} ${adrId(target)}, but ` +
           `${adrId(target)}'s Status does not name ${self}. Add a dated line there ` +
           `("**Amended by [${self}](#${self.toLowerCase()})** …").`
       )
