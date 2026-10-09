@@ -18,7 +18,7 @@
   gap: 10px;
   padding: 8px 10px;
   grid-template-columns: minmax(0, 1fr);
-  /* The slot row (docs/architecture/dashboard-redesign.md D1-D3): tall enough
+  /* The slot row (ADR-038 §3): tall enough
      for a Major's bays — two gauges over a row of buttons — and the Minors'
      gauges, text and a problem line. */
   grid-template-rows: 40px 208px minmax(0, 1fr);

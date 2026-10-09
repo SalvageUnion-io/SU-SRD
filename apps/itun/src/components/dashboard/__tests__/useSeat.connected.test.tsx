@@ -254,7 +254,7 @@ describe('useSeat writes', () => {
   })
 })
 
-describe('claim and board (plan §8 A4)', () => {
+describe('claim and board', () => {
   const spare = { mechId: 'seat-spare', serverId: 'row-spare' }
 
   test('writes the claim before the seat', async () => {

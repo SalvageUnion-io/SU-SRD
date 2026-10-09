@@ -4,7 +4,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 
 /**
- * The player's side of propose-and-confirm (D7).
+ * The player's side of propose-and-confirm (ADR-030 §4).
  *
  * The Mediator has said what they think should change; this is where the player
  * decides, against the value they are already looking at on their own sheet.

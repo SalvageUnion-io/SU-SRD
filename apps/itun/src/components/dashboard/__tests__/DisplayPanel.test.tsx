@@ -62,13 +62,13 @@ describe('DisplayPanel', () => {
     )
   })
 
-  test('mech focus → foot carries a "Full mech sheet" link (D5)', () => {
+  test('mech focus → foot carries a "Full mech sheet" link', () => {
     const focus: DisplayFocus = 'mech'
     const { container } = renderDV(focus)
     expect(container.querySelector('a[href="/sheet/mech/m1"]')).toBeTruthy()
   })
 
-  test('crawler focus → foot carries a crawler sheet link, and no way into Downtime (D8)', () => {
+  test('crawler focus → foot carries a crawler sheet link, and no way into Downtime', () => {
     const focus: DisplayFocus = 'crawler'
     const { container } = renderDV(focus)
     expect(container.querySelector('a[href="/sheet/crawler/c1"]')).toBeTruthy()
@@ -81,7 +81,7 @@ describe('DisplayPanel', () => {
 
   const tablesFocus: DisplayFocus = 'tables'
 
-  test('Tables focus → a RollTable whose title is the picker trigger (D3)', () => {
+  test('Tables focus → a RollTable whose title is the picker trigger', () => {
     const { container } = renderDV(tablesFocus)
     expect(container.querySelector('.pc-display-scroll')).toBeTruthy()
     // The trigger lives IN the RollTable header band — the band that also
@@ -100,7 +100,7 @@ describe('DisplayPanel', () => {
     expect(container.querySelector('.pc-display-note')).toBeNull()
   })
 
-  test('Tables picker → opens a 5-column category overlay (D3)', () => {
+  test('Tables picker → opens a 5-column category overlay', () => {
     const { container, getByLabelText } = renderDV(tablesFocus)
     expect(container.querySelector('.pc-tablepick')).toBeNull()
     const openBtn = container.querySelector('[aria-haspopup="dialog"]') as HTMLButtonElement
@@ -131,7 +131,7 @@ describe('DisplayPanel', () => {
     expect(document.activeElement).toBe(openBtn)
   })
 
-  test('Tables picker → picking a table retitles the table and closes (D3)', () => {
+  test('Tables picker → picking a table retitles the table and closes', () => {
     const { container } = renderDV(tablesFocus)
     fireEvent.click(container.querySelector('[aria-haspopup="dialog"]') as HTMLButtonElement)
     const items = [...container.querySelectorAll('.pc-tablepick-item')] as HTMLButtonElement[]
@@ -167,7 +167,7 @@ describe('DisplayPanel', () => {
     expect(rolled[0]?.[0]).toBe('Core Mechanic')
   })
 
-  test('SRD focus → the interactive SrdExplorer (D4)', () => {
+  test('SRD focus → the interactive SrdExplorer', () => {
     const focus: DisplayFocus = 'srd'
     const { container } = renderDV(focus)
     // The explorer renders its search + the SRD catalog, never the generic

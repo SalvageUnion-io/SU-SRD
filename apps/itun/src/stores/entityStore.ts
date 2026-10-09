@@ -246,8 +246,8 @@ const DB_STORES: { [K in EntityType]: DbStoreApi<K> } = {
  *
  * Each type still dispatches differently, and each difference is a rule rather
  * than an implementation detail: a crawler sends its *patch* so a write from a
- * stale copy merges rather than undoing a field it did not touch (ADR-030 §5,
- * D19; only the table runner writes a Game's crawler since ADR-038 §5), a pilot
+ * stale copy merges rather than undoing a field it did not touch (ADR-030 §5;
+ * only the table runner writes a Game's crawler since ADR-038 §5), a pilot
  * or mech sends its whole body, and
  * a soft link is addressed by its endpoints because the server has no id for it.
  *

@@ -21,8 +21,8 @@ registry must come first), then the docs generator.
 `bun run check generated` (`tools/check-generated.ts`, also at pre-push and in
 CI) re-runs them and fails on any drift, including a new untracked file.
 
-**Generated — never hand-edit** (`.claude/hooks/protect-generated-files.sh`
-blocks it):
+**Generated — never hand-edit** (an `Edit(...)` deny rule in
+`.claude/settings.json` blocks it):
 
 - `schemas/*.schema.json` and the `schemas/index.json` catalog entries
 - `lib/generated/modelFactoryRegistry.generated.ts`,

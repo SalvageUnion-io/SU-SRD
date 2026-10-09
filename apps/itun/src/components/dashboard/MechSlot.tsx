@@ -1,6 +1,6 @@
 /**
  * MechSlot — the mech in the slot row, in its two forms
- * (docs/architecture/dashboard-redesign.md D2, D3):
+ * (ADR-038 §3):
  *
  *  - `MechMajor`, boarded: the Reactor (Push, Heat Check, Vent, Shutdown) and
  *    the Chassis (Take Damage, the cargo hold) at full width, with Effects and

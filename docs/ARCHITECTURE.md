@@ -9,11 +9,8 @@ History is in git; the decisions behind it close the file as
 then Read with an offset and limit for the section you need; never Read the
 whole file.
 
-Five docs stay separate: [architecture/dashboard.md](architecture/dashboard.md)
-(the Dashboard as built),
-[architecture/dashboard-redesign.md](architecture/dashboard-redesign.md) (its
-done plan, whose D1–D12 code cites), [architecture/npc-builder.md](architecture/npc-builder.md)
-(a plan, so its unbuilt paths are exempt from the path check),
+Three docs stay separate: [architecture/dashboard.md](architecture/dashboard.md)
+(the Dashboard as built; [ADR-038](#adr-038) is its one decision record),
 [design-system/ruleset.md](design-system/ruleset.md) (the design laws, cited by
 section number) and [design-system/tailwind-removal.md](design-system/tailwind-removal.md)
 (the live Tailwind-removal plan).
@@ -304,9 +301,8 @@ host. `apps/srd` has no accounts.
 Development has no cloud deployment. `bun run dev:itun` runs a **local**
 deployment (`convex dev --start vite`) and signs in through the test seam,
 `ITUN_TEST_AUTH` on the local deployment and `VITE_TEST_AUTH` in the dev
-server, not Discord. One-time setup:
-[`apps/itun/README.md`](../apps/itun/README.md#local-backend). The local
-deployment gets `SITE_URL` and the JWT pair from `bunx @convex-dev/auth`.
+server, not Discord. One-time setup: the
+[`convex-ops`](../.claude/skills/convex-ops/SKILL.md#local-backend) skill.
 
 ### Deployment variables
 
@@ -446,7 +442,7 @@ overridden-stat marker shows on the Live Sheet only.
 `CrawlerBuilder.tsx`; `Next` gated by `lib/rules/creation.ts`; exit via
 `OffRulesEscape`). The Dashboard is built at `/dashboard/$pilotId`
 ([architecture/dashboard.md](architecture/dashboard.md),
-[ADR-015](#adr-015)). The Live Sheet is
+[ADR-038](#adr-038)). The Live Sheet is
 Free Edit plus the list above, with cap overrides and revert. Place a feature
 by mode, then rule class; resolve an ambiguous case here before building, and
 update the matrix when a border moves.
@@ -751,8 +747,8 @@ each app's `workspace:*` deps are in its group; root prose (`ABOUT_JRVS.md`,
 only `SPECIAL_THANKS.md`, skipped `build-srd`, and turned the next three PRs
 red; the Playwright base, the axe scan and
 baselines are in their app's group. `code` is source, tools, `.github/` and
-the Claude hooks and workflows; `docs` is `docs/**`, root `CLAUDE.md` /
-`README.md` / `CONTRIBUTING.md`, `.claude/**`, `.mcp.json` (docs-only PRs skip
+the Claude hooks and `settings.json`; `docs` is `docs/**`, root `CLAUDE.md` /
+`README.md`, `.claude/**`, `.mcp.json` (docs-only PRs skip
 the suite and typecheck); `deps` is `bun.lock` and every `package.json`.
 
 ### CI: static-checks and coverage
@@ -1727,111 +1723,12 @@ salvageunion-reference`) is **out of scope for this decision** — it
 
 ### Status
 
-Accepted and **built** (`apps/itun/src/components/dashboard/`, routed at
-`/dashboard/$pilotId`; architecture in [dashboard.md](architecture/dashboard.md)).
-This is the play-surface instance of the governing surface taxonomy in
-[ADR-021](#adr-021) — the **Guided Play** surface.
+**Superseded by [ADR-038](#adr-038)** (2026-10-08), which restates the
+decisions of this one that stand: the separate surface sharing the sheets'
+state, the reused SRD display, the flat-and-inset treatment and the fixed
+canvas. Its rotary Dial and ephemeral play state were replaced there.
 
-ADRs 016–020 recorded this surface's sub-decisions; they are merged below as
-**Dashboard decisions**, and those five files are stubs pointing here.
-
-**Amended by [ADR-038](#adr-038)** (built). Decision 1, the rotary
-Dial, is replaced by Major and Minor slots and a tabbed display. Decision 4's
-ephemeral play state is reversed: play state is a per-pilot seat saved on
-the Game, and the Dashboard is Game-only, needing a Mediator. Decision 4's
-other half (mount never on a pilot or mech record) and decisions 2, 3 and 5
-stand.
-
-### Context
-
-ITUN's live sheet fuses two moments with opposite interaction grammars: editing a
-character (inline edit + scroll) and running it at the table (one-screen, no-scroll
-instrument buttons). Forcing both into one surface produced clutter. The
-[surface taxonomy](#adr-021) names these as two modes —
-Free Edit and Guided Play — and this ADR gives Guided Play its own surface.
-
-### Decision
-
-The **Dashboard** is a **new surface** at `/dashboard/$pilotId`, not a mode of the live
-sheet. It composes a player's **Pilot + Mech + Crawler** into one live play
-surface. Sheets edit a character; the Dashboard runs it at the table. Both read and
-mutate the **same** persisted entities through the **same** store and rules engine
-([ADR-006](#adr-006), [ADR-003](#adr-003)) —
-the Dashboard is a second lens, not a second source of truth.
-
-### Rationale
-
-The two moments have opposite interaction grammars (inline edit + scroll vs.
-one-screen no-scroll instrument buttons). Sharing state (not chrome) keeps them
-consistent through the one store. As the Guided Play surface it is
-where enforced lifecycle transactions live (see
-[ADR-021](#adr-021) and
-[rules and ITUN surfaces](#rules-and-itun-surfaces)).
-
-### Alternatives rejected
-
-- **A "play mode" toggle on the sheet** — rejected: the layouts are irreconcilable
-  in one component.
-- **A separate app** — rejected: duplicates the data layer and breaks
-  single-store consistency.
-
-### Consequences
-
-- The single-player Dashboard is the first step toward the long-tail shared, live
-  Dashboard (multiple players + Mediator sync) noted in ADR-021.
-
-### Dashboard decisions
-
-#### 1. The rotary Dial and the instrument / reference split (was ADR-016)
-
-Entity/view selection is a **rotary Dial** — a 260px right-edge sidebar whose
-Active Dial Item overhangs to ~1/3 of the row. The display holds all
-interactivity; the dial holds readable stats only. The Dashboard is thereby split
-into **bespoke instruments** (rail, bays, dial) and **the reference document**
-(the display). Stepping is detented, not free-scroll. Rejected: left tabs, right
-drawers, a centre tab bar and bottom selector blocks (each reflowed the frame or
-buried entities).
-
-#### 2. Reuse the faithful SRD display; instruments are bespoke (was ADR-017)
-
-The display renders the same `component-lib` entity display the rest of the app
-shows (`ReferenceEntityCard`, `RollTable`), with entity-level interactivity as
-typed `controls`. Only the instruments (gauges, bays, dial, buttons) are new
-Dashboard components. One display system means one place to fix reference
-rendering. Rejected: a Dashboard-specific action-chip renderer that forks the
-display.
-
-#### 3. Flat and inset; only the display reads forward (was ADR-018)
-
-Instrument surfaces read **recessed** (mild inset shadow, soft entity-tinted
-borders); buttons are flat recessed keys; **the main display is the single
-element that reads forward** (solid hard 2.5px border, no inset). Hue encodes
-ontology, never identity; state is a treatment overlay (hatch / strike /
-redline), never a second hue. Rejected: skeuomorphic 3D dials, a CRT bend, and
-per-source colour chips that let hue mean identity.
-
-#### 4. Play-state is ephemeral, under the ADR-007 boundary (was ADR-019)
-
-The mount state machine (pilot / mech / downtime, range band, turn flags) and
-dial focus live in the non-persisted `playStateStore` — **never** on the
-pilot/mech schema and **never** in a snapshot. There is no "pilot in mech" field
-(the link is a soft link), so mount state is a play-session concern. Dial
-configuration (show/hide, order) is a device preference in `localStorage`,
-scoped per container (`cockpitPrefsStore`). Every control obeys
-[ADR-007](#adr-007): auto-apply non-destructive bookkeeping
-(EP / Heat / uses / SP), player-confirm destructive change (destroy an item,
-Eject, meltdown).
-
-#### 5. A fixed 1280×800 canvas, scaled to fit (was ADR-020)
-
-The Dashboard is a fixed 1280×800 design canvas scaled with one
-`transform: scale(min(vw/1280, vh/800))`, letterboxed. "Always one screen, never
-scrolls" is a **landscape-desktop contract**; below the width threshold the canvas
-is abandoned rather than shrunk illegibly, for a stacked scrolling phone layout
-built from the same instruments (not built yet: today it is a
-rotate-to-landscape notice). Rejected: a fluid responsive grid
-(cannot guarantee no-scroll) and scaling with no floor (fights browser zoom,
-illegible on phones).
+Full text: `git show bc9f08ce:docs/ARCHITECTURE.md` (its `## ADR-015` section)
 
 ## ADR-016
 
@@ -1839,12 +1736,10 @@ illegible on phones).
 
 ### Status
 
-Accepted, and **merged into [ADR-015](#adr-015)** as
-its Dashboard decision 1. The number is kept because code cites it.
+Merged into [ADR-015](#adr-015) as its decision 1. **Superseded by
+[ADR-038](#adr-038)**: Major and Minor slots replace the Dial.
 
 Full text: `git show c2476d1c:docs/adrs/ADR-016-dashboard-rotary-dial-instrument-split.md`
-
-That decision is replaced by [ADR-038](#adr-038) (Major and Minor slots).
 
 ## ADR-017
 
@@ -1852,8 +1747,8 @@ That decision is replaced by [ADR-038](#adr-038) (Major and Minor slots).
 
 ### Status
 
-Accepted, and **merged into [ADR-015](#adr-015)** as
-its Dashboard decision 2. The number is kept because code cites it.
+Merged into [ADR-015](#adr-015) as its decision 2. **Superseded by
+[ADR-038](#adr-038)**, whose §7 restates it.
 
 Full text: `git show c2476d1c:docs/adrs/ADR-017-dashboard-reuse-faithful-srd-display.md`
 
@@ -1863,8 +1758,8 @@ Full text: `git show c2476d1c:docs/adrs/ADR-017-dashboard-reuse-faithful-srd-dis
 
 ### Status
 
-Accepted, and **merged into [ADR-015](#adr-015)** as
-its Dashboard decision 3. The number is kept because code cites it.
+Merged into [ADR-015](#adr-015) as its decision 3. **Superseded by
+[ADR-038](#adr-038)**, whose §8 restates it.
 
 Full text: `git show c2476d1c:docs/adrs/ADR-018-dashboard-instrument-viewfinder-aesthetic.md`
 
@@ -1874,13 +1769,11 @@ Full text: `git show c2476d1c:docs/adrs/ADR-018-dashboard-instrument-viewfinder-
 
 ### Status
 
-Accepted, and **merged into [ADR-015](#adr-015)** as
-its Dashboard decision 4. The number is kept because code cites it.
+Merged into [ADR-015](#adr-015) as its decision 4. **Superseded by
+[ADR-038](#adr-038)**: play state is a per-pilot seat saved on the Game
+(§2), and mount still never reaches a pilot or mech record.
 
 Full text: `git show c2476d1c:docs/adrs/ADR-019-dashboard-play-state-ephemeral.md`
-
-Its play-state decision is reversed by [ADR-038](#adr-038): play state becomes a
-per-pilot seat saved on the Game. Mount still never reaches a pilot or mech record.
 
 ## ADR-020
 
@@ -1888,8 +1781,8 @@ per-pilot seat saved on the Game. Mount still never reaches a pilot or mech reco
 
 ### Status
 
-Accepted, and **merged into [ADR-015](#adr-015)** as
-its Dashboard decision 5. The number is kept because code cites it.
+Merged into [ADR-015](#adr-015) as its decision 5. **Superseded by
+[ADR-038](#adr-038)**, whose §9 restates it.
 
 Full text: `git show c2476d1c:docs/adrs/ADR-020-dashboard-fixed-canvas-scale-to-fit.md`
 
@@ -2032,12 +1925,11 @@ a rule is enforced on which surface_:
   reclassification — the taxonomy already accounts for it.
 - The provenance log and stat-override model that this surface split requires are
   decided separately in [ADR-022](#adr-022).
-- The **Dashboard** (Guided Play) surface has its own design and sub-decisions:
-  [ADR-015](#adr-015) (it is a distinct surface)
-  through [ADR-020](#adr-020), with the full
-  design in [dashboard.md](architecture/dashboard.md). Those instantiate this
-  taxonomy; they do not compete with it (ADR-015 is the Guided-Play instance;
-  ADR-019's play-state obeys the ADR-007 boundary this ADR scopes).
+- The **Dashboard** (Guided Play) surface has its own design in
+  [ADR-038](#adr-038), with the full design in
+  [dashboard.md](architecture/dashboard.md). It instantiates this taxonomy; it
+  does not compete with it (ADR-038 §6 is the Guided-Play surface and obeys the
+  ADR-007 boundary this ADR scopes; §2 is its play state).
 - **Long-tail, out of scope** (all gated on revisiting
   [ADR-001](#adr-001), and none alter this taxonomy):
   - **Shared, live Dashboard** — several players on one Dashboard at once,
@@ -2849,9 +2741,8 @@ constraints:
 
 - They are **applied only by the Dashboard** (Guided Play). No other mode may
   switch one on — activating an effect is a lifecycle transaction.
-- They resolve against **ephemeral play state**, never the persisted entity, per
-  [ADR-019](#adr-019). **Amended by ADR-038:**
-  the play state they resolve against becomes the pilot's seat on the Game. Time does not enter the
+- They resolve against the **pilot's seat on the Game**, never the persisted
+  entity ([ADR-038](#adr-038) §2). Time does not enter the
   data layer; reference data declares _that_ an effect is activated and for how
   long, and play state records _when_.
 
@@ -2924,7 +2815,7 @@ carrier (a prose span) alongside it.
   overrides; amended by this work to make an override an absolute pin.
 - [ADR-026](#adr-026) — entity card design rules; §5's
   rust "modified" language, extended here to prose.
-- [ADR-019](#adr-019) — ephemeral play state, the
+- [ADR-038](#adr-038) §2 — the pilot's seat, the
   home of activated contributions.
 - [ADR-006](#adr-006) — rules as pure functions; breakdowns
   stay pure and side-effect-free.
@@ -3200,10 +3091,9 @@ Enforced in `convex/model/permissions.ts` (`requireTableRunner`) and
 
 The **Mediator gets its own surface**, the layer ADR-021 deferred; the Encounter
 tray is absorbed into it and `/encounter` retires. The player Dashboard's locked
-1280×800 canvas ([ADR-020](#adr-020)) is
-**not** reopened: ~~crew vitals arrive there as a **"Crew" dial item**, using the
-dial track's existing configurable show/hide and order.~~ **Amended by
-ADR-038:** they arrive as a Crew tab in the display.
+1280×800 canvas ([ADR-038](#adr-038) §9) is
+**not** reopened: crew vitals arrive as a Crew tab in the display
+([ADR-038](#adr-038) §4).
 
 **A Game's crew is rendered as the Roster renders a shelf.** `/games/:id` (any
 member) and `/mediator/:id` (the Mediator, who gets the private instruments
@@ -4035,7 +3925,7 @@ included, lost that work.
 Reading is unaffected. A public sheet (ADR-032) and the whole of `srd` remain
 open to anyone with no account at all.
 
-**Discord remains the only door.** ADR-030 §D3 chose it deliberately — the
+**Discord remains the only door.** ADR-030 §1 chose it deliberately — the
 audience already lives there, the project ships a Discord bot, and one identity
 is what makes that bot usable — and gating persistence does not change any of
 that reasoning. The consequence must be stated rather than discovered: **a person
@@ -4939,16 +4829,14 @@ run once against production and deleted (#1132).
 
 ### Status
 
-**Accepted; built.** Every decision below is in code, delivered by the plan in
-[dashboard-redesign.md](architecture/dashboard-redesign.md), now done; the
-Dashboard as built is [dashboard.md](architecture/dashboard.md). One
-consequence fell short: Tailwind-removal P5 (below).
+**Accepted; built.** Every decision below is in code; the Dashboard as built
+is [dashboard.md](architecture/dashboard.md). One consequence fell short:
+Tailwind-removal P5 (below).
 
-**Amends [ADR-015](#adr-015):**
-- It replaces Dashboard decision 1 (the rotary Dial).
-- It reverses decision 4's ephemeral play state. The other half of decision 4
-  stands: mount state never becomes a field on a pilot or mech record.
-- Decisions 2, 3 and 5 are unchanged.
+This is the one Dashboard decision record. **It supersedes [ADR-015](#adr-015)**
+and the five sub-decisions merged into it (ADRs 016–020): §6 to §9 restate the
+ones that stand, Major and Minor slots replace the rotary Dial (§3), and play
+state moves from the device onto the Game (§2).
 
 **Also amends:**
 - [ADR-030](#adr-030) §5: the table runner alone edits a Game's crawler.
@@ -4958,24 +4846,24 @@ consequence fell short: Tailwind-removal P5 (below).
 - [ADR-034](#adr-034)'s "What is not data": mount
   state is no longer a device preference.
 
-It delivers part of [ADR-021](#adr-021)'s long-tail
-"shared, live Dashboard": each player's play state is visible to the crew live.
-It does not put several players on one screen.
+The Dashboard is the Guided Play surface of [ADR-021](#adr-021)'s taxonomy, and
+delivers part of its long-tail "shared, live Dashboard": each player's play
+state is visible to the crew live. It does not put several players on one
+screen.
 
 ### Context
 
-The Dashboard (ADR-015) was built for one player on one device:
+ITUN's live sheet fuses two moments with opposite interaction grammars: editing
+a character (inline edit and scroll) and running it at the table (one screen,
+no scroll, every action a button). Forcing both into one surface produced
+clutter, so the Dashboard was built as a surface of its own.
 
-- Its play state lives in `playStateStore`, which is not persisted and resets
-  on reload. That covers whether the pilot is boarded, the range band, activated
-  effects and the Downtime wizard's step. A player's crewmates can't see any of
-  it, and neither can the same player on another device.
-- It launches from the shelf and in anonymous play as readily as from a Game.
-  Its Downtime wizard keeps its own step, unrelated to the Game's `downtime`
-  row that the Mediator advances.
-- The rotary Dial puts one entity in front and hides the others behind a
-  rotation. During combat, a player has to rotate the Dial to check their
-  pilot's HP while boarded.
+It was built for one player on one device. Its play state (boarded or not, the
+range band, activated effects, the Downtime step) reset on reload and was
+invisible to crewmates and to the same player's other devices. It launched
+from the shelf and in anonymous play as readily as from a Game, and a rotary
+Dial hid every entity but one, so a boarded player rotated it to check their
+pilot's HP.
 
 Since then, Games became the server of record (ADR-030). They have a Mediator
 role, a shared Downtime row, crew vitals, proposals and alerts, and Convex as
@@ -5005,7 +4893,8 @@ There is one **seat** per pilot in a Game, held in Convex. It records:
 - **mount:** on foot, or boarded and in which mech;
 - the **range band**;
 - the **activated effects**;
-- the **action being resolved**, so a reload mid-roll keeps it;
+- the **action being resolved**, so a reload mid-roll keeps it and the crew
+  watches it step by step;
 - whether the pilot **ejected**, until the next Board or Dismount.
 
 Its rules:
@@ -5031,7 +4920,7 @@ deck filters, and open overlays and menus.
 #### 3. Major and Minor slots replace the Dial
 
 The top of the Dashboard is one **Major** slot and two **Minor** slots. Who holds
-Major follows the game:
+Major follows the game, and nothing else moves the slots:
 
 | When | Major | Minor | Minor |
 | --- | --- | --- | --- |
@@ -5065,7 +4954,7 @@ Log and Crew as secondary tabs.
 The Mediator starts, advances and ends Downtime, as `downtime.begin`, `advance`
 and `end` already allow. Every player's Dashboard follows: the Crawler takes
 Major and the step guide replaces the action deck. Each player marks their own
-step done. The Dashboard no longer keeps a Downtime step of its own.
+step done. The Dashboard keeps no Downtime step of its own.
 
 **A Game's crawler is the Mediator's.** Only the Mediator changes it, in
 Downtime and out. That covers Salvage, Craft, Trade, Upkeep, Upgrade, damage
@@ -5076,58 +4965,91 @@ Mediator, the Organizer keeps it (`requireTableRunner`).
 **Boarding never assigns.** Boarding a mech, a spare included, changes only the
 seat, never the pilot's `mech-to-pilot` link.
 
-#### 6. What stands
+#### 6. A surface of its own, sharing the sheets' state
 
-- [ADR-007](#adr-007)'s automation boundary, on every
-  control. Eject still confirms twice, and destruction is still the player's act.
-- [ADR-006](#adr-006)'s pure rules.
-- ADR-015's reuse of the SRD display (decision 2), its flat-and-inset treatment
-  (decision 3) and the fixed 1280×800 canvas (decision 5).
-- A player never writes another player's state.
+The Dashboard is its own surface at `/dashboard/$pilotId`, not a mode of the
+live sheet. The sheets edit a character (Free Edit); the Dashboard runs it at
+the table (Guided Play). Both read and write the **same** records through the
+**same** store and rules engine ([ADR-006](#adr-006), [ADR-003](#adr-003)):
+the Dashboard is a second lens, not a second source of truth. Every control
+obeys [ADR-007](#adr-007): non-destructive bookkeeping (EP, Heat, uses, SP)
+auto-applies, and destructive change (destroying an item, Eject, meltdown) is
+the player's confirmed act. A player never writes another player's state.
+
+#### 7. Reuse the SRD display; the instruments are bespoke
+
+The display renders the same `component-lib` entity display the rest of the
+app shows (`ReferenceEntityCard`, `RollTable`), with entity-level
+interactivity passed as typed `controls`. Only the instruments (gauges, bays,
+slots, buttons) are Dashboard components. One display system means one place
+to fix reference rendering.
+
+#### 8. Flat and inset; only the display reads forward
+
+Instrument surfaces read **recessed** (a mild inset shadow, soft
+entity-tinted borders), and buttons are flat recessed keys. **The display is
+the one element that reads forward** (a solid hard border, no inset). Hue
+encodes ontology, never identity; state is a treatment overlay (hatch, strike,
+redline), never a second hue.
+
+#### 9. A fixed 1280×800 canvas, scaled to fit
+
+The Dashboard is a fixed 1280×800 design canvas scaled with one
+`transform: scale(min(vw/1280, vh/800))` and letterboxed. "Always one screen,
+never scrolls" is a **landscape-desktop contract**. Below a width threshold
+the canvas is abandoned rather than shrunk illegibly; the phone layout built
+from the same instruments is a follow-up, and until then that host gets a
+rotate-to-landscape notice.
 
 ### Alternatives rejected
 
+- **A "play mode" toggle on the sheet.** The layouts are irreconcilable in one
+  component.
+- **A separate app.** It duplicates the data layer and breaks single-store
+  consistency.
 - **Keep play state on the device and broadcast it to the crew.** It would still
   be lost on reload and on a second device. It would also create a second source
   of truth beside Convex, which ADR-034 rules out.
 - **One seat per member.** It breaks the moment a member covers a second pilot.
 - **Mount as a field on the pilot or mech.** It would leak into sheets and
-  public sheets. ADR-015 decision 4 rejected this, and that half of the decision
-  stands.
+  public sheets.
 - **Keep the Dashboard on the shelf and in solo play.** The product owner
   rejected this. The Dashboard is a curated live game, and the live sheet already
   serves solo play.
 - **The Crawler always in a Minor slot.** During Downtime the crew acts through
   the crawler, so it takes Major.
+- **A Dashboard-specific action renderer** that forks the display, rather than
+  §7's reuse.
+- **Skeuomorphic 3D dials, a CRT bend, per-source colour chips** that let hue
+  mean identity, rather than §8.
+- **A fluid responsive grid**, which cannot guarantee no-scroll, and scaling
+  with no floor, which fights browser zoom and is illegible on phones, rather
+  than §9.
 
 ### Consequences
 
 - **Fewer people can use the Dashboard.** Anonymous visitors, shelf play and
-  Games without a Mediator lose it, as [data flow](#data-flow) and
+  Games without a Mediator have none, as [data flow](#data-flow) and
   [combat loop](#combat-loop) say.
-- **There is new server surface.** A `seats` table and its functions are added.
-  Seats are cleaned up when a Game, pilot or account is deleted and when a pilot
-  or mech leaves the Game. Every toggle is a mutation, so the client uses
-  optimistic updates.
-- **An open Dashboard subscribes to more.** It now also watches the seats,
-  the Game's rolls and the Downtime row (ADR-030 already counts an open
-  Dashboard as a live subscription).
-- **Code is deleted.** The Dial, its settings overlay, `cockpitPrefsStore`,
-  `playStateStore`, the launch chooser and stand-in mechs all go.
-  `games.cockpitPrefs` stayed unused until #1132 dropped it.
-- **The Dashboard's Tailwind-removal phase was to be absorbed.** The new
+- **There is server surface.** A `seats` table and its functions. Seats are
+  cleaned up when a Game, pilot or account is deleted and when a pilot or mech
+  leaves the Game. Every toggle is a mutation, so the client uses optimistic
+  updates.
+- **An open Dashboard subscribes to more.** It watches the seats, the Game's
+  rolls and the Downtime row (ADR-030 counts an open Dashboard as a live
+  subscription).
+- **The Dashboard's Tailwind-removal phase was to be absorbed.** The
   components use style objects and add no `.pc-*` class, but 103 `.pc-*`
   classes remain, so [tailwind-removal.md](design-system/tailwind-removal.md)
   P5 is still open.
-- **Players can no longer edit a Game's crawler,** on the Dashboard or the
-  sheet. Until players can send requests to the Mediator in the app, they ask
-  at the table.
-- **Convex gains the rules package** for crew status. That reverses a
-  convention recorded in code comments (Convex "should not grow" it), not an
-  ADR. ADR-006's rule holds: the math stays in the package, and Convex calls
-  it.
-- **Some work moves to follow-ups:** a Mediator Dashboard, the phone layout,
-  and what "claiming" a crew asset means in a Game.
+- **Players cannot edit a Game's crawler,** on the Dashboard or the sheet.
+  Until players can send requests to the Mediator in the app, they ask at the
+  table.
+- **Convex has the rules package** for crew status. ADR-006's rule holds: the
+  math stays in the package, and Convex calls it.
+- **Follow-ups:** a Mediator Dashboard (#1062), the phone layout (#1063), what
+  "claiming" a crew asset means in a Game (#1064), and the bot reading
+  server-derived crew status (#1068).
 
 ## ADR-039
 

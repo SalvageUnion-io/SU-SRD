@@ -12,7 +12,7 @@ Shared React component library consumed by both `srd` and `itun`.
 
 ## Styling
 
-Tailwind is being removed (#802). **The plan, the phases and every piece of
+Tailwind is being removed. **The plan, the phases and every piece of
 evidence behind the rules below live in
 [`docs/design-system/tailwind-removal.md`](../../docs/design-system/tailwind-removal.md)**
 — read it before migrating a component. What an editor of this package needs:

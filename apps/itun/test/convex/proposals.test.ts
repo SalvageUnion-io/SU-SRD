@@ -8,7 +8,7 @@ import { makeUser, mechBody } from './fixtures'
 import { testConvex } from './harness'
 
 /**
- * Propose-and-confirm (D7, D25).
+ * Propose-and-confirm (ADR-030 §4).
  *
  * The thing being protected is that **a Mediator never writes a player's
  * sheet**. So the tests are less about the happy path and more about the ways

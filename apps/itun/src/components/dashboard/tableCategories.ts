@@ -1,5 +1,5 @@
 /**
- * Roll-table categories for the Dashboard Tables picker (D3).
+ * Roll-table categories for the Dashboard Tables picker.
  *
  * Roll tables carry no category field in the reference data, so the 5-column
  * picker (COMBAT / PILOT / SALVAGE / CRAWLER / DOWNTIME) is driven by this

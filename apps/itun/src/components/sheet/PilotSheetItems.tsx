@@ -384,7 +384,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
   )
 }
 
-// Injuries — the "Injuries" slab + `InjuryRow` (redesign D6: no poster
+// Injuries — the "Injuries" slab + `InjuryRow` (the poster redesign: no poster
 // counterpart) were dropped from the pilot sheet body; tracked for a future
 // off-sheet re-home as #408. `Injury`/`injuries` and the max-HP derivation
 // that reads them stay live in lib/rules/derivedStats.ts.

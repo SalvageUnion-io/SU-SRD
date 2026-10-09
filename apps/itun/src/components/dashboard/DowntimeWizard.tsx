@@ -8,7 +8,7 @@
  * SRD p.227-228), one step at a time, rendered through the reused `Content` so it
  * matches the book verbatim, with the relevant SRD roll tables via `RollTable`.
  *
- * **The step is the Game's, not this device's** (plan D8, ADR-038 §5). It is
+ * **The step is the Game's, not this device's** (ADR-038 §5). It is
  * the `downtime` row's `stepIndex`, read through `useDowntime`, so every
  * member's Dashboard shows the same step and moves when the Mediator presses
  * Next step. The step track shows where the table is in the procedure; the
@@ -302,7 +302,7 @@ type DowntimeWizardProps = {
   pilot?: Pilot | null
   /** The Game's Downtime (`useDowntime`): the step, who is done, and the writes. */
   downtime: DowntimeHandle
-  /** The viewer is the Mediator, who moves the table on (plan §8 A1). */
+  /** The viewer is the Mediator, who moves the table on. */
   mediator: boolean
   /** The signed-in viewer (`account.me`), whose pip "I'm done" fills. */
   viewerId: string | null

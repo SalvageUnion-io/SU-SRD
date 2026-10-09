@@ -1,7 +1,7 @@
 /**
  * ResolvePanel — the display's Resolve tab: the action chosen from the deck,
  * and the Activate / Roll / Push / Apply flow that resolves it
- * (docs/architecture/dashboard-redesign.md §4.2).
+ * (docs/architecture/dashboard.md §5.2).
  *
  * Presentational: `useActionsDeck` builds the `ResolveModel` and owns every
  * write, and this only renders it and calls back. The action itself is the

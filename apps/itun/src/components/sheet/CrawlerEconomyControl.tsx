@@ -20,7 +20,7 @@
  * Deterioration is not somebody typing in a box.
  *
  * (The header used to cite "the HeatCheckControl pattern" as precedent. That
- * control was removed from the sheet in the D6 redesign — the precedent is
+ * control was removed from the sheet by the poster redesign — the precedent is
  * gone, the placement decision above is what stands in its place.)
  *
  * ADR-007 automation boundary: deterministic bookkeeping auto-applies — the

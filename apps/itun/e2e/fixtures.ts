@@ -32,7 +32,7 @@ import { waitForReady } from './_helpers'
  *
  * A local `bun run e2e:itun` always has the seam: Playwright boots (or reuses)
  * `bun run dev:itun`, which sets `VITE_TEST_AUTH` on a local Convex deployment.
- * So it needs the one-time "Local backend" setup in `apps/itun/README.md`
+ * So it needs the one-time "Local backend" setup in `.claude/skills/convex-ops/SKILL.md`
  * (`ITUN_TEST_AUTH`, the JWT keys, `SITE_URL`), and its signed-in specs FAIL
  * without it.
  *

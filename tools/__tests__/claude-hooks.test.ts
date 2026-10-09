@@ -5,41 +5,18 @@ import { join } from 'node:path'
 import { GENERATED_PATHS } from '../check-generated'
 
 /**
- * Behaviour tests for the two `PreToolUse` hooks in `.claude/hooks/`.
+ * The agent guards in `.claude/`: the `typecheck-scoped.sh` hook, and the
+ * `deny` rules in `.claude/settings.json` that keep agents off generated files
+ * and other package managers.
  *
- * ## Why these exist
- *
- * Both hooks were written, wired into `settings.json`, and never tested — and
- * both were silently failing open in ways nobody could see from reading them.
- *
- * `protect-generated-files.sh` matched with `[[ "$FILE_PATH" == *"$pattern"* ]]`,
- * which makes a `*` inside the pattern a LITERAL asterisk rather than a glob.
- * Exactly one of its six entries contained a wildcard, and it was the JSON
- * schemas — the file class its own error message is mostly about, and the one
- * CI fails on for drift. So `dist/` was protected twice over and `schemas/` not
- * at all.
- *
- * `enforce-bun.sh` recognised its token only at the start of a line or right
- * after `&&`, `||` or `;`, so `bunx <pm> install` passed — and `Bash(bunx *)`
- * is in the `allow` list, making that the one form permitted by BOTH layers
- * with no prompt.
- *
- * A hook is a guard. An untested guard is a claim.
- *
- * ## Note on the assembled token
- *
- * The package-manager name is built by concatenation throughout. That is not
- * style: this file is edited by agents whose own Bash calls run through
- * `enforce-bun.sh`, and a literal occurrence makes routine commands touching
- * this file unrunnable. (Which is itself evidence the hook works.)
+ * The deny rules are native permission rules, enforced by Claude Code before a
+ * tool runs, so there is no script to drive. What can drift is the list: a new
+ * generated path that no `Edit(...)` rule covers is silently editable. These
+ * tests match each representative path against the rules' globs.
  */
 
 const ROOT = join(import.meta.dir, '..', '..')
 const HOOKS = join(ROOT, '.claude', 'hooks')
-
-const PM = `np${'m'}`
-const PM2 = `yar${'n'}`
-const PM3 = `pnp${'m'}`
 
 async function runHook(script: string, payload: unknown): Promise<number> {
   const proc = Bun.spawn([join(HOOKS, script)], {
@@ -51,102 +28,94 @@ async function runHook(script: string, payload: unknown): Promise<number> {
   return await proc.exited
 }
 
-const bash = (command: string) => runHook('enforce-bun.sh', { tool_input: { command } })
-const edit = (file_path: string) =>
-  runHook('protect-generated-files.sh', { tool_input: { file_path } })
-
-/** PreToolUse blocks on exit 2; 0 allows. */
-const BLOCK = 2
+/** A hook blocks on exit 2; 0 allows. */
 const ALLOW = 0
 
-describe('enforce-bun.sh', () => {
+const settings: { permissions: { deny: string[] } } = await Bun.file(
+  join(ROOT, '.claude', 'settings.json')
+).json()
+const deny = settings.permissions.deny
+
+/** The globs inside the `Edit(...)` deny rules. */
+const editGlobs = deny.flatMap((rule) => /^Edit\((.+)\)$/.exec(rule)?.[1] ?? [])
+const editDenied = (path: string) => editGlobs.some((glob) => new Bun.Glob(glob).match(path))
+
+describe('settings.json deny rules', () => {
   test.each([
-    ['plain', `${PM} install`],
-    ['leading whitespace', `  ${PM} install`],
-    ['after &&', `ls && ${PM} install`],
-    ['after ;', `cd x; ${PM} ci`],
-    ['the second package manager', `${PM2} add foo`],
-    ['the third', `${PM3} i`],
-    // Everything below here passed before the rewrite.
-    ['behind sudo', `sudo ${PM} install`],
-    ['behind bunx — allowed by BOTH layers before', `bunx ${PM} install`],
-    ['in a subshell', `( ${PM} install )`],
-    ['inside a for loop', `for i in 1; do ${PM} i; done`],
-    ['after an env assignment', `x=1 ${PM} install`],
-    ['after a single pipe', `echo hi | ${PM} install`],
-    ['bare, with no arguments', PM],
-    ['in a command substitution', `echo $(${PM} bin)`],
-    ['behind env', `env CI=1 ${PM} test`],
-    // Wrapper and keyword forms a command-position regex missed.
-    ['behind a wrapper with a flag', `sudo -E ${PM} install`],
-    ['behind timeout', `timeout 60 ${PM} install`],
-    ['as an if condition', `if ${PM} test; then echo ok; fi`],
-    ['negated', `! ${PM} test`],
-    ['behind a quoted assignment', `FOO="a b" ${PM} install`],
-    ['behind bun x', `bun x ${PM} install`],
-    ['as an absolute path', `/usr/bin/${PM} install`],
-    ['found through which', `$(which ${PM}) install`],
-    ['versioned behind bunx', `bunx ${PM}@10 install`],
-    ['run through command', `command ${PM} install`],
-    ['after a quoted apostrophe on the same line', `echo "it's"; ${PM} install; echo 'x'`],
-    ['on a later line of a multi-line command', `echo start\n${PM} install`],
-    // A command substitution inside double quotes is code: it runs.
-    ['in a quoted command substitution', `ls "$(${PM} root -g)"`],
-    ['in a quoted substitution in an assignment', `export PATH="$(${PM} bin):$PATH"`],
-    ['through a quoted which', `"$(which ${PM})" install`],
-    ['in a quoted backtick substitution', `echo "\`${PM} bin\`"`],
-    // An apostrophe in a comment must not open a quote that hides later lines.
-    ['after a comment containing an apostrophe', `echo hi # don't do this\n${PM} install`],
-  ])('blocks %s', async (_label, command) => {
-    expect(await bash(command)).toBe(BLOCK)
+    ['a generated JSON schema', 'packages/salvageunion-reference/schemas/chassis.schema.json'],
+    ['the same, absolute', `${ROOT}/packages/salvageunion-reference/schemas/abilities.schema.json`],
+    ['generated lib code', 'packages/salvageunion-reference/lib/generated/registry.generated.ts'],
+    ['the router tree', 'apps/itun/src/routeTree.gen.ts'],
+    ['anything under dist', 'apps/srd/dist/index.html'],
+    ['Convex codegen', 'apps/itun/convex/_generated/api.d.ts'],
+    ['the lockfile', 'bun.lock'],
+    ['the styling baseline', 'tools/styling-baseline.json'],
+    ['the schema catalog', 'packages/salvageunion-reference/schemas/index.json'],
+    ['a build-info file', 'apps/itun/tsconfig.tsbuildinfo'],
+  ])('deny editing %s', (_label, path) => {
+    expect(editDenied(path)).toBe(true)
   })
 
   test.each([
-    ['bun install', 'bun install'],
-    ['bunx for a real one-off', 'bunx wrangler deploy --dry-run'],
-    ['a bun script', 'bun run test'],
-    ['an unrelated command', 'ls node_modules'],
-    // Mentions that are not in command position. The any-whitespace pattern
-    // blocked all of these, which made commit messages, greps and PR bodies
-    // about the rule itself unrunnable.
-    ['a commit message that mentions it', `git commit -m "docs: say ${PM} is banned"`],
-    ['a grep for it', `grep -rn ${PM} docs`],
-    ['an rg for a phrase', `rg -n "${PM} run" apps`],
-    ['a path containing it', `ls node_modules/${PM2}`],
-    ['a cd into a directory named for it', `cd node_modules/${PM2}`],
-    ['a quoted mention after a separator', `git commit -m "a; ${PM} is banned"`],
-    ['an rg alternation', `rg "(${PM}|${PM2})" docs`],
-    ['a lookup through which', `which ${PM}`],
-    ['a lookup through command -v', `command -v ${PM}`],
-    ['a mention in a trailing comment', `rm -f package-lock.json # left by ${PM}`],
-    ['a quoted substitution that is harmless', `git commit -m "fix: $(date) ${PM} note"`],
-    ['a harmless quoted backtick substitution', `git commit -m "built \`date\` without ${PM}"`],
-    // How agents actually write commits and PR bodies: multi-line quoted text
-    // and heredocs. Stripping quotes one line at a time blocked all of these.
     [
-      'a heredoc commit message',
-      `git commit -m "$(cat <<'EOF'\ndocs: explain why\n\n${PM} install; ${PM2} add are banned\nEOF\n)"`,
+      'a Zod schema — the file you SHOULD edit',
+      'packages/salvageunion-reference/lib/schemas/chassis.ts',
     ],
-    [
-      'a multi-line double-quoted PR body',
-      `gh pr create --title x --body "line one\n${PM} install\nline three"`,
-    ],
-    ['a multi-line single-quoted message', `git commit -m 'first\n| ${PM} ci\nlast'`],
-  ])('allows %s', async (_label, command) => {
-    expect(await bash(command)).toBe(ALLOW)
+    ['an app component', 'apps/itun/src/components/Foo.tsx'],
+    ['a tool', 'tools/check-path-filters.ts'],
+    ['a doc', 'docs/README.md'],
+    ['the a11y baseline — new debt is accepted by hand, with a reason', 'tools/a11y-baseline.json'],
+  ])('allow editing %s', (_label, path) => {
+    expect(editDenied(path)).toBe(false)
   })
 
-  test('a quoted token is deliberately NOT caught', async () => {
-    // Documented boundary, asserted so it is a decision rather than a gap
-    // someone rediscovers. Nobody types this by accident; a deliberate evader
-    // can split the token across a concatenation anyway, which no regex closes.
-    // The `deny` entry in settings.json is the real control.
-    expect(await bash(`bash -c "${PM} install"`)).toBe(ALLOW)
+  // Parity with `bun run check generated`. The Record is typed over the
+  // GENERATED_PATHS union, so a new entry there fails typecheck until it is
+  // mapped here — and then this test fails until a deny rule covers it.
+  const REPRESENTATIVE: Record<
+    (typeof GENERATED_PATHS)[number],
+    { file: string; denied: boolean }
+  > = {
+    'packages/salvageunion-reference/schemas': {
+      file: 'packages/salvageunion-reference/schemas/index.json',
+      denied: true,
+    },
+    'packages/salvageunion-reference/lib/generated': {
+      file: 'packages/salvageunion-reference/lib/generated/schemaRegistry.generated.ts',
+      denied: true,
+    },
+    // Only its GENERATED:BEGIN/END span is generated; the rest is hand-written.
+    'packages/salvageunion-reference/lib/index.ts': {
+      file: 'packages/salvageunion-reference/lib/index.ts',
+      denied: false,
+    },
+    'apps/itun/src/routeTree.gen.ts': { file: 'apps/itun/src/routeTree.gen.ts', denied: true },
+    'apps/su-assets/worker-configuration.d.ts': {
+      file: 'apps/su-assets/worker-configuration.d.ts',
+      denied: true,
+    },
+    'apps/discord-bot/worker-configuration.d.ts': {
+      file: 'apps/discord-bot/worker-configuration.d.ts',
+      denied: true,
+    },
+  }
+
+  test.each([...GENERATED_PATHS])('mirrors GENERATED_PATHS entry %s', (path) => {
+    expect(editDenied(REPRESENTATIVE[path].file)).toBe(REPRESENTATIVE[path].denied)
   })
 
-  test('an empty command is allowed rather than erroring', async () => {
-    expect(await runHook('enforce-bun.sh', { tool_input: {} })).toBe(ALLOW)
+  test.each(['npm', 'yarn', 'pnpm'])('denies %s, directly and behind bunx', (pm) => {
+    expect(deny).toContain(`Bash(${pm} *)`)
+    expect(deny).toContain(`Bash(bunx ${pm}*)`)
   })
+
+  test.each(['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml'])(
+    'gitignores a foreign lockfile: %s',
+    async (lockfile) => {
+      const proc = Bun.spawn(['git', 'check-ignore', '-q', '--no-index', lockfile], { cwd: ROOT })
+      expect(await proc.exited).toBe(0)
+    }
+  )
 })
 
 describe('typecheck-scoped.sh', () => {
@@ -229,86 +198,5 @@ describe('typecheck-scoped.sh', () => {
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }
-  })
-})
-
-describe('protect-generated-files.sh', () => {
-  test.each([
-    // The wildcard entry — the whole reason this suite exists. Allowed before.
-    ['a generated JSON schema', 'packages/salvageunion-reference/schemas/chassis.schema.json'],
-    ['the same, absolute', `${ROOT}/packages/salvageunion-reference/schemas/abilities.schema.json`],
-    ['generated lib code', 'packages/salvageunion-reference/lib/generated/registry.generated.ts'],
-    ['the router tree', 'apps/itun/src/routeTree.gen.ts'],
-    ['anything under dist', 'apps/srd/dist/index.html'],
-    // Unlisted before, all silently allowed.
-    ['Convex codegen', 'apps/itun/convex/_generated/api.d.ts'],
-    ['the lockfile', 'bun.lock'],
-    ['the styling baseline', 'tools/styling-baseline.json'],
-    ['the schema catalog', 'packages/salvageunion-reference/schemas/index.json'],
-  ])('blocks %s', async (_label, path) => {
-    expect(await edit(path)).toBe(BLOCK)
-  })
-
-  test.each([
-    [
-      'a Zod schema — the file you SHOULD edit',
-      'packages/salvageunion-reference/lib/schemas/chassis.ts',
-    ],
-    ['an app component', 'apps/itun/src/components/Foo.tsx'],
-    ['a tool', 'tools/check-path-filters.ts'],
-    ['a doc', 'docs/README.md'],
-    ['the a11y baseline — new debt is accepted by hand, with a reason', 'tools/a11y-baseline.json'],
-  ])('allows %s', async (_label, path) => {
-    expect(await edit(path)).toBe(ALLOW)
-  })
-
-  // Parity with `bun run check generated`. The Record is typed over the
-  // GENERATED_PATHS union, so a new entry there fails typecheck until it is
-  // mapped here — and then this test fails until the hook covers it.
-  const REPRESENTATIVE: Record<
-    (typeof GENERATED_PATHS)[number],
-    { file: string; outcome: number }
-  > = {
-    'packages/salvageunion-reference/schemas': {
-      file: 'packages/salvageunion-reference/schemas/index.json',
-      outcome: BLOCK,
-    },
-    'packages/salvageunion-reference/lib/generated': {
-      file: 'packages/salvageunion-reference/lib/generated/schemaRegistry.generated.ts',
-      outcome: BLOCK,
-    },
-    // Only its GENERATED:BEGIN/END span is generated; the rest is hand-written.
-    'packages/salvageunion-reference/lib/index.ts': {
-      file: 'packages/salvageunion-reference/lib/index.ts',
-      outcome: ALLOW,
-    },
-    'apps/itun/src/routeTree.gen.ts': { file: 'apps/itun/src/routeTree.gen.ts', outcome: BLOCK },
-    'apps/su-assets/worker-configuration.d.ts': {
-      file: 'apps/su-assets/worker-configuration.d.ts',
-      outcome: BLOCK,
-    },
-    'apps/discord-bot/worker-configuration.d.ts': {
-      file: 'apps/discord-bot/worker-configuration.d.ts',
-      outcome: BLOCK,
-    },
-  }
-
-  test.each([...GENERATED_PATHS])('mirrors GENERATED_PATHS entry %s', async (path) => {
-    expect(await edit(REPRESENTATIVE[path].file)).toBe(REPRESENTATIVE[path].outcome)
-  })
-
-  test('covers the NotebookEdit payload shape', async () => {
-    // `PreToolUse` matcher `Edit|Write` substring-matches `NotebookEdit`, which
-    // passes `notebook_path` rather than `file_path`. That fell through to the
-    // empty-path early exit, i.e. allowed silently.
-    expect(
-      await runHook('protect-generated-files.sh', {
-        tool_input: { notebook_path: 'apps/srd/dist/x.ipynb' },
-      })
-    ).toBe(BLOCK)
-  })
-
-  test('an empty payload is allowed rather than erroring', async () => {
-    expect(await runHook('protect-generated-files.sh', { tool_input: {} })).toBe(ALLOW)
   })
 })

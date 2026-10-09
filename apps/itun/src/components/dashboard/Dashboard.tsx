@@ -9,30 +9,30 @@
  * (`mech-to-pilot`), which the main half of Board climbs into. The crawler is
  * the pilot's own (`pilot-to-crawler`). Both links resolve through the sheet's
  * `resolveSheetComposition`. A pilot with no assigned mech still plays on
- * foot, and boards one from the Board menu (`BoardControl`, plan D4), which
+ * foot, and boards one from the Board menu (`BoardControl`, ADR-038 §3), which
  * reads the rest of the Game's mechs through `useBoardSources`. Whether this
  * pilot may be played at all is `DashboardGate`'s question, asked before this
  * renders.
  *
  * The top row is the `SlotRow`: one Major slot and two Minors, placed by the
- * mount (docs/architecture/dashboard-redesign.md D1). ⤢ on a Minor opens that
+ * mount (ADR-038 §3). ⤢ on a Minor opens that
  * entity's Major over the display (`SlotOverlay`) without moving the slots.
  *
- * Downtime is the Game's (D8): its `downtime` row, read through
+ * Downtime is the Game's (ADR-038 §5): its `downtime` row, read through
  * `useDowntime`. While a step is running the Crawler is Major and the step
  * guide (`DowntimeWizard`) replaces the deck, on every member's Dashboard at
  * once; when it ends, each player is back wherever their seat says. The
- * Mediator starts and ends it from the rail and moves it on from the guide
- * (plan §8 A1); everyone marks their own step done.
+ * Mediator starts and ends it from the rail and moves it on from the guide;
+ * everyone marks their own step done.
  *
  * Below it, the deck (`DeckList`) sits beside the display's tabs
- * (`DisplayTabs`, D5): an action chosen from the deck opens in the Resolve
+ * (`DisplayTabs`, ADR-038 §4): an action chosen from the deck opens in the Resolve
  * tab, and its progress is saved on the seat (`useActionsDeck`). A strip along
  * the bottom carries the Mediator's latest alert and the proposal count, and
  * the rail says whether play is being saved. What the rest of the table is
  * doing — the Game's rolls, alerts and the crew's derived status — is
  * `useGameFeed`'s.
- * Only the screen's arrangement stays on the device (D7): the open tab, the
+ * Only the screen's arrangement stays on the device (ADR-038 §2): the open tab, the
  * Reference tab's entity, the deck's filters and the ⤢ overlay. So does the
  * deck's one-shot hand-off of a destructive outcome to the Major's Take Damage
  * overlay, which is component state here.
@@ -85,7 +85,7 @@ type DashboardProps = {
   pilotId: string
   /**
    * The viewer is the Mediator of the pilot's Game, who alone runs the crawler
-   * (plan D11) and Downtime (D8). `DashboardGate` reads it from `games.get`,
+   * and Downtime (ADR-038 §5). `DashboardGate` reads it from `games.get`,
    * the membership's own flag.
    */
   mediator?: boolean
@@ -187,9 +187,9 @@ function DashboardView({
   mediator: boolean
 }) {
   const storeState = useEntityStore()
-  // The Crawler is Major while the Game's Downtime has a step running (D1, D8).
+  // The Crawler is Major while the Game's Downtime has a step running.
   const inDowntime = downtime.downtime.running
-  // Screen arrangement stays on the device and resets with the page (D7).
+  // Screen arrangement stays on the device and resets with the page.
   const [tab, setTab] = useState<DisplayTab>('resolve')
   const [reference, setReference] = useState<ReferenceFocus | null>(null)
   // The last Major a ⤢ opened stays set while the overlay closes, so its
@@ -215,7 +215,7 @@ function DashboardView({
   const boarded = boardedId === null ? null : storeState.get('mech', boardedId)
   const mech = boarded ?? composition.mech
   const crawler = composition.crawler
-  // The Major-slot entity drives the whole-canvas tint (proposed ADR-018).
+  // The Major-slot entity drives the whole-canvas tint (ADR-038 §8).
   const mount: MountState = inDowntime ? 'downtime' : boarded ? 'mech' : 'pilot'
 
   const deck = useActionsDeck({
@@ -272,7 +272,7 @@ function DashboardView({
       : null,
     store: storeState,
   }
-  // The Mediator's half of Downtime on the rail: Start, then End (plan §8 A1).
+  // The Mediator's half of Downtime on the rail: Start, then End.
   const downtimeAction = !mediator
     ? undefined
     : isDowntime
@@ -296,7 +296,7 @@ function DashboardView({
   const shownRef: ReferenceFocus =
     reference !== null && referable.some((r) => r.focus === reference) ? reference : majorRef
   const panel = { mech, pilot, crawler, mount, seat }
-  // The Crew tab's rows, and its ▲ when any of them needs looking at (D6).
+  // The Crew tab's rows, and its ▲ when any of them needs looking at.
   const crew = crewLines(feed.crew, sources.seats, pilotId)
   // Choosing an action from the deck opens it in the Resolve tab.
   const { list } = deck

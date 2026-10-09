@@ -44,7 +44,7 @@ type RollTableEntity = PickableTable & {
 export type TableRoll = (tableName: string, key: string, text: string) => void
 
 /**
- * TablesView — the Tables tab (D3): the selected table rendered via the reused
+ * TablesView — the Tables tab: the selected table rendered via the reused
  * `RollTable`, whose header TITLE is the trigger for the 5-column category
  * picker overlay. Self-contained (reads the ORM roll tables). Its rolls go to
  * `onRoll`, which writes them to the Game's log; they used to be a history

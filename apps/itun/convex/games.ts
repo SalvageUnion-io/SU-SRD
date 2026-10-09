@@ -183,7 +183,7 @@ export const create = mutation({
  * looking at the consequence as it happens.
  *
  * Note this is the moment a crawler stops being communal. Inside a Game it has
- * no owner by design (D8); on a shelf it must have one, because an entity with
+ * no owner by design (ADR-030 §5); on a shelf it must have one, because an entity with
  * neither container nor owner is the invalid row. The Organizer does not so
  * much *take* the crawler as become the person it is now filed under.
  *

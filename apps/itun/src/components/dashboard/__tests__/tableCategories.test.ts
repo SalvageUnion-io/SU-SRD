@@ -1,5 +1,5 @@
 /**
- * Tests for the D3 Tables category map — the app-side `name → category`
+ * Tests for the Tables category map — the app-side `name → category`
  * classifier that drives the 5-column picker (roll tables carry no category
  * field). Pure logic: curated map first, then Crawler/Salvage substring rules,
  * then the COMBAT default; grouping always yields all 5 columns.

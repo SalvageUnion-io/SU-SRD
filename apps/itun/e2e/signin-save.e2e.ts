@@ -38,7 +38,7 @@ test.use({ account: 'anonymous' })
  * That job sets `ITUN_E2E_EXPECT_AUTH_SEAM`, which turns the skip into a throw.
  *
  * Run it for real against the local backend (one-time setup: "Local backend"
- * in `apps/itun/README.md`; without it this fails locally). Playwright starts
+ * in `.claude/skills/convex-ops/SKILL.md`; without it this fails locally). Playwright starts
  * `bun run dev:itun`, or reuses a running one, which carries all three:
  *
  *   bun --filter itun exec playwright test signin-save.e2e.ts

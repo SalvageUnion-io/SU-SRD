@@ -35,6 +35,6 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 
 Generated files — `routeTree.gen.ts` from TanStack Router, `schemas/*.schema.json`
 and `lib/generated/` in `salvageunion-reference` — are lint-ignored and must not
-be hand-edited. `.claude/hooks/protect-generated-files.sh` blocks edits to them,
+be hand-edited. `Edit(...)` deny rules in `.claude/settings.json` block edits to them,
 and `bun run check generated` (`tools/check-generated.ts`) fails on drift —
 locally, at pre-push and in CI.

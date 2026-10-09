@@ -128,7 +128,7 @@ type FilledEntityRowProps = {
    * A slot rather than a typed prop for the same reason `actions` is one: what
    * a row is stamped with belongs to the surface listing it. The Game roster
    * stamps ownership here (`UNCLAIMED` / `YOU` / a crewmate's name, ADR-030
-   * D32); a personal roster stamps nothing at all.
+   * §6); a personal roster stamps nothing at all.
    *
    * It is pinned to the header band's top-right corner and taken out of the
    * flow, so nothing on the row can push it elsewhere; the band reserves the
@@ -172,7 +172,7 @@ type FilledEntityRowProps = {
    * Game row may also be picked up, offered back to the crew, or launched into
    * the Dashboard. Teaching this primitive those verbs would push ownership,
    * accounts and routing into a package whose contract is to know about none of
-   * them (the same reasoning as the owner chip's, ADR-030 D32).
+   * them (the same reasoning as the owner chip's, ADR-030 §6).
    */
   actions?: ReactNode
 }

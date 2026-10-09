@@ -18,7 +18,7 @@
  * carry their own frame, so a second frame around them reads as one opaque
  * block.
  *
- * Dropped (redesign D6 — no poster counterpart; tracking issues filed for
+ * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
  *   - `PilotTakeDamageControl` (#406) — Take Damage / Critical Injury loop.
  *   - the Injuries slab + `InjuryRow` (#408) — severity-enum list editor.
@@ -190,7 +190,7 @@ export function PilotSheet({
       aria-label={`${pilot.name} pilot details`}
       // `.sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
-      // width (redesign D7), not the viewport.
+      // width, not the viewport.
       className="sheet-section @container flex flex-col gap-6"
     >
       {/* Dead state (rules A2: max HP 0 = death). Display-only — the record

@@ -40,7 +40,7 @@ export type DeclaredContribution = {
   target?: ContributionTarget
   stacks?: boolean
   voidWhen?: 'damaged' | 'destroyed'
-  /** `activated` applies only while switched on in Guided Play (ADR-019). */
+  /** `activated` applies only while switched on in Guided Play (ADR-038 §2). */
   duration?: 'permanent' | 'activated'
   note?: string
 }

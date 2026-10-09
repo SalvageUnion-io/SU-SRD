@@ -53,11 +53,11 @@ import { entityRefType, softLinkType } from './schema'
  *
  * Reading is per-Game: any member sees every pilot and mech in it, which is
  * what makes crew vitals possible and would let a read-only drill-in be
- * built (D12 — decided, not built).
+ * built (ADR-030 §6: decided, not built).
  *
  * Writing is per-*entity*: only the owner writes their own pilot, and nobody
  * writes a crewmate's. A Mediator wanting to change someone else's sheet goes
- * through a proposal (D7), not through here — there is deliberately no
+ * through a proposal (ADR-030 §4), not through here — there is deliberately no
  * privileged write path in this module.
  *
  * The crawler is the exception, because it belongs to the crew rather than to
@@ -126,7 +126,7 @@ const LINK = {
  * Synchronous and ctx-free on purpose: the answer depends only on the row's
  * own `ownerId`. There is deliberately no lookup that could grant a Mediator a
  * privileged write here — changing someone else's sheet goes through a
- * proposal (D7), and giving this function a ctx would invite exactly that.
+ * proposal (ADR-030 §4), and giving this function a ctx would invite exactly that.
  */
 export function assertMayWrite(doc: Doc<'pilots'> | Doc<'mechs'>, userId: Id<'users'>): void {
   if (doc.ownerId === userId) return
@@ -519,7 +519,7 @@ export const remove = mutation({
  * a campaign look like a bug.
  *
  * There is deliberately no `unassigned` axis **inside a Game**: a crawler there
- * carries `ownerId: null`, which is exactly what communal means (D8). It has
+ * carries `ownerId: null`, which is exactly what communal means (ADR-030 §5). It has
  * no owner from the moment it exists and is never handed to anyone; its fields
  * are the table runner's to fill, as raising and scrapping it are (ADR-038 §5).
  *
@@ -586,12 +586,11 @@ export const removeCrawler = mutation({
 /**
  * Who may write a crawler's body — it depends on which container holds it.
  *
- * In a Game the crawler is the Mediator's (ADR-038 §5, plan D11): Salvage,
+ * In a Game the crawler is the Mediator's (ADR-038 §5): Salvage,
  * Craft, Trade, Upkeep, Upgrade, damage and Scrap a mech are all theirs, and a
- * player asks at the table. It was every member's (ADR-030 D8) until the
- * Dashboard made the Mediator the one who runs Downtime. While a Game has no
- * Mediator the Organizer holds it, as they hold raising and scrapping one
- * (`requireTableRunner`), so a crawler is never left with nobody to keep it.
+ * player asks at the table. While a Game has no Mediator the Organizer holds
+ * it, as they hold raising and scrapping one (`requireTableRunner`), so a
+ * crawler is never left with nobody to keep it.
  * On a shelf it is an ordinary owned entity and only its owner may touch it.
  *
  * Split out from the two call sites rather than inlined at each, because a
@@ -777,7 +776,7 @@ async function writeOwnable(
 
 /**
  * Mirror a local crawler write, addressed by app id, as a **field-level merge**
- * (D19).
+ * (ADR-030 §5).
  *
  * The crawler needs its own mirror because it has no owner in a Game: its
  * writer is the table runner (`assertMayEditCrawler`), not whoever created

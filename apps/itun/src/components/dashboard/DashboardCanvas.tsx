@@ -1,7 +1,7 @@
 /**
  * DashboardCanvas — the fixed 1280×800 design canvas, scaled to fit its host with
- * a single `transform: scale(...)`, letterboxed, never scrolling (ADR-020,
- * merged into ADR-015). It scales linearly to fill the available space: the
+ * a single `transform: scale(...)`, letterboxed, never scrolling (ADR-038
+ * §9). It scales linearly to fill the available space: the
  * host is sized to the viewport height below its own top offset (nothing on the
  * ancestor chain establishes a height, so `h-full` alone would collapse to the
  * canvas's fixed 800px layout box and leave dead space below), then the canvas

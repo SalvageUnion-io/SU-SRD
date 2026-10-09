@@ -36,7 +36,7 @@ import { knownVersion, noteVersion } from './serverVersions'
  *
  * ## Disconnected does not fall back to IndexedDB
  *
- * A signed-in user who loses connectivity is **read-only** (D14), not
+ * A signed-in user who loses connectivity is **read-only** (ADR-030 §1), not
  * quietly-writing-to-IndexedDB. Falling back would fork their data against the
  * server of record and reintroduce, by accident, the conflict resolution the
  * server-of-record decision exists to avoid. Callers check `canWrite` before

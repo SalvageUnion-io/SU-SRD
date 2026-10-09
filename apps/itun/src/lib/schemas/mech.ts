@@ -23,7 +23,7 @@ export const ReactorOverloadOutcomeSchema = z.enum([
 ])
 
 // No `z.infer` type alias here: the only consumer (HeatCheckControl) was
-// dropped by the poster redesign's D6 live-play-panel cut (#407) — the
+// dropped by the poster redesign's live-play-panel cut (#407) — the
 // schema itself (used inline below, and the `lastHeatCheck` field) stays for
 // backward-tolerant reads of previously-saved mechs.
 
@@ -71,7 +71,7 @@ export const CriticalDamageOutcomeSchema = z.enum([
 ])
 
 // No `z.infer` type alias here: the only consumer (TakeDamageControl) was
-// dropped by the poster redesign's D6 live-play-panel cut (#406) — the
+// dropped by the poster redesign's live-play-panel cut (#406) — the
 // schema stays (used inline below) for backward-tolerant reads.
 
 /**

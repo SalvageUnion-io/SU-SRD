@@ -7,7 +7,7 @@ import { requireUser } from './model/permissions'
 import { deleteGameApparatus, releaseSeatsOf } from './model/seats'
 
 /**
- * Account management (ADR-030 §6, D33).
+ * Account management (ADR-030 §6).
  *
  * Holding somebody's Discord identity is an obligation the project did not have
  * before, so the three things that discharge it — read your profile, edit it,
@@ -139,7 +139,7 @@ async function reassignOrganizer(
 }
 
 /**
- * Delete this account and everything personal to it (D27).
+ * Delete this account and everything personal to it.
  *
  * The rule that matters: **a campaign never dies because one person quit.**
  * Games survive, the communal crawler survives, and the Organizer flag passes

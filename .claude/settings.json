@@ -95,6 +95,9 @@
       "Bash(yarn *)",
       "Bash(pnpm *)",
       "Bash(npx *)",
+      "Bash(bunx npm*)",
+      "Bash(bunx yarn*)",
+      "Bash(bunx pnpm*)",
       "Bash(git stash*)",
       "Bash(git push --force *)",
       "Bash(git push --force)",
@@ -113,7 +116,16 @@
       "Bash(git push --mirror*)",
       "Bash(git reset --hard*)",
       "Bash(git worktree remove*)",
-      "Bash(rm -rf *)"
+      "Bash(rm -rf *)",
+      "Edit(**/packages/salvageunion-reference/schemas/**)",
+      "Edit(**/packages/salvageunion-reference/lib/generated/**)",
+      "Edit(**/routeTree.gen.ts)",
+      "Edit(**/worker-configuration.d.ts)",
+      "Edit(**/dist/**)",
+      "Edit(**/*.tsbuildinfo)",
+      "Edit(**/apps/itun/convex/_generated/**)",
+      "Edit(**/bun.lock)",
+      "Edit(**/tools/styling-baseline.json)"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -126,28 +138,6 @@
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/typecheck-scoped.sh",
             "statusMessage": "Typechecking the repo..."
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/protect-generated-files.sh",
-            "statusMessage": "Checking for protected files..."
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/enforce-bun.sh",
-            "statusMessage": "Checking package manager..."
           }
         ]
       }

@@ -1,6 +1,6 @@
 /**
  * ⤢ on a Minor opens that entity's Major over the display, as a modal, without
- * moving the slots (docs/architecture/dashboard-redesign.md D3).
+ * moving the slots (ADR-038 §3).
  *
  * The overlay is a ModalShell portalled into the display region, inside the
  * scaled canvas: it takes focus, closes on Escape, and hands focus back to the

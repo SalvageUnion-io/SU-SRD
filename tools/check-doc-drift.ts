@@ -87,9 +87,8 @@ function liveInstructionDocs(root: string): string[] {
   return [
     'CLAUDE.md',
     'README.md',
-    'CONTRIBUTING.md',
     'docs/ARCHITECTURE.md',
-    ...workspaceDirs(root).flatMap((ws) => [`${ws}/CLAUDE.md`, `${ws}/README.md`]),
+    ...workspaceDirs(root).map((ws) => `${ws}/CLAUDE.md`),
     ...LIVE_INSTRUCTION_DOC_DIRS.flatMap((dir) => markdownIn(root, dir)),
   ].filter((doc) => existsSync(join(root, doc)))
 }
@@ -812,9 +811,10 @@ const CHECKS = [
 
 if (import.meta.main) {
   // A collapsed corpus (a renamed doc directory) would pass every check. The floor is
-  // floor(0.65 × N) for N = 36, the count when docs/architecture/ became docs/ARCHITECTURE.md.
+  // floor(0.65 × N) for N = 21, the count once the workspace READMEs, CONTRIBUTING.md
+  // and the done plans in docs/architecture/ were cut (#1149).
   const liveDocs = liveInstructionDocs(repoRoot)
-  assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 23)
+  assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 13)
   console.log(`  (${liveDocs.length} live-instruction docs scanned)`)
 
   const failures: string[] = []

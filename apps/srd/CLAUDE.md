@@ -17,7 +17,7 @@ ephemerally/non-editably
 - **Output:** Static HTML (no server runtime, no SSR at request time, no auth,
   no backend)
 - **UI:** `component-lib` components and theme (Tailwind v4 while
-  [#802](../../docs/design-system/tailwind-removal.md) runs)
+  [its removal](../../docs/design-system/tailwind-removal.md) runs)
 - **Components:** Shared components from `component-lib`; React islands for
   interactivity
 - **Game data:** `salvageunion-reference` workspace package

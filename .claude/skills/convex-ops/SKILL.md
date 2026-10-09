@@ -24,6 +24,33 @@ alex-jarvis:suref-itun:prod`). There is no cloud dev deployment: without
 runs. Confirm which one you mean before running anything, and say so in your
 report.
 
+## Local backend
+
+`bun run dev:itun` runs `convex dev --start vite` on a local deployment: it
+pushes `convex/` on every save and writes `CONVEX_DEPLOYMENT`,
+`VITE_CONVEX_URL` and `VITE_CONVEX_SITE_URL` into `apps/itun/.env.local`. It
+signs in through the test seam, not Discord: the `dev` script sets
+`VITE_TEST_AUTH=true`, and the deployment needs `ITUN_TEST_AUTH`. Production
+has neither. One-time setup, from `apps/itun`:
+
+```bash
+# Pick a local deployment. Not signed in to Convex: run `bun run dev:itun` and
+# choose "Start without an account (run Convex locally)". Signed in, or with a
+# .env.local that names a cloud deployment:
+bunx convex dev --configure existing --team alex-jarvis --project suref-itun \
+  --dev-deployment local --once
+
+# Then, with `bun run dev:itun` running, in a second terminal:
+bunx @convex-dev/auth --web-server-url http://localhost:5173   # SITE_URL + JWT keys
+bunx convex env set ITUN_TEST_AUTH true
+```
+
+To sign in, run `await __itunTestSignIn('<any email>', '<8+ char password>')`
+in the browser console on `http://localhost:5173`. Each call signs up a new
+password account (a repeated email is refused), and the session survives
+reloads. `bun run e2e:itun` starts `dev:itun` itself (or reuses a running one),
+so its signed-in specs fail until this setup is done.
+
 ## Secrets never touch argv or stdout
 
 - **Pipe a secret in on stdin; never pass it as an argument.** A PEM begins

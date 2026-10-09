@@ -37,9 +37,9 @@ bun install              # first-time setup (generated files are committed; no c
 bun run dev              # srd dev server (ssg/dev.ts, same render path as prod)
 bun run dev:itun         # ITUN dev server on a local Convex backend
 
-bun run check:fast       # ~12s inner loop: every gate except the suite, the network
+bun run check:fast       # the inner loop: every gate except the suite, the network
                          # and regeneration
-bun run check            # THE full gate (~35s), every check in tools/check.ts in parallel,
+bun run check            # THE full gate: every check in tools/check.ts in parallel,
                          # ending in a pass/fail table
 bun run check <id> …     # just those checks (`--list` names them: data, styling, workflows, …)
 bun run test             # full suite, each workspace with its own bunfig — what CI runs
@@ -51,7 +51,7 @@ bun run build            # package + srd + ITUN (the bot has no build; wrangler 
 bun run deploy-commands[:global]   # Discord slash commands: test guild / production
 ```
 
-- **Bare `--parallel` and `--isolate` stay banned**: both are measured regressions (ITUN `--parallel=4`, which implies `--isolate`, took 17.4 s against 16.9 s serial). `--parallel=N --no-isolate` is the measured win, and ITUN's `test` script uses it (16.5 s → ~6 s); `--changed` is the other flag that helps. Leave `test:coverage` serial: parallel coverage writes different lcov line counts.
+- **Bare `--parallel` and `--isolate` stay banned**: both measured slower than serial (`--parallel` implies `--isolate`). `--parallel=N --no-isolate` is the measured win, and ITUN's `test` script uses it; `--changed` is the other flag that helps. Leave `test:coverage` serial: parallel coverage writes different lcov line counts.
 - **A gate failed?** Its fix prints under the failure banner; `bun run check --list` shows every check's. [`tools/CLAUDE.md`](tools/CLAUDE.md) maps checks to scripts and baselines. **Adding a gate** means adding it to the registry in `tools/check.ts` — `bun run check`, pre-push and CI all read that one list.
 - **Dependencies:** read [dependencies](docs/ARCHITECTURE.md#dependencies) before touching `package.json`, `bunfig.toml` or `overrides`. In short: Bun deps are updated by hand, Actions by Dependabot; `bun run audit` (any severity, no `--ignore`) gates every PR that changes `bun.lock` or a `package.json` and runs nightly; `bunfig.toml` refuses versions under three days old and makes `bun add` pin exactly. A shared dev tool is a root devDependency; a shared runtime package is a root `catalog:` entry.
 - **Profiling:** use Bun's markdown profiles into the gitignored `.profiles/` (`bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles <script>`, `--heap-prof-md` likewise). `bun build --metafile-md` needs `--outdir`, or it prints the bundle to stdout.
@@ -108,7 +108,7 @@ For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `la
 ## `.claude/`
 
 - **Rules** (`.claude/rules/`) load automatically by `paths:` when you touch matching files — testing, the display system, the ITUN router and data access, the Discord bot, and workspace manifests. There is nothing to open by hand.
-- **Skills** (`.claude/skills/`) encode decision procedures: `/stacked-pr` (recover a stacked PR after its parent squash-merges — never plain `--force`), `/triage`, `/component-refresh`, `/knip-triage` (delete by default), `/convex-ops`. There is no `/commit` skill; use the commit plugin.
+- **Skills** (`.claude/skills/`) encode decision procedures: `/triage`, `/component-refresh`, `/knip-triage` (delete by default), `/convex-ops`. There is no `/commit` skill; use the commit plugin.
 
 ## External Integrations & MCP Servers
 
@@ -120,4 +120,6 @@ The registry — ids, deployments, dashboards, how each server authenticates —
 
 ## Merging
 
-`main` requires linear history and status checks; there is **no merge queue**. Merge with `gh pr merge <pr> --squash` (or `--auto --squash`). The squash body is the PR body (repo setting `PR_BODY`); `git log --format='%h %s%n%b'` is the decision record. Squash-merge plus `delete_branch_on_merge` is why stacked PRs need `/stacked-pr`.
+`main` requires linear history and status checks; there is **no merge queue**. Merge with `gh pr merge <pr> --squash` (or `--auto --squash`). The squash body is the PR body (repo setting `PR_BODY`); `git log --format='%h %s%n%b'` is the decision record.
+
+Dependent PRs land only as a `gh stack`: `submit --auto --open`, then `merge --squash`. After a merge beneath you, `gh stack sync`; never a hand rebase or `--force`. Stack state is per worktree (`gh stack checkout <pr|branch>` re-attaches; `init` needs its branch argument).

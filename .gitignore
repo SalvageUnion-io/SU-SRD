@@ -6,6 +6,11 @@ logs
 # Dependencies
 node_modules
 **/node_modules
+# Another package manager's lockfile: bun.lock is the only one, so a stray
+# install's lockfile never reaches a commit.
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # Build outputs
 dist

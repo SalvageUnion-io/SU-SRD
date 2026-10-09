@@ -1,6 +1,6 @@
 /**
  * SavedIndicator — the rail's word on whether play is being saved
- * (docs/architecture/dashboard-redesign.md §4.2): the seat, the rolls and every
+ * (docs/architecture/dashboard.md §2): the seat, the rolls and every
  * sheet write go to the Game while connected, and nothing does while offline,
  * when the Dashboard is read-only (ADR-030 §1).
  *

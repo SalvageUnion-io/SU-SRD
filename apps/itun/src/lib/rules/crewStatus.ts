@@ -18,7 +18,7 @@ import { pilotingContext } from './pilotingContext'
 
 /**
  * A crewmate's derived maxima and status, computed one way for every surface
- * (docs/architecture/dashboard-redesign.md D6, §8 A3).
+ * (ADR-038 §4).
  *
  * The server serves these to the whole crew (`crew.vitals`, read by the Crew
  * tab), and the Dashboard's own slots read the same maxima (`slotModels.ts`),

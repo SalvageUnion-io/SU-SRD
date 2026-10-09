@@ -55,7 +55,7 @@ async function clickAndSettle(el: HTMLElement): Promise<void> {
 }
 
 describe('Major slot rules buttons', () => {
-  test('Vent writes Heat 0 + Vulnerable (no auto-shutdown; Vent ≠ Shutdown, plan §5.1)', async () => {
+  test('Vent writes Heat 0 + Vulnerable (no auto-shutdown; Vent ≠ Shutdown, dashboard.md §5.1)', async () => {
     const { store, calls } = stubStore([mech])
     render(
       <SlotRow

@@ -8,7 +8,7 @@ import { ConvexPending } from '../shared/ConvexPending'
 import { SignInControl } from './SignInControl'
 
 /**
- * The settings screen (D33), at `/settings`: profile, export, delete.
+ * The settings screen (ADR-030 §6), at `/settings`: profile, export, delete.
  *
  * It was the "account" page at `/account`, which now redirects here
  * (`routes/account.tsx`), so old links and the Discord bot's still land. It

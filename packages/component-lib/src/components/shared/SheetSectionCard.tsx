@@ -1,5 +1,5 @@
 /**
- * SheetSectionCard — the poster `.dcard` section container (redesign D5).
+ * SheetSectionCard — the poster `.dcard` section container (the poster redesign).
  *
  * Composes the shared `Card` (never a hand-rolled div) into the poster's
  * accent-framed section card:

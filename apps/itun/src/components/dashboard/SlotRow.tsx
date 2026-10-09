@@ -1,6 +1,6 @@
 /**
  * SlotRow — the Dashboard's top row: one Major slot and two Minor slots
- * (docs/architecture/dashboard-redesign.md D1–D3).
+ * (ADR-038 §3).
  *
  * Which entity holds the Major is the mount, and nothing else (`slotsFor` in
  * `slotLayout.ts`). The mount comes from the pilot's seat, and Downtime from
@@ -61,9 +61,9 @@ export type SlotEntities = {
   boarded: boolean
   /** The pilot's seat: Board, Dismount, Eject and the activated effects. */
   seat: SeatHandle
-  /** What the Pilot's Board control offers (`boardMenu.ts`, D4). */
+  /** What the Pilot's Board control offers (`boardMenu.ts`). */
   board: BoardMenu
-  /** The viewer is the Game's Mediator, who alone runs the crawler (D11). */
+  /** The viewer is the Game's Mediator, who alone runs the crawler. */
   mediator: boolean
   /** This Downtime's Upkeep, while one is running; null or absent otherwise. */
   upkeep?: CrawlerUpkeep | null
