@@ -28,7 +28,7 @@ export function EntityDetailDialog({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/60 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
+        <Dialog.Backdrop className="su-backdrop" />
         <Dialog.Popup className="fixed inset-0 z-50 m-auto h-fit w-full max-w-6xl bg-transparent px-3 outline-none">
           {/* Overflow lives on the inner scroll wrapper so the close button
               (a sibling) isn't clipped by it. The scroll wrapper's pt-3 leaves

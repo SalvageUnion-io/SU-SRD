@@ -19,7 +19,7 @@
 import type { ReferenceEntityControl } from 'component-lib'
 import { ControlButtons, ReferenceEntityCard, RollTable } from 'component-lib'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
@@ -58,6 +58,8 @@ function TablesView({ onRoll }: { onRoll?: TableRoll }) {
   const tables: RollTableEntity[] = SalvageUnionReference.RollTables.all()
   const [tableId, setTableId] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
+  // The picker covers this tab (`.pc-tables` is its positioning context).
+  const pickerHost = useRef<HTMLDivElement>(null)
 
   const selected =
     // Indexed lookups, not scans over `tables`: `BaseModel` builds an id/name
@@ -68,7 +70,7 @@ function TablesView({ onRoll }: { onRoll?: TableRoll }) {
     tables[0]
 
   return (
-    <div className="pc-display-scroll pc-tables">
+    <div ref={pickerHost} className="pc-display-scroll pc-tables">
       {selected ? (
         <RollTable
           table={selected.table}
@@ -81,14 +83,14 @@ function TablesView({ onRoll }: { onRoll?: TableRoll }) {
         <div className="pc-display-note">Roll tables load here.</div>
       )}
 
-      {pickerOpen ? (
-        <TablePickerOverlay
-          tables={tables}
-          selectedId={selected?.id ?? null}
-          onPick={setTableId}
-          onClose={() => setPickerOpen(false)}
-        />
-      ) : null}
+      <TablePickerOverlay
+        open={pickerOpen}
+        container={pickerHost}
+        tables={tables}
+        selectedId={selected?.id ?? null}
+        onPick={setTableId}
+        onClose={() => setPickerOpen(false)}
+      />
     </div>
   )
 }

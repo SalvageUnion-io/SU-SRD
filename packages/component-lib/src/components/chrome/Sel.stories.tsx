@@ -3,6 +3,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
+import { RadioCardGroup } from './RadioCardGroup'
 import { Sel } from './Sel'
 
 export default {
@@ -54,7 +55,7 @@ export const Default: Story = () => {
       </div>
       <div>
         <Caption>interactive — radio (aria-checked)</Caption>
-        <div role="radiogroup" aria-label="Pilot class" className="flex flex-col gap-3">
+        <RadioCardGroup label="Pilot class" className="flex flex-col gap-3">
           {[pilotClassA, pilotClassB].map((pilotClass) => (
             <Sel
               key={pilotClass.name}
@@ -66,7 +67,7 @@ export const Default: Story = () => {
               <ReferenceEntityCard data={pilotClass} size="medium" />
             </Sel>
           ))}
-        </div>
+        </RadioCardGroup>
       </div>
     </div>
   )

@@ -95,7 +95,8 @@ export type ReferenceEntityCardProps = {
    * Selection a11y for a whole-card toggle (picker cells). When set alongside
    * `selected` + a card click, the interactive wrapper announces the selection
    * state natively: `'toggle'` → `role="button"` + `aria-pressed`, `'radio'` →
-   * `role="radio"` + `aria-checked` (pair with a `role="radiogroup"` parent).
+   * a `RadioCard` (`role="radio"` + `aria-checked`; put it in a
+   * `RadioCardGroup`, or MasonryColumns' `radio`, for the arrow keys).
    * Navigation/add cards leave it unset and stay a plain `role="button"`.
    */
   selectionRole?: 'toggle' | 'radio'

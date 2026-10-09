@@ -133,10 +133,15 @@ export function GlobalSearch({ fabHidden = false }: GlobalSearchProps) {
   }, [])
 
   // Reopening keeps the last query, a quick way back to it, but selected, so
-  // typing replaces it instead of appending ("bionic" + "mech"). Runs after the
-  // Fab's own effect has focused the input.
+  // typing replaces it instead of appending ("bionic" + "mech"). The Fab moves
+  // focus into the panel after it opens, so the selection is made when that
+  // focus lands (a later click into the field places a caret as usual).
+  const selectOnFocus = useRef(false)
   useEffect(() => {
-    if (open) inputRef.current?.select()
+    if (!open) return
+    const field = inputRef.current
+    if (field !== null && document.activeElement === field) field.select()
+    else selectOnFocus.current = true
   }, [open])
 
   // The arrow keys follow the screen, and the screen is upside down relative to
@@ -235,6 +240,11 @@ export function GlobalSearch({ fabHidden = false }: GlobalSearchProps) {
             value={query}
             onChange={(e) => handleInput(e.target.value)}
             onKeyDown={onInputKeyDown}
+            onFocus={(e) => {
+              if (!selectOnFocus.current) return
+              selectOnFocus.current = false
+              e.currentTarget.select()
+            }}
             {...inputProps}
             aria-label={LABEL}
             aria-expanded={hasSearched && results.length > 0}

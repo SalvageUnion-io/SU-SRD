@@ -5,7 +5,7 @@
  * pure. The nodes they feed are `CardTopRail` and `HeaderHint`.
  */
 
-import type { CSSProperties, HTMLAttributes } from 'react'
+import type { CSSProperties } from 'react'
 import type { SURefMetaEntity, SURefObjectContentBlock } from 'salvageunion-reference'
 import { isAbility, parseContentBlockString } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
@@ -13,6 +13,7 @@ import { activateOnKey, FOCUS_RING } from '../../chrome/interaction'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import type { OnToneText } from '../referenceEntityHelpers'
 import { accentDeepColor, borderColorFromHeaderBg, onToneText } from '../referenceEntityHelpers'
+import type { CardOuterProps } from './CardOuter'
 import type { DomainTone } from './entityCardTone'
 import { ghostActionTone } from './entityCardTone'
 import { firstParagraphText } from './firstParagraphText'
@@ -124,8 +125,7 @@ export function resolveCardInteraction({
   selected: boolean | undefined
   frameColor: string
 }): {
-  outerClassName: string
-  outerInteraction: HTMLAttributes<HTMLDivElement>
+  outer: CardOuterProps
   frameStyle: CSSProperties
 } {
   const resolvedCardClick = onCardClick ?? controls?.find((c) => c.cardClick)?.onClick
@@ -140,25 +140,33 @@ export function resolveCardInteraction({
     className,
     cardStyle?.className
   )
-  // Base a11y for a clickable card. A selection toggle (selectionRole set)
-  // additionally announces its state: radio → role=radio + aria-checked, toggle
-  // → aria-pressed. `cardClickLabel` gives the wrapper an accessible name (the
-  // entity title) instead of its full text content. Navigation/add cards leave
-  // both unset and stay a plain role=button, byte-identical to before.
-  const outerInteraction = resolvedCardClick
-    ? {
-        role: selectionRole === 'radio' ? ('radio' as const) : ('button' as const),
-        tabIndex: 0,
-        onClick: resolvedCardClick,
-        onKeyDown: activateOnKey(resolvedCardClick),
-        ...(cardClickLabel ? { 'aria-label': cardClickLabel } : {}),
-        ...(selectionRole && selected !== undefined
-          ? selectionRole === 'radio'
-            ? { 'aria-checked': selected }
-            : { 'aria-pressed': selected }
-          : {}),
-      }
-    : {}
+  // Base a11y for a clickable card. A selection toggle announces its state:
+  // `toggle` → role=button + aria-pressed; `radio` → a `RadioCard`
+  // (role=radio + aria-checked, and the arrow keys inside a `RadioCardGroup`).
+  // `cardClickLabel` gives the wrapper an accessible name (the entity title)
+  // instead of its full text content. Navigation/add cards leave both unset and
+  // stay a plain role=button.
+  const label = cardClickLabel ? { 'aria-label': cardClickLabel } : {}
+  const outer: CardOuterProps =
+    resolvedCardClick && selectionRole === 'radio'
+      ? {
+          className: outerClassName,
+          interaction: label,
+          radio: { selected: !!selected, onSelect: resolvedCardClick },
+        }
+      : {
+          className: outerClassName,
+          interaction: resolvedCardClick
+            ? {
+                role: 'button' as const,
+                tabIndex: 0,
+                onClick: resolvedCardClick,
+                onKeyDown: activateOnKey(resolvedCardClick),
+                ...label,
+                ...(selectionRole && selected !== undefined ? { 'aria-pressed': selected } : {}),
+              }
+            : {},
+        }
   // Selection state — the canonical rust SELECTION_RING (chrome/interaction.ts),
   // the same 3px rust border the wizard Sel/PickCard draw. A non-layout-shifting
   // box-shadow that reads as a border, sitting just outside the 3px tone frame.
@@ -173,7 +181,7 @@ export function resolveCardInteraction({
     borderLeftWidth: '3px',
   }
   const frameStyle = selected ? { ...frame, boxShadow: '0 0 0 3px var(--color-rust)' } : frame
-  return { outerClassName, outerInteraction, frameStyle }
+  return { outer, frameStyle }
 }
 
 /**

@@ -56,6 +56,9 @@ export { PageHeading } from './components/chrome/PageHeading'
 // PageShell — the full-bleed <main> landmark for a top-level app screen
 export { PageShell } from './components/chrome/PageShell'
 export { Panel, Row } from './components/chrome/Panel'
+// RadioCardGroup — the radiogroup around an exactly-one picker's cards (Base UI
+// RadioGroup): one tab stop, arrow keys between the cards
+export { RadioCardGroup } from './components/chrome/RadioCardGroup'
 export { SectionHeader } from './components/chrome/SectionHeader'
 export { Sel } from './components/chrome/Sel'
 export { Slab } from './components/chrome/Slab'
@@ -137,6 +140,9 @@ export { ModalShell } from './components/shared/ModalShell'
 export type { NavDrawerItem } from './components/shared/NavDrawer'
 export { NavDrawer } from './components/shared/NavDrawer'
 export { OffRulesEscape } from './components/shared/OffRulesEscape'
+// PopoverPanel — a trigger and the small non-modal panel of controls it opens
+// (Base UI Popover); ITUN's sheet "⋯" overflow
+export { PopoverPanel } from './components/shared/PopoverPanel'
 // The searcher picker's modal width — for a bare ModalShell wrapping a
 // multi-select EntitySearcher (SheetPickerModal applies it itself).
 export { PICKER_MODAL_WIDTH } from './components/shared/pickerModalWidth'

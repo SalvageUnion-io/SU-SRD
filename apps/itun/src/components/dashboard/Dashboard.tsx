@@ -46,7 +46,7 @@ import { buttonVariants } from 'component-lib'
 import '../../styles/dashboard.css'
 import { borderWidth, color } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { isUpkeepStep } from '../../lib/rules/downtime'
 import { useEntityStore } from '../../stores/entityStore'
@@ -192,7 +192,12 @@ function DashboardView({
   // Screen arrangement stays on the device and resets with the page (D7).
   const [tab, setTab] = useState<DisplayTab>('resolve')
   const [reference, setReference] = useState<ReferenceFocus | null>(null)
+  // The last Major a ⤢ opened stays set while the overlay closes, so its
+  // content and the ⤢ that focus returns to outlive the close.
   const [expanded, setExpanded] = useState<Expanded | null>(null)
+  const [overlayOpen, setOverlayOpen] = useState(false)
+  // The display region the ⤢ overlay covers.
+  const displayRef = useRef<HTMLDivElement>(null)
   // The deck's Apply arms it; the slot row's Major opens Take Damage and consumes it.
   const [damageArmed, setDamageArmed] = useState(false)
   const pilot = storeState.get('pilot', pilotId)
@@ -343,11 +348,14 @@ function DashboardView({
             {...slots}
             mount={mount}
             damagePrompt={{ armed: damageArmed, consume: () => setDamageArmed(false) }}
-            onExpand={(kind, trigger) => setExpanded({ kind, trigger })}
+            onExpand={(kind, trigger) => {
+              setExpanded({ kind, trigger })
+              setOverlayOpen(true)
+            }}
           />
         }
         display={
-          <div style={DISPLAY}>
+          <div ref={displayRef} style={DISPLAY}>
             {isDowntime ? (
               <div style={DISPLAY_BODY}>
                 <DowntimeWizard
@@ -396,15 +404,17 @@ function DashboardView({
               alerts={feed.alerts}
               inbox={feed.inbox}
             />
-            {expanded ? (
-              <SlotOverlay
-                title={`${SLOT_LABEL[expanded.kind]} · ${expandedName}`}
-                returnFocusTo={expanded.trigger}
-                onClose={() => setExpanded(null)}
-              >
+            <SlotOverlay
+              open={overlayOpen}
+              title={expanded ? `${SLOT_LABEL[expanded.kind]} · ${expandedName}` : ''}
+              container={displayRef}
+              returnFocusTo={expanded?.trigger ?? null}
+              onClose={() => setOverlayOpen(false)}
+            >
+              {expanded ? (
                 <SlotMajor {...slots} kind={expanded.kind} mount={mount} damagePrompt={null} />
-              </SlotOverlay>
-            ) : null}
+              ) : null}
+            </SlotOverlay>
           </div>
         }
       />

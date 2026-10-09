@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react'
 import { Children, useSyncExternalStore } from 'react'
+import { RadioCardGroup } from '../chrome/RadioCardGroup'
+
+const FLOW = 'flex items-start gap-4 print:block'
 
 type MasonryColumnsProps = {
   children: ReactNode
@@ -10,9 +13,10 @@ type MasonryColumnsProps = {
    */
   maxColumns?: number
   /**
-   * Radio-group semantics for exactly-one pickers: wrap the flow in
-   * `role="radiogroup"`. Pair with `ReferenceEntityCard` / `Sel` cells using
-   * `selectionRole="radio"`, and pass an accessible group name via `ariaLabel`.
+   * Radio-group semantics for exactly-one pickers: the flow is a
+   * `RadioCardGroup`. Pair with `ReferenceEntityCard` cells using
+   * `selectionRole="radio"` / `Sel` cells using `radio`, and pass an accessible
+   * group name via `ariaLabel`.
    */
   radio?: boolean
   /** Accessible name for the radiogroup (required when `radio` is set). */
@@ -79,17 +83,18 @@ export function MasonryColumns({
     columns[i % columnCount]?.push(child)
   })
 
-  return (
-    <div
-      className="flex items-start gap-4 print:block"
-      {...(radio ? { role: 'radiogroup', 'aria-label': ariaLabel } : {})}
-    >
-      {columns.map((col, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: columns are positional buckets — the index IS their identity
-        <div key={i} className="flex min-w-0 flex-1 flex-col gap-4 print:w-full">
-          {col}
-        </div>
-      ))}
+  const flow = columns.map((col, i) => (
+    // biome-ignore lint/suspicious/noArrayIndexKey: columns are positional buckets — the index IS their identity
+    <div key={i} className="flex min-w-0 flex-1 flex-col gap-4 print:w-full">
+      {col}
     </div>
+  ))
+
+  return radio ? (
+    <RadioCardGroup label={ariaLabel ?? ''} className={FLOW}>
+      {flow}
+    </RadioCardGroup>
+  ) : (
+    <div className={FLOW}>{flow}</div>
   )
 }
