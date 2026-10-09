@@ -373,6 +373,30 @@ describe('an ordinary cache is never sent', () => {
     expect(screen.queryByText(/could not be moved/i)).toBeNull()
   })
 
+  test('a sign-out in another tab drops the rows this tab loaded', async () => {
+    // There is no tab-to-tab channel: this tab sees only its own session end.
+    // The tab that signed out empties the shared database; this one must
+    // still let go of what it holds in memory.
+    await db.writeCacheMeta({ origin: 'cache', userId: 'user-a' })
+    setQueryAnswers(
+      answers({
+        'entities:listMine': {
+          ...EMPTY_ROSTER,
+          pilots: [{ appId: 'p1', updatedAt: 1, body: pilotFixture({ id: 'p1' }) }],
+        },
+      })
+    )
+    authed = true
+    const view = render(<Tree />)
+    await waitFor(() => expect(useEntityStore.getState().pilots.map((p) => p.id)).toEqual(['p1']))
+
+    await signOut(view)
+
+    await waitFor(() => expect(useEntityStore.getState().pilots).toEqual([]))
+    // The database is the signing-out tab's to empty, not this one's.
+    expect((await db.pilots.list()).map((p) => p.id)).toEqual(['p1'])
+  })
+
   test('a newer version of a cached build is adopted, though no id changed', async () => {
     await db.writeCacheMeta({ origin: 'cache', userId: 'user-a' })
     const served = (name: string, updatedAt: number) =>

@@ -44,7 +44,7 @@ import { useMutation, useQuery } from 'convex/react'
 import type { Dispatch, RefObject, SetStateAction } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
-import { claimCacheFor } from '../../lib/account/cacheOwner'
+import { claimCacheFor, forgetLoadedRows } from '../../lib/account/cacheOwner'
 import { countStranded, selectStranded } from '../../lib/account/legacyMigration'
 import { reconcile } from '../../lib/account/reconcile'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -272,11 +272,20 @@ export function AccountReconciler() {
   // automatic pass (a mount that finds a failure on screen waits for "Try
   // again") and show one account another account's error. `blocked` does not
   // reset — a dropped connection is the same sign-in.
+  //
+  // The rows this tab loaded go too, whichever tab signed out: there is no
+  // tab-to-tab channel, so each tab acts on its own sight of the session
+  // ending. Only when the backend changes to signed out: a mount that starts
+  // there has loaded nothing of a session's to drop.
+  const lastBackend = useRef(backend)
   useEffect(() => {
+    const was = lastBackend.current
+    lastBackend.current = backend
     if (backend !== 'signedOut') return
     epoch.current += 1
     running.current = false
     setFailure(null)
+    if (was !== 'signedOut') forgetLoadedRows()
   }, [backend])
 
   // Signed out there is nothing to show. `blocked` is Disconnected or

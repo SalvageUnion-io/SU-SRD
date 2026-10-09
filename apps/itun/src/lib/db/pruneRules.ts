@@ -43,25 +43,29 @@ export function mayPrune(legacy: LegacyProbeState): boolean {
 }
 
 /**
- * May this row be pruned, given the server did not return it?
+ * May this pilot, mech or crawler be pruned, given `listMine` did not return it?
  *
- * Only shelf rows, and the asymmetry is not caution — it is that absence means
- * different things in the two containers.
+ * Absence means different things in the two containers.
  *
- * `entities.listMine` returns what the caller **owns**, wherever it lives. A
- * Game's unclaimed pre-gens and its communal crawler have no owner at all, and
- * `GameRoster` caches them on purpose, so they are absent from that query while
- * being entirely legitimate. Pruning against their absence would empty every
- * Game view on the next boot.
- *
- * A shelf row carries no such ambiguity: `gameId: null` with no owner is the one
+ * A **shelf** row carries no ambiguity: `gameId: null` with no owner is the one
  * combination ADR-030 §2 calls invalid, so every shelf row is owned, and every
- * owned row is in `listMine`.
+ * owned row is in `listMine`. Absence means deleted.
+ *
+ * A **Game** row is ambiguous on its own. `entities.listMine` returns what the
+ * caller **owns**, wherever it lives, and a Game's unclaimed pre-gens and its
+ * communal crawler have no owner at all, so they are absent from that query
+ * while being entirely legitimate. A Game row is therefore pruned only when
+ * `knownMine`: this browser recorded a server version for it
+ * (`stores/serverVersions.ts`), which only `listMine` or the owner's own write
+ * does. Then its absence means it was deleted, or released to the crew, and in
+ * both cases this browser's copy is no longer the caller's to hold — the same
+ * reason `entityStore.forget` exists. The caller passes `false` for a crawler:
+ * a Game's crawler is the crew's, and `WiringSync` prunes it.
  *
  * Reads the container through `containerOf` rather than testing `gameId`
  * directly, so a record written before the split — which still resolves through
  * `workspaceId` — is classified the way every other reader classifies it.
  */
-export function rowMayBePruned(entity: ContainerFields): boolean {
-  return containerOf(entity).kind === 'shelf'
+export function rowMayBePruned(entity: ContainerFields, knownMine: boolean): boolean {
+  return knownMine || containerOf(entity).kind === 'shelf'
 }

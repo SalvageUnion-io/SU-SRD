@@ -99,13 +99,10 @@ export type MergeSummary = {
 export async function mergeImport(
   bundle: ExportBundle,
   entityStore: MergeEntityStore,
-  // Patterns and encounter NPCs go through their stores, not `db.*`. Writing
-  // straight to the db layer is the exact bypass patternStore was created to
-  // end: those writes never published the cross-tab broadcast, so an import
-  // left every other tab — and the importing tab's own caches, which get no
-  // self-echo — showing the pre-import lists until a reload. Pilots/mechs/
-  // crawlers below already went through their store; these two were the
-  // holdouts.
+  // Patterns and encounter NPCs go through their stores, not `db.*`, like
+  // pilots/mechs/crawlers below: a write straight to the db layer never
+  // reaches the server of record, and leaves this tab's in-memory lists
+  // showing the pre-import rows until a reload.
   patternStore: MergePatternStore = usePatternStore.getState(),
   encounterNpcStore: MergeEncounterNpcStore = useEncounterStore.getState()
 ): Promise<MergeSummary> {

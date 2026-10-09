@@ -13,12 +13,12 @@
  * the in-memory state is updated atomically via Zustand's set(). On failure
  * the db error propagates to the caller; in-memory state is not mutated.
  *
- * Multi-tab (plan 2.7): every successful write publishes the affected object
- * store via lib/db/broadcast; writes made by OTHER tabs invalidate this tab's
- * cache (already-hydrated stores are re-read from IndexedDB). Crawler-bay
- * edits go through updateCrawlerBay(), which merges a single bay entry onto
- * the freshest persisted record instead of replacing the whole array from a
- * possibly-stale in-memory copy.
+ * Multi-tab: there is no tab-to-tab channel. Each tab hears another tab's
+ * writes through its own Convex subscription: `ShelfSync` adopts creates and
+ * edits and forgets deletes, the latter only where `lib/db/pruneRules.ts`
+ * lets absence mean deletion. Crawler-bay edits go through updateCrawlerBay(),
+ * which merges a single bay entry onto the freshest persisted record instead
+ * of replacing the whole array from a possibly-stale in-memory copy.
  *
  * Integrity (plan 2.7): deleting a pilot/mech/crawler also prunes every
  * SoftLink whose `from` or `to` endpoint references it — no more orphaned
@@ -35,7 +35,6 @@ import { create } from 'zustand'
 import { staleWriteOf } from '../lib/connection/staleWrite'
 import type { ContainerFields } from '../lib/container'
 import { containerOf, moveTo, sameContainer } from '../lib/container'
-import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import * as db from '../lib/db/index'
 import type { StoreName } from '../lib/db/stores'
 import { STORE_NAMES } from '../lib/db/stores'
@@ -93,8 +92,6 @@ export type EntityState = {
 
   /**
    * Re-reads the given type from IndexedDB even when already hydrated.
-   * Used for cross-tab invalidation; no-op when the type was never hydrated
-   * (lazy hydration will read fresh data anyway).
    */
   rehydrate: (type: EntityType) => Promise<void>
 
@@ -312,8 +309,8 @@ function dbStoreFor<T extends EntityType>(type: T): DbStoreApi<T> {
   return DB_STORES[type] as DbStoreApi<T>
 }
 
-/** Object-store name for broadcast messages. */
-function broadcastNameFor(type: EntityType): StoreName {
+/** The IndexedDB object store holding one entity type. */
+function storeNameFor(type: EntityType): StoreName {
   switch (type) {
     case 'pilot':
       return STORE_NAMES.pilots
@@ -324,10 +321,6 @@ function broadcastNameFor(type: EntityType): StoreName {
     case 'softLink':
       return STORE_NAMES.softLinks
   }
-}
-
-function afterWrite(type: EntityType): void {
-  publishStoreChange(broadcastNameFor(type))
 }
 
 /**
@@ -418,7 +411,6 @@ async function createSoftLink(
       ...s.softLinks.filter((l) => !replacedIds.has(l.id)),
     ],
   }))
-  publishStoreChange(STORE_NAMES.softLinks)
   return present ?? record
 }
 
@@ -443,7 +435,6 @@ async function pruneLinksAfterMove(
   const brokenIds = new Set(broken.map((l) => l.id))
   await writeLinksLocally(null, [...brokenIds])
   set((s) => ({ softLinks: s.softLinks.filter((l) => !brokenIds.has(l.id)) }))
-  publishStoreChange(STORE_NAMES.softLinks)
 }
 
 export const useEntityStore = create<EntityState>((set, get) => ({
@@ -518,7 +509,6 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     set((state) => ({
       [key]: [record, ...(state[key] as EntityForType<T>[])],
     }))
-    afterWrite(type)
     return record
   },
 
@@ -536,7 +526,6 @@ export const useEntityStore = create<EntityState>((set, get) => ({
         [key]: exists ? list.map((e) => (e.id === cached.id ? cached : e)) : [cached, ...list],
       }
     })
-    publishStoreChange(broadcastNameFor(type))
     return cached
   },
 
@@ -547,21 +536,18 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       // ones the server no longer holds through here.
       await writeLinksLocally(null, [id])
       set((state) => ({ softLinks: state.softLinks.filter((l) => l.id !== id) }))
-      publishStoreChange(STORE_NAMES.softLinks)
       return
     }
     // Local only, and cascading like `delete` does: a SoftLink pointing at an
     // entity this browser no longer holds would render as a broken cross-link.
-    const prunedIds = await db.deleteEntityWithSoftLinks(broadcastNameFor(type), id)
+    const prunedIds = await db.deleteEntityWithSoftLinks(storeNameFor(type), id)
     if (prunedIds.length > 0) {
       const pruned = new Set(prunedIds)
       set((state) => ({ softLinks: state.softLinks.filter((l) => !pruned.has(l.id)) }))
-      publishStoreChange(STORE_NAMES.softLinks)
     }
     set((state) => ({
       [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
     }))
-    publishStoreChange(broadcastNameFor(type))
   },
 
   async update<T extends EntityType>(
@@ -584,7 +570,6 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     set((state) => ({
       [key]: (state[key] as EntityForType<T>[]).map((e) => (e.id === id ? updated : e)),
     }))
-    afterWrite(type)
     // A move takes along only the links whose other end is already where it is
     // going (ADR-037) — the server pruned the rest in the same commit.
     if (type !== 'softLink' && before !== null) {
@@ -692,18 +677,18 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     const prunedIds = await db.atomicWrite([
       ...prepared.map((pu) => ({
         op: 'put' as const,
-        storeName: broadcastNameFor(pu.type),
+        storeName: storeNameFor(pu.type),
         record: pu.record,
       })),
       ...deletes.map((d) => ({
         op: 'delete' as const,
-        storeName: broadcastNameFor(d.type),
+        storeName: storeNameFor(d.type),
         id: d.id,
         pruneSoftLinks: d.type !== 'softLink',
       })),
     ])
 
-    // Phase 3 — sync in-memory state + broadcasts, mirroring update()/delete().
+    // Phase 3 — sync in-memory state, mirroring update()/delete().
     const deletedByKey = new Map<StoreKey, Set<string>>()
     for (const d of deletes) {
       const key = storeKeyFor(d.type)
@@ -727,14 +712,6 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       }
       return next as Partial<EntityState>
     })
-    const touched = new Set<EntityType>([
-      ...prepared.map((pu) => pu.type),
-      ...deletes.map((d) => d.type),
-    ])
-    for (const type of touched) afterWrite(type)
-    if (pruned.size > 0 && !touched.has('softLink')) {
-      publishStoreChange(STORE_NAMES.softLinks)
-    }
 
     // Phase 4 — provenance (ADR-022), as update() emits it. One entry per
     // changed field per updated entity. Deletes are not logged: the per-entity
@@ -816,18 +793,16 @@ export const useEntityStore = create<EntityState>((set, get) => ({
         await commitSoftLink('delete', link)
       }
 
-      const prunedIds = await db.deleteEntityWithSoftLinks(broadcastNameFor(type), id)
+      const prunedIds = await db.deleteEntityWithSoftLinks(storeNameFor(type), id)
       if (prunedIds.length > 0) {
         const pruned = new Set(prunedIds)
         set((state) => ({
           softLinks: state.softLinks.filter((l) => !pruned.has(l.id)),
         }))
-        publishStoreChange(STORE_NAMES.softLinks)
       }
       set((state) => ({
         [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
       }))
-      afterWrite(type)
       return
     }
 
@@ -835,26 +810,5 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     set((state) => ({
       [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
     }))
-    afterWrite(type)
   },
 }))
-
-// ---------------------------------------------------------------------------
-// Cross-tab invalidation: when ANOTHER tab announces a write to one of our
-// object stores, re-read it from IndexedDB (only if this tab already holds a
-// hydrated copy — otherwise lazy hydration will fetch fresh data on demand).
-// ---------------------------------------------------------------------------
-const BROADCAST_TO_TYPE: Partial<Record<StoreName, EntityType>> = {
-  [STORE_NAMES.pilots]: 'pilot',
-  [STORE_NAMES.mechs]: 'mech',
-  [STORE_NAMES.crawlers]: 'crawler',
-  [STORE_NAMES.softLinks]: 'softLink',
-}
-
-subscribeStoreChanges((storeName) => {
-  const type = BROADCAST_TO_TYPE[storeName]
-  if (type === undefined) return
-  const state = useEntityStore.getState()
-  if (!state.hydrated[storeKeyFor(type)]) return
-  void state.rehydrate(type)
-})

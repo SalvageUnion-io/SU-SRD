@@ -98,7 +98,8 @@ export function servedIds(rows: readonly ServedRow[]): Set<string> {
  * is either a phantom Workspace id, or a Game the caller **left**. Those need
  * opposite handling — earlier builds adopted crewmates' builds into IndexedDB
  * on open (and `WiringSync` caches a Game's crawlers today), `rowMayBePruned`
- * never prunes a Game row, so those copies outlive the membership, and shelving
+ * never prunes a Game row this browser does not know to be the caller's, so
+ * those copies outlive the membership, and shelving
  * one would move another player's character into this account.
  *
  * Only the server can tell them apart, so it does: `claimLocal` refuses any

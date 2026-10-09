@@ -14,8 +14,7 @@
  * settled, online, signed-in session, which resolves to `remote`; with no
  * client compiled in, every `commit*` in `entityBackend.ts` then returns before
  * touching the network. The result is exactly "signed in, server commits
- * stubbed" — the store, the cache, hydration and cross-tab broadcast all run
- * for real.
+ * stubbed" — the store, the cache and hydration all run for real.
  *
  * ## Why it registers its own reset
  *

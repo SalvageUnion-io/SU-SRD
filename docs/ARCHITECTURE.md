@@ -259,9 +259,8 @@ in Convex, not the mechanism. An anonymous user's way out is export to file.
 `entityStore` (pilots, mechs, crawlers, softLinks) reaches persistence through
 `dbStoreFor(type)`. `list(type)` hydrates
 lazily, then reads synchronously. `update()` validates, commits to Convex
-(remote only), writes the backend store, then `set()`s, broadcasts
-(`lib/db/broadcast`) so other tabs re-read, and emits the Change Log; a refused
-write changes nothing. `entityStore.transfer()` moves value between entities in
+(remote only), writes the backend store, then `set()`s and emits the Change
+Log; a refused write changes nothing. `entityStore.transfer()` moves value between entities in
 one transaction. `activeContainerStore` is the current Game or Shelf. There is
 no TanStack Query: reads are the hooks in `src/hooks/entities/` and
 `convex/react`; do not add a query cache.
@@ -1135,11 +1134,12 @@ Two forces shaped the choice:
 
 ## ADR-003
 
-**Client State via Zustand — Lazy Auto-Hydration, Write-Through, Cross-Tab Invalidation**
+**Client State via Zustand — Lazy Auto-Hydration, Write-Through, Cross-Tab via Convex**
 
 ### Status
 
-Accepted
+Accepted. **Amended 2026-10-08 (#1153):** tabs stay in step through each
+tab's own Convex subscription.
 
 > **2026-09-25:** ITUN no longer depends on TanStack Query at all — it was
 > mounted and never called, and was removed (audit AP-10). The rule below that
@@ -1165,9 +1165,9 @@ ITUN uses **Zustand** stores (`entityStore`, `workspaceStore` in
   IndexedDB; subsequent calls return synchronously from memory.
 - **Write-through.** Mutations persist to IndexedDB **first**, then update
   in-memory state. The DB is authoritative; memory is the cache.
-- **Cross-tab invalidation via Broadcast Channel.** A successful write publishes
-  on a broadcast channel (`apps/itun/src/lib/db/broadcast.ts`);
-  other tabs invalidate their cache and re-hydrate from IndexedDB.
+- **Cross-tab via Convex.** No tab-to-tab channel: each tab's `ShelfSync`
+  and `WiringSync` adopt another tab's creates and edits and forget its
+  deletes (`lib/db/pruneRules.ts`).
 
 TanStack Query is used only for transient/derived data, **not** as the
 persistence cache — persistent entity state flows through the Zustand stores.
@@ -1176,8 +1176,7 @@ persistence cache — persistent entity state flows through the Zustand stores.
 
 - Components read entity data synchronously after first load; no per-component
   hydration boilerplate.
-- Multi-tab edits stay consistent: a write in one tab is reflected in others
-  without a server round-trip.
+- A write in one tab reaches the others through the server.
 - The DB-first write order means a crash between persist and in-memory update
   leaves the durable copy correct (the next read re-hydrates).
 - Querying/filtering happens in memory over hydrated collections, which is why
@@ -1830,7 +1829,7 @@ the Dashboard is a second lens, not a second source of truth.
 
 The two moments have opposite interaction grammars (inline edit + scroll vs.
 one-screen no-scroll instrument buttons). Sharing state (not chrome) keeps them
-consistent via the existing multi-tab broadcast. As the Guided Play surface it is
+consistent through the one store. As the Guided Play surface it is
 where enforced lifecycle transactions live (see
 [ADR-021](#adr-021) and
 [rules and ITUN surfaces](#rules-and-itun-surfaces)).
@@ -4842,7 +4841,8 @@ ambiguous two ways, and they need opposite handling: a phantom Workspace id is
 the caller's own build and must be migrated, while a Game the caller **left** is
 somebody else's — `GameRoster.ensureLocal` (since removed) adopted a crewmate's
 pilot into IndexedDB the moment you opened their sheet, and `rowMayBePruned`
-never prunes a Game row, so that copy outlives the membership.
+prunes no Game row it cannot tell is the caller's, so that copy outlives the
+membership.
 
 The client cannot tell those apart and must not guess: shelving the second moves
 another player's character into this account, and for an unclaimed pre-gen —
