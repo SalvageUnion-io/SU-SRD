@@ -1,5 +1,5 @@
 /**
- * The accepted-violation baseline for `tools/a11y-scan.ts`, and the judgement
+ * The accepted-violation baseline for `a11yScan.ts`, and the judgement
  * of a run against it. Kept apart from the scanner so it can be tested without
  * a browser.
  */

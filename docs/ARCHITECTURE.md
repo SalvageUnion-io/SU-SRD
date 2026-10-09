@@ -704,12 +704,12 @@ without it). `src/lib/staticPaths.ts` excludes meta schemas
 `getItemStaticPaths()`; routes are slugs, never UUIDs;
 `apps/srd/public/robots.txt` names the sitemap.
 
-**Accessibility:** Biome's `a11y` group (`biome.jsonc`). `tools/a11y-scan.ts`
-(Playwright + axe-core: `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`,
-`wcag22aa`, `best-practice`) runs in CI over `tools/a11y-baseline.json`
-and `tools/a11y-baseline-itun.json`, at desktop and `--device 'Pixel 7'`; a
-stale entry fails until `--update-baseline`. Locally:
-`bun tools/a11y-scan.ts http://localhost:4321 / /schema/chassis/ /about/`.
+**Accessibility:** Biome's `a11y` group (`biome.jsonc`). Each app's
+`e2e/a11y.e2e.ts` (`tools/lib/a11yScan.ts`: axe-core `wcag2a`, `wcag2aa`,
+`wcag21a`, `wcag21aa`, `wcag22aa`, `best-practice`) scans the pages in
+`tools/a11y-baseline.json` and `tools/a11y-baseline-itun.json` at desktop and
+as a Pixel 7; a stale entry fails until a run with `A11Y_UPDATE_BASELINE=1`.
+Locally: `bunx playwright test a11y.e2e.ts` in the app.
 Landmarks: two labelled `<nav>`s in `AppBar.tsx`, `<main>` in `BaseLayout.tsx`,
 `Footer.tsx`. One `<h1>` per page (entity pages pass `titleAs="h1"` from `EntityView.tsx`
 to `EntityCardHeader`).
@@ -751,7 +751,7 @@ passes a skipped job, so: `tools/check-workflows.ts` (`path-filters`) asserts
 each app's `workspace:*` deps are in its group; root prose (`ABOUT_JRVS.md`,
 `LLM_STATEMENT.md`, `SPECIAL_THANKS.md`) is `shared`, because #731 changed
 only `SPECIAL_THANKS.md`, skipped `build-srd`, and turned the next three PRs
-red; the axe script and
+red; the axe scan and
 baselines are in their app's group. `code` is source, tools, `.github/` and
 the Claude hooks and workflows; `docs` is `docs/**`, root `CLAUDE.md` /
 `README.md` / `CONTRIBUTING.md`, `.claude/**`, `.mcp.json` (docs-only PRs skip
@@ -773,11 +773,11 @@ workspace under its `FLOORS` total (bunfigs set
 ### CI: build jobs
 
 All `needs: [changes]` only. `build-srd` builds once, runs `check:examples`,
-srd's whole Playwright suite (add a spec to its run line, not a job) and the
-axe scan on that `dist`; `mobile-chromium` (Pixel 7) runs smoke in both apps.
+srd's whole Playwright suite (add a spec to its run line, not a job), the
+axe spec among them, on that `dist`; `mobile-chromium` (Pixel 7) runs smoke in both apps.
 `build-itun` builds against a throwaway self-hosted Convex backend
 (`.github/actions/convex-backend`, the one `e2e-nightly.yml` uses) carrying the
-PR's own functions, so its specs and axe scan see the signed-out UI production
+PR's own functions, so its specs (the axe spec among them) see the signed-out UI production
 ships, never production itself; it also bundles the Worker (`bun --filter itun
 worker:bundle`). ITUN's full browser suite is nightly (`e2e-nightly.yml`). `build-discord-bot`
 and `build-su-assets` bundle Workers; `build-ladle` builds stories. wrangler is

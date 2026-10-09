@@ -35,7 +35,7 @@ fi
 # tools/__tests__/claude-hooks.test.ts maps every GENERATED_PATHS entry in
 # tools/check-generated.ts to a file this list must block (or deliberately
 # allow), so a new generated path fails that test until it is added here.
-# The a11y baselines are NOT listed: `a11y-scan.ts --update-baseline` prunes a
+# The a11y baselines are NOT listed: `A11Y_UPDATE_BASELINE=1` on the a11y spec prunes a
 # stale entry, but accepting new debt is a hand-edit with its reason beside it.
 PROTECTED_PATTERNS=(
   "*packages/salvageunion-reference/schemas/*.json"

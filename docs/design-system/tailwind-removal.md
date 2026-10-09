@@ -179,7 +179,7 @@ compares markup or CSS, so each srd PR carries a visual check of the affected pa
   - Take the class tokens actually present on elements: srd's built HTML
     **plus** the DOM after its islands mount (they render client-side only, so
     the static HTML alone misses them), ITUN's routes, and every Ladle story —
-    crawled with the Playwright the repo already carries for `a11y-scan`.
+    crawled with the Playwright the repo already carries for its e2e specs.
   - The check passes when the intersection is empty. A non-empty intersection
     is the work-list: each entry names an element and a utility it still
     depends on.
