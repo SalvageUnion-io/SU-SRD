@@ -192,31 +192,21 @@ describe('deploy-surfaces — script against a real git history', () => {
   }
 
   test('an older commit finishing CI after the recorded deploy is stale', () => {
-    expect(decide(a)).toEqual({
-      stale: 'true',
-      assets: 'false',
-      srd: 'false',
-      itun: 'false',
-      bot: 'false',
-    })
+    expect(decide(a)).toEqual({ stale: 'true', deploy: '[]' })
   })
 
   test('the same older commit may be deployed by a rollback dispatch', () => {
     // B->A differs only in su-assets, so a rollback to A ships su-assets alone.
-    expect(decide(a, '--allow-backwards')).toMatchObject({
-      stale: 'false',
-      assets: 'true',
-      itun: 'false',
-    })
+    expect(decide(a, '--allow-backwards')).toEqual({ stale: 'false', deploy: '["su-assets"]' })
   })
 
   test('the recorded commit itself is not stale and deploys nothing', () => {
-    expect(decide(b)).toMatchObject({ stale: 'false', assets: 'false', itun: 'false' })
+    expect(decide(b)).toEqual({ stale: 'false', deploy: '[]' })
   })
 
   test('a newer commit deploys what changed since the record', () => {
     git(work, 'checkout', '--quiet', '--detach', b)
     const c = commit('apps/srd/page.tsx')
-    expect(decide(c)).toMatchObject({ stale: 'false', srd: 'true', assets: 'false' })
+    expect(decide(c)).toEqual({ stale: 'false', deploy: '["srd"]' })
   })
 })

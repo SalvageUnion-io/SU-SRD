@@ -5,7 +5,8 @@
  * Run by `.github/workflows/deploy-cloudflare.yml`. Diffs the tree being
  * deployed (HEAD) against the last SUCCESSFUL deploy, recorded as the
  * `deployed/cloudflare` tag that the workflow's `record` job moves after every
- * green run, and writes `assets|srd|itun|bot=true|false` to $GITHUB_OUTPUT.
+ * green run, and writes `stale=true|false` and `deploy=<JSON array of app
+ * directories>` (the deploy job's matrix) to $GITHUB_OUTPUT.
  *
  * Why not `HEAD^..HEAD`: that is "the merged PR" only if every commit on main
  * gets its own deploy, and two things stop that — a deploy that fails, and the
@@ -34,7 +35,7 @@ import { appendFileSync } from 'node:fs'
 
 const DEPLOY_RECORD = 'deployed/cloudflare'
 
-/** Output key -> the app directory whose changes require that deploy. */
+/** Surface -> the app directory whose changes require that deploy. */
 export const SURFACES = {
   assets: 'su-assets',
   srd: 'srd',
@@ -159,13 +160,13 @@ function main(): void {
   else if (changed === null)
     console.log(`no usable ${DEPLOY_RECORD} record — deploying every surface`)
 
-  const lines: string[] = [`stale=${plan.stale}`]
+  const ship: string[] = []
   for (const [key, deploy] of Object.entries(plan.surfaces) as [Surface, boolean][]) {
     console.log(`  ${deploy ? 'deploy' : 'skip  '} ${SURFACES[key]}`)
-    lines.push(`${key}=${deploy}`)
+    if (deploy) ship.push(SURFACES[key])
   }
   const output = process.env.GITHUB_OUTPUT
-  if (output) appendFileSync(output, `${lines.join('\n')}\n`)
+  if (output) appendFileSync(output, `stale=${plan.stale}\ndeploy=${JSON.stringify(ship)}\n`)
 }
 
 if (import.meta.main) main()

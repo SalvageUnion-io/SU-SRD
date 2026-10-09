@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import type { Container } from '../../container'
 import { SHELF } from '../../container'
 import type { SoftLink } from '../../schemas/softLink'
@@ -16,7 +17,7 @@ import {
   softLinkFromServer,
 } from '../linkSync'
 
-const T0 = Date.parse('2026-01-01T00:00:00.000Z')
+const T0 = Date.parse(FIXTURE_NOW)
 
 function served(id: string, from: string, to: string, gameId: string | null = 'g1'): ServedLink {
   return {
@@ -35,7 +36,7 @@ function local(id: string, from: string, to: string): SoftLink {
     from: { type: 'pilot', id: from },
     to: { type: 'crawler', id: to },
     type: 'pilot-to-crawler',
-    createdAt: '2026-01-01T00:00:00.000Z',
+    createdAt: FIXTURE_NOW,
   }
 }
 
@@ -211,9 +212,7 @@ describe('planRowSync', () => {
     expect(rowVersion({ body: { updatedAt: '2026-01-01T00:00:01.000Z' } })).toBe(
       Date.parse('2026-01-01T00:00:01.000Z')
     )
-    expect(rowVersion({ body: { createdAt: '2026-01-01T00:00:00.000Z' } })).toBe(
-      Date.parse('2026-01-01T00:00:00.000Z')
-    )
+    expect(rowVersion({ body: { createdAt: FIXTURE_NOW } })).toBe(Date.parse(FIXTURE_NOW))
     expect(rowVersion({ updatedAt: 7, body: { updatedAt: '2026-01-01T00:00:01.000Z' } })).toBe(7)
     expect(rowVersion({ body: {} })).toBe(0)
   })

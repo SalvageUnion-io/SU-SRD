@@ -26,16 +26,15 @@ test.use({ account: 'anonymous' })
  * `autoCodeSplitting` moves: each route's component now ships as its own
  * chunk instead of being linked into one monolithic entry bundle.
  *
- * ## Why `decodedBodySize` rather than srd's `transferSize`
+ * ## Why `decodedBodySize`
  *
- * `vite preview` (the CI target, see playwright.config.ts) serves through
- * `@polka/compression`, so `transferSize`/`encodedBodySize` report *gzipped*
- * bytes — while the local dev server this suite also has to run against does
- * not compress. That makes a transport-size budget depend on which server
- * answered. `decodedBodySize` is the uncompressed byte count the browser
- * parses either way, so it is stable across dev/preview AND directly
- * comparable to the file sizes in `dist/assets/`, which is how the ceilings
- * below were derived.
+ * `bun run preview` (`wrangler dev`, the CI target) gzips, so
+ * `transferSize`/`encodedBodySize` report compressed bytes, while the local
+ * dev server this suite also runs against does not compress. A transport-size
+ * budget would depend on which server answered. `decodedBodySize` is the
+ * uncompressed byte count the browser parses either way, so it is stable
+ * across both AND directly comparable to the file sizes in `dist/assets/`,
+ * which is how the ceilings below were derived.
  *
  * ## How the ceilings were set
  *

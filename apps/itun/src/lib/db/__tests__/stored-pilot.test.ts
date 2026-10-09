@@ -13,9 +13,8 @@
  *     without falling back to salvage.
  */
 import { describe, expect, spyOn, test } from 'bun:test'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { normalizeLegacyPilotRecord, PilotSchema, StoredPilotSchema } from '../../schemas/pilot'
-
-const NOW = '2026-01-01T00:00:00.000Z'
 
 const PARTNER = {
   id: 'partner-1',
@@ -42,8 +41,8 @@ function pilot(over: Record<string, unknown> = {}): Record<string, unknown> {
     background: '',
     conditions: [],
     currentHP: 10,
-    createdAt: NOW,
-    updatedAt: NOW,
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
     ...over,
   }
 }

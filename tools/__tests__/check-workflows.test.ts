@@ -15,6 +15,7 @@ import {
   toolIsPinned,
   WORKFLOW_CHECKS,
 } from '../check-workflows'
+import { MAIN_RULESET } from '../environments'
 
 /**
  * `tools/check-workflows.ts` — seven merge-gating invariants over `.github/`.
@@ -65,6 +66,7 @@ jobs:
           # bunx not-a-call-this-is-a-comment
           echo "quality-checks:"
   quality-checks:
+    name: CI Success
     needs:
       - changes
       - build
@@ -78,8 +80,14 @@ on: workflow_dispatch
 jobs:
   plan:
     runs-on: ubuntu-latest
+    outputs:
+      stale: \${{ steps.surfaces.outputs.stale }}
+      deploy: \${{ steps.surfaces.outputs.deploy }}
     steps:
       - uses: ./.github/actions/setup-bun
+      - name: Decide which surfaces to deploy
+        id: surfaces
+        run: bun tools/deploy-surfaces.ts
       - name: ${GUARD_STEP}
         env:
           CONVEX_DEPLOY_KEY: x
@@ -89,16 +97,26 @@ jobs:
           fi
   build-srd:
     needs: plan
-    if: needs.plan.outputs.srd == 'true'
+    if: contains(fromJSON(needs.plan.outputs.deploy), 'srd')
     runs-on: ubuntu-latest
     steps:
       - run: bun --filter srd build
       - uses: actions/upload-artifact@v7
         with:
+          name: srd-build
+  og-srd:
+    needs: [plan, build-srd]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: srd-build
+      - uses: actions/upload-artifact@v7
+        with:
           name: srd-dist
   build-itun:
     needs: plan
-    if: needs.plan.outputs.itun == 'true'
+    if: contains(fromJSON(needs.plan.outputs.deploy), 'itun')
     runs-on: ubuntu-latest
     steps:
       - run: bun run build
@@ -107,29 +125,32 @@ jobs:
           name: itun-dist
   push-convex:
     needs: [plan, build-srd, build-itun]
-    if: \${{ !cancelled() && !failure() && needs.plan.outputs.itun == 'true' }}
+    if: \${{ !cancelled() && !failure() && contains(fromJSON(needs.plan.outputs.deploy), 'itun') }}
     runs-on: ubuntu-latest
     steps:
       - name: Push
         run: bunx convex deploy --cmd "true"
-  deploy-srd:
-    needs: [plan, build-srd, build-itun, push-convex]
-    if: \${{ !cancelled() && !failure() && needs.plan.outputs.srd == 'true' }}
+  deploy:
+    needs: [plan, build-srd, og-srd, build-itun, push-convex]
+    if: \${{ !cancelled() && !failure() && needs.plan.outputs.deploy != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        app: \${{ fromJSON(needs.plan.outputs.deploy) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v8
+        if: matrix.app == 'srd'
         with:
           name: srd-dist
-      - run: bun run deploy
-  deploy-bot:
-    needs: [plan, build-srd, build-itun, push-convex]
-    if: \${{ !cancelled() && !failure() && needs.plan.outputs.bot == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
+      - uses: actions/download-artifact@v8
+        if: matrix.app == 'itun'
+        with:
+          name: itun-dist
       - run: bun run deploy
   smoke:
-    needs: [plan, deploy-srd, deploy-bot]
-    if: \${{ !cancelled() && !failure() }}
+    needs: [plan, deploy]
+    if: \${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - run: bash tools/smoke-production.sh
@@ -262,11 +283,25 @@ describe('aggregator', () => {
     )
   })
 
-  test('a separately-required workflow that is gone fails', () => {
+  test('a workflow the ruleset still waits on that is gone fails', () => {
     const c = ctx({ missing: ['.github/workflows/codeql.yml'] })
     expect(checkAggregator(c).failures.join('\n')).toContain('codeql.yml is missing')
     const title = ctx({ missing: ['.github/workflows/pr-title.yml'] })
     expect(checkAggregator(title).failures.join('\n')).toContain('pr-title.yml is missing')
+  })
+
+  test('the declared ruleset must require the aggregate gate by its name', () => {
+    const ruleset = { ...MAIN_RULESET, requiredChecks: ['PR title is a conventional commit'] }
+    expect(checkAggregator(ctx({}), {}, ruleset).failures).toEqual([
+      expect.stringContaining('does not require `CI Success`'),
+    ])
+  })
+
+  test('a required context no known workflow produces fails', () => {
+    const ruleset = { ...MAIN_RULESET, requiredChecks: ['CI Success', 'Mystery'] }
+    expect(checkAggregator(ctx({}), {}, ruleset).failures.join('\n')).toContain(
+      'waits on `Mystery`, which no workflow is known to produce'
+    )
   })
 })
 
@@ -459,19 +494,20 @@ describe('convex-guard', () => {
 /** A job-level `if:` line as the fixture writes it, `\${{ … }}` and all. */
 const jobIf = (expr: string) => `    if: \${{ ${expr} }}`
 
+/** The matrix deploy job's header and `needs:`, as the fixture writes them. */
+const NEEDS = '  deploy:\n    needs: [plan, build-srd, og-srd, build-itun, push-convex]'
+
 describe('deploy-order', () => {
   test('passes when builds precede deploys, deploys precede smoke, smoke precedes record', () => {
     expect(checkDeployOrder(ctx({})).failures).toEqual([])
   })
 
   test('a deploy job that does not wait for EVERY build fails', () => {
-    const deploy = DEPLOY_TEXT.replace(
-      '  deploy-bot:\n    needs: [plan, build-srd, build-itun, push-convex]',
-      '  deploy-bot:\n    needs: [plan, build-srd]'
-    )
+    const deploy = DEPLOY_TEXT.replace(NEEDS, '  deploy:\n    needs: [plan, build-srd, og-srd]')
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
-      expect.stringContaining('`deploy-bot` does not need `build-itun`'),
-      expect.stringContaining('`deploy-bot` does not need `push-convex`'),
+      expect.stringContaining('`deploy` does not need `build-itun` — every build must finish'),
+      expect.stringContaining('`deploy` does not need `push-convex`'),
+      expect.stringContaining('`deploy` does not need `build-itun` — it downloads `itun-dist`'),
     ])
   })
 
@@ -485,11 +521,11 @@ describe('deploy-order', () => {
 
   test('smoke that can run before a deploy, or a record before smoke, fails', () => {
     const early = DEPLOY_TEXT.replace(
-      '  smoke:\n    needs: [plan, deploy-srd, deploy-bot]',
-      '  smoke:\n    needs: [plan, deploy-srd]'
+      '  smoke:\n    needs: [plan, deploy]',
+      '  smoke:\n    needs: [plan]'
     )
     expect(checkDeployOrder(ctx({ deploy: early })).failures[0]).toContain(
-      '`smoke` does not need `deploy-bot`'
+      '`smoke` does not need `deploy`'
     )
     const record = DEPLOY_TEXT.replace(
       '  record:\n    needs: [plan, smoke]',
@@ -522,59 +558,33 @@ describe('deploy-order', () => {
 
   test('a deploy job that can ship before the backend push fails', () => {
     const deploy = DEPLOY_TEXT.replace(
-      '  deploy-bot:\n    needs: [plan, build-srd, build-itun, push-convex]',
-      '  deploy-bot:\n    needs: [plan, build-srd, build-itun]'
+      NEEDS,
+      '  deploy:\n    needs: [plan, build-srd, og-srd, build-itun]'
     )
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
-      expect.stringContaining('`deploy-bot` does not need `push-convex`'),
+      expect.stringContaining('`deploy` does not need `push-convex`'),
     ])
   })
 
-  /** srd's OG render: downloads the build, re-uploads what deploy-srd ships. */
-  const withPostBuildPass = DEPLOY_TEXT.replace(
-    '      - uses: actions/upload-artifact@v7\n        with:\n          name: srd-dist\n',
-    '      - uses: actions/upload-artifact@v7\n        with:\n          name: srd-build\n'
-  )
-    .replace(
-      '  push-convex:\n',
-      [
-        '  og-srd:',
-        '    needs: [plan, build-srd]',
-        '    runs-on: ubuntu-latest',
-        '    steps:',
-        '      - uses: actions/download-artifact@v8',
-        '        with:',
-        '          name: srd-build',
-        '      - uses: actions/upload-artifact@v7',
-        '        with:',
-        '          name: srd-dist',
-        '  push-convex:\n',
-      ].join('\n')
-    )
-    .replace(
-      '  deploy-srd:\n    needs: [plan, build-srd, build-itun, push-convex]',
-      '  deploy-srd:\n    needs: [plan, build-srd, build-itun, push-convex, og-srd]'
-    )
-
   test('a post-build pass is not a build: only the job shipping its output waits for it', () => {
-    expect(withPostBuildPass).toContain('og-srd')
-    expect(checkDeployOrder(ctx({ deploy: withPostBuildPass })).failures).toEqual([])
+    expect(DEPLOY_TEXT).toContain('  push-convex:\n    needs: [plan, build-srd, build-itun]\n')
+    expect(checkDeployOrder(ctx({})).failures).toEqual([])
   })
 
   test('a deploy that does not wait for the job uploading what it ships fails', () => {
-    const deploy = withPostBuildPass.replace(
-      'needs: [plan, build-srd, build-itun, push-convex, og-srd]',
-      'needs: [plan, build-srd, build-itun, push-convex]'
+    const deploy = DEPLOY_TEXT.replace(
+      NEEDS,
+      '  deploy:\n    needs: [plan, build-srd, build-itun, push-convex]'
     )
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
-      expect.stringContaining('`deploy-srd` does not need `og-srd` — it downloads `srd-dist`'),
+      expect.stringContaining('`deploy` does not need `og-srd` — it downloads `srd-dist`'),
     ])
   })
 
   test('a download that no job uploads fails', () => {
     const deploy = DEPLOY_TEXT.replace(
-      '          name: srd-dist\n      - run: bun run deploy',
-      '          name: srd-typo\n      - run: bun run deploy'
+      "        if: matrix.app == 'srd'\n        with:\n          name: srd-dist\n",
+      "        if: matrix.app == 'srd'\n        with:\n          name: srd-typo\n"
     )
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
       expect.stringContaining('downloads `srd-typo`, which no job uploads'),

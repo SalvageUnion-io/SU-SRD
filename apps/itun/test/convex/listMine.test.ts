@@ -10,7 +10,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
-import { makeUser } from './assignmentFixtures'
+import { makeUser } from './fixtures'
 import { testConvex } from './harness'
 
 describe('listMine returns what the caller owns', () => {

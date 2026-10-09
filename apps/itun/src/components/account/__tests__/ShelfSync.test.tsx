@@ -12,7 +12,7 @@ import { act, render, waitFor } from '@testing-library/react'
  */
 
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../__tests__/fixtures'
 
 const mutations: { name: string; args: unknown }[] = []
 
@@ -49,8 +49,6 @@ const EMPTY_ROSTER = {
 
 const EMPTY_WIRING = { gameIds: [], softLinks: [], crawlers: [] }
 
-const STAMP = '2026-01-01T00:00:00.000Z'
-
 const pattern = {
   id: 'pat-1',
   schemaVersion: 1,
@@ -59,7 +57,7 @@ const pattern = {
   systems: [],
   modules: [],
   cargoLots: [],
-  createdAt: STAMP,
+  createdAt: FIXTURE_NOW,
 }
 
 const npc = {
@@ -74,8 +72,8 @@ const npc = {
   maxHp: 4,
   statKind: 'hp',
   conditions: [],
-  createdAt: STAMP,
-  updatedAt: STAMP,
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 /** Serve one `listMine` answer and let this tab's sync settle on it. */

@@ -13,7 +13,7 @@ import {
   moveOwnable,
   ref,
   seedTable,
-} from './assignmentFixtures'
+} from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -370,12 +370,12 @@ describe('the primary crawler', () => {
     await o.as.mutation(api.entities.createCrawler, {
       gameId,
       appId: 'c1',
-      body: crawlerBody('c1', gameId, 'Tenacity'),
+      body: crawlerBody({ id: 'c1', gameId, name: 'Tenacity' }),
     })
     const second = await o.as.mutation(api.entities.createCrawler, {
       gameId,
       appId: 'c2',
-      body: crawlerBody('c2', gameId, 'Second Wind'),
+      body: crawlerBody({ id: 'c2', gameId, name: 'Second Wind' }),
     })
     expect((await o.as.query(api.games.get, { gameId }))?.crawlerName).toBe('Tenacity')
 

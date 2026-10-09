@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { api, internal } from '../../convex/_generated/api'
+import type { Ctx } from './fixtures'
+import { makeUser } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -17,30 +19,6 @@ import { testConvex } from './harness'
  * stamped at sign-in. The tests seed `discordId` the way the callback would, or
  * exercise `backfillDiscordIds`, which reads the same source.
  */
-
-type Ctx = ReturnType<typeof testConvex>
-
-/**
- * A user, optionally signed in with Discord.
- *
- * The Discord identity is seeded as an `authAccounts` row — the row
- * `@convex-dev/auth` writes on a real sign-in — because that is what the bot
- * resolves against.
- */
-async function makeUser(t: Ctx, name: string, discordId?: string) {
-  const userId = await t.run(async (ctx) => {
-    const id = await ctx.db.insert('users', { name, displayName: name })
-    if (discordId !== undefined) {
-      await ctx.db.insert('authAccounts', {
-        userId: id,
-        provider: 'discord',
-        providerAccountId: discordId,
-      })
-    }
-    return id
-  })
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 async function seedBoundGame(t: Ctx) {
   const organizer = await makeUser(t, 'Organizer', 'discord-organizer')

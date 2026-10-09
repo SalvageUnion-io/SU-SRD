@@ -70,6 +70,7 @@ the corpus size, not just the finding count.
 
 `lib/` holds the shared pieces: `ruleEngine.ts` (the styling engine: walk,
 exemptions, zero/ratchet verdicts), `scanFloor.ts`, `workspaceCoverage.ts`,
-`tailwindClasses.ts` (the Tailwind-file ratchet's detector) and `r2.ts` (a
-SigV4 R2 client, because `wrangler r2 object` cannot list).
+`tailwindClasses.ts` (the Tailwind-file ratchet's detector), `r2.ts` (R2
+through `Bun.S3Client`, because `wrangler r2 object` cannot list) and
+`playwrightBase.ts` (the one Playwright config both apps' suites run).
 `rules/` holds the three styling rule sets.

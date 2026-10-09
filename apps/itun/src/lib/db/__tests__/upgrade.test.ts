@@ -15,6 +15,7 @@
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { openDB } from 'idb'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { must } from '../../../components/__tests__/must'
 import { CACHE_META_ID } from '../cacheMeta'
 import { clearCache, DB_VERSION, openItunDatabase, pilots } from '../index'
@@ -32,8 +33,6 @@ async function destroyTestDatabase(): Promise<void> {
   })
 }
 
-const NOW = '2026-01-01T00:00:00.000Z'
-
 const stalePilot = {
   id: 'pilot-stale-1',
   schemaVersion: 1,
@@ -48,8 +47,8 @@ const stalePilot = {
   background: '',
   conditions: [],
   currentHP: 10,
-  createdAt: NOW,
-  updatedAt: NOW,
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 /**
@@ -191,7 +190,7 @@ describe('salvage read path', () => {
       conditions: [],
     })
     // Garbage beyond salvage: required fields missing entirely.
-    await db.put(STORE_NAMES.pilots, { id: 'pilot-garbage', createdAt: NOW })
+    await db.put(STORE_NAMES.pilots, { id: 'pilot-garbage', createdAt: FIXTURE_NOW })
     db.close()
 
     const originalWarn = console.warn

@@ -124,7 +124,7 @@ const richPilotInput = {
   lastCriticalInjury: {
     roll: 7,
     outcome: 'minor-injury' as const,
-    rolledAt: '2026-01-01T00:00:00.000Z',
+    rolledAt: FIXTURE_NOW,
   },
 }
 
@@ -177,12 +177,12 @@ const richMechInput = {
     heatCheckRoll: 12,
     heatAtCheck: 5,
     overloaded: false,
-    rolledAt: '2026-01-01T00:00:00.000Z',
+    rolledAt: FIXTURE_NOW,
   },
   lastCriticalDamage: {
     roll: 15,
     outcome: 'core-damage' as const,
-    rolledAt: '2026-01-01T00:00:00.000Z',
+    rolledAt: FIXTURE_NOW,
   },
 }
 
@@ -262,7 +262,7 @@ const richEncounterNpcInput = {
     roll: 14,
     label: 'Steady',
     value: 'Holds the line.',
-    rolledAt: '2026-01-01T00:00:00.000Z',
+    rolledAt: FIXTURE_NOW,
   },
 }
 

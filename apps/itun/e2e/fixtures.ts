@@ -57,11 +57,32 @@ export function uniqueCredentials(): { email: string; password: string } {
   return { email: `e2e-${stamp}@example.invalid`, password: `pw-${stamp}-Aa1!` }
 }
 
+/**
+ * How long a build that carries the seam may take to register it. `TestAuthBridge`
+ * registers in an effect once the auth provider mounts, which can land after
+ * the game-data flag `waitForReady` awaits.
+ */
+const SEAM_REGISTER_MS = 15_000
+
+/**
+ * Whether the seam is (or within `SEAM_REGISTER_MS` becomes) present.
+ *
+ * Waited for, never probed once: a single `evaluate` raced the bridge's effect,
+ * and every signed-in spec that lost the race threw on its first attempt and
+ * passed on the retry. That one race was every flaky test the nightly suite
+ * reported from 2026-09-30 to 2026-10-08, one to five a night.
+ */
 export async function seamIsPresent(page: Page): Promise<boolean> {
-  return await page.evaluate(
-    (name) => typeof (window as unknown as Record<string, unknown>)[name] === 'function',
-    TEST_SIGN_IN_GLOBAL
-  )
+  return await page
+    .waitForFunction(
+      (name) => typeof (window as unknown as Record<string, unknown>)[name] === 'function',
+      TEST_SIGN_IN_GLOBAL,
+      { timeout: SEAM_REGISTER_MS }
+    )
+    .then(
+      () => true,
+      () => false
+    )
 }
 
 /**

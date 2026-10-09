@@ -189,9 +189,11 @@ async function scanAs(
   const context = await browser.newContext({
     ...EMULATIONS[device],
     baseURL,
-    // As in both suites' configs: a PWA worker activating mid-navigation can
-    // abort the goto.
+    // As in both suites' configs (tools/lib/playwrightBase.ts): a PWA worker
+    // activating mid-navigation can abort the goto, and the production CSP
+    // `bun run preview` serves would refuse the injected axe script.
     serviceWorkers: 'block',
+    bypassCSP: true,
   })
   const page = await context.newPage()
   // Only requests that can change the DOM; an image or a font still loading cannot.

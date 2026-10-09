@@ -742,7 +742,7 @@ passes a skipped job, so: `tools/check-workflows.ts` (`path-filters`) asserts
 each app's `workspace:*` deps are in its group; root prose (`ABOUT_JRVS.md`,
 `LLM_STATEMENT.md`, `SPECIAL_THANKS.md`) is `shared`, because #731 changed
 only `SPECIAL_THANKS.md`, skipped `build-srd`, and turned the next three PRs
-red; the axe scan and
+red; the Playwright base, the axe scan and
 baselines are in their app's group. `code` is source, tools, `.github/` and
 the Claude hooks and workflows; `docs` is `docs/**`, root `CLAUDE.md` /
 `README.md` / `CONTRIBUTING.md`, `.claude/**`, `.mcp.json` (docs-only PRs skip
@@ -754,7 +754,7 @@ One step, `bun tools/check.ts --profile=ci --areas=<code,docs>`: the registry
 `bun run check` and pre-push read. Always: Biome and `styling`. `code`:
 `generated`, typecheck, knip, `workflows`, `actionlint`
 (`tools/lint-workflows.sh`: pinned, sha256-verified actionlint and zizmor,
-`.github/zizmor.yml`, third-party actions SHA-pinned,
+`.github/zizmor.yml`, every action SHA-pinned,
 `persist-credentials: false`). `deps`: the audit. `code` or `docs`: `data`,
 `doc-drift`, `observability`, `convex-callers` (which also holds
 `convex/_generated/api.d.ts` to the modules on disk). The test gate
@@ -767,6 +767,11 @@ workspace under its `FLOORS` total (bunfigs set
 All `needs: [changes]` only. `build-srd` builds once, runs `check:examples`,
 srd's whole Playwright suite (add a spec to its run line, not a job), the
 axe spec among them, on that `dist`; `mobile-chromium` (Pixel 7) runs smoke in both apps.
+Both apps' Playwright configs are `tools/lib/playwrightBase.ts`: in CI they
+serve the build with each app's `preview` script (`wrangler dev` over its
+`wrangler.jsonc`, so the specs see production's Worker and routing, CSP
+bypassed), and a test that passes only on a retry fails the run
+(`failOnFlakyTests`).
 `build-itun` builds against a throwaway self-hosted Convex backend
 (`.github/actions/convex-backend`, the one `e2e-nightly.yml` uses) carrying the
 PR's own functions, so its specs (the axe spec among them) see the signed-out UI production
@@ -787,25 +792,29 @@ squash body is the PR body (`squash_merge_commit_message: PR_BODY`).
 
 `quality-checks`, named `CI Success`, fails on `failure` or `cancelled`.
 **Every job must be in its `needs:`** (`tools/check-workflows.ts`,
-`aggregator`). `Analyze (javascript-typescript)` and `PR title is a
-conventional commit` are separately required (`SEPARATELY_REQUIRED`), so
-neither workflow is filtered. Change the trigger on `main` before the ruleset;
+`aggregator`). The ruleset also requires `PR title is a conventional commit`
+and waits on CodeQL through `code_scanning` (`GATE_WORKFLOWS`), so neither
+workflow is filtered. Change the trigger on `main` before the ruleset;
 never poll another workflow.
 
 ### CI: repository settings
 
-Owner-applied; no gate reads them.
+Owner-applied.
 
-- **`main` ruleset** (`gh api repos/SalvageUnion-io/SU-SRD/rulesets/<id>`):
-  `active`, `~DEFAULT_BRANCH`, no `bypass_actors`; `deletion`,
-  `non_fast_forward`, `required_linear_history`; `required_status_checks`
-  (`strict_required_status_checks_policy: true`) with the three contexts each on `integration_id` 15368;
+- **`main` ruleset**, declared as `MAIN_RULESET` in `tools/environments.ts`
+  and drift-checked nightly (`e2e-nightly.yml`, `environments`): `active`,
+  `~DEFAULT_BRANCH`, no `bypass_actors`; `deletion`, `non_fast_forward`,
+  `required_linear_history`; `required_status_checks`
+  (`strict_required_status_checks_policy: true`) with `CI Success` and
+  `PR title is a conventional commit`, each on `integration_id` 15368;
   `code_scanning` (`CodeQL`, `security_alerts_threshold: high_or_higher`,
-  `alerts_threshold: errors`); no `merge_queue`.
+  `alerts_threshold: errors`), the only CodeQL gate; no `merge_queue`.
 - **Actions** (`gh api repos/SalvageUnion-io/SU-SRD/actions/permissions`):
   `allowed_actions: selected`, GitHub-owned plus `dorny/paths-filter@*` and
   `oven-sh/setup-bun@*`, with
-  `verified_allowed: false`; a PR adding a third-party action says so.
+  `verified_allowed: false` and `sha_pinning_required: true` (every `uses:` is
+  a commit SHA; zizmor's `unpinned-uses` holds the YAML to it); a PR adding a
+  third-party action says so.
 - Code scanning default setup `state: not-configured`; private vulnerability
   reporting `enabled: true` ([`SECURITY.md`](../SECURITY.md)).
 
@@ -818,11 +827,14 @@ reading one declares it (`secrets-env`; declared in `tools/environments.ts`,
 drift-checked nightly). Public values (Convex URL, Sentry DSNs and org) are
 top-level `env:`.
 
-- **Shape:** `plan` → `build-srd` / `build-itun` → `push-convex` → `deploy-*`
-  → `smoke` → `record`; `og-srd` renders OG images into srd's `dist` and only
-  `deploy-srd` waits for it (render cache
-  `apps/srd/node_modules/.cache/srd-og`). Deploys ship the builds' artifacts unrebuilt after
-  **every** build is green; CI's builds are never shipped.
+- **Shape:** `plan` → `build-srd` / `build-itun` → `push-convex` → `deploy`
+  → `smoke` → `record`; `og-srd` renders OG images into srd's `dist` (render
+  cache `apps/srd/node_modules/.cache/srd-og`). `deploy` is one matrix job, a
+  leg per app in `plan`'s `deploy` output (`fail-fast: false`); it ships the
+  builds' artifacts unrebuilt after **every** build is green; CI's builds are
+  never shipped, and CI's `build-*` jobs are what prove each Worker bundles.
+  Jobs that ship nothing (`plan`, `build-*`) take the Environment with
+  `deployment: false`.
   `bun run check workflows` (`deploy-order`) asserts the edges and explicit
   status functions downstream of skippable jobs.
 - **`push-convex`** asserts the deploy key's URL equals `ITUN_CONVEX_URL`
@@ -835,7 +847,7 @@ top-level `env:`.
   `tools/deploy-surfaces.ts` (`tools/__tests__/deploy-surfaces.test.ts`). When
   HEAD is an ancestor of the record (a re-run of an older merge's deploy) the
   run is `stale`; only a dispatch (`--allow-backwards`) rolls back.
-- A failed `deploy-*` skips `smoke` and `record`, so the next run redeploys.
+- A failed `deploy` leg skips `smoke` and `record`, so the next run redeploys.
   `record` holds `contents: write` through a REST call, in its own job. A
   dispatched `sha` reaches scripts through `env:`. The smoke list is
   `tools/smoke-production.sh`, also run daily by `e2e-nightly.yml`

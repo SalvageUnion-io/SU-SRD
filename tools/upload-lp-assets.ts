@@ -30,7 +30,7 @@
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
-import { credentialsFromEnv, putObject } from './lib/r2.ts'
+import { credentialsFromEnv, r2Client } from './lib/r2.ts'
 
 const DEFAULT_BUCKET = 'su-lp-assets'
 
@@ -80,9 +80,7 @@ async function main(): Promise<void> {
     process.exit(1)
   }
 
-  const creds = dryRun
-    ? { accountId: '', accessKeyId: '', secretAccessKey: '' }
-    : credentialsFromEnv()
+  const client = dryRun ? undefined : r2Client(credentialsFromEnv(), bucket)
 
   const files = walk(root)
   if (files.length === 0) {
@@ -107,10 +105,12 @@ async function main(): Promise<void> {
     const key = relative(root, file).split('\\').join('/')
     const contentType = CONTENT_TYPES[file.split('.').pop()?.toLowerCase() as string] as string
     try {
-      if (dryRun) {
+      if (!client) {
         console.log(`  · ${key} (${contentType}) — dry run, not uploaded`)
       } else {
-        await putObject(creds, bucket, key, readFileSync(file), contentType)
+        // The content type is object metadata: the su-assets Worker sets its
+        // own on the way out, but the bucket stays browsable in the dashboard.
+        await client.write(key, readFileSync(file), { type: contentType })
         console.log(`  ✓ ${key}`)
       }
       ok += 1

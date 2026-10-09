@@ -47,14 +47,27 @@
  * @public CLI entry — invoked by an operator, not imported.
  */
 import { createHash } from 'node:crypto'
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { credentialsFromEnv, getObject, listObjects } from './lib/r2.ts'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { dirname, join, resolve, sep } from 'node:path'
+import { credentialsFromEnv, listObjects, r2Client } from './lib/r2.ts'
 
 const DEFAULT_BUCKET = 'su-lp-assets'
 
 function sha256(bytes: Uint8Array): string {
   return createHash('sha256').update(bytes).digest('hex')
+}
+
+/**
+ * Where `key` lands under `outDir`, or a throw when it would land outside it.
+ *
+ * Object keys come off the network, so a key such as `../../.bashrc` or
+ * `/etc/x` must not choose where the export writes (CodeQL #93).
+ */
+export function destinationFor(outDir: string, key: string): string {
+  const root = resolve(outDir)
+  const dest = resolve(root, key)
+  if (!dest.startsWith(root + sep)) throw new Error(`key escapes the output directory: ${key}`)
+  return dest
 }
 
 function writeTo(dest: string, bytes: Uint8Array): void {
@@ -102,9 +115,9 @@ async function main(): Promise<void> {
     process.exit(1)
   }
 
-  const creds = credentialsFromEnv()
+  const client = r2Client(credentialsFromEnv(), bucket)
 
-  const listing = await listObjects(creds, bucket, prefix)
+  const listing = await listObjects(client, prefix)
   if (listing.length === 0) {
     console.error(
       `error: bucket "${bucket}" reported 0 objects — refusing to write an empty export`
@@ -119,9 +132,9 @@ async function main(): Promise<void> {
   const failed: string[] = []
 
   for (const object of listing) {
-    const dest = join(outDir, object.key)
     try {
-      const bytes = await getObject(creds, bucket, object.key)
+      const dest = destinationFor(outDir, object.key)
+      const bytes = await client.file(object.key).bytes()
       if (bytes.length === 0) throw new Error('received 0 bytes')
       writeTo(dest, bytes)
       manifest.push({ key: object.key, bytes: bytes.length, sha256: sha256(bytes) })
@@ -146,7 +159,7 @@ async function main(): Promise<void> {
   const mismatched: string[] = []
   for (const entry of manifest) {
     try {
-      if (sha256(await getObject(creds, bucket, entry.key)) !== entry.sha256) {
+      if (sha256(await client.file(entry.key).bytes()) !== entry.sha256) {
         mismatched.push(entry.key)
       }
     } catch (err) {
@@ -159,10 +172,6 @@ async function main(): Promise<void> {
     for (const k of mismatched) console.error(`    ${k}`)
     process.exit(1)
   }
-
-  // Verification copies are held in memory, so no second copy of licensed
-  // material is left on disk; a stale `.verify` directory is removed if present.
-  rmSync(join(outDir, '.verify'), { recursive: true, force: true })
 
   const manifestPath = join(outDir, 'manifest.json')
   writeFileSync(
@@ -178,7 +187,9 @@ async function main(): Promise<void> {
   )
 }
 
-main().catch((err) => {
-  console.error(`\n✗ ${(err as Error).message}`)
-  process.exit(1)
-})
+if (import.meta.main) {
+  main().catch((err) => {
+    console.error(`\n✗ ${(err as Error).message}`)
+    process.exit(1)
+  })
+}

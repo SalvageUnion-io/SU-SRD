@@ -18,6 +18,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
 import { _resetDbSingleton, clearCache } from '../../lib/db/index'
 import type { MechPattern } from '../../lib/schemas/pattern'
 import { usePatternStore } from '../patternStore'
@@ -34,7 +35,7 @@ function pattern(id: string, name = 'Mule Pattern'): MechPattern {
     systems: [],
     modules: [],
     cargoLots: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
+    createdAt: FIXTURE_NOW,
   }
 }
 

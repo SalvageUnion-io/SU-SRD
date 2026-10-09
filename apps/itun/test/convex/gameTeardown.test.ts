@@ -3,7 +3,7 @@ import { api, internal } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { GAME_APPARATUS_TABLES } from '../../convex/model/seats'
 import schema from '../../convex/schema'
-import type { Ctx } from './assignmentFixtures'
+import type { Ctx } from './fixtures'
 import { testConvex } from './harness'
 
 /**

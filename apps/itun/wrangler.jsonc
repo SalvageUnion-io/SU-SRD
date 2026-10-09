@@ -33,5 +33,9 @@
 
   "observability": {
     "enabled": true
-  }
+  },
+
+  // `bun run preview` (`wrangler dev`) serves the built `dist/` through this
+  // Worker on the dev server's port: the e2e suite's CI server.
+  "dev": { "port": 5173 }
 }

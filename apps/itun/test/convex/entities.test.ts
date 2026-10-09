@@ -2,8 +2,9 @@ import { describe, expect, test } from 'bun:test'
 import { ConvexError } from 'convex/values'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import type { Ctx } from './assignmentFixtures'
-import { makeUser } from './assignmentFixtures'
+import { FIXTURE_NOW } from '../../src/components/__tests__/fixtures'
+import type { Ctx } from './fixtures'
+import { crawlerBody, makeUser, pilotBody, seedTable } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -23,33 +24,6 @@ import { testConvex } from './harness'
  */
 
 /**
- * A minimal body that satisfies PilotSchema.
- *
- * Derived by probing the real schema rather than guessed — the first draft of
- * this fixture invented fields (`currentHp`, `trainingPoints`, `abilityRefs`)
- * that do not exist on it and omitted required ones (`classRef`, `motto`,
- * `keepsake`, `appearance`), so every case failed at the parse step.
- */
-function pilotBody(over: Record<string, unknown> = {}) {
-  return {
-    id: 'p1',
-    schemaVersion: 1,
-    name: 'Roach-Boy',
-    callsign: 'Roach-Boy',
-    classRef: 'salvager',
-    abilities: [],
-    equipment: [],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    conditions: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...over,
-  }
-}
-
-/**
  * A minimal body that satisfies MechPatternSchema.
  *
  * This fixture used to be `{ id, name }`, and it passed — patterns once went
@@ -65,21 +39,7 @@ function patternBody(over: Record<string, unknown> = {}) {
     systems: [],
     modules: [],
     cargoLots: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    ...over,
-  }
-}
-
-/** A minimal body that satisfies CrawlerSchema — techLevel is a STRING. */
-function crawlerBody(over: Record<string, unknown> = {}) {
-  return {
-    id: 'c1',
-    schemaVersion: 1,
-    name: '#430',
-    techLevel: '1',
-    systems: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
+    createdAt: FIXTURE_NOW,
     ...over,
   }
 }
@@ -95,14 +55,13 @@ function crawlerBody(over: Record<string, unknown> = {}) {
  * directly in `tableSetup.test.ts`.
  */
 async function seedGame(t: Ctx) {
-  const organizer = await makeUser(t, 'Organizer')
-  const player = await makeUser(t, 'Player')
-  const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-  const code = await organizer.as.mutation(api.invites.create, { gameId })
-  await player.as.mutation(api.invites.redeem, { code })
+  const table = await seedTable(t)
   // The Organizer runs the table while the Game has no Mediator appointed.
-  await organizer.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
-  return { organizer, player, gameId }
+  await table.organizer.as.mutation(api.entities.createCrawler, {
+    gameId: table.gameId,
+    body: crawlerBody(),
+  })
+  return table
 }
 
 /**
@@ -295,15 +254,7 @@ describe("the crawler is the table runner's and merges per field", () => {
           appId: 'c1',
           // Shape probed against CrawlerSchema, not guessed: techLevel is a
           // STRING here, there is no `modules` key, and `systems` is required.
-          body: {
-            id: 'c1',
-            schemaVersion: 1,
-            createdAt: '2026-01-01T00:00:00.000Z',
-            updatedAt: '2026-01-01T00:00:00.000Z',
-            name: '#430',
-            techLevel: '1',
-            systems: [],
-          },
+          body: crawlerBody(),
           updatedAt: 1,
         })
     )

@@ -1,14 +1,12 @@
 # zizmor configuration — read by `tools/lint-workflows.sh` (the `actionlint`
 # check in tools/check.ts), which runs in CI's static-checks job.
 rules:
-  # GitHub's own actions may ride a major tag; everything third-party is
-  # SHA-pinned. zizmor's default would demand SHAs for `actions/*` too, and a
-  # rule that flags every `actions/checkout@v7` in the repo gets switched off.
+  # Every action, GitHub's own included, is pinned to a commit SHA with its
+  # version in a trailing comment; Dependabot moves both. A tag can be moved
+  # under a workflow, a SHA cannot.
   unpinned-uses:
     config:
       policies:
-        'actions/*': ref-pin
-        'github/*': ref-pin
         '*': hash-pin
 
   # Suggests the `$/` self-repository syntax for local actions. Every
