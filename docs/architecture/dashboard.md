@@ -4,7 +4,7 @@ The **Dashboard** is ITUN's live actual-play surface: one pilot in a Game, with
 their **Mech** and the crew's **Crawler**, composed into one screen that never
 scrolls, where every game action is a button. Components are in
 `apps/itun/src/components/dashboard/`, the remaining `.pc-*` stylesheets in
-`packages/component-lib/src/styles/dashboard/`, and the route is
+`apps/itun/src/styles/dashboard/`, and the route is
 `/dashboard/$pilotId` (`apps/itun/src/routes/dashboard/$pilotId.tsx`).
 
 The decisions are [ADR-015](../ARCHITECTURE.md#adr-015) and its merged
@@ -191,7 +191,7 @@ New Dashboard UI is written to
 [tailwind-removal.md](../design-system/tailwind-removal.md) §4: style objects
 over `component-lib/design/tokens` plus `.su-*` classes, and no new `.pc-*`
 class. The `.pc-*` rules still in use load once, from `Dashboard.tsx`, through
-the `component-lib/styles/dashboard.css` export.
+ITUN's `src/styles/dashboard.css`.
 
 ## 7. Mobile
 

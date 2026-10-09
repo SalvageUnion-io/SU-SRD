@@ -16,9 +16,8 @@
  * Step 3 runs under Bun, NOT through Vite, so a `.css` import anywhere in the
  * SSR module graph lands in a runtime that has no css loader. `component-lib`'s
  * barrel used to be exactly that: `DashboardCanvas.tsx` / `DashboardGrid.tsx`
- * each did `import './x.css'`. They no longer do (the dashboard stylesheet is
- * the package export `component-lib/styles/dashboard.css`, imported only by
- * ITUN — audit PK-01), so today the graph is css-free. The stub stays as the
+ * each did `import './x.css'`. They no longer do (the dashboard components and
+ * their stylesheet are ITUN's own), so today the graph is css-free. The stub stays as the
  * guard for the next one: Bun happens to load `.css` as a text module, which
  * would let a stray import "work" unguarded until the first `@fontsource`
  * import that drifts into an SSR module broke it. The `Bun.plugin` below stubs

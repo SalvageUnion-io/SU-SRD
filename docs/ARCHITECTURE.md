@@ -103,12 +103,13 @@ A workspace whose tests touch `SalvageUnionReference` lists the shared
 
 TypeScript source, no build ([ADR-011](#adr-011)).
 Exports `.` (`src/index.ts`, the source of truth; never trust a count),
-`./design/tokens`, `./styles/dashboard.css`, `./styles/index.css`,
-`./styles/theme.css`. `src/design/tokens.ts` is a zero-import leaf for
-consumers with no stylesheet; never copy a token
-literal (`tokens.parity.test.ts`). Code only one app renders lives in that app
-(`apps/itun/src/components/`, `apps/srd/src/components/`) until a second app
-renders it; the Dashboard's `.pc-*` styles stay in `src/styles/dashboard/`.
+`./design/tokens`, `./styles/index.css`, `./styles/tailwind.css`,
+`./styles/theme.css`. `src/styles/theme.css` is the one token set;
+`src/design/tokens.ts` mirrors it as a zero-import leaf for consumers with no
+stylesheet; never copy a token literal (`tokens.parity.test.ts`). Code and
+styles only one app renders live in that app (`apps/itun/src/components/`,
+`apps/srd/src/components/`, the Dashboard's `.pc-*` rules in
+`apps/itun/src/styles/dashboard/`) until a second app renders them.
 Internal on purpose: no `Tooltip`; `EntityTooltip` and `ConditionChip` are
 sub-parts. Customise through generic slot props and hooks that return them.
 
@@ -143,13 +144,15 @@ Convex (`apps/itun/convex/`).
 
 ### Tailwind source paths
 
+One entry, `packages/component-lib/src/styles/tailwind.css`, imports Tailwind,
+`theme.css` and `index.css` (into `layer(su-base)`) and scans the library
+(`@source '..'`, stories and tests excluded). `@source` resolves relative to
+the file that declares it, so the scan is the same for every consumer:
+
 ```css
-/* apps/srd/src/styles/global.css */
-@source "../../../../packages/component-lib/src";
-/* apps/itun/src/index.css */
-@source "../../../packages/component-lib/src";
-/* both, after it */
-@import 'component-lib/styles/theme.css';
+/* apps/itun/src/index.css, apps/srd/src/styles/global.css */
+@import 'component-lib/styles/tailwind.css';
+@source not './**/*.stories.tsx'; /* each app's own stories (srd: '../**') */
 ```
 
 ### discord-bot
@@ -638,8 +641,8 @@ enforced by `src/story-coverage.test.ts`.
   add no outer `bg-paper`.
 - **Never add `@vitejs/plugin-react`** to `vite.config.ts`: a second React
   plugin blanks every story (`Missing field 'moduleType'`).
-- `src/styles/ladle.css` imports the package stylesheet into `layer(su-base)`
-  and points `@source` at all three roots. Only the `a11y` addon is on.
+- `src/styles/ladle.css` imports the shared `tailwind.css` entry and adds
+  `@source` for the stories and the two apps' component folders. Only the `a11y` addon is on.
 - **Size ladder** (`src/styles/sizing.ts`): Full, **Compact** (default), Mini;
   offer only real rungs, compose from `RUNG_TYPE` / `RUNG_INLINE_PADDING` as
   `Badge`'s `STAMP_SIZE` does.
@@ -1608,9 +1611,9 @@ and ships compiled output.
   `dist/`.
 - No published artifact and no `dist/` to keep in sync; `src/index.ts` is the
   single source of truth.
-- Consumers must include `component-lib`'s source in their compile/Tailwind
-  `@source` paths; a missing path shows up as untyped imports or unstyled
-  components (a known gotcha when wiring a new consumer).
+- Consumers compile `component-lib`'s source themselves. A Tailwind consumer
+  imports `component-lib/styles/tailwind.css`, whose `@source` scans the
+  library; a consumer wired without it renders unstyled components.
 - Peer deps mean a consumer that omits a required peer (React, etc.) fails at
   install/resolve time rather than shipping a duplicate copy.
 

@@ -21,8 +21,8 @@
   "tags": ["-public", "-knipignore"],
   "workspaces": {
     // The root holds no code of its own now that `tools/` is a workspace, and
-    // `.design-sync/` previews and `.claude/workflows/` are entry points for
-    // tools outside the repo, which knip cannot see calling them.
+    // `.claude/workflows/` are entry points for tools outside the repo, which
+    // knip cannot see calling them.
     ".": {
       "project": []
     },

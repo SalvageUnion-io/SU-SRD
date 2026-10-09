@@ -22,7 +22,7 @@
  */
 .su-story-split {
   display: grid;
-  gap: var(--su-space-16);
+  gap: var(--space-16);
 }
 
 @media (min-width: 40rem) {

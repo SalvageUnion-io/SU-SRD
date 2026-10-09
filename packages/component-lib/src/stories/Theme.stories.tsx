@@ -81,11 +81,11 @@ const colorRoles: ColorRole[] = [
   { swatch: 'statusBad', role: 'status · bad' },
 ]
 
-/** `statusOk` → `--su-color-status-ok`, spelled as tokens.parity.test.ts spells it. */
+/** `statusOk` → `--color-status-ok`, spelled as tokens.parity.test.ts spells it. */
 const colorVarName = (key: string) =>
-  `--su-color-${key
+  `--color-${key
     .replace(/([A-Z])/g, '-$1')
-    .replace(/(\d+)/g, '-$1')
+    .replace(/([a-zA-Z])(\d+)/g, '$1-$2')
     .toLowerCase()}`
 
 function RoleSwatch({ swatch, role }: ColorRole) {
@@ -148,11 +148,10 @@ const rollColors = ['rollCascade', 'rollFailure', 'rollTough', 'rollSuccess', 'r
 
 const statusColors = ['statusOk', 'statusWarn', 'statusBad'] as const
 
-/* These two are NOT on the `--su-*` scale: they are the ShadCN-compat aliases
-   declared in theme.css's plain `:root`, outside the Tailwind `@theme` block,
-   and `Text` still reads `--foreground`. They are shown as the raw custom
-   properties they are, because that is precisely what this story documents;
-   they retire with theme.css in the Tailwind-removal layer (#801). */
+/* These two are NOT tokens: they are the ShadCN-compat aliases declared in
+   theme.css's plain `:root`, and `Text` still reads `--foreground`. They are
+   shown as the raw custom properties they are, because that is precisely what
+   this story documents. */
 const cssVarMappings: Record<string, string> = {
   '--background': 'var(--color-paper)',
   '--foreground': 'var(--color-ink)',
@@ -200,11 +199,7 @@ function ColorSection({ title, keys }: { title: string; keys: readonly (keyof ty
       </h3>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[16] }}>
         {keys.map((key) => (
-          <Swatch
-            key={key}
-            name={colorVarName(key).replace('--su-color-', '')}
-            value={color[key]}
-          />
+          <Swatch key={key} name={colorVarName(key).replace('--color-', '')} value={color[key]} />
         ))}
       </div>
     </div>
@@ -212,7 +207,7 @@ function ColorSection({ title, keys }: { title: string; keys: readonly (keyof ty
 }
 
 const pageHeadingStyle = {
-  fontSize: fontSize.xl2,
+  fontSize: fontSize['2xl'],
   fontWeight: weight.bold,
   marginBottom: space[16],
 } satisfies CSSProperties
@@ -262,7 +257,7 @@ export const TechLevelColors: Story = () => (
             </span>
           </div>
           <span style={{ fontSize: fontSize.label }}>
-            {colorVarName(key).replace('--su-color-', '')}
+            {colorVarName(key).replace('--color-', '')}
           </span>
         </div>
       ))}
@@ -381,7 +376,7 @@ export const Tracking: Story = () => (
           Systems &amp; Modules
         </span>
         <Caption>
-          {`--su-tracking-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`} · {tracking[key]} ·{' '}
+          {`--tracking-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`} · {tracking[key]} ·{' '}
           tracking.{key}
         </Caption>
       </div>
@@ -436,7 +431,7 @@ export const BorderMap: Story = () => (
               {borderWidth[w.token]}
             </span>
           </div>
-          <span style={tokenNameStyle}>--su-bw-{w.token}</span>
+          <span style={tokenNameStyle}>--bw-{w.token}</span>
           <Caption>{w.applies}</Caption>
         </div>
       ))}

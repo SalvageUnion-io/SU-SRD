@@ -73,12 +73,6 @@
       "apps/**",
       "packages/**",
       "tools/**",
-      // The claude.ai/design previews and their provider: React that ships in
-      // the design-system bundle, held to the same rules as component-lib.
-      // `.cache/` and `learnings/` are the sync's own gitignored output.
-      ".design-sync/**",
-      "!.design-sync/.cache",
-      "!.design-sync/learnings",
       // Agent worktrees are full checkouts, each carrying its own copy of THIS
       // file with `"root": true`. Biome 2.5+ hard-errors on a nested root
       // config, and that discovery walk is independent of the includes above —
@@ -102,16 +96,6 @@
       // too, or `bun run lint` passes or fails depending on whether someone
       // happens to have a server up.
       "!**/.wrangler",
-      // Compiled Tailwind output for the claude.ai/design sync
-      // (`.design-sync/tailwind-entry.css` → `packages/component-lib/.ds-css/`).
-      // It has to live INSIDE the package because the converter bounds
-      // `cfg.cssEntry` to the package dir, so it lands under `packages/**` and
-      // is in scope by default. Linting it is meaningless — it is Tailwind's
-      // emitted CSS, not hand-authored — and it fails: `!important` from
-      // `@utility`, and `:is(:where(.x)::before)` selectors Biome's CSS parser
-      // rejects. Same reasoning as `.wrangler` and `.astro` above: gitignored
-      // is not enough, it has to be said here.
-      "!**/.ds-css",
       "!**/.vite",
       "!**/.ladle",
       "!**/coverage",
@@ -383,15 +367,13 @@
     },
     {
       // A no-op callback (`onChange={() => {}}`, `mock(() => {})`) is the whole
-      // point in a test or a story (and a design-sync preview, which is a ported
-      // story), so `noEmptyBlockStatements` — which exists to catch swallowed
-      // errors in shipped code — is off here.
+      // point in a test or a story, so `noEmptyBlockStatements` — which exists
+      // to catch swallowed errors in shipped code — is off here.
       "includes": [
         "**/*.test.ts",
         "**/*.test.tsx",
         "**/__tests__/**",
         "**/*.stories.tsx",
-        ".design-sync/previews/**",
         "**/test/**",
         "**/e2e/**"
       ],
