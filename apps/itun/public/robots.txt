@@ -1,7 +1,8 @@
 # intheunionnow.com
 #
-# A real file, so Static Assets serves it — without it a crawler asking for
-# crawl rules would get the SPA shell, read no rules, and crawl everything.
+# A real file, so a crawler reads explicit rules. Without it, /robots.txt
+# would reach the Worker's missing-file rule and 404, which crawlers read as
+# "no rules: crawl everything".
 
 User-agent: *
 Allow: /

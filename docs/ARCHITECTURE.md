@@ -4682,7 +4682,8 @@ removed. The dependency audit gate that held it now passes a PR that changes
 `bun.lock`, so the renderer went with `@resvg/resvg-wasm`; `/og/s/*` answers
 404 rather than the 301 to the app icon this ADR first planned.
 
-**Decisions 3–5 amended, 2026-10-09 (#1137):** old links no longer redirect.
+**Decisions 2–5 amended, 2026-10-09 (#1137):** old links no longer redirect,
+and `/api/snapshots` is no endpoint at all.
 Since this ADR shipped, `/s/:id` drew one hit and no identity lookup (three
 `GET /api/snapshots/:id` in seven days), so the redirect-if-public path — the resolver, the read-only R2 seam, the `SNAPSHOTS` binding, the
 per-snapshot unfurl metadata and a dev proxy — served nobody. `/s/:id` is now a
@@ -4739,6 +4740,10 @@ the links that already exist: **"Redirect if public."**
    `DELETE /api/snapshots/:id` are gone: the collection answers 404 to every
    method, and the id route answers 405 to everything but GET. The edge rate
    limiter, which covered `POST /api/snapshots` and nothing else, goes with it.
+   *Amended 2026-10-09 (#1137):* no `/api/snapshots` endpoint exists, by any
+   method. `/api/snapshots` and `/api/snapshots/:id` are ordinary client-route
+   misses: a navigation gets `index.html` from Static Assets, and a `fetch` gets
+   the SPA shell with 200 from the Worker.
 
 3. **An existing `/s/:id` link redirects if public, and otherwise is retired.**
    `GET /api/snapshots/:id` now answers only `{ kind, appId }`, read from the
@@ -4847,10 +4852,12 @@ governing rule asked of a link that can no longer serve what it served before.
   expected noise that ends as those tabs reload onto the current build, not an
   outage. Its `/s/:id` page, handed `{ kind, appId }` where it expected a build,
   shows its own "Could not render snapshot" state rather than crashing.
-  *Amended 2026-10-09 (#1137):* `/api/snapshots/:id` is gone, so such a tab's
-  `/s/:id` page gets no snapshot at all and shows its error state; a tab on the
-  redirect build reports `snapshot-identity-failed` once and shows the retired
-  page. Neither redirects.
+  *Amended 2026-10-09 (#1137):* `/api/snapshots` is no endpoint, so that
+  `HEAD` gets the SPA shell with 200, not a 404. The feature-detect read anything
+  but 405 as unavailable, so the tab still shows "publishing unavailable". Its
+  `/s/:id` page gets the shell where it expected a snapshot and shows its error
+  state; a tab on the redirect build reports `snapshot-identity-failed` once and
+  shows the retired page. Neither redirects.
 
 ### Alternatives considered
 
