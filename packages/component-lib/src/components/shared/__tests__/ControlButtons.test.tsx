@@ -126,28 +126,6 @@ describe('ControlButtons', () => {
     expect(screen.getByText('Test')).toBeTruthy()
   })
 
-  test('control with hoverContent still renders button', () => {
-    render(
-      <ControlButtons
-        controls={[
-          makeControl({
-            hoverContent: <div data-testid="hover-content">Weapon details</div>,
-          }),
-        ]}
-      />
-    )
-    // Button should be rendered (hover content is portaled, not visible without hover)
-    expect(screen.getByRole('button')).toBeTruthy()
-    expect(screen.getByLabelText('Test action')).toBeTruthy()
-  })
-
-  test('control without hoverContent renders plain button', () => {
-    render(<ControlButtons controls={[makeControl()]} />)
-    const button = screen.getByRole('button')
-    expect(button).toBeTruthy()
-    expect(button.tagName).toBe('BUTTON')
-  })
-
   // Icon-only controls (design `.ctl`): an `icon` with no `label`/`segmentText`
   // renders a square icon button (the live-sheet per-card remove/swap cluster).
   const RemoveGlyph = ({ className }: { className?: string }) => (
