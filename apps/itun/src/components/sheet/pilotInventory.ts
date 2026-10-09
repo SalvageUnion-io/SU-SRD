@@ -80,12 +80,9 @@ type PilotCapacityInput = Pick<Pilot, 'maxInventorySlotsModifier'> &
  * and the absolute `maxInventorySlotsOverride` pin when one is set. Never
  * below 0.
  *
- * This used to inline the arithmetic, which is why `maxInventorySlotsOverride`
- * — in the persisted Pilot schema since the cap-override work — was read by
- * nothing: a Free-Edit pin wrote a value this gauge then ignored. Delegating to
- * `pilotMaxInventorySlots` puts it through the same `breakdownOf` as every
- * other derived maximum, so the pin now takes effect exactly like the HP and AP
- * pins do. The unpinned number is unchanged.
+ * Delegating to `pilotMaxInventorySlots` puts it through the same
+ * `breakdownOf` as every other derived maximum, so a `maxInventorySlotsOverride`
+ * Free-Edit pin takes effect exactly like the HP and AP pins do.
  */
 export function pilotInventoryCapacity(pilot?: PilotCapacityInput): number {
   return pilotMaxInventorySlots(pilot ?? {})

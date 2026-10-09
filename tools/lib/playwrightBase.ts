@@ -13,8 +13,8 @@
  *   nothing; per-test budgets widen to `external` there, because every test
  *   pays real network round trips.
  * - In CI a test that fails and then passes on a retry FAILS the run
- *   (`failOnFlakyTests`). Retries stay, so a flake still records its trace;
- *   they no longer hide it.
+ *   (`failOnFlakyTests`). Retries stay, so a flake still records its trace,
+ *   but they never hide it.
  * - The page's CSP is bypassed (`bypassCSP`). The specs test behaviour and
  *   accessibility, not the policy, and two things they need sit outside the
  *   production CSP: ITUN's throwaway Convex backend on `127.0.0.1`, and the axe

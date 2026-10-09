@@ -10,8 +10,8 @@ import { reloadOntoNewBuild, serverBootsAnotherBuild } from '../sw/register'
  * (`convex/buildFloor.ts`, by `deploy-cloudflare.yml`) and into the bundle
  * (`VITE_BUILD_STAMP`). A tab whose bundle is older than the floor was built
  * before the backend it talks to, and may call a function that no longer
- * exists — a stale tab used to keep doing exactly that for weeks behind a
- * dismissible update toast. Now:
+ * exists — for weeks, behind a dismissible update toast, if nothing stops it.
+ * So:
  *
  * 1. **Writes stop at once.** `ConnectionProvider` reports `outdated`, so
  *    `canWrite` is false and the store refuses with the `outdated` reason.

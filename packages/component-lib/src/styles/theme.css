@@ -10,9 +10,7 @@
 @theme {
   /* === Typography === */
   /* TWO faces, no aliases: Barlow for body/values, Barlow Semi Condensed for
-     all-caps chrome. (`--font-mono` was a legacy alias for Barlow — misleadingly
-     named, since it is NOT a monospace — and is now retired; every reference
-     moved to `font-body` or, for caps labels, `font-cond`.) */
+     all-caps chrome. */
   --font-body: 'Barlow', system-ui, -apple-system, sans-serif;
   --font-cond: 'Barlow Semi Condensed', 'Barlow', system-ui, -apple-system, sans-serif;
 
@@ -57,33 +55,16 @@
   --text-caption: 13px;
   --text-lede: 15px;
   /* The DISPLAY step — a readout meant to be read across a table, not a label.
-     The ladder previously stopped at 15px, so every oversized numeral had to
-     reach for an arbitrary bracketed value — the ladder not having a display
-     step is WHY that drift existed. Sized 26px to match the crawler-economy
-     readout it was introduced for.
-
-     (Deliberately describing the anti-pattern rather than spelling it: the
-     token guard reads comments too, and cannot tell a citation from a
-     commission. It caught this doc block on first run.) */
-  --text-display: 26px;
-
-  /* …and the note above was right about the CAUSE but only half-fixed it. One
-     display step left a 15px -> 26px canyon, so 28 call sites still had to
-     bracket their own size: 16, 17, 22, 24, 27, 28, 30, 31, 34, 38.
-     Read as a set, those values are already a ~1.2 ratio scale — the drift was
-     people re-deriving the same scale by eye, one component at a time. So the
-     ladder is completed at that ratio rather than invented:
+     The ladder above lede runs at a ~1.2 ratio, so no oversized numeral has to
+     reach for an arbitrary bracketed value:
 
        lede 15 -> readout 17 -> title 22 -> display 26 -> display-lg 31 -> hero 38
 
-     Each rung absorbs a real cluster, so most sites move 0-2px. Two notes on
-     the sites that move furthest, because they are judgement calls, not
-     rounding: the AppBar wordmark's `sm:` step drops 34 -> 31, and VitalGauge's
-     dense/normal numeral pair (28/30) becomes 26/31, which WIDENS the density
-     gap from 2px to 5px — a dense mode should read as denser than a 2px hint.
-     Its supporting `/max` text collapses from a 16/17 pair to one rung: a 1px
-     step is below the resolution any ladder should encode, and density is
-     carried by the numeral beside it. */
+     A 1px step is below the resolution any ladder should encode, and a dense
+     mode should read as denser than a 2px hint. (Deliberately describing the
+     anti-pattern rather than spelling it: the token guard reads comments too,
+     and cannot tell a citation from a commission.) */
+  --text-display: 26px;
   --text-readout: 17px;
   --text-title: 22px;
   --text-display-lg: 31px;
@@ -106,14 +87,9 @@
   --font-weight-bold: 700;
   --font-weight-extrabold: 800;
 
-  /* The `su-*` brand family that used to live here is DELETED. It was a shadow
-     tokenset: the canonical semantic tokens below were defined as aliases *of*
-     it, so the brand names were the real substrate and the semantic layer was a
-     veneer. That let one colour have two spellings — `su-orange-dark` and
-     `rust` were the same #a85222 — which made the "rust = action, only action"
-     law (ruleset §3.1) impossible to audit by search, and let a second reading
-     surface (`su-paper`, a cream) ship alongside `--color-paper`.
-     Every value below is preserved exactly; only the names changed. */
+  /* One spelling per colour: no brand-name alias family under the semantic
+     tokens, so the "rust = action, only action" law (ruleset §3.1) can be
+     audited by search. */
 
   /* Tech Level Blues */
   --color-tl-1: rgb(115, 201, 230);
@@ -132,15 +108,14 @@
   /* Entity colors (semantic) — hue encodes ontology (ruleset §3/§4.1).
      These hold their literal values; nothing aliases a brand name. */
   --color-pilot: rgb(239, 137, 79); /* #ef894f */
-  --color-pilot-light: rgb(245, 193, 163); /* #f5c1a3 — was also spelled su-peach */
+  --color-pilot-light: rgb(245, 193, 163); /* #f5c1a3 */
   --color-mech: rgb(122, 151, 138); /* #7a978a */
   --color-mech-dark: rgb(92, 121, 108); /* #5c796c */
   --color-crawler: rgb(206, 88, 152); /* #ce5898 */
-  /* The 5th ontology domain. Previously `su-rust` — a false friend: it is NOT
-     the action rust (#a85222) and never was. It is the shared header tone for
-     the world/opposition schemas: creatures, bio-titans, factions, npcs, meld,
-     squads. Naming it `adversary` removes the collision with the one action
-     colour, which was the most dangerous part of the shadow family. */
+  /* The 5th ontology domain — NOT the action rust (#a85222). It is the shared
+     header tone for the world/opposition schemas: creatures, bio-titans,
+     factions, npcs, meld, squads. Named `adversary` so it never collides with
+     the one action colour. */
   --color-adversary: rgb(140, 75, 56); /* #8c4b38 */
 
   /* Guide tones that are not one of the five ontology domains.
@@ -150,24 +125,20 @@
      these two cover the guides that are about neither — the salvage/condition
      procedures, and Tough Choices, whose band reads as a hazard stripe.
 
-     They exist as tokens because the dataset previously carried five raw hexes
-     of its own, one byte-identical to --color-mech and two near-misses of
-     --color-pilot / --color-crawler: close enough to read as the same colour,
-     different enough never to track a re-tone. The dataset now names a tone and
-     this file owns every value. */
+     The dataset names a tone and this file owns every value, so a guide band
+     tracks a re-tone. */
   --color-guide-salvage: rgb(90, 157, 181); /* #5a9db5 */
   --color-guide-hazard: rgb(184, 76, 76); /* #b84c4c */
 
   /* Class ability-tier ramp (Core Book 2.0a, class ability-tree spreads).
      Core = brick, Advanced (incl. Hybrid) = pilot, Legendary = crawler — the
      book reuses the ontology hues for the upper two tiers, so only Core needs
-     its own token. Previously `su-brick` / `su-brick-pale`. */
+     its own token. */
   --color-tier-core: rgb(168, 89, 71); /* #a85947 */
   --color-tier-core-pale: rgb(210, 160, 140); /* #d2a08c */
 
   /* Roll result tiers — canonical warm state palette (canonical primitive
-     language §3). Re-toned off the old stock-Material hues so damaged/destroyed
-     state (via the --color-status-* aliases below) and the Discord bot's roll
+     language §3): warm, so damaged/destroyed state (via the --color-status-* aliases below) and the Discord bot's roll
      outcomes share ONE warm ramp. Web surfaces never colour roll outcomes —
      tier colour is a bot-only affordance. */
   --color-roll-cascade: rgb(176, 67, 43); /* #b0432b */
@@ -180,13 +151,11 @@
   /* Ink / paper / action */
   --color-ink: rgb(40, 32, 25); /* #282019 */
   --color-ink-2: rgb(70, 61, 49); /* #463d31 secondary ink */
-  --color-ink-deep: rgb(27, 23, 18); /* #1b1712 — the dark header ground (was su-ink-dark) */
+  --color-ink-deep: rgb(27, 23, 18); /* #1b1712 — the dark header ground */
 
   /* Ink-opacity ramp (ruleset.md, foundations) — hairlines,
-     placeholders, ghosts, disabled fills. This replaces the neutral greys of
-     the shadow family (su-grey/-light/-medium/-dark, su-muted, su-ink-soft,
-     su-sand, su-input-bg), which were true neutrals fighting the warm paper.
-     Warm ink at opacity reads as the same material at distance. */
+     placeholders, ghosts, disabled fills. Not neutral greys, which fight the
+     warm paper: warm ink at opacity reads as the same material at distance. */
   --color-ink-85: rgb(40 32 25 / 0.85);
   --color-ink-75: rgb(40 32 25 / 0.75);
   --color-ink-60: rgb(40 32 25 / 0.6);
@@ -201,34 +170,22 @@
   --color-ink-10: rgb(40 32 25 / 0.1);
   --color-ink-8: rgb(40 32 25 / 0.08);
   --color-ink-5: rgb(40 32 25 / 0.05);
-  /* The -85 / -40 / -20 rungs were added for SHADOWS, which had been authored
-     as raw `rgba()` inside Tailwind arbitrary values and were invisible to the
-     token guard until its `rgb()` arm stopped using `\b` (a boundary that can
-     never fire next to the `_` separator). Those 26 literals used THREE
-     different bases — pure black, `rgb(40,32,25)` (ink), and `rgb(34,30,23)`
-     (an ink that exists nowhere in this file) — across 16 alpha values, for
-     what is a handful of elevations.
-     They all resolve here, to warm ink at opacity, for the reason the note
-     above already gives: a true-neutral shadow fights warm paper. Each new rung
-     covers a real cluster (0.16-0.22, 0.38-0.45, 0.85-0.90) rather than
+  /* The -85 / -40 / -20 rungs are for SHADOWS: warm ink at opacity, for the
+     reason the note above gives — a true-neutral shadow fights warm paper. Each
+     rung covers a real cluster (0.16-0.22, 0.38-0.45, 0.85-0.90) rather than
      enshrining one call site's number. */
   /* Paper — the ONE light surface (ruleset §4.1). NOT pure white and NOT cream:
      a near-white warm paper. Pure white is retired from the UI — paper is used
      universally (surfaces, value cells, and text on ink). The only remaining
      #ffffff is one scoped exception: the @media print sheet (physical paper).
-     The Dashboard cockpit is warm paper too (ruleset §1), so the dark-skin
-     exception this note used to carve out no longer exists. */
+     The Dashboard cockpit is warm paper too (ruleset §1). */
   --color-paper: rgb(251, 250, 247); /* #fbfaf7 */
   /* Paper-opacity ramp — the mirror of the ink ramp above, for the surfaces
      where paper is the FOREGROUND (text and hairlines printed onto a tone or a
      dark ground) rather than the surface.
-     `-30` began as the single inset bevel highlight (it was
-     `rgba(255,255,255,0.28)`, a pure white the paper law (§4.1) retired
-     everywhere the guard could see). One rung was not enough: call sites that
-     needed a softer paper reached for Tailwind's `paper/NN` slash form instead,
-     which spread one concept over eleven alphas. `-60` absorbs the largest of
-     those clusters (the `/55`–`/60` supporting-label tone); `-30` absorbs the
-     `/25`–`/35` hairline cluster. Both are FOREGROUND rungs — paper as a
+     `-60` is the supporting-label tone and `-30` the hairline / inset bevel
+     highlight (never pure white: the paper law, §4.1), so a softer paper never
+     reaches for an arbitrary `paper/NN` alpha. Both are FOREGROUND rungs — paper as a
      background is always the flat `--color-paper`. */
   --color-paper-85: rgb(251 250 247 / 0.85);
   --color-paper-80: rgb(251 250 247 / 0.8);
@@ -239,48 +196,42 @@
   --color-rust: rgb(168, 82, 34); /* #a85222 — THE single action color */
   /* The one sanctioned cream. The rendering matrix (ruleset §2) specifies the
      RollTable as "banded d20, peach/cream", so cream survives for exactly that
-     banding — and nowhere else. Every other former `su-paper` use is now
-     `--color-paper`, restoring the "one paper" law (§4.1). */
+     banding — and nowhere else. */
   --color-band-cream: rgb(243, 237, 226); /* #f3ede2 */
   --color-rust-hi: rgb(138, 64, 25); /* #8a4019 primary hover */
   /* A 25% rust wash. NOT the focus ring: as a ring it measured 1.42:1 against
      the required 3:1 (see `.su-focus-ring` in index.css). */
   --color-rust-25: rgb(168 82 34 / 0.25);
-  /* `--color-danger` (#9a4633) is RETIRED. It was the third red in a set that
-     should have had one: `--color-status-bad` is the sanctioned state token
-     (ruleset §3.3), and `--color-adversary` is an ONTOLOGY hue that was doing
-     state's job at the modal header. Destructive/error surfaces now all resolve
-     to status-bad; adversary stays ontology-only (creature/faction/NPC headers,
-     which are correct and untouched). */
+  /* One red for state: destructive/error surfaces resolve to
+     `--color-status-bad` (ruleset §3.3). `--color-adversary` is an ONTOLOGY hue
+     (creature/faction/NPC headers) and never does state's job. */
 
   /* Workshop (light) ground — the step off-paper that makes a card read as a
      panel. */
   --color-wk-bg: rgb(230, 240, 245); /* #e6f0f5 */
   --color-wk-bg-2: rgb(215, 230, 238); /* #d7e6ee */
-  /* The muted secondary-text tone. RETONED from #6c7780, which failed WCAG 2.1
-     AA on every ground it actually lands on — 4.39:1 on paper, 3.96:1 on
-     `--color-wk-bg` (the ITUN <body> background) and 3.58:1 on `--color-wk-bg-2`
-     — across ~117 call sites, most of them small text (`text-sm` / `text-caption`
-     / `text-label`), where AA demands 4.5:1 rather than the 3:1 large-text floor.
-     The value is chosen against the DARKEST ground it can sit on (wk-bg-2), not
-     against paper, because the same token is used on all three:
+  /* The muted secondary-text tone. It must pass WCAG 2.1 AA (4.5:1) on every
+     ground it lands on — paper, `--color-wk-bg` (the ITUN <body> background)
+     and `--color-wk-bg-2` — because most of its call sites are small text
+     (`text-sm` / `text-caption` / `text-label`), where the 3:1 large-text floor
+     does not apply. The value is chosen against the DARKEST ground it can sit
+     on (wk-bg-2), not against paper, because the same token is used on all three:
        #5a646d → paper 5.78:1 · wk-bg 5.22:1 · wk-bg-2 4.73:1
-     Hue and chroma are unchanged (the same cool grey-blue); only lightness drops,
-     so the primary/secondary hierarchy against `--color-ink-2` (10.20:1 on paper)
-     is compressed but preserved. */
+     It stays a cool grey-blue, lighter than `--color-ink-2` (10.20:1 on paper),
+     so the primary/secondary hierarchy holds. */
   --color-wk-muted: rgb(90, 100, 109); /* #5a646d */
   /* NON-TEXT ONLY — 2.03:1 on paper. This is a hairline/divider tone (~18 border
      uses) and must never carry text; the placeholder and separator uses it once
      had now resolve to `wk-muted`. */
   --color-wk-faint: rgb(167, 180, 189); /* #a7b4bd */
-  --color-wk-line: rgb(143, 195, 216); /* #8fc3d8 — advisory/info rule (was su-blue) */
-  --color-wk-accent: rgb(125, 206, 235); /* #7dceeb — game-state accent (was su-blue-game) */
+  --color-wk-line: rgb(143, 195, 216); /* #8fc3d8 — advisory/info rule */
+  --color-wk-accent: rgb(125, 206, 235); /* #7dceeb — game-state accent */
 
   /* Attention fills that are neither an ontology hue nor a status overlay.
      Values preserved from the shadow family; renamed for what they mark. */
-  --color-caution: rgb(215, 195, 125); /* #d7c37d — was su-sickly-yellow */
+  --color-caution: rgb(215, 195, 125); /* #d7c37d */
   --color-caution-25: rgb(215 195 125 / 0.25); /* Banner's caution wash */
-  --color-inert: rgb(192, 192, 192); /* #c0c0c0 — was su-silver */
+  --color-inert: rgb(192, 192, 192); /* #c0c0c0 */
 
   /* Status (Intact / Damaged / Destroyed) — aliases of the roll tiers */
   --color-status-ok: var(--color-roll-success);
@@ -312,21 +263,14 @@
   --color-sheet-game: var(--color-wk-accent); /* #7dceeb */
   --color-sheet-game-deep: rgb(30, 83, 100); /* #1e5364 */
 
-  /* `--animate-heat-pulse` (design review U-1) is DELETED. It defined a
-     status-bad ring that breathed outward at heat cap, and no component ever
-     applied it — U-1 shipped as the colour escalation only (`heatLevel.ts`
-     `heatDangerFrom`, consumed by VitalGauge). A keyframe nothing references is a
-     claim about the UI that the UI does not honour; if the pulse is wanted, it
-     comes back with the call site that applies it.
+  /* Heat cap escalates by colour only (`heatLevel.ts` `heatDangerFrom`,
+     consumed by VitalGauge). A keyframe ships only with the call site that
+     applies it.
 
      A prefers-reduced-motion user gets the static end state, never the loop.
      Prefer stating that at the call site with `motion-safe:` — it is the
-     honest, per-site expression of the intent. But do NOT rely on it: the
-     claim this comment used to make ("EVERY animation token here is applied
-     `motion-safe:`") was simply false — 3 call sites used `motion-safe:`, 4
-     used `motion-reduce:`, one reached for `matchMedia` in JS, and 10 were
-     unguarded, among them 8 `animate-pulse` skeletons. A per-call-site
-     convention that nothing enforces will drift. The
+     honest, per-site expression of the intent. But do NOT rely on it: a
+     per-call-site convention that nothing enforces will drift. The
      `@media (prefers-reduced-motion: reduce)` backstop below the `@theme`
      block is what makes the guarantee true, and it holds for a call site
      nobody remembered to mark. */
@@ -336,11 +280,8 @@
  * Reduced-motion backstop — the single place the "no loops for a
  * prefers-reduced-motion user" guarantee is actually made true.
  *
- * Motion was previously guarded four ways (`motion-safe:`, `motion-reduce:`, a
- * JS `matchMedia` in Dial.tsx, and — for 10 call sites — not at all), with no
- * `@media (prefers-reduced-motion)` block anywhere in the repo. That makes the
- * guarantee a convention, and a convention that nothing enforces is a promise
- * the next unmarked `animate-*` quietly breaks.
+ * Without it the guarantee is a convention, and a convention that nothing
+ * enforces is a promise the next unmarked `animate-*` quietly breaks.
  *
  * `animation-duration: 0.01ms` + `animation-iteration-count: 1` does NOT strip
  * the animation — it runs it once, instantly, so the element lands on the
@@ -467,13 +408,10 @@
   /* WIZARD STEP-CARD FILL — ONE rule for all three sheets, derived from the
      page tone rather than three book literals.
 
-     It used to be three hardcoded spread colours: pilot sky-blue (#6BB8D6,
-     pp.18–19), mech rust (#B0553A, pp.94–95), crawler peach (#EC9C67,
-     pp.212–213). On the crawler that shipped an ORANGE card onto a wholly pink
-     page — the masthead band, the `--ground` fill and the guided door all
-     resolve from `--tone`, so the one blown-up element mid-screen was the only
-     thing that did not belong. Deriving it fixes that by construction and
-     survives a restyle: change `--tone` and the step card follows.
+     The masthead band, the `--ground` fill and the guided door all resolve
+     from `--tone`, so a fixed book colour here would be the one element
+     mid-screen that does not belong. Deriving it survives a restyle: change
+     `--tone` and the step card follows.
 
      The formula is a fixed STEP off the tone, not a fixed colour, so each sheet
      keeps its own hue:
@@ -490,9 +428,7 @@
      #A6B9B0 (mech), #DD93B7 (crawler).
 
      Every card therefore lands light and takes DARK ink, at 9.67 / 7.77 /
-     6.81:1. That unifies a split that used to exist: mech alone carried
-     `--color-paper` ink because rust was too dark to read against. One fill
-     rule, one ink rule. See WizShell's `tintedStepCard`, whose step title
+     6.81:1. One fill rule, one ink rule. See WizShell's `tintedStepCard`, whose step title
      inherits this ink rather than hardcoding white. */
   --tone-card: oklch(from var(--tone) calc(l + 0.13) calc(c * 0.62) h);
   --tone-card-ink: var(--color-ink);

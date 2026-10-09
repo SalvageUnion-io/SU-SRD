@@ -42,19 +42,10 @@ function CodeSample({ children, roomy = false }: { children: string; roomy?: boo
 /**
  * Every sample on this page is DERIVED from a real record at build time.
  *
- * It used to be hand-written, and it was wrong in three independent ways at
- * once. The documented entity — "Iron Mongrel" — does not exist in the dataset,
- * so both the URL and the `.json` beside it returned 404. `id` was shown as a
- * readable slug when it is actually a UUID. And `hull` / `armor` are not fields
- * on chassis at all; the real ones are `structurePoints`, `energyPoints`,
- * `heatCapacity` and the rest.
- *
- * So a developer following this page got a 404, and if they coded against the
- * documented shape they coded against fields that have never existed. This is
- * the page whose readers copy-paste most directly into their own code.
- *
- * Nothing could have caught it: prose is not typechecked, and the fictional
- * slug had spread into the repo's own docs, so it looked corroborated.
+ * Hand-written samples are prose, and prose is not typechecked: a sample can
+ * name an entity the dataset lacks (a 404), show a UUID as a slug, or document
+ * fields a chassis does not have. This is the page whose readers copy-paste
+ * most directly into their own code, so it never hand-writes one.
  *
  * The generator already holds the dataset in memory when it renders this page —
  * the same trick `llms.txt` uses for its category list. Deriving costs nothing

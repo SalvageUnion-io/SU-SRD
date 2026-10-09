@@ -1,9 +1,8 @@
 /**
- * ShareStatusDialog outside Connected — the share affordance that replaced the
- * `/sheet/:kind/:id/share` screen.
+ * ShareStatusDialog outside Connected — the share affordance.
  *
- * Snapshots are retired (ADR-036): the dialog no longer publishes, lists or
- * revokes them, and must not offer to. The live public sheet is the only way to
+ * There are no snapshots (ADR-036): the dialog must not offer to publish, list
+ * or revoke one. The live public sheet is the only way to
  * share, and it needs an account and a connection, so outside Connected the
  * dialog explains what sharing needs instead. The Connected half — the toggle,
  * the link, the QR — is `ShareStatusDialog.connected.test.tsx`.

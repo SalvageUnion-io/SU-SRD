@@ -87,11 +87,8 @@ export function ModalShell({
   finalFocus,
   children,
 }: ModalShellProps) {
-  // `tone` is the whole API now. It replaced a `headerBg` raw-class prop whose
-  // behaviour hung on a string comparison (`headerBg === 'bg-adversary'`) — a
-  // shape that had already survived one token migration only because a sweep
-  // happened to rewrite the literal alongside the token. A union removes the
-  // class of bug rather than fixing an instance of it.
+  // `tone` is the whole API: a union, never a raw class string compared by
+  // value, so a token rename cannot silently change the behaviour.
   const isDanger = tone === 'danger'
   const headerBgClass = isDanger ? 'bg-status-bad' : 'bg-pilot'
 

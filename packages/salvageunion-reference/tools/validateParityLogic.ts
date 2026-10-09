@@ -7,8 +7,7 @@ import { statesMechanicalChange } from '../lib/rules/rulesBearing.js'
  * The dataset states mechanical changes in prose. Some are encoded as structured
  * data the app can apply (`contributions`, crawler `mutations`, choice
  * `effects`); some are stated and encoded nowhere, so the number on the
- * sheet is simply wrong. Nothing previously told the two apart, which is how
- * Beefcake sat inert for the app's whole life.
+ * sheet is simply wrong.
  *
  * This is the check that makes "content denotes what it claims" STAY true across
  * future content drops, rather than being a one-time sweep that silently rots.

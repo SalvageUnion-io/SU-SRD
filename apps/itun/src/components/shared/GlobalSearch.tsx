@@ -3,9 +3,8 @@
  * floating button in the bottom-right corner of every route (design-review
  * P-2).
  *
- * It used to be a header trigger opening a modal dialog. The masthead now
- * keeps only navigation and the account; search lives in component-lib's
- * `Fab`, which expands into a panel anchored at the button. (The SRD site keeps
+ * The masthead keeps only navigation and the account; search lives in
+ * component-lib's `Fab`, which expands into a panel anchored at the button. (The SRD site keeps
  * its own top-of-page search, `SearchIsland`; this is ITUN's only.)
  *
  * The combobox logic (debounce, category+entity blending, keyboard

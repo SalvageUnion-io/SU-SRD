@@ -46,7 +46,7 @@
   /* The canonical focus ring, composed from two tokens. It is not a token
      itself: `tokens.parity.test.ts` compares atomic values, and this is a
      composite derived FROM them. Every ring rung reads it; none repeats the
-     literal, which is what let the old ones drift apart twice. */
+     literal, so they cannot drift apart. */
   --focus-ring-shadow: 0 0 0 2px var(--color-paper), 0 0 0 4px var(--color-rust);
 }
 
@@ -219,16 +219,15 @@ body {
  *
  * ## Why this is a paper-offset ring and not a wash
  *
- * It used to be `rust/25`, a 25%-alpha wash. Composited on paper, that
- * measured **1.42:1**, against the 3:1 that WCAG 2.4.11 / 1.4.11
- * require of a focus indicator, and 1.27:1 on the `ink-deep` header. The ring
- * was, in practice, invisible.
+ * A `rust/25` wash, composited on paper, measures **1.42:1**, against the 3:1
+ * that WCAG 2.4.11 / 1.4.11 require of a focus indicator, and 1.27:1 on the
+ * `ink-deep` header: in practice, invisible.
  *
  * The rule it broke is the one the ON-TONE rung below already states: *a ring
  * that vanishes on a legal background is not an accessibility affordance.* That
  * rung solved it with a paper offset under a solid ink ring; this is the same
- * construction in rust, so the focus colour is unchanged and the two rungs are
- * now the same shape rather than two different ideas.
+ * construction in rust, so the two rungs are the same shape rather than two
+ * different ideas.
  *
  * ## Why BOTH rings are load-bearing
  *
@@ -249,11 +248,8 @@ body {
  * boundary holds at 5.17 regardless. That is the whole reason for two rings,
  * and why the on-tone rung below was built the same way.
  *
- * All five ring rules below read ONE token, `--focus-ring-shadow`. They
- * previously repeated the same literal five times and had already drifted apart
- * once — #798 shipped them against `--color-ink-20` while their comments
- * said rust, and #799 corrected the value rather than the comment. A single
- * token is what stops a third round of that.
+ * All five ring rules below read ONE token, `--focus-ring-shadow`, so they
+ * cannot drift apart.
  *
  * `outline: 3px solid transparent` accompanies every `outline: none` here.
  * Windows High Contrast Mode does not paint `box-shadow` at all, so without it
@@ -526,13 +522,11 @@ body {
  *
  * A size rung rather than its own component because an icon button differs from
  * a worded one only in geometry: same frame, variants, focus ring and disabled
- * treatment. Before it there were five hand-rolled squares in the package —
- * 28/32/36/44px, three radii, four border treatments — and the one with no
- * visible focus ring was the only one a keyboard user could not see.
+ * treatment, including the visible focus ring a hand-rolled square forgets.
  *
  * 36px is the resting geometry, comfortably past the WCAG 2.5.8 24px minimum. A
  * call site that must line up with a neighbouring control overrides width and
- * height at the call site, as it previously overrode `size-*`.
+ * height at the call site.
  */
 .su-btn--icon-only {
   flex-shrink: 0;
@@ -757,16 +751,13 @@ body {
  * THE HEIGHT BUDGET. The searcher's frame is capped at the dynamic viewport
  * (a style object on its Card), and `.su-searcher` is the body's flex child
  * that takes whatever the header and sub-header leave — so no part of the
- * picker can be pushed below a fold that nothing scrolls. (On a phone the
- * header used to fill the screen and push the results and the selection under
- * the bare modal popup's `overflow: hidden`.)
+ * picker can be pushed below a fold that nothing scrolls (the bare modal
+ * popup is `overflow: hidden`).
  *
  * Below 80rem the body is ONE scroll container filling that space, and the
  * rail is a sticky band at its top: above the results, never over them. From
- * 80rem it is capped at `--searcher-cap` as before, the rail is its own
- * column right of the pool, and each column scrolls alone, so neither can
- * cover the other. (The rail used to float over the bottom-right of the pool,
- * where on a phone it hid a third of the results.)
+ * 80rem it is capped at `--searcher-cap`, the rail is its own column right of
+ * the pool, and each column scrolls alone, so neither can cover the other.
  *
  * The breakpoint is mirrored by `WIDE_QUERY` in the component, which at the same
  * width swaps the band's disclosure for a plain heading and the sub-header's

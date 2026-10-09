@@ -2,9 +2,7 @@
  * Derived maxima for all three entities (plan 2.5, gap 11).
  *
  * "Many maxima are derived, not fixed" (rules digest): store modifiers,
- * compute totals. This module is the single source for those computations —
- * it replaces the old PILOT_MAX_HP/PILOT_MAX_AP constants (lib/pilotStats.ts)
- * and the crawler SP slug-regex previously local to CrawlerSheet.
+ * compute totals. This module is the single source for those computations.
  *
  *   Pilot:   maxHP = 10 + 2×(crawler tech − 1) + maxHpModifier
  *                     − Σ(minor injury: 1, major: 2)

@@ -6,11 +6,10 @@ import { testConvex } from './harness'
 /**
  * Who may write into a game's Change Log.
  *
- * `changeLog.appendChangeLog` is the client's mirror of a local append: a record
- * of something that ALREADY happened on the user's own device. It called
- * `requireUser` and then inserted every entry verbatim — and every field of an
- * entry is client-supplied, `gameId` included. Nothing derived that id from a
- * record the caller could be shown to own.
+ * `changeLog.appendChangeLog` records something that ALREADY happened on the
+ * user's own device, and every field of an entry is client-supplied, `gameId`
+ * included. Inserting entries verbatim after `requireUser` alone would derive
+ * that id from no record the caller could be shown to own.
  *
  * Two consequences, and the second is the sharp one:
  *

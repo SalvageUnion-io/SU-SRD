@@ -22,9 +22,8 @@
  * were split across component-lib and ITUN, with ITUN its only consumer; one
  * file since the component-lib boundary audit (PK-03).
  *
- * Restore WRITES (F5), to the pilot and the mech in the Minor slots. The wizard
- * used to render the guide and gates and write nothing at all, so Guided Play
- * described a rule it never applied.
+ * Restore WRITES (F5), to the pilot and the mech in the Minor slots, so Guided
+ * Play applies the rule it describes.
  *
  * ADR-007 is satisfied without a confirm dialog here because Restore is
  * non-destructive by construction — `downtimeMechPatch` / `downtimePilotPatch`

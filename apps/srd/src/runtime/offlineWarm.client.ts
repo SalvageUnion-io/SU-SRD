@@ -18,12 +18,11 @@
  *
  * ## It refreshes every page once per deploy
  *
- * It used to skip any page already cached, so a page warmed once was never
- * refreshed: offline, an installed app read whatever build it first saw — and
- * that copy names hashed chunks the precache drops on the next deploy, so
- * offline it lost its styles and islands too. Visiting a page heals its entry
- * (the navigation rule is network-first), but most warmed pages are never
- * visited online.
+ * Skipping a page already cached would never refresh it: offline, an installed
+ * app would read whatever build it first saw — and that copy names hashed
+ * chunks the precache drops on the next deploy, so offline it would lose its
+ * styles and islands too. Visiting a page heals its entry (the navigation rule
+ * is network-first), but most warmed pages are never visited online.
  *
  * So the warm records which build it last completed for (`WARMED_BUILD_KEY`),
  * and on a page from a different build it re-fetches everything rather than

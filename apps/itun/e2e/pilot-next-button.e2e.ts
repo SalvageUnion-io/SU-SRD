@@ -19,16 +19,13 @@ import { expect, test } from './fixtures'
  * listing could leave the wizard stuck here with no way to advance.
  *
  * The gate is BOTH halves — "Step 2 of 9 · Choose your Pilot and your first
- * Ability". This test used to assert that picking a class alone enabled Next,
- * which stopped being true when the step absorbed the first-Ability pick;
- * asserting the real two-part gate is the stronger guard anyway, because it
- * fails if EITHER half stops registering.
+ * Ability". Asserting the two-part gate fails if EITHER half stops
+ * registering.
  */
 test('Next opens only once both class and first ability are picked', async ({ page }) => {
   await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
-  // "Your Stats" now precedes the Class step, so the Class step is no longer
-  // the landing step these assertions were written against.
+  // "Your Stats" precedes the Class step, so walk to the class cards first.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
 
   const next = page.getByRole('button', { name: /^Next ·/ })
@@ -51,8 +48,7 @@ test('Next opens only once both class and first ability are picked', async ({ pa
 test('every base class renders a selectable row', async ({ page }) => {
   await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
-  // "Your Stats" now precedes the Class step, so the Class step is no longer
-  // the landing step these assertions were written against.
+  // "Your Stats" precedes the Class step, so walk to the class cards first.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
 
   // Each base class is a selectable entity card. SU core book has 6 base
@@ -71,8 +67,7 @@ test('every base class renders a selectable row', async ({ page }) => {
 test('selecting Engineer reveals its abilities in the detail pane', async ({ page }) => {
   await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
-  // "Your Stats" now precedes the Class step, so the Class step is no longer
-  // the landing step these assertions were written against.
+  // "Your Stats" precedes the Class step, so walk to the class cards first.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
 
   // Selecting the Engineer row renders its trees + abilities in the detail

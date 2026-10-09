@@ -3,12 +3,10 @@
  * sheet's edit mode. Uses the shared `EntitySearcher` in a bare ModalShell, the
  * same picker every other "choose a reference entity" modal runs on.
  *
- * It previously ran a bespoke master/detail pair (a 220px option rail beside a
- * preview pane) which the searcher replaces. A chassis is one of the largest
- * entities in the data — artwork, stat block, chassis ability, patterns — and a
- * 220px column is narrower than the card's own artwork, so every option in the
- * master pane rendered clipped and unreadably tall. The searcher's two-column
- * masonry gives each card its natural width, and `hide.patterns` drops the one
+ * A chassis is one of the largest entities in the data — artwork, stat block,
+ * chassis ability, patterns — and a 220px option rail is narrower than the
+ * card's own artwork, so a master/detail pair would clip every option. The
+ * searcher's two-column masonry gives each card its natural width, and `hide.patterns` drops the one
  * section a picker has no use for (patterns are chosen in the next step).
  *
  * Changing chassis is DESTRUCTIVE (the wizard's selectChassis wipes the

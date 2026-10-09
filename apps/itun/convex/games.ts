@@ -17,7 +17,7 @@ import { deleteGameApparatus } from './model/seats'
 /**
  * Games — the shared container (ADR-030 §2).
  *
- * A Game collapses campaign, group, and the former Workspace into one concept.
+ * A Game is campaign and group in one concept.
  * The personal **Shelf** is the other container and is not a Game: it is simply
  * the absence of one (`gameId: null` on an entity), which is why there is no
  * `shelves` table.
@@ -226,9 +226,9 @@ export const destroy = mutation({
     // The Mediator's prepared opposition falls back for the same reason the
     // crawler does, and it became able to only in the same way: `encounterNpcs`
     // gained a nullable `gameId` and an `ownerId` (ADR-034 decision 2), so a
-    // tray is no longer something only a Game can hold. It used to be deleted
-    // here — which threw away prep work somebody had genuinely built, the one
-    // remaining case of exactly what the rule above forbids.
+    // tray is not something only a Game can hold, and deleting it would throw
+    // away prep work somebody genuinely built — exactly what the rule above
+    // forbids.
     //
     // It goes to the Organizer rather than to whoever mediated: a Game may have
     // several Mediators or none, while the deleter is by construction exactly

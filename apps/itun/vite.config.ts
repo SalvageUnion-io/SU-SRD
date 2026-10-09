@@ -57,7 +57,7 @@ export default defineConfig(({ mode }) => {
         // asks (src/lib/sw/register.ts posts SKIP_WAITING and reloads) or when
         // every tab has closed. Nothing is yanked from under a running page.
         //
-        // Waiting no longer means BOOTING an old build: navigations go to the
+        // Waiting does not mean BOOTING an old build: navigations go to the
         // network first (src/lib/sw/workbox.ts), so every page load gets the
         // deployed shell and the precache is only the offline fallback. What a
         // waiting worker still delays is the precache catching up, and a tab

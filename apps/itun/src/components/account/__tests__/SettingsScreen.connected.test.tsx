@@ -67,18 +67,16 @@ const wrap = () =>
 const ME = { displayName: 'Beefcake', avatarUrl: null, discordId: 'd1' }
 
 describe('what the settings page is when there is no account', () => {
-  test('signed out says nothing is kept yet and offers the way in', () => {
+  test('signed out says it is read-only and offers the way in', () => {
     authed = false
     withQueries({})
     wrap()
 
-    // Signed out, ITUN is read-only (ADR-034): the page has to say so plainly
-    // and offer the way in.
+    // Signed out is read-only: building needs an account (ADR-034).
     expect(screen.getByText(/You are not signed in/i)).toBeTruthy()
-    // It must not promise anything is kept: signed out, every write is
-    // refused, so nothing is saved on this device or anywhere else, and
-    // "saved on this device" would be a lie.
-    expect(screen.getByText(/nothing is kept/i)).toBeTruthy()
+    expect(screen.getByText(/building anything needs an account/i)).toBeTruthy()
+    // It must not promise building or durability it cannot deliver.
+    expect(screen.queryByText(/without an account/i)).toBeNull()
     expect(screen.queryByText(/saved on this device/i)).toBeNull()
   })
 
@@ -128,7 +126,7 @@ describe('the settings page', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Settings' })).toBeTruthy()
   })
 
-  test('no longer lists your games — that moved to the masthead Games menu', () => {
+  test('does not list your games — the masthead Games menu does', () => {
     withQueries(profileQueries(ME))
     wrap()
     expect(screen.queryByRole('heading', { name: /your games/i })).toBeNull()

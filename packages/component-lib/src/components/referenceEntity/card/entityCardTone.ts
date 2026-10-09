@@ -75,10 +75,8 @@ export type DomainTone = {
 /**
  * Which theme token each `guideTone` name resolves to.
  *
- * THIS is the mapping the dataset used to inline as raw hexes — one of them
- * byte-identical to `--color-mech`, two near-misses of `--color-pilot` and
- * `--color-crawler`. The dataset now names a tone (`GuideToneSchema` in
- * `salvageunion-reference`) and every colour resolves here, so a re-tone in
+ * The dataset names a tone (`GuideToneSchema` in `salvageunion-reference`),
+ * never a hex, and every colour resolves here, so a re-tone in
  * `theme.css` moves the guide bands with it.
  *
  * It lives in component-lib rather than the reference package because the
@@ -125,15 +123,14 @@ export function resolveDomainTone(
 ): DomainTone {
   const domain = SCHEMA_DOMAIN[schemaName]
 
-  // GUIDES carry their OWN stored hue (`guideColor`), and it must win over the
-  // glossary-ink domain default. The SRD index already paints each guide's
-  // catalog tile with this exact hex (`catalogHelpers.ts` → `catalogBg`), so
-  // resolving the card to `bg-ink-2` made every guide page a different colour
-  // from the link that opened it — the one entity type whose tone is authored
-  // per-item rather than derived from its domain.
+  // GUIDES carry their OWN stored tone (`guideTone`), and it must win over the
+  // glossary-ink domain default: the SRD index paints each guide's catalog tile
+  // with the same colour (`catalogHelpers.ts` → `catalogBg`), so a guide page
+  // matches the link that opened it — the one entity type whose tone is
+  // authored per-item rather than derived from its domain.
   //
-  // A DATA-SHAPE check, not a schema-name one (display-system rule): the hue
-  // rides the stored field, so anything carrying a `guideColor` is toned by it.
+  // A DATA-SHAPE check, not a schema-name one (display-system rule): the tone
+  // rides the stored field, so anything carrying a `guideTone` is toned by it.
   // Returned as `bgColor` (a raw CSS colour) rather than `bg` (a Tailwind
   // class) — the card threads `bgColor` to the header, sub-header, footer,
   // frame and nested children, and `accentSurface` applies it as an inline
@@ -233,12 +230,10 @@ export function entityHostTone(entity: SURefMetaEntity): string {
  *   ladder — this is what makes a child strictly smaller than its parent.
  * - SIZE is an OFFSET, never a floor. `large` starts at rung 0 (the dominant
  *   name-tab), `medium` at rung 1, `small` at rung 2. It shifts the whole depth
- *   ramp down without flattening it. (It USED to be a `Math.max(depth, floor)`
- *   clamp, which collapsed depth 0 and depth 1 onto the same rung — a small
- *   depth-0 card and its depth-1 child both landed on rung 2, so the child was
- *   not smaller. An offset keeps consecutive depths one rung apart at every
- *   size.) The offsets are chosen so depth 0 reproduces the historical sizes
- *   exactly: large→`text-5xl`, medium→`text-xl`, small→`text-base`.
+ *   ramp down without flattening it. (A `Math.max(depth, floor)` clamp would
+ *   put a small depth-0 card and its depth-1 child on the same rung; an offset
+ *   keeps consecutive depths one rung apart at every size.) Depth 0 renders
+ *   large→`text-5xl`, medium→`text-xl`, small→`text-base`.
  *
  * THE FLOOR, honestly stated. The ladder bottoms out at `text-badge` (11px), the
  * legibility floor: below it a nested title stops being readable, so the type
@@ -274,8 +269,8 @@ export type Eyebrow = { type: string }
 
 /**
  * Eyebrow = the schema TYPE stamp only (e.g. "Ability", "System"). The
- * categorical classification axis (ability tree, tech level) no longer lives
- * in this Stamp — it rides the header's top-border seam instead, via
+ * categorical classification axis (ability tree, tech level) is not in this
+ * Stamp — it rides the header's top-border seam instead, via
  * {@link resolveAxisMarker}.
  */
 export function resolveEyebrow(schemaName: SURefEnumSchemaName | 'actions'): Eyebrow {

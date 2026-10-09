@@ -28,17 +28,9 @@ type CardImageProps = {
 /**
  * CardImage — the entity illustration that the card body floats text around.
  *
- * Read-only by design. An `editable` surface (hover overlay, file input,
- * Change / Remove / Add Image buttons, upload spinner, and a placeholder SVG —
- * about 100 of this file's 182 lines) was removed after measuring zero callers:
- * the single production call site passes `url`/`alt`/`compact` and nothing else.
- * Its `width`/`height` props were dead alongside it.
- *
- * Deleting it also removed a real defect for free: the Remove button was painted
- * in what is now `--color-adversary`, i.e. an ONTOLOGY hue doing a destructive
- * action's job (ruleset §3.3). Uploading a custom entity image is not a
- * capability this library has a consumer for; when one exists it should arrive
- * as a deliberate design with the danger tone resolved, not as a dormant branch.
+ * Read-only by design: there is no upload surface, because no consumer needs
+ * one. When one does, it arrives as a deliberate design whose destructive
+ * action uses the danger tone, never an ONTOLOGY hue (ruleset §3.3).
  */
 export function CardImage({ url, srcSet, alt, compact, aside }: CardImageProps) {
   const [showImage, setShowImage] = useState(true)

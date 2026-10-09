@@ -43,8 +43,7 @@ import { DOWNTIME_UPKEEP_SCRAP } from './downtime'
  * The numeric scrap tech levels (pool bucket keys are tl1..tl6).
  *
  * Exported as the ONE home for this list: the crawler sheet's bucket steppers
- * and the exchange dialog's TL pickers used to each keep a private copy, so a
- * seventh tech level would have had to be found in three places.
+ * and the exchange dialog's TL pickers read it.
  */
 export const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const
 

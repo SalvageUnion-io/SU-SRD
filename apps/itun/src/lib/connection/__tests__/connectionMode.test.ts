@@ -45,8 +45,8 @@ describe('the unsettled auth handshake is its own mode, not Solo', () => {
   })
 
   test('connecting refuses writes but does not raise the alarm', () => {
-    // Refusing is the point: a write let through here lands locally and is never
-    // mirrored. Warning is not — this window closes in well under a second, and
+    // Refusing is the point: nobody knows yet which store a write belongs in.
+    // Warning is not — this window closes in well under a second, and
     // a NOT CONNECTED banner on every load would be a lie with a short fuse.
     expect(writesAllowed('connecting')).toBe(false)
     expect(shouldWarnDisconnected('connecting')).toBe(false)

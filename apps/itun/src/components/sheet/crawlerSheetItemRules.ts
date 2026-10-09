@@ -16,5 +16,5 @@ export function resolveCrawlerSystem(ref: string): SURefEntity | null {
 /** Bay repair cost: 5 Scrap of crawler TL or higher (rules C8, S12). */
 export const BAY_REPAIR_COST = 5
 
-// The scrap tech-level list used to be declared here too. It now has one home,
-// `lib/rules/crawlerEconomy.ts#SCRAP_TLS`, beside the pool math that walks it.
+// The scrap tech-level list has one home, `lib/rules/crawlerEconomy.ts#SCRAP_TLS`,
+// beside the pool math that walks it.

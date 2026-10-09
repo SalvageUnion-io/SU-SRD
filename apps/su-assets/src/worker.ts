@@ -51,9 +51,7 @@ export type ImagesBinding = {
  * every subsequent transformation on the account would fail with `9422`.
  *
  * Two entries, matching the render slot they exist for: `CardImage` sizes
- * artwork into 220 CSS px, so 440 covers a 2x display and 880 a 4x one. This is
- * the same pair `tools/generate-lp-asset-derivatives.ts` used to bake, which is
- * what makes the public URL grammar identical before and after.
+ * artwork into 220 CSS px, so 440 covers a 2x display and 880 a 4x one.
  */
 const ALLOWED_WIDTHS = new Set([440, 880])
 
@@ -193,7 +191,7 @@ export function makeAssetHandler(openBucket: () => AssetBucket, images?: ImagesB
     }
 
     // No stored object. If the key names a derivative, render it from the master
-    // rather than 404ing — this is what replaces the baked pipeline.
+    // rather than 404ing.
     const derivative = parseDerivative(key)
     if (!derivative) {
       return plain('Not found', 404)

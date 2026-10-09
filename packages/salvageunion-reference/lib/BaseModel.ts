@@ -106,9 +106,8 @@ export class BaseModel<T> {
    */
   getBySlug(slug: string): (T & { schemaName: string }) | undefined {
     if (!this.slugMap) {
-      // An empty `name` is not slug-addressable — the linear scan this replaces
-      // tested `!item.name` and skipped such rows, so indexing them would let a
-      // nameless row claim the `''` slug key it never used to answer for.
+      // An empty `name` is not slug-addressable: indexing it would let a
+      // nameless row claim the `''` slug key.
       this.slugMap = this.buildKeyIndex((rowName) => (rowName === '' ? null : nameToSlug(rowName)))
     }
     return this.slugMap.get(slug)

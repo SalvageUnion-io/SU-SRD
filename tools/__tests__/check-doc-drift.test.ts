@@ -350,8 +350,30 @@ describe('checkRetiredClaims', () => {
     expect(failures).not.toContain('ARCHITECTURE')
   })
 
+  it('fails each claim the account-gated, Convex-only design retired', () => {
+    const root = fixture({
+      '.claude/rules/a.md': 'Anonymous play stays first-class.\n',
+      '.claude/rules/b.md': 'Signing in is optional: first-class for *building*.\n',
+      '.claude/rules/c.md': 'Signed out, in-memory work is lost on reload.\n',
+      '.claude/rules/d.md': 'A Solo build has no Convex URL.\n',
+      '.claude/rules/e.md': 'Guard on isConvexConfigured().\n',
+      '.claude/rules/f.md': 'Reads are salvage-tolerant.\n',
+      'docs/ARCHITECTURE.md':
+        '# Architecture\n\n# Decisions\n\n## ADR-001\n\n### Context\n\nAnonymous play stays first-class.\n',
+    })
+    const failures = checkRetiredClaims(root).failures
+    for (const doc of ['a', 'b', 'c', 'd', 'e', 'f']) {
+      expect(failures.some((f) => f.startsWith(`.claude/rules/${doc}.md:1 matches`))).toBe(true)
+    }
+    expect(failures.join('\n')).not.toContain('ARCHITECTURE')
+  })
+
   it('passes a doc that states the current design', () => {
-    const root = fixture({ 'CLAUDE.md': 'Signed out, ITUN is read-only. Use `bun run test`.\n' })
+    const root = fixture({
+      'CLAUDE.md':
+        'Signed out, ITUN is read-only. Use `bun run test`.\n' +
+        'The bot is a first-class authenticated client.\n',
+    })
     expect(checkRetiredClaims(root).failures).toEqual([])
   })
 })

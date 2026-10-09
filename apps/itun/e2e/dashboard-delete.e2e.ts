@@ -17,7 +17,7 @@ import { expect, test } from './fixtures'
  * After creation the wizard navigates to "/" (the dashboard). We wait for the
  * exact URL "/" so the waitForURL resolves only after the SPA navigation
  * completes — not while still on "/pilots/new" (whose path also contains
- * "/pilots/", which tripped the old regex).
+ * "/pilots/", which a looser regex would match).
  *
  * Dashboard entity hydration is async (IndexedDB read inside useEffect). We
  * wait for the pilot's name to become visible in the entity list rather than

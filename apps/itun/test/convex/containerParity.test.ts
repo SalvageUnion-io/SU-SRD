@@ -90,9 +90,9 @@ describe('container parity — every local store can reach the server', () => {
    * So this asserts the other half: for every store that has a table, some
    * client code must actually commit to it. Deliberately a source scan rather
    * than a runtime probe — the failure being caught is "nobody wrote the
-   * mirror", which is a fact about the code, not about a session.
+   * commit", which is a fact about the code, not about a session.
    */
-  test('every mirrored store has a client commit path, not just a table', async () => {
+  test('every Convex-backed store has a client commit path, not just a table', async () => {
     const backend = await Bun.file(
       new URL('../../src/stores/entityBackend.ts', import.meta.url)
     ).text()
@@ -147,7 +147,7 @@ describe('container parity — every local store can reach the server', () => {
      *
      * So the scan is now source-level rather than line-level. Comments go
      * first (a trailing `// was commitPatternWrite` on a disabled line is what
-     * switching a mirror off actually looks like), then import and re-export
+     * switching a commit off actually looks like), then import and re-export
      * statements, which name a function without invoking it.
      */
     const strip = (source: string) =>
@@ -162,7 +162,7 @@ describe('container parity — every local store can reach the server', () => {
      *
      * `fn(` covers the direct calls in `entityStore.ts`; `commit: fn` covers
      * the slice wiring in `patternStore.ts` and `encounterStore.ts`, which is
-     * the single line whose removal silently stops those mirrors.
+     * the single line whose removal silently stops those commits.
      *
      * Known residual, stated rather than papered over: a call inside dead code
      * (`if (false) await commitPatternWrite(op)`) still reads as a use.

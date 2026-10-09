@@ -11,8 +11,7 @@ import { SRD_SITE_URL } from 'salvageunion-reference'
  * collapses into the shared `NavDrawer`, with `mobileActions` beside the
  * hamburger and `drawerExtra` inside the drawer.
  *
- * One row, with no sub-header: the account cluster that used to sit on a
- * second row beneath the nav is now those menus.
+ * One row, with no sub-header: the account cluster is those menus.
  *
  * No search, either. ITUN's reference search is a floating button in the
  * bottom-right corner (`Fab`, wired in ITUN's `GlobalSearch.tsx`), so this
@@ -23,11 +22,8 @@ import { SRD_SITE_URL } from 'salvageunion-reference'
  * accounts, Convex or Games. ITUN fills them (`src/components/account/
  * HeaderAccount.tsx`).
  *
- * There is no Encounter entry. A standalone `/encounter` tray existed, was
- * dropped from the nav on the understanding that the Mediator sheet would
- * absorb it, and then sat unreachable — no link anywhere in the app — until it
- * was deleted. GM opposition now lives on the Mediator sheet's NPC tray, backed
- * by Convex (`api.mediator.*`), not at a top-level destination.
+ * There is no Encounter entry. GM opposition lives on the Mediator sheet's NPC
+ * tray, backed by Convex (`api.mediator.*`), not at a top-level destination.
  *
  * Router-agnostic: internal links route through the injected `LinkComponent`
  * (ITUN passes its router-aware AppLink; defaults to a plain anchor).

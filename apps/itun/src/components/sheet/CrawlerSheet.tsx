@@ -299,8 +299,8 @@ export function CrawlerSheet({
   /**
    * One bay card, with whatever that bay HOLDS rendered inside it: the
    * Armament Bay's mounted weapons, the Storage Bay's scrap pool and hold.
-   * A bay's contents belong in the bay — they used to sit in sections
-   * elsewhere on the sheet, describing a bay from a distance.
+   * A bay's contents belong in the bay, not in a section elsewhere on the
+   * sheet describing it from a distance.
    */
   function renderBay(entry: CrawlerBayEntry, i: number) {
     const kind = bayKind(entry)

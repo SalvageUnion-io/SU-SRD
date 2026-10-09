@@ -44,21 +44,9 @@
   }
 }
 
-/* (The `.btn` / `.btn-active` / `.btn-inactive` system was retired — the action
-   button is the shared component-lib `Button` (and `buttonVariants` for links),
-   which owns that treatment as the single source of truth.)
-
-   (.nav-link and .breadcrumb-text were retired — the masthead is the shared
-   component-lib AppBar, which owns those treatments as utilities.) */
-
-/* Catalog category headers (line / [LABEL] / line) and the page H1/H2 heading
-   band were promoted into component-lib as `SectionHeader` and `PageHeading` —
-   the single source of truth for these cross-app treatments. */
-
-/* (The `.catalog-item` family — tile, hover, focus, `--ghost`, `__name`,
-   `-label` — was retired: it is the shared component-lib `CatalogTile`, which
-   owns the tile markup (incl. the `variant="ghost"` 404 link) as the single
-   source of truth.) */
+/* Buttons, masthead, section headers and catalog tiles are component-lib's
+   (`Button`, `AppBar`, `SectionHeader` / `PageHeading`, `CatalogTile`); no srd
+   class restates them. */
 
 /* Shadow wrapper — clip-path kills box-shadow, so shadow lives here */
 .pilot-panel-shadow {
@@ -220,9 +208,9 @@ body {
  *   data-print="hide"  hide this on paper even though its element type is kept
  *   data-print="keep"  print this even though its element type is hidden
  *
- * This block previously spelled the hide case `[data-print-hide]` while itun
- * spelled the OPPOSITE job `[data-print]` — two names one letter apart meaning
- * opposite things. Neither is used in markup yet; both stay as escape hatches.
+ * One attribute, two values: never two attribute names one letter apart that
+ * mean opposite things. Neither is used in markup yet; both stay as escape
+ * hatches.
  */
 @media print {
   body,

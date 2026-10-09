@@ -9,9 +9,8 @@ import { SignInControl } from './SignInControl'
 /**
  * The settings screen (ADR-030 §6), at `/settings`: profile, export, delete.
  *
- * It was the "account" page at `/account`, which now redirects here
- * (`routes/account.tsx`), so old links and the Discord bot's still land. It
- * also used to list your Games; that list moved to the masthead's Games menu
+ * `/account` redirects here (`routes/account.tsx`), so old links and the
+ * Discord bot's still land. Your Games are listed in the masthead's Games menu
  * (`components/container/GamesMenu.tsx`), which is where a player picks what
  * the Roster shows.
  *
@@ -152,8 +151,8 @@ function SettingsBody() {
     <Card>
       <div className="flex flex-col gap-3 p-4">
         <Text>
-          You are not signed in. You can build anything without an account, but nothing is kept — it
-          lives in this tab until you sign in or download it.
+          You are not signed in. Signed out, In the Union Now is read-only: you can browse the
+          Starter Set, but building anything needs an account.
         </Text>
         <Text variant="hint" className="text-left">
           Signing in saves your builds to your account, carries them between devices, and lets you

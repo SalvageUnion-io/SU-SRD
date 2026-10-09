@@ -72,8 +72,7 @@ export function resolveConnectionMode(inputs: ConnectionInputs): ConnectionMode 
  * thing choosing a server of record was meant to avoid.
  *
  * `connecting` blocks too, for a different reason: not "the server said no" but
- * "we do not yet know which store this belongs in". A write let through in that
- * window lands locally and is never mirrored.
+ * "we do not yet know which store this belongs in".
  *
  * Solo blocks because building needs an account (ADR-034 decision 1, as
  * amended): signed out, ITUN is read-only, so no work exists that a reload
@@ -86,8 +85,9 @@ export function writesAllowed(mode: ConnectionMode): boolean {
 /**
  * Whether the NOT CONNECTED banner should show.
  *
- * Only ever true in `disconnected`. Showing it in Solo would tell a person with
- * a perfectly working offline app that something is wrong — and showing it for
+ * Only ever true in `disconnected`. Showing it in Solo would tell a signed-out
+ * visitor, who has no connection to lose, that something is wrong — and
+ * showing it for
  * the sub-second `connecting` handshake would flash a failure banner on every
  * single load, which is the same lie with a shorter fuse.
  */

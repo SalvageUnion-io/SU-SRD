@@ -98,11 +98,8 @@ function asFailure(error: unknown): BotFailure {
 /**
  * Owner display names for a Game, resolved once per request.
  *
- * This used to return a `present` flag alongside the name, read from a
- * `presence` table. Nothing ever wrote that table — `heartbeat` had no caller —
- * so the flag was false for everybody, forever, and the bot dutifully rendered
- * "0 at the table" to rooms full of people. The table and the flag are both
- * gone; see `mediator.ts`'s header.
+ * Names only: ITUN tracks no presence, so there is no "who is at the table"
+ * flag to report; see `mediator.ts`'s header.
  */
 async function ownerNames(ctx: QueryCtx, gameId: Id<'games'>): Promise<Map<string, string>> {
   const members = await ctx.db

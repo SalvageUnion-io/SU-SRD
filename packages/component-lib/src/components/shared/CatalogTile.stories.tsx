@@ -8,9 +8,8 @@ import { CatalogTile } from './CatalogTile'
  *
  * Mirrors `getCatalogBg`'s `techLevelBg` in `apps/srd/src/lib/catalogColors.ts`;
  * it is restated rather than imported because component-lib must not depend on
- * an app. The story previously invented a smooth `135deg` rust→adversary blend,
- * which no page has ever rendered — a made-up value that also read as shading
- * rather than the banded wayfinding cue this actually is.
+ * an app. It is banded, not a smooth blend: a blend reads as shading rather
+ * than the wayfinding cue this is.
  */
 const TECH_LEVEL_RAMP = `linear-gradient(to right, ${[1, 2, 3, 4, 5, 6]
   .map((tl, i, arr) => {

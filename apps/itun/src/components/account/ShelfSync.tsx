@@ -1,12 +1,10 @@
 /**
  * ShelfSync — fills the local cache from the server of record.
  *
- * This is the half of ADR-034 decision 2 that was missing. Writes have mirrored
- * **up** since ADR-030, but nothing outside a Game ever read back **down**, so a
- * signed-in player opening ITUN on a second device saw an empty roster while
- * their builds sat in Convex the whole time. "IndexedDB is a cache" was a
- * description of intent rather than of behaviour: a cache is something that can
- * be filled, and there was nothing to fill it from.
+ * The read-down half of ADR-034 decision 2: writes go **up** server-first, and
+ * this brings the account's rows back **down** outside a Game, so a signed-in
+ * player opening ITUN on a second device sees their roster. A cache is
+ * something that can be filled, and this is what fills it.
  *
  * ## Server wins, and that is the point
  *
@@ -266,7 +264,7 @@ function ConnectedWiringSync() {
       if (superseded) return
       for (const id of crawlerPlan.prune) {
         // `forget`, never `delete`: the row is already gone or elsewhere on the
-        // server, and a mirrored delete would destroy whatever it now is.
+        // server, and a server delete would destroy whatever it now is.
         await store.forget('crawler', id)
         adoptedAt.current.delete(id)
       }

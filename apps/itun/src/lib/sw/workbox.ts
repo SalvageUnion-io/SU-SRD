@@ -6,15 +6,13 @@
  *
  * ## Navigations go to the network first
  *
- * This used to be workbox's default for a SPA: a `NavigationRoute` bound to the
- * precached `index.html`, so EVERY navigation was answered from Cache Storage.
- * Combined with `registerType: 'prompt'` (see `vite.config.ts` — it must stay),
- * that meant a returning visitor always booted the build they had last seen,
- * and only reached the current one by accepting the update toast or closing
- * every tab. An installed PWA that is never closed could sit on an old build
+ * Not workbox's SPA default (a `NavigationRoute` bound to the precached
+ * `index.html`): combined with `registerType: 'prompt'` (see `vite.config.ts`
+ * — it must stay), that boots a returning visitor into the build they last saw,
+ * and an installed PWA that is never closed could sit on an old build
  * indefinitely.
  *
- * Now a navigation is fetched from the network, and the precached shell is the
+ * A navigation is fetched from the network, and the precached shell is the
  * fallback when the network fails:
  *
  * - **Online:** the Worker's current shell, so every page load boots the build

@@ -10,12 +10,11 @@ import { ModalShell } from './ModalShell'
  * ConfirmDialog — the one "are you sure?" between a player and an action they
  * cannot take back.
  *
- * Every confirm in the apps used to be hand-rolled from the same three parts —
- * a `ModalShell`, a muted paragraph, a ghost Cancel beside a coloured confirm —
- * and each copy had made its own choices about the parts that are easy to get
- * wrong: whether the buttons lock while the work runs, whether a failure keeps
- * the dialog open, where focus starts, and whether a screen reader is told it
- * is being asked something. This is those choices made once.
+ * Every confirm is built from the same three parts — a `ModalShell`, a muted
+ * paragraph, a ghost Cancel beside a coloured confirm — and the parts that are
+ * easy to get wrong are decided here, once: whether the buttons lock while the
+ * work runs, whether a failure keeps the dialog open, where focus starts, and
+ * whether a screen reader is told it is being asked something.
  *
  * - **An alert dialog.** `role="alertdialog"`, labelled by the title and
  *   described by the visible body, so the question is announced with its

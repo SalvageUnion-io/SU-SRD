@@ -34,12 +34,8 @@ import { invalidateSearchIndex } from './search.js'
 // Public API — every name below is re-exported EXPLICITLY, and each one has a
 // consumer outside this package (srd, itun, component-lib or the Discord bot).
 //
-// This used to be three `export *` lines (helpers, the `utilities.ts` barrel
-// over seven modules, and every schema type) plus a scatter of named ones: 247
-// names, 133 of which nothing outside the package imported — internal helpers,
-// every Zod schema (re-exported type-only, so usable only as `typeof`), and
-// test-only getters. A wildcard makes the surface whatever the modules happen
-// to export; a list makes adding a name a reviewable decision. To expose
+// A wildcard makes the surface whatever the modules happen to export; a list
+// makes adding a name a reviewable decision. To expose
 // something new, add it here. Package-internal code imports from the concrete
 // module, never from this barrel's re-exports.
 // ---------------------------------------------------------------------------
@@ -364,12 +360,11 @@ export class SalvageUnionReference {
   /**
    * Get an entity by schema name and exact `name` (O(1) via the name index).
    *
-   * The name-addressed sibling of {@link get}. It exists because a caller
-   * holding a SCHEMA ID rather than a static model (`findIn('chassis', …)`,
-   * anything driven by data) previously had no indexed option at all, and so
-   * reached for `findIn(schema, (e) => e.name === x)` — a full linear scan, and
-   * the single largest source of the pattern `CLAUDE.md` bans. Exactly
-   * equivalent to that predicate, including first-writer-wins on duplicates.
+   * The name-addressed sibling of {@link get}, for a caller holding a SCHEMA ID
+   * rather than a static model (`findIn('chassis', …)`, anything driven by
+   * data), so it never needs `findIn(schema, (e) => e.name === x)` — a full
+   * linear scan, the pattern `CLAUDE.md` bans. Exactly equivalent to that
+   * predicate, including first-writer-wins on duplicates.
    *
    * The slug axis already had its schema-id-holding accessor —
    * `findEntityBySlug` (lib/slug.ts) — so only `name` was missing.
@@ -475,7 +470,7 @@ export class SalvageUnionReference {
       // lazyModelMap is a homomorphic mapped type, so a generic indexed access
       // resolves to LazyModel<SchemaToEntityMap[K]> — no cast needed, and the
       // result is typed by the exact schemas the caller passed (e.g.
-      // catalog-categories entities are no longer mislabelled SURefMetaEntity).
+      // catalog-categories entities are never mislabelled SURefMetaEntity).
       const model = lazyModelMap[schemaName]
       for (const entity of model.all()) {
         result.push({ schemaName, entity })

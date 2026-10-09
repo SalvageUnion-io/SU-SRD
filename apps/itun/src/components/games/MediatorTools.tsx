@@ -2,12 +2,9 @@
  * The Mediator's instruments — the layer ADR-021 deferred and ADR-030 §6
  * specifies — as the last section of the hub when a Game is showing.
  *
- * They used to be a page of their own (`/mediator/:id`), which opened with the
- * crew roster and put these underneath it. The hub already opens with that
- * roster, so the instruments are now simply what the Mediator finds below it:
- * the crew's numbers, a change to propose, a word to the table, and the
- * opposition. The table first, the apparatus second — the same claim the page
- * made, without a second page to make it on.
+ * The hub opens with the crew roster, so the instruments are what the
+ * Mediator finds below it: the crew's numbers, a change to propose, a word to
+ * the table, and the opposition. The table first, the apparatus second.
  *
  * ## Only the Mediator sees any of it
  *

@@ -3,9 +3,8 @@
  * CST-preserving CLI for editing `data/*.json`.
  *
  * See editDataLogic.ts for why this exists: CLAUDE.md's Data Conventions ban
- * whole-file JSON formatters (they reformat the hand-formatted data corpus)
- * and previously required manual text-level insertion instead. This CLI
- * automates the two most common edits — adding an entity, updating one field
+ * whole-file JSON formatters (they reformat the hand-formatted data corpus).
+ * This CLI automates the two most common edits — adding an entity, updating one field
  * — via jsonc-parser's CST editor, which touches only the edited span.
  *
  * Usage:

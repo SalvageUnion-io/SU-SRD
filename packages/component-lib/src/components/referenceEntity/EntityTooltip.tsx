@@ -27,9 +27,7 @@ type EntityTooltipProps = EntityTooltipBase &
 
 /**
  * Resolve an entity id from a name, for schemas whose builders store names
- * rather than ids. Absorbed from the former `ContextualEntityDisplay`, which was
- * a thin wrapper whose only real content was this lookup plus a fallback
- * EntityTooltip already had.
+ * rather than ids.
  */
 function resolveIdByName(schemaName: SURefEnumSchemaName, name: string): string | undefined {
   // Case-INSENSITIVE, like every other name→entity lookup in the library

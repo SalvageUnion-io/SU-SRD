@@ -351,9 +351,8 @@ export function MechMajor({
     }
     if (prompt.kind === 'crit') {
       // Annotated: without it TS widens `variant` to `string` in this
-      // intermediate const, which no longer satisfies BandButton's
-      // `'danger' | 'go'` union (the two mutually-exclusive booleans it replaced
-      // couldn't catch this class of mistake at all).
+      // intermediate const, which would not satisfy BandButton's
+      // `'danger' | 'go'` union.
       const actions: BandButton[] | undefined =
         prompt.effect === null
           ? [{ label: 'Roll Critical Damage', onClick: rollCritical, variant: 'danger' }]

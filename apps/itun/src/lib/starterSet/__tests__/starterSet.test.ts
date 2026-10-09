@@ -66,8 +66,8 @@ describe('Starter Set seed — schema validity', () => {
   })
 
   test('all seeded rows land on the Shelf', () => {
-    // Workspaces are retired (ADR-030 §2) — the set no longer has a container
-    // of its own, so every row is explicitly shelved rather than undecided.
+    // The set has no container of its own (ADR-030 §2), so every row is
+    // explicitly shelved rather than undecided.
     for (const e of [...STARTER_PILOTS, ...STARTER_MECHS, ...STARTER_CRAWLERS]) {
       expect(e.gameId).toBeNull()
     }

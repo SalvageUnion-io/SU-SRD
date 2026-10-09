@@ -49,10 +49,10 @@ async function seedTable(t: Ctx) {
 type User = Awaited<ReturnType<typeof makeUser>>
 
 /**
- * Mirror a pilot up the way the client does, and return its server id.
+ * Write a pilot the way the client does, and return its server id.
  * `upsertByAppId` is the one path a client creates an ownable entity through.
  */
-async function mirrorPilot(
+async function writePilot(
   t: Ctx,
   user: User,
   gameId: Id<'games'> | null,
@@ -73,7 +73,7 @@ async function mirrorPilot(
         .withIndex('by_app_id', (q) => q.eq('appId', appId))
         .first()
   )
-  if (row === null) throw new Error(`pilot ${appId} was not mirrored`)
+  if (row === null) throw new Error(`pilot ${appId} was not written`)
   return row._id
 }
 
@@ -220,7 +220,7 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
 
     // This used to be refused ("no Union Crawler yet"). The first crawler
     // raised now picks the gathered crew up instead (see assignments).
-    await mirrorPilot(t, player, gameId)
+    await writePilot(t, player, gameId)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
     expect(rows).toHaveLength(1)
@@ -232,7 +232,7 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
     const { mediator, player, gameId } = await seedTable(t)
     await mediator.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
 
-    await mirrorPilot(t, player, gameId)
+    await writePilot(t, player, gameId)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
     expect(rows).toHaveLength(1)
@@ -244,7 +244,7 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
     const { mediator, gameId } = await seedTable(t)
 
     // If this were gated too, a new Game could never be populated at all.
-    await mirrorPilot(t, mediator, gameId)
+    await writePilot(t, mediator, gameId)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
     expect(rows).toHaveLength(1)
@@ -254,20 +254,20 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
     const t = testConvex()
     const { player } = await seedTable(t)
 
-    await mirrorPilot(t, player, null)
+    await writePilot(t, player, null)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
     expect(rows[0]?.gameId).toBeNull()
   })
 
-  test('the mirrored write path still requires membership', async () => {
+  test('the appId write path still requires membership', async () => {
     const t = testConvex()
     const { gameId } = await seedTable(t)
     const stranger = await t.run(
       async (ctx) => await ctx.db.insert('users', { name: 'Stranger', displayName: 'Stranger' })
     )
 
-    // The client's ordinary write path is the appId mirror, so it is where
+    // The client's ordinary write path is the appId write, so it is where
     // the one remaining rule — you must be at the table — has to hold.
     await expect(
       t.withIdentity({ subject: stranger }).mutation(api.entities.upsertByAppId, {
@@ -280,12 +280,12 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
     ).rejects.toThrow(/not a member/i)
   })
 
-  test('a mirrored write re-homes a build the client moved', async () => {
+  test('an appId write re-homes a build the client moved', async () => {
     const t = testConvex()
     const { mediator, player, gameId } = await seedTable(t)
     await mediator.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
 
-    await mirrorPilot(t, player, null)
+    await writePilot(t, player, null)
     await player.as.mutation(api.entities.upsertByAppId, {
       table: 'pilots',
       appId: 'p1',
@@ -301,7 +301,7 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
     expect(rows[0]?.gameId).toBe(gameId)
   })
 
-  test('a crawler mirror merges fields but never creates a crawler', async () => {
+  test('a crawler write merges fields but never creates a crawler', async () => {
     const t = testConvex()
     const { mediator, player, gameId } = await seedTable(t)
 
@@ -368,7 +368,7 @@ describe('unclaimed characters are offers; players pick them up', () => {
     const t = testConvex()
     const { organizer, mediator, player, gameId } = await seedTable(t)
     await mediator.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
-    const pilotId = await mirrorPilot(t, player, gameId)
+    const pilotId = await writePilot(t, player, gameId)
 
     const other = await makeUser(t, 'Latecomer')
     // Inviting is administrative, so it is the Organizer's — not the Mediator's.
@@ -384,7 +384,7 @@ describe('unclaimed characters are offers; players pick them up', () => {
     const t = testConvex()
     const { mediator, player, gameId } = await seedTable(t)
     await mediator.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
-    const pilotId = await mirrorPilot(t, player, gameId)
+    const pilotId = await writePilot(t, player, gameId)
 
     // This is how a campaign survives somebody leaving mid-season.
     await player.as.mutation(api.ownership.release, { table: 'pilots', entityId: pilotId })

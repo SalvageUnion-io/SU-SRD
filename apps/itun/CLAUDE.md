@@ -96,7 +96,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 
 - `entityStore` (pilots/mechs/crawlers/softLinks), plus `activeContainerStore`,
   `patternStore` and `encounterStore`.
-- **Workspaces are retired.** An entity lives in exactly one **container** — a
+- **There are no workspaces.** An entity lives in exactly one **container** — a
   shared **Game** or the owner's **Shelf** ("My Stuff") — encoded as one
   nullable `gameId` and resolved through `src/lib/container.ts`. Filter with `containerOf` +
   `sameContainer`, and only when `mode === 'connected'`: signed out there is

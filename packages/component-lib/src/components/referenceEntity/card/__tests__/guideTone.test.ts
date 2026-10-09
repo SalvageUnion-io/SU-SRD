@@ -2,11 +2,9 @@
  * A GUIDE WEARS THE COLOUR OF THE LINK THAT OPENED IT.
  *
  * The SRD index paints each guide's catalog tile with that guide's stored
- * `guideColor` (`apps/srd/src/lib/catalogHelpers.ts` → `catalogBg`). The card the
- * tile navigates to used to resolve through the glossary domain default
- * (`bg-ink-2`), so every guide page was a different colour from the tile that
- * opened it. `resolveDomainTone` now reads the stored hue, and these tests pin
- * both halves of that contract:
+ * `guideTone` (`catalogHelpers.ts` → `catalogBg`), and `resolveDomainTone` reads
+ * the same stored tone for the card the tile opens. These tests pin both halves
+ * of that contract:
  *
  * 1. the hue arrives as `bgColor` (a raw CSS colour the card applies inline),
  *    NOT as `bg` (a Tailwind class) — the two are threaded to different props,

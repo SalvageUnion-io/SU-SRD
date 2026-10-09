@@ -194,12 +194,10 @@ export const apply = mutation({
     /**
      * Parse before persisting, like every other write against an entity body.
      *
-     * This mutation used to patch the merged object straight in, and it is the
-     * one place where skipping the parse does real damage rather than merely
-     * risking it: the field name comes from a proposal row, so a typo'd or
-     * stale key was written as a **new** key on the body instead of changing
-     * anything. The player applied a proposal, saw nothing move, and the sheet
-     * quietly carried a field nothing reads. Parsing rejects that at the source.
+     * This is the one place where skipping the parse does real damage rather
+     * than merely risking it: the field name comes from a proposal row, so a
+     * typo'd or stale key would be written as a **new** key on the body instead
+     * of changing anything. Parsing rejects that at the source.
      */
     const parser = proposal.entityType === 'mech' ? MechSchema : PilotSchema
     const merged = { ...(doc.body as Record<string, unknown>), [proposal.field]: proposal.after }
@@ -266,11 +264,10 @@ const MAX_ALERTS = 100
 /**
  * Table-wide alerts, newest first.
  *
- * Reads only the newest `limit` alert rows, in order, off `by_game_field`.
- * It used to collect the Game's entire change log — every HP tick, every
- * ownership change, every proposal — and filter for alerts in JS, which on a
- * reactive query meant every write to any sheet in the Game re-ran a read that
- * grew for the life of the campaign.
+ * Reads only the newest `limit` alert rows, in order, off `by_game_field`:
+ * collecting the whole change log and filtering in JS would, on a reactive
+ * query, re-run a read that grows for the life of the campaign on every write
+ * to any sheet in the Game.
  */
 export const alerts = query({
   args: { gameId: v.id('games'), limit: v.optional(v.number()) },

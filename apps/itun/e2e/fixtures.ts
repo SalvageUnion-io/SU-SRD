@@ -119,9 +119,8 @@ export async function signInFresh(page: Page): Promise<void> {
   )
   // The masthead's "Games" menu renders only in `connected` (GamesMenu), which
   // is the mode whose backend is the account. Waiting on the token alone would
-  // let the test's first write race the backend flip. (It used to wait on a
-  // "Sign out" button; that now lives inside the closed account menu.) The
-  // Desktop Chrome viewport is past `lg`, so the desktop nav — and the
+  // let the test's first write race the backend flip. ("Sign out" lives inside
+  // the closed account menu, so it is no signal.) The Desktop Chrome viewport is past `lg`, so the desktop nav — and the
   // trigger — is the one on screen.
   await expect(page.getByRole('button', { name: 'Games' }).first()).toBeVisible({
     timeout: 30_000,

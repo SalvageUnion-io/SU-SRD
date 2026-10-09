@@ -60,7 +60,7 @@ export type HydratedCollectionActions<T, CreateInput> = {
    *
    * The counterpart to `entityStore.adopt`, and it exists for the same reason:
    * `ShelfSync` pulls the account's rows down and must place them locally
-   * WITHOUT that placement being mistaken for a user write and mirrored back up.
+   * WITHOUT that placement being mistaken for a user write and sent back up.
    *
    * Deliberately no `requireWritableBackend()`, matching `entityStore.adopt`:
    * filling the cache is not a user write, and refusing it while Disconnected
@@ -72,7 +72,7 @@ export type HydratedCollectionActions<T, CreateInput> = {
    * Drops this browser's copy **without deleting it anywhere else** — the
    * inverse of `adopt`, as `entityStore.forget` is. `ShelfSync` calls it for a
    * row the server no longer returns: the row is already gone there, and a
-   * mirrored delete would be a destructive write against whatever the server
+   * server delete would be a destructive write against whatever the server
    * does hold. No `requireWritableBackend()`, for `adopt`'s reason.
    */
   forget: (id: string) => Promise<void>
@@ -89,7 +89,7 @@ type SliceConfig<K extends string, T, CreateInput> = {
    */
   db: DbCollection<T, CreateInput>
   /**
-   * Mirror one write to the server of record, BEFORE it touches disk.
+   * Commit one write to the server of record, BEFORE it touches disk.
    *
    * Required: a collection with no server table would persist only on a
    * device, which `lib/db/__tests__/storeSeams.test.ts` refuses.

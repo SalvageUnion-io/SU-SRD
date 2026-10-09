@@ -5,10 +5,9 @@ import { ConvexError } from 'convex/values'
  * A whole-body write made against a copy the server has since moved past.
  *
  * `entities.upsertByAppId` replaces a pilot's or mech's whole body, so a write
- * from a device holding an older copy used to land and silently undo whatever
- * another device had saved in between — last writer wins, and the first writer
- * never finds out. The client now sends the row version its copy came from;
- * when the row has moved on the server refuses, and hands back the row it
+ * from a device holding an older copy would silently undo whatever another
+ * device had saved in between. The client sends the row version its copy came
+ * from; when the row has moved on the server refuses, and hands back the row it
  * holds so the client can show it and the player can make the change again on
  * top of it.
  *

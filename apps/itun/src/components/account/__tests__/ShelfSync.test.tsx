@@ -8,7 +8,7 @@ import { act, render, waitFor } from '@testing-library/react'
  *
  * Each case below serves a row, then serves an emission without it, and pins
  * two things: the row leaves this tab's in-memory store, and no server write is
- * issued for it — the prune `forget`s a copy, it never mirrors a delete.
+ * issued for it — the prune `forget`s a copy, it never sends a delete.
  */
 
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'

@@ -6,8 +6,7 @@
  * count-stepper flow.
  *
  * It generalizes the mech Install step (TL filter chips + masonry + a running
- * loadout rail) and adds the missing legibility the old equipment modal lacked:
- * a live text search, a Status facet, and an always-visible rail so "what's
+ * loadout rail) with a live text search, a Status facet, and an always-visible rail so "what's
  * already on the sheet" vs. "what I can still add" reads at a glance instead of
  * being inferred from a faint selection ring.
  *
@@ -16,16 +15,14 @@
  * its `idOf`, and adding it emits that same `idOf` (default the entity name).
  *
  * `mode="single"` covers the exactly-one swaps (chassis, crawler type, pilot
- * class), which used to be hand-rolled master/detail pairs: a narrow option
- * rail beside a preview pane. That shape does not survive a large entity —
- * a chassis card is wider than a 220px track, so every option rendered clipped —
- * so those pickers now run here too, with `hide` dropping the sections a picker
+ * class): a master/detail pair does not survive a large entity — a chassis
+ * card is wider than a 220px track — so those pickers run here too, with `hide`
+ * dropping the sections a picker
  * cannot act on and `railActions` carrying their confirm affordance.
  *
- * WHERE THE RAIL SITS. Never over the results. It used to float over the
- * bottom-right of the pool, where on a phone it covered a third of what you
- * were choosing from. Now (layout in the `.su-searcher*` classes in
- * styles/index.css):
+ * WHERE THE RAIL SITS. Never over the results: on a phone a floating rail
+ * covers a third of what you are choosing from. Instead (layout in the
+ * `.su-searcher*` classes in styles/index.css):
  *   - below 80rem it is a sticky band ABOVE the pool — a disclosure that,
  *     collapsed (the default: the results are the task), still shows the count
  *     and the budget, and expands to the chosen heads with their Remove buttons;

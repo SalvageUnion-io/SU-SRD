@@ -1,9 +1,8 @@
 /**
  * CrawlerTypeEditModal — the live sheet's inline "Change crawler type" picker
  * (build-edit mode). Uses the shared `EntitySearcher` in a bare ModalShell, the
- * same picker every other "choose a reference entity" modal runs on; it
- * previously ran the wizard's master/detail type panes, whose narrow option
- * rail clipped these large cards (see MechChassisPickerModal for the same fix).
+ * same picker every other "choose a reference entity" modal runs on, so these
+ * large cards are never clipped by a narrow option rail.
  *
  * A type change is DESTRUCTIVE and stateful: it resets the crawler's special
  * type NPC to the new type's default, drops the orphaned old type's Keepsake/

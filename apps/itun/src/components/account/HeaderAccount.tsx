@@ -8,8 +8,7 @@ import { SignInControl } from './SignInControl'
  * `mobileActions` and `drawerExtra`) — the account and the Games, wired to
  * Convex here so `component-lib` stays persistence-agnostic.
  *
- * There is no sub-header any more. Games, Account and Sign out used to sit on
- * a second row under the nav (`AccountStrip`); they are now two menus on the
+ * There is no sub-header: Games, Account and Sign out are two menus on the
  * nav's own row:
  *
  * | Where                      | Signed in (Connected)    | Signed in (offline) | Signed out           |

@@ -32,10 +32,8 @@ import { Fragment } from 'react'
  * different places. It also means a column of forty rows can be scanned down
  * one edge without the eye crossing the buttons.
  *
- * It previously said its ontology twice and in neither of the card's ways: a
- * 6px deep-tone rail down the left edge, over a body tinted ~10% with the same
- * tone. Both are gone. A card states its kind in a band across the top and puts
- * its content on paper, so a row does too — which also means every chip, stat
+ * A card states its kind in a band across the top and puts its content on
+ * paper, so a row does too — which also means every chip, stat
  * and button on a row sits on ONE ground instead of four faintly different
  * ones.
  *
@@ -202,19 +200,18 @@ type EntityRowProps = FilledEntityRowProps | EmptyEntityRowProps
  * Per-ontology tone (see `--color-sheet-*` in theme.css), read as `Card` reads
  * it: `band` is the header fill, `ink` the text that sits legibly on it.
  *
- * ## Why there is no longer a `rail` or a `wash`
+ * ## Why there is no `rail` or `wash`
  *
- * The row used to carry its ontology two ways at once — a 6px deep-tone bar
- * down the left edge, over a body tinted ~10% with the same tone — and neither
- * is how a card says it. A card states its ontology **in a solid band across
+ * Neither an edge bar nor a tinted body is how a card says its ontology. A card
+ * states it **in a solid band across
  * the top**, over a paper body: the tone is a header, not an edge, and the
  * content sits on paper so black text is black text everywhere in the system.
  * Rows are the compact translation of that card, so they say it the same way.
  *
- * The practical gain is legibility, not just consistency. A tinted body meant
- * every quiet chip, stat and button on the row sat on a slightly different
- * ground per ontology, and the rail put a hard 6px of `crawler-deep` against a
- * pink wash — the highest-contrast element on the row spent on decoration.
+ * The practical gain is legibility, not just consistency: a tinted body would
+ * put every quiet chip, stat and button on a slightly different ground per
+ * ontology, and an edge bar spends the highest-contrast element on the row on
+ * decoration.
  *
  * `crawler` takes paper text for the same reason its Badge tone does: it is the
  * one dark fill in the ramp.
@@ -340,8 +337,7 @@ export function EntityRow(props: EntityRowProps) {
         {/* HEADER BAND — the card's, in row form: a solid strip of the ontology
             tone carrying the name stamp on the left and the row's vitals on the
             right. This is where the row states what kind of thing it is and how
-            it is doing, replacing the left rail + tinted body it used to say the
-            first half with.
+            it is doing.
 
             Stats sit HERE rather than in the body because they are what you scan
             a roster for — HP, SP, Heat, the chassis — and the body is where the
@@ -464,7 +460,7 @@ export function EntityRow(props: EntityRowProps) {
               )}
             </div>
 
-            {/* The controls, trailing the body. They no longer compete with the
+            {/* The controls, trailing the body. They do not compete with the
                 name for width — the name has its own band above — so this is a
                 plain right-aligned cluster that wraps when it must. */}
             <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">

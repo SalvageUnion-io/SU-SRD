@@ -42,8 +42,7 @@ const CATEGORIES = [
  * search) and a narrower panel.
  *
  * The drawer opens itself on mount by clicking its own hamburger trigger —
- * the same path a user takes — rather than through a `defaultOpen` prop the
- * apps never pass (that story-only prop was deleted).
+ * the same path a user takes — because the apps pass no open prop.
  */
 export const Default: Story = () => {
   const frameRef = useRef<HTMLDivElement>(null)
