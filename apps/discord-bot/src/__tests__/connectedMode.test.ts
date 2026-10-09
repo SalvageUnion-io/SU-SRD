@@ -89,7 +89,6 @@ const OK_CREW = {
     pilots: [
       {
         id: 'p1',
-        appId: 'app-p1',
         ownerId: 'u1',
         ownerName: 'alxjrvs',
         present: true,
@@ -176,7 +175,6 @@ describe('/su sheet', () => {
         table: 'pilots',
         id: 'p1',
         appId: 'app-p1',
-        gameId: 'g1',
         ownerName: 'alxjrvs',
         body: { callsign: 'Rook', currentHP: 6 },
       },
@@ -415,7 +413,6 @@ describe('/su dispatch', () => {
         table: 'pilots',
         id: 'p1',
         appId: 'app-p1',
-        gameId: 'g1',
         ownerName: null,
         body: { callsign: 'X' },
       },

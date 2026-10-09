@@ -30,7 +30,6 @@ function sheetResult(overrides: Partial<SheetResult> = {}): SheetResult {
     table: 'pilots',
     id: 'cx1',
     appId: 'app1',
-    gameId: 'g1',
     publicRead: false,
     ownerName: 'alxjrvs',
     body: { callsign: 'Vex' } as EntityBody,

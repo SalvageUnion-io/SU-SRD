@@ -3,10 +3,9 @@ import { createMemoryHistory, createRouter } from '@tanstack/react-router'
 import { routeTree } from '../../routeTree.gen'
 
 /**
- * The retired crew view (`/games/$gameId/view/$kind/$rowId`) is the live
- * sheet's address now. The old URL is in the Discord bot's replies and in
- * bookmarks, so it redirects — through the real generated route tree — to
- * `/sheet/$kind/$id`, carrying the row id the sheet route resolves.
+ * `/games/$gameId/view/$kind/$rowId` links already posted in Discord redirect
+ * — through the real generated route tree — to `/sheet/$kind/$id`, carrying
+ * the row id the sheet route resolves.
  */
 
 async function landOn(path: string): Promise<string> {

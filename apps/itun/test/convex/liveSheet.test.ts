@@ -96,7 +96,7 @@ describe('entities.locate', () => {
     expect(await t.query(api.entities.locate, { kind: 'pilot', id: 'p1' })).toBeNull()
   })
 
-  test('a Convex row id (the retired crew-view URL) resolves to the app id', async () => {
+  test("a Convex row id (the bot's /sheet/ links) resolves to the app id", async () => {
     const { t, player } = await seedCrew()
     const rowId = await t.run(async (ctx) => {
       const row = await ctx.db

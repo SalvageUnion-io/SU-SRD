@@ -19,7 +19,6 @@ function sheet(table: SheetTable, body: EntityBody, overrides: Partial<SheetResu
       table,
       id: 'cx1',
       appId: 'app1',
-      gameId: 'g1',
       publicRead: false,
       ownerName: 'alxjrvs',
       body,
@@ -157,9 +156,9 @@ describe('crawler sheet', () => {
     expect(cardText(card)).not.toContain('Unclaimed')
   })
 
-  test('links into the Game view as a crawler', () => {
+  test('links to the live crawler sheet by its row id', () => {
     const card = sheet('crawlers', { name: 'The Ossuary' })
-    expect(cardUrl(card)).toBe(`${WEB}/games/g1/view/crawler/cx1`)
+    expect(cardUrl(card)).toBe(`${WEB}/sheet/crawler/cx1`)
   })
 })
 
@@ -194,23 +193,5 @@ describe('robustness', () => {
       systemConditions: 42,
     })
     expect(cardHeading(card)).toContain('Rustjaw')
-  })
-
-  test('drops the link rather than throwing when the server sends no gameId', () => {
-    // An older `botClient` deployment sends no `gameId` at all.
-    const card = sheetCard(
-      {
-        table: 'pilots',
-        id: 'cx1',
-        appId: 'app1',
-        gameId: undefined as unknown as string,
-        publicRead: false,
-        ownerName: 'alxjrvs',
-        body: { callsign: 'Vex' },
-      },
-      WEB
-    )
-    expect(cardUrl(card)).toBeUndefined()
-    expect(cardHeading(card)).toBe('## Vex')
   })
 })
