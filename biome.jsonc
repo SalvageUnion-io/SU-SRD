@@ -271,7 +271,11 @@
               // per-package overrides below wherever those need additional
               // paths — Biome overrides replace a rule's options for matched
               // files rather than merging into the root config.
-              "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses)."
+              "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+              "react": {
+                "importNames": ["forwardRef"],
+                "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+              }
             },
             "patterns": [
               {
@@ -488,7 +492,11 @@
               "level": "error",
               "options": {
                 "paths": {
-                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses)."
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  }
                 },
                 "patterns": [
                   {
@@ -524,7 +532,11 @@
               "level": "error",
               "options": {
                 "paths": {
-                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses)."
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  }
                 },
                 "patterns": [
                   {
@@ -569,6 +581,10 @@
               "options": {
                 "paths": {
                   "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  },
                   "./_generated/server": {
                     "importNames": ["mutation", "internalMutation"],
                     "message": "Build mutations with `mutation` / `internalMutation` from './model/entities', which run the triggers that keep games.summary current."
@@ -685,6 +701,10 @@
               "options": {
                 "paths": {
                   "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  },
                   "idb": "packages/component-lib must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app (ITUN), passed down via props.",
                   "@ladle/react": "Take `Story` from src/stories/_harness.tsx. Any import from '@ladle/react', even `import type`, puts Ladle's own UI source (typings-for-build/app/src/ui.tsx) under tsc, and it fails TypeScript 7's JSX checks."
                 },

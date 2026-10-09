@@ -1,5 +1,4 @@
-import type { ElementType, HTMLAttributes, ReactNode } from 'react'
-import { forwardRef } from 'react'
+import type { ElementType, HTMLAttributes, ReactNode, Ref } from 'react'
 import type { SizeRung } from '../../styles/sizing'
 import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
@@ -129,7 +128,7 @@ type BadgeStampProps = {
   className?: string
 } & Omit<HTMLAttributes<HTMLElement>, 'children' | 'className'>
 
-type BadgeProps = BadgeChipProps | BadgeStampProps
+type BadgeProps = (BadgeChipProps | BadgeStampProps) & { ref?: Ref<HTMLElement> }
 
 /**
  * Badge — the one label-chip atom (ruleset §5 atom 3, §6 merge map). Two shapes:
@@ -145,11 +144,11 @@ type BadgeProps = BadgeChipProps | BadgeStampProps
  * chip shape.
  */
 /**
- * Ref-forwarding is load-bearing, not boilerplate: Stat measures its own label
+ * Accepting `ref` is load-bearing, not boilerplate: Stat measures its own label
  * stamps to drive the overflow `scaleX` squeeze, so a stamp that swallowed its
  * ref would silently kill that feature.
  */
-export const Badge = forwardRef<HTMLElement, BadgeProps>(function Badge(props, ref) {
+export function Badge(props: BadgeProps) {
   if (props.shape === 'stamp') {
     const {
       children,
@@ -161,6 +160,7 @@ export const Badge = forwardRef<HTMLElement, BadgeProps>(function Badge(props, r
       className,
       shape: _shape,
       style,
+      ref,
       ...rest
     } = props
     return (
@@ -194,6 +194,7 @@ export const Badge = forwardRef<HTMLElement, BadgeProps>(function Badge(props, r
     as: Tag = 'span',
     className,
     shape: _shape,
+    ref,
     ...rest
   } = props
   const interactive = Tag !== 'span'
@@ -224,4 +225,4 @@ export const Badge = forwardRef<HTMLElement, BadgeProps>(function Badge(props, r
       {children}
     </Tag>
   )
-})
+}
