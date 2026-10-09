@@ -4,14 +4,13 @@ import {
   channelCard,
   crewCard,
   denialMessage,
-  gameSheetUrl,
   gamesCard,
   gameUrl,
   gauge,
   ITUN_ORIGIN,
   ownerLabel,
+  sheetUrl,
   shelfCard,
-  shelfSheetUrl,
 } from '../gameCards.js'
 import type { CrewResult, OwnedEntity } from '../itun/types.js'
 import { blockStarting, cardText, cardTexts, cardUrl } from './cardText.js'
@@ -30,7 +29,6 @@ const WEB = ITUN_ORIGIN
 function pilot(overrides: Partial<OwnedEntity> & { body?: Record<string, unknown> }): OwnedEntity {
   return {
     id: 'p1',
-    appId: 'app-p1',
     ownerId: 'u1',
     ownerName: 'alxjrvs',
     body: { callsign: 'Rook', currentHP: 6, currentAP: 3 },
@@ -85,7 +83,6 @@ describe('vital field names', () => {
         mechs: [
           {
             id: 'm1',
-            appId: 'app-m1',
             ownerId: 'u1',
             ownerName: 'alxjrvs',
             body: { name: 'Mule', chassisRef: 'mule', currentSP: 8, currentHeat: 3 },
@@ -133,7 +130,6 @@ describe('absent vitals', () => {
         mechs: [
           {
             id: 'm1',
-            appId: 'app-m1',
             ownerId: 'u1',
             ownerName: 'alxjrvs',
             body: { name: 'Mule', chassisRef: 'mule' },
@@ -162,7 +158,6 @@ describe('absent vitals', () => {
         mechs: [
           {
             id: 'm1',
-            appId: 'app-m1',
             ownerId: 'u1',
             ownerName: 'alxjrvs',
             body: { name: 'Mule', chassisRef: 'mule' },
@@ -233,7 +228,6 @@ describe('crewCard', () => {
         mechs: [
           {
             id: 'm1',
-            appId: 'app-m1',
             ownerId: 'u1',
             ownerName: 'alxjrvs',
             body: { name: 'Iron Mongrel', chassisRef: 'mule', currentSP: 8, currentHeat: 3 },
@@ -265,7 +259,6 @@ describe('crewCard', () => {
         mechs: [
           {
             id: 'm1',
-            appId: 'app-m1',
             ownerId: 'u1',
             ownerName: 'alxjrvs',
             body: { name: 'Iron Mongrel', chassisRef: 'mule', currentSP: 0 },
@@ -307,46 +300,29 @@ describe('deep links', () => {
     expect(gameUrl(WEB, 'g1')).toBe(`${WEB}/games/g1`)
   })
 
-  test('your OWN shelf entity links by app id, into your own browser', () => {
-    // /sheet/$kind/$id resolves out of IndexedDB by app-level id. That is right
-    // for the shelf, where the reader IS the owner and holds the entity.
-    expect(shelfSheetUrl(WEB, 'pilots', 'app-p1')).toBe(`${WEB}/sheet/pilot/app-p1`)
-    expect(shelfSheetUrl(WEB, 'mechs', 'app-m1')).toBe(`${WEB}/sheet/mech/app-m1`)
+  test('every sheet links to the live sheet by its row id', () => {
+    // /sheet/$kind/$id resolves a Convex row id for anyone allowed to see the
+    // row (ITUN's entities.locate), so one shape serves the owner and the crew.
+    expect(sheetUrl(WEB, 'pilots', 'cx-p1')).toBe(`${WEB}/sheet/pilot/cx-p1`)
+    expect(sheetUrl(WEB, 'mechs', 'cx-m1')).toBe(`${WEB}/sheet/mech/cx-m1`)
+    expect(sheetUrl(WEB, 'crawlers', 'cx-c1')).toBe(`${WEB}/sheet/crawler/cx-c1`)
   })
 
-  test('a shelf entity with no app id has no link at all', () => {
-    // Unclaimed server-side entities have no local counterpart to open.
-    expect(shelfSheetUrl(WEB, 'pilots', null)).toBeNull()
-    expect(shelfSheetUrl(WEB, 'pilots', '')).toBeNull()
+  test('a sheet with no row id has no link at all', () => {
+    expect(sheetUrl(WEB, 'pilots', '')).toBeNull()
+    expect(sheetUrl(WEB, 'pilots', null)).toBeNull()
+    expect(sheetUrl(WEB, 'pilots', undefined)).toBeNull()
   })
 
-  test("a CREWMATE's sheet links to the Game view, by Convex id", () => {
-    // The rule this guards: the crew board and /su sheet never emit
-    // /sheet/$kind/$appId for other people's entities, because that route
-    // reads the CLICKER's IndexedDB. A crewmate does not have that entity
-    // locally, so such a link opens an empty page. /games/$gameId/view/... is the
-    // read-only route addressed by the Convex row id precisely because the
-    // viewer has no local copy.
-    expect(gameSheetUrl(WEB, 'g1', 'pilots', 'cx-p1')).toBe(`${WEB}/games/g1/view/pilot/cx-p1`)
-    expect(gameSheetUrl(WEB, 'g1', 'mechs', 'cx-m1')).toBe(`${WEB}/games/g1/view/mech/cx-m1`)
-    expect(gameSheetUrl(WEB, 'g1', 'crawlers', 'cx-c1')).toBe(`${WEB}/games/g1/view/crawler/cx-c1`)
-  })
-
-  test('the game view link needs both ids', () => {
-    expect(gameSheetUrl(WEB, '', 'pilots', 'cx-p1')).toBeNull()
-    expect(gameSheetUrl(WEB, 'g1', 'pilots', '')).toBeNull()
-  })
-
-  test('the crew board links every crewmate into the Game view', () => {
+  test('the crew board links every crewmate, claimed or not, to the live sheet', () => {
     const card = crewCard(
       {
         game: { gameId: 'g1', name: 'Tenacity' },
         viewerId: 'u1',
         pilots: [
-          pilot({ appId: 'app-p1', body: { callsign: 'Rook', currentHP: 6 } }),
+          pilot({ body: { callsign: 'Rook', currentHP: 6 } }),
           pilot({
             id: 'p2',
-            appId: null,
             ownerId: null,
             ownerName: null,
             body: { callsign: 'Nobody' },
@@ -361,26 +337,10 @@ describe('deep links', () => {
     const linked = text.slice(text.indexOf('**alxjrvs**'), text.indexOf('**Unclaimed**'))
     const unclaimed = text.slice(text.indexOf('**Unclaimed**'))
 
-    // By Convex id into the Game view, not by app id into /sheet/…: a crew
-    // board is read by the whole table, and nobody but the owner has the
-    // owner's IndexedDB.
-    expect(linked).toContain(`${WEB}/games/g1/view/pilot/p1`)
-    expect(linked).not.toContain(`${WEB}/sheet/pilot/app-p1`)
-
-    // An unclaimed entity is linkable, because it is addressed by row id: the
-    // entity exists on the server whether or not anyone has ever claimed it
-    // into a browser, so there is a real page to open. Only the local route
-    // needs an app id.
+    expect(linked).toContain(`${WEB}/sheet/pilot/p1`)
+    // An unclaimed pre-gen has a row id like everything else, so it links too.
     expect(unclaimed).toContain('Nobody')
-    expect(unclaimed).toContain(`${WEB}/games/g1/view/pilot/p2`)
-  })
-
-  test('the shelf renders an unlinkable entity as a bare name', () => {
-    const card = shelfCard(
-      { pilots: [{ id: 'p1', appId: null, body: { callsign: 'Rook' } }], mechs: [] },
-      WEB
-    )
-    expect(blockStarting(card, '**Pilots')).toBe('**Pilots (1)** Rook')
+    expect(unclaimed).toContain(`${WEB}/sheet/pilot/p2`)
   })
 })
 
@@ -435,11 +395,8 @@ describe('shelfCard', () => {
   })
 
   test('links each entity to its sheet', () => {
-    const card = shelfCard(
-      { pilots: [{ id: 'p1', appId: 'app-p1', body: { callsign: 'Rook' } }], mechs: [] },
-      WEB
-    )
-    expect(blockStarting(card, '**Pilots')).toContain(`${WEB}/sheet/pilot/app-p1`)
+    const card = shelfCard({ pilots: [{ id: 'p1', body: { callsign: 'Rook' } }], mechs: [] }, WEB)
+    expect(blockStarting(card, '**Pilots')).toContain(`${WEB}/sheet/pilot/p1`)
   })
 })
 

@@ -178,10 +178,8 @@ export const shelf = internalQuery({
 
     return {
       ok: true,
-      // See `crew` on why `appId` rides along: it is what the web sheet route
-      // actually resolves by.
-      pilots: pilots.map((p) => ({ id: p._id, appId: p.appId ?? null, body: p.body })),
-      mechs: mechs.map((m) => ({ id: m._id, appId: m.appId ?? null, body: m.body })),
+      pilots: pilots.map((p) => ({ id: p._id, body: p.body })),
+      mechs: mechs.map((m) => ({ id: m._id, body: m.body })),
     }
   },
 })
@@ -255,12 +253,6 @@ export const crew = internalQuery({
 
     const entry = (row: Doc<'pilots'> | Doc<'mechs'>) => ({
       id: row._id,
-      // The web sheet route resolves an entity by its APP-level id out of
-      // IndexedDB, not by the Convex `_id` — so a link built from `_id` opens
-      // nothing. Null for rows created server-side (a Game template) that
-      // nobody has claimed into a browser yet, and the bot omits the link
-      // rather than emitting a dead one.
-      appId: row.appId ?? null,
       ownerId: row.ownerId,
       ownerName: row.ownerId === null ? null : (names.get(row.ownerId) ?? null),
       body: row.body,
@@ -332,11 +324,6 @@ export const sheet = internalQuery({
       table: args.table,
       id: args.entityId,
       appId: row.appId ?? null,
-      // The Game this sheet belongs to, so the bot can address the read-only
-      // web view (`/games/<gameId>/view/…`). Without it the bot could only
-      // build the local `/sheet/<kind>/<appId>` URL, which resolves out of the
-      // clicker's own IndexedDB and so opens nothing for a crewmate.
-      gameId: actor.value.gameId,
       // Whether this sheet has a PUBLIC url (ADR-032). The bot renders the
       // `/p/<kind>/<appId>` link only when this is true — a private sheet has
       // no public URL, and advertising one would 404 the reader.

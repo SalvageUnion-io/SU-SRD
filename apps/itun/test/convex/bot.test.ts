@@ -320,34 +320,9 @@ describe('the communal crawler is readable', () => {
     expect(result).toMatchObject({
       ok: true,
       table: 'crawlers',
-      gameId,
       ownerName: null,
       body: { name: 'The Ossuary' },
     })
-  })
-
-  test('the sheet carries its gameId, so the bot can address the Game view', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedBoundGame(t)
-    const pilotId = await t.run(
-      async (ctx) =>
-        await ctx.db.insert('pilots', {
-          gameId,
-          ownerId: organizer.userId,
-          body: { callsign: 'Rook' },
-          updatedAt: Date.now(),
-        })
-    )
-
-    const result = await t.query(internal.botClient.sheet, {
-      discordId: 'discord-player',
-      channelId: 'chan-1',
-      table: 'pilots',
-      entityId: pilotId,
-    })
-    // Without this the bot can only build `/sheet/<kind>/<appId>`, which reads
-    // the CLICKER's IndexedDB and so opens nothing for a crewmate.
-    expect(result).toMatchObject({ ok: true, gameId })
   })
 
   test('a crawler belonging to another table is not-found', async () => {

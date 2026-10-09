@@ -245,50 +245,22 @@ export function publicSheetUrl(
 }
 
 /**
- * A link to **your own** entity, or null when there is nothing to open.
+ * The live sheet for any entity — yours, a crewmate's, the crawler — or null
+ * when there is no id to address.
  *
- * Takes the **app-level** id, never the Convex `_id`: `/sheet/$kind/$id`
- * resolves out of IndexedDB by app id, so a URL built from `_id` opens nothing.
- * Null in, null out — a server-created entity nobody has claimed has no local
- * counterpart, and renders as a bare name.
- *
- * Correct **only** for the shelf, where the reader and the owner are the same
- * person and the entity is therefore in the reader's own browser. For anything
- * belonging to a crewmate use {@link gameSheetUrl}.
+ * Addressed by the Convex row id, which every reader can open: ITUN's
+ * `entities.locate` resolves a row id for anyone allowed to see the row, opens
+ * it editable for its owner and read-only for everyone else, and puts the
+ * client id back in the address bar. An unclaimed pre-gen has a row id too, so
+ * it links like everything else.
  */
-export function shelfSheetUrl(
+export function sheetUrl(
   webUrl: string,
   table: SheetTable,
-  appId: string | null
+  rowId: string | null | undefined
 ): string | null {
-  if (appId === null || appId.length === 0) return null
-  return `${webUrl.replace(/\/+$/, '')}/sheet/${kindOf(table)}/${encodeURIComponent(appId)}`
-}
-
-/**
- * A link to a **crewmate's** entity: the read-only Game view.
- *
- * The crew board and `/su sheet` never link a crewmate's entity to
- * `/sheet/$kind/$appId`, because that route reads the CLICKER's IndexedDB: a
- * crewmate does not have that entity locally, so such a link opens an empty
- * page. This route is addressed by the Convex row id precisely because the
- * viewer has no local copy of somebody else's build.
- */
-export function gameSheetUrl(
-  webUrl: string,
-  gameId: string | null | undefined,
-  table: SheetTable,
-  entityId: string | null | undefined
-): string | null {
-  // Tolerant of an absent id rather than typed-and-trusted: this is a network
-  // payload, and `itun/types.ts` states the rule for exactly this reason — a
-  // field the server stops sending must degrade to "no link", never throw
-  // inside a slash command. A deployment running an older `botClient` sends no
-  // `gameId` at all.
-  if (typeof gameId !== 'string' || gameId.length === 0) return null
-  if (typeof entityId !== 'string' || entityId.length === 0) return null
-  const base = webUrl.replace(/\/+$/, '')
-  return `${base}/games/${encodeURIComponent(gameId)}/view/${kindOf(table)}/${encodeURIComponent(entityId)}`
+  if (typeof rowId !== 'string' || rowId.length === 0) return null
+  return `${webUrl.replace(/\/+$/, '')}/sheet/${kindOf(table)}/${encodeURIComponent(rowId)}`
 }
 
 /** `name` as a markdown link when there is somewhere to go, else bare. */
@@ -404,9 +376,7 @@ export function shelfCard(shelf: ShelfResult, webUrl: string): ContainerData {
     fields.push({
       name: `Pilots (${shelf.pilots.length})`,
       value: shelf.pilots
-        .map((p) =>
-          maybeLink(name(p.body, ['callsign', 'name']), shelfSheetUrl(webUrl, 'pilots', p.appId))
-        )
+        .map((p) => maybeLink(name(p.body, ['callsign', 'name']), sheetUrl(webUrl, 'pilots', p.id)))
         .join('\n'),
       inline: true,
     })
@@ -415,7 +385,7 @@ export function shelfCard(shelf: ShelfResult, webUrl: string): ContainerData {
     fields.push({
       name: `Mechs (${shelf.mechs.length})`,
       value: shelf.mechs
-        .map((m) => maybeLink(name(m.body, ['name']), shelfSheetUrl(webUrl, 'mechs', m.appId)))
+        .map((m) => maybeLink(name(m.body, ['name']), sheetUrl(webUrl, 'mechs', m.id)))
         .join('\n'),
       inline: true,
     })
@@ -435,19 +405,14 @@ export function shelfCard(shelf: ShelfResult, webUrl: string): ContainerData {
 }
 
 /** One crewmate's block on the crew board: their pilots, then their mechs. */
-function crewFieldValue(
-  pilots: OwnedEntity[],
-  mechs: OwnedEntity[],
-  webUrl: string,
-  gameId: string
-): string {
+function crewFieldValue(pilots: OwnedEntity[], mechs: OwnedEntity[], webUrl: string): string {
   const lines: string[] = []
   for (const pilot of pilots) {
     const stats = pilotStats(pilot.body)
     const dead = stats.maxHp <= 0 || stats.hp === 0
     const pilotName = maybeLink(
       str(pilot.body, 'callsign') ?? 'Pilot',
-      gameSheetUrl(webUrl, gameId, 'pilots', pilot.id)
+      sheetUrl(webUrl, 'pilots', pilot.id)
     )
     lines.push(`**${pilotName}**${dead ? ' ✖' : ''}`)
     lines.push(`HP ${gauge(stats.hp, stats.maxHp)}`)
@@ -457,10 +422,7 @@ function crewFieldValue(
     const stats = mechStats(mech.body)
     const destroyed = stats.sp === 0
     const overheated = stats.heat !== null && stats.maxHeat > 0 && stats.heat >= stats.maxHeat
-    const mechName = maybeLink(
-      str(mech.body, 'name') ?? 'Mech',
-      gameSheetUrl(webUrl, gameId, 'mechs', mech.id)
-    )
+    const mechName = maybeLink(str(mech.body, 'name') ?? 'Mech', sheetUrl(webUrl, 'mechs', mech.id))
     lines.push(`${mechName}${destroyed ? ' ✖' : ''}`)
     lines.push(`SP ${gauge(stats.sp, stats.maxSp)}`)
     lines.push(`HT ${gauge(stats.heat, stats.maxHeat, '▲')}${overheated ? ' ⚠' : ''}`)
@@ -511,7 +473,7 @@ export function crewCard(crew: CrewResult, webUrl: string): ContainerData {
 
   const fields: CardField[] = ordered.map((bucket) => ({
     name: bucket.label,
-    value: crewFieldValue(bucket.pilots, bucket.mechs, webUrl, crew.game.gameId),
+    value: crewFieldValue(bucket.pilots, bucket.mechs, webUrl),
     inline: true,
   }))
 
@@ -890,7 +852,7 @@ export function sheetCard(sheet: SheetResult, webUrl: string): ContainerData {
     })
   }
 
-  const url = gameSheetUrl(webUrl, sheet.gameId, sheet.table, sheet.id)
+  const url = sheetUrl(webUrl, sheet.table, sheet.id)
   // The crawler is communal — it has no owner to name, and saying "Unclaimed"
   // would report a missing owner rather than an absent concept (ADR-030 §5).
   const provenance =
@@ -899,7 +861,7 @@ export function sheetCard(sheet: SheetResult, webUrl: string): ContainerData {
 
   return entityCard({
     title: name,
-    // Omitted rather than dead: an unclaimed entity has nothing to open.
+    // Omitted rather than dead when the payload names no row.
     ...(url === null ? {} : { url }),
     accent: rendered.critical ? CRITICAL : SHEET_ACCENT[sheet.table],
     description,

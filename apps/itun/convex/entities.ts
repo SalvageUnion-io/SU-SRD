@@ -229,9 +229,9 @@ const LOCATE_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as 
  *
  * `id` is what the client addresses an entity by: its app id, or — for a
  * template-seeded pre-gen, which has none — the id in its body. A Convex row
- * id is accepted too, because that is what the retired crew-view URL
- * (`/games/$gameId/view/$kind/$rowId`, still in the Discord bot's replies)
- * carried; `id` in the answer is always the client's, so the route can put the
+ * id is accepted too, because the Discord bot addresses every sheet by it, and
+ * links already posted to the retired crew-view URL redirect here carrying one;
+ * `id` in the answer is always the client's, so the route can put the
  * canonical address back in the bar.
  *
  * Visibility is exactly `listForGame`'s and `listMine`'s together: your own
