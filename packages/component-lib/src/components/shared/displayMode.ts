@@ -41,9 +41,8 @@ export function displayBooleans({ size, extent }: CardDisplay): {
 
 /**
  * The defaults for the two axes — a card with neither specified is the dominant
- * solo rendering. There is deliberately no boolean sugar: `compact` / `listing`
- * were removed because they encoded the same two axes in a shape that could not
- * express `small` + `full`, and keeping them would have re-admitted the drift
+ * solo rendering. There is deliberately no boolean sugar: a `compact` /
+ * `listing` pair cannot express `small` + `full`, and would re-admit the drift
  * this module exists to prevent.
  */
 export function resolveCardDisplay({

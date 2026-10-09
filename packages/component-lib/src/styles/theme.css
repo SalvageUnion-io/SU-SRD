@@ -196,8 +196,7 @@
   --color-rust: rgb(168, 82, 34); /* #a85222 — THE single action color */
   /* The one sanctioned cream. The rendering matrix (ruleset §2) specifies the
      RollTable as "banded d20, peach/cream", so cream survives for exactly that
-     banding — and nowhere else. Every other former `su-paper` use is now
-     `--color-paper`, restoring the "one paper" law (§4.1). */
+     banding — and nowhere else. */
   --color-band-cream: rgb(243, 237, 226); /* #f3ede2 */
   --color-rust-hi: rgb(138, 64, 25); /* #8a4019 primary hover */
   /* A 25% rust wash. NOT the focus ring: as a ring it measured 1.42:1 against
@@ -211,17 +210,15 @@
      panel. */
   --color-wk-bg: rgb(230, 240, 245); /* #e6f0f5 */
   --color-wk-bg-2: rgb(215, 230, 238); /* #d7e6ee */
-  /* The muted secondary-text tone. RETONED from #6c7780, which failed WCAG 2.1
-     AA on every ground it actually lands on — 4.39:1 on paper, 3.96:1 on
-     `--color-wk-bg` (the ITUN <body> background) and 3.58:1 on `--color-wk-bg-2`
-     — across ~117 call sites, most of them small text (`text-sm` / `text-caption`
-     / `text-label`), where AA demands 4.5:1 rather than the 3:1 large-text floor.
-     The value is chosen against the DARKEST ground it can sit on (wk-bg-2), not
-     against paper, because the same token is used on all three:
+  /* The muted secondary-text tone. It must pass WCAG 2.1 AA (4.5:1) on every
+     ground it lands on — paper, `--color-wk-bg` (the ITUN <body> background)
+     and `--color-wk-bg-2` — because most of its call sites are small text
+     (`text-sm` / `text-caption` / `text-label`), where the 3:1 large-text floor
+     does not apply. The value is chosen against the DARKEST ground it can sit
+     on (wk-bg-2), not against paper, because the same token is used on all three:
        #5a646d → paper 5.78:1 · wk-bg 5.22:1 · wk-bg-2 4.73:1
-     Hue and chroma are unchanged (the same cool grey-blue); only lightness drops,
-     so the primary/secondary hierarchy against `--color-ink-2` (10.20:1 on paper)
-     is compressed but preserved. */
+     It stays a cool grey-blue, lighter than `--color-ink-2` (10.20:1 on paper),
+     so the primary/secondary hierarchy holds. */
   --color-wk-muted: rgb(90, 100, 109); /* #5a646d */
   /* NON-TEXT ONLY — 2.03:1 on paper. This is a hairline/divider tone (~18 border
      uses) and must never carry text; the placeholder and separator uses it once
@@ -266,12 +263,9 @@
   --color-sheet-game: var(--color-wk-accent); /* #7dceeb */
   --color-sheet-game-deep: rgb(30, 83, 100); /* #1e5364 */
 
-  /* `--animate-heat-pulse` (design review U-1) is DELETED. It defined a
-     status-bad ring that breathed outward at heat cap, and no component ever
-     applied it — U-1 shipped as the colour escalation only (`heatLevel.ts`
-     `heatDangerFrom`, consumed by VitalGauge). A keyframe nothing references is a
-     claim about the UI that the UI does not honour; if the pulse is wanted, it
-     comes back with the call site that applies it.
+  /* Heat cap escalates by colour only (`heatLevel.ts` `heatDangerFrom`,
+     consumed by VitalGauge). A keyframe ships only with the call site that
+     applies it.
 
      A prefers-reduced-motion user gets the static end state, never the loop.
      Prefer stating that at the call site with `motion-safe:` — it is the

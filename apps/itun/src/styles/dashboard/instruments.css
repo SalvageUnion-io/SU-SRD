@@ -592,8 +592,8 @@
   display: flex;
   gap: 8px;
 }
-/* DashboardGauge's bespoke segmented bar was retired — it now renders through
-   the shared VitalGauge (surface="instrument"); see DashboardGauge.tsx. */
+/* DashboardGauge renders through the shared VitalGauge (surface="instrument");
+   no bar styles live here. */
 
 /* ---- Phase 7 — cargo-hold overlay, table picker ---- */
 
@@ -665,8 +665,7 @@
 }
 
 /* The picker trigger is the RollTable header title itself (`titleSelect`), so
- * this focus has no mini-bar of its own — `.pc-tables-bar` / `.pc-tables-lab`
- * were removed with it. */
+ * this focus has no mini-bar of its own. */
 
 /* Full picker overlay — covers the display area with the 5-column grid. */
 .pc-tablepick {
