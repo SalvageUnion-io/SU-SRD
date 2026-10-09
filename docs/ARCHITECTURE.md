@@ -136,8 +136,7 @@ persistence, router or Zustand.
 
 The reference package, component-lib, `idb` (`src/lib/db/`),
 `@tanstack/react-router`, `zustand` (`src/stores/`), `@base-ui/react`, and
-Convex (`apps/itun/convex/`). The itun Worker serves the one read left of the
-retired snapshot API from R2.
+Convex (`apps/itun/convex/`).
 
 ### Tailwind source paths
 
@@ -271,8 +270,7 @@ The one account-free share is the public sheet
 ([ADR-032](#adr-032)): `/p/:kind/:appId`, opt-in
 through the `publicRead` column, read by `publicSheet.get`, toggled in
 `ShareStatusDialog` → `PublicSheetPanel`. Snapshots are
-retired ([ADR-036](#adr-036)); the blobs stay
-read-only in `su-itun-snapshots`. `GET /api/snapshots/:id`
+retired ([ADR-036](#adr-036)). `GET /api/snapshots/:id`
 (`src/lib/snapshot/handlers.ts`) answers only `{ kind, appId }`, and posted
 `/s/:id` links still unfurl as text, with no image. The `/s/$id` loader
 (`src/routes/s/$id.tsx`) calls `retrieveSnapshotIdentity`
@@ -1003,7 +1001,7 @@ hosts (`bindings.mcp.cloudflare.com`, `observability.mcp.cloudflare.com`,
 the environment allows them; report those signals **unread**. `convex` has no
 credentials: ask for data. If `bun --version` differs from `.bun-version`, run
 with `PATH="$HOME/.local/share/su-srd-bun/$(cat .bun-version):$PATH"` (the
-SessionStart hook installs it under `~/.local/share/su-srd-bun/<version>/`) and `bun install --frozen-lockfile`. Never fake
+SessionStart hook installs it there) and `bun install --frozen-lockfile`. Never fake
 a GitHub step that has no route.
 
 ### Cloudflare
@@ -1038,9 +1036,8 @@ Projects: `srd` (`VITE_SENTRY_DSN`, repo variable `SRD_SENTRY_DSN`\*), `itun`
 delete the old variable, then drop both fallbacks.
 
 No DSN tree-shakes the SDK out, and a `connect-src` missing the ingest origin
-blocks every event, so `tools/check-observability.ts`
-(`bun run check observability`) checks DSN gating and CSP on parsed source
-and pins `https://*.ingest.de.sentry.io`; deploy builds fail with no DSN
+blocks every event, so `tools/check-observability.ts` checks DSN gating and
+CSP on parsed source and pins `https://*.ingest.de.sentry.io`; deploy builds fail with no DSN
 inlined, and `tools/smoke-production.sh` checks the served CSP. CSP sources:
 `apps/srd/public/_headers` and `apps/itun/src/worker/securityHeaders.ts`;
 change CSP or region in lockstep. Sourcemaps upload only from
