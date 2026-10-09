@@ -129,7 +129,6 @@ describe('ImportButton', () => {
         mechs: [],
         crawlers: [],
       },
-      workspaces: [],
       softLinks: [],
       mechPatterns: [],
       encounterNpcs: [],

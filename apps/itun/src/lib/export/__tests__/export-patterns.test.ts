@@ -1,12 +1,11 @@
 /**
- * Export/import coverage for mech patterns (plan 2.6, gap 6) and legacy
- * bundle compatibility (cargo → cargoLots normalization on import).
+ * Export/import coverage for mech patterns (plan 2.6, gap 6) and the
+ * additive `.default([])` arrays on import.
  *
  * fake-indexeddb/auto is preloaded via bunfig.toml.
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { must } from '../../../components/__tests__/must'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { _resetDbSingleton, clearCache, mechPatterns } from '../../db/index'
@@ -104,64 +103,17 @@ describe('mergeImport — mech patterns', () => {
   })
 })
 
-describe('parseImportBundle — legacy compatibility', () => {
-  test('a pre-rename bundle (mech cargo: string[], no mechPatterns/encounterNpcs) still imports', () => {
-    const legacyBundle = {
-      schemaVersion: 1,
-      exportedAt: FIXTURE_NOW,
-      entities: {
-        pilots: [],
-        mechs: [
-          {
-            id: 'mech-legacy-1',
-            schemaVersion: 1,
-            name: 'Old Mongrel',
-            chassisRef: 'Iron Mongrel Chassis',
-            systems: [],
-            modules: [],
-            cargo: ['Salvaged plating'],
-            conditions: [],
-            createdAt: FIXTURE_NOW,
-            updatedAt: FIXTURE_NOW,
-          },
-        ],
-        crawlers: [],
-      },
-      workspaces: [],
-      softLinks: [],
-    }
-
-    const parsed = parseImportBundle(JSON.stringify(legacyBundle))
-    expect(parsed.mechPatterns).toEqual([]) // schema default fills
-    expect(parsed.encounterNpcs).toEqual([]) // schema default fills (added later than mechPatterns, same pattern)
-    const mech = must(parsed.entities.mechs[0], 'imported mech')
-    expect(mech.cargoLots).toHaveLength(1)
-    expect(mech.cargoLots[0]?.name).toBe('Salvaged plating')
-    expect('cargo' in mech).toBe(false)
-  })
-
-  test('legacy patterns with cargo arrays are normalized too', () => {
-    const legacyBundle = {
-      schemaVersion: 1,
+describe('parseImportBundle — additive arrays', () => {
+  test('a bundle without mechPatterns/encounterNpcs gets empty arrays', () => {
+    const bundle = {
+      schemaVersion: 2,
       exportedAt: FIXTURE_NOW,
       entities: { pilots: [], mechs: [], crawlers: [] },
-      workspaces: [],
       softLinks: [],
-      mechPatterns: [
-        {
-          id: 'pattern-legacy-1',
-          schemaVersion: 1,
-          name: 'Old Loadout',
-          chassisRef: 'Mule Chassis',
-          systems: [],
-          modules: [],
-          cargo: ['fuel-cell'],
-          createdAt: FIXTURE_NOW,
-        },
-      ],
     }
 
-    const parsed = parseImportBundle(JSON.stringify(legacyBundle))
-    expect(parsed.mechPatterns[0]?.cargoLots.map((l) => l.name)).toEqual(['fuel-cell'])
+    const parsed = parseImportBundle(JSON.stringify(bundle))
+    expect(parsed.mechPatterns).toEqual([])
+    expect(parsed.encounterNpcs).toEqual([])
   })
 })
