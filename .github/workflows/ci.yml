@@ -36,7 +36,6 @@ jobs:
       web: ${{ steps.filter.outputs.web }}
       bot: ${{ steps.filter.outputs.bot }}
       assets: ${{ steps.filter.outputs.assets }}
-      ladle: ${{ steps.filter.outputs.ladle }}
       code: ${{ steps.filter.outputs.code }}
       docs: ${{ steps.filter.outputs.docs }}
       deps: ${{ steps.filter.outputs.deps }}
@@ -87,13 +86,6 @@ jobs:
               # the bot's wire types are imported (`import type`) from here —
               # apps/discord-bot/src/itun/types.ts
               - 'apps/itun/convex/model/botWire.ts'
-            ladle:
-              - *shared
-              - 'packages/component-lib/**'
-              # App-owned components whose stories the catalog serves
-              # (packages/component-lib/.ladle/config.mjs).
-              - 'apps/itun/src/components/**'
-              - 'apps/srd/src/components/**'
             assets:
               - *shared
               - 'apps/su-assets/**'
@@ -309,26 +301,6 @@ jobs:
       - name: Bundle the Worker that actually deploys
         run: bun --filter discord-bot worker:bundle --outdir /tmp/bot-worker
 
-  # The Ladle stories are component-lib's visual catalogue and the review
-  # surface for the component-refresh loop. Nothing built them on a PR, so a
-  # story that no longer compiled merged green and broke `bun run ladle`.
-  build-ladle:
-    needs: [changes]
-    if: needs.changes.outputs.ladle == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Build the Ladle stories
-        run: bun --filter component-lib ladle:build
-
   build-su-assets:
     needs: [changes]
     if: needs.changes.outputs.assets == 'true'
@@ -363,7 +335,6 @@ jobs:
       - build-itun
       - build-discord-bot
       - build-su-assets
-      - build-ladle
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

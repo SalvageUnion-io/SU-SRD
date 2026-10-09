@@ -1,6 +1,6 @@
 /*
- * The Ladle-only stylesheet: the shared Tailwind entry, plus the sources only
- * the catalog renders.
+ * The story catalog's stylesheet: the shared Tailwind entry, plus the sources
+ * only the catalog renders.
  */
 @import './tailwind.css';
 
@@ -9,7 +9,7 @@
 @source '../**/*.stories.tsx';
 @source '../stories';
 /* App-owned components whose stories this catalog also serves (see
- * `.ladle/config.mjs`). Without these, a class used only there would render
- * unstyled in Ladle while looking fine in the app. */
+ * `../../catalog.tsx`). Without these, a class used only there would
+ * render unstyled in the catalog while looking fine in the app. */
 @source '../../../../apps/itun/src/components';
 @source '../../../../apps/srd/src/components';

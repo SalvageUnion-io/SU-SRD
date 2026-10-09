@@ -9,7 +9,7 @@ export default {
   title: 'Foundations/Typography',
 }
 
-// Specimens are driven by real SRD copy (preloaded by .ladle/components.tsx);
+// Specimens are driven by real SRD copy (preloaded by catalog.tsx);
 // where a literal is needed we use a real game term, never lorem.
 const chassis = SalvageUnionReference.Chassis.all()[0]
 const system = SalvageUnionReference.Systems.all()[0]

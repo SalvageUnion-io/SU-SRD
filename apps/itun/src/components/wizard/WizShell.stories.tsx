@@ -17,27 +17,25 @@ const STEPS = ['Class', 'Callsign', 'Abilities', 'Equipment', 'Review'] as const
 export const Default: Story = () => {
   const [active, setActive] = useState(2)
   return (
-    <div className="-m-[var(--ladle-pad,0)]">
-      <WizShell
-        kind="pilot"
-        eyebrow="New Pilot"
-        steps={STEPS}
-        active={active}
-        onStepClick={setActive}
-        title="Abilities"
-        subtitle="Pick 3 Class Abilities to start."
-        trackers={<WizTracker label="Abilities" value="2 / 3" />}
-        footerNote="1 ability left to choose"
-        onBack={() => setActive((i) => Math.max(0, i - 1))}
-        onNext={() => setActive((i) => Math.min(STEPS.length - 1, i + 1))}
-        onCancel={() => {}}
-        submitLabel="Create Pilot ✦"
-      >
-        <p className="font-body text-sm text-wk-muted">
-          Choose from your Class's ability list. Each ability defines what your Pilot can do outside
-          the cockpit.
-        </p>
-      </WizShell>
-    </div>
+    <WizShell
+      kind="pilot"
+      eyebrow="New Pilot"
+      steps={STEPS}
+      active={active}
+      onStepClick={setActive}
+      title="Abilities"
+      subtitle="Pick 3 Class Abilities to start."
+      trackers={<WizTracker label="Abilities" value="2 / 3" />}
+      footerNote="1 ability left to choose"
+      onBack={() => setActive((i) => Math.max(0, i - 1))}
+      onNext={() => setActive((i) => Math.min(STEPS.length - 1, i + 1))}
+      onCancel={() => {}}
+      submitLabel="Create Pilot ✦"
+    >
+      <p className="font-body text-sm text-wk-muted">
+        Choose from your Class's ability list. Each ability defines what your Pilot can do outside
+        the cockpit.
+      </p>
+    </WizShell>
   )
 }

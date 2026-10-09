@@ -15,7 +15,7 @@ type FieldErrorProps = {
    * ACCESSIBILITY affordance: without it, wiring an error to its input is
    * impossible without editing this component, in a codebase held to WCAG 2.1
    * AA. That no call site uses it today is a gap to close, not evidence the
-   * capability is unwanted. The Ladle story demonstrates the wiring.
+   * capability is unwanted. The story demonstrates the wiring.
    */
   id?: string
 }

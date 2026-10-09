@@ -17,7 +17,7 @@ hand-maintained list, which drifts silently every time a component lands or is
 deleted (this README's list had grown six names that no longer existed).
 
 - **The barrel** — [`src/index.ts`](src/index.ts): every export, in one file.
-- **The catalog** — `bun run ladle` from the repo root: every public visual
+- **The catalog** — `bun run stories` from the repo root: every public visual
   component, rendered with real SRD data.
 - **The rules** — [packages and contracts](../../docs/ARCHITECTURE.md#component-lib):
   what may be exported and what consumers may import.
@@ -39,11 +39,11 @@ import { Card, ReferenceEntityCard, Text } from 'component-lib'
 
 ## Scripts
 
-| Script                             | What it does                        |
-| ---------------------------------- | ----------------------------------- |
-| `bun --filter component-lib test`  | Run component tests (happy-dom)     |
-| `bun --filter component-lib ladle` | Launch Ladle for component browsing |
-| `bun run typecheck`                | Typecheck (from repo root)          |
+| Script                               | What it does                          |
+| ------------------------------------ | ------------------------------------- |
+| `bun --filter component-lib test`    | Run component tests (happy-dom)       |
+| `bun --filter component-lib stories` | Serve the story catalog on port 61000 |
+| `bun run typecheck`                  | Typecheck (from repo root)            |
 
 ## Documentation
 

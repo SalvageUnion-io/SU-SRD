@@ -1,5 +1,5 @@
 /**
- * Shared Ladle stage for dashboard instrument stories. Loads the dashboard
+ * Shared story stage for dashboard instrument stories. Loads the dashboard
  * stylesheet bundle (`styles/dashboard.css`: the `.pc-root` token scope, the
  * instruments and the grid — the components import none of it) and frames children on the warm-paper cockpit ground — so a single instrument
  * renders exactly as it does inside the live Dashboard, without the full

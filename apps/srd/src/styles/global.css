@@ -5,8 +5,8 @@
 @import 'component-lib/styles/tailwind.css';
 
 /*
- * srd's own site-only components keep their Ladle stories beside them (see
- * `packages/component-lib/.ladle/config.mjs`); their demo markup is not srd's.
+ * srd's own site-only components keep their stories beside them (see
+ * `packages/component-lib/catalog.tsx`); their demo markup is not srd's.
  */
 @source not '../**/*.stories.tsx';
 

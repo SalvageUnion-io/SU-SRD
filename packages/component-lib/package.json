@@ -19,15 +19,13 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "ladle": "ladle serve",
-    "ladle:build": "ladle build"
+    "stories": "vite"
   },
   "peerDependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@ladle/react": "5.1.1",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

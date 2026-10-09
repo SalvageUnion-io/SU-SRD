@@ -4,7 +4,7 @@
  *
  * ITUN's own stylesheet: the Dashboard is an ITUN surface, so its rules live
  * here rather than in component-lib, whose stylesheets srd loads too. It is
- * imported by `components/dashboard/Dashboard.tsx` and, for Ladle, by the
+ * imported by `components/dashboard/Dashboard.tsx` and, for the story catalog, by the
  * dashboard stories' `_dashboardStage.tsx`, never by an instrument component.
  *
  * The order below is load-bearing: DashboardCanvas.css, then instruments.css,

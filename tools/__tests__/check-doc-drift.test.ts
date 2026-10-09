@@ -387,7 +387,7 @@ describe('checkMarkdownLinks', () => {
         '# Architecture',
         '## CI: reusing the PR’s run',
         '## Convex error reporting — a dashboard toggle',
-        '### `@ladle/react` pin',
+        '### `@tailwindcss/vite` pin',
         '```md',
         '## Fenced is not a heading',
         '```',
@@ -397,7 +397,7 @@ describe('checkMarkdownLinks', () => {
       ].join('\n'),
       'docs/README.md': [
         '[a](ARCHITECTURE.md#ci-reusing-the-prs-run) [b](ARCHITECTURE.md#convex-error-reporting--a-dashboard-toggle)',
-        '[c](ARCHITECTURE.md#ladlereact-pin) [d](ARCHITECTURE.md#notes-1) [e](ARCHITECTURE.md)',
+        '[c](ARCHITECTURE.md#tailwindcssvite-pin) [d](ARCHITECTURE.md#notes-1) [e](ARCHITECTURE.md)',
         '[f](ARCHITECTURE.md#missing) [g](ARCHITECTURE.md#fenced-is-not-a-heading)',
       ].join('\n'),
     })
@@ -412,7 +412,7 @@ describe('checkMarkdownLinks', () => {
 
 describe('headingSlug', () => {
   it('matches the anchors GitHub renders', () => {
-    expect(headingSlug('Component catalog (Ladle)')).toBe('component-catalog-ladle')
+    expect(headingSlug('Combat loop (ITUN)')).toBe('combat-loop-itun')
     expect(headingSlug("CI: reusing the PR's run")).toBe('ci-reusing-the-prs-run')
     expect(headingSlug('A — B')).toBe('a--b')
     expect(headingSlug('Rotating `JWT_PRIVATE_KEY` / `JWKS`')).toBe(

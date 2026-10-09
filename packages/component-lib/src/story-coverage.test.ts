@@ -2,10 +2,11 @@ import { describe, expect, test } from 'bun:test'
 import { Glob } from 'bun'
 import { readFileSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
+import { storyGroups, storySubgroups } from './stories/_groups'
 
 /**
- * Ladle catalog guard — the executable half of the story standard documented in
- * `docs/ARCHITECTURE.md#component-catalog-ladle` and `component-lib/CLAUDE.md`.
+ * Story catalog guard — the executable half of the story standard documented in
+ * `docs/ARCHITECTURE.md#component-catalog` and `component-lib/CLAUDE.md`.
  *
  * The standard, in one line: ONE public component = ONE co-located story file =
  * ONE nav leaf, titled `Group[/Sub-group]/Component Title Case`.
@@ -31,23 +32,6 @@ const SRC = import.meta.dir
  * this list honest.
  */
 const ALLOWLIST = new Set<string>([])
-
-/** Sanctioned top-level story groups, in sidebar order (see `.ladle/config.mjs`). */
-const GROUPS = ['Foundations', 'Atoms', 'Containers', 'Compositions'] as const
-const groupNames: readonly string[] = GROUPS
-
-/**
- * Sanctioned sub-groups, per top-level group. A sub-group exists only where a
- * cluster earns it (3+ sibling components); everything else is a direct leaf.
- * Only `Compositions` is large enough to need them — Atoms/Containers are flat
- * lists of peers, which stays scannable and searchable.
- */
-const SUBGROUPS: Record<string, readonly string[]> = {
-  Foundations: [],
-  Atoms: [],
-  Containers: [],
-  Compositions: ['Entity', 'Catalog', 'Dashboard', 'Wizard', 'Shell'],
-}
 
 /**
  * The only `*.stories.tsx` allowed to live in `src/stories/` — catalog-level
@@ -95,7 +79,7 @@ const barrel = read('index.ts')
 
 /**
  * App-owned component folders whose stories this catalog also serves (see
- * `.ladle/config.mjs`). Components that only one app used were moved out of the
+ * `catalog.tsx`). Components that only one app used were moved out of the
  * library in the component-lib boundary audit (PK-02) and took their stories
  * with them; the catalog still shows them, so the taxonomy and co-location
  * rules below still apply to them. Paths are relative to SRC, like the rest.
@@ -197,7 +181,7 @@ const stories = storyFiles.map((f) => {
   }
 })
 
-describe('Ladle catalog: coverage', () => {
+describe('Story catalog: coverage', () => {
   test('every public component has a co-located story that imports it', () => {
     // Coverage means a story IN THE SAME DIRECTORY as the component actually
     // imports it — not merely that its name appears somewhere in the catalog's
@@ -223,12 +207,12 @@ describe('Ladle catalog: coverage', () => {
   })
 })
 
-describe('Ladle catalog: taxonomy', () => {
+describe('Story catalog: taxonomy', () => {
   test('every story has a meta title in a sanctioned group', () => {
     const offenders = stories
       .filter((s) => {
         const title = s.title
-        return title === null || !GROUPS.some((g) => title.startsWith(`${g}/`))
+        return title === null || !storyGroups.some((g) => title.startsWith(`${g}/`))
       })
       .map((s) => `${s.file}: ${s.title ?? '<no meta title found>'}`)
       .sort()
@@ -241,14 +225,14 @@ describe('Ladle catalog: taxonomy', () => {
       const title = s.title
       if (!title) continue
       const [group, ...rest] = title.split('/')
-      if (!group || !groupNames.includes(group)) continue
+      if (!group || !storyGroups.includes(group)) continue
       if (rest.length === 1) continue // Group/Leaf — always fine
       if (rest.length > 2) {
         offenders.push(`${s.file}: '${title}' nests deeper than Group/Sub-group/Leaf`)
         continue
       }
       const sub = rest[0]
-      const allowed = SUBGROUPS[group] ?? []
+      const allowed = storySubgroups[group] ?? []
       if (sub && !allowed.includes(sub)) {
         offenders.push(
           `${s.file}: '${title}' uses unsanctioned sub-group '${group}/${sub}'` +
@@ -305,7 +289,7 @@ describe('Ladle catalog: taxonomy', () => {
   })
 })
 
-describe('Ladle catalog: co-location', () => {
+describe('Story catalog: co-location', () => {
   test('src/stories/ holds only catalog pages, flat', () => {
     const offenders = stories
       .filter((s) => s.file.startsWith('stories/'))

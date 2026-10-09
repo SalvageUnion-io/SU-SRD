@@ -20,7 +20,7 @@ function pick<T>(list: T[], index: number, schemaName: string): T {
   return found
 }
 
-// Real SRD subjects — reference data is preloaded by .ladle/components.tsx.
+// Real SRD subjects — reference data is preloaded by catalog.tsx.
 const chassis = pick(SalvageUnionReference.Chassis.all(), 0, 'chassis')
 const pilotClassA = pick(SalvageUnionReference.Classes.all(), 0, 'class')
 const pilotClassB = pick(SalvageUnionReference.Classes.all(), 1, 'class')
