@@ -41,12 +41,6 @@ import { knownVersion, noteVersion } from './serverVersions'
  * exercise is the signed-in one (`src/stores/__tests__/signedInBackend.ts`
  * for unit tests, the `TestAuthBridge` seam for e2e).
  *
- * A browser still holding a pre-account roster does not get a durable
- * anonymous backend either
- * ([ADR-035](../../../../docs/ARCHITECTURE.md#adr-035)):
- * its rows stay in IndexedDB untouched and are **migrated** into the account
- * on sign-in by `AccountReconciler`.
- *
  * ## Disconnected does not fall back to IndexedDB
  *
  * A signed-in user who loses connectivity is **read-only** (D14), not
@@ -131,8 +125,7 @@ function currentMode(): ConnectionMode {
  * Anonymous (`solo`) is `signedOut` unconditionally
  * ([ADR-034](../../../../docs/ARCHITECTURE.md#adr-034)
  * decision 1). There is no build flag and no exemption for a browser that
- * already holds a roster (ADR-035): those rows stay on disk, unseen signed out,
- * and are migrated on sign-in by `AccountReconciler`.
+ * already holds rows (ADR-035): the cache is never read signed out.
  */
 export function backendForMode(mode: ConnectionMode): BackendKind {
   if (mode === 'solo') return 'signedOut'
@@ -314,7 +307,7 @@ export async function commitEntityWrite(
     appId: op.appId,
     gameId: op.gameId === null ? null : (op.gameId as Id<'games'>),
     body: op.body,
-    expectedUpdatedAt: knownVersion(op.appId),
+    expectedUpdatedAt: knownVersion(op.appId) ?? null,
   })
   noteVersion(op.appId, updatedAt)
 }
@@ -472,7 +465,7 @@ export function transferArgs(
         appId: record.id,
         gameId: (record.gameId ?? null) as Id<'games'> | null,
         body: record,
-        expectedUpdatedAt: knownVersion(record.id),
+        expectedUpdatedAt: knownVersion(record.id) ?? null,
       }
     }),
     deletes: removals.flatMap((removal): TransferArgs['deletes'] => {
@@ -538,8 +531,7 @@ export function requireWritableBackend(): 'remote' {
  *
  * The one read rule for every player-entity store. Signed out there is no
  * anonymous store to read — nothing can be built without an account — and the
- * cache must not stand in for one: it may hold a pre-account roster (ADR-035,
- * migrated on sign-in, never shown signed out) or the last account's rows.
+ * cache must not stand in for one: it may still hold the last account's rows.
  * Resolved per call, like `selectBackend`, so a sign-in is seen on the next
  * read.
  */

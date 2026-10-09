@@ -374,45 +374,6 @@ describe('listWiring — the way down', () => {
   })
 })
 
-describe('claimLocal keeps the invariants too', () => {
-  test('a roster that wired one pilot to two crawlers arrives with one', async () => {
-    const t = testConvex()
-    const u = await makeUser(t, 'A')
-
-    await u.as.mutation(api.claim.claimLocal, {
-      pilots: [pilotOnShelf('p1')],
-      mechs: [],
-      crawlers: [crawlerOnShelf('c1'), crawlerOnShelf('c2')],
-      softLinks: [
-        { id: 'l1', from: ref.pilot('p1'), to: ref.crawler('c1'), type: 'pilot-to-crawler' },
-        { id: 'l2', from: ref.pilot('p1'), to: ref.crawler('c2'), type: 'pilot-to-crawler' },
-      ],
-    })
-
-    expect(await allLinks(t)).toEqual([
-      { type: 'pilot-to-crawler', from: 'p1', to: 'c2', gameId: null },
-    ])
-  })
-
-  test('a link to something already in a Game is declined, not written', async () => {
-    const t = testConvex()
-    const { organizer: o, gameId } = await seedTable(t)
-    await addCrawler(o, 'c-game', gameId)
-
-    const result = await o.as.mutation(api.claim.claimLocal, {
-      pilots: [pilotOnShelf('p1')],
-      mechs: [],
-      softLinks: [
-        { id: 'l1', from: ref.pilot('p1'), to: ref.crawler('c-game'), type: 'pilot-to-crawler' },
-      ],
-    })
-
-    expect(result.declined).toBe(1)
-    expect(result.skipped).toBe(0)
-    expect(await allLinks(t)).toEqual([])
-  })
-})
-
 describe('maintenance.repairSoftLinks', () => {
   /** Rows written raw, bypassing every writer — the state pre-ADR-037 code could leave. */
   async function seedLegacy(t: ReturnType<typeof testConvex>) {
@@ -506,35 +467,3 @@ describe('maintenance.repairSoftLinks', () => {
     expect(again.backfill.backfilled).toBe(0)
   })
 })
-
-function pilotOnShelf(id: string) {
-  return {
-    id,
-    schemaVersion: 1,
-    name: `Pilot ${id}`,
-    callsign: id,
-    classRef: 'salvager',
-    abilities: [],
-    equipment: [],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    conditions: [],
-    gameId: null,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-  }
-}
-
-function crawlerOnShelf(id: string) {
-  return {
-    id,
-    schemaVersion: 1,
-    name: `Crawler ${id}`,
-    techLevel: '1',
-    systems: [],
-    gameId: null,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-  }
-}

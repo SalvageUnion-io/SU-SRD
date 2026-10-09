@@ -7,10 +7,8 @@ import { captureException } from '../../lib/observability'
  * Sign out, and take the account's cached rows with the session.
  *
  * The one sign-out, for every control that offers it (`AccountMenu`,
- * `SignInControl`). Signing out used to end the session and leave the account's
- * rows in IndexedDB, where the next account to sign in on this browser read
- * them as its own unsaved work. `forgetCache` leaves an unmigrated pre-account
- * roster alone; everything else goes.
+ * `SignInControl`). The account's rows go with the session, so nothing is left
+ * in IndexedDB for the next account to sign in on this browser.
  *
  * Session first, cache second: once signed out nothing syncs into the cache
  * again, so what is cleared stays cleared. A rare write that lands in between

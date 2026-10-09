@@ -6,11 +6,10 @@ import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
 
 /**
- * Repairing rows that were duplicated before `claimLocal` stopped duplicating.
+ * Repairing rows that were duplicated before inserts checked the app id.
  *
- * `claimLocal` no longer inserts a second row for an app id it already holds,
- * which closes the hole — but every account claimed twice before that fix still
- * carries the damage, and the damage is not self-healing. `byAppId` and
+ * Nothing inserts a second row for an app id any more, which closes the hole —
+ * but every account duplicated before that fix still carries the damage, and the damage is not self-healing. `byAppId` and
  * `patchCrawlerByAppId` call `.unique()`, so a duplicated app id makes **every
  * mirrored write for that entity throw, forever**. The mirror is
  * fire-and-forget, so the player sees nothing at all: local writes keep
@@ -42,7 +41,7 @@ function pilotBody(over: Record<string, unknown> = {}) {
 /**
  * Write the damage directly.
  *
- * `claimLocal` cannot produce this any more, which is the point of the fix — so
+ * No writer can produce this any more, which is the point of the fix — so
  * reproducing a pre-fix account means inserting the second row by hand, exactly
  * as the old unconditional insert did.
  */
@@ -88,6 +87,7 @@ describe('duplicate app ids no longer break the mirror', () => {
       appId: 'p1',
       gameId: null,
       body: pilotBody({ name: 'still saving' }),
+      expectedUpdatedAt: null,
     })
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
@@ -107,6 +107,7 @@ describe('duplicate app ids no longer break the mirror', () => {
       appId: 'p1',
       gameId: null,
       body: pilotBody({ name: 'written before the repair' }),
+      expectedUpdatedAt: null,
     })
     await t.action(internal.maintenance.dedupeAppIds, { apply: true })
 
@@ -156,6 +157,7 @@ describe('dedupeAppIds', () => {
       appId: 'p1',
       gameId: null,
       body: pilotBody({ name: 'Writable again' }),
+      expectedUpdatedAt: null,
     })
     const after = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
     expect((after[0]?.body as { name: string } | undefined)?.name).toBe('Writable again')
@@ -226,7 +228,13 @@ describe('dedupeAppIds', () => {
   test('a clean deployment reports nothing to do', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
-    await u.as.mutation(api.claim.claimLocal, { pilots: [pilotBody()], mechs: [] })
+    await u.as.mutation(api.entities.upsertByAppId, {
+      table: 'pilots',
+      appId: 'p1',
+      gameId: null,
+      body: pilotBody(),
+      expectedUpdatedAt: null,
+    })
 
     const report = await t.action(internal.maintenance.dedupeAppIds, {})
     expect(report.duplicatedAppIds).toBe(0)

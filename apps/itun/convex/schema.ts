@@ -446,14 +446,8 @@ export default defineSchema({
    *
    * What it buys is the third row of ADR-030 §2's table — `gameId: null` with
    * an owner, *on the shelf* — which the crawler was the one entity unable to
-   * occupy. Two real consequences followed from that gap, and both were worked
-   * around rather than fixed:
-   *
-   *   - **Deleting a Game had to destroy its crawler.** Pilots and mechs fell
-   *     back to a shelf; the crew's home had nowhere to fall to.
-   *   - **`claimLocal` invented a container.** A claimed solo crawler was
-   *     parked on a placeholder "Claimed crawler" Game of one, because the
-   *     shelf could not hold it.
+   * occupy. Deleting a Game had to destroy its crawler: pilots and mechs fell
+   * back to a shelf, and the crew's home had nowhere to fall to.
    *
    * The alternative was to copy a shelved crawler into IndexedDB alone. That is
    * rejected on principle: offline-first here is ordinary PWA caching, so the

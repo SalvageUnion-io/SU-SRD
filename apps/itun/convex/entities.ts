@@ -87,10 +87,9 @@ import { entityRefType, softLinkType } from './schema'
  * ## What lives elsewhere
  *
  * This module is the ownable-entity API: the reads, and the per-write mirror
- * the store calls on every edit. Three concerns that used to share it were
+ * the store calls on every edit. Two concerns that used to share it were
  * split out (audit AP-07), each into a module that says what it is:
  *
- *  - `claim.ts` — bringing a device's roster into an account (`claimLocal`).
  *  - `shelf.ts` — the shelf-only collections, saved patterns and the NPC tray.
  *  - `changeLog.ts` — the client's Change Log append.
  */
@@ -103,7 +102,8 @@ const OWNABLE_WRITE = {
   appId: v.string(),
   gameId: v.union(v.id('games'), v.null()),
   body: v.any(),
-  expectedUpdatedAt: v.optional(v.number()),
+  /** The row version the client's copy came from; `null` when it holds none. */
+  expectedUpdatedAt: v.union(v.number(), v.null()),
 }
 
 /** A crawler field patch, addressed by app id (`patchCrawlerByAppId`). */
@@ -300,8 +300,7 @@ export const locate = query({
  * outside a Game (`listForGame`). The consequence is not subtle: a signed-in
  * player opening ITUN on a second device saw an **empty roster**. Their builds
  * were in Convex the whole time; there was simply no query that would return
- * them. The only path down was `claimLocal`, which is for pushing a local roster
- * up, and `GameRoster`, which is scoped to one Game.
+ * them. The only path down was `GameRoster`, which is scoped to one Game.
  *
  * That is the gap that makes "IndexedDB is a cache" untrue as a description: a
  * cache is something that can be *filled*, and until this there was nothing to
@@ -372,10 +371,10 @@ export const listMine = query({
       mechs: mechs.map(versioned),
       crawlers: crawlers.map(versioned),
       mechPatterns: patterns.map((r) => ({ body: r.body })),
-      // Without this the shelf tray was WRITE-ONLY. `claimLocal` and
-      // `games.destroy` both wrote `encounterNpcs`, and no query read them
-      // back: `mediator.npcs` requires a `gameId`, so a tray on a shelf was
-      // reachable by nothing. It went up and never came down.
+      // Without this the shelf tray was WRITE-ONLY. `games.destroy` writes
+      // `encounterNpcs`, and no query read them back: `mediator.npcs`
+      // requires a `gameId`, so a tray on a shelf was reachable by nothing.
+      // It went up and never came down.
       encounterNpcs: npcs.map((r) => ({ body: r.body })),
     }
   },
@@ -639,9 +638,8 @@ async function assertMayScrapCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Pr
  *
  * `by_app_id` is an ordinary Convex index, **not a uniqueness constraint** —
  * nothing in the database has ever stopped two rows sharing an `appId`, and in
- * production several did (`claimLocal` blind-inserts, and its only guard is a
- * per-device localStorage marker, so claiming the same shelf from a second
- * browser duplicates the roster).
+ * production several did (a since-deleted bulk upload inserted blindly, so
+ * running it from a second browser duplicated the roster).
  *
  * `.unique()` turned that *data* condition into a thrown `Server Error` on
  * every subsequent mirrored write. `mirrorWrite` is fire-and-forget, so it
@@ -688,10 +686,8 @@ async function byAppId(
 /**
  * Mirror a local write to the server of record, addressed by app id.
  *
- * Upsert rather than update: the row may not exist yet if the entity was
- * created while Solo and the account was claimed afterwards. Treating a missing
- * row as "create it" is what makes the mirror converge instead of silently
- * dropping the first edit after a claim.
+ * Upsert rather than update: an entity's first write is its create, addressed
+ * by the app id the client minted, so a missing row means "create it".
  *
  * The insert branch is a **create into a container**, so it answers to
  * `assertMayAddToContainer`. Leaving it open would have made the whole rule
@@ -707,8 +703,9 @@ async function byAppId(
  * from (`listMine`, or this mutation's own answer to its last write); when the
  * row has moved past it, the write is refused with the row the server holds
  * (`staleWriteError`), so the client can show it and the player can make the
- * change again on top. Optional, so a client that saw no version — a row it
- * never synced — writes as before.
+ * change again on top. Every client sends it; `null` says it holds no version
+ * of the row — a create, or a row this tab has not synced yet — and is not
+ * checked.
  *
  * Returns the row's new version, which is what the client sends next time.
  */
@@ -746,7 +743,7 @@ async function writeOwnable(
 
   assertMayWrite(existing, userId)
   // After the ownership check, so the refusal hands the row only to its owner.
-  if (args.expectedUpdatedAt !== undefined && existing.updatedAt > args.expectedUpdatedAt) {
+  if (args.expectedUpdatedAt !== null && existing.updatedAt > args.expectedUpdatedAt) {
     throw staleWriteError(existing)
   }
 
@@ -939,8 +936,7 @@ async function moveCrawlerRow(
  * Tolerant of duplicates for exactly the reasons `byAppId` is — same
  * non-unique index, same fire-and-forget mirror, same silent divergence if it
  * throws. The crawler has no duplicates in production today, and that is luck
- * rather than a constraint: `claimLocal` inserts one per claim, so a second
- * claim from a second device would have produced them here too.
+ * rather than a constraint: nothing in the index stops a second row.
  */
 async function crawlerByAppId(ctx: MutationCtx, appId: string): Promise<Doc<'crawlers'> | null> {
   const matches = await ctx.db
@@ -1005,10 +1001,9 @@ const SOFT_LINK_FROM_TABLE: Record<SoftLink['type'], OwnableTable> = {
  *
  * ## When an end has no server row
  *
- * A `from` end with no row is a purely local build — Solo, or a pre-account
- * roster the migration has not sent yet — so there is nothing to anchor to and
- * this no-ops. A `to` end with no row is treated the same way and for the same
- * reason: the claim that uploads that build uploads its wiring with it. A link
+ * A `from` end with no row is not on the server, so there is nothing to anchor
+ * to and this no-ops. A `to` end with no row is treated the same way and for
+ * the same reason. A link
  * whose ends are both on the server is the only kind this writes, which is what
  * lets every row it writes satisfy all three invariants.
  */

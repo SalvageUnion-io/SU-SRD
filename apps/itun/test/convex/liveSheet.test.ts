@@ -214,6 +214,7 @@ describe('publicSheet.get serves assignments, never a private one’s name', () 
       appId: 'p1',
       gameId,
       body: { ...pilotBody('p1', gameId), abilities: ['beefcake'] },
+      expectedUpdatedAt: null,
     })
     await organizer.as.mutation(api.publicSheet.setPublic, {
       kind: 'mech',

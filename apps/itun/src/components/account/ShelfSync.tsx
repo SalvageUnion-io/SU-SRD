@@ -23,14 +23,14 @@
  * a cache is not a user write, and a Disconnected reader must still be able to
  * open what they already pulled down.
  *
- * ## Pruning, and the two conditions that make it safe
+ * ## Pruning, and the condition that makes it safe
  *
  * It also forgets local rows the server did not return, which is what makes
  * "the cache is a reflection" literally true rather than aspirational. It is
- * the most destructive operation in the codebase, so every guard below is
- * load-bearing and none is obvious.
+ * the most destructive operation in the codebase, so the guard below is
+ * load-bearing and not obvious.
  *
- * **1. Only rows known to be the caller's.** A local row absent from `listMine`
+ * **Only rows known to be the caller's.** A local row absent from `listMine`
  * is ambiguous, and the ambiguity differs by container. `listMine` returns what
  * the caller *owns*, wherever it lives — but a Game's **unclaimed** pre-gens
  * and its communal crawler have no owner at all, and are legitimately cached
@@ -42,15 +42,10 @@
  * be owned, and every owned row is in `listMine`. Patterns and the NPC tray are
  * personal, so the shelf rule holds for every one of them.
  *
- * **2. Only in a browser that never held a legacy roster.** This is the guard
- * that is easy to miss and fatal to omit. For a pre-ADR-034 user who has signed
- * in but not yet claimed, their entire roster is local shelf rows the server has
- * never heard of — and rule 1 would read every one of them as "deleted
- * elsewhere" and destroy the lot. `legacyLocalDataState() === 'absent'` (the
- * cache's recorded origin is `cache`, `db/cacheMeta.ts`) is the only state in
- * which a local row can be trusted to have come from a server-accepted write or
- * from this component, which is what makes absence mean deletion rather than
- * not-yet-uploaded.
+ * Absence means deletion rather than not-yet-uploaded because every cached row
+ * came from the server or from a write it accepted first: signed out nothing
+ * is written, and the cache belongs to the signed-in account
+ * (`lib/account/cacheOwner.ts`).
  *
  * ## …and its sibling, `WiringSync`, for assignments and Game crawlers
  *
@@ -75,8 +70,7 @@ import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { containerOf } from '../../lib/container'
-import { legacyLocalDataState } from '../../lib/db/legacyLocalData'
-import { mayPrune, rowMayBePruned } from '../../lib/db/pruneRules'
+import { rowMayBePruned } from '../../lib/db/pruneRules'
 import type { ServedRow } from '../../lib/links/linkSync'
 import { planCrawlerSync, planLinkSync, planRowSync } from '../../lib/links/linkSync'
 import { captureException } from '../../lib/observability'
@@ -183,9 +177,9 @@ function ConnectedShelfSync() {
         }
       }
 
-      // Prune only where absence is unambiguous — see the header. Every guard
-      // matters; dropping any one turns this into a roster-deleter.
-      if (superseded || !mayPrune(legacyLocalDataState())) return
+      // Prune only where absence is unambiguous — see the header. Dropping the
+      // guard turns this into a roster-deleter.
+      if (superseded) return
 
       // `forget`, never `delete`, everywhere below: this removes the local COPY
       // and must never become a server delete. The row is already gone there —
@@ -253,14 +247,12 @@ function ConnectedWiringSync() {
         store.hydrate('softLink'),
       ])
       const gameIds = new Set<string>(wiring.gameIds)
-      const prune = mayPrune(legacyLocalDataState())
 
       const crawlerPlan = planCrawlerSync({
         local: useEntityStore.getState().crawlers,
         served: wiring.crawlers,
         gameIds,
         adoptedAt: adoptedAt.current,
-        mayPrune: prune,
       })
       for (const crawler of crawlerPlan.adopt) {
         try {
@@ -289,7 +281,6 @@ function ConnectedWiringSync() {
           const entity = cached.get(ref.type, ref.id)
           return entity === null ? null : containerOf(entity)
         },
-        mayPrune: prune,
       })
       for (const link of linkPlan.adopt) {
         try {
@@ -312,8 +303,8 @@ function ConnectedWiringSync() {
 
 /**
  * Mounted by `AccountReconciler`'s signed-in half, not at the root on its own:
- * the download direction and the upload direction share the prune guard, and
- * one owner for both is what keeps them from disagreeing.
+ * nothing may sync into the cache until it is confirmed to be this account's
+ * (`claimCacheFor`).
  */
 export function ShelfSync() {
   // Never call a Convex hook unconditionally: a build with no `VITE_CONVEX_URL`

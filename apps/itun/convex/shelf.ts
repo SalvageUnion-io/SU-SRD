@@ -20,10 +20,9 @@ import { requireUser } from './model/permissions'
  * is its app id, which makes this naturally idempotent — the same write twice
  * is a patch, not a duplicate.
  *
- * Until this existed, `mechPatterns` reached Convex through exactly one path,
- * the bulk `claimLocal` at sign-in. Every pattern saved afterwards lived only in
- * that browser: invisible on a second device, and gone with the site data. This
- * is the per-write half ADR-034 P4b calls for.
+ * Until this existed, a saved pattern lived only in that browser: invisible on
+ * a second device, and gone with the site data. This is the per-write half
+ * ADR-034 P4b calls for.
  */
 export const upsertMechPattern = mutation({
   args: { body: v.any() },

@@ -16,8 +16,7 @@
  * of its ends is cached here in a container the answer covers — the caller's
  * shelf (every shelf link is drawn out of one of their own entities, all of
  * which the query reads) or a Game in `gameIds`. A link touching neither is
- * not this answer's to judge and is left alone, and nothing is pruned at all
- * unless `mayPrune` says absence can be trusted (`lib/db/pruneRules.ts`).
+ * not this answer's to judge and is left alone.
  */
 
 import type { Container } from '../container'
@@ -77,7 +76,6 @@ export function planLinkSync(args: {
   gameIds: ReadonlySet<string>
   /** Where a link end lives, from this browser's cache; null when not cached. */
   containerOfEnd: EndContainer
-  mayPrune: boolean
 }): { adopt: SoftLink[]; prune: string[] } {
   const servedKeys = new Set<string>()
   const adopt: SoftLink[] = []
@@ -88,8 +86,6 @@ export function planLinkSync(args: {
     servedKeys.add(key)
     if (!localKeys.has(key)) adopt.push(softLinkFromServer(row))
   }
-
-  if (!args.mayPrune) return { adopt, prune: [] }
 
   const prune: string[] = []
   const kept = new Set<string>()
@@ -180,14 +176,13 @@ export function planRowSync<R extends ServedRow>(args: {
  * template-seeded body names no Game at all.
  *
  * A local crawler filed in a covered Game that the server no longer returns
- * was scrapped or moved out, and is forgotten — when `mayPrune` allows.
+ * was scrapped or moved out, and is forgotten.
  */
 export function planCrawlerSync(args: {
   local: readonly { id: string; gameId?: string | null; workspaceId?: string }[]
   served: readonly ServedCrawler[]
   gameIds: ReadonlySet<string>
   adoptedAt: ReadonlyMap<string, number>
-  mayPrune: boolean
 }): {
   adopt: Array<{ id: string; updatedAt: number; body: Record<string, unknown> }>
   prune: string[]
@@ -201,7 +196,6 @@ export function planCrawlerSync(args: {
     body: { ...(row.body as Record<string, unknown>), gameId: row.gameId },
   }))
 
-  if (!args.mayPrune) return { adopt, prune: [] }
   const prune = args.local
     .filter((c) => {
       const where = containerOf(c)

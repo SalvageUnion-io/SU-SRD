@@ -40,10 +40,9 @@ import {
  * that entity silently failed to reach the server of record. An account in that
  * state does not recover on its own and does not get better with time.
  *
- * `claimLocal` is what created the duplicates (it inserted unconditionally, and
- * a device-local marker was all that stopped it running twice) and it no longer
- * can. This is the other half: the rows already written are still there, and
- * still breaking every write, until something removes them.
+ * Every insert now looks its app id up first, so no new duplicates are made.
+ * The rows already written are still there, and still breaking every write,
+ * until something removes them.
  *
  * **Run the dry run first.** With no arguments this reports and changes
  * nothing:
@@ -572,8 +571,8 @@ type BackfillPage = {
  * the old two-hop model implied, for every mech that has a pilot, has no
  * crawler of its own, and whose pilot crews a crawler in the mech's container.
  *
- * The same rule as IndexedDB migration v17 (`impliedMechCrawlerLinks`), fed
- * newest-first so the pilot link and crew link it follows are the ones the
+ * The rule (`impliedMechCrawlerLinks`): a mech's crawler is the crawler its
+ * pilot crews. Links are read newest-first so the pilot link and crew link it follows are the ones the
  * first pass keeps. Only links filed in the mech's own container are read,
  * which is also what keeps a template mech from following its twin's pilot in
  * another Game.

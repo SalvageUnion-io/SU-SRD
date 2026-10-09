@@ -177,7 +177,7 @@ export function linksBrokenByMove<L extends LinkShape>(
  * `links` is read in the order given and the first match wins, so a caller that
  * wants "the newest" passes them newest-first — which is how a pair that broke
  * cardinality under the old code resolves to the link that survives repair.
- * Shared by the IndexedDB migration (v17) and `maintenance.repairSoftLinks`.
+ * Used by `maintenance.repairSoftLinks`.
  */
 export function impliedMechCrawlerLinks(
   links: readonly LinkShape[],

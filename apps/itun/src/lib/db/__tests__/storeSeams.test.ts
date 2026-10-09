@@ -7,10 +7,8 @@
  * defect: give it a Convex table and a seam (`entityStore`'s `commitWrite`, or
  * the required `commit` on `makeHydratedCollectionSlice`) before adding it.
  *
- * Two stores carry no records of their own and are named for what they are:
- * `meta` describes the cache (whose rows, and where they came from), and
- * `workspaces` is the retired container: only the v10 and v13 migrations on
- * the upgrade ladder touch it, and it stays only so they run (#1152).
+ * One store carries no records of its own and is named for what it is: `meta`
+ * describes the cache (whose rows they are).
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
@@ -25,10 +23,7 @@ import * as itunDb from '../index'
 import type { StoreName } from '../stores'
 import { STORE_NAMES } from '../stores'
 
-type Seam =
-  | { kind: 'convex'; commit: (...args: never[]) => Promise<void> }
-  | { kind: 'cacheMeta' }
-  | { kind: 'retired' }
+type Seam = { kind: 'convex'; commit: (...args: never[]) => Promise<void> } | { kind: 'cacheMeta' }
 
 const SEAMS = {
   // entityStore's commitWrite
@@ -40,7 +35,6 @@ const SEAMS = {
   mechPatterns: { kind: 'convex', commit: commitPatternWrite },
   encounterNpcs: { kind: 'convex', commit: commitNpcWrite },
   meta: { kind: 'cacheMeta' },
-  workspaces: { kind: 'retired' },
 } satisfies Record<StoreName, Seam>
 
 const seams: Readonly<Record<string, Seam>> = SEAMS
@@ -72,9 +66,5 @@ describe('every IndexedDB store has a Convex commit seam', () => {
 
   test('a store with no seam is refused (negative control)', () => {
     expect(unmapped([STORE_NAMES.pilots, 'deviceOnlyDrafts'])).toEqual(['deviceOnlyDrafts'])
-  })
-
-  test('the retired workspaces store has no CRUD surface', () => {
-    expect(itunDb).not.toHaveProperty(STORE_NAMES.workspaces)
   })
 })

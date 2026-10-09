@@ -57,7 +57,6 @@ describe('planLinkSync', () => {
       served: [served('srv-1', 'p1', 'c1')],
       gameIds,
       containerOfEnd,
-      mayPrune: true,
     })
     expect(plan.adopt).toEqual([softLinkFromServer(served('srv-1', 'p1', 'c1'))])
     expect(plan.adopt[0]?.id).toBe('srv-1')
@@ -70,7 +69,6 @@ describe('planLinkSync', () => {
       served: [served('srv-1', 'p1', 'c1')],
       gameIds,
       containerOfEnd,
-      mayPrune: true,
     })
     expect(plan).toEqual({ adopt: [], prune: [] })
   })
@@ -81,7 +79,6 @@ describe('planLinkSync', () => {
       served: [served('srv-2', 'p1', 'c2')],
       gameIds,
       containerOfEnd,
-      mayPrune: true,
     })
     expect(plan.adopt.map((l) => l.to.id)).toEqual(['c2'])
     expect(plan.prune).toEqual(['old'])
@@ -93,7 +90,6 @@ describe('planLinkSync', () => {
       served: [],
       gameIds,
       containerOfEnd,
-      mayPrune: true,
     })
     expect(plan.prune).toEqual(['old'])
   })
@@ -104,7 +100,6 @@ describe('planLinkSync', () => {
       served: [],
       gameIds,
       containerOfEnd,
-      mayPrune: true,
     })
     expect(plan.prune).toEqual([])
   })
@@ -115,20 +110,8 @@ describe('planLinkSync', () => {
       served: [served('srv-1', 'p1', 'c1')],
       gameIds,
       containerOfEnd,
-      mayPrune: true,
     })
     expect(plan.prune).toEqual(['b'])
-  })
-
-  test('prunes nothing while absence cannot be trusted', () => {
-    const plan = planLinkSync({
-      local: [local('old', 'p1', 'c1')],
-      served: [],
-      gameIds,
-      containerOfEnd,
-      mayPrune: false,
-    })
-    expect(plan.prune).toEqual([])
   })
 })
 
@@ -149,7 +132,6 @@ describe('planCrawlerSync', () => {
       served: [row('c1', 'g1')],
       gameIds,
       adoptedAt: new Map(),
-      mayPrune: true,
     })
     expect(plan.adopt).toHaveLength(1)
     expect(plan.adopt[0]?.body.gameId).toBe('g1')
@@ -162,7 +144,6 @@ describe('planCrawlerSync', () => {
       served: [row('c1', 'g1', 5)],
       gameIds,
       adoptedAt: new Map([['c1', 5]]),
-      mayPrune: true,
     })
     expect(unchanged.adopt).toEqual([])
 
@@ -171,7 +152,6 @@ describe('planCrawlerSync', () => {
       served: [row('c1', 'g1', 6)],
       gameIds,
       adoptedAt: new Map([['c1', 5]]),
-      mayPrune: true,
     })
     expect(edited.adopt.map((c) => c.id)).toEqual(['c1'])
   })
@@ -186,20 +166,8 @@ describe('planCrawlerSync', () => {
       served: [],
       gameIds,
       adoptedAt: new Map(),
-      mayPrune: true,
     })
     expect(plan.prune).toEqual(['gone'])
-  })
-
-  test('forgets nothing while absence cannot be trusted', () => {
-    const plan = planCrawlerSync({
-      local: [{ id: 'gone', gameId: 'g1' }],
-      served: [],
-      gameIds,
-      adoptedAt: new Map(),
-      mayPrune: false,
-    })
-    expect(plan.prune).toEqual([])
   })
 })
 

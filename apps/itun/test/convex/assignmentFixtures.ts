@@ -86,6 +86,7 @@ export async function addPilot(user: User, id: string, gameId: Id<'games'> | nul
     appId: id,
     gameId,
     body: pilotBody(id, gameId),
+    expectedUpdatedAt: null,
   })
 }
 
@@ -96,6 +97,7 @@ export async function addMech(user: User, id: string, gameId: Id<'games'> | null
     appId: id,
     gameId,
     body: mechBody(id, gameId),
+    expectedUpdatedAt: null,
   })
 }
 
@@ -120,6 +122,7 @@ export async function moveOwnable(
     appId: id,
     gameId,
     body: table === 'pilots' ? pilotBody(id, gameId) : mechBody(id, gameId),
+    expectedUpdatedAt: null,
   })
 }
 

@@ -22,15 +22,14 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
   (`readableRows`), never IndexedDB. A unit test that needs durability calls
   `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`); an e2e
   spec signs in through `e2e/fixtures.ts`.
-- **One local → account reconciler.** `AccountReconciler` (root-mounted, over
-  `src/lib/account/reconcile.ts`) migrates a pre-account roster still in
-  IndexedDB on sign-in (reconciled against `entities.listMine`) and mounts
-  `ShelfSync`; signed out it renders nothing. Do not add a second surface that
-  uploads local work; there is no legacy exemption, no claim card, and no
-  offer-and-decline path.
+- **The cache follows the account; nothing goes up from it.**
+  `AccountReconciler` (root-mounted) makes the cache the signed-in account's
+  (`claimCacheFor` in `src/lib/account/cacheOwner.ts`) and then mounts
+  `ShelfSync`; signed out it renders nothing. No surface uploads rows from
+  IndexedDB: every cached row came from the server or from a write it accepted.
 - **A container written twice must be written together** — the row's `gameId`
-  column and the body's `gameId` (`shelveBody` in `convex/claim.ts`;
-  `maintenance.repairContainers` repairs old rows toward the column).
+  column and the body's `gameId` (`maintenance.repairContainers` repairs old
+  rows toward the column).
 - **e2e durability specs need an account.** Without `VITE_CONVEX_URL` +
   `VITE_TEST_AUTH` in the build and `ITUN_TEST_AUTH` on the deployment they
   SKIP; the nightly `e2e-itun` job provisions a throwaway Convex backend and
@@ -77,19 +76,20 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 ## Persistence (read before touching data)
 
 - Player data lives in **IndexedDB** via `idb` (`src/lib/db/`). Stores
-  (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `workspaces`
-  (retired; kept so migrations v10/v13 run),
-  `softLinks`, `mechPatterns`, `encounterNpcs`, and `meta`. The Change Log
+  (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `softLinks`,
+  `mechPatterns`, `encounterNpcs`, and `meta`. The Change Log
   ([ADR-022](../../docs/ARCHITECTURE.md#adr-022)) has no device store: it is
   the Convex `changeLog` table, written by `commitChangeLog` and read by
   `changeLog.forEntity`.
 - **The cache is one account's** (`src/lib/account/cacheOwner.ts`): sign-out
-  or another account empties it, unless `meta` says `legacy`.
+  or another account empties it.
 - **Zod schemas (`src/lib/schemas/`) are the source of truth** for entity shape;
   the DB layer parses on read/write ([ADR-002](../../docs/ARCHITECTURE.md#adr-002)).
 - Reads are salvage-tolerant (lenient re-parse + warning on version skew); rows
   heal on next write. See `src/lib/db/crud.ts`.
-- Schema/version changes go through `src/lib/db/migrations/` (see its README).
+- A schema/version change bumps `DB_VERSION` (`src/lib/db/index.ts`) and
+  nothing else: the upgrade drops every store, and `ShelfSync` refills the
+  cache from Convex. No record is ever rewritten on the device.
 - Records store **slug references** into `salvageunion-reference` (e.g.
   `classRef: 'salvager'` on a pilot, `chassisRef` on a mech), never copies of
   game data; resolve them against `SalvageUnionReference` at render time.
@@ -191,8 +191,8 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 - **Never insert into an `appId`-addressed table without checking first.**
   `pilots`, `mechs` and `crawlers` are looked up by the client's `appId`, and
   `by_app_id` is an ordinary index — **not** a uniqueness constraint — so
-  nothing in the database stops a second row. Prevention is the rule:
-  `appIdTaken` before any insert. `convex/maintenance.ts` repairs rows already
+  nothing in the database stops a second row. Prevention is the rule: look the
+  app id up (`byAppId`) before any insert. `convex/maintenance.ts` repairs rows already
   in that state (`dedupeAppIds`, dry-run by default).
 
   The lookups (`byAppId` / `crawlerByAppId`) do **not** throw on a duplicate:

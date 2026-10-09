@@ -295,6 +295,7 @@ describe('refusals', () => {
       appId: 'm1',
       gameId,
       body: { ...mechBody('m1', gameId), destroyed: true },
+      expectedUpdatedAt: null,
     })
     await expect(
       player.as.mutation(api.seats.board, { gameId, pilotId: 'p1', mechId: 'm1' })

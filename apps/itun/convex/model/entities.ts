@@ -218,9 +218,8 @@ export async function findOwnedByAppId(
  * links with the same endpoints and the same kind are the same link, whichever
  * browser drew it — which is what makes the mirror idempotent for free.
  *
- * Shared by the mirror mutations (`entities.ts`) and the claim (`claim.ts`):
- * the triple is the link's identity in both places, and two copies of that
- * rule could disagree.
+ * Shared by every mutation that writes a link, so the triple is the link's
+ * identity everywhere and no two copies of that rule can disagree.
  */
 export async function findSoftLink(
   ctx: MutationCtx,
