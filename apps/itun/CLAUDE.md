@@ -30,9 +30,8 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 - **A container written twice must be written together** — the row's `gameId`
   column and the body's `gameId`. Where they disagree, the column is the
   authority.
-- **e2e durability specs need an account.** Without `VITE_CONVEX_URL` +
-  `VITE_TEST_AUTH` in the build and `ITUN_TEST_AUTH` on the deployment they
-  SKIP; the nightly `e2e-itun` job provisions a throwaway Convex backend and
+- **e2e durability specs need an account.** Without `VITE_TEST_AUTH` in the
+  build and `ITUN_TEST_AUTH` on the deployment they SKIP; the nightly `e2e-itun` job provisions a throwaway Convex backend and
   runs them for real. See `e2e/fixtures.ts`.
 
 **One account-free way to share: the public sheet

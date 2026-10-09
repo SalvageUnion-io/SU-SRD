@@ -18,19 +18,18 @@ test.use({ account: 'anonymous' })
  *
  * ## What it needs, and why it skips without it
  *
- * Three things have to line up:
+ * Two things have to line up:
  *
- *  - a reachable Convex deployment (`VITE_CONVEX_URL` compiled into the build),
- *  - `ITUN_TEST_AUTH=true` on that deployment, so the `password` provider exists,
+ *  - `ITUN_TEST_AUTH=true` on the build's deployment, so the `password` provider exists,
  *  - `VITE_TEST_AUTH=true` in the build, so `TestAuthBridge` registers the seam.
  *
- * The PR-blocking CI suite builds with none of them, so this skips there with
+ * The PR-blocking CI suite builds with neither, so this skips there with
  * a stated reason rather than failing — the same trade `offline.e2e.ts` makes for
  * the dev-server case: a spec that went red in the ordinary run would be
  * deleted the first time it annoyed somebody.
  *
  * **It runs nightly.** `e2e-itun` in `.github/workflows/e2e-nightly.yml`
- * provides all three against a throwaway self-hosted Convex backend — a
+ * provides both against a throwaway self-hosted Convex backend — a
  * container destroyed with the runner, so it needs no credentials and never
  * puts a password provider on production. The same seam signs in every other
  * spec that builds something (`fixtures.ts`): signed out, ITUN is read-only.
