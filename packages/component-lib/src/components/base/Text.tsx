@@ -1,6 +1,5 @@
 import type { VariantProps } from 'class-variance-authority'
 import { cva } from 'class-variance-authority'
-import { forwardRef } from 'react'
 import { cn } from '../../utils/cn'
 
 /**
@@ -54,13 +53,19 @@ type TextProps = {
    * h1 and a set of orphaned h3s and nothing in between.
    */
   as?: 'p' | 'span' | 'div' | 'label' | 'h1' | 'h2' | 'h3'
+  ref?: React.Ref<HTMLElement>
 } & VariantProps<typeof textVariants> &
   Omit<React.HTMLAttributes<HTMLElement>, 'children' | 'style'>
 
-export const Text = forwardRef<HTMLElement, TextProps>(function Text(
-  { variant, children, className, style, as: Tag = 'p', ...props },
-  ref
-) {
+export function Text({
+  variant,
+  children,
+  className,
+  style,
+  as: Tag = 'p',
+  ref,
+  ...props
+}: TextProps) {
   return (
     <Tag
       ref={ref as React.Ref<never>}
@@ -71,4 +76,4 @@ export const Text = forwardRef<HTMLElement, TextProps>(function Text(
       {children}
     </Tag>
   )
-})
+}

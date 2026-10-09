@@ -615,7 +615,7 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
 })
 
 /**
- * The resolve in progress is the seat's (plan §8 A6): every step goes to it, so
+ * The resolve in progress is the seat's (ADR-038 §2): every step goes to it, so
  * the crew watches it and a reload — a seat that already holds the roll —
  * reopens on it.
  */

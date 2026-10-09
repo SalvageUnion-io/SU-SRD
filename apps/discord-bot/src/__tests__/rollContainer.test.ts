@@ -10,13 +10,13 @@ import type { SURefRollTable } from 'salvageunion-reference'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import { buildPostedRollMessage, buildRollMessage } from '../commands/roll.js'
 import type { ContainerData } from '../container.js'
-import { NEUTRAL_EMBED_COLOR, ROLL_COLORS } from '../format.js'
+import { NEUTRAL_ACCENT, ROLL_COLORS } from '../format.js'
 import { buildRollContainerData, isTieredTable, rollTableUrl } from '../rollContainer.js'
 
 // No preload here. `apps/discord-bot/bunfig.toml` preloads
 // `../../test/reference-preload.ts`, which loads every schema once for the
 // whole workspace — a per-file `preload('all')` is at best a no-op and at
-// worst hides an ordering bug, which is why `test-hygiene.test.ts` bans it.
+// worst hides an ordering bug, which is why `tools/biome/noTestReferencePreload.grit` bans it.
 
 function table(name: string): SURefRollTable {
   const found = SalvageUnionReference.RollTables.getByName(name)
@@ -42,9 +42,8 @@ function headline(data: ContainerData): string {
 }
 
 describe('the headline is never a bare die number', () => {
-  // 76 of 96 tables carry no labels; the old builder titled all of them
-  // `Roll: N`. Measured across every roll on every table, that was 78.7% of
-  // all outcomes.
+  // 76 of 96 tables carry no labels; titling them `Roll: N` would, across every
+  // roll on every table, headline 78.7% of all outcomes with a bare number.
   test('no table produces a "Roll: N" headline on any roll', () => {
     for (const t of SalvageUnionReference.RollTables.all()) {
       for (let roll = 1; roll <= 20; roll++) {
@@ -57,9 +56,8 @@ describe('the headline is never a bare die number', () => {
   })
 
   test('an unlabelled short value becomes the headline itself', () => {
-    // Callsign entries are bare words with no label — previously the value was
-    // the title only by accident of the columns branch, and flat tables put it
-    // in the body under "Roll: 14".
+    // Callsign entries are bare words with no label. An unlabelled short value
+    // is the headline on every table shape, never body copy under "Roll: N".
     expect(headline(rollOf('Callsign Table', 1))).toContain('SPARKLES')
   })
 
@@ -93,10 +91,9 @@ describe('tier gating', () => {
   })
 
   test('a 1 on an untiered table is NOT cascade red', () => {
-    // The old builder applied getColor() unconditionally, so rolling a 1 on the
-    // Callsign Table painted the embed cascade red and implied "Sparkles" was a
-    // catastrophe. It affected 21 tables.
-    expect(rollOf('Callsign Table', 1).accent).toBe(NEUTRAL_EMBED_COLOR)
+    // Applying getColor() unconditionally would paint a 1 on the Callsign Table
+    // cascade red and imply "Sparkles" was a catastrophe, on 21 tables.
+    expect(rollOf('Callsign Table', 1).accent).toBe(NEUTRAL_ACCENT)
   })
 
   test('a tiered table still takes the ramp', () => {
@@ -120,9 +117,8 @@ describe('the tier word is withheld outside the Core Mechanic', () => {
 })
 
 describe('every roll renders the same furniture', () => {
-  // The surface used to change shape with the result: a 1 and a 20 grew a
-  // Block-Elements banner the other 18 rolls did not have, so a table looked
-  // like a different bot depending on what came up. It is now one shape.
+  // One shape for every result: a Block-Elements banner on a 1 and a 20 only
+  // would make a table look like a different bot depending on what came up.
   test.each([1, 2, 10, 19, 20])('a %i draws no banner', (roll) => {
     const body = text(rollOf('Core Mechanic', roll))
     expect(body).not.toContain('▓')
@@ -164,9 +160,9 @@ describe('every roll renders the same furniture', () => {
   })
 
   test('one footer line, and it is the attribution', () => {
-    // The provenance line — `d20 14 · band 11-19 · Core Book p.219` — is gone;
-    // two lines of small print under every roll was the busiest part of the
-    // surface, and the die it spelled out is already the headline.
+    // A roll carries no provenance line (die, band, page): the die is already
+    // in the headline, so the only small print is the context line and the
+    // attribution.
     const small = text(rollOf('Crawler Damage', 14))
       .split('\n')
       .filter((line) => line.startsWith('-# '))
@@ -200,9 +196,9 @@ test('the See table link resolves to the reference site, with no trailing slash'
 
 describe('a dramatic table miss is a result, not an error', () => {
   // Blinding Blue Laser Rifle and Bio-Talon carry only a `20` key, so
-  // resultForTable reports failure on 19 of every 20 rolls. The old builder
-  // rendered its internal diagnostic — "No result found for roll 7" — to the
-  // user as an error. That is not an error; it is what the book means.
+  // resultForTable reports failure on 19 of every 20 rolls. Its internal
+  // diagnostic — "No result found for roll 7" — must never reach the user as an
+  // error. That is not an error; it is what the book means.
   test.each([1, 7, 19])('a %i renders NO EFFECT publicly', (roll) => {
     const message = buildRollMessage('Bio-Talon', 'Vex Marrow', () => roll)
     if ('error' in message) throw new Error('a miss must not be an error')

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import { rollLogEntry } from '../../src/components/dashboard/dashboardRolls'
-import { makeUser, seedTable } from './assignmentFixtures'
+import { addPilot, makeUser, seedTable } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -65,8 +65,16 @@ describe('a Dashboard roll round-trips through the log', () => {
       mediator: true,
     })
     await organizer.as.mutation(api.proposals.broadcast, { gameId, message: 'Bio-Titan closing' })
+    await addPilot(player, 'p-rook', gameId)
     await player.as.mutation(api.changeLog.appendChangeLog, {
-      entries: [{ ...rollLogEntry(gameId, crush, 1), field: 'currentHP', entityType: 'pilot' }],
+      entries: [
+        {
+          ...rollLogEntry(gameId, crush, 1),
+          field: 'currentHP',
+          entityType: 'pilot',
+          entityId: 'p-rook',
+        },
+      ],
     })
     expect(await player.as.query(api.changeLog.rolls, { gameId })).toEqual([])
   })

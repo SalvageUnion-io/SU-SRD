@@ -28,7 +28,9 @@ import { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { useEntityStore } from '../../stores/entityStore'
-import type { ChassisStatItem } from './SheetHero'
+
+/** One lozenge of the chassis-stats strip: a code, a value, an optional max. */
+type ChassisSpec = { code: string; value: number; max?: number }
 
 /** Narrow subset of chassis data the stat derivations need. */
 export type ChassisLike = {
@@ -78,7 +80,7 @@ export type MechSheetModel = {
   epLines: ProvenanceLine[]
   heatLines: ProvenanceLine[]
   /** The poster's 8-lozenge chassis-stats strip. */
-  specs: ChassisStatItem[]
+  specs: ChassisSpec[]
   /** The linked crawler's scrap pool, or null when unlinked. */
   scrapPool: NonNullable<Crawler['scrapPool']> | null
 }
@@ -149,7 +151,7 @@ export function useMechSheetModel({
   // Structure/Energy/Heat maxima, System/Module slot usage, Cargo usage,
   // Tech Level, Salvage Value — number-only lozenges, a bounded 4-col grid
   // rather than a free-wrapped strip.
-  const specs: ChassisStatItem[] = [
+  const specs: ChassisSpec[] = [
     { code: 'SP', value: maxSP },
     { code: 'EP', value: maxEP },
     { code: 'HEAT', value: heatCap },

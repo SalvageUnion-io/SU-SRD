@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
-import { makeUser } from './assignmentFixtures'
+import { addCrawler, addPilot, makeUser, seedTable } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -46,6 +46,7 @@ describe('appendChangeLog authorization', () => {
     const t = testConvex()
     const gm = await makeUser(t, 'Mediator')
     const gameId = await gm.as.mutation(api.games.create, { name: 'Tenacity' })
+    await addPilot(gm, 'p1', null)
 
     await gm.as.mutation(api.changeLog.appendChangeLog, { entries: [entry(gameId)] })
 
@@ -57,12 +58,32 @@ describe('appendChangeLog authorization', () => {
   test('an append with no game is unaffected — this is the Solo path', async () => {
     const t = testConvex()
     const user = await makeUser(t, 'Solo')
+    await addPilot(user, 'p1', null)
 
     await user.as.mutation(api.changeLog.appendChangeLog, { entries: [entry(null)] })
 
     const rows = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
     expect(rows).toHaveLength(1)
     expect(rows[0]?.gameId).toBeNull()
+  })
+
+  test('an entry with no before or after key lands, with that side null', async () => {
+    // A field set for the first time has no `before` and a cleared one no
+    // `after`; the Convex client drops the undefined key on the wire. Requiring
+    // it refused the whole batch (ITUN-CONVEX-3/-4).
+    const t = testConvex()
+    const user = await makeUser(t, 'Solo')
+    await addPilot(user, 'p1', null)
+    const { before: _before, ...firstSet } = entry(null)
+    const { after: _after, ...cleared } = entry(null, { field: 'maxHpOverride' })
+
+    await user.as.mutation(api.changeLog.appendChangeLog, { entries: [firstSet, cleared] })
+
+    const rows = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
+    expect(rows.map((r) => [r.field, r.before, r.after])).toEqual([
+      ['name', null, 'b'],
+      ['maxHpOverride', 'a', null],
+    ])
   })
 
   test('a non-member cannot append to a game they were never in', async () => {
@@ -105,6 +126,7 @@ describe('appendChangeLog authorization', () => {
     const gameId = await gm.as.mutation(api.games.create, { name: 'Tenacity' })
     const code = await gm.as.mutation(api.invites.create, { gameId })
     await player.as.mutation(api.invites.redeem, { code })
+    await addPilot(player, 'p1', null)
 
     // While a member: allowed.
     await player.as.mutation(api.changeLog.appendChangeLog, { entries: [entry(gameId)] })
@@ -167,5 +189,105 @@ describe('appendChangeLog authorization', () => {
 
     const alerts = await player.as.query(api.proposals.alerts, { gameId })
     expect(alerts).toHaveLength(0)
+  })
+})
+
+describe("appendChangeLog and an entity's history", () => {
+  // `forEntity` hands an entity's owner and crew every row filed under its id.
+  // An entry with `gameId: null` names no game to be a member of, so the game
+  // check alone let anyone who knew an entity's id write into its history.
+
+  test('a stranger cannot plant rows in a build they cannot write', async () => {
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    const stranger = await makeUser(t, 'Stranger')
+    await addPilot(owner, 'p-owner', null)
+
+    await expect(
+      stranger.as.mutation(api.changeLog.appendChangeLog, {
+        entries: [entry(null, { entityId: 'p-owner', after: 'Planted' })],
+      })
+    ).rejects.toThrow(/not yours to write/)
+
+    // Assert on what the owner reads, not only the throw: nothing reached the
+    // drawer, and the stranger cannot read the history either.
+    const log = await owner.as.query(api.changeLog.forEntity, {
+      entityType: 'pilot',
+      entityId: 'p-owner',
+    })
+    expect(log.map((r) => r.after)).not.toContain('Planted')
+    expect(log).toHaveLength(0)
+    await expect(
+      stranger.as.query(api.changeLog.forEntity, { entityType: 'pilot', entityId: 'p-owner' })
+    ).rejects.toThrow(/not yours to read/)
+  })
+
+  test('nor by naming its row id instead of its app id', async () => {
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    const stranger = await makeUser(t, 'Stranger')
+    await addPilot(owner, 'p-owner', null)
+    const rowId = await t.run(async (ctx) => {
+      const row = await ctx.db
+        .query('pilots')
+        .withIndex('by_app_id', (q) => q.eq('appId', 'p-owner'))
+        .unique()
+      if (row === null) throw new Error('expected the pilot')
+      return row._id
+    })
+
+    await expect(
+      stranger.as.mutation(api.changeLog.appendChangeLog, {
+        entries: [entry(null, { entityId: rowId })],
+      })
+    ).rejects.toThrow(/not yours to write/)
+    const rows = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
+    expect(rows).toHaveLength(0)
+  })
+
+  test('nor into an in-Game build, from outside that Game', async () => {
+    const t = testConvex()
+    const { player, gameId } = await seedTable(t)
+    const stranger = await makeUser(t, 'Stranger')
+    await addPilot(player, 'p-crew', gameId)
+
+    await expect(
+      stranger.as.mutation(api.changeLog.appendChangeLog, {
+        entries: [entry(null, { entityId: 'p-crew' })],
+      })
+    ).rejects.toThrow(/Not a member of this game/)
+    const rows = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
+    expect(rows).toHaveLength(0)
+  })
+
+  test("a crewmate may log against the Game's builds, and its communal crawler", async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedTable(t)
+    await addPilot(player, 'p-crew', gameId)
+    await addCrawler(organizer, 'c-crew', gameId)
+
+    await organizer.as.mutation(api.changeLog.appendChangeLog, {
+      entries: [entry(gameId, { entityId: 'p-crew' })],
+    })
+    await player.as.mutation(api.changeLog.appendChangeLog, {
+      entries: [entry(gameId, { entityType: 'crawler', entityId: 'c-crew' })],
+    })
+
+    const log = await player.as.query(api.changeLog.forEntity, {
+      entityType: 'pilot',
+      entityId: 'p-crew',
+    })
+    expect(log).toHaveLength(1)
+  })
+
+  test('an entity the server has no row for is refused', async () => {
+    const t = testConvex()
+    const user = await makeUser(t, 'Solo')
+
+    await expect(
+      user.as.mutation(api.changeLog.appendChangeLog, {
+        entries: [entry(null, { entityId: 'not-yet' })],
+      })
+    ).rejects.toThrow(/no such entity/)
   })
 })

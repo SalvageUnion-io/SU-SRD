@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
 import { containerOf } from '../container'
 import { copyForShelf, copyName } from '../copyEntity'
 
@@ -18,7 +19,7 @@ const SOURCE = {
   callsign: 'Babe',
   classRef: 'salvager',
   gameId: 'game-123',
-  createdAt: '2026-01-01T00:00:00.000Z',
+  createdAt: FIXTURE_NOW,
   updatedAt: '2026-02-02T00:00:00.000Z',
   conditions: ['injured'],
   abilities: [],

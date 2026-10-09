@@ -23,7 +23,7 @@ export const ReactorOverloadOutcomeSchema = z.enum([
 ])
 
 // No `z.infer` type alias here: the only consumer (HeatCheckControl) was
-// dropped by the poster redesign's D6 live-play-panel cut (#407) — the
+// dropped by the poster redesign's live-play-panel cut (#407) — the
 // schema itself (used inline below, and the `lastHeatCheck` field) stays for
 // backward-tolerant reads of previously-saved mechs.
 
@@ -71,7 +71,7 @@ export const CriticalDamageOutcomeSchema = z.enum([
 ])
 
 // No `z.infer` type alias here: the only consumer (TakeDamageControl) was
-// dropped by the poster redesign's D6 live-play-panel cut (#406) — the
+// dropped by the poster redesign's live-play-panel cut (#406) — the
 // schema stays (used inline below) for backward-tolerant reads.
 
 /**
@@ -93,9 +93,8 @@ export const CriticalDamageResultSchema = z
 /**
  * chassisRef / systems / modules store SLUG references into
  * salvageunion-reference (e.g. "ghost-chassis"), the same convention as pilot
- * `classRef` and encounter `refSlug`. The v6 IndexedDB migration
- * (lib/db/migrations/6-mech-refs-to-slugs.ts) rewrote legacy name-based refs;
- * resolution (lib/rules/resolveRefs.ts) stays tolerant of names/ids for
+ * `classRef` and encounter `refSlug`. Resolution (lib/rules/resolveRefs.ts)
+ * stays tolerant of names/ids for
  * snapshots published by older clients. Resolution against game data is
  * handled at the rules/presentation layer.
  */
@@ -117,8 +116,8 @@ export const MechSchema = z
 
     /**
      * Cargo lots carried in the mech (design §2.12). Replaces the legacy
-     * `cargo: string[]` field — the v3 IndexedDB migration
-     * (lib/db/migrations/3-cargo-to-cargo-lots.ts) rewrites old records.
+     * `cargo: string[]` field, which `normalizeLegacyCargoRecord` lifts into
+     * lots wherever an old body is read.
      */
     cargoLots: z.array(CargoLotSchema),
 
@@ -156,7 +155,7 @@ export const MechSchema = z
     // Manual adjustments (plan 2.3, rules B2/B4/B6/B14).
     //
     // A signed amount the player entered by hand that CONTRIBUTES to the derived
-    // maximum: derived = chassis stat + Σ installed statBonus + adjustment
+    // maximum: derived = chassis stat + Σ contributions + adjustment
     // (lib/rules/derivedStats.ts). Absent means 0.
     //
     // These are NOT overrides. Until the ADR-022 amendment these fields carried

@@ -31,6 +31,12 @@ export type ConnectionState = {
    * resolves itself in a moment and should not be dressed as a failure.
    */
   settling: boolean
+  /**
+   * True when this bundle is older than the backend's build floor
+   * (`buildFloor.ts`): `canWrite` is false until the tab reloads onto the new
+   * build. Optional because only `ConnectionProvider` ever sets it.
+   */
+  outdated?: boolean
 }
 
 /**

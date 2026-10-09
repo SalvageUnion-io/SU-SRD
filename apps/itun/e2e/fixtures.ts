@@ -5,37 +5,36 @@ import { waitForReady } from './_helpers'
 /**
  * The ITUN e2e `test`, signed in by default.
  *
- * ## Why every spec signs in now
+ * ## Why every spec signs in
  *
- * There are two places a build can land: the in-memory backend for an
- * anonymous visitor, and the account. Only the second survives a reload, so
- * every spec that builds something and reads it back after a `goto` or a
- * `reload` is, by definition, a test of the signed-in path.
- *
- * It used to be a test of a third path instead. The suite built a production
- * bundle with `VITE_REQUIRE_ACCOUNT=false` forced on, which kept the retired
- * `local` backend alive — durable IndexedDB for an anonymous visitor — so the
- * suite spent its whole run proving a storage mode no player could reach.
- * `local` and the flag are gone; the suite now runs the way production does.
+ * A build lands in exactly one place: the account. Signed out, ITUN is
+ * read-only and refuses every write, so every spec that builds something is a
+ * test of the signed-in path, run the way production runs.
  *
  * ## How it signs in
  *
  * Through `TestAuthBridge`, the build-time test seam that calls the
  * test-only `password` provider. Each test signs up a fresh account, because a
- * reused one would inherit the last run's roster and assert against it. Three
- * things must line up (see `signin-save.e2e.ts`'s header): `VITE_CONVEX_URL`
- * and `VITE_TEST_AUTH=true` in the build, and `ITUN_TEST_AUTH=true` on the
- * deployment. `e2e-itun` in `.github/workflows/e2e-nightly.yml` provides all
- * three against a throwaway self-hosted Convex backend.
+ * reused one would inherit the last run's roster and assert against it. Two
+ * things must line up (see `signin-save.e2e.ts`'s header): `VITE_TEST_AUTH=true`
+ * in the build, and `ITUN_TEST_AUTH=true` on the deployment. `e2e-itun` in
+ * `.github/workflows/e2e-nightly.yml` provides both against a throwaway
+ * self-hosted Convex backend.
  *
  * ## When the seam is absent
  *
- * A build without it (the PR-blocking smoke tier, a contributor's
- * `bun run e2e:itun` with no Convex) cannot sign in, so a signed-in spec SKIPS
- * with the reason stated rather than failing — a spec that went red in every
- * ordinary run would be deleted the first time it annoyed somebody. Once a run
- * has deliberately provisioned the seam (`ITUN_E2E_EXPECT_AUTH_SEAM`), absence
- * means the seam broke, and it THROWS instead.
+ * A build without it (the PR-blocking smoke tier) cannot sign in, so a
+ * signed-in spec SKIPS with the reason stated rather than failing — a spec that
+ * went red in every ordinary run would be deleted the first time it annoyed
+ * somebody. Once a run has deliberately provisioned the seam
+ * (`ITUN_E2E_EXPECT_AUTH_SEAM`), absence means the seam broke, and it THROWS
+ * instead.
+ *
+ * A local `bun run e2e:itun` always has the seam: Playwright boots (or reuses)
+ * `bun run dev:itun`, which sets `VITE_TEST_AUTH` on a local Convex deployment.
+ * So it needs the one-time "Local backend" setup in `.claude/skills/convex-ops/SKILL.md`
+ * (`ITUN_TEST_AUTH`, the JWT keys, `SITE_URL`), and its signed-in specs FAIL
+ * without it.
  *
  * ## Opting out
  *
@@ -58,11 +57,32 @@ export function uniqueCredentials(): { email: string; password: string } {
   return { email: `e2e-${stamp}@example.invalid`, password: `pw-${stamp}-Aa1!` }
 }
 
+/**
+ * How long a build that carries the seam may take to register it. `TestAuthBridge`
+ * registers in an effect once the auth provider mounts, which can land after
+ * the game-data flag `waitForReady` awaits.
+ */
+const SEAM_REGISTER_MS = 15_000
+
+/**
+ * Whether the seam is (or within `SEAM_REGISTER_MS` becomes) present.
+ *
+ * Waited for, never probed once: a single `evaluate` raced the bridge's effect,
+ * and every signed-in spec that lost the race threw on its first attempt and
+ * passed on the retry. That one race was every flaky test the nightly suite
+ * reported from 2026-09-30 to 2026-10-08, one to five a night.
+ */
 export async function seamIsPresent(page: Page): Promise<boolean> {
-  return await page.evaluate(
-    (name) => typeof (window as unknown as Record<string, unknown>)[name] === 'function',
-    TEST_SIGN_IN_GLOBAL
-  )
+  return await page
+    .waitForFunction(
+      (name) => typeof (window as unknown as Record<string, unknown>)[name] === 'function',
+      TEST_SIGN_IN_GLOBAL,
+      { timeout: SEAM_REGISTER_MS }
+    )
+    .then(
+      () => true,
+      () => false
+    )
 }
 
 /**
@@ -73,14 +93,14 @@ export function requireSeam(present: boolean, testInfo: TestInfo): void {
   if (!present && process.env.ITUN_E2E_EXPECT_AUTH_SEAM) {
     throw new Error(
       'ITUN_E2E_EXPECT_AUTH_SEAM is set, but no `__itunTestSignIn` seam is present. ' +
-        'The build was expected to expose it (VITE_TEST_AUTH + VITE_CONVEX_URL + ' +
-        'ITUN_TEST_AUTH); either the seam regressed or the build lost a variable.'
+        'The build was expected to expose it (VITE_TEST_AUTH + ITUN_TEST_AUTH); ' +
+        'either the seam regressed or the build lost a variable.'
     )
   }
   testInfo.skip(
     !present,
-    'Needs an account, and this build has no test sign-in seam (VITE_TEST_AUTH, ' +
-      'VITE_CONVEX_URL and ITUN_TEST_AUTH). See apps/itun/e2e/fixtures.ts.'
+    'Needs an account, and this build has no test sign-in seam (VITE_TEST_AUTH ' +
+      'and ITUN_TEST_AUTH). See apps/itun/e2e/fixtures.ts.'
   )
 }
 

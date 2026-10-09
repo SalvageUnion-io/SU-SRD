@@ -3,7 +3,7 @@
  * §4.4, plan 4.6; redesigned to the poster layout, Phase 2).
  *
  * The body OWNS the identity band now (Workshop-Manual crawler sheet):
- * This body renders `SheetHero` in band mode as its first region.
+ * This body renders `SheetHero` as its first region.
  * Following the printed sheet (`Editable_..._Crawler_Sheets.pdf`), the sheet is
  * a single-column region stack, inside the same `@container` shape
  * PilotSheet/MechSheet use:
@@ -37,14 +37,14 @@
  * archetype B): always-available '+ Add' opening the existing weapons
  * picker (CrawlerSystemsEditModal), per-card remove (✕). The poster has no
  * region for this (it's live mounted loadout, not a play-control panel, so
- * it's not part of the D6 drop list below) — it gets its own content-column
+ * it's not part of the drop list below) — it gets its own content-column
  * card.
  *
  * Storage Bay (The Hold) — the unlimited StorageManifest (side='crawler'),
  * in the full-height right rail; ← Load is cap-checked against the docked
  * mech. Keeps the Stow/Load transfer feature.
  *
- * Dropped (redesign D6 — no poster counterpart; tracking issues filed for
+ * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
  *   - the Tech Level stepper slab (#412) — Tech Level itself still reads
  *     live via the economy band's TL lozenge (built by SheetCrawler); only
@@ -64,9 +64,7 @@
  */
 
 import {
-  CardRemoveButton,
   EmptyState,
-  EntityGridRow,
   MasonryColumns,
   ReferenceEntityCard,
   SheetSectionSlab,
@@ -89,7 +87,9 @@ import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
 import { BAY_REPAIR_COST, resolveCrawlerSystem } from './crawlerSheetItemRules'
+import { EntityGridRow } from './EntityGrid'
 import { SheetHero } from './SheetHero'
+import { CardRemoveButton } from './SheetSection'
 import { StorageManifest } from './StorageManifest'
 
 type CrawlerSheetProps = {
@@ -333,7 +333,7 @@ export function CrawlerSheet({
       aria-label={`${crawler.name} crawler sheet`}
       // `.sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
-      // width (redesign D7), not the viewport.
+      // width, not the viewport.
       className="sheet-section @container flex flex-col gap-6"
     >
       {/* ===== Single-column region flow (Workshop-Manual crawler sheet):
@@ -347,7 +347,6 @@ export function CrawlerSheet({
             rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts), in one
             toned frame — no name pseudoheader stamp. */}
         <SheetHero
-          cat="Crawler"
           name={crawler.name}
           fields={
             <div className="flex min-w-0 flex-col gap-4">

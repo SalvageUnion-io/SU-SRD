@@ -1,8 +1,10 @@
-import type { CSSProperties, HTMLAttributes, ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../../utils/cn'
 import { Badge } from '../../chrome/Badge'
 import { Stat } from '../../shared/Stat'
 import type { StatItem } from '../../shared/statsBarTypes'
+import type { CardOuterProps } from './CardOuter'
+import { CardOuter } from './CardOuter'
 import { formatActionType } from './cardCells'
 import type { AxisMarker } from './entityCardTone'
 import type { ActionFields } from './referenceEntityCardTypes'
@@ -20,8 +22,7 @@ import type { ActionFields } from './referenceEntityCardTypes'
  * tail cells differ between the action and entity forms.
  */
 export function CardShortform({
-  outerClassName,
-  outerInteraction,
+  outer,
   accent,
   frameStyle,
   onBandText,
@@ -31,8 +32,7 @@ export function CardShortform({
   axisMarkers,
   techLevel,
 }: {
-  outerClassName: string
-  outerInteraction: HTMLAttributes<HTMLDivElement>
+  outer: CardOuterProps
   accent: { className?: string; style?: CSSProperties }
   frameStyle: CSSProperties
   onBandText: string
@@ -44,7 +44,7 @@ export function CardShortform({
   techLevel: number | 'B' | 'N' | undefined
 }) {
   return (
-    <div className={outerClassName} {...outerInteraction}>
+    <CardOuter {...outer}>
       <div
         className={cn(
           'inline-flex max-w-full items-center gap-2 self-start overflow-hidden rounded-card px-2 py-1',
@@ -66,7 +66,7 @@ export function CardShortform({
           <EntityTail axisMarkers={axisMarkers} techLevel={techLevel} />
         )}
       </div>
-    </div>
+    </CardOuter>
   )
 }
 

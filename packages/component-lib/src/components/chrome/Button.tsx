@@ -1,10 +1,9 @@
 import type { VariantProps } from 'class-variance-authority'
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { forwardRef } from 'react'
+import type { ComponentPropsWithRef, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { buttonVariants } from './buttonVariants'
 
-type ButtonProps = ComponentPropsWithoutRef<'button'> &
+type ButtonProps = ComponentPropsWithRef<'button'> &
   VariantProps<typeof buttonVariants> & {
     /**
      * Optional leading decorative glyph (e.g. the ⚄ roll die), rendered
@@ -25,10 +24,17 @@ type ButtonProps = ComponentPropsWithoutRef<'button'> &
  * (condensed caps; a `ghost` recolour, the one variant the HUD uses) — one
  * Button for both the paper app chrome and the instrument scope.
  */
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant, surface, size, className, type = 'button', glyph, children, ...props },
-  ref
-) {
+export function Button({
+  variant,
+  surface,
+  size,
+  className,
+  type = 'button',
+  glyph,
+  children,
+  ref,
+  ...props
+}: ButtonProps) {
   return (
     <button
       ref={ref}
@@ -40,4 +46,4 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       {children}
     </button>
   )
-})
+}

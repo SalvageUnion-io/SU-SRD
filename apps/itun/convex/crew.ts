@@ -19,8 +19,8 @@ import { loadReferenceData } from './model/referenceData'
 import { seatsInGame } from './model/seats'
 
 /**
- * Crew visibility inside a Game (ADR-030 §5, D12), and the crew's derived
- * status (docs/architecture/dashboard-redesign.md D6, §8 A3).
+ * Crew visibility inside a Game (ADR-030 §5), and the crew's derived
+ * status (ADR-038 §4).
  *
  * Every member sees every crewmate's **vitals** live: the Dashboard's Crew tab,
  * the Game hub's crew strip and the Mediator's proposal form all read this

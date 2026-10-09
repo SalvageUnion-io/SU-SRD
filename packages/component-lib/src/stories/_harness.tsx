@@ -2,9 +2,9 @@ import type { CSSProperties, ReactNode } from 'react'
 import { color, font, fontSize, space, tracking } from '../design/tokens'
 
 /**
- * Shared Ladle story helpers.
+ * Shared story helpers.
  *
- * Every story renders on a global paper canvas provided by `.ladle/components.tsx`,
+ * Every story renders on a global paper canvas provided by `catalog.tsx`,
  * so a story does not need its own outer paper wrapper. When a caption/frame
  * helper would otherwise be copy-pasted across story files, put it here and
  * import it instead of re-declaring it per file.
@@ -14,11 +14,7 @@ import { color, font, fontSize, space, tracking } from '../design/tokens'
  * cannot drift from the scale they are captioning.
  */
 
-/**
- * A story as Ladle renders it: a component with no props. Declared here rather
- * than imported from `@ladle/react`, whose type entry re-exports Ladle's own
- * UI source and so drags it into this package's typecheck.
- */
+/** A story as the catalog renders it: a component with no props. */
 export type Story = () => ReactNode
 
 /** A small caps caption above a demo cluster — the workshop-muted label. */

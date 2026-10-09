@@ -7,7 +7,7 @@ export default {
   title: 'Atoms/Slab',
 }
 
-// Real SRD content — reference data is preloaded by .ladle/components.tsx.
+// Real SRD content — reference data is preloaded by catalog.tsx.
 const chassis = SalvageUnionReference.Chassis.all()[0]
 const systemSlots = chassis?.systemSlots ?? 6
 const moduleSlots = chassis?.moduleSlots ?? 2

@@ -31,7 +31,7 @@ import { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { SHELF } from '../../container'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
-import { _clearAllStores, _resetDbSingleton, mechs, pilots } from '../../db/index'
+import { _resetDbSingleton, clearCache, mechs, pilots } from '../../db/index'
 import { CrawlerSchema } from '../../schemas/crawler'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
@@ -225,7 +225,7 @@ describe('Starter Set seed — soft link integrity', () => {
 describe('Starter Set — copying a template', () => {
   beforeEach(async () => {
     _resetDbSingleton()
-    await _clearAllStores()
+    await clearCache()
     useEntityStore.setState({
       pilots: [],
       mechs: [],
@@ -236,7 +236,7 @@ describe('Starter Set — copying a template', () => {
   })
 
   afterEach(async () => {
-    await _clearAllStores()
+    await clearCache()
   })
 
   const [pilotTemplate] = STARTER_PILOTS

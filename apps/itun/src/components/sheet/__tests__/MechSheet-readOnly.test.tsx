@@ -114,7 +114,7 @@ describe('MechSheet — readOnly', () => {
     expect(screen.getAllByText('Smoke Machine').length).toBeGreaterThan(0)
     expect(screen.getAllByText(/scrap/i).length).toBeGreaterThan(0) // the SCRAP lot chit
     // The `shutdown` flag surfaces as a unified Conditions chip (Vitals card)
-    // now that the standalone Heat Check panel is dropped (redesign D6).
+    // now that the standalone Heat Check panel is dropped (the poster redesign).
     expect(screen.getByText('Shutdown')).toBeTruthy()
   })
 

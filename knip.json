@@ -1,6 +1,5 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "ignoreDependencies": ["tailwindcss"],
   "ignoreExportsUsedInFile": true,
   "includeEntryExports": true,
   // Exports tagged `@public` or `@knipignore` are excluded from analysis. The
@@ -20,9 +19,7 @@
   // go de-duplicate files that no longer existed.
   "tags": ["-public", "-knipignore"],
   "workspaces": {
-    // The root holds no code of its own now that `tools/` is a workspace, and
-    // `.design-sync/` previews and `.claude/workflows/` are entry points for
-    // tools outside the repo, which knip cannot see calling them.
+    // The root holds no code of its own now that `tools/` is a workspace.
     ".": {
       "project": []
     },
@@ -69,7 +66,9 @@
         // package.json, so they are deliberately not listed here.
         "src/runtime/islands.client.ts",
         "src/runtime/styles.entry.ts",
-        "src/runtime/assets.entry.ts"
+        "src/runtime/assets.entry.ts",
+        // The one spec whose import reaches `tools/` (`tools/lib/a11yScan.ts`).
+        "e2e/a11y.e2e.ts"
       ],
       "project": ["src/**/*.{ts,tsx}", "ssg/**/*.{ts,tsx}"],
       "includeEntryExports": false
@@ -78,16 +77,16 @@
       "entry": [
         "src/routes/**/*.tsx",
         // The Worker entry (`src/worker/index.ts`) is NOT listed: knip's
-        // wrangler plugin reads `main` from wrangler.jsonc now that wrangler
-        // is a declared devDependency, and flags a manual entry as redundant.
+        // wrangler plugin reads `main` from wrangler.jsonc (wrangler is a root
+        // devDependency), and flags a manual entry as redundant.
         "src/lib/db/index.ts",
         "src/lib/db/stores.ts",
         "src/lib/db/crud.ts",
-        "src/lib/snapshot/storage.ts",
-        "src/lib/snapshot/id.ts",
         "src/stores/entityStore.ts",
         "src/stores/activeContainerStore.ts",
-        "src/stores/types.ts"
+        "src/stores/types.ts",
+        // The one spec whose import reaches `tools/` (`tools/lib/a11yScan.ts`).
+        "e2e/a11y.e2e.ts"
       ],
       // `test/**` covers the Convex test suite, which lives OUTSIDE `convex/`
       // so that codegen does not register the harness as a deployable module.
@@ -112,7 +111,7 @@
       // `src/http/worker.ts` (the Worker) comes from wrangler.jsonc's `main`
       // via knip's wrangler plugin, and `src/deploy-commands.ts` from the
       // package.json scripts, so neither is listed. If the wrangler plugin
-      // ever stops applying (wrangler removed from this manifest), knip will
+      // ever stops applying (wrangler removed from the root manifest), knip will
       // report the whole HTTP-interactions transport as dead code; restore the
       // entry then.
       "project": ["src/**/*.ts"]

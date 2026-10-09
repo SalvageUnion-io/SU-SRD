@@ -1,5 +1,4 @@
 import { useConnection } from '../../lib/connection/connectionContext'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { GamesDrawerList, GamesMenu } from '../container/GamesMenu'
 import { AccountMenu } from './AccountMenu'
 import { SignInControl } from './SignInControl'
@@ -24,15 +23,11 @@ import { SignInControl } from './SignInControl'
  * "Games ▾" trigger or a "Sign in with Discord" button beside it pushed the
  * wordmark onto three lines. The avatar stays in the row so who is signed in
  * is visible on every screen; the rest goes into the drawer.
- *
- * A build with no `VITE_CONVEX_URL` has no accounts at all, and every slot is
- * empty — the same masthead such a build always had.
  */
 
 /** Desktop: the Games menu, then the account menu (or sign-in). */
 export function HeaderActions() {
   const { mode } = useConnection()
-  if (!isConvexConfigured) return null
 
   if (mode === 'connected' || mode === 'disconnected') {
     return (
@@ -54,7 +49,6 @@ export function HeaderMobileActions() {
 /** Mobile drawer: the Games list when Connected, sign-in when signed out. */
 export function HeaderDrawerAccount({ close }: { close: () => void }) {
   const { mode } = useConnection()
-  if (!isConvexConfigured) return null
   if (mode === 'connected') return <GamesDrawerList onPick={close} />
   // Offline: the avatar menu in the header row already offers Sign out, and
   // there is nothing to list.

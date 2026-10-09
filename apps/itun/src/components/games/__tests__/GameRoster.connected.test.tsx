@@ -41,7 +41,8 @@ let mutationError: unknown = null
 // that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
 const convexMocks = await installConvexMocks({
   // The store's commits: copies and moves are signed-in writes now.
-  convexClient: { mutation: async () => null },
+  // `upsertByAppId` answers with the row's new version.
+  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
   convexReact: {
     useMutation: (ref: unknown) => async (args: unknown) => {
       if (mutationError !== null) throw mutationError
@@ -55,7 +56,7 @@ const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 
-const SIGNED_IN = { signedIn: true, online: true, authSettled: true, convexConfigured: true }
+const SIGNED_IN = { signedIn: true, online: true, authSettled: true }
 
 beforeAll(hydrateStores)
 

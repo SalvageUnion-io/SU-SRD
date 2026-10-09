@@ -6,15 +6,15 @@ import { v } from 'convex/values'
 /**
  * Convex schema for ITUN accounts, Games, and entity ownership.
  *
- * This is the server-of-record introduced by the accounts plan (D1/D2), which
+ * This is the server of record introduced by ADR-030, which
  * supersedes ADR-001's "no backend, no auth". See docs/ARCHITECTURE.md#data-flow
  * and ADR-030 for the full record; the short version of what this file assumes:
  *
- *   - Two containers, not one (D18). An entity lives in a shared `games` row OR
+ *   - Two containers, not one (ADR-030 §2). An entity lives in a shared `games` row OR
  *     on its owner's personal shelf. `gameId` is nullable and null MEANS shelf.
- *   - Ownership is nullable too (D28). A null `ownerId` is an *unclaimed*
- *     entity — a normal state, arising when a player leaves (D16), when the
- *     Mediator pre-builds a character, or from a Game template (D34).
+ *   - Ownership is nullable too (ADR-030 §2). A null `ownerId` is an *unclaimed*
+ *     entity — a normal state, arising when a player leaves, when the
+ *     Mediator pre-builds a character, or from a Game template.
  *   - `gameId == null && ownerId == null` is the one invalid combination. It is
  *     unreachable through any mutation and should stay that way.
  *
@@ -28,7 +28,7 @@ import { v } from 'convex/values'
  *
  * So Convex validates and indexes what it needs to *query* — ownership, scoping,
  * timestamps — and treats the entity body as an opaque payload that Zod parses
- * at the edge, exactly as `SnapshotStorage` already treats snapshot payloads.
+ * at the edge.
  * The trade is real and worth naming: Convex cannot reject a malformed body on
  * write, so every mutation MUST parse with the Zod schema before persisting.
  *
@@ -67,14 +67,12 @@ export const softLinkType = v.union(
 )
 
 /**
- * Mirrors `ChangeLogEntityTypeSchema` (src/lib/schemas/changeLog.ts), plus
- * `'game'`.
+ * What a Change Log row is about: one of the player entities, or the Game.
  *
- * `'game'` has no local counterpart because it never reaches IndexedDB: a
- * table-wide alert (`proposals.broadcast`), a recorded Discord roll
- * (`botClient.recordRoll`) and a Dashboard roll (`appendChangeLog`, from
- * `dashboardRolls.ts`) are log rows about the Game itself rather than about
- * anybody's sheet. Everything that reads a row's target must therefore handle a
+ * `'game'` names no sheet: a table-wide alert (`proposals.broadcast`), a
+ * recorded Discord roll (`botClient.recordRoll`) and a Dashboard roll
+ * (`appendChangeLog`, from `dashboardRolls.ts`) are log rows about the Game
+ * itself rather than about anybody's sheet. Everything that reads a row's target must therefore handle a
  * row that names no entity table — see `ownableTableFor` in `proposals.ts`.
  */
 const changeLogEntityType = v.union(
@@ -85,12 +83,12 @@ const changeLogEntityType = v.union(
   v.literal('game')
 )
 
-/** Mirrors `CHANGE_LOG_KINDS` (src/lib/schemas/changeLog.ts) — ADR-022. */
+/** Mirrors `ChangeLogKind` (src/lib/schemas/changeLog.ts) — ADR-022. */
 const changeLogKind = v.union(v.literal('transaction'), v.literal('override'), v.literal('manual'))
 
 /**
- * Proposal lifecycle (ADR-030 §4). No Zod counterpart: the local-only log has
- * no proposals, so this state machine exists only on the server.
+ * Proposal lifecycle (ADR-030 §4). No Zod counterpart: proposals are made and
+ * answered only on the server.
  */
 const changeLogState = v.union(
   v.literal('applied'),
@@ -206,17 +204,7 @@ export default defineSchema({
     phoneVerificationTime: v.optional(v.number()),
 
     /**
-     * Discord snowflake. **Not the bot's resolution path and not written.**
-     *
-     * Identity resolves through `authAccounts.providerAccountId`, which
-     * `@convex-dev/auth` maintains on every sign-in — see
-     * `model/bot.ts#userByDiscordId`. This column and its `by_discord` index
-     * are retained only so existing rows keep validating; nothing reads them,
-     * and a value here resolves nobody.
-     */
-    discordId: v.optional(v.string()),
-    /**
-     * Overridable display name (D33). Defaults from Discord but is editable —
+     * Overridable display name (ADR-030 §6). Defaults from Discord but is editable —
      * people use different names at different tables. This is what every owner
      * chip renders, so it is read far more often than it is written.
      */
@@ -225,20 +213,17 @@ export default defineSchema({
     avatarUrl: v.optional(v.string()),
   })
     .index('email', ['email'])
-    .index('phone', ['phone'])
-    .index('by_discord', ['discordId']),
+    .index('phone', ['phone']),
 
   /**
    * A Game is the shared container — campaign, group, and (formerly) workspace
-   * collapsed into one concept (D4). Membership lives in `memberships`, never
+   * collapsed into one concept (ADR-030 §2). Membership lives in `memberships`, never
    * as an array here, so authorization is a single indexed lookup.
    */
   games: defineTable({
     name: v.string(),
-    /** Which built-in template seeded this Game, if any (D34). */
+    /** Which built-in template seeded this Game, if any. */
     templateOrigin: v.optional(v.string()),
-    /** Dashboard dial show/hide + order. Carried over from Workspace unchanged. */
-    cockpitPrefs: v.optional(v.any()),
     /**
      * What a Game's summary says about this table — kept current by the triggers
      * in `model/entities.ts`, never written by a mutation directly.
@@ -283,7 +268,7 @@ export default defineSchema({
   /**
    * Membership = (account x Game), and the only place capabilities live.
    *
-   * Booleans rather than a role enum, deliberately (D15/D20): a Mediator who
+   * Booleans rather than a role enum, deliberately (ADR-030 §3): a Mediator who
    * also plays needs both, and the Organizer is an *orthogonal* administrative
    * flag layered on whichever base role the member holds — never a third role.
    * Exactly one membership per Game carries `organizer: true`.
@@ -306,23 +291,21 @@ export default defineSchema({
    * already decided when they minted it: which seat the joiner takes, and which
    * unclaimed entities are waiting for them. That turns "send code → they join →
    * find them in the crew list → assign a pilot → assign its mech" into one act.
-   *
-   * Everything past `usesRemaining` is optional so pre-existing rows stay valid.
    */
   invites: defineTable({
     gameId: v.id('games'),
     code: v.string(),
     createdBy: v.id('users'),
-    expiresAt: v.optional(v.number()),
+    expiresAt: v.number(),
     usesRemaining: v.optional(v.number()),
 
-    createdAt: v.optional(v.number()),
+    createdAt: v.number(),
 
     /** Organizer's private note ("for Sam"). Never shown to the redeemer. */
     label: v.optional(v.string()),
 
-    /** The seat granted on redeem. Absent means 'player'. */
-    role: v.optional(v.union(v.literal('player'), v.literal('mediator'))),
+    /** The seat granted on redeem. */
+    role: v.union(v.literal('player'), v.literal('mediator')),
 
     /**
      * Entities handed over on join. A list, not a single id: the Starter Set
@@ -344,7 +327,7 @@ export default defineSchema({
      * membership would otherwise hand a stranger read access to every
      * crewmate's sheet (ADR-030 §5).
      */
-    requiresApproval: v.optional(v.boolean()),
+    requiresApproval: v.boolean(),
 
     /**
      * Soft revoke. The row survives so `inviteRedemptions` keeps referring to
@@ -432,15 +415,15 @@ export default defineSchema({
   mechs: containerTable(v.union(v.id('users'), v.null())),
 
   /**
-   * The crawler is communal **inside a Game** (D8) — `ownerId: null` — and every
+   * The crawler is communal **inside a Game** (ADR-030 §5) — `ownerId: null` — and every
    * member reads it, but only the table runner writes it (amended by ADR-038 §5:
    * the Mediator keeps the crawler; `assertMayEditCrawler`). Writes resolve by
-   * field-level merge (D19), enforced in the mutation rather than the schema, so
+   * field-level merge (ADR-030 §5), enforced in the mutation rather than the schema, so
    * a write from a stale copy never undoes a field it did not touch.
    *
    * ## Why this now carries the same two columns as `pilots`/`mechs`
    *
-   * D8 read as "no `ownerId` at all", and `gameId` was correspondingly
+   * ADR-030 §5 read as "no `ownerId` at all", and `gameId` was correspondingly
    * non-nullable: a crawler was a thing that could only exist inside a Game.
    * That is amended here, and the amendment is about **containers**, not about
    * ownership during play. Communal-while-in-a-Game is unchanged and still
@@ -448,14 +431,8 @@ export default defineSchema({
    *
    * What it buys is the third row of ADR-030 §2's table — `gameId: null` with
    * an owner, *on the shelf* — which the crawler was the one entity unable to
-   * occupy. Two real consequences followed from that gap, and both were worked
-   * around rather than fixed:
-   *
-   *   - **Deleting a Game had to destroy its crawler.** Pilots and mechs fell
-   *     back to a shelf; the crew's home had nowhere to fall to.
-   *   - **`claimLocal` invented a container.** A claimed solo crawler was
-   *     parked on a placeholder "Claimed crawler" Game of one, because the
-   *     shelf could not hold it.
+   * occupy. Deleting a Game had to destroy its crawler: pilots and mechs fell
+   * back to a shelf, and the crew's home had nowhere to fall to.
    *
    * The alternative was to copy a shelved crawler into IndexedDB alone. That is
    * rejected on principle: offline-first here is ordinary PWA caching, so the
@@ -468,7 +445,7 @@ export default defineSchema({
    */
   crawlers: containerTable(
     /**
-     * Null while the crawler is in a Game — that is what communal means (D8).
+     * Null while the crawler is in a Game — that is what communal means (ADR-030 §5).
      * Set only on the shelf, where a container with no owner would be the
      * invalid row.
      *
@@ -554,23 +531,17 @@ export default defineSchema({
     .index('by_owner_app_id', ['ownerId', 'appId']),
 
   /**
-   * A saved mech pattern. Personal — there is no sharing.
-   *
-   * This carried a `sharedToGame: v.boolean()` for D26 ('share a pattern with
-   * the crew'). It was written in exactly one place, hardcoded `false`, and no
-   * query ever returned it: `listForGame` serves pilots, mechs, crawlers and
-   * softLinks only. A one-way sink with a field nothing could set. Removed —
-   * add it back with the mutation that sets it and the query that reads it.
+   * A saved mech pattern. Personal — there is no sharing, so a pattern lives
+   * only on its owner's shelf and `gameId` is always null.
    */
   mechPatterns: defineTable({
     ownerId: v.id('users'),
-    gameId: v.union(v.id('games'), v.null()),
+    gameId: v.null(),
     /**
      * The id inside the body, lifted into a column.
      *
-     * A pattern's identity has always been `body.id`, and the mirror found its
-     * row by collecting every pattern the owner had and comparing bodies in JS.
-     * Carrying it here makes that one read on `by_owner_app_id`.
+     * A pattern's identity is `body.id`. Carrying it here lets the client's
+     * server-first write find the row with one read on `by_owner_app_id`.
      *
      * Optional because a body need not carry an id; a row without one cannot
      * be addressed by `findOwnedByAppId`.
@@ -579,8 +550,7 @@ export default defineSchema({
     body: v.any(),
   })
     // `ownerId` alone is a prefix, so this also serves "all of mine".
-    .index('by_owner_app_id', ['ownerId', 'appId'])
-    .index('by_game', ['gameId']),
+    .index('by_owner_app_id', ['ownerId', 'appId']),
 
   /**
    * The Change Log (ADR-022), promoted from a local-only audit trail to the
@@ -588,7 +558,7 @@ export default defineSchema({
    *
    * It is simultaneously the audit trail, the sync log, and the alert bus: a
    * Mediator's proposal is simply an entry in `proposed` state that the player
-   * commits by applying it. `supersededBy` implements D25 — a newer proposal
+   * commits by applying it. `supersededBy` implements ADR-030 §4 — a newer proposal
    * against the same (entityId, field) retires the older one, so a player never
    * faces two contradictory pending changes to one value. Nothing expires and
    * nothing is ever force-applied.
@@ -633,8 +603,8 @@ export default defineSchema({
    * The bot authenticates as a **participant**, not an admin — the whole point
    * of closing the old #165 differently. A binding says "rolls in this channel
    * belong to this Game", and the actor is resolved from the Discord user id
-   * against `users.discordId`, so the bot can never act as somebody who has not
-   * linked their account.
+   * against `authAccounts.providerAccountId` (`model/bot.ts#userByDiscordId`),
+   * so the bot can never act as somebody who has not linked their account.
    *
    * One Game per channel: a channel that meant two Games would make every roll
    * ambiguous.

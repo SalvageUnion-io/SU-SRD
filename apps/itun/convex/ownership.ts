@@ -2,7 +2,7 @@ import { v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import type { OwnableTable } from './model/entities'
-import { loadOwnable, mutation } from './model/entities'
+import { loadOwnable, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMember, requireUser } from './model/permissions'
 
 /**
@@ -111,7 +111,7 @@ export const claim = mutation({
     await ctx.db.patch(doc._id, { ownerId: membership.userId, updatedAt: Date.now() })
     await logOwnershipChange(ctx, {
       table: args.table,
-      entityId: args.entityId,
+      entityId: logIdOf(doc),
       gameId: doc.gameId,
       before: null,
       after: membership.userId,
@@ -163,7 +163,7 @@ export const release = mutation({
     await ctx.db.patch(doc._id, { ownerId: null, updatedAt: Date.now() })
     await logOwnershipChange(ctx, {
       table: args.table,
-      entityId: args.entityId,
+      entityId: logIdOf(doc),
       gameId: doc.gameId,
       before: doc.ownerId,
       after: null,

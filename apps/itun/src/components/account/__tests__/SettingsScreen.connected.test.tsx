@@ -72,11 +72,12 @@ describe('what the settings page is when there is no account', () => {
     withQueries({})
     wrap()
 
-    // Building without an account is supported; keeping work without one is
-    // not (ADR-034). The copy has to say both, plainly.
+    // Signed out, ITUN is read-only (ADR-034): the page has to say so plainly
+    // and offer the way in.
     expect(screen.getByText(/You are not signed in/i)).toBeTruthy()
-    // It must not promise durability it cannot deliver: an anonymous build is
-    // in memory only (ADR-034), so "saved on this device" would be a lie.
+    // It must not promise anything is kept: signed out, every write is
+    // refused, so nothing is saved on this device or anywhere else, and
+    // "saved on this device" would be a lie.
     expect(screen.getByText(/nothing is kept/i)).toBeTruthy()
     expect(screen.queryByText(/saved on this device/i)).toBeNull()
   })

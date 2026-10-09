@@ -10,9 +10,12 @@
  * shaped like YAML; a real parse cannot be.
  *
  *   aggregator    `CI Success` (`quality-checks` in ci.yml) `needs:` every job
- *                 in ci.yml. It is the one required status check, and it can
- *                 only fail on a job it needs — a job missing from that list
- *                 still runs, still goes red, and cannot block a merge.
+ *                 in ci.yml. It is ci.yml's one required status check, and it
+ *                 can only fail on a job it needs — a job missing from that
+ *                 list still runs, still goes red, and cannot block a merge.
+ *                 The `main` ruleset declared in tools/environments.ts must
+ *                 require it, and every other gate that ruleset waits on must
+ *                 have its workflow on disk.
  *   path-filters  every `workspace:*` dependency of an app is covered by the
  *                 ci.yml filter group gating that app's build job. `CI Success`
  *                 treats a skipped job as a pass, so an uncovered dependency
@@ -20,17 +23,16 @@
  *   pinning       every `bunx`/`npx` tool with no manifest entry carries an
  *                 exact version: it runs in jobs holding deploy credentials.
  *                 Action SHA pinning is zizmor's `unpinned-uses` (`actionlint`).
- *   bun-version   `.bun-version` is the one Bun: the root `bun-types` and
- *                 `packageManager` match it, no workflow pins Bun by hand
- *                 instead of using `./.github/actions/setup-bun`, and the Bun
- *                 running this is the pinned one (a mismatched Bun cannot read bun.lock, and
- *                 `bun why` exits 0 while saying so).
+ *   bun-version   the root `packageManager` is the one Bun pin: the root
+ *                 `bun-types` matches it, no workflow pins Bun by hand
+ *                 instead of using `./.github/actions/setup-bun` (which reads
+ *                 it), and the Bun running this is the pinned one (a mismatched
+ *                 Bun cannot read bun.lock, and `bun why` exits 0 while saying so).
  *   convex-guard  `deploy-cloudflare.yml` still runs `convex deploy` and still
  *                 fails a production deploy with no CONVEX_DEPLOY_KEY. Without
  *                 it, production ran a four-day-stale backend in 2026-08 with
- *                 nothing red. The LIVE half — what the deployment actually
- *                 serves — is `tools/check-convex-parity.ts`, run nightly.
- *                 The job pushing the backend must also need the guard's job.
+ *                 nothing red. The job pushing the backend must also need
+ *                 the guard's job.
  *   deploy-order  in `deploy-cloudflare.yml`, the Convex push needs every
  *                 build job, every deploy job needs every build job and the
  *                 push, the smoke job needs every deploy job, and the deploy
@@ -43,8 +45,8 @@
  *                 function in its `if:` — the implicit `success()` is false
  *                 whenever any ancestor was skipped.
  *   secrets-env   every job that reads an Environment secret declared in
- *                 `tools/environments.ts` (today: Cloudflare, Convex, Sentry,
- *                 the release PAT, all `production`) declares that Environment,
+ *                 `tools/environments.ts` (today: Cloudflare, Convex and
+ *                 Sentry, all `production`) declares that Environment,
  *                 and every Environment a job names is declared there. The
  *                 secrets live only in the Environment, which admits `main`
  *                 alone, so a workflow copy dispatched from a branch cannot
@@ -61,8 +63,8 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { EnvironmentSpec } from './environments'
-import { ENVIRONMENTS, SECRET_SENTINEL } from './environments'
+import type { EnvironmentSpec, RulesetSpec } from './environments'
+import { ENVIRONMENTS, MAIN_RULESET, SECRET_SENTINEL } from './environments'
 
 type Yaml = Record<string, unknown>
 
@@ -80,8 +82,8 @@ export type WorkflowContext = {
   files: WorkflowFile[]
   /** `package.json` path (repo-relative) -> manifest. Root is `package.json`. */
   manifests: Map<string, Manifest>
-  /** Contents of `.bun-version`. */
-  bunVersion: string
+  /** Package name -> the bins bun.lock records for it. */
+  lockBins: Map<string, string[]>
   /** The Bun running this, or null to skip that comparison (tests). */
   runningBun: string | null
   exists: (repoRelPath: string) => boolean
@@ -146,16 +148,16 @@ const executable = (script: string): string =>
 export const AGGREGATOR = 'quality-checks'
 
 /**
- * Required status contexts in OTHER workflows, which `needs:` cannot reach.
- * Their workflow files must exist: deleting one while its context is still
- * required leaves every PR waiting on a check that never arrives. Each must
- * also be listed in the `main` ruleset (docs/ARCHITECTURE.md#ci-repository-settings);
- * this check cannot see the ruleset.
+ * The workflow behind each gate the `main` ruleset (`MAIN_RULESET` in
+ * tools/environments.ts) holds outside ci.yml: a required status context that
+ * `needs:` cannot reach, or a code-scanning tool. Deleting the workflow while
+ * the ruleset still waits on it leaves every PR waiting on a result that never
+ * arrives.
  */
-const SEPARATELY_REQUIRED = [
-  { context: 'Analyze (javascript-typescript)', workflow: '.github/workflows/codeql.yml' },
-  { context: 'PR title is a conventional commit', workflow: '.github/workflows/pr-title.yml' },
-] as const
+const GATE_WORKFLOWS: Record<string, string> = {
+  'PR title is a conventional commit': '.github/workflows/pr-title.yml',
+  CodeQL: '.github/workflows/codeql.yml',
+}
 
 /** Jobs deliberately left out of the gate, each with a reason. Empty, and the bar is high. */
 const UNGATED_BY_DESIGN: Record<string, string> = {}
@@ -185,7 +187,8 @@ function ancestorsOf(jobs: Yaml, job: string): Set<string> {
 
 export function checkAggregator(
   ctx: WorkflowContext,
-  exempt: Record<string, string> = UNGATED_BY_DESIGN
+  exempt: Record<string, string> = UNGATED_BY_DESIGN,
+  ruleset: RulesetSpec = MAIN_RULESET
 ): CheckResult {
   const doc = file(ctx, CI)
   if (!doc) return { ok: '', failures: [`${CI} is missing`] }
@@ -223,18 +226,34 @@ export function checkAggregator(
     if (needs.has(job))
       failures.push(`\`${job}\` is exempted as ungated but IS gated — drop the exemption.`)
   }
-  for (const { context, workflow } of SEPARATELY_REQUIRED) {
-    if (!ctx.exists(workflow)) {
+  const gate = doc.jobs[AGGREGATOR]
+  const gateName = isObject(gate) && typeof gate.name === 'string' ? gate.name : AGGREGATOR
+  if (!ruleset.requiredChecks.includes(gateName)) {
+    failures.push(
+      `the \`${ruleset.name}\` ruleset in tools/environments.ts does not require \`${gateName}\` — ` +
+        'the aggregate gate would block nothing.'
+    )
+  }
+  const others = [
+    ...ruleset.requiredChecks.filter((c) => c !== gateName),
+    ...ruleset.codeScanning.map((t) => t.tool),
+  ]
+  for (const other of others) {
+    const workflow = GATE_WORKFLOWS[other]
+    if (!workflow) {
       failures.push(
-        `${workflow} is missing, but \`${context}\` is still treated as a required status ` +
-          'context. Restore it, or drop it from SEPARATELY_REQUIRED in the change that removes it ' +
-          'from the ruleset.'
+        `the \`${ruleset.name}\` ruleset waits on \`${other}\`, which no workflow is known to ` +
+          'produce — add it to GATE_WORKFLOWS in tools/check-workflows.ts.'
+      )
+    } else if (!ctx.exists(workflow)) {
+      failures.push(
+        `${workflow} is missing, but the \`${ruleset.name}\` ruleset still waits on \`${other}\`. ` +
+          'Restore it, or drop the gate from MAIN_RULESET in the change that removes it from the ruleset.'
       )
     }
   }
-  const others = SEPARATELY_REQUIRED.map((r) => r.context).join(', ')
   return {
-    ok: `\`${AGGREGATOR}\` gates all ${jobs.length - 1} jobs in ${CI} (also required separately: ${others})`,
+    ok: `\`${AGGREGATOR}\` gates all ${jobs.length - 1} jobs in ${CI} (the ruleset also waits on: ${others.join(', ')})`,
     failures,
   }
 }
@@ -357,13 +376,18 @@ export function checkPathFilters(ctx: WorkflowContext): CheckResult {
 
 /**
  * Tools `bunx` resolves from the lockfile: EXACT dependency names of every
- * manifest. Not the unscoped half of scoped names — that once exempted `auth`,
- * `core`, `test` and 22 other real npm packages nobody had declared.
+ * manifest, and the bins bun.lock records for them (`bunx playwright` runs
+ * `@playwright/test`'s bin). Not the unscoped half of scoped names — that once
+ * exempted `auth`, `core`, `test` and 22 other real npm packages nobody had
+ * declared.
  */
 function locallyResolved(ctx: WorkflowContext): Set<string> {
   const names = new Set<string>()
   for (const pkg of ctx.manifests.values()) {
-    for (const name of Object.keys({ ...pkg.dependencies, ...pkg.devDependencies })) names.add(name)
+    for (const name of Object.keys({ ...pkg.dependencies, ...pkg.devDependencies })) {
+      names.add(name)
+      for (const bin of ctx.lockBins.get(name) ?? []) names.add(bin)
+    }
   }
   return names
 }
@@ -447,22 +471,25 @@ function inlineBunPins(f: WorkflowFile): { where: string; version: string }[] {
 
 export function checkBunVersion(ctx: WorkflowContext): CheckResult {
   const failures: string[] = []
-  const expected = ctx.bunVersion
+  // `packageManager` is the pin: setup-bun reads it, and so does any tool that
+  // installs its own Bun. A Bun other than the pinned one can write a bun.lock
+  // the pinned Bun cannot read.
+  const packageManager = ctx.manifests.get('package.json')?.packageManager
+  const expected = packageManager?.match(/^bun@(\d+\.\d+\.\d+)$/)?.[1]
+  if (!expected) {
+    return {
+      ok: '',
+      failures: [
+        `root package.json packageManager = ${packageManager ?? '(absent)'}, expected an exact ` +
+          '`bun@X.Y.Z` — it is the one Bun pin, and setup-bun reads it.',
+      ],
+    }
+  }
   if (ctx.runningBun !== null && ctx.runningBun !== expected) {
     failures.push(
-      `the running Bun is ${ctx.runningBun}, but .bun-version pins ${expected}. Install the ` +
+      `the running Bun is ${ctx.runningBun}, but packageManager pins ${expected}. Install the ` +
         'pinned version — a mismatched Bun can fail to read bun.lock entirely, and ' +
         '`bun why` / `bun pm ls` exit 0 when it does.'
-    )
-  }
-  // `packageManager` is how a tool that installs its OWN Bun picks a version
-  // (a bare oven-sh/setup-bun). A Bun other
-  // than the pinned one can write a bun.lock the pinned Bun cannot read.
-  const packageManager = ctx.manifests.get('package.json')?.packageManager
-  if (packageManager !== `bun@${expected}`) {
-    failures.push(
-      `root package.json packageManager = ${packageManager ?? '(absent)'}, expected bun@${expected} ` +
-        '— tools that set up their own Bun (a bare setup-bun) read it.'
     )
   }
   const bunTypes = ctx.manifests.get('package.json')?.devDependencies?.['bun-types']
@@ -479,8 +506,8 @@ export function checkBunVersion(ctx: WorkflowContext): CheckResult {
     for (const { where, version } of inlineBunPins(f)) {
       failures.push(
         `${f.path} ${where} pins bun-version ${version} by hand` +
-          (version === expected ? ' (it matches today, but will not track .bun-version)' : '') +
-          ` — use ${SETUP_BUN}, which reads .bun-version.`
+          (version === expected ? ' (it matches today, but will not track packageManager)' : '') +
+          ` — use ${SETUP_BUN}, which reads packageManager.`
       )
     }
   }
@@ -836,11 +863,23 @@ export function loadContext(root: string, runningBun: string | null): WorkflowCo
       if (entry.isDirectory()) readManifest(`${group}/${entry.name}/package.json`)
     }
   }
-  const versionFile = join(root, '.bun-version')
+  // A top-level `packages` key is the package's own name; nested keys
+  // (`parent/child`) are the copies one dependent resolved differently.
+  const lockBins = new Map<string, string[]>()
+  const lockPath = join(root, 'bun.lock')
+  if (existsSync(lockPath)) {
+    const lock = Bun.JSONC.parse(readFileSync(lockPath, 'utf8')) as {
+      packages?: Record<string, [string, string, { bin?: Record<string, string> }?]>
+    }
+    for (const [key, [spec, , meta]] of Object.entries(lock.packages ?? {})) {
+      if (spec.slice(0, spec.lastIndexOf('@')) === key && meta?.bin)
+        lockBins.set(key, Object.keys(meta.bin))
+    }
+  }
   return {
     files,
     manifests,
-    bunVersion: existsSync(versionFile) ? readFileSync(versionFile, 'utf8').trim() : '(missing)',
+    lockBins,
     runningBun,
     exists: (path) => existsSync(join(root, path)),
   }

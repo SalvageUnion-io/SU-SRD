@@ -2,7 +2,7 @@
  * Sheet pipeline smoke tests — consolidated end-to-end-ish coverage of the
  * entire sheet rendering pipeline.
  *
- * Strategy: dep-injection throughout (no mock.module()). Each scenario
+ * Strategy: dep-injection throughout. Each scenario
  * exercises the Sheet → sub-component → store integration as a whole, rather
  * than testing a single sub-component in isolation.
  *
@@ -19,14 +19,16 @@
  *
  * Conventions:
  *   - toBeTruthy() not toBeInTheDocument() (happy-dom workaround)
- *   - No mock.module()
+ *   - The only module mocks are Convex's (`installConvexMocks`): the signed-out
+ *     Share dialog mounts `SignInControl`
  *   - afterEach cleanup()
  */
 
-import { beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { installConvexMocks } from '../../__tests__/convexMock'
 import {
   crawlerFixture,
   mechFixture,
@@ -40,7 +42,12 @@ import {
   makeSoftLinkStoreMock,
 } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
-import { Sheet } from '../Sheet'
+
+// Module scope, before the import below — see `convexMock.ts`.
+const convexMocks = await installConvexMocks({ authReact: true })
+afterAll(() => convexMocks.restore())
+
+const { Sheet } = await import('../Sheet')
 
 // ---------------------------------------------------------------------------
 // Preload salvageunion-reference once — MechSheet resolves chassis refs

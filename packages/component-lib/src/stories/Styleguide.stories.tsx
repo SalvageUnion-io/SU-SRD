@@ -10,7 +10,7 @@ export default {
 // The orientation front-door for the catalog. This page is DOCUMENTATION rendered
 // as a story: it explains how to read the catalog and how to add to it, in the
 // catalog's own voice (paper canvas, condensed caps labels, canon tokens). The
-// full contributor reference lives at docs/ARCHITECTURE.md#component-catalog-ladle.
+// full contributor reference lives at docs/ARCHITECTURE.md#component-catalog.
 //
 // Migrated off Tailwind in #799 (epic #802). Every value is read from
 // `design/tokens.ts`; the `ch`/`rem` measures are the Tailwind rungs ported
@@ -21,7 +21,7 @@ export default {
 const titleStyle = {
   color: color.ink,
   fontFamily: font.cond,
-  fontSize: fontSize.xl2,
+  fontSize: fontSize['2xl'],
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
 } satisfies CSSProperties
@@ -240,9 +240,8 @@ export const Anatomies: Story = () => (
         — not Variants / Costs / etc.
       </Rule>
       <Rule>
-        <span style={emphasisStyle}>No outer paper wrapper</span> — the global canvas
-        (.ladle/components.tsx) already frames every story on paper with a mono font and the data
-        preload gate.
+        <span style={emphasisStyle}>No outer paper wrapper</span> — the global canvas (catalog.tsx)
+        already frames every story on paper with a mono font and the data preload gate.
       </Rule>
       <Rule>
         <span style={emphasisStyle}>Import shared helpers</span> (Caption, frames) from{' '}
@@ -281,8 +280,8 @@ export const Contributing: Story = () => (
         <Rule>Every example driven by real SRD data through the real components.</Rule>
         <Rule>Interactivity via useState, not args / controls.</Rule>
         <Rule>
-          <code>bun run ladle</code> renders it; <code>bun --filter component-lib test</code> passes
-          (coverage guard green); <code>ladle:build</code> succeeds.
+          <code>bun run stories</code> renders it; <code>bun --filter component-lib test</code>
+          passes (coverage guard green).
         </Rule>
       </Rules>
     </div>

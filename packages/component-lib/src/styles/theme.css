@@ -1,6 +1,11 @@
 /*
- * Salvage Union Design System - Tailwind v4 Theme
- * Colors ported from the official Salvage Union aesthetic
+ * Salvage Union Design System — the ONE token set.
+ *
+ * Every design token the repo styles with is declared in this file: the
+ * `@theme` block (which Tailwind turns into utilities) and the `:root` block
+ * below it. `src/styles/index.css` reads these properties and declares none of
+ * its own; `src/design/tokens.ts` mirrors them for style objects, and
+ * `src/design/tokens.parity.test.ts` fails if the two disagree. Edit both.
  */
 @theme {
   /* === Typography === */
@@ -83,6 +88,23 @@
   --text-title: 22px;
   --text-display-lg: 31px;
   --text-hero: 38px;
+  /* Tailwind's built-in rungs, restated so the token set stands without
+     Tailwind: `text-xs` … `text-3xl` are still in live use. These are the values
+     Tailwind ships, so no utility moves. Prefer a semantic rung above. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+
+  /* Font weights in use — Tailwind's own values, restated for the same reason. */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
 
   /* The `su-*` brand family that used to live here is DELETED. It was a shadow
      tokenset: the canonical semantic tokens below were defined as aliases *of*
@@ -167,12 +189,18 @@
      Warm ink at opacity reads as the same material at distance. */
   --color-ink-85: rgb(40 32 25 / 0.85);
   --color-ink-75: rgb(40 32 25 / 0.75);
+  --color-ink-60: rgb(40 32 25 / 0.6);
+  --color-ink-55: rgb(40 32 25 / 0.55);
   --color-ink-50: rgb(40 32 25 / 0.5);
   --color-ink-40: rgb(40 32 25 / 0.4);
+  --color-ink-35: rgb(40 32 25 / 0.35);
   --color-ink-30: rgb(40 32 25 / 0.3);
   --color-ink-20: rgb(40 32 25 / 0.2);
+  --color-ink-15: rgb(40 32 25 / 0.15);
   --color-ink-12: rgb(40 32 25 / 0.12);
+  --color-ink-10: rgb(40 32 25 / 0.1);
   --color-ink-8: rgb(40 32 25 / 0.08);
+  --color-ink-5: rgb(40 32 25 / 0.05);
   /* The -85 / -40 / -20 rungs were added for SHADOWS, which had been authored
      as raw `rgba()` inside Tailwind arbitrary values and were invisible to the
      token guard until its `rgb()` arm stopped using `\b` (a boundary that can
@@ -202,8 +230,12 @@
      those clusters (the `/55`–`/60` supporting-label tone); `-30` absorbs the
      `/25`–`/35` hairline cluster. Both are FOREGROUND rungs — paper as a
      background is always the flat `--color-paper`. */
+  --color-paper-85: rgb(251 250 247 / 0.85);
+  --color-paper-80: rgb(251 250 247 / 0.8);
+  --color-paper-70: rgb(251 250 247 / 0.7);
   --color-paper-60: rgb(251 250 247 / 0.6);
   --color-paper-30: rgb(251 250 247 / 0.3);
+  --color-paper-15: rgb(251 250 247 / 0.15);
   --color-rust: rgb(168, 82, 34); /* #a85222 — THE single action color */
   /* The one sanctioned cream. The rendering matrix (ruleset §2) specifies the
      RollTable as "banded d20, peach/cream", so cream survives for exactly that
@@ -211,6 +243,9 @@
      `--color-paper`, restoring the "one paper" law (§4.1). */
   --color-band-cream: rgb(243, 237, 226); /* #f3ede2 */
   --color-rust-hi: rgb(138, 64, 25); /* #8a4019 primary hover */
+  /* A 25% rust wash. NOT the focus ring: as a ring it measured 1.42:1 against
+     the required 3:1 (see `.su-focus-ring` in index.css). */
+  --color-rust-25: rgb(168 82 34 / 0.25);
   /* `--color-danger` (#9a4633) is RETIRED. It was the third red in a set that
      should have had one: `--color-status-bad` is the sanctioned state token
      (ruleset §3.3), and `--color-adversary` is an ONTOLOGY hue that was doing
@@ -244,12 +279,16 @@
   /* Attention fills that are neither an ontology hue nor a status overlay.
      Values preserved from the shadow family; renamed for what they mark. */
   --color-caution: rgb(215, 195, 125); /* #d7c37d — was su-sickly-yellow */
+  --color-caution-25: rgb(215 195 125 / 0.25); /* Banner's caution wash */
   --color-inert: rgb(192, 192, 192); /* #c0c0c0 — was su-silver */
 
   /* Status (Intact / Damaged / Destroyed) — aliases of the roll tiers */
   --color-status-ok: var(--color-roll-success);
   --color-status-warn: var(--color-roll-failure);
   --color-status-bad: var(--color-roll-cascade);
+  /* The error focus-ring wash. A literal, not an alias: re-tone it by hand
+     whenever --color-roll-cascade moves (see `statusBad25` in tokens.ts). */
+  --color-status-bad-25: rgb(176 67 43 / 0.25);
 
   /* Cargo (storage) accent triplet */
   --color-cargo: rgb(156, 122, 62); /* #9c7a3e */
@@ -286,34 +325,11 @@
      claim this comment used to make ("EVERY animation token here is applied
      `motion-safe:`") was simply false — 3 call sites used `motion-safe:`, 4
      used `motion-reduce:`, one reached for `matchMedia` in JS, and 10 were
-     unguarded, including the `animate-slide-in-right`/`-out-right` drawer this
-     very block defines and 8 `animate-pulse` skeletons. A per-call-site
+     unguarded, among them 8 `animate-pulse` skeletons. A per-call-site
      convention that nothing enforces will drift. The
      `@media (prefers-reduced-motion: reduce)` backstop below the `@theme`
      block is what makes the guarantee true, and it holds for a call site
      nobody remembered to mark. */
-
-  /* Mobile nav-drawer slide — the shared NavDrawer + the SRD mobile-search
-     sheet. Lives here (not in each app's CSS) so the shared drawer animates
-     identically in both apps AND in Ladle. */
-  --animate-slide-in-right: slide-in-right 0.2s ease-out;
-  --animate-slide-out-right: slide-out-right 0.2s ease-in;
-  @keyframes slide-in-right {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-  @keyframes slide-out-right {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(100%);
-    }
-  }
 }
 
 /*
@@ -328,12 +344,10 @@
  *
  * `animation-duration: 0.01ms` + `animation-iteration-count: 1` does NOT strip
  * the animation — it runs it once, instantly, so the element lands on the
- * keyframes' END state rather than being left mid-transform. That is exactly
- * what each of this file's animations wants: `slide-in-right` ends at
- * `translateX(0)` (drawer open, in place), `slide-out-right` ends at
- * `translateX(100%)` (drawer gone, so Base UI's exit-animation unmount still
- * fires), and `animate-pulse` ends at full opacity (a static skeleton).
- * Simply disabling the animation would strand the exit case mounted forever.
+ * keyframes' END state rather than being left mid-transform: `animate-pulse`
+ * ends at full opacity (a static skeleton), and a Base UI exit transition (the
+ * `.su-drawer` slide) still ends, so its unmount still fires. Simply disabling
+ * the motion would strand an exit case mounted forever.
  *
  * The per-call-site `motion-safe:` marks stay and are still preferred — they
  * say what the author meant. This is the floor under them, not a replacement.
@@ -354,8 +368,9 @@
 }
 
 /*
- * Base CSS custom properties used by body styles and components.
- * Keep minimal — only define variables that are actually referenced.
+ * The tokens that are not Tailwind theme keys: declaring them in `@theme` would
+ * generate (or re-size) utilities, so they are plain custom properties. They
+ * are still part of the one token set and `tokens.parity.test.ts` reads them.
  */
 :root {
   --background: var(--color-paper);
@@ -369,6 +384,34 @@
   --bw-rail: 2.5px;
   --bw-pill: 2px;
   --bw-chrome: 1.5px;
+  --bw-hairline: 1px;
+
+  /* The radius rungs Tailwind spells as static utilities (`rounded-none`,
+     `rounded-full`), declared here rather than in @theme so those utilities do
+     not change. */
+  --radius-none: 0px;
+  --radius-full: 9999px;
+
+  /* The spacing rhythm, keyed by its own pixel value (`space[8]` in tokens.ts).
+     Not `--spacing-*`: that is Tailwind's namespace, and declaring it would
+     re-size every `p-8`. */
+  --space-0: 0px;
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-28: 28px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --space-64: 64px;
+  --space-96: 96px;
 }
 
 /*

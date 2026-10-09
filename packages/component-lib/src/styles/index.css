@@ -5,11 +5,6 @@
  * the pattern whose TypeScript half is `src/design/tokens.ts`, and it is the
  * half that is easy to miss.
  *
- * (`src/design/styles.ts` used to be named here too. It shipped 21
- * `CSSProperties` objects ahead of any consumer and never acquired one, so it
- * was removed rather than carried through L2. Reintroduce an object alongside
- * the component that needs it.)
- *
  * WHY IT IS NOT OPTIONAL
  *
  * An inline `style={}` object cannot express `:hover`, `@media`,
@@ -37,233 +32,22 @@
  * A component may use both — the object on `style=`, the class on `className=`.
  * The full statement lives in this package's CLAUDE.md.
  *
- * RELATIONSHIP TO theme.css, WHILE BOTH EXIST
+ * TOKENS COME FROM theme.css
  *
- * `theme.css` is still the live source: Tailwind is in the build and every
- * component still renders through it, untouched by this layer. This file is a
- * re-shaping of the same values into a form that does not need Tailwind, so the
- * two overlap on purpose until #801 deletes the Tailwind side. Nothing imports
- * this file yet — it has no runtime effect until the migration layers wire it
- * up, which is what makes a foundation layer safe to land.
- *
- * The custom-property values below are the same numbers as `src/design/
- * tokens.ts`, and `src/design/tokens.parity.test.ts` fails if the two ever
- * disagree. Do not edit one without the other.
+ * This file declares no token of its own. Every value it reads is a
+ * `theme.css` custom property (`--color-*`, `--text-*`, `--space-*`, …), the
+ * one token set, which `src/design/tokens.ts` mirrors for style objects and
+ * `src/design/tokens.parity.test.ts` holds in step. So `theme.css` loads
+ * before this file wherever it is used (`styles/tailwind.css` does both).
  */
 
-/* ══ The token scale, as custom properties ══════════════════════════════════
- *
- * Namespaced `--su-*` so this scale can coexist with Tailwind's `@theme`
- * output (`--color-*`, `--text-*`, …) for as long as both are in the build.
- * The names are `--su-<group>-<token>`, where the token is the kebab-case
- * spelling of its `tokens.ts` key: `color.inkDeep` is `--su-color-ink-deep`.
- */
+/* ══ Derived values ═════════════════════════════════════════════════════════ */
 :root {
-  /* ── Type faces ── */
-  --su-font-body: 'Barlow', system-ui, -apple-system, sans-serif;
-  --su-font-cond: 'Barlow Semi Condensed', 'Barlow', system-ui, -apple-system, sans-serif;
-
-  /* ── Spacing rhythm, keyed by its own pixel value ── */
-  --su-space-0: 0px;
-  --su-space-2: 2px;
-  --su-space-4: 4px;
-  --su-space-6: 6px;
-  --su-space-8: 8px;
-  --su-space-10: 10px;
-  --su-space-12: 12px;
-  --su-space-14: 14px;
-  --su-space-16: 16px;
-  --su-space-20: 20px;
-  --su-space-24: 24px;
-  --su-space-28: 28px;
-  --su-space-32: 32px;
-  --su-space-40: 40px;
-  --su-space-48: 48px;
-  --su-space-64: 64px;
-  --su-space-96: 96px;
-
-  /* ── Type ladder: the semantic rungs (ruleset §4.2) ── */
-  --su-text-nano: 8px;
-  --su-text-micro: 9px;
-  --su-text-label: 10px;
-  --su-text-label-lg: 10.5px;
-  --su-text-badge: 11px;
-  --su-text-note: 11.5px;
-  --su-text-caption: 13px;
-  --su-text-lede: 15px;
-  --su-text-readout: 17px;
-  --su-text-title: 22px;
-  --su-text-display: 26px;
-  --su-text-display-lg: 31px;
-  --su-text-hero: 38px;
-  /* ── …and the inherited rungs. These are Tailwind's built-ins, carried
-     because ~340 call sites use them and they vanish with Tailwind. They
-     overlap the ladder above, which is real debt; see the note in tokens.ts.
-     Prefer a semantic rung. ── */
-  --su-text-xs: 12px;
-  --su-text-sm: 14px;
-  --su-text-base: 16px;
-  --su-text-lg: 18px;
-  --su-text-xl: 20px;
-  --su-text-xl-2: 24px;
-  --su-text-xl-3: 30px;
-
-  /* ── Weights ── */
-  --su-weight-normal: 400;
-  --su-weight-medium: 500;
-  --su-weight-semibold: 600;
-  --su-weight-bold: 700;
-  --su-weight-extrabold: 800;
-
-  /* ── Caps tracking ladder ── */
-  --su-tracking-caps-tight: 0.04em;
-  --su-tracking-caps-snug: 0.06em;
-  --su-tracking-caps: 0.08em;
-  --su-tracking-caps-wide: 0.12em;
-  --su-tracking-eyebrow: 0.22em;
-
-  /* ── The ONE radius vocabulary (ruleset §4.4) — pick by role ── */
-  --su-radius-pip: 1px;
-  --su-radius-badge: 2px;
-  --su-radius-card: 3px;
-  --su-radius-panel: 6px;
-  --su-radius-none: 0px;
-  --su-radius-full: 9999px;
-
-  /* ── Border weights, one meaning each (design-spec §1.3) ── */
-  --su-bw-hairline: 1px;
-  --su-bw-chrome: 1.5px;
-  --su-bw-pill: 2px;
-  --su-bw-rail: 2.5px;
-  --su-bw-entity: 3px;
-
-  /* ── Tech Level blues ── */
-  --su-color-tl-1: rgb(115, 201, 230);
-  --su-color-tl-2: rgb(87, 169, 200);
-  --su-color-tl-3: rgb(68, 135, 162);
-  --su-color-tl-4: rgb(48, 107, 128);
-  --su-color-tl-5: rgb(30, 83, 100);
-  --su-color-tl-6: rgb(6, 52, 65);
-  --su-color-tl-b: rgb(86, 156, 104);
-  --su-color-tl-n: rgb(146, 109, 184);
-
-  /* ── Entity colours: hue encodes ontology (ruleset §3/§4.1) ── */
-  --su-color-pilot: rgb(239, 137, 79);
-  --su-color-pilot-light: rgb(245, 193, 163);
-  --su-color-mech: rgb(122, 151, 138);
-  --su-color-mech-dark: rgb(92, 121, 108);
-  --su-color-crawler: rgb(206, 88, 152);
-  --su-color-adversary: rgb(140, 75, 56);
-
-  /* ── Guide tones that are not one of the five ontology domains ── */
-  --su-color-guide-salvage: rgb(90, 157, 181);
-  --su-color-guide-hazard: rgb(184, 76, 76);
-
-  /* ── Class ability-tier ramp ── */
-  --su-color-tier-core: rgb(168, 89, 71);
-  --su-color-tier-core-pale: rgb(210, 160, 140);
-
-  /* ── Roll result tiers — the canonical warm state ramp ── */
-  --su-color-roll-cascade: rgb(176, 67, 43);
-  --su-color-roll-failure: rgb(192, 122, 47);
-  --su-color-roll-tough: rgb(193, 154, 62);
-  --su-color-roll-success: rgb(111, 138, 74);
-  --su-color-roll-nailed: rgb(75, 134, 160);
-
-  /* ── Ink / paper / action ── */
-  --su-color-ink: rgb(40, 32, 25);
-  --su-color-ink-2: rgb(70, 61, 49);
-  --su-color-ink-deep: rgb(27, 23, 18);
-
-  /* Ink at opacity — hairlines, placeholders, ghosts, disabled fills, shadows.
-     `ink-15` / `ink-10` are #799 additions covering `border-ink/15` and
-     `border-ink/10`, which had no rung to land on; see the note in tokens.ts. */
-  --su-color-ink-85: rgb(40 32 25 / 0.85);
-  --su-color-ink-75: rgb(40 32 25 / 0.75);
-  --su-color-ink-60: rgb(40 32 25 / 0.6);
-  --su-color-ink-55: rgb(40 32 25 / 0.55);
-  --su-color-ink-50: rgb(40 32 25 / 0.5);
-  --su-color-ink-40: rgb(40 32 25 / 0.4);
-  --su-color-ink-35: rgb(40 32 25 / 0.35);
-  --su-color-ink-30: rgb(40 32 25 / 0.3);
-  --su-color-ink-20: rgb(40 32 25 / 0.2);
-  --su-color-ink-15: rgb(40 32 25 / 0.15);
-  --su-color-ink-12: rgb(40 32 25 / 0.12);
-  --su-color-ink-10: rgb(40 32 25 / 0.1);
-  --su-color-ink-8: rgb(40 32 25 / 0.08);
-  --su-color-ink-5: rgb(40 32 25 / 0.05);
-
-  /* The ONE light surface (ruleset §4.1). Paper as a background is always flat. */
-  --su-color-paper: rgb(251, 250, 247);
-  /* Paper as a FOREGROUND — printed onto a tone or a dark ground. */
-  --su-color-paper-60: rgb(251 250 247 / 0.6);
-  /* The de-emphasised rung ON a tone — `wk-muted`'s inverse counterpart. */
-  --su-color-paper-70: rgb(251 250 247 / 0.7);
-  --su-color-paper-30: rgb(251 250 247 / 0.3);
-  --su-color-paper-85: rgb(251 250 247 / 0.85);
-  --su-color-paper-80: rgb(251 250 247 / 0.8);
-  --su-color-paper-15: rgb(251 250 247 / 0.15);
-
-  /* THE single action colour. */
-  --su-color-rust: rgb(168, 82, 34);
-  --su-color-rust-hi: rgb(138, 64, 25);
-  /* A 25% rust wash. NO LONGER THE FOCUS RING — it measured 1.42:1 against a
-     required 3:1; see `--focus-ring-shadow` below and the rationale above
-     `.su-focus-ring`. Retained as a plain wash, and kept in step with
-     `rust25` in tokens.ts, which the parity guard requires. */
-  --su-color-rust-25: rgb(168 82 34 / 0.25);
-
-  /* The canonical focus ring, composed from the two tokens above it.
-     DELIBERATELY NOT `--su-*`: that namespace is the design-token mirror of
-     `design/tokens.ts`, asserted both ways by `tokens.parity.test.ts`, and a
-     token there is an ATOMIC value — the guard's `resolve()` only follows a
-     value that is entirely one `var()`, so a composite could never round-trip.
-     This is derived FROM tokens rather than being one, so it lives outside the
-     mirrored namespace on purpose. Every ring rung reads it; none repeats the
+  /* The canonical focus ring, composed from two tokens. It is not a token
+     itself: `tokens.parity.test.ts` compares atomic values, and this is a
+     composite derived FROM them. Every ring rung reads it; none repeats the
      literal, which is what let the old ones drift apart twice. */
-  --focus-ring-shadow: 0 0 0 2px var(--su-color-paper), 0 0 0 4px var(--su-color-rust);
-  /* The one sanctioned cream — RollTable banding, and nowhere else. */
-  --su-color-band-cream: rgb(243, 237, 226);
-
-  /* ── Workshop (light) ground ── */
-  --su-color-wk-bg: rgb(230, 240, 245);
-  --su-color-wk-bg-2: rgb(215, 230, 238);
-  --su-color-wk-muted: rgb(90, 100, 109);
-  /* NON-TEXT ONLY — 2.03:1 on paper. A hairline/divider tone. */
-  --su-color-wk-faint: rgb(167, 180, 189);
-  --su-color-wk-line: rgb(143, 195, 216);
-  --su-color-wk-accent: rgb(125, 206, 235);
-
-  /* ── Attention fills ── */
-  --su-color-caution: rgb(215, 195, 125);
-  --su-color-caution-25: rgb(215 195 125 / 0.25);
-  --su-color-inert: rgb(192, 192, 192);
-
-  /* ── Cargo (storage) accent triplet ── */
-  --su-color-cargo: rgb(156, 122, 62);
-  --su-color-cargo-deep: rgb(111, 85, 39);
-  --su-color-cargo-pale: rgb(239, 230, 212);
-
-  /* ── Sheet "deep" tones that are literals rather than aliases ── */
-  --su-color-sheet-mech-deep: rgb(47, 67, 56);
-  --su-color-sheet-crawler-deep: rgb(126, 42, 91);
-  /* A LITERAL, not `var(--su-color-tl-5)`, which holds the same value but means
-     TECH LEVEL — aliasing it would tie the Game ontology to tech-level semantics. */
-  --su-color-sheet-game-deep: rgb(30, 83, 100);
-
-  /* ── Aliases. These stay aliases so a retone propagates. ── */
-  --su-color-status-ok: var(--su-color-roll-success);
-  --su-color-status-warn: var(--su-color-roll-failure);
-  --su-color-status-bad: var(--su-color-roll-cascade);
-  /* NOT an alias, and unavoidably so: CSS has no spelling of "that property at
-     25%" the parity test can resolve back to a literal. Re-tone this BY HAND
-     whenever --su-color-roll-cascade moves. See the note in tokens.ts. */
-  --su-color-status-bad-25: rgb(176 67 43 / 0.25);
-  --su-color-sheet-pilot: var(--su-color-pilot);
-  --su-color-sheet-pilot-deep: var(--su-color-rust);
-  --su-color-sheet-mech: var(--su-color-mech);
-  --su-color-sheet-crawler: var(--su-color-crawler);
-  --su-color-sheet-game: var(--su-color-wk-accent);
+  --focus-ring-shadow: 0 0 0 2px var(--color-paper), 0 0 0 4px var(--color-rust);
 }
 
 /* ══ Base ═══════════════════════════════════════════════════════════════════
@@ -353,7 +137,7 @@ button {
  *
  * The blast radius is narrower than it looks: this is a DEFAULT, so it moves
  * only text that sets no size of its own. Anything on an explicit rung —
- * every `--su-text-*` consumer, every `text-*` utility — is untouched, which
+ * every `--text-*` consumer, every `text-*` utility — is untouched, which
  * is most of the chrome. The type ladder itself does not move.
  */
 /**
@@ -377,30 +161,30 @@ button {
   left: -9999px;
   top: 0;
   z-index: 100;
-  padding: var(--su-space-8) var(--su-space-16);
-  background-color: var(--su-color-paper);
-  color: var(--su-color-ink);
-  font-family: var(--su-font-cond);
-  font-size: var(--su-text-base);
-  font-weight: var(--su-weight-bold);
+  padding: var(--space-8) var(--space-16);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
-  letter-spacing: var(--su-tracking-caps-tight);
-  border: var(--su-bw-entity) solid var(--su-color-rust);
-  border-radius: var(--su-radius-card);
+  letter-spacing: var(--tracking-caps-tight);
+  border: var(--bw-entity) solid var(--color-rust);
+  border-radius: var(--radius-card);
 }
 
 .su-skip-link:focus {
-  left: var(--su-space-8);
-  top: var(--su-space-8);
+  left: var(--space-8);
+  top: var(--space-8);
   outline: 3px solid transparent;
   box-shadow: var(--focus-ring-shadow);
 }
 
 body {
-  background-color: var(--su-color-paper);
-  color: var(--su-color-ink);
-  font-family: var(--su-font-body);
-  font-size: var(--su-text-base);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -435,8 +219,8 @@ body {
  *
  * ## Why this is a paper-offset ring and not a wash
  *
- * It used to be `rust/25`, a 25%-alpha wash. Composited, that resolved to
- * `#e6d0c2` on paper — **1.42:1**, against the 3:1 that WCAG 2.4.11 / 1.4.11
+ * It used to be `rust/25`, a 25%-alpha wash. Composited on paper, that
+ * measured **1.42:1**, against the 3:1 that WCAG 2.4.11 / 1.4.11
  * require of a focus indicator, and 1.27:1 on the `ink-deep` header. The ring
  * was, in practice, invisible.
  *
@@ -467,7 +251,7 @@ body {
  *
  * All five ring rules below read ONE token, `--focus-ring-shadow`. They
  * previously repeated the same literal five times and had already drifted apart
- * once — #798 shipped them against `--su-color-ink-20` while their comments
+ * once — #798 shipped them against `--color-ink-20` while their comments
  * said rust, and #799 corrected the value rather than the comment. A single
  * token is what stops a third round of that.
  *
@@ -490,8 +274,8 @@ body {
 .su-focus-ring-on-tone:focus-visible {
   outline: 3px solid transparent;
   box-shadow:
-    0 0 0 2px var(--su-color-paper),
-    0 0 0 4px var(--su-color-ink);
+    0 0 0 2px var(--color-paper),
+    0 0 0 4px var(--color-ink);
 }
 
 /**
@@ -536,7 +320,7 @@ body {
 }
 
 .su-input::placeholder {
-  color: var(--su-color-wk-muted);
+  color: var(--color-wk-muted);
 }
 
 /**
@@ -579,7 +363,7 @@ body {
  * CLAUDE.md), not because a style object could not hold them.
  */
 .su-selection-ring {
-  box-shadow: 0 0 0 3px var(--su-color-rust);
+  box-shadow: 0 0 0 3px var(--color-rust);
 }
 
 /*
@@ -593,7 +377,7 @@ body {
 .su-selection-ring-ink-double {
   box-shadow:
     0 0 0 3px var(--ground),
-    0 0 0 6px var(--su-color-ink);
+    0 0 0 6px var(--color-ink);
 }
 
 /* ══ Button ═════════════════════════════════════════════════════════════════
@@ -615,14 +399,14 @@ body {
  */
 .su-btn {
   align-items: center;
-  border-radius: var(--su-radius-card);
+  border-radius: var(--radius-card);
   border-style: solid;
-  border-width: var(--su-bw-chrome);
+  border-width: var(--bw-chrome);
   cursor: pointer;
   display: inline-flex;
-  font-family: var(--su-font-body);
-  font-weight: var(--su-weight-medium);
-  gap: var(--su-space-8);
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-medium);
+  gap: var(--space-8);
   justify-content: center;
   letter-spacing: normal;
   transition:
@@ -637,40 +421,40 @@ body {
       here rather than inline — see the per-property note at the top of the
       stateful section. ── */
 .su-btn--default {
-  background-color: var(--su-color-paper);
-  border-color: var(--su-color-ink);
-  color: var(--su-color-ink);
+  background-color: var(--color-paper);
+  border-color: var(--color-ink);
+  color: var(--color-ink);
 }
 
 .su-btn--default:hover:not(:disabled) {
-  background-color: var(--su-color-ink-8);
+  background-color: var(--color-ink-8);
 }
 
 .su-btn--ghost {
   background-color: transparent;
-  border-color: var(--su-color-ink);
-  color: var(--su-color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-ink);
 }
 
 .su-btn--ghost:hover:not(:disabled) {
-  background-color: var(--su-color-ink-8);
+  background-color: var(--color-ink-8);
 }
 
 .su-btn--primary {
-  background-color: var(--su-color-rust);
-  border-color: var(--su-color-rust);
-  color: var(--su-color-paper);
+  background-color: var(--color-rust);
+  border-color: var(--color-rust);
+  color: var(--color-paper);
 }
 
 .su-btn--primary:hover:not(:disabled) {
-  background-color: var(--su-color-rust-hi);
-  border-color: var(--su-color-rust-hi);
+  background-color: var(--color-rust-hi);
+  border-color: var(--color-rust-hi);
 }
 
 .su-btn--danger {
-  background-color: var(--su-color-status-bad);
-  border-color: var(--su-color-status-bad);
-  color: var(--su-color-paper);
+  background-color: var(--color-status-bad);
+  border-color: var(--color-status-bad);
+  color: var(--color-paper);
 }
 
 .su-btn--danger:hover:not(:disabled) {
@@ -689,9 +473,9 @@ body {
  */
 .su-btn--primary:disabled,
 .su-btn--danger:disabled {
-  background-color: var(--su-color-ink-8);
-  border-color: var(--su-color-ink-30);
-  color: var(--su-color-ink-50);
+  background-color: var(--color-ink-8);
+  border-color: var(--color-ink-30);
+  color: var(--color-ink-50);
   opacity: 1;
 }
 
@@ -705,35 +489,35 @@ body {
  */
 .su-btn--instrument.su-btn--ghost {
   background-color: transparent;
-  border-color: var(--su-color-ink-30);
-  color: var(--su-color-ink);
+  border-color: var(--color-ink-30);
+  color: var(--color-ink);
 }
 
 .su-btn--instrument.su-btn--ghost:hover:not(:disabled) {
-  background-color: var(--su-color-paper);
-  border-color: var(--su-color-ink-50);
+  background-color: var(--color-paper);
+  border-color: var(--color-ink-50);
 }
 
 /* ── The size ladder (styles/sizing.ts). The odd numbers are the arbitrary
       Tailwind values carried verbatim — `px-[22px]`, `py-[6px]`, `py-[3px]` —
       because rounding them onto the space scale would resize every button. ── */
 .su-btn--full {
-  font-size: var(--su-text-lede);
-  padding: var(--su-space-12) 22px;
+  font-size: var(--text-lede);
+  padding: var(--space-12) 22px;
 }
 
 .su-btn--compact {
-  font-size: var(--su-text-xs);
-  padding: var(--su-space-6) 11px;
+  font-size: var(--text-xs);
+  padding: var(--space-6) 11px;
 }
 
 /* The compact uppercase action chip ('⇄ Swap', '✕ Remove'): badge radius,
    tighter gap, and deliberately NO letterspacing. Its condensed caps come from
    the `capsLabel` classes the recipe composes in, not from here. */
 .su-btn--mini {
-  border-radius: var(--su-radius-badge);
-  gap: var(--su-space-4);
-  padding: 3px var(--su-space-8);
+  border-radius: var(--radius-badge);
+  gap: var(--space-4);
+  padding: 3px var(--space-8);
 }
 
 /*
@@ -752,7 +536,7 @@ body {
  */
 .su-btn--icon-only {
   flex-shrink: 0;
-  font-size: var(--su-text-base);
+  font-size: var(--text-base);
   gap: 0;
   height: 36px;
   line-height: 1;
@@ -768,19 +552,19 @@ body {
  * ink-75, not ink-50, which fails AA at this size on paper.
  */
 .su-tab {
-  background-color: var(--su-color-paper);
-  border-color: var(--su-color-ink-20);
-  color: var(--su-color-ink-75);
+  background-color: var(--color-paper);
+  border-color: var(--color-ink-20);
+  color: var(--color-ink-75);
 }
 
 .su-tab:hover {
-  border-color: var(--su-color-ink-50);
+  border-color: var(--color-ink-50);
 }
 
 .su-tab[data-active] {
-  background-color: var(--su-color-ink);
-  border-color: var(--su-color-ink);
-  color: var(--su-color-paper);
+  background-color: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
 }
 
 /* ══ The condensed-caps label ═══════════════════════════════════════════════
@@ -803,7 +587,7 @@ body {
  * label sitting inside a bold stamp or heading.
  */
 .su-caps {
-  font-family: var(--su-font-cond);
+  font-family: var(--font-cond);
   text-transform: uppercase;
 }
 
@@ -812,48 +596,48 @@ body {
    `text-sm` (14px) to `text-caption` (13px) is a per-site design call, not a
    rename, so those keep their own size until someone rules on each one. */
 .su-caps--nano {
-  font-size: var(--su-text-nano);
+  font-size: var(--text-nano);
 }
 .su-caps--micro {
-  font-size: var(--su-text-micro);
+  font-size: var(--text-micro);
 }
 .su-caps--label {
-  font-size: var(--su-text-label);
+  font-size: var(--text-label);
 }
 .su-caps--label-lg {
-  font-size: var(--su-text-label-lg);
+  font-size: var(--text-label-lg);
 }
 .su-caps--badge {
-  font-size: var(--su-text-badge);
+  font-size: var(--text-badge);
 }
 .su-caps--note {
-  font-size: var(--su-text-note);
+  font-size: var(--text-note);
 }
 .su-caps--caption {
-  font-size: var(--su-text-caption);
+  font-size: var(--text-caption);
 }
 .su-caps--lede {
-  font-size: var(--su-text-lede);
+  font-size: var(--text-lede);
 }
 .su-caps--readout {
-  font-size: var(--su-text-readout);
+  font-size: var(--text-readout);
 }
 .su-caps--title {
-  font-size: var(--su-text-title);
+  font-size: var(--text-title);
 }
 .su-caps--display {
-  font-size: var(--su-text-display);
+  font-size: var(--text-display);
 }
 
 /* Caps labels run bold by default; `semibold` is the chip weight. */
 .su-caps--w-normal {
-  font-weight: var(--su-weight-normal);
+  font-weight: var(--font-weight-normal);
 }
 .su-caps--w-semibold {
-  font-weight: var(--su-weight-semibold);
+  font-weight: var(--font-weight-semibold);
 }
 .su-caps--w-bold {
-  font-weight: var(--su-weight-bold);
+  font-weight: var(--font-weight-bold);
 }
 
 /* The ratified multi-rung caps ladder (ruleset §4.2) — `tight` is the default,
@@ -863,66 +647,19 @@ body {
   letter-spacing: normal;
 }
 .su-caps--t-tight {
-  letter-spacing: var(--su-tracking-caps-tight);
+  letter-spacing: var(--tracking-caps-tight);
 }
 .su-caps--t-snug {
-  letter-spacing: var(--su-tracking-caps-snug);
+  letter-spacing: var(--tracking-caps-snug);
 }
 .su-caps--t-caps {
-  letter-spacing: var(--su-tracking-caps);
+  letter-spacing: var(--tracking-caps);
 }
 .su-caps--t-wide {
-  letter-spacing: var(--su-tracking-caps-wide);
+  letter-spacing: var(--tracking-caps-wide);
 }
 .su-caps--t-eyebrow {
-  letter-spacing: var(--su-tracking-eyebrow);
-}
-
-/* ══ Header menu ════════════════════════════════════════════════════════════
- *
- * The stateful half of `HeaderMenu` (components/shared/HeaderMenu.tsx); its
- * geometry and type are style objects there. Only colour lives here, and every
- * colour below changes on hover, on open or on highlight — so each keeps its
- * RESTING value here too, beside the state that overrides it.
- */
-
-/* The masthead nav-link ramp (AppBar's links): paper at 60%, full paper on
-   hover and while its menu is open. */
-.su-menu-trigger {
-  color: var(--su-color-paper-60);
-  transition: color 120ms;
-}
-.su-menu-trigger:hover,
-.su-menu-trigger[data-popup-open] {
-  color: var(--su-color-paper);
-}
-
-/* A highlighted row inverts to ink, the stamp treatment, rather than taking a
-   faint wash: the highlight IS the keyboard focus indicator inside a menu, and
-   an 8% ink wash on paper is not one anybody can see. Forced-colors mode drops
-   background colours entirely, so the highlight also raises a transparent
-   outline for that mode to paint. */
-.su-menu-item {
-  background-color: transparent;
-  color: var(--su-color-ink);
-  cursor: pointer;
-  outline: none;
-}
-.su-menu-item[data-highlighted]:not([data-disabled]) {
-  background-color: var(--su-color-ink);
-  color: var(--su-color-paper);
-  outline: 2px solid transparent;
-  outline-offset: -2px;
-}
-.su-menu-item[data-disabled] {
-  color: var(--su-color-wk-muted);
-  cursor: default;
-}
-.su-menu-item__hint {
-  color: var(--su-color-wk-muted);
-}
-.su-menu-item[data-highlighted]:not([data-disabled]) .su-menu-item__hint {
-  color: var(--su-color-paper-70);
+  letter-spacing: var(--tracking-eyebrow);
 }
 
 /* ══ Floating action button ═════════════════════════════════════════════════
@@ -934,13 +671,13 @@ body {
 /* Ink, like the toasts it sits beneath; lifts a rung on hover and while its
    panel is open. Colour keeps its resting value here beside the overrides. */
 .su-fab {
-  background-color: var(--su-color-ink);
-  color: var(--su-color-paper);
+  background-color: var(--color-ink);
+  color: var(--color-paper);
   transition: background-color 120ms;
 }
 .su-fab:hover,
 .su-fab[aria-expanded='true'] {
-  background-color: var(--su-color-ink-2);
+  background-color: var(--color-ink-2);
 }
 
 /* The panel grows out of the button: a short rise and fade from its
@@ -962,7 +699,46 @@ body {
   }
 }
 
-/* ══ Nav drawer ═════════════════════════════════════════════════════════════ */
+/* ══ Overlays ═══════════════════════════════════════════════════════════════
+ *
+ * Every overlay is a Base UI part (Dialog, Drawer, Popover); these are the
+ * classes they share.
+ */
+
+/* The one scrim, behind every modal: ModalShell, EntityDetailDialog, NavDrawer
+   and srd's MobileSearchDialog. Fixed to the viewport; a ModalShell portalled
+   into a `container` sets `position: absolute` on it, so it covers that box. */
+.su-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background-color: color-mix(in srgb, var(--color-ink-deep) 80%, transparent);
+}
+
+/* A Base UI Drawer's panel slides in from the edge it is swiped away to
+   (`data-swipe-direction`), and follows the finger while it is being swiped.
+   A transition, not a keyframe: Base UI unmounts the panel when it ends, and
+   the reduced-motion backstop below shortens it rather than removing it. */
+.su-drawer {
+  transition: transform 200ms ease-out;
+}
+.su-drawer[data-swipe-direction='right'] {
+  transform: translateX(var(--drawer-swipe-movement-x, 0px));
+}
+.su-drawer[data-swipe-direction='right'][data-starting-style],
+.su-drawer[data-swipe-direction='right'][data-ending-style] {
+  transform: translateX(100%);
+}
+.su-drawer[data-swipe-direction='up'] {
+  transform: translateY(var(--drawer-swipe-movement-y, 0px));
+}
+.su-drawer[data-swipe-direction='up'][data-starting-style],
+.su-drawer[data-swipe-direction='up'][data-ending-style] {
+  transform: translateY(-100%);
+}
+.su-drawer[data-swiping] {
+  transition-duration: 0ms;
+}
 
 /* The app's `extra` block (components/shared/NavDrawer.tsx) collapses when the
    app renders nothing into it, so its rule never sits under an empty box. */
@@ -987,7 +763,7 @@ body {
  *
  * Below 80rem the body is ONE scroll container filling that space, and the
  * rail is a sticky band at its top: above the results, never over them. From
- * 80rem it is capped at `--su-searcher-cap` as before, the rail is its own
+ * 80rem it is capped at `--searcher-cap` as before, the rail is its own
  * column right of the pool, and each column scrolls alone, so neither can
  * cover the other. (The rail used to float over the bottom-right of the pool,
  * where on a phone it hid a third of the results.)
@@ -999,7 +775,7 @@ body {
  * entity and its confirm actions, which stay a band at every width.
  */
 .su-searcher {
-  --su-searcher-cap: min(62vh, 640px);
+  --searcher-cap: min(62vh, 640px);
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
@@ -1010,23 +786,23 @@ body {
   top: 0;
   /* Over a hovered pool card (z-10), as the floating rail it replaced was. */
   z-index: 20;
-  border-bottom: var(--su-bw-chrome) solid var(--su-color-ink);
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
 }
 
 /* Expanded on a narrow screen, the list keeps most of the body for results. */
 .su-searcher__rail-list {
-  max-height: calc(var(--su-searcher-cap) * 0.4);
+  max-height: calc(var(--searcher-cap) * 0.4);
   overflow-y: auto;
 }
 
 @media (min-width: 80rem) {
   /* `--bar` stays one scroll container; it is only capped, as before. */
   .su-searcher {
-    max-height: var(--su-searcher-cap);
+    max-height: var(--searcher-cap);
   }
 
   /* `minmax(0, 1fr)`: the row is the container's height, so on a short window
-     — where the frame cap leaves less than `--su-searcher-cap` — both columns
+     — where the frame cap leaves less than `--searcher-cap` — both columns
      shrink with it rather than overflowing it. */
   .su-searcher:not(.su-searcher--bar) {
     display: grid;
@@ -1039,7 +815,7 @@ body {
     grid-column: 1;
     grid-row: 1;
     min-width: 0;
-    max-height: var(--su-searcher-cap);
+    max-height: var(--searcher-cap);
     overflow-y: auto;
   }
 
@@ -1050,9 +826,9 @@ body {
     position: static;
     display: flex;
     flex-direction: column;
-    max-height: var(--su-searcher-cap);
+    max-height: var(--searcher-cap);
     border-bottom: 0;
-    border-left: var(--su-bw-chrome) solid var(--su-color-ink);
+    border-left: var(--bw-chrome) solid var(--color-ink);
   }
 
   .su-searcher:not(.su-searcher--bar) .su-searcher__rail-list {

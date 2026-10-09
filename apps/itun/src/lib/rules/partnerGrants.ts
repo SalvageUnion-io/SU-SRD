@@ -290,12 +290,9 @@ export type SyncPartnersOptions = {
  * This is only safe because the count is now derivable on both sides: a mech's
  * from its pattern, a pilot's from `partnerGrantCount`.
  *
- * It also relies on a data invariant that was NOT true before this change: a
- * pilot partner's `hostRef` must appear in `pilot.equipment`. The v12 migration
- * minted partners from companion-mech rows without adding the granting slug, so
- * those partners answered to no seed and would have been reaped on the owner's
- * next edit. Migration v15 heals them; see
- * `lib/db/migrations/15-partner-equipment-backfill.ts`.
+ * It also relies on a data invariant: a pilot partner's `hostRef` must appear
+ * in `pilot.equipment`. A partner whose grant is missing answers to no seed and
+ * is reaped on the owner's next edit.
  *
  * Live state is never collateral damage: a matched instance keeps its id,
  * structure, energy, heat, conditions, name, appearance, A.I. personality and

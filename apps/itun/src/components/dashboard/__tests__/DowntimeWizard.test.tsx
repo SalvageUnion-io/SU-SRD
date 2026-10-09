@@ -5,7 +5,7 @@
  * reference ORM (not a hard-coded array) at the step the Game's `downtime`
  * row is on: it renders that step's name + phase and the step track, fills a
  * ready pip for each member who is done, sends "I'm done" through
- * `markStepDone`, and gives Next step to the Mediator alone (plan D8, §8 A1).
+ * `markStepDone`, and gives Next step to the Mediator alone (ADR-038 §5).
  * Reference content needs the ORM, so preload('all') runs once.
  */
 

@@ -27,13 +27,14 @@
  * affordance renders regardless).
  */
 
-import { Badge, Button, cn, Field, SheetPickerModal } from 'component-lib'
+import { Badge, Button, cn, Field } from 'component-lib'
 import { useState } from 'react'
 import { resolveClassName } from '../../lib/classRef'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { ClassPathPicker } from '../pilot/ClassPathPicker'
 import { classChangePatch } from '../pilot/classPathOptions'
 import { selectableClasses } from '../wizard/classOptions'
+import { SheetPickerModal } from './SheetSection'
 import type { SheetPatch } from './sheetViewProps'
 
 export type UsedToggleKey = 'background' | 'motto' | 'keepsake'

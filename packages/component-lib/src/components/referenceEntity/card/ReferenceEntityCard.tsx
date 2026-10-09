@@ -33,6 +33,7 @@ import { accentSurface } from '../referenceEntityHelpers'
 import { BonusPerTechLevel } from './BonusPerTechLevel'
 import { resolveBodyBlocks, resolveBodyLayout } from './bodyBlocks'
 import { interleaveBody } from './bodyInterleave'
+import { CardOuter } from './CardOuter'
 import type { CardProseContext } from './CardProse'
 import { CardProse, FoldedActionProse, PatternProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
@@ -173,7 +174,6 @@ function ReferenceEntityCardInner({
   footMeta,
   rightContent: rightContentProp,
   className,
-  cardStyle,
   titleAs,
   scalingParent,
   expand,
@@ -439,14 +439,13 @@ function ReferenceEntityCardInner({
   )
 
   // WRITE LAYER — whole-card affordances (see `resolveCardInteraction`).
-  const { outerClassName, outerInteraction, frameStyle } = resolveCardInteraction({
+  const { outer, frameStyle } = resolveCardInteraction({
     onCardClick,
     controls,
     cardClickable,
     disabled,
     selectable,
     className,
-    cardStyle,
     selectionRole,
     cardClickLabel,
     selected,
@@ -470,7 +469,6 @@ function ReferenceEntityCardInner({
       status={status}
       onStatusClick={onStatusClick}
       subject={entityName}
-      compact={compact}
       selected={selected}
       selectionSeal={selectionSeal}
       multiSelect={
@@ -491,8 +489,7 @@ function ReferenceEntityCardInner({
   if (size === 'small' && extent === 'head') {
     return (
       <CardShortform
-        outerClassName={outerClassName}
-        outerInteraction={outerInteraction}
+        outer={outer}
         accent={accentSurface(headerBg, headerBgColor)}
         frameStyle={frameStyle}
         onBandText={onBandText}
@@ -510,7 +507,7 @@ function ReferenceEntityCardInner({
   // seam escapes the clip.
   if (extent === 'head') {
     return (
-      <div className={outerClassName} {...outerInteraction}>
+      <CardOuter {...outer}>
         {seam}
         {topRightRail}
         <div
@@ -519,7 +516,7 @@ function ReferenceEntityCardInner({
         >
           {header}
         </div>
-      </div>
+      </CardOuter>
     )
   }
 
@@ -811,7 +808,7 @@ function ReferenceEntityCardInner({
     !afterExtraContent
 
   return (
-    <div className={outerClassName} {...outerInteraction}>
+    <CardOuter {...outer}>
       {seam}
       {topRightRail}
       <div
@@ -1030,7 +1027,7 @@ function ReferenceEntityCardInner({
             ))
           : null}
       </div>
-    </div>
+    </CardOuter>
   )
 }
 
@@ -1060,11 +1057,9 @@ export type ReferenceEntityCardWrapperProps = Omit<
 
 /**
  * `ReferenceEntityCard` — the public entry point for rendering a reference
- * entity. Accepts the ergonomic display sugar (`compact` / `listing` resolve
- * onto the `size` / `extent` axes; a nullable `data` renders nothing; a
- * damaged/destroyed `status` greys the whole tone) and renders the canonical
- * card. This replaced the former `ReferenceEntityCard` compat shim; the
- * recursive card body is `ReferenceEntityCardInner`.
+ * entity. It takes the `size` / `extent` axes (`shared/displayMode.ts`),
+ * renders nothing for a null `data`, and greys the whole tone for a damaged or
+ * destroyed `status`. The recursive card body is `ReferenceEntityCardInner`.
  */
 export function ReferenceEntityCard({
   data,
@@ -1081,7 +1076,7 @@ export function ReferenceEntityCard({
   if (!data) return null
 
   const folded = collapsible && collapsed
-  // The size / extent / compact / listing reconciliation is the Card
+  // The size / extent reconciliation is the Card
   // layer's rule — inherited, not restated here. Folding only overrides the
   // EXTENT axis, so a collapsed card keeps whatever size it was given.
   const display = resolveCardDisplay({ size, extent: folded ? 'head' : extent })

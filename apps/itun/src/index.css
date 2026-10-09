@@ -1,51 +1,20 @@
 /*
- * The `@layer` order below and the `layer(su-base)` on the package stylesheet
- * are LOAD-BEARING — do not simplify either to a bare `@import` (#799, #802).
- *
- * `component-lib/styles/index.css` carries the `--su-*` token scale and every
- * rule a style object cannot express, so a component migrated off Tailwind
- * renders unstyled without it. It is written to be loaded ALONE once Tailwind
- * leaves, so its base block is unlayered — and unlayered CSS beats layered CSS
- * whatever the source order, while Tailwind v4 puts its utilities in
- * `@layer utilities`. Imported plainly it inverts the cascade for every rule the
- * two share: measured on the real build, `h1,…,h6 { font-size: inherit }` landed
- * past the end of the utilities layer and outranked every `text-*` utility,
- * flattening the type on every heading. Declaring the order up front and
- * importing into `su-base` puts the package base between Tailwind's preflight
- * and Tailwind's utilities, which is where it belongs while both are live.
- * When Tailwind goes this collapses back to a plain import.
+ * Tailwind, the token set and the package stylesheet, in their load-bearing
+ * cascade order, come from the one shared entry; see its header.
  */
-@layer theme, base, su-base, components, utilities;
-@import 'tailwindcss';
-@import 'component-lib/styles/theme.css';
-@import 'component-lib/styles/index.css' layer(su-base);
+@import 'component-lib/styles/tailwind.css';
 /* The app's ONE print stylesheet. index.css declares no print rules of its own
    — a second block here is what let six rules duplicate and one contradict. */
 @import './styles/print.css';
+/* HeaderMenu's hover/open/highlight colours (the per-property split rule). */
+@import './styles/headerMenu.css';
 
-@source '../../../packages/component-lib/src';
-/* ...but not its stories and tests, which ship nowhere (audit PK-05): every
-   class-shaped token Tailwind finds under an `@source` becomes a utility in
-   this app's stylesheet. */
-@source not '../../../packages/component-lib/src/**/*.stories.tsx';
-@source not '../../../packages/component-lib/src/**/*.test.{ts,tsx}';
-@source not '../../../packages/component-lib/src/**/__tests__';
-@source not '../../../packages/component-lib/src/stories';
 /*
- * ITUN's own components keep their Ladle stories beside them (the Dashboard
+ * ITUN's own components keep their stories beside them (the Dashboard
  * instruments, sheet presentation and wizard steps that left the library in
  * audit PK-02); their demo markup is not the app's.
  */
 @source not './**/*.stories.tsx';
-
-/*
- * (Removed: a ShadCN runtime-token :root block — --primary / --card / --ring
- * and 13 siblings — that existed for generic ShadCN components in
- * src/components/ui/. That directory no longer exists and nothing consumed
- * the tokens; --background / --foreground, the only two anything read, are
- * defined in component-lib's theme.css and still resolve from there. The lib
- * is the single token source; this app-side layer was a second one.)
- */
 
 /*
  * Indeterminate loader bar (branded loading states, e.g. GameDataReady).
@@ -62,17 +31,7 @@
       transform: translateX(400%);
     }
   }
-
-  /* The nav-drawer slide (--animate-slide-in-right/-out) now lives in the
-     component-lib theme so the shared NavDrawer animates from one source. */
-
-  /* The semantic type scale (--text-nano … --text-lede), caps tracking steps,
-     and brand eyebrow are now promoted to the component-lib theme (ruleset §4.2)
-     so both apps share one ladder — imported at the top of this file. */
 }
-
-/* Semantic border-width utilities are now promoted to the component-lib theme
-   (canonical primitive language §3) — one border vocabulary for both apps. */
 
 /* === Base layout === */
 html,

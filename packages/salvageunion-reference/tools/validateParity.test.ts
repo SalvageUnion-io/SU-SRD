@@ -8,13 +8,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import {
-  auditParity,
-  findDoubleEncodings,
-  KNOWN_DOUBLE_ENCODED,
-  staleDoubleEncodings,
-  unresolvedFindings,
-} from './validateParityLogic.js'
+import { auditParity, unresolvedFindings } from './validateParityLogic.js'
 
 const ability = (over: Record<string, unknown>) => ({
   name: 'Test Ability',
@@ -58,19 +52,6 @@ describe('parity audit — detection', () => {
       ],
     })
     expect(unresolvedFindings(findings)).toHaveLength(0)
-  })
-
-  it('does NOT accept the legacy statBonus alone — contributions is the only encoding', () => {
-    const findings = auditParity({
-      'systems.json': [
-        {
-          name: 'Test Sink',
-          content: [{ value: 'This increases the Maximum Heat Capacity of a Mech by 1.' }],
-          statBonus: { heatCapacity: 1 },
-        },
-      ],
-    })
-    expect(unresolvedFindings(findings)).toHaveLength(1)
   })
 
   it('ignores prose that states no mechanical change', () => {
@@ -128,82 +109,5 @@ describe('parity audit — exemptions', () => {
     })
     expect(findings[0]?.exempt).toContain('chassis-integrated')
     expect(unresolvedFindings(findings)).toHaveLength(0)
-  })
-})
-
-describe('double-encoding guard — one concept, one encoding', () => {
-  it('is silent on a record that states each concept once', () => {
-    expect(
-      findDoubleEncodings({
-        'systems.json': [
-          {
-            name: 'Fine',
-            contributions: [{ stat: 'heatCapacity', amount: 1 }],
-            choices: [{ id: 'z', source: { kind: 'text' }, cardinality: { min: 0, max: 1 } }],
-          },
-        ],
-      })
-    ).toEqual([])
-  })
-
-  it('fails a record carrying BOTH statBonus and contributions for the same stat', () => {
-    const found = findDoubleEncodings({
-      'systems.json': [
-        {
-          name: 'Doubled Stat',
-          statBonus: { heatCapacity: 1 },
-          contributions: [{ stat: 'heatCapacity', amount: 1 }],
-        },
-      ],
-    })
-    expect(found).toHaveLength(1)
-    expect(found[0]).toMatchObject({ unified: 'contributions', legacy: 'statBonus' })
-  })
-
-  it('fails a choice carrying BOTH source and a legacy option field', () => {
-    const found = findDoubleEncodings({
-      'systems.json': [
-        {
-          name: 'Doubled Choice',
-          choices: [
-            { id: 'x', source: { kind: 'catalog', entities: ['A'] }, schemaEntities: ['A'] },
-          ],
-        },
-      ],
-    })
-    expect(found).toHaveLength(1)
-    expect(found[0]).toMatchObject({ unified: 'source', legacy: 'schemaEntities' })
-  })
-
-  it('reaches choices nested under actions, not just top-level ones', () => {
-    const found = findDoubleEncodings({
-      'systems.json': [
-        {
-          name: 'Nested',
-          actions: [{ choices: [{ id: 'y', cardinality: { min: 0, max: 3 }, multiSelect: true }] }],
-        },
-      ],
-    })
-    expect(found).toHaveLength(1)
-    expect(found[0]).toMatchObject({ unified: 'cardinality', legacy: 'multiSelect' })
-  })
-
-  it('tolerates a known double-encoding, and reports it stale once it is fixed', () => {
-    const id = Object.keys(KNOWN_DOUBLE_ENCODED)[0] as string
-    const doubled = {
-      'equipment.json': [
-        {
-          name: 'Known',
-          choices: [{ id, cardinality: { min: 0, max: 3 }, constraints: { scalesWithField: 'x' } }],
-        },
-      ],
-    }
-    expect(findDoubleEncodings(doubled)).toEqual([])
-    expect(staleDoubleEncodings(doubled)).not.toContain(id)
-
-    const fixed = {
-      'equipment.json': [{ name: 'Known', choices: [{ id, cardinality: { min: 0, max: 3 } }] }],
-    }
-    expect(staleDoubleEncodings(fixed)).toContain(id)
   })
 })

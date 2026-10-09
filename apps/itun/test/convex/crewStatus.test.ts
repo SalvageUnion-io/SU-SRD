@@ -8,13 +8,13 @@ import type { Mech } from '../../src/lib/schemas/mech'
 import { MechSchema } from '../../src/lib/schemas/mech'
 import type { Pilot } from '../../src/lib/schemas/pilot'
 import { PilotSchema } from '../../src/lib/schemas/pilot'
-import type { Ctx, User } from './assignmentFixtures'
-import { crawlerBody, link, makeUser, mechBody, pilotBody, ref } from './assignmentFixtures'
+import type { Ctx, User } from './fixtures'
+import { crawlerBody, link, makeUser, mechBody, pilotBody, ref } from './fixtures'
 import { testConvex } from './harness'
 
 /**
  * The crew's maxima and status are derived on the server (`crew.vitals`;
- * docs/architecture/dashboard-redesign.md D6, §8 A3), and the Crew tab's ▲
+ * ADR-038 §4), and the Crew tab's ▲
  * and red outlines read them. These are the layer's two gates:
  *
  *   - **The server agrees with the client.** One set of records goes to both
@@ -28,7 +28,7 @@ import { testConvex } from './harness'
 
 /** Rook: Beefcake and Bionic Arms, one minor injury, crewing a Tech 3 crawler. */
 const ROOK: Pilot = PilotSchema.parse({
-  ...pilotBody('rook', null),
+  ...pilotBody({ id: 'rook', gameId: null }),
   callsign: 'Rook',
   abilities: ['beefcake', 'bionic-arms'],
   injuries: [{ severity: 'minor', note: 'cracked rib' }],
@@ -37,14 +37,14 @@ const ROOK: Pilot = PilotSchema.parse({
 
 /** Wren: no abilities, no crawler, a manual crawler level. */
 const WREN: Pilot = PilotSchema.parse({
-  ...pilotBody('wren', null),
+  ...pilotBody({ id: 'wren', gameId: null }),
   callsign: 'Wren',
   crawlerLevel: 2,
 })
 
 /** Rook's Mule: a heat sink, armour and a destroyed capacitance bank, shut down. */
 const MULE_BODY = {
-  ...mechBody('mule-1', null),
+  ...mechBody({ id: 'mule-1', gameId: null }),
   name: 'Kettle',
   chassisRef: 'mule',
   systems: ['heat-sink', 'composite-armour', 'capacitance-bank'],
@@ -54,7 +54,7 @@ const MULE_BODY = {
 
 /** Wren's Scrapper, parked and destroyed. */
 const SCRAPPER: Mech = MechSchema.parse({
-  ...mechBody('scrapper-1', null),
+  ...mechBody({ id: 'scrapper-1', gameId: null }),
   name: 'Tin Can',
   chassisRef: 'scrapper',
   destroyed: true,
@@ -77,6 +77,7 @@ async function upsert(
     appId: body.id,
     gameId,
     body: { ...body, gameId },
+    expectedUpdatedAt: null,
   })
 }
 
@@ -100,7 +101,7 @@ async function seedCrew(t: Ctx) {
   await gm.as.mutation(api.entities.createCrawler, {
     gameId,
     appId: 'crawler-1',
-    body: { ...crawlerBody('crawler-1', gameId, 'Tenacity'), ...CRAWLER },
+    body: { ...crawlerBody({ id: 'crawler-1', gameId, name: 'Tenacity' }), ...CRAWLER },
   })
   await upsert(ash, 'pilots', ROOK, gameId)
   await upsert(ash, 'mechs', muleAtCapacity(), gameId)

@@ -73,7 +73,7 @@ function preview(over: Record<string, unknown> = {}) {
     requiresApproval: false,
     grantCount: 0,
     status: 'active',
-    expiresAt: null,
+    expiresAt: Date.now() + 14 * 24 * 60 * 60 * 1000,
     addressed: null,
     forYou: null,
     ...over,

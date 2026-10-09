@@ -8,8 +8,7 @@ import modules from 'salvageunion-reference/data/modules.json'
 import systems from 'salvageunion-reference/data/systems.json'
 
 /**
- * The Salvage Union reference data Convex derives from (docs/architecture/
- * dashboard-redesign.md §8 A3).
+ * The Salvage Union reference data Convex derives from (ADR-038 §4).
  *
  * The server runs the same rules as the client (`salvageunion-reference/rules`,
  * ADR-006), so the Crew tab's maxima and status are one answer every client
@@ -24,7 +23,9 @@ import systems from 'salvageunion-reference/data/systems.json'
  * Only the schemas something here reads are bundled: abilities (a pilot's and
  * a piloted mech's contributions), chassis, systems and modules (a mech's
  * maxima and its destroyed items by name), and guides (Downtime's steps).
- * Add a file here, never a `preload`, when a derivation needs another.
+ * Add a file here, never a `preload`, when a derivation needs another:
+ * `test/convex/referenceSubset.test.ts` runs the functions that call this on
+ * this set alone, so a derivation that reads a schema missing here fails there.
  */
 export function loadReferenceData(): void {
   SalvageUnionReference.install({ abilities, chassis, guides, modules, systems })

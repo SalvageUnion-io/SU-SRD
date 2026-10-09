@@ -12,11 +12,9 @@
  * ## One way to share
  *
  * The live public sheet ([ADR-032](../../../../../docs/ARCHITECTURE.md#adr-032))
- * is the only account-free way to share. Frozen snapshots were retired
- * ([ADR-036](../../../../../docs/ARCHITECTURE.md#adr-036)):
- * this dialog no longer mints, lists or revokes them, and an existing `/s/:id`
- * link redirects to the public sheet while its entity is public. So the dialog
- * is `PublicSheetPanel` — on/off, the link, a QR of it — and a sentence that
+ * is the only account-free way to share
+ * ([ADR-036](../../../../../docs/ARCHITECTURE.md#adr-036)), so the dialog is
+ * `PublicSheetPanel` — on/off, the link, a QR of it — and a sentence that
  * frames it.
  *
  * ## The panel only mounts Connected
@@ -24,14 +22,12 @@
  * `PublicSheetPanel` calls Convex hooks unconditionally, so it must not MOUNT
  * outside Connected — see its own header. Everywhere else the dialog says what
  * sharing needs instead of offering a control that cannot work: an anonymous
- * visitor is told it needs an account (with the sign-in control, which renders
- * nothing in a build that has no accounts), and a signed-in player without a
- * live connection is told that.
+ * visitor is told it needs an account (with the sign-in control), and a
+ * signed-in player without a live connection is told that.
  */
 
 import { ModalShell } from 'component-lib'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityRef } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
@@ -64,13 +60,8 @@ export function ShareStatusDialog({
 }: ShareStatusDialogProps) {
   const { mode } = useConnection()
 
-  /**
-   * Whether `PublicSheetPanel` MOUNTS. Not a style choice: that component calls
-   * Convex hooks, which cannot be called conditionally and throw outright with
-   * no provider — precisely the Solo case. Gating on render is what keeps Solo
-   * working.
-   */
-  const showLive = isConvexConfigured && mode === 'connected'
+  /** Whether `PublicSheetPanel` MOUNTS: only Connected (see its own header). */
+  const showLive = mode === 'connected'
 
   return (
     <ModalShell

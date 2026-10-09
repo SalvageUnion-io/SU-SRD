@@ -11,11 +11,11 @@
  * function would take a constant Vite can fold and turn it into a runtime
  * argument it cannot — shipping the SDK to every visitor.
  *
- * Everything AFTER the guard, though, was a near-copy in the two apps (audit
- * AP-12): the idempotent init with its race guard, the errors-only init
- * options, the module handle, and the capture verbs. That lives here now, in
- * {@link createBrowserObservability}, and the app hands it a LOADER rather than
- * the SDK, so the dynamic import still sits behind the app's own guard.
+ * Everything AFTER the guard lives here, in {@link createBrowserObservability}:
+ * the idempotent init with its race guard, the errors-only init options, the
+ * module handle, the capture verbs and the deploy-skew chunk recovery. The app
+ * hands it a LOADER rather than the SDK, so the dynamic import still sits
+ * behind the app's own guard.
  */
 
 /**
@@ -99,12 +99,6 @@ export type BrowserObservabilityConfig = {
    * init options entirely when absent, rather than sent as `[]`.
    */
   ignoreErrors?: string[]
-  /**
-   * Send each error OBJECT at most once. ITUN needs it — a failed chunk load
-   * is reported by `chunkRecovery` and then again by the error boundary — and
-   * srd has no second reporter, so it leaves this off.
-   */
-  dedupe?: boolean
 }
 
 /** The per-deploy values the app reads from `import.meta.env`. */
@@ -128,6 +122,86 @@ export type BrowserObservability = {
   ): void
   /** Report an informational message when initialised; otherwise a no-op. */
   captureMessage(message: string, context?: Record<string, unknown>): void
+  /**
+   * Install the deploy-skew reload guard (see {@link ChunkRecoveryDeps}). Call
+   * it once, from the app's client entry, before anything lazy is imported.
+   *
+   * @returns a teardown that removes the listener (used by tests).
+   */
+  installChunkRecovery(deps?: ChunkRecoveryDeps): () => void
+}
+
+/**
+ * sessionStorage key holding the epoch-ms of the last recovery reload.
+ *
+ * Session-scoped on purpose: the condition is "this tab is running a build the
+ * server no longer has", which a new tab does not inherit. One name serves
+ * both apps, because sessionStorage is per origin.
+ */
+const CHUNK_RELOAD_KEY = 'chunk-reload-at'
+
+/**
+ * How long a recovery reload suppresses the next one.
+ *
+ * A cooldown rather than a one-shot flag: a one-shot never rearms, so a second
+ * deploy later in the same long-lived tab would go unhandled. A cooldown
+ * rearms on its own and still makes a reload loop impossible — if the very
+ * next load fails the same way, the error is left to surface instead.
+ */
+const RELOAD_COOLDOWN_MS = 20_000
+
+/** Vite dispatches this with the failed import's error as `payload`. */
+type PreloadErrorEvent = Event & { payload?: unknown }
+
+/**
+ * Chunk recovery — survive a deploy that lands while the page is open.
+ *
+ * Both apps are code-split, and every hashed chunk URL is valid only for the
+ * build that emitted it. A page open across a deploy (or served from an older
+ * cache) asks for chunk names the server no longer has. A reload is a
+ * navigation, which boots current HTML naming current hashes, so the fix is to
+ * notice and reload once.
+ *
+ * Deliberately narrow: it listens for Vite's own `vite:preloadError`, emitted
+ * by the `__vitePreload` helper that wraps every dynamic import in the build.
+ * A chunk that fails some other way (a `<script>` tag, a plain fetch) is not
+ * covered.
+ *
+ * Every field defaults to the browser's own; tests inject them.
+ */
+export type ChunkRecoveryDeps = {
+  /** Where Vite dispatches `vite:preloadError`. Defaults to `window`. */
+  target?: EventTarget
+  /** Defaults to `sessionStorage`. */
+  storage?: Storage
+  /** Defaults to a hard reload. */
+  reload?: () => void
+  /** Defaults to `Date.now`. */
+  now?: () => number
+}
+
+/**
+ * sessionStorage throws rather than degrading in some privacy modes. Recovery
+ * must not depend on it, so both accessors fail soft: a failed read means "no
+ * cooldown recorded", which errs toward reloading.
+ */
+function readLastReloadAt(storage: Storage | undefined): number {
+  if (!storage) return 0
+  try {
+    return Number(storage.getItem(CHUNK_RELOAD_KEY)) || 0
+  } catch {
+    // Storage denied: no record of a recent reload, so recovery may reload.
+    return 0
+  }
+}
+
+function writeLastReloadAt(storage: Storage | undefined, at: number): void {
+  if (!storage) return
+  try {
+    storage.setItem(CHUNK_RELOAD_KEY, String(at))
+  } catch {
+    // Non-fatal: we lose the loop guard, not the recovery.
+  }
 }
 
 /**
@@ -143,15 +217,17 @@ export function createBrowserObservability(
 ): BrowserObservability {
   let initialized = false
   let sdk: BrowserSentrySdk | null = null
-  // A WeakSet, so a reported error is still collectable; primitives cannot be
-  // tracked and are always sent.
-  const reported = config.dedupe ? new WeakSet<object>() : null
 
-  function alreadyReported(error: unknown): boolean {
-    if (!reported || typeof error !== 'object' || error === null) return false
-    if (reported.has(error)) return true
-    reported.add(error)
-    return false
+  function captureException(
+    error: unknown,
+    context?: Record<string, unknown>,
+    options?: CaptureOptions
+  ): void {
+    // The SDK's own client drops an error object it has already captured, so
+    // a chunk failure seen by both the recovery and an error boundary is one
+    // event.
+    if (!sdk) return
+    sdk.captureException(error, buildCaptureHint(context, options))
   }
 
   return {
@@ -176,14 +252,58 @@ export function createBrowserObservability(
       if (config.ignoreErrors) options.ignoreErrors = config.ignoreErrors
       loaded.init(options)
     },
-    captureException(error, context, options) {
-      if (!sdk) return
-      if (alreadyReported(error)) return
-      sdk.captureException(error, buildCaptureHint(context, options))
-    },
+    captureException,
     captureMessage(message, context) {
       if (!sdk) return
       sdk.captureMessage(message, buildCaptureHint(context))
+    },
+    installChunkRecovery(deps = {}) {
+      // `globalThis` is `window` in a page.
+      const target = deps.target ?? globalThis
+      const storage: Storage | undefined = deps.storage ?? globalThis.sessionStorage
+      const reload = deps.reload ?? (() => globalThis.location.reload())
+      const now = deps.now ?? Date.now
+      // Per document: once a reload is on its way, every later chunk failure
+      // in this page is the same deploy skew. Without it a page that fails
+      // several imports at once would report one `recovered: true` and then a
+      // `recovered: false` per sibling, for a page that did recover.
+      let reloadScheduled = false
+
+      const onPreloadError = (event: Event) => {
+        if (reloadScheduled) {
+          event.preventDefault()
+          return
+        }
+        const error = (event as PreloadErrorEvent).payload ?? event
+        const at = now()
+        const since = at - readLastReloadAt(storage)
+        const willReload = since >= RELOAD_COOLDOWN_MS
+
+        // Reported either way: a failure that reloads is invisible to the user
+        // and would otherwise be invisible to us too. A fixed fingerprint,
+        // because the message carries a bundle hash and Sentry's default
+        // grouping would mint a new issue per deploy.
+        captureException(
+          error,
+          { recovered: willReload, msSinceLastReload: since },
+          { fingerprint: ['chunk-preload-error'], tags: { recovered: String(willReload) } }
+        )
+
+        // A second failure inside the cooldown: stop, and let Vite rethrow so
+        // the app's error handling shows it rather than looping.
+        if (!willReload) return
+
+        reloadScheduled = true
+        writeLastReloadAt(storage, at)
+        // Suppress Vite's rethrow — this is being handled by reloading.
+        event.preventDefault()
+        reload()
+      }
+
+      target.addEventListener('vite:preloadError', onPreloadError)
+      return () => {
+        target.removeEventListener('vite:preloadError', onPreloadError)
+      }
     },
   }
 }

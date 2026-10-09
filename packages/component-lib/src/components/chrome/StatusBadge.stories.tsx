@@ -9,7 +9,7 @@ export default {
   title: 'Compositions/Status Badge',
 }
 
-// Real SRD content — reference data is preloaded by .ladle/components.tsx before
+// Real SRD content — reference data is preloaded by catalog.tsx before
 // any story chunk imports, so module-top-level access is safe here.
 const chassis = SalvageUnionReference.Chassis.all()[0]
 const chassisName = chassis?.name ?? 'Chassis'

@@ -64,13 +64,9 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
 
   // --- Advancement, on the live sheet ---
   //
-  // This used to walk /pilots/$id → /pilots/$id/edit and re-run the wizard in
-  // "edit mode". Both routes are gone: /pilots/$id is now a Worker 301
-  // (src/worker/retiredRoutes.ts) and the detail page was collapsed into the
-  // live sheet, which under ADR-021 is the Free Edit surface — you edit in
-  // place rather than replaying Guided Creation. The INTENT is unchanged and is
-  // what matters: an ability beyond the creation budget can be added, and it
-  // persists.
+  // The live sheet is the Free Edit surface (ADR-021): you edit in place
+  // rather than replaying Guided Creation. What matters is that an ability
+  // beyond the creation budget can be added, and that it persists.
   // Matched on `href`, not the label. EntityRow's sheet link reads "View" on
   // every row, so it carries `aria-label="View <name>"` for WCAG 2.4.4 — which
   // means its ACCESSIBLE NAME is not "View" and `/^View$/` matches nothing.

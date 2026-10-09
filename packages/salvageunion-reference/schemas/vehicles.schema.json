@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/vehicles.schema.json",
+  "$id": "https://salvageunion.io/schema/vehicles.schema.json",
   "title": "vehicles",
   "description": "Conventional vehicles",
   "type": "array",

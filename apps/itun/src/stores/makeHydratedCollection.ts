@@ -3,12 +3,14 @@
  * Zustand store (audit item 22).
  *
  * encounterStore and patternStore both follow the same
- * discipline (ADR-003): lazy auto-hydration from IndexedDB on first read,
- * write-through persistence (db first, then in-memory set()), and cross-tab
- * invalidation via lib/db/broadcast.
+ * discipline: lazy auto-hydration from IndexedDB on first read (ADR-003) and
+ * server-first persistence (server, then db, then in-memory set(); ADR-034). Another
+ * tab's writes arrive through this tab's own Convex subscription: `ShelfSync`
+ * adopts its creates and edits and forgets its deletes. There is no tab-to-tab
+ * channel.
  * Before this factory each store hand-rolled that skeleton (~650 lines
  * across three copies) — which is exactly how mechPatterns ended up
- * BYPASSING the layer entirely (direct db reads, no broadcast).
+ * BYPASSING the layer entirely (direct db reads).
  *
  * The collection key is parametrized (`encounterNpcs`,
  * `mechPatterns`) so each store's public state shape is unchanged —
@@ -21,8 +23,6 @@
  * the philosophy, not the shape.
  */
 
-import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
-import type { StoreName } from '../lib/db/stores'
 import { captureException } from '../lib/observability'
 import { readableRows, requireWritableBackend } from './entityBackend'
 
@@ -40,7 +40,7 @@ export type HydratedCollectionSlice<K extends string, T> = Record<K, T[]> & {
   hydrated: boolean
   /** Loads the collection from IndexedDB (nothing signed out). Idempotent. */
   hydrate: () => Promise<void>
-  /** Re-reads from IndexedDB even when already hydrated (cross-tab). */
+  /** Re-reads from IndexedDB even when already hydrated. */
   rehydrate: () => Promise<void>
   /** Sync list — returns in-memory records. Auto-triggers hydrate if needed. */
   list: () => T[]
@@ -68,6 +68,14 @@ export type HydratedCollectionActions<T, CreateInput> = {
    * it read-only.
    */
   adopt: (record: T) => Promise<T>
+  /**
+   * Drops this browser's copy **without deleting it anywhere else** — the
+   * inverse of `adopt`, as `entityStore.forget` is. `ShelfSync` calls it for a
+   * row the server no longer returns: the row is already gone there, and a
+   * mirrored delete would be a destructive write against whatever the server
+   * does hold. No `requireWritableBackend()`, for `adopt`'s reason.
+   */
+  forget: (id: string) => Promise<void>
 }
 
 type SliceConfig<K extends string, T, CreateInput> = {
@@ -80,42 +88,30 @@ type SliceConfig<K extends string, T, CreateInput> = {
    * signed out.
    */
   db: DbCollection<T, CreateInput>
-  /** Broadcast channel name; also drives the cross-tab subscription. */
-  storeName: StoreName
   /**
    * Mirror one write to the server of record, BEFORE it touches disk.
    *
-   * Optional only so a collection with no server table keeps working; every
-   * collection that has one must pass it. Without this the slice was purely
-   * local, which is how `mechPatterns` and `encounterNpcs` spent P4b reaching
-   * Convex through exactly one path — the bulk `claimLocal` at sign-in — while
-   * every write after that lived only in the browser that made it.
+   * Required: a collection with no server table would persist only on a
+   * device, which `lib/db/__tests__/storeSeams.test.ts` refuses.
    *
    * Awaited and allowed to throw, matching `entityStore`'s server-first order:
    * a cache cannot legitimately be ahead of its source, so a write the server
    * refused did not happen. The alternative — fire-and-forget with a swallowed
    * warning — is the exact shape that lost an evening of play before ADR-034.
    */
-  commit?: (op: { kind: 'upsert'; record: T } | { kind: 'delete'; id: string }) => Promise<void>
+  commit: (op: { kind: 'upsert'; record: T } | { kind: 'delete'; id: string }) => Promise<void>
 }
 
 type SetLike = (partial: object | ((state: never) => object)) => void
 type GetLike<S> = () => S
 
-/**
- * Build the shared slice. Spread the result into the store's create()
- * callback, then call wireCrossTabInvalidation(useStore) once per store.
- */
+/** Build the shared slice. Spread the result into the store's create() callback. */
 export function makeHydratedCollectionSlice<
   K extends string,
   T extends { id: string },
   CreateInput,
 >(config: SliceConfig<K, T, CreateInput>) {
-  const { key, db, storeName, commit } = config
-
-  function afterWrite(): void {
-    publishStoreChange(storeName)
-  }
+  const { key, db, commit } = config
 
   return function slice(
     set: SetLike,
@@ -169,8 +165,12 @@ export function makeHydratedCollectionSlice<
               : [cached, ...list]
           })(),
         })
-        afterWrite()
         return cached
+      },
+
+      async forget(id) {
+        await db.delete(id)
+        set({ [key]: records().filter((r) => r.id !== id) })
       },
 
       async create(input) {
@@ -180,32 +180,28 @@ export function makeHydratedCollectionSlice<
         // ordering that matters (nothing local survives a refusal) still holds,
         // because a throw here aborts before `set`.
         const record = await db.create(input)
-        if (commit !== undefined) {
-          try {
-            await commit({ kind: 'upsert', record })
-          } catch (err) {
-            // The local row already landed, so undo it rather than leave the
-            // cache ahead of the server — the one state ADR-034 forbids.
-            // If the undo itself fails, that forbidden state is exactly what is
-            // left behind — so it is reported, not swallowed. The commit error
-            // is still what the caller sees.
-            await db.delete((record as { id: string }).id).catch((undoErr: unknown) => {
-              captureException(undoErr, { source: 'makeHydratedCollection.undoCreate', key })
-            })
-            throw err
-          }
+        try {
+          await commit({ kind: 'upsert', record })
+        } catch (err) {
+          // The local row already landed, so undo it rather than leave the
+          // cache ahead of the server — the one state ADR-034 forbids.
+          // If the undo itself fails, that forbidden state is exactly what is
+          // left behind — so it is reported, not swallowed. The commit error
+          // is still what the caller sees.
+          await db.delete((record as { id: string }).id).catch((undoErr: unknown) => {
+            captureException(undoErr, { source: 'makeHydratedCollection.undoCreate', key })
+          })
+          throw err
         }
         set({ [key]: [record, ...records()] })
-        afterWrite()
         return record
       },
 
       async update(id, patch) {
         requireWritableBackend()
         const updated = await db.update(id, patch)
-        if (commit !== undefined) await commit({ kind: 'upsert', record: updated })
+        await commit({ kind: 'upsert', record: updated })
         set({ [key]: records().map((r) => (r.id === id ? updated : r)) })
-        afterWrite()
         return updated
       },
 
@@ -213,28 +209,10 @@ export function makeHydratedCollectionSlice<
         requireWritableBackend()
         // Committed BEFORE the local delete, like `entityStore.delete`: once the
         // row is gone there is nothing left to address it by.
-        if (commit !== undefined) await commit({ kind: 'delete', id })
+        await commit({ kind: 'delete', id })
         await db.delete(id)
         set({ [key]: records().filter((r) => r.id !== id) })
-        afterWrite()
       },
     }
   }
-}
-
-/**
- * Cross-tab invalidation: when ANOTHER tab announces a write to this
- * collection's object store, re-read it (only when this tab already holds a
- * hydrated copy — lazy hydration covers the rest).
- */
-export function wireCrossTabInvalidation(
-  useStore: { getState: () => { hydrated: boolean; rehydrate: () => Promise<void> } },
-  storeName: StoreName
-): void {
-  subscribeStoreChanges((changed) => {
-    if (changed !== storeName) return
-    const state = useStore.getState()
-    if (!state.hydrated) return
-    void state.rehydrate()
-  })
 }

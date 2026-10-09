@@ -108,8 +108,8 @@ export const ContributionSchema = z
       .enum(['permanent', 'activated'])
       .describe(
         'Permanent (default) applies whenever held/installed. `activated` applies ' +
-          'only while the player has switched it on in Guided Play — ephemeral ' +
-          'play state (ADR-019), never persisted on the entity.'
+          'only while the player has switched it on in Guided Play — saved on ' +
+          "the pilot's seat in the Game (ADR-038), never on the entity."
       )
       .optional(),
     note: z.string().describe('Why this is encoded the way it is').optional(),

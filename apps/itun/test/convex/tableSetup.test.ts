@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import type { Ctx } from './assignmentFixtures'
-import { makeUser } from './assignmentFixtures'
+import type { Ctx } from './fixtures'
+import { crawlerBody, makeUser, pilotBody } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -26,38 +26,6 @@ import { testConvex } from './harness'
  * has no Mediator — the narrow fallback that stops a brand-new Game being a
  * dead end.
  */
-
-function pilotBody(over: Record<string, unknown> = {}) {
-  return {
-    id: 'p1',
-    schemaVersion: 1,
-    name: 'Roach-Boy',
-    callsign: 'Roach-Boy',
-    classRef: 'salvager',
-    abilities: [],
-    equipment: [],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    conditions: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...over,
-  }
-}
-
-function crawlerBody(over: Record<string, unknown> = {}) {
-  return {
-    id: 'c1',
-    schemaVersion: 1,
-    name: '#430',
-    techLevel: '1',
-    systems: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...over,
-  }
-}
 
 /** A Game with an Organizer, a Mediator and a Player — and NO crawler yet. */
 async function seedTable(t: Ctx) {
@@ -91,7 +59,13 @@ async function mirrorPilot(
   body: Record<string, unknown> = pilotBody()
 ): Promise<Id<'pilots'>> {
   const appId = String(body.id)
-  await user.as.mutation(api.entities.upsertByAppId, { table: 'pilots', appId, gameId, body })
+  await user.as.mutation(api.entities.upsertByAppId, {
+    table: 'pilots',
+    appId,
+    gameId,
+    body,
+    expectedUpdatedAt: null,
+  })
   const row = await t.run(
     async (ctx) =>
       await ctx.db
@@ -301,6 +275,7 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
         appId: 'p1',
         gameId,
         body: pilotBody(),
+        expectedUpdatedAt: null,
       })
     ).rejects.toThrow(/not a member/i)
   })
@@ -316,6 +291,7 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
       appId: 'p1',
       gameId,
       body: pilotBody(),
+      expectedUpdatedAt: null,
     })
 
     // Without this the move looked like it worked locally and the server row
@@ -366,6 +342,7 @@ describe('unclaimed characters are offers; players pick them up', () => {
       appId: 'p1',
       gameId,
       body: pilotBody({ name: 'Renamed' }),
+      expectedUpdatedAt: null,
     })
 
     const row = await t.run(async (ctx) => await ctx.db.get(pilotId))

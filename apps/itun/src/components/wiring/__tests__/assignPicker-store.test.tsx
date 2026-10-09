@@ -19,7 +19,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { ConnectionContext, SOLO_STATE } from '../../../lib/connection/connectionContext'
-import { _clearAllStores, _resetDbSingleton, softLinks as dbSoftLinks } from '../../../lib/db/index'
+import { _resetDbSingleton, clearCache, softLinks as dbSoftLinks } from '../../../lib/db/index'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
@@ -75,7 +75,7 @@ function reset(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   reset()
   const store = useEntityStore.getState()
   await Promise.all([
@@ -88,7 +88,7 @@ beforeEach(async () => {
 
 afterEach(async () => {
   cleanup()
-  await _clearAllStores()
+  await clearCache()
   reset()
 })
 

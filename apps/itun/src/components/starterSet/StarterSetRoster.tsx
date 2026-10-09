@@ -13,8 +13,7 @@
  * signed-out Roster.
  */
 
-import type { EntityRowStat } from 'component-lib'
-import { Badge, EntityRow, PageHeading, Text, tokens } from 'component-lib'
+import { Badge, PageHeading, Text, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -25,6 +24,8 @@ import type { SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { crawlerStats, mechChassisStats, pilotStats } from '../roster/rowStats'
 import { AppLink } from '../shared/AppLink'
+import type { EntityRowStat } from '../shared/EntityRow'
+import { EntityRow } from '../shared/EntityRow'
 import { useConfirm } from '../shared/useConfirm'
 import { CopyStarterSelect } from './CopyStarterSelect'
 

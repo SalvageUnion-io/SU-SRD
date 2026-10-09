@@ -1,6 +1,6 @@
 import { Caption } from 'component-lib/stories/harness'
 import type { CSSProperties, ReactNode } from 'react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
@@ -321,6 +321,7 @@ const STAND_INS = Object.fromEntries(
 export const InTheCanvas = () => {
   const [open, setOpen] = useState<{ kind: SlotKind; trigger: HTMLButtonElement } | null>(null)
   const [tab, setTab] = useState<DisplayTab>('resolve')
+  const display = useRef<HTMLDivElement>(null)
   return (
     <DashboardCanvas>
       <DashboardGrid
@@ -328,13 +329,15 @@ export const InTheCanvas = () => {
         rail={<Caption>Pilot · Rook</Caption>}
         primary={<Slots mount="pilot" onExpand={(kind, trigger) => setOpen({ kind, trigger })} />}
         display={
-          <div style={DISPLAY_HOST}>
+          <div ref={display} style={DISPLAY_HOST}>
             <DisplayTabs tab={tab} onTab={setTab} panels={STAND_INS} />
             {open ? (
               <SlotOverlay
+                open
                 title={
                   SLOT_LABEL[open.kind] + (open.kind === 'mech' ? ' · Scrapper' : ' · Mother Hen')
                 }
+                container={display}
                 returnFocusTo={open.trigger}
                 onClose={() => setOpen(null)}
               >
@@ -370,7 +373,7 @@ export const Boarded = () => (
   </div>
 )
 
-/** Downtime, as a player sees it: the crawler's numbers and bays, no verbs (D11). */
+/** Downtime, as a player sees it: the crawler's numbers and bays, no verbs. */
 export const DowntimePlayer = () => (
   <div style={STACK}>
     <Caption>Downtime, a player — Crawler Major read-only; Pilot and Mech as Minors.</Caption>
@@ -400,8 +403,11 @@ export const MinorsWithProblems = () => (
 
 /** ⤢ — the parked Mech's Major, as a modal over the display. */
 export const Expanded = () => {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
   const trigger = useRef<HTMLButtonElement>(null)
+  const host = useRef<HTMLDivElement>(null)
+  // Open once the host has mounted: the portal resolves its container on open.
+  useEffect(() => setOpen(true), [])
   return (
     <div style={STACK}>
       <Caption>⤢ on the Mech Minor: its Reactor and Chassis, without boarding it.</Caption>
@@ -409,16 +415,16 @@ export const Expanded = () => {
         <button ref={trigger} type="button" onClick={() => setOpen(true)}>
           Reopen
         </button>
-        <div style={OVERLAY_HOST}>
-          {open ? (
-            <SlotOverlay
-              title="Mech · Scrapper"
-              returnFocusTo={trigger.current}
-              onClose={() => setOpen(false)}
-            >
-              <MajorFrame view={mechMajor(SCRAPPER, ROOK, false)} />
-            </SlotOverlay>
-          ) : null}
+        <div ref={host} style={OVERLAY_HOST}>
+          <SlotOverlay
+            open={open}
+            title="Mech · Scrapper"
+            container={host}
+            returnFocusTo={trigger.current}
+            onClose={() => setOpen(false)}
+          >
+            <MajorFrame view={mechMajor(SCRAPPER, ROOK, false)} />
+          </SlotOverlay>
         </div>
       </InstrumentStage>
     </div>

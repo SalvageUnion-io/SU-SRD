@@ -3,7 +3,7 @@ import { MessageFlags } from 'discord-api-types/v10'
 import { gamesCommand, meCommand, shelfCommand } from '../commands/account.js'
 import { crewCommand, sheetCommand } from '../commands/crew.js'
 import { gameCommand } from '../commands/game.js'
-import { setItunClientForTests } from '../commands/itunReply.js'
+import { setItunClient } from '../commands/itunReply.js'
 import { rollCommand } from '../commands/roll.js'
 import { suCommand } from '../commands/su.js'
 import type { ItunClient } from '../itun/client.js'
@@ -17,8 +17,8 @@ import { buttonInteractionHandlerFor } from './helpers.js'
  *
  * Everything here goes through the named test seam in `itunReply.ts` rather
  * than through environment variables or `mock.module` — see that function's
- * comment for why neither works. `afterEach` restores Solo, which is what every
- * other test file expects to see.
+ * comment for why neither works. `afterEach` restores the unconfigured client,
+ * which is what every other test file expects to see.
  */
 
 let restore: (() => void) | null = null
@@ -48,15 +48,14 @@ function clientReturning(result: ItunResult<unknown>): ItunClient {
 }
 
 function connect(result: ItunResult<unknown>): void {
-  restore = setItunClientForTests(clientReturning(result))
+  restore = setItunClient(clientReturning(result))
 }
 
 /**
  * Assert a recorded reply carried exactly one rendered Game container.
  *
- * These used to read `reply.embeds`. The Game surfaces are Components V2 now,
- * so the payload carries `components` plus the flag and never an embed — V2 is
- * all-in per message.
+ * The Game surfaces are Components V2, so the payload carries `components`
+ * plus the flag and never an embed — V2 is all-in per message.
  */
 function expectContainer(reply: ReplyArg | undefined, options: { ephemeral: boolean }): void {
   if (!reply) throw new Error('expected a reply')
@@ -90,7 +89,6 @@ const OK_CREW = {
     pilots: [
       {
         id: 'p1',
-        appId: 'app-p1',
         ownerId: 'u1',
         ownerName: 'alxjrvs',
         present: true,
@@ -114,10 +112,8 @@ describe('an ephemeral command', () => {
     expectContainer(followUps[0], { ephemeral: true })
     // The placeholder must still become something, or it sits on "thinking…".
     expect(edits[0]?.content).toBe('Rendered below.')
-    // Personal, so it stays with the person who asked. This used to assert
-    // that no follow-up existed at all, which was the right rule read through
-    // the wrong mechanism — both visibilities are follow-ups now, and the flag
-    // is what keeps this one private.
+    // Personal, so it stays with the person who asked. Both visibilities are
+    // follow-ups, so the flag is what keeps this one private.
     for (const followUp of followUps) {
       expect(Number(followUp.flags) & MessageFlags.Ephemeral).toBe(MessageFlags.Ephemeral)
     }
@@ -179,7 +175,6 @@ describe('/su sheet', () => {
         table: 'pilots',
         id: 'p1',
         appId: 'app-p1',
-        gameId: 'g1',
         ownerName: 'alxjrvs',
         body: { callsign: 'Rook', currentHP: 6 },
       },
@@ -418,7 +413,6 @@ describe('/su dispatch', () => {
         table: 'pilots',
         id: 'p1',
         appId: 'app-p1',
-        gameId: 'g1',
         ownerName: null,
         body: { callsign: 'X' },
       },
@@ -450,9 +444,8 @@ describe('/su dispatch', () => {
 })
 
 /**
- * The rendered text of a V2 container edit. The Game signal used to live in an
- * embed footer; it is now its own line in the container, so the assertion moves
- * with it.
+ * The rendered text of a V2 container edit, where the Game signal is its own
+ * line.
  */
 function editedText(edit: { components?: readonly unknown[] } | undefined): string {
   const container = edit?.components?.[0] as { toJSON(): { components: unknown[] } } | undefined
@@ -496,7 +489,7 @@ describe('roll attribution', () => {
   })
 
   test('a thrown client never escapes past the user’s roll', async () => {
-    restore = setItunClientForTests({
+    restore = setItunClient({
       ...clientReturning({ kind: 'unavailable', message: 'x' }),
       recordRoll: () => Promise.reject(new Error('network exploded')),
     })

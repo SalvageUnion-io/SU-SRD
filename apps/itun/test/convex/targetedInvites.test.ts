@@ -3,6 +3,8 @@ import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import type { InviteTarget } from '../../convex/model/invites'
 import { liveDiscordInvite, mintInvite, TARGETED_EXPIRY_MS } from '../../convex/model/invites'
+import type { Ctx } from './fixtures'
+import { makeUser } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -18,23 +20,6 @@ import { testConvex } from './harness'
  * is tested in `botInvite.test.ts`; this one is about what an addressed invite
  * *is* once it exists.
  */
-
-type Ctx = ReturnType<typeof testConvex>
-
-async function makeUser(t: Ctx, name: string, discordId?: string) {
-  const userId = await t.run(async (ctx) => {
-    const id = await ctx.db.insert('users', { name, displayName: name })
-    if (discordId !== undefined) {
-      await ctx.db.insert('authAccounts', {
-        userId: id,
-        provider: 'discord',
-        providerAccountId: discordId,
-      })
-    }
-    return id
-  })
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 async function seedGame(t: Ctx) {
   const organizer = await makeUser(t, 'Vex', 'snowflake-vex')

@@ -1,6 +1,6 @@
 /**
  * MinorFrame — the presentational half of a Minor slot: only what needs
- * watching (docs/architecture/dashboard-redesign.md D3). A gauge or two, a line
+ * watching (ADR-038 §3). A gauge or two, a line
  * of text, and — only when something is wrong — the problem in red with a red
  * outline. `PilotMinor`, `MechMinor` and `CrawlerMinor` build the model.
  *
@@ -120,7 +120,7 @@ export function MinorFrame({
   const frame: CSSProperties = {
     ...FRAME,
     borderLeft: `4px solid ${fam.edge}`,
-    // The red outline is the "look here" signal (D3). An inset ring, so the
+    // The red outline is the "look here" signal. An inset ring, so the
     // slot never changes size when it appears.
     boxShadow: troubled ? 'inset 0 0 0 2px var(--color-status-bad)' : undefined,
   }

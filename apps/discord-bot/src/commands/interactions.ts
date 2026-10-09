@@ -1,12 +1,11 @@
 /**
- * The NARROW interaction surface the command handlers actually use —
- * interface segregation over discord.js's full interaction classes.
+ * The NARROW interaction surface the command handlers actually use.
  *
- * The real `ChatInputCommandInteraction` / `AutocompleteInteraction` satisfy
- * these structurally (the dispatcher passes them straight through), while
- * tests can build a minimal object that satisfies the same contract without
- * any forced casts. Handlers must depend on THESE types, and members are
- * added here only when a handler genuinely starts reading them.
+ * `http/adapter.ts` builds these objects from Discord's raw `APIInteraction`
+ * (`makeExecuteInteraction`, `makeAutocompleteInteraction`), and tests fake
+ * them in `__tests__/fakeInteraction.ts` without any forced casts. Handlers
+ * must depend on THESE types, and members are added here only when a handler
+ * genuinely starts reading them.
  */
 
 import type { APIMessageTopLevelComponent, MessageFlags } from 'discord-api-types/v10'
@@ -15,18 +14,16 @@ import type { APIMessageTopLevelComponent, MessageFlags } from 'discord-api-type
  * A top-level message component, either raw or as a builder.
  *
  * `@discordjs/builders`' `ContainerBuilder` / `ActionRowBuilder` satisfy this
- * through `toJSON()`, which is exactly what the HTTP adapter calls before the
- * payload goes over the wire (`http/adapter.ts`, `toPlainPayload`).
+ * through `toJSON()`, which `JSON.stringify` calls when the payload goes over
+ * the wire (`http/adapter.ts`).
  */
 export type ReplyComponent = APIMessageTopLevelComponent | { toJSON(): APIMessageTopLevelComponent }
 
 /**
  * What a handler may send as a reply or follow-up.
  *
- * Local rather than `discord.js`'s `InteractionReplyOptions`: the bot is an
- * HTTP-interactions Worker and has no `discord.js` dependency at all, and these
- * are the only three keys any handler sets. There is deliberately no `embeds`
- * — every surface moved to Components V2, which forbids them.
+ * These are the only three keys any handler sets. There is no `embeds`:
+ * every reply is Components V2, which forbids them.
  */
 export type ReplyPayload = {
   content?: string
@@ -88,11 +85,11 @@ export type DirectMessageOutcome = { ok: true } | { ok: false; code: number | nu
 /**
  * What the button router reads off a message-component interaction.
  *
- * Narrow for the same reason the command surfaces are: discord.js's
- * `ButtonInteraction` satisfies this structurally, so the dispatcher passes one
- * straight through, while a test builds the four members it actually uses with
- * no cast. `user`/`channelId`/`editReply` are here because a re-roll is a roll
- * and is attributed exactly like a slash-command one.
+ * Narrow for the same reason the command surfaces are: `http/adapter.ts`
+ * (`makeButtonInteraction`) builds it from the raw message-component
+ * interaction, while a test builds the members it actually uses with no cast.
+ * `user`/`channelId`/`editReply` are here because a re-roll is a roll and is
+ * attributed exactly like a slash-command one.
  */
 export type CommandButtonInteraction = {
   customId: string

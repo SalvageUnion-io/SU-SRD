@@ -11,7 +11,7 @@ import { FOCUS_RING } from '../chrome/interaction'
  * the maths and hands us a ledger to render:
  *
  *   `base`         the rules baseline (chassis stat, tech-level SP, a constant)
- *   `contribution` a rules-sourced addend (installed statBonus, type bonus,
+ *   `contribution` a rules-sourced addend (an installed item, type bonus,
  *                  an injury penalty — negative amounts are contributions too)
  *   `adjustment`   the player's hand-entered manual adjustment
  *   `derived`      the subtotal of everything above
@@ -94,10 +94,7 @@ export function StatProvenance({
       <Popover.Portal>
         <Popover.Positioner side="top" sideOffset={6}>
           <Popover.Popup
-            className={cn(
-              'z-50 min-w-[15rem] max-w-[22rem] rounded-md bg-ink px-3 py-2.5 text-paper shadow-md',
-              'animate-in fade-in-0 zoom-in-95'
-            )}
+            className="z-50 min-w-[15rem] max-w-[22rem] rounded-md bg-ink px-3 py-2.5 text-paper shadow-md"
             onMouseEnter={() => setOpen(true)}
             onMouseLeave={() => setOpen(false)}
           >

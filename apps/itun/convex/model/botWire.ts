@@ -84,7 +84,7 @@ export type GamesResult = { games: GameSummary[] }
 export type EntityBody = Record<string, unknown>
 
 /** A pilot or mech on a shelf: no owner to name, because the owner is the caller. */
-export type ShelfEntity = { id: string; appId: string | null; body: EntityBody }
+export type ShelfEntity = { id: string; body: EntityBody }
 
 export type ShelfResult = {
   pilots: ShelfEntity[]
@@ -93,15 +93,6 @@ export type ShelfResult = {
 
 export type OwnedEntity = {
   id: string
-  /**
-   * The app-level id, or null.
-   *
-   * Deep links use THIS, never `id`: the web sheet route resolves an entity out
-   * of IndexedDB by its app-level id, so a URL built from the Convex `_id`
-   * opens nothing. Null means nobody has claimed the entity into a browser yet,
-   * and the bot renders the name without a link rather than a dead one.
-   */
-  appId: string | null
   ownerId: string | null
   ownerName: string | null
   body: EntityBody
@@ -137,16 +128,8 @@ export type SheetTable = 'pilots' | 'mechs' | 'crawlers'
 export type SheetResult = {
   table: SheetTable
   id: string
+  /** The app-level id, which addresses the public link (`/p/<kind>/<appId>`). */
   appId: string | null
-  /**
-   * The Game this sheet belongs to.
-   *
-   * Load-bearing for the link: the read-only web view is addressed as
-   * `/games/<gameId>/view/<kind>/<convexId>`, and it is the only route that
-   * resolves a *crewmate's* entity — `/sheet/<kind>/<appId>` reads the clicker's
-   * own IndexedDB, so it opens nothing for anybody but the owner.
-   */
-  gameId: string
   /**
    * Whether this sheet has a public, account-free URL (ADR-032).
    *
@@ -186,7 +169,7 @@ export type InviteResult =
       inviteeName: string
       role: 'player' | 'mediator'
       grantCount: number
-      expiresAt: number | null
+      expiresAt: number
       /** True when a live invite to this person was re-sent rather than minted. */
       reused: boolean
       /**

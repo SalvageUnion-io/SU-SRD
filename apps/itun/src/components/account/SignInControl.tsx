@@ -1,24 +1,7 @@
 import { useAuthActions } from '@convex-dev/auth/react'
 import { Button } from 'component-lib'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
-
-/**
- * Sign in / sign out with Discord.
- *
- * ## The Solo-build branch, again
- *
- * `useAuthActions` needs a `ConvexAuthProvider` above it, and a build with no
- * `VITE_CONVEX_URL` deliberately has none. So this file uses the same
- * component-level branch as `ConnectionProvider`: the hook lives in
- * `ConvexSignIn`, which is only ever rendered when the build is configured.
- * The branch is a build-time constant, so React sees a stable component
- * identity across renders.
- *
- * In a Solo build this renders **nothing at all** rather than a disabled
- * button. Offering an account to somebody whose app cannot have one is worse
- * than silence — signing in is an upgrade, not a missing feature (ADR-030 §1).
- */
+import { useSignOutAndForget } from './useSignOutAndForget'
 
 /**
  * The dark-masthead treatment: a paper hairline on the near-black bar. The
@@ -37,8 +20,10 @@ type SignInControlProps = {
   onDark?: boolean
 }
 
-function ConvexSignIn({ onDark }: SignInControlProps) {
-  const { signIn, signOut } = useAuthActions()
+/** Sign in / sign out with Discord. */
+export function SignInControl({ onDark }: SignInControlProps) {
+  const { signIn } = useAuthActions()
+  const signOut = useSignOutAndForget()
   const { mode } = useConnection()
 
   if (mode === 'connected') {
@@ -47,7 +32,7 @@ function ConvexSignIn({ onDark }: SignInControlProps) {
         variant="ghost"
         size="compact"
         className={onDark ? DARK_BUTTON : undefined}
-        onClick={() => void signOut()}
+        onClick={signOut}
       >
         Sign out
       </Button>
@@ -68,9 +53,4 @@ function ConvexSignIn({ onDark }: SignInControlProps) {
       Sign in with Discord
     </Button>
   )
-}
-
-export function SignInControl({ onDark }: SignInControlProps) {
-  if (!isConvexConfigured) return null
-  return <ConvexSignIn onDark={onDark} />
 }

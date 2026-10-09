@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/crawler-tech-levels.schema.json",
+  "$id": "https://salvageunion.io/schema/crawler-tech-levels.schema.json",
   "title": "crawler-tech-levels",
   "description": "Tech level progression for Union Crawlers",
   "type": "array",

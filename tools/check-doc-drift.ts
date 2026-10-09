@@ -1,18 +1,23 @@
 #!/usr/bin/env bun
 /**
- * Doc drift — `bun run check doc-drift`. Five checks, each asking whether
- * something a doc tells a reader to open or run exists:
+ * Doc drift — `bun run check doc-drift`. Six checks, each asking whether
+ * what a doc tells a reader is still true:
  *
- *   paths    every backticked repo path in a live-instruction doc (and every
- *            repo path in a workflow prompt) exists, unless the words beside
- *            it mark it as history or a proposal. A doc's `# Decisions`
- *            section is the record of past decisions, so it is not scanned.
+ *   paths    every backticked repo path in a live-instruction doc exists,
+ *            unless the words beside it mark it as history or a proposal.
+ *            Under `# Decisions`, only the Status and Decision of an ADR that
+ *            still carries a Decision are scanned: they state what governs
+ *            now; the rest of an ADR is the record of how it was decided.
  *   scripts  every `bun run <script>`, `bun --filter <ws> <script>` and
- *            `bun run check <id>` in a live doc (`# Decisions` aside),
- *            workflow prompt or Claude hook names a real script or check id.
+ *            `bun run check <id>` in that same text, or in a Claude hook,
+ *            names a real script or check id.
+ *   claims   no agent doc (the live text of the docs above, the hooks and
+ *            `.env.example`) repeats a claim the repo has retired
+ *            (`RETIRED_CLAIMS`).
  *   decisions every ADR is one bare `## ADR-NNN` heading under `# Decisions`
- *            in docs/ARCHITECTURE.md, none missing or repeated, and
- *            docs/adrs/ stays gone.
+ *            in docs/ARCHITECTURE.md, none missing or repeated, docs/adrs/
+ *            stays gone, and an ADR whose Status amends, supersedes or
+ *            reverses another is named in that other ADR's Status.
  *   links    every relative markdown link in a tracked `.md` file resolves,
  *            and its `#fragment`, into a `.md` file or the same file, names a
  *            heading there.
@@ -20,7 +25,8 @@
  *            stay under 8,000 characters and `.claude/rules/*.md` under 4,000.
  *            They load into every agent session in scope, so growth costs
  *            every session. A collapsed doc (`COLLAPSED_DOCS`) holds its own
- *            budget: it replaced a folder, and terse is the point.
+ *            budget on its live text: it replaced a folder, and terse is the
+ *            point; the ADRs below it are an append-only record.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -73,7 +79,6 @@ function workspaceDirs(root: string): string[] {
 const LIVE_INSTRUCTION_DOC_DIRS = [
   '.claude/rules',
   '.claude/agents',
-  '.claude/agent-memory',
   '.claude/skills',
   'docs/architecture',
 ]
@@ -82,16 +87,11 @@ function liveInstructionDocs(root: string): string[] {
   return [
     'CLAUDE.md',
     'README.md',
-    'CONTRIBUTING.md',
     'docs/ARCHITECTURE.md',
-    ...workspaceDirs(root).flatMap((ws) => [`${ws}/CLAUDE.md`, `${ws}/README.md`]),
+    ...workspaceDirs(root).map((ws) => `${ws}/CLAUDE.md`),
     ...LIVE_INSTRUCTION_DOC_DIRS.flatMap((dir) => markdownIn(root, dir)),
   ].filter((doc) => existsSync(join(root, doc)))
 }
-
-/** Workflow scripts whose string literals are prompts handed to subagents. */
-export const agentWorkflowScripts = (root: string): string[] =>
-  filesIn(root, '.claude/workflows', '.js')
 
 const hookScripts = (root: string): string[] => filesIn(root, '.claude/hooks', '.sh')
 
@@ -131,12 +131,71 @@ const DECISIONS_HEADING = /^# Decisions$/m
 
 /**
  * A markdown doc up to its `# Decisions` heading: the part that describes the
- * code as it is now. Each ADR records a decision as it was made, so the paths
- * and scripts it names are history; its links are still checked.
+ * code as it is now.
  */
 export function liveTextOf(source: string): string {
   const at = source.search(DECISIONS_HEADING)
   return at === -1 ? source : source.slice(0, at)
+}
+
+/** One `## ADR-NNN` section: its number and its lines, `start` 0-based in the doc. */
+type AdrSection = { n: number; start: number; lines: string[] }
+
+/** The ADR sections under `# Decisions`, each running to the next `## ` heading. */
+export function adrSections(source: string): AdrSection[] {
+  const lines = source.split('\n')
+  const decisions = lines.findIndex((line) => DECISIONS_HEADING.test(line))
+  if (decisions === -1) return []
+  const sections: AdrSection[] = []
+  let inFence = false
+  for (let i = decisions + 1; i < lines.length; i++) {
+    const line = lines[i] as string
+    if (/^\s{0,3}(```|~~~)/.test(line)) inFence = !inFence
+    if (inFence) continue
+    const adr = line.match(/^##\s+ADR-(\d+)/)
+    if (adr) sections.push({ n: Number(adr[1]), start: i, lines: [] })
+    else if (/^##\s/.test(line)) sections.push({ n: Number.NaN, start: i, lines: [] })
+    sections.at(-1)?.lines.push(line)
+  }
+  return sections.filter((section) => !Number.isNaN(section.n))
+}
+
+/** Line offsets (within the section) of its `### <name>` subsection's body. */
+function subsectionLines(section: AdrSection, name: string): number[] {
+  const out: number[] = []
+  let inside = false
+  for (const [i, line] of section.lines.entries()) {
+    if (/^###\s/.test(line)) inside = line.trim() === `### ${name}`
+    else if (inside) out.push(i)
+  }
+  return out
+}
+
+/** The text of an ADR's `### Status`. */
+const statusOf = (section: AdrSection): string =>
+  subsectionLines(section, 'Status')
+    .map((i) => section.lines[i])
+    .join('\n')
+
+/**
+ * The part of a doc whose paths and scripts must exist: its live text, plus the
+ * Status and Decision of every ADR that still carries a `### Decision` (a
+ * superseded ADR is a stub: heading, Status and a `git show` pointer). Every
+ * other line is blanked, so line numbers still match the file.
+ */
+export function checkedTextOf(source: string): string {
+  const at = source.search(DECISIONS_HEADING)
+  if (at === -1) return source
+  const lines = source.split('\n')
+  const keep = new Set<number>()
+  for (let i = 0; i < source.slice(0, at).split('\n').length - 1; i++) keep.add(i)
+  for (const section of adrSections(source)) {
+    if (!section.lines.some((line) => line.trim() === '### Decision')) continue
+    for (const name of ['Status', 'Decision']) {
+      for (const i of subsectionLines(section, name)) keep.add(section.start + i)
+    }
+  }
+  return lines.map((line, i) => (keep.has(i) ? line : '')).join('\n')
 }
 
 // ─── paths ──────────────────────────────────────────────────────────────────
@@ -316,7 +375,7 @@ export function checkBacktickedPathsExist(root: string): CheckResult {
   }
 
   for (const doc of liveInstructionDocs(root)) {
-    const source = liveTextOf(read(root, doc))
+    const source = checkedTextOf(read(root, doc))
     if (PLAN_DOC_STATUS.test(source.split('\n').slice(0, 20).join('\n'))) continue
     for (const block of splitMarkdownBlocks(source)) {
       for (const match of block.text.matchAll(/`([^`\n]+)`/g)) {
@@ -326,22 +385,6 @@ export function checkBacktickedPathsExist(root: string): CheckResult {
           continue
         }
         judge(doc, lineOf(block, match.index ?? 0), candidate)
-      }
-    }
-  }
-
-  // Workflow prompts are JS strings with no backticks to anchor on: any repo-rooted path counts.
-  const bareRepoPath = new RegExp(
-    `(?<![\\w./@-])((?:${REPO_PATH_ROOTS.map((r) => r.replace('.', '\\.')).join('|')})/[A-Za-z0-9_./@-]*[A-Za-z0-9_/-])`,
-    'g'
-  )
-  for (const script of agentWorkflowScripts(root)) {
-    for (const [index, line] of read(root, script).split('\n').entries()) {
-      for (const match of line.matchAll(bareRepoPath)) {
-        const candidate = pathCandidate(match[1] as string)
-        if (candidate === null) continue
-        if (citationReadsAsHistoryOrProposal(line, match.index ?? 0, match[0].length)) continue
-        judge(script, index + 1, candidate)
       }
     }
   }
@@ -380,12 +423,8 @@ export function checkReferencedScripts(root: string): CheckResult {
   const manifests = workspaceManifests(root)
   let checked = 0
 
-  for (const doc of [
-    ...liveInstructionDocs(root),
-    ...agentWorkflowScripts(root),
-    ...hookScripts(root),
-  ]) {
-    const text = doc.endsWith('.md') ? liveTextOf(read(root, doc)) : read(root, doc)
+  for (const doc of [...liveInstructionDocs(root), ...hookScripts(root)]) {
+    const text = doc.endsWith('.md') ? checkedTextOf(read(root, doc)) : read(root, doc)
     const owner = owningManifest(doc)
     const localScripts = owner ? scriptsOf(root, owner) : new Set<string>()
 
@@ -429,6 +468,46 @@ export function checkReferencedScripts(root: string): CheckResult {
   }
 
   return { ok: `documented bun scripts exist (${checked} references checked)`, failures }
+}
+
+// ─── claims ─────────────────────────────────────────────────────────────────
+
+/** Claims the repo has retired, each with what is true instead. */
+export const RETIRED_CLAIMS: [RegExp, string][] = [
+  [/local-first/i, 'ITUN is account-gated: persistence requires an account (ADR-034)'],
+  [/no auth\/backend|do not introduce a backend/i, 'Convex is the server of record (ADR-030)'],
+  [/in-memory (?:backend|only)/i, 'signed out, ITUN is read-only: see apps/itun/CLAUDE.md'],
+  [/\bEntityDisplay\b|\bDisplayCard\b/, 'the card shells are ReferenceEntityCard and Card'],
+  [/prettier/i, 'Biome is the only formatter'],
+  [/"bun test"/, 'the gate is `bun run test`'],
+  [/docs\/rules\//, 'there is no rules digest: `bun run rules:extract`'],
+  [/\/ship\b/, 'there is no /ship skill'],
+]
+
+/** Every doc an agent reads as instructions: live text only, so ADRs keep their history. */
+const agentDocs = (root: string): string[] => [
+  ...liveInstructionDocs(root),
+  ...hookScripts(root),
+  ...['.env.example'].filter((doc) => existsSync(join(root, doc))),
+]
+
+export function checkRetiredClaims(
+  root: string,
+  claims: [RegExp, string][] = RETIRED_CLAIMS
+): CheckResult {
+  const failures: string[] = []
+  const docs = agentDocs(root)
+  for (const doc of docs) {
+    const text = doc.endsWith('.md') ? liveTextOf(read(root, doc)) : read(root, doc)
+    for (const [index, line] of text.split('\n').entries()) {
+      for (const [pattern, truth] of claims) {
+        if (pattern.test(line)) {
+          failures.push(`${doc}:${index + 1} matches ${pattern}, a retired claim: ${truth}.`)
+        }
+      }
+    }
+  }
+  return { ok: `no agent doc repeats a retired claim (${docs.length} docs)`, failures }
 }
 
 // ─── links ──────────────────────────────────────────────────────────────────
@@ -546,6 +625,63 @@ const ADR_FLOOR = 39
 
 const adrId = (n: number): string => `ADR-${String(n).padStart(3, '0')}`
 
+/** "Amends [ADR-022]", "**Supersedes ADR-004**", "reverses ADR-019": one ADR acting on another. */
+const ACTS_ON = /\b(amends|supersedes|reverses|replaces)\b[\s*_]*\[?ADR-(\d{3})\b/gi
+
+/** "**Also amends:**": a lead-in whose list items below it each open on the ADR acted on. */
+const ACTS_ON_LIST = /\b(amends|supersedes|reverses|replaces)\b[^\n]*:[\s*_]*$/i
+
+/** "- [ADR-030](#adr-030) §5: …": the ADR a list item under an ACTS_ON_LIST lead-in names first. */
+const LIST_ITEM_ADR = /^\s*[-*+]\s+[*_]*\[?ADR-(\d{3})\b/
+
+/** Every (verb, target ADR) a Status states, inline or as a list under a lead-in. */
+function actsOn(status: string): { verb: string; target: number }[] {
+  const acts = [...status.matchAll(ACTS_ON)].map((m) => ({
+    verb: (m[1] as string).toLowerCase(),
+    target: Number(m[2]),
+  }))
+  let listVerb: string | undefined
+  for (const line of status.split('\n')) {
+    const leadIn = line.match(ACTS_ON_LIST)
+    if (leadIn) {
+      listVerb = (leadIn[1] as string).toLowerCase()
+      continue
+    }
+    if (listVerb === undefined) continue
+    // The list runs while its lines are items or their indented continuations.
+    if (!/^(\s+\S|[-*+]\s)/.test(line)) {
+      listVerb = undefined
+      continue
+    }
+    const item = line.match(LIST_ITEM_ADR)
+    if (item) acts.push({ verb: listVerb, target: Number(item[1]) })
+  }
+  return acts
+}
+
+/**
+ * An ADR whose Status amends, supersedes or reverses another must be named in
+ * that other ADR's Status, which is where a reader of it looks first.
+ */
+export function missingBackReferences(source: string): string[] {
+  const sections = adrSections(source)
+  const status = new Map(sections.map((section) => [section.n, statusOf(section)]))
+  const failures: string[] = []
+  for (const section of sections) {
+    const self = adrId(section.n)
+    for (const { verb, target } of actsOn(status.get(section.n) ?? '')) {
+      if (target === section.n || !status.has(target)) continue
+      if (status.get(target)?.includes(self)) continue
+      failures.push(
+        `${DECISIONS_DOC}: ${self} ${verb} ${adrId(target)}, but ` +
+          `${adrId(target)}'s Status does not name ${self}. Add a dated line there ` +
+          `("**Amended by [${self}](#${self.toLowerCase()})** …").`
+      )
+    }
+  }
+  return failures
+}
+
 export function checkDecisions(root: string, floor: number = ADR_FLOOR): CheckResult {
   const failures: string[] = []
   if (existsSync(join(root, 'docs/adrs'))) {
@@ -589,8 +725,9 @@ export function checkDecisions(root: string, floor: number = ADR_FLOOR): CheckRe
         `${DECISIONS_DOC} heads \`## ${adrId(n)}\` ${seen} times. Give the new decision the next number.`
       )
   }
+  failures.push(...missingBackReferences(read(root, DECISIONS_DOC)))
   return {
-    ok: `${count.size} ADRs, ${adrId(1)} to ${adrId(highest)}, once each under # Decisions in ${DECISIONS_DOC}`,
+    ok: `${count.size} ADRs, ${adrId(1)} to ${adrId(highest)}, once each under # Decisions in ${DECISIONS_DOC}, every amendment named in the Status it amends`,
     failures,
   }
 }
@@ -605,7 +742,7 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/itun/CLAUDE.md': 13_476,
+  'apps/itun/CLAUDE.md': 13_154,
   'apps/srd/CLAUDE.md': 11_748,
   'CLAUDE.md': 12_065,
   'packages/component-lib/CLAUDE.md': 15_948,
@@ -613,13 +750,14 @@ const OVER_BUDGET: Record<string, number> = {
 }
 
 /**
- * A doc that replaced a folder of docs, and the budget that keeps it terse.
- * Raise one only on purpose, saying why in the PR.
+ * A doc that replaced a folder of docs, and the budget that keeps its live
+ * text (`liveTextOf`: everything above `# Decisions`) terse. The ADRs below
+ * are an append-only record and are not counted. Raise one only on purpose,
+ * saying why in the PR.
  */
 const COLLAPSED_DOCS: Record<string, number> = {
-  // ~60K of architecture plus the 39 ADRs folded in from docs/adrs/, as measured,
-  // plus the Game-only Dashboard's Solo sentences and route (#1052).
-  'docs/ARCHITECTURE.md': 297_617,
+  // The architecture sections as measured when the budget moved to live text.
+  'docs/ARCHITECTURE.md': 55_373,
 }
 
 export function checkDocSizes(
@@ -643,7 +781,8 @@ export function checkDocSizes(
   }
   for (const [doc, base] of budgeted) {
     const budget = overBudget[doc] ?? base
-    const size = [...read(root, doc)].length
+    const text = doc in collapsed ? liveTextOf(read(root, doc)) : read(root, doc)
+    const size = [...text].length
     if (size > budget) {
       failures.push(
         `${doc} is ${size} characters, over its ${budget}-character budget. Cut it: no rosters, ` +
@@ -664,6 +803,7 @@ export function checkDocSizes(
 const CHECKS = [
   checkBacktickedPathsExist,
   checkReferencedScripts,
+  (root: string) => checkRetiredClaims(root),
   (root: string) => checkMarkdownLinks(root),
   (root: string) => checkDecisions(root),
   (root: string) => checkDocSizes(root),
@@ -671,9 +811,10 @@ const CHECKS = [
 
 if (import.meta.main) {
   // A collapsed corpus (a renamed doc directory) would pass every check. The floor is
-  // floor(0.65 × N) for N = 36, the count when docs/architecture/ became docs/ARCHITECTURE.md.
+  // floor(0.65 × N) for N = 21, the count once the workspace READMEs, CONTRIBUTING.md
+  // and the done plans in docs/architecture/ were cut (#1149).
   const liveDocs = liveInstructionDocs(repoRoot)
-  assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 23)
+  assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 13)
   console.log(`  (${liveDocs.length} live-instruction docs scanned)`)
 
   const failures: string[] = []

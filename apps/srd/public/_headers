@@ -13,7 +13,7 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
-  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
   X-DNS-Prefetch-Control: on
   # connect-src MUST list Sentry's ingest origin or the browser blocks every
   # event before it leaves the page — a DSN alone is not enough, and that

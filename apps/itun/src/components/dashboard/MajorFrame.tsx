@@ -3,13 +3,12 @@
  * gauges, buttons and the resolve overlay from a computed `MajorModel`, and
  * knows nothing about rules or the store. `PilotMajor`, `MechMajor` and
  * `CrawlerMajor` each build a model and hand it here, in the slot row and in
- * the ⤢ overlay alike; the Ladle stories drive it with fixture models and no
+ * the ⤢ overlay alike; the stories drive it with fixture models and no
  * store. `StorageBay` composes overlay bodies.
  *
  * Main bays share the width; bays flagged `side` stack in one narrow column on
  * the right (the Mech's Effects and Egress, the Crawler's Upkeep, Upgrade and
- * Scrap), so the main bays get the room (docs/architecture/dashboard-redesign.md
- * D2). It reuses the band's `.pc-*` rules and adds none; everything else is a
+ * Scrap), so the main bays get the room (ADR-038 §3). It reuses the band's `.pc-*` rules and adds none; everything else is a
  * style object (tailwind-removal.md §4).
  */
 
@@ -70,7 +69,7 @@ export type BandBay = {
   columns?: number
   /** Stacks in the narrow side column instead of sharing the main width. */
   side?: boolean
-  /** Full-size gauges: the bigger stat rows of a bay with the width (D2). */
+  /** Full-size gauges: the bigger stat rows of a bay with the width. */
   large?: boolean
 }
 
@@ -132,7 +131,7 @@ const SIDE: CSSProperties = {
 }
 
 /**
- * The bigger stat rows (D2): the same single-row gauge, drawn larger. `zoom`
+ * The bigger stat rows: the same single-row gauge, drawn larger. `zoom`
  * scales its label, track and numeral together and takes the space it draws
  * in, which a `transform` would not.
  */

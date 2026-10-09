@@ -1,6 +1,5 @@
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import { useContext } from 'react'
-import { cn } from '../../utils/cn'
 import { InsideTooltipContext } from './insideTooltipContext'
 
 type TooltipProps = {
@@ -20,12 +19,7 @@ export function Tooltip({ children, content, side = 'top', delayDuration = 200 }
         <BaseTooltip.Trigger render={children as React.ReactElement} />
         <BaseTooltip.Portal>
           <BaseTooltip.Positioner side={side} sideOffset={4}>
-            <BaseTooltip.Popup
-              className={cn(
-                'z-50 max-w-[500px] overflow-hidden rounded-md bg-ink px-3 py-1.5 text-xs text-paper shadow-md',
-                'animate-in fade-in-0 zoom-in-95'
-              )}
-            >
+            <BaseTooltip.Popup className="z-50 max-w-[500px] overflow-hidden rounded-md bg-ink px-3 py-1.5 text-xs text-paper shadow-md">
               {content}
               <BaseTooltip.Arrow className="fill-ink" />
             </BaseTooltip.Popup>

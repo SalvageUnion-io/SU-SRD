@@ -7,15 +7,10 @@
  * nothing to build into without one. The Roster and the three `/…/new` routes
  * render this in place of their create affordances, so a visitor meets the
  * sign-in rather than a wizard whose last step would be refused.
- *
- * A build with no Convex URL (CI, a fresh checkout) can never sign in, and
- * `SignInControl` renders nothing there — so this says so instead of leaving a
- * prompt with no button.
  */
 
 import { PageHeading, Text, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { SignInControl } from './SignInControl'
 
 const PANEL = {
@@ -40,11 +35,7 @@ export function SignInToBuild({ title }: SignInToBuildProps) {
         build is kept in your account, saved as you go, and ready to share with a Game, so building
         needs you signed in.
       </Text>
-      {isConvexConfigured ? (
-        <SignInControl />
-      ) : (
-        <Text variant="body">Accounts are not available in this build, so it is read-only.</Text>
-      )}
+      <SignInControl />
     </section>
   )
 }

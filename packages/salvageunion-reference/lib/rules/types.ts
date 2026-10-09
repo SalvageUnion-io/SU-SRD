@@ -93,63 +93,6 @@ export type MechCapacityResult = {
 }
 
 /**
- * A reference-linked cargo item (resolved from salvageunion-reference).
- */
-export type CargoItemRef = {
-  kind: 'ref'
-  /** Name of the equipment/system in salvageunion-reference */
-  ref: string
-  /** Explicit slot count override (optional; falls back to the dataset value) */
-  slotCount?: number
-}
-
-/**
- * A custom (player-entered) cargo item with no SRD reference.
- */
-export type CargoItemCustom = {
-  kind: 'custom'
-  name: string
-  slotCount: number
-}
-
-export type CargoItem = CargoItemRef | CargoItemCustom
-
-/**
- * Minimal parent shape for a cargo-carrying entity.
- * `cargoCapacity` is the maximum cargo slots.
- *
- * NOTE: `computeCargoCapacity`, the function these cargo types were written
- * for, was deleted as dead code — it had no production consumer. The types
- * survive only because ITUN's ADR-006 shim re-exports them, which is what
- * keeps knip quiet about them. They are candidates for removal.
- */
-export type CargoParent = {
-  cargoCapacity: number
-}
-
-/**
- * Discriminated union of cargo violations.
- */
-export type CargoViolation =
-  | {
-      kind: 'over-capacity'
-      message: string
-      details: { used: number; max: number }
-    }
-  | { kind: 'missing-ref'; message: string; details: { ref: string } }
-
-/**
- * Shape a cargo-capacity calculation returns: slots used, slots available,
- * and any violations. See the note on `CargoParent` — the function that
- * produced this was deleted as dead code.
- */
-export type CargoCapacityResult = {
-  used: number
-  max: number
-  violations: CargoViolation[]
-}
-
-/**
  * Minimal item shape consumed by `scrapCostFor`.
  * Any SU entity with a salvageValue and techLevel satisfies this.
  */

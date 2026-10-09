@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { parseTree } from 'jsonc-parser'
-import { addEntity, setField } from './editDataLogic.js'
+import { addEntity, setField, withId } from './editDataLogic.js'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {
@@ -87,6 +87,25 @@ describe('addEntity', () => {
 
   it('throws on a non-array data file', () => {
     expect(() => addEntity('{}', { id: 'x' })).toThrow()
+  })
+})
+
+describe('withId', () => {
+  it('mints a UUID, first in key order, for an entity with no id', () => {
+    const row = withId({ name: 'Echo', page: 3 })
+    expect(Object.keys(defined(row as Record<string, unknown>))).toEqual(['id', 'name', 'page'])
+    expect((row as { id: string }).id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+    )
+  })
+
+  it('keeps an id the caller supplied', () => {
+    expect(withId({ id: 'eeee-5555', name: 'Echo' })).toEqual({ id: 'eeee-5555', name: 'Echo' })
+  })
+
+  it('passes a non-object through', () => {
+    expect(withId([1, 2])).toEqual([1, 2])
+    expect(withId(null)).toBeNull()
   })
 })
 

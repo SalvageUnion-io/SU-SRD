@@ -1,6 +1,6 @@
 /**
  * BoardControl — the Pilot Major's Mount bay: a split button, and the mech
- * menu its ▾ half opens (docs/architecture/dashboard-redesign.md D4).
+ * menu its ▾ half opens (ADR-038 §3).
  *
  *  - The main half, "▶ Board <assigned mech>", boards the pilot's assigned mech
  *    (`mech-to-pilot`). When that mech can't be boarded (destroyed, someone

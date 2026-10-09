@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'bun:test'
+import { afterAll, afterEach, describe, expect, it, spyOn } from 'bun:test'
+import * as observability from 'observability/cloudflare'
 import type { AssetBucket, ImagesBinding } from '../worker'
 import { makeAssetHandler } from '../worker'
 
@@ -11,6 +12,18 @@ import { makeAssetHandler } from '../worker'
  * until someone prunes them — so the first case below is migration safety, not a
  * leftover.
  */
+
+// Recorded, not sent: the handler imports `reportError` directly, so the test
+// swaps that one export. Test files share a process: restore it after.
+const reportError = spyOn(observability, 'reportError').mockImplementation(() => undefined)
+
+afterEach(() => {
+  reportError.mockClear()
+})
+
+afterAll(() => {
+  reportError.mockRestore()
+})
 
 function bucketWith(entries: Record<string, string>): AssetBucket & { asked: string[] } {
   const asked: string[] = []
@@ -57,11 +70,7 @@ describe('asset worker — derivatives', () => {
     // change needs no coordinated bucket edit to be safe to deploy.
     const bucket = bucketWith({ 'chassis/mule-440.webp': 'baked' })
     const images = imagesStub()
-    const res = await makeAssetHandler(
-      () => bucket,
-      () => {},
-      images
-    )(get('/chassis/mule-440.webp'))
+    const res = await makeAssetHandler(() => bucket, images)(get('/chassis/mule-440.webp'))
 
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('baked')
@@ -71,11 +80,7 @@ describe('asset worker — derivatives', () => {
   it('renders a missing derivative from the master', async () => {
     const bucket = bucketWith({ 'chassis/mule.webp': 'master-bytes' })
     const images = imagesStub()
-    const res = await makeAssetHandler(
-      () => bucket,
-      () => {},
-      images
-    )(get('/chassis/mule-880.webp'))
+    const res = await makeAssetHandler(() => bucket, images)(get('/chassis/mule-880.webp'))
 
     expect(res.status).toBe(200)
     expect(images.calls).toEqual([880])
@@ -94,11 +99,7 @@ describe('asset worker — derivatives', () => {
     const images = imagesStub()
 
     for (const width of [1, 2, 439, 441, 1600, 99999]) {
-      const res = await makeAssetHandler(
-        () => bucket,
-        () => {},
-        images
-      )(get(`/chassis/mule-${width}.webp`))
+      const res = await makeAssetHandler(() => bucket, images)(get(`/chassis/mule-${width}.webp`))
       expect(res.status).toBe(404)
     }
     expect(images.calls).toEqual([])
@@ -117,11 +118,7 @@ describe('asset worker — derivatives', () => {
   it('404s when neither the derivative nor its master exists', async () => {
     const bucket = bucketWith({})
     const images = imagesStub()
-    const res = await makeAssetHandler(
-      () => bucket,
-      () => {},
-      images
-    )(get('/chassis/ghost-440.webp'))
+    const res = await makeAssetHandler(() => bucket, images)(get('/chassis/ghost-440.webp'))
 
     expect(res.status).toBe(404)
     expect(images.calls).toEqual([])
@@ -132,30 +129,21 @@ describe('asset worker — derivatives', () => {
     // the quota is exhausted, the zone is misconfigured, or the master will not
     // decode — all three break artwork silently and none is visible from outside.
     const bucket = bucketWith({ 'chassis/mule.webp': 'master-bytes' })
-    const reported: Array<Record<string, unknown> | undefined> = []
     const exploding = imagesStub(() => {
       throw new Error('9422')
     })
 
-    const res = await makeAssetHandler(
-      () => bucket,
-      (_e, ctx) => reported.push(ctx),
-      exploding
-    )(get('/chassis/mule-440.webp'))
+    const res = await makeAssetHandler(() => bucket, exploding)(get('/chassis/mule-440.webp'))
 
     expect(res.status).toBe(404)
-    expect(reported).toHaveLength(1)
-    expect(reported[0]).toMatchObject({ op: 'images.transform', width: 440 })
+    expect(reportError).toHaveBeenCalledTimes(1)
+    expect(reportError.mock.calls[0]?.[1]).toMatchObject({ op: 'images.transform', width: 440 })
   })
 
   it('does not treat a non-derivative miss as a transformation request', async () => {
     const bucket = bucketWith({})
     const images = imagesStub()
-    const res = await makeAssetHandler(
-      () => bucket,
-      () => {},
-      images
-    )(get('/chassis/mule.webp'))
+    const res = await makeAssetHandler(() => bucket, images)(get('/chassis/mule.webp'))
 
     expect(res.status).toBe(404)
     expect(images.calls).toEqual([])

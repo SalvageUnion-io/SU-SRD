@@ -1,6 +1,6 @@
 /**
  * useBoardSources — what the Board menu reads from the pilot's Game
- * (`boardMenu.ts`; docs/architecture/dashboard-redesign.md D4).
+ * (`boardMenu.ts`; ADR-038 §3).
  *
  * The menu lists mechs that are not the viewer's (a crewmate's, an unclaimed
  * spare), which never reach this browser's entity store, so it reads the Game
@@ -8,9 +8,7 @@
  * and the crawler links, `seats.forGame` for who is aboard what (the same
  * subscription `useSeat` holds), and `account.me` for who "yours" is.
  *
- * Needs a Convex provider, like `useSeat`: call it only when
- * `isConvexConfigured`, and use `NO_BOARD_SOURCES` otherwise. Until the answers
- * arrive, the menu knows only the assigned mech.
+ * Until the answers arrive, the menu knows only the assigned mech.
  */
 
 import { useQuery } from 'convex/react'

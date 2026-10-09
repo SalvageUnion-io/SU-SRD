@@ -27,7 +27,7 @@ export type RailBarProps = {
   /** Saved / offline, at the right before the action (the app's `SavedIndicator`). */
   status?: ReactNode
   /**
-   * The Mediator's Downtime control (plan D8): Start while it is not running,
+   * The Mediator's Downtime control (ADR-038 §5): Start while it is not running,
    * End while it is. When set it takes the place of the settings button.
    */
   downtimeAction?: { label: string; title: string; onClick: () => void }

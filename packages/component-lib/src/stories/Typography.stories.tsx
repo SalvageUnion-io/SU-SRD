@@ -9,7 +9,7 @@ export default {
   title: 'Foundations/Typography',
 }
 
-// Specimens are driven by real SRD copy (preloaded by .ladle/components.tsx);
+// Specimens are driven by real SRD copy (preloaded by catalog.tsx);
 // where a literal is needed we use a real game term, never lorem.
 const chassis = SalvageUnionReference.Chassis.all()[0]
 const system = SalvageUnionReference.Systems.all()[0]
@@ -27,14 +27,14 @@ const specimenBody =
 // Migrated off Tailwind in #799 (epic #802). Each table is now DERIVED from
 // `design/tokens.ts` rather than restating a utility class beside a hand-typed
 // pixel value, which is what component-lib/CLAUDE.md means by "specimens are
-// generated from the tokens so they cannot drift". The `--su-*` custom-property
+// generated from the tokens so they cannot drift". The theme.css custom-property
 // name is spelled mechanically from the token key, exactly as
 // `tokens.parity.test.ts` spells it, so this page cannot claim a property the
-// stylesheet does not emit.
+// stylesheet does not declare.
 
-/** `fontSize.labelLg` → `--su-text-label-lg`. */
+/** `fontSize.labelLg` → `--text-label-lg`. */
 const cssVarName = (group: string, key: string) =>
-  `--su-${group}-${key
+  `--${group}-${key
     .replace(/([A-Z])/g, '-$1')
     .replace(/(\d+)$/, '-$1')
     .toLowerCase()}`
@@ -196,7 +196,7 @@ function Section({
 export const Scale: Story = () => (
   <Section
     title="Type scale — the one font-size ladder"
-    blurb="design/tokens.ts fontSize.nano … fontSize.lede, emitted as --su-text-nano … --su-text-lede. Reach for a rung by name; never an arbitrary pixel value for a step on this ladder."
+    blurb="design/tokens.ts fontSize.nano … fontSize.lede, declared as --text-nano … --text-lede. Reach for a rung by name; never an arbitrary pixel value for a step on this ladder."
   >
     {SCALE_RUNGS.map(([key, use]) => (
       <Row

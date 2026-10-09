@@ -1,4 +1,4 @@
-# Tailwind removal — the phased plan (#802)
+# Tailwind removal — the phased plan
 
 > **Status:** Funded plan, dated **2026-09-25**. Decision: fund the removal with
 > a plan, and run it phase by phase against the ratchets below. Executing the
@@ -6,9 +6,8 @@
 > its own PR series.
 >
 > **Supersedes nothing yet.** An ADR recording the styling change is a phase 6
-> prerequisite (see there); until it lands, this document and the epic
-> ([#802](https://github.com/SalvageUnion-io/SU-SRD/issues/802), layers
-> #798 → #799 → #800 → #801) are the record.
+> prerequisite (see there); until it lands, this document is the one record
+> of the plan and its progress. No issue tracks it.
 >
 > This file also holds the styling reasoning that used to live in
 > `packages/component-lib/CLAUDE.md` — cascade proofs, the focus-visible trap,
@@ -21,9 +20,9 @@
 | --- | --- | --- | --- |
 | Tailwind utilities | `className=` / `cn()` / `cva()`, plus class strings held in constants and lookup maps, in the three UI workspaces | **329 files** (`tailwind-utility-file`) | gone |
 | `.su-*` package stylesheet | `packages/component-lib/src/styles/index.css` | 894 lines | **stays** — the one stylesheet |
-| `theme.css` (`@theme`) | `packages/component-lib/src/styles/theme.css` | 490 lines | folded into `index.css`, deleted |
-| Dashboard `.pc-*` scope | `styles/dashboard/{DashboardCanvas,DashboardGrid,instruments}.css` via `styles/dashboard.css` | **129 classes** (`pc-class-defined`), ~1,370 lines | folded into `.su-*`, deleted |
-| Typed tokens | `packages/component-lib/src/design/tokens.ts` | imported by 8 `.tsx` files, all Ladle catalog pages or harnesses | **stays** — the one token source |
+| `theme.css` (`@theme`) | `packages/component-lib/src/styles/theme.css` | 490 lines | **stays** — the one token set; its `@theme` becomes plain `:root` in P7 |
+| Dashboard `.pc-*` scope | ITUN's `src/styles/dashboard/{DashboardCanvas,DashboardGrid,instruments}.css` via `src/styles/dashboard.css` | **129 classes** (`pc-class-defined`), ~1,370 lines | ported to style objects and ITUN-owned rules, deleted |
+| Typed tokens | `packages/component-lib/src/design/tokens.ts` | imported by 8 `.tsx` files, all story catalog pages or harnesses | **stays** — `theme.css` mirrored for style objects |
 
 Tailwind files by workspace: `apps/itun` 88, `apps/srd` 24, component-lib 217
 (`shared` 65, `chrome` 52, `referenceEntity` 25, `dashboard` 21, `wizard` 20,
@@ -35,10 +34,12 @@ in all. The Dashboard, sheet and wizard files are ITUN's now, so they migrate
 in P6 rather than P4/P5; the phase boundaries below say so. `bun tools/check-styling.ts --report` prints the
 current per-file list; it is the work-list, so it is not copied here.
 
-**End state: one system** — `tokens.ts` for values, `index.css` for every rule
-a style object cannot express, and nothing else. No `@theme`, no utilities, no
-`.pc-*`, no `cn()`/`tailwind-merge`/`class-variance-authority` doing Tailwind
-conflict resolution.
+**End state: one system** — `theme.css` for values (as plain custom
+properties, mirrored by `tokens.ts` for style objects), `index.css` for every
+rule a style object cannot express, and nothing else. No `@theme`, no
+utilities, no `.pc-*`, no `cn()`/`tailwind-merge`/`class-variance-authority`
+doing Tailwind conflict resolution. Rules only ITUN renders, the Dashboard's
+among them, stay in ITUN: `index.css` is loaded by srd too.
 
 ## 2. The ratchets (in force now)
 
@@ -89,39 +90,34 @@ Dashboard scope after the component-lib groups it depends on.
 
 ### P0 — Foundations ✅ (landed)
 
-`tokens.ts`, `index.css`, the `--su-*` custom properties, the per-property split
-rule (§4), `tokens.parity.test.ts`, the layered `ladle.css` import, and the
-`package-stylesheet-import` guard. The Foundations Ladle group carries no
+`tokens.ts`, `index.css`, the per-property split rule (§4),
+`tokens.parity.test.ts` (holding `tokens.ts` to `theme.css`), the one Tailwind
+entry `styles/tailwind.css` that the apps and the story catalog import, and the
+`package-stylesheet-import` guard. The Foundations story group carries no
 Tailwind. The ratchets in §2 landed with this plan.
 
-### P1 — Close the alpha-rung gap (design call, blocks P2)
+### P1 — Alpha modifiers port as `color-mix()` (mechanical)
 
-Tailwind's `/NN` opacity modifier is an **open** mechanism and `tokens.ts` is a
-**closed** set. As of the last count, 34 alpha usages across 17 non-story files
-have no matching rung, in 17 spellings: `ink/5`, `ink/35`, `ink/55`, `ink/60`,
-`ink/70`, `paper/10`, `paper/15`, `paper/40`, `paper/55`, `paper/70`,
-`paper/80`, `paper/85`, `paper/95`, `rust/25`, `caution/25`, `status-bad/25`,
-`wk-faint/80`.
+Tailwind's `/NN` opacity modifier compiles to
+`color-mix(in oklab, var(--color-<name>) NN%, transparent)` — read any built
+stylesheet: `.text-ink\/60` is exactly that, behind a hex fallback for browsers
+without `color-mix()`. So a migrated call site writes the same expression, and
+the port is mechanical rather than a design call:
 
-Rounding one to a neighbouring rung is a re-tone, and a raw `rgb(… / .NN)` at
-the call site is a `tokens/raw-color` violation, so adding rungs is the
-only legal move — but choosing which rungs the system owns enlarges the closed
-colour set and is a **design** decision, not a port.
+- in a stylesheet rule, `color-mix(in oklab, var(--color-ink) 60%, transparent)`;
+- in a style object, `` `color-mix(in oklab, ${color.ink} 60%, transparent)` ``.
 
-- **Exit:** every spelling above either has a rung in `tokens.ts` **and** a
-  `--su-*` property (parity test green), or its call site has been redesigned
-  away. Atoms needs four (`paper/70` Stat, `ink/55` + `ink/70` VitalGauge,
-  `status-bad/25` InlineEditField); Containers seven more; Compositions the
-  rest.
-- `rust/25` is already resolved: Toggle's 25% focus wash measured 1.42:1 against
-  a required 3:1 and moved to the offset ring. The `rust25` rung survives for
-  `RosterSkeleton`'s genuine wash.
+It is the value the utility already paints, so it is not a re-tone; it holds
+no colour literal, so `tokens/raw-color` passes; and it needs no new rung. An
+alpha that already has one (`ink60`, `paper70`, `statusBad25`, …) uses it.
+Whether the closed colour set should own every alpha as a rung instead is an
+open design question for the owner; it does not block P2.
 
 ### P2 — component-lib Atoms
 
-- **Scope:** every file behind an `Atoms/*` Ladle story.
+- **Scope:** every file behind an `Atoms/*` story.
 - **Exit:** no Atoms file in `check-styling.ts --report`'s `tailwind-utility-file`
-  list; Ladle renders the group identically to `main` (screenshot pair in the
+  list; the story catalog renders the group identically to `main` (screenshot pair in the
   PR); baseline lowered.
 
 ### P3 — component-lib Containers
@@ -145,22 +141,22 @@ files, and the `pc-class-contract` guard that keeps it closed. It is a phase,
 not a footnote, because it is the largest single stylesheet in the repo and the
 one most likely to be left behind "because it already works".
 
-- Fold each `.pc-*` rule into a `.su-*` class in `index.css` (or a style
-  object, per §4), move the `.pc-root` properties onto `--su-*` tokens, and
+- Port each `.pc-*` rule to a style object (per §4) or, when it is
+  stateful, a rule in ITUN's own stylesheet — never `index.css`, which srd
+  loads too. Move the `.pc-root` properties onto `theme.css` tokens, and
   migrate the Tailwind files under `apps/itun/src/components/dashboard/`.
-- Delete `styles/dashboard.css` and its package export once empty; ITUN's
-  `Dashboard.tsx` import goes with it.
+- Delete ITUN's `src/styles/dashboard.css` and `src/styles/dashboard/` once
+  empty; the `Dashboard.tsx` import goes with them.
 - **Exit:** `pc-class-defined` is 0 and the rule plus `pc-class-contract` are
   deleted; no `apps/itun/src/components/dashboard/` file in the Tailwind list; the Dashboard
-  Ladle stories and the ITUN dashboard route render identically to `main`.
+  stories and the ITUN dashboard route render identically to `main`.
 - **Status (2026-10-07): open.** The Dashboard redesign
-  ([dashboard-redesign.md](../architecture/dashboard-redesign.md) §4.3) was to
-  finish P5 and did not. Its new components are style objects with no `.pc-*`
+  ([ADR-038](../ARCHITECTURE.md#adr-038)) was to finish P5 and did not. Its new components are style objects with no `.pc-*`
   class, and its deletions took `pc-class-defined` from 129 to 103, but the
   Major's bays, the deck, resolve, Tables, SRD and Downtime surfaces still use
   `.pc-*` rules, and 13 files under `components/dashboard/` are still in the
-  Tailwind list. `styles/dashboard.css`, its export and `pc-class-contract`
-  stay until the count is 0.
+  Tailwind list. `styles/dashboard.css` and `pc-class-contract` stay until the
+  count is 0.
 
 ### P6 — The apps
 
@@ -176,12 +172,12 @@ compares markup or CSS, so each srd PR carries a visual check of the affected pa
   missed (a string built by concatenation, a class passed through data) — and
   it is measured on the **DOM**, not on the stylesheet:
   - Take the utility selectors from the built CSS of each surface (srd's
-    `dist/assets/styles-*.css`, ITUN's build, Ladle's build): the class names
+    `dist/assets/styles-*.css`, ITUN's build, the story catalog's compiled `catalog.css`): the class names
     inside `@layer utilities`.
   - Take the class tokens actually present on elements: srd's built HTML
     **plus** the DOM after its islands mount (they render client-side only, so
-    the static HTML alone misses them), ITUN's routes, and every Ladle story —
-    crawled with the Playwright the repo already carries for `a11y-scan`.
+    the static HTML alone misses them), ITUN's routes, and every story in the catalog —
+    crawled with the Playwright the repo already carries for its e2e specs.
   - The check passes when the intersection is empty. A non-empty intersection
     is the work-list: each entry names an element and a utility it still
     depends on.
@@ -211,15 +207,17 @@ compares markup or CSS, so each srd PR carries a visual check of the affected pa
 - Drop `tailwindcss`, `@tailwindcss/vite` (catalog + three manifests),
   `tailwind-merge`, and the `tailwindcss()` plugin from `apps/itun/vite.config.ts`
   and `apps/srd/ssg/vite.config.ts`.
-- Fold `theme.css`'s `@theme` block into `index.css`'s `--su-*` properties and
-  delete `theme.css`; reduce `cn()` to a plain class joiner or delete it.
-- Import `index.css` **unlayered** in both apps (the `layer(su-base)` wrapping
-  exists only to lose to Tailwind's utilities) and rewrite the
-  `package-stylesheet-import` guard to match.
+- Turn `theme.css`'s `@theme` block into plain `:root` custom properties. It
+  already restates the Tailwind built-ins it uses (`--text-xs` … `--text-3xl`,
+  `--font-weight-*`), so no token disappears with Tailwind's defaults. Reduce
+  `cn()` to a plain class joiner or delete it.
+- Reduce `styles/tailwind.css` to `theme.css` plus an **unlayered** `index.css`
+  (the `layer(su-base)` wrapping exists only to lose to Tailwind's utilities)
+  and rewrite the `package-stylesheet-import` guard to match.
 - Delete the `tailwind-utility-file` rule and `tools/lib/tailwindClasses.ts`;
   re-target the `tokens` rule set from `@theme` entries to `tokens.ts`.
 - **Exit:** `grep -ri tailwind` finds only historical references; `bun run
-  check` green; built CSS size recorded before and after (#802's success list).
+  check` green; built CSS size recorded before and after.
   None of those three notices an element that silently lost its styling, so
   P7 must not start until P6's
   DOM-intersection check has passed on the commit it branches from.
@@ -288,21 +286,22 @@ cannot — that is the one thing that must not be lost in translation.)
 
 ### Edit both token forms or neither
 
-The scale exists as TypeScript (`tokens.ts`) and as `--su-*` properties
-(`index.css`) because neither form can do the other's job.
+The scale exists as custom properties (`theme.css`, which `index.css` reads)
+and as TypeScript (`tokens.ts`) because neither form can do the other's job.
 `src/design/tokens.parity.test.ts` fails if they disagree.
 
 ## 5. While both systems are live
 
-- `theme.css` stays the source of record and Tailwind works untouched: the
-  token scale re-shapes the values already there; it is not a re-design.
-- **Both app entry stylesheets and `src/styles/ladle.css` import `index.css`
-  into `layer(su-base)`, declared before `utilities`.** `index.css` is written
-  to be loaded alone once Tailwind leaves, so its base block is unlayered — and
-  unlayered CSS beats layered CSS whatever the source order. A plain `@import`
-  landed `h1,…,h6 { font-size: inherit }` past the utilities layer and
-  flattened every heading. the `styling/package-stylesheet-import` rule
-  guards the app side.
+- `theme.css` is the one token set and Tailwind works untouched: `tokens.ts`
+  re-shapes the values already there; it is not a re-design.
+- **One Tailwind entry, `src/styles/tailwind.css`, imports `index.css` into
+  `layer(su-base)`, declared before `utilities`; both apps and
+  `src/styles/catalog.css` import that entry and never Tailwind itself.**
+  `index.css` is written to be loaded alone once Tailwind leaves, so its base
+  block is unlayered — and unlayered CSS beats layered CSS whatever the source
+  order. A plain `@import` landed `h1,…,h6 { font-size: inherit }` past the
+  utilities layer and flattened every heading. The
+  `styling/package-stylesheet-import` rule guards both halves.
 
 ## 6. Verification traps (read before "checking" a style)
 

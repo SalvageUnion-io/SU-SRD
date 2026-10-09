@@ -277,7 +277,7 @@ describe('resolveChoiceView — removeTrait effect', () => {
   })
 })
 
-describe('resolveChoiceView — inferred trait choices (schemaEntities)', () => {
+describe('resolveChoiceView — inferred trait choices (catalog entities)', () => {
   it('adds a trait named after the selected entity', () => {
     const e = entity({ choices: [traitSchemaChoice('wt', ['Ballistic', 'Energy'])] })
     const view = resolveChoiceView(e, { wt: ['Ballistic'] })
@@ -326,7 +326,7 @@ describe('resolveChoiceView — prompts for unresolved choices', () => {
     expect(resolveChoiceView(e, {}).prompts).toEqual([])
   })
 
-  it('does not prompt for an exclusive choiceOptions choice (only trait-schema choices are required)', () => {
+  it('does not prompt for an exclusive options choice (only trait-schema choices are required)', () => {
     const e = entity({ choices: [optionChoice('mod', [option('a'), option('b')])] })
     expect(resolveChoiceView(e, {}).prompts).toEqual([])
   })

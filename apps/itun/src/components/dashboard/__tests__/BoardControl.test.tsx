@@ -1,6 +1,6 @@
 /**
  * The Board control in the Pilot Major's Mount bay: the split button and the
- * mech menu its ▾ opens (docs/architecture/dashboard-redesign.md D4; #1055).
+ * mech menu its ▾ opens (ADR-038 §3; #1055).
  *
  * The menu's contents are `boardMenu.ts`'s, tested on their own in
  * `boardMenu.test.ts`; this drives what a player presses, and records what

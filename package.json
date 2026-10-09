@@ -5,32 +5,45 @@
   "type": "module",
   "packageManager": "bun@1.4.0",
   "license": "https://leyline.press/pages/salvage-union-open-game-licence-1-0b",
-  "workspaces": [
-    "apps/*",
-    "packages/*",
-    "tools"
-  ],
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*",
+      "tools"
+    ],
+    "catalog": {
+      "@base-ui/react": "1.6.0",
+      "@fontsource/barlow": "5.3.0",
+      "@fontsource/barlow-semi-condensed": "5.3.0",
+      "@sentry/browser": "10.69.0",
+      "lucide-react": "1.33.0",
+      "react": "19.2.8",
+      "react-dom": "19.2.8"
+    }
+  },
   "overrides": {
-    "fast-uri": ">=3.1.6 <4",
-    "filelist": ">=1.0.6",
-    "nanoid": ">=3.3.18",
     "sharp": ">=0.35.5"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",
     "@happy-dom/global-registrator": "20.11.6",
+    "@playwright/test": "1.62.1",
+    "@tailwindcss/vite": "4.3.3",
     "@testing-library/dom": "10.4.1",
     "@testing-library/jest-dom": "7.0.0",
     "@testing-library/react": "16.3.2",
     "@types/node": "26.2.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
+    "@vitejs/plugin-react-swc": "4.3.3",
     "bun-types": "1.4.0",
     "fake-indexeddb": "6.2.5",
     "knip": "6.32.2",
     "lefthook": "2.1.10",
     "tailwindcss": "4.3.3",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "vite": "8.2.2",
+    "wrangler": "4.147.0"
   },
   "scripts": {
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && bunx lefthook install || true",
@@ -51,15 +64,13 @@
     "test:coverage": "bun tools/run-coverage.ts",
     "e2e:itun": "cd apps/itun && bunx playwright test",
     "clean": "bun --filter \"*\" clean || true",
-    "reap": "tools/prune-stale-worktrees.sh",
     "knip": "knip",
     "check": "bun tools/check.ts",
     "check:fast": "bun tools/check.ts --profile=fast",
-    "check:observability:live": "bun tools/check-observability.ts --live",
-    "check:convex-parity:live": "bun tools/check-convex-parity.ts",
+    "audit": "bun audit",
     "check:printed-names": "bun tools/check-printed-names.ts",
     "assets:export": "bun tools/export-lp-assets.ts",
     "assets:upload": "bun tools/upload-lp-assets.ts",
-    "ladle": "bun --filter component-lib ladle"
+    "stories": "bun --filter component-lib stories"
   }
 }

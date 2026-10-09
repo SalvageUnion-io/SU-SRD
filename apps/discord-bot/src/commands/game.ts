@@ -1,9 +1,8 @@
 import type { SlashCommandSubcommandGroupBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
-import { buildChannelEmbed, denialMessage } from '../gameEmbed.js'
-import { itunSettings } from '../itunSettings.js'
+import { channelCard, denialMessage, ITUN_ORIGIN } from '../gameCards.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-import { itun, respondWithItun, SOLO_NOTICE } from './itunReply.js'
+import { itun, respondWithItun } from './itunReply.js'
 
 /**
  * `/su game bind | unbind | info` — the channel↔Game link (ADR-030 Phase 6).
@@ -53,13 +52,7 @@ export const gameCommand = {
 
   /** Autocomplete over the caller's own games — never anybody else's. */
   async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
-    const client = itun()
-    if (client === null) {
-      await interaction.respond([])
-      return
-    }
-
-    const result = await client.gamesForAutocomplete(interaction.user.id)
+    const result = await itun().gamesForAutocomplete(interaction.user.id)
     if (result.kind !== 'ok') {
       await interaction.respond([])
       return
@@ -101,11 +94,6 @@ async function bind(interaction: CommandExecuteInteraction): Promise<void> {
   if (channelId === null) return
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral })
-  const client = itun()
-  if (client === null) {
-    await interaction.editReply({ content: SOLO_NOTICE })
-    return
-  }
 
   // Picked, not typed. The option carries a Convex id, and a hand-typed name
   // fails `v.id('games')` validation server-side — which the bot renders as
@@ -119,11 +107,11 @@ async function bind(interaction: CommandExecuteInteraction): Promise<void> {
     return
   }
 
-  const result = await client.bind(interaction.user.id, channelId, gameId)
+  const result = await itun().bind(interaction.user.id, channelId, gameId)
 
   if (result.kind === 'denied') {
     await interaction.editReply({
-      content: denialMessage(result.reason, itunSettings().webUrl, result.message),
+      content: denialMessage(result.reason, ITUN_ORIGIN, result.message),
     })
     return
   }
@@ -143,16 +131,11 @@ async function unbind(interaction: CommandExecuteInteraction): Promise<void> {
   if (channelId === null) return
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral })
-  const client = itun()
-  if (client === null) {
-    await interaction.editReply({ content: SOLO_NOTICE })
-    return
-  }
 
-  const result = await client.unbind(interaction.user.id, channelId)
+  const result = await itun().unbind(interaction.user.id, channelId)
   if (result.kind === 'denied') {
     await interaction.editReply({
-      content: denialMessage(result.reason, itunSettings().webUrl, result.message),
+      content: denialMessage(result.reason, ITUN_ORIGIN, result.message),
     })
     return
   }
@@ -170,6 +153,6 @@ async function info(interaction: CommandExecuteInteraction): Promise<void> {
   await respondWithItun(interaction, {
     visibility: 'public',
     call: (client) => client.channel(interaction.user.id, channelId),
-    render: (value) => buildChannelEmbed(value, itunSettings().webUrl),
+    render: (value) => channelCard(value, ITUN_ORIGIN),
   })
 }

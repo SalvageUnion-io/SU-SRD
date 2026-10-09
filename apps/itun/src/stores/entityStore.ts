@@ -1,5 +1,6 @@
 /**
- * entityStore — Zustand store wrapping the Wave 1 db/ CRUD layer.
+ * entityStore — Zustand store over the db/ CRUD layer, the account's IndexedDB
+ * cache of Convex (ADR-034).
  *
  * Hydration strategy: lazy auto-hydration.
  * When list(type) is called and that type is not yet hydrated, hydrate(type)
@@ -9,16 +10,16 @@
  * Subsequent calls after hydration return the in-memory array synchronously
  * (no extra db round-trip).
  *
- * Write-through: create/update/delete persist to IndexedDB first. On success
- * the in-memory state is updated atomically via Zustand's set(). On failure
- * the db error propagates to the caller; in-memory state is not mutated.
+ * Server first: create/update/delete commit to Convex, then write the
+ * IndexedDB cache, then update the in-memory state via Zustand's set(). A
+ * refused or failed write propagates to the caller and changes nothing local.
  *
- * Multi-tab (plan 2.7): every successful write publishes the affected object
- * store via lib/db/broadcast; writes made by OTHER tabs invalidate this tab's
- * cache (already-hydrated stores are re-read from IndexedDB). Crawler-bay
- * edits go through updateCrawlerBay(), which merges a single bay entry onto
- * the freshest persisted record instead of replacing the whole array from a
- * possibly-stale in-memory copy.
+ * Multi-tab: there is no tab-to-tab channel. Each tab hears another tab's
+ * writes through its own Convex subscription: `ShelfSync` adopts creates and
+ * edits and forgets deletes, the latter only where `lib/db/pruneRules.ts`
+ * lets absence mean deletion. Crawler-bay edits go through updateCrawlerBay(),
+ * which merges a single bay entry onto the freshest persisted record instead
+ * of replacing the whole array from a possibly-stale in-memory copy.
  *
  * Integrity (plan 2.7): deleting a pilot/mech/crawler also prunes every
  * SoftLink whose `from` or `to` endpoint references it — no more orphaned
@@ -32,9 +33,9 @@
  */
 
 import { create } from 'zustand'
+import { staleWriteOf } from '../lib/connection/staleWrite'
 import type { ContainerFields } from '../lib/container'
 import { containerOf, moveTo, sameContainer } from '../lib/container'
-import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import * as db from '../lib/db/index'
 import type { StoreName } from '../lib/db/stores'
 import { STORE_NAMES } from '../lib/db/stores'
@@ -46,6 +47,7 @@ import {
   endsMatchType,
   sameLink,
 } from '../lib/links/linkRules'
+import { captureException } from '../lib/observability'
 import type { Crawler } from '../lib/schemas/crawler'
 import type { Mech } from '../lib/schemas/mech'
 import type { Pilot } from '../lib/schemas/pilot'
@@ -54,11 +56,14 @@ import { getActiveContainer } from './activeContainerStore'
 import {
   commitEntityWrite,
   commitSoftLink,
+  commitTransfer,
   readableRows,
   requireWritableBackend,
+  StaleWriteRefused,
 } from './entityBackend'
 import type { ChangeMeta } from './entityChangeLog'
 import { emitChangeLog } from './entityChangeLog'
+import { noteVersion } from './serverVersions'
 import type { CreateInput, EntityForType, EntityType } from './types'
 
 // Re-exported: every surface imports the provenance tag type from the store.
@@ -89,8 +94,6 @@ export type EntityState = {
 
   /**
    * Re-reads the given type from IndexedDB even when already hydrated.
-   * Used for cross-tab invalidation; no-op when the type was never hydrated
-   * (lazy hydration will read fresh data anyway).
    */
   rehydrate: (type: EntityType) => Promise<void>
 
@@ -176,9 +179,10 @@ export type EntityState = {
   delete: (type: EntityType, id: string) => Promise<void>
 
   /**
-   * Cross-entity value transfer: validates every patch, then commits all
-   * updates and deletes in ONE IndexedDB transaction (all-or-nothing). Use
-   * for flows that move value between entities — scrap-mech, cargo
+   * Cross-entity value transfer: validates every patch, commits all updates
+   * and deletes to the server in ONE mutation (`entities.transfer`), then
+   * writes them in ONE IndexedDB transaction — all-or-nothing at both ends.
+   * Use for flows that move value between entities — scrap-mech, cargo
    * stow/load, salvage hand-offs — where a partial write would duplicate or
    * destroy player data. Deletes cascade SoftLinks like delete().
    */
@@ -194,8 +198,11 @@ export type EntityState = {
 
 /** One update inside a transfer() — the discriminant ties patch to type. */
 export type TransferUpdate = {
-  [T in EntityType]: { type: T; id: string; patch: Partial<EntityForType<T>> }
-}[EntityType]
+  [T in ContainedType]: { type: T; id: string; patch: Partial<EntityForType<T>> }
+}[ContainedType]
+
+/** The entity types a transfer writes: a link is drawn by `create`, not moved. */
+type ContainedType = Exclude<EntityType, 'softLink'>
 
 /** Maps EntityType discriminant to its db accessor and Zustand state key. */
 type StoreKey = 'pilots' | 'mechs' | 'crawlers' | 'softLinks'
@@ -239,10 +246,16 @@ const DB_STORES: { [K in EntityType]: DbStoreApi<K> } = {
  *
  * Each type still dispatches differently, and each difference is a rule rather
  * than an implementation detail: a crawler sends its *patch* so a write from a
- * stale copy merges rather than undoing a field it did not touch (ADR-030 §5,
- * D19; only the table runner writes a Game's crawler since ADR-038 §5), a pilot
+ * stale copy merges rather than undoing a field it did not touch (ADR-030 §5;
+ * only the table runner writes a Game's crawler since ADR-038 §5), a pilot
  * or mech sends its whole body, and
  * a soft link is addressed by its endpoints because the server has no id for it.
+ *
+ * A pilot or mech body is refused when the server's row has moved past the
+ * copy it was made from (`entities.upsertByAppId`). The refusal carries the
+ * server's row, which is adopted here before the write fails — so the sheet
+ * shows what the other device saved, and the player re-applies their change on
+ * top of it rather than over it.
  */
 async function commitWrite(
   type: EntityType,
@@ -266,12 +279,43 @@ async function commitWrite(
     return
   }
 
-  await commitEntityWrite(type, {
-    kind: 'upsert',
-    appId: record.id,
-    gameId,
-    body: record,
-  })
+  try {
+    await commitEntityWrite(type, {
+      kind: 'upsert',
+      appId: record.id,
+      gameId,
+      body: record,
+    })
+  } catch (err) {
+    throw await refusalOf(err, () => ({ type, id: record.id }))
+  }
+}
+
+/**
+ * What a refused commit throws. A stale-write refusal carries the server's
+ * pilot or mech row, which is adopted first, so the sheet shows what the other
+ * device saved and the player re-applies their change on top of it rather than
+ * over it; `rowOf` names the refused record from the body's id. Any other
+ * refusal is thrown as it came.
+ */
+async function refusalOf(
+  err: unknown,
+  rowOf: (bodyId: string | undefined) => { type: EntityType; id: string } | undefined
+): Promise<unknown> {
+  const stale = staleWriteOf(err)
+  if (stale === null) return err
+  try {
+    const row = rowOf((stale.body as { id?: string } | null)?.id)
+    if (row !== undefined) {
+      await useEntityStore.getState().adopt(row.type, stale.body as never)
+      noteVersion(row.id, stale.updatedAt)
+    }
+  } catch (adoptErr) {
+    // The refusal still stands and is still shown; only the refresh failed,
+    // and `ShelfSync` brings the row down on its next emission regardless.
+    captureException(adoptErr)
+  }
+  return new StaleWriteRefused(stale.message, { cause: err })
 }
 
 /**
@@ -288,8 +332,8 @@ function dbStoreFor<T extends EntityType>(type: T): DbStoreApi<T> {
   return DB_STORES[type] as DbStoreApi<T>
 }
 
-/** Object-store name for broadcast messages. */
-function broadcastNameFor(type: EntityType): StoreName {
+/** The IndexedDB object store holding one entity type. */
+function storeNameFor(type: EntityType): StoreName {
   switch (type) {
     case 'pilot':
       return STORE_NAMES.pilots
@@ -300,10 +344,6 @@ function broadcastNameFor(type: EntityType): StoreName {
     case 'softLink':
       return STORE_NAMES.softLinks
   }
-}
-
-function afterWrite(type: EntityType): void {
-  publishStoreChange(broadcastNameFor(type))
 }
 
 /**
@@ -394,7 +434,6 @@ async function createSoftLink(
       ...s.softLinks.filter((l) => !replacedIds.has(l.id)),
     ],
   }))
-  publishStoreChange(STORE_NAMES.softLinks)
   return present ?? record
 }
 
@@ -419,7 +458,6 @@ async function pruneLinksAfterMove(
   const brokenIds = new Set(broken.map((l) => l.id))
   await writeLinksLocally(null, [...brokenIds])
   set((s) => ({ softLinks: s.softLinks.filter((l) => !brokenIds.has(l.id)) }))
-  publishStoreChange(STORE_NAMES.softLinks)
 }
 
 export const useEntityStore = create<EntityState>((set, get) => ({
@@ -494,7 +532,6 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     set((state) => ({
       [key]: [record, ...(state[key] as EntityForType<T>[])],
     }))
-    afterWrite(type)
     return record
   },
 
@@ -512,7 +549,6 @@ export const useEntityStore = create<EntityState>((set, get) => ({
         [key]: exists ? list.map((e) => (e.id === cached.id ? cached : e)) : [cached, ...list],
       }
     })
-    publishStoreChange(broadcastNameFor(type))
     return cached
   },
 
@@ -523,21 +559,20 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       // ones the server no longer holds through here.
       await writeLinksLocally(null, [id])
       set((state) => ({ softLinks: state.softLinks.filter((l) => l.id !== id) }))
-      publishStoreChange(STORE_NAMES.softLinks)
       return
     }
     // Local only, and cascading like `delete` does: a SoftLink pointing at an
     // entity this browser no longer holds would render as a broken cross-link.
-    const prunedIds = await db.deleteEntityWithSoftLinks(broadcastNameFor(type), id)
+    const prunedIds = await db.atomicWrite([
+      { op: 'delete', storeName: storeNameFor(type), id, pruneSoftLinks: true },
+    ])
     if (prunedIds.length > 0) {
       const pruned = new Set(prunedIds)
       set((state) => ({ softLinks: state.softLinks.filter((l) => !pruned.has(l.id)) }))
-      publishStoreChange(STORE_NAMES.softLinks)
     }
     set((state) => ({
       [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
     }))
-    publishStoreChange(broadcastNameFor(type))
   },
 
   async update<T extends EntityType>(
@@ -560,7 +595,6 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     set((state) => ({
       [key]: (state[key] as EntityForType<T>[]).map((e) => (e.id === id ? updated : e)),
     }))
-    afterWrite(type)
     // A move takes along only the links whose other end is already where it is
     // going (ADR-037) — the server pruned the rest in the same commit.
     if (type !== 'softLink' && before !== null) {
@@ -574,11 +608,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       }
     }
     // Provenance (ADR-022): one entry per changed field, at this one chokepoint.
-    // Deliberately awaited (not fire-and-forget): the ~1ms IDB append is
-    // negligible, and awaiting guarantees the log is
-    // consistent the moment update() resolves — a reader that opens the Change
-    // Log right after an edit sees the entry, and tests stay deterministic.
-    await emitChangeLog(type, id, patch, before, updated, meta)
+    emitChangeLog(type, id, patch, before, updated, meta)
     return updated
   },
 
@@ -617,73 +647,49 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       }))
     )
 
-    // Phase 1b — commit every update to the server BEFORE touching disk.
-    //
-    // Ordering matters more here than anywhere else. A transfer moves value
-    // BETWEEN entities — cargo stow/load, a scrap hand-off — so a half-applied
-    // one is not a stale record but a wrong balance, and the Game's crawler is
-    // usually one end of it. Committing first means a refusal aborts with
-    // nothing changed locally, which is the same guarantee phase 1's
-    // validate-everything-first already gives for Zod failures.
-    //
-    // The CRAWLER commits first. The server takes one mutation per record, so
-    // a refusal after an earlier record landed leaves the server half-applied:
-    // a stow would lose the lot, a load duplicate it. The crawler is the side
-    // the server refuses on role — in a Game only the table runner writes it
-    // (ADR-038 §5) — while a pilot or mech in a transfer is the caller's own.
-    // Committing the refusable side first means its refusal lands before
-    // anything else does.
-    const commitOrder = [
-      ...prepared.filter((pu) => pu.type === 'crawler'),
-      ...prepared.filter((pu) => pu.type !== 'crawler'),
-    ]
-    for (const pu of commitOrder) {
-      await commitWrite(pu.type, pu.record as { id: string; gameId?: string | null }, pu.patch)
-    }
-
-    // Phase 1c — commit the DELETES too, and for the same reason.
-    //
-    // This loop was missing, and its absence was worse than a stale row. Phase
-    // 1b's comment already states the guarantee — "a refusal aborts with
-    // nothing changed locally" — but that only ever held for the updates; the
-    // deletes went straight to disk in phase 2. So a transfer that consumed a
-    // stack of cargo deleted it locally and left it alive on the server, and
-    // `ShelfSync` then restored it on the next sync. The end state is not a
-    // half-applied transfer, it is BOTH ends: the value arrives at the target
-    // and the source keeps it too.
-    //
-    // Reads each record before committing, exactly as `delete()` does: a link
-    // is addressed on the server by its endpoints, and after phase 2 there is
-    // nothing left to name it by.
-    for (const d of deletes) {
-      if (d.type === 'softLink') {
-        await commitSoftLink('delete', get().get('softLink', d.id))
-      } else {
-        const existing = get().get(d.type, d.id)
-        await commitEntityWrite(d.type, {
-          kind: 'delete',
-          appId: d.id,
-          gameId: existing?.gameId ?? null,
-        })
-      }
+    // Phase 1b — commit the whole transfer to the server BEFORE touching disk,
+    // as ONE mutation (`entities.transfer`). A transfer moves value BETWEEN
+    // entities, so a half-applied one is not a stale record but a wrong
+    // balance: a stow that lands on the mech and is refused on the crawler
+    // loses the lot, a load duplicates it. The mutation is one transaction, so
+    // a refusal on any record leaves every server row as it was, and throwing
+    // here leaves this browser untouched too. Links are read before the local
+    // delete, because the server addresses a link by its endpoints.
+    try {
+      await commitTransfer(
+        prepared.map((pu) => ({
+          type: pu.type,
+          record: pu.record as { id: string; gameId?: string | null },
+          patch: pu.patch,
+        })),
+        deletes.map((d) =>
+          d.type === 'softLink'
+            ? { type: 'softLink' as const, link: get().get('softLink', d.id) }
+            : { type: d.type, id: d.id }
+        )
+      )
+    } catch (err) {
+      throw await refusalOf(err, (bodyId) =>
+        prepared.find((pu) => pu.type !== 'crawler' && pu.id === bodyId)
+      )
     }
 
     // Phase 2 — one IDB transaction for every put and delete.
     const prunedIds = await db.atomicWrite([
       ...prepared.map((pu) => ({
         op: 'put' as const,
-        storeName: broadcastNameFor(pu.type),
+        storeName: storeNameFor(pu.type),
         record: pu.record,
       })),
       ...deletes.map((d) => ({
         op: 'delete' as const,
-        storeName: broadcastNameFor(d.type),
+        storeName: storeNameFor(d.type),
         id: d.id,
         pruneSoftLinks: d.type !== 'softLink',
       })),
     ])
 
-    // Phase 3 — sync in-memory state + broadcasts, mirroring update()/delete().
+    // Phase 3 — sync in-memory state, mirroring update()/delete().
     const deletedByKey = new Map<StoreKey, Set<string>>()
     for (const d of deletes) {
       const key = storeKeyFor(d.type)
@@ -707,20 +713,12 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       }
       return next as Partial<EntityState>
     })
-    const touched = new Set<EntityType>([
-      ...prepared.map((pu) => pu.type),
-      ...deletes.map((d) => d.type),
-    ])
-    for (const type of touched) afterWrite(type)
-    if (pruned.size > 0 && !touched.has('softLink')) {
-      publishStoreChange(STORE_NAMES.softLinks)
-    }
 
-    // Phase 4 — provenance (ADR-022), mirroring update()'s awaited emit. One
-    // entry per changed field per updated entity. Deletes are not logged: the
-    // per-entity log goes with the entity.
+    // Phase 4 — provenance (ADR-022), as update() emits it. One entry per
+    // changed field per updated entity. Deletes are not logged: the per-entity
+    // log goes with the entity.
     for (const pu of prepared) {
-      await emitChangeLog(
+      emitChangeLog(
         pu.type,
         pu.id,
         pu.patch,
@@ -777,37 +775,35 @@ export const useEntityStore = create<EntityState>((set, get) => ({
 
     // Cascade: deleting an entity prunes its SoftLinks (plan 2.7, gap 9).
     // The entity delete and its link pruning run in a single IDB transaction
-    // (deleteEntityWithSoftLinks) so a crash/error can never leave orphaned
-    // links or a half-applied delete — it is all-or-nothing on disk.
+    // (`atomicWrite` with `pruneSoftLinks`) so a crash/error can never leave
+    // orphaned links or a half-applied delete — it is all-or-nothing on disk.
     if (type !== 'softLink') {
       // Commit the cascaded link deletes BEFORE the local transaction, and read
       // them first: a link is addressed on the server by its endpoints, so once
-      // `deleteEntityWithSoftLinks` has run there is nothing left to name them
-      // by. This is the same ordering `delete()` already uses for the entity
-      // itself, one line above.
+      // the local delete has run there is nothing left to name them by. This
+      // is the same ordering `delete()` already uses for the entity itself,
+      // one line above.
       //
-      // Without this the cascade was local-only — a mech deleted on one device
-      // left its pilot link alive on the server, and `WiringSync` would now
-      // bring that link straight back down. The server cascades its own side
-      // too (`pruneSoftLinksFor`); this keeps the two in step for the link
-      // ids only this browser holds.
+      // A link left alive on the server would come straight back down through
+      // `WiringSync`. The server cascades its own side too (`pruneLinksOfRow`);
+      // this keeps the two in step for the link ids only this browser holds.
       for (const link of get().list('softLink')) {
         if (link.from?.id !== id && link.to?.id !== id) continue
         await commitSoftLink('delete', link)
       }
 
-      const prunedIds = await db.deleteEntityWithSoftLinks(broadcastNameFor(type), id)
+      const prunedIds = await db.atomicWrite([
+        { op: 'delete', storeName: storeNameFor(type), id, pruneSoftLinks: true },
+      ])
       if (prunedIds.length > 0) {
         const pruned = new Set(prunedIds)
         set((state) => ({
           softLinks: state.softLinks.filter((l) => !pruned.has(l.id)),
         }))
-        publishStoreChange(STORE_NAMES.softLinks)
       }
       set((state) => ({
         [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
       }))
-      afterWrite(type)
       return
     }
 
@@ -815,26 +811,5 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     set((state) => ({
       [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
     }))
-    afterWrite(type)
   },
 }))
-
-// ---------------------------------------------------------------------------
-// Cross-tab invalidation: when ANOTHER tab announces a write to one of our
-// object stores, re-read it from IndexedDB (only if this tab already holds a
-// hydrated copy — otherwise lazy hydration will fetch fresh data on demand).
-// ---------------------------------------------------------------------------
-const BROADCAST_TO_TYPE: Partial<Record<StoreName, EntityType>> = {
-  [STORE_NAMES.pilots]: 'pilot',
-  [STORE_NAMES.mechs]: 'mech',
-  [STORE_NAMES.crawlers]: 'crawler',
-  [STORE_NAMES.softLinks]: 'softLink',
-}
-
-subscribeStoreChanges((storeName) => {
-  const type = BROADCAST_TO_TYPE[storeName]
-  if (type === undefined) return
-  const state = useEntityStore.getState()
-  if (!state.hydrated[storeKeyFor(type)]) return
-  void state.rehydrate(type)
-})

@@ -1,6 +1,6 @@
 /**
  * CrawlerSlot — the crawler in the slot row, in its two forms
- * (docs/architecture/dashboard-redesign.md D2, D3):
+ * (ADR-038 §3):
  *
  *  - `CrawlerMajor`, in Downtime: Hull (SP, Tech Level), Stores (the scrap
  *    pool, Salvage, Craft) and Bays (each one's condition), with Upkeep,
@@ -8,7 +8,7 @@
  *  - `CrawlerMinor`, the rest of the time: SP, Tech Level and the scrap pool,
  *    with a damaged bay in red.
  *
- * A Game's crawler is the Mediator's (D11). Only the Mediator gets the verbs;
+ * A Game's crawler is the Mediator's (ADR-038 §5). Only the Mediator gets the verbs;
  * a player sees the numbers and the bays and asks at the table. The server
  * refuses a player's crawler write too (`assertMayEditCrawler`), so hiding the
  * verbs is a courtesy, not the boundary.
@@ -21,8 +21,6 @@
  * through `transfer` as one all-or-nothing write (ADR-007).
  */
 
-import type { StepRule } from 'component-lib'
-import { RuleBrief } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -39,6 +37,8 @@ import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import type { StepRule } from '../wizard/RuleBrief'
+import { RuleBrief } from '../wizard/RuleBrief'
 import {
   areaSalvageOutcome,
   craftOutcome,
@@ -179,7 +179,7 @@ export function CrawlerMajor({
   /** The mech Scrap Mech breaks down: the pilot's own, or null with none. */
   mech: Mech | null
   store: PlayStore
-  /** The viewer is the Game's Mediator, who alone runs the crawler (D11). */
+  /** The viewer is the Game's Mediator, who alone runs the crawler. */
   mediator: boolean
   /** This Downtime's Upkeep while one is running; null outside Downtime. */
   upkeep?: CrawlerUpkeep | null

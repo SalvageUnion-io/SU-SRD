@@ -16,10 +16,10 @@
  *
  * ## Connected only
  *
- * A Game is shared state on the server of record; a Solo build has no Convex
- * provider, and a Disconnected one cannot write. Like `ContainerSwitcher`, the
- * Convex hooks live in a child mounted only once the mode is Connected, so the
- * signed-out hub has no game UI at all.
+ * A Game is shared state on the server of record, which a signed-out visitor
+ * has no account on and a Disconnected session cannot write. Like
+ * `ContainerSwitcher`, the Convex hooks live in a child mounted only once the
+ * mode is Connected, so the signed-out hub has no game UI at all.
  */
 
 import { Button, Field, Input, ModalShell, PageHeading, Text, tokens } from 'component-lib'

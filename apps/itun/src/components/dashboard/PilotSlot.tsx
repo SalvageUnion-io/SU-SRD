@@ -1,10 +1,10 @@
 /**
  * PilotSlot — the pilot in the slot row, in its two forms
- * (docs/architecture/dashboard-redesign.md D2, D3):
+ * (ADR-038 §3):
  *
  *  - `PilotMajor`, on foot: Vitals (HP, AP, Take Damage with the
  *    player-confirmed Critical Injury roll, ADR-007), Kit, Abilities and Mount,
- *    whose Board split button and mech menu are `BoardControl` (D4).
+ *    whose Board split button and mech menu are `BoardControl`.
  *  - `PilotMinor`, boarded or in Downtime: HP and AP, and any injury in red.
  *
  * Both read the same vitals (`pilotVitals`), so a Minor and the Major it opens
@@ -67,7 +67,7 @@ type PilotPrompt =
   | { kind: 'crit'; effect: CriticalInjuryEffect | null; log: string }
   /** The ▾ mech menu. */
   | { kind: 'board' }
-  /** The confirm before claiming and boarding a spare (plan §8 A4). */
+  /** The confirm before claiming and boarding a spare. */
   | { kind: 'claim'; option: BoardOption }
   | null
 

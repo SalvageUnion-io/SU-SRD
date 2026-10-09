@@ -20,7 +20,7 @@
  * ## Deliberately not the player Dashboard
  *
  * The player Dashboard is a locked 1280×800 canvas built around one
- * pilot + mech + crawler (ADR-020). An N-player table view does not fit it, so
+ * pilot + mech + crawler (ADR-038 §9). An N-player table view does not fit it, so
  * this stays a plain scrolling section that grows with the crew.
  */
 
@@ -179,7 +179,6 @@ function ProposeForm({ gameId }: { gameId: Id<'games'> }) {
               entityId: chosen.id,
               entityType: chosen.type,
               field: fieldName,
-              before: null,
               after: Number(value),
             }).then(() => setValue(''))
           }}

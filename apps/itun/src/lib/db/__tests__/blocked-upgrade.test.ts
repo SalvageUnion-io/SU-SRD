@@ -65,9 +65,7 @@ describe('blocked IndexedDB upgrade', () => {
     const originalWarn = console.warn
     console.warn = () => {}
     try {
-      await expect(openItunDatabase(TEST_DB_NAME, undefined, 20)).rejects.toBeInstanceOf(
-        BlockedUpgradeError
-      )
+      await expect(openItunDatabase(TEST_DB_NAME, 20)).rejects.toBeInstanceOf(BlockedUpgradeError)
     } finally {
       console.warn = originalWarn
       // Release the blocker; the now-unblocked orphan open resolves and the
@@ -84,7 +82,7 @@ describe('blocked IndexedDB upgrade', () => {
     console.warn = () => {}
     try {
       // Grace comfortably exceeds the delay before the blocker steps aside.
-      const pending = openItunDatabase(TEST_DB_NAME, undefined, 500)
+      const pending = openItunDatabase(TEST_DB_NAME, 500)
       await tick(20)
       blocker.close()
       const db = await pending
@@ -99,7 +97,7 @@ describe('blocked IndexedDB upgrade', () => {
   })
 
   test('a fresh (unblocked) open still resolves at DB_VERSION', async () => {
-    const db = await openItunDatabase(TEST_DB_NAME, undefined, 20)
+    const db = await openItunDatabase(TEST_DB_NAME, 20)
     try {
       expect(db.version).toBe(DB_VERSION)
     } finally {

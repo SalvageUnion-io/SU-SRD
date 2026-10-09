@@ -1,14 +1,13 @@
 /**
  * useGameFeed — what the Dashboard reads about the rest of the table
- * (docs/architecture/dashboard-redesign.md §4.2): the Game's rolls and the
+ * (docs/architecture/dashboard.md §6): the Game's rolls and the
  * Mediator's alerts for the Log tab, the proposal count for the bottom strip,
  * the Game's name for the rail, and the crew's vitals, maxima and status
- * (`crew.vitals`, derived on the server, D6) for the Crew tab.
+ * (`crew.vitals`, derived on the server, ADR-038 §4) for the Crew tab.
  *
  * Every read is a Convex subscription, so a crewmate's roll, or the resolve
- * they are part-way through ("Rook is resolving Crush", plan §8 A6), arrives
- * here as it happens. Needs a Convex provider, like `useSeat`: call it only
- * when `isConvexConfigured`, and use `NO_GAME_FEED` otherwise.
+ * they are part-way through ("Rook is resolving Crush", ADR-038 §2), arrives
+ * here as it happens.
  */
 
 import { useQuery } from 'convex/react'
@@ -80,16 +79,6 @@ export type GameFeed = {
   inbox: number
   /** Every crewmate's vitals and derived status; null until it arrives. */
   crew: CrewVitals | null
-}
-
-/** No deployment, or no Game: nothing to read. */
-export const NO_GAME_FEED: GameFeed = {
-  gameName: null,
-  gameHref: null,
-  rolls: null,
-  alerts: [],
-  inbox: 0,
-  crew: null,
 }
 
 /** How many rolls the Log tab shows. */
@@ -173,7 +162,7 @@ function parkedProblems(status: CrewMech['status']): string[] {
  *
  * A boarded pilot's line carries their mech's SP and Heat and what is wrong
  * with it; a pilot on foot gets one line naming the mech assigned to them,
- * parked (plan D6), and what is wrong with it when that is what draws the
+ * parked, and what is wrong with it when that is what draws the
  * outline. The ▲ and red outline are the server's `attention`, so every
  * client flags the same crewmates.
  *

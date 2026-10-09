@@ -47,8 +47,14 @@ type ContainerColumn = { kind?: string; members?: readonly { kind?: string }[] }
  * only so migrations v10 and v13 still run against databases that predate the
  * split; nothing writes it and nothing reads it as live data, so there is
  * nothing for a server table to hold.
+ *
+ * `meta` holds no player data at all. It is one row ABOUT this browser's
+ * cache — whose rows it holds and whether they predate accounts
+ * (`src/lib/db/cacheMeta.ts`) — and a server copy of "what does this device
+ * hold" would be a fact about a device, which is exactly what the server must
+ * not need to know.
  */
-const NO_SERVER_COUNTERPART = new Set<string>(['workspaces'])
+const NO_SERVER_COUNTERPART = new Set<string>(['workspaces', 'meta'])
 
 /** The tables the Convex schema actually declares. */
 function convexTables(): Set<string> {
@@ -56,7 +62,7 @@ function convexTables(): Set<string> {
 }
 
 describe('container parity — every local store can reach the server', () => {
-  test('every IndexedDB store has a Convex table, except the retired one', () => {
+  test('every IndexedDB store has a Convex table, except the retired one and the cache meta', () => {
     const tables = convexTables()
     const orphans = Object.values(STORE_NAMES).filter(
       (name) => !tables.has(name) && !NO_SERVER_COUNTERPART.has(name)
@@ -69,7 +75,7 @@ describe('container parity — every local store can reach the server', () => {
     // Named separately from the check above so that *widening the exemption*
     // fails on its own line rather than hiding inside a passing parity test.
     // Adding a store here is the exact move this file exists to make expensive.
-    expect([...NO_SERVER_COUNTERPART]).toEqual(['workspaces'])
+    expect([...NO_SERVER_COUNTERPART]).toEqual(['workspaces', 'meta'])
   })
 
   /**
@@ -271,10 +277,11 @@ describe('container parity — every local store can reach the server', () => {
    * ADR-034 decision 2 extends that to every entity-shaped table — which is
    * what let a crawler survive a deleted Game (#871) and, in this change, an
    * encounter NPC too. A table that can only be in a Game cannot express the
-   * shelf half, and that is precisely the gap both of those had.
+   * shelf half, and that is precisely the gap both of those had. A mech
+   * pattern is personal, so it is shelf-only and not one of them.
    */
   test('every entity-shaped table can express BOTH containers', () => {
-    const ENTITY_TABLES = ['pilots', 'mechs', 'crawlers', 'encounterNpcs', 'mechPatterns'] as const
+    const ENTITY_TABLES = ['pilots', 'mechs', 'crawlers', 'encounterNpcs'] as const
 
     for (const name of ENTITY_TABLES) {
       const table = schema.tables[name]

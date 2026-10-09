@@ -97,7 +97,7 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'typecheck',
-    guards: 'TypeScript across every workspace, test/ and the .design-sync/ previews',
+    guards: 'TypeScript across every workspace and test/',
     fix: 'fix the type error',
     cmd: ['bun', 'run', 'typecheck'],
     areas: ['code'],
@@ -120,7 +120,7 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'data',
-    guards: 'the reference dataset: ids, slugs, references, schemas, parity, …',
+    guards: 'the reference dataset: ids, slugs, references, orphans, parity, …',
     fix: 'fix the data: each diagnostic names the file and record',
     cmd: ['bun', 'tools/validate.ts'],
     cwd: 'packages/salvageunion-reference',
@@ -130,8 +130,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'doc-drift',
     guards:
-      'cited paths, bun scripts and markdown links exist; each ADR once in ARCHITECTURE.md; agent-doc size budgets',
-    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); keep each ADR one bare `## ADR-NNN` under # Decisions; cut a doc over its size budget',
+      'cited paths, bun scripts and markdown links exist (live docs plus each ADR Status and Decision); no agent doc repeats a retired claim; each ADR once in ARCHITECTURE.md and named in the Status of any ADR it amends; agent-doc size budgets',
+    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); state the current design instead of a retired claim; keep each ADR one bare `## ADR-NNN` under # Decisions; add the amending ADR to the amended one\'s Status; cut a doc over its size budget',
     cmd: ['bun', 'tools/check-doc-drift.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
@@ -145,19 +145,21 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
-    id: 'convex-codegen',
-    guards: 'convex/_generated/api.d.ts registers exactly the modules on disk',
-    fix: 'regenerate with `bunx convex dev` (needs a deployment); never hand-edit convex/_generated/',
-    cmd: ['bun', 'tools/check-convex-codegen.ts'],
+    id: 'convex-callers',
+    guards:
+      'every public Convex function has a shipped caller; api.d.ts registers the modules on disk',
+    fix: 'delete the function or make it `internal*`; for api.d.ts drift, regenerate with `bunx convex dev`',
+    cmd: ['bun', 'tools/check-convex-callers.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
   },
   {
-    id: 'convex-callers',
-    guards: 'every public Convex function has a shipped caller',
-    fix: 'delete the function, or make it `internal*` if only the server calls it',
-    cmd: ['bun', 'tools/check-convex-callers.ts'],
-    areas: REPO_INVARIANT,
+    id: 'barrel-consumers',
+    guards:
+      'every component-lib export has an app importer, and none is a composition only one app renders',
+    fix: "move a single-app composition into that app's src/components/; unexport what no app imports; a storyless single-app helper needs a SINGLE_APP reason",
+    cmd: ['bun', 'tools/check-barrel-consumers.ts'],
+    areas: ['code'],
     profiles: ALL,
   },
   {
@@ -166,7 +168,7 @@ export const CHECKS: readonly CheckSpec[] = [
       'CI aggregate gate, path filters, bunx pinning, Bun version, Convex deploy guard, deploy order, production-secret env',
     fix: 'each message names the file and the fix; `bun tools/check-workflows.ts --only=<id>` reruns one',
     cmd: ['bun', 'tools/check-workflows.ts'],
-    // Reads only .github/, the manifests and .bun-version, all of them `code`.
+    // Reads only .github/ and the manifests, all of them `code`.
     areas: ['code'],
     profiles: ALL,
   },
@@ -179,22 +181,13 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'audit',
-    guards: 'no high-severity advisory in the dependency tree',
+    guards: 'no advisory, at any severity, in the dependency tree',
     fix: 'upgrade or override the vulnerable package (docs/ARCHITECTURE.md#dependency-audit)',
-    cmd: [
-      'bun',
-      'audit',
-      '--audit-level=high',
-      // The one suppression (docs/ARCHITECTURE.md#dependency-audit): braces <=3.0.3
-      // has NO fixed release. It reaches the tree only through component-lib's
-      // devDependency @ladle/react -> globby -> fast-glob -> micromatch, and
-      // Ladle globs nothing but our own story patterns. Remove this line when
-      // `bun audit fix` can take a fixed braces, or Ladle drops globby;
-      // audit-watch.yml audits without it, so the advisory stays reported.
-      '--ignore=GHSA-vfj7-8cjw-p6xm',
-    ],
+    // The root `audit` script, which e2e-nightly.yml's `audit` job also runs:
+    // one command, one suppression list (docs/ARCHITECTURE.md#dependency-audit).
+    cmd: ['bun', 'run', 'audit'],
     // A PR that moves neither bun.lock nor a manifest cannot change the tree;
-    // audit-watch.yml scans the unchanged tree for new advisories weekly.
+    // the nightly run catches a new advisory against the unchanged one.
     areas: ['deps'],
     profiles: ['full', 'ci'],
   },
@@ -203,7 +196,7 @@ export const CHECKS: readonly CheckSpec[] = [
     guards: 'actionlint + zizmor over .github/ (pinned, hash-verified binaries)',
     fix: "fix the finding; zizmor's config is .github/zizmor.yml",
     cmd: ['tools/lint-workflows.sh'],
-    // Reads only .github/ (workflows, actions, zizmor.yml), all of it `code`.
+    // Reads only .github/ (workflows, actions and its two config files), all `code`.
     areas: ['code'],
     profiles: ['full', 'ci'],
   },

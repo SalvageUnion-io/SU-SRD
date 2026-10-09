@@ -1,5 +1,4 @@
 import { z } from 'salvageunion-reference/zod'
-import { partnersFromLoadouts } from '../db/migrations/11-equipment-loadouts-to-partners'
 import { isRecord } from '../isRecord'
 import { containerFields } from './entity'
 import { ItemConditionMapSchema } from './itemCondition'
@@ -134,8 +133,7 @@ export const PilotSchema = z
      *
      * Additive-optional — absent reads as "derive it" (no version bump /
      * migration). It deliberately CANNOT be backfilled: unlike `seedRef`, no
-     * stored value implies it, and a migration may only await IndexedDB so it
-     * could not import the class-to-tree map it would need anyway.
+     * stored value implies it.
      */
     originClassRef: z.string().optional(),
 
@@ -223,8 +221,8 @@ export const PilotSchema = z
      * Survey Drone, Mecha Companion). Each carries its own id, so Mecha
      * Packmaster's TWO Mecha Companions are two distinct partners rather than
      * one shared entry — the bug the retired slug-keyed `equipmentLoadouts`
-     * field could not express (v11 lifted it into this array; see
-     * `normalizeLegacyPilotRecord` for what happens to a record still carrying it).
+     * field could not express (see `normalizeLegacyPilotRecord` for what
+     * happens to a record still carrying it).
      * Additive-optional; absent reads as none.
      */
     partners: z.array(PartnerInstanceSchema).optional(),
@@ -345,19 +343,97 @@ export const PilotSchema = z
 export type Pilot = z.infer<typeof PilotSchema>
 
 /**
- * Drop the fields a strict `PilotSchema` no longer knows from a pilot that was
- * persisted, exported or published before they were removed.
+ * Choice names carrying a partner's identity, as they appear in
+ * `equipmentChoices`. Free-text choices store their value as a single-element
+ * array (see `ChoiceSelectionsSchema`).
+ */
+const NAME_KEYS = ['Name', 'name']
+const APPEARANCE_KEYS = ['Appearance', 'appearance']
+const PERSONALITY_KEYS = ['A.I. Personality', 'AI Personality', 'aiPersonality']
+
+/** First non-empty single-value choice matching any of `keys`. */
+function readChoice(choices: unknown, keys: readonly string[]): string | undefined {
+  if (!isRecord(choices)) return undefined
+  for (const key of keys) {
+    const value = choices[key]
+    if (typeof value === 'string' && value.trim() !== '') return value
+    if (Array.isArray(value)) {
+      const first = value.find((v) => typeof v === 'string' && v.trim() !== '')
+      if (typeof first === 'string') return first
+    }
+  }
+  return undefined
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
+}
+
+/**
+ * Lift a pilot's slug-keyed `equipmentLoadouts` into `PartnerInstance`s, one
+ * per loadout, pulling identity across from the parallel `equipmentChoices`
+ * map. Returns the partners array to attach, or `null` when
+ * the record needs no rewrite — no loadouts, or partners already present.
  *
- * - `rollResults` — vestigial, always `[]`, never read. The v4 IndexedDB
- *   migration applies the same rewrite to local records.
+ * `mintId` is injected so tests get stable ids; production passes
+ * `crypto.randomUUID`.
+ */
+export function partnersFromLoadouts(
+  raw: unknown,
+  mintId: () => string = () => crypto.randomUUID()
+): Record<string, unknown>[] | null {
+  if (!isRecord(raw)) return null
+  if (!isRecord(raw.equipmentLoadouts)) return null
+  // Idempotent: a record that already has partners is left alone, so a
+  // partially-lifted record never duplicates them.
+  if (Array.isArray(raw.partners)) return null
+
+  const choicesBySlug = isRecord(raw.equipmentChoices) ? raw.equipmentChoices : {}
+
+  const partners = Object.entries(raw.equipmentLoadouts).flatMap(([slug, loadout]) => {
+    if (!isRecord(loadout)) return []
+    const choices = choicesBySlug[slug]
+    const name = readChoice(choices, NAME_KEYS)
+    const appearance = readChoice(choices, APPEARANCE_KEYS)
+    const aiPersonality = readChoice(choices, PERSONALITY_KEYS)
+    return [
+      {
+        // A fresh id per lifted loadout. The old shape held exactly one
+        // loadout per slug, so this cannot un-merge a pair that was already
+        // collapsed — it only stops future pairs from colliding.
+        id: mintId(),
+        hostRef: slug,
+        hostSchema: 'equipment' as const,
+        ...(name ? { name } : {}),
+        ...(appearance ? { appearance } : {}),
+        ...(aiPersonality ? { aiPersonality } : {}),
+        systems: stringArray(loadout.systems),
+        modules: stringArray(loadout.modules),
+        ...(isRecord(loadout.systemConditions)
+          ? { systemConditions: loadout.systemConditions }
+          : {}),
+        ...(isRecord(loadout.moduleConditions)
+          ? { moduleConditions: loadout.moduleConditions }
+          : {}),
+        ...(isRecord(loadout.itemUses) ? { itemUses: loadout.itemUses } : {}),
+        conditions: [],
+      },
+    ]
+  })
+
+  return partners.length > 0 ? partners : null
+}
+
+/**
+ * Drop the fields a strict `PilotSchema` no longer knows from a pilot that was
+ * stored, exported or published before they were removed.
+ *
+ * - `rollResults` — vestigial, always `[]`, never read.
  * - `equipmentLoadouts` — the slug-keyed drone/companion loadouts that
- *   `partners` replaced (ADR-027). v11 lifted each entry into a
- *   `PartnerInstance` with its own id but left the key in place, so every
- *   pilot that went through it still carries one; v16 deletes it from local
- *   records. A record that never went through v11 (a pre-v11 export being
- *   imported) is lifted here the same way first, so its loadouts survive as
- *   partners rather than being dropped. A record that already has `partners`
- *   keeps them untouched.
+ *   `partners` replaced (ADR-027). A record still carrying it has each entry
+ *   lifted into a partner first ({@link partnersFromLoadouts}), so its
+ *   loadouts survive rather than being dropped. A record that already has
+ *   `partners` keeps them untouched.
  *
  * Mirrors normalizeLegacyCargoRecord. Every place a pilot body arrives from
  * storage or the network runs through this — the IndexedDB store, import,

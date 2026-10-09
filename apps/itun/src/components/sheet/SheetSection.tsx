@@ -1,0 +1,205 @@
+/**
+ * SheetSection — the UNIFIED EDIT LANGUAGE primitives shared by all three
+ * live sheets (redesign plan: three interaction archetypes, one editing cue,
+ * one shared picker modal).
+ *
+ *   (A) FIELD sections: no primitive. This archetype was to have a
+ *       `SectionEditButton` per-section Edit/Done toggle, flipping only its own
+ *       fields into inline-edit. It was built and exported, and then never
+ *       adopted by any sheet — the sheets edit fields live instead — so it was
+ *       deleted rather than left as half a shipped API. Its (B) sibling below
+ *       IS used; that asymmetry is why this note exists rather than a silent gap.
+ *   (B) COLLECTION sections: `SectionAddButton` — an always-visible,
+ *       always-ENABLED '+ Add' opening the ONE shared picker modal
+ *       (`SheetPickerModal` over ModalShell); `CardRemoveButton` is the
+ *       per-card remove (✕) control.
+ *   (C) STAT cells stay always-live StatBlock pips — no primitive needed here.
+ *
+ * `EDIT_CUE_HOVER_CLASS` is the single editing cue: a dashed outline on
+ * section-edit fields and per-card controls (StatBlocks carry no cue).
+ */
+
+import { Button, cn, FOCUS_RING, Glyph, ModalShell, PICKER_MODAL_WIDTH } from 'component-lib'
+import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from 'react'
+import { cloneElement, isValidElement } from 'react'
+
+// ---------------------------------------------------------------------------
+// HButton — the container-header control button (design `.hbtn`, clean-edit.html
+// :384-411). 2px border, radius 3, paper fill, 10.5px cond bold caps; the
+// `edit` default hovers to an ink fill, `done` is a filled deep-tone chip, and
+// `add` is a deep-tone outline with a circled-plus that fills on hover. The
+// 44px coarse-pointer floor (min-h-11) collapses to the 32px design height at
+// `sm`.
+// ---------------------------------------------------------------------------
+
+type HButtonVariant = 'edit' | 'done' | 'add'
+
+const HBTN_BASE = `inline-flex cursor-pointer items-center gap-1.5 rounded-card border-2 px-3 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide whitespace-nowrap transition-colors min-h-11 sm:min-h-8 ${FOCUS_RING} print:hidden`
+
+const HBTN_VARIANT: Record<HButtonVariant, string> = {
+  edit: 'border-ink bg-paper text-ink hover:bg-ink hover:text-paper',
+  done: 'border-[color:var(--tone-deep,var(--color-rust))] bg-[color:var(--tone-deep,var(--color-rust))] text-paper hover:border-ink hover:bg-ink',
+  add: 'border-[color:var(--tone-deep,var(--color-rust))] bg-paper text-[color:var(--tone-deep,var(--color-rust))] hover:bg-[color:var(--tone-deep,var(--color-rust))] hover:text-paper',
+}
+
+type HButtonProps = ComponentPropsWithoutRef<'button'> & {
+  variant?: HButtonVariant
+}
+
+/** Container-header control button (design `.hbtn`). */
+export function HButton({
+  variant = 'edit',
+  className,
+  type = 'button',
+  children,
+  ...props
+}: HButtonProps) {
+  return (
+    <button type={type} className={cn(HBTN_BASE, HBTN_VARIANT[variant], className)} {...props}>
+      {children}
+    </button>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// (B) COLLECTION sections — always-available add / per-card remove
+// ---------------------------------------------------------------------------
+
+type SectionManageButtonProps = {
+  /** What gets added, for the accessible label, e.g. 'ability'. */
+  label: string
+  onClick: () => void
+  className?: string
+}
+
+/**
+ * Always-visible, always-ENABLED '+ Add' for a collection section header.
+ * // TODO(redesign): rule-gate add/remove (TP / maxAbilities / slots / scrap
+ * economy) — deferred; users self-manage for now.
+ */
+export function SectionManageButton({ label, onClick, className }: SectionManageButtonProps) {
+  return (
+    <HButton
+      variant="add"
+      aria-label={`Manage ${label.toLowerCase()}`}
+      onClick={onClick}
+      className={className}
+    >
+      <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-current">
+        <Glyph name="plus" className="h-2 w-2" />
+      </span>
+      Manage {label}
+    </HButton>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Per-card controls (redesign G4) — `CardRemoveButton` is the standalone ✕
+// remove button. The shared editing cue lives in `./editLanguage` (a
+// components-free module).
+// ---------------------------------------------------------------------------
+
+type CardRemoveButtonProps = {
+  /** The card's entity name, for the accessible label. */
+  name: string
+  onRemove: () => void
+  className?: string
+}
+
+/** Per-card remove (✕) control — always available; carries the editing cue. */
+export function CardRemoveButton({ name, onRemove, className }: CardRemoveButtonProps) {
+  return (
+    <Button
+      size="mini"
+      variant="danger"
+      aria-label={`Remove ${name}`}
+      onClick={onRemove}
+      className={cn('min-h-11 sm:min-h-6 print:hidden', className)}
+    >
+      &#10005; Remove
+    </Button>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// The ONE shared picker modal (collections + single-select pickers)
+// ---------------------------------------------------------------------------
+
+type SheetPickerModalProps = {
+  open: boolean
+  onClose: () => void
+  title: string
+  /**
+   * ModalShell max width. Defaults to `PICKER_MODAL_WIDTH` for a `floating`
+   * searcher picker, and to 80% of the viewport for a framed picker body.
+   */
+  maxWidth?: string
+  /**
+   * The searcher-picker layout: render a BARE ModalShell and hand the single
+   * `EntitySearcher` child its own frame by injecting this modal's
+   * `title`/`onClose`. (The default framed layout stays for picker bodies that
+   * are not a searcher and so need this modal's own frame.)
+   */
+  floating?: boolean
+  children: ReactNode
+}
+
+/**
+ * The single shared picker modal every collection '+ Add' (and single-select
+ * swap) opens — never hand-roll per-sheet dialogs. Multi-select pickers write
+ * through on toggle (ITUN auto-saves; there is no Save button).
+ *
+ * There is deliberately **no `footer` prop.** It existed for the master/detail
+ * single-select pickers' confirm buttons, and became a trap once they migrated
+ * to `EntitySearcher`: the `floating` branch returns before rendering a footer,
+ * so a `floating` + `footer` call would have silently dropped its confirm
+ * buttons — invisible to both typecheck and knip. A floating picker puts its
+ * actions in the searcher's own `railActions` slot instead, beneath the
+ * selection it is confirming.
+ */
+export function SheetPickerModal({
+  open,
+  onClose,
+  title,
+  maxWidth,
+  floating = false,
+  children,
+}: SheetPickerModalProps) {
+  // Floating searcher-picker: a BARE ModalShell; the child EntitySearcher owns
+  // the whole frame (header + search + close + internal scroll + its rail).
+  // Inject this modal's title/onClose onto that single child.
+  if (floating) {
+    const searcher = isValidElement(children)
+      ? cloneElement(children as ReactElement<{ title?: string; onClose?: () => void }>, {
+          title,
+          onClose,
+        })
+      : children
+    return (
+      <ModalShell
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) onClose()
+        }}
+        title={title}
+        maxWidth={maxWidth ?? PICKER_MODAL_WIDTH}
+        bare
+      >
+        {searcher}
+      </ModalShell>
+    )
+  }
+
+  return (
+    <ModalShell
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose()
+      }}
+      title={title}
+      maxWidth={maxWidth ?? 'max-w-[80vw]'}
+    >
+      <div className="bg-paper p-5">{children}</div>
+    </ModalShell>
+  )
+}

@@ -2,7 +2,6 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { CONNECTION_MODES } from '../../lib/connection/connectionMode'
 import {
   backendForMode,
-  changeLogEntryArgs,
   crawlerPatchArgs,
   readableRows,
   requireWritableBackend,
@@ -16,51 +15,19 @@ import {
  *
  * Three answers, two of them refusals: `signedOut` for anybody not signed
  * in (read-only, and reads nothing), `remote` for a Connected session, `blocked` while Disconnected or still
- * settling the auth handshake. The `local` backend — durable IndexedDB for an
- * anonymous visitor in a build with the account gate off — is retired, and the
- * tests below pin that it cannot come back through any combination of inputs.
- *
- * The test build has no `VITE_CONVEX_URL`, so `convexClient` is null. That is
- * the configuration CI and a fresh checkout run in, and it is now anonymous
- * whatever the auth state claims.
+ * settling the auth handshake. The tests below pin that no combination of
+ * inputs yields a durable anonymous backend.
  */
 
 afterEach(() => {
   setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
 })
 
-describe('a build with no Convex URL is always anonymous', () => {
-  test('signed out', () => {
+describe('signed out', () => {
+  test('is signedOut, and an omitted authSettled reads as settled', () => {
     setEntityBackendAuthState({ signedIn: false, online: true })
-    expect(selectBackend()).toBe('signedOut')
-  })
-
-  test('even when the auth state claims signed in', () => {
-    // There is no client to talk to, so "signed in" cannot be true in any
-    // meaningful sense. Resolving to remote here would strand every write.
-    setEntityBackendAuthState({ signedIn: true, online: true })
-    expect(selectBackend()).toBe('signedOut')
-  })
-
-  test('even when offline', () => {
-    setEntityBackendAuthState({ signedIn: true, online: false })
-    expect(selectBackend()).toBe('signedOut')
-  })
-})
-
-describe('an unsettled auth handshake cannot block a build with no auth layer', () => {
-  test('with no handshake to wait for, it is refused as signed out, not as settling', () => {
-    // `authSettled: false` is what ConnectionProvider pushes for the first few
-    // hundred ms of a signed-in load — but with no Convex URL there is no
-    // handshake to wait for, so the refusal says "sign in", not "try again".
-    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: false })
     expect(selectBackend()).toBe('signedOut')
     expect(refusalReason()).toBe('signedOut')
-  })
-
-  test('an omitted authSettled is treated as settled', () => {
-    setEntityBackendAuthState({ signedIn: false, online: true })
-    expect(selectBackend()).toBe('signedOut')
   })
 })
 
@@ -87,7 +54,7 @@ function refusalReason(): string | null {
 }
 
 describe('the signed-in backend the durability tests run on', () => {
-  test('a configured, settled, online, signed-in session is remote', () => {
+  test('a settled, online, signed-in session is remote', () => {
     // What `withSignedInBackend()` pushes. If this stopped resolving to
     // `remote`, every durability test would quietly start asserting against
     // the signed-out backend instead.
@@ -95,7 +62,6 @@ describe('the signed-in backend the durability tests run on', () => {
       signedIn: true,
       online: true,
       authSettled: true,
-      convexConfigured: true,
     })
     expect(selectBackend()).toBe('remote')
     expect(requireWritableBackend()).toBe('remote')
@@ -106,7 +72,6 @@ describe('the signed-in backend the durability tests run on', () => {
       signedIn: true,
       online: false,
       authSettled: true,
-      convexConfigured: true,
     })
     expect(selectBackend()).toBe('blocked')
     expect(() => requireWritableBackend()).toThrow(WritesBlockedOffline)
@@ -117,7 +82,6 @@ describe('the signed-in backend the durability tests run on', () => {
       signedIn: false,
       online: true,
       authSettled: false,
-      convexConfigured: true,
     })
     let caught: unknown = null
     try {
@@ -127,6 +91,20 @@ describe('the signed-in backend the durability tests run on', () => {
     }
     expect(caught).toBeInstanceOf(WritesBlockedOffline)
     expect((caught as WritesBlockedOffline).reason).toBe('settling')
+  })
+
+  test('a bundle below the build floor is blocked with the outdated reason', () => {
+    // Connected in every other respect: the backend has moved past this build,
+    // so a write may call a function it no longer has.
+    setEntityBackendAuthState({
+      signedIn: true,
+      online: true,
+      authSettled: true,
+      outdated: true,
+    })
+    expect(selectBackend()).toBe('blocked')
+    expect(refusalReason()).toBe('outdated')
+    expect(new WritesBlockedOffline('outdated').message).toMatch(/updated/i)
   })
 })
 
@@ -162,24 +140,13 @@ describe('backendForMode — the whole rule', () => {
   })
 
   test('there is no input that yields a durable anonymous backend', () => {
-    // The rule takes the mode and nothing else. The build flag
-    // (`VITE_REQUIRE_ACCOUNT`) and the legacy-roster probe it once also read are
-    // both gone, which makes a `local` comeback unwritable rather than merely
-    // unwritten: there is no argument left to pass it through.
+    // The rule takes the mode and nothing else, which makes a `local` comeback
+    // unwritable rather than merely unwritten: there is no argument left to
+    // pass it through.
     expect(backendForMode.length).toBe(1)
     for (const mode of CONNECTION_MODES) {
       expect(['remote', 'blocked', 'signedOut']).toContain(backendForMode(mode))
     }
-  })
-
-  test('a pre-account roster is migrated, not served', () => {
-    // Stated here because this is the test somebody will read when they wonder
-    // whether retiring `local` stranded existing players. It did not: the rows
-    // stay in IndexedDB, and `AccountReconciler` moves them into the account on
-    // sign-in.
-    // See `lib/account/__tests__/legacyMigration.test.ts`.
-    expect(backendForMode('solo')).toBe('signedOut')
-    expect(backendForMode('connected')).toBe('remote')
   })
 })
 
@@ -197,8 +164,7 @@ describe('readableRows — what a store may show', () => {
   }
 
   test('signed out shows nothing, and does not even read the cache', async () => {
-    // The cache may hold a pre-account roster (ADR-035: migrated on sign-in,
-    // never shown signed out) or the last account's rows.
+    // The cache may still hold the last account's rows.
     const c = cache()
     expect(await readableRows(c)).toEqual([])
     expect(c.read.count).toBe(0)
@@ -209,7 +175,6 @@ describe('readableRows — what a store may show', () => {
       signedIn: true,
       online: true,
       authSettled: true,
-      convexConfigured: true,
     })
     expect(await readableRows(cache())).toEqual([{ id: 'on-disk' }])
     // Disconnected is read-only, not blind: what was pulled down stays open.
@@ -217,7 +182,6 @@ describe('readableRows — what a store may show', () => {
       signedIn: true,
       online: false,
       authSettled: true,
-      convexConfigured: true,
     })
     expect(selectBackend()).toBe('blocked')
     expect(await readableRows(cache())).toEqual([{ id: 'on-disk' }])
@@ -238,36 +202,5 @@ describe('a crawler field patch names the fields it clears', () => {
 
   test('a patch that clears nothing sends no unset', () => {
     expect(crawlerPatchArgs('c1', { scrap: 4 })).toEqual({ appId: 'c1', patch: { scrap: 4 } })
-  })
-})
-
-describe('a Change Log row never travels with a missing side', () => {
-  // `appendChangeLog` requires both `before` and `after`, and the Convex client
-  // drops undefined object fields — so an undefined side has to become null or
-  // the server refuses the whole batch (ITUN-CONVEX-3/-4).
-  const row = { field: 'maxHpOverride', kind: 'override' as const }
-
-  test('a cleared field sends after: null', () => {
-    expect(changeLogEntryArgs({ ...row, before: 22, after: undefined })).toEqual({
-      ...row,
-      before: 22,
-      after: null,
-    })
-  })
-
-  test('a first-time field sends before: null', () => {
-    expect(changeLogEntryArgs({ ...row, before: undefined, after: 'Aegis' })).toEqual({
-      ...row,
-      before: null,
-      after: 'Aegis',
-    })
-  })
-
-  test('falsy values that are real values are kept', () => {
-    expect(changeLogEntryArgs({ ...row, before: 0, after: false })).toEqual({
-      ...row,
-      before: 0,
-      after: false,
-    })
   })
 })

@@ -1,5 +1,5 @@
 /**
- * SrdExplorer — the Dashboard's SRD Explorer focus (D4).
+ * SrdExplorer — the Dashboard's SRD Explorer focus.
  *
  * Functionally the **srd landing page, minus the site header**: the same
  * category sections and the same `CatalogTile`s, built from the same

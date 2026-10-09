@@ -21,15 +21,10 @@ function bag(filesByName: Record<string, unknown[]>, filename: string): Rec[] {
   return (filesByName[filename] ?? []) as Rec[]
 }
 
-interface Choice {
+type Choice = {
   id?: string
   name?: string
-  /**
-   * The unified option source. Shortlist references live at
-   * `source.entities` + `source.schema`; the legacy `schemaEntities`/`schema`
-   * duplicates are deliberately NOT read here — validating the copy that is
-   * being retired means the check evaporates the day it is deleted.
-   */
+  /** The option source. Shortlist references live at `source.entities` + `source.schema`. */
   source?: { kind?: string; entities?: string[]; schema?: string[] }
   choices?: Choice[]
 }
@@ -42,7 +37,7 @@ function catalogShortlist(choice: Choice): { entities: string[]; schema: string[
   return { entities: source.entities, schema: source.schema ?? [] }
 }
 
-interface EntityWithChoices {
+type EntityWithChoices = {
   name?: string
   choices?: Choice[]
   actions?: Array<{ name?: string; choices?: Choice[] }>

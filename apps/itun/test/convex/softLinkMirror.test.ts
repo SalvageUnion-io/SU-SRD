@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import type { Ctx } from './assignmentFixtures'
-import { makeUser } from './assignmentFixtures'
+import type { Ctx } from './fixtures'
+import { crawlerBody, makeUser, pilotBody } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -23,25 +23,6 @@ import { testConvex } from './harness'
  * than a duplicate wire), it belongs to the container its `from` end belongs
  * to, and only somebody who may write that end may draw or cut it.
  */
-
-function pilotBody(over: Record<string, unknown> = {}) {
-  return {
-    id: 'p1',
-    schemaVersion: 1,
-    name: 'Babe',
-    callsign: 'Babe',
-    classRef: 'salvager',
-    abilities: [],
-    equipment: [],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    conditions: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...over,
-  }
-}
 
 /** A pilot row owned by `userId`, addressable by `appId`. */
 async function seedPilot(t: Ctx, userId: Id<'users'>, appId: string, gameId: Id<'games'> | null) {
@@ -69,15 +50,7 @@ async function seedCrawler(t: Ctx, userId: Id<'users'>, appId: string, gameId: I
         gameId,
         ownerId: gameId === null ? userId : null,
         appId,
-        body: {
-          id: appId,
-          schemaVersion: 1,
-          name: '#430',
-          techLevel: '1',
-          systems: [],
-          createdAt: '2026-01-01T00:00:00.000Z',
-          updatedAt: '2026-01-01T00:00:00.000Z',
-        },
+        body: crawlerBody({ id: appId }),
         updatedAt: Date.now(),
       })
   )

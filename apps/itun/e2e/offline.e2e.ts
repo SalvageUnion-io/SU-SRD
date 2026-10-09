@@ -26,7 +26,7 @@ test.use({ account: 'anonymous' })
  * ## Why it skips instead of failing when there is no worker
  *
  * `vite-plugin-pwa` emits a service worker for a **build**, not for the dev
- * server. CI serves the built bundle (`vite preview`) and gets one; a developer
+ * server. CI serves the built bundle (`bun run preview`) and gets one; a developer
  * running `bun run dev:itun` does not. A spec that failed in the second case
  * would be telling the truth about the server and a lie about the app, and
  * would get skipped-by-deletion the first time it annoyed somebody.

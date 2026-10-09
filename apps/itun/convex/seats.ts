@@ -11,14 +11,13 @@ import { seatRange, seatResolving } from './schema'
 
 /**
  * Seats: each pilot's play state in a Game, shared with the crew and saved on
- * the Game ([ADR-038](../../../docs/ARCHITECTURE.md#adr-038) §2;
- * docs/architecture/dashboard-redesign.md §3).
+ * the Game ([ADR-038](../../../docs/ARCHITECTURE.md#adr-038) §2).
  *
  * A seat says whether its pilot is on foot or boarded (and in which mech), the
  * range band they declared, which activated effects are switched on, and the
- * deck action they are resolving, if any (plan §8 A6: the crew watches it
- * live, and a reload mid-roll keeps the roll), and whether they ejected (plan
- * D6: the Crew tab flags it). It is keyed on the pilot, not the member, so a member covering for an absent player
+ * deck action they are resolving, if any (the crew watches it live, and a
+ * reload mid-roll keeps the roll), and whether they ejected (the Crew tab flags
+ * it). It is keyed on the pilot, not the member, so a member covering for an absent player
  * runs two. Mount never becomes a field on a pilot or mech: a seat is its own
  * row that points at both by app id.
  *

@@ -9,19 +9,10 @@
  *
  * ## It renders nothing in Solo
  *
- * Games require an account. Somebody who is not signed in has one pile of
- * builds and no second container to switch to, so offering a one-option select
- * would be furniture that never does anything. Surfaces show that whole pile
- * unfiltered — which is also the only rendering that cannot hide a build (see
- * `stores/activeContainerStore.ts` on the v13 phantom-container ids).
- *
- * ## Why the Convex read lives in a child
- *
- * `useQuery` needs a `ConvexProvider` above it and a Solo build deliberately
- * has none, so the branch is made at the *component* level rather than with a
- * conditional hook — the same shape `SignInControl` and `ConnectionProvider`
- * use. `ConnectedContainerSwitcher` is only ever mounted once the mode is
- * known to be Connected, so its hook always has a provider.
+ * Games require an account. Somebody who is not signed in has no builds and no
+ * container to switch to, so a select would be furniture that never does
+ * anything. `ConnectedContainerSwitcher` holds the Convex read and mounts
+ * only once the mode is Connected, so no query runs signed out.
  */
 
 import { Select } from 'component-lib'

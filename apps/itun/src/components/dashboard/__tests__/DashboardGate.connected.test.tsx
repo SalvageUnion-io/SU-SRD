@@ -55,7 +55,7 @@ const NO_MEDIATOR = [
 
 beforeAll(async () => {
   await hydrateStores()
-  // Filling the cache only; the in-memory backend keeps it to this process.
+  // Filling the cache only: `adopt` is not a user write, so it needs no account.
   setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
   const store = useEntityStore.getState()
   await store.adopt('pilot', pilotFixture({ id: 'gate-rook', name: 'Rook', gameId: GAME_ID }))

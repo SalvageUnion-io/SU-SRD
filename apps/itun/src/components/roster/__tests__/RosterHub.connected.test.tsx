@@ -35,10 +35,11 @@ const convexMocks = await installConvexMocks({
   also: {
     // Signed in, the store commits to Convex first; record what it sends.
     '../../lib/connection/convexClient': () => ({
-      isConvexConfigured: true,
       convexClient: {
         mutation: async (ref: unknown, args: Record<string, unknown>) => {
           serverWrites.push({ name: getFunctionName(ref as FunctionReference<'mutation'>), args })
+          // `upsertByAppId` answers with the row's new version.
+          return { updatedAt: 1 }
         },
       },
     }),
@@ -114,7 +115,7 @@ beforeAll(hydrateStores)
 beforeEach(async () => {
   serverWrites.length = 0
   db._resetDbSingleton()
-  await db._clearAllStores()
+  await db.clearCache()
   useEntityStore.setState({
     pilots: [],
     mechs: [],
@@ -141,7 +142,7 @@ afterEach(() => {
 
 afterAll(async () => {
   setActiveContainer({ kind: 'shelf' })
-  await db._clearAllStores()
+  await db.clearCache()
   useEntityStore.setState({ pilots: [], mechs: [], crawlers: [], softLinks: [] })
   convexMocks.restore()
 })

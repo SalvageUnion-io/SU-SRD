@@ -1,13 +1,14 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
+import { FIXTURE_NOW } from '../../src/components/__tests__/fixtures'
 import { MechSchema } from '../../src/lib/schemas/mech'
-import type { Ctx } from './assignmentFixtures'
-import { makeUser } from './assignmentFixtures'
+import type { Ctx } from './fixtures'
+import { makeUser, mechBody } from './fixtures'
 import { testConvex } from './harness'
 
 /**
- * Propose-and-confirm (D7, D25).
+ * Propose-and-confirm (ADR-030 §4).
  *
  * The thing being protected is that **a Mediator never writes a player's
  * sheet**. So the tests are less about the happy path and more about the ways
@@ -38,20 +39,9 @@ async function seedTable(t: Ctx) {
       await ctx.db.insert('mechs', {
         gameId,
         ownerId: player.userId,
-        body: MechSchema.parse({
-          id: 'm1',
-          schemaVersion: 1,
-          name: 'Mule',
-          chassisRef: 'mule',
-          systems: [],
-          modules: [],
-          cargoLots: [],
-          conditions: [],
-          currentSP: 10,
-          currentHeat: 0,
-          createdAt: '2026-01-01T00:00:00.000Z',
-          updatedAt: '2026-01-01T00:00:00.000Z',
-        }),
+        body: MechSchema.parse(
+          mechBody({ name: 'Mule', chassisRef: 'mule', currentSP: 10, currentHeat: 0 })
+        ),
         updatedAt: 1,
       })
   )
@@ -67,7 +57,6 @@ describe('the Mediator proposes; the player writes', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
 
@@ -83,7 +72,6 @@ describe('the Mediator proposes; the player writes', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
 
@@ -111,7 +99,6 @@ describe('the Mediator proposes; the player writes', () => {
       entityType: 'mech',
       // The casing the Mediator surface used to offer. It is not a Mech field.
       field: 'currentSp',
-      before: 10,
       after: 6,
     })
     const [pending] = await player.as.query(api.proposals.pending, { gameId })
@@ -154,8 +141,8 @@ describe('the Mediator proposes; the player writes', () => {
             currentHP: 10,
             partners: [],
             equipmentLoadouts: {},
-            createdAt: '2026-01-01T00:00:00.000Z',
-            updatedAt: '2026-01-01T00:00:00.000Z',
+            createdAt: FIXTURE_NOW,
+            updatedAt: FIXTURE_NOW,
           },
           updatedAt: 1,
         })
@@ -164,7 +151,6 @@ describe('the Mediator proposes; the player writes', () => {
       entityId: pilotId,
       entityType: 'pilot',
       field: 'currentHP',
-      before: 10,
       after: 7,
     })
     const [pending] = await player.as.query(api.proposals.pending, { gameId })
@@ -186,7 +172,6 @@ describe('the Mediator proposes; the player writes', () => {
         entityId: mechId,
         entityType: 'mech',
         field: 'currentSP',
-        before: 10,
         after: 999,
       })
     ).rejects.toThrow(/mediator/i)
@@ -205,7 +190,6 @@ describe('the Mediator proposes; the player writes', () => {
         entityId: orphan,
         entityType: 'mech',
         field: 'currentSP',
-        before: 0,
         after: 1,
       })
     ).rejects.toThrow(/unclaimed/i)
@@ -221,14 +205,12 @@ describe('supersession, not expiry', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
     await gm.as.mutation(api.proposals.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 4,
     })
 
@@ -251,14 +233,12 @@ describe('supersession, not expiry', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
     await gm.as.mutation(api.proposals.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentHeat',
-      before: 0,
       after: 3,
     })
 
@@ -273,7 +253,6 @@ describe('supersession, not expiry', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
 
@@ -295,7 +274,6 @@ describe('declining', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
 
@@ -322,7 +300,6 @@ describe('pending is scoped to the asker', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
 
@@ -350,7 +327,6 @@ describe('alerts share the proposal bus', () => {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
-      before: 10,
       after: 6,
     })
     await gm.as.mutation(api.proposals.broadcast, { gameId, message: 'second' })

@@ -2,8 +2,8 @@ import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { refreshGameSummary } from '../../convex/model/entities'
-import type { Ctx } from './assignmentFixtures'
-import { makeUser } from './assignmentFixtures'
+import type { Ctx } from './fixtures'
+import { makeUser } from './fixtures'
 import { testConvex } from './harness'
 
 /**

@@ -145,8 +145,7 @@ export function partnerDerivedStats(
  *
  * The tech-level scaling is a partner's whole story and nothing on screen
  * explained it before, so each stat resolves to `{ base, installed, ... }` where
- * `installed` carries the scaling — a rules-sourced contribution, exactly like a
- * mech's summed `statBonus`.
+ * `installed` carries the scaling — an anonymous rules-sourced contribution.
  *
  * `override` is always absent: partners have no cap-pin field, so a partner stat
  * is never overridden.

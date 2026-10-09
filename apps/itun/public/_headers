@@ -1,36 +1,56 @@
 # Response headers for intheunionnow.com.
 #
 # Copied verbatim into `dist/` by Vite's publicDir, and read by Workers Static
-# Assets (ADR-033). It carries Cache-Control and NOTHING ELSE.
+# Assets (ADR-033). It is the app's ONLY source of security headers: Static
+# Assets answers every file and every navigation itself, in
+# single-page-application mode, and applies this file to all of them. The
+# Worker script runs only for a miss that is not a navigation (a missing chunk,
+# a crawler), and builds no document that runs script.
 #
-# The security headers (CSP, HSTS, X-Frame-Options, nosniff, …) are set in code,
-# by `src/worker/securityHeaders.ts`, on every response: `wrangler.jsonc` sets
-# `assets.run_worker_first`, Cloudflare does not apply `_headers` to responses
-# Worker code generates, and the Worker overwrites asset responses too. A CSP
-# here would be a second copy that never decides what the browser gets.
-# tools/smoke-production.sh asserts the CSP and HSTS actually reach the browser.
+# `tools/check-observability.ts` requires the CSP here to allow Sentry's ingest
+# origin; tools/smoke-production.sh asserts the CSP and HSTS actually reach the
+# browser.
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+  X-DNS-Prefetch-Control: on
+  # connect-src MUST list Sentry's ingest origin or the browser blocks every
+  # event before it leaves the page — a DSN alone is not enough, and that
+  # failure is silent AND looks healthy (zero errors reported). `de`, not `us`:
+  # this org is in Sentry's EU data region. Kept in lockstep with
+  # SENTRY_INGEST_HOST in tools/check-observability.ts, which fails CI if this
+  # drifts. Wildcarded subdomain because the host encodes the Sentry org id.
+  #
+  # The Convex entries fail the same silent way. The accounts client (ADR-030)
+  # opens a WebSocket to the deployment for its reactive queries and POSTs
+  # mutations over HTTPS, and `@convex-dev/auth` exchanges tokens against the
+  # deployment's `.site` origin. Omit them and sign-in never completes, with no
+  # error surface. Wildcarded per deployment name because production, a branch
+  # deploy and a local `convex dev` differ. Both schemes are required — `wss:`
+  # does NOT inherit from `https:`.
+  #
+  # script-src carries NO 'unsafe-inline': with it, an injected <script>
+  # executes. The built `dist/index.html` contains zero inline scripts (Vite
+  # bundles every module; the PWA registration is external). If a build ever
+  # needs one, give that script a sha256 hash here, the way apps/srd does.
+  # 'unsafe-inline' stays in style-src deliberately — Tailwind and React inline
+  # styles need it, and style injection is not script execution.
+  #
+  # `https://storage.ko-fi.com` is the Ko-fi widget script (`KofiButton`).
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
 
 # Content-hashed bundle output from Vite's default assetsDir.
+#
+# Nothing else is marked immutable, and this is the one place this file
+# deliberately differs from srd's. itun's `public/` holds `favicon.svg`,
+# `icon-192.png`, `icon-512.png` and `logos/` — FIXED names that are mutated in
+# place on redesign, so a year of `immutable` would mean a changed icon no
+# amount of reloading can dislodge. They, and the shell, keep the platform's
+# default `public, max-age=0, must-revalidate`: a stale shell names chunks a
+# deploy has rotated away.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
-
-# NOT immutable, and this is the one place this file deliberately differs from
-# srd's. srd's icons and artwork really are content-addressed, so it marks
-# `/*.png` etc. immutable for a year. itun's `public/` holds `favicon.svg`,
-# `icon-192.png`, `icon-512.png` and `logos/` — FIXED names that are mutated in
-# place on redesign. A year of `immutable` on those means a changed icon that no
-# amount of reloading can dislodge, so no such rule is written here.
-#
-# HTML must never be cached: a deploy rotates the hashed chunk names, and a
-# stale document names chunks that no longer exist. This is the SPA shell, so a
-# stale copy breaks every route rather than one page. Without this rule
-# Cloudflare's asset serving would be free to cache the shell.
-#
-# This rule alone does not reach the browser for most of the shell's URLs: a
-# client route (`/sheet/...`, `/p/...`) is answered by a response the Worker
-# builds, and `_headers` is not applied to those. So the Worker sets the same
-# value on every HTML document it sends — `SHELL_CACHE_CONTROL` in
-# `src/worker/securityHeaders.ts` — and `src/worker/__tests__/routing.test.ts`
-# fails if the two stop agreeing.
-/*.html
-  Cache-Control: public, max-age=0, must-revalidate

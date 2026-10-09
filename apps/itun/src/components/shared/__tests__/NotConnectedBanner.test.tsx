@@ -1,25 +1,25 @@
-import { describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { ConnectionProvider } from '../../../lib/connection/ConnectionProvider'
-import { isConvexConfigured } from '../../../lib/connection/convexClient'
-import { NotConnectedBanner } from '../NotConnectedBanner'
+import { installConvexMocks } from '../../__tests__/convexMock'
 
 /**
  * The regression this guards is the one that would be most embarrassing to
  * ship: telling somebody who never signed in that they are "not connected".
  *
- * The test environment has no `VITE_CONVEX_URL`, so it is structurally Solo —
- * which is exactly the state most users are in, and exactly the state the
- * banner must stay silent in.
+ * The session here is signed out — exactly the state most visitors are in, and
+ * exactly the state the banner must stay silent in.
  */
 
-describe('NotConnectedBanner', () => {
-  test('the test build is Solo (no Convex URL compiled in)', () => {
-    // Asserted rather than assumed: if this ever flips, the next test would
-    // start passing for the wrong reason.
-    expect(isConvexConfigured).toBe(false)
-  })
+// Module scope, before the imports below — see `convexMock.ts`.
+const convexMocks = await installConvexMocks({
+  convexReact: { useConvexAuth: () => ({ isAuthenticated: false, isLoading: false }) },
+})
+afterAll(() => convexMocks.restore())
 
+const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { NotConnectedBanner } = await import('../NotConnectedBanner')
+
+describe('NotConnectedBanner', () => {
   test('renders nothing in Solo mode', () => {
     render(
       <ConnectionProvider>

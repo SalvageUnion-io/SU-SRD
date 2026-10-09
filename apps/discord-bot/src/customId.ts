@@ -20,8 +20,8 @@ const CUSTOM_ID_MAX = 100
 
 /**
  * The actions a button can re-invoke. `roll` re-rolls a named Salvage Union
- * table (shared by the roll subcommand's result and the lookup embed's
- * "Roll on this table" button); `lookup` returns the `/su lookup` embed for a
+ * table (shared by the roll subcommand's result and the lookup card's
+ * "Roll on this table" button); `lookup` returns the `/su lookup` card for a
  * named roll-table (the "See table" button on a roll result); `post`
  * re-renders a PRIVATE roll publicly.
  *

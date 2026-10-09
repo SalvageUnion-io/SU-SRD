@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { ownerChipFor, UNCLAIMED_LABEL } from '../ownerChip'
 
 /**
- * Owner chips (D32).
+ * Owner chips (ADR-030 §6).
  *
  * The case that carries the most weight is the difference between *unclaimed*
  * and *owned but unresolved*. Both have no name to show, and collapsing them

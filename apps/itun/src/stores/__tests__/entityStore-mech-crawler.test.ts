@@ -12,8 +12,8 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } fr
 import type { MonotonicClock } from '../../lib/db/__tests__/monotonicClock'
 import { installMonotonicClock } from '../../lib/db/__tests__/monotonicClock'
 import {
-  _clearAllStores,
   _resetDbSingleton,
+  clearCache,
   crawlers as dbCrawlers,
   mechs as dbMechs,
 } from '../../lib/db/index'
@@ -75,12 +75,12 @@ function resetEntityStore(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 

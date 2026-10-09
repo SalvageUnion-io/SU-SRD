@@ -21,7 +21,7 @@
  * `ratchet` rules, counted against `tools/styling-baseline.json`:
  *
  *   - `raw-color` — the Discord bot restates the palette as hex integers
- *     (`format.ts`, `gameEmbed.ts`, `lookupEmbed.ts`; `0xb7410e` is
+ *     (`format.ts`, `gameCards.ts`, `lookupCard.ts`; `0xb7410e` is
  *     `--color-rust`, three times over).
  *   - `arbitrary-font-size` — `WizShell.tsx` and `LiveSheet.tsx`.
  *
@@ -93,7 +93,7 @@ export const TOKEN_RULES: TokenRule[] = [
     id: 'raw-color',
     mode: 'ratchet',
     rule: 'ruleset §4.1 — colour lives in tokens, not call sites',
-    fix: 'Add or reuse a token in theme.css and reference it via a Tailwind utility or var(--color-*).',
+    fix: 'Add or reuse a token in theme.css (and its mirror in tokens.ts): `color.<name>` in a style object, `var(--color-<name>)` in a stylesheet rule. A translucent shade of a token is `color-mix(in oklab, var(--color-<name>) NN%, transparent)`.',
     // Two guards keep this from firing on things that only LOOK like hex:
     //
     // 1. Length is restricted to VALID CSS hex-colour lengths — 3, 4, 6, 8. A
@@ -153,14 +153,14 @@ export const TOKEN_RULES: TokenRule[] = [
     // and it RATIFIES them — "ratified as-is rather than re-lettering every
     // label in the app". There is no open decision. Five rungs are canon; the
     // three-token set never existed as tokens.)
-    fix: 'Use the shipped ladder: tracking-caps-tight (0.04em, the canonical label/stamp tracking) / -caps-snug / -caps / -caps-wide / tracking-eyebrow (0.22em, brand caption only).',
+    fix: 'Use the tracking ladder: `tracking.capsTight` / `var(--tracking-caps-tight)` (0.04em, the canonical label/stamp tracking), then capsSnug / caps / capsWide, and `tracking.eyebrow` (0.22em, brand caption only).',
     pattern: /tracking-\[[^\]]+\]/g,
   },
   {
     id: 'arbitrary-border-width',
     mode: 'zero',
     rule: 'ruleset §4.3 — border weights are tokens, one meaning each',
-    fix: 'Use border-entity (3px, plus border-b-/border-l- sides) / border-rail (2.5px) / border-2 (2px pill) / border-chrome (1.5px, plus sides) / border (1px hairline).',
+    fix: 'Use the border-weight ladder: `borderWidth.entity` / `var(--bw-entity)` (3px), rail (2.5px), pill (2px), chrome (1.5px), hairline (1px).',
     // Only widths — `border-[color:var(--x)]` is a colour, covered by raw-color.
     pattern: /border(?:-[trblxy])?-\[\d*\.?\d+px\]/g,
   },
@@ -174,7 +174,7 @@ export const TOKEN_RULES: TokenRule[] = [
     // existed — the drift was never a designer wanting a new value, it was the
     // ladder being invisible at the call site. Same shape as the three
     // arbitrary-* rules above, and it belongs beside them.
-    fix: 'Use the ladder: rounded-pip (1px, tracker pips) / rounded-badge (2px, the stamp-chip family) / rounded-card (3px — cards, inputs, buttons) / rounded-panel (6px — app-chrome panels & pick cards). Stamps are square: rounded-none. Pick by ROLE, not by which number is nearest.',
+    fix: 'Use the radius ladder: `radius.pip` / `var(--radius-pip)` (1px, tracker pips), badge (2px, the stamp-chip family), card (3px — cards, inputs, buttons), panel (6px — app-chrome panels & pick cards). Stamps are square: `radius.none`. Pick by ROLE, not by which number is nearest.',
     // Corner/side modifiers included (rounded-t-, rounded-tl-, rounded-ss-).
     // Only px literals — `rounded-[var(--x)]` is indirection, not a new rung.
     pattern: /\brounded(?:-[a-z]{1,2})?-\[\d*\.?\d+px\]/g,
@@ -183,14 +183,14 @@ export const TOKEN_RULES: TokenRule[] = [
     id: 'arbitrary-font-size',
     mode: 'ratchet',
     rule: 'ruleset §4.2 — one type scale',
-    fix: 'Use the semantic ladder: text-nano / micro / label / label-lg / badge / note / caption / lede, then the display end — readout (17) / title (22) / display (26) / display-lg (31) / hero (38).',
+    fix: 'Use the semantic type ladder: `fontSize.nano` / `var(--text-nano)`, then micro / label / labelLg / badge / note / caption / lede, and the display end — readout (17) / title (22) / display (26) / displayLg (31) / hero (38).',
     pattern: /text-\[(?!var\(|color:|--)[^\]]+\]/g,
   },
   {
     id: 'pure-white',
     mode: 'zero',
     rule: 'ruleset §4.1 — pure white is retired; paper (#fbfaf7) is the one light surface',
-    fix: 'Use bg-paper / text-paper.',
+    fix: 'Use paper: `color.paper` / `var(--color-paper)`.',
     pattern: /\b(?:bg|text|border|ring|fill|stroke)-white\b/g,
   },
 ]
@@ -210,13 +210,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'packages/component-lib/src/design/tokens.ts',
     rules: ['raw-color'],
     reason:
-      'The same standing as theme.css above, in the language the design system is moving TO (#798, epic #802): this is a token-definition file, so it is where colour is allowed to be a literal. Every value is ported verbatim from theme.css — nothing here is a new colour, and `src/design/tokens.parity.test.ts` fails if these literals and the `--su-*` custom properties in styles/index.css ever disagree. The exemption is scoped to `raw-color` alone: an arbitrary radius, tracking or border width written here would still be a violation, because those ladders are token NAMES rather than literals even inside the file that defines them.',
-  },
-  {
-    file: 'packages/component-lib/src/styles/index.css',
-    rules: ['raw-color'],
-    reason:
-      'The CSS half of the same definition — the package stylesheet emits the token scale as `--su-*` custom properties, so its literals are the identical set tokens.ts holds, kept honest by the same parity test. Note what is NOT exempt: this file is also where every `:hover` / `@media` / `:focus-visible` rule migrated off a Tailwind variant will land, and a colour written into one of THOSE rules is ordinary drift that this rule should catch. It cannot distinguish the two blocks, which is the accepted cost of a file-level exemption — recorded here rather than silently absorbed. Every stateful rule in the file today references a `var(--su-color-*)`, and the next one should too.',
+      'The TypeScript mirror of theme.css above: a token-definition file, so it is where colour is allowed to be a literal. Every value is ported verbatim from theme.css — nothing here is a new colour, and `src/design/tokens.parity.test.ts` fails if the two ever disagree. The exemption is scoped to `raw-color` alone: an arbitrary radius, tracking or border width written here would still be a violation, because those ladders are token NAMES rather than literals even inside the file that defines them.',
   },
   {
     file: 'packages/component-lib/src/components/chrome/Slab.tsx',
@@ -253,7 +247,7 @@ const EXEMPTIONS: Exemption[] = [
       'pure-white',
     ],
     reason:
-      'Ladle stories are specimens, not shipped surfaces — the same standing the Foundations catalog pages above already have, extended to the co-located ones so the rule does not depend on which directory a story happens to live in. Their literals are harness scaffolding: the --tone/--ground custom properties the consuming APP supplies at runtime (ModeDoor, VitalGauge), a dark backdrop to prove contrast against, a #ccc outline on a resize container (DashboardGrid/DashboardCanvas), and swatch props fed as data (FilterChip). Nothing here reaches a user, and tokenising a stand-in for app-supplied context would make the story demonstrate something other than what ships. Note the cost, since it is real: stories are where new surfaces get prototyped, so this is the one place drift can incubate un-flagged — a literal that graduates from a story into a component is caught at the component, not here. `gradient` is deliberately NOT on this list: a gradient is banned by §3.5 on shading grounds that a specimen does not escape, and the one sanctioned story gradient (CatalogTile.stories.tsx) is named individually below.',
+      'Stories are specimens, not shipped surfaces — the same standing the Foundations catalog pages above already have, extended to the co-located ones so the rule does not depend on which directory a story happens to live in. Their literals are harness scaffolding: the --tone/--ground custom properties the consuming APP supplies at runtime (ModeDoor, VitalGauge), a dark backdrop to prove contrast against, a #ccc outline on a resize container (DashboardGrid/DashboardCanvas), and swatch props fed as data (FilterChip). Nothing here reaches a user, and tokenising a stand-in for app-supplied context would make the story demonstrate something other than what ships. Note the cost, since it is real: stories are where new surfaces get prototyped, so this is the one place drift can incubate un-flagged — a literal that graduates from a story into a component is caught at the component, not here. `gradient` is deliberately NOT on this list: a gradient is banned by §3.5 on shading grounds that a specimen does not escape, and the one sanctioned story gradient (CatalogTile.stories.tsx) is named individually below.',
   },
   {
     file: 'packages/component-lib/src/components/chrome/catalogTile.ts',
@@ -280,7 +274,7 @@ const EXEMPTIONS: Exemption[] = [
       'Ruleset §3.5 THE one-off: the .pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust blooms, the steel plate, the rivet heads and the engraved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',
   },
   {
-    file: 'packages/component-lib/src/components/shared/WizShell.tsx',
+    file: 'apps/itun/src/components/wizard/WizShell.tsx',
     rules: ['arbitrary-border-width'],
     reason:
       "Not a border WEIGHT — a shape. The two matches (`border-x-[9px]`, `border-t-[14px]`) sit on an `h-0 w-0` span with `border-x-transparent`: the CSS-triangle idiom, drawing the caret under the wizard step marker. Those numbers are the triangle's half-width and height, so snapping them to the 1.5/2/2.5/3px weight ladder would not tidy a border, it would resize a glyph. The rule is right to look here and wrong about this one.",
