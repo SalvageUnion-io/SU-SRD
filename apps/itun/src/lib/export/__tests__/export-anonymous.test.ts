@@ -12,7 +12,7 @@ import { beforeEach, describe, expect, test } from 'bun:test'
 import { selectBackend } from '../../../stores/entityBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { usePatternStore } from '../../../stores/patternStore'
-import { _clearAllStores, _resetDbSingleton, mechPatterns } from '../../db/index'
+import { _resetDbSingleton, clearCache, mechPatterns } from '../../db/index'
 import { buildExportBundle } from '../buildExportBundle'
 
 const patternInput = {
@@ -26,7 +26,7 @@ const patternInput = {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   usePatternStore.setState({ mechPatterns: [], hydrated: false })
 })
 
@@ -41,9 +41,9 @@ describe('an anonymous backup', () => {
   })
 
   test('does not reach into IndexedDB for rows the session never built', async () => {
-    // A pre-account roster on disk is exported by its own path
-    // (`buildLegacyExportBundle`); folding it in here would hand the visitor a
-    // backup whose contents they cannot see anywhere in the app.
+    // Rows on disk are the last account's cache; folding them in here would
+    // hand the visitor a backup whose contents they cannot see anywhere in the
+    // app.
     await mechPatterns.create({ ...patternInput, name: 'On disk' })
 
     const bundle = await buildExportBundle(useEntityStore.getState())

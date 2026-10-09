@@ -19,15 +19,7 @@
  *
  * The function is deterministic and performs no I/O. It is the single source
  * of truth shared by srd (ephemeral selection state) and ITUN
- * (persisted selection state).
- *
- * It reads the UNIFIED choice encoding only — `source` / `cardinality` — never
- * the legacy `schemaEntities` / `choiceOptions` / `customSystemOptions` /
- * `multiSelect` / `constraints` fields. Reading the legacy half while the data
- * carried both was the live hazard: deleting a legacy duplicate would have
- * turned a resolved trait + prompt off silently, with the card still rendering
- * correctly. All 88 choices in the dataset were verified to resolve identically
- * across the switch.
+ * (persisted selection state). It reads a choice's `source` and `cardinality`.
  */
 
 import type {
@@ -117,12 +109,6 @@ function isInferredTraitChoice(choice: SURefObjectChoice): boolean {
  * multi-select modification choice declares `min: 0` (the player may take zero)
  * and so never prompts. A shortlist catalog with no declared cardinality is a
  * pick-one and is required.
- *
- * This used to read `constraints.min`, which is NOT a pick count — on the two
- * body-kit choices `constraints` is a `techLevel` RANGE (`{field:'techLevel',
- * min:3, max:4}`), and reading its `min` as "at least 3 picks" made them
- * required by accident. Both now declare `cardinality: {min:1, max:1}`, which
- * says the same thing on purpose.
  */
 function isRequired(choice: SURefObjectChoice): boolean {
   if (choice.cardinality) {

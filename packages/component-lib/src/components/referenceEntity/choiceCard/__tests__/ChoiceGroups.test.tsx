@@ -8,20 +8,21 @@ import type { ChoiceSelections } from '../choiceSelectionHelpers'
 const weaponTypeChoice: SURefObjectChoice = {
   id: 'weapon-type',
   name: 'Weapon Type',
-  schema: ['traits'],
-  schemaEntities: ['Ballistic', 'Energy'],
+  source: { kind: 'catalog', schema: ['traits'], entities: ['Ballistic', 'Energy'] },
 }
 
 const modificationChoice: SURefObjectChoice = {
   id: 'modification',
   name: 'Modification',
-  multiSelect: true,
-  constraints: { scalesWithField: 'techLevel' },
-  choiceOptions: [
-    { label: 'Rangefinder', value: 'Rangefinder', description: 'Increases Range to Far.' },
-    { label: 'Laser Guidance', value: 'Laser Guidance', description: 'Spend 2 AP to hit.' },
-    { label: 'High Calibre Rounds', value: 'High Calibre Rounds', description: '+1 SP damage.' },
-  ],
+  cardinality: { min: 0, max: { scalesWith: 'techLevel' } },
+  source: {
+    kind: 'options',
+    options: [
+      { label: 'Rangefinder', value: 'Rangefinder', description: 'Increases Range to Far.' },
+      { label: 'Laser Guidance', value: 'Laser Guidance', description: 'Spend 2 AP to hit.' },
+      { label: 'High Calibre Rounds', value: 'High Calibre Rounds', description: '+1 SP damage.' },
+    ],
+  },
 }
 
 const nameChoice: SURefObjectChoice = {
@@ -96,7 +97,7 @@ describe('ChoiceGroups — exclusive vs multi-select', () => {
   })
 })
 
-describe('ChoiceGroups — multi-select cap (scalesWithField)', () => {
+describe('ChoiceGroups — multi-select cap (cardinality.max.scalesWith)', () => {
   test('shows an (n/max) counter resolved from the parent field', () => {
     render(<ChoiceGroups choices={[modificationChoice]} parent={parent} />)
     // techLevel: 2 → cap 2, nothing selected yet.

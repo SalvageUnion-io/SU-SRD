@@ -14,7 +14,7 @@ const noop = () => {}
 const SP_TONE: CSSVarStyle = { '--tone': '#8fb996', '--tone-deep': '#4f6b55' }
 const HEAT_TONE: CSSVarStyle = { '--tone': '#c98b5e', '--tone-deep': '#7d4f2f' }
 
-// Real chassis stats drive every gauge (reference data preloaded by .ladle/components.tsx).
+// Real chassis stats drive every gauge (reference data preloaded by catalog.tsx).
 const chassis = SalvageUnionReference.Chassis.all()[0]
 const sp = chassis?.structurePoints ?? 12
 const ep = chassis?.energyPoints ?? 4

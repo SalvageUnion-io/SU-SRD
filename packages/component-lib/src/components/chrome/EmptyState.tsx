@@ -17,9 +17,8 @@ type StampEmptyStateProps = {
 
 type QuietEmptyStateProps = {
   /**
-   * 'quiet' — the muted app-chrome placeholder (absorbed from `Panel`'s
-   * retired `Empty` sub-component): centered, faint dashed frame, decorative
-   * glyph, no stamp headline.
+   * 'quiet' — the muted app-chrome placeholder: centered, faint dashed frame,
+   * decorative glyph, no stamp headline.
    */
   variant: 'quiet'
   headline?: never
@@ -41,8 +40,8 @@ type EmptyStateProps = StampEmptyStateProps | QuietEmptyStateProps
  * **Stamp** headline ("stamp voice"), an explainer, and **one rust action** —
  * **left-aligned**. Replaces ad-hoc muted-grey paragraphs.
  *
- * 'quiet': the muted app-chrome placeholder (design-spec §2.10 `.empty`,
- * formerly `Panel`'s `Empty`): 1.5px dashed faint frame, centered muted
+ * 'quiet': the muted app-chrome placeholder (design-spec §2.10 `.empty`):
+ * 1.5px dashed faint frame, centered muted
  * message + CTA, with an optional decorative glyph on top.
  */
 export function EmptyState({

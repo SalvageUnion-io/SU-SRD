@@ -1,0 +1,11 @@
+// `test/reference-preload.ts` already loads every schema, from each
+// workspace's bunfig. `ModelFactory`'s loaded-schema set is module-global and
+// never reset, so a test file's own narrow `preload(...)` list can pass purely
+// because a sibling file loaded everything first. The few files that assert on
+// load behaviour itself are excluded by path in biome.jsonc, each with its
+// reason.
+language js(typescript, jsx)
+
+`SalvageUnionReference.preload($args)` as $call where {
+  register_diagnostic(span=$call, message="Delete this preload: test/reference-preload.ts already loads every schema (.claude/rules/testing-patterns.md).", severity="error")
+}

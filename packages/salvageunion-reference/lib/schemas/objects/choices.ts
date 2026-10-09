@@ -50,8 +50,7 @@ export const ChoiceConstraintsSchema = z
 /**
  * Choice cardinality — how many picks a choice grants.
  * `max` is either a fixed number or `{ scalesWith }`, a field name resolved on
- * the parent entity (e.g. `techLevel`). Replaces `multiSelect` +
- * `constraints.min/max` + `constraints.scalesWithField`.
+ * the parent entity (e.g. `techLevel`).
  */
 const CardinalitySchema = z
   .object({
@@ -65,9 +64,9 @@ const CardinalitySchema = z
  * ([ADR ref] the unified choice model). Exactly one `kind`; the renderer
  * switches on it and never probes optional fields.
  *
- * - `text`          — a free-text field (was: no option source).
+ * - `text`          — a free-text field.
  * - `table`         — roll on a named table, or choose your own.
- * - `options`       — an inline structured option list (was: choiceOptions).
+ * - `options`       — an inline structured option list.
  * - `catalog`       — pick a card-bearing entity from schema collection(s),
  *                     optionally a named shortlist and/or a filter (a numeric
  *                     `field` range, or `damageType` — keep only systems whose
@@ -117,45 +116,14 @@ export const ChoiceSchema = z
         id: IdSchema.describe('Unique identifier for this choice'),
         name: NameSchema.describe('Display name for this choice'),
         content: ContentSchema.describe('Descriptive content for this choice').optional(),
-        rollTable: z.string().describe('Roll table name to use for random selection').optional(),
-        schemaEntities: z
-          .array(z.string())
-          .describe('Specific entity names to choose from')
-          .optional(),
-        schema: z.array(SchemaNameSchema).describe('Schema collections to choose from').optional(),
-        customSystemOptions: z
-          .array(SystemModuleSchema)
-          .describe('Custom system/module options for this choice')
-          .optional(),
-        multiSelect: z
-          .boolean()
-          .describe('If true, this choice can be selected multiple times')
-          .optional(),
-        choiceOptions: z
-          .array(ChoiceOptionSchema)
-          .describe('Structured options for this choice (similar to actionOptions)')
-          .optional(),
-        constraints: ChoiceConstraintsSchema.describe('Constraints on selection count').optional(),
         source: ChoiceSourceSchema.describe(
-          'Discriminated option source (text/table/options/catalog/systemVariant) — the unified axis'
+          'Discriminated option source (text/table/options/catalog/systemVariant)'
         ).optional(),
-        cardinality: CardinalitySchema.describe(
-          'How many picks this choice grants (replaces multiSelect + constraints)'
-        ).optional(),
+        cardinality: CardinalitySchema.describe('How many picks this choice grants').optional(),
         lifetime: z
           .enum(['permanent', 'session'])
           .describe('permanent: recorded on sheet; session: made during gameplay')
           .optional(),
-        // The retired `choiceType` enum folded TWO axes into one field:
-        // permanent/session (a lifetime) and freeform (an option SOURCE).
-        // `lifetime` owns the first; `source.kind === 'text'` owns the second —
-        // and did so redundantly, agreeing with `choiceType: 'freeform'` on
-        // 67/67 records. The 18 `permanent` records were rewritten to
-        // `lifetime`, and the 3 `session` records already carried BOTH with
-        // identical values, which is the half-migration the parity guard exists
-        // to catch. `choiceType` is now in that guard's LEGACY_CHOICE_FIELDS
-        // (`tools/validateParityLogic.ts`), and this object is `.strict()`, so
-        // re-authoring it fails twice.
       })
       .strict()
   )

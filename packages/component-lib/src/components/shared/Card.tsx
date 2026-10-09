@@ -102,8 +102,7 @@ type CardProps = {
 
 /**
  * The sub-header band's stat row — a tight, non-wrapping `[StatItem → Stat]`
- * cluster inside the wrapping band. Folded in from the former standalone `StatsBar`
- * (Card was its only consumer): each item skips when its value is undefined,
+ * cluster inside the wrapping band: each item skips when its value is undefined,
  * an `onChange` item renders the edit-mode +/- stepper (coercing a string value to
  * a number), and tooltips gate on `suppressTooltips`.
  */
@@ -204,10 +203,9 @@ export function Card({
   // background) itself, matching the codex "After" .a-card spec, and falls back
   // to ink when there is no header bg.
   //
-  // The precedence used to be the other way round, which meant a caller passing
-  // both a header bg and a `borderColor` had its `borderColor` silently
-  // discarded — the frame is meant to be settable independently of the band
-  // (an accent frame around a tinted header is the whole shape of a Callout).
+  // The frame is settable independently of the band (an accent frame around a
+  // tinted header is the whole shape of a Callout), so a caller passing both a
+  // header bg and a `borderColor` keeps its `borderColor`.
   const effectiveBorderColor =
     borderColorProp ?? borderColorFromHeaderBg(headerBg, headerBgColor) ?? 'var(--color-ink)'
 
@@ -301,7 +299,7 @@ export function Card({
         </div>
       )}
 
-      <CardControlRail controls={railControls} compact={isCompact} />
+      <CardControlRail controls={railControls} />
 
       {/* Inner wrapper clips backgrounds to border-radius. */}
       <div

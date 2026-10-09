@@ -98,11 +98,8 @@ function asFailure(error: unknown): BotFailure {
 /**
  * Owner display names for a Game, resolved once per request.
  *
- * This used to return a `present` flag alongside the name, read from a
- * `presence` table. Nothing ever wrote that table — `heartbeat` had no caller —
- * so the flag was false for everybody, forever, and the bot dutifully rendered
- * "0 at the table" to rooms full of people. The table and the flag are both
- * gone; see `mediator.ts`'s header.
+ * Names only: ITUN tracks no presence, so there is no "who is at the table"
+ * flag to report; see `mediator.ts`'s header.
  */
 async function ownerNames(ctx: QueryCtx, gameId: Id<'games'>): Promise<Map<string, string>> {
   const members = await ctx.db
@@ -178,10 +175,8 @@ export const shelf = internalQuery({
 
     return {
       ok: true,
-      // See `crew` on why `appId` rides along: it is what the web sheet route
-      // actually resolves by.
-      pilots: pilots.map((p) => ({ id: p._id, appId: p.appId ?? null, body: p.body })),
-      mechs: mechs.map((m) => ({ id: m._id, appId: m.appId ?? null, body: m.body })),
+      pilots: pilots.map((p) => ({ id: p._id, body: p.body })),
+      mechs: mechs.map((m) => ({ id: m._id, body: m.body })),
     }
   },
 })
@@ -255,12 +250,6 @@ export const crew = internalQuery({
 
     const entry = (row: Doc<'pilots'> | Doc<'mechs'>) => ({
       id: row._id,
-      // The web sheet route resolves an entity by its APP-level id out of
-      // IndexedDB, not by the Convex `_id` — so a link built from `_id` opens
-      // nothing. Null for rows created server-side (a Game template) that
-      // nobody has claimed into a browser yet, and the bot omits the link
-      // rather than emitting a dead one.
-      appId: row.appId ?? null,
       ownerId: row.ownerId,
       ownerName: row.ownerId === null ? null : (names.get(row.ownerId) ?? null),
       body: row.body,
@@ -284,13 +273,8 @@ export const crew = internalQuery({
  * pilot, mech or the communal crawler, which is what "lean over and look at
  * their sheet" means at a physical table. The entity must belong to *this
  * channel's* Game, so a member of one table cannot read another table's sheets
- * by id.
- *
- * `crawlers` joined the union after the fact. It was reachable on the crew
- * board and openable nowhere, which made the crawler the one thing a table
- * could see and not inspect. It carries **no `ownerId` at all** (it is
- * communal, ADR-030 §5), so ownership is read off the row optionally rather
- * than assumed present — a crawler reports no owner rather than an absent one.
+ * by id. A crawler in a Game is communal (ADR-030 §5): its `ownerId` is null,
+ * so it reports no owner.
  */
 export const sheet = internalQuery({
   args: {
@@ -317,8 +301,7 @@ export const sheet = internalQuery({
 
     const row = doc as unknown as {
       gameId: Id<'games'> | null
-      // Optional, not nullable: `crawlers` has no such column at all.
-      ownerId?: Id<'users'> | null
+      ownerId: Id<'users'> | null
       appId?: string
     }
     // Not `forbidden` — telling somebody an id exists but is another table's is
@@ -326,17 +309,12 @@ export const sheet = internalQuery({
     if (row.gameId !== actor.value.gameId) return fail('not-found')
 
     const names = await ownerNames(ctx, actor.value.gameId)
-    const ownerId = row.ownerId ?? null
+    const ownerId = row.ownerId
     return {
       ok: true,
       table: args.table,
       id: args.entityId,
       appId: row.appId ?? null,
-      // The Game this sheet belongs to, so the bot can address the read-only
-      // web view (`/games/<gameId>/view/…`). Without it the bot could only
-      // build the local `/sheet/<kind>/<appId>` URL, which resolves out of the
-      // clicker's own IndexedDB and so opens nothing for a crewmate.
-      gameId: actor.value.gameId,
       // Whether this sheet has a PUBLIC url (ADR-032). The bot renders the
       // `/p/<kind>/<appId>` link only when this is true — a private sheet has
       // no public URL, and advertising one would 404 the reader.
@@ -502,7 +480,7 @@ export const invite = internalMutation({
     // — unless the seat changed, in which case the old one is closed and a new
     // one carries the seat the Organizer asked for this time.
     let live = retried ?? (await liveDiscordInvite(ctx, gameId, parsed.invitee.id))
-    if (live !== null && retried === null && (live.role ?? 'player') !== parsed.role) {
+    if (live !== null && retried === null && live.role !== parsed.role) {
       await ctx.db.patch(live._id, { revokedAt: Date.now() })
       live = null
     }
@@ -541,9 +519,9 @@ export const invite = internalMutation({
       invitedBy: displayNameOf(user),
       inviteeDiscordId: parsed.invitee.id,
       inviteeName,
-      role: row.role ?? 'player',
+      role: row.role,
       grantCount: row.grants?.length ?? 0,
-      expiresAt: row.expiresAt ?? null,
+      expiresAt: row.expiresAt,
       reused: live !== null,
       deliver,
     }

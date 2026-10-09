@@ -61,15 +61,17 @@ export const addNpc = mutation({
   handler: async (ctx, args): Promise<Id<'encounterNpcs'>> => {
     await requireMediator(ctx, args.gameId)
     const body = parseBody('encounterNpcs', args.body)
+    // The body's id is the row's address: minted here when the body has none,
+    // so the `appId` column and `body.id` stay one value.
+    const appId = bodyAppId(body) ?? crypto.randomUUID()
     // `ownerId: null` is what in-a-Game means for a tray NPC — the opposition
     // belongs to the table, and the Mediator reaches it through their role.
-    // These mutations are all Game-scoped; the shelf half of the container model
-    // has no writer yet and gains one when the client tray is wired (P4).
+    // The shelf tray is written by `shelf.upsertEncounterNpc`.
     return await ctx.db.insert('encounterNpcs', {
       gameId: args.gameId,
       ownerId: null,
-      appId: bodyAppId(body),
-      body,
+      appId,
+      body: { ...(body as Record<string, unknown>), id: appId },
     })
   },
 })

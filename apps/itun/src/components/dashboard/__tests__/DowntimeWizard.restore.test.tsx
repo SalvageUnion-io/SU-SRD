@@ -52,7 +52,7 @@ describe('Downtime Restore', () => {
     const { store, calls } = stub([mech])
     render(
       <DowntimeWizard
-        crawler={withBays([{ bayRef: 'Mech Bay', condition: 'intact' }])}
+        crawler={withBays([{ bayRef: 'mech-bay', condition: 'intact' }])}
         mech={mech}
         pilot={null}
         store={store}
@@ -68,7 +68,7 @@ describe('Downtime Restore', () => {
     const { store, calls } = stub([mech])
     render(
       <DowntimeWizard
-        crawler={withBays([{ bayRef: 'Mech Bay', condition: 'damaged' }])}
+        crawler={withBays([{ bayRef: 'mech-bay', condition: 'damaged' }])}
         mech={mech}
         pilot={null}
         store={store}

@@ -12,12 +12,12 @@ import {
   requireTableRunner,
   requireUser,
 } from './model/permissions'
-import { deleteGamePlayState } from './model/seats'
+import { deleteGameApparatus } from './model/seats'
 
 /**
  * Games — the shared container (ADR-030 §2).
  *
- * A Game collapses campaign, group, and the former Workspace into one concept.
+ * A Game is campaign and group in one concept.
  * The personal **Shelf** is the other container and is not a Game: it is simply
  * the absence of one (`gameId: null` on an entity), which is why there is no
  * `shelves` table.
@@ -183,12 +183,13 @@ export const create = mutation({
  * looking at the consequence as it happens.
  *
  * Note this is the moment a crawler stops being communal. Inside a Game it has
- * no owner by design (D8); on a shelf it must have one, because an entity with
+ * no owner by design (ADR-030 §5); on a shelf it must have one, because an entity with
  * neither container nor owner is the invalid row. The Organizer does not so
  * much *take* the crawler as become the person it is now filed under.
  *
- * Rows describing the *table* rather than something built on it — the
- * opposition tray, the wiring, invites, requests, memberships — go with it.
+ * Rows describing the *table* rather than something built on it — the wiring,
+ * invites, requests, memberships, channel bindings and play state — go with it
+ * (`deleteGameApparatus`).
  */
 export const destroy = mutation({
   args: { gameId: v.id('games') },
@@ -225,9 +226,9 @@ export const destroy = mutation({
     // The Mediator's prepared opposition falls back for the same reason the
     // crawler does, and it became able to only in the same way: `encounterNpcs`
     // gained a nullable `gameId` and an `ownerId` (ADR-034 decision 2), so a
-    // tray is no longer something only a Game can hold. It used to be deleted
-    // here — which threw away prep work somebody had genuinely built, the one
-    // remaining case of exactly what the rule above forbids.
+    // tray is not something only a Game can hold, and deleting it would throw
+    // away prep work somebody genuinely built — exactly what the rule above
+    // forbids.
     //
     // It goes to the Organizer rather than to whoever mediated: a Game may have
     // several Mediators or none, while the deleter is by construction exactly
@@ -240,35 +241,9 @@ export const destroy = mutation({
       await ctx.db.patch(npc._id, { gameId: null, ownerId: organizerId })
     }
 
-    // What is left has no personal counterpart, so it just goes. Note this list
-    // is now only the *table's own* apparatus — nothing on it is a thing a
-    // person built. `inviteRedemptions`
-    // and `joinRequests` belong here for the same reason `invites` does: they
-    // describe a way into a Game that no longer exists, and an unanswered knock
-    // at a deleted door would sit pending forever.
-    //
-    // `softLinks` are here because a link is a fact about the table's wiring
-    // rather than a possession: a pilot-to-crawler assignment means "aboard
-    // this crew's crawler", which stops being true when the crew disbands.
-    // Shelved entities land unwired, which is the honest state.
-    for (const table of [
-      'softLinks',
-      'invites',
-      'inviteRedemptions',
-      'joinRequests',
-      'memberships',
-    ] as const) {
-      const rows = await ctx.db
-        .query(table)
-        .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
-        .collect()
-      for (const row of rows) await ctx.db.delete(row._id)
-    }
-    // The seats and the Downtime row are the table's play state, so they go
-    // too, rather than lingering keyed on a Game that no longer exists.
-    await deleteGamePlayState(ctx, args.gameId)
-
-    await ctx.db.delete(args.gameId)
+    // What is left has no personal counterpart, so it goes with the Game: the
+    // table's own apparatus, listed and explained at `GAME_APPARATUS_TABLES`.
+    await deleteGameApparatus(ctx, args.gameId)
   },
 })
 

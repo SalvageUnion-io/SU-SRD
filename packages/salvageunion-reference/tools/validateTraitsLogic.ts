@@ -74,11 +74,6 @@ type Effect = { op: string; value: string }
 
 /**
  * Effects declared on every `choices[].source.options[].effects[]` of an entity.
- *
- * Reads the unified `source` encoding only — never the legacy `choiceOptions`
- * duplicate. A validator that reads the legacy half stops seeing effects the
- * moment the duplicate is removed, and reports a clean sweep over data it is no
- * longer looking at.
  */
 function collectChoiceEffects(entity: Entity): Effect[] {
   const effects: Effect[] = []

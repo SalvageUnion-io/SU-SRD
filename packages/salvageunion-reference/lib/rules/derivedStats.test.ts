@@ -9,7 +9,7 @@
  * crawler-tech-levels data from salvageunion-reference.
  */
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from '../index.js'
+import { getEntitySlug, SalvageUnionReference } from '../index.js'
 import type { ChassisStats } from './derivedStats.js'
 import {
   crawlerMaxSP,
@@ -195,11 +195,11 @@ describe('mech derivation', () => {
     expect(mechMaxSP({ ...bare, maxSpModifier: -99 }, chassis)).toBe(0)
   })
 
-  it('resolves the chassis by NAME from the reference ORM when not injected', () => {
+  it('resolves the chassis by SLUG from the reference ORM when not injected', () => {
     const real = SalvageUnionReference.Chassis.all()[0]
     expect(real).toBeDefined()
     if (!real) return
-    const mech = { chassisRef: real.name, maxSpModifier: 1 }
+    const mech = { chassisRef: getEntitySlug(real), maxSpModifier: 1 }
     expect(mechMaxSP(mech)).toBe((real.structurePoints ?? 0) + 1)
   })
 })
@@ -219,7 +219,7 @@ describe('cap overrides — absolute pins (ADR-022 amendment)', () => {
   const bare = { chassisRef: 'no-such-chassis' }
 
   it('a pin replaces the derived total and retains the baseline', () => {
-    const parts = mechMaxSPParts({ ...bare, systems: ['Heat Sink'], maxSpOverride: 40 }, chassis)
+    const parts = mechMaxSPParts({ ...bare, systems: ['heat-sink'], maxSpOverride: 40 }, chassis)
     expect(parts.total).toBe(40)
     expect(parts.overridden).toBe(true)
     expect(parts.override).toBe(40)
@@ -344,7 +344,7 @@ describe('pilot inventory capacity', () => {
   })
 
   it("applies Beefcake's +4 inventorySlots as a NAMED source, not an anonymous total", () => {
-    const parts = pilotMaxInventorySlotsParts({ abilities: ['Beefcake'] })
+    const parts = pilotMaxInventorySlotsParts({ abilities: ['beefcake'] })
     expect(parts.total).toBe(10)
     expect(parts.base).toBe(6)
     expect(parts.sources.map((s) => [s.source, s.amount])).toEqual([['Beefcake', 4]])
@@ -352,7 +352,7 @@ describe('pilot inventory capacity', () => {
 
   it('honours maxInventorySlotsOverride as an absolute pin, retaining the derived value', () => {
     const parts = pilotMaxInventorySlotsParts({
-      abilities: ['Beefcake'],
+      abilities: ['beefcake'],
       maxInventorySlotsModifier: 1,
       maxInventorySlotsOverride: 3,
     })
@@ -370,15 +370,13 @@ describe('pilot inventory capacity', () => {
 
 describe('installed system/module contributions', () => {
   const bare = { chassisRef: 'no-such-chassis' }
-  // These totals are unchanged from when the same nine systems declared a flat
-  // `statBonus` summed by `installedStatBonus`. The convergence onto
-  // `contributions` moves them from the ANONYMOUS `installed` slot into named
-  // `sources`, so the numbers below pin that the arithmetic did not move.
+  // Installed systems' `contributions` land in named `sources`, never the
+  // ANONYMOUS `installed` slot; the numbers below pin the arithmetic.
   const sourceOf = (parts: { sources: { source: string; amount: number }[] }) =>
     parts.sources.map((s) => [s.source, s.amount])
 
   it('sums a single installed item contribution into the relevant maximum', () => {
-    const mech = { ...bare, systems: ['Cargo Pod'] }
+    const mech = { ...bare, systems: ['cargo-pod'] }
     // base cargoCapacity 6 + Cargo Pod +1 = 7
     expect(mechMaxCargo(mech, chassis)).toBe(7)
     const parts = mechMaxCargoParts(mech, chassis)
@@ -387,7 +385,7 @@ describe('installed system/module contributions', () => {
   })
 
   it('stacks contributions across multiple installed copies (2x Heat Sink = +2)', () => {
-    const mech = { ...bare, systems: ['Heat Sink', 'Heat Sink'] }
+    const mech = { ...bare, systems: ['heat-sink', 'heat-sink'] }
     // base heatCapacity 5 + 2 Heat Sinks (+1 each) = 7
     expect(mechMaxHeat(mech, chassis)).toBe(7)
     const parts = mechMaxHeatParts(mech, chassis)
@@ -398,11 +396,11 @@ describe('installed system/module contributions', () => {
   it('applies Composite Armour +5 Max SP, per installed copy', () => {
     // Its rules text -- "increases your Mech's Max SP by 5 for each Composite
     // Armour System you have installed" -- is a flat per-copy contribution.
-    const one = { ...bare, systems: ['Composite Armour'] }
+    const one = { ...bare, systems: ['composite-armour'] }
     expect(mechMaxSP(one, chassis)).toBe(15) // base 10 + 5
     expect(sourceOf(mechMaxSPParts(one, chassis))).toEqual([['Composite Armour', 5]])
 
-    const two = { ...bare, systems: ['Composite Armour', 'Composite Armour'] }
+    const two = { ...bare, systems: ['composite-armour', 'composite-armour'] }
     expect(mechMaxSP(two, chassis)).toBe(20) // base 10 + 5 + 5
     expect(sourceOf(mechMaxSPParts(two, chassis))).toEqual([['Composite Armour', 10]])
   })
@@ -411,7 +409,7 @@ describe('installed system/module contributions', () => {
     const mech = {
       ...bare,
       maxEpModifier: 1,
-      systems: ['Capacitance Bank', 'Capacitance Bank'],
+      systems: ['capacitance-bank', 'capacitance-bank'],
     }
     // base energyPoints 6 + modifier 1 + 2 banks (+2 each = +4) = 11
     expect(mechMaxEP(mech, chassis)).toBe(11)
@@ -420,7 +418,7 @@ describe('installed system/module contributions', () => {
   it('mixes system and module refs and ignores unresolved / no-contribution items', () => {
     const mech = {
       ...bare,
-      systems: ['Cargo Pod', 'Transport Hold', 'Made Up System'],
+      systems: ['cargo-pod', 'transport-hold', 'made-up-system'],
       modules: [],
     }
     // base 6 + Cargo Pod 1 + Transport Hold 4 = 11; unknown item contributes 0
@@ -478,18 +476,15 @@ describe('crawler derivation', () => {
     const battle = SalvageUnionReference.Crawlers.getByName('Battle')
     expect(battle).toBeDefined()
     const base = crawlerMaxSP({ techLevel: 'tech-1' })
-    // By id AND by name (stored type refs resolve id-or-name, like bay refs).
-    expect(crawlerMaxSP({ techLevel: 'tech-1', type: battle?.id })).toBe(base + 5)
-    expect(crawlerMaxSP({ techLevel: 'tech-1', type: 'Battle' })).toBe(base + 5)
+    expect(crawlerMaxSP({ techLevel: 'tech-1', type: 'battle' })).toBe(base + 5)
     // A type swap re-derives in BOTH directions — no stored residue.
-    expect(crawlerMaxSP({ techLevel: 'tech-1', type: 'Engineering' })).toBe(base)
+    expect(crawlerMaxSP({ techLevel: 'tech-1', type: 'engineering' })).toBe(base)
   })
 
   it('type bonus stacks with the hand-edit modifier, decomposed by crawlerMaxSPParts', () => {
-    const battle = SalvageUnionReference.Crawlers.getByName('Battle')
     const parts = crawlerMaxSPParts({
       techLevel: 'tech-1',
-      type: battle?.id,
+      type: 'battle',
       maxSpModifier: 2,
     })
     expect(parts.base).toBe(20)

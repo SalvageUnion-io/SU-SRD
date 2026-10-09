@@ -12,9 +12,8 @@
  *    more; this is it.
  *
  * "+ New game" (`NewGameControl`) heads the band, beside the select it adds
- * to. Signed out — or in a build with no account service — there is no game
- * UI at all: no select, no New game, and the whole pile unfiltered (see
- * `inContainer`).
+ * to. Signed out there is no game UI at all: no select, no New game, only the
+ * sign-in prompt (see `inContainer`).
  *
  * On mount: hydrates all three entity types + softLinks. At the mobile
  * endpoint (≤ md) the columns collapse to one behind a segmented
@@ -30,7 +29,7 @@
  *      delete keeps the dialog open with the reason.
  */
 
-import { buttonVariants, cn, EntityRow, PageShell, RosterSkeleton, Stat } from 'component-lib'
+import { buttonVariants, cn, PageShell, RosterSkeleton, Stat } from 'component-lib'
 import { UserRound } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
@@ -59,6 +58,7 @@ import { GameHub } from '../games/GameHub'
 import { InvitationsForYou } from '../games/InvitationsForYou'
 import { NewGameControl } from '../games/NewGameControl'
 import { AppLink } from '../shared/AppLink'
+import { EntityRow } from '../shared/EntityRow'
 import { useConfirm } from '../shared/useConfirm'
 import { StarterSetRoster } from '../starterSet/StarterSetRoster'
 import type { SegmentKind } from './RosterColumn'
@@ -72,9 +72,8 @@ import { crawlerStats, mechChassisStats, pilotStats } from './rowStats'
 /**
  * The row's body details, blanks dropped.
  *
- * These used to be joined into one muted line with ' · ' separators, then became
- * chips, and are now `label | value` stats — each step removing an inference the
- * reader was making on the row's behalf.
+ * `label | value` stats, never one muted line joined with ' · ' separators: a
+ * stat removes an inference the reader would make on the row's behalf.
  */
 function metaParts(parts: Array<ReactNode | null | undefined>): ReactNode[] | undefined {
   const kept = parts.filter((part) => part != null && part !== '')
@@ -144,11 +143,10 @@ export function Roster() {
    * A cross-link to another entity's live sheet, as a Badge tinted with THAT
    * entity's ontology tone (design review U-4).
    *
-   * These used to be muted '↳ Name' underlined text. The row already tones its
-   * own rail by ontology, so a monochrome cross-link was the one place on the
-   * row where "which kind of thing is this?" had to be read rather than seen —
-   * and a pilot linking to both a mech and a crawler rendered two visually
-   * identical segments. The tone comes from the TARGET's kind, never the row's.
+   * The row already tones its band by ontology, so a monochrome cross-link
+   * would be the one place on the row where "which kind of thing is this?" had
+   * to be read rather than seen. The tone comes from the TARGET's kind, never
+   * the row's.
    *
    * Badge wrapped in the link rather than rendered `as={AppLink}`: its chip
    * props are typed for a span and carry no `href`. This is the same shape the
@@ -186,15 +184,13 @@ export function Roster() {
   }
 
   /**
-   * Scope the roster to the current container — but ONLY when signed in.
+   * Scope the roster to the current container — but ONLY when Connected.
    *
-   * A Solo user has no Games (there is no account, so nothing to share with),
-   * which makes their builds one pile and any filter of it a filter on a
-   * distinction that does not exist for them. Worse, it would hide things:
-   * migration v13 mapped every non-Default workspace onto `gameId: <that
-   * workspace id>`, so a Solo user who once used Workspaces has entities
-   * addressed by ids matching no real Game. Showing the pile whole is both
-   * simpler and the only rendering that cannot lose a build.
+   * Signed out, the roster renders the sign-in prompt below and lists nothing.
+   * Connecting or Disconnected (including blocked), there is no live Game list
+   * to check the persisted container against, so filtering would be a guess
+   * that can hide builds. Showing the cached pile whole is both simpler and
+   * the only rendering that cannot lose a build.
    */
   const inContainer = <T extends ContainerFields>(list: T[]): T[] => {
     if (mode !== 'connected') return list
@@ -206,9 +202,9 @@ export function Roster() {
   const crawlers = inContainer(allCrawlers)
 
   /**
-   * Which container the body shows. A Game only when Connected: a Solo or
-   * Disconnected viewer has no Games to show (see `inContainer`), so for them a
-   * remembered Game selection falls through to the whole pile. While the
+   * Which container the body shows. A Game only when Connected: a Disconnected
+   * viewer has no live Games to show (see `inContainer`), so for them a
+   * remembered Game selection falls through to the whole cached pile. While the
    * connection is still being worked out, a remembered Game shows a skeleton
    * rather than flashing that unfiltered pile first.
    */

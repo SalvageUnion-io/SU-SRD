@@ -223,17 +223,9 @@ function page(): PageResult {
                 In The Union Now
               </a>
               {/*
-                "no-account" is now settled from the repo, and it means "usable
-                without one", which is true.
-
-                There is no longer a deployment flag to check: the anonymous
-                durable backend (`local`) and `VITE_REQUIRE_ACCOUNT` were both
-                retired, so in every build an anonymous visitor builds in memory
-                and an account is what keeps the work. `requireWritableBackend`
-                in `entityBackend.ts` states the rule: the account is required
-                to *keep* work, never to do it. So "no-account" must never be read as "keeps your work
-                without one" — if this line is ever reworded, it must not claim
-                that.
+                "no-account" means usable without one: signed out, ITUN is
+                read-only, and building needs an account (ADR-034). It must
+                never be reworded to claim building or keeping work without one.
               */}
               , the no-account character builder &amp; game manager — sheets can be shared into
               Discord as live public links.

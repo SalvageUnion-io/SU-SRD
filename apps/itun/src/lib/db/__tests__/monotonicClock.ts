@@ -1,3 +1,5 @@
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+
 /**
  * A deterministic wall clock for the tests that care about record ordering.
  *
@@ -36,7 +38,7 @@ export type MonotonicClock = {
 }
 
 export type MonotonicClockOptions = {
-  /** Epoch ms the first reading reports. Default: 2026-01-01T00:00:00Z. */
+  /** Epoch ms the first reading reports. Default: `FIXTURE_NOW`. */
   start?: number
   /** How far each reading advances the cursor. Default: 1000ms. */
   stepMs?: number
@@ -47,7 +49,7 @@ export type MonotonicClockOptions = {
  * consecutive writes are guaranteed distinct and ordered with no sleeping.
  */
 export function installMonotonicClock(options: MonotonicClockOptions = {}): MonotonicClock {
-  let cursor = options.start ?? REAL_DATE.parse('2026-01-01T00:00:00.000Z')
+  let cursor = options.start ?? REAL_DATE.parse(FIXTURE_NOW)
   const step = options.stepMs ?? 1000
 
   function tick(): number {

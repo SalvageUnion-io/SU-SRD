@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/catalog-categories.schema.json",
+  "$id": "https://salvageunion.io/schema/catalog-categories.schema.json",
   "title": "catalog-categories",
   "description": "Catalog categories for organizing schemas in the UI",
   "type": "array",

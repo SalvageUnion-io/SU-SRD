@@ -1,47 +1,22 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import type { Ctx } from './assignmentFixtures'
-import { makeUser } from './assignmentFixtures'
+import type { Ctx } from './fixtures'
+import { crawlerBody, makeUser, pilotBody } from './fixtures'
 import { testConvex } from './harness'
 
 /**
  * Soft links against the server of record.
  *
- * Links were the one part of a roster that never left the browser.
- * `mirrorEntityWrite` returned early for them as "derived" — which is nearly
- * true of a shelf and not true at all of a Game, because `listForGame` reads
- * them back. So the crew saw whatever wiring existed when the account was
- * claimed and never saw a single change afterwards: you assigned a pilot to the
- * crawler, your own sheet updated, and nobody else's did.
+ * A link is not derived once a Game shares it — `listForGame` reads it back —
+ * so assigning a pilot to the crawler must reach every crewmate's sheet, not
+ * only your own.
  *
- * That is the second half of "you couldn't assign them to a crawler" — the
- * first being that the crawler had no control to assign *with*.
- *
- * The properties pinned here are the ones that make a link safe to mirror:
+ * The properties pinned here are the ones that make a link safe to write:
  * it is identified by its endpoints (so replaying a write is a no-op rather
  * than a duplicate wire), it belongs to the container its `from` end belongs
  * to, and only somebody who may write that end may draw or cut it.
  */
-
-function pilotBody(over: Record<string, unknown> = {}) {
-  return {
-    id: 'p1',
-    schemaVersion: 1,
-    name: 'Babe',
-    callsign: 'Babe',
-    classRef: 'salvager',
-    abilities: [],
-    equipment: [],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    conditions: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...over,
-  }
-}
 
 /** A pilot row owned by `userId`, addressable by `appId`. */
 async function seedPilot(t: Ctx, userId: Id<'users'>, appId: string, gameId: Id<'games'> | null) {
@@ -58,9 +33,9 @@ async function seedPilot(t: Ctx, userId: Id<'users'>, appId: string, gameId: Id<
 }
 
 /**
- * A crawler row for the link's `to` end. Since ADR-037 the server resolves the
- * `to` end and requires it to share the `from` end's container, so a link to a
- * crawler with no row is no longer written at all.
+ * A crawler row for the link's `to` end. The server resolves the `to` end and
+ * requires it to share the `from` end's container (ADR-037), so a link to a
+ * crawler with no row is never written.
  */
 async function seedCrawler(t: Ctx, userId: Id<'users'>, appId: string, gameId: Id<'games'> | null) {
   return await t.run(
@@ -69,15 +44,7 @@ async function seedCrawler(t: Ctx, userId: Id<'users'>, appId: string, gameId: I
         gameId,
         ownerId: gameId === null ? userId : null,
         appId,
-        body: {
-          id: appId,
-          schemaVersion: 1,
-          name: '#430',
-          techLevel: '1',
-          systems: [],
-          createdAt: '2026-01-01T00:00:00.000Z',
-          updatedAt: '2026-01-01T00:00:00.000Z',
-        },
+        body: crawlerBody({ id: appId }),
         updatedAt: Date.now(),
       })
   )

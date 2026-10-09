@@ -12,28 +12,26 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 | **Solo** | not signed in — in **every** build, CI and `bun run dev` included | nothing: **read-only** — writes are refused (`signedOut`); no Dashboard |
 | **Connected** | signed in, online | Convex; IndexedDB is a cache |
 | **Disconnected** | signed in, offline | read-only — not a write queue |
+| **Outdated** | bundle below `build.floor` | read-only until it reloads |
 
-- Resolve the mode through `src/lib/connection/` — never `navigator.onLine` or
-  an auth flag.
-- **Never introduce a store, field or flow that persists only on a device.**
+- Resolve the mode via `src/lib/connection/`, never `navigator.onLine` or an
+  auth flag.
+- **No IndexedDB store without a Convex commit seam:** `storeSeams.test.ts`.
 - **There is no anonymous backend.** `selectBackend()` is
   `signedOut | remote | blocked`; signed out, every store reads empty
-  (`readableRows`), never IndexedDB. The old `local` backend and its
-  `VITE_REQUIRE_ACCOUNT` flag are retired. A unit test that needs durability
-  calls `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`); an
-  e2e spec signs in through `e2e/fixtures.ts`.
-- **One local → account reconciler.** `AccountReconciler` (root-mounted, over
-  `src/lib/account/reconcile.ts`) migrates a pre-account roster still in
-  IndexedDB on sign-in (reconciled against `entities.listMine`) and mounts
-  `ShelfSync`; signed out it renders nothing. Do not add a second surface that
-  uploads local work; there is no legacy exemption, no claim card, and no
-  offer-and-decline path.
+  (`readableRows`), never IndexedDB. A unit test that needs durability calls
+  `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`); an e2e
+  spec signs in through `e2e/fixtures.ts`.
+- **The cache follows the account; nothing goes up from it.**
+  `AccountReconciler` (root-mounted) makes the cache the signed-in account's
+  (`claimCacheFor` in `src/lib/account/cacheOwner.ts`) and then mounts
+  `ShelfSync`; signed out it renders nothing. No surface uploads rows from
+  IndexedDB: every cached row came from the server or from a write it accepted.
 - **A container written twice must be written together** — the row's `gameId`
-  column and the body's `gameId` (`shelveBody` in `convex/claim.ts`;
-  `maintenance.repairContainers` repairs old rows toward the column).
-- **e2e durability specs need an account.** Without `VITE_CONVEX_URL` +
-  `VITE_TEST_AUTH` in the build and `ITUN_TEST_AUTH` on the deployment they
-  SKIP; the nightly `e2e-itun` job provisions a throwaway Convex backend and
+  column and the body's `gameId`. Where they disagree, the column is the
+  authority.
+- **e2e durability specs need an account.** Without `VITE_TEST_AUTH` in the
+  build and `ITUN_TEST_AUTH` on the deployment they SKIP; the nightly `e2e-itun` job provisions a throwaway Convex backend and
   runs them for real. See `e2e/fixtures.ts`.
 
 **One account-free way to share: the public sheet
@@ -44,10 +42,9 @@ Convex column, served by one deliberately unauthenticated query
 once, because the URL is derived rather than minted.
 
 **Snapshots are retired**
-([ADR-036](../../docs/ARCHITECTURE.md#adr-036)): nothing mints or
-revokes them, and an old `/s/:id` redirects to the public sheet if its entity is
-public, else shows a "retired" page. The R2 bucket is read-only — never delete
-from it.
+([ADR-036](../../docs/ARCHITECTURE.md#adr-036)): an old `/s/:id` link shows a
+static "retired" page and reads nothing. Nothing binds the `su-itun-snapshots`
+R2 bucket; deleting it is the owner's call, never an agent's.
 
 Every read-only sheet — a crewmate's at `/sheet/:kind/:id`, the public one —
 is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
@@ -66,28 +63,31 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   ([plan](../../docs/design-system/tailwind-removal.md)).
 - **PWA** (`vite-plugin-pwa`, **`registerType: 'prompt'`**) — installable,
   offline-capable. It is `prompt` and must stay that way: `autoUpdate` force-sets
-  `skipWaiting` + `clientsClaim` (an assignment in the plugin, not a default, so
-  the `workbox` block cannot override it), which activated a new worker under a
-  live page and dropped the precache entries it was still resolving chunks
-  against. Navigations are **network-first** (`src/lib/sw/workbox.ts`): online
-  boots the deployed shell, offline the precached one. See the headers of
-  `vite.config.ts`, `src/lib/sw/`, `src/lib/chunkRecovery.ts` and the Worker's
-  `/assets/*` → 404 rule (`src/worker/index.ts`).
+  `skipWaiting` + `clientsClaim` (a plugin assignment the `workbox` block
+  cannot override), which activated a new worker under a live page and dropped
+  the precache entries it was still resolving chunks against. Navigations are **network-first** (`src/lib/sw/workbox.ts`): online
+  boots the deployed shell, offline the precached one. No update toast; the
+  build floor reloads stale tabs. See the headers of `vite.config.ts`,
+  `src/lib/sw/`, `src/lib/connection/buildFloor.ts`, `installChunkRecovery`
+  and the Worker's `/assets/*` → 404 rule (`src/worker/index.ts`).
 
 ## Persistence (read before touching data)
 
-- Player data lives in **IndexedDB** via `idb` (`src/lib/db/`). Stores
-  (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `workspaces`
-  (retired; kept so migrations v10/v13 run),
-  `softLinks`, `mechPatterns`, `encounterNpcs`, and the append-only
-  `changeLog` provenance store ([ADR-022](../../docs/ARCHITECTURE.md#adr-022)) —
-  the last is keyed by an autoIncrement `seq`, not `id`, and has no CRUD
-  surface (`src/lib/db/changeLog.ts` exposes append/list only).
+- Player data lives in **Convex**; IndexedDB (`idb`, `src/lib/db/`) is a
+  per-account cache of it. Stores (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `softLinks`,
+  `mechPatterns`, `encounterNpcs`, and `meta`. The Change Log
+  ([ADR-022](../../docs/ARCHITECTURE.md#adr-022)) has no device store: it is
+  the Convex `changeLog` table, written by `commitChangeLog` and read by
+  `changeLog.forEntity`.
+- **The cache is one account's** (`src/lib/account/cacheOwner.ts`): sign-out
+  or another account empties it.
 - **Zod schemas (`src/lib/schemas/`) are the source of truth** for entity shape;
   the DB layer parses on read/write ([ADR-002](../../docs/ARCHITECTURE.md#adr-002)).
-- Reads are salvage-tolerant (lenient re-parse + warning on version skew); rows
-  heal on next write. See `src/lib/db/crud.ts`.
-- Schema/version changes go through `src/lib/db/migrations/` (see its README).
+- Reads are strict: an unreadable cached row is skipped with a warning and
+  refilled from Convex. See `src/lib/db/crud.ts`.
+- A schema/version change bumps `DB_VERSION` (`src/lib/db/index.ts`) and
+  nothing else: the upgrade drops every store, and `ShelfSync` refills the
+  cache from Convex. No record is ever rewritten on the device.
 - Records store **slug references** into `salvageunion-reference` (e.g.
   `classRef: 'salvager'` on a pilot, `chassisRef` on a mech), never copies of
   game data; resolve them against `SalvageUnionReference` at render time.
@@ -96,22 +96,23 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 
 - `entityStore` (pilots/mechs/crawlers/softLinks), plus `activeContainerStore`,
   `patternStore` and `encounterStore`.
-- **Workspaces are retired.** An entity lives in exactly one **container** — a
+- **There are no workspaces.** An entity lives in exactly one **container** — a
   shared **Game** or the owner's **Shelf** ("My Stuff") — encoded as one
-  nullable `gameId` and resolved through `src/lib/container.ts`, never by
-  reading `workspaceId` (a pre-ADR-030 fallback). Filter with `containerOf` +
-  `sameContainer`, and only when `mode === 'connected'`: an anonymous user has
-  no Games, so their surfaces render the whole pile unfiltered. `/` (`Roster`)
+  nullable `gameId` and resolved through `src/lib/container.ts`. Filter with `containerOf` +
+  `sameContainer`, and only when `mode === 'connected'`: signed out there is
+  nothing to show, and Disconnected has no live Game list to filter against, so
+  it shows the cached pile whole. `/` (`Roster`)
   shows one container at a time; there are no Games pages.
 - **Assignments** ([ADR-037](../../docs/ARCHITECTURE.md#adr-037)):
   draw soft links only via `assignLink`; the rules are
   `src/lib/links/linkRules.ts`, shared with `convex/`.
 - **Lazy auto-hydration:** first `list(type)` loads the IndexedDB cache (nothing
-  signed out); later reads are synchronous.
-- **Write-through:** `update`/`create`/`delete` commit to Convex first when
-  signed in, then the IndexedDB cache, then in-memory state; cross-tab writes
-  invalidate via broadcast
+  signed out); later reads are synchronous
   ([ADR-003](../../docs/ARCHITECTURE.md#adr-003)).
+- **Server first:** `update`/`create`/`delete` commit to Convex, then the
+  IndexedDB cache, then in-memory state; a refused write changes nothing, and
+  other tabs hear it from Convex
+  ([ADR-034](../../docs/ARCHITECTURE.md#adr-034)).
 - Route persistent entity state through the store, **never** through a
   separate query cache (see `.claude/rules/itun-data-access.md`).
 
@@ -152,7 +153,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   mutations have no `fetch`). **A quiet Sentry project is not evidence of a
   healthy backend:** re-verify by forcing an error and comparing against
   `bunx convex logs --deployment alex-jarvis:suref-itun:prod`. Runbook:
-  [convex-maintenance](../../.claude/skills/convex-maintenance/SKILL.md).
+  [convex-ops](../../.claude/skills/convex-ops/SKILL.md).
 - **Throw `ConvexError` when the message is for a player; plain `Error` when it
   is not.** Convex redacts every non-`ConvexError` throw to
   `"[CONVEX M(fn)] […] Server Error"` before the client sees it, so a
@@ -169,17 +170,13 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   never hears about. Biome enforces it inside `convex/`. Every public
   query/mutation also needs a caller in `src/` —
   `tools/check-convex-callers.ts` fails on one nobody calls.
-- **Render crashes reach Sentry through `createRoot`'s error hooks**
-  (`reactRootErrorHandlers` in `src/lib/observability.ts`), because an error a
-  boundary catches never reaches `window.onerror`. Every route has a boundary —
-  the router's `defaultErrorComponent`, with the root's full-page one as the
-  last resort (`src/components/shared/RouteErrors.tsx`) — so do not report from
-  an `errorComponent` as well, or each crash is sent twice.
+- **Render crashes are reported once, by `createRoot`'s error hooks, never from
+  an `errorComponent`**; see `.claude/rules/tanstack-router.md`.
 - **A caught error is either reported or explained — never just dropped.**
   Catching is what keeps an error away from Sentry's global handlers, so a
   `catch` must do one of three things: produce an outcome the user or caller
   sees (an error state, a 4xx/5xx, a rethrow with `cause`), report through
-  `captureException` (browser) or `reportError` / `reportSnapshotError`
+  `captureException` (browser) or `reportError`
   (Worker), or carry a comment saying why dropping it is correct. Biome's
   `noEmptyBlockStatements` rejects a block with none of those. Reading
   reference data that may not be preloaded goes through
@@ -189,22 +186,18 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 - **Never insert into an `appId`-addressed table without checking first.**
   `pilots`, `mechs` and `crawlers` are looked up by the client's `appId`, and
   `by_app_id` is an ordinary index — **not** a uniqueness constraint — so
-  nothing in the database stops a second row. Prevention is the rule:
-  `appIdTaken` before any insert. `convex/maintenance.ts` repairs rows already
-  in that state (`dedupeAppIds`, dry-run by default).
+  nothing in the database stops a second row. Prevention is the rule: look the
+  app id up (`byAppId`) before any insert.
 
   The lookups (`byAppId` / `crawlerByAppId`) do **not** throw on a duplicate:
-  they resolve to the oldest row (the one `dedupeAppIds` keeps) and
-  `console.warn`, because a throw in a fire-and-forget mirrored write silently
-  stops the write reaching the server.
+  they resolve to the oldest row and `console.warn`.
 - **A copy gets a new UUID; a move keeps its own.** These pull in opposite
   directions, so both matter:
   - **Copy → new id.** Importing a bundle (`mergeImport`) and seeding the
     Starter Set (`seedStarterSet`) each mint a fresh UUID per row and remap the
     soft links onto them. An entity id becomes its `appId` on the server, so a
     copy that kept its id would put one id in two accounts — and since a
-    duplicate now resolves to the oldest row, the second account's mirrored
-    writes aim at the first account's entity and are refused by `assertMayWrite`
+    duplicate resolves to the oldest row, the second account's writes aim at the first account's entity and are refused by `assertMayWrite`
     as somebody else's. Never write a fixed or template id into
     `pilots`/`mechs`/`crawlers`; record provenance in `seedRef`, which is what
     it is for.
@@ -215,11 +208,13 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 ## Commands
 
 ```bash
-bun run dev:itun          # build package + start ITUN dev server
+bun run dev:itun          # local Convex; setup in the convex-ops skill
 bun --filter itun test
 bun run e2e:itun          # Playwright e2e (chromium)
 bun --filter itun typecheck
 ```
 
-Deploys to Cloudflare Workers (SPA + the `/s/:id` lookup in one Worker); config in
-`wrangler.jsonc`, deployed from `.github/workflows/deploy-cloudflare.yml`.
+Deploys to Cloudflare Workers Static Assets in single-page-application mode, with
+a Worker script for the misses that are not navigations; config in
+`wrangler.jsonc`, headers in `public/_headers`, deployed from
+`.github/workflows/deploy-cloudflare.yml`.

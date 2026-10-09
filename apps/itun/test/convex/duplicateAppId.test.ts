@@ -1,51 +1,22 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
-import { makeUser } from './assignmentFixtures'
+import { makeUser, pilotBody } from './fixtures'
 import { testConvex } from './harness'
 
 /**
  * Surviving duplicate `appId` rows that already exist.
  *
- * This is the **second** half of the duplicate-appId story, and deliberately
- * not the first. Preventing new duplicates (`claimLocal` + `appIdTaken`) and
- * repairing old ones (`maintenance.dedupeAppIds`) are covered by
- * `entities.test.ts` and `maintenance.test.ts`. What is pinned here is what
- * happens to a player whose roster is duplicated *right now*, before anyone has
- * run the repair.
+ * What is pinned here is what happens to a player whose roster holds two
+ * rows for one app id: the write still lands, on a row chosen
+ * deterministically.
  *
- * That case mattered enough to earn its own answer. `byAppId` asked for
- * `.unique()` on `by_app_id` — an ordinary Convex index, not a uniqueness
- * constraint — so it threw; and because mirrored writes are fire-and-forget,
- * `mirrorWrite` swallowed the throw. The local copy went on accepting edits,
- * every surface went on rendering them as saved, and nothing reached the game
- * for the better part of an hour. Production held four `Babe`s and four
- * `Reaper`s, and the feedback was "the game mechs didn't save".
- *
- * So a duplicate is treated as a repair job rather than a reason to refuse the
+ * `by_app_id` is an ordinary Convex index, not a uniqueness constraint, so
+ * `.unique()` on it would throw and refuse every write to that entity. So a
+ * duplicate is treated as a repair job rather than a reason to refuse the
  * write that would have kept client and server in step: the lookup resolves to
- * the oldest row and logs, the write lands, and `maintenance.dedupeAppIds`
- * clears up afterwards. Prevention closes the front door; this makes the
- * failure survivable if anything ever opens it again.
+ * the oldest row and logs, and the write lands. Prevention closes the front
+ * door; this makes the failure survivable if anything ever opens it again.
  */
-
-function pilotBody(over: Record<string, unknown> = {}) {
-  return {
-    id: 'p1',
-    schemaVersion: 1,
-    name: 'Babe',
-    callsign: 'Babe',
-    classRef: 'salvager',
-    abilities: [],
-    equipment: [],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    conditions: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...over,
-  }
-}
 
 describe('byAppId tolerates duplicate rows', () => {
   test('an edit still lands when two rows share an appId', async () => {
@@ -71,6 +42,7 @@ describe('byAppId tolerates duplicate rows', () => {
       appId: 'dupe-1',
       gameId: null,
       body: pilotBody({ name: 'Babe Renamed' }),
+      expectedUpdatedAt: null,
     })
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
@@ -110,10 +82,10 @@ describe('byAppId tolerates duplicate rows', () => {
       appId: 'dupe-2',
       gameId: null,
       body: pilotBody({ name: 'Written' }),
+      expectedUpdatedAt: null,
     })
 
-    // Deterministic, and the SAME row `maintenance.dedupeAppIds` keeps — so a
-    // write that lands before the repair runs is not thrown away by it.
+    // Deterministic: the oldest row, the one every earlier write landed on.
     const oldest = await t.run(async (ctx) => await ctx.db.get(first))
     expect(oldest).not.toBeNull()
     expect((oldest?.body as { name: string } | undefined)?.name).toBe('Written')

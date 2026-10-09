@@ -21,11 +21,9 @@ export function isBlockedUpgrade(error: unknown): boolean {
 
 /**
  * What an error does to the player's work — which depends on where that work
- * lives, so it is answered per backend rather than with one reassurance.
- *
- * This used to say "Your saved data is stored locally and is not affected" to
- * everybody. Since ADR-034 that is true of nobody in production: a signed-in
- * player's builds live on the server, and an anonymous visitor has none.
+ * lives, so it is answered per backend rather than with one reassurance: a
+ * signed-in player's builds live on the server, and a signed-out visitor has
+ * none (ADR-034).
  */
 export function savedWorkCopy(backend: BackendKind | null): string {
   switch (backend) {

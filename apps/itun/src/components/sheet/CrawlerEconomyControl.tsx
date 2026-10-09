@@ -19,10 +19,6 @@
  * Its writes are therefore `LIVE_SHEET_TXN`, not `LIVE_SHEET_MANUAL`: a rolled
  * Deterioration is not somebody typing in a box.
  *
- * (The header used to cite "the HeatCheckControl pattern" as precedent. That
- * control was removed from the sheet in the D6 redesign — the precedent is
- * gone, the placement decision above is what stands in its place.)
- *
  * ADR-007 automation boundary: deterministic bookkeeping auto-applies — the
  * Upkeep draw + Upgrade-Pool credit, the Deterioration SP loss and its "chosen
  * at random" Bay damage, the upgrade's TL bump / pool spend / bay repairs, and
@@ -76,7 +72,7 @@ import {
 /** Which economy dialog is open (the lozenge that was clicked). */
 export type CrawlerEconomyDialog = 'upkeep' | 'upgrade' | 'trade'
 
-const TRADING_BAY = 'Trading Bay'
+const TRADING_BAY = 'trading-bay'
 
 type CrawlerEconomyControlProps = {
   crawler: Crawler

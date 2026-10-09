@@ -7,9 +7,7 @@
  *
  * ## This is the ONLY thing standing between the endpoint and the internet
  *
- * Unlike the gateway — where Discord authenticates *us* with a bot token over a
- * session we opened — an interactions endpoint is a public URL anyone can POST
- * to. Signature verification is the entire authentication story. A handler that
+ * An interactions endpoint is a public URL anyone can POST to. Signature verification is the entire authentication story. A handler that
  * skips it, or that verifies a re-serialised body rather than the exact bytes
  * received, will happily execute forged interactions.
  *
@@ -32,7 +30,7 @@ const ENCODER = new TextEncoder()
  * The slice of WebCrypto this file uses, as **workerd** implements it.
  *
  * Declared rather than imported, because this app is typechecked against Node's
- * lib (the gateway half genuinely is Node) while this file runs on workerd. Two
+ * lib (`deploy-commands.ts` is a Bun CLI) while this file runs on workerd. Two
  * mismatches follow, and neither is a real defect:
  *
  *   - `Ed25519` is a first-class workerd algorithm but is not in the DOM lib's

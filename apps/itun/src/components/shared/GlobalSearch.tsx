@@ -3,9 +3,8 @@
  * floating button in the bottom-right corner of every route (design-review
  * P-2).
  *
- * It used to be a header trigger opening a modal dialog. The masthead now
- * keeps only navigation and the account; search lives in component-lib's
- * `Fab`, which expands into a panel anchored at the button. (The SRD site keeps
+ * The masthead keeps only navigation and the account; search lives in
+ * component-lib's `Fab`, which expands into a panel anchored at the button. (The SRD site keeps
  * its own top-of-page search, `SearchIsland`; this is ITUN's only.)
  *
  * The combobox logic (debounce, category+entity blending, keyboard
@@ -133,10 +132,15 @@ export function GlobalSearch({ fabHidden = false }: GlobalSearchProps) {
   }, [])
 
   // Reopening keeps the last query, a quick way back to it, but selected, so
-  // typing replaces it instead of appending ("bionic" + "mech"). Runs after the
-  // Fab's own effect has focused the input.
+  // typing replaces it instead of appending ("bionic" + "mech"). The Fab moves
+  // focus into the panel after it opens, so the selection is made when that
+  // focus lands (a later click into the field places a caret as usual).
+  const selectOnFocus = useRef(false)
   useEffect(() => {
-    if (open) inputRef.current?.select()
+    if (!open) return
+    const field = inputRef.current
+    if (field !== null && document.activeElement === field) field.select()
+    else selectOnFocus.current = true
   }, [open])
 
   // The arrow keys follow the screen, and the screen is upside down relative to
@@ -235,6 +239,11 @@ export function GlobalSearch({ fabHidden = false }: GlobalSearchProps) {
             value={query}
             onChange={(e) => handleInput(e.target.value)}
             onKeyDown={onInputKeyDown}
+            onFocus={(e) => {
+              if (!selectOnFocus.current) return
+              selectOnFocus.current = false
+              e.currentTarget.select()
+            }}
             {...inputProps}
             aria-label={LABEL}
             aria-expanded={hasSearched && results.length > 0}

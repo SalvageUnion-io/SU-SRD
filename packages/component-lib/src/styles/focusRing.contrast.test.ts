@@ -54,14 +54,14 @@ const GROUNDS = {
 function ringLayers(): { offset: [number, number, number]; ring: [number, number, number] } {
   const decl = css.match(/--focus-ring-shadow:\s*([^;]+);/)
   if (!decl?.[1]) throw new Error('--focus-ring-shadow is not declared in index.css')
-  const vars = [...decl[1].matchAll(/var\(--su-color-([a-z0-9-]+)\)/g)].map((m) => m[1])
+  const vars = [...decl[1].matchAll(/var\(--color-([a-z0-9-]+)\)/g)].map((m) => m[1])
   if (vars.length !== 2) {
     throw new Error(`expected a two-ring shadow built from two colour tokens, got: ${decl[1]}`)
   }
   const lookup = (kebab: string): [number, number, number] => {
     const camel = kebab.replace(/-([a-z0-9])/g, (_, c: string) => c.toUpperCase())
     const value = (color as Record<string, string>)[camel]
-    if (!value) throw new Error(`--su-color-${kebab} has no token`)
+    if (!value) throw new Error(`--color-${kebab} has no token`)
     return parseRgb(value)
   }
   return { offset: lookup(vars[0] ?? ''), ring: lookup(vars[1] ?? '') }

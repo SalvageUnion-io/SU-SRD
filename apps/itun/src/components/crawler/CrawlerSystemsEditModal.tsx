@@ -10,10 +10,15 @@
 
 import { EntitySearcher, ModalShell, PICKER_MODAL_WIDTH } from 'component-lib'
 import { useMemo } from 'react'
-import type { SURefCrawler, SURefSystem } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { computeCrawlerCapacity, isWeaponSystem } from 'salvageunion-reference/rules'
+import type { SURefSystem } from 'salvageunion-reference'
+import { nameToSlug } from 'salvageunion-reference'
+import {
+  computeCrawlerCapacity,
+  isWeaponSystem,
+  resolveSystemRef,
+} from 'salvageunion-reference/rules'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
+import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler } from '../../lib/schemas/crawler'
 
 type CrawlerSystemsEditModalProps = {
@@ -33,19 +38,15 @@ export function CrawlerSystemsEditModal({
   crawler,
   patch,
 }: CrawlerSystemsEditModalProps) {
-  // Synchronous: rendered inside GameDataReady, so the dataset is loaded.
-  const allSystems = useMemo<SURefSystem[]>(() => SalvageUnionReference.Systems.all(), [])
-  const types = useMemo<SURefCrawler[]>(() => SalvageUnionReference.Crawlers.all(), [])
-
   const tl = parseCrawlerTechLevel(crawler.techLevel) ?? null
-  const selectedType = types.find((t) => t.id === crawler.type || t.name === crawler.type)
+  const selectedType = crawler.type ? resolveCrawlerType(crawler.type) : null
   // Battle Crawler mounts two systems (special ability "Improved Armour and
   // Armaments", Core Book p. 216) — gate off the action name, not the label.
   const isBattleCrawler = selectedType?.actions?.includes('Improved Armour and Armaments') ?? false
 
   const capacity = useMemo(() => {
-    const weaponSystems = crawler.systems.filter((id) => {
-      const system = allSystems.find((s) => s.id === id || s.name === id)
+    const weaponSystems = crawler.systems.filter((slug) => {
+      const system = resolveSystemRef(slug)
       return system ? isWeaponSystem(system) : false
     })
     return computeCrawlerCapacity({
@@ -54,7 +55,7 @@ export function CrawlerSystemsEditModal({
       weaponSystems,
       isBattleCrawler,
     })
-  }, [crawler.systems, allSystems, tl, isBattleCrawler])
+  }, [crawler.systems, tl, isBattleCrawler])
 
   return (
     <ModalShell
@@ -71,13 +72,13 @@ export function CrawlerSystemsEditModal({
         selected={crawler.systems}
         filter={(item) => {
           const s = item as SURefSystem
-          const installed = crawler.systems.some((id) => id === s.id || id === s.name)
+          const installed = crawler.systems.includes(nameToSlug(s.name))
           // Keep installed weapons visible/removable even above the current TL.
           if (installed) return isWeaponSystem(s)
           if (typeof s.techLevel !== 'number' || tl === null || s.techLevel > tl) return false
           return isWeaponSystem(s)
         }}
-        idOf={(item) => (item as SURefSystem).id}
+        idOf={(item) => nameToSlug(item.name)}
         onToggle={(ref) =>
           // Toggle exactly one weapon on the FRESHEST systems array so a rapid
           // second toggle can't overwrite the first. Weapons are unique.

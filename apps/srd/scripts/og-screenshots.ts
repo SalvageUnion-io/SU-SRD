@@ -15,9 +15,9 @@
  * Pipeline:
  *   1. Enumerate targets via getItemStaticPaths + getPatternStaticPaths (the
  *      same sources as the routes, so every og.png path matches a real page).
- *   2. Serve the freshly-built `dist/` with the in-house static preview server
- *      (`ssg/preview.ts`), in-process — the same URL->file mapping `bun run
- *      preview` and the e2e suite get.
+ *   2. Serve the freshly-built `dist/` with `bun run preview` (`wrangler dev`
+ *      over `wrangler.jsonc`) — the server the e2e suite runs against, and the
+ *      URL->file mapping production's Static Assets applies.
  *   3. Drive headless chromium (Playwright). Each worker loads `/og-card/` ONCE
  *      (game-data corpus + island loaded a single time) and re-renders each
  *      entity in place via `window.__ogSetEntity` — far faster and lighter than
@@ -64,9 +64,10 @@ import {
   pickTileWidth,
 } from '../src/lib/ogCard'
 import { getItemStaticPaths, getPatternStaticPaths } from '../src/lib/staticPaths'
-import { startPreview } from '../ssg/preview'
 
 const PORT = Number(process.env.OG_SCREENSHOTS_PORT ?? 4399)
+// How long `wrangler dev` may take to start answering.
+const PREVIEW_START_MS = 60_000
 const CONCURRENCY = Number(process.env.OG_SCREENSHOTS_CONCURRENCY ?? 5)
 // Reload each worker's page every N captures to release accumulated memory.
 const RELOAD_EVERY = Number(process.env.OG_SCREENSHOTS_RELOAD_EVERY ?? 200)
@@ -118,6 +119,31 @@ const DIST_DIR = join(APP_ROOT, 'dist')
 // ---------------------------------------------------------------------------
 const SCRIPT_VERSION = 6
 const CACHE_DIR = join(APP_ROOT, 'node_modules', '.cache', 'srd-og')
+
+/**
+ * `bun run preview` on PORT, resolved once it answers. Pinned to 127.0.0.1 so
+ * it matches the base the pages are loaded from exactly (binding `localhost`
+ * can resolve to ::1 on some machines).
+ */
+async function startPreview(): Promise<{ kill: () => void }> {
+  const proc = Bun.spawn(['bun', 'run', 'preview', '--port', String(PORT), '--ip', '127.0.0.1'], {
+    cwd: APP_ROOT,
+    stdout: 'ignore',
+    stderr: 'inherit',
+  })
+  const deadline = Date.now() + PREVIEW_START_MS
+  while (Date.now() < deadline) {
+    if (proc.exitCode !== null) throw new Error(`bun run preview exited with ${proc.exitCode}`)
+    const up = await fetch(`http://127.0.0.1:${PORT}/`).then(
+      (r) => r.ok,
+      () => false
+    )
+    if (up) return { kill: () => proc.kill() }
+    await Bun.sleep(250)
+  }
+  proc.kill()
+  throw new Error(`bun run preview did not answer on ${PORT} within ${PREVIEW_START_MS} ms`)
+}
 const MANIFEST_PATH = join(CACHE_DIR, 'manifest.json')
 
 type Manifest = Record<string, string> // "schemaId/itemId" -> content hash
@@ -309,26 +335,19 @@ async function run() {
   }
   log(`generating ${entities.length} og:images (${CONCURRENCY} concurrent)…`)
 
-  let chromium: typeof import('playwright').chromium
+  let chromium: typeof import('@playwright/test').chromium
   try {
-    ;({ chromium } = await import('playwright'))
+    ;({ chromium } = await import('@playwright/test'))
   } catch (err) {
     throw new Error('Playwright not importable — run `bun --filter srd og:install-browser`.', {
       cause: err,
     })
   }
 
-  // Serve the built site IN-PROCESS. `ssg/preview.ts` is the same server
-  // `bun run preview` starts, so the URL->file mapping these screenshots are
-  // taken through is the one the e2e suite uses — and being
-  // in-process there is no spawn to fail, no binary to resolve and no
-  // start-up race to poll for (`Bun.serve` is listening when it returns).
-  // Pinned to 127.0.0.1 so it matches the base below exactly (binding
-  // `localhost` can resolve to ::1 on some machines).
-  const preview = startPreview({ port: PORT, hostname: '127.0.0.1' })
+  const preview = await startPreview()
 
   type Context = Awaited<ReturnType<Awaited<ReturnType<typeof chromium.launch>>['newContext']>>
-  type Page = import('playwright').Page
+  type Page = import('@playwright/test').Page
 
   const base = `http://127.0.0.1:${PORT}`
   const failures: { entity: Entity; error: string }[] = []
@@ -538,9 +557,7 @@ async function run() {
       await browser.close().catch(ignoreCloseError)
     }
   } finally {
-    // `true` closes in-flight connections too, so a wedged chromium request
-    // can't hold the process open once the pass is over.
-    preview.stop(true)
+    preview.kill()
   }
 
   writeManifest()

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/chassis.schema.json",
+  "$id": "https://salvageunion.io/schema/chassis.schema.json",
   "title": "chassis",
   "description": "Mech chassis definitions",
   "type": "array",

@@ -36,8 +36,7 @@ type ExportEncounterNpcStore = {
  *
  * `rehydrate`, not the IndexedDB table: the store answers with the account's
  * cache signed in and with nothing signed out (`readableRows`), so an anonymous
- * backup cannot reach into IndexedDB for rows the visitor cannot see — a
- * pre-account roster is exported by its own path (`buildLegacyExportBundle`).
+ * backup cannot reach into IndexedDB for rows the visitor cannot see.
  */
 function fromStore<T>(store: {
   getState: () => { rehydrate: () => Promise<void>; list: () => T[] }
@@ -78,7 +77,6 @@ export async function buildExportBundle(
       mechs: entityStore.list('mech'),
       crawlers: entityStore.list('crawler'),
     },
-    workspaces: [],
     softLinks: entityStore.list('softLink'),
     mechPatterns,
     encounterNpcs,
@@ -90,8 +88,7 @@ export async function buildExportBundle(
  * buildEntityExport — single entity + its directly-attached softLinks.
  *
  * Only the entity and links whose `from.id` or `to.id` matches the entity id
- * are included. `workspaces` is always `[]` — the field survives only so old
- * bundles keep parsing (see ExportBundleSchema); nothing writes it any more.
+ * are included.
  *
  * Design note: we do NOT pull in the referenced endpoints (e.g. the mech
  * that a pilot-to-mech link points to). A single-entity export is intended
@@ -117,7 +114,6 @@ export async function buildEntityExport(
         schemaVersion: 2,
         exportedAt: new Date().toISOString(),
         entities: { ...emptyEntities, pilots: pilot ? [pilot] : [] },
-        workspaces: [],
         softLinks: attachedLinks,
         mechPatterns: [],
         encounterNpcs: [],
@@ -129,7 +125,6 @@ export async function buildEntityExport(
         schemaVersion: 2,
         exportedAt: new Date().toISOString(),
         entities: { ...emptyEntities, mechs: mech ? [mech] : [] },
-        workspaces: [],
         softLinks: attachedLinks,
         mechPatterns: [],
         encounterNpcs: [],
@@ -141,7 +136,6 @@ export async function buildEntityExport(
         schemaVersion: 2,
         exportedAt: new Date().toISOString(),
         entities: { ...emptyEntities, crawlers: crawler ? [crawler] : [] },
-        workspaces: [],
         softLinks: attachedLinks,
         mechPatterns: [],
         encounterNpcs: [],

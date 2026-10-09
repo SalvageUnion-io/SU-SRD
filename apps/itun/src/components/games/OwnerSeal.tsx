@@ -7,11 +7,8 @@ import type { OwnerChip } from '../../lib/ownership/ownerChip'
  *
  * ## One mark, three states
  *
- * Ownership is one fact, so it gets one mark. The surface previously said it
- * two ways at once: an owner chip in the caption for held characters, and a
- * separate UNCLAIMED stamp among the buttons for free ones — two vocabularies
- * for a single field, in two different places, so scanning a column meant
- * checking both. A seal that is always present and always in the same corner
+ * Ownership is one fact, so it gets one mark — never two vocabularies for a
+ * single field in two places. A seal that is always present and always in the same corner
  * can be read down a list without reading anything else.
  *
  * Stamped rather than chipped for the reason documents are stamped: it is a
@@ -41,9 +38,8 @@ export function OwnerSeal({
 }) {
   // The default stamp plate: ink ground, paper text, at the smallest rung —
   // a plate riveted across the row's top border, subordinate to the name it
-  // sits beside. It was `inverse` (paper ground, ink text) at `compact`, which
-  // read as another chip floating near the corner rather than as a mark
-  // stamped ON the record.
+  // sits beside, so it reads as a mark stamped ON the record rather than as
+  // another chip floating near the corner.
   const stamp = (
     <Badge shape="stamp" size="mini" className="tracking-caps-wide">
       {owner.label}

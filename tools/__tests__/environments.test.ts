@@ -1,6 +1,24 @@
 import { describe, expect, test } from 'bun:test'
-import type { EnvironmentSpec, GhApi, GhResult, LiveEnvironment, LiveState } from '../environments'
-import { apply, compare, ENVIRONMENTS, REPO, REPOSITORY_SECRETS, readLive } from '../environments'
+import type {
+  EnvironmentSpec,
+  GhApi,
+  GhResult,
+  LiveEnvironment,
+  LiveRuleset,
+  LiveState,
+} from '../environments'
+import {
+  ACTIONS_APP_ID,
+  apply,
+  compare,
+  compareRuleset,
+  ENVIRONMENTS,
+  MAIN_RULESET,
+  REPO,
+  REPOSITORY_SECRETS,
+  readLive,
+  readRuleset,
+} from '../environments'
 
 /**
  * `tools/environments.ts` — the declared GitHub Environments against a live
@@ -83,10 +101,10 @@ describe('compare', () => {
   })
 
   test('an Environment secret still at repository level fails; a stray one too', () => {
-    const f = failures(live({ repositorySecrets: ['A_TOKEN', 'NETLIFY_SITE_ID'] }))
+    const f = failures(live({ repositorySecrets: ['A_TOKEN', 'OLD_HOST_SITE_ID'] }))
     expect(f).toEqual([
       expect.stringContaining('A_TOKEN is still a repository secret, readable from any branch'),
-      expect.stringContaining('NETLIFY_SITE_ID is an undeclared repository secret'),
+      expect.stringContaining('OLD_HOST_SITE_ID is an undeclared repository secret'),
     ])
   })
 
@@ -124,17 +142,12 @@ describe('compare', () => {
 })
 
 describe('the declaration', () => {
-  test('production admits main alone and holds the four deploy secrets', () => {
+  test('production admits main alone and holds the three deploy secrets', () => {
     expect(ENVIRONMENTS).toEqual([
       {
         name: 'production',
         branches: ['main'],
-        secrets: [
-          'CLOUDFLARE_API_TOKEN',
-          'CONVEX_DEPLOY_KEY',
-          'SENTRY_AUTH_TOKEN',
-          'RELEASE_PLEASE_TOKEN',
-        ],
+        secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN'],
       },
     ])
   })
@@ -189,7 +202,7 @@ describe('readLive', () => {
           { name: 'old', deployment_branch_policy: null },
         ],
       }),
-      [`repos/${REPO}/actions/secrets`]: ok({ secrets: [{ name: 'NETLIFY_SITE_ID' }] }),
+      [`repos/${REPO}/actions/secrets`]: ok({ secrets: [{ name: 'OLD_HOST_SITE_ID' }] }),
     })
     expect(readLive(false, api, {})).toEqual({
       environments: [
@@ -202,7 +215,7 @@ describe('readLive', () => {
         { name: 'github-pages', policy: 'protected', branches: null, secrets: null },
         { name: 'old', policy: 'none', branches: null, secrets: null },
       ],
-      repositorySecrets: ['NETLIFY_SITE_ID'],
+      repositorySecrets: ['OLD_HOST_SITE_ID'],
       readableOutside: null,
     })
   })
@@ -261,5 +274,101 @@ describe('apply', () => {
       }),
     })
     expect(apply(api)).toEqual(['production: custom deployment branch policy'])
+  })
+})
+
+describe('the main ruleset', () => {
+  const liveRuleset = (over: Partial<LiveRuleset> = {}): LiveRuleset => ({
+    name: 'main',
+    enforcement: 'active',
+    include: ['~DEFAULT_BRANCH'],
+    exclude: [],
+    bypassActors: 0,
+    rules: [...MAIN_RULESET.rules],
+    requiredChecks: MAIN_RULESET.requiredChecks.map((context) => ({
+      context,
+      integration_id: ACTIONS_APP_ID,
+    })),
+    strict: true,
+    codeScanning: [...MAIN_RULESET.codeScanning],
+    ...over,
+  })
+  const drift = (over: Partial<LiveRuleset>) =>
+    compareRuleset(MAIN_RULESET, liveRuleset(over)).failures
+
+  test('a ruleset matching the declaration passes', () => {
+    const v = compareRuleset(MAIN_RULESET, liveRuleset())
+    expect(v.failures).toEqual([])
+    expect(v.ran).toEqual(['ruleset `main`: rules, required checks, code scanning'])
+  })
+
+  test('CodeQL gates through code_scanning; its job status is not also required', () => {
+    expect(MAIN_RULESET.requiredChecks).not.toContain('Analyze (javascript-typescript)')
+    expect(MAIN_RULESET.codeScanning.map((t) => t.tool)).toEqual(['CodeQL'])
+    const extra = [
+      ...liveRuleset().requiredChecks,
+      { context: 'Analyze (javascript-typescript)', integration_id: ACTIONS_APP_ID },
+    ]
+    expect(drift({ requiredChecks: extra })).toEqual([
+      expect.stringContaining('requires [Analyze (javascript-typescript), CI Success'),
+    ])
+  })
+
+  test('each drift is named: enforcement, bypass, rules, source, strictness, code scanning', () => {
+    expect(drift({ enforcement: 'evaluate' })[0]).toContain('is `evaluate`, not active')
+    expect(drift({ bypassActors: 1 })[0]).toContain('1 bypass actor(s)')
+    expect(drift({ rules: ['deletion'] })[0]).toContain('carries rules [deletion]')
+    const anySource = MAIN_RULESET.requiredChecks.map((context) => ({ context }))
+    expect(drift({ requiredChecks: anySource })[0]).toContain('not GitHub Actions')
+    expect(drift({ strict: false })[0]).toContain('up to date')
+    expect(drift({ codeScanning: [] })[0]).toContain('code scanning is []')
+    expect(drift({ exclude: ['refs/heads/x'] })[0]).toContain('exclude [refs/heads/x]')
+  })
+
+  test('a missing ruleset fails; an unreadable one is not run', () => {
+    expect(compareRuleset(MAIN_RULESET, undefined).failures[0]).toContain('does not exist')
+    const v = compareRuleset(MAIN_RULESET, null)
+    expect(v.failures).toEqual([])
+    expect(v.notRun).toEqual(['ruleset `main` (this token cannot read rulesets)'])
+  })
+
+  test('readRuleset reduces the API shape to the declaration', () => {
+    const { api } = fakeGh({
+      [`repos/${REPO}/rulesets/7`]: ok({
+        id: 7,
+        name: 'main',
+        enforcement: 'active',
+        conditions: { ref_name: { include: ['~DEFAULT_BRANCH'], exclude: [] } },
+        bypass_actors: [],
+        rules: [
+          { type: 'deletion' },
+          {
+            type: 'required_status_checks',
+            parameters: {
+              strict_required_status_checks_policy: true,
+              required_status_checks: [{ context: 'CI Success', integration_id: ACTIONS_APP_ID }],
+            },
+          },
+          {
+            type: 'code_scanning',
+            parameters: { code_scanning_tools: [...MAIN_RULESET.codeScanning] },
+          },
+        ],
+      }),
+      [`repos/${REPO}/rulesets?`]: ok([{ id: 7, name: 'main' }]),
+    })
+    expect(readRuleset('main', api)).toEqual({
+      name: 'main',
+      enforcement: 'active',
+      include: ['~DEFAULT_BRANCH'],
+      exclude: [],
+      bypassActors: 0,
+      rules: ['deletion', 'required_status_checks', 'code_scanning'],
+      requiredChecks: [{ context: 'CI Success', integration_id: ACTIONS_APP_ID }],
+      strict: true,
+      codeScanning: [...MAIN_RULESET.codeScanning],
+    })
+    expect(readRuleset('other', api)).toBeUndefined()
+    expect(readRuleset('main', fakeGh({ [`repos/${REPO}/rulesets?`]: forbidden }).api)).toBeNull()
   })
 })

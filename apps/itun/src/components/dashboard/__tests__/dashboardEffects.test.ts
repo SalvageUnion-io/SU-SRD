@@ -12,31 +12,31 @@ import { activatableEffects } from '../dashboardEffects'
 
 describe('activatableEffects', () => {
   test('finds an activated contribution on an installed module', () => {
-    const found = activatableEffects({ systems: [], modules: ['Hull Magnetiser'] }, undefined)
+    const found = activatableEffects({ systems: [], modules: ['hull-magnetiser'] }, undefined)
     expect(found.map((e) => e.name)).toContain('Hull Magnetiser')
   })
 
   test('finds an activated contribution on a pilot ability', () => {
-    const found = activatableEffects({ systems: [], modules: [] }, ['Squeeze it in'])
+    const found = activatableEffects({ systems: [], modules: [] }, ['squeeze-it-in'])
     expect(found.map((e) => e.name)).toContain('Squeeze it in')
   })
 
   test('ignores PERMANENT contributions — they need no switch', () => {
     // Beefcake and Heat Sink apply whenever held/installed.
-    const found = activatableEffects({ systems: ['Heat Sink'], modules: [] }, ['Beefcake'])
+    const found = activatableEffects({ systems: ['heat-sink'], modules: [] }, ['beefcake'])
     expect(found).toHaveLength(0)
   })
 
   test('de-duplicates by ref so two copies list one toggle', () => {
     const found = activatableEffects(
-      { systems: [], modules: ['Hull Magnetiser', 'Hull Magnetiser'] },
+      { systems: [], modules: ['hull-magnetiser', 'hull-magnetiser'] },
       undefined
     )
     expect(found).toHaveLength(1)
   })
 
   test('summarises a fromStat amount without inventing a number', () => {
-    const [effect] = activatableEffects({ systems: [], modules: ['Hull Magnetiser'] }, undefined)
+    const [effect] = activatableEffects({ systems: [], modules: ['hull-magnetiser'] }, undefined)
     expect(effect?.summary).toContain('systemSlots')
   })
 

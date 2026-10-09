@@ -1,19 +1,14 @@
 import { describe, expect, test } from 'bun:test'
-import { z } from '../lib/zod.js'
 import { checkAllFiles, checkFile, validateUUID } from './checkUniqueIdsLogic.js'
 import { CHECK_IDS, selectChecks } from './selectChecks.js'
 import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
 import { findReferenceErrors } from './validateReferencesLogic.js'
-import {
-  validateAllFilesAgainstSchemas,
-  validateFileAgainstSchema,
-} from './validateSchemasLogic.js'
 import { findSlugCollisions } from './validateSlugsLogic.js'
 
 /**
- * Fixture tests for the five data validators that gate merges through
- * `tools/validate.ts` and had no test of their own: ids, slugs, references,
- * actions and schemas. Each runs against a tiny hand-built data bag, so a
+ * Fixture tests for the four data validators that gate merges through
+ * `tools/validate.ts` and had no test of their own: ids, slugs, references
+ * and actions. Each runs against a tiny hand-built data bag, so a
  * detector that silently stops detecting fails here — the real dataset is
  * clean, which means a broken validator and a working one look identical on it.
  */
@@ -181,36 +176,11 @@ describe('actions', () => {
   })
 })
 
-describe('schemas', () => {
-  const map = { widgets: z.object({ name: z.string(), size: z.number() }) as z.ZodType<unknown> }
-
-  test('each failing entry is reported with its name and issue path', () => {
-    const report = validateFileAgainstSchema(
-      'widgets.json',
-      [
-        { name: 'ok', size: 1 },
-        { name: 'bad', size: 'big' },
-      ],
-      map
-    )
-    expect(report.status).toBe('fail')
-    if (report.status !== 'fail') return
-    expect(report.failures).toHaveLength(1)
-    expect(report.failures[0]?.name).toBe('bad')
-    expect(report.failures[0]?.errors[0]).toStartWith('size:')
-  })
-
-  test('a file with no schema is reported as such, not as a pass', () => {
-    const reports = validateAllFilesAgainstSchemas({ 'widgets.json': [], 'mystery.json': [] }, map)
-    expect(reports.map((r) => r.status)).toEqual(['no-schema', 'ok'])
-  })
-})
-
 describe('validate.ts --only', () => {
   const checks = CHECK_IDS.map((id) => ({ id }))
 
   test('selects the named checks, all of them by default, and rejects an unknown id', () => {
-    expect(selectChecks(checks, []).length).toBe(11)
+    expect(selectChecks(checks, []).length).toBe(9)
     expect(selectChecks(checks, ['--only=ids,slugs']).map((c) => c.id)).toEqual(['ids', 'slugs'])
     expect(() => selectChecks(checks, ['--only=nope'])).toThrow('unknown check(s): nope')
   })

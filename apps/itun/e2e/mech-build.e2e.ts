@@ -12,9 +12,7 @@ import { expect, test } from './fixtures'
  * edits the created mech's loadout on its live sheet.
  *
  * The wizard is Gain Scrap → Craft your Mech Chassis → Statistics → Craft your
- * Systems → Craft your Modules → Quirk → Appearance → Name → Review. It used to
- * be described here as Chassis → Pattern → Loadout → Identity → Review, and
- * this spec picked a "Custom Pattern" card that no longer exists — chassis are
+ * Systems → Craft your Modules → Quirk → Appearance → Name → Review: chassis are
  * chosen directly and the loadout is crafted across the Systems/Modules steps.
  *
  * Only the chassis step gates, so walk to the steps this test cares about by

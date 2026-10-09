@@ -23,5 +23,5 @@ or {
     `slug`,
     `name`
   },
-  register_diagnostic(span=$call, message="Look a reference entity up by index: getById / getByName / getBySlug (or resolveRef for an id-or-name ref), not find().", severity="error")
+  register_diagnostic(span=$call, message="Look a reference entity up by index: getById / getByName / getBySlug (or a /rules slug resolver such as resolveChassisRef for a stored ref), not find().", severity="error")
 }

@@ -1,50 +1,42 @@
 import type { Story } from '../stories/_harness'
 import { Caption } from '../stories/_harness'
+import type { ChangelogEntry } from './Changelog'
 import { Changelog } from './Changelog'
-import type { ChangelogEntry } from './parseChangelog'
 
 export default { title: 'Compositions/Changelog' }
 
-// Real-shaped release entries (version headline, area badge, merged newest-first)
-// as release-please produces them across the Site + Data changelogs.
+// Real-shaped entries (one per day, newest first) as `gitChangelog.ts` reads
+// them from a site's scoped squash titles.
 const ENTRIES: ChangelogEntry[] = [
   {
     date: '2026-07-18',
-    version: '1.4.0',
     area: 'Site',
     items: [
-      'Add a Ko-fi support link and a new In the Union Now About page',
-      'Derived, per-app release changelogs from conventional-commit PR titles',
+      'Add a Ko-fi support link and a new In the Union Now About page ([#401](https://github.com/SalvageUnion-io/SU-SRD/pull/401))',
+      'Derive the changelog from conventional-commit PR titles ([#398](https://github.com/SalvageUnion-io/SU-SRD/pull/398))',
     ],
   },
   {
     date: '2026-07-12',
-    version: '1.3.0',
-    area: 'Data',
-    items: [
-      'Model Eldridge Coast companions as equipment loadouts',
-      'Condition + uses tracking for drone loadout items',
-    ],
+    area: 'Site',
+    items: ['Model Eldridge Coast companions as equipment loadouts'],
   },
   {
     date: '2026-07-04',
-    title: 'Crawler bays',
-    area: 'Data',
+    area: 'Site',
     items: ['One Crawler Bay type; homebrew bays grouped underneath'],
   },
 ]
 
-/** The merged release list — each entry a paper panel with an area badge. */
+/** The history — each day a paper panel with an area badge. */
 export const Default: Story = () => (
   <div className="flex max-w-2xl flex-col gap-3">
-    <Caption>
-      Release entries, newest first — version/title headline, area badge, date, items.
-    </Caption>
+    <Caption>One entry per day, newest first — date headline, area badge, items.</Caption>
     <Changelog entries={ENTRIES} />
   </div>
 )
 
-/** The empty state (no releases yet). */
+/** The empty state (no history yet). */
 export const Empty: Story = () => (
   <div className="max-w-2xl">
     <Changelog entries={[]} />

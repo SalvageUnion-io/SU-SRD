@@ -71,13 +71,9 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
 
     // The trait grammar is parsed by the PACKAGE, not re-implemented here.
     //
-    // There used to be three regexes for this markup — one here, one in the
-    // reference package, one in the Discord bot — and they did not agree: the
-    // package required a space in `[[[Melee] (2)]]` where both renderers
-    // accepted `[[[Melee](2)]]`, so it silently extracted nothing from the
-    // space-less form while this file resolved the trait. Since the package's
-    // parser is what builds the search index, that divergence meant a trait
-    // could render as a link and be missing from search.
+    // The package's parser also builds the search index, so a second regex
+    // here could disagree with it and render a trait as a link that search
+    // cannot find.
     //
     // `parseTraitReferences` returns positions, which is exactly what node
     // building needs, so this composes it and adds only what is genuinely

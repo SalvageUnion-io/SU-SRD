@@ -168,26 +168,6 @@ describe('createBrowserObservability', () => {
     ])
   })
 
-  test('dedupe sends one error object once; without it, every time', async () => {
-    const deduped = fakeSdk()
-    const a = createBrowserObservability({ dedupe: true })
-    await a.init(async () => deduped.sdk, { dsn: DSN })
-    const err = new Error('twice')
-    a.captureException(err)
-    a.captureException(err)
-    // Primitives cannot be tracked, so they are always sent.
-    a.captureException('string-error')
-    a.captureException('string-error')
-    expect(deduped.calls.filter((c) => c.fn === 'captureException')).toHaveLength(3)
-
-    const plain = fakeSdk()
-    const b = createBrowserObservability()
-    await b.init(async () => plain.sdk, { dsn: DSN })
-    b.captureException(err)
-    b.captureException(err)
-    expect(plain.calls.filter((c) => c.fn === 'captureException')).toHaveLength(2)
-  })
-
   test('each instance keeps its own state', async () => {
     const first = fakeSdk()
     const a = createBrowserObservability()
@@ -195,5 +175,148 @@ describe('createBrowserObservability', () => {
     await a.init(async () => first.sdk, { dsn: DSN })
     b.captureException(new Error('b is not initialised'))
     expect(first.calls.filter((c) => c.fn === 'captureException')).toHaveLength(0)
+  })
+})
+
+/** Minimal in-memory Storage stand-in. */
+function fakeStorage(seed: Record<string, string> = {}): Storage {
+  const map = new Map(Object.entries(seed))
+  return {
+    get length() {
+      return map.size
+    },
+    clear: () => map.clear(),
+    getItem: (k: string) => map.get(k) ?? null,
+    key: (i: number) => [...map.keys()][i] ?? null,
+    removeItem: (k: string) => void map.delete(k),
+    setItem: (k: string, v: string) => void map.set(k, v),
+  } as Storage
+}
+
+/** A storage whose every access throws, as in a locked-down privacy mode. */
+function hostileStorage(): Storage {
+  const deny = () => {
+    throw new Error('denied')
+  }
+  return {
+    clear: deny,
+    getItem: deny,
+    key: deny,
+    removeItem: deny,
+    setItem: deny,
+  } as unknown as Storage
+}
+
+function firePreloadError(target: EventTarget): Event {
+  const event = new Event('vite:preloadError', { cancelable: true })
+  Object.defineProperty(event, 'payload', {
+    value: new Error('Failed to fetch dynamically imported module: /assets/x-OLDHASH.js'),
+  })
+  target.dispatchEvent(event)
+  return event
+}
+
+/**
+ * The deploy-skew reload guard, driven with a dispatched `vite:preloadError`
+ * on a plain EventTarget. Storage, clock and reload are injected, so nothing
+ * touches a real page.
+ */
+describe('installChunkRecovery', () => {
+  function setup(deps: { storage?: Storage; now?: () => number } = {}) {
+    const target = new EventTarget()
+    const obs = createBrowserObservability()
+    let reloads = 0
+    const teardown = obs.installChunkRecovery({
+      target,
+      storage: deps.storage ?? fakeStorage(),
+      reload: () => {
+        reloads += 1
+      },
+      now: deps.now ?? (() => 1_000_000),
+    })
+    return { obs, target, teardown, reloads: () => reloads }
+  }
+
+  test('reloads once on the first preload failure, and cancels the rethrow', () => {
+    const { target, teardown, reloads } = setup()
+    const event = firePreloadError(target)
+    teardown()
+
+    expect(reloads()).toBe(1)
+    expect(event.defaultPrevented).toBe(true)
+  })
+
+  test('a burst of failures in one page is one reload and one event', async () => {
+    // A page that fails several imports at once: the first schedules the
+    // reload, and the rest are the same skew, not failed recoveries.
+    const { sdk, calls } = fakeSdk()
+    const { obs, target, teardown, reloads } = setup()
+    await obs.init(async () => sdk, { dsn: DSN })
+
+    firePreloadError(target)
+    const second = firePreloadError(target)
+    const third = firePreloadError(target)
+    teardown()
+
+    expect(reloads()).toBe(1)
+    expect(second.defaultPrevented).toBe(true)
+    expect(third.defaultPrevented).toBe(true)
+    const captured = calls.filter((c) => c.fn === 'captureException')
+    expect(captured).toHaveLength(1)
+    expect(captured[0]?.args[1]).toMatchObject({ tags: { recovered: 'true' } })
+  })
+
+  test('does NOT reload inside a cooldown a previous load recorded — the loop guard', () => {
+    // The reload happened, the page came back, and it failed again at once.
+    const { target, teardown, reloads } = setup({
+      storage: fakeStorage({ 'chunk-reload-at': '1000000' }),
+      now: () => 1_002_000,
+    })
+    const event = firePreloadError(target)
+    teardown()
+
+    expect(reloads()).toBe(0)
+    // Left to surface, not silently swallowed.
+    expect(event.defaultPrevented).toBe(false)
+  })
+
+  test('rearms after the cooldown, so a later deploy in a long-lived tab still recovers', () => {
+    const storage = fakeStorage({ 'chunk-reload-at': '1000000' })
+    const { target, teardown, reloads } = setup({ storage, now: () => 1_060_000 })
+    firePreloadError(target)
+    teardown()
+
+    expect(reloads()).toBe(1)
+    expect(storage.getItem('chunk-reload-at')).toBe('1060000')
+  })
+
+  test('still recovers when sessionStorage throws on every access', () => {
+    const { target, teardown, reloads } = setup({ storage: hostileStorage() })
+    expect(() => firePreloadError(target)).not.toThrow()
+    teardown()
+
+    expect(reloads()).toBe(1)
+  })
+
+  test('listens on the global object (the page’s window) by default', () => {
+    let reloads = 0
+    const teardown = createBrowserObservability().installChunkRecovery({
+      storage: fakeStorage(),
+      reload: () => {
+        reloads += 1
+      },
+    })
+    firePreloadError(globalThis)
+    teardown()
+
+    expect(reloads).toBe(1)
+  })
+
+  test('removes its listener on teardown', () => {
+    const { target, teardown, reloads } = setup()
+    teardown()
+    firePreloadError(target)
+
+    expect(reloads()).toBe(0)
   })
 })

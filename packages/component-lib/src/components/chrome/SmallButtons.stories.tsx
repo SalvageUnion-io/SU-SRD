@@ -7,7 +7,7 @@ export default {
   title: 'Atoms/Step Button',
 }
 
-// Real SRD content — reference data is preloaded by .ladle/components.tsx.
+// Real SRD content — reference data is preloaded by catalog.tsx.
 const chassis = SalvageUnionReference.Chassis.all()[0]
 const structure = chassis?.structurePoints ?? 10
 

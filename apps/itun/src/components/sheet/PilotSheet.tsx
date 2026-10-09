@@ -2,7 +2,7 @@
  * PilotSheet — the pilot body for the LiveSheet shell (Workshop-Manual pilot
  * sheet, region-for-region).
  *
- * The body OWNS the identity band: it renders `SheetHero` in band mode as its
+ * The body OWNS the identity band: it renders `SheetHero` as its
  * first region, which keeps the identity + vitals rendering (and all their
  * handlers) in one component. Region order mirrors the printed pilot sheet:
  *   - Identity Band: edge wordmark ∥ identity fields ∥ HP/AP/TP + Conditions
@@ -18,7 +18,7 @@
  * carry their own frame, so a second frame around them reads as one opaque
  * block.
  *
- * Dropped (redesign D6 — no poster counterpart; tracking issues filed for
+ * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
  *   - `PilotTakeDamageControl` (#406) — Take Damage / Critical Injury loop.
  *   - the Injuries slab + `InjuryRow` (#408) — severity-enum list editor.
@@ -48,12 +48,9 @@
 import {
   Badge,
   EmptyState,
-  EntityGridRow,
   EntitySearcher,
   MasonryColumns,
   Panel,
-  SectionManageButton,
-  SheetPickerModal,
   SheetSectionSlab,
   Slab,
   Stat,
@@ -62,11 +59,13 @@ import {
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
+import { nameToSlug } from 'salvageunion-reference'
 import { pinFor } from 'salvageunion-reference/rules'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { ConditionsEditor } from './ConditionsEditor'
+import { EntityGridRow } from './EntityGrid'
 import { PartnerCard } from './PartnerCard'
 import { PilotIdentityPanel } from './PilotIdentity'
 import {
@@ -78,6 +77,7 @@ import {
 import { usePilotSheetActions } from './pilotSheetActions'
 import { GENERIC_TREE, usePilotSheetModel } from './pilotSheetModel'
 import { SheetHero } from './SheetHero'
+import { SectionManageButton, SheetPickerModal } from './SheetSection'
 
 // ---------------------------------------------------------------------------
 // TpBlock — pilot Training Points, in the Vitals card's dashed-topped `.vrow`
@@ -191,7 +191,7 @@ export function PilotSheet({
       aria-label={`${pilot.name} pilot details`}
       // `.sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
-      // width (redesign D7), not the viewport.
+      // width, not the viewport.
       className="sheet-section @container flex flex-col gap-6"
     >
       {/* Dead state (rules A2: max HP 0 = death). Display-only — the record
@@ -215,7 +215,6 @@ export function PilotSheet({
           Edge wordmark ∥ identity fields ∥ HP/AP/TP + Conditions vitals rail,
           in one toned frame — the printed pilot sheet's top band. */}
       <SheetHero
-        cat="Pilot"
         name={pilot.name}
         meta={
           model.dead ? (
@@ -483,7 +482,7 @@ export function PilotSheet({
           schema="abilities"
           selected={pilot.abilities}
           onToggle={actions.toggleAbility}
-          idOf={(item) => item.id}
+          idOf={(item) => nameToSlug(item.name)}
           filter={
             model.abilityTrees
               ? (item) => model.abilityTrees?.has((item as SURefAbility).tree) ?? false
@@ -507,7 +506,7 @@ export function PilotSheet({
           schema="equipment"
           selected={pilot.equipment}
           onToggle={actions.toggleEquipment}
-          idOf={(item) => item.id}
+          idOf={(item) => nameToSlug(item.name)}
           railName={pilot.name}
           chosenLabel="Equipped"
           emptyMessage="No equipment matches those filters."

@@ -1,6 +1,5 @@
 import type { IDBPDatabase } from 'idb'
 import type { z } from 'salvageunion-reference/zod'
-import { isRecord } from '../isRecord'
 
 /**
  * Minimal shape every entity managed by the CRUD wrapper must have.
@@ -52,44 +51,26 @@ type EntityStore<T extends EntityBase> = {
   delete: (id: string) => Promise<void>
 }
 
-type MakeStoreOptions<T extends EntityBase> = {
+type MakeStoreOptions = {
   /**
    * Set true when T includes an `updatedAt` field. Controls whether
    * create/update inject the timestamp.
    */
   hasUpdatedAt?: boolean
-  /**
-   * Salvage-path schema for READS (plan 2.1): typically the same object shape
-   * with `.strip()` instead of `.strict()`, so records that drifted (e.g. an
-   * old field a newer build no longer knows, or a field written by a newer
-   * build under PWA autoUpdate version skew) are stripped/defaulted with a
-   * console warning instead of bricking the whole store hydration.
-   * Writes always validate against the strict `schema`.
-   */
-  salvageSchema?: z.ZodType<T>
-  /**
-   * A known-legacy rewrite applied to every raw record BEFORE either parse, on
-   * reads and on `put`: fields the schema has deliberately dropped are removed
-   * (or lifted to their replacement) silently, since they are expected rather
-   * than drift. Salvage stays for what nobody anticipated. Pilots pass
-   * `normalizeLegacyPilotRecord`.
-   */
-  normalize?: (raw: Record<string, unknown>) => Record<string, unknown>
 }
 
 /**
  * Creates a typed CRUD store accessor backed by an IndexedDB object store.
  *
  * @param getDb - Lazy accessor for the opened IDBPDatabase instance.
- * @param schema - Zod schema for the entity type T. Used for validation on
- *   every write path and as the first attempt on reads.
+ * @param schema - Zod schema for the entity type T. Every read and every
+ *   write parses against it strictly.
  * @param storeName - Name of the IDB object store (keyPath = "id").
- * @param options - hasUpdatedAt + optional salvage schema (see MakeStoreOptions).
+ * @param options - hasUpdatedAt (see MakeStoreOptions).
  *
- * Read validation order: strict parse → salvage parse (warn) → skip the
- * record entirely (warn). A single drifted record can therefore never brick
- * hydration of its store; it is healed on its next write (update re-parses
- * the salvaged shape strictly before putting).
+ * A read that fails the strict parse is skipped with a console warning, so one
+ * unreadable cached row never bricks hydration of its store; Convex refills
+ * the cache on the next signed-in load.
  *
  * UUID: crypto.randomUUID() — no external dependency.
  */
@@ -97,37 +78,17 @@ export function makeStore<T extends EntityBase>(
   getDb: () => Promise<IDBPDatabase>,
   schema: z.ZodType<T>,
   storeName: string,
-  options: MakeStoreOptions<T> = {}
+  options: MakeStoreOptions = {}
 ): EntityStore<T> {
-  const { hasUpdatedAt = false, salvageSchema, normalize } = options
-
-  /** Apply the store's legacy rewrite, if it has one, to a raw record. */
-  function normalized(raw: unknown): unknown {
-    return normalize && isRecord(raw) ? normalize(raw) : raw
-  }
+  const { hasUpdatedAt = false } = options
 
   /**
-   * Parse a raw record for the read path. Returns null when the record cannot
-   * be made valid even by the salvage schema — callers skip it (list) or
-   * report it missing (get) rather than throwing.
+   * Parse a raw record for the read path. Returns null when it does not parse
+   * — callers skip it (list) or report it missing (get) rather than throwing.
    */
-  function salvageRead(input: unknown, context: string): T | null {
-    const raw = normalized(input)
+  function read(raw: unknown, context: string): T | null {
     const strict = schema.safeParse(raw)
     if (strict.success) return strict.data
-
-    if (salvageSchema) {
-      const salvaged = salvageSchema.safeParse(raw)
-      if (salvaged.success) {
-        console.warn(
-          `[itun-db] Record in "${storeName}" (${context}) did not match the strict schema; ` +
-            `loaded via salvage path (unknown fields stripped, defaults applied). ` +
-            `Original error: ${strict.error.message}`
-        )
-        return salvaged.data
-      }
-    }
-
     console.warn(
       `[itun-db] Skipping unreadable record in "${storeName}" (${context}): ${strict.error.message}`
     )
@@ -138,7 +99,7 @@ export function makeStore<T extends EntityBase>(
     const db = await getDb()
     const all = await db.getAll(storeName)
     return (all as unknown[])
-      .map((raw, i) => salvageRead(raw, `index ${i}`))
+      .map((raw, i) => read(raw, `index ${i}`))
       .filter((record): record is T => record !== null)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }
@@ -147,7 +108,7 @@ export function makeStore<T extends EntityBase>(
     const db = await getDb()
     const raw = await db.get(storeName, id)
     if (raw === undefined) return null
-    return salvageRead(raw, `id="${id}"`)
+    return read(raw, `id="${id}"`)
   }
 
   /**
@@ -190,9 +151,10 @@ export function makeStore<T extends EntityBase>(
     if (raw === undefined) {
       throw new Error(`[itun-db] Cannot update: record id="${id}" not found in "${storeName}"`)
     }
-    // Base the merge on the salvaged read so a drifted record heals on its
-    // next write instead of failing the strict parse below forever.
-    const existing = salvageRead(raw, `id="${id}"`) ?? (raw as Record<string, unknown>)
+    const existing = read(raw, `id="${id}"`)
+    if (existing === null) {
+      throw new Error(`[itun-db] Cannot update: record id="${id}" in "${storeName}" does not parse`)
+    }
     const now = new Date().toISOString()
     const candidate: Record<string, unknown> = {
       ...existing,
@@ -219,27 +181,24 @@ export function makeStore<T extends EntityBase>(
    * point of having a third verb:
    *
    *  - `create` mints a fresh UUID. A server row cached under a new id is a
-   *    *copy*, so the next edit would mirror back addressed by an appId the
-   *    server has never seen and land as a second entity.
+   *    *copy*, so the next edit would be committed under an appId the server
+   *    has never seen and land as a second entity.
    *  - `update` requires the row to exist locally, which by definition it does
    *    not the first time a Game's crawler or a claimed pre-gen is pulled down.
    *
-   * Reads are salvage-tolerant everywhere else in this module, and adoption is
-   * a read that happens to persist: a Game row written by a newer build than
-   * this one must still be openable, so a strict-parse failure falls back to
-   * the salvage shape rather than refusing the whole entity.
+   * It parses strictly, like every other path here, and throws on a record
+   * that does not parse.
    */
   async function put(record: T): Promise<T> {
     const db = await getDb()
-    const strict = schema.safeParse(normalized(record))
-    const parsed = strict.success ? strict.data : salvageRead(record, `id="${record.id}"`)
-    if (parsed === null) {
+    const strict = schema.safeParse(record)
+    if (!strict.success) {
       throw new Error(
         `[itun-db] Cannot cache record id="${record.id}" in "${storeName}": it does not parse`
       )
     }
-    await db.put(storeName, parsed)
-    return parsed
+    await db.put(storeName, strict.data)
+    return strict.data
   }
 
   async function del(id: string): Promise<void> {

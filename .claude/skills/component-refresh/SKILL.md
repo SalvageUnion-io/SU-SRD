@@ -1,6 +1,6 @@
 ---
 name: component-refresh
-description: Use when asked to redesign, refresh, restyle or "modernise" an existing component, or to mock one up before building it. Runs the three-level loop — real SSR "before", NEW* Ladle comparison, staged cutover — and never crosses into L3 cutover without an explicit command.
+description: Use when asked to redesign, refresh, restyle or "modernise" an existing component, or to mock one up before building it. Runs the three-level loop — real SSR "before", NEW* story-catalog comparison, staged cutover — and never crosses into L3 cutover without an explicit command.
 allowed-tools: Bash, Read, Edit, Write, Glob, Grep
 ---
 
@@ -17,7 +17,7 @@ it anywhere else; a second copy drifts.
 Ask which level is being requested, and do not silently cross a gate:
 
 - **L1 (mockup)** — design only. Produces an artifact. Changes no app code.
-- **L2 (build alongside)** — `NEW`-prefixed components, Ladle-only, no consumers.
+- **L2 (build alongside)** — `NEW`-prefixed components, catalog-only, no consumers.
 - **L3 (cutover)** — migrate consumers and delete the legacy component.
   **Explicit command only.** Never begin L3 because L2 looks finished.
 
@@ -34,8 +34,8 @@ component that does not exist.
 - Render it via SSR — `react-dom/server` `renderToStaticMarkup` (precedent:
   `apps/srd/ssg/document.tsx`), styled by the stylesheet `bun --filter srd build`
   emits (named in the build's Vite manifest under apps/srd/dist).
-  `packages/component-lib/src/styles/index.css` is only its Tailwind source,
-  which a browser cannot read. Use no package this repo does not declare.
+  `packages/component-lib/src/styles/tailwind.css` is only its Tailwind
+  source, which a browser cannot read. Use no package this repo does not declare.
   Capture HTML + CSS, not screenshots.
 - Feed it **real ORM data** (`SalvageUnionReference.*`), deliberately including
   the awkward records — longest name, empty description, missing artwork.
@@ -46,9 +46,9 @@ component that does not exist.
 - New components carry a `NEW` prefix so they cannot collide with the legacy
   one, are **not** barrel-exported, and have **no consumers**. Iteration is then
   zero-risk.
-- Show them as a **three-way Ladle story on one page**: old · new read-only ·
+- Show them as a **three-way story on one page**: old · new read-only ·
   new editable, all driven by real data through the real components. Open the
-  `ladle` launch config (`.claude/launch.json`, port 61000), or `bun run ladle`
+  `stories` launch config (`.claude/launch.json`, port 61000), or `bun run stories`
   outside Claude Code.
 - Add any write layer as **evolutions of the read-only card, never a redesign**.
 
@@ -62,7 +62,7 @@ Only on explicit instruction. Stage it, committing per stage:
    the legacy name so every consumer renders through the new component.
 3. Migrate consumers, lowest-risk first.
 4. Delete the legacy component and the shim, and move its stories into their
-   canonical Ladle groups.
+   canonical story groups.
 
 ## Invariants — check these at every level
 

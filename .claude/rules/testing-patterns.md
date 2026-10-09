@@ -58,9 +58,9 @@ To unmount **mid-test** (e.g. asserting on a remount), call `cleanup()` inline.
 
 `test/reference-preload.ts` already loads every schema, and the loaded-schema
 set is module-global, so a narrow per-file list can pass only because a sibling
-file loaded everything; `packages/component-lib/src/test-hygiene.test.ts`
-enforces it. The exception re-preloads after `resetAllForTesting()` to assert on
-load behaviour (`apps/srd/src/lib/__tests__/schemaPreloadDeps.test.tsx`).
+file loaded everything; `tools/biome/noTestReferencePreload.grit`
+fails it. The exceptions re-preload after `resetAllForTesting()` to assert on
+load behaviour, and biome.jsonc excludes each by path with its reason.
 
 ### Do not sleep on a real debounce
 
@@ -71,8 +71,7 @@ is a latent flake on CI and dead wall-clock everywhere. Use one of:
   `act()` when the component's own timer must be driven — see
   `RollTable.test.tsx`, `SearchIsland.test.tsx`, `useSearchCombobox.test.tsx`.
 - `setSystemTime()` when the code under test reads `Date.now()` rather than a
-  timer — see the retry-backoff tests in
-  `apps/itun/src/lib/snapshot/__tests__/client.test.ts`.
+  timer — see the stale-write tests in `apps/itun/test/convex/appId.test.ts`.
 - `await screen.findByText(...)` / `waitFor(...)`, which poll.
 
 **Fake timers and `waitFor` do not mix.** RTL's `waitFor` polls on a real
@@ -82,7 +81,8 @@ whole suite. Scope `useFakeTimers()` to the helper that needs it (see
 
 ### Fixtures carry one frozen timestamp
 
-Entity fixtures come from `apps/itun/src/components/__tests__/fixtures.ts`, all
-stamped with `FIXTURE_NOW`; pass a distinct timestamp through overrides when a
-test needs one. Never write `new Date().toISOString()` into a fixture:
-`test-hygiene.test.ts` fails it.
+Entity fixtures come from `apps/itun/src/components/__tests__/fixtures.ts`
+(the Convex suites' via `apps/itun/test/convex/fixtures.ts`), stamped with
+`FIXTURE_NOW`; pass a distinct timestamp through overrides when needed. Never
+write `new Date().toISOString()` into a fixture:
+`tools/biome/noLiveClockFixture.grit` fails it.

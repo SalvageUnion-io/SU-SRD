@@ -22,10 +22,8 @@ export const ReactorOverloadOutcomeSchema = z.enum([
   'safe',
 ])
 
-// No `z.infer` type alias here: the only consumer (HeatCheckControl) was
-// dropped by the poster redesign's D6 live-play-panel cut (#407) — the
-// schema itself (used inline below, and the `lastHeatCheck` field) stays for
-// backward-tolerant reads of previously-saved mechs.
+// The outcome of `HeatCheckResultSchema` below, the shape of `lastHeatCheck`
+// that `heatCheckPatch` (lib/rules/heatCheck.ts) writes on every heat check.
 
 /**
  * Recorded result of a Heat Check (and any subsequent Reactor Overload roll).
@@ -71,7 +69,7 @@ export const CriticalDamageOutcomeSchema = z.enum([
 ])
 
 // No `z.infer` type alias here: the only consumer (TakeDamageControl) was
-// dropped by the poster redesign's D6 live-play-panel cut (#406) — the
+// dropped by the poster redesign's live-play-panel cut (#406) — the
 // schema stays (used inline below) for backward-tolerant reads.
 
 /**
@@ -92,12 +90,10 @@ export const CriticalDamageResultSchema = z
 
 /**
  * chassisRef / systems / modules store SLUG references into
- * salvageunion-reference (e.g. "ghost-chassis"), the same convention as pilot
- * `classRef` and encounter `refSlug`. The v6 IndexedDB migration
- * (lib/db/migrations/6-mech-refs-to-slugs.ts) rewrote legacy name-based refs;
- * resolution (lib/rules/resolveRefs.ts) stays tolerant of names/ids for
- * snapshots published by older clients. Resolution against game data is
- * handled at the rules/presentation layer.
+ * salvageunion-reference (e.g. "ghost-chassis"), the same convention as
+ * encounter `refSlug`. They resolve through `salvageunion-reference/rules`
+ * (`resolveChassisRef`, `resolveSystemRef`, `resolveModuleRef`) at the
+ * rules/presentation layer.
  */
 
 export const MechSchema = z
@@ -115,11 +111,7 @@ export const MechSchema = z
     /** Slugs of mech module items installed */
     modules: z.array(z.string()),
 
-    /**
-     * Cargo lots carried in the mech (design §2.12). Replaces the legacy
-     * `cargo: string[]` field — the v3 IndexedDB migration
-     * (lib/db/migrations/3-cargo-to-cargo-lots.ts) rewrites old records.
-     */
+    /** Cargo lots carried in the mech (design §2.12). */
     cargoLots: z.array(CargoLotSchema),
 
     /** Optional: name of the paint/visual pattern applied */
@@ -128,20 +120,8 @@ export const MechSchema = z
     /** Short freeform quirk note (the poster's "Quirk"). Additive-optional. */
     quirk: z.string().optional(),
 
-    /**
-     * Freeform appearance note (the poster's "Appearance"). Additive-optional.
-     * Supersedes `description` (below), which is kept only as a read-fallback for
-     * records written before the Quirk/Appearance split and heals into
-     * `appearance` on the next save.
-     */
+    /** Freeform appearance note (the poster's "Appearance"). Additive-optional. */
     appearance: z.string().optional(),
-
-    /**
-     * @deprecated Superseded by `quirk` + `appearance`. Kept optional for
-     * back-compat / read-fallback (absent reads as undefined); cleared on the
-     * next wizard/sheet save. Do not write new values.
-     */
-    description: z.string().optional(),
 
     /**
      * Active condition labels — the single unified conditions vocabulary for
@@ -156,7 +136,7 @@ export const MechSchema = z
     // Manual adjustments (plan 2.3, rules B2/B4/B6/B14).
     //
     // A signed amount the player entered by hand that CONTRIBUTES to the derived
-    // maximum: derived = chassis stat + Σ installed statBonus + adjustment
+    // maximum: derived = chassis stat + Σ contributions + adjustment
     // (lib/rules/derivedStats.ts). Absent means 0.
     //
     // These are NOT overrides. Until the ADR-022 amendment these fields carried

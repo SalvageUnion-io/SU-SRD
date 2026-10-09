@@ -7,9 +7,8 @@
  *   IndexedDB upgrade), so the only honest recovery is a reload.
  * - **`RouteErrorComponent`** is the router's `defaultErrorComponent`, so every
  *   other route gets its own boundary. A throw inside the Dashboard, a sheet or
- *   a Game used to fall straight through to the root and blank the app,
- *   header and navigation with it; now it replaces only that route's content,
- *   leaves the header in place to navigate away with, and offers a retry.
+ *   a Game replaces only that route's content, leaves the header in place to
+ *   navigate away with, and offers a retry, rather than blanking the app.
  *
  * Neither reports anything. Reporting happens once, for every error boundary
  * in the tree, in the `createRoot` hooks `main.tsx` installs
@@ -78,8 +77,7 @@ export function RootErrorComponent({ error }: ErrorComponentProps) {
  * Per-route error boundary: replaces one route's content, keeps the header.
  *
  * "Try again" re-renders the route and re-runs its loader — `reset` clears
- * this boundary, `invalidate` discards the failed match — without a reload, so
- * an anonymous visitor's in-memory work survives the attempt.
+ * this boundary, `invalidate` discards the failed match — without a reload.
  */
 export function RouteErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter()

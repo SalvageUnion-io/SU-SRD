@@ -1,6 +1,6 @@
 import { Caption } from 'component-lib/stories/harness'
 // The components import no CSS; the app (or story) loads the bundle.
-import 'component-lib/styles/dashboard.css'
+import '../../styles/dashboard.css'
 import { DashboardCanvas } from './DashboardCanvas'
 
 export default { title: 'Compositions/Dashboard/Canvas' }

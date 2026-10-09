@@ -40,9 +40,9 @@ test.describe('ability cards show their descriptions', () => {
   test('Engineering Expertise card includes its rules text', async ({ page }) => {
     await page.goto('/pilots/new?mode=guided')
     await waitForReady(page)
-    // The first-Ability pool now lives on the SAME step as the class, so the
-    // ability's rules text is on screen as soon as a class is picked — the
-    // clickNext that used to be here advanced past it to Equipment.
+    // The first-Ability pool lives on the SAME step as the class, so the
+    // ability's rules text is on screen as soon as a class is picked; a
+    // clickNext here would advance past it to Equipment.
     await pickByName(page, 'Engineer')
 
     // The description (per SU SRD) mentions "questions" about

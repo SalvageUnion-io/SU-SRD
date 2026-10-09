@@ -11,19 +11,20 @@ export default {
 const weaponType: SURefObjectChoice = {
   id: 'weapon-type',
   name: 'Weapon Type',
-  schema: ['traits'],
-  schemaEntities: ['Ballistic', 'Energy'],
+  source: { kind: 'catalog', schema: ['traits'], entities: ['Ballistic', 'Energy'] },
 }
 const modification: SURefObjectChoice = {
   id: 'modification',
   name: 'Modification',
-  multiSelect: true,
-  constraints: { scalesWithField: 'techLevel' },
-  choiceOptions: [
-    { label: 'Rangefinder', value: 'Rangefinder', description: 'Increases Range to Far.' },
-    { label: 'Laser Guidance', value: 'Laser Guidance', description: 'Spend 2 AP to hit.' },
-    { label: 'High Calibre Rounds', value: 'High Calibre Rounds', description: '+1 SP damage.' },
-  ],
+  cardinality: { min: 0, max: { scalesWith: 'techLevel' } },
+  source: {
+    kind: 'options',
+    options: [
+      { label: 'Rangefinder', value: 'Rangefinder', description: 'Increases Range to Far.' },
+      { label: 'Laser Guidance', value: 'Laser Guidance', description: 'Spend 2 AP to hit.' },
+      { label: 'High Calibre Rounds', value: 'High Calibre Rounds', description: '+1 SP damage.' },
+    ],
+  },
 }
 const nameChoice: SURefObjectChoice = {
   id: 'name',
@@ -53,8 +54,8 @@ function Row({
 export const Types: Story = () => (
   <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
     <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
-      Exclusive (single-select), multi-select (with a scalesWithField cap counter), and free-text
-      choices — unselected vs a pre-seeded controlled selection.
+      Exclusive (single-select), multi-select (with a TL-scaled cap counter), and free-text choices
+      — unselected vs a pre-seeded controlled selection.
     </p>
     <Row label="exclusive · unselected">
       <ChoiceGroups choices={[weaponType]} parent={parent} toneColor="var(--color-tl-3)" />

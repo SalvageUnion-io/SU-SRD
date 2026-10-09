@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
-import { makeUser } from './assignmentFixtures'
+import { makeUser } from './fixtures'
 import { testConvex } from './harness'
 
 /**
- * Game templates (D34).
+ * Game templates (ADR-030).
  *
  * The property under test is the one that makes a template useful rather than
  * decorative: **its entities arrive unclaimed**, so the person running the

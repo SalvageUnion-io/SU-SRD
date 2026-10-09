@@ -12,11 +12,11 @@ import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
  * makes, and this file follows its mocking discipline deliberately, as its
  * srd counterpart does.
  *
- * `captureException` earns its own cases here rather than riding along with
- * `captureMessage`: catching is exactly what PREVENTS an error reaching
+ * `captureException` earns its own cases here: catching is exactly what
+ * PREVENTS an error reaching
  * Sentry's `globalHandlers` integration, so a deliberately-caught failure —
- * including a failed mirror to the server of record — is reportable ONLY
- * through this function. It previously had no test at all.
+ * including a failed Change Log commit — is reportable ONLY through this
+ * function.
  *
  * `mock.module` is process-global in Bun, not file-scoped, so the real
  * `@sentry/browser` namespace is captured BEFORE mocking and restored in
@@ -49,8 +49,9 @@ mock.module('@sentry/browser', () => ({
   },
 }))
 
-const { captureException, captureMessage, initBrowserObservability, reactRootErrorHandlers } =
-  await import('../observability')
+const { captureException, initBrowserObservability, reactRootErrorHandlers } = await import(
+  '../observability'
+)
 
 /** Env keys this file writes, so `afterAll` can put the environment back. */
 const ENV_KEYS = ['VITE_SENTRY_DSN', 'VITE_COMMIT_REF'] as const
@@ -82,17 +83,16 @@ describe('observability', () => {
     // are the same object under Bun, but their TYPES differ (ImportMetaEnv vs
     // ProcessEnv), and what this file actually depends on is that a write to
     // one is visible through the other.
-    process.env.VITE_OBSERVABILITY_PROBE = 'yes'
-    expect(import.meta.env.VITE_OBSERVABILITY_PROBE).toBe('yes')
-    delete process.env.VITE_OBSERVABILITY_PROBE
+    process.env.VITE_ENV_PREMISE_CHECK = 'yes'
+    expect(import.meta.env.VITE_ENV_PREMISE_CHECK).toBe('yes')
+    delete process.env.VITE_ENV_PREMISE_CHECK
 
     expect(import.meta.env.VITE_SENTRY_DSN).toBeUndefined()
   })
 
-  test('with no DSN, init loads nothing and both capture verbs are silent no-ops', async () => {
+  test('with no DSN, init loads nothing and capture is a silent no-op', async () => {
     await initBrowserObservability()
     captureException(new Error('unreported'))
-    captureMessage('unreported')
 
     // Not merely "does not throw" — nothing reached Sentry at all, so an
     // un-provisioned deploy ships no Sentry code and makes no requests.
@@ -139,7 +139,7 @@ describe('observability', () => {
   })
 
   test('captureException forwards the error, with context as extra when given', () => {
-    const boom = new Error('mirror to server of record failed')
+    const boom = new Error('change log commit failed')
     captureException(boom, { entityKind: 'pilot' })
 
     const captured = sentryCalls.find((c) => c.fn === 'captureException')
@@ -160,14 +160,14 @@ describe('observability', () => {
     const boom = new Error('[CONVEX M(entities:upsertByAppId)] [Request ID: abc] Server Error')
     captureException(
       boom,
-      { source: 'mirrorWrite' },
-      { fingerprint: ['itun-mirror-write-failed', 'entities:upsertByAppId', 'defect'] }
+      { source: 'commitWrite' },
+      { fingerprint: ['itun-commit-write-failed', 'entities:upsertByAppId', 'defect'] }
     )
 
     const captured = sentryCalls.find((c) => c.fn === 'captureException')
     expect(captured?.args[1]).toEqual({
-      extra: { source: 'mirrorWrite' },
-      fingerprint: ['itun-mirror-write-failed', 'entities:upsertByAppId', 'defect'],
+      extra: { source: 'commitWrite' },
+      fingerprint: ['itun-commit-write-failed', 'entities:upsertByAppId', 'defect'],
     })
   })
 
@@ -177,33 +177,6 @@ describe('observability', () => {
     expect(sentryCalls.find((c) => c.fn === 'captureException')?.args[1]).toEqual({
       tags: { convex_function: 'games:create' },
     })
-  })
-
-  test('captureMessage forwards too — a handled condition is not an exception', () => {
-    // `upgradeTelemetry.ts` reports a database upgrade it handled; without this
-    // verb that report stays silent and nobody learns how often it happens.
-    captureMessage('itun-db: upgraded a pre-v13 database', { fromVersion: 12 })
-
-    const captured = sentryCalls.find((c) => c.fn === 'captureMessage')
-    expect(captured?.args[0]).toBe('itun-db: upgraded a pre-v13 database')
-    expect(captured?.args[1]).toEqual({ extra: { fromVersion: 12 } })
-  })
-
-  test('captureMessage with no context sends undefined too', () => {
-    captureMessage('bare')
-
-    expect(sentryCalls.find((c) => c.fn === 'captureMessage')?.args[1]).toBeUndefined()
-  })
-
-  test('the same error object is reported once, however many places see it', () => {
-    // A chunk failure is reported by chunkRecovery and then, when the reload
-    // cooldown holds, again by the error boundary it lands in. One failure,
-    // one event.
-    const boom = new Error('Failed to fetch dynamically imported module')
-    captureException(boom, { recovered: false }, { fingerprint: ['chunk-preload-error'] })
-    captureException(boom)
-
-    expect(sentryCalls.filter((c) => c.fn === 'captureException')).toHaveLength(1)
   })
 
   test('a render error a boundary catches reaches Sentry, with its component stack', () => {

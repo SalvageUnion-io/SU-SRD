@@ -9,13 +9,11 @@
  * nothing, so every test that writes, rehydrates, or reads `db.*` back through
  * a store is by definition a test of the signed-in path.
  *
- * The test build has no `VITE_CONVEX_URL`, so the real mode resolution can
- * never reach `connected`. This pushes `convexConfigured: true` alongside a
- * settled, online, signed-in session, which resolves to `remote`; with no
- * client compiled in, every `commit*` in `entityBackend.ts` then returns before
- * touching the network. The result is exactly "signed in, server commits
- * stubbed" — the store, the cache, hydration and cross-tab broadcast all run
- * for real.
+ * This pushes a settled, online, signed-in session, which resolves to
+ * `remote`; every `commit*` in `entityBackend.ts` then lands on the stub client
+ * the test preload installs (`apps/itun/test/convexClientStub.ts`). The result
+ * is exactly "signed in, server commits stubbed" — the store, the cache and
+ * hydration all run for real.
  *
  * ## Why it registers its own reset
  *
@@ -39,7 +37,6 @@ export function withSignedInBackend(): void {
       signedIn: true,
       online: true,
       authSettled: true,
-      convexConfigured: true,
     })
   })
   afterEach(() => {

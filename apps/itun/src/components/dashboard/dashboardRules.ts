@@ -1,6 +1,6 @@
 /**
  * dashboardRules — the Dashboard's thin, PURE driver over the existing rules engine
- * (plan §5). Nothing here touches React or the store: every function takes the
+ * (docs/architecture/dashboard.md §5). Nothing here touches React or the store: every function takes the
  * live numbers (+ an injectable `Roll`) and returns the `Partial<Mech>` /
  * `Partial<Pilot>` write-through patch the caller hands to
  * `storeState.update(...)`, mirroring `MechSheet.activateItem` / `SheetMech`'s
@@ -43,7 +43,6 @@ import {
   performHeatCheck,
   performPush,
   resolveChassisRef,
-  resolveRef,
 } from 'salvageunion-reference/rules'
 import { heatCheckPatch } from '../../lib/rules/heatCheck'
 import type { ItemCondition } from '../../lib/schemas/itemCondition'
@@ -55,7 +54,7 @@ import { resolveModule, resolveSystem } from '../sheet/mechItemRules'
 import { resolveEquipment } from '../sheet/pilotInventory'
 
 // ---------------------------------------------------------------------------
-// Reactor — Push / Heat Check / Vent / Shutdown (plan §5.1)
+// Reactor — Push / Heat Check / Vent / Shutdown (dashboard.md §5.1)
 // ---------------------------------------------------------------------------
 
 /**
@@ -103,7 +102,7 @@ export function heatCheckOncePatch(args: { heat: number; currentSP: number; roll
 }
 
 /**
- * Emergency Vent: dump Heat to 0 and become Vulnerable (plan §5.1 — Vent and
+ * Emergency Vent: dump Heat to 0 and become Vulnerable (dashboard.md §5.1 — Vent and
  * Shutdown are distinct Reactor-bay controls: Vent sets Heat→0 + `vulnerable`,
  * Shutdown toggles the flag). NB the tabletop rule folds a full shutdown into
  * venting; the Dashboard keeps them separate per the plan — hit Shutdown too for
@@ -132,7 +131,7 @@ export function describeHeatCheck(effect: HeatCheckEffect): string {
 }
 
 // ---------------------------------------------------------------------------
-// Damage → Critical (plan §5.3)
+// Damage → Critical (dashboard.md §5.3)
 // ---------------------------------------------------------------------------
 
 /**
@@ -212,7 +211,7 @@ export function describeCritInjury(effect: CriticalInjuryEffect): string {
 }
 
 // ---------------------------------------------------------------------------
-// Action activation (plan §5.2)
+// Action activation (dashboard.md §5.2)
 // ---------------------------------------------------------------------------
 
 export type PlayActionKind = 'chassis' | 'system' | 'module' | 'ability' | 'equipment'
@@ -345,9 +344,9 @@ export function buildMechActions(mech: Mech): PlayAction[] {
   return out
 }
 
-/** Resolve a pilot ability slug (id or name) against the reference ORM. */
+/** Resolve a pilot ability slug against the reference ORM. */
 function resolveAbilityBySlug(slug: string): SURefAbility | null {
-  return resolveRef(SalvageUnionReference.Abilities, slug)
+  return SalvageUnionReference.Abilities.getBySlug(slug) ?? null
 }
 
 /**
@@ -470,7 +469,7 @@ export function groupBySource(actions: PlayAction[]): PlayActionGroup[] {
 }
 
 // ---------------------------------------------------------------------------
-// Resolve flow — cost choice, variable Hot, Apply outcome (plan §5, D2)
+// Resolve flow — cost choice, variable Hot, Apply outcome (dashboard.md §5.2)
 // ---------------------------------------------------------------------------
 
 /**

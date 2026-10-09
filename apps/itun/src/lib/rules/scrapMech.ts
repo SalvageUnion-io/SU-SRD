@@ -20,8 +20,7 @@
  * on confirm, deposits the buckets and deletes the mech.
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { matchesRef } from 'salvageunion-reference/rules'
+import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import { addToScrapPool } from '../cargo/cargoTransfer'
 import { readReference } from '../readReference'
 import type { CargoLot } from '../schemas/cargoLot'
@@ -60,15 +59,14 @@ export type ScrapMechBreakdown = {
 
 /** Minimal read shape from a reference model. */
 type RefItem = {
-  id: string
   name: string
   techLevel?: unknown
   salvageValue?: unknown
 }
 
-/** Read a reference model defensively — empty when data isn't preloaded. */
-function loadRef(source: string, all: () => ReadonlyArray<unknown>): RefItem[] {
-  return readReference(`scrapMech.${source}`, () => (all() as ReadonlyArray<RefItem>).slice(), [])
+/** Resolve one slug defensively — null when data isn't preloaded. */
+function lookup(source: string, resolve: () => RefItem | null): RefItem | null {
+  return readReference(`scrapMech.${source}`, resolve, null)
 }
 
 function numericTl(value: unknown): number | undefined {
@@ -88,17 +86,12 @@ export type ScrapMechInput = Pick<
 >
 
 /**
- * Resolve a stored mech into its scrappable components: the chassis (by
- * `chassisRef` name, per the app convention) plus every installed system and
- * module (by id-or-name slug), each carrying its live condition. Unresolved
- * refs are kept (SV 0, no TL) so the breakdown can report them.
+ * Resolve a stored mech into its scrappable components: the chassis plus every
+ * installed system and module, all by slug, each carrying its live condition.
+ * Unresolved refs are kept (SV 0, no TL) so the breakdown can report them.
  */
 export function mechScrapComponents(mech: ScrapMechInput): ScrapMechComponent[] {
-  const chassisItems = loadRef('chassis', () => SalvageUnionReference.Chassis.all())
-  const systemItems = loadRef('systems', () => SalvageUnionReference.Systems.all())
-  const moduleItems = loadRef('modules', () => SalvageUnionReference.Modules.all())
-
-  const chassis = chassisItems.find((c) => matchesRef(c, mech.chassisRef))
+  const chassis = lookup('chassis', () => resolveChassisRef(mech.chassisRef))
   const components: ScrapMechComponent[] = [
     {
       kind: 'chassis',
@@ -111,8 +104,11 @@ export function mechScrapComponents(mech: ScrapMechInput): ScrapMechComponent[] 
     },
   ]
 
-  const push = (kind: 'system' | 'module', slug: string, items: RefItem[]) => {
-    const item = items.find((entry) => matchesRef(entry, slug))
+  const push = (kind: 'system' | 'module', slug: string) => {
+    const item =
+      kind === 'system'
+        ? lookup('systems', () => resolveSystemRef(slug))
+        : lookup('modules', () => resolveModuleRef(slug))
     const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
     components.push({
       kind,
@@ -127,8 +123,8 @@ export function mechScrapComponents(mech: ScrapMechInput): ScrapMechComponent[] 
       condition: mech.destroyed ? 'destroyed' : (conditions[slug] ?? 'intact'),
     })
   }
-  for (const slug of mech.systems) push('system', slug, systemItems)
-  for (const slug of mech.modules) push('module', slug, moduleItems)
+  for (const slug of mech.systems) push('system', slug)
+  for (const slug of mech.modules) push('module', slug)
 
   return components
 }

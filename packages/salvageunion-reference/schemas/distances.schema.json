@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/distances.schema.json",
+  "$id": "https://salvageunion.io/schema/distances.schema.json",
   "title": "distances",
   "description": "Distance bands and ranges",
   "type": "array",

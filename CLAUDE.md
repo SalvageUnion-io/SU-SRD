@@ -7,7 +7,7 @@ the ADRs and architecture docs this file points to.
 
 Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need to find a doc.
 
-- [ADRs](docs/ARCHITECTURE.md#decisions) — one `## ADR-NNN` each, closing `docs/ARCHITECTURE.md`. **Read an ADR's Status first**: a superseded or merged ADR says so only there, and [`docs/README.md`](docs/README.md) tabulates them. The three that govern:
+- [ADRs](docs/ARCHITECTURE.md#decisions) — one `## ADR-NNN` each, closing `docs/ARCHITECTURE.md`. **Read an ADR's Status first**: a superseded or merged ADR says so only there (`grep -n '^## ADR-' docs/ARCHITECTURE.md` lists them). The three that govern:
   - [ADR-030](docs/ARCHITECTURE.md#adr-030) — accounts, Games, and Convex as the server of record. Ops: [accounts](docs/ARCHITECTURE.md#accounts-and-games-operations).
   - [ADR-021](docs/ARCHITECTURE.md#adr-021) — the surface/mode taxonomy for **where a rule is enforced**.
   - [ADR-007](docs/ARCHITECTURE.md#adr-007) — the automation boundary. Read before building rules-driven features.
@@ -23,7 +23,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need
 ## UI Development
 
 - Reuse shared components (`ReferenceEntityCard`, `Card`, …) before building one-off UI; check `component-lib` first.
-- Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `.claude/launch.json` starts `srd` (4321), `itun` (5173) and `ladle` (61000) in the browser preview. Prefer simple, well-understood CSS.
+- Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `.claude/launch.json` starts `srd` (4321), `itun` (5173) and `stories` (61000, the component catalog) in the browser preview. Prefer simple, well-understood CSS.
 - Default to compact, header-only, clickable listings for entity lists; never render nested entities as separate grids — render them inside the parent's expanded/modal view. Ask if unsure how much detail to show.
 - Styling is migrating off Tailwind ([plan](docs/design-system/tailwind-removal.md)); `bun run check styling` fails a change that raises the count of files carrying a Tailwind utility (a heuristic scan: class-list contexts plus class strings in constants and maps — not proof of absence; the plan's P6 exit adds the built-CSS check) or adds a `.pc-*` class.
 
@@ -35,11 +35,11 @@ After any cross-package change, run typecheck, tests and lint before calling the
 bun install              # first-time setup (generated files are committed; no compile step)
 
 bun run dev              # srd dev server (ssg/dev.ts, same render path as prod)
-bun run dev:itun         # ITUN dev server
+bun run dev:itun         # ITUN dev server on a local Convex backend
 
-bun run check:fast       # ~12s inner loop: every gate except the suite, the network
+bun run check:fast       # the inner loop: every gate except the suite, the network
                          # and regeneration
-bun run check            # THE full gate (~35s), every check in tools/check.ts in parallel,
+bun run check            # THE full gate: every check in tools/check.ts in parallel,
                          # ending in a pass/fail table
 bun run check <id> …     # just those checks (`--list` names them: data, styling, workflows, …)
 bun run test             # full suite, each workspace with its own bunfig — what CI runs
@@ -48,14 +48,12 @@ bun run lint | format | typecheck  # Biome is the only formatter; .md/.yml are f
 
 bun run build            # package + srd + ITUN (the bot has no build; wrangler bundles it)
 
-bun run reap             # list abandoned .claude/worktrees/ checkouts (--force removes them)
 bun run deploy-commands[:global]   # Discord slash commands: test guild / production
 ```
 
-- **Prefer `bun run test` over bare `bun test`.** A bare root run preloads the union of the workspace preloads and has a handful of known cross-workspace failures (a `mock.module` collision between the two `observability` suites, and one preload-set difference); every one passes in its own workspace. If `bun run test` is red, something is broken.
-- **Bare `--parallel` and `--isolate` stay banned**: both are measured regressions (ITUN `--parallel=4`, which implies `--isolate`, took 17.4 s against 16.9 s serial). `--parallel=N --no-isolate` is the measured win, and ITUN's `test` script uses it (16.5 s → ~6 s); `--changed` is the other flag that helps. Leave `test:coverage` serial: parallel coverage writes different lcov line counts.
+- **Bare `--parallel` and `--isolate` stay banned**: both measured slower than serial (`--parallel` implies `--isolate`). `--parallel=N --no-isolate` is the measured win, and ITUN's `test` script uses it; `--changed` is the other flag that helps. Leave `test:coverage` serial: parallel coverage writes different lcov line counts.
 - **A gate failed?** Its fix prints under the failure banner; `bun run check --list` shows every check's. [`tools/CLAUDE.md`](tools/CLAUDE.md) maps checks to scripts and baselines. **Adding a gate** means adding it to the registry in `tools/check.ts` — `bun run check`, pre-push and CI all read that one list.
-- **Dependencies:** read [dependencies](docs/ARCHITECTURE.md#dependencies) before touching `package.json`, `bunfig.toml` or `overrides`. In short: Bun deps are updated by hand, Actions by Dependabot; `bun audit --audit-level=high` gates every PR that changes `bun.lock` or a `package.json` (one `--ignore`: braces); `bunfig.toml` refuses versions under three days old (a caret range resolves silently down).
+- **Dependencies:** read [dependencies](docs/ARCHITECTURE.md#dependencies) before touching `package.json`, `bunfig.toml` or `overrides`. In short: Bun deps are updated by hand, Actions by Dependabot; `bun run audit` (any severity, no `--ignore`) gates every PR that changes `bun.lock` or a `package.json` and runs nightly; `bunfig.toml` refuses versions under three days old and makes `bun add` pin exactly. A shared dev tool is a root devDependency; a shared runtime package is a root `catalog:` entry.
 - **Profiling:** use Bun's markdown profiles into the gitignored `.profiles/` (`bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles <script>`, `--heap-prof-md` likewise). `bun build --metafile-md` needs `--outdir`, or it prints the bundle to stdout.
 
 ### Hooks (Lefthook)
@@ -100,7 +98,7 @@ Each workspace's own `CLAUDE.md` loads when you work in it; "Build & Validation"
 
 ### Data conventions
 
-- Entity links use slugs, never UUIDs: `/chassis/iron-mongrel`.
+- Entity links use slugs, never UUIDs: `/schema/chassis/item/mule/`.
 - Never run JSON data files through an automated formatter such as `json.dump` that reflows arrays; insert at the text level to preserve formatting.
 
 ### Debugging
@@ -109,12 +107,12 @@ For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `la
 
 ## `.claude/`
 
-- **Rules** (`.claude/rules/`) load automatically by `paths:` when you touch matching files — testing, React components, the display system, the ITUN router and data access, the Discord bot, and workspace manifests. There is nothing to open by hand.
-- **Skills** (`.claude/skills/`) encode decision procedures: `/stacked-pr` (recover a stacked PR after its parent squash-merges — never plain `--force`), `/triage`, `/component-refresh`, `/knip-triage` (delete by default), `/convex-deploy-verify`, `/convex-maintenance`. There is no `/commit`; use `/ship` or the commit plugin.
+- **Rules** (`.claude/rules/`) load automatically by `paths:` when you touch matching files — testing, the display system, the ITUN router and data access, the Discord bot, and workspace manifests. There is nothing to open by hand.
+- **Skills** (`.claude/skills/`) encode decision procedures: `/triage`, `/component-refresh`, `/knip-triage` (delete by default), `/convex-ops`. There is no `/commit` skill; use the commit plugin.
 
 ## External Integrations & MCP Servers
 
-The registry — ids, deployments, dashboards, how each server authenticates — is [services](docs/ARCHITECTURE.md#services-and-agent-tooling). [`.mcp.json`](.mcp.json) declares `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (stdio, targets the **dev** deployment from `CONVEX_DEPLOYMENT`; run `bunx convex dev` once) and `context7` (version-pinned library docs — this repo runs ahead of training data: TypeScript 7, Vite 8, Tailwind 4.3, Convex 1.43).
+The registry — ids, deployments, dashboards, how each server authenticates — is [services](docs/ARCHITECTURE.md#services-and-agent-tooling). [`.mcp.json`](.mcp.json) declares `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (stdio, targets the **local** deployment `bun run dev:itun` runs, from `CONVEX_DEPLOYMENT` in `apps/itun/.env.local`) and `context7` (version-pinned library docs — this repo runs ahead of training data; versions: the manifests).
 
 - `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Authenticate each server locally (OAuth on first connect).
 - `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI, or in a cloud session (no `gh`, remote MCP hosts blocked by the egress proxy, possibly a pre-pin Bun) the session's `mcp__github__*` tools — see [cloud sessions](docs/ARCHITECTURE.md#cloud-sessions).
@@ -122,4 +120,6 @@ The registry — ids, deployments, dashboards, how each server authenticates —
 
 ## Merging
 
-`main` requires linear history and status checks; there is **no merge queue**. Merge with `gh pr merge <pr> --squash` (or `--auto --squash`). The squash body is the PR body (repo setting `PR_BODY`); `git log --format='%h %s%n%b'` is the decision record. Squash-merge plus `delete_branch_on_merge` is why stacked PRs need `/stacked-pr`.
+`main` requires linear history and status checks; there is **no merge queue**. Merge with `gh pr merge <pr> --squash` (or `--auto --squash`). The squash body is the PR body (repo setting `PR_BODY`); `git log --format='%h %s%n%b'` is the decision record.
+
+Dependent PRs land only as a `gh stack`: `submit --auto --open`, then `merge --squash`. After a merge beneath you, `gh stack sync`; never a hand rebase or `--force`. Stack state is per worktree (`gh stack checkout <pr|branch>` re-attaches; `init` needs its branch argument).

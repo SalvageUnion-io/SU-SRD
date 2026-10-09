@@ -1,41 +1,12 @@
 /*
- * The `@layer` order below and the `layer(su-base)` on the package stylesheet
- * are LOAD-BEARING — do not simplify either to a bare `@import` (#799, #802).
- *
- * `component-lib/styles/index.css` carries the `--su-*` token scale and every
- * rule a style object cannot express, so a component migrated off Tailwind
- * renders unstyled without it. It is written to be loaded ALONE once Tailwind
- * leaves, so its base block is unlayered — and unlayered CSS beats layered CSS
- * whatever the source order, while Tailwind v4 puts its utilities in
- * `@layer utilities`. Imported plainly it inverts the cascade for every rule the
- * two share: measured on the real build, `h1,…,h6 { font-size: inherit }` landed
- * past the end of the utilities layer and outranked every `text-*` utility,
- * flattening the type on every heading. Declaring the order up front and
- * importing into `su-base` puts the package base between Tailwind's preflight
- * and Tailwind's utilities, which is where it belongs while both are live.
- * When Tailwind goes this collapses back to a plain import.
+ * Tailwind, the token set and the package stylesheet, in their load-bearing
+ * cascade order, come from the one shared entry; see its header.
  */
-@layer theme, base, su-base, components, utilities;
-@import 'tailwindcss';
-@import 'component-lib/styles/theme.css';
-@import 'component-lib/styles/index.css' layer(su-base);
+@import 'component-lib/styles/tailwind.css';
 
-@source '../../../../packages/component-lib/src';
 /*
- * ...but not the parts of it srd never ships (audit PK-01/PK-05). Tailwind
- * emits a utility for every class-shaped token it finds under an `@source`, so
- * scanning stories, tests and the ITUN-only folders put ~9% of srd's selectors
- * in its stylesheet for markup no srd page renders. The ITUN-only folders
- * (`dashboard/`, `sheet/`, `wizard/`) have since left the library for ITUN
- * itself (audit PK-02), so only the story and test exclusions remain.
- */
-@source not '../../../../packages/component-lib/src/**/*.stories.tsx';
-@source not '../../../../packages/component-lib/src/**/*.test.{ts,tsx}';
-@source not '../../../../packages/component-lib/src/**/__tests__';
-@source not '../../../../packages/component-lib/src/stories';
-/*
- * srd's own site-only components keep their Ladle stories beside them (see
- * `packages/component-lib/.ladle/config.mjs`); their demo markup is not srd's.
+ * srd's own site-only components keep their stories beside them (see
+ * `packages/component-lib/catalog.tsx`); their demo markup is not srd's.
  */
 @source not '../**/*.stories.tsx';
 
@@ -73,21 +44,9 @@
   }
 }
 
-/* (The `.btn` / `.btn-active` / `.btn-inactive` system was retired — the action
-   button is the shared component-lib `Button` (and `buttonVariants` for links),
-   which owns that treatment as the single source of truth.)
-
-   (.nav-link and .breadcrumb-text were retired — the masthead is the shared
-   component-lib AppBar, which owns those treatments as utilities.) */
-
-/* Catalog category headers (line / [LABEL] / line) and the page H1/H2 heading
-   band were promoted into component-lib as `SectionHeader` and `PageHeading` —
-   the single source of truth for these cross-app treatments. */
-
-/* (The `.catalog-item` family — tile, hover, focus, `--ghost`, `__name`,
-   `-label` — was retired: it is the shared component-lib `CatalogTile`, which
-   owns the tile markup (incl. the `variant="ghost"` 404 link) as the single
-   source of truth.) */
+/* Buttons, masthead, section headers and catalog tiles are component-lib's
+   (`Button`, `AppBar`, `SectionHeader` / `PageHeading`, `CatalogTile`); no srd
+   class restates them. */
 
 /* Shadow wrapper — clip-path kills box-shadow, so shadow lives here */
 .pilot-panel-shadow {
@@ -232,9 +191,6 @@
   filter: url(#paint-peel);
 }
 
-/* The mobile-drawer slide (animate-slide-in-right/-out) now lives in the
-   component-lib theme so the shared NavDrawer animates from one source. */
-
 /* Base styles */
 body {
   background-color: var(--background);
@@ -252,9 +208,9 @@ body {
  *   data-print="hide"  hide this on paper even though its element type is kept
  *   data-print="keep"  print this even though its element type is hidden
  *
- * This block previously spelled the hide case `[data-print-hide]` while itun
- * spelled the OPPOSITE job `[data-print]` — two names one letter apart meaning
- * opposite things. Neither is used in markup yet; both stay as escape hatches.
+ * One attribute, two values: never two attribute names one letter apart that
+ * mean opposite things. Neither is used in markup yet; both stay as escape
+ * hatches.
  */
 @media print {
   body,

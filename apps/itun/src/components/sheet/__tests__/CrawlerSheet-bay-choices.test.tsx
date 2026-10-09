@@ -17,7 +17,7 @@
  *   5. readOnly: choice cards render but toggling does not call store.update.
  *
  * Uses the store-injection seam + a patched CrawlerBays.all that returns a bay
- * fixture carrying enum `choiceOptions` (the real Armament Bay choice resolves a
+ * fixture carrying an `options` source (the real Armament Bay choice resolves a
  * `systems` schema whose option set is empty in the dataset, so a synthetic
  * fixture exercises the toggle path while keeping the persistence wiring real).
  * NO mock.module().
@@ -55,10 +55,13 @@ const MOCK_BAYS: Array<SURefCrawlerBay & { schemaName: string }> = [
       {
         id: CHOICE_ID,
         name: 'Armament Bay Weapons System',
-        choiceOptions: [
-          { value: 'Autocannon', label: 'Autocannon' },
-          { value: 'Missile Pod', label: 'Missile Pod' },
-        ],
+        source: {
+          kind: 'options',
+          options: [
+            { value: 'Autocannon', label: 'Autocannon' },
+            { value: 'Missile Pod', label: 'Missile Pod' },
+          ],
+        },
         content: [{ type: 'paragraph', value: 'Choose a Weapons System.' }],
       },
     ],

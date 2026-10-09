@@ -417,11 +417,12 @@ export const ROOT_FILES = [
 //     the checker keeps surfacing it until a maintainer decides.
 export const INTENTIONAL_ORPHANS: AllowlistEntry[] = [
   // Deployable turret weapon options. These are referenced only via
-  // `customSystemOptions[].actions` nested inside the parent "Automated Weapon
-  // Turret" action's `choices` — a structure the collector intentionally does
-  // not traverse. Allowlisting (rather than walking customSystemOptions) means
-  // they won't silently re-flag if that parent system is ever deleted; the
-  // stale check would instead confirm they truly became orphans.
+  // `source.options[].actions` (`kind: 'systemVariant'`) nested inside the
+  // parent "Automated Weapon Turret" action's `choices` — a structure the
+  // collector intentionally does not traverse. Allowlisting (rather than
+  // walking the variant options) means they won't silently re-flag if that
+  // parent system is ever deleted; the stale check would instead confirm they
+  // truly became orphans.
   { file: 'actions.json', name: 'Automated Machine Gun Turret' },
   { file: 'actions.json', name: 'Automated Green Laser Turret' },
   { file: 'actions.json', name: 'Automated 120mm Cannon Turret' },

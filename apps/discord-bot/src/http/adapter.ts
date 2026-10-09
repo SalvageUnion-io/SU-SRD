@@ -4,18 +4,15 @@
  *
  * ## Why there is an adapter at all, and why it is small
  *
- * `commands/interactions.ts` was written to be interface-segregated: handlers
- * depend on the four or five members they actually read, and `discord.js`'s
- * classes satisfy that structurally. That decision — made for testability, long
- * before Cloudflare was on the table — is what makes this file an adapter
- * rather than a rewrite. Nothing in `commands/` changes.
+ * `commands/interactions.ts` is interface-segregated: handlers depend on the
+ * four or five members they actually read, so this file only has to supply
+ * those, and tests can fake them without a Discord client.
  *
  * ## The response model, which is the whole problem
  *
- * Over the gateway, `reply()` is just an HTTP call and the handler can take as
- * long as it likes. Over HTTP interactions, the FIRST response is the body of
- * the request Discord is still holding open, and everything after it is a
- * webhook call. Discord gives 3 seconds for that first response.
+ * Over HTTP interactions, the FIRST response is the body of the request
+ * Discord is still holding open, and everything after it is a webhook call.
+ * Discord gives 3 seconds for that first response.
  *
  * So a handler's first `reply()` or `deferReply()` has to become the HTTP
  * response, and any later `editReply()` / `followUp()` has to become REST. That
@@ -65,8 +62,6 @@ export class ResponseSink {
   private resolveFirst!: (r: InitialResponse) => void
   readonly first: Promise<InitialResponse>
   settled = false
-  /** True once the handler deferred — later edits target @original. */
-  deferred = false
 
   constructor() {
     this.first = new Promise<InitialResponse>((resolve) => {
@@ -114,12 +109,12 @@ function resolveOptionPath(options: APIApplicationCommandInteractionDataOption[]
 }
 
 /**
- * Read a string option, matching discord.js's behaviour on the required case.
+ * Read a string option, throwing on the required case.
  *
  * The overload in `commands/interactions.ts` types `getString(name, true)` as
  * `string`, not `string | null` — so returning null there is a type lie that
  * becomes a `TypeError` deep inside a handler which was told it had a string.
- * discord.js throws instead, and so must this: the dispatcher catches it and
+ * So this throws instead: the dispatcher catches it and
  * replies with the generic error, which is a far better outcome than
  * `null is not an object` at some unrelated line.
  *
@@ -160,7 +155,6 @@ function booleanOption(
 type AdapterContext = {
   raw: APIInteraction
   applicationId: string
-  /** Bot avatar hash, if known. Handlers tolerate a null icon. */
   rest: REST
   sink: ResponseSink
   /** The request as Discord signed it; absent when no request stands behind it. */
@@ -180,19 +174,6 @@ export function webhookRoutes(applicationId: string, token: string) {
     original: Routes.webhookMessage(applicationId, token, '@original'),
     followUp: Routes.webhook(applicationId, token),
   }
-}
-
-/** Strip builder instances down to the JSON the REST API accepts. */
-function toPlainPayload(payload: unknown): unknown {
-  if (payload === null || typeof payload !== 'object') return payload
-  const source = payload as Record<string, unknown> & { toJSON?: () => unknown }
-  if (typeof source.toJSON === 'function') return source.toJSON()
-
-  const out: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(source)) {
-    out[key] = Array.isArray(value) ? value.map((v) => toPlainPayload(v)) : toPlainPayload(value)
-  }
-  return out
 }
 
 /**
@@ -221,18 +202,18 @@ function replyMembers(ctx: AdapterContext) {
       // happens when an error handler replies on an already-answered
       // interaction — it has to become a follow-up, or it would be silently
       // dropped.
+      //
+      // Payloads carry builder instances (`ContainerBuilder`) as they are;
+      // `JSON.stringify` — the Worker's for the initial response, the REST
+      // client's for everything after — calls their `toJSON()`.
       if (!ctx.sink.settled) {
-        ctx.sink.send({
-          type: InteractionResponseType.ChannelMessageWithSource,
-          data: toPlainPayload(payload),
-        })
+        ctx.sink.send({ type: InteractionResponseType.ChannelMessageWithSource, data: payload })
         return undefined
       }
-      return ctx.rest.post(routes.followUp, { body: toPlainPayload(payload) })
+      return ctx.rest.post(routes.followUp, { body: payload })
     },
 
     async deferReply(options?: { flags?: number }): Promise<unknown> {
-      ctx.sink.deferred = true
       ctx.sink.send({
         type: InteractionResponseType.DeferredChannelMessageWithSource,
         data: options?.flags === undefined ? undefined : { flags: options.flags },
@@ -241,11 +222,11 @@ function replyMembers(ctx: AdapterContext) {
     },
 
     async editReply(payload: unknown): Promise<unknown> {
-      return ctx.rest.patch(routes.original, { body: toPlainPayload(payload) })
+      return ctx.rest.patch(routes.original, { body: payload })
     },
 
     async followUp(payload: unknown): Promise<unknown> {
-      return ctx.rest.post(routes.followUp, { body: toPlainPayload(payload) })
+      return ctx.rest.post(routes.followUp, { body: payload })
     },
   }
 }
@@ -304,7 +285,7 @@ async function directMessage(
     const channel = (await rest.post(Routes.userChannels(), {
       body: { recipient_id: userId },
     })) as { id: string }
-    await rest.post(Routes.channelMessages(channel.id), { body: toPlainPayload(payload) })
+    await rest.post(Routes.channelMessages(channel.id), { body: payload })
     return { ok: true }
   } catch (error) {
     const code = (error as { code?: unknown } | null)?.code

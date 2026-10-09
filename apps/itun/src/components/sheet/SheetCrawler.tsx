@@ -13,7 +13,7 @@
  * only because the branch wasn't a component).
  */
 
-import { EntityRow, linesFromBreakdown, VitalGauge } from 'component-lib'
+import { linesFromBreakdown, VitalGauge } from 'component-lib'
 import { useState } from 'react'
 import { crawlerMaxSPParts, pinFor, resolvePool } from 'salvageunion-reference/rules'
 import { containerOf } from '../../lib/container'
@@ -24,6 +24,7 @@ import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AppLink } from '../shared/AppLink'
+import { EntityRow } from '../shared/EntityRow'
 import { AssignPicker } from '../wiring/AssignPicker'
 import type { EconLozItem } from './CrawlerEcon'
 import { CrawlerEconFrame } from './CrawlerEcon'
@@ -104,7 +105,7 @@ export function SheetCrawler({
   // C11). On editable sheets the actionable lozenges (Upkeep/Upgrade/Trade)
   // are the R-4 action entry points (CrawlerEconomyControl); Tech LVL and
   // Crew are read-only readouts.
-  const trading = bayGate(crawler, 'Trading Bay')
+  const trading = bayGate(crawler, 'trading-bay')
   const econItems: EconLozItem[] = [
     // Tech LVL is NOT here any more: it is the crawler's own rung, and it
     // reads in the identity beside the crawler type. The economy rail keeps the

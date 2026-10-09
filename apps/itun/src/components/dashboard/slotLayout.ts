@@ -1,6 +1,5 @@
 /**
- * slotLayout — who holds the Major slot (docs/architecture/dashboard-redesign.md
- * D1). Pure, so the rule is testable without rendering a slot:
+ * slotLayout — who holds the Major slot (ADR-038 §3). Pure, so the rule is testable without rendering a slot:
  *
  * | Mount     | Major   | Minors          |
  * | --------- | ------- | --------------- |

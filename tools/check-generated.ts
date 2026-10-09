@@ -4,25 +4,27 @@
  *
  * Several committed files are machine output: the reference package's JSON
  * schemas, catalog and registry (`bun run build:package`), the VS Code
- * schema map, and ITUN's `src/routeTree.gen.ts`. Each is regenerated here and
- * then compared with what is committed. A stale one fails.
+ * schema map, ITUN's `src/routeTree.gen.ts`, and the `worker-configuration.d.ts`
+ * that `wrangler types` writes for su-assets and the bot (their `Env` comes from
+ * wrangler.jsonc, so a binding added there without the code knowing fails
+ * here). Each is regenerated here and then compared with what is committed. A
+ * stale one fails.
  *
  * ## Why one tool
  *
- * This used to be checked three different ways. Local `check:schemas` ran
- * `git diff` only, so a generator that emitted a NEW file passed locally and
- * failed in CI, whose inline step also listed untracked files. And the route
- * tree was checked only inline in CI's `build-itun` job, after a full Vite
- * build — never by `bun run check`, never on pre-push. Three spellings of one
- * question answered it three ways. CI, lefthook and `bun run check` now all run
- * this file.
+ * CI, lefthook and `bun run check` all run this file, so one question gets one
+ * answer everywhere: a `git diff` alone would pass a generator that emits a NEW
+ * file, so untracked files count too, and the route tree is regenerated without
+ * a full Vite build so pre-push can afford it.
  *
  * ## What it does, in order
  *
  *   1. `bun run build` in packages/salvageunion-reference (every generator).
  *   2. `bun apps/itun/scripts/generate-route-tree.ts` — the router plugin's own
  *      generator with the Vite config's options, without a build.
- *   3. Fails on any tracked change OR untracked file under GENERATED_PATHS.
+ *   3. `wrangler types --strict-vars=false` in su-assets and discord-bot (not
+ *      strict: the bot's tests sign with their own public key).
+ *   4. Fails on any tracked change OR untracked file under GENERATED_PATHS.
  *
  * It WRITES those files — that is how the diff is produced — so it must run
  * before anything that reads them (`tools/check.ts` runs it first, alone).
@@ -40,8 +42,9 @@ export const GENERATED_PATHS = [
   'packages/salvageunion-reference/schemas',
   'packages/salvageunion-reference/lib/generated',
   'packages/salvageunion-reference/lib/index.ts',
-  '.vscode/settings.json',
   'apps/itun/src/routeTree.gen.ts',
+  'apps/su-assets/worker-configuration.d.ts',
+  'apps/discord-bot/worker-configuration.d.ts',
 ] as const
 
 const GENERATORS: { label: string; cmd: string[]; cwd: string }[] = [
@@ -55,6 +58,11 @@ const GENERATORS: { label: string; cmd: string[]; cwd: string }[] = [
     cmd: ['bun', 'scripts/generate-route-tree.ts'],
     cwd: 'apps/itun',
   },
+  ...['apps/su-assets', 'apps/discord-bot'].map((cwd) => ({
+    label: `${cwd} worker types`,
+    cmd: ['bunx', 'wrangler', 'types', '--strict-vars=false'],
+    cwd,
+  })),
 ]
 
 export type Drift = { changed: string[]; untracked: string[] }

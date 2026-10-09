@@ -22,7 +22,8 @@
  *
  * Gated on `VITE_TEST_AUTH === 'true'`, a **build-time** flag, so a production
  * bundle does not contain the registration at all — Vite folds the constant and
- * drops the branch. No committed env file sets it, and
+ * drops the branch. Only the `dev` script (the dev server, never `vite build`)
+ * and the nightly e2e build set it; no committed env file does, and
  * `__tests__/TestAuthBridge.test.tsx` asserts the default is off.
  *
  * It is also useless without its server half: `ITUN_TEST_AUTH` must be set on
@@ -32,7 +33,6 @@
 
 import { useAuthActions } from '@convex-dev/auth/react'
 import { useEffect } from 'react'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { TEST_SIGN_IN_GLOBAL, testAuthBridgeEnabled } from './testAuthSeam'
 
 type TestSignIn = (email: string, password: string) => Promise<void>
@@ -59,10 +59,7 @@ function Bridge() {
 }
 
 export function TestAuthBridge() {
-  // Both guards, in this order. The flag first so a production build folds the
-  // whole subtree away; `isConvexConfigured` second because `useAuthActions`
-  // needs a provider above it and a build with no Convex URL mounts none.
+  // A production build folds the whole subtree away on this constant.
   if (!testAuthBridgeEnabled) return null
-  if (!isConvexConfigured) return null
   return <Bridge />
 }

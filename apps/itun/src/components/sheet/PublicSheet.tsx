@@ -9,8 +9,7 @@
  * crew.
  *
  * It is the only account-free way to share a sheet: frozen snapshots were
- * retired (ADR-036), and an old `/s/:id` link redirects here when its entity
- * is public. The banner says the page is live, because "read-only" and
+ * retired (ADR-036). The banner says the page is live, because "read-only" and
  * "frozen" are different promises and a reader should not have to guess.
  *
  * When the entity at the other end of an assignment is published too, its row

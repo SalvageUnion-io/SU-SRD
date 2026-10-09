@@ -4,7 +4,8 @@ paths:
   - 'apps/itun/src/hooks/**'
   - 'apps/itun/src/lib/db/**'
   - 'apps/itun/src/lib/connection/**'
-  - 'apps/itun/src/lib/snapshot/**'
+  - 'apps/itun/src/lib/account/**'
+  - 'apps/itun/src/lib/export/**'
   - 'apps/itun/src/components/account/**'
   - 'apps/itun/src/components/container/**'
   - 'apps/itun/src/components/games/**'
@@ -31,7 +32,7 @@ never `navigator.onLine` or an auth flag.
 ```typescript
 // read (synchronous after lazy hydration)
 const pilots = useEntityStore((s) => s.list('pilots'))
-// write (server-first, then the cache + cross-tab broadcast; refused signed out)
+// write (server-first, then the cache; refused signed out)
 await useEntityStore.getState().update('pilots', id, { hp: next })
 ```
 
@@ -54,29 +55,26 @@ const members = useQuery(api.games.members, { gameId })
 ```
 
 - **Loading is `undefined`**, not a flag (`CrewVitals.tsx` is the reference).
-- **There may be no provider.** A build with no `VITE_CONVEX_URL` (CI, a fresh
-  checkout) mounts no Convex context, so gate the subtree on
-  `isConvexConfigured` (`src/lib/connection/convexClient.ts`) as
-  `HeaderAccount.tsx` does; never call a Convex hook unconditionally.
+- **The provider is always there** (`AppConvexProvider`): every build has a
+  deployment. A unit test that renders a Convex consumer mocks the hooks with
+  `installConvexMocks()` (`src/components/__tests__/convexMock.ts`).
 
 ## Do not
 
-- **Persist anything only on a device.**
+- **Add an IndexedDB store without a Convex commit seam** —
+  `apps/itun/src/lib/db/__tests__/storeSeams.test.ts` fails on one.
   [ADR-034](../../docs/ARCHITECTURE.md#adr-034) and
   [ADR-035](../../docs/ARCHITECTURE.md#adr-035) make Convex
   the only source of truth; a row with no Convex counterpart is a defect. If
   the schema cannot say where a record lives, **the schema moves** (#871:
   `crawlers` gained `ownerId` and a nullable `gameId`).
-- Add a new mirrored collection by hand: copy the `commit` seam on
+- Add a new Convex-backed collection by hand: copy the `commit` seam on
   `makeHydratedCollectionSlice` (`mechPatterns`, `encounterNpcs`) or
   `commitChangeLog`. The Change Log commit is the one deliberate
   fire-and-forget write; everything else awaits.
 - Build a local duplicate of something Convex owns (membership, ownership,
   invites, proposals, crew vitals) — check `apps/itun/convex/` first.
-- Reintroduce `fetchEntity` / `updateEntity`, `Tables<...>` or `isLocalId` —
-  those are from the removed Postgres era.
-- Add a query cache. TanStack Query was removed (audit AP-10); entity reads are
-  the typed hooks in `src/hooks/entities/` over the stores, and Connected reads
+- Add a query cache: entity reads are the typed hooks in `src/hooks/entities/` over the stores, and Connected reads
   use `convex/react`.
 
 Full picture: [data flow](../../docs/ARCHITECTURE.md#data-flow),

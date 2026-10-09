@@ -34,9 +34,7 @@ type InsetProps = {
  * kind × one context = one primitive). A container with a header band over a
  * body band IS Card; the head bar is Card's header at the `small` density rung,
  * materialised ink (`headerBg="bg-ink"`, which also inks the frame), and drawn
- * at the nested `chrome` frame weight. That weight is the one thing Card could
- * not previously express — its border was hardcoded at 3px — so `frame` was
- * added to Card rather than keeping the hand-rolled `<section>` here.
+ * at the nested `chrome` frame weight (Card's `frame`).
  *
  * What Inset still owns, and why it is not a bare `Card` call at each site: the
  * head-bar VOCABULARY. The tone tag / paper condensed-caps title / right-edge

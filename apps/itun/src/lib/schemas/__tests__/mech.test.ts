@@ -33,11 +33,6 @@ describe('MechSchema', () => {
     expect(result.patternName).toBe('rust-tide')
   })
 
-  test('happy path: workspaceId is optional', () => {
-    const result = MechSchema.parse({ ...validMech, workspaceId: 'ws-xyz' })
-    expect(result.workspaceId).toBe('ws-xyz')
-  })
-
   test('rejects missing required field: chassisRef', () => {
     expect(() => MechSchema.parse(omit(validMech, 'chassisRef'))).toThrow()
   })

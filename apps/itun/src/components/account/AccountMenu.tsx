@@ -1,11 +1,11 @@
-import { useAuthActions } from '@convex-dev/auth/react'
 import { useNavigate } from '@tanstack/react-router'
-import { Avatar, HeaderMenu } from 'component-lib'
+import { Avatar } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { HeaderMenu } from '../shared/HeaderMenu'
+import { useSignOutAndForget } from './useSignOutAndForget'
 
 /**
  * The account menu — who is signed in, and the two things to do about it.
@@ -25,9 +25,7 @@ import { isConvexConfigured } from '../../lib/connection/convexClient'
  * reads "Account" over a generic glyph rather than guessing.
  *
  * Signed out it renders nothing; the sign-in button is the header's job
- * (`HeaderAccount.tsx`). And like every Convex consumer in this app it is
- * behind the build-time branch: no `VITE_CONVEX_URL` means no provider, so the
- * hooks live in a child that is only mounted when there is one.
+ * (`HeaderAccount.tsx`).
  */
 
 type AccountMenuProps = {
@@ -48,7 +46,7 @@ const NAME = {
 
 function SignedInAccountMenu({ compact = false }: AccountMenuProps) {
   const me = useQuery(api.account.me, {})
-  const { signOut } = useAuthActions()
+  const signOut = useSignOutAndForget()
   const navigate = useNavigate()
 
   const name = me?.displayName ?? null
@@ -70,7 +68,7 @@ function SignedInAccountMenu({ compact = false }: AccountMenuProps) {
             label: 'Settings',
             onSelect: () => void navigate({ to: '/settings' }),
           },
-          { id: 'sign-out', label: 'Sign out', onSelect: () => void signOut() },
+          { id: 'sign-out', label: 'Sign out', onSelect: signOut },
         ],
       ]}
     />
@@ -79,7 +77,6 @@ function SignedInAccountMenu({ compact = false }: AccountMenuProps) {
 
 export function AccountMenu({ compact }: AccountMenuProps) {
   const { mode } = useConnection()
-  if (!isConvexConfigured) return null
   if (mode !== 'connected' && mode !== 'disconnected') return null
   return <SignedInAccountMenu compact={compact} />
 }

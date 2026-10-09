@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import type { Env } from '../worker.js'
 import worker from '../worker.js'
 
 /**
@@ -7,15 +6,16 @@ import worker from '../worker.js'
  *
  * It exists because a deploy cannot answer the question it answers: the Worker
  * can bundle, deploy and verify signatures while still being useless, because a
- * bad bot token is invisible until Discord sends the first interaction. Given
- * the bot cutover is atomic across every server, "discover it at the flip" is
- * the worst available time.
+ * bad bot token or a missing ITUN secret is invisible until Discord sends the
+ * first interaction.
  *
- * These tests pin the two properties that make it worth having:
+ * These tests pin the three properties that make it worth having:
  *
  *   1. it reports the TRUTH about the token, by asking Discord rather than by
- *      checking that a variable is non-empty, and
- *   2. it leaks nothing — on failure it says a status code and no more. The bot
+ *      checking that a variable is non-empty,
+ *   2. it fails while the ITUN pair is incomplete, so the post-deploy smoke
+ *      catches a missing secret, and
+ *   3. it leaks nothing — on failure it says a status code and no more. The bot
  *      username is deliberately included because it is public (visible in every
  *      server the bot is in) and it is what turns a bare boolean into a useful
  *      answer.
@@ -31,8 +31,8 @@ afterEach(() => {
  * Replace `fetch` for the duration of one test. Restored in `afterEach`.
  *
  * The input is spelled out rather than using `RequestInfo`: this app has no DOM
- * lib (the gateway half is Node), so that name does not exist here — the same
- * reason `verify.ts` declares its own WebCrypto slice.
+ * lib, so that name does not exist here — the same reason `verify.ts` declares
+ * its own WebCrypto slice.
  */
 function stubFetch(
   handler: (input: string | URL | Request, init?: RequestInit) => Promise<Response>
@@ -45,6 +45,8 @@ function envWith(overrides: Partial<Env> = {}): Env {
     DISCORD_PUBLIC_KEY: 'ab'.repeat(32),
     DISCORD_APPLICATION_ID: '111111111111111111',
     DISCORD_TOKEN: 'a-token',
+    ITUN_CONVEX_SITE_URL: 'https://x.convex.site',
+    ITUN_BOT_SECRET: 'a-secret',
     ...overrides,
   } as Env
 }
@@ -64,7 +66,7 @@ describe('/health', () => {
     })
 
     const res = await worker.fetch(healthRequest(), envWith(), ctx)
-    const body = (await res.json()) as { ok: boolean; botUser: string; mode: string }
+    const body = (await res.json()) as { ok: boolean; botUser: string }
 
     expect(res.status).toBe(200)
     expect(body.ok).toBe(true)
@@ -83,6 +85,7 @@ describe('/health', () => {
     // Nothing about the token itself, and not Discord's response body — which
     // can echo request details.
     expect(JSON.stringify(body)).not.toContain('a-token')
+    expect(JSON.stringify(body)).not.toContain('a-secret')
     expect(JSON.stringify(body)).not.toContain('Unauthorized')
   })
 
@@ -117,34 +120,32 @@ describe('/health', () => {
     expect(body.reason).toContain('reach Discord')
   })
 
-  test('reports Solo mode when the ITUN pair is absent', async () => {
-    stubFetch(async () => Response.json({ username: 'bot' }, { status: 200 }))
+  test.each([
+    ['neither ITUN value', { ITUN_CONVEX_SITE_URL: '', ITUN_BOT_SECRET: '' }],
+    ['no ITUN_BOT_SECRET', { ITUN_BOT_SECRET: '' }],
+    ['no ITUN_CONVEX_SITE_URL', { ITUN_CONVEX_SITE_URL: '' }],
+  ])('503s with %s, without calling Discord', async (_label, overrides) => {
+    // Either alone is as broken as neither: every Game command would answer
+    // that In The Union Now cannot be reached. The post-deploy smoke reads this
+    // status, so a deploy missing a secret fails there.
+    let called = false
+    stubFetch(async () => {
+      called = true
+      return Response.json({ username: 'bot' }, { status: 200 })
+    })
 
-    const res = await worker.fetch(healthRequest(), envWith(), ctx)
-    const body = (await res.json()) as { mode: string; configured: Record<string, boolean> }
+    const res = await worker.fetch(healthRequest(), envWith(overrides), ctx)
+    const body = (await res.json()) as {
+      ok: boolean
+      reason: string
+      configured: Record<string, boolean>
+    }
 
-    expect(body.mode).toBe('solo')
+    expect(res.status).toBe(503)
+    expect(body.ok).toBe(false)
+    expect(body.reason).toContain('ITUN_CONVEX_SITE_URL and ITUN_BOT_SECRET')
     expect(body.configured.itun).toBe(false)
-  })
-
-  test('reports Connected only when BOTH ITUN values are present', async () => {
-    stubFetch(async () => Response.json({ username: 'bot' }, { status: 200 }))
-
-    // One alone is not Connected — it is the misconfiguration that makes every
-    // Game command report the deployment unreachable instead of cleanly Solo.
-    const halfConfigured = await worker.fetch(
-      healthRequest(),
-      envWith({ ITUN_CONVEX_SITE_URL: 'https://x.convex.site' }),
-      ctx
-    )
-    expect(((await halfConfigured.json()) as { mode: string }).mode).toBe('solo')
-
-    const both = await worker.fetch(
-      healthRequest(),
-      envWith({ ITUN_CONVEX_SITE_URL: 'https://x.convex.site', ITUN_BOT_SECRET: 's' }),
-      ctx
-    )
-    expect(((await both.json()) as { mode: string }).mode).toBe('connected')
+    expect(called).toBe(false)
   })
 
   test('only answers GET /health — any other path falls through to 405', async () => {

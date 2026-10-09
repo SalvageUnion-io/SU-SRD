@@ -86,7 +86,11 @@ export function mockUseQuery(ref: unknown, args?: unknown): unknown {
 export function convexReactMock(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     useQuery: mockUseQuery,
-    useMutation: () => async () => undefined,
+    useMutation: () => {
+      // Like Convex's own, it can take an optimistic update (`useSeat`'s writes do).
+      const mutate = async () => undefined
+      return Object.assign(mutate, { withOptimisticUpdate: () => mutate })
+    },
     useConvexAuth: () => ({ isAuthenticated: true, isLoading: false }),
     ConvexReactClient: class {},
     ConvexProvider: ({ children }: { children: unknown }) => children,
@@ -107,9 +111,9 @@ export type InstallOptions = {
    */
   convexReact?: Record<string, unknown>
   /**
-   * Members for the stubbed `convexClient` (it is `{}` otherwise) — a
-   * `mutation` for a file whose signed-in store writes must commit, since
-   * building needs an account.
+   * Members to put on the stub `convexClient` the test preload installs
+   * (`apps/itun/test/convexClientStub.ts`, whose writes all land) — a
+   * `mutation` for a file that records or refuses the store's server commits.
    */
   convexClient?: Record<string, unknown>
   /**
@@ -170,8 +174,7 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
 
   // --- install ---
   mock.module('../../lib/connection/convexClient', () => ({
-    isConvexConfigured: true,
-    convexClient: { ...options.convexClient },
+    convexClient: { ...realConvexClient.convexClient, ...options.convexClient },
   }))
   mock.module('convex/react', () => convexReactMock(options.convexReact ?? {}))
 

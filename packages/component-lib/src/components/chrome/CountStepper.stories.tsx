@@ -53,9 +53,9 @@ export const Bounds: Story = () => {
 }
 
 /**
- * The two surfaces side by side. `instrument` absorbed the former standalone
- * `DamageStepper`: same control, same accessible contract, a looser cluster with
- * a large tabular readout for the dashboard's Take-Damage overlay.
+ * The two surfaces side by side. `instrument` is the same control and the same
+ * accessible contract, as a looser cluster with a large tabular readout for the
+ * dashboard's Take-Damage overlay.
  */
 export const Surfaces: Story = () => {
   const [sheet, setSheet] = useState(2)

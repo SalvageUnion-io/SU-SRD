@@ -13,7 +13,7 @@ import { mechRailItems } from '../railStats'
 
 describe('mechRailItems', () => {
   test('a mech with no stored Heat reads 0/cap', () => {
-    const mech = mechFixture({ id: 'm1', chassisRef: 'Mule' })
+    const mech = mechFixture({ id: 'm1', chassisRef: 'mule' })
     expect(mech.currentHeat).toBeUndefined()
     const heat = mechRailItems(mech).find((s) => s.label === 'Heat')
     expect(heat?.max).toBeGreaterThan(0)
@@ -21,7 +21,7 @@ describe('mechRailItems', () => {
   })
 
   test('SP and EP still fall back to full — an unrecorded mech is undamaged', () => {
-    const mech = mechFixture({ id: 'm2', chassisRef: 'Mule' })
+    const mech = mechFixture({ id: 'm2', chassisRef: 'mule' })
     const items = mechRailItems(mech)
     for (const label of ['SP', 'EP']) {
       const stat = items.find((s) => s.label === label)
@@ -30,7 +30,7 @@ describe('mechRailItems', () => {
   })
 
   test('a stored Heat above the cap is clamped, not shown over cap', () => {
-    const mech = mechFixture({ id: 'm3', chassisRef: 'Mule', currentHeat: 999 })
+    const mech = mechFixture({ id: 'm3', chassisRef: 'mule', currentHeat: 999 })
     const heat = mechRailItems(mech).find((s) => s.label === 'Heat')
     expect(heat?.value).toBe(heat?.max as number)
   })

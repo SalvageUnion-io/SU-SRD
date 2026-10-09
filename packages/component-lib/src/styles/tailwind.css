@@ -1,0 +1,33 @@
+/*
+ * The ONE Tailwind entry. Every surface that compiles Tailwind — ITUN, srd and
+ * the story catalog — imports this file (`component-lib/styles/tailwind.css`)
+ * and adds only its own `@source` lines and stylesheets after it.
+ *
+ * THE `@layer` ORDER AND THE `layer(su-base)` ARE LOAD-BEARING — do not
+ * simplify either to a bare `@import` (#799, #802).
+ *
+ * `index.css` carries every rule a style object cannot express, and it is
+ * written unlayered so it can be loaded on its own once Tailwind leaves.
+ * Unlayered CSS beats layered CSS whatever the source order, while Tailwind v4
+ * puts its utilities in `@layer utilities`, so a plain `@import` inverts the
+ * cascade for every rule the two share: measured on the real build,
+ * `h1,…,h6 { font-size: inherit }` landed past the end of the utilities layer
+ * and outranked every `text-*` utility, flattening the type on every heading.
+ * Declaring the order up front and importing into `su-base` puts the package
+ * base between Tailwind's preflight and Tailwind's utilities, which is where it
+ * belongs while both are live. When Tailwind goes this collapses back to
+ * `theme.css` (its `@theme` as `:root`) plus a plain import of `index.css`.
+ *
+ * `@source` paths resolve relative to THIS file, so the library scan below is
+ * the same for every consumer.
+ */
+@layer theme, base, su-base, components, utilities;
+@import 'tailwindcss';
+@import './theme.css';
+@import './index.css' layer(su-base);
+
+@source '..';
+@source not '../**/*.stories.tsx';
+@source not '../**/*.test.{ts,tsx}';
+@source not '../**/__tests__';
+@source not '../stories';

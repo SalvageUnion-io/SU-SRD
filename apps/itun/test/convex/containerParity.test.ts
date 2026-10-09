@@ -25,10 +25,8 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { api } from '../../convex/_generated/api'
 import schema from '../../convex/schema'
 import { STORE_NAMES } from '../../src/lib/db/stores'
-import { testConvex } from './harness'
 
 /**
  * The little of a Convex column validator this test reads.
@@ -47,8 +45,14 @@ type ContainerColumn = { kind?: string; members?: readonly { kind?: string }[] }
  * only so migrations v10 and v13 still run against databases that predate the
  * split; nothing writes it and nothing reads it as live data, so there is
  * nothing for a server table to hold.
+ *
+ * `meta` holds no player data at all. It is one row ABOUT this browser's
+ * cache — whose rows it holds and whether they predate accounts
+ * (`src/lib/db/cacheMeta.ts`) — and a server copy of "what does this device
+ * hold" would be a fact about a device, which is exactly what the server must
+ * not need to know.
  */
-const NO_SERVER_COUNTERPART = new Set<string>(['workspaces'])
+const NO_SERVER_COUNTERPART = new Set<string>(['workspaces', 'meta'])
 
 /** The tables the Convex schema actually declares. */
 function convexTables(): Set<string> {
@@ -56,7 +60,7 @@ function convexTables(): Set<string> {
 }
 
 describe('container parity — every local store can reach the server', () => {
-  test('every IndexedDB store has a Convex table, except the retired one', () => {
+  test('every IndexedDB store has a Convex table, except the retired one and the cache meta', () => {
     const tables = convexTables()
     const orphans = Object.values(STORE_NAMES).filter(
       (name) => !tables.has(name) && !NO_SERVER_COUNTERPART.has(name)
@@ -69,7 +73,7 @@ describe('container parity — every local store can reach the server', () => {
     // Named separately from the check above so that *widening the exemption*
     // fails on its own line rather than hiding inside a passing parity test.
     // Adding a store here is the exact move this file exists to make expensive.
-    expect([...NO_SERVER_COUNTERPART]).toEqual(['workspaces'])
+    expect([...NO_SERVER_COUNTERPART]).toEqual(['workspaces', 'meta'])
   })
 
   /**
@@ -86,9 +90,9 @@ describe('container parity — every local store can reach the server', () => {
    * So this asserts the other half: for every store that has a table, some
    * client code must actually commit to it. Deliberately a source scan rather
    * than a runtime probe — the failure being caught is "nobody wrote the
-   * mirror", which is a fact about the code, not about a session.
+   * commit", which is a fact about the code, not about a session.
    */
-  test('every mirrored store has a client commit path, not just a table', async () => {
+  test('every Convex-backed store has a client commit path, not just a table', async () => {
     const backend = await Bun.file(
       new URL('../../src/stores/entityBackend.ts', import.meta.url)
     ).text()
@@ -143,7 +147,7 @@ describe('container parity — every local store can reach the server', () => {
      *
      * So the scan is now source-level rather than line-level. Comments go
      * first (a trailing `// was commitPatternWrite` on a disabled line is what
-     * switching a mirror off actually looks like), then import and re-export
+     * switching a commit off actually looks like), then import and re-export
      * statements, which name a function without invoking it.
      */
     const strip = (source: string) =>
@@ -158,7 +162,7 @@ describe('container parity — every local store can reach the server', () => {
      *
      * `fn(` covers the direct calls in `entityStore.ts`; `commit: fn` covers
      * the slice wiring in `patternStore.ts` and `encounterStore.ts`, which is
-     * the single line whose removal silently stops those mirrors.
+     * the single line whose removal silently stops those commits.
      *
      * Known residual, stated rather than papered over: a call inside dead code
      * (`if (false) await commitPatternWrite(op)`) still reads as a use.
@@ -203,78 +207,17 @@ describe('container parity — every local store can reach the server', () => {
   })
 
   /**
-   * The assertion that protects a deploy against a live database.
-   *
-   * Convex validates **every existing document** against the schema when it is
-   * pushed. `crawlers` and `encounterNpcs` gained an `ownerId` long after both
-   * tables had production rows, so a *required* column there would have made
-   * the deploy fail on rows that are otherwise perfectly valid — and the failure
-   * would arrive at deploy time, against real data, which is the worst place to
-   * discover it.
-   *
-   * `publicRead` two columns above already records this rule ("the correct
-   * default for every row that already exists"); these tests are that rule made
-   * executable, so the next person to add a column to a populated table finds
-   * out here instead of in production.
-   */
-  test('a row written before ownerId existed still validates', async () => {
-    const t = testConvex()
-
-    await t.run(async (ctx) => {
-      const gameId = await ctx.db.insert('games', { name: 'Legacy table' })
-
-      // Exactly the shape a pre-#871 crawler has on disk: no `ownerId` key at
-      // all, not `ownerId: null`. If this throws, the schema is not deployable
-      // against the existing database.
-      await ctx.db.insert('crawlers', {
-        gameId,
-        body: { name: '#430' },
-        updatedAt: 1,
-      } as never)
-
-      await ctx.db.insert('encounterNpcs', {
-        gameId,
-        body: { name: 'Ambush' },
-      } as never)
-    })
-
-    const crawlers = await t.run(async (ctx) => await ctx.db.query('crawlers').collect())
-    const npcs = await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())
-    expect(crawlers).toHaveLength(1)
-    expect(npcs).toHaveLength(1)
-  })
-
-  test('absent ownerId is treated as unowned, never as a match', async () => {
-    const t = testConvex()
-    const userId = await t.run(async (ctx) => await ctx.db.insert('users', { name: 'Me' }))
-
-    await t.run(async (ctx) => {
-      await ctx.db.insert('crawlers', {
-        gameId: null,
-        body: { name: 'Orphan' },
-        updatedAt: 1,
-      } as never)
-    })
-
-    // `listMine` reads `by_owner`, and a row with no `ownerId` must not come
-    // back for anybody. Every comparison against `ownerId` in the codebase is
-    // an equality test, so absent fails closed — which is the direction that
-    // cannot leak somebody else's build into a roster.
-    const mine = await t.withIdentity({ subject: userId }).query(api.entities.listMine, {})
-    expect(mine.crawlers).toEqual([])
-  })
-
-  /**
    * The two containers, asserted structurally.
    *
    * ADR-030 §2 allows `gameId` set (in a Game) or null (on a shelf), and
    * ADR-034 decision 2 extends that to every entity-shaped table — which is
    * what let a crawler survive a deleted Game (#871) and, in this change, an
    * encounter NPC too. A table that can only be in a Game cannot express the
-   * shelf half, and that is precisely the gap both of those had.
+   * shelf half, and that is precisely the gap both of those had. A mech
+   * pattern is personal, so it is shelf-only and not one of them.
    */
   test('every entity-shaped table can express BOTH containers', () => {
-    const ENTITY_TABLES = ['pilots', 'mechs', 'crawlers', 'encounterNpcs', 'mechPatterns'] as const
+    const ENTITY_TABLES = ['pilots', 'mechs', 'crawlers', 'encounterNpcs'] as const
 
     for (const name of ENTITY_TABLES) {
       const table = schema.tables[name]

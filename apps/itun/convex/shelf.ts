@@ -3,27 +3,22 @@ import { bodyAppId, findOwnedByAppId, mutation, PARSERS } from './model/entities
 import { requireUser } from './model/permissions'
 
 /**
- * The per-write mirror for the two shelf-only collections: saved mech patterns
- * and the personal NPC tray (ADR-034 P4b).
+ * The server-first writes for the two shelf-only collections: saved mech
+ * patterns and the personal NPC tray (ADR-034).
  *
  * Both are owned by one account, live on its shelf (`gameId: null`), and are
  * addressed by the id inside their body rather than by an `appId` the client
  * minted for a server row — which is why they share none of the ownable-entity
- * machinery in `entities.ts` and were split out of it (audit AP-07). A tray
+ * machinery in `entities.ts`. A tray
  * inside a Game is the Mediator's, and is reached through `mediator.*`.
  */
 
 /**
- * Mirror one saved pattern, addressed by the id inside its body.
+ * Write one saved pattern, addressed by the id inside its body.
  *
- * These tables have no `appId` column and need none: a pattern's own id already
- * is its app id, which makes this naturally idempotent — the same write twice
- * is a patch, not a duplicate.
- *
- * Until this existed, `mechPatterns` reached Convex through exactly one path,
- * the bulk `claimLocal` at sign-in. Every pattern saved afterwards lived only in
- * that browser: invisible on a second device, and gone with the site data. This
- * is the per-write half ADR-034 P4b calls for.
+ * That id is lifted into the row's `appId` column and found through
+ * `by_owner_app_id`, which makes this idempotent — the same write twice is a
+ * patch, not a duplicate.
  */
 export const upsertMechPattern = mutation({
   args: { body: v.any() },
@@ -63,12 +58,12 @@ export const removeMechPattern = mutation({
 })
 
 /**
- * Mirror one shelf NPC.
+ * Write one shelf NPC.
  *
  * Shelf only — `ownerId: userId`, `gameId: null`. A tray inside a Game belongs
  * to the table rather than to a member and is reached through `mediator.*` by
- * the Mediator's role; this is the personal tray, which is the one the local
- * store holds and the one that had no server write at all.
+ * the Mediator's role; this is the personal tray, the one the local store
+ * holds.
  */
 export const upsertEncounterNpc = mutation({
   args: { body: v.any() },

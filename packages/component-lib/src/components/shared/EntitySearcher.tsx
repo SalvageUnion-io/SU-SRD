@@ -6,27 +6,23 @@
  * count-stepper flow.
  *
  * It generalizes the mech Install step (TL filter chips + masonry + a running
- * loadout rail) and adds the missing legibility the old equipment modal lacked:
- * a live text search, a Status facet, and an always-visible rail so "what's
+ * loadout rail) with a live text search, a Status facet, and an always-visible rail so "what's
  * already on the sheet" vs. "what I can still add" reads at a glance instead of
  * being inferred from a faint selection ring.
  *
  * Persistence-agnostic: the caller owns `selected` and the add/remove handlers
- * (ADR-010). Detection uses `matchesRef` (id | name | slug) so it is robust to
- * however a given collection stores its refs; the emitted identity on add is
- * the caller's `idOf` (default the entity name).
+ * (ADR-010). One identity both ways: a card is selected when `selected` holds
+ * its `idOf`, and adding it emits that same `idOf` (default the entity name).
  *
  * `mode="single"` covers the exactly-one swaps (chassis, crawler type, pilot
- * class), which used to be hand-rolled master/detail pairs: a narrow option
- * rail beside a preview pane. That shape does not survive a large entity —
- * a chassis card is wider than a 220px track, so every option rendered clipped —
- * so those pickers now run here too, with `hide` dropping the sections a picker
+ * class): a master/detail pair does not survive a large entity — a chassis
+ * card is wider than a 220px track — so those pickers run here too, with `hide`
+ * dropping the sections a picker
  * cannot act on and `railActions` carrying their confirm affordance.
  *
- * WHERE THE RAIL SITS. Never over the results. It used to float over the
- * bottom-right of the pool, where on a phone it covered a third of what you
- * were choosing from. Now (layout in the `.su-searcher*` classes in
- * styles/index.css):
+ * WHERE THE RAIL SITS. Never over the results: on a phone a floating rail
+ * covers a third of what you are choosing from. Instead (layout in the
+ * `.su-searcher*` classes in styles/index.css):
  *   - below 80rem it is a sticky band ABOVE the pool — a disclosure that,
  *     collapsed (the default: the results are the task), still shows the count
  *     and the budget, and expands to the chosen heads with their Remove buttons;
@@ -62,7 +58,6 @@ import type {
 } from 'salvageunion-reference'
 import { SalvageUnionReference, searchIn, techLevelRank } from 'salvageunion-reference'
 import type { TechLevel } from 'salvageunion-reference/rules'
-import { matchesRef } from 'salvageunion-reference/rules'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
@@ -130,13 +125,13 @@ type EntitySearcherProps = {
    * differs only in a11y semantics, not in wiring.
    */
   mode?: 'toggle' | 'count' | 'single'
-  /** toggle/single mode: add (emits `idOf(item)`) or remove (emits the matched ref). */
+  /** toggle/single mode: add or remove (emits `idOf(item)` either way). */
   onToggle?: (ref: string) => void
   /** count mode: append one copy (emits `idOf(item)`). */
   onAdd?: (ref: string) => void
   /** count mode: remove the chosen entry at `index` in `selected`. */
   onRemove?: (index: number) => void
-  /** Identity emitted when adding. Default: the entity name. */
+  /** A card's identity in `selected`, and what adding it emits. Default: the entity name. */
   idOf?: (item: EntityLike) => string
   /** Narrow the pool (e.g. only weapons). Default: the whole collection. */
   filter?: (item: EntityLike) => boolean
@@ -177,6 +172,9 @@ type EntitySearcherProps = {
 
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
 
+/** The default `idOf`: module-level, so it is one function across renders. */
+const nameOf = (item: EntityLike) => item.name
+
 function tlLabel(tl: TechLevelLike): string {
   return typeof tl === 'number' ? `TL${tl}` : tl === 'B' ? 'Bio' : 'Nanite'
 }
@@ -192,7 +190,7 @@ export function EntitySearcher({
   onToggle,
   onAdd,
   onRemove,
-  idOf = (item) => item.name,
+  idOf = nameOf,
   filter,
   facets,
   budget,
@@ -265,9 +263,8 @@ export function EntitySearcher({
   const showCat = !!facets?.category && catOptions.length >= 2
   const showStatus = facets?.status !== false
 
-  // Identity helpers — detection is ref-tolerant, emission uses `idOf`.
-  const countOf = (item: EntityLike) => selected.filter((ref) => matchesRef(item, ref)).length
-  const matchedRef = (item: EntityLike) => selected.find((ref) => matchesRef(item, ref))
+  // Identity helpers — detection and emission share `idOf`.
+  const countOf = (item: EntityLike) => selected.filter((ref) => ref === idOf(item)).length
 
   // Text search preserves the ranked order the package returns.
   const searchOrder = useMemo(() => {
@@ -302,7 +299,7 @@ export function EntitySearcher({
         if (!(c && activeCats.has(c))) return false
       }
       if (showStatus && status !== 'all') {
-        const has = selected.some((ref) => matchesRef(item, ref))
+        const has = selected.includes(idOf(item))
         if (status === 'equipped' && !has) return false
         if (status === 'available' && has) return false
       }
@@ -321,11 +318,12 @@ export function EntitySearcher({
     showStatus,
     status,
     selected,
+    idOf,
   ])
 
   const totalOnSheet = useMemo(
-    () => pool.reduce((n, item) => n + selected.filter((ref) => matchesRef(item, ref)).length, 0),
-    [pool, selected]
+    () => pool.reduce((n, item) => n + selected.filter((ref) => ref === idOf(item)).length, 0),
+    [pool, selected, idOf]
   )
 
   function toggleIn<T>(set: Set<T>, value: T, setter: (s: Set<T>) => void) {
@@ -535,9 +533,7 @@ export function EntitySearcher({
               selectionRole={mode === 'single' ? 'radio' : 'toggle'}
               cardClickLabel={item.name}
               selectionSeal={chosenLabel}
-              onCardClick={() =>
-                onToggle?.(isSelected ? (matchedRef(item) ?? idOf(item)) : idOf(item))
-              }
+              onCardClick={() => onToggle?.(idOf(item))}
               hide={cardHide}
             />
           )
@@ -555,6 +551,7 @@ export function EntitySearcher({
       chosenLabel={chosenLabel}
       schema={schema}
       selected={selected}
+      idOf={idOf}
       budget={budget}
       actions={railActions}
     />
@@ -565,6 +562,7 @@ export function EntitySearcher({
       chosenLabel={chosenLabel}
       schema={schema}
       selected={selected}
+      idOf={idOf}
       budget={budget}
       mode={mode === 'count' ? 'count' : 'toggle'}
       onToggle={onToggle}
@@ -930,22 +928,30 @@ function budgetList(budget?: BudgetConfig | BudgetConfig[]): BudgetConfig[] {
   return budget ? (Array.isArray(budget) ? budget : [budget]) : []
 }
 
-/** `selected`, resolved against the whole collection (not the filtered pool),
- * with each duplicate numbered — "Copy 2 of 3". Unresolvable refs drop out. */
-function useRailEntries(schema: EntitySchemaName, selected: string[]): RailEntry[] {
+/** `selected`, resolved by `idOf` against the whole collection (not the
+ * filtered pool), with each duplicate numbered — "Copy 2 of 3". Unresolvable
+ * refs drop out. */
+function useRailEntries(
+  schema: EntitySchemaName,
+  selected: string[],
+  idOf: (item: EntityLike) => string
+): RailEntry[] {
   return useMemo(() => {
-    const all: PoolEntity[] = SalvageUnionReference.findAllIn(schema, () => true)
+    const byId = new Map<string, PoolEntity>()
+    for (const e of SalvageUnionReference.findAllIn(schema, () => true) as PoolEntity[]) {
+      if (!byId.has(idOf(e))) byId.set(idOf(e), e)
+    }
     const totals = new Map<string, number>()
     for (const ref of selected) totals.set(ref, (totals.get(ref) ?? 0) + 1)
     const seen = new Map<string, number>()
     return selected.flatMap((ref, index) => {
-      const found = all.find((e) => matchesRef(e, ref))
+      const found = byId.get(ref)
       if (!found) return []
       const copy = (seen.get(ref) ?? 0) + 1
       seen.set(ref, copy)
       return [{ entity: found, ref, index, copy, total: totals.get(ref) ?? 1 }]
     })
-  }, [schema, selected])
+  }, [schema, selected, idOf])
 }
 
 /**
@@ -970,6 +976,7 @@ function SelectionRail({
   chosenLabel,
   schema,
   selected,
+  idOf,
   budget,
   mode,
   onToggle,
@@ -982,6 +989,7 @@ function SelectionRail({
   chosenLabel: string
   schema: EntitySchemaName
   selected: string[]
+  idOf: (item: EntityLike) => string
   budget?: BudgetConfig | BudgetConfig[]
   mode: 'toggle' | 'count'
   onToggle?: (ref: string) => void
@@ -990,7 +998,7 @@ function SelectionRail({
   actions?: ReactNode
 }) {
   const budgets = budgetList(budget)
-  const entries = useRailEntries(schema, selected)
+  const entries = useRailEntries(schema, selected, idOf)
   const [open, setOpen] = useState(false)
   const expanded = wide || open
   const headingId = useId()
@@ -1152,17 +1160,19 @@ function ChosenBar({
   chosenLabel,
   schema,
   selected,
+  idOf,
   budget,
   actions,
 }: {
   chosenLabel: string
   schema: EntitySchemaName
   selected: string[]
+  idOf: (item: EntityLike) => string
   budget?: BudgetConfig | BudgetConfig[]
   actions?: ReactNode
 }) {
   const budgets = budgetList(budget)
-  const chosen = useRailEntries(schema, selected)[0]
+  const chosen = useRailEntries(schema, selected, idOf)[0]
   const headingId = useId()
   return (
     <section aria-labelledby={headingId} className="su-searcher__rail" style={BAR_STYLE}>

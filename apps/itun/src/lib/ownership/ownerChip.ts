@@ -1,5 +1,5 @@
 /**
- * The owner chip (ADR-030, D32).
+ * The owner chip (ADR-030 §6).
  *
  * Every entity row in a Game shows who holds it. This module produces the chip
  * *content* as data; the rendering goes through the entity card's existing

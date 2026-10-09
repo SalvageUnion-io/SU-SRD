@@ -16,17 +16,13 @@
 
 import type { LinkProps } from '@tanstack/react-router'
 import { Link, useRouter } from '@tanstack/react-router'
-import type { AnchorHTMLAttributes } from 'react'
-import { forwardRef } from 'react'
+import type { ComponentPropsWithRef } from 'react'
 
-type AppLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> & {
+type AppLinkProps = Omit<ComponentPropsWithRef<'a'>, 'href'> & {
   href: string
 }
 
-export const AppLink = forwardRef<HTMLAnchorElement, AppLinkProps>(function AppLink(
-  { href, children, ...rest },
-  ref
-) {
+export function AppLink({ href, children, ref, ...rest }: AppLinkProps) {
   const router = useRouter({ warn: false })
 
   if (!router) {
@@ -42,4 +38,4 @@ export const AppLink = forwardRef<HTMLAnchorElement, AppLinkProps>(function AppL
       {children}
     </Link>
   )
-})
+}

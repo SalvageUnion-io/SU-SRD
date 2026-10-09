@@ -34,10 +34,8 @@ pre-push:
       # Every gate except the test suite, from the ONE registry in
       # tools/check.ts — the same list `bun run check` and CI's static-checks
       # job run, with a different profile. Do not add a gate here: add it to
-      # that registry, and every path picks it up. (This file used to keep its
-      # own list of eight commands, and it had quietly never run the
-      # CI-aggregator gate.) `pre-push` = the fast profile plus generated-file
-      # drift, the likeliest avoidable CI bounce.
+      # that registry, and every path picks it up. `pre-push` = the fast profile
+      # plus generated-file drift, the likeliest avoidable CI bounce.
       run: bun tools/check.ts --profile=pre-push
 
     test:

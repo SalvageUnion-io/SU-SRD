@@ -1,6 +1,5 @@
 import type { VariantProps } from 'class-variance-authority'
 import { cva } from 'class-variance-authority'
-import { forwardRef } from 'react'
 import { cn } from '../../utils/cn'
 
 /**
@@ -8,11 +7,9 @@ import { cn } from '../../utils/cn'
  *
  * It deliberately has no stamp/label variant. The square ink label is
  * `Badge shape="stamp"` and nothing else (ruleset §0: one kind × one context =
- * one primitive). The former `pseudoheader` / `pseudoheaderInverse` variants
- * rendered exactly that stamp, so two primitives owned one visual; they were
- * retired onto `Badge shape="stamp"` with `surface="on-ink"` / `"inverse"`.
+ * one primitive), with `surface="on-ink"` / `"inverse"` for the dark grounds.
  * Badge is label-only (uppercase, condensed, `w-fit`, `leading-none`) and is
- * the wrong shape for wrapping prose — which is why Text survives.
+ * the wrong shape for wrapping prose — which is why Text exists.
  */
 const textVariants = cva('', {
   variants: {
@@ -54,13 +51,19 @@ type TextProps = {
    * h1 and a set of orphaned h3s and nothing in between.
    */
   as?: 'p' | 'span' | 'div' | 'label' | 'h1' | 'h2' | 'h3'
+  ref?: React.Ref<HTMLElement>
 } & VariantProps<typeof textVariants> &
   Omit<React.HTMLAttributes<HTMLElement>, 'children' | 'style'>
 
-export const Text = forwardRef<HTMLElement, TextProps>(function Text(
-  { variant, children, className, style, as: Tag = 'p', ...props },
-  ref
-) {
+export function Text({
+  variant,
+  children,
+  className,
+  style,
+  as: Tag = 'p',
+  ref,
+  ...props
+}: TextProps) {
   return (
     <Tag
       ref={ref as React.Ref<never>}
@@ -71,4 +74,4 @@ export const Text = forwardRef<HTMLElement, TextProps>(function Text(
       {children}
     </Tag>
   )
-})
+}

@@ -8,7 +8,7 @@
  * SRD p.227-228), one step at a time, rendered through the reused `Content` so it
  * matches the book verbatim, with the relevant SRD roll tables via `RollTable`.
  *
- * **The step is the Game's, not this device's** (plan D8, ADR-038 §5). It is
+ * **The step is the Game's, not this device's** (ADR-038 §5). It is
  * the `downtime` row's `stepIndex`, read through `useDowntime`, so every
  * member's Dashboard shows the same step and moves when the Mediator presses
  * Next step. The step track shows where the table is in the procedure; the
@@ -22,9 +22,8 @@
  * were split across component-lib and ITUN, with ITUN its only consumer; one
  * file since the component-lib boundary audit (PK-03).
  *
- * Restore WRITES (F5), to the pilot and the mech in the Minor slots. The wizard
- * used to render the guide and gates and write nothing at all, so Guided Play
- * described a rule it never applied.
+ * Restore WRITES (F5), to the pilot and the mech in the Minor slots, so Guided
+ * Play applies the rule it describes.
  *
  * ADR-007 is satisfied without a confirm dialog here because Restore is
  * non-destructive by construction — `downtimeMechPatch` / `downtimePilotPatch`
@@ -169,7 +168,7 @@ type DowntimeWizardFrameProps = {
 /**
  * The presentational half: the step, the ready pips and the writes are the
  * caller's, and the rules gate readout is injected via `renderStepGate`.
- * Exported for the Ladle story, which drives it with the real guide and local
+ * Exported for the story, which drives it with the real guide and local
  * state instead of the Game's row.
  */
 export function DowntimeWizardFrame({
@@ -302,7 +301,7 @@ type DowntimeWizardProps = {
   pilot?: Pilot | null
   /** The Game's Downtime (`useDowntime`): the step, who is done, and the writes. */
   downtime: DowntimeHandle
-  /** The viewer is the Mediator, who moves the table on (plan §8 A1). */
+  /** The viewer is the Mediator, who moves the table on. */
   mediator: boolean
   /** The signed-in viewer (`account.me`), whose pip "I'm done" fills. */
   viewerId: string | null
@@ -353,7 +352,7 @@ function StepGate({
     )
   }
   if (step.name === 'Trade') {
-    const trading = bayGate(crawler, 'Trading Bay')
+    const trading = bayGate(crawler, 'trading-bay')
     return (
       <ul className="pc-dt-gate">
         <li>

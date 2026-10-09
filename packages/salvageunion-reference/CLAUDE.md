@@ -17,12 +17,12 @@ The package ships TypeScript source — there is no compile step.
 `bun run build:package` (from the repo root) regenerates everything generated,
 in order: `generate:registry` (`tools/generateRegistry.ts`), then
 `generate:json-schemas` (which imports the generated `zodSchemaMap`, so the
-registry must come first), then the docs and API-report generators.
+registry must come first), then the docs generator.
 `bun run check generated` (`tools/check-generated.ts`, also at pre-push and in
 CI) re-runs them and fails on any drift, including a new untracked file.
 
-**Generated — never hand-edit** (`.claude/hooks/protect-generated-files.sh`
-blocks it):
+**Generated — never hand-edit** (an `Edit(...)` deny rule in
+`.claude/settings.json` blocks it):
 
 - `schemas/*.schema.json` and the `schemas/index.json` catalog entries
 - `lib/generated/modelFactoryRegistry.generated.ts`,
@@ -38,9 +38,8 @@ blocks it):
 
 Everything else in `lib/` is hand-written: `lib/schemas/` (Zod), `lib/index.ts`,
 `lib/BaseModel.ts`, `lib/ModelFactory.ts`, `lib/LazyModel.ts`, `lib/naming.ts`,
-`lib/search.ts`, `lib/helpers.ts`, `lib/slug.ts`. (`lib/types/index.ts` was deleted: it
-re-exported `lib/schemas/index.ts` and existed only as an indirection — import
-types from `lib/schemas/index.ts`.)
+`lib/search.ts`, `lib/helpers.ts`, `lib/slug.ts`. Import types from
+`lib/schemas/index.ts`.
 
 ### The public barrels are explicit lists
 
@@ -50,7 +49,6 @@ either (the one exception is the generated entity-type family). Package-internal
 code imports from the module that owns the function — `entityFields.ts`,
 `actionResolution.ts`, `entityGuards.ts`, `patterns.ts`, `assets.ts`,
 `traitText.ts`, `inventorySlots.ts`, `helpers.ts` — never through the barrel.
-`lib/utilities.ts` was deleted — it was a wildcard barrel over those seven modules.
 
 To expose a new name, add it to the barrel's list in the same change as its
 first outside consumer.
@@ -93,14 +91,13 @@ case that needs a predicate (Biome's `noModelFindByKey` plugin,
 | You hold                                     | Use                                               |
 | -------------------------------------------- | ------------------------------------------------- |
 | a model + an id / name / slug                | `Model.getById` / `.getByName` / `.getBySlug`     |
-| a model + a ref (id **or** name **or** slug) | `resolveRef(Model, ref)` (`/rules`)               |
 | a schema **id** + a name                     | `SalvageUnionReference.getByNameIn(schema, name)` |
 | a schema **id** + an id                      | `SalvageUnionReference.get(schema, id)`           |
 | a schema **id** + a slug                     | `findEntityBySlug(schema, slug)`                  |
 
-`matchesRef` is for TESTING a candidate you already hold (is this row selected?
-how many picks match?). `SomeModel.find((e) => matchesRef(e, ref))` is a SEARCH
-wearing a predicate's clothes — use `resolveRef(SomeModel, ref)`.
+A ref an app stores (a mech's chassis, a crawler's bays, a pilot's abilities)
+is a slug, and only a slug: read it with `Model.getBySlug` or the `/rules`
+resolvers (`resolveChassisRef`, `resolveCrawlerBayRef`, …).
 
 ## Package Structure
 
@@ -127,8 +124,11 @@ some other field (`findAll((e) => e.techLevel === 3)`), not an identity lookup.
 
 ## Adding New Data
 
-**Rows in an existing schema need no code:** edit the JSON file in `data/`, then
-`bun run check data`. A **new schema** is the next section.
+**Rows in an existing schema need no code:** `bun run edit-data add|set` (in
+this package; `add` mints the id) is the one writer of `data/`, then
+`bun run check data`. A **new schema** is the next section. Copy rules text
+from the source word-for-word: descriptions and effects are verbatim, never
+paraphrased.
 
 ## Adding a New Entity **Type** (schema)
 
@@ -175,8 +175,9 @@ the generator's output.
 
 ## Testing & validation
 
-- `bun --filter salvageunion-reference test` — schema compliance and data integrity
+- `bun --filter salvageunion-reference test` — schema compliance
+  (`lib/dataCanonical.test.ts`) and data integrity
 - `bun run check data` (from the root) — every data check: IDs, slugs,
-  cross-references, action references, orphans, traits, parity, schemas
+  cross-references, action references, orphans, traits, parity
 - `bun run validate -- --only=ids,slugs` (in this package) — just the named
   checks; `tools/validate.ts` is the one validation CLI

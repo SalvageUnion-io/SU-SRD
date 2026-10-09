@@ -71,20 +71,18 @@ export const CrawlerSchema = z
     /** Tech level (I–VI) expressed as a string slug, e.g. "tech-1" */
     techLevel: z.string(),
     /**
-     * Chosen crawler-type ref (SRD `id` of the Augmented/Battle/Engineering/
-     * Exploratory/Trade Caravan type; resolve by id-or-name like the bay refs).
+     * Chosen crawler-type slug (the Augmented/Battle/Engineering/Exploratory/
+     * Trade Caravan type, e.g. "battle").
      *
-     * Additive-optional — no DB migration, no `schemaVersion` bump. Legacy
-     * crawlers persisted before this feature (no `type`, any techLevel) validate
-     * unchanged; a missing value reads as an untyped crawler.
+     * Optional: a missing value reads as an untyped crawler.
      */
     type: z.string().optional(),
     /**
      * Live state for the crawler-type's special NPC (the Battle type's Grizzled
      * Veteran, etc.). Same shape as a bay's embedded NPC state. The freeform
-     * Keepsake/Motto persist in `bayChoices` keyed by the type ref.
+     * Keepsake/Motto persist in `bayChoices` keyed by the type slug.
      *
-     * Additive-optional — absent on legacy / untyped crawlers.
+     * Optional — absent on an untyped crawler.
      */
     typeNpc: CrawlerNpcStateSchema.optional(),
     /**
@@ -95,17 +93,14 @@ export const CrawlerSchema = z
      *
      * Each entry tracks the bay's embedded NPC's live state (name + current
      * HP). The NPC's max HP comes from the SRD bay's `npc.hitPoints` (4); the
-     * crew is the per-bay NPC, which replaces the legacy free-text `bays`
-     * (crew/mech assignment) field.
+     * crew is the per-bay NPC.
      *
-     * Optional so crawlers persisted before this field was added still validate
-     * on read (no version bump / migration required); read sites treat a
-     * missing value as an empty list.
+     * Optional: read sites treat a missing value as an empty list.
      */
     crawlerBays: z
       .array(
         CrawlerNpcStateSchema.extend({
-          /** SRD crawler-bay id (or name) this entry installs. */
+          /** Slug of the SRD crawler bay this entry installs, e.g. "mech-bay". */
           bayRef: z.string(),
         })
       )
@@ -113,8 +108,8 @@ export const CrawlerSchema = z
     /** Slugs of crawler system items installed */
     systems: z.array(z.string()),
     /**
-     * Persisted crawler-bay choice selections, keyed by bay ref (the same
-     * `crawlerBays[].bayRef` slug/id used to resolve the SRD bay), then by
+     * Persisted crawler-bay choice selections, keyed by bay slug (the same
+     * `crawlerBays[].bayRef` used to resolve the SRD bay), then by
      * choiceId → selected option values. Some SRD bays carry `choices` (e.g.
      * the Armament Bay's "Armament Bay Weapons System" permanent pick); this
      * persists the player's selection so it survives reloads.
@@ -133,8 +128,7 @@ export const CrawlerSchema = z
     // Live-play current stat tracking (#245).
     // A freshly created crawler is seeded at its tech-level base SP from the
     // rules data (crawler-tech-levels `structurePoints`, via crawlerFormState).
-    // Kept optional so legacy/imported records still parse; read sites fall back
-    // to the derived `crawlerMaxSP`.
+    // Absent means full: see `resolvePool`.
     // ---------------------------------------------------------------------------
     /** Current structure points */
     currentSP: z.number().int().min(0).optional(),

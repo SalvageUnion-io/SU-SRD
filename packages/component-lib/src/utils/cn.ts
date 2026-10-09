@@ -44,8 +44,7 @@ const BORDER_WEIGHTS = ['chrome', 'rail', 'entity'] as const
  *   inventory of utilities — new `@utility border-<side>-<weight>` rules in
  *   `theme.css` are covered in advance.
  *
- * Twice now this drifted silently, so it is no longer left to review:
- * `__tests__/cn.test.ts` PARSES `theme.css` and asserts every `@utility` and
+ * It is not left to review: `__tests__/cn.test.ts` PARSES `theme.css` and asserts every `@utility` and
  * every `--text-*` / `--tracking-*` / `--radius-*` rung survives a class it
  * would conflict with. Add a token there and this file must follow, or the
  * test fails — which is the only signal available, since a dropped width or

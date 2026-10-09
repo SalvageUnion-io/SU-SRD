@@ -2,7 +2,7 @@ import { v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import type { OwnableTable } from './model/entities'
-import { loadOwnable, mutation } from './model/entities'
+import { loadOwnable, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMember, requireUser } from './model/permissions'
 
 /**
@@ -111,7 +111,7 @@ export const claim = mutation({
     await ctx.db.patch(doc._id, { ownerId: membership.userId, updatedAt: Date.now() })
     await logOwnershipChange(ctx, {
       table: args.table,
-      entityId: args.entityId,
+      entityId: logIdOf(doc),
       gameId: doc.gameId,
       before: null,
       after: membership.userId,
@@ -134,7 +134,7 @@ export const release = mutation({
     const doc = await loadOwnable(ctx, args.table, args.entityId)
     if (doc.gameId === null) {
       /*
-       * A shelved entity is NOT unclaimed, and this used to say it was.
+       * A shelved entity is NOT unclaimed.
        *
        * ADR-030 §2 allows three states, and they are not interchangeable:
        * `gameId` set + `ownerId` null is **unclaimed** — in a Game, waiting for
@@ -163,7 +163,7 @@ export const release = mutation({
     await ctx.db.patch(doc._id, { ownerId: null, updatedAt: Date.now() })
     await logOwnershipChange(ctx, {
       table: args.table,
-      entityId: args.entityId,
+      entityId: logIdOf(doc),
       gameId: doc.gameId,
       before: doc.ownerId,
       after: null,

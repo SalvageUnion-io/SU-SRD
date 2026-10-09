@@ -7,9 +7,9 @@ import { color } from './tokens'
  * Card bands are painted with CSS strings, not with literals: a theme variable
  * (`var(--color-tl-3)`), or a `color-mix()` of one (the deep shade under a
  * header, the ghosted band of a nested action, the grey of a damaged card).
- * Picking the text colour used to be a rule of thumb — "solid tones read
- * paper" — and the rule was wrong for half the palette: paper measures 1.79:1
- * on TL1, 2.41:1 on pilot and 3.03:1 on mech. So this resolves the band to the
+ * A rule of thumb ("solid tones read paper") is wrong for half the palette:
+ * paper measures 1.79:1 on TL1, 2.41:1 on pilot and 3.03:1 on mech. So this
+ * resolves the band to the
  * sRGB triple the browser will paint, by the same arithmetic, and lets WCAG's
  * relative luminance choose.
  *
@@ -81,7 +81,7 @@ const KEYWORDS: Record<string, Rgb> = { black: [0, 0, 0], white: [255, 255, 255]
  * The opaque sRGB a CSS colour string paints, or `undefined` when it cannot be
  * known without the page: an unknown variable, a translucent colour (its ground
  * decides), or a syntax this does not model. Understands rgb and six-digit hex,
- * `black`/`white`, `var(--color-*)` / `var(--su-color-*)` over the token scale,
+ * `black`/`white`, `var(--color-*)` over the token scale,
  * and `color-mix(in srgb, …)` of any of those.
  */
 export function resolveColor(css: string): Rgb | undefined {
@@ -95,7 +95,7 @@ export function resolveColor(css: string): Rgb | undefined {
   const hex = value.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)
   if (hex)
     return [parseInt(hex[1] ?? '', 16), parseInt(hex[2] ?? '', 16), parseInt(hex[3] ?? '', 16)]
-  const variable = value.match(/^var\(\s*--(?:su-)?color-([a-z0-9-]+)\s*\)$/)
+  const variable = value.match(/^var\(\s*--color-([a-z0-9-]+)\s*\)$/)
   if (variable) {
     const key = (variable[1] ?? '').replace(/-([a-z0-9])/g, (_, c: string) => c.toUpperCase())
     const token = (color as Record<string, string>)[key]

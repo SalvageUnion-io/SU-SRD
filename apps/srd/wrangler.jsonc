@@ -1,68 +1,30 @@
 {
-  // salvageunion.io — the static SRD reference site, on Workers Static Assets
-  // (ADR-033).
-  //
-  // No `main`: there is no Worker script at all. srd is fully static (ADR-031 —
-  // an in-house SSG, no SSR, no functions), so Cloudflare serves `dist/`
-  // directly and every request is an asset lookup. Adding a Worker entry here
-  // would put a script in front of 1,039 pages for no reason.
-  //
-  // The build runs in GitHub Actions, not Workers Builds: `og:generate`
-  // provisions a headless Chromium to render per-entity OG images, which is a
-  // poor fit for Cloudflare's build environment. See ADR-033 §4.
+  // salvageunion.io — the static SRD on Workers Static Assets (ADR-033). No
+  // `main`: there is no Worker script (ADR-031). Built in GitHub Actions, not
+  // Workers Builds (ADR-033 §4).
   "name": "su-srd",
   "compatibility_date": "2026-07-13",
 
-  // Custom domains. Wrangler creates the proxied DNS record for each on deploy,
-  // which is why nothing in this repo writes A records by hand — and why the
-  // addresses Cloudflare's onboarding scan captured were left as inert
-  // DNS-only placeholders rather than transcribed (they are load-balancer
-  // replies synthesized per query, not configuration; see ADR-033 P7).
-  //
-  // `www` is attached even though it must REDIRECT rather than serve, because
-  // a hostname has to be proxied through Cloudflare before a Redirect Rule can
-  // act on it. The rule runs in the Rules phase, ahead of Workers and ahead of
-  // asset serving, so the redirect wins and this Worker never sees the request.
-  //
-  // The redirect itself is NOT in this repo and cannot be: `_redirects` does
-  // not support domain-level rules — Cloudflare's own docs list them as
-  // unsupported and say malformed definitions are ignored, so a www rule there
-  // would silently do nothing. It is a zone-level Redirect Rule instead,
-  // recorded in ADR-033 ("Configuration outside the repo") so it is not
-  // invisible config.
-  //
-  // Attaching www is deliberately the fail-safe half of that split: if the
-  // Redirect Rule is ever missing, www serves the site with its correct
-  // per-page canonicals rather than erroring.
+  // `www` is attached so the zone's Redirect Rule can act on it; the redirect
+  // cannot live in `_redirects` (ADR-033, "Configuration outside the repo").
   "routes": [
     { "pattern": "salvageunion.io", "custom_domain": true },
     { "pattern": "www.salvageunion.io", "custom_domain": true }
   ],
-
-  // Load-bearing, and NOT a default: declaring `routes` makes wrangler disable
-  // workers.dev unless it is asked for explicitly. Measured on su-assets — the
-  // first deploy carrying a route reported "No targets deployed" and its
-  // workers.dev URL began answering Cloudflare's own 404 instead of the Worker.
-  //
-  // That URL is the only way to reach these Workers before the nameserver flip,
-  // and all five smoke tests in deploy-cloudflare.yml curl one. Losing it
-  // silently would have made the post-deploy gate pass by absence at exactly
-  // the moment it matters most.
+  // Explicit: `routes` turns workers.dev off otherwise, and the smoke list
+  // probes su-srd there to tell a broken route from a broken deploy
+  // (tools/smoke-production.sh).
   "workers_dev": true,
 
   "assets": {
     "directory": "./dist",
-
-    // `404-page` serves dist/404.html with a 404 status for any unmatched path.
-    //
-    // NOT `single-page-application`: srd is
-    // pre-rendered, so a miss is genuinely a miss. Choosing SPA mode here would
-    // answer 200 with HTML for every typo'd URL — telling crawlers that 1,039
-    // real pages and infinitely many wrong ones are equally valid.
+    // dist/404.html with a 404 status. Not SPA mode: srd is pre-rendered, so a
+    // miss is genuinely a miss.
     "not_found_handling": "404-page"
   },
 
-  "observability": {
-    "enabled": true
-  }
+  // `bun run preview` (`wrangler dev`) serves the built `dist/` exactly as
+  // above on the dev server's port: the e2e suite's CI server, and the one
+  // `scripts/og-screenshots.ts` renders through.
+  "dev": { "port": 4321 }
 }

@@ -6,7 +6,7 @@ import { CrawlerSchema } from '../../src/lib/schemas/crawler'
 import { EncounterNpcSchema } from '../../src/lib/schemas/encounterNpc'
 import { MechSchema } from '../../src/lib/schemas/mech'
 import { MechPatternSchema } from '../../src/lib/schemas/pattern'
-import { StoredPilotSchema } from '../../src/lib/schemas/pilot'
+import { PilotSchema } from '../../src/lib/schemas/pilot'
 import type { SoftLink } from '../../src/lib/schemas/softLink'
 import type { DataModel, Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
@@ -70,10 +70,7 @@ const EncounterNpcBodySchema = EncounterNpcSchema.partial().extend({
 
 /** Every table whose `v.any()` body is validated at the edge, and by what. */
 export const PARSERS = {
-  // Behind the legacy normaliser: a pilot row stored before a field was
-  // removed from the schema (`equipmentLoadouts`, `rollResults`) must still
-  // validate when it is read back and re-parsed, not reject every write to it.
-  pilots: StoredPilotSchema,
+  pilots: PilotSchema,
   mechs: MechSchema,
   crawlers: CrawlerSchema,
   encounterNpcs: EncounterNpcBodySchema,
@@ -118,23 +115,57 @@ export function unsetCrawlerFields(
 /**
  * Load an ownable entity from a client-supplied id string, or throw.
  *
- * See the module header for why `normalizeId` is not optional here. `table`
- * accepts null so a caller that maps an entity *type* onto a table (see
- * `ownableTableFor` in `proposals.ts`) can hand the unmapped case straight in
- * and get the same "no longer exists" answer, rather than inventing a second
- * one for a case that means exactly the same thing to the caller.
+ * See the module header for why `normalizeId` is not optional here.
  */
 export async function loadOwnable(
   ctx: MutationCtx,
-  table: OwnableTable | null,
+  table: OwnableTable,
   entityId: string
 ): Promise<Doc<'pilots'> | Doc<'mechs'>> {
-  const id = table === null ? null : ctx.db.normalizeId(table, entityId)
+  const id = ctx.db.normalizeId(table, entityId)
   if (id === null) throw new Error('That entity no longer exists')
 
   const doc = await ctx.db.get(id)
   if (doc === null) throw new Error('That entity no longer exists')
   return doc
+}
+
+/** The three tables a Change Log row's entity lives in. */
+export type LoggedTable = 'pilots' | 'mechs' | 'crawlers'
+
+/**
+ * The id a Change Log row names an entity by: its `appId`, the id the client
+ * addresses it by and the one `appendChangeLog` rows carry, or — for a row
+ * seeded server-side that has none — its row id. Every server-side writer of a
+ * row about an entity (`proposals`, `ownership`) uses this, so one entity's
+ * history is one `entityId` whichever surface wrote it.
+ */
+export function logIdOf(row: Doc<LoggedTable>): string {
+  return row.appId ?? row._id
+}
+
+/**
+ * The row a Change Log `entityId` names, or null: by `appId` first (the oldest
+ * row on a duplicate, as `byAppId` resolves it), then as a row id — which is
+ * what a row seeded without an `appId` is named by, and what every proposal
+ * and ownership row written before `logIdOf` carries.
+ */
+export async function loadLogged(
+  ctx: QueryCtx | MutationCtx,
+  table: LoggedTable,
+  entityId: string
+): Promise<Doc<LoggedTable> | null> {
+  const matches = (await ctx.db
+    .query(table)
+    .withIndex('by_app_id', (q) => q.eq('appId', entityId))
+    .collect()) as Doc<LoggedTable>[]
+  const oldest = matches.reduce<Doc<LoggedTable> | null>(
+    (best, row) => (best === null || row._creationTime < best._creationTime ? row : best),
+    null
+  )
+  if (oldest !== null) return oldest
+  const id = ctx.db.normalizeId(table, entityId)
+  return id === null ? null : await ctx.db.get(id)
 }
 
 /**
@@ -182,11 +213,11 @@ export async function findOwnedByAppId(
  * Soft links carry no `appId` and need none: `from.id` and `to.id` already ARE
  * app-level ids, so the (from, to, kind) triple is the link's identity. Two
  * links with the same endpoints and the same kind are the same link, whichever
- * browser drew it — which is what makes the mirror idempotent for free.
+ * browser drew it — which is what makes the client's server-first link write
+ * idempotent for free.
  *
- * Shared by the mirror mutations (`entities.ts`) and the claim (`claim.ts`):
- * the triple is the link's identity in both places, and two copies of that
- * rule could disagree.
+ * Shared by every mutation that writes a link, so the triple is the link's
+ * identity everywhere and no two copies of that rule can disagree.
  */
 export async function findSoftLink(
   ctx: MutationCtx,
@@ -221,11 +252,6 @@ export function linkIdOf(row: ContainedRow): string | undefined {
   return row.appId ?? bodyAppId(row.body)
 }
 
-/** A row's owner. Absent on a crawler that has never been shelved, which means null. */
-function ownerOfRow(row: ContainedRow): Id<'users'> | null {
-  return row.ownerId ?? null
-}
-
 /**
  * Whether two rows are in the same container — the one assignment invariant
  * that is about *where*, not *how many*.
@@ -239,8 +265,7 @@ function ownerOfRow(row: ContainedRow): Id<'users'> | null {
 export function sameContainerRows(a: ContainedRow, b: ContainedRow): boolean {
   if (a.gameId !== b.gameId) return false
   if (a.gameId !== null) return true
-  const owner = ownerOfRow(a)
-  return owner !== null && owner === ownerOfRow(b)
+  return a.ownerId !== null && a.ownerId === b.ownerId
 }
 
 async function rowsByAppId(

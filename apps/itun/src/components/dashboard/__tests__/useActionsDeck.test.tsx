@@ -16,7 +16,7 @@ import { beforeAll, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
 import { useState } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
   mechMaxEP,
   mechMaxHeat,
@@ -68,31 +68,31 @@ beforeAll(async () => {
   // A system whose primary action costs EP → Activate produces a currentEP patch.
   for (const sys of SalvageUnionReference.Systems.all()) {
     if (!sys.id) continue
-    const resolved = resolveSystem(sys.id)
+    const resolved = resolveSystem(getEntitySlug(sys))
     if (resolved && itemEconomy(resolved).epCost > 0) {
-      costedSystemId = sys.id
+      costedSystemId = getEntitySlug(sys)
       break
     }
   }
   // A system carrying a variable-Hot ('X') action (for the Hot(X) stepper).
   for (const sys of SalvageUnionReference.Systems.all()) {
     if (!sys.id) continue
-    const resolved = resolveSystem(sys.id)
+    const resolved = resolveSystem(getEntitySlug(sys))
     const acts = resolved ? (SalvageUnionReference.resolveActions(resolved) ?? []) : []
     const hit = acts.find((a) => !a.hidden && hasVariableHot(a))
     if (hit) {
-      varHotSystem = { id: sys.id, actionName: hit.name }
+      varHotSystem = { id: getEntitySlug(sys), actionName: hit.name }
       break
     }
   }
   // A module carrying an 'EP or AP' action (for the EP/AP cost radios).
   for (const mod of SalvageUnionReference.Modules.all()) {
     if (!mod.id) continue
-    const resolved = resolveModule(mod.id)
+    const resolved = resolveModule(getEntitySlug(mod))
     const acts = resolved ? (SalvageUnionReference.resolveActions(resolved) ?? []) : []
     const hit = acts.find((a) => !a.hidden && hasCurrencyChoice(a) && a.activationCost === 1)
     if (hit) {
-      epApModule = { id: mod.id, actionName: hit.name }
+      epApModule = { id: getEntitySlug(mod), actionName: hit.name }
       break
     }
   }
@@ -101,11 +101,11 @@ beforeAll(async () => {
   // has to suppress them — their Show/Roll buttons can't nest in a clickable tile.
   for (const mod of SalvageUnionReference.Modules.all()) {
     if (!mod.id) continue
-    const resolved = resolveModule(mod.id)
+    const resolved = resolveModule(getEntitySlug(mod))
     const acts = resolved ? (SalvageUnionReference.resolveActions(resolved) ?? []) : []
     const hit = acts.find((a) => !a.hidden && (a.table != null || a.tableName != null))
     if (hit) {
-      tableModule = { id: mod.id, actionName: hit.name }
+      tableModule = { id: getEntitySlug(mod), actionName: hit.name }
       break
     }
   }
@@ -114,7 +114,7 @@ beforeAll(async () => {
     if (!ability.id) continue
     const acts = (SalvageUnionReference.resolveActions(ability) ?? []).filter((a) => !a.hidden)
     if (acts.length > 0) {
-      pilotAbility = { id: ability.id, actionNames: acts.map((a) => a.name) }
+      pilotAbility = { id: getEntitySlug(ability), actionNames: acts.map((a) => a.name) }
       break
     }
   }
@@ -507,7 +507,7 @@ describe('the Actions deck', () => {
  * which would make the assertions pass under the old behaviour too.
  */
 describe('the Actions deck — unrecorded live stats default to full, not empty', () => {
-  const CHASSIS = 'Leviathan'
+  const CHASSIS = 'leviathan'
 
   test('Activate spends EP from the full pool when EP was never stored', () => {
     const mech = mechFixture({
@@ -615,7 +615,7 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
 })
 
 /**
- * The resolve in progress is the seat's (plan §8 A6): every step goes to it, so
+ * The resolve in progress is the seat's (ADR-038 §2): every step goes to it, so
  * the crew watches it and a reload — a seat that already holds the roll —
  * reopens on it.
  */

@@ -31,9 +31,18 @@ const closeButton = () => screen.getByRole('button', { name: 'Close: Search the 
 const panel = () => screen.queryByRole('dialog', { name: 'Search the rules' })
 const input = () => screen.getByRole('combobox', { name: 'Search the rules' })
 
-function openWithFab() {
-  fireEvent.click(fab())
+async function openWithFab() {
+  await act(async () => {
+    fireEvent.click(fab())
+  })
   return must(panel())
+}
+
+/** Fire `fire` and let Base UI's focus moves (a microtask, a frame) land. */
+async function settle(fire: () => void) {
+  await act(async () => {
+    fire()
+  })
 }
 
 /**
@@ -58,79 +67,76 @@ async function typeQuery(value: string) {
 }
 
 describe('the FAB', () => {
-  test('is a collapsed button that opens the search panel and focuses its input', () => {
+  test('is a collapsed button that opens the search panel and focuses its input', async () => {
     render(<GlobalSearch />)
     expect(fab().getAttribute('aria-expanded')).toBe('false')
     expect(panel()).toBeFalsy()
 
-    const opened = openWithFab()
+    const opened = await openWithFab()
     expect(closeButton().getAttribute('aria-expanded')).toBe('true')
     expect(closeButton().getAttribute('aria-controls')).toBe(opened.id)
-    expect(document.activeElement).toBe(input())
+    await waitFor(() => expect(document.activeElement).toBe(input()))
   })
 
   test('reopening keeps the last query, selected so typing replaces it', async () => {
     render(<GlobalSearch />)
-    openWithFab()
+    await openWithFab()
     await typeQuery('iron wyrm')
-    fireEvent.click(closeButton())
+    await settle(() => fireEvent.click(closeButton()))
 
-    openWithFab()
+    await openWithFab()
     const field = input() as HTMLInputElement
     expect(field.value).toBe('iron wyrm')
+    await waitFor(() => expect(document.activeElement).toBe(field))
     expect(field.selectionStart).toBe(0)
     expect(field.selectionEnd).toBe('iron wyrm'.length)
   })
 
-  test('pressing it again collapses the panel, focus staying on the button', () => {
+  test('pressing it again collapses the panel, focus staying on the button', async () => {
     render(<GlobalSearch />)
-    openWithFab()
-    fireEvent.click(closeButton())
+    await openWithFab()
+    await settle(() => fireEvent.click(closeButton()))
     expect(panel()).toBeFalsy()
-    expect(document.activeElement).toBe(fab())
+    await waitFor(() => expect(document.activeElement).toBe(fab()))
   })
 
-  test('Escape collapses it and returns focus to the button', () => {
+  test('Escape collapses it and returns focus to the button', async () => {
     render(<GlobalSearch />)
-    openWithFab()
-    fireEvent.keyDown(input(), { key: 'Escape' })
+    await openWithFab()
+    await settle(() => fireEvent.keyDown(input(), { key: 'Escape' }))
     expect(panel()).toBeFalsy()
-    expect(document.activeElement).toBe(fab())
+    await waitFor(() => expect(document.activeElement).toBe(fab()))
   })
 
-  test('a press outside collapses it, and focus lands back on the button', () => {
+  test('a press outside collapses it', async () => {
     render(<GlobalSearch />)
-    openWithFab()
-    // The Fab reclaims focus on a 0ms timer; run it rather than poll for it.
-    jest.useFakeTimers()
-    try {
+    await openWithFab()
+    await settle(() => {
       fireEvent.pointerDown(document.body)
-      expect(panel()).toBeFalsy()
-      act(() => {
-        jest.runAllTimers()
-      })
-    } finally {
-      jest.useRealTimers()
-    }
-    expect(document.activeElement).toBe(fab())
-  })
-
-  test('a press inside the panel does not collapse it', () => {
-    render(<GlobalSearch />)
-    openWithFab()
-    fireEvent.pointerDown(input())
-    expect(panel()).toBeTruthy()
-  })
-
-  test('Cmd+K opens and focuses the search; Ctrl+K again closes it', () => {
-    render(<GlobalSearch />)
-    fireEvent.keyDown(document, { key: 'k', metaKey: true })
-    expect(panel()).toBeTruthy()
-    expect(document.activeElement).toBe(input())
-
-    fireEvent.keyDown(document, { key: 'k', ctrlKey: true })
+      fireEvent.click(document.body)
+    })
     expect(panel()).toBeFalsy()
-    expect(document.activeElement).toBe(fab())
+  })
+
+  test('a press inside the panel does not collapse it', async () => {
+    render(<GlobalSearch />)
+    await openWithFab()
+    await settle(() => {
+      fireEvent.pointerDown(input())
+      fireEvent.click(input())
+    })
+    expect(panel()).toBeTruthy()
+  })
+
+  test('Cmd+K opens and focuses the search; Ctrl+K again closes it', async () => {
+    render(<GlobalSearch />)
+    await settle(() => fireEvent.keyDown(document, { key: 'k', metaKey: true }))
+    expect(panel()).toBeTruthy()
+    await waitFor(() => expect(document.activeElement).toBe(input()))
+
+    await settle(() => fireEvent.keyDown(document, { key: 'k', ctrlKey: true }))
+    expect(panel()).toBeFalsy()
+    await waitFor(() => expect(document.activeElement).toBe(fab()))
   })
 
   test('plain "k" does not toggle it', () => {
@@ -144,20 +150,20 @@ describe('the FAB', () => {
     expect(fab().getAttribute('aria-keyshortcuts')).toBe('Meta+K Control+K')
   })
 
-  test('where the corner is taken it hides, and Cmd+K still opens the search', () => {
+  test('where the corner is taken it hides, and Cmd+K still opens the search', async () => {
     render(<GlobalSearch fabHidden />)
     expect(screen.queryByRole('button', { name: 'Search the rules' })).toBeFalsy()
 
-    fireEvent.keyDown(document, { key: 'k', metaKey: true })
+    await settle(() => fireEvent.keyDown(document, { key: 'k', metaKey: true }))
     expect(panel()).toBeTruthy()
-    expect(document.activeElement).toBe(input())
+    await waitFor(() => expect(document.activeElement).toBe(input()))
   })
 })
 
 describe('the results', () => {
   test('render above the input, best match nearest it', async () => {
     render(<GlobalSearch />)
-    openWithFab()
+    await openWithFab()
     const field = await typeQuery('chassis')
 
     const listbox = screen.getByRole('listbox', { name: 'Search results' })
@@ -174,7 +180,7 @@ describe('the results', () => {
 
   test('the arrow keys follow the screen: ↑ leaves the input, ↓ comes back', async () => {
     render(<GlobalSearch />)
-    openWithFab()
+    await openWithFab()
     const field = await typeQuery('chassis')
     const options = screen.getAllByRole('option')
     const nearest = must(options.at(-1))
@@ -194,7 +200,7 @@ describe('the results', () => {
 
   test('a no-hit query shows the empty state', async () => {
     render(<GlobalSearch />)
-    openWithFab()
+    await openWithFab()
     await typeQuery('zzzz-no-such-entity')
     // Rendered twice: the visible empty state + the sr-only live region.
     expect(screen.getAllByText('No results found').length).toBeGreaterThan(0)
@@ -203,7 +209,7 @@ describe('the results', () => {
 
   test('Enter opens the entity detail modal and collapses the panel', async () => {
     render(<GlobalSearch />)
-    openWithFab()
+    await openWithFab()
     const field = await typeQuery('iron wyrm')
 
     // The best match is the Iron Wyrm chassis (no schema matches "iron wyrm").
@@ -221,7 +227,7 @@ describe('the results', () => {
     window.open = openSpy
     try {
       render(<GlobalSearch />)
-      openWithFab()
+      await openWithFab()
       await typeQuery('chassis')
 
       const categoryOption = screen

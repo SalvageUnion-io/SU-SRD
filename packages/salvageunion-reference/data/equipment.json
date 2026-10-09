@@ -811,10 +811,7 @@
             "type": "paragraph",
             "value": "At each Tech Level you may choose an additional modification for your Custom Sniper Rifle."
           }
-        ],
-        "constraints": {
-          "scalesWithField": "techLevel"
-        }
+        ]
       }
     ],
     "actions": ["Custom Sniper Rifle"]
@@ -1269,10 +1266,7 @@
             "type": "paragraph",
             "value": "At each Tech Level you may choose an additional modification for your Custom Missile Launcher."
           }
-        ],
-        "constraints": {
-          "scalesWithField": "techLevel"
-        }
+        ]
       }
     ]
   },

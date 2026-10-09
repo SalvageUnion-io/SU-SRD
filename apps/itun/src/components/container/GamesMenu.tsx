@@ -27,8 +27,7 @@
  */
 
 import { useNavigate } from '@tanstack/react-router'
-import type { HeaderMenuItem } from 'component-lib'
-import { Badge, buttonVariants, HeaderMenu, Text, tokens } from 'component-lib'
+import { Badge, buttonVariants, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -36,6 +35,8 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import type { Container } from '../../lib/container'
 import { SHELF } from '../../lib/container'
 import { setActiveContainer } from '../../stores/activeContainerStore'
+import type { HeaderMenuItem } from '../shared/HeaderMenu'
+import { HeaderMenu } from '../shared/HeaderMenu'
 
 /** One row of the list: what it says, and the container it picks. */
 type Entry = { id: string; label: string; hint?: string; container: Container }

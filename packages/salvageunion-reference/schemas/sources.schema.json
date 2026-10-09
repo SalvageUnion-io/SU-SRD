@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/sources.schema.json",
+  "$id": "https://salvageunion.io/schema/sources.schema.json",
   "title": "sources",
   "description": "Source books and expansions",
   "type": "array",

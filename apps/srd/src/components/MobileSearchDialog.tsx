@@ -1,6 +1,6 @@
-import { Dialog } from '@base-ui/react/dialog'
+import { Drawer } from '@base-ui/react/drawer'
 import { buttonVariants, cn } from 'component-lib'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 
 type MobileSearchDialogProps = {
@@ -16,6 +16,15 @@ type MobileSearchDialogProps = {
   triggerAriaLabel?: string
 }
 
+// The full-screen layer the sheet sits in, against its top edge.
+const VIEWPORT: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  inset: 0,
+  position: 'fixed',
+  zIndex: 50,
+}
+
 /**
  * Persistent search trigger + full-screen sheet for a mobile top nav bar. On
  * phones search is the primary action, so it lives directly in the bar (not
@@ -23,9 +32,9 @@ type MobileSearchDialogProps = {
  * hosts arbitrary search `children` (srd passes its `SearchIsland`).
  *
  * Content-agnostic shell: it owns the trigger, the sheet chrome (title + close),
- * focus trapping, and the slide animation; the caller injects the search UI.
- * base-ui's Dialog only mounts the sheet (and its children) while open, so it
- * adds no cost to the closed state.
+ * focus trapping, and the slide (`.su-drawer`; it swipes back up to close); the
+ * caller injects the search UI. Base UI's Drawer only mounts the sheet (and its
+ * children) while open, so it adds no cost to the closed state.
  */
 export function MobileSearchDialog({
   children,
@@ -35,8 +44,8 @@ export function MobileSearchDialog({
   const [open, setOpen] = useState(false)
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger
+    <Drawer.Root open={open} onOpenChange={setOpen} swipeDirection="up">
+      <Drawer.Trigger
         render={
           // size-11 = 44px — meets the WCAG 2.5.5 minimum touch-target size,
           // the one documented override on the shared icon rung. `ghost` +
@@ -68,45 +77,47 @@ export function MobileSearchDialog({
         }
       />
 
-      <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-ink/50" />
-        <Dialog.Popup className="fixed inset-x-0 top-0 z-50 flex flex-col gap-3 bg-paper p-4 shadow-lg data-[open]:animate-slide-in-right data-[closed]:animate-slide-out-right">
-          <div className="flex items-center justify-between">
-            <Dialog.Title className="font-cond text-sm font-bold uppercase text-ink">
-              {title}
-            </Dialog.Title>
-            <Dialog.Close
-              render={
-                <button
-                  type="button"
-                  className={cn(
-                    buttonVariants({ variant: 'ghost', size: 'iconOnly' }),
-                    'size-11 rounded-panel border-transparent text-ink'
-                  )}
-                  aria-label="Close search"
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
+      <Drawer.Portal>
+        <Drawer.Backdrop className="su-backdrop" />
+        <Drawer.Viewport style={VIEWPORT}>
+          <Drawer.Popup className="su-drawer flex flex-col gap-3 bg-paper p-4 shadow-lg">
+            <div className="flex items-center justify-between">
+              <Drawer.Title className="font-cond text-sm font-bold uppercase text-ink">
+                {title}
+              </Drawer.Title>
+              <Drawer.Close
+                render={
+                  <button
+                    type="button"
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'iconOnly' }),
+                      'size-11 rounded-panel border-transparent text-ink'
+                    )}
+                    aria-label="Close search"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              }
-            />
-          </div>
-          {children}
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+                    <svg
+                      width="24"
+                      height="24"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                }
+              />
+            </div>
+            {children}
+          </Drawer.Popup>
+        </Drawer.Viewport>
+      </Drawer.Portal>
+    </Drawer.Root>
   )
 }

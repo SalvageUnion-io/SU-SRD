@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/abilities.schema.json",
+  "$id": "https://salvageunion.io/schema/abilities.schema.json",
   "title": "abilities",
   "description": "Pilot abilities and skills",
   "type": "array",
@@ -425,7 +425,7 @@
             "duration": {
               "type": "string",
               "enum": ["permanent", "activated"],
-              "description": "Permanent (default) applies whenever held/installed. `activated` applies only while the player has switched it on in Guided Play — ephemeral play state (ADR-019), never persisted on the entity."
+              "description": "Permanent (default) applies whenever held/installed. `activated` applies only while the player has switched it on in Guided Play — saved on the pilot's seat in the Game (ADR-038), never on the entity."
             },
             "note": { "type": "string", "description": "Why this is encoded the way it is" }
           },
@@ -433,7 +433,7 @@
           "additionalProperties": false,
           "description": "A flat mechanical contribution this content makes to a stat"
         },
-        "description": "Flat stat changes this ability makes (ADR-029). An ability could previously declare no mechanical change at all, so Beefcake, Bionic Arms, Bionic Legs and Modular Face Implant were inert prose."
+        "description": "Flat stat changes this ability makes (ADR-029), so a stated mechanical change (Beefcake, Bionic Arms) applies rather than staying inert prose."
       }
     },
     "required": ["id", "name", "source", "page", "tree", "level", "actions"],

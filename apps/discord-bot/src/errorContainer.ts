@@ -1,12 +1,10 @@
 /**
  * Error surfaces for the roll commands.
  *
- * Every failure path used to reply with a bare ephemeral string — no accent, no
- * brand, no structure, and a dead end. `Could not find table: "criticl damage".
- * Use autocomplete to see available tables.` tells you to use a feature you
- * have to re-invoke the whole command to reach.
- *
- * These render in the same system as a result, and offer the way out.
+ * These render in the same system as a result, and offer the way out: a bare
+ * ephemeral string such as `Could not find table: "criticl damage". Use
+ * autocomplete to see available tables.` would be a dead end, telling you to
+ * use a feature you have to re-invoke the whole command to reach.
  *
  * ## Errors are rust, never cascade red
  *
@@ -21,7 +19,7 @@ import type { SURefRollTable } from 'salvageunion-reference'
 import { searchIn } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerData } from './container.js'
 import { makeCustomId } from './customId.js'
-import { NEUTRAL_EMBED_COLOR } from './format.js'
+import { NEUTRAL_ACCENT } from './format.js'
 import { rollHeadline } from './rollContainer.js'
 
 /** How many recovery buttons to offer. Three fits one row without crowding. */
@@ -46,7 +44,7 @@ function suggestionButtons(query: string): ButtonSpec[] {
 export function unknownTableContainer(query: string, indexed: number): ContainerData {
   const buttons = suggestionButtons(query)
   return {
-    accent: NEUTRAL_EMBED_COLOR,
+    accent: NEUTRAL_ACCENT,
     blocks: [
       { kind: 'text', content: '-# NO SUCH TABLE' },
       { kind: 'text', content: `## ${query.toUpperCase()}` },
@@ -72,8 +70,8 @@ export function unknownTableContainer(query: string, indexed: number): Container
  *
  * The two `dramatic` tables — Blinding Blue Laser Rifle and Bio-Talon — carry
  * only a `20` key, so `resultForTable` reports failure on **19 of every 20
- * rolls** and the old builder rendered its internal diagnostic ("No result
- * found for roll 7") to the user as an error.
+ * rolls**, with an internal diagnostic ("No result found for roll 7") that is
+ * never shown to the user.
  *
  * That is not an error. It is what the book means: the effect triggers on a 20
  * and otherwise nothing happens. Rendered as a result, in neutral rust, because
@@ -91,7 +89,7 @@ export function noEffectContainer(
     : []
 
   return {
-    accent: NEUTRAL_EMBED_COLOR,
+    accent: NEUTRAL_ACCENT,
     blocks: [
       { kind: 'text', content: roller ? `-# ${name} · rolled by ${roller}` : `-# ${name}` },
       { kind: 'text', content: rollHeadline(String(roll), 'NO EFFECT') },

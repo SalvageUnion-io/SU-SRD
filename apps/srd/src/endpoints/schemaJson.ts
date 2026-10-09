@@ -1,22 +1,18 @@
 /**
- * `/schema/[schemaId].json` — every entity in one schema.
+ * `/schema/[schemaId].json` — every entity in one schema: the committed
+ * `data/<id>.json`, served verbatim (`readReferenceFile`).
  *
  * Dotted pattern: this emits `dist/schema/chassis.json` as a FILE, never a
  * `chassis.json/index.html` directory. See the URL -> file table in
  * `ssg/DESIGN.md`.
  */
 
-import type { SURefEntity } from 'salvageunion-reference'
-import { getModel } from 'salvageunion-reference'
 import type { EndpointModule, StaticPath } from '../../ssg/types'
-// From `lib/gameData`, NOT the package: importing that module is what runs the
-// build-time `preload('all')`, and `getStaticPaths` reads models during static
-// generation. Pulling this straight from the package builds a route list before
-// any schema is loaded and the build dies on "Schema not loaded".
 import { getEntitySchemas } from '../lib/gameData'
+import { readReferenceFile } from '../lib/referenceFiles'
 
 type Params = { schemaId: string }
-type Props = { data: SURefEntity[] }
+type Props = { dataFile: string }
 
 /**
  * `getEntitySchemas()`, not the whole catalog — the JSON surface must cover the
@@ -33,19 +29,15 @@ type Props = { data: SURefEntity[] }
  * correspond to. Pinned by `schemaSurfaceParity.test.ts`.
  */
 function getStaticPaths(): StaticPath<Params, Props>[] {
-  return getEntitySchemas().map((schema) => {
-    const model = getModel(schema.id)
-    const data: SURefEntity[] = model ? model.all() : []
-    return {
-      params: { schemaId: schema.id },
-      props: { data },
-    }
-  })
+  return getEntitySchemas().map((schema) => ({
+    params: { schemaId: schema.id },
+    props: { dataFile: schema.dataFile },
+  }))
 }
 
 export const schemaJsonEndpoint: EndpointModule<Params, Props> = {
   pattern: 'schema/[schemaId].json',
   getStaticPaths,
   contentType: 'application/json',
-  body: ({ props }) => JSON.stringify(props.data),
+  body: ({ props }) => readReferenceFile(props.dataFile),
 }

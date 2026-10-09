@@ -1,9 +1,9 @@
 /**
  * DashboardStrip — the strip along the bottom of the display
- * (docs/architecture/dashboard-redesign.md D6, §4.2): the Mediator's latest
+ * (docs/architecture/dashboard.md §2): the Mediator's latest
  * alert and how many proposals wait for this player's answer.
  *
- * Crew status is not here; it is the Crew tab's (D6). The count links to the
+ * Crew status is not here; it is the Crew tab's. The count links to the
  * Game, where the proposal inbox is answered: a proposal is a decision with a
  * before and an after to read, which a strip has no room to show.
  *

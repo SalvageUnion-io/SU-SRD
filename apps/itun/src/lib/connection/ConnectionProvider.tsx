@@ -2,7 +2,7 @@ import { useConvexAuth } from 'convex/react'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { setEntityBackendAuthState } from '../../stores/entityBackend'
-import { probeLegacyLocalData } from '../db/legacyLocalData'
+import { useBuildFloor } from './buildFloor'
 import type { ConnectionState } from './connectionContext'
 import { ConnectionContext } from './connectionContext'
 import {
@@ -11,24 +11,6 @@ import {
   shouldWarnDisconnected,
   writesAllowed,
 } from './connectionMode'
-import { convexClient, isConvexConfigured } from './convexClient'
-
-/**
- * Supplies the current storage mode (ADR-030 §1) to the tree.
- *
- * ## Why this is two components instead of one `if`
- *
- * `useConvexAuth` throws without a `ConvexProvider` above it, and a build with
- * no `VITE_CONVEX_URL` deliberately has no provider — that build is Solo
- * forever, which is a supported state, not a broken one (CI runs in it, and so
- * does any contributor who has not run `convex dev`).
- *
- * A conditional hook call would violate the rules of hooks, so the branch is
- * made at the *component* level instead: `ConvexBackedConnection` calls the
- * Convex hook, `SoloConnection` never does. The branch is decided by a
- * build-time constant, so a given build always renders the same one and React
- * sees a stable component identity across every render.
- */
 
 /** Tracks `navigator.onLine`, kept current by the browser's own events. */
 function useOnline(): boolean {
@@ -54,77 +36,40 @@ function useOnline(): boolean {
   return online
 }
 
-function useConnectionState(signedIn: boolean, authSettled: boolean): ConnectionState {
+function useConnectionState(
+  signedIn: boolean,
+  authSettled: boolean,
+  outdated: boolean
+): ConnectionState {
   const online = useOnline()
 
   // The stores are not components and cannot call hooks, so the mode is PUSHED
   // to them from here rather than pulled. One writer, one direction — and it
   // happens in an effect so a render never has a side effect.
   useEffect(() => {
-    setEntityBackendAuthState({ signedIn, online, authSettled })
-  }, [signedIn, online, authSettled])
-
-  /**
-   * Ask once, at boot, whether this browser is still holding a pre-account
-   * roster.
-   *
-   * It no longer decides a backend — anonymous is always in-memory since
-   * [ADR-035](../../../../../docs/ARCHITECTURE.md#adr-035).
-   * What still needs the answer is `ShelfSync`'s prune, which refuses to delete
-   * anything while this reads `unknown`: absence from `listMine` cannot be
-   * trusted to mean "deleted elsewhere" until we know there is nothing waiting
-   * to be migrated. Warming it here means the prune is not held off for the
-   * whole of a session in which nothing else happened to ask.
-   *
-   * It lives in this effect because this is already the one place that pushes
-   * session facts down to the stores, and `[]` because the probe caches its own
-   * result and must not re-run per render.
-   *
-   * The `setProbed` re-render this used to force is gone with the backend
-   * dependency: nothing renders differently the moment the probe resolves.
-   * `AccountReconciler` awaits the same cached promise itself, which is what makes
-   * the answer visible where it now matters.
-   */
-  useEffect(() => {
-    void probeLegacyLocalData()
-  }, [])
+    setEntityBackendAuthState({ signedIn, online, authSettled, outdated })
+  }, [signedIn, online, authSettled, outdated])
 
   return useMemo(() => {
-    const mode = resolveConnectionMode({
-      convexConfigured: isConvexConfigured,
-      authSettled,
-      signedIn,
-      online,
-    })
+    const mode = resolveConnectionMode({ authSettled, signedIn, online })
     return {
       mode,
-      canWrite: writesAllowed(mode),
+      canWrite: writesAllowed(mode) && !outdated,
       showDisconnectedWarning: shouldWarnDisconnected(mode),
       settling: isSettlingConnection(mode),
+      outdated,
     }
-  }, [signedIn, online, authSettled])
+  }, [signedIn, online, authSettled, outdated])
 }
 
-function ConvexBackedConnection({ children }: { children: ReactNode }) {
-  // All three flags matter, and discarding the latter two is what used to make
-  // the initial handshake masquerade as Solo: `isAuthenticated` is false for the
-  // whole of it, and Solo silently routes writes to IndexedDB with no mirror.
-  const { isAuthenticated, isLoading, isRefreshing } = useConvexAuth()
-  const state = useConnectionState(isAuthenticated, !isLoading && !isRefreshing)
-  return <ConnectionContext.Provider value={state}>{children}</ConnectionContext.Provider>
-}
-
-function SoloConnection({ children }: { children: ReactNode }) {
-  // No account is possible in this build, so `signedIn` is structurally false —
-  // and there is no auth layer to wait for, so the session is settled by
-  // construction rather than by having resolved.
-  const state = useConnectionState(false, true)
-  return <ConnectionContext.Provider value={state}>{children}</ConnectionContext.Provider>
-}
-
+/** Supplies the current storage mode (ADR-030 §1) to the tree. */
 export function ConnectionProvider({ children }: { children: ReactNode }) {
-  if (!isConvexConfigured || convexClient === null) {
-    return <SoloConnection>{children}</SoloConnection>
-  }
-  return <ConvexBackedConnection>{children}</ConvexBackedConnection>
+  // All three flags matter: `isAuthenticated` is false for the whole initial
+  // handshake, so on its own it would read that window as signed out.
+  const { isAuthenticated, isLoading, isRefreshing } = useConvexAuth()
+  // The one build-floor subscriber: signed in or not, a tab older than the
+  // backend stops writing and reloads onto the new build (buildFloor.ts).
+  const outdated = useBuildFloor()
+  const state = useConnectionState(isAuthenticated, !isLoading && !isRefreshing, outdated)
+  return <ConnectionContext.Provider value={state}>{children}</ConnectionContext.Provider>
 }

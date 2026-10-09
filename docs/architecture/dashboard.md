@@ -4,15 +4,13 @@ The **Dashboard** is ITUN's live actual-play surface: one pilot in a Game, with
 their **Mech** and the crew's **Crawler**, composed into one screen that never
 scrolls, where every game action is a button. Components are in
 `apps/itun/src/components/dashboard/`, the remaining `.pc-*` stylesheets in
-`packages/component-lib/src/styles/dashboard/`, and the route is
+`apps/itun/src/styles/dashboard/`, and the route is
 `/dashboard/$pilotId` (`apps/itun/src/routes/dashboard/$pilotId.tsx`).
 
-The decisions are [ADR-015](../ARCHITECTURE.md#adr-015) and its merged
-Dashboard decisions (formerly ADRs 016–020), as amended by
-[ADR-038](../ARCHITECTURE.md#adr-038): Game-only, play state on a seat, Major
-and Minor slots, tabs. The Flight Deck plan that built it,
-[dashboard-redesign.md](dashboard-redesign.md), is done; code comments still
-cite its decisions D1–D12. The live-play state model it drives is
+The decisions are [ADR-038](../ARCHITECTURE.md#adr-038), the one Dashboard
+record: Game-only, play state on a seat, Major and Minor slots, tabs, the
+reused display and the fixed canvas. Code cites its §1–§9. The live-play state
+model it drives is
 [combat loop](../ARCHITECTURE.md#combat-loop). Section numbers below are cited
 from code comments; keep them stable.
 
@@ -191,7 +189,7 @@ New Dashboard UI is written to
 [tailwind-removal.md](../design-system/tailwind-removal.md) §4: style objects
 over `component-lib/design/tokens` plus `.su-*` classes, and no new `.pc-*`
 class. The `.pc-*` rules still in use load once, from `Dashboard.tsx`, through
-the `component-lib/styles/dashboard.css` export.
+ITUN's `src/styles/dashboard.css`.
 
 ## 7. Mobile
 
@@ -269,17 +267,17 @@ A role here comes with its keyboard model; this list claims none without one.
 - A deck tile is a `Card` with `role="button"`: Enter and Space open it.
 - The SRD tab's search is a `combobox` over a `listbox`
   (`useSearchCombobox`): ArrowUp/Down move the active option, Enter opens it.
-- The ⤢ overlay (`SlotOverlay`) is a modal dialog: it takes focus, keeps Tab
-  inside, closes on Escape and returns focus to ⤢.
+- The ⤢ overlay (`SlotOverlay`) and the Tables picker (`TablePickerOverlay`)
+  are component-lib `ModalShell`s portalled into the region they cover: each
+  takes focus, keeps Tab inside, closes on Escape or a press outside it and
+  returns focus to what opened it (⤢, the table title).
 - A Major's prompt (a resolve, Take Damage, storage, the Board menu) is a
   non-modal `dialog` over the Major that closes on Escape. The Board menu is a
   list of buttons, not a `menu`: it focuses the first boardable mech and
   returns focus to ▾ on close, and each disabled mech's reason is visible text
   tied to it by `aria-describedby`.
 
-The Tables picker (`TablePickerOverlay`) is not claimed: it carries
-`role="dialog"` and `aria-modal`, but takes no focus, keeps no Tab inside and
-ignores Escape. Every hue pairs with a non-colour cue.
+Every hue pairs with a non-colour cue.
 
 ### 10.3 Scale-to-fit vs zoom
 

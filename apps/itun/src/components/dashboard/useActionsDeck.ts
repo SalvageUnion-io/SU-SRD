@@ -2,7 +2,7 @@
  * useActionsDeck — the rules and store half of the Actions deck: it builds the
  * deck the mount allows and drives the resolve flow (Activate / Roll / Push /
  * Apply) under the ADR-007 automation boundary, then hands two pure models to
- * the two places they render (docs/architecture/dashboard-redesign.md §4.2):
+ * the two places they render (docs/architecture/dashboard.md §6):
  *
  *   - `DeckList`, beside the display: the actions, with the timing, range and
  *     source filters;
@@ -14,7 +14,7 @@
  *   Apply     → commit the rolled outcome (Cascade Failure is routed to the
  *               Mech's Major slot, never auto-written)
  *
- * **The resolve in progress lives on the seat** (`resolving`, plan §8 A6):
+ * **The resolve in progress lives on the seat** (`resolving`, ADR-038 §2):
  * which action, whether it is activated, the roll and whether it was applied.
  * So a reload mid-roll keeps the roll, and the crew watches it step by step.
  * Every roll and Push also goes to the Game's log (`dashboardRolls.ts`). What
@@ -144,13 +144,13 @@ export function useActionsDeck({
     return { currentHeat: resolveGauge(fresh.currentHeat), heatCap: mechMaxHeat(fresh, chassis) }
   })()
 
-  // This screen's own part of a resolve: never on the seat (D7).
+  // This screen's own part of a resolve: never on the seat.
   const [pushLog, setPushLog] = useState<string | null>(null)
   const [applyRouted, setApplyRouted] = useState(false)
   const [hotX, setHotX] = useState(1)
   const [currency, setCurrency] = useState<PlayActionCurrency>('EP')
 
-  // Deck filters stay on the device (D7).
+  // Deck filters stay on the device.
   const [tab, setTab] = useState<TimingTab>('All')
   const [sourceFilter, setSourceFilter] = useState<string | null>(null)
 

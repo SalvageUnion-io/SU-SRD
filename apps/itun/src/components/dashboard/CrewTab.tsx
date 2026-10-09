@@ -1,6 +1,6 @@
 /**
  * CrewTab — the display's Crew tab: one read-only row per crewmate, pilot first
- * (docs/architecture/dashboard-redesign.md D6, §8 A3, §8 A6).
+ * (ADR-038 §4).
  *
  * Each row shows the pilot's HP and AP, and where they are. Boarded, their
  * mech's SP and Heat follow; on foot, the mech assigned to them is one line,
@@ -52,7 +52,7 @@ const ROW: CSSProperties = {
 }
 
 /**
- * The red outline is the "look here" signal (D6), drawn as an inset ring so
+ * The red outline is the "look here" signal, drawn as an inset ring so
  * the row never changes size when it appears.
  */
 const ROW_ATTENTION: CSSProperties = {

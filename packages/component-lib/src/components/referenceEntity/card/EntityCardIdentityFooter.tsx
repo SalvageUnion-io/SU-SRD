@@ -9,8 +9,8 @@ type EntityCardIdentityFooterProps = {
   bgColor: string
   /**
    * Foreground for `bgColor`, chosen by contrast (`onToneText`). Every line
-   * prints in it at full strength: this is 12px text, so it owes 4.5:1, and the
-   * muted `paper/70` it used to wear measured 3.99:1 on mech's deep shade.
+   * prints in it at full strength: this is 12px text, so it owes 4.5:1, and a
+   * muted `paper/70` measures 3.99:1 on mech's deep shade.
    * Hierarchy comes from weight and case, not from a fade.
    */
   onBandText: string

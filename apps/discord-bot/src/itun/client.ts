@@ -23,17 +23,14 @@ import type {
  * not built. Adding a dependency now for a feature later is how a Node worker
  * quietly acquires a browser SDK.
  *
- * ## Modes
+ * ## Degrading
  *
- * The bot mirrors ADR-030's storage modes, and `createItunClient` returning
- * `null` is what **Solo** looks like: no `ITUN_CONVEX_SITE_URL`, no client, and
- * every Game command answers "this server isn't connected". Roll, check and
- * lookup are untouched in that state — they must behave identically whether or
- * not accounts exist, because the reference bot is the thing people already
- * use.
- *
- * A configured-but-unreachable deployment is **Degraded**: `unavailable`,
- * distinct from `denied`, so an outage never reads as a permissions problem.
+ * There is always a client. When the deployment cannot be reached — down,
+ * timing out, rejecting the credential, or not configured at all — every call
+ * answers `unavailable`, distinct from `denied`, so an outage never reads as a
+ * permissions problem. Roll and lookup never wait on it: they behave the same
+ * whether or not In The Union Now answers, because the reference bot is the
+ * thing people already use.
  */
 
 /** Requests are user-facing; a slow deployment must not hold a slash command. */
@@ -143,24 +140,27 @@ export function interpret<T>(status: number, body: unknown): ItunResult<T> {
   return { kind: 'unavailable', message: 'In The Union Now returned an unexpected response.' }
 }
 
-/**
- * A client, or `null` when the bot is not configured for ITUN (Solo mode).
- *
- * Returning null rather than a throwing stub is what keeps Solo honest: there
- * is no client to accidentally call, so a missing configuration is a compile-
- * visible `null` check at every call site rather than a runtime surprise.
- */
-export function createItunClient(config: Partial<ItunClientConfig>): ItunClient | null {
-  const { siteUrl, botSecret } = config
-  if (!siteUrl || !botSecret) return null
+const UNCONFIGURED: ItunResult<never> = {
+  kind: 'unavailable',
+  message: 'In The Union Now is not configured for this bot.',
+}
 
-  const origin = siteUrl.replace(/\/+$/, '')
+/**
+ * The client. With either half of the configuration missing it makes no
+ * request at all and answers every call `unavailable` — the same Degraded
+ * path an outage takes. `/health` fails while that is so, so a deploy cannot
+ * sit in this state unnoticed.
+ */
+export function createItunClient(config: Partial<ItunClientConfig>): ItunClient {
+  const { siteUrl, botSecret } = config
+  const origin = siteUrl?.replace(/\/+$/, '') ?? ''
 
   async function call<T>(
     op: string,
     payload: Record<string, unknown>,
     forAutocomplete = false
   ): Promise<ItunResult<T>> {
+    if (!origin || !botSecret) return UNCONFIGURED
     try {
       const response = await fetch(`${origin}/bot/${op}`, {
         method: 'POST',
@@ -191,6 +191,7 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
    * signature Convex is about to check.
    */
   async function callSigned<T>(op: string, signed: SignedInteraction): Promise<ItunResult<T>> {
+    if (!origin || !botSecret) return UNCONFIGURED
     try {
       const response = await fetch(`${origin}/bot/${op}`, {
         method: 'POST',

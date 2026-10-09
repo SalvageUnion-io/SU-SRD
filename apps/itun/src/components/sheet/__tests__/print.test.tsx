@@ -43,7 +43,7 @@ const fakeMech = mechFixture({
   name: 'Print Wraith',
   // MechSheet resolves chassis by name (the builder stores the name); use a
   // real chassis so structurePoints resolve and the SP pip row renders.
-  chassisRef: 'Mule',
+  chassisRef: 'mule',
   systems: ['laser-lance'],
   modules: ['stealth-cell'],
   cargoLots: [

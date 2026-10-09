@@ -40,12 +40,12 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 // ── file gathering ─────────────────────────────────────────────────────────
 
 const APP_DIRS = ['apps/itun/src', 'apps/srd/src'] as const
-const DASHBOARD_DIR = 'packages/component-lib/src/styles/dashboard'
+const DASHBOARD_DIR = 'apps/itun/src/styles/dashboard'
 
 /**
  * UI source a Tailwind class could live in. Tests are excluded because they
  * assert on class names rather than style with them; stories are INCLUDED,
- * because a Ladle group is only migrated when none of its files carries a
+ * because a story group is only migrated when none of its files carries a
  * Tailwind class (the plan's per-group exit criterion).
  */
 const UI_SOURCE_DIRS = ['packages/component-lib/src', 'apps/itun/src', 'apps/srd/src'] as const
@@ -327,52 +327,12 @@ function scanPcContract(c: Corpus): Finding[] {
   return out
 }
 
-// ── Rule 4: app-unbound-component (REPORT-ONLY) ───────────────────────────────
-//
-// Heuristic hunt for generic components living in an app that should live in the
-// library: a component .tsx under apps/*/src/components/** that renders JSX yet
-// imports NEITHER component-lib NOR any binding module (a store, lib/db, a schema,
-// the router, or the reference package). Something generic enough to touch none of
-// those is a candidate for the shared library.
-//
-// This is WARN-ONLY and deliberately kept out of the pass/fail ratchet. It WILL
-// false-positive (a pure presentational leaf that legitimately lives in an app,
-// a component that takes everything by prop). It graduates to a hard, baselined
-// rule only once its output is curated and trustworthy. And be honest about its
-// ceiling: SEMANTIC duplication — a component that imports Button but re-builds a
-// card out of raw <div>s — is invisible to an import-graph heuristic and stays a
-// human-review concern forever. This finds structural orphans, not design ones.
-
-const BINDING_IMPORT =
-  /from\s+['"](?:component-lib|salvageunion-reference|@tanstack\/react-router)['"]|from\s+['"][^'"]*(?:stores?\/|lib\/db|lib\/rules|\/schemas?|routeTree|\/router)[^'"]*['"]/
-
-function scanUnboundComponents(c: Corpus): Finding[] {
-  const out: Finding[] = []
-  const componentFiles = listFiles(
-    c.root,
-    APP_DIRS.map((d) => `${d}/components`),
-    ['.tsx']
-  ).filter((f) => !/\.(test|stories)\.tsx$/.test(f))
-  for (const relPath of componentFiles) {
-    const src = c.read(relPath)
-    const rendersJsx = /return\s*[(<]/.test(src) && /<[A-Za-z]/.test(src)
-    if (!rendersJsx) continue
-    if (BINDING_IMPORT.test(src)) continue
-    out.push({
-      file: relPath,
-      line: 1,
-      detail: 'component renders JSX but imports no library/binding module',
-    })
-  }
-  return out
-}
-
-// ── Rules 5 + 6: the #802 migration ratchets ──────────────────────────────────
+// ── Rules 4 + 5: the #802 migration ratchets ──────────────────────────────────
 //
 // The repo runs four styling systems at once — Tailwind utilities, the `.su-*`
-// package stylesheet, `theme.css`, and the Dashboard's `.pc-*` scope — and the
-// plan (docs/design-system/tailwind-removal.md) ends at one: `tokens.ts` plus
-// `index.css`. Until the last phase lands, these two rules make the count of
+// package stylesheet, `theme.css`'s `@theme`, and the Dashboard's `.pc-*` scope
+// — and the plan (docs/design-system/tailwind-removal.md) ends at one: the
+// `theme.css` tokens (mirrored by `tokens.ts`) plus `index.css`. Until the last phase lands, these two rules make the count of
 // the retiring systems a number that can only go DOWN. They are the whole
 // enforcement story for "new code does not add to the migration": neither
 // system errors when it grows, so without a ratchet the backlog would refill as
@@ -413,24 +373,31 @@ function scanPcDefinitions(c: Corpus): Finding[] {
 
 // ── rule table ────────────────────────────────────────────────────────────────
 
-/**
- * The app entry stylesheets — the two files that compose the whole cascade for
- * a shipped app. Named explicitly rather than discovered, because the property
- * being checked is about these files SPECIFICALLY: a partial like `print.css`
- * neither should nor could carry the import.
- */
-const APP_ENTRY_CSS = ['apps/itun/src/index.css', 'apps/srd/src/styles/global.css'] as const
+/** The ONE Tailwind entry: it alone imports Tailwind and the package stylesheet. */
+const TAILWIND_ENTRY = 'packages/component-lib/src/styles/tailwind.css'
 
 /**
- * Both halves of the package-stylesheet wiring, in the two files that own it.
+ * Every stylesheet that compiles Tailwind — the two app entries and the story catalog's.
+ * Named explicitly rather than discovered, because the property being checked
+ * is about these files SPECIFICALLY: a partial like `print.css` neither should
+ * nor could carry the import.
+ */
+const TAILWIND_CONSUMERS = [
+  'apps/itun/src/index.css',
+  'apps/srd/src/styles/global.css',
+  'packages/component-lib/src/styles/catalog.css',
+] as const
+
+/**
+ * The package-stylesheet wiring, in the one file that owns it, and the one
+ * import every consumer makes of that file.
  *
  * WHY A GUARD. This is the highest-consequence silent failure in the Tailwind
- * migration, and it fails in two different directions:
+ * migration, and it fails in three different directions:
  *
  *   MISSING IMPORT — every component already migrated off Tailwind renders
- *   unstyled in production. The library still compiles, every test still
- *   passes, and Ladle looks perfect because Ladle loads the stylesheet through
- *   its own `ladle.css`. Nothing but a human eye on the real app would notice.
+ *   unstyled. The library still compiles and every test still passes. Nothing
+ *   but a human eye on the real app would notice.
  *
  *   UNLAYERED IMPORT — worse, because it looks like the tidier spelling.
  *   `index.css` is written to be loaded ALONE once Tailwind leaves, so its base
@@ -440,61 +407,78 @@ const APP_ENTRY_CSS = ['apps/itun/src/index.css', 'apps/srd/src/styles/global.cs
  *   the end of the utilities layer, outranking every `text-*` utility and
  *   flattening the type on every heading in the app.
  *
- * Both are invisible to typecheck, lint and the test suite, which is exactly the
- * standard the sibling rules in this file are held to. The layer NAME is not
- * asserted — only that the import carries some `layer(...)` and that the
- * declared order puts it before `utilities` — so renaming `su-base` stays cheap
- * while removing the layering does not.
+ *   A SECOND ENTRY — a consumer that imports Tailwind itself instead of the
+ *   shared entry restates the layer order, the imports and the library scan,
+ *   and the copies drift. There were four once.
+ *
+ * All three are invisible to typecheck, lint and the test suite, which is
+ * exactly the standard the sibling rules in this file are held to. The layer
+ * NAME is not asserted — only that the import carries some `layer(...)` and
+ * that the declared order puts it before `utilities` — so renaming `su-base`
+ * stays cheap while removing the layering does not.
  */
 function scanPackageStylesheetImport(c: Corpus): Finding[] {
   const out: Finding[] = []
-  for (const rel of APP_ENTRY_CSS) {
-    const css = stripCssComments(c.read(rel))
-    const lines = css.split('\n')
 
-    const importLine = lines.findIndex((l) =>
-      /@import\s+['"]component-lib\/styles\/index\.css['"]/.test(l)
-    )
-    if (importLine === -1) {
+  for (const rel of TAILWIND_CONSUMERS) {
+    const css = stripCssComments(c.read(rel))
+    if (!/@import\s+['"](?:component-lib\/styles|\.)\/tailwind\.css['"]/.test(css)) {
       out.push({
         file: rel,
         line: 1,
-        detail:
-          "does not import 'component-lib/styles/index.css' — every component migrated off Tailwind renders unstyled in this app",
+        detail: `does not import the shared Tailwind entry (${TAILWIND_ENTRY})`,
       })
-      continue
     }
+    const own = css.split('\n').findIndex((l) => /@import\s+['"]tailwindcss['"]/.test(l))
+    if (own !== -1) {
+      out.push({
+        file: rel,
+        line: own + 1,
+        detail: "imports 'tailwindcss' itself — a second Tailwind entry beside the shared one",
+      })
+    }
+  }
 
-    const line = lines[importLine] ?? ''
-    const layerMatch = line.match(/layer\(([a-z0-9-]+)\)/i)
-    if (!layerMatch) {
-      out.push({
-        file: rel,
-        line: importLine + 1,
-        detail:
-          'imports the package stylesheet WITHOUT a cascade layer — unlayered CSS outranks Tailwind utilities, which flattens every heading',
-      })
-      continue
-    }
+  const css = stripCssComments(c.read(TAILWIND_ENTRY))
+  const lines = css.split('\n')
+  const importLine = lines.findIndex((l) => /@import\s+['"]\.\/index\.css['"]/.test(l))
+  if (importLine === -1) {
+    out.push({
+      file: TAILWIND_ENTRY,
+      line: 1,
+      detail:
+        "does not import './index.css' — every component migrated off Tailwind renders unstyled",
+    })
+    return out
+  }
 
-    const layerName = layerMatch[1] as string
-    const orderDecl = css.match(/@layer\s+([a-z0-9,\s-]+);/i)
-    const order = orderDecl?.[1]?.split(',').map((n) => n.trim()) ?? []
-    if (!order.includes(layerName)) {
-      out.push({
-        file: rel,
-        line: importLine + 1,
-        detail: `imports into layer(${layerName}) but no @layer declaration names it — layer order then depends on emission order`,
-      })
-      continue
-    }
-    if (order.includes('utilities') && order.indexOf(layerName) > order.indexOf('utilities')) {
-      out.push({
-        file: rel,
-        line: importLine + 1,
-        detail: `layer(${layerName}) is declared AFTER 'utilities' — the package base then outranks every Tailwind utility`,
-      })
-    }
+  const line = lines[importLine] ?? ''
+  const layerMatch = line.match(/layer\(([a-z0-9-]+)\)/i)
+  if (!layerMatch) {
+    out.push({
+      file: TAILWIND_ENTRY,
+      line: importLine + 1,
+      detail:
+        'imports the package stylesheet WITHOUT a cascade layer — unlayered CSS outranks Tailwind utilities, which flattens every heading',
+    })
+    return out
+  }
+
+  const layerName = layerMatch[1] as string
+  const orderDecl = css.match(/@layer\s+([a-z0-9,\s-]+);/i)
+  const order = orderDecl?.[1]?.split(',').map((n) => n.trim()) ?? []
+  if (!order.includes(layerName)) {
+    out.push({
+      file: TAILWIND_ENTRY,
+      line: importLine + 1,
+      detail: `imports into layer(${layerName}) but no @layer declaration names it — layer order then depends on emission order`,
+    })
+  } else if (order.includes('utilities') && order.indexOf(layerName) > order.indexOf('utilities')) {
+    out.push({
+      file: TAILWIND_ENTRY,
+      line: importLine + 1,
+      detail: `layer(${layerName}) is declared AFTER 'utilities' — the package base then outranks every Tailwind utility`,
+    })
   }
   return out
 }
@@ -527,7 +511,7 @@ const RULES: OwnershipRule[] = [
     id: 'package-stylesheet-import',
     mode: 'zero',
     rule: 'ruleset §the package stylesheet is the ONE stylesheet a consumer loads, and it must not outrank Tailwind while both are live (#799, epic #802)',
-    fix: "Each app entry stylesheet must (a) import 'component-lib/styles/index.css' and (b) import it into a cascade layer declared BEFORE Tailwind's `utilities` — the shape is `@layer theme, base, su-base, components, utilities;` at the top and `@import 'component-lib/styles/index.css' layer(su-base);` beside the theme.css import.",
+    fix: "Every Tailwind consumer imports 'component-lib/styles/tailwind.css' (the story catalog: './tailwind.css') and never 'tailwindcss' itself. That one entry imports './index.css' into a cascade layer declared BEFORE Tailwind's `utilities`: `@layer theme, base, su-base, components, utilities;` at the top and `@import './index.css' layer(su-base);` after the theme.css import.",
     scan: scanPackageStylesheetImport,
   },
   {
@@ -541,13 +525,10 @@ const RULES: OwnershipRule[] = [
     id: 'pc-class-defined',
     mode: 'ratchet',
     rule: 'tailwind-removal plan §ratchet — the Dashboard `.pc-*` scope only shrinks (#802, phase 5)',
-    fix: 'Do not add a `.pc-*` class. Dashboard styling that needs a new rule goes into a `.su-*` class in component-lib/src/styles/index.css (phase 5 folds the `.pc-*` scope into it). If you removed one, lower the baseline with --update-baseline.',
+    fix: "Do not add a `.pc-*` class. Dashboard styling that needs a new rule is a style object from `tokens.ts`, or a stateful rule in ITUN's own stylesheet — never component-lib's index.css, which srd loads too. If you removed one, lower the baseline with --update-baseline.",
     scan: scanPcDefinitions,
   },
 ]
-
-/** The report-only heuristic — printed as a warning, never gated. */
-const REPORT_ONLY_ID = 'app-unbound-component'
 
 // ── preconditions ───────────────────────────────────────────────────────────
 
@@ -574,13 +555,12 @@ function preflight(root: string): void {
    * assertion fails — which is the point. See tools/lib/workspaceCoverage.ts.
    */
   assertCoversWorkspaces('styling ownership', APP_DIRS, {
-    'apps/discord-bot': 'ships no stylesheet — it renders Discord embeds, not DOM.',
+    'apps/discord-bot':
+      'ships no stylesheet — it renders Discord Components V2 containers, not DOM.',
     'apps/su-assets': 'a Worker that serves image bytes and short error strings; no CSS, no DOM.',
     'packages/observability': 'Sentry wiring only; no components and no stylesheet.',
     'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',
-    'packages/component-lib':
-      'is the OWNER this gate checks apps against, not an app to audit. Its dashboard ' +
-      'CSS (src/styles/dashboard/) is read separately via DASHBOARD_DIR.',
+    'packages/component-lib': 'is the OWNER this gate checks apps against, not an app to audit.',
   })
 }
 
@@ -596,5 +576,4 @@ export const stylingOwnership: RuleSet = {
     for (const rule of RULES) out[rule.id] = rule.scan(c)
     return out
   },
-  advisory: (root) => ({ id: REPORT_ONLY_ID, findings: scanUnboundComponents(corpus(root)) }),
 }

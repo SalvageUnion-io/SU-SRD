@@ -9,11 +9,8 @@ History is in git; the decisions behind it close the file as
 then Read with an offset and limit for the section you need; never Read the
 whole file.
 
-Five docs stay separate: [architecture/dashboard.md](architecture/dashboard.md)
-(the Dashboard as built),
-[architecture/dashboard-redesign.md](architecture/dashboard-redesign.md) (its
-done plan, whose D1–D12 code cites), [architecture/npc-builder.md](architecture/npc-builder.md)
-(a plan, so its unbuilt paths are exempt from the path check),
+Three docs stay separate: [architecture/dashboard.md](architecture/dashboard.md)
+(the Dashboard as built; [ADR-038](#adr-038) is its one decision record),
 [design-system/ruleset.md](design-system/ruleset.md) (the design laws, cited by
 section number) and [design-system/tailwind-removal.md](design-system/tailwind-removal.md)
 (the live Tailwind-removal plan).
@@ -21,7 +18,7 @@ section number) and [design-system/tailwind-removal.md](design-system/tailwind-r
 **Sections:** [Packages and contracts](#packages-and-contracts) ·
 [Data flow](#data-flow) · [Accounts and Games operations](#accounts-and-games-operations) ·
 [Rules and ITUN surfaces](#rules-and-itun-surfaces) · [Combat loop](#combat-loop) ·
-[Display system](#display-system) · [Component catalog (Ladle)](#component-catalog-ladle) ·
+[Display system](#display-system) · [Component catalog](#component-catalog) ·
 [Discord bot as a Game client](#discord-bot-as-a-game-client) ·
 [SEO and accessibility](#seo-and-accessibility) · [CI and deploy](#ci-and-deploy) ·
 [Dependencies](#dependencies) · [Services and agent tooling](#services-and-agent-tooling) ·
@@ -45,17 +42,20 @@ Private, never published. The dataset's public interface is srd's CORS-enabled
 JSON API: `apps/srd/src/endpoints/schemaJson.ts`, `schemaDefinitionJson.ts`,
 `itemJson.ts` (plus `searchIndexJson.ts`, `llmsTxt.ts`), registered in
 `apps/srd/ssg/endpoints.ts`, documented at `apps/srd/src/pages/api.page.tsx`
-([ADR-014](#adr-014)).
+([ADR-014](#adr-014), [ADR-040](#adr-040)). The package has no version or
+release stream.
 
-- **Entry points** `.`, `./rules`, `./zod`, `./schema-definitions`,
+- **Entry points** `.`, `./rules`, `./zod`,
   `./testing`, each `types` and `default` on one `lib/*.ts` source (the
   `exports` map in `packages/salvageunion-reference/package.json`); no build.
   `./rules` is the pure rules math ([ADR-006](#adr-006)).
   `./zod` is the one Zod import ([ADR-013](#adr-013)).
-  `./schema-definitions` (`getJsonSchemaDefinition`) keeps the ~783 KB JSON
-  Schema corpus off the barrel; only srd's `/schema/[id].schema.json` endpoint
-  imports it. `./testing` is test-only: `entityFixture(schema, fields)` and
-  `malformed<T>(value)`, never `as unknown as SURef*`. `./data/*` is the JSON.
+  `./testing` is test-only: `entityFixture(schema, fields)` and
+  `malformed<T>(value)`, never `as unknown as SURef*`. `./data/*` and
+  `./schemas/*` are the committed JSON files, which srd's
+  `/schema/[id].json` and `/schema/[id].schema.json` serve verbatim
+  (`apps/srd/src/lib/referenceFiles.ts`); each schema's `$id` is the URL it is
+  served at.
 - **The barrel is an explicit list.** `lib/index.ts` and `lib/rules/index.ts`
   name each export that has an outside consumer; no `export *`, no Zod schemas.
   `lib/index.ts` is the API's source of truth: 27 model accessors, `.get` /
@@ -100,13 +100,18 @@ A workspace whose tests touch `SalvageUnionReference` lists the shared
 
 TypeScript source, no build ([ADR-011](#adr-011)).
 Exports `.` (`src/index.ts`, the source of truth; never trust a count),
-`./design/tokens`, `./styles/dashboard.css`, `./styles/index.css`,
-`./styles/theme.css`. `src/design/tokens.ts` is a zero-import leaf for
-consumers with no stylesheet (the itun og:image renderer); never copy a token
-literal (`tokens.parity.test.ts`). Code only one app renders lives in that app
-(`apps/itun/src/components/`, `apps/srd/src/components/`) until a second app
-renders it; the Dashboard's `.pc-*` styles stay in `src/styles/dashboard/`.
-Internal on purpose: no `Tooltip`; `EntityTooltip` and `ConditionChip` are
+`./design/tokens`, `./styles/index.css`, `./styles/tailwind.css`,
+`./styles/theme.css`. `src/styles/theme.css` is the one token set;
+`src/design/tokens.ts` mirrors it as a zero-import leaf for consumers with no
+stylesheet; never copy a token literal (`tokens.parity.test.ts`). The library
+owns the design system: primitives (the Atoms, Containers and Foundations of
+its catalog) and the entity display system, whether one app renders them or
+two. A composition only one app renders, and its styles, live in that app
+(`apps/itun/src/components/`, `apps/srd/src/components/`, the Dashboard's
+`.pc-*` rules in `apps/itun/src/styles/dashboard/`) until a second app renders
+it. `bun run check barrel-consumers` enforces both halves: it fails an export
+no app imports, and a single-app export whose story files it under
+`Compositions/`. Internal on purpose: no `Tooltip`; `EntityTooltip` and `ConditionChip` are
 sub-parts. Customise through generic slot props and hooks that return them.
 
 ### component-lib dependencies
@@ -136,18 +141,19 @@ persistence, router or Zustand.
 
 The reference package, component-lib, `idb` (`src/lib/db/`),
 `@tanstack/react-router`, `zustand` (`src/stores/`), `@base-ui/react`, and
-Convex (`apps/itun/convex/`). The itun Worker serves the one read left of the
-retired snapshot API from R2.
+Convex (`apps/itun/convex/`).
 
 ### Tailwind source paths
 
+One entry, `packages/component-lib/src/styles/tailwind.css`, imports Tailwind,
+`theme.css` and `index.css` (into `layer(su-base)`) and scans the library
+(`@source '..'`, stories and tests excluded). `@source` resolves relative to
+the file that declares it, so the scan is the same for every consumer:
+
 ```css
-/* apps/srd/src/styles/global.css */
-@source "../../../../packages/component-lib/src";
-/* apps/itun/src/index.css */
-@source "../../../packages/component-lib/src";
-/* both, after it */
-@import 'component-lib/styles/theme.css';
+/* apps/itun/src/index.css, apps/srd/src/styles/global.css */
+@import 'component-lib/styles/tailwind.css';
+@source not './**/*.stories.tsx'; /* each app's own stories (srd: '../**') */
 ```
 
 ### discord-bot
@@ -175,8 +181,7 @@ Three connection modes ([ADR-030](#adr-030),
 
 Solo is read-only: building needs an account (ADR-034 decision 1, as
 amended), so the Roster and the `/…/new` routes show a sign-in panel and the
-store refuses an anonymous write. A build with no `VITE_CONVEX_URL` is
-permanently Solo. Solo has
+store refuses an anonymous write. Solo has
 no Dashboard: it opens only for a pilot in a Game with a Mediator
 ([ADR-038](#adr-038)), so Solo play is on the live sheet. Offline,
 a signed-in user is read-only and never falls back to IndexedDB, which would
@@ -187,21 +192,30 @@ never `navigator.onLine` or an auth flag.
 ### IndexedDB cache
 
 `apps/itun/src/lib/db/` via `idb` ([ADR-002](#adr-002)):
-database `itun-v1`, `DB_VERSION = 17` (`src/lib/db/index.ts`), stores in
+database `itun-v1`, `DB_VERSION = 19` (`src/lib/db/index.ts`), stores in
 `src/lib/db/stores.ts`: `pilots`, `mechs`, `crawlers`, `mechPatterns`
-(immutable builds), `encounterNpcs`, `softLinks`, `changeLog` (autoIncrement
-`seq`, `by-entity` index, append-only) and the retired `workspaces` (kept for
-migrations v10/v13).
+(immutable builds), `encounterNpcs`, `softLinks` and `meta`.
+
+- **One account's cache.** `meta` holds one row, `{ userId }`
+  (`src/lib/db/cacheMeta.ts`): the account whose rows these are. Sign-out
+  empties the cache (`clearCache`). So does a signed-in boot whose `userId`
+  differs (`src/lib/account/cacheOwner.ts`). Nothing in the cache is ever sent
+  up.
+- `ShelfSync` adopts a `listMine` row when its `updatedAt` is newer than the
+  version this browser last saw (`planRowSync`). A pilot or mech write sends
+  that version back, and `upsertByAppId` refuses it as stale when the row has
+  moved on.
 
 - `makeStore(getDb, schema, storeName, opts)` (`src/lib/db/crud.ts`) parses
-  with Zod on write; reads use `schema.strip()` so a drifted record loses
-  unknown fields instead of bricking hydration. Pilot, Mech, Crawler stamp
+  with Zod on write and strictly on read: an unreadable record is skipped with
+  a warning and refilled from Convex. Pilot, Mech, Crawler stamp
   `updatedAt`; SoftLink and MechPattern only `createdAt`.
-- Stores are created in `openDB`'s `upgrade`; record rewrites are one file per
-  version in `src/lib/db/migrations/`, registered in `migrations/index.ts`, run by `runMigrations()` in the
-  `versionchange` transaction, so a throw aborts the whole upgrade.
-- `deleteEntityWithSoftLinks()` removes an entity and its links in one
-  transaction.
+- An upgrade (`openDB`'s `upgrade`) rewrites no record: it deletes every store
+  an older version created and creates the current set empty, and `ShelfSync`
+  and `WiringSync` refill them from Convex on the next signed-in load. A schema
+  change bumps `DB_VERSION` and nothing else.
+- `atomicWrite()` writes several records in one transaction; a delete with
+  `pruneSoftLinks` removes the entity's links with it.
 
 ### Convex, the server of record
 
@@ -217,7 +231,7 @@ the entity rows.
   timestamps; the Zod schemas in `apps/itun/src/lib/schemas/` own the shape, so
   **every mutation parses with Zod before persisting**.
 - `selectBackend()` (`src/stores/entityBackend.ts`) answers `'remote'`,
-  `'signedOut'` (anonymous or no Convex URL) or `'blocked'` (throws
+  `'signedOut'` (anonymous) or `'blocked'` (throws
   `WritesBlockedOffline`; surfaces check `canWrite`). In `'remote'`,
   `commitEntityWrite()` and its siblings write by app id (`appId` column) and
   are **awaited**: a refused write did not happen.
@@ -230,15 +244,18 @@ the entity rows.
   (`src/lib/links/linkRules.ts`, [ADR-037](#adr-037)),
   never across containers.
 
-**Every store reaches Convex:** `commitEntityWrite` (pilots, mechs, crawlers)
+**Every store reaches Convex:** `commitEntityWrite` (pilots, mechs, crawlers),
+`commitTransfer` (a cross-entity transfer, one `entities.transfer` mutation)
 and `commitSoftLink` from `entityStore.ts`, `commitPatternWrite` from
 `patternStore.ts`, `commitNpcWrite` from `encounterStore.ts`,
-`commitChangeLog` from `entityChangeLog.ts`. `apps/itun/test/convex/containerParity.test.ts`
+and `commitChangeLog` from `entityChangeLog.ts` sends the Change Log, whose only
+copy is the Convex `changeLog` table. `apps/itun/test/convex/containerParity.test.ts`
 asserts each store has a table and calls its commit; a new store needs both.
-The Change Log commit is the one fire-and-forget write. If the schema cannot
+The Change Log commit is the one fire-and-forget write, and reports its own
+failure. If the schema cannot
 say where a record lives, the schema moves; nothing is local-only. No change may
 leave data reachable from fewer places than before; a gate asserts the row is
-in Convex, not the mechanism. An anonymous user's way out is export to file.
+in Convex, not the mechanism.
 
 ### Zustand stores
 
@@ -246,10 +263,9 @@ in Convex, not the mechanism. An anonymous user's way out is export to file.
 `entityStore` (pilots, mechs, crawlers, softLinks) reaches persistence through
 `dbStoreFor(type)`. `list(type)` hydrates
 lazily, then reads synchronously. `update()` validates, commits to Convex
-(remote only), writes the backend store, then `set()`s, broadcasts
-(`lib/db/broadcast`) so other tabs re-read, and emits the Change Log; a refused
-write changes nothing. `entityStore.transfer()` moves value between entities in
-one transaction. `activeContainerStore` is the current Game or Shelf. There is
+(remote only), writes the backend store, then `set()`s and emits the Change
+Log; a refused write changes nothing. `entityStore.transfer()` moves value between entities in
+one Convex mutation and one IndexedDB transaction. `activeContainerStore` is the current Game or Shelf. There is
 no TanStack Query: reads are the hooks in `src/hooks/entities/` and
 `convex/react`; do not add a query cache.
 
@@ -259,114 +275,76 @@ The one account-free share is the public sheet
 ([ADR-032](#adr-032)): `/p/:kind/:appId`, opt-in
 through the `publicRead` column, read by `publicSheet.get`, toggled in
 `ShareStatusDialog` → `PublicSheetPanel`. Snapshots are
-retired ([ADR-036](#adr-036)); the blobs stay
-read-only in `su-itun-snapshots`. `GET /api/snapshots/:id`
-(`src/lib/snapshot/handlers.ts`) answers only `{ kind, appId }`, and posted
-`/s/:id` links still unfurl (`/og/s/:id.png`). The `/s/$id` loader
-(`src/routes/s/$id.tsx`) calls `retrieveSnapshotIdentity`
-(`src/lib/snapshot/client.ts`); `SnapshotLinkView` redirects to the public
-sheet or shows a retired page. `snapshotIdentity`
-(`src/lib/snapshot/identity.ts`) treats blob and answer as untrusted.
+retired ([ADR-036](#adr-036)): `src/routes/s/$id.tsx` is a static page saying
+so, and reads nothing.
 
 ## Accounts and Games operations
 
-Setup and diagnosis: the `convex-deploy-verify` skill. Repairs, rotations,
-switching production on and error reporting:
-[`convex-maintenance`](../.claude/skills/convex-maintenance/SKILL.md). Values
-here are public; the OAuth client _secret_ lives only on the deployments.
+Procedures (setting a deployment up, the sign-in probe, rotations, error
+reporting, one-off repairs): the
+[`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill. Values here are
+public; secrets live only on the deployments.
 
-|  | Dev | Production |
-| --- | --- | --- |
-| Deployment | `dev/alex-jarvis` (`perfect-donkey-72`) | `exuberant-porpoise-183` |
-| Client URL (`VITE_CONVEX_URL`) | `https://perfect-donkey-72.convex.cloud` | `https://exuberant-porpoise-183.convex.cloud` |
-| HTTP actions (`VITE_CONVEX_SITE_URL`) | `https://perfect-donkey-72.convex.site` | `https://exuberant-porpoise-183.convex.site` |
-| `SITE_URL` (the **frontend** origin) | `http://localhost:5173` | `https://intheunionnow.com` |
+|  | Production |
+| --- | --- |
+| Deployment | `exuberant-porpoise-183` |
+| Client URL (`VITE_CONVEX_URL`) | `https://exuberant-porpoise-183.convex.cloud` |
+| HTTP actions (`VITE_CONVEX_SITE_URL`) | `https://exuberant-porpoise-183.convex.site` |
+| `SITE_URL` (the **frontend** origin) | `https://intheunionnow.com` |
 
 Project `alex-jarvis:suref-itun`
 ([dashboard](https://dashboard.convex.dev/t/alex-jarvis/suref-itun)). The
 production origin is `https://intheunionnow.com`, never a `workers.dev`
 host. `apps/srd` has no accounts.
 
+Development has no cloud deployment. `bun run dev:itun` runs a **local**
+deployment (`convex dev --start vite`) and signs in through the test seam,
+`ITUN_TEST_AUTH` on the local deployment and `VITE_TEST_AUTH` in the dev
+server, not Discord. One-time setup: the
+[`convex-ops`](../.claude/skills/convex-ops/SKILL.md#local-backend) skill.
+
+### Deployment variables
+
+The Convex deployment's environment, all seven names. Without the first five,
+Discord sign-in fails.
+
+| Variable | What it is | Unset |
+| --- | --- | --- |
+| `AUTH_DISCORD_ID` | the Discord application's OAuth2 client id | sign-in fails |
+| `AUTH_DISCORD_SECRET` | its OAuth2 client secret (32 characters) | sign-in fails |
+| `SITE_URL` | the **frontend** origin, not a `.convex.site` host | the OAuth callback 500s with `Missing environment variable SITE_URL` |
+| `JWT_PRIVATE_KEY` | session-signing key, PKCS8 PEM with newlines as spaces; one pair with `JWKS` | sign-in fails after Discord redirects back |
+| `JWKS` | its public half, `{"keys":[…]}` | as above |
+| `ITUN_BOT_SECRET` | the bot's bearer credential, the same value as the bot Worker's secret | the `/bot/*` routes are off |
+| `DISCORD_PUBLIC_KEY` | the Discord application's public key, as committed in `apps/discord-bot/wrangler.jsonc` | `/su invite` answers that invites are not switched on |
+
+`ITUN_TEST_AUTH` belongs on a local or CI deployment only, never production.
+`ITUN_BOT_SECRET` can act as any Discord user who has linked an account
+(never their shelf or `encounterNpcs`); it lives in 1Password and on the two
+deployments, never in git.
+
 ### Convex error reporting
 
 Convex reports through the dashboard's Exception Reporting integration, not
 code: queries and mutations have no network egress. It feeds Sentry project
 `itun-convex` (org `susrd`, EU region). A quiet project is not evidence of a
-healthy backend; enabling and re-verifying are in the `convex-maintenance`
-skill. Client side, `src/lib/connection/serverError.ts` (`serverMessage`,
+healthy backend; re-verifying by probe is in the `convex-ops` skill. Client
+side, `src/lib/connection/serverError.ts` (`serverMessage`,
 `isServerRefusal`) is the only way to tell a `ConvexError` refusal from a
 redacted defect; never string-match `'Server Error'`.
 
 ### Discord
 
 One application serves the bot and web sign-in; resetting the OAuth2 secret
-leaves the bot token alone. One redirect URI per deployment
+leaves the bot token alone. Its one redirect URI is production's
 (`@convex-dev/auth` mounts `/api/auth/callback/` plus provider id `discord`):
 
 ```
-https://perfect-donkey-72.convex.site/api/auth/callback/discord      (dev)
-https://exuberant-porpoise-183.convex.site/api/auth/callback/discord (prod)
+https://exuberant-porpoise-183.convex.site/api/auth/callback/discord
 ```
 
-### Required deployment variables
+### Secrets and denormalised columns
 
-**All three, or sign-in fails**, per deployment:
-
-```bash
-bunx convex env set AUTH_DISCORD_ID     <client-id>
-bunx convex env set AUTH_DISCORD_SECRET <client-secret>
-bunx convex env set SITE_URL            <frontend origin>
-# add --prod to target production
-```
-
-`SITE_URL` is the one that bites. It is the **frontend** origin, _not_
-`VITE_CONVEX_SITE_URL`, nothing prompts for it, and omitting it fails with an
-opaque `Missing environment variable SITE_URL` 500 from the OAuth callback
-rather than anything pointing at configuration.
-
-**For the Discord bot**, one more on the Convex deployment and two on the bot's
-Cloudflare Worker, set with `wrangler secret put`:
-
-```bash
-# Convex — enables the /bot/* route. UNSET disables the whole surface, so a
-# deployment that has not opted in cannot be talked to by a bot at all.
-bunx convex env set ITUN_BOT_SECRET <a long random string>
-
-# The bot Worker (su-discord-bot) — both, or the bot stays in Solo mode.
-ITUN_CONVEX_SITE_URL=https://<deployment>.convex.site
-ITUN_BOT_SECRET=<the same value>
-```
-
-**For `/su invite`** ([ADR-039](#adr-039)), one
-more on the Convex deployment. It is the Discord application's **public** key —
-the same value committed in `apps/discord-bot/wrangler.jsonc` — so it is not a
-secret and may be passed as an argument:
-
-```bash
-bunx convex env set DISCORD_PUBLIC_KEY <the application's public key, hex>
-```
-
-Unset, `/su invite` answers "invites from Discord are not switched on" and
-nothing else changes. Set to the wrong application's key, every `/su invite`
-fails as unverified while every other command keeps working — check this
-value first when only invites break.
-
-`ITUN_CONVEX_SITE_URL` is the **HTTP-actions** origin (`.convex.site`), not the
-client URL (`.convex.cloud`) and not the web origin. Getting it wrong presents
-as every Game command reporting the deployment unreachable — which is honest but
-points at the network rather than at the typo.
-
-The secret is a **bearer credential**: whoever holds it can act as any Discord
-user who has linked an account. That is bounded (it cannot invent a membership,
-reach an unlinked account, read somebody's shelf, or see `encounterNpcs`) but it
-is real. Store it in 1Password, never in git, and rotate on any suspicion.
-
-### Verifying, secrets and denormalised columns
-
-- **Probe:** `curl -s -D - -o /dev/null https://<deployment>.convex.site/api/auth/callback/discord`
-  gives **302** to `SITE_URL` (correct), **500** `Missing environment variable`
-  (`SITE_URL` unset) or **404** (auth routes not mounted; check `convex/http.ts`).
-  The control `/api/auth/callback/bogusprovider` must be **500**.
 - **Secrets:** `.env.local` is gitignored and holds only URLs.
   `bunx convex env get` prints in the clear and exits 0 when missing; test by
   length (`| tr -d '[:space:]' | wc -c`). **`convex env list` prints every
@@ -378,12 +356,9 @@ is real. Store it in 1Password, never in git, and rotate on any suspicion.
   `internalMutation` from `model/entities.ts`** (Biome refuses the generated
   builders). A dashboard-written row bypasses them. `mechPatterns` and
   `encounterNpcs` lift `appId` into a column behind `by_owner_app_id`.
-- **Maintenance:** `convex/maintenance.ts` is operator-only (`bunx convex run`).
-  The `convex-maintenance` skill holds each procedure: enabling error reporting,
-  `dedupeAppIds`, `repairSoftLinks`, switching production on (no rollback by
-  unsetting `VITE_CONVEX_URL`), rotating `JWT_PRIVATE_KEY` / `JWKS` (signs
-  everyone out) and `AUTH_DISCORD_SECRET`. The workflow is
-  [CI: production maintenance](#ci-production-maintenance).
+- **No repair lives in the repo.** A one-off repair ships as an internal
+  function, runs once from the Convex dashboard's function runner, and is
+  deleted with its counts recorded.
 
 ## Rules and ITUN surfaces
 
@@ -457,16 +432,16 @@ Overload, Critical Damage at 0 SP, meltdown). Free Edit sets the same states by
 hand.
 
 Every write goes to the per-entity, append-only Change Log, tagged
-`transaction` / `override` / `manual`, emitted at `entityStore.update`
-(`lib/db/changeLog.ts`, `lib/schemas/changeLog.ts`), read in `ChangeLogDrawer`
-behind the sheet menu. Public sheets show no history; replay is unbuilt. The
+`transaction` / `override` / `manual`, emitted at `entityStore.update` into the
+Convex `changeLog` table (`apps/itun/convex/changeLog.ts`), read in
+`ChangeLogDrawer` behind the sheet menu through `changeLog.forEntity`. Public sheets show no history; replay is unbuilt. The
 overridden-stat marker shows on the Live Sheet only.
 
 **Status:** the Wizard enforces hard (`PilotWizard.tsx`, `MechWizard.tsx`,
 `CrawlerBuilder.tsx`; `Next` gated by `lib/rules/creation.ts`; exit via
 `OffRulesEscape`). The Dashboard is built at `/dashboard/$pilotId`
 ([architecture/dashboard.md](architecture/dashboard.md),
-[ADR-015](#adr-015)). The Live Sheet is
+[ADR-038](#adr-038)). The Live Sheet is
 Free Edit plus the list above, with cap overrides and revert. Place a feature
 by mode, then rule class; resolve an ambiguous case here before building, and
 update the matrix when a border moves.
@@ -568,8 +543,8 @@ absolute overlay 3px), ghosted sub-header tones cannot be derived inside `Card`,
 the shells resolve the `cardClick` fallback in opposite directions (first-wins
 vs last-wins), and the entity header tells a stat cluster from flavour prose
 where `Card`'s header slot is opaque. They share `displayMode`, the controls contract,
-`CardFootMeta` and `foldStatusControl`. Grids use `EntityGrid` /
-`EntityGridRow`. Never hand-assemble a `label | value` readout: that is `Stat`
+`CardFootMeta` and `foldStatusControl`. Grids are `MasonryColumns` of ITUN's
+`EntityGridRow` cells. Never hand-assemble a `label | value` readout: that is `Stat`
 (ruleset §3.7).
 
 **Sizing:** `size` (`large | medium | small`) × `extent`
@@ -609,46 +584,32 @@ and `SchemaViewerIsland.tsx`; ITUN layers selection and status via `controls`,
 with `MechItemCard.tsx` as the reference; `shared/EntitySearcher.tsx` is the
 add-modal body.
 
-## Component catalog (Ladle)
+## Component catalog
 
-One catalog in `packages/component-lib`: `bun run ladle`, and
-`bun --filter component-lib ladle:build` into `build-ladle/` (CI). It globs the
-library's `src/`, `apps/itun/src/components/` and `apps/srd/src/components/`.
+One catalog in `packages/component-lib`: `bun run stories` (the `stories`
+launch config, port 61000) serves it from the package's own Vite dev server —
+`index.html` mounts the package-root `catalog.tsx`, and nothing builds it. It globs
+the library's `src/`, `apps/itun/src/components/` and
+`apps/srd/src/components/`, lists every story in the sidebar and renders one at
+`#<story-id>`; it opens on `foundations--styleguide--overview`.
 Story rules: [`packages/component-lib/CLAUDE.md`](../packages/component-lib/CLAUDE.md),
-enforced by `src/story-coverage.test.ts`.
+enforced by `src/story-coverage.test.ts`; typecheck is what proves a story
+compiles.
 
-- `.ladle/config.mjs` runs in Node and the browser; `storyOrder` is
-  re-evaluated without module scope, so it stays self-contained. It opens on
-  `foundations--styleguide--overview`.
-- `.ladle/components.tsx` wraps every story in the paper canvas and a `use()` +
-  `Suspense` preload gate; without it stories render silently blank. Stories
-  add no outer `bg-paper`.
-- **Never add `@vitejs/plugin-react`** to `vite.config.ts`: a second React
-  plugin blanks every story (`Missing field 'moduleType'`).
-- `src/styles/ladle.css` imports the package stylesheet into `layer(su-base)`
-  and points `@source` at all three roots. Only the `a11y` addon is on.
+- `catalog.tsx` preloads the reference data before it imports any story
+  module, and frames every story on the paper canvas; stories add no outer
+  `bg-paper`.
+- `src/styles/catalog.css` imports the shared `tailwind.css` entry and adds
+  `@source` for the stories and the two apps' component folders.
 - **Size ladder** (`src/styles/sizing.ts`): Full, **Compact** (default), Mini;
   offer only real rungs, compose from `RUNG_TYPE` / `RUNG_INLINE_PADDING` as
   `Badge`'s `STAMP_SIZE` does.
 - **Stories:** `Story` from `src/stories/_harness.tsx` (apps:
   `component-lib/stories/harness`); a static-literal default `title`; groups
   Foundations, Atoms, Containers, Compositions (sub-groups Entity, Catalog,
-  Dashboard, Wizard, Shell; edit `SUBGROUPS` and `storyOrder` together). No
+  Dashboard, Wizard, Shell), listed once as `storyGroups` / `storySubgroups`
+  in `src/stories/_groups.ts`, which the guard and the sidebar order both read. No
   args or controls; real SRD data; don't churn export names.
-
-### Ladle shell relayout
-
-`appendToHead` turns the nav (`.ladle-aside`) into a right-edge overlay toggled
-by a button outside React, state as a class on `<html>`; desktop only. It
-targets Ladle's internal classes (`.ladle-aside`, `.ladle-main`,
-`.ladle-addons`): re-verify them on any upgrade.
-
-### Ladle pin and type imports
-
-`@ladle/react` is pinned to 5.1.1; its types drag Ladle's UI source under
-`tsc`, which TypeScript 7 rejects, so nothing imports it (Biome's
-`noRestrictedImports`). To bump: `ladle:build`, check no story is blank,
-re-verify the relayout.
 
 ## Discord bot as a Game client
 
@@ -657,15 +618,15 @@ An authenticated client of ITUN Games ([ADR-030](#adr-030)):
 `/su game bind|unbind|info`, `/su invite` ([ADR-039](#adr-039))
 and roll attribution on `/su roll`, on the `su-discord-bot` Worker. Conventions:
 [`apps/discord-bot/CLAUDE.md`](../apps/discord-bot/CLAUDE.md); variables:
-[above](#required-deployment-variables).
+[deployment variables](#deployment-variables).
 
 It calls `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`); every `botClient`
 function is internal. Write both credential halves in one pass (one
 `openssl rand` piped to `convex env set` and `wrangler secret put`, never
 printed): a mismatch fails as `unauthorized`. Verify without the secret:
 `POST /bot/<op>` with none is **404** while unset, **401** once set; the
-Worker's `GET /health` shows `configured.itun: true` and `mode: connected`
-(presence only). Only a real Game command proves a match.
+Worker's `GET /health` is 503 until both are set and shows `configured.itun:
+true` (presence only). Only a real Game command proves a match.
 
 It reads widely and writes narrowly: only existing mutations, only facts
 modelled as a transaction or Change Log proposal. Not for: creating or editing
@@ -687,13 +648,13 @@ mutations for convenience (except `botClient.invite`, via
 - **Per-user OAuth: rejected.**
 
 No linking step: `authAccounts` stores the snowflake as `providerAccountId`,
-resolved by `model/bot.ts#userByDiscordId`; `users.discordId` is not read. Modes: Solo (variables unset; roll
-and lookup only), Connected, Degraded (Convex down; reference commands work).
-`/su roll` and `/su lookup` behave the same in every mode. `resolveActor`
+resolved by `model/bot.ts#userByDiscordId`. There is always a
+client: when Convex is down or unreachable every call is `unavailable`, Game
+commands say so ephemerally, and `/su roll` and `/su lookup` behave the same. `resolveActor`
 returns `null` alike for no binding, account or membership; passive paths stay
 silent, explicit ones reply ephemerally. Open: Mediator alerts to the channel
 (`proposals.broadcast`, watermarked by the Change Log) and Apply / Decline
-buttons. Gaps: `/su crew` maxima (`apps/discord-bot/src/gameEmbed.ts`) ignore
+buttons. Gaps: `/su crew` maxima (`apps/discord-bot/src/gameCards.ts`) ignore
 the pilot's `PilotingContext`; unclaimed entities (`ownerId: null`) render
 **Unclaimed**, never a blank owner.
 
@@ -712,10 +673,11 @@ cross-document `@view-transition` replace router JS.
 (`llmsTxt.ts`; ships byte for byte, never reflow), the JSON API
 (`/schema/{schemaId}.json`, `/schema/{schemaId}.schema.json`,
 `/schema/{schemaId}/item/{itemId}.json`; CORS in `public/_headers`), the
-search index (`searchIndexJson.ts`). `ssg/pwa.ts` runs `workbox-build`'s
-`generateSW` (`navigateFallback: null`, `skipWaiting`, `clientsClaim`,
-navigations `NetworkFirst` with a 3 s timeout);
-`src/runtime/chunkRecovery.client.ts` reloads once when chunks are gone.
+search index (`searchIndexJson.ts`). The service worker is `vite-plugin-pwa`'s
+`generateSW` during `vite build`, configured by `ssg/pwa.ts`
+(`navigateFallback: null`, `skipWaiting`, `clientsClaim`, navigations
+`NetworkFirst` with a 3 s timeout);
+`installChunkRecovery` reloads once when chunks are gone.
 
 **JSON-LD** via `meta.structuredData`: `WebSite`, `CollectionPage`, `ItemPage`,
 `BreadcrumbList` (`AppBar.tsx`). Meta descriptions are cut to
@@ -735,12 +697,12 @@ without it). `src/lib/staticPaths.ts` excludes meta schemas
 `getItemStaticPaths()`; routes are slugs, never UUIDs;
 `apps/srd/public/robots.txt` names the sitemap.
 
-**Accessibility:** Biome's `a11y` group (`biome.jsonc`). `tools/a11y-scan.ts`
-(Playwright + axe-core: `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`,
-`wcag22aa`, `best-practice`) runs in CI over `tools/a11y-baseline.json`
-and `tools/a11y-baseline-itun.json`, at desktop and `--device 'Pixel 7'`; a
-stale entry fails until `--update-baseline`. Locally:
-`bun tools/a11y-scan.ts http://localhost:4321 / /schema/chassis/ /about/`.
+**Accessibility:** Biome's `a11y` group (`biome.jsonc`). Each app's
+`e2e/a11y.e2e.ts` (`tools/lib/a11yScan.ts`: axe-core `wcag2a`, `wcag2aa`,
+`wcag21a`, `wcag21aa`, `wcag22aa`, `best-practice`) scans the pages in
+`tools/a11y-baseline.json` and `tools/a11y-baseline-itun.json` at desktop and
+as a Pixel 7; a stale entry fails until a run with `A11Y_UPDATE_BASELINE=1`.
+Locally: `bunx playwright test a11y.e2e.ts` in the app.
 Landmarks: two labelled `<nav>`s in `AppBar.tsx`, `<main>` in `BaseLayout.tsx`,
 `Footer.tsx`. One `<h1>` per page (entity pages pass `titleAs="h1"` from `EntityView.tsx`
 to `EntityCardHeader`).
@@ -764,23 +726,15 @@ holds sub-headers and footers at 4.5:1 and names the header tones at 3:1.
 
 ### CI: triggers
 
-`pull_request` has **no `branches:` filter**: it matches the base branch, so
-stacked PRs got no checks and could not merge. CodeQL likewise. `merge_group:`
-stays dormant: it must be live on `main` before a merge queue is enabled.
+`ci.yml` runs on `pull_request` only, with **no `branches:` filter**: it
+matches the base branch, so stacked PRs got no checks. CodeQL likewise, plus
+`push` to `main` and weekly. The ruleset is strict, so a merged tree already
+passed `CI Success` up to date with `main`; the deploy fires on the push.
 
 ### CI: concurrency
 
-PR runs cancel superseded runs; **`main` never cancels** (group `github.sha`),
-because the deploy fires on CI's `workflow_run` success.
-
-### CI: reusing the PR's run
-
-On a push to `main`, `changes` finds the merged PR (`GET
-/repos/{owner}/{repo}/commits/{sha}/pulls`) and reuses its result only if
-`HEAD^{tree}` equals the PR head's tree and every latest `CI Success` check-run
-on that head succeeded; otherwise everything runs. It holds `checks: read`.
-Every job declares `timeout-minutes` (15; 25 for browser builds); never drop
-the key.
+A new push to a PR cancels its superseded run. Every job declares
+`timeout-minutes` (15; 25 for browser builds); never drop the key.
 
 ### CI: path filters
 
@@ -790,10 +744,10 @@ passes a skipped job, so: `tools/check-workflows.ts` (`path-filters`) asserts
 each app's `workspace:*` deps are in its group; root prose (`ABOUT_JRVS.md`,
 `LLM_STATEMENT.md`, `SPECIAL_THANKS.md`) is `shared`, because #731 changed
 only `SPECIAL_THANKS.md`, skipped `build-srd`, and turned the next three PRs
-red; the axe script and
+red; the Playwright base, the axe scan and
 baselines are in their app's group. `code` is source, tools, `.github/` and
-the Claude hooks and workflows; `docs` is `docs/**`, root `CLAUDE.md` /
-`README.md` / `CONTRIBUTING.md`, `.claude/**`, `.mcp.json` (docs-only PRs skip
+the Claude hooks and `settings.json`; `docs` is `docs/**`, root `CLAUDE.md` /
+`README.md`, `.claude/**`, `.mcp.json` (docs-only PRs skip
 the suite and typecheck); `deps` is `bun.lock` and every `package.json`.
 
 ### CI: static-checks and coverage
@@ -802,9 +756,10 @@ One step, `bun tools/check.ts --profile=ci --areas=<code,docs>`: the registry
 `bun run check` and pre-push read. Always: Biome and `styling`. `code`:
 `generated`, typecheck, knip, `workflows`, `actionlint`
 (`tools/lint-workflows.sh`: pinned, sha256-verified actionlint and zizmor,
-`.github/zizmor.yml`, third-party actions SHA-pinned,
+`.github/zizmor.yml`, every action SHA-pinned,
 `persist-credentials: false`). `deps`: the audit. `code` or `docs`: `data`,
-`doc-drift`, `observability`, `convex-codegen`, `convex-callers`. The test gate
+`doc-drift`, `observability`, `convex-callers` (which also holds
+`convex/_generated/api.d.ts` to the modules on disk). The test gate
 is `coverage`: `bun run test:coverage` (`tools/run-coverage.ts`) fails a
 workspace under its `FLOORS` total (bunfigs set
 `coveragePathIgnorePatterns = ["../**"]`).
@@ -812,60 +767,76 @@ workspace under its `FLOORS` total (bunfigs set
 ### CI: build jobs
 
 All `needs: [changes]` only. `build-srd` builds once, runs `check:examples`,
-srd's whole Playwright suite (add a spec to its run line, not a job) and the
-axe scan on that `dist`; `mobile-chromium` (Pixel 7) runs smoke in both apps.
-`build-itun` also bundles the Worker (`bun --filter itun worker:bundle`);
-ITUN's full browser suite is nightly (`e2e-nightly.yml`). `build-discord-bot`
-and `build-su-assets` bundle Workers; `build-ladle` builds stories. wrangler is
-a devDependency of all four Worker apps; keep each `wrangler.jsonc`
+srd's whole Playwright suite (add a spec to its run line, not a job), the
+axe spec among them, on that `dist`; `mobile-chromium` (Pixel 7) runs smoke in both apps.
+Both apps' Playwright configs are `tools/lib/playwrightBase.ts`: in CI they
+serve the build with each app's `preview` script (`wrangler dev` over its
+`wrangler.jsonc`, so the specs see production's Worker and routing, CSP
+bypassed), and a test that passes only on a retry fails the run
+(`failOnFlakyTests`).
+`build-itun` builds against a throwaway self-hosted Convex backend
+(`.github/actions/convex-backend`, the one `e2e-nightly.yml` uses) carrying the
+PR's own functions, so its specs (the axe spec among them) see the signed-out UI production
+ships, never production itself; it also bundles the Worker (`bun --filter itun
+worker:bundle`). ITUN's full browser suite is nightly (`e2e-nightly.yml`). `build-discord-bot`
+and `build-su-assets` bundle Workers. wrangler is
+one root devDependency that all four Worker apps run; keep each `wrangler.jsonc`
 `compatibility_date` at or below its bundled workerd.
 
 ### CI: PR title
 
-The squash title is what release-please reads. `pr-title.yml` runs on
-`opened`, `edited`, `reopened`, `synchronize`, with no `if:` or path filter (a
-required context), because `ci.yml` does not run on `edited`. The squash body
-is the PR body (`squash_merge_commit_message: PR_BODY`): a line starting with a conventional type or containing
-`BREAKING CHANGE` changes the version bump.
+The squash title is the changelog entry ([ADR-041](#adr-041)). `pr-title.yml`
+runs on `opened`, `edited`, `reopened`, `synchronize`, with no `if:` or path
+filter (a required context), because `ci.yml` does not run on `edited`. The
+squash body is the PR body (`squash_merge_commit_message: PR_BODY`).
 
 ### CI: aggregate gate
 
 `quality-checks`, named `CI Success`, fails on `failure` or `cancelled`.
 **Every job must be in its `needs:`** (`tools/check-workflows.ts`,
-`aggregator`). `Analyze (javascript-typescript)` and `PR title is a
-conventional commit` are separately required (`SEPARATELY_REQUIRED`), so
-neither workflow is filtered. Change the trigger on `main` before the ruleset;
+`aggregator`). The ruleset also requires `PR title is a conventional commit`
+and waits on CodeQL through `code_scanning` (`GATE_WORKFLOWS`), so neither
+workflow is filtered. Change the trigger on `main` before the ruleset;
 never poll another workflow.
 
 ### CI: repository settings
 
-Owner-applied; no gate reads them.
+Owner-applied.
 
-- **`main` ruleset** (`gh api repos/SalvageUnion-io/SU-SRD/rulesets/<id>`):
-  `active`, `~DEFAULT_BRANCH`, no `bypass_actors`; `deletion`,
-  `non_fast_forward`, `required_linear_history`; `required_status_checks`
-  (`strict_required_status_checks_policy: true`) with the three contexts each on `integration_id` 15368;
+- **`main` ruleset**, declared as `MAIN_RULESET` in `tools/environments.ts`
+  and drift-checked nightly (`e2e-nightly.yml`, `environments`): `active`,
+  `~DEFAULT_BRANCH`, no `bypass_actors`; `deletion`, `non_fast_forward`,
+  `required_linear_history`; `required_status_checks`
+  (`strict_required_status_checks_policy: true`) with `CI Success` and
+  `PR title is a conventional commit`, each on `integration_id` 15368;
   `code_scanning` (`CodeQL`, `security_alerts_threshold: high_or_higher`,
-  `alerts_threshold: errors`); no `merge_queue`.
+  `alerts_threshold: errors`), the only CodeQL gate; no `merge_queue`.
 - **Actions** (`gh api repos/SalvageUnion-io/SU-SRD/actions/permissions`):
-  `allowed_actions: selected`, GitHub-owned plus `dorny/paths-filter@*`,
-  `googleapis/release-please-action@*`, `oven-sh/setup-bun@*`, with
-  `verified_allowed: false`; a PR adding a third-party action says so.
+  `allowed_actions: selected`, GitHub-owned plus `dorny/paths-filter@*` and
+  `oven-sh/setup-bun@*`, with
+  `verified_allowed: false` and `sha_pinning_required: true` (every `uses:` is
+  a commit SHA; zizmor's `unpinned-uses` holds the YAML to it); a PR adding a
+  third-party action says so.
 - Code scanning default setup `state: not-configured`; private vulnerability
   reporting `enabled: true` ([`SECURITY.md`](../SECURITY.md)).
 
 ### CI: deploy set
 
-`CLOUDFLARE_API_TOKEN`, `CONVEX_DEPLOY_KEY`, `SENTRY_AUTH_TOKEN` and
-`RELEASE_PLEASE_TOKEN` live only in the `production` Environment; each job
+It runs on `push` to `main` and on dispatch from `main` (`sha` rolls back;
+`force_all` ships everything). `CLOUDFLARE_API_TOKEN`, `CONVEX_DEPLOY_KEY` and
+`SENTRY_AUTH_TOKEN` live only in the `production` Environment; each job
 reading one declares it (`secrets-env`; declared in `tools/environments.ts`,
-drift-checked nightly).
+drift-checked nightly). Public values (Convex URL, Sentry DSNs and org) are
+top-level `env:`.
 
-- **Shape:** `plan` → `build-srd` / `build-itun` → `push-convex` → `deploy-*`
-  → `smoke` → `record`; `og-srd` renders OG images into srd's `dist` and only
-  `deploy-srd` waits for it (render cache
-  `apps/srd/node_modules/.cache/srd-og`). Deploys ship the builds' artifacts unrebuilt after
-  **every** build is green; CI's builds are never shipped.
+- **Shape:** `plan` → `build-srd` / `build-itun` → `push-convex` → `deploy`
+  → `smoke` → `record`; `og-srd` renders OG images into srd's `dist` (render
+  cache `apps/srd/node_modules/.cache/srd-og`). `deploy` is one matrix job, a
+  leg per app in `plan`'s `deploy` output (`fail-fast: false`); it ships the
+  builds' artifacts unrebuilt after **every** build is green; CI's builds are
+  never shipped, and CI's `build-*` jobs are what prove each Worker bundles.
+  Jobs that ship nothing (`plan`, `build-*`) take the Environment with
+  `deployment: false`.
   `bun run check workflows` (`deploy-order`) asserts the edges and explicit
   status functions downstream of skippable jobs.
 - **`push-convex`** asserts the deploy key's URL equals `ITUN_CONVEX_URL`
@@ -874,24 +845,15 @@ drift-checked nightly).
   `deployed/cloudflare`; the next run diffs against it. No record, a shared
   path or `force_all` deploys everything; the shared set includes the root
   prose files and excludes `test/` and every `.github/` file but this workflow
-  and `.github/actions/`. A version-only `packages/*/package.json` change ships
-  nothing. The decision is
+  and `.github/actions/`. The decision is
   `tools/deploy-surfaces.ts` (`tools/__tests__/deploy-surfaces.test.ts`). When
-  HEAD is an ancestor of the record the run is `stale`; only a dispatch
-  (`--allow-backwards`) rolls back.
-- A failed `deploy-*` skips `smoke` and `record`, so the next run redeploys.
+  HEAD is an ancestor of the record (a re-run of an older merge's deploy) the
+  run is `stale`; only a dispatch (`--allow-backwards`) rolls back.
+- A failed `deploy` leg skips `smoke` and `record`, so the next run redeploys.
   `record` holds `contents: write` through a REST call, in its own job. A
   dispatched `sha` reaches scripts through `env:`. The smoke list is
   `tools/smoke-production.sh`, also run daily by `e2e-nightly.yml`
   (`production-smoke`).
-
-### CI: production maintenance
-
-`convex-maintenance.yml` (`workflow_dispatch`, `main` only,
-`environment: production`) runs one allowlisted, idempotent function from
-`apps/itun/convex/maintenance.ts` (today `repairContainers`) with `--prod`,
-refusing a key that is not `prod:` or `project:`. A new function goes in both
-the `choice` input and the step's `case`.
 
 ## Dependencies
 
@@ -901,27 +863,29 @@ Dependabot updates GitHub Actions only ([`.github/dependabot.yml`](../.github/de
 one grouped Monday PR for `.github/workflows/` and `.github/actions/setup-bun`,
 7-day cooldown, merged by hand. **Bun dependencies are
 updated by hand:** `bun outdated --filter='*'`, then `bun update --latest <pkg>`
-or `bun add <pkg>@<version>` in every manifest naming it. `.bun-version`, the
-root `packageManager` and `bun-types` move together (`workflows`,
-`bun-version`); `.mcp.json`'s `convex@` pin moves with
+or `bun add <pkg>@<version>` in the one place that names it
+([declare what you import](#declare-what-you-import)); `bunfig.toml`'s
+`install.exact` makes both write an exact pin. The root
+`packageManager` is the one Bun pin (setup-bun reads it), and `bun-types` moves
+with it (`workflows`, `bun-version`); `.mcp.json`'s `convex@` pin moves with
 `apps/itun/package.json`'s (`tools/__tests__/mcp-config.test.ts`).
 
 ### Install cooldown
 
-`bunfig.toml` refuses versions **under 3 days old**: an exact pin errors
-(`blocked by minimum-release-age`), a **caret range silently resolves down**.
+`bunfig.toml` refuses versions **under 3 days old**: a pin it cannot satisfy
+errors (`blocked by minimum-release-age`).
 `bun install --frozen-lockfile` is unaffected. The escape hatch is
 `minimumReleaseAgeExcludes` (`bun-types`), never a lower number.
 
 ### Dependency audit
 
-`bun audit --audit-level=high` (the `audit` check) gates PRs that change
-`bun.lock` or a `package.json`. One suppression: `braces` GHSA-vfj7-8cjw-p6xm,
-no fixed release, reachable only via component-lib's devDependency
-`@ladle/react` → `globby` → `fast-glob` → `micromatch`; its `--ignore` in
-`tools/check.ts` says what removes it. A new `--ignore` records the same.
-`audit-watch.yml` audits every severity weekly without it, keeping one issue
-open; its watch list is `nanoid`, `fast-uri`, `brace-expansion`, `filelist`.
+`bun run audit` (the root `audit` script) fails on an advisory at any
+severity. The `audit` check runs it on PRs that change `bun.lock` or a
+`package.json`, and `e2e-nightly.yml`'s `audit` job runs it against the
+unchanged tree, reporting through the nightly tracking issue. It suppresses
+nothing; an advisory with no fixed release is answered by dropping the
+dependency that reaches it, and an `--ignore` added anyway is recorded here
+with its path and the condition that removes it.
 Fix a transitive advisory by dedupe, then `bun update <pkg>`, then a floor.
 `bun why <pkg>` prints the path.
 
@@ -929,21 +893,22 @@ Fix a transitive advisory by dedupe, then `bun update <pkg>`, then a floor.
 
 | Entry | Why |
 | --- | --- |
-| `fast-uri: >=3.1.6 <4` | ReDoS class; `ajv` asks `^3.0.1` |
-| `filelist: >=1.0.6` | `jake` asks `^1.0.4` |
-| `nanoid: >=3.3.18` | `GHSA-2v37-7h3g-55p8`; `postcss` asks `^3.3.17` |
-| `sharp: >=0.35.5` | `GHSA-wq5f-xc86-pv6w`; `miniflare` pins 0.35.4. Delete once `bun why sharp` shows ≥0.35.5 |
+| `sharp: >=0.35.5` | `GHSA-wq5f-xc86-pv6w`; `miniflare` pins 0.35.4. Delete once bun.lock's `miniflare` entry itself asks for ≥0.35.5 |
 
 Floors, never exact versions. `brace-expansion` cannot be floored (two
-majors). Delete an override `bun why` no longer needs; re-derive by emptying
-the block, `bun install`, `bun run check audit`.
+majors). Delete an override once the package that needed it asks for the fixed
+version itself (`bun why` shows the override's result, so it cannot tell you);
+re-derive by emptying the block, `bun install`, `bun run check audit`.
 
 ### Declare what you import
 
 Each workspace declares every package its shipping code imports as a
 `dependency` in its own manifest, never a devDependency or trusted peer;
-component-lib's `react` / `react-dom` are the exception. If deleting a
-devDependency breaks `bun run build` or a deploy, it was never one.
+component-lib's `react` / `react-dom` are the exception. Each version is
+written once: a package more than one workspace imports is a root
+`workspaces.catalog` entry that each manifest names as `catalog:`, and a dev
+tool (bundler, wrangler, test library) more than one workspace runs is a root
+devDependency, which every workspace resolves.
 
 ### Dead-code gate (knip)
 
@@ -977,9 +942,11 @@ registration): use `gh`, or a local-scope `~/.claude.json` entry with a
 `headersHelper`. `convex` refuses production unless flagged
 (`--dangerously-enable-production-deployments`,
 `--cautiously-allow-production-pii`); never add either. Its pin matches
-`apps/itun/package.json`. It needs `CONVEX_DEPLOYMENT` in `apps/itun/.env.local`
-(from `bunx convex dev`; `.worktreeinclude` copies it into Claude Code
-worktrees), else every call fails `No CONVEX_DEPLOYMENT set`. `context7`
+`apps/itun/package.json`. It targets the local deployment named by
+`CONVEX_DEPLOYMENT` in `apps/itun/.env.local` (written by `bun run dev:itun`;
+`.worktreeinclude` copies it into Claude Code worktrees), which answers only
+while `bun run dev:itun` runs; with no file every call fails
+`No CONVEX_DEPLOYMENT set`. `context7`
 returns condensed docs: verify load-bearing APIs against `node_modules`.
 
 ### Cloud sessions
@@ -989,9 +956,9 @@ ToolSearch first (`select:mcp__github__create_pull_request,…`). The remote MCP
 hosts (`bindings.mcp.cloudflare.com`, `observability.mcp.cloudflare.com`,
 `mcp.sentry.dev`, `mcp.context7.com`) fail (`ERR_PROXY_TUNNEL`, 403) unless
 the environment allows them; report those signals **unread**. `convex` has no
-credentials: ask for data. If `bun --version` differs from `.bun-version`, run
-with `PATH="$HOME/.local/share/su-srd-bun/$(cat .bun-version):$PATH"` (the
-SessionStart hook installs it under `~/.local/share/su-srd-bun/<version>/`) and `bun install --frozen-lockfile`. Never fake
+credentials: ask for data. If `bun --version` differs from the root
+`packageManager`, run with `PATH="$HOME/.local/share/su-srd-bun/<version>:$PATH"` (the
+SessionStart hook installs it there) and `bun install --frozen-lockfile`. Never fake
 a GitHub step that has no route.
 
 ### Cloudflare
@@ -1002,56 +969,55 @@ Everything runs here ([ADR-033](#adr-033)), account
 | Worker | Serves | Bindings |
 | --- | --- | --- |
 | `su-srd` | `salvageunion.io`, `www.` | none (Static Assets) |
-| `su-itun` | `intheunionnow.com`, `www.`, `/api/snapshots/:id`, old unfurls | `ASSETS`, R2 `SNAPSHOTS`, `OG_METRICS` |
+| `su-itun` | `intheunionnow.com`, `www.` (Static Assets, SPA mode; the script answers non-navigation misses) | `ASSETS` |
 | `su-assets` | `assets.salvageunion.io` | R2 `LP_ASSETS`, `IMAGES` |
-| `su-discord-bot` | Discord interactions, 5-minute cron | secrets only |
+| `su-discord-bot` | Discord interactions | secrets only |
 
-R2: `su-itun-snapshots` (read-only, never delete from it) and `su-lp-assets`.
-Zones `salvageunion.io` and `intheunionnow.com`. Previews under
-`alxjrvs.workers.dev`. Re-derive with `wrangler deployments list`,
-`wrangler r2 bucket list` and the `apps/*/wrangler.jsonc` files. **Outside the
-repo:** the `www` → apex Redirect Rule and per-zone Images Transformations.
+R2: `su-lp-assets`, and `su-itun-snapshots`, which nothing binds since
+[ADR-036](#adr-036)'s amendment (deleting it is the owner's call).
+Zones `salvageunion.io` and `intheunionnow.com`. Only `su-srd` and
+`su-discord-bot` answer on `alxjrvs.workers.dev`. `su-assets` caches its
+responses with Workers Caching (`cache.enabled`). Re-derive with
+`wrangler deployments list`, `wrangler r2 bucket list` and the
+`apps/*/wrangler.jsonc` files.
+**Outside the repo:** Always Use HTTPS (both zones), the `www` → apex Redirect
+Rule, the `/assets/*` 404 `no-store` Transform Rule and per-zone Images
+Transformations; see
+[configuration outside the repo](#configuration-outside-the-repo).
 
 ### Sentry
 
 Org **`susrd`**, **EU region** (`https://de.sentry.io`,
 <https://susrd.sentry.io>); a DSN from another region silently fails.
-Projects: `srd` (`VITE_SENTRY_DSN`, repo variable `SRD_SENTRY_DSN`\*), `itun`
-(`VITE_SENTRY_DSN`), `itun-functions` (itun Worker, `SENTRY_DSN`),
-`itun-convex` ([dashboard toggle](#convex-error-reporting)), `su-assets` and
-`su-discord` (`SENTRY_DSN`).
-
-\* The DSN may still sit in `PUBLIC_SENTRY_DSN` (`deploy-cloudflare.yml` reads
-`vars.SRD_SENTRY_DSN || vars.PUBLIC_SENTRY_DSN`): create `SRD_SENTRY_DSN`,
-delete the old variable, then drop both fallbacks.
+Four projects: `srd` and `itun` (`VITE_SENTRY_DSN` at build, from
+`deploy-cloudflare.yml`'s public `SRD_SENTRY_DSN` / `ITUN_SENTRY_DSN`
+constants), `itun-convex` ([dashboard toggle](#convex-error-reporting); IP
+storage off), and `workers` (one `SENTRY_DSN` on `su-itun`, `su-discord-bot`
+and `su-assets`, told apart by `server_name`, which is the wrangler `name`).
+One org alert rule on users or volume covers them, and the uptime monitor
+watches `intheunionnow.com`.
 
 No DSN tree-shakes the SDK out, and a `connect-src` missing the ingest origin
-blocks every event, so `tools/check-observability.ts`
-(`bun run check observability`) checks DSN gating and CSP together and pins `https://*.ingest.de.sentry.io`. CSP sources:
-`apps/srd/public/_headers` and `apps/itun/src/worker/securityHeaders.ts`;
+blocks every event, so `tools/check-observability.ts` checks DSN gating and
+CSP on parsed source and pins `https://*.ingest.de.sentry.io`; deploy builds fail with no DSN
+inlined, and `tools/smoke-production.sh` checks the served CSP. CSP sources:
+`apps/srd/public/_headers` and `apps/itun/public/_headers`;
 change CSP or region in lockstep. Sourcemaps upload only from
 `deploy-cloudflare.yml`, through `sentrySourcemaps()` in `observability/vite`
-(gated on `SENTRY_AUTH_TOKEN`; one org token and `vars.SENTRY_ORG`; project
-`vars.SENTRY_PROJECT` for itun, literal `srd` for srd).
+(gated on `SENTRY_AUTH_TOKEN`; one org token, the workflow's `SENTRY_ORG`, and
+the literal project `srd` or `itun`).
 
-### Convex, GitHub and retired hosts
+### Convex and GitHub
 
 - **Convex:** project `alex-jarvis:suref-itun`; deployments in
   [Accounts and Games operations](#accounts-and-games-operations).
   `.convex.site` is HTTP actions, `.convex.cloud` the client; swapped, they
   read as "unreachable". Modules: [`apps/itun/convex/`](../apps/itun/convex/).
 - **GitHub:** [`SalvageUnion-io/SU-SRD`](https://github.com/SalvageUnion-io/SU-SRD),
-  `main`; releases are release-please
-  ([ADR-024](#adr-024)).
-- **Netlify (retired, deletion pending, ADR-033 P8):** team `salvageunion-io`
-  (`6a3b41d74a67a34e3aae3ede`); delete by id: `suindex` (`apps/srd`,
-  `62482841-12dd-4e35-a4ed-900f357675dc`), `in-the-union-now`
-  (`801d6f8d-1ad4-42c1-a29d-126b2d69ee69`), `su-assets`
-  (`19faf088-1c54-4bae-9312-74d7b0a94cea`). Render is gone.
+  `main`; the deployed commit is the release ([ADR-041](#adr-041)).
 
 Re-derive: `claude mcp list`; Sentry MCP `find_organizations` /
-`find_projects`; `bunx convex mcp start` → `status`;
-`bun run check:observability:live`.
+`find_projects`; `bunx convex mcp start` → `status`.
 
 # Decisions
 
@@ -1074,11 +1040,18 @@ Full text: `git show c2476d1c:docs/adrs/ADR-001-local-first-no-backend.md`
 
 ## ADR-002
 
-**IndexedDB via `idb`, Zod as the Schema Source, Salvage-Read Resilience**
+**IndexedDB via `idb`, Zod as the Schema Source, Strict Reads**
 
 ### Status
 
-Accepted
+Accepted. **Amended 2026-10-08 (#1152):** IndexedDB is a cache of Convex
+([ADR-034](#adr-034)), so a version change no longer migrates records — the
+upgrade empties the cache and the server refills it. The migrations system the
+decision below once pointed to is deleted. **Amended 2026-10-09 (#1181):**
+reads are strict. The lenient salvage re-parse and the read-time legacy
+normalizers are deleted: an unreadable cached row is skipped with a warning and
+refilled from Convex, and the build floor reloads a tab too old to read what
+the server serves.
 
 ### Context
 
@@ -1104,12 +1077,10 @@ Two forces shaped the choice:
   Dexie. Object stores are declared in `apps/itun/src/lib/db/`.
 - **Zod schemas are the single source of truth** for entity shape. The DB layer
   parses on read/write rather than maintaining a separate storage schema.
-- Reads are **salvage-tolerant**: a strict parse is attempted first; on failure
-  the row is re-parsed with a lenient "salvage" schema (`.strip()`) and a
-  warning is logged. The row heals on its next write (re-parsed strictly). See
-  `apps/itun/src/lib/db/crud.ts`.
-- Schema/version changes go through the migrations system documented in
-  `apps/itun/src/lib/db/migrations/README.md`.
+- Reads are **strict** (amended, #1181): an unreadable cached row is skipped
+  with a warning and refilled from Convex. See `apps/itun/src/lib/db/crud.ts`.
+- A schema/version change bumps `DB_VERSION` in `apps/itun/src/lib/db/index.ts`;
+  the upgrade drops every store and the cache refills from Convex.
 - Reusable mech templates live in their own `mechPatterns` object store rather
   than as a boolean flag on mech records, so they can list and evolve
   independently (`apps/itun/src/lib/schemas/pattern.ts`).
@@ -1117,65 +1088,30 @@ Two forces shaped the choice:
 ### Consequences
 
 - No parallel schema DSL: change a Zod schema and the DB layer follows.
-- The app survives version skew across PWA updates instead of hard-failing on
-  unknown/missing fields; unknown references (e.g. a `workspaceId` from a newer
-  build) degrade gracefully (treated as unassigned).
+- One unreadable row never bricks hydration of its store: it is skipped, not
+  thrown on.
 - `idb` keeps the abstraction thin — complex querying is done in memory in the
   Zustand stores ([ADR-003](#adr-003)), not via a query DSL.
-- Salvage-on-read can silently strip data a tab is too old to understand;
-  warnings are logged, and writes from the newer build restore strict validity.
+- A tab too old to read a field a newer build wrote skips that row until the
+  build floor reloads it.
 
 ## ADR-003
 
-**Client State via Zustand — Lazy Auto-Hydration, Write-Through, Cross-Tab Invalidation**
+**Client State via Zustand — Lazy Auto-Hydration, Write-Through, Cross-Tab via Convex**
 
 ### Status
 
-Accepted
+**Superseded by [ADR-034](#adr-034) and [ADR-030](#adr-030)**, except the
+lazy-hydration rule. IndexedDB is a cache of Convex: a write commits to the
+server first and reaches the cache only once the server accepts it, and tabs
+stay in step through their own Convex subscriptions
+([Zustand stores](#zustand-stores)). What stands: the Zustand stores in
+`apps/itun/src/stores/` hydrate a collection from the cache on its first
+`list(type)` and answer synchronously from memory after that, so no caller
+awaits hydration, and filtering happens in memory, which keeps the DB layer a
+thin `idb` wrapper.
 
-> **2026-09-25:** ITUN no longer depends on TanStack Query at all — it was
-> mounted and never called, and was removed (audit AP-10). The rule below that
-> persistent entity state flows through the Zustand stores is unchanged.
-
-### Context
-
-ITUN holds user entities in IndexedDB ([ADR-002](#adr-002)),
-but components need synchronous, reactive access to that data — IndexedDB is
-async and not reactive. With no backend ([ADR-001](#adr-001)),
-there is no server cache to lean on; the in-memory store _is_ the working copy.
-
-The store must: load on demand without every caller awaiting hydration, keep the
-in-memory copy and IndexedDB consistent, and stay correct when the user has the
-app open in multiple tabs.
-
-### Decision
-
-ITUN uses **Zustand** stores (`entityStore`, `workspaceStore` in
-`apps/itun/src/stores/`) with three properties:
-
-- **Lazy auto-hydration.** The first `list(type)` triggers hydration from
-  IndexedDB; subsequent calls return synchronously from memory.
-- **Write-through.** Mutations persist to IndexedDB **first**, then update
-  in-memory state. The DB is authoritative; memory is the cache.
-- **Cross-tab invalidation via Broadcast Channel.** A successful write publishes
-  on a broadcast channel (`apps/itun/src/lib/db/broadcast.ts`);
-  other tabs invalidate their cache and re-hydrate from IndexedDB.
-
-TanStack Query is used only for transient/derived data, **not** as the
-persistence cache — persistent entity state flows through the Zustand stores.
-
-### Consequences
-
-- Components read entity data synchronously after first load; no per-component
-  hydration boilerplate.
-- Multi-tab edits stay consistent: a write in one tab is reflected in others
-  without a server round-trip.
-- The DB-first write order means a crash between persist and in-memory update
-  leaves the durable copy correct (the next read re-hydrates).
-- Querying/filtering happens in memory over hydrated collections, which is why
-  the DB layer can stay a thin `idb` wrapper rather than a query engine.
-- Do not route persistent entity state through TanStack Query; mixing the two
-  caches reintroduces the consistency problem this decision avoids.
+Full text: `git show c2476d1c:docs/adrs/ADR-003-zustand-hydration.md`
 
 ## ADR-004
 
@@ -1185,47 +1121,7 @@ persistence cache — persistent entity state flows through the Zustand stores.
 
 **Superseded by [ADR-036](#adr-036)** (2026-10-06) — snapshots are retired; previously Accepted, and amended by ADR-033.
 
-### Context
-
-The local-first decision ([ADR-001](#adr-001)) keeps
-user data on-device, but players still want to share a built pilot or mech —
-post a link in a Discord channel, open it on a phone, hand it to a GM. That needs
-a server endpoint, but introducing accounts or a database would undo the reasons
-local-first was chosen.
-
-### Decision
-
-ITUN shares **immutable snapshots** through two **Netlify Functions** backed by
-**Netlify Blobs** (`apps/itun/netlify/functions/`):
-
-- `snapshot-publish` (POST) stores a snapshot and returns a short ID;
-  `snapshot-retrieve` (GET) returns it by ID.
-- **No authentication.** Snapshots are opaque blobs, not user records.
-- **Immutable.** Writes use `onlyIfNew: true`; a snapshot ID never changes
-  content.
-- **Short IDs.** 8-character Crockford base32 (~40 bits), generated in
-  `apps/itun/src/lib/snapshot/id.ts`.
-- **Rate limited.** ~10 requests/minute per client IP, tracked in memory
-  per function instance (`apps/itun/src/lib/snapshot/rateLimit.ts`).
-- **Bounded.** Payloads are capped (~256 KB) and **no PII is logged**.
-- **Storage is abstracted.** `SnapshotStorage` (`src/lib/snapshot/storage.ts`)
-  has a `NetlifyBlobsStorage` production implementation and an in-memory
-  implementation for tests. Error reporting via Sentry is optional and
-  env-gated (`SENTRY_DSN`).
-
-### Consequences
-
-- Sharing works with zero accounts: publish → get a link → anyone retrieves it.
-- Immutability means a shared link is a stable, point-in-time copy — editing your
-  local entity does not change a previously shared snapshot.
-- Rate limiting is best-effort: in-memory per-instance counters reset on cold
-  start and don't coordinate across instances. Acceptable for abuse-dampening,
-  not a hard quota.
-- This is the **only** server surface in the project; keep it limited to opaque
-  snapshot storage. Anything that needs user identity or mutable shared state
-  belongs in a new ADR, not here.
-- The storage abstraction keeps the functions testable without Netlify Blobs and
-  leaves room to swap providers.
+Full text: `git show c2476d1c:docs/adrs/ADR-004-snapshot-netlify-functions.md`
 
 ## ADR-005
 
@@ -1447,8 +1343,9 @@ Auto-applied (non-destructive, recoverable):
 Requires explicit player action (destructive, irreversible):
 
 - Any condition change on equipment (intact → damaged → destroyed), driven only
-  by the player via the `ConditionToggle`
-  (`apps/itun/src/components/shared/ConditionToggle.tsx`) — see
+  by the player via the card's status badge (`StatusBadge` from
+  `component-lib`, cycled by `cycleCondition` in
+  `apps/itun/src/components/sheet/mechItemRules.ts`) — see
   [ADR-009](#adr-009).
 - Destroying a Module or System from any source; catastrophic meltdown.
 
@@ -1532,25 +1429,27 @@ contain an unambiguous "this is destroyed" signal.
 ### Decision
 
 - Equipment condition is a **tri-state**: `intact` → `damaged` → `destroyed`,
-  cycling back to `intact`. It is modeled as `ItemCondition` and driven by a
-  single controlled component, `ConditionToggle`
-  (`apps/itun/src/components/shared/ConditionToggle.tsx`).
-- The control is **player-driven and keyboard-accessible** (role="button",
-  Enter/Space, 44px touch target) and has a **`readOnly` static-badge mode** for
-  read-only contexts such as published snapshots
-  ([ADR-004](#adr-004)).
-- **Destroyed reads as semantic red** (`bg-roll-cascade`, Material red ≈
-  `rgb(244, 67, 54)`), deliberately a semantic status color, **not** a Salvage
-  Union brand token. Intact uses `bg-roll-success`, damaged `bg-roll-failure`.
+  cycling back to `intact`. It is modeled as `ItemCondition` and driven by the
+  card's status badge (`StatusBadge` from `component-lib`), cycled by
+  `cycleCondition` in `apps/itun/src/components/sheet/mechItemRules.ts`.
+- The control is **player-driven and keyboard-accessible**: given an `onClick`,
+  `StatusBadge` wraps the badge in a native `<button type="button">`; without
+  one it renders a plain, non-interactive `Badge`, the **read-only mode** for
+  read-only sheets.
+- Condition maps onto the badge tones `ok` / `warn` / `bad` (intact, damaged,
+  destroyed), styled `bg-status-ok` / `bg-status-warn` / `bg-status-bad`.
+  **Destroyed reads as semantic red**: `--color-status-bad` is
+  `--color-roll-cascade`, `rgb(176, 67, 43)` — deliberately a semantic status
+  color, **not** a Salvage Union brand token.
 
 ### Consequences
 
-- Condition has one source of truth (`ItemCondition` + `ConditionToggle`) reused
+- Condition has one source of truth (`ItemCondition` + `cycleCondition`) reused
   wherever equipment condition is shown or edited.
 - "Destroyed" is unambiguous because it uses a conventional danger color rather
   than a brand tone that players might not read as a warning.
-- The same component serves editable sheets and read-only snapshots, so condition
-  renders consistently across both.
+- The same component serves editable and read-only sheets, so condition renders
+  consistently across both.
 - Using a non-brand semantic color is intentional; don't "fix" it to a brand
   token — legibility of the destroyed state is the priority.
 
@@ -1651,9 +1550,9 @@ and ships compiled output.
   `dist/`.
 - No published artifact and no `dist/` to keep in sync; `src/index.ts` is the
   single source of truth.
-- Consumers must include `component-lib`'s source in their compile/Tailwind
-  `@source` paths; a missing path shows up as untyped imports or unstyled
-  components (a known gotcha when wiring a new consumer).
+- Consumers compile `component-lib`'s source themselves. A Tailwind consumer
+  imports `component-lib/styles/tailwind.css`, whose `@source` scans the
+  library; a consumer wired without it renders unstyled components.
 - Peer deps mean a consumer that omits a required peer (React, etc.) fails at
   install/resolve time rather than shipping a duplicate copy.
 
@@ -1709,15 +1608,13 @@ module** wherever schemas are constructed, rather than importing `zod` directly.
 
 ### Status
 
-Accepted, **but partially superseded by
-[ADR-025](#adr-025)** — its CHANGELOG-freeze
-clause only. ADR-014's substantive decision (the served JSON API is the public
-interface; npm publishing stays retired) is **preserved** and still governs.
+Accepted. Its substantive decision (the served JSON API is the public
+interface; npm publishing stays retired) still governs.
 
-Recorded here as well as on ADR-025 because a supersession written on only the
-successor is a trap: this file read a plain "Accepted" for as long as ADR-025
-existed, so anyone opening it directly — or citing its changelog clause — got a
-dead rule with nothing to warn them.
+**Amended by [ADR-040](#adr-040) (2026-10-08).** The CHANGELOG clause is
+replaced: [ADR-025](#adr-025) had unfrozen the package's `CHANGELOG.md` into a
+release stream, and ADR-040 deletes the file and the stream. ADR-040 also
+fixes what the API serves: the committed data and schema files, verbatim.
 
 ### Context
 
@@ -1826,111 +1723,12 @@ salvageunion-reference`) is **out of scope for this decision** — it
 
 ### Status
 
-Accepted and **built** (`apps/itun/src/components/dashboard/`, routed at
-`/dashboard/$pilotId`; architecture in [dashboard.md](architecture/dashboard.md)).
-This is the play-surface instance of the governing surface taxonomy in
-[ADR-021](#adr-021) — the **Guided Play** surface.
+**Superseded by [ADR-038](#adr-038)** (2026-10-08), which restates the
+decisions of this one that stand: the separate surface sharing the sheets'
+state, the reused SRD display, the flat-and-inset treatment and the fixed
+canvas. Its rotary Dial and ephemeral play state were replaced there.
 
-ADRs 016–020 recorded this surface's sub-decisions; they are merged below as
-**Dashboard decisions**, and those five files are stubs pointing here.
-
-**Amended by [ADR-038](#adr-038)** (built). Decision 1, the rotary
-Dial, is replaced by Major and Minor slots and a tabbed display. Decision 4's
-ephemeral play state is reversed: play state is a per-pilot seat saved on
-the Game, and the Dashboard is Game-only, needing a Mediator. Decision 4's
-other half (mount never on a pilot or mech record) and decisions 2, 3 and 5
-stand.
-
-### Context
-
-ITUN's live sheet fuses two moments with opposite interaction grammars: editing a
-character (inline edit + scroll) and running it at the table (one-screen, no-scroll
-instrument buttons). Forcing both into one surface produced clutter. The
-[surface taxonomy](#adr-021) names these as two modes —
-Free Edit and Guided Play — and this ADR gives Guided Play its own surface.
-
-### Decision
-
-The **Dashboard** is a **new surface** at `/dashboard/$pilotId`, not a mode of the live
-sheet. It composes a player's **Pilot + Mech + Crawler** into one live play
-surface. Sheets edit a character; the Dashboard runs it at the table. Both read and
-mutate the **same** persisted entities through the **same** store and rules engine
-([ADR-006](#adr-006), [ADR-003](#adr-003)) —
-the Dashboard is a second lens, not a second source of truth.
-
-### Rationale
-
-The two moments have opposite interaction grammars (inline edit + scroll vs.
-one-screen no-scroll instrument buttons). Sharing state (not chrome) keeps them
-consistent via the existing multi-tab broadcast. As the Guided Play surface it is
-where enforced lifecycle transactions live (see
-[ADR-021](#adr-021) and
-[rules and ITUN surfaces](#rules-and-itun-surfaces)).
-
-### Alternatives rejected
-
-- **A "play mode" toggle on the sheet** — rejected: the layouts are irreconcilable
-  in one component.
-- **A separate app** — rejected: duplicates the data layer and breaks
-  single-store consistency.
-
-### Consequences
-
-- The single-player Dashboard is the first step toward the long-tail shared, live
-  Dashboard (multiple players + Mediator sync) noted in ADR-021.
-
-### Dashboard decisions
-
-#### 1. The rotary Dial and the instrument / reference split (was ADR-016)
-
-Entity/view selection is a **rotary Dial** — a 260px right-edge sidebar whose
-Active Dial Item overhangs to ~1/3 of the row. The display holds all
-interactivity; the dial holds readable stats only. The Dashboard is thereby split
-into **bespoke instruments** (rail, bays, dial) and **the reference document**
-(the display). Stepping is detented, not free-scroll. Rejected: left tabs, right
-drawers, a centre tab bar and bottom selector blocks (each reflowed the frame or
-buried entities).
-
-#### 2. Reuse the faithful SRD display; instruments are bespoke (was ADR-017)
-
-The display renders the same `component-lib` entity display the rest of the app
-shows (`ReferenceEntityCard`, `RollTable`), with entity-level interactivity as
-typed `controls`. Only the instruments (gauges, bays, dial, buttons) are new
-Dashboard components. One display system means one place to fix reference
-rendering. Rejected: a Dashboard-specific action-chip renderer that forks the
-display.
-
-#### 3. Flat and inset; only the display reads forward (was ADR-018)
-
-Instrument surfaces read **recessed** (mild inset shadow, soft entity-tinted
-borders); buttons are flat recessed keys; **the main display is the single
-element that reads forward** (solid hard 2.5px border, no inset). Hue encodes
-ontology, never identity; state is a treatment overlay (hatch / strike /
-redline), never a second hue. Rejected: skeuomorphic 3D dials, a CRT bend, and
-per-source colour chips that let hue mean identity.
-
-#### 4. Play-state is ephemeral, under the ADR-007 boundary (was ADR-019)
-
-The mount state machine (pilot / mech / downtime, range band, turn flags) and
-dial focus live in the non-persisted `playStateStore` — **never** on the
-pilot/mech schema and **never** in a snapshot. There is no "pilot in mech" field
-(the link is a soft link), so mount state is a play-session concern. Dial
-configuration (show/hide, order) is a device preference in `localStorage`,
-scoped per container (`cockpitPrefsStore`). Every control obeys
-[ADR-007](#adr-007): auto-apply non-destructive bookkeeping
-(EP / Heat / uses / SP), player-confirm destructive change (destroy an item,
-Eject, meltdown).
-
-#### 5. A fixed 1280×800 canvas, scaled to fit (was ADR-020)
-
-The Dashboard is a fixed 1280×800 design canvas scaled with one
-`transform: scale(min(vw/1280, vh/800))`, letterboxed. "Always one screen, never
-scrolls" is a **landscape-desktop contract**; below the width threshold the canvas
-is abandoned rather than shrunk illegibly, for a stacked scrolling phone layout
-built from the same instruments (not built yet: today it is a
-rotate-to-landscape notice). Rejected: a fluid responsive grid
-(cannot guarantee no-scroll) and scaling with no floor (fights browser zoom,
-illegible on phones).
+Full text: `git show bc9f08ce:docs/ARCHITECTURE.md` (its `## ADR-015` section)
 
 ## ADR-016
 
@@ -1938,12 +1736,10 @@ illegible on phones).
 
 ### Status
 
-Accepted, and **merged into [ADR-015](#adr-015)** as
-its Dashboard decision 1. The number is kept because code cites it.
+Merged into [ADR-015](#adr-015) as its decision 1. **Superseded by
+[ADR-038](#adr-038)**: Major and Minor slots replace the Dial.
 
 Full text: `git show c2476d1c:docs/adrs/ADR-016-dashboard-rotary-dial-instrument-split.md`
-
-That decision is replaced by [ADR-038](#adr-038) (Major and Minor slots).
 
 ## ADR-017
 
@@ -1951,8 +1747,8 @@ That decision is replaced by [ADR-038](#adr-038) (Major and Minor slots).
 
 ### Status
 
-Accepted, and **merged into [ADR-015](#adr-015)** as
-its Dashboard decision 2. The number is kept because code cites it.
+Merged into [ADR-015](#adr-015) as its decision 2. **Superseded by
+[ADR-038](#adr-038)**, whose §7 restates it.
 
 Full text: `git show c2476d1c:docs/adrs/ADR-017-dashboard-reuse-faithful-srd-display.md`
 
@@ -1962,8 +1758,8 @@ Full text: `git show c2476d1c:docs/adrs/ADR-017-dashboard-reuse-faithful-srd-dis
 
 ### Status
 
-Accepted, and **merged into [ADR-015](#adr-015)** as
-its Dashboard decision 3. The number is kept because code cites it.
+Merged into [ADR-015](#adr-015) as its decision 3. **Superseded by
+[ADR-038](#adr-038)**, whose §8 restates it.
 
 Full text: `git show c2476d1c:docs/adrs/ADR-018-dashboard-instrument-viewfinder-aesthetic.md`
 
@@ -1973,13 +1769,11 @@ Full text: `git show c2476d1c:docs/adrs/ADR-018-dashboard-instrument-viewfinder-
 
 ### Status
 
-Accepted, and **merged into [ADR-015](#adr-015)** as
-its Dashboard decision 4. The number is kept because code cites it.
+Merged into [ADR-015](#adr-015) as its decision 4. **Superseded by
+[ADR-038](#adr-038)**: play state is a per-pilot seat saved on the Game
+(§2), and mount still never reaches a pilot or mech record.
 
 Full text: `git show c2476d1c:docs/adrs/ADR-019-dashboard-play-state-ephemeral.md`
-
-Its play-state decision is reversed by [ADR-038](#adr-038): play state becomes a
-per-pilot seat saved on the Game. Mount still never reaches a pilot or mech record.
 
 ## ADR-020
 
@@ -1987,8 +1781,8 @@ per-pilot seat saved on the Game. Mount still never reaches a pilot or mech reco
 
 ### Status
 
-Accepted, and **merged into [ADR-015](#adr-015)** as
-its Dashboard decision 5. The number is kept because code cites it.
+Merged into [ADR-015](#adr-015) as its decision 5. **Superseded by
+[ADR-038](#adr-038)**, whose §9 restates it.
 
 Full text: `git show c2476d1c:docs/adrs/ADR-020-dashboard-fixed-canvas-scale-to-fit.md`
 
@@ -2131,12 +1925,11 @@ a rule is enforced on which surface_:
   reclassification — the taxonomy already accounts for it.
 - The provenance log and stat-override model that this surface split requires are
   decided separately in [ADR-022](#adr-022).
-- The **Dashboard** (Guided Play) surface has its own design and sub-decisions:
-  [ADR-015](#adr-015) (it is a distinct surface)
-  through [ADR-020](#adr-020), with the full
-  design in [dashboard.md](architecture/dashboard.md). Those instantiate this
-  taxonomy; they do not compete with it (ADR-015 is the Guided-Play instance;
-  ADR-019's play-state obeys the ADR-007 boundary this ADR scopes).
+- The **Dashboard** (Guided Play) surface has its own design in
+  [ADR-038](#adr-038), with the full design in
+  [dashboard.md](architecture/dashboard.md). It instantiates this taxonomy; it
+  does not compete with it (ADR-038 §6 is the Guided-Play surface and obeys the
+  ADR-007 boundary this ADR scopes; §2 is its play state).
 - **Long-tail, out of scope** (all gated on revisiting
   [ADR-001](#adr-001), and none alter this taxonomy):
   - **Shared, live Dashboard** — several players on one Dashboard at once,
@@ -2160,10 +1953,17 @@ a rule is enforced on which surface_:
 
 ### Status
 
-Accepted — **built**: the `changeLog` store (`apps/itun/src/lib/db/changeLog.ts`,
-schema in `lib/schemas/changeLog.ts`) is written at the `entityStore.update`
-chokepoint and read through `ChangeLogDrawer` behind the sheet menu; Live-Sheet
-cap overrides ship with the derived-baseline callout and revert. Replay/time-travel
+Accepted — **built**: the Convex `changeLog` table (`apps/itun/convex/changeLog.ts`)
+is written at the `entityStore.update` chokepoint (`commitChangeLog`) and read
+through `ChangeLogDrawer` (`changeLog.forEntity`) behind the sheet menu; Live-Sheet
+cap overrides ship with the derived-baseline callout and revert.
+
+**Amended by [ADR-030](#adr-030) and [ADR-034](#adr-034)** — the log is
+account data on Convex, synchronized by the client on every write, not a
+device-local record.
+
+**Amended 2026-10 (#1130)** — the table is the log's only copy; IndexedDB v18
+drops the device store this ADR first built. Replay/time-travel
 is still unbuilt. Subordinate to
 [ADR-021](#adr-021), which establishes the surface/mode
 model this ADR serves.
@@ -2457,148 +2257,12 @@ Full text: `git show c2476d1c:docs/adrs/ADR-023-drone-equipment-installed-loadou
 
 ### Status
 
-Accepted.
+**Superseded by [ADR-041](#adr-041)** (2026-10-08). Each site's changelog is
+still derived from conventional squash titles, but read from `main`'s history
+at build time and filtered by scope; release-please, its versions, its release
+PRs and the `CHANGELOG.md` files are gone.
 
-### Context
-
-The two user-facing sites announce changes very differently today:
-
-- **`apps/srd`** has a hand-maintained changelog: a typed array in
-  `src/lib/changelog.ts` (`{ date, title, items[] }`) rendered at `/changelog`
-  and linked from the top/mobile nav. Its upkeep is governed by a "Changelog
-  Maintenance" section in [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md)
-  — one hand-authored entry **per PR**, edited in place on the branch.
-- **`apps/itun`** has **no** release changelog at all. Its About
-  page is static, and its in-app "Change Log" is a **per-entity provenance
-  trail** ([ADR-022](#adr-022)), not release
-  notes.
-
-The repo already squash-merges with **conventional-commit PR titles**
-(`feat:`, `fix:`, …) and gates every PR behind a single aggregate
-`CI Success` status check. That is exactly the structured input release
-tooling consumes.
-
-The stated goal is **formal releases + on-site release history at the least
-ongoing processing**. Two approaches were weighed:
-
-- **Enforce a hand-written changelog via CI** — a paths-filter gate that fails
-  a PR touching app source without a changelog edit. This is the _highest_
-  processing path: hand-authored prose on every PR **plus** a nag gate. It is
-  explicitly rejected.
-- **Derive the changelog from the commits already written** — no per-PR prose;
-  the notes fall out of the conventional titles. This is the least-processing
-  path and is the decision below.
-
-### Decision
-
-Release notes are **derived from conventional squash-commit titles via
-[release-please](https://github.com/googleapis/release-please) (manifest
-mode)**, never hand-authored. A single `release-please-config.json` +
-`.release-please-manifest.json` at the repo root governs all versioned
-components. This ADR covers the two **site** components;
-[ADR-025](#adr-025) covers the
-`salvageunion-reference` component and its surface gate. They share the one
-config.
-
-- **Two separate site streams.** `apps/srd` and `apps/itun`
-  are each independently versioned with their **own** generated `CHANGELOG.md`.
-  Streams are separate so an SRD-site visitor never sees ITUN entries and vice
-  versa — preserving the scoping the current hand-written web changelog already
-  enforces.
-
-- **On-site render = the app's own changelog merged with the ref's.** Each
-  site's `/changelog` renders a **build-time merge** of its own `CHANGELOG.md`
-  **and** the `salvageunion-reference` `CHANGELOG.md`. Rationale: for a
-  _reference_ tool, "what's new" is largely **new game data**, which lives in
-  the ref package, not the app — a web-only stream would regress the current
-  changelog's usefulness. The merge is **hermetic**: it parses committed
-  markdown files at build time, with **no network / GitHub-API call** (Netlify
-  builds must not depend on a live API or token). Entries carry a small area
-  tag (e.g. _App_ vs _Data_).
-
-- **`component-lib` is deliberately not its own stream.** It is an internal
-  shared library with no independent release surface. A pure-`component-lib` PR
-  with no app file touched will **not** appear on either site's changelog — an
-  accepted gap (in practice a user-visible shared-UI change rides with an app
-  change). Promote it to a component later if the gap ever bites. The
-  `discord-bot` is likewise excluded (no on-site history to render).
-
-- **The release PR is the batched, optional curation point.** Default behaviour
-  is **zero-processing** auto-generated notes. If polish is wanted, edit the
-  release PR's `CHANGELOG.md`/body **before merging** — a batched, per-release
-  choice, not per-PR work.
-
-- **Seeding & migration.** `.release-please-manifest.json` seeds `srd`
-  at `1.0.0` and `itun` at `0.1.0`, with `bootstrap-sha` at the
-  adopting commit so the first release PR is forward-looking. The existing
-  ~35 `changelog.ts` entries are **backfilled** into
-  `apps/srd/CHANGELOG.md` as a historical tail (nothing is lost);
-  `changelog.ts` is then removed and the `/changelog` page reads the markdown.
-
-- **This supersedes the "Changelog Maintenance" section of
-  `apps/srd/CLAUDE.md`** (per-PR hand-authored entries). It is replaced by
-  guidance to write a good conventional PR title; the changelog is generated.
-
-- **CI / merge interplay.** release-please runs as a workflow on push to `main`.
-  It must authenticate with a **PAT**, not the default `GITHUB_TOKEN`, so its
-  release PRs trigger `ci.yml` and the required `CI Success` check reports
-  (a `GITHUB_TOKEN`-opened PR triggers no workflows and would be unmergeable).
-  This is a one-time repo-secret setup step, documented at rollout. Release PRs
-  touch only `CHANGELOG.md` / `package.json` version / the manifest, so they
-  pass the suite cleanly, and land via the existing squash-only + auto-merge
-  flow.
-
-- **One release PR for all components, not one per component.**
-  `separate-pull-requests` is **`false`**. It was `true`, and that was the
-  systemic cause of the release lag this ADR was meant to eliminate: all three
-  components share a single `.release-please-manifest.json`, and their version
-  entries are **adjacent lines**, so any two open release PRs conflict by
-  construction. The moment one merged, every other open release PR went
-  `CONFLICTING` — and release-please does not repair them, because it only
-  force-pushes a release branch when _its own_ component has new commits. A
-  component with no new commits keeps a stale manifest forever.
-
-  Observed three times in one evening: #677 (itun) died when `srd 2.0.0` landed,
-  its recreation #698 died when `srd 2.0.1` landed, and #698 stayed frozen
-  through two successful release-please runs afterwards. The only recovery is to
-  close the PR and let it be recreated, which is a human step — exactly what
-  this ADR set out to avoid.
-
-  A single PR removes the contention: one branch, one manifest edit, nothing to
-  conflict with. Versioning is **unchanged** — each component still gets its own
-  independent version bump, its own `CHANGELOG.md` section, and its own
-  component-tagged GitHub Release on merge. Only PR granularity changes. The
-  cost is that one component's release notes can no longer be reviewed or
-  delayed in isolation; given the alternative was releases silently not shipping
-  at all, that is the right trade.
-
-- **Auto-merge is armed by the workflow, not by a human.** This sentence used to
-  read as though "the existing auto-merge flow" would pick release PRs up on its
-  own. It does not: nothing enables auto-merge on a PR unless something asks it
-  to, so the release PRs simply sat open — `srd` #688 for a day, `itun` #677 for
-  two — and `main`'s `CHANGELOG.md` fell behind by exactly that much. The
-  release-please workflow now re-arms auto-merge on every open
-  `release-please--*` PR on each run, so a release lands as soon as
-  `CI Success` is green with no human step. It is re-asserted every run
-  rather than only on creation, because a PR ejected from the merge queue (both
-  release PRs edit `.release-please-manifest.json`, so one always rebases) loses
-  auto-merge silently; a daily `schedule:` covers the case where no push follows.
-
-### Consequences
-
-- **Less ongoing work than today** — no per-PR prose — and **ITUN gains a
-  changelog for free**.
-- **Auto-notes are terser** than the current curated prose. The release PR is
-  the place to optionally polish. Accepted trade for least-processing.
-- **Pure-`component-lib` PRs may not surface** on either site changelog
-  (documented gap above).
-- **New moving parts:** a release-please workflow + a PAT repo secret (admin,
-  one-time). If the secret is absent, release PRs won't get the required check
-  and won't be mergeable — a visible failure, not a silent one.
-- Each site's build gains a small, unit-tested markdown parser (validated
-  against real release-please output fixtures) to render the merged changelog.
-- Versioning is per-app and independent; a site's version advances only when it
-  (or the ref) has unreleased conventional commits.
+Full text: `git show bc9f08ce:docs/ARCHITECTURE.md` (its `## ADR-024` section)
 
 ## ADR-025
 
@@ -2606,105 +2270,12 @@ config.
 
 ### Status
 
-Accepted. **Partially supersedes [ADR-014](#adr-014)**
-(the CHANGELOG-freeze clause only; ADR-014's no-npm stance is preserved).
+**Superseded by [ADR-040](#adr-040)** (2026-10-08). The reference package has no
+release stream: no version, no `CHANGELOG.md`, no release-please component. Its
+API-report half had already been withdrawn (2026-09-28); the JSON-schema drift
+check it relied on is `bun run check generated`, which predates it.
 
-**The TypeScript API-report half of the surface gate is withdrawn (2026-09-28).**
-The package is private and every consumer is typechecked in this repo, so a
-changed export already fails the typecheck of whatever imports it. The report,
-its generator and `tsconfig.api.json` are deleted. The versioned releases and
-the JSON-schema drift check stand.
-
-### Context
-
-[ADR-014](#adr-014) established that the
-dataset's public distribution is the **served JSON API** (`apps/srd`
-`/schema/*.json` + `.schema.json` + item endpoints + the `/api` page + `llms.txt`),
-retired npm publishing, kept the package **`private: true`, workspace-internal**
-(consumed only via `workspace:*` TypeScript source, no build step), and
-**froze** `packages/salvageunion-reference/CHANGELOG.md` "since there is no
-future npm release for it to document." `bun run build:package` regenerates
-`schemas/*.schema.json` + registry codegen from the Zod sources, and a CI
-`build-package` job fails on any generated-file drift.
-
-Two new goals motivate this decision:
-
-1. Give the ref **formal (internal) versioned releases** so its changelog can
-   participate in the sites' on-site release history
-   ([ADR-024](#adr-024)) — a dataset update _is_
-   user-visible "what's new" on both sites.
-2. **Gate the ref's public surface** on that version. The public surface is the
-   exported **TypeScript API** (models/types consumed via `workspace:*`) **and**
-   the generated **JSON schemas** (already the served public API per ADR-014).
-
-**The load-bearing nuance:** because apps consume the ref as TS **source** via
-`workspace:*`, they always compile against `HEAD` — a version _number_ does
-**not** gate consumers at build or runtime. The real gate is a **committed
-surface snapshot that CI diffs** (the exact mechanism the `build-package` job
-already uses for schemas). The version is the human-facing label a release
-attaches to an _acknowledged_ surface change, not itself an enforcement
-mechanism.
-
-### Decision
-
-- **The ref becomes a release-please component** (in the shared
-  [ADR-024](#adr-024) config), versioned with a
-  maintained `CHANGELOG.md`. This **unfreezes** the CHANGELOG that ADR-014
-  froze — but does **not** resume npm publishing. The package stays
-  `private: true`, workspace-internal; ADR-014's core stance (the JSON API is
-  the public distribution, no npm) is preserved. Only ADR-014's
-  changelog-freeze clause is superseded.
-
-- **Public-surface gate = a committed API report, CI-diffed.** A snapshot of
-  the ref's exported TypeScript surface is committed
-  (`etc/salvageunion-reference.api.md` via `@microsoft/api-extractor`, or a
-  normalized `.d.ts` snapshot if TS7 toolchain compatibility forces the
-  fallback — see Consequences). Its generation **folds into `build:package`**,
-  and the existing **`build-package` CI drift job's diff check is extended to
-  the report path**. A change to the public TS surface **fails CI** until the
-  report is regenerated and committed — and that commit is a release-worthy
-  conventional commit, so release-please attaches a version bump + changelog
-  entry. The JSON-schema surface is **already** gated by the same job.
-  Together: **TS exports + JSON schemas are both gated**, in one command
-  (`build:package`) behind one job (`build-package`).
-
-  The chain is: _change the public surface → regenerate + commit the report
-  (CI-enforced) → that commit is a `feat:`/`fix:` release-please turns into a
-  version + changelog entry._ No bespoke "did you bump the version?" check is
-  needed — the report **is** the forced acknowledgement, and the release falls
-  out of it.
-
-- **Seed version `2.3.5`** — the local `package.json` source-of-record per
-  ADR-014 — with `bootstrap-sha` at the adopting commit. The orphaned npm
-  `2.4.0` (an out-of-band publish outside this repo's history, per ADR-014) is
-  ignored, consistent with ADR-014.
-
-- **Optional, not in this decision's required scope:** the served JSON API
-  (the `/api` page + `llms.txt`) may now surface the ref version so external
-  consumers know which dataset version they fetched. Noted as a follow-on.
-
-### Consequences
-
-- The ref's **public TS surface can no longer change silently** — CI forces an
-  acknowledged, released change. This closes the gap ADR-014 left: schemas were
-  drift-checked, but the TS export surface was not.
-- ADR-014's version-discrepancy note is **resolved forward** — local `2.3.5`
-  becomes the live source-of-record and advances from there under
-  release-please. npm's orphaned `2.4.0` remains untouched and unpublished-to
-  (still out of scope).
-- **Tooling risk:** `@microsoft/api-extractor` is built on the TypeScript
-  compiler API and may not yet support the **TS7** compiler the repo runs
-  (the repo already keeps a TS6 `typescript-classic` foothold for exactly this
-  class of lag). The fallback is a committed, normalized `.d.ts` snapshot. The
-  **gate is identical either way** (a CI diff of a committed surface file); only
-  the report _format_ differs. The implementation resolves this early and
-  falls back if needed.
-- The ref's changelog now appears in **both sites' `/changelog`**
-  ([ADR-024](#adr-024) merge), so a data update
-  reads as "what's new" on the sites — the primary user-facing benefit.
-- `build:package` becomes slightly slower (it now also emits declarations +
-  the report). Accepted: it is a dev/CI tool step, not a hot path, and keeping
-  one command + one gate matches the least-processing goal.
+Full text: `git show bc9f08ce:docs/ARCHITECTURE.md` (its `## ADR-025` section)
 
 ## ADR-026
 
@@ -2722,9 +2293,9 @@ The reference-entity display was reconciled from a 57-file legacy render core
 [`.claude/skills/component-refresh/SKILL.md`](../.claude/skills/component-refresh/SKILL.md))
 settled a set of **design rules** along the way — about how choices render, how
 stats read, how tech-level scaling looks, and which data carries a tech level.
-Those rules were decided interactively and proven in Ladle, but were only
+Those rules were decided interactively and proven in the story catalog, but were only
 recorded in commit messages. This ADR enshrines them so they are not
-re-litigated, and points at the Ladle stories that demonstrate each.
+re-litigated, and points at the stories that demonstrate each.
 
 See also: [ADR-010](#adr-010) (choices
 ephemeral vs persisted), [ADR-021](#adr-021) (surface/mode
@@ -2736,11 +2307,8 @@ taxonomy — which surface may enforce vs. free-edit), [ADR-023](#adr-023)
 #### 1. One renderer — `ReferenceEntityCard`, and nothing else
 
 `ReferenceEntityCard` (`components/referenceEntity/card/`) is the **only**
-reference-entity renderer. The legacy RED core is deleted, and so is the
-`ReferenceEntityDisplay` compat shim that briefly carried the legacy sugar
-(`mode` / `compact` / `listing` → `size`; `status` → `damaged`; the old
-single-SV `statsOverride` `{value, bottomLabel}` → `StatItem[]`) across the
-migration: the barrel no longer exports that name. Call the card.
+reference-entity renderer, with no compat shim in front of it: size is `size`,
+damage is `damaged`, and stat overrides are `StatItem[]`. Call the card.
 
 #### 2. Entities always render as the card — layer UI on top
 
@@ -2758,14 +2326,14 @@ changing the _data shape_ over special-casing the renderer.
 
 **Choice placement splits by kind:**
 
-- **Freeform choices** (`choiceType: "freeform"` — a simple free-text field, e.g.
+- **Freeform choices** (`source.kind: 'text'`, or no `source` — a simple free-text field, e.g.
   a companion's Name / a crawler's Keepsake / Motto) are treated as **simple
   inputs**. In **read-only** they surface as **`Choose | <name>` sub-header cells**
   (a `Stat` hint that there's a field to fill), never a body block. In
   **editable** mode they stay in the body as a real text input (you type into it).
-- **Multiple-choice choices** (a `rollTable` / `choiceOptions` / `schema` /
-  `schemaEntities` / `constraints.scalesWithField` — "choose from the list below")
-  always render **inline in the body**, in both modes.
+- **Multiple-choice choices** (`source.kind` is `table` / `options` / `catalog` /
+  `systemVariant`, or `cardinality.max` is above one or `{ scalesWith }` —
+  "choose from the list below") always render **inline in the body**, in both modes.
 
 - **Read-only choices render SOLID** — every option at full strength (a static,
   readable list). The **dim-until-chosen** affordance is **editable-only**: an
@@ -2806,7 +2374,7 @@ also gets a rust label ground. The value itself updates. This applies to
 
 Some granted, TL-scalable pilot equipment (e.g. Custom Sniper Rifle) resolves an
 **effective tech level** that drives its Modification-choice cap
-(`constraints.scalesWithField: techLevel`) AND any `perTechLevel` datavalue
+(`cardinality.max.scalesWith: techLevel`) AND any `perTechLevel` datavalue
 (e.g. "+1 SP damage per Tech Level after the first").
 
 - Effective TL = `max(baseTL, effectiveTechLevel ?? scalingParent.techLevel ??
@@ -2833,15 +2401,13 @@ equipment was already TL1.)
 
 ### Consequences
 
-- The design rules are demonstrable and regression-guarded: each has a Ladle story
+- The design rules are demonstrable and regression-guarded: each has a story
   (canonical groups `Compositions/Reference Entity *` and `Atoms/Stat`),
   and the story-coverage guard keeps every barrel-exported visual component
   storied.
 - Rule 7 is a shared-data change: it changes the tech-level badge on srd /
   the Discord bot as well as ITUN. It is a data ruling, not a computed value —
   future granted-only equipment should be authored at TL1 directly.
-- The compat shim (rule 1) is intentionally retained; there is no plan to rewrite
-  every call site to the card's native API. It is the stable public entry.
 
 ## ADR-027
 
@@ -3170,9 +2736,8 @@ constraints:
 
 - They are **applied only by the Dashboard** (Guided Play). No other mode may
   switch one on — activating an effect is a lifecycle transaction.
-- They resolve against **ephemeral play state**, never the persisted entity, per
-  [ADR-019](#adr-019). **Amended by ADR-038:**
-  the play state they resolve against becomes the pilot's seat on the Game. Time does not enter the
+- They resolve against the **pilot's seat on the Game**, never the persisted
+  entity ([ADR-038](#adr-038) §2). Time does not enter the
   data layer; reference data declares _that_ an effect is activated and for how
   long, and play state records _when_.
 
@@ -3245,7 +2810,7 @@ carrier (a prose span) alongside it.
   overrides; amended by this work to make an override an absolute pin.
 - [ADR-026](#adr-026) — entity card design rules; §5's
   rust "modified" language, extended here to prose.
-- [ADR-019](#adr-019) — ephemeral play state, the
+- [ADR-038](#adr-038) §2 — the pilot's seat, the
   home of activated contributions.
 - [ADR-006](#adr-006) — rules as pure functions; breakdowns
   stay pure and side-effect-free.
@@ -3266,7 +2831,7 @@ carrier (a prose span) alongside it.
 and the partial is the important word: §1 promises Solo mode — not signed in,
 IndexedDB as the source of truth — "must keep working forever", and **that one
 guarantee is withdrawn**. Persistence requires an account and IndexedDB is a
-cache of Convex; read §1's Solo row as history. Everything else here — Games,
+cache of Convex. Everything else here — Games,
 memberships, roles, ownership, the two containers, Convex as server of record —
 stands, so citing this ADR remains correct for all of it.
 
@@ -3278,7 +2843,7 @@ altering any of its enforcement modes.
 
 The operational reference (deployments, env vars, secrets, rotation) is
 [accounts and Games operations](#accounts-and-games-operations) and the
-`convex-maintenance` skill.
+`convex-ops` skill.
 
 **2026-10-06 — the Games pages are folded into the Roster hub.** §6's surfaces
 — the Games index (`/games`), a Game's crew page (`/games/:id`) and the
@@ -3290,9 +2855,15 @@ one. The old URLs redirect (the two with an id pick that Game first). §6 is
 otherwise unchanged: the Mediator keeps a surface of their own, as a section
 only they see.
 
+**§5 is amended by [ADR-032](#adr-032)**: a public read-only sheet is the one
+exception to its visibility rules. **§5a is amended by [ADR-037](#adr-037)**: a
+Game takes a player's crew before it has a crawler.
+
 **§5 and §6 are amended by [ADR-038](#adr-038)** (built): only the table runner
 edits a Game's crawler, and crew status reaches the Game-only Dashboard as a
 Crew tab.
+
+**Amended 2026-10 (#1130)** — §4: a proposal carries no before, only its value.
 
 ### Context
 
@@ -3341,19 +2912,12 @@ subscription and writes to Convex; IndexedDB is demoted from source of truth to 
 warm cache. Reactive subscriptions are the product feature here — synchronized
 alerts and a live table are the point — not an add-on.
 
-This produces **three modes**, and every surface must be legible in all three:
-
-| Mode             | Truth        | Reads                 | Writes                     |
-| ---------------- | ------------ | --------------------- | -------------------------- |
-| **Solo**         | IndexedDB    | local                 | local — nothing is blocked |
-| **Connected**    | Convex       | reactive subscription | to Convex                  |
-| **Disconnected** | Convex, gone | cache, fully legible  | **blocked**                |
-
-**Solo is not Disconnected.** Anonymous play stays first-class: no sign-in is
-required to build a pilot and play alone, nothing is gated, and no banner
-appears. Signing in is an _upgrade_ taken to join a table. A **NOT CONNECTED**
-banner and read-only state are the honest cost of choosing a server of record,
-and only people who opted into a Game ever pay it.
+This produces **three modes**, and every surface must be legible in all three.
+The current table — Solo is signed out and read-only, Connected writes to
+Convex, Disconnected is a read-only cache — is [data flow](#data-flow) and
+[`apps/itun/CLAUDE.md`](../apps/itun/CLAUDE.md). A **NOT CONNECTED** banner and
+read-only state are the honest cost of choosing a server of record, and only a
+signed-in user offline ever pays it.
 
 Offline writes are **blocked, not queued**. An outbox would reintroduce conflict
 resolution through the back door, which is the thing choosing a server of record
@@ -3515,10 +3079,9 @@ Enforced in `convex/model/permissions.ts` (`requireTableRunner`) and
 
 The **Mediator gets its own surface**, the layer ADR-021 deferred; the Encounter
 tray is absorbed into it and `/encounter` retires. The player Dashboard's locked
-1280×800 canvas ([ADR-020](#adr-020)) is
-**not** reopened: ~~crew vitals arrive there as a **"Crew" dial item**, using the
-dial track's existing configurable show/hide and order.~~ **Amended by
-ADR-038:** they arrive as a Crew tab in the display.
+1280×800 canvas ([ADR-038](#adr-038) §9) is
+**not** reopened: crew vitals arrive as a Crew tab in the display
+([ADR-038](#adr-038) §4).
 
 **A Game's crew is rendered as the Roster renders a shelf.** `/games/:id` (any
 member) and `/mediator/:id` (the Mediator, who gets the private instruments
@@ -3710,6 +3273,14 @@ consumer, the AST-walking architecture check, became three GritQL plugins in
 needs the TypeScript 6 compiler API. The "Carried over unchanged" bullet about
 the alias is history.
 
+**Amended 2026-10-09 — decision 5's PWA replacement is `vite-plugin-pwa`.** srd's
+service worker is generated by `VitePWA` in `ssg/vite.config.ts`, the plugin
+ITUN uses, with its workbox options in `ssg/pwa.ts`. The precache globs only
+js/css/woff2/svg, all emitted by `vite build`, so generating it there produces
+the same 82 entries the post-SSG `workbox-build` call did. `registerSW.js` is
+a static file in `public/`. Read "`workbox-build`'s `generateSW` over the
+finished `dist`" below as this.
+
 ### Context
 
 ADR-012 chose "**Astro, static, React islands**", and explicitly treated the
@@ -3863,8 +3434,7 @@ left, and no available version fixed it.
   value around the Vite call. Anything else that invokes Vite programmatically in
   the same process needs the same guard.
 - **srd reads Vite's default `VITE_` env prefix — do not re-add
-  `envPrefix: 'PUBLIC_'`.** The override existed only because Netlify's UI held
-  `PUBLIC_`-named values; the build env is now set only by
+  `envPrefix: 'PUBLIC_'`.** The build env is set only by
   `deploy-cloudflare.yml`. Re-adding it makes `VITE_SENTRY_DSN` inline as
   `undefined`, and srd's Sentry goes dark with every check green. The workflow
   still sets the `PUBLIC_` names alongside, solely so a rollback dispatch to a
@@ -3909,8 +3479,8 @@ changing anything ADR-004 decided.
 **Amended by [ADR-036](#adr-036) (2026-10-06):** snapshots
 are retired, so the public sheet is now the **only** account-free way to share.
 The consequence below that kept both surfaces ("ADR-004 is narrowed, not
-superseded") is withdrawn; an old `/s/:id` link redirects here when its entity is
-public.
+superseded") is withdrawn. An old `/s/:id` link shows a retired page (ADR-036,
+as amended 2026-10-09).
 
 **Decisions 4–5 amended (2026-10-06):** `publicSheet.get` also returns the
 entity's direct assignments — a linked entity that is published itself with its
@@ -4044,7 +3614,7 @@ no account to open, is always current, and requires no publishing step.
   than to inherit.
 - **The link does not unfurl.** `index.html` carries no Open Graph tags and the
   route is client-rendered, so a bare link pasted into Discord or Slack shows
-  nothing. That is why the bot renders the URL inside its own embed. Giving this
+  nothing. That is why the bot renders the URL inside its own card. Giving this
   route server-rendered meta tags is a separate, later piece of work.
 
 ### Alternatives considered
@@ -4073,233 +3643,91 @@ project with two live surfaces and no frozen one.
 ### Status
 
 **Accepted and delivered.** Every production hostname is served by a
-Cloudflare Worker — `intheunionnow.com` since 2026-08-19, `salvageunion.io` and
-`assets.salvageunion.io` since 2026-08-31. The Render account is deleted;
-deleting the retired Netlify sites is the operator's step. The phased cutover
-plan was deleted once every phase closed; code comments that cite a phase
-(`ADR-033 P4`) mean that plan:
-`git show c2476d1c:docs/architecture/cloudflare-cutover.md`. Current
-identifiers (Workers, buckets, zones) are in
-[services and agent tooling](#services-and-agent-tooling).
+Cloudflare Worker: `intheunionnow.com` since 2026-08-19, `salvageunion.io` and
+`assets.salvageunion.io` since 2026-08-31; Netlify and Render serve none of them.
+Code comments that cite a cutover phase (`ADR-033 P4`) mean the deleted plan:
+`git show c2476d1c:docs/architecture/cloudflare-cutover.md`. The decision as
+first written, with the cutover's context and hazards:
+`git show bc9f08ce:docs/ARCHITECTURE.md`. Current identifiers (Workers,
+buckets, zones) are in [services and agent tooling](#services-and-agent-tooling).
 
 **Amended 2026-10-06 — §Credentials: the deploy secrets move into a `production`
 GitHub Environment** restricted to `main`, so a workflow copy
 dispatched from a branch cannot read them.
 
-Amends [ADR-004](#adr-004): snapshots keep the
-endpoint shape, the ID scheme, the payload cap and the unauthenticated contract
-that ADR-004 decided, and change only the platform underneath them — Netlify
-Functions + Blobs become a Cloudflare Worker + R2.
+**Amended 2026-10-08 — §Credentials: the deploy runs on `push` to `main`**,
+gated by the strict `main` ruleset.
+
+**§3 is history since [ADR-036](#adr-036)** retired snapshots: nothing reads
+or binds the snapshot bucket.
+
+Amends [ADR-004](#adr-004), since superseded: snapshots moved from Netlify
+Functions + Blobs to a Worker + R2 with ADR-004's contract unchanged.
 
 Re-affirms [ADR-031](#adr-031) and
 [ADR-030](#adr-030) without changing either.
 `srd` remains a statically pre-rendered no-backend site; Convex remains the
-server of record for identity, ownership and sharing. **Only the host changes.**
-
-Supersedes nothing.
+server of record for identity, ownership and sharing. **Only the host changed.**
 
 ### Context
 
-Hosting is currently split three ways: Netlify serves `apps/srd`, `apps/itun`
-(SPA + three Functions + two Blobs stores) and `apps/su-assets`; Render runs
-`apps/discord-bot` as a gateway worker; Convex runs the accounts backend.
-
-Issue #830 proposed consolidating the first two onto Cloudflare. An audit
-against `1366cfdf` found the proposal sound in outline and wrong in four
-premises, and unexecutable in five respects — no acceptance criteria, no data
-migration procedure, no credential story, an unmeasured cost claim, and a
-storage choice that breaks a documented client invariant.
-
-The financial case is thin on its own: Render's worker is the only line item at
-$7/mo, and Workers Static Assets requests are free at this traffic. The reasons
-that survive scrutiny are consolidation onto one platform and the elimination of
-an entire class of Discord gateway failure.
-
-Three facts shaped the decision more than cost did.
-
-**`lp-assets` has no second copy.** The Leyline Press artwork behind
-`assets.salvageunion.io` exists only in Netlify Blobs, cannot enter this
-repository, and serves both production domains. The tool that uploaded it,
-`tools/upload-lp-assets.ts`, was deleted in #725 as dead code — so the store had
-no backup, no export path and no ingest path. That is a standing risk
-independent of this decision, and acting on it is the first phase of the plan.
-
-**The bot's data layer fits Workers Free, measured rather than assumed.** A
-probe carrying the reference corpus and the portable Discord dependencies
-deployed at 549.6 KiB compressed (18% of the 3 MB Free ceiling) with a Cloudflare-
-reported startup of 141 ms (14% of the 1 s budget). Cloudflare's deploy-time
-startup enforcement accepted it.
-
-**The bot already has a transport seam.** `apps/discord-bot/src/commands/interactions.ts`
-defines three narrow structural types that `discord.js` satisfies without
-adapters, and every runtime `discord.js` import outside `index.ts` and
-`events/ready.ts` has a portable equivalent in `@discordjs/builders`,
-`@discordjs/collection`, `@discordjs/rest` or `discord-api-types`.
+Hosting was split three ways: Netlify served `srd`, `itun` and `su-assets`,
+Render ran the Discord bot as a gateway worker, and Convex ran the accounts
+backend. Cost was not the reason to move (Render's $7/mo worker was the only
+line item). Consolidating onto one platform was, together with ending a class
+of Discord gateway failure. The bot's data layer fit Workers Free, measured
+rather than assumed: 549.6 KiB compressed and a 141 ms startup.
 
 ### Decision
 
-**1. Hosting consolidates onto Cloudflare. Netlify and Render are retired.**
-`srd` and the `itun` SPA move to Workers Static Assets; the `itun` snapshot API
-and `su-assets` become Workers; both Blobs stores become R2 buckets; the Discord
-bot moves from a Render gateway worker to Workers HTTP interactions.
+**1. Hosting is Cloudflare.** `srd` and `itun` are Workers Static Assets,
+`su-assets` is a Worker over R2, and the Discord bot is a Worker answering HTTP
+interactions.
 
-**2. This is a hard cutover with no rollback.** Deliberate. The consequence is
-that per-phase verification is the only safety mechanism, which is why every
-phase in the plan carries a gate written so that it can fail.
+**2. The cutover was hard, with no rollback.** Per-phase verification was the
+only safety mechanism, so every phase carried a gate written so that it could
+fail.
 
-**3. Snapshots use R2, not KV.** This reverses #830's proposal and is the single
-most consequential decision here, because the naive reading favours KV — payloads
-cap at 256 KB against a 25 MB value limit and access is by short ID.
-
-The disqualifying property is consistency, not shape. Cloudflare documents that
-KV writes take **up to 60 seconds to propagate globally** and that **negative
-lookups are cached**. The publish flow reads a key twice before creating it —
-once in `generateUniqueId`, once in `put`'s `onlyIfNew` check — so it primes a
-negative-cache entry for exactly the key it is about to write, and the client
-then immediately requests that key, because publish-then-share *is* the feature.
-
-`apps/itun/src/lib/snapshot/client.ts` makes this concrete. Its retry policy
-(#791) is `TRANSIENT_STATUSES = new Set([502, 504])`, and it excludes 404 with a
-written justification: *"not a blip, so retrying 400ms later just asks a store
-that has already said no."* That reasoning is true for Netlify Blobs and false
-for KV. **Choosing KV would silently invalidate a documented invariant in the
-client**, and the failure would reach users as a hard not-found with the retry
-deliberately disabled.
-
-**Do not revisit this without re-reading that comment.**
+**3. Snapshots used R2, not KV.** KV's up-to-60-second propagation and cached
+negative lookups would have turned publish-then-read into a hard not-found.
 
 **4. Builds run in GitHub Actions; deploys use `wrangler`.** Workers Builds is
-not adopted. `srd` forces this — its build provisions Chromium to render
-per-entity OG images — and applying it to all three surfaces keeps one build
-path, one place for path filtering, and the existing CI gates in front of every
-deploy.
+not adopted: `srd`'s build provisions Chromium to render per-entity OG images,
+and one build path keeps one place for path filtering and the CI gates in front
+of every deploy.
 
 **5. Convex stays, and nothing here may foreclose moving it.** Replacing Convex
-with D1 is a separate decision requiring its own ADR. It is materially harder
-than this migration — 15 application tables plus `@convex-dev/auth`'s own,
-18 function modules across 4,589 lines, Discord OAuth, and 27 `useQuery` call
-sites consuming a reactive model that D1 has no equivalent for.
-
-Two constraints follow and are binding on this migration: **snapshots go to R2
-and not into Convex**, and the Worker↔Convex boundary stays plain HTTP with a
-bearer token. Both keep the option open at no cost today.
+with D1 is a separate decision needing its own ADR (see the follow-up below).
+So the Worker↔Convex boundary stays plain HTTP with a bearer token.
 
 **6. Everything runs on the existing `alxjrvs@gmail.com` account.** A dedicated
-account was considered and declined.
+account was declined. Cloudflare isolates by account, not project, so this
+project shares the Workers Free quota (100k requests/day, 10 ms CPU) and the
+`alxjrvs.workers.dev` subdomain with RANDSUM's two Workers, `randsum-rdn` and
+`randsum-site`; preview URLs are `<worker>.alxjrvs.workers.dev`, and renaming
+the subdomain would move RANDSUM's Workers.
 
-Cloudflare's isolation boundary is the account — members and roles scope who may
-act, not which resources belong to which project, so there is no in-account
-"team". A separate account would therefore have been the only way to isolate the
-Workers Free quota and to scope the CI token so it could not reach anything else.
-Cloudflare also cannot create a second account on the same email, so it would
-have meant a second address and an invitation back.
-
-**Correction, 2026-08-18.** This section first claimed the account "holds no
-Workers, no KV namespaces, no D1 databases and no `workers.dev` subdomain, so
-the per-account Free quota is shared with nothing". **Two-thirds of that was
-wrong**, and the error is worth recording because of how it was made: KV and D1
-were verified directly (`wrangler kv namespace list`, `wrangler d1 list`, both
-empty), the attempt to list Workers was blocked, and "empty" was *inferred* from
-the other two rather than checked. An inference was written down in the voice of
-a measurement.
-
-What is actually on the account:
-
-- **Two Workers**, `randsum-rdn` (`notation.randsum.dev`) and `randsum-site`
-  (`randsum.dev` + one more route) — so `RANDSUM/randsum` is already hosted here.
-- **A `workers.dev` subdomain already registered: `alxjrvs.workers.dev`.** There
-  is one per account, so this project takes preview URLs under it rather than
-  choosing its own name. Renaming it would move RANDSUM's Workers.
-- KV and D1 remain empty, as verified.
-
-So the Free quota (100k requests/day, 10 ms CPU) **is** shared, with a project
-that is already live. That does not reverse the decision — the traffic on both
-sides is far from those ceilings — but it does mean the credential blast radius
-under Consequences is a live concern rather than a theoretical one, and it
-removes the argument that a dedicated account would isolate nothing.
-
-R2 is enabled on the account and holds this project's two buckets,
-`su-lp-assets` and `su-itun-snapshots`, beside one unrelated project's.
-
-**7. A failed gate halts the phase.** No gate is worked around, relaxed, or
-retried with different parameters to obtain a pass, and no later phase begins
-while an earlier gate is red. With no rollback, an agent or engineer who treats
+**7. A failed gate halts the deploy.** No gate is worked around, relaxed, or
+retried with different parameters to obtain a pass. With no rollback, treating
 a red gate as an obstacle converts a caught problem into an unrecoverable one.
 This rule exists to be cited.
 
 ### Consequences
 
-**The Discord bot will display as permanently offline** in every server. Presence
-requires an identified gateway session, which an HTTP-interactions app never has.
-It works when invoked. `setPresence` and the `client.guilds.cache.size` liveness
-signal both go away; the latter needs rethinking rather than deleting.
-
-**The bot cutover is atomic across every server.** Gateway and HTTP interactions
-are mutually exclusive — Discord: *"you can only receive Interactions one of the
-two ways"* — and the Interactions Endpoint URL is application-level, not
-per-guild. There is no canary and no test guild. Verification is therefore a
-signed offline replay harness, not a staged rollout.
-
-**Three CI guards must be ported before the config they read is deleted.**
-`tools/check-observability.ts`, `tools/check-bun-version.ts` and
-`tools/check-convex-parity.ts` all read `netlify.toml`, and each exists because
-of a documented silent-production incident. A fourth,
-`tools/check-ci-aggregator.ts`, will correctly fire as jobs are added and removed.
-
-`check-observability.ts`'s `FUNCTION_DIRS` check is a **retirement rather than a
-port**: a Worker declares one entry point, so the "every file in a functions
-directory is a public endpoint" failure class ceases to exist.
-
-**Module scope on Workers forbids timers, async I/O and randomness.**
-`new REST()` throws outright — its constructor registers sweeper timers — and the
-failure occurs at startup, not at build. This also applies to any module-scope
-observability initialisation.
-
-**Zod's `jitless` configuration becomes load-bearing for the runtime, not only
-for CSP.** Zod v4's JIT parser compiles validators with `new Function`, which
-workerd bans. `packages/salvageunion-reference/lib/zod.ts` already disables it;
-that must not be reverted as an optimisation.
-
-**Two standing security suppressions are already retired — but not by this
-migration.** `check:audit` used to ignore `GHSA-w3rx-r6r6-pgpr` and
-`GHSA-5p2g-fcmc-qvqq`, both reachable only via
-`@netlify/blobs → @netlify/dev-utils → image-size`. This ADR predicted they
-would come out when `@netlify/blobs` did. What actually happened is that
-`@netlify/dev-utils` stopped depending on `image-size`, so the package left the
-lockfile while `@netlify/blobs` stayed (10.7.13, still used by `itun` and
-`su-assets`). Both `--ignore` flags and the CLAUDE.md section are gone; this
-is no longer a benefit P8 has left to deliver.
-
-**The CI token's blast radius is the whole personal account** (§6), and that now
-includes **two live RANDSUM Workers**. Cloudflare API tokens scope by permission
-group and account, so *Workers Scripts: Edit* on this account authorises editing
-`randsum-rdn` and `randsum-site` as well as anything this project deploys.
-Cloudflare supports per-bucket R2 scoping but not per-Worker scoping, so that
-half cannot be narrowed; narrow the R2 half, and do not describe the other half
-as contained.
-
-This compounds with an agent PAT carrying `workflow` scope, no required human
-review, and pre-authorized `gh pr merge` — the path from "merge a PR" to "deploy
-production" closes with no human in it, and the production it can reach is not
-only this project's. **Accepted, not solved.** Revisit if RANDSUM's deployments
-ever become something this repository must not be able to touch.
-
-**The `workers.dev` subdomain is `alxjrvs.workers.dev`, already registered.**
-One per account, so this project takes preview URLs beneath it
-(`<worker>.alxjrvs.workers.dev`) rather than choosing its own. Renaming it would
-move RANDSUM's Workers and is out of scope.
-
-**Netlify deploy previews disappear** when the sites do. The Workers preview-URL
-equivalent must be working beforehand.
-
-**DNS is two zones, not one.** `salvageunion.io` and `intheunionnow.com` are both
-on Netlify DNS. Neither carries MX, TXT, DMARC or a DNSSEC DS record, so the two
-classic nameserver-migration hazards do not apply here — but both zones move.
-
-**Snapshots published during DNS propagation would otherwise be lost.** This is
-not a rollback concern; both origins answer for the length of the TTL regardless.
-The plan freezes snapshot writes at a known instant and reconciles a final delta
-before the flip.
+- **The Discord bot displays as permanently offline** in every server:
+  presence needs a gateway session, which an HTTP-interactions app never has.
+  It works when invoked. Liveness is the bot's `/health`, which
+  `tools/smoke-production.sh` checks after every deploy and nightly, so a
+  revoked token surfaces up to a day later.
+- **The bot's endpoint is application-level**, so a change reaches every server
+  at once, with no canary. Its pre-deploy gate is a signed replay harness, not
+  a staged rollout.
+- **Module scope on Workers forbids timers, async I/O and randomness.**
+  `new REST()` throws at startup, and so would any module-scope observability
+  initialisation.
+- **Zod's `jitless` configuration is load-bearing for the runtime**, not only
+  for CSP: workerd bans `new Function`. Do not revert
+  `packages/salvageunion-reference/lib/zod.ts` as an optimisation.
 
 ### Credentials
 
@@ -4314,24 +3742,38 @@ that can deploy production. The bar it is held to:
 - Stored as a secret of the `production` GitHub Environment, restricted to
   `main`, with no reviewers. Never at repository
   level, in a `wrangler.jsonc`, or in a `.env` git can see.
-- Every deploy is gated on CI succeeding for the same commit on `main`, so a red
-  gate cannot deploy. A green gate suffices: production deploys need no
-  environment approval.
+- Every deploy follows a merge, and the `main` ruleset merges only a branch
+  that is up to date with `main` and passed `CI Success`, so a red gate cannot
+  deploy. A green gate suffices: production deploys need no environment
+  approval.
 
 ### Accepted risks
 
 - **No rollback**, chosen deliberately.
-- **The CI token reaches the whole personal account**, including RANDSUM's two
-  Workers (see Consequences). Adding anything else to the account widens this.
+- **The CI token reaches the whole personal account**, RANDSUM's two Workers
+  included. With an agent PAT carrying `workflow` scope and no required human
+  review, "merge a PR" reaches production with no human in it, and not only
+  this project's. Revisit if RANDSUM's deployments become something this
+  repository must not be able to touch; adding anything else to the account
+  widens it.
 - **The bot displays permanently offline** in every server.
-- **Sentry liveness telemetry changed shape** — `client.guilds.cache.size` does
-  not exist under HTTP interactions.
 
 ### Configuration outside the repo
 
-Two things are configured in the Cloudflare dashboard and are invisible to
-`grep`: Images Transformations (enabled per zone), and one **Redirect Rule** per
-zone sending `www` to the apex.
+Four things are configured in the Cloudflare dashboard and are invisible to
+`grep`: Images Transformations (enabled per zone), **Always Use HTTPS** (SSL/TLS
+→ Edge Certificates, on both zones), one **Redirect Rule** per zone sending
+`www` to the apex, and one **Response Header Transform Rule** per zone setting
+`Cache-Control: no-store` when the path starts with `/assets/` and the status is
+404. `_headers` cannot match on status, so its `/assets/*` rule otherwise marks
+a missing chunk's 404 `immutable` for a year; `tools/smoke-production.sh`
+asserts it is not.
+
+Always Use HTTPS answers every plain-http request on either zone, `www` and
+`assets.` included, with a 301 to its https twin. Without it plaintext reaches
+the Workers and is served as-is: HSTS protects only a browser that has already
+seen an https response, and the Redirect Rule matches `www` over https only.
+`tools/smoke-production.sh` asserts the 301 on all five hostnames.
 
 | Zone                | When host equals        | Then                                          |
 | ------------------- | ----------------------- | --------------------------------------------- |
@@ -4367,6 +3809,19 @@ Schema translation to SQLite is the easy part. Three things are not:
 
 ### Status
 
+**Superseded in part 2026-10-08 (#1152): there is no pre-account migration.**
+The consequence below that *"existing local data is never destroyed"* and that
+signing in claims it into the account is withdrawn, along with the claim path
+that carried it (`claimLocal`, `AccountReconciler`'s device pass, the `legacy`
+cache origin). An IndexedDB upgrade empties the cache and the server refills
+it; a roster that only ever lived in one browser is not carried forward. The
+three decisions stand.
+
+**Amended 2026-10-09 (#1183): there is no build without a deployment.**
+`apps/itun/vite.config.ts` refuses to start without `VITE_CONVEX_URL`, so the
+consequence below about a build with no `VITE_CONVEX_URL` is withdrawn: such a
+build is refused, not shipped.
+
 **Accepted and delivered; decision 1 amended 2026-10-08.** Signed out, ITUN is
 **read-only, in every build**: building needs an account, and an anonymous write
 is refused (`requireWritableBackend`, reason `signedOut`) rather than kept in
@@ -4400,6 +3855,9 @@ becomes a cache of Convex.
 **Amends [ADR-022](#adr-022)** for the second
 time. ADR-030 already claimed the Change Log is "now synchronized"; this ADR
 makes that a requirement on the client too, not only a statement.
+
+**Amended by [ADR-038](#adr-038)** (built): in "What is not data", mount state
+is no longer a device preference.
 
 Re-affirms [ADR-032](#adr-032) without changing it: a
 public sheet stays an unauthenticated **read** of a row that an account owns.
@@ -4460,7 +3918,7 @@ included, lost that work.
 Reading is unaffected. A public sheet (ADR-032) and the whole of `srd` remain
 open to anyone with no account at all.
 
-**Discord remains the only door.** ADR-030 §D3 chose it deliberately — the
+**Discord remains the only door.** ADR-030 §1 chose it deliberately — the
 audience already lives there, the project ships a Discord bot, and one identity
 is what makes that bot usable — and gating persistence does not change any of
 that reasoning. The consequence must be stated rather than discovered: **a person
@@ -4680,6 +4138,17 @@ the part that rots.
 
 ### Status
 
+**Superseded in part 2026-10-08 (#1152): the legacy claim is retired.**
+Decision 2 (device rows are migrated on sign-in), decision 5 (what counts as
+isolated) and every consequence about the migration window, `mayPrune`'s
+legacy guard and `claimLocal` are withdrawn: `claimLocal`,
+`legacyLocalData.ts`, `legacyMigration.ts`, the `legacy` cache origin and the
+IndexedDB migrations are deleted. Nothing on a device is sent to the account;
+an upgrade empties the cache and the server refills it. Decision 1 (anonymous
+is anonymous) and decisions 3 and 4 (a body agrees with its row) stand;
+`maintenance.repairContainers` ran once against production and was deleted
+(#1132). Read the rest of this record as history.
+
 **Accepted and delivered.** The exemption is gone from `backendForMode`, the
 migration runs from the root of the app, and `claimLocal` now writes a body whose
 container agrees with the row it lands in.
@@ -4704,6 +4173,20 @@ describe a count and two doors as history. The signed-in migration is unchanged.
 The Roster's "Download all" reads the store, not IndexedDB, and signed out
 the store reads nothing. A signed-out visitor therefore has no way to download a
 pre-account roster still on the device. Those rows are migrated on sign-in.
+
+**Amended 2026-10-08: the reconciliation runs until it completes, not on every
+load (#1129).** It used to decide "pre-account roster" by counting rows at boot.
+A signed-in browser's cache is full of rows, so every load re-ran the migration.
+It then re-claimed any cached build deleted on another device, because
+`claimLocal`'s `appIdTaken` finds no row to stop it. A second account on the
+same browser was handed the first account's cache as its own work. The answer
+now lives in the v18 `meta` row (`apps/itun/src/lib/db/cacheMeta.ts`). Only an
+upgrade from before v18 that found a roster records `legacy`, and a completed
+migration records `cache` and the account. The cache belongs to one account:
+sign-out and a change of account empty it, except while it is `legacy`. Read
+decision 2's "on every load" and the consequence on idempotence with this in
+mind. The device-export helpers the earlier amendment left behind
+(`buildLegacyExportBundle`, `ExportAllButton`'s `deviceRows`) were deleted.
 
 ### Context
 
@@ -4816,9 +4299,8 @@ the old card**: the account owns it, so it is not isolated and nothing re-sends
 it — while its body still names a Workspace that migration v13 turned into a
 `gameId`. Owned, server-backed, and invisible.
 
-So `maintenance.repairContainers` applies decision 3 to rows already in the
-database, once, across every account (dispatched through
-`convex-maintenance.yml`). The rule is `body.gameId := row.gameId`, and two
+So `maintenance.repairContainers` applied decision 3 to rows already in the
+database, once, across every account (since deleted, with its workflow). The rule is `body.gameId := row.gameId`, and two
 things about it are deliberate:
 
 - **The column is the authority, not membership.** "Shelve anything whose Game I
@@ -4857,7 +4339,8 @@ ambiguous two ways, and they need opposite handling: a phantom Workspace id is
 the caller's own build and must be migrated, while a Game the caller **left** is
 somebody else's — `GameRoster.ensureLocal` (since removed) adopted a crewmate's
 pilot into IndexedDB the moment you opened their sheet, and `rowMayBePruned`
-never prunes a Game row, so that copy outlives the membership.
+prunes no Game row it cannot tell is the caller's, so that copy outlives the
+membership.
 
 The client cannot tell those apart and must not guess: shelving the second moves
 another player's character into this account, and for an unclaimed pre-gen —
@@ -4898,15 +4381,18 @@ open forever — and `mayPrune` off with it — over rows that were never at ris
   reconcile never prunes. Pruning off is a stale cache; pruning on too early is
   deleted work.
 
-- **The reconciliation is idempotent and re-runs on every load.** It is a query,
-  a set comparison, and — in the steady state — no mutation at all. That is
-  deliberate: a migration that runs once and records that it ran is a migration
-  that cannot repair the browser it failed on, which is exactly how the
-  `localStorage` claim marker failed before it.
+- **The reconciliation re-runs on every load until it completes, then never
+  again on that browser.** Each pass is a query, a set comparison and at most
+  one `claimLocal`. A pass that strands nothing records the close in IndexedDB
+  (`meta.origin = 'cache'`), not in `localStorage` or module memory. A pass that
+  strands a row records nothing, so the next load retries and the failed browser
+  is still repaired. Re-running after the close would be wrong: the rows are
+  then the account's cache, and any of them deleted on another device would be
+  claimed back.
 
-- **`claimLocal` must be safe to repeat**, because it runs on every signed-in
-  load. Every claimed kind matches on an identity, NPCs included (the id inside
-  the body, like patterns).
+- **`claimLocal` must be safe to repeat**, because a browser retries it on every
+  signed-in load until its migration completes. Every claimed kind matches on
+  an identity, NPCs included (the id inside the body, like patterns).
 
 - **The repair is a write against the account on every signed-in load.** It is
   one indexed read of the caller's own rows and, in the steady state, zero
@@ -4954,16 +4440,34 @@ rule this implies: device rows are sent only after comparing against
 
 **Accepted, 2026-10-06.** **Supersedes [ADR-004](#adr-004)**
 (snapshot sharing). [ADR-033](#adr-033)'s hosting decisions
-are untouched; its snapshot-specific reasoning (§3's publish-then-read
-consistency argument, the cutover's snapshot write freeze) describes a publish
-flow that no longer exists, though §3 still explains why the store being read is
-R2.
+are untouched; its §3, on the snapshot store, is history.
 
 Amends [ADR-032](#adr-032): its consequence that
 "ADR-004 is narrowed, not superseded" — snapshots kept as the way to hold a
 frozen copy beside the live one — is withdrawn. Every other decision in ADR-032
 stands, and the public sheet it introduced is now the only account-free way to
 share.
+
+**Decision 5 amended, 2026-10-08 (#1128):** the rendered unfurl image is
+removed. The dependency audit gate that held it now passes a PR that changes
+`bun.lock`, so the renderer went with `@resvg/resvg-wasm`; `/og/s/*` answers
+404 rather than the 301 to the app icon this ADR first planned.
+
+**Decisions 2–5 amended, 2026-10-09 (#1137):** old links no longer redirect,
+and `/api/snapshots` is no endpoint at all.
+Since this ADR shipped, `/s/:id` drew one hit and no identity lookup (three
+`GET /api/snapshots/:id` in seven days), so the redirect-if-public path — the resolver, the read-only R2 seam, the `SNAPSHOTS` binding, the
+per-snapshot unfurl metadata and a dev proxy — served nobody. `/s/:id` is now a
+static retired page that reads nothing, and the consequences below that
+describe the redirect, the identity endpoint or the unfurl text no longer hold.
+This reverses the product owner's "Redirect if public" for links in the wild,
+gated on the owner's count of how many stored snapshots name an entity that is
+public today. With nothing left to route, ITUN moved to Static Assets'
+`single-page-application` mode: navigations never reach the Worker, the CSP and
+security headers moved into `apps/itun/public/_headers`, and the Worker script
+answers only non-navigation misses — a missing hashed chunk 404s (#759), a
+crawler gets the shell. The retired-URL 301 table went with it. The deleted
+resolver: `git show 162f01ae:apps/itun/src/lib/snapshot/client.ts`.
 
 Settles the four open decisions the unified-sheet-surfaces plan held for "a
 future ADR-036", by removing the second surface rather than merging it. That
@@ -5006,6 +4510,10 @@ the links that already exist: **"Redirect if public."**
    `DELETE /api/snapshots/:id` are gone: the collection answers 404 to every
    method, and the id route answers 405 to everything but GET. The edge rate
    limiter, which covered `POST /api/snapshots` and nothing else, goes with it.
+   *Amended 2026-10-09 (#1137):* no `/api/snapshots` endpoint exists, by any
+   method. `/api/snapshots` and `/api/snapshots/:id` are ordinary client-route
+   misses: a navigation gets `index.html` from Static Assets, and a `fetch` gets
+   the SPA shell with 200 from the Worker.
 
 3. **An existing `/s/:id` link redirects if public, and otherwise is retired.**
    `GET /api/snapshots/:id` now answers only `{ kind, appId }`, read from the
@@ -5016,6 +4524,8 @@ the links that already exist: **"Redirect if public."**
    not public, never in an account, an unknown or malformed id, a build with no
    Convex — shows "This share link has been retired", which says to ask the owner
    for their live public sheet. The frozen copy is never rendered again.
+   *Amended 2026-10-09 (#1137):* no link redirects; every `/s/:id` shows the
+   retired page, and `/api/snapshots/:id` is gone.
 
 4. **The R2 objects are kept untouched.** Nothing deletes them and nothing writes
    to the bucket; the Worker's storage seam is read-only. The `su-itun-snapshots`
@@ -5023,22 +4533,26 @@ the links that already exist: **"Redirect if public."**
    The 365-day lifecycle rule that `wrangler.jsonc` recorded as decided but not
    yet applied (2026-09-01) is **withdrawn**: the store no longer grows, and
    expiring objects would turn redirectable links into retired ones.
+   *Amended 2026-10-09 (#1137):* the `SNAPSHOTS` binding is removed, since
+   nothing reads the bucket. The objects stay; deleting the bucket is the
+   owner's step.
 
-5. **Links already posted keep their unfurl, for now.** Snapshot links sit in
-   Discord channels, and Discord re-fetches an unfurl, so the Worker still
-   injects the shell metadata at `/s/:id` and still renders `/og/s/:id.png` — a
-   neutral title naming the entity and its kind, read from the stored blob. The
-   card is the only thing the stored build still feeds; opening the link always
-   goes through the redirect-or-retired resolver, never the frozen sheet. The
-   pipeline (`shellMeta.ts`, `ogImage.ts`, `ogCard.ts`, the worker fonts,
-   `scripts/woff-to-ttf.ts`, the `.ttf` Data rule and the `OG_METRICS` dataset)
-   is **removed together with `@resvg/resvg-wasm`** once the dependency audit
-   gate can pass a PR that changes `bun.lock` — today `bun audit
-   --audit-level=high` fails any such PR on advisories with no published fix
-   (`braces` GHSA-vfj7-8cjw-p6xm, and `miniflare`'s pinned `undici`), so removing
-   the package now would block every PR stacked on it. When it goes, `/og/s/*`
-   should 301 to the app icon the renderer already falls back to, and `/s/:id`
-   should get the sitewide defaults.
+5. **Links already posted keep their unfurl text; the image is gone.** Snapshot
+   links sit in Discord channels, and Discord re-fetches an unfurl, so the
+   Worker still injects the shell metadata at `/s/:id` (`shellMeta.ts`) — a
+   neutral title naming the entity and its kind, read from the stored blob, with
+   no image. That text is the only thing the stored build still feeds; opening
+   the link always goes through the redirect-or-retired resolver, never the
+   frozen sheet. *Amended 2026-10-08 (#1128):* the rendered card at
+   `/og/s/:id.png` was removed with `@resvg/resvg-wasm` — the renderer, the
+   worker fonts, the since-deleted `scripts/woff-to-ttf.ts`, the `.ttf` Data rule and the
+   `OG_METRICS` dataset — once `bun audit --audit-level=high` (with the gate's
+   `braces` ignore) stopped failing a PR that changes `bun.lock`. `/og/s/*` is no
+   longer routed: it is a missing file, and the Worker answers it 404. It served
+   two renders in the seven days before that, none since this ADR shipped.
+   Whether `/s/:id` should drop to the sitewide defaults is still open.
+   *Amended 2026-10-09 (#1137):* it does. The Worker injects no metadata
+   anywhere; every link unfurls with the shell's sitewide defaults.
 
 How this answers the plan's four open decisions: (a) snapshots gain no owner and
 no index — the entity they name is read off the blob per request, and only ever
@@ -5063,32 +4577,44 @@ governing rule asked of a link that can no longer serve what it served before.
   sheet, not the frozen copy. That widens who can reach it beyond the people sent
   the `/p/` link, so the Share dialog says it in the same breath as what
   publishing exposes. Switching it off closes both at once.
+  *Amended 2026-10-09 (#1137):* no longer true. Old links never reach a sheet,
+  so publishing widens nothing beyond the `/p/` link, and the Share dialog no
+  longer mentions them.
 - **Some old links can never redirect.** A snapshot taken before its entity
   reached an account, of a build later re-imported (a copy gets a new id), or of
   an entity that was deleted, names an `appId` no public row has; it shows the
   retired page. So does every link while its entity is private — deliberately
   indistinguishable from "gone", as ADR-032 §4 requires of the public query.
+  *Amended 2026-10-09 (#1137):* now no link redirects; every one shows the
+  retired page.
 - **A duplicated `appId` redirects to the oldest row.** `publicSheet.get`
   resolves duplicates the way `entities.byAppId` does. Where an id was duplicated
   across accounts, an old link could land on a different owner's sheet — but only
   one that owner chose to make public, so nothing private is disclosed.
-  `maintenance.dedupeAppIds` is the repair.
+  Collapsing a duplicate is a one-off repair run from the Convex dashboard's
+  function runner, like every other repair.
+  *Amended 2026-10-09 (#1137):* moot, since old links no longer redirect.
 - **The browser cache still holds old answers.** `GET /api/snapshots/:id` used to
   return the whole blob with a year-long `immutable` Cache-Control. The client
   therefore reads either shape (`snapshotIdentity`), so a browser that opened a
   link before this change still resolves it. Those cached bodies contain the old
   frozen build; nothing renders them.
-- **The Worker shrinks a little now, and a lot later.** It no longer bundles the
-  snapshot payload's Zod schemas and binds no rate limiter. The resvg wasm, two
-  fonts and the Analytics Engine dataset stay until the og pipeline goes (decision
-  5); ADR-033's open question — whether the og:image render fits the Free plan's
-  CPU budget — stays open until then, and is closed by removing the render, not
-  by pre-rendering it, since there is no publish step left to pre-render at.
+  *Amended 2026-10-09 (#1137):* the client no longer requests
+  `/api/snapshots/:id` and `snapshotIdentity` is deleted, so nothing reads a
+  cached answer either.
+- **The Worker shrinks.** It no longer bundles the snapshot payload's Zod
+  schemas, binds no rate limiter, and (since the decision 5 amendment) carries
+  no resvg wasm, fonts or Analytics Engine dataset. ADR-033's open question —
+  whether the og:image render fits the Free plan's CPU budget — was closed by
+  removing the render, never measured: there is no publish step left to
+  pre-render at, and nothing left to size.
 - **An old link's preview names the build as it was.** The unfurl reads the
   stored blob, so it shows the entity's name and kind when the snapshot was taken,
   even while the entity is private and the link itself opens the retired page.
   Nothing more of the build is shown, and it is what that link already displayed
-  wherever it was posted. It ends when the og pipeline is removed.
+  wherever it was posted. It ends when `/s/:id` gets the sitewide defaults.
+  *Amended 2026-10-09 (#1137):* it has ended. `/s/:id` unfurls with the
+  sitewide defaults and names no build.
 - **A still-open tab on an older build degrades honestly.** Its feature-detect
   read a 405 on `HEAD /api/snapshots` as "available"; it now gets a 404 and shows
   "publishing unavailable" instead of a button that cannot work. It also reports
@@ -5096,6 +4622,12 @@ governing rule asked of a link that can no longer serve what it served before.
   expected noise that ends as those tabs reload onto the current build, not an
   outage. Its `/s/:id` page, handed `{ kind, appId }` where it expected a build,
   shows its own "Could not render snapshot" state rather than crashing.
+  *Amended 2026-10-09 (#1137):* `/api/snapshots` is no endpoint, so that
+  `HEAD` gets the SPA shell with 200, not a 404. The feature-detect read anything
+  but 405 as unavailable, so the tab still shows "publishing unavailable". Its
+  `/s/:id` page gets the shell where it expected a snapshot and shows its error
+  state; a tab on the redirect build reports `snapshot-identity-failed` once and
+  shows the retired page. Neither redirects.
 
 ### Alternatives considered
 
@@ -5215,9 +4747,9 @@ editor whose every save the server refuses.
 | ---------------------- | --------------------------------------------------------- | ------------------------------------------------- |
 | type matches its ends  | `upsertSoftLink` (`endsMatchType`)                        | `createSoftLink` in `entityStore.ts`              |
 | cardinality / replace  | `writeSoftLink` (`model/entities.ts`), used by every writer | `createSoftLink` (`conflictingLinks`)            |
-| one container          | `upsertSoftLink` (`sameContainerRows`); `claimLocal` declines | `createSoftLink` (`sameContainer`)            |
+| one container          | `upsertSoftLink` (`sameContainerRows`)                    | `createSoftLink` (`sameContainer`)                |
 | move prunes            | `pruneLinksAcrossContainers` in `upsertByAppId`           | `pruneLinksAfterMove` in `entityStore.update`     |
-| scrap/delete cascades  | `pruneSoftLinksFor` in every remove path                  | `deleteEntityWithSoftLinks`                       |
+| scrap/delete cascades  | `pruneLinksOfRow` in every remove path                    | `atomicWrite` with `pruneSoftLinks`               |
 
 `assignLink` (`src/lib/links/assignLink.ts`) is the one client entry point:
 type from the ends, rules in the store, a refusal surfaced as `LinkRefused`.
@@ -5262,12 +4794,8 @@ lists only what would be accepted.
 
 #### Existing data
 
-`maintenance.repairSoftLinks` (dry run by default) deletes duplicates,
-cross-container links and cardinality losers (the newest surviving assignment
-wins), re-files the rest, then backfills `mech-to-crawler` for every mech whose
-pilot crews a crawler in its container. IndexedDB migration v17 draws the same
-backfill locally, so a pre-account roster still waiting to be claimed uploads
-with its mechs docked.
+Rows written before these rules were brought into line by a one-off repair,
+run once against production and deleted (#1132).
 
 ### Consequences
 
@@ -5283,8 +4811,6 @@ with its mechs docked.
 - `listWiring` reads the caller's own pilots and mechs to find their links, so
   it re-runs on their edits. The reconcile is idempotent and writes nothing
   when nothing changed.
-- Until `repairSoftLinks` runs after the deploy, a mech that reached its bay
-  through its pilot shows undocked.
 - A Game that predates `primaryCrawlerId` has its oldest crawler as primary;
   the first crawler event there writes that down. Nobody already in such a
   Game is auto-assigned — the backfill runs only when a Game gets its first
@@ -5296,16 +4822,14 @@ with its mechs docked.
 
 ### Status
 
-**Accepted; built.** Every decision below is in code, delivered by the plan in
-[dashboard-redesign.md](architecture/dashboard-redesign.md), now done; the
-Dashboard as built is [dashboard.md](architecture/dashboard.md). One
-consequence fell short: Tailwind-removal P5 (below).
+**Accepted; built.** Every decision below is in code; the Dashboard as built
+is [dashboard.md](architecture/dashboard.md). One consequence fell short:
+Tailwind-removal P5 (below).
 
-**Amends [ADR-015](#adr-015):**
-- It replaces Dashboard decision 1 (the rotary Dial).
-- It reverses decision 4's ephemeral play state. The other half of decision 4
-  stands: mount state never becomes a field on a pilot or mech record.
-- Decisions 2, 3 and 5 are unchanged.
+This is the one Dashboard decision record. **It supersedes [ADR-015](#adr-015)**
+and the five sub-decisions merged into it (ADRs 016–020): §6 to §9 restate the
+ones that stand, Major and Minor slots replace the rotary Dial (§3), and play
+state moves from the device onto the Game (§2).
 
 **Also amends:**
 - [ADR-030](#adr-030) §5: the table runner alone edits a Game's crawler.
@@ -5315,24 +4839,24 @@ consequence fell short: Tailwind-removal P5 (below).
 - [ADR-034](#adr-034)'s "What is not data": mount
   state is no longer a device preference.
 
-It delivers part of [ADR-021](#adr-021)'s long-tail
-"shared, live Dashboard": each player's play state is visible to the crew live.
-It does not put several players on one screen.
+The Dashboard is the Guided Play surface of [ADR-021](#adr-021)'s taxonomy, and
+delivers part of its long-tail "shared, live Dashboard": each player's play
+state is visible to the crew live. It does not put several players on one
+screen.
 
 ### Context
 
-The Dashboard (ADR-015) was built for one player on one device:
+ITUN's live sheet fuses two moments with opposite interaction grammars: editing
+a character (inline edit and scroll) and running it at the table (one screen,
+no scroll, every action a button). Forcing both into one surface produced
+clutter, so the Dashboard was built as a surface of its own.
 
-- Its play state lives in `playStateStore`, which is not persisted and resets
-  on reload. That covers whether the pilot is boarded, the range band, activated
-  effects and the Downtime wizard's step. A player's crewmates can't see any of
-  it, and neither can the same player on another device.
-- It launches from the shelf and in anonymous play as readily as from a Game.
-  Its Downtime wizard keeps its own step, unrelated to the Game's `downtime`
-  row that the Mediator advances.
-- The rotary Dial puts one entity in front and hides the others behind a
-  rotation. During combat, a player has to rotate the Dial to check their
-  pilot's HP while boarded.
+It was built for one player on one device. Its play state (boarded or not, the
+range band, activated effects, the Downtime step) reset on reload and was
+invisible to crewmates and to the same player's other devices. It launched
+from the shelf and in anonymous play as readily as from a Game, and a rotary
+Dial hid every entity but one, so a boarded player rotated it to check their
+pilot's HP.
 
 Since then, Games became the server of record (ADR-030). They have a Mediator
 role, a shared Downtime row, crew vitals, proposals and alerts, and Convex as
@@ -5362,7 +4886,8 @@ There is one **seat** per pilot in a Game, held in Convex. It records:
 - **mount:** on foot, or boarded and in which mech;
 - the **range band**;
 - the **activated effects**;
-- the **action being resolved**, so a reload mid-roll keeps it;
+- the **action being resolved**, so a reload mid-roll keeps it and the crew
+  watches it step by step;
 - whether the pilot **ejected**, until the next Board or Dismount.
 
 Its rules:
@@ -5388,7 +4913,7 @@ deck filters, and open overlays and menus.
 #### 3. Major and Minor slots replace the Dial
 
 The top of the Dashboard is one **Major** slot and two **Minor** slots. Who holds
-Major follows the game:
+Major follows the game, and nothing else moves the slots:
 
 | When | Major | Minor | Minor |
 | --- | --- | --- | --- |
@@ -5422,7 +4947,7 @@ Log and Crew as secondary tabs.
 The Mediator starts, advances and ends Downtime, as `downtime.begin`, `advance`
 and `end` already allow. Every player's Dashboard follows: the Crawler takes
 Major and the step guide replaces the action deck. Each player marks their own
-step done. The Dashboard no longer keeps a Downtime step of its own.
+step done. The Dashboard keeps no Downtime step of its own.
 
 **A Game's crawler is the Mediator's.** Only the Mediator changes it, in
 Downtime and out. That covers Salvage, Craft, Trade, Upkeep, Upgrade, damage
@@ -5433,58 +4958,91 @@ Mediator, the Organizer keeps it (`requireTableRunner`).
 **Boarding never assigns.** Boarding a mech, a spare included, changes only the
 seat, never the pilot's `mech-to-pilot` link.
 
-#### 6. What stands
+#### 6. A surface of its own, sharing the sheets' state
 
-- [ADR-007](#adr-007)'s automation boundary, on every
-  control. Eject still confirms twice, and destruction is still the player's act.
-- [ADR-006](#adr-006)'s pure rules.
-- ADR-015's reuse of the SRD display (decision 2), its flat-and-inset treatment
-  (decision 3) and the fixed 1280×800 canvas (decision 5).
-- A player never writes another player's state.
+The Dashboard is its own surface at `/dashboard/$pilotId`, not a mode of the
+live sheet. The sheets edit a character (Free Edit); the Dashboard runs it at
+the table (Guided Play). Both read and write the **same** records through the
+**same** store and rules engine ([ADR-006](#adr-006), [ADR-003](#adr-003)):
+the Dashboard is a second lens, not a second source of truth. Every control
+obeys [ADR-007](#adr-007): non-destructive bookkeeping (EP, Heat, uses, SP)
+auto-applies, and destructive change (destroying an item, Eject, meltdown) is
+the player's confirmed act. A player never writes another player's state.
+
+#### 7. Reuse the SRD display; the instruments are bespoke
+
+The display renders the same `component-lib` entity display the rest of the
+app shows (`ReferenceEntityCard`, `RollTable`), with entity-level
+interactivity passed as typed `controls`. Only the instruments (gauges, bays,
+slots, buttons) are Dashboard components. One display system means one place
+to fix reference rendering.
+
+#### 8. Flat and inset; only the display reads forward
+
+Instrument surfaces read **recessed** (a mild inset shadow, soft
+entity-tinted borders), and buttons are flat recessed keys. **The display is
+the one element that reads forward** (a solid hard border, no inset). Hue
+encodes ontology, never identity; state is a treatment overlay (hatch, strike,
+redline), never a second hue.
+
+#### 9. A fixed 1280×800 canvas, scaled to fit
+
+The Dashboard is a fixed 1280×800 design canvas scaled with one
+`transform: scale(min(vw/1280, vh/800))` and letterboxed. "Always one screen,
+never scrolls" is a **landscape-desktop contract**. Below a width threshold
+the canvas is abandoned rather than shrunk illegibly; the phone layout built
+from the same instruments is a follow-up, and until then that host gets a
+rotate-to-landscape notice.
 
 ### Alternatives rejected
 
+- **A "play mode" toggle on the sheet.** The layouts are irreconcilable in one
+  component.
+- **A separate app.** It duplicates the data layer and breaks single-store
+  consistency.
 - **Keep play state on the device and broadcast it to the crew.** It would still
   be lost on reload and on a second device. It would also create a second source
   of truth beside Convex, which ADR-034 rules out.
 - **One seat per member.** It breaks the moment a member covers a second pilot.
 - **Mount as a field on the pilot or mech.** It would leak into sheets and
-  public sheets. ADR-015 decision 4 rejected this, and that half of the decision
-  stands.
+  public sheets.
 - **Keep the Dashboard on the shelf and in solo play.** The product owner
   rejected this. The Dashboard is a curated live game, and the live sheet already
   serves solo play.
 - **The Crawler always in a Minor slot.** During Downtime the crew acts through
   the crawler, so it takes Major.
+- **A Dashboard-specific action renderer** that forks the display, rather than
+  §7's reuse.
+- **Skeuomorphic 3D dials, a CRT bend, per-source colour chips** that let hue
+  mean identity, rather than §8.
+- **A fluid responsive grid**, which cannot guarantee no-scroll, and scaling
+  with no floor, which fights browser zoom and is illegible on phones, rather
+  than §9.
 
 ### Consequences
 
 - **Fewer people can use the Dashboard.** Anonymous visitors, shelf play and
-  Games without a Mediator lose it, as [data flow](#data-flow) and
+  Games without a Mediator have none, as [data flow](#data-flow) and
   [combat loop](#combat-loop) say.
-- **There is new server surface.** A `seats` table and its functions are added.
-  Seats are cleaned up when a Game, pilot or account is deleted and when a pilot
-  or mech leaves the Game. Every toggle is a mutation, so the client uses
-  optimistic updates.
-- **An open Dashboard subscribes to more.** It now also watches the seats,
-  the Game's rolls and the Downtime row (ADR-030 already counts an open
-  Dashboard as a live subscription).
-- **Code is deleted.** The Dial, its settings overlay, `cockpitPrefsStore`,
-  `playStateStore`, the launch chooser and stand-in mechs all go.
-  `games.cockpitPrefs` stays unused until a separate change drops it.
-- **The Dashboard's Tailwind-removal phase was to be absorbed.** The new
+- **There is server surface.** A `seats` table and its functions. Seats are
+  cleaned up when a Game, pilot or account is deleted and when a pilot or mech
+  leaves the Game. Every toggle is a mutation, so the client uses optimistic
+  updates.
+- **An open Dashboard subscribes to more.** It watches the seats, the Game's
+  rolls and the Downtime row (ADR-030 counts an open Dashboard as a live
+  subscription).
+- **The Dashboard's Tailwind-removal phase was to be absorbed.** The
   components use style objects and add no `.pc-*` class, but 103 `.pc-*`
   classes remain, so [tailwind-removal.md](design-system/tailwind-removal.md)
   P5 is still open.
-- **Players can no longer edit a Game's crawler,** on the Dashboard or the
-  sheet. Until players can send requests to the Mediator in the app, they ask
-  at the table.
-- **Convex gains the rules package** for crew status. That reverses a
-  convention recorded in code comments (Convex "should not grow" it), not an
-  ADR. ADR-006's rule holds: the math stays in the package, and Convex calls
-  it.
-- **Some work moves to follow-ups:** a Mediator Dashboard, the phone layout,
-  and what "claiming" a crew asset means in a Game.
+- **Players cannot edit a Game's crawler,** on the Dashboard or the sheet.
+  Until players can send requests to the Mediator in the app, they ask at the
+  table.
+- **Convex has the rules package** for crew status. ADR-006's rule holds: the
+  math stays in the package, and Convex calls it.
+- **Follow-ups:** a Mediator Dashboard (#1062), the phone layout (#1063), what
+  "claiming" a crew asset means in a Game (#1064), and the bot reading
+  server-derived crew status (#1068).
 
 ## ADR-039
 
@@ -5616,3 +5174,114 @@ the closed PR #1047; if it returns, `target` is where a second kind goes.
 - An invitee who declines must ask for a new invite to change their mind. That
   is deliberate: a decline the Organizer can see is worth more than a decline
   that might quietly reverse.
+
+## ADR-040
+
+**The Reference Dataset Is Served Verbatim and Has No Release Stream**
+
+### Status
+
+**Accepted; built** (2026-10-08, audit-4 P16, #1136). Supersedes
+[ADR-025](#adr-025); amends [ADR-014](#adr-014) and [ADR-024](#adr-024).
+
+### Context
+
+[ADR-014](#adr-014) made srd's JSON API the dataset's only public interface.
+By audit 4 that API broke its own contract three ways. `/schema/<id>.json`
+re-serialised the models, so every row carried the `schemaName` that
+`BaseModel` stamps on its copy, and every `/schema/<id>.schema.json` forbids
+that key: 4 of 4 sampled datasets failed their own schema. Every schema's `$id`
+named `salvageunion.com/schemas/…`, a host that times out. `llms.txt` taught an
+item URL that 404'd.
+
+[ADR-025](#adr-025)'s release stream for the package had stopped meaning
+anything. Release-please attributes a squash commit to every component whose
+files it touches, so the live changelog listed ITUN PRs under "Data v2.14.0"
+and one PR twice; in 60 days only two refactor commits touched `data/`. Each
+data release also redeployed ITUN and pushed Convex, and `deploy-surfaces.ts`
+carried two narrowings (the CHANGELOG's readers, a version-only manifest bump)
+for those commits alone.
+
+Two tools wrote `data/*.json`: `edit-data`, which edits the text in place, and
+`fix:ids`, which rewrote whole files with `JSON.stringify` against the data
+rule.
+
+### Decision
+
+1. **The API serves the committed files.** `/schema/<id>.json` and
+   `/schema/<id>.schema.json` are the package's `data/<id>.json` and
+   `schemas/<id>.schema.json`, byte for byte, read through its `./data/*` and
+   `./schemas/*` exports (`apps/srd/src/lib/referenceFiles.ts`). An item
+   endpoint serves its committed row, without `schemaName`.
+2. **A schema's `$id` is the URL it is served at**,
+   `https://salvageunion.io/schema/<id>.schema.json`.
+3. **No reference release stream.** The package is not a release-please
+   component and has no `CHANGELOG.md`; its version is `0.0.0`, as
+   `component-lib`'s is. A data change reaches users through the site that
+   renders it.
+4. **`edit-data` is the one writer of `data/*.json`.** `edit-data add` mints a
+   missing `id`; `validate` reports and never writes.
+
+### Consequences
+
+- Dropping `schemaName` from served rows is a public-API change. A consumer
+  that read it already knew the schema from the URL it fetched.
+- `apps/srd/src/lib/__tests__/jsonApi.test.ts` validates every emitted dataset
+  and item against its emitted schema, checks each `$id`, and checks that every
+  concrete `/schema/…json` URL in `llms.txt` is an emitted endpoint.
+- A data-only PR appears in neither site's changelog: each lists only its own
+  scope ([ADR-041](#adr-041)).
+- npm still serves the orphaned `salvageunion-reference@2.4.0`. Deprecating it
+  needs the owner's npm credentials (`npm deprecate`), outside this repo.
+
+## ADR-041
+
+**The Deployed Commit Is the Release; Changelogs Read `main`'s History**
+
+### Status
+
+**Accepted; built** (2026-10-08, audit-4 P17, #1138). Supersedes
+[ADR-024](#adr-024).
+
+### Context
+
+[ADR-024](#adr-024) derived each site's changelog from conventional squash
+titles through release-please. By audit 4 that machinery cost more than the
+changelog it produced. In the 30 days to 2026-10-08, 16 of 112 commits on
+`main` were release commits, and 14 of the 16 release PRs merged within about
+two minutes of opening: nobody curated them. Each one bumped
+`apps/itun/package.json`, so each redeployed ITUN and pushed Convex for a
+version string only ITUN's About page read. The stream also leaked: release-please
+attributes a commit to every component whose files it touches, so the SRD's
+changelog listed `feat(itun)` entries. Keeping it ran on a PAT in the
+`production` Environment and a 108-line parser for release-please's markdown.
+
+Nothing else consumed a version. Sentry tags every event with the deployed SHA
+(`VITE_COMMIT_REF`, `SENTRY_RELEASE`), the deploy record is the
+`deployed/cloudflare` tag, and a rollback dispatches a SHA.
+
+### Decision
+
+1. **The deployed commit is the release.** No app carries a version
+   (`package.json` says `0.0.0`); ITUN's About page shows the build's short
+   SHA (`VITE_COMMIT_REF`).
+2. **Each site's changelog is `main`'s history, read at build time.**
+   `readChangelog(scope, area)` (`packages/component-lib/src/changelog/gitChangelog.ts`,
+   the `component-lib/changelog/git` export) runs `git log --first-parent` and
+   keeps `feat`, `fix` and `perf` subjects whose scope is the app's own, one
+   entry per day with each PR linked. srd calls it during its SSR pass; ITUN's
+   `vite.config.ts` inlines the result as `__ITUN_CHANGELOG__`.
+3. **The scope is the filter.** `feat(itun): …` appears on ITUN's page and
+   nowhere else; `feat(srd): …` on the SRD's. An unscoped title, or one scoped
+   to a package, appears on neither.
+
+### Consequences
+
+- No release PRs, no release commits, no PAT: `RELEASE_PLEASE_TOKEN` is no
+  longer declared in `tools/environments.ts`.
+- The deploy's build jobs check out full history (`fetch-depth: 0`). A shallow
+  clone (CI, e2e) renders a shorter changelog, never a failed build.
+- A site's changelog is as current as its last deploy. A scoped title that
+  touched none of that app's deploy paths shows on the next deploy that does.
+- A change to a site has to say so in its title. The PR title gate already
+  requires a conventional title; it cannot know the right scope.

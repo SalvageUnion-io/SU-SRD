@@ -26,7 +26,7 @@ import { PilotSheet } from '../PilotSheet'
 beforeAll(hydrateStores)
 
 // "Talk Shop" resolves to a fixed AP cost of 3 in reference data.
-const ABILITY_TALK_SHOP = 'Talk Shop'
+const ABILITY_TALK_SHOP = 'talk-shop'
 
 function makePilot(overrides: Partial<Pilot> = {}): Pilot {
   return {

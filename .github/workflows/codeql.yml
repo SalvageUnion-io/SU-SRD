@@ -1,27 +1,20 @@
 name: CodeQL
 
 # SAST over the shipped JavaScript/TypeScript: every push to main, every PR, and
-# weekly for newly published queries. `Analyze (javascript-typescript)` passes
-# once the analysis uploads, whatever it found: blocking a merge on a finding is
-# the ruleset's `code_scanning` rule, not this file
-# (docs/ARCHITECTURE.md#ci-repository-settings). Tests and e2e specs are not analysed, and the suite is
+# weekly for newly published queries. The `main` ruleset gates on it through its
+# `code_scanning` rule alone (MAIN_RULESET in tools/environments.ts): a merge
+# waits for this analysis's results and blocks on a finding at or above the
+# threshold. `Analyze (javascript-typescript)` passes once the analysis uploads,
+# whatever it found, so it is not a required status. Tests and e2e specs are not analysed, and the suite is
 # `security-extended`: quality findings are Biome's and tsc's job.
 on:
   push:
     branches: ['main']
   # Unfiltered for the same reason as ci.yml: `branches:` matches the PR's BASE
-  # branch, so it gave no run at all to a PR stacked on another PR — and
-  # `Analyze (javascript-typescript)` is its OWN required status on main, so
+  # branch, so it gave no run at all to a PR stacked on another PR — and the
+  # ruleset's `code_scanning` rule waits for CodeQL results on every PR, so
   # that left those PRs permanently unmergeable rather than merely unscanned.
   pull_request:
-  # Kept DORMANT: the `main` ruleset has no merge queue
-  # (ARCHITECTURE.md#ci-repository-settings). It stays because the ORDER matters if a queue is ever enabled:
-  # the queue's temporary `gh-readonly-queue/**` branches fire NEITHER
-  # `push: [main]` NOR `pull_request`, so requiring a context that never reports
-  # on them leaves the queue waiting for a check that cannot arrive. This
-  # trigger must be live on `main` BEFORE the ruleset is changed — same
-  # reasoning as ci.yml's.
-  merge_group:
   schedule:
     # Mondays at 05:30 UTC, offset from the top of the hour to avoid the
     # scheduling stampede.
@@ -34,11 +27,10 @@ on:
 # in-flight analysis running to its timeout, which the old main-only filter
 # had bounded by accident.
 #
-# NO `paths-ignore`, deliberately, even for docs-only PRs. `Analyze
-# (javascript-typescript)` is its OWN required status on main, and a workflow
-# skipped by a path filter never reports — so the PR would sit on "Expected —
-# waiting for status" forever. Paying for a docs-only analysis is cheaper than
-# an unmergeable docs PR.
+# NO `paths-ignore`, deliberately, even for docs-only PRs. The `code_scanning`
+# rule waits for CodeQL results on every PR, and a workflow skipped by a path
+# filter never uploads any — so the PR would wait forever. Paying for a
+# docs-only analysis is cheaper than an unmergeable docs PR.
 concurrency:
   group: codeql-${{ github.ref }}
   cancel-in-progress: true
@@ -58,12 +50,12 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4.38.2
+        uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
         with:
           # Single identifier covers both JS and TS.
           languages: javascript-typescript
@@ -84,6 +76,6 @@ jobs:
               - 'test/**'
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4.38.2
+        uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
         with:
           category: '/language:javascript-typescript'

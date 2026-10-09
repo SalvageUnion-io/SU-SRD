@@ -8,7 +8,7 @@
  * the test survives data edits.
  */
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { makeScrapLot, makeUnitLot } from '../../schemas/cargoLot'
 import type { ScrapPool } from '../../schemas/crawler'
 import type { ScrapMechComponent } from '../scrapMech'
@@ -118,7 +118,7 @@ describe('handOffCargo (stow semantics before the mech record is deleted)', () =
 })
 
 describe('mechScrapComponents (real reference data)', () => {
-  it('resolves the chassis by name and installed items by slug, carrying conditions', () => {
+  it('resolves the chassis and installed items by slug, carrying conditions', () => {
     const chassis = defined(SalvageUnionReference.Chassis.all()[0], 'first chassis')
     const system = defined(
       SalvageUnionReference.Systems.all().find(
@@ -129,10 +129,10 @@ describe('mechScrapComponents (real reference data)', () => {
     const module = defined(SalvageUnionReference.Modules.all()[0], 'first module')
 
     const components = mechScrapComponents({
-      chassisRef: chassis.name,
-      systems: [system.id],
-      modules: [module.id],
-      systemConditions: { [system.id]: 'destroyed' },
+      chassisRef: getEntitySlug(chassis),
+      systems: [getEntitySlug(system)],
+      modules: [getEntitySlug(module)],
+      systemConditions: { [getEntitySlug(system)]: 'destroyed' },
       moduleConditions: {},
     })
 
@@ -159,7 +159,7 @@ describe('mechScrapComponents (real reference data)', () => {
   it('marks the chassis destroyed when the mech itself is destroyed', () => {
     const chassis = defined(SalvageUnionReference.Chassis.all()[0], 'first chassis')
     const components = mechScrapComponents({
-      chassisRef: chassis.name,
+      chassisRef: getEntitySlug(chassis),
       systems: [],
       modules: [],
       destroyed: true,
@@ -178,13 +178,13 @@ describe('mechScrapComponents (real reference data)', () => {
     const module = defined(SalvageUnionReference.Modules.all()[0], 'first module')
 
     const components = mechScrapComponents({
-      chassisRef: chassis.name,
-      systems: [system.id],
-      modules: [module.id],
+      chassisRef: getEntitySlug(chassis),
+      systems: [getEntitySlug(system)],
+      modules: [getEntitySlug(module)],
       // Stored per-item conditions say intact — the mech-level destroyed
       // flag overrides them: "any mounted Systems and Modules … is destroyed".
-      systemConditions: { [system.id]: 'intact' },
-      moduleConditions: { [module.id]: 'damaged' },
+      systemConditions: { [getEntitySlug(system)]: 'intact' },
+      moduleConditions: { [getEntitySlug(module)]: 'damaged' },
       destroyed: true,
     })
 
@@ -197,11 +197,11 @@ describe('mechScrapComponents (real reference data)', () => {
 
   it('keeps unresolved refs with SV 0 so the breakdown can report them', () => {
     const components = mechScrapComponents({
-      chassisRef: 'No Such Chassis',
+      chassisRef: 'no-such-chassis',
       systems: ['no-such-system'],
       modules: [],
     })
-    expect(components[0]).toMatchObject({ name: 'No Such Chassis', salvageValue: 0 })
+    expect(components[0]).toMatchObject({ name: 'no-such-chassis', salvageValue: 0 })
     expect(components[1]).toMatchObject({ name: 'no-such-system', salvageValue: 0 })
     const breakdown = scrapMechBreakdown(components)
     expect(breakdown.total).toBe(0)

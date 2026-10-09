@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import type { Ctx } from './assignmentFixtures'
-import { makeUser } from './assignmentFixtures'
+import type { Ctx } from './fixtures'
+import { crawlerBody, makeUser, pilotBody, seedTable } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -20,48 +20,7 @@ import { testConvex } from './harness'
  * the Game at all** (or the churn is back).
  */
 
-function pilotBody(over: Record<string, unknown> = {}) {
-  return {
-    id: 'p1',
-    schemaVersion: 1,
-    name: 'Roach-Boy',
-    callsign: 'Roach-Boy',
-    classRef: 'salvager',
-    abilities: [],
-    equipment: [],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    conditions: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...over,
-  }
-}
-
-function crawlerBody(over: Record<string, unknown> = {}) {
-  return {
-    id: 'c1',
-    schemaVersion: 1,
-    name: '#430',
-    techLevel: '1',
-    systems: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...over,
-  }
-}
-
 /** A Game with an Organizer (running the table, no Mediator) and a Player. */
-async function seedGame(t: Ctx) {
-  const organizer = await makeUser(t, 'Organizer')
-  const player = await makeUser(t, 'Player')
-  const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-  const code = await organizer.as.mutation(api.invites.create, { gameId })
-  await player.as.mutation(api.invites.redeem, { code })
-  return { organizer, player, gameId }
-}
-
 async function storedSummary(t: Ctx, gameId: Id<'games'>) {
   return await t.run(async (ctx) => (await ctx.db.get(gameId))?.summary ?? null)
 }
@@ -69,7 +28,7 @@ async function storedSummary(t: Ctx, gameId: Id<'games'>) {
 describe('every roster change reaches the stored summary', () => {
   test('joining, raising a crawler and adding a pilot are all counted', async () => {
     const t = testConvex()
-    const { organizer, player, gameId } = await seedGame(t)
+    const { organizer, player, gameId } = await seedTable(t)
     expect(await storedSummary(t, gameId)).toEqual({
       memberCount: 2,
       pilotCount: 0,
@@ -87,6 +46,7 @@ describe('every roster change reaches the stored summary', () => {
       appId: 'p1',
       gameId,
       body: pilotBody(),
+      expectedUpdatedAt: null,
     })
 
     expect(await storedSummary(t, gameId)).toEqual({
@@ -101,7 +61,7 @@ describe('every roster change reaches the stored summary', () => {
 
   test('moving a pilot out to the shelf and deleting one both count down', async () => {
     const t = testConvex()
-    const { organizer, player, gameId } = await seedGame(t)
+    const { organizer, player, gameId } = await seedTable(t)
     await organizer.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
     for (const id of ['p1', 'p2']) {
       await player.as.mutation(api.entities.upsertByAppId, {
@@ -109,6 +69,7 @@ describe('every roster change reaches the stored summary', () => {
         appId: id,
         gameId,
         body: pilotBody({ id }),
+        expectedUpdatedAt: null,
       })
     }
     expect((await storedSummary(t, gameId))?.pilotCount).toBe(2)
@@ -118,6 +79,7 @@ describe('every roster change reaches the stored summary', () => {
       appId: 'p1',
       gameId: null,
       body: pilotBody({ id: 'p1' }),
+      expectedUpdatedAt: null,
     })
     expect((await storedSummary(t, gameId))?.pilotCount).toBe(1)
 
@@ -127,7 +89,7 @@ describe('every roster change reaches the stored summary', () => {
 
   test('renaming the crawler is reflected; filling its bays is not a change', async () => {
     const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
+    const { organizer, gameId } = await seedTable(t)
     await organizer.as.mutation(api.entities.createCrawler, {
       gameId,
       appId: 'c1',
@@ -184,13 +146,14 @@ describe('every roster change reaches the stored summary', () => {
 describe('an ordinary sheet edit does not touch the Game', () => {
   test("a pilot's own fields change without writing the games row", async () => {
     const t = testConvex()
-    const { organizer, player, gameId } = await seedGame(t)
+    const { organizer, player, gameId } = await seedTable(t)
     await organizer.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
     await player.as.mutation(api.entities.upsertByAppId, {
       table: 'pilots',
       appId: 'p1',
       gameId,
       body: pilotBody(),
+      expectedUpdatedAt: null,
     })
     const before = await t.run(async (ctx) => await ctx.db.get(gameId))
 
@@ -201,6 +164,7 @@ describe('an ordinary sheet edit does not touch the Game', () => {
       appId: 'p1',
       gameId,
       body: pilotBody({ name: 'Took a hit' }),
+      expectedUpdatedAt: null,
     })
     const after = await t.run(async (ctx) => await ctx.db.get(gameId))
     expect(after).toEqual(before)

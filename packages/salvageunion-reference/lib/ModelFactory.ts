@@ -146,9 +146,8 @@ export function getLoadedModel(schemaId: string, propertyName: string): BaseMode
  *
  * The non-throwing sibling of {@link getLoadedModel}, for callers whose
  * contract is "return nothing when the schema isn't there" — `lib/slug.ts`'s
- * `findEntityBySlug`, which used to read the raw row array out of
- * {@link getDataMaps} and linear-scan it. Going through the model instead
- * reaches its name/slug indexes.
+ * `findEntityBySlug`. Going through the model reaches its name/slug indexes
+ * rather than linear-scanning the raw rows of {@link getDataMaps}.
  */
 export function getLoadedModelBySchemaId(schemaId: string): BaseModel<unknown> | undefined {
   if (!loadedSchemas.has(schemaId)) return undefined

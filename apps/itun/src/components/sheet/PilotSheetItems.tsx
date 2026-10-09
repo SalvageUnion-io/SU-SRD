@@ -6,15 +6,7 @@
  */
 
 import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from 'component-lib'
-import {
-  Button,
-  CardRemoveButton,
-  Input,
-  Panel,
-  ReferenceEntityCard,
-  Stat,
-  StatusBadge,
-} from 'component-lib'
+import { Button, Input, Panel, ReferenceEntityCard, Stat, StatusBadge } from 'component-lib'
 import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
@@ -23,6 +15,7 @@ import type { GenericInventoryEntry } from '../../lib/schemas/pilot'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { equipmentMaxUses, genericEntrySlots, resolveEquipment } from './pilotInventory'
+import { CardRemoveButton } from './SheetSection'
 
 const HIDE_CHOICES = { choices: true } as const
 
@@ -139,7 +132,7 @@ type PilotEquipmentItemProps = {
   onRemove?: () => void
   readOnly: boolean
   /**
-   * Scaling parent for `scalesWithField` choice caps (e.g. the Modification
+   * Scaling parent for `cardinality.max.scalesWith` choice caps (e.g. the Modification
    * choice scaling with `techLevel`). Undefined leaves the cap unbounded.
    */
   scalingParent: Record<string, unknown> | undefined
@@ -391,7 +384,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
   )
 }
 
-// Injuries — the "Injuries" slab + `InjuryRow` (redesign D6: no poster
+// Injuries — the "Injuries" slab + `InjuryRow` (the poster redesign: no poster
 // counterpart) were dropped from the pilot sheet body; tracked for a future
 // off-sheet re-home as #408. `Injury`/`injuries` and the max-HP derivation
 // that reads them stay live in lib/rules/derivedStats.ts.

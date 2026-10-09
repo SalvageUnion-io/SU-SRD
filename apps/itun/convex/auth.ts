@@ -4,7 +4,7 @@ import { Password } from '@convex-dev/auth/providers/Password'
 import { convexAuth } from '@convex-dev/auth/server'
 
 /**
- * Discord OAuth sign-in (D3).
+ * Discord OAuth sign-in (ADR-030 §1).
  *
  * Discord is the only provider, deliberately: the audience already lives there,
  * the project ships a Discord bot, and using one identity makes that bot a
@@ -15,21 +15,11 @@ import { convexAuth } from '@convex-dev/auth/server'
  *   bunx convex env set AUTH_DISCORD_ID <client-id>
  *   bunx convex env set AUTH_DISCORD_SECRET <client-secret>
  *
- * Signing in used to be an *upgrade*, never a gate (D10). That is being
- * withdrawn by
- * [ADR-034](../../../docs/ARCHITECTURE.md#adr-034):
- * anonymous play stays first-class for *building*, but keeping what you build
- * will require an account. Discord remains the only door for real users — see
- * `testOnlyProviders` below for the one exception and why it is not one.
+ * Signed out, ITUN is read-only; building anything needs an account
+ * ([ADR-034](../../../docs/ARCHITECTURE.md#adr-034), as amended). Discord is
+ * the only door for real users — see `testOnlyProviders` below for the one
+ * exception and why it is not one.
  */
-/**
- * No `afterUserCreatedOrUpdated` callback stamps the Discord snowflake here,
- * and deliberately so: `@convex-dev/auth` destructures `id` out of the OAuth
- * profile before any callback sees it, so such a stamp is always `undefined`
- * and fails silently. The bot resolves a Discord id through `authAccounts`
- * instead — see `model/bot.ts#userByDiscordId`.
- */
-
 /**
  * The stock Discord provider, materialized so its `profile()` can be wrapped.
  *
@@ -41,6 +31,20 @@ import { convexAuth } from '@convex-dev/auth/server'
  * scratch would fork logic that belongs to the library.
  */
 const discord = Discord({})
+
+/**
+ * Discord's issuer, as its `/.well-known/openid-configuration` declares it.
+ *
+ * Discord now appends the RFC 9207 `iss` parameter to its authorization
+ * response, and `oauth4webapi` rejects a callback whose `iss` differs from the
+ * provider's issuer. The stock provider declares none, so `@convex-dev/auth`
+ * falls back to the placeholder `theremustbeastringhere.dev` — and every
+ * sign-in failed with `unexpected "iss" (issuer) response parameter value`,
+ * logged rather than thrown, so nothing reached Sentry. Setting it does not
+ * trigger discovery: the provider already names all three endpoints, so this
+ * only changes what `iss` is compared against.
+ */
+const DISCORD_ISSUER = 'https://discord.com'
 
 /**
  * Auth.js types `OAuthConfig.profile` as optional, because a provider may lean
@@ -97,17 +101,12 @@ function withoutNullFields(profile: User): User {
  *
  * ## Why this has to exist at all
  *
- * ADR-034 gates persistence on an account, and the step most likely to lose
- * somebody's work is the hand-off: build anonymously, be asked to sign in, sign
- * in, and find the work still there and now saved. That is a browser-level
- * behaviour, so proving it needs a browser-level test — and with Discord OAuth
- * as the only provider there is no credential a Playwright fixture could ever
- * present. No e2e in this repo has ever authenticated, because until now nothing
- * needed to.
- *
- * The alternative was to accept that the hand-off has no end-to-end cover. That
- * was rejected: the whole point of a phased plan is not to walk through a
- * one-way door untested.
+ * ADR-034 gates building on an account. `e2e/signin-save.e2e.ts` pins both
+ * halves of that in a browser: signed out, a wizard asks you to sign in instead
+ * of building; signed in, what you build is durable. Every other e2e spec that
+ * builds something signs in the same way (`e2e/fixtures.ts`). With Discord
+ * OAuth as the only provider there is no credential a Playwright fixture could
+ * present, so without this provider none of those specs could run.
  *
  * ## Why it is not a second door into real accounts
  *
@@ -145,6 +144,7 @@ export function providersFor(testAuth: boolean) {
 
   const discordProvider = {
     ...discord,
+    issuer: DISCORD_ISSUER,
     profile: async (
       raw: Parameters<DiscordProfileFn>[0],
       tokens: Parameters<DiscordProfileFn>[1]

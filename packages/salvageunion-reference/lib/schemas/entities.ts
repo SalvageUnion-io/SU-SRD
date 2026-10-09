@@ -62,9 +62,8 @@ export const AbilitySchema = BaseEntitySchema.extend({
   contributions: z
     .array(ContributionSchema)
     .describe(
-      'Flat stat changes this ability makes (ADR-029). An ability could previously ' +
-        'declare no mechanical change at all, so Beefcake, Bionic Arms, Bionic Legs ' +
-        'and Modular Face Implant were inert prose.'
+      'Flat stat changes this ability makes (ADR-029), so a stated mechanical ' +
+        'change (Beefcake, Bionic Arms) applies rather than staying inert prose.'
     )
     .optional(),
 })
@@ -469,14 +468,10 @@ export const GuideSchema = BaseEntitySchema.extend({
     // without a tone still parses and still gets an ink band rather than a
     // blank one.
     //
-    // This field used to be `guideColor`, a raw 6-digit hex. That made the
-    // dataset a SECOND palette: `#7A978A` was byte-identical to `--color-mech`,
-    // while `#D46A30` and `#D14B8A` were near-misses of `--color-pilot` and
-    // `--color-crawler` — close enough to read as the same colour, different
-    // enough never to track a re-tone. And `entityCardTone.ts` gives this field
-    // precedence over the domain tone, so those hues shipped on 15 entity
-    // cards. The design-token gate could not see any of it: it scans `lib`, not
-    // `data`, and excludes `.json` outright.
+    // A tone name, never a raw hex: a hex here would make the dataset a SECOND
+    // palette that never tracks a re-tone, and `entityCardTone.ts` gives this
+    // field precedence over the domain tone. The design-token gate cannot see
+    // it either: it scans `lib`, not `data`, and excludes `.json` outright.
     //
     // Naming a tone instead of spelling a colour keeps the value here and the
     // colour in `theme.css`, which is the only place a colour is allowed to
@@ -484,10 +479,6 @@ export const GuideSchema = BaseEntitySchema.extend({
     // `--color-guide-{salvage,hazard}` for the two that are not an ontology
     // domain; the mapping lives in component-lib, since the reference package
     // must not know about CSS.
-    //
-    // (An older note here claimed "64 of the 79 guides omit `guideColor`". That
-    // was never true — the file has held 15 guides, every one with an explicit
-    // value, since before the note was written.)
     .default('ink')
     .describe('Which theme tone paints this guide’s header/footer band'),
   steps: z.array(GuideStepSchema).describe('Ordered sequence of steps'),

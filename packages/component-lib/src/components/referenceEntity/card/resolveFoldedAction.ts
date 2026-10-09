@@ -8,11 +8,9 @@
  * The name match is the whole rule because folding is a claim about identity:
  * the facets it bubbles into the sub-header (Turn Action, Range, Damage) read
  * as the ENTITY's own stats, so they are only true of an action that IS the
- * entity. A lone action used to fold too, on the reasoning that a single
- * action's facets may as well be shown up front — but that put "Iron Claw"'s
- * stats in the Molebear's sub-header as though the creature itself were a Turn
- * Action, and the same for every creature with one differently-named attack.
- * A sole action is still just an action; it renders as its own card.
+ * entity. A lone action does not fold: folding "Iron Claw" would put its stats
+ * in the Molebear's sub-header as though the creature itself were a Turn
+ * Action. A sole action is still just an action; it renders as its own card.
  *
  * `displayName` counts as the action's name for this test, because it IS the
  * name the action renders under (see `getReferenceEntityName`, which prefers it).

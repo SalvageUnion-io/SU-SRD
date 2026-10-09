@@ -1,5 +1,5 @@
 import type { ContainerData } from './container.js'
-import { NEUTRAL_EMBED_COLOR } from './format.js'
+import { NEUTRAL_ACCENT } from './format.js'
 import type { InviteResult } from './itun/types.js'
 
 /**
@@ -27,8 +27,7 @@ function plain(text: string): string {
   return text.replace(/([\\*_~`|>#[\]()-])/g, '\\$1')
 }
 
-function expiryLine(expiresAt: number | null, now: number): string | null {
-  if (expiresAt === null) return null
+function expiryLine(expiresAt: number, now: number): string {
   const days = Math.ceil((expiresAt - now) / DAY_MS)
   if (days <= 1) return 'It expires within a day.'
   return `It expires in ${days} days.`
@@ -48,7 +47,7 @@ export function buildInviteDm(
         : `${invite.grantCount} characters are waiting for you.`
 
   return {
-    accent: NEUTRAL_EMBED_COLOR,
+    accent: NEUTRAL_ACCENT,
     blocks: [
       {
         kind: 'text',

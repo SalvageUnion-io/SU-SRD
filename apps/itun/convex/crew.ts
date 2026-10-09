@@ -11,7 +11,7 @@ import {
 import type { Mech } from '../src/lib/schemas/mech'
 import { MechSchema } from '../src/lib/schemas/mech'
 import type { Pilot } from '../src/lib/schemas/pilot'
-import { StoredPilotSchema } from '../src/lib/schemas/pilot'
+import { PilotSchema } from '../src/lib/schemas/pilot'
 import { query } from './_generated/server'
 import { linkIdOf } from './model/entities'
 import { requireMember, requireUser } from './model/permissions'
@@ -19,8 +19,8 @@ import { loadReferenceData } from './model/referenceData'
 import { seatsInGame } from './model/seats'
 
 /**
- * Crew visibility inside a Game (ADR-030 §5, D12), and the crew's derived
- * status (docs/architecture/dashboard-redesign.md D6, §8 A3).
+ * Crew visibility inside a Game (ADR-030 §5), and the crew's derived
+ * status (ADR-038 §4).
  *
  * Every member sees every crewmate's **vitals** live: the Dashboard's Crew tab,
  * the Game hub's crew strip and the Mediator's proposal form all read this
@@ -150,7 +150,7 @@ export const vitals = query({
     const parsedPilots = new Map<string, Pilot>()
     const pilotRows = pilots.map((row) => {
       const id = linkIdOf(row) ?? null
-      const parsed = StoredPilotSchema.safeParse(row.body)
+      const parsed = PilotSchema.safeParse(row.body)
       if (id !== null && parsed.success) parsedPilots.set(id, parsed.data)
       return { row, id, pilot: parsed.success ? parsed.data : null }
     })

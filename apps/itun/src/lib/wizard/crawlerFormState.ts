@@ -14,8 +14,7 @@
  */
 
 import type { ChoiceSelections } from 'component-lib'
-import type { SURefCrawler } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { ResolvedNpc } from '../crawlerRefs'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../crawlerRefs'
 import { readReference } from '../readReference'
@@ -50,9 +49,9 @@ export type CrawlerWizardFormState = {
   description: string
   /** Numeric tech level 1–6; a new crawler is fixed at 1. */
   techLevel: number | null
-  /** Chosen crawler-type ref (SRD id); null until chosen. */
+  /** Chosen crawler-type slug; null until chosen. */
   type: string | null
-  /** Installed system ids. */
+  /** Installed system slugs. */
   systems: string[]
   /**
    * Freeform crew/NPC details, keyed by the bay ref (and the type ref for the
@@ -125,8 +124,7 @@ export function crawlerFormToUpdatePatch(form: CrawlerWizardFormState): CrawlerW
  * extensible — a crawler can gain expansion bays later.
  */
 export function seedDefaultCrawlerBays(): CrawlerBayEntry[] {
-  type BayWithNpc = { id: string; expansion?: boolean; npc?: { hitPoints?: number } }
-  const bays: BayWithNpc[] = readReference(
+  const bays = readReference(
     'seedDefaultCrawlerBays',
     () => SalvageUnionReference.CrawlerBays.all(),
     []
@@ -136,7 +134,7 @@ export function seedDefaultCrawlerBays(): CrawlerBayEntry[] {
     .map((bay) => {
       const maxHP = bay.npc?.hitPoints
       return {
-        bayRef: bay.id,
+        bayRef: getEntitySlug(bay),
         ...(typeof maxHP === 'number' ? { npcCurrentHP: maxHP } : {}),
       }
     })
@@ -174,9 +172,8 @@ function npcChoiceSelections(
  * the SRD `npc.hitPoints` (when present; Augmented's A.I. is 0 → absent). Used
  * to RESET the type NPC when a stored crawler switches to a different type.
  */
-export function defaultTypeNpcState(types: SURefCrawler[], typeRef: string): CrawlerNpcState {
-  const type = types.find((t) => t.id === typeRef || t.name === typeRef)
-  const maxHP = type?.npc?.hitPoints
+export function defaultTypeNpcState(typeRef: string): CrawlerNpcState {
+  const maxHP = resolveCrawlerType(typeRef)?.npc?.hitPoints
   // Mirror the create path: seed npcCurrentHP from the SRD hitPoints when the
   // field is present (Augmented's A.I. is 0 → seeds 0, renders no HP block).
   return typeof maxHP === 'number' ? { npcCurrentHP: maxHP } : {}

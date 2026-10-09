@@ -1,11 +1,14 @@
+import { registerSW } from 'virtual:pwa-register'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
-import { toast } from 'component-lib'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouteErrorComponent } from './components/shared/RouteErrors'
 import { RouteNotFound, RoutePending } from './components/shared/RouteFallbacks'
-import { installChunkRecovery } from './lib/chunkRecovery'
-import { initBrowserObservability, reactRootErrorHandlers } from './lib/observability'
+import {
+  initBrowserObservability,
+  installChunkRecovery,
+  reactRootErrorHandlers,
+} from './lib/observability'
 import { registerServiceWorker } from './lib/sw/register'
 import { routeTree } from './routeTree.gen'
 
@@ -20,7 +23,7 @@ const router = createRouter({
   // Every route is a lazy chunk (`autoCodeSplitting`, routeTree.config.ts), so a
   // hover or touchstart starts the chunk and the loader before the tap lands.
   // Loaders must therefore be safe to run early: the entity ones are idempotent
-  // hydrates, and `/s/$id`, which fetches, opts out with `preload: false`.
+  // hydrates.
   defaultPreload: 'intent',
   // Backing out of a sheet returns the Roster to where the player left it.
   scrollRestoration: true,
@@ -37,7 +40,7 @@ void initBrowserObservability()
 
 // Installed BEFORE render, because the failure it recovers from — a lazy chunk
 // whose build no longer exists on the server — can be thrown by the very first
-// route the router resolves. See lib/chunkRecovery.ts.
+// route the router resolves. See `installChunkRecovery` in observability/browser.
 installChunkRecovery()
 
 const rootEl = document.getElementById('root')
@@ -51,27 +54,13 @@ createRoot(rootEl, reactRootErrorHandlers).render(
   </StrictMode>
 )
 
-// `registerType: 'prompt'` (vite.config.ts) means a new worker installs and then
-// waits rather than claiming this page mid-session, so the swap is ours to time.
-// The toast is that timing: an update the user accepts, not one that happens to
-// them while they are reading a sheet.
-//
-// Deliberately persistent (`duration: Infinity`) and dismissible. This fires at
-// most once per installed update, and the alternative — auto-dismiss — puts the
-// user back on a stale build with no way to ask for the new one.
-//
-// It fires only for a tab older than the server's build: navigations are
-// network-first, so a page loaded after a deploy is already the new version
-// and needs no prompt. See the header of lib/sw/register.ts.
-registerServiceWorker({
+// The one service-worker registration: `virtual:pwa-register`, handed to
+// lib/sw/register.ts. `registerType: 'prompt'` (vite.config.ts) means a new
+// worker installs and then waits rather than claiming this page mid-session;
+// the backend's build floor decides when an open tab moves onto a new build
+// (lib/connection/buildFloor.ts), and it reloads through lib/sw/register.ts.
+registerServiceWorker(registerSW, {
   // This module IS the entry chunk, so its URL carries this build's content
   // hash — which is what the server's current shell is compared against.
   entryChunk: new URL(import.meta.url).pathname,
-  onUpdateReady: (accept) => {
-    toast('A new version of ITUN is ready', {
-      description: 'Reload to pick it up. Your saved data is not affected.',
-      duration: Number.POSITIVE_INFINITY,
-      action: { label: 'Reload', onClick: accept },
-    })
-  },
 })

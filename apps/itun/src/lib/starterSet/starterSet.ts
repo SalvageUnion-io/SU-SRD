@@ -4,22 +4,15 @@
  * Union Crawler #430 'Tenacity', each with their mech, plus the crawler and its
  * crew, wired together with SoftLinks.
  *
- * Design (see the seed migration, db/migrations/7-seed-starter-set.ts):
+ * Design:
  *   - Every record here is FULLY STATIC plain data — hard-coded reference slugs
- *     (chassis/systems/modules/class/ability/equipment) and reference UUIDs
- *     (crawler type + bays). A migration writes these straight into IndexedDB,
- *     and migrations may only await IndexedDB ops (never reference-data reads),
- *     so nothing here may resolve against `salvageunion-reference` at runtime.
- *   - IDs are DETERMINISTIC (`starter-*`) so the seed is idempotent: the v7
- *     upgrade seeds each row once per client and never resurrects a row the
- *     user later deletes (a same-version re-open doesn't re-run the upgrade).
+ *     (chassis/systems/modules/class/ability/equipment/crawler type/bays), so
+ *     nothing here resolves against `salvageunion-reference` at runtime.
+ *   - IDs are DETERMINISTIC (`starter-*`), so every browser holds the same set.
  *   - `createdAt`/`updatedAt` are a FIXED constant for the same determinism —
  *     these rows never sort ahead of the user's own newest-first builds.
  *   - Every record is stamped `gameId: null` — the **Shelf** (ADR-030 §2).
- *     These rows used to sit in their own Workspace, which is what kept them
- *     out of the user's own builds; with Workspaces retired there is no such
- *     container, so isolation now comes from the seed being opt-in rather than
- *     from where the rows live. Copied, never seeded, since: see `copyStarter.ts`.
+ *     A player copies from the set, never into it: see `copyStarter.ts`.
  *
  * Slugs verified against the reference dataset — the seed test
  * (`__tests__/starterSet.test.ts`) fails if any ref stops resolving.
@@ -41,21 +34,21 @@ import type { SoftLink } from '../schemas/softLink'
 /** Fixed timestamp for every seeded row (see file header — determinism). */
 const SEED_TS = '2020-01-01T00:00:00.000Z'
 
-/** Exploratory crawler-type id (crawler `type` resolves by id/name, not slug). */
-const EXPLORATORY_TYPE_ID = 'd850cd93-f1cc-462b-bfa4-babfb0b2812e'
+/** The Exploratory crawler type's slug. */
+const EXPLORATORY_TYPE = 'exploratory'
 
-/** Base crawler-bay ids (resolve by id/name, not slug). */
+/** Base crawler-bay slugs. */
 const BAY = {
-  command: '233d7930-1c4d-475d-9ea8-c88a1c70350c',
-  mech: '3234f326-0fae-4ec1-a31e-900be859c156',
-  storage: '4522e605-a384-4c3d-b556-c377e4cc2a97',
-  armament: '6b0e9620-06ed-40ee-9feb-5f635518e48e',
-  crafting: 'e4612293-d3a1-4533-889a-977c92ea1313',
-  trading: '2a4ac355-95fc-451b-8b46-cf8ba5eec31b',
-  med: '0850a891-19e3-4372-af35-0a1679130c8f',
-  pilot: '74904a14-92be-41e0-80d9-63fce02b8851',
-  armoury: '3075663e-0ee6-4e82-8697-4778f303adc7',
-  cantina: '674a412f-486b-4693-b912-1838cc39b77d',
+  command: 'command-bay',
+  mech: 'mech-bay',
+  storage: 'storage-bay',
+  armament: 'armament-bay',
+  crafting: 'crafting-bay',
+  trading: 'trading-bay',
+  med: 'med-bay',
+  pilot: 'pilot-bay',
+  armoury: 'armoury',
+  cantina: 'cantina',
 } as const
 
 // ---------------------------------------------------------------------------
@@ -274,9 +267,9 @@ const PILOT_BIOS: Record<string, string> = {
 
 /**
  * Mech Description / Appearance / Quirk (Reclamation of the Wastes sheets),
- * folded into the single description field, keyed by mech id.
+ * folded into the single appearance field, keyed by mech id.
  */
-const MECH_DESCRIPTIONS: Record<string, string> = {
+const MECH_APPEARANCES: Record<string, string> = {
   'starter-mech-scrapper':
     'Originally built by Bonesaw to support his wasteland community, this build bakes in a wide range of utility — it can salvage, repair, and even hack, all of which have proved useful to the crew of Crawler #430.\n\nAppearance: Rugged and well worn, covered in anti-corpo graffiti.\nQuirk: Multiple cockpit mods including a coffee dispenser, vibrating pilot chair, and concealed mini-fridge.',
   'starter-mech-spectrum':
@@ -297,7 +290,7 @@ export const STARTER_PILOTS: readonly Pilot[] = CREW.map((c) => ({
 }))
 export const STARTER_MECHS: readonly Mech[] = CREW.map((c) => ({
   ...c.mech,
-  description: MECH_DESCRIPTIONS[c.mech.id],
+  appearance: MECH_APPEARANCES[c.mech.id],
 }))
 
 // ---------------------------------------------------------------------------
@@ -311,7 +304,7 @@ const STARTER_CRAWLER_ID = 'starter-crawler-tenacity'
 /**
  * Each base bay's crew NPC (rules C11). The name is structured live-play state
  * (`crawlerBays[].npcName`); the Keepsake/Motto are freeform choice selections
- * persisted in `bayChoices`, keyed by the bay ref then the NPC's Keepsake/Motto
+ * persisted in `bayChoices`, keyed by the bay slug then the NPC’s Keepsake/Motto
  * choice id (from the reference bay's `npc.choices`). The seed test asserts each
  * id pair still matches the reference NPC's Keepsake/Motto choices.
  */
@@ -418,7 +411,7 @@ const STARTER_CRAWLER: Crawler = {
   description:
     'Built by its salvager pilots, the Tenacity (Crawler #430) is a quadrupedal crawler on stilt-like legs, able to explore the most rugged of terrain.',
   techLevel: 'tech-1',
-  type: EXPLORATORY_TYPE_ID,
+  type: EXPLORATORY_TYPE,
   // The Exploratory type's special NPC — the Wasteland Explorer.
   typeNpc: { npcName: "Hannah 'Trek' Lane", npcCurrentHP: 4 },
   // The Armament Bay's mounted weapon: weapon systems live in the crawler's
@@ -426,13 +419,13 @@ const STARTER_CRAWLER: Crawler = {
   // (capped at one for a non-Battle crawler). Mini Mortar is Tenacity's mount.
   systems: ['mini-mortar'],
   crawlerBays: BAY_CREW.map((c) => ({ bayRef: c.ref, npcName: c.npcName, npcCurrentHP: 4 })),
-  // Keepsake/Motto for each bay NPC (keyed by bay ref) plus the Wasteland
-  // Explorer (keyed by the crawler-type ref) — freeform choice selections.
+  // Keepsake/Motto for each bay NPC (keyed by bay slug) plus the Wasteland
+  // Explorer (keyed by the crawler-type slug) — freeform choice selections.
   bayChoices: {
     ...Object.fromEntries(
       BAY_CREW.map((c) => [c.ref, { [c.keepsakeId]: [c.keepsake], [c.mottoId]: [c.motto] }])
     ),
-    [EXPLORATORY_TYPE_ID]: {
+    [EXPLORATORY_TYPE]: {
       [WASTELAND_KEEPSAKE_ID]: ['Snowglobe'],
       [WASTELAND_MOTTO_ID]: ['The early bird gets the worm.'],
     },
@@ -448,7 +441,7 @@ export const STARTER_CRAWLERS: readonly Crawler[] = [STARTER_CRAWLER]
 // SoftLinks — each pilot ↔ their mech (mech-to-pilot: from mech, to pilot),
 // each pilot ↔ the crawler (pilot-to-crawler: from pilot, to crawler), and each
 // mech ↔ the crawler (mech-to-crawler: from mech, to crawler). A mech docks by
-// its OWN link since ADR-037 — it no longer reaches the bay through its pilot.
+// its OWN link (ADR-037), not through its pilot.
 // ---------------------------------------------------------------------------
 
 export const STARTER_SOFT_LINKS: readonly SoftLink[] = CREW.flatMap(({ pilot: p, mech: m }) => [

@@ -1,7 +1,7 @@
 import { AlertDialog } from '@base-ui/react/alert-dialog'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
-import type { ReactNode, RefObject } from 'react'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { Badge } from '../chrome/Badge'
 import { Card } from './Card'
 
@@ -48,7 +48,27 @@ type ModalShellProps = {
    * floating EntitySearcher). `title` is still used for the sr-only a11y label.
    */
   bare?: boolean
+  /**
+   * Portal into this element instead of the document body. The scrim and the
+   * popup then cover the container rather than the viewport (it must be a
+   * positioned box), and focus is trapped without locking page scroll —
+   * the Dashboard's overlays, which open over one region of a scaled canvas
+   * and need its `.pc-root` styling.
+   */
+  container?: RefObject<HTMLElement | null>
+  /** Element to focus when the dialog closes (defaults to base-ui's: the
+   *  trigger, or whatever held focus before it opened). */
+  finalFocus?: RefObject<HTMLElement | null>
   children?: ReactNode
+}
+
+/** A contained modal fills its container: the scrim behind, the popup over it. */
+const CONTAINED_BACKDROP: CSSProperties = { position: 'absolute' }
+const CONTAINED_POPUP: CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  zIndex: 50,
+  outline: 'none',
 }
 
 export function ModalShell({
@@ -63,13 +83,12 @@ export function ModalShell({
   align = 'center',
   initialFocus,
   bare = false,
+  container,
+  finalFocus,
   children,
 }: ModalShellProps) {
-  // `tone` is the whole API now. It replaced a `headerBg` raw-class prop whose
-  // behaviour hung on a string comparison (`headerBg === 'bg-adversary'`) — a
-  // shape that had already survived one token migration only because a sweep
-  // happened to rewrite the literal alongside the token. A union removes the
-  // class of bug rather than fixing an instance of it.
+  // `tone` is the whole API: a union, never a raw class string compared by
+  // value, so a token rename cannot silently change the behaviour.
   const isDanger = tone === 'danger'
   const headerBgClass = isDanger ? 'bg-status-bad' : 'bg-pilot'
 
@@ -78,74 +97,106 @@ export function ModalShell({
   const overflow = bare ? 'overflow-hidden' : 'overflow-y-auto'
   const width = maxWidth ?? (role === 'alertdialog' ? 'max-w-md' : 'max-w-3xl')
 
-  // The two roots share every part below — AlertDialog re-exports Dialog's
-  // Portal/Popup/Title/Description/Close — so only the root differs.
-  const Root = role === 'alertdialog' ? AlertDialog.Root : Dialog.Root
+  // An Escape something inside the dialog already handled (an inline edit
+  // cancelling, the Dashboard Major's own Take Damage prompt closing) is not a
+  // dismissal of the dialog around it.
+  const onRootOpenChange = (
+    next: boolean,
+    details: { reason: string; event: Event; cancel: () => void }
+  ) => {
+    if (!next && details.reason === 'escape-key' && details.event.defaultPrevented) {
+      details.cancel()
+      return
+    }
+    onOpenChange(next)
+  }
 
-  return (
-    <Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/80 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
-        <Dialog.Popup
-          initialFocus={initialFocus}
-          className={`fixed inset-0 z-50 h-fit max-h-[calc(100vh-4rem)] w-full ${width} ${overflow} bg-transparent outline-none ${align === 'center' ? 'm-auto' : 'mx-auto mt-8 mb-auto'}`}
-        >
-          <Dialog.Title className="sr-only">{title}</Dialog.Title>
-          {description !== null && (
-            <Dialog.Description className="sr-only">{description ?? title}</Dialog.Description>
-          )}
+  const portal = (
+    <Dialog.Portal container={container}>
+      <Dialog.Backdrop className="su-backdrop" style={container ? CONTAINED_BACKDROP : undefined} />
+      <Dialog.Popup
+        initialFocus={initialFocus}
+        finalFocus={finalFocus}
+        className={
+          container
+            ? undefined
+            : `fixed inset-0 z-50 h-fit max-h-[calc(100vh-4rem)] w-full ${width} ${overflow} bg-transparent outline-none ${align === 'center' ? 'm-auto' : 'mx-auto mt-8 mb-auto'}`
+        }
+        style={container ? CONTAINED_POPUP : undefined}
+      >
+        <Dialog.Title className="sr-only">{title}</Dialog.Title>
+        {description !== null && (
+          <Dialog.Description className="sr-only">{description ?? title}</Dialog.Description>
+        )}
 
-          {bare ? (
-            children
-          ) : (
-            <Card
-              headerBg={headerBgClass}
-              headerContent={
-                <div className="flex w-full items-center justify-between gap-2">
-                  <div className="flex min-w-0 flex-col gap-0.5">
-                    {/*
-                     * `text-xl` / `text-2xl` sit ABOVE the stamp ladder's top
-                     * rung (`full` = `text-sm`), so the dialog title keeps an
-                     * explicit font-size override rather than inventing a new
-                     * rung. `leading-none` must trail it — a font-size utility
-                     * reinstates its own line-height, and the stamp is a
-                     * single-line plate.
-                     */}
+        {bare ? (
+          children
+        ) : (
+          <Card
+            headerBg={headerBgClass}
+            headerContent={
+              <div className="flex w-full items-center justify-between gap-2">
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  {/*
+                   * `text-xl` / `text-2xl` sit ABOVE the stamp ladder's top
+                   * rung (`full` = `text-sm`), so the dialog title keeps an
+                   * explicit font-size override rather than inventing a new
+                   * rung. `leading-none` must trail it — a font-size utility
+                   * reinstates its own line-height, and the stamp is a
+                   * single-line plate.
+                   */}
+                  <Badge
+                    shape="stamp"
+                    size="mini"
+                    className={`${isDanger ? 'text-xl' : 'text-2xl'} block self-start leading-none text-paper`}
+                  >
+                    {title}
+                  </Badge>
+                  {subtitle && (
                     <Badge
                       shape="stamp"
                       size="mini"
-                      className={`${isDanger ? 'text-xl' : 'text-2xl'} block self-start leading-none text-paper`}
+                      className="block self-start text-xs leading-none text-paper/80"
                     >
-                      {title}
+                      {subtitle}
                     </Badge>
-                    {subtitle && (
-                      <Badge
-                        shape="stamp"
-                        size="mini"
-                        className="block self-start text-xs leading-none text-paper/80"
-                      >
-                        {subtitle}
-                      </Badge>
-                    )}
-                  </div>
-                  <Dialog.Close
-                    className={`flex shrink-0 cursor-pointer items-center justify-center rounded p-1 transition-colors ${
-                      isDanger
-                        ? 'text-paper/60 hover:bg-ink/20 hover:text-paper'
-                        : 'text-ink/60 hover:bg-ink/20 hover:text-ink'
-                    }`}
-                  >
-                    <X className="h-5 w-5" />
-                    <span className="sr-only">Close</span>
-                  </Dialog.Close>
+                  )}
                 </div>
-              }
-            >
-              {children}
-            </Card>
-          )}
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Root>
+                <Dialog.Close
+                  className={`flex shrink-0 cursor-pointer items-center justify-center rounded p-1 transition-colors ${
+                    isDanger
+                      ? 'text-paper/60 hover:bg-ink/20 hover:text-paper'
+                      : 'text-ink/60 hover:bg-ink/20 hover:text-ink'
+                  }`}
+                >
+                  <X className="h-5 w-5" />
+                  <span className="sr-only">Close</span>
+                </Dialog.Close>
+              </div>
+            }
+          >
+            {children}
+          </Card>
+        )}
+      </Dialog.Popup>
+    </Dialog.Portal>
+  )
+
+  // The two roots share every part above — AlertDialog re-exports Dialog's
+  // Portal/Popup/Title/Description/Close — so only the root differs.
+  // AlertDialog is always modal; a contained Dialog covers one region of the
+  // page, so it traps focus without locking the page's scroll.
+  return role === 'alertdialog' ? (
+    <AlertDialog.Root open={open} onOpenChange={onRootOpenChange}>
+      {portal}
+    </AlertDialog.Root>
+  ) : (
+    <Dialog.Root
+      open={open}
+      modal={container ? 'trap-focus' : true}
+      onOpenChange={onRootOpenChange}
+    >
+      {portal}
+    </Dialog.Root>
   )
 }

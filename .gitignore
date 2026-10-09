@@ -1,17 +1,20 @@
 # Logs
 logs
 *.log
-.legacy/
 
 # Dependencies
 node_modules
 **/node_modules
+# Another package manager's lockfile: bun.lock is the only one, so a stray
+# install's lockfile never reaches a commit.
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # Build outputs
 dist
 dist-ssr
 **/dist
-build-ladle
 *.local
 *.tsbuildinfo
 core
@@ -38,9 +41,6 @@ apps/srd/.vite
 # TanStack Router temporary files
 **/.tanstack
 
-# Ladle
-.ladle
-
 # Environment variables
 .env
 .env.local
@@ -49,7 +49,6 @@ apps/srd/.vite
 # Claude Code
 .claude/settings.local.json
 # Agent/background-job worktrees: full checkouts that must never be committed.
-# Prune abandoned ones with tools/prune-stale-worktrees.sh.
 .claude/worktrees/
 # .mcp.json IS tracked: it is the shared, secret-free project MCP config
 # (Cloudflare, Sentry, Convex, Context7). Every server authenticates by OAuth on
@@ -58,9 +57,6 @@ apps/srd/.vite
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-# $schema wiring for packages/salvageunion-reference/data/*.json — see that
-# file's header comment.
-!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
@@ -74,9 +70,6 @@ apps/srd/.vite
 # text extract (rules/) are copyright-bearing verbatim material, generated and
 # local-only — produce the extract with `bun run rules:extract`. Only the tooling
 # (tools/extract-rules.ts) lives in git.
-#
-# `docs/rules/` was listed here for a digest that was never authored; the
-# generator behind it is retired. Nothing writes that path now.
 rules/*
 
 # Playwright artifacts (per-app)
@@ -90,14 +83,3 @@ apps/itun/test-results
 # errors the moment a dev server has run. Ignoring it keeps `bun run lint` from
 # depending on whether someone left a server up.
 .wrangler/
-
-# claude.ai/design sync (design-sync skill)
-.ds-sync/
-ds-bundle/
-.design-sync/.cache/
-.design-sync/learnings/
-.design-sync/node_modules
-packages/component-lib/types/
-packages/component-lib/.ds-css/
-packages/component-lib/index.d.ts
-.design-sync/tsconfig.dts.tsbuildinfo

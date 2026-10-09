@@ -1,7 +1,7 @@
 /**
  * slotModels — the pure half of the slot row: each entity's numbers, and its
- * Minor as a `MinorModel` (docs/architecture/dashboard-redesign.md D3). No
- * React and no store, so the Ladle stories render the real derivations and a
+ * Minor as a `MinorModel` (ADR-038 §3). No
+ * React and no store, so the stories render the real derivations and a
  * Minor and the Major it opens into read the same maxima.
  */
 

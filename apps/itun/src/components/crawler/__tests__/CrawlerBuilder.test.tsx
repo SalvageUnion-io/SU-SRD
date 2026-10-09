@@ -15,9 +15,9 @@
 
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isWeaponSystem } from 'salvageunion-reference/rules'
-import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
+import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { must } from '../../__tests__/must'
@@ -53,7 +53,7 @@ function resetEntityStore(): void {
 beforeEach(async () => {
   sessionStorage.clear()
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
   await useEntityStore.getState().hydrate('crawler')
 })
@@ -63,7 +63,7 @@ afterEach(async () => {
     cleanup()
   })
   sessionStorage.clear()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 
@@ -351,9 +351,9 @@ describe('CrawlerBuilder — create mode', () => {
       const c = must(crawlers[0])
       expect(c.name).toBe('Bay Wagon')
       expect(c.techLevel).toBe('tech-1')
-      expect(c.type).toBe(battle.id)
+      expect(c.type).toBe(getEntitySlug(battle))
       expect(c.schemaVersion).toBe(1)
-      expect(c.systems).toEqual([tl1.id])
+      expect(c.systems).toEqual([nameToSlug(tl1.name)])
       expect(c.scrapPool).toEqual({ tl2: 3 })
       // upgradePool is FIXED at 0 at creation (input removed).
       expect(c.upgradePool).toBe(0)
@@ -369,9 +369,9 @@ describe('CrawlerBuilder — create mode', () => {
       const expansionBays = SalvageUnionReference.CrawlerBays.all().filter((b) => b.expansion)
       expect(expansionBays.length).toBeGreaterThan(0)
       for (const exp of expansionBays) {
-        expect(c.crawlerBays?.some((e) => e.bayRef === exp.id)).toBe(false)
+        expect(c.crawlerBays?.some((e) => e.bayRef === getEntitySlug(exp))).toBe(false)
       }
-      const seeded = c.crawlerBays?.find((e) => e.bayRef === commandBay.id)
+      const seeded = c.crawlerBays?.find((e) => e.bayRef === getEntitySlug(commandBay))
       expect(seeded?.npcCurrentHP).toBe(4)
       expect(seeded?.npcName).toBe('Maddox')
 
@@ -379,11 +379,11 @@ describe('CrawlerBuilder — create mode', () => {
       const keepsakeId = must(
         must(must(commandBay.npc).choices).find((ch) => ch.name === 'Keepsake')
       ).id
-      expect(c.bayChoices?.[commandBay.id]?.[keepsakeId]).toEqual(['A medal'])
+      expect(c.bayChoices?.[getEntitySlug(commandBay)]?.[keepsakeId]).toEqual(['A medal'])
       expect(c.typeNpc?.npcName).toBe('Vex')
       expect(c.typeNpc?.npcCurrentHP).toBe(10) // the Grizzled Veteran's fixed HP
       const mottoId = must(must(must(battle.npc).choices).find((ch) => ch.name === 'Motto')).id
-      expect(c.bayChoices?.[battle.id]?.[mottoId]).toEqual(['No retreat'])
+      expect(c.bayChoices?.[getEntitySlug(battle)]?.[mottoId]).toEqual(['No retreat'])
     })
     expect(onComplete).toHaveBeenCalledTimes(1)
   }, 30000)

@@ -157,13 +157,14 @@ describe('tokens rule set', () => {
 })
 
 const STYLING_BASE: Record<string, string> = {
-  'apps/itun/src/index.css':
-    "@layer theme, base, su-base, components, utilities;\n@import 'component-lib/styles/index.css' layer(su-base);\n",
-  'apps/srd/src/styles/global.css':
-    "@layer theme, base, su-base, components, utilities;\n@import 'component-lib/styles/index.css' layer(su-base);\n",
-  'packages/component-lib/src/styles/dashboard/DashboardCanvas.css': '.pc-used { color: red }\n',
-  'packages/component-lib/src/styles/dashboard/DashboardGrid.css': '',
-  'packages/component-lib/src/styles/dashboard/instruments.css': '',
+  'packages/component-lib/src/styles/tailwind.css':
+    "@layer theme, base, su-base, components, utilities;\n@import 'tailwindcss';\n@import './index.css' layer(su-base);\n",
+  'packages/component-lib/src/styles/catalog.css': "@import './tailwind.css';\n",
+  'apps/itun/src/index.css': "@import 'component-lib/styles/tailwind.css';\n",
+  'apps/srd/src/styles/global.css': "@import 'component-lib/styles/tailwind.css';\n",
+  'apps/itun/src/styles/dashboard/DashboardCanvas.css': '.pc-used { color: red }\n',
+  'apps/itun/src/styles/dashboard/DashboardGrid.css': '',
+  'apps/itun/src/styles/dashboard/instruments.css': '',
   'apps/itun/src/components/dashboard/Thing.tsx':
     'export const T = () => <div className="pc-used" />\n',
 }
@@ -202,10 +203,24 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/srd/src/styles/global.css': "@import 'component-lib/styles/index.css';\n",
+        'packages/component-lib/src/styles/tailwind.css':
+          "@import 'tailwindcss';\n@import './index.css';\n",
       })
     )
     expect(found['package-stylesheet-import']?.[0]?.detail).toContain('WITHOUT a cascade layer')
+  })
+
+  test('a consumer that compiles Tailwind itself is a second entry', () => {
+    const found = stylingOwnership.scan(
+      fixture({
+        ...STYLING_BASE,
+        'apps/srd/src/styles/global.css': "@import 'tailwindcss';\n",
+      })
+    )
+    expect(found['package-stylesheet-import']?.map((f) => f.detail)).toEqual([
+      'does not import the shared Tailwind entry (packages/component-lib/src/styles/tailwind.css)',
+      "imports 'tailwindcss' itself — a second Tailwind entry beside the shared one",
+    ])
   })
 
   test('a Tailwind utility in UI source is counted once per file, tests excluded', () => {

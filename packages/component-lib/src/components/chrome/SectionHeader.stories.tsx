@@ -7,7 +7,7 @@ export default {
   title: 'Atoms/Section Header',
 }
 
-// Real SRD content — reference data is preloaded by .ladle/components.tsx.
+// Real SRD content — reference data is preloaded by catalog.tsx.
 const chassis = SalvageUnionReference.Chassis.all()[0]
 
 function Cluster({ label, children }: { label: string; children: ReactNode }) {

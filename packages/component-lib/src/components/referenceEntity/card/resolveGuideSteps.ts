@@ -10,11 +10,9 @@ import { SalvageUnionReference } from 'salvageunion-reference'
  * Resolve a guide's `steps` into everything the card needs to RENDER them.
  *
  * A guide keeps almost all of its prose in `steps`, not in its top-level
- * `content` — across the shipped dataset that is 28.7k of 34.2k characters. The
- * legacy `GuideStepsDisplay` rendered them; it was deleted with the rest of the
- * legacy render core and the unified card never grew a replacement, so every
- * guide page rendered its title, one intro paragraph and nothing else (the
- * "Salvaging" page rendered a heading and a source line, no rules at all).
+ * `content` — across the shipped dataset that is 28.7k of 34.2k characters — so
+ * a card that skips `steps` renders a guide's title, one intro paragraph and
+ * none of its rules.
  *
  * This module is the RESOLUTION half only — pure, testable, no JSX. The card
  * renders the result through the same primitives every other section uses

@@ -1,6 +1,6 @@
 import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from 'component-lib'
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
 import { selectableClasses } from './classOptions'
 
@@ -17,8 +17,8 @@ type ClassAbilityStepProps = {
   selectedAbilities: string[]
   /** Radio semantics — a new class replaces the old. */
   onSelectClass: (classId: string) => void
-  /** Radio semantics — the pick REPLACES the current ability. */
-  onSelectAbility: (abilityId: string) => void
+  /** Radio semantics — the pick REPLACES the current ability. Emits its slug. */
+  onSelectAbility: (slug: string) => void
   /** Injectable SUR for testing. */
   _sur?: { Classes: SURClassesAccessor; Abilities: SURAbilitiesAccessor }
 }
@@ -69,10 +69,10 @@ export function ClassAbilityStep({
       key={ability.id}
       data={ability}
       size="medium"
-      selected={selectedAbilities.includes(ability.id)}
+      selected={selectedAbilities.includes(getEntitySlug(ability))}
       selectionRole="toggle"
       cardClickLabel={ability.name}
-      onCardClick={() => onSelectAbility(ability.id)}
+      onCardClick={() => onSelectAbility(getEntitySlug(ability))}
       hide={{ actions: true, choices: true }}
     />
   )

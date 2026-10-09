@@ -2,14 +2,14 @@
  * entityStore unit tests.
  *
  * fake-indexeddb/auto is preloaded via bunfig.toml — no explicit import needed.
- * Each test gets a clean store by calling _clearAllStores() in beforeEach and
+ * Each test gets a clean store by calling clearCache() in beforeEach and
  * resetting the Zustand store state manually.
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import type { MonotonicClock } from '../../lib/db/__tests__/monotonicClock'
 import { installMonotonicClock } from '../../lib/db/__tests__/monotonicClock'
-import { _clearAllStores, _resetDbSingleton, pilots as dbPilots } from '../../lib/db/index'
+import { _resetDbSingleton, clearCache, pilots as dbPilots } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
 import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
 import { withSignedInBackend } from './signedInBackend'
@@ -67,12 +67,12 @@ function resetEntityStore(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 

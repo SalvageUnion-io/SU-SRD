@@ -2,8 +2,9 @@
  * One-time takeover from a legacy service worker — imported into `sw.js` by
  * `workbox.importScripts` (src/lib/sw/workbox.ts).
  *
- * `registerType: 'prompt'` keeps a new worker WAITING until the user accepts the
- * update toast or every tab closes. That is right between two current builds,
+ * `registerType: 'prompt'` keeps a new worker WAITING until a page activates it
+ * (the build floor's reload, src/lib/connection/buildFloor.ts) or every tab
+ * closes. That is right between two current builds,
  * but it strands the tabs that predate #1026: their worker answers every
  * navigation from its precache (a reload boots the old build again), their
  * pages never check for updates while open, and the oldest have no toast to

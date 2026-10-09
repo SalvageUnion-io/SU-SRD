@@ -59,6 +59,4 @@ export type ReferenceEntityControl = {
   /** When true, this control's onClick makes the entire card clickable (any mode).
    * The card gains a hover enlarge effect. If multiple controls set cardClick, the last one wins. */
   cardClick?: boolean
-  /** Content shown in a hover card when the user hovers over the control button */
-  hoverContent?: ReactNode
 }

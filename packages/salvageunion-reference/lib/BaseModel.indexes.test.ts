@@ -109,11 +109,10 @@ describe('BaseModel name/slug indexes', () => {
 
   /**
    * The callers that collapsed `find((e) => e.id === ref || e.name === ref)`
-   * (and `resolveRefs`' single id+name+slug map) into
-   * `getById(ref) ?? getByName(ref) ?? getBySlug(ref)` changed WHICH row wins a
-   * key that more than one row can answer for: the scan/combined map answered
-   * with whichever row came first in data order regardless of which field
-   * matched, the indexes consult ids first.
+   * into `getById(ref) ?? getByName(ref)` (pilot class refs) changed WHICH row
+   * wins a key that more than one row can answer for: the scan answered with
+   * whichever row came first in data order regardless of which field matched,
+   * the indexes consult ids first.
    *
    * This asserts the two agree for every key of every schema, which is the
    * property those call sites actually rely on. (A blanket "ids are UUIDs, so
@@ -121,30 +120,27 @@ describe('BaseModel name/slug indexes', () => {
    * ids are words like `pilot` and `guides` — hence checking the resolution
    * outcome rather than the premise.)
    */
-  test('id-then-name-then-slug resolves identically to one combined first-writer-wins map', () => {
+  test('id-then-name resolves identically to one combined first-writer-wins map', () => {
     let checkedKeys = 0
     for (const [schemaId, model] of allModels()) {
-      // The pre-index implementation: one map, id then name then slug per row,
-      // in data order, first writer wins.
+      // The scan: one map, id then name per row, in data order, first writer
+      // wins.
       const combined = new Map<string, Row>()
       const claim = (key: string, row: Row) => {
         if (!combined.has(key)) combined.set(key, row)
       }
       for (const row of model.all()) {
         if (typeof row.id === 'string') claim(row.id, row)
-        if (typeof row.name === 'string' && row.name !== '') {
-          claim(row.name, row)
-          claim(nameToSlug(row.name), row)
-        }
+        if (typeof row.name === 'string') claim(row.name, row)
       }
 
       for (const key of combined.keys()) {
-        const viaIndexes = model.getById(key) ?? model.getByName(key) ?? model.getBySlug(key)
+        const viaIndexes = model.getById(key) ?? model.getByName(key)
         expect(viaIndexes, `${schemaId} / ${key}`).toBe(combined.get(key) as never)
         checkedKeys++
       }
     }
-    expect(checkedKeys).toBeGreaterThan(1500)
+    expect(checkedKeys).toBeGreaterThan(1000)
   })
 })
 

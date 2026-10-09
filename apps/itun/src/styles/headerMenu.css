@@ -1,0 +1,46 @@
+/*
+ * headerMenu.css — the stateful half of `HeaderMenu`
+ * (components/shared/HeaderMenu.tsx); its geometry and type are style objects
+ * there. Only colour lives here, and every colour below changes on hover, on
+ * open or on highlight — so each keeps its RESTING value here too, beside the
+ * state that overrides it. Loaded by `index.css`, and by the component's story.
+ */
+
+/* The masthead nav-link ramp (AppBar's links): paper at 60%, full paper on
+   hover and while its menu is open. */
+.header-menu-trigger {
+  color: var(--color-paper-60);
+  transition: color 120ms;
+}
+.header-menu-trigger:hover,
+.header-menu-trigger[data-popup-open] {
+  color: var(--color-paper);
+}
+
+/* A highlighted row inverts to ink, the stamp treatment, rather than taking a
+   faint wash: the highlight IS the keyboard focus indicator inside a menu, and
+   an 8% ink wash on paper is not one anybody can see. Forced-colors mode drops
+   background colours entirely, so the highlight also raises a transparent
+   outline for that mode to paint. */
+.header-menu-item {
+  background-color: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+  outline: none;
+}
+.header-menu-item[data-highlighted]:not([data-disabled]) {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+}
+.header-menu-item[data-disabled] {
+  color: var(--color-wk-muted);
+  cursor: default;
+}
+.header-menu-item__hint {
+  color: var(--color-wk-muted);
+}
+.header-menu-item[data-highlighted]:not([data-disabled]) .header-menu-item__hint {
+  color: var(--color-paper-70);
+}

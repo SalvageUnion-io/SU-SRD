@@ -26,9 +26,9 @@ const LINK_CLASS = 'font-semibold text-rust hover:underline'
  * new-tab anchors. Bold, italics and lists stay literal — the one inline form
  * both markdown surfaces interpret is links.
  *
- * Shared by {@link MarkdownSection} (repo-root prose) and `Changelog` (release
- * notes) so an issue/commit reference like `([#518](…))` renders as a link on
- * both, from one rendering path rather than two hand-kept copies.
+ * Shared by {@link MarkdownSection} (repo-root prose) and `Changelog` (squash
+ * titles) so a PR reference like `([#518](…))` renders as a link on both, from
+ * one rendering path rather than two hand-kept copies.
  */
 export function InlineMarkdown({ text }: InlineMarkdownProps) {
   return (

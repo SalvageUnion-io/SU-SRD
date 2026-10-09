@@ -6,52 +6,51 @@ name: Deploy (Cloudflare)
 # provisions a headless Chromium to render ~850 per-entity OG images, which is a
 # poor fit for Cloudflare's build environment. Rather than split the build across
 # two systems — one surface here, two there — everything builds in Actions and
-# deploys with `wrangler`. One build path, one place path-filtering lives, and the
-# existing CI gates sit in front of every deploy.
+# deploys with `wrangler`. One build path, and one place path-filtering lives.
 #
-# THE GATE IS NOT DECORATIVE. `workflow_run` fires on the CI workflow's
-# COMPLETION, not its success, so `conclusion == 'success'` is checked
-# explicitly. Without it a red CI run would deploy — which is the opposite of
-# what putting CI in front is for.
+# THE GATE IS THE RULESET. A push to `main` is a merged PR, and the `main`
+# ruleset (strict, no bypass actors) merges only a branch that is up to date
+# with `main` and passed `CI Success`, so the tree this deploys has already
+# passed CI as that PR (docs/ARCHITECTURE.md#ci-repository-settings).
 #
 # ---------------------------------------------------------------------------
-# SHAPE: plan -> build-* -> push-convex -> deploy-* -> smoke -> record (CI-12)
+# SHAPE: plan -> build-* -> push-convex -> deploy -> smoke -> record (CI-12)
 # ---------------------------------------------------------------------------
 #
-#   plan       provenance, the deploy set, every credential guard, and a dry-run
-#              bundle of every Worker. Holds no artifact; fails before anything
-#              is built.
+#   plan       provenance, the deploy set and every credential guard. Holds no
+#              artifact; fails before anything is built. Each Worker's bundle
+#              was already proved by its CI build job on the merged PR.
 #   build-srd  / build-itun   one job per surface that HAS a build, in
 #              parallel. Each uploads the exact `dist` it produced. Neither
 #              pushes anything anywhere.
-#   og-srd     renders srd's OG images into build-srd's `dist`. Best-effort, so
-#              only `deploy-srd` waits for it.
+#   og-srd     renders srd's OG images into build-srd's `dist`. Best-effort:
+#              a failed render keeps the default og:image.
 #   push-convex  the Convex backend push, only once EVERY build is green, and
 #              before any traffic moves.
-#   deploy-*   one job per surface, in parallel, and NONE starts until EVERY
-#              build job has finished green and the backend push (when itun
-#              ships) succeeded. Each ships the artifact its build job
-#              uploaded — nothing is rebuilt between build and deploy.
+#   deploy     one matrix job, a leg per surface in the deploy set, in
+#              parallel, and NO leg starts until EVERY build job has finished
+#              green and the backend push (when itun ships) succeeded. Each leg
+#              ships the artifact its build job uploaded — nothing is rebuilt
+#              between build and deploy.
 #   smoke      the production smoke list, once, after every deploy.
 #   record     moves `deployed/cloudflare`, only after smoke passed.
 #
-# This used to be ONE serial 30-minute job: srd built, OG-rendered and deployed
-# before itun started building, so an itun build failure left srd on the new
-# commit and itun on the old — a partial deploy nobody chose. Now every build
-# finishes before any traffic moves, and the two long builds overlap.
+# Every build finishes before any traffic moves, so a failed itun build cannot
+# leave srd on the new commit and itun on the old — a partial deploy nobody
+# chose — and the two long builds overlap.
 # `tools/check-workflows.ts` (deploy-order) asserts that ordering, so a future
-# edit cannot quietly let one deploy job run ahead of a build.
+# edit cannot quietly let the deploy run ahead of a build.
 #
 # WHY THE ARTIFACTS ARE BUILT HERE AND NOT TAKEN FROM CI'S RUN. The audit's
-# first suggestion was to deploy the `dist` CI already built on the main push.
+# first suggestion was to deploy the `dist` CI already built for the PR.
 # Neither CI build is the production artifact:
 #   - srd: CI builds with no Sentry DSN, and production must ship the DSN,
 #     source maps and the OG images, none of which CI produces.
-#   - itun: CI builds a Solo client with no `VITE_CONVEX_URL`, so its smoke and
-#     bundle-budget specs run with the account gate off. Production must be
-#     compiled against the production deployment's URL (`ITUN_CONVEX_URL`
-#     below, checked against Convex's canonical URL before the push).
-# And CI path-filters per COMMIT while this workflow deploys per LAST RECORDED
+#   - itun: CI builds against a throwaway Convex backend carrying the PR's own
+#     functions. Production must be compiled against the production
+#     deployment's URL (`ITUN_CONVEX_URL` below, checked against Convex's
+#     canonical URL before the push), and with the Sentry DSN.
+# And CI path-filters per PR while this workflow deploys per LAST RECORDED
 # DEPLOY (CI-01), so a surface can need deploying on a commit where CI skipped
 # its build — a CI-artifact path would need this build path as a fallback
 # anyway. So the build happens once, here, and the deploy ships exactly it.
@@ -62,13 +61,9 @@ name: Deploy (Cloudflare)
 # without updating that tool.
 
 on:
-  # zizmor: ignore[dangerous-triggers] — the `plan` job's `if:` below is the
-  # mitigation zizmor asks for: it requires a same-repo `push` to `main`, so a
-  # fork or PR run can never reach the checkout or the credentials. Every other
-  # job `needs` plan, so none of them runs when plan is skipped.
-  workflow_run:
-    workflows: ['CI']
-    types: [completed]
+  # Every merge. Only a same-repo push can reach `main`, and the `production`
+  # Environment admits `main` alone.
+  push:
     branches: [main]
   # Manual re-deploy, for when a deploy fails on something unrelated to the code
   # (a Cloudflare incident, a rotated token) and the commit is already green.
@@ -99,7 +94,7 @@ on:
 # One deploy at a time, and never cancel one in flight: a half-uploaded asset
 # manifest is worse than a queued deploy.
 #
-# GitHub keeps at most ONE pending run per group, so when three CI runs finish
+# GitHub keeps at most ONE pending run per group, so when three merges land
 # close together the middle deploy is dropped from the queue. That is safe ONLY
 # because the deploy set below is computed against the last RECORDED deploy,
 # not against `HEAD^`: the run that survives diffs across every commit the
@@ -122,82 +117,54 @@ env:
   # deploy key resolves to before it pushes, so a moved deployment fails the
   # run before anything ships instead of shipping a client aimed elsewhere.
   ITUN_CONVEX_URL: https://exuberant-porpoise-183.convex.cloud
+  # Sentry's client keys and org slug. Public by construction: each DSN is
+  # inlined into a bundle anyone can download, and the slug is in every Sentry
+  # URL (docs/ARCHITECTURE.md#sentry). The one Sentry secret is
+  # SENTRY_AUTH_TOKEN, which can write to the org.
+  SRD_SENTRY_DSN: https://543122dc077d63448e70d33b0a120283@o4511811110764544.ingest.de.sentry.io/4511811268902992
+  ITUN_SENTRY_DSN: https://bc1ea4e8e45b338d4b5d8ac5ee1016ae@o4511811110764544.ingest.de.sentry.io/4511811273097296
+  SENTRY_ORG: susrd
 
 jobs:
   # ===========================================================================
   # plan — decide, guard and pre-flight. Nothing here is built or shipped.
   # ===========================================================================
   plan:
-    # `workflow_run` gives us the triggering run's conclusion; a manual dispatch
-    # has no triggering run, so it is allowed through on its own.
-    #
-    # The `github.ref` clause is what stops that from being a hole. A dispatch
-    # checks out `github.sha` — the tip of WHATEVER ref was selected — and every
-    # branch cut from main carries this file, so without it any branch could be
-    # dispatched straight to production with no CI having passed. It needs repo
-    # write access, so this was a footgun rather than an external threat, but it
-    # is precisely the "green gate suffices" assumption in decision D3 being
-    # bypassed rather than satisfied.
-    #
-    # THE `workflow_run` HALF NEEDS THE SAME TREATMENT, AND FOR A WORSE REASON.
-    # `branches: [main]` on the trigger reads like a provenance check and is not
-    # one: it matches the TRIGGERING run's `head_branch`, which for a PR is the
-    # unqualified head ref — the fork's own branch name. A fork branch named
-    # `main` satisfies it. Nothing else in the old expression looked at where the
-    # code came from, and the step below is `uses: ./.github/actions/setup-bun`
-    # — a composite action read FROM THE CHECKED-OUT TREE — which runs
-    # `bun install` against that tree's `package.json` before any secret step.
-    # That is arbitrary code execution ahead of CLOUDFLARE_API_TOKEN,
-    # CONVEX_DEPLOY_KEY and SENTRY_AUTH_TOKEN. The "refuse to deploy
-    # without…" guards below check that a credential is PRESENT, never where the
-    # code asking for it came from.
-    #
-    # This is GitHub's documented pwn-request shape (see their `secure-use`
-    # guidance on `workflow_run` + untrusted checkout). The repo is public and
-    # forkable, so the only thing standing in front of it was the default
-    # first-time-contributor approval prompt — which a maintainer clicks to SEE
-    # CI, not to authorise a production deploy.
-    #
-    # `head_repository.full_name` is the provenance check. `event == 'push'` is
-    # the second half: CI runs on both `push` (main only) and `pull_request`, so
-    # without it a same-repo branch PR would still qualify. Deploys should follow
-    # pushes to main and nothing else.
-    #
-    # Every later job `needs` this one, directly or through a build job, and a
-    # skipped job's dependents are skipped — so this one expression gates the
-    # whole workflow.
-    if: >-
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_run' &&
-       github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.head_repository.full_name == github.repository &&
-       github.event.workflow_run.event == 'push' &&
-       github.event.workflow_run.head_branch == 'main')
+    # A dispatch checks out the tip of whatever ref was selected, and every
+    # branch cut from main carries this file, so only `main` may be dispatched
+    # (a push is `main` by its trigger). Every later job `needs` this one,
+    # directly or through a build job, so this one expression gates the whole
+    # workflow.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: production
+    # The Environment's secrets, for the guards below, without recording a
+    # deployment: nothing ships from this job.
+    environment:
+      name: production
+      deployment: false
     timeout-minutes: 15
     outputs:
       sha: ${{ steps.target.outputs.sha }}
-      # `true` when HEAD is older than the recorded deploy on a `workflow_run`
-      # — a newer commit's CI finished first and already shipped. Nothing
+      # The commit's time in Unix seconds: itun's build stamp, and the build
+      # floor `push-convex` writes into the backend (see that job).
+      stamp: ${{ steps.target.outputs.stamp }}
+      # `true` when HEAD is older than the recorded deploy on a push (a re-run
+      # of an older merge's deploy): a newer commit already shipped. Nothing
       # builds or deploys, and `record` must not move the tag back.
       stale: ${{ steps.surfaces.outputs.stale }}
-      assets: ${{ steps.surfaces.outputs.assets }}
-      srd: ${{ steps.surfaces.outputs.srd }}
-      itun: ${{ steps.surfaces.outputs.itun }}
-      bot: ${{ steps.surfaces.outputs.bot }}
+      # A JSON array of the app directories to ship, `[]` on a stale run: the
+      # deploy matrix.
+      deploy: ${{ steps.surfaces.outputs.deploy }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Nothing in this job pushes, and the tree it checks out runs
           # `bun install` before any secret step — so no token is left in
           # .git/config for that code to find.
           persist-credentials: false
-          # workflow_run checks out the DEFAULT branch by default, not the commit
-          # that was tested. Deploying a different commit than the one CI passed
-          # would make the gate meaningless.
-          ref: ${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
+          # A dispatched `sha` (the rollback path), else the pushed commit.
+          ref: ${{ inputs.sha || github.sha }}
           # Ancestry cannot be checked in a shallow clone, and the deploy-set
           # diff below needs the last deployed commit.
           fetch-depth: 0
@@ -208,15 +175,17 @@ jobs:
       # reported as itself rather than as the tip of main.
       - name: Resolve the commit being deployed
         id: target
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "stamp=$(git log -1 --format=%ct HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
       # A dispatched `sha` must be an ancestor of main. Without this the input
-      # would reintroduce exactly what the `github.ref == 'refs/heads/main'`
-      # clause exists to prevent: an arbitrary commit, with no CI having passed,
-      # deployed straight to production by anyone with write access.
+      # would reintroduce exactly what the `refs/heads/main` clause exists to
+      # prevent: an arbitrary commit, with no CI having passed, deployed
+      # straight to production by anyone with write access.
       - name: The dispatched commit must be an ancestor of main
         if: inputs.sha != ''
         # Through `env:`, never `${{ }}` inside the script: an expression is
@@ -247,49 +216,17 @@ jobs:
       # tests live in tools/deploy-surfaces.ts; it fails SAFE (no record, a
       # shared path or `force_all` deploys everything).
       #
-      # It also refuses to go BACKWARDS on a `workflow_run`. ci.yml runs every
-      # commit on main to completion, so an older commit's CI can finish after
-      # a newer one has already deployed; diffing newer->older would ship the
-      # older tree over the newer one. Such a run is `stale`: nothing deploys
-      # and the record stays put. Only a dispatch (the rollback path) passes
-      # `--allow-backwards`.
+      # It also refuses to go BACKWARDS on a push. A re-run of an older merge's
+      # deploy can start after a newer one has already shipped; diffing
+      # newer->older would ship the older tree over the newer one. Such a run
+      # is `stale`: nothing deploys and the record stays put. Only a dispatch
+      # (the rollback path) passes `--allow-backwards`.
       - name: Decide which surfaces to deploy
         id: surfaces
         run: >-
           bun tools/deploy-surfaces.ts
           ${{ inputs.force_all && '--force-all' || '' }}
           ${{ github.event_name == 'workflow_dispatch' && '--allow-backwards' || '' }}
-
-      # Bundle every Worker before anything is built, let alone shipped.
-      #
-      # `--dry-run` needs no credential and takes seconds, so a Worker SCRIPT
-      # that will not bundle fails the run here, before the two long builds
-      # spend twenty minutes producing artifacts nothing can ship.
-      - name: Bundle every Worker before building anything
-        if: steps.surfaces.outputs.stale != 'true'
-        run: |
-          set -euo pipefail
-          # itun's Worker declares `assets.directory: ./dist`, and wrangler
-          # refuses to bundle when that directory is missing — which it is here,
-          # because nothing has been built yet.
-          #
-          # That combination once broke every deploy: `✘ The directory specified
-          # by the "assets.directory" field in your configuration file does not
-          # exist`. The guard was added ahead of the build it depends on, so it
-          # failed closed on a healthy tree — at the one moment nobody was
-          # reading deploy logs, because CI on the PR had been green.
-          #
-          # An empty placeholder is the right shape rather than a workaround.
-          # What this step exists to catch is a Worker SCRIPT that will not
-          # bundle; the static assets are the separate artifact `build-itun`
-          # produces. This job's workspace is discarded, so the placeholder
-          # never reaches production.
-          mkdir -p apps/itun/dist
-          for app in su-assets itun discord-bot; do
-            echo "--- bundling $app"
-            bun --filter "$app" worker:bundle --outdir "/tmp/predeploy-$app"
-          done
-          echo "All Worker bundles produced. srd declares no main (Static Assets only)."
 
       # ---------------------------------------------------------------------
       # The guards. Before anything is built.
@@ -298,7 +235,7 @@ jobs:
       # An absent CONVEX_DEPLOY_KEY must be fatal, loudly, before any artifact
       # exists, for a measured reason: production ran a four-day
       # stale backend from 2026-08-06 to 2026-08-10 because an absent key
-      # silently took a Solo-build branch. The site served the current commit,
+      # silently skipped the backend push. The site served the current commit,
       # the backend was four days behind, every soft-link write failed, and
       # nothing was red.
       #
@@ -310,7 +247,7 @@ jobs:
         run: |
           if [ -z "$CONVEX_DEPLOY_KEY" ]; then
             echo "FATAL: production deploy with no CONVEX_DEPLOY_KEY." >&2
-            echo "Refusing to ship a Solo client against an un-pushed Convex backend." >&2
+            echo "Refusing to deploy a client whose Convex backend was not pushed." >&2
             echo "Set it in Settings > Environments > production > Environment secrets." >&2
             exit 1
           fi
@@ -324,84 +261,20 @@ jobs:
             exit 1
           fi
 
-      # Sentry is env-gated at BUILD time: with no DSN the guard folds to false,
-      # Vite tree-shakes the SDK out entirely, and the app looks *identical* to a
-      # working one while reporting zero errors. `check-observability.ts` exists
-      # because both apps once sat in production that way.
-      #
-      # They are repository VARIABLES rather than secrets on purpose: a DSN is
-      # public by construction, sitting in a bundle anyone can download. Storing
-      # a public value as a secret hides which values genuinely need protecting.
-      #
-      # Both apps read `VITE_SENTRY_DSN` at build time, but they report to
-      # different Sentry projects, so srd's DSN lives in its own repository
-      # variable, `SRD_SENTRY_DSN`. `PUBLIC_SENTRY_DSN` is the variable's former
-      # name (srd's old Astro-era env prefix) and is read only as a fallback until
-      # the variable is renamed in the repository settings; drop the `||` then.
-      - name: Refuse to build a browser app with no Sentry DSN
-        env:
-          SRD_SENTRY_DSN: ${{ vars.SRD_SENTRY_DSN || vars.PUBLIC_SENTRY_DSN }}
-          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
-        run: |
-          missing=0
-          if [ -z "$SRD_SENTRY_DSN" ]; then
-            echo "FATAL: SRD_SENTRY_DSN is not set — srd would ship with error tracking silently off." >&2
-            missing=1
-          fi
-          if [ -z "$VITE_SENTRY_DSN" ]; then
-            echo "FATAL: VITE_SENTRY_DSN is not set — itun would ship with error tracking silently off." >&2
-            missing=1
-          fi
-          if [ "$missing" = "1" ]; then
-            echo "Set them in Settings > Secrets and variables > Actions > Variables." >&2
-            exit 1
-          fi
-
-      # The OTHER half of Sentry, and it was missing for the whole cutover.
-      #
-      # A DSN gets events to Sentry. Source maps make them readable. Both browser
-      # apps ship a minified bundle, so without an upload every production issue
-      # is a stack of mangled frames pointing at `assets/<entry>-<hash>.js` — an
-      # event that exists, is counted, and cannot be acted on.
-      #
-      # Both apps' Vite builds take `sentrySourcemaps()` from
+      # A DSN gets events to Sentry; source maps make them readable. Both apps'
+      # Vite builds take `sentrySourcemaps()` from
       # `packages/observability/src/vite.ts`, which gates BOTH the plugin and
-      # `build.sourcemap` on `SENTRY_AUTH_TOKEN`, so with the
-      # secret absent the build silently emits no maps and uploads nothing. The
-      # itun build step passes all three variables and they resolved to empty on
-      # every deploy since P7: the repository has exactly four secrets and none
-      # of them is a Sentry one. srd had no upload at all until the 2026-09-25
-      # audit (AP-20); it now takes the same token and org.
-      #
-      # It FAILS rather than warns, deliberately and in line with ADR-033 §7. A
-      # warning is what the previous state effectively was, and it went unread
-      # for the length of the cutover.
+      # `build.sourcemap` on `SENTRY_AUTH_TOKEN`, so with the secret absent the
+      # build silently emits no maps and every production event is a minified
+      # stack. It FAILS rather than warns, in line with ADR-033 §7.
       - name: Refuse to build a browser app with no Sentry source-map upload
         env:
-          # ONE secret and TWO variables, split the same way the DSNs above are
-          # and for the same stated reason: storing a public value as a secret
-          # hides which values genuinely need protecting.
-          #
-          #   SENTRY_ORG / SENTRY_PROJECT  slugs. They appear in every Sentry URL
-          #                                for this project and in the committed
-          #                                docs. Variables.
-          #   SENTRY_AUTH_TOKEN            can write to the org. Secret.
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
         run: |
-          missing=0
-          for name in SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT; do
-            eval "value=\$$name"
-            if [ -z "$value" ]; then
-              echo "FATAL: $name is not set — itun and srd would ship with no source maps," >&2
-              echo "       making every production Sentry event a minified stack." >&2
-              missing=1
-            fi
-          done
-          if [ "$missing" = "1" ]; then
-            echo "  SENTRY_AUTH_TOKEN -> Settings > Environments > production (it can write to the Sentry org)" >&2
-            echo "  SENTRY_ORG, SENTRY_PROJECT -> Settings > Secrets and variables > Actions > Variables (public slugs)" >&2
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo "FATAL: SENTRY_AUTH_TOKEN is not set — itun and srd would ship with no source maps," >&2
+            echo "       making every production Sentry event a minified stack." >&2
+            echo "Set it in Settings > Environments > production > Environment secrets." >&2
             exit 1
           fi
 
@@ -411,21 +284,26 @@ jobs:
   # ===========================================================================
   #
   # su-assets and the bot have no build: wrangler bundles their Worker source
-  # at deploy time, and `plan` has already proved both bundles.
+  # at deploy time, as CI's build-su-assets and build-discord-bot did.
 
   # srd — static. Its OG images are `og-srd`'s job, below.
   build-srd:
     needs: plan
-    if: needs.plan.outputs.stale != 'true' && needs.plan.outputs.srd == 'true'
+    if: contains(fromJSON(needs.plan.outputs.deploy), 'srd')
     runs-on: ubuntu-latest
-    environment: production
+    environment:
+      name: production
+      deployment: false
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ needs.plan.outputs.sha }}
+          # The changelog page is `main`'s history (ADR-041); a shallow clone
+          # would render one commit of it.
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
@@ -433,31 +311,26 @@ jobs:
       - name: Build srd
         env:
           VITE_COMMIT_REF: ${{ needs.plan.outputs.sha }}
-          VITE_SENTRY_DSN: ${{ vars.SRD_SENTRY_DSN || vars.PUBLIC_SENTRY_DSN }}
-          # ROLLBACK SHIM — remove once `deployed/cloudflare` is past the commit
-          # that renamed srd's env prefix. A `sha` dispatch runs THIS workflow
-          # file against an OLDER tree, and srd before the rename read
-          # `import.meta.env.PUBLIC_*` under `envPrefix: 'PUBLIC_'`; with only
-          # the VITE_ names set, a rollback would inline the DSN as `undefined`
-          # and ship srd with Sentry tree-shaken out while the DSN guard above
-          # still passed. The current tree has the default `VITE_` prefix, so
-          # these are never exposed to its bundle.
-          PUBLIC_COMMIT_REF: ${{ needs.plan.outputs.sha }}
-          PUBLIC_SENTRY_DSN: ${{ vars.SRD_SENTRY_DSN || vars.PUBLIC_SENTRY_DSN }}
-          # Source-map upload (packages/observability/src/vite.ts). Same token and org
-          # as itun; the PROJECT is srd's own, and is written literally rather
-          # than read from `vars.SENTRY_PROJECT`, which names itun's. A project
-          # slug is public (it is in every Sentry URL and in
-          # docs/ARCHITECTURE.md#sentry), so it needs no variable.
+          VITE_SENTRY_DSN: ${{ env.SRD_SENTRY_DSN }}
+          # Source-map upload (packages/observability/src/vite.ts). SENTRY_ORG
+          # is the workflow env above; a project slug is public, like the org.
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: srd
         run: bun --filter srd build
+
+      # `import.meta.env` is inlined at build, so a bundle with no EU DSN in it
+      # had the SDK tree-shaken out and would ship blind.
+      - name: Refuse an srd bundle with no inlined Sentry DSN
+        run: |
+          if ! grep -rqE --include='*.js' 'https://[0-9a-f]{16,}@[a-z0-9.-]+\.ingest\.de\.sentry\.io/' apps/srd/dist; then
+            echo "FATAL: no EU Sentry DSN is inlined in apps/srd/dist — srd would ship with error tracking off." >&2
+            exit 1
+          fi
 
       # `include-hidden-files`: the artifact is what ships, byte for byte, so
       # it must not silently drop a dotfile the build emitted.
       - name: Upload the srd build
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: srd-build
           path: apps/srd/dist/
@@ -466,15 +339,15 @@ jobs:
           retention-days: 7
 
   # srd's OG images, rendered into build-srd's `dist` and re-uploaded as the
-  # artifact `deploy-srd` ships. The render never fails (a missing browser or a
-  # wedged page keeps the default og:image), so nothing but `deploy-srd` waits.
+  # artifact the deploy's srd leg ships. The render never fails (a missing
+  # browser or a wedged page keeps the default og:image).
   og-srd:
     needs: [plan, build-srd]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ needs.plan.outputs.sha }}
@@ -484,7 +357,7 @@ jobs:
 
       # The same key as ci.yml's, so either workflow's save serves both.
       - name: Cache Playwright browsers
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
@@ -510,14 +383,14 @@ jobs:
           echo "data=$DATA" >> "$GITHUB_OUTPUT"
 
       - name: Cache the OG renders
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: apps/srd/node_modules/.cache/srd-og
           key: srd-og-${{ steps.og-key.outputs.render }}-${{ steps.og-key.outputs.data }}
           restore-keys: srd-og-${{ steps.og-key.outputs.render }}-
 
       - name: Download the srd build
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: srd-build
           path: apps/srd/dist
@@ -530,7 +403,7 @@ jobs:
         run: bun scripts/og-screenshots.ts
 
       - name: Upload the srd artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: srd-dist
           path: apps/srd/dist/
@@ -541,16 +414,21 @@ jobs:
   # itun — builds against the production Convex URL. Pushes nothing.
   build-itun:
     needs: plan
-    if: needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true'
+    if: contains(fromJSON(needs.plan.outputs.deploy), 'itun')
     runs-on: ubuntu-latest
-    environment: production
+    environment:
+      name: production
+      deployment: false
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ needs.plan.outputs.sha }}
+          # The changelog page is `main`'s history (ADR-041); a shallow clone
+          # would render one commit of it.
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
@@ -567,14 +445,23 @@ jobs:
         env:
           VITE_CONVEX_URL: ${{ env.ITUN_CONVEX_URL }}
           VITE_COMMIT_REF: ${{ needs.plan.outputs.sha }}
-          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+          VITE_BUILD_STAMP: ${{ needs.plan.outputs.stamp }}
+          VITE_SENTRY_DSN: ${{ env.ITUN_SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          SENTRY_PROJECT: itun
         run: bun run build
 
+      # `import.meta.env` is inlined at build, so a bundle with no EU DSN in it
+      # had the SDK tree-shaken out and would ship blind.
+      - name: Refuse an itun bundle with no inlined Sentry DSN
+        run: |
+          if ! grep -rqE --include='*.js' 'https://[0-9a-f]{16,}@[a-z0-9.-]+\.ingest\.de\.sentry\.io/' apps/itun/dist; then
+            echo "FATAL: no EU Sentry DSN is inlined in apps/itun/dist — itun would ship with error tracking off." >&2
+            exit 1
+          fi
+
       - name: Upload the itun artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: itun-dist
           path: apps/itun/dist/
@@ -588,10 +475,10 @@ jobs:
   #
   # Order is the whole point. The backend must never be BEHIND the served
   # client (that is what broke players in 2026-08), so it is pushed before
-  # `deploy-itun` can run. And it must not be pushed by a run that ends up
+  # the deploy's itun leg can run. And it must not be pushed by a run that ends up
   # shipping nothing, so it waits for both builds — an srd build failure now
   # stops the push exactly as it stops every deploy. Between this job and
-  # `deploy-itun` the backend leads the served client for a minute or two,
+  # the itun leg the backend leads the served client for a minute or two,
   # which the backend must tolerate anyway: every open tab keeps running the
   # previous client for as long as it stays open.
   #
@@ -601,19 +488,35 @@ jobs:
   # command fails, `convex deploy` stops before pushing, and nothing ships.
   push-convex:
     needs: [plan, build-srd, build-itun]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true' }}
+    if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.deploy), 'itun') }}
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ needs.plan.outputs.sha }}
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
+
+      # The build floor (apps/itun/convex/buildFloor.ts): the same commit time
+      # `build-itun` stamped into the bundle. Written into the pushed functions
+      # rather than set as a deployment variable so it moves atomically with
+      # them: a push that removes a function an older client still calls also
+      # tells that client, through its `build.floor` subscription, to stop
+      # writing and reload once the itun leg serves the new shell.
+      - name: Write the build floor
+        working-directory: apps/itun
+        env:
+          BUILD_STAMP: ${{ needs.plan.outputs.stamp }}
+        run: |
+          case "$BUILD_STAMP" in
+            '' | *[!0-9]*) echo "FATAL: plan reported no usable build stamp (got '$BUILD_STAMP')." >&2; exit 1 ;;
+          esac
+          echo "export const BUILD_FLOOR = $BUILD_STAMP" > convex/buildFloor.ts
 
       - name: Push Convex (after confirming the URL itun was built against)
         working-directory: apps/itun
@@ -630,57 +533,50 @@ jobs:
         run: bunx convex deploy --cmd-url-env-var-name CANONICAL_CONVEX_URL --cmd "$URL_GUARD"
 
   # ===========================================================================
-  # Deploys — one job per surface, in parallel, after EVERY build is green and
-  # the backend push (if itun ships) succeeded.
+  # The deploy — one matrix leg per surface in the deploy set, in parallel,
+  # after EVERY build is green and the backend push (if itun ships) succeeded.
   # ===========================================================================
   #
-  # Each deploy job `needs` both build jobs and the push, not just its own:
-  # a failed itun build must stop srd shipping too, or the run leaves
-  # production half on the new commit. A job that was SKIPPED (its surface did
-  # not change) is not a failure, which is why these use `!cancelled() &&
-  # !failure()` rather than the implicit `success()` — the implicit form checks
-  # every ancestor and would skip every deploy whenever any surface was
-  # unchanged.
+  # The job `needs` both build jobs, srd's OG pass and the push, not just what
+  # one leg ships: a failed itun build must stop srd shipping too, or the run
+  # leaves production half on the new commit. A job that was SKIPPED (its
+  # surface did not change) is not a failure, which is why this uses
+  # `!cancelled() && !failure()` rather than the implicit `success()` — the
+  # implicit form checks every ancestor and would skip the deploy whenever any
+  # surface was unchanged. An empty deploy set (nothing changed, or a stale
+  # run) skips the job: a matrix over an empty array is an error, not a no-op.
+  # So does a `plan` that did not succeed, whose output is not JSON at all.
   #
-  # wrangler is a catalogued devDependency of all four Worker apps, so every
-  # `bun run deploy` below runs the version bun.lock resolved — audited,
-  # behind the 3-day release-age gate and bumped by the catalog updater —
-  # rather than a `bunx wrangler@x.y.z` fetched outside the lockfile. Bumping
-  # it moves all four together; keep `compatibility_date` in the four
+  # `fail-fast: false`: one leg failing must not cancel another mid-upload, for
+  # the same reason the concurrency group never cancels a deploy.
+  #
+  # wrangler is one root devDependency, so every `bun run deploy` runs the
+  # version bun.lock resolved — audited and behind the 3-day release-age gate —
+  # rather than a `bunx wrangler@x.y.z` fetched outside the lockfile. Bumping it
+  # moves all four together; keep `compatibility_date` in the four
   # wrangler.jsonc files at or below the workerd it bundles.
-
-  # su-assets — no build step; the Worker is its own source.
-  deploy-su-assets:
-    needs: [plan, build-srd, build-itun, push-convex]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.assets == 'true' }}
+  #
+  # The three scripted Workers (su-assets, itun, discord-bot) deploy with
+  # `--var SENTRY_RELEASE:<sha>`: @sentry/cloudflare reads it from env as the
+  # release, so Worker events carry the same SHA as the browser bundles and
+  # their sourcemaps. srd is assets-only and runs no Worker code. su-assets and
+  # the bot have no build: wrangler bundles their Worker source here. Discord's
+  # Interactions Endpoint URL points at the bot's Worker, so this is the bot's
+  # only deploy path; its secrets (DISCORD_TOKEN and friends) are wrangler
+  # secrets set out of band, and a deploy does not touch them.
+  deploy:
+    needs: [plan, build-srd, og-srd, build-itun, push-convex]
+    if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && needs.plan.outputs.deploy != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.plan.outputs.deploy) }}
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-          ref: ${{ needs.plan.outputs.sha }}
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Deploy su-assets
-        working-directory: apps/su-assets
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bun run deploy
-
-  deploy-srd:
-    needs: [plan, build-srd, build-itun, push-convex, og-srd]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.srd == 'true' }}
-    runs-on: ubuntu-latest
-    environment: production
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ needs.plan.outputs.sha }}
@@ -689,93 +585,49 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       - name: Download the srd artifact
-        uses: actions/download-artifact@v8
+        if: matrix.app == 'srd'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: srd-dist
           path: apps/srd/dist
-
-      - name: Deploy srd
-        working-directory: apps/srd
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bun run deploy
-
-  deploy-itun:
-    needs: [plan, build-srd, build-itun, push-convex]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true' }}
-    runs-on: ubuntu-latest
-    environment: production
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-          ref: ${{ needs.plan.outputs.sha }}
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
 
       # The Worker script is bundled by wrangler from this checkout; the static
       # assets it serves are the artifact `build-itun` compiled against the
       # backend `push-convex` pushed.
       - name: Download the itun artifact
-        uses: actions/download-artifact@v8
+        if: matrix.app == 'itun'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: itun-dist
           path: apps/itun/dist
 
-      - name: Deploy itun
-        working-directory: apps/itun
+      - name: Deploy
+        working-directory: apps/${{ matrix.app }}
         env:
+          APP: ${{ matrix.app }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bun run deploy
-
-  # discord-bot
-  #
-  # Discord's Interactions Endpoint URL points at this Worker, so every merge
-  # that touches the bot ships it here; there is no other deploy path.
-  #
-  # No build step — wrangler bundles `src/http/worker.ts` directly.
-  #
-  # Secrets (DISCORD_TOKEN and friends) are wrangler secrets set out of band
-  # and are NOT touched by a deploy, so this cannot clobber them.
-  deploy-discord-bot:
-    needs: [plan, build-srd, build-itun, push-convex]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.bot == 'true' }}
-    runs-on: ubuntu-latest
-    environment: production
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-          ref: ${{ needs.plan.outputs.sha }}
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Deploy discord-bot
-        working-directory: apps/discord-bot
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bun run deploy
+          DEPLOYED_SHA: ${{ needs.plan.outputs.sha }}
+        run: |
+          if [ "$APP" = srd ]; then
+            bun run deploy
+          else
+            bun run deploy -- --var "SENTRY_RELEASE:$DEPLOYED_SHA"
+          fi
 
   # ===========================================================================
   # Post-deploy smoke. Cheap, and it is the only thing that knows whether what
   # shipped actually answers.
   # ===========================================================================
   #
-  # Deliberately includes the rotated-chunk 404: `not_found_handling` is one
-  # line of config away from silently reintroducing #759, where a missing
+  # Deliberately includes the rotated-chunk 404: in single-page-application
+  # mode only itun's Worker keeps #759 from coming back, where a missing
   # hashed chunk answered `200 text/html` and the `immutable` header pinned
   # that HTML into the HTTP cache for a year.
   # The list lives in tools/smoke-production.sh so e2e-nightly.yml can run
   # the same checks on a schedule, catching a regression that happens
   # between deploys (a DNS record, a Redirect Rule, a rotated bot token).
   smoke:
-    needs: [plan, deploy-su-assets, deploy-srd, deploy-itun, deploy-discord-bot]
+    needs: [plan, deploy]
     if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && needs.plan.outputs.stale != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -786,7 +638,7 @@ jobs:
       # `deployed/cloudflare` naming a commit production no longer serves.
       # The script needs nothing but curl, so only it is checked out.
       - name: Checkout the smoke list
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ github.workflow_sha }}
@@ -811,16 +663,16 @@ jobs:
   # older record and over-deploys, which is the safe direction.
   record:
     needs: [plan, smoke]
-    # A stale run (an older commit whose CI finished after a newer deploy)
+    # A stale run (an older merge's deploy re-run after a newer one shipped)
     # shipped nothing, and moving the record to it would make the NEXT run diff
     # from the older commit. Only a dispatch may move the record backwards.
     #
     # The explicit status functions are load-bearing. A bare `if:` gets an
     # implicit `success()`, which at job level checks EVERY ancestor — and a
-    # skipped build-*/deploy-* job (an unchanged surface) makes it false. The
+    # skipped build job or deploy (an unchanged surface) makes it false. The
     # record then moved only when all four surfaces shipped, so a newer
-    # srd-only deploy left it behind, and an older commit's CI finishing later
-    # was not "stale" and shipped its srd over the newer one: a silent
+    # srd-only deploy left it behind, and an older commit's later run was
+    # not "stale" and shipped its srd over the newer one: a silent
     # rollback with every job green. `smoke` must have actually passed.
     if: ${{ !cancelled() && !failure() && needs.smoke.result == 'success' && needs.plan.outputs.stale != 'true' }}
     runs-on: ubuntu-latest
@@ -829,7 +681,7 @@ jobs:
       contents: write
     steps:
       - name: Move the deployed/cloudflare tag to the deployed commit
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           DEPLOYED_SHA: ${{ needs.plan.outputs.sha }}
         with:
@@ -843,7 +695,7 @@ jobs:
             const ref = 'tags/deployed/cloudflare'
             try {
               // force: a rollback DISPATCH legitimately moves the record
-              // BACKWARDS. A `workflow_run` never reaches here going backwards:
+              // BACKWARDS. A push never reaches here going backwards:
               // deploy-surfaces marks that run stale and this job is skipped.
               await github.rest.git.updateRef({ owner, repo, ref, sha, force: true })
             } catch (error) {

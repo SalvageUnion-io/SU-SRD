@@ -1,9 +1,8 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { forwardRef } from 'react'
+import type { ComponentPropsWithRef, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { INPUT_FOCUS } from './interaction'
 
-type ChoiceProps = Omit<ComponentPropsWithoutRef<'input'>, 'type'> & {
+type ChoiceProps = Omit<ComponentPropsWithRef<'input'>, 'type'> & {
   /** Primary label (bold ink) — the option's name. */
   label: ReactNode
   /** Optional secondary line (muted) — a callsign, tech level, chassis, … */
@@ -24,19 +23,23 @@ const CHOICE_ROW =
 /** The native input in the form vocabulary: rust check/fill + the shared rust focus ring. */
 const CHOICE_INPUT = cn('accent-rust', INPUT_FOCUS)
 
-const ChoiceControl = forwardRef<HTMLInputElement, ChoiceProps & { type: 'checkbox' | 'radio' }>(
-  function ChoiceControl({ type, label, description, className, ...props }, ref) {
-    return (
-      <label className={cn(CHOICE_ROW, className)}>
-        <input ref={ref} type={type} className={CHOICE_INPUT} {...props} />
-        <span className="font-body text-sm font-medium text-ink">{label}</span>
-        {description != null && (
-          <span className="font-body text-xs text-wk-muted">{description}</span>
-        )}
-      </label>
-    )
-  }
-)
+function ChoiceControl({
+  type,
+  label,
+  description,
+  className,
+  ...props
+}: ChoiceProps & { type: 'checkbox' | 'radio' }) {
+  return (
+    <label className={cn(CHOICE_ROW, className)}>
+      <input type={type} className={CHOICE_INPUT} {...props} />
+      <span className="font-body text-sm font-medium text-ink">{label}</span>
+      {description != null && (
+        <span className="font-body text-xs text-wk-muted">{description}</span>
+      )}
+    </label>
+  )
+}
 
 /**
  * Boolean checkbox in the form vocabulary (sibling of `Field`/`Input`): a real
@@ -44,9 +47,9 @@ const ChoiceControl = forwardRef<HTMLInputElement, ChoiceProps & { type: 'checkb
  * it and the native square/checkmark carry the semantics. Same paper / 1.5px-ink
  * chrome and rust focus ring as `Input`.
  */
-export const Checkbox = forwardRef<HTMLInputElement, ChoiceProps>(function Checkbox(props, ref) {
-  return <ChoiceControl ref={ref} type="checkbox" {...props} />
-})
+export function Checkbox(props: ChoiceProps) {
+  return <ChoiceControl type="checkbox" {...props} />
+}
 
 /**
  * Single-choice radio in the form vocabulary — the `Checkbox` sibling: identical
@@ -54,6 +57,6 @@ export const Checkbox = forwardRef<HTMLInputElement, ChoiceProps>(function Check
  * exclusive semantics (group members share a `name`; arrow keys move between
  * them natively). Use for a one-of-many selector dialog.
  */
-export const Radio = forwardRef<HTMLInputElement, ChoiceProps>(function Radio(props, ref) {
-  return <ChoiceControl ref={ref} type="radio" {...props} />
-})
+export function Radio(props: ChoiceProps) {
+  return <ChoiceControl type="radio" {...props} />
+}

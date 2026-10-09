@@ -7,10 +7,10 @@ import { SalvageUnionReference } from 'salvageunion-reference'
  *
  * Roll-table data reaches an entity two ways in this dataset: INLINE, as a
  * `table` object on the entity or its action, or BY REFERENCE, as a
- * `tableName` string naming an entry in the `roll-tables` schema. The card
- * used to read `entity.table` only, so every by-reference table rendered as
- * nothing at all — an ability like "System and Software Hacker" showed its
- * prose and silently dropped the d20 outcomes that ARE the ability.
+ * `tableName` string naming an entry in the `roll-tables` schema. Reading
+ * `entity.table` alone would render every by-reference table as nothing — an
+ * ability like "System and Software Hacker" would drop the d20 outcomes that
+ * ARE the ability.
  *
  * Both shapes are equally canonical (the validator in
  * `tools/validateReferencesLogic.ts` enforces that every `tableName` resolves),

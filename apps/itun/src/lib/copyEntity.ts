@@ -36,7 +36,7 @@
  * So a copy is `gameId: null` with the copier as owner. It cannot be
  * "unclaimed" in the `ownerId: null` sense — that is the invalid row. No one
  * mutation refuses it; the server simply never writes one. Every shelf insert
- * in `convex/entities.ts`, `convex/claim.ts` and `convex/shelf.ts` sets
+ * in `convex/entities.ts` and `convex/shelf.ts` sets
  * `ownerId` to the caller, `games.destroy` gives
  * an unclaimed row the Organizer as it shelves it, an unclaimed row cannot be
  * written (so cannot be moved out of its Game), and `ownership.release`
@@ -55,13 +55,8 @@ export type CopyableBody = Record<string, unknown>
  * carrying them through would either be overwritten or — worse for `id` —
  * produce a second record claiming to be the original, which is the exact
  * duplicate-`appId` condition that took a play session down.
- *
- * `workspaceId` is the retired pre-ADR-030 container. It is dropped rather than
- * copied because `containerOf` still reads it as a fallback, so a stale one
- * riding along on a copy could resolve the new entity back into a Game it was
- * explicitly copied out of.
  */
-const DROPPED_FIELDS = ['id', 'createdAt', 'updatedAt', 'workspaceId'] as const
+const DROPPED_FIELDS = ['id', 'createdAt', 'updatedAt'] as const
 
 /** How a copy announces itself. Prefixed, so it sorts beside nothing and reads as derived. */
 export function copyName(name: string): string {
@@ -93,11 +88,10 @@ export function copyForShelf(source: CopyableBody, fallbackName: string): Copyab
   const sourceName = typeof source.name === 'string' && source.name.length > 0 ? source.name : null
   copy.name = copyName(sourceName ?? fallbackName)
 
-  // Explicitly null, never absent: `null` IS the shelf, while `undefined` means
-  // "not decided yet" and would send the copy through `containerOf`'s legacy
-  // fallback — and, worse, would let `entityStore.create` stamp whatever
-  // container happens to be open, which for a copy made from a Game roster is
-  // the Game it was just copied out of.
+  // Explicitly null, never absent: `null` IS the shelf, while an absent
+  // `gameId` would let `entityStore.create` stamp whatever container happens
+  // to be open, which for a copy made from a Game roster is the Game it was
+  // just copied out of.
   copy.gameId = null
 
   return copy

@@ -6,7 +6,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
  * ## Why a second thing next to `NotConnectedBanner`
  *
  * The banner is app-wide and says *why*: the connection is gone. This says
- * *what it costs you here*, and it sits where the edit affordance used to be —
+ * *what it costs you here*, and it sits where the edit affordance would be —
  * which is the question a player actually asks. Withdrawing a Share button and
  * leaving a gap invites the reading "the app is broken"; withdrawing it and
  * saying "read-only — not connected" in its place does not.
@@ -20,7 +20,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
  * which is the honest place to spend the interruption.
  */
 export function WritesBlockedNotice() {
-  const { canWrite, settling, mode } = useConnection()
+  const { canWrite, settling, mode, outdated } = useConnection()
   if (canWrite || settling) return null
 
   // Plain class string rather than `cn()`, matching NotConnectedBanner: there is
@@ -34,7 +34,13 @@ export function WritesBlockedNotice() {
       className="inline-flex items-center gap-1.5 rounded-badge border-2 border-[var(--color-roll-failure)] px-2 py-1 text-badge font-bold uppercase text-[var(--color-roll-failure)]"
     >
       <span aria-hidden="true">◆</span>
-      <span>{mode === 'solo' ? 'Read-only — sign in to edit' : 'Read-only — not connected'}</span>
+      <span>
+        {mode === 'solo'
+          ? 'Read-only — sign in to edit'
+          : outdated
+            ? 'Read-only — updating'
+            : 'Read-only — not connected'}
+      </span>
     </span>
   )
 }

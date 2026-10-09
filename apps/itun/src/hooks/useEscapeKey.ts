@@ -3,16 +3,15 @@ import { useEffect } from 'react'
 /**
  * Call `onEscape` while `active`, when Escape is pressed.
  *
- * The dashboard's overlays — the Major's resolve/damage/storage prompts, the
- * table picker — each open over a region rather than in a
- * `<dialog>`, so none of them inherited the platform's dismiss behaviour, and
- * the cockpit directory had no keydown handling at all. Escape did nothing
- * anywhere, which is how two overlays could end up open at once.
+ * For the Major's band overlays (`MajorFrame`: the resolve, damage and storage
+ * prompts), which replace the band they open over rather than open as a
+ * dialog, so they have no dismiss behaviour of their own.
  *
  * Listens on the document during the CAPTURE phase so it still fires when focus
  * is inside an input or a button in the overlay, and only binds while `active`
- * so a closed overlay costs nothing and cannot steal the key from whatever is
- * still open above it.
+ * so a closed overlay costs nothing. It marks the Escape handled
+ * (`preventDefault`), so a `ModalShell` around the Major — the ⤢ overlay — does
+ * not close on the same key.
  */
 export function useEscapeKey(active: boolean, onEscape: () => void): void {
   useEffect(() => {

@@ -8,7 +8,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../__tests__/must'
 import { CraftItemsStep } from '../CraftItemsStep'
 
@@ -57,7 +57,7 @@ describe('CraftItemsStep — budget clamps (single source of truth)', () => {
     rerender(
       <CraftItemsStep
         kind="systems"
-        selected={[item.id]}
+        selected={[getEntitySlug(item)]}
         onCountChange={() => {}}
         scrapRemaining={1}
         slotsRemaining={18}
@@ -108,7 +108,7 @@ describe('CraftItemsStep — budget clamps (single source of truth)', () => {
     render(
       <CraftItemsStep
         kind="systems"
-        selected={[item.id]}
+        selected={[getEntitySlug(item)]}
         onCountChange={() => {}}
         scrapRemaining={0}
         slotsRemaining={0}

@@ -2,8 +2,8 @@
  * Export/import round-trip fidelity harness (durability audit, item 3).
  *
  * export.test.ts and export-patterns.test.ts already cover the mechanics
- * (fresh-id assignment, dedup, dangling-link pruning, legacy-bundle
- * normalization) with minimal fixtures (mostly just checking `name`). This
+ * (fresh-id assignment, dedup, dangling-link pruning, version refusal)
+ * with minimal fixtures (mostly just checking `name`). This
  * file is table-driven over RICH fixtures — every optional/nested field
  * filled in for each entity type — pushed through the full pipeline:
  *
@@ -30,7 +30,7 @@ import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../../stores/surfaceProvenance'
-import { _clearAllStores, _resetDbSingleton, encounterNpcs, mechPatterns } from '../../db/index'
+import { _resetDbSingleton, clearCache, encounterNpcs, mechPatterns } from '../../db/index'
 import type { ExportBundle } from '../../schemas/exportBundle'
 import { buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
@@ -52,26 +52,19 @@ function resetStores(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetStores()
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
   resetStores()
 })
 
 /** Strip the fields mergeImport intentionally re-mints/remaps on import. */
 function stable(record: Record<string, unknown>): Record<string, unknown> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {
-    id: _id,
-    createdAt: _ca,
-    updatedAt: _ua,
-    workspaceId: _wsId,
-    gameId: _gid,
-    ...rest
-  } = record
+  const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _gid, ...rest } = record
   return rest
 }
 
@@ -79,7 +72,7 @@ function stable(record: Record<string, unknown>): Record<string, unknown> {
 async function roundTrip(bundle: ExportBundle): Promise<ExportBundle> {
   const json = JSON.stringify(bundle)
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetStores()
   const summary = await mergeImport(parseImportBundle(json), useEntityStore.getState())
   void summary
@@ -124,7 +117,7 @@ const richPilotInput = {
   lastCriticalInjury: {
     roll: 7,
     outcome: 'minor-injury' as const,
-    rolledAt: '2026-01-01T00:00:00.000Z',
+    rolledAt: FIXTURE_NOW,
   },
 }
 
@@ -155,7 +148,7 @@ const richMechInput = {
     },
   ],
   patternName: 'Scout Rig',
-  description: 'Rust-streaked hull.',
+  appearance: 'Rust-streaked hull.',
   conditions: ['vulnerable'],
   maxSpModifier: -5,
   maxEpModifier: 2,
@@ -177,12 +170,12 @@ const richMechInput = {
     heatCheckRoll: 12,
     heatAtCheck: 5,
     overloaded: false,
-    rolledAt: '2026-01-01T00:00:00.000Z',
+    rolledAt: FIXTURE_NOW,
   },
   lastCriticalDamage: {
     roll: 15,
     outcome: 'core-damage' as const,
-    rolledAt: '2026-01-01T00:00:00.000Z',
+    rolledAt: FIXTURE_NOW,
   },
 }
 
@@ -262,7 +255,7 @@ const richEncounterNpcInput = {
     roll: 14,
     label: 'Steady',
     value: 'Holds the line.',
-    rolledAt: '2026-01-01T00:00:00.000Z',
+    rolledAt: FIXTURE_NOW,
   },
 }
 
@@ -341,7 +334,7 @@ describe('export round-trip — field fidelity', () => {
     expect(stable(importedCrawler)).toEqual(stable(created))
   })
 
-  test('mechPattern: bulk SCRAP cargo lot survives (no workspaceId field to remap)', async () => {
+  test('mechPattern: bulk SCRAP cargo lot survives', async () => {
     const entityStore = useEntityStore.getState()
 
     const created = await mechPatterns.create(richPatternInput)
@@ -655,8 +648,6 @@ describe('export round-trip — cross-entity full backup', () => {
     expect(bundle.entities.mechs).toHaveLength(1)
     expect(bundle.entities.crawlers).toHaveLength(1)
     expect(bundle.softLinks).toHaveLength(2)
-    // Workspaces are retired: the key survives for old bundles, always empty.
-    expect(bundle.workspaces).toHaveLength(0)
     expect(bundle.mechPatterns).toHaveLength(1)
     expect(bundle.encounterNpcs).toHaveLength(1)
 

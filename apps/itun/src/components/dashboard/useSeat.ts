@@ -13,11 +13,8 @@
  *
  * ## When there is no seat to read
  *
- * Convex hooks need a provider, and a build with no `VITE_CONVEX_URL` mounts
- * none, so the caller checks `isConvexConfigured` first and uses `NO_SEAT`
- * without one, as `Dashboard` does. Outside a Game, or before the first answer
- * arrives, the seat reads as the default: on foot, at Close, with nothing
- * switched on.
+ * Outside a Game, or before the first answer arrives, the seat reads as the
+ * default: on foot, at Close, with nothing switched on.
  *
  * Offline the subscription keeps the last answer it had, and writes are
  * refused here rather than handed to the Convex client, which would queue them
@@ -54,8 +51,8 @@ export type SeatHandle = {
   /**
    * Claim an unclaimed spare (`ownership.claim`, by its Convex row id), then
    * board it. The seat is written only once the claim has landed, so a refused
-   * claim leaves it as it was. It draws no `mech-to-pilot` link (plan D12).
-   * The caller confirms first (plan §8 A4).
+   * claim leaves it as it was. It draws no `mech-to-pilot` link (ADR-038 §5).
+   * The caller confirms first.
    */
   claimAndBoard: (mech: { mechId: string; serverId: string }) => void
   dismount: () => void
@@ -82,27 +79,6 @@ export const DEFAULT_SEAT: SeatView = {
   range: 'Close',
   activeEffects: [],
   resolving: null,
-}
-
-function ignore(): void {
-  // Nothing to write to: see `NO_SEAT`.
-}
-
-/**
- * The seat in a build with no deployment: the default, and nowhere to write.
- * The gate never opens the Dashboard there (that build is always Solo), but
- * tests and stories render it bare.
- */
-export const NO_SEAT: SeatHandle = {
-  seat: DEFAULT_SEAT,
-  board: ignore,
-  claimAndBoard: ignore,
-  dismount: ignore,
-  eject: ignore,
-  setRange: ignore,
-  toggleEffect: ignore,
-  setResolving: ignore,
-  clearResolving: ignore,
 }
 
 type SeatRow = SeatView & { pilotId: string }
@@ -147,14 +123,9 @@ export function reportRefusedWrite(err: unknown): void {
   reportWriteFailure(err)
 }
 
-/**
- * The pilot's seat in its Game, and the writes that change it.
- *
- * Needs a Convex provider: call it only when `isConvexConfigured`, and use
- * `NO_SEAT` otherwise.
- */
+/** The pilot's seat in its Game, and the writes that change it. */
 export function useSeat(pilot: Pilot | null): SeatHandle {
-  const { mode, canWrite: connectionWrites } = useConnection()
+  const { mode, canWrite: connectionWrites, outdated } = useConnection()
   const container = pilot === null ? null : containerOf(pilot)
   const gameId = container?.kind === 'game' ? (container.gameId as Id<'games'>) : null
   const pilotId = pilot?.id ?? null
@@ -200,7 +171,11 @@ export function useSeat(pilot: Pilot | null): SeatHandle {
   function send(write: (args: { gameId: Id<'games'>; pilotId: string }) => Promise<unknown>) {
     if (gameId === null || pilotId === null) return
     if (!connectionWrites) {
-      reportWriteFailure(new WritesBlockedOffline(mode === 'connecting' ? 'settling' : 'offline'))
+      reportWriteFailure(
+        new WritesBlockedOffline(
+          outdated ? 'outdated' : mode === 'connecting' ? 'settling' : 'offline'
+        )
+      )
       return
     }
     write({ gameId, pilotId }).catch(reportRefusedWrite)

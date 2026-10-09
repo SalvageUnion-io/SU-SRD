@@ -42,6 +42,13 @@
  * If a public function is genuinely meant to be called from outside this repo,
  * list it in `ALLOWED_WITHOUT_CALLER` with the reason. That list is empty on
  * purpose.
+ *
+ * It also checks the committed `convex/_generated/api.d.ts` registers exactly
+ * the modules on disk. `tsc` does not catch that drift: the root tsconfig sets
+ * `skipLibCheck`, so an `api.d.ts` importing a deleted module still typechecks,
+ * and a module it never registered is invisible until something calls it.
+ * Argument and return types inside a registered module are not covered;
+ * regenerating (`bunx convex dev`) stays the source of truth.
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs'
@@ -49,15 +56,22 @@ import { join, relative } from 'node:path'
 
 const ROOT = join(import.meta.dir, '..')
 const CONVEX_DIR = join(ROOT, 'apps/itun/convex')
+const API_PATH = join(CONVEX_DIR, '_generated/api.d.ts')
 
-/** Directories whose non-test sources count as callers. */
-const CALLER_DIRS = [join(ROOT, 'apps/itun/src'), join(ROOT, 'apps/discord-bot/src')]
+/**
+ * Where callers live: the ITUN client's non-test sources. The bot reaches
+ * Convex over HTTP (`botHttp.ts`), never through `api`.
+ */
+const CALLER_DIRS = [join(ROOT, 'apps/itun/src')]
 
 /** `module:name` → why it has no caller in this repo. */
 const ALLOWED_WITHOUT_CALLER: Readonly<Record<string, string>> = {}
 
 /** Modules whose exports are not ordinary builder calls. See the header. */
 const SKIPPED_MODULES = new Set(['auth', 'http', 'schema', 'auth.config'])
+
+/** Files Convex does not register as function modules: the data model and provider config. */
+const NOT_MODULES = new Set(['schema', 'auth.config'])
 
 function walk(dir: string, keep: (path: string) => boolean, out: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
@@ -140,6 +154,26 @@ export function uncalled(
   return [...defined].filter((fn) => !referenced.has(fn) && !(fn in allowed)).sort()
 }
 
+/** Every module `api.d.ts` registers — each is `import type * as X from "../<path>.js"`. */
+export function registeredModules(api: string): Set<string> {
+  return new Set(
+    [...api.matchAll(/import type \* as [\w$]+ from ["']\.\.\/(.+?)\.js["']/g)]
+      .map((m) => m[1])
+      .filter((p): p is string => p !== undefined)
+  )
+}
+
+/** Modules on disk that `api.d.ts` does not register, and registered ones that are gone. */
+export function codegenDrift(
+  onDisk: ReadonlySet<string>,
+  registered: ReadonlySet<string>
+): { missing: string[]; extra: string[] } {
+  return {
+    missing: [...onDisk].filter((m) => !registered.has(m)).sort(),
+    extra: [...registered].filter((m) => !onDisk.has(m)).sort(),
+  }
+}
+
 function isTest(path: string): boolean {
   return /[\\/]__tests__[\\/]/.test(path) || /\.test\.tsx?$/.test(path)
 }
@@ -149,8 +183,10 @@ function main(): void {
   const modules = walk(CONVEX_DIR, (p) => p.endsWith('.ts') && !p.endsWith('.d.ts'))
   const sources = new Map<string, string>()
   const ownPublic = new Map<string, string[]>()
+  const onDisk = new Set<string>()
   for (const file of modules) {
     const module = relative(CONVEX_DIR, file).replace(/\.ts$/, '')
+    if (!NOT_MODULES.has(module)) onDisk.add(module)
     // Nested modules (`model/*`) are helpers; a public function there would be
     // `api["model/x"]`, which nothing in this repo uses and this would miss.
     if (SKIPPED_MODULES.has(module)) continue
@@ -179,10 +215,25 @@ function main(): void {
 
   const stale = Object.keys(ALLOWED_WITHOUT_CALLER).filter((fn) => !defined.includes(fn))
   const missing = uncalled(defined, referenced)
+  const drift = codegenDrift(onDisk, registeredModules(readFileSync(API_PATH, 'utf-8')))
+  const drifted = drift.missing.length > 0 || drift.extra.length > 0
 
-  if (missing.length > 0 || stale.length > 0) {
+  if (missing.length > 0 || stale.length > 0 || drifted) {
+    if (drifted) {
+      console.error('✗ Convex codegen drift — apps/itun/convex/_generated/api.d.ts is stale.')
+      for (const m of drift.missing) {
+        console.error(`    convex/${m}.ts exists on disk but is NOT registered in api.d.ts`)
+      }
+      for (const m of drift.extra) {
+        console.error(`    api.d.ts registers convex/${m}.ts, which no longer exists`)
+      }
+      console.error(
+        '  → Regenerate with `bunx convex dev` (needs a CONVEX_DEPLOYMENT); never hand-edit\n' +
+          '    convex/_generated/.'
+      )
+    }
     if (missing.length > 0) {
-      console.error('✗ Public Convex functions with no caller in the client or the bot:')
+      console.error('✗ Public Convex functions with no caller in the client:')
       for (const fn of missing) console.error(`    ${fn.replace(':', '.')}`)
       console.error(
         '  → Delete it, make it internal, or call it. A public function nobody calls is\n' +
@@ -197,7 +248,10 @@ function main(): void {
     process.exit(1)
   }
 
-  console.log(`✓ Convex callers: all ${defined.length} public functions have a caller.`)
+  console.log(
+    `✓ Convex callers: all ${defined.length} public functions have a caller, ` +
+      `and api.d.ts registers all ${onDisk.size} modules.`
+  )
 }
 
 if (import.meta.main) main()

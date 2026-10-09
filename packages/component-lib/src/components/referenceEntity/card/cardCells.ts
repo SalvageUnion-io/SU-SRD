@@ -128,7 +128,7 @@ function fmtDv(dv: { value?: unknown; unit?: string }): string {
 export type TechScaling = {
   /**
    * EFFECTIVE tech level — the value that scales this entity: the Modification
-   * choice cap (`scalesWithField: techLevel`) AND any `perTechLevel` datavalue
+   * choice cap (`cardinality.max.scalesWith: techLevel`) AND any `perTechLevel` datavalue
    * (e.g. Custom Sniper Rifle damage). The host `scalingParent.techLevel`
    * (controlled from without — the crawler level in ITUN) wins over the
    * entity's own base TL. Floors at the base TL — a granted item is never below
@@ -182,7 +182,7 @@ export function resolveTechScaling(
   }
   const isTechScalable =
     perTechLevelByLabel.size > 0 ||
-    entityChoices.some((c) => typeof c.constraints?.scalesWithField === 'string')
+    entityChoices.some((c) => typeof c.cardinality?.max === 'object')
   const techLevelDisplay = isTechScalable ? (effTechLevel ?? techLevel) : techLevel
   const techLevelModified =
     isTechScalable &&
@@ -269,7 +269,7 @@ const MODIFIED = 'var(--color-rust)'
  *
  * CHOICE PLACEMENT: EVERYTHING INLINE (choice-plan Stage 7) — every choice
  * renders in the BODY, at its prose, in both modes; no choice is ever hoisted
- * to this row. The old "Choose | <name>" freeform cell is retired.
+ * to this row.
  */
 export function resolveSubHeaderCells(options: {
   entity: SURefMetaEntity
@@ -372,8 +372,8 @@ export function resolveSubHeaderCells(options: {
       const val = fmtDv({ value: scaled.value, unit: d.unit })
       const changed = baseDvMap.get(String(d.label).toLowerCase()) !== val || scaled.scaled
       // A datavalue that IS a named rules term (`type: "trait" | "keyword"`)
-      // keeps its glossary hovercard — the legacy sub-header resolved exactly
-      // these two types against the traits / keywords schemas.
+      // keeps its glossary hovercard, resolved against the traits / keywords
+      // schemas.
       const refSchema =
         d.type === 'trait'
           ? ('traits' as const)

@@ -1,11 +1,7 @@
 import { MasonryColumns, ReferenceEntityCard, Slab } from 'component-lib'
 import { useMemo } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import {
-  isLegalCreationModule,
-  isLegalCreationSystem,
-  matchesRef,
-} from 'salvageunion-reference/rules'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
 
 type CraftItemsStepProps = {
   /** Which dataset this step crafts from (against its own slot budget). */
@@ -55,7 +51,8 @@ export function CraftItemsStep({
       <MasonryColumns maxColumns={2}>
         {items.map((item) => {
           const name = item.name ?? item.id
-          const count = selected.filter((ref) => matchesRef(item, ref)).length
+          const slug = getEntitySlug(item)
+          const count = selected.filter((ref) => ref === slug).length
           const sv = item.salvageValue
           const slotsRequired = item.slotsRequired
 

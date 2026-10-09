@@ -1,5 +1,5 @@
 /**
- * The accepted-violation baseline for `tools/a11y-scan.ts`, and the judgement
+ * The accepted-violation baseline for `a11yScan.ts`, and the judgement
  * of a run against it. Kept apart from the scanner so it can be tested without
  * a browser.
  */
@@ -14,7 +14,7 @@
  * The point of the shape is that it only ever gets easier to satisfy: adding a
  * page or a rule requires editing this file, which is a reviewable act, while
  * fixing something and deleting its entry needs no ceremony at all —
- * `--update-baseline` deletes it. That flag only ever removes.
+ * a run with `A11Y_UPDATE_BASELINE=1` deletes it; it only ever removes.
  */
 export type Baseline = {
   /** Free-text, per key, explaining why each id is tolerated. Not read by code. */
@@ -47,7 +47,7 @@ export type ScanOutcome = {
  * kept as it is in `pruned`: the union is incomplete, and the device that
  * crashed may be the one that sees the accepted id. The crash is already a
  * regression, so the run fails either way; what must not happen is
- * `--update-baseline` deleting debt that nothing fixed.
+ * an `A11Y_UPDATE_BASELINE=1` run deleting debt that nothing fixed.
  */
 export function diffAgainstBaseline(
   results: ScanOutcome[],

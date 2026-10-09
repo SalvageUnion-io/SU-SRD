@@ -24,9 +24,6 @@ import type { ScrapPool } from '../schemas/crawler'
 import type { PoolDraw } from './crawlerEconomy'
 import { drawFromPool, poolAvailableAtOrAbove } from './crawlerEconomy'
 
-/** The bay whose presence + Intact condition gates crafting (p.222). */
-export const CRAFTING_BAY = 'Crafting Bay'
-
 /** The minimal shape of a craftable Chassis/System/Module. */
 export type CraftableItem = {
   name: string

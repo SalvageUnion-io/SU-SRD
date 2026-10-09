@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import type { PlayAction } from '../dashboardRules'
@@ -95,7 +95,7 @@ describe('reactor patches', () => {
     expect(melt.patch.destroyed).toBeUndefined()
   })
 
-  test('VENT_PATCH dumps Heat to 0 + Vulnerable, no auto-shutdown (Vent ≠ Shutdown, plan §5.1)', () => {
+  test('VENT_PATCH dumps Heat to 0 + Vulnerable, no auto-shutdown (Vent ≠ Shutdown, dashboard.md §5.1)', () => {
     expect(VENT_PATCH).toEqual({ currentHeat: 0, vulnerable: true })
   })
 
@@ -184,10 +184,14 @@ describe('buildMechActions', () => {
     const chassis = SalvageUnionReference.Chassis.all().find((c) => {
       const acts = SalvageUnionReference.resolveActions(c)
       return acts !== undefined && acts.length > 0
-    }) as { id?: string } | undefined
-    expect(chassis?.id).toBeTruthy()
+    })
+    expect(chassis).toBeTruthy()
 
-    const mech = mechFixture({ id: 'm1', name: 'Rig', chassisRef: chassis?.id ?? '' })
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: chassis ? getEntitySlug(chassis) : '',
+    })
     const deck = buildMechActions(mech)
     expect(deck.length).toBeGreaterThan(0)
     expect(deck.every((pa) => pa.stamp === 'CHS')).toBe(true)
@@ -199,14 +203,14 @@ describe('buildMechActions', () => {
     const multi = SalvageUnionReference.Systems.all().find((sys) => {
       const acts = SalvageUnionReference.resolveActions(sys)
       return acts !== undefined && acts.filter((a) => !a.hidden).length > 1
-    }) as { id?: string } | undefined
+    })
 
-    if (!multi?.id) return // dataset has none — nothing to assert
+    if (!multi) return // dataset has none — nothing to assert
     const mech = mechFixture({
       id: 'm3',
       name: 'Rig',
       chassisRef: 'not-a-real-chassis',
-      systems: [multi.id],
+      systems: [getEntitySlug(multi)],
     })
     const deck = buildMechActions(mech)
     expect(deck.length).toBeGreaterThan(1)
@@ -227,10 +231,14 @@ describe('buildPilotActions', () => {
     const ability = SalvageUnionReference.Abilities.all().find((a) => {
       const acts = SalvageUnionReference.resolveActions(a)
       return acts !== undefined && acts.filter((x) => !x.hidden).length > 0
-    }) as { id?: string } | undefined
-    expect(ability?.id).toBeTruthy()
+    })
+    expect(ability).toBeTruthy()
 
-    const pilot = pilotFixture({ id: 'p1', name: 'Vex', abilities: [ability?.id ?? ''] })
+    const pilot = pilotFixture({
+      id: 'p1',
+      name: 'Vex',
+      abilities: [ability ? getEntitySlug(ability) : ''],
+    })
     const deck = buildPilotActions(pilot)
     expect(deck.length).toBeGreaterThan(0)
     expect(deck.every((pa) => pa.stamp === 'ABL')).toBe(true)
@@ -318,7 +326,7 @@ describe('pilotActivationPatch', () => {
   })
 })
 
-describe('resolve flow helpers (D2)', () => {
+describe('resolve flow helpers', () => {
   type Act = PlayAction['action']
   const act = (over: Partial<Act>): Act => ({ id: 'a', name: 'A', ...over }) as Act
 

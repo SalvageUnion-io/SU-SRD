@@ -1,5 +1,6 @@
 import { EmptyState, Stat } from 'component-lib'
 import type { SURefCrawler, SURefMetaCrawlerTechLevel } from 'salvageunion-reference'
+import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 
 type CrawlerStatsStepProps = {
@@ -30,7 +31,7 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
 
   const sp = crawlerMaxSPParts({
     techLevel: `tech-${techLevel.techLevel}`,
-    type: selectedType?.id,
+    type: selectedType ? getEntitySlug(selectedType) : undefined,
   })
 
   return (

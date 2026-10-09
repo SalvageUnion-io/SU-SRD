@@ -9,7 +9,7 @@
  * question.
  */
 
-import { Callout, KvRow, ReferenceEntityCard, Slab } from 'component-lib'
+import { Callout, KvRow, RadioCardGroup, ReferenceEntityCard, Slab } from 'component-lib'
 import type { SURefClass } from 'salvageunion-reference'
 import type { ClassPathConsequence } from './classPathOptions'
 import { classPathConsequence, classPathGroups } from './classPathOptions'
@@ -85,7 +85,7 @@ export function ClassPathPicker({
 
   return (
     <div className="grid gap-4 sm:grid-cols-[minmax(0,320px)_1fr]">
-      <div role="radiogroup" aria-label="Class">
+      <RadioCardGroup label="Class">
         {groups.map((group) => (
           <div key={group.kind} className="mb-4">
             <Slab label={group.label} count={group.options.length} />
@@ -105,7 +105,7 @@ export function ClassPathPicker({
             ))}
           </div>
         ))}
-      </div>
+      </RadioCardGroup>
 
       <div className="flex flex-col gap-3">
         {consequence === undefined ? null : (
@@ -121,7 +121,7 @@ export function ClassPathPicker({
                   <strong>each answer seals a different pair of trees.</strong> You can leave it
                   unanswered; nothing will be sealed.
                 </p>
-                <div role="radiogroup" aria-label="Origin class">
+                <RadioCardGroup label="Origin class">
                   {originChoiceClasses.map((cls) => (
                     <ReferenceEntityCard
                       key={cls.id}
@@ -135,7 +135,7 @@ export function ClassPathPicker({
                       onCardClick={() => onAnswerOrigin(cls.id)}
                     />
                   ))}
-                </div>
+                </RadioCardGroup>
               </Callout>
             )}
 

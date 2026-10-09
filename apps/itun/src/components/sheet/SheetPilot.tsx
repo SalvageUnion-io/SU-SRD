@@ -8,7 +8,7 @@
  * content and handing it to `PilotSheet` as `linkedUnits`.
  */
 
-import { EntityRow, Stat } from 'component-lib'
+import { Stat } from 'component-lib'
 import { pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
 import { containerOf } from '../../lib/container'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
@@ -16,6 +16,7 @@ import { pilotingContext } from '../../lib/rules/pilotingContext'
 import { runWrite } from '../../lib/runWrite'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { AppLink } from '../shared/AppLink'
+import { EntityRow } from '../shared/EntityRow'
 import { AssignPicker } from '../wiring/AssignPicker'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'

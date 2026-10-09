@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://salvageunion.com/schemas/factions.schema.json",
+  "$id": "https://salvageunion.io/schema/factions.schema.json",
   "title": "factions",
   "description": "Faction groups and organizations",
   "type": "array",

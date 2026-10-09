@@ -5,18 +5,16 @@
  *
  * `games.create` seats its creator as Organizer with `mediator: false`, on the
  * documented reasoning that "many tables decide who runs it after the Game
- * exists". `games.setMediator` is the only mutation that flips that flag — and
- * until this panel, **its only callers were tests.**
+ * exists". `games.setMediator` is the only mutation that flips that flag, and
+ * **this panel is its only caller in the app.**
  *
- * The consequence was a lockout rather than a missing nicety. The Mediator's
- * instruments (now the hub's Mediator section) hard-gate on
- * `mediator.amMediator`, so without this panel nothing in the app could ever
- * set the flag that opens them. The remaining route in — a
- * `role: 'mediator'` invite — short-circuits for existing members
- * (`invites.redeem` returns `already` when a membership exists), and the
- * Organizer is by construction already a member of their own Game. A solo
- * organizer therefore needed a **second signed-in account** to mint them a
- * mediator invite before the GM surface existed at all.
+ * Without it the result is a lockout rather than a missing nicety. The
+ * Mediator's instruments (the hub's Mediator section) hard-gate on
+ * `mediator.amMediator`. The remaining route in — a `role: 'mediator'` invite —
+ * short-circuits for existing members (`invites.redeem` returns `already` when
+ * a membership exists), and the Organizer is by construction already a member
+ * of their own Game, so a solo organizer would need a **second signed-in
+ * account** to mint them a mediator invite.
  *
  * So this is deliberately a roster of every member rather than a single
  * "make me the Mediator" button: the flag is per-membership and the Organizer

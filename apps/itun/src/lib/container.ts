@@ -6,19 +6,10 @@
  * entity is always in exactly one and a second field could contradict the
  * first.
  *
- * The subtle part is that **`null` is a value, not an absence**. `null` means
- * "on the shelf" — a real place — while `undefined` means "this record predates
- * the split and we have not decided yet". Conflating them is the bug this
- * module exists to prevent: treating a shelved entity as unmigrated would send
- * it back through the fallback on every read.
+ * `null` means "on the shelf", a real place. A body can also carry no `gameId`
+ * at all: a template-seeded server body names no Game, and adoption stamps the
+ * row's column into it (`planCrawlerSync`). Until then it reads as the shelf.
  */
-
-/**
- * Id of the built-in Default workspace, inlined because Workspaces are retired
- * and the module that defined it is gone. It survives ONLY as a value to
- * recognise in pre-ADR-030 records — the same reason migration 13 inlines it.
- */
-const DEFAULT_WORKSPACE_ID = 'default-workspace'
 
 /** A shared Game, by id. */
 export type GameContainer = { kind: 'game'; gameId: string }
@@ -32,30 +23,11 @@ export const SHELF: ShelfContainer = { kind: 'shelf' }
 /** The minimum an entity needs to expose for its container to be resolved. */
 export type ContainerFields = {
   gameId?: string | null | undefined
-  /** @deprecated Read only as a fallback for records written before ADR-030. */
-  workspaceId?: string | undefined
 }
 
-/**
- * Resolve where an entity lives.
- *
- * The fallback chain matters and is ordered deliberately:
- *
- *  1. `gameId` set to a string — it is in that Game.
- *  2. `gameId` explicitly `null` — it is on the shelf. Decided; stop.
- *  3. `gameId` absent — pre-split record, so fall back to `workspaceId`, with
- *     the built-in Default workspace mapping to the shelf rather than to a
- *     Game. The Default workspace was never a campaign; it was the place
- *     builds went when they belonged to no campaign, which is precisely a
- *     shelf.
- */
+/** Resolve where an entity lives: the Game its `gameId` names, else the shelf. */
 export function containerOf(entity: ContainerFields): Container {
-  if (typeof entity.gameId === 'string') return { kind: 'game', gameId: entity.gameId }
-  if (entity.gameId === null) return SHELF
-  if (entity.workspaceId !== undefined && entity.workspaceId !== DEFAULT_WORKSPACE_ID) {
-    return { kind: 'game', gameId: entity.workspaceId }
-  }
-  return SHELF
+  return typeof entity.gameId === 'string' ? { kind: 'game', gameId: entity.gameId } : SHELF
 }
 
 /**

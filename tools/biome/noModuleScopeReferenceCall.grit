@@ -6,7 +6,7 @@
 // calls the contract exists to make eagerly, so they are exempt.
 //
 // Scoped to shipped source in biome.jsonc: tests run after each workspace's
-// bunfig preload, and Ladle evaluates a story only after its PreloadGate.
+// bunfig preload, and the story catalog imports a story only after preload().
 language js(typescript, jsx)
 
 or {
