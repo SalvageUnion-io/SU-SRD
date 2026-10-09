@@ -15,16 +15,14 @@ import { expect, test } from './fixtures'
  * **The two halves are two tests on purpose.** The wiring test is about the
  * live sheets; the share test is about the live public sheet
  * ([ADR-032](../../../docs/ARCHITECTURE.md#adr-032)), which is
- * the only way to share now that frozen snapshots are retired
- * ([ADR-036](../../../docs/ARCHITECTURE.md#adr-036)). This file
- * used to publish a snapshot and open its `/s/:id` link, behind an
- * `E2E_BASE_URL` skip because a static preview serves no snapshot API.
+ * the only way to share
+ * ([ADR-036](../../../docs/ARCHITECTURE.md#adr-036)).
  *
  * Both are signed in (the default `test` from `fixtures.ts`), so both SKIP with
  * a stated reason in a build with no test sign-in seam and run for real in the
  * nightly `e2e-itun` job, which provisions one. Publishing is a Convex write,
  * and reading the page back is the deliberately unauthenticated
- * `publicSheet.get` — so the share test needs a Convex backend, not the Worker.
+ * `publicSheet.get` — so the share test needs a Convex backend.
  *
  * IndexedDB persists across page navigations inside one context, so building
  * entities before wiring works without state plumbing. Each test gets a fresh

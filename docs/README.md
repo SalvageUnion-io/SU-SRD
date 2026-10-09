@@ -70,7 +70,7 @@ one `## ADR-NNN` each. Each one's own Status block is authoritative.
 | [ADR-033](ARCHITECTURE.md#adr-033)                        | Hosting on Cloudflare Workers + R2                                           |
 | [ADR-034](ARCHITECTURE.md#adr-034)              | Persistence requires an account; IndexedDB is a cache                        |
 | [ADR-035](ARCHITECTURE.md#adr-035)               | No isolated local-only data (device migration superseded, #1152)             |
-| [ADR-036](ARCHITECTURE.md#adr-036)                    | Snapshot shares retired; old links redirect to the public sheet if public    |
+| [ADR-036](ARCHITECTURE.md#adr-036)                    | Snapshot shares retired; old links show a retired page                       |
 | [ADR-037](ARCHITECTURE.md#adr-037)                          | Assignments (direct links, cardinality, one container) + the primary crawler |
 | [ADR-038](ARCHITECTURE.md#adr-038) | The Dashboard is Game-only, with play state as a seat saved on the Game      |
 | [ADR-039](ARCHITECTURE.md#adr-039)                          | Addressed invites — by Discord account, verified by Discord’s signature      |

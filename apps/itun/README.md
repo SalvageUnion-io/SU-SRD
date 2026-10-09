@@ -44,25 +44,11 @@ password account (a repeated email is refused); the session survives reloads.
 `bun run e2e:itun` starts `dev:itun` itself (or reuses a running one), so its
 signed-in specs always run locally, and fail until this setup is done.
 
-## Sharing, and old snapshot links, in dev
+## Sharing in dev
 
 Sharing is the live public sheet (`/p/:kind/:appId`, ADR-032): a Convex column
-and query, so it works under `bun run dev:itun` against the local backend.
-Frozen snapshots are retired (ADR-036). An old `/s/:id` link asks the Worker at
-`src/worker/index.ts` which entity it names (`GET /api/snapshots/:id`) and
-redirects to that entity's public sheet if it has one. `vite dev` never runs
-that Worker, so `vite.config.ts` proxies the path to a local `wrangler dev`:
-
-```bash
-# terminal 1 — the Worker, with local R2, on port 8787
-cd apps/itun && bunx wrangler dev
-
-# terminal 2 — the app
-bun run dev:itun
-```
-
-Without it, every `/s/:id` shows the retired page; the rest of the app is
-unaffected.
+and query, so it works under `bun run dev:itun` against the local backend. An
+old snapshot link (`/s/:id`) shows a static retired page (ADR-036).
 
 ## Data durability
 

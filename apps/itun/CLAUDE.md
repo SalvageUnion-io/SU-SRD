@@ -43,10 +43,9 @@ Convex column, served by one deliberately unauthenticated query
 once, because the URL is derived rather than minted.
 
 **Snapshots are retired**
-([ADR-036](../../docs/ARCHITECTURE.md#adr-036)): nothing mints or
-revokes them, and an old `/s/:id` redirects to the public sheet if its entity is
-public, else shows a "retired" page. The R2 bucket is read-only — never delete
-from it.
+([ADR-036](../../docs/ARCHITECTURE.md#adr-036)): an old `/s/:id` link shows a
+static "retired" page and reads nothing. Nothing binds the `su-itun-snapshots`
+R2 bucket; deleting it is the owner's call, never an agent's.
 
 Every read-only sheet — a crewmate's at `/sheet/:kind/:id`, the public one —
 is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
@@ -217,5 +216,7 @@ bun run e2e:itun          # Playwright e2e (chromium)
 bun --filter itun typecheck
 ```
 
-Deploys to Cloudflare Workers (SPA + the `/s/:id` lookup in one Worker); config in
-`wrangler.jsonc`, deployed from `.github/workflows/deploy-cloudflare.yml`.
+Deploys to Cloudflare Workers Static Assets in single-page-application mode, with
+a Worker script for the misses that are not navigations; config in
+`wrangler.jsonc`, headers in `public/_headers`, deployed from
+`.github/workflows/deploy-cloudflare.yml`.

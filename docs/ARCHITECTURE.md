@@ -279,13 +279,8 @@ The one account-free share is the public sheet
 ([ADR-032](#adr-032)): `/p/:kind/:appId`, opt-in
 through the `publicRead` column, read by `publicSheet.get`, toggled in
 `ShareStatusDialog` → `PublicSheetPanel`. Snapshots are
-retired ([ADR-036](#adr-036)). `GET /api/snapshots/:id`
-(`src/lib/snapshot/handlers.ts`) answers only `{ kind, appId }`, and posted
-`/s/:id` links still unfurl as text, with no image. The `/s/$id` loader
-(`src/routes/s/$id.tsx`) calls `retrieveSnapshotIdentity`
-(`src/lib/snapshot/client.ts`); `SnapshotLinkView` redirects to the public
-sheet or shows a retired page. `snapshotIdentity`
-(`src/lib/snapshot/identity.ts`) treats blob and answer as untrusted.
+retired ([ADR-036](#adr-036)): `src/routes/s/$id.tsx` is a static page saying
+so, and reads nothing.
 
 ## Accounts and Games operations
 
@@ -961,11 +956,12 @@ Everything runs here ([ADR-033](#adr-033)), account
 | Worker | Serves | Bindings |
 | --- | --- | --- |
 | `su-srd` | `salvageunion.io`, `www.` | none (Static Assets) |
-| `su-itun` | `intheunionnow.com`, `www.`, `/api/snapshots/:id`, old unfurls | `ASSETS`, R2 `SNAPSHOTS` |
+| `su-itun` | `intheunionnow.com`, `www.` (Static Assets, SPA mode; the script answers non-navigation misses) | `ASSETS` |
 | `su-assets` | `assets.salvageunion.io` | R2 `LP_ASSETS`, `IMAGES` |
 | `su-discord-bot` | Discord interactions | secrets only |
 
-R2: `su-itun-snapshots` (read-only, never delete from it) and `su-lp-assets`.
+R2: `su-lp-assets`, and `su-itun-snapshots`, which nothing binds since
+[ADR-036](#adr-036)'s amendment (deleting it is the owner's call).
 Zones `salvageunion.io` and `intheunionnow.com`. Previews under
 `alxjrvs.workers.dev`. Re-derive with `wrangler deployments list`,
 `wrangler r2 bucket list` and the `apps/*/wrangler.jsonc` files.
@@ -989,7 +985,7 @@ No DSN tree-shakes the SDK out, and a `connect-src` missing the ingest origin
 blocks every event, so `tools/check-observability.ts` checks DSN gating and
 CSP on parsed source and pins `https://*.ingest.de.sentry.io`; deploy builds fail with no DSN
 inlined, and `tools/smoke-production.sh` checks the served CSP. CSP sources:
-`apps/srd/public/_headers` and `apps/itun/src/worker/securityHeaders.ts`;
+`apps/srd/public/_headers` and `apps/itun/public/_headers`;
 change CSP or region in lockstep. Sourcemaps upload only from
 `deploy-cloudflare.yml`, through `sentrySourcemaps()` in `observability/vite`
 (gated on `SENTRY_AUTH_TOKEN`; one org token, the workflow's `SENTRY_ORG`, and
@@ -3573,8 +3569,8 @@ changing anything ADR-004 decided.
 **Amended by [ADR-036](#adr-036) (2026-10-06):** snapshots
 are retired, so the public sheet is now the **only** account-free way to share.
 The consequence below that kept both surfaces ("ADR-004 is narrowed, not
-superseded") is withdrawn; an old `/s/:id` link redirects here when its entity is
-public.
+superseded") is withdrawn. An old `/s/:id` link shows a retired page (ADR-036,
+as amended 2026-10-09).
 
 **Decisions 4–5 amended (2026-10-06):** `publicSheet.get` also returns the
 entity's direct assignments — a linked entity that is published itself with its
@@ -4686,6 +4682,22 @@ removed. The dependency audit gate that held it now passes a PR that changes
 `bun.lock`, so the renderer went with `@resvg/resvg-wasm`; `/og/s/*` answers
 404 rather than the 301 to the app icon this ADR first planned.
 
+**Decisions 3–5 amended, 2026-10-09 (#1137):** old links no longer redirect.
+Since this ADR shipped, `/s/:id` drew one hit and no identity lookup (three
+`GET /api/snapshots/:id` in seven days), so the redirect-if-public path — the resolver, the read-only R2 seam, the `SNAPSHOTS` binding, the
+per-snapshot unfurl metadata and a dev proxy — served nobody. `/s/:id` is now a
+static retired page that reads nothing, and the consequences below that
+describe the redirect, the identity endpoint or the unfurl text no longer hold.
+This reverses the product owner's "Redirect if public" for links in the wild,
+gated on the owner's count of how many stored snapshots name an entity that is
+public today. With nothing left to route, ITUN moved to Static Assets'
+`single-page-application` mode: navigations never reach the Worker, the CSP and
+security headers moved into `apps/itun/public/_headers`, and the Worker script
+answers only non-navigation misses — a missing hashed chunk 404s (#759), a
+crawler gets the shell. The retired-URL 301 table went with it. The deleted
+resolver, which ADR-033 §3 cites:
+`git show 162f01ae:apps/itun/src/lib/snapshot/client.ts`.
+
 Settles the four open decisions the unified-sheet-surfaces plan held for "a
 future ADR-036", by removing the second surface rather than merging it. That
 plan is deleted with this ADR:
@@ -4737,6 +4749,8 @@ the links that already exist: **"Redirect if public."**
    not public, never in an account, an unknown or malformed id, a build with no
    Convex — shows "This share link has been retired", which says to ask the owner
    for their live public sheet. The frozen copy is never rendered again.
+   *Amended 2026-10-09 (#1137):* no link redirects; every `/s/:id` shows the
+   retired page, and `/api/snapshots/:id` is gone.
 
 4. **The R2 objects are kept untouched.** Nothing deletes them and nothing writes
    to the bucket; the Worker's storage seam is read-only. The `su-itun-snapshots`
@@ -4744,6 +4758,9 @@ the links that already exist: **"Redirect if public."**
    The 365-day lifecycle rule that `wrangler.jsonc` recorded as decided but not
    yet applied (2026-09-01) is **withdrawn**: the store no longer grows, and
    expiring objects would turn redirectable links into retired ones.
+   *Amended 2026-10-09 (#1137):* the `SNAPSHOTS` binding is removed, since
+   nothing reads the bucket. The objects stay; deleting the bucket is the
+   owner's step.
 
 5. **Links already posted keep their unfurl text; the image is gone.** Snapshot
    links sit in Discord channels, and Discord re-fetches an unfurl, so the
@@ -4759,6 +4776,8 @@ the links that already exist: **"Redirect if public."**
    longer routed: it is a missing file, and the Worker answers it 404. It served
    two renders in the seven days before that, none since this ADR shipped.
    Whether `/s/:id` should drop to the sitewide defaults is still open.
+   *Amended 2026-10-09 (#1137):* it does. The Worker injects no metadata
+   anywhere; every link unfurls with the shell's sitewide defaults.
 
 How this answers the plan's four open decisions: (a) snapshots gain no owner and
 no index — the entity they name is read off the blob per request, and only ever

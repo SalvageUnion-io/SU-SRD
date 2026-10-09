@@ -28,7 +28,7 @@ import { v } from 'convex/values'
  *
  * So Convex validates and indexes what it needs to *query* — ownership, scoping,
  * timestamps — and treats the entity body as an opaque payload that Zod parses
- * at the edge, exactly as `SnapshotStorage` already treats snapshot payloads.
+ * at the edge.
  * The trade is real and worth naming: Convex cannot reject a malformed body on
  * write, so every mutation MUST parse with the Zod schema before persisting.
  *

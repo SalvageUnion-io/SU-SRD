@@ -4,7 +4,6 @@ paths:
   - 'apps/itun/src/hooks/**'
   - 'apps/itun/src/lib/db/**'
   - 'apps/itun/src/lib/connection/**'
-  - 'apps/itun/src/lib/snapshot/**'
   - 'apps/itun/src/lib/account/**'
   - 'apps/itun/src/lib/export/**'
   - 'apps/itun/src/components/account/**'

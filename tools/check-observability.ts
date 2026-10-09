@@ -11,9 +11,8 @@
  *
  *   1. each browser app has an observability module reading its DSN env var,
  *   2. that module's init is CALLED from the app entry,
- *   3. the app's CSP source (srd `public/_headers`, itun
- *      `src/worker/securityHeaders.ts`) has a `connect-src` listing the Sentry
- *      ingest origin, and a `_headers` exists wherever wrangler serves assets,
+ *   3. the app's `public/_headers` has a CSP `connect-src` listing the Sentry
+ *      ingest origin,
  *   4. each Cloudflare Worker's default export is `withObservability(...)` and
  *      its config grants `nodejs_als`.
  *
@@ -53,19 +52,8 @@ type BrowserApp = {
   modulePath: string
   /** Entry that must CALL the init. */
   entryPath: string
-  /**
-   * The app's Workers config. When it declares `assets`, Cloudflare serves the
-   * app from static assets and reads `_headers` for it — srd's whole header
-   * policy, itun's Cache-Control — so an absent `_headers` is a deploy fault.
-   */
-  wranglerPath: string
-  /** The `_headers` a Workers Static Assets deploy reads; the CSP source unless `cspModule` is set. */
+  /** The `_headers` Workers Static Assets reads: the app's CSP source. */
   headersPath: string
-  /**
-   * A TS module exporting the policy as ONE string literal named `exportName`.
-   * When set, it is the CSP source — the app's Worker sets the header in code.
-   */
-  cspModule?: { path: string; exportName: string }
 }
 
 const BROWSER_APPS: BrowserApp[] = [
@@ -74,7 +62,6 @@ const BROWSER_APPS: BrowserApp[] = [
     dsnEnvVar: 'VITE_SENTRY_DSN',
     modulePath: 'apps/srd/src/lib/observability.ts',
     entryPath: 'apps/srd/src/runtime/islands.client.ts',
-    wranglerPath: 'apps/srd/wrangler.jsonc',
     headersPath: 'apps/srd/public/_headers',
   },
   {
@@ -82,9 +69,7 @@ const BROWSER_APPS: BrowserApp[] = [
     dsnEnvVar: 'VITE_SENTRY_DSN',
     modulePath: 'apps/itun/src/lib/observability.ts',
     entryPath: 'apps/itun/src/main.tsx',
-    wranglerPath: 'apps/itun/wrangler.jsonc',
     headersPath: 'apps/itun/public/_headers',
-    cspModule: { path: 'apps/itun/src/worker/securityHeaders.ts', exportName: 'ITUN_CSP' },
   },
 ]
 
@@ -124,7 +109,6 @@ const WORKER_SURFACES: WorkerSurface[] = [
 
 /** The slice of a `wrangler.jsonc` this gate reads. */
 type WranglerConfig = {
-  assets?: unknown
   compatibility_flags?: string[]
 }
 
@@ -190,52 +174,24 @@ async function checkBrowserApp(app: BrowserApp): Promise<void> {
     fail(app.name, `${app.entryPath} never calls initBrowserObservability()`)
   }
 
-  const config = await wranglerConfig(app.wranglerPath)
   const headers = headersFile(app.headersPath)
   if (headers === null) {
-    if (config?.assets !== undefined) {
-      fail(
-        app.name,
-        `${app.wranglerPath} declares "assets", so Cloudflare serves this app from ` +
-          `static assets — but ${app.headersPath} does not exist. It carries the ` +
-          `deploy's Cache-Control (and, for srd, the whole header policy).`
-      )
-      return
-    }
-    if (!app.cspModule) {
-      fail(app.name, `no CSP source found at ${app.headersPath} — the Sentry beacon is unguarded`)
-      return
-    }
+    fail(app.name, `no CSP source found at ${app.headersPath} — the Sentry beacon is unguarded`)
+    return
   }
-
-  let source: string
-  let policy: string | undefined
-  if (app.cspModule) {
-    // The policy the Worker sets in code, read as the transpiled literal so
-    // this gate needs no app module graph.
-    const { path, exportName } = app.cspModule
-    source = path
-    policy = code(path)?.match(new RegExp(`export const ${exportName} = "([^"]+)"`))?.[1]
-    if (policy === undefined) {
-      fail(app.name, `${path} declares no ${exportName} literal — the Sentry beacon is unguarded`)
-      return
-    }
-  } else {
-    source = app.headersPath
-    policy = headers?.match(/Content-Security-Policy\s*:\s*([^\n]*)/)?.[1]
-  }
+  const policy = headers.match(/Content-Security-Policy\s*:\s*([^\n]*)/)?.[1]
   const connectSrc = policy === undefined ? null : connectSrcOf(policy)
   if (connectSrc === null) {
     fail(
       app.name,
-      `${source} declares no Content-Security-Policy connect-src — the Sentry beacon is unguarded`
+      `${app.headersPath} declares no Content-Security-Policy connect-src — the Sentry beacon is unguarded`
     )
     return
   }
   if (!connectSrc.includes(SENTRY_INGEST_HOST)) {
     fail(
       app.name,
-      `${source}: CSP connect-src does not allow ${SENTRY_INGEST_HOST} — Sentry ` +
+      `${app.headersPath}: CSP connect-src does not allow ${SENTRY_INGEST_HOST} — Sentry ` +
         `events would be blocked in the browser.\n      got: connect-src ${connectSrc.join(' ')}`
     )
   }

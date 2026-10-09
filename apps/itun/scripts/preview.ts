@@ -27,15 +27,16 @@
  *
  * ## The mapping, which is production's
  *
- * Copied from rules 4-7 of `src/worker/index.ts`, because a preview server that
- * answers differently from the Worker tests the wrong thing:
+ * Copied from `src/worker/index.ts` (the answer production gives a request
+ * that is not a navigation), because a preview server that answers
+ * differently tests the wrong thing:
  *
  *   /assets/<hashed chunk>   -> the file, or 404. NEVER the shell.
  *   /favicon.ico, /sw.js     -> the file, or 404 (a dot in the last segment
  *                               means a FILE was wanted)
  *   /roster, /pilots/new     -> index.html, 200 (a client-side route)
  *
- * The `/assets/*` rule has its own incident behind it (#759): SPA-mode fallback
+ * The `/assets/*` rule has its own incident behind it (#759): a shell fallback
  * answered 200 `text/html` for a rotated-away chunk, the failed import rejected
  * on MIME type, and the `immutable` header pinned that HTML under the chunk's
  * URL for a year. The dotted-segment rule has one too — `/robots.txt` and
@@ -43,8 +44,7 @@
  * of soft-404s.
  *
  * This is a test convenience server. It sets no caching or security headers;
- * `public/_headers` (caching) and the Worker (security) own those in
- * production.
+ * `public/_headers` owns those in production.
  */
 
 import type { Server } from 'bun'

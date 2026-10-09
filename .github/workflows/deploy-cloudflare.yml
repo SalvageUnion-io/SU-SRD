@@ -701,8 +701,8 @@ jobs:
   # shipped actually answers.
   # ===========================================================================
   #
-  # Deliberately includes the rotated-chunk 404: `not_found_handling` is one
-  # line of config away from silently reintroducing #759, where a missing
+  # Deliberately includes the rotated-chunk 404: in single-page-application
+  # mode only itun's Worker keeps #759 from coming back, where a missing
   # hashed chunk answered `200 text/html` and the `immutable` header pinned
   # that HTML into the HTTP cache for a year.
   # The list lives in tools/smoke-production.sh so e2e-nightly.yml can run
