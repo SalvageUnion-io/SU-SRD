@@ -15,11 +15,11 @@ import { waitForReady } from './_helpers'
  *
  * Through `TestAuthBridge`, the build-time test seam that calls the
  * test-only `password` provider. Each test signs up a fresh account, because a
- * reused one would inherit the last run's roster and assert against it. Three
- * things must line up (see `signin-save.e2e.ts`'s header): `VITE_CONVEX_URL`
- * and `VITE_TEST_AUTH=true` in the build, and `ITUN_TEST_AUTH=true` on the
- * deployment. `e2e-itun` in `.github/workflows/e2e-nightly.yml` provides all
- * three against a throwaway self-hosted Convex backend.
+ * reused one would inherit the last run's roster and assert against it. Two
+ * things must line up (see `signin-save.e2e.ts`'s header): `VITE_TEST_AUTH=true`
+ * in the build, and `ITUN_TEST_AUTH=true` on the deployment. `e2e-itun` in
+ * `.github/workflows/e2e-nightly.yml` provides both against a throwaway
+ * self-hosted Convex backend.
  *
  * ## When the seam is absent
  *
@@ -93,14 +93,14 @@ export function requireSeam(present: boolean, testInfo: TestInfo): void {
   if (!present && process.env.ITUN_E2E_EXPECT_AUTH_SEAM) {
     throw new Error(
       'ITUN_E2E_EXPECT_AUTH_SEAM is set, but no `__itunTestSignIn` seam is present. ' +
-        'The build was expected to expose it (VITE_TEST_AUTH + VITE_CONVEX_URL + ' +
-        'ITUN_TEST_AUTH); either the seam regressed or the build lost a variable.'
+        'The build was expected to expose it (VITE_TEST_AUTH + ITUN_TEST_AUTH); ' +
+        'either the seam regressed or the build lost a variable.'
     )
   }
   testInfo.skip(
     !present,
-    'Needs an account, and this build has no test sign-in seam (VITE_TEST_AUTH, ' +
-      'VITE_CONVEX_URL and ITUN_TEST_AUTH). See apps/itun/e2e/fixtures.ts.'
+    'Needs an account, and this build has no test sign-in seam (VITE_TEST_AUTH ' +
+      'and ITUN_TEST_AUTH). See apps/itun/e2e/fixtures.ts.'
   )
 }
 

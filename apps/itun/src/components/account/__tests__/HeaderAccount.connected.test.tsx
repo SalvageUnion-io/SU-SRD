@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 
 /**
- * The masthead's account controls in a build that HAS accounts.
+ * The masthead's account controls.
  *
  * What these pin, per session state:
  *
@@ -14,8 +14,6 @@ import type { ReactNode } from 'react'
  *   there is no Games menu: a Disconnected player cannot list their Games.
  * - **Signed out** — "Sign in with Discord" takes the slot, on desktop and in
  *   the mobile drawer; the mobile header row stays empty.
- *
- * The Solo build (no Convex at all) is `HeaderAccount.test.tsx`.
  */
 
 import type { QueryAnswers } from '../../__tests__/convexMock'

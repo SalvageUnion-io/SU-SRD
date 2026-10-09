@@ -47,14 +47,13 @@ import '../../styles/dashboard.css'
 import { borderWidth, color } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { isUpkeepStep } from '../../lib/rules/downtime'
 import { useEntityStore } from '../../stores/entityStore'
 import { AppLink } from '../shared/AppLink'
 import type { EntityLookup } from '../sheet/composition'
 import { resolveSheetComposition } from '../sheet/composition'
 import type { BoardSources } from './boardMenu'
-import { boardMenu, NO_BOARD_SOURCES } from './boardMenu'
+import { boardMenu } from './boardMenu'
 import { CrewTab } from './CrewTab'
 import { DashboardCanvas } from './DashboardCanvas'
 import { DashboardGrid } from './DashboardGrid'
@@ -75,11 +74,11 @@ import type { SlotKind } from './slotLayout'
 import { useActionsDeck } from './useActionsDeck'
 import { useBoardSources } from './useBoardSources'
 import type { DowntimeHandle } from './useDowntime'
-import { NO_DOWNTIME, useDowntime } from './useDowntime'
+import { useDowntime } from './useDowntime'
 import type { GameFeed } from './useGameFeed'
-import { crewLines, NO_GAME_FEED, useGameFeed } from './useGameFeed'
+import { crewLines, useGameFeed } from './useGameFeed'
 import type { MountState, SeatHandle } from './useSeat'
-import { NO_SEAT, useSeat } from './useSeat'
+import { useSeat } from './useSeat'
 
 type DashboardProps = {
   pilotId: string
@@ -92,24 +91,6 @@ type DashboardProps = {
 }
 
 export function Dashboard({ pilotId, mediator = false }: DashboardProps) {
-  // A build with no Convex mounts no provider, so `useSeat` would throw. The
-  // gate never opens the Dashboard in one, but tests and stories render it.
-  if (!isConvexConfigured) {
-    return (
-      <DashboardView
-        pilotId={pilotId}
-        seat={NO_SEAT}
-        sources={NO_BOARD_SOURCES}
-        feed={NO_GAME_FEED}
-        downtime={NO_DOWNTIME}
-        mediator={mediator}
-      />
-    )
-  }
-  return <SeatedDashboard pilotId={pilotId} mediator={mediator} />
-}
-
-function SeatedDashboard({ pilotId, mediator }: { pilotId: string; mediator: boolean }) {
   const pilot = useEntityStore((s) => s.get('pilot', pilotId))
   return (
     <DashboardView

@@ -30,14 +30,6 @@ export type ConnectionMode = (typeof CONNECTION_MODES)[number]
 
 export type ConnectionInputs = {
   /**
-   * Whether a Convex deployment URL was compiled in (`VITE_CONVEX_URL`).
-   *
-   * False is a legitimate, supported build: CI, or a contributor who has not run
-   * `convex dev`. Such a build is permanently Solo rather than broken — usable,
-   * with nothing kept beyond the tab.
-   */
-  convexConfigured: boolean
-  /**
    * Whether the auth layer has finished deciding (`!isLoading && !isRefreshing`
    * from `useConvexAuth`).
    *
@@ -61,18 +53,12 @@ export type ConnectionInputs = {
 /**
  * Resolve the current mode.
  *
- * Order is deliberate: configuration, then settling, then identity, then
- * connectivity. A signed-out user is Solo *whatever* the network is doing,
+ * Order is deliberate: settling, then identity, then connectivity. A signed-out user is Solo *whatever* the network is doing,
  * because there is no server-of-record relationship to lose — but only once we
  * know they are signed out, which is what the settling check comes before
  * identity to establish.
- *
- * The `convexConfigured` gate stays first so a build with no `VITE_CONVEX_URL`
- * is permanently Solo and can never reach `connecting`: CI and a fresh checkout
- * have no auth layer to wait for.
  */
 export function resolveConnectionMode(inputs: ConnectionInputs): ConnectionMode {
-  if (!inputs.convexConfigured) return 'solo'
   if (!inputs.authSettled) return 'connecting'
   if (!inputs.signedIn) return 'solo'
   return inputs.online ? 'connected' : 'disconnected'

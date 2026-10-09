@@ -8,8 +8,8 @@
  * at the target and the source kept it too. One mutation is also what makes
  * the server side all-or-nothing (`test/convex/transfer.test.ts`).
  *
- * These spy on the commit seam rather than running against a server, because
- * the test build has no Convex client and the real commit is a no-op there.
+ * These spy on the commit seam rather than running against a server: the
+ * test client (`apps/itun/test/convexClientStub.ts`) accepts every write.
  */
 
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'

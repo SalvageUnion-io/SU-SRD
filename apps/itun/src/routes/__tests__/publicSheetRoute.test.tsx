@@ -1,45 +1,33 @@
 /**
- * `/p/$kind/$appId` in a build with no Convex.
- *
- * This test exists because the route shipped without it and was wrong. A build
- * with no `VITE_CONVEX_URL` mounts no Convex provider at all, and `useQuery`
- * calls `useQueries` on every path — `'skip'` included — so an ungated hook
- * throws "Could not find Convex client!" and the route renders the root error
- * boundary instead of a page.
- *
- * That build is not a corner case: CI is one, as is a fresh checkout, as is
- * this test environment. Which is
- * precisely why rendering the route here is the check that catches it.
+ * `/p/$kind/$appId`: what the page shows before, and instead of, a public sheet.
  */
 
-import { describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { PublicSheetView } from '../../components/sheet/PublicSheetView'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
+import {
+  installConvexMocks,
+  queryCalls,
+  setQueryAnswers,
+} from '../../components/__tests__/convexMock'
 
-describe('the public sheet route in a Solo build', () => {
-  test('the test environment really is Convex-free', () => {
-    // If this ever flips, the assertions below stop testing what they claim
-    // to, so it is asserted rather than assumed.
-    expect(isConvexConfigured).toBe(false)
-  })
+// Module scope, before the import below — see `convexMock.ts`.
+const convexMocks = await installConvexMocks()
+afterAll(() => convexMocks.restore())
 
-  test('renders instead of throwing "Could not find Convex client!"', () => {
-    // The regression: an ungated `useQuery` throws here, because no provider is
-    // mounted at all. `'skip'` would not have helped — `useQuery` calls
-    // `useQueries` on every path.
-    expect(() => render(<PublicSheetView kind="pilot" appId="anything" />)).not.toThrow()
-  })
+const { PublicSheetView } = await import('../../components/sheet/PublicSheetView')
 
-  test('says the sheet is unavailable rather than showing an error boundary', () => {
+describe('the public sheet route', () => {
+  test('a sheet that is not public says so', () => {
+    setQueryAnswers({ 'publicSheet:get': null })
     render(<PublicSheetView kind="pilot" appId="anything" />)
     // `getByText` throws when absent, so this asserts presence twice over.
     expect(screen.getByText(/isn['’]t available/i)).toBeTruthy()
   })
 
   test('an unknown kind gets the same page, not a server round trip', () => {
+    setQueryAnswers({})
     render(<PublicSheetView kind="dropship" appId="anything" />)
-    // `getByText` throws when absent, so this asserts presence twice over.
     expect(screen.getByText(/isn['’]t available/i)).toBeTruthy()
+    expect(queryCalls()).toEqual([])
   })
 })

@@ -12,9 +12,8 @@
  *    more; this is it.
  *
  * "+ New game" (`NewGameControl`) heads the band, beside the select it adds
- * to. Signed out — or in a build with no account service — there is no game
- * UI at all: no select, no New game, only the sign-in prompt (see
- * `inContainer`).
+ * to. Signed out there is no game UI at all: no select, no New game, only the
+ * sign-in prompt (see `inContainer`).
  *
  * On mount: hydrates all three entity types + softLinks. At the mobile
  * endpoint (≤ md) the columns collapse to one behind a segmented

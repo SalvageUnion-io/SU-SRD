@@ -33,7 +33,6 @@
 
 import { useAuthActions } from '@convex-dev/auth/react'
 import { useEffect } from 'react'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { TEST_SIGN_IN_GLOBAL, testAuthBridgeEnabled } from './testAuthSeam'
 
 type TestSignIn = (email: string, password: string) => Promise<void>
@@ -60,10 +59,7 @@ function Bridge() {
 }
 
 export function TestAuthBridge() {
-  // Both guards, in this order. The flag first so a production build folds the
-  // whole subtree away; `isConvexConfigured` second because `useAuthActions`
-  // needs a provider above it and a build with no Convex URL mounts none.
+  // A production build folds the whole subtree away on this constant.
   if (!testAuthBridgeEnabled) return null
-  if (!isConvexConfigured) return null
   return <Bridge />
 }

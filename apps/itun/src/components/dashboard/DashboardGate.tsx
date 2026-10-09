@@ -73,8 +73,7 @@ const TO_ROSTER = { href: '/', label: '← Back to the roster' }
 export function DashboardGate({ id }: { id: string }) {
   const { mode } = useConnection()
 
-  // Checked before any Convex hook: a build with no Convex mounts no provider,
-  // and such a build is always Solo.
+  // Checked before any Convex hook: signed out, there is no Game to read.
   if (mode === 'solo') {
     return (
       <DashboardRefusal

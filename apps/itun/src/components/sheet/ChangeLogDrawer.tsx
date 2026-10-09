@@ -13,7 +13,6 @@ import { ModalShell } from 'component-lib'
 import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import type { ChangeLogKind } from '../../lib/schemas/changeLog'
 import type { EntityRef } from '../../lib/schemas/entity'
 
@@ -113,10 +112,9 @@ export function ChangeLogDrawer({
   onOpenChange,
 }: ChangeLogDrawerProps) {
   const { mode } = useConnection()
-  // Whether the entries MOUNT: they read Convex, whose hooks throw with no
-  // provider, so they render only on a live connection — as the Share
-  // dialog's live panel does.
-  const live = isConvexConfigured && mode === 'connected'
+  // Whether the entries MOUNT: they read Convex, so they render only on a live
+  // connection — as the Share dialog's live panel does.
+  const live = mode === 'connected'
 
   return (
     <ModalShell

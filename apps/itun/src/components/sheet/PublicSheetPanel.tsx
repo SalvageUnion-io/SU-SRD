@@ -11,13 +11,10 @@
  * place: the page follows the sheet as it changes, which is what a reader
  * needs to know about a link somebody sent them.
  *
- * Connected-only, and the gate lives in the PARENT rather than here. That is
- * not a style choice: this component calls `useQuery`/`useMutation`, which
- * cannot be called conditionally (Rules of Hooks) and throw outright without a
- * Convex provider — which is exactly the situation in Solo, and in every test
- * that renders the share dialog without mocking Convex. Returning null from
- * inside would therefore still have run the hooks and still have thrown. The
- * parent not mounting it is the only correct shape.
+ * Connected-only, and the gate lives in the PARENT rather than here: this
+ * component calls `useQuery`/`useMutation`, which cannot be called
+ * conditionally (Rules of Hooks), so returning null from inside would still
+ * run them.
  *
  * `publicRead` is a Convex column, so a Solo player has no server row to
  * publish and the panel is absent rather than present and broken — which is how

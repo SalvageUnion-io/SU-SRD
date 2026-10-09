@@ -5,22 +5,29 @@
  * The overlay is a ModalShell portalled into the display region, inside the
  * scaled canvas: it takes focus, closes on Escape, and hands focus back to the
  * ⤢ that opened it. Rendered through the whole Dashboard, so the slot row and
- * the overlay are the real ones. With no Convex in a test build the seat is
- * the default: on foot.
+ * the overlay are the real ones. The pilot is in no Game, so the seat is the
+ * default: on foot.
  */
 
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import { setEntityBackendAuthState } from '../../../stores/entityBackend'
-import { useEntityStore } from '../../../stores/entityStore'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import {
   crawlerFixture,
   mechFixture,
   pilotFixture,
   softLinkFixture,
 } from '../../__tests__/fixtures'
-import { hydrateStores } from '../../__tests__/hydrateStores'
-import { Dashboard } from '../Dashboard'
+
+// Module scope, before the imports below — see `convexMock.ts`. Every Game
+// query skips, so none needs an answer.
+const convexMocks = await installConvexMocks()
+setQueryAnswers({})
+
+const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { useEntityStore } = await import('../../../stores/entityStore')
+const { hydrateStores } = await import('../../__tests__/hydrateStores')
+const { Dashboard } = await import('../Dashboard')
 
 const PILOT = 'ovl-pilot'
 const MECH = 'ovl-mech'
@@ -44,6 +51,7 @@ afterAll(async () => {
   await store.forget('crawler', CRAWLER)
   await store.forget('mech', MECH)
   await store.forget('pilot', PILOT)
+  convexMocks.restore()
 })
 
 async function openMech() {

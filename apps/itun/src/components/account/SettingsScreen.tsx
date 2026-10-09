@@ -3,7 +3,6 @@ import { useMutation, useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { ConvexPending } from '../shared/ConvexPending'
 import { SignInControl } from './SignInControl'
 
@@ -20,10 +19,6 @@ import { SignInControl } from './SignInControl'
  * identity creates obligations — let me see it, let me correct it, let me take
  * it away, let me erase it — and splitting those across surfaces is how one of
  * them quietly never ships.
- *
- * As everywhere in this app, the Convex hooks are isolated behind a
- * build-time branch so a Solo build (no `VITE_CONVEX_URL`) renders without a
- * provider present.
  */
 
 function download(filename: string, data: unknown): void {
@@ -176,18 +171,7 @@ export function SettingsScreen() {
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4">
       <PageHeading className="w-fit">Settings</PageHeading>
-      {isConvexConfigured ? (
-        <SettingsBody />
-      ) : (
-        <Card>
-          <div className="p-4">
-            <Text>
-              This build has no account service configured, so nothing you build here is kept —
-              download a backup before closing the tab.
-            </Text>
-          </div>
-        </Card>
-      )}
+      <SettingsBody />
     </main>
   )
 }

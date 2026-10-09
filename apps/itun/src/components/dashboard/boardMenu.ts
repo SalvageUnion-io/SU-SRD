@@ -38,7 +38,7 @@ export type CrewLink = {
 
 /** What the menu reads from the Game, all of it from Convex. */
 export type BoardSources = {
-  /** `entities.listForGame`, or null before it arrives (or with no deployment). */
+  /** `entities.listForGame`, or null before it arrives. */
   listing: {
     pilots: readonly CrewRow[]
     mechs: readonly CrewRow[]

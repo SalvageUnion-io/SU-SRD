@@ -35,7 +35,6 @@ const convexMocks = await installConvexMocks({
   also: {
     // Signed in, the store commits to Convex first; record what it sends.
     '../../lib/connection/convexClient': () => ({
-      isConvexConfigured: true,
       convexClient: {
         mutation: async (ref: unknown, args: Record<string, unknown>) => {
           serverWrites.push({ name: getFunctionName(ref as FunctionReference<'mutation'>), args })

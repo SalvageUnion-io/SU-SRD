@@ -24,15 +24,11 @@ import { useEffect, useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { claimCacheFor, forgetLoadedRows } from '../../lib/account/cacheOwner'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { captureException } from '../../lib/observability'
 import { backendForMode } from '../../stores/entityBackend'
 import { ShelfSync } from './ShelfSync'
 
-/**
- * The signed-in half. Mounted only while the backend is `remote`, so every
- * Convex hook here has a provider.
- */
+/** The signed-in half. Mounted only while the backend is `remote`. */
 function SignedInReconciler() {
   const me = useQuery(api.account.me, {})
 
@@ -86,8 +82,7 @@ export function AccountReconciler() {
   }, [backend])
 
   // Signed out there is nothing to show. `blocked` is Disconnected or
-  // mid-handshake: nothing to sync — and a build with no Convex URL mounts no
-  // provider for the hooks below.
-  if (backend !== 'remote' || !isConvexConfigured) return null
+  // mid-handshake: nothing to sync.
+  if (backend !== 'remote') return null
   return <SignedInReconciler />
 }

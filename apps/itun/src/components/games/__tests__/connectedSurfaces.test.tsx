@@ -2,18 +2,13 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 
 /**
- * The Game surfaces in their **connected** state.
+ * The Game surfaces in their **connected** state: how an unclaimed pilot
+ * reads, what a missing vital renders as, whether a non-Mediator can see the
+ * opposition.
  *
- * Every other test of these components exercises the Solo path, because the
- * test build has no `VITE_CONVEX_URL`. That proves they do not crash without a
- * provider — but it leaves the branch people actually use untested, which is
- * where the interesting behaviour lives: how an unclaimed pilot reads, what a
- * missing vital renders as, whether a non-Mediator can see the opposition.
- *
- * Both the Convex hooks and the build-time `isConvexConfigured` flag are mocked
- * so the connected branch renders — through `installConvexMocks()`, which owns
- * the capture-and-restore that keeps a process-global `mock.module` from
- * leaking into every test file that runs after this one.
+ * The Convex hooks are mocked through `installConvexMocks()`, which owns the
+ * capture-and-restore that keeps a process-global `mock.module` from leaking
+ * into every test file that runs after this one.
  */
 
 import type { QueryAnswers } from '../../__tests__/convexMock'

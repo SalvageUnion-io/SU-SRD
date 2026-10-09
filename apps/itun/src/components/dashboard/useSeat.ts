@@ -13,11 +13,8 @@
  *
  * ## When there is no seat to read
  *
- * Convex hooks need a provider, and a build with no `VITE_CONVEX_URL` mounts
- * none, so the caller checks `isConvexConfigured` first and uses `NO_SEAT`
- * without one, as `Dashboard` does. Outside a Game, or before the first answer
- * arrives, the seat reads as the default: on foot, at Close, with nothing
- * switched on.
+ * Outside a Game, or before the first answer arrives, the seat reads as the
+ * default: on foot, at Close, with nothing switched on.
  *
  * Offline the subscription keeps the last answer it had, and writes are
  * refused here rather than handed to the Convex client, which would queue them
@@ -84,27 +81,6 @@ export const DEFAULT_SEAT: SeatView = {
   resolving: null,
 }
 
-function ignore(): void {
-  // Nothing to write to: see `NO_SEAT`.
-}
-
-/**
- * The seat in a build with no deployment: the default, and nowhere to write.
- * The gate never opens the Dashboard there (that build is always Solo), but
- * tests and stories render it bare.
- */
-export const NO_SEAT: SeatHandle = {
-  seat: DEFAULT_SEAT,
-  board: ignore,
-  claimAndBoard: ignore,
-  dismount: ignore,
-  eject: ignore,
-  setRange: ignore,
-  toggleEffect: ignore,
-  setResolving: ignore,
-  clearResolving: ignore,
-}
-
 type SeatRow = SeatView & { pilotId: string }
 
 /** Apply a change to one pilot's seat in the cached `forGame` answer. */
@@ -147,12 +123,7 @@ export function reportRefusedWrite(err: unknown): void {
   reportWriteFailure(err)
 }
 
-/**
- * The pilot's seat in its Game, and the writes that change it.
- *
- * Needs a Convex provider: call it only when `isConvexConfigured`, and use
- * `NO_SEAT` otherwise.
- */
+/** The pilot's seat in its Game, and the writes that change it. */
 export function useSeat(pilot: Pilot | null): SeatHandle {
   const { mode, canWrite: connectionWrites, outdated } = useConnection()
   const container = pilot === null ? null : containerOf(pilot)

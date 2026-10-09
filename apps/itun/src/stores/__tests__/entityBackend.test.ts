@@ -17,48 +17,17 @@ import {
  * in (read-only, and reads nothing), `remote` for a Connected session, `blocked` while Disconnected or still
  * settling the auth handshake. The tests below pin that no combination of
  * inputs yields a durable anonymous backend.
- *
- * The test build has no `VITE_CONVEX_URL`, so `convexClient` is null. That is
- * the configuration CI and a fresh checkout run in, and it is anonymous
- * whatever the auth state claims.
  */
 
 afterEach(() => {
   setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
 })
 
-describe('a build with no Convex URL is always anonymous', () => {
-  test('signed out', () => {
+describe('signed out', () => {
+  test('is signedOut, and an omitted authSettled reads as settled', () => {
     setEntityBackendAuthState({ signedIn: false, online: true })
-    expect(selectBackend()).toBe('signedOut')
-  })
-
-  test('even when the auth state claims signed in', () => {
-    // There is no client to talk to, so "signed in" cannot be true in any
-    // meaningful sense. Resolving to remote here would strand every write.
-    setEntityBackendAuthState({ signedIn: true, online: true })
-    expect(selectBackend()).toBe('signedOut')
-  })
-
-  test('even when offline', () => {
-    setEntityBackendAuthState({ signedIn: true, online: false })
-    expect(selectBackend()).toBe('signedOut')
-  })
-})
-
-describe('an unsettled auth handshake cannot block a build with no auth layer', () => {
-  test('with no handshake to wait for, it is refused as signed out, not as settling', () => {
-    // `authSettled: false` is what ConnectionProvider pushes for the first few
-    // hundred ms of a signed-in load — but with no Convex URL there is no
-    // handshake to wait for, so the refusal says "sign in", not "try again".
-    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: false })
     expect(selectBackend()).toBe('signedOut')
     expect(refusalReason()).toBe('signedOut')
-  })
-
-  test('an omitted authSettled is treated as settled', () => {
-    setEntityBackendAuthState({ signedIn: false, online: true })
-    expect(selectBackend()).toBe('signedOut')
   })
 })
 
@@ -85,7 +54,7 @@ function refusalReason(): string | null {
 }
 
 describe('the signed-in backend the durability tests run on', () => {
-  test('a configured, settled, online, signed-in session is remote', () => {
+  test('a settled, online, signed-in session is remote', () => {
     // What `withSignedInBackend()` pushes. If this stopped resolving to
     // `remote`, every durability test would quietly start asserting against
     // the signed-out backend instead.
@@ -93,7 +62,6 @@ describe('the signed-in backend the durability tests run on', () => {
       signedIn: true,
       online: true,
       authSettled: true,
-      convexConfigured: true,
     })
     expect(selectBackend()).toBe('remote')
     expect(requireWritableBackend()).toBe('remote')
@@ -104,7 +72,6 @@ describe('the signed-in backend the durability tests run on', () => {
       signedIn: true,
       online: false,
       authSettled: true,
-      convexConfigured: true,
     })
     expect(selectBackend()).toBe('blocked')
     expect(() => requireWritableBackend()).toThrow(WritesBlockedOffline)
@@ -115,7 +82,6 @@ describe('the signed-in backend the durability tests run on', () => {
       signedIn: false,
       online: true,
       authSettled: false,
-      convexConfigured: true,
     })
     let caught: unknown = null
     try {
@@ -134,7 +100,6 @@ describe('the signed-in backend the durability tests run on', () => {
       signedIn: true,
       online: true,
       authSettled: true,
-      convexConfigured: true,
       outdated: true,
     })
     expect(selectBackend()).toBe('blocked')
@@ -210,7 +175,6 @@ describe('readableRows — what a store may show', () => {
       signedIn: true,
       online: true,
       authSettled: true,
-      convexConfigured: true,
     })
     expect(await readableRows(cache())).toEqual([{ id: 'on-disk' }])
     // Disconnected is read-only, not blind: what was pulled down stays open.
@@ -218,7 +182,6 @@ describe('readableRows — what a store may show', () => {
       signedIn: true,
       online: false,
       authSettled: true,
-      convexConfigured: true,
     })
     expect(selectBackend()).toBe('blocked')
     expect(await readableRows(cache())).toEqual([{ id: 'on-disk' }])
