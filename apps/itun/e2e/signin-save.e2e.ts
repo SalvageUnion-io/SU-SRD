@@ -31,17 +31,17 @@ test.use({ account: 'anonymous' })
  *
  * **It runs nightly.** `e2e-itun` in `.github/workflows/e2e-nightly.yml`
  * provides all three against a throwaway self-hosted Convex backend — a
- * container destroyed with the runner, so it needs no credentials, cannot
- * create junk accounts on a shared deployment, and never puts a password
- * provider on production. The same seam now signs in every other durable spec
- * too (`fixtures.ts`), since the anonymous backend is in-memory everywhere.
+ * container destroyed with the runner, so it needs no credentials and never
+ * puts a password provider on production. The same seam now signs in every
+ * other durable spec too (`fixtures.ts`), since the anonymous backend is
+ * in-memory everywhere.
  *
  * That job sets `ITUN_E2E_EXPECT_AUTH_SEAM`, which turns the skip into a throw.
  *
- * Run it for real with a test deployment:
+ * Run it for real against the local backend (one-time setup: "Local backend"
+ * in `apps/itun/README.md`). Playwright reuses a running `bun run dev:itun`,
+ * which carries all three:
  *
- *   bunx convex env set ITUN_TEST_AUTH true      # on the test deployment
- *   VITE_TEST_AUTH=true VITE_CONVEX_URL=<url> bun --filter itun build
  *   bun --filter itun exec playwright test signin-save.e2e.ts
  */
 

@@ -18,23 +18,25 @@ Repairs, rotation and error reporting: the `convex-maintenance` skill.
 
 ## Before anything: which deployment?
 
-|              | Dev                                     | Production                 |
-| ------------ | --------------------------------------- | -------------------------- |
-| Deployment   | `dev/alex-jarvis` (`perfect-donkey-72`) | `exuberant-porpoise-183`   |
-| `SITE_URL`   | `http://localhost:5173`                 | `https://intheunionnow.com` |
+|              | Production                  |
+| ------------ | --------------------------- |
+| Deployment   | `exuberant-porpoise-183`    |
+| `SITE_URL`   | `https://intheunionnow.com` |
 
-`bunx convex env set` targets **dev** unless you add `--prod`. Confirm which one
-you mean before running anything, and say so out loud in your report.
+There is no cloud dev deployment: `bunx convex env set` without `--prod`
+targets the **local** deployment that `bun run dev:itun` runs, which signs in
+through the test seam and needs no Discord credentials (its setup is
+[`apps/itun/README.md`](../../../apps/itun/README.md#local-backend)). Confirm
+which one you mean before running anything, and say so out loud in your report.
 
 ## 1. Set the three required variables
 
-**All three, or sign-in fails.** Per deployment.
+**All three, or Discord sign-in fails.** On production.
 
 ```bash
-bunx convex env set AUTH_DISCORD_ID     <client-id>
-bunx convex env set AUTH_DISCORD_SECRET <client-secret>
-bunx convex env set SITE_URL            <frontend origin>
-# add --prod to target production
+bunx convex env set --prod AUTH_DISCORD_ID     <client-id>
+bunx convex env set --prod AUTH_DISCORD_SECRET <client-secret>
+bunx convex env set --prod SITE_URL            <frontend origin>
 ```
 
 **`SITE_URL` is the one that bites.** It is the **frontend** origin — _not_

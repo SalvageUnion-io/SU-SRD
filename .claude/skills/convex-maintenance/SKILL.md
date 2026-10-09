@@ -53,10 +53,8 @@ repo):
    Whether step 2 has been clicked is only visible in the Convex dashboard, so
    check there rather than assuming.
 2. Convex dashboard → the deployment → **Settings → Integrations → Sentry** →
-   paste that project's DSN. Do it **per deployment**: `dev/alex-jarvis` and
-   `exuberant-porpoise-183` are configured separately, and production is the one
-   that matters.
-3. Optionally add a tag to distinguish the two deployments in Sentry.
+   paste that project's DSN, on the production deployment
+   `exuberant-porpoise-183`.
 
 **Two caveats worth knowing before you go looking for events:**
 
@@ -89,7 +87,7 @@ tested:
 
 ```bash
 cd apps/itun
-CONVEX_DEPLOYMENT=dev:perfect-donkey-72 bunx convex run --prod \
+bunx convex run --deployment alex-jarvis:suref-itun:prod \
   maintenance:dedupeAppIds '{"apply":"not-a-boolean"}'      # forces one error
 bunx convex logs --deployment alex-jarvis:suref-itun:prod --history 6 --jsonl
 ```

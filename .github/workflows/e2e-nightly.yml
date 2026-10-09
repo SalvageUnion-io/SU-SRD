@@ -49,10 +49,9 @@ jobs:
     # and the anonymous specs (first run, offline, the sign-in hand-off) opt out.
     #
     # Why a throwaway backend: enabling `ITUN_TEST_AUTH` on production would put
-    # a password auth provider on the live app, and the dev deployment is shared
-    # — every spec mints a fresh account and would fill it with junk. A container
-    # destroyed with the runner has neither problem and needs no credentials,
-    # which is why this job requests no secrets at all.
+    # a password auth provider on the live app. A container destroyed with the
+    # runner cannot do that and needs no credentials, which is why this job
+    # requests no secrets at all.
     #
     # This absorbed the old `e2e-itun-signin` job, which ran only
     # `signin-save.e2e.ts` against the same backend. One job, one backend, one
