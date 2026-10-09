@@ -69,7 +69,11 @@ For every step, use the first route that works and record which one you used:
    ```bash
    gh pr list --author app/dependabot --state open
    gh run list --workflow=codeql.yml --limit 3 --json conclusion
+   bun outdated --filter='*'
    ```
+
+   Dependabot covers Actions only; Bun dependencies are updated by hand, and
+   `bun outdated` is the only thing that shows how far they have drifted.
 
 5. **In-flight work** — what is already open, and is any of it stuck?
 

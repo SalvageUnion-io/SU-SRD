@@ -17,7 +17,10 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
   is every workspace — nothing here is published to npm
   ([ADR-014](../../docs/ARCHITECTURE.md#adr-014):
   the dataset's public interface is the served JSON API).
-- Each package is self-contained with its own dependencies.
+- One version, one place: a dev tool more than one workspace runs is a root
+  devDependency, and a runtime package more than one workspace imports is a
+  root `workspaces.catalog` entry, named `catalog:` per manifest
+  ([declare what you import](../../docs/ARCHITECTURE.md#declare-what-you-import)).
 - Workspace dependencies use the `workspace:*` protocol
   (e.g. `"salvageunion-reference": "workspace:*"`).
 - Run `bun install` from the root to install for all workspaces.

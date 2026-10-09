@@ -104,8 +104,8 @@ jobs:
               - '.claude/hooks/**'
               # the agent workflow scripts, by tools/__tests__/claude-workflows.test.ts
               - '.claude/workflows/**'
-              # read only by the actionlint check (zizmor's config)
-              - '.github/zizmor.yml'
+              # zizmor.yml and dependabot.yml, read only by the actionlint check
+              - '.github/*.yml'
             # Prose and agent config. Runs the repo-invariant checks (doc
             # drift, observability) but not the test suite or the typecheck —
             # nothing compiles or tests these files (audit CI-11).

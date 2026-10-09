@@ -569,11 +569,10 @@ jobs:
   # every ancestor and would skip every deploy whenever any surface was
   # unchanged.
   #
-  # wrangler is a catalogued devDependency of all four Worker apps, so every
-  # `bun run deploy` below runs the version bun.lock resolved — audited,
-  # behind the 3-day release-age gate and bumped by the catalog updater —
-  # rather than a `bunx wrangler@x.y.z` fetched outside the lockfile. Bumping
-  # it moves all four together; keep `compatibility_date` in the four
+  # wrangler is one root devDependency, so every `bun run deploy` below runs
+  # the version bun.lock resolved — audited and behind the 3-day release-age
+  # gate — rather than a `bunx wrangler@x.y.z` fetched outside the lockfile.
+  # Bumping it moves all four together; keep `compatibility_date` in the four
   # wrangler.jsonc files at or below the workerd it bundles.
   #
   # The three scripted Workers (su-assets, itun, discord-bot) deploy with

@@ -309,9 +309,9 @@ async function run() {
   }
   log(`generating ${entities.length} og:images (${CONCURRENCY} concurrent)…`)
 
-  let chromium: typeof import('playwright').chromium
+  let chromium: typeof import('@playwright/test').chromium
   try {
-    ;({ chromium } = await import('playwright'))
+    ;({ chromium } = await import('@playwright/test'))
   } catch (err) {
     throw new Error('Playwright not importable — run `bun --filter srd og:install-browser`.', {
       cause: err,
@@ -328,7 +328,7 @@ async function run() {
   const preview = startPreview({ port: PORT, hostname: '127.0.0.1' })
 
   type Context = Awaited<ReturnType<Awaited<ReturnType<typeof chromium.launch>>['newContext']>>
-  type Page = import('playwright').Page
+  type Page = import('@playwright/test').Page
 
   const base = `http://127.0.0.1:${PORT}`
   const failures: { entity: Entity; error: string }[] = []

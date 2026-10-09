@@ -9,7 +9,6 @@
     "test": "bun test"
   },
   "devDependencies": {
-    "axe-core": "4.13.0",
-    "playwright": "1.62.1"
+    "axe-core": "4.13.0"
   }
 }

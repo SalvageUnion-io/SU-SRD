@@ -16,12 +16,9 @@
   "dependencies": {
     "@discordjs/builders": "1.14.1",
     "@discordjs/rest": "2.6.3",
-    "@randsum/roller": "^4.0.0",
+    "@randsum/roller": "4.0.0",
     "discord-api-types": "0.38.53",
     "observability": "workspace:*",
     "salvageunion-reference": "workspace:*"
-  },
-  "devDependencies": {
-    "wrangler": "4.147.0"
   }
 }
