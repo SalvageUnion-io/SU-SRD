@@ -74,8 +74,9 @@ check_header https://intheunionnow.com/ strict-transport-security "itun HSTS rea
 # a missing hashed chunk answered `200 text/html` and the `immutable` header
 # pinned that HTML into the HTTP cache for a year.
 check https://intheunionnow.com/assets/index-DEADBEEF.js 404 "itun rotated chunk 404 (#759)"
-# A derivative, not the master: entity cards ask for `-440`/`-880` first, and
-# only a derivative can reach Cloudflare Images.
+# A derivative, not the master: entity cards ask for `-440`/`-880` first. It
+# reaches Cloudflare Images only once the baked `-440`/`-880` objects are gone
+# from su-lp-assets; while one is stored, the Worker serves that copy.
 check https://assets.salvageunion.io/chassis/mule-440.webp 200 "artwork derivative"
 
 # BODY, not status: Cloudflare's zone-level managed robots.txt also answers 200
