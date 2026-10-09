@@ -65,6 +65,8 @@ preload = [
   # file that transitively imports it throws on load without these. Uses `??=`,
   # so a real local environment is never clobbered.
   "./apps/discord-bot/test/env.ts",
+  # Likewise ITUN's `convex/auth.ts`; must also precede happy-dom (see the file).
+  "./apps/itun/test/env.ts",
   "./test/happydom.ts",
   "./test/testing-library.ts",
   # The ORM refuses to serve data until preloaded; without this every test that

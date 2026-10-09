@@ -11,10 +11,11 @@ import schema from '../../convex/schema'
  *
  * The consequence is that this map must be kept in step with `convex/` — a new
  * function file that is not listed here is simply invisible to the tests, which
- * fails open rather than loudly. `auth.ts` and `http.ts` are deliberately
- * omitted: they pull in the Discord provider and the deployment's auth env
- * vars, and nothing under test calls them. Identity is supplied directly via
- * `withIdentity`, which is what `getAuthUserId` reads anyway.
+ * fails open rather than loudly. `auth.ts` and `http.ts` are left out of
+ * `testConvex()`: they pull in the Discord provider and the deployment's auth
+ * env vars, and identity is supplied directly via `withIdentity`, which is what
+ * `getAuthUserId` reads anyway. `testConvexWithHttp()` adds them for the one
+ * test that drives sign-in through the deployed HTTP routes.
  */
 /**
  * This harness lives OUTSIDE `convex/` on purpose. Do not move it back.
@@ -70,4 +71,17 @@ const modules: Record<string, () => Promise<unknown>> = {
 
 export function testConvex() {
   return convexTest(schema, modules)
+}
+
+/**
+ * `testConvex()` plus the deployed `auth.ts` and `http.ts`, so `t.fetch`
+ * reaches the real router and `auth:store` resolves. For the Discord sign-in
+ * test; everything else should use `testConvex()`.
+ */
+export function testConvexWithHttp() {
+  return convexTest(schema, {
+    ...modules,
+    './auth.ts': () => import('../../convex/auth'),
+    './http.ts': () => import('../../convex/http'),
+  })
 }
