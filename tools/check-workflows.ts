@@ -20,11 +20,11 @@
  *   pinning       every `bunx`/`npx` tool with no manifest entry carries an
  *                 exact version: it runs in jobs holding deploy credentials.
  *                 Action SHA pinning is zizmor's `unpinned-uses` (`actionlint`).
- *   bun-version   `.bun-version` is the one Bun: the root `bun-types` and
- *                 `packageManager` match it, no workflow pins Bun by hand
- *                 instead of using `./.github/actions/setup-bun`, and the Bun
- *                 running this is the pinned one (a mismatched Bun cannot read bun.lock, and
- *                 `bun why` exits 0 while saying so).
+ *   bun-version   the root `packageManager` is the one Bun pin: the root
+ *                 `bun-types` matches it, no workflow pins Bun by hand
+ *                 instead of using `./.github/actions/setup-bun` (which reads
+ *                 it), and the Bun running this is the pinned one (a mismatched
+ *                 Bun cannot read bun.lock, and `bun why` exits 0 while saying so).
  *   convex-guard  `deploy-cloudflare.yml` still runs `convex deploy` and still
  *                 fails a production deploy with no CONVEX_DEPLOY_KEY. Without
  *                 it, production ran a four-day-stale backend in 2026-08 with
@@ -80,8 +80,6 @@ export type WorkflowContext = {
   files: WorkflowFile[]
   /** `package.json` path (repo-relative) -> manifest. Root is `package.json`. */
   manifests: Map<string, Manifest>
-  /** Contents of `.bun-version`. */
-  bunVersion: string
   /** The Bun running this, or null to skip that comparison (tests). */
   runningBun: string | null
   exists: (repoRelPath: string) => boolean
@@ -447,22 +445,25 @@ function inlineBunPins(f: WorkflowFile): { where: string; version: string }[] {
 
 export function checkBunVersion(ctx: WorkflowContext): CheckResult {
   const failures: string[] = []
-  const expected = ctx.bunVersion
+  // `packageManager` is the pin: setup-bun reads it, and so does any tool that
+  // installs its own Bun. A Bun other than the pinned one can write a bun.lock
+  // the pinned Bun cannot read.
+  const packageManager = ctx.manifests.get('package.json')?.packageManager
+  const expected = packageManager?.match(/^bun@(\d+\.\d+\.\d+)$/)?.[1]
+  if (!expected) {
+    return {
+      ok: '',
+      failures: [
+        `root package.json packageManager = ${packageManager ?? '(absent)'}, expected an exact ` +
+          '`bun@X.Y.Z` — it is the one Bun pin, and setup-bun reads it.',
+      ],
+    }
+  }
   if (ctx.runningBun !== null && ctx.runningBun !== expected) {
     failures.push(
-      `the running Bun is ${ctx.runningBun}, but .bun-version pins ${expected}. Install the ` +
+      `the running Bun is ${ctx.runningBun}, but packageManager pins ${expected}. Install the ` +
         'pinned version — a mismatched Bun can fail to read bun.lock entirely, and ' +
         '`bun why` / `bun pm ls` exit 0 when it does.'
-    )
-  }
-  // `packageManager` is how a tool that installs its OWN Bun picks a version
-  // (a bare oven-sh/setup-bun). A Bun other
-  // than the pinned one can write a bun.lock the pinned Bun cannot read.
-  const packageManager = ctx.manifests.get('package.json')?.packageManager
-  if (packageManager !== `bun@${expected}`) {
-    failures.push(
-      `root package.json packageManager = ${packageManager ?? '(absent)'}, expected bun@${expected} ` +
-        '— tools that set up their own Bun (a bare setup-bun) read it.'
     )
   }
   const bunTypes = ctx.manifests.get('package.json')?.devDependencies?.['bun-types']
@@ -479,8 +480,8 @@ export function checkBunVersion(ctx: WorkflowContext): CheckResult {
     for (const { where, version } of inlineBunPins(f)) {
       failures.push(
         `${f.path} ${where} pins bun-version ${version} by hand` +
-          (version === expected ? ' (it matches today, but will not track .bun-version)' : '') +
-          ` — use ${SETUP_BUN}, which reads .bun-version.`
+          (version === expected ? ' (it matches today, but will not track packageManager)' : '') +
+          ` — use ${SETUP_BUN}, which reads packageManager.`
       )
     }
   }
@@ -836,11 +837,9 @@ export function loadContext(root: string, runningBun: string | null): WorkflowCo
       if (entry.isDirectory()) readManifest(`${group}/${entry.name}/package.json`)
     }
   }
-  const versionFile = join(root, '.bun-version')
   return {
     files,
     manifests,
-    bunVersion: existsSync(versionFile) ? readFileSync(versionFile, 'utf8').trim() : '(missing)',
     runningBun,
     exists: (path) => existsSync(join(root, path)),
   }

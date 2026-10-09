@@ -7,8 +7,8 @@ Discord dice bot (`apps/discord-bot`), and two shared packages
 
 ## Prerequisites
 
-- **[Bun](https://bun.com)** — pinned to the version in [`.bun-version`](.bun-version)
-  (currently `1.4.0`). Install with `curl -fsSL https://bun.sh/install | bash`
+- **[Bun](https://bun.com)** — pinned by `packageManager` in the root
+  [`package.json`](package.json) (currently `1.4.0`). Install with `curl -fsSL https://bun.sh/install | bash`
   or `brew install oven-sh/bun/bun`, then `bun upgrade --to <version>` if needed.
   CI enforces this pin via the `workflows` check (`bun run check workflows`).
 - Node is **not** required for the apps — Bun runs everything.
@@ -60,14 +60,6 @@ bun run dev:itun       # ITUN dev server
 bun --filter srd test          # test one workspace
 bun --filter itun typecheck     # typecheck one workspace
 ```
-
-> **Prefer `bun run test` or `bun --filter <pkg> test`.** A bare `bun test` at
-> the repo root used to fail by the hundreds because it skipped each workspace's
-> `bunfig.toml` preloads; the root `bunfig.toml` now preloads the union of them,
-> so it runs. It is still not identical to the per-workspace run — the preload
-> *sets* differ, and one component-lib SSR test fails only from the root. Use
-> `bun run test` as the source of truth; CI runs the same files (instrumented,
-> via `test:coverage`).
 
 ## Conventions
 

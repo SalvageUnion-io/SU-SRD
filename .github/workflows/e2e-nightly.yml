@@ -16,7 +16,8 @@ name: E2E (nightly)
 #
 # `production-smoke` re-runs deploy-cloudflare.yml's post-deploy smoke list
 # (tools/smoke-production.sh) against the live hostnames, so drift between
-# deploys opens the same tracking issue.
+# deploys opens the same tracking issue. `audit` runs `bun run audit` against
+# the unchanged tree, so a newly published advisory does too.
 #
 # Trigger manually any time via the "Run workflow" button (workflow_dispatch).
 
@@ -273,6 +274,24 @@ jobs:
       - name: Smoke every production surface
         run: bash tools/smoke-production.sh
 
+  audit:
+    # The `audit` check runs only on a PR that moves bun.lock or a manifest, so
+    # an advisory published against a tree nobody touched surfaces here. The
+    # same root script, so the same suppressions.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Audit the dependency tree
+        run: bun run audit
+
   environments:
     # The live half of `secrets-env` (tools/check-workflows.ts): the GitHub
     # Environments as configured match tools/environments.ts. #1072 declared
@@ -330,7 +349,7 @@ jobs:
   # dispatch (blocked by the production environment's main-only policy, so red
   # with zero steps) would otherwise open a false alarm or close a real one.
   notify:
-    needs: [e2e-itun, convex-parity, production-smoke, environments]
+    needs: [e2e-itun, convex-parity, production-smoke, audit, environments]
     if: always() && !cancelled() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # Two REST calls. A wedged notifier is the worst one to leave unbounded —
@@ -345,7 +364,7 @@ jobs:
           NEEDS: ${{ toJSON(needs) }}
         with:
           script: |
-            const ALWAYS_RUNS = new Set(['e2e-itun', 'production-smoke', 'environments'])
+            const ALWAYS_RUNS = new Set(['e2e-itun', 'production-smoke', 'audit', 'environments'])
             const label = 'nightly-e2e-failure'
             const { owner, repo } = context.repo
             const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`

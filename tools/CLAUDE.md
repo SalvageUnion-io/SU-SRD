@@ -23,8 +23,7 @@ output.
 Biome rule, a package `exports` map, the isolated linker. A new gate script
 cites, in its header, the incident it prevents. Register it in `CHECKS` (id,
 command, `guards`, `fix`, profiles, CI areas); do not add a step to `ci.yml` or
-a command to `lefthook.yml`, since both read the registry. A gate with no
-failure in 90 days of `gh run` history is reviewed for deletion.
+a command to `lefthook.yml`, since both read the registry.
 
 **Before editing a checker:** its tests live in `tools/__tests__/` (run with
 `bun --filter tools test`). A gate that scans a tree must prove it scanned one —
@@ -48,7 +47,7 @@ the corpus size, not just the finding count.
 | `convex-callers` | `check-convex-callers.ts` | — |
 | `workflows` | `check-workflows.ts` (`--only=` runs a subset) | — |
 | `styling` | `check-styling.ts` (`--report` lists every finding) | `styling-baseline.json` |
-| `audit` | `bun audit --audit-level=high` (CI: only when a manifest or `bun.lock` changed) | one `--ignore`, in `check.ts` |
+| `audit` | `bun run audit` (CI: only when a manifest or `bun.lock` changed; also nightly) | one `--ignore`, in the root `audit` script |
 | `actionlint` | `lint-workflows.sh` (pinned, sha256-verified actionlint + zizmor) | — |
 
 ## CI-only, nightly and deploy scripts
@@ -68,7 +67,6 @@ the corpus size, not just the finding count.
 | --- | --- | --- |
 | `extract-rules.ts` | `rules:extract` | Rules PDFs in `rules/` to `rules/extracted/*.txt` with page markers. The PDFs are gitignored; no-ops without them. |
 | `check-printed-names.ts` | `check:printed-names` | Entity names and pages against the Core Book index. Advisory; needs the extract. Run after a data import. |
-| `prune-stale-worktrees.sh` | `reap` | Dry-run list of abandoned `.claude/worktrees/` checkouts; `--force` removes them via `git worktree remove`. |
 | `export-lp-assets.ts` | `assets:export` | Backs up the `su-lp-assets` R2 bucket locally and proves the copy byte-exact — the only backup path for the licensed artwork. Needs R2 credentials. |
 | `upload-lp-assets.ts` | `assets:upload` | The artwork ingest path into `su-lp-assets`. Needs R2 credentials. |
 

@@ -2,7 +2,8 @@
 # SessionStart hook — make a fresh container able to run this repo.
 #
 # WHY THIS EXISTS. A Claude Code on the web session starts in a container whose
-# Bun is whatever the image ships, and this repo pins its own in `.bun-version`.
+# Bun is whatever the image ships, and this repo pins its own in package.json's
+# `packageManager`.
 # When those disagree across a lockfile-format boundary the repo does not merely
 # degrade, it stops working entirely: `bun.lock` is lockfileVersion 2, a Bun that
 # predates it fails `bun install --frozen-lockfile` with "Unknown lockfile
@@ -25,8 +26,9 @@ set -uo pipefail
 
 cd "${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}" || exit 0
 
-[ -f .bun-version ] || exit 0
-WANT="$(tr -d '[:space:]' < .bun-version)"
+# No Bun may be on PATH yet, so the pin is read with sed rather than bun or jq.
+WANT="$(sed -n 's/.*"packageManager": *"bun@\([^"]*\)".*/\1/p' package.json 2>/dev/null | head -1)"
+[ -n "$WANT" ] || exit 0
 HAVE="$(bun --version 2>/dev/null || echo none)"
 
 note() { echo "[session-start] $*"; }
@@ -93,7 +95,7 @@ if [ ! -d node_modules ] || [ -z "$(ls -A node_modules 2>/dev/null | head -1)" ]
     note "bun install --frozen-lockfile FAILED. Last lines:"
     tail -15 "$LOG" | sed 's/^/[session-start]   /'
     note "If it says 'Unknown lockfile version', the pinned Bun above is older than the"
-    note "lockfile; check that .bun-version matches what last wrote bun.lock."
+    note "lockfile; check that packageManager matches what last wrote bun.lock."
   fi
   rm -f "$LOG"
 fi

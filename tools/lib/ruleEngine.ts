@@ -60,8 +60,6 @@ export type RuleSet = {
   preflight?: (root: string) => void
   /** Every rule's findings, keyed by rule id. Pure given `root`. */
   scan: (root: string) => Record<string, Finding[]>
-  /** Findings printed as a warning and never gated. */
-  advisory?: (root: string) => { id: string; findings: Finding[] }
   /** Where a genuinely-correct case is declared, printed after a failure. */
   exemptionsLive: string
   /** A line printed on success, after the count summary. */

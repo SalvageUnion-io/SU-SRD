@@ -774,23 +774,15 @@ holds sub-headers and footers at 4.5:1 and names the header tones at 3:1.
 
 ### CI: triggers
 
-`pull_request` has **no `branches:` filter**: it matches the base branch, so
-stacked PRs got no checks and could not merge. CodeQL likewise. `merge_group:`
-stays dormant: it must be live on `main` before a merge queue is enabled.
+`ci.yml` runs on `pull_request` only, with **no `branches:` filter**: it
+matches the base branch, so stacked PRs got no checks. CodeQL likewise, plus
+`push` to `main` and weekly. The ruleset is strict, so a merged tree already
+passed `CI Success` up to date with `main`; the deploy fires on the push.
 
 ### CI: concurrency
 
-PR runs cancel superseded runs; **`main` never cancels** (group `github.sha`),
-because the deploy fires on CI's `workflow_run` success.
-
-### CI: reusing the PR's run
-
-On a push to `main`, `changes` finds the merged PR (`GET
-/repos/{owner}/{repo}/commits/{sha}/pulls`) and reuses its result only if
-`HEAD^{tree}` equals the PR head's tree and every latest `CI Success` check-run
-on that head succeeded; otherwise everything runs. It holds `checks: read`.
-Every job declares `timeout-minutes` (15; 25 for browser builds); never drop
-the key.
+A new push to a PR cancels its superseded run. Every job declares
+`timeout-minutes` (15; 25 for browser builds); never drop the key.
 
 ### CI: path filters
 
@@ -866,10 +858,12 @@ Owner-applied; no gate reads them.
 
 ### CI: deploy set
 
-`CLOUDFLARE_API_TOKEN`, `CONVEX_DEPLOY_KEY`, `SENTRY_AUTH_TOKEN` and
+It runs on `push` to `main` and on dispatch from `main` (`sha` rolls back;
+`force_all` ships everything). `CLOUDFLARE_API_TOKEN`, `CONVEX_DEPLOY_KEY`, `SENTRY_AUTH_TOKEN` and
 `RELEASE_PLEASE_TOKEN` live only in the `production` Environment; each job
 reading one declares it (`secrets-env`; declared in `tools/environments.ts`,
-drift-checked nightly).
+drift-checked nightly). Public values (Convex URL, Sentry DSNs and org) are
+top-level `env:`.
 
 - **Shape:** `plan` → `build-srd` / `build-itun` → `push-convex` → `deploy-*`
   → `smoke` → `record`; `og-srd` renders OG images into srd's `dist` and only
@@ -887,8 +881,8 @@ drift-checked nightly).
   and `.github/actions/`. A version-only `packages/*/package.json` change ships
   nothing. The decision is
   `tools/deploy-surfaces.ts` (`tools/__tests__/deploy-surfaces.test.ts`). When
-  HEAD is an ancestor of the record the run is `stale`; only a dispatch
-  (`--allow-backwards`) rolls back.
+  HEAD is an ancestor of the record (a re-run of an older merge's deploy) the
+  run is `stale`; only a dispatch (`--allow-backwards`) rolls back.
 - A failed `deploy-*` skips `smoke` and `record`, so the next run redeploys.
   `record` holds `contents: write` through a REST call, in its own job. A
   dispatched `sha` reaches scripts through `env:`. The smoke list is
@@ -911,9 +905,9 @@ Dependabot updates GitHub Actions only ([`.github/dependabot.yml`](../.github/de
 one grouped Monday PR for `.github/workflows/` and `.github/actions/setup-bun`,
 7-day cooldown, merged by hand. **Bun dependencies are
 updated by hand:** `bun outdated --filter='*'`, then `bun update --latest <pkg>`
-or `bun add <pkg>@<version>` in every manifest naming it. `.bun-version`, the
-root `packageManager` and `bun-types` move together (`workflows`,
-`bun-version`); `.mcp.json`'s `convex@` pin moves with
+or `bun add <pkg>@<version>` in every manifest naming it. The root
+`packageManager` is the one Bun pin (setup-bun reads it), and `bun-types` moves
+with it (`workflows`, `bun-version`); `.mcp.json`'s `convex@` pin moves with
 `apps/itun/package.json`'s (`tools/__tests__/mcp-config.test.ts`).
 
 ### Install cooldown
@@ -925,13 +919,14 @@ root `packageManager` and `bun-types` move together (`workflows`,
 
 ### Dependency audit
 
-`bun audit --audit-level=high` (the `audit` check) gates PRs that change
-`bun.lock` or a `package.json`. One suppression: `braces` GHSA-vfj7-8cjw-p6xm,
-no fixed release, reachable only via component-lib's devDependency
-`@ladle/react` → `globby` → `fast-glob` → `micromatch`; its `--ignore` in
-`tools/check.ts` says what removes it. A new `--ignore` records the same.
-`audit-watch.yml` audits every severity weekly without it, keeping one issue
-open; its watch list is `nanoid`, `fast-uri`, `brace-expansion`, `filelist`.
+`bun run audit` (the root `audit` script) fails on an advisory at any
+severity. The `audit` check runs it on PRs that change `bun.lock` or a
+`package.json`, and `e2e-nightly.yml`'s `audit` job runs it against the
+unchanged tree, reporting through the nightly tracking issue. One suppression:
+`braces` GHSA-vfj7-8cjw-p6xm, no fixed release, reachable only via
+component-lib's devDependency `@ladle/react` → `globby` → `fast-glob` →
+`micromatch`; remove its `--ignore` when `bun audit fix` can take a fixed
+`braces` or Ladle drops `globby`. A new `--ignore` records the same.
 Fix a transitive advisory by dedupe, then `bun update <pkg>`, then a floor.
 `bun why <pkg>` prints the path.
 
@@ -999,8 +994,8 @@ ToolSearch first (`select:mcp__github__create_pull_request,…`). The remote MCP
 hosts (`bindings.mcp.cloudflare.com`, `observability.mcp.cloudflare.com`,
 `mcp.sentry.dev`, `mcp.context7.com`) fail (`ERR_PROXY_TUNNEL`, 403) unless
 the environment allows them; report those signals **unread**. `convex` has no
-credentials: ask for data. If `bun --version` differs from `.bun-version`, run
-with `PATH="$HOME/.local/share/su-srd-bun/$(cat .bun-version):$PATH"` (the
+credentials: ask for data. If `bun --version` differs from the root
+`packageManager`, run with `PATH="$HOME/.local/share/su-srd-bun/<version>:$PATH"` (the
 SessionStart hook installs it there) and `bun install --frozen-lockfile`. Never fake
 a GitHub step that has no route.
 
@@ -1026,14 +1021,11 @@ repo:** the `www` → apex Redirect Rule and per-zone Images Transformations.
 
 Org **`susrd`**, **EU region** (`https://de.sentry.io`,
 <https://susrd.sentry.io>); a DSN from another region silently fails.
-Projects: `srd` (`VITE_SENTRY_DSN`, repo variable `SRD_SENTRY_DSN`\*), `itun`
-(`VITE_SENTRY_DSN`), `itun-functions` (itun Worker, `SENTRY_DSN`),
-`itun-convex` ([dashboard toggle](#convex-error-reporting)), `su-assets` and
-`su-discord` (`SENTRY_DSN`).
-
-\* The DSN may still sit in `PUBLIC_SENTRY_DSN` (`deploy-cloudflare.yml` reads
-`vars.SRD_SENTRY_DSN || vars.PUBLIC_SENTRY_DSN`): create `SRD_SENTRY_DSN`,
-delete the old variable, then drop both fallbacks.
+Projects: `srd` and `itun` (`VITE_SENTRY_DSN` at build, from
+`deploy-cloudflare.yml`'s public `SRD_SENTRY_DSN` / `ITUN_SENTRY_DSN`
+constants), `itun-functions` (itun Worker, `SENTRY_DSN`), `itun-convex`
+([dashboard toggle](#convex-error-reporting)), `su-assets` and `su-discord`
+(`SENTRY_DSN`).
 
 No DSN tree-shakes the SDK out, and a `connect-src` missing the ingest origin
 blocks every event, so `tools/check-observability.ts` checks DSN gating and
@@ -1042,8 +1034,8 @@ inlined, and `tools/smoke-production.sh` checks the served CSP. CSP sources:
 `apps/srd/public/_headers` and `apps/itun/src/worker/securityHeaders.ts`;
 change CSP or region in lockstep. Sourcemaps upload only from
 `deploy-cloudflare.yml`, through `sentrySourcemaps()` in `observability/vite`
-(gated on `SENTRY_AUTH_TOKEN`; one org token and `vars.SENTRY_ORG`; project
-`vars.SENTRY_PROJECT` for itun, literal `srd` for srd).
+(gated on `SENTRY_AUTH_TOKEN`; one org token, the workflow's `SENTRY_ORG`, and
+the literal project `srd` or `itun`).
 
 ### Convex and GitHub
 
@@ -2547,9 +2539,9 @@ config.
   release-please workflow now re-arms auto-merge on every open
   `release-please--*` PR on each run, so a release lands as soon as
   `CI Success` is green with no human step. It is re-asserted every run
-  rather than only on creation, because a PR ejected from the merge queue (both
-  release PRs edit `.release-please-manifest.json`, so one always rebases) loses
-  auto-merge silently; a daily `schedule:` covers the case where no push follows.
+  rather than only on creation, because a rebased release PR (both edit
+  `.release-please-manifest.json`, so one always rebases) loses auto-merge
+  silently; the push that merges the first re-arms the second.
 
 ### Consequences
 
@@ -4054,6 +4046,9 @@ identifiers (Workers, buckets, zones) are in
 GitHub Environment** restricted to `main`, so a workflow copy
 dispatched from a branch cannot read them.
 
+**Amended 2026-10-08 — §Credentials: the deploy runs on `push` to `main`**,
+gated by the strict `main` ruleset.
+
 Amends [ADR-004](#adr-004): snapshots keep the
 endpoint shape, the ID scheme, the payload cap and the unauthenticated contract
 that ADR-004 decided, and change only the platform underneath them — Netlify
@@ -4282,9 +4277,10 @@ that can deploy production. The bar it is held to:
 - Stored as a secret of the `production` GitHub Environment, restricted to
   `main`, with no reviewers. Never at repository
   level, in a `wrangler.jsonc`, or in a `.env` git can see.
-- Every deploy is gated on CI succeeding for the same commit on `main`, so a red
-  gate cannot deploy. A green gate suffices: production deploys need no
-  environment approval.
+- Every deploy follows a merge, and the `main` ruleset merges only a branch
+  that is up to date with `main` and passed `CI Success`, so a red gate cannot
+  deploy. A green gate suffices: production deploys need no environment
+  approval.
 
 ### Accepted risks
 

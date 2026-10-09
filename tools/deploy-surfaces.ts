@@ -8,11 +8,10 @@
  * green run, and writes `assets|srd|itun|bot=true|false` to $GITHUB_OUTPUT.
  *
  * Why not `HEAD^..HEAD`: that is "the merged PR" only if every commit on main
- * reaches the deploy workflow, and two things stop that — a CI run on main that
- * never goes green fires no successful `workflow_run`, and the deploy
- * concurrency group drops all but one queued run. Either way the next deploy
- * diffed a single commit and left the skipped commit's surface on the old
- * build, with every run green (audit CI-01). A tree diff against the recorded
+ * gets its own deploy, and two things stop that — a deploy that fails, and the
+ * deploy concurrency group, which drops all but one queued run. Either way the
+ * next deploy diffed a single commit and left the skipped commit's surface on
+ * the old build, with every run green (audit CI-01). A tree diff against the recorded
  * deploy is also right for a rollback dispatch to an OLDER commit.
  *
  * Fails SAFE in every direction: no record, `--force-all`, or any change to a
@@ -21,11 +20,10 @@
  * of the shared set (a release's CHANGELOG, a version-only manifest bump) are
  * backed by a test that fails when a new reader of those files appears.
  *
- * NEVER BACKWARDS ON ITS OWN. CI on `main` gives every commit its own run and
- * never cancels one, so two commits' runs can finish in either order. If B
- * (newer) deploys and records first, A's late `workflow_run` would diff B->A
- * and ship A's tree for every surface B touched — reverting B in production —
- * and then move the record back to A. So when HEAD is an ancestor of the
+ * NEVER BACKWARDS ON ITS OWN. A re-run of an older merge's deploy can start
+ * after a newer one shipped. If B (newer) deploys and records first, A's late
+ * run would diff B->A and ship A's tree for every surface B touched — reverting
+ * B in production — and then move the record back to A. So when HEAD is an ancestor of the
  * recorded deploy the run is STALE: nothing ships and the record job does not
  * run. Only a manual dispatch (`--allow-backwards`, the rollback path) may
  * deploy an older commit and move the record back to it.
@@ -58,7 +56,7 @@ type Surface = keyof typeof SURFACES
  * and the setup action its jobs run can change what ships.
  */
 const SHARED =
-  /^(packages\/|package\.json$|bun\.lock$|bunfig\.toml$|tsconfig|patches\/|\.bun-version$|\.github\/workflows\/deploy-cloudflare\.yml$|\.github\/actions\/|ABOUT_JRVS\.md$|LLM_STATEMENT\.md$|SPECIAL_THANKS\.md$)/
+  /^(packages\/|package\.json$|bun\.lock$|bunfig\.toml$|tsconfig|\.github\/workflows\/deploy-cloudflare\.yml$|\.github\/actions\/|ABOUT_JRVS\.md$|LLM_STATEMENT\.md$|SPECIAL_THANKS\.md$)/
 
 /**
  * Shared-path files that only some surfaces read, so a change ships just

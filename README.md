@@ -69,9 +69,7 @@ bun run build:package    # Reference package only
 bun run lint
 bun run format        # bun run format:check to verify only
 bun run typecheck
-bun run test          # prefer this — each workspace with its own bunfig.
-                      # A bare root `bun test` is viable (the root bunfig
-                      # preloads the union) but is not identical; see CLAUDE.md
+bun run test          # each workspace with its own bunfig
 bun run check         # THE full-check entry point: every gate in tools/check.ts
                       # (lint, format, typecheck, test, data, knip, audit, …)
                       # in parallel, ending in a pass/fail table.

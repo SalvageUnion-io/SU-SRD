@@ -10,9 +10,8 @@
  * options, idempotency, the capture verbs, chunk recovery) is
  * `createBrowserObservability` in `observability/browser`, shared with ITUN.
  *
- * No DSN is ever committed. `deploy-cloudflare.yml` supplies it as
- * `VITE_SENTRY_DSN` from the `SRD_SENTRY_DSN` repository variable, with
- * `VITE_COMMIT_REF` set to the deployed SHA.
+ * `deploy-cloudflare.yml` supplies the DSN as `VITE_SENTRY_DSN` from its public
+ * `SRD_SENTRY_DSN` constant, with `VITE_COMMIT_REF` set to the deployed SHA.
  *
  * CSP note: the browser SDK POSTs events to the ingest host encoded in the
  * DSN, so that origin must be in `connect-src` in `public/_headers` —

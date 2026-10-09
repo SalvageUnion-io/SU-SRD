@@ -166,7 +166,7 @@ export const CHECKS: readonly CheckSpec[] = [
       'CI aggregate gate, path filters, bunx pinning, Bun version, Convex deploy guard, deploy order, production-secret env',
     fix: 'each message names the file and the fix; `bun tools/check-workflows.ts --only=<id>` reruns one',
     cmd: ['bun', 'tools/check-workflows.ts'],
-    // Reads only .github/, the manifests and .bun-version, all of them `code`.
+    // Reads only .github/ and the manifests, all of them `code`.
     areas: ['code'],
     profiles: ALL,
   },
@@ -179,22 +179,13 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'audit',
-    guards: 'no high-severity advisory in the dependency tree',
+    guards: 'no advisory, at any severity, in the dependency tree',
     fix: 'upgrade or override the vulnerable package (docs/ARCHITECTURE.md#dependency-audit)',
-    cmd: [
-      'bun',
-      'audit',
-      '--audit-level=high',
-      // The one suppression (docs/ARCHITECTURE.md#dependency-audit): braces <=3.0.3
-      // has NO fixed release. It reaches the tree only through component-lib's
-      // devDependency @ladle/react -> globby -> fast-glob -> micromatch, and
-      // Ladle globs nothing but our own story patterns. Remove this line when
-      // `bun audit fix` can take a fixed braces, or Ladle drops globby;
-      // audit-watch.yml audits without it, so the advisory stays reported.
-      '--ignore=GHSA-vfj7-8cjw-p6xm',
-    ],
+    // The root `audit` script, which e2e-nightly.yml's `audit` job also runs:
+    // one command, one suppression list (docs/ARCHITECTURE.md#dependency-audit).
+    cmd: ['bun', 'run', 'audit'],
     // A PR that moves neither bun.lock nor a manifest cannot change the tree;
-    // audit-watch.yml scans the unchanged tree for new advisories weekly.
+    // the nightly run catches a new advisory against the unchanged one.
     areas: ['deps'],
     profiles: ['full', 'ci'],
   },

@@ -49,7 +49,6 @@ apps/srd/.vite
 # Claude Code
 .claude/settings.local.json
 # Agent/background-job worktrees: full checkouts that must never be committed.
-# Prune abandoned ones with tools/prune-stale-worktrees.sh.
 .claude/worktrees/
 # .mcp.json IS tracked: it is the shared, secret-free project MCP config
 # (Cloudflare, Sentry, Convex, Context7). Every server authenticates by OAuth on
