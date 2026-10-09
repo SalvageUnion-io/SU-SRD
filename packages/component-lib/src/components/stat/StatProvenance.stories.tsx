@@ -11,7 +11,7 @@ export default {
 /**
  * Every ledger below is built from the real derivation
  * (`mechMaxSPParts`) over real reference data, not hand-written numbers — so a
- * change to Composite Armour's `statBonus` or the Atlas chassis moves these
+ * change to Composite Armour's `contributions` or the Atlas chassis moves these
  * stories the same way it moves the sheet.
  */
 function atlasLedger(overrideValue?: number) {

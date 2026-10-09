@@ -4,7 +4,7 @@
  * Unified validation runner.
  *
  * One shared data-load pass over the ~1.3MB `data/*.json` corpus, fed to all
- * 10 checks (it replaced separate per-check processes, each re-reading the corpus):
+ * 9 checks (it replaced separate per-check processes, each re-reading the corpus):
  *
  *   - ids              (checkUniqueIdsLogic.ts)
  *   - slugs            (validateSlugsLogic.ts)
@@ -15,7 +15,6 @@
  *   - content-dupes    (validateContentDupesLogic.ts)
  *   - traits           (validateTraitsLogic.ts)
  *   - parity           (validateParityLogic.ts)
- *   - double-encoding  (validateParityLogic.ts)
  *
  * Every check's detection logic lives in its own `*Logic.ts` module, which is
  * where its tests live too. This file is the ONLY command-line entry: there
@@ -40,13 +39,7 @@ import { runActionBackrefCheck } from './validateActionBackrefsLogic.js'
 import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
 import { runContentDupeCheck } from './validateContentDupesLogic.js'
 import { runOrphanCheck } from './validateOrphansLogic.js'
-import {
-  auditParity,
-  findDoubleEncodings,
-  KNOWN_UNRESOLVED,
-  staleDoubleEncodings,
-  unresolvedFindings,
-} from './validateParityLogic.js'
+import { auditParity, KNOWN_UNRESOLVED, unresolvedFindings } from './validateParityLogic.js'
 import { findReferenceErrors } from './validateReferencesLogic.js'
 import { findSlugCollisions } from './validateSlugsLogic.js'
 import { findTraitIssues } from './validateTraitsLogic.js'
@@ -228,30 +221,6 @@ function parityCheck(data: DataBag): Diagnostic[] {
   return diagnostics
 }
 
-/**
- * One concept, one encoding. Fails when a record states the same thing twice
- * (`statBonus` beside `contributions`, a legacy choice field beside `source`) —
- * the half-migrated state in which deleting either half changes behaviour with
- * nothing to see. See `findDoubleEncodings` for why this is the systemic fix.
- */
-function doubleEncodingCheck(data: DataBag): Diagnostic[] {
-  const diagnostics: Diagnostic[] = findDoubleEncodings(data as never).map((d) => ({
-    check: 'double-encoding',
-    file: d.schema,
-    path: `"${d.record}" ${d.path}`,
-    message: `carries both "${d.unified}" and legacy "${d.legacy}" — keep the unified one and delete the legacy duplicate`,
-  }))
-  for (const id of staleDoubleEncodings(data as never)) {
-    diagnostics.push({
-      check: 'double-encoding',
-      file: 'tools/validateParityLogic.ts',
-      path: `KNOWN_DOUBLE_ENCODED "${id}"`,
-      message: 'stale entry — no longer doubly encoded; remove it so the list keeps burning down',
-    })
-  }
-  return diagnostics
-}
-
 // ─── runner ──────────────────────────────────────────────────────────────
 
 type CheckDefinition = {
@@ -271,7 +240,6 @@ const CHECK_TABLE: Record<CheckId, Omit<CheckDefinition, 'id'>> = {
   'content-dupes': { label: 'Duplicated record content', run: contentDupesCheck },
   traits: { label: 'Trait data', run: traitsCheck },
   parity: { label: 'Rules parity', run: parityCheck },
-  'double-encoding': { label: 'One concept, one encoding', run: doubleEncodingCheck },
 }
 
 const CHECKS: CheckDefinition[] = CHECK_IDS.map((id) => ({ id, ...CHECK_TABLE[id] }))

@@ -26,16 +26,8 @@ export const MAX_DEPTH = 3
  * rather than only in CI.
  */
 export function isRulesBearing(data: unknown): boolean {
-  const record = (data ?? {}) as {
-    contributions?: unknown
-    statBonus?: unknown
-    mutations?: unknown
-  }
-  return (
-    Array.isArray(record.contributions) ||
-    record.statBonus != null ||
-    Array.isArray(record.mutations)
-  )
+  const record = (data ?? {}) as { contributions?: unknown; mutations?: unknown }
+  return Array.isArray(record.contributions) || Array.isArray(record.mutations)
 }
 
 /** A titanic action (bio-titan "Titanic Actions") — gets its own full-width row. */

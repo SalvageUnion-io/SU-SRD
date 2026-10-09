@@ -11,37 +11,41 @@ import {
 const traitChoice: SURefObjectChoice = {
   id: 'weapon-type',
   name: 'Weapon Type',
-  schema: ['traits'],
-  schemaEntities: ['Ballistic', 'Energy'],
+  source: { kind: 'catalog', schema: ['traits'], entities: ['Ballistic', 'Energy'] },
 }
 
 const optionChoice: SURefObjectChoice = {
   id: 'mod',
   name: 'Modification',
-  multiSelect: true,
-  constraints: { scalesWithField: 'techLevel' },
-  choiceOptions: [
-    { label: 'Rangefinder', value: 'Rangefinder', description: 'Range to Far.' },
-    { label: 'Flashy', value: 'Flashy' },
-  ],
+  cardinality: { min: 0, max: { scalesWith: 'techLevel' } },
+  source: {
+    kind: 'options',
+    options: [
+      { label: 'Rangefinder', value: 'Rangefinder', description: 'Range to Far.' },
+      { label: 'Flashy', value: 'Flashy' },
+    ],
+  },
 }
 
 describe('isMultiSelectChoice', () => {
-  test('reflects the multiSelect flag', () => {
+  test('a scalesWith cardinality is multi-select; no cardinality is single', () => {
     expect(isMultiSelectChoice(optionChoice)).toBe(true)
     expect(isMultiSelectChoice(traitChoice)).toBe(false)
+  })
+  test('cardinality max:1 is single-select', () => {
+    expect(isMultiSelectChoice({ ...traitChoice, cardinality: { min: 1, max: 1 } })).toBe(false)
   })
 })
 
 describe('getChoiceCardOptions', () => {
-  test('maps choiceOptions to value/label/description', () => {
+  test('maps source.options to value/label/description', () => {
     const options = getChoiceCardOptions(optionChoice)
     expect(options).toEqual([
       { value: 'Rangefinder', label: 'Rangefinder', description: 'Range to Far.' },
       { value: 'Flashy', label: 'Flashy', description: undefined },
     ])
   })
-  test('maps schemaEntities to value/label, carrying the schema', () => {
+  test('maps catalog entities to value/label, carrying the schema', () => {
     const options = getChoiceCardOptions(traitChoice)
     expect(options).toEqual([
       { value: 'Ballistic', label: 'Ballistic', schema: 'traits' },
@@ -51,20 +55,18 @@ describe('getChoiceCardOptions', () => {
 })
 
 describe('resolveMultiSelectCap', () => {
-  test('resolves scalesWithField against the parent entity', () => {
+  test('resolves cardinality.max.scalesWith against the parent entity', () => {
     expect(resolveMultiSelectCap(optionChoice, { techLevel: 3 })).toBe(3)
   })
-  test('prefers an explicit max', () => {
-    const choice: SURefObjectChoice = {
-      id: 'm',
-      name: 'M',
-      multiSelect: true,
-      constraints: { max: 2 },
-    }
+  test('a fixed max above one is the cap', () => {
+    const choice: SURefObjectChoice = { id: 'm', name: 'M', cardinality: { min: 0, max: 2 } }
     expect(resolveMultiSelectCap(choice, { techLevel: 5 })).toBe(2)
   })
-  test('undefined when no constraint or field resolves', () => {
+  test('undefined when no cardinality or field resolves', () => {
     expect(resolveMultiSelectCap(traitChoice, { techLevel: 3 })).toBeUndefined()
+    expect(
+      resolveMultiSelectCap({ ...traitChoice, cardinality: { min: 1, max: 1 } }, undefined)
+    ).toBeUndefined()
     expect(resolveMultiSelectCap(optionChoice, undefined)).toBeUndefined()
     expect(resolveMultiSelectCap(optionChoice, {})).toBeUndefined()
   })
@@ -88,11 +90,8 @@ describe('toggleSelection', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// Unified `source` model (choice-plan Stage 7) — the discriminant the renderer
-// switches on. The headline fix: a table choice (A.I. Personality) is NOT
-// free-text, so it stops rendering as a bare input.
-// ---------------------------------------------------------------------------
+// The discriminant the renderer switches on. A table choice (A.I. Personality)
+// is NOT free-text, so it does not render as a bare input.
 describe('getChoiceSourceKind — the discriminated source', () => {
   const bySource = (source: SURefObjectChoice['source']): SURefObjectChoice => ({
     id: 'x',
@@ -100,7 +99,7 @@ describe('getChoiceSourceKind — the discriminated source', () => {
     source,
   })
 
-  test('reads source.kind when present', () => {
+  test('reads source.kind', () => {
     expect(getChoiceSourceKind(bySource({ kind: 'text' }))).toBe('text')
     expect(getChoiceSourceKind(bySource({ kind: 'table', rollTable: 'A.I. Personality' }))).toBe(
       'table'
@@ -112,72 +111,7 @@ describe('getChoiceSourceKind — the discriminated source', () => {
     )
   })
 
-  test('a table choice is NOT free-text (the A.I. Personality bug fix)', () => {
-    const aiPersonality = bySource({ kind: 'table', rollTable: 'A.I. Personality' })
-    expect(getChoiceSourceKind(aiPersonality)).toBe('table')
-  })
-
-  test('falls back to legacy fields when source is absent', () => {
-    // A choice carrying NO source and none of the legacy discriminators is
-    // text. This used to be written as `{ choiceType: 'freeform' }`, which
-    // passed for the wrong reason: `getChoiceSourceKind` never read
-    // `choiceType` at all — it reached 'text' through the final fallthrough
-    // below, so the assertion would have held with the field set to anything.
-    // `choiceType` has since been deleted as a duplicate encoding of
-    // `lifetime` + `source.kind`; this asserts the invariant that remains.
+  test('a choice without a source is free text', () => {
     expect(getChoiceSourceKind({ id: 'n', name: 'Name' })).toBe('text')
-    expect(getChoiceSourceKind({ id: 't', name: 'AI', rollTable: 'A.I. Personality' })).toBe(
-      'table'
-    )
-  })
-})
-
-describe('source-aware options + cardinality', () => {
-  test('getChoiceCardOptions reads source.options', () => {
-    const choice: SURefObjectChoice = {
-      id: 'mod',
-      name: 'Modification',
-      source: {
-        kind: 'options',
-        options: [{ label: 'Rangefinder', value: 'Rangefinder', description: 'Range → Far' }],
-      },
-    }
-    expect(getChoiceCardOptions(choice)).toEqual([
-      { value: 'Rangefinder', label: 'Rangefinder', description: 'Range → Far' },
-    ])
-  })
-
-  test('getChoiceCardOptions reads catalog entities', () => {
-    const choice: SURefObjectChoice = {
-      id: 'wt',
-      name: 'Weapon Type',
-      source: { kind: 'catalog', schema: ['traits'], entities: ['Ballistic', 'Energy'] },
-    }
-    expect(getChoiceCardOptions(choice)).toEqual([
-      { value: 'Ballistic', label: 'Ballistic', schema: 'traits' },
-      { value: 'Energy', label: 'Energy', schema: 'traits' },
-    ])
-  })
-
-  test('cardinality.scalesWith → multi-select, cap resolved on parent', () => {
-    const choice: SURefObjectChoice = {
-      id: 'mod',
-      name: 'Modification',
-      source: { kind: 'options', options: [] },
-      cardinality: { min: 0, max: { scalesWith: 'techLevel' } },
-    }
-    expect(isMultiSelectChoice(choice)).toBe(true)
-    expect(resolveMultiSelectCap(choice, { techLevel: 3 })).toBe(3)
-  })
-
-  test('cardinality max:1 is single-select with no cap', () => {
-    const choice: SURefObjectChoice = {
-      id: 'wt',
-      name: 'Weapon Type',
-      source: { kind: 'catalog', schema: ['traits'], entities: ['Ballistic', 'Energy'] },
-      cardinality: { min: 1, max: 1 },
-    }
-    expect(isMultiSelectChoice(choice)).toBe(false)
-    expect(resolveMultiSelectCap(choice, undefined)).toBeUndefined()
   })
 })

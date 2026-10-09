@@ -184,9 +184,9 @@ function pilotStatTrainingContributions(
  * isPilotDead(), not clamped away here.
  */
 export function pilotMaxHPParts(pilot: PilotDerivationInput): StatBreakdown {
-  // The injury penalty rides in `installed` — it is a rules-sourced contribution
-  // like an installed statBonus, just a negative one, and is derived from
-  // `injuries` so healing restores max HP with no bookkeeping.
+  // The injury penalty rides in `installed` — it is a rules-sourced
+  // contribution, just a negative one, and is derived from `injuries` so
+  // healing restores max HP with no bookkeeping.
   const hpSources = [
     ...pilotStatTrainingContributions(pilot.crawlerTechLevel, 'maxHp'),
     ...abilityContributions(pilot.abilities, 'pilot', 'maxHp'),
@@ -325,11 +325,8 @@ export type StatBreakdown = {
    * An ANONYMOUS rules-sourced addend — one aggregate line in the provenance
    * panel, with no per-item attribution. Two stats still use it: the pilot's
    * injury penalty (a negative contribution derived from `injuries`) and the
-   * crawler's type `max_sp_bonus`.
-   *
-   * Installed systems/modules used to land here too, as a summed `statBonus`.
-   * They are `contributions` now and so arrive through `sources`, per item and
-   * by name ("Heat Sink +1") rather than as an unattributed lump.
+   * crawler's type `max_sp_bonus`. Installed systems/modules arrive through
+   * `sources` instead, per item and by name ("Heat Sink +1").
    */
   installed: number
   /**
@@ -418,15 +415,8 @@ function resolveChassis(mech: MechDerivationInput, chassis?: ChassisStats | null
  * systems/modules (heat sinks, capacitance banks, holds — rules B2/B4/B6/B14),
  * each counted per installed copy and attributed by name. Pass a pre-resolved
  * `chassis` to avoid repeated ORM lookups; floored at 0 so a negative total
- * never produces a negative maximum.
- *
- * There used to be a second, parallel encoding — a flat per-copy `statBonus`
- * map summed by `installedStatBonus` and added ALONGSIDE `installedContributions`
- * for the same stat. Nothing carried both, so nothing was double-counted; but
- * one record authored with both would have been, silently, and the parity
- * validator's `hasCapData` (an OR) could not tell that record from a correct
- * one. `statBonus` is gone: `contributions` is the only numeric encoding, and
- * `validateParityLogic` now fails on any record that re-introduces a second.
+ * never produces a negative maximum. `contributions` is the only numeric
+ * encoding.
  */
 export function mechMaxSPParts(
   mech: MechDerivationInput,

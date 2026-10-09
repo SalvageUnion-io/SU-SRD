@@ -11,7 +11,7 @@ export type ProvenanceLabels = {
   installed?: string
   /** Optional qualifier on the base line, e.g. 'base', 'chassis'. */
   baseDetail?: string
-  /** Optional qualifier on the contribution line, e.g. 'statBonus'. */
+  /** Optional qualifier on the contribution line, e.g. 'rules A11'. */
   installedDetail?: string
 }
 
@@ -21,10 +21,11 @@ export type ProvenanceLabels = {
  *
  * Two kinds of contribution, deliberately kept apart:
  *
- *   - `installed` is an **aggregate**: the derivation sums `statBonus` across
- *     installed items, so there is no honest per-item attribution yet. One
+ *   - `installed` is an **aggregate**: an anonymous rules-sourced addend (an
+ *     injury penalty, a crawler type bonus) with no per-item attribution. One
  *     truthful aggregate beats an invented breakdown.
- *   - `sources` are **named** — an ability, by name — and get a line each.
+ *   - `sources` are **named** — an ability or installed item, by name — and get
+ *     a line each.
  *
  * Folding the second into the first is the bug this shape exists to prevent: it
  * renders "Beefcake +7" as installed hardware.

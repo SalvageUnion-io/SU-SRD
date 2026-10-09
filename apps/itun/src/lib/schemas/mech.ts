@@ -155,7 +155,7 @@ export const MechSchema = z
     // Manual adjustments (plan 2.3, rules B2/B4/B6/B14).
     //
     // A signed amount the player entered by hand that CONTRIBUTES to the derived
-    // maximum: derived = chassis stat + Σ installed statBonus + adjustment
+    // maximum: derived = chassis stat + Σ contributions + adjustment
     // (lib/rules/derivedStats.ts). Absent means 0.
     //
     // These are NOT overrides. Until the ADR-022 amendment these fields carried
