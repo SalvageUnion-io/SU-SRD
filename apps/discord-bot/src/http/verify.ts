@@ -7,9 +7,7 @@
  *
  * ## This is the ONLY thing standing between the endpoint and the internet
  *
- * Unlike the gateway — where Discord authenticates *us* with a bot token over a
- * session we opened — an interactions endpoint is a public URL anyone can POST
- * to. Signature verification is the entire authentication story. A handler that
+ * An interactions endpoint is a public URL anyone can POST to. Signature verification is the entire authentication story. A handler that
  * skips it, or that verifies a re-serialised body rather than the exact bytes
  * received, will happily execute forged interactions.
  *

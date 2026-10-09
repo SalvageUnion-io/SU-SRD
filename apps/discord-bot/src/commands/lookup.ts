@@ -40,8 +40,8 @@ export function buildLookupMessage(
   // `su:roll:<name>` button the roll results carry.
   //
   // Primary, not Secondary: rolling is the action, and this is the one control
-  // on the message. The old row used the ↻ repeat glyph for what is a FIRST
-  // roll, which read as a re-roll of something that never happened.
+  // on the message. No ↻ repeat glyph: this is a FIRST roll, not a re-roll of
+  // something that never happened.
   const tableName = 'name' in entity && entity.name ? String(entity.name) : null
   const rollId = schemaName === 'roll-tables' && tableName ? makeCustomId('roll', tableName) : null
   if (rollId) {

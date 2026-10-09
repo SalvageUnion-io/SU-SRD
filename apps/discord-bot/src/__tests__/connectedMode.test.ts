@@ -113,10 +113,8 @@ describe('an ephemeral command', () => {
     expectContainer(followUps[0], { ephemeral: true })
     // The placeholder must still become something, or it sits on "thinking…".
     expect(edits[0]?.content).toBe('Rendered below.')
-    // Personal, so it stays with the person who asked. This used to assert
-    // that no follow-up existed at all, which was the right rule read through
-    // the wrong mechanism — both visibilities are follow-ups now, and the flag
-    // is what keeps this one private.
+    // Personal, so it stays with the person who asked. Both visibilities are
+    // follow-ups, so the flag is what keeps this one private.
     for (const followUp of followUps) {
       expect(Number(followUp.flags) & MessageFlags.Ephemeral).toBe(MessageFlags.Ephemeral)
     }

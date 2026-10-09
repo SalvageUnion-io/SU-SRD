@@ -12,7 +12,7 @@
  *
  * ## Four workerd constraints this file exists to respect
  *
- * Measured on real workerd during P2, not inferred:
+ * Measured on real workerd, not inferred:
  *
  *   1. **Module scope forbids timers, async I/O and randomness.** `new REST()`
  *      registers sweeper timers and throws outright with *"Disallowed operation
@@ -125,10 +125,10 @@ async function dispatch(
 
     // Two different repairs, because the sink can already be spent.
     //
-    // `sink.send` is a NO-OP once settled, and `deferReply` settles it. So for
-    // the commands that defer — which are exactly the ones that make a network
-    // call and can therefore throw — the old single `sink.send` here wrote
-    // nothing at all, and Discord left "<bot> is thinking…" on screen forever.
+    // `sink.send` is a NO-OP once settled, and `deferReply` settles it. The
+    // commands that defer are exactly the ones that make a network call and can
+    // therefore throw, so a `sink.send` alone would write nothing and leave
+    // "<bot> is thinking…" on screen until the interaction expired.
 
     if (sink.settled) {
       // Already deferred (or answered). The initial response is spent, so the

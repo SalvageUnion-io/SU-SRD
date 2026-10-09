@@ -154,8 +154,7 @@ function pilotStats(body: EntityBody): {
   const maxAp = pilotMaxAP(input)
   return {
     // Canonical spellings come from apps/itun/src/lib/schemas/{pilot,mech}.ts.
-    // The absent-means-FULL rule is `resolvePool` in the reference package —
-    // this used to spell it out here, as ~40 sites in the app also did.
+    // The absent-means-FULL rule is `resolvePool` in the reference package.
     // Defaulting to 0 instead would render a fresh, undamaged crew as wiped
     // out, which is precisely backwards on the one surface built to show it.
     hp: resolvePool(num(body, 'currentHP', 'currentHp') ?? undefined, maxHp),
@@ -209,8 +208,8 @@ export function ownerLabel(entity: OwnedEntity): string {
  *
  * Both mirror real TanStack routes — `/games/$gameId` and `/sheet/$kind/$id`.
  * A link that 404s is worse than no link: it reads as the app having lost the
- * thing, rather than as the bot having guessed. (`/games/$gameId` is no longer
- * a page of its own: it picks that Game on the ITUN hub at `/` and lands
+ * thing, rather than as the bot having guessed. (`/games/$gameId` is not a
+ * page of its own: it picks that Game on the ITUN hub at `/` and lands
  * there, which a bare `/` link could not do.)
  */
 export function gameUrl(webUrl: string, gameId: string): string {

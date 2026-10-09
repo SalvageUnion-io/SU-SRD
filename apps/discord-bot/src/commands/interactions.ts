@@ -87,8 +87,9 @@ export type DirectMessageOutcome = { ok: true } | { ok: false; code: number | nu
  *
  * Narrow for the same reason the command surfaces are: `http/adapter.ts`
  * (`makeButtonInteraction`) builds it from the raw message-component
- * interaction, while a test builds the members it actually uses with no cast. `user`/`channelId`/`editReply` are here because a re-roll is a roll
- * and is attributed exactly like a slash-command one.
+ * interaction, while a test builds the members it actually uses with no cast.
+ * `user`/`channelId`/`editReply` are here because a re-roll is a roll and is
+ * attributed exactly like a slash-command one.
  */
 export type CommandButtonInteraction = {
   customId: string

@@ -1,21 +1,21 @@
 /**
  * The `/su roll` surface, as a Components V2 container. Unlike the entity
- * cards (`container.ts#entityCard`), a roll authors its own blocks: a headline,
- * a body and a provenance line are not an entity's shape.
+ * cards (`container.ts#entityCard`), a roll authors its own blocks: a headline
+ * and a body are not an entity's shape.
  *
- * ## The problem this fixes
+ * ## Why the headline is never `Roll: N`
  *
- * The embed builder titled every result `outcome.label ?? \`Roll: ${roll}\``,
- * and 76 of the 96 roll tables carry no labels at all. Simulated across every
- * roll 1–20 on every table, **1,482 of 1,882 outcomes — 78.7% — rendered a
- * headline of "Roll: 14"**, with the actual result demoted to body copy. That
- * includes 54 of the 69 `standard` tables: Crawler Damage, Crawler Destruction,
- * Chimerium Exposure. Ordinary play tables, not name generators.
+ * 76 of the 96 roll tables carry no labels at all. Titling a result
+ * `outcome.label ?? \`Roll: ${roll}\`` would, across every roll 1–20 on every
+ * table, give **1,482 of 1,882 outcomes — 78.7% — a headline of "Roll: 14"**,
+ * with the actual result demoted to body copy. That includes 54 of the 69
+ * `standard` tables: Crawler Damage, Crawler Destruction, Chimerium Exposure.
+ * Ordinary play tables, not name generators.
  *
  * ## The headline rule
  *
  * Three branches, no per-table special-casing. The die leads the headline in
- * all three — it is the one number a roller looks for, and there is no longer a
+ * all three — it is the one number a roller looks for, and there is no
  * provenance line to carry it instead:
  *
  * 1. The entry has a `label` → the label is the headline, the value is the body.
@@ -30,17 +30,16 @@
  *
  * ## Why there are no block glyphs
  *
- * An earlier revision stamped the die into a plate (`▌15▐`) and marked a
- * natural 1 or 20 with a banner, both built from Unicode Block Elements. Seen
- * rendered, the plates read as bare white bars: a container's accent colours
- * its edge, **not** its text, so a TextDisplay is always default-coloured and
- * the glyphs never picked up the tier. The banner had a second problem — it
- * fired on two bands out of five, so the surface looked different depending on
- * what you rolled rather than consistent across every roll.
+ * A die stamped into a plate (`▌15▐`) or a banner on a natural 1 or 20, built
+ * from Unicode Block Elements, renders as bare white bars: a container's accent
+ * colours its edge, **not** its text, so a TextDisplay is always
+ * default-coloured and the glyphs never pick up the tier. A banner that fires on
+ * two bands out of five also makes the surface look different depending on what
+ * you rolled rather than consistent across every roll.
  *
- * The die number now stands on its own in the headline, which is where it was
- * always meant to be read, separated from the outcome by an em dash — see
- * {@link rollHeadline}. Tier is carried by the accent stripe and the word.
+ * The die number stands on its own in the headline, separated from the outcome
+ * by an em dash — see {@link rollHeadline}. Tier is carried by the accent stripe
+ * and the word.
  *
  * ## Why the tier word is Core-Mechanic-only
  *
@@ -76,8 +75,8 @@ const CORE_MECHANIC = 'Core Mechanic'
  * Derived from the authored `table.type` rather than a hand-kept list of table
  * names, so it cannot rot. The excluded shapes — `flat`, `duos`, `columns`,
  * `dramatic` — are enumerative: rolling a 1 on the Callsign Table means
- * "Sparkles", not a catastrophe, and painting it cascade red (which the embed
- * builder did, unconditionally) was active misinformation on 21 tables.
+ * "Sparkles", not a catastrophe, and painting it cascade red would be active
+ * misinformation on 21 tables.
  */
 const TIERED_TABLE_TYPES = new Set([
   'standard',
@@ -186,7 +185,7 @@ export function buildRollContainerData(
   const band = tiered ? coreRollBand(tierRoll) : null
 
   // Bare numbers. A columns table rolls twice, so both are shown separated by
-  // a middot — the provenance line that used to spell them out is gone.
+  // a middot.
   const die =
     outcome.kind === 'columns' ? `${outcome.columnRoll}·${outcome.entryRoll}` : String(outcome.roll)
 

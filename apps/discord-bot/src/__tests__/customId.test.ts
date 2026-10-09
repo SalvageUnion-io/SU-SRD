@@ -2,8 +2,8 @@
  * customId scheme tests — the stateless button plumbing behind "Roll again" /
  * "Roll on this table".
  *
- * The router (interactionCreate.test.ts) covers the happy dispatch; these pin
- * the encoding contract directly: the namespaced roundtrip, rejection of
+ * The Worker replay harness (`http/__tests__/replay.test.ts`) covers the happy
+ * dispatch; these pin the encoding contract directly: the namespaced roundtrip, rejection of
  * foreign / malformed ids, and the 100-char cap that makes `makeCustomId`
  * return null (an over-long payload must still render — just without a
  * re-roll button).

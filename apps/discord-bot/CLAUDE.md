@@ -9,8 +9,8 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#adr-005)).
 
 - **Runtime:** Bun
 - **Library:** `@discordjs/builders` (commands + Components V2),
-  `@discordjs/rest`, `discord-api-types`. **Not `discord.js`** — it was dropped
-  in the 2026-09-25 audit (AP-14); nothing here needs its gateway client.
+  `@discordjs/rest`, `discord-api-types`. **Not `discord.js`** — nothing here
+  needs its gateway client.
 - **Data:** `salvageunion-reference` workspace package (standalone, no component-lib)
 
 ## Runtime

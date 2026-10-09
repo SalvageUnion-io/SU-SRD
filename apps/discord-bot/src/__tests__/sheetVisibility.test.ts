@@ -113,11 +113,10 @@ describe('/su sheet visibility', () => {
       expect(edits.length).toBeGreaterThan(0)
       // ...and NOT to the channel.
       //
-      // This assertion used to read `followUps` had length 0, on the premise
-      // that a follow-up is how a PUBLIC result is sent. That is no longer
-      // true: a container needs the V2 flag and Discord will not toggle that
-      // onto a deferred placeholder, so BOTH visibilities are follow-ups now
-      // and the flag alone decides who sees them.
+      // A follow-up is not what makes a result PUBLIC: a container needs the
+      // V2 flag and Discord will not toggle that onto a deferred placeholder,
+      // so BOTH visibilities are follow-ups and the flag alone decides who
+      // sees them.
       //
       // So the rule is asserted directly instead, which is stronger than the
       // old shape: every message this command emits must carry Ephemeral.
