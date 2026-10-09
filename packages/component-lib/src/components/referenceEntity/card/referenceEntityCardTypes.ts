@@ -147,9 +147,6 @@ export type ReferenceEntityCardProps = {
   /** Overrides the header's top-right flavor slot. */
   rightContent?: ReactNode
   className?: string
-  /** Extra className on the card root (legacy `cardStyle`, e.g. the
-   * removable-card treatment). `className` alone covers the same case. */
-  cardStyle?: { className?: string }
   /** SEO: render the title as an `h1` (item pages) instead of the default `span`. */
   titleAs?: 'span' | 'h1'
 }

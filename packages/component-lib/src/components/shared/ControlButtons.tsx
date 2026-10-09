@@ -31,12 +31,6 @@ const VARIANT: Record<
 
 type ControlButtonsProps = {
   controls: ReferenceEntityControl[]
-  /**
-   * Retained for the caller contract. It no longer changes control SIZE — every
-   * control renders at the seam stamp's `mini` rung so a rail never mixes
-   * heights — and nothing else in this component reads density.
-   */
-  compact?: boolean
 }
 
 function ControlButton({

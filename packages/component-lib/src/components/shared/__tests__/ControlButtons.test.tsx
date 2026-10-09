@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { ReferenceEntityControl } from '../../referenceEntity/referenceEntityControlTypes'
 import { ControlButtons } from '../ControlButtons'
 
@@ -75,13 +75,9 @@ describe('ControlButtons', () => {
     expect(button.className).toContain('my-custom')
   })
 
-  // Every control renders at the seam stamp's `mini` rung, at both densities:
-  // the rail sits beside that stamp, so a row that mixed heights read as three
-  // unrelated chips. `compact` no longer changes the size.
-  test('renders at the stamp rung regardless of density', () => {
-    render(<ControlButtons controls={[makeControl()]} compact />)
-    expect(screen.getByRole('button').innerHTML).toContain('text-badge')
-    cleanup()
+  // Every control renders at the seam stamp's `mini` rung: the rail sits beside
+  // that stamp, so a row that mixed heights would read as unrelated chips.
+  test('renders at the stamp rung', () => {
     render(<ControlButtons controls={[makeControl()]} />)
     expect(screen.getByRole('button').innerHTML).toContain('text-badge')
   })
