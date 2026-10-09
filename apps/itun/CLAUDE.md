@@ -173,12 +173,8 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   never hears about. Biome enforces it inside `convex/`. Every public
   query/mutation also needs a caller in `src/` —
   `tools/check-convex-callers.ts` fails on one nobody calls.
-- **Render crashes reach Sentry through `createRoot`'s error hooks**
-  (`reactRootErrorHandlers` in `src/lib/observability.ts`), because an error a
-  boundary catches never reaches `window.onerror`. Every route has a boundary —
-  the router's `defaultErrorComponent`, with the root's full-page one as the
-  last resort (`src/components/shared/RouteErrors.tsx`) — so do not report from
-  an `errorComponent` as well, or each crash is sent twice.
+- **Render crashes are reported once, by `createRoot`'s error hooks, never from
+  an `errorComponent`**; see `.claude/rules/tanstack-router.md`.
 - **A caught error is either reported or explained — never just dropped.**
   Catching is what keeps an error away from Sentry's global handlers, so a
   `catch` must do one of three things: produce an outcome the user or caller
