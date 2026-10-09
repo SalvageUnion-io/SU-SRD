@@ -207,9 +207,9 @@ database `itun-v1`, `DB_VERSION = 19` (`src/lib/db/index.ts`), stores in
   moved on.
 
 - `makeStore(getDb, schema, storeName, opts)` (`src/lib/db/crud.ts`) parses
-  with Zod on write; reads use `schema.strip()` so a drifted record loses
-  unknown fields instead of bricking hydration. Pilot, Mech, Crawler stamp
-  `updatedAt`; SoftLink and MechPattern only `createdAt`.
+  strictly with Zod on read and write; a cached row that fails the parse is
+  skipped with a console warning and refilled from Convex. Pilot, Mech,
+  Crawler stamp `updatedAt`; SoftLink and MechPattern only `createdAt`.
 - An upgrade (`openDB`'s `upgrade`) rewrites no record: it deletes every store
   an older version created and creates the current set empty, and `ShelfSync`
   and `WiringSync` refill them from Convex on the next signed-in load. A schema
