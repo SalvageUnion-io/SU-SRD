@@ -1,13 +1,8 @@
+import { Badge, Button, buttonVariants, cn, STAMP_SEAM, Stat } from 'component-lib'
 import type { LucideIcon } from 'lucide-react'
 import { Bot, Trash2, Unlink, UserRound, Users, Warehouse } from 'lucide-react'
 import type { ElementType, ReactNode } from 'react'
 import { Fragment } from 'react'
-import { cn } from '../../utils/cn'
-import { Badge } from '../chrome/Badge'
-import { Button } from '../chrome/Button'
-import { buttonVariants } from '../chrome/buttonVariants'
-import { STAMP_SEAM } from '../chrome/stampSeam'
-import { Stat } from './Stat'
 
 /**
  * EntityRow — a header-only clickable listing ROW: the compact, one-line

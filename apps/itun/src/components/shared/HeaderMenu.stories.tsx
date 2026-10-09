@@ -1,11 +1,13 @@
+import { Avatar } from 'component-lib'
+import { color, space } from 'component-lib/design/tokens'
+import type { Story } from 'component-lib/stories/harness'
+import { Caption } from 'component-lib/stories/harness'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { color, space } from '../../design/tokens'
-import type { Story } from '../../stories/_harness'
-import { Caption } from '../../stories/_harness'
-import { Avatar } from '../chrome/Avatar'
 import { HeaderMenu } from './HeaderMenu'
+// The app loads this through index.css; the catalog loads only the library's.
+import '../../styles/headerMenu.css'
 
 export default {
   title: 'Compositions/Shell/Header Menu',

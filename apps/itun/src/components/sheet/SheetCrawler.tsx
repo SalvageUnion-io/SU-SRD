@@ -13,7 +13,7 @@
  * only because the branch wasn't a component).
  */
 
-import { EntityRow, linesFromBreakdown, VitalGauge } from 'component-lib'
+import { linesFromBreakdown, VitalGauge } from 'component-lib'
 import { useState } from 'react'
 import { crawlerMaxSPParts, pinFor, resolvePool } from 'salvageunion-reference/rules'
 import { containerOf } from '../../lib/container'
@@ -24,6 +24,7 @@ import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AppLink } from '../shared/AppLink'
+import { EntityRow } from '../shared/EntityRow'
 import { AssignPicker } from '../wiring/AssignPicker'
 import type { EconLozItem } from './CrawlerEcon'
 import { CrawlerEconFrame } from './CrawlerEcon'

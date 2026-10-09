@@ -1,8 +1,6 @@
+import { Button, cn, ModalShell } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
-import { cn } from '../../utils/cn'
-import { Button } from '../chrome/Button'
-import { ModalShell } from './ModalShell'
 
 /** Sheet tone context — picks the `.sheet--{kind}` poster theming. */
 export type WizKind = 'pilot' | 'mech' | 'crawler'

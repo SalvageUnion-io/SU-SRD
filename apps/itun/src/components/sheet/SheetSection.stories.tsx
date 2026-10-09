@@ -1,9 +1,8 @@
+import { ReferenceEntityCard, Slab } from 'component-lib'
+import type { Story } from 'component-lib/stories/harness'
+import { Caption } from 'component-lib/stories/harness'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { Story } from '../../stories/_harness'
-import { Caption } from '../../stories/_harness'
-import { Slab } from '../chrome/Slab'
-import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { CardRemoveButton, HButton, SectionManageButton, SheetPickerModal } from './SheetSection'
 
 export default {

@@ -1,5 +1,5 @@
+import type { Story } from 'component-lib/stories/harness'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { Story } from '../../stories/_harness'
 import { EntityRow } from './EntityRow'
 
 export default {

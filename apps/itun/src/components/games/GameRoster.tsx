@@ -45,7 +45,7 @@
  * `lib/games/rowActionCopy.ts` — so every surface offering them says the same.
  */
 
-import { Badge, Button, buttonVariants, EntityRow, Text, tokens } from 'component-lib'
+import { Badge, Button, buttonVariants, Text, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
@@ -68,6 +68,7 @@ import type { ColumnCreate, SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
+import { EntityRow } from '../shared/EntityRow'
 import { useConfirm } from '../shared/useConfirm'
 import { OwnerSeal } from './OwnerSeal'
 import { useRowActions } from './useRowActions'

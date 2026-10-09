@@ -106,11 +106,15 @@ Exports `.` (`src/index.ts`, the source of truth; never trust a count),
 `./design/tokens`, `./styles/index.css`, `./styles/tailwind.css`,
 `./styles/theme.css`. `src/styles/theme.css` is the one token set;
 `src/design/tokens.ts` mirrors it as a zero-import leaf for consumers with no
-stylesheet; never copy a token literal (`tokens.parity.test.ts`). Code and
-styles only one app renders live in that app (`apps/itun/src/components/`,
-`apps/srd/src/components/`, the Dashboard's `.pc-*` rules in
-`apps/itun/src/styles/dashboard/`) until a second app renders them.
-Internal on purpose: no `Tooltip`; `EntityTooltip` and `ConditionChip` are
+stylesheet; never copy a token literal (`tokens.parity.test.ts`). The library
+owns the design system: primitives (the Atoms, Containers and Foundations of
+its catalog) and the entity display system, whether one app renders them or
+two. A composition only one app renders, and its styles, live in that app
+(`apps/itun/src/components/`, `apps/srd/src/components/`, the Dashboard's
+`.pc-*` rules in `apps/itun/src/styles/dashboard/`) until a second app renders
+it. `bun run check barrel-consumers` enforces both halves: it fails an export
+no app imports, and a single-app export whose story files it under
+`Compositions/`. Internal on purpose: no `Tooltip`; `EntityTooltip` and `ConditionChip` are
 sub-parts. Customise through generic slot props and hooks that return them.
 
 ### component-lib dependencies
@@ -536,8 +540,8 @@ absolute overlay 3px), ghosted sub-header tones cannot be derived inside `Card`,
 the shells resolve the `cardClick` fallback in opposite directions (first-wins
 vs last-wins), and the entity header tells a stat cluster from flavour prose
 where `Card`'s header slot is opaque. They share `displayMode`, the controls contract,
-`CardFootMeta` and `foldStatusControl`. Grids use `EntityGrid` /
-`EntityGridRow`. Never hand-assemble a `label | value` readout: that is `Stat`
+`CardFootMeta` and `foldStatusControl`. Grids are `MasonryColumns` of ITUN's
+`EntityGridRow` cells. Never hand-assemble a `label | value` readout: that is `Stat`
 (ruleset §3.7).
 
 **Sizing:** `size` (`large | medium | small`) × `extent`

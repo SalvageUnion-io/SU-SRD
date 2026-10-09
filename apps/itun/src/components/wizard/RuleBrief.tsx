@@ -1,5 +1,5 @@
+import { SheetSectionCard } from 'component-lib'
 import type { ReactNode } from 'react'
-import { SheetSectionCard } from './SheetSectionCard'
 
 /** Per-step rule metadata carried by each wizard's step table. */
 export type StepRule = {

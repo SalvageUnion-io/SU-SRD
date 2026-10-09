@@ -1,10 +1,7 @@
+import type { AppBarNavItem, NavDrawerItem } from 'component-lib'
+import { AppBar, Badge, NavDrawer } from 'component-lib'
 import type { ElementType, ReactNode } from 'react'
 import { SRD_SITE_URL } from 'salvageunion-reference'
-import { Badge } from '../chrome/Badge'
-import type { AppBarNavItem } from './AppBar'
-import { AppBar } from './AppBar'
-import type { NavDrawerItem } from './NavDrawer'
-import { NavDrawer } from './NavDrawer'
 
 /**
  * AppHeader — the ITUN builder's masthead (app-local config over the shared

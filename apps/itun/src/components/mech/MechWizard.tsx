@@ -1,5 +1,4 @@
-import type { StepRule } from 'component-lib'
-import { RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
+import { toast } from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import {
@@ -21,7 +20,10 @@ import { EMPTY_MECH_FORM_STATE, mechFormToCreateInput } from '../../lib/wizard/m
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { GainScrapStep } from '../wizard/GainScrapStep'
 import { MechFlavorStep } from '../wizard/MechFlavorStep'
+import type { StepRule } from '../wizard/RuleBrief'
+import { RuleBrief } from '../wizard/RuleBrief'
 import { useWizardFlow } from '../wizard/useWizardFlow'
+import { WizShell, WizTracker } from '../wizard/WizShell'
 import { CraftItemsStep } from './CraftItemsStep'
 import type { ChassisPattern } from './MechChassisStep'
 import { MechChassisStep } from './MechChassisStep'

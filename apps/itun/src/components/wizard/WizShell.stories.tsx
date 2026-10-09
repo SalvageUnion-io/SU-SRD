@@ -1,5 +1,5 @@
+import type { Story } from 'component-lib/stories/harness'
 import { useState } from 'react'
-import type { Story } from '../../stories/_harness'
 import { WizShell, WizTracker } from './WizShell'
 
 export default {
@@ -9,7 +9,7 @@ export default {
 const STEPS = ['Class', 'Callsign', 'Abilities', 'Equipment', 'Review'] as const
 
 /**
- * The shared wizard skeleton (lifted from ITUN) — poster band,
+ * The wizard skeleton — poster band,
  * connector-pipe stepper rail, optional option pane, and a sticky ink action
  * pill. Layout-only: all wizard state lives in the caller. Shown mid-build on
  * the Pilot creation flow with live budget trackers and a gate note.

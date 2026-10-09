@@ -17,13 +17,14 @@
  * each wizard spreads it and adds only its own kind, copy and trackers.
  */
 
-import { OffRulesEscape, toast } from 'component-lib'
+import { toast } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { StepGateResult } from '../../lib/rules/creation'
 import { clearWizardDraft } from '../../lib/wizard/wizardDraft'
 import { useEntityStore } from '../../stores/entityStore'
 import type { AssignableType, CreateInput } from '../../stores/types'
+import { OffRulesEscape } from './OffRulesEscape'
 
 /**
  * The slice of a Zod object schema this hook uses.

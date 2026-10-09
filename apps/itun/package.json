@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@auth/core": "0.41.3",
+    "@base-ui/react": "catalog:",
     "@convex-dev/auth": "0.0.95",
     "@fontsource/barlow": "catalog:",
     "@fontsource/barlow-semi-condensed": "catalog:",
