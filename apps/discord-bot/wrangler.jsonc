@@ -69,15 +69,10 @@
     "required": ["SENTRY_DSN", "DISCORD_TOKEN", "ITUN_BOT_SECRET", "ITUN_CONVEX_SITE_URL"]
   },
 
-  // Cron Trigger for the liveness heartbeat.
-  //
-  // Every 5 minutes, matching HEARTBEAT_INTERVAL_MINUTES in
-  // `src/observability.ts` — the Sentry cron monitor's expected interval is
-  // configured against that number, so the two move together or the monitor
-  // alerts on a schedule nobody changed.
-
+  // No Cron Triggers. Empty, not absent: wrangler leaves deployed crons in
+  // place when `triggers` is omitted, and only `[]` removes them.
   "triggers": {
-    "crons": ["*/5 * * * *"]
+    "crons": []
   },
 
   "observability": {

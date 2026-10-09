@@ -1022,7 +1022,7 @@ Everything runs here ([ADR-033](#adr-033)), account
 | `su-srd` | `salvageunion.io`, `www.` | none (Static Assets) |
 | `su-itun` | `intheunionnow.com`, `www.`, `/api/snapshots/:id`, old unfurls | `ASSETS`, R2 `SNAPSHOTS` |
 | `su-assets` | `assets.salvageunion.io` | R2 `LP_ASSETS`, `IMAGES` |
-| `su-discord-bot` | Discord interactions, 5-minute cron | secrets only |
+| `su-discord-bot` | Discord interactions | secrets only |
 
 R2: `su-itun-snapshots` (read-only, never delete from it) and `su-lp-assets`.
 Zones `salvageunion.io` and `intheunionnow.com`. Previews under
@@ -3979,7 +3979,9 @@ This rule exists to be cited.
 **The Discord bot will display as permanently offline** in every server. Presence
 requires an identified gateway session, which an HTTP-interactions app never has.
 It works when invoked. `setPresence` and the `client.guilds.cache.size` liveness
-signal both go away; the latter needs rethinking rather than deleting.
+signal both go away. Liveness is the bot's `/health` (token accepted, ITUN
+configured), which `tools/smoke-production.sh` checks after every deploy and
+nightly.
 
 **The bot cutover is atomic across every server.** Gateway and HTTP interactions
 are mutually exclusive — Discord: *"you can only receive Interactions one of the
@@ -4072,8 +4074,10 @@ that can deploy production. The bar it is held to:
 - **The CI token reaches the whole personal account**, including RANDSUM's two
   Workers (see Consequences). Adding anything else to the account widens this.
 - **The bot displays permanently offline** in every server.
-- **Sentry liveness telemetry changed shape** — `client.guilds.cache.size` does
-  not exist under HTTP interactions.
+- **Bot liveness is checked daily, not continuously** — `client.guilds.cache.size`
+  does not exist under HTTP interactions, and no cron probes the bot: a revoked
+  token surfaces at the next deploy or nightly smoke of `/health`, up to a day
+  later.
 
 ### Configuration outside the repo
 

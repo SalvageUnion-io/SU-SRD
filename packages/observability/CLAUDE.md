@@ -6,7 +6,7 @@ there is no root export:
 
 | Subpath | Consumers | What it is |
 | --- | --- | --- |
-| `observability/cloudflare` | the three Workers (`apps/itun/src/worker`, `apps/su-assets`, `apps/discord-bot/src/http`) | `withObservability` wraps a Worker's default export for Sentry; `reportError`; `startCheckIn` / `finishCheckIn` for cron monitors |
+| `observability/cloudflare` | the three Workers (`apps/itun/src/worker`, `apps/su-assets`, `apps/discord-bot/src/http`) | `withObservability` wraps a Worker's default export for Sentry; `reportError` |
 | `observability/browser` | `apps/srd` and `apps/itun` (`src/lib/observability.ts`) | `createBrowserObservability` (init, capture verbs, `installChunkRecovery`) and `buildCaptureHint` — the half of the browser shim that imports **no** Sentry code |
 | `observability/vite` | both apps' Vite configs (`apps/srd/ssg/vite.config.ts`, `apps/itun/vite.config.ts`) | `sentrySourcemaps(outDir)` — the Sentry sourcemap upload, inert without `SENTRY_AUTH_TOKEN`, `hidden` maps deleted after upload |
 | `observability/worker-http` | the two asset-serving Workers | `edgeCache`, `IMMUTABLE_CACHE_CONTROL`, `BASE_SECURITY_HEADERS` |

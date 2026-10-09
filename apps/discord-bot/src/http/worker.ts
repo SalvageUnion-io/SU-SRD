@@ -33,12 +33,7 @@ import { REST } from '@discordjs/rest'
 import type { APIInteraction } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType } from 'discord-api-types/v10'
 import type { ObservabilityEnv } from 'observability/cloudflare'
-import {
-  finishCheckIn,
-  reportError,
-  startCheckIn,
-  withObservability,
-} from 'observability/cloudflare'
+import { reportError, withObservability } from 'observability/cloudflare'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons.js'
 import { commands } from '../commands/index.js'
@@ -178,15 +173,6 @@ async function dispatch(
 }
 
 /**
- * The Sentry cron monitor slug.
- *
- * The monitor is about "is the Salvage Union bot alive", not about which
- * transport answers, so the slug names the bot; changing it orphans the
- * monitor's history and starts a second one.
- */
-const HEARTBEAT_MONITOR_SLUG = 'discord-bot-heartbeat'
-
-/**
  * Deploy verification: is this Worker actually able to act as the bot?
  *
  * Answers the question a deploy cannot answer by itself. The Worker can be
@@ -271,46 +257,6 @@ async function health(env: Env): Promise<Response> {
   )
 }
 
-/**
- * The liveness signal, run from the Worker's cron trigger.
- *
- * ## Why a check-in rather than an event
- *
- * Sentry alerts on events ARRIVING, never on their absence, so an info event
- * cannot say the bot is gone. A cron monitor inverts that: silence is the
- * alarm.
- *
- * ## Why it probes Discord rather than just checking in
- *
- * A check-in that only proves "the cron fired" would go green while the bot
- * token was revoked — reporting health for a bot that answers nothing. So it
- * asks Discord the same question `/health` asks (`GET /users/@me`), and reports
- * `error` when the token is rejected. An HTTP-interactions Worker holds no
- * session to observe, so token validity IS the liveness question.
- */
-async function heartbeat(env: Env): Promise<void> {
-  const checkInId = startCheckIn(HEARTBEAT_MONITOR_SLUG)
-
-  let ok = false
-  try {
-    const res = await fetch('https://discord.com/api/v10/users/@me', {
-      headers: { authorization: `Bot ${env.DISCORD_TOKEN}` },
-    })
-    ok = res.ok
-    if (!ok) {
-      console.error('[worker] heartbeat: Discord rejected the token', res.status)
-    }
-  } catch (error) {
-    // Unreachable Discord is not a dead bot, but it is not evidence of a live
-    // one either, so it still reports `error` — a monitor that goes green on
-    // "could not check" is the failure this replaces.
-    console.error('[worker] heartbeat: could not reach Discord', error)
-    reportError(error, { fn: 'heartbeat', op: 'discord.probe' })
-  }
-
-  finishCheckIn(HEARTBEAT_MONITOR_SLUG, checkInId, ok ? 'ok' : 'error')
-}
-
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
 export default withObservability('su-discord-bot', {
   async fetch(request: Request, env: Env, ctx: ExecutionCtx): Promise<Response> {
@@ -367,15 +313,5 @@ export default withObservability('su-discord-bot', {
       timestamp: request.headers.get(TIMESTAMP_HEADER) ?? '',
     }
     return json(await dispatch(interaction, env, ctx, signed))
-  },
-
-  /**
-   * Cron entry point. Bound to the schedule in `wrangler.jsonc`; see
-   * `heartbeat` above for why this exists at all.
-   */
-  async scheduled(_event: unknown, env: Env, ctx: ExecutionCtx): Promise<void> {
-    // `waitUntil` so the check-in flushes before the isolate is torn down —
-    // the same reason the interaction path uses it.
-    ctx.waitUntil(heartbeat(env))
   },
 })
