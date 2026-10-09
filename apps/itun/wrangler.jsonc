@@ -1,42 +1,24 @@
 {
-  // intheunionnow.com — the ITUN SPA on Workers Static Assets, in
-  // single-page-application mode (ADR-033).
-  //
-  // The Worker script runs only for a miss that is not a navigation: it answers
-  // `/assets/*` and other missing files 404 and serves the shell to crawlers
-  // (see src/worker/index.ts). Every header is `public/_headers`.
+  // intheunionnow.com — the ITUN SPA on Workers Static Assets (ADR-033). The
+  // script runs only for a miss that is not a navigation (src/worker/index.ts);
+  // every header is public/_headers.
   "name": "su-itun",
 
-  // Custom domains. `www` is attached for the same reason as srd's: a hostname
-  // must be proxied before a zone-level Redirect Rule can act on it. See
-  // srd/wrangler.jsonc for why the redirect cannot live in `_redirects`.
+  // `www` is attached so the zone's Redirect Rule can act on it (ADR-033,
+  // "Configuration outside the repo").
   "routes": [
     { "pattern": "intheunionnow.com", "custom_domain": true },
     { "pattern": "www.intheunionnow.com", "custom_domain": true }
   ],
-
-  // See srd/wrangler.jsonc: declaring `routes` disables workers.dev unless it is
-  // asked for explicitly, and workers.dev is both the only pre-flip way to reach
-  // this Worker and what every smoke test in deploy-cloudflare.yml curls.
-  "workers_dev": true,
+  // The smoke list probes the custom domains only (tools/smoke-production.sh).
+  "workers_dev": false,
   "main": "src/worker/index.ts",
+  // At or below the workerd the wrangler devDependency bundles (deploy-cloudflare.yml).
   "compatibility_date": "2026-07-13",
-
-  // `nodejs_als` — AsyncLocalStorage ONLY, not the full `nodejs_compat` shim.
-  //
-  // `@sentry/cloudflare` imports `node:async_hooks` to isolate scope per
-  // request. Without a flag wrangler warns and the Worker throws at runtime.
-  //
-  // This is the narrow flag on purpose. `nodejs_compat` would pull the whole
-  // Node shim and, as apps/discord-bot/wrangler.jsonc puts it, "make it easy to
-  // reintroduce a Node-only import without noticing". Measured: `nodejs_als`
-  // alone clears the warning, so the broad flag would buy nothing.
+  // AsyncLocalStorage for @sentry/cloudflare; tools/check-observability.ts requires it.
   "compatibility_flags": ["nodejs_als"],
 
-  // Secrets this Worker cannot run correctly without. A deploy fails while one
-  // is unset (wrangler binds each as `inherit`, and the API rejects a missing
-  // one), so Sentry can never go dark here unnoticed. Set out of band with
-  // `wrangler secret put`; the value is never in this file.
+  // A deploy fails while one is unset; set with `wrangler secret put`.
   "secrets": {
     "required": ["SENTRY_DSN"]
   },
@@ -44,26 +26,10 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-
-    // A navigation (`Sec-Fetch-Mode: navigate`) that matches no file gets
-    // index.html, 200, without running the Worker — the compatibility date is
-    // past 2025-04-01. Every other miss runs the Worker, which is what keeps a
-    // rotated hashed chunk a 404 rather than HTML pinned by the `immutable`
-    // header for a year (#759).
-    //
-    // No `run_worker_first`: it would route navigations through the Worker,
-    // and `_headers` — the CSP among them — is not applied to a response the
-    // Worker builds.
+    // A navigation miss gets index.html without running the Worker; any other
+    // miss runs it, which keeps a rotated chunk a 404 (#759).
     "not_found_handling": "single-page-application"
   },
-
-  // Build-time env for the client bundle (VITE_CONVEX_URL, VITE_SENTRY_DSN,
-  // VITE_COMMIT_REF) is supplied by the GitHub Actions workflow, not here —
-  // ADR-033 §4 keeps builds in Actions because srd's build provisions Chromium.
-  //
-  // No rate limiter: the browser reaches Convex directly, so no Convex query or
-  // mutation passes through this Worker, `invites.preview` and `invites.redeem`
-  // included.
 
   "observability": {
     "enabled": true

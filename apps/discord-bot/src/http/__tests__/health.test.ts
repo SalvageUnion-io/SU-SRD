@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import type { Env } from '../worker.js'
 import worker from '../worker.js'
 
 /**

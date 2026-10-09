@@ -41,6 +41,7 @@ PROTECTED_PATTERNS=(
   "*packages/salvageunion-reference/schemas/*.json"
   "*packages/salvageunion-reference/lib/generated/*"
   "*routeTree.gen.ts"
+  "*worker-configuration.d.ts"
   "*/dist/*"
   "*tsconfig.tsbuildinfo"
   "*apps/itun/convex/_generated/*"
@@ -57,6 +58,7 @@ for pattern in "${PROTECTED_PATTERNS[@]}"; do
       echo "  JSON schemas / docs / lib/generated: edit the Zod schemas in" >&2
       echo "  packages/salvageunion-reference/lib/schemas/ and run 'bun run build:package'." >&2
       echo "  routeTree.gen.ts: TanStack Router regenerates it." >&2
+      echo "  worker-configuration.d.ts: 'bun run check generated' reruns 'wrangler types'." >&2
       echo "  bun.lock: change the manifest and let the resolver rewrite it." >&2
       echo "  tools/styling-baseline.json: run 'bun tools/check-styling.ts --update-baseline'; never edit it to make a check pass." >&2
       exit 2

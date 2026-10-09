@@ -32,7 +32,6 @@
 import { REST } from '@discordjs/rest'
 import type { APIInteraction } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType } from 'discord-api-types/v10'
-import type { ObservabilityEnv } from 'observability/cloudflare'
 import { reportError, withObservability } from 'observability/cloudflare'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons.js'
@@ -56,19 +55,6 @@ import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './ver
  * staying inside Workers Free.
  */
 await SalvageUnionReference.preload('all')
-
-export type Env = ObservabilityEnv & {
-  DISCORD_PUBLIC_KEY: string
-  DISCORD_APPLICATION_ID: string
-  DISCORD_TOKEN: string
-  /**
-   * ITUN (ADR-030 Phase 6): the Convex HTTP-actions origin (`*.convex.site`,
-   * not `*.convex.cloud` and not the web origin) and the bot's bearer
-   * credential. Both required; `/health` fails while either is missing.
-   */
-  ITUN_CONVEX_SITE_URL: string
-  ITUN_BOT_SECRET: string
-}
 
 type ExecutionCtx = { waitUntil(promise: Promise<unknown>): void }
 

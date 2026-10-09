@@ -39,6 +39,7 @@ describe('/assets/* — a miss must 404, never the shell', () => {
     const res = await worker.fetch(req('/assets/index-DEADBEEF.js'), env)
 
     expect(res.status).toBe(404)
+    expect(res.headers.get('cache-control')).toBe('no-store')
     expect(await res.text()).not.toContain('SPA')
     // Decided without the binding: there is nothing it could add.
     expect(env.ASSETS.asked).toEqual([])

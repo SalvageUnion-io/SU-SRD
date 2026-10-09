@@ -162,6 +162,26 @@ describe('asset worker — serving', () => {
     expect(bucket.asked).toEqual(['chassis/nope.webp'])
   })
 
+  it('marks every error no-store, so Workers Caching never keeps one', async () => {
+    // A cached 404 would hide a newly uploaded image for as long as it lived.
+    const down: AssetBucket = {
+      async get() {
+        throw new Error('r2 down')
+      },
+    }
+    const responses = [
+      await makeAssetHandler(() => bucketWith({}))(get('/chassis/nope.webp')),
+      await makeAssetHandler(() => bucketWith({}))(get('/chassis/mule.txt')),
+      await makeAssetHandler(() => bucketWith({}))(
+        new Request('https://assets.salvageunion.io/chassis/mule.webp', { method: 'POST' })
+      ),
+      await makeAssetHandler(() => down)(get('/chassis/mule.webp')),
+    ]
+
+    expect(responses.map((r) => r.status)).toEqual([404, 404, 405, 503])
+    for (const res of responses) expect(res.headers.get('cache-control')).toBe('no-store')
+  })
+
   it('404s when the object exists but carries no body', async () => {
     const bucket: AssetBucket = {
       async get() {

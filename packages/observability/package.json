@@ -16,10 +16,6 @@
     "./vite": {
       "types": "./src/vite.ts",
       "default": "./src/vite.ts"
-    },
-    "./worker-http": {
-      "types": "./src/workerHttp.ts",
-      "default": "./src/workerHttp.ts"
     }
   },
   "scripts": {
