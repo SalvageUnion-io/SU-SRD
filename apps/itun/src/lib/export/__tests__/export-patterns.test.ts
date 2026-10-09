@@ -5,6 +5,7 @@
  * fake-indexeddb/auto is preloaded via bunfig.toml.
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { must } from '../../../components/__tests__/must'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
@@ -107,7 +108,7 @@ describe('parseImportBundle — legacy compatibility', () => {
   test('a pre-rename bundle (mech cargo: string[], no mechPatterns/encounterNpcs) still imports', () => {
     const legacyBundle = {
       schemaVersion: 1,
-      exportedAt: '2026-01-01T00:00:00.000Z',
+      exportedAt: FIXTURE_NOW,
       entities: {
         pilots: [],
         mechs: [
@@ -120,8 +121,8 @@ describe('parseImportBundle — legacy compatibility', () => {
             modules: [],
             cargo: ['Salvaged plating'],
             conditions: [],
-            createdAt: '2026-01-01T00:00:00.000Z',
-            updatedAt: '2026-01-01T00:00:00.000Z',
+            createdAt: FIXTURE_NOW,
+            updatedAt: FIXTURE_NOW,
           },
         ],
         crawlers: [],
@@ -142,7 +143,7 @@ describe('parseImportBundle — legacy compatibility', () => {
   test('legacy patterns with cargo arrays are normalized too', () => {
     const legacyBundle = {
       schemaVersion: 1,
-      exportedAt: '2026-01-01T00:00:00.000Z',
+      exportedAt: FIXTURE_NOW,
       entities: { pilots: [], mechs: [], crawlers: [] },
       workspaces: [],
       softLinks: [],
@@ -155,7 +156,7 @@ describe('parseImportBundle — legacy compatibility', () => {
           systems: [],
           modules: [],
           cargo: ['fuel-cell'],
-          createdAt: '2026-01-01T00:00:00.000Z',
+          createdAt: FIXTURE_NOW,
         },
       ],
     }

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, setSystemTime, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import { staleWriteOf } from '../../src/lib/connection/staleWrite'
-import { makeUser } from './assignmentFixtures'
+import { makeUser, pilotBody } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -16,25 +16,6 @@ import { testConvex } from './harness'
  * and **a missing row is created rather than dropped**, which is what makes the
  * mirror converge for entities built while Solo and claimed afterwards.
  */
-
-function pilotBody(over: Record<string, unknown> = {}) {
-  return {
-    id: 'local-uuid-1',
-    schemaVersion: 1,
-    name: 'Roach-Boy',
-    callsign: 'Roach-Boy',
-    classRef: 'salvager',
-    abilities: [],
-    equipment: [],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    conditions: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...over,
-  }
-}
 
 describe('upsertByAppId', () => {
   test('creates when no row carries that app id', async () => {

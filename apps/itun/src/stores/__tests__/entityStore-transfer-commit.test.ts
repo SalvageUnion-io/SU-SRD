@@ -13,6 +13,7 @@
  */
 
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
 import { _resetDbSingleton, clearCache } from '../../lib/db/index'
 import type { TransferRemoval, TransferWrite } from '../entityBackend'
 import { withSignedInBackend } from './signedInBackend'
@@ -134,7 +135,7 @@ describe('transferArgs', () => {
             type: 'mech-to-pilot',
             from: { type: 'mech', id: 'm1' },
             to: { type: 'pilot', id: 'p1' },
-            createdAt: '2026-01-01T00:00:00.000Z',
+            createdAt: FIXTURE_NOW,
           },
         },
         // Half a link has nothing to address and is dropped.

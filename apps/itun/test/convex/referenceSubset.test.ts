@@ -2,8 +2,8 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { nameToSlug, resetAllForTesting, SalvageUnionReference } from 'salvageunion-reference'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import type { Ctx, User } from './assignmentFixtures'
-import { addCrawler, link, mechBody, pilotBody, ref, seedTable } from './assignmentFixtures'
+import type { Ctx, User } from './fixtures'
+import { addCrawler, link, mechBody, pilotBody, ref, seedTable } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -56,7 +56,7 @@ async function seedPilots(player: User, organizer: User, gameId: Id<'games'>) {
       appId: id,
       gameId,
       body: {
-        ...pilotBody(id, gameId),
+        ...pilotBody({ id, gameId }),
         classRef: nameToSlug(cls.name),
         abilities: abilities.filter((a) => trees.has(a.tree)).map((a) => nameToSlug(a.name)),
       },
@@ -89,7 +89,7 @@ async function seedMechs(player: User, gameId: Id<'games'>, pilotIds: string[]) 
       appId: id,
       gameId,
       body: {
-        ...mechBody(id, gameId),
+        ...mechBody({ id, gameId }),
         chassisRef: nameToSlug(c.name),
         systems,
         modules,

@@ -65,6 +65,32 @@
     {
       "path": "./tools/biome/noBareCleanupHook.grit",
       "includes": ["**/*.test.ts", "**/*.test.tsx"]
+    },
+    {
+      "path": "./tools/biome/noTestReferencePreload.grit",
+      "includes": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        // Each of these asserts on load behaviour itself: it resets the ORM
+        // and re-preloads on purpose, so the shared preload is the thing under
+        // test rather than the thing being duplicated.
+        // Narrow schema lists render identically.
+        "!**/apps/srd/src/lib/__tests__/schemaPreloadDeps.test.tsx",
+        // Convex functions run on only the schemas the deployment installs.
+        "!**/apps/itun/test/convex/referenceSubset.test.ts",
+        // The preload API is the unit under test.
+        "!**/packages/salvageunion-reference/lib/preload.test.ts",
+        // preload() invalidates the search index and result cache.
+        "!**/packages/salvageunion-reference/lib/search.test.ts"
+      ]
+    },
+    {
+      "path": "./tools/biome/noLiveClockFixture.grit",
+      "includes": ["**/apps/itun/**/*.test.ts", "**/apps/itun/**/*.test.tsx"]
+    },
+    {
+      "path": "./tools/biome/noPartialModelPatch.grit",
+      "includes": ["**/*.test.ts", "**/*.test.tsx"]
     }
   ],
   "files": {

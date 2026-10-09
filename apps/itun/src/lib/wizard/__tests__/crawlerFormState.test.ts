@@ -1,6 +1,7 @@
 /** Unit tests for the crawler wizard form-state mappers (plan 3.1). */
 import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { CrawlerSchema } from '../../schemas/crawler'
 import {
   crawlerFormCrewToPatches,
@@ -98,8 +99,8 @@ describe('crawlerFormToCreateInput', () => {
     const parsed = CrawlerSchema.safeParse({
       ...input,
       id: 'temp',
-      createdAt: '2026-01-01T00:00:00.000Z',
-      updatedAt: '2026-01-01T00:00:00.000Z',
+      createdAt: FIXTURE_NOW,
+      updatedAt: FIXTURE_NOW,
     })
     expect(parsed.success).toBe(true)
   })
@@ -154,8 +155,8 @@ describe('crawlerFormToCreateInput', () => {
     const parsed = CrawlerSchema.safeParse({
       ...input,
       id: 'temp',
-      createdAt: '2026-01-01T00:00:00.000Z',
-      updatedAt: '2026-01-01T00:00:00.000Z',
+      createdAt: FIXTURE_NOW,
+      updatedAt: FIXTURE_NOW,
     })
     expect(parsed.success).toBe(true)
   })

@@ -12,7 +12,7 @@ import {
   moveOwnable,
   ref,
   seedTable,
-} from './assignmentFixtures'
+} from './fixtures'
 import { testConvex } from './harness'
 
 /**

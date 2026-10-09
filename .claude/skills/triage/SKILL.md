@@ -59,7 +59,7 @@ For every step, use the first route that works and record which one you used:
    `robots.txt` by body, and that CSP and HSTS actually reach the browser.
    `cloudflare-observability` (MCP) gives Worker errors and logs on top.
 
-   Green `deploy-*` jobs with a red `smoke` job mean the code shipped and something
+   Green `deploy` legs with a red `smoke` job mean the code shipped and something
    about routing, headers or a zone rule did not — that is a finding, not noise.
 
 4. **Dependency and security PRs**

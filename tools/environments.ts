@@ -31,7 +31,12 @@
  *     hole;
  *   - with `--secrets-from-env`: none of the Environment secrets is readable
  *     in this process (CI maps them into a job that has NO environment, so a
- *     non-empty value can only be a repository- or organisation-level copy).
+ *     non-empty value can only be a repository- or organisation-level copy);
+ *   - the `main` branch ruleset carries exactly `MAIN_RULESET`: its target,
+ *     no bypass actors, its rule types, its required status contexts (strict,
+ *     each from GitHub Actions) and its code-scanning gate. `check-workflows.ts`
+ *     (`aggregator`) reads the same declaration to know which workflows the
+ *     ruleset waits on. The ruleset is owner-applied; `--apply` never edits it.
  *
  * Listing secret names needs a token with admin read on the repo: the owner's
  * `gh` has it, Actions' GITHUB_TOKEN does not. A check the token cannot make is
@@ -69,6 +74,50 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
     secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN'],
   },
 ]
+
+/** A `code_scanning` rule entry: which tool's results gate a merge, and at what severity. */
+export type CodeScanningSpec = {
+  tool: string
+  security_alerts_threshold: string
+  alerts_threshold: string
+}
+
+export type RulesetSpec = {
+  name: string
+  /** `conditions.ref_name.include`; nothing is excluded and no actor bypasses. */
+  include: readonly string[]
+  /** Every rule type the ruleset carries. */
+  rules: readonly string[]
+  /** `required_status_checks` contexts, each from GitHub Actions, strict (up to date with the base). */
+  requiredChecks: readonly string[]
+  /** `code_scanning` tools: blocking a merge on a finding is this rule's job, not a status. */
+  codeScanning: readonly CodeScanningSpec[]
+}
+
+/** The GitHub Actions app: the only source a required context is taken from. */
+export const ACTIONS_APP_ID = 15368
+
+/**
+ * The `main` branch ruleset. CodeQL gates through `code_scanning` alone: its
+ * job's own status (`Analyze (javascript-typescript)`) passes once the analysis
+ * uploads, whatever it found, so requiring it too added nothing but a second
+ * name to keep in step.
+ */
+export const MAIN_RULESET: RulesetSpec = {
+  name: 'main',
+  include: ['~DEFAULT_BRANCH'],
+  rules: [
+    'deletion',
+    'non_fast_forward',
+    'required_linear_history',
+    'required_status_checks',
+    'code_scanning',
+  ],
+  requiredChecks: ['CI Success', 'PR title is a conventional commit'],
+  codeScanning: [
+    { tool: 'CodeQL', security_alerts_threshold: 'high_or_higher', alerts_threshold: 'errors' },
+  ],
+}
 
 /** Secrets allowed at repository level, readable from any branch. Keep it empty. */
 export const REPOSITORY_SECRETS: readonly string[] = []
@@ -194,6 +243,76 @@ export function compare(
   return { failures, notRun, ran }
 }
 
+/** A ruleset as the API reports it, reduced to what the declaration states. */
+export type LiveRuleset = {
+  name: string
+  enforcement: string
+  include: string[]
+  exclude: string[]
+  /** null when the token may not see bypass actors. */
+  bypassActors: number | null
+  rules: string[]
+  requiredChecks: { context: string; integration_id?: number }[]
+  strict: boolean
+  codeScanning: CodeScanningSpec[]
+}
+
+/**
+ * Pure comparison of a declared ruleset against the live one. `null` means the
+ * token could not list rulesets; `undefined` that no ruleset has the name.
+ */
+export function compareRuleset(spec: RulesetSpec, have: LiveRuleset | null | undefined): Verdict {
+  const failures: string[] = []
+  const what = `ruleset \`${spec.name}\``
+  if (have === null)
+    return { failures, notRun: [`${what} (this token cannot read rulesets)`], ran: [] }
+  if (have === undefined) {
+    return {
+      failures: [`${what} does not exist — create it as tools/environments.ts declares`],
+      notRun: [],
+      ran: [],
+    }
+  }
+  if (have.enforcement !== 'active') failures.push(`${what} is \`${have.enforcement}\`, not active`)
+  if (!same(have.include, spec.include) || have.exclude.length > 0) {
+    failures.push(
+      `${what} targets include [${have.include.join(', ')}] exclude [${have.exclude.join(', ')}], ` +
+        `declared include [${spec.include.join(', ')}] and no exclusions`
+    )
+  }
+  if (have.bypassActors !== null && have.bypassActors > 0)
+    failures.push(`${what} has ${have.bypassActors} bypass actor(s); it declares none`)
+  if (!same(have.rules, spec.rules)) {
+    failures.push(
+      `${what} carries rules [${sorted(have.rules).join(', ')}], declared [${sorted(spec.rules).join(', ')}]`
+    )
+  }
+  const contexts = have.requiredChecks.map((c) => c.context)
+  if (!same(contexts, spec.requiredChecks)) {
+    failures.push(
+      `${what} requires [${sorted(contexts).join(', ')}], declared ` +
+        `[${sorted(spec.requiredChecks).join(', ')}]`
+    )
+  }
+  for (const c of have.requiredChecks.filter((c) => c.integration_id !== ACTIONS_APP_ID)) {
+    failures.push(
+      `${what} takes \`${c.context}\` from ${c.integration_id ?? 'any source'}, not GitHub Actions ` +
+        `(${ACTIONS_APP_ID}) — any app could post it`
+    )
+  }
+  if (spec.requiredChecks.length > 0 && !have.strict)
+    failures.push(`${what} does not require branches to be up to date before merging`)
+  const key = (t: CodeScanningSpec) =>
+    `${t.tool}:${t.security_alerts_threshold}:${t.alerts_threshold}`
+  if (!same(have.codeScanning.map(key), spec.codeScanning.map(key))) {
+    failures.push(
+      `${what} code scanning is [${have.codeScanning.map(key).join(', ')}], declared ` +
+        `[${spec.codeScanning.map(key).join(', ')}]`
+    )
+  }
+  return { failures, notRun: [], ran: [`${what}: rules, required checks, code scanning`] }
+}
+
 // ─── live reads and writes (gh api) ─────────────────────────────────────────
 
 export type GhResult =
@@ -282,6 +401,41 @@ export function readLive(
   }
 }
 
+type ApiRule = { type: string; parameters?: Record<string, unknown> }
+type ApiRuleset = {
+  id: number
+  name: string
+  enforcement: string
+  conditions?: { ref_name?: { include?: string[]; exclude?: string[] } }
+  bypass_actors?: unknown[]
+  rules?: ApiRule[]
+}
+
+/** The named branch ruleset, `undefined` when none has the name, `null` when unreadable. */
+export function readRuleset(name: string, api: GhApi = gh): LiveRuleset | null | undefined {
+  const list = api([`repos/${REPO}/rulesets?per_page=100`])
+  if (!list.ok && (list.status === 403 || list.status === 404)) return null
+  const id = (must(list, 'GET rulesets') as ApiRuleset[]).find((r) => r.name === name)?.id
+  if (id === undefined) return undefined
+  const r = must(api([`repos/${REPO}/rulesets/${id}`]), `GET ruleset ${name}`) as ApiRuleset
+  const rules = r.rules ?? []
+  const params = (type: string) => rules.find((x) => x.type === type)?.parameters ?? {}
+  const checks = params('required_status_checks')
+  return {
+    name: r.name,
+    enforcement: r.enforcement,
+    include: r.conditions?.ref_name?.include ?? [],
+    exclude: r.conditions?.ref_name?.exclude ?? [],
+    bypassActors: r.bypass_actors ? r.bypass_actors.length : null,
+    rules: rules.map((x) => x.type),
+    requiredChecks:
+      (checks.required_status_checks as LiveRuleset['requiredChecks'] | undefined) ?? [],
+    strict: checks.strict_required_status_checks_policy === true,
+    codeScanning:
+      (params('code_scanning').code_scanning_tools as CodeScanningSpec[] | undefined) ?? [],
+  }
+}
+
 /** Create/update each declared Environment and its branch policies. Never touches secrets. */
 export function apply(api: GhApi = gh): string[] {
   const done: string[] = []
@@ -324,19 +478,19 @@ function main() {
   if (args.has('--apply')) {
     for (const line of apply()) console.log(`applied  ${line}`)
   }
-  const verdict = compare(
-    ENVIRONMENTS,
-    REPOSITORY_SECRETS,
-    readLive(args.has('--secrets-from-env'))
-  )
-  for (const line of verdict.ran) console.log(`checked  ${line}`)
-  for (const line of verdict.notRun) console.log(`not run  ${line}`)
-  if (verdict.failures.length) {
-    console.error(`\n${verdict.failures.length} drift(s) from tools/environments.ts:`)
-    for (const f of verdict.failures) console.error(`  - ${f}`)
+  const verdicts = [
+    compare(ENVIRONMENTS, REPOSITORY_SECRETS, readLive(args.has('--secrets-from-env'))),
+    compareRuleset(MAIN_RULESET, readRuleset(MAIN_RULESET.name)),
+  ]
+  const failures = verdicts.flatMap((v) => v.failures)
+  for (const line of verdicts.flatMap((v) => v.ran)) console.log(`checked  ${line}`)
+  for (const line of verdicts.flatMap((v) => v.notRun)) console.log(`not run  ${line}`)
+  if (failures.length) {
+    console.error(`\n${failures.length} drift(s) from tools/environments.ts:`)
+    for (const f of failures) console.error(`  - ${f}`)
     process.exit(1)
   }
-  console.log(`\n${REPO}: GitHub Environments match tools/environments.ts`)
+  console.log(`\n${REPO}: Environments and the \`main\` ruleset match tools/environments.ts`)
 }
 
 if (import.meta.main) main()

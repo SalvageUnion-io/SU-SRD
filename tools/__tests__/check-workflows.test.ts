@@ -15,6 +15,7 @@ import {
   toolIsPinned,
   WORKFLOW_CHECKS,
 } from '../check-workflows'
+import { MAIN_RULESET } from '../environments'
 
 /**
  * `tools/check-workflows.ts` — seven merge-gating invariants over `.github/`.
@@ -65,6 +66,7 @@ jobs:
           # bunx not-a-call-this-is-a-comment
           echo "quality-checks:"
   quality-checks:
+    name: CI Success
     needs:
       - changes
       - build
@@ -262,11 +264,25 @@ describe('aggregator', () => {
     )
   })
 
-  test('a separately-required workflow that is gone fails', () => {
+  test('a workflow the ruleset still waits on that is gone fails', () => {
     const c = ctx({ missing: ['.github/workflows/codeql.yml'] })
     expect(checkAggregator(c).failures.join('\n')).toContain('codeql.yml is missing')
     const title = ctx({ missing: ['.github/workflows/pr-title.yml'] })
     expect(checkAggregator(title).failures.join('\n')).toContain('pr-title.yml is missing')
+  })
+
+  test('the declared ruleset must require the aggregate gate by its name', () => {
+    const ruleset = { ...MAIN_RULESET, requiredChecks: ['PR title is a conventional commit'] }
+    expect(checkAggregator(ctx({}), {}, ruleset).failures).toEqual([
+      expect.stringContaining('does not require `CI Success`'),
+    ])
+  })
+
+  test('a required context no known workflow produces fails', () => {
+    const ruleset = { ...MAIN_RULESET, requiredChecks: ['CI Success', 'Mystery'] }
+    expect(checkAggregator(ctx({}), {}, ruleset).failures.join('\n')).toContain(
+      'waits on `Mystery`, which no workflow is known to produce'
+    )
   })
 })
 

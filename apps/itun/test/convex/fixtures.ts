@@ -1,21 +1,40 @@
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
+import { crawlerFixture, mechFixture, pilotFixture } from '../../src/components/__tests__/fixtures'
 import type { testConvex } from './harness'
 
 /**
- * Shared setup for the Convex suites: `makeUser` (every suite's identity-bound
- * user) and, for the assignment-model suites (ADR-037), a Game with a second
- * member plus pilots / mechs / crawlers written through the same mutations the
- * client store calls, so every row carries the `appId` the links address it by.
+ * Setup for the Convex suites: identity-bound users, a seeded Game, sheet
+ * bodies, and pilots / mechs / crawlers / links written through the same
+ * mutations the client store calls, so every row carries the `appId` the links
+ * address it by (ADR-037).
+ *
+ * The bodies are ITUN's entity fixtures (`src/components/__tests__/fixtures.ts`,
+ * stamped with its `FIXTURE_NOW`) with the ids and names these suites assert
+ * on, so a suite never keeps its own copy of a sheet that drifts from the
+ * schema while the shared one is held to it.
  */
 
 export type Ctx = ReturnType<typeof testConvex>
 export type User = Awaited<ReturnType<typeof makeUser>>
 
-export async function makeUser(t: Ctx, name: string) {
-  const userId = await t.run(
-    async (ctx) => await ctx.db.insert('users', { name, displayName: name })
-  )
+/**
+ * A user and a client signed in as them. `discordId` also seeds the
+ * `authAccounts` row `@convex-dev/auth` writes on a real Discord sign-in, which
+ * is what the bot resolves a Discord user against.
+ */
+export async function makeUser(t: Ctx, name: string, discordId?: string) {
+  const userId = await t.run(async (ctx) => {
+    const id = await ctx.db.insert('users', { name, displayName: name })
+    if (discordId !== undefined) {
+      await ctx.db.insert('authAccounts', {
+        userId: id,
+        provider: 'discord',
+        providerAccountId: discordId,
+      })
+    }
+    return id
+  })
   return { userId, as: t.withIdentity({ subject: userId }) }
 }
 
@@ -29,54 +48,23 @@ export async function seedTable(t: Ctx) {
   return { organizer, player, gameId }
 }
 
-const TS = '2026-01-01T00:00:00.000Z'
+/** Any field, including ones a stored body carries that the schema type omits (`gameId`). */
+type Over = Record<string, unknown>
 
-export function pilotBody(id: string, gameId: string | null) {
-  return {
-    id,
-    schemaVersion: 1,
-    name: `Pilot ${id}`,
-    callsign: id,
-    classRef: 'salvager',
-    abilities: [],
-    equipment: [],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    conditions: [],
-    gameId,
-    createdAt: TS,
-    updatedAt: TS,
-  }
+/** A pilot sheet, `p1` "Roach-Boy" the Salvager unless `over` says otherwise. */
+export function pilotBody(over: Over = {}) {
+  const base = { id: 'p1', name: 'Roach-Boy', callsign: 'Roach-Boy', classRef: 'salvager' }
+  return { ...pilotFixture(base), ...over }
 }
 
-export function mechBody(id: string, gameId: string | null) {
-  return {
-    id,
-    schemaVersion: 1,
-    name: `Mech ${id}`,
-    chassisRef: 'iron-mongrel',
-    systems: [],
-    modules: [],
-    cargoLots: [],
-    conditions: [],
-    gameId,
-    createdAt: TS,
-    updatedAt: TS,
-  }
+/** A mech sheet, `m1` on an Iron Mongrel unless `over` says otherwise. */
+export function mechBody(over: Over = {}) {
+  return { ...mechFixture({ id: 'm1', name: 'Mech m1', chassisRef: 'iron-mongrel' }), ...over }
 }
 
-export function crawlerBody(id: string, gameId: string | null, name = `Crawler ${id}`) {
-  return {
-    id,
-    schemaVersion: 1,
-    name,
-    techLevel: '1',
-    systems: [],
-    gameId,
-    createdAt: TS,
-    updatedAt: TS,
-  }
+/** A crawler sheet, `c1` "#430" at tech level 1 unless `over` says otherwise. */
+export function crawlerBody(over: Over = {}) {
+  return { ...crawlerFixture({ id: 'c1', name: '#430', techLevel: '1' }), ...over }
 }
 
 /** A pilot through the client's own write path (`upsertByAppId`). */
@@ -85,7 +73,7 @@ export async function addPilot(user: User, id: string, gameId: Id<'games'> | nul
     table: 'pilots',
     appId: id,
     gameId,
-    body: pilotBody(id, gameId),
+    body: pilotBody({ id, gameId, name: `Pilot ${id}`, callsign: id }),
     expectedUpdatedAt: null,
   })
 }
@@ -96,7 +84,7 @@ export async function addMech(user: User, id: string, gameId: Id<'games'> | null
     table: 'mechs',
     appId: id,
     gameId,
-    body: mechBody(id, gameId),
+    body: mechBody({ id, gameId, name: `Mech ${id}` }),
     expectedUpdatedAt: null,
   })
 }
@@ -106,7 +94,7 @@ export async function addCrawler(user: User, id: string, gameId: Id<'games'> | n
   return await user.as.mutation(api.entities.createCrawler, {
     gameId,
     appId: id,
-    body: crawlerBody(id, gameId),
+    body: crawlerBody({ id, gameId, name: `Crawler ${id}` }),
   })
 }
 
@@ -121,7 +109,10 @@ export async function moveOwnable(
     table,
     appId: id,
     gameId,
-    body: table === 'pilots' ? pilotBody(id, gameId) : mechBody(id, gameId),
+    body:
+      table === 'pilots'
+        ? pilotBody({ id, gameId, name: `Pilot ${id}`, callsign: id })
+        : mechBody({ id, gameId, name: `Mech ${id}` }),
     expectedUpdatedAt: null,
   })
 }

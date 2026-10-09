@@ -2,17 +2,8 @@ import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import { STALE_WRITE_REFUSAL } from '../../src/lib/connection/staleWrite'
 import { makeUnitLot } from '../../src/lib/schemas/cargoLot'
-import type { Ctx } from './assignmentFixtures'
-import {
-  addCrawler,
-  addMech,
-  addPilot,
-  allLinks,
-  link,
-  mechBody,
-  ref,
-  seedTable,
-} from './assignmentFixtures'
+import type { Ctx } from './fixtures'
+import { addCrawler, addMech, addPilot, allLinks, link, mechBody, ref, seedTable } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -52,7 +43,7 @@ async function seedHold(holder: 'organizer' | 'player') {
     table: 'mechs',
     appId: 'm1',
     gameId,
-    body: { ...mechBody('m1', gameId), cargoLots: [CRATE] },
+    body: { ...mechBody({ id: 'm1', gameId }), cargoLots: [CRATE] },
     expectedUpdatedAt: null,
   })
   /** The stow, mech first: the order the refusal used to split. */
@@ -62,7 +53,7 @@ async function seedHold(holder: 'organizer' | 'player') {
         table: 'mechs' as const,
         appId: 'm1',
         gameId,
-        body: { ...mechBody('m1', gameId), cargoLots: [] },
+        body: { ...mechBody({ id: 'm1', gameId }), cargoLots: [] },
         expectedUpdatedAt: updatedAt,
       },
       { table: 'crawlers' as const, appId: 'c1', patch: { cargoLots: [CRATE] } },
@@ -137,7 +128,7 @@ describe('entities.transfer', () => {
             table: 'mechs',
             appId: 'm1',
             gameId,
-            body: { ...mechBody('m1', gameId), cargoLots: [] },
+            body: { ...mechBody({ id: 'm1', gameId }), cargoLots: [] },
             expectedUpdatedAt: null,
           },
         ],

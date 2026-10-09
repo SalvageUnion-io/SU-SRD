@@ -14,23 +14,24 @@ name: Deploy (Cloudflare)
 # passed CI as that PR (docs/ARCHITECTURE.md#ci-repository-settings).
 #
 # ---------------------------------------------------------------------------
-# SHAPE: plan -> build-* -> push-convex -> deploy-* -> smoke -> record (CI-12)
+# SHAPE: plan -> build-* -> push-convex -> deploy -> smoke -> record (CI-12)
 # ---------------------------------------------------------------------------
 #
-#   plan       provenance, the deploy set, every credential guard, and a dry-run
-#              bundle of every Worker. Holds no artifact; fails before anything
-#              is built.
+#   plan       provenance, the deploy set and every credential guard. Holds no
+#              artifact; fails before anything is built. Each Worker's bundle
+#              was already proved by its CI build job on the merged PR.
 #   build-srd  / build-itun   one job per surface that HAS a build, in
 #              parallel. Each uploads the exact `dist` it produced. Neither
 #              pushes anything anywhere.
-#   og-srd     renders srd's OG images into build-srd's `dist`. Best-effort, so
-#              only `deploy-srd` waits for it.
+#   og-srd     renders srd's OG images into build-srd's `dist`. Best-effort:
+#              a failed render keeps the default og:image.
 #   push-convex  the Convex backend push, only once EVERY build is green, and
 #              before any traffic moves.
-#   deploy-*   one job per surface, in parallel, and NONE starts until EVERY
-#              build job has finished green and the backend push (when itun
-#              ships) succeeded. Each ships the artifact its build job
-#              uploaded — nothing is rebuilt between build and deploy.
+#   deploy     one matrix job, a leg per surface in the deploy set, in
+#              parallel, and NO leg starts until EVERY build job has finished
+#              green and the backend push (when itun ships) succeeded. Each leg
+#              ships the artifact its build job uploaded — nothing is rebuilt
+#              between build and deploy.
 #   smoke      the production smoke list, once, after every deploy.
 #   record     moves `deployed/cloudflare`, only after smoke passed.
 #
@@ -39,7 +40,7 @@ name: Deploy (Cloudflare)
 # commit and itun on the old — a partial deploy nobody chose. Now every build
 # finishes before any traffic moves, and the two long builds overlap.
 # `tools/check-workflows.ts` (deploy-order) asserts that ordering, so a future
-# edit cannot quietly let one deploy job run ahead of a build.
+# edit cannot quietly let the deploy run ahead of a build.
 #
 # WHY THE ARTIFACTS ARE BUILT HERE AND NOT TAKEN FROM CI'S RUN. The audit's
 # first suggestion was to deploy the `dist` CI already built for the PR.
@@ -137,7 +138,11 @@ jobs:
     # workflow.
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: production
+    # The Environment's secrets, for the guards below, without recording a
+    # deployment: nothing ships from this job.
+    environment:
+      name: production
+      deployment: false
     timeout-minutes: 15
     outputs:
       sha: ${{ steps.target.outputs.sha }}
@@ -148,13 +153,12 @@ jobs:
       # of an older merge's deploy): a newer commit already shipped. Nothing
       # builds or deploys, and `record` must not move the tag back.
       stale: ${{ steps.surfaces.outputs.stale }}
-      assets: ${{ steps.surfaces.outputs.assets }}
-      srd: ${{ steps.surfaces.outputs.srd }}
-      itun: ${{ steps.surfaces.outputs.itun }}
-      bot: ${{ steps.surfaces.outputs.bot }}
+      # A JSON array of the app directories to ship, `[]` on a stale run: the
+      # deploy matrix.
+      deploy: ${{ steps.surfaces.outputs.deploy }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Nothing in this job pushes, and the tree it checks out runs
           # `bun install` before any secret step — so no token is left in
@@ -225,37 +229,6 @@ jobs:
           ${{ inputs.force_all && '--force-all' || '' }}
           ${{ github.event_name == 'workflow_dispatch' && '--allow-backwards' || '' }}
 
-      # Bundle every Worker before anything is built, let alone shipped.
-      #
-      # `--dry-run` needs no credential and takes seconds, so a Worker SCRIPT
-      # that will not bundle fails the run here, before the two long builds
-      # spend twenty minutes producing artifacts nothing can ship.
-      - name: Bundle every Worker before building anything
-        if: steps.surfaces.outputs.stale != 'true'
-        run: |
-          set -euo pipefail
-          # itun's Worker declares `assets.directory: ./dist`, and wrangler
-          # refuses to bundle when that directory is missing — which it is here,
-          # because nothing has been built yet.
-          #
-          # That combination once broke every deploy: `✘ The directory specified
-          # by the "assets.directory" field in your configuration file does not
-          # exist`. The guard was added ahead of the build it depends on, so it
-          # failed closed on a healthy tree — at the one moment nobody was
-          # reading deploy logs, because CI on the PR had been green.
-          #
-          # An empty placeholder is the right shape rather than a workaround.
-          # What this step exists to catch is a Worker SCRIPT that will not
-          # bundle; the static assets are the separate artifact `build-itun`
-          # produces. This job's workspace is discarded, so the placeholder
-          # never reaches production.
-          mkdir -p apps/itun/dist
-          for app in su-assets itun discord-bot; do
-            echo "--- bundling $app"
-            bun --filter "$app" worker:bundle --outdir "/tmp/predeploy-$app"
-          done
-          echo "All Worker bundles produced. srd declares no main (Static Assets only)."
-
       # ---------------------------------------------------------------------
       # The guards. Before anything is built.
       # ---------------------------------------------------------------------
@@ -312,18 +285,20 @@ jobs:
   # ===========================================================================
   #
   # su-assets and the bot have no build: wrangler bundles their Worker source
-  # at deploy time, and `plan` has already proved both bundles.
+  # at deploy time, as CI's build-su-assets and build-discord-bot did.
 
   # srd — static. Its OG images are `og-srd`'s job, below.
   build-srd:
     needs: plan
-    if: needs.plan.outputs.stale != 'true' && needs.plan.outputs.srd == 'true'
+    if: contains(fromJSON(needs.plan.outputs.deploy), 'srd')
     runs-on: ubuntu-latest
-    environment: production
+    environment:
+      name: production
+      deployment: false
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ needs.plan.outputs.sha }}
@@ -356,7 +331,7 @@ jobs:
       # `include-hidden-files`: the artifact is what ships, byte for byte, so
       # it must not silently drop a dotfile the build emitted.
       - name: Upload the srd build
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: srd-build
           path: apps/srd/dist/
@@ -365,15 +340,15 @@ jobs:
           retention-days: 7
 
   # srd's OG images, rendered into build-srd's `dist` and re-uploaded as the
-  # artifact `deploy-srd` ships. The render never fails (a missing browser or a
-  # wedged page keeps the default og:image), so nothing but `deploy-srd` waits.
+  # artifact the deploy's srd leg ships. The render never fails (a missing
+  # browser or a wedged page keeps the default og:image).
   og-srd:
     needs: [plan, build-srd]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ needs.plan.outputs.sha }}
@@ -383,7 +358,7 @@ jobs:
 
       # The same key as ci.yml's, so either workflow's save serves both.
       - name: Cache Playwright browsers
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
@@ -409,14 +384,14 @@ jobs:
           echo "data=$DATA" >> "$GITHUB_OUTPUT"
 
       - name: Cache the OG renders
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: apps/srd/node_modules/.cache/srd-og
           key: srd-og-${{ steps.og-key.outputs.render }}-${{ steps.og-key.outputs.data }}
           restore-keys: srd-og-${{ steps.og-key.outputs.render }}-
 
       - name: Download the srd build
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: srd-build
           path: apps/srd/dist
@@ -429,7 +404,7 @@ jobs:
         run: bun scripts/og-screenshots.ts
 
       - name: Upload the srd artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: srd-dist
           path: apps/srd/dist/
@@ -440,13 +415,15 @@ jobs:
   # itun — builds against the production Convex URL. Pushes nothing.
   build-itun:
     needs: plan
-    if: needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true'
+    if: contains(fromJSON(needs.plan.outputs.deploy), 'itun')
     runs-on: ubuntu-latest
-    environment: production
+    environment:
+      name: production
+      deployment: false
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ needs.plan.outputs.sha }}
@@ -485,7 +462,7 @@ jobs:
           fi
 
       - name: Upload the itun artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: itun-dist
           path: apps/itun/dist/
@@ -499,10 +476,10 @@ jobs:
   #
   # Order is the whole point. The backend must never be BEHIND the served
   # client (that is what broke players in 2026-08), so it is pushed before
-  # `deploy-itun` can run. And it must not be pushed by a run that ends up
+  # the deploy's itun leg can run. And it must not be pushed by a run that ends up
   # shipping nothing, so it waits for both builds — an srd build failure now
   # stops the push exactly as it stops every deploy. Between this job and
-  # `deploy-itun` the backend leads the served client for a minute or two,
+  # the itun leg the backend leads the served client for a minute or two,
   # which the backend must tolerate anyway: every open tab keeps running the
   # previous client for as long as it stays open.
   #
@@ -512,13 +489,13 @@ jobs:
   # command fails, `convex deploy` stops before pushing, and nothing ships.
   push-convex:
     needs: [plan, build-srd, build-itun]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true' }}
+    if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.deploy), 'itun') }}
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ needs.plan.outputs.sha }}
@@ -531,7 +508,7 @@ jobs:
       # rather than set as a deployment variable so it moves atomically with
       # them: a push that removes a function an older client still calls also
       # tells that client, through its `build.floor` subscription, to stop
-      # writing and reload once `deploy-itun` serves the new shell.
+      # writing and reload once the itun leg serves the new shell.
       - name: Write the build floor
         working-directory: apps/itun
         env:
@@ -557,62 +534,50 @@ jobs:
         run: bunx convex deploy --cmd-url-env-var-name CANONICAL_CONVEX_URL --cmd "$URL_GUARD"
 
   # ===========================================================================
-  # Deploys — one job per surface, in parallel, after EVERY build is green and
-  # the backend push (if itun ships) succeeded.
+  # The deploy — one matrix leg per surface in the deploy set, in parallel,
+  # after EVERY build is green and the backend push (if itun ships) succeeded.
   # ===========================================================================
   #
-  # Each deploy job `needs` both build jobs and the push, not just its own:
-  # a failed itun build must stop srd shipping too, or the run leaves
-  # production half on the new commit. A job that was SKIPPED (its surface did
-  # not change) is not a failure, which is why these use `!cancelled() &&
-  # !failure()` rather than the implicit `success()` — the implicit form checks
-  # every ancestor and would skip every deploy whenever any surface was
-  # unchanged.
+  # The job `needs` both build jobs, srd's OG pass and the push, not just what
+  # one leg ships: a failed itun build must stop srd shipping too, or the run
+  # leaves production half on the new commit. A job that was SKIPPED (its
+  # surface did not change) is not a failure, which is why this uses
+  # `!cancelled() && !failure()` rather than the implicit `success()` — the
+  # implicit form checks every ancestor and would skip the deploy whenever any
+  # surface was unchanged. An empty deploy set (nothing changed, or a stale
+  # run) skips the job: a matrix over an empty array is an error, not a no-op.
+  # So does a `plan` that did not succeed, whose output is not JSON at all.
   #
-  # wrangler is one root devDependency, so every `bun run deploy` below runs
-  # the version bun.lock resolved — audited and behind the 3-day release-age
-  # gate — rather than a `bunx wrangler@x.y.z` fetched outside the lockfile.
-  # Bumping it moves all four together; keep `compatibility_date` in the four
+  # `fail-fast: false`: one leg failing must not cancel another mid-upload, for
+  # the same reason the concurrency group never cancels a deploy.
+  #
+  # wrangler is one root devDependency, so every `bun run deploy` runs the
+  # version bun.lock resolved — audited and behind the 3-day release-age gate —
+  # rather than a `bunx wrangler@x.y.z` fetched outside the lockfile. Bumping it
+  # moves all four together; keep `compatibility_date` in the four
   # wrangler.jsonc files at or below the workerd it bundles.
   #
   # The three scripted Workers (su-assets, itun, discord-bot) deploy with
   # `--var SENTRY_RELEASE:<sha>`: @sentry/cloudflare reads it from env as the
   # release, so Worker events carry the same SHA as the browser bundles and
-  # their sourcemaps. srd is assets-only and runs no Worker code.
-
-  # su-assets — no build step; the Worker is its own source.
-  deploy-su-assets:
-    needs: [plan, build-srd, build-itun, push-convex]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.assets == 'true' }}
+  # their sourcemaps. srd is assets-only and runs no Worker code. su-assets and
+  # the bot have no build: wrangler bundles their Worker source here. Discord's
+  # Interactions Endpoint URL points at the bot's Worker, so this is the bot's
+  # only deploy path; its secrets (DISCORD_TOKEN and friends) are wrangler
+  # secrets set out of band, and a deploy does not touch them.
+  deploy:
+    needs: [plan, build-srd, og-srd, build-itun, push-convex]
+    if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && needs.plan.outputs.deploy != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.plan.outputs.deploy) }}
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-          ref: ${{ needs.plan.outputs.sha }}
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Deploy su-assets
-        working-directory: apps/su-assets
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          DEPLOYED_SHA: ${{ needs.plan.outputs.sha }}
-        run: bun run deploy -- --var "SENTRY_RELEASE:$DEPLOYED_SHA"
-
-  deploy-srd:
-    needs: [plan, build-srd, build-itun, push-convex, og-srd]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.srd == 'true' }}
-    runs-on: ubuntu-latest
-    environment: production
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ needs.plan.outputs.sha }}
@@ -621,80 +586,34 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       - name: Download the srd artifact
-        uses: actions/download-artifact@v8
+        if: matrix.app == 'srd'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: srd-dist
           path: apps/srd/dist
-
-      - name: Deploy srd
-        working-directory: apps/srd
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bun run deploy
-
-  deploy-itun:
-    needs: [plan, build-srd, build-itun, push-convex]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true' }}
-    runs-on: ubuntu-latest
-    environment: production
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-          ref: ${{ needs.plan.outputs.sha }}
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
 
       # The Worker script is bundled by wrangler from this checkout; the static
       # assets it serves are the artifact `build-itun` compiled against the
       # backend `push-convex` pushed.
       - name: Download the itun artifact
-        uses: actions/download-artifact@v8
+        if: matrix.app == 'itun'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: itun-dist
           path: apps/itun/dist
 
-      - name: Deploy itun
-        working-directory: apps/itun
+      - name: Deploy
+        working-directory: apps/${{ matrix.app }}
         env:
+          APP: ${{ matrix.app }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           DEPLOYED_SHA: ${{ needs.plan.outputs.sha }}
-        run: bun run deploy -- --var "SENTRY_RELEASE:$DEPLOYED_SHA"
-
-  # discord-bot
-  #
-  # Discord's Interactions Endpoint URL points at this Worker, so every merge
-  # that touches the bot ships it here; there is no other deploy path.
-  #
-  # No build step — wrangler bundles `src/http/worker.ts` directly.
-  #
-  # Secrets (DISCORD_TOKEN and friends) are wrangler secrets set out of band
-  # and are NOT touched by a deploy, so this cannot clobber them.
-  deploy-discord-bot:
-    needs: [plan, build-srd, build-itun, push-convex]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.bot == 'true' }}
-    runs-on: ubuntu-latest
-    environment: production
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-          ref: ${{ needs.plan.outputs.sha }}
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Deploy discord-bot
-        working-directory: apps/discord-bot
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          DEPLOYED_SHA: ${{ needs.plan.outputs.sha }}
-        run: bun run deploy -- --var "SENTRY_RELEASE:$DEPLOYED_SHA"
+        run: |
+          if [ "$APP" = srd ]; then
+            bun run deploy
+          else
+            bun run deploy -- --var "SENTRY_RELEASE:$DEPLOYED_SHA"
+          fi
 
   # ===========================================================================
   # Post-deploy smoke. Cheap, and it is the only thing that knows whether what
@@ -709,7 +628,7 @@ jobs:
   # the same checks on a schedule, catching a regression that happens
   # between deploys (a DNS record, a Redirect Rule, a rotated bot token).
   smoke:
-    needs: [plan, deploy-su-assets, deploy-srd, deploy-itun, deploy-discord-bot]
+    needs: [plan, deploy]
     if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && needs.plan.outputs.stale != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -720,7 +639,7 @@ jobs:
       # `deployed/cloudflare` naming a commit production no longer serves.
       # The script needs nothing but curl, so only it is checked out.
       - name: Checkout the smoke list
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ github.workflow_sha }}
@@ -751,7 +670,7 @@ jobs:
     #
     # The explicit status functions are load-bearing. A bare `if:` gets an
     # implicit `success()`, which at job level checks EVERY ancestor — and a
-    # skipped build-*/deploy-* job (an unchanged surface) makes it false. The
+    # skipped build job or deploy (an unchanged surface) makes it false. The
     # record then moved only when all four surfaces shipped, so a newer
     # srd-only deploy left it behind, and an older commit's later run was
     # not "stale" and shipped its srd over the newer one: a silent
@@ -763,7 +682,7 @@ jobs:
       contents: write
     steps:
       - name: Move the deployed/cloudflare tag to the deployed commit
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           DEPLOYED_SHA: ${{ needs.plan.outputs.sha }}
         with:

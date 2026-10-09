@@ -25,12 +25,12 @@ const root = join(import.meta.dir, '..')
  * gain; lowering one is a decision to state in the PR, not a way to go green.
  */
 const FLOORS: Readonly<Record<string, number>> = {
-  'packages/salvageunion-reference': 94.5,
-  'packages/component-lib': 86.5,
-  'apps/srd': 94.5,
-  'apps/itun': 88.5,
-  'apps/discord-bot': 94.5,
-  'apps/su-assets': 80.5,
+  'packages/salvageunion-reference': 96,
+  'packages/component-lib': 92.5,
+  'apps/srd': 96.5,
+  'apps/itun': 91.5,
+  'apps/discord-bot': 95,
+  'apps/su-assets': 89.5,
   'packages/observability': 99.5,
   tools: 82.5,
 }

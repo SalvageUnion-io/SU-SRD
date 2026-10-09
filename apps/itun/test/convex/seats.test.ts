@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import type { Ctx, User } from './assignmentFixtures'
-import { addMech, addPilot, makeUser, mechBody, moveOwnable, seedTable } from './assignmentFixtures'
+import type { Ctx, User } from './fixtures'
+import { addMech, addPilot, makeUser, mechBody, moveOwnable, seedTable } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -294,7 +294,7 @@ describe('refusals', () => {
       table: 'mechs',
       appId: 'm1',
       gameId,
-      body: { ...mechBody('m1', gameId), destroyed: true },
+      body: { ...mechBody({ id: 'm1', gameId }), destroyed: true },
       expectedUpdatedAt: null,
     })
     await expect(

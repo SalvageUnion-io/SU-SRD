@@ -18,13 +18,8 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
 import { api } from '../../../convex/_generated/api'
-import type { Ctx, User } from '../../../test/convex/assignmentFixtures'
-import {
-  addCrawler,
-  crawlerBody,
-  mechBody,
-  seedTable,
-} from '../../../test/convex/assignmentFixtures'
+import type { Ctx, User } from '../../../test/convex/fixtures'
+import { addCrawler, crawlerBody, mechBody, seedTable } from '../../../test/convex/fixtures'
 import { testConvex } from '../../../test/convex/harness'
 import { _resetDbSingleton, clearCache } from '../../lib/db/index'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
@@ -89,7 +84,7 @@ async function seedHold(holder: 'organizer' | 'player', mechLots: CargoLot[], ba
   const user = table[holder]
   const { gameId } = table
   await addCrawler(table.organizer, 'c1', gameId)
-  const crawler = { ...crawlerBody('c1', gameId), cargoLots: bayLots } as Crawler
+  const crawler = { ...crawlerBody({ id: 'c1', gameId }), cargoLots: bayLots } as Crawler
   if (bayLots.length > 0) {
     await table.organizer.as.mutation(api.entities.patchCrawlerByAppId, {
       appId: 'c1',
@@ -97,7 +92,11 @@ async function seedHold(holder: 'organizer' | 'player', mechLots: CargoLot[], ba
     })
   }
   // Room in the hold for a load, whatever the fixture chassis carries.
-  const mech = { ...mechBody('m1', gameId), cargoLots: mechLots, maxCargoModifier: 6 } as Mech
+  const mech = {
+    ...mechBody({ id: 'm1', gameId }),
+    cargoLots: mechLots,
+    maxCargoModifier: 6,
+  } as Mech
   await user.as.mutation(api.entities.upsertByAppId, {
     table: 'mechs',
     appId: 'm1',

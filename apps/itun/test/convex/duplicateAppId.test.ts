@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
-import { makeUser } from './assignmentFixtures'
+import { makeUser, pilotBody } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -23,25 +23,6 @@ import { testConvex } from './harness'
  * the oldest row and logs, and the write lands. Prevention closes the front
  * door; this makes the failure survivable if anything ever opens it again.
  */
-
-function pilotBody(over: Record<string, unknown> = {}) {
-  return {
-    id: 'p1',
-    schemaVersion: 1,
-    name: 'Babe',
-    callsign: 'Babe',
-    classRef: 'salvager',
-    abilities: [],
-    equipment: [],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    conditions: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...over,
-  }
-}
 
 describe('byAppId tolerates duplicate rows', () => {
   test('an edit still lands when two rows share an appId', async () => {

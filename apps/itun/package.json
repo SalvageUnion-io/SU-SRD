@@ -8,6 +8,7 @@
     "dev": "VITE_TEST_AUTH=true convex dev --start vite",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
+    "preview": "wrangler dev",
     "test": "bun test --parallel=4 --no-isolate",
     "clean": "rm -rf dist .vite node_modules/.vite",
     "deploy": "wrangler deploy",

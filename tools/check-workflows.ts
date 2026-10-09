@@ -10,9 +10,12 @@
  * shaped like YAML; a real parse cannot be.
  *
  *   aggregator    `CI Success` (`quality-checks` in ci.yml) `needs:` every job
- *                 in ci.yml. It is the one required status check, and it can
- *                 only fail on a job it needs — a job missing from that list
- *                 still runs, still goes red, and cannot block a merge.
+ *                 in ci.yml. It is ci.yml's one required status check, and it
+ *                 can only fail on a job it needs — a job missing from that
+ *                 list still runs, still goes red, and cannot block a merge.
+ *                 The `main` ruleset declared in tools/environments.ts must
+ *                 require it, and every other gate that ruleset waits on must
+ *                 have its workflow on disk.
  *   path-filters  every `workspace:*` dependency of an app is covered by the
  *                 ci.yml filter group gating that app's build job. `CI Success`
  *                 treats a skipped job as a pass, so an uncovered dependency
@@ -60,8 +63,8 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { EnvironmentSpec } from './environments'
-import { ENVIRONMENTS, SECRET_SENTINEL } from './environments'
+import type { EnvironmentSpec, RulesetSpec } from './environments'
+import { ENVIRONMENTS, MAIN_RULESET, SECRET_SENTINEL } from './environments'
 
 type Yaml = Record<string, unknown>
 
@@ -145,16 +148,16 @@ const executable = (script: string): string =>
 export const AGGREGATOR = 'quality-checks'
 
 /**
- * Required status contexts in OTHER workflows, which `needs:` cannot reach.
- * Their workflow files must exist: deleting one while its context is still
- * required leaves every PR waiting on a check that never arrives. Each must
- * also be listed in the `main` ruleset (docs/ARCHITECTURE.md#ci-repository-settings);
- * this check cannot see the ruleset.
+ * The workflow behind each gate the `main` ruleset (`MAIN_RULESET` in
+ * tools/environments.ts) holds outside ci.yml: a required status context that
+ * `needs:` cannot reach, or a code-scanning tool. Deleting the workflow while
+ * the ruleset still waits on it leaves every PR waiting on a result that never
+ * arrives.
  */
-const SEPARATELY_REQUIRED = [
-  { context: 'Analyze (javascript-typescript)', workflow: '.github/workflows/codeql.yml' },
-  { context: 'PR title is a conventional commit', workflow: '.github/workflows/pr-title.yml' },
-] as const
+const GATE_WORKFLOWS: Record<string, string> = {
+  'PR title is a conventional commit': '.github/workflows/pr-title.yml',
+  CodeQL: '.github/workflows/codeql.yml',
+}
 
 /** Jobs deliberately left out of the gate, each with a reason. Empty, and the bar is high. */
 const UNGATED_BY_DESIGN: Record<string, string> = {}
@@ -184,7 +187,8 @@ function ancestorsOf(jobs: Yaml, job: string): Set<string> {
 
 export function checkAggregator(
   ctx: WorkflowContext,
-  exempt: Record<string, string> = UNGATED_BY_DESIGN
+  exempt: Record<string, string> = UNGATED_BY_DESIGN,
+  ruleset: RulesetSpec = MAIN_RULESET
 ): CheckResult {
   const doc = file(ctx, CI)
   if (!doc) return { ok: '', failures: [`${CI} is missing`] }
@@ -222,18 +226,34 @@ export function checkAggregator(
     if (needs.has(job))
       failures.push(`\`${job}\` is exempted as ungated but IS gated — drop the exemption.`)
   }
-  for (const { context, workflow } of SEPARATELY_REQUIRED) {
-    if (!ctx.exists(workflow)) {
+  const gate = doc.jobs[AGGREGATOR]
+  const gateName = isObject(gate) && typeof gate.name === 'string' ? gate.name : AGGREGATOR
+  if (!ruleset.requiredChecks.includes(gateName)) {
+    failures.push(
+      `the \`${ruleset.name}\` ruleset in tools/environments.ts does not require \`${gateName}\` — ` +
+        'the aggregate gate would block nothing.'
+    )
+  }
+  const others = [
+    ...ruleset.requiredChecks.filter((c) => c !== gateName),
+    ...ruleset.codeScanning.map((t) => t.tool),
+  ]
+  for (const other of others) {
+    const workflow = GATE_WORKFLOWS[other]
+    if (!workflow) {
       failures.push(
-        `${workflow} is missing, but \`${context}\` is still treated as a required status ` +
-          'context. Restore it, or drop it from SEPARATELY_REQUIRED in the change that removes it ' +
-          'from the ruleset.'
+        `the \`${ruleset.name}\` ruleset waits on \`${other}\`, which no workflow is known to ` +
+          'produce — add it to GATE_WORKFLOWS in tools/check-workflows.ts.'
+      )
+    } else if (!ctx.exists(workflow)) {
+      failures.push(
+        `${workflow} is missing, but the \`${ruleset.name}\` ruleset still waits on \`${other}\`. ` +
+          'Restore it, or drop the gate from MAIN_RULESET in the change that removes it from the ruleset.'
       )
     }
   }
-  const others = SEPARATELY_REQUIRED.map((r) => r.context).join(', ')
   return {
-    ok: `\`${AGGREGATOR}\` gates all ${jobs.length - 1} jobs in ${CI} (also required separately: ${others})`,
+    ok: `\`${AGGREGATOR}\` gates all ${jobs.length - 1} jobs in ${CI} (the ruleset also waits on: ${others.join(', ')})`,
     failures,
   }
 }

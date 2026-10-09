@@ -21,5 +21,10 @@
     // dist/404.html with a 404 status. Not SPA mode: srd is pre-rendered, so a
     // miss is genuinely a miss.
     "not_found_handling": "404-page"
-  }
+  },
+
+  // `bun run preview` (`wrangler dev`) serves the built `dist/` exactly as
+  // above on the dev server's port: the e2e suite's CI server, and the one
+  // `scripts/og-screenshots.ts` renders through.
+  "dev": { "port": 4321 }
 }

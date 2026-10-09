@@ -1,7 +1,7 @@
 {
   "$rationale": {
     "why-a-baseline-at-all": "ITUN had never been scanned. These are the anonymous routes a build with no Convex backend can render — the same build the PR-blocking smoke specs run against — scanned at desktop and as a phone. The scan blocks on anything not listed here, and on an entry that stops firing.",
-    "color-contrast": "ACCEPTED DEBT — the signed-out Roster lists the Starter Set, so `/` (and `/games`, which renders it) now shows entity rows to the scan. A row's title is paper on its domain tone, the entity card's title rule (`EntityRow`, `EntityCardHeader`): 2.4:1 on pilot orange, where 16px bold wants 4.5:1. It is the same book-tone question `packages/component-lib/src/design/contrast.test.ts` records for the card headers, and every signed-in roster has carried it unscanned."
+    "color-contrast": "ACCEPTED DEBT — the signed-out Roster lists the Starter Set, so `/` (and `/starter`, the Starter Set itself) shows entity rows to the scan. A row's title is paper on its domain tone, the entity card's title rule (`EntityRow`, `EntityCardHeader`): 2.4:1 on pilot orange, where 16px bold wants 4.5:1. It is the same book-tone question `packages/component-lib/src/design/contrast.test.ts` records for the card headers, and every signed-in roster has carried it unscanned."
   },
   "pages": {
     "/": ["color-contrast"],
@@ -12,7 +12,6 @@
     "/crawlers/new": [],
     "/mechs/patterns": [],
     "/settings": [],
-    "/account": [],
-    "/games": ["color-contrast"]
+    "/starter": ["color-contrast"]
   }
 }
