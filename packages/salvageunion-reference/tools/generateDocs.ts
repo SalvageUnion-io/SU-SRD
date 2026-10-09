@@ -256,7 +256,6 @@ function main() {
   generateSchemaIndex(schemas)
 
   console.log('\n✨ Documentation generation complete!')
-  console.log('\n💡 Tip: Use the snippets in .docs-snippets/ to update documentation files')
 }
 
 main()

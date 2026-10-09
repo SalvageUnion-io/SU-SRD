@@ -7,9 +7,8 @@ import { SalvageUnionReference } from './gameData'
  * `llms.txt`: the first chassis by slug.
  *
  * Deterministic on purpose: picking "whatever is first in the file" would move
- * the examples on unrelated data edits. Derived, never typed out, because a
- * hand-written example slug is how both surfaces once linked a chassis that
- * does not exist.
+ * the examples on unrelated data edits. Derived, never typed out, so the
+ * example always names a chassis the build emits.
  *
  * Call it inside a page or endpoint body, never at module scope: the
  * `noModuleScopeReferenceCall` Biome plugin forbids a `SalvageUnionReference`

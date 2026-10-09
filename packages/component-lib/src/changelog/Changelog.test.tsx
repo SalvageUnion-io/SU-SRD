@@ -14,14 +14,14 @@ describe('Changelog', () => {
       {
         date: '2026-07-20',
         version: '1.2.3',
-        area: 'Data',
+        area: 'Site',
         items: ['Added a chassis', 'Fixed a typo'],
       },
     ]
     render(<Changelog entries={entries} />)
     expect(screen.getByText('v1.2.3')).toBeTruthy()
     expect(screen.getByText('2026-07-20')).toBeTruthy()
-    expect(screen.getByText('Data')).toBeTruthy()
+    expect(screen.getByText('Site')).toBeTruthy()
     expect(screen.getByText('Added a chassis')).toBeTruthy()
     expect(screen.getByText('Fixed a typo')).toBeTruthy()
   })
@@ -30,7 +30,7 @@ describe('Changelog', () => {
     // The listing composes the shared card shell, so it inherits the card
     // language (seam stamp, frame weight, header band) instead of restating it.
     const entries: ChangelogEntry[] = [
-      { date: '2026-07-20', version: '1.2.3', area: 'Data', items: ['Added a chassis'] },
+      { date: '2026-07-20', version: '1.2.3', area: 'Site', items: ['Added a chassis'] },
     ]
     const { container } = render(<Changelog entries={entries} />)
     const frame = container.querySelector('li > div')
@@ -47,7 +47,7 @@ describe('Changelog', () => {
       {
         date: '2026-07-23',
         version: '2.5.0',
-        area: 'Data',
+        area: 'Site',
         items: ['chassis patterns get their own pages ([#518](https://example.com/issues/518))'],
       },
     ]

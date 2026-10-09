@@ -5,14 +5,10 @@ import { SITE_URL } from '../constants'
 import { getEntitySchemas } from '../gameData'
 
 /**
- * The public JSON API holds to its own published contract.
- *
- * It did not: `/schema/<id>.json` re-serialised the models, so every row
- * carried the `schemaName` that `BaseModel` stamps on it, and every
- * `/schema/<id>.schema.json` forbids that key — 4 of 4 sampled datasets failed
- * their own schema. Each schema's `$id` named a host that does not serve it, and
- * `llms.txt` taught an item URL that 404'd. These read the endpoints exactly as
- * the build emits them.
+ * The public JSON API holds to its own published contract: every dataset and
+ * item validates against its emitted schema, each schema's `$id` is the URL
+ * that serves it, and every `/schema/` URL `llms.txt` teaches is one the build
+ * emits. These read the endpoints exactly as the build emits them.
  */
 
 const outputs = new Map(
