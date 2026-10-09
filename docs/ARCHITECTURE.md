@@ -4792,7 +4792,8 @@ governing rule asked of a link that can no longer serve what it served before.
   resolves duplicates the way `entities.byAppId` does. Where an id was duplicated
   across accounts, an old link could land on a different owner's sheet — but only
   one that owner chose to make public, so nothing private is disclosed.
-  `maintenance.dedupeAppIds` is the repair.
+  Collapsing a duplicate is a one-off repair run from the Convex dashboard's
+  function runner, like every other repair.
 - **The browser cache still holds old answers.** `GET /api/snapshots/:id` used to
   return the whole blob with a year-long `immutable` Cache-Control. The client
   therefore reads either shape (`snapshotIdentity`), so a browser that opened a
@@ -4982,10 +4983,8 @@ lists only what would be accepted.
 
 #### Existing data
 
-`maintenance.repairSoftLinks` (dry run by default) deletes duplicates,
-cross-container links and cardinality losers (the newest surviving assignment
-wins), re-files the rest, then backfills `mech-to-crawler` for every mech whose
-pilot crews a crawler in its container.
+Rows written before these rules were brought into line by a one-off repair,
+run once against production and deleted (#1132).
 
 ### Consequences
 
@@ -5001,8 +5000,6 @@ pilot crews a crawler in its container.
 - `listWiring` reads the caller's own pilots and mechs to find their links, so
   it re-runs on their edits. The reconcile is idempotent and writes nothing
   when nothing changed.
-- Until `repairSoftLinks` runs after the deploy, a mech that reached its bay
-  through its pilot shows undocked.
 - A Game that predates `primaryCrawlerId` has its oldest crawler as primary;
   the first crawler event there writes that down. Nobody already in such a
   Game is auto-assigned — the backfill runs only when a Game gets its first
