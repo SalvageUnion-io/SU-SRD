@@ -271,7 +271,7 @@ Playwright smoke and bundle-budget specs, and the axe-core scan.
 
 1. `vite build` (client only). Entries: `src/runtime/islands.client.ts` and
    `src/runtime/styles.entry.ts`. Emit `manifest: true`. Keep the existing
-   `react-vendor` manualChunks rule and the deliberate NON-chunking of
+   `react-vendor` `codeSplitting` group and the deliberate NON-chunking of
    `salvageunion-reference` (its JSON data must stay dynamically split).
 2. Read `dist/.vite/manifest.json` -> entry JS + CSS urls.
 3. Enumerate routes from `ssg/routes.ts`; render each with `ssg/render.tsx`.
