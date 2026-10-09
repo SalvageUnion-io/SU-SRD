@@ -4,7 +4,7 @@
  * ## Why it imports the SDK directly
  *
  * wrangler bundles with esbuild, which resolves workspace packages normally, so
- * this module imports `@sentry/cloudflare` itself and the three Workers get it
+ * this module imports `@sentry/cloudflare` itself and the four Workers get it
  * through one dependency declared in one place — a runtime `dependency` of this
  * package, not a devDependency (audit PK-07).
  *
@@ -84,7 +84,7 @@ type ExecutionContext = {
 /**
  * Wrap a Worker's default export so unhandled errors reach Sentry.
  *
- * `serverName` is the Worker's wrangler `name`: all three Workers report into
+ * `serverName` is the Worker's wrangler `name`: all four Workers report into
  * the one `workers` Sentry project, and `server_name` is what tells them apart.
  *
  * With no `SENTRY_DSN` the SDK initialises disabled: the Worker runs exactly as
