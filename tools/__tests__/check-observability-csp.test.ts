@@ -41,6 +41,8 @@ const CHECKED_FILES = [
   'apps/srd/src/lib/observability.ts',
   'apps/srd/src/runtime/islands.client.ts',
   'apps/srd/public/_headers',
+  'apps/srd/wrangler.jsonc',
+  'apps/srd/src/worker/index.ts',
   'apps/itun/src/lib/observability.ts',
   'apps/itun/src/main.tsx',
   'apps/itun/wrangler.jsonc',
