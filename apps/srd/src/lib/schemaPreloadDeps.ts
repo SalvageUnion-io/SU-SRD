@@ -35,13 +35,7 @@
  *   - `ability-tree-requirements`: `resolveClassRequirements`
  *     (referenceEntity/card/entityCardTone.ts) resolves a hybrid class's
  *     prerequisite trees during render, via a LazyModel lookup keyed on the
- *     class name. This entry previously cited
- *     `extractReferenceEntityDetails` (referenceEntityDataExtraction.ts),
- *     which was deleted as dead — its only importer was its own test, and it
- *     had become a second, divergent implementation of this same lookup. The
- *     BUNDLE MEMBERSHIP IS UNCHANGED and still required: the live consumer
- *     reads the same schema, so dropping it here would throw on any class
- *     card.
+ *     class name. Dropping it here would throw on any class card.
  *   - `traits` / `keywords`: `[[trait]]` bracket refs in free text
  *     (`traits`), and structured `DataValue` entries of type `'trait'` /
  *     `'keyword'` (`DataValueDisplayView.tsx`, via `TraitKeywordDisplayView`).

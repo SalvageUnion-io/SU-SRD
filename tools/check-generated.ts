@@ -12,13 +12,10 @@
  *
  * ## Why one tool
  *
- * This used to be checked three different ways. Local `check:schemas` ran
- * `git diff` only, so a generator that emitted a NEW file passed locally and
- * failed in CI, whose inline step also listed untracked files. And the route
- * tree was checked only inline in CI's `build-itun` job, after a full Vite
- * build — never by `bun run check`, never on pre-push. Three spellings of one
- * question answered it three ways. CI, lefthook and `bun run check` now all run
- * this file.
+ * CI, lefthook and `bun run check` all run this file, so one question gets one
+ * answer everywhere: a `git diff` alone would pass a generator that emits a NEW
+ * file, so untracked files count too, and the route tree is regenerated without
+ * a full Vite build so pre-push can afford it.
  *
  * ## What it does, in order
  *

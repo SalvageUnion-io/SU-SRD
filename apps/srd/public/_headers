@@ -55,9 +55,8 @@
 # Every other image is a FIXED name replaced in place when it changes: the
 # og:image and manifest icons, the favicons, the header logos, and the
 # per-entity `*.og.png` unfurls that `og:generate` rewrites whenever the tile
-# rendering changes. These used to match `/*.png` … `/*.svg` as `immutable` for
-# a year, so a changed icon could never reach a returning visitor. itun's
-# `_headers` made the same call for the same reason.
+# rendering changes. Marking them `immutable` would mean a changed icon never
+# reaches a returning visitor; itun's `_headers` makes the same call.
 #
 # One hour, then a day of stale-while-revalidate: a change arrives within the
 # hour, and nobody waits on a revalidation to see an icon.

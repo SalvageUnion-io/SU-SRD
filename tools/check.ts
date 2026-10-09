@@ -9,13 +9,10 @@
  *
  * ## Why it exists
  *
- * There used to be three hand-kept lists, and they disagreed. `validate:all`
- * was an 11-step `&&` chain, so the first failure hid every result after it —
- * a Bun-version mismatch masked nine other checks. `check:tokens`,
- * `check:styling` and `check:ci-aggregator` sat outside that chain and were
- * listed again in `check`, again in `ci.yml` and again in `lefthook.yml`, and
- * pre-push had quietly never run the CI-aggregator gate. A gate that exists in
- * one list and not another is a gate some path skips.
+ * One registry, read by `bun run check`, pre-push and CI: a gate that exists
+ * in one hand-kept list and not another is a gate some path skips. Every check
+ * runs and reports, so one failure never hides the results after it (an `&&`
+ * chain would).
  *
  * ## Profiles
  *
