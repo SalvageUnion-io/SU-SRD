@@ -43,6 +43,18 @@ describe('a deployment without ITUN_TEST_AUTH has exactly one door', () => {
   })
 })
 
+describe('the Discord provider declares its issuer', () => {
+  test("issuer is Discord's own, so the callback's `iss` check passes", () => {
+    // Discord appends the RFC 9207 `iss` parameter to its authorization
+    // response. With no issuer declared, @convex-dev/auth compares it against a
+    // placeholder and every sign-in fails — logged, never thrown, so it is
+    // invisible to Sentry. The value is the `issuer` in Discord's
+    // `/.well-known/openid-configuration`.
+    const discord = providersFor(false)[0] as { issuer?: string }
+    expect(discord.issuer).toBe('https://discord.com')
+  })
+})
+
 describe('a test deployment gets the extra provider', () => {
   test('Discord is still there — the bypass ADDS, it never replaces', () => {
     // If enabling test auth removed Discord, a test deployment would stop
