@@ -9,7 +9,7 @@
  */
 
 import { cn, SheetSectionCard } from 'component-lib'
-import type { ReactNode, Ref } from 'react'
+import type { ReactNode } from 'react'
 
 type SheetHeroProps = {
   name: string
@@ -28,10 +28,6 @@ type SheetHeroProps = {
   vitals?: ReactNode
   /** Title of the fields card. */
   fieldsTitle?: string
-  /** Header-right controls (e.g. the identity Edit/Done toggle). */
-  controls?: ReactNode
-  /** Forwarded to the hero root. */
-  heroRef?: Ref<HTMLElement>
   className?: string
 }
 
@@ -41,13 +37,10 @@ export function SheetHero({
   fields,
   vitals,
   fieldsTitle = 'Identity',
-  controls,
-  heroRef,
   className,
 }: SheetHeroProps) {
   return (
     <section
-      ref={heroRef}
       aria-label={`${name} sheet header`}
       // The gauges card is content-width ("long" — a narrow tall column);
       // the fields card takes the rest ("thick"). They stack on narrow
@@ -70,7 +63,6 @@ export function SheetHero({
       <SheetSectionCard
         title={fieldsTitle}
         count={meta}
-        controls={controls}
         className="flex h-full flex-col"
         bodyClassName="flex min-h-0 flex-1 flex-col"
       >
