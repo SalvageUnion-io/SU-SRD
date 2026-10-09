@@ -1,8 +1,7 @@
-import { describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { act } from 'react'
-import { ConnectionProvider } from '../ConnectionProvider'
-import { useConnection } from '../connectionContext'
+import { installConvexMocks } from '../../../components/__tests__/convexMock'
 
 /**
  * The provider's reaction to connectivity changes.
@@ -12,10 +11,19 @@ import { useConnection } from '../connectionContext'
  * a provider that reads `navigator.onLine` once at mount would pass every other
  * test in the suite and never notice the network coming back.
  *
- * The test build is Solo (no `VITE_CONVEX_URL`), so the mode stays `solo`
- * throughout. That is the point: **connectivity changes must not disturb a
- * Solo user**, whose writes are local and should never be gated.
+ * The session is signed out, so the mode stays `solo` throughout. That is the
+ * point: **connectivity changes must not disturb a signed-out visitor**, who
+ * has nothing to be disconnected from.
  */
+
+// Module scope, before the imports below — see `convexMock.ts`.
+const convexMocks = await installConvexMocks({
+  convexReact: { useConvexAuth: () => ({ isAuthenticated: false, isLoading: false }) },
+})
+afterAll(() => convexMocks.restore())
+
+const { ConnectionProvider } = await import('../ConnectionProvider')
+const { useConnection } = await import('../connectionContext')
 
 /**
  * Built per-test rather than declared at module scope: a module-level component

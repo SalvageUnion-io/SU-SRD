@@ -7,8 +7,7 @@
  *
  * Every read is a Convex subscription, so a crewmate's roll, or the resolve
  * they are part-way through ("Rook is resolving Crush", ADR-038 §2), arrives
- * here as it happens. Needs a Convex provider, like `useSeat`: call it only
- * when `isConvexConfigured`, and use `NO_GAME_FEED` otherwise.
+ * here as it happens.
  */
 
 import { useQuery } from 'convex/react'
@@ -80,16 +79,6 @@ export type GameFeed = {
   inbox: number
   /** Every crewmate's vitals and derived status; null until it arrives. */
   crew: CrewVitals | null
-}
-
-/** No deployment, or no Game: nothing to read. */
-export const NO_GAME_FEED: GameFeed = {
-  gameName: null,
-  gameHref: null,
-  rolls: null,
-  alerts: [],
-  inbox: 0,
-  crew: null,
 }
 
 /** How many rolls the Log tab shows. */

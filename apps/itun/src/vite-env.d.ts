@@ -2,6 +2,12 @@
 
 interface ImportMetaEnv {
   /**
+   * The Convex deployment's client URL. Every build carries one:
+   * `vite.config.ts` refuses to start without it (`bun run dev:itun` writes it
+   * into `.env.local`; CI and the deploy pass it in the environment).
+   */
+  readonly VITE_CONVEX_URL: string
+  /**
    * Optional browser Sentry DSN. When set at build time, the client enables
    * error tracking (see src/lib/observability.ts); when unset the Sentry SDK is
    * tree-shaken out entirely. Never committed — supplied via the host env.

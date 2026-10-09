@@ -112,8 +112,8 @@ function useStampedBuildFloor(stamp: number): boolean {
 }
 
 /**
- * Whether this tab is below the build floor. Call it only under a
- * `ConvexProvider` (`ConnectionProvider`'s Convex-backed branch).
+ * Whether this tab is below the build floor. `ConnectionProvider` is the one
+ * caller.
  *
  * Chosen once, at module load, from a build-time constant, so a given bundle
  * always calls the same hooks: an unstamped bundle can never be outdated and

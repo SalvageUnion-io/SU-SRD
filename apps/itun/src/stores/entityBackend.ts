@@ -48,25 +48,10 @@ type AuthState = {
   signedIn: boolean
   online: boolean
   /**
-   * Whether the auth layer has finished deciding. Optional so a caller that
-   * predates the handshake fix keeps its meaning, and defaulted to `true`
-   * because the *absence* of a push is a build with no auth layer at all
-   * (`convexConfigured` is then false and the mode is Solo regardless).
+   * Whether the auth layer has finished deciding. `ConnectionProvider` always
+   * sets it; omitted, it reads as settled.
    */
   authSettled?: boolean
-  /**
-   * Whether a Convex deployment is compiled in. Defaults to the real answer
-   * (`convexClient !== null`); `ConnectionProvider` never sets it.
-   *
-   * It exists for the unit tests. The only durable backend is `remote`, and
-   * the test build has no `VITE_CONVEX_URL` — so
-   * without this there would be no way to exercise the IndexedDB cache a
-   * signed-in player writes through. Setting it `true` with no client is
-   * "signed in, with every server commit a no-op", which is exactly what the
-   * `convexClient === null` early returns below already do. See
-   * `src/stores/__tests__/signedInBackend.ts`, the one caller.
-   */
-  convexConfigured?: boolean
   /**
    * Whether this bundle is older than the backend's build floor (`build.floor`).
    * An outdated tab may call a function the backend no longer has, so it is
@@ -79,10 +64,8 @@ type AuthState = {
 /**
  * Read once per write rather than subscribed — the store is not a component.
  *
- * The initial value is anonymous and settled, which resolves to `signedOut`: with
- * no Convex URL compiled in, `selectBackend` short-circuits to Solo before this
- * is consulted, and with one compiled in `ConnectionProvider` pushes the real
- * value on mount.
+ * The initial value is anonymous and settled, which resolves to `signedOut`
+ * until `ConnectionProvider` pushes the real value on mount.
  */
 let authState: AuthState = { signedIn: false, online: true, authSettled: true }
 
@@ -101,7 +84,6 @@ export type BackendKind = 'remote' | 'blocked' | 'signedOut'
 /** The mode the store layer currently believes it is in. */
 function currentMode(): ConnectionMode {
   return resolveConnectionMode({
-    convexConfigured: authState.convexConfigured ?? convexClient !== null,
     authSettled: authState.authSettled ?? true,
     signedIn: authState.signedIn,
     online: authState.online,
@@ -225,7 +207,7 @@ export async function commitEntityWrite(
     | { kind: 'patch'; appId: string; gameId: string | null; body: unknown; patch: unknown }
     | { kind: 'delete'; appId: string; gameId: string | null }
 ): Promise<void> {
-  if (selectBackend() !== 'remote' || convexClient === null) return
+  if (selectBackend() !== 'remote') return
 
   if (type === 'softLink') {
     // Links are addressed by their endpoints rather than by an id, so they take
@@ -314,7 +296,7 @@ export async function commitChangeLog(
     source: string
   }[]
 ): Promise<void> {
-  if (selectBackend() !== 'remote' || convexClient === null) return
+  if (selectBackend() !== 'remote') return
   if (entries.length === 0) return
 
   try {
@@ -342,7 +324,7 @@ export async function commitChangeLog(
 export async function commitPatternWrite(
   op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string }
 ): Promise<void> {
-  if (selectBackend() !== 'remote' || convexClient === null) return
+  if (selectBackend() !== 'remote') return
 
   if (op.kind === 'delete') {
     await convexClient.mutation(api.shelf.removeMechPattern, { patternId: op.id })
@@ -361,7 +343,7 @@ export async function commitPatternWrite(
 export async function commitNpcWrite(
   op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string }
 ): Promise<void> {
-  if (selectBackend() !== 'remote' || convexClient === null) return
+  if (selectBackend() !== 'remote') return
 
   if (op.kind === 'delete') {
     await convexClient.mutation(api.shelf.removeEncounterNpc, { npcId: op.id })
@@ -382,7 +364,7 @@ export async function commitSoftLink(
   kind: 'upsert' | 'delete',
   link: SoftLink | null
 ): Promise<void> {
-  if (selectBackend() !== 'remote' || convexClient === null) return
+  if (selectBackend() !== 'remote') return
   if (link === null) return
   // A link whose endpoints did not survive a salvage-tolerant read has nothing
   // to address, and half a link fails validation server-side for no benefit.
@@ -469,7 +451,7 @@ export async function commitTransfer(
   writes: readonly TransferWrite[],
   removals: readonly TransferRemoval[]
 ): Promise<void> {
-  if (selectBackend() !== 'remote' || convexClient === null) return
+  if (selectBackend() !== 'remote') return
   const { versions } = await convexClient.mutation(
     api.entities.transfer,
     transferArgs(writes, removals)

@@ -181,8 +181,7 @@ Three connection modes ([ADR-030](#adr-030),
 
 Solo is read-only: building needs an account (ADR-034 decision 1, as
 amended), so the Roster and the `/…/new` routes show a sign-in panel and the
-store refuses an anonymous write. A build with no `VITE_CONVEX_URL` is
-permanently Solo. Solo has
+store refuses an anonymous write. Solo has
 no Dashboard: it opens only for a pilot in a Game with a Mediator
 ([ADR-038](#adr-038)), so Solo play is on the live sheet. Offline,
 a signed-in user is read-only and never falls back to IndexedDB, which would
@@ -232,7 +231,7 @@ the entity rows.
   timestamps; the Zod schemas in `apps/itun/src/lib/schemas/` own the shape, so
   **every mutation parses with Zod before persisting**.
 - `selectBackend()` (`src/stores/entityBackend.ts`) answers `'remote'`,
-  `'signedOut'` (anonymous or no Convex URL) or `'blocked'` (throws
+  `'signedOut'` (anonymous) or `'blocked'` (throws
   `WritesBlockedOffline`; surfaces check `canWrite`). In `'remote'`,
   `commitEntityWrite()` and its siblings write by app id (`appId` column) and
   are **awaited**: a refused write did not happen.
@@ -3828,6 +3827,11 @@ that carried it (`claimLocal`, `AccountReconciler`'s device pass, the `legacy`
 cache origin). An IndexedDB upgrade empties the cache and the server refills
 it; a roster that only ever lived in one browser is not carried forward. The
 three decisions stand.
+
+**Amended 2026-10-09 (#1183): there is no build without a deployment.**
+`apps/itun/vite.config.ts` refuses to start without `VITE_CONVEX_URL`, so the
+consequence below about a build with no `VITE_CONVEX_URL` is withdrawn: such a
+build is refused, not shipped.
 
 **Accepted and delivered; decision 1 amended 2026-10-08.** Signed out, ITUN is
 **read-only, in every build**: building needs an account, and an anonymous write

@@ -236,7 +236,7 @@ jobs:
       # An absent CONVEX_DEPLOY_KEY must be fatal, loudly, before any artifact
       # exists, for a measured reason: production ran a four-day
       # stale backend from 2026-08-06 to 2026-08-10 because an absent key
-      # silently took a Solo-build branch. The site served the current commit,
+      # silently skipped the backend push. The site served the current commit,
       # the backend was four days behind, every soft-link write failed, and
       # nothing was red.
       #
@@ -248,7 +248,7 @@ jobs:
         run: |
           if [ -z "$CONVEX_DEPLOY_KEY" ]; then
             echo "FATAL: production deploy with no CONVEX_DEPLOY_KEY." >&2
-            echo "Refusing to ship a Solo client against an un-pushed Convex backend." >&2
+            echo "Refusing to deploy a client whose Convex backend was not pushed." >&2
             echo "Set it in Settings > Environments > production > Environment secrets." >&2
             exit 1
           fi

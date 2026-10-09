@@ -56,7 +56,7 @@ const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 
-const SIGNED_IN = { signedIn: true, online: true, authSettled: true, convexConfigured: true }
+const SIGNED_IN = { signedIn: true, online: true, authSettled: true }
 
 beforeAll(hydrateStores)
 

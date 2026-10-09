@@ -8,17 +8,25 @@
  * dialog explains what sharing needs instead. The Connected half — the toggle,
  * the link, the QR — is `ShareStatusDialog.connected.test.tsx`.
  *
- * No Convex provider and no mock here: that is the point. The panel that calls
- * Convex hooks must not mount, or this file would throw.
+ * No query is answered here: the panel that reads Convex must not mount, or
+ * the query mock would throw.
  */
 
-import { describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
 import { act, render, screen } from '@testing-library/react'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { ConnectionContext } from '../../../lib/connection/connectionContext'
 import type { Pilot } from '../../../lib/schemas/pilot'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import { pilotFixture } from '../../__tests__/fixtures'
-import { ShareStatusDialog } from '../ShareStatusDialog'
+
+// Module scope, before the imports below — see `convexMock.ts`. The signed-out
+// branch mounts `SignInControl`, whose auth hook needs the auth module.
+const convexMocks = await installConvexMocks({ authReact: true })
+setQueryAnswers({})
+afterAll(() => convexMocks.restore())
+
+const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { ShareStatusDialog } = await import('../ShareStatusDialog')
 
 const fakePilot: Pilot = pilotFixture({ id: 'pilot-1', name: 'Mara Vex' })
 

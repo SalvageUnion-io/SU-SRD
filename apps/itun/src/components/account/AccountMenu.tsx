@@ -4,7 +4,6 @@ import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { HeaderMenu } from '../shared/HeaderMenu'
 import { useSignOutAndForget } from './useSignOutAndForget'
 
@@ -26,9 +25,7 @@ import { useSignOutAndForget } from './useSignOutAndForget'
  * reads "Account" over a generic glyph rather than guessing.
  *
  * Signed out it renders nothing; the sign-in button is the header's job
- * (`HeaderAccount.tsx`). And like every Convex consumer in this app it is
- * behind the build-time branch: no `VITE_CONVEX_URL` means no provider, so the
- * hooks live in a child that is only mounted when there is one.
+ * (`HeaderAccount.tsx`).
  */
 
 type AccountMenuProps = {
@@ -80,7 +77,6 @@ function SignedInAccountMenu({ compact = false }: AccountMenuProps) {
 
 export function AccountMenu({ compact }: AccountMenuProps) {
   const { mode } = useConnection()
-  if (!isConvexConfigured) return null
   if (mode !== 'connected' && mode !== 'disconnected') return null
   return <SignedInAccountMenu compact={compact} />
 }

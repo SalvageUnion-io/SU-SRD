@@ -68,7 +68,6 @@
 import { useQuery } from 'convex/react'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { containerOf } from '../../lib/container'
 import { rowMayBePruned } from '../../lib/db/pruneRules'
 import type { ServedRow } from '../../lib/links/linkSync'
@@ -307,10 +306,6 @@ function ConnectedWiringSync() {
  * (`claimCacheFor`).
  */
 export function ShelfSync() {
-  // Never call a Convex hook unconditionally: a build with no `VITE_CONVEX_URL`
-  // mounts no provider at all. Gating the whole subtree is the established
-  // pattern here (`AccountMenu`, `SignInControl`).
-  if (!isConvexConfigured) return null
   // Only when the server of record is actually in play. `remote` rather than
   // "signed in" so a Disconnected session does not fire a query it cannot serve.
   if (selectBackend() !== 'remote') return null

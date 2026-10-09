@@ -33,7 +33,6 @@ const convexMocks = await installConvexMocks({
   convexReact: { useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) },
   also: {
     '../../lib/connection/convexClient': () => ({
-      isConvexConfigured: true,
       convexClient: {
         mutation: async (ref: unknown, args: Record<string, unknown>) => {
           if (failWrites) throw new Error('[CONVEX M(entities:upsertByAppId)] Server Error')
