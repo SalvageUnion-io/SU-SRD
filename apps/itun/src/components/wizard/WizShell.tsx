@@ -194,7 +194,7 @@ export function WizShell({
   const heading = (
     <header>
       <h1 className="m-0">
-        {/* Ink-stamp step heading (SheetHero name-chip treatment). */}
+        {/* Ink-stamp step heading: paper text on an ink band that wraps per line. */}
         <span className="inline bg-ink box-decoration-clone px-2 pb-[3px] pt-[2px] font-cond text-title font-bold uppercase leading-[1.35] tracking-normal text-paper">
           <span className="text-pilot">
             Step {active + 1} of {steps.length}

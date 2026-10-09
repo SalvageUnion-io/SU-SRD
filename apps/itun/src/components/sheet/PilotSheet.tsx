@@ -2,7 +2,7 @@
  * PilotSheet — the pilot body for the LiveSheet shell (Workshop-Manual pilot
  * sheet, region-for-region).
  *
- * The body OWNS the identity band: it renders `SheetHero` in band mode as its
+ * The body OWNS the identity band: it renders `SheetHero` as its
  * first region, which keeps the identity + vitals rendering (and all their
  * handlers) in one component. Region order mirrors the printed pilot sheet:
  *   - Identity Band: edge wordmark ∥ identity fields ∥ HP/AP/TP + Conditions
@@ -214,7 +214,6 @@ export function PilotSheet({
           Edge wordmark ∥ identity fields ∥ HP/AP/TP + Conditions vitals rail,
           in one toned frame — the printed pilot sheet's top band. */}
       <SheetHero
-        cat="Pilot"
         name={pilot.name}
         meta={
           model.dead ? (

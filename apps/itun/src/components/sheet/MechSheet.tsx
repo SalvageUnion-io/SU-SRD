@@ -3,7 +3,7 @@
  * plan 4.5; redesigned to the poster layout, Phase 2).
  *
  * The body OWNS the identity band (Workshop-Manual mech sheet): it renders
- * `SheetHero` in band mode as its first region. Region order mirrors the
+ * `SheetHero` as its first region. Region order mirrors the
  * printed mech sheet:
  *
  *   Identity Band: edge wordmark ∥ the pattern-name/chassis fields + the
@@ -229,7 +229,6 @@ export function MechSheet({
           Edge wordmark ∥ Chassis/Pattern fields + Chassis-Stats strip ∥
           SP/EP/Heat + Conditions vitals rail, in one toned frame. */}
       <SheetHero
-        cat="Mech"
         name={mech.name}
         // On a mech this region IS the chassis: its name, its stats, its
         // ability, its quirk. "Identity" named the shape, not the subject.

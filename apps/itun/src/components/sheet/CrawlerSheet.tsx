@@ -3,7 +3,7 @@
  * §4.4, plan 4.6; redesigned to the poster layout, Phase 2).
  *
  * The body OWNS the identity band now (Workshop-Manual crawler sheet):
- * This body renders `SheetHero` in band mode as its first region.
+ * This body renders `SheetHero` as its first region.
  * Following the printed sheet (`Editable_..._Crawler_Sheets.pdf`), the sheet is
  * a single-column region stack, inside the same `@container` shape
  * PilotSheet/MechSheet use:
@@ -347,7 +347,6 @@ export function CrawlerSheet({
             rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts), in one
             toned frame — no name pseudoheader stamp. */}
         <SheetHero
-          cat="Crawler"
           name={crawler.name}
           fields={
             <div className="flex min-w-0 flex-col gap-4">
