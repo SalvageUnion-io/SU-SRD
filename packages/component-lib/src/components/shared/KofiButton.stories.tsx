@@ -8,7 +8,7 @@ export default {
 /**
  * The official Ko-fi support widget button (the real SU page code). Progressive
  * enhancement: an accessible fallback link renders immediately and is replaced
- * by the widget once Ko-fi's script loads — if the script is blocked in Ladle,
+ * by the widget once Ko-fi's script loads — if the script is blocked in the catalog,
  * the fallback link remains. (External-integration chrome — pending approval.)
  */
 export const Default: Story = () => (

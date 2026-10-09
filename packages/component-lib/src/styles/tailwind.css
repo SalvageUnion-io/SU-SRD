@@ -1,6 +1,6 @@
 /*
  * The ONE Tailwind entry. Every surface that compiles Tailwind — ITUN, srd and
- * the Ladle catalog — imports this file (`component-lib/styles/tailwind.css`)
+ * the story catalog — imports this file (`component-lib/styles/tailwind.css`)
  * and adds only its own `@source` lines and stylesheets after it.
  *
  * THE `@layer` ORDER AND THE `layer(su-base)` ARE LOAD-BEARING — do not

@@ -76,7 +76,7 @@ tailors it. Instances collapse into their role (a Tech level is not a role; it i
 the Stat / `label | value` role). The tables below read left-to-right across
 **surfaces** — Reference → Live Sheet → Dashboard → Listing → Tooltip; `—` = not
 rendered on that surface. For the at-a-glance role → primitive summary, see the
-`Rendering Matrix` Ladle story (`bun run ladle`).
+`Rendering Matrix` story (`bun run stories`).
 
 ### Vitals — Heat · HP · AP/EP · SP · TP
 

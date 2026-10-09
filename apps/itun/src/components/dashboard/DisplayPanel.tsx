@@ -132,7 +132,7 @@ export type DisplayContent =
 
 /**
  * The presentational half: renders an already-resolved `content`. Exported for
- * the Ladle story, which drives it with real reference data and no store.
+ * the story, which drives it with real reference data and no store.
  */
 export function DisplayPanelFrame({ content }: { content: DisplayContent }) {
   switch (content.kind) {

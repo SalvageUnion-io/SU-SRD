@@ -23,7 +23,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need
 ## UI Development
 
 - Reuse shared components (`ReferenceEntityCard`, `Card`, …) before building one-off UI; check `component-lib` first.
-- Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `.claude/launch.json` starts `srd` (4321), `itun` (5173) and `ladle` (61000) in the browser preview. Prefer simple, well-understood CSS.
+- Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `.claude/launch.json` starts `srd` (4321), `itun` (5173) and `stories` (61000, the component catalog) in the browser preview. Prefer simple, well-understood CSS.
 - Default to compact, header-only, clickable listings for entity lists; never render nested entities as separate grids — render them inside the parent's expanded/modal view. Ask if unsure how much detail to show.
 - Styling is migrating off Tailwind ([plan](docs/design-system/tailwind-removal.md)); `bun run check styling` fails a change that raises the count of files carrying a Tailwind utility (a heuristic scan: class-list contexts plus class strings in constants and maps — not proof of absence; the plan's P6 exit adds the built-CSS check) or adds a `.pc-*` class.
 
@@ -53,7 +53,7 @@ bun run deploy-commands[:global]   # Discord slash commands: test guild / produc
 
 - **Bare `--parallel` and `--isolate` stay banned**: both are measured regressions (ITUN `--parallel=4`, which implies `--isolate`, took 17.4 s against 16.9 s serial). `--parallel=N --no-isolate` is the measured win, and ITUN's `test` script uses it (16.5 s → ~6 s); `--changed` is the other flag that helps. Leave `test:coverage` serial: parallel coverage writes different lcov line counts.
 - **A gate failed?** Its fix prints under the failure banner; `bun run check --list` shows every check's. [`tools/CLAUDE.md`](tools/CLAUDE.md) maps checks to scripts and baselines. **Adding a gate** means adding it to the registry in `tools/check.ts` — `bun run check`, pre-push and CI all read that one list.
-- **Dependencies:** read [dependencies](docs/ARCHITECTURE.md#dependencies) before touching `package.json`, `bunfig.toml` or `overrides`. In short: Bun deps are updated by hand, Actions by Dependabot; `bun run audit` (any severity, one `--ignore`: braces) gates every PR that changes `bun.lock` or a `package.json` and runs nightly; `bunfig.toml` refuses versions under three days old and makes `bun add` pin exactly. A shared dev tool is a root devDependency; a shared runtime package is a root `catalog:` entry.
+- **Dependencies:** read [dependencies](docs/ARCHITECTURE.md#dependencies) before touching `package.json`, `bunfig.toml` or `overrides`. In short: Bun deps are updated by hand, Actions by Dependabot; `bun run audit` (any severity, no `--ignore`) gates every PR that changes `bun.lock` or a `package.json` and runs nightly; `bunfig.toml` refuses versions under three days old and makes `bun add` pin exactly. A shared dev tool is a root devDependency; a shared runtime package is a root `catalog:` entry.
 - **Profiling:** use Bun's markdown profiles into the gitignored `.profiles/` (`bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles <script>`, `--heap-prof-md` likewise). `bun build --metafile-md` needs `--outdir`, or it prints the bundle to stdout.
 
 ### Hooks (Lefthook)

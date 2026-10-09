@@ -8,7 +8,7 @@ Read with an offset and limit, never the whole file.
 
 | I'm… | Read |
 | --- | --- |
-| adding or changing a UI component | [design-system/ruleset.md](design-system/ruleset.md) (the laws), [display system](ARCHITECTURE.md#display-system), [component catalog](ARCHITECTURE.md#component-catalog-ladle) |
+| adding or changing a UI component | [design-system/ruleset.md](design-system/ruleset.md) (the laws), [display system](ARCHITECTURE.md#display-system), [component catalog](ARCHITECTURE.md#component-catalog) |
 | moving styling off Tailwind | [design-system/tailwind-removal.md](design-system/tailwind-removal.md) |
 | changing how data flows or persists | [data flow](ARCHITECTURE.md#data-flow), ADR-030, ADR-034, ADR-035 |
 | deciding where a rule is enforced, or touching combat | [rules and ITUN surfaces](ARCHITECTURE.md#rules-and-itun-surfaces), [combat loop](ARCHITECTURE.md#combat-loop), ADR-021, ADR-007 |

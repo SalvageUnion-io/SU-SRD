@@ -26,7 +26,7 @@ type DashboardGridProps = {
  * light SRD document rather than the dark placeholder". Both grounds are now
  * defined — the display is always the document surface — so the flag had only
  * one reachable value and has been removed rather than left as a switch nobody
- * may flip. `.pc-display-light` survives as a class because the Ladle stages
+ * may flip. `.pc-display-light` survives as a class because the story stages
  * mount display content outside the grid and need the same treatment on its own.
  */
 export function DashboardGrid({ mount, rail, primary, display }: DashboardGridProps) {

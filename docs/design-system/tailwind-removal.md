@@ -23,7 +23,7 @@
 | `.su-*` package stylesheet | `packages/component-lib/src/styles/index.css` | 894 lines | **stays** — the one stylesheet |
 | `theme.css` (`@theme`) | `packages/component-lib/src/styles/theme.css` | 490 lines | **stays** — the one token set; its `@theme` becomes plain `:root` in P7 |
 | Dashboard `.pc-*` scope | ITUN's `src/styles/dashboard/{DashboardCanvas,DashboardGrid,instruments}.css` via `src/styles/dashboard.css` | **129 classes** (`pc-class-defined`), ~1,370 lines | ported to style objects and ITUN-owned rules, deleted |
-| Typed tokens | `packages/component-lib/src/design/tokens.ts` | imported by 8 `.tsx` files, all Ladle catalog pages or harnesses | **stays** — `theme.css` mirrored for style objects |
+| Typed tokens | `packages/component-lib/src/design/tokens.ts` | imported by 8 `.tsx` files, all story catalog pages or harnesses | **stays** — `theme.css` mirrored for style objects |
 
 Tailwind files by workspace: `apps/itun` 88, `apps/srd` 24, component-lib 217
 (`shared` 65, `chrome` 52, `referenceEntity` 25, `dashboard` 21, `wizard` 20,
@@ -93,8 +93,8 @@ Dashboard scope after the component-lib groups it depends on.
 
 `tokens.ts`, `index.css`, the per-property split rule (§4),
 `tokens.parity.test.ts` (holding `tokens.ts` to `theme.css`), the one Tailwind
-entry `styles/tailwind.css` that the apps and Ladle import, and the
-`package-stylesheet-import` guard. The Foundations Ladle group carries no
+entry `styles/tailwind.css` that the apps and the story catalog import, and the
+`package-stylesheet-import` guard. The Foundations story group carries no
 Tailwind. The ratchets in §2 landed with this plan.
 
 ### P1 — Alpha modifiers port as `color-mix()` (mechanical)
@@ -116,9 +116,9 @@ open design question for the owner; it does not block P2.
 
 ### P2 — component-lib Atoms
 
-- **Scope:** every file behind an `Atoms/*` Ladle story.
+- **Scope:** every file behind an `Atoms/*` story.
 - **Exit:** no Atoms file in `check-styling.ts --report`'s `tailwind-utility-file`
-  list; Ladle renders the group identically to `main` (screenshot pair in the
+  list; the story catalog renders the group identically to `main` (screenshot pair in the
   PR); baseline lowered.
 
 ### P3 — component-lib Containers
@@ -150,7 +150,7 @@ one most likely to be left behind "because it already works".
   empty; the `Dashboard.tsx` import goes with them.
 - **Exit:** `pc-class-defined` is 0 and the rule plus `pc-class-contract` are
   deleted; no `apps/itun/src/components/dashboard/` file in the Tailwind list; the Dashboard
-  Ladle stories and the ITUN dashboard route render identically to `main`.
+  stories and the ITUN dashboard route render identically to `main`.
 - **Status (2026-10-07): open.** The Dashboard redesign
   ([dashboard-redesign.md](../architecture/dashboard-redesign.md) §4.3) was to
   finish P5 and did not. Its new components are style objects with no `.pc-*`
@@ -174,11 +174,11 @@ compares markup or CSS, so each srd PR carries a visual check of the affected pa
   missed (a string built by concatenation, a class passed through data) — and
   it is measured on the **DOM**, not on the stylesheet:
   - Take the utility selectors from the built CSS of each surface (srd's
-    `dist/assets/styles-*.css`, ITUN's build, Ladle's build): the class names
+    `dist/assets/styles-*.css`, ITUN's build, the story catalog's compiled `catalog.css`): the class names
     inside `@layer utilities`.
   - Take the class tokens actually present on elements: srd's built HTML
     **plus** the DOM after its islands mount (they render client-side only, so
-    the static HTML alone misses them), ITUN's routes, and every Ladle story —
+    the static HTML alone misses them), ITUN's routes, and every story in the catalog —
     crawled with the Playwright the repo already carries for its e2e specs.
   - The check passes when the intersection is empty. A non-empty intersection
     is the work-list: each entry names an element and a utility it still
@@ -298,7 +298,7 @@ and as TypeScript (`tokens.ts`) because neither form can do the other's job.
   re-shapes the values already there; it is not a re-design.
 - **One Tailwind entry, `src/styles/tailwind.css`, imports `index.css` into
   `layer(su-base)`, declared before `utilities`; both apps and
-  `src/styles/ladle.css` import that entry and never Tailwind itself.**
+  `src/styles/catalog.css` import that entry and never Tailwind itself.**
   `index.css` is written to be loaded alone once Tailwind leaves, so its base
   block is unlayered — and unlayered CSS beats layered CSS whatever the source
   order. A plain `@import` landed `h1,…,h6 { font-size: inherit }` past the

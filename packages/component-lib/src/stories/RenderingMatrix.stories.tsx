@@ -29,7 +29,7 @@ const cellStyle = { padding: space[8] } satisfies CSSProperties
 
 const noop = () => {}
 
-// Real reference data drives every live example (preloaded by .ladle/components.tsx).
+// Real reference data drives every live example (preloaded by catalog.tsx).
 const chassis = SalvageUnionReference.Chassis.all()[0]
 const sp = chassis?.structurePoints ?? 13
 const cargo = chassis?.cargoCapacity ?? 16

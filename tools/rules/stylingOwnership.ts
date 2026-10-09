@@ -45,7 +45,7 @@ const DASHBOARD_DIR = 'apps/itun/src/styles/dashboard'
 /**
  * UI source a Tailwind class could live in. Tests are excluded because they
  * assert on class names rather than style with them; stories are INCLUDED,
- * because a Ladle group is only migrated when none of its files carries a
+ * because a story group is only migrated when none of its files carries a
  * Tailwind class (the plan's per-group exit criterion).
  */
 const UI_SOURCE_DIRS = ['packages/component-lib/src', 'apps/itun/src', 'apps/srd/src'] as const
@@ -377,7 +377,7 @@ function scanPcDefinitions(c: Corpus): Finding[] {
 const TAILWIND_ENTRY = 'packages/component-lib/src/styles/tailwind.css'
 
 /**
- * Every stylesheet that compiles Tailwind — the two app entries and Ladle's.
+ * Every stylesheet that compiles Tailwind — the two app entries and the story catalog's.
  * Named explicitly rather than discovered, because the property being checked
  * is about these files SPECIFICALLY: a partial like `print.css` neither should
  * nor could carry the import.
@@ -385,7 +385,7 @@ const TAILWIND_ENTRY = 'packages/component-lib/src/styles/tailwind.css'
 const TAILWIND_CONSUMERS = [
   'apps/itun/src/index.css',
   'apps/srd/src/styles/global.css',
-  'packages/component-lib/src/styles/ladle.css',
+  'packages/component-lib/src/styles/catalog.css',
 ] as const
 
 /**
@@ -511,7 +511,7 @@ const RULES: OwnershipRule[] = [
     id: 'package-stylesheet-import',
     mode: 'zero',
     rule: 'ruleset §the package stylesheet is the ONE stylesheet a consumer loads, and it must not outrank Tailwind while both are live (#799, epic #802)',
-    fix: "Every Tailwind consumer imports 'component-lib/styles/tailwind.css' (Ladle: './tailwind.css') and never 'tailwindcss' itself. That one entry imports './index.css' into a cascade layer declared BEFORE Tailwind's `utilities`: `@layer theme, base, su-base, components, utilities;` at the top and `@import './index.css' layer(su-base);` after the theme.css import.",
+    fix: "Every Tailwind consumer imports 'component-lib/styles/tailwind.css' (the story catalog: './tailwind.css') and never 'tailwindcss' itself. That one entry imports './index.css' into a cascade layer declared BEFORE Tailwind's `utilities`: `@layer theme, base, su-base, components, utilities;` at the top and `@import './index.css' layer(su-base);` after the theme.css import.",
     scan: scanPackageStylesheetImport,
   },
   {

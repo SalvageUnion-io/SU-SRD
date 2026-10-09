@@ -21,7 +21,7 @@ section number) and [design-system/tailwind-removal.md](design-system/tailwind-r
 **Sections:** [Packages and contracts](#packages-and-contracts) ·
 [Data flow](#data-flow) · [Accounts and Games operations](#accounts-and-games-operations) ·
 [Rules and ITUN surfaces](#rules-and-itun-surfaces) · [Combat loop](#combat-loop) ·
-[Display system](#display-system) · [Component catalog (Ladle)](#component-catalog-ladle) ·
+[Display system](#display-system) · [Component catalog](#component-catalog) ·
 [Discord bot as a Game client](#discord-bot-as-a-game-client) ·
 [SEO and accessibility](#seo-and-accessibility) · [CI and deploy](#ci-and-deploy) ·
 [Dependencies](#dependencies) · [Services and agent tooling](#services-and-agent-tooling) ·
@@ -576,38 +576,32 @@ and `SchemaViewerIsland.tsx`; ITUN layers selection and status via `controls`,
 with `MechItemCard.tsx` as the reference; `shared/EntitySearcher.tsx` is the
 add-modal body.
 
-## Component catalog (Ladle)
+## Component catalog
 
-One catalog in `packages/component-lib`: `bun run ladle`, and
-`bun --filter component-lib ladle:build` into `build-ladle/` (CI). It globs the
-library's `src/`, `apps/itun/src/components/` and `apps/srd/src/components/`.
+One catalog in `packages/component-lib`: `bun run stories` (the `stories`
+launch config, port 61000) serves it from the package's own Vite dev server —
+`index.html` mounts the package-root `catalog.tsx`, and nothing builds it. It globs
+the library's `src/`, `apps/itun/src/components/` and
+`apps/srd/src/components/`, lists every story in the sidebar and renders one at
+`#<story-id>`; it opens on `foundations--styleguide--overview`.
 Story rules: [`packages/component-lib/CLAUDE.md`](../packages/component-lib/CLAUDE.md),
-enforced by `src/story-coverage.test.ts`.
+enforced by `src/story-coverage.test.ts`; typecheck is what proves a story
+compiles.
 
-- `.ladle/config.mjs` runs in Node and the browser; `storyOrder` is
-  re-evaluated without module scope, so it stays self-contained. It opens on
-  `foundations--styleguide--overview`.
-- `.ladle/components.tsx` wraps every story in the paper canvas and a `use()` +
-  `Suspense` preload gate; without it stories render silently blank. Stories
-  add no outer `bg-paper`.
-- **Never add `@vitejs/plugin-react`** to `vite.config.ts`: a second React
-  plugin blanks every story (`Missing field 'moduleType'`).
-- `src/styles/ladle.css` imports the shared `tailwind.css` entry and adds
-  `@source` for the stories and the two apps' component folders. Only the `a11y` addon is on.
+- `catalog.tsx` preloads the reference data before it imports any story
+  module, and frames every story on the paper canvas; stories add no outer
+  `bg-paper`.
+- `src/styles/catalog.css` imports the shared `tailwind.css` entry and adds
+  `@source` for the stories and the two apps' component folders.
 - **Size ladder** (`src/styles/sizing.ts`): Full, **Compact** (default), Mini;
   offer only real rungs, compose from `RUNG_TYPE` / `RUNG_INLINE_PADDING` as
   `Badge`'s `STAMP_SIZE` does.
 - **Stories:** `Story` from `src/stories/_harness.tsx` (apps:
   `component-lib/stories/harness`); a static-literal default `title`; groups
   Foundations, Atoms, Containers, Compositions (sub-groups Entity, Catalog,
-  Dashboard, Wizard, Shell; edit `SUBGROUPS` and `storyOrder` together). No
+  Dashboard, Wizard, Shell), listed once as `storyGroups` / `storySubgroups`
+  in `src/stories/_groups.ts`, which the guard and the sidebar order both read. No
   args or controls; real SRD data; don't churn export names.
-
-### Ladle pin and type imports
-
-`@ladle/react` is pinned to 5.1.1; its types drag Ladle's UI source under
-`tsc`, which TypeScript 7 rejects, so nothing imports it (Biome's
-`noRestrictedImports`). To bump: `ladle:build`, check no story is blank.
 
 ## Discord bot as a Game client
 
@@ -777,7 +771,7 @@ bypassed), and a test that passes only on a retry fails the run
 PR's own functions, so its specs (the axe spec among them) see the signed-out UI production
 ships, never production itself; it also bundles the Worker (`bun --filter itun
 worker:bundle`). ITUN's full browser suite is nightly (`e2e-nightly.yml`). `build-discord-bot`
-and `build-su-assets` bundle Workers; `build-ladle` builds stories. wrangler is
+and `build-su-assets` bundle Workers. wrangler is
 one root devDependency that all four Worker apps run; keep each `wrangler.jsonc`
 `compatibility_date` at or below its bundled workerd.
 
@@ -880,11 +874,10 @@ errors (`blocked by minimum-release-age`).
 `bun run audit` (the root `audit` script) fails on an advisory at any
 severity. The `audit` check runs it on PRs that change `bun.lock` or a
 `package.json`, and `e2e-nightly.yml`'s `audit` job runs it against the
-unchanged tree, reporting through the nightly tracking issue. One suppression:
-`braces` GHSA-vfj7-8cjw-p6xm, no fixed release, reachable only via
-component-lib's devDependency `@ladle/react` → `globby` → `fast-glob` →
-`micromatch`; remove its `--ignore` when `bun audit fix` can take a fixed
-`braces` or Ladle drops `globby`. A new `--ignore` records the same.
+unchanged tree, reporting through the nightly tracking issue. It suppresses
+nothing; an advisory with no fixed release is answered by dropping the
+dependency that reaches it, and an `--ignore` added anyway is recorded here
+with its path and the condition that removes it.
 Fix a transitive advisory by dedupe, then `bun update <pkg>`, then a floor.
 `bun why <pkg>` prints the path.
 
@@ -2388,9 +2381,9 @@ The reference-entity display was reconciled from a 57-file legacy render core
 [`.claude/skills/component-refresh/SKILL.md`](../.claude/skills/component-refresh/SKILL.md))
 settled a set of **design rules** along the way — about how choices render, how
 stats read, how tech-level scaling looks, and which data carries a tech level.
-Those rules were decided interactively and proven in Ladle, but were only
+Those rules were decided interactively and proven in the story catalog, but were only
 recorded in commit messages. This ADR enshrines them so they are not
-re-litigated, and points at the Ladle stories that demonstrate each.
+re-litigated, and points at the stories that demonstrate each.
 
 See also: [ADR-010](#adr-010) (choices
 ephemeral vs persisted), [ADR-021](#adr-021) (surface/mode
@@ -2499,7 +2492,7 @@ equipment was already TL1.)
 
 ### Consequences
 
-- The design rules are demonstrable and regression-guarded: each has a Ladle story
+- The design rules are demonstrable and regression-guarded: each has a story
   (canonical groups `Compositions/Reference Entity *` and `Atoms/Stat`),
   and the story-coverage guard keeps every barrel-exported visual component
   storied.

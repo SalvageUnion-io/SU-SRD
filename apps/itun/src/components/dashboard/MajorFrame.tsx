@@ -3,7 +3,7 @@
  * gauges, buttons and the resolve overlay from a computed `MajorModel`, and
  * knows nothing about rules or the store. `PilotMajor`, `MechMajor` and
  * `CrawlerMajor` each build a model and hand it here, in the slot row and in
- * the ⤢ overlay alike; the Ladle stories drive it with fixture models and no
+ * the ⤢ overlay alike; the stories drive it with fixture models and no
  * store. `StorageBay` composes overlay bodies.
  *
  * Main bays share the width; bays flagged `side` stack in one narrow column on

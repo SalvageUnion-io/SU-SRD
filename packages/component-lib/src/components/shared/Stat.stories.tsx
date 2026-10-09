@@ -8,7 +8,7 @@ export default {
 }
 
 // Real SRD content drives every anatomy below (reference data is preloaded by
-// .ladle/components.tsx before this chunk imports).
+// catalog.tsx before this chunk imports).
 const chassis = SalvageUnionReference.Chassis.all()[0]
 const sp = chassis?.structurePoints ?? 12
 const ep = chassis?.energyPoints ?? 4

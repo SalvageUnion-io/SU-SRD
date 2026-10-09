@@ -159,7 +159,7 @@ describe('tokens rule set', () => {
 const STYLING_BASE: Record<string, string> = {
   'packages/component-lib/src/styles/tailwind.css':
     "@layer theme, base, su-base, components, utilities;\n@import 'tailwindcss';\n@import './index.css' layer(su-base);\n",
-  'packages/component-lib/src/styles/ladle.css': "@import './tailwind.css';\n",
+  'packages/component-lib/src/styles/catalog.css': "@import './tailwind.css';\n",
   'apps/itun/src/index.css': "@import 'component-lib/styles/tailwind.css';\n",
   'apps/srd/src/styles/global.css': "@import 'component-lib/styles/tailwind.css';\n",
   'apps/itun/src/styles/dashboard/DashboardCanvas.css': '.pc-used { color: red }\n',
