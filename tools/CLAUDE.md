@@ -43,6 +43,7 @@ the corpus size, not just the finding count.
 | `doc-drift` | `check-doc-drift.ts` | `OVER_BUDGET`, `COLLAPSED_DOCS` and `RETIRED_CLAIMS` in the script |
 | `observability` | `check-observability.ts` | — |
 | `convex-callers` | `check-convex-callers.ts` (also: `api.d.ts` registers exactly the modules on disk) | — |
+| `client-contract` | `check-client-contract.ts` (`--write` records the snapshot; refuses a breaking change without a raised `BUILD_FLOOR`) | `convex-client-contract.json` |
 | `barrel-consumers` | `check-barrel-consumers.ts` | `SINGLE_APP` in the script (storyless helpers only) |
 | `workflows` | `check-workflows.ts` (`--only=` runs a subset) | — |
 | `styling` | `check-styling.ts` (`--report` lists every finding) | `styling-baseline.json` |

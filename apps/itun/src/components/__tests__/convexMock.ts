@@ -86,6 +86,10 @@ export function mockUseQuery(ref: unknown, args?: unknown): unknown {
 export function convexReactMock(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     useQuery: mockUseQuery,
+    // `ConnectionProvider`'s build-floor subscription (`buildFloor.ts`): every
+    // query still loading, which refuses nothing.
+    useQueries: (queries: Record<string, unknown>) =>
+      Object.fromEntries(Object.keys(queries).map((key) => [key, undefined])),
     useMutation: () => {
       // Like Convex's own, it can take an optimistic update (`useSeat`'s writes do).
       const mutate = async () => undefined
