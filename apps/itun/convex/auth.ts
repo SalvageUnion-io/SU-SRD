@@ -15,12 +15,10 @@ import { convexAuth } from '@convex-dev/auth/server'
  *   bunx convex env set AUTH_DISCORD_ID <client-id>
  *   bunx convex env set AUTH_DISCORD_SECRET <client-secret>
  *
- * Signing in used to be an *upgrade*, never a gate (D10). That is being
- * withdrawn by
- * [ADR-034](../../../docs/ARCHITECTURE.md#adr-034):
- * anonymous play stays first-class for *building*, but keeping what you build
- * will require an account. Discord remains the only door for real users — see
- * `testOnlyProviders` below for the one exception and why it is not one.
+ * Signed out, ITUN is read-only; building anything needs an account
+ * ([ADR-034](../../../docs/ARCHITECTURE.md#adr-034), as amended). Discord is
+ * the only door for real users — see `testOnlyProviders` below for the one
+ * exception and why it is not one.
  */
 /**
  * No `afterUserCreatedOrUpdated` callback stamps the Discord snowflake here,
@@ -111,17 +109,12 @@ function withoutNullFields(profile: User): User {
  *
  * ## Why this has to exist at all
  *
- * ADR-034 gates persistence on an account, and the step most likely to lose
- * somebody's work is the hand-off: build anonymously, be asked to sign in, sign
- * in, and find the work still there and now saved. That is a browser-level
- * behaviour, so proving it needs a browser-level test — and with Discord OAuth
- * as the only provider there is no credential a Playwright fixture could ever
- * present. No e2e in this repo has ever authenticated, because until now nothing
- * needed to.
- *
- * The alternative was to accept that the hand-off has no end-to-end cover. That
- * was rejected: the whole point of a phased plan is not to walk through a
- * one-way door untested.
+ * ADR-034 gates building on an account. `e2e/signin-save.e2e.ts` pins both
+ * halves of that in a browser: signed out, a wizard asks you to sign in instead
+ * of building; signed in, what you build is durable. Every other e2e spec that
+ * builds something signs in the same way (`e2e/fixtures.ts`). With Discord
+ * OAuth as the only provider there is no credential a Playwright fixture could
+ * present, so without this provider none of those specs could run.
  *
  * ## Why it is not a second door into real accounts
  *

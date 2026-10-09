@@ -78,8 +78,7 @@ export function RootErrorComponent({ error }: ErrorComponentProps) {
  * Per-route error boundary: replaces one route's content, keeps the header.
  *
  * "Try again" re-renders the route and re-runs its loader — `reset` clears
- * this boundary, `invalidate` discards the failed match — without a reload, so
- * an anonymous visitor's in-memory work survives the attempt.
+ * this boundary, `invalidate` discards the failed match — without a reload.
  */
 export function RouteErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter()

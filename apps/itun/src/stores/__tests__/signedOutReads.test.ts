@@ -1,7 +1,7 @@
 /**
  * Signed out, the player-entity stores show nothing — not even what is on disk.
  *
- * There is no anonymous store any more: signed out, ITUN is read-only (ADR-034
+ * There is no anonymous store: signed out, ITUN is read-only (ADR-034
  * decision 1, as amended), so a store has nothing of the session's to show. The
  * one thing it must not do is fall back to the IndexedDB cache, which may still
  * hold the last account's rows.

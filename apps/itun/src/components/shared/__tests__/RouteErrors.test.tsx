@@ -54,9 +54,7 @@ describe('savedWorkCopy says what an error does to the work, per backend', () =>
   })
 
   test('no backend ever claims the work is stored in this browser', () => {
-    // The `local` backend (and its "stored in this browser" copy) is retired:
-    // no player's work lives only on the device any more, so no panel may say
-    // it does.
+    // No player's work lives only on the device, so no panel may say it does.
     for (const backend of ['remote', 'blocked', 'signedOut', null] as const) {
       expect(savedWorkCopy(backend)).not.toMatch(/in this browser/i)
     }
