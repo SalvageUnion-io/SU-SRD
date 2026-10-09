@@ -15,16 +15,16 @@ import type {
  * first place.
  *
  * These satisfy the types **structurally**, with no casts. That is deliberate:
- * a cast would let a fake drift from the real interaction and still compile,
- * and the whole reason the handlers depend on a narrow type rather than on
- * discord.js's classes is so that cannot happen.
+ * a cast would let a fake drift from what `http/adapter.ts` builds and still
+ * compile, and the whole reason the handlers depend on a narrow type is so
+ * that cannot happen.
  */
 
 /**
- * A recorded reply payload — a structural SUPERTYPE of both
- * `InteractionReplyOptions` and `InteractionEditReplyOptions` (readonly arrays,
- * wide flags, nullable content, which `editReply` permits and `reply` does not)
- * so the fakes satisfy the narrow contracts with no forced cast.
+ * A recorded reply payload: a structural supertype of both `ReplyPayload` and
+ * `EditReplyPayload` (readonly arrays, wide flags, and nullable content, which
+ * an edit permits and a fresh reply does not), so the fakes satisfy the narrow
+ * contracts with no forced cast.
  */
 export type ReplyArg = {
   content?: string | null
@@ -72,7 +72,9 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
   const strings = options.strings ?? {}
   const booleans = options.booleans ?? {}
 
-  // Overload-declared to mirror discord.js's required-form getString.
+  // Overload-declared to mirror the required-form getString that
+  // `http/adapter.ts` builds on `stringOption`, though unlike it this fake
+  // returns null rather than throwing on a missing required option.
   function getString(name: string, required: true): string
   function getString(name: string, required?: boolean): string | null
   function getString(name: string): string | null {

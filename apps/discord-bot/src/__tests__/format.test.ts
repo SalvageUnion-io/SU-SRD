@@ -1,5 +1,5 @@
 /**
- * Pure embed-shaping tests — no discord.js interaction objects needed.
+ * Pure shaping helpers — no Discord objects needed.
  */
 import { describe, expect, test } from 'bun:test'
 import { ROLL_ATTRIBUTION, stripDanglingLink } from '../format.js'

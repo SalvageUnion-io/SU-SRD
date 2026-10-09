@@ -1,6 +1,6 @@
 ---
 name: convex-deploy-verify
-description: Use when setting up or checking an ITUN Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot reports "not connected" or `unauthorized`, or when a Convex tool says "No CONVEX_DEPLOYMENT set". Covers the three required env vars, the bot credential, and the curl probe that tells the failure modes apart.
+description: Use when setting up or checking an ITUN Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot replies "In The Union Now is not configured for this bot", answers `unavailable` or `unauthorized`, or its `/health` returns 503, or when a Convex tool says "No CONVEX_DEPLOYMENT set". Covers the three required env vars, the bot credential, and the curl probe that tells the failure modes apart.
 allowed-tools: Bash, Read
 ---
 
@@ -52,7 +52,7 @@ For production the frontend origin is the **custom domain**
 # deployment that has not opted in cannot be talked to by a bot at all.
 bunx convex env set ITUN_BOT_SECRET <a long random string>
 
-# The bot Worker — BOTH, or the bot silently stays in Solo mode.
+# The bot Worker — BOTH required; its /health answers 503 until they are set.
 cd apps/discord-bot
 bunx wrangler secret put ITUN_CONVEX_SITE_URL   # https://<deployment>.convex.site
 bunx wrangler secret put ITUN_BOT_SECRET        # the same value as above

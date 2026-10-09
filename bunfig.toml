@@ -61,11 +61,8 @@ minimumReleaseAgeExcludes = ["bun-types"]
 # the canonical command — it is what CI and pre-push run — but a bare
 # `bun test` now behaves instead of lying.
 preload = [
-  # First: the bot's `src/config.ts` calls `requireEnv` at MODULE scope, so any
-  # file that transitively imports it throws on load without these. Uses `??=`,
-  # so a real local environment is never clobbered.
-  "./apps/discord-bot/test/env.ts",
-  # Likewise ITUN's `convex/auth.ts`; must also precede happy-dom (see the file).
+  # First: ITUN's `convex/auth.ts` reads the Discord client env at import, and
+  # this must also precede happy-dom (see the file).
   "./apps/itun/test/env.ts",
   "./test/happydom.ts",
   "./test/testing-library.ts",

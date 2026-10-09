@@ -1,10 +1,7 @@
 /**
- * The `/su roll` surface, as a Components V2 container.
- *
- * Replaced `buildRollEmbedData` / `buildCheckEmbedData` in `format.ts`, both of
- * which are now deleted — nothing on any surface sends `embeds:` any more. The
- * `EmbedData` builders in `gameEmbed.ts` and `lookupEmbed.ts` survive as pure
- * data, mapped onto blocks by their container adapters.
+ * The `/su roll` surface, as a Components V2 container. Unlike the entity
+ * cards (`container.ts#entityCard`), a roll authors its own blocks: a headline,
+ * a body and a provenance line are not an entity's shape.
  *
  * ## The problem this fixes
  *
@@ -65,7 +62,7 @@ import type { CoreRollBand } from 'salvageunion-reference/rules'
 import { CORE_ROLL_BANDS, coreRollBand } from 'salvageunion-reference/rules'
 import type { ContainerBlock, ContainerData } from './container.js'
 import { deriveLabel } from './derivedLabel.js'
-import { NEUTRAL_EMBED_COLOR, ROLL_ATTRIBUTION, ROLL_COLORS } from './format.js'
+import { NEUTRAL_ACCENT, ROLL_ATTRIBUTION, ROLL_COLORS } from './format.js'
 
 /** Longest value that reads as a headline rather than as body copy. */
 const INLINE_HEADLINE_MAX = 60
@@ -215,7 +212,7 @@ export function buildRollContainerData(
   }
 
   return {
-    accent: band !== null ? ROLL_COLORS[band] : NEUTRAL_EMBED_COLOR,
+    accent: band !== null ? ROLL_COLORS[band] : NEUTRAL_ACCENT,
     blocks,
   }
 }

@@ -342,7 +342,7 @@ Cloudflare Worker, set with `wrangler secret put`:
 # deployment that has not opted in cannot be talked to by a bot at all.
 bunx convex env set ITUN_BOT_SECRET <a long random string>
 
-# The bot Worker (su-discord-bot) — both, or the bot stays in Solo mode.
+# The bot Worker (su-discord-bot) — both required; /health is 503 without them.
 ITUN_CONVEX_SITE_URL=https://<deployment>.convex.site
 ITUN_BOT_SECRET=<the same value>
 ```
@@ -674,8 +674,8 @@ function is internal. Write both credential halves in one pass (one
 `openssl rand` piped to `convex env set` and `wrangler secret put`, never
 printed): a mismatch fails as `unauthorized`. Verify without the secret:
 `POST /bot/<op>` with none is **404** while unset, **401** once set; the
-Worker's `GET /health` shows `configured.itun: true` and `mode: connected`
-(presence only). Only a real Game command proves a match.
+Worker's `GET /health` is 503 until both are set and shows `configured.itun:
+true` (presence only). Only a real Game command proves a match.
 
 It reads widely and writes narrowly: only existing mutations, only facts
 modelled as a transaction or Change Log proposal. Not for: creating or editing
@@ -697,13 +697,13 @@ mutations for convenience (except `botClient.invite`, via
 - **Per-user OAuth: rejected.**
 
 No linking step: `authAccounts` stores the snowflake as `providerAccountId`,
-resolved by `model/bot.ts#userByDiscordId`; `users.discordId` is not read. Modes: Solo (variables unset; roll
-and lookup only), Connected, Degraded (Convex down; reference commands work).
-`/su roll` and `/su lookup` behave the same in every mode. `resolveActor`
+resolved by `model/bot.ts#userByDiscordId`; `users.discordId` is not read. There is always a
+client: when Convex is down or unreachable every call is `unavailable`, Game
+commands say so ephemerally, and `/su roll` and `/su lookup` behave the same. `resolveActor`
 returns `null` alike for no binding, account or membership; passive paths stay
 silent, explicit ones reply ephemerally. Open: Mediator alerts to the channel
 (`proposals.broadcast`, watermarked by the Change Log) and Apply / Decline
-buttons. Gaps: `/su crew` maxima (`apps/discord-bot/src/gameEmbed.ts`) ignore
+buttons. Gaps: `/su crew` maxima (`apps/discord-bot/src/gameCards.ts`) ignore
 the pilot's `PilotingContext`; unclaimed entities (`ownerId: null`) render
 **Unclaimed**, never a blank owner.
 
@@ -4012,7 +4012,7 @@ no account to open, is always current, and requires no publishing step.
   than to inherit.
 - **The link does not unfurl.** `index.html` carries no Open Graph tags and the
   route is client-rendered, so a bare link pasted into Discord or Slack shows
-  nothing. That is why the bot renders the URL inside its own embed. Giving this
+  nothing. That is why the bot renders the URL inside its own card. Giving this
   route server-rendered meta tags is a separate, later piece of work.
 
 ### Alternatives considered

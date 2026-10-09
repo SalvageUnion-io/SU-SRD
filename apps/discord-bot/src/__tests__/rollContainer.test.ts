@@ -10,7 +10,7 @@ import type { SURefRollTable } from 'salvageunion-reference'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import { buildPostedRollMessage, buildRollMessage } from '../commands/roll.js'
 import type { ContainerData } from '../container.js'
-import { NEUTRAL_EMBED_COLOR, ROLL_COLORS } from '../format.js'
+import { NEUTRAL_ACCENT, ROLL_COLORS } from '../format.js'
 import { buildRollContainerData, isTieredTable, rollTableUrl } from '../rollContainer.js'
 
 // No preload here. `apps/discord-bot/bunfig.toml` preloads
@@ -96,7 +96,7 @@ describe('tier gating', () => {
     // The old builder applied getColor() unconditionally, so rolling a 1 on the
     // Callsign Table painted the embed cascade red and implied "Sparkles" was a
     // catastrophe. It affected 21 tables.
-    expect(rollOf('Callsign Table', 1).accent).toBe(NEUTRAL_EMBED_COLOR)
+    expect(rollOf('Callsign Table', 1).accent).toBe(NEUTRAL_ACCENT)
   })
 
   test('a tiered table still takes the ramp', () => {

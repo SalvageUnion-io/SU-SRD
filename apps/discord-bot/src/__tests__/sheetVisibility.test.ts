@@ -16,13 +16,14 @@
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import { commands } from '../commands/index.js'
-import { setItunClientForTests } from '../commands/itunReply.js'
-import { buildSheetEmbed, publicSheetUrl } from '../gameEmbed.js'
+import { setItunClient } from '../commands/itunReply.js'
+import { ITUN_ORIGIN, publicSheetUrl, sheetCard } from '../gameCards.js'
 import type { ItunClient } from '../itun/client.js'
 import type { EntityBody, SheetResult } from '../itun/types.js'
+import { blockStarting, cardText, cardTexts } from './cardText.js'
 import { fakeExecute } from './fakeInteraction.js'
 
-const WEB = 'https://intheunionnow.com'
+const WEB = ITUN_ORIGIN
 
 function sheetResult(overrides: Partial<SheetResult> = {}): SheetResult {
   return {
@@ -58,27 +59,25 @@ describe('publicSheetUrl', () => {
 
 describe('the Share field', () => {
   test('is absent from a private sheet', () => {
-    const embed = buildSheetEmbed(sheetResult({ publicRead: false }), WEB)
-    expect(embed.fields.some((f) => f.name === 'Share')).toBe(false)
-    // And nothing anywhere in the embed points at the public route.
-    const text = embed.fields.map((f) => f.value).join('\n') + (embed.description ?? '')
-    expect(text).not.toContain('/p/')
+    const card = sheetCard(sheetResult({ publicRead: false }), WEB)
+    expect(blockStarting(card, '**Share**')).toBeUndefined()
+    // And nothing anywhere on the card points at the public route.
+    expect(cardText(card)).not.toContain('/p/')
   })
 
   test('appears once the owner has published it', () => {
-    const embed = buildSheetEmbed(sheetResult({ publicRead: true }), WEB)
-    const share = embed.fields.find((f) => f.name === 'Share')
-    expect(share?.value).toContain(`${WEB}/p/pilot/app1`)
+    const card = sheetCard(sheetResult({ publicRead: true }), WEB)
+    expect(blockStarting(card, '**Share**')).toContain(`${WEB}/p/pilot/app1`)
   })
 
   test('sits above the collections, so trimming cannot eat it first', () => {
     // `enforceContainerLimits` sheds from the END. Appended, the Share field
     // would be the first thing dropped on a large sheet. The one link that
     // works without an account should not be the one that goes.
-    const embed = buildSheetEmbed(sheetResult({ publicRead: true }), WEB)
-    const shareAt = embed.fields.findIndex((f) => f.name === 'Share')
-    const lastCollection = embed.fields.reduce(
-      (last, f, i) => (f.name.startsWith('Inventory') || f.name.includes('known') ? i : last),
+    const texts = cardTexts(sheetCard(sheetResult({ publicRead: true }), WEB))
+    const shareAt = texts.findIndex((t) => t.startsWith('**Share**'))
+    const lastCollection = texts.reduce(
+      (last, t, i) => (t.startsWith('**Inventory') || t.startsWith('**Abilities') ? i : last),
       -1
     )
     expect(shareAt).toBeGreaterThanOrEqual(0)
@@ -88,14 +87,14 @@ describe('the Share field', () => {
   test('is absent when the server does not send the flag at all', () => {
     // An older deployment sends no `publicRead`. Absent must read as private,
     // never as published.
-    const embed = buildSheetEmbed({ ...sheetResult(), publicRead: undefined }, WEB)
-    expect(embed.fields.some((f) => f.name === 'Share')).toBe(false)
+    const card = sheetCard({ ...sheetResult(), publicRead: undefined }, WEB)
+    expect(blockStarting(card, '**Share**')).toBeUndefined()
   })
 })
 
 describe('/su sheet visibility', () => {
   test('replies ephemerally and posts nothing to the channel', async () => {
-    const restore = setItunClientForTests({
+    const restore = setItunClient({
       sheet: async () => ({ kind: 'ok', value: sheetResult({ publicRead: false }) }),
     } as unknown as ItunClient)
 
@@ -134,7 +133,7 @@ describe('/su sheet visibility', () => {
     // Having a public URL does not make the reply public. The owner chose to
     // publish a page; they did not choose to have it posted to this channel by
     // whoever ran the command.
-    const restore = setItunClientForTests({
+    const restore = setItunClient({
       sheet: async () => ({ kind: 'ok', value: sheetResult({ publicRead: true }) }),
     } as unknown as ItunClient)
 

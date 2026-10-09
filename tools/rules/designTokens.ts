@@ -21,7 +21,7 @@
  * `ratchet` rules, counted against `tools/styling-baseline.json`:
  *
  *   - `raw-color` — the Discord bot restates the palette as hex integers
- *     (`format.ts`, `gameEmbed.ts`, `lookupEmbed.ts`; `0xb7410e` is
+ *     (`format.ts`, `gameCards.ts`, `lookupCard.ts`; `0xb7410e` is
  *     `--color-rust`, three times over).
  *   - `arbitrary-font-size` — `WizShell.tsx` and `LiveSheet.tsx`.
  *

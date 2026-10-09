@@ -1,7 +1,7 @@
 import { MessageFlags } from 'discord-api-types/v10'
+import { reportError } from 'observability/cloudflare'
 import type { ContainerData } from '../container.js'
 import { toContainer } from '../container.js'
-import { report } from '../report.js'
 import type { EditReplyPayload } from './interactions.js'
 import { itun } from './itunReply.js'
 
@@ -17,23 +17,18 @@ import { itun } from './itunReply.js'
  * ## Why the reply is not deferred
  *
  * A dice bot must feel instant, and the reference commands have to behave
- * identically whether or not accounts exist. So the roll is replied to first,
- * exactly as it always was, and the recording happens afterwards — editing the
- * footer only once it has actually landed. A slow or dead deployment therefore
+ * identically whether or not In The Union Now answers. So the roll is replied
+ * to first, and the recording happens afterwards — rebuilding the message only
+ * once it has actually landed. A slow or dead deployment therefore
  * costs a rolling player nothing at all, which is the property that matters:
  * the reference bot is the thing people already use.
  *
  * ## Why this rebuilds rather than edits
  *
- * This used to re-stamp the sent embed's footer — `embed.setFooter(…)` then
- * `editReply({ embeds })`. A Components V2 message has no embed and no footer,
- * so there is nothing to mutate: the container is rebuilt from the same pure
- * data with one more block, and the whole message is replaced.
- *
- * That is a better shape than the one it replaces. The signal used to be
- * appended to `ROLL_EMBED_FOOTER`, which buried a real, personal game fact
- * inside attribution boilerplate — in the smallest text on the message, and the
- * first thing to truncate on mobile. It is now its own line.
+ * A sent container has nothing to mutate, so it is rebuilt from the same pure
+ * data with one more block, and the whole message is replaced. The signal is
+ * its own line rather than part of the attribution, so a real, personal game
+ * fact is never buried in boilerplate.
  *
  * Two properties are preserved deliberately: the line is appended at the
  * **end**, so nothing the player is already reading reflows; and the edit
@@ -70,11 +65,10 @@ export async function attributeRoll(
   result: unknown
 ): Promise<void> {
   const channelId = interaction.channelId
-  const client = itun()
-  if (client === null || channelId === null) return
+  if (channelId === null) return
 
   try {
-    const recorded = await client.recordRoll(interaction.user.id, channelId, description, result)
+    const recorded = await itun().recordRoll(interaction.user.id, channelId, description, result)
     if (recorded.kind !== 'ok') return
 
     // Rebuild from the same data with the status line appended. Splicing it
@@ -93,6 +87,7 @@ export async function attributeRoll(
       components: [toContainer({ ...data, blocks })],
     })
   } catch (error) {
-    report(error, { source: 'roll-attribution' })
+    console.error('roll attribution failed:', error)
+    reportError(error, { source: 'roll-attribution' })
   }
 }

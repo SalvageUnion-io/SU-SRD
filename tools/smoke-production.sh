@@ -92,9 +92,10 @@ fi
 # passes, the Worker deployed fine and the routing layer is what broke.
 check https://su-srd.alxjrvs.workers.dev/ 200 "srd reachable on workers.dev"
 
-# /health answers 200 only when Discord itself accepted the bot token (it calls
-# /users/@me), 503 when the token is rejected or absent, 502 when Discord is
-# unreachable. A bad token is otherwise invisible until the first interaction.
-check https://su-discord-bot.alxjrvs.workers.dev/health 200 "bot token accepted by Discord"
+# /health answers 200 only when both ITUN secrets are set and Discord itself
+# accepted the bot token (it calls /users/@me); 503 when an ITUN secret is
+# missing or the token is rejected or absent, 502 when Discord is unreachable.
+# Either is otherwise invisible until the first interaction.
+check https://su-discord-bot.alxjrvs.workers.dev/health 200 "bot token accepted and ITUN configured"
 
 exit "$fail"

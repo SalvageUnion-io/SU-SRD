@@ -32,7 +32,7 @@ const ENCODER = new TextEncoder()
  * The slice of WebCrypto this file uses, as **workerd** implements it.
  *
  * Declared rather than imported, because this app is typechecked against Node's
- * lib (the gateway half genuinely is Node) while this file runs on workerd. Two
+ * lib (`deploy-commands.ts` is a Bun CLI) while this file runs on workerd. Two
  * mismatches follow, and neither is a real defect:
  *
  *   - `Ed25519` is a first-class workerd algorithm but is not in the DOM lib's

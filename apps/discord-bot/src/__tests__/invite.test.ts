@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import { inviteCommand } from '../commands/invite.js'
-import { setItunClientForTests } from '../commands/itunReply.js'
+import { setItunClient } from '../commands/itunReply.js'
 import type { InvitedResult } from '../inviteContainer.js'
 import { buildInviteDm, joinUrl } from '../inviteContainer.js'
 import type { ItunClient } from '../itun/client.js'
@@ -79,7 +79,7 @@ function connect(
       return Promise.resolve({ kind: 'ok', value: {} })
     },
   }
-  restore = setItunClientForTests(client)
+  restore = setItunClient(client)
   return calls
 }
 
@@ -88,12 +88,12 @@ function run(options: Parameters<typeof fakeExecute>[0] = {}) {
 }
 
 describe('/su invite', () => {
-  test('without an ITUN deployment it explains itself, privately', async () => {
+  test('with In The Union Now unavailable it explains itself, privately', async () => {
     const fake = run()
     await inviteCommand.execute(fake.interaction)
 
     expect(fake.deferred).toEqual({ called: true, ephemeral: true })
-    expect(fake.edits[0]?.content).toContain('isn’t connected to In The Union Now')
+    expect(fake.edits[0]?.content).toContain('In The Union Now is not configured')
     expect(fake.directMessages).toHaveLength(0)
   })
 
@@ -272,9 +272,9 @@ describe('the transport for a signed op', () => {
     }) as unknown as typeof fetch
 
     const client = createItunClient({ siteUrl: 'https://x.convex.site', botSecret: 'shh' })
-    const result = await client?.invite(SIGNED)
+    const result = await client.invite(SIGNED)
 
-    expect(result?.kind).toBe('ok')
+    expect(result.kind).toBe('ok')
     expect(calls[0]?.url).toBe('https://x.convex.site/bot/invite')
     // Exactly the string received: a parse-and-stringify would break the signature.
     expect(calls[0]?.init.body).toBe(SIGNED.body)

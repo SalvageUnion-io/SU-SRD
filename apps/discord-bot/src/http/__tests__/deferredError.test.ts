@@ -9,14 +9,10 @@ import { ResponseSink, webhookRoutes } from '../adapter.js'
  *
  * `ResponseSink.send` is a **no-op once settled**, and `deferReply` settles it.
  * So for the commands that defer — which are exactly the ones that make a
- * network call and can therefore throw — the worker's single `sink.send` in its
- * catch wrote nothing at all, and Discord left "<bot> is thinking…" on screen
- * until the interaction expired.
- *
- * The gateway path handled this correctly (`events/interactionCreate.ts` sends a
- * `followUp` when `deferred`), which is what marks this as a half-finished port
- * rather than a decision. The tell: `ResponseSink.deferred` was written by
- * `deferReply` and **read nowhere in the repo**.
+ * network call and can therefore throw — a single `sink.send` in the Worker's
+ * catch would write nothing at all, and Discord would leave "<bot> is
+ * thinking…" on screen until the interaction expired. The Worker therefore
+ * patches `@original` once the sink is settled.
  *
  * ## Why these tests are at this level
  *
@@ -76,20 +72,5 @@ describe('the repair route', () => {
     const routes = webhookRoutes(APPLICATION_ID, 'tok')
     expect(routes.followUp).not.toContain('%40original')
     expect(routes.followUp).toBe(`/webhooks/${APPLICATION_ID}/tok`)
-  })
-})
-
-describe('deferred flag', () => {
-  test('is set by a defer and is what distinguishes the two repairs', () => {
-    // Written by `deferReply`. Until this fix nothing in the repo read it, which
-    // is the clearest evidence the branch was never finished.
-    const sink = new ResponseSink()
-    expect(sink.deferred).toBe(false)
-
-    sink.deferred = true
-    sink.send({ type: InteractionResponseType.DeferredChannelMessageWithSource })
-
-    expect(sink.deferred).toBe(true)
-    expect(sink.settled).toBe(true)
   })
 })

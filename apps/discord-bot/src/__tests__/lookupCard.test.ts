@@ -1,9 +1,8 @@
 /**
- * Rich /su lookup embed tests.
+ * Rich /su lookup card tests.
  *
  * The load-bearing test is the exhaustive pass: EVERY entity in EVERY schema
- * goes through buildLookupEmbed and lookupContainerData, and the container
- * guard must have nothing to shed. We can't see replies in Discord, so this is
+ * goes through lookupCard, and the container guard must have nothing to shed. We can't see replies in Discord, so this is
  * what proves a lookup arrives whole (description, fields and footer) across
  * all 27 schemas, not the three we'd pick by hand. The guard sheds whole
  * blocks from the end, so a description that overruns the budget leaves a
@@ -18,20 +17,19 @@ import {
   SalvageUnionReference,
   search,
 } from 'salvageunion-reference'
+import type { ContainerData } from '../container.js'
 import { enforceContainerLimits } from '../container.js'
-import { lookupContainerData } from '../lookupContainer.js'
-import type { LookupEmbed } from '../lookupEmbed.js'
-import { buildLookupEmbed } from '../lookupEmbed.js'
+import { lookupCard } from '../lookupCard.js'
+import { blockStarting, cardText, cardTexts, cardUrl } from './cardText.js'
 
 type Entity = SURefEntity & { schemaName: SURefEnumSchemaName }
 
 /** The reply as sent must arrive whole: the container guard sheds no block. */
-function assertFits(e: LookupEmbed, entity: Entity, label: string): void {
-  const data = lookupContainerData(e, entity)
+function assertFits(data: ContainerData, label: string): void {
   expect(enforceContainerLimits(data).blocks, `${label}: shed a block`).toEqual(data.blocks)
 }
 
-describe('buildLookupEmbed — exhaustive validity across the whole dataset', () => {
+describe('lookupCard — exhaustive validity across the whole dataset', () => {
   test('every entity in every non-meta schema renders whole, shedding no block', () => {
     const schemas = getSchemaCatalog().schemas.filter((s) => !s.meta)
     const { dataMap } = getDataMaps()
@@ -41,7 +39,7 @@ describe('buildLookupEmbed — exhaustive validity across the whole dataset', ()
       const entities = (dataMap[schema.id] as SURefEntity[] | undefined) ?? []
       for (const entity of entities) {
         const withSchema: Entity = { ...entity, schemaName: schema.id }
-        assertFits(buildLookupEmbed(withSchema, schema.id), withSchema, `${schema.id}/${entity.id}`)
+        assertFits(lookupCard(withSchema, schema.id), `${schema.id}/${entity.id}`)
         checked++
       }
     }
@@ -50,22 +48,22 @@ describe('buildLookupEmbed — exhaustive validity across the whole dataset', ()
   })
 })
 
-describe('buildLookupEmbed — content depth', () => {
+describe('lookupCard — content depth', () => {
   test('a weapon system renders its action text, stats, and linked traits', () => {
     const gun = SalvageUnionReference.Systems.getByName('.50 Cal Machine Gun')
     expect(gun).toBeDefined()
     if (!gun) throw new Error('expected the .50 Cal Machine Gun system')
-    const e = buildLookupEmbed({ ...gun, schemaName: 'systems' }, 'systems')
-    expect(e.title).toBe('.50 Cal Machine Gun')
-    expect(e.url).toBe('https://salvageunion.io/schema/systems/item/50-cal-machine-gun')
-    expect(e.fields[0]).toMatchObject({ name: 'Type' })
+    const e = lookupCard({ ...gun, schemaName: 'systems' }, 'systems')
+    expect(cardUrl(e)).toBe('https://salvageunion.io/schema/systems/item/50-cal-machine-gun')
+    expect(cardText(e)).toContain('## [.50 Cal Machine Gun](')
+    expect(blockStarting(e, '**Type** System')).toBeDefined()
     // Action mechanical text is present (not just a summary).
-    expect(e.description).toContain('Range:')
-    expect(e.description).toContain('Damage:')
+    expect(cardText(e)).toContain('Range:')
+    expect(cardText(e)).toContain('Damage:')
     // Traits link out to their glossary pages (nested-entity linking).
-    expect(e.description).toContain('/schema/traits/item/')
+    expect(cardText(e)).toContain('/schema/traits/item/')
     // Flavor content from the action is inlined.
-    expect(e.description?.toLowerCase()).toContain('ballistic')
+    expect(cardText(e).toLowerCase()).toContain('ballistic')
   })
 
   test('an owner strips the redundant " (Owner)" suffix from its own actions', () => {
@@ -77,32 +75,32 @@ describe('buildLookupEmbed — content depth', () => {
     const arm = SalvageUnionReference.Systems.getByName('Multi-Function Repair Arm')
     expect(arm).toBeDefined()
     if (!arm) throw new Error('expected the Multi-Function Repair Arm system')
-    const e = buildLookupEmbed({ ...arm, schemaName: 'systems' }, 'systems')
-    expect(e.description).toContain('Chassis Repair')
-    expect(e.description).not.toContain('Chassis Repair (Multi-Function Repair Arm)')
-    expect(e.description).not.toContain('(Multi-Function Repair Arm)')
+    const e = lookupCard({ ...arm, schemaName: 'systems' }, 'systems')
+    expect(cardText(e)).toContain('Chassis Repair')
+    expect(cardText(e)).not.toContain('Chassis Repair (Multi-Function Repair Arm)')
+    expect(cardText(e)).not.toContain('(Multi-Function Repair Arm)')
   })
 
   test('a keyword renders its glossary definition', () => {
     const [hit] = search({ query: 'cover', schemas: ['keywords'], limit: 1 })
     expect(hit).toBeDefined()
     if (!hit) throw new Error('expected a keyword search hit')
-    const e = buildLookupEmbed(hit.entity, 'keywords')
-    expect(e.description?.length).toBeGreaterThan(0)
-    expect(e.fields[0]).toMatchObject({ name: 'Type', value: 'Keyword' })
+    const e = lookupCard(hit.entity, 'keywords')
+    // Heading, the definition, the Type rail and the footer: four texts.
+    expect(cardTexts(e)).toHaveLength(4)
+    expect(blockStarting(e, '**Type** Keyword')).toBeDefined()
   })
 
   test('a chassis renders its stat grid and links patterns without inlining them', () => {
     const goliath = SalvageUnionReference.Chassis.getByName('Goliath')
     expect(goliath).toBeDefined()
     if (!goliath) throw new Error('expected the Goliath chassis')
-    const e = buildLookupEmbed({ ...goliath, schemaName: 'chassis' }, 'chassis')
-    const fieldNames = e.fields.map((f) => f.name)
-    expect(fieldNames).toContain('Structure')
-    expect(fieldNames).toContain('System Slots')
+    const e = lookupCard({ ...goliath, schemaName: 'chassis' }, 'chassis')
+    expect(cardText(e)).toContain('**Structure** ')
+    expect(cardText(e)).toContain('**System Slots** ')
     // Goliath has 14+ community patterns — they're summarized, and the whole
     // thing still fits the budget (asserted by the exhaustive test too).
-    expect(e.description).toContain('Patterns')
+    expect(cardText(e)).toContain('Patterns')
   })
 
   test('chassis ability text resolves [(CHASSIS)] to the chassis name', () => {
@@ -110,8 +108,8 @@ describe('buildLookupEmbed — content depth', () => {
     // render the name, never the literal token (regression: PR #336 review).
     const chassis = SalvageUnionReference.Chassis.all()
     for (const c of chassis) {
-      const e = buildLookupEmbed({ ...c, schemaName: 'chassis' }, 'chassis')
-      expect(e.description ?? '', `${c.name} leaks the placeholder`).not.toContain('[(CHASSIS)]')
+      const e = lookupCard({ ...c, schemaName: 'chassis' }, 'chassis')
+      expect(cardText(e), `${c.name} leaks the placeholder`).not.toContain('[(CHASSIS)]')
     }
   })
 
@@ -119,40 +117,39 @@ describe('buildLookupEmbed — content depth', () => {
     const overpower = SalvageUnionReference.Abilities.getByName('Overpower')
     expect(overpower).toBeDefined()
     if (!overpower) throw new Error('expected the Overpower ability')
-    const e = buildLookupEmbed({ ...overpower, schemaName: 'abilities' }, 'abilities')
+    const e = lookupCard({ ...overpower, schemaName: 'abilities' }, 'abilities')
     // [[Vulnerable]] resolves to a masked link, and no raw bracket ref survives.
-    expect(e.description).toContain(
+    expect(cardText(e)).toContain(
       '[Vulnerable](https://salvageunion.io/schema/traits/item/vulnerable)'
     )
-    expect(e.description).not.toContain('[[')
+    expect(cardText(e)).not.toContain('[[')
   })
 
   test('a standard roll-table inlines its full rows and keeps a roll hint', () => {
     const table = SalvageUnionReference.RollTables.all().find((t) => t.table.type === 'standard')
     if (!table) throw new Error('expected a standard roll-table')
-    const e = buildLookupEmbed({ ...table, schemaName: 'roll-tables' }, 'roll-tables')
+    const e = lookupCard({ ...table, schemaName: 'roll-tables' }, 'roll-tables')
     // The roll hint survives, and every d20 bucket is inlined as a row (backtick key).
-    expect(e.description).toContain('/su roll')
-    expect(e.description).toContain('`20`')
-    expect(e.description).toContain('`11-19`')
-    expect(e.description).toContain('`1`')
+    expect(cardText(e)).toContain('/su roll')
+    expect(cardText(e)).toContain('`20`')
+    expect(cardText(e)).toContain('`11-19`')
+    expect(cardText(e)).toContain('`1`')
   })
 
   test('a columns roll-table inlines each column bucket as a field', () => {
     const table = SalvageUnionReference.RollTables.all().find((t) => t.table.type === 'columns')
     if (!table) throw new Error('expected a columns roll-table')
-    const e = buildLookupEmbed({ ...table, schemaName: 'roll-tables' }, 'roll-tables')
-    const fieldNames = e.fields.map((f) => f.name)
-    expect(fieldNames).toContain('Roll 1-4')
-    expect(fieldNames).toContain('Roll 17-20')
+    const e = lookupCard({ ...table, schemaName: 'roll-tables' }, 'roll-tables')
+    expect(cardText(e)).toContain('**Roll 1-4** ')
+    expect(cardText(e)).toContain('**Roll 17-20** ')
     // The entries within a column are listed (1-20), not just linked out.
-    const firstColumn = e.fields.find((f) => f.name === 'Roll 1-4')
-    expect(firstColumn?.value).toContain('1.')
+    const text = cardText(e)
+    expect(text.slice(text.indexOf('**Roll 1-4** '))).toContain('1.')
   })
 })
 
 /**
- * escapeLabel (module-private) guards every markdown label the embed emits.
+ * escapeLabel (module-private) guards every markdown label the card emits.
  * It used to escape only `[ ] ( )`, leaving a literal backslash in a name free
  * to pair with the backslash we add — `\]` became `\\]`, i.e. an ESCAPED
  * BACKSLASH followed by an UNESCAPED `]` that closes the label early and lets
@@ -174,52 +171,52 @@ describe('markdown label escaping', () => {
     return { ...goliath(), schemaName: 'chassis', ...overrides } as Entity
   }
 
-  function embedWith(overrides: Record<string, unknown>): LookupEmbed {
-    return buildLookupEmbed(chassisWith(overrides), 'chassis')
+  function cardWith(overrides: Record<string, unknown>): ContainerData {
+    return lookupCard(chassisWith(overrides), 'chassis')
   }
 
   test('real pattern names pass through untouched', () => {
-    const e = buildLookupEmbed({ ...goliath(), schemaName: 'chassis' }, 'chassis')
+    const e = lookupCard({ ...goliath(), schemaName: 'chassis' }, 'chassis')
     // Real SRD names carry no markdown metacharacters, so nothing is escaped.
-    expect(e.description).toContain('• **Scrapjack** — 7 systems, 3 modules')
-    expect(e.description).not.toContain('\\')
+    expect(cardText(e)).toContain('• **Scrapjack** — 7 systems, 3 modules')
+    expect(cardText(e)).not.toContain('\\')
   })
 
   test('a literal backslash in a label is itself escaped', () => {
-    const e = embedWith({ patterns: [{ name: 'Evil\\', systems: [], modules: [] }] })
+    const e = cardWith({ patterns: [{ name: 'Evil\\', systems: [], modules: [] }] })
     // Two backslashes: `\\` renders as one literal backslash and cannot pair
     // with whatever follows. The OLD class `[[\]()]` omitted the backslash, so
     // it emitted a single `\` here — the exact breakout this pins against.
-    expect(e.description).toContain('• **Evil\\\\** — 0 systems, 0 modules')
-    expect(e.description).not.toContain('**Evil\\** ')
+    expect(cardText(e)).toContain('• **Evil\\\\** — 0 systems, 0 modules')
+    expect(cardText(e)).not.toContain('**Evil\\** ')
   })
 
   test('brackets and parens in a label are escaped', () => {
-    const e = embedWith({ patterns: [{ name: 'Brac[ke]t (s)', systems: [], modules: [] }] })
-    expect(e.description).toContain('• **Brac\\[ke\\]t \\(s\\)** — 0 systems, 0 modules')
+    const e = cardWith({ patterns: [{ name: 'Brac[ke]t (s)', systems: [], modules: [] }] })
+    expect(cardText(e)).toContain('• **Brac\\[ke\\]t \\(s\\)** — 0 systems, 0 modules')
   })
 
   test('a trailing backslash cannot break out of a markdown link label', () => {
-    const e = embedWith({
+    const e = cardWith({
       patterns: [],
       content: [{ type: 'paragraph', value: 'Gains the [[Vulnerable\\]] Trait.' }],
     })
     // The label must end `\\]` — an escaped backslash, then the REAL closing
     // bracket. Under the old class this was `\]`, which escaped the closing
     // bracket instead, so the link label ran on and Discord rendered raw text.
-    expect(e.description).toContain(
+    expect(cardText(e)).toContain(
       '[Vulnerable\\\\](https://salvageunion.io/schema/traits/item/vulnerable)'
     )
-    expect(e.description).not.toContain('[Vulnerable\\](')
+    expect(cardText(e)).not.toContain('[Vulnerable\\](')
   })
 
   test('escaping stays linear on a pathological label', () => {
     const pathological = '['.repeat(50_000)
     const start = performance.now()
     const overrides = { patterns: [{ name: pathological, systems: [], modules: [] }] }
-    const e = embedWith(overrides)
+    const e = cardWith(overrides)
     expect(performance.now() - start).toBeLessThan(1000)
-    // Still arrives whole after the escape doubles the length (enforce() trims).
-    assertFits(e, chassisWith(overrides), 'pathological pattern name')
+    // Still arrives whole after the escape doubles the length (fit() trims).
+    assertFits(e, 'pathological pattern name')
   })
 })

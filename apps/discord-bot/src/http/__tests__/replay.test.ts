@@ -4,15 +4,15 @@ import type { Env } from '../worker.js'
 import worker from '../worker.js'
 
 /**
- * The signed replay harness — P5's gate (ADR-033).
+ * The signed replay harness — the bot's pre-deploy gate (ADR-033).
  *
  * ## Why this is the gate rather than a staged rollout
  *
- * Gateway and HTTP interactions are **mutually exclusive**, and the Interactions
- * Endpoint URL is an application-level setting. There is no canary, no
- * percentage rollout and no test guild: one toggle moves every server at once.
- * So the only pre-flip evidence available is driving the Worker with payloads
- * shaped exactly like Discord's, signed exactly as Discord signs them.
+ * The Interactions Endpoint URL is an application-level setting. There is no
+ * canary, no percentage rollout and no test guild: every deploy moves every
+ * server at once. So the only pre-deploy evidence available is driving the
+ * Worker with payloads shaped exactly like Discord's, signed exactly as Discord
+ * signs them.
  *
  * ## Why a locally-generated keypair rather than a second Discord app
  *
@@ -25,7 +25,7 @@ import worker from '../worker.js'
  *
  * The one thing this cannot test is Discord's own behaviour: whether it accepts
  * our PONG when saving the endpoint URL, and whether a deferred reply lands
- * inside its 3-second window under real latency. Those are verified at the flip.
+ * inside its 3-second window under real latency.
  */
 
 const ENCODER = new TextEncoder()
@@ -101,6 +101,9 @@ function envFor(keys: KeyPairHex): Env {
     DISCORD_PUBLIC_KEY: keys.publicKeyHex,
     DISCORD_APPLICATION_ID: APPLICATION_ID,
     DISCORD_TOKEN: 'test-token',
+    // Unconfigured: every ITUN call degrades to `unavailable` with no request.
+    ITUN_CONVEX_SITE_URL: '',
+    ITUN_BOT_SECRET: '',
   }
 }
 
@@ -271,7 +274,7 @@ describe('interaction dispatch', () => {
     await settled()
 
     expect(res.status).toBe(200)
-    const body = (await res.json()) as { type: number; data?: { embeds?: unknown[] } }
+    const body = (await res.json()) as { type: number; data?: unknown }
     // Either a real result or the command's own error reply — both are message
     // responses. What must NOT happen is a defer or an empty ack, since the roll
     // commands answer synchronously and that is the UX this transport preserves.
@@ -311,7 +314,7 @@ describe('interaction dispatch', () => {
     expect(body.data?.content).toContain('no longer supported')
   })
 
-  test('a real /su lookup resolves its nested option and returns an embed', async () => {
+  test('a real /su lookup resolves its nested option and returns a card', async () => {
     // The positive case for option resolution. Discord nests options — a
     // subcommand holds the values — so a naive read of the top level finds
     // nothing, and every command would answer "not found" while looking fine.
@@ -336,8 +339,8 @@ describe('interaction dispatch', () => {
     // have made this test fail for a reason unrelated to the behaviour under
     // test.
     //
-    // This also proves the whole V2 path end to end: the container survives
-    // `toPlainPayload` and reaches the wire as real JSON.
+    // This also proves the whole V2 path end to end: the container builder
+    // serialises through its `toJSON()` and reaches the wire as real JSON.
     expect(JSON.stringify(body.data?.components)).toContain('Mule')
     expect(body.data?.content).toBeUndefined()
   })

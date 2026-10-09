@@ -12,7 +12,7 @@ import worker from '../worker.js'
  * ## What must be true, and why each matters
  *
  * The monitor is only useful if it reports on the thing that can actually break.
- * Under HTTP interactions there is no gateway session to observe, so **token
+ * An HTTP-interactions Worker holds no session to observe, so **token
  * validity is the liveness question** — which is why a check-in that merely
  * proved "the cron fired" would be worthless.
  */
@@ -21,6 +21,8 @@ const ENV: Env = {
   DISCORD_PUBLIC_KEY: 'aa'.repeat(32),
   DISCORD_APPLICATION_ID: '111111111111111111',
   DISCORD_TOKEN: 'test-token',
+  ITUN_CONVEX_SITE_URL: 'https://x.convex.site',
+  ITUN_BOT_SECRET: 'test-secret',
 }
 
 /**

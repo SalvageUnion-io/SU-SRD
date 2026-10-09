@@ -574,7 +574,8 @@ function preflight(root: string): void {
    * assertion fails — which is the point. See tools/lib/workspaceCoverage.ts.
    */
   assertCoversWorkspaces('styling ownership', APP_DIRS, {
-    'apps/discord-bot': 'ships no stylesheet — it renders Discord embeds, not DOM.',
+    'apps/discord-bot':
+      'ships no stylesheet — it renders Discord Components V2 containers, not DOM.',
     'apps/su-assets': 'a Worker that serves image bytes and short error strings; no CSS, no DOM.',
     'packages/observability': 'Sentry wiring only; no components and no stylesheet.',
     'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',

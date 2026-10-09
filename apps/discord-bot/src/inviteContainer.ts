@@ -1,5 +1,5 @@
 import type { ContainerData } from './container.js'
-import { NEUTRAL_EMBED_COLOR } from './format.js'
+import { NEUTRAL_ACCENT } from './format.js'
 import type { InviteResult } from './itun/types.js'
 
 /**
@@ -48,7 +48,7 @@ export function buildInviteDm(
         : `${invite.grantCount} characters are waiting for you.`
 
   return {
-    accent: NEUTRAL_EMBED_COLOR,
+    accent: NEUTRAL_ACCENT,
     blocks: [
       {
         kind: 'text',

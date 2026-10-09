@@ -1,34 +1,30 @@
 /**
  * Components V2 plumbing — the `data → ContainerBuilder` seam.
  *
- * ## Why containers rather than embeds
- *
- * An embed is a fixed set of slots: title, description, up to 25 fields, one
- * footer. That shape is wrong for a roll result, which is a headline with a
- * body and a provenance line — so the old builder spent three inline fields on
- * `Table / Roll / Range`, roughly six lines of mobile chrome to deliver twelve
- * characters, and had nowhere to put anything else.
+ * ## Why containers
  *
  * A container is an ordered list of blocks. Text is text, rules are rules, and
- * the layout is whatever the content needs.
- *
- * ## What V2 costs, and what it does not
+ * the layout is whatever the content needs — a roll result is a headline with a
+ * body and a provenance line, not a set of fixed slots.
  *
  * With `MessageFlags.IsComponentsV2` set, Discord rejects `content` and
- * `embeds` outright — it is all-in per message. The author, footer and
- * timestamp slots go with them and become ordinary text lines.
- *
- * It does **not** cost the tier colour, which was the real risk:
- * `ContainerBuilder.setAccentColor()` is the direct equivalent of an embed's
- * coloured edge, and carries the same `0xRRGGBB` integer.
+ * `embeds` outright — it is all-in per message. `ContainerBuilder.
+ * setAccentColor()` carries the tier colour as a `0xRRGGBB` integer.
  *
  * ## Why this module is pure
  *
- * Builders take data and return data, exactly as `gameEmbed.ts` does. That is
- * not only for testability: recording a roll to a bound Game used to mutate the
- * sent message (`embed.setFooter(…)`), and a container has no such seam — you
- * rebuild it. A pure builder makes "rebuild with one more line" a re-invocation
- * rather than a special case. See `rollAttribution.ts`.
+ * Builders take data and return `ContainerData`. That is not only for
+ * testability: a sent container has no seam to mutate, so changing one means
+ * rebuilding it, and a pure builder makes "rebuild with one more line" a
+ * re-invocation rather than a special case. See `rollAttribution.ts`.
+ *
+ * ## Two shapes of builder
+ *
+ * A roll, an error and an invite DM author their blocks directly. Every
+ * **entity** surface — a `/su lookup` entry, a sheet, the crew board, a game
+ * card — shares one shape (heading, prose, labelled fields, a provenance line,
+ * maybe artwork) and renders it through {@link entityCard}, so that shape is
+ * mapped onto blocks in exactly one place.
  */
 
 import {
@@ -50,10 +46,6 @@ import { truncate } from 'salvageunion-reference'
  * `@discordjs/builders` imposes no total-component cap, so nothing local will
  * tell you when a container is too big. They are recorded here so one place
  * owns them, and are deliberately conservative.
- *
- * `EMBED_LIMIT.total` (6000) does **not** apply to a container: it is a
- * different budget with a different shape, which is why this module carries its
- * own guard.
  */
 export const V2_LIMIT = {
   /** Components in one message, counting the container and everything inside. */
@@ -83,9 +75,9 @@ export type ContainerBlock =
     }
   | { kind: 'buttons'; buttons: ButtonSpec[] }
 
-/** Everything needed to render one container. Pure data — no discord.js. */
+/** Everything needed to render one container. Pure data — no builders. */
 export type ContainerData = {
-  /** The accent stripe, same `0xRRGGBB` integer an embed colour takes. */
+  /** The accent stripe, a `0xRRGGBB` integer. */
   accent: number
   blocks: ContainerBlock[]
 }
@@ -146,6 +138,95 @@ export function enforceContainerLimits(data: ContainerData): ContainerData {
   return trimmed
 }
 
+/** A labelled value on an entity card. */
+export type CardField = { name: string; value: string; inline?: boolean }
+
+/** The shape every entity surface shares; {@link entityCard} renders it. */
+export type EntityCard = {
+  title: string
+  /** Where the title links. Omitted rather than dead when there is nowhere to go. */
+  url?: string
+  accent: number
+  description?: string
+  fields: CardField[]
+  /** Provenance, rendered as a `-#` subtext line under a rule. */
+  footer: string
+  /**
+   * Absolute `https://` URL of the artwork CDN image, never an attachment, so
+   * no bytes pass through the Worker. Undefined when the entity has no art.
+   */
+  thumbnail?: string
+}
+
+/** The title as a `##` heading, a masked link when there is a page to open. */
+function cardHeading(title: string, url: string | undefined): string {
+  return url ? `## [${title}](${url})` : `## ${title}`
+}
+
+/**
+ * Fields as blocks.
+ *
+ * A container has no columns, so **consecutive inline fields merge into one
+ * text block, one `**Name** value` per line**. A vitals rail then reads as one
+ * instrument (the gauges align on their left edge) and short label/value pairs
+ * stay compact. A full-width field is a slab: its name a bold heading, its
+ * value the body beneath.
+ */
+function fieldBlocks(fields: CardField[]): ContainerBlock[] {
+  const blocks: ContainerBlock[] = []
+  let run: string[] = []
+
+  const flush = (): void => {
+    if (run.length > 0) {
+      blocks.push({ kind: 'text', content: run.join('\n') })
+      run = []
+    }
+  }
+
+  for (const field of fields) {
+    if (field.inline === true) {
+      run.push(`**${field.name}** ${field.value}`)
+      continue
+    }
+    flush()
+    blocks.push({ kind: 'text', content: `**${field.name}**\n${field.value}` })
+  }
+  flush()
+  return blocks
+}
+
+/**
+ * Render an entity card: heading, prose, fields, then a rule and the footer.
+ *
+ * With artwork, the heading and the prose sit in a section so the thumbnail
+ * hangs beside them, pinned to the identity rather than floating above the
+ * fields. Without it they are ordinary blocks — an empty section would render
+ * as a narrowed column with nothing in the gutter.
+ *
+ * Limits are not applied here: `toContainer` enforces them for every reply.
+ */
+export function entityCard(card: EntityCard): ContainerData {
+  const heading = cardHeading(card.title, card.url)
+  const blocks: ContainerBlock[] = []
+
+  if (card.thumbnail !== undefined) {
+    blocks.push({
+      kind: 'section',
+      text: card.description ? [heading, card.description] : [heading],
+      thumbnail: { url: card.thumbnail, description: card.title },
+    })
+  } else {
+    blocks.push({ kind: 'text', content: heading })
+    if (card.description) blocks.push({ kind: 'text', content: card.description })
+  }
+
+  blocks.push(...fieldBlocks(card.fields))
+  blocks.push({ kind: 'separator' })
+  blocks.push({ kind: 'text', content: `-# ${card.footer}` })
+
+  return { accent: card.accent, blocks }
+}
+
 function toButton(spec: ButtonSpec): ButtonBuilder {
   return spec.kind === 'link'
     ? new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(spec.url).setLabel(spec.label)
@@ -157,7 +238,7 @@ function toButton(spec: ButtonSpec): ButtonBuilder {
 
 /**
  * Build the container. Enforces limits first, so a caller cannot skip the
- * guard — the same single-choke-point rule `toEmbed` follows in `itunReply.ts`.
+ * guard: this is the one choke point every reply passes through.
  */
 export function toContainer(data: ContainerData): ContainerBuilder {
   const safe = enforceContainerLimits(data)

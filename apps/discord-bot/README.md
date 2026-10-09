@@ -10,12 +10,12 @@ other bots that register a bare `/roll`).
 
 - `/su roll [table]` — Roll on a Salvage Union table. The optional `table`
   argument autocompletes across every roll table by name; omit it to roll the
-  **Core Mechanic** table. The reply is an embed colored by the d20 outcome
+  **Core Mechanic** table. The reply is a card accented by the d20 outcome
   tier (crit → cascade failure).
 - `/su lookup <entity>` — Look up any Salvage Union entity (equipment, chassis,
   systems, keywords, traits, …). The required `entity` argument autocompletes
   via full-text search; picking a suggestion (or free-typing, which falls back
-  to the top search hit) replies with a rich embed whose title links out to the
+  to the top search hit) replies with a rich card whose title links out to the
   entity's page on [salvageunion.io](https://salvageunion.io)
   (`/schema/<schema>/item/<slug>`).
 
@@ -38,44 +38,19 @@ other bots that register a bare `/roll`).
 
 ### Local Development
 
-1. Copy the environment example file:
+The application's Interactions Endpoint URL is application-wide: Discord sends
+every interaction, from every server, to the deployed Worker. There is no local
+Worker Discord can reach, so the development loop is the tests:
 
-   ```bash
-   cp .env.example .env
-   ```
+```bash
+bun --filter discord-bot test
+```
 
-2. Fill in your Discord credentials in `.env`:
+`src/http/__tests__/replay.test.ts` drives the Worker with payloads shaped and
+signed exactly as Discord's, and the container tests pin what a reply renders.
 
-   ```bash
-   DISCORD_TOKEN=your-bot-token
-   DISCORD_CLIENT_ID=your-application-id
-   DISCORD_GUILD_ID=your-test-server-id  # For development
-   ```
-
-3. Install dependencies from the repo root:
-
-   ```bash
-   bun install
-   ```
-
-4. Deploy slash commands to your test server (instant, guild-scoped — needs
-   `DISCORD_GUILD_ID` set):
-
-   ```bash
-   bun run deploy-commands
-   ```
-
-5. Run the Worker locally:
-
-   ```bash
-   cd apps/discord-bot && bunx wrangler dev --env local
-   ```
-
-   `--env local` is required for Connected mode: it binds everything in `.env`
-   (or `.dev.vars`), including `ITUN_BOT_SECRET`, `ITUN_CONVEX_SITE_URL` and
-   `ITUN_WEB_URL`. Without it, the top-level `secrets.required` in
-   `wrangler.jsonc` binds only `SENTRY_DSN` and `DISCORD_TOKEN` from those
-   files, so the bot runs in Solo mode.
+`.env` (from `.env.example`) holds only what `bun run deploy-commands` needs to
+register the command shape.
 
 ### Registering slash commands
 
@@ -112,24 +87,22 @@ old standalone `/roll` and `/lookup`) deregister automatically on the next run.
 The bot deploys to **Cloudflare Workers**
 ([ADR-033](../../docs/ARCHITECTURE.md#adr-033)) from
 `.github/workflows/deploy-cloudflare.yml`, using `apps/discord-bot/wrangler.jsonc`.
-It runs as an HTTP-interactions Worker, not a gateway process. Secrets
-(`DISCORD_TOKEN`, `DISCORD_PUBLIC_KEY`, `DISCORD_CLIENT_ID`, …) are Worker
-secrets, set with `wrangler secret put`.
+It runs as an HTTP-interactions Worker. The secrets it requires
+(`SENTRY_DSN`, `DISCORD_TOKEN`, `ITUN_BOT_SECRET`, `ITUN_CONVEX_SITE_URL`) are
+listed in `wrangler.jsonc`'s `secrets.required` and set with `wrangler secret
+put`; a deploy fails while one is unset, and `GET /health` answers 503 while the
+ITUN pair is incomplete.
 
 **Deploying does _not_ register slash commands**, deliberately: it must never
 silently re-register global commands. When the command shape changes, register
 it once, out-of-band, with `bun run deploy-commands:global` locally (production
 `DISCORD_TOKEN` / `DISCORD_CLIENT_ID` in your environment).
 
-Render is **retired** — the account is gone, `render.yaml` was deleted in
-ADR-033 P8, and the Node gateway it ran was deleted with it. The previous
-deployment instructions that lived here went with it; git history has them.
-
 ## Scripts
 
 | Script                           | Description                       |
 | -------------------------------- | --------------------------------- |
-| `bunx wrangler dev`              | Run the Worker locally            |
+| `bun --filter discord-bot test`  | Run the tests and replay harness  |
 | `bun run deploy-commands`        | Deploy commands to test guild     |
 | `bun run deploy-commands:global` | Deploy commands globally          |
 
