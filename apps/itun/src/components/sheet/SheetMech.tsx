@@ -10,7 +10,6 @@
  * the Dashboard, not the Free-Edit Live Sheet (ADR-021).
  */
 
-import { EntityRow } from 'component-lib'
 import {
   mechMaxCargo,
   mechMaxEP,
@@ -27,6 +26,7 @@ import { runWrite } from '../../lib/runWrite'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'
 import { AppLink } from '../shared/AppLink'
+import { EntityRow } from '../shared/EntityRow'
 import { AssignPicker } from '../wiring/AssignPicker'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'

@@ -7,6 +7,8 @@ import {
   parseInviteInteraction,
   SIGNATURE_MAX_AGE_SECONDS,
 } from '../../convex/model/discordInteraction'
+import type { Ctx } from './fixtures'
+import { makeUser } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -23,8 +25,6 @@ import { testConvex } from './harness'
  * so the verifier is tested as the pure function it is, and the mutation is
  * driven with the body the route would have verified.
  */
-
-type Ctx = ReturnType<typeof testConvex>
 
 const ENCODER = new TextEncoder()
 
@@ -93,21 +93,6 @@ function inviteBody(o: BodyOptions = {}): string {
       },
     },
   })
-}
-
-async function makeUser(t: Ctx, name: string, discordId?: string) {
-  const userId = await t.run(async (ctx) => {
-    const id = await ctx.db.insert('users', { name, displayName: name })
-    if (discordId !== undefined) {
-      await ctx.db.insert('authAccounts', {
-        userId: id,
-        provider: 'discord',
-        providerAccountId: discordId,
-      })
-    }
-    return id
-  })
-  return { userId, as: t.withIdentity({ subject: userId }) }
 }
 
 /** Vex organises Tenacity, bound to chan-1; Pat is a member but not Organizer. */

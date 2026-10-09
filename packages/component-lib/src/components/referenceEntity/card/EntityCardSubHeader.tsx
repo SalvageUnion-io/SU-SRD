@@ -72,7 +72,7 @@ export function EntityCardSubHeader({
 
   // Cell size ladder, nudged up one notch: a FULL card's cells are the default
   // (text-sm); a compact/nested card's cells are one step down (`compact` →
-  // text-xs) — bigger than the old text-label, still smaller than full. The
+  // text-xs) — bigger than text-label, still smaller than full. The
   // inter-cell gap is the SAME (gap-1.5) at both sizes.
 
   // Book-style sub-header: the stat cells read as ONE line of basic cream
@@ -102,10 +102,9 @@ export function EntityCardSubHeader({
     return `${cell.label} ${cell.value}`
   }
   // Each cell is still ONE segment of the book's trait line, but a segment that
-  // NAMES a rules entity keeps that entity's hovercard — the affordance the
-  // per-cell stamps used to carry, and that an in-prose `[[trait]]` reference
-  // still carries. Flattening the row to a single string had silently dropped
-  // it, so a card's own traits were the one place the glossary was unreachable.
+  // NAMES a rules entity keeps that entity's hovercard, as an in-prose
+  // `[[trait]]` reference does. Flattening the row to a single string would
+  // make a card's own traits the one place the glossary is unreachable.
   const parts = cells.map((cell) => {
     const text = cellToText(cell)
     if (!cell.entityRef) return { key: cell.key, node: text as ReactNode }

@@ -9,7 +9,7 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { _clearAllStores, crawlers, mechs } from '../index'
+import { clearCache, crawlers, mechs } from '../index'
 import type { MonotonicClock } from './monotonicClock'
 import { installMonotonicClock } from './monotonicClock'
 
@@ -27,11 +27,11 @@ afterAll(() => {
 })
 
 beforeEach(async () => {
-  await _clearAllStores()
+  await clearCache()
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
 })
 
 // ---------------------------------------------------------------------------

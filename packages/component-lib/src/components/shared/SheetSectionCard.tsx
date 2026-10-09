@@ -1,5 +1,5 @@
 /**
- * SheetSectionCard — the poster `.dcard` section container (redesign D5).
+ * SheetSectionCard — the poster `.dcard` section container (the poster redesign).
  *
  * Composes the shared `Card` (never a hand-rolled div) into the poster's
  * accent-framed section card:
@@ -88,10 +88,8 @@ export function SheetSectionCard({
       }
       footerContent={
         source ? (
-          // No colour of its own — it inherits the footer band's `text-paper`.
-          // It used to force `text-ink/85`, which only read because the band
-          // behind it was painting nothing; on the deep accent that band is
-          // supposed to have, dark-on-dark would have been unreadable.
+          // No colour of its own — it inherits the footer band's `text-paper`:
+          // dark text on the band's deep accent would be unreadable.
           <span className="min-w-0 truncate font-cond text-label font-semibold uppercase leading-none tracking-caps">
             {source}
           </span>

@@ -16,7 +16,7 @@
   },
   // `e2e/**/*` + `playwright.config.ts`: Playwright transpiles specs without
   // type-checking them, and biome.jsonc disables the linter for both paths, so
-  // until now they were covered by the formatter alone.
+  // this include is their only check beyond the formatter.
   "include": [
     "src/**/*",
     "ssg/**/*",

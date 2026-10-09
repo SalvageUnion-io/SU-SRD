@@ -5,7 +5,8 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { OffRulesEscape, WizShell } from 'component-lib'
+import { OffRulesEscape } from '../OffRulesEscape'
+import { WizShell } from '../WizShell'
 
 describe('OffRulesEscape', () => {
   test('renders the escape and fires onEscape on click', () => {

@@ -12,8 +12,5 @@
   },
   "dependencies": {
     "observability": "workspace:*"
-  },
-  "devDependencies": {
-    "wrangler": "4.147.0"
   }
 }

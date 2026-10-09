@@ -99,13 +99,10 @@ export type MergeSummary = {
 export async function mergeImport(
   bundle: ExportBundle,
   entityStore: MergeEntityStore,
-  // Patterns and encounter NPCs go through their stores, not `db.*`. Writing
-  // straight to the db layer is the exact bypass patternStore was created to
-  // end: those writes never published the cross-tab broadcast, so an import
-  // left every other tab — and the importing tab's own caches, which get no
-  // self-echo — showing the pre-import lists until a reload. Pilots/mechs/
-  // crawlers below already went through their store; these two were the
-  // holdouts.
+  // Patterns and encounter NPCs go through their stores, not `db.*`, like
+  // pilots/mechs/crawlers below: a write straight to the db layer never
+  // reaches the server of record, and leaves this tab's in-memory lists
+  // showing the pre-import rows until a reload.
   patternStore: MergePatternStore = usePatternStore.getState(),
   encounterNpcStore: MergeEncounterNpcStore = useEncounterStore.getState()
 ): Promise<MergeSummary> {
@@ -148,15 +145,7 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-      id: _id,
-      createdAt: _ca,
-      updatedAt: _ua,
-      workspaceId: _ws,
-      gameId: _g,
-      seedRef: _sr,
-      ...rest
-    } = pilot
+    const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, seedRef: _sr, ...rest } = pilot
 
     const created = await entityStore.create('pilot', {
       ...rest,
@@ -176,15 +165,7 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-      id: _id,
-      createdAt: _ca,
-      updatedAt: _ua,
-      workspaceId: _ws,
-      gameId: _g,
-      seedRef: _sr,
-      ...rest
-    } = mech
+    const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, seedRef: _sr, ...rest } = mech
 
     const created = await entityStore.create('mech', {
       ...rest,
@@ -204,15 +185,7 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {
-      id: _id,
-      createdAt: _ca,
-      updatedAt: _ua,
-      workspaceId: _ws,
-      gameId: _g,
-      seedRef: _sr,
-      ...rest
-    } = crawler
+    const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, seedRef: _sr, ...rest } = crawler
 
     const created = await entityStore.create('crawler', {
       ...rest,
@@ -283,7 +256,7 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, createdAt: _ca, updatedAt: _ua, workspaceId: _ws, gameId: _g, ...rest } = npc
+    const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, ...rest } = npc
 
     await encounterNpcStore.create({
       ...rest,

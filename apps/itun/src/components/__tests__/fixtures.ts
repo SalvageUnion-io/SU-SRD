@@ -25,8 +25,6 @@ import type { SoftLink } from '../../lib/schemas/softLink'
  */
 export const FIXTURE_NOW = '2026-01-01T00:00:00.000Z'
 
-const NOW = FIXTURE_NOW
-
 export function pilotFixture(overrides: Partial<Pilot> & { id: string }): Pilot {
   return {
     schemaVersion: 1,
@@ -40,8 +38,8 @@ export function pilotFixture(overrides: Partial<Pilot> & { id: string }): Pilot 
     appearance: '',
     background: '',
     conditions: [],
-    createdAt: NOW,
-    updatedAt: NOW,
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
     ...overrides,
   }
 }
@@ -55,8 +53,8 @@ export function mechFixture(overrides: Partial<Mech> & { id: string }): Mech {
     modules: [],
     cargoLots: [],
     conditions: [],
-    createdAt: NOW,
-    updatedAt: NOW,
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
     ...overrides,
   }
 }
@@ -67,8 +65,8 @@ export function crawlerFixture(overrides: Partial<Crawler> & { id: string }): Cr
     name: 'Fixture Crawler',
     techLevel: 'tech-1',
     systems: [],
-    createdAt: NOW,
-    updatedAt: NOW,
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
     ...overrides,
   }
 }
@@ -92,6 +90,6 @@ export function softLinkFixture(
     from: { type: fromType, id: fromId },
     to: { type: toType, id: toId },
     type,
-    createdAt: NOW,
+    createdAt: FIXTURE_NOW,
   }
 }

@@ -3,7 +3,7 @@
  *
  * The "Crawler Level" slab UI (manual-fallback editor + linked-crawler
  * readout) was dropped from the pilot sheet body in the redesign poster
- * conformance pass (D6, #410) — it has no poster counterpart. What survives
+ * conformance pass (#410) — it has no poster counterpart. What survives
  * is the underlying SCALING SOURCE: `resolveEffectiveCrawlerLevel` still
  * feeds choice caps (e.g. the Modification choice) regardless of whether a
  * crawler-level control renders anywhere.
@@ -24,7 +24,7 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
@@ -42,7 +42,7 @@ let SNIPER_ID = ''
 beforeAll(async () => {
   const sniper = SalvageUnionReference.Equipment.getByName(SNIPER_NAME)
   if (!sniper) throw new Error(`Fixture setup: equipment "${SNIPER_NAME}" not found in reference`)
-  SNIPER_ID = sniper.id
+  SNIPER_ID = getEntitySlug(sniper)
 })
 
 // ---------------------------------------------------------------------------
@@ -122,7 +122,7 @@ function pilotToCrawlerLink(pilotId: string, crawlerId: string): SoftLink {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('PilotSheet — Crawler Level slab dropped (redesign D6, #410)', () => {
+describe('PilotSheet — Crawler Level slab dropped (poster redesign, #410)', () => {
   test('no manual-fallback editor renders, linked or not', () => {
     const pilot = makePilot({ crawlerLevel: 2 })
     const { store } = makeStore({ pilot })

@@ -14,11 +14,10 @@
       "port": 5173
     },
     {
-      "name": "ladle",
+      "name": "stories",
       "runtimeExecutable": "bun",
-      "runtimeArgs": ["run", "ladle"],
-      "port": 61000,
-      "env": { "BROWSER": "none" }
+      "runtimeArgs": ["run", "stories"],
+      "port": 61000
     }
   ]
 }

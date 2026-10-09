@@ -1,5 +1,3 @@
-import { z } from 'salvageunion-reference/zod'
-
 /**
  * Change Log (provenance) — the per-entity, append-only audit trail
  * ([ADR-022](../../../../../docs/ARCHITECTURE.md#adr-022)).
@@ -19,47 +17,10 @@ import { z } from 'salvageunion-reference/zod'
  * surface is explicitly out of scope (ADR-022): we build the log so replay is
  * _possible_, not the replay UI.
  *
- * The log is **local only** — it lives in IndexedDB and never travels with a
- * published snapshot (a snapshot stays a frozen, historyless, bare-entity
- * payload).
+ * The log lives only on the server (`convex/changeLog.ts`); there is no device
+ * copy, and it never travels with a public sheet.
  */
 
 /** Provenance classes, in the order ADR-022 lists them. */
-export const CHANGE_LOG_KINDS = ['transaction', 'override', 'manual'] as const
-export const ChangeLogKindSchema = z.enum(CHANGE_LOG_KINDS)
-export type ChangeLogKind = z.infer<typeof ChangeLogKindSchema>
-
-/** The player entity types a Change Log entry can target. Mirrors EntityType. */
-export const ChangeLogEntityTypeSchema = z.enum(['pilot', 'mech', 'crawler', 'softLink'])
-
-/**
- * A single append-only Change Log entry.
- *
- * `seq` is the IndexedDB autoIncrement primary key — assigned by the store on
- * `add`, so it is absent on the input shape (see `ChangeLogInputSchema`) and
- * present on every persisted/read entry. It doubles as the total order.
- */
-export const ChangeLogEntrySchema = z
-  .object({
-    /** IndexedDB autoIncrement key + total order. Assigned on write. */
-    seq: z.number().int().positive(),
-    entityType: ChangeLogEntityTypeSchema,
-    entityId: z.string(),
-    /** Epoch milliseconds (Date.now()) at write time. */
-    ts: z.number().int().nonnegative(),
-    kind: ChangeLogKindSchema,
-    /** The mutated top-level field name (one entry per changed field). */
-    field: z.string(),
-    /** Prior value of `field` (undefined when the entity was not yet in memory). */
-    before: z.unknown(),
-    /** New value of `field` after the write. */
-    after: z.unknown(),
-    /** The surface that made the change, e.g. 'live-sheet', 'dashboard', 'wizard'. */
-    source: z.string(),
-  })
-  .strict()
-export type ChangeLogEntry = z.infer<typeof ChangeLogEntrySchema>
-
-/** The write shape — `seq` is assigned by the store, so it is omitted here. */
-export const ChangeLogInputSchema = ChangeLogEntrySchema.omit({ seq: true })
-export type ChangeLogInput = z.infer<typeof ChangeLogInputSchema>
+const CHANGE_LOG_KINDS = ['transaction', 'override', 'manual'] as const
+export type ChangeLogKind = (typeof CHANGE_LOG_KINDS)[number]

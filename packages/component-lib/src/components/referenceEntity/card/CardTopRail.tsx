@@ -14,21 +14,12 @@ import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
  * Condition is routed into the rail as a status CONTROL rather than a bespoke
  * seal, via the same `foldStatusControl` the Card shell uses, so the badge (and
  * the fold rule) has one implementation across both card layers.
- *
- * (There was a `label` CALLOUT on the card — a second mini stamp at `left-3
- * z-30`, straddling the same top-left corner as the seam at `left-[15px] z-10`.
- * It is deleted, not merely unused. Every one of its four call sites passed the
- * ability's TREE, which the seam pill already states with the level
- * (`[Forging | 1]`), so the callout painted OVER the pill. Keeping the prop
- * around would leave a loaded gun: it has no non-duplicating use, and passing
- * it re-creates the collision.)
  */
 export function CardTopRail({
   controls,
   status,
   onStatusClick,
   subject,
-  compact,
   selected,
   selectionSeal,
   multiSelect,
@@ -38,7 +29,6 @@ export function CardTopRail({
   onStatusClick: (() => void) | undefined
   /** Names the status control ("Mark {subject} damaged"). */
   subject: string
-  compact: boolean
   selected: boolean | undefined
   selectionSeal: string | undefined
   /** Present on a MULTI-SELECT cell (`onCountChange` set). */
@@ -46,7 +36,7 @@ export function CardTopRail({
 }) {
   const railControls = foldStatusControl(controls, status, { onClick: onStatusClick, subject })
   // Selection seal — an `ok`-tone "chosen" stamp riding the top-right frame when
-  // selected (the picker-cell affordance formerly overlaid by SelCard).
+  // selected (the picker-cell affordance).
   const selectionSealNode =
     selected && selectionSeal ? (
       <Badge surface="tone" tone="ok" className="pointer-events-none">{`${selectionSeal} ✓`}</Badge>
@@ -68,11 +58,5 @@ export function CardTopRail({
       />
     </div>
   ) : null
-  return (
-    <CardControlRail
-      controls={railControls}
-      compact={compact}
-      seals={[selectionSealNode, countSealNode]}
-    />
-  )
+  return <CardControlRail controls={railControls} seals={[selectionSealNode, countSealNode]} />
 }

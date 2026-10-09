@@ -73,10 +73,9 @@ describe('reading a code back', () => {
     expect(screen.getByText(/used by Sam/)).toBeTruthy()
   })
 
-  test('an unlimited, never-expiring code says so rather than showing blanks', () => {
-    renderPanel([invite({ usesRemaining: null, expiresAt: null })])
+  test('an unlimited code says so rather than showing a blank', () => {
+    renderPanel([invite({ usesRemaining: null })])
     expect(screen.getByText(/unlimited uses/)).toBeTruthy()
-    expect(screen.getByText(/no expiry/)).toBeTruthy()
   })
 
   test('a mediator invite and a gated invite are both legible at a glance', () => {

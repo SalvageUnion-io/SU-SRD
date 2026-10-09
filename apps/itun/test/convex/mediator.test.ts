@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
-import type { Ctx } from './assignmentFixtures'
-import { makeUser } from './assignmentFixtures'
+import { FIXTURE_NOW } from '../../src/components/__tests__/fixtures'
+import type { Ctx } from './fixtures'
+import { makeUser } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -118,13 +119,33 @@ describe('the tray parses what it stores', () => {
         maxHp: 6,
         statKind: 'hp',
         conditions: [],
-        createdAt: '2026-01-01T00:00:00.000Z',
-        updatedAt: '2026-01-01T00:00:00.000Z',
+        createdAt: FIXTURE_NOW,
+        updatedAt: FIXTURE_NOW,
       },
     })
 
     const rows = await mediator.as.query(api.mediator.npcs, { gameId })
     expect((rows[0]?.body as { refSlug?: string })?.refSlug).toBe('wretch')
+  })
+
+  test('a body with no id is given one, and the appId column carries the same value', async () => {
+    const t = testConvex()
+    const { mediator, gameId } = await seedMediatedGame(t)
+    await mediator.as.mutation(api.mediator.addNpc, { gameId, body: { name: 'Wretch' } })
+
+    const [row] = await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())
+    expect(typeof row?.appId).toBe('string')
+    expect((row?.body as { id?: string })?.id).toBe(row?.appId)
+  })
+
+  test('a body that carries an id keeps it as the appId', async () => {
+    const t = testConvex()
+    const { mediator, gameId } = await seedMediatedGame(t)
+    await mediator.as.mutation(api.mediator.addNpc, { gameId, body: { id: 'npc-7', name: 'A' } })
+
+    const [row] = await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())
+    expect(row?.appId).toBe('npc-7')
+    expect((row?.body as { id?: string })?.id).toBe('npc-7')
   })
 })
 

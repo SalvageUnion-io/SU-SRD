@@ -2,14 +2,12 @@
  * Router-level default fallbacks (audit item 7) and the "not found" panel they
  * share with the sheet surfaces.
  *
- * The router previously shipped with NO defaultNotFoundComponent /
- * defaultPendingComponent, so unmatched URLs hit TanStack's unstyled default
- * and slow loaders flashed a blank page.
+ * Without them an unmatched URL hits TanStack's unstyled default and a slow
+ * loader flashes a blank page.
  *
- * `NotFoundPanel` is the single implementation of that treatment. Three screens
- * had hand-copied the same frame character-for-character (this one, `Sheet`'s
- * missing-entity state and `routes/sheet/$kind/$id`'s unknown-kind state); they
- * now compose it. It is deliberately NOT component-lib's `RecoveryPanel`: that
+ * `NotFoundPanel` is the single implementation of that treatment: this one,
+ * `Sheet`'s missing-entity state and `routes/sheet/$kind/$id`'s unknown-kind
+ * state compose it. It is deliberately NOT component-lib's `RecoveryPanel`: that
  * panel carries `role="alert"` and centres its content, which is right for a
  * crash and wrong for a mistyped URL — announcing every 404 as an alert is an
  * accessibility regression, not a consolidation.

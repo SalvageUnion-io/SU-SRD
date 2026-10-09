@@ -66,10 +66,9 @@ const EXTRACT_DIR = 'rules/extracted'
  *
  * `extract-rules.ts` names every output for its source PDF
  * (`${basename(pdf, '.pdf')}.txt`), so the Core Book arrives as
- * "Salvage Union Digital Edition <version>.txt". This probe previously tested
- * for `/core book/i`, which no filename the extractor can produce will ever
- * match — so the check exited 0 with "nothing to check against" on a fully
- * populated directory, every time it was run.
+ * "Salvage Union Digital Edition <version>.txt" — never a name containing
+ * "core book", so a probe for that would find nothing on a fully populated
+ * directory and exit 0 with "nothing to check against".
  *
  * Anchored at the start deliberately: the expansions share the "Digital
  * Edition" suffix (False Flag, Rainmaker, We Were Here First), and an

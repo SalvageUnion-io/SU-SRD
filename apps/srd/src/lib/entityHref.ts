@@ -10,13 +10,11 @@ import { getEntitySlug, srdEntityPath, srdSchemaPath } from 'salvageunion-refere
  * paths. This module adds the one thing that is genuinely srd's own: the
  * trailing slash its directory-style output wants.
  *
- * It used to re-author the grammar instead of composing it, and the two copies
- * had already diverged — the package emitted `/schema/x/item/y`, this file
- * `/schema/x/item/y/`. Nothing failed, because directory-style output redirects
- * the un-slashed form, so the cost was a redirect hop on every inbound deep
- * link plus two spellings of the canonical URL. The structural cost was worse:
- * changing the route pattern here would have left the package emitting the old
- * path, silently 404ing every external link.
+ * It composes the grammar rather than re-authoring it: two copies drift, and
+ * because directory-style output redirects the un-slashed form, the drift fails
+ * nothing — it costs a redirect hop on every inbound deep link, two spellings of
+ * the canonical URL, and, once the route pattern changes, a package emitting a
+ * path that silently 404s every external link.
  *
  * The path segment is always a SLUG, never a uuid — see `getEntitySlug`.
  */

@@ -1,4 +1,4 @@
-import { Dialog } from '@base-ui/react/dialog'
+import { Drawer } from '@base-ui/react/drawer'
 import { Menu, X } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useState } from 'react'
@@ -12,9 +12,9 @@ import { FOCUS_RING } from '../chrome/interaction'
 
 /**
  * NavDrawer — the shared hamburger + slide-in mobile nav drawer (unifies the
- * SRD site drawer and the ITUN builder drawer). One base-ui `Dialog`: a
- * hamburger trigger, a dimmed backdrop, and a right-side slide-in panel
- * (`animate-slide-in-right`/`-out`, defined in the consuming app's CSS).
+ * SRD site drawer and the ITUN builder drawer). One Base UI `Drawer`: a
+ * hamburger trigger, the shared `.su-backdrop` scrim, and a right-side panel
+ * that slides in (`.su-drawer`) and can be swiped back out.
  *
  * Content is fully driven by props: a `brand` lockup, primary `navItems`
  * (rendered as the shared `buttonVariants` buttons — `active` = primary/rust, else
@@ -76,10 +76,10 @@ type NavDrawerProps = {
   panelClassName?: string
 }
 
-// Full-width catalog tile (former `.catalog-item`, compact drawer variant).
-// The frame, fill and name plate are the SHARED tile treatment; the drawer only
-// adds its own layout (full-width block, centred, one step down in type). This
-// file used to carry a verbatim copy of both strings, so the two tiles drifted.
+// Full-width catalog tile (compact drawer variant). The frame, fill and name
+// plate are the SHARED tile treatment, so the two tiles cannot drift; the
+// drawer only adds its own layout (full-width block, centred, one step down in
+// type).
 const TILE = cn(CATALOG_TILE_CHROME, CATALOG_TILE_FILL, 'block w-full text-center text-sm')
 
 const TILE_LABEL = CATALOG_TILE_LABEL
@@ -97,6 +97,15 @@ const EXTRA = {
   paddingBottom: space[16],
 } satisfies CSSProperties
 
+// The full-screen layer the panel sits in, against its right edge.
+const VIEWPORT = {
+  display: 'flex',
+  inset: 0,
+  justifyContent: 'flex-end',
+  position: 'fixed',
+  zIndex: 50,
+} satisfies CSSProperties
+
 export function NavDrawer({
   brand,
   navItems,
@@ -111,8 +120,8 @@ export function NavDrawer({
   const close = () => setOpen(false)
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger
+    <Drawer.Root open={open} onOpenChange={setOpen} swipeDirection="right">
+      <Drawer.Trigger
         render={
           <button
             type="button"
@@ -127,111 +136,107 @@ export function NavDrawer({
         }
       />
 
-      <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50" />
-        <Dialog.Popup
-          className={cn(
-            // Deliberately NOT `motion-safe:`-prefixed, unlike the pulse
-            // skeletons. Base UI unmounts this on exit-animation end, so an
-            // animation that never runs would strand the drawer mounted
-            // forever. The `@media (prefers-reduced-motion: reduce)` backstop
-            // in theme.css handles it correctly instead: 0.01ms duration means
-            // the animation still fires and still ends, just instantly.
-            'fixed inset-y-0 right-0 z-50 flex max-w-[85vw] flex-col bg-paper p-4 shadow-lg data-[closed]:animate-slide-out-right data-[open]:animate-slide-in-right',
-            panelClassName
-          )}
-        >
-          <Dialog.Title className="sr-only">Navigation Menu</Dialog.Title>
-
-          {/* Brand row: lockup | Close */}
-          <div className="mb-4 flex items-center justify-between">
-            {brand}
-            <Dialog.Close
-              render={
-                <button
-                  type="button"
-                  aria-label="Close menu"
-                  className={cn(
-                    'flex items-center justify-center rounded-md p-1 text-ink/60 transition-colors hover:bg-ink/10 hover:text-ink',
-                    FOCUS_RING
-                  )}
-                >
-                  <X size={22} aria-hidden="true" />
-                </button>
-              }
-            />
-          </div>
-
-          {search && <div className="mb-3 [&_input]:w-full [&_input]:focus:w-full">{search}</div>}
-
-          <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
-            {extra && (
-              <div className="su-nav-drawer-extra" style={EXTRA}>
-                {extra(close)}
-              </div>
+      <Drawer.Portal>
+        <Drawer.Backdrop className="su-backdrop" />
+        <Drawer.Viewport style={VIEWPORT}>
+          <Drawer.Popup
+            className={cn(
+              'su-drawer flex h-full max-w-[85vw] flex-col bg-paper p-4 shadow-lg',
+              panelClassName
             )}
+          >
+            <Drawer.Title className="sr-only">Navigation Menu</Drawer.Title>
 
-            {/* Catalog categories (SRD) */}
-            {categories?.map((cat) => (
-              <div key={cat.label} className="mb-2 flex flex-col gap-2">
-                <div className="flex items-center gap-3">
-                  <Badge shape="stamp">{cat.label}</Badge>
+            {/* Brand row: lockup | Close */}
+            <div className="mb-4 flex items-center justify-between">
+              {brand}
+              <Drawer.Close
+                render={
+                  <button
+                    type="button"
+                    aria-label="Close menu"
+                    className={cn(
+                      'flex items-center justify-center rounded-md p-1 text-ink/60 transition-colors hover:bg-ink/10 hover:text-ink',
+                      FOCUS_RING
+                    )}
+                  >
+                    <X size={22} aria-hidden="true" />
+                  </button>
+                }
+              />
+            </div>
+
+            {search && <div className="mb-3 [&_input]:w-full [&_input]:focus:w-full">{search}</div>}
+
+            <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
+              {extra && (
+                <div className="su-nav-drawer-extra" style={EXTRA}>
+                  {extra(close)}
                 </div>
-                {cat.schemas.map((schema) => {
-                  const tileStyle: CSSVarStyle = {
-                    '--catalog-bg': schema.catalogBg,
-                    ...(schema.catalogLabel ? { '--catalog-label': schema.catalogLabel } : {}),
-                  }
+              )}
+
+              {/* Catalog categories (SRD) */}
+              {categories?.map((cat) => (
+                <div key={cat.label} className="mb-2 flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <Badge shape="stamp">{cat.label}</Badge>
+                  </div>
+                  {cat.schemas.map((schema) => {
+                    const tileStyle: CSSVarStyle = {
+                      '--catalog-bg': schema.catalogBg,
+                      ...(schema.catalogLabel ? { '--catalog-label': schema.catalogLabel } : {}),
+                    }
+                    return (
+                      <a
+                        key={schema.id}
+                        href={schema.href || `/schema/${schema.id}/`}
+                        className={TILE}
+                        style={tileStyle}
+                        onClick={close}
+                      >
+                        {schema.catalogLabel ? (
+                          <span className={TILE_LABEL}>{schema.displayName}</span>
+                        ) : (
+                          schema.displayName
+                        )}
+                      </a>
+                    )
+                  })}
+                </div>
+              ))}
+
+              {/* Primary nav links */}
+              <div
+                className={cn(
+                  'flex flex-col gap-2',
+                  categories && categories.length > 0 && 'mt-auto border-t border-wk-faint pt-4'
+                )}
+              >
+                {navItems.map((item) => {
+                  // External items render a plain anchor in a new tab; internal
+                  // ones route through LinkComponent. One element either way.
+                  const Link = item.external ? 'a' : LinkComponent
                   return (
-                    <a
-                      key={schema.id}
-                      href={schema.href || `/schema/${schema.id}/`}
-                      className={TILE}
-                      style={tileStyle}
-                      onClick={close}
-                    >
-                      {schema.catalogLabel ? (
-                        <span className={TILE_LABEL}>{schema.displayName}</span>
-                      ) : (
-                        schema.displayName
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        buttonVariants({ variant: item.active ? 'primary' : 'ghost' }),
+                        'w-full'
                       )}
-                    </a>
+                      onClick={close}
+                      {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    >
+                      {item.label}
+                      {item.badge}
+                    </Link>
                   )
                 })}
               </div>
-            ))}
-
-            {/* Primary nav links */}
-            <div
-              className={cn(
-                'flex flex-col gap-2',
-                categories && categories.length > 0 && 'mt-auto border-t border-wk-faint pt-4'
-              )}
-            >
-              {navItems.map((item) => {
-                // External items render a plain anchor in a new tab; internal
-                // ones route through LinkComponent. One element either way.
-                const Link = item.external ? 'a' : LinkComponent
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      buttonVariants({ variant: item.active ? 'primary' : 'ghost' }),
-                      'w-full'
-                    )}
-                    onClick={close}
-                    {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                  >
-                    {item.label}
-                    {item.badge}
-                  </Link>
-                )
-              })}
             </div>
-          </div>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+          </Drawer.Popup>
+        </Drawer.Viewport>
+      </Drawer.Portal>
+    </Drawer.Root>
   )
 }

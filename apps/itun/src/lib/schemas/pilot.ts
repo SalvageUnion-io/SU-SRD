@@ -1,6 +1,4 @@
 import { z } from 'salvageunion-reference/zod'
-import { partnersFromLoadouts } from '../db/migrations/11-equipment-loadouts-to-partners'
-import { isRecord } from '../isRecord'
 import { containerFields } from './entity'
 import { ItemConditionMapSchema } from './itemCondition'
 import { PartnerInstanceSchema } from './partner'
@@ -134,8 +132,7 @@ export const PilotSchema = z
      *
      * Additive-optional — absent reads as "derive it" (no version bump /
      * migration). It deliberately CANNOT be backfilled: unlike `seedRef`, no
-     * stored value implies it, and a migration may only await IndexedDB so it
-     * could not import the class-to-tree map it would need anyway.
+     * stored value implies it.
      */
     originClassRef: z.string().optional(),
 
@@ -177,14 +174,10 @@ export const PilotSchema = z
      * records which template it came from, so "is the Starter Set already
      * present?" can be answered without making the answer depend on two
      * different people's rows sharing an id.
-     *
-     * That is precisely what the Starter Set used to rely on: it wrote fixed
-     * ids (`starter-pilot-bonesaw`, …) so that re-seeding would overwrite
-     * rather than duplicate. Locally that worked; globally it was wrong. Every
-     * player who seeded the roster held byte-identical ids, and those ids are
-     * the `appId` a claimed entity is addressed by on the server — where two
-     * accounts bringing the same one resolve to a single row, so the later
-     * player's writes are refused as somebody else's entity.
+     * Ids are the `appId` an entity is addressed by on the server, where two
+     * accounts holding the same one resolve to a single row — so a fixed
+     * template id would make the later player's writes refused as somebody
+     * else's entity.
      *
      * Absent on everything a person built themselves, which is nearly every row.
      */
@@ -194,8 +187,7 @@ export const PilotSchema = z
     // Live-play current stat tracking (#245).
     // A freshly created pilot is seeded with the base HP/AP rule constants
     // (PILOT_BASE_HP / PILOT_BASE_AP in lib/rules/derivedStats, via
-    // pilotFormState). Kept optional so legacy/imported records still parse;
-    // read sites fall back to the derived maxHP/maxAP.
+    // pilotFormState). Absent means full: see `resolvePool`.
     // ---------------------------------------------------------------------------
     /** Current hit points */
     currentHP: z.number().int().min(0).optional(),
@@ -222,10 +214,7 @@ export const PilotSchema = z
      * Statted Drones / Companions this pilot's abilities grant (Auto-Turret,
      * Survey Drone, Mecha Companion). Each carries its own id, so Mecha
      * Packmaster's TWO Mecha Companions are two distinct partners rather than
-     * one shared entry — the bug the retired slug-keyed `equipmentLoadouts`
-     * field could not express (v11 lifted it into this array; see
-     * `normalizeLegacyPilotRecord` for what happens to a record still carrying it).
-     * Additive-optional; absent reads as none.
+     * one shared entry. Absent reads as none.
      */
     partners: z.array(PartnerInstanceSchema).optional(),
 
@@ -343,49 +332,3 @@ export const PilotSchema = z
   .strict()
 
 export type Pilot = z.infer<typeof PilotSchema>
-
-/**
- * Drop the fields a strict `PilotSchema` no longer knows from a pilot that was
- * persisted, exported or published before they were removed.
- *
- * - `rollResults` — vestigial, always `[]`, never read. The v4 IndexedDB
- *   migration applies the same rewrite to local records.
- * - `equipmentLoadouts` — the slug-keyed drone/companion loadouts that
- *   `partners` replaced (ADR-027). v11 lifted each entry into a
- *   `PartnerInstance` with its own id but left the key in place, so every
- *   pilot that went through it still carries one; v16 deletes it from local
- *   records. A record that never went through v11 (a pre-v11 export being
- *   imported) is lifted here the same way first, so its loadouts survive as
- *   partners rather than being dropped. A record that already has `partners`
- *   keeps them untouched.
- *
- * Mirrors normalizeLegacyCargoRecord. Every place a pilot body arrives from
- * storage or the network runs through this — the IndexedDB store, import,
- * snapshots and public sheets (`frozenEntity`), and the Convex edge parse
- * (`StoredPilotSchema`) — so a row written before a removal is healed on read
- * rather than rejected by the strict schema.
- */
-export function normalizeLegacyPilotRecord(
-  record: Record<string, unknown>
-): Record<string, unknown> {
-  if (!('rollResults' in record) && !('equipmentLoadouts' in record)) return record
-  const rest = { ...record }
-  delete rest.rollResults
-  if ('equipmentLoadouts' in rest) {
-    const lifted = partnersFromLoadouts(rest)
-    delete rest.equipmentLoadouts
-    if (lifted) rest.partners = lifted
-  }
-  return rest
-}
-
-/**
- * `PilotSchema` behind `normalizeLegacyPilotRecord`: the parser for a pilot
- * body that comes out of storage rather than out of this build — the Convex
- * edge parse, above all, where a row stored before a field was removed must
- * still validate.
- */
-export const StoredPilotSchema = z.preprocess(
-  (raw) => (isRecord(raw) ? normalizeLegacyPilotRecord(raw) : raw),
-  PilotSchema
-)

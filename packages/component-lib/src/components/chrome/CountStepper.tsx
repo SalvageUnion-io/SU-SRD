@@ -37,8 +37,7 @@ type CountStepperProps = {
  *
  * Rides an entity card's controls overlay as a `stepper` control — clicks
  * `stopPropagation` so a step never bubbles to a surrounding card toggle.
- * Formerly baked into `SelCard`; now a standalone atom so any card (picker
- * cell, install row) reuses it.
+ * A standalone atom, so any card (picker cell, install row) reuses it.
  */
 export function CountStepper({
   count,
@@ -64,7 +63,7 @@ export function CountStepper({
   )
 
   if (surface === 'instrument') {
-    // The dashboard overlay cluster (formerly the separate DamageStepper):
+    // The dashboard overlay cluster:
     // spaced buttons, no joining border, and a large tabular readout.
     return (
       <div className="flex items-center justify-center gap-[10px]">

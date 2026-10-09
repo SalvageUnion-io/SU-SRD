@@ -95,7 +95,8 @@ export type ReferenceEntityCardProps = {
    * Selection a11y for a whole-card toggle (picker cells). When set alongside
    * `selected` + a card click, the interactive wrapper announces the selection
    * state natively: `'toggle'` → `role="button"` + `aria-pressed`, `'radio'` →
-   * `role="radio"` + `aria-checked` (pair with a `role="radiogroup"` parent).
+   * a `RadioCard` (`role="radio"` + `aria-checked`; put it in a
+   * `RadioCardGroup`, or MasonryColumns' `radio`, for the arrow keys).
    * Navigation/add cards leave it unset and stay a plain `role="button"`.
    */
   selectionRole?: 'toggle' | 'radio'
@@ -108,13 +109,13 @@ export type ReferenceEntityCardProps = {
   selections?: ChoiceSelections
   /** Selection-change handler — its presence flips choices to editable body cards. */
   onSelectionChange?: (selections: ChoiceSelections) => void
-  /** Parent entity for choice-cap resolution (`scalesWithField`, e.g. techLevel) —
+  /** Parent entity for choice-cap resolution (`cardinality.max.scalesWith`, e.g. techLevel) —
    * when a host (mech/pilot) supplies the scaling field instead of the entity.
    * Its `techLevel` also drives `perTechLevel` datavalue scaling (e.g. Custom
    * Sniper Rifle damage) — the crawler level in ITUN. */
   scalingParent?: Record<string, unknown>
   /** Extra content on the accent field after the body box, before the footer
-   * (legacy `expand` — e.g. a crawler bay's crew inset). */
+   * (e.g. a crawler bay's crew inset). */
   expand?: ReactNode
 
   // ─── SLOT OVERRIDES (generic extension seams — additive) ───
@@ -146,9 +147,6 @@ export type ReferenceEntityCardProps = {
   /** Overrides the header's top-right flavor slot. */
   rightContent?: ReactNode
   className?: string
-  /** Extra className on the card root (legacy `cardStyle`, e.g. the
-   * removable-card treatment). `className` alone covers the same case. */
-  cardStyle?: { className?: string }
   /** SEO: render the title as an `h1` (item pages) instead of the default `span`. */
   titleAs?: 'span' | 'h1'
 }

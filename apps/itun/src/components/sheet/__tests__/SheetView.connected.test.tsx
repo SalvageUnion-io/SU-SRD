@@ -15,8 +15,9 @@ import { createElement } from 'react'
  *    controls, at the same address;
  *  - your crawler's crew lists crewmates' pilots this browser does not cache,
  *    as read-only rows that link to their live view;
- *  - an address the server knows by another id (the retired crew view's row
- *    id) is replaced by the canonical one.
+ *  - a Convex row id — what the Discord bot's /sheet/ links carry, and what
+ *    redirected crew-view links arrive with — is replaced by the canonical
+ *    app id.
  *
  * Queries are answered by name (`convexMock.ts`): `entities:locate`,
  * `entities:listForGame` and `games:get`.
@@ -290,7 +291,7 @@ describe("your own mech's hold, against the Game's crawler", () => {
   const MY_MECH = mechFixture({
     id: 'm-mine',
     name: 'Rust Bucket',
-    chassisRef: 'Scrapper',
+    chassisRef: 'scrapper',
     gameId: GAME,
     cargoLots: [makeUnitLot('Sealed Crate')],
   })
@@ -360,7 +361,7 @@ describe('the tab title', () => {
 })
 
 describe('addresses', () => {
-  test('a row id (the retired crew view) is replaced by the canonical app id', async () => {
+  test("a row id (the bot's /sheet/ links, redirected crew-view links) is replaced by the canonical app id", async () => {
     setQueryAnswers({
       'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
       'games:get': runsTable(false),

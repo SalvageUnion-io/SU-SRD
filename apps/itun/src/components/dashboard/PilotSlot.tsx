@@ -1,10 +1,10 @@
 /**
  * PilotSlot — the pilot in the slot row, in its two forms
- * (docs/architecture/dashboard-redesign.md D2, D3):
+ * (ADR-038 §3):
  *
  *  - `PilotMajor`, on foot: Vitals (HP, AP, Take Damage with the
  *    player-confirmed Critical Injury roll, ADR-007), Kit, Abilities and Mount,
- *    whose Board split button and mech menu are `BoardControl` (D4).
+ *    whose Board split button and mech menu are `BoardControl`.
  *  - `PilotMinor`, boarded or in Downtime: HP and AP, and any injury in red.
  *
  * Both read the same vitals (`pilotVitals`), so a Minor and the Major it opens
@@ -15,12 +15,7 @@ import { CountStepper } from 'component-lib'
 import { useEffect, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CriticalInjuryEffect } from 'salvageunion-reference/rules'
-import {
-  pilotMaxHPParts,
-  resolvePoolStart,
-  resolveRef,
-  rollDie,
-} from 'salvageunion-reference/rules'
+import { pilotMaxHPParts, resolvePoolStart, rollDie } from 'salvageunion-reference/rules'
 import { readReference } from '../../lib/readReference'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -57,7 +52,7 @@ export function PilotMinor({
 }
 
 /** A reference name for a stored ref, or the ref itself when it doesn't resolve. */
-function refName(ref: string, find: (ref: string) => { name: string } | null): string {
+function refName(ref: string, find: (ref: string) => { name: string } | undefined): string {
   return readReference('dashboard.pilotKit', () => find(ref)?.name, undefined) ?? ref
 }
 
@@ -67,7 +62,7 @@ type PilotPrompt =
   | { kind: 'crit'; effect: CriticalInjuryEffect | null; log: string }
   /** The ▾ mech menu. */
   | { kind: 'board' }
-  /** The confirm before claiming and boarding a spare (plan §8 A4). */
+  /** The confirm before claiming and boarding a spare. */
   | { kind: 'claim'; option: BoardOption }
   | null
 
@@ -239,10 +234,10 @@ export function PilotMajor({
   })()
 
   const kit = pilot.equipment.map((ref) => ({
-    text: refName(ref, (r) => resolveRef(SalvageUnionReference.Equipment, r)),
+    text: refName(ref, (r) => SalvageUnionReference.Equipment.getBySlug(r)),
   }))
   const abilities = pilot.abilities.map((ref) => ({
-    text: refName(ref, (r) => resolveRef(SalvageUnionReference.Abilities, r)),
+    text: refName(ref, (r) => SalvageUnionReference.Abilities.getBySlug(r)),
   }))
 
   const view: MajorModel = {

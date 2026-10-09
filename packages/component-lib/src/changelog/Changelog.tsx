@@ -2,16 +2,20 @@ import { PageHeading } from '../components/chrome/PageHeading'
 import { Card } from '../components/shared/Card'
 import { InlineMarkdown } from '../markdownSection/InlineMarkdown'
 import { cn } from '../utils/cn'
-import type { ChangelogEntry } from './parseChangelog'
+
+/** One day of `main`'s history for one app (`gitChangelog.ts`). */
+export type ChangelogEntry = {
+  /** YYYY-MM-DD. */
+  date: string
+  /** The card's seam stamp: which app's stream this is. */
+  area: string
+  /** The day's squash titles, inline markdown (a PR link). */
+  items: string[]
+}
 
 type ChangelogProps = {
   entries: ChangelogEntry[]
   className?: string
-}
-
-function entryHeadline(entry: ChangelogEntry): string {
-  if (entry.version) return `v${entry.version}`
-  return entry.title ?? entry.date
 }
 
 /**
@@ -19,13 +23,10 @@ function entryHeadline(entry: ChangelogEntry): string {
  * so they render identically.
  *
  * Each entry is a **`Card`** — the generic four-band container — not a bespoke
- * listing. It previously hand-assembled a `Panel` around its own header row
- * (heading + `Badge` + `<time>`), which is the exact shape Card already models:
- * the area is the card's SEAM stamp (`label`), the version/title is the header
- * band, and the bullets are the body. Rebuilding that by hand meant the
- * changelog drifted from every other listing surface in the apps — its frame
- * weight, radius, seam placement and header padding were all set independently
- * of the card language rather than inherited from it.
+ * listing: the area is the card's SEAM stamp (`label`), the date is the header
+ * band, and the bullets are the body. Hand-assembling that shape would let its
+ * frame weight, radius, seam placement and header padding drift from every
+ * other listing surface instead of inheriting the card language.
  *
  * The rungs it picks: `size="medium"` (this is a LIST of entries, so it takes
  * the listing density, not the dominant solo scale), `frame="chrome"` for the
@@ -44,8 +45,8 @@ export function Changelog({ entries, className }: ChangelogProps) {
 
   return (
     <ol className={cn('flex list-none flex-col gap-4', className)}>
-      {entries.map((entry, index) => (
-        <li key={`${entry.area}-${entry.date}-${entry.version ?? entry.title ?? index}`}>
+      {entries.map((entry) => (
+        <li key={`${entry.area}-${entry.date}`}>
           <Card
             label={entry.area}
             size="medium"
@@ -53,38 +54,26 @@ export function Changelog({ entries, className }: ChangelogProps) {
             borderColor="var(--color-ink)"
             bodyPadding="px-4 pb-3 pt-1"
             headerContent={
-              <>
-                {/*
-                  `h2`, not `h3`: each entry is a direct division of the
-                  changelog, which has only its own `h1` above it. `h3` skipped
-                  a level (h1 -> h3), the one heading-order violation left on
-                  the site once entity pages gained real section headings.
-                */}
-                <PageHeading
-                  variant="subheading"
-                  as="h2"
-                  className="leading-tight tracking-caps-tight text-ink"
-                >
-                  {entryHeadline(entry)}
-                </PageHeading>
-                <time
-                  dateTime={entry.date}
-                  className="ml-auto font-body text-xs text-wk-muted tabular-nums"
-                >
-                  {entry.date}
-                </time>
-              </>
+              // `h2`, not `h3`: each entry is a direct division of the
+              // changelog, which has only its own `h1` above it. `h3` skipped a
+              // level (h1 -> h3), the one heading-order violation left on the
+              // site once entity pages gained real section headings.
+              <PageHeading
+                variant="subheading"
+                as="h2"
+                className="leading-tight tracking-caps-tight text-ink tabular-nums"
+              >
+                <time dateTime={entry.date}>{entry.date}</time>
+              </PageHeading>
             }
           >
-            {entry.items.length > 0 && (
-              <ul className="ml-4 list-disc space-y-1 font-body text-sm text-wk-muted marker:text-wk-muted">
-                {entry.items.map((item) => (
-                  <li key={item}>
-                    <InlineMarkdown text={item} />
-                  </li>
-                ))}
-              </ul>
-            )}
+            <ul className="ml-4 list-disc space-y-1 font-body text-sm text-wk-muted marker:text-wk-muted">
+              {entry.items.map((item) => (
+                <li key={item}>
+                  <InlineMarkdown text={item} />
+                </li>
+              ))}
+            </ul>
           </Card>
         </li>
       ))}

@@ -12,7 +12,7 @@
  */
 
 import { SalvageUnionReference } from '../index.js'
-import { resolveInstalledRef, resolveRef } from './resolveRefs.js'
+import { resolveInstalledRef } from './resolveRefs.js'
 
 /** The stat keys a contribution may target. Mirrors `ContributionStatSchema`. */
 export type ContributionStat =
@@ -40,7 +40,7 @@ export type DeclaredContribution = {
   target?: ContributionTarget
   stacks?: boolean
   voidWhen?: 'damaged' | 'destroyed'
-  /** `activated` applies only while switched on in Guided Play (ADR-019). */
+  /** `activated` applies only while switched on in Guided Play (ADR-038 §2). */
   duration?: 'permanent' | 'activated'
   note?: string
 }
@@ -122,9 +122,7 @@ export function abilityContributions(
   for (const ref of abilityRefs) {
     let ability: ContributionHost | undefined
     try {
-      ability = (resolveRef(SalvageUnionReference.Abilities, ref) ?? undefined) as
-        | ContributionHost
-        | undefined
+      ability = SalvageUnionReference.Abilities.getBySlug(ref) as ContributionHost | undefined
     } catch {
       // A missing catalog is a data problem, not a crash: an unresolvable ref
       // contributes 0, exactly as an unresolvable installed item does.
@@ -156,9 +154,8 @@ export function sumContributions(contributions: readonly ResolvedContribution[])
 /**
  * Contributions declared by the mech's own installed systems and modules.
  *
- * Distinct from `statBonus`, which is a flat per-copy number with no target,
- * duration or expression. An installed item's contribution targets `self` — the
- * host mech — so `target` is not consulted here.
+ * An installed item's contribution targets `self` — the host mech — so
+ * `target` is not consulted here.
  *
  * `stats` supplies the host's own values for `fromStat` amounts: Hull
  * Magnetiser raises Cargo "by its System Slot Value", a number that changes
@@ -191,7 +188,7 @@ export function installedContributions(
       if (!isLive(c, ref, options?.active)) continue
       const each = resolveAmount(c.amount, options?.techLevel, options?.stats)
       // `stacks` defaults TRUE for an installed item — two Heat Sinks are two
-      // Heat Sinks — matching statBonus's per-copy semantics.
+      // Heat Sinks.
       const amount = c.stacks === false ? each : each * copies
       if (amount === 0) continue
       out.push({

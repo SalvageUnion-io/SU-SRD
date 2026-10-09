@@ -11,7 +11,7 @@ import { mutation } from './model/entities'
 import { requireUser } from './model/permissions'
 
 /**
- * Game templates (ADR-030, D34).
+ * Game templates (ADR-030).
  *
  * A template is a pre-built crew you can start a Game from. The rule that makes
  * it more than seeded data: **its entities arrive unclaimed** (`ownerId: null`).
@@ -93,7 +93,7 @@ export const createGame = mutation({
     for (const mech of STARTER_MECHS) {
       await ctx.db.insert('mechs', { gameId, ownerId: null, body: mech, updatedAt: now })
     }
-    // `ownerId: null` is what communal means for a crawler in a Game (D8) — the
+    // `ownerId: null` is what communal means for a crawler in a Game (ADR-030 §5) — the
     // same value the starter pilots and mechs take above, but for a different
     // reason: they are unclaimed and waiting for a taker, the crawler is the
     // crew's and never gets handed to anyone.

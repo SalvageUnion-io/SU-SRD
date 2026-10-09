@@ -34,10 +34,8 @@ type ConditionChipProps = {
  * inactive = the ink outline, optional '×' remove. The label and the remove
  * glyph are sibling buttons (never nested) so both stay keyboard-operable.
  *
- * The frame is `Badge` — this used to hand-roll the chip geometry (1.5px frame,
- * `py-[3px]`, and an ink border even under the warn fill), which is exactly the
- * drift the one-label-chip rule exists to kill. It now maps onto the canonical
- * surfaces (`tone`+`warn` when active, `outline` when not), so a condition chip
+ * The frame is `Badge`, never hand-rolled chip geometry — the drift the
+ * one-label-chip rule exists to kill. It maps onto the canonical surfaces (`tone`+`warn` when active, `outline` when not), so a condition chip
  * is a Badge that happens to carry buttons. `Badge` renders arbitrary children
  * inside a non-interactive `<span>`, so the two controls stay valid and
  * focusable.

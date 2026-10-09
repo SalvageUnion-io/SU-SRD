@@ -2,8 +2,8 @@
  * Cloudflare Worker entrypoint for Discord HTTP interactions (ADR-033 §1).
  *
  * This is the bot's only transport. `commands/` depends on the narrow
- * structural types in `commands/interactions.ts` rather than on `discord.js`
- * classes, which is what lets it run on workerd.
+ * structural types in `commands/interactions.ts`, which `./adapter.ts` builds
+ * from the raw interaction payload.
  *
  * Discord routes interactions here because the application's Interactions
  * Endpoint URL points at this Worker. That setting is application-wide, so
@@ -12,7 +12,7 @@
  *
  * ## Four workerd constraints this file exists to respect
  *
- * Measured on real workerd during P2, not inferred:
+ * Measured on real workerd, not inferred:
  *
  *   1. **Module scope forbids timers, async I/O and randomness.** `new REST()`
  *      registers sweeper timers and throws outright with *"Disallowed operation
@@ -32,19 +32,13 @@
 import { REST } from '@discordjs/rest'
 import type { APIInteraction } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType } from 'discord-api-types/v10'
-import type { ObservabilityEnv } from 'observability/cloudflare'
-import {
-  finishCheckIn,
-  reportError,
-  startCheckIn,
-  withObservability,
-} from 'observability/cloudflare'
+import { reportError, withObservability } from 'observability/cloudflare'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons.js'
 import { commands } from '../commands/index.js'
 import type { SignedInteraction } from '../commands/interactions.js'
-import { normaliseWebUrl, setItunSettings } from '../itunSettings.js'
-import { setReporter } from '../report.js'
+import { setItunClient } from '../commands/itunReply.js'
+import { createItunClient } from '../itun/client.js'
 import {
   makeAutocompleteInteraction,
   makeButtonInteraction,
@@ -61,41 +55,6 @@ import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './ver
  * staying inside Workers Free.
  */
 await SalvageUnionReference.preload('all')
-
-/**
- * Shared code reports through `report.ts`, which names no SDK; this isolate
- * installs the reporter. It reports to BOTH: Workers Logs is what
- * `wrangler tail` shows during an incident, Sentry is what alerts, and dropping
- * either trades one blind spot for another.
- *
- * With no `SENTRY_DSN` secret the SDK initialises disabled and this is a
- * logging Worker, not a dark SDK.
- *
- * Assignment at module scope is fine: workerd forbids I/O, timers and
- * randomness in global scope, not assignment. `reportError` performs no I/O
- * until it is CALLED, which is inside a request.
- */
-setReporter((error, context) => {
-  console.error('[worker]', error, context ?? {})
-  reportError(error, context)
-})
-
-export type Env = ObservabilityEnv & {
-  DISCORD_PUBLIC_KEY: string
-  DISCORD_APPLICATION_ID: string
-  DISCORD_TOKEN: string
-  /** Optional: the bot's avatar hash, for branding embeds. */
-  /**
-   * ITUN (ADR-030 Phase 6). BOTH optional and BOTH required together: with
-   * either missing the bot runs in Solo mode, which is the deliberate default —
-   * reference commands work exactly as they always have and Game commands say
-   * they are not connected. A deploy with no credentials degrades rather than
-   * crashing.
-   */
-  ITUN_CONVEX_SITE_URL?: string
-  ITUN_BOT_SECRET?: string
-  ITUN_WEB_URL?: string
-}
 
 type ExecutionCtx = { waitUntil(promise: Promise<unknown>): void }
 
@@ -148,15 +107,14 @@ async function dispatch(
   }
 
   const guarded = work.catch(async (error) => {
-    console.error('interaction handler failed:', error)
     reportError(error, { fn: 'dispatch', type: raw.type })
 
     // Two different repairs, because the sink can already be spent.
     //
-    // `sink.send` is a NO-OP once settled, and `deferReply` settles it. So for
-    // the commands that defer — which are exactly the ones that make a network
-    // call and can therefore throw — the old single `sink.send` here wrote
-    // nothing at all, and Discord left "<bot> is thinking…" on screen forever.
+    // `sink.send` is a NO-OP once settled, and `deferReply` settles it. The
+    // commands that defer are exactly the ones that make a network call and can
+    // therefore throw, so a `sink.send` alone would write nothing and leave
+    // "<bot> is thinking…" on screen until the interaction expired.
 
     if (sink.settled) {
       // Already deferred (or answered). The initial response is spent, so the
@@ -170,7 +128,6 @@ async function dispatch(
         // The interaction token has a 15-minute life and Discord can refuse.
         // Nothing further can be said to the user at this point; make sure the
         // reason is at least visible to us.
-        console.error('failed to report handler error to Discord:', patchError)
         reportError(patchError, { fn: 'dispatch', op: 'patch-original' })
       }
       return
@@ -204,13 +161,12 @@ async function dispatch(
  *
  * Answers the question a deploy cannot answer by itself. The Worker can be
  * deployed, bundle correctly, verify signatures and still be useless, because
- * the one thing it needs at runtime — a working bot token — is set out of band
- * and is invisible until Discord sends the first interaction. Waiting for that
- * means discovering a bad token *at the flip*, which is the worst possible time
- * given the cutover is atomic across every server.
+ * what it needs at runtime — a working bot token and the ITUN pair — is set out
+ * of band and is invisible until Discord sends the first interaction.
  *
- * So this asks Discord directly: `GET /users/@me` with the token. A 200 means
- * the token is live and names the bot it belongs to.
+ * So this refuses (503) while the ITUN pair is incomplete, and asks Discord
+ * directly: `GET /users/@me` with the token. A 200 means the ITUN pair is set
+ * and the token is live, and names the bot it belongs to.
  *
  * Deliberately says nothing sensitive. On failure it reports Discord's status
  * code and nothing else — never the token, never a fragment of it, never the
@@ -221,28 +177,30 @@ async function dispatch(
  * Unauthenticated on purpose: it reveals only public facts, and requiring a
  * credential to check a credential is a loop that helps nobody at 3am.
  */
-/**
- * The Sentry cron monitor slug.
- *
- * The monitor is about "is the Salvage Union bot alive", not about which
- * transport answers, so the slug names the bot; changing it orphans the
- * monitor's history and starts a second one.
- */
-const HEARTBEAT_MONITOR_SLUG = 'discord-bot-heartbeat'
-
 async function health(env: Env): Promise<Response> {
   const configured = {
     applicationId: Boolean(env.DISCORD_APPLICATION_ID),
     publicKey: Boolean(env.DISCORD_PUBLIC_KEY),
     token: Boolean(env.DISCORD_TOKEN),
-    // Both or neither — either alone leaves the bot reporting itself
-    // unreachable rather than cleanly Solo.
+    // Either alone is as broken as neither: every Game command would answer
+    // that In The Union Now cannot be reached.
     itun: Boolean(env.ITUN_CONVEX_SITE_URL) && Boolean(env.ITUN_BOT_SECRET),
   }
 
   if (!configured.token) {
     return Response.json(
       { ok: false, reason: 'DISCORD_TOKEN is not set', configured },
+      { status: 503 }
+    )
+  }
+
+  if (!configured.itun) {
+    return Response.json(
+      {
+        ok: false,
+        reason: 'ITUN_CONVEX_SITE_URL and ITUN_BOT_SECRET must both be set',
+        configured,
+      },
       { status: 503 }
     )
   }
@@ -278,54 +236,13 @@ async function health(env: Env): Promise<Response> {
       discordStatus,
       botUser,
       configured,
-      mode: configured.itun ? 'connected' : 'solo',
     },
     { status: tokenValid ? 200 : 503 }
   )
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
-/**
- * The liveness signal, run from the Worker's cron trigger.
- *
- * ## Why a check-in rather than an event
- *
- * Sentry alerts on events ARRIVING, never on their absence, so an info event
- * cannot say the bot is gone. A cron monitor inverts that: silence is the
- * alarm.
- *
- * ## Why it probes Discord rather than just checking in
- *
- * A check-in that only proves "the cron fired" would go green while the bot
- * token was revoked — reporting health for a bot that answers nothing. So it
- * asks Discord the same question `/health` asks (`GET /users/@me`), and reports
- * `error` when the token is rejected. Under HTTP interactions there is no
- * gateway session to observe, so token validity IS the liveness question.
- */
-async function heartbeat(env: Env): Promise<void> {
-  const checkInId = startCheckIn(HEARTBEAT_MONITOR_SLUG)
-
-  let ok = false
-  try {
-    const res = await fetch('https://discord.com/api/v10/users/@me', {
-      headers: { authorization: `Bot ${env.DISCORD_TOKEN}` },
-    })
-    ok = res.ok
-    if (!ok) {
-      console.error('[worker] heartbeat: Discord rejected the token', res.status)
-    }
-  } catch (error) {
-    // Unreachable Discord is not a dead bot, but it is not evidence of a live
-    // one either, so it still reports `error` — a monitor that goes green on
-    // "could not check" is the failure this replaces.
-    console.error('[worker] heartbeat: could not reach Discord', error)
-    reportError(error, { fn: 'heartbeat', op: 'discord.probe' })
-  }
-
-  finishCheckIn(HEARTBEAT_MONITOR_SLUG, checkInId, ok ? 'ok' : 'error')
-}
-
-export default withObservability('discord-bot', {
+export default withObservability('su-discord-bot', {
   async fetch(request: Request, env: Env, ctx: ExecutionCtx): Promise<Response> {
     if (request.method === 'GET' && new URL(request.url).pathname === '/health') {
       return health(env)
@@ -353,15 +270,11 @@ export default withObservability('discord-bot', {
       return new Response('invalid request signature', { status: 401 })
     }
 
-    // Configuration arrives as `env`, not `process.env`, so it can only be
-    // installed once a request exists. Idempotent and cheap; the ITUN client
-    // resolves lazily on first use, which is why installing here rather than at
-    // module scope still reaches it.
-    setItunSettings({
-      siteUrl: env.ITUN_CONVEX_SITE_URL,
-      botSecret: env.ITUN_BOT_SECRET,
-      webUrl: normaliseWebUrl(env.ITUN_WEB_URL),
-    })
+    // Configuration arrives as `env`, so the client can only be built once a
+    // request exists. Cheap: a client is two strings and a closure.
+    setItunClient(
+      createItunClient({ siteUrl: env.ITUN_CONVEX_SITE_URL, botSecret: env.ITUN_BOT_SECRET })
+    )
 
     let interaction: APIInteraction
     try {
@@ -384,15 +297,5 @@ export default withObservability('discord-bot', {
       timestamp: request.headers.get(TIMESTAMP_HEADER) ?? '',
     }
     return json(await dispatch(interaction, env, ctx, signed))
-  },
-
-  /**
-   * Cron entry point. Bound to the schedule in `wrangler.jsonc`; see
-   * `heartbeat` above for why this exists at all.
-   */
-  async scheduled(_event: unknown, env: Env, ctx: ExecutionCtx): Promise<void> {
-    // `waitUntil` so the check-in flushes before the isolate is torn down —
-    // the same reason the interaction path uses it.
-    ctx.waitUntil(heartbeat(env))
   },
 })

@@ -2,6 +2,10 @@
 # Use isolated linker for better dependency isolation and security
 linker = 'isolated'
 
+# `bun add` and `bun update` write an exact pin, so every manifest names the
+# version bun.lock holds.
+exact = true
+
 # Supply-chain cooldown: refuse versions published less than 3 days ago.
 #
 # Nobody reads the tarballs of an upgrade. Three days is roughly how long a
@@ -9,25 +13,9 @@ linker = 'isolated'
 # makes the compromised version unresolvable here. .github/dependabot.yml's
 # `cooldown` holds GitHub Actions updates back for 7 days.
 #
-# TWO BEHAVIOURS, and the difference matters when this bites (both measured
-# against 1.3.14, not inferred):
-#
-#   - An EXACT pin the gate cannot satisfy is a hard error, and it says so:
-#       error: No version matching "typescript" found for specifier "7.0.2"
-#              (blocked by minimum-release-age: N seconds)
-#     Most of this repo's deps are exact pins, so this is the common case.
-#
-#   - A RANGE (caret) silently resolves DOWN to the newest version old enough.
-#     No warning. `bun update <pkg>` to clear a FRESH advisory therefore appears
-#     to do nothing until the cooldown elapses — check the publish date before
-#     concluding the fix is broken.
-#
-#     The loud alternative is an `overrides` floor: resolving below one
-#     errors. All four `overrides` entries in package.json are such floors
-#     (fast-uri, filelist, nanoid, sharp). `brace-expansion` cannot be
-#     floored (two majors in the tree), so it
-#     is the watched package this silent step-down can still reach. The
-#     per-entry record is docs/ARCHITECTURE.md#the-overrides-block.
+# A pin the gate cannot satisfy is a hard error, and it says so:
+#   error: No version matching "typescript" found for specifier "7.0.2"
+#          (blocked by minimum-release-age: N seconds)
 #
 # `bun install --frozen-lockfile` is unaffected: it installs what bun.lock
 # already resolved and does no resolution, so CI and every deploy target never
@@ -37,7 +25,7 @@ linker = 'isolated'
 # `minimumReleaseAgeExcludes` below — not lowering this number.
 minimumReleaseAge = 259200 # 3 days, in seconds
 
-# `bun-types` must match .bun-version EXACTLY — tools/check-workflows.ts (the
+# `bun-types` must match packageManager EXACTLY — tools/check-workflows.ts (the
 # bun-version half) fails `bun run check` when they disagree, and it is an exact pin, so the gate turns a
 # routine Bun upgrade into a hard install error for three days. It carries no
 # install scripts and no runtime code (type declarations only), so the cooldown
@@ -45,26 +33,13 @@ minimumReleaseAge = 259200 # 3 days, in seconds
 minimumReleaseAgeExcludes = ["bun-types"]
 
 [test]
-# Preloads for a ROOT-level `bun test` run. Paths are relative to the repo root.
-#
-# This list is deliberately the UNION of what the workspace bunfigs preload, and
-# that is the whole point: `bun test` at the repo root does NOT inherit any
-# workspace's `bunfig.toml`, it uses this one for every file it collects. When
-# this list was only happydom + testing-library, a bare `bun test` here reported
-# 639 failures and 35 errors across 343 files against a tree that was actually
-# green — purely from the two missing preloads below. Root CLAUDE.md answered
-# that with a warning ("NEVER raw `bun test` at the root"), and the checked-in
-# /verify skill then instructed exactly that anyway.
-#
-# A documented footgun that two lines of config can remove is not worth
-# documenting. `bun run test` (per-workspace, each with its own bunfig) remains
-# the canonical command — it is what CI and pre-push run — but a bare
-# `bun test` now behaves instead of lying.
+# Preloads for a ROOT-level `bun test` run, which uses this bunfig for every
+# file it collects rather than each workspace's: the UNION of the workspace
+# preloads. Paths are relative to the repo root.
 preload = [
-  # First: the bot's `src/config.ts` calls `requireEnv` at MODULE scope, so any
-  # file that transitively imports it throws on load without these. Uses `??=`,
-  # so a real local environment is never clobbered.
-  "./apps/discord-bot/test/env.ts",
+  # First: ITUN's `convex/auth.ts` reads the Discord client env at import, and
+  # this must also precede happy-dom (see the file).
+  "./apps/itun/test/env.ts",
   "./test/happydom.ts",
   "./test/testing-library.ts",
   # The ORM refuses to serve data until preloaded; without this every test that

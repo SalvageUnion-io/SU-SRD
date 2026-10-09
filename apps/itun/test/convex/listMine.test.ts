@@ -1,16 +1,15 @@
 /**
  * `entities.listMine` — the read that makes "IndexedDB is a cache" true.
  *
- * Until this existed, writes mirrored up and nothing outside a Game read back
- * down, so a signed-in player on a second device saw an empty roster while
- * their builds sat in Convex. These tests pin the two things that were easy to
- * get wrong: it returns what you own **wherever it lives**, and it returns
+ * Without it a signed-in player on a second device would see an empty roster
+ * while their builds sat in Convex. These tests pin the two things that are
+ * easy to get wrong: it returns what you own **wherever it lives**, and it returns
  * nothing that is not yours.
  */
 
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
-import { makeUser } from './assignmentFixtures'
+import { makeUser } from './fixtures'
 import { testConvex } from './harness'
 
 describe('listMine returns what the caller owns', () => {
@@ -29,6 +28,9 @@ describe('listMine returns what the caller owns', () => {
 
     const mine = await me.as.query(api.entities.listMine, {})
     expect(mine.pilots).toHaveLength(1)
+    // The row's version rides along: `ShelfSync` adopts by it, and a write
+    // sends it back as the version the edit was made against.
+    expect(mine.pilots[0]?.updatedAt).toBe(1)
   })
 
   test('a pilot you own INSIDE a game comes back too', async () => {

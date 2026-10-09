@@ -12,8 +12,7 @@
  *
  * So the rules live here, once: the query tokenisation, the AND-of-tokens rule
  * with its name-only typo forgiveness, and the name-priority score tiers. srd
- * used to re-implement the tiers inline (audit PK-11); it now calls
- * {@link scoreSearchMatch} with the facts it has, and the ORM calls the same
+ * calls {@link scoreSearchMatch} with the facts it has, and the ORM calls the same
  * function with the extra facts only it can know.
  *
  * Nothing in this module touches the ORM or the data, so importing it costs a

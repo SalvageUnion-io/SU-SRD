@@ -5,10 +5,9 @@
  * its own: ownership is intrinsic, so deleting a host removes its partners and
  * they ride through snapshots with it.
  *
- * The by-id SCAN this module used to carry is gone along with the partner live
- * sheet (ADR-028). Nothing addresses a partner by a bare id any more — one
- * renders in place on its host's sheet, where the host is already in hand — so
- * all that remains is patching a single entry of a host's array.
+ * Nothing addresses a partner by a bare id (ADR-028) — one renders in place on
+ * its host's sheet, where the host is already in hand — so this only patches a
+ * single entry of a host's array.
  */
 
 import type { Mech } from './schemas/mech'

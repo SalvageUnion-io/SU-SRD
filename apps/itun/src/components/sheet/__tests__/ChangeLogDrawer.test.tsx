@@ -1,21 +1,47 @@
 /**
  * ChangeLogDrawer tests (ADR-022) — the per-entity Change Log shown behind the
- * sheet's overflow menu. Exercises the real db.changeLog read path against
- * fake-indexeddb (preloaded via bunfig.toml), plus the menu → drawer wiring on
- * the Sheet.
+ * sheet's overflow menu. The entries are the server's (`changeLog.forEntity`),
+ * answered here by the name-keyed `useQuery` double; connected means a real
+ * `ConnectionProvider` over the mocked Convex client. Plus the menu → drawer
+ * wiring on the Sheet.
  */
 
-import { beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../../stores/surfaceProvenance'
-import { ChangeLogDrawer } from '../ChangeLogDrawer'
-import { Sheet } from '../Sheet'
+import type { ReactNode } from 'react'
+import { installConvexMocks, queryCalls, setQueryAnswers } from '../../__tests__/convexMock'
 
-// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
+const convexMocks = await installConvexMocks({
+  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
+})
+
+const { ChangeLogDrawer } = await import('../ChangeLogDrawer')
+const { Sheet } = await import('../Sheet')
+const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { _resetDbSingleton, clearCache } = await import('../../../lib/db/index')
+const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
+const { useEntityStore } = await import('../../../stores/entityStore')
+
+afterAll(() => {
+  convexMocks.restore()
+})
+
+// Building needs an account (ADR-034 as amended), so the Sheet's pilot is made signed in.
 withSignedInBackend()
+
+const connected = (ui: ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvider>)
+
+const row = (over: Record<string, unknown>) => ({
+  _id: 'r1',
+  ts: 1_700_000_000_000,
+  kind: 'manual',
+  field: 'callsign',
+  before: 'Ghost',
+  after: 'Wraith',
+  source: 'live-sheet',
+  state: 'applied',
+  ...over,
+})
 
 const basePilotInput = {
   schemaVersion: 1 as const,
@@ -31,7 +57,10 @@ const basePilotInput = {
   conditions: [],
 }
 
-function resetEntityStore(): void {
+beforeEach(async () => {
+  setQueryAnswers({})
+  _resetDbSingleton()
+  await clearCache()
   useEntityStore.setState({
     pilots: [],
     mechs: [],
@@ -39,27 +68,30 @@ function resetEntityStore(): void {
     softLinks: [],
     hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
   })
-}
-
-beforeEach(async () => {
-  _resetDbSingleton()
-  await _clearAllStores()
-  resetEntityStore()
 })
 
 describe('ChangeLogDrawer', () => {
-  test('renders entries with field, before→after, and kind badge', async () => {
-    const store = useEntityStore.getState()
-    const pilot = await store.create('pilot', basePilotInput)
-    await act(async () => {
-      await store.update('pilot', pilot.id, { callsign: 'Wraith' }, LIVE_SHEET_OVERRIDE)
-      await store.update('pilot', pilot.id, { motto: 'Rise again.' }, LIVE_SHEET_MANUAL)
+  test("renders the server's entries with field, before→after, kind and a pending proposal", async () => {
+    setQueryAnswers({
+      'changeLog:forEntity': [
+        row({
+          _id: 'r3',
+          kind: 'transaction',
+          field: 'currentHP',
+          before: null,
+          after: 3,
+          state: 'proposed',
+          source: 'mediator-proposal',
+        }),
+        row({ _id: 'r2', kind: 'override', field: 'maxHpOverride', before: 14, after: null }),
+        row({ _id: 'r1' }),
+      ],
     })
 
-    render(
+    connected(
       <ChangeLogDrawer
         entityType="pilot"
-        entityId={pilot.id}
+        entityId="p1"
         entityName="Yara Voss"
         open
         onOpenChange={() => {}}
@@ -67,22 +99,24 @@ describe('ChangeLogDrawer', () => {
     )
 
     await waitFor(() => expect(screen.getByText('callsign')).toBeTruthy())
-    expect(screen.getByText('motto')).toBeTruthy()
     expect(screen.getByText('Wraith')).toBeTruthy()
-    // The cap edit carried kind:'override' → an Override badge renders.
     expect(screen.getByText('Override')).toBeTruthy()
-    // The plain Free-Edit write is tagged manual → a Manual badge.
     expect(screen.getByText('Manual')).toBeTruthy()
+    // A proposal still awaiting its answer says so, rather than reading as applied.
+    expect(screen.getByText('Proposed')).toBeTruthy()
+    expect(queryCalls()).toContainEqual({
+      name: 'changeLog:forEntity',
+      args: { entityType: 'pilot', entityId: 'p1' },
+    })
   })
 
   test('shows an empty state when the entity has no logged changes', async () => {
-    const store = useEntityStore.getState()
-    const pilot = await store.create('pilot', basePilotInput)
+    setQueryAnswers({ 'changeLog:forEntity': [] })
 
-    render(
+    connected(
       <ChangeLogDrawer
         entityType="pilot"
-        entityId={pilot.id}
+        entityId="p1"
         entityName="Yara Voss"
         open
         onOpenChange={() => {}}
@@ -90,6 +124,21 @@ describe('ChangeLogDrawer', () => {
     )
 
     await waitFor(() => expect(screen.getByText(/No changes recorded yet/i)).toBeTruthy())
+  })
+
+  test('without a connection it says where the log is kept, and asks the server nothing', () => {
+    render(
+      <ChangeLogDrawer
+        entityType="pilot"
+        entityId="p1"
+        entityName="Yara Voss"
+        open
+        onOpenChange={() => {}}
+      />
+    )
+
+    expect(screen.getByText(/kept with your account/i)).toBeTruthy()
+    expect(queryCalls()).toHaveLength(0)
   })
 
   test('renders nothing while closed', () => {
@@ -114,10 +163,14 @@ describe('Sheet — Change Log menu wiring', () => {
     render(<Sheet kind="pilot" id={pilot.id} />)
 
     // Open the "⋯" overflow menu, then click the Change Log item.
-    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
-    fireEvent.click(screen.getByRole('button', { name: /change log for this pilot/i }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /change log for this pilot/i }))
+    })
 
     // The drawer (ModalShell dialog) mounts with the "Change Log" title.
-    await waitFor(() => expect(screen.getByText(/No changes recorded yet/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/kept with your account/i)).toBeTruthy())
   })
 })

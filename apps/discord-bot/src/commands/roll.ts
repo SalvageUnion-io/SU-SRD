@@ -12,8 +12,7 @@ import { attributeRoll } from './rollAttribution.js'
 
 /**
  * An error container, ephemeral. A typo is the asker's problem, not the
- * channel's — the old plain-text errors were ephemeral for the same reason, and
- * that half of them was right.
+ * channel's.
  */
 function ephemeralContainer(data: ContainerData): {
   flags: number

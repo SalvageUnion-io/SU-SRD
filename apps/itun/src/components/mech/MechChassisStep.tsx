@@ -17,7 +17,6 @@ import {
   isLegalCreationChassis,
   legalStartingPatterns,
   MECH_CREATION_SCRAP_CAP,
-  matchesRef,
 } from 'salvageunion-reference/rules'
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
@@ -98,7 +97,7 @@ export function MechChassisStep({
   )
 
   const selectedChassis = chassisName
-    ? chassisPool.find((c) => matchesRef(c, chassisName))
+    ? chassisPool.find((c) => nameToSlug(c.name) === chassisName)
     : undefined
 
   const patternPool: ChassisPattern[] = selectedChassis
@@ -127,7 +126,7 @@ export function MechChassisStep({
               key={chassis.id}
               data={chassis}
               size="medium"
-              selected={matchesRef(chassis, chassisName)}
+              selected={nameToSlug(chassis.name) === chassisName}
               selectionRole="radio"
               cardClickLabel={chassis.name}
               selectable={!reason}

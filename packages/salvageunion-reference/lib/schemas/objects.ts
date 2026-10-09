@@ -2,9 +2,8 @@
  * Zod object schemas — the shapes that appear INSIDE entity records, as opposed
  * to the entity records themselves (`entities.ts`).
  *
- * This module is now a RE-EXPORT BARREL. It used to be a single 1100-line file
- * holding eight unrelated schema families; each now lives in `./objects/`, named
- * for what it describes:
+ * This module is a RE-EXPORT BARREL. Each schema family lives in `./objects/`,
+ * named for what it describes:
  *
  * - `objects/primitives.ts`       — traits, stat blocks, data values, damage.
  * - `objects/content.ts`          — structured content blocks.

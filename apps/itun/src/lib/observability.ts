@@ -7,29 +7,17 @@
  * statically inlines at build — an unset DSN makes the `@sentry/browser`
  * dynamic import unreachable, so it is tree-shaken out of the client bundle
  * entirely. That guard is the one part that must live here; the rest (init
- * options, idempotency, the capture verbs, de-duplication) is
- * `createBrowserObservability` in `observability/browser`, shared with srd
- * (audit AP-12).
+ * options, idempotency, the capture verbs, chunk recovery) is
+ * `createBrowserObservability` in `observability/browser`, shared with srd.
  *
- * No DSN is ever committed. `deploy-cloudflare.yml` supplies it from the
- * `VITE_SENTRY_DSN` repository variable, with `VITE_COMMIT_REF` set to the
- * deployed SHA — the same value `vite.config.ts` names the sourcemap release
+ * `deploy-cloudflare.yml` supplies the DSN as `VITE_SENTRY_DSN` from its public
+ * `ITUN_SENTRY_DSN` constant, with `VITE_COMMIT_REF` set to the deployed SHA — the same value `vite.config.ts` names the sourcemap release
  * with, so the two must stay in step.
  */
 
 import { createBrowserObservability } from 'observability/browser'
 
-/**
- * `dedupe`: error objects already sent are not sent again, so one failure seen
- * from two places is one event. It happens for real: a chunk that fails to
- * load is reported by `chunkRecovery` with its own fingerprint, and — when the
- * reload cooldown holds it back — the same error then surfaces in the error
- * boundary that `reactRootErrorHandlers` reports from. The set is global, so
- * code that reports the *same* error object twice (once per retry, say) sends
- * one event, not two; wrap or re-create the error if each attempt should be
- * its own event.
- */
-const observability = createBrowserObservability({ dedupe: true })
+const observability = createBrowserObservability()
 
 /**
  * Initializes browser Sentry when `VITE_SENTRY_DSN` is configured. Idempotent
@@ -37,16 +25,6 @@ const observability = createBrowserObservability({ dedupe: true })
  * absent.
  */
 export async function initBrowserObservability(): Promise<void> {
-  // The latest call, not the first: a DSN-less call must not latch (the
-  // idempotency lives in `observability.init`, after the DSN check).
-  initializing = init()
-  await initializing
-}
-
-/** The most recent init, for `observabilityReady`. */
-let initializing: Promise<void> | null = null
-
-async function init(): Promise<void> {
   const dsn = import.meta.env.VITE_SENTRY_DSN
   // Keep this guard HERE, ahead of the import below: it is what Vite folds to
   // make `@sentry/browser` unreachable in a DSN-less build.
@@ -60,37 +38,20 @@ async function init(): Promise<void> {
 }
 
 /**
- * Resolves once `initBrowserObservability` has finished — or at once, if it
- * was never called (tests, and any caller outside the app entry).
- *
- * For a report produced at boot: the SDK arrives through a dynamic import, and
- * a capture made before it lands is a silent no-op rather than a queued event.
- * Awaiting this first is the difference between counting an event and losing
- * it. A failed init resolves too — the capture then no-ops, which is the same
- * outcome as a build with no DSN.
- */
-export function observabilityReady(): Promise<void> {
-  return (initializing ?? Promise.resolve()).catch(() => {
-    // A failed init is "ready" too: captures then no-op, as with no DSN.
-  })
-}
-
-/**
- * Reports an informational message to Sentry when enabled; otherwise a no-op.
- * For a condition the app handled but someone should be able to count — e.g.
- * `lib/db/upgradeTelemetry.ts` reporting an old database it upgraded.
- */
-export const captureMessage = observability.captureMessage
-
-/**
  * Reports a caught exception to Sentry when enabled; otherwise a no-op.
  *
  * This exists because catching is exactly what PREVENTS an error reaching
  * Sentry's `globalHandlers` integration, so every deliberately-caught error in
- * the app — including a failed mirror to the server of record — is reportable
+ * the app — including a failed Change Log commit — is reportable
  * only through this function.
  */
 export const captureException = observability.captureException
+
+/**
+ * Reloads once when a lazy chunk's build is gone from the server. Installed
+ * from `main.tsx` before render: the very first route can throw it.
+ */
+export const installChunkRecovery = observability.installChunkRecovery
 
 /** What React hands an error hook alongside the error. */
 type ReactErrorInfo = { componentStack?: string | null }

@@ -34,7 +34,6 @@
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
-  matchesRef,
   mechMaxEP,
   mechMaxSP,
   pilotMaxAP,
@@ -44,7 +43,6 @@ import {
   resolveInstalledRef,
 } from 'salvageunion-reference/rules'
 import { parseCrawlerTechLevel } from '../crawlerLevel'
-import { resolveCrawlerBay } from '../crawlerRefs'
 import type { Crawler } from '../schemas/crawler'
 import type { ItemConditionMap } from '../schemas/itemCondition'
 import type { Mech } from '../schemas/mech'
@@ -121,7 +119,7 @@ export type MedBayStatus = {
   healsMajor: boolean
 }
 
-const MED_BAY_NAME = 'Med Bay'
+const MED_BAY = 'med-bay'
 
 /**
  * The crawler's Med Bay capability this Downtime: presence + Damaged state of
@@ -130,9 +128,7 @@ const MED_BAY_NAME = 'Med Bay'
  * blocks HP and injury healing entirely.
  */
 export function medBayStatus(crawler: Pick<Crawler, 'crawlerBays' | 'techLevel'>): MedBayStatus {
-  const entry = (crawler.crawlerBays ?? []).find(
-    (bay) => resolveCrawlerBay(bay.bayRef)?.name === MED_BAY_NAME
-  )
+  const entry = (crawler.crawlerBays ?? []).find((bay) => bay.bayRef === MED_BAY)
   const present = entry !== undefined
   const damaged = present && (entry.condition ?? 'intact') === 'damaged'
   const operational = present && !damaged
@@ -159,7 +155,7 @@ export type MechBayStatus = {
   operational: boolean
 }
 
-const MECH_BAY_NAME = 'Mech Bay'
+const MECH_BAY = 'mech-bay'
 
 /**
  * The crawler's Mech Bay capability this Downtime. Every Union Crawler has a
@@ -169,9 +165,7 @@ const MECH_BAY_NAME = 'Mech Bay'
  * restoring anyway.
  */
 export function mechBayStatus(crawler: Pick<Crawler, 'crawlerBays'>): MechBayStatus {
-  const entry = (crawler.crawlerBays ?? []).find(
-    (bay) => resolveCrawlerBay(bay.bayRef)?.name === MECH_BAY_NAME
-  )
+  const entry = (crawler.crawlerBays ?? []).find((bay) => bay.bayRef === MECH_BAY)
   const present = entry !== undefined
   const damaged = present && (entry.condition ?? 'intact') === 'damaged'
   return { present, damaged, operational: present && !damaged }
@@ -184,13 +178,13 @@ export function mechBayStatus(crawler: Pick<Crawler, 'crawlerBays'>): MechBaySta
 /** The 'Chassis Damaged' condition label written by the Critical Damage flow. */
 export const CHASSIS_DAMAGED_CONDITION = 'Chassis Damaged'
 
-/** Resolve an installed system/module ref (slug; legacy id/name) to its Tech Level. */
+/** Resolve an installed system/module slug to its Tech Level. */
 function installedItemTechLevel(ref: string): number | undefined {
   const item = resolveInstalledRef(ref)
   return typeof item?.techLevel === 'number' ? item.techLevel : undefined
 }
 
-/** Resolve the mech's chassis Tech Level (chassisRef is a slug; legacy names tolerated). */
+/** Resolve the mech's chassis Tech Level from its `chassisRef` slug. */
 function chassisTechLevel(chassisRef: string): number | undefined {
   const chassis = resolveChassisRef(chassisRef)
   return typeof chassis?.techLevel === 'number' ? chassis.techLevel : undefined
@@ -318,13 +312,11 @@ export function downtimeMechPatch(
  * Equipment that never regains Uses at Downtime (hand-managed): the Orbital
  * Lance Controller's satellite only ever holds three strikes.
  */
-export const NEVER_RECHARGE_EQUIPMENT = ['Orbital Lance Controller'] as const
+export const NEVER_RECHARGE_EQUIPMENT = ['orbital-lance-controller'] as const
 
-/** True when an equipmentUses key (slug, id, or name ref) is a never-recharge item. */
+/** True when an equipmentUses key (an equipment slug) is a never-recharge item. */
 function isNeverRecharge(ref: string): boolean {
-  const equipment = SalvageUnionReference.Equipment.find((e) => matchesRef(e, ref))
-  const name = equipment?.name ?? ref
-  return NEVER_RECHARGE_EQUIPMENT.some((n) => n === name)
+  return NEVER_RECHARGE_EQUIPMENT.some((slug) => slug === ref)
 }
 
 /**

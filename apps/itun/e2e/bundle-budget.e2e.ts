@@ -26,26 +26,25 @@ test.use({ account: 'anonymous' })
  * `autoCodeSplitting` moves: each route's component now ships as its own
  * chunk instead of being linked into one monolithic entry bundle.
  *
- * ## Why `decodedBodySize` rather than srd's `transferSize`
+ * ## Why `decodedBodySize`
  *
- * `vite preview` (the CI target, see playwright.config.ts) serves through
- * `@polka/compression`, so `transferSize`/`encodedBodySize` report *gzipped*
- * bytes — while the local dev server this suite also has to run against does
- * not compress. That makes a transport-size budget depend on which server
- * answered. `decodedBodySize` is the uncompressed byte count the browser
- * parses either way, so it is stable across dev/preview AND directly
- * comparable to the file sizes in `dist/assets/`, which is how the ceilings
- * below were derived.
+ * `bun run preview` (`wrangler dev`, the CI target) gzips, so
+ * `transferSize`/`encodedBodySize` report compressed bytes, while the local
+ * dev server this suite also runs against does not compress. A transport-size
+ * budget would depend on which server answered. `decodedBodySize` is the
+ * uncompressed byte count the browser parses either way, so it is stable
+ * across both AND directly comparable to the file sizes in `dist/assets/`,
+ * which is how the ceilings below were derived.
  *
  * ## How the ceilings were set
  *
- * From the real `dist/` output of `bun --filter itun build` plus the Vite
- * manifest's module graph (eager entry closure + the route's own chunk
- * closure + the full reference-data corpus). Every ceiling sits ~20% above
- * its measured value — see the PR that added this file for the
- * measured-vs-ceiling table. A budget pinned at today's size is a tripwire,
- * not a budget; 20% absorbs dependency churn while still failing on a real
- * regression (a newly-eager heavy import, or a jump in the data corpus).
+ * From the bundle CI's `build-itun` job builds and serves: `bunx convex deploy
+ * --cmd "bun run build"`, which compiles the client against a Convex URL — the
+ * variant production ships, Convex client included. Every ceiling sits ~20%
+ * above its measured value (the table below). A budget pinned at today's size
+ * is a tripwire, not a budget; 20% absorbs dependency churn while still
+ * failing on a real regression (a newly-eager heavy import, or a jump in the
+ * data corpus).
  *
  * ## Re-baselined 2026-09-25 (audit AP-11)
  *
@@ -58,22 +57,24 @@ test.use({ account: 'anonymous' })
  * locales from itun's client. App JS per route fell by roughly: roster
  * −202 KB, pilot wizard −199 KB, dashboard −199 KB, live sheet −44 KB.
  *
- * The ceilings were then re-derived from scratch, not by subtracting that
- * saving from the old numbers (which had drifted to ~39% headroom). Measured
- * by this suite in CI on the AP-11 head, each ceiling ≈ measured × 1.2:
+ * ## Current baseline: the Convex-backed build (audit-4 M6)
+ *
+ * Measured by this suite against that build (the `[bundle-budget]` lines it
+ * prints), each ceiling ≈ measured × 1.2:
  *
  *   route      measured      ceiling
- *   roster     1,961,545 B   2,360,000 B
- *   wizard     1,962,337 B   2,360,000 B
- *   dashboard  1,972,449 B   2,370,000 B
- *   sheet      2,090,713 B   2,510,000 B
+ *   roster     2,033,583 B   2,440,000 B
+ *   wizard     1,991,671 B   2,390,000 B
+ *   dashboard  2,067,880 B   2,480,000 B
+ *   sheet      2,161,232 B   2,590,000 B
  *
- * Bringing the whole ~200 KB back (roster → ~2.16 MB) still fits under 20%,
- * so this does not catch a revert of AP-11 on its own — `routeExports.test.ts`
- * and the `Sheet-` forbidden-chunk check below do. What the margin catches is
- * growth beyond ~400 KB. The largest-chunk tripwire moved from 800 KB to
- * 450 KB: the biggest chunk is now the `actions` data chunk (~363 KB), not a
- * ~615 KB app chunk.
+ * Bringing AP-11's whole ~200 KB back (roster → ~2.23 MB) still fits under
+ * 20%, so this does not catch a revert of AP-11 on its own —
+ * `routeExports.test.ts` and the `Sheet-` forbidden-chunk check below do.
+ * What the margin catches is growth beyond ~400 KB. The biggest single chunk
+ * is `vendor` (439,550 B, the Convex client included), ahead of the `actions`
+ * data chunk (~363 KB); the largest-chunk tripwire sits at 530 KB, ~20% above
+ * it.
  */
 
 type JsTotals = { count: number; bytes: number; names: string[]; largest: number }
@@ -135,22 +136,24 @@ function report(label: string, totals: JsTotals, ceiling: number): void {
 
 test.describe('bundle-size budget', () => {
   test('roster stays under budget and route components are split out', async ({ page }) => {
-    const CEILING = 2_360_000
+    const CEILING = 2_440_000
     const totals = await captureJsTotals(page, '/')
     report('/ (roster)', totals, CEILING)
 
     // The single-largest-chunk tripwire. With autoCodeSplitting and the
-    // `codeSplitting` groups, the biggest app chunk is `vendor` (~343 KB) and
-    // the entry is ~29 KB; the biggest chunk of all is the `actions` data
-    // chunk (~363 KB). Turning either splitting mechanism off re-forms a
-    // 600 KB+ chunk (it was a ~615 KB shared chunk before the groups, and one
-    // ~1.24 MB entry before autoCodeSplitting), which blows this immediately —
-    // so it asserts against the app bundle without classifying chunks by name.
-    expect(totals.largest).toBeLessThan(450_000)
+    // `codeSplitting` groups, the biggest chunk of all is `vendor` (~440 KB,
+    // the Convex client included), then the `actions` data chunk (~363 KB);
+    // the entry is ~29 KB. The ceiling is ~20% over `vendor`, like the route
+    // budgets. Turning either splitting mechanism off re-forms a chunk well
+    // past it (a ~615 KB shared chunk before the groups, one ~1.24 MB entry
+    // before autoCodeSplitting, both before the Convex client joined the
+    // graph), so it asserts against the app bundle without classifying
+    // chunks by name.
+    expect(totals.largest).toBeLessThan(530_000)
 
     // Other routes' component chunks must not ride along on the roster.
     // These two route chunks have unambiguous names, so a future eager
-    // import of the changelog parser or the encounter tray into shared code
+    // import of the changelog or the encounter tray into shared code
     // fails here instead of silently widening every route.
     //
     // `Sheet-` is the live-sheet tree. It rode along on EVERY route — share
@@ -170,7 +173,7 @@ test.describe('bundle-size budget', () => {
     // measures the chooser's chunk and reports it under the wizard's name — a
     // budget that would sit green while the thing it claims to guard grew
     // unwatched. `mode=guided` is what mounts PilotWizard (NewEntityScreen.tsx).
-    const CEILING = 2_360_000
+    const CEILING = 2_390_000
     const totals = await captureJsTotals(page, '/pilots/new?mode=guided')
     report('/pilots/new?mode=guided (wizard)', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
@@ -181,7 +184,7 @@ test.describe('bundle-size budget', () => {
     // state (src/components/sheet/Sheet.tsx) *after* downloading the whole
     // route chunk, so this measures the route's real JS cost without paying
     // for a full wizard run to seed IndexedDB first.
-    const CEILING = 2_510_000
+    const CEILING = 2_590_000
     const totals = await captureJsTotals(page, '/sheet/pilot/budget-probe')
     report('/sheet/pilot/:id', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
@@ -193,7 +196,7 @@ test.describe('bundle-size budget', () => {
     // route chunk has loaded, and that chunk imports the whole Dashboard
     // (instruments, slot row, display) statically. The byte count is the route's
     // true cost.
-    const CEILING = 2_370_000
+    const CEILING = 2_480_000
     const totals = await captureJsTotals(page, '/dashboard/budget-probe')
     report('/dashboard/:pilotId', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)

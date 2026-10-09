@@ -2,21 +2,12 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 /**
- * Every path below is anchored to THIS FILE, not to `process.cwd()`.
- *
- * It used to be cwd-relative, which made the generator's output depend on where
- * it was invoked from. Run as `bun --filter salvageunion-reference docs` the cwd
- * is the package, so `.vscode/settings.json` would have been written to
- * `packages/salvageunion-reference/.vscode/` — a stray directory — while the
- * file the repo actually tracks lives at the ROOT. The two schema outputs were
- * correct by luck, because the package dir happens to be the right base for
- * them. Anchoring removes the luck, and is what let this generator be wired
- * into `build:package` (see that script) without depending on the caller's cwd.
+ * Every path below is anchored to THIS FILE, not to `process.cwd()`, so the
+ * output does not depend on where the generator is invoked from.
  */
 const PACKAGE_DIR = path.join(import.meta.dir, '..')
-const REPO_ROOT = path.join(PACKAGE_DIR, '..', '..')
 
-interface SchemaInfo {
+type SchemaInfo = {
   id: string
   title: string
   description: string
@@ -48,7 +39,7 @@ function getItemCount(dataFile: string): number {
   }
 }
 
-interface JSONSchema {
+type JSONSchema = {
   items?: {
     required?: string[]
     oneOf?: Array<{ required?: string[] }>
@@ -58,7 +49,7 @@ interface JSONSchema {
 }
 
 // Extract required fields from schema
-function getRequiredFields(schema: JSONSchema, schemaId: string): string[] {
+function getRequiredFields(schema: JSONSchema): string[] {
   // Try items.required first (for array schemas)
   if (schema.items?.required) {
     return schema.items.required
@@ -75,19 +66,6 @@ function getRequiredFields(schema: JSONSchema, schemaId: string): string[] {
   // Try top-level required
   if (schema.required) {
     return schema.required
-  }
-
-  // Handle schemas that use shared definitions
-  // These inherit required fields from the shared schema
-  const sharedDefinitionSchemas: Record<string, string[]> = {
-    keywords: ['name', 'source', 'page'],
-    traits: ['name', 'source', 'page'],
-    modules: ['name', 'page'],
-    systems: ['name', 'page'],
-  }
-
-  if (sharedDefinitionSchemas[schemaId]) {
-    return sharedDefinitionSchemas[schemaId]
   }
 
   return []
@@ -136,7 +114,7 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
       dataFile,
       schemaFile: `schemas/${schemaFile}`,
       itemCount: getItemCount(dataFile),
-      requiredFields: getRequiredFields(schema, id),
+      requiredFields: getRequiredFields(schema),
       displayName,
     }
 
@@ -153,28 +131,10 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
 }
 
 /**
- * NOTE: there is deliberately no `version` field here, and re-adding one will
- * break every release.
- *
- * This catalog used to embed `package.json`'s version. Nothing ever read it —
- * the package is `private: true` (never published to npm), no endpoint serves
- * the catalog, and no caller touches `getSchemaCatalog().version`. What it did
- * do was couple a GENERATED artifact to a version release-please bumps in
- * `package.json` alone: every release PR therefore arrived with a stale
- * `version` here, the generated-file drift check regenerated it, saw the mismatch, and failed.
- * Release PRs were unmergeable by construction (#786).
- *
- * release-please's `extra-files` is the usual fix for a file that carries a
- * version, but it does not work here: its JSON updater re-serializes through
- * `JSON.stringify(parsed, replacer, indent)`, which expands every
- * `requiredFields` array onto multiple lines, and `format:check` then rejects
- * the file Biome wants collapsed. That trades a `static-checks` failure for a
- * `quality-checks` one.
- *
- * So the coupling is gone instead of maintained. Two files tracking one version
- * stay in sync only by convention, and this one had no reader to justify it.
+ * No `version` field: the package has no release stream (ADR-040), the
+ * repository's release is the deployed commit (ADR-041), and nothing reads one.
  */
-interface SchemaIndex {
+type SchemaIndex = {
   $schema: string
   title: string
   description: string
@@ -265,40 +225,6 @@ function generateSchemaIndex(schemas: SchemaInfo[]): void {
   console.log(`✅ Generated schemas/index.json (${schemas.length} schemas)`)
 }
 
-// Generate VSCode settings
-function generateVSCodeSettings(schemas: SchemaInfo[]): void {
-  const settings = {
-    'json.schemas': schemas.map((s) => ({
-      fileMatch: [s.dataFile],
-      url: `./${s.schemaFile}`,
-    })),
-    'json.format.enable': true,
-    'editor.formatOnSave': true,
-    '[json]': {
-      'editor.defaultFormatter': 'vscode.json-language-features',
-      'editor.tabSize': 2,
-    },
-  }
-
-  const outputPath = path.join(REPO_ROOT, '.vscode', 'settings.json')
-  const content = `${JSON.stringify(settings, null, 2)}\n`
-  // Write only on change: the Claude Code sandbox refuses writes under .vscode/,
-  // and an unconditional rewrite failed every sandboxed build:package and push.
-  let current: string | null = null
-  try {
-    current = fs.readFileSync(outputPath, 'utf8')
-  } catch {
-    // Absent: fall through and create it.
-  }
-  if (current === content) {
-    console.log(`✅ .vscode/settings.json up to date (${schemas.length} mappings)`)
-    return
-  }
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true })
-  fs.writeFileSync(outputPath, content)
-  console.log(`✅ Generated .vscode/settings.json (${schemas.length} mappings)`)
-}
-
 // Main function
 function main() {
   console.log('📝 Generating documentation from schemas...\n')
@@ -311,11 +237,7 @@ function main() {
   // Generate schema index
   generateSchemaIndex(schemas)
 
-  // Generate VSCode settings
-  generateVSCodeSettings(schemas)
-
   console.log('\n✨ Documentation generation complete!')
-  console.log('\n💡 Tip: Use the snippets in .docs-snippets/ to update documentation files')
 }
 
 main()

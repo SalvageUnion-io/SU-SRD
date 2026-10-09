@@ -1,6 +1,6 @@
 /**
- * What the Board control offers (docs/architecture/dashboard-redesign.md D4,
- * D12; issue #1055): one test per disabled reason, the order, and the edge
+ * What the Board control offers (ADR-038 §3, §5;
+ * issue #1055): one test per disabled reason, the order, and the edge
  * states (no assigned mech, assigned mech destroyed, no crawler).
  */
 

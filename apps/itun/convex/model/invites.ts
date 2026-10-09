@@ -1,4 +1,3 @@
-import { generateUniqueId } from '../../src/lib/snapshot/id'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 
@@ -40,7 +39,7 @@ export type InviteTarget = NonNullable<Doc<'invites'>['target']>
 export function statusOf(invite: Doc<'invites'>, now: number): InviteStatus {
   if (invite.revokedAt !== undefined) return 'revoked'
   if (invite.declinedAt !== undefined) return 'declined'
-  if (invite.expiresAt !== undefined && invite.expiresAt < now) return 'expired'
+  if (invite.expiresAt < now) return 'expired'
   if (invite.usesRemaining !== undefined && invite.usesRemaining <= 0) return 'exhausted'
   return 'active'
 }
@@ -57,6 +56,35 @@ export type MintArgs = {
 }
 
 /**
+ * Crockford base32: 0-9 and A-Z minus I, L, O and U, so a code read aloud
+ * across a table cannot be mistyped into a different valid one.
+ */
+const CODE_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
+const CODE_LENGTH = 8
+const MAX_CODE_ATTEMPTS = 5
+
+/** Eight random Crockford-base32 characters (~40 bits), from `crypto.getRandomValues`. */
+function randomCode(): string {
+  const bytes = new Uint8Array(CODE_LENGTH)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes)
+    .map((b) => CODE_ALPHABET[b % CODE_ALPHABET.length])
+    .join('')
+}
+
+/**
+ * A code no invite already has. Retries on collision, which at ~40 bits is
+ * vanishingly rare, and throws rather than loop forever.
+ */
+async function uniqueCode(exists: (code: string) => Promise<boolean>): Promise<string> {
+  for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
+    const code = randomCode()
+    if (!(await exists(code))) return code
+  }
+  throw new Error('Failed to generate a unique invite code after max retries')
+}
+
+/**
  * Insert an invite on behalf of an Organizer whose membership the caller has
  * already checked. Returns the row.
  *
@@ -68,7 +96,7 @@ export async function mintInvite(
   organizer: Doc<'memberships'>,
   args: MintArgs
 ): Promise<Doc<'invites'>> {
-  const code = await generateUniqueId(async (candidate) => {
+  const code = await uniqueCode(async (candidate) => {
     const existing = await ctx.db
       .query('invites')
       .withIndex('by_code', (q) => q.eq('code', candidate))

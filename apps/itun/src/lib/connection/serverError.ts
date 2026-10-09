@@ -36,10 +36,14 @@ import { ConvexError } from 'convex/values'
  */
 export function serverMessage(err: unknown): string | null {
   if (!(err instanceof ConvexError)) return null
-  // `data` is typed `Value` — any Convex value. Everything this backend throws
-  // uses a string, but a non-string would stringify to something unreadable,
-  // so it is treated as "no message" rather than shown.
-  return typeof err.data === 'string' && err.data.length > 0 ? err.data : null
+  // `data` is typed `Value` — any Convex value. This backend throws a string,
+  // or an object carrying one as `message` when the client needs more than the
+  // copy (a stale write hands back the server's row: `staleWrite.ts`). Anything
+  // else would stringify to something unreadable, so it is "no message".
+  const data: unknown = err.data
+  const message =
+    typeof data === 'object' && data !== null ? (data as { message?: unknown }).message : data
+  return typeof message === 'string' && message.length > 0 ? message : null
 }
 
 /**

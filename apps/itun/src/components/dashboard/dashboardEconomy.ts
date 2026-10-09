@@ -8,10 +8,8 @@
  * trivially testable and the ADR-006 pure-math boundary holds — `lib/rules/*`
  * owns the maths, this only assembles patches.
  *
- * `crafting`, `salvage` and `scrapMech` were fully implemented and tested with
- * **zero non-test importers**: their Live-Sheet panels were deleted on the way
- * to the Dashboard and never rebuilt. This module is the missing seam, not new
- * rules.
+ * This module is the Dashboard's seam onto the `crafting`, `salvage` and
+ * `scrapMech` rules, not new rules.
  *
  * ADR-007 boundary: nothing here decides to destroy anything. `scrapMechPatch`
  * assembles the consequence of a scrap the player has already confirmed; the

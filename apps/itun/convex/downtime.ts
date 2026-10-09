@@ -117,9 +117,8 @@ export const begin = mutation({
  * Salvage" through "Prepare for the next Salvage Run", and says explicitly that
  * you "may go back to any of these steps". The dataset carries them as the
  * Crawler Downtime guide, which is what `DowntimeWizard` renders and what the
- * SRD publishes, and Convex reads the same guide (`model/referenceData.ts`).
- * This was a hard-coded mirror, with a test to stop it drifting, while Convex
- * did not load the dataset.
+ * SRD publishes, and Convex reads the same guide (`model/referenceData.ts`), so
+ * the count cannot drift from it.
  */
 function downtimeStepCount(): number {
   loadReferenceData()

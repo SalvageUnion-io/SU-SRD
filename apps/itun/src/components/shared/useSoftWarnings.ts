@@ -57,9 +57,9 @@ type UseSoftWarningsOptions<T extends AssignableType> = {
    * Change Log provenance (ADR-022) forwarded as entityStore.update's 4th
    * argument.
    *
-   * Optional here but no longer *untagged* when omitted: the store requires a
-   * tag, and the only surfaces that mount this hook are the two Live Sheets, so
-   * the fallback is their tag rather than the old `manual` / `unknown`.
+   * Optional here but never *untagged* when omitted: the store requires a tag,
+   * and the only surfaces that mount this hook are the two Live Sheets, so the
+   * fallback is their tag.
    */
   meta?: ChangeMeta
   /**

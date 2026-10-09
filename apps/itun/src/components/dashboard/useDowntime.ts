@@ -1,6 +1,6 @@
 /**
  * useDowntime — the Game's Downtime, as the Dashboard follows it
- * (docs/architecture/dashboard-redesign.md D8; ADR-038 §5).
+ * (ADR-038 §5).
  *
  * Downtime is Game state, not the device's: the `downtime` row
  * (`convex/downtime.ts`) the Game hub's `DowntimePanel` already runs. The
@@ -10,9 +10,7 @@
  * their seat says. Each member marks themselves done with the step
  * (`markStepDone`), and `games.members` names everyone the ready pips count.
  *
- * Needs a Convex provider, like `useSeat`: call it only when
- * `isConvexConfigured`, and use `NO_DOWNTIME` otherwise. Before the first
- * answer arrives, Downtime reads as not running.
+ * Before the first answer arrives, Downtime reads as not running.
  *
  * Writes are refused here while Disconnected rather than queued (ADR-030 §1),
  * and a refusal from the server is shown in its own words. The server decides
@@ -73,28 +71,9 @@ export const NOT_RUNNING: DowntimeView = {
   members: [],
 }
 
-function ignore(): void {
-  // Nothing to write to: see `NO_DOWNTIME`.
-}
-
-/** A build with no deployment: never in Downtime, and nowhere to write. */
-export const NO_DOWNTIME: DowntimeHandle = {
-  downtime: NOT_RUNNING,
-  begin: ignore,
-  advance: ignore,
-  end: ignore,
-  markDone: ignore,
-  spendUpkeep: async () => false,
-}
-
-/**
- * The Game's Downtime for the pilot's Game, and the writes that drive it.
- *
- * Needs a Convex provider: call it only when `isConvexConfigured`, and use
- * `NO_DOWNTIME` otherwise.
- */
+/** The Game's Downtime for the pilot's Game, and the writes that drive it. */
 export function useDowntime(pilot: Pilot | null): DowntimeHandle {
-  const { mode, canWrite } = useConnection()
+  const { mode, canWrite, outdated } = useConnection()
   const container = pilot === null ? null : containerOf(pilot)
   const gameId = container?.kind === 'game' ? (container.gameId as Id<'games'>) : null
   const signedIn = mode === 'connected' || mode === 'disconnected'
@@ -123,7 +102,11 @@ export function useDowntime(pilot: Pilot | null): DowntimeHandle {
   function writableGame(): Id<'games'> | null {
     if (gameId === null) return null
     if (!canWrite) {
-      reportWriteFailure(new WritesBlockedOffline(mode === 'connecting' ? 'settling' : 'offline'))
+      reportWriteFailure(
+        new WritesBlockedOffline(
+          outdated ? 'outdated' : mode === 'connecting' ? 'settling' : 'offline'
+        )
+      )
       return null
     }
     return gameId

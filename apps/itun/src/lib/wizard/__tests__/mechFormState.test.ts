@@ -12,7 +12,7 @@ describe('mechFormToUpdatePatch', () => {
     const patch = mechFormToUpdatePatch({
       ...EMPTY_MECH_FORM_STATE,
       name: '  Iron Fist  ',
-      chassisName: 'Mule',
+      chassisName: 'mule',
     })
     expect(patch.name).toBe('Iron Fist')
   })
@@ -36,10 +36,10 @@ describe('mechFormToCreateInput', () => {
     const input = mechFormToCreateInput({
       ...EMPTY_MECH_FORM_STATE,
       name: 'Iron Fist',
-      chassisName: 'Mule',
+      chassisName: 'mule',
     })
     expect(input.schemaVersion).toBe(1)
-    expect(input.chassisRef).toBe('Mule')
+    expect(input.chassisRef).toBe('mule')
     expect(input.currentSP).toBe(mule.structurePoints)
     expect(input.currentEP).toBe(mule.energyPoints)
     expect(input.currentHeat).toBe(0)
@@ -50,7 +50,7 @@ describe('mechFormToCreateInput', () => {
     const input = mechFormToCreateInput({
       ...EMPTY_MECH_FORM_STATE,
       name: 'Iron Fist',
-      chassisName: 'Mule',
+      chassisName: 'mule',
     })
     // Absent, not an empty array — the field only exists when it means something.
     expect(input).not.toHaveProperty('partners')

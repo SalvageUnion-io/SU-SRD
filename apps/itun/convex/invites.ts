@@ -3,7 +3,7 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
-import { mutation } from './model/entities'
+import { logIdOf, mutation } from './model/entities'
 import { discordIdOfUser, mayRedeem, mintInvite, statusOf } from './model/invites'
 import { getMembership, NotAuthorized, requireOrganizer, requireUser } from './model/permissions'
 import { logOwnershipChange } from './ownership'
@@ -13,11 +13,9 @@ import { logOwnershipChange } from './ownership'
  * Game. Not §2: that section is Containers, and its only mention of invites is
  * that a shelf has none.
  *
- * Codes reuse `generateUniqueId` from the snapshot module rather than growing a
- * second generator: it is already Crockford base32 (no I/L/O/U, so a code read
- * aloud across a table cannot be mistyped), already collision-checked against a
- * caller-supplied `exists`, and already backed by `crypto.getRandomValues`.
- * Those are exactly the properties an invite code wants. Minting itself is
+ * Codes are Crockford base32 (no I/L/O/U, so a code read aloud across a table
+ * cannot be mistyped), collision-checked against the `by_code` index and drawn
+ * from `crypto.getRandomValues`. Minting itself is
  * `model/invites.ts#mintInvite`, shared with every other door that creates one.
  *
  * An invite carries four things beyond the code itself:
@@ -101,10 +99,10 @@ export const list = query({
         _id: invite._id,
         code: invite.code,
         label: invite.label ?? null,
-        role: invite.role ?? 'player',
+        role: invite.role,
         grantCount: invite.grants?.length ?? 0,
-        requiresApproval: invite.requiresApproval ?? false,
-        expiresAt: invite.expiresAt ?? null,
+        requiresApproval: invite.requiresApproval,
+        expiresAt: invite.expiresAt,
         usesRemaining: invite.usesRemaining ?? null,
         status: statusOf(invite, now),
         redeemers,
@@ -183,11 +181,11 @@ export const preview = query({
     return {
       gameName: game.name,
       invitedBy: inviter?.displayName ?? inviter?.name ?? 'the organizer',
-      role: invite.role ?? 'player',
-      requiresApproval: invite.requiresApproval ?? false,
+      role: invite.role,
+      requiresApproval: invite.requiresApproval,
       grantCount: invite.grants?.length ?? 0,
       status: statusOf(invite, Date.now()),
-      expiresAt: invite.expiresAt ?? null,
+      expiresAt: invite.expiresAt,
       addressed: invite.target?.kind ?? null,
       forYou,
     }
@@ -213,7 +211,7 @@ async function seat(
   await ctx.db.insert('memberships', {
     gameId: invite.gameId,
     userId,
-    mediator: (invite.role ?? 'player') === 'mediator',
+    mediator: invite.role === 'mediator',
     organizer: false,
     joinedAt: now,
   })
@@ -245,7 +243,7 @@ async function seat(
     await ctx.db.patch(doc._id, { ownerId: userId, updatedAt: now })
     await logOwnershipChange(ctx, {
       table: grant.table,
-      entityId: grant.entityId,
+      entityId: logIdOf(doc),
       gameId: invite.gameId,
       before: null,
       after: userId,
@@ -332,7 +330,7 @@ export const redeem = mutation({
     assertSpendable(invite)
     if (!(await mayRedeem(ctx, invite, userId))) throw new NotAuthorized(NOT_YOUR_INVITE)
 
-    if (invite.requiresApproval === true) {
+    if (invite.requiresApproval) {
       const prior = await ctx.db
         .query('joinRequests')
         .withIndex('by_invite_user', (q) => q.eq('inviteId', invite._id).eq('userId', userId))
@@ -435,9 +433,9 @@ export const forMe = query({
         code: invite.code,
         gameName: game.name,
         invitedBy: inviter?.displayName ?? inviter?.name ?? 'the organizer',
-        role: invite.role ?? 'player',
+        role: invite.role,
         grantCount: invite.grants?.length ?? 0,
-        expiresAt: invite.expiresAt ?? null,
+        expiresAt: invite.expiresAt,
       })
     }
     return out

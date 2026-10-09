@@ -1,50 +1,49 @@
 /**
  * ShelfSync — fills the local cache from the server of record.
  *
- * This is the half of ADR-034 decision 2 that was missing. Writes have mirrored
- * **up** since ADR-030, but nothing outside a Game ever read back **down**, so a
- * signed-in player opening ITUN on a second device saw an empty roster while
- * their builds sat in Convex the whole time. "IndexedDB is a cache" was a
- * description of intent rather than of behaviour: a cache is something that can
- * be filled, and there was nothing to fill it from.
+ * The read-down half of ADR-034 decision 2: writes go **up** server-first, and
+ * this brings the account's rows back **down** outside a Game, so a signed-in
+ * player opening ITUN on a second device sees their roster. A cache is
+ * something that can be filled, and this is what fills it.
  *
  * ## Server wins, and that is the point
  *
- * Every row that comes down is adopted over whatever the cache held. There is no
- * merge and no conflict resolution, because with one source of truth there is no
- * second writer to conflict with — that is the whole benefit ADR-034 buys, and
- * reintroducing a merge here would spend it.
+ * A row that comes down newer than the version this browser last saw is
+ * adopted over whatever the cache held (`planRowSync`, per row, by the row's
+ * `updatedAt`). There is no merge and no conflict resolution, because with one
+ * source of truth there is no second writer to conflict with — that is the
+ * whole benefit ADR-034 buys, and reintroducing a merge here would spend it.
+ * The other half of that guarantee is on the write side: a pilot or mech write
+ * made against an older version is refused (`entities.upsertByAppId`).
  *
  * `adopt` keeps each record's own id, so the local copy **is** the entity rather
  * than a fork of it, and it deliberately skips `requireWritableBackend`: filling
  * a cache is not a user write, and a Disconnected reader must still be able to
  * open what they already pulled down.
  *
- * ## Pruning, and the two conditions that make it safe
+ * ## Pruning, and the condition that makes it safe
  *
- * It also deletes local **shelf** rows the server did not return, which is what
- * finally makes "the cache is a reflection" literally true rather than
- * aspirational. It is the most destructive operation in the codebase, so every
- * guard below is load-bearing and none is obvious.
+ * It also forgets local rows the server did not return, which is what makes
+ * "the cache is a reflection" literally true rather than aspirational. It is
+ * the most destructive operation in the codebase, so the guard below is
+ * load-bearing and not obvious.
  *
- * **1. Only shelf rows.** A local row absent from `listMine` is ambiguous, and
- * the ambiguity differs by container. `listMine` returns what the caller *owns*,
- * wherever it lives — but a Game's **unclaimed** pre-gens and its communal
- * crawler have no owner at all, and are legitimately cached (`WiringSync`
- * caches the crawler; earlier builds cached pre-gens opened from a roster). So
- * anything with a `gameId` is a cached view of somebody else's container and is
- * never pruned. A shelf row is different: `gameId: null` with no owner is the
- * one combination ADR-030 calls invalid, so every shelf row must be owned, and
- * every owned row is in `listMine`. Absence therefore means deleted.
+ * **Only rows known to be the caller's.** A local row absent from `listMine`
+ * is ambiguous, and the ambiguity differs by container. `listMine` returns what
+ * the caller *owns*, wherever it lives — but a Game's **unclaimed** pre-gens
+ * and its communal crawler have no owner at all, and are legitimately cached
+ * (`WiringSync` caches the crawler; earlier builds cached pre-gens opened from a
+ * roster). So a Game row is pruned only when this browser recorded a server
+ * version for it, which only `listMine` or the owner's own write does
+ * (`rowMayBePruned`). A shelf row needs no such record: `gameId: null` with no
+ * owner is the one combination ADR-030 calls invalid, so every shelf row must
+ * be owned, and every owned row is in `listMine`. Patterns and the NPC tray are
+ * personal, so the shelf rule holds for every one of them.
  *
- * **2. Only in a browser that never held a legacy roster.** This is the guard
- * that is easy to miss and fatal to omit. For a pre-ADR-034 user who has signed
- * in but not yet claimed, their entire roster is local shelf rows the server has
- * never heard of — and rule 1 would read every one of them as "deleted
- * elsewhere" and destroy the lot. `legacyLocalDataState() === 'absent'` is the
- * only state in which a local row can be trusted to have come from a
- * server-accepted write or from this component, which is what makes absence
- * mean deletion rather than not-yet-uploaded.
+ * Absence means deletion rather than not-yet-uploaded because every cached row
+ * came from the server or from a write it accepted first: signed out nothing
+ * is written, and the cache belongs to the signed-in account
+ * (`lib/account/cacheOwner.ts`).
  *
  * ## …and its sibling, `WiringSync`, for assignments and Game crawlers
  *
@@ -56,17 +55,21 @@
  * not list a Game's crawlers. `WiringSync` fills both from
  * `entities.listWiring`, server wins, with the same prune guard; the rules are
  * the pure plans in `lib/links/linkSync.ts`. Like every adoption here it
- * writes through `adopt`/`forget`, so other tabs hear about it by broadcast.
+ * writes through `adopt`/`forget`.
+ *
+ * Every open tab mounts its own `ShelfSync`, so this is also how one tab hears
+ * another's writes: the write reaches Convex, each tab's subscription re-emits,
+ * and the emission is adopted (a create or an edit) or pruned (a delete) under
+ * the rules above. There is no tab-to-tab channel.
  */
 
 import { useQuery } from 'convex/react'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { containerOf } from '../../lib/container'
-import { legacyLocalDataState } from '../../lib/db/legacyLocalData'
-import { mayPrune, rowMayBePruned } from '../../lib/db/pruneRules'
-import { planCrawlerSync, planLinkSync } from '../../lib/links/linkSync'
+import { rowMayBePruned } from '../../lib/db/pruneRules'
+import type { ServedRow } from '../../lib/links/linkSync'
+import { planCrawlerSync, planLinkSync, planRowSync } from '../../lib/links/linkSync'
 import { captureException } from '../../lib/observability'
 import type { EncounterNpc } from '../../lib/schemas/encounterNpc'
 import type { MechPattern } from '../../lib/schemas/pattern'
@@ -74,45 +77,43 @@ import { useEncounterStore } from '../../stores/encounterStore'
 import { selectBackend } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
+import { noteVersion, serverVersions } from '../../stores/serverVersions'
 
-type Row = { appId?: string | null; body: unknown }
+/** The body ids a served answer carries. */
+function servedIds(rows: readonly ServedRow[]): Set<string> {
+  return new Set(
+    rows
+      .map((r) => (r.body as { id?: unknown } | null)?.id)
+      .filter((id): id is string => typeof id === 'string')
+  )
+}
 
 function ConnectedShelfSync() {
   // `undefined` while in flight — the Convex convention, not a loading flag.
   const mine = useQuery(api.entities.listMine, {})
-  /**
-   * Which payload has already been adopted.
-   *
-   * `listMine` is a live subscription, so it re-emits on every server change —
-   * including the ones this component's own adoptions do not cause but a
-   * mirrored write does. Without this guard each emission would re-adopt the
-   * whole roster, which is a write storm rather than a sync.
-   */
-  const lastAdopted = useRef<string | null>(null)
 
   useEffect(() => {
     if (mine === undefined) return
+    // A newer emission supersedes this one; stop before pruning against an
+    // answer that is already out of date.
+    let superseded = false
 
-    // Keyed on the ids the server returned, not on how many there are.
-    //
-    // Counts are not enough, and the gap is not theoretical now that this
-    // prunes: one row created and another deleted in the same emission leaves
-    // every count identical, so the effect would skip — no adoption, and more
-    // seriously no prune, leaving a row that was deleted on another device
-    // cached here forever and looking like it still exists.
-    const stamp = JSON.stringify(
-      [mine.pilots, mine.mechs, mine.crawlers, mine.mechPatterns, mine.encounterNpcs].map((rows) =>
-        (rows as Row[])
-          .map((r) => (r.body as { id?: unknown } | null)?.id)
-          .filter((id): id is string => typeof id === 'string')
-          .sort()
-      )
-    )
-    if (lastAdopted.current === stamp) return
-    lastAdopted.current = stamp
-
+    // `listMine` is a live subscription, so it re-emits on every server change,
+    // this browser's own writes included. Each emission is planned per row
+    // against the versions already adopted (`planRowSync`), so an emission that
+    // changed nothing writes nothing, and one that changed a single body — an
+    // edit on another device — adopts exactly that row.
     void (async () => {
       const store = useEntityStore.getState()
+      const patterns = usePatternStore.getState()
+      const npcs = useEncounterStore.getState()
+      await Promise.all([
+        store.hydrate('pilot'),
+        store.hydrate('mech'),
+        store.hydrate('crawler'),
+        patterns.hydrate(),
+        npcs.hydrate(),
+      ])
       const kinds = [
         ['pilot', mine.pilots],
         ['mech', mine.mechs],
@@ -120,9 +121,15 @@ function ConnectedShelfSync() {
       ] as const
 
       for (const [kind, rows] of kinds) {
-        for (const row of rows as Row[]) {
+        const plan = planRowSync({
+          local: useEntityStore.getState().list(kind),
+          served: rows as ServedRow[],
+          adoptedAt: serverVersions(),
+        })
+        for (const { id, updatedAt, row } of plan) {
           try {
             await store.adopt(kind, row.body as never)
+            noteVersion(id, updatedAt)
           } catch (err) {
             // One unreadable row must not stop the rest of the roster arriving.
             // A body the server accepted that this build cannot parse is a real
@@ -133,21 +140,19 @@ function ConnectedShelfSync() {
         }
       }
 
-      // Patterns live in their own store, and until now were fetched and then
-      // thrown away: `entities.listMine` returns `mechPatterns`, the stamp
-      // above already keys on them — so this effect re-runs when they change —
-      // and the `kinds` table above simply had no entry for them. A signed-in
-      // player on a second device got their pilots, mechs and crawlers and an
-      // empty pattern library, which is the exact gap ADR-034 P4b exists to
-      // close. The fetch half had landed; the adopt half had not.
-      //
-      // Pattern rows carry only `{ body }` — no `appId` — because a pattern is
-      // addressed by the id inside its body, which is likely why they were
-      // skipped when the `{ appId, body }` kinds were written.
-      const patterns = usePatternStore.getState()
-      for (const row of mine.mechPatterns as { body: unknown }[]) {
+      // Patterns and the NPC tray live in their own stores. Their rows carry
+      // only `{ body }` — no `appId`, no `updatedAt` column — because each is
+      // addressed by the id inside its body, so `rowVersion` reads the body's
+      // own stamp.
+      const patternPlan = planRowSync({
+        local: usePatternStore.getState().list(),
+        served: mine.mechPatterns as ServedRow[],
+        adoptedAt: serverVersions(),
+      })
+      for (const { id, updatedAt, row } of patternPlan) {
         try {
           await patterns.adopt(row.body as MechPattern)
+          noteVersion(id, updatedAt)
         } catch (err) {
           // Same rule as the roster loop above: one unreadable pattern must not
           // stop the rest of the library arriving.
@@ -155,48 +160,55 @@ function ConnectedShelfSync() {
         }
       }
 
-      // The NPC tray, same shape and same reason. `listMine` returns it now;
-      // before that it was written by `claimLocal` and `games.destroy` and read
-      // back by nothing, so a claimed tray went up and never came down.
-      const npcs = useEncounterStore.getState()
-      for (const row of mine.encounterNpcs as { body: unknown }[]) {
+      const npcPlan = planRowSync({
+        local: useEncounterStore.getState().list(),
+        served: mine.encounterNpcs as ServedRow[],
+        adoptedAt: serverVersions(),
+      })
+      for (const { id, updatedAt, row } of npcPlan) {
         try {
           await npcs.adopt(row.body as EncounterNpc)
+          noteVersion(id, updatedAt)
         } catch (err) {
           captureException(err)
         }
       }
 
-      // Patterns and NPCs are deliberately NOT pruned below. The prune answers "the
-      // server did not return this, so it was deleted elsewhere", and that
-      // inference is only sound for rows this sync is authoritative over.
-      // Adopting them is what the bug was; deleting them is a separate decision
-      // with a much worse failure mode, and nothing has asked for it.
+      // Prune only where absence is unambiguous — see the header. Dropping the
+      // guard turns this into a roster-deleter.
+      if (superseded) return
 
-      // Prune only where absence is unambiguous — see the header. Every guard
-      // matters; dropping any one turns this into a roster-deleter.
-      if (!mayPrune(legacyLocalDataState())) return
-
+      // `forget`, never `delete`, everywhere below: this removes the local COPY
+      // and must never become a server delete. The row is already gone there —
+      // that is why it is being pruned — and issuing a delete would turn a sync
+      // into a destructive write against whatever the server does hold.
       for (const [kind, rows] of kinds) {
-        const served = new Set(
-          (rows as Row[])
-            .map((r) => (r.body as { id?: unknown } | null)?.id)
-            .filter((id): id is string => typeof id === 'string')
-        )
+        const served = servedIds(rows as ServedRow[])
         for (const local of store.list(kind)) {
-          // `containerOf` rather than a bare `gameId === null`, so a
-          // pre-ADR-030 record that still resolves through `workspaceId` is
-          // classified the same way every other reader classifies it.
-          if (!rowMayBePruned(local)) continue
           if (served.has(local.id)) continue
-          // `forget`, not `delete`: this removes the local COPY and must never
-          // become a server delete. The row is already gone there — that is why
-          // it is being pruned — and issuing a delete would turn a sync into a
-          // destructive write against whatever the server does hold.
+          // A Game crawler is the crew's, never `listMine`'s; `WiringSync`
+          // prunes it.
+          const knownMine = kind !== 'crawler' && serverVersions().has(local.id)
+          if (!rowMayBePruned(local, knownMine)) continue
           await store.forget(kind, local.id)
         }
       }
+
+      // Patterns and the tray are personal: every one is owned, so every one is
+      // in `listMine`, and absence means deleted — the shelf rule.
+      const servedPatterns = servedIds(mine.mechPatterns as ServedRow[])
+      for (const local of usePatternStore.getState().list()) {
+        if (!servedPatterns.has(local.id)) await patterns.forget(local.id)
+      }
+      const servedNpcs = servedIds(mine.encounterNpcs as ServedRow[])
+      for (const local of useEncounterStore.getState().list()) {
+        if (!servedNpcs.has(local.id)) await npcs.forget(local.id)
+      }
     })()
+
+    return () => {
+      superseded = true
+    }
   }, [mine])
 
   return null
@@ -232,14 +244,12 @@ function ConnectedWiringSync() {
         store.hydrate('softLink'),
       ])
       const gameIds = new Set<string>(wiring.gameIds)
-      const prune = mayPrune(legacyLocalDataState())
 
       const crawlerPlan = planCrawlerSync({
         local: useEntityStore.getState().crawlers,
         served: wiring.crawlers,
         gameIds,
         adoptedAt: adoptedAt.current,
-        mayPrune: prune,
       })
       for (const crawler of crawlerPlan.adopt) {
         try {
@@ -254,7 +264,7 @@ function ConnectedWiringSync() {
       if (superseded) return
       for (const id of crawlerPlan.prune) {
         // `forget`, never `delete`: the row is already gone or elsewhere on the
-        // server, and a mirrored delete would destroy whatever it now is.
+        // server, and a server delete would destroy whatever it now is.
         await store.forget('crawler', id)
         adoptedAt.current.delete(id)
       }
@@ -268,7 +278,6 @@ function ConnectedWiringSync() {
           const entity = cached.get(ref.type, ref.id)
           return entity === null ? null : containerOf(entity)
         },
-        mayPrune: prune,
       })
       for (const link of linkPlan.adopt) {
         try {
@@ -291,14 +300,10 @@ function ConnectedWiringSync() {
 
 /**
  * Mounted by `AccountReconciler`'s signed-in half, not at the root on its own:
- * the download direction and the upload direction share the prune guard, and
- * one owner for both is what keeps them from disagreeing.
+ * nothing may sync into the cache until it is confirmed to be this account's
+ * (`claimCacheFor`).
  */
 export function ShelfSync() {
-  // Never call a Convex hook unconditionally: a build with no `VITE_CONVEX_URL`
-  // mounts no provider at all. Gating the whole subtree is the established
-  // pattern here (`AccountMenu`, `SignInControl`).
-  if (!isConvexConfigured) return null
   // Only when the server of record is actually in play. `remote` rather than
   // "signed in" so a Disconnected session does not fire a query it cannot serve.
   if (selectBackend() !== 'remote') return null

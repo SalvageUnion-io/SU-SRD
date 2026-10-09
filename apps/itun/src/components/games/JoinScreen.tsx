@@ -5,7 +5,6 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { setActiveContainer } from '../../stores/activeContainerStore'
 import { SignInControl } from '../account/SignInControl'
 import { AppLink } from '../shared/AppLink'
@@ -248,17 +247,6 @@ export function JoinScreen({ code }: { code: string }) {
   const { mode } = useConnection()
 
   const body = () => {
-    if (!isConvexConfigured) {
-      return (
-        <Card>
-          <div className="p-4">
-            <Text>
-              This build has no account service configured, so invite links cannot be accepted here.
-            </Text>
-          </div>
-        </Card>
-      )
-    }
     if (mode === 'connected') return <ConnectedJoin code={code} />
     if (mode === 'disconnected') {
       return (

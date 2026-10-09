@@ -28,8 +28,8 @@ import {
   waitFor,
   within,
 } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
@@ -59,7 +59,7 @@ const OVERRIDE_TONE = 'text-[var(--tone-deep)]'
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   useEntityStore.setState({
     pilots: [],
     mechs: [],
@@ -79,10 +79,10 @@ afterAll(() => {
   configure({ getElementError: defaultElementError })
 })
 
-function abilityId(name: string): string {
+function abilitySlug(name: string): string {
   const ability = SalvageUnionReference.Abilities.getByName(name)
   if (!ability) throw new Error(`Fixture setup: ability "${name}" not found in reference`)
-  return ability.id
+  return getEntitySlug(ability)
 }
 
 /** A base-10 pilot whose home crawler is Tech 1 (no Stat Training yet). */
@@ -221,7 +221,12 @@ describe('Pilot HP — the override colour tracks a real modification (ADR-022)'
       store.update('crawler', crawler.id, { techLevel: 'tech-2' }, LIVE_SHEET_MANUAL)
     )
     await upgrade(() =>
-      store.update('pilot', pilot.id, { abilities: [abilityId('Bionic Arms')] }, LIVE_SHEET_MANUAL)
+      store.update(
+        'pilot',
+        pilot.id,
+        { abilities: [abilitySlug('Bionic Arms')] },
+        LIVE_SHEET_MANUAL
+      )
     )
     await expectNotOverridden(14)
 
@@ -234,7 +239,7 @@ describe('Pilot HP — the override colour tracks a real modification (ADR-022)'
       store.update(
         'pilot',
         pilot.id,
-        { abilities: [abilityId('Bionic Arms'), abilityId('Bionic Legs')] },
+        { abilities: [abilitySlug('Bionic Arms'), abilitySlug('Bionic Legs')] },
         LIVE_SHEET_MANUAL
       )
     )

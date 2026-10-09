@@ -8,8 +8,7 @@ export default {
 
 /**
  * Background step — the short Background archetype (roll-table driven) plus the
- * freeform bio Textarea beneath it. Split out of the former "Pilot Identity
- * Steps" gallery so it has a sidebar entry of its own.
+ * freeform bio Textarea beneath it, with a sidebar entry of its own.
  */
 export const Default = () => {
   const [background, setBackground] = useState('')

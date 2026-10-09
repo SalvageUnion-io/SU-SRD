@@ -136,11 +136,8 @@ function Rung({ rung }: { rung: SizeRung }) {
 /**
  * The FULL / COMPACT / MINI ladder — one size vocabulary for the whole system.
  *
- * Size axes used to be named relative to their own component (`sm | md | lg` on
- * a stamp, `xs | sm | md | lg` on a button), so a name told you nothing about
- * which rung a surface belonged to and two components' `sm` were unrelated.
- * These three names are defined by INTENT, so they mean the same thing wherever
- * they are read.
+ * These three names are defined by INTENT, not relative to their own
+ * component, so they mean the same thing wherever they are read.
  *
  * Every specimen below is rendered from `src/styles/sizing.ts` — the same
  * constants the components consume — so the catalog cannot drift from the code.

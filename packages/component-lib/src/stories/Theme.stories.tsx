@@ -16,14 +16,9 @@ export default {
   title: 'Foundations/Theme',
 }
 
-// Migrated off Tailwind in #799 (epic #802). Every specimen on this page now
-// resolves through `design/tokens.ts`, where it previously resolved through a
-// `var(--color-*)` string or a utility class. That is the same guarantee in a
-// stronger form: the maps below used to be the drift risk this page exists to
-// prevent (they once carried hardcoded rgb values that had gone stale against
-// theme.css in TEN places), and `var(--color-*)` fixed that by referencing.
-// Reading the token object goes one further — a name that is not on the scale
-// is now a TYPE ERROR rather than a variable that silently resolves to nothing.
+// Every specimen on this page resolves through `design/tokens.ts`, so a name
+// that is not on the scale is a TYPE ERROR rather than a variable that
+// silently resolves to nothing.
 
 // Shared caption in the catalog's canonical voice (design ruleset §4).
 const captionStyle = {
@@ -63,7 +58,7 @@ const tokenNameStyle = {
 // Every swatch renders a REAL token, never a raw hex, so the catalog stays
 // ground-truth against the scale.
 type ColorRole = {
-  /** A key on the token scale — mistyping one no longer compiles. */
+  /** A key on the token scale — mistyping one does not compile. */
   swatch: keyof typeof color
   role: string
 }
@@ -81,11 +76,11 @@ const colorRoles: ColorRole[] = [
   { swatch: 'statusBad', role: 'status · bad' },
 ]
 
-/** `statusOk` → `--su-color-status-ok`, spelled as tokens.parity.test.ts spells it. */
+/** `statusOk` → `--color-status-ok`, spelled as tokens.parity.test.ts spells it. */
 const colorVarName = (key: string) =>
-  `--su-color-${key
+  `--color-${key
     .replace(/([A-Z])/g, '-$1')
-    .replace(/(\d+)/g, '-$1')
+    .replace(/([a-zA-Z])(\d+)/g, '$1-$2')
     .toLowerCase()}`
 
 function RoleSwatch({ swatch, role }: ColorRole) {
@@ -107,12 +102,8 @@ function RoleSwatch({ swatch, role }: ColorRole) {
 }
 
 /* Each specimen map is a list of KEYS on the token scale rather than a list of
-   values. This is load-bearing, not stylistic: these maps used to hardcode rgb
-   values and had silently drifted from theme.css in TEN places — `paper`,
-   `ink-2`, `wk-muted`, `wk-faint`, the old `su-orange-dark`, and all five roll
-   tiers, which still showed the stock-Material hues that the warm re-tone
-   retired. The page whose entire job is to be the ground truth for the token
-   system was misreporting it. A key cannot drift from the value it names. */
+   values. This is load-bearing, not stylistic: this page is the ground truth
+   for the token system, and a key cannot drift from the value it names. */
 const coreColors = ['ink', 'ink2', 'inkDeep', 'paper', 'bandCream', 'rust', 'rustHi'] as const
 
 const inkRamp = ['ink75', 'ink50', 'ink30', 'ink20', 'ink15', 'ink12', 'ink10', 'ink8'] as const
@@ -148,11 +139,10 @@ const rollColors = ['rollCascade', 'rollFailure', 'rollTough', 'rollSuccess', 'r
 
 const statusColors = ['statusOk', 'statusWarn', 'statusBad'] as const
 
-/* These two are NOT on the `--su-*` scale: they are the ShadCN-compat aliases
-   declared in theme.css's plain `:root`, outside the Tailwind `@theme` block,
-   and `Text` still reads `--foreground`. They are shown as the raw custom
-   properties they are, because that is precisely what this story documents;
-   they retire with theme.css in the Tailwind-removal layer (#801). */
+/* These two are NOT tokens: they are the ShadCN-compat aliases declared in
+   theme.css's plain `:root`, and `Text` still reads `--foreground`. They are
+   shown as the raw custom properties they are, because that is precisely what
+   this story documents. */
 const cssVarMappings: Record<string, string> = {
   '--background': 'var(--color-paper)',
   '--foreground': 'var(--color-ink)',
@@ -200,11 +190,7 @@ function ColorSection({ title, keys }: { title: string; keys: readonly (keyof ty
       </h3>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[16] }}>
         {keys.map((key) => (
-          <Swatch
-            key={key}
-            name={colorVarName(key).replace('--su-color-', '')}
-            value={color[key]}
-          />
+          <Swatch key={key} name={colorVarName(key).replace('--color-', '')} value={color[key]} />
         ))}
       </div>
     </div>
@@ -212,7 +198,7 @@ function ColorSection({ title, keys }: { title: string; keys: readonly (keyof ty
 }
 
 const pageHeadingStyle = {
-  fontSize: fontSize.xl2,
+  fontSize: fontSize['2xl'],
   fontWeight: weight.bold,
   marginBottom: space[16],
 } satisfies CSSProperties
@@ -262,7 +248,7 @@ export const TechLevelColors: Story = () => (
             </span>
           </div>
           <span style={{ fontSize: fontSize.label }}>
-            {colorVarName(key).replace('--su-color-', '')}
+            {colorVarName(key).replace('--color-', '')}
           </span>
         </div>
       ))}
@@ -381,7 +367,7 @@ export const Tracking: Story = () => (
           Systems &amp; Modules
         </span>
         <Caption>
-          {`--su-tracking-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`} · {tracking[key]} ·{' '}
+          {`--tracking-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`} · {tracking[key]} ·{' '}
           tracking.{key}
         </Caption>
       </div>
@@ -436,7 +422,7 @@ export const BorderMap: Story = () => (
               {borderWidth[w.token]}
             </span>
           </div>
-          <span style={tokenNameStyle}>--su-bw-{w.token}</span>
+          <span style={tokenNameStyle}>--bw-{w.token}</span>
           <Caption>{w.applies}</Caption>
         </div>
       ))}

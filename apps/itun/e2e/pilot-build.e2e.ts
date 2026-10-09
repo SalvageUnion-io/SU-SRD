@@ -10,11 +10,8 @@ import { expect, test } from './fixtures'
  * CREATION BUDGETS ARE THE RULEBOOK'S, NOT THIS FILE'S. A pilot starts with
  * exactly **1** Ability (Core Book p.18) and **2** Tech 1 Equipment (p.19) —
  * `PILOT_CREATION_ABILITY_PICKS` / `PILOT_CREATION_EQUIPMENT_PICKS` in
- * `salvageunion-reference/lib/rules/creation.ts` are the source of truth. This
- * spec previously walked a separate "Abilities" step and asserted `3 / 3`,
- * which had stopped matching both the wizard's shape and the rule it was
- * meant to be guarding. If these numbers ever disagree with the constants
- * again, fix whichever is wrong by checking the book — do not simply relax
+ * `salvageunion-reference/lib/rules/creation.ts` are the source of truth. If
+ * these numbers ever disagree with the constants, fix whichever is wrong by checking the book — do not simply relax
  * the test to whatever the app currently does.
  */
 test('build a pilot from scratch, then edit to add a second ability', async ({ page }) => {
@@ -64,13 +61,9 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
 
   // --- Advancement, on the live sheet ---
   //
-  // This used to walk /pilots/$id → /pilots/$id/edit and re-run the wizard in
-  // "edit mode". Both routes are gone: /pilots/$id is now a Worker 301
-  // (src/worker/retiredRoutes.ts) and the detail page was collapsed into the
-  // live sheet, which under ADR-021 is the Free Edit surface — you edit in
-  // place rather than replaying Guided Creation. The INTENT is unchanged and is
-  // what matters: an ability beyond the creation budget can be added, and it
-  // persists.
+  // The live sheet is the Free Edit surface (ADR-021): you edit in place
+  // rather than replaying Guided Creation. What matters is that an ability
+  // beyond the creation budget can be added, and that it persists.
   // Matched on `href`, not the label. EntityRow's sheet link reads "View" on
   // every row, so it carries `aria-label="View <name>"` for WCAG 2.4.4 — which
   // means its ACCESSIBLE NAME is not "View" and `/^View$/` matches nothing.
@@ -85,12 +78,9 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   // modal. It writes through on toggle — there is no Save button to press.
   //
   // `Manage abilities`, not `+ Add ability`. `SectionManageButton` labels itself
-  // `Manage ${label}` and PilotSheet passes label="abilities"; the old copy has
-  // not existed for some time. The component tests in
-  // `sheet/__tests__/sheet-soft-warnings.test.tsx` were already using the
-  // current label, so only this e2e spec was left behind — which is why the
-  // break showed up as a nightly 90-second click timeout rather than a unit
-  // failure. `mech-build.e2e.ts` uses the same `/^Manage systems$/i` shape.
+  // `Manage ${label}` and PilotSheet passes label="abilities", the same label
+  // `sheet/__tests__/sheet-soft-warnings.test.tsx` uses. `mech-build.e2e.ts`
+  // uses the same `/^Manage systems$/i` shape.
   await page.getByRole('button', { name: /^Manage abilities$/i }).click()
   const picker = page.getByRole('dialog')
   await expect(picker).toBeVisible()
@@ -130,9 +120,8 @@ test('the creation ability budget caps at one pick', async ({ page }) => {
   // Further level-1 abilities stay on screen and stay clickable, but the
   // budget holds: clicking them cannot push the count past the rulebook's one
   // pick. That invariant — not the presence of any particular affordance — is
-  // what this test guards. It used to look for a "Budget reached" message and
-  // then assert `count >= 0`, which is true of every number, so it could not
-  // fail; the message no longer renders at all.
+  // what this test guards; an assertion like `count >= 0` is true of every
+  // number and could not fail.
   for (const other of ['Jury Rig', 'Mass Field Maintenance']) {
     const card = page
       .getByRole('button')

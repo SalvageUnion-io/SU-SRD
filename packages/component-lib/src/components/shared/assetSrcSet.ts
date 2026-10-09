@@ -3,13 +3,8 @@
  *
  * ## Why this lives here and not in `salvageunion-reference`
  *
- * It used to be `getAssetSrcSet` in the dataset package, next to
- * `ASSET_DERIVATIVE_WIDTHS`. That put a decision about a *render slot* inside
- * the package that describes the *game data* — the old comment gave the game
- * away by explaining the widths in terms of "`CardImage`'s container", a
- * component the dataset has never heard of.
- *
- * The widths belong to whoever owns the slot, which is this package. The
+ * The widths are a decision about a *render slot*, not about the *game data*.
+ * They belong to whoever owns the slot, which is this package. The
  * dataset's job ends at `getAssetUrl`: it knows an entity has artwork and where
  * the master is, and nothing about how large anyone draws it.
  *

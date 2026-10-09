@@ -1,58 +1,30 @@
 {
-  // assets.salvageunion.io — entity artwork, served from R2 (ADR-033).
-  //
-  // `salvageunion-reference`'s ASSET_BASE_URL points at this hostname, so every
-  // derived artwork URL in both apps resolves here.
-  //
-  // No static assets directory: the Worker answers every path, robots.txt
-  // included, so one place decides what this origin returns.
-  // `src/__tests__/robots.test.ts` holds robots closed.
+  // assets.salvageunion.io — entity artwork from R2 (ADR-033). The Worker
+  // answers every path, robots.txt included; see src/worker.ts.
   "name": "su-assets",
-
-  // One hostname, and it moves with srd rather than separately: `ASSET_BASE_URL`
-  // in salvageunion-reference is compile-time, so every artwork URL baked into
-  // both apps already points at this name. Flipping salvageunion.io moves the
-  // reference site and its artwork host together — they cannot be staged apart.
   "routes": [{ "pattern": "assets.salvageunion.io", "custom_domain": true }],
-
-  // Load-bearing, and NOT a default. Declaring `routes` makes wrangler disable
-  // workers.dev unless it is asked for explicitly — measured: the first deploy
-  // with a route reported "No targets deployed" and
-  // su-assets.alxjrvs.workers.dev started answering Cloudflare's own 404
-  // instead of this Worker.
-  //
-  // That URL is the only way to reach any of these Workers before the
-  // nameserver flip, and every smoke test in deploy-cloudflare.yml curls one.
-  // Losing it silently would have turned the whole post-deploy gate green-by-
-  // absence at exactly the moment it matters most.
-  "workers_dev": true,
+  // The smoke list probes the custom domain only (tools/smoke-production.sh).
+  "workers_dev": false,
   "main": "src/worker.ts",
 
-  // Held at or below the workerd that the wrangler devDependency bundles, so
-  // `wrangler dev` runs locally. A newer date fails with "requires compatibility
-  // date X, but the newest date supported by this server binary is Y", which
-  // reads like a config error and is really version skew.
+  // At or below the workerd the wrangler devDependency bundles (deploy-cloudflare.yml).
   "compatibility_date": "2026-07-13",
-  // `nodejs_als` — AsyncLocalStorage ONLY, not the full `nodejs_compat` shim.
-  //
-  // `@sentry/cloudflare` imports `node:async_hooks` to isolate scope per
-  // request. Without a flag wrangler warns and the Worker throws at runtime.
-  //
-  // This is the narrow flag on purpose. `nodejs_compat` would pull the whole
-  // Node shim and, as apps/discord-bot/wrangler.jsonc puts it, "make it easy to
-  // reintroduce a Node-only import without noticing". Measured: `nodejs_als`
-  // alone clears the warning, so the broad flag would buy nothing.
+  // AsyncLocalStorage for @sentry/cloudflare; tools/check-observability.ts requires it.
   "compatibility_flags": ["nodejs_als"],
 
-  // Cloudflare Images, used to render the `-440`/`-880` derivatives from the
-  // master on demand instead of baking them into the bucket. The Worker treats
-  // it as optional — an absent binding makes a derivative 404, which a browser
-  // resolves by falling back to the `src` master rather than showing nothing.
-  //
-  // REQUIRES Transformations enabled on the salvageunion.io zone
-  // (dashboard -> Images -> Transformations -> salvageunion.io). Free plan
-  // allows 5,000 unique transformations/month; this origin has 57 masters and
-  // an allowlist of 2 widths, so the ceiling is 114.
+  // Workers Caching: a repeat request is answered from the edge without running
+  // the Worker, keyed on the `Cache-Control` each response sets (src/worker.ts).
+  "cache": {
+    "enabled": true
+  },
+
+  // A deploy fails while one is unset; set with `wrangler secret put`.
+  "secrets": {
+    "required": ["SENTRY_DSN"]
+  },
+
+  // Renders the -440/-880 derivatives. Needs Images Transformations on the zone
+  // (ADR-033, "Configuration outside the repo").
   "images": {
     "binding": "IMAGES"
   },

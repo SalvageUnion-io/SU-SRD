@@ -40,10 +40,9 @@ import type { EntityForType, EntityType } from '../../stores/types'
  *
  * NOTE: `ReferenceEntityCard` is NOT memoized — it is a plain `export function`
  * (see the end of `ReferenceEntityCard.tsx`), and `React.memo` appears nowhere
- * in this repo as code. This comment used to assert otherwise, as did two
- * others; all three were written for a memo that was never added.
+ * in this repo as code.
  *
- * The stable reference is kept anyway, and the reasoning inverts cleanly: a
+ * The stable reference is kept anyway: a
  * fresh `{}` per render is exactly what would defeat a memo, so holding one
  * identity is what makes adding it a one-line change instead of a hunt. Frozen
  * so it cannot be mutated.

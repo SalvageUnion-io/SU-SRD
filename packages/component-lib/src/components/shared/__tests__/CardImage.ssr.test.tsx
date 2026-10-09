@@ -32,7 +32,13 @@ describe('CardImage server rendering', () => {
         )
       )
     `
-    const proc = Bun.spawnSync(['bun', '-e', script], { stdout: 'pipe', stderr: 'pipe' })
+    // `cwd` is this file's directory, so the child resolves react from
+    // component-lib whichever directory the suite was started from.
+    const proc = Bun.spawnSync(['bun', '-e', script], {
+      cwd: import.meta.dir,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    })
     const stderr = proc.stderr.toString()
     expect(stderr).toBe('')
     expect(proc.exitCode).toBe(0)

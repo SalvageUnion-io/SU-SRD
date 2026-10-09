@@ -11,8 +11,7 @@ import {
 import type { ContainerData } from '../container.js'
 import { toContainer } from '../container.js'
 import { makeCustomId } from '../customId.js'
-import { lookupContainerData } from '../lookupContainer.js'
-import { buildLookupEmbed } from '../lookupEmbed.js'
+import { lookupCard } from '../lookupCard.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 
 type Hit = {
@@ -26,7 +25,7 @@ export type LookupMessage =
   | { error: string }
 
 /**
- * Build the lookup reply for a resolved entity: the rich embed, plus a "Roll on
+ * Build the lookup reply for a resolved entity: the rich card, plus a "Roll on
  * this table" button when the entity is itself a roll-table. Shared by the
  * `/su lookup` slash handler and the roll result's "See table" button.
  */
@@ -34,15 +33,15 @@ export function buildLookupMessage(
   entity: SURefEntity & { schemaName: SURefEnumSchemaName },
   schemaName: SURefEnumSchemaName
 ): { flags: number; components: [ContainerBuilder]; data: ContainerData } {
-  const data = lookupContainerData(buildLookupEmbed(entity, schemaName), entity)
+  const data = lookupCard(entity, schemaName)
 
   // A roll-table entity IS a rollable table — offer a one-click roll instead of
   // making the user retype `/su roll table: <name>`. Reuses the same stateless
   // `su:roll:<name>` button the roll results carry.
   //
   // Primary, not Secondary: rolling is the action, and this is the one control
-  // on the message. The old row used the ↻ repeat glyph for what is a FIRST
-  // roll, which read as a re-roll of something that never happened.
+  // on the message. No ↻ repeat glyph: this is a FIRST roll, not a re-roll of
+  // something that never happened.
   const tableName = 'name' in entity && entity.name ? String(entity.name) : null
   const rollId = schemaName === 'roll-tables' && tableName ? makeCustomId('roll', tableName) : null
   if (rollId) {

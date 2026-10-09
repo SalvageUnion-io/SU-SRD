@@ -1,6 +1,6 @@
 /**
  * MechSlot — the mech in the slot row, in its two forms
- * (docs/architecture/dashboard-redesign.md D2, D3):
+ * (ADR-038 §3):
  *
  *  - `MechMajor`, boarded: the Reactor (Push, Heat Check, Vent, Shutdown) and
  *    the Chassis (Take Damage, the cargo hold) at full width, with Effects and
@@ -20,8 +20,7 @@
  * log (`dashboardRolls.ts`), where the crew's Log tab reads it.
  */
 
-import type { StepRule } from 'component-lib'
-import { CountStepper, RuleBrief } from 'component-lib'
+import { CountStepper } from 'component-lib'
 import { useEffect, useState } from 'react'
 import type { CriticalDamageEffect } from 'salvageunion-reference/rules'
 import {
@@ -36,6 +35,8 @@ import { runWrite } from '../../lib/runWrite'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import type { StepRule } from '../wizard/RuleBrief'
+import { RuleBrief } from '../wizard/RuleBrief'
 import { activatableEffects } from './dashboardEffects'
 import { recordRoll } from './dashboardRolls'
 import {
@@ -350,9 +351,8 @@ export function MechMajor({
     }
     if (prompt.kind === 'crit') {
       // Annotated: without it TS widens `variant` to `string` in this
-      // intermediate const, which no longer satisfies BandButton's
-      // `'danger' | 'go'` union (the two mutually-exclusive booleans it replaced
-      // couldn't catch this class of mistake at all).
+      // intermediate const, which would not satisfy BandButton's
+      // `'danger' | 'go'` union.
       const actions: BandButton[] | undefined =
         prompt.effect === null
           ? [{ label: 'Roll Critical Damage', onClick: rollCritical, variant: 'danger' }]

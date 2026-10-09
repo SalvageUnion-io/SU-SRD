@@ -13,7 +13,7 @@ import type { MechInput } from './types.js'
 // Reference data fixtures (real data — verified against chassis.json)
 // Mule: systemSlots=16, moduleSlots=2, cargoCapacity=16, techLevel=1
 // ---------------------------------------------------------------------------
-const MULE_CHASSIS = 'Mule'
+const MULE_CHASSIS = 'mule'
 
 describe('computeMechCapacity — happy path', () => {
   it('returns zero usage for an empty mech', () => {
@@ -35,7 +35,7 @@ describe('computeMechCapacity — happy path', () => {
     // .50 Cal Machine Gun = slotsRequired 2, Armour Plating = slotsRequired 2
     const mech: MechInput = {
       chassisRef: MULE_CHASSIS,
-      systems: [{ ref: '.50 Cal Machine Gun' }, { ref: 'Armour Plating' }],
+      systems: [{ ref: '50-cal-machine-gun' }, { ref: 'armour-plating' }],
       modules: [],
     }
     const result = computeMechCapacity(mech)
@@ -47,7 +47,7 @@ describe('computeMechCapacity — happy path', () => {
   it('respects explicit slotCost override', () => {
     const mech: MechInput = {
       chassisRef: MULE_CHASSIS,
-      systems: [{ ref: '.50 Cal Machine Gun', slotCost: 1 }], // overridden from 2 to 1
+      systems: [{ ref: '50-cal-machine-gun', slotCost: 1 }], // overridden from 2 to 1
       modules: [],
     }
     const result = computeMechCapacity(mech)
@@ -57,7 +57,7 @@ describe('computeMechCapacity — happy path', () => {
   })
 
   it('reports correct max slots matching real chassis data', () => {
-    const chassis = SalvageUnionReference.Chassis.getByName(MULE_CHASSIS)
+    const chassis = SalvageUnionReference.Chassis.getBySlug(MULE_CHASSIS)
     expect(chassis).toBeDefined()
     const mech: MechInput = { chassisRef: MULE_CHASSIS, systems: [], modules: [] }
     const result = computeMechCapacity(mech)
@@ -69,7 +69,7 @@ describe('computeMechCapacity — happy path', () => {
 
   it('exactly at max capacity produces no violations', () => {
     // Mule has 16 system slots — fill exactly to cap with 1-slot systems
-    const chassis = SalvageUnionReference.Chassis.getByName(MULE_CHASSIS)
+    const chassis = SalvageUnionReference.Chassis.getBySlug(MULE_CHASSIS)
     const max = chassis?.systemSlots ?? 0
     const systems = Array.from({ length: max }, (_, i) => ({
       ref: `FakeSystem${i}`,
@@ -87,9 +87,9 @@ describe('computeMechCapacity — happy path', () => {
 describe('computeMechCapacity — system-over-slots violation', () => {
   it('raises system-over-slots when system usage exceeds chassis cap', () => {
     // Force over-capacity with explicit slotCosts
-    const chassis = SalvageUnionReference.Chassis.getByName(MULE_CHASSIS)
+    const chassis = SalvageUnionReference.Chassis.getBySlug(MULE_CHASSIS)
     const max = chassis?.systemSlots ?? 0
-    const systems = [{ ref: '.50 Cal Machine Gun', slotCost: max + 1 }]
+    const systems = [{ ref: '50-cal-machine-gun', slotCost: max + 1 }]
 
     const mech: MechInput = { chassisRef: MULE_CHASSIS, systems, modules: [] }
     const result = computeMechCapacity(mech)
@@ -109,9 +109,9 @@ describe('computeMechCapacity — module-over-slots violation', () => {
       chassisRef: MULE_CHASSIS,
       systems: [],
       modules: [
-        { ref: 'Comms Module', slotCost: 1 },
-        { ref: 'Comms Module', slotCost: 1 },
-        { ref: 'Comms Module', slotCost: 1 },
+        { ref: 'comms-module', slotCost: 1 },
+        { ref: 'comms-module', slotCost: 1 },
+        { ref: 'comms-module', slotCost: 1 },
       ],
     }
     const result = computeMechCapacity(mech)
@@ -125,7 +125,7 @@ describe('computeMechCapacity — module-over-slots violation', () => {
 })
 
 describe('computeMechCapacity — chassis-not-found violation', () => {
-  it('raises chassis-not-found for an unknown chassis name', () => {
+  it('raises chassis-not-found for an unknown chassis slug', () => {
     const mech: MechInput = {
       chassisRef: 'Nonexistent Chassis XYZ',
       systems: [],

@@ -1,6 +1,13 @@
 import { describe, expect, test } from 'bun:test'
 import { join } from 'node:path'
-import { publicFunctionsIn, reExportsIn, referencesIn, uncalled } from '../check-convex-callers'
+import {
+  codegenDrift,
+  publicFunctionsIn,
+  reExportsIn,
+  referencesIn,
+  registeredModules,
+  uncalled,
+} from '../check-convex-callers'
 
 /**
  * `tools/check-convex-callers.ts` gates merges, so its parsing is pinned here:
@@ -95,6 +102,19 @@ describe('uncalled', () => {
     expect(uncalled(defined, referenced, { 'games:rename': 'called by an admin script' })).toEqual([
       'crew:readEntity',
     ])
+  })
+})
+
+describe('api.d.ts drift', () => {
+  test('registered modules are read from the type imports', () => {
+    const api =
+      'import type * as games from "../games.js";\nimport type * as model_entities from "../model/entities.js";\n'
+    expect([...registeredModules(api)]).toEqual(['games', 'model/entities'])
+  })
+
+  test('a module on disk but not registered, and a registered module that is gone, are both drift', () => {
+    const drift = codegenDrift(new Set(['games', 'model/entities']), new Set(['games', 'old']))
+    expect(drift).toEqual({ missing: ['model/entities'], extra: ['old'] })
   })
 })
 

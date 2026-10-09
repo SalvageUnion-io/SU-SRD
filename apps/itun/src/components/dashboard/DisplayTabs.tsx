@@ -1,6 +1,5 @@
 /**
- * DisplayTabs — the display, as tabs (docs/architecture/dashboard-redesign.md
- * D5): Resolve, Reference, Tables and SRD first, then Log and Crew set apart
+ * DisplayTabs — the display, as tabs (ADR-038 §4): Resolve, Reference, Tables and SRD first, then Log and Crew set apart
  * at the far end.
  *
  *   - **Resolve** — the action chosen from the deck (`ResolvePanel`);
@@ -9,12 +8,12 @@
  *   - **SRD** — the SRD explorer;
  *   - **Log** — the Game's rolls and the Mediator's alerts (`LogTab`);
  *   - **Crew** — each crewmate's vitals and status (`CrewTab`), with a ▲ on
- *     the tab while any of them needs looking at (D6).
+ *     the tab while any of them needs looking at.
  *
  * The tabs are component-lib's `Tabs`, so they carry the tabs keyboard model:
  * ArrowLeft/ArrowRight select the neighbouring tab, Home/End the ends, and Tab
  * moves into the open panel. Which tab is open is the caller's state, kept on
- * the device (D7): it is screen arrangement, not play state.
+ * the device (ADR-038 §2): it is screen arrangement, not play state.
  *
  * Presentational: the Dashboard builds every panel and hands them in.
  */

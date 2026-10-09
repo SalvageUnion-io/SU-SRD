@@ -5,7 +5,9 @@
  * byte for byte. **Do not reflow it.**
  */
 
+import { getEntitySlug } from 'salvageunion-reference'
 import type { EndpointModule } from '../../ssg/types'
+import { apiSampleChassis } from '../lib/apiSample'
 import { SITE_URL } from '../lib/constants'
 import { schemaHref } from '../lib/entityHref'
 import { getEntitySchemas } from '../lib/gameData'
@@ -18,6 +20,8 @@ function body(): string {
     .join('\n')
 
   const schemaIds = entitySchemas.map((s) => `- \`${s.id}\` — ${s.description}`).join('\n')
+
+  const sampleSlug = getEntitySlug(apiSampleChassis())
 
   return `# Salvage Union System Reference Document (SRD)
 
@@ -56,7 +60,7 @@ Base URL: \`${SITE_URL}\`
 
 - \`GET /schema/{schemaId}.json\` — full data array for a schema (e.g., \`/schema/chassis.json\`)
 - \`GET /schema/{schemaId}.schema.json\` — JSON Schema definition for a schema (e.g., \`/schema/chassis.schema.json\`)
-- \`GET /schema/{schemaId}/item/{itemId}.json\` — individual entity by slug (e.g., \`/schema/chassis/item/iron-mongrel.json\`)
+- \`GET /schema/{schemaId}/item/{itemId}.json\` — individual entity by slug (e.g., \`/schema/chassis/item/${sampleSlug}.json\`)
 
 ### Available Schema IDs
 

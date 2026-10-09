@@ -2,12 +2,9 @@
 /**
  * print.css — THE @media print rules for ITUN. One print stylesheet per app.
  *
- * This file used to be half the story: `index.css` imported it and then
- * declared a second `@media print` block of its own, duplicating six rule
- * pairs and CONTRADICTING one of them — this file built a
- * `button:not([data-print])` escape hatch and `index.css` cancelled it with a
- * bare `button` selector, so the hatch could never fire. That block has been
- * folded in here and deleted there; do not add a print block to `index.css`.
+ * Do not add a print block to `index.css`: a second `@media print` block can
+ * contradict this one (a bare `button` selector there would cancel the escape
+ * hatch below).
  *
  * A4 is the default page size. US Letter is available by choosing a US Letter
  * destination in the browser's print dialog (the browser scales automatically;
@@ -22,8 +19,6 @@
  *   data-print="keep"  print this even though its element type is hidden below
  *   data-print="hide"  hide this on paper even though its type is kept
  *
- * The two apps previously used different names for these (`data-print` here,
- * `[data-print-hide]` in srd) — opposite jobs under confusingly similar names.
  * Neither is used in markup yet; both are live escape hatches for when a
  * button must print (a filled-in checkbox) or a printed block must not.
  */
@@ -57,8 +52,8 @@
   /* -------------------------------------------------------------------------
    * Reset backgrounds to white / ink-safe.
    *
-   * This universal reset already covers the `body { background }` and the
-   * `* { print-color-adjust: exact }` rules that index.css used to repeat.
+   * This universal reset covers `body { background }` and
+   * `* { print-color-adjust: exact }`.
    * ------------------------------------------------------------------------- */
   *,
   *::before,
@@ -115,8 +110,6 @@
    * App chrome and interactive-only surfaces have no meaning on paper. The
    * `:not([data-print='keep'])` on buttons is the escape hatch: a control that
    * carries printed STATE (a ticked box, a filled pip button) opts back in.
-   * index.css used to re-list `button` here without the exclusion, which
-   * silently made the hatch unreachable.
    * ------------------------------------------------------------------------- */
   header,
   nav,

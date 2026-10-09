@@ -4,13 +4,20 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import type { Container } from '../../container'
 import { SHELF } from '../../container'
 import type { SoftLink } from '../../schemas/softLink'
 import type { ServedCrawler, ServedLink } from '../linkSync'
-import { planCrawlerSync, planLinkSync, softLinkFromServer } from '../linkSync'
+import {
+  planCrawlerSync,
+  planLinkSync,
+  planRowSync,
+  rowVersion,
+  softLinkFromServer,
+} from '../linkSync'
 
-const T0 = Date.parse('2026-01-01T00:00:00.000Z')
+const T0 = Date.parse(FIXTURE_NOW)
 
 function served(id: string, from: string, to: string, gameId: string | null = 'g1'): ServedLink {
   return {
@@ -29,7 +36,7 @@ function local(id: string, from: string, to: string): SoftLink {
     from: { type: 'pilot', id: from },
     to: { type: 'crawler', id: to },
     type: 'pilot-to-crawler',
-    createdAt: '2026-01-01T00:00:00.000Z',
+    createdAt: FIXTURE_NOW,
   }
 }
 
@@ -51,7 +58,6 @@ describe('planLinkSync', () => {
       served: [served('srv-1', 'p1', 'c1')],
       gameIds,
       containerOfEnd,
-      mayPrune: true,
     })
     expect(plan.adopt).toEqual([softLinkFromServer(served('srv-1', 'p1', 'c1'))])
     expect(plan.adopt[0]?.id).toBe('srv-1')
@@ -64,7 +70,6 @@ describe('planLinkSync', () => {
       served: [served('srv-1', 'p1', 'c1')],
       gameIds,
       containerOfEnd,
-      mayPrune: true,
     })
     expect(plan).toEqual({ adopt: [], prune: [] })
   })
@@ -75,7 +80,6 @@ describe('planLinkSync', () => {
       served: [served('srv-2', 'p1', 'c2')],
       gameIds,
       containerOfEnd,
-      mayPrune: true,
     })
     expect(plan.adopt.map((l) => l.to.id)).toEqual(['c2'])
     expect(plan.prune).toEqual(['old'])
@@ -87,7 +91,6 @@ describe('planLinkSync', () => {
       served: [],
       gameIds,
       containerOfEnd,
-      mayPrune: true,
     })
     expect(plan.prune).toEqual(['old'])
   })
@@ -98,7 +101,6 @@ describe('planLinkSync', () => {
       served: [],
       gameIds,
       containerOfEnd,
-      mayPrune: true,
     })
     expect(plan.prune).toEqual([])
   })
@@ -109,20 +111,8 @@ describe('planLinkSync', () => {
       served: [served('srv-1', 'p1', 'c1')],
       gameIds,
       containerOfEnd,
-      mayPrune: true,
     })
     expect(plan.prune).toEqual(['b'])
-  })
-
-  test('prunes nothing while absence cannot be trusted', () => {
-    const plan = planLinkSync({
-      local: [local('old', 'p1', 'c1')],
-      served: [],
-      gameIds,
-      containerOfEnd,
-      mayPrune: false,
-    })
-    expect(plan.prune).toEqual([])
   })
 })
 
@@ -143,7 +133,6 @@ describe('planCrawlerSync', () => {
       served: [row('c1', 'g1')],
       gameIds,
       adoptedAt: new Map(),
-      mayPrune: true,
     })
     expect(plan.adopt).toHaveLength(1)
     expect(plan.adopt[0]?.body.gameId).toBe('g1')
@@ -156,7 +145,6 @@ describe('planCrawlerSync', () => {
       served: [row('c1', 'g1', 5)],
       gameIds,
       adoptedAt: new Map([['c1', 5]]),
-      mayPrune: true,
     })
     expect(unchanged.adopt).toEqual([])
 
@@ -165,7 +153,6 @@ describe('planCrawlerSync', () => {
       served: [row('c1', 'g1', 6)],
       gameIds,
       adoptedAt: new Map([['c1', 5]]),
-      mayPrune: true,
     })
     expect(edited.adopt.map((c) => c.id)).toEqual(['c1'])
   })
@@ -180,19 +167,53 @@ describe('planCrawlerSync', () => {
       served: [],
       gameIds,
       adoptedAt: new Map(),
-      mayPrune: true,
     })
     expect(plan.prune).toEqual(['gone'])
   })
+})
 
-  test('forgets nothing while absence cannot be trusted', () => {
-    const plan = planCrawlerSync({
-      local: [{ id: 'gone', gameId: 'g1' }],
-      served: [],
-      gameIds,
+describe('planRowSync', () => {
+  const row = (id: string, updatedAt: number) => ({ updatedAt, body: { id } })
+
+  test('adopts a row this browser lacks, and one it never recorded a version for', () => {
+    const plan = planRowSync({
+      local: [{ id: 'cached' }],
+      served: [row('new', 1), row('cached', 1)],
       adoptedAt: new Map(),
-      mayPrune: false,
     })
-    expect(plan.prune).toEqual([])
+    expect(plan.map((p) => p.id)).toEqual(['new', 'cached'])
+  })
+
+  test('same id with a newer version is adopted — an edit on another device comes down', () => {
+    // Keyed on ids, this emission changed nothing and was skipped; the next
+    // whole-body write from here then sent the old body back over the edit.
+    const plan = planRowSync({
+      local: [{ id: 'p1' }],
+      served: [row('p1', 6)],
+      adoptedAt: new Map([['p1', 5]]),
+    })
+    expect(plan.map((p) => [p.id, p.updatedAt])).toEqual([['p1', 6]])
+  })
+
+  test('an unchanged or older version is not adopted over what this browser holds', () => {
+    // Older: an emission that predates a write this browser already made.
+    const plan = planRowSync({
+      local: [{ id: 'same' }, { id: 'older' }],
+      served: [row('same', 5), row('older', 4)],
+      adoptedAt: new Map([
+        ['same', 5],
+        ['older', 5],
+      ]),
+    })
+    expect(plan).toEqual([])
+  })
+
+  test('a pattern or tray row with no version column is versioned by its own stamp', () => {
+    expect(rowVersion({ body: { updatedAt: '2026-01-01T00:00:01.000Z' } })).toBe(
+      Date.parse('2026-01-01T00:00:01.000Z')
+    )
+    expect(rowVersion({ body: { createdAt: FIXTURE_NOW } })).toBe(Date.parse(FIXTURE_NOW))
+    expect(rowVersion({ updatedAt: 7, body: { updatedAt: '2026-01-01T00:00:01.000Z' } })).toBe(7)
+    expect(rowVersion({ body: {} })).toBe(0)
   })
 })

@@ -71,11 +71,8 @@ export type RowCapabilities = {
    * The viewer may destroy this row outright. Mirrors `removeByAppId`, so:
    * the owner, and nobody else.
    *
-   * A Game had no delete at all until now — only "Offer to the crew", which
-   * hands a character over rather than ending it. That left the ordinary case
-   * of a mistaken build with no way out except leaving it on the roster
-   * forever, and the feedback was the blunt version: "u can't delete pilots or
-   * mechs". The server has always allowed it; only the surface was missing.
+   * A mistaken build needs a way off the roster: "Offer to the crew" hands a
+   * character over rather than ending it.
    *
    * Deliberately distinct from `release`. Releasing is generous and reversible
    * — somebody else picks the character up. Deleting is neither, which is why

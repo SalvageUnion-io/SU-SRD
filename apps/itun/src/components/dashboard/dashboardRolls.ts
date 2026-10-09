@@ -1,7 +1,6 @@
 /**
  * Dashboard rolls, written to the Game's log
- * ([ADR-038](../../../../../docs/ARCHITECTURE.md#adr-038) §2;
- * docs/architecture/dashboard-redesign.md §3).
+ * ([ADR-038](../../../../../docs/ARCHITECTURE.md#adr-038) §2).
  *
  * Every die the Dashboard rolls — the core roll and its Push, a Heat Check,
  * Critical Damage and Critical Injury, a roll table, Area Salvage — becomes one
@@ -18,7 +17,6 @@
 
 import type { ContainerFields } from '../../lib/container'
 import { containerOf } from '../../lib/container'
-import { captureException } from '../../lib/observability'
 import { commitChangeLog } from '../../stores/entityBackend'
 
 /** Which roll it was. The Log tab reads `description`; `result` keeps the numbers. */
@@ -67,8 +65,5 @@ export function rollLogEntry<GameId extends string>(
 export function recordRoll(owner: ContainerFields, roll: DashboardRoll): void {
   const container = containerOf(owner)
   if (container.kind !== 'game') return
-  commitChangeLog([rollLogEntry(container.gameId, roll, Date.now())]).catch((err: unknown) => {
-    // The roll already happened and is on screen; only its log row is lost.
-    captureException(err)
-  })
+  void commitChangeLog([rollLogEntry(container.gameId, roll, Date.now())])
 }

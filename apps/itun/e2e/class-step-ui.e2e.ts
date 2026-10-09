@@ -31,7 +31,7 @@ import { expect, test } from './fixtures'
 test('selecting a class marks it selected and reveals its trees', async ({ page }) => {
   await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
-  // The Class step is no longer the landing step — "Your Stats" precedes it.
+  // "Your Stats" precedes the Class step, so walk to the class cards first.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
 
   // Pre-selection: nothing is chosen.
@@ -51,7 +51,7 @@ test('selecting a class marks it selected and reveals its trees', async ({ page 
 test('switching class moves the selection', async ({ page }) => {
   await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
-  // The Class step is no longer the landing step — "Your Stats" precedes it.
+  // "Your Stats" precedes the Class step, so walk to the class cards first.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
 
   await pickByName(page, 'Engineer')

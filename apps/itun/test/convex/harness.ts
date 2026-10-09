@@ -1,3 +1,4 @@
+import { join } from 'node:path'
 import { convexTest } from 'convex-test'
 import schema from '../../convex/schema'
 
@@ -5,16 +6,19 @@ import schema from '../../convex/schema'
  * convex-test harness for Bun.
  *
  * convex-test's documented setup passes `import.meta.glob('./**\/*.*s')` so it
- * can load every Convex module. **Bun's test runner does not implement
- * `import.meta.glob`** (it is a Vite transform, and `typeof import.meta.glob`
- * is `undefined` here), so the module map is written out by hand instead.
+ * can load every Convex module. Bun's test runner does not implement
+ * `import.meta.glob` (it is a Vite transform), so the map is built from a
+ * `Bun.Glob` scan of `convex/` instead: every module there is loadable by the
+ * tests, with nothing to keep in step by hand.
  *
- * The consequence is that this map must be kept in step with `convex/` — a new
- * function file that is not listed here is simply invisible to the tests, which
- * fails open rather than loudly. `auth.ts` and `http.ts` are deliberately
- * omitted: they pull in the Discord provider and the deployment's auth env
- * vars, and nothing under test calls them. Identity is supplied directly via
- * `withIdentity`, which is what `getAuthUserId` reads anyway.
+ * `auth.ts` and `http.ts` are left out of `testConvex()`: they pull in the
+ * Discord provider and the deployment's auth env vars, and identity is supplied
+ * directly via `withIdentity`, which is what `getAuthUserId` reads anyway.
+ * `testConvexWithHttp()` adds them for the one test that drives sign-in through
+ * the deployed HTTP routes. The other three hold no query, mutation or action:
+ * `schema.ts` is passed to `convexTest` directly, `auth.config.ts` is
+ * deployment config, and `botHttp.ts` exports only an `httpAction` that
+ * `http.ts` routes.
  */
 /**
  * This harness lives OUTSIDE `convex/` on purpose. Do not move it back.
@@ -37,37 +41,30 @@ import schema from '../../convex/schema'
  * None of it was visible until `convex/` was added to `apps/itun/tsconfig.json`;
  * before that the whole backend was type-checked by nothing.
  */
-const modules: Record<string, () => Promise<unknown>> = {
-  // convex-test locates the modules root by finding a "_generated" path in the
-  // map, so these two are required even though no test imports them directly.
-  './_generated/api.js': () => import('../../convex/_generated/api'),
-  './_generated/server.js': () => import('../../convex/_generated/server'),
-  './account.ts': () => import('../../convex/account'),
-  './botClient.ts': () => import('../../convex/botClient'),
-  './changeLog.ts': () => import('../../convex/changeLog'),
-  './claim.ts': () => import('../../convex/claim'),
-  './crew.ts': () => import('../../convex/crew'),
-  './downtime.ts': () => import('../../convex/downtime'),
-  './entities.ts': () => import('../../convex/entities'),
-  './games.ts': () => import('../../convex/games'),
-  './mediator.ts': () => import('../../convex/mediator'),
-  './invites.ts': () => import('../../convex/invites'),
-  './maintenance.ts': () => import('../../convex/maintenance'),
-  './ownership.ts': () => import('../../convex/ownership'),
-  './proposals.ts': () => import('../../convex/proposals'),
-  './publicSheet.ts': () => import('../../convex/publicSheet'),
-  './seats.ts': () => import('../../convex/seats'),
-  './shelf.ts': () => import('../../convex/shelf'),
-  './templates.ts': () => import('../../convex/templates'),
-  './model/bot.ts': () => import('../../convex/model/bot'),
-  './model/discordInteraction.ts': () => import('../../convex/model/discordInteraction'),
-  './model/entities.ts': () => import('../../convex/model/entities'),
-  './model/invites.ts': () => import('../../convex/model/invites'),
-  './model/permissions.ts': () => import('../../convex/model/permissions'),
-  './model/referenceData.ts': () => import('../../convex/model/referenceData'),
-  './model/seats.ts': () => import('../../convex/model/seats'),
-}
+const CONVEX_DIR = join(import.meta.dir, '../../convex')
+const NOT_LOADED = new Set(['auth.ts', 'http.ts', 'schema.ts', 'auth.config.ts', 'botHttp.ts'])
+
+// convex-test locates the modules root by finding a "_generated" path in the
+// map, so the scan takes `_generated/*.js` too, though no test imports them.
+const modules: Record<string, () => Promise<unknown>> = Object.fromEntries(
+  Array.from(new Bun.Glob('**/*.{ts,js}').scanSync({ cwd: CONVEX_DIR }))
+    .filter((path) => !path.endsWith('.d.ts') && !NOT_LOADED.has(path))
+    .map((path) => [`./${path}`, () => import(join(CONVEX_DIR, path))])
+)
 
 export function testConvex() {
   return convexTest(schema, modules)
+}
+
+/**
+ * `testConvex()` plus the deployed `auth.ts` and `http.ts`, so `t.fetch`
+ * reaches the real router and `auth:store` resolves. For the Discord sign-in
+ * test; everything else should use `testConvex()`.
+ */
+export function testConvexWithHttp() {
+  return convexTest(schema, {
+    ...modules,
+    './auth.ts': () => import('../../convex/auth'),
+    './http.ts': () => import('../../convex/http'),
+  })
 }

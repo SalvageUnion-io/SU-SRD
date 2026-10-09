@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ConditionsEditor } from './ConditionsEditor'
 import { CrawlerEconFrame } from './CrawlerEcon'
-import { ChassisStats, SheetHero } from './SheetHero'
+import { SheetHero } from './SheetHero'
 
 export default {
   title: 'Compositions/Sheet Presentation',
@@ -26,18 +26,10 @@ export const Default = () => {
       <div>
         <Caption>SheetHero — the poster identity band</Caption>
         <SheetHero
-          cat="MECH"
           name={chassis?.name ?? 'Mule'}
-          specs={
-            <ChassisStats
-              items={[
-                { code: 'SP', value: 10, max: 10 },
-                { code: 'EP', value: 5, max: 5 },
-                { code: 'HEAT', value: 0, max: 4 },
-              ]}
-            />
-          }
-          trackers={<Stat label="SP" value={10} max={10} />}
+          fieldsTitle="Chassis"
+          fields={<p>{chassis?.name ?? 'Mule'}</p>}
+          vitals={<Stat label="SP" value={10} max={10} />}
         />
       </div>
 

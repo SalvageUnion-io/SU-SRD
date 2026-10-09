@@ -16,7 +16,8 @@ name: E2E (nightly)
 #
 # `production-smoke` re-runs deploy-cloudflare.yml's post-deploy smoke list
 # (tools/smoke-production.sh) against the live hostnames, so drift between
-# deploys opens the same tracking issue.
+# deploys opens the same tracking issue. `audit` runs `bun run audit` against
+# the unchanged tree, so a newly published advisory does too.
 #
 # Trigger manually any time via the "Run workflow" button (workflow_dispatch).
 
@@ -28,8 +29,9 @@ on:
 permissions:
   contents: read
 
+# Per ref, so a branch dispatch cannot cancel the scheduled run on `main`.
 concurrency:
-  group: e2e-nightly
+  group: e2e-nightly-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -37,90 +39,34 @@ jobs:
     # The full ITUN Playwright suite, SIGNED IN, against a THROWAWAY self-hosted
     # Convex backend and a production bundle built against it.
     #
-    # Why signed in: an anonymous visitor's builds are in-memory only (ADR-034),
-    # so a spec that builds something and reads it back after a reload is by
-    # definition a test of the signed-in path. The suite used to force
-    # `VITE_REQUIRE_ACCOUNT=false` to keep a durable anonymous backend (`local`)
-    # alive for itself — proving a storage mode no player could reach. That
-    # backend and the flag are retired; `apps/itun/e2e/fixtures.ts` signs each
-    # durable spec up with a fresh account through the `TestAuthBridge` seam,
-    # and the anonymous specs (first run, offline, the sign-in hand-off) opt out.
+    # Why signed in: signed out, ITUN is read-only (#1113, #1117), so a spec
+    # that builds something and reads it back is by definition a test of the
+    # signed-in path. `apps/itun/e2e/fixtures.ts` signs each such spec up with a
+    # fresh account through the `TestAuthBridge` seam; the specs about what a
+    # signed-out visitor sees opt out with `account: 'anonymous'`.
     #
     # Why a throwaway backend: enabling `ITUN_TEST_AUTH` on production would put
-    # a password auth provider on the live app, and the dev deployment is shared
-    # — every spec mints a fresh account and would fill it with junk. A container
-    # destroyed with the runner has neither problem and needs no credentials,
-    # which is why this job requests no secrets at all.
+    # a password auth provider on the live app. A container destroyed with the
+    # runner cannot do that and needs no credentials, which is why this job
+    # requests no secrets at all.
     #
-    # This absorbed the old `e2e-itun-signin` job, which ran only
-    # `signin-save.e2e.ts` against the same backend. One job, one backend, one
-    # build: the hand-off spec and the specs that depend on its seam can no
-    # longer disagree about how the build was made.
+    # One job, one backend, one build: the sign-in hand-off spec
+    # (`signin-save.e2e.ts`) and the specs that depend on its seam cannot
+    # disagree about how the build was made.
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # `docker run`, not a `services:` block: the admin key has to be produced
-      # by exec-ing into the container after it starts, and `services:` gives no
-      # predictable name to exec into.
-      - name: Start a self-hosted Convex backend
-        run: |
-          # CONVEX_CLOUD_ORIGIN / CONVEX_SITE_ORIGIN are NOT optional here.
-          # `run_backend.sh` passes `--convex-origin "$CONVEX_CLOUD_ORIGIN"
-          # --convex-site "$CONVEX_SITE_ORIGIN"` unconditionally, so leaving
-          # them unset supplies EMPTY STRING arguments rather than omitting the
-          # flags — and the backend deliberately accepts an empty origin ("so
-          # you can start up a self-hosted backend without knowing its url
-          # yet"), which means the built-in defaults never fire. Upstream's
-          # defaults live in their docker-compose.yml, which a bare `docker run`
-          # skips.
-          #
-          # Downstream that lands exactly where this job is meant to be immune:
-          # `convex/auth.config.ts` is `domain: process.env.CONVEX_SITE_URL`,
-          # and @convex-dev/auth signs tokens with `setIssuer(requireEnv(...))`,
-          # whose guard rejects only `undefined` — so an empty string is signed
-          # in as the issuer and sign-in fails for a reason nothing names.
-          #
-          # Pinned by digest, not `:latest`. This stack's whole argument is that
-          # a mutable tag in CI is an unreviewed fetch; shipping one in the job
-          # that makes the argument would be a poor look, and the pinning gate
-          # cannot see `docker run` to catch it.
-          docker run -d --name convex-e2e \
-            -p 3210:3210 -p 3211:3211 \
-            -e INSTANCE_NAME=e2e \
-            -e CONVEX_CLOUD_ORIGIN=http://127.0.0.1:3210 \
-            -e CONVEX_SITE_ORIGIN=http://127.0.0.1:3211 \
-            -e DISABLE_BEACON=true \
-            ghcr.io/get-convex/convex-backend@sha256:1f2044e3eac463ac78973b136c0baf72d4ada602611d853d6f99f280e29e0a98
-          for i in $(seq 1 60); do
-            if curl -fsS http://127.0.0.1:3210/version >/dev/null 2>&1; then
-              echo "backend ready after ${i}s"
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "::error::Convex backend did not become ready within 60s"
-          docker logs convex-e2e || true
-          exit 1
-
-      - name: Generate an admin key
-        id: adminkey
-        run: |
-          KEY="$(docker exec convex-e2e ./generate_admin_key.sh | tail -n1 | tr -d '\r')"
-          if [ -z "$KEY" ]; then
-            echo "::error::generate_admin_key.sh produced no key"
-            docker logs convex-e2e || true
-            exit 1
-          fi
-          echo "::add-mask::$KEY"
-          printf 'key=%s\n' "$KEY" >> "$GITHUB_OUTPUT"
+      - name: Start a throwaway Convex backend
+        id: convex
+        uses: ./.github/actions/convex-backend
 
       # Auth needs a JWT keypair ON the deployment. Without it the JWKS endpoint
       # 500s and sign-in fails with nothing pointing at the cause — this repo
@@ -129,8 +75,8 @@ jobs:
       - name: Provision auth keys and deployment env
         working-directory: apps/itun
         env:
-          CONVEX_SELF_HOSTED_URL: http://127.0.0.1:3210
-          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.adminkey.outputs.key }}
+          CONVEX_SELF_HOSTED_URL: ${{ steps.convex.outputs.url }}
+          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.convex.outputs.admin-key }}
         run: |
           # The keypair is generated inline rather than by `bunx @convex-dev/auth`.
           # That CLI has no `--variant` flag (verified against the pinned 0.0.94:
@@ -163,13 +109,13 @@ jobs:
       - name: Push functions and build itun against the backend
         working-directory: apps/itun
         env:
-          CONVEX_SELF_HOSTED_URL: http://127.0.0.1:3210
-          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.adminkey.outputs.key }}
+          CONVEX_SELF_HOSTED_URL: ${{ steps.convex.outputs.url }}
+          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.convex.outputs.admin-key }}
           VITE_TEST_AUTH: 'true'
         run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
@@ -201,7 +147,7 @@ jobs:
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-itun
           path: apps/itun/playwright-report/
@@ -216,90 +162,6 @@ jobs:
   # the default GITHUB_TOKEN (issues: write, scoped to just these two jobs) —
   # nothing to provision.
   # ---------------------------------------------------------------------------
-  observability-probe:
-    # The one observability check CI structurally CANNOT do on a PR: whether the
-    # Sentry DSN actually reached the production builds. The repo can only
-    # prove the wiring (tools/check-observability.ts, run by `bun run check` on
-    # every PR); whether the deploy env carries the DSN is invisible until you
-    # look at what production actually serves. This fetches both sites and
-    # asserts the SDK is really in the bytes being sent to users.
-    #
-    # This is the check whose absence let a fully-built, unit-tested, release-
-    # tagged Sentry stack sit dark in production with zero events ever captured:
-    # with no DSN the guard folds to false at build time and the SDK is
-    # tree-shaken out, so the app looks identical to a working one.
-    #
-    # Gated on the `OBSERVABILITY_PROBE` repo variable so it stays inert until
-    # the DSN is provisioned. An alarm that rings every night for a thing that
-    # does not exist yet is exactly the broken window this nightly suite already
-    # suffered from — the failure mode is that you stop reading it. Flip it on
-    # (repo → Settings → Secrets and variables → Actions → Variables →
-    # OBSERVABILITY_PROBE = on) the moment the DSN lands, and a production that
-    # goes dark again opens the tracking issue like any other nightly failure.
-    if: vars.OBSERVABILITY_PROBE == 'on'
-    runs-on: ubuntu-latest
-    # Must EXCEED the probe's own PROBE_BUDGET_MS (120s in
-    # tools/check-observability.ts), so the tool always loses the race and
-    # reports a real reason. It was 5 minutes, and the arithmetic never worked:
-    # the probe crawls ~134 chunks and its retry ladder costs up to 7s each, so
-    # a bad-weather run could spend ~938s — 3x the job timeout. Every nightly
-    # from 2026-08-05 died at exactly 5m having printed NOTHING, which read as
-    # "cancelled" in the run list and told nobody anything. The probe itself was
-    # healthy the whole time (3-21s locally, DSN present on both sites).
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Probe production for the Sentry SDK
-        run: bun run check:observability:live
-
-  convex-parity:
-    # The other thing CI structurally cannot do on a PR: know what is actually
-    # deployed. ITUN ships from two mechanisms — wrangler publishes the client,
-    # `convex deploy` pushes the backend — and only the deploy workflow ties them to the
-    # same commit. When they came apart, nothing was red: the site served the
-    # current commit and the backend was four days stale, so the published
-    # bundle called `entities:upsertSoftLink` against a deployment that had no
-    # such function. Every soft-link write failed, mirrored pilot and mech
-    # writes died on the pre-#705 `byAppId`, and the UI rendered all of it as
-    # saved. The only trace was a Convex log stream nobody tails.
-    #
-    # The static half of this check (the deploy-cloudflare.yml guard that makes
-    # an absent CONVEX_DEPLOY_KEY fatal in production) runs on every PR via
-    # `check-workflows.ts` (convex-guard). This is the half that needs the deployment.
-    #
-    # Gated on the CONVEX_PARITY_PROBE repo variable for the same reason
-    # observability-probe is: an alarm that rings nightly for a credential that
-    # has not been provisioned is a broken window, and the failure mode is that
-    # you stop reading it. Provision `CONVEX_DEPLOY_KEY` (repo → Settings →
-    # Environments → production → Environment secrets — a Convex *production*
-    # deploy key from the Convex dashboard), then set CONVEX_PARITY_PROBE = on.
-    if: vars.CONVEX_PARITY_PROBE == 'on'
-    runs-on: ubuntu-latest
-    environment: production
-    timeout-minutes: 5
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Compare the deployed function set against this commit
-        env:
-          # With the key present the Convex CLI resolves its own target, so no
-          # deployment name is passed and none can be wrong.
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-        run: bun run check:convex-parity:live
-
   production-smoke:
     # The post-deploy smoke list from deploy-cloudflare.yml, re-run daily. A
     # deploy only proves production answered at the moment it shipped; a DNS
@@ -309,16 +171,35 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Smoke every production surface
         run: bash tools/smoke-production.sh
 
+  audit:
+    # The `audit` check runs only on a PR that moves bun.lock or a manifest, so
+    # an advisory published against a tree nobody touched surfaces here. The
+    # same root script, so the same suppressions.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Audit the dependency tree
+        run: bun run audit
+
   environments:
     # The live half of `secrets-env` (tools/check-workflows.ts): the GitHub
-    # Environments as configured match tools/environments.ts. #1072 declared
+    # Environments and the `main` ruleset as configured match
+    # tools/environments.ts. #1072 declared
     # `environment: production` on every deploy job, but the settings half was
     # a manual step that never happened — `production` sat with no branch
     # policy and no secrets while the deploy secrets stayed repository-wide,
@@ -338,39 +219,41 @@ jobs:
       actions: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Compare live Environments against tools/environments.ts
+      - name: Compare live Environments and the main ruleset against tools/environments.ts
         env:
           GH_TOKEN: ${{ github.token }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          RELEASE_PLEASE_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
         run: bun tools/environments.ts --secrets-from-env
 
   # ONE notifier, computed from `needs` rather than restated in two inverted
-  # `if:` expressions. The two-job version drifted twice: convex-parity and a
-  # since-merged sign-in job were each added to `needs:` and to one condition
-  # but not the other, so a red run could fail to open the issue — or CLOSE it.
+  # `if:` expressions. The two-job version drifted twice: a job was added to
+  # `needs:` and to one condition but not the other, so a red run could fail to
+  # open the issue — or CLOSE it.
   # Deriving the verdict from `toJSON(needs)` means a job added to `needs:`
   # is reported and judged with no second list to update.
   #
-  # Verdict per job: `failure` or `cancelled` is broken. `cancelled` is how a
+  # Verdict per job: anything but `success` is broken. `cancelled` is how a
   # job that hit `timeout-minutes` reports, and treating it as anything else is
-  # how this suite once broke silently for days. `skipped` is fine for the
-  # variable-gated probes (their switch is off) but NOT for a job in
-  # ALWAYS_RUNS, which has no `if:` and so can only be skipped by a broken
-  # upstream. `!cancelled()` still exempts a genuine cancellation of the whole
-  # run, which is a human action rather than a regression.
+  # how this suite once broke silently for days. `skipped` is broken too: no
+  # judged job has an `if:`, so only a broken upstream can skip one.
+  # `!cancelled()` still exempts a genuine cancellation of the whole run, which
+  # is a human action rather than a regression.
+  #
+  # Only `main` reports: the tracking issue is about `main`, and a branch
+  # dispatch (blocked by the production environment's main-only policy, so red
+  # with zero steps) would otherwise open a false alarm or close a real one.
   notify:
-    needs: [e2e-itun, observability-probe, convex-parity, production-smoke, environments]
-    if: always() && !cancelled()
+    needs: [e2e-itun, production-smoke, audit, environments]
+    if: always() && !cancelled() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # Two REST calls. A wedged notifier is the worst one to leave unbounded —
     # it is the thing that tells you the rest broke.
@@ -379,24 +262,18 @@ jobs:
       issues: write
     steps:
       - name: Open, update or close the nightly-e2e-failure tracking issue
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           NEEDS: ${{ toJSON(needs) }}
         with:
           script: |
-            const ALWAYS_RUNS = new Set(['e2e-itun', 'production-smoke', 'environments'])
             const label = 'nightly-e2e-failure'
             const { owner, repo } = context.repo
             const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
 
             const needs = JSON.parse(process.env.NEEDS)
             const results = Object.entries(needs).map(([job, { result }]) => [job, result])
-            const broken = results.filter(
-              ([job, result]) =>
-                result === 'failure' ||
-                result === 'cancelled' ||
-                (ALWAYS_RUNS.has(job) && result !== 'success')
-            )
+            const broken = results.filter(([, result]) => result !== 'success')
 
             const { data: open } = await github.rest.issues.listForRepo({
               owner,
@@ -418,18 +295,15 @@ jobs:
               return
             }
 
-            // Every job that ran gets a line — a skipped probe is omitted, so the
-            // report never lists a job that did not run. An issue that names no
-            // cause is the failure this list exists to prevent.
+            // Every job gets a line. An issue that names no cause is the failure
+            // this list exists to prevent.
             const body = [
               `Nightly E2E (\`e2e-nightly.yml\`) did not pass on \`${context.ref}\`.`,
               '',
-              ...results
-                .filter(([job, result]) => result !== 'skipped' || ALWAYS_RUNS.has(job))
-                .map(
-                  ([job, result]) =>
-                    `- \`${job}\`: **${result}**${result === 'cancelled' ? ' (hit `timeout-minutes` — likely a hang, not an assertion failure)' : ''}`
-                ),
+              ...results.map(
+                ([job, result]) =>
+                  `- \`${job}\`: **${result}**${result === 'cancelled' ? ' (hit `timeout-minutes` — likely a hang, not an assertion failure)' : ''}`
+              ),
               '',
               `Run: ${runUrl}`,
             ].join('\n')

@@ -56,10 +56,9 @@ test('build a crawler from scratch', async ({ page }) => {
 })
 
 /**
- * Crawler edit round-trip. /crawlers/$id is now a Worker 301 and there is no
- * /crawlers/$id/edit route — the detail page was collapsed into the live sheet,
- * the Free Edit surface under ADR-021. Intent is unchanged: change the crawler
- * after creation and have the change persist.
+ * Crawler edit round-trip. The live sheet is the Free Edit surface (ADR-021):
+ * you edit in place. What matters is that the crawler can be changed after
+ * creation and that the change persists.
  */
 test('arm a crawler further from its live sheet', async ({ page }) => {
   await buildIronWagon(page)

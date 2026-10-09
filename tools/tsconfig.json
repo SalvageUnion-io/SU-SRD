@@ -7,10 +7,6 @@
   // root, run beside `bun --filter "*" typecheck` by a second process, because
   // nothing else type-checked either directory: a type error in a gate could
   // merge green. As a workspace, `bun --filter "*" typecheck` reaches it.
-  //
-  // `.design-sync/` (the claude.ai/design previews) is checked by this
-  // workspace's `typecheck` too, with its own tsconfig: it needs JSX, the DOM
-  // and the component-lib sources, none of which a gate script should see.
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "lib": ["ES2022"],

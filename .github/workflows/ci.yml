@@ -6,27 +6,21 @@ name: CI
 # gate. Comments here say WHAT a step guards; the doc says WHY.
 
 on:
-  push:
-    branches: ['main']
   # No `branches:` filter: it matches the PR's BASE, so it would give stacked
   # PRs no checks at all — and `CI Success` is required (ARCHITECTURE.md#ci-triggers).
+  # CI runs on PRs only: the ruleset requires `CI Success` on a branch that is
+  # up to date with `main`, so a merged tree has already passed.
   pull_request:
-  # Dormant: no merge queue on `main` today, but this must be live BEFORE one
-  # is enabled or the queue waits forever (ARCHITECTURE.md#ci-triggers).
-  merge_group:
 
 permissions:
   contents: read
   pull-requests: read
   statuses: read
 
-# PRs: a new push supersedes the in-flight run. `main`: NEVER cancel — every
-# commit gets its own group and runs to completion, because a cancelled run on
-# main never fires the deploy workflow's `workflow_run` success
-# (ARCHITECTURE.md#ci-concurrency; audit CI-01).
+# A new push supersedes the in-flight run of the same PR.
 concurrency:
-  group: ci-${{ github.event_name == 'push' && github.sha || github.ref }}
-  cancel-in-progress: ${{ github.event_name != 'push' }}
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 # EVERY job declares `timeout-minutes`; GitHub's default is six hours.
 jobs:
@@ -37,74 +31,17 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      contents: read # checkout, and the merged PR's head commit
-      pull-requests: read # the paths filter, and the merged-PR lookup
-      checks: read # the merged PR's `CI Success`
     outputs:
-      tested: ${{ steps.tested.outputs.tested }}
-      itun: ${{ steps.filter.outputs.itun || steps.all.outputs.all }}
-      web: ${{ steps.filter.outputs.web || steps.all.outputs.all }}
-      bot: ${{ steps.filter.outputs.bot || steps.all.outputs.all }}
-      assets: ${{ steps.filter.outputs.assets || steps.all.outputs.all }}
-      ladle: ${{ steps.filter.outputs.ladle || steps.all.outputs.all }}
-      code: ${{ steps.filter.outputs.code || steps.all.outputs.all }}
-      docs: ${{ steps.filter.outputs.docs || steps.all.outputs.all }}
-      deps: ${{ steps.filter.outputs.deps || steps.all.outputs.all }}
+      itun: ${{ steps.filter.outputs.itun }}
+      web: ${{ steps.filter.outputs.web }}
+      bot: ${{ steps.filter.outputs.bot }}
+      assets: ${{ steps.filter.outputs.assets }}
+      code: ${{ steps.filter.outputs.code }}
+      docs: ${{ steps.filter.outputs.docs }}
+      deps: ${{ steps.filter.outputs.deps }}
     steps:
-      # On a PR the filter lists files through the API; only a push diffs with git.
-      - name: Checkout
-        if: github.event_name == 'push'
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      # merge_group events have no diff base, and the queue is the last gate
-      # before main — so every area is forced on.
-      - name: Force-all on merge queue
-        id: all
-        if: github.event_name == 'merge_group'
-        run: echo "all=true" >> "$GITHUB_OUTPUT"
-
-      # A squash merge whose tree is its PR head's already passed CI as that PR:
-      # every area stays empty, so `CI Success` passes at once and the deploy
-      # starts. Anything unproven runs everything (ARCHITECTURE.md#ci-reusing-the-prs-run).
-      - name: Reuse the merged PR's green run
-        id: tested
-        if: github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-        run: |
-          set -uo pipefail
-          full() {
-            echo "tested=false" >> "$GITHUB_OUTPUT"
-            echo "Full run: $1"
-            exit 0
-          }
-          pr=$(gh api "repos/$REPO/commits/$SHA/pulls" | jq -er --arg sha "$SHA" \
-            'map(select(.merged_at != null and .merge_commit_sha == $sha)) | .[0] // empty
-             | "\(.number) \(.head.sha)"') \
-            || full "found no PR merged as $SHA (or the lookup failed)"
-          read -r number head <<< "$pr"
-          here=$(git rev-parse 'HEAD^{tree}') || full "cannot read the tree of $SHA"
-          there=$(gh api "repos/$REPO/git/commits/$head" --jq '.tree.sha') \
-            || full "cannot read #$number's head commit $head"
-          [ "$here" = "$there" ] || full "tree $here is not #$number's head tree $there"
-          conclusions=$(gh api "repos/$REPO/commits/$head/check-runs?check_name=CI%20Success&filter=latest&per_page=100" \
-            --jq '[.check_runs[] | select(.app.slug == "github-actions") | .conclusion // "pending"] | join(" ")') \
-            || full "cannot read #$number's checks"
-          [ -n "$conclusions" ] || full "#$number's head $head has no CI Success"
-          for c in $conclusions; do
-            [ "$c" = success ] || full "#$number's CI Success on $head is $c"
-          done
-          echo "tested=true" >> "$GITHUB_OUTPUT"
-          echo "::notice title=CI reused::tree $here passed CI as #$number ($head); nothing re-runs"
-
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
-        if: github.event_name != 'merge_group' && steps.tested.outputs.tested != 'true'
         with:
           filters: |
             shared: &shared
@@ -116,15 +53,13 @@ jobs:
               - 'bun.lock'
               - 'knip.json'
               - 'tsconfig*.json'
-              - '.bun-version'
               - 'biome.jsonc'
               - 'lefthook.yml'
               - '.github/workflows/**'
               - '.github/actions/**'
-              # every workspace's test preloads, linker config and patches
+              # every workspace's test preloads and linker config
               - 'test/**'
               - 'bunfig.toml'
-              - 'patches/**'
               # root prose rendered by srd + itun and asserted on by
               # component-lib tests — the #731 incident (ARCHITECTURE.md#ci-path-filters)
               - 'ABOUT_JRVS.md'
@@ -134,14 +69,16 @@ jobs:
               - *shared
               - 'apps/itun/**'
               - 'packages/component-lib/**'
-              # the build job's axe scan and the debt it accepts
-              - 'tools/a11y-scan.ts'
+              # the build job's Playwright config, axe spec and the debt it accepts
+              - 'tools/lib/a11y*.ts'
+              - 'tools/lib/playwrightBase.ts'
               - 'tools/a11y-baseline-itun.json'
             web:
               - *shared
               - 'apps/srd/**'
               - 'packages/component-lib/**'
-              - 'tools/a11y-scan.ts'
+              - 'tools/lib/a11y*.ts'
+              - 'tools/lib/playwrightBase.ts'
               - 'tools/a11y-baseline.json'
             bot:
               - *shared
@@ -149,13 +86,6 @@ jobs:
               # the bot's wire types are imported (`import type`) from here —
               # apps/discord-bot/src/itun/types.ts
               - 'apps/itun/convex/model/botWire.ts'
-            ladle:
-              - *shared
-              - 'packages/component-lib/**'
-              # App-owned components whose stories the catalog serves
-              # (packages/component-lib/.ladle/config.mjs).
-              - 'apps/itun/src/components/**'
-              - 'apps/srd/src/components/**'
             assets:
               - *shared
               - 'apps/su-assets/**'
@@ -164,14 +94,12 @@ jobs:
               - 'apps/**'
               - 'packages/**'
               - 'tools/**'
-              # the design-sync previews, type-checked by the tools workspace
-              - '.design-sync/**'
-              # the hook scripts are exercised by tools/__tests__/claude-hooks.test.ts
+              # tools/__tests__/claude-hooks.test.ts runs the hook scripts and
+              # asserts the deny rules in settings.json
               - '.claude/hooks/**'
-              # the agent workflow scripts, by tools/__tests__/claude-workflows.test.ts
-              - '.claude/workflows/**'
-              # read only by the actionlint check (zizmor's config)
-              - '.github/zizmor.yml'
+              - '.claude/settings.json'
+              # zizmor.yml and dependabot.yml, read only by the actionlint check
+              - '.github/*.yml'
             # Prose and agent config. Runs the repo-invariant checks (doc
             # drift, observability) but not the test suite or the typecheck —
             # nothing compiles or tests these files (audit CI-11).
@@ -179,7 +107,6 @@ jobs:
               - 'docs/**'
               - 'CLAUDE.md'
               - 'README.md'
-              - 'CONTRIBUTING.md'
               - 'SECURITY.md'
               - '.claude/**'
               - '.mcp.json'
@@ -190,15 +117,13 @@ jobs:
               - '**/package.json'
 
   static-checks:
-    # Skipped only when `changes` proved this tree already passed CI; every
-    # other run reports, and each check gates itself by area.
+    # Every run reports; each check gates itself by area.
     needs: [changes]
-    if: needs.changes.outputs.tested != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -235,7 +160,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -254,7 +179,7 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -268,7 +193,7 @@ jobs:
         run: bun --filter srd check:examples
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
@@ -279,40 +204,16 @@ jobs:
 
       # The PR-blocking browser tier, and srd's whole Playwright suite: there
       # is no nightly srd run. Add a spec to this line; do NOT add a job.
-      - name: Run smoke + bundle-budget + JSON API specs
+      # `a11y.e2e.ts` is WCAG 2.2 AA on the pages in tools/a11y-baseline.json,
+      # at desktop and as a phone: it blocks on any violation the baseline does
+      # not accept, and on a baseline entry that no longer fires.
+      - name: Run smoke + bundle-budget + JSON API + a11y specs
         working-directory: apps/srd
-        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts
-
-      # WCAG 2.2 AA on the pages in tools/a11y-baseline.json, against the
-      # dist built above, at desktop and as a phone. Blocks on any violation
-      # the baseline does not accept, and on a baseline entry that no longer
-      # fires. It used to run only nightly, so a regression merged green and
-      # surfaced the next morning.
-      - name: Accessibility scan (axe-core)
-        run: |
-          set -euo pipefail
-          (cd apps/srd && bun ssg/preview.ts --port 4399) &
-          SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
-          for _ in $(seq 1 30); do
-            if curl -sfo /dev/null http://localhost:4399/; then break; fi
-            sleep 1
-          done
-          bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json --device 'Pixel 7' \
-            http://localhost:4399 > a11y-report.json
-
-      - name: Upload a11y report on failure
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: a11y-report-srd
-          path: a11y-report.json
-          retention-days: 7
-          if-no-files-found: ignore
+        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-e2e-web
           path: apps/srd/playwright-report/
@@ -325,22 +226,35 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Build itun
-        run: bun --filter itun build
+      # The variant production ships: compiled against a Convex URL, so the
+      # specs and the scan below see the signed-out read-only UI players get.
+      # The URL is a throwaway backend carrying this PR's own functions, not
+      # production: a PR's client must run against the backend it ships with,
+      # and a PR gate makes no production calls.
+      - name: Start a throwaway Convex backend
+        id: convex
+        uses: ./.github/actions/convex-backend
+
+      - name: Push functions and build itun against the backend
+        working-directory: apps/itun
+        env:
+          CONVEX_SELF_HOSTED_URL: ${{ steps.convex.outputs.url }}
+          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.convex.outputs.admin-key }}
+        run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
 
       # The build emits the assets; this bundles the Worker `main` that ships.
       - name: Bundle the Worker that actually deploys
         run: bun --filter itun worker:bundle --outdir /tmp/itun-worker
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
@@ -350,42 +264,23 @@ jobs:
         run: bunx playwright install chromium
 
       # The PR-blocking browser tier. Add a spec to this line; do NOT add a job.
-      - name: Run smoke + bundle-budget specs
+      # `a11y.e2e.ts` is srd's scan, for ITUN: the routes in
+      # tools/a11y-baseline-itun.json, signed out, at desktop and as a phone.
+      - name: Run smoke + bundle-budget + a11y specs
         working-directory: apps/itun
-        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts
-
-      # srd's scan, for ITUN: the routes in tools/a11y-baseline-itun.json, at
-      # desktop and as a phone. `--ready main` waits out the reference-data
-      # gate, whose loading screen has no <main>.
-      - name: Accessibility scan (axe-core)
-        run: |
-          set -euo pipefail
-          bun apps/itun/scripts/preview.ts --port 4398 &
-          SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
-          for _ in $(seq 1 30); do
-            if curl -sfo /dev/null http://localhost:4398/; then break; fi
-            sleep 1
-          done
-          bun tools/a11y-scan.ts --baseline tools/a11y-baseline-itun.json --device 'Pixel 7' \
-            --ready main http://localhost:4398 > a11y-report.json
-
-      - name: Upload a11y report on failure
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: a11y-report-itun
-          path: a11y-report.json
-          retention-days: 7
-          if-no-files-found: ignore
+        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts a11y.e2e.ts
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-e2e-itun
           path: apps/itun/playwright-report/
           retention-days: 7
+
+      - name: Backend logs on failure
+        if: failure()
+        run: docker logs convex-e2e || true
 
   build-discord-bot:
     needs: [changes]
@@ -394,7 +289,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -405,26 +300,6 @@ jobs:
       - name: Bundle the Worker that actually deploys
         run: bun --filter discord-bot worker:bundle --outdir /tmp/bot-worker
 
-  # The Ladle stories are component-lib's visual catalogue and the review
-  # surface for the component-refresh loop. Nothing built them on a PR, so a
-  # story that no longer compiled merged green and broke `bun run ladle`.
-  build-ladle:
-    needs: [changes]
-    if: needs.changes.outputs.ladle == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Build the Ladle stories
-        run: bun --filter component-lib ladle:build
-
   build-su-assets:
     needs: [changes]
     if: needs.changes.outputs.assets == 'true'
@@ -432,7 +307,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -459,7 +334,6 @@ jobs:
       - build-itun
       - build-discord-bot
       - build-su-assets
-      - build-ladle
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

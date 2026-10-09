@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { chmodSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -33,19 +33,14 @@ describe('smoke-production wiring', () => {
     expect(smoke?.steps.some((step) => step.run === 'bash tools/smoke-production.sh')).toBe(true)
   })
 
-  test('the nightly workflow runs it and its notifier treats it as always-run', () => {
+  test('the nightly workflow runs it unconditionally and its notifier judges it', () => {
     const nightly = workflow('e2e-nightly.yml')
+    const jobs = (Bun.YAML.parse(nightly) as { jobs: Record<string, { if?: string }> }).jobs
     expect(nightly).toContain('run: bash tools/smoke-production.sh')
+    expect(jobs['production-smoke']?.if).toBeUndefined()
     expect(nightly).toMatch(/needs: \[[^\]]*\bproduction-smoke\b[^\]]*\]/)
-    expect(nightly).toMatch(/ALWAYS_RUNS = new Set\(\[[^\]]*'production-smoke'/)
-  })
-
-  test('no workflow probes a retired Netlify hostname', () => {
-    const files = readdirSync(WORKFLOWS).filter((f) => f.endsWith('.yml'))
-    expect(files.length).toBeGreaterThan(0)
-    for (const file of files) {
-      expect({ file, hit: workflow(file).includes('.netlify.app') }).toEqual({ file, hit: false })
-    }
+    // Anything but `success` is broken, so a skipped smoke still opens the issue.
+    expect(nightly).toContain("results.filter(([, result]) => result !== 'success')")
   })
 })
 
@@ -73,7 +68,9 @@ describe('smoke-production failure reporting', () => {
       expect(exitCode).toBe(1)
       // Every check ran rather than the first failure aborting the script.
       expect(stderr).toContain('FAIL srd home — wanted 200, got 000\n')
-      expect(stderr).toContain('FAIL bot token accepted by Discord — wanted 200, got 000\n')
+      expect(stderr).toContain(
+        'FAIL bot token accepted and ITUN configured — wanted 200, got 000\n'
+      )
       expect(stderr).toContain("FAIL artwork origin robots.txt has no 'Disallow: /'")
       expect(stderr).not.toContain('000000')
     } finally {

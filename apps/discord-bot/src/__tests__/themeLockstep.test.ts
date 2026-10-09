@@ -1,5 +1,5 @@
 /**
- * The bot's embed colours are a hand-maintained mirror of `--color-roll-*` and
+ * The bot's accent colours are a hand-maintained mirror of `--color-roll-*` and
  * `--color-rust` in `packages/component-lib/src/styles/theme.css`. Both
  * `format.ts` and this repo's CLAUDE.md say to keep them in lockstep, and until
  * now nothing checked it — `format.test.ts` only asserts `getColor` against
@@ -10,7 +10,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { NEUTRAL_EMBED_COLOR, ROLL_COLORS } from '../format.js'
+import { NEUTRAL_ACCENT, ROLL_COLORS } from '../format.js'
 
 const THEME_CSS = new URL(
   '../../../../packages/component-lib/src/styles/theme.css',
@@ -38,7 +38,7 @@ describe('theme.css lockstep', () => {
     expect(tokenToInt(css, token)).toBe(botValue)
   })
 
-  test('the neutral embed tone is canon --color-rust', () => {
-    expect(tokenToInt(css, 'color-rust')).toBe(NEUTRAL_EMBED_COLOR)
+  test('the neutral accent is canon --color-rust', () => {
+    expect(tokenToInt(css, 'color-rust')).toBe(NEUTRAL_ACCENT)
   })
 })

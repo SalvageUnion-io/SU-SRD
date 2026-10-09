@@ -8,7 +8,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { _clearAllStores, _resetDbSingleton, softLinks as dbSoftLinks } from '../../lib/db/index'
+import { _resetDbSingleton, clearCache, softLinks as dbSoftLinks } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
 import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
 import { withSignedInBackend } from './signedInBackend'
@@ -69,12 +69,12 @@ function resetEntityStore(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 

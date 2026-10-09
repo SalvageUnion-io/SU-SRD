@@ -6,7 +6,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { RuleBrief } from 'component-lib'
+import { RuleBrief } from '../RuleBrief'
 
 describe('RuleBrief', () => {
   test('renders the THE RULE stamp, the rule text, and the citation footer', () => {

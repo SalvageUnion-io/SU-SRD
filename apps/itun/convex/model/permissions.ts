@@ -36,12 +36,11 @@ type AnyCtx = QueryCtx | MutationCtx
  * `ConvexError` is the documented opt-out: its `data` is sent over the wire
  * intact.
  *
- * Until this changed, every carefully-worded refusal here — "This game has no
- * Union Crawler yet — the Mediator raises one before the crew joins it", "You
- * cannot edit another player's entity" — was written, thrown, and then thrown
- * away at the boundary. A player who tried something the rules disallow got the
- * same opaque "Server Error" as a genuine crash, and so did the operator
- * reading Sentry.
+ * Without it, every carefully-worded refusal here — "This game has no Union
+ * Crawler yet — the Mediator raises one before the crew joins it", "You cannot
+ * edit another player's entity" — would be thrown away at the boundary, and a
+ * player who tried something the rules disallow would get the same opaque
+ * "Server Error" as a genuine crash.
  *
  * The distinction this draws is the one worth keeping: a `NotAuthorized` is an
  * **expected answer** to a request the rules refuse, and it says so out loud. A

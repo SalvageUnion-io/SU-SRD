@@ -9,12 +9,11 @@ import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
  * `body[data-game-data-ready="true"]` so E2E tests can latch onto a stable
  * "ready" signal across every route.
  *
- * Why preload everything (still true — this is the "everything" half of the
- * middle path, see below): the entity-display layer pulls trait keywords,
- * actions, and other cross-schema references inline. Routes used to preload
- * only what their wizard needed (classes/abilities/equipment for /pilots/new)
- * which left ReferenceEntityCard throwing "Schema 'traits' not loaded"
- * when it rendered a chosen entity. A single preload of the full dataset
+ * Why preload everything (the "everything" half of the middle path, see
+ * below): the entity-display layer pulls trait keywords, actions, and other
+ * cross-schema references inline, so a per-route preload of only what a wizard
+ * needs leaves ReferenceEntityCard throwing "Schema 'traits' not loaded" when it
+ * renders a chosen entity. A single preload of the full dataset
  * removes the matrix of per-route preload lists and is cheap (the dataset is
  * ~1-2 MB of static JSON, loaded up front) — see
  * docs/ARCHITECTURE.md#data-flow for the fuller rationale.
@@ -40,13 +39,10 @@ import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 /**
  * Kicked off at MODULE SCOPE, not on first render.
  *
- * It used to be created lazily inside `PreloadGate`, which meant the dataset
- * fetch did not start until React had booted, mounted the provider tree and
- * rendered down to this component. Everything before that was dead time on the
- * critical path: the network was idle while the app was starting up.
- *
- * Hoisting it here starts the load during module evaluation instead, so it
- * overlaps with React bootstrap and the rest of the entry chunk. This is the
+ * Created lazily inside `PreloadGate`, the fetch would not start until React
+ * had booted, mounted the provider tree and rendered down to this component —
+ * dead time on the critical path. At module scope the load starts during module
+ * evaluation, so it overlaps with React bootstrap and the rest of the entry chunk. This is the
  * pattern `apps/srd/src/lib/gameData.ts` already uses, and module-scope
  * `preload()` is explicitly sanctioned — `tools/biome/noModuleScopeReferenceCall.grit`
  * exempts `.preload()` / `.isLoaded()` from the no-module-scope-ORM-access rule

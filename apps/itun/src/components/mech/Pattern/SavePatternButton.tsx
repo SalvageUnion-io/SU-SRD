@@ -3,8 +3,7 @@
  *
  * Renders as a Button. On click, opens a ModalShell dialog where the user
  * enters a pattern name. On confirm, builds a MechPattern from the supplied
- * configuration and persists it via the patternStore (cross-tab broadcast
- * included — audit item 22).
+ * configuration and persists it via the patternStore (audit item 22).
  *
  * Design choice: the pattern name defaults to the mech name so the user can
  * confirm quickly. It is editable so patterns can have descriptive template names

@@ -1,20 +1,13 @@
 ---
 name: triage
-description: Use at the start of a working session, or when asked "what should I work on" / "what is broken". Reads nightly E2E, Sentry, deploys, dependency PRs and in-flight work, reports any signal it could not reach, and proposes at most five items in priority order.
-allowed-tools: Bash, Read, ToolSearch, mcp__github__actions_list, mcp__github__list_issues, mcp__github__list_pull_requests
+description: Use at the start of a working session, or when asked "what should I work on" / "what is broken" / "any Sentry issues" / "is prod healthy". Reads nightly E2E, Sentry, deploys, dependency PRs and in-flight work, reports any signal it could not reach, and proposes at most five items in priority order.
+allowed-tools: Bash, Read, ToolSearch, mcp__sentry__search_issues, mcp__sentry__get_sentry_resource, mcp__github__actions_list, mcp__github__list_issues, mcp__github__list_pull_requests
 ---
 
 # Triage
 
 Read what the systems are actually reporting, then propose what to work on. Run
 this before starting work, not after deciding what to do.
-
-This exists because the repo has a **backlog problem, not a capacity problem**.
-Throughput is ~3 PRs/day with a 40-minute median cycle time; the constraint is
-knowing which change is worth making. Nothing currently routes an observed
-production signal into the work queue — zero of the last 60 merged PRs
-referenced an issue, and the open backlog is mostly issues filed on one day in
-March. This closes that loop by hand until it earns being automated.
 
 ## Steps
 
@@ -45,15 +38,19 @@ For every step, use the first route that works and record which one you used:
    A failure here outranks almost everything: the suite is the only automated
    check on whole user journeys, and a suite that stays red stops being read.
 
-2. **Production error tracking** — is it reporting, and what did it report?
+2. **Production error tracking** — what is Sentry reporting?
 
-   ```bash
-   bun run check:observability:live   # is the SDK actually being served?
-   ```
-
-   If this fails, production is blind and that is the finding. Once a Sentry
-   DSN is provisioned, read the new issues since yesterday and treat anything
-   affecting more than one user as a candidate for today.
+   Call `mcp__sentry__search_issues` (load it with ToolSearch) with
+   `organizationSlug: susrd`, `regionUrl: https://de.sentry.io`,
+   `query: is:unresolved` and `sort: freq`, and no project or `environment:`
+   filter: `itun-convex` reports as `prod` and every other project as
+   `production`, so an environment filter silently drops the backend. Rank
+   anything affecting more than one user first; `mcp__sentry__get_sentry_resource`
+   opens one issue. Whether production can report at all is gated elsewhere:
+   each deploy greps its built bundles for an inlined DSN, and
+   `tools/smoke-production.sh` (post-deploy and nightly) asserts each served
+   CSP admits the ingest host. A red run of either is the "production is
+   blind" finding.
 
 3. **Deploys** — did the last deploy succeed? All four surfaces ship from one
    workflow, `.github/workflows/deploy-cloudflare.yml`, so check that workflow's
@@ -62,16 +59,19 @@ For every step, use the first route that works and record which one you used:
    `robots.txt` by body, and that CSP and HSTS actually reach the browser.
    `cloudflare-observability` (MCP) gives Worker errors and logs on top.
 
-   Green `deploy-*` jobs with a red `smoke` job mean the code shipped and something
+   Green `deploy` legs with a red `smoke` job mean the code shipped and something
    about routing, headers or a zone rule did not — that is a finding, not noise.
 
 4. **Dependency and security PRs**
 
    ```bash
    gh pr list --author app/dependabot --state open
-   gh issue list --label audit-watch --state open
    gh run list --workflow=codeql.yml --limit 3 --json conclusion
+   bun outdated --filter='*'
    ```
+
+   Dependabot covers Actions only; Bun dependencies are updated by hand, and
+   `bun outdated` is the only thing that shows how far they have drifted.
 
 5. **In-flight work** — what is already open, and is any of it stuck?
 
@@ -95,7 +95,7 @@ the backlog problem restated, not triage.
 Rank by this order unless there is a stated reason to depart from it:
 
 1. Production is broken or blind for real users.
-2. A merge gate is red (nightly E2E, CI on main, a failed deploy).
+2. A merge gate is red (nightly E2E, a failed deploy).
 3. Security and dependency updates.
 4. In-flight work that is one step from landing.
 5. New feature work.

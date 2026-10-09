@@ -1,10 +1,10 @@
 import { v } from 'convex/values'
 import { MechSchema } from '../src/lib/schemas/mech'
-import { StoredPilotSchema } from '../src/lib/schemas/pilot'
+import { PilotSchema } from '../src/lib/schemas/pilot'
 import type { Doc, Id } from './_generated/dataModel'
-import type { MutationCtx } from './_generated/server'
+import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
-import { loadOwnable, mutation } from './model/entities'
+import { loadLogged, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMediator, requireMember, requireUser } from './model/permissions'
 
 /**
@@ -16,7 +16,7 @@ import { NotAuthorized, requireMediator, requireMember, requireUser } from './mo
  * ## Alerts and cross-player writes are one system, not two
  *
  * Both are rows in the Change Log. A proposal is an entry in `proposed` state
- * carrying `before`/`after` for one field; an alert is the same row with no
+ * carrying the `after` it asks for one field; an alert is the same row with no
  * entity target. That is the payoff for ADR-022 having built the log
  * append-only, ordered and replay-shaped before any of this existed — there was
  * no second bus to design.
@@ -46,16 +46,30 @@ function ownableTableFor(entityType: Doc<'changeLog'>['entityType']): 'pilots' |
   return null
 }
 
+/**
+ * The sheet a proposal row names, or null: resolved by the id the row carries
+ * (`loadLogged` — the entity's app id, or its row id on a row written before
+ * proposals used `logIdOf`). A row whose `entityType` names no sheet table is
+ * not a proposal target at all.
+ */
+async function proposalTarget(
+  ctx: QueryCtx | MutationCtx,
+  entityType: Doc<'changeLog'>['entityType'],
+  entityId: string
+): Promise<Doc<'pilots'> | Doc<'mechs'> | null> {
+  const table = ownableTableFor(entityType)
+  if (table === null) return null
+  return (await loadLogged(ctx, table, entityId)) as Doc<'pilots'> | Doc<'mechs'> | null
+}
+
 /** Only the Mediator proposes; only the target's owner answers. */
 async function requireProposalTarget(
   ctx: MutationCtx,
   entityType: Doc<'changeLog'>['entityType'],
   entityId: string
 ): Promise<{ doc: Doc<'pilots'> | Doc<'mechs'>; gameId: Id<'games'> }> {
-  // `loadOwnable` takes the unmapped `entityType` as a null table and answers
-  // "no longer exists", which is the right answer here: a log row that names no
-  // sheet table is not a proposal target at all.
-  const doc = await loadOwnable(ctx, ownableTableFor(entityType), entityId)
+  const doc = await proposalTarget(ctx, entityType, entityId)
+  if (doc === null) throw new Error('That entity no longer exists')
   if (doc.gameId === null) {
     throw new NotAuthorized('A build in My Stuff is not part of a game and cannot be proposed to')
   }
@@ -65,17 +79,15 @@ async function requireProposalTarget(
 /**
  * Propose a change to one field of a player's entity.
  *
- * `before` is captured from the Mediator's view at propose time and is shown to
- * the player alongside `after`, so they can see what the Mediator believed the
- * value was. It is deliberately not re-read at apply time: a mismatch is
- * information the player should see, not something to paper over.
+ * The row names the entity by `logIdOf`, the id its sheet's Change Log is read
+ * by, whichever id the Mediator's client addressed it with. A proposal carries
+ * only the value it asks for; its `before` is `null`.
  */
 export const propose = mutation({
   args: {
     entityId: v.string(),
     entityType: v.union(v.literal('pilot'), v.literal('mech')),
     field: v.string(),
-    before: v.any(),
     after: v.any(),
   },
   handler: async (ctx, args): Promise<Id<'changeLog'>> => {
@@ -89,22 +101,30 @@ export const propose = mutation({
     // Supersede any live proposal against the same field, so the player is
     // never asked to choose between two contradictory pending values. Read
     // through the full index key, so this is the (normally zero or one) live
-    // proposals for this field rather than the entity's entire history.
-    const live = await ctx.db
-      .query('changeLog')
-      .withIndex('by_entity_state_field', (q) =>
-        q.eq('entityId', args.entityId).eq('state', 'proposed').eq('field', args.field)
+    // proposals for this field rather than the entity's entire history — under
+    // both ids a live proposal may carry (see `proposalTarget`).
+    const entityId = logIdOf(doc)
+    const live = (
+      await Promise.all(
+        [...new Set<string>([entityId, doc._id])].map((id) =>
+          ctx.db
+            .query('changeLog')
+            .withIndex('by_entity_state_field', (q) =>
+              q.eq('entityId', id).eq('state', 'proposed').eq('field', args.field)
+            )
+            .collect()
+        )
       )
-      .collect()
+    ).flat()
 
     const proposalId = await ctx.db.insert('changeLog', {
       gameId,
       entityType: args.entityType,
-      entityId: args.entityId,
+      entityId,
       ts: Date.now(),
       kind: 'transaction',
       field: args.field,
-      before: args.before,
+      before: null,
       after: args.after,
       source: 'mediator-proposal',
       actorId: membership.userId,
@@ -133,14 +153,9 @@ export const pending = query({
 
     const mine = []
     for (const row of rows) {
-      // Same table-tagging guard as `requireProposalTarget`: resolve the id
-      // against the table `entityType` names, and skip a row whose id belongs
-      // to some other table rather than reading it as a sheet.
-      const table = ownableTableFor(row.entityType)
-      const targetId = table === null ? null : ctx.db.normalizeId(table, row.entityId)
-      if (targetId === null) continue
-
-      const target = await ctx.db.get(targetId)
+      // Same resolution as `requireProposalTarget`: against the table
+      // `entityType` names, skipping a row that names no sheet.
+      const target = await proposalTarget(ctx, row.entityType, row.entityId)
       // Only the owner is asked. A proposal against somebody else's entity is
       // not this player's to answer, and showing it would leak an edit in
       // flight.
@@ -150,7 +165,6 @@ export const pending = query({
         entityId: row.entityId,
         entityType: row.entityType,
         field: row.field,
-        before: row.before,
         after: row.after,
         ts: row.ts,
       })
@@ -180,16 +194,12 @@ export const apply = mutation({
     /**
      * Parse before persisting, like every other write against an entity body.
      *
-     * This mutation used to patch the merged object straight in, and it is the
-     * one place where skipping the parse does real damage rather than merely
-     * risking it: the field name comes from a proposal row, so a typo'd or
-     * stale key was written as a **new** key on the body instead of changing
-     * anything. The player applied a proposal, saw nothing move, and the sheet
-     * quietly carried a field nothing reads. Parsing rejects that at the source.
+     * This is the one place where skipping the parse does real damage rather
+     * than merely risking it: the field name comes from a proposal row, so a
+     * typo'd or stale key would be written as a **new** key on the body instead
+     * of changing anything. Parsing rejects that at the source.
      */
-    // The stored body, not this build's output, is what gets merged — so a pilot
-    // stored before a field was removed is normalised before the strict parse.
-    const parser = proposal.entityType === 'mech' ? MechSchema : StoredPilotSchema
+    const parser = proposal.entityType === 'mech' ? MechSchema : PilotSchema
     const merged = { ...(doc.body as Record<string, unknown>), [proposal.field]: proposal.after }
     const result = parser.safeParse(merged)
     if (!result.success) {
@@ -254,11 +264,10 @@ const MAX_ALERTS = 100
 /**
  * Table-wide alerts, newest first.
  *
- * Reads only the newest `limit` alert rows, in order, off `by_game_field`.
- * It used to collect the Game's entire change log — every HP tick, every
- * ownership change, every proposal — and filter for alerts in JS, which on a
- * reactive query meant every write to any sheet in the Game re-ran a read that
- * grew for the life of the campaign.
+ * Reads only the newest `limit` alert rows, in order, off `by_game_field`:
+ * collecting the whole change log and filtering in JS would, on a reactive
+ * query, re-run a read that grows for the life of the campaign on every write
+ * to any sheet in the Game.
  */
 export const alerts = query({
   args: { gameId: v.id('games'), limit: v.optional(v.number()) },

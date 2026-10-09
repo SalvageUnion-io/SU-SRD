@@ -67,9 +67,9 @@ function resolveClass(ref: string | undefined) {
   // This is FIELD precedence (id beats name beats case-insensitive name),
   // where the single `.find` predicate it replaces was ROW precedence (first
   // row matching any of the three). They differ only if one class matched
-  // case-insensitively while a LATER one matched by id — the same tie-break
-  // shift `resolveRefs.ts` documents for the shared index path, and the class
-  // catalog has no such collision.
+  // case-insensitively while a LATER one matched by id. The class catalog has
+  // no such collision; `BaseModel.indexes.test.ts` asserts id-then-name
+  // resolves the same as the old scan for every key of every schema.
   return (
     SalvageUnionReference.Classes.getById(ref) ??
     SalvageUnionReference.Classes.getByName(ref) ??
@@ -92,11 +92,7 @@ export function enrichPilotSnapshot(pilot: {
   const treeIndex = buildTreeTierIndex()
 
   const abilities: AbilityInput[] = pilot.abilities.map((ref) => {
-    // id-then-name via the model's indexes. Equivalent to the linear OR-scan
-    // this replaced — see BaseModel.indexes.test.ts, which verifies the
-    // id-first tie-break resolves every key exactly as data order did.
-    const ability =
-      SalvageUnionReference.Abilities.getById(ref) ?? SalvageUnionReference.Abilities.getByName(ref)
+    const ability = SalvageUnionReference.Abilities.getBySlug(ref)
     if (!ability) return { ref }
     const level = ability.level
     const tier = level === 'L' ? 'legendary' : tierForTree(ability.tree, treeIndex)

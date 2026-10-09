@@ -56,7 +56,7 @@ const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 const { Toaster } = await import('component-lib')
-const { SalvageUnionReference } = await import('salvageunion-reference')
+const { getEntitySlug, SalvageUnionReference } = await import('salvageunion-reference')
 const { buildPilotActions } = await import('../dashboardRules')
 
 const GAME_ID = 'g-seat'
@@ -254,7 +254,7 @@ describe('useSeat writes', () => {
   })
 })
 
-describe('claim and board (plan §8 A4)', () => {
+describe('claim and board', () => {
   const spare = { mechId: 'seat-spare', serverId: 'row-spare' }
 
   test('writes the claim before the seat', async () => {
@@ -578,9 +578,9 @@ describe("the Dashboard's display: the deck, the tabs and the table (plan layer 
     if (!ability?.id) throw new Error('no ability with an action')
     const store = useEntityStore.getState()
     const ace = pilotFixture({ id: 'seat-rook', name: 'Rook', gameId: GAME_ID })
-    await store.adopt('pilot', { ...ace, abilities: [ability.id] })
+    await store.adopt('pilot', { ...ace, abilities: [getEntitySlug(ability)] })
     try {
-      const action = buildPilotActions({ ...ace, abilities: [ability.id] })[0]
+      const action = buildPilotActions({ ...ace, abilities: [getEntitySlug(ability)] })[0]
       if (!action) throw new Error('the ability has no action')
       const rolled = {
         ref: action.key,

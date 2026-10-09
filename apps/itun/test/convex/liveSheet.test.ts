@@ -9,7 +9,7 @@ import {
   pilotBody,
   ref,
   seedTable,
-} from './assignmentFixtures'
+} from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -96,7 +96,7 @@ describe('entities.locate', () => {
     expect(await t.query(api.entities.locate, { kind: 'pilot', id: 'p1' })).toBeNull()
   })
 
-  test('a Convex row id (the retired crew-view URL) resolves to the app id', async () => {
+  test("a Convex row id (the bot's /sheet/ links) resolves to the app id", async () => {
     const { t, player } = await seedCrew()
     const rowId = await t.run(async (ctx) => {
       const row = await ctx.db
@@ -115,7 +115,7 @@ describe('entities.locate', () => {
       await ctx.db.insert('pilots', {
         gameId,
         ownerId: null,
-        body: pilotBody('tmpl-1', gameId),
+        body: pilotBody({ id: 'tmpl-1', gameId }),
         updatedAt: Date.now(),
       })
     })
@@ -213,7 +213,8 @@ describe('publicSheet.get serves assignments, never a private one’s name', () 
       table: 'pilots',
       appId: 'p1',
       gameId,
-      body: { ...pilotBody('p1', gameId), abilities: ['beefcake'] },
+      body: { ...pilotBody({ id: 'p1', gameId }), abilities: ['beefcake'] },
+      expectedUpdatedAt: null,
     })
     await organizer.as.mutation(api.publicSheet.setPublic, {
       kind: 'mech',

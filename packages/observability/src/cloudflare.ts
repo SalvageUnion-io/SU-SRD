@@ -8,8 +8,8 @@
  * through one dependency declared in one place — a runtime `dependency` of this
  * package, not a devDependency (audit PK-07).
  *
- * `@sentry/cloudflare` is built for workerd: it hooks `fetch`/`scheduled`
- * through a wrapper instead of installing global instrumentation, and needs the
+ * `@sentry/cloudflare` is built for workerd: it hooks `fetch` through a
+ * wrapper instead of installing global instrumentation, and needs the
  * `nodejs_als` compatibility flag, which `tools/check-observability.ts`
  * asserts for every Worker.
  *
@@ -33,13 +33,12 @@
  *
  * `__tests__/cloudflare.test.ts` drives the real SDK with `fetch` (its workerd
  * transport) replaced, so it asserts what actually leaves the Worker: with a
- * DSN, escaped and handled errors, `scheduled` throws and cron check-ins are
- * sent with the release, environment and server name, and a request body never
- * is; with no DSN, nothing is sent at all.
+ * DSN, escaped and handled errors are sent with the release, environment and
+ * server name, and a request body never is; with no DSN, nothing is sent at all.
  *
- * `console.error` is kept alongside Sentry rather than replaced: Workers Logs is
+ * `reportError` writes to `console.error` as well as Sentry: Workers Logs is
  * where you look during a `wrangler tail`, and losing that would trade one blind
- * spot for another.
+ * spot for another. It does both so no caller has to.
  */
 import * as Sentry from '@sentry/cloudflare'
 
@@ -50,10 +49,19 @@ import * as Sentry from '@sentry/cloudflare'
  * must not know what bindings any particular Worker has.
  */
 export type ObservabilityEnv = {
-  /** Absent means Sentry is off — the deliberate default for local dev. */
+  /**
+   * Absent means Sentry is off — the deliberate default for local dev. Read by
+   * the SDK itself, not by this module.
+   */
   SENTRY_DSN?: string
-  /** Commit SHA, used as the Sentry release. Absent means "unreleased". */
-  COMMIT_REF?: string
+  /**
+   * Commit SHA, used as the Sentry release — the same SHA the browser bundles
+   * and their sourcemaps are tagged with. The deploy workflow passes it as
+   * `wrangler deploy --var SENTRY_RELEASE:<sha>`. Read by the SDK itself: it
+   * must not be set in the options below, where even an `undefined` value
+   * overrides the SDK's own env read.
+   */
+  SENTRY_RELEASE?: string
   /** `production` unless set otherwise. */
   SENTRY_ENVIRONMENT?: string
 }
@@ -62,20 +70,10 @@ export type ObservabilityEnv = {
  * A Worker's default export, as much of it as this wrapper needs.
  *
  * `ctx` is optional so the Workers' own routing tests can call `fetch(req, env)`
- * with two arguments. workerd always supplies it; every consumer null-guards its
- * use, so a missing ctx costs a deferred cache write, not correctness.
+ * with two arguments. workerd always supplies it.
  */
 type ExportedHandler<E> = {
   fetch(request: Request, env: E, ctx?: ExecutionContext): Promise<Response> | Response
-  /**
-   * Cron Trigger entry point. Optional — only the Discord bot has one.
-   *
-   * `withSentry` wraps this alongside `fetch`, so a throw inside a scheduled
-   * run becomes an event too. That matters more here than for `fetch`: nobody
-   * is watching a cron run, so an unreported throw there is silent by
-   * definition.
-   */
-  scheduled?(event: unknown, env: E, ctx: ExecutionContext): Promise<void> | void
 }
 
 type ExecutionContext = {
@@ -86,8 +84,8 @@ type ExecutionContext = {
 /**
  * Wrap a Worker's default export so unhandled errors reach Sentry.
  *
- * `serverName` names the surface in Sentry, since all three Workers report into
- * the same account and "an error in a Worker" is not actionable on its own.
+ * `serverName` is the Worker's wrangler `name`: all three Workers report into
+ * the one `workers` Sentry project, and `server_name` is what tells them apart.
  *
  * With no `SENTRY_DSN` the SDK initialises disabled: the Worker runs exactly as
  * before and events go nowhere. That is the same env-gated shape the browser
@@ -99,8 +97,6 @@ export function withObservability<E extends ObservabilityEnv>(
 ): ExportedHandler<E> {
   return Sentry.withSentry(
     (env: E) => ({
-      dsn: env.SENTRY_DSN,
-      release: env.COMMIT_REF,
       environment: env.SENTRY_ENVIRONMENT ?? 'production',
       serverName,
       // No tracing. These Workers are latency-sensitive and the question being
@@ -134,43 +130,12 @@ export function withObservability<E extends ObservabilityEnv>(
  * transformation failure becomes a 404). Those are the events actually worth
  * alerting on, so they have to be reported explicitly.
  *
- * Safe to call when Sentry is disabled: `captureException` is a no-op without a
- * DSN, so callers need no guard of their own.
+ * Both sinks, every time: `console.error` for Workers Logs (what `wrangler tail`
+ * shows during an incident) and Sentry (what alerts). Safe to call when Sentry
+ * is disabled — `captureException` is a no-op without a DSN — and under Bun,
+ * so shared code and its tests import it directly.
  */
 export function reportError(error: unknown, context?: Record<string, unknown>): void {
+  console.error(error, context ?? {})
   Sentry.captureException(error, context ? { extra: context } : undefined)
-}
-
-/**
- * Open a Sentry cron check-in. Returns the id the close call needs.
- *
- * ## Why a check-in rather than an event
- *
- * Sentry alerts on events ARRIVING, never on their absence. That is why the
- * Discord bot's original `ready` info event could not serve as a liveness
- * signal — the silence that meant "the process went dark" raised nothing. A
- * cron monitor inverts it: a missed check-in is the alarm.
- *
- * ## Why two functions rather than one
- *
- * Sentry's `CheckIn` is a discriminated union — an in-progress check-in carries
- * no id and a finished one requires one — so a single call taking every status
- * cannot be typed honestly. Splitting it also makes the two-phase protocol
- * impossible to half-use: reporting only on success would build a monitor that
- * cannot tell "failed" from "never ran".
- *
- * Exposed from here rather than importing `@sentry/cloudflare` in each Worker,
- * for the same reason `reportError` is: the SDK is this package's dependency.
- */
-export function startCheckIn(monitorSlug: string): string {
-  return Sentry.captureCheckIn({ monitorSlug, status: 'in_progress' })
-}
-
-/** Close a check-in opened by {@link startCheckIn}. */
-export function finishCheckIn(
-  monitorSlug: string,
-  checkInId: string,
-  status: 'ok' | 'error'
-): void {
-  Sentry.captureCheckIn({ checkInId, monitorSlug, status })
 }

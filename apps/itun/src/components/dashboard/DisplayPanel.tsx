@@ -19,7 +19,7 @@
 import type { ReferenceEntityControl } from 'component-lib'
 import { ControlButtons, ReferenceEntityCard, RollTable } from 'component-lib'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
@@ -44,20 +44,20 @@ type RollTableEntity = PickableTable & {
 export type TableRoll = (tableName: string, key: string, text: string) => void
 
 /**
- * TablesView — the Tables tab (D3): the selected table rendered via the reused
+ * TablesView — the Tables tab: the selected table rendered via the reused
  * `RollTable`, whose header TITLE is the trigger for the 5-column category
  * picker overlay. Self-contained (reads the ORM roll tables). Its rolls go to
- * `onRoll`, which writes them to the Game's log; they used to be a history
- * kept here, on this device only, until the Log tab replaced it.
+ * `onRoll`, which writes them to the Game's log (the Log tab).
  *
- * The trigger used to be a separate bar above the table — a "Roll table" label
- * and a button repeating the name the header band printed directly beneath it.
- * `titleSelect` folds the two into one control (see `RollTable`).
+ * The header title is the trigger (`titleSelect`, see `RollTable`), so no
+ * separate bar repeats the name the header band prints.
  */
 function TablesView({ onRoll }: { onRoll?: TableRoll }) {
   const tables: RollTableEntity[] = SalvageUnionReference.RollTables.all()
   const [tableId, setTableId] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
+  // The picker covers this tab (`.pc-tables` is its positioning context).
+  const pickerHost = useRef<HTMLDivElement>(null)
 
   const selected =
     // Indexed lookups, not scans over `tables`: `BaseModel` builds an id/name
@@ -68,7 +68,7 @@ function TablesView({ onRoll }: { onRoll?: TableRoll }) {
     tables[0]
 
   return (
-    <div className="pc-display-scroll pc-tables">
+    <div ref={pickerHost} className="pc-display-scroll pc-tables">
       {selected ? (
         <RollTable
           table={selected.table}
@@ -81,14 +81,14 @@ function TablesView({ onRoll }: { onRoll?: TableRoll }) {
         <div className="pc-display-note">Roll tables load here.</div>
       )}
 
-      {pickerOpen ? (
-        <TablePickerOverlay
-          tables={tables}
-          selectedId={selected?.id ?? null}
-          onPick={setTableId}
-          onClose={() => setPickerOpen(false)}
-        />
-      ) : null}
+      <TablePickerOverlay
+        open={pickerOpen}
+        container={pickerHost}
+        tables={tables}
+        selectedId={selected?.id ?? null}
+        onPick={setTableId}
+        onClose={() => setPickerOpen(false)}
+      />
     </div>
   )
 }
@@ -130,7 +130,7 @@ export type DisplayContent =
 
 /**
  * The presentational half: renders an already-resolved `content`. Exported for
- * the Ladle story, which drives it with real reference data and no store.
+ * the story, which drives it with real reference data and no store.
  */
 export function DisplayPanelFrame({ content }: { content: DisplayContent }) {
   switch (content.kind) {

@@ -31,9 +31,7 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * The `surface` axis picks the WORLD the button lives on: `paper` (default —
  * the light app chrome) or `instrument` (the dashboard HUD scope, `.pc-root`).
  * The instrument surface swaps in the condensed-caps HUD typography and the
- * recessed treatment formerly hand-rolled as `.pc-btn` / `.pc-deck-btn` /
- * `.pc-railbtn` / `.pc-wheel-btn` in instruments.css — one standard Button for
- * both worlds. Colour deltas ride on `compoundVariants` (surface × variant);
+ * recessed treatment — one standard Button for both worlds. Colour deltas ride on `compoundVariants` (surface × variant);
  * only `ghost` has an instrument recolour — the sole variant the HUD uses.
  *
  * Note the instrument surface is a TYPOGRAPHY choice as much as a colour one:
@@ -61,12 +59,12 @@ export const buttonVariants = cva(`su-btn ${FOCUS_RING} ${DISABLED}`, {
     },
     // The canonical size ladder (styles/sizing.ts) — full / compact / mini.
     size: {
-      /** The reading size for a primary CTA (formerly `lg`). */
+      /** The reading size for a primary CTA. */
       full: 'su-btn--full',
-      /** The default workhorse scale (the former `sm`, which absorbed `md`). */
+      /** The default workhorse scale. */
       compact: 'su-btn--compact',
       /**
-       * The former MiniBtn / `xs`: a compact uppercase action chip for
+       * A compact uppercase action chip for
        * secondary controls like '⇄ Swap' / '✕ Remove'. Its geometry is
        * `.su-btn--mini`; its condensed caps come from the recipe below, which
        * is why the two are composed rather than duplicated.
@@ -78,18 +76,13 @@ export const buttonVariants = cva(`su-btn ${FOCUS_RING} ${DISABLED}`, {
   },
   // NO `compoundVariants`, and the absence is deliberate.
   //
-  // The instrument × ghost recolour still exists — it is the compound SELECTOR
+  // The instrument × ghost recolour (ink: the cockpit chassis is cream) is the
+  // compound SELECTOR
   // `.su-btn--instrument.su-btn--ghost` in index.css, whose two-class
   // specificity beats plain `.su-btn--ghost` without relying on source order.
   // Both classes are already emitted by the `surface` and `variant` axes, so a
   // cva entry here would have to carry an empty `class` to do nothing, and dead
   // configuration that looks load-bearing is worse than none.
-  //
-  // (That recolour was previously paper text on transparent, for the retired
-  // dark instrument skin. It survived the skin it was built for and only ever
-  // rendered legibly because the base `text-ink` won a class-order race against
-  // its arbitrary-value utility — white-on-white held off by luck. Now that the
-  // cockpit chassis is cream, ink is simply correct.)
   defaultVariants: {
     variant: 'default',
     surface: 'paper',

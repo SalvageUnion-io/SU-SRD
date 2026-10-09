@@ -1,5 +1,5 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
-import { AppHeader, CopyFeedbackProvider, EntityHrefProvider, Toaster, toast } from 'component-lib'
+import { CopyFeedbackProvider, EntityHrefProvider, Toaster, toast } from 'component-lib'
 import { AccountReconciler } from '../components/account/AccountReconciler'
 import {
   HeaderActions,
@@ -8,6 +8,7 @@ import {
 } from '../components/account/HeaderAccount'
 import { TestAuthBridge } from '../components/account/TestAuthBridge'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
+import { AppHeader } from '../components/shared/AppHeader'
 import { AppLink } from '../components/shared/AppLink'
 import { GameDataReady } from '../components/shared/GameDataReady'
 import { GlobalSearch } from '../components/shared/GlobalSearch'

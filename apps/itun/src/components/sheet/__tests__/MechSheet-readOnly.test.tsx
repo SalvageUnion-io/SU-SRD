@@ -33,11 +33,11 @@ const fakeMech: Mech = {
   schemaVersion: 1,
   name: 'Snapshot Mech',
   chassisRef: 'iron-mongrel',
-  systems: ['Smoke Machine'],
+  systems: ['smoke-machine'],
   modules: [],
   cargoLots: [makeScrapLot(2, 2)],
   conditions: [],
-  systemConditions: { 'Smoke Machine': 'damaged' },
+  systemConditions: { 'smoke-machine': 'damaged' },
   shutdown: true,
   currentSP: 8,
   currentEP: 5,
@@ -114,7 +114,7 @@ describe('MechSheet — readOnly', () => {
     expect(screen.getAllByText('Smoke Machine').length).toBeGreaterThan(0)
     expect(screen.getAllByText(/scrap/i).length).toBeGreaterThan(0) // the SCRAP lot chit
     // The `shutdown` flag surfaces as a unified Conditions chip (Vitals card)
-    // now that the standalone Heat Check panel is dropped (redesign D6).
+    // now that the standalone Heat Check panel is dropped (the poster redesign).
     expect(screen.getByText('Shutdown')).toBeTruthy()
   })
 

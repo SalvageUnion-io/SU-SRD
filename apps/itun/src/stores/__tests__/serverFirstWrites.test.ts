@@ -1,18 +1,15 @@
 /**
  * Server-first writes (ADR-034 decision 2, plan phase P4b).
  *
- * The demotion's last act: a write goes to Convex **before** anything local is
- * touched, so a record the server refused leaves no trace on the device. Its
- * predecessor did the opposite — wrote locally, then fired a mirror at the
- * server and swallowed the failure into a console warning — because back then
- * the local store was the source of truth and the UI read it.
+ * A write goes to Convex **before** anything local is touched, so a record the
+ * server refused leaves no trace on the device.
  *
- * These tests run with no Convex configured, so `selectBackend()` is `local` and
- * the commit is a no-op. That is deliberate and is worth being explicit about:
- * what is asserted here is the **ordering contract** — that a record is built,
- * committed and only then persisted — and that the local path still behaves
- * exactly as it did. The refusal path itself is exercised against a real server
- * in `test/convex/*`, which is where a mutation can actually refuse.
+ * These tests run signed in against the test client
+ * (`apps/itun/test/convexClientStub.ts`), which accepts every commit. That is
+ * deliberate and is worth being explicit about: what is asserted here is the
+ * **ordering contract** — that a record is built, committed and only then
+ * persisted. The refusal path itself is exercised against a real server in
+ * `test/convex/*`, which is where a mutation can actually refuse.
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
@@ -30,7 +27,7 @@ afterEach(async () => {
   for (const type of ['pilot', 'mech', 'crawler'] as const) {
     for (const row of store.list(type)) await store.forget(type, row.id)
   }
-  await db._clearAllStores()
+  await db.clearCache()
 })
 
 describe('a record is built before it is persisted', () => {

@@ -1,0 +1,9 @@
+// ITUN's fixtures carry one frozen instant, `FIXTURE_NOW`
+// (apps/itun/src/components/__tests__/fixtures.ts). A live clock in a fixture
+// is a free variable: entities built microseconds apart differ, and a real "did
+// this write bump `updatedAt`?" bug hides behind a value that was never pinned.
+language js(typescript, jsx)
+
+`new Date().toISOString()` as $call where {
+  register_diagnostic(span=$call, message="Use FIXTURE_NOW from apps/itun/src/components/__tests__/fixtures.ts, or pass an explicit timestamp when a test needs a distinct one.", severity="error")
+}

@@ -1,8 +1,7 @@
-import type { StepRule } from 'component-lib'
-import { RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
+import { toast } from 'component-lib'
 import { useEffect, useRef, useState } from 'react'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
   isLegalCreationAbility,
   PILOT_BASE_AP,
@@ -22,8 +21,11 @@ import { CallsignStep } from '../wizard/CallsignStep'
 import { ClassAbilityStep } from '../wizard/ClassAbilityStep'
 import { EquipmentStep } from '../wizard/EquipmentStep'
 import { FlavorStep } from '../wizard/FlavorStep'
+import type { StepRule } from '../wizard/RuleBrief'
+import { RuleBrief } from '../wizard/RuleBrief'
 import type { RollTableDeps } from '../wizard/rollTableHelpers'
 import { useWizardFlow } from '../wizard/useWizardFlow'
+import { WizShell, WizTracker } from '../wizard/WizShell'
 import { ReviewStep } from './ReviewStep'
 import { StatsStep } from './StatsStep'
 
@@ -186,30 +188,25 @@ export function PilotWizard({
       | { coreTrees?: string[] }
       | undefined
     const coreTrees = cls?.coreTrees
-    const kept = form.abilities.filter((id) => {
-      const ability = sur.Abilities.findAll((a) => (a as { id: string }).id === id)[0] as
-        | { level: number | string; tree: string }
+    const abilityOf = (slug: string) =>
+      sur.Abilities.findAll((a) => nameToSlug((a as { name: string }).name) === slug)[0] as
+        | { name: string; level: number | string; tree: string }
         | undefined
+    const kept = form.abilities.filter((slug) => {
+      const ability = abilityOf(slug)
       return ability !== undefined && isLegalCreationAbility(ability, coreTrees)
     })
-    const dropped = form.abilities.filter((id) => !kept.includes(id))
+    const dropped = form.abilities.filter((slug) => !kept.includes(slug))
     if (dropped.length > 0) {
-      const names = dropped.map(
-        (id) =>
-          (
-            sur.Abilities.findAll((a) => (a as { id: string }).id === id)[0] as
-              | { name: string }
-              | undefined
-          )?.name ?? id
-      )
+      const names = dropped.map((slug) => abilityOf(slug)?.name ?? slug)
       toast.info(`Cleared ${names.join(', ')} — not a Level-1 ability of the new class.`)
     }
     updateForm({ classId, abilities: kept })
   }
 
   /** Ability pick is a RADIO: the pick replaces; re-picking it clears. */
-  function handleSelectAbility(abilityId: string) {
-    updateForm({ abilities: form.abilities.includes(abilityId) ? [] : [abilityId] })
+  function handleSelectAbility(slug: string) {
+    updateForm({ abilities: form.abilities.includes(slug) ? [] : [slug] })
   }
 
   /**
@@ -217,9 +214,9 @@ export function PilotWizard({
    * clamped at the 2-pick budget; decrements drop the OLDEST copies first
    * (the same determinism as the draft clamp).
    */
-  function handleEquipmentCount(equipmentId: string, next: number) {
+  function handleEquipmentCount(slug: string, next: number) {
     setForm((prev) => {
-      const current = prev.equipment.filter((e) => e === equipmentId).length
+      const current = prev.equipment.filter((e) => e === slug).length
       const target = Math.max(0, next)
       if (target === current) return prev
       if (target > current) {
@@ -228,13 +225,13 @@ export function PilotWizard({
         if (add <= 0) return prev
         return {
           ...prev,
-          equipment: [...prev.equipment, ...new Array<string>(add).fill(equipmentId)],
+          equipment: [...prev.equipment, ...new Array<string>(add).fill(slug)],
         }
       }
       let toRemove = current - target
       const equipment: string[] = []
       for (const e of prev.equipment) {
-        if (e === equipmentId && toRemove > 0) {
+        if (e === slug && toRemove > 0) {
           toRemove--
           continue
         }

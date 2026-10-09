@@ -6,8 +6,8 @@ import type { ReplyArg } from './fakeInteraction.js'
  * A fake button interaction, wired to the real router.
  *
  * Lives alongside `fakeInteraction.ts` and satisfies `CommandButtonInteraction`
- * structurally, so no cast is needed — which is the point of the router taking
- * a narrow type rather than discord.js's `ButtonInteraction` class.
+ * structurally, so no cast is needed — the same contract `http/adapter.ts`
+ * (`makeButtonInteraction`) builds from the raw interaction.
  */
 export function buttonInteractionHandlerFor(customId: string): {
   handle: () => Promise<void>

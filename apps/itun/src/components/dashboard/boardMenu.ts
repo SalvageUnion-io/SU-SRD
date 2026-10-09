@@ -1,6 +1,5 @@
 /**
- * What the Board control offers (docs/architecture/dashboard-redesign.md D4,
- * D12, §8 A4).
+ * What the Board control offers (ADR-038 §3, §5).
  *
  * The main half boards the pilot's assigned mech (`mech-to-pilot`). The ▾ half
  * lists every mech assigned to the pilot's crawler (`mech-to-crawler`), the
@@ -10,7 +9,7 @@
  *   - **yours:** boards;
  *   - **spare** (unclaimed): "Claim and board", behind a confirm. It claims
  *     through `ownership.claim`, then boards. It draws no `mech-to-pilot` link
- *     (D12), so the main half still names the assigned mech afterwards;
+ *     (ADR-038 §5), so the main half still names the assigned mech afterwards;
  *   - **others** (another player's), **destroyed**, **aboard** (another seat is
  *     boarded in it): listed, disabled, with the reason.
  *
@@ -39,7 +38,7 @@ export type CrewLink = {
 
 /** What the menu reads from the Game, all of it from Convex. */
 export type BoardSources = {
-  /** `entities.listForGame`, or null before it arrives (or with no deployment). */
+  /** `entities.listForGame`, or null before it arrives. */
   listing: {
     pilots: readonly CrewRow[]
     mechs: readonly CrewRow[]

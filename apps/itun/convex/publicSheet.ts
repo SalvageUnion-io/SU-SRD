@@ -62,9 +62,8 @@ async function byAppId(
 ): Promise<Doc<PublicTable> | null> {
   // `by_app_id` is an ordinary index and NOT a uniqueness constraint, so a
   // duplicate is possible. Resolving to the OLDEST match is what the rest of
-  // the codebase does (`entities.byAppId`) and matters here for the same
-  // reason: it is the row `maintenance.dedupeAppIds` keeps, so a public link
-  // does not start pointing somewhere else after a repair runs.
+  // the codebase does (`entities.byAppId`), so a public link and a write agree
+  // on which row is the entity.
   const rows = await ctx.db
     .query(table)
     .withIndex('by_app_id', (q) => q.eq('appId', appId))
@@ -177,10 +176,8 @@ function nameOf(body: unknown, kind: Kind): string {
  * The abilities of the pilot flying this mech, for the renderer's maxima.
  *
  * A mech's Max SP and Cargo depend on its PILOT: Beefcake raises both on the
- * mech being piloted (ADR-029). A frozen sheet cannot see that — which is
- * exactly why a published snapshot used to carry `context.pilotAbilities`
- * alongside the entity (snapshots are retired, ADR-036) — so without this a
- * public mech would read *lower* than the same mech on its owner's sheet.
+ * mech being piloted (ADR-029), so without this a public mech would read
+ * *lower* than the same mech on its owner's sheet.
  *
  * Resolving it here is the concrete form of ADR-032's claim that serving live
  * fixes what the frozen path cannot: the query runs on the server of record
@@ -268,13 +265,11 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
  *
  * ## Why this takes the table rather than sniffing the row
  *
- * It used to discriminate on `!('ownerId' in row)`, which worked only while the
- * crawler was the one entity without that column. It now has one (`schema.ts`),
- * so that test silently stopped separating anything — and the branch it guarded
- * narrowed to `never`. Passing the table makes the distinction explicit, and
- * the caller already has it in hand.
+ * Every row carries an `ownerId` column, so the row's shape cannot tell the
+ * tables apart. Passing the table makes the distinction explicit, and the
+ * caller already has it in hand.
  *
- * The two gates cannot simply be merged, even though all three rows now carry
+ * The two gates cannot simply be merged, even though all three rows carry
  * the same columns, because an **unclaimed** row means opposite things per
  * table. An unclaimed pilot is a character waiting for a taker and may not be
  * published until somebody owns it; an unclaimed crawler is the normal state of
@@ -320,9 +315,8 @@ async function assertMayPublish(
  * Publish or unpublish one sheet.
  *
  * Unpublishing takes effect everywhere at once, because there is exactly one
- * URL per entity and it is derived rather than minted — so unlike the retired
- * ADR-004 snapshots there is no set of outstanding links to chase down. (An old
- * `/s/:id` link resolves through `get`, so it stops reaching the sheet too.)
+ * URL per entity and it is derived rather than minted, so there is no set of
+ * outstanding links to chase down.
  */
 export const setPublic = mutation({
   args: { kind: kindValidator, appId: v.string(), isPublic: v.boolean() },

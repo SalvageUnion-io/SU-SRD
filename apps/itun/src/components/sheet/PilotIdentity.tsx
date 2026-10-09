@@ -6,10 +6,10 @@
  * dropped live-play Bio section's data still needs a home) — rendered via the
  * shared IdentityField primitive.
  *
- * FIELD-section archetype (unified edit language), but the section's own
- * Edit/Done button now lives in the parent `SheetSectionCard`'s header (Phase
- * 2 lifts the chead row into the card chrome) — this panel is CONTROLLED via
- * the `editing` prop rather than owning its own toggle state. Class is
+ * FIELD-section archetype (unified edit language). The parent
+ * `SheetSectionCard`'s header owns the section's Edit/Done button, so this
+ * panel is CONTROLLED via the `editing` prop rather than owning its own toggle
+ * state. Class is
  * picker-backed — its edit affordance opens the ONE shared picker modal
  * (changing class KEEPS abilities).
  *
@@ -27,13 +27,14 @@
  * affordance renders regardless).
  */
 
-import { Badge, Button, cn, Field, SheetPickerModal } from 'component-lib'
+import { Badge, Button, cn, Field } from 'component-lib'
 import { useState } from 'react'
 import { resolveClassName } from '../../lib/classRef'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { ClassPathPicker } from '../pilot/ClassPathPicker'
 import { classChangePatch } from '../pilot/classPathOptions'
 import { selectableClasses } from '../wizard/classOptions'
+import { SheetPickerModal } from './SheetSection'
 import type { SheetPatch } from './sheetViewProps'
 
 export type UsedToggleKey = 'background' | 'motto' | 'keepsake'
@@ -79,7 +80,7 @@ function UsedChip({
     )
   }
   // Interactive: `aria-pressed` carries the state for assistive tech, since the
-  // surface no longer does it visually.
+  // surface does not show it visually.
   return (
     <Badge
       as="button"
@@ -247,9 +248,7 @@ export function PilotIdentityPanel({
         onSave={canEdit ? saveText('appearance') : undefined}
       />
 
-      {/* Bio — folded in from the dropped live-play Bio section (#409): the
-          freeform backstory previously rendered via SheetDescription now
-          lives as an extra full-width identity field. */}
+      {/* Bio — the freeform backstory, a full-width identity field. */}
       <div className="flex min-h-0 flex-1 flex-col">
         <Field
           label="Bio"

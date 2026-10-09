@@ -1,7 +1,7 @@
 /**
  * DashboardCanvas — the fixed 1280×800 design canvas, scaled to fit its host with
- * a single `transform: scale(...)`, letterboxed, never scrolling (ADR-020,
- * merged into ADR-015). It scales linearly to fill the available space: the
+ * a single `transform: scale(...)`, letterboxed, never scrolling (ADR-038
+ * §9). It scales linearly to fill the available space: the
  * host is sized to the viewport height below its own top offset (nothing on the
  * ancestor chain establishes a height, so `h-full` alone would collapse to the
  * canvas's fixed 800px layout box and leave dead space below), then the canvas
@@ -14,10 +14,9 @@
  * dark ground the instruments sit on; the grid regions and instruments fill
  * `children`.
  *
- * It imports NO stylesheet. The `.pc-*` rules ship as the package export
- * `component-lib/styles/dashboard.css`, which the rendering app imports — a
- * side-effect `import './x.css'` here rode the barrel into every consumer, so
- * srd bundled and precached the whole dashboard stylesheet (audit PK-01).
+ * It imports NO stylesheet. The `.pc-*` rules live in ITUN's
+ * `src/styles/dashboard.css`, which `Dashboard.tsx` (the route component)
+ * imports, so the stylesheet loads with the dashboard route's chunk.
  */
 
 import type { ReactNode } from 'react'

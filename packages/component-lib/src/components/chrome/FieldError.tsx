@@ -15,7 +15,7 @@ type FieldErrorProps = {
    * ACCESSIBILITY affordance: without it, wiring an error to its input is
    * impossible without editing this component, in a codebase held to WCAG 2.1
    * AA. That no call site uses it today is a gap to close, not evidence the
-   * capability is unwanted. The Ladle story demonstrates the wiring.
+   * capability is unwanted. The story demonstrates the wiring.
    */
   id?: string
 }
@@ -23,16 +23,11 @@ type FieldErrorProps = {
 /**
  * FieldError — the ONE single-message validation / advisory line.
  *
- * This gap was previously filled by 22 hand-rolled `<p role="alert">` spellings
- * across itun, srd and this package, in ~8 different class combinations and
- * split across TWO colour tokens for one semantic (6× `text-rust`, 10×
- * `text-status-bad`). Rust is the ACTION colour (buttons, AP costs, primary CTAs),
- * so spending it on errors overloaded it — `danger` is canonical here.
- *
- * The type scale is likewise unified: call sites ran 9× `text-sm` (14px), 6×
- * `text-xs` (12px) and 1× `text-note`. They collapse onto `text-caption` (13px),
- * the house token for secondary explanatory copy — the same one `EmptyState`
- * uses for its body — so an error reads at one size everywhere.
+ * Never a hand-rolled `<p role="alert">`. Its colour is `danger`, not rust:
+ * rust is the ACTION colour (buttons, AP costs, primary CTAs), and spending it on
+ * errors overloads it. Its size is `text-caption` (13px), the house token for
+ * secondary explanatory copy — the same one `EmptyState` uses for its body — so
+ * an error reads at one size everywhere.
  *
  * Distinct from its neighbours, deliberately:
  *   - `Banner`  — a LIST of soft warnings with severity pills.

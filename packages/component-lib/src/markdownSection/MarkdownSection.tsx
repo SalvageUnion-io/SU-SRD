@@ -19,9 +19,8 @@ type MarkdownSectionProps = {
  * The prose is NOT held here: it lives in a repo-root document
  * (`ABOUT_JRVS.md`, `LLM_STATEMENT.md`, `SPECIAL_THANKS.md`) and is passed in raw, so the two sites
  * cannot drift apart and the wording can be edited without touching component
- * code. This mirrors `Changelog`, the other shared markdown-backed surface —
- * the library stays data-source agnostic, and each app reads the file the way
- * its build allows (srd via `node:fs`, ITUN via a Vite `?raw` import).
+ * code. The library stays data-source agnostic, and each app reads the file
+ * the way its build allows (srd via `node:fs`, ITUN via a Vite `?raw` import).
  */
 export function MarkdownSection({ markdown, className }: MarkdownSectionProps) {
   const { heading, blocks } = parseMarkdownSection(markdown)

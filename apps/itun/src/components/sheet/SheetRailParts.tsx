@@ -8,8 +8,9 @@
  * (railStats.ts) is the adapter that replaced it.
  */
 
-import { buttonVariants, cn, EntityRow } from 'component-lib'
+import { buttonVariants, cn } from 'component-lib'
 import { AppLink } from '../shared/AppLink'
+import { EntityRow } from '../shared/EntityRow'
 import type { WithheldUnit } from './sheetViewProps'
 
 /**

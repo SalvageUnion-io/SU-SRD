@@ -1,9 +1,8 @@
-import type { ComponentPropsWithoutRef } from 'react'
-import { forwardRef } from 'react'
+import type { ComponentPropsWithRef } from 'react'
 import { cn } from '../../utils/cn'
 import { DISABLED, FOCUS_RING } from './interaction'
 
-type StepButtonProps = ComponentPropsWithoutRef<'button'>
+type StepButtonProps = ComponentPropsWithRef<'button'>
 
 /**
  * 24×24 stat stepper button (design-spec §2.10 `stepbtn`): '–'/'+' beside a
@@ -12,10 +11,7 @@ type StepButtonProps = ComponentPropsWithoutRef<'button'>
  * area to the 44px touch minimum below `sm` without changing the desktop layout.
  * The accessible name comes from the caller (pass an `aria-label`).
  */
-export const StepButton = forwardRef<HTMLButtonElement, StepButtonProps>(function StepButton(
-  { className, type = 'button', ...props },
-  ref
-) {
+export function StepButton({ className, type = 'button', ref, ...props }: StepButtonProps) {
   return (
     <button
       ref={ref}
@@ -29,4 +25,4 @@ export const StepButton = forwardRef<HTMLButtonElement, StepButtonProps>(functio
       {...props}
     />
   )
-})
+}

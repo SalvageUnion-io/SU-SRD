@@ -54,10 +54,9 @@ export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityC
       {/*
         A roll table's rows, as a REAL table.
 
-        These pages previously rendered no rows at all without JavaScript — the
-        whole d20 table shipped as serialized island props and nothing was drawn
-        — so this is the first time a crawler, reader mode, or an LLM following
-        `llms.txt` sees the outcomes at all.
+        Drawn in the static HTML, so a crawler, reader mode, or an LLM following
+        `llms.txt` sees the outcomes without JavaScript; island props alone would
+        draw nothing.
 
         `<th scope="row">` on the roll, not a `<td>`: the roll IS the row's
         header, which is what lets a screen reader announce "11-19" with each

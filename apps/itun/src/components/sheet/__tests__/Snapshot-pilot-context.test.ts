@@ -24,11 +24,11 @@ describe('frozen-sheet pilot context', () => {
   test('a mech derives the SAME max SP with the pilot context as on the live sheet', () => {
     const mech = { chassisRef: 'no-such-chassis' }
     const chassis = { structurePoints: 20 }
-    const piloting = { abilities: ['Beefcake'], techLevel: 4 }
+    const piloting = { abilities: ['beefcake'], techLevel: 4 }
 
     const ownersSheet = mechMaxSPParts(mech, chassis, piloting).total
     // The viewer reconstructs the same context from the payload's `context`.
-    const viewer = mechMaxSPParts(mech, chassis, { abilities: ['Beefcake'], techLevel: 4 }).total
+    const viewer = mechMaxSPParts(mech, chassis, { abilities: ['beefcake'], techLevel: 4 }).total
 
     expect(viewer).toBe(ownersSheet)
     expect(viewer).toBe(27)
@@ -37,10 +37,10 @@ describe('frozen-sheet pilot context', () => {
   test('dropping the context is exactly the under-count this guards against', () => {
     const mech = { chassisRef: 'no-such-chassis' }
     const chassis = { structurePoints: 20 }
-    const withPilot = mechMaxSPParts(mech, chassis, { abilities: ['Beefcake'], techLevel: 4 }).total
+    const withPilot = mechMaxSPParts(mech, chassis, { abilities: ['beefcake'], techLevel: 4 }).total
     const without = mechMaxSPParts(mech, chassis).total
     expect(withPilot - without).toBe(
-      sumContributions(abilityContributions(['Beefcake'], 'pilotedMech', 'structurePoints', 4))
+      sumContributions(abilityContributions(['beefcake'], 'pilotedMech', 'structurePoints', 4))
     )
     expect(without).toBeLessThan(withPilot)
   })

@@ -3,7 +3,7 @@
  * plan 4.5; redesigned to the poster layout, Phase 2).
  *
  * The body OWNS the identity band (Workshop-Manual mech sheet): it renders
- * `SheetHero` in band mode as its first region. Region order mirrors the
+ * `SheetHero` as its first region. Region order mirrors the
  * printed mech sheet:
  *
  *   Identity Band: edge wordmark ∥ the pattern-name/chassis fields + the
@@ -28,7 +28,7 @@
  * Linked Units) — cards already carry their own frame, so a second frame
  * around them reads as one opaque block.
  *
- * Dropped (redesign D6 — no poster counterpart; tracking issues filed for
+ * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
  *   - `HeatCheckControl` (#407) — Heat Check / Push / Reactor Overload loop.
  *   - `TakeDamageControl` (#406) — Take Damage / Critical Damage loop.
@@ -53,20 +53,18 @@
  */
 
 import {
-  EntityGridRow,
   EntitySearcher,
   Field,
   FieldError,
   heatDangerFrom,
   MasonryColumns,
   ReferenceEntityCard,
-  SectionManageButton,
-  SheetPickerModal,
   SheetSectionSlab,
   VitalGauge,
 } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
+import { nameToSlug } from 'salvageunion-reference'
 import { pinFor } from 'salvageunion-reference/rules'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import { runWrite } from '../../lib/runWrite'
@@ -74,6 +72,7 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
+import { EntityGridRow } from './EntityGrid'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
 import { MechItemCard } from './MechItemCard'
@@ -84,6 +83,7 @@ import type { ChassisLike } from './mechSheetModel'
 import { useMechSheetModel } from './mechSheetModel'
 import { PartnerCard } from './PartnerCard'
 import { SheetHero } from './SheetHero'
+import { SectionManageButton, SheetPickerModal } from './SheetSection'
 import { StorageManifest } from './StorageManifest'
 
 type MechSheetProps = {
@@ -212,7 +212,7 @@ export function MechSheet({
       aria-labelledby="mech-sheet-heading"
       // `.sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
-      // width (redesign D7), not the viewport.
+      // width, not the viewport.
       className="sheet-section @container flex flex-col gap-6"
     >
       {/* The hero already shows the name — this heading is for a11y/print. */}
@@ -230,7 +230,6 @@ export function MechSheet({
           Edge wordmark ∥ Chassis/Pattern fields + Chassis-Stats strip ∥
           SP/EP/Heat + Conditions vitals rail, in one toned frame. */}
       <SheetHero
-        cat="Mech"
         name={mech.name}
         // On a mech this region IS the chassis: its name, its stats, its
         // ability, its quirk. "Identity" named the shape, not the subject.
@@ -312,7 +311,7 @@ export function MechSheet({
                 Quirk is one line, so it rides the chassis row above instead. */}
             <Field
               label="Appearance"
-              value={mech.appearance ?? mech.description ?? ''}
+              value={mech.appearance ?? ''}
               multiline
               fill
               onSave={readOnly ? undefined : actions.saveAppearance}
@@ -493,7 +492,8 @@ export function MechSheet({
           schema="systems"
           mode="count"
           selected={mech.systems}
-          onAdd={(name) => actions.addItem('system', name)}
+          idOf={(item) => nameToSlug(item.name)}
+          onAdd={(slug) => actions.addItem('system', slug)}
           onRemove={(index) => actions.removeItem('system', index)}
           railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
           chosenLabel="Installed"
@@ -514,7 +514,8 @@ export function MechSheet({
           schema="modules"
           mode="count"
           selected={mech.modules}
-          onAdd={(name) => actions.addItem('module', name)}
+          idOf={(item) => nameToSlug(item.name)}
+          onAdd={(slug) => actions.addItem('module', slug)}
           onRemove={(index) => actions.removeItem('module', index)}
           railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
           chosenLabel="Installed"

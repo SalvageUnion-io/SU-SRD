@@ -1,6 +1,6 @@
 /**
  * LogTab — the display's Log tab: the Game's rolls and the Mediator's alerts
- * (docs/architecture/dashboard-redesign.md §4.2, D5).
+ * (ADR-038 §4).
  *
  * Rolls come from the Game's change log (`changeLog.rolls`): every Dashboard
  * roll by anyone at the table, and the Discord bot's. It replaces the roll

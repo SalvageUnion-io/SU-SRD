@@ -4,22 +4,29 @@
  * chooser doors fire their callbacks, and the Blank dialog persists a
  * schema-valid entity through createBlank.
  *
- * Conventions: toBeTruthy() not toBeInTheDocument(), no mock.module().
+ * Conventions: toBeTruthy() not toBeInTheDocument().
  * fake-indexeddb/auto is preloaded via bunfig.toml.
  */
 
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { ConnectionContext } from '../../../lib/connection/connectionContext'
-import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { PilotSchema } from '../../../lib/schemas/pilot'
 import { parseCreateMode } from '../../../lib/wizard/createMode'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
-import { NewEntityScreen } from '../NewEntityScreen'
+import { installConvexMocks } from '../../__tests__/convexMock'
+
+// Module scope, before the imports below — see `convexMock.ts`. The signed-out
+// panel mounts `SignInControl`, whose auth hook needs the auth module.
+const convexMocks = await installConvexMocks({ authReact: true })
+afterAll(() => convexMocks.restore())
+
+const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { _resetDbSingleton, clearCache } = await import('../../../lib/db/index')
+const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
+const { useEntityStore } = await import('../../../stores/entityStore')
+const { NewEntityScreen } = await import('../NewEntityScreen')
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
 withSignedInBackend()
@@ -50,13 +57,13 @@ function resetEntityStore(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 
 afterEach(async () => {
   cleanup()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 

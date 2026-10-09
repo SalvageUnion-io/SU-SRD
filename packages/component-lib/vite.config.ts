@@ -1,13 +1,22 @@
+import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
+import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 
-// This config is consumed ONLY by Ladle (see .ladle/config.mjs `viteConfig`).
-// Ladle already registers its own `@vitejs/plugin-react`, so we must NOT add a
-// second one here — doing so loads the newer workspace plugin-react alongside
-// Ladle's, whose react-refresh path routes through rolldown's
-// `builtin:vite-react-refresh-wrapper` and crashes every transform with
-// "Missing field `moduleType`" (blank stories, 404'd assets). Tailwind is the
-// only plugin Ladle doesn't provide, so it's the only one we add.
+// Serves the dev-only story catalog (`bun run stories`): `index.html` mounts
+// `catalog.tsx`. Nothing builds it; the apps compile this
+// package's source with their own Vite configs.
 export default defineConfig({
-  plugins: [tailwindcss()],
+  plugins: [react(), tailwindcss()],
+  resolve: {
+    // ITUN's Convex client is built from `VITE_CONVEX_URL` when its module
+    // evaluates. The catalog has no deployment, so it gets a stub instead.
+    alias: [
+      {
+        find: /^(?:\.\.\/)+lib\/connection\/convexClient$/,
+        replacement: fileURLToPath(new URL('./catalogConvexClient.ts', import.meta.url)),
+      },
+    ],
+  },
+  server: { port: 61000, strictPort: true },
 })

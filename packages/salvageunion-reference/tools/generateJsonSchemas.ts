@@ -4,11 +4,11 @@
  * Uses Zod 4 native z.toJSONSchema() to convert Zod schemas to JSON Schema format
  */
 
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-// The canonical schema-id -> Zod map lives in ModelFactory (one registry,
-// audit item 23) — the generator no longer keeps its own copy.
+// The canonical schema-id -> Zod map lives in ModelFactory (one registry); the
+// generator keeps no copy.
 import { zodSchemaMap } from '../lib/generated/zodSchemaMap.generated.js'
 import { z } from '../lib/zod.js'
 import { formatWithBiome } from './formatWithBiome.js'
@@ -17,10 +17,6 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const schemasDir = join(__dirname, '..', 'schemas')
-const sharedDir = join(schemasDir, 'shared')
-
-// Ensure directories exist
-mkdirSync(sharedDir, { recursive: true })
 
 const entitySchemaMap: Record<string, z.ZodType> = zodSchemaMap as Record<string, z.ZodType>
 
@@ -43,10 +39,11 @@ async function generateSchemas() {
         unrepresentable: 'any',
       })
 
-      // Wrap in array schema (all entity schemas are arrays)
+      // Wrap in array schema (all entity schemas are arrays). `$id` is the URL
+      // srd serves this very file at, so a consumer can resolve it.
       const arraySchema = {
         $schema: 'http://json-schema.org/draft-07/schema#',
-        $id: `https://salvageunion.com/schemas/${schemaIdToFilename(schemaId)}`,
+        $id: `https://salvageunion.io/schema/${schemaIdToFilename(schemaId)}`,
         title: schemaId,
         description: (itemSchema as { description?: string })?.description || '',
         type: 'array' as const,

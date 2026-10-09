@@ -1,5 +1,3 @@
-import { Tooltip } from '@base-ui/react/tooltip'
-import type { ReactNode } from 'react'
 import { useCallback } from 'react'
 import { RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
@@ -33,12 +31,6 @@ const VARIANT: Record<
 
 type ControlButtonsProps = {
   controls: ReferenceEntityControl[]
-  /**
-   * Retained for the caller contract. It no longer changes control SIZE — every
-   * control renders at the seam stamp's `mini` rung so a rail never mixes
-   * heights — and nothing else in this component reads density.
-   */
-  compact?: boolean
 }
 
 function ControlButton({
@@ -85,10 +77,9 @@ function ControlButton({
   const hasCustomColors = !!(control.bgColor || control.textColor)
   const onClick = control.onClick ?? (() => undefined)
 
-  // Every rail control is stamp-sized. The rail sits beside the card's seam
-  // stamp, and the buttons used to run a rung larger than it (and the icon-only
-  // ones larger again, as fixed 28/32px squares), so one row carried three
-  // different heights. These are the `mini` stamp's own metrics — the same
+  // Every rail control is stamp-sized: the rail sits beside the card's seam
+  // stamp, and one row should carry one height. These are the `mini` stamp's
+  // own metrics — the same
   // constants `Badge shape="stamp" size="mini"` resolves — so the row and the
   // seam agree by construction rather than by matching numbers by eye.
   const segmentClasses = cn(
@@ -213,35 +204,6 @@ function ControlButton({
   )
 }
 
-function ControlButtonWithHover({
-  control,
-  onClickWithStop,
-  hoverContent,
-}: {
-  control: ReferenceEntityControl
-  onClickWithStop: (e: React.MouseEvent, onClick: () => void) => void
-  hoverContent: ReactNode
-}) {
-  return (
-    <Tooltip.Provider delay={200} closeDelay={100}>
-      <Tooltip.Root>
-        <Tooltip.Trigger
-          delay={200}
-          closeDelay={100}
-          render={<ControlButton control={control} onClickWithStop={onClickWithStop} />}
-        />
-        <Tooltip.Portal>
-          <Tooltip.Positioner sideOffset={5} align="start">
-            <Tooltip.Popup className="z-50 max-h-[80vh] max-w-[500px] overflow-y-auto border-none bg-transparent p-0 shadow-2xl">
-              {hoverContent}
-            </Tooltip.Popup>
-          </Tooltip.Positioner>
-        </Tooltip.Portal>
-      </Tooltip.Root>
-    </Tooltip.Provider>
-  )
-}
-
 export function ControlButtons({ controls }: ControlButtonsProps) {
   const handleClick = useCallback((e: React.MouseEvent, onClick: () => void) => {
     // preventDefault so a control nested inside a wrapping navigation <a> (e.g.
@@ -258,18 +220,9 @@ export function ControlButtons({ controls }: ControlButtonsProps) {
 
   return (
     <div className="flex gap-1">
-      {visibleControls.map((control) =>
-        control.hoverContent ? (
-          <ControlButtonWithHover
-            key={control.key}
-            control={control}
-            onClickWithStop={handleClick}
-            hoverContent={control.hoverContent}
-          />
-        ) : (
-          <ControlButton key={control.key} control={control} onClickWithStop={handleClick} />
-        )
-      )}
+      {visibleControls.map((control) => (
+        <ControlButton key={control.key} control={control} onClickWithStop={handleClick} />
+      ))}
     </div>
   )
 }

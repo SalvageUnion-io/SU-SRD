@@ -4,7 +4,7 @@
  * Unified validation runner.
  *
  * One shared data-load pass over the ~1.3MB `data/*.json` corpus, fed to all
- * 11 checks (it replaced 11 separate processes, each re-reading the corpus):
+ * 9 checks (it replaced separate per-check processes, each re-reading the corpus):
  *
  *   - ids              (checkUniqueIdsLogic.ts)
  *   - slugs            (validateSlugsLogic.ts)
@@ -14,34 +14,21 @@
  *   - orphans          (validateOrphansLogic.ts)
  *   - content-dupes    (validateContentDupesLogic.ts)
  *   - traits           (validateTraitsLogic.ts)
- *   - schemas          (validateSchemasLogic.ts)
  *   - parity           (validateParityLogic.ts)
- *   - double-encoding  (validateParityLogic.ts)
  *
  * Every check's detection logic lives in its own `*Logic.ts` module, which is
- * where its tests live too. This file is the ONLY command-line entry: there
- * used to be one thin CLI wrapper per check as well — ten files, ~650 lines,
- * each re-loading the corpus and re-printing its own report format — and ten
- * of their eleven `validate:*` scripts had no caller. `--only` replaces them.
+ * where its tests live too. This file is the ONLY command-line entry: it loads
+ * the corpus once and prints one report format; `--only` picks checks.
  *
  * Usage:
  *   bun tools/validate.ts                      # run all checks, structured report
  *   bun tools/validate.ts --only=ids,slugs     # run just these checks
- *   bun tools/validate.ts --fix                # apply mechanical fixes first (see below), then run all checks
  *
- * `--fix` is a *mechanical-only* tier: it currently does exactly what
- * `bun run fix:ids` already does (generateMissingIds.ts — fill in missing
- * IDs, replace invalid ones, and deduplicate collisions). It does NOT attempt
- * to fix anything requiring judgment (broken cross-references, orphaned
- * entities, trait issues, etc.) — those always remain diagnostics-only. Note
- * that generateMissingIds.ts rewrites whole files via
- * `JSON.stringify(data, null, 2)`, which reformats them — see its header
- * comment; that tradeoff is unchanged by this runner.
+ * It reports and never writes: `tools/edit-data.ts` is the one writer of
+ * `data/*.json`, and `edit-data add` mints a missing `id`.
  */
 
-import { zodSchemaMap } from '../lib/generated/zodSchemaMap.generated.js'
 import { checkAllFiles } from './checkUniqueIdsLogic.js'
-import { fixMissingIds } from './generateMissingIds.js'
 import type { DataBag } from './loadData.js'
 import { loadAllDataFiles } from './loadData.js'
 import type { CheckId } from './selectChecks.js'
@@ -50,15 +37,8 @@ import { runActionBackrefCheck } from './validateActionBackrefsLogic.js'
 import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
 import { runContentDupeCheck } from './validateContentDupesLogic.js'
 import { runOrphanCheck } from './validateOrphansLogic.js'
-import {
-  auditParity,
-  findDoubleEncodings,
-  KNOWN_UNRESOLVED,
-  staleDoubleEncodings,
-  unresolvedFindings,
-} from './validateParityLogic.js'
+import { auditParity, KNOWN_UNRESOLVED, unresolvedFindings } from './validateParityLogic.js'
 import { findReferenceErrors } from './validateReferencesLogic.js'
-import { validateAllFilesAgainstSchemas } from './validateSchemasLogic.js'
 import { findSlugCollisions } from './validateSlugsLogic.js'
 import { findTraitIssues } from './validateTraitsLogic.js'
 import type { Diagnostic } from './validationTypes.js'
@@ -239,46 +219,6 @@ function parityCheck(data: DataBag): Diagnostic[] {
   return diagnostics
 }
 
-/**
- * One concept, one encoding. Fails when a record states the same thing twice
- * (`statBonus` beside `contributions`, a legacy choice field beside `source`) —
- * the half-migrated state in which deleting either half changes behaviour with
- * nothing to see. See `findDoubleEncodings` for why this is the systemic fix.
- */
-function doubleEncodingCheck(data: DataBag): Diagnostic[] {
-  const diagnostics: Diagnostic[] = findDoubleEncodings(data as never).map((d) => ({
-    check: 'double-encoding',
-    file: d.schema,
-    path: `"${d.record}" ${d.path}`,
-    message: `carries both "${d.unified}" and legacy "${d.legacy}" — keep the unified one and delete the legacy duplicate`,
-  }))
-  for (const id of staleDoubleEncodings(data as never)) {
-    diagnostics.push({
-      check: 'double-encoding',
-      file: 'tools/validateParityLogic.ts',
-      path: `KNOWN_DOUBLE_ENCODED "${id}"`,
-      message: 'stale entry — no longer doubly encoded; remove it so the list keeps burning down',
-    })
-  }
-  return diagnostics
-}
-
-function schemasCheck(data: DataBag): Diagnostic[] {
-  const diagnostics: Diagnostic[] = []
-  for (const report of validateAllFilesAgainstSchemas(data, zodSchemaMap)) {
-    if (report.status !== 'fail') continue
-    for (const { index, name, errors } of report.failures) {
-      diagnostics.push({
-        check: 'schemas',
-        file: report.file,
-        path: `[${index}] "${name}"`,
-        message: errors.join('; '),
-      })
-    }
-  }
-  return diagnostics
-}
-
 // ─── runner ──────────────────────────────────────────────────────────────
 
 type CheckDefinition = {
@@ -298,8 +238,6 @@ const CHECK_TABLE: Record<CheckId, Omit<CheckDefinition, 'id'>> = {
   'content-dupes': { label: 'Duplicated record content', run: contentDupesCheck },
   traits: { label: 'Trait data', run: traitsCheck },
   parity: { label: 'Rules parity', run: parityCheck },
-  'double-encoding': { label: 'One concept, one encoding', run: doubleEncodingCheck },
-  schemas: { label: 'Zod schema validation', run: schemasCheck },
 }
 
 const CHECKS: CheckDefinition[] = CHECK_IDS.map((id) => ({ id, ...CHECK_TABLE[id] }))
@@ -328,23 +266,12 @@ function printReport(diagnostics: Diagnostic[]): void {
 
 function main(): void {
   const argv = process.argv.slice(2)
-  const fix = argv.includes('--fix')
   let checks: CheckDefinition[]
   try {
     checks = selectChecks(CHECKS, argv)
   } catch (error) {
     console.error(`✗ ${(error as Error).message}`)
     process.exit(2)
-  }
-
-  if (fix) {
-    console.log('🔧 --fix: applying mechanical fixes (missing/invalid/duplicate IDs)...\n')
-    const summary = fixMissingIds()
-    console.log(
-      summary.totalChanges === 0
-        ? '\nNo mechanical fixes were needed.\n'
-        : `\nApplied ${summary.totalChanges} mechanical fix(es) across ${summary.filesModified} file(s).\n`
-    )
   }
 
   // Single shared load: every check below reads from this one in-memory bag

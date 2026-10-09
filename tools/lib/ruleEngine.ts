@@ -2,14 +2,11 @@
  * The shared engine behind `tools/check-styling.ts`'s three rule sets —
  * design tokens, styling ownership and srd's stylesheet entry.
  *
- * Those used to be three scripts, and two of them said in their own header that
- * one "mirrors the structure of" the other "exactly": each hand-rolled a
- * `walk()`, an exemption lookup, a baseline read, a ratchet comparison and a
- * report. Three copies of one idea drift in three directions — the styling
- * baseline recorded four rules pinned at zero that were ratchets in name only,
- * and the token ratchet let an improvement go unrecorded forever (raw-color
- * measured 21 against a baseline of 22, which meant one new violation could be
- * added back without failing anything).
+ * One engine, because three copies of a `walk()`, an exemption lookup, a
+ * baseline read, a ratchet comparison and a report drift in three directions:
+ * a rule pinned at zero becomes a ratchet in name only, and a ratchet lets an
+ * improvement go unrecorded, so a new violation can be added back without
+ * failing anything.
  *
  * What the engine owns, so no rule set has to:
  *
@@ -60,8 +57,6 @@ export type RuleSet = {
   preflight?: (root: string) => void
   /** Every rule's findings, keyed by rule id. Pure given `root`. */
   scan: (root: string) => Record<string, Finding[]>
-  /** Findings printed as a warning and never gated. */
-  advisory?: (root: string) => { id: string; findings: Finding[] }
   /** Where a genuinely-correct case is declared, printed after a failure. */
   exemptionsLive: string
   /** A line printed on success, after the count summary. */

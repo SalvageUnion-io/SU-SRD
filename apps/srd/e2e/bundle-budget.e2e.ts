@@ -17,7 +17,7 @@ import { expect, test } from '@playwright/test'
 
 type ResourceTotals = { count: number; bytes: number; names: string[] }
 
-/** Sum transferred bytes of same-origin `assets/*.js` chunks requested during
+/** Sum the decoded bytes of same-origin `assets/*.js` chunks requested during
  *  a page load, keyed by response so redirects/duplicates aren't double
  *  counted. `names` records the chunk filenames for assert-not-present checks.
  *
@@ -45,17 +45,16 @@ async function captureJsTotals(
   await navigate()
   await page.waitForLoadState('networkidle')
 
-  // Sizes via the Resource Timing API (transferSize — actual bytes over the
-  // wire, 0 for cached/opaque responses) rather than re-fetching each URL.
+  // Sizes via the Resource Timing API rather than re-fetching each URL.
+  // `decodedBodySize` is the uncompressed byte count the browser parses, so
+  // the budget does not move with the server's compression: CI's `bun run
+  // preview` (wrangler dev) gzips, and the ceilings below were measured
+  // uncompressed, against `dist/assets/` file sizes.
   const sizes = await page.evaluate(() =>
     performance
       .getEntriesByType('resource')
       .filter((e) => e.name.includes('/assets/') && e.name.endsWith('.js'))
-      .map(
-        (e) =>
-          (e as PerformanceResourceTiming).transferSize ||
-          (e as PerformanceResourceTiming).encodedBodySize
-      )
+      .map((e) => (e as PerformanceResourceTiming).decodedBodySize)
   )
   totals.bytes = sizes.reduce((sum, n) => sum + n, 0)
 
@@ -76,7 +75,7 @@ async function captureJsTotals(
  * That is a harness mismatch, not a payload regression, and it should not read
  * as one. Detect it up front and fail with the command that fixes it, rather
  * than letting each test fail on its own misleading assertion. CI always builds
- * (`bun ssg/build.ts && bun ssg/preview.ts`), so this never trips there.
+ * (`bun run build && bun run preview`), so this never trips there.
  */
 test.beforeAll(async ({ browser }) => {
   const page = await browser.newPage()
@@ -92,7 +91,7 @@ test.beforeAll(async ({ browser }) => {
         'bundle-budget requires a production build — the server on this port is ' +
           'serving unbundled dev modules, so there are no /assets/*.js chunks to ' +
           'measure.\n\nRun the suite against a real build instead:\n' +
-          '  cd apps/srd && bun ssg/build.ts && bun ssg/preview.ts --port 4321\n' +
+          '  cd apps/srd && bun run build && bun run preview\n' +
           '  bunx playwright test bundle-budget.e2e.ts\n'
       )
     }

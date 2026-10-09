@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { api, internal } from '../../convex/_generated/api'
+import type { Ctx } from './fixtures'
+import { makeUser } from './fixtures'
 import { testConvex } from './harness'
 
 /**
@@ -17,31 +19,6 @@ import { testConvex } from './harness'
  * stamped at sign-in. The tests seed `discordId` the way the callback would, or
  * exercise `backfillDiscordIds`, which reads the same source.
  */
-
-type Ctx = ReturnType<typeof testConvex>
-
-/**
- * A user, optionally signed in with Discord.
- *
- * The Discord identity is seeded as an `authAccounts` row — the row
- * `@convex-dev/auth` writes on a real sign-in — because that is what the bot
- * resolves against. Writing `users.discordId` instead would test a field
- * nothing reads.
- */
-async function makeUser(t: Ctx, name: string, discordId?: string) {
-  const userId = await t.run(async (ctx) => {
-    const id = await ctx.db.insert('users', { name, displayName: name })
-    if (discordId !== undefined) {
-      await ctx.db.insert('authAccounts', {
-        userId: id,
-        provider: 'discord',
-        providerAccountId: discordId,
-      })
-    }
-    return id
-  })
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 async function seedBoundGame(t: Ctx) {
   const organizer = await makeUser(t, 'Organizer', 'discord-organizer')
@@ -268,7 +245,12 @@ describe('the Mediator’s prepared opposition stays hidden', () => {
     const { gameId } = await seedBoundGame(t)
     const npcId = await t.run(
       async (ctx) =>
-        await ctx.db.insert('encounterNpcs', { gameId, ownerId: null, body: { name: 'Ambush' } })
+        await ctx.db.insert('encounterNpcs', {
+          gameId,
+          ownerId: null,
+          appId: 'npc-1',
+          body: { id: 'npc-1', name: 'Ambush' },
+        })
     )
 
     // ADR-030 §5: the Mediator's prepared opposition is the ONE thing a player
@@ -304,7 +286,12 @@ describe('the Mediator’s prepared opposition stays hidden', () => {
     const { gameId } = await seedBoundGame(t)
     const npcId = await t.run(
       async (ctx) =>
-        await ctx.db.insert('encounterNpcs', { gameId, ownerId: null, body: { name: 'Ambush' } })
+        await ctx.db.insert('encounterNpcs', {
+          gameId,
+          ownerId: null,
+          appId: 'npc-1',
+          body: { id: 'npc-1', name: 'Ambush' },
+        })
     )
 
     const result = await t.query(internal.botClient.sheet, {
@@ -343,34 +330,9 @@ describe('the communal crawler is readable', () => {
     expect(result).toMatchObject({
       ok: true,
       table: 'crawlers',
-      gameId,
       ownerName: null,
       body: { name: 'The Ossuary' },
     })
-  })
-
-  test('the sheet carries its gameId, so the bot can address the Game view', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedBoundGame(t)
-    const pilotId = await t.run(
-      async (ctx) =>
-        await ctx.db.insert('pilots', {
-          gameId,
-          ownerId: organizer.userId,
-          body: { callsign: 'Rook' },
-          updatedAt: Date.now(),
-        })
-    )
-
-    const result = await t.query(internal.botClient.sheet, {
-      discordId: 'discord-player',
-      channelId: 'chan-1',
-      table: 'pilots',
-      entityId: pilotId,
-    })
-    // Without this the bot can only build `/sheet/<kind>/<appId>`, which reads
-    // the CLICKER's IndexedDB and so opens nothing for a crewmate.
-    expect(result).toMatchObject({ ok: true, gameId })
   })
 
   test('a crawler belonging to another table is not-found', async () => {
@@ -405,27 +367,9 @@ describe('identity comes from the sign-in itself', () => {
     const t = testConvex()
     await seedBoundGame(t)
 
-    // No stamping, no backfill, no `users.discordId`: `authAccounts` already
-    // holds the snowflake, and reading it removes the copy rather than fixing
-    // the copier. An earlier attempt stamped it from an
-    // `afterUserCreatedOrUpdated` callback, which could never work — the
-    // library destructures `id` out of the OAuth profile before any callback
-    // sees it, so the value was always undefined and every bot command would
-    // have answered "no account" forever.
+    // `authAccounts` holds the snowflake; nothing copies it onto `users`.
     const result = await t.query(internal.botClient.me, { discordId: 'discord-player' })
     expect(result).toMatchObject({ ok: true })
-  })
-
-  test('a users.discordId column alone resolves nothing', async () => {
-    const t = testConvex()
-    await t.run(
-      async (ctx) => await ctx.db.insert('users', { name: 'Ghost', discordId: 'discord-ghost' })
-    )
-
-    // Guards against reintroducing the denormalized column as a second source
-    // of truth: it is not where identity lives.
-    const result = await t.query(internal.botClient.me, { discordId: 'discord-ghost' })
-    expect(result).toMatchObject({ ok: false, reason: 'unlinked' })
   })
 })
 

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { activateOnKey, FOCUS_RING, SELECTION_RING, SELECTION_RING_INK_DOUBLE } from './interaction'
+import { RadioCard } from './RadioCardGroup'
 
 type SelProps = {
   /** Whether the selection ring is on */
@@ -13,9 +14,9 @@ type SelProps = {
   ariaLabel?: string
   /**
    * Radio semantics for exactly-one pickers (wizard-refresh Phase 4): the
-   * wrapper announces `role="radio"` + `aria-checked` instead of the default
-   * button + `aria-pressed`. Pair with a `role="radiogroup"` container (see
-   * MasonryColumns' radio props).
+   * wrapper is a `RadioCard` (`role="radio"` + `aria-checked`) instead of the
+   * default button + `aria-pressed`. Put it in a `RadioCardGroup` (or
+   * MasonryColumns' `radio`) for the arrow keys.
    */
   radio?: boolean
   /**
@@ -42,23 +43,35 @@ export function Sel({
 }: SelProps) {
   const interactive = !!onToggle
   const selectionRing = ring === 'ink-double' ? SELECTION_RING_INK_DOUBLE : SELECTION_RING
+  const ringClass = cn(
+    'rounded-panel',
+    interactive && cn('cursor-pointer', FOCUS_RING),
+    selected && selectionRing,
+    className
+  )
+  if (radio && onToggle) {
+    return (
+      <RadioCard
+        selected={selected}
+        onSelect={onToggle}
+        aria-label={ariaLabel}
+        className={ringClass}
+      >
+        {children}
+      </RadioCard>
+    )
+  }
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: role + tabIndex + keyboard handler are applied whenever onToggle makes the ring interactive
-    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-pressed/aria-checked are only set on the interactive branch, where role="button"/"radio" supports them
+    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-pressed is only set on the interactive branch, where role="button" supports it
     <div
-      role={interactive ? (radio ? 'radio' : 'button') : undefined}
+      role={interactive ? 'button' : undefined}
       tabIndex={interactive ? 0 : undefined}
-      aria-pressed={interactive && !radio ? selected : undefined}
-      aria-checked={interactive && radio ? selected : undefined}
+      aria-pressed={interactive ? selected : undefined}
       aria-label={interactive ? ariaLabel : undefined}
       onClick={onToggle}
       onKeyDown={interactive ? activateOnKey(onToggle) : undefined}
-      className={cn(
-        'rounded-panel',
-        interactive && cn('cursor-pointer', FOCUS_RING),
-        selected && selectionRing,
-        className
-      )}
+      className={ringClass}
     >
       {children}
     </div>

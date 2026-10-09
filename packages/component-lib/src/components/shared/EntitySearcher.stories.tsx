@@ -70,9 +70,7 @@ export const Default: Story = () => {
 /**
  * `mode="single"` — the exactly-one picker, shown on the largest entity in the
  * data. This is what ITUN's Change Chassis and Change Crawler Type modals
- * render; both used to run a bespoke master/detail pair whose narrow option
- * rail was thinner than a chassis card's own artwork, so every option came out
- * clipped and unreadably tall. Here the two-column masonry gives each card its
+ * render. The two-column masonry gives each card its
  * natural width, `hide.patterns` drops the section a picker can't act on, and
  * `railActions` carries the Apply/Cancel pair the destructive flow needs. The
  * rail is a one-line bar (the chosen name + those actions) at every width, so

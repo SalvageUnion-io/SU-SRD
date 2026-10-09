@@ -1,5 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { forwardRef } from 'react'
+import type { ComponentPropsWithRef, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { EDIT_CUE_HOVER_CLASS } from '../shared/editLanguage'
 import { Badge } from './Badge'
@@ -180,7 +179,7 @@ export function Field(props: FieldProps) {
 
   // ---- Edit-in-place: the InlineEditField engine inside the value box. --------
   // A handler is the ONLY gate: if the caller can persist it, the reader can
-  // edit it. (This used to also require a section-level `editing` flag.)
+  // edit it.
   const editable = onSave !== undefined
   return (
     <div className={cn('relative block', fill && 'flex h-full flex-col', className)}>
@@ -218,7 +217,7 @@ export function Field(props: FieldProps) {
 // TDZ-sensitive and evaluation-order dependent.
 export { Input, Textarea } from './inputs'
 
-type SelectProps = ComponentPropsWithoutRef<'select'> & {
+type SelectProps = ComponentPropsWithRef<'select'> & {
   /**
    * Faux-select rung: strip the native disclosure (`appearance-none`) and draw a
    * consistent ink chevron inside the field. This is the one sanctioned way to
@@ -235,10 +234,7 @@ type SelectProps = ComponentPropsWithoutRef<'select'> & {
  * native disclosure affordance. Compact call-sites pass `px-2 py-1.5` via
  * `className`; `chevron` swaps the native arrow for the styled faux-select one.
  */
-export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
-  { className, chevron = false, ...props },
-  ref
-) {
+export function Select({ className, chevron = false, ref, ...props }: SelectProps) {
   const select = (
     <select
       ref={ref}
@@ -263,4 +259,4 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
       </span>
     </span>
   )
-})
+}

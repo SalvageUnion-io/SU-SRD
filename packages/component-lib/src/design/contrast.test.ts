@@ -46,7 +46,7 @@ describe('resolveColor', () => {
     expect(resolveColor('#ff8000')).toEqual([255, 128, 0])
     expect(resolveColor('black')).toEqual([0, 0, 0])
     expect(resolveColor('var(--color-tl-3)')).toEqual(opaque(color.tl3))
-    expect(resolveColor('var(--su-color-tl-b)')).toEqual(opaque(color.tlB))
+    expect(resolveColor('var(--color-tl-b)')).toEqual(opaque(color.tlB))
   })
 
   test('mixes in sRGB as `color-mix()` does, nested and with implied shares', () => {

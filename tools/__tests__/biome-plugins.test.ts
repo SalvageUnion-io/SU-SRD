@@ -38,6 +38,10 @@ const bigFunction = `export function big(f: () => void) {\n${'  f()\n'.repeat(CA
 
 const SOURCE = 'apps/itun/src/__biome_fixture__/x.ts'
 const TEST_FILE = 'apps/itun/src/__biome_fixture__/x.test.tsx'
+/** A test file outside ITUN, where a live clock is not banned. */
+const OTHER_TEST = 'apps/srd/src/__biome_fixture__/y.test.ts'
+/** A file that asserts on load behaviour, excluded from the preload ban by path. */
+const EXEMPT_TEST = 'packages/salvageunion-reference/lib/preload.test.ts'
 const BIG_LIB = 'packages/component-lib/src/__biome_fixture__/big.tsx'
 const BIG_APP = 'apps/itun/src/__biome_fixture__/big.tsx'
 
@@ -68,6 +72,23 @@ const FIXTURES: Record<string, string> = {
     '  cleanup()',
     '  reset()',
     '})',
+    'declare const SalvageUnionReference: any',
+    "SalvageUnionReference.preload(['chassis'])", // 13: flagged
+    'SalvageUnionReference.Chassis.all = () => []', // 14: flagged
+    'SalvageUnionReference.Chassis.label = "x"',
+    'export const stamp = new Date().toISOString()', // 16: flagged
+    'export const fixed = new Date(0).toISOString()',
+    '',
+  ].join('\n'),
+  [OTHER_TEST]: [
+    'declare const SalvageUnionReference: any',
+    "SalvageUnionReference.preload(['chassis'])", // 2: flagged
+    'export const stamp = new Date().toISOString()',
+    '',
+  ].join('\n'),
+  [EXEMPT_TEST]: [
+    'declare const SalvageUnionReference: any',
+    "SalvageUnionReference.preload('all')",
     '',
   ].join('\n'),
   [BIG_LIB]: bigFunction,
@@ -142,6 +163,27 @@ describe('noInlinePoolDefault', () => {
 describe('noBareCleanupHook', () => {
   test('flags afterEach(cleanup) in both shapes, not a hook that does more', () => {
     expect(flagged(TEST_FILE, 'plugin', 'Delete this hook')).toEqual([4, 5])
+  })
+})
+
+describe('noTestReferencePreload', () => {
+  test('flags a test file preloading for itself, except the files that test loading', () => {
+    expect(flagged(TEST_FILE, 'plugin', 'Delete this preload')).toEqual([13])
+    expect(flagged(OTHER_TEST, 'plugin', 'Delete this preload')).toEqual([2])
+    expect(flagged(EXEMPT_TEST, 'plugin', 'Delete this preload')).toEqual([])
+  })
+})
+
+describe('noPartialModelPatch', () => {
+  test('flags assigning one accessor on a reference model, not any other property', () => {
+    expect(flagged(TEST_FILE, 'plugin', 'Patch reference-model rows')).toEqual([14])
+  })
+})
+
+describe('noLiveClockFixture', () => {
+  test('flags a live clock in an ITUN test, not a fixed date or another workspace', () => {
+    expect(flagged(TEST_FILE, 'plugin', 'Use FIXTURE_NOW')).toEqual([16])
+    expect(flagged(OTHER_TEST, 'plugin', 'Use FIXTURE_NOW')).toEqual([])
   })
 })
 

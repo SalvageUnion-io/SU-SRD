@@ -1,8 +1,7 @@
 /**
  * Shared data-loading helper for the validation tooling.
  *
- * Every validator used to independently `readFileSync` + `JSON.parse` the
- * data files it needed. This module centralizes that so:
+ * One loader for every validator, so:
  *   - `tools/validate.ts` (the one validation CLI) can load every
  *     `data/*.json` file exactly once and hand the same in-memory bag to all
  *     checks.
@@ -32,10 +31,8 @@ export function listDataFiles(): string[] {
 
 /**
  * Parse a single data file by filename (e.g. `"chassis.json"`). Every data
- * file is a top-level array of entity-shaped objects (validated fully by
- * validateSchemas against its Zod schema); checks work with that assumption,
- * matching how the pre-extraction validator scripts typed their own
- * `loadData` helpers.
+ * file is a top-level array of entity-shaped objects (each schema's full Zod
+ * parse is `lib/dataCanonical.test.ts`); checks work with that assumption.
  */
 export function loadDataFile(filename: string): Record<string, unknown>[] {
   const content = readFileSync(join(dataDir, filename), 'utf-8')

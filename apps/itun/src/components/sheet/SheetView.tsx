@@ -38,7 +38,6 @@ import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { containerOf } from '../../lib/container'
 import { pageTitle } from '../../lib/pageTitle'
 import type { EntityRef } from '../../lib/schemas/entity'
@@ -51,14 +50,6 @@ import { Sheet } from './Sheet'
 import { SheetSkeleton } from './SheetSkeleton'
 
 type SheetViewProps = { kind: EntityRef['type']; id: string }
-
-export function SheetView({ kind, id }: SheetViewProps) {
-  useSheetTabTitle(kind, id)
-  // A build with no Convex mounts no provider, so the hooks below would throw.
-  // There is no server to ask, either: what this browser holds is all there is.
-  if (!isConvexConfigured) return <Sheet kind={kind} id={id} />
-  return <ConnectedSheetView kind={kind} id={id} />
-}
 
 /**
  * Names the tab after the entity, and follows a rename. The route's `head`
@@ -82,7 +73,8 @@ function listed(listing: GameListing, kind: EntityRef['type'], id: string): bool
   return rows.some((row) => (row.appId ?? (row.body as { id?: unknown } | null)?.id) === id)
 }
 
-function ConnectedSheetView({ kind, id }: SheetViewProps) {
+export function SheetView({ kind, id }: SheetViewProps) {
+  useSheetTabTitle(kind, id)
   const { mode } = useConnection()
   const router = useRouter({ warn: false })
   const held = useEntityStore((s) => s.get(kind, id))
@@ -108,8 +100,9 @@ function ConnectedSheetView({ kind, id }: SheetViewProps) {
     [store]
   )
 
-  // An address the server knows by another id — a Convex row id from the
-  // retired crew-view URL — is replaced by the one every other link uses.
+  // A Convex row id is what the Discord bot's /sheet/ links carry, and what
+  // links already posted to the retired crew-view URL redirect with. Once
+  // located, it is replaced by the canonical app id every other link uses.
   const canonical = held === null && located ? located.id : id
   useEffect(() => {
     if (canonical === id) return

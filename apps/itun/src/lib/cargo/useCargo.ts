@@ -148,9 +148,9 @@ export function useCargo({
     const result = cargoTransfer(state, action)
     if (!result.ok) return result
 
-    // Both sides of the boundary commit in ONE IDB transaction — a crash
-    // between two sequential writes could otherwise vanish or duplicate the
-    // moved lot (audit item 2).
+    // Both sides of the boundary commit together — one server mutation and one
+    // IDB transaction — so a refusal or a crash between two sequential writes
+    // cannot vanish or duplicate the moved lot (audit item 2).
     const updates: Parameters<typeof storeState.transfer>[0]['updates'] = []
     if (result.changed.carrier) {
       updates.push({ type: 'mech', id: mech.id, patch: { cargoLots: result.state.carrierLots } })

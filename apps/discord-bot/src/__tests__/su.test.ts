@@ -23,7 +23,8 @@ describe('/su command', () => {
     const subs = (json.options ?? []).map((o) => o.name).sort()
     // The ITUN subcommands are registered UNCONDITIONALLY — a command that
     // appears or vanishes depending on deployment configuration is harder to
-    // explain than one that answers "this server isn't connected".
+    // explain than one that answers "In The Union Now is not configured for
+    // this bot" (or that it is unavailable).
     expect(subs).toEqual([
       'crew',
       'game',
