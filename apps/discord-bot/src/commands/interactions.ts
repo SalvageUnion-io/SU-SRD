@@ -1,12 +1,11 @@
 /**
- * The NARROW interaction surface the command handlers actually use —
- * interface segregation over discord.js's full interaction classes.
+ * The NARROW interaction surface the command handlers actually use.
  *
- * The real `ChatInputCommandInteraction` / `AutocompleteInteraction` satisfy
- * these structurally (the dispatcher passes them straight through), while
- * tests can build a minimal object that satisfies the same contract without
- * any forced casts. Handlers must depend on THESE types, and members are
- * added here only when a handler genuinely starts reading them.
+ * `http/adapter.ts` builds these objects from Discord's raw `APIInteraction`
+ * (`makeExecuteInteraction`, `makeAutocompleteInteraction`), and tests fake
+ * them in `__tests__/fakeInteraction.ts` without any forced casts. Handlers
+ * must depend on THESE types, and members are added here only when a handler
+ * genuinely starts reading them.
  */
 
 import type { APIMessageTopLevelComponent, MessageFlags } from 'discord-api-types/v10'
@@ -88,10 +87,9 @@ export type DirectMessageOutcome = { ok: true } | { ok: false; code: number | nu
 /**
  * What the button router reads off a message-component interaction.
  *
- * Narrow for the same reason the command surfaces are: discord.js's
- * `ButtonInteraction` satisfies this structurally, so the dispatcher passes one
- * straight through, while a test builds the four members it actually uses with
- * no cast. `user`/`channelId`/`editReply` are here because a re-roll is a roll
+ * Narrow for the same reason the command surfaces are: `http/adapter.ts`
+ * (`makeButtonInteraction`) builds it from the raw message-component
+ * interaction, while a test builds the members it actually uses with no cast. `user`/`channelId`/`editReply` are here because a re-roll is a roll
  * and is attributed exactly like a slash-command one.
  */
 export type CommandButtonInteraction = {
