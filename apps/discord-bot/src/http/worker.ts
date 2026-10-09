@@ -312,7 +312,7 @@ async function heartbeat(env: Env): Promise<void> {
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
-export default withObservability('discord-bot', {
+export default withObservability('su-discord-bot', {
   async fetch(request: Request, env: Env, ctx: ExecutionCtx): Promise<Response> {
     if (request.method === 'GET' && new URL(request.url).pathname === '/health') {
       return health(env)

@@ -47,7 +47,7 @@ repo):
    (`https://de.sentry.io`), like every other project here — and set its
    platform to **Node.js**, which is what Convex's integration expects for
    stack-trace processing. Slug: `itun-convex`, sitting alongside `itun`
-   (browser) and `itun-functions` (the itun Worker). **This step is done** — the
+   (browser) and `workers` (the itun Worker). **This step is done** — the
    project exists (see the registry in
    [`docs/ARCHITECTURE.md#sentry`](../../../docs/ARCHITECTURE.md#sentry)).
    Whether step 2 has been clicked is only visible in the Convex dashboard, so
@@ -97,9 +97,7 @@ in Sentry means it has stopped delivering again.
 
 Do not treat a quiet `itun-convex` as evidence that the backend is healthy.
 
-**Events arriving is not the same as anyone reading them.** There is no alert
-rule on this project yet, and Sentry's default is to collect silently — which
-is how an evening of 39 backend errors reached a player before it reached us.
+Alert rule 742750 is what turns an event here into a notification.
 
 ### What reaches Sentry, and what reaches the player
 

@@ -141,7 +141,7 @@ async function spaShell(request: Request, env: Env): Promise<Response> {
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
-export default withObservability('itun', {
+export default withObservability('su-itun', {
   async fetch(request: Request, env: Env): Promise<Response> {
     // Wrapped once, here, rather than at each `return`. There are eight exit
     // paths below and a ninth would otherwise ship bare — which is exactly how

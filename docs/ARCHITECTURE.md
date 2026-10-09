@@ -1034,11 +1034,13 @@ repo:** the `www` → apex Redirect Rule and per-zone Images Transformations.
 
 Org **`susrd`**, **EU region** (`https://de.sentry.io`,
 <https://susrd.sentry.io>); a DSN from another region silently fails.
-Projects: `srd` and `itun` (`VITE_SENTRY_DSN` at build, from
+Four projects: `srd` and `itun` (`VITE_SENTRY_DSN` at build, from
 `deploy-cloudflare.yml`'s public `SRD_SENTRY_DSN` / `ITUN_SENTRY_DSN`
-constants), `itun-functions` (itun Worker, `SENTRY_DSN`), `itun-convex`
-([dashboard toggle](#convex-error-reporting)), `su-assets` and `su-discord`
-(`SENTRY_DSN`).
+constants), `itun-convex` ([dashboard toggle](#convex-error-reporting); IP
+storage off), and `workers` (one `SENTRY_DSN` on `su-itun`, `su-discord-bot`
+and `su-assets`, told apart by `server_name`, which is the wrangler `name`).
+One org alert rule on users or volume covers them, and the uptime monitor
+watches `intheunionnow.com`.
 
 No DSN tree-shakes the SDK out, and a `connect-src` missing the ingest origin
 blocks every event, so `tools/check-observability.ts` checks DSN gating and
