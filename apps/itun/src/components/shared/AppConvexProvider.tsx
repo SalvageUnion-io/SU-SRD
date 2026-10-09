@@ -10,9 +10,8 @@ import { convexClient } from '../../lib/connection/convexClient'
  * A checkout that has never run `bunx convex dev` has no `VITE_CONVEX_URL`
  * (it lives in gitignored `.env.local`), so `convexClient` is null and this
  * renders the children with a Solo `ConnectionProvider` and no Convex context
- * at all. That is the pre-accounts app, unchanged and fully working — which is
- * what makes anonymous play first-class rather than a degraded fallback
- * (ADR-030 §1).
+ * at all. A Solo connection is signed out, so such a build is read-only
+ * (ADR-034, as amended).
  *
  * Consequence worth knowing: in such a build **no component may call a Convex
  * hook unconditionally**, because there is no provider above it. Route Convex
