@@ -274,9 +274,8 @@ are tested in `apps/itun/test/convex/mediatorDashboard.test.ts`.
 ## 5. Status lines in `docs/ARCHITECTURE.md`
 
 - **ADR-038, Status:** "§1's deferred Mediator Dashboard is decided in
-  [mediator-dashboard.md](architecture/mediator-dashboard.md) (#1062): a
-  separate surface at `/mediator/$gameId` in ADR-021's Adjudicate mode. It
-  reuses §9's canvas and §7's instruments and writes nothing a player owns."
+  `mediator-dashboard.md` (#1062): a separate surface at `/mediator/$gameId`
+  in ADR-021's Adjudicate mode. It reuses §9's canvas and §7's instruments and writes nothing a player owns."
 - **ADR-030, Status:** "**Amended 2026-10 (#1278):** §4: a proposal may carry
   a reason, which the player sees with it. §6: `/mediator/:id` is the Mediator
   Dashboard again and no longer redirects."
