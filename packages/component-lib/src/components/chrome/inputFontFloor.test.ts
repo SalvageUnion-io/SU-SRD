@@ -26,16 +26,7 @@ import { join } from 'node:path'
 const PRIMITIVES = ['inputs.tsx', '../shared/SearchField.tsx', '../shared/EntitySearcher.tsx']
 
 /** Tailwind rungs below 16px that must never land on a text-entry control. */
-const TOO_SMALL = [
-  'text-nano',
-  'text-micro',
-  'text-label',
-  'text-badge',
-  'text-note',
-  'text-caption',
-  'text-xs',
-  'text-sm',
-]
+const TOO_SMALL = ['text-badge', 'text-note', 'text-caption', 'text-xs', 'text-sm']
 
 /**
  * Comments must go first, and both kinds matter — each produced a false

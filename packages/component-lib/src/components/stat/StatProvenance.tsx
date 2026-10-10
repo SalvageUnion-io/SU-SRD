@@ -100,7 +100,7 @@ export function StatProvenance({
           >
             <Popover.Title
               className={cn(
-                capsLabel({ size: 'label-lg', weight: 'inherit', tracking: 'caps' }),
+                capsLabel({ size: 'badge', weight: 'inherit', tracking: 'caps' }),
                 'mb-1.5 opacity-60'
               )}
             >

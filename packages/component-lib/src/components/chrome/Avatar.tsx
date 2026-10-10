@@ -46,7 +46,7 @@ export function Avatar({ src, name, size = 28 }: AvatarProps) {
 
   const rootStyle = {
     alignItems: 'center',
-    backgroundColor: color.rust,
+    backgroundColor: color.pilot,
     borderColor: color.paper30,
     borderRadius: radius.full,
     borderStyle: 'solid',

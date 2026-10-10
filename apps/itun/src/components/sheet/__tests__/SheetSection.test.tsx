@@ -28,14 +28,14 @@ describe('HButton', () => {
   test('done variant fills with the sheet deep tone', () => {
     render(<HButton variant="done">Done</HButton>)
     const btn = screen.getByRole('button', { name: 'Done' })
-    expect(btn.className).toContain('bg-[color:var(--tone-deep,var(--color-rust))]')
+    expect(btn.className).toContain('bg-[color:var(--tone-deep,var(--color-ink))]')
     expect(btn.className).toContain('text-paper')
   })
 
   test('add variant is a deep-tone outline', () => {
     render(<HButton variant="add">Add</HButton>)
     const btn = screen.getByRole('button', { name: 'Add' })
-    expect(btn.className).toContain('border-[color:var(--tone-deep,var(--color-rust))]')
+    expect(btn.className).toContain('border-[color:var(--tone-deep,var(--color-ink))]')
     expect(btn.className).toContain('bg-paper')
   })
 })
@@ -61,7 +61,7 @@ describe('SectionManageButton', () => {
     // The button opens the picker, which both adds AND removes — "Add" undersold
     // it once the per-card ✕ was retired in favour of that one surface.
     expect(btn.textContent).toContain('Manage abilities')
-    expect(btn.className).toContain('border-[color:var(--tone-deep,var(--color-rust))]')
+    expect(btn.className).toContain('border-[color:var(--tone-deep,var(--color-ink))]')
   })
 
   test('fires onClick when clicked', () => {

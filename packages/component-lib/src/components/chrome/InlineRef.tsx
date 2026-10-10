@@ -15,7 +15,9 @@ type InlineRefProps = {
 } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'title' | 'className' | 'children'>
 
 /**
- * InlineRef — an in-prose entity reference (ruleset §"Inline reference / link").
+ * InlineRef — an in-prose entity reference or link (ruleset §"Inline reference /
+ * link"). Every prose link in either app is one: with `Button`, this is the
+ * only thing allowed to paint rust (ruleset §3.1, `tokens/rust-allowlist`).
  *
  * A word inside body text that reads its state from `href` presence:
  * - **Navigable** (`href` set) — a rust border-bottom; navigates via a real

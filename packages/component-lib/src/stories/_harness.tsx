@@ -21,7 +21,7 @@ export type Story = () => ReactNode
 const captionStyle = {
   color: color.wkMuted,
   fontFamily: font.cond,
-  fontSize: fontSize.label,
+  fontSize: fontSize.badge,
   letterSpacing: tracking.caps,
   marginBottom: space[4],
   textTransform: 'uppercase',

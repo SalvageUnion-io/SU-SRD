@@ -6,7 +6,7 @@
  * fetch — only the rendered entries ship.
  */
 
-import { Changelog, PageHeading } from 'component-lib'
+import { Changelog, InlineRef, PageHeading } from 'component-lib'
 import { readChangelog } from 'component-lib/changelog/git'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
@@ -46,14 +46,14 @@ function page(): PageResult {
           <p className="text-sm leading-relaxed">
             Features, fixes and speed-ups to the SRD site, newest first. For full commit history see
             the{' '}
-            <a
+            <InlineRef
               href="https://github.com/SalvageUnion-io/SU-SRD/commits/main"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-bold text-rust hover:underline"
+              className="font-bold"
             >
               GitHub repository
-            </a>
+            </InlineRef>
             .
           </p>
 

@@ -32,7 +32,7 @@ export const Default: Story = () => {
   return (
     <div className="flex max-w-md flex-col gap-6">
       <div>
-        <div className="mb-1.5 font-cond text-label uppercase tracking-caps text-wk-muted">
+        <div className="mb-1.5 font-cond text-badge uppercase tracking-caps text-wk-muted">
           lead — fills the track
         </div>
         <Band>
@@ -44,7 +44,7 @@ export const Default: Story = () => {
       </div>
 
       <div>
-        <div className="mb-1.5 font-cond text-label uppercase tracking-caps text-wk-muted">
+        <div className="mb-1.5 font-cond text-badge uppercase tracking-caps text-wk-muted">
           lead — truncates rather than pushing the control off
         </div>
         <Band>
@@ -56,7 +56,7 @@ export const Default: Story = () => {
       </div>
 
       <div>
-        <div className="mb-1.5 font-cond text-label uppercase tracking-caps text-wk-muted">
+        <div className="mb-1.5 font-cond text-badge uppercase tracking-caps text-wk-muted">
           mute — a secondary band label
         </div>
         <Band>
@@ -68,7 +68,7 @@ export const Default: Story = () => {
       </div>
 
       <div>
-        <div className="mb-1.5 font-cond text-label uppercase tracking-caps text-wk-muted">
+        <div className="mb-1.5 font-cond text-badge uppercase tracking-caps text-wk-muted">
           contrast — a stamp beside it, sized to its own text
         </div>
         <Band>

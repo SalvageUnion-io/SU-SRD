@@ -385,7 +385,7 @@ export function Card({
         {!isListing && (footerContent || (footMeta && footMeta.length > 0)) && (
           <div
             className={cn(
-              'flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-micro font-bold uppercase tracking-caps-tight',
+              'flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-badge font-bold uppercase tracking-caps-tight',
               // Ink or paper by contrast with the band actually painted.
               onToneText(subHeaderBg)
             )}
@@ -399,7 +399,7 @@ export function Card({
                 {footMeta.map(({ label: metaLabel, value }, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: footMeta is a static per-render list; index disambiguates repeated labels
                   <span key={`${metaLabel}-${i}`} className="mr-1 inline-flex items-baseline gap-1">
-                    <span className="font-cond text-micro font-bold uppercase leading-none tracking-caps-tight">
+                    <span className="font-cond text-badge font-bold uppercase leading-none tracking-caps-tight">
                       {metaLabel}
                     </span>
                     <span className="font-body text-caption font-bold leading-none">{value}</span>

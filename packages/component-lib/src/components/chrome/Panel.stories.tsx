@@ -21,7 +21,7 @@ const crawlerName = crawler?.name ?? 'Crawler'
 function Cluster({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <div className="mb-1.5 font-cond text-label uppercase tracking-caps text-wk-muted">
+      <div className="mb-1.5 font-cond text-badge uppercase tracking-caps text-wk-muted">
         {label}
       </div>
       {children}
@@ -42,7 +42,7 @@ export const Default: Story = () => (
               name={systemName}
               meta={`System · TL${systemTechLevel}`}
               actions={
-                <span className="font-cond text-xs font-bold uppercase text-rust">Details</span>
+                <span className="font-cond text-xs font-bold uppercase text-ink">Details</span>
               }
             />
           </div>

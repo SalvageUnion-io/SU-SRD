@@ -7,6 +7,7 @@ import {
   fontSize,
   radius,
   space,
+  speckle,
   tracking,
   weight,
 } from '../design/tokens'
@@ -24,7 +25,7 @@ export default {
 const captionStyle = {
   color: color.wkMuted,
   fontFamily: font.cond,
-  fontSize: fontSize.label,
+  fontSize: fontSize.badge,
   letterSpacing: tracking.caps,
   textTransform: 'uppercase',
 } satisfies CSSProperties
@@ -50,7 +51,7 @@ const h2Style = {
 const tokenNameStyle = {
   color: color.ink,
   fontFamily: font.cond,
-  fontSize: fontSize.label,
+  fontSize: fontSize.badge,
   letterSpacing: tracking.capsTight,
 } satisfies CSSProperties
 
@@ -127,6 +128,8 @@ const semanticColors = [
   'mech',
   'mechDark',
   'crawler',
+  'crawlerBand',
+  'denizenBand',
   'adversary',
   'cargo',
   'tierCore',
@@ -247,7 +250,7 @@ export const TechLevelColors: Story = () => (
               TL {key.replace('tl', '').toLowerCase()}
             </span>
           </div>
-          <span style={{ fontSize: fontSize.label }}>
+          <span style={{ fontSize: fontSize.badge }}>
             {colorVarName(key).replace('--color-', '')}
           </span>
         </div>
@@ -305,7 +308,7 @@ export const CSSVariables: Story = () => (
             <div
               style={{
                 color: 'rgb(80, 80, 80)',
-                fontSize: fontSize.label,
+                fontSize: fontSize.badge,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
@@ -541,6 +544,143 @@ export const PipSplit: Story = () => (
       <PipRows max={11} label="5/6" />
       <PipRows max={12} label="6/6" />
       <PipRows max={13} label="4/4/5" />
+    </div>
+  </div>
+)
+
+/* ── Texture: the light speckle (ruleset §3.5, board 05c) ─────────────────── */
+
+type Grain = keyof typeof speckle.grains
+
+/** The three filters, built from `speckle.filters` — once per page. */
+function SpeckleFilters() {
+  return (
+    <svg aria-hidden="true" width="0" height="0" style={{ position: 'absolute' }}>
+      <defs>
+        {Object.values(speckle.filters).map((f) => (
+          <filter key={f.id} id={f.id} x="0" y="0" width="100%" height="100%">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency={f.baseFrequency}
+              numOctaves={f.numOctaves}
+              seed={f.seed}
+              result="n"
+            />
+            <feColorMatrix
+              in="n"
+              type="matrix"
+              values={`0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  ${f.gain} 0 0 0 ${f.threshold}`}
+              result="m"
+            />
+            <feComposite in="SourceGraphic" in2="m" operator="in" />
+          </filter>
+        ))}
+      </defs>
+    </svg>
+  )
+}
+
+const overlayStyle = {
+  inset: 0,
+  pointerEvents: 'none',
+  position: 'absolute',
+} satisfies CSSProperties
+
+/** One grain's layers, laid over its positioned parent, behind the content. */
+function SpeckleLayers({ grain }: { grain: Grain }) {
+  return (
+    <>
+      {speckle.grains[grain].map((layer) => (
+        <svg key={layer.filter} aria-hidden="true" width="100%" height="100%" style={overlayStyle}>
+          <rect
+            width="100%"
+            height="100%"
+            fill={layer.fill}
+            opacity={layer.opacity}
+            filter={`url(#${speckle.filters[layer.filter].id})`}
+          />
+        </svg>
+      ))}
+    </>
+  )
+}
+
+const notchStyle = {
+  backgroundColor: color.paper,
+  color: color.ink,
+  fontFamily: font.cond,
+  fontSize: fontSize.lede,
+  fontWeight: weight.extrabold,
+  padding: `${space[2]} ${space[8]} 0 ${space[6]}`,
+  position: 'relative',
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+/** The five chapter bands board 05c specimens, each with ink speckle. */
+const chapterBands: readonly { name: string; band: keyof typeof color }[] = [
+  { name: 'Rules', band: 'wkLine' },
+  { name: 'Pilot Bay', band: 'pilot' },
+  { name: 'Mech Workshop', band: 'mech' },
+  { name: 'Union Crawler', band: 'crawler' },
+  { name: 'Denizens', band: 'denizenBand' },
+]
+
+function ChapterBand({ name, band }: { name: string; band: keyof typeof color }) {
+  return (
+    <div
+      style={{
+        alignItems: 'flex-end',
+        backgroundColor: color[band],
+        border: `${borderWidth.chrome} solid ${color.ink}`,
+        display: 'flex',
+        height: '56px',
+        padding: `0 ${space[8]}`,
+        position: 'relative',
+        width: '220px',
+      }}
+    >
+      <SpeckleLayers grain="ink" />
+      <span style={notchStyle}>{name}</span>
+    </div>
+  )
+}
+
+/**
+ * The light speckle — ink grain on a colour band, paper flecks on an ink
+ * ground — rendered from the `speckle` and `texture` tokens. Never on paper,
+ * buttons, fields, the Dashboard or tooltips (`tokens/texture-placement`).
+ */
+export const Texture: Story = () => (
+  <div style={{ ...pageStyle, gap: space[16] }}>
+    <SpeckleFilters />
+    <h2 style={h2Style}>Texture — the light speckle</h2>
+    <Caption>
+      Ink speckle on every chapter band and tone header (su-blot + su-speck); the notched title sits
+      on clean paper.
+    </Caption>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[16] }}>
+      {chapterBands.map((b) => (
+        <ChapterBand key={b.name} {...b} />
+      ))}
+    </div>
+    <Caption>
+      Paper flecks (su-fleck) on an ink ground — the Union bar, an ink banner, a unit stamp.
+    </Caption>
+    <div
+      style={{
+        backgroundColor: color.ink,
+        color: color.paper,
+        fontFamily: font.cond,
+        fontSize: fontSize.title,
+        fontWeight: weight.extrabold,
+        padding: `${space[8]} ${space[16]}`,
+        position: 'relative',
+        textTransform: 'uppercase',
+        width: 'fit-content',
+      }}
+    >
+      <SpeckleLayers grain="paper" />
+      <span style={{ position: 'relative' }}>Workshop Manual</span>
     </div>
   </div>
 )

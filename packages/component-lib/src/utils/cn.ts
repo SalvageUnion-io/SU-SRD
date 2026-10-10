@@ -16,7 +16,7 @@ const BORDER_WEIGHTS = ['chrome', 'rail', 'entity'] as const
  * `twMerge('border-entity border-ink')` would strip `border-entity`, leaving
  * the element with no border width at all.
  *
- * - `theme.text` — the WHOLE semantic type scale (`--text-nano` … `--text-hero`
+ * - `theme.text` — the WHOLE semantic type scale (`--text-badge` … `--text-hero`
  *   in `theme.css`, including the display/heading rungs `readout`/`title`/
  *   `display`/`display-lg`/`hero`) feeds the font-size class group. Registering
  *   only the body rungs was a latent bug: an unregistered size like
@@ -54,10 +54,6 @@ const twMerge = extendTailwindMerge({
   extend: {
     theme: {
       text: [
-        'nano',
-        'micro',
-        'label',
-        'label-lg',
         'badge',
         'note',
         'caption',

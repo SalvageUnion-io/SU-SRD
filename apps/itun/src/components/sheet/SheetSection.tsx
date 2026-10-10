@@ -34,12 +34,12 @@ import { cloneElement, isValidElement } from 'react'
 
 type HButtonVariant = 'edit' | 'done' | 'add'
 
-const HBTN_BASE = `inline-flex cursor-pointer items-center gap-1.5 rounded-card border-2 px-3 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide whitespace-nowrap transition-colors min-h-11 sm:min-h-8 ${FOCUS_RING} print:hidden`
+const HBTN_BASE = `inline-flex cursor-pointer items-center gap-1.5 rounded-card border-2 px-3 font-cond text-badge font-bold uppercase leading-none tracking-caps-wide whitespace-nowrap transition-colors min-h-11 sm:min-h-8 ${FOCUS_RING} print:hidden`
 
 const HBTN_VARIANT: Record<HButtonVariant, string> = {
   edit: 'border-ink bg-paper text-ink hover:bg-ink hover:text-paper',
-  done: 'border-[color:var(--tone-deep,var(--color-rust))] bg-[color:var(--tone-deep,var(--color-rust))] text-paper hover:border-ink hover:bg-ink',
-  add: 'border-[color:var(--tone-deep,var(--color-rust))] bg-paper text-[color:var(--tone-deep,var(--color-rust))] hover:bg-[color:var(--tone-deep,var(--color-rust))] hover:text-paper',
+  done: 'border-[color:var(--tone-deep,var(--color-ink))] bg-[color:var(--tone-deep,var(--color-ink))] text-paper hover:border-ink hover:bg-ink',
+  add: 'border-[color:var(--tone-deep,var(--color-ink))] bg-paper text-[color:var(--tone-deep,var(--color-ink))] hover:bg-[color:var(--tone-deep,var(--color-ink))] hover:text-paper',
 }
 
 type HButtonProps = ComponentPropsWithoutRef<'button'> & {

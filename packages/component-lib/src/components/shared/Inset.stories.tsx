@@ -49,7 +49,7 @@ export const CrewLead: Story = () => (
       tag="Crew"
       label="Ace"
       headRight={
-        <span className="font-cond text-micro uppercase leading-none tracking-caps text-paper/60">
+        <span className="font-cond text-badge uppercase leading-none tracking-caps text-paper/60">
           Greaser
         </span>
       }
@@ -58,7 +58,7 @@ export const CrewLead: Story = () => (
       <Stat label="HP" value={3} max={4} size="mini" />
       <dl className="m-0 min-w-0 flex-1 space-y-1.5">
         <div className="flex items-baseline gap-1.5">
-          <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps text-ink">
+          <dt className="shrink-0 font-cond text-badge font-bold uppercase leading-none tracking-caps text-ink">
             Keepsake
           </dt>
           <dd className="m-0 min-w-0 font-body text-note leading-snug text-wk-muted">
@@ -66,7 +66,7 @@ export const CrewLead: Story = () => (
           </dd>
         </div>
         <div className="flex items-baseline gap-1.5">
-          <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps text-ink">
+          <dt className="shrink-0 font-cond text-badge font-bold uppercase leading-none tracking-caps text-ink">
             Motto
           </dt>
           <dd className="m-0 min-w-0 font-body text-note leading-snug text-wk-muted">

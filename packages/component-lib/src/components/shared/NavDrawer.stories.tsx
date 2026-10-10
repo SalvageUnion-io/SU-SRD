@@ -29,7 +29,7 @@ const CATEGORIES = [
         id: 'traits',
         displayName: 'Traits',
         catalogBg: 'var(--color-ink)',
-        catalogLabel: 'var(--color-rust)',
+        catalogLabel: 'var(--color-adversary)',
       },
     ],
   },

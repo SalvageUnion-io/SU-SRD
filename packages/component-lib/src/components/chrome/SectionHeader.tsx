@@ -26,7 +26,7 @@ export function SectionHeader({ label, as: Tag = 'h2', className }: SectionHeade
       <Tag
         className={cn(
           capsLabel({ size: 'caption', tracking: 'wide' }),
-          'whitespace-nowrap leading-none text-rust'
+          'whitespace-nowrap leading-none text-ink'
         )}
       >
         {label}

@@ -90,7 +90,7 @@ export function SheetSectionCard({
         source ? (
           // No colour of its own — it inherits the footer band's `text-paper`:
           // dark text on the band's deep accent would be unreadable.
-          <span className="min-w-0 truncate font-cond text-label font-semibold uppercase leading-none tracking-caps">
+          <span className="min-w-0 truncate font-cond text-badge font-semibold uppercase leading-none tracking-caps">
             {source}
           </span>
         ) : undefined

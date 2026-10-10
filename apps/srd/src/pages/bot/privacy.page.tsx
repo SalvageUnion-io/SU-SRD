@@ -4,7 +4,7 @@
  * A plain static document: no islands, no data, no structured data.
  */
 
-import { PageHeading, Slab } from 'component-lib'
+import { InlineRef, PageHeading, Slab } from 'component-lib'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { TITLE_SUFFIX } from '../../lib/constants'
 
@@ -80,21 +80,18 @@ function page(): PageResult {
               <p>
                 Because we store no personal data, there is nothing to export or delete. For any
                 privacy questions, contact{' '}
-                <a
-                  href="mailto:privacy@salvageunion.io"
-                  className="font-bold text-rust hover:underline"
-                >
+                <InlineRef href="mailto:privacy@salvageunion.io" className="font-bold">
                   privacy@salvageunion.io
-                </a>
+                </InlineRef>
                 .
               </p>
             </div>
 
             <p className="text-xs text-ink/60">
               See also the{' '}
-              <a href="/bot/terms" className="font-bold text-rust hover:underline">
+              <InlineRef href="/bot/terms" className="font-bold">
                 Terms of Service
-              </a>
+              </InlineRef>
               .
             </p>
           </section>

@@ -29,7 +29,7 @@ function Cell({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col items-center gap-1.5">
       <div className="flex min-h-[52px] items-center">{children}</div>
-      <code className="text-nano text-wk-muted">{label}</code>
+      <code className="text-badge text-wk-muted">{label}</code>
     </div>
   )
 }

@@ -33,7 +33,7 @@ describe('Field / Input', () => {
     expect(screen.getByText('*').closest('.bg-ink')).not.toBeNull()
   })
 
-  test('input carries the rust focus ring classes', () => {
+  test('input carries the focus ring classes', () => {
     render(<Input aria-label="callsign" />)
     expect(screen.getByLabelText('callsign').className).toContain(INPUT_FOCUS)
   })
@@ -51,7 +51,7 @@ describe('Field / Input', () => {
     expect(screen.getByLabelText('plain').hasAttribute('inputmode')).toBe(false)
   })
 
-  test('Textarea and Select share the Input skin (paper/ink border, rust ring)', () => {
+  test('Textarea and Select share the Input skin (paper/ink border, focus ring)', () => {
     render(<Textarea aria-label="motto" />)
     render(<Select aria-label="class" />)
     for (const label of ['motto', 'class']) {

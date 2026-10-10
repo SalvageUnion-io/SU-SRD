@@ -14,8 +14,9 @@ type PageHeadingProps = {
    * fifteen hand-rolled `font-cond … uppercase` headings at five different
    * sizes, and the two rungs above could only absorb the largest of them;
    * without this one the smallest simply stayed hand-rolled. It emits NO text
-   * colour, so a section head that is deliberately rust (a Game roster group)
-   * passes `text-rust` through `className` instead of forking the rung.
+   * colour, so a section head that needs one (a Game roster group's tone)
+   * passes it through `className` instead of forking the rung. Never rust:
+   * rust is an action's colour (ruleset §3.1).
    */
   variant?: 'heading' | 'subheading' | 'section'
   /**

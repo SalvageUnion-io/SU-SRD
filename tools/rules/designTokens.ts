@@ -17,7 +17,11 @@
  *
  * ## Zero rules and the two ratchets
  *
- * Six rules are `zero`: any finding fails. Two still carry a backlog and are
+ * Nine rules are `zero`: any finding fails. Three of them landed with the brand
+ * refresh's tokens (#1251) and hold the Workshop Manual canon the ruleset
+ * ratified in #1250: `rust-allowlist` (§3.1), `type-floor` (§4.6) and
+ * `texture-placement` (§3.5). Each landed with its backlog fixed, not
+ * baselined, so it starts at zero. Two rules still carry a backlog and are
  * `ratchet` rules, counted against `tools/styling-baseline.json`:
  *
  *   - `raw-color` — the Discord bot restates the palette as hex integers
@@ -65,7 +69,53 @@ type TokenRule = Rule & {
   pattern: RegExp
   /** Files this rule never applies to (substring matches on the repo-relative path). */
   skip?: string[]
+  /**
+   * Keep a match only when this holds — for a law a pattern alone cannot
+   * decide: "under 11px" needs arithmetic, and "on a forbidden surface" needs
+   * the file's path and the rest of the line.
+   */
+  keep?: (match: string, line: string, file: string) => boolean
 }
+
+/**
+ * The px a font-size literal renders at, or `undefined` when it is not a
+ * literal this can size (a retired rung's NAME, which is sub-floor by
+ * definition). A unitless number is px, as a React style object reads it.
+ */
+export function fontSizePx(match: string): number | undefined {
+  const m = match.match(/(\d*\.?\d+)(px|rem)?(?![\d.])/)
+  if (!m) return undefined
+  const n = Number(m[1])
+  return m[2] === 'rem' ? n * 16 : n
+}
+
+/** The type floor (ruleset §4.6): nothing renders under 11px. */
+export const TYPE_FLOOR_PX = 11
+
+/**
+ * Where the light speckle may never sit (ruleset §3.5 "Texture"): buttons,
+ * fields, the Dashboard and tooltips, by the files that draw them. Paper, the
+ * fifth surface, is not a file — it is caught on the line instead (see
+ * `PAPER_GROUND`).
+ */
+const TEXTURE_FORBIDDEN: readonly RegExp[] = [
+  // The Dashboard: ITUN's cockpit and its stylesheets.
+  /\/dashboard\//,
+  /\/Dashboard\w*\.(?:tsx?|css)$/,
+  // Buttons: Button, its recipe, and every *Button component.
+  /Button\w*\.tsx?$/,
+  /\/buttonVariants\.ts$/,
+  // Fields: the input primitives.
+  /\/chrome\/(?:Field|FieldError|InlineEditField|inputs|Sel|Checkbox|RadioCardGroup|CountStepper)\.tsx$/,
+  /\/SearchField\.tsx$/,
+  // Tooltips: the tooltip primitive and the entity hovercard.
+  /\/ui\/tooltip\.tsx$/,
+  /Tooltip\w*\.tsx$/,
+]
+
+/** A paper GROUND on the same line — the speckle never sits on paper. */
+const PAPER_GROUND =
+  /(?<![\w-])bg-paper(?![\w-])|background(?:-color|Color)?\s*:\s*(?:var\(--color-paper\)|color\.paper\b)/
 
 export const TOKEN_RULES: TokenRule[] = [
   {
@@ -166,8 +216,61 @@ export const TOKEN_RULES: TokenRule[] = [
     id: 'arbitrary-font-size',
     mode: 'ratchet',
     rule: 'ruleset §4.2 — one type scale',
-    fix: 'Use the semantic type ladder: `fontSize.nano` / `var(--text-nano)`, then micro / label / labelLg / badge / note / caption / lede, and the display end — readout (17) / title (22) / display (26) / displayLg (31) / hero (38).',
+    fix: 'Use the semantic type ladder: `fontSize.badge` / `var(--text-badge)` (11px, the floor), then note / caption / lede, and the display end — readout (17) / title (22) / display (26) / displayLg (31) / hero (38).',
     pattern: /text-\[(?!var\(|color:|--)[^\]]+\]/g,
+  },
+  {
+    id: 'type-floor',
+    mode: 'zero',
+    rule: 'ruleset §4.6 — the 11px type floor, no exceptions',
+    // Board 04 ("raise the floor"): the four rungs under 11px carried most of
+    // the stamps and stat labels — exactly the words a player squints at
+    // mid-combat. They were retired into `badge`, and this keeps them retired:
+    // a retired rung's NAME is a finding (in any spelling — utility, custom
+    // property, token key, caps-recipe class), and so is any LITERAL size
+    // under 11px (an arbitrary utility, a CSS declaration, a style-object or
+    // SVG `fontSize`). `arbitrary-font-size` above still counts every
+    // arbitrary utility; this one fails the build on the small ones.
+    fix: 'Use `fontSize.badge` / `var(--text-badge)` / `text-badge` (11px) — the floor. A caps label at the floor reads at `tracking.capsSnug` (0.06em). Nothing renders smaller, seam and roll-table stamps included.',
+    pattern:
+      /(?<![\w-])text-(?:nano|micro|label(?:-lg)?)(?![\w-])|--text-(?:nano|micro|label(?:-lg)?)(?![\w-])|\bfontSize\.(?:nano|micro|label|labelLg)\b|\bsu-caps--(?:nano|micro|label(?:-lg)?)\b|text-\[\d*\.?\d+(?:px|rem)\]|font-size\s*:\s*\d*\.?\d+(?:px|rem)?(?![\w.])|\bfont[sS]ize\s*[=:]\s*\{?\s*['"`]?\d*\.?\d+(?:px|rem)?(?![\w.])/g,
+    keep: (match) => {
+      const px = fontSizePx(match)
+      return px === undefined || px < TYPE_FLOOR_PX
+    },
+  },
+  {
+    id: 'rust-allowlist',
+    mode: 'zero',
+    rule: 'ruleset §3.1 — rust = action, only action (Button / buttonVariants / InlineRef)',
+    // Rust had leaked into chrome as a brand accent — the ".io" and "Beta"
+    // marks, section headings, the "you are here" state, link text, focus and
+    // selection rings — and `--color-sheet-pilot-deep` aliased it outright, so
+    // nothing on screen said "this does something" any more (board 03, issue
+    // register #7). Every spelling of the rust family counts: the custom
+    // property (rust, rust-hi, rust-25), a Tailwind utility under any variant
+    // prefix, and the `color.rust*` token keys.
+    fix: 'Rust is painted only by `Button` / `buttonVariants` (every action) and `InlineRef` (an inline link). A link in prose is `InlineRef` or `inlineLinkClass`; a heading or a "here" state is ink (an ink Slab, an inverse stamp); a focus or selection ring is ink. Never alias a token to rust.',
+    pattern:
+      /--color-rust(?:-[a-z0-9]+)?(?![\w-])|\b(?:bg|text|border(?:-[trblxy])?|ring|ring-offset|outline|fill|stroke|decoration|from|via|to|shadow|accent|caret|divide)-rust(?:-hi|-25)?(?![\w-])|\bcolor\.rust(?:Hi|25)?\b/g,
+  },
+  {
+    id: 'texture-placement',
+    mode: 'zero',
+    rule: 'ruleset §3.5 — the speckle sits on bands and ink, never on paper, buttons, fields, the Dashboard or tooltips',
+    // The light speckle (board 05c) is ink grain on a colour band and paper
+    // flecks on an ink ground. On a button it reads as dirt on the one thing
+    // that must read clean; on a field it fights the text being typed; on a
+    // tooltip it is noise at glance size; the Dashboard is an instrument; and
+    // on paper there is no band for it to belong to. A texture reference —
+    // a filter id, a `--texture-*` property or the `texture` / `speckle`
+    // tokens — is a finding in a file that draws one of those surfaces, or on
+    // a line that also paints a paper ground.
+    fix: 'Put the speckle on the colour band or ink ground behind the content (a chapter band, a tone header, an ink banner, the Union bar), never on paper, a button, a field, the Dashboard or a tooltip.',
+    pattern:
+      /\bsu-(?:blot|speck|fleck)\b|--texture-[a-z-]+|\b(?:texture|speckle)\.(?:blotOpacity|speckOpacity|fleckOpacity|filters|grains)\b|\btokens\.(?:texture|speckle)\b/g,
+    keep: (_match, line, file) =>
+      TEXTURE_FORBIDDEN.some((zone) => zone.test(file)) || PAPER_GROUND.test(line),
   },
   {
     id: 'pure-white',
@@ -185,15 +288,39 @@ export const TOKEN_RULES: TokenRule[] = [
 const EXEMPTIONS: Exemption[] = [
   {
     file: 'packages/component-lib/src/styles/theme.css',
-    rules: ['raw-color', 'arbitrary-border-width', 'arbitrary-radius'],
+    rules: ['raw-color', 'arbitrary-border-width', 'arbitrary-radius', 'rust-allowlist'],
     reason:
-      'The token definitions themselves — this file is where colour is allowed to be a literal. arbitrary-border-width and arbitrary-radius are exempt for a different reason: the file authors no borders and no radii at all, it DEFINES the --bw-* and --radius-* ladders. Their only matches are the prose in each ladder doc-comment ("never `border-[1.5px]`", "never rounded-[Npx]") — the rule text quoting the form it forbids. Rewording those comments to dodge the regex would make the canon harder to read to satisfy a lint.',
+      'The token definitions themselves — this file is where colour is allowed to be a literal, and where `--color-rust` is DEFINED (rust-allowlist governs who paints with it, not where it is declared). arbitrary-border-width and arbitrary-radius are exempt for a different reason: the file authors no borders and no radii at all, it DEFINES the --bw-* and --radius-* ladders. Their only matches are the prose in each ladder doc-comment ("never `border-[1.5px]`", "never rounded-[Npx]") — the rule text quoting the form it forbids. Rewording those comments to dodge the regex would make the canon harder to read to satisfy a lint.',
   },
   {
     file: 'packages/component-lib/src/design/tokens.ts',
-    rules: ['raw-color'],
+    rules: ['raw-color', 'rust-allowlist'],
     reason:
       'The TypeScript mirror of theme.css above: a token-definition file, so it is where colour is allowed to be a literal. Every value is ported verbatim from theme.css — nothing here is a new colour, and `src/design/tokens.parity.test.ts` fails if the two ever disagree. The exemption is scoped to `raw-color` alone: an arbitrary radius, tracking or border width written here would still be a violation, because those ladders are token NAMES rather than literals even inside the file that defines them.',
+  },
+  {
+    file: 'packages/component-lib/src/components/chrome/Button.tsx',
+    rules: ['rust-allowlist'],
+    reason:
+      'THE rust allowlist (ruleset §3.1): rust means "do something", and Button is the thing that does. Every action, the Dashboard cost-pennant button included, is painted here or by buttonVariants.',
+  },
+  {
+    file: 'packages/component-lib/src/components/chrome/buttonVariants.ts',
+    rules: ['rust-allowlist'],
+    reason:
+      "THE rust allowlist (ruleset §3.1): Button's class-string recipe, which links styled as buttons use. Its stylesheet half is `.su-btn--primary` in styles/index.css, whose rust lines carry a `design-tokens-ignore` naming this allowlist (the file is shared, so it cannot be exempted whole).",
+  },
+  {
+    file: 'packages/component-lib/src/components/chrome/InlineRef.tsx',
+    rules: ['rust-allowlist'],
+    reason:
+      'THE rust allowlist (ruleset §3.1): the one Reference exception — an inline link. `inlineLinkClass` here is the same treatment for a plain prose link, so a link anywhere in either app reads as InlineRef does.',
+  },
+  {
+    file: 'apps/discord-bot/src',
+    rules: ['rust-allowlist'],
+    reason:
+      "Not a web surface. The bot's embed accent is rust in lockstep with theme.css (`themeLockstep.test.ts`), and Discord renders it as a container edge, not a button or a link; the matches here are the doc comments that cite `--color-rust` as that lockstep's source. Discord's own palette rules are the bot's (ruleset §3.4), not this allowlist's.",
   },
   {
     file: 'packages/component-lib/src/components/chrome/Slab.tsx',
@@ -210,6 +337,7 @@ const EXEMPTIONS: Exemption[] = [
   {
     file: 'packages/component-lib/src/stories',
     rules: [
+      'rust-allowlist',
       'raw-color',
       'arbitrary-font-size',
       'arbitrary-tracking',
@@ -218,7 +346,7 @@ const EXEMPTIONS: Exemption[] = [
       'gradient',
     ],
     reason:
-      'Foundations catalog pages render token specimens and deliberately show off-system values as counter-examples. arbitrary-border-width is on the list for exactly that reason: the sole match is Theme.stories.tsx printing the border ladder\'s own caption, "never border-[1.5px]" — the counter-example is the content. (This entry is the directory, so it also covers the non-story helper here, _harness.tsx.)',
+      'Foundations catalog pages render token specimens and deliberately show off-system values as counter-examples. rust-allowlist is on the list because Foundations/Theme specimens the rust swatch itself — a token page that could not show the action colour would be missing a token. arbitrary-border-width is on the list for exactly that reason: the sole match is Theme.stories.tsx printing the border ladder\'s own caption, "never border-[1.5px]" — the counter-example is the content. (This entry is the directory, so it also covers the non-story helper here, _harness.tsx.)',
   },
   {
     file: '.stories.tsx',
@@ -322,6 +450,7 @@ export function scanTokenSources(sources: ReadonlyMap<string, string>): Record<s
         // A line may opt out with a cited reason.
         if (line.includes('design-tokens-ignore')) return
         for (const match of line.match(rule.pattern) ?? []) {
+          if (rule.keep && !rule.keep(match, line, rel)) continue
           out[rule.id]?.push({ file: rel, line: i + 1, detail: match })
         }
       })

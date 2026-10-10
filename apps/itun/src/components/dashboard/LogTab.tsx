@@ -64,7 +64,7 @@ const ROW: CSSProperties = {
 const META: CSSProperties = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
-  fontSize: fontSize.label,
+  fontSize: fontSize.badge,
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   color: color.ink75,

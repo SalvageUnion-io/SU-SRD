@@ -72,7 +72,7 @@ export function EntityCardSubHeader({
 
   // Cell size ladder, nudged up one notch: a FULL card's cells are the default
   // (text-sm); a compact/nested card's cells are one step down (`compact` →
-  // text-xs) — bigger than text-label, still smaller than full. The
+  // text-xs) — bigger than text-badge, still smaller than full. The
   // inter-cell gap is the SAME (gap-1.5) at both sizes.
 
   // Book-style sub-header: the stat cells read as ONE line of basic cream

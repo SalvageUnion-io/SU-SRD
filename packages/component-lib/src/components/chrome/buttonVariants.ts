@@ -69,7 +69,7 @@ export const buttonVariants = cva(`su-btn ${FOCUS_RING} ${DISABLED}`, {
        * `.su-btn--mini`; its condensed caps come from the recipe below, which
        * is why the two are composed rather than duplicated.
        */
-      mini: `su-btn--mini ${capsLabel({ size: 'label-lg', weight: 'semibold', tracking: 'none' })}`,
+      mini: `su-btn--mini ${capsLabel({ size: 'badge', weight: 'semibold', tracking: 'none' })}`,
       /** The SQUARE icon-only rung — a glyph with no label. */
       iconOnly: 'su-btn--icon-only',
     },

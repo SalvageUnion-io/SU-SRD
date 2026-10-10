@@ -26,17 +26,21 @@ import type { KeyboardEvent } from 'react'
  * app-side code and cannot be renamed cheaply. Treat a new one as a commitment.
  */
 
-/** The canonical rust focus ring (design-spec §2.4). */
+/**
+ * The canonical focus ring (design-spec §2.4): a paper offset under an ink ring.
+ * It was rust until the rust allowlist (ruleset §3.1) — rust is painted only by
+ * an action, and a focused field or card is not one.
+ */
 export const FOCUS_RING = 'su-focus-ring'
 
 /**
- * The same rust ring for text inputs (design-spec §2.5), on plain `focus:` —
+ * The same ring for text inputs (design-spec §2.5), on plain `focus:` —
  * an editable control shows the ring on every focus, not just keyboard focus.
  */
 export const INPUT_FOCUS = 'su-input-focus'
 
 /**
- * The same rust ring again, raised by a focusable DESCENDANT — the search-field
+ * The same ring again, raised by a focusable DESCENDANT — the search-field
  * shape, where the bordered shell is the thing that should look focused but the
  * `<input>` inside is what actually takes focus. The inner control carries
  * `focus:outline-none` itself, so this is ring-only: there is no outline on the
@@ -53,8 +57,9 @@ export const FOCUS_WITHIN = 'su-focus-within'
 /**
  * The ON-TONE rung: an ink ring with a paper offset, for a focusable surface
  * whose own background is an arbitrary ENTITY TONE rather than paper — a
- * clickable entity card can be pale pilot or near-black `tl-6`, and the 25%-alpha
- * rust ring simply disappears against the dark end of that ramp.
+ * clickable entity card can be pale pilot or near-black `tl-6`, and the old
+ * 25%-alpha rust ring simply disappeared against the dark end of that ramp.
+ * Since the canonical ring went ink it draws the same ring.
  *
  * This is a real exception, not drift, so it is named instead of inlined: the
  * ring is the accessibility affordance, and a rung that vanishes on a legal
@@ -66,13 +71,14 @@ export const FOCUS_RING_ON_TONE = 'su-focus-ring-on-tone'
 /** The canonical disabled treatment (opacity + no pointer events). */
 export const DISABLED = 'su-disabled'
 
-/** Non-layout-shifting 3px rust selection ring (design-spec §2.8). */
+/** Non-layout-shifting 3px ink selection ring (design-spec §2.8). Ink, not
+ * rust: a selection is state, not an action (ruleset §3.1). */
 export const SELECTION_RING = 'su-selection-ring'
 
 /**
  * Double-ink "halo" selection ring — a ground gap then a 3px ink ring, the
- * emphasis the onboarding doors / custom-build door use instead of the rust
- * ring. Opt in via `Sel`'s `ring="ink-double"`.
+ * emphasis the onboarding doors / custom-build door use instead of the plain
+ * selection ring. Opt in via `Sel`'s `ring="ink-double"`.
  */
 export const SELECTION_RING_INK_DOUBLE = 'su-selection-ring-ink-double'
 

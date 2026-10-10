@@ -32,7 +32,7 @@ function Trigger({ tone, label }: { tone?: 'action' | 'danger'; label: string })
           </Text>
         </div>
       </ModalShell>
-      <code className="font-body text-nano text-wk-muted">{tone ?? 'action (default)'}</code>
+      <code className="font-body text-badge text-wk-muted">{tone ?? 'action (default)'}</code>
     </div>
   )
 }

@@ -53,10 +53,6 @@ export const capsLabel = cva('su-caps', {
      * the size — a `Badge` surface, a `Button` size, or a container-driven step.
      */
     size: {
-      nano: 'su-caps--nano',
-      micro: 'su-caps--micro',
-      label: 'su-caps--label',
-      'label-lg': 'su-caps--label-lg',
       badge: 'su-caps--badge',
       note: 'su-caps--note',
       caption: 'su-caps--caption',

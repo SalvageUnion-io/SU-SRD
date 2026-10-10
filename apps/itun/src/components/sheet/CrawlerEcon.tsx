@@ -105,7 +105,7 @@ function EconLoz({ item }: { item: EconLozItem }) {
           hand-rolled lozenge had. */}
       <Stat size="full" label={item.label} value={item.value} max={item.max} />
       {item.caption && (
-        <span className="font-cond text-nano font-semibold uppercase tracking-caps-wide text-ink/55">
+        <span className="font-cond text-badge font-semibold uppercase tracking-caps-wide text-ink/55">
           {item.caption}
         </span>
       )}
