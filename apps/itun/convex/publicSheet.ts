@@ -1,11 +1,16 @@
+import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError, v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
+import type { PatternVisibility } from './model/entities'
 import {
   linksTouching,
+  mayReadPattern,
   mutation,
   parseBody,
+  patternByAppId,
+  patternVisibilityOf,
   resolveLinkEnd,
   sameContainerRows,
 } from './model/entities'
@@ -40,6 +45,15 @@ import { NotAuthorized, requireTableRunner, requireUser } from './model/permissi
  *   by any argument — the table union below is the whole surface.
  * - **No refusal.** A non-public entity returns `null`, exactly as a
  *   nonexistent one does. "This sheet is private" is itself a disclosure.
+ *
+ * ## Mech patterns join it (#1276)
+ *
+ * A saved mech pattern is the one thing a player MAKES that can be published
+ * here, at `/p/pattern/:appId`, with the same `publicRead` opt-in. It has its
+ * own query, `pattern`, rather than a fourth `KIND_TO_TABLE` entry: a pattern
+ * has no assignments and no maxima, and it has a second audience — a Game's
+ * crew — that a sheet reaches through the Game view instead. The rules above
+ * hold for it unchanged: no listing, and private reads as nonexistent.
  */
 
 /** The three tables a public sheet can be. Never widened to `encounterNpcs`. */
@@ -352,5 +366,49 @@ export const setPublic = mutation({
 
     await ctx.db.patch(row._id, { publicRead: args.isPublic })
     return { isPublic: args.isPublic }
+  },
+})
+
+/** One readable pattern, as its page draws it. */
+type PatternAnswer = {
+  body: unknown
+  /** The maker's display name: the page's only credit (ruleset §3.9). */
+  madeBy: string
+  /** When it was shared, for the page's foot; null while it is the maker's alone. */
+  sharedAt: number | null
+  /** Mechs built from it so far. */
+  builtCount: number
+  /** The reader made it. */
+  mine: boolean
+  /** Who may read it — told to its maker only. */
+  visibility: PatternVisibility | null
+}
+
+/**
+ * One saved mech pattern, or null (#1276, board P2).
+ *
+ * **Unauthenticated by design**, like `get`: a pattern shared by link is
+ * readable with no account. A signed-in reader also reaches one shared with a
+ * Game they are in, and their own. Everything else — private, another crew's,
+ * or no such pattern — is the same `null`.
+ */
+export const pattern = query({
+  args: { appId: v.string() },
+  handler: async (ctx, args): Promise<PatternAnswer | null> => {
+    const row = await patternByAppId(ctx, args.appId)
+    if (row === null) return null
+    const userId = await getAuthUserId(ctx)
+    if (!(await mayReadPattern(ctx, row, userId))) return null
+
+    const maker = await ctx.db.get(row.ownerId)
+    const mine = row.ownerId === userId
+    return {
+      body: row.body,
+      madeBy: maker?.displayName ?? maker?.name ?? 'a player',
+      sharedAt: row.sharedAt ?? null,
+      builtCount: row.builtCount ?? 0,
+      mine,
+      visibility: mine ? patternVisibilityOf(row) : null,
+    }
   },
 })
