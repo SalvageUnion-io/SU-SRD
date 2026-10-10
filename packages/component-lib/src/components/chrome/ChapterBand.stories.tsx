@@ -24,6 +24,9 @@ const PAGE = { backgroundColor: color.wkBg, paddingBottom: space[16] } satisfies
 
 const STAMPS = { display: 'flex', gap: space[6] } satisfies CSSProperties
 
+// The ink band carries paper text; the caller dresses it.
+const ON_INK = { color: color.paper } satisfies CSSProperties
+
 /**
  * The page title as the Workshop Manual sets it: a band in the chapter's
  * colour with ink speckle, the title notched into its foot in ink on the page
@@ -87,6 +90,20 @@ export const Default: Story = () => (
     <div style={PAGE}>
       <Caption>denizen — the navy band</Caption>
       <ChapterBand tone="denizen">{bioTitan?.name ?? 'Denizens'}</ChapterBand>
+    </div>
+    <div style={PAGE}>
+      <Caption>ink — no chapter of the book: ITUN's Shelves (board S1), paper flecks</Caption>
+      <ChapterBand
+        tone="ink"
+        measure="80rem"
+        eyebrow={
+          <span style={ON_INK}>
+            Everything you keep, on your account. Units in a Game stay on your shelf too.
+          </span>
+        }
+      >
+        Shelves
+      </ChapterBand>
     </div>
   </div>
 )

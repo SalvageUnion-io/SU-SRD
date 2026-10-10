@@ -27,6 +27,15 @@ describe('ChapterBand', () => {
     expect((container.firstElementChild as HTMLElement).style.backgroundColor).toBe(color.wkLine)
   })
 
+  test('the ink band (Shelves, board S1) wears paper flecks, not ink speckle', () => {
+    const html = renderToStaticMarkup(<ChapterBand tone="ink">Shelves</ChapterBand>)
+    expect(html).toContain(`background-color:${color.ink}`)
+    // One fleck layer in the page-ground colour; no ink blot or speck.
+    expect(Array.from(html.matchAll(/<filter id="su-fleck/g))).toHaveLength(1)
+    expect(html).not.toContain('su-blot')
+    expect(html).not.toContain('su-speck')
+  })
+
   test('renders the aside on the band and honours `as` and `id`', () => {
     render(
       <ChapterBand as="h2" id="band-title" aside={<span>Mech Chassis</span>}>

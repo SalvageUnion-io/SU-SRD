@@ -34,9 +34,14 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  *
  * `tone` is the book's colour map (ruleset, "The source"): `rules` is the
  * rules-blue band of Contents, Core Rules, Salvaging, Guides and Keywords;
- * `pilot`, `mech`, `crawler` and `denizen` are the four chapters. Content in
- * `aside` and `eyebrow` is ink on every band but `denizen`, whose navy carries
- * paper text — the caller dresses it.
+ * `pilot`, `mech`, `crawler` and `denizen` are the four chapters. `ink` is the
+ * dark band of a page that is the player's own (ITUN's Shelves, board S1): it
+ * wears paper flecks instead of ink speckle (ruleset §3.5). Content in `aside`
+ * and `eyebrow` is ink on `rules`, `pilot`, `mech` and `crawler`; the `denizen`
+ * band is navy and the `ink` band ink, and both carry paper text — the caller
+ * dresses it. A page that wants paper text on the crawler pink passes `fill`
+ * the deeper `crawlerBand`, which carries it (the book's crawler pink carries
+ * neither ink nor paper at 4.5 : 1).
  *
  * ## User-made
  *
@@ -91,7 +96,7 @@ export type ChapterBandProps = {
    * on a link preview). Overrides `tone`'s colour.
    */
   fill?: string
-  /** The speckle: `ink` grain on a colour band (default), `paper` flecks on ink. */
+  /** The speckle: `ink` grain on a colour band, `paper` flecks on ink (default follows `tone`). */
   grain?: SpeckleGrain
   /** `page` (default) or `og`, the fixed 1200 × 630 link-preview scale. */
   scale?: 'page' | 'og'
@@ -165,7 +170,7 @@ export function ChapterBand({
   eyebrow,
   userMade = false,
   fill,
-  grain = 'ink',
+  grain,
   scale = 'page',
   titleSize,
 }: ChapterBandProps) {
@@ -183,7 +188,7 @@ export function ChapterBand({
         ...(userMade ? { backgroundImage: USER_MADE_HATCH } : {}),
       }}
     >
-      <Speckle grain={grain} />
+      <Speckle grain={grain ?? (tone === 'ink' ? 'paper' : 'ink')} />
       {eyebrow && (
         <div
           className="su-chapter-band__eyebrow"
