@@ -118,7 +118,7 @@ export function EntityCardIdentityFooter({
             gap: space[8],
             justifyContent: 'flex-end',
             minWidth: 0,
-            flex: '0 1 auto',
+            flex: '1 1 0',
           }}
         >
           {footMeta?.map(({ label, value }, i) => (
@@ -136,7 +136,15 @@ export function EntityCardIdentityFooter({
               <span style={{ fontWeight: weight.bold, lineHeight: 1 }}>{value}</span>
             </span>
           ))}
-          {primary && <span style={truncate}>{primary}</span>}
+          {/* `contain: inline-size`: a long source adds nothing to the card's
+              min-content, so it truncates instead of widening the page. */}
+          {primary && (
+            <span
+              style={{ ...truncate, contain: 'inline-size', flex: '1 1 0', textAlign: 'right' }}
+            >
+              {primary}
+            </span>
+          )}
           {externalLink && <span style={{ ...truncate, flexShrink: 0 }}>{externalLink}</span>}
         </div>
       </div>

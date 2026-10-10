@@ -8,7 +8,7 @@ import { Tooltip as SimpleTooltip } from '../ui/tooltip'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
 
 /** The tooltip's lifted plate: a hard ink offset under the card, no blur (E3). */
-const PLATE_OFFSET = '4px 4px 0 0 var(--color-ink)'
+const PLATE_OFFSET = 'drop-shadow(4px 4px 0 var(--color-ink))'
 
 /**
  * The hovercard POPUP an entity tooltip opens — the §1 Tooltip context: the
@@ -31,10 +31,13 @@ export function EntityHovercard({
     <Tooltip.Portal>
       <Tooltip.Positioner sideOffset={5} align="start">
         <Tooltip.Popup
-          className="z-50 max-h-[80vh] overflow-y-auto border-none bg-transparent p-0"
+          className="z-50 max-h-[80vh] overflow-y-auto border-none bg-transparent px-0 pb-0"
           style={{
-            borderRadius: 'var(--radius-card)',
-            boxShadow: PLATE_OFFSET,
+            // The seam stamp rides ABOVE the frame; the popup scrolls, so it
+            // keeps its own room at the top or the scroll box cuts the stamp.
+            // A drop-shadow (not a box-shadow) follows the card, not the room.
+            filter: PLATE_OFFSET,
+            paddingTop: '12px',
             // Never wider than the room beside the trigger or the screen (a
             // phone), less the offset; the screen also bounds the first,
             // unmeasured frame, when Base UI has not set the room yet.
@@ -42,7 +45,7 @@ export function EntityHovercard({
           }}
         >
           <InsideTooltipContext.Provider value={true}>
-            <ReferenceEntityCard data={entity} size="medium" extent="catalog" texture={false} />
+            <ReferenceEntityCard data={entity} size="small" extent="full" texture={false} />
           </InsideTooltipContext.Provider>
         </Tooltip.Popup>
       </Tooltip.Positioner>

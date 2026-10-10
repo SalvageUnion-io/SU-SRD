@@ -68,7 +68,17 @@ const BAND_PAD: Record<CardSize, string> = {
   small: `${space[6]} ${space[8]}`,
 }
 
+/**
+ * A truncating one-liner. `contain: inline-size` gives it NO min-content
+ * contribution: a nowrap title or hint would otherwise add its whole text
+ * length to a width-less ancestor (an island page's wrapper) and push the
+ * page wider than the viewport.
+ */
+/** The title's readable stub in a one-line row (about eleven characters). */
+const STUB: Record<CardSize, string> = { large: '11rem', medium: '8.5rem', small: '6rem' }
+
 const ONE_LINE: CSSProperties = {
+  contain: 'inline-size',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -125,8 +135,18 @@ export function EntityCardHeader({
         // cells on the right at medium and small, and only a large header
         // gives the title the whole row. Either way the cells wrap beneath
         // when they truly cannot fit.
-        flex: oneLine ? '0 1 auto' : size === 'large' ? '1 1 auto' : '1 1 0',
-        minWidth: oneLine ? 'min(100%, 11ch)' : size === 'large' ? 0 : 'min-content',
+        // One line: basis 0 (contained, it has no intrinsic width) and a heavy
+        // grow, so it takes the row the cells and a hint leave it.
+        flex: oneLine
+          ? rightContent
+            ? '3 1 0'
+            : '1 1 0'
+          : size === 'large'
+            ? '1 1 auto'
+            : '1 1 0',
+        // One line: the title may go to nothing rather than push the cells or
+        // the chevron past the card's edge; its stub is kept by the cluster's cap.
+        minWidth: oneLine ? 0 : size === 'large' ? 0 : 'min-content',
         overflowWrap: 'break-word',
         ...(oneLine ? ONE_LINE : {}),
       }}
@@ -139,7 +159,7 @@ export function EntityCardHeader({
       className={cn('font-body italic leading-snug', titleTextClass)}
       style={
         oneLine
-          ? { flex: '1 1 0', minWidth: 0, ...ONE_LINE }
+          ? { flex: '1 1 0', minWidth: 0, textAlign: 'right', ...ONE_LINE }
           : { flex: '1 1 12rem', minWidth: 0, textAlign: 'right' }
       }
     >
@@ -192,6 +212,11 @@ export function EntityCardHeader({
             gap: space[4],
             justifyContent: 'flex-end',
             marginLeft: oneLine ? 'auto' : undefined,
+            // One line: the cluster leaves the title about eleven characters
+            // (and the chevron's room) so the cells shed first; its min-content
+            // floor beats the cap, so the first cell and the pennant are never
+            // cut when the row is simply too narrow.
+            maxWidth: oneLine ? `calc(100% - ${STUB[size]} - 3rem)` : undefined,
             minWidth: oneLine ? 'min-content' : 0,
           }}
         >

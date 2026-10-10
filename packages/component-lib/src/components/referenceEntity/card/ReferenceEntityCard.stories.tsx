@@ -628,7 +628,7 @@ const panel = {
   minWidth: 0,
 } as const
 
-/** The Dashboard card: flat, no footer, each inline action's pennant the button. */
+/** The Dashboard card: flat, the same footer as every context, each inline action's pennant the button. */
 function DashboardCard() {
   return (
     <div style={{ backgroundColor: 'var(--color-ink-deep)', padding: '16px' }}>
@@ -636,7 +636,6 @@ function DashboardCard() {
         data={system}
         size="medium"
         texture={false}
-        hide={{ footer: true }}
         actionControls={(action) => [
           {
             key: 'activate',
