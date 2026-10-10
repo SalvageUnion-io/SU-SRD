@@ -996,6 +996,11 @@ function printSummary(results: Result[]) {
   }
 }
 
+/** Escape text for a markdown table or list: backslashes first, then pipes. */
+function mdEscape(s: string): string {
+  return s.replace(/\\/g, '\\\\').replace(/\|/g, '\\|')
+}
+
 function excerpt(s: string, n = 90): string {
   return s.length > n ? `${s.slice(0, n - 1)}…` : s
 }
@@ -1030,7 +1035,7 @@ function markdownSummary(results: Result[], editions: Record<string, string>): s
     out.push('', `<details><summary><code>${reason}</code>: ${rs.length}</summary>`, '')
     for (const r of rs.slice(0, 8))
       out.push(
-        `- \`${r.item.file}\` **${r.item.entityName}** \`${r.item.path}\`${r.book ? ` (nearest: ${r.book} p.${r.page}${r.score !== undefined ? `, score ${r.score}` : ''})` : ''} — “${excerpt(r.item.text).replace(/\|/g, '\\|')}”`
+        `- \`${r.item.file}\` **${r.item.entityName}** \`${r.item.path}\`${r.book ? ` (nearest: ${r.book} p.${r.page}${r.score !== undefined ? `, score ${r.score}` : ''})` : ''} — “${mdEscape(excerpt(r.item.text))}”`
       )
     out.push('', '</details>')
   }
