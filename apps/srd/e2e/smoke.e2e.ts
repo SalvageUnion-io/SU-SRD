@@ -97,6 +97,25 @@ for (const width of [375, 1440]) {
       () => document.documentElement.scrollWidth - window.innerWidth
     )
     expect(overflow).toBeLessThanOrEqual(0)
+    if (width === 1440) {
+      // Board 07: the line-art hero on the left, the stat column on the right.
+      const art = await page.locator('.su-entity-page__art').first().boundingBox()
+      expect(art).toBeTruthy()
+      if (art && statsBox) expect(art.x).toBeLessThan(statsBox.x)
+    }
+  })
+}
+
+// A listing row is an index line: the name never loses a character to the cells.
+for (const width of [375, 1440]) {
+  test(`a chassis listing row at ${width}px shows its name in full`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto('/schema/chassis/')
+    const row = page.locator('a[aria-label="Scrapper"][href*="/schema/chassis/item/"]')
+    await expect(row).toBeVisible({ timeout: 30_000 })
+    const name = row.getByText('Scrapper', { exact: true })
+    const fits = await name.evaluate((el) => el.scrollWidth <= el.clientWidth)
+    expect(fits).toBe(true)
   })
 }
 
