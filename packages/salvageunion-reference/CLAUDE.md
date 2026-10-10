@@ -128,7 +128,9 @@ some other field (`findAll((e) => e.techLevel === 3)`), not an identity lookup.
 this package; `add` mints the id) is the one writer of `data/`, then
 `bun run check data`. A **new schema** is the next section. Copy rules text
 from the source word-for-word: descriptions and effects are verbatim, never
-paraphrased.
+paraphrased. Gate `rules-fidelity` enforces it: run
+`bun run check:rules-fidelity --update`; exceptions go in
+`lib/proseDeviations.ts`.
 
 ## Adding a New Entity **Type** (schema)
 

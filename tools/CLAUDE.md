@@ -40,6 +40,7 @@ the corpus size, not just the finding count.
 | `knip` | `bun run knip` | — |
 | `biome` | `biome ci .`, plus the GritQL plugins in `biome/` | — |
 | `data` | `packages/salvageunion-reference/tools/validate.ts` (`--only=` runs a subset) | — |
+| `rules-fidelity` | `check-fidelity-lock.ts`: fails a prose string whose text has no verdict in the lock (`--prune` drops entries for deleted strings). Needs no book; the verdicts come from `check-rules-fidelity.ts --update` | `packages/salvageunion-reference/fidelity.lock.json` |
 | `doc-drift` | `check-doc-drift.ts` | `OVER_BUDGET`, `COLLAPSED_DOCS` and `RETIRED_CLAIMS` in the script |
 | `observability` | `check-observability.ts` | — |
 | `convex-callers` | `check-convex-callers.ts` (also: `api.d.ts` registers exactly the modules on disk) | — |
@@ -64,14 +65,16 @@ the corpus size, not just the finding count.
 
 | Script | Run as | Purpose |
 | --- | --- | --- |
-| `extract-rules.ts` | `rules:extract` | Rules PDFs in `rules/` to `rules/extracted/*.txt` with page markers. The PDFs are gitignored; no-ops without them. |
+| `extract-rules.ts` | `rules:extract` | Rules PDFs in `rules/` to `rules/extracted/*.txt` with page markers, plus a content-stream-order layer in `rules/extracted/raw/` for the fidelity check. The PDFs are gitignored; no-ops without them. |
+| `check-rules-fidelity.ts` | `check:rules-fidelity` | Every prose string against the books: verbatim, an allowlisted deviation (`lib/proseDeviations.ts` in the package), authored, or unverified drift. `--update` rewrites the lock the `rules-fidelity` gate reads; `--show=<reason>` lists strings with diffs; `--summary` prints a drift summary for a PR body. Needs the extract (a worktree reads the main checkout's). |
 | `check-printed-names.ts` | `check:printed-names` | Entity names and pages against the Core Book index. Advisory; needs the extract. Run after a data import. |
 | `export-lp-assets.ts` | `assets:export` | Backs up the `su-lp-assets` R2 bucket locally and proves the copy byte-exact — the only backup path for the licensed artwork. Needs R2 credentials. |
 | `upload-lp-assets.ts` | `assets:upload` | The artwork ingest path into `su-lp-assets`. Needs R2 credentials. |
 
 `lib/` holds the shared pieces: `ruleEngine.ts` (the styling engine: walk,
 exemptions, zero/ratchet verdicts), `scanFloor.ts`, `workspaceCoverage.ts`,
-`tailwindClasses.ts` (the Tailwind-file ratchet's detector), `r2.ts` (R2
-through `Bun.S3Client`, because `wrangler r2 object` cannot list) and
-`playwrightBase.ts` (the one Playwright config both apps' suites run).
+`tailwindClasses.ts` (the Tailwind-file ratchet's detector),
+`proseFidelity.ts` (prose collection, hashing and the fidelity lock format),
+`r2.ts` (R2 through `Bun.S3Client`, because `wrangler r2 object` cannot list)
+and `playwrightBase.ts` (the one Playwright config both apps' suites run).
 `rules/` holds the three styling rule sets.

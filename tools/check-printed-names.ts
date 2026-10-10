@@ -35,7 +35,7 @@
  *     is missing from it but printed on the page it cites is simply unindexed,
  *     and fine.
  *   - A name already ruled on and recorded in
- *     `packages/salvageunion-reference/lib/printedNameDeviations.ts` has been
+ *     `packages/salvageunion-reference/lib/proseDeviations.ts` has been
  *     looked at, with a reason. That list is shared with the test that enforces
  *     it, so recording a deviation both protects it and silences it here.
  *
@@ -57,7 +57,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { SalvageUnionReference } from '../packages/salvageunion-reference/lib/index'
-import { DEVIATIONS } from '../packages/salvageunion-reference/lib/printedNameDeviations'
+import { NAME_DEVIATIONS } from '../packages/salvageunion-reference/lib/proseDeviations'
 
 const EXTRACT_DIR = 'rules/extracted'
 
@@ -278,7 +278,7 @@ async function main() {
   let unindexed = 0
   /** Names already recorded as deliberate deviations — suppressed, not reported. */
   let known = 0
-  const recorded = new Set(DEVIATIONS.map((d) => d.name))
+  const recorded = new Set(NAME_DEVIATIONS.map((d) => d.name))
   for (const schema of SCHEMAS) {
     for (const entity of SalvageUnionReference[schema].all()) {
       if (!('name' in entity) || typeof entity.name !== 'string') continue
@@ -298,7 +298,7 @@ async function main() {
           continue
         }
         // Already ruled on and recorded, with a reason, in
-        // lib/printedNameDeviations.ts. Re-reporting these every run is what
+        // lib/proseDeviations.ts. Re-reporting these every run is what
         // makes a diagnostic get ignored — the output should only ever be
         // things nobody has looked at yet.
         if (recorded.has(entity.name)) {
