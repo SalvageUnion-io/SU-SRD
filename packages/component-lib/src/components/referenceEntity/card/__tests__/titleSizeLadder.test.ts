@@ -1,29 +1,30 @@
 /**
- * THE NESTED-TITLE INVARIANT.
+ * THE NESTED-TITLE LADDER (boards E1 and E2).
  *
- * A card at depth N+1 must render a title that is never LARGER than its parent
- * at depth N, and STRICTLY smaller until the ladder bottoms out at its
- * legibility floor. `titleSizeClass(depth, size)` owns this: DEPTH steps one
- * rung per level, SIZE is a starting offset (not a `Math.max` floor, which used
- * to collapse depth 0 and depth 1 onto the same rung).
+ * The title is set by SIZE — large 31px, medium 22px, small 17px — and steps
+ * down with nesting: depth 1 medium, depth 2 the head row, depth 3 a rung
+ * below. `titleSizeClass(depth, size)` is `max(size rung, depth)`, so:
  *
- * These tests assert the invariant across depths 0..6 and all three sizes, and
- * pin the depth-0 sizes (the historical name-tab scale) so the offsets can't
- * drift.
+ * - a nested title is NEVER LARGER than its parent's, at any size;
+ * - under a LARGE card it is strictly smaller at every level until the floor;
+ * - the floor is the 11px legibility floor (ruleset §4.6).
+ *
+ * Children are spawned by `nestedChildSize`: medium, or small inside a small
+ * card, which is what keeps the first clause true under a small parent.
  */
 import { describe, expect, test } from 'bun:test'
 import type { CardSize } from '../../../shared/displayMode'
-import { titleSizeClass } from '../entityCardTone'
+import { nestedChildSize, titleSizeClass } from '../entityCardTone'
 
 // The canonical ladder, largest → smallest. A later position = a smaller title.
 // Kept here as the test's independent reference so a reordering of the source
 // ladder must be mirrored deliberately.
 const LADDER_LARGEST_FIRST = [
-  'text-5xl',
-  'text-xl',
-  'text-base',
-  'text-sm',
-  'text-xs',
+  'text-display-lg',
+  'text-title',
+  'text-readout',
+  'text-lede',
+  'text-caption',
   'text-badge',
 ] as const
 
@@ -31,14 +32,11 @@ const FLOOR = 'text-badge'
 const SIZES: CardSize[] = ['large', 'medium', 'small']
 const DEPTHS = [0, 1, 2, 3, 4, 5, 6]
 
-/** Rank on the ladder: bigger rank = smaller title. Unknown class ⇒ -1 (fails). */
 const LADDER_CLASSES: readonly string[] = LADDER_LARGEST_FIRST
+/** Rank on the ladder: bigger rank = smaller title. Unknown class ⇒ -1 (fails). */
+const rank = (cls: string) => LADDER_CLASSES.indexOf(cls)
 
-function rank(cls: string): number {
-  return LADDER_CLASSES.indexOf(cls)
-}
-
-describe('titleSizeClass — nested-title invariant', () => {
+describe('titleSizeClass — the nested-title ladder', () => {
   test('every resolved class is a real ladder rung', () => {
     for (const size of SIZES) {
       for (const depth of DEPTHS) {
@@ -47,50 +45,46 @@ describe('titleSizeClass — nested-title invariant', () => {
     }
   })
 
-  test('depth-0 sizes reproduce the historical name-tab scale', () => {
-    expect(titleSizeClass(0, 'large')).toBe('text-5xl')
-    expect(titleSizeClass(0, 'medium')).toBe('text-xl')
-    expect(titleSizeClass(0, 'small')).toBe('text-base')
+  test('depth-0 sizes are the board E1 scale', () => {
+    expect(titleSizeClass(0, 'large')).toBe('text-display-lg')
+    expect(titleSizeClass(0, 'medium')).toBe('text-title')
+    expect(titleSizeClass(0, 'small')).toBe('text-readout')
   })
 
-  // For a FIXED size, each nesting level is strictly smaller until the floor,
-  // then holds at the floor (never grows back). This is the core invariant and
-  // the exact thing the old `Math.max` floor violated at depth 0→1.
-  for (const size of SIZES) {
-    test(`size='${size}': strictly smaller per depth until the floor, then held`, () => {
-      for (let depth = 0; depth < DEPTHS.length - 1; depth++) {
-        const parent = titleSizeClass(depth, size)
-        const child = titleSizeClass(depth + 1, size)
-        // Never larger.
+  test('board E2: depth 1 medium, depth 2 the head row, depth 3 one rung under', () => {
+    expect(titleSizeClass(1, 'medium')).toBe('text-title')
+    expect(titleSizeClass(2, 'medium')).toBe('text-readout')
+    expect(titleSizeClass(3, 'medium')).toBe('text-lede')
+  })
+
+  for (const parentSize of SIZES) {
+    test(`a child is never larger than a '${parentSize}' parent one level up`, () => {
+      const childSize = nestedChildSize(parentSize)
+      for (const depth of DEPTHS) {
+        const parent = titleSizeClass(depth, parentSize)
+        const child = titleSizeClass(depth + 1, childSize)
         expect(rank(child)).toBeGreaterThanOrEqual(rank(parent))
-        if (parent === FLOOR) {
-          // Bottomed out: the child holds at the floor, it cannot shrink more.
-          expect(child).toBe(FLOOR)
-        } else {
-          // Above the floor: the child is STRICTLY smaller.
-          expect(rank(child)).toBeGreaterThan(rank(parent))
-        }
       }
     })
   }
 
-  // REAL nesting: children are always spawned at size='medium'. A medium child
-  // at depth N+1 is never larger than its parent at depth N, whatever the
-  // parent's size — strictly smaller for large/medium parents, meeting a small
-  // parent only at the shared floor.
-  for (const parentSize of SIZES) {
-    test(`medium child is never larger than a '${parentSize}' parent one level up`, () => {
-      for (const depth of DEPTHS) {
-        const parent = titleSizeClass(depth, parentSize)
-        const child = titleSizeClass(depth + 1, 'medium')
-        expect(rank(child)).toBeGreaterThanOrEqual(rank(parent))
-      }
-    })
-  }
+  test('under a large card each level is strictly smaller until the floor', () => {
+    for (let depth = 0; depth < DEPTHS.length - 1; depth++) {
+      const parent = titleSizeClass(depth, depth === 0 ? 'large' : 'medium')
+      const child = titleSizeClass(depth + 1, 'medium')
+      if (parent === FLOOR) expect(child).toBe(FLOOR)
+      else expect(rank(child)).toBeGreaterThan(rank(parent))
+    }
+  })
 
   test('the floor is the legibility floor, and it holds at extreme depth', () => {
     expect(titleSizeClass(6, 'large')).toBe(FLOOR)
-    expect(titleSizeClass(6, 'small')).toBe(FLOOR)
     expect(titleSizeClass(100, 'small')).toBe(FLOOR)
+  })
+
+  test('nested children render medium, or small inside a small card', () => {
+    expect(nestedChildSize('large')).toBe('medium')
+    expect(nestedChildSize('medium')).toBe('medium')
+    expect(nestedChildSize('small')).toBe('small')
   })
 })

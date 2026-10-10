@@ -7,6 +7,52 @@ import { InsideTooltipContext } from '../ui/insideTooltipContext'
 import { Tooltip as SimpleTooltip } from '../ui/tooltip'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
 
+/** The tooltip's lifted plate: a hard ink offset under the card, no blur (E3). */
+const PLATE_OFFSET = 'drop-shadow(4px 4px 0 var(--color-ink))'
+
+/**
+ * The hovercard POPUP an entity tooltip opens — the §1 Tooltip context: the
+ * DENSE catalog-extent card (seam, header, sub-header, artwork, body prose),
+ * with every nested element (entity cards, action grids, pattern lists,
+ * expandable choice listings) suppressed by the extent, on a LIFTED PLATE — a
+ * hard ink offset, no blur (board E3). The InsideTooltipContext makes every
+ * tooltip primitive in the subtree inert (no nested hovercards from trait or
+ * keyword refs or Stat cells), and the card stays flat: no speckle (§3.5).
+ *
+ * Renders inside a Base UI `Tooltip.Root`; exported so the catalog can mount
+ * the real popup open.
+ */
+export function EntityHovercard({
+  entity,
+}: {
+  entity: Parameters<typeof ReferenceEntityCard>[0]['data']
+}) {
+  return (
+    <Tooltip.Portal>
+      <Tooltip.Positioner sideOffset={5} align="start">
+        <Tooltip.Popup
+          className="z-50 max-h-[80vh] overflow-y-auto border-none bg-transparent px-0 pb-0"
+          style={{
+            // The seam stamp rides ABOVE the frame; the popup scrolls, so it
+            // keeps its own room at the top or the scroll box cuts the stamp.
+            // A drop-shadow (not a box-shadow) follows the card, not the room.
+            filter: PLATE_OFFSET,
+            paddingTop: '12px',
+            // Never wider than the room beside the trigger or the screen (a
+            // phone), less the offset; the screen also bounds the first,
+            // unmeasured frame, when Base UI has not set the room yet.
+            maxWidth: 'min(500px, calc(100vw - 16px), calc(var(--available-width, 100vw) - 4px))',
+          }}
+        >
+          <InsideTooltipContext.Provider value={true}>
+            <ReferenceEntityCard data={entity} size="small" extent="full" texture={false} />
+          </InsideTooltipContext.Provider>
+        </Tooltip.Popup>
+      </Tooltip.Positioner>
+    </Tooltip.Portal>
+  )
+}
+
 type EntityTooltipBase = {
   schemaName: SURefEnumSchemaName
   children: ReactNode
@@ -145,22 +191,7 @@ export function EntityTooltip({
         >
           {children}
         </Tooltip.Trigger>
-        <Tooltip.Portal>
-          <Tooltip.Positioner sideOffset={5} align="start">
-            <Tooltip.Popup className="z-50 max-h-[80vh] max-w-[500px] overflow-y-auto border-none bg-transparent p-0 shadow-2xl">
-              {/* The DENSE, TERMINAL hovercard (ruleset §1 Tooltip context):
-                  the catalog-extent card — seam, header, sub-header, artwork,
-                  body prose — with every nested element (entity cards, action
-                  grids, pattern lists, expandable choice listings) suppressed
-                  by the extent, and the InsideTooltipContext making every
-                  tooltip primitive in the subtree inert (no nested hovercards
-                  from trait/keyword refs or Stat cells). */}
-              <InsideTooltipContext.Provider value={true}>
-                <ReferenceEntityCard data={entity} size="medium" extent="catalog" />
-              </InsideTooltipContext.Provider>
-            </Tooltip.Popup>
-          </Tooltip.Positioner>
-        </Tooltip.Portal>
+        <EntityHovercard entity={entity} />
       </Tooltip.Root>
     </Tooltip.Provider>
   )

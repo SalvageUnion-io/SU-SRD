@@ -1,315 +1,237 @@
-import type { ReactNode } from 'react'
-import { useLayoutEffect, useRef, useState } from 'react'
+import { ChevronRight } from 'lucide-react'
+import type { CSSProperties, ReactNode } from 'react'
+import { space } from '../../../design/tokens'
 import { cn } from '../../../utils/cn'
+import type { CardSize } from '../../shared/displayMode'
 import type { StatItem } from '../../shared/statsBarTypes'
 import { accentSurface } from '../referenceEntityHelpers'
+import type { HeaderFill } from './cardChrome'
+import type { CardGrain } from './cardGrain'
+import { grainStyle } from './cardGrain'
 import { EntityCardStatBox } from './EntityCardStatBox'
 
 type EntityCardHeaderProps = {
   title: string
-  /** Domain/tech-level/rust tone — a Tailwind bg class. */
+  /** TONE (things you have) or INK (things you do) — see `HeaderFill`. */
+  fill: HeaderFill
+  /** The tone as a Tailwind bg class (tone fill only). */
   bg: string | undefined
-  /** Raw CSS colour override (navy monster / rust action / dynamic per-source accent). */
+  /** The band as a raw CSS colour — a guide tone, the ink banner, the damaged grey. */
   bgColor: string | undefined
-  /** Title type-scale class from the DEPTH ladder (steps down per nesting level). */
+  /** Title type-scale class from the DEPTH ladder (`titleSizeClass`). */
   titleClass: string
-  /** On-tone text colour class for the title, which sits directly on the header
-   * band (`text-ink` / `text-paper` — resolved against the band tone). */
+  /** On-band text colour class (`text-ink` / `text-paper`), resolved by contrast. */
   titleTextClass?: string
-  /** Write layer: a full replacement node for the title (overrides the name-tab). */
+  /** Write layer: a full replacement node for the title. */
   titleSlot?: ReactNode
-  /** SEO: render the name-tab as an `h1` (item pages) instead of the default `span`. */
+  /** SEO: render the title as an `h1` (item pages) instead of the default `span`. */
   titleAs?: 'span' | 'h1'
-  /** The full header stat cluster (all stats), clustered + wrapping top-right. */
+  /** An ability's tier numeral, at the left of the ink banner (title size, dimmed). */
+  numeral?: string
+  /** The value cells, after the title. */
   stats: StatItem[]
-  /**
-   * The SAME cluster with short-form labels (TL / SV / SYS …), used when the
-   * band measures too narrow to seat the vertical value boxes and the stats
-   * fall back to the compact `[label | value]` cells. Omit and `stats` is
-   * reused — correct for a caller whose labels are already short (sheet stats).
-   */
-  narrowStats?: StatItem[]
-  /** Top-right flavor slot — white hint text (an ability's `description`), shown
-   * when the entity has no numeric vitals occupying the axis. */
+  /** A one-line hint on the band (a pattern row's description), truncated. */
   rightContent?: ReactNode
-  /** Listing mode: header stats render as horizontal cells (up to ~2 rows). */
-  listing?: boolean
-  compact?: boolean
+  /** The cost pennant (read) or the pennant button (Dashboard), at the right. */
+  pennant?: ReactNode
+  /**
+   * HEAD extent: the card is ONE LINE (ruleset §1 Listing). The title
+   * truncates with "…" and keeps its full name in a tooltip; the stats,
+   * pennant and controls never wrap.
+   */
+  oneLine?: boolean
+  size: CardSize
+  /**
+   * An INLINE action band inside its host card (board E1): flush, tighter
+   * vertical padding, the host's own gutter.
+   */
+  band?: boolean
+  /** The light speckle (ruleset §3.5) — `ink` on a tone, `paper` on ink. */
+  grain?: CardGrain
+  /** Draw the 1.5px ink rule that closes the band (anything follows it). */
+  ruled?: boolean
+  /** A clickable listing row: E3's chevron (›) at the far right says it opens. */
+  chevron?: boolean
 }
 
-/** Title column beside flavour PROSE. Base = its own content width, so a name
- * that fits beside the description's ask keeps its single line; `shrink-[20]`
- * makes it absorb the overflow past that. No `min-w-0` (min-content floor — it
- * wraps at spaces, never mid-word) and a loose ceiling that won't clamp that
- * floor. The full rationale + measurements live in the width-allocation comment
- * below; this is shared so the compact and full rows can't drift apart. */
-const TITLE_VS_PROSE = 'max-w-[75%] shrink-[20]'
-/** Description column: asks for 55% of the band, grows past it when the title
- * doesn't need its share, and yields below it when the title's longest word
- * demands the room. */
-const PROSE_COLUMN = 'flex-[1_1_55%]'
+/** The band's padding by size (board E1): room above for the seam stamp. */
+const PAD: Record<CardSize, string> = {
+  large: `${space[16]} ${space[14]} ${space[12]}`,
+  medium: `${space[14]} ${space[10]} ${space[8]}`,
+  small: `${space[12]} ${space[8]} ${space[6]}`,
+}
 
-/** A vertical value box's footprint in the cluster: `w-12` (48px) + the 4px gap. */
-const VALUE_BOX_WIDTH = 52
-/** Room the title must keep beside the cluster before the boxes give way — the
- * band's horizontal padding plus roughly one word of name. */
-const TITLE_RESERVE = 140
-/** Re-widening must clear the threshold by this much before the boxes come
- * back, so a card sitting exactly on it can't oscillate between anatomies. */
-const HYSTERESIS = 24
+/** An inline action band keeps its host's gutter. */
+const BAND_PAD: Record<CardSize, string> = {
+  large: `${space[8]} ${space[14]}`,
+  medium: `${space[8]} ${space[10]}`,
+  small: `${space[6]} ${space[8]}`,
+}
 
 /**
- * Does the band have room for `statCount` vertical value boxes beside the title?
- *
- * A full card's stat cluster is a fixed-width block: 8 chassis stats want ~416px
- * before the name has any room at all, which a phone (or a narrow grid column)
- * does not have — a `shrink-0` cluster would run off the card, over the header
- * and out of the viewport. So the cluster wraps, and on top of that the header
- * measures itself and swaps to the compact `[label | value]` cells — the same badge anatomy a
- * listing card already uses — which fit a phone at 2 rows instead of 3 stacks
- * of boxes.
- *
- * The wrap is the floor for every case this measurement declines to judge: an
- * unmeasurable band (below), no `ResizeObserver`, or a host that renders the
- * card without ever running an effect.
- *
- * That floor is load-bearing, not an edge case. srd renders most entity cards
- * to HTML at build time and ships no JS for them (only cards carrying a real
- * control keep an island), so on those pages the effect never runs at all and
- * the wrap IS what the reader gets. Treat it as the real layout and the
- * measurement as a progressive refinement for hosts that hydrate — ITUN, which
- * is client-only, and srd's interactive minority. Anything that must be legible
- * on a phone has to survive the wrap alone.
- *
- * Where the effect does run it is not a visible frame: `useLayoutEffect`
- * measures before paint, so the boxes never flash on a narrow card.
- *
- * Measured, not breakpointed, because "enough space" is a function of the CARD's
- * width and its stat COUNT, not the viewport: a 2-stat card is fine at 320px and
- * an 8-stat one is cramped in a 500px column on a desktop.
- *
- * A width of 0 (happy-dom, which performs no layout; a display:none ancestor)
- * is NOT a verdict — it leaves the boxes alone rather than reporting every card
- * as cramped.
+ * A truncating one-liner. `contain: inline-size` gives it NO min-content
+ * contribution: a nowrap title or hint would otherwise add its whole text
+ * length to a width-less ancestor (an island page's wrapper) and push the
+ * page wider than the viewport.
  */
-function useNarrowStats(statCount: number, enabled: boolean) {
-  const bandRef = useRef<HTMLDivElement>(null)
-  const [narrow, setNarrow] = useState(false)
+/** The title's readable stub in a one-line row (about eleven characters). */
+const STUB: Record<CardSize, string> = { large: '11rem', medium: '8.5rem', small: '6rem' }
 
-  useLayoutEffect(() => {
-    if (!enabled) {
-      setNarrow(false)
-      return
-    }
-    const band = bandRef.current
-    if (!band || typeof ResizeObserver === 'undefined') return
-
-    const measure = () => {
-      const width = band.clientWidth
-      if (!width) return
-      const needed = statCount * VALUE_BOX_WIDTH + TITLE_RESERVE
-      setNarrow((prev) => (prev ? width < needed + HYSTERESIS : width < needed))
-    }
-    measure()
-    const observer = new ResizeObserver(measure)
-    observer.observe(band)
-    return () => observer.disconnect()
-  }, [statCount, enabled])
-
-  return { bandRef, narrow }
+const ONE_LINE: CSSProperties = {
+  contain: 'inline-size',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 }
 
 /**
- * EntityCardHeader — the unified card's HEADER band (the tone).
+ * EntityCardHeader — the card's flush header band, ONE anatomy with TWO fills
+ * (ruleset §5, board E1):
  *
- * Left: the title as PLAIN on-tone text (the badge treatment — no ink name-tab
- * block) that HUGS its text (`w-fit`, never full-width), sized by the DEPTH
- * ladder and coloured by `titleTextClass` to read against the band. Right: the
- * header axis cluster — an optional cost node (action AP box) then the headline
- * `Stat` boxes (`EntityCardStatBox`), wrapping; or a `rightContent` flavor line
- * (white ability hint) when the axis is free.
+ * - TONE, for things you have: the entity's tone, ink speckle, the title in
+ *   ink or paper (whichever passes contrast), the value cells after it.
+ * - INK, for things you do: the book's ink banner — the tier numeral at the
+ *   left (title size, dimmed), the title, the cost pennant at the right, paper
+ *   flecks.
+ *
+ * The title takes the row and the cells follow it, wrapping beneath when the
+ * band is too narrow; a one-line head row never wraps, so its title truncates.
  */
 export function EntityCardHeader({
   title,
+  fill,
   bg,
   bgColor,
   titleClass,
   titleTextClass = 'text-ink',
   titleSlot,
   titleAs,
+  numeral,
   stats,
-  narrowStats,
   rightContent,
-  listing = false,
-  compact = false,
+  pennant,
+  oneLine = false,
+  size,
+  band = false,
+  grain,
+  ruled = false,
+  chevron = false,
 }: EntityCardHeaderProps) {
   const accent = accentSurface(bg, bgColor)
-  // A compact/listing card is ALREADY on the cells, so it needs no measuring.
-  const compactStats = compact || listing
-  const { bandRef, narrow } = useNarrowStats(stats.length, !compactStats && stats.length > 0)
-
   const TitleTag = titleAs ?? 'span'
+  const titleType = cn(
+    'font-cond font-extrabold uppercase leading-none tracking-caps-tight',
+    titleTextClass,
+    titleClass
+  )
   const titleNode = titleSlot ?? (
     <TitleTag
-      className={cn(
-        // The title sits directly on the tone (badge treatment — no ink block).
-        // `self-center` keeps it centered against the band height; it always sits
-        // LEFT (its row uses justify-between); self-* is cross-axis only.
-        // `break-words` guarantees even an unbreakable long token wraps rather
-        // than running under the stat cluster.
-        'w-fit self-center break-words font-cond font-bold uppercase leading-none tracking-caps-tight',
-        titleTextClass,
-        titleClass
-      )}
+      className={titleType}
+      title={oneLine ? title : undefined}
+      style={{
+        // One line: the title gives way after a hint has and before the pennant,
+        // but never below a readable stub (about eleven characters); the cells
+        // shed first, lowest priority first (`EntityCardStatBox`). Otherwise the title shares the row with the
+        // cells on the right at medium and small, and only a large header
+        // gives the title the whole row. Either way the cells wrap beneath
+        // when they truly cannot fit.
+        // One line: basis 0 (contained, it has no intrinsic width) and a heavy
+        // grow, so it takes the row the cells and a hint leave it.
+        flex: oneLine
+          ? rightContent
+            ? '3 1 0'
+            : '1 1 0'
+          : size === 'large'
+            ? '1 1 auto'
+            : '1 1 0',
+        // One line: the title may go to nothing rather than push the cells or
+        // the chevron past the card's edge; its stub is kept by the cluster's cap.
+        minWidth: oneLine ? 0 : size === 'large' ? 0 : 'min-content',
+        overflowWrap: 'break-word',
+        ...(oneLine ? ONE_LINE : {}),
+      }}
     >
       {title}
     </TitleTag>
   )
-  // On the compact cells → the short-form labels that anatomy is written for.
-  // `listing` is included because it renders the cells too: a `size="large"`
-  // + `extent="head"` card is NOT `compact`, so its `stats` carry the two-line
-  // long form, and without this it would put "Structure / Points" inside a
-  // shortform cell. (`compact` needs no clause — such a card's two lists are
-  // the same list.)
-  const clusterStats = narrow || listing ? (narrowStats ?? stats) : stats
-  const statsNode =
-    stats.length > 0 ? (
-      <EntityCardStatBox stats={clusterStats} compact={compactStats || narrow} />
-    ) : null
-
-  // WIDTH ALLOCATION — who yields depends on WHAT occupies the right side.
-  // This rule has regressed in three directions (title under the stats, title
-  // wrapping beside an empty right side, title starved to one letter per line
-  // by flavour prose); EntityCardHeader.test.tsx pins all of them.
-  // - EMPTY → the title owns the full row. Reserving ~40% for a cluster that
-  //   isn't there forced needless wraps ("Coolant Flush" on two lines).
-  // - STAT CLUSTER only → stats are bounded, so they RESERVE their content
-  //   width and the title yields into the remainder (the original
-  //   title-overlapping-the-stats fix — kept).
-  // - FLAVOUR PROSE → the description ASKS for 55% (`flex-[1_1_55%]`) and the
-  //   title yields into what's left, but only once it has to. The title's flex
-  //   base is its own content width, so while it fits in the remaining ~45% it
-  //   is untouched and keeps its single line; past that the shrink factor (20×
-  //   the description's) makes it absorb essentially all the overflow, wrapping
-  //   down toward its longest word instead of holding a share it isn't filling.
-  //
-  //   That last part matters: a name capped at a flat 60% wraps INSIDE the
-  //   cap, so "Mass Field Maintenance" would show two lines of title, four of
-  //   description, and a ~110px dead channel down the middle.
-  //
-  //   55% is a safe ask because a description is never short — across the 100
-  //   abilities that carry one the minimum is 34 characters (median 67), which
-  //   wants more than half the band at every card width.
-  //
-  //   Two details are load-bearing, both learned by measuring:
-  //   · The title has NO `min-w-0`, so its automatic minimum is min-content and
-  //     it can be squeezed to one word per line but never INTO one. Without it
-  //     `break-words` splits names mid-word ("ENGINEERIN / G EXPERTISE").
-  //   · The 75% ceiling is deliberately loose. `max-width` also clamps that
-  //     min-content floor, so a tighter cap re-introduces mid-word breaks on
-  //     narrow cards ("Engineerin|g" at 768px). The description's ask, not the
-  //     ceiling, is what bounds the title in practice.
-  //   · The ask is a BASIS, not a `min-width`: a hard floor cannot yield to
-  //     that min-content floor, and the two together overflow the card on
-  //     narrow screens.
-  const hasProse = !!rightContent
-  const hasRight = !!(rightContent || statsNode)
-
-  // COMPACT: the title + flavor/stat cluster share ONE row and split the width
-  // dynamically — the cluster never wraps beneath the title, each side wraps
-  // WITHIN its own space. Against a bounded STAT cluster the title takes up to
-  // 60% and the cluster (flex-1, basis 0 — so it can never starve the title)
-  // takes the rest; against PROSE the description asks for 55% and the title
-  // yields (see the rule above); with nothing beside it the title takes the
-  // full row.
-  if (compact) {
-    return (
-      <div
-        ref={bandRef}
-        className={cn(
-          // items-center so the (usually one-line) title centers vertically
-          // against a taller wrapped flavor/stat cluster.
-          'flex w-full min-w-0 items-center gap-3 px-3 py-1.5',
-          accent.className
-        )}
-        style={accent.style}
-      >
-        <div
-          className={cn(
-            hasProse ? TITLE_VS_PROSE : hasRight ? 'min-w-0 max-w-[60%]' : 'min-w-0 flex-1'
-          )}
-        >
-          {titleNode}
-        </div>
-        {hasRight && (
-          <div
-            className={cn(
-              'flex min-w-0 flex-wrap items-center justify-end gap-2',
-              hasProse ? PROSE_COLUMN : 'flex-1'
-            )}
-          >
-            {rightContent}
-            {statsNode}
-          </div>
-        )}
-      </div>
-    )
-  }
+  const hint = rightContent ? (
+    <span
+      className={cn('font-body italic leading-snug', titleTextClass)}
+      style={
+        oneLine
+          ? { flex: '1 1 0', minWidth: 0, textAlign: 'right', ...ONE_LINE }
+          : { flex: '1 1 12rem', minWidth: 0, textAlign: 'right' }
+      }
+    >
+      {rightContent}
+    </span>
+  ) : null
+  const hasCluster = stats.length > 0 || !!pennant
 
   return (
     <div
-      ref={bandRef}
-      className={cn(
-        'flex w-full min-w-0 items-center justify-between gap-4 px-3 py-3',
-        // NARROW — the two sides STACK (title row, then the cluster). Yielding
-        // is a width negotiation, and at this width there is nothing left to
-        // negotiate: a full card's title is `text-5xl`, so its min-content (one
-        // word) is already most of a phone-width band and it painted straight
-        // over the stats, which is the same collision the compact cells fix one
-        // level down. Wrapping gives each side a whole row instead.
-        //
-        // Only WITHOUT prose. The prose rule owns both columns' widths (a 75%
-        // ceiling on the title, a 55% basis on the description), and those beat
-        // the stacking classes below — `max-w-[75%]` clamps `basis-full`, and a
-        // non-auto basis beats `w-full`. So it would read as a stack rule that
-        // silently does nothing; a card carrying BOTH prose and stats keeps the
-        // prose allocation, which is what it did before this change.
-        narrow && !hasProse && 'flex-wrap gap-y-2',
-        accent.className
-      )}
-      style={accent.style}
+      data-fill={fill}
+      data-grain={grain}
+      className={accent.className}
+      style={{
+        ...accent.style,
+        ...grainStyle(grain),
+        alignItems: 'center',
+        ...(ruled
+          ? {
+              borderBottomColor: 'var(--color-ink)',
+              borderBottomStyle: 'solid',
+              borderBottomWidth: 'var(--bw-chrome)',
+            }
+          : {}),
+        display: 'flex',
+        flexWrap: oneLine ? 'nowrap' : 'wrap',
+        gap: oneLine ? space[8] : `${space[8]} ${space[14]}`,
+        minWidth: 0,
+        padding: band ? BAND_PAD[size] : PAD[size],
+        width: '100%',
+      }}
     >
-      {/* Stats-only (or empty) right side: the title is the FLEXIBLE side — it
-          grows into the free space and wraps within it, yielding first so it can
-          never run under the stats. With PROSE on the right the title keeps its
-          content width while it fits beside the description's 55% ask, and
-          yields past that — see the rule above. */}
-      <div
-        className={cn(
-          hasProse ? TITLE_VS_PROSE : 'min-w-0 flex-1',
-          // Stacked: the title takes the whole first row.
-          narrow && !hasProse && 'basis-full'
-        )}
-      >
-        {titleNode}
-      </div>
-      {hasRight && (
-        // Stats-only: the cluster reserves its own width (it doesn't grow, and
-        // holds content size until the title is fully collapsed) and wraps
-        // internally, so it is never overlapped and never clipped off the card
-        // edge. With prose it asks for 55% and grows past it when the title
-        // doesn't need its share.
+      {numeral && (
+        <span className={titleType} style={{ flex: 'none', opacity: 0.75 }}>
+          {numeral}
+        </span>
+      )}
+      {titleNode}
+      {hint}
+      {hasCluster && (
         <div
-          className={cn(
-            'flex min-w-0 flex-wrap items-center justify-end gap-2',
-            hasProse && PROSE_COLUMN,
-            // Stacked: the cluster owns the second row, still right-aligned.
-            narrow && !hasProse && 'w-full'
-          )}
+          style={{
+            alignItems: 'center',
+            display: 'flex',
+            // One line: the cells take all of the shrink until only the first is
+            // left, and only then does the title truncate (flex-shrink is
+            // weighted by width, so a plain 8× still bit into the title early).
+            flex: oneLine ? '0 1000 auto' : '0 1 auto',
+            flexWrap: oneLine ? 'nowrap' : 'wrap',
+            gap: space[4],
+            justifyContent: 'flex-end',
+            marginLeft: oneLine ? 'auto' : undefined,
+            // One line: the cluster leaves the title about eleven characters
+            // (and the chevron's room) so the cells shed first; its min-content
+            // floor beats the cap, so the first cell and the pennant are never
+            // cut when the row is simply too narrow.
+            maxWidth: oneLine ? `calc(100% - ${STUB[size]} - 3rem)` : undefined,
+            minWidth: oneLine ? 'min-content' : 0,
+          }}
         >
-          {rightContent}
-          {statsNode}
+          {stats.length > 0 && <EntityCardStatBox stats={stats} oneRow={oneLine} />}
+          {pennant}
         </div>
+      )}
+      {chevron && (
+        <ChevronRight
+          aria-hidden="true"
+          size={20}
+          strokeWidth={3}
+          className={titleTextClass}
+          style={{ flex: 'none', marginLeft: hasCluster ? 0 : 'auto' }}
+        />
       )}
     </div>
   )

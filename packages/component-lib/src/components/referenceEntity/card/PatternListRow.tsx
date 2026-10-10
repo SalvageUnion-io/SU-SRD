@@ -1,11 +1,9 @@
-import type { ElementType } from 'react'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { normalizePatternName } from 'salvageunion-reference'
+import { space } from '../../../design/tokens'
 import { cn } from '../../../utils/cn'
 import { FOCUS_RING } from '../../chrome/interaction'
-import { Slab } from '../../chrome/Slab'
 import { usePatternHref } from '../entityHrefContext'
-import { wrapFlat } from './cardHelpers'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
@@ -61,15 +59,14 @@ export function PatternListRow({
   )
 }
 
-/** BASIC CHASSIS → the list of its patterns, as LISTING rows under a Patterns band. */
+/** BASIC CHASSIS → the list of its patterns, as LISTING rows. The card puts
+ * them in a "Patterns" tray, the same device as every other nested group. */
 export function PatternList({
   chassis,
   chassisName,
   patterns,
   depth,
   hostDown,
-  flat,
-  sectionAs,
   NestedCard,
 }: {
   chassis: ReferenceCardEntity
@@ -78,30 +75,21 @@ export function PatternList({
   /** The depth the rows render at (the host's + 1). */
   depth: number
   hostDown: boolean
-  flat: boolean
-  sectionAs: ElementType | undefined
   NestedCard: NestedCard
 }) {
   return (
-    <div className={flat ? 'mb-1.5' : 'flex flex-col gap-1.5'}>
-      <Slab variant="dashed" label="Patterns" as={sectionAs} />
-      <div className={flat ? undefined : 'flex flex-col gap-1.5'}>
-        {patterns.map((pat) =>
-          wrapFlat(
-            flat,
-            pat.name,
-            <PatternListRow
-              key={pat.name}
-              chassis={chassis}
-              chassisName={chassisName}
-              pattern={pat}
-              depth={depth}
-              hostDown={hostDown}
-              NestedCard={NestedCard}
-            />
-          )
-        )}
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[6] }}>
+      {patterns.map((pat) => (
+        <PatternListRow
+          key={pat.name}
+          chassis={chassis}
+          chassisName={chassisName}
+          pattern={pat}
+          depth={depth}
+          hostDown={hostDown}
+          NestedCard={NestedCard}
+        />
+      ))}
     </div>
   )
 }

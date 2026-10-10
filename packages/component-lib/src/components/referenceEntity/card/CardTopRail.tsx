@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Badge } from '../../chrome/Badge'
 import { CountStepper } from '../../chrome/CountStepper'
 import { CardControlRail } from '../../shared/CardControlRail'
@@ -23,6 +24,7 @@ export function CardTopRail({
   selected,
   selectionSeal,
   multiSelect,
+  statusSeal,
 }: {
   controls: ReferenceEntityControl[] | undefined
   status: EntityStatus | undefined
@@ -33,6 +35,8 @@ export function CardTopRail({
   selectionSeal: string | undefined
   /** Present on a MULTI-SELECT cell (`onCountChange` set). */
   multiSelect: { count: number; onChange: (next: number) => void; subject: string } | undefined
+  /** The condition as a neutral tri-state seal (a head row has no body rail). */
+  statusSeal?: ReactNode
 }) {
   const railControls = foldStatusControl(controls, status, { onClick: onStatusClick, subject })
   // Selection seal — an `ok`-tone "chosen" stamp riding the top-right frame when
@@ -58,5 +62,10 @@ export function CardTopRail({
       />
     </div>
   ) : null
-  return <CardControlRail controls={railControls} seals={[selectionSealNode, countSealNode]} />
+  return (
+    <CardControlRail
+      controls={railControls}
+      seals={[statusSeal, selectionSealNode, countSealNode]}
+    />
+  )
 }

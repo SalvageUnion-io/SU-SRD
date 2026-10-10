@@ -39,11 +39,33 @@ export type ReferenceEntityCardProps = {
    * the PATTERN view — pattern name as the title, the pattern's systems/modules
    * loadout as nested cards (a `size="medium" extent="head"` pattern shows name + description). */
   pattern?: SURefObjectPattern
-  /** The SUMMONING (parent) entity's tone as a resolvable CSS colour — threaded
-   * onto a nested ACTION card, whose bands are this tone GHOSTED. */
-  hostTone?: string
-  /** The SUMMONING (parent) entity's display name — threaded alongside
-   * `hostTone` so a nested ACTION whose dataset name carries the ` (Host)`
+  /**
+   * INLINE — this card is an action sitting inside its host card (board E1): a
+   * flush ink band, its "//" line and body, with no frame, seam or footer.
+   * Set by the host when it lays out its actions; not a consumer prop.
+   */
+  inline?: boolean
+  /**
+   * Prose the HOST already prints, as `proseKey`s — a nested child hides any
+   * paragraph that would repeat it (board E2). Threaded by the host.
+   */
+  shownProse?: string[]
+  /**
+   * USER-MADE (ruleset §3.9; issue 1276): something a player made that could pass
+   * for the book — a mech pattern, an NPC. A dashed ink frame, a dashed
+   * User-made stamp on the seam, a dashed footer rule and a dashed pill, at
+   * every size and extent. Canon-built units (pilots, mechs, crawlers) never
+   * set it.
+   */
+  userMade?: boolean
+  /**
+   * The light speckle on the header (ruleset §3.5) — on by default. `false`
+   * turns it off for this card and every card nested in it: the Dashboard and
+   * tooltips stay flat.
+   */
+  texture?: boolean
+  /** The SUMMONING (parent) entity's display name — threaded so a nested
+   * ACTION whose dataset name carries the ` (Host)`
    * disambiguation suffix (e.g. "Refine (Nanite Sifter)") drops it when the
    * host card already establishes that context. Display-only; the data keeps
    * the full unique name. */
@@ -105,6 +127,12 @@ export type ReferenceEntityCardProps = {
   cardClickLabel?: string
   /** Top-right overlay controls (reuse ControlButtons shapes/variants). */
   controls?: ReferenceEntityControl[]
+  /**
+   * Controls for each INLINE action band (the Dashboard, board E3): a `pennant`
+   * control makes that band's cost pennant the rust action button. Absent ⇒ the
+   * bands read as they always do.
+   */
+  actionControls?: (action: ReferenceCardEntity) => ReferenceEntityControl[] | undefined
   /** Controlled interactive-choice state (renders `ChoiceGroups` in the body). */
   selections?: ChoiceSelections
   /** Selection-change handler — its presence flips choices to editable body cards. */

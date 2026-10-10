@@ -49,8 +49,6 @@ export type DeckListModel =
       sourceFilter: string | null
       onSourceFilter: (source: string | null) => void
       familyClass: string
-      /** Host tone the action tiles GHOST (mech vs pilot) — a resolvable CSS colour. */
-      hostTone: string
       /** The whole deck, flat — one grid, no source/timing headings above it. */
       rows: DeckRow[]
       onOpen: (key: string) => void
@@ -178,7 +176,8 @@ export function DeckList({ view }: { view: DeckListModel }) {
                   // The table is one click away — the resolve panel renders the
                   // same action as a full card.
                   hide={{ rollTable: true }}
-                  hostTone={view.hostTone}
+                  // The Dashboard stays flat (ruleset §3.5): no speckle.
+                  texture={false}
                   disabled={row.locked}
                   cardClickLabel={row.name}
                   onCardClick={() => view.onOpen(row.key)}

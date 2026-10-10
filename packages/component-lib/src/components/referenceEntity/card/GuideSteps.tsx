@@ -1,8 +1,8 @@
 import type { ElementType } from 'react'
 import { Slab } from '../../chrome/Slab'
-import { RollTable } from '../../shared/RollTable'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
+import { CardRollTable } from './CardRollTable'
 import { cardKey } from './cardHelpers'
 import type { NestedCard } from './referenceEntityCardTypes'
 import type { ResolvedGuideStep } from './resolveGuideSteps'
@@ -94,14 +94,16 @@ export function GuideSteps({
                 )}
               </>
             )}
+            {/* The step's table: the same embedded table an entity owns
+                (board E4), framed because it sits in the padded body. */}
             {table && (
-              <RollTable
+              <CardRollTable
                 table={table.table}
-                tableName={table.name}
-                showCommand
-                size={compact ? 'compact' : 'full'}
+                name={table.name}
+                size={compact ? 'medium' : 'large'}
                 collapsible={collapsibleTables}
                 disabled={isDown}
+                framed
               />
             )}
             {subGuide && (

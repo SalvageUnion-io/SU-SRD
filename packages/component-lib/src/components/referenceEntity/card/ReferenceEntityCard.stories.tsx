@@ -1,12 +1,15 @@
+import { Tooltip } from '@base-ui/react/tooltip'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getChoices, SalvageUnionReference } from 'salvageunion-reference'
 import type { Story } from '../../../stories/_harness'
 import { Caption } from '../../../stories/_harness'
+import { InlineRef } from '../../chrome/InlineRef'
 import type { EntityStatus } from '../../shared/entityStatus'
 import type { StatItem } from '../../shared/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
+import { EntityHovercard } from '../EntityTooltip'
 import { ReferenceEntityCard } from './ReferenceEntityCard'
 
 export default {
@@ -528,3 +531,222 @@ export const CollapseEntities: Story = () => {
     </div>
   )
 }
+
+/* ------------------------------------------------------------------------- *
+ * ONE ANATOMY, TWO FILLS (#1253, boards E1–E4) — the whole matrix the issue
+ * gates on: every size × extent cell, things you have and things you do, a
+ * depth-3 stack, every context and the user-made flag. Style objects only.
+ * ------------------------------------------------------------------------- */
+
+const juryRig = pick(SalvageUnionReference.Abilities.all(), (a) => a.name === 'Jury Rig', 'ability')
+const sestraDrone = pick(
+  SalvageUnionReference.Drones.all(),
+  (d) => d.name === 'Sestra Drone',
+  'drone'
+)
+const SIZES = ['large', 'medium', 'small'] as const
+const EXTENTS = ['full', 'head', 'catalog'] as const
+
+/** One row per size; inside a row the extents sit side by side and stack when narrow. */
+const matrixRow = {
+  display: 'grid',
+  gap: '16px 24px',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 20rem), 1fr))',
+} as const
+
+/** One cell per row, at a readable measure: every device can be checked. */
+const singleRow = {
+  display: 'grid',
+  gap: '24px',
+  gridTemplateColumns: 'minmax(0, 40rem)',
+} as const
+
+/** Every size × extent cell of one entity — the same component, different props. */
+function Matrix({
+  entity,
+  label,
+  userMade = false,
+  oneCellPerRow = false,
+}: {
+  entity: Parameters<typeof ReferenceEntityCard>[0]['data']
+  label: string
+  userMade?: boolean
+  /** Stack every cell on its own row instead of three extents to a row. */
+  oneCellPerRow?: boolean
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', padding: '16px' }}>
+      <Caption>{label}</Caption>
+      {SIZES.map((size) => (
+        <div key={size} style={oneCellPerRow ? singleRow : matrixRow}>
+          {EXTENTS.map((extent) => (
+            <div
+              key={extent}
+              style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 0 }}
+            >
+              <Caption>
+                {size} · {extent}
+              </Caption>
+              <ReferenceEntityCard data={entity} size={size} extent={extent} userMade={userMade} />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Board E1 — a thing you HAVE: the tone header, ink speckle, value cells. */
+export const SizeByExtent: Story = () => <Matrix entity={system} label="Salvaging Drill" />
+
+/** Board E1 — a thing you DO: the ink banner, tier numeral, cost pennant. */
+export const SizeByExtentDo: Story = () => <Matrix entity={juryRig} label="Jury Rig" />
+
+/**
+ * Board E2 — the depth stack. Little Sestra (depth 0, large) → its drone in a
+ * Drone tray (depth 1, medium; its description hidden because the Drone
+ * Controller above already says it) → the drone's system as a one-line head
+ * row (depth 2) that opens the entity. Then the same drone mounted at depth 2
+ * full (its actions behind a "Show N actions" chip) and at depth 3, where
+ * MAX_DEPTH stops it expanding.
+ */
+export const DepthStack: Story = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '16px' }}>
+    <Caption>depth 0 → 1 → 2</Caption>
+    <ReferenceEntityCard data={chassis} />
+    <Caption>depth 2, full — actions fold behind the chip</Caption>
+    <ReferenceEntityCard data={system} size="medium" depth={2} />
+    <Caption>depth 3 — MAX_DEPTH: renders, never expands</Caption>
+    <ReferenceEntityCard data={sestraDrone} size="medium" depth={3} />
+  </div>
+)
+
+const panel = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  minWidth: 0,
+} as const
+
+/** The Dashboard card: flat, the same footer as every context, each inline action's pennant the button. */
+function DashboardCard() {
+  return (
+    <div style={{ backgroundColor: 'var(--color-ink-deep)', padding: '16px' }}>
+      <ReferenceEntityCard
+        data={system}
+        size="medium"
+        texture={false}
+        actionControls={(action) => [
+          {
+            key: 'activate',
+            pennant: true,
+            label: 'Activate',
+            onClick: () => {},
+            ariaLabel: `Activate ${'name' in action ? action.name : 'action'}`,
+          },
+        ]}
+      />
+    </div>
+  )
+}
+
+/**
+ * Outlines the pennant button's invisible hit area for the catalog only: the
+ * dashed box is the 44px target (ruleset §4.6) around the pennant it carries.
+ */
+const HIT_AREA_OUTLINE = `.story-hit-areas .su-ec-pennant-btn {
+  outline: 1px dashed var(--color-paper);
+  outline-offset: -1px;
+}`
+
+/**
+ * Board E3 — the five contexts. Geometry never changes; the context decides
+ * materials, density and interactivity, through the controls API.
+ */
+export const Contexts: Story = () => {
+  const [status, setStatus] = useState<EntityStatus>('intact')
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gap: '24px',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(20rem, 1fr))',
+        padding: '16px',
+      }}
+    >
+      <div style={panel}>
+        <Caption>Reference · large · full</Caption>
+        <ReferenceEntityCard data={system} />
+      </div>
+      <div style={panel}>
+        <Caption>Live sheet · medium · full</Caption>
+        <ReferenceEntityCard
+          data={system}
+          size="medium"
+          status={status}
+          onStatusClick={() =>
+            setStatus((s) =>
+              s === 'intact' ? 'damaged' : s === 'damaged' ? 'destroyed' : 'intact'
+            )
+          }
+          controls={[
+            {
+              key: 'remove',
+              label: 'Remove',
+              ariaLabel: 'Remove Salvaging Drill',
+              variant: 'danger',
+              onClick: () => {},
+            },
+          ]}
+        />
+      </div>
+      <div style={panel}>
+        <Caption>Dashboard · medium · full — flat, each band's pennant is the button</Caption>
+        <DashboardCard />
+      </div>
+      <div style={panel}>
+        <Caption>Dashboard · the pennants' 44px hit areas, outlined — no deck button</Caption>
+        <style>{HIT_AREA_OUTLINE}</style>
+        <div className="story-hit-areas">
+          <DashboardCard />
+        </div>
+      </div>
+      <div style={panel}>
+        <Caption>Listing · medium · head — one line, one click</Caption>
+        <ReferenceEntityCard data={system} size="medium" extent="head" onCardClick={() => {}} />
+        <ReferenceEntityCard data={chassis} size="medium" extent="head" onCardClick={() => {}} />
+        <Caption>in prose: the shortform</Caption>
+        <ReferenceEntityCard data={system} size="small" extent="head" />
+      </div>
+      {/* The whole row, with room above the trigger: the popup opens on top. */}
+      <div style={{ ...panel, gridColumn: '1 / -1' }}>
+        <Caption>Tooltip · the real hovercard popup — a lifted plate, terminal and flat</Caption>
+        <p style={{ fontSize: '14px', margin: 0, paddingTop: '14rem' }}>
+          {/* The real hovercard popup, held open for the catalog. */}…then mount the{' '}
+          <Tooltip.Root defaultOpen defaultTriggerId="story-tooltip-trigger">
+            <Tooltip.Trigger
+              id="story-tooltip-trigger"
+              // The prose link (ruleset §3.1): an InlineRef, here to the card's story.
+              render={
+                <InlineRef href="#compositions--entity--reference-entity-card--system-card">
+                  Salvaging Drill
+                </InlineRef>
+              }
+            />
+            <EntityHovercard entity={system} />
+          </Tooltip.Root>{' '}
+          and roll.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * The user-made flag (ruleset §3.9, issue 1276) at every size × extent: a
+ * dashed frame, a dashed User-made stamp, a dashed footer rule and a dashed
+ * pill. One simple entity, one cell per row, so each device can be checked.
+ */
+export const UserMade: Story = () => (
+  <Matrix entity={system} label="Salvaging Drill · user-made" userMade oneCellPerRow />
+)
