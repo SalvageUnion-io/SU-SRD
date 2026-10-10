@@ -24,6 +24,8 @@
  * SoftLink list (orphaned links resolve to null entities and are skipped).
  */
 
+import type { CrewAssignment } from '../../lib/npcs/npcModel'
+import { crewAssignmentsOf } from '../../lib/npcs/npcModel'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityRef, SheetEntityKind } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
@@ -52,6 +54,12 @@ export type SheetComposition = {
   crawlerPilots: Pilot[]
   /** Every mech docked in the crawler by its own link (kind=crawler only). */
   crawlerMechs: Mech[]
+  /**
+   * The crawler's crew slots filled by built NPCs (kind=crawler only;
+   * ADR-043). Not part of `mode`: a crawler crewed only by NPCs is still
+   * crawler-only as far as its linked units go.
+   */
+  crew: CrewAssignment[]
 }
 
 type ResolveArgs = {
@@ -69,6 +77,7 @@ export function resolveSheetComposition({ kind, id, links, store }: ResolveArgs)
     crawler: null,
     crawlerPilots: [],
     crawlerMechs: [],
+    crew: [],
   }
 
   /** The one entity at the far end of an outgoing link of this type. */
@@ -96,6 +105,7 @@ export function resolveSheetComposition({ kind, id, links, store }: ResolveArgs)
 
   // kind === 'crawler'
   const crawler = store.get('crawler', id)
+  const crew = crewAssignmentsOf(links, id, (npcId) => store.get('npc', npcId))
   const crawlerPilots = links
     .filter((l) => l.type === 'pilot-to-crawler' && l.to.id === id)
     .map((l) => store.get('pilot', l.from.id))
@@ -104,7 +114,7 @@ export function resolveSheetComposition({ kind, id, links, store }: ResolveArgs)
     .filter((l) => l.type === 'mech-to-crawler' && l.to.id === id)
     .map((l) => store.get('mech', l.from.id))
     .filter((m): m is Mech => m !== null)
-  if (crawlerPilots.length === 0 && crawlerMechs.length === 0) return { ...empty, crawler }
+  if (crawlerPilots.length === 0 && crawlerMechs.length === 0) return { ...empty, crawler, crew }
   return {
     mode: 'wired',
     pilot: crawlerPilots[0] ?? null,
@@ -112,5 +122,6 @@ export function resolveSheetComposition({ kind, id, links, store }: ResolveArgs)
     crawler,
     crawlerPilots,
     crawlerMechs,
+    crew,
   }
 }

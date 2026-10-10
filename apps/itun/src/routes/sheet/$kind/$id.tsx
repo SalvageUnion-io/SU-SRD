@@ -1,8 +1,11 @@
 /**
  * Sheet view route — /sheet/:kind/:id — the one way to view an entity.
  *
- * kind: 'pilot' | 'mech' | 'crawler'
+ * kind: 'pilot' | 'mech' | 'crawler' | 'npc'
  * id:   the entity's app id (what every in-app link carries)
+ *
+ * A built NPC (ADR-043) has a page of its own (`NpcSheetView`); the other
+ * three render the composed Live Sheet.
  *
  * Editable when it is yours, read-only and live when it is a crewmate's: the
  * page body (`SheetView`) decides. The loader hydrates the entity store for all
@@ -14,6 +17,7 @@
  */
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
+import { NpcSheetView } from '../../../components/npc/NpcSheetView'
 import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
 import { SheetSkeleton } from '../../../components/sheet/SheetSkeleton'
 import { SheetView } from '../../../components/sheet/SheetView'
@@ -26,9 +30,9 @@ import { useEntityStore } from '../../../stores/entityStore'
  * one renders in place on its host's sheet as a decorated reference entity, so
  * it never needed a route, and `EntityRef` never needed widening (ADR-028).
  */
-type SheetKind = SheetEntityKind
+type SheetKind = SheetEntityKind | 'npc'
 
-const VALID_KINDS: SheetKind[] = ['pilot', 'mech', 'crawler']
+const VALID_KINDS: SheetKind[] = ['pilot', 'mech', 'crawler', 'npc']
 
 /** Route-param guard: narrows the raw `$kind` segment to a sheet kind. */
 function isSheetKind(kind: string): kind is SheetKind {
@@ -42,8 +46,8 @@ function SheetKindNotFound() {
       title="Sheet not found"
       message={
         <>
-          &ldquo;{params.kind}&rdquo; is not a sheet type. Sheets exist for pilots, mechs, and
-          crawlers.
+          &ldquo;{params.kind}&rdquo; is not a sheet type. Sheets exist for pilots, mechs, crawlers
+          and NPCs.
         </>
       }
     />
@@ -63,6 +67,7 @@ export const Route = createFileRoute('/sheet/$kind/$id')({
       store.hydrate('pilot'),
       store.hydrate('mech'),
       store.hydrate('crawler'),
+      store.hydrate('npc'),
       store.hydrate('softLink'),
     ])
   },
@@ -78,6 +83,7 @@ function SheetPage() {
   const { kind, id } = Route.useParams()
   // The loader already 404s unknown kinds; this re-narrow keeps it cast-free.
   if (!isSheetKind(kind)) return <SheetKindNotFound />
+  if (kind === 'npc') return <NpcSheetView id={id} />
 
   return <SheetView kind={kind} id={id} />
 }
