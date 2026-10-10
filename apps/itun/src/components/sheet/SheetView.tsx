@@ -48,6 +48,7 @@ import type { GameListing } from './readOnlySheetStore'
 import { makeReadOnlySheetStore, sheetDataFromListing } from './readOnlySheetStore'
 import { Sheet } from './Sheet'
 import { SheetSkeleton } from './SheetSkeleton'
+import { SheetModeContext, useSheetModeStore } from './sheetMode'
 
 type SheetViewProps = { kind: EntityRef['type']; id: string }
 
@@ -77,6 +78,9 @@ export function SheetView({ kind, id }: SheetViewProps) {
   useSheetTabTitle(kind, id)
   const { mode } = useConnection()
   const router = useRouter({ warn: false })
+  const editing = useSheetModeStore((s) => s.editing)
+  const setEditing = useSheetModeStore((s) => s.setEditing)
+  const sheetMode = useMemo(() => ({ editing, setEditing }), [editing, setEditing])
   const held = useEntityStore((s) => s.get(kind, id))
 
   const online = mode === 'connected'
@@ -113,13 +117,17 @@ export function SheetView({ kind, id }: SheetViewProps) {
     })
   }, [canonical, id, kind, router])
 
-  // `/games/$gameId` opens that Game on the hub (the route picks it, then lands
-  // on `/`) — a plain `/` could not say which Game to show.
+  // `/games/$gameId` is that Game's own page — a plain `/` is the shelf.
   const crew = gameId === null ? undefined : { href: `/games/${gameId}`, label: 'the crew' }
 
-  // Yours: the local copy, editable — unless the server says otherwise.
+  // Yours: the local copy, editable — unless the server says otherwise. It
+  // opens in Read, and the band's Read | Edit switches (`sheetMode.ts`).
   if (held !== null && (located == null || located.mayEdit)) {
-    return <Sheet kind={kind} id={id} others={others} crawlerReadOnly={crawlerReadOnly} />
+    return (
+      <SheetModeContext.Provider value={sheetMode}>
+        <Sheet kind={kind} id={id} others={others} crawlerReadOnly={crawlerReadOnly} />
+      </SheetModeContext.Provider>
+    )
   }
 
   if (!online) {

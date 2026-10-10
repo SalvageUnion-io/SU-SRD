@@ -90,8 +90,13 @@ export const Identity: Story = () => {
       </div>
 
       <div className="flex flex-col gap-2">
-        <Caption>Read-only — plain ink border, no cue (locked section / snapshot).</Caption>
+        <Caption>
+          Read state — typeset: the label over the value, no box (board 10). An empty value renders
+          nothing.
+        </Caption>
         <Field label="Callsign" value={callsign} />
+        <Field label="Motto" value={motto} multiline />
+        <Field label="Pronouns" value="" />
       </div>
 
       <div className="flex flex-col gap-2">

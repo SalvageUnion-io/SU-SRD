@@ -7,7 +7,7 @@
  *   2. Toggling a choice persists to the store via update() under
  *      equipmentChoices[slug][choiceId], without clobbering other items.
  *   3. Persisted selections render as already-chosen (aria-pressed).
- *   4. readOnly: choice cards render but toggling does not call store.update.
+ *   4. readOnly (Read): the item is its shortform pill; nothing is written.
  *
  * Uses the store-injection seam + a real choice-bearing reference equipment.
  * NO mock.module().
@@ -71,25 +71,6 @@ function makePilotStubStore(initial: Pilot, updateSpy?: ReturnType<typeof mock>)
     list: mock(() => [current]),
     get: mock((_type: string, id: string) => (id === current.id ? current : null)),
     create: mock(async () => current),
-    update: updateMock,
-    delete: mock(async () => {}),
-  })
-  return { store, updateMock }
-}
-
-// Empty store — get() always returns null, mirroring a share-link viewer who
-// does NOT own the snapshot's pilot locally. Used to prove selections are
-// sourced from the pilot prop, not the live store.
-function makeEmptyStore() {
-  const updateMock = mock(async () => {
-    throw new Error('update should not be called in read-only snapshot')
-  })
-  const store = makeEntityStoreMock({
-    hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => []),
-    get: mock(() => null),
-    create: mock(async () => null),
     update: updateMock,
     delete: mock(async () => {}),
   })
@@ -167,38 +148,19 @@ describe('PilotSheet — equipment choice cards', () => {
     expect(ballistic.getAttribute('aria-pressed')).toBe('false')
   })
 
-  test('readOnly snapshot: persisted selection renders from the pilot prop even when the store has no entity', () => {
-    // Mirrors the share-link case: the viewer does not own this pilot locally,
-    // so the store get() returns null. Selections must come from the pilot prop.
+  test('readOnly (the Read state): the item is its shortform pill, and nothing is written', async () => {
+    // Read prints the inventory as pills (board 10, issue 1255): the choice is
+    // the card's, shown in Edit. A read-only sheet offers no choice to toggle.
     const pilot = makePilot({
       equipmentChoices: {
         [SNIPER_ID]: { [WEAPON_TYPE_CHOICE_ID]: ['Energy'] },
       },
     })
-    const { store } = makeEmptyStore()
-    render(<PilotSheet pilot={pilot} store={store} readOnly />)
-    expandCards()
-
-    const energy = screen.getByRole('button', { name: /Energy/i })
-    expect(energy.getAttribute('aria-pressed')).toBe('true')
-
-    const ballistic = screen.getByRole('button', { name: /Ballistic/i })
-    expect(ballistic.getAttribute('aria-pressed')).toBe('false')
-  })
-
-  test('readOnly: choice cards render but toggling does not persist', async () => {
-    const pilot = makePilot()
     const { store, updateMock } = makePilotStubStore(pilot)
     render(<PilotSheet pilot={pilot} store={store} readOnly />)
-    expandCards()
 
-    const ballistic = screen.getByRole('button', { name: /Ballistic/i })
-    expect(ballistic).toBeTruthy()
-
-    await act(async () => {
-      fireEvent.click(ballistic)
-    })
-
+    expect(screen.getAllByText(SNIPER_NAME).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: /Ballistic/i })).toBeNull()
     expect(updateMock).not.toHaveBeenCalled()
   })
 })

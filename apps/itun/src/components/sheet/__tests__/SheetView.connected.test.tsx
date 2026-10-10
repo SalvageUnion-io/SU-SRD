@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { createElement } from 'react'
 
@@ -11,8 +11,8 @@ import { createElement } from 'react'
  *  - a crewmate's pilot shows its CURRENT assignments — the mech flying it and
  *    the crawler it crews — read from the Game's live listing, not a frozen
  *    single-entity copy that could show neither;
- *  - your own sheet opens editable, a crewmate's read-only with no edit
- *    controls, at the same address;
+ *  - your own sheet opens in Read with Edit one press away (board 10), a
+ *    crewmate's read-only with no edit controls and no Edit, at one address;
  *  - your crawler's crew lists crewmates' pilots this browser does not cache,
  *    as read-only rows that link to their live view;
  *  - a Convex row id — what the Discord bot's /sheet/ links carry, and what
@@ -54,12 +54,17 @@ const { SheetView } = await import('../SheetView')
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
 const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
+const { useSheetModeStore } = await import('../sheetMode')
 
-afterAll(() => convexMocks.restore())
+afterAll(() => {
+  useSheetModeStore.setState({ editing: false })
+  convexMocks.restore()
+})
 
 beforeEach(async () => {
   await hydrateStores()
   navigations.length = 0
+  useSheetModeStore.setState({ editing: false })
 })
 
 afterEach(() => {
@@ -154,6 +159,8 @@ describe("a crewmate's sheet", () => {
 
     expect(screen.getByRole('note', { name: 'Read-only crew sheet' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Share this pilot$/ })).toBeNull()
+    // Only ever read: no Read | Edit on a sheet that is not yours.
+    expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
     // No unassign on a sheet that is not yours.
     expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
     // Nothing was cached: reading is not owning.
@@ -177,7 +184,7 @@ describe("a crewmate's sheet", () => {
 })
 
 describe('your own sheet', () => {
-  test('opens editable from the local store, at the same address', async () => {
+  test('opens in Read from the local store, with Edit one press away', async () => {
     useEntityStore.setState({ pilots: [MY_PILOT] })
     setQueryAnswers({
       'entities:locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
@@ -188,6 +195,18 @@ describe('your own sheet', () => {
 
     expect(screen.queryByRole('note', { name: 'Read-only crew sheet' })).toBeNull()
     expect(screen.getByRole('button', { name: /^Share this pilot$/ })).toBeTruthy()
+    // Print reads: no pencil until Edit is pressed.
+    const read = screen.getByRole('button', { name: 'Read' })
+    expect(read.getAttribute('aria-pressed')).toBe('true')
+    expect(screen.queryByRole('button', { name: /^Manage abilities$/ })).toBeNull()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    })
+    expect(screen.getByRole('button', { name: 'Edit' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: /^Manage abilities$/ })).toBeTruthy()
+    // The choice holds for the visit, from this sheet to the next.
+    expect(useSheetModeStore.getState().editing).toBe(true)
   })
 
   test("shows the crewmate's mech flying it — but leaves its unassign to them", async () => {
@@ -217,6 +236,7 @@ describe('your own sheet', () => {
   })
 
   test("the Mediator's crawler lists crewmates' pilots as read-only rows to their live view", async () => {
+    useSheetModeStore.setState({ editing: true })
     useEntityStore.setState({
       crawlers: [CRAWLER],
       pilots: [MY_PILOT],
@@ -297,6 +317,8 @@ describe("your own mech's hold, against the Game's crawler", () => {
   })
 
   async function viewMyMech(tableRunner: boolean) {
+    // Stowing is a write: the sheet is in Edit.
+    useSheetModeStore.setState({ editing: true })
     // WiringSync caches the crawler and the link docking your mech in it.
     useEntityStore.setState({
       mechs: [MY_MECH],

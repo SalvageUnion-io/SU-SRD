@@ -186,8 +186,8 @@ export function PilotIdentityPanel({
         <div className="flex min-w-0 flex-col gap-3">
           {/* Callsign and Class lead TOGETHER, at the same prominence: what a
               pilot is called and what they do are the two facts you identify
-              them by. Name lives here too — with the global Edit toggle gone,
-              this is the pilot's name edit surface (the hero title mirrors it). */}
+              them by. Name lives here too, in Edit: this is the pilot's name edit
+              surface (the band's title mirrors it). */}
           <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
             <Field
               label="Callsign"
@@ -202,11 +202,8 @@ export function PilotIdentityPanel({
               prominent
             />
           </div>
-          <Field
-            label="Name"
-            value={pilot.name}
-            onSave={canEdit ? saveRequired('name') : undefined}
-          />
+          {/* Read omits the name: it is the band's title (board 10). */}
+          {canEdit && <Field label="Name" value={pilot.name} onSave={saveRequired('name')} />}
           <Field
             label="Pronouns"
             value={pilot.pronouns ?? ''}
