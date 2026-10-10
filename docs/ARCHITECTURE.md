@@ -712,7 +712,7 @@ Clickable `Card`s are `role="button"` with Enter/Space; search
 `aria-activedescendant`; breadcrumbs mark `aria-current="page"`; filter chips
 are `Badge as="button"` with `aria-pressed`; `ModalShell` traps focus and
 `ConfirmDialog` starts on Cancel when destructive; touch targets are 44px under
-`@media (pointer: coarse)`, minis and chips through a hit area
+`@media (pointer: coarse)`, minis, chips and breadcrumb links through a hit area
 (`touchFloor.test.ts`).
 
 **Contrast:** tokens in component-lib's `src/styles/theme.css`
