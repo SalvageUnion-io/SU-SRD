@@ -26,7 +26,43 @@ describe('ids', () => {
   test('finds invalid and in-file duplicate ids, including nested action ids', () => {
     const r = checkFile('systems.json', [{ id: A, actions: [{ id: 'bad', name: 'x' }] }, { id: A }])
     expect(r.invalidUUIDs).toEqual([{ id: 'bad', index: 0, context: 'root.actions[0]' }])
-    expect(r.duplicatesInFile).toEqual([{ id: A, indices: [0, 1] }])
+    expect(r.duplicatesInFile).toEqual([{ id: A, indices: [0, 1], contexts: ['root', 'root'] }])
+  })
+
+  test('an id at any depth is checked, guide steps included, with the path of each copy', () => {
+    const guide = { id: B, steps: [{ id: A }, { id: 'bad' }], blocks: [{ deep: [{ id: A }] }] }
+    const r = checkFile('guides.json', [guide])
+    expect(r.invalidUUIDs).toEqual([{ id: 'bad', index: 0, context: 'root.steps[1]' }])
+    expect(r.duplicatesInFile).toEqual([
+      { id: A, indices: [0, 0], contexts: ['root.steps[0]', 'root.blocks[0].deep[0]'] },
+    ])
+  })
+
+  test('a non-string id is visited, so the format check rejects it', () => {
+    const r = checkFile('systems.json', [{ id: A, actions: [{ id: 12345 }] }])
+    expect(r.invalidUUIDs).toEqual([{ id: '12345', index: 0, context: 'root.actions[0]' }])
+  })
+
+  test('a nested id that repeats an entity id in another file is a global duplicate', () => {
+    const r = checkAllFiles({
+      'chassis.json': [{ id: A }],
+      'guides.json': [{ id: B, steps: [{ id: A }] }],
+    })
+    expect(r.globalDuplicates).toEqual([
+      {
+        id: A,
+        files: [
+          { file: 'chassis.json', indices: [0] },
+          { file: 'guides.json', indices: [0] },
+        ],
+      },
+    ])
+  })
+
+  test('an id repeated within one file is not also reported as a cross-file duplicate', () => {
+    const r = checkAllFiles({ 'a.json': [{ id: A }, { id: A }] })
+    expect(r.globalDuplicates).toEqual([])
+    expect(r.files[0]?.duplicatesInFile).toHaveLength(1)
   })
 
   test('slug-id files are exempt from the UUID format but not from duplicates', () => {

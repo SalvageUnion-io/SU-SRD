@@ -59,12 +59,13 @@ function idsCheck(data: DataBag): Diagnostic[] {
         message: `Invalid UUID "${id}" (must be UUIDv4)`,
       })
     }
-    for (const { id, indices } of fileResult.duplicatesInFile) {
+    for (const { id, indices, contexts } of fileResult.duplicatesInFile) {
+      const where = indices.map((index, i) => `[${index}] ${contexts[i]}`).join(', ')
       diagnostics.push({
         check: 'ids',
         file: fileResult.file,
         path: `[${indices.join(', ')}]`,
-        message: `Duplicate ID "${id}" reused at indices ${indices.join(', ')} within this file`,
+        message: `Duplicate ID "${id}" reused within this file at ${where}`,
       })
     }
   }

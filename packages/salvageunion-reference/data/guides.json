@@ -31,7 +31,7 @@
     ],
     "steps": [
       {
-        "id": "f1a2b3c4-d5e6-4f7a-8b9c-0d1e2f3a4b5c",
+        "id": "c41eb201-7200-452b-adb2-6db510239b84",
         "name": "Boundaries",
         "content": [
           {
@@ -332,7 +332,7 @@
         ]
       },
       {
-        "id": "a2b3c4d5-e6f7-4890-1234-56789abcdef0",
+        "id": "8c36a2b5-db2c-469f-aeaa-4fe42be53afa",
         "name": "Note down your Mech's statistics",
         "paperOnly": true,
         "content": [
@@ -351,7 +351,7 @@
         ]
       },
       {
-        "id": "b3c4d5e6-f7a8-4901-2345-6789abcdef01",
+        "id": "07dbca15-ebb5-4973-a6b9-56f57da4e2ea",
         "name": "Craft your Systems",
         "optional": true,
         "schema": ["systems"],
@@ -397,7 +397,7 @@
         ]
       },
       {
-        "id": "c4d5e6f7-a8b9-4012-3456-789abcdef012",
+        "id": "08dbb4ae-ac0e-4311-81d5-e8ea15bf843a",
         "name": "Craft your Modules",
         "optional": true,
         "schema": ["modules"],
@@ -505,7 +505,7 @@
         ]
       },
       {
-        "id": "d5e6f7a8-b9c0-4123-4567-89abcdef0123",
+        "id": "c96f07b4-0957-4e73-8d33-b0d34d24655f",
         "name": "Note down your Crawler statistics",
         "paperOnly": true,
         "content": [
@@ -524,7 +524,7 @@
         ]
       },
       {
-        "id": "e6f7a8b9-c0d1-4234-5678-9abcdef01234",
+        "id": "da8f6882-3d8e-4a09-ba26-d5c66beecb87",
         "name": "Choose Weapons Systems",
         "schema": ["systems"],
         "constraints": {
@@ -556,7 +556,7 @@
         ]
       },
       {
-        "id": "f7a8b9c0-d1e2-4345-6789-abcdef012345",
+        "id": "68a21ea2-0b1a-44a2-9719-1180baddebd4",
         "name": "Name the Crawler's NPCs",
         "schema": ["crawler-bays"],
         "content": [
@@ -688,7 +688,7 @@
         ]
       },
       {
-        "id": "c3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a",
+        "id": "68160ae7-7225-4fd1-8d20-78f8f2dceb2f",
         "name": "Trade",
         "content": [
           {
@@ -698,7 +698,7 @@
         ]
       },
       {
-        "id": "d4f5a6b7-c8d9-4e0f-1a2b-3c4d5e6f7a8b",
+        "id": "771abe00-8ee5-411c-9b06-11da332adf9b",
         "name": "Craft Mech Chassis, Systems, and Modules",
         "content": [
           {
@@ -708,7 +708,7 @@
         ]
       },
       {
-        "id": "e5a6b7c8-d9e0-4f1a-2b3c-4d5e6f7a8b9c",
+        "id": "fa5c132e-7104-4cb7-ac2b-ed265369dc0f",
         "name": "Customise your Mech",
         "content": [
           {
@@ -718,7 +718,7 @@
         ]
       },
       {
-        "id": "f6b7c8d9-e0f1-4a2b-3c4d-5e6f7a8b9c0d",
+        "id": "63ad0f0b-9df8-4df6-9091-2319c00690d4",
         "name": "Train your Pilot",
         "content": [
           {
@@ -732,7 +732,7 @@
         ]
       },
       {
-        "id": "a7c8d9e0-f1a2-4b3c-4d5e-6f7a8b9c0d1e",
+        "id": "99498470-f82d-48bd-9733-41852eda04a1",
         "name": "Obtain Pilot Equipment",
         "content": [
           {
@@ -742,7 +742,7 @@
         ]
       },
       {
-        "id": "b8d9e0f1-a2b3-4c4d-5e6f-7a8b9c0d1e2f",
+        "id": "43b78ab6-d7d5-4fb4-8e73-da40d63cd9af",
         "name": "Gather Cantina Rumours",
         "section": "Pre-Session",
         "content": [
@@ -753,7 +753,7 @@
         ]
       },
       {
-        "id": "c9e0f1a2-b3c4-4d5e-6f7a-8b9c0d1e2f3a",
+        "id": "baae7a69-43ee-4217-94b9-1e046e4fa744",
         "name": "Prepare for the next Salvage Run",
         "content": [
           {
@@ -780,7 +780,7 @@
     ],
     "steps": [
       {
-        "id": "d5e6f7a8-b9c0-4d1e-2f3a-4b5c6d7e8f9a",
+        "id": "b4b0ac06-890f-4e65-bcab-f551a1b0af81",
         "name": "Pushing to Re-Roll",
         "content": [
           {
@@ -794,7 +794,7 @@
         ]
       },
       {
-        "id": "e6f7a8b9-c0d1-4e2f-3a4b-5c6d7e8f9a0b",
+        "id": "1430f006-bb87-4ec4-9690-1455497aa400",
         "name": "Risks of Pushing",
         "content": [
           {
@@ -812,7 +812,7 @@
         ]
       },
       {
-        "id": "f7a8b9c0-d1e2-4f3a-4b5c-6d7e8f9a0b1c",
+        "id": "d9c6af7c-08af-45ae-afa6-7efeabd7dcbd",
         "name": "Multiple Pushes",
         "content": [
           {
@@ -830,7 +830,7 @@
         ]
       },
       {
-        "id": "a8b9c0d1-e2f3-4a4b-5c6d-7e8f9a0b1c2d",
+        "id": "c7dd6e88-60e4-4e82-8ef0-bd2d64294e9e",
         "name": "Push Procedure",
         "content": [
           {
@@ -877,7 +877,7 @@
     ],
     "steps": [
       {
-        "id": "b3c4d5e6-f7a8-4b9c-0d1e-2f3a4b5c6d7e",
+        "id": "608e7062-bb9a-464f-a7f7-65d27efbeb2f",
         "name": "Heat Check",
         "content": [
           {
@@ -899,13 +899,13 @@
         ]
       },
       {
-        "id": "c4d5e6f7-a8b9-4c0d-1e2f-3a4b5c6d7e8f",
+        "id": "4859a3f6-ced3-4de2-93f8-b1d31f63168a",
         "name": "Reactor Overload Table",
         "rollTable": "Reactor Overload",
         "content": []
       },
       {
-        "id": "d5e6f7a8-b9c0-4d1e-2f3a-4b5c6d7e8f9a",
+        "id": "3ebc0428-0bad-4026-a49a-aacd04890a95",
         "name": "Venting Heat",
         "content": [
           {
@@ -935,7 +935,7 @@
     "content": [],
     "steps": [
       {
-        "id": "c5d6e7f8-a9b0-4c1d-2e3f-4a5b6c7d8e9f",
+        "id": "8c5c9e6b-410a-4abb-9836-20570bbdbf3f",
         "name": "Activating a Mech",
         "content": [
           {
@@ -949,7 +949,7 @@
         ]
       },
       {
-        "id": "d6e7f8a9-b0c1-4d2e-3f4a-5b6c7d8e9f0a",
+        "id": "0321b207-1e57-436b-91c5-1a966fab8b45",
         "name": "Embarking and Disembarking from a Mech",
         "content": [
           {
@@ -992,7 +992,7 @@
     ],
     "steps": [
       {
-        "id": "d7e8f9a0-b1c2-4d3e-4f5a-6b7c8d9e0f1a",
+        "id": "8381dc31-9837-43e7-b1b7-91844289a480",
         "name": "Critical Damage Table",
         "rollTable": "Critical Damage",
         "content": [
@@ -1003,7 +1003,7 @@
         ]
       },
       {
-        "id": "e8f9a0b1-c2d3-4e4f-5a6b-7c8d9e0f1a2b",
+        "id": "978f86bf-36db-4a86-bf38-d6ae704218c2",
         "name": "Restoring Mech Structure Points",
         "content": [
           {
@@ -1017,7 +1017,7 @@
         ]
       },
       {
-        "id": "f9a0b1c2-d3e4-4f5a-6b7c-8d9e0f1a2b3c",
+        "id": "2c7bde7f-a2e3-49a0-8ab5-13a182ea0620",
         "name": "Repairing Mech Chassis, Systems, and Modules",
         "content": [
           {
@@ -1047,7 +1047,7 @@
         ]
       },
       {
-        "id": "a0b1c2d3-e4f5-4a6b-7c8d-9e0f1a2b3c4d",
+        "id": "3937f1de-5e40-4202-aea5-d9d13ce82397",
         "name": "Destroyed Mechs, Systems, and Modules",
         "content": [
           {
@@ -1082,7 +1082,7 @@
     ],
     "steps": [
       {
-        "id": "e9f0a1b2-c3d4-4e5f-6a7b-8c9d0e1f2a3b",
+        "id": "24a740fa-457d-45e9-ade1-52f862ca20ce",
         "name": "Critical Injury Table",
         "rollTable": "Critical Injury",
         "content": [
@@ -1093,7 +1093,7 @@
         ]
       },
       {
-        "id": "f0a1b2c3-d4e5-4f6a-7b8c-9d0e1f2a3b4c",
+        "id": "5b027f36-89c9-48c6-b760-d792df23a066",
         "name": "Injuries",
         "content": [
           {
@@ -1154,7 +1154,7 @@
     ],
     "steps": [
       {
-        "id": "b5c6d7e8-f9a0-4b1c-2d3e-4f5a6b7c8d9e",
+        "id": "10190f6a-ca2b-49f9-a3e3-d25bde582df5",
         "name": "Intact",
         "content": [
           {
@@ -1164,7 +1164,7 @@
         ]
       },
       {
-        "id": "c6d7e8f9-a0b1-4c2d-3e4f-5a6b7c8d9e0a",
+        "id": "695134cf-c7cc-4b0b-bf72-bb2829995f80",
         "name": "Damaged",
         "content": [
           {
@@ -1182,7 +1182,7 @@
         ]
       },
       {
-        "id": "d7e8f9a0-b1c2-4d3e-4f5a-6b7c8d9e0f1b",
+        "id": "eb7dd803-02e9-4361-a8a0-e40ac2793570",
         "name": "Destroyed",
         "content": [
           {
@@ -1204,7 +1204,7 @@
     "content": [],
     "steps": [
       {
-        "id": "c7d8e9f0-a1b2-4c3d-4e5f-6a7b8c9d0e1f",
+        "id": "dd8a4c51-4822-45a8-bc3f-1882fedc8c4e",
         "name": "Area Salvage",
         "content": [
           {
@@ -1238,7 +1238,7 @@
         ]
       },
       {
-        "id": "d8e9f0a1-b2c3-4d4e-5f6a-7b8c9d0e1f2b",
+        "id": "8bfb60b8-ea4c-4d3a-a903-becd5dec3e71",
         "name": "Salvaging a Mech",
         "content": [
           {
@@ -1248,7 +1248,7 @@
         ]
       },
       {
-        "id": "e9f0a1b2-c3d4-4e5f-6a7b-8c9d0e1f2a3c",
+        "id": "3ade8083-6899-47a7-bf6d-89c1ea3f1328",
         "name": "Salvaging a Non-Mech",
         "content": [
           {
@@ -1266,7 +1266,7 @@
         ]
       },
       {
-        "id": "f0a1b2c3-d4e5-4f6a-7b8c-9d0e1f2a3b4d",
+        "id": "42c9df02-7043-4e80-98ff-a1704fc9e504",
         "name": "Cargo Capacity",
         "content": [
           {
@@ -1317,7 +1317,7 @@
     ],
     "steps": [
       {
-        "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+        "id": "fcf277fe-6efb-4c1a-b241-42d95ba49bf0",
         "name": "Default Rules",
         "content": [
           {
@@ -1341,7 +1341,7 @@
         ]
       },
       {
-        "id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+        "id": "c956f344-3c1a-4f65-91a3-60ae01713bb6",
         "name": "Alternative Tough Choices",
         "content": [
           {
@@ -1395,7 +1395,7 @@
         ]
       },
       {
-        "id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
+        "id": "e647a92b-0529-4d3b-91f2-90ac70e2c76f",
         "name": "Creative Actions",
         "content": [
           {
@@ -1434,7 +1434,7 @@
     ],
     "steps": [
       {
-        "id": "a3b4c5d6-e7f8-4a9b-0c1d-2e3f4a5b6c7d",
+        "id": "07b9cafe-0d6e-4f96-8a47-07727e707d4e",
         "name": "Campaign Map",
         "content": [
           {
@@ -1456,7 +1456,7 @@
         ]
       },
       {
-        "id": "b4c5d6e7-f8a9-4b0c-1d2e-3f4a5b6c7d8a",
+        "id": "3170b116-a59a-496b-ab41-344f63b51b07",
         "name": "Region Map",
         "content": [
           {
@@ -1478,7 +1478,7 @@
         ]
       },
       {
-        "id": "c5d6e7f8-a9b0-4c1d-2e3f-4a5b6c7d8e9a",
+        "id": "bdb5c8d3-47c0-431a-b660-aba58ef741e5",
         "name": "Area Map",
         "content": [
           {
