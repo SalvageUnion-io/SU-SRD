@@ -26,6 +26,7 @@ import {
   USER_MADE_HATCH,
   UserMadeStamp,
 } from 'component-lib'
+import { useMutation } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
@@ -35,6 +36,7 @@ import {
   getChassisAbilities,
   getEntitySlug,
 } from 'salvageunion-reference'
+import { api } from '../../../../convex/_generated/api'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { serverMessage } from '../../../lib/connection/serverError'
 import { itunEntityHref } from '../../../lib/entityHref'
@@ -196,14 +198,14 @@ const STATS = {
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
 } satisfies CSSProperties
 
-/** One stat plate: a 52px boxed number beside an ink label, 40px tall at least. */
+/** One stat plate: a large framed numeral beside an ink label at 14px (ruleset §2). */
 const PLATE = {
   backgroundColor: tokens.color.paper,
   borderColor: tokens.color.ink,
   borderStyle: 'solid',
   borderWidth: tokens.borderWidth.chrome,
   display: 'flex',
-  minHeight: '2.5rem',
+  minHeight: '3.25rem',
 } satisfies CSSProperties
 
 const PLATE_VALUE = {
@@ -213,10 +215,10 @@ const PLATE_VALUE = {
   display: 'flex',
   flexShrink: 0,
   fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
+  fontSize: tokens.fontSize.display,
   fontWeight: tokens.weight.extrabold,
   justifyContent: 'center',
-  width: '3.25rem',
+  width: '4rem',
 } satisfies CSSProperties
 
 const PLATE_LABEL = {
@@ -226,7 +228,7 @@ const PLATE_LABEL = {
   display: 'flex',
   flex: 1,
   fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
+  fontSize: tokens.fontSize.sm,
   fontWeight: tokens.weight.bold,
   letterSpacing: tokens.tracking.capsSnug,
   minWidth: 0,
@@ -297,6 +299,14 @@ const VISIBILITY_COPY: Record<PatternVisibility, string> = {
   game: 'Your Game’s crew can read this pattern and build from it.',
 }
 
+/** The manual's wording for a stat label (the reference spells them out). */
+const MANUAL_LABEL: Record<string, string> = {
+  'Structure Points': 'Structure Pts.',
+  'Energy Points': 'Energy Pts.',
+  'Heat Capacity': 'Heat Cap.',
+  'Cargo Capacity': 'Cargo Cap.',
+}
+
 function sharedDate(at: number): string {
   return new Date(at).toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -315,7 +325,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const { pattern, madeBy, sharedAt, builtCount, mine, visibility } = answer
   const navigate = useNavigate()
   const { mode, canWrite } = useConnection()
-  const [busy, setBusy] = useState<'build' | 'copy' | null>(null)
+  const [busy, setBusy] = useState<'build' | 'copy' | 'unshare' | null>(null)
+  const [unshared, setUnshared] = useState(false)
+  const setPatternVisibility = useMutation(api.shelf.setPatternVisibility)
 
   const chassis = patternChassis(pattern)
   const loadout = patternLoadout(pattern)
@@ -348,6 +360,20 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
     }
   }
 
+  async function stopSharing() {
+    setBusy('unshare')
+    try {
+      await setPatternVisibility({ patternId: pattern.id, visibility: 'private' })
+      setUnshared(true)
+      toast.success('Only you can see this pattern now.')
+    } catch (err) {
+      toast.error(serverMessage(err) ?? 'The pattern could not be made private. Try again.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const shownVisibility: PatternVisibility | null = unshared ? 'private' : visibility
   const builtLine = `${builtCount} ${builtCount === 1 ? 'mech' : 'mechs'} built from it`
 
   return (
@@ -416,7 +442,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               {stats.map((s) => (
                 <div key={s.label} style={PLATE}>
                   <span style={PLATE_VALUE}>{s.value}</span>
-                  <span style={PLATE_LABEL}>{s.label}</span>
+                  <span style={PLATE_LABEL}>{MANUAL_LABEL[s.label] ?? s.label}</span>
                 </div>
               ))}
             </div>
@@ -462,7 +488,21 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               )}
               <Text variant="hint">{builtLine}</Text>
             </div>
-            {mine && visibility && <Text variant="hint">{VISIBILITY_COPY[visibility]}</Text>}
+            {mine && shownVisibility && (
+              <div style={ACTIONS}>
+                <Text variant="hint">{VISIBILITY_COPY[shownVisibility]}</Text>
+                {shownVisibility !== 'private' && canWrite && mode === 'connected' && (
+                  <Button
+                    variant="ghost"
+                    style={ACTION_BUTTON}
+                    onClick={() => void stopSharing()}
+                    disabled={busy !== null}
+                  >
+                    {busy === 'unshare' ? 'Stopping…' : 'Stop sharing'}
+                  </Button>
+                )}
+              </div>
+            )}
           </section>
         </div>
 

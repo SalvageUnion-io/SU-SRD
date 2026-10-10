@@ -103,6 +103,11 @@ describe('what gets saved', () => {
     expect(screen.getByText('Not a legal starting mech')).toBeTruthy()
   })
 
+  test('the preview title is set in typographic quotes, as the public page band is', async () => {
+    await renderPage()
+    expect(screen.getByText('\u201CScrapper\u201D')).toBeTruthy()
+  })
+
   test('crew sharing names the mech’s own Game', async () => {
     await renderPage()
     expect(screen.getByText(/Everyone in Reclamation of the Wastes/)).toBeTruthy()

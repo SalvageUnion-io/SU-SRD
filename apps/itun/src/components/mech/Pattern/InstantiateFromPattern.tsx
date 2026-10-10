@@ -52,16 +52,16 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
         size="compact"
         onClick={() => setConfirming(true)}
         disabled={isInstantiating}
-        aria-label={`Instantiate mech from pattern ${pattern.name}`}
+        aria-label={`Build this mech from ${pattern.name}`}
       >
-        {isInstantiating ? 'Creating…' : 'Instantiate'}
+        {isInstantiating ? 'Building…' : 'Build this mech'}
       </Button>
       <ModalShell
         open={confirming}
         onOpenChange={(next) => {
           if (!next) setConfirming(false)
         }}
-        title={`Instantiate ${pattern.name}?`}
+        title={`Build a mech from ${pattern.name}?`}
         maxWidth="max-w-md"
       >
         <div className="flex flex-col gap-4 bg-paper p-5">
@@ -81,7 +81,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
                 void handleInstantiate()
               }}
             >
-              Instantiate
+              Build
             </Button>
           </div>
         </div>

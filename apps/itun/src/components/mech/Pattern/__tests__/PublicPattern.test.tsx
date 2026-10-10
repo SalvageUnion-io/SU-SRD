@@ -10,9 +10,17 @@ import { withSignedInBackend } from '../../../../stores/__tests__/signedInBacken
 import { installConvexMocks, setQueryAnswers } from '../../../__tests__/convexMock'
 import { FIXTURE_NOW } from '../../../__tests__/fixtures'
 
+const visibilityWrites: unknown[] = []
+
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({
   convexClient: { mutation: async () => ({ updatedAt: 1 }) },
+  convexReact: {
+    useMutation: () => async (args: unknown) => {
+      visibilityWrites.push(args)
+      return null
+    },
+  },
   authReact: true,
   router: true,
 })
@@ -81,6 +89,7 @@ beforeEach(() => {
   })
   usePatternStore.setState({ mechPatterns: [], hydrated: true })
   convexMocks.navigations.length = 0
+  visibilityWrites.length = 0
 })
 
 describe('a shared pattern reads like the book and says a player made it', () => {
@@ -162,5 +171,31 @@ describe('signed in', () => {
 
     expect(screen.getByRole('button', { name: 'Copy to my shelf' })).toBeTruthy()
     expect(screen.getByText(/Anyone with the link/)).toBeTruthy()
+  })
+
+  test('its maker can stop sharing it, and the page then says only they can see it', async () => {
+    setQueryAnswers({ 'publicSheet:pattern': answer({ mine: true, visibility: 'link' }) })
+    renderAs(CONNECTED)
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Stop sharing' }))
+    })
+
+    expect(visibilityWrites).toEqual([{ patternId: 'pat-tow-rig', visibility: 'private' }])
+    expect(screen.getByText('Only you can see this pattern.')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Stop sharing' })).toBeNull()
+  })
+
+  test('a reader who is not its maker is never offered Stop sharing', () => {
+    setQueryAnswers({ 'publicSheet:pattern': answer({ visibility: null }) })
+    renderAs(CONNECTED)
+    expect(screen.queryByRole('button', { name: 'Stop sharing' })).toBeNull()
+  })
+
+  test('the stat column names stats in the manual’s wording', () => {
+    setQueryAnswers({ 'publicSheet:pattern': answer() })
+    renderAs(SIGNED_OUT)
+    expect(screen.getByText('Structure Pts.')).toBeTruthy()
+    expect(screen.queryByText('Structure Points')).toBeNull()
   })
 })

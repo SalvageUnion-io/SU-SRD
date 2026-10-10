@@ -362,6 +362,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
               pattern={asReferencePattern({ ...mech, name: patternName || mech.name })}
               size="medium"
               extent="full"
+              titleOverride={`\u201C${patternName || mech.name}\u201D`}
               hide={{ content: true, actions: true, patterns: true, rollTable: true, image: true }}
               statsOverride={[
                 { key: 'tl', label: 'TL', value: chassis.techLevel },
