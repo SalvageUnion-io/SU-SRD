@@ -15,12 +15,12 @@ Gather all of these before proposing anything. A signal you skipped is a
 recommendation you cannot justify.
 
 **A signal you could not reach is a finding, not a skip.** In a cloud session
-the `gh` CLI is usually absent and the `cloudflare-*`, `sentry` and `context7`
-MCP servers fail to connect through the egress proxy (see
+`gh` answers REST only (`gh pr` and `gh issue` get 403) and the `cloudflare-*`
+and `sentry` MCP servers cannot authenticate (see
 [cloud sessions](../../../docs/ARCHITECTURE.md#cloud-sessions)).
 For every step, use the first route that works and record which one you used:
 
-| Signal | Route 1 | Route 2 (no `gh`) |
+| Signal | Route 1 | Route 2 (`gh` fails) |
 | --- | --- | --- |
 | Workflow runs (steps 1, 3, 4) | `gh run list …` | `mcp__github__actions_list` (load it with ToolSearch) |
 | Issues and PRs (steps 1, 4, 5) | `gh issue list …` / `gh pr list …` | `mcp__github__list_issues` / `mcp__github__list_pull_requests` |

@@ -489,6 +489,10 @@ export const RETIRED_CLAIMS: [RegExp, string][] = [
   [/\bin[- ]memory (?:work|play)\b/i, 'signed out holds no work: it is read-only (#1117)'],
   [/\bSolo (?:build|client)\b|isConvexConfigured/, 'every ITUN build has a Convex deployment'],
   [/salvage-tolerant/i, 'cache reads are strict: an unreadable row is skipped and refilled'],
+  [
+    /`gh` (?:CLI )?is (?:usually )?absent|\(no `gh`/i,
+    'cloud sessions have `gh`, REST only: `gh pr`/`gh issue` get 403 (docs/ARCHITECTURE.md#cloud-sessions)',
+  ],
 ]
 
 /** Every doc an agent reads as instructions: live text only, so ADRs keep their history. */
