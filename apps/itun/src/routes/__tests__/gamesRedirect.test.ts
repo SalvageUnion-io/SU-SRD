@@ -9,7 +9,9 @@ import { getActiveContainer, setActiveContainer } from '../../stores/activeConta
  *  - `/` is Shelves, so it shows the shelf whatever was showing before;
  *  - `/games/$gameId` is a Game's own page, and stays put — the Discord bot's
  *    game links and the read-only sheet's way back to "the crew" land on it;
- *  - `/games` and the retired `/mediator/$gameId` redirect to those;
+ *  - `/games` redirects to Shelves;
+ *  - `/mediator/$gameId` is the Mediator Dashboard again (issue 1278), and stays
+ *    put without picking the Game: it is not a container's page;
  *  - the retired join-code page hands an old code to the invite link page;
  *  - the retired crew view still goes to the live sheet (`crewViewRedirect`).
  *
@@ -55,9 +57,9 @@ describe('/games/$gameId', () => {
 })
 
 describe('/mediator/$gameId', () => {
-  test('lands on that Game’s own page, whose Mediator section is there', async () => {
-    expect(await landOn('/mediator/g2')).toBe('/games/g2')
-    expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g2' })
+  test('is the Mediator Dashboard: it no longer redirects, and shows no container', async () => {
+    expect(await landOn('/mediator/g2')).toBe('/mediator/g2')
+    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
   })
 })
 

@@ -97,6 +97,16 @@ export function downtimeStepCount(): number {
 }
 
 /**
+ * The Downtime steps' names, in order (Workshop Manual p.227–228): "Tally
+ * Salvage" … "Prepare for the next Salvage Run". The Mediator's step track
+ * draws these, so it shows the guide's ten rather than a board's five.
+ */
+export function downtimeStepNames(): string[] {
+  const steps = SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps
+  return (steps ?? []).map((step) => step.name)
+}
+
+/**
  * Whether the Downtime step at `stepIndex` is the Upkeep step, read from the
  * Crawler Downtime guide (the same steps `DowntimeWizard` renders). False when
  * Downtime is not running.

@@ -27,6 +27,8 @@ type CountStepperProps = {
    * 24px tabular readout. Same control, same a11y contract, two grounds.
    */
   surface?: 'sheet' | 'instrument'
+  /** Both buttons off, the readout still shown: a surface that cannot write now. */
+  disabled?: boolean
 }
 
 /**
@@ -47,9 +49,10 @@ export function CountStepper({
   max,
   label,
   surface = 'sheet',
+  disabled = false,
 }: CountStepperProps) {
-  const atMin = count <= min
-  const atMax = max !== undefined && count >= max
+  const atMin = disabled || count <= min
+  const atMax = disabled || (max !== undefined && count >= max)
   const readout = label !== undefined && max !== undefined ? `${label} ${count}/${max}` : `${count}`
   const step = (next: number) => (e: { stopPropagation: () => void }) => {
     e.stopPropagation()
