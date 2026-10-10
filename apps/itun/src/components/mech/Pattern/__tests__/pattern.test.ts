@@ -5,7 +5,7 @@
  * - Schema validation: valid input passes, missing required fields throw
  * - Schema strictness: unknown fields throw
  * - db.mechPatterns CRUD round-trip: create → get → list → delete
- * - Instantiate path: pattern fields copied to new mech with fresh id + timestamps
+ * - Instantiate path: mechFromPattern builds a fresh mech (new id, exact name, empty hold, sourcePattern)
  *
  * fake-indexeddb/auto is preloaded via bunfig.toml.
  * No mock.module() — no global leak risk.
@@ -15,6 +15,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } fr
 import type { MonotonicClock } from '../../../../lib/db/__tests__/monotonicClock'
 import { installMonotonicClock } from '../../../../lib/db/__tests__/monotonicClock'
 import { _resetDbSingleton, clearCache, mechPatterns, mechs } from '../../../../lib/db/index'
+import { mechFromPattern } from '../../../../lib/patterns/patterns'
 import { MechPatternSchema } from '../../../../lib/schemas/pattern'
 import { FIXTURE_NOW } from '../../../__tests__/fixtures'
 import { must } from '../../../__tests__/must'
@@ -248,16 +249,8 @@ describe('instantiate from pattern — fresh mech with pattern fields', () => {
       ],
     })
 
-    // Instantiate: create a fresh mech from the pattern's fields
-    const mech = await mechs.create({
-      schemaVersion: 1,
-      name: `${pattern.name} (from pattern)`,
-      chassisRef: pattern.chassisRef,
-      systems: [...pattern.systems],
-      modules: [...pattern.modules],
-      cargoLots: pattern.cargoLots.map((lot) => ({ ...lot, id: crypto.randomUUID() })),
-      conditions: [],
-    })
+    // Instantiate through the same builder InstantiateFromPattern uses
+    const mech = await mechs.create(mechFromPattern(pattern))
 
     // Fresh identity — not the same id as the pattern
     expect(mech.id).not.toBe(pattern.id)
@@ -267,17 +260,13 @@ describe('instantiate from pattern — fresh mech with pattern fields', () => {
       new Date(pattern.createdAt).getTime()
     )
 
-    // Pattern fields are copied verbatim
+    // Loadout is copied; the pattern's exact name is kept; the hold starts empty
     expect(mech.chassisRef).toBe(pattern.chassisRef)
     expect(mech.systems).toEqual(pattern.systems)
     expect(mech.modules).toEqual(pattern.modules)
-    // Cargo lots are copied with fresh lot ids
-    const withoutId = (lot: (typeof mech.cargoLots)[number]) => ({ ...lot, id: 'ignored' })
-    expect(mech.cargoLots.map(withoutId)).toEqual(pattern.cargoLots.map(withoutId))
-    expect(mech.cargoLots[0]?.id).not.toBe(pattern.cargoLots[0]?.id)
-
-    // Name convention
-    expect(mech.name).toBe('Heavy Hauler (from pattern)')
+    expect(mech.name).toBe('Heavy Hauler')
+    expect(mech.cargoLots).toEqual([])
+    expect(mech.sourcePattern).toBe(pattern.id)
 
     // Pattern itself is unmodified
     const refetched = await mechPatterns.get(pattern.id)

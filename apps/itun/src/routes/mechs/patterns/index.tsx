@@ -17,8 +17,7 @@ function MechPatternsPage() {
       <div>
         <ChapterBand tone="mech">Mech Patterns</ChapterBand>
         <p className="font-body text-sm text-wk-muted mt-1">
-          Saved mech templates. Instantiate one to create a fresh mech with the same chassis,
-          systems, modules, and cargo.
+          A pattern keeps a chassis and its loadout. A mech built from one starts fresh.
         </p>
       </div>
 
