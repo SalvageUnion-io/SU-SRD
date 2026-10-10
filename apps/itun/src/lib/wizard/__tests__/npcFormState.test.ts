@@ -1,7 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { crawlerFixture } from '../../../components/__tests__/fixtures'
+import { crewSlotsOf } from '../../npcs/npcModel'
 import { npcCreationStepGate } from '../../rules/creation'
 import { NpcSchema } from '../../schemas/npc'
+import { crewDraftToCreateInput, crewDraftView } from '../crewFormState'
 import {
   addNpcAction,
   addNpcTrait,
@@ -16,7 +19,7 @@ import {
 
 /**
  * The designer's form (issue 1269 phase 3's gate: every template kind pre-fills
- * correctly).
+ * correctly) and the crew slot form (D2–D3).
  */
 
 const now = '2026-01-01T00:00:00.000Z'
@@ -69,6 +72,39 @@ describe('each template kind pre-fills correctly', () => {
       name: 'Kessler',
     })
     expect(npcCreationStepGate('stats', blank).ok).toBe(false)
+  })
+
+  test('a crawler bay fixes position and HP; the player writes the rest (D2)', () => {
+    const [medBay] = crewSlotsOf(crawlerFixture({ id: 'c1', crawlerBays: [{ bayRef: 'med-bay' }] }))
+    if (!medBay) throw new Error('the Med Bay is a crew slot')
+    const draft = {
+      Name: 'Doc Ambrose',
+      Description: 'Steady hands, cracked spectacles.',
+      Keepsake: 'A dented tin of boiled sweets',
+      Motto: 'Bleed later.',
+    }
+    const input = crewDraftToCreateInput(medBay, draft, null)
+    expect(input).toMatchObject({
+      name: 'Doc Ambrose',
+      position: 'Doc',
+      hitPoints: 4,
+      keepsake: 'A dented tin of boiled sweets',
+      motto: 'Bleed later.',
+      templateRef: { schema: 'crawler-bays', slug: 'med-bay' },
+      actions: [],
+      gameId: null,
+    })
+    expect(NpcSchema.safeParse(asRecord(input)).success).toBe(true)
+  })
+
+  test('a crawler type’s NPC keeps its other choices in choiceValues, at HP 0 (D3)', () => {
+    const [ai] = crewSlotsOf(crawlerFixture({ id: 'c1', type: 'augmented' }))
+    if (!ai) throw new Error('the Augmented type has an NPC')
+    const draft = { Name: 'MOTHER', 'A.I. Personality': 'Protective' }
+    expect(crewDraftView(ai, draft).choiceValues).toEqual({ 'A.I. Personality': 'Protective' })
+    const input = crewDraftToCreateInput(ai, draft, 'g1')
+    expect(input).toMatchObject({ hitPoints: 0, position: 'Union Crawler A.I.', gameId: 'g1' })
+    expect(NpcSchema.safeParse(asRecord(input)).success).toBe(true)
   })
 })
 

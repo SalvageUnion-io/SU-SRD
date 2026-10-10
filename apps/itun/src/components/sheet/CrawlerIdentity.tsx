@@ -26,6 +26,7 @@ import type { SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
+import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
@@ -68,6 +69,8 @@ type CrawlerIdentityPanelProps = {
   /** CrawlerTypeCard's NPC inset needs an explicit flag — it writes through
    * the store directly (typeNpc), independent of `patch`. */
   readOnly?: boolean
+  /** The built NPC filling the type's NPC slot, if any (ADR-043). */
+  typeCrew?: CrewAssignment
   className?: string
 }
 
@@ -77,6 +80,7 @@ export function CrawlerIdentityPanel({
   storeState,
   patch,
   readOnly = false,
+  typeCrew,
   className,
 }: CrawlerIdentityPanelProps) {
   const [typePickerOpen, setTypePickerOpen] = useState(false)
@@ -144,6 +148,7 @@ export function CrawlerIdentityPanel({
             seedSelections={crawler.bayChoices?.[crawler.type]}
             store={store}
             readOnly={readOnly}
+            assigned={typeCrew}
             ability={abilities.map((ability) => (
               <div key={ability.id} className="min-w-0">
                 <ReferenceEntityCard data={ability} size="medium" hide={HIDE_CHOICES} />

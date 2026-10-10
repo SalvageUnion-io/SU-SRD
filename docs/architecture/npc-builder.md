@@ -7,10 +7,9 @@ and can crew a crawler's slots with it. The decisions are
 surfaces. It began as the plan in issue 1269 and the design in issue 1277
 (boards N1 and N2 of the brand-refresh canvas).
 
-> **Status:** Proposed. The entity and the crew link are built; the sheet, the
-> roster column, the designer and the crew board are the layers above them,
-> each marked built as it lands. Every decision marked **(owner to confirm)**
-> below was made by the design lead and waits on the product owner.
+> **Status.** Built on the `design-refresh` branch. Every decision marked
+> **(owner to confirm)** below was made by the design lead and waits on the
+> product owner.
 
 Read alongside [ADR-030](../ARCHITECTURE.md#adr-030) (containers and
 ownership), [ADR-034](../ARCHITECTURE.md#adr-034) (Convex is the only source
