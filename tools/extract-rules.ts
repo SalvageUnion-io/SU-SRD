@@ -17,9 +17,11 @@
  * grep stay one file per book.
  *
  * The PDFs and this extract are gitignored (`rules/*`) — they are copyright-
- * bearing verbatim material and must never be committed. This extract is a
- * local, regenerable substrate: a greppable full-text fallback for "what does
- * the book actually say".
+ * bearing verbatim material and must never be committed to this public repo.
+ * Their source of record is the private `SalvageUnion-io/su-rules` repo, which
+ * commits the extract for cloud sessions (they attach it as a second repo).
+ * Locally the extract is a regenerable substrate: a greppable full-text
+ * fallback for "what does the book actually say".
  *
  * Requires `pdftotext` (poppler) on PATH.
  *

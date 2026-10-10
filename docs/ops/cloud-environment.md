@@ -28,8 +28,10 @@ together. No CLI or API edits it.
   authenticate by OAuth, which a cloud session cannot complete.
 - **Setup script:** runs as root before Claude Code starts and is snapshotted
   when it ends within about five minutes, so the pinned Bun and `node_modules`
-  are already in place and the SessionStart hook is a no-op. It must exit 0: a
-  failure stops the session starting.
+  are already in place and the SessionStart hook is a no-op. In a multi-repo
+  session repo hooks do not run at all, so this script is what pins Bun there;
+  its `packageManager` test picks the SU-SRD checkout out of the siblings. It
+  must exit 0: a failure stops the session starting.
 
   ```bash
   #!/bin/bash
@@ -45,3 +47,7 @@ together. No CLI or API edits it.
   done
   exit 0
   ```
+- **Rules text:** attach the private `SalvageUnion-io/su-rules` repository as a
+  second repository when a session or Routine needs the rulebooks. The GitHub
+  proxy authenticates it, so it needs no secret and no network entry; grep its
+  committed `extracted/*.txt` in the sibling checkout (no poppler).
