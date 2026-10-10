@@ -1537,7 +1537,7 @@
     "source": "Reclamation of the Wastes",
     "page": 106,
     "name": "Camouflage Fatigues",
-    "techLevel": 1,
+    "techLevel": 2,
     "actions": [],
     "additionalSources": [
       {
@@ -1552,7 +1552,7 @@
     "source": "Reclamation of the Wastes",
     "page": 106,
     "name": "Oil Bomb",
-    "techLevel": 1,
+    "techLevel": 2,
     "actions": ["Oil Bomb"],
     "additionalSources": [
       {
@@ -1567,7 +1567,7 @@
     "source": "Reclamation of the Wastes",
     "page": 106,
     "name": "Electrostatic Mine",
-    "techLevel": 1,
+    "techLevel": 3,
     "actions": ["Electrostatic Mine"],
     "additionalSources": [
       {
@@ -1582,7 +1582,7 @@
     "source": "Reclamation of the Wastes",
     "page": 106,
     "name": "Hobbler Mine",
-    "techLevel": 1,
+    "techLevel": 2,
     "actions": ["Hobbler Mine"],
     "additionalSources": [
       {

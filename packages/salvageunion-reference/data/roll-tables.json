@@ -1487,13 +1487,7 @@
       },
       "type": "flat"
     },
-    "page": 23,
-    "additionalSources": [
-      {
-        "source": "Reclamation of the Wastes",
-        "page": 10
-      }
-    ]
+    "page": 23
   },
   {
     "id": "e213dd70-6ece-4950-8036-e4b495e6dd34",
@@ -1703,13 +1697,7 @@
       },
       "type": "flat"
     },
-    "page": 8,
-    "additionalSources": [
-      {
-        "source": "Reclamation of the Wastes",
-        "page": 11
-      }
-    ]
+    "page": 8
   },
   {
     "id": "c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f",
@@ -3462,7 +3450,7 @@
         "value": "All clear"
       }
     },
-    "page": 1,
+    "page": 2,
     "content": [
       {
         "type": "paragraph",
@@ -3600,7 +3588,7 @@
         "value": "A Sakura habitation team is surveying Irongrad with intent  to settle their population there."
       },
       "7": {
-        "value": "An Osiris kill team is somewhere in the House of the God hunting a Bio-Titan."
+        "value": "An Osiris kill team is somewhere in the House of the Gods hunting a Bio-Titan."
       },
       "8": {
         "value": "Hunters can rip a pilot out of their cockpit and feast on their flesh."
@@ -3618,7 +3606,7 @@
         "value": "Meld are vulnerable to cold and electromagnetic pulses."
       },
       "13": {
-        "value": "A new class of Bio-Titan thrives in The House of the God."
+        "value": "A new class of Bio-Titan thrives in The House of the Gods."
       },
       "14": {
         "value": "Meld lurk beneath the waves of the Void Shore and can turn you or your Mech into a mind-controlled zombie."
@@ -3815,7 +3803,7 @@
   {
     "id": "6b4f8e1c-9a3d-4e72-8f5a-2c7b1d4e9a3f",
     "source": "Reclamation of the Wastes",
-    "page": 51,
+    "page": 50,
     "name": "Emergency EM Pulse Table",
     "table": {
       "1": {
