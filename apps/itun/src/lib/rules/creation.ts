@@ -91,7 +91,7 @@ export function npcCreationStepGate(
 }
 
 /** An NPC needs a name — the one gate crawler crew shares with Any NPC. */
-function npcNameGate(name: string): StepGateResult {
+export function npcNameGate(name: string): StepGateResult {
   return name.trim() ? OK : { ok: false, reason: 'Give the NPC a name.' }
 }
 
