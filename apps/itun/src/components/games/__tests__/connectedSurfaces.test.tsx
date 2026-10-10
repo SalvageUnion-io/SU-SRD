@@ -1,219 +1,202 @@
-import { afterAll, describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
- * The Game surfaces in their **connected** state: how an unclaimed pilot
- * reads, what a missing vital renders as, whether a non-Mediator can see the
- * opposition.
+ * The Game page's member surfaces in their **connected** state (board M2,
+ * issue 1278): the Downtime track every member sees and the Mediator runs, and
+ * the player's answer queue.
  *
  * The Convex hooks are mocked through `installConvexMocks()`, which owns the
  * capture-and-restore that keeps a process-global `mock.module` from leaking
  * into every test file that runs after this one.
  */
 
+import { getFunctionName } from 'convex/server'
 import type { QueryAnswers } from '../../__tests__/convexMock'
 /**
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
- * This file renders three different components, so a positional queue meant
- * three separate implicit orderings to keep straight.
  */
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
+const mutations: { name: string; args: unknown }[] = []
+
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
-const convexMocks = await installConvexMocks()
+const convexMocks = await installConvexMocks({
+  convexReact: {
+    useMutation: (ref: unknown) => async (args: unknown) => {
+      mutations.push({ name: getFunctionName(ref as never), args })
+    },
+  },
+})
 
-const { CrewVitals } = await import('../CrewVitals')
-const { DowntimePanel } = await import('../DowntimePanel')
+const { DowntimeTrack } = await import('../DowntimeTrack')
 const { ProposalInbox } = await import('../ProposalInbox')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 
-/** Answer this component's useQuery calls, keyed by `<module>:<export>`. */
-function withQueries(answers: QueryAnswers): void {
-  setQueryAnswers(answers)
-}
-
-/** DowntimePanel asks for the phase state and whether the viewer mediates. */
-function downtimeQueries(state: unknown, amMediator: boolean): QueryAnswers {
-  return { 'downtime:state': state, 'mediator:amMediator': amMediator }
-}
-
 const wrap = (ui: React.ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvider>)
 
-describe('CrewVitals', () => {
-  test('an unclaimed pilot reads as Unclaimed, not as a blank', () => {
-    withQueries({
-      'crew:vitals': {
-        viewerId: 'u1',
-        pilots: [
-          {
-            _id: 'p1',
-            appId: null,
-            ownerId: null,
-            ownerName: null,
-            name: 'Pre-gen',
-            currentHp: 10,
-            currentAp: 5,
-          },
-        ],
-        mechs: [],
-      },
-    })
-    wrap(<CrewVitals gameId={'g1' as never} />)
-
-    // A pre-gen waiting to be handed out is available, not broken.
-    expect(screen.getByText('Unclaimed')).toBeTruthy()
-  })
-
-  test('a missing vital renders as a dash, never as zero', () => {
-    withQueries({
-      'crew:vitals': {
-        viewerId: 'u1',
-        pilots: [
-          {
-            _id: 'p1',
-            appId: null,
-            ownerId: 'u2',
-            ownerName: 'Beefcake',
-            name: 'Roach-Boy',
-            currentHp: null,
-            currentAp: null,
-          },
-        ],
-        mechs: [],
-      },
-    })
-    wrap(<CrewVitals gameId={'g1' as never} />)
-
-    // Zero would read as DEAD on a vitals strip, which is worse than blank.
-    expect(screen.getByText(/HP — · AP —/)).toBeTruthy()
-    expect(screen.getByText('Beefcake')).toBeTruthy()
-  })
-
-  test('an empty game says so rather than rendering nothing', () => {
-    withQueries({ 'crew:vitals': { viewerId: 'u1', pilots: [], mechs: [] } })
-    wrap(<CrewVitals gameId={'g1' as never} />)
-    expect(screen.getByText(/No pilots in this game yet/i)).toBeTruthy()
-  })
-
-  test('while loading it says so', () => {
-    withQueries({ 'crew:vitals': undefined })
-    wrap(<CrewVitals gameId={'g1' as never} />)
-    expect(screen.getByText(/Loading the crew/i)).toBeTruthy()
-  })
+const state = (over: Record<string, unknown> = {}): QueryAnswers => ({
+  'downtime:state': {
+    running: false,
+    stepIndex: null,
+    completedBy: [],
+    upkeepSpent: false,
+    ...over,
+  },
 })
 
-describe('DowntimePanel', () => {
-  test('not running, and a non-Mediator is offered no phase controls', () => {
-    withQueries(
-      downtimeQueries(
-        { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
-        false
-      )
-    )
-    wrap(<DowntimePanel gameId={'g1' as never} />)
+const CRAWLER = {
+  id: 'c1',
+  name: '#430 Tenacity',
+  sp: 20,
+  maxSP: 20,
+  techLevel: 1,
+  bays: 10,
+  baysIntact: 10,
+  scrapAtTl: 5,
+}
 
-    expect(screen.getByText(/Not running/i)).toBeTruthy()
-    expect(screen.queryByText('Begin Downtime')).toBeNull()
+beforeEach(() => {
+  mutations.length = 0
+})
+
+describe('DowntimeTrack', () => {
+  test('the guide’s ten steps, the first reading Next, and no phase controls for a player', () => {
+    setQueryAnswers(state())
+    wrap(<DowntimeTrack gameId={'g1' as never} mediator={false} crawler={CRAWLER} />)
+
+    const steps = within(screen.getByRole('list', { name: 'Downtime steps' })).getAllByRole(
+      'listitem'
+    )
+    // Workshop Manual p.227–228: ten steps, not the board's five boxes.
+    expect(steps).toHaveLength(10)
+    expect(steps[0]?.textContent).toContain('Next')
+    expect(steps[0]?.textContent).toContain('Tally Salvage')
+    expect(screen.queryByRole('button', { name: 'Begin Downtime' })).toBeNull()
   })
 
-  test('the Mediator can begin it', () => {
-    withQueries(
-      downtimeQueries(
-        { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
-        true
-      )
-    )
-    wrap(<DowntimePanel gameId={'g1' as never} />)
-    expect(screen.getByText('Begin Downtime')).toBeTruthy()
+  test('the upkeep due is five scrap of the crawler’s tech level, and what it holds', () => {
+    setQueryAnswers(state())
+    wrap(<DowntimeTrack gameId={'g1' as never} mediator crawler={CRAWLER} />)
+    expect(screen.getByText('Upkeep due: 5 TL1 scrap. The crawler has 5.')).toBeTruthy()
   })
 
-  test('running: shows the step, who has finished, and upkeep state', () => {
-    withQueries(
-      downtimeQueries(
-        {
-          running: true,
-          stepIndex: 2,
-          completedBy: [{ userId: 'u2', displayName: 'Beefcake' }],
-          upkeepSpent: true,
-        },
-        true
-      )
-    )
-    wrap(<DowntimePanel gameId={'g1' as never} />)
+  test('the Mediator begins it', async () => {
+    setQueryAnswers(state())
+    wrap(<DowntimeTrack gameId={'g1' as never} mediator crawler={CRAWLER} />)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Begin Downtime' }))
+    })
+    expect(mutations.map((m) => m.name)).toEqual(['downtime:begin'])
+  })
 
+  test('running: the current step reads Now, and who has finished it', () => {
+    setQueryAnswers(
+      state({
+        running: true,
+        stepIndex: 2,
+        completedBy: [{ userId: 'u2', displayName: 'Beefcake' }],
+      })
+    )
+    wrap(<DowntimeTrack gameId={'g1' as never} mediator={false} crawler={CRAWLER} />)
+
+    const current = screen
+      .getAllByRole('listitem')
+      .find((li) => li.getAttribute('aria-current') === 'step')
     // stepIndex is zero-based on the wire and one-based on screen.
-    expect(screen.getByText('Step 3')).toBeTruthy()
-    expect(screen.getByText('Beefcake')).toBeTruthy()
-    expect(screen.getByText('Upkeep paid')).toBeTruthy()
+    expect(current?.textContent).toContain('Now')
+    expect(current?.textContent).toContain('Restore your Mech & Pilot')
+    expect(screen.getByText(/Finished: Beefcake/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: /done with this step/ })).toBeTruthy()
   })
 
-  test('nobody finished yet says so rather than showing an empty list', () => {
-    withQueries(
-      downtimeQueries({ running: true, stepIndex: 0, completedBy: [], upkeepSpent: false }, false)
-    )
-    wrap(<DowntimePanel gameId={'g1' as never} />)
-
-    expect(screen.getByText(/Nobody yet/i)).toBeTruthy()
-    expect(screen.getByText('Upkeep outstanding')).toBeTruthy()
-  })
-
-  test('only the Mediator pays upkeep: the crawler is theirs (ADR-038 §5)', () => {
-    // Step 2 is Upkeep & Upgrade.
-    const running = { running: true, stepIndex: 1, completedBy: [], upkeepSpent: false }
-    withQueries(downtimeQueries(running, false))
-    const player = wrap(<DowntimePanel gameId={'g1' as never} />)
-    expect(screen.queryByText('Pay crawler upkeep')).toBeNull()
+  test('only the Mediator pays upkeep, and only in the Upkeep & Upgrade step', () => {
+    setQueryAnswers(state({ running: true, stepIndex: 1 }))
+    const player = wrap(<DowntimeTrack gameId={'g1' as never} mediator={false} crawler={null} />)
+    expect(screen.queryByRole('button', { name: 'Pay upkeep' })).toBeNull()
     player.unmount()
 
-    withQueries(downtimeQueries(running, true))
-    wrap(<DowntimePanel gameId={'g1' as never} />)
-    expect(
-      (screen.getByText('Pay crawler upkeep').closest('button') as HTMLButtonElement).disabled
-    ).toBe(false)
+    const upkeep = wrap(<DowntimeTrack gameId={'g1' as never} mediator crawler={null} />)
+    expect((screen.getByRole('button', { name: 'Pay upkeep' }) as HTMLButtonElement).disabled).toBe(
+      false
+    )
+    upkeep.unmount()
+
+    setQueryAnswers(state({ running: true, stepIndex: 0 }))
+    wrap(<DowntimeTrack gameId={'g1' as never} mediator crawler={null} />)
+    expect((screen.getByRole('button', { name: 'Pay upkeep' }) as HTMLButtonElement).disabled).toBe(
+      true
+    )
   })
 
-  test('upkeep is paid only in the Upkeep & Upgrade step', () => {
-    withQueries(
-      downtimeQueries({ running: true, stepIndex: 0, completedBy: [], upkeepSpent: false }, true)
-    )
-    wrap(<DowntimePanel gameId={'g1' as never} />)
-    expect(
-      (screen.getByText('Pay crawler upkeep').closest('button') as HTMLButtonElement).disabled
-    ).toBe(true)
+  test('ending before the last step asks first, and ends nothing until confirmed', async () => {
+    setQueryAnswers(state({ running: true, stepIndex: 3 }))
+    wrap(<DowntimeTrack gameId={'g1' as never} mediator crawler={null} />)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'End Downtime' }))
+    })
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
+    expect(mutations).toHaveLength(0)
+
+    await act(async () => {
+      fireEvent.click(
+        within(screen.getByRole('alertdialog')).getByRole('button', { name: 'End Downtime' })
+      )
+    })
+    expect(mutations.map((m) => m.name)).toEqual(['downtime:end'])
   })
 })
 
 describe('ProposalInbox', () => {
   test('renders nothing when there is nothing to answer', () => {
-    withQueries({ 'proposals:pending': [] })
+    setQueryAnswers({ 'proposals:pending': [] })
     const { container } = wrap(<ProposalInbox gameId={'g1' as never} />)
     // An empty inbox should not occupy space on a play surface.
     expect(container.innerHTML).toBe('')
   })
 
-  test('shows the proposed value, with Apply and Decline', () => {
-    withQueries({
+  test('shows what is asked and why, with Apply and Decline', () => {
+    setQueryAnswers({
       'proposals:pending': [
-        { _id: 'c1', entityId: 'm1', entityType: 'mech', field: 'currentSp', after: 6, ts: 1 },
+        {
+          _id: 'c1',
+          entityId: 'm1',
+          entityType: 'mech',
+          targetName: 'Spectrum',
+          field: 'currentSP',
+          after: 6,
+          reason: 'Rifle Squad volley',
+          ts: 1,
+        },
       ],
     })
     wrap(<ProposalInbox gameId={'g1' as never} />)
 
-    expect(screen.getByText('→ 6')).toBeTruthy()
-    expect(screen.getByText('Apply')).toBeTruthy()
+    expect(screen.getByText('Spectrum · SP → 6')).toBeTruthy()
+    expect(screen.getByText('“Rifle Squad volley”')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Apply Spectrum · SP → 6' })).toBeTruthy()
     // Decline is a peer, not a dismissal.
-    expect(screen.getByText('Decline')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Decline Spectrum · SP → 6' })).toBeTruthy()
   })
 
   test('a null value renders as a dash rather than "null"', () => {
-    withQueries({
+    setQueryAnswers({
       'proposals:pending': [
-        { _id: 'c1', entityId: 'm1', entityType: 'mech', field: 'currentSp', after: null, ts: 1 },
+        {
+          _id: 'c1',
+          entityId: 'm1',
+          entityType: 'mech',
+          targetName: null,
+          field: 'currentSP',
+          after: null,
+          reason: null,
+          ts: 1,
+        },
       ],
     })
     wrap(<ProposalInbox gameId={'g1' as never} />)
-    expect(screen.getByText('→ —')).toBeTruthy()
+    expect(screen.getByText('mech · SP → —')).toBeTruthy()
   })
 })
 

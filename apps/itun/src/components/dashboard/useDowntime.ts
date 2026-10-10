@@ -3,7 +3,7 @@
  * (ADR-038 §5).
  *
  * Downtime is Game state, not the device's: the `downtime` row
- * (`convex/downtime.ts`) the Game hub's `DowntimePanel` already runs. The
+ * (`convex/downtime.ts`) the Game page's `DowntimeTrack` also runs. The
  * Mediator starts, advances and ends it, and every member's Dashboard follows
  * through one `downtime.state` subscription: while a step is running the
  * Crawler takes the Major slot, and when it ends each player is back wherever
