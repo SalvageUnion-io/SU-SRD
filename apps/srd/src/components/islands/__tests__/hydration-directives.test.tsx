@@ -193,7 +193,7 @@ describe('hydration directives', () => {
 
   describe('above-fold critical islands retain client="idle"', () => {
     it('the chrome islands in TopNavigation are all client="idle"', () => {
-      const { islands, props } = renderIslands(<TopNavigation currentPath="/" />)
+      const { islands, props } = renderIslands(<TopNavigation />)
 
       expect(islands.map((i) => `${i.name}:${i.client}`)).toEqual([
         'SearchIsland:idle',
@@ -229,7 +229,7 @@ describe('hydration directives', () => {
       // `name` is a string the mounter looks up at runtime, so a typo is
       // silently dead UI rather than a broken import.
       const emitted = [
-        ...renderIslands(<TopNavigation currentPath="/" />).islands,
+        ...renderIslands(<TopNavigation />).islands,
         ...renderIslands(
           <EntityView item={firstEntity('roll-tables', true)} schemaId="roll-tables" />
         ).islands,

@@ -358,7 +358,7 @@ describe('Card', () => {
     expect(source).toBe('prop')
   })
 
-  test('cardClick adds hover scale classes to wrapper', () => {
+  test('cardClick makes the wrapper a pointer target, without a hover lift', () => {
     const { container } = render(
       <Card
         headerBg="bg-mech"
@@ -369,7 +369,9 @@ describe('Card', () => {
       />
     )
     const wrapper = rootEl(container)
-    expect(wrapper.className).toContain('md:hover:scale-[1.02]')
+    expect(wrapper.className).toContain('cursor-pointer')
+    expect(wrapper.className).not.toContain('scale')
+    expect(wrapper.className).not.toContain('translate')
   })
 
   test('button mode exposes a focus-visible ring with contrast offset', () => {
@@ -408,7 +410,7 @@ describe('Card', () => {
 
   // --- Style override tests ---
 
-  test('cardStyle overrides default shadow class', () => {
+  test('cardStyle adds its class, and the card stays flat (no shadow)', () => {
     const { container } = render(
       <Card
         headerBg="bg-mech"

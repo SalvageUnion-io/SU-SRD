@@ -13,7 +13,7 @@
  * switching between My Stuff and a Game.
  */
 
-import { Button, buttonVariants, cn, EmptyState } from 'component-lib'
+import { Button, buttonVariants, cn, EmptyState, Slab } from 'component-lib'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { AppLink } from '../shared/AppLink'
@@ -104,31 +104,36 @@ export function RosterColumn({
   const headingId = `${kind}s-heading`
   return (
     <section aria-labelledby={headingId} className={cn(!active && 'hidden md:block')}>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2
-          id={headingId}
-          className="font-cond text-base font-bold uppercase tracking-widest text-ink"
-        >
-          {title}
-        </h2>
-        <div className="flex items-center gap-1.5">
-          {headExtra}
-          {/* One create CTA per column: the header link shows only when the
-              column has rows; the empty state renders its own create CTA. */}
-          {create !== undefined && !empty && (
-            <AppLink
-              href={create.href}
-              onClick={create.onClick}
-              className={cn(
-                buttonVariants({ variant: 'default', size: 'compact' }),
-                'no-underline'
+      {/* The column heading is the ink section stamp (`Slab`), its controls at
+          the end of the leader rule. */}
+      <Slab
+        as="h2"
+        id={headingId}
+        variant="solid"
+        label={title}
+        className="mb-3"
+        actions={
+          headExtra !== undefined || (create !== undefined && !empty) ? (
+            <>
+              {headExtra}
+              {/* One create CTA per column: the header link shows only when the
+                  column has rows; the empty state renders its own create CTA. */}
+              {create !== undefined && !empty && (
+                <AppLink
+                  href={create.href}
+                  onClick={create.onClick}
+                  className={cn(
+                    buttonVariants({ variant: 'default', size: 'compact' }),
+                    'no-underline'
+                  )}
+                >
+                  + {create.label}
+                </AppLink>
               )}
-            >
-              + {create.label}
-            </AppLink>
-          )}
-        </div>
-      </div>
+            </>
+          ) : undefined
+        }
+      />
       {empty ? (
         <EmptyState
           variant="quiet"

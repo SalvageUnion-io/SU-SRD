@@ -5,7 +5,8 @@ export default {
 }
 
 /**
- * The site footer — Leyline Press copyright + Salvage Union OGL 1.0b attribution
+ * The site footer — the site's own pages (Changelog, API, Discord, About), the
+ * Leyline Press copyright + Salvage Union OGL 1.0b attribution
  * + the "Powered by Salvage" logo. (Still on pre-canon `the ink ramp`/`ink`
  * tokens — pending refresh + approval. The `poweredBySalvageUrl` asset lives in
  * each app's public dir, so the logo shows broken here in the shared library.)

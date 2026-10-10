@@ -1,4 +1,4 @@
-import { Button, Card, Input, PageHeading, Text } from 'component-lib'
+import { Button, Card, ChapterBand, Input, PageHeading, Text } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -169,7 +169,7 @@ function SettingsBody() {
 export function SettingsScreen() {
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4">
-      <PageHeading className="w-fit">Settings</PageHeading>
+      <ChapterBand>Settings</ChapterBand>
       <SettingsBody />
     </main>
   )

@@ -9,7 +9,8 @@ import type { ReactNode } from 'react'
  *
  * - **Signed in, Connected** — the trigger is a menu button carrying the
  *   player's display name and avatar circle; its menu holds Settings (to
- *   `/settings`) and Sign out, and nothing else. The Games menu sits beside it.
+ *   `/settings`) and Sign out, and nothing else. The Games menu is the Union
+ *   bar's nav control (`HeaderGames`), not part of the account slot.
  * - **Signed in, offline** — the identity stays and Sign out still works, but
  *   there is no Games menu: a Disconnected player cannot list their Games.
  * - **Signed out** — "Sign in with Discord" takes the slot, on desktop and in
@@ -37,7 +38,9 @@ const convexMocks = await installConvexMocks({
   },
 })
 
-const { HeaderActions, HeaderDrawerAccount, HeaderMobileActions } = await import('../HeaderAccount')
+const { HeaderActions, HeaderDrawerAccount, HeaderGames, HeaderMobileActions } = await import(
+  '../HeaderAccount'
+)
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 
@@ -121,16 +124,22 @@ describe('signed in and connected', () => {
     expect(signOut).toHaveBeenCalledTimes(1)
   })
 
-  test('the Games menu sits beside it, before the account', () => {
+  test('the Games menu is a nav control, not part of the account slot', () => {
     setQueryAnswers(QUERIES)
     wrap(<HeaderActions />)
 
-    const games = screen.getByRole('button', { name: 'Games' })
-    const account = screen.getByRole('button', { name: 'Account menu for Beefcake' })
-    expect(games.compareDocumentPosition(account) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Account menu for Beefcake' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Games' })).toBeNull()
     // The old sub-header's plain buttons are gone from this slot.
     expect(screen.queryByRole('button', { name: 'Sign out' })).toBeNull()
     expect(screen.queryByRole('link', { name: 'Account' })).toBeNull()
+  })
+
+  test('the nav Games control is a menu button', () => {
+    setQueryAnswers(QUERIES)
+    wrap(<HeaderGames />)
+
+    expect(screen.getByRole('button', { name: 'Games' }).getAttribute('aria-haspopup')).toBe('menu')
   })
 
   test('mobile: the header row shows the avatar alone, still naming the account', () => {
@@ -162,7 +171,12 @@ describe('signed in but offline', () => {
   test('keeps the identity and a working Sign out, with no Games menu', async () => {
     setOnline(false)
     setQueryAnswers(QUERIES)
-    wrap(<HeaderActions />)
+    wrap(
+      <>
+        <HeaderGames />
+        <HeaderActions />
+      </>
+    )
 
     expect(screen.queryByRole('button', { name: 'Games' })).toBeNull()
     const menu = await openMenu(screen.getByRole('button', { name: 'Account menu for Beefcake' }))

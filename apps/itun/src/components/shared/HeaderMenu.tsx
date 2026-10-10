@@ -84,7 +84,7 @@ const TRIGGER = {
   flexShrink: 0,
   fontFamily: font.cond,
   fontSize: fontSize.lede,
-  fontWeight: weight.semibold,
+  fontWeight: weight.bold,
   gap: space[6],
   letterSpacing: tracking.capsTight,
   padding: `${space[4]} 0`,

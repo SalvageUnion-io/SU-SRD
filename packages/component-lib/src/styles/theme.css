@@ -66,6 +66,9 @@
   --text-title: 22px;
   --text-display-lg: 31px;
   --text-hero: 38px;
+  /* The ChapterBand's notched page title (ruleset, "The source": the chapter
+     band), at sm and up; a phone sets it at hero. */
+  --text-chapter: 64px;
   /* Tailwind's built-in rungs, restated so the token set stands without
      Tailwind: `text-xs` … `text-3xl` are still in live use. These are the values
      Tailwind ships, so no utility moves. Prefer a semantic rung above. */
@@ -476,13 +479,20 @@
   --ground-2: oklch(from var(--tone) 0.985 0.012 h);
 }
 
-/* Mobile-first touch targets */
+/* Mobile-first touch targets (ruleset §4.6: every target is at least 44px
+   under a coarse pointer). Every `.su-btn` size is on the floor, the anchors
+   `buttonVariants` dresses included. A mini button and an interactive chip
+   keep the size they are drawn at, so they are left off the floor here and
+   reach it through the hit-area pseudo-element in index.css instead, as the
+   Dashboard pennant does. Mirrored in index.css: this unlayered copy is the
+   one that outranks the Tailwind utilities while both systems are live. */
 @media (pointer: coarse) {
-  button,
-  [role='button'],
+  button:not(.su-btn--mini, .su-hit-area),
+  [role='button']:not(.su-btn--mini, .su-hit-area),
   input,
   select,
-  textarea {
+  textarea,
+  .su-btn:not(.su-btn--mini) {
     min-height: 44px;
     min-width: 44px;
   }
