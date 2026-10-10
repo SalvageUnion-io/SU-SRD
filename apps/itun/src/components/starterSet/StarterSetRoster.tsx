@@ -13,7 +13,7 @@
  * signed-out Roster.
  */
 
-import { Badge, PageHeading, Text, tokens } from 'component-lib'
+import { Badge, ChapterBand, PageHeading, Text, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -83,9 +83,11 @@ export function StarterSetRoster({ headingLevel = 'h2' }: StarterSetRosterProps)
   return (
     <section aria-label="Starter Set">
       <div style={HEADER}>
-        <PageHeading variant={headingLevel === 'h1' ? 'heading' : 'subheading'}>
-          Starter Set
-        </PageHeading>
+        {headingLevel === 'h1' ? (
+          <ChapterBand>Starter Set</ChapterBand>
+        ) : (
+          <PageHeading>Starter Set</PageHeading>
+        )}
         <Text variant="body">
           The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
           Read-only reference: open any sheet to read it.{' '}

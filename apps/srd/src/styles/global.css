@@ -45,7 +45,7 @@
 }
 
 /* Buttons, masthead, section headers and catalog tiles are component-lib's
-   (`Button`, `AppBar`, `SectionHeader` / `PageHeading`, `CatalogTile`); no srd
+   (`Button`, `AppBar`, `ChapterBand` / `Slab`, `CatalogTile`); no srd
    class restates them. */
 
 /* Shadow wrapper — clip-path kills box-shadow, so shadow lives here */

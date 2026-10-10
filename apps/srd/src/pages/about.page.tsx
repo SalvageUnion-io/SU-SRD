@@ -20,7 +20,7 @@
 
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { InlineRef, PageHeading, Slab } from 'component-lib'
+import { ChapterBand, InlineRef, Slab } from 'component-lib'
 import { Fragment } from 'react'
 import type { PageModule, PageResult, RouteContext } from '../../ssg/types'
 import { ColophonIsland } from '../components/islands/ColophonIsland'
@@ -69,8 +69,9 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
     },
     children: (
       <>
-        <div className="flex w-full flex-1 flex-col justify-center py-12">
-          <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6">
+        <div className="flex w-full flex-1 flex-col pb-12">
+          <ChapterBand measure="64rem">About the Salvage Union SRD</ChapterBand>
+          <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 pt-8">
             {/* Riveted scrap metal panel */}
             <div className="pilot-panel-shadow">
               <div className="pilot-panel relative px-10 py-8">
@@ -202,8 +203,6 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                 </div>
               </div>
             </div>
-
-            <PageHeading className="text-center">About the Salvage Union SRD</PageHeading>
 
             {/* What is this? */}
             <section className="text-sm leading-relaxed">

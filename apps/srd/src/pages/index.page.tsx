@@ -2,7 +2,7 @@
  * `/` — the landing page.
  */
 
-import { buildCatalogSections, CatalogTile, SectionHeader } from 'component-lib'
+import { buildCatalogSections, CatalogTile, Slab } from 'component-lib'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { SITE_URL } from '../lib/constants'
 import '../lib/gameData'
@@ -36,7 +36,7 @@ function page(): PageResult {
           <div className="flex flex-col gap-6">
             {categories.map((cat) => (
               <div key={cat.label}>
-                <SectionHeader label={cat.label} className="mb-2" />
+                <Slab as="h2" variant="solid" label={cat.label} className="mb-2" />
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {cat.schemas.map((card) => (
                     <CatalogTile

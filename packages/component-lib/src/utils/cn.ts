@@ -63,6 +63,7 @@ const twMerge = extendTailwindMerge({
         'display',
         'display-lg',
         'hero',
+        'chapter',
       ],
       tracking: ['caps', 'caps-tight', 'caps-snug', 'caps-wide', 'eyebrow'],
       // Radius scale (--radius-* in theme.css) → rounded-pip/badge/card/panel.

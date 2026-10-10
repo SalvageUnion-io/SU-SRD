@@ -4,6 +4,7 @@ import { AccountReconciler } from '../components/account/AccountReconciler'
 import {
   HeaderActions,
   HeaderDrawerAccount,
+  HeaderGames,
   HeaderMobileActions,
 } from '../components/account/HeaderAccount'
 import { TestAuthBridge } from '../components/account/TestAuthBridge'
@@ -76,6 +77,8 @@ function RootComponent() {
         <TestAuthBridge />
         <AppHeader
           LinkComponent={AppLink}
+          pathname={pathname}
+          games={<HeaderGames />}
           actions={<HeaderActions />}
           mobileActions={<HeaderMobileActions />}
           drawerExtra={(close) => <HeaderDrawerAccount close={close} />}

@@ -1,16 +1,17 @@
 /**
- * Unit tests for AppHeader (brand chrome, report item P-1).
+ * Unit tests for AppHeader — ITUN's preset of the Union bar (brand refresh P2a).
  *
  * Tests that:
- * - Renders the "IN THE UNION NOW" wordmark with the Beta pill
- * - Brand block links home ("/")
- * - Renders the SU mark image
- * - Renders an outbound SRD link (new tab, safe rel)
- * - Renders the outbound "Buy the game" link (new tab, safe rel)
- * - Has no search trigger: ITUN's reference search is the bottom-right FAB
- * - Places the app's slots: `actions` after "Buy the game" in the nav,
- *   `mobileActions` beside the hamburger, `drawerExtra` inside the drawer —
- *   and no second (sub-header) row
+ * - The one lockup (the SU mark) links home ("/")
+ * - The Reference | Build switcher replaces the old "SRD ↗": Build is the tab
+ *   you are on (an inverse stamp, `aria-current`), Reference goes to the SRD in
+ *   the same tab
+ * - The nav reads Shelves · Games · Starter Set, with the app's Games control
+ *   in its place, and marks the page you are on
+ * - About and Changelog stay reachable as quiet links
+ * - Has no search trigger yet: ITUN's reference search is the bottom-right FAB
+ * - Places the app's slots: `actions` at the bar's end, `mobileActions` beside
+ *   the hamburger, `drawerExtra` inside the drawer
  */
 
 import '@testing-library/jest-dom'
@@ -18,47 +19,56 @@ import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { AppHeader } from '../AppHeader'
 
-describe('AppHeader', () => {
-  test('renders the "IN THE UNION NOW" wordmark with the Beta pill, linked home', () => {
-    render(<AppHeader />)
-    const brand = screen.getByRole<HTMLAnchorElement>('link', { name: /IN THE UNION NOW/i })
-    expect(brand.getAttribute('href')).toBe('/')
-    expect(brand.textContent).toContain('IN THE UNION NOW')
-    expect(brand.textContent).toContain('Beta')
-    expect(brand.textContent).toContain('A Salvage Union Character Manager')
-  })
+const SRD = 'https://salvageunion.io'
 
-  test('renders the SU mark', () => {
+describe('AppHeader', () => {
+  test('the SU mark is the lockup, linked home', () => {
     render(<AppHeader />)
     const mark = screen.getByRole<HTMLImageElement>('img', { name: 'Salvage Union' })
     expect(mark.getAttribute('src')).toBe('/logos/su-cargo-dark.svg')
+    expect(mark.closest('a')?.getAttribute('href')).toBe('/')
   })
 
-  test('links out to the SRD site in a new tab', () => {
+  test('the switcher: Build is here, Reference crosses to the SRD in the same tab', () => {
     render(<AppHeader />)
-    const srdLink = screen.getByRole<HTMLAnchorElement>('link', { name: /SRD/i })
-    expect(srdLink.getAttribute('href')).toBe('https://salvageunion.io')
-    expect(srdLink.getAttribute('target')).toBe('_blank')
-    expect(srdLink.getAttribute('rel')).toBe('noopener noreferrer')
+    const tools = within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
+    const build = tools.getByRole('link', { name: 'Build' })
+    expect(build.getAttribute('aria-current')).toBe('true')
+    expect(build.getAttribute('href')).toBe('/')
+    const reference = tools.getByRole('link', { name: 'Reference' })
+    expect(reference.getAttribute('aria-current')).toBeNull()
+    expect(reference.getAttribute('href')).toBe(SRD)
+    expect(reference.getAttribute('target')).toBeNull()
+    // No off-site arrows between the two tools (ruleset §3.11).
+    expect(screen.queryByRole('link', { name: /SRD ↗/ })).toBeFalsy()
   })
 
-  test('links out to the SRD Discord page in a new tab', () => {
+  test('the nav reads Shelves · Games · Starter Set, Games being the app control', () => {
+    render(<AppHeader games={<button type="button">Games</button>} />)
+    const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+    expect(
+      Array.from(nav.querySelectorAll('a, button')).map((el) => el.textContent?.trim())
+    ).toEqual(['Shelves', 'Games', 'Starter Set'])
+    expect(within(nav).getByRole('link', { name: 'Starter Set' }).getAttribute('href')).toBe(
+      '/starter/'
+    )
+  })
+
+  test('marks the page you are on', () => {
+    render(<AppHeader pathname="/starter/" />)
+    const nav = within(screen.getByRole('navigation', { name: 'Main navigation' }))
+    expect(nav.getByRole('link', { name: 'Starter Set' }).getAttribute('aria-current')).toBe('page')
+    expect(nav.getByRole('link', { name: 'Shelves' }).getAttribute('aria-current')).toBeNull()
+  })
+
+  test('keeps About and Changelog as quiet links', () => {
     render(<AppHeader />)
-    const discordLink = screen.getByRole<HTMLAnchorElement>('link', { name: /discord/i })
-    expect(discordLink.getAttribute('href')).toBe('https://salvageunion.io/discord/')
-    expect(discordLink.getAttribute('target')).toBe('_blank')
-    expect(discordLink.getAttribute('rel')).toBe('noopener noreferrer')
+    const banner = within(screen.getByRole('banner'))
+    expect(banner.getByRole('link', { name: 'About' }).getAttribute('href')).toBe('/about')
+    expect(banner.getByRole('link', { name: 'Changelog' }).getAttribute('href')).toBe('/changelog')
   })
 
-  test('links out to buy the game in a new tab', () => {
-    render(<AppHeader />)
-    const buyLink = screen.getByRole<HTMLAnchorElement>('link', { name: /buy the game/i })
-    expect(buyLink.getAttribute('href')).toBe('https://leyline.press/collections/salvage-union')
-    expect(buyLink.getAttribute('target')).toBe('_blank')
-    expect(buyLink.getAttribute('rel')).toBe('noopener noreferrer')
-  })
-
-  test('has no search trigger — the reference search moved to the bottom-right FAB', () => {
+  test('has no search trigger yet — the reference search is the bottom-right FAB', () => {
     render(<AppHeader />)
     const header = screen.getByRole('banner')
     expect(within(header).queryByRole('button', { name: /search/i })).toBeFalsy()
@@ -72,21 +82,25 @@ describe('AppHeader', () => {
     expect(screen.queryByRole('dialog')).toBeFalsy()
   })
 
-  test('opening the hamburger reveals the collapsed nav links in the drawer', () => {
-    render(<AppHeader />)
+  test('opening the hamburger reveals the nav, the site links and Buy the game', () => {
+    render(<AppHeader pathname="/" />)
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
-    const drawer = screen.getByRole('dialog')
-    expect(within(drawer).getByRole('link', { name: /about/i })).toBeTruthy()
-    expect(within(drawer).getByRole('link', { name: /changelog/i })).toBeTruthy()
-    expect(within(drawer).getByRole('link', { name: /SRD/i })).toBeTruthy()
-    const drawerDiscord = within(drawer).getByRole<HTMLAnchorElement>('link', {
-      name: /discord/i,
-    })
-    expect(drawerDiscord.getAttribute('href')).toBe('https://salvageunion.io/discord/')
-    const buy = within(drawer).getByRole<HTMLAnchorElement>('link', {
-      name: /buy the game/i,
-    })
+    const drawer = within(screen.getByRole('dialog'))
+    const shelves = drawer.getByRole('link', { name: 'Shelves' })
+    // The page you are on is an ink plate, never the rust primary.
+    expect(shelves.getAttribute('aria-current')).toBe('page')
+    expect(shelves.className).toContain('su-btn--here')
+    expect(shelves.className).not.toContain('su-btn--primary')
+    expect(drawer.getByRole('link', { name: 'Starter Set' })).toBeTruthy()
+    expect(drawer.getByRole('link', { name: 'About' })).toBeTruthy()
+    expect(drawer.getByRole('link', { name: 'Changelog' })).toBeTruthy()
+    expect(drawer.getByRole('link', { name: 'Discord' }).getAttribute('href')).toBe(
+      `${SRD}/discord/`
+    )
+    const buy = drawer.getByRole('link', { name: /buy the game/i })
     expect(buy.getAttribute('href')).toBe('https://leyline.press/collections/salvage-union')
+    expect(buy.getAttribute('target')).toBe('_blank')
+    expect(buy.getAttribute('rel')).toBe('noopener noreferrer')
   })
 
   // The `/encounter` route this guarded against is deleted, so the assertion can
@@ -101,19 +115,18 @@ describe('AppHeader', () => {
     expect(within(drawer).queryByRole('link', { name: /encounter/i })).toBeFalsy()
   })
 
-  test('renders the app actions in the nav, after "Buy the game"', () => {
-    render(<AppHeader actions={<button type="button">Games</button>} />)
+  test('renders the app actions at the end of the bar, after the nav', () => {
+    render(<AppHeader actions={<button type="button">Account menu</button>} />)
+    const account = screen.getByRole('button', { name: 'Account menu' })
     const nav = screen.getByRole('navigation', { name: 'Main navigation' })
-    const games = within(nav).getByRole('button', { name: 'Games' })
-    const buy = within(nav).getByRole('link', { name: /buy the game/i })
-    // To the right of Buy: later in the nav's document order.
-    expect(buy.compareDocumentPosition(games) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(account.closest('nav')).toBeFalsy()
+    expect(nav.compareDocumentPosition(account) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  test('has no sub-header: the masthead is the brand row and nothing else', () => {
-    render(<AppHeader actions={<button type="button">Games</button>} />)
-    const header = screen.getByRole('banner')
-    expect(header.children).toHaveLength(1)
+  test('is one row: no product row under a compact bar', () => {
+    render(<AppHeader actions={<button type="button">Account menu</button>} />)
+    expect(screen.getAllByRole('navigation', { name: 'Main navigation' })).toHaveLength(1)
+    expect(screen.getByRole('banner').getAttribute('data-density')).toBe('compact')
   })
 
   test('puts the mobile actions beside the hamburger, outside the desktop nav', () => {

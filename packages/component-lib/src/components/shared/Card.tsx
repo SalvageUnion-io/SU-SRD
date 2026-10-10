@@ -72,7 +72,7 @@ type CardProps = {
    * the scroll lands inside it instead of the card clipping its foot.
    */
   bodyStyle?: CSSProperties
-  /** Override card wrapper className (replaces default shadow) and inline style */
+  /** Extra card wrapper className and inline style. */
   cardStyle?: { className?: string; style?: CSSProperties }
   /** Override header className and inline style (e.g., the pilot/crawler stripe accent) */
   headerStyle?: { className?: string; style?: CSSProperties }
@@ -248,15 +248,16 @@ export function Card({
       role={resolvedCardClick ? 'button' : undefined}
       tabIndex={resolvedCardClick ? 0 : undefined}
       className={cn(
+        // Flat chrome (brand refresh P2a): no drop shadow and no hover lift — a card is
+        // printed on the page, and the 3px frame is its edge.
         'relative flex shrink-0 flex-col overflow-visible rounded-card',
-        cardStyle?.className || 'shadow-lg',
+        cardStyle?.className,
         disabled && 'opacity-50',
         // Button mode focuses ON TONE — a card's own background may be any
         // entity tone, including the near-black end of the tech-level ramp,
         // where the 25%-alpha rust ring disappears. See FOCUS_RING_ON_TONE.
         resolvedCardClick && FOCUS_RING_ON_TONE,
-        isCardHoverable &&
-          'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]'
+        isCardHoverable && 'cursor-pointer'
       )}
       style={{
         // A frame is drawn for a toned card OR one that asked for a border

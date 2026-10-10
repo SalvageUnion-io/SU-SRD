@@ -2,7 +2,7 @@
  * `/discord` — the Discord bot landing page.
  */
 
-import { buttonVariants, cn, InlineRef, PageHeading, Panel, Slab } from 'component-lib'
+import { buttonVariants, ChapterBand, cn, InlineRef, Panel, Slab } from 'component-lib'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { ITUN_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { SalvageUnionReference } from '../lib/gameData'
@@ -79,10 +79,9 @@ function page(): PageResult {
       ],
     },
     children: (
-      <div className="flex w-full flex-1 flex-col py-12">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6">
-          <PageHeading>Discord Bot</PageHeading>
-
+      <div className="flex w-full flex-1 flex-col pb-12">
+        <ChapterBand measure="48rem">Discord Bot</ChapterBand>
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 pt-8">
           {/* Overview + install */}
           <section className="flex flex-col gap-4 text-sm leading-relaxed">
             <p>
