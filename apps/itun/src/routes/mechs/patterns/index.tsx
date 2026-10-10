@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ChapterBand } from 'component-lib'
+import { CrewPatterns } from '../../../components/mech/Pattern/CrewPatterns'
 import { PatternList } from '../../../components/mech/Pattern/PatternList'
 import { pageTitle } from '../../../lib/pageTitle'
 
@@ -26,6 +27,7 @@ function MechPatternsPage() {
           void navigate({ to: '/' })
         }}
       />
+      <CrewPatterns />
     </main>
   )
 }
