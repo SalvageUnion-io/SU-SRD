@@ -804,7 +804,12 @@ function ReferenceEntityCardInner({
 
   const body = bodyHasContent ? (
     <div
-      className={isDown ? 'opacity-60' : undefined}
+      // With artwork the body is a width container: the art sits beside the
+      // prose only when the CARD is wide, and stacks above it when narrow.
+      className={
+        [isDown ? 'opacity-60' : '', anchorNode ? 'su-ec-art-body' : ''].join(' ').trim() ||
+        undefined
+      }
       style={{
         display: flat ? 'flow-root' : 'flex',
         flexDirection: 'column',
@@ -812,12 +817,13 @@ function ReferenceEntityCardInner({
         padding: hasSubLine ? BODY_PAD[size].ruled : BODY_PAD[size].open,
       }}
     >
-      {/* In ASIDE LEAD the anchor and the prose are a centred row; otherwise
-          the anchor floats and the prose flows around it. */}
+      {/* In ASIDE LEAD the anchor and the prose are a centred row (a stack in
+          a narrow card); otherwise the anchor floats and the prose flows
+          around it. */}
       {asideLead ? (
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+        <div className="su-ec-lead">
           {anchorNode}
-          {proseNodes.length > 0 && <div className="min-w-0 flex-1">{proseNodes}</div>}
+          {proseNodes.length > 0 && <div style={{ flex: 1, minWidth: 0 }}>{proseNodes}</div>}
         </div>
       ) : (
         <>

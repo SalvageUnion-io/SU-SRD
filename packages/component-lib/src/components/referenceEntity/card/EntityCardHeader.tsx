@@ -120,13 +120,13 @@ export function EntityCardHeader({
       title={oneLine ? title : undefined}
       style={{
         // One line: the title gives way after a hint has and before the pennant,
-        // but never below a readable stub; the lower-priority cells go first
-        // (`EntityCardStatBox`). Otherwise the title shares the row with the
+        // but never below a readable stub (about eleven characters); the cells
+        // shed first, lowest priority first (`EntityCardStatBox`). Otherwise the title shares the row with the
         // cells on the right at medium and small, and only a large header
         // gives the title the whole row. Either way the cells wrap beneath
         // when they truly cannot fit.
         flex: oneLine ? '0 1 auto' : size === 'large' ? '1 1 auto' : '1 1 0',
-        minWidth: oneLine ? 'min(100%, 10ch)' : size === 'large' ? 0 : 'min-content',
+        minWidth: oneLine ? 'min(100%, 11ch)' : size === 'large' ? 0 : 'min-content',
         overflowWrap: 'break-word',
         ...(oneLine ? ONE_LINE : {}),
       }}
@@ -184,8 +184,10 @@ export function EntityCardHeader({
           style={{
             alignItems: 'center',
             display: 'flex',
-            // One line: the cells give way well before the title does, down to one cell.
-            flex: oneLine ? '0 8 auto' : '0 1 auto',
+            // One line: the cells take all of the shrink until only the first is
+            // left, and only then does the title truncate (flex-shrink is
+            // weighted by width, so a plain 8× still bit into the title early).
+            flex: oneLine ? '0 1000 auto' : '0 1 auto',
             flexWrap: oneLine ? 'nowrap' : 'wrap',
             gap: space[4],
             justifyContent: 'flex-end',

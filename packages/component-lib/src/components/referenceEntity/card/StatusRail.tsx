@@ -13,15 +13,23 @@ const STATES: { value: EntityStatus; label: string }[] = [
 
 const PAD_X: Record<CardSize, string> = { large: space[14], medium: space[10], small: space[8] }
 
+/**
+ * Each segment fills the 44px touch floor (ruleset §4.6) inside the 1.5px
+ * dashed frame, so the control reads as tall as the Remove beside it (E3)
+ * rather than a tab riding a rule.
+ */
 const segment = (active: boolean): CSSProperties => ({
+  alignItems: 'center',
   backgroundColor: active ? 'var(--color-ink)' : 'var(--color-paper)',
   color: active ? 'var(--color-paper)' : 'var(--color-ink)',
+  display: 'inline-flex',
   fontFamily: font.cond,
   fontSize: fontSize.caption,
   fontWeight: weight.bold,
   letterSpacing: tracking.capsTight,
   lineHeight: 1,
-  padding: `${space[6]} ${space[10]}`,
+  minHeight: 'calc(44px - 2 * var(--bw-chrome))',
+  padding: `0 ${space[8]}`,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 })
@@ -30,8 +38,8 @@ const segment = (active: boolean): CSSProperties => ({
  * The condition as a TRI-STATE (board E3): Intact / Damaged / Destroyed in one
  * framed group, the current one inverted. State is a treatment, not a hue
  * (ruleset §3 law 3) — never the green and red the status badge wore. With a
- * handler the whole group is ONE button that steps to the next state (the
- * pointer floor lifts it to 44px); without one it is a read-only group.
+ * handler the whole group is ONE 44px button that steps to the next state;
+ * without one it is a read-only group.
  */
 export function StatusTriState({
   status,
@@ -46,7 +54,8 @@ export function StatusTriState({
   const group = (
     <span
       style={{
-        border: 'var(--bw-chrome) solid var(--color-ink)',
+        // Dashed: the live sheet's controls are pencil, not print (E3).
+        border: 'var(--bw-chrome) dashed var(--color-ink)',
         display: 'inline-flex',
       }}
     >
@@ -132,6 +141,8 @@ export function StatusRail({
             fontWeight: weight.bold,
             letterSpacing: tracking.capsSnug,
             marginLeft: 'auto',
+            // The 44px floor under every pointer, level with the tri-state (E3).
+            minHeight: '44px',
             textTransform: 'uppercase',
           }}
         >

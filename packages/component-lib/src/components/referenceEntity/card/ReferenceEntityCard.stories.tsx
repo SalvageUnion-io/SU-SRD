@@ -1,12 +1,15 @@
+import { Tooltip } from '@base-ui/react/tooltip'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getChoices, SalvageUnionReference } from 'salvageunion-reference'
 import type { Story } from '../../../stories/_harness'
 import { Caption } from '../../../stories/_harness'
+import { InlineRef } from '../../chrome/InlineRef'
 import type { EntityStatus } from '../../shared/entityStatus'
 import type { StatItem } from '../../shared/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
+import { EntityHovercard } from '../EntityTooltip'
 import { ReferenceEntityCard } from './ReferenceEntityCard'
 
 export default {
@@ -551,21 +554,31 @@ const matrixRow = {
   gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 20rem), 1fr))',
 } as const
 
+/** One cell per row, at a readable measure: every device can be checked. */
+const singleRow = {
+  display: 'grid',
+  gap: '24px',
+  gridTemplateColumns: 'minmax(0, 40rem)',
+} as const
+
 /** Every size × extent cell of one entity — the same component, different props. */
 function Matrix({
   entity,
   label,
   userMade = false,
+  oneCellPerRow = false,
 }: {
   entity: Parameters<typeof ReferenceEntityCard>[0]['data']
   label: string
   userMade?: boolean
+  /** Stack every cell on its own row instead of three extents to a row. */
+  oneCellPerRow?: boolean
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', padding: '16px' }}>
       <Caption>{label}</Caption>
       {SIZES.map((size) => (
-        <div key={size} style={matrixRow}>
+        <div key={size} style={oneCellPerRow ? singleRow : matrixRow}>
           {EXTENTS.map((extent) => (
             <div
               key={extent}
@@ -615,6 +628,38 @@ const panel = {
   minWidth: 0,
 } as const
 
+/** The Dashboard card: flat, no footer, each inline action's pennant the button. */
+function DashboardCard() {
+  return (
+    <div style={{ backgroundColor: 'var(--color-ink-deep)', padding: '16px' }}>
+      <ReferenceEntityCard
+        data={system}
+        size="medium"
+        texture={false}
+        hide={{ footer: true }}
+        actionControls={(action) => [
+          {
+            key: 'activate',
+            pennant: true,
+            label: 'Activate',
+            onClick: () => {},
+            ariaLabel: `Activate ${'name' in action ? action.name : 'action'}`,
+          },
+        ]}
+      />
+    </div>
+  )
+}
+
+/**
+ * Outlines the pennant button's invisible hit area for the catalog only: the
+ * dashed box is the 44px target (ruleset §4.6) around the pennant it carries.
+ */
+const HIT_AREA_OUTLINE = `.story-hit-areas .su-ec-pennant-btn {
+  outline: 1px dashed var(--color-paper);
+  outline-offset: -1px;
+}`
+
 /**
  * Board E3 — the five contexts. Geometry never changes; the context decides
  * materials, density and interactivity, through the controls API.
@@ -658,22 +703,13 @@ export const Contexts: Story = () => {
       </div>
       <div style={panel}>
         <Caption>Dashboard · medium · full — flat, each band's pennant is the button</Caption>
-        <div style={{ backgroundColor: 'var(--color-ink-deep)', padding: '16px' }}>
-          <ReferenceEntityCard
-            data={system}
-            size="medium"
-            texture={false}
-            hide={{ footer: true }}
-            actionControls={(action) => [
-              {
-                key: 'activate',
-                pennant: true,
-                label: 'Activate',
-                onClick: () => {},
-                ariaLabel: `Activate ${'name' in action ? action.name : 'action'}`,
-              },
-            ]}
-          />
+        <DashboardCard />
+      </div>
+      <div style={panel}>
+        <Caption>Dashboard · the pennants' 44px hit areas, outlined — no deck button</Caption>
+        <style>{HIT_AREA_OUTLINE}</style>
+        <div className="story-hit-areas">
+          <DashboardCard />
         </div>
       </div>
       <div style={panel}>
@@ -683,11 +719,25 @@ export const Contexts: Story = () => {
         <Caption>in prose: the shortform</Caption>
         <ReferenceEntityCard data={system} size="small" extent="head" />
       </div>
-      <div style={panel}>
-        <Caption>Tooltip · small · full — terminal and flat</Caption>
-        <div style={{ maxWidth: '22rem' }}>
-          <ReferenceEntityCard data={system} size="small" texture={false} hide={{ footer: true }} />
-        </div>
+      {/* The whole row, with room above the trigger: the popup opens on top. */}
+      <div style={{ ...panel, gridColumn: '1 / -1' }}>
+        <Caption>Tooltip · the real hovercard popup — a lifted plate, terminal and flat</Caption>
+        <p style={{ fontSize: '14px', margin: 0, paddingTop: '14rem' }}>
+          {/* The real hovercard popup, held open for the catalog. */}…then mount the{' '}
+          <Tooltip.Root defaultOpen defaultTriggerId="story-tooltip-trigger">
+            <Tooltip.Trigger
+              id="story-tooltip-trigger"
+              // The prose link (ruleset §3.1): an InlineRef, here to the card's story.
+              render={
+                <InlineRef href="#compositions--entity--reference-entity-card--system-card">
+                  Salvaging Drill
+                </InlineRef>
+              }
+            />
+            <EntityHovercard entity={system} />
+          </Tooltip.Root>{' '}
+          and roll.
+        </p>
       </div>
     </div>
   )
@@ -696,8 +746,8 @@ export const Contexts: Story = () => {
 /**
  * The user-made flag (ruleset §3.9, issue 1276) at every size × extent: a
  * dashed frame, a dashed User-made stamp, a dashed footer rule and a dashed
- * pill. Shown on one simple entity so each can be checked.
+ * pill. One simple entity, one cell per row, so each device can be checked.
  */
 export const UserMade: Story = () => (
-  <Matrix entity={system} label="Salvaging Drill · user-made" userMade />
+  <Matrix entity={system} label="Salvaging Drill · user-made" userMade oneCellPerRow />
 )
