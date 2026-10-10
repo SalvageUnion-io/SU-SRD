@@ -972,11 +972,11 @@ returns condensed docs: verify load-bearing APIs against `node_modules`.
 
 ### Cloud sessions
 
-`gh` is absent: use the session's `mcp__github__*` tools, loaded with
-ToolSearch first (`select:mcp__github__create_pull_request,…`). The remote MCP
-hosts (`bindings.mcp.cloudflare.com`, `observability.mcp.cloudflare.com`,
-`mcp.sentry.dev`, `mcp.context7.com`) fail (`ERR_PROXY_TUNNEL`, 403) unless
-the environment allows them; report those signals **unread**. `convex` has no
+`gh` is preinstalled; the GitHub proxy authenticates it for REST only: `gh pr`
+and `gh issue` (GraphQL) get 403, and branch deletions are refused. Use `gh api`
+or the `mcp__github__*` tools. The Cloudflare and Sentry MCP
+servers need OAuth a cloud session cannot do: report their signals **unread**.
+Environment: [ops/cloud-environment.md](ops/cloud-environment.md). `convex` has no
 credentials: ask for data. If `bun --version` differs from the root
 `packageManager`, run with `PATH="$HOME/.local/share/su-srd-bun/<version>:$PATH"` (the
 SessionStart hook installs it there) and `bun install --frozen-lockfile`. Never fake
