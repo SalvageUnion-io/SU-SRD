@@ -550,18 +550,16 @@ vs last-wins), and the entity header seats a numeral, cells and a pennant where
 **Sizing:** `size` (`large | medium | small`) × `extent`
 (`full | head | catalog`) in `packages/component-lib/src/components/shared/displayMode.ts`,
 resolved by `resolveCardDisplay`, projected by `displayBooleans`. Never add a
-`compact` / `listing` prop. `depth` 0 is solo; deeper levels tighten and drop
-the footer.
+`compact` / `listing` prop. `depth` 0 is solo; deeper levels tighten.
 
-**Anatomy** is ruleset §5: the fill is `isDoEntity` (data shape), actions
-render `inline`, trays and depth rows are `card/NestedCards.tsx`.
-`texture={false}` flattens a subtree (Dashboard, tooltips).
+**Anatomy** is ruleset §5: fill by `isDoEntity`, actions `inline`, trays in
+`card/NestedCards.tsx`; `texture={false}` flattens a subtree.
 
 **Controls:** `ReferenceEntityControl` (`referenceEntityControlTypes.ts`)
 through `CardControlRail`; `stepper`, `badge`, `status`, `href` render their
 primitive, so the footer is meta only. `cardClick: true` makes the card
 clickable; `hidden: true` keeps it off the rail; `pennant: true` makes the
-header's cost pennant the action button (the Dashboard). The one preset is
+cost pennant the button. The one preset is
 `navigateControl` (`referenceEntity/referenceEntityControls.ts`).
 
 **Slots, never schemas:** no schema-specific props; a hook computes generic
@@ -2354,11 +2352,11 @@ changing the _data shape_ over special-casing the renderer.
 
 #### 4. The stat atom has exactly two modes: Normal and Compact — and NO pips
 
-A `Stat` is either **Normal** (the vertical value box, full labels) or
-**Compact** (the horizontal `[label | value]` cell, shortform labels).
-**Compact IS horizontal** — there is no separate "horizontal" mode/axis.
-Editable stats grow a `+/-` stepper column in either mode. The entity card's
-header uses the **Compact** cell at every size (#1253).
+A `Stat` is **Normal** (vertical value box, full labels) or **Compact**
+(horizontal `[label | value]` cell, shortform labels).
+**Compact IS horizontal**; there is no "horizontal" mode.
+Editable stats grow a `+/-` stepper column in either mode. The entity
+header uses **Compact** at every size.
 
 **`Stat` has no pip mode.** The framed pip tracker and the condensed
 pip-chip were retired: a value/max tracker is the plain value box (a fill bar is
