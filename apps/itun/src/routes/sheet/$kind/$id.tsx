@@ -30,7 +30,7 @@ import { useEntityStore } from '../../../stores/entityStore'
  * one renders in place on its host's sheet as a decorated reference entity, so
  * it never needed a route, and `EntityRef` never needed widening (ADR-028).
  */
-type SheetKind = SheetEntityKind
+type SheetKind = SheetEntityKind | 'npc'
 
 const VALID_KINDS: SheetKind[] = ['pilot', 'mech', 'crawler', 'npc']
 

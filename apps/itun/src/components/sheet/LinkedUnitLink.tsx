@@ -19,7 +19,6 @@ const TONE: Record<SheetEntityKind, string> = {
   pilot: tokens.color.sheetPilot,
   mech: tokens.color.sheetMech,
   crawler: tokens.color.sheetCrawler,
-  npc: tokens.color.denizenBand,
 }
 
 const LINE = {
