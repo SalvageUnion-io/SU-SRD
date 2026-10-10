@@ -98,12 +98,24 @@ renders exactly one placeholder:
 - `src/runtime/islandRegistry.ts` maps name → `() => import('…')`. Every
   specifier must be a **static string literal** so Rollup code-splits it; a
   computed specifier collapses the registry into one eager chunk.
-- **`MobileNavIsland` takes zero props on purpose.** As a prop, its 16.6 KB
-  catalog blob would be inlined into all 1,039 pages (17.3 MB); the island
-  computes `buildCatalogSections()` and `location.pathname` itself inside its own
-  chunk. Do not "helpfully" pass it props again.
+- **`MobileNavIsland` takes zero props on purpose.** As a prop, its catalog
+  blob would be inlined into all 1,039 pages (17.3 MB); the island reads the
+  chapters frozen at build time (`src/generated/navCatalog.ts`, from
+  `src/lib/chapters.ts`) and `location.pathname` inside its own chunk. Do not
+  "helpfully" pass it props again.
 - `EntityCardStatic` is **not** an island — it renders straight into the page
   tree and ships no JS. It is 82% of entity pages; leave that path alone.
+
+## Pages as the Workshop Manual sets them
+
+- **Chapters** (`src/lib/chapters.ts`): the book's five chapters over the
+  catalog categories. The home index, the nav drawer, each page's band colour
+  and trail read it.
+- Entity, pattern and roll-table pages wear `EntityPageFrame`: `ChapterBand`,
+  the body, the citation on a `ChapterFoot`. The body is the card at
+  `presentation="page"`, or for a d20 table `RollTablePage` (Randsum rolls).
+- Page layouts are `src/styles/pages.css`, imported by `global.css` and the
+  story catalog's `catalog.css`.
 
 ## Hard rules
 

@@ -147,7 +147,11 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
           <a href="#main-content" className="su-skip-link">
             Skip to content
           </a>
-          <TopNavigation breadcrumbs={breadcrumbs} breadcrumbDescription={breadcrumbDescription} />
+          <TopNavigation
+            breadcrumbs={breadcrumbs}
+            breadcrumbDescription={breadcrumbDescription}
+            pageHasSearch={pathname === '/'}
+          />
           {/*
             `tabIndex={-1}` is what makes the skip link actually work. Following
             a fragment moves the browser's scroll position but NOT its focus

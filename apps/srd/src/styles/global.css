@@ -3,6 +3,8 @@
  * cascade order, come from the one shared entry; see its header.
  */
 @import 'component-lib/styles/tailwind.css';
+/* The page layouts — their own file so the story catalog loads them too. */
+@import './pages.css';
 
 /*
  * srd's own site-only components keep their stories beside them (see

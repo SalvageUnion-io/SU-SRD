@@ -43,7 +43,7 @@ type EntityViewProps = {
 
 export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
   if (!cardNeedsHydration(item, pattern)) {
-    return <EntityCardStatic item={item} pattern={pattern} titleAs="h1" />
+    return <EntityCardStatic item={item} pattern={pattern} />
   }
 
   const staticSummary = pattern
@@ -59,7 +59,6 @@ export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
         props={{
           item,
           pattern,
-          titleAs: 'h1',
           preloadSchemas: getSchemaPreloadList(schemaId),
         }}
       />

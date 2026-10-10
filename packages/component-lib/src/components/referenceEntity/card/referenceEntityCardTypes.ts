@@ -40,6 +40,16 @@ export type ReferenceEntityCardProps = {
    * loadout as nested cards (a `size="medium" extent="head"` pattern shows name + description). */
   pattern?: SURefObjectPattern
   /**
+   * PAGE — the card IS the page (boards 07, 08): an SRD entity page. The card
+   * draws no frame, seam, header or footer, because the page's `ChapterBand`
+   * carries the title and stamps and its `ChapterFoot` the citation (both
+   * resolved by `resolveEntityPageMeta`). The body lays out as a page: the line
+   * art as the hero, the chassis ability, the prose and the book's stat column
+   * beside it, and everything the entity carries beneath. Only a top-level
+   * card takes it; nested cards stay cards.
+   */
+  presentation?: 'card' | 'page'
+  /**
    * INLINE — this card is an action sitting inside its host card (board E1): a
    * flush ink band, its "//" line and body, with no frame, seam or footer.
    * Set by the host when it lays out its actions; not a consumer prop.
