@@ -63,6 +63,12 @@ describe('the coarse-pointer touch floor', () => {
     for (const selector of floorSelectors(theme).filter((s) => /^(button|\[role)/.test(s))) {
       expect(selector).toContain(':not(.su-btn--mini, .su-hit-area)')
     }
-    expect(index).toMatch(/\.su-btn--mini::after,\s*\.su-hit-area::after\s*\{[^}]*44px/)
+    expect(index).toMatch(/\.su-btn--mini::after,\s*\.su-hit-area::after,[^{]*\{[^}]*44px/)
+  })
+
+  test('breadcrumb links reach 44px through the hit area', () => {
+    // The phone's trail row is plain 17px text links; the pseudo-element
+    // gives each crumb the floor without stretching the row.
+    expect(index).toMatch(/\.su-crumbs__link::after\s*\{[^}]*44px/)
   })
 })
