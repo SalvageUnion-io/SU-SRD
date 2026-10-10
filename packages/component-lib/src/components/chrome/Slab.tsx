@@ -32,6 +32,13 @@ type SlabProps = {
    * `SectionHeader` and the roster's column headings.
    */
   variant?: 'dashed' | 'solid'
+  /**
+   * Where a SOLID slab's count sits: at the rule's far end (`end`, the
+   * default) or beside its stamp (`label`) — ITUN's Shelves (board S1), whose
+   * rule runs on to the shelf's "+ New…" button ("PILOTS 3 ┄┄┄ + NEW PILOT").
+   * The dashed slab always counts beside its label.
+   */
+  countAt?: 'end' | 'label'
 }
 
 /**
@@ -40,8 +47,18 @@ type SlabProps = {
  * Default ('dashed') keeps the original tone-deep text + dashed rule; 'solid'
  * is the ink section stamp with its count at the end of the rule.
  */
-export function Slab({ label, as, count, actions, className, id, variant = 'dashed' }: SlabProps) {
+export function Slab({
+  label,
+  as,
+  count,
+  actions,
+  className,
+  id,
+  variant = 'dashed',
+  countAt = 'end',
+}: SlabProps) {
   const isSolid = variant === 'solid'
+  const countByLabel = !isSolid || countAt === 'label'
   const Label = as ?? 'span'
   const countNode = count != null && (
     <span className="shrink-0 font-body text-xs font-bold normal-case tracking-normal text-wk-muted">
@@ -66,8 +83,9 @@ export function Slab({ label, as, count, actions, className, id, variant = 'dash
           {label}
         </Label>
       )}
-      {/* The dashed slab counts beside its label; the solid one at the rule's end. */}
-      {!isSolid && countNode}
+      {/* The dashed slab counts beside its label; the solid one at the rule's
+          end unless `countAt="label"` brings it beside the stamp. */}
+      {countByLabel && countNode}
       {isSolid ? (
         <span
           aria-hidden="true"
@@ -83,7 +101,7 @@ export function Slab({ label, as, count, actions, className, id, variant = 'dash
           }}
         />
       )}
-      {isSolid && countNode}
+      {!countByLabel && countNode}
       {/* A div, not a span: actions carry block-level content (the Ko-fi widget
           renders a div), and a div inside a span is invalid HTML. Both are flex
           items of the same row, so nothing moves. */}
