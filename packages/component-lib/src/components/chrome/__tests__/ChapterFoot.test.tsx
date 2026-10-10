@@ -39,6 +39,23 @@ describe('ChapterFoot', () => {
     expect(band.style.color).toBe(color.paper)
   })
 
+  // §3.5: ink grain on a colour band, paper flecks on an ink ground. Ink grain
+  // on ink is invisible, so an ink foot takes the flecks, as `ChapterBand` does.
+  test('an ink foot band carries paper flecks, not ink grain', () => {
+    const band = render(<ChapterFoot tone="ink" start="Licence" />).container
+      .firstElementChild as HTMLElement
+    expect(band.querySelector('filter[id^="su-fleck"]')).not.toBeNull()
+    expect(band.querySelector('filter[id^="su-blot"]')).toBeNull()
+    expect(band.style.color).toBe(color.paper)
+  })
+
+  test('takes a fill outside the chapter map, keeping the tone’s text colour', () => {
+    const band = render(<ChapterFoot tone="ink" fill={color.inkDeep} start="Licence" />).container
+      .firstElementChild as HTMLElement
+    expect(band.style.backgroundColor).toBe(color.inkDeep)
+    expect(band.style.color).toBe(color.paper)
+  })
+
   test('is the site footer’s landmark when rendered as a footer', () => {
     render(<ChapterFoot as="footer" start="Licence" />)
     expect(screen.getByRole('contentinfo')).toBeTruthy()
