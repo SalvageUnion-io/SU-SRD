@@ -2219,16 +2219,13 @@
             "name": "FM-3 Flamethrower"
           },
           {
-            "name": "Escape Hatch"
+            "name": "Loudspeakers"
           },
           {
             "name": "Locomotion System"
           }
         ],
         "modules": [
-          {
-            "name": "Comms Module"
-          },
           {
             "name": "Adv. Weapon Link"
           }
@@ -5640,8 +5637,7 @@
             "name": "Comms Module"
           },
           {
-            "name": "Energy Cell",
-            "count": 2
+            "name": "Energy Cell"
           }
         ],
         "content": [
@@ -6027,9 +6023,6 @@
             "name": "Comms Module"
           },
           {
-            "name": "IR Night Vision Optics"
-          },
-          {
             "name": "Emergency Power Conduit"
           }
         ],
@@ -6317,9 +6310,6 @@
             "name": "Stabilising Locomotion System"
           },
           {
-            "name": "Locomotion System"
-          },
-          {
             "name": "Ejection System"
           }
         ],
@@ -6355,9 +6345,6 @@
           },
           {
             "name": "Stabilising Locomotion System"
-          },
-          {
-            "name": "Locomotion System"
           },
           {
             "name": "Ejection System"
@@ -6644,8 +6631,7 @@
             "name": "Missile Pod"
           },
           {
-            "name": ".50 Cal Machine Gun",
-            "count": 3
+            "name": ".50 Cal Machine Gun"
           },
           {
             "name": "Ejection System"
@@ -8833,10 +8819,7 @@
         "page": 71,
         "systems": [
           {
-            "name": "Articulated Rigging Arm"
-          },
-          {
-            "name": "Rigging Arm",
+            "name": "Articulated Rigging Arm",
             "count": 2
           },
           {
@@ -8962,7 +8945,7 @@
     "cargoCapacity": 6,
     "techLevel": 3,
     "salvageValue": 8,
-    "chassisAbilities": ["Automech", "Hell Fumes", "Demonic Visage"],
+    "chassisAbilities": ["Automech", "Demonic Visage"],
     "patterns": [
       {
         "name": "A",
@@ -8973,7 +8956,10 @@
             "name": "Missile Pod"
           },
           {
-            "name": "120mm Cannon"
+            "name": "Automated Weapon Turret",
+            "preselectedChoices": {
+              "c05fd7f4-cd5a-4c0d-8518-3566cece416d": "Automated 120mm Cannon Turret"
+            }
           },
           {
             "name": "Locomotion System"
