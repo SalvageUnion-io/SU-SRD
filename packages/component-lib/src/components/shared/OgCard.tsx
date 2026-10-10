@@ -17,7 +17,7 @@ import {
 } from './ogCardText'
 
 /**
- * OgCard — the link preview (issue 1280, canvas boards PV1 and OgCard): a
+ * OgCard — the link preview (issue 1280, origin boards PV1 and OgCard): a
  * 1200 × 630 picture of the page a link opens, built from the same parts as
  * that page. The chapter band with its speckle and the notched title
  * (`ChapterBand` at its `og` scale), framed stat boxes on the page ground, and

@@ -412,7 +412,7 @@ export const texture = {
 } as const
 
 /**
- * The three speckle filters, by the ids the canvas named them (`su-blot`,
+ * The three speckle filters, by the ids the origin named them (`su-blot`,
  * `su-speck`, `su-fleck`). Each is `feTurbulence` noise thresholded to hard
  * specks by an `feColorMatrix` alpha row (`gain · noise + threshold`), then
  * composited onto a flat fill. The thresholds are board 05c's QUIETER set —
