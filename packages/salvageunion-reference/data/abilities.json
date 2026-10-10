@@ -147,7 +147,7 @@
         "schema": "equipment"
       }
     ],
-    "page": 30,
+    "page": 29,
     "description": "Construct an Immobile Auto-Turret that can be fitted with Systems and Modules.",
     "actions": ["Auto-Turret"],
     "additionalSources": [
@@ -1262,7 +1262,7 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Smuggler",
     "level": 1,
-    "page": 71,
+    "page": 72,
     "actions": ["Black Market"],
     "description": "Gain access to a range of contraband Systems, Modules, and Pilot Equipment."
   },
@@ -1334,7 +1334,7 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Union Rep",
     "level": 2,
-    "page": 75,
+    "page": 76,
     "actions": ["Union Call"],
     "description": "Direct other Pilots to carry out missions in exchange for a Scrap reward."
   },
@@ -1354,7 +1354,7 @@
     "source": "Salvage Union Workshop Manual",
     "tree": "Legendary Union Rep",
     "level": "L",
-    "page": 75,
+    "page": 77,
     "actions": ["VIP Beacon"],
     "description": "Place a distress beacon to call for aid, which arrives quickly and heavily armed."
   },
