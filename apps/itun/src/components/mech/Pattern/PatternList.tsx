@@ -11,8 +11,10 @@
  * route boundary.
  */
 
-import { Badge, EmptyState } from 'component-lib'
+import { Badge, buttonVariants, cn, EmptyState } from 'component-lib'
+import { patternHref } from '../../../lib/patterns/patterns'
 import { usePatternStore } from '../../../stores/patternStore'
+import { AppLink } from '../../shared/AppLink'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
 type PatternListProps = {
@@ -44,7 +46,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
     return (
       <EmptyState
         headline="No Patterns Yet"
-        body="Use “Save as pattern” from the mech builder to save a reusable template."
+        body="Use “Save as pattern” from a mech sheet’s ⋯ menu, or the mech builder, to save a reusable template."
       />
     )
   }
@@ -77,7 +79,17 @@ export function PatternList({ onInstantiated }: PatternListProps) {
               Not a legal starting mech
             </Badge>
           </div>
-          <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
+          <div className="flex flex-col items-end gap-1">
+            <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
+            {/* Its page: where the maker sees it as others will, and shares it. */}
+            <AppLink
+              href={patternHref(pattern.id)}
+              aria-label={`View pattern ${pattern.name}`}
+              className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
+            >
+              View
+            </AppLink>
+          </div>
         </li>
       ))}
     </ul>
