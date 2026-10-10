@@ -1020,6 +1020,27 @@ body {
   border-color: var(--color-paper);
 }
 
+/* A narrow phone (under 400px) has to fit the mark, the switcher and a
+   three-control cluster (ITUN signed in: search, avatar, menu, each on the
+   44px coarse floor) in one row. The default spacing needs 405px for that,
+   so the hamburger ran off a 375px screen; this tightening gets it to about
+   354px, inside a 360px phone, without dropping a control. */
+@media (max-width: 24.99rem) {
+  .su-union-bar__row {
+    gap: var(--space-8);
+    padding-inline: var(--space-12);
+  }
+
+  .su-union-bar__tab {
+    letter-spacing: var(--tracking-caps-snug);
+    padding-inline: var(--space-8);
+  }
+
+  .su-union-bar__mobile {
+    gap: 0;
+  }
+}
+
 @media (min-width: 40rem) {
   .su-union-bar__row {
     gap: var(--space-16);
@@ -1190,9 +1211,11 @@ body {
  * The floor (ruleset §4.6) mirrors theme.css's unlayered copy, which is the
  * one that wins while Tailwind is live. A mini button and an interactive chip
  * (`Badge as="button"` carries `.su-hit-area`) keep their drawn size and get a
- * centred 44px hit area instead. That half lives only here, in the layer, so a
- * call site that positions the control (`absolute`) still wins over the
- * `relative` the pseudo-element needs.
+ * centred 44px hit area instead. So does a breadcrumb link: the phone's trail
+ * row is a line of 17px text, and a 44px box per crumb would stretch it into a
+ * toolbar. That half lives only here, in the layer, so a call site that
+ * positions the control (`absolute`) still wins over the `relative` the
+ * pseudo-element needs.
  */
 @media (pointer: coarse) {
   button:not(.su-btn--mini, .su-hit-area),
@@ -1208,12 +1231,14 @@ body {
   }
 
   .su-btn--mini,
-  .su-hit-area {
+  .su-hit-area,
+  .su-crumbs__link {
     position: relative;
   }
 
   .su-btn--mini::after,
-  .su-hit-area::after {
+  .su-hit-area::after,
+  .su-crumbs__link::after {
     content: '';
     height: max(100%, 44px);
     left: 50%;
