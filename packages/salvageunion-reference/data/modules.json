@@ -297,7 +297,7 @@
     "techLevel": 2,
     "slotsRequired": 1,
     "salvageValue": 2,
-    "actions": ["Auto-Scan", "Coolant Flush", "Metal Detector"],
+    "actions": ["Auto-Scan", "Active Scan", "Metal Detector"],
     "page": 195,
     "additionalSources": [
       {
