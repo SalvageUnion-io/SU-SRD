@@ -18,6 +18,8 @@ import type { Crawler } from './crawler'
 import { CrawlerSchema } from './crawler'
 import type { Mech } from './mech'
 import { MechSchema } from './mech'
+import type { Npc } from './npc'
+import { NpcSchema } from './npc'
 import type { Pilot } from './pilot'
 import { PilotSchema } from './pilot'
 
@@ -26,6 +28,7 @@ export type FrozenParse =
   | { ok: true; kind: 'pilot'; entity: Pilot }
   | { ok: true; kind: 'mech'; entity: Mech }
   | { ok: true; kind: 'crawler'; entity: Crawler }
+  | { ok: true; kind: 'npc'; entity: Npc }
   | { ok: false; reason: string }
 
 /**
@@ -61,6 +64,13 @@ export function parseFrozenEntity(kind: unknown, entity: unknown): FrozenParse {
     return parsed.success
       ? { ok: true, kind: 'crawler', entity: parsed.data }
       : { ok: false, reason: `Invalid crawler data: ${parsed.error.message}` }
+  }
+
+  if (kind === 'npc') {
+    const parsed = NpcSchema.safeParse(entity)
+    return parsed.success
+      ? { ok: true, kind: 'npc', entity: parsed.data }
+      : { ok: false, reason: `Invalid NPC data: ${parsed.error.message}` }
   }
 
   return { ok: false, reason: `Unknown entity kind: ${String(kind)}` }

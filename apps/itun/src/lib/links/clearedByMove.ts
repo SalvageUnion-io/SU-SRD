@@ -25,11 +25,12 @@ type EndType = EntityRef['type']
 /** One link end as this browser holds it: enough to place it and to name it. */
 type HeldEntity = ContainerFields & { id: string; name: string }
 
-/** What this browser holds — the entity store's three lists and its links. */
+/** What this browser holds — the entity store's four lists and its links. */
 export type HeldEntities<L extends LinkShape = LinkShape> = {
   pilots: readonly HeldEntity[]
   mechs: readonly HeldEntity[]
   crawlers: readonly HeldEntity[]
+  npcs: readonly HeldEntity[]
   softLinks: readonly L[]
 }
 
@@ -43,10 +44,11 @@ export type ClearedAssignment = {
   other: { kind: EndType; name: string | null }
 }
 
-const LIST_OF: Readonly<Record<EndType, 'pilots' | 'mechs' | 'crawlers'>> = {
+const LIST_OF: Readonly<Record<EndType, 'pilots' | 'mechs' | 'crawlers' | 'npcs'>> = {
   pilot: 'pilots',
   mech: 'mechs',
   crawler: 'crawlers',
+  npc: 'npcs',
 }
 
 function heldEnd(held: HeldEntities, ref: Moved): HeldEntity | null {

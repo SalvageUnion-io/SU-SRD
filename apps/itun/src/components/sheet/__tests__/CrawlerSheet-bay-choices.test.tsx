@@ -88,7 +88,7 @@ function makeCrawlerStubStore(initial: Crawler, updateSpy?: ReturnType<typeof mo
 
   const store = makeEntityStoreMock({
     crawlers: [current],
-    hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
     get: mock((_type: string, id: string) => (id === current.id ? current : null)),
@@ -107,7 +107,7 @@ function makeEmptyStore() {
     throw new Error('update should not be called in read-only snapshot')
   })
   const store = makeEntityStoreMock({
-    hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => []),
     get: mock(() => null),

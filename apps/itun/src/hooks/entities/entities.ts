@@ -21,6 +21,7 @@
 
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
+import type { Npc } from '../../lib/schemas/npc'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import type { EntityType } from '../../stores/entityStore'
@@ -30,7 +31,7 @@ import type { EntityForType } from '../../stores/types'
 /** Full entityStore state+actions shape (what selectors receive). */
 type EntityStoreState = ReturnType<typeof useEntityStore.getState>
 
-type ListKey = 'pilots' | 'mechs' | 'crawlers' | 'softLinks'
+type ListKey = 'pilots' | 'mechs' | 'crawlers' | 'npcs' | 'softLinks'
 
 function listKeyFor(type: EntityType): ListKey {
   return `${type}s`
@@ -117,6 +118,14 @@ export function useMech(id: string | undefined): Mech | null {
 
 export function useCrawlers(): Crawler[] {
   return useEntityList('crawler')
+}
+
+export function useNpcs(): Npc[] {
+  return useEntityList('npc')
+}
+
+export function useNpc(id: string | undefined): Npc | null {
+  return useEntity('npc', id)
 }
 
 /**

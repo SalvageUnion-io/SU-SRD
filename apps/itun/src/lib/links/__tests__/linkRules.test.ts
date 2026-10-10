@@ -20,6 +20,7 @@ function l(type: LinkShape['type'], from: string, to: string): LinkShape {
     'mech-to-pilot': ['mech', 'pilot'],
     'pilot-to-crawler': ['pilot', 'crawler'],
     'mech-to-crawler': ['mech', 'crawler'],
+    'npc-to-crawler': ['npc', 'crawler'],
   } as const
   const [fromType, toType] = ends[type]
   return { type, from: { type: fromType, id: from }, to: { type: toType, id: to } }

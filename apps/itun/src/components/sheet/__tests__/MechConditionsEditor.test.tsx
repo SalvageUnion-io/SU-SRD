@@ -37,7 +37,7 @@ type CapturedUpdate = { patch: Partial<Mech> }
 function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStore {
   return makeEntityStoreMock({
     mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
 

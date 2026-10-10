@@ -46,7 +46,7 @@ function resetStores(): void {
     mechs: [],
     crawlers: [],
     softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
   })
 }
 
@@ -422,6 +422,7 @@ describe('mergeImport — duplicate skip branches', () => {
       pilots: 0,
       mechs: 0,
       crawlers: 0,
+      npcs: 0,
       softLinks: 0,
       mechPatterns: 0,
       encounterNpcs: 0,

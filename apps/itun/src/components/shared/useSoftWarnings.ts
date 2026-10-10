@@ -36,7 +36,7 @@ import type { AssignableType, EntityForType } from '../../stores/types'
 // Public types
 // ---------------------------------------------------------------------------
 
-type UseSoftWarningsOptions<T extends AssignableType> = {
+type UseSoftWarningsOptions<T extends Exclude<AssignableType, 'npc'>> = {
   entityType: T
   entityId: string
   /**
@@ -74,7 +74,7 @@ type UseSoftWarningsOptions<T extends AssignableType> = {
   store?: typeof useEntityStore
 }
 
-type UseSoftWarningsResult<T extends AssignableType> = {
+type UseSoftWarningsResult<T extends Exclude<AssignableType, 'npc'>> = {
   warnings: SoftWarning[]
   /**
    * Compute a preview of the given patch against the current entity state.
@@ -100,7 +100,7 @@ type UseSoftWarningsResult<T extends AssignableType> = {
 // Hook
 // ---------------------------------------------------------------------------
 
-export function useSoftWarnings<T extends AssignableType>(
+export function useSoftWarnings<T extends Exclude<AssignableType, 'npc'>>(
   opts: UseSoftWarningsOptions<T>
 ): UseSoftWarningsResult<T> {
   const {

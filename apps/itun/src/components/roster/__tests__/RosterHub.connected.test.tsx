@@ -121,7 +121,7 @@ beforeEach(async () => {
     mechs: [],
     crawlers: [],
     softLinks: [],
-    hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
+    hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
   // Shelves: a pilot and a crawler, cached where a signed-in roster is.
   setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })

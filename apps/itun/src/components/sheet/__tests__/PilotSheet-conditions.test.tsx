@@ -44,7 +44,7 @@ const basePilot = pilotFixture({
 function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
   return makeEntityStoreMock({
     pilots: [pilot],
-    hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [pilot]),
     get: mock((_type: string, id: string) => (id === pilot.id ? pilot : null)),

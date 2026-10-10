@@ -60,7 +60,7 @@ function makePilotStore(pilot: Pilot, captured: CapturedUpdate[]): typeof useEnt
   let current = pilot
   return makeEntityStoreMock({
     pilots: [pilot],
-    hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
     get: mock((type: string, id: string) =>
@@ -107,7 +107,7 @@ function makeMechStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntity
   let current = mech
   return makeEntityStoreMock({
     mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
     get: mock((type: string, id: string) =>

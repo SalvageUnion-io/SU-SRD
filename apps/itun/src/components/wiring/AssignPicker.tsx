@@ -158,6 +158,7 @@ const NOUN: Record<Kind, { one: string; many: string }> = {
   pilot: { one: 'pilot', many: 'pilots' },
   mech: { one: 'mech', many: 'mechs' },
   crawler: { one: 'crawler', many: 'crawlers' },
+  npc: { one: 'NPC', many: 'NPCs' },
 }
 
 type Candidate = { id: string; name: string; description?: string }

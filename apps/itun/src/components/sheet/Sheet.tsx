@@ -22,7 +22,7 @@ import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
-import type { EntityRef } from '../../lib/schemas/entity'
+import type { EntityRef, SheetEntityKind } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
@@ -62,7 +62,7 @@ type ResolvedSheetEntity =
 
 function resolveSheetEntity(
   lookup: EntityLookup,
-  kind: EntityRef['type'],
+  kind: SheetEntityKind,
   id: string
 ): ResolvedSheetEntity | null {
   switch (kind) {
@@ -82,7 +82,7 @@ function resolveSheetEntity(
 }
 
 type SheetProps = {
-  kind: EntityRef['type']
+  kind: SheetEntityKind
   id: string
   /** Injectable entity lookup for testing; the live store when omitted. */
   entityStore?: EntityLookup

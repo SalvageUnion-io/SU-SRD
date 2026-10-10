@@ -15,6 +15,7 @@ import { create } from 'zustand'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityRef } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
+import type { Npc } from '../../lib/schemas/npc'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import type { ChangeMeta, EntityState, useEntityStore } from '../../stores/entityStore'
@@ -22,7 +23,7 @@ import type { CreateInput, EntityForType, EntityType } from '../../stores/types'
 import type { EntityLookup } from '../sheet/composition'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 
-type AnyEntity = Pilot | Mech | Crawler | SoftLink
+type AnyEntity = Pilot | Mech | Crawler | Npc | SoftLink
 
 /**
  * Overridable state members, with the production generics widened to their
@@ -33,6 +34,7 @@ export type EntityStoreMockOverrides = {
   pilots?: Pilot[]
   mechs?: Mech[]
   crawlers?: Crawler[]
+  npcs?: Npc[]
   softLinks?: SoftLink[]
   hydrated?: EntityState['hydrated']
   hydrate?: (type: EntityType) => Promise<void>
@@ -57,6 +59,7 @@ const KEY = {
   pilot: 'pilots',
   mech: 'mechs',
   crawler: 'crawlers',
+  npc: 'npcs',
   softLink: 'softLinks',
 } as const
 
@@ -72,6 +75,7 @@ export function makeEntityStoreMock(
     pilots: overrides.pilots ?? [],
     mechs: overrides.mechs ?? [],
     crawlers: overrides.crawlers ?? [],
+    npcs: overrides.npcs ?? [],
     softLinks: overrides.softLinks ?? [],
   }
 
@@ -81,7 +85,13 @@ export function makeEntityStoreMock(
 
   const state: EntityState = {
     ...arrays,
-    hydrated: overrides.hydrated ?? { pilots: true, mechs: true, crawlers: true, softLinks: true },
+    hydrated: overrides.hydrated ?? {
+      pilots: true,
+      mechs: true,
+      crawlers: true,
+      npcs: true,
+      softLinks: true,
+    },
     hydrate: overrides.hydrate ?? (async () => {}),
     rehydrate: overrides.rehydrate ?? (async () => {}),
     list: overrides.list ? (overrides.list as EntityState['list']) : listOf,

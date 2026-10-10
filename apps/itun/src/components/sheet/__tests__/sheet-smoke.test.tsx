@@ -108,7 +108,7 @@ function makeZustandLikeStore(
 
   return makeEntityStoreMock({
     mechs,
-    hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => mechs),
     get: mock((_type: string, id: string) => mechs.find((e) => e.id === id) ?? null),

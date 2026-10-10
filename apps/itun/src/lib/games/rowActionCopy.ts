@@ -24,7 +24,7 @@ import { copyName } from '../copyEntity'
 import type { ClearedAssignment } from '../links/clearedByMove'
 
 /** Which kind of build a confirm is about. Decides the pronoun, nothing else. */
-export type RowActionKind = 'pilot' | 'mech' | 'crawler'
+export type RowActionKind = 'pilot' | 'mech' | 'crawler' | 'npc'
 
 export type ConfirmCopy = {
   /** The question, naming the build: "Scrap #430 Tenacity?". */
@@ -41,9 +41,9 @@ export type ConfirmCopy = {
   failure: string
 }
 
-/** A pilot is a person; a mech or a crawler is a thing. */
+/** A pilot or an NPC is a person; a mech or a crawler is a thing. */
 function them(kind: RowActionKind): string {
-  return kind === 'pilot' ? 'them' : 'it'
+  return kind === 'pilot' || kind === 'npc' ? 'them' : 'it'
 }
 
 /** Where a container move is headed, by the name the reader knows it by. */
@@ -63,6 +63,9 @@ function clearedAssignments(kind: RowActionKind, from: string): string {
   }
   if (kind === 'mech') {
     return `Its crawler assignment in ${from} is cleared, and so is the pilot flying it there, if any.`
+  }
+  if (kind === 'npc') {
+    return `Their crew slot on a crawler in ${from} is cleared, and that slot goes back to the book's crew line.`
   }
   return `Everyone in ${from} assigned to it is unassigned.`
 }
@@ -96,8 +99,8 @@ function clearedOnEntry(kind: RowActionKind, cleared: readonly ClearedAssignment
     ].join(' and ')
     return [`${who} ${cleared.length === 1 ? 'leaves' : 'leave'} its crew.`]
   }
-  const they = kind === 'pilot' ? 'They leave' : 'It leaves'
-  const their = kind === 'pilot' ? 'Their' : 'Its'
+  const they = kind === 'pilot' || kind === 'npc' ? 'They leave' : 'It leaves'
+  const their = kind === 'pilot' || kind === 'npc' ? 'Their' : 'Its'
   const pairings = cleared.filter((c) => c.type === 'mech-to-pilot')
   const crews = cleared.filter((c) => c.type !== 'mech-to-pilot')
   return [
