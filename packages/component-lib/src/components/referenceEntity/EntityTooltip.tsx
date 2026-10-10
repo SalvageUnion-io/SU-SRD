@@ -156,7 +156,8 @@ export function EntityTooltip({
                   tooltip primitive in the subtree inert (no nested hovercards
                   from trait/keyword refs or Stat cells). */}
               <InsideTooltipContext.Provider value={true}>
-                <ReferenceEntityCard data={entity} size="medium" extent="catalog" />
+                {/* A tooltip stays flat (ruleset §3.5): no speckle. */}
+                <ReferenceEntityCard data={entity} size="medium" extent="catalog" texture={false} />
               </InsideTooltipContext.Provider>
             </Tooltip.Popup>
           </Tooltip.Positioner>

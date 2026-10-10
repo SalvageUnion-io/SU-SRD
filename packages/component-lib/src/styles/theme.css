@@ -335,8 +335,11 @@
   /* Border-weight semantic tokens (design-spec §1.3 — load-bearing system):
      entity = entity cards + hero header; rail = rail cards & Hold frames;
      pill = pills / status badges / dividers / statins / sblock / counterpart
-     panels; chrome = everything else (buttons, inputs, panels, rows, pips). */
+     panels; chrome = everything else (buttons, inputs, panels, rows, pips).
+     entity-compact = the entity card's frame one size down (ruleset §4.3): the
+     frame steps 3 → 2 → 1.5px with size and depth. */
   --bw-entity: 3px;
+  --bw-entity-compact: 2px;
   --bw-rail: 2.5px;
   --bw-pill: 2px;
   --bw-chrome: 1.5px;

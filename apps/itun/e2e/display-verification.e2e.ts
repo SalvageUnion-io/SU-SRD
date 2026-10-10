@@ -67,11 +67,12 @@ test.describe('chassis cards show stats from the SRD', () => {
     await expect(page.getByText(/^Mule$/).first()).toBeVisible()
 
     // Master-detail: selecting the Mule row renders its full card in the detail
-    // pane, where ReferenceEntityCard surfaces the chassis stat blocks
-    // (Structure Points, System Slots, Heat Capacity, …) as labelled values.
-    // Assert a stat label renders (proves the stats block mounted).
+    // pane, where ReferenceEntityCard surfaces the chassis stats as its header's
+    // `[label | value]` cells (SP, SYS, MODS, …) — the short form at every size
+    // since the one-anatomy card (#1253). Assert a stat label renders (proves
+    // the stats block mounted).
     await pickByName(page, 'Mule')
-    await expect(page.getByText(/SLOTS|CAPACITY|POINTS/i).first()).toBeVisible()
+    await expect(page.getByText(/^(SP|SYS|MODS)$/).first()).toBeVisible()
   })
 })
 

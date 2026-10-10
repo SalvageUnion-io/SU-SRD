@@ -19,7 +19,6 @@ export function ChoiceRegion({
   compact,
   toneColor,
   depth,
-  hostTone,
   chassisName,
   NestedCard,
 }: {
@@ -32,7 +31,6 @@ export function ChoiceRegion({
   toneColor: string | undefined
   /** The HOST card's depth — listed entities render one level below it. */
   depth: number
-  hostTone: string
   chassisName: string | undefined
   NestedCard: NestedCard
 }) {
@@ -58,7 +56,6 @@ export function ChoiceRegion({
               extent="head"
               depth={depth + 1}
               data={resolved}
-              hostTone={hostTone}
               chassisName={chassisName}
             />
           )}

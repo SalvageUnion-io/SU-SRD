@@ -34,11 +34,10 @@ describe('crawler tech level card', () => {
     expect(text).toContain('Population 100–500')
   })
 
-  test('the FULL card carries them with the long stat labels', () => {
+  test('the FULL card carries them in the same value cells', () => {
     const text = textOf(<ReferenceEntityCard data={tier('Town Crawler')} size="large" />)
     expect(text).toContain('Upkeep')
     expect(text).toContain('Upgrade')
-    expect(text).toContain('Cost')
     expect(text).toContain('Population 2,000–5,000')
   })
 

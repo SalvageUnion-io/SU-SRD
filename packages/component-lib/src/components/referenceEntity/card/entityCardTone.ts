@@ -8,7 +8,7 @@ import {
 } from 'salvageunion-reference'
 import type { CardSize } from '../../shared/displayMode'
 import { TECH_LEVEL_BG } from '../../shared/techLevelStyles'
-import { borderColorFromHeaderBg, calculateBackgroundColor } from '../referenceEntityHelpers'
+import { calculateBackgroundColor } from '../referenceEntityHelpers'
 /** The six card domains + `action`. Lives here, with the domain logic. */
 export type CardDomain = 'pilot' | 'mech' | 'crawler' | 'actor' | 'gear' | 'glossary' | 'action'
 
@@ -166,34 +166,9 @@ export function resolveDomainTone(
 }
 
 /**
- * Ghosted action bands: desaturate + lighten the HOST (summoning parent)
- * entity's tone toward a warm cream, so a nested action reads as a faded relative
- * of the entity that owns it — same colour family, clearly secondary. The light
- * band pairs with a contrast-aware (ink) compact title. The card and the
- * `ActionDirections` brainstorm share this ONE implementation. `hostBase` is the
- * parent's tone as a resolvable CSS colour (`var(--color-…)` / rgb()).
- */
-export function ghostActionTone(hostBase: string): {
-  header: string
-  sub: string
-  frame: string
-} {
-  // The warm cream the bands fade toward, and its ink-weighted counterpart for
-  // the frame — both derived from tokens (band-cream / ink), not literals.
-  const cream = 'var(--color-band-cream)'
-  const creamFrame = 'color-mix(in srgb, var(--color-ink) 30%, var(--color-band-cream))'
-  return {
-    header: `color-mix(in srgb, ${hostBase} 32%, ${cream})`,
-    sub: `color-mix(in srgb, ${hostBase} 46%, ${cream})`,
-    frame: `color-mix(in srgb, ${hostBase} 55%, ${creamFrame})`,
-  }
-}
-
-/**
  * The ONE tone resolver for the unified card. Entities resolve to their domain
- * hue / tech-level band. ACTIONS carry no tone of their own — they inherit their
- * host entity's tone, ghosted (resolved by the card from the parent tone), so
- * this returns a neutral placeholder for them that the card overrides.
+ * hue / tech-level band. ACTIONS carry no tone of their own — an action is an
+ * ink banner (see `isDoEntity`) — so this returns a neutral placeholder.
  */
 export function resolveCardTone(
   schemaName: SURefEnumSchemaName | 'actions',
@@ -206,63 +181,92 @@ export function resolveCardTone(
 }
 
 /**
- * The parent entity's tone base as a resolvable CSS colour — the value a host
- * (chassis, mech, sheet) threads to its actions/abilities via the card's
- * `hostTone` prop, which the child then ghosts. Consumers rendering a parent's
- * actions/abilities pass `hostTone={entityHostTone(parent)}`.
+ * HAVE vs DO — which of the header's two fills a card takes (ruleset §5,
+ * board E1). Things you DO — an ability, an action — are the book's ink
+ * banner; everything you HAVE wears its own tone.
+ *
+ * A DATA-SHAPE check, never a schema name (the display system's slot rule):
+ * an ability carries a `tree` and a `level` (`isAbility`), and an action
+ * carries the `actionSource` naming what it hangs off — no other record has
+ * either.
  */
-export function entityHostTone(entity: SURefMetaEntity): string {
-  const schemaName = (entity as { schemaName?: string }).schemaName as
-    | SURefEnumSchemaName
-    | 'actions'
-  const tone = resolveCardTone(schemaName, entity)
-  return borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-ink)'
+export function isDoEntity(entity: SURefMetaEntity): boolean {
+  if (entity == null || typeof entity !== 'object') return false
+  return isAbility(entity) || 'actionSource' in entity
 }
 
 /**
- * DEPTH × SIZE → title type scale, resolving THE nested-title invariant: a card
- * at depth N+1 renders a strictly smaller title than its parent at depth N, for
- * as long as the ladder has room, and never a larger one once it bottoms out.
+ * The ability TIER NUMERAL the book prints at the left of an ability banner
+ * (its level in the tree). Only a numeric rung: the Generic tree's "G" and the
+ * Legendary "L" are markers, not tiers, and print no numeral.
+ */
+export function resolveTierNumeral(entity: SURefMetaEntity): string | undefined {
+  if (!isAbility(entity)) return undefined
+  const level = entity.level
+  return level != null && Number.isFinite(Number(level)) ? String(level) : undefined
+}
+
+/**
+ * The seam TYPE STAMP's wording: the schema type, and for an ability its tree
+ * as well ("Ability · Forging Tree") — the tree rides the stamp and the level
+ * is the banner's numeral, so an ability needs no classification pill.
+ */
+export function resolveSeamLabel(
+  schemaName: SURefEnumSchemaName | 'actions',
+  entity: SURefMetaEntity
+): string {
+  const { type } = resolveEyebrow(schemaName)
+  if (isAbility(entity) && entity.tree != null && String(entity.tree).length > 0) {
+    return `${type} · ${String(entity.tree)} Tree`
+  }
+  return type
+}
+
+/**
+ * DEPTH × SIZE → title type scale (boards E1 and E2).
  *
- * Two axes drive one index into {@link TITLE_SIZE_LADDER}:
+ * The title is set by the card's SIZE — large 31px, medium 22px, small 17px —
+ * and nesting steps it down with the card: depth 1 renders medium (22px),
+ * depth 2 is the one-line head row (17px), depth 3 one rung below that. So the
+ * rung is the LATER of the size's own rung and the depth:
  *
- * - DEPTH is the primary step. Each nesting level moves ONE rung down the
- *   ladder — this is what makes a child strictly smaller than its parent.
- * - SIZE is an OFFSET, never a floor. `large` starts at rung 0 (the dominant
- *   name-tab), `medium` at rung 1, `small` at rung 2. It shifts the whole depth
- *   ramp down without flattening it. (A `Math.max(depth, floor)` clamp would
- *   put a small depth-0 card and its depth-1 child on the same rung; an offset
- *   keeps consecutive depths one rung apart at every size.) Depth 0 renders
- *   large→`text-5xl`, medium→`text-xl`, small→`text-base`.
+ *   rung = max(SIZE offset, depth)
  *
- * THE FLOOR, honestly stated. The ladder bottoms out at `text-badge` (11px), the
- * legibility floor: below it a nested title stops being readable, so the type
- * cannot keep shrinking forever. Past the last rung the invariant weakens from
- * "strictly smaller than the parent" to "never LARGER than the parent" — two
- * cards nested past the floor share the floor rung. The ladder has six rungs, so
- * this only bites well beyond `MAX_DEPTH` (3): across every PRODUCED combination
- * — depths 0..3 (actions force a min depth of 1) at each size — every step is
- * still strictly smaller. Nested children are always spawned at `size='medium'`,
- * so a medium child at depth N+1 (rung N+2) is strictly smaller than any
- * large/medium parent at depth N, and never larger than a small parent (they
- * meet only at the shared floor).
+ * The invariant this keeps: a nested title is NEVER LARGER than its parent's.
+ * Under a large card it is strictly smaller at every level (31 → 22 → 17 → 15).
+ * A medium card's depth-1 child is medium too and shares its rung — what tells
+ * them apart there is the tray, the frame (3 → 2 → 1.5px) and the depth-2 head
+ * row, not the type. Nested children are spawned at `medium`, or at `small`
+ * inside a small card (`nestedChildSize`), so a child never outgrows its parent.
+ *
+ * THE FLOOR: the ladder bottoms out at `text-badge` (11px), the legibility
+ * floor (ruleset §4.6); past it a title holds at the floor.
  */
 const TITLE_SIZE_LADDER = [
-  'text-5xl',
-  'text-xl',
-  'text-base',
-  'text-sm',
-  'text-xs',
+  'text-display-lg',
+  'text-title',
+  'text-readout',
+  'text-lede',
+  'text-caption',
   'text-badge',
 ] as const
 
-/** SIZE as a starting OFFSET into the ladder (not a floor) — see docblock. */
+/** SIZE as the ladder rung a depth-0 card starts on — see docblock. */
 const SIZE_LADDER_OFFSET: Record<CardSize, number> = { large: 0, medium: 1, small: 2 }
 
 export function titleSizeClass(depth: number, size: CardSize = 'large'): string {
-  const rung = Math.max(depth, 0) + SIZE_LADDER_OFFSET[size]
+  const rung = Math.max(depth, 0, SIZE_LADDER_OFFSET[size])
   const index = Math.min(rung, TITLE_SIZE_LADDER.length - 1)
   return TITLE_SIZE_LADDER[index] ?? 'text-badge'
+}
+
+/**
+ * The size a NESTED child renders at: medium — "nested is at least medium"
+ * (board E2) — except inside a small card, whose children stay small so a
+ * child never outgrows its parent.
+ */
+export function nestedChildSize(parentSize: CardSize): CardSize {
+  return parentSize === 'small' ? 'small' : 'medium'
 }
 
 export type Eyebrow = { type: string }
@@ -374,22 +378,10 @@ export type AxisMarker = { label: string; value?: string }
  * cluster; only this classification axis lives in the seam.
  */
 export function resolveAxisMarkers(entity: SURefMetaEntity): AxisMarker[] {
-  // Only ABILITY classification lives in the seam (Ability Tree · Level, folded
-  // into ONE pill). TECH LEVEL moved to the header's top-right stat cluster.
-  if (isAbility(entity)) {
-    const tree = entity.tree != null ? String(entity.tree) : undefined
-    // The level pill is a numeric TIER within a tree. The Generic tree carries
-    // `level: "G"` — a marker meaning "generic", not a rung — and feeding that
-    // to a numeric readout rendered it as `0`, so a Generic card's seam read
-    // "GENERIC 0" as though it sat below tier 1. A non-numeric level is dropped
-    // and the tree name stands alone.
-    const rawLevel = entity.level
-    const level =
-      rawLevel != null && Number.isFinite(Number(rawLevel)) ? String(rawLevel) : undefined
-    if (tree) return [{ label: tree, value: level }]
-    if (level) return [{ label: 'Level', value: level }]
-    return []
-  }
+  // An ABILITY carries no pill: its tree rides the seam's type stamp and its
+  // level is the banner's tier numeral (`resolveSeamLabel`,
+  // `resolveTierNumeral`). TECH LEVEL is a header stat.
+  if (isAbility(entity)) return []
   // CLASS KIND — the one axis pill that survives `extent="catalog"`. Catalog
   // tiles otherwise suppress card chrome, but WHICH KIND of class a tile is
   // (base / hybrid / non-advanceable) is the single most load-bearing fact on a

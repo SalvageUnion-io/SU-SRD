@@ -47,6 +47,12 @@ export function traitCells(traits: SURefObjectTrait[]): EntityCardSubHeaderCell[
   }))
 }
 
+/** The cost as the book prints it on a banner's pennant: "2 AP", "1 EP", "X EP". */
+export function formatCost(cost: string | number, currency: string | number | undefined): string {
+  const displayCost = cost === 'Variable' ? 'X' : cost
+  return `${displayCost} ${currency ?? 'AP'}`
+}
+
 /** Normalize an action type into its display label: "Turn" → "Turn Action";
  * "Passive"/"Reaction"/anything already containing "action" stays as-is. */
 export function formatActionType(type: string): string {

@@ -249,7 +249,7 @@ describe('the Actions deck', () => {
     expect(card?.querySelectorAll('button, [role="button"]')).toHaveLength(0)
     // …and the resolve panel DOES render it.
     fireEvent.click(card as Element)
-    expect(screen.getByText('Roll the Die')).toBeTruthy()
+    expect(screen.getByText(/Roll the Die/)).toBeTruthy()
   })
 
   test('selecting an action opens the resolve panel with Activate + Roll', () => {
@@ -257,8 +257,8 @@ describe('the Actions deck', () => {
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
-    expect(screen.getByText('Activate')).toBeTruthy()
-    expect(screen.getByText('Roll')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Activate\b/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Roll' })).toBeTruthy()
   })
 
   test('Activate writes the EP-spend patch through the store', () => {
@@ -266,7 +266,7 @@ describe('the Actions deck', () => {
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     const { epCost } = clickPrimaryAction(container)
-    fireEvent.click(screen.getByText('Activate'))
+    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('mech')
     expect(calls[0]?.patch.currentEP).toBe(Math.max(0, 6 - epCost))
@@ -389,7 +389,7 @@ describe('the Actions deck', () => {
     expect(proj?.textContent).toContain('Heat 1/')
     fireEvent.click(screen.getByLabelText('Increase Hot'))
     expect(container.querySelector('.pc-deck-hotx-proj')?.textContent).toContain('Heat 2/')
-    fireEvent.click(screen.getByText('Activate'))
+    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
     const resolvedSystem = resolveSystem(sys.id)
     if (!resolvedSystem) throw new Error(`unresolved system ${sys.id}`)
     const action = SalvageUnionReference.resolveActions(resolvedSystem)?.find(
@@ -442,7 +442,7 @@ describe('the Actions deck', () => {
     // Both radios render; pick AP, then Activate → a pilot AP spend, not a mech write.
     const apRadio = screen.getByLabelText('1 AP')
     fireEvent.click(apRadio)
-    fireEvent.click(screen.getByText('Activate'))
+    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('pilot')
     expect(calls[0]?.patch.currentAP).toBe(4)
@@ -521,7 +521,7 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     const { epCost } = clickPrimaryAction(container)
-    fireEvent.click(screen.getByText('Activate'))
+    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
 
     const epMax = mechMaxEP(mech, resolveChassisRef(CHASSIS))
     expect(epMax).toBeGreaterThan(epCost)
@@ -569,7 +569,7 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
     )
     clickActionByName(container, mod.actionName)
     fireEvent.click(screen.getByLabelText('1 AP'))
-    fireEvent.click(screen.getByText('Activate'))
+    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
 
     const apMax = pilotMaxAP(pilot)
     expect(apMax).toBeGreaterThan(1)
@@ -636,7 +636,7 @@ describe('the resolve on the seat', () => {
       </EntityHrefProvider>
     )
     clickPrimaryAction(container)
-    fireEvent.click(screen.getByText('Activate'))
+    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
     fireEvent.click(screen.getByText('Roll'))
     fireEvent.click(screen.getByText('◀ Back'))
 
@@ -672,7 +672,7 @@ describe('the resolve on the seat', () => {
       </EntityHrefProvider>
     )
     expect(container.querySelector('.pc-deck-d20')?.textContent).toBe('14')
-    expect(screen.getByText('Activated')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Activated\b/ })).toBeTruthy()
     expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
     // Restoring rolls nothing and writes nothing.
     expect(calls).toHaveLength(0)

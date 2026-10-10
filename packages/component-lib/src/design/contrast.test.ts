@@ -26,8 +26,8 @@ import { color } from './tokens'
  *
  * So this measures every band a card can actually wear — the tones are read
  * off the dataset through the card's own resolver, not listed by hand — in
- * each of the three states that repaint them (solid, ghosted under a host,
- * damaged grey), and asserts what WCAG 1.4.3 asks of the text printed there.
+ * each state that repaints them (solid, damaged grey) and as the ink banner,
+ * and asserts what WCAG 1.4.3 asks of the text printed there.
  */
 
 const opaque = (css: string): Rgb => {
@@ -107,33 +107,28 @@ function everyCardTone(): Map<string, DomainTone> {
 
 type Band = { name: string; ground: Rgb | undefined; foreground: keyof typeof FOREGROUND }
 
-/** Each band a card paints, per tone and state, with the foreground it chose. */
-function everyBand(): { header: Band[]; deep: Band[] } {
-  const header: Band[] = []
-  const deep: Band[] = []
-  for (const [base, tone] of everyCardTone()) {
-    const states = {
-      solid: { isDown: false, isGhosted: false },
-      damaged: { isDown: true, isGhosted: false },
-      // A nested action ghosts the tone of the card it hangs off.
-      ghosted: { isDown: false, isGhosted: true },
-    }
-    for (const [state, flags] of Object.entries(states)) {
-      const c = resolveCardColors({ tone, ...flags, hostTone: base })
-      const headerCss = borderColorFromHeaderBg(c.headerBg, c.headerBgColor) ?? ''
-      header.push({
-        name: `${base} ${state} header`,
-        ground: resolveColor(headerCss),
-        foreground: c.onBandText,
-      })
-      deep.push({
-        name: `${base} ${state} sub-header/footer`,
-        ground: resolveColor(c.darkTone),
-        foreground: c.onDarkText,
-      })
-    }
+/**
+ * Each header band a card paints, per tone and state, with the foreground it
+ * chose. The header is the only coloured band left: the "//" line and the
+ * footer are ink on paper on every card (ruleset §5), so there is no deep
+ * shade to measure any more. The ink banner is measured once per state —
+ * it is the same band whatever the tone.
+ */
+function everyHeader(): Band[] {
+  const bands: Band[] = []
+  const measure = (name: string, tone: DomainTone, isDown: boolean, fill: 'tone' | 'ink') => {
+    const c = resolveCardColors({ tone, isDown, fill })
+    const css = borderColorFromHeaderBg(c.headerBg, c.headerBgColor) ?? ''
+    bands.push({ name, ground: resolveColor(css), foreground: c.onBandText })
   }
-  return { header, deep }
+  for (const [base, tone] of everyCardTone()) {
+    measure(`${base} solid header`, tone, false, 'tone')
+    measure(`${base} damaged header`, tone, true, 'tone')
+  }
+  const neutral: DomainTone = { domain: 'action', bg: undefined, bgColor: undefined }
+  measure('ink banner', neutral, false, 'ink')
+  measure('ink banner damaged', neutral, true, 'ink')
+  return bands
 }
 
 const ratio = (band: Band) => contrastRatio(band.ground ?? PAPER, FOREGROUND[band.foreground])
@@ -152,20 +147,20 @@ const HEADER_SHORTFALL = new Set([
 ])
 
 describe('card band contrast', () => {
-  const { header, deep } = everyBand()
+  const header = everyHeader()
 
   test('the guard found the palette', () => {
     // A resolver that stopped reading the dataset would pass everything below.
-    expect(header.length).toBeGreaterThan(40)
+    expect(header.length).toBeGreaterThan(20)
   })
 
   test('every band resolves — none falls back to a guess', () => {
-    const unresolved = [...header, ...deep].filter((b) => !b.ground).map((b) => b.name)
+    const unresolved = header.filter((b) => !b.ground).map((b) => b.name)
     expect(unresolved).toEqual([])
   })
 
   test('each band prints in whichever of ink and paper contrasts more', () => {
-    const wrong = [...header, ...deep]
+    const wrong = header
       .filter((b) => {
         const other = b.foreground === 'text-ink' ? PAPER : INK
         return contrastRatio(b.ground ?? PAPER, other) > ratio(b)
@@ -174,11 +169,10 @@ describe('card band contrast', () => {
     expect(wrong).toEqual([])
   })
 
-  test('sub-header and footer text clears 4.5:1 on every tone', () => {
-    const failures = deep
-      .filter((b) => ratio(b) < 4.5)
-      .map((b) => `${b.name}: ${ratio(b).toFixed(2)}`)
-    expect(failures).toEqual([])
+  test('the ink banner carries paper text far past 4.5:1', () => {
+    const banner = header.find((b) => b.name === 'ink banner')
+    expect(banner?.foreground).toBe('text-paper')
+    expect(banner ? ratio(banner) : 0).toBeGreaterThan(10)
   })
 
   test('header text clears 4.5:1, bar the recorded shortfalls, which clear 3:1', () => {

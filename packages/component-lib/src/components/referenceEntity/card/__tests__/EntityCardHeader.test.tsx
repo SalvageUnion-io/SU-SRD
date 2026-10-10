@@ -1,154 +1,142 @@
 /**
- * Header width allocation — who yields depends on what occupies the right side.
+ * The header band — ONE anatomy, TWO fills (ruleset §5, board E1).
  *
- * This rule has regressed in three directions: the title running under the stat
- * cluster (fixed by the 60/40 split), the title wrapping beside an EMPTY right
- * side (the unconditional 60% cap reserving 40% for nothing — "Coolant Flush"
- * on two lines), and flavour PROSE reserving its enormous content width and
- * starving the title to one letter per line ("Bionic Arms" stacked vertically).
- * happy-dom performs no real layout, so these tests pin the CLASSES that encode
- * the rule rather than pixel widths:
- * - empty right side  → title `flex-1`, no 60% cap;
- * - stat cluster only → stats reserve (no `flex-1` column in full), title yields;
- * - flavour prose     → the description ASKS for 55% (`flex-[1_1_55%]`) and the
- *   title yields only once it must (`shrink-[20]`), so a name that fits beside
- *   that ask keeps its single line and a longer one wraps toward its longest
- *   word instead of holding a 60% share it isn't filling.
- *
- * Two clauses of the prose rule were each learned by breaking them, and are
- * asserted here because happy-dom performs no layout and so cannot catch them:
- * the title carries NO `min-w-0` (min-width:auto floors it at min-content —
- * with `min-w-0` the description's share squeezes it until `break-words` splits
- * a name mid-word, "ENGINEERIN / G EXPERTISE"), and the description's share is
- * a flex BASIS, not a `min-width` (a hard floor cannot yield to that
- * min-content floor, and the two together overflow the card on narrow screens).
- *
- * These pin CLASSES rather than pixels. The layout itself is verified by
- * measuring real pages in a browser — see the PR for the numbers.
+ * happy-dom performs no layout, so these pin the structure and the style the
+ * rules encode rather than pixel widths:
+ * - a TONE header carries the title, then the value cells; an INK header adds
+ *   the tier numeral before the title and the pennant after the cells;
+ * - the speckle rides the band as a background image (ink grain on tone, paper
+ *   flecks on ink), and is absent when the card asks for none;
+ * - a one-line HEAD row never wraps: the title truncates and keeps its full
+ *   name in a tooltip.
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { StatItem } from '../../../shared/statsBarTypes'
 import { EntityCardHeader } from '../EntityCardHeader'
 
-// Real game content, per the story/test data rule. "Coolant Flush" is the
-// module from the wrapped-title bug report; the prose is a real ability
-// description (arbitrary-length flavour, the one-letter-per-line trigger).
-const TITLE = 'Coolant Flush'
-const prose = () => {
-  const ability = SalvageUnionReference.Abilities.all().find(
-    (a) => typeof a.description === 'string' && a.description.length > 80
-  )
-  if (!ability) throw new Error('no long-description ability in fixtures')
-  return String(ability.description)
-}
-const stats = (): StatItem[] => [
-  { key: 'tech-level', label: 'Tech', bottomLabel: 'Level', value: '1' },
-  { key: 'salvageValue', label: 'Salvage', bottomLabel: 'Value', value: '1' },
+// Real game content: the Salvaging Drill system and the Jury Rig ability.
+const stats: StatItem[] = [
+  { key: 'tech-level', label: 'TL', value: '2' },
+  { key: 'slotsRequired', label: 'Slots', value: 3 },
+  { key: 'salvageValue', label: 'SV', value: 2 },
 ]
 
-const titleWrapper = () => {
-  const el = screen.getByText(TITLE).parentElement
-  if (!el) throw new Error('title has no wrapper')
+const band = (title: string) => {
+  const el = screen.getByText(title).closest('[data-fill]')
+  if (!(el instanceof HTMLElement)) throw new Error('no header band')
   return el
 }
-// The right-side column is the title wrapper's only sibling.
-const rightColumn = () => titleWrapper().nextElementSibling
 
-describe.each([false, true])('EntityCardHeader width allocation (compact=%p)', (compact) => {
-  const base = {
-    title: TITLE,
-    bg: 'bg-tl-1',
-    bgColor: undefined,
-    titleClass: 'text-5xl',
-    compact,
-  }
-
-  test('title alone owns the full row — no 60% cap reserved for nothing', () => {
-    render(<EntityCardHeader {...base} stats={[]} />)
-
-    expect(titleWrapper().className).toContain('flex-1')
-    expect(titleWrapper().className).not.toContain('max-w-[60%]')
-    expect(rightColumn()).toBeNull()
-  })
-
-  test('with flavour prose the description asks for 55% and the title yields', () => {
+describe('EntityCardHeader — two fills', () => {
+  test('a tone header: the tone, ink speckle, the title then the value cells', () => {
     render(
       <EntityCardHeader
-        {...base}
-        stats={[]}
-        rightContent={<span className="min-w-0 flex-1 text-right font-body italic">{prose()}</span>}
+        title="Salvaging Drill"
+        fill="tone"
+        bg="bg-tl-2"
+        bgColor={undefined}
+        titleClass="text-display-lg"
+        stats={stats}
+        size="large"
+        grain="ink"
+        ruled
       />
     )
+    const header = band('Salvaging Drill')
+    expect(header.dataset.fill).toBe('tone')
+    expect(header.className).toContain('bg-tl-2')
+    // The speckle rides the band (happy-dom drops the SVG background image
+    // itself, so the grain is read off the band's marker).
+    expect(header.dataset.grain).toBe('ink')
+    // Closed by the 1.5px ink rule.
+    expect(header.style.borderBottomStyle).toBe('solid')
+    expect(header.style.borderBottomWidth).toBe('var(--bw-chrome)')
+    // The title wraps (a full card), the cells follow it.
+    expect(header.style.flexWrap).toBe('wrap')
+    expect(screen.getByText('Slots')).toBeTruthy()
+  })
 
-    // The description's share is a flex BASIS. `flex-1` (basis 0) here would
-    // restore the fixed 60/40 split, where a wrapping title held 60% of the
-    // band and crushed the description into twice the lines.
-    expect(rightColumn()?.className).toContain('flex-[1_1_55%]')
-    // The title is the yielding side, but only past the point where it fits:
-    // its base is its own content width, and `shrink-[20]` makes it absorb
-    // essentially all of the overflow instead of sharing it.
-    expect(titleWrapper().className).toContain('shrink-[20]')
-    expect(titleWrapper().className).not.toContain('flex-1')
-    // FLOOR: no `min-w-0`, so min-width:auto holds the title at min-content —
-    // its longest word. Drop this and `break-words` splits names mid-word
-    // ("ENGINEERIN / G EXPERTISE"), which is what the first cut shipped.
-    expect(titleWrapper().className).not.toContain('min-w-0')
-    // CEILING: deliberately loose. `max-width` also clamps that min-content
-    // floor, so the old 60% cap re-introduced mid-word breaks on narrow cards.
-    expect(titleWrapper().className).toContain('max-w-[75%]')
+  test('an ink header: the numeral leads, dimmed, and the pennant closes the row', () => {
+    render(
+      <EntityCardHeader
+        title="Jury Rig"
+        fill="ink"
+        bg={undefined}
+        bgColor="var(--color-ink)"
+        titleClass="text-display"
+        titleTextClass="text-paper"
+        numeral="1"
+        stats={[]}
+        pennant={<span>2 AP</span>}
+        size="large"
+        grain="paper"
+      />
+    )
+    const header = band('Jury Rig')
+    expect(header.dataset.fill).toBe('ink')
+    expect(header.dataset.grain).toBe('paper')
+    const numeral = screen.getByText('1')
+    // Same type as the title, slightly dimmed.
+    expect(numeral.className).toContain('text-display')
+    expect(numeral.style.opacity).toBe('0.75')
+    // Order: numeral, title, then the pennant.
+    const text = header.textContent ?? ''
+    expect(text.indexOf('1')).toBeLessThan(text.indexOf('Jury Rig'))
+    expect(text.indexOf('Jury Rig')).toBeLessThan(text.indexOf('2 AP'))
+  })
+
+  test('no grain when the card asks for none (the Dashboard, a tooltip)', () => {
+    render(
+      <EntityCardHeader
+        title="Salvaging Drill"
+        fill="tone"
+        bg="bg-tl-2"
+        bgColor={undefined}
+        titleClass="text-title"
+        stats={stats}
+        size="medium"
+      />
+    )
+    expect(band('Salvaging Drill').dataset.grain).toBeUndefined()
   })
 })
 
-describe('EntityCardHeader with a stat cluster (the overlap fix, kept)', () => {
-  test('full: stats reserve their content width; the title is the yielding side', () => {
+describe('EntityCardHeader — the one-line head row', () => {
+  test('never wraps; the title truncates and keeps its full name as a tooltip', () => {
     render(
       <EntityCardHeader
-        title={TITLE}
-        bg="bg-tl-1"
+        title="Electro-Magnetic Shield Projector"
+        fill="tone"
+        bg="bg-tl-4"
         bgColor={undefined}
-        titleClass="text-5xl"
-        stats={stats()}
+        titleClass="text-title"
+        stats={stats}
+        size="medium"
+        oneLine
       />
     )
-
-    expect(titleWrapper().className).toContain('flex-1')
-    // No flex-1 on the cluster: it holds content size so the title wraps
-    // beside it instead of running under it.
-    expect(rightColumn()?.className).not.toContain('flex-1')
+    const title = screen.getByText('Electro-Magnetic Shield Projector')
+    expect(title.getAttribute('title')).toBe('Electro-Magnetic Shield Projector')
+    expect(title.style.textOverflow).toBe('ellipsis')
+    expect(title.style.whiteSpace).toBe('nowrap')
+    expect(band('Electro-Magnetic Shield Projector').style.flexWrap).toBe('nowrap')
   })
 
-  test('compact: the row still splits 60/40 — title capped, cluster takes the rest', () => {
+  test('a full card title wraps and carries no truncation tooltip', () => {
     render(
       <EntityCardHeader
-        title={TITLE}
+        title="Coolant Flush"
+        fill="tone"
         bg="bg-tl-1"
         bgColor={undefined}
-        titleClass="text-xl"
-        stats={stats()}
-        compact
+        titleClass="text-title"
+        stats={[]}
+        size="medium"
       />
     )
-
-    expect(titleWrapper().className).toContain('max-w-[60%]')
-    expect(rightColumn()?.className).toContain('flex-1')
-  })
-
-  test('full, stats AND prose: the prose rule wins over the stat rule', () => {
-    render(
-      <EntityCardHeader
-        title={TITLE}
-        bg="bg-tl-1"
-        bgColor={undefined}
-        titleClass="text-5xl"
-        stats={stats()}
-        rightContent={<span className="min-w-0 flex-1 text-right font-body italic">{prose()}</span>}
-      />
-    )
-
-    expect(titleWrapper().className).toContain('shrink-[20]')
-    expect(titleWrapper().className).toContain('max-w-[75%]')
-    expect(rightColumn()?.className).toContain('flex-[1_1_55%]')
+    const title = screen.getByText('Coolant Flush')
+    expect(title.getAttribute('title')).toBeNull()
+    expect(title.style.whiteSpace).toBe('')
   })
 })

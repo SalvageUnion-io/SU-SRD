@@ -2,7 +2,7 @@
  * The card's CHROME rules — how a card is coloured, framed and interacted
  * with, and what its header hint says, as opposed to the content it carries.
  * Split out of `ReferenceEntityCard.tsx` (audit PK-08); every function here is
- * pure. The nodes they feed are `CardTopRail` and `HeaderHint`.
+ * pure. The nodes they feed are `CardTopRail` and the header.
  */
 
 import type { CSSProperties } from 'react'
@@ -10,89 +10,92 @@ import type { SURefMetaEntity, SURefObjectContentBlock } from 'salvageunion-refe
 import { isAbility, parseContentBlockString } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { activateOnKey, FOCUS_RING } from '../../chrome/interaction'
+import type { CardExtent, CardSize } from '../../shared/displayMode'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import type { OnToneText } from '../referenceEntityHelpers'
-import { accentDeepColor, borderColorFromHeaderBg, onToneText } from '../referenceEntityHelpers'
+import { borderColorFromHeaderBg, onToneText } from '../referenceEntityHelpers'
 import type { CardOuterProps } from './CardOuter'
 import type { DomainTone } from './entityCardTone'
-import { ghostActionTone } from './entityCardTone'
 import { firstParagraphText } from './firstParagraphText'
+
+/** What the User-made stamp and pill say when hovered (ruleset §3.9). */
+export const USER_MADE_TITLE = 'Made by a player, not from the Workshop Manual'
 
 /** The flat grey header of a damaged/destroyed card: ink half-mixed into paper —
  * the same warm material at distance. */
 const GREY_HEADER = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper))'
 
-/** Every colour a card's bands and frame take. */
+/**
+ * The header's two fills (ruleset §5, board E1): a TONE header for things you
+ * HAVE (chassis, systems, gear, denizens), an INK header — the book's ink
+ * banner — for things you DO (abilities, actions).
+ */
+export type HeaderFill = 'tone' | 'ink'
+
+/** Every colour a card's header takes. The frame, the "//" line and the footer
+ * are ink on paper on every card, so they need no colour of their own. */
 export type CardColors = {
   /** The foreground for the header band — see `resolveCardColors`. */
   onBandText: OnToneText
   headerBg: string | undefined
   headerBgColor: string | undefined
-  /** Sub-header + footer band. */
-  darkTone: string
-  /** The foreground for `darkTone` — its own decision, not the header's: a
-   * light tone's header reads ink while its deep shade still reads paper. */
-  onDarkText: OnToneText
-  frameColor: string
-  /** This entity's own tone base — threaded to its nested action cards as their host. */
-  ownToneBase: string
 }
 
 /**
- * ACTIONS and NESTED NPCs inherit the summoning (parent) entity's tone,
- * GHOSTED: the header + sub-header bands + 3px frame use the ghosted host
- * tone; the body stays paper/ink. A standalone action (no host) falls back to a
- * neutral base.
+ * The header band's colours.
  *
- * DAMAGED/DESTROYED (write layer): grey the whole tone. The header goes flat
- * grey; sub-header + footer + frame use the darker grey shade.
+ * - TONE fill: the entity's own tone. ONE tone per entity — a nested child
+ *   wears its own, never a blend of its parent's. (The ghosted action tones
+ *   are retired: an action is an ink banner, not a faded relative of its host.)
+ * - INK fill: `--color-ink`, paper text.
+ * - DAMAGED/DESTROYED (write layer): the header goes flat grey, whatever the fill.
  *
  * FOREGROUNDS go by WCAG contrast against the band actually painted
- * (`onToneText`), for every card: a solid tone, a ghosted host tone, the
- * damaged grey. "Solid tones read paper" was the rule until it measured 1.79:1
- * on TL1, 2.41:1 on pilot and 3.03:1 on mech. The header's foreground serves
- * every on-header element (title, flavor hint, shortform name); the deep
- * band's serves the sub-header and the footer.
+ * (`onToneText`): "solid tones read paper" measured 1.79:1 on TL1, 2.41:1 on
+ * pilot and 3.03:1 on mech, so the title is ink or paper, whichever passes.
  */
 export function resolveCardColors({
   tone,
   isDown,
-  isGhosted,
-  hostTone,
+  fill,
 }: {
   tone: DomainTone
   isDown: boolean
-  isGhosted: boolean
-  hostTone: string | undefined
+  fill: HeaderFill
 }): CardColors {
-  const greyDeep = accentDeepColor(undefined, GREY_HEADER) ?? 'var(--color-ink)'
-  const ghost = isGhosted ? ghostActionTone(hostTone ?? 'var(--color-ink)') : undefined
-  // ACTIONS wear the GHOSTED host tone on their HEADER band; their body stays
-  // paper/ink like an entity, only the bands are off-colour. Entities use their
-  // own medium tone on the header.
-  const headerBg = isDown || isGhosted ? undefined : tone.bg
-  const headerBgColor = isDown ? GREY_HEADER : ghost ? ghost.header : tone.bgColor
-  const darkTone = isDown
-    ? greyDeep
-    : ghost
-      ? ghost.sub
-      : (accentDeepColor(tone.bg, tone.bgColor) ?? 'var(--color-ink)')
-  // Only for a band the arithmetic cannot resolve (a caller's raw colour): the
-  // ghosted and grey bands are light, a solid tone is not.
-  const unresolved = isDown || isGhosted ? 'text-ink' : 'text-paper'
-  return {
-    onBandText: onToneText(borderColorFromHeaderBg(headerBg, headerBgColor), unresolved),
-    headerBg,
-    headerBgColor,
-    darkTone,
-    onDarkText: onToneText(darkTone, unresolved),
-    frameColor: isDown
-      ? greyDeep
-      : ghost
-        ? ghost.frame
-        : (borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-ink)'),
-    ownToneBase: borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-ink)',
+  if (isDown) {
+    return {
+      onBandText: onToneText(GREY_HEADER, 'text-ink'),
+      headerBg: undefined,
+      headerBgColor: GREY_HEADER,
+    }
   }
+  if (fill === 'ink') {
+    return { onBandText: 'text-paper', headerBg: undefined, headerBgColor: 'var(--color-ink)' }
+  }
+  return {
+    onBandText: onToneText(borderColorFromHeaderBg(tone.bg, tone.bgColor), 'text-paper'),
+    headerBg: tone.bg,
+    headerBgColor: tone.bgColor,
+  }
+}
+
+/**
+ * The frame's weight. It steps with size and depth (ruleset §4.3, board E2):
+ * 3px for the large solo card, 2px one size down, 1.5px for a small card and
+ * for the one-line head row a card nests at depth 2.
+ */
+export function resolveFrameWidth({
+  size,
+  extent,
+  depth,
+}: {
+  size: CardSize
+  extent: CardExtent
+  depth: number
+}): string {
+  if (size === 'small' || (extent === 'head' && depth >= 2)) return 'var(--bw-chrome)'
+  return size === 'large' ? 'var(--bw-entity)' : 'var(--bw-entity-compact)'
 }
 
 /**
@@ -110,7 +113,8 @@ export function resolveCardInteraction({
   selectionRole,
   cardClickLabel,
   selected,
-  frameColor,
+  frameWidth,
+  dashed,
 }: {
   onCardClick: (() => void) | undefined
   controls: ReferenceEntityControl[] | undefined
@@ -121,7 +125,10 @@ export function resolveCardInteraction({
   selectionRole: 'toggle' | 'radio' | undefined
   cardClickLabel: string | undefined
   selected: boolean | undefined
-  frameColor: string
+  /** From `resolveFrameWidth`. */
+  frameWidth: string
+  /** USER-MADE (ruleset §3.9): a dashed ink frame in place of the solid one. */
+  dashed: boolean
 }): {
   outer: CardOuterProps
   frameStyle: CSSProperties
@@ -129,7 +136,7 @@ export function resolveCardInteraction({
   const resolvedCardClick = onCardClick ?? controls?.find((c) => c.cardClick)?.onClick
   const isHoverable = !!resolvedCardClick || !!cardClickable
   const outerClassName = cn(
-    'relative flex flex-col overflow-visible',
+    'relative flex min-w-0 flex-col overflow-visible',
     disabled && 'opacity-50',
     selectable === false && 'opacity-50 saturate-50',
     // Flat chrome (brand refresh P2a): a clickable card says so with the pointer, not by
@@ -167,30 +174,33 @@ export function resolveCardInteraction({
         }
   // Selection state — the canonical SELECTION_RING (chrome/interaction.ts), the
   // same 3px ink ring the wizard Sel/PickCard draw. A non-layout-shifting
-  // box-shadow that reads as a border, sitting just outside the 3px tone frame.
-  // Longhands only, widths per side: the card overrides `borderBottomWidth` on
-  // footless renders, and React warns when a shorthand covers a longhand that changes.
+  // box-shadow that reads as a border, sitting just outside the frame.
+  // The frame is INK on every card (the tone lives in the header band alone),
+  // and dashed on a user-made one. Longhands, so a caller overriding one side
+  // never trips React's shorthand/longhand warning.
   const frame: CSSProperties = {
-    borderStyle: 'solid',
-    borderColor: frameColor,
-    borderTopWidth: '3px',
-    borderRightWidth: '3px',
-    borderBottomWidth: '3px',
-    borderLeftWidth: '3px',
+    borderStyle: dashed ? 'dashed' : 'solid',
+    borderColor: 'var(--color-ink)',
+    borderTopWidth: frameWidth,
+    borderRightWidth: frameWidth,
+    borderBottomWidth: frameWidth,
+    borderLeftWidth: frameWidth,
   }
   const frameStyle = selected ? { ...frame, boxShadow: '0 0 0 3px var(--color-ink)' } : frame
   return { outer, frameStyle }
 }
 
 /**
- * The header's top-right hint and, for the titanic meta-action, the body it
- * leaves behind.
+ * The card's hint text and, for the titanic meta-action, the body it leaves
+ * behind.
  *
- * - ABILITY flavor — the short description, in the header's top-right
- *   (abilities have no numeric vitals, so the axis is free for it).
+ * - ABILITY flavor — the short description. An ability is an ink banner now
+ *   (tier numeral, title, cost pennant), so the card prints it as the body's
+ *   lead rather than on the band.
  * - TITANIC: the intro paragraph becomes the hint; the REMAINING content
  *   blocks (the options list) render in the body.
- * - A pattern LISTING row shows its first paragraph.
+ * - A pattern LISTING row shows its first paragraph on the header, truncated
+ *   to the row's one line.
  */
 export function resolveHeaderHint(
   entity: SURefMetaEntity,
