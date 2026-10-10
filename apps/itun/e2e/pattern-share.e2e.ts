@@ -20,9 +20,12 @@ test('save a pattern, read it signed out, and build a mech from it', async ({ pa
   await page.getByRole('link', { name: 'Save as pattern' }).click()
   await page.waitForURL(/\/mechs\/patterns\/new\?from=/, { timeout: 15_000 })
 
-  const name = page.getByLabel('Pattern name')
-  await name.fill('Tow Rig')
-  await page.getByLabel('Notes for whoever builds it').fill('Rig first, rivet later.')
+  // Exact: until the route swaps, the sheet's own "Edit pattern name" control
+  // is still on the page and a substring match lands on it.
+  await page.getByLabel('Pattern name', { exact: true }).fill('Tow Rig')
+  await page
+    .getByLabel('Notes for whoever builds it', { exact: true })
+    .fill('Rig first, rivet later.')
   await page.getByLabel(/Anyone with the link/).check()
   // The preview is the pattern as others will see it: user-made.
   await expect(page.getByText('User-made', { exact: true }).first()).toBeVisible()
