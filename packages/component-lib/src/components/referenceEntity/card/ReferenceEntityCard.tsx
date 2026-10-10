@@ -602,7 +602,7 @@ function ReferenceEntityCardInner({
     foldedAction,
     droneLoadout,
   })
-  const showImage = !!assetUrl
+  const showImage = !!assetUrl && !hide?.image
   const rawBodyContent = isTitanicMeta ? titanicBodyContent : content
   const foldedActionContent = foldedAction?.content ?? undefined
   // A SELF-action renders ITS content as the body, merged with the entity's own.
@@ -1005,7 +1005,9 @@ function ReferenceEntityCardInner({
                 // Reprints are the entity's OWN-PAGE fact — the roomy full card.
                 additionalSources={compact || userMade ? undefined : provenance.additionalSources}
                 footMeta={footMeta}
-                externalLink={extent === 'full' && !insideTooltip ? externalLinkNode : undefined}
+                externalLink={
+                  extent === 'full' && !insideTooltip && !userMade ? externalLinkNode : undefined
+                }
                 size={size}
                 dashed={userMade}
                 credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}

@@ -7,6 +7,13 @@ type ChoiceProps = Omit<ComponentPropsWithRef<'input'>, 'type'> & {
   label: ReactNode
   /** Optional secondary line (muted) — a callsign, tech level, chassis, … */
   description?: ReactNode
+  /**
+   * Stack the bold label over its hint (a column) instead of setting them side
+   * by side, and mark the chosen option with a 2px ink border. The pattern
+   * visibility picker uses it: side by side, a narrow phone wraps the label
+   * one word per line.
+   */
+  stacked?: boolean
 }
 
 /**
@@ -27,16 +34,30 @@ function ChoiceControl({
   type,
   label,
   description,
+  stacked = false,
   className,
   ...props
 }: ChoiceProps & { type: 'checkbox' | 'radio' }) {
-  return (
-    <label className={cn(CHOICE_ROW, className)}>
-      <input type={type} className={CHOICE_INPUT} {...props} />
-      <span className="font-body text-sm font-medium text-ink">{label}</span>
+  const text = (
+    <>
+      <span className={cn('font-body text-sm text-ink', stacked ? 'font-bold' : 'font-medium')}>
+        {label}
+      </span>
       {description != null && (
         <span className="font-body text-xs text-wk-muted">{description}</span>
       )}
+    </>
+  )
+  return (
+    <label
+      className={cn(
+        CHOICE_ROW,
+        stacked && 'items-start has-[:checked]:border-2 has-[:checked]:p-[calc(0.5rem-0.5px)]',
+        className
+      )}
+    >
+      <input type={type} className={cn(CHOICE_INPUT, stacked && 'mt-0.5')} {...props} />
+      {stacked ? <span className="flex min-w-0 flex-col gap-0.5">{text}</span> : text}
     </label>
   )
 }

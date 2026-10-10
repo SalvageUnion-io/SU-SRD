@@ -156,11 +156,11 @@ describe('signed in', () => {
     expect(copy?.id).not.toBe('pat-tow-rig')
   })
 
-  test('its maker gets no copy of their own, and is told who can see it', () => {
+  test('its maker keeps the copy action, and is told who can see it', () => {
     setQueryAnswers({ 'publicSheet:pattern': answer({ mine: true, visibility: 'link' }) })
     renderAs(CONNECTED)
 
-    expect(screen.queryByRole('button', { name: 'Copy to my shelf' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Copy to my shelf' })).toBeTruthy()
     expect(screen.getByText(/Anyone with the link/)).toBeTruthy()
   })
 })

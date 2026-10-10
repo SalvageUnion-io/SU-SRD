@@ -20,7 +20,6 @@ import {
   ChapterBand,
   ReferenceEntityCard,
   Slab,
-  Stat,
   Text,
   toast,
   tokens,
@@ -29,6 +28,7 @@ import {
 } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import type { SURefEntity } from 'salvageunion-reference'
 import {
   extractStaticEntitySummary,
   getAssetUrl,
@@ -37,6 +37,7 @@ import {
 } from 'salvageunion-reference'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { serverMessage } from '../../../lib/connection/serverError'
+import { itunEntityHref } from '../../../lib/entityHref'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
 import {
   mechFromPattern,
@@ -44,6 +45,7 @@ import {
   patternCopy,
   patternHref,
   patternLoadout,
+  slotsStats,
   slotsUsed,
 } from '../../../lib/patterns/patterns'
 import type { MechPattern } from '../../../lib/schemas/pattern'
@@ -62,7 +64,8 @@ export type PublicPatternAnswer = {
   visibility: PatternVisibility | null
 }
 
-const MEASURE = '80rem'
+/** The canvas's 1200px measure: with 320px loadout cells it sets three across. */
+const MEASURE = '75rem'
 
 const PAGE = { backgroundColor: tokens.color.wkBg } satisfies CSSProperties
 
@@ -186,10 +189,66 @@ const NOTES_TEXT = {
   margin: 0,
 } satisfies CSSProperties
 
+/** The stat column: a two-column grid of plates, as the board draws it. */
 const STATS = {
   display: 'grid',
   gap: tokens.space[8],
-  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 12rem), 1fr))',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+} satisfies CSSProperties
+
+/** One stat plate: a 52px boxed number beside an ink label, 40px tall at least. */
+const PLATE = {
+  backgroundColor: tokens.color.paper,
+  borderColor: tokens.color.ink,
+  borderStyle: 'solid',
+  borderWidth: tokens.borderWidth.chrome,
+  display: 'flex',
+  minHeight: '2.5rem',
+} satisfies CSSProperties
+
+const PLATE_VALUE = {
+  alignItems: 'center',
+  borderRight: `${tokens.borderWidth.chrome} solid ${tokens.color.ink}`,
+  color: tokens.color.ink,
+  display: 'flex',
+  flexShrink: 0,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.extrabold,
+  justifyContent: 'center',
+  width: '3.25rem',
+} satisfies CSSProperties
+
+const PLATE_LABEL = {
+  alignItems: 'center',
+  backgroundColor: tokens.color.ink,
+  color: tokens.color.paper,
+  display: 'flex',
+  flex: 1,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  letterSpacing: tokens.tracking.capsSnug,
+  minWidth: 0,
+  padding: `0 ${tokens.space[8]}`,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+/** The note under the stats: a 13px grey caption, aligned left. */
+const STATS_NOTE = {
+  color: tokens.color.ink2,
+  fontFamily: tokens.font.body,
+  fontSize: '13px',
+  margin: 0,
+  textAlign: 'left',
+} satisfies CSSProperties
+
+/** A primary action: 44px at least, in condensed caps. */
+const ACTION_BUTTON = {
+  fontFamily: tokens.font.cond,
+  letterSpacing: tokens.tracking.capsSnug,
+  minHeight: '2.75rem',
+  textTransform: 'uppercase',
 } satisfies CSSProperties
 
 const ACTIONS = {
@@ -202,7 +261,7 @@ const ACTIONS = {
 const LOADOUT = {
   display: 'grid',
   gap: tokens.space[12],
-  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 18rem), 1fr))',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
   listStyle: 'none',
   margin: 0,
   padding: 0,
@@ -244,6 +303,12 @@ function sharedDate(at: number): string {
     month: 'short',
     year: 'numeric',
   })
+}
+
+/** Open a loadout part's reference page, when the book has one for it. */
+function openInReference(part: SURefEntity): (() => void) | undefined {
+  const href = itunEntityHref(part)
+  return href ? () => window.location.assign(href) : undefined
 }
 
 export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
@@ -349,13 +414,16 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
           <section style={COLUMN} aria-label="Stats and actions">
             <div style={STATS}>
               {stats.map((s) => (
-                <Stat key={s.label} orientation="horizontal" label={s.label} value={s.value} />
+                <div key={s.label} style={PLATE}>
+                  <span style={PLATE_VALUE}>{s.value}</span>
+                  <span style={PLATE_LABEL}>{s.label}</span>
+                </div>
               ))}
             </div>
             {chassis && (
-              <Text variant="hint">
+              <p style={STATS_NOTE}>
                 Stats come from the {chassis.name} chassis in the Workshop Manual.
-              </Text>
+              </p>
             )}
             {abilities.map((ability) => (
               <ReferenceEntityCard
@@ -369,14 +437,22 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
             <div style={ACTIONS}>
               {canWrite && mode === 'connected' ? (
                 <>
-                  <Button variant="primary" onClick={() => void build()} disabled={busy !== null}>
+                  <Button
+                    variant="primary"
+                    style={ACTION_BUTTON}
+                    onClick={() => void build()}
+                    disabled={busy !== null}
+                  >
                     {busy === 'build' ? 'Building…' : 'Build this mech'}
                   </Button>
-                  {!mine && (
-                    <Button variant="ghost" onClick={() => void copy()} disabled={busy !== null}>
-                      {busy === 'copy' ? 'Copying…' : 'Copy to my shelf'}
-                    </Button>
-                  )}
+                  <Button
+                    variant="ghost"
+                    style={ACTION_BUTTON}
+                    onClick={() => void copy()}
+                    disabled={busy !== null}
+                  >
+                    {busy === 'copy' ? 'Copying…' : 'Copy to my shelf'}
+                  </Button>
                 </>
               ) : mode === 'connected' || mode === 'disconnected' ? null : (
                 <>
@@ -397,7 +473,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
             label="Loadout"
             count={
               chassis
-                ? `${slotsUsed(loadout.systems)} / ${chassis.systemSlots} system slots · ${slotsUsed(loadout.modules)} / ${chassis.moduleSlots} module slots · every part from the reference`
+                ? `${slotsUsed(loadout.systems)}/${chassis.systemSlots} systems · ${slotsUsed(loadout.modules)}/${chassis.moduleSlots} modules`
                 : undefined
             }
           />
@@ -405,7 +481,13 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
             {parts.map((part, index) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: a loadout may carry the same part twice
               <li key={`${part.id}-${index}`}>
-                <ReferenceEntityCard data={part} size="medium" extent="head" />
+                <ReferenceEntityCard
+                  data={part}
+                  size="medium"
+                  extent="head"
+                  statsOverride={slotsStats(part)}
+                  onCardClick={openInReference(part)}
+                />
               </li>
             ))}
           </ul>
