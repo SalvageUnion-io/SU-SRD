@@ -66,18 +66,14 @@ describe('Footer', () => {
   })
 
   // At 375px the links once shared a flex row with the licence text and left it
-  // ~64px wide, a word or two per line. Below `sm` the footer stacks, the text
-  // block and the links each taking the full width; `sm:` puts them back in a row.
-  test('stacks below sm so the licence text keeps the full width', () => {
+  // ~64px wide. The foot band's row wraps (see `.su-chapter-foot__row`), so the
+  // licence block and the links are separate children that can each take a line.
+  test('keeps the licence text and the links as separate wrapping children', () => {
     const { container } = render(<Footer poweredBySalvageUrl="/test-logo.webp" />)
-    const row = container.querySelector('footer > div') as HTMLElement
-    expect(row.className).toContain('flex-col')
-    expect(row.className).toContain('sm:flex-row')
-    expect(row.className).not.toMatch(/(^|\s)flex-row(\s|$)/)
-
-    const text = row.firstElementChild as HTMLElement
-    expect(text.className).toContain('w-full')
-    expect(text.className).toContain('sm:flex-1')
-    expect(screen.getByRole('navigation', { name: 'Site' }).className).toContain('w-full')
+    const row = container.querySelector('footer .su-chapter-foot__row') as HTMLElement
+    expect(row).not.toBeNull()
+    const [start, end] = Array.from(row.children) as HTMLElement[]
+    expect(start?.querySelector('.srd-footer__legal')).not.toBeNull()
+    expect(end?.contains(screen.getByRole('navigation', { name: 'Site' }))).toBe(true)
   })
 })
