@@ -1610,6 +1610,53 @@
         }
       }
     },
+    "mediator:updateNpc": {
+      "type": "object",
+      "value": {
+        "npcId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "encounterNpcs"
+          },
+          "optional": false
+        },
+        "patch": {
+          "fieldType": {
+            "type": "object",
+            "value": {
+              "currentHp": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": true
+              },
+              "conditions": {
+                "fieldType": {
+                  "type": "array",
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "optional": true
+              },
+              "name": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": true
+              },
+              "lastMediatorRoll": {
+                "fieldType": {
+                  "type": "any"
+                },
+                "optional": true
+              }
+            }
+          },
+          "optional": false
+        }
+      }
+    },
     "ownership:claim": {
       "type": "object",
       "value": {
@@ -1772,6 +1819,30 @@
             "type": "any"
           },
           "optional": false
+        },
+        "reason": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    },
+    "proposals:sent": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "limit": {
+          "fieldType": {
+            "type": "number"
+          },
+          "optional": true
         }
       }
     },

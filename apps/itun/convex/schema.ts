@@ -620,6 +620,12 @@ export default defineSchema({
     actorId: v.union(v.id('users'), v.null()),
     state: changeLogState,
     supersededBy: v.optional(v.id('changeLog')),
+    /**
+     * Why the Mediator is asking, on a proposal (issue 1278): "Rifle Squad volley".
+     * At most `PROPOSAL_REASON_MAX` characters, and optional — a proposal
+     * without one is still a proposal. The player reads it beside the value.
+     */
+    reason: v.optional(v.string()),
   })
     // `entityId` alone is a prefix of this. The rest is for `proposals.propose`,
     // which supersedes live proposals against one field without collecting an
@@ -628,7 +634,10 @@ export default defineSchema({
     // `gameId` alone is a prefix of this. `ts` last so `proposals.alerts` can
     // read the newest N alerts in order instead of the whole log.
     .index('by_game_field', ['gameId', 'field', 'ts'])
-    .index('by_game_state', ['gameId', 'state']),
+    .index('by_game_state', ['gameId', 'state'])
+    // `proposals.sent`: one surface's rows in one Game, newest first, without
+    // reading a log that grows all campaign (`source` is 'mediator-proposal').
+    .index('by_game_source_ts', ['gameId', 'source', 'ts']),
 
   /**
    * Which Discord channel a Game is bound to (ADR-030, Phase 6).

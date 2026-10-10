@@ -1,4 +1,5 @@
-import { v } from 'convex/values'
+import { ConvexError, v } from 'convex/values'
+import { normalizeReason, PROPOSAL_REASON_MAX } from '../src/lib/games/proposals'
 import { MechSchema } from '../src/lib/schemas/mech'
 import { PilotSchema } from '../src/lib/schemas/pilot'
 import type { Doc, Id } from './_generated/dataModel'
@@ -82,6 +83,10 @@ async function requireProposalTarget(
  * The row names the entity by `logIdOf`, the id its sheet's Change Log is read
  * by, whichever id the Mediator's client addressed it with. A proposal carries
  * only the value it asks for; its `before` is `null`.
+ *
+ * It may carry a `reason` (issue 1278): trimmed, dropped when blank, and refused
+ * past `PROPOSAL_REASON_MAX` characters rather than cut, so the player reads
+ * the Mediator's words as written.
  */
 export const propose = mutation({
   args: {
@@ -89,10 +94,19 @@ export const propose = mutation({
     entityType: v.union(v.literal('pilot'), v.literal('mech')),
     field: v.string(),
     after: v.any(),
+    reason: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<Id<'changeLog'>> => {
     const { doc, gameId } = await requireProposalTarget(ctx, args.entityType, args.entityId)
     const membership = await requireMediator(ctx, gameId)
+
+    let reason: string | undefined
+    try {
+      reason = normalizeReason(args.reason)
+    } catch {
+      // Refused, not dropped: the Mediator sees why and shortens it.
+      throw new ConvexError(`A reason is at most ${PROPOSAL_REASON_MAX} characters`)
+    }
 
     if (doc.ownerId === null) {
       throw new NotAuthorized('That entity is unclaimed — assign it before proposing changes')
@@ -129,6 +143,7 @@ export const propose = mutation({
       source: 'mediator-proposal',
       actorId: membership.userId,
       state: 'proposed',
+      ...(reason === undefined ? {} : { reason }),
     })
 
     for (const row of live) {
@@ -164,12 +179,87 @@ export const pending = query({
         _id: row._id,
         entityId: row.entityId,
         entityType: row.entityType,
+        targetName: targetName(target, row.entityType),
         field: row.field,
         after: row.after,
+        reason: row.reason ?? null,
         ts: row.ts,
       })
     }
     return mine.sort((a, b) => b.ts - a.ts)
+  },
+})
+
+/** The most proposals one `sent` read returns, whatever the caller asks for. */
+const MAX_SENT = 100
+
+/** What the Mediator's surfaces read a sheet by: its name, by kind. */
+function targetName(doc: Doc<'pilots'> | Doc<'mechs'> | null, entityType: string): string | null {
+  if (doc === null) return null
+  const body = doc.body as Record<string, unknown> | null
+  const name = entityType === 'pilot' ? body?.callsign : body?.name
+  return typeof name === 'string' ? name : null
+}
+
+/**
+ * Every Mediator proposal in a Game, in every state, newest first (issue 1278).
+ *
+ * Mediator-only (`requireMediator`): the crew reads its own proposals through
+ * `pending`, and a player has no use for what was asked of a crewmate. Every
+ * Mediator proposal is returned, not only the viewer's, so a Mediator who was
+ * handed the table inherits what is still pending. `mine` says whether the
+ * viewer sent it, and `actorName` names whoever else did.
+ *
+ * Read `limit` rows at a time (20 unless asked; never more than `MAX_SENT`)
+ * off `by_game_source_ts`, in order: this is a reactive query on a log that
+ * grows all campaign, so it never collects it. A row carries no before — a
+ * proposal stores none (ADR-030 §4 as amended for issue 1130).
+ */
+export const sent = query({
+  args: { gameId: v.id('games'), limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const membership = await requireMediator(ctx, args.gameId)
+    const requested = Number.isFinite(args.limit) ? Math.floor(args.limit ?? 20) : 20
+    const limit = Math.min(Math.max(requested, 1), MAX_SENT)
+    const rows = await ctx.db
+      .query('changeLog')
+      .withIndex('by_game_source_ts', (q) =>
+        q.eq('gameId', args.gameId).eq('source', 'mediator-proposal')
+      )
+      .order('desc')
+      .take(limit)
+
+    const names = new Map<string, string>()
+    const out = []
+    for (const row of rows) {
+      const target = await proposalTarget(ctx, row.entityType, row.entityId)
+      const mine = row.actorId === membership.userId
+      let actorName: string | null = null
+      if (!mine && row.actorId !== null) {
+        const cached = names.get(row.actorId)
+        if (cached === undefined) {
+          const user = await ctx.db.get(row.actorId)
+          actorName = user?.displayName ?? user?.name ?? 'Another Mediator'
+          names.set(row.actorId, actorName)
+        } else {
+          actorName = cached
+        }
+      }
+      out.push({
+        _id: row._id,
+        entityId: row.entityId,
+        entityType: row.entityType,
+        targetName: targetName(target, row.entityType),
+        field: row.field,
+        after: row.after,
+        reason: row.reason ?? null,
+        state: row.state,
+        ts: row.ts,
+        mine,
+        actorName,
+      })
+    }
+    return out
   },
 })
 
