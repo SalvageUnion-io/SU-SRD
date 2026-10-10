@@ -182,8 +182,10 @@
   font-weight: var(--font-weight-semibold);
 }
 
-/* The touch floor (ruleset §4.6), as theme.css's coarse-pointer rule. */
-@media (pointer: coarse) {
+/* The touch floor (ruleset §4.6), as theme.css's coarse-pointer rule. A phone
+   width takes it too: the pointer query alone flips during a full-page
+   capture, so the page was laid out at 44px rows and painted at 36px. */
+@media (pointer: coarse), (max-width: 40rem) {
   .srd-contents__row {
     min-height: 44px;
   }

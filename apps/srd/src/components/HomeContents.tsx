@@ -8,7 +8,7 @@ import type { ChapterRow } from '../lib/chapters'
  * and beside them the "New to the Union?" path and the rules a table reaches
  * for. Server-rendered and static: every row is a plain link.
  *
- * Rows are 36px for a fine pointer and 44px under `(pointer: coarse)` (the
+ * Rows are 36px for a fine pointer and 44px under `(pointer: coarse)` or on a phone width (the
  * repo's touch floor, ruleset §4.6) — `global.css`'s `.srd-contents__row`.
  */
 
