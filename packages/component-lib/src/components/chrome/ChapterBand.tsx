@@ -2,6 +2,7 @@ import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { color, font, space, weight } from '../../design/tokens'
 import type { ChapterTone } from './chapterBandColor'
 import { CHAPTER_BAND_COLOR } from './chapterBandColor'
+import type { SpeckleGrain } from './Speckle'
 import { Speckle } from './Speckle'
 import { USER_MADE_HATCH } from './userMadeHatch'
 
@@ -43,6 +44,16 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * pattern) sets `userMade` (ruleset §3.9): the band is **hatched** in ink over
  * its chapter colour (`USER_MADE_HATCH`, a hard-stop pattern) and the notched
  * title is framed in dashes. Canon pages never set it.
+ *
+ * ## The link-preview scale
+ *
+ * `scale="og"` sets the band at the fixed size of a 1200 × 630 link preview
+ * (`OgCard`, issue 1280): the eyebrow at the top, the notch at the foot, the
+ * whole band filling the height it is given, with nothing responsive about it.
+ * A preview is a picture drawn at one size, so its padding is the card's, not
+ * the page's. `fill` and `grain` let a preview wear an entity's own tone (a
+ * tech-level blue, the adversary rust-brown, the ink of a thing you do), and
+ * `titleSize` fits a long name to the notch.
  */
 
 export type { ChapterTone } from './chapterBandColor'
@@ -75,6 +86,17 @@ export type ChapterBandProps = {
    * notched title. For a player's page that could pass for the book.
    */
   userMade?: boolean
+  /**
+   * The band colour, for a tone outside the chapter map (an entity's own tone
+   * on a link preview). Overrides `tone`'s colour.
+   */
+  fill?: string
+  /** The speckle: `ink` grain on a colour band (default), `paper` flecks on ink. */
+  grain?: SpeckleGrain
+  /** `page` (default) or `og`, the fixed 1200 × 630 link-preview scale. */
+  scale?: 'page' | 'og'
+  /** The notched title's font size, when the scale's own does not fit the name. */
+  titleSize?: string
 }
 
 const ROOT = {
@@ -138,22 +160,34 @@ export function ChapterBand({
   id,
   eyebrow,
   userMade = false,
+  fill,
+  grain = 'ink',
+  scale = 'page',
+  titleSize,
 }: ChapterBandProps) {
+  const titleStyle = userMade ? { ...TITLE, ...USER_MADE_TITLE } : TITLE
   return (
     <div
       className="su-chapter-band"
       data-user-made={userMade || undefined}
+      data-scale={scale === 'og' ? 'og' : undefined}
       style={{
         ...ROOT,
-        backgroundColor: CHAPTER_BAND_COLOR[tone],
+        backgroundColor: fill ?? CHAPTER_BAND_COLOR[tone],
         ...(userMade ? { backgroundImage: USER_MADE_HATCH } : {}),
       }}
     >
-      <Speckle grain="ink" />
+      <Speckle grain={grain} />
       {eyebrow && (
         <div
           className="su-chapter-band__eyebrow"
-          style={{ ...EYEBROW, ...(measure ? { maxWidth: measure } : {}) }}
+          style={{
+            ...EYEBROW,
+            ...(measure ? { maxWidth: measure } : {}),
+            // In the og band's column flexbox an auto margin would shrink the
+            // eyebrow to its content and centre it.
+            ...(scale === 'og' ? { marginInline: 0 } : {}),
+          }}
         >
           {eyebrow}
         </div>
@@ -162,7 +196,7 @@ export function ChapterBand({
         <Tag
           id={id}
           className="su-chapter-band__title"
-          style={userMade ? { ...TITLE, ...USER_MADE_TITLE } : TITLE}
+          style={titleSize ? { ...titleStyle, fontSize: titleSize } : titleStyle}
         >
           {children}
         </Tag>
