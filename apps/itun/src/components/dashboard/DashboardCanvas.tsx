@@ -19,12 +19,19 @@
  * dark ground the instruments sit on; the grid regions and instruments fill
  * `children`.
  *
+ * Two optional props serve the Mediator Dashboard alone
+ * (docs/architecture/mediator-dashboard.md Q4): `minScale` raises the width
+ * floor (0.8 there; the player keeps 0.62), and `reflow` replaces the rotate
+ * notice with a node of the caller's own, which the Mediator's surface uses to
+ * stack its panels in one scrolling column so a Mediator on a phone keeps
+ * everything. The host scrolls only while that node is showing.
+ *
  * It imports NO stylesheet. The `.pc-*` rules live in ITUN's
  * `src/styles/dashboard.css`, which `Dashboard.tsx` (the route component)
  * imports, so the stylesheet loads with the dashboard route's chunk.
  */
 
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { CANVAS_H, CANVAS_W, isPhoneForm } from './dashboardForm'
 
@@ -33,10 +40,15 @@ import { CANVAS_H, CANVAS_W, isPhoneForm } from './dashboardForm'
 // the ground letterboxes, preserving the HUD look).
 const MAX_SCALE = 2.6
 
-export function DashboardCanvas({
-  children,
-  phone,
-}: {
+/** The caller's own fallback below the floor: it fills the host and scrolls. */
+const REFLOW_HOST: CSSProperties = {
+  alignSelf: 'stretch',
+  width: '100%',
+  height: '100%',
+  overflowY: 'auto',
+}
+
+type DashboardCanvasProps = {
   /** The canvas form: the fixed 1280×800 grid. */
   children: ReactNode
   /**
@@ -44,7 +56,21 @@ export function DashboardCanvas({
    * one, the canvas scales down regardless (the not-found shell).
    */
   phone?: ReactNode
-}) {
+  /**
+   * A caller's own floor as a scale, replacing the phone form's `isPhoneForm`
+   * floor. The Mediator Dashboard sets 0.8.
+   */
+  minScale?: number
+  /** What shows below `minScale` instead of the canvas: it fills the host and scrolls. */
+  reflow?: ReactNode
+}
+
+export function DashboardCanvas({
+  children,
+  phone,
+  minScale,
+  reflow: reflowNode,
+}: DashboardCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
   const [reflow, setReflow] = useState(false)
@@ -69,7 +95,7 @@ export function DashboardCanvas({
       if (!w || !availH) return
       const rawW = w / CANVAS_W
       const rawH = availH / CANVAS_H
-      setReflow(isPhoneForm(w, availH))
+      setReflow(minScale === undefined ? isPhoneForm(w, availH) : Math.min(rawW, rawH) < minScale)
       // Uniform scale that fits whichever axis binds first (never clipping),
       // capped so it can fill space without ballooning on giant panels.
       setScale(Math.min(MAX_SCALE, Math.min(rawW, rawH)))
@@ -89,7 +115,7 @@ export function DashboardCanvas({
       window.removeEventListener('resize', compute)
       ro.disconnect()
     }
-  }, [reflow])
+  }, [reflow, minScale])
 
   if (reflow && phone !== undefined) {
     return (
@@ -119,12 +145,16 @@ export function DashboardCanvas({
       className="pc-root flex w-full items-center justify-center overflow-hidden"
       style={{ background: 'var(--color-ink-deep)', height: hostH }}
     >
-      <div
-        className="pc-canvas shrink-0"
-        style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
-      >
-        {children}
-      </div>
+      {reflow && reflowNode !== undefined ? (
+        <div style={REFLOW_HOST}>{reflowNode}</div>
+      ) : (
+        <div
+          className="pc-canvas shrink-0"
+          style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
+        >
+          {children}
+        </div>
+      )}
     </div>
   )
 }

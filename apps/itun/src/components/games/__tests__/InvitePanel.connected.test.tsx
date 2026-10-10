@@ -1,22 +1,21 @@
 import { afterAll, describe, expect, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
- * `InvitePanel` — mint, read back, copy, revoke.
+ * `InvitePanel` and `JoinRequests` — the Organizer's half of a Game's own page
+ * (board M2, issue 1278): mint, read back, copy and revoke a link, and answer
+ * whoever is asking to join.
  *
- * The panel exists because the previous screen could only mint: it showed a
- * code once and forgot it, so a leaked one could not be found again, let alone
- * killed. So what is worth testing is what an Organizer can *see and do about*
- * an invite that already exists — its state, who spent it, its link, and
- * whether the Revoke button is offered when it would actually do something.
- * An invite is a link, never a typed code (issue 1255).
+ * What is worth testing is what an Organizer can *see and do about* an invite
+ * that already exists — its seat, its door, its life left, who spent it, its
+ * link, and whether Revoke is offered when it would actually do something —
+ * and that a new link's choices reach the server. An invite is a link, never a
+ * typed code (issue 1255).
  *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
- * The panel asks `invites.list` and `invites.pendingRequests`, which sit on
- * adjacent lines (InvitePanel.tsx:48-49): under the old positional queue,
- * swapping those two lines was invisible to this file.
  */
 
+import { getFunctionName } from 'convex/server'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 const calls: { name: string; args: unknown }[] = []
@@ -28,14 +27,16 @@ const convexMocks = await installConvexMocks({
     // Every mutation records its call so the tests can assert what the panel
     // asked the server to do, which is the half a render assertion cannot cover.
     // `create` answers with the new link's token; the rest answer nothing.
-    useMutation: () => async (args: unknown) => {
-      calls.push({ name: 'mutation', args })
+    useMutation: (ref: unknown) => async (args: unknown) => {
+      calls.push({ name: getFunctionName(ref as never), args })
       return 'NEWTOKEN0000TKN0'
     },
   },
 })
 
 const { InvitePanel } = await import('../InvitePanel')
+const { expiresIn, usedLine } = await import('../../../lib/games/inviteExpiry')
+const { JoinRequests } = await import('../JoinRequests')
 
 const DAY = 1000 * 60 * 60 * 24
 
@@ -47,7 +48,7 @@ function invite(over: Record<string, unknown> = {}) {
     role: 'player',
     grantCount: 0,
     requiresApproval: false,
-    expiresAt: Date.now() + 14 * DAY,
+    expiresAt: Date.now() + 6 * DAY + 60_000,
     usesRemaining: null,
     status: 'active',
     redeemers: [],
@@ -60,8 +61,8 @@ function invite(over: Record<string, unknown> = {}) {
 /** Every link the panel put on the clipboard. */
 const copied: string[] = []
 
-function renderPanel(invites: unknown[], requests: unknown[] = []) {
-  setQueryAnswers({ 'invites:list': invites, 'invites:pendingRequests': requests })
+function renderPanel(invites: unknown[]) {
+  setQueryAnswers({ 'invites:list': invites })
   calls.length = 0
   copied.length = 0
   return render(
@@ -74,62 +75,69 @@ function renderPanel(invites: unknown[], requests: unknown[] = []) {
   )
 }
 
-describe('reading an invite back', () => {
-  test('shows its note, its life left, and who spent it — never a code to type', () => {
-    renderPanel([invite({ label: 'for Sam', usesRemaining: 2, redeemers: ['Sam'] })])
+const openLinks = () => within(screen.getByRole('list', { name: 'Open invite links' }))
 
-    expect(screen.queryByText('A1B2C3D4')).toBeNull()
-    expect(screen.getByText(/for Sam/)).toBeTruthy()
-    expect(screen.getByText(/2 uses left/)).toBeTruthy()
-    expect(screen.getByText(/14 days left/)).toBeTruthy()
-    // The whole point of the redemption trail: a name, not a number.
-    expect(screen.getByText(/used by Sam/)).toBeTruthy()
+describe('reading a link back', () => {
+  test('its seat as a stamp, its door, its life left, its link and its uses', () => {
+    renderPanel([invite({ requiresApproval: true, redeemers: ['Sam', 'Ivo'] })])
+
+    const card = openLinks()
+    expect(card.getByText('Player seat')).toBeTruthy()
+    expect(card.getByText(/You approve each · expires in 6 days/)).toBeTruthy()
+    expect(card.getByText(/\/invite\/A1B2C3D4$/)).toBeTruthy()
+    // The redemption trail: a count in words, and the names.
+    expect(card.getByText(/Used twice · by Sam, Ivo/)).toBeTruthy()
   })
 
-  test('an unlimited code says so rather than showing a blank', () => {
-    renderPanel([invite({ usesRemaining: null })])
-    expect(screen.getByText(/unlimited uses/)).toBeTruthy()
+  test('a bearer Mediator link says so, and that it is not used yet', () => {
+    renderPanel([invite({ role: 'mediator', grantCount: 2 })])
+    const card = openLinks()
+    expect(card.getByText('Mediator seat')).toBeTruthy()
+    expect(card.getByText(/Anyone with it joins · 2 handed over/)).toBeTruthy()
+    expect(card.getByText('Not used yet')).toBeTruthy()
   })
 
-  test('a mediator invite and a gated invite are both legible at a glance', () => {
-    renderPanel([invite({ role: 'mediator', requiresApproval: true, grantCount: 2 })])
-    expect(screen.getByText(/Mediator seat/)).toBeTruthy()
-    expect(screen.getByText(/needs approval/)).toBeTruthy()
-    expect(screen.getByText(/2 handed over/)).toBeTruthy()
-  })
-
-  test('no links yet says so', () => {
+  test('no open links says so', () => {
     renderPanel([])
-    expect(screen.getByText(/No invite links yet/i)).toBeTruthy()
+    expect(screen.getByText(/No open links/i)).toBeTruthy()
   })
 
-  test('a live invite copies its link', async () => {
+  test('a live link copies its whole URL', async () => {
     renderPanel([invite()])
     await act(async () => {
-      fireEvent.click(screen.getByText('Copy link'))
+      fireEvent.click(screen.getByRole('button', { name: 'Copy player seat link' }))
     })
     expect(copied).toEqual([`${window.location.origin}/invite/A1B2C3D4`])
+  })
+
+  test('expiry and use counts read as words', () => {
+    const now = 1_000_000
+    expect(expiresIn(now + 23 * 60 * 60 * 1000 + 5, now)).toBe('expires in 23 h')
+    expect(expiresIn(now + DAY + 5, now)).toBe('expires in 1 day')
+    expect(expiresIn(now - 1, now)).toBe('expired')
+    expect(usedLine(1)).toBe('Used once')
+    expect(usedLine(3)).toBe('Used 3 times')
   })
 })
 
 describe('revoking', () => {
-  test('is offered for a live code and calls through', () => {
+  test('is offered for a live link and calls through', async () => {
     renderPanel([invite()])
-    const button = screen.getByText('Revoke')
-    fireEvent.click(button)
-    expect(calls).toHaveLength(1)
-    expect(calls[0]?.args).toMatchObject({ inviteId: 'i1' })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Revoke player seat link' }))
+    })
+    expect(calls).toEqual([{ name: 'invites:revoke', args: { inviteId: 'i1' } }])
   })
 
-  test('is not offered for a code that is already dead', () => {
-    // Revoking an expired or spent code does nothing, so offering the button
-    // would be a control that silently no-ops.
-    for (const status of ['revoked', 'expired', 'exhausted']) {
-      renderPanel([invite({ status })])
-      expect(screen.queryByText('Revoke')).toBeNull()
-      expect(screen.getByText(status)).toBeTruthy()
-      cleanup()
-    }
+  test('a closed link drops to one line with its state, and offers no revoke', () => {
+    renderPanel([
+      invite({ _id: 'i2', status: 'expired', redeemers: ['Sam'] }),
+      invite({ _id: 'i3', status: 'declined', target: { kind: 'discord', name: 'sam' } }),
+    ])
+    const closed = within(screen.getByRole('list', { name: 'Closed invite links' }))
+    expect(closed.getByText(/Player seat · expired · used by Sam/)).toBeTruthy()
+    expect(closed.getByText(/declined · sent to @sam/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Revoke/ })).toBeNull()
   })
 
   test('says plainly that revoking does not remove anyone', () => {
@@ -138,141 +146,91 @@ describe('revoking', () => {
   })
 })
 
-describe('minting', () => {
-  test('passes the note, seat and door through', async () => {
+describe('a new link', () => {
+  test('defaults to a player seat, seven days, and no approval', async () => {
     renderPanel([])
-
-    fireEvent.change(screen.getByLabelText('Invite note'), { target: { value: '  for Sam  ' } })
-    fireEvent.change(screen.getByLabelText('Invite seat'), { target: { value: 'mediator' } })
-    fireEvent.click(screen.getByLabelText('Require approval'))
-    // Async act: a successful mint resets the form from the mutation's promise.
+    expect(
+      (screen.getByLabelText('I approve each person who uses it') as HTMLInputElement).checked
+    ).toBe(false)
     await act(async () => {
-      fireEvent.click(screen.getByText('Create invite link'))
+      fireEvent.click(screen.getByRole('button', { name: 'Make link' }))
     })
-
-    expect(calls[0]?.args).toMatchObject({
-      gameId: 'g1',
-      label: 'for Sam',
-      role: 'mediator',
-      requiresApproval: true,
+    expect(calls[0]).toEqual({
+      name: 'invites:create',
+      args: { gameId: 'g1', role: 'player', requiresApproval: false, expiresInMs: 7 * DAY },
     })
     // A new link is made to be sent, so it lands on the clipboard.
     expect(copied).toEqual([`${window.location.origin}/invite/NEWTOKEN0000TKN0`])
   })
 
-  test('an empty note is omitted rather than sent as a blank string', () => {
+  test('passes the seat, expiry and door through', async () => {
     renderPanel([])
-    fireEvent.click(screen.getByText('Create invite link'))
-
-    const args = calls[0]?.args as { label?: string } | undefined
-    expect(args).toBeDefined()
-    expect(args?.label).toBeUndefined()
+    fireEvent.change(screen.getByLabelText('Seat'), { target: { value: 'mediator' } })
+    fireEvent.change(screen.getByLabelText('Expires'), { target: { value: '1' } })
+    fireEvent.click(screen.getByLabelText('I approve each person who uses it'))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Make link' }))
+    })
+    expect(calls[0]?.args).toEqual({
+      gameId: 'g1',
+      role: 'mediator',
+      requiresApproval: true,
+      expiresInMs: DAY,
+    })
   })
 
   test('the warning changes with the door being opened', () => {
     renderPanel([])
     expect(screen.getByText(/share it like a key/i)).toBeTruthy()
-
-    fireEvent.click(screen.getByLabelText('Require approval'))
-    expect(screen.getByText(/asks to join, and waits for you/i)).toBeTruthy()
+    fireEvent.click(screen.getByLabelText('I approve each person who uses it'))
+    expect(screen.getByText(/asks to join and waits for you/i)).toBeTruthy()
   })
 })
 
-describe('answering knocks', () => {
-  test('lists who is asking, and approving calls through', () => {
-    renderPanel(
-      [invite({ requiresApproval: true })],
-      [
-        {
-          _id: 'r1',
-          displayName: 'Knocker',
-          requestedAt: Date.now(),
-          inviteLabel: 'from Discord',
-          role: 'player',
-        },
-      ]
-    )
+describe('asking to join', () => {
+  function renderRequests(requests: unknown[]) {
+    setQueryAnswers({ 'invites:pendingRequests': requests })
+    calls.length = 0
+    return render(<JoinRequests gameId={'g1' as never} />)
+  }
 
-    expect(screen.getByText(/Knocker/)).toBeTruthy()
-    fireEvent.click(screen.getByText('Approve'))
-    expect(calls[0]?.args).toMatchObject({ requestId: 'r1', approve: true })
+  const knock = (over: Record<string, unknown> = {}) => ({
+    _id: 'r1',
+    displayName: 'Nadia',
+    requestedAt: Date.now() - 2 * 60_000,
+    inviteLabel: null,
+    role: 'player',
+    ...over,
   })
 
-  test('declining is a separate, explicit act', () => {
-    renderPanel(
-      [invite({ requiresApproval: true })],
-      [
-        {
-          _id: 'r1',
-          displayName: 'Knocker',
-          requestedAt: Date.now(),
-          inviteLabel: null,
-          role: 'player',
-        },
-      ]
-    )
-    fireEvent.click(screen.getByText('Decline'))
-    expect(calls[0]?.args).toMatchObject({ requestId: 'r1', approve: false })
-  })
-
-  test('a knock for the Mediator seat is flagged, because it is a bigger yes', () => {
-    renderPanel(
-      [invite({ requiresApproval: true, role: 'mediator' })],
-      [
-        {
-          _id: 'r1',
-          displayName: 'Knocker',
-          requestedAt: Date.now(),
-          inviteLabel: null,
-          role: 'mediator',
-        },
-      ]
-    )
-    expect(screen.getByText('Mediator seat')).toBeTruthy()
-  })
-
-  test('no knocks means no section at all', () => {
-    renderPanel([invite()], [])
-    expect(screen.queryByText(/Asking to join/i)).toBeNull()
-  })
-})
-
-describe('an addressed invite (ADR-039)', () => {
-  test('says which Discord account it went to', () => {
-    renderPanel([
-      invite({ _id: 'i1', target: { kind: 'discord', name: 'sam' }, usesRemaining: 1 }),
-      invite({ _id: 'i2', code: 'Z9Y8X7W6', target: { kind: 'discord', name: null } }),
+  test('lists who is asking, by which seat link and when, and Let in calls through', async () => {
+    renderRequests([knock()])
+    expect(screen.getByText('Nadia')).toBeTruthy()
+    expect(screen.getByText('Player seat link · asked 2 min ago')).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Let Nadia in' }))
+    })
+    expect(calls).toEqual([
+      { name: 'invites:decideRequest', args: { requestId: 'r1', approve: true } },
     ])
-    expect(screen.getByText(/sent to @sam/)).toBeTruthy()
-    expect(screen.getByText(/sent to a Discord account/)).toBeTruthy()
   })
 
-  test('a failed delivery says so, so the Organizer knows to pass the code on', () => {
-    renderPanel([
-      invite({
-        target: { kind: 'discord', name: 'sam' },
-        delivery: { state: 'failed', detail: 'their DMs are closed' },
-      }),
-    ])
-    expect(screen.getByText(/DM not delivered \(their DMs are closed\)/)).toBeTruthy()
+  test('declining is a separate, explicit act', async () => {
+    renderRequests([knock()])
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Decline Nadia' }))
+    })
+    expect(calls[0]?.args).toEqual({ requestId: 'r1', approve: false })
   })
 
-  test('once an invite is closed, how its delivery went is no longer shown', () => {
-    renderPanel([
-      invite({
-        target: { kind: 'discord', name: 'sam' },
-        status: 'revoked',
-        delivery: { state: 'queued', detail: null },
-      }),
-    ])
-    expect(screen.queryByText(/sending/)).toBeNull()
-    expect(screen.getByText(/sent to @sam/)).toBeTruthy()
+  test('a knock for the Mediator seat says so, because it is a bigger yes', () => {
+    renderRequests([knock({ role: 'mediator' })])
+    expect(screen.getByText(/Mediator seat link/)).toBeTruthy()
   })
 
-  test('a declined invite reads as declined and offers no revoke', () => {
-    renderPanel([invite({ target: { kind: 'discord', name: 'sam' }, status: 'declined' })])
-    expect(screen.getByText('declined')).toBeTruthy()
-    expect(screen.queryByText('Revoke')).toBeNull()
+  test('nobody waiting says so', () => {
+    renderRequests([])
+    expect(screen.getByText(/Nobody is waiting/)).toBeTruthy()
   })
 })
 
