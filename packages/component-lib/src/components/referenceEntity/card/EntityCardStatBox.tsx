@@ -7,18 +7,25 @@ type EntityCardStatBoxProps = {
   /** Every header stat, in order. */
   stats: StatItem[]
   /**
-   * Whether the cluster may wrap onto further rows. A one-line head row never
-   * wraps (ruleset §1 Listing): its title truncates instead.
+   * A one-line head row (ruleset §1 Listing): the cells hold ONE row and the
+   * title keeps a minimum width, so a cell that does not fit is dropped, last
+   * (lowest priority) first, rather than crushing the title to "L…". Cells wrap
+   * onto a second row that the clip hides.
    */
-  wrap?: boolean
+  oneRow?: boolean
 }
 
-const cluster = (wrap: boolean): CSSProperties => ({
+/** One compact cell's height: the clip for a one-row cluster. */
+const CELL_ROW = '1.125rem'
+
+const cluster = (oneRow: boolean): CSSProperties => ({
   alignItems: 'center',
   display: 'flex',
-  flexWrap: wrap ? 'wrap' : 'nowrap',
+  flexWrap: 'wrap',
   gap: space[4],
-  minWidth: 0,
+  justifyContent: 'flex-end',
+  minWidth: oneRow ? 'min-content' : 0,
+  ...(oneRow ? { maxHeight: CELL_ROW, overflow: 'hidden' } : {}),
 })
 
 /**
@@ -30,10 +37,10 @@ const cluster = (wrap: boolean): CSSProperties => ({
  *
  * An editable stat grows the horizontal stepper (the sheet's stat overrides).
  */
-export function EntityCardStatBox({ stats, wrap = true }: EntityCardStatBoxProps) {
+export function EntityCardStatBox({ stats, oneRow = false }: EntityCardStatBoxProps) {
   if (stats.length === 0) return null
   return (
-    <div style={cluster(wrap)}>
+    <div style={cluster(oneRow)}>
       {stats.map((stat) => (
         <Stat
           key={stat.key}

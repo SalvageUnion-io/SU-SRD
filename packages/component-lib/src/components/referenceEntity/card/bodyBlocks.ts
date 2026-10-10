@@ -155,19 +155,16 @@ export function hideShownProse(
  */
 export function resolveBodyLayout({
   showImage,
-  hasNpcAnchor,
   isPattern,
   asideLeadRequested,
   hasTrailingSection,
 }: {
   showImage: boolean
-  hasNpcAnchor: boolean
   isPattern: boolean
   asideLeadRequested: boolean
   /** `afterExtraContent` is present. */
   hasTrailingSection: boolean
 }): { asideLead: boolean; flat: boolean } {
-  const hasAnchor = showImage || hasNpcAnchor
   const asideLead = showImage && (isPattern || (asideLeadRequested && hasTrailingSection))
-  return { asideLead, flat: hasAnchor && !asideLead }
+  return { asideLead, flat: showImage && !asideLead }
 }

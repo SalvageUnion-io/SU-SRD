@@ -9,6 +9,7 @@ import type { CardSize } from '../../shared/displayMode'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityDetailDialog } from '../EntityDetailDialog'
 import { useEntityDetailLink, useEntityHref } from '../entityHrefContext'
+import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { cardKey } from './cardHelpers'
 import { nestedChildSize } from './entityCardTone'
 import type {
@@ -30,7 +31,22 @@ export type NestedCardHost = {
   chassisName: string | undefined
   /** Prose the host already prints — a child hides any it would repeat. */
   shownProse: string[]
+  /** Controls for each inline action band (see `actionControls` on the card). */
+  actionControls?: (action: ReferenceCardEntity) => ReferenceEntityControl[] | undefined
   NestedCard: NestedCard
+}
+
+/**
+ * The write layer a group hands its depth-1 cards. A crawler bay's NPC shares
+ * the parent's id-keyed selections map (distinct choice ids, no clash), so its
+ * crew choices (Name / Motto / Keepsake) render as real inputs when editable;
+ * the parent's `hide` governs its NPC too, so a bay that hides choices does not
+ * surface the same ones here.
+ */
+export type NestedWrite = {
+  selections: ChoiceSelections | undefined
+  onSelectionChange: ((selections: ChoiceSelections) => void) | undefined
+  hide: ReferenceEntityCardHideConfig | undefined
 }
 
 /** The tray's inset from the frame, by the host's size (board E2). */
@@ -112,10 +128,12 @@ export function NestedCardList({
   entities,
   seal,
   host,
+  write,
 }: {
   entities: ReferenceCardEntity[]
   seal?: { label: string; tone: string }
   host: NestedCardHost
+  write?: NestedWrite
 }) {
   const { NestedCard } = host
   const depth = host.depth + 1
@@ -133,6 +151,8 @@ export function NestedCardList({
         hostName={host.entityName}
         chassisName={host.chassisName}
         shownProse={host.shownProse}
+        // Thread the write layer when the group asks for it (a bay's crew).
+        {...write}
       />
     )
   )
@@ -204,17 +224,19 @@ export function NestedCardGroup({
   seal,
   sectionAs,
   host,
+  write,
 }: {
   label: string
   entities: ReferenceCardEntity[]
   seal?: { label: string; tone: string }
   sectionAs: ElementType | undefined
   host: NestedCardHost
+  write?: NestedWrite
 }) {
   if (entities.length === 0) return null
   return (
     <CardTray label={label} count={entities.length} size={host.size} as={sectionAs}>
-      <NestedCardList entities={entities} seal={seal} host={host} />
+      <NestedCardList entities={entities} seal={seal} host={host} write={write} />
     </CardTray>
   )
 }
@@ -277,6 +299,7 @@ export function InlineActions({
       data={action}
       hostName={host.entityName}
       chassisName={host.chassisName}
+      controls={host.actionControls?.(action)}
     />
   ))
 }
@@ -308,49 +331,5 @@ export function ActionsChip({
       </div>
       {open && children}
     </>
-  )
-}
-
-/**
- * The LEFT ANCHOR when there is no artwork: a prominent nested NPC (a crawler
- * bay's crew), floated so the body flows beside it.
- */
-export function NpcAnchor({
-  npcs,
-  selections,
-  onSelectionChange,
-  hide,
-  host,
-}: {
-  npcs: ReferenceCardEntity[]
-  selections: ChoiceSelections | undefined
-  onSelectionChange: ((selections: ChoiceSelections) => void) | undefined
-  hide: ReferenceEntityCardHideConfig | undefined
-  host: NestedCardHost
-}) {
-  const { NestedCard } = host
-  return (
-    <div className="mb-1.5 w-full shrink-0 md:float-right md:w-1/2 md:max-w-full md:pl-3">
-      {npcs.map((npc, index) => (
-        <NestedCard
-          key={cardKey(npc, index)}
-          size={nestedChildSize(host.size)}
-          depth={host.depth + 1}
-          hostDown={host.isDown}
-          data={npc}
-          hostName={host.entityName}
-          chassisName={host.chassisName}
-          // Thread the write-layer so the NPC's crew choices (Name / Motto /
-          // Keepsake) render as real inputs in editable mode — they share the
-          // parent's id-keyed selections map (distinct choice ids, no clash).
-          selections={selections}
-          onSelectionChange={onSelectionChange}
-          // The parent's visibility config governs its identity NPC too — a bay
-          // that hides choices (rendering the NPC's crew facts as external
-          // IdentityFields) must not also surface those same choices here.
-          hide={hide}
-        />
-      ))}
-    </div>
   )
 }

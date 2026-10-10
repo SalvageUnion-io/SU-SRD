@@ -541,44 +541,40 @@ const sestraDrone = pick(
   (d) => d.name === 'Sestra Drone',
   'drone'
 )
-const auger = pick(
-  (system.actions ?? [])
-    .map((name) => SalvageUnionReference.Actions.getByName(name))
-    .filter((a): a is NonNullable<typeof a> => a != null),
-  (a) => a.name === 'Auger',
-  'Salvaging Drill action'
-)
-
 const SIZES = ['large', 'medium', 'small'] as const
 const EXTENTS = ['full', 'head', 'catalog'] as const
 
-const matrix = {
+/** One row per size; inside a row the extents sit side by side and stack when narrow. */
+const matrixRow = {
   display: 'grid',
-  gap: '24px',
-  gridTemplateColumns: '7rem repeat(3, minmax(0, 1fr))',
-  padding: '16px',
+  gap: '16px 24px',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 20rem), 1fr))',
 } as const
 
-/** One row per size, one column per extent — the same component, different props. */
+/** Every size × extent cell of one entity — the same component, different props. */
 function Matrix({
   entity,
   label,
+  userMade = false,
 }: {
   entity: Parameters<typeof ReferenceEntityCard>[0]['data']
   label: string
+  userMade?: boolean
 }) {
   return (
-    <div style={matrix}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', padding: '16px' }}>
       <Caption>{label}</Caption>
-      {EXTENTS.map((extent) => (
-        <Caption key={extent}>{extent}</Caption>
-      ))}
       {SIZES.map((size) => (
-        <div key={size} style={{ display: 'contents' }}>
-          <Caption>{size}</Caption>
+        <div key={size} style={matrixRow}>
           {EXTENTS.map((extent) => (
-            <div key={extent} style={{ minWidth: 0 }}>
-              <ReferenceEntityCard data={entity} size={size} extent={extent} />
+            <div
+              key={extent}
+              style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 0 }}
+            >
+              <Caption>
+                {size} · {extent}
+              </Caption>
+              <ReferenceEntityCard data={entity} size={size} extent={extent} userMade={userMade} />
             </div>
           ))}
         </div>
@@ -661,16 +657,23 @@ export const Contexts: Story = () => {
         />
       </div>
       <div style={panel}>
-        <Caption>Dashboard · medium · full — flat, the pennant is the button</Caption>
+        <Caption>Dashboard · medium · full — flat, each band's pennant is the button</Caption>
         <div style={{ backgroundColor: 'var(--color-ink-deep)', padding: '16px' }}>
-          <div style={{ backgroundColor: 'var(--color-band-cream)', padding: '12px' }}>
-            <ReferenceEntityCard
-              data={auger}
-              size="medium"
-              texture={false}
-              controls={[{ key: 'activate', pennant: true, label: 'Activate', onClick: () => {} }]}
-            />
-          </div>
+          <ReferenceEntityCard
+            data={system}
+            size="medium"
+            texture={false}
+            hide={{ footer: true }}
+            actionControls={(action) => [
+              {
+                key: 'activate',
+                pennant: true,
+                label: 'Activate',
+                onClick: () => {},
+                ariaLabel: `Activate ${'name' in action ? action.name : 'action'}`,
+              },
+            ]}
+          />
         </div>
       </div>
       <div style={panel}>
@@ -693,29 +696,8 @@ export const Contexts: Story = () => {
 /**
  * The user-made flag (ruleset §3.9, issue 1276) at every size × extent: a
  * dashed frame, a dashed User-made stamp, a dashed footer rule and a dashed
- * pill. Shown on a real pattern, the kind of thing a player saves.
+ * pill. Shown on one simple entity so each can be checked.
  */
 export const UserMade: Story = () => (
-  <div style={matrix}>
-    <Caption>User-made</Caption>
-    {EXTENTS.map((extent) => (
-      <Caption key={extent}>{extent}</Caption>
-    ))}
-    {SIZES.map((size) => (
-      <div key={size} style={{ display: 'contents' }}>
-        <Caption>{size}</Caption>
-        {EXTENTS.map((extent) => (
-          <div key={extent} style={{ minWidth: 0 }}>
-            <ReferenceEntityCard
-              data={chassis}
-              pattern={surveyorPattern}
-              size={size}
-              extent={extent}
-              userMade
-            />
-          </div>
-        ))}
-      </div>
-    ))}
-  </div>
+  <Matrix entity={system} label="Salvaging Drill · user-made" userMade />
 )

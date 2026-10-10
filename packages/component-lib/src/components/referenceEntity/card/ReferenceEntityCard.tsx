@@ -92,14 +92,7 @@ import {
 } from './entityCardTone'
 import { GuideSteps } from './GuideSteps'
 import type { NestedCardHost } from './NestedCards'
-import {
-  ActionsChip,
-  CardTray,
-  DroneCards,
-  InlineActions,
-  NestedCardGroup,
-  NpcAnchor,
-} from './NestedCards'
+import { ActionsChip, CardTray, DroneCards, InlineActions, NestedCardGroup } from './NestedCards'
 import { resolveNestedSections } from './nestedSections'
 import { PatternList } from './PatternListRow'
 import { PatternLoadout } from './PatternLoadout'
@@ -114,6 +107,7 @@ import { resolveCardTable } from './resolveCardTable'
 import { resolveFoldedAction } from './resolveFoldedAction'
 import { resolveGuideLead } from './resolveGuideLead'
 import { resolveGuideSteps } from './resolveGuideSteps'
+import { StatusRail, StatusTriState } from './StatusRail'
 import { stripHostParenthetical } from './stripHostParenthetical'
 
 /**
@@ -198,6 +192,7 @@ function ReferenceEntityCardInner({
   selectionRole,
   cardClickLabel,
   controls,
+  actionControls,
   selections,
   onSelectionChange,
   titleOverride,
@@ -419,6 +414,7 @@ function ReferenceEntityCardInner({
       band={inline}
       grain={grain}
       ruled={!inline && extent !== 'head'}
+      chevron={extent === 'head' && !inline && (!!onCardClick || !!cardClickable)}
     />
   )
 
@@ -440,11 +436,33 @@ function ReferenceEntityCardInner({
   // provenance belongs on the entity's own page, which the tile links to.
   const rendersFooter =
     !inline && !hide?.footer && !isCatalog && (footerOverride != null || depth === 0)
+  // LIVE SHEET (board E3): the condition and the destructive Remove live in a
+  // dashed body rail, not on the seam as green and red tabs. A head row has no
+  // body, so its condition rides the seam as the same neutral tri-state.
+  const hasBodyRail = extent !== 'head' && !inline
+  const removers = hasBodyRail ? (railControls ?? []).filter((c) => c.variant === 'danger') : []
+  const seamControls =
+    removers.length > 0 ? railControls?.filter((c) => !removers.includes(c)) : railControls
+  const statusRail =
+    hasBodyRail && (status || removers.length > 0) ? (
+      <StatusRail
+        status={status}
+        onStatusClick={onStatusClick}
+        removers={removers}
+        subject={entityName}
+        size={size}
+      />
+    ) : null
   const topRightRail = (
     <CardTopRail
-      controls={railControls}
-      status={status}
-      onStatusClick={onStatusClick}
+      controls={seamControls}
+      status={undefined}
+      statusSeal={
+        status && !hasBodyRail ? (
+          <StatusTriState status={status} onClick={onStatusClick} subject={entityName} />
+        ) : undefined
+      }
+      onStatusClick={undefined}
       subject={entityName}
       selected={selected}
       selectionSeal={selectionSeal}
@@ -689,6 +707,7 @@ function ReferenceEntityCardInner({
     entityName,
     chassisName: resolvedChassisName,
     shownProse: printedProse,
+    actionControls,
     NestedCard: ReferenceEntityCardInner,
   }
 
@@ -735,20 +754,15 @@ function ReferenceEntityCardInner({
       />
     ) : null
 
-  // LEFT ANCHOR — the artwork if present, else a prominent nested NPC.
-  const npcGroup =
-    !showImage && !isPattern ? nestedGroups.find((group) => group.label === 'NPCs') : undefined
-  const anchorNpcEntities = npcGroup?.entities ?? []
+  // LEFT ANCHOR — the artwork, when there is one. Nested NPCs are a group like
+  // any other: they sit in the "NPC · n" tray, not floated on the parent's paper.
   const { asideLead, flat } = resolveBodyLayout({
     showImage,
-    hasNpcAnchor: anchorNpcEntities.length > 0,
     isPattern,
     asideLeadRequested,
     hasTrailingSection: !!afterExtraContent,
   })
-  const inFlowGroups = (isPattern ? patternGroups : nestedGroups).filter(
-    (group) => group !== npcGroup
-  )
+  const inFlowGroups = isPattern ? patternGroups : nestedGroups
 
   const anchorNode: ReactNode =
     showImage && assetUrl ? (
@@ -758,14 +772,6 @@ function ReferenceEntityCardInner({
         alt={`${entityName} illustration`}
         compact={compact}
         aside={asideLead}
-      />
-    ) : anchorNpcEntities.length > 0 ? (
-      <NpcAnchor
-        npcs={anchorNpcEntities}
-        selections={selections}
-        onSelectionChange={onSelectionChange}
-        hide={hide}
-        host={nestedHost}
       />
     ) : undefined
 
@@ -920,10 +926,11 @@ function ReferenceEntityCardInner({
           inFlowGroups.map((group) => (
             <NestedCardGroup
               key={group.label}
-              label={group.label}
+              label={group.label === 'NPCs' && group.entities.length === 1 ? 'NPC' : group.label}
               entities={group.entities}
               sectionAs={sectionAs}
               host={nestedHost}
+              write={group.label === 'NPCs' ? { selections, onSelectionChange, hide } : undefined}
               seal={
                 group.label === 'Grants' ? { label: 'Grants', tone: 'var(--color-ink)' } : undefined
               }
@@ -959,6 +966,7 @@ function ReferenceEntityCardInner({
             {expand}
           </div>
         )}
+        {statusRail}
         {/* FOOTER — `footerOverride` replaces the identity footer; `hide.footer`
             and the catalog extent suppress it entirely. */}
         {rendersFooter

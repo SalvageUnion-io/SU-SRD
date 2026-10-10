@@ -73,6 +73,7 @@ export function CardRollTable({
   disabled,
   defaultRoll,
   framed = false,
+  onRollResult,
 }: {
   table: SURefObjectTable
   /** The table's name, for the bar. */
@@ -89,6 +90,8 @@ export function CardRollTable({
    * flush in a card it is closed by the rule above its bar.
    */
   framed?: boolean
+  /** Called with the outcome's text (and its range key) on every roll. */
+  onRollResult?: (text: string, key: string) => void
 }) {
   const [expanded, setExpanded] = useState(!collapsible)
   const [rolled, setRolled] = useState<CardRoll | null>(() =>
@@ -113,7 +116,10 @@ export function CardRollTable({
   const hit = rolled ? rows.find((row) => row.key === rolled.key) : undefined
   const roll = () => {
     const die = rollDie(20)
-    setRolled({ roll: die, key: resultForTable(table, die).key })
+    const { key } = resultForTable(table, die)
+    setRolled({ roll: die, key })
+    const entry = rows.find((row) => row.key === key)
+    if (entry) onRollResult?.(entry.label ? `${entry.label}: ${entry.value}` : entry.value, key)
   }
 
   return (
@@ -132,6 +138,7 @@ export function CardRollTable({
         style={{
           alignItems: 'center',
           display: 'flex',
+          flexWrap: 'wrap',
           gap: `${space[8]} ${space[10]}`,
           padding: `${space[8]} ${PAD_X[size]}`,
         }}
@@ -148,10 +155,14 @@ export function CardRollTable({
         >
           Roll the Die:
         </span>
-        <span style={cond(size === 'small' ? fontSize.lede : fontSize.readout, truncate)}>
+        <span
+          style={cond(size === 'small' ? fontSize.lede : fontSize.readout, {
+            ...truncate,
+            flex: '1 1 8rem',
+          })}
+        >
           {name}
         </span>
-        <span style={{ flex: 1 }} />
         {!disabled && (
           <Button
             variant="primary"
