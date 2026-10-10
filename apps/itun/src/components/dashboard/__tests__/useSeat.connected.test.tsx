@@ -409,7 +409,8 @@ describe('the Dashboard reads mount from the seat', () => {
   test('on foot: the pilot runs it', async () => {
     setQueryAnswers(gameAnswers([seatRow('seat-rook')]))
     await renderDashboard()
-    expect(screen.getByText('Pilot · Rook')).toBeTruthy()
+    // The rail's stamp says where the pilot is (board D2); the Major agrees.
+    expect(screen.getByText('On foot')).toBeTruthy()
     expect(screen.getByText('On Foot')).toBeTruthy()
   })
 
@@ -418,7 +419,7 @@ describe('the Dashboard reads mount from the seat', () => {
       gameAnswers([seatRow('seat-rook', { mount: { kind: 'boarded', mechId: 'seat-spare' } })])
     )
     await renderDashboard()
-    expect(screen.getByText('Mech · Spare')).toBeTruthy()
+    expect(screen.getByText('Boarded · Spare')).toBeTruthy()
     expect(screen.getByText('Boarded')).toBeTruthy()
   })
 
@@ -486,7 +487,9 @@ describe("the Dashboard's display: the deck, the tabs and the table (plan layer 
       })
     )
     await renderDashboard()
-    expect(screen.getByText('● Saved to Ash Flats')).toBeTruthy()
+    // The rail names the Game beside its stamp, and says it is saving.
+    expect(screen.getByText('Game · Ash Flats')).toBeTruthy()
+    expect(screen.getByText('● Saved')).toBeTruthy()
     expect(screen.getByText('Mediator: Bio-Titan closing to Medium')).toBeTruthy()
     const inbox = screen.getByRole('link', { name: 'Inbox · 1 proposal' })
     expect(inbox.getAttribute('href')).toBe(`/games/${GAME_ID}`)
@@ -545,7 +548,7 @@ describe("the Dashboard's display: the deck, the tabs and the table (plan layer 
       )
     })
     expect(screen.getByText('Vex is resolving Crush: rolled 14, Success')).toBeTruthy()
-    expect(screen.getByText('In Spare')).toBeTruthy()
+    expect(screen.getByText(/^In Spare · SP/)).toBeTruthy()
   })
 
   test("the Crew tab reads the server's status: a ▲, the problem, and a link to the sheet", async () => {
@@ -565,9 +568,9 @@ describe("the Dashboard's display: the deck, the tabs and the table (plan layer 
     })
     await openTab('Crew needs attention')
     const crew = screen.getByRole('tabpanel')
-    expect(within(crew).getByText('Injured')).toBeTruthy()
-    expect(within(crew).getByText('HP 3/10 · AP 5/5')).toBeTruthy()
-    const vex = within(crew).getByRole('link', { name: /Vex/ })
+    // The Crew table (board D2): the ▲ and the word, and the numbers in columns.
+    expect(within(crew).getByText(/Injured/)).toBeTruthy()
+    const vex = within(crew).getByRole('link', { name: /^Vex: HP 3\/10, AP 5\/5/ })
     expect(vex.getAttribute('href')).toBe('/sheet/pilot/seat-vex')
   })
 

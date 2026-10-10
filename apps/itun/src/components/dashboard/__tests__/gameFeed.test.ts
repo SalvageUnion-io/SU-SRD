@@ -131,6 +131,9 @@ describe('crewLines', () => {
         href: '/sheet/pilot/rook',
         where: 'On foot',
         vitals: 'HP 10/10 · AP 5/5',
+        hp: '10/10',
+        ap: '5/5',
+        unit: 'On foot · Kettle parked',
         // Parked: one line, and its own trouble does not take the row's SP
         // and Heat with it.
         mech: 'Kettle parked, destroyed',
@@ -146,6 +149,9 @@ describe('crewLines', () => {
         href: '/sheet/pilot/vex',
         where: 'In Magpie',
         vitals: 'HP 3/10 · AP 5/5',
+        hp: '3/10',
+        ap: '5/5',
+        unit: 'In Magpie · SP 12/12',
         mech: 'Magpie · SP 12/12 · Heat 4/4',
         // Boarded, its trouble is the row's problems, not its line.
         mechAttention: false,
@@ -160,6 +166,9 @@ describe('crewLines', () => {
         href: '/sheet/pilot/wren',
         where: 'On foot',
         vitals: 'HP 10/10 · AP 5/5',
+        hp: '10/10',
+        ap: '5/5',
+        unit: 'On foot',
         mech: null,
         mechAttention: false,
         problems: ['Ejected'],

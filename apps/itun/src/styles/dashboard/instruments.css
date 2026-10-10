@@ -550,18 +550,19 @@
   font-size: var(--text-note);
   color: var(--color-ink-50);
 }
+/* The step name, notched in ink into the foot of its crawler-pink band
+   (board D3): the page ground cut out of the band, as a chapter title is. */
 .pc-dt-step-name {
+  display: inline-block;
   margin: 0;
-  padding: 0 0 4px;
-  border-bottom: var(--bw-rail) solid var(--color-sheet-crawler-deep);
+  padding: 6px 12px 0;
+  background: var(--color-paper);
   font-family: var(--font-cond);
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
-  /* Was a raw `20px`; `--text-title` (22) is the nearest rung and the correct
-     role — this is a banner heading, not a readout. */
-  font-size: var(--text-title);
-  line-height: 1.1;
+  font-size: var(--text-display-lg);
+  line-height: 1;
   color: var(--color-ink);
 }
 .pc-dt-gate {
