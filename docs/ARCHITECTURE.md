@@ -2878,6 +2878,14 @@ one surface, but `/games/:id` now renders it for that Game instead of
 redirecting, and `/` always shows the shelf (Shelves): the route picks the
 active container as it loads. `/mediator/:id` redirects to `/games/:id`.
 
+**2026-10-09 — Shelves (#1279).** `/` lists everything the player keeps: a
+unit in a Game stays on their shelf too, so every pilot, mech and crawler the
+account holds is listed wherever it is, with a chip naming its Game, and a
+Showing toggle (Everything | Not in a Game) narrows it. Patterns, NPCs and the
+read-only Starter Set are shelves of their own. The "Showing" select is the
+Game page's now. The container model is unchanged: "on your shelf" in the
+page's sense means *yours*, not `gameId === null`.
+
 **§5 is amended by [ADR-032](#adr-032)**: a public read-only sheet is the one
 exception to its visibility rules. **§5a is amended by [ADR-037](#adr-037)**: a
 Game takes a player's crew before it has a crawler.

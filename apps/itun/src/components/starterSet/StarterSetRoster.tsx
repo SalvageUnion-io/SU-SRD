@@ -92,8 +92,8 @@ export function StarterSetRoster({ headingLevel = 'h2' }: StarterSetRosterProps)
           The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
           Read-only reference: open any sheet to read it.{' '}
           {mode === 'connected'
-            ? 'Copy one into your shelves or one of your Games to play it.'
-            : 'Sign in to copy one into your shelves or a Game and play it.'}
+            ? 'Copy one onto your shelf or into one of your Games to play it.'
+            : 'Sign in to copy one onto your shelf or into a Game and play it.'}
         </Text>
       </div>
 

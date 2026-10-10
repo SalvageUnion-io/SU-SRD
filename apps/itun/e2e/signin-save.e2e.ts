@@ -101,6 +101,6 @@ test('a signed-out visitor is asked to sign in, and what they build then is save
   await gotoStable(page, '/')
   await waitForReady(page)
 
-  await expect(page.getByRole('heading', { name: /Saved Builds/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Shelves' })).toBeVisible()
   await expect(page.getByText('Saved By Signing In').first()).toBeVisible()
 })

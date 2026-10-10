@@ -12,7 +12,8 @@ import type { MechPattern } from '../schemas/pattern'
  * The real entityStore satisfies this.
  */
 type MergeEntityStore = {
-  hydrate: (type: EntityType) => Promise<void>
+  /** Re-read a type from the cache, even when it has been loaded before. */
+  rehydrate: (type: EntityType) => Promise<void>
   list: <T extends EntityType>(type: T) => import('../../stores/types').EntityForType<T>[]
   create: <T extends EntityType>(
     type: T,
@@ -107,13 +108,16 @@ export async function mergeImport(
   patternStore: MergePatternStore = usePatternStore.getState(),
   encounterNpcStore: MergeEncounterNpcStore = useEncounterStore.getState()
 ): Promise<MergeSummary> {
-  // Hydrate so we can check for existing ids.
+  // Re-read, not `hydrate`: `hydrate` returns at once once a type has ever
+  // loaded, so the duplicate check below would run against whatever this tab's
+  // memory last held (a row a sync re-adopted after the player deleted it, say)
+  // rather than against what the account keeps right now.
   await Promise.all([
-    entityStore.hydrate('pilot'),
-    entityStore.hydrate('mech'),
-    entityStore.hydrate('crawler'),
-    entityStore.hydrate('npc'),
-    entityStore.hydrate('softLink'),
+    entityStore.rehydrate('pilot'),
+    entityStore.rehydrate('mech'),
+    entityStore.rehydrate('crawler'),
+    entityStore.rehydrate('npc'),
+    entityStore.rehydrate('softLink'),
   ])
 
   const existingPilotIds = new Set(entityStore.list('pilot').map((e) => e.id))
