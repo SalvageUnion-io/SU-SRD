@@ -28,45 +28,53 @@ export function CardSeam({
   userMade?: boolean
 }) {
   return (
-    <div
-      className={cn(STAMP_SEAM, 'left-[15px] flex items-center gap-1.5')}
-      // Never wider than the card: on a phone the stamps share the room and the
-      // last (the Legal Starting Pattern) gives way, instead of running off the
-      // edge. `clip` on x only, so the stamps still ride above the frame.
-      style={{ maxWidth: 'calc(100% - 30px)', overflowX: 'clip' }}
-    >
-      {seal && (
-        <span
-          className="inline-block w-fit border border-ink px-1 py-0.5 font-cond text-badge font-bold uppercase leading-none tracking-caps-tight text-paper"
-          style={{ backgroundColor: seal.tone, lineHeight: 1 }}
-        >
-          {seal.label}
-        </span>
-      )}
-      {typeStamp && (
-        <Badge shape="stamp" size="mini" className="whitespace-nowrap">
-          {typeStamp}
-        </Badge>
-      )}
-      {axisMarkers.map((marker) => (
-        <Stat
-          key={marker.label}
-          orientation="horizontal"
-          label={marker.label}
-          value={marker.value}
-          size="mini"
-        />
-      ))}
-      {/* A pattern the book sanctions as a starting loadout wears a stamp on the
+    <>
+      <div
+        className={cn(STAMP_SEAM, 'left-[15px] flex items-center gap-1.5')}
+        // Never wider than the card: on a phone the stamps share the room and the
+        // last (the Legal Starting Pattern) gives way, instead of running off the
+        // edge. `clip` on x only, so the stamps still ride above the frame.
+        style={{ maxWidth: 'calc(100% - 30px)', overflowX: 'clip' }}
+      >
+        {seal && (
+          <span
+            className="inline-block w-fit border border-ink px-1 py-0.5 font-cond text-badge font-bold uppercase leading-none tracking-caps-tight text-paper"
+            style={{ backgroundColor: seal.tone, lineHeight: 1 }}
+          >
+            {seal.label}
+          </span>
+        )}
+        {typeStamp && (
+          <Badge shape="stamp" size="mini" className="whitespace-nowrap">
+            {typeStamp}
+          </Badge>
+        )}
+        {axisMarkers.map((marker) => (
+          <Stat
+            key={marker.label}
+            orientation="horizontal"
+            label={marker.label}
+            value={marker.value}
+            size="mini"
+          />
+        ))}
+        {/* A pattern the book sanctions as a starting loadout wears a stamp on the
           seam, RIGHT of the `[Chassis | …]` marker. It rides the seam (not the
           body) precisely so it survives the LISTING extent. Purely the stored
           `legalStarting` data tag, never computed from tech level or SV. */}
-      {legalStartingPattern && (
-        <Badge shape="stamp" size="mini" className="min-w-0 truncate whitespace-nowrap">
-          Legal Starting Pattern
-        </Badge>
+        {legalStartingPattern && (
+          <Badge shape="stamp" size="mini" className="min-w-0 truncate whitespace-nowrap">
+            Legal Starting Pattern
+          </Badge>
+        )}
+      </div>
+      {/* The dashed stamp rides the RIGHT end of the seam (board P1), apart from
+          the type stamp on the left. */}
+      {userMade && (
+        <div className={cn(STAMP_SEAM, 'right-[15px] flex items-center')}>
+          <UserMadeStamp />
+        </div>
       )}
-      {userMade && <UserMadeStamp />}
-    </div>
+    </>
   )
 }

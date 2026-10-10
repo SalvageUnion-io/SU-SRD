@@ -203,6 +203,8 @@ export type ReferenceEntityCardHideConfig = {
   stats?: boolean
   content?: boolean
   footer?: boolean
+  /** Suppress the entity's artwork (a preview that has none to show). */
+  image?: boolean
 }
 
 /** The action-shaped fields the card reads when `schemaName === 'actions'`. */

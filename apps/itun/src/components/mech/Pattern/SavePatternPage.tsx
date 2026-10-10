@@ -43,6 +43,7 @@ import {
   patternChassis,
   patternFromMech,
   patternLoadout,
+  slotsStats,
   slotsUsed,
 } from '../../../lib/patterns/patterns'
 import { usePatternStore } from '../../../stores/patternStore'
@@ -121,6 +122,14 @@ const ACTIONS = {
   gap: tokens.space[12],
 } satisfies CSSProperties
 
+/** A primary action: 44px at least, in condensed caps. */
+const ACTION_BUTTON = {
+  fontFamily: tokens.font.cond,
+  letterSpacing: tokens.tracking.capsSnug,
+  minHeight: '2.75rem',
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
 /** The rule, said once where the player is about to make something. */
 const RULE_NOTE = {
   borderColor: tokens.color.ink,
@@ -193,7 +202,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
     gameChoices[0]?._id ??
     null
   const gameName = gameChoices.find((g) => g._id === gameId)?.name
-  const madeBy = me?.displayName ?? 'you'
+  const madeBy = me?.displayName ?? 'a player'
 
   async function save() {
     if (!mech) return
@@ -298,6 +307,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
           <fieldset style={FIELDSET}>
             <legend style={LEGEND}>Who can see it</legend>
             <Radio
+              stacked
               name="pattern-visibility"
               value="private"
               checked={visibility === 'private'}
@@ -306,6 +316,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
               description="Kept on your shelf. Build mechs from it any time."
             />
             <Radio
+              stacked
               name="pattern-visibility"
               value="link"
               checked={visibility === 'link'}
@@ -314,6 +325,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
               description="A public pattern page, like a reference page, that anyone can read and copy."
             />
             <Radio
+              stacked
               name="pattern-visibility"
               value="game"
               checked={visibility === 'game'}
@@ -350,7 +362,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
               pattern={asReferencePattern({ ...mech, name: patternName || mech.name })}
               size="medium"
               extent="full"
-              hide={{ content: true, actions: true, patterns: true, rollTable: true }}
+              hide={{ content: true, actions: true, patterns: true, rollTable: true, image: true }}
               statsOverride={[
                 { key: 'tl', label: 'TL', value: chassis.techLevel },
                 {
@@ -378,13 +390,18 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
           {error && <FieldError>{error}</FieldError>}
           <div style={ACTIONS}>
             {canWrite ? (
-              <Button variant="primary" onClick={() => void save()} disabled={saving}>
+              <Button
+                variant="primary"
+                style={ACTION_BUTTON}
+                onClick={() => void save()}
+                disabled={saving}
+              >
                 {saving ? 'Saving…' : 'Save pattern'}
               </Button>
             ) : (
               <WritesBlockedNotice />
             )}
-            <Button variant="ghost" onClick={onCancel} disabled={saving}>
+            <Button variant="ghost" style={ACTION_BUTTON} onClick={onCancel} disabled={saving}>
               Cancel
             </Button>
           </div>
@@ -418,7 +435,12 @@ function LoadoutList({
         {items.map((item, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: a loadout may carry the same part twice
           <li key={`${item.id}-${index}`}>
-            <ReferenceEntityCard data={item} size="small" extent="head" />
+            <ReferenceEntityCard
+              data={item}
+              size="small"
+              extent="head"
+              statsOverride={slotsStats(item)}
+            />
           </li>
         ))}
       </ul>
