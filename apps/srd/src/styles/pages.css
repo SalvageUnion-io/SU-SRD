@@ -497,6 +497,32 @@
   white-space: nowrap;
 }
 
+/* A phone: the pennant moves to a line of its own above the body, so the body
+   keeps the row's whole width beside the range (board 08b). */
+@media (max-width: 40rem) {
+  .srd-roll__row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .srd-roll__row > .srd-roll__range {
+    grid-row: 1 / span 2;
+  }
+
+  .srd-roll__row > .srd-roll__tag {
+    align-self: start;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: start;
+    margin: var(--space-12) 0 0 var(--space-14);
+  }
+
+  .srd-roll__row > .srd-roll__body {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
 .srd-roll__panel {
   background-color: var(--color-paper);
   border: var(--bw-entity) solid var(--color-ink);

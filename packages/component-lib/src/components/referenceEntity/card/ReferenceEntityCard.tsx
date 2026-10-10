@@ -184,6 +184,7 @@ function ReferenceEntityCardInner({
   madeBy,
   texture,
   parentSeal,
+  readable = false,
   pattern,
   hostName,
   hostDown,
@@ -627,6 +628,7 @@ function ReferenceEntityCardInner({
     chassisName: resolvedChassisName,
     headerBg: tone.bg,
     headerBgColor: tone.bgColor,
+    ...(onPage ? { fontSize: '' } : readable ? { fontSize: 'text-sm' } : {}),
   }
 
   // BONUS PER TECH LEVEL — anchored INLINE at the prose that describes it.

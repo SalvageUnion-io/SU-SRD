@@ -52,6 +52,16 @@ export function rowForRoll(
   return rows.find((row) => row.key === outcome.key)
 }
 
+/**
+ * What a roll reads as in the list of earlier rolls: the row's own label, else
+ * "Roll N" (most tables label no rows), and "No effect" only when the table has
+ * no row for the roll.
+ */
+export function outcomeLabel(table: SURefObjectTable, rows: RollTableRow[], roll: number): string {
+  const row = rowForRoll(table, rows, roll)
+  return row ? (row.label ?? `Roll ${roll}`) : 'No effect'
+}
+
 export type RollState = {
   /** The roll the table reads, or `null` before the first one. */
   roll: number | null

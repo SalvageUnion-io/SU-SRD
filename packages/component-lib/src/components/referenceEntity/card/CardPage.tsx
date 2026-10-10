@@ -86,6 +86,7 @@ export function CardPage({
       data={data}
       size="medium"
       depth={1}
+      readable={!!seal}
       hostDown={action.hostDown}
       hostName={action.hostName}
       chassisName={action.chassisName}

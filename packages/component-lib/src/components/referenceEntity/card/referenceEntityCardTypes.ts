@@ -35,6 +35,9 @@ export type ReferenceEntityCardProps = {
    * type stamp), in a distinct tone — lets a group brand its nested cards
    * (e.g. GRANTS) without a separator row. */
   parentSeal?: { label: string; tone: string }
+  /** Set the nested card's prose at the regular reading size (14px) instead of
+   * the compact one. The page's chassis ability uses it (board 07). */
+  readable?: boolean
   /** CHASSIS TWO-RENDERINGS: when set (with a chassis `data`), the card renders
    * the PATTERN view — pattern name as the title, the pattern's systems/modules
    * loadout as nested cards (a `size="medium" extent="head"` pattern shows name + description). */

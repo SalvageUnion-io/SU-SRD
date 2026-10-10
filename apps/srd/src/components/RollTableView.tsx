@@ -1,7 +1,7 @@
 import { Button, InlineRef } from 'component-lib'
 import type { FormEvent } from 'react'
 import type { RollState, RollTablePageData } from '../lib/rollTablePage'
-import { D20_FACES, rangeLabel, rowForRoll } from '../lib/rollTablePage'
+import { D20_FACES, outcomeLabel, rangeLabel, rowForRoll } from '../lib/rollTablePage'
 
 /**
  * RollTableView — a roll table's page, rolled and read (board 08b).
@@ -40,7 +40,7 @@ export function RollTableView({
   const { roll, history } = state
   const live = !!onRoll
   const hit = roll === null ? undefined : rowForRoll(data.table, data.rows, roll)
-  const outcomeOf = (n: number) => rowForRoll(data.table, data.rows, n)?.label ?? 'No effect'
+  const outcomeOf = (n: number) => outcomeLabel(data.table, data.rows, n)
 
   const commit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

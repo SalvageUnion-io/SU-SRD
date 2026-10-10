@@ -115,6 +115,21 @@ describe('the card as a page', () => {
     expect(lead?.textContent).toContain('Chassis Ability')
   })
 
+  test('page prose carries no leaf size class, so it reads at the page’s 18px', () => {
+    const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
+    const prose = container.querySelector('.su-entity-page__prose')
+    expect(prose).not.toBeNull()
+    expect(prose?.querySelector('.text-sm, .text-xs')).toBeNull()
+    expect(prose?.querySelector('[data-prose="flavor"], .font-medium')).not.toBeNull()
+  })
+
+  test('the chassis ability reads at 14px, not the compact 12px', () => {
+    const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
+    const lead = container.querySelector('.su-entity-page__lead')
+    expect(lead?.querySelector('.text-sm')).not.toBeNull()
+    expect(lead?.querySelector('.text-xs')).toBeNull()
+  })
+
   test('patterns are full-width link rows, with a phone’s "Show all" link', () => {
     const chassis = gopher()
     const count = chassis.patterns?.length ?? 0

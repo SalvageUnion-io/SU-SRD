@@ -1490,6 +1490,19 @@ body {
   order: 3;
 }
 
+/* The flavour line is set one step under the prose (boards 07, 08). */
+.su-entity-page__prose [data-prose='flavor'] {
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A phone reads at 17px (SrdMobile). */
+@media (max-width: 40rem) {
+  .su-entity-page__prose {
+    font-size: 17px;
+  }
+}
+
 .su-entity-page__lead {
   display: flex;
   flex-direction: column;
