@@ -3,8 +3,7 @@ import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 
 type EntityCatalogTileProps = {
   entity: SURefEntity
-  /** Where the tile links. The schema index navigates here; the og:image render
-   *  surface never follows it, but keeps it so the markup is identical. */
+  /** Where the tile links: the schema index navigates here. */
   href: string
   /** Render one of `entity`'s patterns (chassis only) as the subject instead of
    *  the chassis itself — the pattern is its own kind of entity, with its own
@@ -18,14 +17,11 @@ type EntityCatalogTileProps = {
  * Named `EntityCatalogTile`, not `CatalogTile`, because component-lib exports a
  * `CatalogTile` too (the landing-page category tile) and srd renders both.
  *
- * This exists so the schema index (`SchemaViewerIsland`) and the og:image render
- * surface (`OgCardIsland`) cannot drift apart. The social preview for an entity
- * is a screenshot of this component, so "the preview matches the Catalog view"
- * holds because they are the SAME component, not because two call sites happen
- * to pass matching props today.
+ * The social preview was a screenshot of this tile until the link previews got
+ * their own card (`OgCard`, issue 1280); the schema index is its one render
+ * site now.
  *
- * Wrap in `EntityHrefProvider` + `EntityDetailLinkProvider` at the grid level;
- * both render sites do.
+ * Wrap in `EntityHrefProvider` + `EntityDetailLinkProvider` at the grid level.
  */
 export function EntityCatalogTile({ entity, href, pattern }: EntityCatalogTileProps) {
   return (
