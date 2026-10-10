@@ -451,3 +451,66 @@ describe('games.get and the row summary', () => {
     expect(await stranger.as.query(api.games.get, { gameId })).toBeNull()
   })
 })
+
+describe('invite links (issue 1255)', () => {
+  test('a minted token is sixteen Crockford characters, never a short typed code', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const token = await organizer.as.mutation(api.invites.create, { gameId })
+    expect(token).toMatch(/^[0-9A-HJKMNP-TV-Z]{16}$/)
+  })
+
+  test("the Organizer's link opens the door, and copying again hands out the same one", async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const friend = await makeUser(t, 'Friend')
+
+    const token = await organizer.as.mutation(api.invites.link, { gameId })
+    expect(await organizer.as.mutation(api.invites.link, { gameId })).toBe(token)
+
+    expect(await friend.as.mutation(api.invites.redeem, { code: token })).toMatchObject({
+      kind: 'joined',
+    })
+  })
+
+  test("a player's link only asks to join, and the Organizer decides", async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const player = await makeUser(t, 'Player')
+    const friend = await makeUser(t, 'Friend')
+    await player.as.mutation(api.invites.redeem, {
+      code: await organizer.as.mutation(api.invites.create, { gameId }),
+    })
+
+    const token = await player.as.mutation(api.invites.link, { gameId })
+    // Not the Organizer's open link: a player brings a friend to the door.
+    expect(token).not.toBe(await organizer.as.mutation(api.invites.link, { gameId }))
+
+    expect(await friend.as.mutation(api.invites.redeem, { code: token })).toMatchObject({
+      kind: 'pending',
+    })
+    expect(await friend.as.query(api.games.listMine, {})).toHaveLength(0)
+    const knock = firstRow(await organizer.as.query(api.invites.pendingRequests, { gameId }))
+    expect(knock.displayName).toBe('Friend')
+  })
+
+  test('a revoked standing link is replaced on the next ask', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const token = await organizer.as.mutation(api.invites.link, { gameId })
+    const invite = firstRow(await organizer.as.query(api.invites.list, { gameId }))
+    await organizer.as.mutation(api.invites.revoke, { inviteId: invite._id })
+
+    const fresh = await organizer.as.mutation(api.invites.link, { gameId })
+    expect(fresh).not.toBe(token)
+  })
+
+  test('someone outside the Game gets no link', async () => {
+    const t = testConvex()
+    const { gameId } = await seedGame(t)
+    const stranger = await makeUser(t, 'Stranger')
+    await expect(stranger.as.mutation(api.invites.link, { gameId })).rejects.toThrow(
+      /not a member/i
+    )
+  })
+})

@@ -159,7 +159,7 @@ export type RecordRollResult = { game: string }
 export type InviteResult =
   | {
       outcome: 'invited'
-      /** The code the DM links to (`/join/<code>`). */
+      /** The token the DM links to (`/invite/<code>`). */
       code: string
       gameName: string
       /** The Organizer's display name, for the DM's "<who> invited you". */

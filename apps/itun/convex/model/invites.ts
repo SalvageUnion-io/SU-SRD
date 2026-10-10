@@ -53,17 +53,26 @@ export type MintArgs = {
   requiresApproval?: boolean
   target?: InviteTarget
   sourceInteractionId?: string
+  /** The Game's standing link for its creator's door (`invites.link`). */
+  standing?: boolean
 }
 
 /**
- * Crockford base32: 0-9 and A-Z minus I, L, O and U, so a code read aloud
- * across a table cannot be mistyped into a different valid one.
+ * Crockford base32: 0-9 and A-Z minus I, L, O and U.
+ *
+ * The token rides in an invite link (`/invite/<token>`) and is never typed, so
+ * it is long rather than short: sixteen characters, 80 bits, where the typed
+ * code it replaced had eight (issue 1255). Codes minted before the switch keep their
+ * eight characters and still resolve, through the same `by_code` index.
  */
 const CODE_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
-const CODE_LENGTH = 8
+const CODE_LENGTH = 16
 const MAX_CODE_ATTEMPTS = 5
 
-/** Eight random Crockford-base32 characters (~40 bits), from `crypto.getRandomValues`. */
+/**
+ * Sixteen random Crockford-base32 characters (80 bits), from
+ * `crypto.getRandomValues`. 256 is a multiple of 32, so `b % 32` is unbiased.
+ */
 function randomCode(): string {
   const bytes = new Uint8Array(CODE_LENGTH)
   crypto.getRandomValues(bytes)
@@ -85,11 +94,13 @@ async function uniqueCode(exists: (code: string) => Promise<boolean>): Promise<s
 }
 
 /**
- * Insert an invite on behalf of an Organizer whose membership the caller has
- * already checked. Returns the row.
+ * Insert an invite on behalf of a member whose membership the caller has
+ * already checked — an Organizer, or (for `invites.link`'s approval link) any
+ * member. Returns the row.
  *
  * The caller proves authority (a Convex token, or a Discord-signed
- * interaction); this decides only what the invite looks like.
+ * interaction) and decides what that member may mint; this decides only what
+ * the invite looks like.
  */
 export async function mintInvite(
   ctx: MutationCtx,
@@ -144,6 +155,7 @@ export async function mintInvite(
     requiresApproval,
     target,
     sourceInteractionId: args.sourceInteractionId,
+    standing: args.standing,
   })
 
   const invite = await ctx.db.get(inviteId)

@@ -1308,6 +1308,18 @@
       "type": "object",
       "value": {}
     },
+    "invites:link": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
     "invites:list": {
       "type": "object",
       "value": {

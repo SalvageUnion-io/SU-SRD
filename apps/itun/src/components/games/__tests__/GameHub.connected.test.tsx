@@ -74,9 +74,7 @@ const { ConnectionContext } = await import('../../../lib/connection/connectionCo
 const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const { getActiveContainer, setActiveContainer } = await import(
-  '../../../stores/activeContainerStore'
-)
+const { setActiveContainer } = await import('../../../stores/activeContainerStore')
 
 beforeAll(hydrateStores)
 
@@ -177,16 +175,21 @@ describe('the Game section', () => {
 
     // The server refuses a non-Organizer's invites.list and setMediator
     // outright, so offering either would be a control that only ever errors.
-    expect(screen.queryByText('Create invite code')).toBeNull()
+    expect(screen.queryByText('Create invite link')).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Who mediates' })).toBeNull()
+    // …but any member can bring someone to the table (issue 1255).
+    // (The button itself is `CopyInviteLink`'s, mounted only when Connected.)
+    expect(screen.getByRole('heading', { level: 3, name: 'Invite a crewmate' })).toBeTruthy()
+    expect(screen.getByText(/asks to join, and the organizer lets them in/)).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'End this game' })).toBeNull()
   })
 
   test('the Organizer gets invites, who mediates, and ending the game', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true } })
 
-    expect(screen.getByRole('heading', { level: 3, name: 'Invite someone' })).toBeTruthy()
-    expect(screen.getByText('Create invite code')).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 3, name: 'Invite links' })).toBeTruthy()
+    expect(screen.getByText('Create invite link')).toBeTruthy()
+    expect(screen.getByText(/signs in joins the game/)).toBeTruthy()
     expect(screen.getByLabelText('Invite note')).toBeTruthy()
     // One per member — the Organizer can appoint themselves OR somebody else.
     // This panel is the ONLY way the Mediator flag is ever set: without it the
@@ -196,7 +199,7 @@ describe('the Game section', () => {
     expect(screen.getByRole('heading', { level: 3, name: 'End this game' })).toBeTruthy()
   })
 
-  test('ending the game asks first, says where everything lands, and then shows My Stuff', async () => {
+  test('ending the game asks first, says where everything lands, and then shows Shelves', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true } })
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete this game' }))
@@ -210,7 +213,7 @@ describe('the Game section', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete game' }))
     })
     expect(mutations).toEqual([{ name: 'games:destroy', args: { gameId: 'g1' } }])
-    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
+    expect(navigations).toEqual([{ to: '/' }])
   })
 
   test('a game with no crawler does not promise one', async () => {
@@ -294,13 +297,14 @@ describe('the Mediator section', () => {
 })
 
 describe('a game the viewer is not in', () => {
-  test('explains itself, and offers My Stuff, instead of rendering the table', async () => {
+  test('explains itself, and offers the way back to Shelves, instead of rendering the table', async () => {
     await renderHub({ 'games:get': null })
 
     expect(screen.getByText(/not in this game/i)).toBeTruthy()
+    expect(screen.getByText(/invite link/i)).toBeTruthy()
     expect(section('Game')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Show My Stuff' }))
-    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
+    fireEvent.click(screen.getByRole('button', { name: 'Back to your shelves' }))
+    expect(navigations).toEqual([{ to: '/' }])
   })
 
   test('still loading is not the same as not a member', async () => {

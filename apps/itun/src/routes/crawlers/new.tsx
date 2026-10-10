@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useReturnToContainer } from '../../components/container/useShowContainer'
 import { CrawlerBuilder } from '../../components/crawler/CrawlerBuilder'
 import { NewEntityScreen } from '../../components/wizard/NewEntityScreen'
 import { pageTitle } from '../../lib/pageTitle'
@@ -21,13 +22,10 @@ function CrawlersNewPage() {
   const navigate = useNavigate()
   const { mode } = Route.useSearch()
 
-  function handleComplete() {
-    void navigate({ to: '/' })
-  }
-
-  function handleCancel() {
-    void navigate({ to: '/' })
-  }
+  // Finishing or cancelling goes back to the page the build was started from:
+  // a Game's own page, or Shelves.
+  const handleComplete = useReturnToContainer()
+  const handleCancel = handleComplete
 
   return (
     <main>
