@@ -8,7 +8,7 @@
  * grows uniformly to fill whichever axis binds first.
  *
  * **Below the floor on either axis it renders the phone form instead**
- * (`phone`, ADR-043; docs/architecture/dashboard.md §7): a portrait phone, a
+ * (`phone`, ADR-044; docs/architecture/dashboard.md §7): a portrait phone, a
  * landscape phone (whose height would draw the canvas near 0.49), a window
  * under about 496px tall, or browser zoom deep enough to shrink the CSS
  * viewport. The phone form scrolls the page; the canvas never does. The

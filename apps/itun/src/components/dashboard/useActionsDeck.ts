@@ -321,7 +321,7 @@ export function useActionsDeck({
   }
 
   /**
-   * The phone's pennant (ADR-043 D6): open an action and pay for it in one
+   * The phone's pennant (ADR-044 D6): open an action and pay for it in one
    * press, through the same `activate` the resolve's own pennant calls. An
    * action that cannot be paid for as it stands (locked, over the Heat Cap,
    * a cost to choose) only opens, and the resolve says why.

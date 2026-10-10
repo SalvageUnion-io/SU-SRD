@@ -1,5 +1,5 @@
 /**
- * DashboardPhone — the Dashboard's phone form (ADR-043, boards D4 and D5):
+ * DashboardPhone — the Dashboard's phone form (ADR-044, boards D4 and D5):
  * what `DashboardCanvas` renders when the fixed canvas would draw below its
  * legibility floor on either axis.
  *

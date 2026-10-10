@@ -5,7 +5,7 @@
  * the dashboard), and this only maps the dashboard's ontology tones onto the gauge's
  * `--tone` vars.
  *
- * The phone form (ADR-043, board D4) reads the same gauge in two more forms,
+ * The phone form (ADR-044, board D4) reads the same gauge in two more forms,
  * chosen by `variant`:
  *
  *  - `numeral` — a framed value cell, the label stamp under a big `9/9`: the

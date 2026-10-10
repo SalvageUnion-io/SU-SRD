@@ -1,5 +1,5 @@
 /**
- * PhoneMenu — the phone bar's ≡ (ADR-043 D9): the canvas display's other
+ * PhoneMenu — the phone bar's ≡ (ADR-044 D9): the canvas display's other
  * tabs, the strip and the Mediator's Downtime control, as one full-height
  * `ModalShell`.
  *

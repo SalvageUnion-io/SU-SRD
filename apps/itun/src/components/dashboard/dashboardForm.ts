@@ -1,5 +1,5 @@
 /**
- * dashboardForm — which form of the Dashboard is rendering (ADR-043): the
+ * dashboardForm — which form of the Dashboard is rendering (ADR-044): the
  * fixed `canvas`, or the `phone` form's one scrolling column.
  *
  * A form is a renderer, never a second home for play state. The same Majors
@@ -25,7 +25,7 @@ export const CANVAS_H = 800
 
 /**
  * The canvas's legibility floor: below this scale its 9px labels and 44px
- * targets shrink past reading and touching (ADR-043 §1).
+ * targets shrink past reading and touching (ADR-044 §1).
  */
 const MIN_SCALE = 0.62
 
@@ -40,7 +40,7 @@ export function isPhoneForm(width: number, height: number): boolean {
 }
 
 /**
- * The phone's open unit tab (ADR-043 D4). It opens on the Major and follows
+ * The phone's open unit tab (ADR-044 D4). It opens on the Major and follows
  * the Major whenever the mount changes: Board selects Mech, Dismount and
  * Eject select Pilot, Downtime starting selects Crawler and ending selects
  * the seat's Major again. Nothing else moves it; the player does. It is

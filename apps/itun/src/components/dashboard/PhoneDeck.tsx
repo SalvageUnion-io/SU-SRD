@@ -1,5 +1,5 @@
 /**
- * PhoneDeck — the Actions deck on a phone (ADR-043 D6), on the Major's tab
+ * PhoneDeck — the Actions deck on a phone (ADR-044 D6), on the Major's tab
  * only. The same `DeckListModel` the canvas's `DeckList` renders, drawn as
  * one column of one-line rows.
  *

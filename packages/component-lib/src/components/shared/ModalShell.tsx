@@ -61,7 +61,7 @@ type ModalShellProps = {
   finalFocus?: RefObject<HTMLElement | null>
   /**
    * Fill the whole viewport, edge to edge, and scroll inside it: the
-   * Dashboard's phone menu and its panels (ADR-043), which are screens rather
+   * Dashboard's phone menu and its panels (ADR-044), which are screens rather
    * than boxes over one. Ignores `maxWidth` and `align`; pair it with `bare`,
    * so the child draws its own header and close control.
    */
