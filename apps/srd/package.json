@@ -20,6 +20,7 @@
     "@base-ui/react": "catalog:",
     "@fontsource/barlow": "catalog:",
     "@fontsource/barlow-semi-condensed": "catalog:",
+    "@randsum/roller": "catalog:",
     "@sentry/browser": "catalog:",
     "component-lib": "workspace:*",
     "observability": "workspace:*",
