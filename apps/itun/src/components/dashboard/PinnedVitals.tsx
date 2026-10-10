@@ -1,5 +1,5 @@
 /**
- * PinnedVitals — the phone form's pinned row (ADR-043 D8): the numbers a
+ * PinnedVitals — the phone form's pinned row (ADR-044 D8): the numbers a
  * spend reads, as label | value cells (`Stat`, ruleset §3.7 and §7.1), with no
  * gauge track.
  *

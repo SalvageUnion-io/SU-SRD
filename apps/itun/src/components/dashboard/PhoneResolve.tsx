@@ -1,5 +1,5 @@
 /**
- * PhoneResolve — resolving an action on a phone (ADR-043 D7, board D5). It
+ * PhoneResolve — resolving an action on a phone (ADR-044 D7, board D5). It
  * replaces the bar, the tabs and the tab body: a view swap inside the
  * Dashboard, not a route and not a modal.
  *

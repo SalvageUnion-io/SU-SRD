@@ -306,7 +306,7 @@ export function PilotMajor({
   const view: MajorModel = {
     fam: 'pilot',
     stampLabel: boardedIn === null ? 'On Foot' : 'Boarded',
-    // The phone puts Mount second (ADR-043 D5): Board starts every boarded turn.
+    // The phone puts Mount second (ADR-044 D5): Board starts every boarded turn.
     bays: phone ? [vitals, mount, kitBay, abilityBay] : [vitals, kitBay, abilityBay, mount],
     overlay,
   }

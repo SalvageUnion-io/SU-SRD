@@ -504,7 +504,7 @@ export function MechMajor({
       buttons: [takeDamage, storage],
     },
   ]
-  // The phone's (board D4, ADR-043): SP and EP as cells, then Heat with Push
+  // The phone's (board D4, ADR-044): SP and EP as cells, then Heat with Push
   // and Vent at thumb height, then the other verbs. Cargo is on Storage.
   const phoneBays: BandBay[] = [
     { label: 'Pools', gauges: [sp, ep], buttons: [] },

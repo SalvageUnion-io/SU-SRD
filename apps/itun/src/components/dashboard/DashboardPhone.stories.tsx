@@ -18,7 +18,7 @@ import type { SlotKind } from './slotLayout'
 export default { title: 'Compositions/Dashboard/Phone' }
 
 /*
- * The Dashboard's phone form (ADR-043, issue 1256): board D4 (the Mech tab)
+ * The Dashboard's phone form (ADR-044, issue 1256): board D4 (the Mech tab)
  * and board D5 (resolving). The frames are the real presentational halves
  * over fixture models with inert handlers; the store-wired Majors need the
  * app's stores.
