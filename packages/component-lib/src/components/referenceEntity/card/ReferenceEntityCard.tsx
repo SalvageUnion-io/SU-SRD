@@ -182,6 +182,7 @@ function ReferenceEntityCardInner({
   shownProse,
   userMade = false,
   madeBy,
+  kicker,
   texture,
   parentSeal,
   pattern,
@@ -325,8 +326,9 @@ function ReferenceEntityCardInner({
   const isTitanicMeta = isAction && isTitanicAction(entity)
   // The seam's TYPE stamp — on every card (board E1). A pattern reads
   // "Pattern"; an ability carries its tree.
-  const seamType = isPattern ? 'Pattern' : resolveSeamLabel(schemaName, entity)
-  const footerType = isAction ? undefined : isPattern ? 'Pattern' : resolveEyebrow(schemaName).type
+  const seamType = kicker ?? (isPattern ? 'Pattern' : resolveSeamLabel(schemaName, entity))
+  const footerType =
+    kicker ?? (isAction ? undefined : isPattern ? 'Pattern' : resolveEyebrow(schemaName).type)
   const provenance = resolveFooterProvenance(entity, pattern)
   const axisMarkers: AxisMarker[] = isAction
     ? []
@@ -508,7 +510,8 @@ function ReferenceEntityCardInner({
         onBandText={onBandText}
         ink={fill === 'ink'}
         typeLabel={
-          action?.actionType ? resolveEyebrow(schemaName).type : resolveEyebrow(schemaName).type
+          kicker ??
+          (action?.actionType ? resolveEyebrow(schemaName).type : resolveEyebrow(schemaName).type)
         }
         name={name}
         tail={tail}

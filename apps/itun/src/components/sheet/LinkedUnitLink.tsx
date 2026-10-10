@@ -19,6 +19,7 @@ const TONE: Record<EntityRef['type'], string> = {
   pilot: tokens.color.sheetPilot,
   mech: tokens.color.sheetMech,
   crawler: tokens.color.sheetCrawler,
+  npc: tokens.color.denizenBand,
 }
 
 const LINE = {

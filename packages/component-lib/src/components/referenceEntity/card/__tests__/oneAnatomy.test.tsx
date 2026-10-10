@@ -143,6 +143,14 @@ describe('the user-made flag', () => {
     expect(screen.queryByText('Made by alxjrvs')).toBeNull()
   })
 
+  test('a kicker names what a user-made card was built from, on the seam and in the footer', () => {
+    render(
+      <ReferenceEntityCard data={sestra()} userMade madeBy="alxjrvs" kicker="NPC · from Veteran" />
+    )
+    // The seam's type stamp and the footer's type label both read the kicker.
+    expect(screen.getAllByText('NPC · from Veteran')).toHaveLength(2)
+  })
+
   test('dashes the shortform pill, at the smallest extent', () => {
     const { container } = render(
       <ReferenceEntityCard data={drill()} size="small" extent="head" userMade />

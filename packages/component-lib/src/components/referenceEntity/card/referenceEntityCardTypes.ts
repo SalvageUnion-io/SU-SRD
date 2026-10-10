@@ -76,6 +76,12 @@ export type ReferenceEntityCardProps = {
    */
   madeBy?: string
   /**
+   * Replaces the type stamp on the seam and the type label in the identity
+   * footer — "NPC · from Veteran", "Crawler crew · Med Bay". For a user-made
+   * thing that says what it was built from; a canon entity's type is its own.
+   */
+  kicker?: string
+  /**
    * The light speckle on the header (ruleset §3.5) — on by default. `false`
    * turns it off for this card and every card nested in it: the Dashboard and
    * tooltips stay flat.

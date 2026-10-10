@@ -57,6 +57,21 @@ export function crawlerStats(techLevel: string, bayCount: number): EntityRowStat
  *
  * No HP/AP here: a roster answers "what have I got", not "how hurt is it".
  */
+/**
+ * A built NPC's row stats: its role and its max HP (or SP), `ROLE | Doc`,
+ * `HP | 4`. Max, not current: a roster answers what you have.
+ */
+export function npcStats(npc: {
+  position?: string
+  hitPoints: number
+  damageType: 'HP' | 'SP'
+}): EntityRowStat[] {
+  const stats: EntityRowStat[] = []
+  if (npc.position?.trim()) stats.push({ label: 'Role', value: npc.position.trim() })
+  stats.push({ label: npc.damageType, value: npc.hitPoints })
+  return stats
+}
+
 export function pilotStats(classRef: string, callsign?: string): EntityRowStat[] | undefined {
   const stats: EntityRowStat[] = []
   const className = resolveClassName(classRef)

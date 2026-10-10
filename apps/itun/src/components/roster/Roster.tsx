@@ -6,9 +6,10 @@
  * (`activeContainerStore`), and the header's "Showing" select
  * (`ContainerSwitcher`) navigates between them:
  *
- *  - **My Stuff** — your builds that are in no Game, in three columns of
- *    `EntityRow`s. Each row: View, "Move to game…" (`MoveToGameSelect`), and
- *    Delete behind the shared confirm.
+ *  - **My Stuff** — your builds that are in no Game, in four columns of
+ *    `EntityRow`s: pilots, mechs, crawlers and built NPCs (P7 D10, until the
+ *    Shelves redesign gives NPCs their shelf). Each row: View, "Move to
+ *    game…" (`MoveToGameSelect`), and Delete behind the shared confirm.
  *  - **A Game** — that table's roster, yours first, with every player and
  *    Mediator action below the lists (`GameHub`).
  *
@@ -30,7 +31,7 @@
  *      delete keeps the dialog open with the reason.
  */
 
-import { buttonVariants, cn, PageShell, RosterSkeleton, Stat } from 'component-lib'
+import { buttonVariants, cn, PageShell, RosterSkeleton, Stat, UserMadeStamp } from 'component-lib'
 import { UserRound } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
@@ -38,6 +39,7 @@ import {
   useCrawlers,
   useHydrateEntities,
   useMechs,
+  useNpcs,
   usePilots,
   useSoftLinkList,
 } from '../../hooks/entities'
@@ -46,6 +48,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import type { ContainerFields } from '../../lib/container'
 import { containerOf, sameContainer } from '../../lib/container'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
+import { crewLinkOf, slotName } from '../../lib/npcs/npcModel'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import { useActiveContainer } from '../../stores/activeContainerStore'
 import type { EntityType } from '../../stores/entityStore'
@@ -64,7 +67,7 @@ import { useConfirm } from '../shared/useConfirm'
 import { FrontDoor } from './FrontDoor'
 import type { SegmentKind } from './RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from './RosterColumn'
-import { crawlerStats, mechChassisStats, pilotStats } from './rowStats'
+import { crawlerStats, mechChassisStats, npcStats, pilotStats } from './rowStats'
 
 // ---------------------------------------------------------------------------
 // Row-meta helpers
@@ -95,11 +98,13 @@ const TONE_BG: Record<SegmentKind, string> = {
   pilot: 'var(--color-sheet-pilot)',
   mech: 'var(--color-sheet-mech)',
   crawler: 'var(--color-sheet-crawler)',
+  npc: 'var(--color-adversary)',
 }
 const TONE_INK: Record<SegmentKind, string> = {
   pilot: 'var(--color-ink)',
   mech: 'var(--color-ink)',
   crawler: 'var(--color-paper)',
+  npc: 'var(--color-paper)',
 }
 
 // ---------------------------------------------------------------------------
@@ -115,12 +120,13 @@ export function Roster() {
   /** Mobile-endpoint segmented switch (design §3.7) — which column shows ≤ md */
   const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
 
-  // Hydrate all three entity types + softLinks on mount.
-  const hydratedAll = useHydrateEntities(['pilot', 'mech', 'crawler', 'softLink'])
+  // Hydrate every entity type + softLinks on mount.
+  const hydratedAll = useHydrateEntities(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
 
   const allPilots = usePilots()
   const allMechs = useMechs()
   const allCrawlers = useCrawlers()
+  const allNpcs = useNpcs()
   const softLinks: SoftLink[] = useSoftLinkList()
 
   // Name lookups for '↳ Name' cross-links — built from the UNFILTERED lists so
@@ -202,6 +208,7 @@ export function Roster() {
   const pilots = inContainer(allPilots)
   const mechs = inContainer(allMechs)
   const crawlers = inContainer(allCrawlers)
+  const npcs = inContainer(allNpcs)
 
   /**
    * Which container the body shows. A Game only when Connected: a Disconnected
@@ -221,7 +228,11 @@ export function Roster() {
    * misfire there. Those fall through to the normal grid and its per-column
    * "create" empty states.
    */
-  const isFirstRun = allPilots.length === 0 && allMechs.length === 0 && allCrawlers.length === 0
+  const isFirstRun =
+    allPilots.length === 0 &&
+    allMechs.length === 0 &&
+    allCrawlers.length === 0 &&
+    allNpcs.length === 0
 
   function openDeleteDialog(type: EntityType, id: string, name: string) {
     confirm({
@@ -289,7 +300,9 @@ export function Roster() {
             // shows on the next.
             key={shownGameId}
             gameId={shownGameId}
-            activeSegment={activeSegment}
+            // A Game's roster has no NPC column yet: its phone switch starts on
+            // pilots rather than showing nothing.
+            activeSegment={activeSegment === 'npc' ? 'pilot' : activeSegment}
             onSegmentChange={setActiveSegment}
           />
         ) : !hydratedAll || settlingIntoGame ? (
@@ -298,9 +311,9 @@ export function Roster() {
           <FirstRunWelcome />
         ) : (
           <>
-            <SegmentSwitch active={activeSegment} onChange={setActiveSegment} />
+            <SegmentSwitch active={activeSegment} onChange={setActiveSegment} withNpcs />
 
-            <RosterGrid>
+            <RosterGrid columns={4}>
               <RosterColumn
                 kind="pilot"
                 title="Pilots"
@@ -455,6 +468,53 @@ export function Roster() {
                                 pilotClassById.get(l.from.id)
                               )
                             ),
+                          ])}
+                        />
+                      </li>
+                    )
+                  })}
+                </RosterList>
+              </RosterColumn>
+
+              <RosterColumn
+                kind="npc"
+                title="NPCs"
+                active={activeSegment === 'npc'}
+                create={{ href: '/npcs/new', label: 'Design an NPC' }}
+                emptyMessage="No NPCs yet. Design one from a template, or from scratch."
+                empty={npcs.length === 0}
+              >
+                <RosterList>
+                  {npcs.map((n) => {
+                    const crew = crewLinkOf(softLinks, n.id)
+                    return (
+                      <li key={n.id} className="list-none">
+                        <EntityRow
+                          entityType="npc"
+                          name={n.name}
+                          // User-made: the dashed frame, and the stamp that tells
+                          // it from an empty slot's (ruleset §3.9).
+                          seal={<UserMadeStamp />}
+                          sheetHref={`/sheet/npc/${n.id}`}
+                          linkAs={AppLink}
+                          onDeleteClick={() => openDeleteDialog('npc', n.id, n.name)}
+                          actions={
+                            <MoveToGameSelect
+                              entityType="npc"
+                              entityId={n.id}
+                              entity={n}
+                              confirm={confirm}
+                            />
+                          }
+                          stats={npcStats(n)}
+                          metaLine={metaParts([
+                            crew &&
+                              linkSegment(
+                                'crawler',
+                                crew.to.id,
+                                crawlerNameById.get(crew.to.id),
+                                crew.slot && slotName(crew.slot)
+                              ),
                           ])}
                         />
                       </li>
