@@ -1,7 +1,7 @@
 /**
  * Pure logic for trait-data validation in Salvage Union data.
  *
- * Three checks, all fixture-free (they flow from the schema/data, not from any
+ * Four checks, all fixture-free (they flow from the schema/data, not from any
  * named entity):
  *
  *  1. Trait casing — every `traits[].type` must be lowercase. The convention is
@@ -14,12 +14,17 @@
  *  3. Vocabulary membership — every `traits[].type` must resolve against traits.json
  *     or keywords.json. Unknown types silently fall back to plain text in the UI
  *     (TraitKeywordDisplayView), so they never surface as visible errors.
+ *  4. Inline links — every `[[Trait]]` / `[[[Trait] (n)]]` in any string must
+ *     name a trait in traits.json (without case, as both renderers resolve it).
+ *     A miss renders as an unlinked mark, so a dead link never looks broken.
  */
+
+import { parseTraitReferences } from '../lib/traitText.js'
 
 export type TraitIssue = {
   file: string
   entity: string
-  kind: 'casing' | 'unresolvable-removeTrait' | 'unknown-trait-type'
+  kind: 'casing' | 'unresolvable-removeTrait' | 'unknown-trait-type' | 'dead-inline-trait'
   detail: string
 }
 
@@ -145,6 +150,7 @@ export function findTraitIssues(filesByName: Record<string, Entity[]>): TraitIss
     issues.push(...findUnresolvableRemoveTraitIssues(file, entities))
   }
   issues.push(...findUnknownTraitTypes(filesByName))
+  issues.push(...findDeadInlineTraitLinks(filesByName))
   return issues
 }
 
@@ -184,6 +190,51 @@ export function findUnknownTraitTypes(
           kind: 'unknown-trait-type',
           detail: `trait type "${type}" is not defined in traits.json or keywords.json`,
         })
+      }
+    }
+  }
+  return issues
+}
+
+// ---------------------------------------------------------------------------
+// Inline link check
+// ---------------------------------------------------------------------------
+
+function collectStrings(node: unknown, out: string[] = []): string[] {
+  if (typeof node === 'string') out.push(node)
+  else if (Array.isArray(node)) for (const item of node) collectStrings(item, out)
+  else if (isObject(node)) for (const value of Object.values(node)) collectStrings(value, out)
+  return out
+}
+
+/**
+ * Flag every inline trait link, in any string of any row, whose name is not a
+ * trait. The renderers (component-lib's TraitRef, the bot's linkifyTraitRefs)
+ * resolve against traits.json only, ignoring case.
+ */
+export function findDeadInlineTraitLinks(
+  filesByName: Record<string, Record<string, unknown>[]>
+): TraitIssue[] {
+  const traits = new Set(
+    (filesByName['traits.json'] ?? [])
+      .map((t) => t.name)
+      .filter((n): n is string => typeof n === 'string')
+      .map((n) => n.toLowerCase())
+  )
+  const issues: TraitIssue[] = []
+  for (const [filename, entities] of Object.entries(filesByName)) {
+    for (const entity of entities) {
+      for (const text of collectStrings(entity)) {
+        if (!text.includes('[[')) continue
+        for (const ref of parseTraitReferences(text)) {
+          if (traits.has(ref.traitName.trim().toLowerCase())) continue
+          issues.push({
+            file: filename,
+            entity: entityName(entity),
+            kind: 'dead-inline-trait',
+            detail: `inline link ${ref.fullMatch} names no trait in traits.json — unlink it, or name a real trait`,
+          })
+        }
       }
     }
   }

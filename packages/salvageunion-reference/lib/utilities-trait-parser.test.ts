@@ -176,11 +176,10 @@ describe('parseTraitReferences ReDoS hardening', () => {
       }
     }
     expect(refCount).toBeGreaterThan(50)
-    // Nearly every reference names a real trait. The two exceptions are
-    // authored placeholders, not parser failures: `[[CHASSIS]]` is a chassis-name
-    // token and "Personality" is prose. Pinning the exact set means a parser
-    // change that starts dropping or mangling real trait names fails here.
-    expect([...unresolved].sort()).toEqual(['CHASSIS', 'Personality'])
+    // Every reference names a real trait (the `traits` data check,
+    // `dead-inline-trait`, gates that). Pinning it here too means a parser
+    // change that starts dropping or mangling real trait names fails.
+    expect([...unresolved]).toEqual([])
   })
 
   test('a parameterized reference is not double-reported as a simple one', () => {

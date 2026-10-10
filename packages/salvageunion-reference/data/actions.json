@@ -3192,7 +3192,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "The [[CHASSIS]] can move an additional Range Band on its turn as a free action. In addition, it moves twice as fast across the Campaign, Area, and Region Maps."
+        "value": "The [(CHASSIS)] can move an additional Range Band on its turn as a free action. In addition, it moves twice as fast across the Campaign, Area, and Region Maps."
       }
     ],
     "actionSource": "chassis",
@@ -4070,7 +4070,7 @@
       },
       {
         "type": "paragraph",
-        "value": "Their personality develops over time, based on a learning algorithm. During Downtime, they gain an A.I. [[Personality]] Trait based on their recent experiences. You can use the A.I. [[Personality]] Trait Table for this or consider your own."
+        "value": "Their personality develops over time, based on a learning algorithm. During Downtime, they gain an A.I. Personality Trait based on their recent experiences. You can use the A.I. Personality Trait Table for this or consider your own."
       },
       {
         "type": "paragraph",
@@ -5602,7 +5602,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "You have constructed a mechanical companion. Name and describe your new best friend and choose an A.I. [[Personality]] Trait for them. You may choose your own or roll on the A.I. Personality Table."
+        "value": "You have constructed a mechanical companion. Name and describe your new best friend and choose an A.I. Personality Trait for them. You may choose your own or roll on the A.I. Personality Table."
       },
       {
         "type": "paragraph",
