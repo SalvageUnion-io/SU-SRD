@@ -16,6 +16,7 @@ import { Button } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { DashboardGauge } from './DashboardGauge'
 import type { BandGauge } from './MajorFrame'
+import { slotRule } from './slotLayout'
 
 export type MinorModel = {
   fam: 'mech' | 'pilot' | 'crawler'
@@ -30,12 +31,6 @@ export type MinorModel = {
   problems: string[]
   /** A muted status line at the foot ("In Scrapper · no injuries"). */
   status?: string
-}
-
-const FAM: Record<MinorModel['fam'], { edge: string; ink: string }> = {
-  mech: { edge: 'var(--color-mech)', ink: 'var(--color-sheet-mech-deep)' },
-  pilot: { edge: 'var(--color-pilot)', ink: 'var(--color-sheet-pilot-deep)' },
-  crawler: { edge: 'var(--color-crawler)', ink: 'var(--color-sheet-crawler-deep)' },
 }
 
 const FRAME: CSSProperties = {
@@ -65,6 +60,7 @@ const NAME: CSSProperties = {
   textTransform: 'uppercase',
   letterSpacing: 'var(--tracking-caps-tight)',
   fontSize: 'var(--text-caption)',
+  color: 'var(--color-ink)',
 }
 
 const ASIDE: CSSProperties = {
@@ -115,11 +111,10 @@ export function MinorFrame({
   slot: string
   onExpand: (trigger: HTMLButtonElement) => void
 }) {
-  const fam = FAM[view.fam]
   const troubled = view.problems.length > 0
   const frame: CSSProperties = {
     ...FRAME,
-    borderLeft: `4px solid ${fam.edge}`,
+    borderTop: slotRule(view.fam),
     // The red outline is the "look here" signal. An inset ring, so the
     // slot never changes size when it appears.
     boxShadow: troubled ? 'inset 0 0 0 2px var(--color-status-bad)' : undefined,
@@ -127,7 +122,7 @@ export function MinorFrame({
   return (
     <section aria-label={`${slot} · ${view.name}`} data-fam={view.fam} style={frame}>
       <div style={HEAD}>
-        <h3 style={{ ...NAME, color: fam.ink }}>{view.name}</h3>
+        <h3 style={NAME}>{view.name}</h3>
         {view.aside ? <span style={ASIDE}>{view.aside}</span> : null}
         <Button
           variant="ghost"

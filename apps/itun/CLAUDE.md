@@ -103,8 +103,8 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   nullable `gameId` and resolved through `src/lib/container.ts`. Filter with `containerOf` +
   `sameContainer`, and only when `mode === 'connected'`: signed out there is
   nothing to show, and Disconnected has no live Game list to filter against, so
-  it shows the cached pile whole. `/` (`Roster`)
-  shows one container at a time; there are no Games pages.
+  it shows the cached pile whole. `Roster` shows one container: the shelf at
+  `/`, a Game at `/games/$gameId`.
 - **Assignments** ([ADR-037](../../docs/ARCHITECTURE.md#adr-037)):
   draw soft links only via `assignLink`; the rules are
   `src/lib/links/linkRules.ts`, shared with `convex/`.

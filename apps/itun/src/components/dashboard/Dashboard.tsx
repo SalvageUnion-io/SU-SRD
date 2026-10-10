@@ -39,6 +39,7 @@
  */
 
 import { buttonVariants } from 'component-lib'
+import { ChevronLeft } from 'lucide-react'
 // The dashboard's `.pc-*` stylesheet. component-lib's dashboard components
 // import no CSS themselves — that rode the barrel into srd (audit PK-01) — so
 // the one app that renders a dashboard loads it here, and it lands in this
@@ -47,11 +48,14 @@ import '../../styles/dashboard.css'
 import { borderWidth, color } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
-import { isUpkeepStep } from '../../lib/rules/downtime'
+import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
+import { downtimeStepCount, isUpkeepStep } from '../../lib/rules/downtime'
+import { pilotingContext } from '../../lib/rules/pilotingContext'
 import { useEntityStore } from '../../stores/entityStore'
 import { AppLink } from '../shared/AppLink'
 import type { EntityLookup } from '../sheet/composition'
 import { resolveSheetComposition } from '../sheet/composition'
+import { mechRailItems, pilotRailItems } from '../sheet/railStats'
 import type { BoardSources } from './boardMenu'
 import { boardMenu } from './boardMenu'
 import { CrewTab } from './CrewTab'
@@ -66,6 +70,7 @@ import { DisplayTabs } from './DisplayTabs'
 import { DowntimeWizard } from './DowntimeWizard'
 import { LogTab } from './LogTab'
 import { RailBar } from './RailBar'
+import { RailUnit } from './RailUnit'
 import { ResolvePanel } from './ResolvePanel'
 import { SavedIndicator } from './SavedIndicator'
 import { SlotOverlay } from './SlotOverlay'
@@ -228,13 +233,20 @@ function DashboardView({
   // Downtime is crawler-dominant: the rail and the Major follow the crawler
   // ontology (pink); otherwise the boarded mech / pilot on foot.
   const fam = isDowntime ? 'crawler' : onFoot ? 'pilot' : 'mech'
-  const railTitle = isDowntime
-    ? crawler
-      ? `Downtime · ${crawler.name}`
-      : 'Downtime'
+  // The rail's stamp says where the pilot is (boards D1–D3).
+  const stepIndex = downtime.downtime.stepIndex
+  const railStamp = isDowntime
+    ? `Downtime · Step ${(stepIndex ?? 0) + 1} of ${downtimeStepCount()}`
     : boarded
-      ? `Mech · ${boarded.name}`
-      : `Pilot · ${pilot.name}`
+      ? `Boarded · ${boarded.name}`
+      : 'On foot'
+  const railContext = isDowntime
+    ? mediator
+      ? 'You run it'
+      : 'Run by the Mediator'
+    : feed.gameName
+      ? `Game · ${feed.gameName}`
+      : undefined
 
   const slots = {
     mech,
@@ -291,6 +303,38 @@ function DashboardView({
           },
         }
       : list
+  const expand = (kind: SlotKind, trigger: HTMLButtonElement) => {
+    setExpanded({ kind, trigger })
+    setOverlayOpen(true)
+  }
+  // Downtime (board D3): the crawler has the row; the pilot and mech ride the
+  // rail with their pips and open their full controls over the display.
+  const railUnits = isDowntime ? (
+    <>
+      <RailUnit
+        kind="pilot"
+        label="Pilot"
+        readings={[
+          ...pilotRailItems(pilot, resolveEffectiveCrawlerLevel(pilot, crawler))
+            .slice(0, 1)
+            .map((r) => ({ ...r, pips: true })),
+          { label: 'TP', value: pilot.trainingPoints ?? 0 },
+        ]}
+        onOpen={(trigger) => expand('pilot', trigger)}
+      />
+      {mech && (
+        <RailUnit
+          kind="mech"
+          label={mech.name}
+          readings={mechRailItems(mech, pilotingContext(mech, pilot.abilities)).map((r, i) => ({
+            ...r,
+            pips: i === 0,
+          }))}
+          onOpen={(trigger) => expand('mech', trigger)}
+        />
+      )}
+    </>
+  ) : undefined
   const expandedName =
     expanded === null
       ? ''
@@ -306,21 +350,25 @@ function DashboardView({
         mount={mount}
         rail={
           <RailBar
-            title={railTitle}
+            name={pilot.name}
+            stamp={railStamp}
             fam={fam}
+            context={railContext}
+            units={railUnits}
             returnControl={
               <AppLink
-                href="/"
+                href={feed.gameHref ?? '/'}
+                aria-label={feed.gameName ? `Back to ${feed.gameName}` : 'Back to Shelves'}
                 className={buttonVariants({
                   surface: 'instrument',
                   variant: 'ghost',
-                  size: 'compact',
+                  size: 'iconOnly',
                 })}
               >
-                ◄ Return to Roster
+                <ChevronLeft size={18} aria-hidden="true" />
               </AppLink>
             }
-            status={<SavedIndicator gameName={feed.gameName} />}
+            status={<SavedIndicator />}
             downtimeAction={downtimeAction}
           />
         }
@@ -329,10 +377,7 @@ function DashboardView({
             {...slots}
             mount={mount}
             damagePrompt={{ armed: damageArmed, consume: () => setDamageArmed(false) }}
-            onExpand={(kind, trigger) => {
-              setExpanded({ kind, trigger })
-              setOverlayOpen(true)
-            }}
+            onExpand={expand}
           />
         }
         display={
@@ -374,7 +419,7 @@ function DashboardView({
                     tables: <DisplayPanel focus="tables" {...panel} />,
                     srd: <DisplayPanel focus="srd" {...panel} />,
                     log: <LogTab rolls={feed.rolls} alerts={feed.alerts} />,
-                    crew: <CrewTab crew={crew} />,
+                    crew: <CrewTab crew={crew} gameId={feed.gameId} />,
                   }}
                 />
               </div>

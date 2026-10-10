@@ -17,9 +17,9 @@ import { fontSize, radius, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 
 /**
- * A render-ready action card. The action ENTITY drives a CATALOG-extent
- * `ReferenceEntityCard` tile — the same index tile the SRD catalog renders — so
- * the deck reuses the canonical action rendering instead of a hand-rolled row.
+ * A render-ready action card. The action ENTITY drives a header-only
+ * (`extent="head"`) `ReferenceEntityCard` row, so the deck reuses the canonical
+ * action rendering instead of a hand-rolled row.
  * The card states its own name, so the deck adds no describing label above it.
  * Reach/lock is resolved by the caller and layered on top (dim + tooltip), never
  * baked into the card.
@@ -144,17 +144,15 @@ export function DeckList({ view }: { view: DeckListModel }) {
       ) : (
         <div className="pc-deck">
           {/*
-           * ONE masonry grid over the whole deck — no source/timing headings, so
-           * an action is never filed under a name of its own; the tile already
-           * states what it is. The cards are the canonical CATALOG tile
-           * (`medium` + `catalog`), the same index tile the SRD catalog renders:
-           * it keeps the description but suppresses every nested element
-           * (sub-entities, roll tables, choices), which is what makes it safe
-           * inside this card's own `role="button"` wrapper — the full extent
-           * would embed buttons whose clicks bubble into `onOpen`. Tile heights
-           * differ with description length, which is what the masonry packing is
-           * for. `<ul>/<li>` stays — a set of actions IS a list semantically;
-           * "grid" is purely the layout.
+           * ONE grid over the whole deck — no source/timing headings, so an
+           * action is never filed under a name of its own; the entry already
+           * states what it is. Each entry is the COMPACT, header-only card
+           * (`medium` + `head`, board D1): the name, the source stamp and the
+           * cost pennant on one row, so a kitted pilot's deck stays a short
+           * list. The full card — description, roll table, choices — is the
+           * Resolve pane's, one click away. A head row nests no buttons, which
+           * keeps it safe inside this entry's own `role="button"`. `<ul>/<li>`
+           * stays — a set of actions IS a list semantically.
            */}
           <ul className="pc-deck-grid">
             {view.rows.map((row) => (
@@ -169,13 +167,7 @@ export function DeckList({ view }: { view: DeckListModel }) {
                 <ReferenceEntityCard
                   data={row.entity}
                   size="medium"
-                  extent="catalog"
-                  // An action's roll table survives the catalog extent by design
-                  // (it IS the content on an SRD index page), but its Show/Roll
-                  // buttons cannot nest inside this tile's own `role="button"`.
-                  // The table is one click away — the resolve panel renders the
-                  // same action as a full card.
-                  hide={{ rollTable: true }}
+                  extent="head"
                   // The Dashboard stays flat (ruleset §3.5): no speckle.
                   texture={false}
                   disabled={row.locked}

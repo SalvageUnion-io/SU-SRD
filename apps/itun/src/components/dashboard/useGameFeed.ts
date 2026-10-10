@@ -50,6 +50,15 @@ export type CrewLine = {
   where: string
   /** "HP 4/17 · AP 5/7". */
   vitals: string
+  /** "4/17" — the Crew tab's HP column (board D2). */
+  hp: string
+  /** "5/7" — the Crew tab's AP column. */
+  ap: string
+  /**
+   * Where they are and in what, as the Crew tab's Mech column reads it: "In
+   * Spectrum · SP 6/9", "On foot · Scrapper parked", or "On foot".
+   */
+  unit: string
   /**
    * Their mech: its SP and Heat while their seat has them aboard, else one
    * line for the mech assigned to them, parked, with what is wrong with it.
@@ -69,8 +78,10 @@ export type CrewLine = {
 export type GameFeed = {
   /** The Game's name, or null before it arrives. */
   gameName: string | null
-  /** The Game's hub, where the proposal inbox is answered. */
+  /** The Game's own page, where the proposal inbox is answered. */
   gameHref: string | null
+  /** The Game, for "Copy invite link" on the Crew tab; null outside one. */
+  gameId: Id<'games'> | null
   /** Newest first; null while the first answer is on its way. */
   rolls: RollLine[] | null
   /** Newest first. */
@@ -103,6 +114,7 @@ export function useGameFeed(pilot: Pilot | null): GameFeed {
   return {
     gameName: game?.name ?? null,
     gameHref: gameId === null ? null : `/games/${gameId}`,
+    gameId,
     rolls: rolls ?? null,
     alerts: alerts ?? [],
     inbox: pending?.length ?? 0,
@@ -192,13 +204,26 @@ export function crewLines(
         : [`${mech.name} parked`, ...parkedProblems(mech.status)].join(', ')
     }
     const resolving = resolvingOf.get(id) ?? null
+    const hp = pool(p.currentHP, p.maxHP)
+    const ap = pool(p.currentAP, p.maxAP)
+    const unit =
+      mech === undefined
+        ? p.boarded
+          ? 'In a mech'
+          : 'On foot'
+        : p.boarded
+          ? `In ${mech.name} · SP ${pool(mech.currentSP, mech.maxSP)}`
+          : `On foot · ${mech.name} parked`
     lines.push({
       pilotId: id,
       name: p.name,
       self: id === pilotId,
       href: `/sheet/pilot/${id}`,
       where: p.boarded ? `In ${mech?.name ?? 'a mech'}` : 'On foot',
-      vitals: `HP ${pool(p.currentHP, p.maxHP)} · AP ${pool(p.currentAP, p.maxAP)}`,
+      vitals: `HP ${hp} · AP ${ap}`,
+      hp,
+      ap,
+      unit,
       mech: mechLine,
       mechAttention: !p.boarded && (mech?.attention ?? false),
       problems: [

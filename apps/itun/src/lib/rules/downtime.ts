@@ -91,6 +91,11 @@ export const DOWNTIME_UPKEEP_SCRAP = 5
  */
 export const UPKEEP_STEP_NAME = 'Upkeep & Upgrade'
 
+/** How many steps the Downtime procedure has (the reference guide's). */
+export function downtimeStepCount(): number {
+  return SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps?.length ?? 0
+}
+
 /**
  * Whether the Downtime step at `stepIndex` is the Upkeep step, read from the
  * Crawler Downtime guide (the same steps `DowntimeWizard` renders). False when

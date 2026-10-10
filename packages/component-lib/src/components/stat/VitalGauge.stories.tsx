@@ -88,16 +88,16 @@ export const Default: Story = () => (
   </div>
 )
 
-/** COMPACT — the single-row instrument bar (label · one segment row · value/max).
+/** COMPACT — the instrument bar (label · fixed-size pips that wrap · value/max).
  *  `surface="sheet"` (light, default) and `surface="instrument"` (dark ground):
  *  the same primitive the dashboard now renders in place of its bespoke gauge. */
 export const Compact: Story = () => (
   <div className="flex flex-col gap-5 bg-paper p-5 font-body text-ink">
     <p className="max-w-2xl text-xs leading-relaxed text-wk-muted">
-      The single-row compact gauge: label, one segment row, and value/max on one line — no big
-      numeral, caption, or multi-row split. Filled segments use the sheet's <code>--tone</code>, and
-      Heat redlines at its danger index. The dashboard instruments render this (dark instrument
-      surface) instead of a bespoke bar.
+      The compact gauge: label, the pips, and value/max — no big numeral or caption. The pips are a
+      fixed size and a long track wraps onto a second row rather than thinning (issue 1255). Filled
+      segments use the sheet's <code>--tone</code>, and Heat redlines at its danger index. The
+      dashboard instruments render this.
     </p>
     <Row label="compact · sheet surface" skin="sheet--mech">
       <VitalGauge
@@ -110,6 +110,11 @@ export const Compact: Story = () => (
     </Row>
     <Row label="compact · editable" skin="sheet--pilot">
       <VitalGauge label="EP" value={Math.ceil(ep / 2)} max={ep} size="compact" onChange={noop} />
+    </Row>
+    <Row label="compact · a long track wraps (SP 20)" skin="sheet--crawler">
+      <div style={{ width: 240 }}>
+        <VitalGauge label="SP" value={17} max={20} size="compact" readOnly />
+      </div>
     </Row>
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-col gap-2 rounded-card bg-[#1b1712] p-3">

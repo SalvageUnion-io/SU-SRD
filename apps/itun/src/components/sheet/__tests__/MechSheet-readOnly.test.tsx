@@ -118,6 +118,21 @@ describe('MechSheet — readOnly', () => {
     expect(screen.getByText('Shutdown')).toBeTruthy()
   })
 
+  test('Read leaves out an empty Conditions field instead of drawing a box', () => {
+    const calm: Mech = { ...fakeMech, shutdown: false, conditions: [] }
+    render(
+      <MechSheet
+        mech={calm}
+        chassis={fakeChassis}
+        store={makeStubStore(calm)}
+        crawler={fakeCrawler}
+        readOnly
+      />
+    )
+    expect(screen.queryByText('Conditions')).toBeNull()
+    expect(screen.queryByText('None')).toBeNull()
+  })
+
   test('store.update is never called from a readOnly body', async () => {
     const updateSpy = mock(async () => fakeMech)
     const { container } = render(

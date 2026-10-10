@@ -13,6 +13,7 @@
 
 import { CountStepper } from 'component-lib'
 import { useEffect, useRef, useState } from 'react'
+import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CriticalInjuryEffect } from 'salvageunion-reference/rules'
 import { pilotMaxHPParts, resolvePoolStart, rollDie } from 'salvageunion-reference/rules'
@@ -51,9 +52,16 @@ export function PilotMinor({
   )
 }
 
-/** A reference name for a stored ref, or the ref itself when it doesn't resolve. */
-function refName(ref: string, find: (ref: string) => { name: string } | undefined): string {
-  return readReference('dashboard.pilotKit', () => find(ref)?.name, undefined) ?? ref
+/**
+ * A Kit or Abilities chip for a stored ref: the reference entity when it
+ * resolves (its shortform pill), else the ref itself as a plain chip.
+ */
+function refChip<T extends SURefEntity>(
+  ref: string,
+  find: (ref: string) => T | undefined
+): { text: string; entity?: SURefEntity } {
+  const entity = readReference('dashboard.pilotKit', () => find(ref), undefined)
+  return entity === undefined ? { text: ref } : { text: entity.name, entity }
 }
 
 type PilotPrompt =
@@ -233,12 +241,12 @@ export function PilotMajor({
     }
   })()
 
-  const kit = pilot.equipment.map((ref) => ({
-    text: refName(ref, (r) => SalvageUnionReference.Equipment.getBySlug(r)),
-  }))
-  const abilities = pilot.abilities.map((ref) => ({
-    text: refName(ref, (r) => SalvageUnionReference.Abilities.getBySlug(r)),
-  }))
+  const kit = pilot.equipment.map((ref) =>
+    refChip(ref, (r) => SalvageUnionReference.Equipment.getBySlug(r))
+  )
+  const abilities = pilot.abilities.map((ref) =>
+    refChip(ref, (r) => SalvageUnionReference.Abilities.getBySlug(r))
+  )
 
   const view: MajorModel = {
     fam: 'pilot',
@@ -268,12 +276,14 @@ export function PilotMajor({
       },
       {
         label: 'Kit',
+        grow: 2,
         chips: kit.length > 0 ? kit : undefined,
         lines: kit.length > 0 ? undefined : [{ text: 'No equipment.' }],
         buttons: [],
       },
       {
         label: 'Abilities',
+        grow: 2,
         chips: abilities.length > 0 ? abilities : undefined,
         lines: abilities.length > 0 ? undefined : [{ text: 'No abilities.' }],
         buttons: [],

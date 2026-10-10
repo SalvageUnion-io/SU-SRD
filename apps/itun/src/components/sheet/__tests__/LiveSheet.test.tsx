@@ -9,7 +9,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test'
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import { must } from '../../__tests__/must'
 import { LiveSheet } from '../LiveSheet'
 
@@ -80,11 +80,16 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
   )
 }
 
+/** The sticky bar. The name is also the chapter band's h1, below it. */
+function bar() {
+  return within(must(document.querySelector('header')))
+}
+
 function stripWrapper(): HTMLElement {
   // The condensed block wraps the name stamp and the live readouts — hidden at
   // rest, fading in together once the hero scrolls out of view (Option A: the
   // resting bar is slim, back + actions only). Find it via the name stamp.
-  return screen.getByText('Mara Vex').parentElement as HTMLElement
+  return bar().getByText('Mara Vex').parentElement as HTMLElement
 }
 
 // The KIND PILL is gone from the bar (and from the props): the gutter wordmark
@@ -97,7 +102,7 @@ describe('LiveSheet — condensed identity (name stamp)', () => {
     renderShell()
     // It sits inside the condense block, aria-hidden until the hero scrolls out
     // of view, so the resting bar stays slim (only back + actions show).
-    expect(screen.getByText('Mara Vex').closest('[aria-hidden="true"]')).not.toBeNull()
+    expect(bar().getByText('Mara Vex').closest('[aria-hidden="true"]')).not.toBeNull()
   })
 
   test('the kind pill is never rendered in the bar', () => {
@@ -110,12 +115,31 @@ describe('LiveSheet — condensed identity (name stamp)', () => {
     act(() => {
       must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
-    expect(screen.getByText('Mara Vex').closest('[aria-hidden="false"]')).not.toBeNull()
+    expect(bar().getByText('Mara Vex').closest('[aria-hidden="false"]')).not.toBeNull()
   })
 
   test('the name is not rendered when condense is disabled', () => {
     renderShell({ condense: false })
-    expect(screen.queryByText('Mara Vex')).toBeNull()
+    expect(bar().queryByText('Mara Vex')).toBeNull()
+  })
+})
+
+describe('LiveSheet — the chapter band (board 10)', () => {
+  test('the name is the band’s h1, with the kind stamp, its detail and provenance', () => {
+    renderShell({
+      kindDetail: 'Engineer',
+      band: { provenance: 'Starter Set · Leyline Press · read-only' },
+    })
+    const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex' })
+    const band = within(must(title.closest<HTMLElement>('.su-chapter-band')))
+    expect(band.getByText('pilot')).toBeTruthy()
+    expect(band.getByText('Engineer')).toBeTruthy()
+    expect(band.getByText('Starter Set · Leyline Press · read-only')).toBeTruthy()
+  })
+
+  test('the band carries the sheet’s controls beside the name', () => {
+    renderShell({ band: { actions: <button type="button">Make a copy</button> } })
+    expect(screen.getByRole('button', { name: 'Make a copy' })).toBeTruthy()
   })
 })
 
@@ -160,7 +184,7 @@ describe('LiveSheet — condense strip gating (S11)', () => {
   test('condense=false renders no condensed block and observes nothing', () => {
     renderShell({ condense: false })
     // The whole condensed block (name + strip) is gated on condense.
-    expect(screen.queryByText('Mara Vex')).toBeNull()
+    expect(bar().queryByText('Mara Vex')).toBeNull()
     expect(screen.queryByLabelText('HP 7 of 10')).toBeNull()
     expect(observerCallbacks.length).toBe(0)
   })

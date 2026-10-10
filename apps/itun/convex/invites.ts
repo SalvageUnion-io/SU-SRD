@@ -5,18 +5,25 @@ import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { logIdOf, mutation } from './model/entities'
 import { discordIdOfUser, mayRedeem, mintInvite, statusOf } from './model/invites'
-import { getMembership, NotAuthorized, requireOrganizer, requireUser } from './model/permissions'
+import {
+  getMembership,
+  NotAuthorized,
+  requireMember,
+  requireOrganizer,
+  requireUser,
+} from './model/permissions'
 import { logOwnershipChange } from './ownership'
 
 /**
- * Invite codes (ADR-030 §3, and the invite amendment) — how a player joins a
- * Game. Not §2: that section is Containers, and its only mention of invites is
- * that a shelf has none.
+ * Invites (ADR-030 §3, and the invite amendments) — how a player joins a Game.
+ * Not §2: that section is Containers, and its only mention of invites is that a
+ * shelf has none.
  *
- * Codes are Crockford base32 (no I/L/O/U, so a code read aloud across a table
- * cannot be mistyped), collision-checked against the `by_code` index and drawn
- * from `crypto.getRandomValues`. Minting itself is
- * `model/invites.ts#mintInvite`, shared with every other door that creates one.
+ * An invite travels as a **link**, `/invite/<code>`, never as a typed code
+ * (issue 1255). The `code` column is the link's token: Crockford base32,
+ * collision-checked against the `by_code` index and drawn from
+ * `crypto.getRandomValues`. Minting itself is `model/invites.ts#mintInvite`,
+ * shared with every other door that creates one.
  *
  * An invite carries four things beyond the code itself:
  *
@@ -56,6 +63,48 @@ export const create = mutation({
   handler: async (ctx, args): Promise<string> => {
     const membership = await requireOrganizer(ctx, args.gameId)
     const invite = await mintInvite(ctx, membership, args)
+    return invite.code
+  },
+})
+
+/**
+ * The Game's invite link, for "Copy invite link" (the Game page and the
+ * Dashboard's Crew tab, issue 1255). Any member may ask; what they get depends on
+ * who they are:
+ *
+ *   - **The Organizer** gets an open link: anyone holding it joins. Minting a
+ *     bearer invite is already theirs to do (`create`).
+ *   - **Anyone else** gets an approval link: holding it only asks to join, and
+ *     nobody is seated until the Organizer lets them in (`decideRequest`). A
+ *     player can bring a friend to the door, never through it — membership
+ *     confers read access to every crewmate's sheet (ADR-030 §5), which is the
+ *     Organizer's to hand out.
+ *
+ * One standing link per door, reused while it is live, so copying twice hands
+ * out the same link and the Organizer's list does not fill with duplicates. A
+ * revoked, expired or used-up one is replaced by a fresh one on the next ask.
+ * Returns the token; the client builds the URL from its own origin.
+ */
+export const link = mutation({
+  args: { gameId: v.id('games') },
+  handler: async (ctx, args): Promise<string> => {
+    const membership = await requireMember(ctx, args.gameId)
+    const requiresApproval = !membership.organizer
+    const now = Date.now()
+
+    const invites = await ctx.db
+      .query('invites')
+      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
+      .collect()
+    const live = invites.find(
+      (invite) =>
+        invite.standing === true &&
+        invite.requiresApproval === requiresApproval &&
+        statusOf(invite, now) === 'active'
+    )
+    if (live !== undefined) return live.code
+
+    const invite = await mintInvite(ctx, membership, { requiresApproval, standing: true })
     return invite.code
   },
 })
@@ -281,13 +330,13 @@ const NOT_YOUR_INVITE =
 function assertSpendable(invite: Doc<'invites'>): void {
   switch (statusOf(invite, Date.now())) {
     case 'revoked':
-      throw new NotAuthorized('That invite code has been revoked')
+      throw new NotAuthorized('That invite link has been revoked')
     case 'declined':
       throw new NotAuthorized('That invite was declined')
     case 'expired':
-      throw new NotAuthorized('That invite code has expired')
+      throw new NotAuthorized('That invite link has expired')
     case 'exhausted':
-      throw new NotAuthorized('That invite code has already been used up')
+      throw new NotAuthorized('That invite link has already been used up')
     default:
       return
   }
@@ -320,7 +369,7 @@ export const redeem = mutation({
       .query('invites')
       .withIndex('by_code', (q) => q.eq('code', code))
       .unique()
-    if (invite === null) throw new NotAuthorized('That invite code is not valid')
+    if (invite === null) throw new NotAuthorized('That invite link is not valid')
 
     // Membership is checked before spendability: someone already seated is home
     // whether or not the code has since expired or been revoked.
@@ -385,7 +434,7 @@ export const decline = mutation({
       .query('invites')
       .withIndex('by_code', (q) => q.eq('code', code))
       .unique()
-    if (invite === null) throw new NotAuthorized('That invite code is not valid')
+    if (invite === null) throw new NotAuthorized('That invite link is not valid')
     if (invite.target === undefined) {
       throw new NotAuthorized('Only an invite sent to you can be declined')
     }

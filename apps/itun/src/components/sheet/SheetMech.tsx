@@ -28,6 +28,8 @@ import type { Mech } from '../../lib/schemas/mech'
 import { AppLink } from '../shared/AppLink'
 import { EntityRow } from '../shared/EntityRow'
 import { AssignPicker } from '../wiring/AssignPicker'
+import { mechStamp } from './bandStamps'
+import { LinkedUnitLink } from './LinkedUnitLink'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
@@ -51,6 +53,7 @@ export function SheetMech({
   back,
   actions,
   segments,
+  band,
   editable,
   readOnly,
   crawlerReadOnly,
@@ -94,8 +97,8 @@ export function SheetMech({
   // The mech's two assignments are both its OWN links (ADR-037): the pilot it
   // carries (`mech-to-pilot`) and the crawler it docks in (`mech-to-crawler`).
   // Neither is reached through the other, so each slot assigns, changes and
-  // unassigns on its own — always available on editable sheets per the unified
-  // edit language (no edit mode), with no confirm (reversible, ADR-007).
+  // unassigns on its own — available whenever the sheet is in Edit, with no
+  // confirm (reversible, ADR-007).
   const pilotLinkId = storeState.softLinks.find(
     (l) => l.type === 'mech-to-pilot' && l.from.id === mech.id
   )?.id
@@ -104,7 +107,7 @@ export function SheetMech({
   )?.id
   const unassign = (linkId: string | undefined) =>
     editable && linkId ? () => runWrite(() => storeState.delete('softLink', linkId)) : undefined
-  // Both slots pick from where the mech lives — its Game, or My Stuff.
+  // Both slots pick from where the mech lives — its Game, or your shelves.
   const self = { type: 'mech', id: mech.id } as const
   const container = containerOf(mech)
 
@@ -118,10 +121,46 @@ export function SheetMech({
     : undefined
   const pilotCrawler = pilotCrawlerId ? lookup.get('crawler', pilotCrawlerId) : null
 
+  // Read (board 10): each linked unit is one line, and an empty slot is left
+  // out, as an empty field is. With nothing linked, there is no section.
+  const readRail = [
+    composition.pilot ? (
+      <LinkedUnitLink
+        key="pilot"
+        kind="pilot"
+        name={composition.pilot.name}
+        href={hrefFor('pilot', composition.pilot.id)}
+        stats={rowStats(
+          pilotRailItems(
+            composition.pilot,
+            resolveEffectiveCrawlerLevel(composition.pilot, pilotCrawler)
+          )
+        )}
+      />
+    ) : withheldPilot ? (
+      <WithheldUnitRow key="pilot" unit={withheldPilot} label="Assigned Pilot" />
+    ) : null,
+    composition.crawler ? (
+      <LinkedUnitLink
+        key="crawler"
+        kind="crawler"
+        name={composition.crawler.name}
+        href={hrefFor('crawler', composition.crawler.id)}
+        stats={rowStats(crawlerRailItems(composition.crawler))}
+      />
+    ) : withheldCrawler ? (
+      <WithheldUnitRow key="crawler" unit={withheldCrawler} label="Home Crawler" />
+    ) : null,
+  ].filter((unit) => unit !== null)
+
   // Linked Units rail content (poster R4, span 5) — built here because it
   // needs `composition` (resolved pilot/crawler), which MechSheet does not
   // receive; handed down as `linkedUnits`.
-  const rail = (
+  const rail = !editable ? (
+    readRail.length > 0 ? (
+      readRail
+    ) : null
+  ) : (
     <>
       {composition.pilot ? (
         <EntityRow
@@ -222,6 +261,8 @@ export function SheetMech({
       strip={strip}
       back={back}
       segments={segments}
+      band={band}
+      kindDetail={mechStamp(mech.chassisRef)}
       syncStats={{ cargo: cargoUsed }}
       actions={actions}
       renderBody={() => (

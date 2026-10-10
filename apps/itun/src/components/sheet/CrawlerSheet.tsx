@@ -234,7 +234,7 @@ export function CrawlerSheet({
           return (
             <EntityGridRow key={slug}>
               {system ? (
-                <ReferenceEntityCard data={system} size="medium" collapsible />
+                <ReferenceEntityCard data={system} size="medium" collapsible foldTables />
               ) : (
                 <div className="flex items-center justify-between gap-2 rounded border border-ink px-2 py-1 text-sm text-wk-muted">
                   <span className="min-w-0 truncate">{slug}</span>
@@ -346,6 +346,7 @@ export function CrawlerSheet({
             toned frame — no name pseudoheader stamp. */}
         <SheetHero
           name={crawler.name}
+          surface={readOnly ? 'paper' : 'frame'}
           fields={
             <div className="flex min-w-0 flex-col gap-4">
               <CrawlerIdentityPanel
@@ -412,15 +413,22 @@ export function CrawlerSheet({
 
         {/* Linked Units — poster renders this as a bare section header +
             rail stack (no `.dcard` frame), matching PilotSheet/MechSheet. */}
-        <SheetSectionSlab
-          id="linked-units"
-          title="Linked Units"
-          // Side by side: each linked unit is one roster row, and two of them stack
-          // to a wasteful column on a sheet that has the width for both.
-          bodyClassName="flex flex-col gap-4 @3xl:flex-row"
-        >
-          {linkedUnits}
-        </SheetSectionSlab>
+        {linkedUnits && (
+          <SheetSectionSlab
+            id="linked-units"
+            title="Linked Units"
+            // A wrapping column, never a row: a row of full unit rows made the
+            // page wider than the viewport. Read stacks one-line listing cards;
+            // Edit stacks the full rows with their Assign controls.
+            bodyClassName={
+              readOnly
+                ? 'grid min-w-0 grid-cols-1 gap-x-4 @3xl:grid-cols-2 @5xl:grid-cols-3'
+                : 'flex min-w-0 flex-col gap-4'
+            }
+          >
+            {linkedUnits}
+          </SheetSectionSlab>
+        )}
 
         {/* ----- Storage Bay — the crawler's own BAY, rendered as a
             full-width box rather than a plain section: the hold IS a bay (Core

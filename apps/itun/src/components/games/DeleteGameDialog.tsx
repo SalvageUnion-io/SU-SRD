@@ -13,8 +13,8 @@
  *
  * A generic "this is permanent" would be both frightening and wrong. Deleting a
  * Game destroys the *table* and nothing anybody built: pilots and mechs fall
- * back to their owners' My Stuff, and the crawler plus anything unclaimed comes
- * to the My Stuff of whoever is doing the deleting. The dialog names those
+ * back to their owners' shelves, and the crawler plus anything unclaimed comes
+ * to the shelves of whoever is doing the deleting. The dialog names those
  * outcomes with the actual counts in front of the reader, because "4 pilots"
  * and "2 mechs" is what makes the sentence checkable against the row they just
  * clicked.
@@ -51,7 +51,7 @@ type Props = {
   /**
    * Called after the server confirms the deletion, never optimistically.
    *
-   * The hub uses it to show My Stuff before its `games.get` resolves to `null`
+   * The hub uses it to show Shelves before its `games.get` resolves to `null`
    * and renders "you are not in this game". Passing the intent in keeps this
    * component ignorant of what the caller shows next.
    */
@@ -114,15 +114,15 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
               {surviving.length > 0 && (
                 <li>
                   <Text variant="hint" className="text-left">
-                    {surviving.join(' and ')} go back to whoever owns them, in their My Stuff.
+                    {surviving.join(' and ')} go back to whoever owns them, in their shelves.
                   </Text>
                 </li>
               )}
               <li>
                 <Text variant="hint" className="text-left">
                   {game?.crawlerName === null || game?.crawlerName === undefined
-                    ? 'Anything unclaimed comes to you, in My Stuff.'
-                    : `${game.crawlerName} and anything unclaimed come to you, in My Stuff.`}
+                    ? 'Anything unclaimed comes to you, in your shelves.'
+                    : `${game.crawlerName} and anything unclaimed come to you, in your shelves.`}
                 </Text>
               </li>
             </ul>

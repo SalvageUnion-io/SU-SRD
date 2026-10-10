@@ -26,12 +26,14 @@ import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AppLink } from '../shared/AppLink'
 import { EntityRow } from '../shared/EntityRow'
 import { AssignPicker } from '../wiring/AssignPicker'
+import { crawlerStamp } from './bandStamps'
 import type { EconLozItem } from './CrawlerEcon'
 import { CrawlerEconFrame } from './CrawlerEcon'
 import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerEconomyControl } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
 import { changedFields, freshEntity } from './controlPrimitives'
+import { LinkedUnitLink } from './LinkedUnitLink'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { bayStates, mechRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
@@ -49,6 +51,7 @@ export function SheetCrawler({
   back,
   actions,
   segments,
+  band,
   editable,
   readOnly,
   store,
@@ -198,7 +201,7 @@ export function SheetCrawler({
       : undefined
   }
   // The pickers offer only what lives where this crawler does — its Game, or
-  // My Stuff — and never what is already aboard.
+  // Shelves — and never what is already aboard.
   const self = { type: 'crawler', id: crawler.id } as const
   const container = containerOf(crawler)
   const crewPicker = (
@@ -218,7 +221,39 @@ export function SheetCrawler({
     />
   )
 
-  const rail = (
+  // Read (board 10): each linked unit is one compact line, the same listing
+  // card the pilot sheet uses, and an empty slot is left out. With nothing
+  // linked there is no section.
+  const readRail = [
+    ...dockedMechs.map(({ mech: dockedMech, pilot: dockedPilot }) => (
+      <LinkedUnitLink
+        key={dockedMech.id}
+        kind="mech"
+        name={dockedMech.name}
+        href={hrefFor('mech', dockedMech.id)}
+        stats={rowStats(
+          mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot?.abilities))
+        )}
+      />
+    )),
+    ...withheldMechs.map((unit) => (
+      <WithheldUnitRow key={unit.key} unit={unit} label="Docked Mech" />
+    )),
+    ...composition.crawlerPilots.map((crewPilot) => (
+      <LinkedUnitLink
+        key={crewPilot.id}
+        kind="pilot"
+        name={crewPilot.name}
+        href={hrefFor('pilot', crewPilot.id)}
+        stats={rowStats(
+          pilotRailItems(crewPilot, resolveEffectiveCrawlerLevel(crewPilot, crawler))
+        )}
+      />
+    )),
+    ...withheldPilots.map((unit) => <WithheldUnitRow key={unit.key} unit={unit} label="Pilot" />),
+  ]
+
+  const editRail = (
     <>
       {dockedMechs.length > 0 || withheldMechs.length > 0 ? (
         <>
@@ -341,6 +376,7 @@ export function SheetCrawler({
       )}
     </>
   )
+  const rail = editable ? editRail : readRail.length > 0 ? readRail : null
 
   // Economy band (poster `.econ`: SP `VitalGauge` over the Tech-LVL/Upkeep/
   // Upgrade/Trade/Crew lozenges) — built here because it needs `patch` +
@@ -361,7 +397,7 @@ export function SheetCrawler({
               : undefined
           }
           breakdown={editable ? spParts : undefined}
-          provenance={spLines}
+          provenance={editable ? spLines : undefined}
           onRevertOverride={
             editable ? () => overrideCrawlerMax({ maxSpOverride: undefined }) : undefined
           }
@@ -390,6 +426,8 @@ export function SheetCrawler({
         strip={strip}
         back={back}
         segments={segments}
+        band={band}
+        kindDetail={crawlerStamp(crawler.type)}
         actions={actions}
         renderBody={() => (
           <CrawlerSheet

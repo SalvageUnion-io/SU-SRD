@@ -39,8 +39,8 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { containerOf } from '../../lib/container'
 import { gameHasMediator } from '../../lib/games/gameRoster'
 import { useEntityStore } from '../../stores/entityStore'
-import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
+import { WayOutLink } from '../shared/WayOutLink'
 import { Dashboard } from './Dashboard'
 
 const BODY = { maxWidth: '36rem', textAlign: 'left' } satisfies CSSProperties
@@ -62,7 +62,7 @@ function DashboardRefusal({ title, body, link }: RefusalProps) {
         {body}
       </Text>
       <div>
-        <AppLink href={link.href}>{link.label}</AppLink>
+        <WayOutLink href={link.href} label={link.label} />
       </div>
     </PageShell>
   )

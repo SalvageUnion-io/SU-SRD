@@ -45,7 +45,7 @@ describe('Dashboard shell', () => {
       .getState()
       .adopt('pilot', pilotFixture({ id: 'dash-lone-pilot', name: 'Rook' }))
     render(<Dashboard pilotId="dash-lone-pilot" />)
-    expect(screen.getByText('Pilot · Rook')).toBeTruthy()
+    expect(screen.getByText('On foot')).toBeTruthy()
     expect(screen.getByText('On Foot')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Board a mech ▾' })).toBeTruthy()
   })

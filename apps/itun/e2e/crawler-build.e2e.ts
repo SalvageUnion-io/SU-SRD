@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { advanceUntilVisible, fillIdentity, pickByName, waitForReady } from './_helpers'
+import { advanceUntilVisible, editSheet, fillIdentity, pickByName, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
@@ -79,6 +79,8 @@ test('arm a crawler further from its live sheet', async ({ page }) => {
   // CrawlerSheetItems: Dock / Craft / Heal / Mount…), so the armament bay's
   // control is labelled 'Mount' — that verb IS "open the weapons picker".
   // The searcher runs in toggle mode: click the selectable cell, not its prose.
+  // A sheet opens in Read; its controls are Edit's (issue 1255).
+  await editSheet(page)
   await page.getByRole('button', { name: /^Mount$/i }).click()
   const picker = page.getByRole('dialog')
   await expect(picker).toBeVisible()

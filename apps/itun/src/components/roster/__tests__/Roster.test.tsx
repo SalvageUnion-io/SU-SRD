@@ -15,7 +15,7 @@
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
@@ -143,7 +143,7 @@ async function seedEntity(type: 'pilot' | 'mech', name: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 beforeEach(async () => {
-  // My Stuff, with no Games and no invitations.
+  // Shelves, with no Games and no invitations.
   setQueryAnswers({ 'games:listMine': [], 'invites:forMe': [] })
   _resetDbSingleton()
   await clearCache()
@@ -206,35 +206,59 @@ describe('Roster — section headings', () => {
   })
 })
 
-describe('Roster — signed out, it is a sign-in panel and the Starter Set', () => {
+describe('Roster — signed out, it is the front door (board 09)', () => {
   // Outside any provider the connection is Solo: a signed-out visitor. Every
   // build lives in an account (ADR-034 as amended), so there is nothing of
   // theirs to list, create or import — but the Starter Set is reference, and
   // reading it needs no account.
-  test('no create, no import, no game UI', async () => {
+  test('the chapter band, the sign-in, and no create, import or game UI', async () => {
     await act(async () => {
       render(<Roster />)
     })
 
-    expect(screen.getByRole('heading', { name: 'Welcome to In the Union Now' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'In The Union Now' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Sign in to build' })).toBeTruthy()
     expect(screen.queryByRole('link', { name: /Create Pilot|Build your first pilot/ })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Import…' })).toBeNull()
     expect(screen.queryByRole('button', { name: '+ New game' })).toBeNull()
   })
 
-  test('the Starter Set is listed read-only, owned by Leyline Press, with nothing to copy yet', async () => {
+  test('says a Game is joined from an invite link, with no code to type', async () => {
+    await act(async () => {
+      render(<Roster />)
+    })
+    expect(screen.getByText(/Got an invite link from your Mediator\?/)).toBeTruthy()
+    expect(screen.getByText(/no codes to type/)).toBeTruthy()
+  })
+
+  test('how it works is three steps, and playing is not one of them', async () => {
+    await act(async () => {
+      render(<Roster />)
+    })
+    const how = screen.getByRole('region', { name: 'How it works' })
+    expect(
+      within(how)
+        .getAllByRole('heading', { level: 3 })
+        .map((h) => h.textContent)
+    ).toEqual(['Create a Pilot', 'Create a Mech', 'Join or make a Crawler'])
+  })
+
+  test('the Starter Set is clickable rows, with one Leyline Press credit', async () => {
     await act(async () => {
       render(<Roster />)
     })
 
-    expect(screen.getByRole('heading', { name: 'Starter Set' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'View Bonesaw' }).getAttribute('href')).toContain(
-      '/starter/pilot/'
+    const starter = screen.getByRole('region', { name: 'Starter Set' })
+    expect(within(starter).getByRole('link', { name: 'Read Bonesaw' }).getAttribute('href')).toBe(
+      '/starter/pilot/starter-pilot-bonesaw'
     )
-    expect(screen.getAllByText('Leyline Press').length).toBeGreaterThan(0)
-    expect(screen.getByText(/Sign in to copy one/)).toBeTruthy()
-    expect(screen.queryByLabelText(/^Copy .* to…$/)).toBeNull()
+    expect(within(starter).getAllByText(/Leyline Press/)).toHaveLength(1)
+    expect(within(starter).getByText(/sign in to copy one/)).toBeTruthy()
+    // A shelf per kind, each counting its rows.
+    expect(within(starter).getByRole('region', { name: 'Starter Set pilots' })).toBeTruthy()
+    expect(within(starter).getByRole('region', { name: 'Starter Set mechs' })).toBeTruthy()
+    expect(within(starter).getByRole('region', { name: 'Starter Set crawler' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Read a Starter Set sheet' })).toBeTruthy()
   })
 })
 
@@ -293,8 +317,8 @@ describe('Roster — first-run welcome', () => {
 
 describe('Roster — Starter Set', () => {
   // Reference, not builds: the header links its own page rather than seeding
-  // it into My Stuff.
-  test('the header links the Starter Set, and nothing is seeded into My Stuff', async () => {
+  // it into your shelves.
+  test('the header links the Starter Set, and nothing is seeded into your shelves', async () => {
     await renderRoster()
 
     const link = screen.getByRole('link', { name: 'Starter Set' })

@@ -13,8 +13,13 @@
   transition: color 120ms;
 }
 .header-menu-trigger:hover,
-.header-menu-trigger[data-popup-open] {
+.header-menu-trigger[data-popup-open],
+.header-menu-trigger[aria-current='page'] {
   color: var(--color-paper);
+}
+/* The here-state, as a nav link wears it: a paper rule beneath. */
+.header-menu-trigger[aria-current='page'] {
+  box-shadow: inset 0 -2px 0 var(--color-paper);
 }
 
 /* A highlighted row inverts to ink, the stamp treatment, rather than taking a

@@ -146,7 +146,7 @@ export function CrawlerIdentityPanel({
             readOnly={readOnly}
             ability={abilities.map((ability) => (
               <div key={ability.id} className="min-w-0">
-                <ReferenceEntityCard data={ability} size="medium" hide={HIDE_CHOICES} />
+                <ReferenceEntityCard data={ability} size="medium" foldTables hide={HIDE_CHOICES} />
               </div>
             ))}
           />

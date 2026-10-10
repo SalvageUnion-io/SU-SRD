@@ -76,9 +76,9 @@ export type VitalGaugeProps = {
    *
    *   `full` (default) — the multi-row poster gauge: big numeral + caption. A
    *          gauge is a destination readout, so its resting rung is `full`.
-   *   `compact` — the single-row layout (the dashboard-instrument cue): label ·
-   *          one segment row · value/max, all on one line — no big numeral, no
-   *          caption, no multi-row split.
+   *   `compact` — the instrument layout (the dashboard cue): label · the pips ·
+   *          value/max on one line, no big numeral, no caption. Its pips are a
+   *          fixed size and wrap onto a second row on a long track.
    */
   size?: Extract<SizeRung, 'full' | 'compact'>
   /**
@@ -174,6 +174,9 @@ export function VitalGauge({
   const segCount = Math.max(max, shown)
   const dangerFrom = danger ?? Number.POSITIVE_INFINITY
   const [capLeft, capRight] = caption ?? ['Current', 'Max']
+  // A read-out prints without the default caption: the numeral already says
+  // current / max. A caller's own caption always shows.
+  const showCaption = !readOnly || caption !== undefined
 
   const summary = `${label} ${shown} of ${max}${isOver ? ' — over capacity' : ''}`
 
@@ -216,34 +219,45 @@ export function VitalGauge({
         ? 'border-status-bad bg-status-bad'
         : 'border-[var(--tone-deep)] bg-[var(--tone)]'
 
-  // COMPACT — the single-row instrument bar (dashboard cue): label · one segment
-  // row · value/max on one line. No big numeral, caption, or multi-row split.
+  // COMPACT — the instrument bar (dashboard cue): label and value/max on one row,
+  // a five-wide pip grid beneath. No big numeral or caption.
   if (size === 'compact') {
     const readout = (
-      <>
-        <span
-          className={cn(
-            capsLabel({ size: 'badge', tracking: 'caps' }),
-            'shrink-0 leading-none',
-            onDark ? 'text-paper' : 'text-ink'
-          )}
-        >
-          {label}
-        </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        {/* Board D2: the label and the value share one row, the pips sit below. */}
+        <div className="flex items-baseline justify-between gap-2">
+          <span
+            className={cn(
+              capsLabel({ size: 'badge', tracking: 'caps' }),
+              'shrink-0 leading-none',
+              onDark ? 'text-paper' : 'text-ink'
+            )}
+          >
+            {label}
+          </span>
+          <span
+            className={cn(
+              'shrink-0 whitespace-nowrap font-cond text-caption font-bold leading-none tabular-nums',
+              isOver ? 'text-status-bad' : onDark ? 'text-paper' : 'text-ink'
+            )}
+          >
+            {shown}/{max}
+          </span>
+        </div>
         {/*
-         * The 3px inter-segment gap is a constant, so a long track spends more
-         * of its width on gaps than on segments: a crawler at SP 20/20 divided
-         * the compact bar into 20 slivers and read as a dotted perforation
-         * strip rather than a bar. Past a dozen segments the gap tightens to
-         * 1px, which keeps the segments legible as segments at any max.
+         * Pips fill the bay's full width in a five-wide grid (brand refresh P4,
+         * issue 1255, board D2). Dividing the bar's width by `max` made a long
+         * track's pips thinner the longer it ran, and fixed 14px pips beside a
+         * readout left a narrow bay three to a row; a fixed column count keeps
+         * a pip's width steady and a long track takes another row.
          */}
-        <div className={cn('flex min-w-0 flex-1', segCount > 12 ? 'gap-px' : 'gap-[3px]')}>
+        <div className="grid min-w-0 grid-cols-5 gap-[3px]">
           {Array.from({ length: segCount }, (_, i) => ({
             i,
             state: trackSegmentState(i, shown, max, dangerFrom),
           })).map(({ i, state }) => {
             const on = state !== 'off'
-            const segClass = cn('h-[10px] min-w-0 flex-1 rounded-badge border', segFill(state))
+            const segClass = cn('h-[14px] w-full min-w-0 rounded-badge border', segFill(state))
             return editable ? (
               <button
                 key={i}
@@ -261,15 +275,7 @@ export function VitalGauge({
             )
           })}
         </div>
-        <span
-          className={cn(
-            'shrink-0 whitespace-nowrap font-cond text-caption font-bold leading-none tabular-nums',
-            isOver ? 'text-status-bad' : onDark ? 'text-paper' : 'text-ink'
-          )}
-        >
-          {shown}/{max}
-        </span>
-      </>
+      </div>
     )
     /*
      * Guided Play teaches as it enforces (ADR-021), so the compact instrument
@@ -300,7 +306,7 @@ export function VitalGauge({
     if (!editable && trigger) {
       return (
         <div className={cn('flex w-full items-center gap-2', className)} style={style}>
-          <div role="img" aria-label={summary} className="flex min-w-0 flex-1 items-center gap-2">
+          <div role="img" aria-label={summary} className="flex min-w-0 flex-1">
             {readout}
           </div>
           {trigger}
@@ -500,21 +506,27 @@ export function VitalGauge({
       </div>
 
       {/* Caption — right-aligned Current / Max; an override note sits left. */}
-      <div
-        className={cn(
-          capsLabel({ size: 'badge', weight: 'semibold', tracking: 'eyebrow' }),
-          'mt-1.5 flex items-center justify-end gap-1 leading-none text-ink-75'
-        )}
-      >
-        {isOverridden && (
-          <span className="mr-auto tracking-caps-snug text-[var(--tone-deep)]">
-            overridden from {overriddenFrom}
-          </span>
-        )}
-        <span>{capLeft}</span>
-        <span>/</span>
-        <span>{capRight}</span>
-      </div>
+      {(showCaption || isOverridden) && (
+        <div
+          className={cn(
+            capsLabel({ size: 'badge', weight: 'semibold', tracking: 'eyebrow' }),
+            'mt-1.5 flex items-center justify-end gap-1 leading-none text-ink-75'
+          )}
+        >
+          {isOverridden && (
+            <span className="mr-auto tracking-caps-snug text-[var(--tone-deep)]">
+              overridden from {overriddenFrom}
+            </span>
+          )}
+          {showCaption && (
+            <>
+              <span>{capLeft}</span>
+              <span>/</span>
+              <span>{capRight}</span>
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }

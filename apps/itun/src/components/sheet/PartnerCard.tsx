@@ -270,6 +270,7 @@ export function PartnerCard({
     <ReferenceEntityCard
       data={statBlock ?? undefined}
       size="medium"
+      foldTables
       titleOverride={partnerDisplayName(partner)}
       statsOverride={stats}
       controls={controls.length > 0 ? controls : undefined}

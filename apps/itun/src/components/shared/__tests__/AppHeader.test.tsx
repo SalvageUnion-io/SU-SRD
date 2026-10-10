@@ -8,8 +8,9 @@
  *   the same tab
  * - The nav reads Shelves · Games · Starter Set, with the app's Games control
  *   in its place, and marks the page you are on
- * - About and Changelog stay reachable as quiet links
- * - Has no search trigger yet: ITUN's reference search is the bottom-right FAB
+ * - About and Changelog are at the drawer's foot, not in the bar (issue 1255),
+ *   except signed out, when no account menu carries them on a desktop
+ * - Search is the bar's search slot (issue 1255), with its phone form by the hamburger
  * - Places the app's slots: `actions` at the bar's end, `mobileActions` beside
  *   the hamburger, `drawerExtra` inside the drawer
  */
@@ -61,19 +62,37 @@ describe('AppHeader', () => {
     expect(nav.getByRole('link', { name: 'Shelves' }).getAttribute('aria-current')).toBeNull()
   })
 
-  test('keeps About and Changelog as quiet links', () => {
+  test('About and Changelog are not in the bar: they sit at the drawer’s foot', () => {
     render(<AppHeader />)
+    const banner = within(screen.getByRole('banner'))
+    expect(banner.queryByRole('link', { name: 'About' })).toBeFalsy()
+    expect(banner.queryByRole('link', { name: 'Changelog' })).toBeFalsy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
+    const foot = within(screen.getByRole('navigation', { name: 'More' }))
+    expect(foot.getByRole('link', { name: 'About' }).getAttribute('href')).toBe('/about')
+    expect(foot.getByRole('link', { name: 'Changelog' }).getAttribute('href')).toBe('/changelog')
+  })
+
+  test('signed out (aboutInBar), the desktop bar keeps a door to About and Changelog', () => {
+    render(<AppHeader aboutInBar />)
     const banner = within(screen.getByRole('banner'))
     expect(banner.getByRole('link', { name: 'About' }).getAttribute('href')).toBe('/about')
     expect(banner.getByRole('link', { name: 'Changelog' }).getAttribute('href')).toBe('/changelog')
   })
 
-  test('has no search trigger yet — the reference search is the bottom-right FAB', () => {
-    render(<AppHeader />)
-    const header = screen.getByRole('banner')
-    expect(within(header).queryByRole('button', { name: /search/i })).toBeFalsy()
-    expect(within(header).queryByRole('searchbox')).toBeFalsy()
-    expect(within(header).queryByRole('combobox')).toBeFalsy()
+  test('search is the bar’s slot, and its phone form sits beside the hamburger', () => {
+    render(
+      <AppHeader
+        search={<button type="button">Search the rules</button>}
+        mobileSearch={<button type="button">Search (phone)</button>}
+      />
+    )
+    const header = within(screen.getByRole('banner'))
+    expect(header.getByRole('button', { name: 'Search the rules' })).toBeTruthy()
+    const phone = header.getByRole('button', { name: 'Search (phone)' })
+    const hamburger = header.getByRole('button', { name: 'Open menu' })
+    expect(phone.compareDocumentPosition(hamburger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   test('renders a hamburger trigger for the mobile nav drawer, closed by default', () => {
@@ -144,15 +163,15 @@ describe('AppHeader', () => {
       <AppHeader
         drawerExtra={(close) => (
           <button type="button" onClick={close}>
-            My Stuff
+            Shelves
           </button>
         )}
       />
     )
-    expect(screen.queryByRole('button', { name: 'My Stuff' })).toBeFalsy()
+    expect(screen.queryByRole('button', { name: 'Shelves' })).toBeFalsy()
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
     const drawer = screen.getByRole('dialog')
-    fireEvent.click(within(drawer).getByRole('button', { name: 'My Stuff' }))
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Shelves' }))
     expect(screen.queryByRole('dialog')).toBeFalsy()
   })
 

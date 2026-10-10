@@ -6,10 +6,15 @@ import { SRD_SITE_URL } from 'salvageunion-reference'
 /**
  * AppHeader — ITUN's preset of the shared Union bar (`AppBar`, ruleset §3.11):
  * the compact 48px bar on the **Build** side of the switcher, with ITUN's nav
- * inline — Shelves · Games · Starter Set — then About and Changelog as quiet
- * links and the app-supplied `actions` (the account menu) at the end. Below
- * `lg` the nav collapses into the shared `NavDrawer`, with `mobileActions`
- * beside the hamburger and `drawerExtra` inside the drawer.
+ * inline — Shelves · Games · Starter Set — then the search slot and the
+ * app-supplied `actions` (the account menu) at the end. Below `lg` the nav
+ * collapses into the shared `NavDrawer`, with `mobileSearch` and
+ * `mobileActions` beside the hamburger and `drawerExtra` inside the drawer.
+ *
+ * About and Changelog are not destinations in the nav: they sit at the
+ * drawer's foot (issue 1255), and in the account menu on a desktop. A desktop
+ * with no account menu (signed out) has neither, so `aboutInBar` puts the two
+ * back in the bar as quiet secondary links — the only door to them there.
  *
  * The switcher replaces the old "SRD ↗" link: the reference is the other tab
  * of the same bar, not an off-site destination.
@@ -70,6 +75,11 @@ type AppHeaderProps = {
    * which do not fit the mobile header row. Handed `close` to dismiss the drawer.
    */
   drawerExtra?: (close: () => void) => ReactNode
+  /**
+   * Show About and Changelog in the bar from `lg`. ITUN sets it while signed
+   * out: the account menu that carries them on a desktop is not there.
+   */
+  aboutInBar?: boolean
 }
 
 export function AppHeader({
@@ -81,6 +91,7 @@ export function AppHeader({
   actions,
   mobileActions,
   drawerExtra,
+  aboutInBar = false,
 }: AppHeaderProps) {
   const onShelves = pathname === '/'
   const onStarterSet = pathname.startsWith('/starter')
@@ -88,10 +99,13 @@ export function AppHeader({
   const drawerNav: NavDrawerItem[] = [
     { label: 'Shelves', href: '/', active: onShelves },
     { label: 'Starter Set', href: '/starter/', active: onStarterSet },
-    { label: 'About', href: '/about', active: pathname.startsWith('/about') },
-    { label: 'Changelog', href: '/changelog', active: pathname.startsWith('/changelog') },
     { label: 'Discord', href: `${SRD_SITE_URL}/discord/`, external: true },
     { label: 'Buy the game', href: BUY_HREF, external: true },
+  ]
+
+  const aboutLinks: NavDrawerItem[] = [
+    { label: 'About', href: '/about', active: pathname.startsWith('/about') },
+    { label: 'Changelog', href: '/changelog', active: pathname.startsWith('/changelog') },
   ]
 
   return (
@@ -106,10 +120,7 @@ export function AppHeader({
         ...(games ? [{ id: 'games', node: games }] : []),
         { label: 'Starter Set', href: '/starter/', active: onStarterSet },
       ]}
-      secondaryItems={[
-        { label: 'About', href: '/about', active: pathname.startsWith('/about') },
-        { label: 'Changelog', href: '/changelog', active: pathname.startsWith('/changelog') },
-      ]}
+      secondaryItems={aboutInBar ? aboutLinks : undefined}
       search={search}
       actions={actions}
       mobile={
@@ -119,6 +130,7 @@ export function AppHeader({
           <NavDrawer
             brand={ITUN_DRAWER_BRAND}
             navItems={drawerNav}
+            footItems={aboutLinks}
             extra={drawerExtra}
             LinkComponent={LinkComponent}
             triggerClassName="p-1.5"

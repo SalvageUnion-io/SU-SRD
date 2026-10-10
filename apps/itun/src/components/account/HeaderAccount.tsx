@@ -26,8 +26,8 @@ import { SignInControl } from './SignInControl'
  */
 
 /** Desktop nav: the Games menu (renders nothing unless Connected). */
-export function HeaderGames() {
-  return <GamesMenu />
+export function HeaderGames({ pathname = '' }: { pathname?: string }) {
+  return <GamesMenu active={pathname.startsWith('/games')} />
 }
 
 /** Desktop, at the bar's end: the account menu (or sign-in). */

@@ -13,7 +13,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
  *  - only the Mediator gets the Mediator section, and gets all of it; the
  *    propose form offers only entities somebody can answer for
  *  - `games.get` answering `null` reads as an explanation with a way back to
- *    My Stuff, and still loading is not the same as not a member
+ *    Shelves, and still loading is not the same as not a member
  *
  * And the one way into the Dashboard (ADR-038 §1): Launch Dashboard at the top
  * of the hub, for players and the Mediator alike, only while the Game has a
@@ -74,9 +74,7 @@ const { ConnectionContext } = await import('../../../lib/connection/connectionCo
 const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const { getActiveContainer, setActiveContainer } = await import(
-  '../../../stores/activeContainerStore'
-)
+const { setActiveContainer } = await import('../../../stores/activeContainerStore')
 
 beforeAll(hydrateStores)
 
@@ -177,16 +175,21 @@ describe('the Game section', () => {
 
     // The server refuses a non-Organizer's invites.list and setMediator
     // outright, so offering either would be a control that only ever errors.
-    expect(screen.queryByText('Create invite code')).toBeNull()
+    expect(screen.queryByText('Create invite link')).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Who mediates' })).toBeNull()
+    // …but any member can bring someone to the table (issue 1255).
+    // (The button itself is `CopyInviteLink`'s, mounted only when Connected.)
+    expect(screen.getByRole('heading', { level: 3, name: 'Invite a crewmate' })).toBeTruthy()
+    expect(screen.getByText(/asks to join, and the organizer lets them in/)).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'End this game' })).toBeNull()
   })
 
   test('the Organizer gets invites, who mediates, and ending the game', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true } })
 
-    expect(screen.getByRole('heading', { level: 3, name: 'Invite someone' })).toBeTruthy()
-    expect(screen.getByText('Create invite code')).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 3, name: 'Invite links' })).toBeTruthy()
+    expect(screen.getByText('Create invite link')).toBeTruthy()
+    expect(screen.getByText(/signs in joins the game/)).toBeTruthy()
     expect(screen.getByLabelText('Invite note')).toBeTruthy()
     // One per member — the Organizer can appoint themselves OR somebody else.
     // This panel is the ONLY way the Mediator flag is ever set: without it the
@@ -196,28 +199,30 @@ describe('the Game section', () => {
     expect(screen.getByRole('heading', { level: 3, name: 'End this game' })).toBeTruthy()
   })
 
-  test('ending the game asks first, says where everything lands, and then shows My Stuff', async () => {
+  test('ending the game asks first, says where everything lands, and then shows Shelves', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true } })
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete this game' }))
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain('It cannot be undone')
     expect(dialog.textContent).toContain('4 pilots and 3 mechs go back to whoever owns them')
-    expect(dialog.textContent).toContain('Hamlet and anything unclaimed come to you, in My Stuff')
+    expect(dialog.textContent).toContain(
+      'Hamlet and anything unclaimed come to you, in your shelves'
+    )
     expect(mutations).toHaveLength(0)
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete game' }))
     })
     expect(mutations).toEqual([{ name: 'games:destroy', args: { gameId: 'g1' } }])
-    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
+    expect(navigations).toEqual([{ to: '/' }])
   })
 
   test('a game with no crawler does not promise one', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true, crawlerName: null, pilotCount: 0 } })
     fireEvent.click(screen.getByRole('button', { name: 'Delete this game' }))
 
-    expect(screen.getByText(/^Anything unclaimed comes to you, in My Stuff\.$/)).toBeTruthy()
+    expect(screen.getByText(/^Anything unclaimed comes to you, in your shelves\.$/)).toBeTruthy()
     // With no pilots there is no "0 pilots" line to read past.
     expect(screen.queryByText(/0 pilots/)).toBeNull()
   })
@@ -294,13 +299,14 @@ describe('the Mediator section', () => {
 })
 
 describe('a game the viewer is not in', () => {
-  test('explains itself, and offers My Stuff, instead of rendering the table', async () => {
+  test('explains itself, and offers the way back to Shelves, instead of rendering the table', async () => {
     await renderHub({ 'games:get': null })
 
     expect(screen.getByText(/not in this game/i)).toBeTruthy()
+    expect(screen.getByText(/invite link/i)).toBeTruthy()
     expect(section('Game')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Show My Stuff' }))
-    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
+    fireEvent.click(screen.getByRole('button', { name: 'Back to your shelves' }))
+    expect(navigations).toEqual([{ to: '/' }])
   })
 
   test('still loading is not the same as not a member', async () => {

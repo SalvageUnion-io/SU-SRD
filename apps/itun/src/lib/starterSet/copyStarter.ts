@@ -5,7 +5,7 @@
  * The templates in `./starterSet` are never stored, never adopted and never
  * edited. They are read through a read-only sheet store (the `/starter` pages),
  * and the only way to play one is to **copy** it into a container the player
- * picks — My Stuff or one of their Games. The copy is an ordinary build the
+ * picks — Shelves or one of their Games. The copy is an ordinary build the
  * player owns, made through `entityStore.create`, so it is refused signed out
  * and committed to the server of record before anything local is written.
  *

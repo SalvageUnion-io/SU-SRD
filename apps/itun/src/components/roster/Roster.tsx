@@ -1,24 +1,25 @@
 /**
- * Roster — the hub at `/` (design-spec §3.1, §3.7).
+ * Roster — the hub (design-spec §3.1, §3.7): Shelves at `/`, and a Game's own
+ * page at `/games/$gameId` (issue 1255).
  *
- * One container on screen at a time, picked in the header's "Showing" select
- * (`ContainerSwitcher`, persisted in `activeContainerStore`):
+ * One container on screen at a time. The route picks it as it loads
+ * (`activeContainerStore`), and the header's "Showing" select
+ * (`ContainerSwitcher`) navigates between them:
  *
- *  - **My Stuff** — your builds that are in no Game, in three columns of
+ *  - **Shelves** — your builds that are in no Game, in three columns of
  *    `EntityRow`s. Each row: View, "Move to game…" (`MoveToGameSelect`), and
  *    Delete behind the shared confirm.
  *  - **A Game** — that table's roster, yours first, with every player and
- *    Mediator action below the lists (`GameHub`). There is no Games page any
- *    more; this is it.
+ *    Mediator action below the lists (`GameHub`).
  *
  * "+ New game" (`NewGameControl`) heads the band, beside the select it adds
- * to. Signed out there is no game UI at all: no select, no New game, only the
- * sign-in prompt (see `inContainer`).
+ * to. Signed out there is no game UI at all: the page is the front door
+ * (`FrontDoor`, board 09).
  *
  * On mount: hydrates all three entity types + softLinks. At the mobile
  * endpoint (≤ md) the columns collapse to one behind a segmented
  * Pilot/Mech/Crawler switch (`RosterColumn.tsx`), whose choice is kept here so
- * it survives switching between My Stuff and a Game.
+ * it survives switching between Shelves and a Game.
  *
  * Delete flow:
  *   1. User clicks "Delete" on an EntityRow.
@@ -46,12 +47,12 @@ import type { ContainerFields } from '../../lib/container'
 import { containerOf, sameContainer } from '../../lib/container'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import type { SoftLink } from '../../lib/schemas/softLink'
-import { setActiveContainer, useActiveContainer } from '../../stores/activeContainerStore'
+import { useActiveContainer } from '../../stores/activeContainerStore'
 import type { EntityType } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
-import { SignInToBuild } from '../account/SignInToBuild'
 import { ContainerSwitcher } from '../container/ContainerSwitcher'
 import { MoveToGameSelect } from '../container/MoveToGameSelect'
+import { useShowContainer } from '../container/useShowContainer'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { GameHub } from '../games/GameHub'
@@ -60,7 +61,7 @@ import { NewGameControl } from '../games/NewGameControl'
 import { AppLink } from '../shared/AppLink'
 import { EntityRow } from '../shared/EntityRow'
 import { useConfirm } from '../shared/useConfirm'
-import { StarterSetRoster } from '../starterSet/StarterSetRoster'
+import { FrontDoor } from './FrontDoor'
 import type { SegmentKind } from './RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from './RosterColumn'
 import { crawlerStats, mechChassisStats, pilotStats } from './rowStats'
@@ -110,6 +111,7 @@ export function Roster() {
   /** The current container (global, persisted). Only consulted when Connected. */
   const activeContainer = useActiveContainer()
   const { mode } = useConnection()
+  const showContainer = useShowContainer()
   /** Mobile-endpoint segmented switch (design §3.7) — which column shows ≤ md */
   const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
 
@@ -231,14 +233,9 @@ export function Roster() {
   // Signed out, there is nothing of theirs to list and nothing may be built:
   // every build lives in an account (ADR-034 as amended).
   // The Starter Set stays open to them: reading it needs no account.
-  if (mode === 'solo') {
-    return (
-      <PageShell>
-        <SignInToBuild title="Welcome to In the Union Now" />
-        <StarterSetRoster />
-      </PageShell>
-    )
-  }
+  // Signed out it is the front door (board 09): what ITUN is, the sign-in,
+  // how it works, and the Starter Set, which reading needs no account for.
+  if (mode === 'solo') return <FrontDoor />
 
   return (
     <PageShell stack={false}>
@@ -261,10 +258,10 @@ export function Roster() {
             </AppLink>
           </div>
           {/* What the hub shows, and how to get another table to show: the
-              select lists My Stuff and every Game, and "+ New game" adds one.
+              select lists Shelves and every Game, and "+ New game" adds one.
               Both render nothing outside Connected. */}
           <div className="flex flex-wrap items-end gap-2.5">
-            <ContainerSwitcher activeContainer={activeContainer} onSelect={setActiveContainer} />
+            <ContainerSwitcher activeContainer={activeContainer} onSelect={showContainer} />
             <NewGameControl />
           </div>
         </div>

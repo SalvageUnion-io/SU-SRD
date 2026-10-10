@@ -1,10 +1,10 @@
 /**
  * MoveToContainerControl — live-sheet affordance for moving one entity between
- * **My Stuff** (the owner's shelf) and a **Game** (ADR-030 §2).
+ * **Shelves** (the owner's shelf) and a **Game** (ADR-030 §2).
  *
  * Replaces `AssignToWorkspaceButton`. A select, with Workspaces swapped for the
  * two real containers. Moving INTO a Game is one tap unless it clears an
- * assignment; moving OUT of one — back to My Stuff, or on to another Game —
+ * assignment; moving OUT of one — back to your shelves, or on to another Game —
  * always asks first. The hub's rows offer the same moves (`MoveToGameSelect`,
  * and "Remove from game" on a Game's rows).
  *
@@ -14,7 +14,7 @@
  * reading, which is the destructive direction, so that move always goes
  * through a confirm (`leaveGame`). Putting a build into a Game takes nothing
  * from the table, but it does prune every assignment that would straddle two
- * containers (ADR-037) — a pilot loses the mech still in My Stuff it was paired
+ * containers (ADR-037) — a pilot loses the mech still in your shelves it was paired
  * with — so a move in asks (`enterGame`, naming each one) exactly when
  * `assignmentsClearedByMove` finds something, and is one tap when it does not.
  * The words are in `lib/games/rowActionCopy.ts`; the move only runs once the
@@ -46,13 +46,13 @@
  *
  * The options come from `moveDestinations` (`lib/games/gameRoster.ts`), the
  * client mirror of the server's move rules (ADR-037): a pilot or mech may go to
- * My Stuff or any Game you belong to; a crawler moves only at its table
- * runner's hand, My Stuff → a Game they run or back. With nowhere to go the
+ * Shelves or any Game you belong to; a crawler moves only at its table
+ * runner's hand, Shelves → a Game they run or back. With nowhere to go the
  * select still shows where the entity is, disabled.
  *
  * ## Solo renders nothing
  *
- * With no account there is only My Stuff, so there is nowhere to move to —
+ * With no account there is only Shelves, so there is nowhere to move to —
  * see `ContainerSwitcher` for the same branch and the reasoning behind it.
  */
 
@@ -149,7 +149,7 @@ function ConnectedMoveToContainerControl({
       })
       return
     }
-    // Into a Game from My Stuff: ask only when the move clears an assignment.
+    // Into a Game from your shelves: ask only when the move clears an assignment.
     const cleared =
       next.kind === 'game'
         ? assignmentsClearedByMove(
@@ -185,7 +185,7 @@ function ConnectedMoveToContainerControl({
           onChange={handleChange}
           disabled={pending || destinations.length <= 1}
           className="w-auto disabled:opacity-50 sm:min-h-9"
-          aria-label="Move to a game or My Stuff"
+          aria-label="Move to a game or your shelves"
         >
           {shelfOptions.map((d) => (
             <option key="shelf" value="shelf">
@@ -195,7 +195,7 @@ function ConnectedMoveToContainerControl({
           {/* A record left in a container that is not among the user's Games —
               a v13 phantom id, or a Game they have since left — is named
               "Unknown game" by `moveDestinations` rather than passed off as
-              My Stuff, which would be a lie about where it lives. */}
+              Shelves, which would be a lie about where it lives. */}
           {gameOptions.length > 0 && (
             <optgroup label="Games">
               {gameOptions.map((d) => (
