@@ -3,7 +3,14 @@ import { ConvexError, v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
 import type { PatternVisibility } from './model/entities'
-import { bodyAppId, findOwnedByAppId, mutation, PARSERS, parseBody } from './model/entities'
+import {
+  bodyAppId,
+  findOwnedByAppId,
+  mutation,
+  PARSERS,
+  parseBody,
+  patternVisibilityOf,
+} from './model/entities'
 import { NotAuthorized, requireMemberAs, requireUser } from './model/permissions'
 
 /**
@@ -144,6 +151,45 @@ export const crewPatterns = query({
       }
     }
     return out
+  },
+})
+
+/**
+ * Who can read each of the caller's own patterns, and how many mechs have been
+ * built from it — the chips under a pattern on the Shelves page (#1279, board
+ * S1: "Shared by link", "Only me", "Built twice"). Those facts live in the
+ * row's columns rather than its body, so the local pattern cache cannot answer
+ * them. Signed out there is no shelf: an empty list.
+ */
+export const patternSharing = query({
+  args: {},
+  handler: async (
+    ctx
+  ): Promise<
+    Array<{
+      appId: string
+      visibility: PatternVisibility
+      gameName: string | null
+      builtCount: number
+    }>
+  > => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) return []
+    const rows = await ctx.db
+      .query('mechPatterns')
+      .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
+      .collect()
+    return await Promise.all(
+      rows.map(async (row) => {
+        const game = row.gameId === null ? null : await ctx.db.get(row.gameId)
+        return {
+          appId: row.appId,
+          visibility: patternVisibilityOf(row),
+          gameName: game?.name ?? null,
+          builtCount: row.builtCount ?? 0,
+        }
+      })
+    )
   },
 })
 
