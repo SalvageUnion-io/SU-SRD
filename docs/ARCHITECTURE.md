@@ -5411,8 +5411,8 @@ pilot it had just built.
 
 **Accepted; not built** (2026-10-10). Amends [ADR-014](#adr-014); amends
 [ADR-040](#adr-040). The planned `apps/api` ships after the prerequisites
-listed under Decision 9. One question is still open: whether the sources with
-no local text ship in v1 (Decision 10).
+listed under Decision 9. One question is still open: whether Mech Monday's
+community patterns ship in v1 (Decision 10).
 
 ### Context
 
@@ -5446,7 +5446,10 @@ The owner has decided three questions that shape the contract:
    `LICENCE`) permits serving the verbatim rules text as a public reference
    API. The Required Legal Text goes on every surface, and artwork is excluded.
 2. **Edition.** The latest editions are canonical: Workshop Manual (core) 2.0a,
-   False Flag 2.0a, Rainmaker 2.0a and We Were Here First! 2.0.
+   False Flag 2.0a, Rainmaker 2.0a, We Were Here First! 2.0, and the Starter
+   Set booklets, Reclamation of the Wastes, Relics of a Time Gone By,
+   Thatcher's Mech Base and The Hive at 1.1. Local text exists for every one
+   of them.
 3. **Scope.** v1 publishes only what the dataset already captures. A new kind
    of entity, such as encounter tables, would be a new schema type and is out
    of scope for v1.
@@ -5524,8 +5527,10 @@ The owner has decided three questions that shape the contract:
    licence PDF in the package becomes the 1.0b text that the package's
    `LICENCE` already names.
 7. **Edition.** Each `sources` row records its canonical printing in
-   `version`: core, False Flag and Rainmaker `2.0a`, We Were Here First! `2.0`.
-   The catalog's `editions` exposes it, and a row's `page` cites that
+   `version`: core, False Flag and Rainmaker `2.0a`, We Were Here First! `2.0`,
+   and `1.1` for the Starter Set, Reclamation of the Wastes, Relics of a Time
+   Gone By, Thatcher's Mech Base and The Hive. Mech Monday has no printing to
+   record. The catalog's `editions` exposes it, and a row's `page` cites that
    printing.
 8. **srd's `/schema/*` is the legacy contract.** It stays served, unversioned,
    as [ADR-040](#adr-040) defines it: the current committed files, verbatim,
@@ -5558,19 +5563,17 @@ The owner has decided three questions that shape the contract:
    `apps/api` is wired into `tools/check.ts`, CI's path filters,
    `deploy-surfaces.ts`, `smoke-production.sh` and
    [services](#services-and-agent-tooling).
-10. **Open: the sources with no local text.** The Starter Set, Mech Monday,
-    Reclamation of the Wastes, The Hive, Thatcher's Mech Base and Relics of a
-    Time Gone By have no text in `rules/`, so their 572 strings cannot be
-    verified against a book. The licence's coverage of Mech Monday's community
-    patterns is also unconfirmed. There are two choices:
-    - **Ship in v1, flagged.** The catalog marks each of these sources
+10. **Open: Mech Monday.** Every source except Mech Monday has local text to
+    verify against. Mech Monday's community patterns have no source text, so
+    they cannot be verified against a book, and it is not confirmed that the
+    licence covers them. There are two choices:
+    - **Ship in v1, flagged.** The catalog marks Mech Monday
       `verified: false`.
-    - **Hold back.** v1 omits rows whose only source is one of these.
+    - **Hold back.** v1 omits rows whose only source is Mech Monday.
 
     The two choices are not symmetric. Adding the rows to v1 later is additive.
     Withdrawing them after publication removes slugs, which is a breaking
-    change. About 87% of Starter Set rows are reprints already filed under the
-    core book, and they ship either way.
+    change.
 
 ### Consequences
 
@@ -5587,8 +5590,8 @@ The owner has decided three questions that shape the contract:
 - A breaking schema change now costs a `/v2` and a frozen `/v1` for at least
   six months. The prerequisites are ordered so the breaking changes they need
   land before the promise starts.
-- The local PDFs are the 1.2 and 1.1 printings, but 2.0a and 2.0 are
-  canonical. A `page`, a stat or a prose string can be checked against the
-  canonical edition only once those PDFs are in `rules/`.
+- The 2026-10-10 audit checked against the 1.2 and 1.1 printings. Its page,
+  stat and prose findings need re-checking against the canonical editions,
+  now that their text is local.
 - A new public Worker hostname adds a deploy surface, a smoke target and a
   row in the services table.
