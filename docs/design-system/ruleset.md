@@ -7,8 +7,65 @@
 >
 > If a component contradicts a rule here, the component is wrong — never the
 > reverse. Where the canon moves, it moves **only** toward the printed Workshop
-> Manual (warm, rounded, paperlike, stamped in ink). Copy stays 1:1 with real
-> SRD data.
+> Manual (warm, paperlike, banded in colour, stamped in ink). Copy stays 1:1 with
+> real SRD data.
+>
+> **Brand refresh (ratified 9 Oct 2026, #1250).** The source section below and
+> the rules it feeds (§1, §2, §3.1, §3.4, §3.5, §3.8–3.11, §4.1, §4.2, §4.4,
+> §4.6, §5, §8) were amended together, from the brand-refresh design canvas:
+> <https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm> (boards 02b "From the book",
+> 03 Colour, 04 Type, 05c Texture, E1–E4 Entity card, 12 Roadmap). This
+> amendment is the rule; the tokens and components follow it phase by phase
+> (tokens and gates in #1251, shared chrome in #1252, the entity card in #1253).
+> Where the code still shows the old value, the code is behind, not the canon.
+
+---
+
+## The source: the Workshop Manual
+
+**The printed Workshop Manual is the visual source of truth.** When a screen and
+the book disagree, open the book. The manual already solved what the apps
+struggle with: paper pages, colour only in bands, ink banners and framed
+numbers. Read as a system, it says where every colour goes. These are its
+devices, and the apps quote them literally:
+
+- **Chapter band.** A paper page with a band in the section colour across the
+  top, and the giant title notched into the band on a paper cut-out, **in ink**.
+  Never a white knockout on the band (print sets "PILOT BAY" in white on orange;
+  on screen that is 2.4 : 1). Colour lives only in the band; the page stays
+  paper. The foot band carries the citation (page and section).
+- **Framed numeral + ink stamp.** The stat column: a framed numeral beside an
+  ink stamp in the manual's own wording (`14 | STRUCTURE PTS.`), label at 14px.
+  The book's labels are STRUCTURE PTS., ENERGY PTS., HEAT CAP., SYSTEM SLOTS,
+  MODULE SLOTS, CARGO CAP., TECH LEVEL and SALVAGE VALUE. In print they run
+  diagonally; on screen they stay horizontal and keep the book's order. This is
+  the value-cell law (§7.1) at page scale.
+- **The ink banner.** Tier numeral, title, cost pennant, then the "//"
+  metadata, on an ink fill with a rounded tail. On screen it is the entity
+  card's ink header (§5), not a separate component.
+- **"ROLL THE DIE:"** — the underlined ink stamp over the banded d20 tables.
+- **"//" lines.** Italic trait and meta lines, items separated by "//"
+  (`Turn Action // Range: Close`).
+
+**The book's colour map** — which chapter band a page wears:
+
+| Chapter band      | Colour                        | Pages                                                            |
+| ----------------- | ----------------------------- | ---------------------------------------------------------------- |
+| Rules · Salvaging | rules blue, `--color-wk-line` | Home (Contents), Core Rules, Salvaging, Guides, Keywords         |
+| Pilot Bay         | `--color-pilot`               | Classes, Abilities, Equipment; ITUN pilot sheets                 |
+| Mech Workshop     | `--color-mech`                | Chassis, Systems, Modules; ITUN mech sheets                      |
+| Union Crawler     | `--color-crawler`             | Crawlers, Bays, Crawler TLs; ITUN crawler sheets                 |
+| Denizens          | `--color-denizen-band`        | Bio-Titans, Creatures, NPCs, Squads (cards keep adversary brown) |
+
+The blue belongs here as a band, never as the page ground (§4.1).
+
+**Where the screen departs from print, on purpose:**
+
+- **No white knockout.** Keep the notch layout; set the title in ink.
+- **Texture is generated, light, and placed** (§3.5), not scanned scuffs.
+- **The ability-tree track** (the thick "pipe" beside a class's abilities) stays
+  a diagram on the class page. It never becomes a left border on a card (§3.10).
+- **Rounding only where it copies a book style** (§4.4).
 
 ---
 
@@ -61,9 +118,9 @@ and the surface/mode taxonomy of [ADR-021](../ARCHITECTURE.md#adr-021).
 **Rules that ride the context:**
 
 - **Reference:** if it can't appear in the printed manual, it can't appear here.
-- **Live Sheet:** overrides are visibly non-canonical (dashed ring) **and logged**; the sheet never auto-applies.
-- **Dashboard:** _every_ mutation of a pilot, mech or crawler writes a Change Log row, and every roll a row in the Game's log; the seat (mount, range, effects, the resolve) is shared play state and is not logged. Geometry is identical to the sheet. **The cockpit is warm-paper instruments on a dark ground** — three depth levels, all canonical tokens, no private layer and no gradients: the ground (`--color-ink-deep`, both the surround and the canvas behind the instruments), the instrument chassis (`--color-band-cream` — EVERY cockpit card: rail, the Major slot, the two Minor slots, and the overlays that open over them), and the one document surface (`--color-paper` — the display region alone, the thing the cockpit is reading). One card background throughout: the Major slot is not lit differently from the Minors beside it, because it is already marked by its size — emphasis comes from the frame, not the fill. This supersedes two earlier revisions: the original dark _instrument skin_ (which also named itself the one sanctioned pure-white exception in §4.1), and the all-paper flip that replaced it. The all-paper revision was correct to put the instruments and their type in the book vocabulary, but it left every region the same white box, so the ground was darkened back to restore the hierarchy the hairlines alone could not carry. The instruments themselves stay paper/ink — the dark is a framing ground, not a skin. Ratified here.
-- **Listing:** the row's whole job is identify + click-through; nested entities live inside the parent's expanded view.
+- **Live Sheet:** overrides are visibly non-canonical (dashed ring) **and logged**; the sheet never auto-applies. **Print reads, pencil writes:** the read state is typeset (label + value, empty fields omitted); dashed fields and steppers appear only in the edit state.
+- **Dashboard:** _every_ mutation of a pilot, mech or crawler writes a Change Log row, and every roll a row in the Game's log; the seat (mount, range, effects, the resolve) is shared play state and is not logged. Geometry is identical to the sheet. **The cockpit is warm-paper instruments on a dark ground** — three depth levels, all canonical tokens, no private layer and no gradients: the ground (`--color-ink-deep`, both the surround and the canvas behind the instruments), the instrument chassis (`--color-band-cream` — EVERY cockpit card: rail, the Major slot, the two Minor slots, and the overlays that open over them), and the one document surface (`--color-paper` — the display region alone, the thing the cockpit is reading). One card background throughout: the Major slot is not lit differently from the Minors beside it, because it is already marked by its size — emphasis comes from the frame, not the fill. This supersedes two earlier revisions: the original dark _instrument skin_ (which also named itself the one sanctioned pure-white exception in §4.1), and the all-paper flip that replaced it. The all-paper revision was correct to put the instruments and their type in the book vocabulary, but it left every region the same white box, so the ground was darkened back to restore the hierarchy the hairlines alone could not carry. The instruments themselves stay paper/ink — the dark is a framing ground, not a skin. Ratified here. **The cost pennant is the action button** (#1250): an action is resolved by tapping its pennant, which is the same size and shape as the read pennant, filled rust, with a 44px invisible hit area — there is no separate deck button. **The Dashboard stays flat:** no texture (§3.5).
+- **Listing:** the row's whole job is identify + click-through; nested entities live inside the parent's expanded view. **A compact (head-extent) card is one line:** it never wraps; a long name truncates with "…" and keeps the full name in a tooltip, and the stats, pennant and chevron never wrap.
 - **Tooltip:** a glance and a page must never disagree — the tooltip reuses the dense variants, nothing inside acts.
 
 ---
@@ -98,23 +155,23 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 
 ### Rolls · Resources
 
-| Role             | Reference                                            | Live Sheet                                  | Dashboard                              | Listing                | Tooltip                  |
-| ---------------- | ---------------------------------------------------- | ------------------------------------------- | -------------------------------------- | ---------------------- | ------------------------ |
-| **Roll table**   | RollTable banded d20, peach/cream                    | RollTable in a modal · rust Roll Btn `free` | RollTable dense, instrument · Roll Btn | Stamp + d20 Pill       | RollTable dense, no Roll |
-| **Roll result**  | Highlighted rolled row + text · no colour · no Apply | Highlighted row + Apply · lines             | `auto` / `confirm`                     | —                      | —                        |
-| **Cargo slots**  | Stat cap only                                        | SlotGrid dashed=empty/solid=filled `free`   | SlotGrid · salvage fills `auto`        | MiniStat               | MiniStat                 |
-| **TL / Salvage** | TL-Salvage badge                                     | TL-Salvage badge read-only (derived: SV=TL) | TL-Salvage badge instrument            | TL-Salvage badge dense | TL-Salvage badge         |
+| Role             | Reference                                                                  | Live Sheet                                  | Dashboard                              | Listing                | Tooltip                  |
+| ---------------- | -------------------------------------------------------------------------- | ------------------------------------------- | -------------------------------------- | ---------------------- | ------------------------ |
+| **Roll table**   | RollTable banded d20 (peach/cream) under a ROLL THE DIE: stamp             | RollTable in a modal · rust Roll Btn `free` | RollTable dense, instrument · Roll Btn | Stamp + d20 Pill       | RollTable dense, no Roll |
+| **Roll result**  | Readout (number · outcome · text) + marked row · no tier colour · no Apply | Readout + marked row + Apply · lines        | `auto` / `confirm`                     | —                      | —                        |
+| **Cargo slots**  | Stat cap only                                                              | SlotGrid dashed=empty/solid=filled `free`   | SlotGrid · salvage fills `auto`        | MiniStat               | MiniStat                 |
+| **TL / Salvage** | TL-Salvage badge                                                           | TL-Salvage badge read-only (derived: SV=TL) | TL-Salvage badge instrument            | TL-Salvage badge dense | TL-Salvage badge         |
 
 ### Action facets · Entities · Chrome
 
-| Role               | Reference                        | Live Sheet                                               | Dashboard                                                | Listing                         | Tooltip                        |
-| ------------------ | -------------------------------- | -------------------------------------------------------- | -------------------------------------------------------- | ------------------------------- | ------------------------------ |
-| **Cost (AP/EP)**   | Cost pennant                     | Cost pennant read-only                                   | pennant = rust deck Btn label · tap spends `auto`       | Cost pennant                    | Cost pennant                   |
-| **Range**          | Range badge + tooltip            | Range badge (never interactive)                          | Range badge                                              | Range badge                     | badge (own tooltip suppressed) |
-| **Action type**    | Action-type stamp                | stamp                                                    | stamp = deck source-filter key                           | stamp                           | stamp                          |
-| **Entity card**    | Card full — THE canonical render | Card compact→expand · chrome layered on, never replacing | Card instrument-skin · actions → deck                    | Card header-only row, clickable | Card dense hovercard           |
-| **Section header** | Slab                             | Slab                                                     | Slab instrument                                          | Slab divider                    | — (bare Stamp at most)         |
-| **Source**         | in card foot                     | Change Log row (provenance = history)                    | Change Log row, instrument                               | dense                           | —                              |
+| Role               | Reference                        | Live Sheet                                               | Dashboard                                                                 | Listing                                   | Tooltip                        |
+| ------------------ | -------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------ |
+| **Cost (AP/EP)**   | Cost pennant                     | Cost pennant read-only                                   | pennant IS the rust Btn (read-pennant size, 44px hit) · tap spends `auto` | Cost pennant                              | Cost pennant                   |
+| **Range**          | Range badge + tooltip            | Range badge (never interactive)                          | Range badge                                                               | Range badge                               | badge (own tooltip suppressed) |
+| **Action type**    | Action-type stamp                | stamp                                                    | stamp = deck source-filter key                                            | stamp                                     | stamp                          |
+| **Entity card**    | Card full — THE canonical render | Card compact→expand · chrome layered on, never replacing | Card instrument-skin · actions → deck                                     | Card header-only row, one line, clickable | Card dense hovercard           |
+| **Section header** | Slab                             | Slab                                                     | Slab instrument                                                           | Slab divider                              | — (bare Stamp at most)         |
+| **Source**         | in card foot                     | Change Log row (provenance = history)                    | Change Log row, instrument                                                | dense                                     | —                              |
 
 ---
 
@@ -123,6 +180,18 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 1. **Rust = action, only action.** `--color-rust` is the single mutator
    signal. A rust element in a read-only context (Reference, Tooltip) is a defect.
    The one Reference exception is an **inline link** (InlineRef resolved state).
+
+   **The rust allowlist.** Rust is painted only by `Button` / `buttonVariants`
+   (every action, the Dashboard's cost-pennant button included) and by
+   `InlineRef`. Nothing else may reference `--color-rust`, and no other token
+   may alias it: `--color-sheet-pilot-deep` stops resolving to
+   `var(--color-rust)` and gets a literal value of its own. Chrome never
+   borrows rust as a brand accent — not the ".io" or "Beta" marks, not a "Buy
+   the game" link, not the "you are here" state (an inverse ink stamp).
+   Abilities are drawn as the book draws them, as ink banners (§5): the Core
+   tier fill (`--color-tier-core`, #a85947) is rust's near twin, so an ability
+   card filled with it reads as a button. `bun run check styling` learns this
+   allowlist in #1251.
 2. **Stamps label · slabs section · tags cite.** These three never trade jobs. A
    stamp is the ink label/header atom; a slab titles a section; a badge/tag cites
    categorical metadata.
@@ -134,6 +203,9 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    outcomes. Even in the bot the tiers are re-toned to the warm workshop palette
    (brick / ember / ochre / olive / slate — off stock Material hues); the web
    status tokens move with them, so damaged-red reads warm brick, not neon.
+   A web roll result is a **readout** (number, outcome and text) plus a mark on
+   the matching row. The mark is the same whatever the outcome, so it is not
+   outcome colouring.
 5. **No gradient SHADING. Closed colour set.** No colour outside §4's set.
    What is banned is **smooth interpolation between colours** — the soft,
    dimensional, airbrushed look. Half-fills and X's are `clip-path` + SVG,
@@ -153,7 +225,25 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    ramps** (`CatalogTile`/`catalogColors` — tech-level and ability-tier bands
    as a wayfinding cue) and its story. Each is still listed in `tools/rules/designTokens.ts`'s
    `EXEMPTIONS` table with a written reason, because the checker matches the
-   CSS function and cannot itself tell a hard stop from a blend.
+   CSS function and cannot itself tell a hard stop from a blend. Ruled and
+   still to be built: the **user-made hatched band** (§3.9), a hard-stop
+   `repeating-linear-gradient(135deg, …)`; it joins `EXEMPTIONS` when it lands.
+
+   **Texture: the light speckle** (board 05c). The printed bands and banners
+   are speckled, and so are ours — generated in code, light, and never scuffed.
+   Speckle is grain, not shading: it does not interpolate between colours or
+   model a surface, so it sits on the pattern side of this law. Where it goes,
+   exactly:
+   - **ink speckle** on every colour band and tone header (chapter bands,
+     entity-card tone headers);
+   - **paper flecks** on every dark header — the Union bar included — on ink
+     headers (the ink banner) and on unit stamps.
+
+   Never on paper, buttons, fields, the Dashboard or tooltips. The speckle
+   sits behind the content: a band's notched title is on clean paper and is
+   untouched. This supersedes the earlier "every band is flat" decision. The
+   `/about` panel below stays its own ruling; the speckle is not a precedent
+   for it, nor it for the speckle.
 
    **There is exactly ONE shading exemption, and it is a ruled one-off:** the
    `.pilot-panel` distressed-metal effect on srd's `/about` (12 declarations in
@@ -183,6 +273,34 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    VitalGauge · Badge · ConditionSwatch · SlotGrid · RollTable · …) — a surface
    never reinvents a primitive's markup one-off. If you are about to type a stat
    into a `<span>`, you want a Stat.
+8. **Ink on colour.** Text on a pilot or mech fill is **ink**: paper text
+   measures 2.4 : 1 on pilot orange and 3.0 : 1 on mech green, and ink measures
+   6.4 and 5.1. No text pair on a fill goes under 4.5 : 1. Crawler pink fails
+   both ways (paper 3.7, ink 4.2), so a crawler band that carries paper text
+   uses the deeper `--color-crawler-band`; Denizens navy carries paper text.
+   **TL is the framed ink-on-paper badge, never a text ground** — a tech-level
+   blue is a fill for the badge's ramp, not something text sits on.
+9. **Canon is solid; homebrew is dashed.** Anything a player makes **that
+   could be mistaken for book content** — a mech pattern, an NPC — wears the
+   user-made treatment: a dashed ink frame in place of the solid one, a dashed
+   **User-made** stamp on the header seam, a dashed footer rule and dashed
+   pills, and a credit that reads just "Made by [user]" in place of a page
+   citation. On a full page it also gets a **hatched band** (a hard-stop
+   `repeating-linear-gradient`, §3.5), a dashed frame around the notched title
+   and a banner naming the maker. Pilots, mechs and crawlers built from canon
+   stay **solid**: nobody mistakes a pilot sheet for a book page. Dashes
+   already mean "pencil, not print" (§1 Live Sheet: the edit field, the
+   override ring); this rule extends that meaning to a whole card. It is one
+   `userMade` flag on the entity card (#1276), never per-surface styling.
+10. **No left-rail borders** on cards. Colour rides in top bands, stamps and
+    gauges; nesting shows by containment and the seam stamp (§5), never by a
+    coloured left edge. The book's ability-tree track stays a diagram.
+11. **One union, two tools. ITUN is the brand.** salvageunion.io and ITUN are
+    one product under one Union bar. The product switcher reads **Reference |
+    Build** — it names what you do there; ITUN stays the product name, and
+    "In The Union Now" is spelled out on ITUN's front door. No off-site arrows
+    between the two ("Builder ↗", "SRD ↗"). The ITUN domain move that goes with
+    this decision is #1244.
 
 ---
 
@@ -204,11 +322,14 @@ The values live in `theme.css` alone; this table names each role and its use.
 | pilot                     | `--color-pilot`           | pilot ontology                                                                       |
 | mech                      | `--color-mech`            | mech ontology                                                                        |
 | crawler                   | `--color-crawler`         | crawler ontology                                                                     |
+| crawler band              | `--color-crawler-band`    | the deeper crawler band that carries paper text (§3.8)                               |
+| Denizens band             | `--color-denizen-band`    | the Denizens chapter band (navy); Denizens cards keep adversary brown                |
 | adversary                 | `--color-adversary`       | creatures · bio-titans · factions · npcs · meld · squads                             |
 | cargo                     | `--color-cargo`           | cargo fills                                                                          |
 | tier · core               | `--color-tier-core`       | Core ability-tree tier (Advanced = pilot, Legendary = crawler)                       |
-| workshop ground           | `--color-wk-bg` / `-2`    | the step off-paper that makes a card read as a panel                                 |
-| workshop rules            | `--color-wk-line/-accent` | advisory rule · game-state accent                                                    |
+| workshop ground           | `--color-wk-bg` / `-2`    | the page ground (the book's paper): the step off-paper that makes a card a panel     |
+| workshop muted            | `--color-wk-muted`        | muted text on paper                                                                  |
+| workshop rules            | `--color-wk-line/-accent` | advisory rule and the rules-blue chapter band · game-state accent                    |
 | caution                   | `--color-caution`         | attention fill that is neither ontology nor status                                   |
 | inert                     | `--color-inert`           | inert / non-numeric tier fill                                                        |
 | status-ok                 | `--color-status-ok`       | ok state overlay                                                                     |
@@ -216,6 +337,20 @@ The values live in `theme.css` alone; this table names each role and its use.
 | status-bad · damaged      | `--color-status-bad`      | damaged / destroyed / redline / over-cap                                             |
 | roll tiers · **BOT ONLY** | re-toned ramp             | Discord roll outcomes only                                                           |
 | tech-level blues          | TL 1–6 · B · N            | TL badge ramp                                                                        |
+
+**Ratified by the brand refresh (#1250).** These values land in `theme.css`
+with #1251; until then `theme.css` still ships the old ones, and is behind.
+
+- **The page ground is the book's paper.** `--color-wk-bg` moves from the cool
+  #e6f0f5 to **#efece6**. The blue stops being the ground of every page and
+  becomes a **chapter band** (Rules, Salvaging, Contents, Guides — the
+  source section's colour map).
+- **Muted text is warm.** `--color-wk-muted` moves from the cool grey #5a646d
+  to **#6b6257** (5.7 : 1 on paper, 5.1 : 1 on the new ground).
+- **Two new closed-set colours:** `--color-crawler-band` **#b84a86** (paper
+  text on it measures 4.6 : 1) and the Denizens navy `--color-denizen-band`
+  **#2f4a66** (8.8 : 1).
+- **`--color-sheet-pilot-deep` stops aliasing rust** (§3.1).
 
 **There is no second spelling.** The `su-*` brand family that these tokens were
 once defined as aliases _of_ is deleted (see the note in `theme.css`). It was a
@@ -243,7 +378,7 @@ active use. Ratified as-is rather than re-lettering every label in the app.
 | Token                   | Value    | Use                                            |
 | ----------------------- | -------- | ---------------------------------------------- |
 | `--tracking-caps-tight` | `0.04em` | **the canonical stamp / label / tab tracking** |
-| `--tracking-caps-snug`  | `0.06em` | slightly opened labels                         |
+| `--tracking-caps-snug`  | `0.06em` | slightly opened labels; caps at the 11px floor |
 | `--tracking-caps`       | `0.08em` | chip + section labels                          |
 | `--tracking-caps-wide`  | `0.12em` | widest control-panel / header stamps           |
 | `--tracking-eyebrow`    | `0.22em` | brand caption only                             |
@@ -270,6 +405,10 @@ dark instrument.
 
 - **Radius:** `3px` outer (card + Btn — the one primitive allowed to round);
   inner = `calc(3px − frame)`. **Stamps are square.**
+- **Rounding beyond 3px only where it copies a book style**, and the book has
+  two: the **ink-banner tail** (the rounded right end of an ink header, §5) and
+  the **how-to cards on Guides**. Everything else keeps the 3px canon; a
+  rounded corner that is not one of these two is a defect.
 - **Spacing** spends only `{2, 4, 6, 8, 12}px`. `12px` = the card gutter —
   header / callout / body / foot all align to it.
 
@@ -290,6 +429,26 @@ pipRows(n): perRow = 6
 
 `6 → 6 · 7 → 3/4 · 8 → 4/4 · 9 → 4/5 · 10 → 5/5 · 11 → 5/6 · 12 → 6/6 · 13 → 4/4/5 · 20 → 5/5/5/5`.
 The redline pip sits at the **70% law**.
+
+### 4.6 The floors: type and touch
+
+- **Type floor: 11px, no exceptions.** Nothing renders under 11px — not a
+  caps label, not a seam stamp, not a roll-table stamp, not a wizard (the
+  near-frozen wizards keep their look, but the floor applies there too). A
+  caps label at the floor is **11px at 0.06em** (`--tracking-caps-snug`): at
+  that size the caps need the air. Today's sub-floor rungs (`--text-nano` 8px,
+  `--text-micro` 9px, `--text-label` 10px, `--text-label-lg` 10.5px) fold into
+  the floor in #1251, and `bun run check styling` rejects anything smaller.
+- **The floor holds at the size the reader sees.** A link preview is drawn at
+  1200 × 630 and shown about 400px wide in a Discord embed, so its source type
+  is never under **34px** (34px at 1200 is 11px at 400). Any surface that is
+  scaled for display obeys the floor after scaling.
+- **The stat column's label** (the framed numeral's ink stamp, source section)
+  is 14px.
+- **Touch: thumb first at the table.** Every target is at least **44px** under
+  a coarse pointer (a hit-area pseudo-element where the visible control is
+  smaller, as the Dashboard pennant does); vitals stay pinned; nothing floats
+  over content (no floating button that covers a card's actions).
 
 ---
 
@@ -331,6 +490,48 @@ StatusBadge   = Badge(tone) + ConditionSwatch
 Tally         = (ConditionSwatch + count) × 3
 RollTable✦    = Card + SRD description + banded table
 ```
+
+### The entity card: one anatomy, two header fills
+
+`ReferenceEntityCard` has **one anatomy** across every size × extent × context
+(boards E1–E3): the seam type stamp, a flush header (title on the left, value
+cells on the right), an italic "//" line, the body and the footer. The "//"
+line has no rule under it; it sits a few pixels above the description, so the
+two read as one block.
+
+The header has **two fills**, and the choice is the reader's question:
+
+- **Tone, for things you _have_** (chassis, systems, equipment, pilots,
+  creatures…): the header takes the entity's tone, carries ink speckle
+  (§3.5), and its title is ink or paper, whichever passes contrast for that
+  tone (§3.8).
+- **Ink, for things you _do_** (abilities, actions): the book's ink banner. The
+  tier numeral rides at the left (title size, slightly dimmed) and the cost
+  pennant at the right; paper flecks (§3.5). The ghosted action tones retire.
+
+Have vs do is decided by **data shape**, never by a schema name (the display
+system's slot rule). **Actions sit inline** in the card as flush ink bands
+(name and cost, then the "//" line and body), with no "Actions" tray and no
+"Action" stamp. An entity's own roll table sits inline the same way, under a
+ROLL THE DIE: bar, its result as a readout (§3.4). In the Dashboard the cost
+pennant is the action button (§1).
+
+### Nesting legibility
+
+A card that holds cards must still read at a glance. Nested _entities_ (not
+actions, which sit inline as above):
+
+- **sit in a tray** in the page colour, inside the parent's frame;
+- **every group gets a stamp-and-leader label with a count** (a Slab-style
+  stamp and leader rule, naming the group and how many it holds);
+- **one tone per entity** — a child wears its own tone, never a blend of its
+  parent's;
+- **a size step per depth:** large at depth 0, medium at depth 1, and **depth 2
+  renders as a header-only, one-line, clickable row**; the frame steps
+  3 → 2 → 1.5px (§4.3);
+- **no prose a parent already shows** — a child hides what its parent prints;
+- **actions below depth 1 collapse to a "Show N actions" chip;**
+- containment and the seam stamp show the nesting, never a left rail (§3.10).
 
 ---
 
@@ -388,10 +589,16 @@ above, half over, like a label plate riveted across a seam.
 A component obeys the ruleset when:
 
 - [ ] It is **one primitive** for its kind×context — no sibling for a different size/theme (§0).
-- [ ] Every label/header is a **Stamp** at `--tracking-label` `0.04em`; stamps are square (§4.2, §5).
+- [ ] Every label/header is a **Stamp** at `--tracking-caps-tight` `0.04em` (`0.06em` at the 11px floor); stamps are square (§4.2, §5).
 - [ ] Every light surface is `--color-paper` — no pure white in the UI, including the value cell and text on ink (§4.1, §7.1).
-- [ ] The only **rust** is an action (or a Reference inline link) (§3.1).
-- [ ] Borders use `--bw-*` weight tokens; radius is 3px on cards/Btns only, `calc()` inside (§4.3–4.4).
+- [ ] The only **rust** is an action (or a Reference inline link), painted by `Button`/`buttonVariants` or `InlineRef` (§3.1).
+- [ ] Text on a colour fill passes 4.5 : 1 — **ink** on pilot and mech; TL is a badge, never a text ground (§3.8).
+- [ ] Nothing renders under **11px**, at the size the reader sees it; coarse-pointer targets are 44px (§4.6).
+- [ ] Borders use `--bw-*` weight tokens; radius is 3px on cards/Btns only, `calc()` inside — rounder only for an ink-banner tail or a Guides how-to card (§4.3–4.4).
+- [ ] No **left-rail** border; nesting is containment + the seam stamp (§3.10, §5).
+- [ ] Texture only where §3.5 places it — never on paper, buttons, fields, the Dashboard or tooltips.
+- [ ] A player-made thing that could pass for the book is **dashed** and says User-made; canon-built units stay solid (§3.9).
+- [ ] An entity card uses the one anatomy: tone header for things you have, ink header for things you do (§5).
 - [ ] Any label+value shows as a **framed** ink-on-paper value cell; a lone label is **frameless** (§7.1).
 - [ ] A border-riding label uses **StampSeam** (self-height-centred), not a fixed margin (§7.2).
 - [ ] State reads as a **treatment overlay** (strike/X/redline), never a second hue; **no gradients** (§3.3, §3.5).
@@ -404,5 +611,6 @@ A component obeys the ruleset when:
 _One kind, one context, one primitive — the older entity-display canon, unified
 and warmed toward the book, with every "before" a real render and every change
 earned. Logo off-limits · wizards near-frozen (their `--tone-card` fills are a
-protected book aesthetic, [[wizard-info-colors]]) · CSP-safe · Tailwind v4 ·
+protected book aesthetic, [[wizard-info-colors]]; only the type floor applies
+there) · CSP-safe · Tailwind v4 ·
 `component-lib` stays no-build._
