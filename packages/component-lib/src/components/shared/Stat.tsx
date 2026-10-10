@@ -45,7 +45,7 @@ export type StatState = EntityStatus
  *
  *   default  -> ink border (the resting state)
  *   good     -> mech   (full / at-cap-good)
- *   modified -> dashed ink (value changed from its base, e.g. a modified TL)
+ *   modified -> heavier solid ink frame, border plus a 1px ring (value changed from its base, e.g. a modified TL)
  *   caution  -> status-warn
  *   critical -> status-bad
  */
@@ -54,7 +54,7 @@ export type StatBorderState = 'default' | 'good' | 'modified' | 'caution' | 'cri
 const STATE_BORDER: Record<StatBorderState, string> = {
   default: 'border-ink',
   good: 'border-mech',
-  modified: 'border-dashed border-ink',
+  modified: 'border-ink ring-1 ring-ink',
   caution: 'border-status-warn',
   critical: 'border-status-bad',
 }

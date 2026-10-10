@@ -138,7 +138,7 @@ export type TechScaling = {
   /** The header TL cell: the EFFECTIVE level (base, or bumped by the external
    * `scalingParent` control) on a TL-scalable entity, else the base. */
   techLevelDisplay: number | 'B' | 'N' | undefined
-  /** Scaled above base — the TL cell wears the dashed `modified` border. */
+  /** Scaled above base — the TL cell wears the heavier solid `modified` frame. */
   techLevelModified: boolean
   /** A `perTechLevel` map (datavalue label, lowered → per-level increment) from
    * the entity's OWN datavalues, so a scaled value is highlighted as modified. */
@@ -244,8 +244,8 @@ export function buildHeaderStats(options: {
           label: asCompact ? 'TL' : 'Tech',
           bottomLabel: asCompact ? undefined : 'Level',
           value: String(options.techLevelDisplay),
-          // A TL-scalable item shows the EFFECTIVE level; a dashed `modified`
-          // border when above base (controlled from without via `scalingParent`).
+          // A TL-scalable item shows the EFFECTIVE level; a heavier solid `modified`
+          // frame when above base (controlled from without via `scalingParent`).
           ...(options.techLevelModified ? { state: 'modified' as const } : {}),
         }
       : undefined
@@ -260,7 +260,7 @@ export function buildHeaderStats(options: {
 
 /** The "modified stats" colour — a choice-touched or TL-scaled cell's border.
  * Ink, not rust: rust is an action's colour (ruleset §3.1), and a player's
- * change reads as pencil, which is `Stat`'s dashed `modified` border (ADR-026
+ * change reads as pencil, which is `Stat`'s heavier solid `modified` frame (ADR-026
  * §5). The sub-header renders its cells as text today, so this marks the data
  * and draws nothing yet. */
 const MODIFIED = 'var(--color-ink)'

@@ -72,7 +72,7 @@ type ContentProps = {
    * record with no data stays unmarked, so a coverage gap is visible in the
    * product and not only in CI.
    *
-   * Extends ADR-026 §5's "modified" language (dashed ink) from stat cells to a prose
+   * Extends ADR-026 §5's "modified" language (heavier solid ink) from stat cells to a prose
    * span; it is the same vocabulary, a third carrier.
    */
   rulesBearing?: boolean
@@ -262,7 +262,7 @@ function ContentBlock({
         <Text
           variant="body"
           as="div"
-          className={cn('mb-1', fontSize, bearing && 'border-l-2 border-dashed border-ink pl-2')}
+          className={cn('mb-1', fontSize, bearing && 'border-l-4 border-solid border-ink pl-2')}
           style={{ overflowWrap: 'break-word' }}
           {...(bearing
             ? {
