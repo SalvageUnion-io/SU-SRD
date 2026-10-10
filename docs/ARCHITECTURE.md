@@ -2284,7 +2284,11 @@ Full text: `git show bc9f08ce:docs/ARCHITECTURE.md` (its `## ADR-025` section)
 
 ### Status
 
-Accepted.
+Accepted. **Amended 2026-10-10 (#1284):** §5's "modified" border moved from rust
+to a heavier solid ink frame when the rust allowlist (ruleset §3.1) reserved
+rust for actions. It does not use the dash: ruleset §3.9 says canon is solid
+and dashes mark homebrew and the edit state, and no board on the origin gives
+the modified treatment a dash.
 
 ### Context
 
@@ -2364,10 +2368,12 @@ a stat cell.
 
 A stat/trait cell that a **choice touched** (e.g. picking a Weapon Type adds the
 Ballistic trait; a Modification sets Range → Far) OR that **tech-level scaling
-changed** gets the **"modified" border: dashed ink** (`Stat`'s `modified`
-state) — pencil, not print, the same dash the ruleset gives every player change
-(§1, §3.9). It was rust until the rust allowlist (ruleset §3.1) reserved rust
-for actions. The value itself updates. This applies to **statblocks / `Stat`
+changed** gets the **"modified" frame: a heavier solid ink frame** (`Stat`'s
+`modified` state: the border plus a 1px ink ring). It was rust until the rust
+allowlist (ruleset §3.1) reserved rust for actions, and it never takes the dash:
+dashes are the pencil/override cue of the edit state and the homebrew cue
+(ruleset §1, §3.9), and a canon stat on a read-only card must not wear them.
+The value itself updates. This applies to **statblocks / `Stat`
 cells only** — not `VitalGauge`.
 
 - Demo: `Compositions/Reference Entity Write Layer` → **ChoiceEquipment** /
@@ -2617,12 +2623,17 @@ question the earlier records left open:
 `lib/schemas/objects/contributions.ts`. Subordinate to [ADR-021](#adr-021) (the
 governing surface/mode taxonomy) and paired with the amendment to
 [ADR-022](#adr-022) that makes a cap override an
-absolute pin. Extends the "modified stats" dashed-ink language of
+absolute pin. Extends the "modified stats" heavier-solid-ink language of
 [ADR-026](#adr-026) from stat cells to prose.
 
 **§4 is amended by [ADR-038](#adr-038)** (built): activated
 effects resolve against the pilot's seat on the Game instead of ephemeral play
 state. They are still never persisted on the entity.
+
+**Amended 2026-10-10 (#1284):** the "modified" language it extends from stat
+cells to prose is now a heavier solid ink mark (see the amendment in
+[ADR-026](#adr-026)), not rust and not dashed; the rules-bearing prose span
+carries a solid ink rail.
 
 ### Context
 
@@ -2770,7 +2781,7 @@ is the first thing built and the last thing removed.
 
 On entity reference cards, the indicator that a contribution exists is rendered
 **inline with the sentence that grants it**, not as a separate badge or footer
-row. It extends the **"modified" language** (a dashed ink mark) established by
+row. It extends the **"modified" language** (a heavier solid ink mark) established by
 [ADR-026](#adr-026) §5 for choice- and
 scaling-touched stat cells, applying it to a prose span.
 

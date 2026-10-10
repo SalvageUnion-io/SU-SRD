@@ -2,7 +2,7 @@
  * The inline rules-bearing marker (C4, ADR-029).
  *
  * Marks the clause the app actually applies, adjacent to the claim itself —
- * extending ADR-026 §5's "modified" language (dashed ink) from stat cells to a prose
+ * extending ADR-026 §5's "modified" language (heavier solid ink) from stat cells to a prose
  * span.
  *
  * The negative case carries the design intent: prose that STATES a mechanical
