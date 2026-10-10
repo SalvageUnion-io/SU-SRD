@@ -5,7 +5,7 @@ crawlers: anyone designs one, keeps it on their shelf, takes it into a Game,
 and can crew a crawler's slots with it. The decisions are
 [ADR-043](../ARCHITECTURE.md#adr-043); this page is the model and the
 surfaces. It began as the plan in issue 1269 and the design in issue 1277
-(boards N1 and N2 of the brand-refresh canvas).
+(boards N1 and N2 of [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm)).
 
 > **Status.** Built on the `design-refresh` branch. Every decision marked
 > **(owner to confirm)** below was made by the design lead and waits on the

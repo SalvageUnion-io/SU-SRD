@@ -10,14 +10,21 @@
 > Manual (warm, paperlike, banded in colour, stamped in ink). Copy stays 1:1 with
 > real SRD data.
 >
+> **The origin.** The design's source of truth is **the origin**, the brand
+> refresh's design board set:
+> <https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm>. This ruleset codifies the
+> origin's rules for code and for the gates. Where the two disagree, the origin
+> wins, and this ruleset is amended to match. A board named anywhere in the repo
+> ("origin board 05c", or just "board S1" in a code comment) is a board of the
+> origin.
+>
 > **Brand refresh (ratified 9 Oct 2026, #1250).** The source section below and
 > the rules it feeds (§1, §2, §3.1, §3.4, §3.5, §3.8–3.11, §4.1, §4.2, §4.4,
-> §4.6, §5, §8) were amended together, from the brand-refresh design canvas:
-> <https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm> (boards 02b "From the book",
-> 03 Colour, 04 Type, 05c Texture, E1–E4 Entity card, 12 Roadmap). This
-> amendment is the rule; the tokens and components follow it phase by phase
-> (tokens and gates in #1251, shared chrome in #1252, the entity card in #1253).
-> Where the code still shows the old value, the code is behind, not the canon.
+> §4.6, §5, §8) were amended together, from origin boards 02b "From the book",
+> 03 Colour, 04 Type, 05c Texture, E1–E4 Entity card and 12 Roadmap. The
+> tokens and components follow the amendment phase by phase (tokens and gates in
+> #1251, shared chrome in #1252, the entity card in #1253). Where the code still
+> shows the old value, the code is behind, not the canon.
 
 ---
 
@@ -187,7 +194,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    `InlineRef`. Nothing else may reference `--color-rust`, and no other token
    may alias it: `--color-sheet-pilot-deep` no longer resolves to
    `var(--color-rust)`; it holds a literal (ink's value — pilot-deep becomes
-   ink, board 03). Focus and selection rings are ink, not rust: a focused field
+   ink, origin board 03). Focus and selection rings are ink, not rust: a focused field
    or a picked card is state, not an action. Chrome never
    borrows rust as a brand accent — not the ".io" or "Beta" marks, not a "Buy
    the game" link, not the "you are here" state (an inverse ink stamp).
@@ -238,7 +245,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    `EXEMPTIONS` table with a written reason, because the checker matches the
    CSS function and cannot itself tell a hard stop from a blend.
 
-   **Texture: the light speckle** (board 05c). The printed bands and banners
+   **Texture: the light speckle** (origin board 05c). The printed bands and banners
    are speckled, and so are ours — generated in code, light, and never scuffed.
    Speckle is grain, not shading: it does not interpolate between colours or
    model a surface, so it sits on the pattern side of this law. Where it goes,
@@ -514,7 +521,7 @@ RollTable✦    = Card + SRD description + banded table
 ### The entity card: one anatomy, two header fills
 
 `ReferenceEntityCard` has **one anatomy** across every size × extent × context
-(boards E1–E3): the seam type stamp, a flush header (title on the left, value
+(origin boards E1–E3): the seam type stamp, a flush header (title on the left, value
 cells on the right), an italic "//" line, the body and the footer. The "//"
 line has no rule under it; it sits a few pixels above the description, so the
 two read as one block.

@@ -49,7 +49,7 @@ offline banner stays. `DashboardGrid` places three surfaces:
   the mount (`slotLayout.ts`): on foot the Pilot is Major, boarded the Mech;
   nothing else moves them. In Downtime the Crawler takes the whole row, since
   every step acts on it, and the pilot and mech ride the rail as compact links
-  with their pips (`RailUnit`) that open their Majors (issue 1255, board D3). A Major (`MajorFrame`) is
+  with their pips (`RailUnit`) that open their Majors (issue 1255, [origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) board D3). A Major (`MajorFrame`) is
   the entity's responsibility **bays**, each gauges plus a button grid, with a
   narrow side column. Mech: Reactor · Chassis, side Effects · Egress. Pilot:
   Vitals · Kit · Abilities · Mount. Crawler: Hull · Stores · Bays, side
@@ -201,7 +201,7 @@ ITUN's `src/styles/dashboard.css`.
 ## 7. Mobile
 
 [ADR-044](../ARCHITECTURE.md#adr-044) gives the Dashboard a **phone form**
-(`DashboardPhone`, boards D4 and D5, issue #1256). It is the same surface, not
+(`DashboardPhone`, origin boards D4 and D5, issue #1256). It is the same surface, not
 a second one: the same seat, store, rules and view models, and every phone
 control calls the handler its canvas twin calls.
 

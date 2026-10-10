@@ -1,7 +1,7 @@
 # Mediator Dashboard and running a Game: plan
 
 > **Status:** Plan; **P8a built** (#1278). #1062's plan doc, for #1278
-> (boards M1 and M2, canvas v69). Every decision below is **(decided by design
+> ([origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) boards M1 and M2, v69). Every decision below is **(decided by design
 > lead — owner to confirm)**. §3 says what is left for P8b and what waits on the
 > owner.
 >

@@ -5496,7 +5496,7 @@ table runner (ADR-030 §5), who alone assigns crew.
 The phone form is Guided Play, with the same enforcement, seat and Change Log
 as the canvas, so the taxonomy and the
 [rules and ITUN surfaces](#rules-and-itun-surfaces) matrix do not change.
-Built in issue #1256 (boards D4 and D5).
+Built in issue #1256 ([origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) boards D4 and D5).
 
 ### Context
 
@@ -5510,7 +5510,7 @@ instead. In practice:
   22px.
 
 Players run their sheets on phones at the table. The brand refresh drew a
-phone form (boards D4 and D5, issue #1256).
+phone form (origin boards D4 and D5, issue #1256).
 
 ### Decision
 

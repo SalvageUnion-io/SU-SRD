@@ -22,7 +22,7 @@ const STACK = {
 
 /**
  * The link preview at full size, 1200 × 630, for each of the six cards on
- * canvas board PV1: a reference thing and a thing you do (the SRD renders
+ * origin board PV1: a reference thing and a thing you do (the SRD renders
  * both at build), a player's sheet, a user-made pattern and NPC, a Game
  * invite, and the plain card for anything private (ITUN renders these on
  * request). The SRD builds its two from the entity with `ogCardForEntity`;

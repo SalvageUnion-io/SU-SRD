@@ -2,7 +2,7 @@ import { ChapterFoot, InlineRef } from 'component-lib'
 
 /**
  * The site's own pages, which left the Union bar when the SRD dropped its second
- * nav row (ruleset §3.11, canvas v60): the bar carries the switcher, the search
+ * nav row (ruleset §3.11, origin v60): the bar carries the switcher, the search
  * and the trail, and these four live down here, ink and underlined.
  */
 const SITE_LINKS = [

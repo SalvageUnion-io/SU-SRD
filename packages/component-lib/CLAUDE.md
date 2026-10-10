@@ -9,6 +9,7 @@ Shared React component library consumed by both `srd` and `itun`.
 - Vite in consuming apps handles `.ts/.tsx` compilation
 - **`sideEffects` is CSS only** (`package.json`): bundlers drop any module whose exports go unused. Never rely on an import running code; if a module truly must, add it to that list ([dependencies](../../docs/ARCHITECTURE.md#component-lib-dependencies))
 - Styling: tokens + style objects + one stylesheet, with Tailwind being removed — see [Styling](#styling)
+- **Design intent:** the origin (<https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm>) is the design's source of truth, and "board 05c" in a comment names one of its boards. [`ruleset.md`](../../docs/design-system/ruleset.md) codifies its rules for code and the gates; where they disagree, the origin wins and the ruleset is amended
 
 ## Styling
 

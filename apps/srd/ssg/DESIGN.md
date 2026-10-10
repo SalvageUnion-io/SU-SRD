@@ -113,7 +113,7 @@ builds from.
 | `MobileNavIsland`       | idle    | false    | chrome; props designed out                                       |
 | `SchemaViewerIsland`    | visible | **true** | SEO content; server markup is a named row per entity, not the island |
 | `ReferenceEntityIsland` | visible | false    | SSR would emit a skeleton; `StaticEntityContent` is the SEO path |
-| `RollTableIsland`       | idle    | **true** | a roll table's page (board 08b); server markup is the same `RollTableView` with no roll, so its bands are real content |
+| `RollTableIsland`       | idle    | **true** | a roll table's page ([origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) board 08b); server markup is the same `RollTableView` with no roll, so its bands are real content |
 | `ColophonIsland`        | visible | **true** | prose worth indexing                                             |
 | `SearchResultsIsland`   | only    | false    | a client-only results page                                       |
 | `OgCardIsland`          | load    | false    | screenshot target                                                |

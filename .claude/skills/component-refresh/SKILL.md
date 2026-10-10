@@ -23,6 +23,13 @@ Ask which level is being requested, and do not silently cross a gate:
 
 If the request is ambiguous, assume the _lower_ level and say so.
 
+**Design intent comes from the origin**
+(<https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm>), the design's source of
+truth. Open the board the refresh names before drawing anything.
+[`docs/design-system/ruleset.md`](../../../docs/design-system/ruleset.md)
+codifies the origin's rules for code and the gates; where the two disagree, the
+origin wins and the ruleset is amended to match.
+
 ## L1 — mockup, grounded in a real "before"
 
 The single rule that carries this level: **the "before" is the actual current
