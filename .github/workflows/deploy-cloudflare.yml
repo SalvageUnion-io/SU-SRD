@@ -351,52 +351,16 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # The same key as ci.yml's, so either workflow's save serves both.
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Chromium
-        run: bun --filter srd og:install-browser
-
-      # The script re-renders only entities whose data changed since the cached
-      # manifest; it cannot see a rendering change. So the key's first half
-      # hashes everything that renders a card, and only a cache from an
-      # identical renderer is restored.
-      - name: Key the OG cache
-        id: og-key
-        env:
-          RENDER: >-
-            ${{ hashFiles('bun.lock', 'packages/component-lib/src/**',
-            'packages/component-lib/public/**', 'packages/salvageunion-reference/lib/**',
-            'packages/salvageunion-reference/schemas/**', 'apps/srd/src/**', 'apps/srd/ssg/**',
-            'apps/srd/scripts/**', 'apps/srd/public/**') }}
-          DATA: ${{ hashFiles('packages/salvageunion-reference/data/**') }}
-        run: |
-          echo "render=$RENDER" >> "$GITHUB_OUTPUT"
-          echo "data=$DATA" >> "$GITHUB_OUTPUT"
-
-      - name: Cache the OG renders
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: apps/srd/node_modules/.cache/srd-og
-          key: srd-og-${{ steps.og-key.outputs.render }}-${{ steps.og-key.outputs.data }}
-          restore-keys: srd-og-${{ steps.og-key.outputs.render }}-
-
       - name: Download the srd build
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: srd-build
           path: apps/srd/dist
 
+      # Chromium, the render cache and the render: shared with
+      # deploy-preview.yml.
       - name: Render srd OG images
-        working-directory: apps/srd
-        env:
-          OG_SCREENSHOTS: '1'
-          OG_SCREENSHOTS_BUDGET_MS: '300000'
-        run: bun scripts/og-screenshots.ts
+        uses: ./.github/actions/srd-og
 
       - name: Upload the srd artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
