@@ -437,6 +437,10 @@ export function SheetCrawler({
             readOnly={readOnly}
             economy={economy}
             linkedUnits={rail}
+            crew={composition.crew}
+            crewHref={
+              readOnly ? undefined : `/npcs/new?view=crew&crawler=${encodeURIComponent(crawler.id)}`
+            }
           />
         )}
       />

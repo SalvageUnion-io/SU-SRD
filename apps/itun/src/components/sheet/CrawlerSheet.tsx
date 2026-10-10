@@ -64,6 +64,8 @@
  */
 
 import {
+  buttonVariants,
+  cn,
   EmptyState,
   MasonryColumns,
   ReferenceEntityCard,
@@ -75,6 +77,8 @@ import { useState } from 'react'
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
+import type { CrewAssignment } from '../../lib/npcs/npcModel'
+import { assignmentFor } from '../../lib/npcs/npcModel'
 import { drawFromPool, poolAvailableAtOrAbove, SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -82,6 +86,7 @@ import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
+import { AppLink } from '../shared/AppLink'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
@@ -120,6 +125,16 @@ type CrawlerSheetProps = {
    * into the content column's bottom section.
    */
   linkedUnits?: ReactNode
+  /**
+   * The crew slots built NPCs fill (ADR-043), resolved by the composition. A
+   * filled slot shows its NPC in place of the inline crew (Q2).
+   */
+  crew?: readonly CrewAssignment[]
+  /**
+   * Where the Bays section's one "Crew…" link goes: the crew board for this
+   * crawler (D8). Omitted, there is no link.
+   */
+  crewHref?: string
 }
 
 export function CrawlerSheet({
@@ -129,6 +144,8 @@ export function CrawlerSheet({
   readOnly = false,
   economy,
   linkedUnits,
+  crew,
+  crewHref,
 }: CrawlerSheetProps) {
   const storeState = store()
   const cargo = useCargo({ mech, crawler, store, readOnly })
@@ -304,8 +321,12 @@ export function CrawlerSheet({
    */
   function renderBay(entry: CrawlerBayEntry, i: number) {
     const kind = bayKind(entry)
+    // A link names a bay by its slug, so only the first entry of a bay listed
+    // twice is the slot it crews (ADR-043's known limit).
+    const crewSlot = bays.findIndex((b) => b.bayRef === entry.bayRef) === i
     return (
       <CrawlerBayCard
+        assigned={crewSlot ? assignmentFor(crew, { kind: 'bay', bayRef: entry.bayRef }) : undefined}
         crawlerId={crawler.id}
         entry={entry}
         index={i}
@@ -355,6 +376,7 @@ export function CrawlerSheet({
                 storeState={storeState}
                 patch={readOnly ? undefined : patchCrawler}
                 readOnly={readOnly}
+                typeCrew={assignmentFor(crew, { kind: 'type' })}
               />
             </div>
           }
@@ -374,6 +396,20 @@ export function CrawlerSheet({
                 <span className="tabular-nums">
                   {intactBays}/{bays.length} intact
                 </span>
+              }
+              controls={
+                crewHref === undefined ? undefined : (
+                  <AppLink
+                    href={crewHref}
+                    className={cn(
+                      buttonVariants({ variant: 'default', size: 'compact' }),
+                      'no-underline'
+                    )}
+                    aria-label={`Crew ${crawler.name}: design and assign crawler crew`}
+                  >
+                    Crew…
+                  </AppLink>
+                )
               }
             >
               {/* The Storage Bay is pulled OUT of the masonry and rendered

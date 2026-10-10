@@ -9,10 +9,12 @@ import { Content, ReferenceEntityCard, useDetailModal } from 'component-lib'
 import type { ComponentProps, ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
+import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { LinkedCrewInset } from '../npc/LinkedCrewInset'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { BAY_REPAIR_COST } from './crawlerSheetItemRules'
 import { NpcInset } from './NpcInset'
@@ -102,6 +104,12 @@ type CrawlerBayCardProps = {
    * picker instead, which is the thing "Mount" actually means.
    */
   onFunction?: () => void
+  /**
+   * The built NPC crewing this bay (ADR-043). While set, the crew lead shows
+   * that NPC, read-only, in place of the inline crew — which stays exactly as
+   * it was, and comes back when the link goes (Q2).
+   */
+  assigned?: CrewAssignment
 }
 
 /**
@@ -124,6 +132,7 @@ export function CrawlerBayCard({
   dockedMechName,
   contents,
   onFunction,
+  assigned,
 }: CrawlerBayCardProps) {
   const storeState = store()
   const { selections, setSelections } = useEntityChoices(
@@ -189,6 +198,34 @@ export function CrawlerBayCard({
     })
   }
 
+  // While a built NPC is assigned, the inline crew is never written: read-only
+  // is what lets the unlink restore it byte for byte (Q2).
+  const inlineReadOnly = readOnly || assigned !== undefined
+  const inlineCrew = (
+    <NpcInset
+      bayName={bay.name}
+      title={npc?.position}
+      name={entry.npcName ?? ''}
+      hp={entry.npcCurrentHP ?? maxHP}
+      maxHp={maxHP}
+      keepsake={keepsake}
+      motto={motto}
+      detail={entry.npcDescription ?? ''}
+      facts={entry.npcFacts ?? []}
+      // Handler absence IS the read-only encoding: readOnly branches once
+      // here instead of per-handler ternaries + a second readOnly prop.
+      {...(inlineReadOnly
+        ? {}
+        : {
+            onNameChange: (next: string) => patchEntry({ npcName: next }),
+            onHpChange: (next: number) => patchEntry({ npcCurrentHP: next }),
+            onKeepsakeChange: keepsakeChoice ? setKeepsake : undefined,
+            onMottoChange: mottoChoice ? setMotto : undefined,
+            onDetailChange: (next: string) => patchEntry({ npcDescription: next }),
+            onFactsChange: (next: string[]) => patchEntry({ npcFacts: next }),
+          })}
+    />
+  )
   const crew = (
     <>
       {dockedMechName && (
@@ -196,34 +233,17 @@ export function CrawlerBayCard({
           Docks <span className="font-bold">{dockedMechName}</span>
         </p>
       )}
-      <NpcInset
-        bayName={bay.name}
-        title={npc?.position}
-        name={entry.npcName ?? ''}
-        hp={entry.npcCurrentHP ?? maxHP}
-        maxHp={maxHP}
-        keepsake={keepsake}
-        motto={motto}
-        detail={entry.npcDescription ?? ''}
-        facts={entry.npcFacts ?? []}
-        // Handler absence IS the read-only encoding: readOnly branches once
-        // here instead of per-handler ternaries + a second readOnly prop.
-        {...(readOnly
-          ? {}
-          : {
-              onNameChange: (next: string) => patchEntry({ npcName: next }),
-              onHpChange: (next: number) => patchEntry({ npcCurrentHP: next }),
-              onKeepsakeChange: keepsakeChoice ? setKeepsake : undefined,
-              onMottoChange: mottoChoice ? setMotto : undefined,
-              onDetailChange: (next: string) => patchEntry({ npcDescription: next }),
-              onFactsChange: (next: string[]) => patchEntry({ npcFacts: next }),
-            })}
-      />
+      {assigned ? (
+        <LinkedCrewInset slotName={bay.name} assignment={assigned} fallback={inlineCrew} />
+      ) : (
+        inlineCrew
+      )}
     </>
   )
 
   const functionLabel = BAY_FUNCTIONS[entry.bayRef] ?? 'Use'
-  const leadName = entry.npcName?.trim() ? entry.npcName : (npc?.position ?? '—')
+  const inlineLead = entry.npcName?.trim() ? entry.npcName : (npc?.position ?? '—')
+  const leadName = assigned?.npc?.name ?? inlineLead
   const footMeta: CardFootMeta[] = [
     { label: 'Lead', value: leadName },
     ...(damaged ? [{ label: 'Repair', value: `5·T${crawlerTl}` }] : []),
@@ -334,6 +354,8 @@ type CrawlerTypeCardProps = {
   /**
    * Compact identity-band placement (redesign phase 3): renders the card
    */
+  /** The built NPC filling the type's NPC slot (ADR-043); see CrawlerBayCard. */
+  assigned?: CrewAssignment
 }
 
 /**
@@ -352,6 +374,7 @@ export function CrawlerTypeCard({
   store,
   readOnly,
   ability,
+  assigned,
 }: CrawlerTypeCardProps) {
   const storeState = store()
   const { selections, setSelections } = useEntityChoices(
@@ -401,7 +424,8 @@ export function CrawlerTypeCard({
     })
   }
 
-  const crew = npc ? (
+  const inlineReadOnly = readOnly || assigned !== undefined
+  const inlineCrew = npc ? (
     <NpcInset
       bayName={type.name}
       title={npc.position}
@@ -414,7 +438,7 @@ export function CrawlerTypeCard({
       facts={typeNpc?.npcFacts ?? []}
       // Handler absence IS the read-only encoding: readOnly branches once
       // here instead of per-handler ternaries + a second readOnly prop.
-      {...(readOnly
+      {...(inlineReadOnly
         ? {}
         : {
             onNameChange: (next: string) => patchNpc({ npcName: next }),
@@ -426,6 +450,12 @@ export function CrawlerTypeCard({
           })}
     />
   ) : undefined
+  const crew =
+    assigned && inlineCrew ? (
+      <LinkedCrewInset slotName={type.name} assignment={assigned} fallback={inlineCrew} />
+    ) : (
+      inlineCrew
+    )
 
   // NO card container: a full entity card here would be a frame around a frame
   // around a frame. Its INTERNALS are handed back instead, for the identity
