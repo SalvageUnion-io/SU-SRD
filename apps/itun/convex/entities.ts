@@ -10,6 +10,7 @@ import { query } from './_generated/server'
 import type { ContainedRow, OwnableTable } from './model/entities'
 import {
   assignToPrimary,
+  countPatternBuild,
   crawlerEnteredGame,
   crawlerLeftGame,
   findSoftLink,
@@ -719,6 +720,9 @@ async function writeOwnable(
     // Created in a Game: aboard its primary crawler from the start (ADR-037).
     const created = await ctx.db.get(id)
     if (created !== null) await assignToPrimary(ctx, kind, created)
+    // Built from a saved pattern: the pattern page counts it (#1276). Only on
+    // the create — editing a mech built from one never counts it again.
+    if (args.table === 'mechs') await countPatternBuild(ctx, body, userId)
     return { updatedAt }
   }
 

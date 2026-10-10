@@ -241,6 +241,17 @@ export const destroy = mutation({
       await ctx.db.patch(npc._id, { gameId: null, ownerId: organizerId })
     }
 
+    // A pattern shared with this Game's crew stays its maker's and falls back
+    // to "Only me": the crew it was shared with no longer exists, and widening
+    // it to anyone else is not the maker's choice to have made for them.
+    const patterns = await ctx.db
+      .query('mechPatterns')
+      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
+      .collect()
+    for (const pattern of patterns) {
+      await ctx.db.patch(pattern._id, { gameId: null, sharedAt: undefined })
+    }
+
     // What is left has no personal counterpart, so it goes with the Game: the
     // table's own apparatus, listed and explained at `GAME_APPARATUS_TABLES`.
     await deleteGameApparatus(ctx, args.gameId)

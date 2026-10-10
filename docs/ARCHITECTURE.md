@@ -3498,6 +3498,9 @@ is each owner's own opt-in, decision 2) — and the page renders the live
 `<Sheet readOnly>` over `readOnlySheetStore.ts`, the store every read-only sheet
 uses. Every other decision stands.
 
+**Decision 7 added (2026-10-09, #1276):** saved mech patterns join, at
+`/p/pattern/:appId`. Decisions 1–6 otherwise stand.
+
 ### Context
 
 Two rules meet here and neither anticipated this case.
@@ -3588,6 +3591,20 @@ no account to open, is always current, and requires no publishing step.
    links to chase. This holds unconditionally — see the second half of decision
    2 — because a promise of revocation that an ordinary sequence of play can
    take away is not a promise.
+
+7. **Saved mech patterns join, with one more audience (#1276).** `mechPatterns`
+   gains the same `publicRead` column and a **Game scope**: its maker chooses
+   Only me, Anyone with the link (`publicRead`), or My Game's crew (`gameId`,
+   a read scope here and never a container — the pattern stays on its maker's
+   shelf). `shelf.setPatternVisibility` is the maker's act alone, and parses the
+   body before widening, as `setPublic` does. The page is the same route,
+   `/p/pattern/:appId`, served by its own query, `publicSheet.pattern`: a
+   pattern has no assignments or maxima, and a signed-in reader also reaches one
+   shared with a Game they are in, or their own. Everything else is the same
+   `null`, and there is still no listing outside the crew's own
+   (`shelf.crewPatterns`). The page wears the user-made treatment (ruleset
+   §3.9): a player's pattern must never pass for the book. Deleting the Game
+   drops a crew-scoped pattern back to Only me.
 
 ### Consequences
 
