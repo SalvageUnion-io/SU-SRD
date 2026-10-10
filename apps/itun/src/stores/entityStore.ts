@@ -21,7 +21,7 @@
  * which merges a single bay entry onto the freshest persisted record instead
  * of replacing the whole array from a possibly-stale in-memory copy.
  *
- * Integrity (plan 2.7): deleting a pilot/mech/crawler also prunes every
+ * Integrity (plan 2.7): deleting a pilot/mech/crawler/NPC also prunes every
  * SoftLink whose `from` or `to` endpoint references it — no more orphaned
  * "Unknown pilot (id)" rows.
  *
@@ -50,6 +50,7 @@ import {
 import { captureException } from '../lib/observability'
 import type { Crawler } from '../lib/schemas/crawler'
 import type { Mech } from '../lib/schemas/mech'
+import type { Npc } from '../lib/schemas/npc'
 import type { Pilot } from '../lib/schemas/pilot'
 import type { SoftLink } from '../lib/schemas/softLink'
 import { getActiveContainer } from './activeContainerStore'
@@ -77,11 +78,13 @@ export type EntityState = {
   pilots: Pilot[]
   mechs: Mech[]
   crawlers: Crawler[]
+  npcs: Npc[]
   softLinks: SoftLink[]
   hydrated: {
     pilots: boolean
     mechs: boolean
     crawlers: boolean
+    npcs: boolean
     softLinks: boolean
   }
 
@@ -205,7 +208,7 @@ export type TransferUpdate = {
 type ContainedType = Exclude<EntityType, 'softLink'>
 
 /** Maps EntityType discriminant to its db accessor and Zustand state key. */
-type StoreKey = 'pilots' | 'mechs' | 'crawlers' | 'softLinks'
+type StoreKey = 'pilots' | 'mechs' | 'crawlers' | 'npcs' | 'softLinks'
 
 function storeKeyFor(type: EntityType): StoreKey {
   return `${type}s`
@@ -232,6 +235,7 @@ const DB_STORES: { [K in EntityType]: DbStoreApi<K> } = {
   pilot: db.pilots,
   mech: db.mechs,
   crawler: db.crawlers,
+  npc: db.npcs,
   softLink: db.softLinks,
 }
 
@@ -339,6 +343,8 @@ function storeNameFor(type: EntityType): StoreName {
       return STORE_NAMES.mechs
     case 'crawler':
       return STORE_NAMES.crawlers
+    case 'npc':
+      return STORE_NAMES.npcs
     case 'softLink':
       return STORE_NAMES.softLinks
   }
@@ -462,11 +468,13 @@ export const useEntityStore = create<EntityState>((set, get) => ({
   pilots: [],
   mechs: [],
   crawlers: [],
+  npcs: [],
   softLinks: [],
   hydrated: {
     pilots: false,
     mechs: false,
     crawlers: false,
+    npcs: false,
     softLinks: false,
   },
 
@@ -787,6 +795,10 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       // this keeps the two in step for the link ids only this browser holds.
       for (const link of get().list('softLink')) {
         if (link.from?.id !== id && link.to?.id !== id) continue
+        // A crew assignment is the crawler writer's to unwire (ADR-043), so the
+        // NPC's owner deleting it leaves that link to the server's own cascade
+        // (`pruneLinksOfRow`), which runs in the same mutation as the delete.
+        if (link.type === 'npc-to-crawler' && link.from.id === id) continue
         await commitSoftLink('delete', link)
       }
 

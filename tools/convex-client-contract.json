@@ -1,5 +1,5 @@
 {
-  "floor": 1791597883,
+  "floor": 1791601915,
   "functions": {
     "account:deleteAccount": {
       "type": "object",
@@ -135,6 +135,10 @@
                       },
                       {
                         "type": "literal",
+                        "value": "npc"
+                      },
+                      {
+                        "type": "literal",
                         "value": "softLink"
                       },
                       {
@@ -226,6 +230,10 @@
               {
                 "type": "literal",
                 "value": "crawler"
+              },
+              {
+                "type": "literal",
+                "value": "npc"
               }
             ]
           },
@@ -417,6 +425,10 @@
               {
                 "type": "literal",
                 "value": "crawler"
+              },
+              {
+                "type": "literal",
+                "value": "npc"
               }
             ]
           },
@@ -523,6 +535,10 @@
               {
                 "type": "literal",
                 "value": "mechs"
+              },
+              {
+                "type": "literal",
+                "value": "npcs"
               }
             ]
           },
@@ -581,6 +597,10 @@
                     {
                       "type": "literal",
                       "value": "crawler"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "npc"
                     }
                   ]
                 },
@@ -615,6 +635,10 @@
                     {
                       "type": "literal",
                       "value": "crawler"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "npc"
                     }
                   ]
                 },
@@ -645,10 +669,52 @@
               {
                 "type": "literal",
                 "value": "mech-to-crawler"
+              },
+              {
+                "type": "literal",
+                "value": "npc-to-crawler"
               }
             ]
           },
           "optional": false
+        },
+        "slot": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "object",
+                "value": {
+                  "kind": {
+                    "fieldType": {
+                      "type": "literal",
+                      "value": "bay"
+                    },
+                    "optional": false
+                  },
+                  "bayRef": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": false
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "value": {
+                  "kind": {
+                    "fieldType": {
+                      "type": "literal",
+                      "value": "type"
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            ]
+          },
+          "optional": true
         }
       }
     },
@@ -675,6 +741,10 @@
                           {
                             "type": "literal",
                             "value": "mechs"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "npcs"
                           }
                         ]
                       },
@@ -796,6 +866,10 @@
                           {
                             "type": "literal",
                             "value": "mechs"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "npcs"
                           }
                         ]
                       },
@@ -856,6 +930,10 @@
                                 {
                                   "type": "literal",
                                   "value": "crawler"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "npc"
                                 }
                               ]
                             },
@@ -890,6 +968,10 @@
                                 {
                                   "type": "literal",
                                   "value": "crawler"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "npc"
                                 }
                               ]
                             },
@@ -920,10 +1002,52 @@
                           {
                             "type": "literal",
                             "value": "mech-to-crawler"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "npc-to-crawler"
                           }
                         ]
                       },
                       "optional": false
+                    },
+                    "slot": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "object",
+                            "value": {
+                              "kind": {
+                                "fieldType": {
+                                  "type": "literal",
+                                  "value": "bay"
+                                },
+                                "optional": false
+                              },
+                              "bayRef": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              }
+                            }
+                          },
+                          {
+                            "type": "object",
+                            "value": {
+                              "kind": {
+                                "fieldType": {
+                                  "type": "literal",
+                                  "value": "type"
+                                },
+                                "optional": false
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "optional": true
                     }
                   }
                 }
@@ -948,6 +1072,10 @@
               {
                 "type": "literal",
                 "value": "mechs"
+              },
+              {
+                "type": "literal",
+                "value": "npcs"
               }
             ]
           },
@@ -1018,6 +1146,10 @@
                     {
                       "type": "literal",
                       "value": "crawler"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "npc"
                     }
                   ]
                 },
@@ -1052,6 +1184,10 @@
                     {
                       "type": "literal",
                       "value": "crawler"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "npc"
                     }
                   ]
                 },
@@ -1082,10 +1218,52 @@
               {
                 "type": "literal",
                 "value": "mech-to-crawler"
+              },
+              {
+                "type": "literal",
+                "value": "npc-to-crawler"
               }
             ]
           },
           "optional": false
+        },
+        "slot": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "object",
+                "value": {
+                  "kind": {
+                    "fieldType": {
+                      "type": "literal",
+                      "value": "bay"
+                    },
+                    "optional": false
+                  },
+                  "bayRef": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": false
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "value": {
+                  "kind": {
+                    "fieldType": {
+                      "type": "literal",
+                      "value": "type"
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            ]
+          },
+          "optional": true
         }
       }
     },

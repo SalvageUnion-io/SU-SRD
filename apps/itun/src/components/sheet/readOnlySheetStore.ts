@@ -45,6 +45,7 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityRef } from '../../lib/schemas/entity'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
 import type { Mech } from '../../lib/schemas/mech'
+import type { Npc } from '../../lib/schemas/npc'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import type { EntityState, EntityType, useEntityStore } from '../../stores/entityStore'
@@ -55,6 +56,8 @@ export type ReadOnlySheetData = {
   pilots: Pilot[]
   mechs: Mech[]
   crawlers: Crawler[]
+  /** Built NPCs (ADR-043): a crawler's crew slot may name another member's. */
+  npcs: Npc[]
   softLinks: SoftLink[]
 }
 
@@ -63,6 +66,7 @@ export type GameListing = {
   pilots: readonly ServerOwnable[]
   mechs: readonly ServerOwnable[]
   crawlers: readonly ServerCrawler[]
+  npcs: readonly ServerOwnable[]
   softLinks: readonly ServedLink[]
 }
 
@@ -80,6 +84,7 @@ type Parsed =
   | { kind: 'pilot'; entity: Pilot }
   | { kind: 'mech'; entity: Mech }
   | { kind: 'crawler'; entity: Crawler }
+  | { kind: 'npc'; entity: Npc }
 
 /**
  * Parse one server body, filed under `id`.
@@ -101,6 +106,8 @@ function parseAs(kind: EntityRef['type'], body: unknown, id: string | null): Par
       return { kind: 'mech', entity: { ...parsed.entity, id: id ?? parsed.entity.id } }
     case 'crawler':
       return { kind: 'crawler', entity: { ...parsed.entity, id: id ?? parsed.entity.id } }
+    case 'npc':
+      return { kind: 'npc', entity: { ...parsed.entity, id: id ?? parsed.entity.id } }
   }
 }
 
@@ -108,11 +115,12 @@ function file(data: ReadOnlySheetData, parsed: Parsed | null): void {
   if (parsed === null) return
   if (parsed.kind === 'pilot') data.pilots.push(parsed.entity)
   else if (parsed.kind === 'mech') data.mechs.push(parsed.entity)
+  else if (parsed.kind === 'npc') data.npcs.push(parsed.entity)
   else data.crawlers.push(parsed.entity)
 }
 
 function emptyData(): ReadOnlySheetData {
-  return { pilots: [], mechs: [], crawlers: [], softLinks: [] }
+  return { pilots: [], mechs: [], crawlers: [], npcs: [], softLinks: [] }
 }
 
 /** Everything a Game holds, as a read-only sheet resolves it. */
@@ -121,6 +129,7 @@ export function sheetDataFromListing(listing: GameListing): ReadOnlySheetData {
   for (const row of listing.pilots) file(data, parseAs('pilot', row.body, row.appId))
   for (const row of listing.mechs) file(data, parseAs('mech', row.body, row.appId))
   for (const row of listing.crawlers) file(data, parseAs('crawler', row.body, row.appId))
+  for (const row of listing.npcs) file(data, parseAs('npc', row.body, row.appId))
   data.softLinks = listing.softLinks.map(softLinkFromServer)
   return data
 }
@@ -180,21 +189,24 @@ export function makeReadOnlySheetStore(data: ReadOnlySheetData): typeof useEntit
     throw new Error('This sheet is read-only.')
   }
 
-  const byType = (type: EntityType): ReadonlyArray<Pilot | Mech | Crawler | SoftLink> =>
+  const byType = (type: EntityType): ReadonlyArray<Pilot | Mech | Crawler | Npc | SoftLink> =>
     type === 'pilot'
       ? data.pilots
       : type === 'mech'
         ? data.mechs
         : type === 'crawler'
           ? data.crawlers
-          : data.softLinks
+          : type === 'npc'
+            ? data.npcs
+            : data.softLinks
 
   const state: EntityState = {
     pilots: data.pilots,
     mechs: data.mechs,
     crawlers: data.crawlers,
+    npcs: data.npcs,
     softLinks: data.softLinks,
-    hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
+    hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
     // Already fully in memory: there is nothing to load.
     hydrate: async () => undefined,
     rehydrate: async () => undefined,

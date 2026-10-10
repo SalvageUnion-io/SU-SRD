@@ -54,6 +54,7 @@ export type MergeSummary = {
     pilots: number
     mechs: number
     crawlers: number
+    npcs: number
     softLinks: number
     mechPatterns: number
     encounterNpcs: number
@@ -111,12 +112,14 @@ export async function mergeImport(
     entityStore.hydrate('pilot'),
     entityStore.hydrate('mech'),
     entityStore.hydrate('crawler'),
+    entityStore.hydrate('npc'),
     entityStore.hydrate('softLink'),
   ])
 
   const existingPilotIds = new Set(entityStore.list('pilot').map((e) => e.id))
   const existingMechIds = new Set(entityStore.list('mech').map((e) => e.id))
   const existingCrawlerIds = new Set(entityStore.list('crawler').map((e) => e.id))
+  const existingNpcIds = new Set(entityStore.list('npc').map((e) => e.id))
   const existingSoftLinkIds = new Set(entityStore.list('softLink').map((l) => l.id))
 
   /** old id → new id for every entity that will be created */
@@ -127,6 +130,7 @@ export async function mergeImport(
       pilots: 0,
       mechs: 0,
       crawlers: 0,
+      npcs: 0,
       softLinks: 0,
       mechPatterns: 0,
       encounterNpcs: 0,
@@ -193,6 +197,26 @@ export async function mergeImport(
     })
     idMap.set(crawler.id, created.id)
     summary.created.crawlers++
+  }
+
+  // -------------------------------------------------------------------------
+  // 4b. Built NPCs (ADR-043) — a copy, like the rest: fresh id, on the Shelf.
+  // -------------------------------------------------------------------------
+  for (const npc of bundle.entities.npcs) {
+    if (existingNpcIds.has(npc.id)) {
+      summary.skippedDuplicates++
+      idMap.set(npc.id, npc.id)
+      continue
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id: _id, createdAt: _ca, updatedAt: _ua, gameId: _g, ...rest } = npc
+
+    const created = await entityStore.create('npc', {
+      ...rest,
+      gameId: null,
+    })
+    idMap.set(npc.id, created.id)
+    summary.created.npcs++
   }
 
   // -------------------------------------------------------------------------

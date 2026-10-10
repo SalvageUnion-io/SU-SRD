@@ -111,13 +111,17 @@ function ConnectedShelfSync() {
         store.hydrate('pilot'),
         store.hydrate('mech'),
         store.hydrate('crawler'),
+        store.hydrate('npc'),
         patterns.hydrate(),
         npcs.hydrate(),
       ])
+      // Built NPCs (ADR-043) are owned rows like pilots, so they come down,
+      // and are pruned, on exactly the pilot's rule.
       const kinds = [
         ['pilot', mine.pilots],
         ['mech', mine.mechs],
         ['crawler', mine.crawlers],
+        ['npc', mine.npcs],
       ] as const
 
       for (const [kind, rows] of kinds) {
@@ -241,6 +245,7 @@ function ConnectedWiringSync() {
         store.hydrate('pilot'),
         store.hydrate('mech'),
         store.hydrate('crawler'),
+        store.hydrate('npc'),
         store.hydrate('softLink'),
       ])
       const gameIds = new Set<string>(wiring.gameIds)

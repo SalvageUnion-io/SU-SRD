@@ -55,8 +55,9 @@ export function forgetLoadedRows(): void {
     pilots: [],
     mechs: [],
     crawlers: [],
+    npcs: [],
     softLinks: [],
-    hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
+    hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
   usePatternStore.setState({ mechPatterns: [], hydrated: true })
   useEncounterStore.setState({ encounterNpcs: [], hydrated: true })

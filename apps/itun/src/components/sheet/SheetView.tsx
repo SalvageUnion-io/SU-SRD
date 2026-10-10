@@ -40,7 +40,7 @@ import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { containerOf } from '../../lib/container'
 import { pageTitle } from '../../lib/pageTitle'
-import type { EntityRef } from '../../lib/schemas/entity'
+import type { SheetEntityKind } from '../../lib/schemas/entity'
 import { useEntityStore } from '../../stores/entityStore'
 import { NotFoundPanel } from '../shared/RouteFallbacks'
 import type { EntityLookup } from './composition'
@@ -50,7 +50,7 @@ import { Sheet } from './Sheet'
 import { SheetSkeleton } from './SheetSkeleton'
 import { SheetModeContext, useSheetModeStore } from './sheetMode'
 
-type SheetViewProps = { kind: EntityRef['type']; id: string }
+type SheetViewProps = { kind: SheetEntityKind; id: string }
 
 /**
  * Names the tab after the entity, and follows a rename. The route's `head`
@@ -60,7 +60,7 @@ type SheetViewProps = { kind: EntityRef['type']; id: string }
  * rewrites the tab on the next navigation, since every other route's title
  * differs from the sheet's.
  */
-function useSheetTabTitle(kind: EntityRef['type'], id: string) {
+function useSheetTabTitle(kind: SheetEntityKind, id: string) {
   const name = useEntityStore((s) => s.get(kind, id)?.name ?? null)
   useEffect(() => {
     document.title = pageTitle(name || 'Sheet')
@@ -68,7 +68,7 @@ function useSheetTabTitle(kind: EntityRef['type'], id: string) {
 }
 
 /** Whether the listing carries a row for this entity, parseable or not. */
-function listed(listing: GameListing, kind: EntityRef['type'], id: string): boolean {
+function listed(listing: GameListing, kind: SheetEntityKind, id: string): boolean {
   const rows =
     kind === 'pilot' ? listing.pilots : kind === 'mech' ? listing.mechs : listing.crawlers
   return rows.some((row) => (row.appId ?? (row.body as { id?: unknown } | null)?.id) === id)

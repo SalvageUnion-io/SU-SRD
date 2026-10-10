@@ -90,7 +90,7 @@ function makeStubStore(crawler: Crawler, update?: ReturnType<typeof mock>): type
   const updateMock = update ?? mock(async () => crawler)
   return makeEntityStoreMock({
     crawlers: [crawler],
-    hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [crawler]),
     get: mock((_t: string, id: string) => (id === crawler.id ? crawler : null)),

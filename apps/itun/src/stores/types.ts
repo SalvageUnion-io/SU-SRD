@@ -1,10 +1,11 @@
 import type { Crawler } from '../lib/schemas/crawler'
 import type { Mech } from '../lib/schemas/mech'
+import type { Npc } from '../lib/schemas/npc'
 import type { Pilot } from '../lib/schemas/pilot'
 import type { SoftLink } from '../lib/schemas/softLink'
 
-/** The four entity types managed by entityStore. */
-export type EntityType = 'pilot' | 'mech' | 'crawler' | 'softLink'
+/** The five entity types managed by entityStore. */
+export type EntityType = 'pilot' | 'mech' | 'crawler' | 'npc' | 'softLink'
 
 /**
  * Maps each EntityType discriminant to its runtime type.
@@ -17,7 +18,9 @@ export type EntityForType<T extends EntityType> = T extends 'pilot'
     ? Mech
     : T extends 'crawler'
       ? Crawler
-      : SoftLink
+      : T extends 'npc'
+        ? Npc
+        : SoftLink
 
 /**
  * Input type for db.create() — strips id/createdAt/updatedAt (injected by the
@@ -28,5 +31,5 @@ export type CreateInput<T extends EntityType> = Omit<
   'id' | 'createdAt' | 'updatedAt'
 >
 
-/** The three entity types that carry a container (SoftLink does not). */
-export type AssignableType = 'pilot' | 'mech' | 'crawler'
+/** The entity types that carry a container (SoftLink does not). */
+export type AssignableType = 'pilot' | 'mech' | 'crawler' | 'npc'

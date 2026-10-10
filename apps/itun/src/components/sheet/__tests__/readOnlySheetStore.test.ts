@@ -18,6 +18,7 @@ const listing = {
   ],
   mechs: [{ _id: 'r4', appId: 'm1', ownerId: 'u1', body: mechFixture({ id: 'm1' }) }],
   crawlers: [{ _id: 'r5', appId: 'c1', body: crawlerFixture({ id: 'c1' }) }],
+  npcs: [],
   softLinks: [
     {
       _id: 'l1',

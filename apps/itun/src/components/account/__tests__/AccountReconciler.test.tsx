@@ -60,6 +60,7 @@ const EMPTY_ROSTER = {
   pilots: [],
   mechs: [],
   crawlers: [],
+  npcs: [],
   mechPatterns: [],
   encounterNpcs: [],
 }
@@ -92,7 +93,7 @@ beforeEach(async () => {
     mechs: [],
     crawlers: [],
     softLinks: [],
-    hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
+    hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
   setQueryAnswers(answers())
 })

@@ -27,14 +27,14 @@
 import { ModalShell } from 'component-lib'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { Crawler } from '../../lib/schemas/crawler'
-import type { EntityRef } from '../../lib/schemas/entity'
+import type { SheetEntityKind } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { SignInControl } from '../account/SignInControl'
 import { PublicSheetPanel } from './PublicSheetPanel'
 
 type ShareStatusDialogProps = {
-  kind: EntityRef['type']
+  kind: SheetEntityKind
   id: string
   entity: Pilot | Mech | Crawler
   open: boolean

@@ -7,6 +7,7 @@ export const STORE_NAMES = {
   pilots: 'pilots',
   mechs: 'mechs',
   crawlers: 'crawlers',
+  npcs: 'npcs',
   softLinks: 'softLinks',
   mechPatterns: 'mechPatterns',
   encounterNpcs: 'encounterNpcs',

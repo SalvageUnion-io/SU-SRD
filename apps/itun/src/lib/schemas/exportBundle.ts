@@ -2,6 +2,7 @@ import { z } from 'salvageunion-reference/zod'
 import { CrawlerSchema } from './crawler'
 import { EncounterNpcSchema } from './encounterNpc'
 import { MechSchema } from './mech'
+import { NpcSchema } from './npc'
 import { MechPatternSchema } from './pattern'
 import { PilotSchema } from './pilot'
 import { SoftLinkSchema } from './softLink'
@@ -32,6 +33,11 @@ export const ExportBundleSchema = z.object({
     pilots: z.array(PilotSchema),
     mechs: z.array(MechSchema),
     crawlers: z.array(CrawlerSchema),
+    /**
+     * Built NPCs (ADR-043). Defaulted, as the arrays below are, so a bundle
+     * written before NPCs existed still imports.
+     */
+    npcs: z.array(NpcSchema).default([]),
   }),
   softLinks: z.array(SoftLinkSchema),
   /**

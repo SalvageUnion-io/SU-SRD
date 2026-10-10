@@ -34,6 +34,7 @@ const STARTER_STORE = makeReadOnlySheetStore({
   pilots: [...STARTER_PILOTS],
   mechs: [...STARTER_MECHS],
   crawlers: [...STARTER_CRAWLERS],
+  npcs: [],
   softLinks: [...STARTER_SOFT_LINKS],
 })
 

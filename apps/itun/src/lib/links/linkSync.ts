@@ -22,7 +22,7 @@
 import type { Container } from '../container'
 import { containerOf } from '../container'
 import type { EntityRef } from '../schemas/entity'
-import type { SoftLink } from '../schemas/softLink'
+import type { CrewSlot, SoftLink } from '../schemas/softLink'
 import type { EndContainer } from './linkRules'
 import { linkKey } from './linkRules'
 
@@ -34,6 +34,8 @@ export type ServedLink = {
   from: EntityRef
   to: EntityRef
   type: SoftLink['type']
+  /** The crew slot of an `npc-to-crawler` link (ADR-043); absent otherwise. */
+  slot?: CrewSlot
 }
 
 /** A Game crawler as `entities.listWiring` returns it. */
@@ -48,7 +50,7 @@ export type ServedCrawler = {
  * The local record for a served link.
  *
  * A server link has no id of its own — its identity is the (type, from, to)
- * triple — so the Convex row id stands in: stable, unique, and the same on
+ * triple, plus its crew slot — so the Convex row id stands in: stable, unique, and the same on
  * every device that syncs it. A link drawn in this browser keeps the id it was
  * minted with; the two never need to agree, because nothing addresses a link
  * by id across the wire.
@@ -59,6 +61,7 @@ export function softLinkFromServer(row: ServedLink): SoftLink {
     from: { type: row.from.type, id: row.from.id },
     to: { type: row.to.type, id: row.to.id },
     type: row.type,
+    ...(row.slot === undefined ? {} : { slot: row.slot }),
     createdAt: new Date(row._creationTime).toISOString(),
   }
 }

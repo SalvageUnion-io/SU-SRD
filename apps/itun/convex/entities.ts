@@ -2,12 +2,12 @@ import { getAuthUserId } from '@convex-dev/auth/server'
 import type { ObjectType } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
 import { staleWriteError } from '../src/lib/connection/staleWrite'
-import { CROSS_CONTAINER_REFUSAL, endsMatchType } from '../src/lib/links/linkRules'
+import { CROSS_CONTAINER_REFUSAL, endsMatchType, isSlotted } from '../src/lib/links/linkRules'
 import type { SoftLink } from '../src/lib/schemas/softLink'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
-import type { ContainedRow, OwnableTable } from './model/entities'
+import type { ContainedRow, OwnedTable } from './model/entities'
 import {
   assignToPrimary,
   countPatternBuild,
@@ -36,7 +36,7 @@ import {
   requireUser,
 } from './model/permissions'
 import { releaseSeatsOf } from './model/seats'
-import { entityRefType, softLinkType } from './schema'
+import { crewSlot, entityRefType, softLinkType } from './schema'
 
 /**
  * Entity reads and writes against the server of record (ADR-030 §1).
@@ -95,9 +95,12 @@ import { entityRefType, softLinkType } from './schema'
 
 const OWNABLE = v.union(v.literal('pilots'), v.literal('mechs'))
 
-/** A pilot or mech body write, addressed by app id (`upsertByAppId`). */
+/** The tables written whole by their owner: pilots, mechs and built NPCs (ADR-043). */
+const OWNED = v.union(v.literal('pilots'), v.literal('mechs'), v.literal('npcs'))
+
+/** A pilot, mech or NPC body write, addressed by app id (`upsertByAppId`). */
 const OWNABLE_WRITE = {
-  table: OWNABLE,
+  table: OWNED,
   appId: v.string(),
   gameId: v.union(v.id('games'), v.null()),
   body: v.any(),
@@ -112,11 +115,12 @@ const CRAWLER_PATCH = {
   unset: v.optional(v.array(v.string())),
 }
 
-/** A soft link, addressed by its endpoints. */
+/** A soft link, addressed by its endpoints (and, for crew, its slot). */
 const LINK = {
   from: v.object({ type: entityRefType, id: v.string() }),
   to: v.object({ type: entityRefType, id: v.string() }),
   type: softLinkType,
+  slot: v.optional(crewSlot),
 }
 
 /**
@@ -127,7 +131,10 @@ const LINK = {
  * privileged write here — changing someone else's sheet goes through a
  * proposal (ADR-030 §4), and giving this function a ctx would invite exactly that.
  */
-export function assertMayWrite(doc: Doc<'pilots'> | Doc<'mechs'>, userId: Id<'users'>): void {
+export function assertMayWrite(
+  doc: Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'>,
+  userId: Id<'users'>
+): void {
   if (doc.ownerId === userId) return
   if (doc.ownerId === null) {
     throw new NotAuthorized(
@@ -155,13 +162,17 @@ async function assertMayAddToContainer(
   if (membership === null) throw new NotAuthorized('Not a member of this game')
 }
 
-/** Everything in a Game the caller can see: all pilots and mechs, plus the crawler. */
+/**
+ * Everything in a Game the caller can see: all pilots, mechs and built NPCs,
+ * plus the crawler. NPCs ride here because a bay crewed by another member's
+ * NPC is read from this listing, never cached (ADR-043).
+ */
 export const listForGame = query({
   args: { gameId: v.id('games') },
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
 
-    const [pilots, mechs, crawlers, softLinks, primary] = await Promise.all([
+    const [pilots, mechs, crawlers, npcs, softLinks, primary] = await Promise.all([
       ctx.db
         .query('pilots')
         .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
@@ -172,6 +183,10 @@ export const listForGame = query({
         .collect(),
       ctx.db
         .query('crawlers')
+        .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
+        .collect(),
+      ctx.db
+        .query('npcs')
         .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
         .collect(),
       ctx.db
@@ -202,24 +217,36 @@ export const listForGame = query({
         body: m.body,
       })),
       crawlers: crawlers.map((c) => ({ _id: c._id, appId: c.appId ?? null, body: c.body })),
+      npcs: npcs.map((n) => ({
+        _id: n._id,
+        appId: n.appId ?? null,
+        ownerId: n.ownerId,
+        body: n.body,
+      })),
       // The same link shape `listWiring` serves, so the read-only sheet store
       // turns these into local `SoftLink`s through the one adapter
       // (`softLinkFromServer`) the sync already uses.
-      softLinks: softLinks.map((l) => ({
-        _id: l._id,
-        _creationTime: l._creationTime,
-        gameId: l.gameId,
-        from: l.from,
-        to: l.to,
-        type: l.type,
-      })),
+      softLinks: softLinks.map(servedLink),
       /** The crawler new crew is assigned to (ADR-037), or null before one exists. */
       primaryCrawlerId: primary?._id ?? null,
     }
   },
 })
 
-const LOCATE_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as const
+/** A link row as the client syncs it — `softLinkFromServer`'s input. */
+function servedLink(l: Doc<'softLinks'>) {
+  return {
+    _id: l._id,
+    _creationTime: l._creationTime,
+    gameId: l.gameId,
+    from: l.from,
+    to: l.to,
+    type: l.type,
+    ...(l.slot === undefined ? {} : { slot: l.slot }),
+  }
+}
+
+const LOCATE_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers', npc: 'npcs' } as const
 
 /**
  * Where one sheet lives and whether the caller may edit it — the question the
@@ -320,7 +347,7 @@ export const listMine = query({
   handler: async (ctx) => {
     const userId = await requireUser(ctx)
 
-    const [pilots, mechs, crawlers, patterns, npcs] = await Promise.all([
+    const [pilots, mechs, crawlers, builtNpcs, patterns, npcs] = await Promise.all([
       ctx.db
         .query('pilots')
         .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
@@ -331,6 +358,10 @@ export const listMine = query({
         .collect(),
       ctx.db
         .query('crawlers')
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
+        .collect(),
+      ctx.db
+        .query('npcs')
         .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
         .collect(),
       ctx.db
@@ -354,7 +385,7 @@ export const listMine = query({
     // ids alone, a body edited on another device never came down, and the next
     // whole-body write from here reverted it. Patterns and the tray have no such
     // column; `ShelfSync` reads their body's own stamp instead.
-    const versioned = (r: Doc<'pilots'> | Doc<'mechs'> | Doc<'crawlers'>) => ({
+    const versioned = (r: ContainedRow) => ({
       appId: r.appId ?? null,
       updatedAt: r.updatedAt,
       body: r.body,
@@ -363,6 +394,9 @@ export const listMine = query({
       pilots: pilots.map(versioned),
       mechs: mechs.map(versioned),
       crawlers: crawlers.map(versioned),
+      // Built NPCs (ADR-043), owned and versioned exactly as pilots are. Not
+      // `encounterNpcs` below, which is the Mediator's tray.
+      npcs: builtNpcs.map(versioned),
       mechPatterns: patterns.map((r) => ({ body: r.body })),
       // Without this the shelf tray was WRITE-ONLY. `games.destroy` writes
       // `encounterNpcs`, and no query read them back: `mediator.npcs`
@@ -406,7 +440,7 @@ export const listWiring = query({
   handler: async (ctx) => {
     const userId = await requireUser(ctx)
 
-    const [pilots, mechs, memberships] = await Promise.all([
+    const [pilots, mechs, npcs, memberships] = await Promise.all([
       ctx.db
         .query('pilots')
         .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
@@ -416,12 +450,16 @@ export const listWiring = query({
         .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
         .collect(),
       ctx.db
+        .query('npcs')
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
+        .collect(),
+      ctx.db
         .query('memberships')
         .withIndex('by_user', (q) => q.eq('userId', userId))
         .collect(),
     ])
 
-    const ownedIds = [...pilots, ...mechs]
+    const ownedIds = [...pilots, ...mechs, ...npcs]
       .map((row) => row.appId)
       .filter((id): id is string => id !== undefined)
     const gameIds = memberships.map((m) => m.gameId)
@@ -458,14 +496,7 @@ export const listWiring = query({
 
     return {
       gameIds,
-      softLinks: [...links.values()].map((l) => ({
-        _id: l._id,
-        _creationTime: l._creationTime,
-        gameId: l.gameId,
-        from: l.from,
-        to: l.to,
-        type: l.type,
-      })),
+      softLinks: [...links.values()].map(servedLink),
       crawlers: crawlers.flat().map((c) => ({
         appId: c.appId ?? null,
         gameId: c.gameId,
@@ -643,13 +674,13 @@ async function assertMayScrapCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Pr
  */
 async function byAppId(
   ctx: MutationCtx,
-  table: OwnableTable,
+  table: OwnedTable,
   appId: string
-): Promise<Doc<'pilots'> | Doc<'mechs'> | null> {
+): Promise<Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'> | null> {
   const matches = (await ctx.db
     .query(table)
     .withIndex('by_app_id', (q) => q.eq('appId', appId))
-    .collect()) as Array<Doc<'pilots'> | Doc<'mechs'>>
+    .collect()) as Array<Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'>>
 
   if (matches.length === 0) return null
   if (matches.length === 1) return matches[0] ?? null
@@ -705,7 +736,9 @@ async function writeOwnable(
 ): Promise<{ updatedAt: number }> {
   const body = parseBody(args.table, args.body)
 
-  const kind = args.table === 'pilots' ? 'pilot' : 'mech'
+  // A built NPC is owned like a pilot but plays no part in the primary
+  // crawler's crew or a seat: it boards nothing and is never auto-assigned.
+  const kind = args.table === 'pilots' ? 'pilot' : args.table === 'mechs' ? 'mech' : null
   const existing = await byAppId(ctx, args.table, args.appId)
   const updatedAt = Date.now()
   if (existing === null) {
@@ -719,7 +752,9 @@ async function writeOwnable(
     })
     // Created in a Game: aboard its primary crawler from the start (ADR-037).
     const created = await ctx.db.get(id)
-    if (created !== null) await assignToPrimary(ctx, kind, created)
+    if (created !== null && kind !== null) {
+      await assignToPrimary(ctx, kind, created as Doc<'pilots'> | Doc<'mechs'>)
+    }
     // Built from a saved pattern: the pattern page counts it (#1276). Only on
     // the create — editing a mech built from one never counts it again.
     if (args.table === 'mechs') await countPatternBuild(ctx, body, userId)
@@ -755,11 +790,14 @@ async function writeOwnable(
     const row = await ctx.db.get(existing._id)
     if (row !== null) {
       await pruneLinksAcrossContainers(ctx, row, previousGameId)
-      // Moved out of a Game: a pilot's seat there goes, and a mech leaves
-      // whoever was aboard it on foot (ADR-038).
-      await releaseSeatsOf(ctx, kind, row, previousGameId)
-      // Moved into a Game: aboard its primary crawler (ADR-037).
-      await assignToPrimary(ctx, kind, row)
+      if (kind !== null) {
+        const crew = row as Doc<'pilots'> | Doc<'mechs'>
+        // Moved out of a Game: a pilot's seat there goes, and a mech leaves
+        // whoever was aboard it on foot (ADR-038).
+        await releaseSeatsOf(ctx, kind, crew, previousGameId)
+        // Moved into a Game: aboard its primary crawler (ADR-037).
+        await assignToPrimary(ctx, kind, crew)
+      }
     }
   }
   return { updatedAt }
@@ -942,10 +980,101 @@ async function crawlerByAppId(ctx: MutationCtx, appId: string): Promise<Doc<'cra
  * lookup answer both questions a link write has to ask: may this user draw the
  * link, and which container does it belong to.
  */
-const SOFT_LINK_FROM_TABLE: Record<SoftLink['type'], OwnableTable> = {
+const SOFT_LINK_FROM_TABLE: Record<SoftLink['type'], OwnedTable> = {
   'mech-to-pilot': 'mechs',
   'pilot-to-crawler': 'pilots',
   'mech-to-crawler': 'mechs',
+  'npc-to-crawler': 'npcs',
+}
+
+/**
+ * A crew slot names the slot it fills, and only a crew link has one. The client
+ * builds both from `CrewSlotSchema`'s refinement, so a mismatch is a defect,
+ * not a player's mistake.
+ */
+function assertSlotMatchesType(args: ObjectType<typeof LINK>): void {
+  const slotted = isSlotted(args.type)
+  if (slotted && args.slot === undefined) {
+    throw new Error('An npc-to-crawler link names the crew slot it fills')
+  }
+  if (!slotted && args.slot !== undefined) {
+    throw new Error(`A ${args.type} link has no crew slot`)
+  }
+}
+
+/** The copy a player sees when they may not assign or unassign this crawler's crew. */
+const CREW_REFUSAL =
+  'Only whoever runs the table assigns crawler crew — design an NPC on your shelf and move it into this Game to offer it.'
+
+/**
+ * Who may draw or delete an `npc-to-crawler` link: whoever may write the
+ * crawler (ADR-043) — its owner on a shelf, the table runner in a Game. The one
+ * link authorised by its `to` end, because in a Game the NPC is often a
+ * player's while the crawler is the Mediator's.
+ */
+async function assertMayCrew(ctx: MutationCtx, crawler: Doc<'crawlers'>): Promise<void> {
+  const userId = await requireUser(ctx)
+  if (crawler.gameId === null) {
+    if (crawler.ownerId !== userId) throw new NotAuthorized(CREW_REFUSAL)
+    return
+  }
+  const membership = await getMembership(ctx, crawler.gameId, userId)
+  if (membership === null || !(await isTableRunner(ctx, crawler.gameId, membership))) {
+    throw new NotAuthorized(CREW_REFUSAL)
+  }
+}
+
+/** Whether a crawler body has the slot: the bay installed, or a type chosen. */
+function crawlerHasSlot(body: unknown, slot: NonNullable<ObjectType<typeof LINK>['slot']>) {
+  const crawler = (body ?? {}) as { type?: unknown; crawlerBays?: unknown }
+  if (slot.kind === 'type') return typeof crawler.type === 'string' && crawler.type.length > 0
+  return (
+    Array.isArray(crawler.crawlerBays) &&
+    crawler.crawlerBays.some((bay) => (bay as { bayRef?: unknown })?.bayRef === slot.bayRef)
+  )
+}
+
+/**
+ * Draw an `npc-to-crawler` link (ADR-043). The NPC and the crawler share a
+ * container, the caller may write the crawler, and the crawler has the slot.
+ * Drawing it replaces the NPC's old slot and whoever filled this one, in this
+ * same mutation (`writeSoftLink`). Neither end's body is written: the
+ * crawler's inline crew stays exactly as it was, so unlinking restores it.
+ */
+async function drawCrewLink(ctx: MutationCtx, args: ObjectType<typeof LINK>): Promise<void> {
+  const npc = await byAppId(ctx, 'npcs', args.from.id)
+  if (npc === null) return
+  const target = await resolveLinkEnd(ctx, args.to, npc.gameId)
+  if (target === null) return
+  const crawler = target as Doc<'crawlers'>
+  await assertMayCrew(ctx, crawler)
+  if (!sameContainerRows(npc, crawler)) throw new ConvexError(CROSS_CONTAINER_REFUSAL)
+  if (args.slot === undefined || !crawlerHasSlot(crawler.body, args.slot)) {
+    throw new ConvexError('That crawler has no such crew slot.')
+  }
+  await writeSoftLink(ctx, args, crawler.gameId)
+}
+
+/**
+ * Delete an `npc-to-crawler` link: the crawler's writer only, as drawing it is.
+ * When the crawler is gone the link is a stale pointer, and the NPC's owner
+ * may clear it.
+ */
+async function unwireCrewLink(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  args: ObjectType<typeof LINK>
+): Promise<void> {
+  const existing = await findSoftLink(ctx, args.from.id, args.to.id, args.type)
+  if (existing === null) return
+  const crawler = await resolveLinkEnd(ctx, args.to, existing.gameId)
+  if (crawler === null) {
+    const npc = await byAppId(ctx, 'npcs', args.from.id)
+    if (npc !== null) assertMayWrite(npc, userId)
+  } else {
+    await assertMayCrew(ctx, crawler as Doc<'crawlers'>)
+  }
+  await ctx.db.delete(existing._id)
 }
 
 /**
@@ -988,6 +1117,12 @@ export const upsertSoftLink = mutation({
       // ends and could never send this.
       throw new Error(`A ${args.type} link cannot join ${args.from.type} → ${args.to.type}`)
     }
+    assertSlotMatchesType(args)
+    // Crew is authorised by the crawler, not by the NPC (ADR-043).
+    if (isSlotted(args.type)) {
+      await drawCrewLink(ctx, args)
+      return
+    }
 
     const anchor = await byAppId(ctx, SOFT_LINK_FROM_TABLE[args.type], args.from.id)
     if (anchor === null) return
@@ -1025,6 +1160,10 @@ async function unwireSoftLink(
   userId: Id<'users'>,
   args: ObjectType<typeof LINK>
 ): Promise<void> {
+  if (isSlotted(args.type)) {
+    await unwireCrewLink(ctx, userId, args)
+    return
+  }
   const anchor = await byAppId(ctx, SOFT_LINK_FROM_TABLE[args.type], args.from.id)
   if (anchor === null) return
   assertMayWrite(anchor, userId)
@@ -1037,7 +1176,7 @@ async function unwireSoftLink(
 
 /** Delete by app id. A row that is already gone is not an error. */
 export const removeByAppId = mutation({
-  args: { table: OWNABLE, appId: v.string() },
+  args: { table: OWNED, appId: v.string() },
   handler: async (ctx, args): Promise<void> =>
     removeOwnable(ctx, await requireUser(ctx), args.table, args.appId),
 })
@@ -1049,7 +1188,7 @@ export const removeByAppId = mutation({
 async function removeOwnable(
   ctx: MutationCtx,
   userId: Id<'users'>,
-  table: OwnableTable,
+  table: OwnedTable,
   appId: string
 ): Promise<void> {
   const existing = await byAppId(ctx, table, appId)
@@ -1057,8 +1196,15 @@ async function removeOwnable(
 
   assertMayWrite(existing, userId)
   await ctx.db.delete(existing._id)
+  // An NPC's crew link goes too, so the slot falls back to the book's line.
   await pruneLinksOfRow(ctx, existing)
-  await releaseSeatsOf(ctx, table === 'pilots' ? 'pilot' : 'mech', existing, existing.gameId)
+  if (table === 'npcs') return
+  await releaseSeatsOf(
+    ctx,
+    table === 'pilots' ? 'pilot' : 'mech',
+    existing as Doc<'pilots'> | Doc<'mechs'>,
+    existing.gameId
+  )
 }
 
 /**
@@ -1089,7 +1235,7 @@ export const transfer = mutation({
     ),
     deletes: v.array(
       v.union(
-        v.object({ table: OWNABLE, appId: v.string() }),
+        v.object({ table: OWNED, appId: v.string() }),
         v.object({ table: v.literal('crawlers'), appId: v.string() }),
         v.object({ table: v.literal('softLinks'), ...LINK })
       )

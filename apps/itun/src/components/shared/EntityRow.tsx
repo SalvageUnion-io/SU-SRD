@@ -56,7 +56,7 @@ import { Fragment } from 'react'
  * alongside the three player entities because it is another thing you own and
  * open, and it carries its own tone so a Game row never reads as a crawler row.
  */
-export type EntityRowType = 'pilot' | 'mech' | 'crawler' | 'game'
+export type EntityRowType = 'pilot' | 'mech' | 'crawler' | 'game' | 'npc'
 
 /** A single `label | value` stat rendered in the subheader as a horizontal Stat. */
 export type EntityRowStat = {
@@ -221,6 +221,9 @@ const TONE: Record<EntityRowType, { band: string; ink: string }> = {
   mech: { band: 'var(--color-sheet-mech)', ink: 'var(--color-ink)' },
   crawler: { band: 'var(--color-sheet-crawler)', ink: 'var(--color-ink)' },
   game: { band: 'var(--color-sheet-game)', ink: 'var(--color-ink)' },
+  // A built NPC wears the Denizens' adversary brown, as a reference NPC's card
+  // does; what marks it as a player's is the dashed frame (`USER_MADE`).
+  npc: { band: 'var(--color-adversary)', ink: 'var(--color-paper)' },
 }
 
 /**
@@ -240,6 +243,7 @@ const EMPTY_GLYPH: Record<EntityRowType, LucideIcon> = {
   mech: Bot,
   crawler: Warehouse,
   game: Users,
+  npc: UserRound,
 }
 
 export function EntityRow(props: EntityRowProps) {
@@ -326,7 +330,11 @@ export function EntityRow(props: EntityRowProps) {
         // translation of an entity card, not a lighter-weight cousin of one.
         // Flat chrome (brand refresh P2a), as `Card`: no drop shadow and no
         // hover lift; the row is printed on the page and the frame is its edge.
-        'border-[length:var(--bw-entity)] border-ink'
+        'border-[length:var(--bw-entity)] border-ink',
+        // A built NPC is user-made (ruleset §3.9), so its frame is dashed. The
+        // caller seals it with the User-made stamp, which is what tells it from
+        // an empty slot's dashed frame.
+        entityType === 'npc' && 'border-dashed'
       )}
     >
       {/* Inner wrapper clips the bands to the frame's radius. */}
@@ -434,8 +442,8 @@ export function EntityRow(props: EntityRowProps) {
                 <Badge
                   // biome-ignore lint/suspicious/noArrayIndexKey: static per-render list that never reorders; a count badge's text changes as the count does, so content is a worse key than position
                   key={i}
-                  surface="tone"
-                  tone={entityType}
+                  surface={entityType === 'npc' ? 'quiet' : 'tone'}
+                  {...(entityType === 'npc' ? {} : { tone: entityType })}
                   className="max-w-full truncate"
                 >
                   {badge}

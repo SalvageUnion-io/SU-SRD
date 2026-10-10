@@ -2,7 +2,7 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
-import { mutation } from './model/entities'
+import { mutation, pruneLinksOfRow } from './model/entities'
 import { requireUser } from './model/permissions'
 import { deleteGameApparatus, releaseSeatsOf } from './model/seats'
 
@@ -82,6 +82,10 @@ export const exportMine = query({
       .query('mechs')
       .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
       .collect()
+    const npcs = await ctx.db
+      .query('npcs')
+      .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
+      .collect()
     const mechPatterns = await ctx.db
       .query('mechPatterns')
       .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
@@ -95,6 +99,7 @@ export const exportMine = query({
       exportedAt: new Date().toISOString(),
       pilots: pilots.map((p) => p.body),
       mechs: mechs.map((m) => m.body),
+      npcs: npcs.map((n) => n.body),
       mechPatterns: mechPatterns.map((p) => p.body),
       games: memberships.map((m) => ({
         gameId: m.gameId,
@@ -168,7 +173,7 @@ export const deleteAccount = mutation({
           // Last member out: the Game has nobody left to run or play it, and
           // what it held has nowhere to go — unclaimed entities in a Game with
           // no members included.
-          for (const table of ['crawlers', 'encounterNpcs', 'pilots', 'mechs'] as const) {
+          for (const table of ['crawlers', 'encounterNpcs', 'pilots', 'mechs', 'npcs'] as const) {
             const rows = await ctx.db
               .query(table)
               .withIndex('by_game', (q) => q.eq('gameId', membership.gameId))
@@ -207,9 +212,19 @@ export const deleteAccount = mutation({
         .query('mechPatterns')
         .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
         .collect(),
+      ctx.db
+        .query('npcs')
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
+        .collect(),
     ])
-    const [pilots, mechs, patterns] = personal
+    const [pilots, mechs, patterns, npcs] = personal
     for (const row of patterns) await ctx.db.delete(row._id)
+    // A deleted NPC's crew link goes with it, so its bay falls back to the
+    // book's line (ADR-043).
+    for (const row of npcs) {
+      await ctx.db.delete(row._id)
+      await pruneLinksOfRow(ctx, row)
+    }
     // A deleted pilot's seat goes with it, and a deleted mech leaves whoever
     // was aboard it on foot (ADR-038).
     for (const row of pilots) {

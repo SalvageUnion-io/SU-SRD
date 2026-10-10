@@ -76,7 +76,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 ## Persistence (read before touching data)
 
 - Player data lives in **Convex**; IndexedDB (`idb`, `src/lib/db/`) is a
-  per-account cache of it. Stores (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `softLinks`,
+  per-account cache of it. Stores (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `npcs`, `softLinks`,
   `mechPatterns`, `encounterNpcs`, and `meta`. The Change Log
   ([ADR-022](../../docs/ARCHITECTURE.md#adr-022)) has no device store: it is
   the Convex `changeLog` table, written by `commitChangeLog` and read by
@@ -91,12 +91,12 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   nothing else: the upgrade drops every store, and `ShelfSync` refills the
   cache from Convex. No record is ever rewritten on the device.
 - Records store **slug references** into `salvageunion-reference` (e.g.
-  `classRef: 'salvager'` on a pilot, `chassisRef` on a mech), never copies of
-  game data; resolve them against `SalvageUnionReference` at render time.
+  `classRef: 'salvager'` on a pilot), never copies of game data; resolve them
+  against `SalvageUnionReference` at render time.
 
 ## State flow (`src/stores/`)
 
-- `entityStore` (pilots/mechs/crawlers/softLinks), plus `activeContainerStore`,
+- `entityStore` (pilots/mechs/crawlers/npcs/softLinks), plus `activeContainerStore`,
   `patternStore` and `encounterStore`.
 - **There are no workspaces.** An entity lives in exactly one **container** — a
   shared **Game** or the owner's **Shelf** ("My Stuff") — encoded as one

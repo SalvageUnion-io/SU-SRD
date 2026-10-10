@@ -66,7 +66,7 @@ function makePilotStubStore(initial: Pilot, updateSpy?: ReturnType<typeof mock>)
 
   const store = makeEntityStoreMock({
     pilots: [current],
-    hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
     get: mock((_type: string, id: string) => (id === current.id ? current : null)),
