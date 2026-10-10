@@ -1,7 +1,8 @@
 /**
  * Pure logic for cross-reference validation in the Salvage Union data.
  * Checks that every by-name reference resolves: pattern systems/modules and
- * drones, drone modules, catalog-choice shortlists (which must name a schema),
+ * drones (and their preselected choices), drone modules, catalog-choice
+ * shortlists (which must name a schema),
  * `tableName` / `rollTable` (any depth, any file), guide `guideRef` and step
  * `schemaEntities`, faction `formation` members and ability `grants`.
  *
@@ -263,6 +264,55 @@ export const KNOWN_UNRESOLVED_REFS: ReadonlyArray<{
   },
 ]
 
+type ChoiceSource = {
+  kind?: string
+  schema?: string[]
+  entities?: string[]
+  options?: Array<{ name?: string; value?: string }>
+}
+
+/** Every choice (at any depth) of the actions an item names, by choice id. */
+function choicesByIdFor(
+  item: Rec | undefined,
+  actionsByName: Map<string, Rec>
+): Map<string, { source?: ChoiceSource }> {
+  const out = new Map<string, { source?: ChoiceSource }>()
+  const names = Array.isArray(item?.actions) ? (item.actions as unknown[]) : []
+  for (const name of names) {
+    const action = typeof name === 'string' ? actionsByName.get(name) : undefined
+    walkObjects(action, '', (obj, path) => {
+      if (/(^|\.)choices\[\d+\]$/.test(path) && typeof obj.id === 'string') {
+        out.set(obj.id, obj as { source?: ChoiceSource })
+      }
+    })
+  }
+  return out
+}
+
+/**
+ * Whether `value` is a pick the choice can produce: a free-text or table choice
+ * takes anything; an options list its `value`s; a system variant its option
+ * `name`s; a catalog an entity of its schema (or its shortlist).
+ */
+function isChoiceValue(
+  source: ChoiceSource | undefined,
+  value: string,
+  index: Record<string, Set<string>>
+): boolean {
+  switch (source?.kind) {
+    case 'options':
+      return (source.options ?? []).some((o) => o.value === value)
+    case 'systemVariant':
+      return (source.options ?? []).some((o) => o.name === value)
+    case 'catalog':
+      return source.entities?.length
+        ? source.entities.includes(value)
+        : (source.schema ?? []).some((schema) => hasName(index, schema, value))
+    default:
+      return true
+  }
+}
+
 /** Run every cross-reference check over the supplied data bag. */
 export function findReferenceErrors(
   filesByName: Record<string, unknown[]>,
@@ -294,6 +344,13 @@ function findAllReferenceErrors(filesByName: Record<string, unknown[]>): Validat
   const index = buildNameIndex(filesByName)
   const systemNames = index.systems ?? new Set<string>()
   const moduleNames = index.modules ?? new Set<string>()
+  const actionsByName = new Map(bag(filesByName, 'actions.json').map((a) => [a.name as string, a]))
+  const itemsByName = new Map(
+    [...bag(filesByName, 'systems.json'), ...bag(filesByName, 'modules.json')].map((r) => [
+      r.name as string,
+      r,
+    ])
+  )
   const guideIds = new Set(
     bag(filesByName, 'guides.json')
       .map((g) => g.id)
@@ -305,6 +362,31 @@ function findAllReferenceErrors(filesByName: Record<string, unknown[]>): Validat
     if (!chassisItem.patterns || !Array.isArray(chassisItem.patterns)) continue
 
     for (const pattern of chassisItem.patterns) {
+      const patternName = (pattern as { name?: string }).name ?? 'unknown'
+      for (const kind of ['systems', 'modules'] as const) {
+        for (const entry of (pattern[kind] ?? []) as Array<{
+          name?: string
+          preselectedChoices?: Record<string, string>
+        }>) {
+          if (typeof entry !== 'object' || !entry.preselectedChoices) continue
+          const choices = choicesByIdFor(itemsByName.get(entry.name ?? ''), actionsByName)
+          for (const [choiceId, value] of Object.entries(entry.preselectedChoices)) {
+            const choice = choices.get(choiceId)
+            if (!choice || !isChoiceValue(choice.source, value, index)) {
+              errors.push({
+                file: 'chassis.json',
+                entityName: String(chassisItem.name ?? 'unknown'),
+                field: `patterns.${patternName}.${kind}.${entry.name}.preselectedChoices`,
+                referencedName: value,
+                message: choice
+                  ? `"${value}" is not an option of choice ${choiceId} on "${entry.name}"`
+                  : `"${entry.name}" has no choice with id ${choiceId}`,
+              })
+            }
+          }
+        }
+      }
+
       if (pattern.systems) {
         for (const system of pattern.systems) {
           const systemName = typeof system === 'string' ? system : system.name

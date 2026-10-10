@@ -345,6 +345,39 @@ describe('references', () => {
     ])
   })
 
+  test('a pattern preselected choice must name a real choice and one of its options', () => {
+    const turret = {
+      'systems.json': [{ name: 'Laser' }, { name: 'Turret', actions: ['Turret'] }],
+      'actions.json': [
+        {
+          name: 'Turret',
+          choices: [
+            {
+              id: 'c1',
+              name: 'Model',
+              source: { kind: 'systemVariant', options: [{ name: 'Cannon Turret' }] },
+            },
+          ],
+        },
+      ],
+    }
+    const pattern = (pre: Record<string, string>) => ({
+      'chassis.json': [
+        {
+          name: 'C',
+          patterns: [{ name: 'P', systems: [{ name: 'Turret', preselectedChoices: pre }] }],
+        },
+      ],
+    })
+    expect(refs({ ...base, ...turret, ...pattern({ c1: 'Cannon Turret' }) })).toEqual([])
+    expect(
+      refs({ ...base, ...turret, ...pattern({ c1: 'Canon Turret' }) }).map((e) => e.referencedName)
+    ).toEqual(['Canon Turret'])
+    expect(
+      refs({ ...base, ...turret, ...pattern({ nope: 'Cannon Turret' }) }).map((e) => e.message)
+    ).toEqual(['"Turret" has no choice with id nope'])
+  })
+
   test('a known-unresolved ref is tolerated, and a stale one fails', () => {
     const known = [
       {
