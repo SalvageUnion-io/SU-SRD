@@ -66,7 +66,7 @@ type ShelfItemProps = {
   kicker: string
   name: string
   reading?: ShelfReading
-  href: string
+  href?: string
   userMade?: boolean
   chips: ShelfChip[]
   /** The "⋯" menu's rows, grouped; empty renders no menu. */

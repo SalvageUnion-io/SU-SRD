@@ -12,7 +12,7 @@
  * units linked to it, where it came from, and, for a pattern, who can see it.
  */
 
-import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { resolveChassisRef, resolvePool } from 'salvageunion-reference/rules'
 import { resolveClassName } from '../classRef'
 import type { ContainerFields } from '../container'
 import { resolveCrawlerType } from '../crawlerRefs'
@@ -20,7 +20,9 @@ import type { PatternVisibility } from '../patterns/patterns'
 import { patternChassis, patternLoadout, slotsUsed } from '../patterns/patterns'
 import { readReference } from '../readReference'
 import type { Crawler } from '../schemas/crawler'
+import type { EncounterNpc } from '../schemas/encounterNpc'
 import type { Mech } from '../schemas/mech'
+import type { Npc } from '../schemas/npc'
 import type { MechPattern } from '../schemas/pattern'
 import type { Pilot } from '../schemas/pilot'
 import type { SoftLink } from '../schemas/softLink'
@@ -207,4 +209,38 @@ export function patternChips(sharing: PatternSharing | undefined): ShelfChip[] {
         : 'Only me'
   const built = builtTimes(sharing.builtCount)
   return [{ key: 'who', label: who }, ...(built ? [{ key: 'built', label: built }] : [])]
+}
+
+/** An NPC's reading is its hit (or structure) points: `HP 6/6`. */
+export function npcReading(npc: Pick<Npc, 'hitPoints' | 'damageType' | 'currentHP'>): ShelfReading {
+  return {
+    label: npc.damageType,
+    value: `${resolvePool(npc.currentHP, npc.hitPoints)}/${npc.hitPoints}`,
+  }
+}
+
+/** An encounter-tray NPC's reading, on the same footing. */
+export function encounterNpcReading(
+  npc: Pick<EncounterNpc, 'currentHp' | 'maxHp' | 'statKind'>
+): ShelfReading {
+  return { label: npc.statKind === 'sp' ? 'SP' : 'HP', value: `${npc.currentHp}/${npc.maxHp}` }
+}
+
+/**
+ * Who can see an NPC: nobody but you while it is on your shelf; the table, once
+ * it is moved into a Game. A Game this viewer cannot name is just "a Game".
+ */
+export function npcChips(args: {
+  npc: Pick<Npc, 'gameId'>
+  games: readonly ShelfGame[] | undefined
+}): ShelfChip[] {
+  const { npc } = args
+  if (typeof npc.gameId !== 'string') return [{ key: 'who', label: 'Only me' }]
+  const game = args.games?.find((g) => g._id === npc.gameId)
+  return [{ key: 'who', label: game ? `Shared with ${game.name}` : 'Shared with a Game' }]
+}
+
+/** The personal tray's NPCs live on the shelf alone, so only the owner sees them. */
+export function encounterNpcChips(): ShelfChip[] {
+  return [{ key: 'who', label: 'Only me' }]
 }

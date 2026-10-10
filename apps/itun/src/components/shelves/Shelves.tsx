@@ -31,9 +31,11 @@
  *
  * ## NPCs
  *
- * The NPC designer (issue 1277) is not built yet, so the NPC shelf says so and
- * offers no "+ Design an NPC". The opposition tray's reference NPCs are not
- * yours to keep and do not belong here.
+ * The NPC shelf lists the NPCs you have designed (`/npcs/new`, issue 1277):
+ * dashed like everything players make, each with who can see it and a ⋯ menu,
+ * and "+ Design an NPC" opens the designer. The personal encounter tray's NPCs,
+ * when it holds any, are listed beside them. The opposition tray's reference
+ * NPCs are not yours to keep and do not belong here.
  */
 
 import { useRouter } from '@tanstack/react-router'
@@ -46,6 +48,7 @@ import {
   useCrawlers,
   useHydrateEntities,
   useMechs,
+  useNpcs,
   usePilots,
   useSoftLinkList,
 } from '../../hooks/entities'
@@ -65,14 +68,19 @@ import {
   crawlerFact,
   crawlerIsKept,
   crawlerReading,
+  encounterNpcChips,
+  encounterNpcReading,
   kicker,
   mechChips,
+  npcChips,
+  npcReading,
   patternChips,
   patternReading,
   pilotChips,
   pilotFact,
   shownUnder,
 } from '../../lib/shelves/shelfItems'
+import { useEncounterStore } from '../../stores/encounterStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
 import type { AssignableType } from '../../stores/types'
@@ -239,14 +247,18 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
   const go = useGo()
   const [filter, setFilter] = useState<ShelfFilter>('everything')
   const [moving, setMoving] = useState<MoveSubject | null>(null)
+  const [importResult, setImportResult] = useState<string | null>(null)
 
-  const hydratedUnits = useHydrateEntities(['pilot', 'mech', 'crawler', 'softLink'])
+  const hydratedUnits = useHydrateEntities(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
   const hydratedPatterns = useHydrateOnMount(() => usePatternStore.getState().hydrate())
+  const hydratedTray = useHydrateOnMount(() => useEncounterStore.getState().hydrate())
   const allPilots = usePilots()
   const allMechs = useMechs()
   const allCrawlers = useCrawlers()
+  const allNpcs = useNpcs()
   const softLinks = useSoftLinkList()
   const patterns = usePatternStore((s) => s.mechPatterns)
+  const trayNpcs = useEncounterStore((s) => s.encounterNpcs)
 
   // Names for the chips, from the WHOLE pile, so a link names its other end
   // whichever way the toggle is set.
@@ -258,6 +270,9 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
   const mechs = allMechs.filter((m) => shownUnder(filter, m))
   // A Game's crawler is the crew's: on your shelf only where you run the table.
   const crawlers = allCrawlers.filter((c) => crawlerIsKept(c, games) && shownUnder(filter, c))
+  const npcs = allNpcs.filter((n) => shownUnder(filter, n))
+  // The personal tray is on the shelf alone: it is in no Game to filter by.
+  const tray = filter === 'everything' ? trayNpcs.filter((n) => typeof n.gameId !== 'string') : []
 
   // -- the verbs ------------------------------------------------------------
 
@@ -335,6 +350,24 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
     ]
   }
 
+  function trayMenu(npc: { id: string; name: string }): HeaderMenuItem[][] {
+    return [
+      [
+        {
+          id: 'delete',
+          label: 'Delete…',
+          tone: 'danger',
+          onSelect: writable(() =>
+            confirm({
+              ...ROW_ACTION_COPY.deleteBuild(npc.name),
+              onConfirm: () => useEncounterStore.getState().delete(npc.id),
+            })
+          ),
+        },
+      ],
+    ]
+  }
+
   function patternMenu(pattern: MechPattern): HeaderMenuItem[][] {
     return [
       [
@@ -383,7 +416,11 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
 
   const newLink = (href: string, label: string) =>
     canWrite ? (
-      <AppLink href={href} className={buttonVariants({ size: 'compact' })} style={NEW_LINK}>
+      <AppLink
+        href={href}
+        className={`${buttonVariants({ size: 'compact' })} shelves-action`}
+        style={NEW_LINK}
+      >
         {label}
       </AppLink>
     ) : undefined
@@ -397,7 +434,7 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
           onSelect: () => go('/mechs/patterns/new', { from: m.id }),
         }))
 
-  const ready = hydratedUnits && hydratedPatterns
+  const ready = hydratedUnits && hydratedPatterns && hydratedTray
 
   return (
     <main style={PAGE}>
@@ -424,10 +461,15 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
                   </button>
                 ))}
               </fieldset>
-              {canWrite && <ImportButton className={ON_INK_BUTTON} onInk />}
+              {canWrite && (
+                <ImportButton className={ON_INK_BUTTON} onInk onResult={setImportResult} />
+              )}
               <ExportAllButton className={ON_INK_BUTTON} onInk />
               <NewGameControl className={ON_INK_BUTTON} />
             </div>
+            <p role="status" aria-live="polite" className="shelves-band__status">
+              {importResult}
+            </p>
           </div>
         }
       >
@@ -520,6 +562,7 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
                     <HeaderMenu
                       variant="button"
                       trigger="+ From a mech"
+                      className="shelves-action"
                       label="+ From a mech"
                       chevron={false}
                       sections={[fromAMech]}
@@ -547,11 +590,42 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
               <Shelf
                 id="shelf-npcs"
                 title="NPCs"
-                count="0 · yours"
+                count={`${npcs.length + tray.length} · yours`}
                 note="Your NPCs, ready to drop into a Game you mediate."
-                isEmpty
-                empty="The NPC designer is on its way. The NPCs you design will be kept here."
-              />
+                action={newLink('/npcs/new', '+ Design an NPC')}
+                isEmpty={npcs.length + tray.length === 0}
+                empty={
+                  filter === 'everything'
+                    ? 'No NPCs yet. Design one and it is kept here.'
+                    : 'Every NPC is in a Game.'
+                }
+              >
+                {npcs.map((n) => (
+                  <ShelfItem
+                    key={n.id}
+                    kind="npc"
+                    kicker={kicker('NPC', n.position)}
+                    name={n.name}
+                    reading={npcReading(n)}
+                    href={`/sheet/npc/${n.id}`}
+                    userMade
+                    chips={npcChips({ npc: n, games })}
+                    menu={unitMenu('npc', n, n)}
+                  />
+                ))}
+                {tray.map((n) => (
+                  <ShelfItem
+                    key={n.id}
+                    kind="npc"
+                    kicker={kicker('NPC', 'Tray')}
+                    name={n.name}
+                    reading={encounterNpcReading(n)}
+                    userMade
+                    chips={encounterNpcChips()}
+                    menu={trayMenu(n)}
+                  />
+                ))}
+              </Shelf>
 
               <StarterShelf />
             </div>

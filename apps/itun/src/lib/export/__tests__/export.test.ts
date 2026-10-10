@@ -426,6 +426,27 @@ describe('mergeImport — round-trip', () => {
     await verifyStore.hydrate('pilot')
     expect(verifyStore.list('pilot')).toHaveLength(1)
   })
+
+  test('a unit deleted from the account comes back when its backup is imported', async () => {
+    const entityStore = useEntityStore.getState()
+
+    await entityStore.hydrate('pilot')
+    const pilot = await entityStore.create('pilot', { ...basePilotInput, name: 'Backed Up' })
+    const bundle = await buildExportBundle(entityStore)
+
+    await entityStore.delete('pilot', pilot.id)
+    expect(useEntityStore.getState().list('pilot')).toHaveLength(0)
+
+    const summary = await mergeImport(bundle, useEntityStore.getState())
+
+    expect(summary.skippedDuplicates).toBe(0)
+    expect(summary.created.pilots).toBe(1)
+    const back = useEntityStore.getState().list('pilot')
+    expect(back).toHaveLength(1)
+    expect(back[0]?.name).toBe('Backed Up')
+    // A copy: fresh id, never the deleted unit's own.
+    expect(back[0]?.id).not.toBe(pilot.id)
+  })
 })
 
 // ---------------------------------------------------------------------------
