@@ -41,19 +41,23 @@ together. No CLI or API edits it.
 - **Convex:** the SessionStart hook exports `CONVEX_AGENT_MODE=anonymous` in
   cloud sessions, so `bun run dev:itun` starts a local deployment without a
   Convex account and writes `apps/itun/.env.local`; the `convex` MCP server
-  answers while it runs. The test-auth setup in
+  answers while it runs. A multi-repo session runs no repo hooks, so there
+  prefix it: `CONVEX_AGENT_MODE=anonymous bun run dev:itun`. The test-auth setup in
   [`convex-ops`](../../.claude/skills/convex-ops/SKILL.md#local-backend) is per
   container.
 - **Setup script:** runs as root before Claude Code starts and is snapshotted
   when it ends within about five minutes, so the pinned Bun and `node_modules`
-  are already in place and the SessionStart hook is a no-op. It must exit 0: a
-  failure stops the session starting.
+  are already in place and the SessionStart hook is a no-op. In a multi-repo
+  session repo hooks do not run at all, so this script is what pins Bun there;
+  its `packageManager` test picks the SU-SRD checkout out of the siblings. It
+  must exit 0: a failure stops the session starting.
 
   ```bash
   #!/bin/bash
   # SU-SRD: docs/ops/cloud-environment.md is this script's record.
   # Warm the snapshot with the repo's pinned Bun and node_modules by running
-  # its own SessionStart hook. Never fail: the hook fixes things at start anyway.
+  # its own SessionStart hook: repo hooks never run in a multi-repo session, so
+  # this is what pins Bun there. Never fail: a failure stops the session.
   for d in "${CLAUDE_PROJECT_DIR:-}" "$PWD" /home/user/* /root/* /workspace/*; do
     if [ -x "$d/.claude/hooks/session-start.sh" ] &&
       grep -q '"packageManager": *"bun@' "$d/package.json" 2>/dev/null; then
@@ -63,3 +67,7 @@ together. No CLI or API edits it.
   done
   exit 0
   ```
+- **Rules text:** attach the private `SalvageUnion-io/su-rules` repository as a
+  second repository when a session or Routine needs the rulebooks. The GitHub
+  proxy authenticates it, so it needs no secret and no network entry; grep its
+  committed `extracted/*.txt` in the sibling checkout (no poppler).

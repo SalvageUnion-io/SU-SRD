@@ -65,7 +65,7 @@ the corpus size, not just the finding count.
 
 | Script | Run as | Purpose |
 | --- | --- | --- |
-| `extract-rules.ts` | `rules:extract` | Rules PDFs in `rules/` to `rules/extracted/*.txt` with page markers, plus a content-stream-order layer in `rules/extracted/raw/` for the fidelity check. The PDFs are gitignored; no-ops without them. |
+| `extract-rules.ts` | `rules:extract` | Rules PDFs in `rules/` to `rules/extracted/*.txt` with page markers, plus a content-stream-order layer in `rules/extracted/raw/` for the fidelity check. The PDFs are gitignored here (source of record: the private `su-rules` repo, extract committed); no-ops without them. |
 | `check-rules-fidelity.ts` | `check:rules-fidelity` | Every prose string against the books: verbatim, an allowlisted deviation (`lib/proseDeviations.ts` in the package), authored, or unverified drift. `--update` rewrites the lock the `rules-fidelity` gate reads; `--show=<reason>` lists strings with diffs; `--summary` prints a drift summary for a PR body. Needs the extract (a worktree reads the main checkout's). |
 | `check-printed-names.ts` | `check:printed-names` | Entity names and pages against the Core Book index. Advisory; needs the extract. Run after a data import. |
 | `export-lp-assets.ts` | `assets:export` | Backs up the `su-lp-assets` R2 bucket locally and proves the copy byte-exact — the only backup path for the licensed artwork. Needs R2 credentials. |

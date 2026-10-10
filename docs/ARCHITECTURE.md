@@ -972,15 +972,16 @@ returns condensed docs: verify load-bearing APIs against `node_modules`.
 
 ### Cloud sessions
 
-`gh` is preinstalled; the GitHub proxy authenticates it for REST only: `gh pr`
-and `gh issue` (GraphQL) get 403, and branch deletions are refused. Use `gh api`
-or the `mcp__github__*` tools. Cloudflare and Sentry use claude.ai
-connectors, `convex` an anonymous local deployment:
-[ops/cloud-environment.md](ops/cloud-environment.md). No route: report
-**unread**; ask for staging or production data. If `bun --version` differs from the root
-`packageManager`, run with `PATH="$HOME/.local/share/su-srd-bun/<version>:$PATH"` (the
-SessionStart hook installs it there) and `bun install --frozen-lockfile`. Never fake
-a GitHub step that has no route.
+`gh` is preinstalled, REST only via the GitHub proxy: `gh pr`/`gh issue`
+(GraphQL) get 403, branch deletions are refused; use `gh api` or
+`mcp__github__*`. Cloudflare and Sentry use claude.ai connectors, `convex` an
+anonymous local one; no route: report **unread**, ask for remote data.
+Environment and rules text (attach private `su-rules`; multi-repo skips repo
+hooks): [ops/cloud-environment.md](ops/cloud-environment.md). If `bun --version`
+differs from the root `packageManager`, run with
+`PATH="$HOME/.local/share/su-srd-bun/<version>:$PATH"` (where the setup
+script puts it) and `bun install --frozen-lockfile`. Never fake a GitHub step
+that has no route.
 
 ### Cloudflare
 
