@@ -234,6 +234,22 @@ export function PilotEquipmentItem({
   // and hold — because the grant and the granted thing are one entry to the
   // player (ADR-028). PilotSheet filters those slugs out before mapping here.
 
+  // Read state (board 10): the shortform pill — the item named, typed and
+  // tech-levelled on one line. Its uses, condition and choices are the card's,
+  // shown when the sheet is in Edit.
+  // A damaged item's pill greys, as its card's header does.
+  if (readOnly) {
+    return (
+      <ReferenceEntityCard
+        data={equipment}
+        size="small"
+        extent="head"
+        status={condition}
+        selections={selections}
+      />
+    )
+  }
+
   return (
     <ReferenceEntityCard
       data={equipment}

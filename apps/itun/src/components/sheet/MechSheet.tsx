@@ -469,16 +469,19 @@ export function MechSheet({
         </SheetSectionSlab>
       )}
 
-      {/* ===== Linked Units — the last region ===== */}
-      <SheetSectionSlab
-        id="linked-units"
-        title="Linked Units"
-        // Side by side: each linked unit is one roster row, and two of them stack
-        // to a wasteful column on a sheet that has the width for both.
-        bodyClassName="flex flex-col gap-4 @3xl:flex-row"
-      >
-        {linkedUnits}
-      </SheetSectionSlab>
+      {/* ===== Linked Units — the last region ===== (none in Read when
+          nothing is linked: an empty slot is left out, as an empty field is) */}
+      {linkedUnits && (
+        <SheetSectionSlab
+          id="linked-units"
+          title="Linked Units"
+          // Side by side: each linked unit is one roster row, and two of them
+          // stack to a wasteful column on a sheet that has the width for both.
+          bodyClassName="flex flex-col gap-4 @3xl:flex-row"
+        >
+          {linkedUnits}
+        </SheetSectionSlab>
+      )}
 
       {/* The ONE shared picker modal — Systems & Modules '+ Add' both open it
           (the wizard's install grid writes through on click; no Save button). */}

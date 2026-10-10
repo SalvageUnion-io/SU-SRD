@@ -27,12 +27,21 @@
  */
 
 import type { StatTone } from 'component-lib'
-import { Badge, buttonVariants, cn, EntityExternalLinkProvider, Stat } from 'component-lib'
+import {
+  Badge,
+  buttonVariants,
+  ChapterBand,
+  cn,
+  EntityExternalLinkProvider,
+  Stat,
+  tokens,
+} from 'component-lib'
 import { ArrowLeft } from 'lucide-react'
-import type { ReactNode, RefObject } from 'react'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { AppLink } from '../shared/AppLink'
 import { SHEET_ICONBTN_CLASS } from './sheetChrome'
+import type { SheetBand } from './sheetViewProps'
 
 export type SheetVariant = 'pilot' | 'mech' | 'crawler'
 
@@ -84,8 +93,28 @@ type LiveSheetProps = {
   syncStats?: Record<string, number>
   /** Trailing top-bar actions (Share/Publish). */
   actions?: ReactNode
+  /**
+   * The chapter band's line past the title (board 10): provenance beside the
+   * type stamps, and the band's controls (Read | Edit, "Make a copy").
+   */
+  band?: SheetBand
+  /** The second type stamp: a pilot's class, a mech's chassis, a crawler's type. */
+  kindDetail?: string
   className?: string
 }
+
+/** The band's provenance line, beside the stamps. */
+const PROVENANCE = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.caption,
+} satisfies CSSProperties
+
+const BAND_ACTIONS = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[12],
+} satisfies CSSProperties
 
 /** Sticky bar height — the IntersectionObserver top inset (design: 58/66px). */
 const BAR_HEIGHT_PX = 58
@@ -126,6 +155,8 @@ export function LiveSheet({
   renderBody,
   syncStats,
   actions,
+  band,
+  kindDetail,
   className,
 }: LiveSheetProps) {
   // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
@@ -287,6 +318,29 @@ export function LiveSheet({
       {/* Condense sentinel — the moment this scrolls under the sticky bar, the
           bar seams (border + shadow) and fills (name + vitals). */}
       <div ref={topRef} aria-hidden="true" className="h-px w-full" />
+
+      {/* The chapter band (board 10): the sheet's one h1, notched into a band
+          in its own tone with the speckle behind it; the type stamps and where
+          the sheet comes from above the name, Read | Edit beside it. */}
+      <ChapterBand
+        tone={variant}
+        eyebrow={
+          <>
+            <Badge shape="stamp" size="full">
+              {variant}
+            </Badge>
+            {kindDetail && (
+              <Badge shape="stamp" size="full" surface="inverse">
+                {kindDetail}
+              </Badge>
+            )}
+            {band?.provenance && <span style={PROVENANCE}>{band.provenance}</span>}
+          </>
+        }
+        aside={band?.actions ? <div style={BAND_ACTIONS}>{band.actions}</div> : undefined}
+      >
+        {name}
+      </ChapterBand>
 
       {/* Body slabs. The body owns the hero, so it takes the hero's top
           padding. */}

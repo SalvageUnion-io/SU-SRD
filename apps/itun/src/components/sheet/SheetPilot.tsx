@@ -18,6 +18,8 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import { AppLink } from '../shared/AppLink'
 import { EntityRow } from '../shared/EntityRow'
 import { AssignPicker } from '../wiring/AssignPicker'
+import { pilotStamp } from './bandStamps'
+import { LinkedUnitLink } from './LinkedUnitLink'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { PilotSheet } from './PilotSheet'
@@ -33,6 +35,7 @@ export function SheetPilot({
   back,
   actions,
   segments,
+  band,
   editable,
   readOnly,
   crawlerReadOnly,
@@ -45,9 +48,9 @@ export function SheetPilot({
 }: SheetPilotProps) {
   // Softlink ids for the rail's Unassign control (relocated from the removed
   // detail page). Derived from the live link set — composition only exposes
-  // resolved entities, not the link records. Per the unified edit language,
-  // link add/remove is always available on editable sheets (no edit mode), and
-  // needs no confirm: an assignment is reversible bookkeeping (ADR-007).
+  // resolved entities, not the link records. Link add/remove is available
+  // whenever the sheet is in Edit, and needs no confirm: an assignment is
+  // reversible bookkeeping (ADR-007).
   // A mech link is undrawn from its mech, so only one this sheet holds offers it
   // — a crewmate's mech flying this pilot is theirs to unassign.
   const mechLinkId = storeState.softLinks.find(
@@ -79,10 +82,43 @@ export function SheetPilot({
     { key: 'ap', label: 'AP', stat: 'ap', value: ap, max: maxAP },
   ]
 
+  // Read (board 10): each linked unit is one line, and an empty slot is left
+  // out, as an empty field is. With nothing linked, there is no section.
+  const readRail = [
+    composition.mech ? (
+      <LinkedUnitLink
+        key="mech"
+        kind="mech"
+        name={composition.mech.name}
+        href={hrefFor('mech', composition.mech.id)}
+        stats={rowStats(
+          mechRailItems(composition.mech, pilotingContext(composition.mech, pilot.abilities))
+        )}
+      />
+    ) : withheldMech ? (
+      <WithheldUnitRow key="mech" unit={withheldMech} label="Assigned Mech" />
+    ) : null,
+    composition.crawler ? (
+      <LinkedUnitLink
+        key="crawler"
+        kind="crawler"
+        name={composition.crawler.name}
+        href={hrefFor('crawler', composition.crawler.id)}
+        stats={rowStats(crawlerRailItems(composition.crawler))}
+      />
+    ) : withheldCrawler ? (
+      <WithheldUnitRow key="crawler" unit={withheldCrawler} label="Home Crawler" />
+    ) : null,
+  ].filter((unit) => unit !== null)
+
   // Linked Units rail content (poster R3, span 5) — built here because it
   // needs `composition` (resolved mech/crawler), which PilotSheet does not
   // receive; handed down as `linkedUnits`.
-  const rail = (
+  const rail = !editable ? (
+    readRail.length > 0 ? (
+      readRail
+    ) : null
+  ) : (
     <>
       {composition.mech ? (
         <EntityRow
@@ -190,6 +226,8 @@ export function SheetPilot({
       strip={strip}
       back={back}
       segments={segments}
+      band={band}
+      kindDetail={pilotStamp(pilot.classRef)}
       actions={actions}
       renderBody={() => (
         <PilotSheet

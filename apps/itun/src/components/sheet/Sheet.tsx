@@ -17,6 +17,7 @@
  */
 
 import { buttonVariants, cn } from 'component-lib'
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { runWrite } from '../../lib/runWrite'
@@ -41,8 +42,10 @@ import { ShareStatusDialog } from './ShareStatusDialog'
 import { SheetActionsMenu } from './SheetActionsMenu'
 import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
+import { SheetModeToggle } from './SheetModeToggle'
 import { SheetPilot } from './SheetPilot'
-import type { SheetPatch, WithheldUnit } from './sheetViewProps'
+import { useSheetMode } from './sheetMode'
+import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps'
 
 // Re-exported so existing consumers (tests) keep their import.
 export type { EntityLookup } from './composition'
@@ -138,6 +141,14 @@ type SheetProps = {
   hrefFor?: (kind: EntityRef['type'], id: string) => string | undefined
   /** Linked units to name without reading — a public sheet's private assignments. */
   withheld?: readonly WithheldUnit[]
+  /**
+   * Where the sheet comes from, on its band beside the type stamps ("Starter
+   * Set · Leyline Press · read-only"). A read-only sheet says "read-only" when
+   * the caller names nothing.
+   */
+  provenance?: string
+  /** Controls on the band beside Read | Edit (the Starter Set's "Make a copy"). */
+  bandActions?: ReactNode
 }
 
 /** The live sheet route: one address per entity, editable or read-only by who is looking. */
@@ -158,6 +169,8 @@ export function Sheet({
   others,
   hrefFor = liveSheetHref,
   withheld = NONE_WITHHELD,
+  provenance,
+  bandActions,
 }: SheetProps) {
   const storeState = store()
   const [changeLogOpen, setChangeLogOpen] = useState(false)
@@ -166,6 +179,10 @@ export function Sheet({
   // control lives in the ⋯ menu, which unmounts on the press that answers it.
   const { confirm, dialog: confirmDialog } = useConfirm()
   const { canWrite, settling } = useConnection()
+  // Read | Edit (`sheetMode.ts`): the route's choice, or always writable when
+  // nothing provides one (a test, a story).
+  const sheetMode = useSheetMode()
+  const editing = sheetMode === null || sheetMode.editing
 
   // Signed in and offline: the server of record refuses writes (ADR-030 §1), so
   // every edit affordance on this sheet is a lie. Withdraw them rather than
@@ -179,7 +196,9 @@ export function Sheet({
   // This is orthogonal to ADR-021's surface taxonomy: it withdraws Free Edit for
   // a connectivity reason, and imposes no lifecycle enforcement on what remains.
   const writesBlocked = !canWrite && !settling
-  const readOnly = readOnlyProp || writesBlocked
+  // Read is the printed sheet: every edit affordance withdrawn, exactly as on
+  // a sheet the viewer cannot write, until Edit is pressed.
+  const readOnly = readOnlyProp || writesBlocked || !editing
 
   const own: EntityLookup = entityStore ?? {
     get: (type, entityId) => storeState.get(type, entityId),
@@ -223,9 +242,9 @@ export function Sheet({
   // clean-pilot.html `.bar-actions`): Share stays inline; Print,
   // Export and the container control tuck into the "⋯" overflow at every width — the app
   // bar's priority row is just Share + overflow.
-  // NO sheet has a global Edit toggle any more — editing is section-based
-  // (unified edit language: per-section Edit buttons, always-available
-  // collection add/remove, always-live StatBlock pips).
+  // Read | Edit is the band's (`sheetMode.ts`): Read withdraws every write
+  // affordance; Edit gives back the unified edit language (in-place fields,
+  // collection add/remove, live pips).
   // Print/PDF export (#82/#258): the print stylesheet (index.css @media
   // print) turns the live sheet into a clean paper layout; "Save as PDF"
   // in the browser dialog covers the PDF ask without a rendering dep.
@@ -335,7 +354,25 @@ export function Sheet({
     runWrite(() => storeState.update(kind, id, fields, LIVE_SHEET_MANUAL))
   }
 
+  // The band: the type stamps' provenance, and Read | Edit where the viewer
+  // may write — a crewmate's or the Starter Set's sheet is only ever read.
+  const modeToggle =
+    sheetMode !== null && !readOnlyProp && !writesBlocked ? (
+      <SheetModeToggle mode={sheetMode} kind={kind} />
+    ) : null
+  const band: SheetBand = {
+    provenance: provenance ?? (readOnlyProp ? 'read-only' : undefined),
+    actions:
+      modeToggle === null && bandActions === undefined ? undefined : (
+        <>
+          {modeToggle}
+          {bandActions}
+        </>
+      ),
+  }
+
   const common = {
+    band,
     composition,
     back,
     actions,

@@ -1,5 +1,6 @@
 import {
   advanceUntilVisible,
+  editSheet,
   fillIdentity,
   installLoadoutItem,
   pickByName,
@@ -82,6 +83,8 @@ test('edit a mech loadout on its live sheet', async ({ page }) => {
   // The Systems section header's manage control opens the shared picker, which
   // writes through on toggle. SectionManageButton labels itself
   // `Manage ${label}` — MechSheet passes label="systems".
+  // A sheet opens in Read; its controls are Edit's (issue 1255).
+  await editSheet(page)
   await page.getByRole('button', { name: /^Manage systems$/i }).click()
   const picker = page.getByRole('dialog')
   await expect(picker).toBeVisible()

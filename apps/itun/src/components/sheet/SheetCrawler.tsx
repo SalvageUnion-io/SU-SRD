@@ -26,6 +26,7 @@ import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AppLink } from '../shared/AppLink'
 import { EntityRow } from '../shared/EntityRow'
 import { AssignPicker } from '../wiring/AssignPicker'
+import { crawlerStamp } from './bandStamps'
 import type { EconLozItem } from './CrawlerEcon'
 import { CrawlerEconFrame } from './CrawlerEcon'
 import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
@@ -49,6 +50,7 @@ export function SheetCrawler({
   back,
   actions,
   segments,
+  band,
   editable,
   readOnly,
   store,
@@ -390,6 +392,8 @@ export function SheetCrawler({
         strip={strip}
         back={back}
         segments={segments}
+        band={band}
+        kindDetail={crawlerStamp(crawler.type)}
         actions={actions}
         renderBody={() => (
           <CrawlerSheet
