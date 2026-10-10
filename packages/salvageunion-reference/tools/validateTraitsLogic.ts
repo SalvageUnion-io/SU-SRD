@@ -1,7 +1,7 @@
 /**
  * Pure logic for trait-data validation in Salvage Union data.
  *
- * Four checks, all fixture-free (they flow from the schema/data, not from any
+ * Five checks, all fixture-free (they flow from the schema/data, not from any
  * named entity):
  *
  *  1. Trait casing — every `traits[].type` must be lowercase. The convention is
@@ -17,6 +17,9 @@
  *  4. Inline links — every `[[Trait]]` / `[[[Trait] (n)]]` in any string must
  *     name a trait in traits.json (without case, as both renderers resolve it).
  *     A miss renders as an unlinked mark, so a dead link never looks broken.
+ *  5. Inline markup — a `[[` the parser cannot read renders as raw brackets,
+ *     and `[(CHASSIS)]` already reads "The <chassis>", so "the [(CHASSIS)]"
+ *     renders "The The …".
  */
 
 import { parseTraitReferences } from '../lib/traitText.js'
@@ -24,7 +27,12 @@ import { parseTraitReferences } from '../lib/traitText.js'
 export type TraitIssue = {
   file: string
   entity: string
-  kind: 'casing' | 'unresolvable-removeTrait' | 'unknown-trait-type' | 'dead-inline-trait'
+  kind:
+    | 'casing'
+    | 'unresolvable-removeTrait'
+    | 'unknown-trait-type'
+    | 'dead-inline-trait'
+    | 'inline-markup'
   detail: string
 }
 
@@ -209,8 +217,9 @@ function collectStrings(node: unknown, out: string[] = []): string[] {
 
 /**
  * Flag every inline trait link, in any string of any row, whose name is not a
- * trait. The renderers (component-lib's TraitRef, the bot's linkifyTraitRefs)
- * resolve against traits.json only, ignoring case.
+ * trait, and any inline markup that renders wrong. The renderers resolve
+ * against traits.json only, ignoring case; component-lib's TraitRef does not
+ * trim, so neither does this.
  */
 export function findDeadInlineTraitLinks(
   filesByName: Record<string, Record<string, unknown>[]>
@@ -225,9 +234,29 @@ export function findDeadInlineTraitLinks(
   for (const [filename, entities] of Object.entries(filesByName)) {
     for (const entity of entities) {
       for (const text of collectStrings(entity)) {
+        if (/\bthe \[\(CHASSIS\)\]/i.test(text)) {
+          issues.push({
+            file: filename,
+            entity: entityName(entity),
+            kind: 'inline-markup',
+            detail:
+              '"the [(CHASSIS)]" renders "The The <chassis>" — the token already supplies "The"',
+          })
+        }
         if (!text.includes('[[')) continue
-        for (const ref of parseTraitReferences(text)) {
-          if (traits.has(ref.traitName.trim().toLowerCase())) continue
+        const refs = parseTraitReferences(text)
+        let rest = text
+        for (const ref of refs) rest = rest.replace(ref.fullMatch, '')
+        if (rest.includes('[[')) {
+          issues.push({
+            file: filename,
+            entity: entityName(entity),
+            kind: 'inline-markup',
+            detail: `unreadable "[[" markup renders as raw brackets: "${text.slice(0, 80)}"`,
+          })
+        }
+        for (const ref of refs) {
+          if (traits.has(ref.traitName.toLowerCase())) continue
           issues.push({
             file: filename,
             entity: entityName(entity),
