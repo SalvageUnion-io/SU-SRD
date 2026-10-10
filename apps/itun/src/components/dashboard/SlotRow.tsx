@@ -34,7 +34,7 @@ import { CrawlerMajor, CrawlerMinor } from './CrawlerSlot'
 import { MechMajor, MechMinor } from './MechSlot'
 import { PilotMajor, PilotMinor } from './PilotSlot'
 import type { SlotKind } from './slotLayout'
-import { slotsFor } from './slotLayout'
+import { NO_CRAWLER, NO_MECH, slotsFor } from './slotLayout'
 import type { MountState, SeatHandle } from './useSeat'
 
 /** The store surface the slots need — injectable so tests can assert patches. */
@@ -100,9 +100,6 @@ const EMPTY: CSSProperties = {
 function EmptySlot({ text }: { text: string }) {
   return <div style={EMPTY}>{text}</div>
 }
-
-const NO_CRAWLER = 'No crawler. Assign one on the pilot’s sheet.'
-const NO_MECH = 'No mech. Board one from the Pilot’s Mount bay.'
 
 /**
  * One entity's Major form. The slot row's copy hosts the deck's Take Damage

@@ -1,0 +1,63 @@
+/*
+ * DashboardPhone — the Dashboard's phone form (ADR-044, boards D4 and D5).
+ *
+ * Only what a style object cannot say lives here (tailwind-removal.md §4):
+ * rules over descendants, and states. The components carry the rest.
+ *
+ * `.su-dash-phone` scopes the phone form: the host `DashboardCanvas` renders
+ * below its floor, and the ≡ menu's dialog, which portals out of it.
+ */
+
+/*
+ * The touch floor (ruleset §4.6, ADR-044 D14): every control in the phone form
+ * is at least 44×44, whichever component drew it. The canvas's own controls
+ * are sized for a scaled 1280×800 frame (the Board caret, a provenance ⓘ, a
+ * deck filter), and a phone is where those sizes stop being enough.
+ */
+.su-dash-phone :is(button, a[href], [role='button'], [role='tab'], summary) {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/*
+ * A deck filter key: one `aria-pressed` toggle. Pressed reads as "you are
+ * here": ink with paper text, never rust (rust is an action, ruleset §3.1).
+ * Every colour changes with the state, so all of them, resting values
+ * included, are here.
+ */
+.su-dash-toggle {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink-30);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  justify-content: center;
+  letter-spacing: var(--tracking-caps-tight);
+  padding: 0 var(--space-10);
+  text-transform: uppercase;
+}
+
+.su-dash-toggle:hover {
+  border-color: var(--color-ink);
+}
+
+.su-dash-toggle[aria-pressed='true'] {
+  background-color: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-dash-toggle:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+.su-dash-toggle:disabled {
+  cursor: default;
+  opacity: 0.5;
+}

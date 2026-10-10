@@ -71,6 +71,9 @@ function RootHeader({ pathname }: { pathname: string }) {
 
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  // The Dashboard draws its own bar at every width, so it has no masthead
+  // (ADR-044 §6, board D1): the canvas's rail, the phone form's ink bar.
+  const onDashboard = pathname.startsWith('/dashboard/')
 
   // A link preview's render surface (`/og/*`, issue 1280) is a picture, not a
   // page: the card alone, with Convex and the reference data and none of the
@@ -89,9 +92,10 @@ function RootComponent() {
     <AppConvexProvider>
       <HeadContent />
       <EntityHrefProvider value={itunEntityHref}>
-        {/* The shared brand header renders on EVERY route — including the live
-          sheet (/sheet/*) and public sheet (/p/*) surfaces, which sit below
-          it and keep their own sticky control bar. It renders ONE level above
+        {/* The shared brand header renders on every route but the Dashboard,
+          which draws its own bar (ADR-044) — including the live sheet
+          (/sheet/*) and public sheet (/p/*) surfaces, which sit below it and
+          keep their own sticky control bar. It renders ONE level above
           the game-data gate (a sibling of GameDataReady, not a child) — see
           GameDataReady.tsx's doc comment: brand chrome touches no reference
           data, so it paints immediately instead of sitting behind the full
@@ -107,7 +111,7 @@ function RootComponent() {
         <AccountReconciler />
         {/* A test seam, compiled out of production builds — see its header. */}
         <TestAuthBridge />
-        <RootHeader pathname={pathname} />
+        {onDashboard ? null : <RootHeader pathname={pathname} />}
         <CopyFeedbackProvider value={toastCopied}>
           <GameDataReady>
             <Outlet />

@@ -5,9 +5,14 @@
  * host is sized to the viewport height below its own top offset (nothing on the
  * ancestor chain establishes a height, so `h-full` alone would collapse to the
  * canvas's fixed 800px layout box and leave dead space below), then the canvas
- * grows uniformly to fill whichever axis binds first. Below the width floor the
- * canvas is replaced by a rotate-to-landscape notice; there is no phone layout
- * yet (issue 1063; docs/architecture/dashboard.md §7).
+ * grows uniformly to fill whichever axis binds first.
+ *
+ * **Below the floor on either axis it renders the phone form instead**
+ * (`phone`, ADR-044; docs/architecture/dashboard.md §7): a portrait phone, a
+ * landscape phone (whose height would draw the canvas near 0.49), a window
+ * under about 496px tall, or browser zoom deep enough to shrink the CSS
+ * viewport. The phone form scrolls the page; the canvas never does. The
+ * rotate-to-landscape notice it replaces is retired.
  *
  * The dashboard layout shell. It owns the `.pc-root` scope (see
  * DashboardCanvas.css) that every dashboard surface inherits, and paints the
@@ -21,19 +26,25 @@
 
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
+import { CANVAS_H, CANVAS_W, isPhoneForm } from './dashboardForm'
 
-const CANVAS_W = 1280
-const CANVAS_H = 800
-// Width floor for the landscape HUD: below this the viewport is treated as the
-// wrong form factor (a portrait phone) and the notice replaces the canvas. A
-// landscape phone passes it and gets the canvas scaled down (dashboard.md §7).
-const MIN_SCALE = 0.62
 // Uniform upscale cap — generous enough to fill a 4K display's height while
 // still guarding against an absurdly large render on giant panels (beyond which
 // the ground letterboxes, preserving the HUD look).
 const MAX_SCALE = 2.6
 
-export function DashboardCanvas({ children }: { children: ReactNode }) {
+export function DashboardCanvas({
+  children,
+  phone,
+}: {
+  /** The canvas form: the fixed 1280×800 grid. */
+  children: ReactNode
+  /**
+   * The phone form, rendered instead of the canvas below the floor. Without
+   * one, the canvas scales down regardless (the not-found shell).
+   */
+  phone?: ReactNode
+}) {
   const hostRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
   const [reflow, setReflow] = useState(false)
@@ -42,22 +53,23 @@ export function DashboardCanvas({ children }: { children: ReactNode }) {
   // the dark ground fills it) rather than the collapsed canvas layout box.
   const [hostH, setHostH] = useState<number | undefined>(undefined)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `reflow` is read by no line here, but each form renders its own host element, so the observer must re-bind to the new one when the form flips.
   useEffect(() => {
     const host = hostRef.current
     if (!host) return
     const compute = () => {
-      const top = host.getBoundingClientRect().top
+      // The host's offset from the top of the PAGE, not the viewport: the
+      // phone form scrolls, and a host scrolled up must not read as a taller
+      // window (a landscape phone would flip to the canvas mid-scroll). The
+      // canvas never scrolls, so there the two agree.
+      const top = host.getBoundingClientRect().top + window.scrollY
       const availH = Math.max(0, window.innerHeight - top)
       setHostH(availH)
       const w = host.clientWidth
       if (!w || !availH) return
       const rawW = w / CANVAS_W
       const rawH = availH / CANVAS_H
-      // Reflow is a "wrong form factor" (phone) signal — keyed to WIDTH only, as
-      // it always effectively was before the host gained a real height. A short
-      // but wide desktop window must NOT trip the phone fallback; it just scales
-      // the HUD down to fit its height.
-      setReflow(rawW < MIN_SCALE)
+      setReflow(isPhoneForm(w, availH))
       // Uniform scale that fits whichever axis binds first (never clipping),
       // capped so it can fill space without ballooning on giant panels.
       setScale(Math.min(MAX_SCALE, Math.min(rawW, rawH)))
@@ -77,7 +89,21 @@ export function DashboardCanvas({ children }: { children: ReactNode }) {
       window.removeEventListener('resize', compute)
       ro.disconnect()
     }
-  }, [])
+  }, [reflow])
+
+  if (reflow && phone !== undefined) {
+    return (
+      // The phone form: the page scrolls, so the host takes its content's
+      // height (at least the screen's) rather than the viewport's.
+      <div
+        ref={hostRef}
+        className="pc-root su-dash-phone"
+        style={{ background: 'var(--color-band-cream)', minHeight: hostH, width: '100%' }}
+      >
+        {phone}
+      </div>
+    )
+  }
 
   return (
     <div
@@ -93,21 +119,12 @@ export function DashboardCanvas({ children }: { children: ReactNode }) {
       className="pc-root flex w-full items-center justify-center overflow-hidden"
       style={{ background: 'var(--color-ink-deep)', height: hostH }}
     >
-      {reflow ? (
-        <div className="pc-reflow">
-          <p>
-            The Dashboard is a landscape, single-screen HUD. This viewport is below its size floor —
-            rotate to landscape or use a larger screen. (A dedicated phone layout is planned.)
-          </p>
-        </div>
-      ) : (
-        <div
-          className="pc-canvas shrink-0"
-          style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
-        >
-          {children}
-        </div>
-      )}
+      <div
+        className="pc-canvas shrink-0"
+        style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
+      >
+        {children}
+      </div>
     </div>
   )
 }
