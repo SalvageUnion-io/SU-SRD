@@ -1,10 +1,10 @@
 /**
  * Pure logic for unique-ID validation across the Salvage Union data.
  *
- * Validates that:
- * 1. All IDs are valid UUIDs (v4 format) — except files in SLUG_ID_FILES
- * 2. All IDs are unique within each file
- * 3. All IDs are unique across all files
+ * Validates that every `id`, at any depth of a row:
+ * 1. is a valid UUID (v4 format) — except in files in SLUG_ID_FILES
+ * 2. is unique within its file
+ * 3. is unique across all files
  *
  * Pure over a caller-supplied data bag, so `tools/validate.ts` (the one CLI,
  * `--only=ids`) and the tests share one implementation.
@@ -19,45 +19,6 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0
  * they are exempt from the UUIDv4 format check but still checked for duplicates.
  */
 export const SLUG_ID_FILES = new Set(['catalog-categories.json'])
-
-type Action = {
-  id?: string
-  name?: string
-  actions?: Action[]
-  [key: string]: unknown
-}
-
-type Choice = {
-  id?: string
-  name?: string
-  description?: string
-  schema?: string
-  [key: string]: unknown
-}
-
-type NPC = {
-  position?: string
-  description?: string
-  hitPoints?: number
-  choices?: Choice[]
-  [key: string]: unknown
-}
-
-type Ability = {
-  name?: string
-  description?: string
-  choices?: Choice[]
-  [key: string]: unknown
-}
-
-type DataItem = {
-  id?: string
-  choices?: Choice[]
-  actions?: Action[]
-  npc?: NPC
-  abilities?: Ability[]
-  [key: string]: unknown
-}
 
 export type FileResult = {
   file: string
@@ -83,36 +44,25 @@ export function validateUUID(id: string): boolean {
   return UUID_PATTERN.test(id)
 }
 
-/** Walk one entity's nested action/choice IDs, invoking `visit` for each `{ id, context }` found. */
-function walkEntityIds(item: DataItem, visit: (id: string, context: string) => void): void {
-  const checkActions = (actions: unknown[], context: string) => {
-    if (!Array.isArray(actions)) return
-    actions.forEach((action, actionIndex) => {
-      if (typeof action === 'string') return
-      if (typeof action === 'object' && action !== null && 'id' in action) {
-        const actionObj = action as Action
-        if (actionObj.id) visit(actionObj.id, `${context}[${actionIndex}]`)
-        if (actionObj.actions) checkActions(actionObj.actions, `${context}[${actionIndex}].actions`)
-      }
-    })
+/**
+ * Visit every string `id` at any depth of one row — the row's own, its
+ * actions', choices', guide steps', and any shape added later — with the path
+ * it sits at. Walking every key (not a hand-kept list of known nests) is what
+ * keeps a new nested id from escaping the check.
+ */
+function walkEntityIds(item: unknown, visit: (id: string, context: string) => void): void {
+  const walk = (value: unknown, context: string): void => {
+    if (Array.isArray(value)) {
+      for (const [i, child] of value.entries()) walk(child, `${context}[${i}]`)
+      return
+    }
+    if (value === null || typeof value !== 'object') return
+    for (const [key, child] of Object.entries(value)) {
+      if (key === 'id' && typeof child === 'string') visit(child, context)
+      else walk(child, `${context}.${key}`)
+    }
   }
-
-  const checkChoices = (choices: Choice[], context: string) => {
-    if (!Array.isArray(choices)) return
-    choices.forEach((choice) => {
-      if (choice.id) visit(choice.id, context)
-    })
-  }
-
-  if (item.id) visit(item.id, 'root')
-  if (item.actions) checkActions(item.actions, 'root.actions')
-  if (item.choices) checkChoices(item.choices, 'root.choices')
-  if (item.npc?.choices) checkChoices(item.npc.choices, 'npc.choices')
-  if (item.abilities && Array.isArray(item.abilities)) {
-    item.abilities.forEach((ability: Ability, abilityIndex: number) => {
-      if (ability.choices) checkChoices(ability.choices, `abilities[${abilityIndex}].choices`)
-    })
-  }
+  walk(item, 'root')
 }
 
 export function checkFile(filename: string, data: Record<string, unknown>[]): FileResult {
@@ -127,7 +77,7 @@ export function checkFile(filename: string, data: Record<string, unknown>[]): Fi
   const idMap = new Map<string, number[]>()
 
   data.forEach((item, index) => {
-    walkEntityIds(item as DataItem, (id, context) => {
+    walkEntityIds(item, (id, context) => {
       result.itemsWithIds++
       if (!SLUG_ID_FILES.has(filename) && !validateUUID(id)) {
         result.invalidUUIDs.push({ id, index, context })
@@ -157,14 +107,14 @@ export function checkAllFiles(
   for (const [filename, data] of Object.entries(filesByName)) {
     fileResults.push(checkFile(filename, data))
 
-    const addToGlobalMap = (id: string, index: number) => {
-      const locations = globalIdMap.get(id) || []
-      locations.push({ file: filename, indices: [index] })
-      globalIdMap.set(id, locations)
-    }
-
     data.forEach((item, index) => {
-      walkEntityIds(item as DataItem, (id) => addToGlobalMap(id, index))
+      walkEntityIds(item, (id) => {
+        const locations = globalIdMap.get(id) || []
+        const here = locations.find((l) => l.file === filename)
+        if (here) here.indices.push(index)
+        else locations.push({ file: filename, indices: [index] })
+        globalIdMap.set(id, locations)
+      })
     })
   }
 
