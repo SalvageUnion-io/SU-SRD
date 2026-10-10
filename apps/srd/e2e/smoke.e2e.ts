@@ -119,6 +119,32 @@ for (const width of [375, 1440]) {
   })
 }
 
+// The long names (Electro-Magnetic Shield Projector, System and Software
+// Hacker): every head row holds its line — the cells drop out whole, and the
+// chevron stays inside the row instead of being pushed past its edge.
+for (const schema of ['systems', 'abilities']) {
+  test(`every ${schema} listing row at 375px keeps its parts inside the row`, async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 900 })
+    await page.goto(`/schema/${schema}/`)
+    const headers = page.locator('.srd-listing__rows a[aria-label] [data-fill]')
+    await expect(headers.first()).toBeVisible({ timeout: 30_000 })
+    const broken = await headers.evaluateAll((rows) =>
+      rows.flatMap((header) => {
+        const name = header.closest('a')?.getAttribute('aria-label') ?? '?'
+        const box = header.getBoundingClientRect()
+        const chevron = header.querySelector('svg.lucide-chevron-right')?.getBoundingClientRect()
+        const problems: string[] = []
+        if (header.scrollWidth > header.clientWidth) problems.push('scrolls')
+        if (!chevron) problems.push('no chevron')
+        else if (chevron.left < box.left || chevron.right > box.right + 0.5)
+          problems.push('chevron outside')
+        return problems.length ? [`${name}: ${problems.join(', ')}`] : []
+      })
+    )
+    expect(broken).toEqual([])
+  })
+}
+
 // (f) A roll table rolls on its own page (board 08b).
 test('a roll table page rolls and marks the result', async ({ page }) => {
   await page.goto('/schema/roll-tables/item/core-mechanic/')
