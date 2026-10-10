@@ -125,8 +125,15 @@ describe('inviteCard', () => {
 describe('previewStats', () => {
   test('a pilot reads its pools as the sheet does', () => {
     const stats = previewStats(PILOT)
-    expect(stats.map((s) => s.label)).toEqual(['HP', 'AP', 'TP'])
+    expect(stats.map((s) => s.label)).toEqual(['HP', 'AP', 'TP', 'Mech'])
     expect(stats[0]?.value).toMatch(/^8\/\d+$/)
+    // No published mech: the cell is empty, and names nobody's private mech.
+    expect(stats[3]?.value).toBe('—')
+  })
+
+  test('a pilot names its published mech by chassis', () => {
+    const stats = previewStats({ ...PILOT, mechChassisRef: 'scrapper' })
+    expect(stats[3]).toEqual({ label: 'Mech', value: 'Scrapper' })
   })
 
   test('a pattern reads its chassis: TL, slots and SP', () => {

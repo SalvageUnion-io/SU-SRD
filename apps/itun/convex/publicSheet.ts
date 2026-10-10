@@ -433,6 +433,12 @@ type PreviewAnswer = {
   ownerName: string | null
   /** The Game a sheet sits in; null on a shelf, and always null for a pattern. */
   gameName: string | null
+  /**
+   * A pilot's mech, as its chassis slug: the one mech assigned to it that is
+   * published itself, or null. A private mech is not named (the card's MECH
+   * cell reads as empty), as `assignmentsOf` withholds it from the page.
+   */
+  mechChassisRef?: string | null
 }
 
 /** A user's display name, the way every credit in the app reads it. */
@@ -478,9 +484,35 @@ export const preview = query({
       body: row.body,
       ownerName: ownerId ? displayNameOf(await ctx.db.get(ownerId)) : null,
       gameName: game?.name ?? null,
+      ...(args.kind === 'pilot'
+        ? { mechChassisRef: await publishedMechOf(ctx, row, args.appId) }
+        : {}),
     }
   },
 })
+
+/**
+ * The chassis slug of the mech assigned to this pilot, when that mech is
+ * published itself; null otherwise. The same rule as `assignmentsOf`: the far
+ * end must sit in the pilot's container and carry its own `publicRead`, so a
+ * preview never names a mech the page would withhold from a stranger.
+ */
+async function publishedMechOf(
+  ctx: QueryCtx,
+  pilot: Doc<PublicTable>,
+  appId: string
+): Promise<string | null> {
+  for (const link of await linksTouching(ctx, appId)) {
+    if (link.type !== 'mech-to-pilot') continue
+    const far = link.from.id === appId ? link.to : link.from
+    if (far.type !== 'mech') continue
+    const target = await resolveLinkEnd(ctx, far, pilot.gameId)
+    if (target === null || !sameContainerRows(pilot, target) || target.publicRead !== true) continue
+    const chassisRef = (target.body as { chassisRef?: unknown } | null)?.chassisRef
+    if (typeof chassisRef === 'string' && chassisRef.length > 0) return chassisRef
+  }
+  return null
+}
 
 /** What a Game invite's link preview may say: never the code, never the crew. */
 type InvitePreviewAnswer = {

@@ -10,6 +10,7 @@ import {
   bylineOf,
   OG_CARD_HEIGHT,
   OG_CARD_WIDTH,
+  ogCardPrintedTitle,
   ogCardTitle,
   ogTitleSize,
   REFERENCE_KINDS,
@@ -40,6 +41,12 @@ import {
  *   The caller never hands it the token, so it cannot print one.
  * - `private` — anything set to Only me. No name, no stats, no maker: a
  *   preview never shows more than the page would show a stranger.
+ *
+ * ## One line
+ *
+ * The notched title never wraps: it steps down from 120px to the 34px floor
+ * (`ogTitleSize`), then ends in an ellipsis, so an unbounded player-typed name
+ * cannot reach the stat row.
  *
  * ## The floor
  *
@@ -276,6 +283,7 @@ export function OgCard(props: OgCardProps) {
   const userMade = props.kind === 'userMade'
   const reference = REFERENCE_KINDS.has(props.kind)
   const title = ogCardTitle(props)
+  const printed = ogCardPrintedTitle(props)
   const kicker = props.kind === 'private' ? 'ITUN' : props.kicker
   const byline = bylineOf(props)
 
@@ -303,10 +311,10 @@ export function OgCard(props: OgCardProps) {
           fill={fill}
           grain={ink ? 'ink' : 'paper'}
           userMade={userMade}
-          titleSize={`${ogTitleSize(title)}px`}
+          titleSize={`${ogTitleSize(printed)}px`}
           eyebrow={<Eyebrow kicker={kicker} ink={ink} end={end} />}
         >
-          {userMade ? `“${title}”` : title}
+          {printed}
         </ChapterBand>
       </div>
       <div style={BODY}>

@@ -56,6 +56,11 @@ export type OgCardProps =
       stats: OgCardStat[]
       /** The maker's name; the byline reads "Made by [user]" and nothing else. */
       madeBy: string
+      /**
+       * Whether the notch prints the name in curly quotes. A pattern is quoted
+       * ("TOW RIG", board PV1); an NPC is a person and reads bare. Default true.
+       */
+      quoted?: boolean
     })
   | (OgCardBase & {
       kind: 'invite'
@@ -129,12 +134,33 @@ export function ogCardDescription(props: OgCardProps): string {
 export const PRIVATE_TITLE = 'Private'
 export const PRIVATE_LINE = "Its owner hasn't shared this."
 
+/** The string the notch prints: the name, in curly quotes for a quoted user-made card. */
+export function ogCardPrintedTitle(props: OgCardProps): string {
+  const title = ogCardTitle(props)
+  return props.kind === 'userMade' && props.quoted !== false ? `\u201C${title}\u201D` : title
+}
+
+/** The notch's room for text, in px: the card less its gutters and the notch's padding. */
+const NOTCH_ROOM = 1028
+/** The display size, and the source floor (34px at 1200 is 11px at 400). */
+const TITLE_MAX = 120
+const TITLE_MIN = 34
 /**
- * The notch's font size for a name: 120px when it fits, stepping down so a
- * long name stays on one line, and never under 56px. Barlow Semi Condensed
- * caps set about half an em per character; the notch has about 1028px.
+ * Barlow Semi Condensed caps advance 0.55 to 0.7em a character (W, M, O wide;
+ * I, J narrow). 0.62 is the smallest step that held every SRD name, bare and
+ * quoted, inside the notch when measured in the real face (0.52 let 11 spill),
+ * while keeping all but a handful at their widest fit. The notch also
+ * ellipsizes, so a wrong guess costs a smaller title, never a second line.
  */
-export function ogTitleSize(title: string): number {
-  const fit = Math.floor(1028 / (0.52 * Math.max(title.length, 1)))
-  return Math.max(56, Math.min(120, fit))
+const TITLE_ADVANCE = 0.62
+
+/**
+ * The notch's font size for the string it prints (quotes included, see
+ * `ogCardPrintedTitle`): 120px when it fits, stepping down so it stays on one
+ * line, never under the 34px source floor. A name still too long at the floor
+ * is ellipsized by the notch (`.su-chapter-band[data-scale='og']`).
+ */
+export function ogTitleSize(printed: string): number {
+  const fit = Math.floor(NOTCH_ROOM / (TITLE_ADVANCE * Math.max(printed.length, 1)))
+  return Math.max(TITLE_MIN, Math.min(TITLE_MAX, fit))
 }

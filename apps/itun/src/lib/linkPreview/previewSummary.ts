@@ -31,6 +31,8 @@ export type PreviewAnswer = {
   body: unknown
   ownerName: string | null
   gameName: string | null
+  /** A pilot's published mech, as its chassis slug. */
+  mechChassisRef?: string | null
 }
 
 /** `publicSheet.invitePreview`'s answer. */
