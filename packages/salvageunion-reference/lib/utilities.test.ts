@@ -709,6 +709,15 @@ describe('visiblePatterns (stored data tag — never computed)', () => {
     }
   })
 
+  it('tags exactly the Mech Monday patterns as homebrew', () => {
+    const all = getReference()
+      .Chassis.all()
+      .flatMap((c) => c.patterns)
+    const homebrew = all.filter((p) => p.homebrew)
+    expect(homebrew.length).toBeGreaterThan(0)
+    expect(homebrew).toEqual(all.filter((p) => p.source === 'Mech Monday'))
+  })
+
   it('every visible pattern carries its own source and page', () => {
     for (const chassis of getReference().Chassis.all()) {
       for (const pattern of visiblePatterns(chassis.patterns ?? [])) {

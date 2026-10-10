@@ -79,6 +79,7 @@ const PATTERN_KEYS = [
   'content',
   'legalStarting',
   'hidden',
+  'homebrew',
   'source',
   'page',
   'booklet',
