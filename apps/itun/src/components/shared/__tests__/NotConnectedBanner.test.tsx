@@ -17,6 +17,7 @@ const convexMocks = await installConvexMocks({
 afterAll(() => convexMocks.restore())
 
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
 const { NotConnectedBanner } = await import('../NotConnectedBanner')
 
 describe('NotConnectedBanner', () => {
@@ -26,7 +27,7 @@ describe('NotConnectedBanner', () => {
         <NotConnectedBanner />
       </ConnectionProvider>
     )
-    expect(screen.queryByRole('status')).toBeNull()
+    expect(screen.queryByText(/Not connected/)).toBeNull()
   })
 
   test('renders nothing in Solo mode even when the browser reports offline', () => {
@@ -40,7 +41,7 @@ describe('NotConnectedBanner', () => {
       )
       // Offline + signed out is Solo, not Disconnected. A user with no account
       // has nothing to be disconnected FROM.
-      expect(screen.queryByRole('status')).toBeNull()
+      expect(screen.queryByText(/Not connected/)).toBeNull()
     } finally {
       // happy-dom defines `onLine` on Navigator.prototype, so there is normally
       // no OWN descriptor to put back, and deleting the own property is the
@@ -49,5 +50,26 @@ describe('NotConnectedBanner', () => {
       if (original) Object.defineProperty(navigator, 'onLine', original)
       else Reflect.deleteProperty(navigator, 'onLine')
     }
+  })
+
+  test('disconnected, it is the shared Banner at warn: ink text, saying what it costs', () => {
+    render(
+      <ConnectionContext.Provider
+        value={{
+          mode: 'disconnected',
+          canWrite: false,
+          showDisconnectedWarning: true,
+          settling: false,
+        }}
+      >
+        <NotConnectedBanner />
+      </ConnectionContext.Provider>
+    )
+    const banner = screen.getByRole('alert')
+    expect(banner.textContent).toContain('read-only until the connection returns')
+    // The warn pill: status-warn edge, ink text — never the failure red (issue 1255).
+    const pill = banner.querySelector('li')
+    expect(pill?.className).toContain('border-status-warn')
+    expect(pill?.className).toContain('text-ink')
   })
 })

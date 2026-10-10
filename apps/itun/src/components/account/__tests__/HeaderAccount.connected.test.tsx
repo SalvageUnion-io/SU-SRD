@@ -9,7 +9,7 @@ import type { ReactNode } from 'react'
  *
  * - **Signed in, Connected** — the trigger is a menu button carrying the
  *   player's display name and avatar circle; its menu holds Settings (to
- *   `/settings`) and Sign out, and nothing else. The Games menu is the Union
+ *   `/settings`) and Sign out, then About and Changelog (issue 1255). The Games menu is the Union
  *   bar's nav control (`HeaderGames`), not part of the account slot.
  * - **Signed in, offline** — the identity stays and Sign out still works, but
  *   there is no Games menu: a Disconnected player cannot list their Games.
@@ -89,7 +89,7 @@ describe('signed in and connected', () => {
     expect(trigger.textContent).toContain('B')
   })
 
-  test('its menu holds Settings and Sign out, and nothing else', async () => {
+  test('its menu holds Settings and Sign out, then About and Changelog', async () => {
     setQueryAnswers(QUERIES)
     wrap(<HeaderActions />)
 
@@ -98,7 +98,7 @@ describe('signed in and connected', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map((item) => item.textContent)
-    ).toEqual(['Settings', 'Sign out'])
+    ).toEqual(['Settings', 'Sign out', 'About', 'Changelog'])
   })
 
   test('Settings goes to /settings', async () => {

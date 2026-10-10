@@ -288,9 +288,8 @@ export function LiveSheet({
           bar seams (border + shadow) and fills (name + vitals). */}
       <div ref={topRef} aria-hidden="true" className="h-px w-full" />
 
-      {/* Body slabs — extra phone bottom padding when the FAB floats so the
-          last card's controls stay reachable behind the thumb zone. The body
-          owns the hero, so it takes the hero's top padding. */}
+      {/* Body slabs. The body owns the hero, so it takes the hero's top
+          padding. */}
       <div className="relative">
         {/* Edge wordmark — PILOT / MECH / CRAWLER running up the page gutter.
             It sits in the shell's own padding, outside the content column, so
