@@ -12,10 +12,10 @@
 import { Badge, Stat, tokens } from 'component-lib'
 import { ChevronRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import type { EntityRef } from '../../lib/schemas/entity'
+import type { SheetEntityKind } from '../../lib/schemas/entity'
 import { AppLink } from '../shared/AppLink'
 
-const TONE: Record<EntityRef['type'], string> = {
+const TONE: Record<SheetEntityKind, string> = {
   pilot: tokens.color.sheetPilot,
   mech: tokens.color.sheetMech,
   crawler: tokens.color.sheetCrawler,
@@ -61,7 +61,7 @@ const NAME = {
 const NO_SHRINK = { flexShrink: 0 } satisfies CSSProperties
 
 type LinkedUnitLinkProps = {
-  kind: EntityRef['type']
+  kind: SheetEntityKind
   name: string
   /** The unit's sheet; without one the line is not a link. */
   href: string | undefined
