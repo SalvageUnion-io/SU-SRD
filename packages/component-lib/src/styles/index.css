@@ -664,43 +664,6 @@ body {
   letter-spacing: var(--tracking-eyebrow);
 }
 
-/* ══ Floating action button ═════════════════════════════════════════════════
- *
- * The stateful half of `Fab` (components/shared/Fab.tsx); its geometry is
- * style objects there.
- */
-
-/* Ink, like the toasts it sits beneath; lifts a rung on hover and while its
-   panel is open. Colour keeps its resting value here beside the overrides. */
-.su-fab {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-  transition: background-color 120ms;
-}
-.su-fab:hover,
-.su-fab[aria-expanded='true'] {
-  background-color: var(--color-ink-2);
-}
-
-/* The panel grows out of the button: a short rise and fade from its
-   bottom-right corner. Off entirely under reduced motion — not merely sped up
-   by the backstop below — because the panel is usable from its first frame and
-   nothing waits on the animation ending. */
-.su-fab-panel {
-  animation: su-fab-expand 140ms ease-out;
-}
-@keyframes su-fab-expand {
-  from {
-    opacity: 0;
-    transform: translateY(6px) scale(0.97);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .su-fab-panel {
-    animation: none;
-  }
-}
-
 /* ══ Overlays ═══════════════════════════════════════════════════════════════
  *
  * Every overlay is a Base UI part (Dialog, Drawer, Popover); these are the
@@ -1050,6 +1013,13 @@ body {
   border-color: var(--color-paper);
 }
 
+/* ITUN's "Search · ⌘K" trigger: the same outline as the buy link. Geometry is
+   inline in the app; this is the hover and open state. */
+.su-union-bar__search:hover,
+.su-union-bar__search[aria-expanded='true'] {
+  border-color: var(--color-paper);
+}
+
 @media (min-width: 40rem) {
   .su-union-bar__row {
     gap: var(--space-16);
@@ -1163,7 +1133,10 @@ body {
   }
 }
 
-@media (min-width: 64rem) {
+/* The bar holds the trail only from 80rem: between `lg` and there the switcher,
+   the search and the account leave a deep trail no room (the current page
+   would fall outside the clipped box), so the row stays. */
+@media (min-width: 80rem) {
   .su-crumbs--bar {
     display: flex;
   }
@@ -1227,7 +1200,9 @@ body {
   input,
   select,
   textarea,
-  .su-btn:not(.su-btn--mini) {
+  .su-btn:not(.su-btn--mini),
+  .su-union-bar__tab,
+  .su-union-bar__brand {
     min-height: 44px;
     min-width: 44px;
   }

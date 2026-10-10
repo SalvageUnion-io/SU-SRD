@@ -128,9 +128,6 @@ export { ControlButtons } from './components/shared/ControlButtons'
 export { cardImageSizes } from './components/shared/cardImageSizes'
 export { CopyFeedbackProvider } from './components/shared/copyFeedbackContext'
 export { EntitySearcher } from './components/shared/EntitySearcher'
-// Fab — the bottom-right floating button that expands into an anchored panel
-// (ITUN's reference search); content-agnostic, the caller owns `open`
-export { Fab } from './components/shared/Fab'
 export { FilterRow } from './components/shared/FilterRow'
 export { Inset } from './components/shared/Inset'
 export { MasonryColumns } from './components/shared/MasonryColumns'

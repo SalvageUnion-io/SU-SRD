@@ -64,4 +64,20 @@ describe('Footer', () => {
       expect(link.getAttribute('target')).toBeNull()
     }
   })
+
+  // At 375px the links once shared a flex row with the licence text and left it
+  // ~64px wide, a word or two per line. Below `sm` the footer stacks, the text
+  // block and the links each taking the full width; `sm:` puts them back in a row.
+  test('stacks below sm so the licence text keeps the full width', () => {
+    const { container } = render(<Footer poweredBySalvageUrl="/test-logo.webp" />)
+    const row = container.querySelector('footer > div') as HTMLElement
+    expect(row.className).toContain('flex-col')
+    expect(row.className).toContain('sm:flex-row')
+    expect(row.className).not.toMatch(/(^|\s)flex-row(\s|$)/)
+
+    const text = row.firstElementChild as HTMLElement
+    expect(text.className).toContain('w-full')
+    expect(text.className).toContain('sm:flex-1')
+    expect(screen.getByRole('navigation', { name: 'Site' }).className).toContain('w-full')
+  })
 })
