@@ -24,7 +24,7 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { humanExpiry } from '../../lib/games/inviteExpiry'
-import { setActiveContainer } from '../../stores/activeContainerStore'
+import { useShowContainer } from '../container/useShowContainer'
 import { failureMessage } from '../shared/useConfirm'
 import { GamePanel } from './GamePanel'
 
@@ -42,6 +42,7 @@ function ConnectedInvitations() {
   const invitations = useQuery(api.invites.forMe, {})
   const redeem = useMutation(api.invites.redeem)
   const decline = useMutation(api.invites.decline)
+  const showContainer = useShowContainer()
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -94,7 +95,7 @@ function ConnectedInvitations() {
                         invite.code,
                         async () => {
                           const result = await redeem({ code: invite.code })
-                          setActiveContainer({ kind: 'game', gameId: result.gameId })
+                          showContainer({ kind: 'game', gameId: result.gameId })
                         },
                         'That invite could not be accepted. Try again.'
                       )

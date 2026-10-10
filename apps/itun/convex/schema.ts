@@ -276,7 +276,9 @@ export default defineSchema({
     .index('by_game_user', ['gameId', 'userId']),
 
   /**
-   * Invite codes (closes the intent of legacy issue #157).
+   * Invites (closes the intent of legacy issue #157). An invite travels as a
+   * link, `/invite/<code>` (issue 1255); `code` is the link's token and is never
+   * typed.
    *
    * An invite is not just a key to the door — it carries what the Organizer
    * already decided when they minted it: which seat the joiner takes, and which
@@ -285,6 +287,7 @@ export default defineSchema({
    */
   invites: defineTable({
     gameId: v.id('games'),
+    /** The link token. The column keeps its name: rows minted as typed codes still resolve. */
     code: v.string(),
     createdBy: v.id('users'),
     expiresAt: v.number(),
@@ -360,6 +363,13 @@ export default defineSchema({
      * A retried interaction finds its invite here instead of minting another.
      */
     sourceInteractionId: v.optional(v.string()),
+
+    /**
+     * The Game's standing invite link (`invites.link`, issue 1255): the one "Copy
+     * invite link" hands out, reused while it is live. The Organizer's opens
+     * the door; any other member's asks the Organizer to approve the knock.
+     */
+    standing: v.optional(v.boolean()),
   })
     .index('by_code', ['code'])
     .index('by_game', ['gameId'])

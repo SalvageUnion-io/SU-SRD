@@ -2875,6 +2875,11 @@ one. The old URLs redirect (the two with an id pick that Game first). §6 is
 otherwise unchanged: the Mediator keeps a surface of their own, as a section
 only they see.
 
+**2026-10-09 — a Game has its own address again (#1255).** The hub is still the
+one surface, but `/games/:id` now renders it for that Game instead of
+redirecting, and `/` always shows the shelf (Shelves): the route picks the
+active container as it loads. `/mediator/:id` redirects to `/games/:id`.
+
 **§5 is amended by [ADR-032](#adr-032)**: a public read-only sheet is the one
 exception to its visibility rules. **§5a is amended by [ADR-037](#adr-037)**: a
 Game takes a player's crew before it has a crawler.
@@ -3161,6 +3166,22 @@ Enforced in `convex/invites.ts` (`seat`, `assertSpendable`, `decideRequest`).
 **Extended by [ADR-039](#adr-039):** an invite may also carry
 an address — a Discord account, which alone may redeem it. An addressed invite
 is single use and its addressee may decline it.
+
+### Amendment — an invite is a link, never a typed code (#1255)
+
+A Game is joined from a link, `/invite/:token`, whose token is the invite's
+`code` column, now 16 Crockford characters (80 bits) since nobody types it. The
+code-entry door in "+ New game" is gone. Opening a link signed out previews it
+and offers "Sign in to join"; the OAuth round trip returns with `?join=1` and
+the page joins on arrival. **Old `/join/:code` links resolve**: the route
+redirects to `/invite/:code`, so a live code joins and a dead one gets the
+invite page's explanation of invite links.
+
+**Any member may hand out the Game's link** (`invites.link`, "Copy invite
+link" on the Game page and the Dashboard's Crew tab). The Organizer's is an
+open link; anyone else's is an approval link, so a player brings a friend to
+the door and the Organizer still decides who is seated (§5). One standing link
+per door is reused while it is live (`invites.standing`).
 
 ### Amendment — the crawler can sit on a shelf, and deleting a Game destroys nothing
 

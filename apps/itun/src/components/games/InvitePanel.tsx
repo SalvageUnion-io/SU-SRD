@@ -8,6 +8,7 @@ import {
   Row,
   Select,
   Text,
+  toast,
 } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
@@ -15,10 +16,13 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { humanExpiry } from '../../lib/games/inviteExpiry'
+import { inviteUrl } from '../../lib/games/inviteLink'
 import { ConvexPending } from '../shared/ConvexPending'
 
 /**
- * Invite management — mint, read back, and revoke.
+ * Invite management — mint, read back, copy and revoke. An invite is a link,
+ * never a typed code (issue 1255), so each row offers its link to copy rather than
+ * a code to read out. (The board for this panel, M2, is issue 1278's.)
  *
  * The screen this replaces could only mint: it showed a code once and then
  * forgot it, so an Organizer could not see what was outstanding, how many uses
@@ -26,11 +30,10 @@ import { ConvexPending } from '../shared/ConvexPending'
  * whole time with nothing calling it.
  *
  * Two doors are offered per invite, and which one to use is a judgement about
- * where the code is going rather than a setting to leave alone:
+ * where the link is going rather than a setting to leave alone:
  *
- *   - **Bearer** — the code IS the authority. Right for reading aloud at a
- *     table or DMing someone you know.
- *   - **Approval** — the code only identifies the Game. Right for anywhere
+ *   - **Open** — the link IS the authority. Right for DMing someone you know.
+ *   - **Approval** — the link only identifies the Game. Right for anywhere
  *     more people can read it than you intend, because joining hands over
  *     read access to every crewmate's sheet (ADR-030 §5).
  */
@@ -74,7 +77,16 @@ function addressMeta(invite: InviteRow): Array<string | null> {
   return [to, delivery]
 }
 
-export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
+type InvitePanelProps = {
+  gameId: Id<'games'>
+  /** Injectable clipboard writer for testing. */
+  clipboardWriter?: (text: string) => Promise<void>
+}
+
+export function InvitePanel({
+  gameId,
+  clipboardWriter = (text) => navigator.clipboard.writeText(text),
+}: InvitePanelProps) {
   const invites = useQuery(api.invites.list, { gameId })
   const requests = useQuery(api.invites.pendingRequests, { gameId })
   const createInvite = useMutation(api.invites.create)
@@ -85,16 +97,31 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
   const [role, setRole] = useState<'player' | 'mediator'>('player')
   const [requiresApproval, setRequiresApproval] = useState(false)
 
+  const copy = (token: string) => {
+    // Through a resolved promise, so a clipboard API that throws rather than
+    // rejecting (none at all, in an insecure context) lands in the catch too.
+    void Promise.resolve()
+      .then(() => clipboardWriter(inviteUrl(window.location.origin, token)))
+      .then(() => toast.success('Invite link copied', { id: 'invite-link-copy', duration: 2000 }))
+      .catch(() =>
+        toast.error('Could not copy. Open the link from the list and copy it from there.', {
+          id: 'invite-link-copy',
+        })
+      )
+  }
+
   const mint = () => {
     void createInvite({
       gameId,
       label: label.trim() === '' ? undefined : label.trim(),
       role,
       requiresApproval,
-    }).then(() => {
+    }).then((token) => {
       setLabel('')
       setRole('player')
       setRequiresApproval(false)
+      // A new link is made to be sent, so it goes straight to the clipboard.
+      copy(token)
     })
   }
 
@@ -127,13 +154,13 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
             onChange={(e) => setRequiresApproval(e.target.checked)}
           />
           <Button variant="primary" size="compact" onClick={mint}>
-            Create invite code
+            Create invite link
           </Button>
         </div>
         <Text variant="hint" className="text-left">
           {requiresApproval
-            ? 'Anyone with this code asks to join, and waits for you. Use this for a code you post somewhere public.'
-            : 'Anyone with this code joins immediately. Members can read every crewmate’s sheet, so share it like a key.'}
+            ? 'Anyone with this link asks to join, and waits for you. Use this for a link you post somewhere public.'
+            : 'Anyone with this link joins as soon as they sign in. Members can read every crewmate’s sheet, so share it like a key.'}
         </Text>
       </div>
 
@@ -178,12 +205,12 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
 
       <div className="flex flex-col gap-1.5">
         <PageHeading variant="section" as="h4">
-          Codes
+          Links
         </PageHeading>
         {invites === undefined && <ConvexPending />}
         {invites?.length === 0 && (
           <Text variant="hint" className="text-left">
-            No invite codes yet.
+            No invite links yet.
           </Text>
         )}
         {invites?.map((invite) => (
@@ -194,14 +221,8 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
           <Row
             key={invite._id}
             wrap
-            name={
-              /* Crockford base32 with no I/L/O/U, so a code read aloud across a
-                 table cannot be mistyped into a different valid one. Rendered
-                 large and spaced because reading it aloud is a primary use. */
-              <span className="font-cond text-xl font-bold tracking-caps-wide">{invite.code}</span>
-            }
+            name={invite.label ?? (invite.role === 'mediator' ? 'Mediator link' : 'Player link')}
             meta={[
-              invite.label,
               ...addressMeta(invite),
               invite.role === 'mediator' ? 'Mediator seat' : null,
               invite.requiresApproval ? 'needs approval' : null,
@@ -218,20 +239,30 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
                   {invite.status}
                 </Badge>
                 {invite.status === 'active' && (
-                  <Button
-                    variant="ghost"
-                    size="mini"
-                    onClick={() => void revoke({ inviteId: invite._id })}
-                  >
-                    Revoke
-                  </Button>
+                  <>
+                    <Button
+                      variant="default"
+                      size="mini"
+                      aria-label={`Copy ${invite.label ?? 'this'} invite link`}
+                      onClick={() => copy(invite.code)}
+                    >
+                      Copy link
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="mini"
+                      onClick={() => void revoke({ inviteId: invite._id })}
+                    >
+                      Revoke
+                    </Button>
+                  </>
                 )}
               </>
             }
           />
         ))}
         <Text variant="hint" className="text-left">
-          Revoking closes a code. It never removes anyone who has already joined.
+          Revoking closes a link. It never removes anyone who has already joined.
         </Text>
       </div>
     </div>

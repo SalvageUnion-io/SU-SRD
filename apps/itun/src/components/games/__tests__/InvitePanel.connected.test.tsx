@@ -2,13 +2,14 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 /**
- * `InvitePanel` — mint, read back, revoke.
+ * `InvitePanel` — mint, read back, copy, revoke.
  *
  * The panel exists because the previous screen could only mint: it showed a
- * code once and forgot it, so a leaked code could not be found again, let alone
+ * code once and forgot it, so a leaked one could not be found again, let alone
  * killed. So what is worth testing is what an Organizer can *see and do about*
- * a code that already exists — its state, who spent it, and whether the Revoke
- * button is offered when it would actually do something.
+ * an invite that already exists — its state, who spent it, its link, and
+ * whether the Revoke button is offered when it would actually do something.
+ * An invite is a link, never a typed code (issue 1255).
  *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  * The panel asks `invites.list` and `invites.pendingRequests`, which sit on
@@ -26,9 +27,10 @@ const convexMocks = await installConvexMocks({
   convexReact: {
     // Every mutation records its call so the tests can assert what the panel
     // asked the server to do, which is the half a render assertion cannot cover.
+    // `create` answers with the new link's token; the rest answer nothing.
     useMutation: () => async (args: unknown) => {
       calls.push({ name: 'mutation', args })
-      return undefined
+      return 'NEWTOKEN0000TKN0'
     },
   },
 })
@@ -55,17 +57,28 @@ function invite(over: Record<string, unknown> = {}) {
   }
 }
 
+/** Every link the panel put on the clipboard. */
+const copied: string[] = []
+
 function renderPanel(invites: unknown[], requests: unknown[] = []) {
   setQueryAnswers({ 'invites:list': invites, 'invites:pendingRequests': requests })
   calls.length = 0
-  return render(<InvitePanel gameId={'g1' as never} />)
+  copied.length = 0
+  return render(
+    <InvitePanel
+      gameId={'g1' as never}
+      clipboardWriter={async (text) => {
+        copied.push(text)
+      }}
+    />
+  )
 }
 
-describe('reading a code back', () => {
-  test('shows the code, its life left, and who spent it', () => {
+describe('reading an invite back', () => {
+  test('shows its note, its life left, and who spent it — never a code to type', () => {
     renderPanel([invite({ label: 'for Sam', usesRemaining: 2, redeemers: ['Sam'] })])
 
-    expect(screen.getByText('A1B2C3D4')).toBeTruthy()
+    expect(screen.queryByText('A1B2C3D4')).toBeNull()
     expect(screen.getByText(/for Sam/)).toBeTruthy()
     expect(screen.getByText(/2 uses left/)).toBeTruthy()
     expect(screen.getByText(/14 days left/)).toBeTruthy()
@@ -85,9 +98,17 @@ describe('reading a code back', () => {
     expect(screen.getByText(/2 handed over/)).toBeTruthy()
   })
 
-  test('no codes yet says so', () => {
+  test('no links yet says so', () => {
     renderPanel([])
-    expect(screen.getByText(/No invite codes yet/i)).toBeTruthy()
+    expect(screen.getByText(/No invite links yet/i)).toBeTruthy()
+  })
+
+  test('a live invite copies its link', async () => {
+    renderPanel([invite()])
+    await act(async () => {
+      fireEvent.click(screen.getByText('Copy link'))
+    })
+    expect(copied).toEqual([`${window.location.origin}/invite/A1B2C3D4`])
   })
 })
 
@@ -126,7 +147,7 @@ describe('minting', () => {
     fireEvent.click(screen.getByLabelText('Require approval'))
     // Async act: a successful mint resets the form from the mutation's promise.
     await act(async () => {
-      fireEvent.click(screen.getByText('Create invite code'))
+      fireEvent.click(screen.getByText('Create invite link'))
     })
 
     expect(calls[0]?.args).toMatchObject({
@@ -135,11 +156,13 @@ describe('minting', () => {
       role: 'mediator',
       requiresApproval: true,
     })
+    // A new link is made to be sent, so it lands on the clipboard.
+    expect(copied).toEqual([`${window.location.origin}/invite/NEWTOKEN0000TKN0`])
   })
 
   test('an empty note is omitted rather than sent as a blank string', () => {
     renderPanel([])
-    fireEvent.click(screen.getByText('Create invite code'))
+    fireEvent.click(screen.getByText('Create invite link'))
 
     const args = calls[0]?.args as { label?: string } | undefined
     expect(args).toBeDefined()

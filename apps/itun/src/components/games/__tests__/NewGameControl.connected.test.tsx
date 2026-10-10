@@ -3,14 +3,12 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { ConvexError } from 'convex/values'
 
 /**
- * "+ New game" and "Join game" — every way into a Game, from the top of the hub.
+ * "+ New game" — starting a Game, from the top of the hub.
  *
- * What these pin: there is no game UI for somebody who is not signed in; the
- * two buttons open their own doors; a game started by name or from a template,
- * or joined with a code, becomes what
- * the hub shows (the active container) and the dialog gets out of the way; a
- * gated code says it is waiting and selects nothing; and a refusal is shown in
- * the words the server chose.
+ * What these pin: there is no game UI for somebody who is not signed in; a game
+ * started by name or from a template is shown (on its own page, with a router —
+ * `useShowContainer`) and the dialog gets out of the way; a refusal is shown in the words the server chose; and there
+ * is no code to type — a Game is joined from an invite link (issue 1255).
  *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  */
@@ -38,10 +36,10 @@ const convexMocks = await installConvexMocks({
 
 const { NewGameControl } = await import('../NewGameControl')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 const { getActiveContainer, setActiveContainer } = await import(
   '../../../stores/activeContainerStore'
 )
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 
 const TEMPLATES = [
   { id: 'starter-set', name: 'Reclamation of the Wastes', description: 'Six pre-gens.' },
@@ -50,13 +48,12 @@ const TEMPLATES = [
 beforeEach(() => {
   authed = true
   mutations.length = 0
+  setActiveContainer({ kind: 'shelf' })
   mutationError = null
   results = {
     'games:create': 'g-new',
     'templates:createGame': 'g-template',
-    'invites:redeem': { kind: 'joined', gameId: 'g-joined', granted: 0 },
   }
-  setActiveContainer({ kind: 'shelf' })
   setQueryAnswers({ 'templates:list': TEMPLATES })
 })
 
@@ -70,7 +67,7 @@ afterAll(() => {
   convexMocks.restore()
 })
 
-async function renderOpen(door: '+ New game' | 'Join game' = '+ New game'): Promise<void> {
+async function renderOpen(): Promise<void> {
   await act(async () => {
     render(
       <ConnectionProvider>
@@ -78,7 +75,7 @@ async function renderOpen(door: '+ New game' | 'Join game' = '+ New game'): Prom
       </ConnectionProvider>
     )
   })
-  fireEvent.click(screen.getByRole('button', { name: door }))
+  fireEvent.click(screen.getByRole('button', { name: '+ New game' }))
 }
 
 async function press(name: string): Promise<void> {
@@ -101,19 +98,15 @@ describe('who gets it', () => {
     expect(container?.textContent).toBe('')
   })
 
-  test('"+ New game" opens the two ways to start one, and no code field', async () => {
+  test('"+ New game" opens the two ways to start one, and no code to type', async () => {
     await renderOpen()
     expect(screen.getByRole('heading', { name: 'Start a game' })).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'From a template' })).toBeTruthy()
     expect(screen.getByText('Reclamation of the Wastes')).toBeTruthy()
     expect(screen.queryByLabelText('Invite code')).toBeNull()
-  })
-
-  test('"Join game" is its own button, and opens only the code field', async () => {
-    await renderOpen('Join game')
-    expect(screen.getByRole('region', { name: 'Join game' })).toBeTruthy()
-    expect(screen.getByLabelText('Invite code')).toBeTruthy()
-    expect(screen.queryByRole('heading', { name: 'Start a game' })).toBeNull()
+    // Joining is an invite link's job, and the dialog says where to look.
+    expect(screen.queryByRole('button', { name: 'Join game' })).toBeNull()
+    expect(screen.getByText(/Open the invite link/)).toBeTruthy()
   })
 })
 
@@ -142,45 +135,13 @@ describe('starting a game', () => {
     ])
     expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g-template' })
   })
-})
 
-describe('joining with a code', () => {
-  test('Join waits for a code, then shows the game it joined', async () => {
-    await renderOpen('Join game')
-    expect(screen.getByRole('button', { name: 'Join' }).hasAttribute('disabled')).toBe(true)
+  test('a refusal is shown in the server’s own words, and goes nowhere', async () => {
+    await renderOpen()
+    mutationError = new ConvexError('You have too many games')
+    await press('Start this game')
 
-    fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
-    await press('Join')
-
-    expect(mutations).toEqual([{ name: 'invites:redeem', args: { code: 'A1B2C3D4' } }])
-    expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g-joined' })
-  })
-
-  test('already in it: shows that game', async () => {
-    results['invites:redeem'] = { kind: 'already', gameId: 'g-old' }
-    await renderOpen('Join game')
-    fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
-    await press('Join')
-    expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g-old' })
-  })
-
-  test('a gated code says it is waiting, and shows nothing it cannot see yet', async () => {
-    results['invites:redeem'] = { kind: 'pending', gameId: 'g-gated' }
-    await renderOpen('Join game')
-    fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
-    await press('Join')
-
-    expect(screen.getByRole('status').textContent).toMatch(/once the organizer approves/i)
-    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
-  })
-
-  test('a refusal is shown in the server’s own words', async () => {
-    await renderOpen('Join game')
-    fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
-    mutationError = new ConvexError('That invite code has expired')
-    await press('Join')
-
-    expect(screen.getByRole('alert').textContent).toBe('That invite code has expired')
+    expect(screen.getByRole('alert').textContent).toBe('You have too many games')
     expect(getActiveContainer()).toEqual({ kind: 'shelf' })
   })
 })
