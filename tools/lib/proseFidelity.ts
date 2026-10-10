@@ -371,8 +371,8 @@ const byKey = <T>([a]: [string, T], [b]: [string, T]) => (a < b ? -1 : a > b ? 1
 export function serializeLock(file: LockFile): string {
   const out = {
     $comment: LOCK_COMMENT,
-    editions: Object.fromEntries(Object.entries(file.editions).sort(byKey)),
-    entries: Object.fromEntries(Object.entries(file.entries).sort(byKey)),
+    editions: Object.fromEntries(Object.entries(file.editions ?? {}).sort(byKey)),
+    entries: Object.fromEntries(Object.entries(file.entries ?? {}).sort(byKey)),
   }
   return `${JSON.stringify(out, null, 2)}\n`
 }
@@ -386,6 +386,35 @@ export function toLockFile(lock: Lock): LockFile {
 
 export function writeLockFile(file: LockFile, path = LOCK_PATH): void {
   writeFileSync(path, serializeLock(file))
+}
+
+/**
+ * An edition label: a book's file name, or a comma-separated series of them.
+ * A name is at most eight words, and a period sits only inside a word
+ * ("2.0a"), so a sentence does not fit.
+ */
+const WORD = String.raw`[A-Za-z0-9_'!&()-]+(?:\.[A-Za-z0-9_'!&()-]+)*`
+const NAME = `${WORD}(?: ${WORD}){0,7}`
+const EDITION_RE = new RegExp(`^${NAME}(?:, ${NAME})*$`)
+
+/**
+ * Everything outside `entries` must be inert too: the fixed comment, and
+ * editions that are file names. Free text anywhere would let book text in.
+ */
+function lockShapeProblems(file: LockFile): { key: string; problem: string }[] {
+  const out: { key: string; problem: string }[] = []
+  for (const k of Object.keys(file))
+    if (!['$comment', 'editions', 'entries'].includes(k))
+      out.push({ key: k, problem: 'unknown top-level key' })
+  if ((file as { $comment?: unknown }).$comment !== LOCK_COMMENT)
+    out.push({ key: '$comment', problem: 'not the generated comment' })
+  if (!file.editions || typeof file.editions !== 'object')
+    out.push({ key: 'editions', problem: 'missing' })
+  else
+    for (const [k, v] of Object.entries(file.editions))
+      if (typeof v !== 'string' || !EDITION_RE.test(k) || !EDITION_RE.test(v))
+        out.push({ key: `editions.${k}`, problem: 'not a book file name' })
+  return out
 }
 
 export type LockDiff = {
@@ -402,7 +431,7 @@ export type LockDiff = {
 /** Hold the data to the lock. Pure: the gate and its tests both call this. */
 export function compareWithLock(items: ProseItem[], file: LockFile): LockDiff {
   const entries = new Map<string, LockEntry>()
-  const malformed: LockDiff['malformed'] = []
+  const malformed: LockDiff['malformed'] = [...lockShapeProblems(file)]
   for (const [key, raw] of Object.entries(file.entries ?? {})) {
     const e = parseLockEntry(raw)
     if (typeof e === 'string') malformed.push({ key, problem: e })
@@ -424,6 +453,6 @@ export function pruneLock(file: LockFile, items: ProseItem[]): LockFile {
   const live = new Set(items.map((i) => i.key))
   return {
     ...file,
-    entries: Object.fromEntries(Object.entries(file.entries).filter(([k]) => live.has(k))),
+    entries: Object.fromEntries(Object.entries(file.entries ?? {}).filter(([k]) => live.has(k))),
   }
 }

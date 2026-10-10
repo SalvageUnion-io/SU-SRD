@@ -1,5 +1,5 @@
-import { describe, expect, test } from 'bun:test'
-import { mkdtempSync, writeFileSync } from 'node:fs'
+import { afterAll, describe, expect, test } from 'bun:test'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { LockFile } from '../lib/proseFidelity'
@@ -20,8 +20,14 @@ import {
  * one narrow entry format.
  */
 
+const fixtures: string[] = []
+afterAll(() => {
+  for (const dir of fixtures) rmSync(dir, { recursive: true, force: true })
+})
+
 function fixture(files: Record<string, unknown[]>): string {
   const dir = mkdtempSync(join(tmpdir(), 'fidelity-'))
+  fixtures.push(dir)
   for (const [name, rows] of Object.entries(files))
     writeFileSync(join(dir, name), JSON.stringify(rows))
   return dir
@@ -106,10 +112,12 @@ describe('lock entries', () => {
 
 describe('compareWithLock', () => {
   const items = collectProse(DATA)
-  const full: LockFile = {
-    editions: {},
+  const comment = JSON.parse(serializeLock({ editions: {}, entries: {} })).$comment as string
+  const full = {
+    $comment: comment,
+    editions: { 'Core Book': 'Salvage Union Digital Edition 2.0a' },
     entries: Object.fromEntries(items.map((i) => [i.key, `${proseHash(i.text)} verbatim`])),
-  }
+  } as LockFile
 
   test('passes a lock that covers every string', () => {
     const d = compareWithLock(items, full)
@@ -124,7 +132,7 @@ describe('compareWithLock', () => {
     entries[second.key] = '0000000000000000 verbatim'
     entries['systems.json#gone.name'] = `${proseHash('x')} verbatim`
     entries['systems.json#bad.name'] = 'verbatim'
-    const d = compareWithLock(items, { editions: {}, entries })
+    const d = compareWithLock(items, { ...full, entries })
     expect(d.unverified.map((u) => [u.item.key, u.was?.hash])).toEqual([
       [first.key, undefined],
       [second.key, '0000000000000000'],
@@ -135,7 +143,23 @@ describe('compareWithLock', () => {
 
   test('--prune drops only entries for strings that no longer exist', () => {
     const entries = { ...full.entries, 'systems.json#gone.name': `${proseHash('x')} verbatim` }
-    expect(pruneLock({ editions: {}, entries }, items).entries).toEqual(full.entries)
+    expect(pruneLock({ ...full, entries }, items).entries).toEqual(full.entries)
+  })
+
+  test('fails free text outside entries: an edition, the comment, an extra key', () => {
+    const bad = {
+      ...full,
+      $comment: 'hand-written',
+      extra: 'x',
+      editions: {
+        'Core Book': 'A magnetically propelled ballistic weapon that fires, at range, a slug.',
+      },
+    } as LockFile
+    expect(
+      compareWithLock(items, bad)
+        .malformed.map((m) => m.key)
+        .sort()
+    ).toEqual(['$comment', 'editions.Core Book', 'extra'])
   })
 })
 

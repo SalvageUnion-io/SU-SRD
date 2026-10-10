@@ -422,16 +422,35 @@ class Library {
   }
 }
 
+/** The view of pages [page - NEAR, page + NEAR], memoised: every candidate of every string asks again. */
+const nearCache = new WeakMap<Book, Map<string, string>>()
 function nearText(b: Book, page: number, v: View): string {
+  const cache = nearCache.get(b) ?? new Map<string, string>()
+  nearCache.set(b, cache)
+  const key = `${page}|${v}`
+  const hit = cache.get(key)
+  if (hit !== undefined) return hit
   let t = ''
   for (let p = page - NEAR; p <= page + NEAR; p++) {
     const pt = b.pages.get(p)
     if (pt !== undefined) t += `${pt}\n`
   }
-  return view(t, v, true)
+  const out = view(t, v, true)
+  cache.set(key, out)
+  return out
 }
 
-function search(lib: Library, text: string, kind: Kind, anchors: Anchor[]): Hit | undefined {
+/**
+ * Find `text` near a cited page, then anywhere — in every book, or with
+ * `citedOnly` only in the books the record cites.
+ */
+function search(
+  lib: Library,
+  text: string,
+  kind: Kind,
+  anchors: Anchor[],
+  citedOnly = false
+): Hit | undefined {
   const cited = anchors.flatMap((a) => lib.booksFor(a).map((book) => ({ book, page: a.page })))
   const skelLen = view(text, 'skel', false).length
   const usable = (tier: View) => tier !== 'skel' || (kind === 'prose' && skelLen >= 20)
@@ -455,7 +474,9 @@ function search(lib: Library, text: string, kind: Kind, anchors: Anchor[]): Hit 
   }
   // then anywhere: cited books first, then every other (text reprinted or mis-cited)
   const citedBooks = [...new Set(cited.map((c) => c.book))]
-  const order = [...citedBooks, ...lib.all.filter((b) => !citedBooks.includes(b))]
+  const order = citedOnly
+    ? citedBooks
+    : [...citedBooks, ...lib.all.filter((b) => !citedBooks.includes(b))]
   for (const tier of VIEWS) {
     if (!usable(tier)) continue
     const needle = view(text, tier, false)
@@ -802,7 +823,7 @@ type Result = {
 function candidates(item: ProseItem): { text: string; rule?: ProseRuleId }[] {
   const out: { text: string; rule?: ProseRuleId }[] = [{ text: item.text }]
   let base = item.text
-  const unmarked = base.replace(TRAIT_MARKUP, (m, word: string) =>
+  const unmarked = base.replace(new RegExp(TRAIT_MARKUP, 'g'), (m, word: string) =>
     CHASSIS_PLACEHOLDERS.includes(m) ? m : word
   )
   if (unmarked !== base) {
@@ -841,17 +862,22 @@ function verify(lib: Library, items: ProseItem[]): Result[] {
     const cands = candidates(item)
     const done = (r: Omit<Result, 'item'>) => results.push({ item, ...r })
 
-    // 1. a match, as written or with a markup rule applied
+    // 1. a match, as written or with a markup rule applied. A rule's rewrite is
+    // looser than the text ("Bite" for "Bite (Apophis)", "it" for the chassis),
+    // so it counts only where the record is cited: near the cited page, or in
+    // the cited book when no page is given.
+    const hasPage = item.anchors.some((a) => a.page !== undefined)
     let matched = false
     for (const c of cands) {
-      const hit = search(lib, c.text, item.kind, item.anchors)
+      const hit = search(lib, c.text, item.kind, item.anchors, !!c.rule && citedBooks.size > 0)
       if (!hit) continue
+      if (c.rule && citedBooks.size > 0 && hasPage && !hit.near) continue
       const where = { book: hit.book.spec.id, page: hit.page }
       if (c.rule) done({ verdict: 'deviation', reason: c.rule, ...where })
       else if (hit.near) done({ verdict: 'verbatim', ...where })
       else if (citedBooks.size && !citedBooks.has(hit.book.spec))
         done({ verdict: 'verbatim', reason: 'other-book', ...where })
-      else if (item.anchors.some((a) => a.page !== undefined) && citedBooks.has(hit.book.spec))
+      else if (hasPage && citedBooks.has(hit.book.spec))
         done({ verdict: 'verbatim', reason: 'elsewhere', ...where })
       else done({ verdict: 'verbatim', ...where })
       matched = true
@@ -873,18 +899,28 @@ function verify(lib: Library, items: ProseItem[]): Result[] {
       continue
     }
 
-    // 3. a near-miss, aligned and classified. The last candidate carries every rule applied.
-    const primary = cands[cands.length - 1] ?? { text: item.text }
+    // 3. a near-miss, aligned and classified. The last rule's candidates carry
+    // every rule applied; a placeholder has one per stand-in ("the Stolas",
+    // "it", …), and the best-aligned one is the fair comparison.
+    const last = cands[cands.length - 1] ?? { text: item.text }
     const allBooks = lib.all
     const citedLayers = allBooks.filter((b) => citedBooks.has(b.spec))
-    let f = fuzzy(primary.text, citedLayers.length ? citedLayers : allBooks, cited)
-    if ((!f || f.score < 0.85) && citedLayers.length) {
-      const g = fuzzy(
-        primary.text,
-        allBooks.filter((b) => !citedBooks.has(b.spec)),
-        cited
-      )
-      if (g && (!f || g.score > f.score)) f = g
+    let primary = last
+    let f: Fuzzy | undefined
+    for (const c of cands.filter((x) => x.rule === last.rule)) {
+      let g = fuzzy(c.text, citedLayers.length ? citedLayers : allBooks, cited)
+      if ((!g || g.score < 0.85) && citedLayers.length) {
+        const h = fuzzy(
+          c.text,
+          allBooks.filter((b) => !citedBooks.has(b.spec)),
+          cited
+        )
+        if (h && (!g || h.score > g.score)) g = h
+      }
+      if (g && (!f || g.score > f.score)) {
+        f = g
+        primary = c
+      }
     }
     const D = tokensOf(primary.text)
     // short strings align by accident, so demand more of them; a source with

@@ -78,7 +78,8 @@ export const OWNER_SUFFIX = /^(.*\S) \(([^)]+)\)$/
 export const CHASSIS_PLACEHOLDERS = ['[(CHASSIS)]', '[[CHASSIS]]']
 /** Generic stand-ins the book uses where the dataset says "[(CHASSIS)]". */
 export const CHASSIS_STAND_INS = ['the Mech', 'this Mech', 'your Mech', 'it'] as const
-export const TRAIT_MARKUP = /\[\[([^\]]+)\]\]/g
+/** `[[Trait]]`. Not global, so `.test()` holds no state; replace with `new RegExp(TRAIT_MARKUP, 'g')`. */
+export const TRAIT_MARKUP = /\[\[([^\]]+)\]\]/
 
 /** A string repeated this many times, matching no book text, is boilerplate. */
 export const BOILERPLATE_MIN_REPEATS = 3
