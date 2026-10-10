@@ -1,0 +1,112 @@
+/*
+ * The NPC designer's responsive rules (boards N1 and N2;
+ * `docs/architecture/npc-builder.md` §5). Everything static is a style object
+ * in `components/npc/npcStyles.ts`; these are the rules a style object cannot
+ * hold because they change with the viewport or with state.
+ */
+
+/* The step strip: five boxes across from 48rem; below that, one line
+   ("3 / 5 · Actions & traits") and no boxes. */
+.npc-steps {
+  display: grid;
+  gap: var(--space-8, 0.5rem);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.npc-steps__compact {
+  display: none;
+}
+
+.npc-step {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink);
+  cursor: pointer;
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  gap: 0.5rem;
+  letter-spacing: 0.04em;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  text-align: left;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+.npc-step[aria-current='step'] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.npc-step:disabled {
+  border-style: dashed;
+  color: var(--color-ink-75);
+  cursor: default;
+}
+
+@media (max-width: 47.99rem) {
+  .npc-steps {
+    display: none;
+  }
+
+  .npc-steps__compact {
+    display: block;
+  }
+}
+
+/* The live preview: its own column from 48rem; below that, a Preview button
+   above the sticky Back / Next bar opens it in a modal (§5). */
+.npc-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.npc-preview-toggle {
+  display: none;
+}
+
+@media (max-width: 47.99rem) {
+  .npc-preview {
+    display: none;
+  }
+
+  .npc-preview-toggle {
+    display: inline-flex;
+  }
+
+  .npc-nav {
+    background-color: var(--color-wk-bg);
+    border-top: var(--bw-chrome) solid var(--color-ink);
+    bottom: 0;
+    padding-block: 0.5rem;
+    position: sticky;
+    z-index: 10;
+  }
+}
+
+/* An action or trait row's header is an ink band: its name reads paper, as the
+   board draws it (N1, step 3). Set on the band's own children so a button
+   ancestor's ink text cannot bleed through. */
+.npc-pick [data-fill='ink'] > * {
+  color: var(--color-paper);
+}
+
+/* Back, Next and Preview: 44px condensed caps, as board N1 draws them (and a
+   44px touch target on the phone's sticky bar). */
+.npc-nav > button {
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  text-transform: uppercase;
+}
