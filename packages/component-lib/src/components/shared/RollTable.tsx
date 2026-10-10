@@ -157,14 +157,20 @@ function Caret({ flipped }: { flipped?: boolean }) {
   )
 }
 
-/** The expand/collapse control shown in a collapsible roll-table header. */
+/**
+ * The expand/collapse control shown in a collapsible roll-table header. It sits
+ * on the ink band, so it takes the on-tone ring: the paper ring carries on ink.
+ */
 function ExpandToggle({ expanded, onToggle }: { expanded: boolean; onToggle: () => void }) {
   return (
     <button
       type="button"
       onClick={onToggle}
       aria-expanded={expanded}
-      className="inline-flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-caps-tight text-paper/80 hover:text-paper"
+      className={cn(
+        'inline-flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-caps-tight text-paper/80 hover:text-paper',
+        FOCUS_RING_ON_TONE
+      )}
     >
       {expanded ? 'Hide' : 'Show'}
       <Caret flipped={expanded} />
