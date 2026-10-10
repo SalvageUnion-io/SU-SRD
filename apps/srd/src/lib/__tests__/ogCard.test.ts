@@ -13,15 +13,31 @@ describe('ogCardFor', () => {
   const scrapper = SalvageUnionReference.Chassis.getByName('Scrapper')
   if (!scrapper) throw new Error('no Scrapper')
 
-  it('prints the page path in the foot', () => {
-    expect(ogCardFor('chassis', 'scrapper', scrapper).address).toBe('/schema/chassis/item/scrapper')
+  it('prints the host and page path in the foot', () => {
+    expect(ogCardFor('chassis', 'scrapper', scrapper).address).toBe(
+      'salvageunion.io/schema/chassis/item/scrapper'
+    )
+  })
+
+  it("draws a chassis's row as the origin does: SP, EP, Heat, SYS, MOD, Cargo", () => {
+    const card = ogCardFor('chassis', 'scrapper', scrapper)
+    if (!('stats' in card)) throw new Error('no stats')
+    expect(card.stats.map((stat) => stat.label.toUpperCase())).toEqual([
+      'SP',
+      'EP',
+      'HEAT',
+      'SYS',
+      'MOD',
+      'CARGO',
+    ])
+    expect(card.stats[2]?.value).toBe(String(scrapper.heatCapacity))
   })
 
   it('addresses a pattern by its own page', () => {
     const pattern = scrapper.patterns?.[0]
     if (!pattern) throw new Error('Scrapper has no pattern')
     const card = ogCardFor('chassis', 'scrapper', scrapper, pattern, 'tow-rig')
-    expect(card.address).toBe('/schema/chassis/item/scrapper/pattern/tow-rig')
+    expect(card.address).toBe('salvageunion.io/schema/chassis/item/scrapper/pattern/tow-rig')
   })
 })
 

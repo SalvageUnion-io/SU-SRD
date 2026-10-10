@@ -20,6 +20,7 @@ import type {
   SURefMetaEntity,
   SURefObjectPattern,
 } from 'salvageunion-reference'
+import { SITE_URL } from './constants'
 import { itemHref, patternHref } from './entityHref'
 
 /**
@@ -45,8 +46,9 @@ export function ogCardFor(
     schemaName: schemaId as SURefEnumSchemaName,
     entity,
     pattern,
-    // The foot prints the path; its wordmark already says SalvageUnion.io.
-    address: href.slice(0, -1),
+    // The foot prints the page's real URL without its scheme, host and path,
+    // as the origin's PV1 does (salvageunion.io/schema/chassis/item/scrapper).
+    address: `${new URL(SITE_URL).host}${href.slice(0, -1)}`,
   })
 }
 

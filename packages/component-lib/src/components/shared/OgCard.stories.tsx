@@ -43,11 +43,11 @@ export const Default: Story = () => (
             { label: 'EP', value: String(scrapper.energyPoints) },
             { label: 'Heat', value: String(scrapper.heatCapacity) },
             { label: 'SYS', value: String(scrapper.systemSlots) },
-            { label: 'MODS', value: String(scrapper.moduleSlots) },
+            { label: 'MOD', value: String(scrapper.moduleSlots) },
             { label: 'Cargo', value: String(scrapper.cargoCapacity) },
           ]}
           cite={`${scrapper.source} · p.${scrapper.page}`}
-          address="/schema/chassis/item/scrapper"
+          address="salvageunion.io/schema/chassis/item/scrapper"
         />
       </div>
     )}
@@ -62,7 +62,7 @@ export const Default: Story = () => (
           cost="X AP"
           rules="You repair any number of damaged Mech Chassis, Vehicles, Systems, or Modules within Range to Intact Condition."
           cite={`${repair.source} · p.${repair.page}`}
-          address="/schema/abilities/item/mass-field-repair"
+          address="salvageunion.io/schema/abilities/item/mass-field-repair"
         />
       </div>
     )}
@@ -80,7 +80,7 @@ export const Default: Story = () => (
           { label: 'Mech', value: 'Scrapper' },
         ]}
         byline="Rosa's pilot · Reclamation of the Wastes"
-        address="intheunionnow.com/p/pilot/bonesaw"
+        address="itun.salvageunion.io/p/pilot/bonesaw"
       />
     </div>
     <div>
@@ -97,7 +97,7 @@ export const Default: Story = () => (
           { label: 'SP', value: '9' },
         ]}
         madeBy="alxjrvs"
-        address="intheunionnow.com/p/pattern/tow-rig"
+        address="itun.salvageunion.io/p/pattern/tow-rig"
       />
     </div>
     <div>
@@ -113,7 +113,7 @@ export const Default: Story = () => (
         ]}
         madeBy="alxjrvs"
         quoted={false}
-        address="intheunionnow.com/p/npc/sergeant-kessler"
+        address="itun.salvageunion.io/p/npc/sergeant-kessler"
       />
     </div>
     <div>
@@ -125,7 +125,7 @@ export const Default: Story = () => (
         tone={color.crawler}
         summary="Mediated by alxjrvs."
         terms="Link expires 15 Oct · the Mediator lets you in"
-        address="intheunionnow.com"
+        address="itun.salvageunion.io"
       />
     </div>
     <div>
@@ -141,12 +141,12 @@ export const Default: Story = () => (
         ]}
         madeBy="alxjrvs"
         quoted={false}
-        address="intheunionnow.com/p/npc/kessler"
+        address="itun.salvageunion.io/p/npc/kessler"
       />
     </div>
     <div>
       <Caption>private — no name, no stats, no maker</Caption>
-      <OgCard kind="private" address="intheunionnow.com" />
+      <OgCard kind="private" address="itun.salvageunion.io" />
     </div>
   </div>
 )

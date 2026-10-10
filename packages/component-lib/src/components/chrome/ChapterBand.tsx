@@ -108,19 +108,23 @@ const ROOT = {
 // The user-made notch: the same cut-out, framed in dashes on three sides — the
 // fourth is the band's foot, which the notch sits flush on.
 // Longhands only, so no side's shorthand can reset another's.
+// At the og scale the dash is 4px: a 1.5px dash on a 1200px card is a dotted
+// hairline once Discord draws it at 400px, and it is one of the user-made cues.
 const DASH = 'var(--bw-chrome)'
-const USER_MADE_TITLE = {
-  borderBottomWidth: 0,
-  borderLeftColor: color.ink,
-  borderLeftStyle: 'dashed',
-  borderLeftWidth: DASH,
-  borderRightColor: color.ink,
-  borderRightStyle: 'dashed',
-  borderRightWidth: DASH,
-  borderTopColor: color.ink,
-  borderTopStyle: 'dashed',
-  borderTopWidth: DASH,
-} satisfies CSSProperties
+const OG_DASH = '4px'
+const userMadeTitle = (dash: string) =>
+  ({
+    borderBottomWidth: 0,
+    borderLeftColor: color.ink,
+    borderLeftStyle: 'dashed',
+    borderLeftWidth: dash,
+    borderRightColor: color.ink,
+    borderRightStyle: 'dashed',
+    borderRightWidth: dash,
+    borderTopColor: color.ink,
+    borderTopStyle: 'dashed',
+    borderTopWidth: dash,
+  }) satisfies CSSProperties
 
 const EYEBROW = {
   alignItems: 'center',
@@ -165,7 +169,9 @@ export function ChapterBand({
   scale = 'page',
   titleSize,
 }: ChapterBandProps) {
-  const titleStyle = userMade ? { ...TITLE, ...USER_MADE_TITLE } : TITLE
+  const titleStyle = userMade
+    ? { ...TITLE, ...userMadeTitle(scale === 'og' ? OG_DASH : DASH) }
+    : TITLE
   return (
     <div
       className="su-chapter-band"
