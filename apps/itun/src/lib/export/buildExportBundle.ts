@@ -166,7 +166,7 @@ export function buildPatternExport(pattern: MechPattern): ExportBundle {
   return {
     schemaVersion: 2,
     exportedAt: new Date().toISOString(),
-    entities: { pilots: [], mechs: [], crawlers: [] },
+    entities: { pilots: [], mechs: [], crawlers: [], npcs: [] },
     softLinks: [],
     mechPatterns: [pattern],
     encounterNpcs: [],
