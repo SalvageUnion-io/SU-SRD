@@ -8,7 +8,7 @@ type EntityCardStatBoxProps = {
   stats: StatItem[]
   /**
    * A one-line head row (ruleset §1 Listing): the cells hold ONE row and the
-   * title keeps a minimum width, so a cell that does not fit is dropped, last
+   * name keeps its full width, so a cell that does not fit is dropped, last
    * (lowest priority) first, rather than crushing the title to "L…". Cells wrap
    * onto a second row that the clip hides.
    */
@@ -24,7 +24,7 @@ const cluster = (oneRow: boolean): CSSProperties => ({
   flexWrap: 'wrap',
   gap: space[4],
   justifyContent: 'flex-end',
-  minWidth: oneRow ? 'min-content' : 0,
+  minWidth: 0,
   ...(oneRow ? { maxHeight: CELL_ROW, overflow: 'hidden' } : {}),
 })
 

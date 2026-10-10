@@ -129,9 +129,9 @@ export function EntityCardHeader({
       className={titleType}
       title={oneLine ? title : undefined}
       style={{
-        // One line: the title gives way after a hint has and before the pennant,
-        // but never below a readable stub (about eleven characters); the cells
-        // shed first, lowest priority first (`EntityCardStatBox`). Otherwise the title shares the row with the
+        // One line: the NAME wins the row. It keeps its full width (it truncates
+        // only when it alone is wider than the row), after a hint has given way;
+        // the cells go first, last (lowest priority) first (`EntityCardStatBox`). Otherwise the title shares the row with the
         // cells on the right at medium and small, and only a large header
         // gives the title the whole row. Either way the cells wrap beneath
         // when they truly cannot fit.
