@@ -769,7 +769,7 @@
     "name": "Pushing a Mech",
     "source": "Salvage Union Workshop Manual",
     "page": 233,
-    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 16 }],
+    "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 15 }],
     "guideType": "gameplay",
     "guideTone": "mech",
     "content": [
