@@ -1,7 +1,9 @@
 /**
  * Pure logic for cross-reference validation in the Salvage Union data.
- * Checks that system/module/entity references exist in their respective data
- * files, and that `tableName` references resolve to a real roll table.
+ * Checks that every by-name reference resolves: pattern systems/modules and
+ * drones, drone modules, catalog-choice shortlists (which must name a schema),
+ * `tableName` / `rollTable` (any depth, any file), guide `guideRef` and step
+ * `schemaEntities`, faction `formation` members and ability `grants`.
  *
  * Pure over a caller-supplied data bag, so `tools/validate.ts` (the one CLI,
  * `--only=references`) and the tests share one implementation.
@@ -21,141 +23,282 @@ function bag(filesByName: Record<string, unknown[]>, filename: string): Rec[] {
   return (filesByName[filename] ?? []) as Rec[]
 }
 
-type Choice = {
-  id?: string
-  name?: string
-  /** The option source. Shortlist references live at `source.entities` + `source.schema`. */
-  source?: { kind?: string; entities?: string[]; schema?: string[] }
-  choices?: Choice[]
+/**
+ * Trait names are lower-case in traits.json ("ballistic"), while a trait
+ * shortlist names them as the rules text does ("Ballistic") — the same Title
+ * Case an `addTrait` effect is written in. Resolve trait names without case.
+ */
+const CASE_INSENSITIVE_SCHEMAS = new Set(['traits'])
+
+/** Names of every row, keyed by schema id (the filename without `.json`). Guide ids are indexed separately. */
+function buildNameIndex(filesByName: Record<string, unknown[]>): Record<string, Set<string>> {
+  const index: Record<string, Set<string>> = {}
+  for (const [file, rows] of Object.entries(filesByName)) {
+    const schema = file.replace(/\.json$/, '')
+    const fold = CASE_INSENSITIVE_SCHEMAS.has(schema)
+    index[schema] = new Set(
+      (rows as Rec[])
+        .map((r) => r.name)
+        .filter((n): n is string => typeof n === 'string')
+        .map((n) => (fold ? n.toLowerCase() : n))
+    )
+  }
+  return index
 }
 
-/** The shortlist a catalog choice references, or null when it has none. */
-function catalogShortlist(choice: Choice): { entities: string[]; schema: string[] } | null {
-  const source = choice.source
-  if (source?.kind !== 'catalog') return null
-  if (!source.entities || source.entities.length === 0) return null
-  return { entities: source.entities, schema: source.schema ?? [] }
+function hasName(index: Record<string, Set<string>>, schema: string, name: string): boolean {
+  const names = index[schema]
+  if (!names) return false
+  return names.has(CASE_INSENSITIVE_SCHEMAS.has(schema) ? name.toLowerCase() : name)
 }
 
-type EntityWithChoices = {
-  name?: string
-  choices?: Choice[]
-  actions?: Array<{ name?: string; choices?: Choice[] }>
-}
+/** `parent.key`, or just `key` at the top of a row. */
+const at = (path: string, key: string) => (path ? `${path}.${key}` : key)
 
-function validateChoicesSchemaEntities(
-  sourceFile: string,
-  entityName: string,
-  choicePath: string,
-  choices: Choice[],
-  schemaEntityNames: Record<string, Set<string>>,
-  errors: ValidationError[]
-) {
-  for (const choice of choices) {
-    const choiceId = choice.id || choice.name || 'unknown'
-    const currentPath = `${choicePath}.${choiceId}`
-
-    const shortlist = catalogShortlist(choice)
-    if (shortlist) {
-      const targetSchemas = shortlist.schema
-
-      if (targetSchemas.length === 0) {
-        errors.push({
-          file: sourceFile,
-          entityName,
-          field: `${currentPath}.source.entities`,
-          referencedName: shortlist.entities.join(', '),
-          message: `source.entities defined but no source.schema specified to validate against`,
-        })
-      } else {
-        const validNames = new Set<string>()
-        for (const schemaName of targetSchemas) {
-          const schemaEntities = schemaEntityNames[schemaName]
-          if (schemaEntities) {
-            for (const name of schemaEntities) {
-              validNames.add(name)
-            }
-          }
-        }
-
-        for (const entityRef of shortlist.entities) {
-          if (!validNames.has(entityRef)) {
-            errors.push({
-              file: sourceFile,
-              entityName,
-              field: `${currentPath}.source.entities`,
-              referencedName: entityRef,
-              message: `Entity "${entityRef}" not found in schemas: ${targetSchemas.join(', ')}`,
-            })
-          }
-        }
-      }
-    }
-
-    if (choice.choices && Array.isArray(choice.choices)) {
-      validateChoicesSchemaEntities(
-        sourceFile,
-        entityName,
-        currentPath,
-        choice.choices,
-        schemaEntityNames,
-        errors
-      )
-    }
+/** Visit every object at any depth of `node`, with its dotted path. */
+function walkObjects(node: unknown, path: string, visit: (obj: Rec, path: string) => void): void {
+  if (Array.isArray(node)) {
+    for (const [i, child] of node.entries()) walkObjects(child, `${path}[${i}]`, visit)
+    return
+  }
+  if (node === null || typeof node !== 'object') return
+  const obj = node as Rec
+  visit(obj, path)
+  for (const [key, child] of Object.entries(obj)) {
+    walkObjects(child, at(path, key), visit)
   }
 }
 
-function validateTableNames(
-  node: unknown,
+/**
+ * The refs any row of any file may carry, wherever they sit: a catalog choice
+ * source (its schema and shortlist), a `tableName` / `rollTable`, a `guideRef`.
+ */
+function validateNestedRefs(
   file: string,
   entityName: string,
-  tableNames: Set<string>,
+  row: Rec,
+  index: Record<string, Set<string>>,
+  guideIds: Set<string>,
   errors: ValidationError[]
 ): void {
-  if (Array.isArray(node)) {
-    for (const item of node) validateTableNames(item, file, entityName, tableNames, errors)
-  } else if (node !== null && typeof node === 'object') {
-    for (const [key, value] of Object.entries(node)) {
-      if (key === 'tableName' && typeof value === 'string' && !tableNames.has(value)) {
+  const push = (field: string, referencedName: string, message: string) =>
+    errors.push({ file, entityName, field, referencedName, message })
+
+  walkObjects(row, '', (obj, path) => {
+    for (const key of ['tableName', 'rollTable'] as const) {
+      const table = obj[key]
+      if (typeof table === 'string' && !hasName(index, 'roll-tables', table)) {
+        push(at(path, key), table, `Table "${table}" not found in roll-tables.json`)
+      }
+    }
+
+    const guideRef = obj.guideRef
+    if (typeof guideRef === 'string' && !guideIds.has(guideRef)) {
+      push(at(path, 'guideRef'), guideRef, `Guide id "${guideRef}" not found in guides.json`)
+    }
+
+    const source = obj.source as { kind?: unknown; schema?: unknown; entities?: unknown } | null
+    if (source && typeof source === 'object' && source.kind === 'catalog') {
+      const schemas = Array.isArray(source.schema) ? (source.schema as string[]) : []
+      const entities = Array.isArray(source.entities) ? (source.entities as string[]) : []
+      if (schemas.length === 0) {
+        push(
+          at(path, 'source.schema'),
+          entities.join(', '),
+          'catalog choice names no source.schema — its options cannot be resolved or validated'
+        )
+        return
+      }
+      for (const entityRef of entities) {
+        if (!schemas.some((schema) => hasName(index, schema, entityRef))) {
+          push(
+            at(path, 'source.entities'),
+            entityRef,
+            `Entity "${entityRef}" not found in schemas: ${schemas.join(', ')}`
+          )
+        }
+      }
+    }
+  })
+}
+
+type FormationMember = { chassis?: string; pattern?: string; schema?: string }
+
+function validateFormation(
+  faction: Rec,
+  index: Record<string, Set<string>>,
+  chassis: Rec[],
+  errors: ValidationError[]
+): void {
+  const members = faction.formation
+  if (!Array.isArray(members)) return
+  const entityName = String(faction.name ?? 'unknown')
+  for (const [i, member] of (members as FormationMember[]).entries()) {
+    const name = member.chassis ?? ''
+    const field = `formation[${i}]`
+    if (member.schema) {
+      if (!hasName(index, member.schema, name)) {
         errors.push({
-          file,
+          file: 'factions.json',
           entityName,
-          field: 'tableName',
-          referencedName: value,
-          message: `Table "${value}" not found in roll-tables.json`,
+          field,
+          referencedName: name,
+          message: `"${name}" not found in ${member.schema}.json`,
         })
       }
-      validateTableNames(value, file, entityName, tableNames, errors)
+      continue
+    }
+    const host = chassis.find((c) => c.name === name)
+    if (!host) {
+      errors.push({
+        file: 'factions.json',
+        entityName,
+        field,
+        referencedName: name,
+        message: `Chassis "${name}" not found in chassis.json (a non-chassis member needs a schema)`,
+      })
+      continue
+    }
+    const patterns = (host.patterns ?? []) as Array<{ name?: string }>
+    if (member.pattern && !patterns.some((p) => p.name === member.pattern)) {
+      errors.push({
+        file: 'factions.json',
+        entityName,
+        field,
+        referencedName: member.pattern,
+        message: `Pattern "${member.pattern}" not found on chassis "${name}"`,
+      })
     }
   }
 }
 
+/** Every name of a choice at any depth of `row` — what a `schema: 'choice'` grant points at. */
+function choiceNames(row: Rec): Set<string> {
+  const names = new Set<string>()
+  walkObjects(row, '', (obj, path) => {
+    if (/(^|\.)choices\[\d+\]$/.test(path) && typeof obj.name === 'string') names.add(obj.name)
+  })
+  return names
+}
+
+function validateGrants(
+  file: string,
+  row: Rec,
+  index: Record<string, Set<string>>,
+  errors: ValidationError[]
+): void {
+  const grants = row.grants
+  if (!Array.isArray(grants)) return
+  const entityName = String(row.name ?? 'unknown')
+  const typed = grants as Array<{ schema?: string; name?: string }>
+  const ownChoices = typed.some((g) => g.schema === 'choice') ? choiceNames(row) : new Set<string>()
+  for (const [i, grant] of typed.entries()) {
+    const name = grant.name ?? ''
+    const found =
+      grant.schema === 'choice'
+        ? ownChoices.has(name)
+        : !!grant.schema && hasName(index, grant.schema, name)
+    if (!found) {
+      errors.push({
+        file,
+        entityName,
+        field: `grants[${i}]`,
+        referencedName: name,
+        message:
+          grant.schema === 'choice'
+            ? `No choice named "${name}" on this entity`
+            : `"${name}" not found in ${grant.schema}.json`,
+      })
+    }
+  }
+}
+
+function validateGuideSteps(
+  guide: Rec,
+  index: Record<string, Set<string>>,
+  errors: ValidationError[]
+) {
+  const steps = guide.steps
+  if (!Array.isArray(steps)) return
+  for (const [i, step] of (
+    steps as Array<{ name?: string; schema?: string[]; schemaEntities?: string[] }>
+  ).entries()) {
+    if (!step.schemaEntities) continue
+    const schemas = step.schema ?? []
+    for (const entityRef of step.schemaEntities) {
+      if (!schemas.some((schema) => hasName(index, schema, entityRef))) {
+        errors.push({
+          file: 'guides.json',
+          entityName: String(guide.name ?? 'unknown'),
+          field: `steps[${i}].schemaEntities`,
+          referencedName: entityRef,
+          message: `Entity "${entityRef}" not found in schemas: ${schemas.join(', ') || '(none named)'}`,
+        })
+      }
+    }
+  }
+}
+
+/**
+ * Refs that are known not to resolve and wait on an owner decision. Each one
+ * is tolerated only at its exact file, entity, field and name, so the same
+ * name unresolved anywhere else still fails; an entry that stops matching fails, so
+ * the list cannot outlive its fix.
+ */
+export const KNOWN_UNRESOLVED_REFS: ReadonlyArray<{
+  file: string
+  entityName: string
+  field: string
+  referencedName: string
+  reason: string
+}> = [
+  {
+    file: 'factions.json',
+    entityName: 'Red Mesa Mutants',
+    field: 'formation[3]',
+    referencedName: 'Chimerium Mutant Mob',
+    reason:
+      'WWHF p60 prints "Chimerium Mutant Mob" in the Red Mesa Mutants formation, but no entity ' +
+      'has that name (npcs.json has Chimerium Mutant Squad). Repointing or renaming is an owner call.',
+  },
+]
+
 /** Run every cross-reference check over the supplied data bag. */
-export function findReferenceErrors(filesByName: Record<string, unknown[]>): ValidationError[] {
+export function findReferenceErrors(
+  filesByName: Record<string, unknown[]>,
+  known: typeof KNOWN_UNRESOLVED_REFS = KNOWN_UNRESOLVED_REFS
+): ValidationError[] {
+  const errors = findAllReferenceErrors(filesByName)
+  const isKnown = (e: ValidationError, k: (typeof KNOWN_UNRESOLVED_REFS)[number]) =>
+    e.file === k.file &&
+    e.entityName === k.entityName &&
+    e.field === k.field &&
+    e.referencedName === k.referencedName
+  const stale: ValidationError[] = known
+    .filter((k) => !errors.some((e) => isKnown(e, k)))
+    .map((k) => ({
+      file: 'tools/validateReferencesLogic.ts',
+      entityName: 'KNOWN_UNRESOLVED_REFS',
+      field: k.file,
+      referencedName: k.referencedName,
+      message: 'stale entry — the ref now resolves or is gone; remove it',
+    }))
+  return [...errors.filter((e) => !known.some((k) => isKnown(e, k))), ...stale]
+}
+
+function findAllReferenceErrors(filesByName: Record<string, unknown[]>): ValidationError[] {
   const errors: ValidationError[] = []
 
-  const systems = bag(filesByName, 'systems.json')
-  const modules = bag(filesByName, 'modules.json')
   const chassis = bag(filesByName, 'chassis.json')
   const drones = bag(filesByName, 'drones.json')
-  const actions = bag(filesByName, 'actions.json')
-  const equipment = bag(filesByName, 'equipment.json')
-  const abilities = bag(filesByName, 'abilities.json')
-  const traits = bag(filesByName, 'traits.json')
-  const keywords = bag(filesByName, 'keywords.json')
-  const rollTables = bag(filesByName, 'roll-tables.json')
-
-  const systemNames = new Set(systems.map((s) => s.name as string))
-  const moduleNames = new Set(modules.map((m) => m.name as string))
-
-  const schemaEntityNames: Record<string, Set<string>> = {
-    systems: systemNames,
-    modules: moduleNames,
-    abilities: new Set(abilities.map((a) => a.name as string)),
-    traits: new Set(traits.map((t) => t.name as string)),
-    keywords: new Set(keywords.map((k) => k.name as string)),
-    equipment: new Set(equipment.map((e) => e.name as string)),
-  }
+  const index = buildNameIndex(filesByName)
+  const systemNames = index.systems ?? new Set<string>()
+  const moduleNames = index.modules ?? new Set<string>()
+  const guideIds = new Set(
+    bag(filesByName, 'guides.json')
+      .map((g) => g.id)
+      .filter((id): id is string => typeof id === 'string')
+  )
 
   // Validate chassis patterns
   for (const chassisItem of chassis) {
@@ -193,11 +336,22 @@ export function findReferenceErrors(filesByName: Record<string, unknown[]>): Val
       }
 
       const patternDrones = (
-        pattern as { drones?: Array<{ name?: string; systems?: string[]; modules?: string[] }> }
+        pattern as {
+          drones?: Array<{ name?: string; ref?: string; systems?: string[]; modules?: string[] }>
+        }
       ).drones
       if (patternDrones && Array.isArray(patternDrones)) {
         for (const droneConfig of patternDrones) {
           const droneName = droneConfig.name ?? 'unknown'
+          if (droneConfig.ref !== undefined && !hasName(index, 'drones', droneConfig.ref)) {
+            errors.push({
+              file: 'chassis.json',
+              entityName: String(chassisItem.name ?? 'unknown'),
+              field: `patterns.${(pattern as { name?: string }).name ?? 'unknown'}.drones.${droneName}.ref`,
+              referencedName: droneConfig.ref,
+              message: `Drone "${droneConfig.ref}" not found in drones.json`,
+            })
+          }
           if (droneConfig.systems && Array.isArray(droneConfig.systems)) {
             for (const systemName of droneConfig.systems) {
               if (!systemNames.has(systemName)) {
@@ -247,66 +401,37 @@ export function findReferenceErrors(filesByName: Record<string, unknown[]>): Val
         }
       }
     }
-  }
-
-  // Validate catalog-choice shortlists (source.entities) in actions.json
-  for (const action of actions as EntityWithChoices[]) {
-    const actionName = String(action.name ?? 'unknown')
-    if (action.choices && Array.isArray(action.choices)) {
-      validateChoicesSchemaEntities(
-        'actions.json',
-        actionName,
-        'choices',
-        action.choices,
-        schemaEntityNames,
-        errors
-      )
-    }
-  }
-
-  // Validate catalog-choice shortlists (source.entities) in equipment.json
-  for (const item of equipment as EntityWithChoices[]) {
-    const itemName = String(item.name ?? 'unknown')
-    if (item.actions && Array.isArray(item.actions)) {
-      for (const action of item.actions) {
-        if (action.choices && Array.isArray(action.choices)) {
-          const actionName = action.name || 'unknown'
-          validateChoicesSchemaEntities(
-            'equipment.json',
-            itemName,
-            `actions.${actionName}.choices`,
-            action.choices,
-            schemaEntityNames,
-            errors
-          )
+    const droneModules = drone.modules
+    if (Array.isArray(droneModules)) {
+      for (const moduleName of droneModules as string[]) {
+        if (!moduleNames.has(moduleName)) {
+          errors.push({
+            file: 'drones.json',
+            entityName: String(drone.name ?? 'unknown'),
+            field: 'modules',
+            referencedName: moduleName,
+            message: `Module "${moduleName}" not found in modules.json`,
+          })
         }
       }
     }
   }
 
-  // Validate that every `tableName` reference resolves to a real roll table.
-  const tableNames = new Set(rollTables.map((t) => t.name as string))
-  for (const file of [
-    'actions.json',
-    'systems.json',
-    'modules.json',
-    'abilities.json',
-    'equipment.json',
-    'chassis.json',
-    'crawlers.json',
-    'crawler-bays.json',
-    'drones.json',
-    'bio-titans.json',
-  ]) {
-    for (const entity of bag(filesByName, file)) {
-      validateTableNames(
-        entity,
-        file,
-        String(entity.name ?? entity.id ?? 'unknown'),
-        tableNames,
-        errors
-      )
+  // Refs that may sit at any depth of any row: catalog choices, roll tables, guide refs.
+  for (const [file, rows] of Object.entries(filesByName)) {
+    for (const row of rows as Rec[]) {
+      const entityName = String(row.name ?? row.id ?? 'unknown')
+      validateNestedRefs(file, entityName, row, index, guideIds, errors)
+      validateGrants(file, row, index, errors)
     }
+  }
+
+  for (const faction of bag(filesByName, 'factions.json')) {
+    validateFormation(faction, index, chassis, errors)
+  }
+
+  for (const guide of bag(filesByName, 'guides.json')) {
+    validateGuideSteps(guide, index, errors)
   }
 
   return errors

@@ -103,8 +103,10 @@ export function resolveCatalogChoiceEntities(
 
   let entities: SURefMetaEntity[]
   if (shortlist && shortlist.length > 0) {
-    const names = new Set(shortlist)
-    entities = all.filter((e) => typeof e.name === 'string' && names.has(e.name))
+    // Without case: a trait shortlist names traits as the rules text does
+    // ("Ballistic"), while traits.json names them lower-case ("ballistic").
+    const names = new Set(shortlist.map((n) => n.toLowerCase()))
+    entities = all.filter((e) => typeof e.name === 'string' && names.has(e.name.toLowerCase()))
   } else if (filter) {
     entities = all.filter((e) => matchesFilter(e, filter))
   } else {
