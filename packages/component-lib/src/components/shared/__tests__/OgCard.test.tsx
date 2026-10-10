@@ -1,4 +1,6 @@
 import { describe, expect, test } from 'bun:test'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import type { SURefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -6,7 +8,13 @@ import { color } from '../../../design/tokens'
 import { OgCard } from '../OgCard'
 import { ogCardForEntity } from '../ogCardForEntity'
 import type { OgCardProps } from '../ogCardText'
-import { ogCardDescription, ogCardThemeColor, ogCardTitle, ogTitleSize } from '../ogCardText'
+import {
+  ogCardDescription,
+  ogCardPrintedTitle,
+  ogCardThemeColor,
+  ogCardTitle,
+  ogTitleSize,
+} from '../ogCardText'
 
 /**
  * OgCard (issue 1280, board PV1): the link preview, one layout for both apps.
@@ -24,6 +32,7 @@ const SHEET: OgCardProps = {
     { label: 'HP', value: '8/10' },
     { label: 'AP', value: '3/5' },
     { label: 'TP', value: '2' },
+    { label: 'Mech', value: 'Scrapper' },
   ],
   byline: "Rosa's pilot · Reclamation of the Wastes",
   address: 'intheunionnow.com/p/pilot/0a1b',
@@ -52,8 +61,14 @@ const NPC: OgCardProps = {
     { label: 'Actions', value: '2' },
   ],
   madeBy: 'alxjrvs',
+  quoted: false,
   address: 'intheunionnow.com',
 }
+
+const LONG = 'Sergeant Kessler of the Ninth Reclamation Wing, Retired'
+
+const LONG_NPC: OgCardProps = { ...NPC, title: LONG } as OgCardProps
+const LONG_PATTERN: OgCardProps = { ...PATTERN, title: LONG } as OgCardProps
 
 const INVITE: OgCardProps = {
   kind: 'invite',
@@ -64,6 +79,8 @@ const INVITE: OgCardProps = {
   terms: 'Link expires 15 Oct · the Mediator lets you in',
   address: 'intheunionnow.com',
 }
+
+const LONG_INVITE: OgCardProps = { ...INVITE, title: LONG } as OgCardProps
 
 const PRIVATE: OgCardProps = { kind: 'private', address: 'intheunionnow.com' }
 
@@ -98,6 +115,9 @@ const KINDS: [string, OgCardProps][] = [
   ['user-made pattern', PATTERN],
   ['user-made NPC', NPC],
   ['game invite', INVITE],
+  ['long user-made NPC name', LONG_NPC],
+  ['long user-made pattern name', LONG_PATTERN],
+  ['long invite name', LONG_INVITE],
   ['private', PRIVATE],
 ]
 
@@ -167,10 +187,77 @@ describe('OgCard', () => {
     expect(ogCardDescription(DO)).not.toContain(DO.kind === 'do' ? (DO.rules ?? '-') : '-')
   })
 
-  test('a long name steps the notch down, never under 56px', () => {
+  test('a long name steps the notch down, never under the 34px floor', () => {
     expect(ogTitleSize('Scrapper')).toBe(120)
     expect(ogTitleSize('Reclamation of the Wastes')).toBeLessThan(120)
-    expect(ogTitleSize('x'.repeat(200))).toBe(56)
+    expect(ogTitleSize('x'.repeat(200))).toBe(34)
+  })
+
+  test('the notch is sized from the string it prints, quotes included', () => {
+    expect(ogCardPrintedTitle(PATTERN)).toBe('\u201CTow Rig\u201D')
+    expect(ogCardPrintedTitle(NPC)).toBe('Sergeant Kessler')
+    // 16 characters fit at 120px bare; the quotes of a pattern make it 18.
+    const name = 'Sergeant Kessler'
+    expect(ogTitleSize(`\u201C${name}\u201D`)).toBeLessThan(ogTitleSize(name))
+    // The user-made NPC story at 120px wrapped in the real font: it must step down.
+    expect(ogTitleSize(name)).toBeLessThan(120)
+  })
+
+  test('the wrapping SRD names step down so they hold one line', () => {
+    for (const name of [
+      'Monomolecular Sword',
+      'Network Takeover',
+      'Portable Flamethrower',
+      'FM-3 Flamethrower',
+    ]) {
+      expect(ogTitleSize(name)).toBeLessThan(120)
+      // The old 0.52em estimate let these wrap in the real face; 0.62em holds them.
+      expect(name.length * 0.62 * ogTitleSize(name)).toBeLessThanOrEqual(1028)
+    }
+  })
+
+  test('the notch is one line: a long player name steps down and ellipsizes', () => {
+    for (const props of [LONG_NPC, LONG_PATTERN, LONG_INVITE]) {
+      const html = renderToStaticMarkup(<OgCard {...props} />)
+      expect(html).toContain('font-size:34px')
+      expect(html).toContain(LONG)
+    }
+    const css = readFileSync(join(import.meta.dir, '../../../styles/index.css'), 'utf8')
+    expect(css).toMatch(
+      /\.su-chapter-band\[data-scale='og'\] \.su-chapter-band__title \{[^}]*white-space: nowrap[^}]*\}/
+    )
+    expect(css).toMatch(
+      /\.su-chapter-band\[data-scale='og'\] \.su-chapter-band__title \{[^}]*text-overflow: ellipsis[^}]*\}/
+    )
+  })
+
+  test('a pattern is quoted, an NPC is not', () => {
+    expect(renderToStaticMarkup(<OgCard {...PATTERN} />)).toContain('\u201CTow Rig\u201D')
+    const npc = renderToStaticMarkup(<OgCard {...NPC} />)
+    expect(npc).toContain('>Sergeant Kessler<')
+    expect(npc).not.toContain('\u201C')
+  })
+
+  test('a pilot sheet carries the MECH cell after HP, AP and TP', () => {
+    const html = renderToStaticMarkup(<OgCard {...SHEET} />)
+    expect(html.indexOf('>TP<')).toBeLessThan(html.indexOf('>Mech<'))
+    expect(html).toContain('>Scrapper<')
+  })
+
+  test('the invite names who mediates and never a token', () => {
+    const html = renderToStaticMarkup(<OgCard {...INVITE} />)
+    expect(html).toContain('Mediated by alxjrvs.')
+    expect(html).toContain('the Mediator lets you in')
+  })
+
+  test('every title and kicker is set in the condensed display face the SRD loads', () => {
+    for (const [, props] of KINDS) {
+      const html = renderToStaticMarkup(<OgCard {...props} />)
+      expect(html).toContain('font-family:&#x27;Barlow Semi Condensed&#x27;')
+    }
+    // The catalog loads that face for the story, as the SRD's styles entry does.
+    const catalog = readFileSync(join(import.meta.dir, '../../../../catalog.tsx'), 'utf8')
+    expect(catalog).toContain('@fontsource/barlow-semi-condensed/700.css')
   })
 })
 

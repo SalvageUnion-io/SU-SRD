@@ -77,6 +77,7 @@ export const Default: Story = () => (
           { label: 'HP', value: '8/10' },
           { label: 'AP', value: '3/5' },
           { label: 'TP', value: '2' },
+          { label: 'Mech', value: 'Scrapper' },
         ]}
         byline="Rosa's pilot · Reclamation of the Wastes"
         address="intheunionnow.com/p/pilot/bonesaw"
@@ -111,6 +112,7 @@ export const Default: Story = () => (
           { label: 'Actions', value: '2' },
         ]}
         madeBy="alxjrvs"
+        quoted={false}
         address="intheunionnow.com/p/npc/sergeant-kessler"
       />
     </div>
@@ -121,9 +123,25 @@ export const Default: Story = () => (
         kicker="You're invited · Player seat"
         title="Reclamation of the Wastes"
         tone={color.crawler}
-        summary="Invited by alxjrvs to a player seat."
+        summary="Mediated by alxjrvs."
         terms="Link expires 15 Oct · the Mediator lets you in"
         address="intheunionnow.com"
+      />
+    </div>
+    <div>
+      <Caption>a long player-typed name — one line, stepped down, then an ellipsis</Caption>
+      <OgCard
+        kind="userMade"
+        kicker="NPC · From Veteran"
+        title="Sergeant Kessler of the Ninth Reclamation Wing, Retired"
+        tone={color.adversary}
+        stats={[
+          { label: 'HP', value: '9' },
+          { label: 'Actions', value: '2' },
+        ]}
+        madeBy="alxjrvs"
+        quoted={false}
+        address="intheunionnow.com/p/npc/kessler"
       />
     </div>
     <div>

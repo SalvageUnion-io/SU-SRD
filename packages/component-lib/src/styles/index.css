@@ -1697,7 +1697,11 @@ a.su-pattern-rows__row:hover {
 
 .su-chapter-band[data-scale='og'] .su-chapter-band__title {
   font-size: 120px;
+  min-width: 0;
+  overflow: hidden;
   padding: var(--space-12) var(--space-24) 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ══ Mobile-first touch targets ═════════════════════════════════════════════
