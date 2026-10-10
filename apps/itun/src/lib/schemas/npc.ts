@@ -26,7 +26,6 @@ export const NpcTraitSchema = z
     amount: z.union([z.number().int().min(0), z.string()]).optional(),
   })
   .strict()
-export type NpcTrait = z.infer<typeof NpcTraitSchema>
 
 /** Where a built NPC started. Informational only: nothing re-derives from it. */
 export const NpcTemplateRefSchema = z
@@ -35,7 +34,6 @@ export const NpcTemplateRefSchema = z
     slug: z.string().min(1),
   })
   .strict()
-export type NpcTemplateRef = z.infer<typeof NpcTemplateRefSchema>
 
 export const NpcSchema = z
   .object({

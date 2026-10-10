@@ -15,8 +15,6 @@ export {
   useCrawlers,
   useMech,
   useMechs,
-  useNpc,
-  useNpcs,
   usePilot,
   usePilots,
   useSoftLinkList,
