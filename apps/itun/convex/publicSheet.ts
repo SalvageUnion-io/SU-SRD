@@ -14,6 +14,7 @@ import {
   resolveLinkEnd,
   sameContainerRows,
 } from './model/entities'
+import { statusOf } from './model/invites'
 import { NotAuthorized, requireTableRunner, requireUser } from './model/permissions'
 
 /**
@@ -409,6 +410,119 @@ export const pattern = query({
       builtCount: row.builtCount ?? 0,
       mine,
       visibility: mine ? patternVisibilityOf(row) : null,
+    }
+  },
+})
+
+/**
+ * The kinds of player thing a link can preview (issue 1280): the three sheets
+ * and a shared mech pattern.
+ */
+const previewKindValidator = v.union(
+  v.literal('pilot'),
+  v.literal('mech'),
+  v.literal('crawler'),
+  v.literal('pattern')
+)
+
+/** What a link preview of one player thing may say. */
+type PreviewAnswer = {
+  kind: Kind | 'pattern'
+  body: unknown
+  /** The player who owns it (a sheet) or made it (a pattern); null when unclaimed. */
+  ownerName: string | null
+  /** The Game a sheet sits in; null on a shelf, and always null for a pattern. */
+  gameName: string | null
+}
+
+/** A user's display name, the way every credit in the app reads it. */
+function displayNameOf(user: Doc<'users'> | null): string | null {
+  return user?.displayName ?? user?.name ?? null
+}
+
+/**
+ * One player thing, as its link preview shows it to a STRANGER (issue 1280),
+ * or null.
+ *
+ * **Unauthenticated by design**, and stricter than the pages it previews:
+ * whoever asks, it serves only what anyone with the link may read — a sheet
+ * or a pattern with `publicRead` set — never a crew-shared pattern, even to
+ * its crew, because an unfurl is posted where strangers read it. A preview
+ * never shows more than the page would show a stranger.
+ *
+ * Beyond the body the page already serves, it names the owner (a sheet's
+ * byline, "Rosa's pilot", and a pattern's "Made by") and a sheet's Game. That
+ * is the owner's own choice to publish, made on their own sheet; it names
+ * nobody else, and like `get` it answers a private thing with the same null
+ * as a missing one.
+ */
+export const preview = query({
+  args: { kind: previewKindValidator, appId: v.string() },
+  handler: async (ctx, args): Promise<PreviewAnswer | null> => {
+    if (args.kind === 'pattern') {
+      const row = await patternByAppId(ctx, args.appId)
+      if (row === null || row.publicRead !== true) return null
+      return {
+        kind: 'pattern',
+        body: row.body,
+        ownerName: displayNameOf(await ctx.db.get(row.ownerId)) ?? 'a player',
+        gameName: null,
+      }
+    }
+    const row = await byAppId(ctx, KIND_TO_TABLE[args.kind], args.appId)
+    if (row === null || row.publicRead !== true) return null
+    const ownerId = 'ownerId' in row ? row.ownerId : null
+    const game = row.gameId !== null ? await ctx.db.get(row.gameId) : null
+    return {
+      kind: args.kind,
+      body: row.body,
+      ownerName: ownerId ? displayNameOf(await ctx.db.get(ownerId)) : null,
+      gameName: game?.name ?? null,
+    }
+  },
+})
+
+/** What a Game invite's link preview may say: never the code, never the crew. */
+type InvitePreviewAnswer = {
+  gameName: string
+  /** Who runs the table: the Game's Mediator, by display name. */
+  mediatedBy: string | null
+  role: 'player' | 'mediator'
+  requiresApproval: boolean
+  expiresAt: number
+}
+
+/**
+ * A Game invite, as its link preview shows it (issue 1280, board PV1): the
+ * Game's name, who mediates and the expiry, or null for a code that is not
+ * live. **Unauthenticated**, like `invites.preview`, which already tells a
+ * link holder the Game's name and who invited them; this adds only the
+ * Mediator's name, the one person a player is asking to join.
+ */
+export const invitePreview = query({
+  args: { code: v.string() },
+  handler: async (ctx, args): Promise<InvitePreviewAnswer | null> => {
+    const code = args.code.trim().toUpperCase()
+    if (code.length === 0) return null
+    const invite = await ctx.db
+      .query('invites')
+      .withIndex('by_code', (q) => q.eq('code', code))
+      .unique()
+    if (invite === null || statusOf(invite, Date.now()) !== 'active') return null
+    const game = await ctx.db.get(invite.gameId)
+    if (game === null) return null
+    const mediator = (
+      await ctx.db
+        .query('memberships')
+        .withIndex('by_game', (q) => q.eq('gameId', invite.gameId))
+        .collect()
+    ).find((membership) => membership.mediator)
+    return {
+      gameName: game.name,
+      mediatedBy: mediator ? displayNameOf(await ctx.db.get(mediator.userId)) : null,
+      role: invite.role,
+      requiresApproval: invite.requiresApproval,
+      expiresAt: invite.expiresAt,
     }
   },
 })

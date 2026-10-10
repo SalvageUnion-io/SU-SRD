@@ -974,7 +974,7 @@ Everything runs here ([ADR-033](#adr-033)), account
 | Worker | Serves | Bindings |
 | --- | --- | --- |
 | `su-srd` | `salvageunion.io`, `www.` | none (Static Assets) |
-| `su-itun` | `intheunionnow.com`, `www.` (Static Assets, SPA mode; the script answers non-navigation misses) | `ASSETS` |
+| `su-itun` | `intheunionnow.com`, `www.` (Static Assets, SPA mode; the script answers non-navigation misses) | `ASSETS`, `CONVEX_URL` |
 | `su-assets` | `assets.salvageunion.io` | R2 `LP_ASSETS`, `IMAGES` |
 | `su-discord-bot` | Discord interactions | secrets only |
 
@@ -3663,6 +3663,12 @@ no account to open, is always current, and requires no publishing step.
   route is client-rendered, so a bare link pasted into Discord or Slack shows
   nothing. That is why the bot renders the URL inside its own card. Giving this
   route server-rendered meta tags is a separate, later piece of work.
+  *Amended 2026-10-09 (#1280):* it unfurls now. For a bot's request the Worker
+  swaps the shell's `itun:meta` block for the thing's preview
+  (`src/worker/linkPreview.ts`, read from `publicSheet.preview`, which serves
+  only what anyone with the link may read), and renders its `OgCard` on
+  request through Browser Rendering, cached by version. A private sheet
+  unfurls as the plain Private card.
 
 ### Alternatives considered
 

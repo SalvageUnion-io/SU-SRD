@@ -72,6 +72,19 @@ function RootHeader({ pathname }: { pathname: string }) {
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
+  // A link preview's render surface (`/og/*`, issue 1280) is a picture, not a
+  // page: the card alone, with Convex and the reference data and none of the
+  // chrome, banners or account flow a screenshot must not catch.
+  if (pathname.startsWith('/og/')) {
+    return (
+      <AppConvexProvider>
+        <GameDataReady>
+          <Outlet />
+        </GameDataReady>
+      </AppConvexProvider>
+    )
+  }
+
   return (
     <AppConvexProvider>
       <HeadContent />
