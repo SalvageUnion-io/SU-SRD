@@ -28,6 +28,8 @@ type SheetHeroProps = {
   vitals?: ReactNode
   /** Title of the fields card. */
   fieldsTitle?: string
+  /** `paper` is the printed read state (board 10); `frame` the Edit state's card. */
+  surface?: 'frame' | 'paper'
   className?: string
 }
 
@@ -37,6 +39,7 @@ export function SheetHero({
   fields,
   vitals,
   fieldsTitle = 'Identity',
+  surface = 'frame',
   className,
 }: SheetHeroProps) {
   return (
@@ -61,13 +64,18 @@ export function SheetHero({
           a card has no chevron, which is exactly right here. */}
       <SheetSectionCard
         title={fieldsTitle}
+        surface={surface}
         count={meta}
         className="flex h-full flex-col"
         bodyClassName="flex min-h-0 flex-1 flex-col"
       >
         {fields}
       </SheetSectionCard>
-      {vitals && <SheetSectionCard title="Vitals">{vitals}</SheetSectionCard>}
+      {vitals && (
+        <SheetSectionCard title="Vitals" surface={surface}>
+          {vitals}
+        </SheetSectionCard>
+      )}
     </section>
   )
 }

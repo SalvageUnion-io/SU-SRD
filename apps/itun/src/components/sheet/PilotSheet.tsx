@@ -50,13 +50,13 @@
 
 import {
   Badge,
+  Conditions,
   EmptyState,
   EntitySearcher,
   MasonryColumns,
   Panel,
   SheetSectionCard,
   SheetSectionSlab,
-  Slab,
   Stat,
   tokens,
   VitalGauge,
@@ -80,7 +80,7 @@ import {
   PilotEquipmentItem,
 } from './PilotSheetItems'
 import { usePilotSheetActions } from './pilotSheetActions'
-import { GENERIC_TREE, usePilotSheetModel } from './pilotSheetModel'
+import { usePilotSheetModel } from './pilotSheetModel'
 import { SectionManageButton, SheetPickerModal } from './SheetSection'
 
 // ---------------------------------------------------------------------------
@@ -119,6 +119,27 @@ function TpBlock({
       mode={editable ? 'edit' : 'read'}
       onChange={editable ? onChange : undefined}
     />
+  )
+}
+
+/**
+ * TP in the read state (board 10): a typeset row, the same anatomy as the HP
+ * and AP rows above it — stamp, label, then the value at the right. No
+ * stepper; Edit gives the stepper box back (`TpBlock`).
+ */
+function TpReadRow({ value }: { value: number }) {
+  return (
+    <div role="img" aria-label={`Training Points ${value}`} className="flex items-baseline gap-2">
+      <Badge shape="stamp" size="full">
+        TP
+      </Badge>
+      <span className="font-cond text-badge font-bold uppercase leading-none tracking-caps text-wk-muted">
+        Training Points
+      </span>
+      <b className="ml-auto font-cond text-display-lg font-bold leading-none tabular-nums text-ink">
+        {value}
+      </b>
+    </div>
   )
 }
 
@@ -236,6 +257,7 @@ export function PilotSheet({
         <div className="flex min-w-0 flex-col gap-6">
           <SheetSectionCard
             title="Identity"
+            surface={readOnly ? 'paper' : 'frame'}
             count={
               model.dead ? (
                 <Badge surface="tone" tone="bad">
@@ -250,59 +272,31 @@ export function PilotSheet({
               patch={readOnly ? undefined : actions.patchPilot}
             />
           </SheetSectionCard>
-          {/* ===== Abilities — one sub-slab per ABILITY TREE =====
+          {/* ===== Abilities — the ones this pilot owns =====
               A SLAB, not a card: the grid is entity cards, which carry their own
-              frame. Inside it the abilities group by tree, because a pilot's
-              abilities ARE a set of trees and a flat grid lost that: GENERIC (the
-              eight every pilot can take) reads as a full-width row of its own, then
-              each class tree takes a single column, three trees to a row. The
-              per-tree leader is the DASHED `Slab`, subordinate to the section's own
-              solid stamp. */}
+              frame. */}
           <SheetSectionSlab
             title="Abilities"
-            count={`${pilot.abilities.length} known`}
+            // The rule's caption names the trees the cards come from (board 10).
+            count={model.abilityTreeCaption ?? undefined}
             controls={
               readOnly ? undefined : (
                 <SectionManageButton label="abilities" onClick={() => setPicker('abilities')} />
               )
             }
           >
-            {pilot.abilities.length === 0 && model.genericAbilities.length === 0 ? (
+            {pilot.abilities.length === 0 ? (
               <EmptyState variant="quiet" body="No abilities learned yet." />
             ) : (
               <div className="flex flex-col gap-5">
-                {model.genericAbilities.length > 0 && (
-                  <div>
-                    {/* No count: the class trees show how many you have TAKEN,
-                        which is a number worth reading. Generic is intrinsic and
-                        fixed, so a tally beside it is noise. */}
-                    <Slab label={GENERIC_TREE} />
-                    <MasonryColumns maxColumns={3}>
-                      {model.genericAbilities.map((entry) => (
-                        <EntityGridRow key={entry.slug}>{renderAbility(entry)}</EntityGridRow>
-                      ))}
-                    </MasonryColumns>
-                  </div>
-                )}
-
-                {model.abilityGroups.trees.length > 0 && (
-                  // One COLUMN per tree, three to a row — a tree's abilities stack
-                  // under their own leader instead of being interleaved with
-                  // another tree's by a masonry flow.
-                  <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 xl:grid-cols-3">
-                    {model.abilityGroups.trees.map(([tree, entries]) => (
-                      <div key={tree} className="min-w-0">
-                        <Slab label={tree} count={entries.length} />
-                        <div className="flex flex-col gap-4">
-                          {entries.map((entry) => (
-                            <div key={entry.slug} className="min-w-0">
-                              {renderAbility(entry)}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                {/* Only what this pilot owns, each a full medium card so the
+                    action and range line and the body read in Read. */}
+                {model.ownedAbilities.length > 0 && (
+                  <MasonryColumns maxColumns={3}>
+                    {model.ownedAbilities.map((entry) => (
+                      <EntityGridRow key={entry.slug}>{renderAbility(entry)}</EntityGridRow>
                     ))}
-                  </div>
+                  </MasonryColumns>
                 )}
 
                 {model.unresolvedAbilities.length > 0 && (
@@ -319,7 +313,7 @@ export function PilotSheet({
           </SheetSectionSlab>
         </div>
         <div className="flex min-w-0 flex-col gap-6">
-          <SheetSectionCard title="Vitals">
+          <SheetSectionCard title="Vitals" surface={readOnly ? 'paper' : 'frame'}>
             <div className="flex w-full flex-col [&>*+*]:mt-[14px] [&>*+*]:border-t [&>*+*]:border-dashed [&>*+*]:border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] [&>*+*]:pt-[14px]">
               <VitalGauge
                 label="HP"
@@ -332,7 +326,8 @@ export function PilotSheet({
                     : (next) => actions.overridePilotMax({ maxHpOverride: pinFor(next, hpParts) })
                 }
                 breakdown={readOnly ? undefined : hpParts}
-                provenance={model.hpLines}
+                subLabel={readOnly ? 'Hit Points' : undefined}
+                provenance={readOnly ? undefined : model.hpLines}
                 onRevertOverride={
                   readOnly
                     ? undefined
@@ -351,7 +346,8 @@ export function PilotSheet({
                     : (next) => actions.overridePilotMax({ maxApOverride: pinFor(next, apParts) })
                 }
                 breakdown={readOnly ? undefined : apParts}
-                provenance={model.apLines}
+                subLabel={readOnly ? 'Ability Points' : undefined}
+                provenance={readOnly ? undefined : model.apLines}
                 onRevertOverride={
                   readOnly
                     ? undefined
@@ -359,30 +355,49 @@ export function PilotSheet({
                 }
                 readOnly={readOnly}
               />
-              {/* TP and Conditions SHARE a row. Stacked, the vitals column ran
-                    well past the identity card beside it; TP is a single narrow
-                    plate and Conditions is a short chip list, so neither needs a
-                    full row of its own and pairing them squares the two cards up. */}
-              <div className="flex w-full min-w-0 items-start gap-3">
-                <TpBlock
-                  value={tp}
-                  onChange={readOnly ? undefined : (v) => actions.patchPilot({ trainingPoints: v })}
-                  editable={!readOnly}
-                />
-                <div className="min-w-0 flex-1">
-                  <span
-                    className="mb-2 block font-cond text-badge font-bold uppercase leading-none tracking-caps"
-                    style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-                  >
-                    Conditions
-                  </span>
-                  <ConditionsEditor
-                    conditions={pilot.conditions}
-                    onChange={actions.handleConditionsChange}
-                    readOnly={readOnly}
+              {readOnly ? (
+                <>
+                  <TpReadRow value={tp} />
+                  {/* Read leaves an empty field out: Conditions prints only
+                      when there is one to read. */}
+                  {pilot.conditions.length > 0 && (
+                    <div className="min-w-0">
+                      <span
+                        className="mb-2 block font-cond text-badge font-bold uppercase leading-none tracking-caps"
+                        style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+                      >
+                        Conditions
+                      </span>
+                      <Conditions conditions={[...pilot.conditions]} />
+                    </div>
+                  )}
+                </>
+              ) : (
+                // TP and Conditions SHARE a row. Stacked, the vitals column ran
+                // well past the identity card beside it; TP is a single narrow
+                // plate and Conditions is a short chip list, so neither needs a
+                // full row of its own and pairing them squares the two cards up.
+                <div className="flex w-full min-w-0 items-start gap-3">
+                  <TpBlock
+                    value={tp}
+                    onChange={(v) => actions.patchPilot({ trainingPoints: v })}
+                    editable
                   />
+                  <div className="min-w-0 flex-1">
+                    <span
+                      className="mb-2 block font-cond text-badge font-bold uppercase leading-none tracking-caps"
+                      style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+                    >
+                      Conditions
+                    </span>
+                    <ConditionsEditor
+                      conditions={pilot.conditions}
+                      onChange={actions.handleConditionsChange}
+                      readOnly={false}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </SheetSectionCard>
           {/* ===== Inventory (full-width band, printed pilot sheet bottom) ===== */}

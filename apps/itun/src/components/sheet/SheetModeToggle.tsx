@@ -39,7 +39,19 @@ const ON = {
   color: tokens.color.paper,
 } satisfies CSSProperties
 
-export function SheetModeToggle({ mode, kind }: { mode: SheetMode; kind: string }) {
+export function SheetModeToggle({
+  mode,
+  kind,
+  editDisabled = false,
+}: {
+  mode: SheetMode
+  kind: string
+  /**
+   * Edit is not on offer (the Starter Set's templates, which nobody edits):
+   * the control still prints, so the sheet reads the same, with Edit off.
+   */
+  editDisabled?: boolean
+}) {
   return (
     // biome-ignore lint/a11y/useSemanticElements: a fieldset would bring a legend and form semantics to two toggle buttons
     <div role="group" aria-label={`Read or edit this ${kind}`} style={GROUP}>
@@ -55,8 +67,16 @@ export function SheetModeToggle({ mode, kind }: { mode: SheetMode; kind: string 
       <button
         type="button"
         aria-pressed={mode.editing}
+        disabled={editDisabled}
+        title={editDisabled ? 'Make a copy to edit' : undefined}
         className="su-focus-ring"
-        style={mode.editing ? ON : BUTTON}
+        style={
+          editDisabled
+            ? { ...BUTTON, cursor: 'not-allowed', opacity: 0.5 }
+            : mode.editing
+              ? ON
+              : BUTTON
+        }
         onClick={() => mode.setEditing(true)}
       >
         Edit

@@ -231,6 +231,7 @@ export function MechSheet({
           SP/EP/Heat + Conditions vitals rail, in one toned frame. */}
       <SheetHero
         name={mech.name}
+        surface={readOnly ? 'paper' : 'frame'}
         // On a mech this region IS the chassis: its name, its stats, its
         // ability, its quirk. "Identity" named the shape, not the subject.
         fieldsTitle="Chassis"

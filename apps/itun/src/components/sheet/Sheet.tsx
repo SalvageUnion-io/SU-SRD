@@ -44,6 +44,7 @@ import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
 import { SheetModeToggle } from './SheetModeToggle'
 import { SheetPilot } from './SheetPilot'
+import type { SheetMode } from './sheetMode'
 import { useSheetMode } from './sheetMode'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps'
 
@@ -155,6 +156,9 @@ type SheetProps = {
 const liveSheetHref = (kind: EntityRef['type'], id: string): string => `/sheet/${kind}/${id}`
 
 const NONE_WITHHELD: readonly WithheldUnit[] = []
+
+/** A sheet that is only ever read: Read pressed, nothing to switch to. */
+const READ_ONLY_MODE: SheetMode = { editing: false, setEditing: () => undefined }
 
 export function Sheet({
   kind,
@@ -356,9 +360,13 @@ export function Sheet({
 
   // The band: the type stamps' provenance, and Read | Edit where the viewer
   // may write — a crewmate's or the Starter Set's sheet is only ever read.
+  // The Starter Set's sheet (`bandActions`) prints the control too, Edit off,
+  // beside "Make a copy" (board 10).
   const modeToggle =
     sheetMode !== null && !readOnlyProp && !writesBlocked ? (
       <SheetModeToggle mode={sheetMode} kind={kind} />
+    ) : bandActions !== undefined ? (
+      <SheetModeToggle mode={READ_ONLY_MODE} kind={kind} editDisabled />
     ) : null
   const band: SheetBand = {
     provenance: provenance ?? (readOnlyProp ? 'read-only' : undefined),
