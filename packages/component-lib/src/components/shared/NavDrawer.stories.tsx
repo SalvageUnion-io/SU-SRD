@@ -77,3 +77,31 @@ export const Default: Story = () => {
     </div>
   )
 }
+
+/**
+ * ITUN's drawer (issue 1255): the primary nav, then About and Changelog as quiet
+ * links at the drawer's foot rather than among the destinations.
+ */
+export const WithFoot: Story = () => {
+  const frameRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    frameRef.current?.querySelector<HTMLButtonElement>('[aria-label="Open menu"]')?.click()
+  }, [])
+  return (
+    <div ref={frameRef}>
+      <NavDrawer
+        brand={<SrdBrand />}
+        navItems={[
+          { label: 'Shelves', href: '/', active: true },
+          { label: 'Starter Set', href: '/starter/' },
+          { label: 'Discord', href: '/discord/', external: true },
+        ]}
+        footItems={[
+          { label: 'About', href: '/about' },
+          { label: 'Changelog', href: '/changelog' },
+        ]}
+        panelClassName="w-72"
+      />
+    </div>
+  )
+}

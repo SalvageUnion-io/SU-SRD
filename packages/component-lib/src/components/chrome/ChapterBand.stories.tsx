@@ -61,6 +61,26 @@ export const Default: Story = () => (
       <ChapterBand tone="pilot">{pilotClass?.name ?? 'Pilot Bay'}</ChapterBand>
     </div>
     <div style={PAGE}>
+      <Caption>pilot — with an eyebrow (a sheet's stamps and provenance, board 10)</Caption>
+      <ChapterBand
+        tone="pilot"
+        measure="80rem"
+        eyebrow={
+          <>
+            <Badge shape="stamp" size="full">
+              Pilot
+            </Badge>
+            <Badge shape="stamp" size="full" surface="inverse">
+              {pilotClass?.name ?? 'Engineer'}
+            </Badge>
+            <span>Starter Set · Leyline Press · read-only</span>
+          </>
+        }
+      >
+        Bonesaw
+      </ChapterBand>
+    </div>
+    <div style={PAGE}>
       <Caption>crawler</Caption>
       <ChapterBand tone="crawler">{crawler?.name ?? 'Union Crawler'}</ChapterBand>
     </div>
