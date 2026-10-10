@@ -28,6 +28,7 @@
  * mount) decides what an activation spends and whether it touches Heat.
  */
 
+import { rollForTable } from 'component-lib'
 import { useState } from 'react'
 import type { CoreRollResult } from 'salvageunion-reference/rules'
 import {
@@ -42,7 +43,6 @@ import {
   resolveChassisRef,
   resolveGauge,
   resolvePoolStart,
-  rollDie,
 } from 'salvageunion-reference/rules'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { runWrite } from '../../lib/runWrite'
@@ -105,6 +105,11 @@ export type ActionsDeckProps = {
   onDamagePrompt?: () => void
   /** Injectable store (defaults to the live entity store). */
   store?: PlayStore
+  /**
+   * The dice for a roll on a table, by its name. Injectable so a test controls
+   * the roll; defaults to component-lib's `rollForTable` (Randsum).
+   */
+  rollFor?: typeof rollForTable
 }
 
 export type ActionsDeck = {
@@ -129,6 +134,7 @@ export function useActionsDeck({
   onResolving,
   onDamagePrompt,
   store,
+  rollFor = rollForTable,
 }: ActionsDeckProps): ActionsDeck {
   const liveStore = useEntityStore()
   const s: PlayStore = store ?? liveStore
@@ -269,8 +275,8 @@ export function useActionsDeck({
     step(current, { applied: true })
   }
 
-  function doRoll(current: SeatResolving, action: PlayAction) {
-    const result = performCoreRoll(rollDie)
+  async function doRoll(current: SeatResolving, action: PlayAction) {
+    const result = performCoreRoll(await rollFor('Core Mechanic'))
     setPushLog(null)
     setMeltdown(false)
     setApplyRouted(false)
@@ -283,9 +289,12 @@ export function useActionsDeck({
     }
   }
 
-  function doPush(current: SeatResolving, action: PlayAction) {
+  async function doPush(current: SeatResolving, action: PlayAction) {
     // Push is the mech reactor's move: only a boarded deck offers it.
     if (!mech) return
+    // The Heat Check's own d20 is plain; an overload rolls on Reactor Overload.
+    const heatRoll = await rollFor('Reactor Overload', { plainD20s: 1 })
+    const coreRoll = await rollFor('Core Mechanic')
     const chassis = resolveChassisRef(mech.chassisRef)
     const fresh = s.get('mech', mech.id) ?? mech
     const cap = mechMaxHeat(fresh, chassis)
@@ -303,10 +312,10 @@ export function useActionsDeck({
       // Unrecorded SP means undamaged. At 0 an Overheat wrote the mech straight
       // to SP 0 — one hit from destroyed — without it ever having taken damage.
       currentSP: resolvePoolStart(fresh.currentSP, mechMaxSP(fresh, chassis)),
-      roll: rollDie,
+      roll: heatRoll,
     })
     runWrite(() => s.update('mech', mech.id, patch, DASHBOARD_TXN))
-    const result = performCoreRoll(rollDie)
+    const result = performCoreRoll(coreRoll)
     const log = describePushOutcome(nextHeat, effect)
     setPushLog(log)
     setMeltdown(meltedDown)
@@ -513,7 +522,7 @@ export function useActionsDeck({
             : 'Activating would exceed the Heat Cap',
         onActivate: () => activate(current, selected, effCurrency, eco),
         activated,
-        onRoll: () => doRoll(current, selected),
+        onRoll: () => void doRoll(current, selected),
         push: isPilotAction
           ? undefined
           : {
@@ -522,7 +531,7 @@ export function useActionsDeck({
               lockedReason: pushLocked
                 ? `No Push at Heat ${heatCtx.currentHeat}/${heatCtx.heatCap}: +2 Heat would pass the Heat Cap.`
                 : undefined,
-              onPush: () => doPush(current, selected),
+              onPush: () => void doPush(current, selected),
             },
         applyLabel: applied ? 'Applied' : 'Apply',
         applyDisabled: roll === null || applied || applyRouted,

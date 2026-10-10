@@ -41,9 +41,9 @@ export function RollTableButton({
   function handleClick() {
     const result =
       table !== undefined ? rollOnNamedTable(table, _deps) : rollForPilotField(field, _deps)
-    if (result !== null) {
-      onRoll(result)
-    }
+    void result.then((value) => {
+      if (value !== null) onRoll(value)
+    })
   }
 
   return (

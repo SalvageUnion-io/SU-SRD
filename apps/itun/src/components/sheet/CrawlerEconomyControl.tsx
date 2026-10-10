@@ -33,10 +33,10 @@
  * `crawlerEconomyDialogState.ts`.
  */
 
-import { Button, FieldError, ModalShell, Select, Slab, Stat } from 'component-lib'
+import { Button, FieldError, ModalShell, rollForTable, Select, Slab, Stat } from 'component-lib'
 import { useReducer, useState } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
-import { crawlerMaxSP, resolvePool, rollDie } from 'salvageunion-reference/rules'
+import { crawlerMaxSP, resolvePool } from 'salvageunion-reference/rules'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
@@ -81,8 +81,12 @@ type CrawlerEconomyControlProps = {
   /** The open dialog; null renders nothing. */
   open: CrawlerEconomyDialog | null
   onClose: () => void
-  /** Injectable d20 / random-Bay roller — defaults to `rollDie`. */
-  roll?: Roll
+  /**
+   * The dice for a roll on a table, by its name: d20s and the random Bay.
+   * Injectable for tests; defaults to component-lib's `rollForTable`
+   * (@randsum/salvageunion for Crawler Deterioration, a named table).
+   */
+  rollFor?: (tableName: string) => Promise<Roll>
 }
 
 export function CrawlerEconomyControl({
@@ -90,17 +94,17 @@ export function CrawlerEconomyControl({
   store,
   open,
   onClose,
-  roll = rollDie,
+  rollFor = rollForTable,
 }: CrawlerEconomyControlProps) {
   // Each dialog mounts only while open so its roll/result state resets.
   return (
     <>
       {open === 'upkeep' && (
-        <UpkeepDialog crawler={crawler} store={store} roll={roll} onClose={onClose} />
+        <UpkeepDialog crawler={crawler} store={store} rollFor={rollFor} onClose={onClose} />
       )}
       {open === 'upgrade' && <UpgradeDialog crawler={crawler} store={store} onClose={onClose} />}
       {open === 'trade' && (
-        <TradeDialog crawler={crawler} store={store} roll={roll} onClose={onClose} />
+        <TradeDialog crawler={crawler} store={store} rollFor={rollFor} onClose={onClose} />
       )}
     </>
   )
@@ -136,7 +140,9 @@ function describeDeterioration(effect: DeteriorationEffect, bayName: string | nu
   }
 }
 
-function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Roll }) {
+type RollFor = { rollFor: (tableName: string) => Promise<Roll> }
+
+function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor) {
   const storeState = store()
   const [{ result, choosePrompt, done }, dispatch] = useReducer(upkeepReducer, INITIAL_UPKEEP_STATE)
 
@@ -180,6 +186,7 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
    * player (ADR-007).
    */
   async function handleDeterioration() {
+    const roll = await rollFor('Crawler Deterioration')
     const fresh = freshEntity(storeState, 'crawler', crawler)
     const bays = fresh.crawlerBays ?? []
     const maxSP = crawlerMaxSP(fresh)
@@ -411,7 +418,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
 // Trading Bay — fixed-rate Scrap exchange + availability roll (p.223)
 // ---------------------------------------------------------------------------
 
-function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Roll }) {
+function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor) {
   const storeState = store()
   const tl = parseCrawlerTechLevel(crawler.techLevel) ?? 1
   const gate = bayGate(crawler, TRADING_BAY)
@@ -447,7 +454,8 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
   }
 
   /** Once per Downtime (honor system) — what the wastelanders brought. */
-  function handleAvailabilityRoll() {
+  async function handleAvailabilityRoll() {
+    const roll = await rollFor('Trading Bay')
     dispatch({ type: 'rolled', result: performTradingRoll({ crawlerTl: tl, roll }) })
   }
 

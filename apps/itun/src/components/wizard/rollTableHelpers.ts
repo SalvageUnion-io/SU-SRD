@@ -3,9 +3,10 @@
  * Isolated from React so they can be tested without a DOM.
  */
 
+import type { TableDie } from 'component-lib'
+import { d20ForTable } from 'component-lib'
 import type { SURefRollTable } from 'salvageunion-reference'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import { rollDie } from 'salvageunion-reference/rules'
 
 /** Roll IDs for pilot wizard identity fields. */
 export const PILOT_ROLL_TABLE_NAMES = {
@@ -23,15 +24,18 @@ export type PilotRollField = keyof typeof PILOT_ROLL_TABLE_NAMES
  */
 export type RollTableDeps = {
   findTable: (name: string) => (SURefRollTable & { schemaName: string }) | undefined
-  rollD20: () => number
+  /** The die for a table, by name (component-lib's `d20ForTable`). */
+  d20For: (tableName: string) => Promise<TableDie>
 }
 
 /**
- * Default production deps — read from SalvageUnionReference.
+ * Default production deps — read from SalvageUnionReference; the die is
+ * @randsum/salvageunion's `rollTable` for a named Salvage Union table (a
+ * choice can point at Critical Injury), Randsum's plain d20 otherwise.
  */
 const defaultRollTableDeps: RollTableDeps = {
   findTable: (name) => SalvageUnionReference.RollTables.getByName(name),
-  rollD20: () => rollDie(20),
+  d20For: d20ForTable,
 }
 
 /**
@@ -41,7 +45,7 @@ const defaultRollTableDeps: RollTableDeps = {
 export function rollForPilotField(
   field: PilotRollField,
   deps: RollTableDeps = defaultRollTableDeps
-): string | null {
+): Promise<string | null> {
   return rollOnNamedTable(PILOT_ROLL_TABLE_NAMES[field], deps)
 }
 
@@ -51,17 +55,18 @@ export function rollForPilotField(
  * Roll appears only where the data has a table (P7 D1). Null when the table
  * cannot be found or the roll fails.
  */
-export function rollOnNamedTable(
+export async function rollOnNamedTable(
   tableName: string,
   deps: RollTableDeps = defaultRollTableDeps
-): string | null {
+): Promise<string | null> {
   const table = deps.findTable(tableName)
   if (!table) return null
 
   // rollOnTable (salvageunion-reference, ADR-006) owns the flat-vs-columns
   // branch — columns tables like the Callsign Table roll two d20s (column,
-  // then entry). Shared with the Discord bot's /roll command.
-  const outcome = rollOnTable(table.table, deps.rollD20)
+  // then entry). Shared with the Discord bot's /roll command. The row is read
+  // from the workspace table by the die's total, whichever die it was.
+  const outcome = rollOnTable(table.table, await deps.d20For(table.name))
   if (!outcome.success) return null
 
   return outcome.label ? `${outcome.label}: ${outcome.value}` : outcome.value

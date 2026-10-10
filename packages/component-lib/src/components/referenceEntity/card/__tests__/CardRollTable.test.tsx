@@ -68,7 +68,7 @@ describe('CardRollTable', () => {
     expect(marked[0]?.textContent).toContain('Rolled 14')
   })
 
-  test('rolling never needs the table open, and the toggle opens it', () => {
+  test('rolling never needs the table open, and the toggle opens it', async () => {
     render(
       <CardRollTable
         table={coreMechanic()}
@@ -79,7 +79,8 @@ describe('CardRollTable', () => {
       />
     )
     fireEvent.click(screen.getByRole('button', { name: 'Roll on this table' }))
-    expect(screen.getByText(/You rolled · lands on/)).toBeTruthy()
+    // The dice load on the first roll (`d20ForTable`), so the readout is awaited.
+    expect(await screen.findByText(/You rolled · lands on/)).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Show the Core Mechanic table' }))
     expect(screen.getAllByRole('listitem').length).toBe(5)
   })

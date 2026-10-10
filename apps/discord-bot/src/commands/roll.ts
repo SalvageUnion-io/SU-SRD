@@ -1,10 +1,10 @@
 import type { ContainerBuilder, SlashCommandSubcommandBuilder } from '@discordjs/builders'
-import { roll as rollDie } from '@randsum/roller'
 import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { ContainerData } from '../container.js'
 import { toContainer } from '../container.js'
 import { decodeRollResult, encodeRollResult, makeCustomId } from '../customId.js'
+import { d20ForTable, rollD20 } from '../dice.js'
 import { noEffectContainer, unknownTableContainer } from '../errorContainer.js'
 import { buildRollContainerData, rollTableUrl } from '../rollContainer.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
@@ -37,13 +37,6 @@ function getRollTables(): ReturnType<typeof SalvageUnionReference.RollTables.all
 }
 
 /**
- * Roll a d20
- */
-function rollD20(): number {
-  return rollDie('1d20').total
-}
-
-/**
  * A Components V2 payload ready for `interaction.reply`, or a user-facing
  * error. `data` rides along so `attributeRoll` can rebuild the container with
  * one more line rather than mutating a sent message — see rollAttribution.ts.
@@ -60,7 +53,10 @@ export type RollMessage =
 export function buildRollMessage(
   tableName: string,
   roller?: string,
-  /** Injectable for tests; production always uses the real d20. */
+  /**
+   * The die. Injectable for tests; production passes `d20ForTable(tableName)`,
+   * which is @randsum/salvageunion's `rollTable` for a named table.
+   */
   d20: () => number = rollD20,
   /** Render only to the asker, with a button to share the same result. */
   isPrivate = false
@@ -232,7 +228,12 @@ export const rollCommand = {
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     const tableName = interaction.options.getString('table') ?? 'Core Mechanic'
     const isPrivate = interaction.options.getBoolean?.('private') === true
-    const message = buildRollMessage(tableName, interaction.user.displayName, rollD20, isPrivate)
+    const message = buildRollMessage(
+      tableName,
+      interaction.user.displayName,
+      await d20ForTable(tableName),
+      isPrivate
+    )
     if ('error' in message) {
       await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
       return
