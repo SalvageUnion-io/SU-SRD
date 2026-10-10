@@ -31,8 +31,10 @@ type FieldStaticProps = FieldCommon & {
  * Edit-in-place / picker field (the merged `IdentityField`): renders a stored
  * `value` inside an ink-bordered value box under the same straddling stamp.
  * ALWAYS editable when it is given a handler — there is no section Edit toggle
- * to unlock first. The dashed "write here" cue appears on hover / focus rather
- * than permanently, so a sheet of fields is not a sheet of dashes.
+ * to unlock first. The value box is DASHED: on a sheet, dashed borders and
+ * steppers are the only "write here" cues (ruleset §1, Live Sheet; issue 1255),
+ * and the Read | Edit toggle means a sheet only draws them while it is in Edit.
+ * The deep-tone outline still comes on hover / focus to mark the one in hand.
  *
  * With NO handler it is the read state, and the read state is typeset, not a
  * form (brand refresh P4, board 10: "print reads, pencil writes"): a small caps
@@ -104,6 +106,9 @@ const TYPESET_PROMINENT = { ...TYPESET_VALUE, fontSize: fontSize.title } satisfi
 /** The ink `Input` skin as a value-box shell (paper bg, 1.5px ink border, 3px radius). */
 const FIELD_BOX =
   'flex min-h-11 w-full items-center rounded-card border-chrome border-ink bg-paper px-3 font-body text-sm text-ink'
+
+/** A writable value box is pencil, not print: its border is dashed (ruleset §1). */
+const WRITE_CUE = 'border-dashed'
 
 /**
  * Form field block (design-spec §2.5 `.field`) — the ONE labelled control. The
@@ -213,7 +218,12 @@ export function Field(props: FieldProps) {
           // by both apps' print CSS, so the opt-in belongs on the markup.
           // A read-only Field is typeset, with no button to hide.
           data-print="keep"
-          className={cn(FIELD_BOX, 'cursor-pointer text-left hover:bg-ink-8', EDIT_CUE_HOVER_CLASS)}
+          className={cn(
+            FIELD_BOX,
+            WRITE_CUE,
+            'cursor-pointer text-left hover:bg-ink-8',
+            EDIT_CUE_HOVER_CLASS
+          )}
         >
           {valueSpan}
         </button>
@@ -239,6 +249,7 @@ export function Field(props: FieldProps) {
         // than a new InlineEditField prop: the box is a flex row, so stretching
         // it and its child span is all the readout needs to fill.
         className={cn(
+          WRITE_CUE,
           EDIT_CUE_HOVER_CLASS,
           fill &&
             'h-full flex-1 items-stretch [&>span]:h-full [&>span]:items-start [&>span]:py-2.5',

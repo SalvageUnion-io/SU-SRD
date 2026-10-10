@@ -53,6 +53,7 @@
  */
 
 import {
+  Conditions,
   EntitySearcher,
   Field,
   FieldError,
@@ -65,7 +66,7 @@ import {
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import { pinFor } from 'salvageunion-reference/rules'
+import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -157,6 +158,8 @@ export function MechSheet({
     pilotAbilities,
   })
   const actions = useMechSheetActions({ mech, store, storeState, crawler })
+  // The conditions Read prints: the same merged list the Edit chips write.
+  const readConditions = readOnly ? unifiedMechConditions(mech) : []
 
   const { chassis, cargo, capacity, spParts, epParts, heatParts, maxSP, maxEP, heatCap } = model
 
@@ -335,7 +338,7 @@ export function MechSheet({
                   : (next) => actions.overrideMechMax({ maxSpOverride: pinFor(next, spParts) })
               }
               breakdown={readOnly ? undefined : spParts}
-              provenance={model.spLines}
+              provenance={readOnly ? undefined : model.spLines}
               onRevertOverride={
                 readOnly ? undefined : () => actions.overrideMechMax({ maxSpOverride: undefined })
               }
@@ -353,7 +356,7 @@ export function MechSheet({
                   : (next) => actions.overrideMechMax({ maxEpOverride: pinFor(next, epParts) })
               }
               breakdown={readOnly ? undefined : epParts}
-              provenance={model.epLines}
+              provenance={readOnly ? undefined : model.epLines}
               onRevertOverride={
                 readOnly ? undefined : () => actions.overrideMechMax({ maxEpOverride: undefined })
               }
@@ -371,21 +374,29 @@ export function MechSheet({
                   : (next) => actions.overrideMechMax({ maxHeatOverride: pinFor(next, heatParts) })
               }
               breakdown={readOnly ? undefined : heatParts}
-              provenance={model.heatLines}
+              provenance={readOnly ? undefined : model.heatLines}
               onRevertOverride={
                 readOnly ? undefined : () => actions.overrideMechMax({ maxHeatOverride: undefined })
               }
               readOnly={readOnly}
             />
-            <div className="flex w-full flex-col gap-2">
-              <span
-                className="font-cond text-badge font-bold uppercase tracking-caps"
-                style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-              >
-                Conditions
-              </span>
-              <MechConditionsEditor mech={mech} store={store} readOnly={readOnly} />
-            </div>
+            {/* Read leaves an empty field out and draws no control: Conditions
+                prints as chips only when there is one to read. */}
+            {(!readOnly || readConditions.length > 0) && (
+              <div className="flex w-full flex-col gap-2">
+                <span
+                  className="font-cond text-badge font-bold uppercase tracking-caps"
+                  style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+                >
+                  Conditions
+                </span>
+                {readOnly ? (
+                  <Conditions conditions={readConditions} />
+                ) : (
+                  <MechConditionsEditor mech={mech} store={store} />
+                )}
+              </div>
+            )}
           </div>
         }
       />

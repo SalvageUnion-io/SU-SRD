@@ -269,7 +269,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  /* Wide enough that a catalog tile's description keeps a readable measure. */
+  /* Wide enough that a header row keeps its name, stamp and pennant on one line. */
   column-width: 320px;
   column-gap: 8px;
 }
