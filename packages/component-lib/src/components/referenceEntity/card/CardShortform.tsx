@@ -39,6 +39,13 @@ const VISUALLY_HIDDEN: CSSProperties = {
   width: '1px',
 }
 
+const NAME: CSSProperties = {
+  flex: '1 1 auto',
+  minWidth: 0,
+  overflowWrap: 'break-word',
+  whiteSpace: 'normal',
+}
+
 const stamp = (onInk: boolean): CSSProperties => ({
   backgroundColor: 'var(--color-ink)',
   border: `var(--bw-hairline) solid ${onInk ? 'var(--color-paper)' : 'var(--color-ink)'}`,
@@ -91,10 +98,10 @@ export function CardShortform({
       >
         {userMade && <span style={VISUALLY_HIDDEN}>User-made </span>}
         <span style={stamp(ink)}>{typeLabel}</span>
-        <span
-          className={onBandText}
-          style={{ flex: '1 1 auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}
-        >
+        {/* The name wins: in a narrow slot it wraps onto a second line rather
+            than being clipped or ellipsized. A pill exists to say which thing
+            it is, and half a name does not. */}
+        <span className={onBandText} style={NAME}>
           {name}
         </span>
         {pennant}

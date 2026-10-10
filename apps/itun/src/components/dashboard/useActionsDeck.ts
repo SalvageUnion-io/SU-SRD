@@ -326,7 +326,7 @@ export function useActionsDeck({
       const reachable = actionReachable(action, range, heatCtx.currentHeat, heatCtx.heatCap)
       return {
         key: action.key,
-        // The raw action entity drives the canonical catalog tile.
+        // The raw action entity drives the canonical header-only card.
         entity: action.action,
         name: action.name,
         locked: !reachable,

@@ -285,6 +285,11 @@ describe('a visitor who is not signed in', () => {
 
     expect(screen.getByText(/has expired/i)).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Sign in to join' })).toBeNull()
+    // Its ways on: back to your shelves, and — signed out — a plain sign-in.
+    expect(screen.getByRole('link', { name: 'Back to your shelves' }).getAttribute('href')).toBe(
+      '/'
+    )
+    expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
     isAuthenticated = true
   })
 })

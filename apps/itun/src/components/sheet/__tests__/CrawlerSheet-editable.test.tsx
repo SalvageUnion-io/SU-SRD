@@ -301,10 +301,8 @@ describe('CrawlerSheet — readOnly suppresses edits', () => {
     )
 
     expect(screen.queryByRole('button', { name: /Status:/ })).toBeNull()
-    const enabledRepairs = screen
-      .getAllByRole('button', { name: 'Repair' })
-      .filter((b) => !(b as HTMLButtonElement).disabled)
-    expect(enabledRepairs.length).toBe(0)
+    // Read draws no controls at all (board 10): no Repair, no bay function.
+    expect(screen.queryByRole('button', { name: 'Repair' })).toBeNull()
 
     expect(update).not.toHaveBeenCalled()
     expect(updateCrawlerBay).not.toHaveBeenCalled()

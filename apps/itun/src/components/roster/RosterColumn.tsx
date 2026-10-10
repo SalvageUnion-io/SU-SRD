@@ -15,7 +15,7 @@
 
 import { Button, buttonVariants, cn, EmptyState, Slab } from 'component-lib'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { AppLink } from '../shared/AppLink'
 
 export type SegmentKind = 'pilot' | 'mech' | 'crawler'
@@ -28,6 +28,17 @@ const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
 
 /** The column's create CTA. `onClick` runs before the wizard opens. */
 export type ColumnCreate = { href: string; label: string; onClick?: () => void }
+
+/**
+ * The selected segment is an INK plate, never rust: rust is the one action
+ * colour, and a selected state is ink (as the Dashboard's deck chips and the
+ * sheet's Read | Edit draw it).
+ */
+const SELECTED: CSSProperties = {
+  backgroundColor: 'var(--color-ink)',
+  borderColor: 'var(--color-ink)',
+  color: 'var(--color-paper)',
+}
 
 /** Mobile-endpoint segmented Pilot/Mech/Crawler switch (design §3.7). */
 export function SegmentSwitch({
@@ -43,8 +54,8 @@ export function SegmentSwitch({
         <Button
           key={seg.kind}
           size="compact"
-          variant={active === seg.kind ? 'primary' : 'default'}
           aria-pressed={active === seg.kind}
+          style={active === seg.kind ? SELECTED : undefined}
           onClick={() => onChange(seg.kind)}
           className="min-h-11 flex-1"
         >

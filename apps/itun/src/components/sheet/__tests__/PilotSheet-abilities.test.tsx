@@ -183,3 +183,28 @@ describe('PilotSheet — abilities readOnly (Slice D)', () => {
     expect(screen.getByText('Used')).toBeTruthy()
   })
 })
+
+describe('PilotSheet — the Generic tree is intrinsic', () => {
+  test('a pilot with no stored abilities still shows the Generic cards', () => {
+    const pilot = makePilot({ abilities: [] })
+    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
+    expandCards()
+
+    // Never stored, never picked: every pilot carries the whole tree (board 10
+    // prints Bonesaw's Generic cards beside his one stored ability).
+    for (const name of ['Repair', 'Area Salvage', 'Mech Salvage', 'Patch Up']) {
+      expect(screen.getAllByText(name).length).toBeGreaterThan(0)
+    }
+    expect(screen.queryByText('No abilities learned yet.')).toBeNull()
+    // …with the same live-play toggle as any other ability.
+    expect(screen.getByRole('button', { name: /mark repair used/i })).toBeTruthy()
+  })
+
+  test('a stored ability prints beside the Generic tree, not instead of it', () => {
+    const pilot = makePilot()
+    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
+    expandCards()
+    expect(screen.getByRole('button', { name: /mark repair used/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /mark talk shop used/i })).toBeTruthy()
+  })
+})

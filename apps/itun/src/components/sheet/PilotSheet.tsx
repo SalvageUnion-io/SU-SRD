@@ -5,11 +5,12 @@
  * Two columns, as board 10 prints the pilot sheet (issue 1255); one below the
  * container's 5xl, in this reading order:
  *   - wide: the Identity card (typeset in Read, fields in Edit), then
- *     Abilities — entity cards with Spend AP (fixed costs only) and a
- *     used/recharge toggle in the card foot;
+ *     Abilities — the Generic tree, then the pilot's own, as entity cards with
+ *     Spend AP (fixed costs only) and a used/recharge toggle in a row under
+ *     the body in Edit;
  *   - narrow: the Vitals card (HP/AP gauges, TP and Conditions), Inventory
- *     (shortform pills and free-slot boxes in Read, full cards in Edit) and
- *     Linked Units (one line each in Read).
+ *     (shortform pills and free-slot boxes in Read; in Edit each pill with its
+ *     controls in a row under it) and Linked Units (one line each in Read).
  * Ability-granted partners run full width under both columns.
  *
  * Read | Edit (`sheetMode.ts`) reaches here as `readOnly`: Read withdraws every
@@ -38,7 +39,7 @@
  * This file is now the RENDER, and only the render. The two jobs that used to
  * share it are its siblings:
  *   - `pilotSheetModel.ts` — everything derived (vitals maxima, provenance
- *     ledgers, ability grouping, inventory capacity, the linked crawler).
+ *     ledgers, the ability cards, inventory capacity, the linked crawler).
  *   - `pilotSheetActions.ts` — every write, all of them through one `write()`
  *     that reads the freshest record and handles the offline refusal.
  * Local UI state (which picker is open) stays here, because it is render state.
@@ -272,7 +273,7 @@ export function PilotSheet({
               patch={readOnly ? undefined : actions.patchPilot}
             />
           </SheetSectionCard>
-          {/* ===== Abilities — the ones this pilot owns =====
+          {/* ===== Abilities — the Generic tree, then the ones this pilot owns =====
               A SLAB, not a card: the grid is entity cards, which carry their own
               frame. */}
           <SheetSectionSlab
@@ -285,15 +286,16 @@ export function PilotSheet({
               )
             }
           >
-            {pilot.abilities.length === 0 ? (
+            {model.abilityCards.length === 0 && model.unresolvedAbilities.length === 0 ? (
               <EmptyState variant="quiet" body="No abilities learned yet." />
             ) : (
               <div className="flex flex-col gap-5">
-                {/* Only what this pilot owns, each a full medium card so the
-                    action and range line and the body read in Read. */}
-                {model.ownedAbilities.length > 0 && (
+                {/* The Generic tree every pilot has, then what this pilot owns,
+                    each a full medium card so the action and range line and the
+                    body read in Read. */}
+                {model.abilityCards.length > 0 && (
                   <MasonryColumns maxColumns={3}>
-                    {model.ownedAbilities.map((entry) => (
+                    {model.abilityCards.map((entry) => (
                       <EntityGridRow key={entry.slug}>{renderAbility(entry)}</EntityGridRow>
                     ))}
                   </MasonryColumns>
@@ -452,51 +454,51 @@ export function PilotSheet({
                 )}
               </div>
             ) : (
-              <MasonryColumns maxColumns={2}>
+              // Edit: one item to a row, each its pill with the controls under
+              // it — the narrow column has no room for two cards side by side.
+              <div className="flex flex-col gap-4">
                 {model.ordinaryEquipment.map((slug) => (
-                  <EntityGridRow key={slug}>
-                    <PilotEquipmentItem
-                      slug={slug}
-                      pilotId={pilot.id}
-                      seedSelections={pilot.equipmentChoices?.[slug]}
-                      condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
-                      usesLeft={pilot.equipmentUses?.[slug]}
-                      onConditionChange={(itemSlug, next) => {
-                        void actions.handleEquipmentConditionChange(itemSlug, next)
-                      }}
-                      onUsesChange={(itemSlug, next) => {
-                        void actions.handleUsesChange(itemSlug, next)
-                      }}
-                      onRemove={
-                        readOnly
-                          ? undefined
-                          : () => {
-                              actions.toggleEquipment(slug)
-                            }
-                      }
-                      readOnly={readOnly}
-                      scalingParent={model.scalingParent}
-                      store={store}
-                    />
-                  </EntityGridRow>
+                  <PilotEquipmentItem
+                    key={slug}
+                    slug={slug}
+                    pilotId={pilot.id}
+                    seedSelections={pilot.equipmentChoices?.[slug]}
+                    condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
+                    usesLeft={pilot.equipmentUses?.[slug]}
+                    onConditionChange={(itemSlug, next) => {
+                      void actions.handleEquipmentConditionChange(itemSlug, next)
+                    }}
+                    onUsesChange={(itemSlug, next) => {
+                      void actions.handleUsesChange(itemSlug, next)
+                    }}
+                    onRemove={
+                      readOnly
+                        ? undefined
+                        : () => {
+                            actions.toggleEquipment(slug)
+                          }
+                    }
+                    readOnly={readOnly}
+                    scalingParent={model.scalingParent}
+                    store={store}
+                  />
                 ))}
                 {model.genericInventory.map((entry, index) => (
-                  <EntityGridRow key={entry.id}>
-                    <GenericEntryCard
-                      entry={entry}
-                      onRemove={
-                        readOnly
-                          ? undefined
-                          : () => {
-                              void actions.handleGenericInventoryChange(
-                                model.genericInventory.filter((_, i) => i !== index)
-                              )
-                            }
-                      }
-                    />
-                  </EntityGridRow>
+                  <GenericEntryCard
+                    key={entry.id}
+                    entry={entry}
+                    onRemove={
+                      readOnly
+                        ? undefined
+                        : () => {
+                            void actions.handleGenericInventoryChange(
+                              model.genericInventory.filter((_, i) => i !== index)
+                            )
+                          }
+                    }
+                  />
                 ))}
-              </MasonryColumns>
+              </div>
             )}
             {!readOnly && (
               <div className="mt-3">

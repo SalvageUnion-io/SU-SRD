@@ -20,6 +20,7 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import type { GaugeTone } from './DashboardGauge'
 import { DashboardGauge } from './DashboardGauge'
+import { slotRule } from './slotLayout'
 
 /** Stable no-op, so the Escape effect doesn't re-bind when no overlay is open. */
 const NOOP = () => {
@@ -342,7 +343,12 @@ export function MajorFrame({ view }: { view: MajorModel }) {
   const main = view.bays.filter((b) => !b.side)
   const side = view.bays.filter((b) => b.side)
   return (
-    <div className="pc-band" data-fam={view.fam}>
+    <div
+      className="pc-band"
+      data-fam={view.fam}
+      // The unit colour as the slot's top rule, as every Minor wears it (D1–D3).
+      style={{ borderTop: slotRule(view.fam) }}
+    >
       <div className="pc-band-id">
         <Badge shape="stamp" style={{ ...STAMP, backgroundColor: STAMP_BG[view.fam] }}>
           {view.stampLabel}

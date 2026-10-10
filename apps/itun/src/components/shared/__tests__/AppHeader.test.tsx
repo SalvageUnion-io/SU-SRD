@@ -8,7 +8,8 @@
  *   the same tab
  * - The nav reads Shelves · Games · Starter Set, with the app's Games control
  *   in its place, and marks the page you are on
- * - About and Changelog are at the drawer's foot, not in the bar (issue 1255)
+ * - About and Changelog are at the drawer's foot, not in the bar (issue 1255),
+ *   except signed out, when no account menu carries them on a desktop
  * - Search is the bar's search slot (issue 1255), with its phone form by the hamburger
  * - Places the app's slots: `actions` at the bar's end, `mobileActions` beside
  *   the hamburger, `drawerExtra` inside the drawer
@@ -71,6 +72,13 @@ describe('AppHeader', () => {
     const foot = within(screen.getByRole('navigation', { name: 'More' }))
     expect(foot.getByRole('link', { name: 'About' }).getAttribute('href')).toBe('/about')
     expect(foot.getByRole('link', { name: 'Changelog' }).getAttribute('href')).toBe('/changelog')
+  })
+
+  test('signed out (aboutInBar), the desktop bar keeps a door to About and Changelog', () => {
+    render(<AppHeader aboutInBar />)
+    const banner = within(screen.getByRole('banner'))
+    expect(banner.getByRole('link', { name: 'About' }).getAttribute('href')).toBe('/about')
+    expect(banner.getByRole('link', { name: 'Changelog' }).getAttribute('href')).toBe('/changelog')
   })
 
   test('search is the bar’s slot, and its phone form sits beside the hamburger', () => {

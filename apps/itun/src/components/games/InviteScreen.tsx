@@ -7,8 +7,8 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { invitePath } from '../../lib/games/inviteLink'
 import { SignInControl } from '../account/SignInControl'
 import { useShowContainer } from '../container/useShowContainer'
-import { AppLink } from '../shared/AppLink'
 import { failureMessage } from '../shared/useConfirm'
+import { WayOutLink } from '../shared/WayOutLink'
 
 /**
  * `/invite/$token` — an invite link (issue 1255). A Game is joined from a link,
@@ -18,7 +18,9 @@ import { failureMessage } from '../shared/useConfirm'
  * of a link is that you can hand it to someone who has no account yet. So the
  * page describes the invitation *before* asking for a sign-in, and a dead link
  * says so without ever prompting one — being asked to authenticate only to find
- * out the link expired is the worst version of this screen.
+ * out the link expired is the worst version of this screen. (A dead link does
+ * offer a plain sign-in beside "Back to your shelves", as a way on once it has
+ * said the link is dead; it is never "Sign in to join".)
  *
  * Opening one signs you in if needed and joins that Game. "Sign in to join"
  * sends Discord's round trip back here with `?join=1`, and the page joins on
@@ -65,16 +67,32 @@ const HOW_INVITES_WORK =
 
 const BACK = { href: '/', label: 'Back to your shelves' }
 
-function Back() {
+/**
+ * A dead link's ways on: back to your shelves, as a button-shaped link with a
+ * full touch target and, signed out, a sign-in beside it. That sign-in is a way
+ * on, not a prompt: the page has already said the link is dead, and signing in
+ * lands on your shelves rather than pretending it could still join.
+ */
+function Back({ signIn = false }: { signIn?: boolean }) {
   return (
-    <div>
-      <AppLink href={BACK.href}>{BACK.label}</AppLink>
+    <div style={ACTIONS}>
+      <WayOutLink href={BACK.href} label={BACK.label} />
+      {signIn && <SignInControl redirectTo={BACK.href} />}
     </div>
   )
 }
 
 /** A link that cannot be used, and what to do instead. */
-function DeadLink({ headline, ask }: { headline: string; ask: string }) {
+function DeadLink({
+  headline,
+  ask,
+  signIn = false,
+}: {
+  headline: string
+  ask: string
+  /** The visitor is signed out: offer a sign-in beside the way back. */
+  signIn?: boolean
+}) {
   return (
     <Card>
       <div style={PAD}>
@@ -85,7 +103,7 @@ function DeadLink({ headline, ask }: { headline: string; ask: string }) {
         <Text variant="hint" style={HINT}>
           {HOW_INVITES_WORK}
         </Text>
-        <Back />
+        <Back signIn={signIn} />
       </div>
     </Card>
   )
@@ -275,6 +293,7 @@ function SignedOutInvite({ token }: { token: string }) {
       <DeadLink
         headline="That invite link is not valid."
         ask="Check that the whole link was copied, or ask whoever invited you for a fresh one."
+        signIn
       />
     )
   }
@@ -283,6 +302,7 @@ function SignedOutInvite({ token }: { token: string }) {
       <DeadLink
         headline={DEAD_LINK_COPY[preview.status]}
         ask={`Ask ${preview.invitedBy} for a fresh link.`}
+        signIn
       />
     )
   }
