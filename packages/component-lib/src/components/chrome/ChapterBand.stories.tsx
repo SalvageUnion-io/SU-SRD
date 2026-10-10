@@ -3,6 +3,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { color, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
+import { UserMadeStamp } from '../referenceEntity/card/UserMadeStamp'
 import { Badge } from './Badge'
 import { ChapterBand } from './ChapterBand'
 
@@ -66,6 +67,45 @@ export const Default: Story = () => (
     <div style={PAGE}>
       <Caption>denizen — the navy band</Caption>
       <ChapterBand tone="denizen">{bioTitan?.name ?? 'Denizens'}</ChapterBand>
+    </div>
+  </div>
+)
+
+/**
+ * USER-MADE (ruleset §3.9, issue 1276): a full page a player made that could
+ * pass for the book — a shared mech pattern (board P2). The band is hatched in
+ * ink over the chapter colour, the notched title is framed in dashes, and the
+ * stamps lead the title as its `eyebrow`. Shown beside the canon band it must
+ * never be mistaken for.
+ */
+export const UserMade: Story = () => (
+  <div style={STACK}>
+    <div style={PAGE}>
+      <Caption>canon — solid</Caption>
+      <ChapterBand tone="mech" measure="80rem">
+        {gopher?.name ?? 'Gopher'}
+      </ChapterBand>
+    </div>
+    <div style={PAGE}>
+      <Caption>user-made — hatched band, dashed notch, stamps as the eyebrow</Caption>
+      <ChapterBand
+        tone="mech"
+        measure="80rem"
+        userMade
+        eyebrow={
+          <>
+            <UserMadeStamp label="User-made pattern" />
+            <Badge shape="stamp" size="full">
+              Chassis {gopher?.name ?? 'Gopher'}
+            </Badge>
+            <Badge shape="stamp" size="full" surface="inverse">
+              TL {gopher?.techLevel ?? 2}
+            </Badge>
+          </>
+        }
+      >
+        &ldquo;Tow Rig&rdquo;
+      </ChapterBand>
     </div>
   </div>
 )
