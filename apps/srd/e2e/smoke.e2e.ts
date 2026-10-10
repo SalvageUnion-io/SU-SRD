@@ -47,7 +47,9 @@ test('a chassis entity page renders its card', async ({ page }) => {
   // The entity name renders on the page (breadcrumb + card header). Assert the
   // text rather than a heading role: the card header hydrates from a semantic
   // heading into a styled pseudo-header, so role=heading is not reliable.
-  await expect(page.getByText(/Mule/i).first()).toBeVisible({
+  // `visible`: the trail is drawn twice — in the Union bar on desktop, on its
+  // own row on a phone — and the first copy in the DOM is hidden on a phone.
+  await expect(page.getByText(/Mule/i).filter({ visible: true }).first()).toBeVisible({
     timeout: 30_000,
   })
 })

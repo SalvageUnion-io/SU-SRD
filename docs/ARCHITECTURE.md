@@ -703,7 +703,8 @@ without it). `src/lib/staticPaths.ts` excludes meta schemas
 `tools/a11y-baseline.json` and `tools/a11y-baseline-itun.json` at desktop and
 as a Pixel 7; a stale entry fails until a run with `A11Y_UPDATE_BASELINE=1`.
 Locally: `bunx playwright test a11y.e2e.ts` in the app.
-Landmarks: two labelled `<nav>`s in `AppBar.tsx`, `<main>` in `BaseLayout.tsx`,
+Landmarks: labelled `<nav>`s in `AppBar.tsx` (switcher, product nav, and a
+breadcrumb trail shown once per width), `<main>` in `BaseLayout.tsx`,
 `Footer.tsx`. One `<h1>` per page (entity pages pass `titleAs="h1"` from `EntityView.tsx`
 to `EntityCardHeader`).
 Clickable `Card`s are `role="button"` with Enter/Space; search
@@ -711,7 +712,8 @@ Clickable `Card`s are `role="button"` with Enter/Space; search
 `aria-activedescendant`; breadcrumbs mark `aria-current="page"`; filter chips
 are `Badge as="button"` with `aria-pressed`; `ModalShell` traps focus and
 `ConfirmDialog` starts on Cancel when destructive; touch targets are 44px under
-`@media (pointer: coarse)`.
+`@media (pointer: coarse)`, minis, chips and breadcrumb links through a hit area
+(`touchFloor.test.ts`).
 
 **Contrast:** tokens in component-lib's `src/styles/theme.css`
 (`--color-rust` is the one action colour). Entity accents never colour small

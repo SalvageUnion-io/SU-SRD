@@ -207,7 +207,9 @@ export function Badge(props: BadgeProps) {
         capsLabel({ size: 'badge', weight: 'semibold', tracking: 'inherit' }),
         'inline-flex h-[22px] items-center rounded-badge leading-none',
         swatch != null && 'gap-1.5',
-        interactive && cn('cursor-pointer', FOCUS_RING),
+        // `su-hit-area`: an interactive chip stays 22px and reaches the 44px
+        // coarse-pointer floor through a pseudo-element (ruleset §4.6).
+        interactive && cn('su-hit-area cursor-pointer', FOCUS_RING),
         BADGE_SURFACE[surface],
         surface === 'tone' && tone && BADGE_TONES[tone],
         className

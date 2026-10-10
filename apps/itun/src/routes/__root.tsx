@@ -1,9 +1,11 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
 import { CopyFeedbackProvider, EntityHrefProvider, Toaster, toast } from 'component-lib'
+import { useState } from 'react'
 import { AccountReconciler } from '../components/account/AccountReconciler'
 import {
   HeaderActions,
   HeaderDrawerAccount,
+  HeaderGames,
   HeaderMobileActions,
 } from '../components/account/HeaderAccount'
 import { TestAuthBridge } from '../components/account/TestAuthBridge'
@@ -16,7 +18,6 @@ import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { itunEntityHref } from '../lib/entityHref'
 import { pageTitle } from '../lib/pageTitle'
-import { fabCollides } from '../lib/searchFab'
 // Self-hosted Barlow superfamily (mirrors srd) — keeps fonts on-origin so
 // the CSP needs no external font/style host and the offline PWA renders correctly.
 import '@fontsource/barlow/400.css'
@@ -42,15 +43,10 @@ function toastCopied() {
   toast.success('Copied', { id: 'clipboard-copy', duration: 1500 })
 }
 
-/**
- * Toasts share the bottom-right corner with the search FAB, so they stack
- * above it: the FAB's 16px gutter + its 56px button + a 16px gap. Sonner's own
- * defaults (24px, 16px on phones) stay on the other three edges.
- */
-const TOAST_OFFSET = { bottom: 88 }
-
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  // The reference search's open state, shared by its desktop and phone triggers.
+  const [searchOpen, setSearchOpen] = useState(false)
 
   return (
     <AppConvexProvider>
@@ -76,6 +72,12 @@ function RootComponent() {
         <TestAuthBridge />
         <AppHeader
           LinkComponent={AppLink}
+          pathname={pathname}
+          games={<HeaderGames />}
+          search={<GlobalSearch variant="bar" open={searchOpen} onOpenChange={setSearchOpen} />}
+          mobileSearch={
+            <GlobalSearch variant="icon" open={searchOpen} onOpenChange={setSearchOpen} />
+          }
           actions={<HeaderActions />}
           mobileActions={<HeaderMobileActions />}
           drawerExtra={(close) => <HeaderDrawerAccount close={close} />}
@@ -83,14 +85,9 @@ function RootComponent() {
         <CopyFeedbackProvider value={toastCopied}>
           <GameDataReady>
             <Outlet />
-            {/* The reference search FAB, on every route (inside the game-data
-              gate, so search() is always safe), so Cmd/Ctrl+K works
-              everywhere. Its button stands aside on routes whose own
-              bottom-right corner holds controls. */}
-            <GlobalSearch fabHidden={fabCollides(pathname)} />
           </GameDataReady>
         </CopyFeedbackProvider>
-        <Toaster offset={TOAST_OFFSET} mobileOffset={TOAST_OFFSET} />
+        <Toaster />
       </EntityHrefProvider>
     </AppConvexProvider>
   )

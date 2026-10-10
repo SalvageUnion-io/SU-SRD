@@ -137,7 +137,8 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
           ref={inputRef}
           type="text"
           name="srd-search"
-          placeholder="Search…"
+          placeholder="Search the SRD"
+          shortcut="⌘K"
           value={query}
           onChange={(e) => onInput(e.target.value)}
           onKeyDown={onKeyDown}
@@ -145,7 +146,7 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
             load()
             setDismissedResults(null)
           }}
-          className="w-52"
+          className="w-56"
           {...inputProps}
           aria-label="Search the SRD"
           role="combobox"

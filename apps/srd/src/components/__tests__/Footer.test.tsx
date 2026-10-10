@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { Footer } from '../Footer'
 
 describe('Footer', () => {
@@ -38,10 +38,46 @@ describe('Footer', () => {
 
   test('all external links open in new tab', () => {
     render(<Footer poweredBySalvageUrl="/test-logo.webp" />)
-    const links = screen.getAllByRole('link')
-    for (const link of links) {
+    const external = screen
+      .getAllByRole('link')
+      .filter((l) => l.getAttribute('href')?.startsWith('http'))
+    expect(external.length).toBeGreaterThan(0)
+    for (const link of external) {
       expect(link.getAttribute('target')).toBe('_blank')
       expect(link.getAttribute('rel')).toContain('noopener')
     }
+  })
+
+  // The site's own pages left the Union bar when the SRD dropped its second
+  // nav row (brand refresh P2a); the footer is where they live now, same tab.
+  test('links the site pages: Changelog, API, Discord and About', () => {
+    render(<Footer poweredBySalvageUrl="/test-logo.webp" />)
+    const site = within(screen.getByRole('navigation', { name: 'Site' }))
+    for (const [name, href] of [
+      ['Changelog', '/changelog/'],
+      ['API', '/api/'],
+      ['Discord', '/discord/'],
+      ['About', '/about/'],
+    ] as const) {
+      const link = site.getByRole('link', { name })
+      expect(link.getAttribute('href')).toBe(href)
+      expect(link.getAttribute('target')).toBeNull()
+    }
+  })
+
+  // At 375px the links once shared a flex row with the licence text and left it
+  // ~64px wide, a word or two per line. Below `sm` the footer stacks, the text
+  // block and the links each taking the full width; `sm:` puts them back in a row.
+  test('stacks below sm so the licence text keeps the full width', () => {
+    const { container } = render(<Footer poweredBySalvageUrl="/test-logo.webp" />)
+    const row = container.querySelector('footer > div') as HTMLElement
+    expect(row.className).toContain('flex-col')
+    expect(row.className).toContain('sm:flex-row')
+    expect(row.className).not.toMatch(/(^|\s)flex-row(\s|$)/)
+
+    const text = row.firstElementChild as HTMLElement
+    expect(text.className).toContain('w-full')
+    expect(text.className).toContain('sm:flex-1')
+    expect(screen.getByRole('navigation', { name: 'Site' }).className).toContain('w-full')
   })
 })

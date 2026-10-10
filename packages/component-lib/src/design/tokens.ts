@@ -86,6 +86,7 @@ export const space = {
  *   display   26px
  *   displayLg 31px
  *   hero      38px
+ *   chapter   64px     the ChapterBand's notched page title (≥ sm)
  *
  * Nothing sits under 11px (ruleset §4.6): the four rungs that once did (8, 9,
  * 10 and 10.5px) were retired into `badge`, and `bun run check styling`
@@ -116,6 +117,8 @@ export const fontSize = {
   display: '26px',
   displayLg: '31px',
   hero: '38px',
+  /** The ChapterBand's notched title at desktop width (phones take `hero`). */
+  chapter: '64px',
   // — inherited rungs (Tailwind built-ins in live use; see the note above) —
   xs: '0.75rem',
   sm: '0.875rem',
