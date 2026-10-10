@@ -8,8 +8,10 @@
  * dashboard stories' `_dashboardStage.tsx`, never by an instrument component.
  *
  * The order below is load-bearing: DashboardCanvas.css, then instruments.css,
- * then DashboardGrid.css.
+ * then DashboardGrid.css. DashboardPhone.css (the phone form, ADR-044) comes
+ * last and keys off its own `.su-dash-phone` scope.
  */
 @import './dashboard/DashboardCanvas.css';
 @import './dashboard/instruments.css';
 @import './dashboard/DashboardGrid.css';
+@import './dashboard/DashboardPhone.css';
