@@ -315,9 +315,10 @@ describe('a Game’s page', () => {
     expect(
       within(screen.getByRole('list', { name: 'Everyone else' })).getByText('Ash')
     ).toBeTruthy()
-    expect(screen.getByRole('region', { name: 'Game' })).toBeTruthy()
-    // A player, not the Mediator: no Mediator section.
-    expect(screen.queryByRole('region', { name: 'Mediator' })).toBeNull()
+    expect(screen.getByRole('region', { name: 'Crew & seats' })).toBeTruthy()
+    // A player, not the Mediator: no proposals of theirs, no Mediator door.
+    expect(screen.queryByRole('region', { name: 'Proposals you sent' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Open the Mediator dashboard' })).toBeNull()
   })
 
   test('picking Shelves in "Showing" goes back to the shelf', async () => {

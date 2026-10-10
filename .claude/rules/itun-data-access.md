@@ -54,7 +54,7 @@ import { api } from '../../../convex/_generated/api'
 const members = useQuery(api.games.members, { gameId })
 ```
 
-- **Loading is `undefined`**, not a flag (`CrewVitals.tsx` is the reference).
+- **Loading is `undefined`**, not a flag (`DowntimeTrack.tsx` is the reference).
 - **The provider is always there** (`AppConvexProvider`): every build has a
   deployment. A unit test that renders a Convex consumer mocks the hooks with
   `installConvexMocks()` (`src/components/__tests__/convexMock.ts`).

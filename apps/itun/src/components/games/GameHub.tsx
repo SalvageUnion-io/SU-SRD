@@ -1,18 +1,23 @@
 /**
- * GameHub — a Game's own page, `/games/$gameId` (issue 1255).
+ * GameHub — a Game's own page, `/games/$gameId` (issues 1255 and 1278).
  *
  * One place per table: the hub lists a Game the way Shelves lists your things
- * and puts everything you can do about the table below the lists —
+ * and puts everything you can do about the table below the lists, as board M2
+ * draws it (docs/architecture/mediator-dashboard.md Q10–Q13):
  *
- *  0. **Launch Dashboard** (`LaunchDashboard`), at the top: the one way into
- *     the Dashboard, for players and the Mediator alike, while the Game has a
- *     Mediator. It asks only which pilot to play.
- *  1. **The roster** (`GameRoster`): the three columns, yours first.
- *  2. **Game** — every member: "Copy invite link", the answer queue,
- *     Downtime; and, for the Organizer, the invite list, who mediates, and
- *     ending the game.
- *  3. **Mediator** — the Mediator alone (`MediatorSection`): vitals, propose,
- *     tell the table, the opposition.
+ *  0. **The band** (`GameBand`): the Game's name on the crawler's pink, and
+ *     for its Mediator a YOU MEDIATE stamp and **Open the Mediator
+ *     dashboard** (`/mediator/$gameId`), where the Mediator's instruments
+ *     live now.
+ *  1. **Launch Dashboard** (`LaunchDashboard`): the one way into the player
+ *     Dashboard, for players and the Mediator alike.
+ *  2. **The roster** (`GameRoster`): the three columns, yours first.
+ *  3. Two columns of sections. **Every member:** Crew & seats, the Downtime
+ *     track, and the proposals awaiting their answer. **The Mediator:**
+ *     Downtime's controls and Proposals you sent. **The Organizer:** Invite
+ *     links, Asking to join and The Game's Hand over, which the server
+ *     refuses anyone else (`requireOrganizer`). Anyone else brings a friend
+ *     with "Copy invite link", which asks the Organizer to let them in.
  *
  * Starting a Game is "+ New game" at the top of the hub (`NewGameControl`), and
  * joining one is an invite link (`InviteScreen`), so nothing here is about
@@ -31,18 +36,24 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { SHELF } from '../../lib/container'
 import { useShowContainer } from '../container/useShowContainer'
+import { readCrawler } from '../mediator/crawlerReading'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { ConvexPending } from '../shared/ConvexPending'
 import { CopyInviteLink } from './CopyInviteLink'
+import { CrewSeats } from './CrewSeats'
 import { DeleteGameDialog } from './DeleteGameDialog'
-import { DowntimePanel } from './DowntimePanel'
-import { GamePanel, GameSection } from './GamePanel'
+import { DowntimeTrack } from './DowntimeTrack'
+import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
+import { HubSection } from './HubSection'
+import { HUB_COLUMN, HUB_COLUMNS, HUB_COPY } from './hubStyles'
 import { InvitePanel } from './InvitePanel'
+import { JoinRequests } from './JoinRequests'
 import { LaunchDashboard } from './LaunchDashboard'
-import { MediatorPanel } from './MediatorPanel'
-import { MediatorSection } from './MediatorTools'
 import { ProposalInbox } from './ProposalInbox'
+import { ProposalsSent } from './ProposalsSent'
+import { seatRows } from './seatRows'
+import { TheGame } from './TheGame'
 
 type Game = NonNullable<FunctionReturnType<typeof api.games.get>>
 
@@ -63,7 +74,8 @@ const NOT_IN = {
 
 const NOT_IN_CARD = { marginTop: tokens.space[24] } satisfies CSSProperties
 
-const HINT = { textAlign: 'left' } satisfies CSSProperties
+/** The band sits a step below the hub's header row. */
+const BAND = { marginTop: tokens.space[20], marginBottom: tokens.space[8] } satisfies CSSProperties
 
 /**
  * A Game the viewer is not in: they left, it ended, or a stale selection
@@ -91,65 +103,72 @@ function NotInGame() {
   )
 }
 
-/** The Game section: what every member does about the table, and the Organizer's admin. */
-function GameActions({ game }: { game: Game }) {
+/** The sections under the roster, in board M2's two columns. */
+function GameSections({ game }: { game: Game }) {
   const gameId = game._id as Id<'games'>
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const showContainer = useShowContainer()
+  const listing = useQuery(api.entities.listForGame, { gameId })
+  const members = useQuery(api.games.members, { gameId })
+  const me = useQuery(api.account.me, {})
+  const viewerId = me?._id ?? null
+
+  const primary =
+    listing?.crawlers.find((c) => c._id === listing.primaryCrawlerId) ??
+    listing?.crawlers[0] ??
+    null
+  const crawler = primary === null ? null : readCrawler(primary)
+  const seats =
+    listing === undefined || members === undefined ? null : seatRows(listing, members, viewerId)
 
   return (
     <>
-      <GameSection
-        id="game-section-heading"
-        title="Game"
-        hint={
-          game.organizer
-            ? 'You organize this game: invites, who mediates, and ending it are yours.'
-            : undefined
-        }
-      >
-        {/* Every member can bring someone to the table (issue 1255). What the link
-            does depends on who copied it: the Organizer's opens the door, and
-            anyone else's asks the Organizer to let them in (`invites.link`). */}
-        <GamePanel title="Invite a crewmate">
-          <Text variant="hint" style={HINT}>
-            {game.organizer
-              ? 'Anyone who opens this link and signs in joins the game.'
-              : 'Anyone who opens this link asks to join, and the organizer lets them in.'}
-          </Text>
-          <div>
-            <CopyInviteLink gameId={gameId} />
-          </div>
-        </GamePanel>
-        {/* Renders nothing until the Mediator has asked something. */}
-        <ProposalInbox gameId={gameId} />
-        <DowntimePanel gameId={gameId} />
-        {/* Invites are administrative, so only the Organizer sees them
-            (ADR-030 §3); the server refuses `invites.list` to anyone else. */}
-        {game.organizer && (
-          <GamePanel title="Invite links">
-            <InvitePanel gameId={gameId} />
-          </GamePanel>
-        )}
-        {/* Appointing the Mediator is the ONLY way the flag is set:
-            `games.create` seats its creator with `mediator: false`. */}
-        {game.organizer && <MediatorPanel gameId={gameId} />}
-        {/* Last, and the Organizer's alone: ending the campaign. */}
-        {game.organizer && (
-          <GamePanel title="End this game">
-            <Text>
-              Deleting {game.name} disbands the crew for everyone in it. Every pilot and mech goes
-              back to its owner&rsquo;s My Stuff, and the crawler comes to yours — but the table,
-              its invites and its wiring are gone for good.
-            </Text>
-            <div>
-              <Button variant="danger" size="compact" onClick={() => setConfirmingDelete(true)}>
-                Delete this game
-              </Button>
-            </div>
-          </GamePanel>
-        )}
-      </GameSection>
+      <div style={HUB_COLUMNS}>
+        <div style={HUB_COLUMN}>
+          {seats === null ? (
+            <ConvexPending label="the crew" />
+          ) : (
+            <CrewSeats
+              crawler={crawler}
+              rows={seats.rows}
+              claimed={seats.claimed}
+              total={seats.total}
+            />
+          )}
+          <DowntimeTrack gameId={gameId} mediator={game.mediator} crawler={crawler} />
+          {/* Renders nothing until the Mediator has asked something. */}
+          <ProposalInbox gameId={gameId} />
+          {/* `proposals.sent` is the Mediator's alone (`requireMediator`). */}
+          {game.mediator && <ProposalsSent gameId={gameId} />}
+        </div>
+        <div style={HUB_COLUMN}>
+          {/* Invites are administrative, so only the Organizer sees them
+              (ADR-030 §3); the server refuses `invites.list` to anyone else. */}
+          {game.organizer ? (
+            <>
+              <InvitePanel gameId={gameId} />
+              <JoinRequests gameId={gameId} />
+            </>
+          ) : (
+            // Every member can bring someone to the table (issue 1255): a
+            // player's link asks the Organizer to let them in (`invites.link`).
+            <HubSection id="invite-crewmate-heading" title="Invite a crewmate">
+              <p style={HUB_COPY}>
+                Anyone who opens this link asks to join, and the organizer lets them in.
+              </p>
+              <div>
+                <CopyInviteLink gameId={gameId} />
+              </div>
+            </HubSection>
+          )}
+          <TheGame
+            gameId={gameId}
+            viewerId={viewerId}
+            organizer={game.organizer}
+            onDelete={() => setConfirmingDelete(true)}
+          />
+        </div>
+      </div>
 
       <DeleteGameDialog
         game={confirmingDelete ? game : null}
@@ -179,6 +198,9 @@ export function GameHub({ gameId, activeSegment, onSegmentChange }: GameHubProps
 
   return (
     <>
+      <div style={BAND}>
+        <GameBand gameId={gameId} name={game.name} mediator={game.mediator} />
+      </div>
       <LaunchDashboard gameId={gameId} />
       <GameRoster
         gameId={gameId}
@@ -186,8 +208,7 @@ export function GameHub({ gameId, activeSegment, onSegmentChange }: GameHubProps
         activeSegment={activeSegment}
         onSegmentChange={onSegmentChange}
       />
-      <GameActions game={game} />
-      <MediatorSection gameId={gameId as Id<'games'>} />
+      <GameSections game={game} />
     </>
   )
 }
