@@ -16,7 +16,7 @@ import type {
   RouteContext,
   StructuredData,
 } from '../../../../../../../ssg/types'
-import { EntityPageFrame } from '../../../../../../components/EntityPageFrame'
+import { EntityPageFrame, entityPageFoot } from '../../../../../../components/EntityPageFrame'
 import { EntityView } from '../../../../../../components/EntityView'
 import { chapterForSchema } from '../../../../../../lib/chapters'
 import { META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../../../../../lib/constants'
@@ -123,6 +123,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         { name: patternName, url: canonicalUrl },
       ],
     },
+    foot: entityPageFoot(chapter.tone, pageMeta),
     children: (
       <EntityPageFrame title={`“${patternName}”`} tone={chapter.tone} meta={pageMeta}>
         {/* The pattern renders through the same Entity unit as every other page —

@@ -1,3 +1,4 @@
+import type { ChapterTone } from 'component-lib'
 import type { ReactNode } from 'react'
 
 /** A JSON-LD object. */
@@ -60,8 +61,29 @@ export type DocumentMeta = {
  */
 export type DocumentShell = 'base' | 'bare'
 
-/** What a page returns: its head metadata and its body tree. */
-export type PageResult = { meta: DocumentMeta; children: ReactNode; shell?: DocumentShell }
+/**
+ * Where a book page ends (board 07): the site footer takes the page's chapter
+ * tone and, when the page has one, its citation — the page number set large
+ * and the book (and any reprint). Entity, pattern and roll-table pages pass it;
+ * every other page leaves it out and ends on the rules-blue band (board 06).
+ */
+export type PageFoot = {
+  tone: ChapterTone
+  /** The page number the citation leads with (`p.112`). */
+  page?: number
+  /** The book, then any reprints, from `resolveEntityPageMeta`. */
+  citation?: string
+  /** The inner row's max width, matching the page's own measure. */
+  measure?: string
+}
+
+/** What a page returns: its head metadata, its body tree and, for a book page, its foot. */
+export type PageResult = {
+  meta: DocumentMeta
+  children: ReactNode
+  shell?: DocumentShell
+  foot?: PageFoot
+}
 
 /**
  * Content-hashed URLs of the static assets Vite emitted, keyed by each asset's

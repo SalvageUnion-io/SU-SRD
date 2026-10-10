@@ -1,13 +1,16 @@
 import type { ChapterTone, EntityPageMeta } from 'component-lib'
-import { ChapterBand, ChapterFoot } from 'component-lib'
+import { ChapterBand } from 'component-lib'
 import type { ReactNode } from 'react'
+import type { PageFoot } from '../../ssg/types'
 import { EntityPageStamps } from './EntityPageStamps'
 
 /**
  * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,
  * 08b): its chapter's band at the head, the title notched in and the type
- * stamps beside it; the body; and the foot band carrying the citation
- * ("p.112 · Salvage Union Workshop Manual · also in …").
+ * stamps beside it; then the body. The page's foot band — the citation
+ * ("p.112 · Salvage Union Workshop Manual · also in …") — is the site
+ * `Footer`'s, so the page ends once: the page module hands `entityPageFoot`
+ * to the layout as its `PageResult.foot`.
  *
  * Entity, pattern and roll-table pages all wear it, so the three cannot drift.
  * `meta` comes from `resolveEntityPageMeta`, the same helpers the card's own
@@ -34,7 +37,6 @@ export function EntityPageFrame({
   measure = ENTITY_PAGE_MEASURE,
   children,
 }: EntityPageFrameProps) {
-  const hasCitation = meta.page != null || !!meta.citation
   return (
     <article className="srd-entity">
       <ChapterBand tone={tone} measure={measure} aside={<EntityPageStamps meta={meta} />}>
@@ -43,14 +45,18 @@ export function EntityPageFrame({
       <div className="srd-entity__body" style={{ maxWidth: measure }}>
         {children}
       </div>
-      {hasCitation && (
-        <ChapterFoot
-          tone={tone}
-          measure={measure}
-          start={meta.page != null ? `p.${meta.page}` : undefined}
-          end={meta.citation}
-        />
-      )}
     </article>
   )
+}
+
+/**
+ * The foot of the same page, for the layout's `Footer`: the frame's chapter
+ * tone and measure, and the citation `meta` carries.
+ */
+export function entityPageFoot(
+  tone: ChapterTone,
+  meta: EntityPageMeta,
+  measure: string = ENTITY_PAGE_MEASURE
+): PageFoot {
+  return { tone, page: meta.page, citation: meta.citation, measure }
 }

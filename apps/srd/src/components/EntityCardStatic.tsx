@@ -18,7 +18,7 @@ type EntityCardStaticProps = {
 /**
  * The reference entity card, rendered to HTML at build time, as the body of
  * its own page (`presentation="page"`, boards 07 and 08): the page's
- * `ChapterBand` carries the title and its `ChapterFoot` the citation, so the
+ * `ChapterBand` carries the title and the site `Footer` the citation, so the
  * card lays out the art, the prose, the stat column and what the entity
  * carries.
  *

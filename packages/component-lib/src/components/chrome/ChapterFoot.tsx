@@ -2,7 +2,6 @@ import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { borderWidth, color } from '../../design/tokens'
 import type { ChapterTone } from './chapterBandColor'
 import { CHAPTER_BAND_COLOR } from './chapterBandColor'
-import type { SpeckleGrain } from './Speckle'
 import { Speckle } from './Speckle'
 
 /**
@@ -40,14 +39,6 @@ export type ChapterFootProps = {
   end?: ReactNode
   /** Which chapter of the book the page belongs to. Defaults to `rules`. */
   tone?: ChapterTone
-  /**
-   * The band colour, for a ground outside the chapter map — the Union bar's
-   * `inkDeep`, when an ink foot bookends it. Overrides `tone`'s colour; the
-   * text colour still follows `tone`.
-   */
-  fill?: string
-  /** The speckle: `ink` grain on a colour band, `paper` flecks on ink (default follows `tone`, §3.5). */
-  grain?: SpeckleGrain
   /** The inner row's max inline size, matching the band at the page's head. */
   measure?: string
   /** The element. `footer` for the site footer; `div` inside a page's `main`. */
@@ -69,8 +60,6 @@ export function ChapterFoot({
   start,
   end,
   tone = 'rules',
-  fill,
-  grain,
   measure,
   as: Tag = 'div',
   'aria-label': ariaLabel,
@@ -81,11 +70,11 @@ export function ChapterFoot({
       aria-label={ariaLabel}
       style={{
         ...ROOT,
-        backgroundColor: fill ?? FOOT_BAND[tone].background,
+        backgroundColor: FOOT_BAND[tone].background,
         color: FOOT_BAND[tone].text,
       }}
     >
-      <Speckle grain={grain ?? (tone === 'ink' ? 'paper' : 'ink')} />
+      <Speckle grain="ink" />
       <div className="su-chapter-foot__row" style={measure ? { maxWidth: measure } : undefined}>
         {start != null && <div className="su-chapter-foot__start">{start}</div>}
         {end != null && <div className="su-chapter-foot__end">{end}</div>}

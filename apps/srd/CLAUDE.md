@@ -112,8 +112,11 @@ renders exactly one placeholder:
   catalog categories. The home index, the nav drawer, each page's band colour
   and trail read it.
 - Entity, pattern and roll-table pages wear `EntityPageFrame`: `ChapterBand`,
-  the body, the citation on a `ChapterFoot`. The body is the card at
-  `presentation="page"`, or for a d20 table `RollTablePage` (Randsum rolls).
+  then the body. The body is the card at `presentation="page"`, or for a d20
+  table `RollTablePage` (Randsum rolls). The page's citation is the site
+  `Footer`'s: the page module returns `foot: entityPageFoot(...)` in its
+  `PageResult`, and the footer ends the page in that chapter's band; every
+  other page ends on the rules-blue band.
 - Page layouts are `src/styles/pages.css`, imported by `global.css` and the
   story catalog's `catalog.css`.
 
