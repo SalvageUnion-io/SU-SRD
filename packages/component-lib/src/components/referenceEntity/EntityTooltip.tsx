@@ -6,18 +6,34 @@ import { isKeyword, SalvageUnionReference } from 'salvageunion-reference'
 import { InsideTooltipContext } from '../ui/insideTooltipContext'
 import { Tooltip as SimpleTooltip } from '../ui/tooltip'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
+import { HOVERCARD_PLATE_FILTER } from './hovercardPlate'
 
-/** The tooltip's lifted plate: a hard ink offset under the card, no blur (E3). */
-const PLATE_OFFSET = 'drop-shadow(4px 4px 0 var(--color-ink))'
+/**
+ * The card INSIDE the hovercard plate, terminal (the InsideTooltipContext).
+ * Exported so the catalog can lay the plate out in flow, where a portaled
+ * popup would sit over its neighbours.
+ */
+export function EntityHovercardCard({
+  entity,
+}: {
+  entity: Parameters<typeof ReferenceEntityCard>[0]['data']
+}) {
+  return (
+    <InsideTooltipContext.Provider value={true}>
+      <ReferenceEntityCard data={entity} size="small" extent="full" texture={false} />
+    </InsideTooltipContext.Provider>
+  )
+}
 
 /**
  * The hovercard POPUP an entity tooltip opens — the §1 Tooltip context: the
- * DENSE catalog-extent card (seam, header, sub-header, artwork, body prose),
- * with every nested element (entity cards, action grids, pattern lists,
- * expandable choice listings) suppressed by the extent, on a LIFTED PLATE — a
- * hard ink offset, no blur (board E3). The InsideTooltipContext makes every
- * tooltip primitive in the subtree inert (no nested hovercards from trait or
- * keyword refs or Stat cells), and the card stays flat: no speckle (§3.5).
+ * small card at full extent (seam, header, sub-header, artwork, body prose) on
+ * a LIFTED PLATE — a hard ink offset, no blur (board E3). It is TERMINAL: the
+ * InsideTooltipContext makes every tooltip primitive in the subtree inert (no
+ * nested hovercards) and makes the card itself act on nothing — no "View in
+ * SRD" link, no roll-table controls, no depth-2 rows to open, no actions chip
+ * — so the popup holds no a, button or [role=button]. The card stays flat: no
+ * speckle (§3.5).
  *
  * Renders inside a Base UI `Tooltip.Root`; exported so the catalog can mount
  * the real popup open.
@@ -36,7 +52,7 @@ export function EntityHovercard({
             // The seam stamp rides ABOVE the frame; the popup scrolls, so it
             // keeps its own room at the top or the scroll box cuts the stamp.
             // A drop-shadow (not a box-shadow) follows the card, not the room.
-            filter: PLATE_OFFSET,
+            filter: HOVERCARD_PLATE_FILTER,
             paddingTop: '12px',
             // Never wider than the room beside the trigger or the screen (a
             // phone), less the offset; the screen also bounds the first,
@@ -44,9 +60,7 @@ export function EntityHovercard({
             maxWidth: 'min(500px, calc(100vw - 16px), calc(var(--available-width, 100vw) - 4px))',
           }}
         >
-          <InsideTooltipContext.Provider value={true}>
-            <ReferenceEntityCard data={entity} size="small" extent="full" texture={false} />
-          </InsideTooltipContext.Provider>
+          <EntityHovercardCard entity={entity} />
         </Tooltip.Popup>
       </Tooltip.Positioner>
     </Tooltip.Portal>

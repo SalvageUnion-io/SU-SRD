@@ -59,6 +59,12 @@ export type ReferenceEntityCardProps = {
    */
   userMade?: boolean
   /**
+   * The maker of a USER-MADE card: its footer credit reads "Made by [madeBy]"
+   * in place of the book citation (ruleset §3.9). Without it the credit reads
+   * "Made by a player". Ignored unless `userMade`.
+   */
+  madeBy?: string
+  /**
    * The light speckle on the header (ruleset §3.5) — on by default. `false`
    * turns it off for this card and every card nested in it: the Dashboard and
    * tooltips stay flat.

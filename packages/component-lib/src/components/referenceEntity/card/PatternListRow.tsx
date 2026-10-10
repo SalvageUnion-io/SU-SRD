@@ -78,7 +78,7 @@ export function PatternList({
   NestedCard: NestedCard
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: space[6] }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[14] }}>
       {patterns.map((pat) => (
         <PatternListRow
           key={pat.name}

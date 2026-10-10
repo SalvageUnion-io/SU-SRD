@@ -26,6 +26,7 @@ import { CardImage } from '../../shared/CardImage'
 import type { CardExtent, CardSize } from '../../shared/displayMode'
 import { resolveCardDisplay } from '../../shared/displayMode'
 import type { StatItem } from '../../shared/statsBarTypes'
+import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import { useEntityExternalLink } from '../entityHrefContext'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { accentSurface } from '../referenceEntityHelpers'
@@ -170,6 +171,7 @@ function ReferenceEntityCardInner({
   inline = false,
   shownProse,
   userMade = false,
+  madeBy,
   texture,
   parentSeal,
   pattern,
@@ -228,6 +230,7 @@ function ReferenceEntityCardInner({
   const entity = data as SURefMetaEntity
   // Hooks run above every early return below.
   const externalLinkNode = useEntityExternalLink(data as SURefEntity)
+  const insideTooltip = useContext(InsideTooltipContext)
   const textureFromHost = useContext(CardTextureContext)
   const textured = texture ?? textureFromHost
   const schemaName = (
@@ -249,9 +252,15 @@ function ReferenceEntityCardInner({
   // CATALOG — the SRD index tile: artwork + description ONLY. Every nested
   // element is suppressed here rather than at each call-site.
   const isCatalog = extent === 'catalog'
-  const hide: ReferenceEntityCardHideConfig | undefined = isCatalog
+  const hideBase: ReferenceEntityCardHideConfig | undefined = isCatalog
     ? { ...hideProp, actions: true, choices: true, patterns: true }
     : hideProp
+  // TERMINAL (ruleset §1, board E3): inside a tooltip popup nothing acts, so
+  // the roll-table controls go too (the link, depth-2 rows and the actions
+  // chip are handled where they render).
+  const hide: ReferenceEntityCardHideConfig | undefined = insideTooltip
+    ? { ...hideBase, rollTable: true }
+    : hideBase
   const tone = resolveCardTone(schemaName, entity)
   // HAVE vs DO, by data shape.
   const fill: HeaderFill = isDoEntity(entity) ? 'ink' : 'tone'
@@ -984,9 +993,10 @@ function ReferenceEntityCardInner({
                 // Reprints are the entity's OWN-PAGE fact — the roomy full card.
                 additionalSources={compact ? undefined : provenance.additionalSources}
                 footMeta={footMeta}
-                externalLink={extent === 'full' ? externalLinkNode : undefined}
+                externalLink={extent === 'full' && !insideTooltip ? externalLinkNode : undefined}
                 size={size}
                 dashed={userMade}
+                credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
               />
             ))
           : null}

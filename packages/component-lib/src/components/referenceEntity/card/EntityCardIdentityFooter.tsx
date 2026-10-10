@@ -31,6 +31,11 @@ type EntityCardIdentityFooterProps = {
   size: CardSize
   /** USER-MADE (ruleset §3.9): the footer rule is dashed. */
   dashed?: boolean
+  /**
+   * USER-MADE credit ("Made by [user]"): replaces the book citation and the
+   * reprints line — a homebrew card has no page to cite.
+   */
+  credit?: string
 }
 
 const PAD_X: Record<CardSize, string> = { large: space[14], medium: space[10], small: space[8] }
@@ -72,9 +77,10 @@ export function EntityCardIdentityFooter({
   externalLink,
   size,
   dashed = false,
+  credit,
 }: EntityCardIdentityFooterProps) {
-  const primary = formatProvenance(source, booklet, page)
-  const reprints = (additionalSources ?? [])
+  const primary = credit ?? formatProvenance(source, booklet, page)
+  const reprints = (credit ? [] : (additionalSources ?? []))
     .map((entry) => formatProvenance(entry.source, entry.booklet, entry.page))
     .filter((line): line is string => !!line)
   // Foot extras force the footer even without source/page data — they are
@@ -101,7 +107,7 @@ export function EntityCardIdentityFooter({
     >
       <div
         style={{
-          alignItems: 'center',
+          alignItems: 'baseline',
           display: 'flex',
           gap: space[12],
           justifyContent: 'space-between',
@@ -113,7 +119,7 @@ export function EntityCardIdentityFooter({
           the source/page on the far right. */}
         <div
           style={{
-            alignItems: 'center',
+            alignItems: 'baseline',
             display: 'flex',
             gap: space[8],
             justifyContent: 'flex-end',
@@ -137,10 +143,18 @@ export function EntityCardIdentityFooter({
             </span>
           ))}
           {/* `contain: inline-size`: a long source adds nothing to the card's
-              min-content, so it truncates instead of widening the page. */}
+              min-content, so it WRAPS in the narrow column instead of widening
+              the page. The citation is a readout: it never clips, so the page
+              number always shows. */}
           {primary && (
             <span
-              style={{ ...truncate, contain: 'inline-size', flex: '1 1 0', textAlign: 'right' }}
+              style={{
+                contain: 'inline-size',
+                flex: '1 1 0',
+                minWidth: 0,
+                overflowWrap: 'break-word',
+                textAlign: 'right',
+              }}
             >
               {primary}
             </span>

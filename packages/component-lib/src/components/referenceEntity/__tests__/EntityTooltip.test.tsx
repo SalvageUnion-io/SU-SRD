@@ -24,10 +24,12 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { Tooltip } from '@base-ui/react/tooltip'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { InsideTooltipContext } from '../../ui/insideTooltipContext'
-import { EntityTooltip } from '../EntityTooltip'
+import { EntityHovercard, EntityTooltip } from '../EntityTooltip'
+import { EntityExternalLinkProvider } from '../entityHrefContext'
 
 const firstChassis = () => {
   const c = SalvageUnionReference.Chassis.all()[0]
@@ -94,5 +96,36 @@ describe('EntityTooltip addressing', () => {
     )
     expect(screen.getByText('trigger')).toBeTruthy()
     expect(container.querySelector('[data-base-ui-tooltip-trigger]')).toBeNull()
+  })
+})
+
+describe('EntityHovercard is terminal (ruleset §1, board E3)', () => {
+  const find = (schemaName: 'traits' | 'keywords' | 'chassis', pick: (name: string) => boolean) => {
+    const entity = SalvageUnionReference.findIn(
+      schemaName,
+      (e) => 'name' in e && pick(String(e.name))
+    )
+    if (!entity) throw new Error(`no ${schemaName} fixture`)
+    return entity as Parameters<typeof EntityHovercard>[0]['entity']
+  }
+
+  test.each([
+    ['a trait', 'traits', () => true],
+    ['a keyword', 'keywords', () => true],
+    ['a rich chassis', 'chassis', (n: string) => n === 'Little Sestra'],
+  ] as const)('%s hovercard renders no link, button or role=button', (_label, schemaName, pick) => {
+    const entity = find(schemaName, pick)
+    render(
+      <EntityExternalLinkProvider value={() => <a href="/srd">View in SRD</a>}>
+        <Tooltip.Root open>
+          <EntityHovercard entity={entity} />
+        </Tooltip.Root>
+      </EntityExternalLinkProvider>
+    )
+    expect(
+      [...document.body.querySelectorAll('a, button, [role="button"]')].map((e) =>
+        e.outerHTML.slice(0, 200)
+      )
+    ).toEqual([])
   })
 })

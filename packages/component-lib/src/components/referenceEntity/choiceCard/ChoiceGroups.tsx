@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useCallback, useState } from 'react'
+import { useCallback, useContext, useState } from 'react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CSSVarStyle } from '../../../styles/cssVars'
@@ -7,6 +7,7 @@ import { cn } from '../../../utils/cn'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Badge } from '../../chrome/Badge'
 import { INPUT_FOCUS } from '../../chrome/interaction'
+import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import { CardRollTable } from '../card/CardRollTable'
 import { accentDeepColor } from '../referenceEntityHelpers'
 import type { ChoiceSelections } from './choiceSelectionHelpers'
@@ -203,6 +204,8 @@ function ChoiceOptionGroup({
   compact?: boolean
   toneColor?: string
 }): ReactNode {
+  // Terminal in a tooltip popup (ruleset §1): the table's Roll/Show controls go.
+  const insideTooltip = useContext(InsideTooltipContext)
   const toneVar: CSSVarStyle = { '--tone-deep': toneColor }
   const kind = getChoiceSourceKind(choice)
   const value = selected[0] ?? ''
@@ -243,7 +246,7 @@ function ChoiceOptionGroup({
           // rolling the table below fills it (RollTable.onRollResult).
           <StampsealField label={choice.name} value={value} onChange={onFreeTextChange} />
         )}
-        {table && (
+        {table && !insideTooltip && (
           <CardRollTable
             table={table}
             name={`${tableName} Table`}

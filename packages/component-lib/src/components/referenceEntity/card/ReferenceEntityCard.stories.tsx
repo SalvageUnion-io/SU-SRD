@@ -9,7 +9,8 @@ import { InlineRef } from '../../chrome/InlineRef'
 import type { EntityStatus } from '../../shared/entityStatus'
 import type { StatItem } from '../../shared/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
-import { EntityHovercard } from '../EntityTooltip'
+import { EntityHovercard, EntityHovercardCard } from '../EntityTooltip'
+import { HOVERCARD_PLATE_FILTER } from '../hovercardPlate'
 import { ReferenceEntityCard } from './ReferenceEntityCard'
 
 export default {
@@ -587,7 +588,13 @@ function Matrix({
               <Caption>
                 {size} · {extent}
               </Caption>
-              <ReferenceEntityCard data={entity} size={size} extent={extent} userMade={userMade} />
+              <ReferenceEntityCard
+                data={entity}
+                size={size}
+                extent={extent}
+                userMade={userMade}
+                madeBy={userMade ? 'Rook' : undefined}
+              />
             </div>
           ))}
         </div>
@@ -718,14 +725,16 @@ export const Contexts: Story = () => {
         <Caption>in prose: the shortform</Caption>
         <ReferenceEntityCard data={system} size="small" extent="head" />
       </div>
-      {/* The whole row, with room above the trigger: the popup opens on top. */}
+      {/* The whole row. The popup is portaled over the page, so it would sit
+          on the Listing rows and the in-prose pill above: the cell lays the
+          same plate out IN FLOW, under a closed trigger that still opens the
+          real popup on hover. */}
       <div style={{ ...panel, gridColumn: '1 / -1' }}>
-        <Caption>Tooltip · the real hovercard popup — a lifted plate, terminal and flat</Caption>
-        <p style={{ fontSize: '14px', margin: 0, paddingTop: '14rem' }}>
-          {/* The real hovercard popup, held open for the catalog. */}…then mount the{' '}
-          <Tooltip.Root defaultOpen defaultTriggerId="story-tooltip-trigger">
+        <Caption>Tooltip · the hovercard plate — a lifted plate, terminal and flat</Caption>
+        <p style={{ fontSize: '14px', margin: 0 }}>
+          …then mount the{' '}
+          <Tooltip.Root>
             <Tooltip.Trigger
-              id="story-tooltip-trigger"
               // The prose link (ruleset §3.1): an InlineRef, here to the card's story.
               render={
                 <InlineRef href="#compositions--entity--reference-entity-card--system-card">
@@ -737,6 +746,15 @@ export const Contexts: Story = () => {
           </Tooltip.Root>{' '}
           and roll.
         </p>
+        <div
+          style={{
+            filter: HOVERCARD_PLATE_FILTER,
+            maxWidth: 'min(500px, 100%)',
+            paddingBottom: '4px',
+          }}
+        >
+          <EntityHovercardCard entity={system} />
+        </div>
       </div>
     </div>
   )

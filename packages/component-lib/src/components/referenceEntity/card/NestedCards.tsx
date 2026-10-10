@@ -1,11 +1,12 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getReferenceEntityName } from 'salvageunion-reference'
 import { font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import { Button } from '../../chrome/Button'
 import { FOCUS_RING } from '../../chrome/interaction'
 import type { CardSize } from '../../shared/displayMode'
+import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityDetailDialog } from '../EntityDetailDialog'
 import { useEntityDetailLink, useEntityHref } from '../entityHrefContext'
@@ -175,6 +176,7 @@ export function NestedRow({
 }) {
   const { NestedCard } = host
   const [open, setOpen] = useState(false)
+  const insideTooltip = useContext(InsideTooltipContext)
   const href = useEntityHref(data as SURefEntity)
   const linkOut = useEntityDetailLink() && !!href
   const name = getReferenceEntityName(data) ?? 'Entity details'
@@ -191,6 +193,8 @@ export function NestedRow({
       cardClickLabel={onCardClick ? `Open ${name}` : undefined}
     />
   )
+  // Terminal in a tooltip popup: the row reads, it does not open anything.
+  if (insideTooltip) return row()
   if (linkOut) {
     return (
       <a
@@ -321,6 +325,8 @@ export function ActionsChip({
   children: ReactNode
 }) {
   const [open, setOpen] = useState(false)
+  // Terminal in a tooltip popup: no chip to press.
+  if (useContext(InsideTooltipContext)) return null
   const noun = count === 1 ? 'action' : 'actions'
   return (
     <>

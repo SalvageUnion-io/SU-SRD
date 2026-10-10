@@ -38,19 +38,6 @@ const BAR_BUTTON: CSSProperties = {
   textTransform: 'uppercase',
 }
 
-/**
- * A truncating one-liner. `contain: inline-size` gives it NO min-content
- * contribution, so a long name cannot widen a width-less ancestor (an island
- * page's wrapper) past the viewport.
- */
-const truncate: CSSProperties = {
-  contain: 'inline-size',
-  minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-}
-
 /** A range key as the book prints it: "11–19", with an en dash. */
 const rangeLabel = (key: string) => key.replace('-', '–')
 
@@ -163,8 +150,13 @@ export function CardRollTable({
         </span>
         <span
           style={cond(size === 'small' ? fontSize.lede : fontSize.readout, {
-            ...truncate,
+            // The name WRAPS at word breaks (never clips): when Roll and Table
+            // drop to a second row the name keeps its whole title. `contain`
+            // still keeps a long name from widening a width-less ancestor.
+            contain: 'inline-size',
             flex: '1 1 8rem',
+            minWidth: 0,
+            overflowWrap: 'break-word',
           })}
         >
           {name}

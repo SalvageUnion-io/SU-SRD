@@ -137,9 +137,12 @@ export function EntityCardHeader({
         // when they truly cannot fit.
         // One line: basis 0 (contained, it has no intrinsic width) and a heavy
         // grow, so it takes the row the cells and a hint leave it.
+        // A hint (a pattern row's description) NEVER outranks the name: the
+        // title keeps its own width and shrinks only once the hint, whose
+        // basis is 0, has nothing left to give.
         flex: oneLine
           ? rightContent
-            ? '3 1 0'
+            ? '0 1 auto'
             : '1 1 0'
           : size === 'large'
             ? '1 1 auto'
@@ -148,7 +151,11 @@ export function EntityCardHeader({
         // the chevron past the card's edge; its stub is kept by the cluster's cap.
         minWidth: oneLine ? 0 : size === 'large' ? 0 : 'min-content',
         overflowWrap: 'break-word',
-        ...(oneLine ? ONE_LINE : {}),
+        ...(oneLine
+          ? rightContent
+            ? { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
+            : ONE_LINE
+          : {}),
       }}
     >
       {title}
