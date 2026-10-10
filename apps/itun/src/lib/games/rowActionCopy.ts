@@ -12,8 +12,8 @@
  * "are you sure?" makes the reader work out the consequence themselves, which
  * is the one job the dialog exists to do for them.
  *
- * The personal shelf is called **"My Stuff"** in anything a player reads — the
- * product owner's name for it, here and everywhere else in the app.
+ * The personal container is called **"your shelf"** in anything a player reads
+ * (the page is Shelves); "My Stuff" is retired.
  *
  * The tone is part of the copy because it is part of the message: `danger` for
  * anything that takes a build — or its assignments — away from you or from the
@@ -82,10 +82,10 @@ function builds(n: number): string {
 }
 
 /** Where the other end of a link cleared on the way into a Game still is. */
-const STILL_IN_MY_STUFF = '(still in My Stuff)'
+const STILL_IN_MY_STUFF = '(still on your shelf)'
 
 /**
- * What a move from My Stuff into a Game clears, one line per assignment: a
+ * What a move from your shelf into a Game clears, one line per assignment: a
  * pilot or mech's pairing first, then the crawler crew it leaves. A crawler's
  * crew is one line, naming everyone who leaves it.
  */
@@ -156,16 +156,16 @@ export const ROW_ACTION_COPY = {
   },
 
   /**
-   * A copy into My Stuff. Destroys nothing, but it does make something, and a
+   * A copy onto your shelf. Destroys nothing, but it does make something, and a
    * player who expected a move would otherwise find two of them — so it names
    * the copy it will make and says the two will not stay in step.
    */
   copy(name: string): ConfirmCopy {
     return {
-      title: `Copy ${name} to My Stuff?`,
+      title: `Copy ${name} to your shelf?`,
       body: [
-        `This makes “${copyName(name)}” in My Stuff. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
-        "Don't want it later? Delete the copy from My Stuff.",
+        `This makes “${copyName(name)}” on your shelf. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
+        "Don't want it later? Delete the copy from your shelf.",
       ],
       confirmLabel: 'Make a copy',
       pendingLabel: 'Copying…',
@@ -238,7 +238,7 @@ export const ROW_ACTION_COPY = {
   },
 
   /**
-   * Moving a build OUT of a Game — back to My Stuff, or on to another Game.
+   * Moving a build OUT of a Game — back to your shelf, or on to another Game.
    *
    * This direction always asks: moving a build out takes it off a shared
    * roster that the rest of the table was reading. (Moving one in takes nothing
@@ -267,11 +267,11 @@ export const ROW_ACTION_COPY = {
       return {
         title: `Take ${args.name} out of ${from}?`,
         body: [
-          `${args.name} leaves the game's roster and goes back to My Stuff, so the rest of the table won't see ${it} any more.`,
+          `${args.name} leaves the game's roster and goes back to your shelf, so the rest of the table won't see ${it} any more.`,
           clearedAssignments(args.kind, from),
           `You can move ${it} back into the game later.`,
         ],
-        confirmLabel: 'Move to My Stuff',
+        confirmLabel: 'Move to your shelf',
         pendingLabel: 'Moving…',
         tone: 'danger',
         failure,
@@ -294,12 +294,12 @@ export const ROW_ACTION_COPY = {
   },
 
   /**
-   * Moving a build from My Stuff INTO a Game, when the move clears something.
+   * Moving a build from your shelf INTO a Game, when the move clears something.
    *
    * Joining a Game takes nothing from the table, so a move in with nothing to
    * clear runs straight away and never reaches this. But a move prunes every
    * assignment that would straddle two containers (ADR-037), so a build going
-   * in loses whatever it was paired with that stays in My Stuff. The callers
+   * in loses whatever it was paired with that stays on your shelf. The callers
    * ask only when `assignmentsClearedByMove` is non-empty, and this names each
    * one: the pilot or mech it was paired with, the crawler whose crew it
    * leaves — or, for a crawler, the crew that leaves it. `danger`, like
@@ -320,7 +320,7 @@ export const ROW_ACTION_COPY = {
       body: [
         `${args.name} joins ${game}'s roster.`,
         ...clearedOnEntry(args.kind, args.cleared),
-        `You can move ${them(args.kind)} back to My Stuff later, but you'll need to make ${assignments} again.`,
+        `You can move ${them(args.kind)} back to your shelf later, but you'll need to make ${assignments} again.`,
       ],
       confirmLabel: 'Move',
       pendingLabel: 'Moving…',

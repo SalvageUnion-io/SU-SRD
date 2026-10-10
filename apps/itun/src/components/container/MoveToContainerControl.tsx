@@ -160,7 +160,7 @@ function ConnectedMoveToContainerControl({
           onChange={handleChange}
           disabled={pending || destinations.length <= 1}
           className="w-auto disabled:opacity-50 sm:min-h-9"
-          aria-label="Move to a game or My Stuff"
+          aria-label="Move to a game or your shelf"
         >
           {shelfOptions.map((d) => (
             <option key="shelf" value="shelf">

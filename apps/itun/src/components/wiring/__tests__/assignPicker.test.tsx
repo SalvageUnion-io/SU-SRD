@@ -235,7 +235,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
     )
     open(/assign crawler to mech/i)
     // "My Stuff", never "Shelf", in anything a player reads.
-    expect(screen.getByText('No crawlers in My Stuff.')).toBeTruthy()
+    expect(screen.getByText('No crawlers on your shelf.')).toBeTruthy()
   })
 
   test('the slot’s occupant is not offered back, and the trigger says Change', () => {

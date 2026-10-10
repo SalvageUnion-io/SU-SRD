@@ -84,6 +84,8 @@ type HeaderMenuProps = {
    * "+ From a mech").
    */
   variant?: 'masthead' | 'overflow' | 'button'
+  /** Extra classes for the trigger of the `button` variant. */
+  className?: string
 }
 
 const TRIGGER = {
@@ -196,13 +198,14 @@ export function HeaderMenu({
   chevron = true,
   align = 'end',
   variant = 'masthead',
+  className,
 }: HeaderMenuProps) {
   const filled = sections.filter((section) => section.length > 0)
   const overflow = variant === 'overflow'
   // The button variant is the shared Button's own classes, focus ring included.
   const triggerClass =
     variant === 'button'
-      ? buttonVariants({ size: 'compact' })
+      ? `${buttonVariants({ size: 'compact' })}${className ? ` ${className}` : ''}`
       : `header-menu-trigger${overflow ? ' header-menu-trigger--overflow' : ''} ${FOCUS_RING}`
   const triggerStyle = variant === 'button' ? undefined : overflow ? OVERFLOW_TRIGGER : TRIGGER
 
