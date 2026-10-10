@@ -31,7 +31,10 @@ pushes `convex/` on every save and writes `CONVEX_DEPLOYMENT`,
 `VITE_CONVEX_URL` and `VITE_CONVEX_SITE_URL` into `apps/itun/.env.local`. It
 signs in through the test seam, not Discord: the `dev` script sets
 `VITE_TEST_AUTH=true`, and the deployment needs `ITUN_TEST_AUTH`. Production
-has neither. One-time setup, from `apps/itun`:
+has neither. It refuses to start on a cloud `CONVEX_DEPLOYMENT`
+(`scripts/assert-local-convex.ts`): `.worktreeinclude` copies `.env.local` into
+every worktree, so a cloud dev deployment is one backend that every worktree's
+pushes overwrite. One-time setup, from `apps/itun`:
 
 ```bash
 # Pick a local deployment. Not signed in to Convex: run `bun run dev:itun` and
