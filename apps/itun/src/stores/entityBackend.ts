@@ -190,6 +190,9 @@ export function crawlerPatchArgs(
   return { appId, patch, ...(unset.length > 0 ? { unset } : {}) }
 }
 
+/** The table each owned kind's whole-body write addresses (`upsertByAppId`). */
+const OWNED_TABLE = { pilot: 'pilots', mech: 'mechs', npc: 'npcs' } as const
+
 /**
  * Write one entity to the server of record, and **fail if it does not land**.
  *
@@ -250,7 +253,7 @@ export async function commitEntityWrite(
     return
   }
 
-  const table = type === 'pilot' ? 'pilots' : 'mechs'
+  const table = OWNED_TABLE[type]
   if (op.kind === 'delete') {
     await convexClient.mutation(api.entities.removeByAppId, { table, appId: op.appId })
     return
@@ -286,7 +289,7 @@ export async function commitEntityWrite(
 export async function commitChangeLog(
   entries: readonly {
     gameId: string | null
-    entityType: 'pilot' | 'mech' | 'crawler' | 'softLink' | 'game'
+    entityType: 'pilot' | 'mech' | 'crawler' | 'npc' | 'softLink' | 'game'
     entityId: string
     ts: number
     kind: 'transaction' | 'override' | 'manual'
@@ -370,7 +373,12 @@ export async function commitSoftLink(
   // fails validation server-side for no benefit.
   if (link.from?.id === undefined || link.to?.id === undefined) return
 
-  const args = { from: link.from, to: link.to, type: link.type }
+  const args = {
+    from: link.from,
+    to: link.to,
+    type: link.type,
+    ...(link.slot === undefined ? {} : { slot: link.slot }),
+  }
   if (kind === 'upsert') {
     await convexClient.mutation(api.entities.upsertSoftLink, args)
   } else {
@@ -418,7 +426,7 @@ export function transferArgs(
         return { table: 'crawlers' as const, ...crawlerPatchArgs(record.id, patch), ...move }
       }
       return {
-        table: type === 'pilot' ? ('pilots' as const) : ('mechs' as const),
+        table: OWNED_TABLE[type],
         appId: record.id,
         gameId: (record.gameId ?? null) as Id<'games'> | null,
         body: record,
@@ -427,13 +435,21 @@ export function transferArgs(
     }),
     deletes: removals.flatMap((removal): TransferArgs['deletes'] => {
       if (removal.type !== 'softLink') {
-        const table = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as const
+        const table = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers', npc: 'npcs' } as const
         return [{ table: table[removal.type], appId: removal.id }]
       }
       const { link } = removal
       // Half a link has nothing to address — see `commitSoftLink`.
       if (link?.from?.id === undefined || link.to?.id === undefined) return []
-      return [{ table: 'softLinks' as const, from: link.from, to: link.to, type: link.type }]
+      return [
+        {
+          table: 'softLinks' as const,
+          from: link.from,
+          to: link.to,
+          type: link.type,
+          ...(link.slot === undefined ? {} : { slot: link.slot }),
+        },
+      ]
     }),
   }
 }

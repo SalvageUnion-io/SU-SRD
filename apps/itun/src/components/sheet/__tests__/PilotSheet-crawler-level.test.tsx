@@ -93,7 +93,7 @@ function makeStore(opts: {
     pilots: [pilot],
     crawlers: crawler ? [crawler] : [],
     softLinks,
-    hydrated: { pilots: true, mechs: false, crawlers: !!crawler, softLinks: true },
+    hydrated: { pilots: true, mechs: false, crawlers: !!crawler, npcs: !!crawler, softLinks: true },
     hydrate: mock(async () => {}),
     list: mock(() => [pilot]),
     get: mock((type: string, id: string) => {

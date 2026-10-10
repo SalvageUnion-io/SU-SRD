@@ -70,7 +70,7 @@ function resetEntityStore(): void {
     mechs: [],
     crawlers: [],
     softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
   })
 }
 
@@ -94,7 +94,7 @@ describe('parseImportBundle', () => {
     const bundle: ExportBundle = {
       schemaVersion: 2,
       exportedAt: FIXTURE_NOW,
-      entities: { pilots: [], mechs: [], crawlers: [] },
+      entities: { pilots: [], mechs: [], crawlers: [], npcs: [] },
       softLinks: [],
       mechPatterns: [],
       encounterNpcs: [],
@@ -406,6 +406,7 @@ describe('mergeImport — round-trip', () => {
         pilots: [existingPilot],
         mechs: [],
         crawlers: [],
+        npcs: [],
       },
       softLinks: [],
       mechPatterns: [],

@@ -197,7 +197,8 @@ export const destroy = mutation({
     const membership = await requireOrganizer(ctx, args.gameId)
     const organizerId = membership.userId
 
-    for (const table of ['pilots', 'mechs'] as const) {
+    // Built NPCs are owned like pilots, so they fall back the same way.
+    for (const table of ['pilots', 'mechs', 'npcs'] as const) {
       const rows = await ctx.db
         .query(table)
         .withIndex('by_game', (q) => q.eq('gameId', args.gameId))

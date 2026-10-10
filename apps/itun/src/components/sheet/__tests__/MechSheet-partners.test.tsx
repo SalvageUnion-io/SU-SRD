@@ -43,7 +43,7 @@ function seededMech(chassisRef: string, patternName: string, overrides: Partial<
 function makeStore(mech: Mech) {
   return makeEntityStoreMock({
     mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
     get: mock((type: string, id: string) => (type === 'mech' && id === mech.id ? mech : null)),

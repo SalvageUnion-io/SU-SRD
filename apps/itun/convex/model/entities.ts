@@ -5,6 +5,7 @@ import { conflictingLinks, LINK_ENDS, sameLink } from '../../src/lib/links/linkR
 import { CrawlerSchema } from '../../src/lib/schemas/crawler'
 import { EncounterNpcSchema } from '../../src/lib/schemas/encounterNpc'
 import { MechSchema } from '../../src/lib/schemas/mech'
+import { NpcSchema } from '../../src/lib/schemas/npc'
 import { MechPatternSchema } from '../../src/lib/schemas/pattern'
 import { PilotSchema } from '../../src/lib/schemas/pilot'
 import type { SoftLink } from '../../src/lib/schemas/softLink'
@@ -49,6 +50,14 @@ import {
 export type OwnableTable = 'pilots' | 'mechs'
 
 /**
+ * Every table whose rows are always their owner's and written whole by
+ * `upsertByAppId`: the ownable pair, plus built NPCs (ADR-043). NPCs are kept
+ * out of `OwnableTable` because claiming, releasing, invite grants and
+ * proposals are about a player's character, and none of them reach an NPC.
+ */
+export type OwnedTable = OwnableTable | 'npcs'
+
+/**
  * What the Mediator's opposition tray may write.
  *
  * Deliberately a *partial* of the local `EncounterNpcSchema` rather than the
@@ -73,6 +82,7 @@ export const PARSERS = {
   pilots: PilotSchema,
   mechs: MechSchema,
   crawlers: CrawlerSchema,
+  npcs: NpcSchema,
   encounterNpcs: EncounterNpcBodySchema,
   mechPatterns: MechPatternSchema,
 } as const
@@ -130,8 +140,8 @@ export async function loadOwnable(
   return doc
 }
 
-/** The three tables a Change Log row's entity lives in. */
-export type LoggedTable = 'pilots' | 'mechs' | 'crawlers'
+/** The tables a Change Log row's entity lives in. */
+export type LoggedTable = 'pilots' | 'mechs' | 'crawlers' | 'npcs'
 
 /**
  * The id a Change Log row names an entity by: its `appId`, the id the client
@@ -314,10 +324,15 @@ export async function countPatternBuild(
 /* -------------------------------------------------------------------------- */
 
 /** A row that sits in a container: every table a link end can name. */
-export type ContainedRow = Doc<'pilots'> | Doc<'mechs'> | Doc<'crawlers'>
+export type ContainedRow = Doc<'pilots'> | Doc<'mechs'> | Doc<'crawlers'> | Doc<'npcs'>
 
 /** Which table each link-end kind lives in. */
-const TABLE_FOR_END = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as const
+const TABLE_FOR_END = {
+  pilot: 'pilots',
+  mech: 'mechs',
+  crawler: 'crawlers',
+  npc: 'npcs',
+} as const
 
 /**
  * The id links use for a row: its `appId`, or — for a row seeded server-side
@@ -362,6 +377,12 @@ async function rowsByAppId(
       .withIndex('by_app_id', (q) => q.eq('appId', appId))
       .collect()
   }
+  if (type === 'npc') {
+    return await ctx.db
+      .query('npcs')
+      .withIndex('by_app_id', (q) => q.eq('appId', appId))
+      .collect()
+  }
   return await ctx.db
     .query('crawlers')
     .withIndex('by_app_id', (q) => q.eq('appId', appId))
@@ -384,6 +405,12 @@ export async function rowsInGame(
   if (table === 'mechs') {
     return await ctx.db
       .query('mechs')
+      .withIndex('by_game', (q) => q.eq('gameId', gameId))
+      .collect()
+  }
+  if (table === 'npcs') {
+    return await ctx.db
+      .query('npcs')
       .withIndex('by_game', (q) => q.eq('gameId', gameId))
       .collect()
   }
@@ -459,8 +486,8 @@ export async function linksTouching(
  *
  * ## Which neighbours count
  *
- * Conflicts on the `to` end (a pilot flies one mech) are looked for only among
- * links filed in the same container, and so are the `from` end's when
+ * Conflicts on the `to` end (a pilot flies one mech; a crew slot holds one
+ * NPC) are looked for only among links filed in the same container, and so are the `from` end's when
  * `fromScope` is `'container'`. Both exist for template-seeded rows: they carry
  * no `appId`, their links name body ids, and those ids repeat across every
  * Game seeded from the same template — a pilot in another Game is not this
@@ -482,7 +509,7 @@ export async function writeSoftLink(
       .query('softLinks')
       .withIndex('by_from', (q) => q.eq('from.id', link.from.id))
       .collect(),
-    LINK_ENDS[link.type].exclusiveTo
+    LINK_ENDS[link.type].exclusiveTo || LINK_ENDS[link.type].slotted
       ? ctx.db
           .query('softLinks')
           .withIndex('by_to', (q) => q.eq('to.id', link.to.id))
@@ -516,6 +543,7 @@ export async function writeSoftLink(
     from: { type: link.from.type, id: link.from.id },
     to: { type: link.to.type, id: link.to.id },
     type: link.type,
+    ...(link.slot === undefined ? {} : { slot: link.slot }),
   })
   return 'inserted'
 }

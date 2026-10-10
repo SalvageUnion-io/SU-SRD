@@ -58,7 +58,7 @@ beforeEach(async () => {
     mechs: [],
     crawlers: [],
     softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
   })
   transfers.length = 0
   refuse = false

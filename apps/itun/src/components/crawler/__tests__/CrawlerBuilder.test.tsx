@@ -45,6 +45,7 @@ function resetEntityStore(): void {
       pilots: false,
       mechs: false,
       crawlers: false,
+      npcs: false,
       softLinks: false,
     },
   })

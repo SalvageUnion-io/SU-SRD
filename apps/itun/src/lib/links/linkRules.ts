@@ -1,7 +1,8 @@
 /**
  * The assignment model: what a soft link may join, how many of each an entity
  * may hold, and where both ends must live
- * ([ADR-037](../../../../../docs/ARCHITECTURE.md#adr-037)).
+ * ([ADR-037](../../../../../docs/ARCHITECTURE.md#adr-037), and
+ * [ADR-043](../../../../../docs/ARCHITECTURE.md#adr-043) for crew slots).
  *
  * Pure, and shared by the client store and the Convex backend on purpose. The
  * server is the authority — `convex/entities.ts` refuses what these rules
@@ -9,16 +10,23 @@
  * copy is a rule the two will eventually disagree about, so both import it
  * from here, the way both import `lib/container.ts`.
  *
- * ## The three links
+ * ## The four links
  *
- * | type               | from  | to      | from holds | to holds |
- * | ------------------ | ----- | ------- | ---------- | -------- |
- * | `mech-to-pilot`    | mech  | pilot   | ≤ 1        | ≤ 1      |
- * | `pilot-to-crawler` | pilot | crawler | ≤ 1        | many     |
- * | `mech-to-crawler`  | mech  | crawler | ≤ 1        | many     |
+ * | type               | from  | to      | from holds | to holds       |
+ * | ------------------ | ----- | ------- | ---------- | -------------- |
+ * | `mech-to-pilot`    | mech  | pilot   | ≤ 1        | ≤ 1            |
+ * | `pilot-to-crawler` | pilot | crawler | ≤ 1        | many           |
+ * | `mech-to-crawler`  | mech  | crawler | ≤ 1        | many           |
+ * | `npc-to-crawler`   | npc   | crawler | ≤ 1        | ≤ 1 per `slot` |
  *
  * A mech's crawler is its OWN link, never reached through its pilot, so a mech
  * is assigned independently of whoever flies it.
+ *
+ * An `npc-to-crawler` link names the crew slot it fills (`slot`: a bay, or the
+ * crawler type's NPC), and only it does. A crawler takes many NPCs, one per
+ * slot, so its `to` end is exclusive per slot rather than outright. It is the
+ * one link authorised by its `to` end: whoever may write the crawler draws and
+ * deletes it (ADR-043; enforced by the server).
  *
  * ## Creating a link replaces what it conflicts with
  *
@@ -38,7 +46,7 @@
 import type { Container } from '../container'
 import { sameContainer } from '../container'
 import type { EntityRef } from '../schemas/entity'
-import type { SoftLink } from '../schemas/softLink'
+import type { CrewSlot, SoftLink } from '../schemas/softLink'
 
 export type SoftLinkType = SoftLink['type']
 type EndType = EntityRef['type']
@@ -48,21 +56,26 @@ export type LinkShape = {
   from: { type: EndType; id: string }
   to: { type: EndType; id: string }
   type: SoftLinkType
+  /** The crew slot an `npc-to-crawler` link fills; absent on every other type. */
+  slot?: CrewSlot | undefined
 }
 
 /**
  * Each link type's ends, and whether its `to` end is exclusive.
  *
  * The `from` end is exclusive for every type: a mech flies one pilot and docks
- * in one crawler, a pilot crews one crawler. The `to` end is exclusive only for
- * `mech-to-pilot` — a pilot flies one mech — while a crawler takes a crew.
+ * in one crawler, a pilot crews one crawler, an NPC fills one crew slot. The
+ * `to` end is exclusive outright only for `mech-to-pilot` — a pilot flies one
+ * mech — while a crawler takes a crew. `slotted` makes it exclusive per slot:
+ * a crawler's Med Bay takes one NPC, its Mech Bay another.
  */
 export const LINK_ENDS: Readonly<
-  Record<SoftLinkType, { from: EndType; to: EndType; exclusiveTo: boolean }>
+  Record<SoftLinkType, { from: EndType; to: EndType; exclusiveTo: boolean; slotted: boolean }>
 > = {
-  'mech-to-pilot': { from: 'mech', to: 'pilot', exclusiveTo: true },
-  'pilot-to-crawler': { from: 'pilot', to: 'crawler', exclusiveTo: false },
-  'mech-to-crawler': { from: 'mech', to: 'crawler', exclusiveTo: false },
+  'mech-to-pilot': { from: 'mech', to: 'pilot', exclusiveTo: true, slotted: false },
+  'pilot-to-crawler': { from: 'pilot', to: 'crawler', exclusiveTo: false, slotted: false },
+  'mech-to-crawler': { from: 'mech', to: 'crawler', exclusiveTo: false, slotted: false },
+  'npc-to-crawler': { from: 'npc', to: 'crawler', exclusiveTo: false, slotted: true },
 }
 
 /** The link type joining these two ends, or null when nothing may join them. */
@@ -82,7 +95,7 @@ export function resolveLinkType(fromType: EndType, toType: EndType): SoftLinkTyp
   if (type === null) {
     throw new Error(
       `No SoftLink type defined for ${fromType} → ${toType}. ` +
-        'Supported: mech→pilot, pilot→crawler, mech→crawler.'
+        'Supported: mech→pilot, pilot→crawler, mech→crawler, npc→crawler.'
     )
   }
   return type
@@ -94,29 +107,57 @@ export function endsMatchType(link: LinkShape): boolean {
   return ends !== undefined && ends.from === link.from.type && ends.to === link.to.type
 }
 
-/** Two links are the same link when type and both endpoint ids agree. */
-export function sameLink(a: LinkShape, b: LinkShape): boolean {
-  return a.type === b.type && a.from.id === b.from.id && a.to.id === b.to.id
+/** A stable key for a crew slot: `bay:<bayRef>`, `type`, or `''` for none. */
+export function slotKey(slot: CrewSlot | undefined): string {
+  if (slot === undefined) return ''
+  return slot.kind === 'bay' ? `bay:${slot.bayRef}` : 'type'
 }
 
-/** A stable key for a link's identity — its (type, from, to) triple. */
+/** Whether two slots name the same crew slot (two absent slots do). */
+export function sameSlot(a: CrewSlot | undefined, b: CrewSlot | undefined): boolean {
+  return slotKey(a) === slotKey(b)
+}
+
+/**
+ * Two links are the same link when type, both endpoint ids and the slot agree.
+ * The slot matters only to `npc-to-crawler`: moving an NPC from the Med Bay to
+ * the Mech Bay of the same crawler is a different assignment.
+ */
+export function sameLink(a: LinkShape, b: LinkShape): boolean {
+  return (
+    a.type === b.type && a.from.id === b.from.id && a.to.id === b.to.id && sameSlot(a.slot, b.slot)
+  )
+}
+
+/** A stable key for a link's identity — its (type, from, to) triple, plus its slot. */
 export function linkKey(link: LinkShape): string {
-  return `${link.type}|${link.from.id}|${link.to.id}`
+  const slot = slotKey(link.slot)
+  return `${link.type}|${link.from.id}|${link.to.id}${slot === '' ? '' : `|${slot}`}`
+}
+
+/** Whether a link type names a crew slot (`npc-to-crawler`). */
+export function isSlotted(type: SoftLinkType): boolean {
+  return LINK_ENDS[type].slotted
 }
 
 /**
  * Whether `existing` must go for `candidate` to be drawn.
  *
- * Same type and same `from` with a different `to` always conflicts (every
- * `from` end is exclusive). For `mech-to-pilot` the `to` end is exclusive too,
- * so another mech already flying this pilot conflicts as well. The same link
- * drawn again is not a conflict — it is the link.
+ * Same type and same `from` with a different `to` (or slot) always conflicts:
+ * every `from` end is exclusive. For `mech-to-pilot` the `to` end is exclusive
+ * too, so another mech already flying this pilot conflicts as well; for
+ * `npc-to-crawler` it is exclusive per slot, so another NPC already crewing
+ * this crawler's Med Bay conflicts. The same link drawn again is not a
+ * conflict — it is the link.
  */
 export function conflictsWith(existing: LinkShape, candidate: LinkShape): boolean {
   if (existing.type !== candidate.type) return false
   if (sameLink(existing, candidate)) return false
   if (existing.from.id === candidate.from.id) return true
-  return LINK_ENDS[candidate.type].exclusiveTo && existing.to.id === candidate.to.id
+  if (existing.to.id !== candidate.to.id) return false
+  const ends = LINK_ENDS[candidate.type]
+  if (ends.exclusiveTo) return true
+  return ends.slotted && sameSlot(existing.slot, candidate.slot)
 }
 
 /** Every link `candidate` replaces. The one definition of cardinality. */

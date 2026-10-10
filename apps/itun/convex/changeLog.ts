@@ -6,7 +6,7 @@ import { loadLogged, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMember, requireMemberAs, requireUser } from './model/permissions'
 
 /** The table each sheet kind's row lives in. */
-const LOGGED_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as const
+const LOGGED_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers', npc: 'npcs' } as const
 
 /**
  * Append client-originated Change Log rows (ADR-022 / ADR-034 P4b).
@@ -40,6 +40,7 @@ export const appendChangeLog = mutation({
           v.literal('pilot'),
           v.literal('mech'),
           v.literal('crawler'),
+          v.literal('npc'),
           v.literal('softLink'),
           v.literal('game')
         ),
@@ -95,7 +96,12 @@ export const appendChangeLog = mutation({
     // Distinct, as the games are, so a batch about one entity is one read.
     const logged = new Map<string, { table: LoggedTable; entityId: string }>()
     for (const e of args.entries) {
-      if (e.entityType === 'pilot' || e.entityType === 'mech' || e.entityType === 'crawler') {
+      if (
+        e.entityType === 'pilot' ||
+        e.entityType === 'mech' ||
+        e.entityType === 'crawler' ||
+        e.entityType === 'npc'
+      ) {
         const table = LOGGED_TABLE[e.entityType]
         logged.set(`${table}:${e.entityId}`, { table, entityId: e.entityId })
       }
@@ -200,7 +206,12 @@ const MAX_ENTITY_ROWS = 100
  */
 export const forEntity = query({
   args: {
-    entityType: v.union(v.literal('pilot'), v.literal('mech'), v.literal('crawler')),
+    entityType: v.union(
+      v.literal('pilot'),
+      v.literal('mech'),
+      v.literal('crawler'),
+      v.literal('npc')
+    ),
     entityId: v.string(),
   },
   handler: async (ctx, args) => {
