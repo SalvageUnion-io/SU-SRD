@@ -1,3 +1,5 @@
+import { InlineRef } from 'component-lib'
+
 type FooterProps = {
   /** URL for the "Powered by Salvage" logo image — passed by consuming app */
   poweredBySalvageUrl: string
@@ -10,39 +12,28 @@ export function Footer({ poweredBySalvageUrl }: FooterProps) {
         <div className="min-w-0 flex-1 text-center">
           <p>
             Salvage Union is copyrighted by{' '}
-            <a
-              href="https://leyline.press"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-rust"
-            >
+            <InlineRef href="https://leyline.press" target="_blank" rel="noopener noreferrer">
               Leyline Press
-            </a>
+            </InlineRef>
             .
           </p>
           <p>
             Salvage Union and the &quot;Powered by Salvage&quot; logo are used with permission of
             Leyline Press, under the{' '}
-            <a
+            <InlineRef
               href="https://leyline.press/pages/salvage-union-open-game-licence-1-0b"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline hover:text-rust"
             >
               Salvage Union Open Game Licence 1.0b
-            </a>
+            </InlineRef>
             .
           </p>
           <p>
             All Workshop Manual Images are used with special permission from{' '}
-            <a
-              href="https://leyline.press"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-rust"
-            >
+            <InlineRef href="https://leyline.press" target="_blank" rel="noopener noreferrer">
               Leyline Press
-            </a>
+            </InlineRef>
             .
           </p>
         </div>

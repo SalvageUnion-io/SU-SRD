@@ -11,7 +11,7 @@ export default {
 function Cluster({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="font-cond text-label uppercase tracking-caps text-wk-muted">{label}</span>
+      <span className="font-cond text-badge uppercase tracking-caps text-wk-muted">{label}</span>
       {children}
     </div>
   )

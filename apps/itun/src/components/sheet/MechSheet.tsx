@@ -378,7 +378,7 @@ export function MechSheet({
             />
             <div className="flex w-full flex-col gap-2">
               <span
-                className="font-cond text-label font-bold uppercase tracking-caps"
+                className="font-cond text-badge font-bold uppercase tracking-caps"
                 style={{ color: 'var(--tone-deep, var(--color-ink))' }}
               >
                 Conditions

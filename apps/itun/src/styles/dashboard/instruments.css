@@ -129,7 +129,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-micro);
+  font-size: var(--text-badge);
   line-height: 1;
   /* ink-75, not ink-50: ink-50 on band-cream is 3.04:1, under AA's 4.5:1 for
      text this small. */
@@ -646,7 +646,7 @@
 .pc-cargo-code {
   font-family: var(--font-cond);
   font-weight: 700;
-  font-size: var(--text-label);
+  font-size: var(--text-badge);
   letter-spacing: var(--tracking-caps-tight);
   color: var(--color-ink-50);
 }
@@ -720,7 +720,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-label);
+  font-size: var(--text-badge);
   text-align: center;
 }
 .pc-tablepick-list {
@@ -833,7 +833,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-label);
+  font-size: var(--text-badge);
   color: var(--color-ink-50);
 }
 .pc-srd-noresults {

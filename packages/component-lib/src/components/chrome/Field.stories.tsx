@@ -107,7 +107,7 @@ export const Identity: Story = () => {
           multiline
           onSave={setMotto}
           labelAction={
-            <span className="rounded-full border-2 border-ink bg-ink px-2 py-0.5 font-cond text-[9.5px] font-bold uppercase leading-none tracking-caps-wide text-paper">
+            <span className="rounded-full border-2 border-ink bg-ink px-2 py-0.5 font-cond text-badge font-bold uppercase leading-none tracking-caps-wide text-paper">
               Used
             </span>
           }

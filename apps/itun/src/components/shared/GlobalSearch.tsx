@@ -212,7 +212,7 @@ export function GlobalSearch({ fabHidden = false }: GlobalSearchProps) {
                     onClick={() => submit(result)}
                     className={`flex w-full cursor-pointer items-baseline justify-between gap-3 rounded-card border-chrome px-3 py-2 text-left transition-colors ${
                       index === selectedIndex
-                        ? 'border-rust bg-wk-bg-2'
+                        ? 'border-ink bg-wk-bg-2'
                         : 'border-transparent hover:bg-wk-bg-2'
                     }`}
                   >

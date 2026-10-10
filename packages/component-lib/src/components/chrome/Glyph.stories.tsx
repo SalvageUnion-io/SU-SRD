@@ -1,5 +1,6 @@
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
+import { Button } from './Button'
 import type { GlyphName } from './glyphs'
 import { Glyph } from './glyphs'
 
@@ -48,19 +49,16 @@ export const AllGlyphs: Story = () => (
 /** currentColor — a glyph takes its colour from surrounding text (rust in action). */
 export const CurrentColor: Story = () => (
   <div className="space-y-3 bg-paper p-4">
-    <Caption>currentColor · inherits ink / rust from context</Caption>
+    <Caption>currentColor · inherits ink, or paper on an action</Caption>
     <div className="flex items-center gap-2 text-ink">
       <Glyph name="gear" />
       <span className="font-cond text-sm font-bold uppercase tracking-caps-tight">
         Turn Action · ink
       </span>
     </div>
-    <div className="flex items-center gap-2 text-rust">
-      <Glyph name="pennant" />
-      <span className="font-cond text-sm font-bold uppercase tracking-caps-tight">
-        1 AP · rust = action
-      </span>
-    </div>
+    <Button variant="primary" size="compact">
+      <Glyph name="pennant" />1 AP · rust = action
+    </Button>
   </div>
 )
 

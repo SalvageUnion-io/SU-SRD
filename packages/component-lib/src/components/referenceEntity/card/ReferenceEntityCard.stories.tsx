@@ -137,7 +137,7 @@ function Compare({
   return (
     <div className="flex flex-col gap-2 p-4">
       {label && (
-        <div className="font-cond text-sm font-bold uppercase tracking-caps-tight text-rust">
+        <div className="font-cond text-sm font-bold uppercase tracking-caps-tight text-ink">
           {label}
         </div>
       )}
@@ -227,14 +227,14 @@ export const ClassKinds: Story = () => (
  */
 export const PatternCard: Story = () => (
   <div className="flex flex-col gap-4 p-4">
-    <code className="font-body text-nano text-wk-muted">
+    <code className="font-body text-badge text-wk-muted">
       {chassis.name} · {surveyorPattern.name}
     </code>
     <ReferenceEntityCard data={chassis} pattern={surveyorPattern} />
     {/* A `legalStarting`-tagged pattern adds the "Legal Starting Pattern" stamp
         to the seam, right of the chassis marker — full card and listing row
         alike (the row is what the chassis page's Patterns list renders). */}
-    <code className="font-body text-nano text-wk-muted">
+    <code className="font-body text-badge text-wk-muted">
       {muleChassis.name} · {haulerPattern.name} (legal starting — full + listing)
     </code>
     <ReferenceEntityCard data={muleChassis} pattern={haulerPattern} />
@@ -343,7 +343,7 @@ export const SuggestedItem: Story = () => (
 /**
  * MULTI-SELECT — a duplicate-allowed picker cell. `onCountChange` renders a
  * "Chosen" seal + `[− n +]` CountStepper riding the top-right frame; `count ≥ 1`
- * lights the rust selection ring. The step buttons never trigger a card click.
+ * lights the selection ring. The step buttons never trigger a card click.
  */
 export const MultiSelectCard: Story = () => {
   const [count, setCount] = useState(0)
@@ -374,7 +374,7 @@ export const TechLevelScaling: Story = () => {
   return (
     <Compare
       readOnly={
-        // Controlled from without: TL3 supplied, Damage 2→4 (rust border).
+        // Controlled from without: TL3 supplied, Damage 2→4 (modified border).
         <ReferenceEntityCard data={choiceEquip} scalingParent={{ techLevel: 3 }} />
       }
       editable={

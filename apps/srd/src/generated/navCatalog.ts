@@ -39,7 +39,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "displayName": "Equipment",
         "label": "Equipment",
         "catalogBg": "linear-gradient(to right, var(--color-tl-1) 0.0%, var(--color-tl-1) 16.7%, var(--color-tl-2) 16.7%, var(--color-tl-2) 33.3%, var(--color-tl-3) 33.3%, var(--color-tl-3) 50.0%, var(--color-tl-4) 50.0%, var(--color-tl-4) 66.7%, var(--color-tl-5) 66.7%, var(--color-tl-5) 83.3%, var(--color-tl-6) 83.3%, var(--color-tl-6) 100.0%)",
-        "catalogLabel": "var(--color-rust)"
+        "catalogLabel": "var(--color-ink)"
       }
     ]
   },

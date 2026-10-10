@@ -490,7 +490,7 @@ function FirstRunWelcome() {
   return (
     <div className="mt-6 flex flex-col items-center gap-4 rounded-card border-chrome border-dashed border-wk-faint p-8 text-center sm:p-12">
       <UserRound aria-hidden="true" className="size-9 text-sheet-pilot-deep" />
-      <h2 className="font-cond text-xl font-bold uppercase tracking-widest text-rust">
+      <h2 className="font-cond text-xl font-bold uppercase tracking-widest text-ink">
         Welcome to In the Union Now
       </h2>
       <p className="max-w-prose font-body text-sm text-wk-muted">

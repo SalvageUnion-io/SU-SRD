@@ -7,7 +7,7 @@
  * `<pre>` block.
  */
 
-import { PageHeading, Panel, Slab } from 'component-lib'
+import { InlineRef, PageHeading, Panel, Slab } from 'component-lib'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { apiSampleChassis } from '../lib/apiSample'
@@ -157,7 +157,7 @@ function page(): PageResult {
               <strong>Base URL:</strong>{' '}
               <code className="rounded-card bg-wk-bg px-1 py-0.5">{baseUrl}</code>
             </p>
-            <p className="rounded-panel border-l-4 border-rust bg-wk-bg px-4 py-3">
+            <p className="rounded-panel border-l-4 border-ink bg-wk-bg px-4 py-3">
               <strong>Tip:</strong> appending{' '}
               <code className="rounded-card bg-paper px-1 py-0.5">.json</code> to any schema URL on
               this site returns the underlying data. For example,{' '}
@@ -183,21 +183,21 @@ function page(): PageResult {
                   GET
                 </p>
                 <p className="mt-1 font-body text-base font-bold">
-                  /schema/<span className="text-rust">{'{schemaId}'}</span>.json
+                  /schema/<span className="italic">{'{schemaId}'}</span>.json
                 </p>
               </div>
               <div className="flex flex-col gap-3 px-5 py-4 text-sm leading-relaxed">
                 <p>Returns the full data array for a schema. Each element is a game entity.</p>
                 <p>
                   <strong>Example:</strong>{' '}
-                  <a
+                  <InlineRef
                     href={`${baseUrl}/schema/chassis.json`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-bold text-rust hover:underline"
+                    className="font-bold"
                   >
                     {baseUrl}/schema/chassis.json
-                  </a>
+                  </InlineRef>
                 </p>
                 <CodeSample>{samples.schemaArray}</CodeSample>
               </div>
@@ -210,7 +210,7 @@ function page(): PageResult {
                   GET
                 </p>
                 <p className="mt-1 font-body text-base font-bold">
-                  /schema/<span className="text-rust">{'{schemaId}'}</span>.schema.json
+                  /schema/<span className="italic">{'{schemaId}'}</span>.schema.json
                 </p>
               </div>
               <div className="flex flex-col gap-3 px-5 py-4 text-sm leading-relaxed">
@@ -221,14 +221,14 @@ function page(): PageResult {
                 </p>
                 <p>
                   <strong>Example:</strong>{' '}
-                  <a
+                  <InlineRef
                     href={`${baseUrl}/schema/chassis.schema.json`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-bold text-rust hover:underline"
+                    className="font-bold"
                   >
                     {baseUrl}/schema/chassis.schema.json
-                  </a>
+                  </InlineRef>
                 </p>
                 <CodeSample>{JSON_SCHEMA_SAMPLE}</CodeSample>
               </div>
@@ -241,8 +241,8 @@ function page(): PageResult {
                   GET
                 </p>
                 <p className="mt-1 font-body text-base font-bold">
-                  /schema/<span className="text-rust">{'{schemaId}'}</span>/item/
-                  <span className="text-rust">{'{itemId}'}</span>.json
+                  /schema/<span className="italic">{'{schemaId}'}</span>/item/
+                  <span className="italic">{'{itemId}'}</span>.json
                 </p>
               </div>
               <div className="flex flex-col gap-3 px-5 py-4 text-sm leading-relaxed">
@@ -255,14 +255,14 @@ function page(): PageResult {
                 </p>
                 <p>
                   <strong>Example:</strong>{' '}
-                  <a
+                  <InlineRef
                     href={`${baseUrl}/schema/chassis/item/${samples.slug}.json`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-bold text-rust hover:underline"
+                    className="font-bold"
                   >
                     {baseUrl}/schema/chassis/item/{samples.slug}.json
-                  </a>
+                  </InlineRef>
                 </p>
                 <CodeSample>{samples.entity}</CodeSample>
               </div>
@@ -308,12 +308,12 @@ function page(): PageResult {
                       className={`border-b border-wk-faint ${i % 2 === 0 ? 'bg-paper' : 'bg-wk-bg'}`}
                     >
                       <td className="px-4 py-2">
-                        <a
+                        <InlineRef
                           href={schemaHref(schema.id)}
-                          className="font-body text-xs font-bold text-rust hover:underline"
+                          className="font-body text-xs font-bold"
                         >
                           {schema.id}
-                        </a>
+                        </InlineRef>
                       </td>
                       <td className="px-4 py-2 font-medium">{schema.displayNamePlural}</td>
                       <td className="px-4 py-2 text-wk-muted hidden sm:table-cell">
@@ -345,23 +345,23 @@ function page(): PageResult {
             <Slab as="h2" variant="solid" label="Licensing" />
             <p>
               Data returned by this API is published under the{' '}
-              <a
+              <InlineRef
                 href="https://leyline.press/pages/salvage-union-open-game-licence-1-0b"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-bold text-rust hover:underline"
+                className="font-bold"
               >
                 Salvage Union Open Game Licence (OGL 1.0b)
-              </a>
+              </InlineRef>
               . Salvage Union is created and published by{' '}
-              <a
+              <InlineRef
                 href="https://leyline.press"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-bold text-rust hover:underline"
+                className="font-bold"
               >
                 Leyline Press
-              </a>
+              </InlineRef>
               .
             </p>
             <p>

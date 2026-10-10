@@ -20,16 +20,16 @@ type SelProps = {
    */
   radio?: boolean
   /**
-   * Selection-ring style. `rust` (default) is the standard 3px rust ring;
+   * Selection-ring style. `single` (default) is the standard 3px ink ring;
    * `ink-double` is the double-ink halo used by the onboarding / custom-build
    * doors (see {@link SELECTION_RING_INK_DOUBLE}).
    */
-  ring?: 'rust' | 'ink-double'
+  ring?: 'single' | 'ink-double'
 }
 
 /**
  * Selection ring wrapper for entity cards in wizards (design-spec §2.8 Sel):
- * a non-layout-shifting 3px rust box-shadow ring around the card. The card
+ * a non-layout-shifting 3px ink box-shadow ring around the card. The card
  * itself stays selection-agnostic.
  */
 export function Sel({
@@ -39,7 +39,7 @@ export function Sel({
   className,
   ariaLabel,
   radio = false,
-  ring = 'rust',
+  ring = 'single',
 }: SelProps) {
   const interactive = !!onToggle
   const selectionRing = ring === 'ink-double' ? SELECTION_RING_INK_DOUBLE : SELECTION_RING

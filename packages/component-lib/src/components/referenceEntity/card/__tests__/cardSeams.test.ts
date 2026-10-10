@@ -199,7 +199,7 @@ describe('cardChrome', () => {
     const radio = resolveCardInteraction({ ...base, selectionRole: 'radio', selected: true })
     expect(radio.outer.interaction).toEqual({ 'aria-label': 'Mule' })
     expect(radio.outer.radio?.selected).toBe(true)
-    expect(radio.frameStyle.boxShadow).toContain('--color-rust')
+    expect(radio.frameStyle.boxShadow).toContain('--color-ink')
     const toggle = resolveCardInteraction({ ...base, selectionRole: 'toggle', selected: false })
     expect(toggle.outer.interaction).toMatchObject({ role: 'button', 'aria-pressed': false })
     expect(toggle.outer.radio).toBeUndefined()

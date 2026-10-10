@@ -177,7 +177,7 @@ export function InlineEditField({
       />
     )
   } else {
-    // Single-line editor — reuses Field's Input skin (paper / ink border / rust ring).
+    // Single-line editor — reuses Field's Input skin (paper / ink border / focus ring).
     inner = (
       <span className="flex w-full flex-col gap-1">
         <Input

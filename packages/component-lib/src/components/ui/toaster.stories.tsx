@@ -1,4 +1,5 @@
 import type { Story } from '../../stories/_harness'
+import { buttonVariants } from '../chrome/buttonVariants'
 import { Toaster, toast } from './toaster'
 
 export default {
@@ -8,7 +9,7 @@ export default {
 // Ruleset §Toast: an off-white chip — status swatch + message + rust dismiss.
 // Each button below fires a real `toast(...)` so the container is interactive.
 
-const CAPTION = 'font-cond text-label uppercase tracking-caps text-wk-muted'
+const CAPTION = 'font-cond text-badge uppercase tracking-caps text-wk-muted'
 
 export const Default: Story = () => (
   <>
@@ -74,7 +75,7 @@ export const Dismiss: Story = () => (
         </button>
         <button
           type="button"
-          className="rounded-card bg-rust px-4 py-2 font-cond uppercase tracking-caps-tight text-paper"
+          className={buttonVariants({ variant: 'primary', size: 'compact' })}
           onClick={() => toast.dismiss()}
         >
           Dismiss

@@ -18,4 +18,4 @@
  * standalone remove button, which is a red stamp now.
  */
 export const EDIT_CUE_HOVER_CLASS =
-  'outline-offset-2 outline-[color:var(--tone-deep,var(--color-rust))] hover:outline-dashed hover:outline-2 focus-within:outline-dashed focus-within:outline-2'
+  'outline-offset-2 outline-[color:var(--tone-deep,var(--color-ink))] hover:outline-dashed hover:outline-2 focus-within:outline-dashed focus-within:outline-2'

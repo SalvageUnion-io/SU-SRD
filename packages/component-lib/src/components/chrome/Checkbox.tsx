@@ -20,8 +20,8 @@ type ChoiceProps = Omit<ComponentPropsWithRef<'input'>, 'type'> & {
 const CHOICE_ROW =
   'flex cursor-pointer items-center gap-2 rounded-card border-chrome border-ink bg-paper p-2 hover:bg-ink-8'
 
-/** The native input in the form vocabulary: rust check/fill + the shared rust focus ring. */
-const CHOICE_INPUT = cn('accent-rust', INPUT_FOCUS)
+/** The native input in the form vocabulary: ink check/fill + the shared focus ring. */
+const CHOICE_INPUT = cn('accent-ink', INPUT_FOCUS)
 
 function ChoiceControl({
   type,
@@ -45,7 +45,7 @@ function ChoiceControl({
  * Boolean checkbox in the form vocabulary (sibling of `Field`/`Input`): a real
  * `<input type="checkbox">` inside a framed `<label>` row, so the label toggles
  * it and the native square/checkmark carry the semantics. Same paper / 1.5px-ink
- * chrome and rust focus ring as `Input`.
+ * chrome and focus ring as `Input`.
  */
 export function Checkbox(props: ChoiceProps) {
   return <ChoiceControl type="checkbox" {...props} />

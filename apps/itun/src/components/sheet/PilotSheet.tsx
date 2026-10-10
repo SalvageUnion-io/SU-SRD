@@ -278,7 +278,7 @@ export function PilotSheet({
               />
               <div className="min-w-0 flex-1">
                 <span
-                  className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
+                  className="mb-2 block font-cond text-badge font-bold uppercase leading-none tracking-caps"
                   style={{ color: 'var(--tone-deep, var(--color-ink))' }}
                 >
                   Conditions

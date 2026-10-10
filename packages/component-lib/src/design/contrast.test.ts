@@ -190,3 +190,53 @@ describe('card band contrast', () => {
     expect(underLarge).toEqual([])
   })
 })
+
+/**
+ * Ink on colour (ruleset §3.8, board 03 "Paper page. Legible bands").
+ *
+ * The brand refresh moved text on an ontology fill from paper to ink, and gave
+ * the two bands that carry paper text values that can: pilot and mech fail
+ * paper (2.4 and 3.0:1) and pass ink; crawler pink passes neither, so a crawler
+ * band carrying paper text is `crawlerBand`; the Denizens navy carries paper.
+ * Each pair is asserted at WCAG 1.4.3's 4.5:1 for body text — these bands
+ * carry small caps, not only large titles — and `foregroundOn`, which every
+ * card band reads, must pick the same foreground the ruleset names.
+ */
+describe('ink on colour — the refresh pairs', () => {
+  const PAIRS = [
+    { band: 'pilot', ground: color.pilot, text: 'ink' },
+    { band: 'mech', ground: color.mech, text: 'ink' },
+    { band: 'crawlerBand', ground: color.crawlerBand, text: 'paper' },
+    { band: 'denizenBand', ground: color.denizenBand, text: 'paper' },
+  ] as const
+
+  for (const { band, ground, text } of PAIRS) {
+    test(`${text} on ${band} clears 4.5:1, and is the foreground the band picks`, () => {
+      const fg = text === 'ink' ? INK : PAPER
+      expect(contrastRatio(opaque(ground), fg)).toBeGreaterThanOrEqual(4.5)
+      expect(foregroundOn(ground)).toBe(text)
+    })
+  }
+
+  test('crawler pink carries neither foreground at 4.5:1 — hence the band', () => {
+    // The reason `crawlerBand` exists. If a re-tone ever lets pink carry text,
+    // the band is redundant and this says so.
+    expect(contrastRatio(opaque(color.crawler), INK)).toBeLessThan(4.5)
+    expect(contrastRatio(opaque(color.crawler), PAPER)).toBeLessThan(4.5)
+  })
+
+  test('muted text clears 4.5:1 on paper and on every page ground', () => {
+    for (const ground of [color.paper, color.wkBg, color.wkBg2]) {
+      expect(contrastRatio(opaque(color.wkMuted), opaque(ground))).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  test('the page ground is a paper one step below the card paper', () => {
+    // Board 03: the ground is the book's off-white page, not a tone. A card
+    // still reads as a panel on it — the step stays above 1.1:1 — but a
+    // ground dark enough to read as a colour would be a band, not a page.
+    const step = contrastRatio(opaque(color.paper), opaque(color.wkBg))
+    expect(step).toBeGreaterThan(1.1)
+    expect(step).toBeLessThan(1.25)
+  })
+})

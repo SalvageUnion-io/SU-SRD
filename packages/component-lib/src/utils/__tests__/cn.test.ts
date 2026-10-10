@@ -47,7 +47,7 @@ describe('cn', () => {
 
     test('keeps semantic font sizes alongside text colors', () => {
       expect(cn('text-badge text-ink')).toBe('text-badge text-ink')
-      expect(cn('text-label-lg text-paper')).toBe('text-label-lg text-paper')
+      expect(cn('text-note text-paper')).toBe('text-note text-paper')
     })
 
     // Regression: the display/heading rungs (readout/title/display/display-lg/
@@ -64,7 +64,7 @@ describe('cn', () => {
     })
 
     test('resolves semantic font-size conflicts (last wins)', () => {
-      expect(cn('text-nano', 'text-micro')).toBe('text-micro')
+      expect(cn('text-badge', 'text-note')).toBe('text-note')
       expect(cn('text-sm', 'text-caption')).toBe('text-caption')
     })
 

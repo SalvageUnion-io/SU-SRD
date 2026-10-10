@@ -44,7 +44,7 @@ export const Default: Story = () => (
       href="/schema/npcs"
       name="NPCs"
       catalogBg="var(--color-ink)"
-      catalogLabel="var(--color-rust)"
+      catalogLabel="var(--color-adversary)"
     />
     {/* Ghost variant — paper fill / ink text, the 404 "Return to Home" link. */}
     <CatalogTile href="/" name="Return to Home" variant="ghost" />

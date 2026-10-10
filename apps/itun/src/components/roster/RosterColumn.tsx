@@ -107,7 +107,7 @@ export function RosterColumn({
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2
           id={headingId}
-          className="font-cond text-base font-bold uppercase tracking-widest text-rust"
+          className="font-cond text-base font-bold uppercase tracking-widest text-ink"
         >
           {title}
         </h2>

@@ -55,7 +55,7 @@ export function getCatalogBg(schemaId: string): string {
  * legible. Keyed off the domain for the same reason as above.
  */
 const schemaLabelColors: Record<string, string> = {
-  equipment: 'var(--color-rust)',
+  equipment: 'var(--color-ink)',
   systems: 'var(--color-mech-dark)',
   modules: 'var(--color-mech-dark)',
   drones: 'var(--color-adversary)',

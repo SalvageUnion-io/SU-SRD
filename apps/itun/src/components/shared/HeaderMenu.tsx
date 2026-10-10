@@ -134,7 +134,7 @@ const ITEM_LABEL = {
 // No `color`: it flips with the row's highlight, so it lives in the class.
 const ITEM_HINT = {
   fontFamily: font.cond,
-  fontSize: fontSize.labelLg,
+  fontSize: fontSize.badge,
   fontWeight: weight.semibold,
   letterSpacing: tracking.caps,
   lineHeight: 1.2,
