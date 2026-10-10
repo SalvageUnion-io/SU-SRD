@@ -13191,18 +13191,10 @@
     "name": "Electrostatic Mine",
     "actionType": "Turn",
     "range": ["Close"],
-    "damage": {
-      "amount": 3,
-      "damageType": "SP"
-    },
     "traits": [
       {
-        "type": "explosive",
-        "amount": 1
-      },
-      {
         "type": "uses",
-        "amount": 2
+        "amount": 1
       }
     ],
     "content": [
@@ -13305,18 +13297,10 @@
     "name": "Electrostatic Mine (Saboteur)",
     "actionType": "Turn",
     "range": ["Close"],
-    "damage": {
-      "amount": 3,
-      "damageType": "SP"
-    },
     "traits": [
       {
-        "type": "explosive",
-        "amount": 1
-      },
-      {
         "type": "uses",
-        "amount": 2
+        "amount": 1
       }
     ],
     "content": [
