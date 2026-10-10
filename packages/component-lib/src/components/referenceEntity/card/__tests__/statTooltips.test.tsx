@@ -84,6 +84,6 @@ describe('header stat cluster', () => {
 
   test('a FULL card still explains its stats', () => {
     render(<ReferenceEntityCard data={mule()} size="large" />)
-    expect(leafWithText('Structure')?.closest(TRIGGER)).toBeTruthy()
+    expect(leafWithText('SP')?.closest(TRIGGER)).toBeTruthy()
   })
 })

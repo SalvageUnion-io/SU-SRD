@@ -539,10 +539,10 @@ four-band container (`ModalShell`, `SheetSectionCard`, `Callout`, `Skeleton`,
 app panels). The entity card does not render through `Card`; never add entity
 features to `Card`. A full composition assessment found the merge impossible
 without visual deltas: the frame sits on different elements (shifting every
-absolute overlay 3px), ghosted sub-header tones cannot be derived inside `Card`,
+absolute overlay 3px), the header's two fills cannot be derived inside `Card`,
 the shells resolve the `cardClick` fallback in opposite directions (first-wins
-vs last-wins), and the entity header tells a stat cluster from flavour prose
-where `Card`'s header slot is opaque. They share `displayMode`, the controls contract,
+vs last-wins), and the entity header seats a numeral, cells and a pennant where
+`Card`'s header slot is opaque. They share `displayMode`, the controls contract,
 `CardFootMeta` and `foldStatusControl`. Grids are `MasonryColumns` of ITUN's
 `EntityGridRow` cells. Never hand-assemble a `label | value` readout: that is `Stat`
 (ruleset §3.7).
@@ -553,10 +553,15 @@ resolved by `resolveCardDisplay`, projected by `displayBooleans`. Never add a
 `compact` / `listing` prop. `depth` 0 is solo; deeper levels tighten and drop
 the footer.
 
+**Anatomy** is ruleset §5: the fill is `isDoEntity` (data shape), actions
+render `inline`, trays and depth rows are `card/NestedCards.tsx`.
+`texture={false}` flattens a subtree (Dashboard, tooltips).
+
 **Controls:** `ReferenceEntityControl` (`referenceEntityControlTypes.ts`)
 through `CardControlRail`; `stepper`, `badge`, `status`, `href` render their
 primitive, so the footer is meta only. `cardClick: true` makes the card
-clickable; `hidden: true` keeps it off the rail. The one preset is
+clickable; `hidden: true` keeps it off the rail; `pennant: true` makes the
+header's cost pennant the action button (the Dashboard). The one preset is
 `navigateControl` (`referenceEntity/referenceEntityControls.ts`).
 
 **Slots, never schemas:** no schema-specific props; a hook computes generic
@@ -2353,10 +2358,11 @@ changing the _data shape_ over special-casing the renderer.
 
 #### 4. The stat atom has exactly two modes: Normal and Compact — and NO pips
 
-A `Stat` in the card cluster is either **Normal** (the vertical value box,
-full labels) or **Compact** (the horizontal `[label | value]` cell, shortform
-labels). **Compact IS horizontal** — there is no separate "horizontal" mode/axis.
-Editable stats grow a `+/-` stepper column in either mode.
+A `Stat` is either **Normal** (the vertical value box, full labels) or
+**Compact** (the horizontal `[label | value]` cell, shortform labels).
+**Compact IS horizontal** — there is no separate "horizontal" mode/axis.
+Editable stats grow a `+/-` stepper column in either mode. The entity card's
+header uses the **Compact** cell at every size (#1253).
 
 **`Stat` has no pip mode.** The framed pip tracker and the condensed
 pip-chip were retired: a value/max tracker is the plain value box (a fill bar is

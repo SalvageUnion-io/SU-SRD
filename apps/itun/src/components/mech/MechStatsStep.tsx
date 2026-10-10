@@ -1,4 +1,4 @@
-import { EmptyState, entityHostTone, ReferenceEntityCard, Slab, Stat } from 'component-lib'
+import { EmptyState, ReferenceEntityCard, Slab, Stat } from 'component-lib'
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
@@ -59,7 +59,6 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
                 data={ability}
                 size="medium"
                 chassisName={chassis.name}
-                hostTone={entityHostTone(chassis)}
               />
             ))}
           </div>

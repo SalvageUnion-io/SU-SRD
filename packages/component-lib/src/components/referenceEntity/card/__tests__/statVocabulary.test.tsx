@@ -6,8 +6,8 @@
  *   the trait reads "Uses (X)" — so the parens belong to the trait, not to the
  *   value being a number. A non-numeric amount (Uses/Destroy) used to render
  *   "USES DESTROY", a shape the book never prints.
- * - A compact card labels stats with their SHORT forms (TL / SP / EP / SV /
- *   SYS / MODS); the full card keeps the two-line long form.
+ * - Every card labels stats with their SHORT forms (TL / SP / EP / SV / SYS /
+ *   MODS): one anatomy at every size (board E1).
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -72,11 +72,13 @@ describe('stat label short forms', () => {
     expect(text).not.toContain('Module 2')
   })
 
-  test('a full card keeps the two-line long form', () => {
+  test('a full card wears the same value cells — one anatomy at every size', () => {
+    // Board E1: the large card's header carries the `[label | value]` cells
+    // the compact one does; the two-line value boxes are retired.
     const text = textOf(<ReferenceEntityCard data={mule()} size="large" />)
-    expect(text).toContain('Tech')
-    expect(text).toContain('Level')
-    expect(text).toContain('System')
-    expect(text).toContain('Slots')
+    for (const label of ['TL', 'SP', 'EP', 'SV', 'SYS', 'MODS']) {
+      expect(text).toContain(label)
+    }
+    expect(text).not.toContain('Tech Level')
   })
 })

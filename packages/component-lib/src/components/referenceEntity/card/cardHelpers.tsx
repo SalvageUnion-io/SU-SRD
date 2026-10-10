@@ -7,7 +7,6 @@
  * from the card would make every section a circular dependency.
  */
 
-import type { ReactNode } from 'react'
 import type { SURefObjectChoice, SURefObjectContentBlock } from 'salvageunion-reference'
 import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
@@ -33,19 +32,6 @@ export function isRulesBearing(data: unknown): boolean {
 /** A titanic action (bio-titan "Titanic Actions") — gets its own full-width row. */
 export function isTitanicAction(action: { name?: string }): boolean {
   return /titanic action/i.test(action.name ?? '')
-}
-
-/** FLAT-mode wrapper: when the body has a left ANCHOR (image / floated NPC),
- * each nested card wraps in a `flow-root` block so it flows beside the float,
- * then full width once past it; non-flat renders the card bare (its own key on
- * the card). ONE helper so the five flat/non-flat call sites can't drift. */
-export function wrapFlat(flat: boolean, key: string | undefined, card: ReactNode): ReactNode {
-  if (!flat) return card
-  return (
-    <div key={key} className="mb-1.5 flow-root">
-      {card}
-    </div>
-  )
 }
 
 /**

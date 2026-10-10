@@ -358,8 +358,6 @@ export function useActionsDeck({
       sourceFilter,
       onSourceFilter: setSourceFilter,
       familyClass: onFoot ? 'pc-deck-fam-pilot' : 'pc-deck-fam-mech',
-      // Action tiles ghost the deck's host tone: pilot on foot, mech when boarded.
-      hostTone: onFoot ? 'var(--color-pilot)' : 'var(--color-mech)',
       rows,
       onOpen: (key) => {
         const action = deck.find((a) => a.key === key)

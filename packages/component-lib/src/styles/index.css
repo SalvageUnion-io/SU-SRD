@@ -558,6 +558,41 @@ body {
   width: 36px;
 }
 
+/* ══ The entity card's cost pennant as the action button ════════════════════
+ *
+ * In the Dashboard the pennant on an action's ink banner IS the action button
+ * (ruleset §1, board E3): the same size, shape and place as the read pennant,
+ * filled rust. The rust pennant is a `buttonVariants` span (the allowlist's
+ * painter, §3.1); this button is its INVISIBLE hit area — 44px under every
+ * pointer (§4.6) — pulled back by negative margins so the band keeps the
+ * pennant's own size. A clip-path on the button itself would clip the hit
+ * area too, which is why the shape lives on the span. `CardPennant.tsx`.
+ */
+.su-ec-pennant-btn {
+  align-items: center;
+  background-color: transparent;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  flex: none;
+  justify-content: center;
+  margin: calc(-1 * var(--space-12)) calc(-1 * var(--space-8));
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--space-8);
+}
+
+/* Spent or locked: the pennant drains to the read pennant's paper, its text
+   faded — state, not a second hue. */
+.su-ec-pennant-btn:disabled {
+  cursor: default;
+}
+
+.su-ec-pennant-btn:disabled > .su-btn--primary {
+  background-color: var(--color-paper);
+  color: var(--color-ink-50);
+}
+
 /* ══ Tabs (`components/chrome/Tabs.tsx`) ════════════════════════════════════
  *
  * Colour only: geometry and type are the component's style objects. All three

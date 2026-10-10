@@ -528,3 +528,194 @@ export const CollapseEntities: Story = () => {
     </div>
   )
 }
+
+/* ------------------------------------------------------------------------- *
+ * ONE ANATOMY, TWO FILLS (#1253, boards E1–E4) — the whole matrix the issue
+ * gates on: every size × extent cell, things you have and things you do, a
+ * depth-3 stack, every context and the user-made flag. Style objects only.
+ * ------------------------------------------------------------------------- */
+
+const juryRig = pick(SalvageUnionReference.Abilities.all(), (a) => a.name === 'Jury Rig', 'ability')
+const sestraDrone = pick(
+  SalvageUnionReference.Drones.all(),
+  (d) => d.name === 'Sestra Drone',
+  'drone'
+)
+const auger = pick(
+  (system.actions ?? [])
+    .map((name) => SalvageUnionReference.Actions.getByName(name))
+    .filter((a): a is NonNullable<typeof a> => a != null),
+  (a) => a.name === 'Auger',
+  'Salvaging Drill action'
+)
+
+const SIZES = ['large', 'medium', 'small'] as const
+const EXTENTS = ['full', 'head', 'catalog'] as const
+
+const matrix = {
+  display: 'grid',
+  gap: '24px',
+  gridTemplateColumns: '7rem repeat(3, minmax(0, 1fr))',
+  padding: '16px',
+} as const
+
+/** One row per size, one column per extent — the same component, different props. */
+function Matrix({
+  entity,
+  label,
+}: {
+  entity: Parameters<typeof ReferenceEntityCard>[0]['data']
+  label: string
+}) {
+  return (
+    <div style={matrix}>
+      <Caption>{label}</Caption>
+      {EXTENTS.map((extent) => (
+        <Caption key={extent}>{extent}</Caption>
+      ))}
+      {SIZES.map((size) => (
+        <div key={size} style={{ display: 'contents' }}>
+          <Caption>{size}</Caption>
+          {EXTENTS.map((extent) => (
+            <div key={extent} style={{ minWidth: 0 }}>
+              <ReferenceEntityCard data={entity} size={size} extent={extent} />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Board E1 — a thing you HAVE: the tone header, ink speckle, value cells. */
+export const SizeByExtent: Story = () => <Matrix entity={system} label="Salvaging Drill" />
+
+/** Board E1 — a thing you DO: the ink banner, tier numeral, cost pennant. */
+export const SizeByExtentDo: Story = () => <Matrix entity={juryRig} label="Jury Rig" />
+
+/**
+ * Board E2 — the depth stack. Little Sestra (depth 0, large) → its drone in a
+ * Drone tray (depth 1, medium; its description hidden because the Drone
+ * Controller above already says it) → the drone's system as a one-line head
+ * row (depth 2) that opens the entity. Then the same drone mounted at depth 2
+ * full (its actions behind a "Show N actions" chip) and at depth 3, where
+ * MAX_DEPTH stops it expanding.
+ */
+export const DepthStack: Story = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '16px' }}>
+    <Caption>depth 0 → 1 → 2</Caption>
+    <ReferenceEntityCard data={chassis} />
+    <Caption>depth 2, full — actions fold behind the chip</Caption>
+    <ReferenceEntityCard data={system} size="medium" depth={2} />
+    <Caption>depth 3 — MAX_DEPTH: renders, never expands</Caption>
+    <ReferenceEntityCard data={sestraDrone} size="medium" depth={3} />
+  </div>
+)
+
+const panel = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  minWidth: 0,
+} as const
+
+/**
+ * Board E3 — the five contexts. Geometry never changes; the context decides
+ * materials, density and interactivity, through the controls API.
+ */
+export const Contexts: Story = () => {
+  const [status, setStatus] = useState<EntityStatus>('intact')
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gap: '24px',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(20rem, 1fr))',
+        padding: '16px',
+      }}
+    >
+      <div style={panel}>
+        <Caption>Reference · large · full</Caption>
+        <ReferenceEntityCard data={system} />
+      </div>
+      <div style={panel}>
+        <Caption>Live sheet · medium · full</Caption>
+        <ReferenceEntityCard
+          data={system}
+          size="medium"
+          status={status}
+          onStatusClick={() =>
+            setStatus((s) =>
+              s === 'intact' ? 'damaged' : s === 'damaged' ? 'destroyed' : 'intact'
+            )
+          }
+          controls={[
+            {
+              key: 'remove',
+              label: 'Remove',
+              ariaLabel: 'Remove Salvaging Drill',
+              variant: 'danger',
+              onClick: () => {},
+            },
+          ]}
+        />
+      </div>
+      <div style={panel}>
+        <Caption>Dashboard · medium · full — flat, the pennant is the button</Caption>
+        <div style={{ backgroundColor: 'var(--color-ink-deep)', padding: '16px' }}>
+          <div style={{ backgroundColor: 'var(--color-band-cream)', padding: '12px' }}>
+            <ReferenceEntityCard
+              data={auger}
+              size="medium"
+              texture={false}
+              controls={[{ key: 'activate', pennant: true, label: 'Activate', onClick: () => {} }]}
+            />
+          </div>
+        </div>
+      </div>
+      <div style={panel}>
+        <Caption>Listing · medium · head — one line, one click</Caption>
+        <ReferenceEntityCard data={system} size="medium" extent="head" onCardClick={() => {}} />
+        <ReferenceEntityCard data={chassis} size="medium" extent="head" onCardClick={() => {}} />
+        <Caption>in prose: the shortform</Caption>
+        <ReferenceEntityCard data={system} size="small" extent="head" />
+      </div>
+      <div style={panel}>
+        <Caption>Tooltip · small · full — terminal and flat</Caption>
+        <div style={{ maxWidth: '22rem' }}>
+          <ReferenceEntityCard data={system} size="small" texture={false} hide={{ footer: true }} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * The user-made flag (ruleset §3.9, issue 1276) at every size × extent: a
+ * dashed frame, a dashed User-made stamp, a dashed footer rule and a dashed
+ * pill. Shown on a real pattern, the kind of thing a player saves.
+ */
+export const UserMade: Story = () => (
+  <div style={matrix}>
+    <Caption>User-made</Caption>
+    {EXTENTS.map((extent) => (
+      <Caption key={extent}>{extent}</Caption>
+    ))}
+    {SIZES.map((size) => (
+      <div key={size} style={{ display: 'contents' }}>
+        <Caption>{size}</Caption>
+        {EXTENTS.map((extent) => (
+          <div key={extent} style={{ minWidth: 0 }}>
+            <ReferenceEntityCard
+              data={chassis}
+              pattern={surveyorPattern}
+              size={size}
+              extent={extent}
+              userMade
+            />
+          </div>
+        ))}
+      </div>
+    ))}
+  </div>
+)

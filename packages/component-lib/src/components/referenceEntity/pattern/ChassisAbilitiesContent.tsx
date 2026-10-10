@@ -2,7 +2,6 @@ import type { SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { Slab } from '../../chrome/Slab'
-import { entityHostTone } from '../card/entityCardTone'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
 import { getReferenceEntitySpacing } from '../referenceEntityTypes'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
@@ -30,10 +29,6 @@ export function ChassisAbilitiesContent({
   const spacing = spacingProp ?? getReferenceEntitySpacing(compact)
   if (!chassisAbilities || chassisAbilities.length === 0) return null
 
-  // The owning chassis's tone — ghosted onto each ability card as its host tone.
-  const chassis = chassisName ? SalvageUnionReference.Chassis.getByName(chassisName) : undefined
-  const abilityHostTone = chassis ? entityHostTone(chassis) : undefined
-
   const droneAbility = chassisAbilities.find((a) => a.drone)
   const droneEntity = droneAbility?.drone
     ? SalvageUnionReference.getByNameIn('drones', droneAbility.drone)
@@ -59,13 +54,16 @@ export function ChassisAbilitiesContent({
 
   return (
     <div className={cn('mt-4', spacing.smallSpaceYClass)}>
+      {/* A chassis ability is an action: an inline ink band in the pattern card
+          this section fills (board E2), not a framed card of its own. */}
       {chassisAbilities.map((ability) => (
         <ReferenceEntityCard
+          inline
           size="medium"
+          depth={1}
           key={ability.id}
           data={ability}
           chassisName={chassisName}
-          hostTone={abilityHostTone}
         />
       ))}
       {droneEntity && !hideDrone && (
