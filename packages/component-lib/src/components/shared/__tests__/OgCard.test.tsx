@@ -35,7 +35,7 @@ const SHEET: OgCardProps = {
     { label: 'Mech', value: 'Scrapper' },
   ],
   byline: "Rosa's pilot · Reclamation of the Wastes",
-  address: 'intheunionnow.com/p/pilot/0a1b',
+  address: 'itun.salvageunion.io/p/pilot/0a1b',
 }
 
 const PATTERN: OgCardProps = {
@@ -48,7 +48,7 @@ const PATTERN: OgCardProps = {
     { label: 'SYS', value: '12/12' },
   ],
   madeBy: 'alxjrvs',
-  address: 'intheunionnow.com/p/pattern/0a1b',
+  address: 'itun.salvageunion.io/p/pattern/0a1b',
 }
 
 const NPC: OgCardProps = {
@@ -62,7 +62,7 @@ const NPC: OgCardProps = {
   ],
   madeBy: 'alxjrvs',
   quoted: false,
-  address: 'intheunionnow.com',
+  address: 'itun.salvageunion.io',
 }
 
 const LONG = 'Sergeant Kessler of the Ninth Reclamation Wing, Retired'
@@ -77,12 +77,12 @@ const INVITE: OgCardProps = {
   tone: color.crawler,
   summary: 'Mediated by alxjrvs.',
   terms: 'Link expires 15 Oct · the Mediator lets you in',
-  address: 'intheunionnow.com',
+  address: 'itun.salvageunion.io',
 }
 
 const LONG_INVITE: OgCardProps = { ...INVITE, title: LONG } as OgCardProps
 
-const PRIVATE: OgCardProps = { kind: 'private', address: 'intheunionnow.com' }
+const PRIVATE: OgCardProps = { kind: 'private', address: 'itun.salvageunion.io' }
 
 function chassis(name: string): SURefMetaEntity {
   const entity = SalvageUnionReference.Chassis.getByName(name)
@@ -99,13 +99,13 @@ function ability(name: string): SURefMetaEntity {
 const THING = ogCardForEntity({
   schemaName: 'chassis',
   entity: chassis('Scrapper'),
-  address: '/schema/chassis/item/scrapper',
+  address: 'salvageunion.io/schema/chassis/item/scrapper',
 })
 
 const DO = ogCardForEntity({
   schemaName: 'abilities',
   entity: ability('Mass Field Repair'),
-  address: '/schema/abilities/item/mass-field-repair',
+  address: 'salvageunion.io/schema/abilities/item/mass-field-repair',
 })
 
 const KINDS: [string, OgCardProps][] = [
@@ -156,6 +156,8 @@ describe('OgCard', () => {
     expect(made).toContain('data-user-made="true"')
     expect(made).toContain('User-made')
     expect(made).toContain('Made by alxjrvs')
+    // The notch's dashes are 4px at the og scale, so they survive Discord's 400px draw.
+    expect(made).toContain('border-top-style:dashed;border-top-width:4px')
   })
 
   test('the private card carries no name, stats or maker', () => {
@@ -289,7 +291,7 @@ describe('ogCardForEntity', () => {
       schemaName: 'chassis',
       entity: scrapper,
       pattern: pattern as never,
-      address: '/schema/chassis/item/scrapper/pattern/x',
+      address: 'salvageunion.io/schema/chassis/item/scrapper/pattern/x',
     })
     expect(card.kind).toBe('thing')
     if (card.kind !== 'thing') return

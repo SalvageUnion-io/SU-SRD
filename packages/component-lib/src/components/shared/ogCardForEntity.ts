@@ -43,7 +43,7 @@ export function ogCardForEntity(options: {
   schemaName: SURefEnumSchemaName
   entity: SURefMetaEntity
   pattern?: SURefObjectPattern
-  /** The address the foot prints: the page's path. */
+  /** The address the foot prints: the page's host and path. */
   address: string
 }): OgCardProps {
   const { schemaName, entity, pattern, address } = options
@@ -146,7 +146,7 @@ function statsOf(
   entity: SURefMetaEntity,
   techLevel: number | 'B' | 'N' | undefined
 ): OgCardStat[] {
-  return buildReferenceEntityStats(entity, { compact: true, schemaName, techLevel }).flatMap(
+  const stats = buildReferenceEntityStats(entity, { compact: true, schemaName, techLevel }).flatMap(
     (stat) =>
       stat.value === undefined
         ? []
@@ -158,6 +158,20 @@ function statsOf(
             },
           ]
   )
+  return chassisRow(stats)
+}
+
+/**
+ * The card draws six boxes. A chassis has seven stats and the origin's row is
+ * SP / EP / HEAT / SYS / MOD / CARGO: Heat sits after EP in place of the
+ * salvage value, and the module box reads "MOD".
+ */
+function chassisRow(stats: OgCardStat[]): OgCardStat[] {
+  const heat = stats.find((stat) => stat.label === 'Heat')
+  if (!heat) return stats
+  const rest = stats.filter((stat) => stat !== heat && stat.label !== 'SV')
+  rest.splice(rest.findIndex((stat) => stat.label === 'EP') + 1, 0, heat)
+  return rest.map((stat) => (stat.label === 'MODS' ? { ...stat, label: 'MOD' } : stat))
 }
 
 function joinKicker(parts: (string | undefined)[]): string {

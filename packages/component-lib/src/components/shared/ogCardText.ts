@@ -20,7 +20,7 @@ type OgCardBase = {
   kicker: string
   /** The notched title: the thing's name. */
   title: string
-  /** The address the foot prints (a path on the SRD, host and path on ITUN). */
+  /** The address the foot prints (host and path, on both sites). */
   address: string
 }
 
