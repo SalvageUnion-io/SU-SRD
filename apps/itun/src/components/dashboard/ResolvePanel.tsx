@@ -25,6 +25,8 @@ export type ResolveModel =
       kind: 'resolve'
       onBack: () => void
       costLabel: string
+      /** What this activation spends: the mech's EP or the pilot's AP. */
+      currency: 'EP' | 'AP'
       entity: ReferenceCardEntity
       /** EP-vs-AP cost radio for `activationCurrency === 'EP or AP'` actions. */
       currencyChoice?: {
@@ -49,14 +51,31 @@ export type ResolveModel =
         activateTitle?: string
         onActivate: () => void
         onRoll: () => void
-        push?: { disabled: boolean; onPush: () => void }
+        /**
+         * Mech actions only (pilots cannot Push, Core Book p.233). Disabled
+         * before a roll and once this roll is pushed.
+         */
+        push?: { disabled: boolean; pushed: boolean; onPush: () => void }
+        /** The activation is paid (or the action needs none paid). */
+        activated: boolean
         applyLabel: string
         applyDisabled: boolean
         onApply: () => void
         onClear: () => void
       }
-      roll?: { roll: number; band: string; bandLabel: string; bandSummary: string } | null
+      roll?: {
+        roll: number
+        band: string
+        /** The band's span on the d20, as the book prints it ("11–19"). */
+        bandRange: string
+        bandLabel: string
+        bandSummary: string
+        /** A Cascade Failure: Apply hands it to the Major, never writes it. */
+        destructive: boolean
+      } | null
       pushLog?: string | null
+      /** A Push's Heat Check melted the reactor down; the player confirms it. */
+      meltdown?: { onConfirm: () => void; onDismiss: () => void } | null
       applied: boolean
       applyRouted: boolean
     }
@@ -72,6 +91,85 @@ const IDLE: CSSProperties = {
   justifyContent: 'center',
   gap: space[8],
   height: '100%',
+}
+
+/**
+ * What an activation asks before it is paid: EP or AP for an `EP or AP`
+ * action, and X for a variable Hot. The canvas's Resolve tab and the phone's
+ * resolve screen (`PhoneResolve`) both render it.
+ */
+export function ResolveCost({
+  currencyChoice,
+  variableHot,
+}: Pick<Extract<ResolveModel, { kind: 'resolve' }>, 'currencyChoice' | 'variableHot'>) {
+  return (
+    <>
+      {currencyChoice && (
+        <fieldset className="pc-deck-cost-choice">
+          {/*
+           * Deliberately NATIVE radios, not the chrome `Radio` primitive.
+           * That primitive is a self-framed choice-row card; here the two
+           * options are compact inline `pc-deck-radio` labels inside the
+           * already-bordered `pc-deck-cost-choice` fieldset, and the framed
+           * primitive would turn the tight EP/AP pair into two bordered cards
+           * nested in a bordered fieldset. Adopt only once `Radio` grows a
+           * bare/instrument rung.
+           */}
+          <legend className="pc-deck-cost-choice-lab">Pay with</legend>
+          <label className="pc-deck-radio">
+            <input
+              type="radio"
+              name="pc-deck-currency"
+              checked={currencyChoice.currency === 'EP'}
+              disabled={currencyChoice.activated}
+              onChange={() => currencyChoice.onCurrency('EP')}
+            />
+            {currencyChoice.epCost} EP
+          </label>
+          <label className="pc-deck-radio">
+            <input
+              type="radio"
+              name="pc-deck-currency"
+              checked={currencyChoice.currency === 'AP'}
+              disabled={currencyChoice.activated || !currencyChoice.pilotAvailable}
+              onChange={() => currencyChoice.onCurrency('AP')}
+            />
+            {currencyChoice.epCost} AP
+          </label>
+        </fieldset>
+      )}
+
+      {variableHot && (
+        <div className="pc-deck-hotx">
+          <span className="pc-deck-hotx-lab">Hot</span>
+          <div className="pc-step">
+            <Button
+              size="compact"
+              style={STEP}
+              onClick={variableHot.onDec}
+              disabled={variableHot.activated}
+              aria-label="Decrease Hot"
+            >
+              −
+            </Button>
+            <span className="pc-step-num">{variableHot.hotX}</span>
+            <Button
+              size="compact"
+              style={STEP}
+              onClick={variableHot.onInc}
+              disabled={variableHot.activated}
+              aria-label="Increase Hot"
+            >
+              +
+            </Button>
+          </div>
+          <span className={`pc-deck-hotx-proj${variableHot.over ? ' is-over' : ''}`}>
+            {variableHot.projText}
+          </span>
+        </div>
+      )}
+    </>
+  )
 }
 
 export function ResolvePanel({ view }: { view: ResolveModel }) {
@@ -118,70 +216,7 @@ export function ResolvePanel({ view }: { view: ResolveModel }) {
           ]}
         />
 
-        {currencyChoice && (
-          <fieldset className="pc-deck-cost-choice">
-            {/*
-             * Deliberately NATIVE radios, not the chrome `Radio` primitive.
-             * That primitive is a self-framed choice-row card; here the two
-             * options are compact inline `pc-deck-radio` labels inside the
-             * already-bordered `pc-deck-cost-choice` fieldset, and the framed
-             * primitive would turn the tight EP/AP pair into two bordered cards
-             * nested in a bordered fieldset. Adopt only once `Radio` grows a
-             * bare/instrument rung.
-             */}
-            <legend className="pc-deck-cost-choice-lab">Pay with</legend>
-            <label className="pc-deck-radio">
-              <input
-                type="radio"
-                name="pc-deck-currency"
-                checked={currencyChoice.currency === 'EP'}
-                disabled={currencyChoice.activated}
-                onChange={() => currencyChoice.onCurrency('EP')}
-              />
-              {currencyChoice.epCost} EP
-            </label>
-            <label className="pc-deck-radio">
-              <input
-                type="radio"
-                name="pc-deck-currency"
-                checked={currencyChoice.currency === 'AP'}
-                disabled={currencyChoice.activated || !currencyChoice.pilotAvailable}
-                onChange={() => currencyChoice.onCurrency('AP')}
-              />
-              {currencyChoice.epCost} AP
-            </label>
-          </fieldset>
-        )}
-
-        {variableHot && (
-          <div className="pc-deck-hotx">
-            <span className="pc-deck-hotx-lab">Hot</span>
-            <div className="pc-step">
-              <Button
-                size="compact"
-                style={STEP}
-                onClick={variableHot.onDec}
-                disabled={variableHot.activated}
-                aria-label="Decrease Hot"
-              >
-                −
-              </Button>
-              <span className="pc-step-num">{variableHot.hotX}</span>
-              <Button
-                size="compact"
-                style={STEP}
-                onClick={variableHot.onInc}
-                disabled={variableHot.activated}
-                aria-label="Increase Hot"
-              >
-                +
-              </Button>
-            </div>
-            <span className={`pc-deck-hotx-proj${variableHot.over ? ' is-over' : ''}`}>
-              {variableHot.projText}
-            </span>
-          </div>
-        )}
+        <ResolveCost currencyChoice={currencyChoice} variableHot={variableHot} />
 
         <div className="pc-deck-controls">
           <Button size="compact" style={GROW} onClick={controls.onRoll}>
@@ -226,6 +261,13 @@ export function ResolvePanel({ view }: { view: ResolveModel }) {
           </div>
         )}
         {view.pushLog && <p className="pc-deck-pushlog">{view.pushLog}</p>}
+        {view.meltdown && (
+          <div className="pc-deck-controls">
+            <Button variant="danger" size="compact" style={GROW} onClick={view.meltdown.onConfirm}>
+              Confirm Meltdown — Mark Mech Destroyed
+            </Button>
+          </div>
+        )}
         {view.applied && <p className="pc-deck-applied">Result applied ✓</p>}
         {view.applyRouted && (
           <p className="pc-deck-apply-route">

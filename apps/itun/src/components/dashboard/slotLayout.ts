@@ -20,6 +20,10 @@ import type { MountState } from './useSeat'
 
 export type SlotKind = 'pilot' | 'mech' | 'crawler'
 
+/** What a slot (or a phone unit tab) says when the pilot has no such unit. */
+export const NO_CRAWLER = 'No crawler. Assign one on the pilot’s sheet.'
+export const NO_MECH = 'No mech. Board one from the Pilot’s Mount bay.'
+
 export type SlotLayout = { major: SlotKind; minors: readonly SlotKind[] }
 
 const SLOT_COLOUR: Record<SlotKind, string> = {

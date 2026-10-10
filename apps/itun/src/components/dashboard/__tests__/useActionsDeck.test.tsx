@@ -33,6 +33,7 @@ import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { itemEconomy, resolveModule, resolveSystem } from '../../sheet/mechItemRules'
 import { DeckList } from '../DeckList'
 import { buildMechActions, hasCurrencyChoice, hasVariableHot, hotHeatFor } from '../dashboardRules'
+import { PhoneDeck } from '../PhoneDeck'
 import { ResolvePanel } from '../ResolvePanel'
 import type { PlayStore } from '../SlotRow'
 import type { ActionsDeckProps } from '../useActionsDeck'
@@ -601,8 +602,12 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
-    fireEvent.click(screen.getByText('Roll')) // Push stays disabled until a roll exists
-    for (let i = 0; i < 80; i += 1) fireEvent.click(screen.getByText('Push'))
+    // Push stays disabled until a roll exists, and a pushed roll is not
+    // pushed again (Core Book p.233), so each Push gets a fresh roll.
+    for (let i = 0; i < 80; i += 1) {
+      fireEvent.click(screen.getByText('Roll'))
+      fireEvent.click(screen.getByText('Push'))
+    }
 
     const spWrites = calls
       .map((c) => c.patch.currentSP)
@@ -697,5 +702,78 @@ describe('the resolve on the seat', () => {
     expect(screen.getByText('Crush is no longer in this deck.')).toBeTruthy()
     fireEvent.click(screen.getByText('Clear'))
     expect(written).toEqual([null])
+  })
+})
+
+/**
+ * The phone's deck (ADR-043 D6): the pennant opens an action AND pays for it,
+ * through the same activation the resolve's own pennant writes; the row's body
+ * only opens it.
+ */
+describe('the phone deck', () => {
+  function PhoneDeckHarness({
+    written,
+    ...props
+  }: Omit<ActionsDeckProps, 'resolving' | 'onResolving'> & { written: (SeatResolving | null)[] }) {
+    const [resolving, setResolving] = useState<SeatResolving | null>(null)
+    const deck = useActionsDeck({
+      ...props,
+      resolving,
+      onResolving: (next) => {
+        written.push(next)
+        setResolving(next)
+      },
+    })
+    if (deck.list.kind !== 'list') return null
+    return (
+      <PhoneDeck view={deck.list} onOpen={deck.list.onOpen} onActivate={deck.list.onActivate} />
+    )
+  }
+
+  function renderPhoneDeck(mech: Mech, store: PlayStore, written: (SeatResolving | null)[]) {
+    return render(
+      <EntityHrefProvider value={() => undefined}>
+        <PhoneDeckHarness
+          mech={mech}
+          range="Close"
+          onRange={ignoreRange}
+          store={store}
+          written={written}
+        />
+      </EntityHrefProvider>
+    )
+  }
+
+  test('the pennant opens and pays in one press: one EP write, one activated step', () => {
+    const mech = makeMech()
+    const { store, calls } = stubStore(mech)
+    const written: (SeatResolving | null)[] = []
+    const { container } = renderPhoneDeck(mech, store, written)
+    const action = buildMechActions(mech).find((a) => typeof a.action.activationCost === 'number')
+    if (!action) throw new Error('the costed system has no costed action')
+    const row = container.querySelector(`[data-deck-key="${action.key}"]`)
+    const pennant = row?.querySelector<HTMLButtonElement>('.su-ec-pennant-btn')
+    if (!pennant) throw new Error('the row has no pennant')
+    fireEvent.click(pennant)
+    expect(calls).toHaveLength(1)
+    expect(calls[0]?.patch.currentEP).toBe(6 - Number(action.action.activationCost))
+    expect(written).toEqual([
+      { ref: action.key, name: action.name, activated: true, applied: false },
+    ])
+  })
+
+  test('the row’s body only opens it', () => {
+    const mech = makeMech()
+    const { store, calls } = stubStore(mech)
+    const written: (SeatResolving | null)[] = []
+    const { container } = renderPhoneDeck(mech, store, written)
+    const action = buildMechActions(mech)[0]
+    if (!action) throw new Error('the costed system has no action')
+    const row = container.querySelector(`[data-deck-key="${action.key}"]`)
+    fireEvent.click(row?.querySelector('[role="button"]') as Element)
+    expect(calls).toHaveLength(0)
+    expect(written).toEqual([
+      { ref: action.key, name: action.name, activated: false, applied: false },
+    ])
   })
 })

@@ -24,9 +24,10 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import { BoardControl, BoardMenuList } from './BoardControl'
 import type { BoardMenu, BoardOption } from './boardMenu'
+import { usePhoneForm } from './dashboardForm'
 import { recordRoll } from './dashboardRolls'
 import { critInjuryPatch, describeCritInjury, pilotDamagePatch } from './dashboardRules'
-import type { MajorModel } from './MajorFrame'
+import type { BandBay, MajorModel } from './MajorFrame'
 import { MajorFrame } from './MajorFrame'
 import { MinorFrame } from './MinorFrame'
 import type { DamagePrompt, PlayStore } from './SlotRow'
@@ -104,6 +105,7 @@ export function PilotMajor({
   damagePrompt: DamagePrompt | null
 }) {
   const { statInput, maxHP, gauges } = pilotVitals(pilot, crawler)
+  const phone = usePhoneForm()
   const hp = gauges[0]?.value ?? 0
 
   const [prompt, setPrompt] = useState<PilotPrompt>(null)
@@ -248,63 +250,64 @@ export function PilotMajor({
     refChip(ref, (r) => SalvageUnionReference.Abilities.getBySlug(r))
   )
 
+  const vitals: BandBay = {
+    label: 'Vitals',
+    gauges,
+    lines: injuryLines(pilot).map((text) => ({ text, warn: true })),
+    buttons: [
+      {
+        label: phone ? 'Take Damage' : 'Take Dmg',
+        onClick: () => {
+          setDmg(1)
+          setPrompt({ kind: 'dmg' })
+        },
+        title: 'Take HP damage',
+      },
+      {
+        label: phone ? 'Critical Injury' : 'Crit Injury',
+        onClick: () => setPrompt({ kind: 'crit', effect: null, log: 'Roll a Critical Injury?' }),
+        variant: 'danger',
+        title: 'Roll on the Critical Injury table',
+      },
+    ],
+  }
+  const kitBay: BandBay = {
+    label: 'Kit',
+    chips: kit.length > 0 ? kit : undefined,
+    lines: kit.length > 0 ? undefined : [{ text: 'No equipment.' }],
+    buttons: [],
+  }
+  const abilityBay: BandBay = {
+    label: 'Abilities',
+    chips: abilities.length > 0 ? abilities : undefined,
+    lines: abilities.length > 0 ? undefined : [{ text: 'No abilities.' }],
+    buttons: [],
+  }
+  const mount: BandBay =
+    boardedIn === null
+      ? {
+          label: 'Mount',
+          buttons: [],
+          control: (
+            <BoardControl
+              menu={board}
+              onBoard={onBoard}
+              onClaim={(option) => setPrompt({ kind: 'claim', option })}
+              onOpenMenu={(trigger) => {
+                menuTrigger.current = trigger
+                setPrompt({ kind: 'board' })
+              }}
+            />
+          ),
+        }
+      : // Boarded, the way out is the Mech's Egress, not a second control here.
+        { label: 'Mount', lines: [{ text: `In ${boardedIn}` }], buttons: [] }
+
   const view: MajorModel = {
     fam: 'pilot',
     stampLabel: boardedIn === null ? 'On Foot' : 'Boarded',
-    bays: [
-      {
-        label: 'Vitals',
-        gauges,
-        lines: injuryLines(pilot).map((text) => ({ text, warn: true })),
-        buttons: [
-          {
-            label: 'Take Dmg',
-            onClick: () => {
-              setDmg(1)
-              setPrompt({ kind: 'dmg' })
-            },
-            title: 'Take HP damage',
-          },
-          {
-            label: 'Crit Injury',
-            onClick: () =>
-              setPrompt({ kind: 'crit', effect: null, log: 'Roll a Critical Injury?' }),
-            variant: 'danger',
-            title: 'Roll on the Critical Injury table',
-          },
-        ],
-      },
-      {
-        label: 'Kit',
-        chips: kit.length > 0 ? kit : undefined,
-        lines: kit.length > 0 ? undefined : [{ text: 'No equipment.' }],
-        buttons: [],
-      },
-      {
-        label: 'Abilities',
-        chips: abilities.length > 0 ? abilities : undefined,
-        lines: abilities.length > 0 ? undefined : [{ text: 'No abilities.' }],
-        buttons: [],
-      },
-      boardedIn === null
-        ? {
-            label: 'Mount',
-            buttons: [],
-            control: (
-              <BoardControl
-                menu={board}
-                onBoard={onBoard}
-                onClaim={(option) => setPrompt({ kind: 'claim', option })}
-                onOpenMenu={(trigger) => {
-                  menuTrigger.current = trigger
-                  setPrompt({ kind: 'board' })
-                }}
-              />
-            ),
-          }
-        : // Boarded, the way out is the Mech's Egress, not a second control here.
-          { label: 'Mount', lines: [{ text: `In ${boardedIn}` }], buttons: [] },
-    ],
+    // The phone puts Mount second (ADR-043 D5): Board starts every boarded turn.
+    bays: phone ? [vitals, mount, kitBay, abilityBay] : [vitals, kitBay, abilityBay, mount],
     overlay,
   }
   return <MajorFrame view={view} />

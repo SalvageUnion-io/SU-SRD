@@ -65,6 +65,7 @@ export const Default = () => {
               familyClass: 'pc-deck-fam-mech',
               rows: realRows(),
               onOpen: () => {},
+              onActivate: () => {},
             }}
           />
         </div>

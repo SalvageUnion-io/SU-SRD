@@ -20,6 +20,8 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import type { GaugeTone } from './DashboardGauge'
 import { DashboardGauge } from './DashboardGauge'
+import { useDashboardForm } from './dashboardForm'
+import { PhoneMajorFrame } from './PhoneMajorFrame'
 import { slotRule } from './slotLayout'
 
 /** Stable no-op, so the Escape effect doesn't re-bind when no overlay is open. */
@@ -334,12 +336,17 @@ export function StorageBay({
   )
 }
 
-/** Renders one computed Major model. */
+/**
+ * Renders one computed Major model: on the canvas's band, or — in the phone
+ * form (ADR-043) — as `PhoneMajorFrame`'s one column. Same model either way.
+ */
 export function MajorFrame({ view }: { view: MajorModel }) {
   const { overlay } = view
+  const form = useDashboardForm()
   // Escape dismisses the resolve/damage/storage prompt, like every other
   // dismissible surface in the app.
   useEscapeKey(overlay != null, overlay?.onClose ?? NOOP)
+  if (form.form === 'phone') return <PhoneMajorFrame view={view} between={form.between} />
   const main = view.bays.filter((b) => !b.side)
   const side = view.bays.filter((b) => b.side)
   return (

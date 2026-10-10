@@ -7,8 +7,10 @@ export default { title: 'Compositions/Dashboard/Canvas' }
 
 /**
  * The real promoted DashboardCanvas — the scale-to-fit dark shell that owns the
- * `.pc-root` token scope. Resize the frame to watch it letterbox and, below the
- * width floor, drop to the reflow message. A bare placeholder stands in for the
+ * `.pc-root` token scope. Resize the frame to watch it letterbox. Below the
+ * floor on either axis the Dashboard renders its phone form instead
+ * (`phone`, ADR-043; see Compositions/Dashboard/Phone); with none passed, as
+ * here, it keeps scaling down. A bare placeholder stands in for the
  * store-wired grid (which lives in ITUN).
  */
 export const Default = () => (
