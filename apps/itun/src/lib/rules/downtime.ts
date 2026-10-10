@@ -96,6 +96,11 @@ export const UPKEEP_STEP_NAME = 'Upkeep & Upgrade'
  * Crawler Downtime guide (the same steps `DowntimeWizard` renders). False when
  * Downtime is not running.
  */
+/** How many steps the Downtime procedure has (the reference guide's). */
+export function downtimeStepCount(): number {
+  return SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps?.length ?? 0
+}
+
 export function isUpkeepStep(stepIndex: number | null): boolean {
   if (stepIndex === null) return false
   const steps = SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps

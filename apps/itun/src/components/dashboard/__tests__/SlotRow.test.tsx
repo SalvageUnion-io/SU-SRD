@@ -66,8 +66,8 @@ describe('slotsFor — who holds the Major', () => {
     expect(slotsFor('mech')).toEqual({ major: 'mech', minors: ['pilot', 'crawler'] })
   })
 
-  test('in Downtime, the Crawler is Major; Pilot and Mech are Minors', () => {
-    expect(slotsFor('downtime')).toEqual({ major: 'crawler', minors: ['pilot', 'mech'] })
+  test('in Downtime, the Crawler takes the whole row (board D3)', () => {
+    expect(slotsFor('downtime')).toEqual({ major: 'crawler', minors: [] })
   })
 })
 
@@ -92,14 +92,14 @@ describe('SlotRow follows the mount and Downtime', () => {
     expect(minorNames()).toEqual(['Pilot · Vesh', 'Crawler · Mother Hen'])
   })
 
-  test('Downtime → the Crawler Major (Hull, Stores, Bays), Pilot and Mech Minors', () => {
+  test('Downtime → the Crawler Major (Hull, Stores, Bays) alone; pilot and mech ride the rail', () => {
     const { container } = renderRow({ mount: 'downtime' })
     expect(container.firstElementChild?.getAttribute('data-major')).toBe('crawler')
     expect(screen.getByText('Downtime')).toBeTruthy()
     for (const bay of ['Hull', 'Stores', 'Bays', 'Upkeep', 'Upgrade']) {
       expect(screen.getByText(bay)).toBeTruthy()
     }
-    expect(minorNames()).toEqual(['Pilot · Vesh', 'Mech · Iron Mongrel'])
+    expect(screen.queryAllByRole('region')).toHaveLength(0)
   })
 
   test('the slot row uses no listbox or option roles', () => {

@@ -76,9 +76,9 @@ export type VitalGaugeProps = {
    *
    *   `full` (default) — the multi-row poster gauge: big numeral + caption. A
    *          gauge is a destination readout, so its resting rung is `full`.
-   *   `compact` — the single-row layout (the dashboard-instrument cue): label ·
-   *          one segment row · value/max, all on one line — no big numeral, no
-   *          caption, no multi-row split.
+   *   `compact` — the instrument layout (the dashboard cue): label · the pips ·
+   *          value/max on one line, no big numeral, no caption. Its pips are a
+   *          fixed size and wrap onto a second row on a long track.
    */
   size?: Extract<SizeRung, 'full' | 'compact'>
   /**
@@ -216,8 +216,8 @@ export function VitalGauge({
         ? 'border-status-bad bg-status-bad'
         : 'border-[var(--tone-deep)] bg-[var(--tone)]'
 
-  // COMPACT — the single-row instrument bar (dashboard cue): label · one segment
-  // row · value/max on one line. No big numeral, caption, or multi-row split.
+  // COMPACT — the instrument bar (dashboard cue): label · fixed-size pips that
+  // wrap · value/max. No big numeral or caption.
   if (size === 'compact') {
     const readout = (
       <>
@@ -231,19 +231,19 @@ export function VitalGauge({
           {label}
         </span>
         {/*
-         * The 3px inter-segment gap is a constant, so a long track spends more
-         * of its width on gaps than on segments: a crawler at SP 20/20 divided
-         * the compact bar into 20 slivers and read as a dotted perforation
-         * strip rather than a bar. Past a dozen segments the gap tightens to
-         * 1px, which keeps the segments legible as segments at any max.
+         * Fixed-size pips that wrap onto more rows (brand refresh P4, issue
+         * 1255). Dividing the bar's width by `max` made a long track's pips
+         * thinner the longer it ran — a crawler at SP 20/20 read as a dotted
+         * perforation strip — so a pip keeps its size and a long track takes
+         * a second row instead.
          */}
-        <div className={cn('flex min-w-0 flex-1', segCount > 12 ? 'gap-px' : 'gap-[3px]')}>
+        <div className="flex min-w-0 flex-1 flex-wrap gap-[3px]">
           {Array.from({ length: segCount }, (_, i) => ({
             i,
             state: trackSegmentState(i, shown, max, dangerFrom),
           })).map(({ i, state }) => {
             const on = state !== 'off'
-            const segClass = cn('h-[10px] min-w-0 flex-1 rounded-badge border', segFill(state))
+            const segClass = cn('h-[14px] w-[14px] shrink-0 rounded-badge border', segFill(state))
             return editable ? (
               <button
                 key={i}

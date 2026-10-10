@@ -262,6 +262,21 @@ describe('Downtime follows the Game on every client', () => {
     expect(stepCount(mediator)).toContain('Step 1 /')
     expect(stepCount(player)).toContain('Step 1 /')
 
+    // The Crawler has the whole row (board D3): the pilot and mech ride the
+    // rail as compact links, which open their full controls.
+    expect(player.querySelectorAll('[data-major] > *')).toHaveLength(1)
+    expect(within(player).getByText('Downtime · Step 1 of 10')).toBeTruthy()
+    const pilotLink = within(player).getByRole('button', { name: /^Open Pilot: HP/ })
+    await act(async () => {
+      fireEvent.click(pilotLink)
+    })
+    expect(within(player).getByRole('dialog', { name: /^Pilot · / })).toBeTruthy()
+    await act(async () => {
+      fireEvent.keyDown(within(player).getByRole('dialog', { name: /^Pilot · / }), {
+        key: 'Escape',
+      })
+    })
+
     // The player cannot move the table on; the Mediator can.
     expect(buttonLabels(player)).not.toContain('Next step ›')
     await press(mediator, 'Next step ›')

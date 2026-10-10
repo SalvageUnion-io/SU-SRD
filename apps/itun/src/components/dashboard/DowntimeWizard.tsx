@@ -72,49 +72,97 @@ const STEP_ROLL_TABLE: Record<string, string> = {
   Trade: 'Trading Bay',
 }
 
-/** The step track: one numbered marker per step, in a row. */
+/**
+ * Board D3: the procedure down the left, the step on the right. The list is
+ * the book's: each phase's label over its steps, the steps behind the table
+ * struck through with a ✓, the one it is on an ink plate.
+ */
+const SPLIT: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '300px minmax(0, 1fr)',
+  height: '100%',
+  minHeight: 0,
+}
+
+const STEPS_COLUMN: CSSProperties = {
+  minHeight: 0,
+  overflowY: 'auto',
+  padding: '16px 10px',
+  background: 'var(--color-wk-bg)',
+  borderRight: 'var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+}
+
 const TRACK: CSSProperties = {
   display: 'flex',
-  gap: '4px',
+  flexDirection: 'column',
+  gap: '2px',
   margin: 0,
   padding: 0,
   listStyle: 'none',
 }
 
-const MARK: CSSProperties = {
-  flex: 1,
-  minWidth: 0,
-  padding: '2px 0',
-  borderRadius: 'var(--radius-pip)',
-  // Longhands: the current step thickens only the width, and React warns when
-  // a rerender mixes a shorthand with its longhand.
-  borderStyle: 'solid',
-  borderColor: 'var(--color-sheet-crawler-deep)',
-  borderWidth: 'var(--bw-chrome)',
+const SECTION_LABEL: CSSProperties = {
+  display: 'block',
+  padding: '8px 6px 4px',
   fontFamily: 'var(--font-cond)',
   fontWeight: 700,
   fontSize: 'var(--text-badge)',
-  fontVariantNumeric: 'tabular-nums',
-  textAlign: 'center',
-}
-
-/** A step the table has passed: filled. */
-const MARK_PAST: CSSProperties = {
-  ...MARK,
-  background: 'var(--color-sheet-crawler-deep)',
-  color: 'var(--color-paper)',
-}
-
-/** The step the table is on: a heavy outline. */
-const MARK_NOW: CSSProperties = {
-  ...MARK,
-  borderWidth: 'var(--bw-rail)',
-  background: 'var(--color-paper)',
+  letterSpacing: 'var(--tracking-caps)',
+  textTransform: 'uppercase',
   color: 'var(--color-ink)',
 }
 
-/** A step still to come: open. */
-const MARK_NEXT: CSSProperties = { ...MARK, background: 'transparent', color: 'var(--color-ink)' }
+const MARK: CSSProperties = {
+  display: 'flex',
+  alignItems: 'baseline',
+  gap: '10px',
+  padding: '7px 8px',
+  borderRadius: 'var(--radius-card)',
+  fontFamily: 'var(--font-body)',
+  fontSize: 'var(--text-caption)',
+  color: 'var(--color-ink)',
+}
+
+const MARK_NUMBER: CSSProperties = {
+  width: '1.2em',
+  flexShrink: 0,
+  fontFamily: 'var(--font-cond)',
+  fontWeight: 700,
+  fontVariantNumeric: 'tabular-nums',
+}
+
+/** A step the table has passed: struck through, with a ✓ in its number's place. */
+const MARK_PAST: CSSProperties = {
+  ...MARK,
+  color: 'var(--color-ink-75)',
+  textDecoration: 'line-through',
+}
+
+/** The step the table is on: the ink plate. */
+const MARK_NOW: CSSProperties = {
+  ...MARK,
+  background: 'var(--color-ink)',
+  color: 'var(--color-paper)',
+  fontWeight: 600,
+}
+
+/** A step still to come. */
+const MARK_NEXT: CSSProperties = MARK
+
+const STEP_COLUMN: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: 0,
+  overflowY: 'auto',
+}
+
+/** The step's band, in crawler pink (board D3): the step name notched into its foot. */
+const STEP_BAND: CSSProperties = {
+  padding: '14px 18px 0',
+  background: 'var(--color-crawler)',
+}
+
+const STEP_BODY: CSSProperties = { padding: '14px 18px' }
 
 /** The ready pips: who has finished this step. */
 const READY: CSSProperties = {
@@ -207,87 +255,93 @@ export function DowntimeWizardFrame({
   const doneCount = ready.filter((r) => r.done).length
 
   return (
-    <div className="pc-display-scroll">
-      <div className="pc-dt">
-        <div className="pc-dt-head">
-          <Badge
-            shape="stamp"
-            className="px-[9px] py-[5px] text-caption text-paper"
-            style={{ backgroundColor: headerBg }}
-          >
-            {phase}
-          </Badge>
-          <span className="pc-dt-count">
-            Step {idx + 1} / {steps.length}
-          </span>
-        </div>
-
+    <div style={SPLIT}>
+      <nav aria-label="Downtime procedure" style={STEPS_COLUMN}>
         <ol style={TRACK} aria-label="Downtime steps">
           {steps.map((s, i) => (
             <li
               key={s.name}
-              style={i < idx ? MARK_PAST : i === idx ? MARK_NOW : MARK_NEXT}
-              title={s.name}
               aria-label={`Step ${i + 1}: ${s.name}${i < idx ? ', done' : ''}`}
               aria-current={i === idx ? 'step' : undefined}
             >
-              {i + 1}
+              {s.section && <span style={SECTION_LABEL}>{s.section}</span>}
+              <span style={i < idx ? MARK_PAST : i === idx ? MARK_NOW : MARK_NEXT}>
+                <span style={MARK_NUMBER}>{i < idx ? '✓' : i + 1}</span>
+                {s.name}
+              </span>
             </li>
           ))}
         </ol>
+      </nav>
 
-        <h3 className="pc-dt-step-name" style={{ borderColor: headerBg }}>
-          {step.name}
-        </h3>
-        {step.content && step.content.length > 0 && (
-          <Content body={step.content} headerBg={headerBg} />
-        )}
-
-        {renderStepGate?.(step)}
-
-        {table && (
-          <div className="pc-dt-table">
-            <RollTable table={table} tableName={tableName} size="compact" showCommand />
+      <div style={STEP_COLUMN}>
+        <div style={STEP_BAND}>
+          <h3 className="pc-dt-step-name">{step.name}</h3>
+        </div>
+        <div className="pc-dt" style={STEP_BODY}>
+          <div className="pc-dt-head">
+            <Badge
+              shape="stamp"
+              className="px-[9px] py-[5px] text-caption text-paper"
+              style={{ backgroundColor: headerBg }}
+            >
+              {phase}
+            </Badge>
+            <span className="pc-dt-count">
+              Step {idx + 1} / {steps.length}
+            </span>
           </div>
-        )}
 
-        {ready.length > 0 ? (
-          <ul style={READY} aria-label={`Done with this step: ${doneCount} of ${ready.length}`}>
-            {ready.map((r) => (
-              <li key={r.userId} style={READY_ITEM}>
-                <span style={r.done ? PIP_DONE : PIP_WAITING} aria-hidden="true" />
-                {r.done ? `✓ ${r.name}` : r.name}
-              </li>
-            ))}
-          </ul>
-        ) : null}
+          {step.content && step.content.length > 0 && (
+            <Content body={step.content} headerBg={headerBg} />
+          )}
 
-        <p className="pc-dt-note">
-          {onNext
-            ? 'You move the table on. Each player marks the step done when they are.'
-            : 'The Mediator moves the table on. Mark the step done when you are.'}
-        </p>
+          {renderStepGate?.(step)}
 
-        <div className="pc-dt-controls">
-          <Button
-            size="compact"
-            variant={doneByMe ? 'ghost' : 'primary'}
-            style={CONTROL}
-            onClick={() => onDone(!doneByMe)}
-            aria-pressed={doneByMe}
-          >
-            {doneByMe ? '✓ Done' : "I'm done"}
-          </Button>
-          {onNext ? (
+          {table && (
+            <div className="pc-dt-table">
+              <RollTable table={table} tableName={tableName} size="compact" showCommand />
+            </div>
+          )}
+
+          {ready.length > 0 ? (
+            <ul style={READY} aria-label={`Done with this step: ${doneCount} of ${ready.length}`}>
+              {ready.map((r) => (
+                <li key={r.userId} style={READY_ITEM}>
+                  <span style={r.done ? PIP_DONE : PIP_WAITING} aria-hidden="true" />
+                  {r.done ? `✓ ${r.name}` : r.name}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          <p className="pc-dt-note">
+            {onNext
+              ? 'You move the table on. Each player marks the step done when they are.'
+              : 'The Mediator moves the table on. Mark the step done when you are.'}
+          </p>
+
+          <div className="pc-dt-controls">
             <Button
               size="compact"
+              variant={doneByMe ? 'ghost' : 'primary'}
               style={CONTROL}
-              onClick={() => onNext()}
-              disabled={idx === steps.length - 1}
+              onClick={() => onDone(!doneByMe)}
+              aria-pressed={doneByMe}
             >
-              Next step ›
+              {doneByMe ? '✓ Done' : "I'm done"}
             </Button>
-          ) : null}
+            {onNext ? (
+              <Button
+                size="compact"
+                style={CONTROL}
+                onClick={() => onNext()}
+                disabled={idx === steps.length - 1}
+              >
+                Next step ›
+              </Button>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>
