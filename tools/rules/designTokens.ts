@@ -250,7 +250,7 @@ export const TOKEN_RULES: TokenRule[] = [
     // register #7). Every spelling of the rust family counts: the custom
     // property (rust, rust-hi, rust-25), a Tailwind utility under any variant
     // prefix, and the `color.rust*` token keys.
-    fix: 'Rust is painted only by `Button` / `buttonVariants` (every action) and `InlineRef` (an inline link). A link in prose is `InlineRef` or `inlineLinkClass`; a heading or a "here" state is ink (an ink Slab, an inverse stamp); a focus or selection ring is ink. Never alias a token to rust.',
+    fix: 'Rust is painted only by `Button` / `buttonVariants` (every action) and `InlineRef` (an inline link). A link in prose is `InlineRef`; a heading or a "here" state is ink (an ink Slab, an inverse stamp); a focus or selection ring is ink. Never alias a token to rust.',
     pattern:
       /--color-rust(?:-[a-z0-9]+)?(?![\w-])|\b(?:bg|text|border(?:-[trblxy])?|ring|ring-offset|outline|fill|stroke|decoration|from|via|to|shadow|accent|caret|divide)-rust(?:-hi|-25)?(?![\w-])|\bcolor\.rust(?:Hi|25)?\b/g,
   },
@@ -313,8 +313,7 @@ const EXEMPTIONS: Exemption[] = [
   {
     file: 'packages/component-lib/src/components/chrome/InlineRef.tsx',
     rules: ['rust-allowlist'],
-    reason:
-      'THE rust allowlist (ruleset §3.1): the one Reference exception — an inline link. `inlineLinkClass` here is the same treatment for a plain prose link, so a link anywhere in either app reads as InlineRef does.',
+    reason: 'THE rust allowlist (ruleset §3.1): the one Reference exception — an inline link.',
   },
   {
     file: 'apps/discord-bot/src',

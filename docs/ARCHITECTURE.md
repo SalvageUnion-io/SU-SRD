@@ -2617,7 +2617,7 @@ question the earlier records left open:
 `lib/schemas/objects/contributions.ts`. Subordinate to [ADR-021](#adr-021) (the
 governing surface/mode taxonomy) and paired with the amendment to
 [ADR-022](#adr-022) that makes a cap override an
-absolute pin. Extends the "modified stats" rust language of
+absolute pin. Extends the "modified stats" dashed-ink language of
 [ADR-026](#adr-026) from stat cells to prose.
 
 **§4 is amended by [ADR-038](#adr-038)** (built): activated

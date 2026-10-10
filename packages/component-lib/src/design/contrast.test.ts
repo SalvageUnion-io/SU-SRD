@@ -208,6 +208,8 @@ describe('ink on colour — the refresh pairs', () => {
     { band: 'mech', ground: color.mech, text: 'ink' },
     { band: 'crawlerBand', ground: color.crawlerBand, text: 'paper' },
     { band: 'denizenBand', ground: color.denizenBand, text: 'paper' },
+    // The Avatar fallback initial sits on pilot (Avatar.tsx).
+    { band: 'avatar', ground: color.pilot, text: 'ink' },
   ] as const
 
   for (const { band, ground, text } of PAIRS) {

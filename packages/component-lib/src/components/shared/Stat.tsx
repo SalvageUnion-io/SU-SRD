@@ -143,7 +143,7 @@ type HorizontalValueProps = Exact<{
   /**
    * Ladder rung (styles/sizing.ts). This anatomy's resting state is a reading
    * cell, so it defaults to `full`; `compact` is the listing-row scale and
-   * `mini` the seam-tag size (text-badge / 10px). One axis: a pair of booleans
+   * `mini` the seam-tag size (text-badge / 11px). One axis: a pair of booleans
    * could be combined into a rung that doesn't exist; a single `size` cannot.
    */
   size?: SizeRung
