@@ -100,6 +100,14 @@ if [ ! -d node_modules ] || [ -z "$(ls -A node_modules 2>/dev/null | head -1)" ]
   rm -f "$LOG"
 fi
 
+# A cloud session has no Convex login, so `convex dev` (and with it
+# `bun run dev:itun`) would stop at the sign-in prompt. Anonymous agent mode runs
+# a local deployment with no account, which `scripts/assert-local-convex.ts`
+# already accepts. Cloud only: on a laptop it would bypass the configured project.
+if [ "${CLAUDE_CODE_REMOTE:-}" = "true" ] && [ -n "${CLAUDE_ENV_FILE:-}" ]; then
+  echo 'export CONVEX_AGENT_MODE=anonymous' >>"$CLAUDE_ENV_FILE"
+fi
+
 command -v gh >/dev/null 2>&1 ||
   note "gh is not installed — use the GitHub MCP tools (mcp__github__*) instead of gh-based steps."
 
