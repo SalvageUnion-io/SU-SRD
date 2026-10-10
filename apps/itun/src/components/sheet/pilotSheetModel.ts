@@ -24,7 +24,6 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
-import { readReference } from '../../lib/readReference'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 import type { ClassLike } from '../pilot/abilityTrees'
@@ -37,9 +36,8 @@ import type { SheetStoreState } from './sheetViewProps'
 /**
  * The tree every pilot has regardless of class (Repair, Scrap, Mount, …).
  *
- * It is INTRINSIC, not chosen: it is never offered in the abilities picker and
- * never stored in `pilot.abilities`. The sheet renders it from reference data,
- * as its own tree above the class trees.
+ * It is INTRINSIC, not chosen: it is never offered in the abilities picker. The
+ * sheet lists it only where `pilot.abilities` carries one of its abilities.
  */
 export const GENERIC_TREE = 'Generic'
 
@@ -76,9 +74,10 @@ export type PilotSheetModel = {
   genericInventory: GenericInventoryEntry[]
   /** Trees offerable in the abilities picker; null when it is closed. */
   abilityTrees: Set<string> | null
-  /** Learned abilities grouped by tree (Generic excluded — it is intrinsic). */
-  abilityGroups: { trees: [string, AbilityEntry[]][] }
-  genericAbilities: AbilityEntry[]
+  /** The abilities this pilot owns, in stored order. */
+  ownedAbilities: AbilityEntry[]
+  /** The trees they come from, for the section rule's caption; null with none. */
+  abilityTreeCaption: string | null
   /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
   unresolvedAbilities: string[]
   hpParts: ReturnType<typeof pilotMaxHPParts>
@@ -160,8 +159,7 @@ export function usePilotSheetModel({
   // which read-only snapshot renders never preload (the picker never opens there).
   //
   // GENERIC is deliberately NOT in this set: those abilities are intrinsic to
-  // every pilot rather than chosen, so they are never offered for selection —
-  // they are rendered from reference data in their own tree below.
+  // every pilot rather than chosen, so they are never offered for selection.
   const abilityTrees = useMemo(() => {
     if (picker !== 'abilities') return null
     const cls: ClassLike | undefined = SalvageUnionReference.Classes.getById(pilot.classRef)
@@ -172,46 +170,27 @@ export function usePilotSheetModel({
     return new Set(treesFor(cls, true, selectedTrees))
   }, [picker, pilot.classRef, pilot.abilities])
 
-  // Learned abilities grouped by tree — the section renders one sub-slab per
-  // tree rather than one flat grid. Generic is excluded here and sourced
-  // separately: it is intrinsic, so a pilot never "has" it in `abilities`.
-  const abilityGroups = useMemo(() => {
-    // Keyed by the stored slug: `pilot.abilities`, `usedAbilities` and every
-    // handler speak slugs.
-    const byTree = new Map<string, AbilityEntry[]>()
+  // The abilities this pilot owns, in the order stored, each keyed by the slug
+  // the record actually stores (`pilot.abilities`, `usedAbilities` and every
+  // handler speak slugs). The sheet lists these and no others: the Generic tree
+  // is not printed for every pilot, only for one that has taken from it.
+  const ownedAbilities = useMemo(() => {
+    const entries: AbilityEntry[] = []
     for (const slug of pilot.abilities) {
       const ability = resolveAbility(slug)
-      if (!ability || ability.tree === GENERIC_TREE) continue
-      const entry = { slug, ability }
-      const list = byTree.get(ability.tree)
-      if (list) list.push(entry)
-      else byTree.set(ability.tree, [entry])
+      if (ability) entries.push({ slug, ability })
     }
-    return { trees: [...byTree.entries()] }
+    return entries
     // eslint-disable-next-line react-hooks/preserve-manual-memoization -- keyed on the slug list; resolveAbility is a pure ORM lookup
   }, [pilot.abilities])
 
-  /**
-   * The Generic tree — EVERY pilot has all of it, so it is read from the
-   * reference data rather than from `pilot.abilities` (which only ever holds
-   * chosen, class-tree abilities). Keyed by `ability.id`, which `resolveAbility`
-   * accepts, so the used/recharge toggles persist like any other ability.
-   *
-   * Guarded: read-only snapshot renders may not have preloaded the ORM, and a
-   * missing catalog should drop the section, not throw the sheet.
-   */
-  const genericAbilities = useMemo(
-    () =>
-      readReference(
-        'pilotSheetModel.genericAbilities',
-        () =>
-          SalvageUnionReference.Abilities.all()
-            .filter((ability) => ability.tree === GENERIC_TREE)
-            .map((ability) => ({ slug: getEntitySlug(ability), ability })),
-        []
-      ),
-    []
-  )
+  // The trees those abilities come from, Generic first: the section rule's
+  // caption ("Generic · Forging tree", board 10).
+  const abilityTreeCaption = useMemo(() => {
+    const trees = [...new Set(ownedAbilities.map((entry) => entry.ability.tree))]
+    trees.sort((x, y) => Number(y === GENERIC_TREE) - Number(x === GENERIC_TREE))
+    return trees.length === 0 ? null : `${trees.join(' · ')} tree`
+  }, [ownedAbilities])
 
   /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
   const unresolvedAbilities = pilot.abilities.filter((slug) => !resolveAbility(slug))
@@ -248,8 +227,8 @@ export function usePilotSheetModel({
     overCapacity,
     genericInventory,
     abilityTrees,
-    abilityGroups,
-    genericAbilities,
+    ownedAbilities,
+    abilityTreeCaption,
     unresolvedAbilities,
     hpParts,
     apParts,

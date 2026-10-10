@@ -174,6 +174,9 @@ export function VitalGauge({
   const segCount = Math.max(max, shown)
   const dangerFrom = danger ?? Number.POSITIVE_INFINITY
   const [capLeft, capRight] = caption ?? ['Current', 'Max']
+  // A read-out prints without the default caption: the numeral already says
+  // current / max. A caller's own caption always shows.
+  const showCaption = !readOnly || caption !== undefined
 
   const summary = `${label} ${shown} of ${max}${isOver ? ' — over capacity' : ''}`
 
@@ -500,21 +503,27 @@ export function VitalGauge({
       </div>
 
       {/* Caption — right-aligned Current / Max; an override note sits left. */}
-      <div
-        className={cn(
-          capsLabel({ size: 'badge', weight: 'semibold', tracking: 'eyebrow' }),
-          'mt-1.5 flex items-center justify-end gap-1 leading-none text-ink-75'
-        )}
-      >
-        {isOverridden && (
-          <span className="mr-auto tracking-caps-snug text-[var(--tone-deep)]">
-            overridden from {overriddenFrom}
-          </span>
-        )}
-        <span>{capLeft}</span>
-        <span>/</span>
-        <span>{capRight}</span>
-      </div>
+      {(showCaption || isOverridden) && (
+        <div
+          className={cn(
+            capsLabel({ size: 'badge', weight: 'semibold', tracking: 'eyebrow' }),
+            'mt-1.5 flex items-center justify-end gap-1 leading-none text-ink-75'
+          )}
+        >
+          {isOverridden && (
+            <span className="mr-auto tracking-caps-snug text-[var(--tone-deep)]">
+              overridden from {overriddenFrom}
+            </span>
+          )}
+          {showCaption && (
+            <>
+              <span>{capLeft}</span>
+              <span>/</span>
+              <span>{capRight}</span>
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }

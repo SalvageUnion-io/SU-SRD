@@ -33,10 +33,12 @@ describe('a Starter Set sheet', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Bonesaw' })).toBeTruthy()
     expect(screen.getByText('Starter Set · Leyline Press · read-only')).toBeTruthy()
-    // Read-only: no edit affordance at all, so nothing can reach a template,
-    // and no Read | Edit to switch.
+    // Read-only: no edit affordance at all, so nothing can reach a template.
+    // Read | Edit prints beside "Make a copy" (board 10), with Edit off.
     expect(screen.queryByLabelText(/Share this pilot/i)).toBeNull()
-    expect(screen.queryByRole('group', { name: /Read or edit/ })).toBeNull()
+    expect(screen.getByRole('group', { name: /Read or edit/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Read' }).getAttribute('aria-pressed')).toBe('true')
+    expect((screen.getByRole('button', { name: 'Edit' }) as HTMLButtonElement).disabled).toBe(true)
     // Signed out, "Make a copy" signs in first.
     expect(screen.getByRole('button', { name: 'Sign in to make a copy' })).toBeTruthy()
   })

@@ -20,7 +20,8 @@
  * classes. Keeps the `.sheet-section` print class for the page-break rule.
  */
 
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { borderWidth, color, space } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { Card } from './Card'
@@ -41,8 +42,28 @@ type SheetSectionCardProps = {
   className?: string
   /** Extra classes on the paper body block (e.g. the `Ecflow` grid gaps). */
   bodyClassName?: string
+  /**
+   * `frame` (default) is the accent-framed card with its header band — the
+   * Edit state. `paper` is the printed read state (board 10): a flat paper
+   * panel under a one-unit-colour top rule. It prints no title: the section is
+   * named for assistive tech, and the contents say what they are.
+   */
+  surface?: 'frame' | 'paper'
   children: ReactNode
 }
+
+/** The read state's panel: paper, a hairline, and a unit-colour rule on top. */
+const PAPER_PANEL = {
+  backgroundColor: color.paper,
+  borderColor: color.ink40,
+  borderStyle: 'solid',
+  borderTopColor: 'var(--tone)',
+  borderTopWidth: borderWidth.entity,
+  borderWidth: borderWidth.hairline,
+  display: 'flex',
+  flexDirection: 'column',
+  padding: `${space[16]} ${space[20]}`,
+} satisfies CSSProperties
 
 /** Card-composed poster section container. */
 export function SheetSectionCard({
@@ -52,8 +73,22 @@ export function SheetSectionCard({
   source,
   className,
   bodyClassName,
+  surface = 'frame',
   children,
 }: SheetSectionCardProps) {
+  if (surface === 'paper') {
+    return (
+      <section aria-label={title} className={cn('sheet-section', className)} style={PAPER_PANEL}>
+        {(count || controls) && (
+          <div className="mb-3 flex items-center justify-end gap-2">
+            {count}
+            {controls}
+          </div>
+        )}
+        <div className={cn('flex flex-1 flex-col', bodyClassName)}>{children}</div>
+      </section>
+    )
+  }
   return (
     <Card
       // Accent band on header + footer.

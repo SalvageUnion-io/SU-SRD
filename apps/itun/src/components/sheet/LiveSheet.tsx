@@ -173,7 +173,7 @@ export function LiveSheet({
   return (
     <div
       className={cn(`sheet--${variant}`, 'min-h-screen', className)}
-      style={{ background: 'var(--ground)' }}
+      style={{ background: 'var(--color-wk-bg)' }}
       data-variant={variant}
     >
       {/* Top bar — <header> is a print-stylesheet target (nav-hide rule).
@@ -345,38 +345,7 @@ export function LiveSheet({
       {/* Body slabs. The body owns the hero, so it takes the hero's top
           padding. */}
       <div className="relative">
-        {/* Edge wordmark — PILOT / MECH / CRAWLER running up the page gutter.
-            It sits in the shell's own padding, outside the content column, so
-            it differentiates the sheet at a glance without taking part in (or
-            stealing width from) the content. Sticky, so it stays with you as
-            the sheet scrolls. Hidden below xl, where the gutter is only wide
-            enough for the content's own breathing room. */}
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 hidden w-[68px] select-none xl:block"
-        >
-          {/* The glyphs are as tall as the gutter is wide — in vertical writing
-              the font-size IS the column width, so one value drives both and the
-              wordmark can never outgrow or rattle around in its channel.
-              It sticks BELOW the bar (`top-[58px]`, the bar's own min-height)
-              so it travels with the sheet instead of scrolling away: the block
-              runs bottom-to-top, so its top edge is the word's LAST letter,
-              which sits tucked right under the bar. */}
-          <span
-            className={cn(
-              'sticky top-[58px] block rotate-180 text-center font-cond font-extrabold uppercase leading-none tracking-caps-tight opacity-45 [writing-mode:vertical-rl]',
-              // In vertical writing the font-size IS the column width, so this is
-              // the gutter's own dimension expressed as type, not a reading on the
-              // scale: it must track the `w-[68px]` channel above, and any ladder
-              // rung would overflow the gutter or leave the wordmark rattling in it.
-              'text-[68px]' // design-tokens-ignore: gutter width, not a type rung
-            )}
-            style={{ color: 'var(--tone-deep)' }}
-          >
-            {variant}
-          </span>
-        </span>
-        <div className="px-4 pb-[34px] pt-4 sm:px-[30px] sm:pb-[60px] sm:pt-[22px] xl:pl-[84px]">
+        <div className="px-4 pb-[34px] pt-4 sm:px-[30px] sm:pb-[60px] sm:pt-[22px]">
           {/* No "View in SRD →" on a sheet. The app-wide builder is provided at
               the root (GameDataReady), and every full entity card renders it in
               its foot band — which on a sheet is EVERY installed system, module
