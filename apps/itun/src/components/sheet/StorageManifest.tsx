@@ -486,10 +486,17 @@ export function StorageManifest({
   const lots = side === 'mech' ? cargo.state.carrierLots : cargo.state.depotLots
   const { used, cap, free, over } = cargo.usage
   const linkedCounterpart = side === 'mech' ? crawlerName : mechName
+  // Read draws no write cue: a stow or load target with nothing wired to it is a
+  // dashed drop box, so a read sheet says nothing rather than show one.
+  const showCounterpart = !readOnly || linkedCounterpart !== null
 
   return (
     <div
-      className={cn('grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_250px]', className)}
+      className={cn(
+        'grid grid-cols-1 gap-3',
+        showCounterpart && 'md:grid-cols-[minmax(0,1fr)_250px]',
+        className
+      )}
       data-storage-side={side}
     >
       {/* Hold panel */}
@@ -528,6 +535,7 @@ export function StorageManifest({
                 used={used}
                 cap={cap}
                 scale="sheet"
+                readOnly={readOnly}
                 label={`Hold ${used} of ${cap} slots used${over ? ' — over capacity' : ''}`}
               />
               {free > 0 && (
@@ -615,47 +623,49 @@ export function StorageManifest({
       </Card>
 
       {/* Counterpart panel */}
-      <div
-        className={cn(
-          'flex flex-col gap-2 rounded-card border-2 p-3',
-          linkedCounterpart !== null ? 'border-ink' : 'border-dashed border-wk-faint'
-        )}
-        style={{ background: 'var(--ground-2)' }}
-      >
-        <span
-          className="font-cond text-badge font-bold uppercase tracking-caps"
-          style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+      {showCounterpart && (
+        <div
+          className={cn(
+            'flex flex-col gap-2 rounded-card border-2 p-3',
+            linkedCounterpart !== null ? 'border-ink' : 'border-dashed border-wk-faint'
+          )}
+          style={{ background: 'var(--ground-2)' }}
         >
-          {side === 'mech' ? 'Stow target →' : '← Load target'}
-        </span>
-        {linkedCounterpart !== null ? (
-          <>
-            <Badge shape="stamp" size="full" className="self-start">
-              {linkedCounterpart}
-            </Badge>
-            {side === 'mech' ? (
-              <span className="font-body text-xs text-ink">
-                &infin; Storage Bay &middot; unlimited
-              </span>
-            ) : (
-              <span className="font-body text-xs text-ink">
-                {used}/{cap} slots &middot; {free} free
-              </span>
-            )}
-            {cargo.crawlerLocked !== null && !readOnly && (
-              <p className="m-0 font-body text-note leading-snug text-wk-muted">
-                {cargo.crawlerLocked}
-              </p>
-            )}
-          </>
-        ) : (
-          <p className="m-0 font-body text-note leading-snug text-wk-muted">
-            {side === 'mech'
-              ? 'No crawler linked — stow is disabled until a home crawler is wired.'
-              : 'No mech docked — load is disabled until a mech is wired.'}
-          </p>
-        )}
-      </div>
+          <span
+            className="font-cond text-badge font-bold uppercase tracking-caps"
+            style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+          >
+            {side === 'mech' ? 'Stow target →' : '← Load target'}
+          </span>
+          {linkedCounterpart !== null ? (
+            <>
+              <Badge shape="stamp" size="full" className="self-start">
+                {linkedCounterpart}
+              </Badge>
+              {side === 'mech' ? (
+                <span className="font-body text-xs text-ink">
+                  &infin; Storage Bay &middot; unlimited
+                </span>
+              ) : (
+                <span className="font-body text-xs text-ink">
+                  {used}/{cap} slots &middot; {free} free
+                </span>
+              )}
+              {cargo.crawlerLocked !== null && !readOnly && (
+                <p className="m-0 font-body text-note leading-snug text-wk-muted">
+                  {cargo.crawlerLocked}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="m-0 font-body text-note leading-snug text-wk-muted">
+              {side === 'mech'
+                ? 'No crawler linked — stow is disabled until a home crawler is wired.'
+                : 'No mech docked — load is disabled until a mech is wired.'}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   )
 }

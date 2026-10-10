@@ -164,20 +164,15 @@ describe('Sheet — mobile segment switch', () => {
     // mobile-only row, stitched into the sticky bar
     expect(nav.className).toContain('sm:hidden')
 
-    // Active segment = the viewed kind: primary (rust) fill, aria-current, not
-    // a link.
-    //
-    // Asserted via `buttonVariants` rather than the `bg-rust` spelling it used
-    // to emit. component-lib moved that recipe onto `.su-*` class names in
-    // #799, and the spelling was never this test's subject — "the active
-    // segment is the PRIMARY variant" is. Asking the recipe keeps that true
-    // through the rename and any future one.
+    // Active segment = the viewed kind: an INK plate, never the rust primary
+    // (a here-state is ink), with aria-current, and not a link.
     const primaryClass = buttonVariants({ variant: 'primary' })
       .split(' ')
       .find((c) => c.startsWith('su-btn--')) as string
     const active = nav.querySelector('[aria-current="page"]')
     expect(active?.textContent).toBe('Pilot')
-    expect(active?.className).toContain(primaryClass)
+    expect(active?.className).not.toContain(primaryClass)
+    expect((active as HTMLElement).style.backgroundColor).toBe('var(--color-ink)')
     expect(active?.tagName).not.toBe('A')
 
     // The other segments navigate to the wired counterparts' sheets.

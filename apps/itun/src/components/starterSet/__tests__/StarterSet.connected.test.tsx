@@ -103,12 +103,12 @@ describe('Copy to… on the Starter Set page', () => {
     )
   }
 
-  test('offers My Stuff and every Game the player is in', () => {
+  test('offers Shelves and every Game the player is in', () => {
     renderPage()
     const options = within(screen.getByLabelText('Copy Bonesaw to…'))
       .getAllByRole('option')
       .map((o) => o.textContent)
-    expect(options).toEqual(['Copy to…', 'My Stuff', 'The Long Haul'])
+    expect(options).toEqual(['Copy to…', 'Shelves', 'The Long Haul'])
   })
 
   test('asks first, then makes Bonesaw a build of the player’s own in the chosen Game', async () => {

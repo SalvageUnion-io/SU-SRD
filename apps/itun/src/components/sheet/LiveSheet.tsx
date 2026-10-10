@@ -117,6 +117,13 @@ const BAND_ACTIONS = {
 } satisfies CSSProperties
 
 /** Sticky bar height — the IntersectionObserver top inset (design: 58/66px). */
+/** The sheet you are on in the phone's Pilot/Mech/Crawler switch: an ink plate. */
+const ACTIVE_SEGMENT = {
+  backgroundColor: 'var(--color-ink)',
+  borderColor: 'var(--color-ink)',
+  color: 'var(--color-paper)',
+} satisfies CSSProperties
+
 const BAR_HEIGHT_PX = 58
 
 /**
@@ -279,7 +286,8 @@ export function LiveSheet({
 
         {/* Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — full-width
             second row inside the sticky bar so it stays thumb-reachable. The
-            active segment is the sheet being viewed (rust fill, white text);
+            active segment is the sheet being viewed (an ink plate, never rust: a
+            here-state is ink);
             the others navigate to their wired counterpart's sheet. */}
         {segments && segments.length > 1 && (
           <nav
@@ -292,9 +300,10 @@ export function LiveSheet({
                   key={segment.key}
                   aria-current="page"
                   className={cn(
-                    buttonVariants({ variant: 'primary', size: 'compact' }),
+                    buttonVariants({ variant: 'default', size: 'compact' }),
                     'flex-1 no-underline'
                   )}
+                  style={ACTIVE_SEGMENT}
                 >
                   {segment.label}
                 </span>

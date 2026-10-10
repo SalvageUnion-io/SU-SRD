@@ -250,7 +250,7 @@ describe('Starter Set — copying a template', () => {
   const [pilotTemplate] = STARTER_PILOTS
   if (pilotTemplate === undefined) throw new Error('The Starter Set has no pilots')
 
-  test('lands in My Stuff as a build of the player’s own, and parses', async () => {
+  test('lands in your shelves as a build of the player’s own, and parses', async () => {
     const copied = await copyStarter('pilot', pilotTemplate.id, SHELF)
 
     const [stored] = await pilots.list()

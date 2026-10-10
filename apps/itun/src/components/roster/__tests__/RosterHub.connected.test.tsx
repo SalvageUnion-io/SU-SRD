@@ -8,10 +8,10 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  * What these pin, end to end through the real `Roster`:
  *
  *  - the band carries "+ New game" and the "Showing" select, which lists
- *    My Stuff and then every Game (never "Shelf")
- *  - My Stuff rows each offer View, "Move to game…" and Delete
+ *    Shelves and then every Game (never "Shelf")
+ *  - Shelves rows each offer View, "Move to game…" and Delete
  *  - picking a Game swaps the body for that Game's roster — yours first —
- *    with the Game section below the lists; My Stuff's rows are not shown
+ *    with the Game section below the lists; Shelves's rows are not shown
  *  - a remembered Game (the `/games/:id` redirect, a reload) opens straight
  *    into it
  *
@@ -123,7 +123,7 @@ beforeEach(async () => {
     softLinks: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
   })
-  // My Stuff: a pilot and a crawler, cached where a signed-in roster is.
+  // Shelves: a pilot and a crawler, cached where a signed-in roster is.
   setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
   await useEntityStore
     .getState()
@@ -160,12 +160,12 @@ async function renderHub(): Promise<void> {
 const showing = () => screen.getByLabelText('Showing') as HTMLSelectElement
 
 describe('the band', () => {
-  test('"+ New game" and "Showing", which lists My Stuff and then every Game', async () => {
+  test('"+ New game" and "Showing", which lists Shelves and then every Game', async () => {
     await renderHub()
 
     expect(screen.getByRole('button', { name: '+ New game' })).toBeTruthy()
     expect([...showing().options].map((o) => o.textContent)).toEqual([
-      'My Stuff',
+      'Shelves',
       'Union Crawler #430',
       'The Long Haul',
     ])
@@ -175,7 +175,7 @@ describe('the band', () => {
   })
 })
 
-describe('My Stuff', () => {
+describe('Shelves', () => {
   test('each row offers View, "Move to game…" and Delete — moves only where its kind may go', async () => {
     await renderHub()
 
@@ -195,7 +195,7 @@ describe('My Stuff', () => {
     ])
   })
 
-  test('moving a pilot into a Game takes it off My Stuff, with no confirm', async () => {
+  test('moving a pilot into a Game takes it off Shelves, with no confirm', async () => {
     await renderHub()
 
     await act(async () => {
@@ -219,14 +219,14 @@ describe('My Stuff', () => {
 })
 
 describe('a Game picked in "Showing"', () => {
-  test('swaps My Stuff for that Game: its roster, yours first, then the Game section', async () => {
+  test('swaps Shelves for that Game: its roster, yours first, then the Game section', async () => {
     await renderHub()
     await act(async () => {
       fireEvent.change(showing(), { target: { value: 'game:g1' } })
     })
 
     expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g1' })
-    // My Stuff's rows are not this container's.
+    // Shelves's rows are not this container's.
     expect(screen.queryByText('Mira Cole')).toBeNull()
     expect(within(screen.getByRole('list', { name: 'Yours' })).getByText('Roach-Boy')).toBeTruthy()
     expect(

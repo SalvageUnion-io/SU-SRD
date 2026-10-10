@@ -6,7 +6,7 @@
  * (`activeContainerStore`), and the header's "Showing" select
  * (`ContainerSwitcher`) navigates between them:
  *
- *  - **My Stuff** — your builds that are in no Game, in three columns of
+ *  - **Shelves** — your builds that are in no Game, in three columns of
  *    `EntityRow`s. Each row: View, "Move to game…" (`MoveToGameSelect`), and
  *    Delete behind the shared confirm.
  *  - **A Game** — that table's roster, yours first, with every player and
@@ -19,7 +19,7 @@
  * On mount: hydrates all three entity types + softLinks. At the mobile
  * endpoint (≤ md) the columns collapse to one behind a segmented
  * Pilot/Mech/Crawler switch (`RosterColumn.tsx`), whose choice is kept here so
- * it survives switching between My Stuff and a Game.
+ * it survives switching between Shelves and a Game.
  *
  * Delete flow:
  *   1. User clicks "Delete" on an EntityRow.
@@ -258,7 +258,7 @@ export function Roster() {
             </AppLink>
           </div>
           {/* What the hub shows, and how to get another table to show: the
-              select lists My Stuff and every Game, and "+ New game" adds one.
+              select lists Shelves and every Game, and "+ New game" adds one.
               Both render nothing outside Connected. */}
           <div className="flex flex-wrap items-end gap-2.5">
             <ContainerSwitcher activeContainer={activeContainer} onSelect={showContainer} />

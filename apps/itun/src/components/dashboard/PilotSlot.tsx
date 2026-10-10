@@ -276,12 +276,14 @@ export function PilotMajor({
       },
       {
         label: 'Kit',
+        grow: 2,
         chips: kit.length > 0 ? kit : undefined,
         lines: kit.length > 0 ? undefined : [{ text: 'No equipment.' }],
         buttons: [],
       },
       {
         label: 'Abilities',
+        grow: 2,
         chips: abilities.length > 0 ? abilities : undefined,
         lines: abilities.length > 0 ? undefined : [{ text: 'No abilities.' }],
         buttons: [],

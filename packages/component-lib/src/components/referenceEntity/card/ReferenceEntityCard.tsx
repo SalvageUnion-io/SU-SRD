@@ -212,6 +212,7 @@ function ReferenceEntityCardInner({
   userMade = false,
   madeBy,
   texture,
+  foldTables = false,
   parentSeal,
   readable = false,
   pattern,
@@ -760,7 +761,7 @@ function ReferenceEntityCardInner({
         table={entityTable}
         name={tableName}
         size={size}
-        collapsible={isCatalog || depth > 0}
+        collapsible={isCatalog || depth > 0 || foldTables}
         disabled={isDown}
       />
     ) : null
@@ -782,7 +783,7 @@ function ReferenceEntityCardInner({
         depth={depth}
         isDown={isDown}
         compact={compact}
-        collapsibleTables={isCatalog || depth > 0}
+        collapsibleTables={isCatalog || depth > 0 || foldTables}
         chassisName={resolvedChassisName}
         NestedCard={ReferenceEntityCardInner}
       />

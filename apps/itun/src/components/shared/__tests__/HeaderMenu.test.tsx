@@ -25,7 +25,7 @@ async function open(trigger: HTMLElement): Promise<HTMLElement> {
 
 describe('HeaderMenu', () => {
   test('the trigger is a collapsed menu button until pressed', async () => {
-    const trigger = setup([[{ id: 'a', label: 'My Stuff', onSelect: () => {} }]])
+    const trigger = setup([[{ id: 'a', label: 'Shelves', onSelect: () => {} }]])
     expect(trigger.getAttribute('aria-haspopup')).toBe('menu')
     expect(trigger.getAttribute('aria-expanded')).toBe('false')
     expect(screen.queryByRole('menu')).toBeNull()
@@ -37,7 +37,7 @@ describe('HeaderMenu', () => {
   test('rows are menuitems, sections are divided by a separator', async () => {
     const menu = await open(
       setup([
-        [{ id: 'a', label: 'My Stuff', onSelect: () => {} }],
+        [{ id: 'a', label: 'Shelves', onSelect: () => {} }],
         [
           { id: 'b', label: 'Union Crawler #430', hint: 'Mediator', onSelect: () => {} },
           { id: 'c', label: 'The Long Haul', hint: 'Player', onSelect: () => {} },
