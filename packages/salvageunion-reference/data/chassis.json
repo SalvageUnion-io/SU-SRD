@@ -238,15 +238,15 @@
             "name": "Personnel Transport Pod"
           },
           {
-            "name": "Rigging Arm"
-          },
-          {
             "name": "Tracking Node"
           }
         ],
         "modules": [
           {
             "name": "Comms Module"
+          },
+          {
+            "name": "Navigation Module"
           }
         ],
         "content": [
@@ -2645,9 +2645,6 @@
             "name": "30mm Autocannon"
           },
           {
-            "name": "Floodlights"
-          },
-          {
             "name": "High Gain Antenna"
           },
           {
@@ -3077,7 +3074,7 @@
             "name": "Blue Mining Laser"
           },
           {
-            "name": "Escape Hatch"
+            "name": "Ejection System"
           },
           {
             "name": "Floodlights"
@@ -4200,13 +4197,7 @@
             "name": "Hydraulic Crusher"
           },
           {
-            "name": "Locomotion System"
-          },
-          {
             "name": "Cargo Bay"
-          },
-          {
-            "name": "Rigging Arm"
           },
           {
             "name": "Welding Laser"
@@ -4247,6 +4238,9 @@
           },
           {
             "name": "Weapon Link"
+          },
+          {
+            "name": "Self-Destruct"
           }
         ],
         "content": [
@@ -4888,13 +4882,7 @@
             "name": "Escape Hatch"
           },
           {
-            "name": "Floodlights"
-          },
-          {
             "name": "Green Laser"
-          },
-          {
-            "name": "High Gain Antenna"
           },
           {
             "name": "Locomotion System"
@@ -5810,25 +5798,16 @@
         "page": 45,
         "systems": [
           {
-            "name": "Mini Mortar"
+            "name": "Blue Mining Laser"
           },
           {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Floodlights"
+            "name": "Industrial Body Kit",
+            "preselectedChoices": {
+              "ed8cb1b3-3b38-4c92-9f0c-2638356edfc7": "Jackhammer"
+            }
           },
           {
             "name": "Locomotion System"
-          },
-          {
-            "name": "Loudspeakers"
-          },
-          {
-            "name": "Rigging Arm"
-          },
-          {
-            "name": "Welding Laser"
           }
         ],
         "modules": [
@@ -5836,10 +5815,13 @@
             "name": "Comms Module"
           },
           {
-            "name": "Damage Assessor"
+            "name": "M315 Motion Scanner"
           },
           {
-            "name": "Reactor Flare"
+            "name": "Reactor Overload"
+          },
+          {
+            "name": "Sleeping Beauty"
           }
         ],
         "content": [
@@ -5869,9 +5851,6 @@
           },
           {
             "name": "Locomotion System"
-          },
-          {
-            "name": "Welding Laser"
           }
         ],
         "modules": [
@@ -5883,6 +5862,9 @@
           },
           {
             "name": "Eggs Mayhem"
+          },
+          {
+            "name": "Navigation Module"
           }
         ],
         "content": [
@@ -9301,6 +9283,10 @@
           },
           {
             "name": "Floodlights"
+          },
+          {
+            "name": "Cargo Pod",
+            "count": 2
           }
         ],
         "modules": [
@@ -9736,9 +9722,9 @@
       }
     ],
     "structurePoints": 32,
-    "energyPoints": 11,
+    "energyPoints": 9,
     "heatCapacity": 15,
-    "systemSlots": 19,
+    "systemSlots": 17,
     "moduleSlots": 3,
     "cargoCapacity": 6,
     "techLevel": 3,
