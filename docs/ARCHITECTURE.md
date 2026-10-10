@@ -470,7 +470,7 @@ applyMechDamage({ currentSP, amount, kind, vulnerable })
 
 `apps/itun/src/lib/rules/heatCheck.ts` re-exports these and adds
 `heatCheckPatch(effect, currentHeat?)`: the package owns math, the app owns
-patches. The roller is the package's `rollDie(sides)`.
+patches. Dice: [ADR-006](#adr-006).
 
 **Activation:** the Dashboard's `useActionsDeck.ts` over `activationPatch()` in
 `apps/itun/src/components/dashboard/dashboardRules.ts`; cost from `itemEconomy()`
@@ -898,6 +898,7 @@ Fix a transitive advisory by dedupe, then `bun update <pkg>`, then a floor.
 | Entry | Why |
 | --- | --- |
 | `sharp: >=0.35.5` | `GHSA-wq5f-xc86-pv6w`; `miniflare` pins 0.35.4. Delete once bun.lock's `miniflare` entry itself asks for ≥0.35.5 |
+| `salvageunion-reference`, `@randsum/roller` | Redirects: one copy each ([ADR-006](#adr-006)) |
 
 Floors, never exact versions. `brace-expansion` cannot be floored (two
 majors). Delete an override once the package that needed it asks for the fixed
@@ -1193,13 +1194,30 @@ dataset**:
 
 Accepted
 
-**Amended 2026-09** — the RNG binding moved into the package. `lib/rules/dice.ts`
-exports `rollDie(sides)`, a `crypto.getRandomValues` roller that replaced the
-`@randsum/roller` calls in ITUN and component-lib, ITUN's `defaultRoll` among
-them. The binding stayed app-local only because it pulled in that dependency;
-a platform global does not. Every other rules function still takes the `Roll` as a parameter, so they
-stay deterministic. Where the text below says the package does not own the RNG
-binding, read it as history.
+**Amended 2026-10** — Randsum is the one dice source, and the package owns no
+RNG binding again: the 2026-09 `crypto.getRandomValues` `rollDie` is deleted. A roll on a named Salvage Union table — one of
+`@randsum/salvageunion`'s `SALVAGE_UNION_TABLE_NAMES`, the roll tables marked
+`indexable` — takes its d20 from that package's `rollTable(name)`; every other
+die (an entity-owned table, a Heat Check's own d20, a random Bay) comes from
+`@randsum/roller`. Only the total crosses back: the row is always read from
+this package's data with `rollOnTable` / `resultForTable`, so the text cannot
+drift. The web apps' binding is component-lib's `utils/dice.ts` (`rollDie`,
+`rollD20`, `d20ForTable`, `rollForTable`); the bot's is
+`apps/discord-bot/src/dice.ts`. Both import `@randsum/salvageunion`
+dynamically: its module scope reads `RollTables`, so it must load after the
+`roll-tables` preload, and no page pays for its data until someone rolls.
+Root `overrides` resolve its `salvageunion-reference@2.3.5` to this workspace
+(one live copy: its names and rows read our preloaded data) and its
+`@randsum/roller@~1.1.2` to our catalog version (it calls only
+`roll({ sides: 20 })`, whose `{ total, rolls }` 4.0.0 keeps). These two are
+redirects, not the [overrides block](#the-overrides-block)'s floors: they name
+the version the workspace uses, move with its catalog entry, and go once the
+package asks for those versions itself. `bun why <pkg>` shows one copy each,
+and component-lib's `dice.test.ts` proves `rollTable`'s row is `rollOnTable`'s
+for the same total. Every
+rules function still takes the `Roll` as a parameter, so they stay
+deterministic. Where the text below says the package does not own the RNG
+binding, that holds again.
 
 ### Context
 

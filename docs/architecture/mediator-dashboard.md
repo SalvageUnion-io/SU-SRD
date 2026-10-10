@@ -165,8 +165,9 @@ not steps.
   A new instance starts at full HP and takes a numbered name ("Raider Band 2")
   when it duplicates one. The name-only add form goes; a row written by it
   still reads by its name.
-- **Morale** rolls `rollDie(20)` on the reference "Morale" table (Workshop
-  Manual p.268). The result is stored as the NPC's `lastMediatorRoll` and
+- **Morale** rolls `@randsum/salvageunion`'s `rollTable('Morale')` (through
+  component-lib's `d20ForTable`) and reads the row from the reference
+  "Morale" table (Workshop Manual p.268). The result is stored as the NPC's `lastMediatorRoll` and
   shown under the row ("Morale 7 · Fighting Retreat", then the table's text).
   **It is not written to the Game's log.** The log is crew-readable, and the
   tray is the one thing ADR-030 §5 hides. For this surface, this overrides
