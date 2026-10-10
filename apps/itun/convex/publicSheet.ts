@@ -160,6 +160,9 @@ async function assignmentsOf(
   const withheld = new Map<string, PublicWithheld>()
   for (const link of await linksTouching(ctx, appId)) {
     const far = link.from.id === appId ? link.to : link.from
+    // A built NPC has no public sheet yet (ADR-043), so its crew link is not
+    // one a public crawler page can show.
+    if (far.type === 'npc') continue
     const target = await resolveLinkEnd(ctx, far, row.gameId)
     if (target === null || !sameContainerRows(row, target)) continue
     // Keyed by the far end so each entity counts once. The key never leaves

@@ -9,8 +9,9 @@
 
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
+import type { Npc } from '../../lib/schemas/npc'
 import type { Pilot } from '../../lib/schemas/pilot'
-import type { SoftLink } from '../../lib/schemas/softLink'
+import type { CrewSlot, SoftLink } from '../../lib/schemas/softLink'
 
 /**
  * The one frozen instant every test fixture is stamped with.
@@ -71,18 +72,39 @@ export function crawlerFixture(overrides: Partial<Crawler> & { id: string }): Cr
   }
 }
 
+/** A built NPC (ADR-043): a Veteran-shaped stat block with no identity beyond a name. */
+export function npcFixture(overrides: Partial<Npc> & { id: string }): Npc {
+  return {
+    schemaVersion: 1,
+    name: 'Sergeant Kessler',
+    hitPoints: 9,
+    damageType: 'HP',
+    actions: [],
+    traits: [],
+    gameId: null,
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
+    ...overrides,
+  }
+}
+
 const LINK_ENDS = {
   'mech-to-pilot': ['mech', 'pilot'],
   'pilot-to-crawler': ['pilot', 'crawler'],
   'mech-to-crawler': ['mech', 'crawler'],
+  'npc-to-crawler': ['npc', 'crawler'],
 } as const
 
-/** A soft link of `type` from `fromId` to `toId`; the link type fixes both end types. */
+/**
+ * A soft link of `type` from `fromId` to `toId`; the link type fixes both end
+ * types. An `npc-to-crawler` link takes its crew slot (the Med Bay by default).
+ */
 export function softLinkFixture(
   type: SoftLink['type'],
   fromId: string,
   toId: string,
-  id = `link-${fromId}-${toId}`
+  id = `link-${fromId}-${toId}`,
+  slot: CrewSlot = { kind: 'bay', bayRef: 'med-bay' }
 ): SoftLink {
   const [fromType, toType] = LINK_ENDS[type]
   return {
@@ -90,6 +112,7 @@ export function softLinkFixture(
     from: { type: fromType, id: fromId },
     to: { type: toType, id: toId },
     type,
+    ...(type === 'npc-to-crawler' ? { slot } : {}),
     createdAt: FIXTURE_NOW,
   }
 }

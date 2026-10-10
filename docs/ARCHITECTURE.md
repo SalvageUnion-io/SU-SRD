@@ -192,9 +192,9 @@ never `navigator.onLine` or an auth flag.
 ### IndexedDB cache
 
 `apps/itun/src/lib/db/` via `idb` ([ADR-002](#adr-002)):
-database `itun-v1`, `DB_VERSION = 19` (`src/lib/db/index.ts`), stores in
-`src/lib/db/stores.ts`: `pilots`, `mechs`, `crawlers`, `mechPatterns`
-(immutable builds), `encounterNpcs`, `softLinks` and `meta`.
+database `itun-v1`, `DB_VERSION` in `src/lib/db/index.ts`, stores in
+`src/lib/db/stores.ts`: `pilots`, `mechs`, `crawlers`, `npcs`, `mechPatterns`,
+`encounterNpcs`, `softLinks` and `meta`.
 
 - **One account's cache.** `meta` holds one row, `{ userId }`
   (`src/lib/db/cacheMeta.ts`): the account whose rows these are. Sign-out
@@ -208,7 +208,7 @@ database `itun-v1`, `DB_VERSION = 19` (`src/lib/db/index.ts`), stores in
 
 - `makeStore(getDb, schema, storeName, opts)` (`src/lib/db/crud.ts`) parses
   with Zod on write and strictly on read: an unreadable record is skipped with
-  a warning and refilled from Convex. Pilot, Mech, Crawler stamp
+  a warning and refilled from Convex. Pilot, Mech, Crawler, Npc stamp
   `updatedAt`; SoftLink and MechPattern only `createdAt`.
 - An upgrade (`openDB`'s `upgrade`) rewrites no record: it deletes every store
   an older version created and creates the current set empty, and `ShelfSync`
@@ -241,10 +241,10 @@ the entity rows.
   `entities.listWiring` (`ShelfSync` and `WiringSync`, both in
   `src/components/account/ShelfSync.tsx`): server wins, one prune guard
   (`lib/db/pruneRules.ts`). Links go through `assignLink`
-  (`src/lib/links/linkRules.ts`, [ADR-037](#adr-037)),
+  (`src/lib/links/linkRules.ts`, [ADR-037](#adr-037), [ADR-043](#adr-043)),
   never across containers.
 
-**Every store reaches Convex:** `commitEntityWrite` (pilots, mechs, crawlers),
+**Every store reaches Convex:** `commitEntityWrite` (pilots, mechs, crawlers, NPCs),
 `commitTransfer` (a cross-entity transfer, one `entities.transfer` mutation)
 and `commitSoftLink` from `entityStore.ts`, `commitPatternWrite` from
 `patternStore.ts`, `commitNpcWrite` from `encounterStore.ts`,
@@ -252,15 +252,14 @@ and `commitChangeLog` from `entityChangeLog.ts` sends the Change Log, whose only
 copy is the Convex `changeLog` table. `apps/itun/test/convex/containerParity.test.ts`
 asserts each store has a table and calls its commit; a new store needs both.
 The Change Log commit is the one fire-and-forget write, and reports its own
-failure. If the schema cannot
-say where a record lives, the schema moves; nothing is local-only. No change may
+failure. If the schema cannot say where a record lives, the schema moves. No change may
 leave data reachable from fewer places than before; a gate asserts the row is
 in Convex, not the mechanism.
 
 ### Zustand stores
 
 `apps/itun/src/stores/` ([ADR-003](#adr-003)).
-`entityStore` (pilots, mechs, crawlers, softLinks) reaches persistence through
+`entityStore` (pilots, mechs, crawlers, npcs, softLinks) reaches persistence through
 `dbStoreFor(type)`. `list(type)` hydrates
 lazily, then reads synchronously. `update()` validates, commits to Convex
 (remote only), writes the backend store, then `set()`s and emits the Change
@@ -4739,6 +4738,9 @@ waits for a crawler before it takes a player's crew (see *Moves* and *The
 primary crawler*). ADR-030's container model — one nullable `gameId`,
 the shelf as "My Stuff" — is the ground this stands on and is unchanged.
 
+**Amended by [ADR-043](#adr-043)** (2026-10-09, proposed): a fourth link,
+`npc-to-crawler`, carries a crew slot and is authorised by its `to` end.
+
 The rules are code in one place, `apps/itun/src/lib/links/linkRules.ts`, imported
 by the client store and by `apps/itun/convex/` alike.
 
@@ -5421,3 +5423,52 @@ pilot it had just built.
 - Forgetting to raise it for such a change now strands old tabs where every
   deploy used to retire them. The gate covers the common case, and
   `buildFloor.ts` lists what counts.
+
+## ADR-043
+
+**Built NPCs and the `npc-to-crawler` Link**
+
+### Status
+
+**Proposed; built on `design-refresh` (2026-10-09), owner to confirm.**
+Amends [ADR-037](#adr-037) with a fourth link type, the one link authorised
+by its `to` end. [ADR-030](#adr-030), [ADR-032](#adr-032) and
+[ADR-034](#adr-034) apply to the new entity unchanged. The model and the
+surfaces are [architecture/npc-builder.md](architecture/npc-builder.md).
+
+### Context
+
+Issues 1269 and 1277 add an NPC anyone can build and assign to a crawler's
+crew slots: the type's special NPC and one per bay. ADR-037's links are
+slot-free and are authorised by the `from` end's owner. In a Game the NPC may
+belong to a player, while the crawler is communal and edited only by the
+table runner (ADR-030 §5), who alone assigns crew.
+
+### Decision
+
+1. **A fourth owned entity.** A Convex table `npcs` with the pilot columns.
+   Containers, `publicRead`, moves and copies follow pilots exactly. A built
+   NPC is never an `encounterNpcs` row.
+2. **`npc-to-crawler`.** From an NPC to a crawler. It carries a required
+   `slot`: `{ kind: 'bay', bayRef }` or `{ kind: 'type' }`. No other type may
+   carry a slot. The `from` end holds at most one link, and so does each
+   (crawler, slot) pair. Drawing a link replaces what it conflicts with, in
+   the same write (ADR-037).
+3. **Authorised by the `to` end.** Whoever may write the crawler draws and
+   deletes these links: its owner on a shelf, the table runner in a Game.
+   The one-container rule, move-prunes and delete-cascade hold as in ADR-037.
+   The rules live in `apps/itun/src/lib/links/linkRules.ts` with the others;
+   the server enforces them in `apps/itun/convex/entities.ts`.
+4. **A link replaces; it never overwrites.** A linked slot renders the NPC.
+   Neither linking nor unlinking writes the crawler's inline crew, so removing
+   the link restores it unchanged.
+
+### Consequences
+
+- A player's NPC crewing a Game's crawler is still theirs. They track its HP,
+  and the Mediator reads it read-only.
+- An older client cannot parse the new link type. The change is compatible
+  as far as `client-contract` sees, but it is a stored shape older code
+  cannot read, so the build floor was raised (ADR-042).
+- A crawler with two entries of the same bay can crew only the first.
+- An NPC with max HP 0 (the Augmented A.I.) is never shown as down.

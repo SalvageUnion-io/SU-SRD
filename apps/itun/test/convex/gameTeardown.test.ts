@@ -24,7 +24,7 @@ import { testConvex } from './harness'
  * depends on the path. `changeLog` is history, and outlives the Game it was
  * written in.
  */
-const EXEMPT = ['pilots', 'mechs', 'crawlers', 'encounterNpcs', 'mechPatterns', 'changeLog']
+const EXEMPT = ['pilots', 'mechs', 'crawlers', 'npcs', 'encounterNpcs', 'mechPatterns', 'changeLog']
 
 /** A user signed in with Discord, so the bot can resolve them. */
 async function makeDiscordUser(t: Ctx, name: string, discordId: string) {

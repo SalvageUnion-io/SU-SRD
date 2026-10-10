@@ -30,7 +30,7 @@ import type { EntityForType } from '../../stores/types'
 /** Full entityStore state+actions shape (what selectors receive). */
 type EntityStoreState = ReturnType<typeof useEntityStore.getState>
 
-type ListKey = 'pilots' | 'mechs' | 'crawlers' | 'softLinks'
+type ListKey = 'pilots' | 'mechs' | 'crawlers' | 'npcs' | 'softLinks'
 
 function listKeyFor(type: EntityType): ListKey {
   return `${type}s`

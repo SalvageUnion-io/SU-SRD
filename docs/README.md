@@ -18,6 +18,7 @@ Read with an offset and limit, never the whole file.
 | setting up a Convex deployment, repairing data, rotating auth secrets or Convex error reporting | the [`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill |
 | inviting someone by their Discord account | ADR-039, `apps/itun/convex/model/invites.ts` |
 | assigning pilots, mechs and crawlers to each other | ADR-037, `apps/itun/src/lib/links/linkRules.ts` |
+| adding or assigning an NPC (the designer, crawler crew) | [architecture/npc-builder.md](architecture/npc-builder.md), ADR-043 |
 | working on the Discord bot as a Game client | [Discord bot](ARCHITECTURE.md#discord-bot-as-a-game-client) |
 | changing a package's public API | [packages and contracts](ARCHITECTURE.md#packages-and-contracts) |
 | changing hosting, deploys or CI | ADR-033, [CI and deploy](ARCHITECTURE.md#ci-and-deploy) |

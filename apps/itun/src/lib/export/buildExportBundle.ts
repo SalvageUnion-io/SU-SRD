@@ -66,6 +66,7 @@ export async function buildExportBundle(
     entityStore.hydrate('pilot'),
     entityStore.hydrate('mech'),
     entityStore.hydrate('crawler'),
+    entityStore.hydrate('npc'),
     entityStore.hydrate('softLink'),
   ])
 
@@ -76,6 +77,7 @@ export async function buildExportBundle(
       pilots: entityStore.list('pilot'),
       mechs: entityStore.list('mech'),
       crawlers: entityStore.list('crawler'),
+      npcs: entityStore.list('npc'),
     },
     softLinks: entityStore.list('softLink'),
     mechPatterns,
@@ -96,7 +98,7 @@ export async function buildExportBundle(
  * mechs. Including deep transitive closure would make the export ambiguous.
  */
 export async function buildEntityExport(
-  type: 'pilot' | 'mech' | 'crawler',
+  type: 'pilot' | 'mech' | 'crawler' | 'npc',
   id: string,
   entityStore: ExportStore
 ): Promise<ExportBundle> {
@@ -105,7 +107,7 @@ export async function buildEntityExport(
   const allSoftLinks = entityStore.list('softLink')
   const attachedLinks = allSoftLinks.filter((l) => l.from.id === id || l.to.id === id)
 
-  const emptyEntities = { pilots: [], mechs: [], crawlers: [] }
+  const emptyEntities = { pilots: [], mechs: [], crawlers: [], npcs: [] }
 
   switch (type) {
     case 'pilot': {
@@ -136,6 +138,17 @@ export async function buildEntityExport(
         schemaVersion: 2,
         exportedAt: new Date().toISOString(),
         entities: { ...emptyEntities, crawlers: crawler ? [crawler] : [] },
+        softLinks: attachedLinks,
+        mechPatterns: [],
+        encounterNpcs: [],
+      }
+    }
+    case 'npc': {
+      const npc = entityStore.list('npc').find((n) => n.id === id)
+      return {
+        schemaVersion: 2,
+        exportedAt: new Date().toISOString(),
+        entities: { ...emptyEntities, npcs: npc ? [npc] : [] },
         softLinks: attachedLinks,
         mechPatterns: [],
         encounterNpcs: [],

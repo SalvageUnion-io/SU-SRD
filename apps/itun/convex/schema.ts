@@ -50,7 +50,12 @@ import { v } from 'convex/values'
  * against this same union rather than a hand-copied one. `entities.upsertSoftLink`
  * is the caller; a second copy there is exactly the drift the header warns about.
  */
-export const entityRefType = v.union(v.literal('pilot'), v.literal('mech'), v.literal('crawler'))
+export const entityRefType = v.union(
+  v.literal('pilot'),
+  v.literal('mech'),
+  v.literal('crawler'),
+  v.literal('npc')
+)
 
 /**
  * Mirrors `SoftLinkSchema.type` (src/lib/schemas/softLink.ts). Exported: see above.
@@ -62,7 +67,19 @@ export const entityRefType = v.union(v.literal('pilot'), v.literal('mech'), v.li
 export const softLinkType = v.union(
   v.literal('mech-to-pilot'),
   v.literal('pilot-to-crawler'),
-  v.literal('mech-to-crawler')
+  v.literal('mech-to-crawler'),
+  v.literal('npc-to-crawler')
+)
+
+/**
+ * Mirrors `CrewSlotSchema` (src/lib/schemas/softLink.ts) — ADR-043. The crew
+ * slot an `npc-to-crawler` link fills: a bay by its slug, or the crawler
+ * type's NPC. Required on that type and refused on every other, which the
+ * writers in `entities.ts` enforce (a validator cannot see the link's type).
+ */
+export const crewSlot = v.union(
+  v.object({ kind: v.literal('bay'), bayRef: v.string() }),
+  v.object({ kind: v.literal('type') })
 )
 
 /**
@@ -78,6 +95,7 @@ const changeLogEntityType = v.union(
   v.literal('pilot'),
   v.literal('mech'),
   v.literal('crawler'),
+  v.literal('npc'),
   v.literal('softLink'),
   v.literal('game')
 )
@@ -134,7 +152,7 @@ export const seatResolving = v.object({
   applied: v.boolean(),
 })
 
-/** The columns and indexes `pilots`, `mechs` and `crawlers` share: one table shape, three tables. */
+/** The columns and indexes `pilots`, `mechs`, `crawlers` and `npcs` share: one table shape, four tables. */
 function containerTable() {
   return (
     defineTable({
@@ -449,16 +467,26 @@ export default defineSchema({
   crawlers: containerTable(),
 
   /**
-   * An assignment: 'mech-to-pilot' | 'pilot-to-crawler' | 'mech-to-crawler'.
-   * EntityRef is NOT widened (ADR-027).
+   * A built NPC (ADR-043): owned exactly like a pilot, with the pilot's
+   * columns. On its owner's shelf or in a Game, readable by the Game's members,
+   * written only by its owner, public only by `publicRead` (ADR-032). Never an
+   * `encounterNpcs` row: that tray holds reference instances (ADR-034).
+   */
+  npcs: containerTable(),
+
+  /**
+   * An assignment: 'mech-to-pilot' | 'pilot-to-crawler' | 'mech-to-crawler' |
+   * 'npc-to-crawler'. Partners never widen EntityRef (ADR-028); a built NPC is
+   * an entity of its own, so it does (ADR-043).
    *
    * Identity is the (from, to, type) triple — endpoints are app ids, so a link
    * needs no `appId` of its own. Three invariants hold for every row, and the
    * writers in `entities.ts` / `model/entities.ts` keep them (ADR-037):
    *
    *   - **cardinality** — a pilot crews ≤1 crawler and flies ≤1 mech; a mech
-   *     flies ≤1 pilot and docks in ≤1 crawler. Drawing a link replaces the
-   *     ones it conflicts with (`conflictingLinks` in `src/lib/links/linkRules.ts`).
+   *     flies ≤1 pilot and docks in ≤1 crawler; an NPC fills ≤1 crew slot and
+   *     a slot holds ≤1 NPC. Drawing a link replaces the ones it conflicts
+   *     with (`conflictingLinks` in `src/lib/links/linkRules.ts`).
    *   - **one container** — both ends share a Game, or the same owner's shelf.
    *   - **`gameId` is that container** — it moves with its ends, and a move that
    *     would leave a link straddling two containers deletes it instead.
@@ -468,6 +496,8 @@ export default defineSchema({
     from: v.object({ type: entityRefType, id: v.string() }),
     to: v.object({ type: entityRefType, id: v.string() }),
     type: softLinkType,
+    /** The crew slot of an `npc-to-crawler` link; absent on every other type. */
+    slot: v.optional(crewSlot),
   })
     .index('by_game', ['gameId'])
     .index('by_from', ['from.id'])

@@ -20,7 +20,7 @@ The storage modes themselves (Solo / Connected / Disconnected) are owned by
 
 | Domain | Path | Truth |
 | --- | --- | --- |
-| **Player entities** — pilots, mechs, crawlers, soft-links, patterns, encounter NPCs | Zustand stores in `src/stores/`, over `src/lib/db/` | Convex when signed in (IndexedDB is its cache); nothing when anonymous (read-only) |
+| **Player entities** — pilots, mechs, crawlers, built NPCs, soft-links, patterns, encounter NPCs | Zustand stores in `src/stores/`, over `src/lib/db/` | Convex when signed in (IndexedDB is its cache); nothing when anonymous (read-only) |
 | **Accounts, Games, invites, ownership, proposals, crew** | Convex `useQuery` / `useMutation` from `convex/react` | Convex, always |
 
 Resolve the connection mode with `useConnection()` or

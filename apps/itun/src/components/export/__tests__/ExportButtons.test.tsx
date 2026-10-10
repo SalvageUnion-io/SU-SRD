@@ -53,7 +53,7 @@ beforeEach(async () => {
     mechs: [],
     crawlers: [],
     softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
   })
 })
 
@@ -128,6 +128,7 @@ describe('ImportButton', () => {
         pilots: [pilotFixture({ id: 'from-file', name: 'Imported' })],
         mechs: [],
         crawlers: [],
+        npcs: [],
       },
       softLinks: [],
       mechPatterns: [],

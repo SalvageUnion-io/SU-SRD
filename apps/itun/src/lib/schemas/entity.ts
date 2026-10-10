@@ -2,7 +2,7 @@ import { z } from 'salvageunion-reference/zod'
 
 export const EntityRefSchema = z
   .object({
-    type: z.enum(['pilot', 'mech', 'crawler']),
+    type: z.enum(['pilot', 'mech', 'crawler', 'npc']),
     id: z.string(),
   })
   .strict()
@@ -10,8 +10,14 @@ export const EntityRefSchema = z
 export type EntityRef = z.infer<typeof EntityRefSchema>
 
 /**
- * The container key every contained record carries — pilot, mech, crawler and
- * encounter NPC spread it into their shapes (ADR-030 §2).
+ * The three kinds the composed Live Sheet (`<Sheet>`) renders. A built NPC has
+ * a sheet of its own (`NpcSheet`, ADR-043), so it is the one ref kind outside.
+ */
+export type SheetEntityKind = Exclude<EntityRef['type'], 'npc'>
+
+/**
+ * The container key every contained record carries — pilot, mech, crawler,
+ * built NPC and encounter NPC spread it into their shapes (ADR-030 §2).
  */
 export const containerFields = {
   /**
