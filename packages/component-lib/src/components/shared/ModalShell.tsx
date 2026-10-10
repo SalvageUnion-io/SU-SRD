@@ -59,6 +59,13 @@ type ModalShellProps = {
   /** Element to focus when the dialog closes (defaults to base-ui's: the
    *  trigger, or whatever held focus before it opened). */
   finalFocus?: RefObject<HTMLElement | null>
+  /**
+   * Fill the whole viewport, edge to edge, and scroll inside it: the
+   * Dashboard's phone menu and its panels (ADR-044), which are screens rather
+   * than boxes over one. Ignores `maxWidth` and `align`; pair it with `bare`,
+   * so the child draws its own header and close control.
+   */
+  fullscreen?: boolean
   children?: ReactNode
 }
 
@@ -68,6 +75,15 @@ const CONTAINED_POPUP: CSSProperties = {
   position: 'absolute',
   inset: 0,
   zIndex: 50,
+  outline: 'none',
+}
+
+/** A full-screen popup covers the viewport and scrolls inside itself. */
+const FULLSCREEN_POPUP: CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 50,
+  overflowY: 'auto',
   outline: 'none',
 }
 
@@ -85,6 +101,7 @@ export function ModalShell({
   bare = false,
   container,
   finalFocus,
+  fullscreen = false,
   children,
 }: ModalShellProps) {
   // `tone` is the whole API: a union, never a raw class string compared by
@@ -118,11 +135,11 @@ export function ModalShell({
         initialFocus={initialFocus}
         finalFocus={finalFocus}
         className={
-          container
+          container || fullscreen
             ? undefined
             : `fixed inset-0 z-50 h-fit max-h-[calc(100vh-4rem)] w-full ${width} ${overflow} bg-transparent outline-none ${align === 'center' ? 'm-auto' : 'mx-auto mt-8 mb-auto'}`
         }
-        style={container ? CONTAINED_POPUP : undefined}
+        style={container ? CONTAINED_POPUP : fullscreen ? FULLSCREEN_POPUP : undefined}
       >
         <Dialog.Title className="sr-only">{title}</Dialog.Title>
         {description !== null && (

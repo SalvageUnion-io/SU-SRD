@@ -86,9 +86,22 @@ const TAB: CSSProperties = {
   whiteSpace: 'nowrap',
 }
 
-export function Tab({ value, children }: { value: string; children: ReactNode }) {
+export function Tab({
+  value,
+  children,
+  style,
+}: {
+  value: string
+  children: ReactNode
+  /**
+   * Geometry over the default (the Dashboard's phone unit tabs fill a third of
+   * the row each). Never a colour: those change on hover and selection, so
+   * they stay in `.su-tab`.
+   */
+  style?: CSSProperties
+}) {
   return (
-    <BaseTabs.Tab value={value} className="su-tab su-focus-ring" style={TAB}>
+    <BaseTabs.Tab value={value} className="su-tab su-focus-ring" style={{ ...TAB, ...style }}>
       {children}
     </BaseTabs.Tab>
   )

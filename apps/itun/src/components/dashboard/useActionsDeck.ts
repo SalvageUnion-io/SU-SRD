@@ -146,6 +146,9 @@ export function useActionsDeck({
 
   // This screen's own part of a resolve: never on the seat.
   const [pushLog, setPushLog] = useState<string | null>(null)
+  // A Push's Heat Check melted the reactor down: the player confirms the
+  // destruction (ADR-007), it is never written for them.
+  const [meltdown, setMeltdown] = useState(false)
   const [applyRouted, setApplyRouted] = useState(false)
   const [hotX, setHotX] = useState(1)
   const [currency, setCurrency] = useState<PlayActionCurrency>('EP')
@@ -165,6 +168,7 @@ export function useActionsDeck({
 
   function resetLocal() {
     setPushLog(null)
+    setMeltdown(false)
     setApplyRouted(false)
     setHotX(1)
   }
@@ -264,6 +268,7 @@ export function useActionsDeck({
   function doRoll(current: SeatResolving, action: PlayAction) {
     const result = performCoreRoll(rollDie)
     setPushLog(null)
+    setMeltdown(false)
     setApplyRouted(false)
     step(current, { roll: result, applied: false })
     if (logOwner) {
@@ -280,7 +285,12 @@ export function useActionsDeck({
     const chassis = resolveChassisRef(mech.chassisRef)
     const fresh = s.get('mech', mech.id) ?? mech
     const cap = mechMaxHeat(fresh, chassis)
-    const { patch, effect, nextHeat } = pushPatch({
+    const {
+      patch,
+      effect,
+      nextHeat,
+      meltdown: meltedDown,
+    } = pushPatch({
       heat: resolveGauge(fresh.currentHeat, cap),
       heatCap: cap,
       // Unrecorded SP means undamaged. At 0 an Overheat wrote the mech straight
@@ -292,12 +302,53 @@ export function useActionsDeck({
     const result = performCoreRoll(rollDie)
     const log = describePushOutcome(nextHeat, effect)
     setPushLog(log)
+    setMeltdown(meltedDown)
     setApplyRouted(false)
     step(current, { roll: result, applied: false })
     recordRoll(mech, {
       description: `${roller} · ${action.name}, pushed: ${bandText(result)}. ${log}`,
       result: { kind: 'push', roll: result.roll, outcome: result.band },
     })
+  }
+
+  /** The player's half of a meltdown: mark the mech Destroyed (ADR-007). */
+  function confirmMeltdown() {
+    if (!mech) return
+    runWrite(
+      () => s.update('mech', mech.id, { destroyed: true }, DASHBOARD_TXN),
+      () => setMeltdown(false)
+    )
+  }
+
+  /**
+   * The phone's pennant (ADR-044 D6): open an action and pay for it in one
+   * press, through the same `activate` the resolve's own pennant calls. An
+   * action that cannot be paid for as it stands (locked, over the Heat Cap,
+   * a cost to choose) only opens, and the resolve says why.
+   */
+  function openAndActivate(action: PlayAction) {
+    setCurrency(action.currency)
+    resetLocal()
+    const current: SeatResolving = {
+      ref: action.key,
+      name: action.name,
+      activated: false,
+      applied: false,
+    }
+    const eco = economyForActivation(action.economy, action.action, 1)
+    const choice = hasCurrencyChoice(action.action) && !onFoot
+    const heatApplies = action.currency === 'EP' && !onFoot
+    const heatOk =
+      !heatApplies ||
+      eco.heat <= 0 ||
+      canActivateAction(heatCtx.currentHeat, eco.heat, heatCtx.heatCap)
+    const reachable = actionReachable(action, range, heatCtx.currentHeat, heatCtx.heatCap)
+    const payable = action.currency === 'EP' ? mech !== null : pilot != null
+    if (choice || hasVariableHot(action.action) || !heatOk || !reachable || !payable) {
+      onResolving(current)
+      return
+    }
+    activate(current, action, action.currency, eco)
   }
 
   const list = ((): DeckListModel => {
@@ -363,6 +414,10 @@ export function useActionsDeck({
         const action = deck.find((a) => a.key === key)
         if (action) open(action)
       },
+      onActivate: (key) => {
+        const action = deck.find((a) => a.key === key)
+        if (action) openAndActivate(action)
+      },
     }
   })()
 
@@ -404,6 +459,10 @@ export function useActionsDeck({
     const apUnavailable = effCurrency === 'AP' && !pilot
     const activateDisabled = activated || !heatOk || apUnavailable
 
+    // Core Book p.233: a pushed roll is not pushed again. A new roll clears
+    // the Push readout, and with it this.
+    const pushed = pushLog !== null
+
     const cost: string[] = []
     if (eco.epCost > 0) cost.push(`${eco.epCost} ${effCurrency}`)
     if (heatApplies && eco.heat > 0) cost.push(`+${eco.heat} Heat`)
@@ -413,6 +472,7 @@ export function useActionsDeck({
       kind: 'resolve',
       onBack: close,
       costLabel: cost.length > 0 ? cost.join(' · ') : 'No cost',
+      currency: effCurrency,
       entity: selected.action,
       currencyChoice: currencyChoice
         ? {
@@ -442,10 +502,15 @@ export function useActionsDeck({
             ? undefined
             : 'Activating would exceed the Heat Cap',
         onActivate: () => activate(current, selected, effCurrency, eco),
+        activated,
         onRoll: () => doRoll(current, selected),
         push: isPilotAction
           ? undefined
-          : { disabled: roll === null, onPush: () => doPush(current, selected) },
+          : {
+              disabled: roll === null || pushed,
+              pushed,
+              onPush: () => doPush(current, selected),
+            },
         applyLabel: applied ? 'Applied' : 'Apply',
         applyDisabled: roll === null || applied || applyRouted,
         onApply: () => {
@@ -457,11 +522,16 @@ export function useActionsDeck({
         ? {
             roll: roll.roll,
             band: roll.band,
+            bandRange: CORE_ROLL_BANDS[roll.band].range,
             bandLabel: CORE_ROLL_BANDS[roll.band].label,
             bandSummary: CORE_ROLL_BANDS[roll.band].summary,
+            destructive: isDestructiveOutcome(roll.band),
           }
         : null,
       pushLog,
+      meltdown: meltdown
+        ? { onConfirm: confirmMeltdown, onDismiss: () => setMeltdown(false) }
+        : null,
       applied,
       applyRouted,
     }
