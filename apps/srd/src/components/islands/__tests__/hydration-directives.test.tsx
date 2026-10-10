@@ -158,12 +158,7 @@ describe('hydration directives', () => {
       expect(markup).toContain('data-static-fallback')
 
       expect(Object.keys(props)).toEqual([island.id])
-      expect(Object.keys(props[island.id] ?? {})).toEqual([
-        'item',
-        'pattern',
-        'titleAs',
-        'preloadSchemas',
-      ])
+      expect(Object.keys(props[island.id] ?? {})).toEqual(['item', 'pattern', 'preloadSchemas'])
     })
   })
 

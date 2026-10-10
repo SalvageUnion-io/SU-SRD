@@ -13,11 +13,14 @@ import { ClassAbilityTree } from './ClassAbilityTree'
 type EntityCardStaticProps = {
   item: SURefEntity
   pattern?: SURefObjectPattern
-  titleAs?: 'span' | 'h1'
 }
 
 /**
- * The reference entity card, rendered to HTML at build time.
+ * The reference entity card, rendered to HTML at build time, as the body of
+ * its own page (`presentation="page"`, boards 07 and 08): the page's
+ * `ChapterBand` carries the title and its `ChapterFoot` the citation, so the
+ * card lays out the art, the prose, the stat column and what the entity
+ * carries.
  *
  * This is the same `ReferenceEntityCard` the builder app uses — NOT a
  * simplified stand-in. It is not an island, so it renders straight into the
@@ -33,28 +36,26 @@ type EntityCardStaticProps = {
  * before rendering this, so the ORM lookups the card makes for
  * nested entities resolve synchronously during the build.
  */
-export function EntityCardStatic({ item, pattern, titleAs }: EntityCardStaticProps) {
+export function EntityCardStatic({ item, pattern }: EntityCardStaticProps) {
   const classSelections = getClassSelections(item)
   const classEntity = classSelections.selectedClass || classSelections.selectedAdvancedClass
 
   return (
-    <div className="mx-auto w-full max-w-6xl p-4">
-      <EntityHrefProvider value={srdEntityHref}>
-        <EntityDetailLinkProvider value={true}>
-          <PatternHrefProvider value={srdPatternHref}>
-            <ReferenceEntityCard
-              data={item}
-              pattern={pattern}
-              size="large"
-              titleAs={titleAs}
-              afterExtraContent={
-                classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
-              }
-              asideLead={!!classEntity}
-            />
-          </PatternHrefProvider>
-        </EntityDetailLinkProvider>
-      </EntityHrefProvider>
-    </div>
+    <EntityHrefProvider value={srdEntityHref}>
+      <EntityDetailLinkProvider value={true}>
+        <PatternHrefProvider value={srdPatternHref}>
+          <ReferenceEntityCard
+            data={item}
+            pattern={pattern}
+            size="large"
+            presentation="page"
+            afterExtraContent={
+              classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
+            }
+            asideLead={!!classEntity}
+          />
+        </PatternHrefProvider>
+      </EntityDetailLinkProvider>
+    </EntityHrefProvider>
   )
 }

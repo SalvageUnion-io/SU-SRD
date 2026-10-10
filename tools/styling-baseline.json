@@ -4,7 +4,7 @@
     "arbitrary-font-size": 2
   },
   "styling": {
-    "tailwind-utility-file": 301,
+    "tailwind-utility-file": 296,
     "pc-class-defined": 103
   },
   "srd-css": {}

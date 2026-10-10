@@ -10,6 +10,7 @@ import type { EntityStatus } from '../../shared/entityStatus'
 import type { StatItem } from '../../shared/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityHovercard } from '../EntityTooltip'
+import { PatternHrefProvider } from '../entityHrefContext'
 import { ReferenceEntityCard } from './ReferenceEntityCard'
 
 export default {
@@ -766,4 +767,37 @@ export const UserMade: Story = () => (
     madeBy="alxjrvs"
     oneCellPerRow
   />
+)
+
+// The board-07 chassis: art, a chassis ability and five patterns.
+const gopher = pick(SalvageUnionReference.Chassis.all(), (c) => c.name === 'Gopher', 'chassis')
+
+/** Pattern rows link out on the SRD; here every row opens nowhere. */
+const storyPatternHref = () => '#patterns'
+
+/**
+ * PAGE — the card as an SRD entity page's body (`presentation="page"`, boards
+ * 07 and 08). No frame, seam, header or footer: the page's chapter band and
+ * foot band carry the title and the citation. The line art is the hero; beside
+ * it the chassis ability, the prose and the book's stat column; the patterns
+ * run full width as link rows. An ability has no art, so it reads as one
+ * column. Narrow the viewport for the phone order: art, stats, prose, ability.
+ */
+export const PagePresentation: Story = () => (
+  <PatternHrefProvider value={storyPatternHref}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '48px', maxWidth: '75rem' }}>
+      <div>
+        <Caption>chassis — Gopher</Caption>
+        <ReferenceEntityCard data={gopher} presentation="page" />
+      </div>
+      <div>
+        <Caption>pattern — the Gopher's first, on its own page</Caption>
+        <ReferenceEntityCard data={gopher} pattern={gopher.patterns?.[0]} presentation="page" />
+      </div>
+      <div>
+        <Caption>ability — no art, one reading column</Caption>
+        <ReferenceEntityCard data={ability} presentation="page" />
+      </div>
+    </div>
+  </PatternHrefProvider>
 )

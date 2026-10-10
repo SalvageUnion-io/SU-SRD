@@ -18,7 +18,6 @@ import { IslandErrorBoundary } from './IslandErrorBoundary'
 type ReferenceEntityIslandProps = {
   item: SURefEntity
   compact?: boolean
-  titleAs?: 'span' | 'h1'
   /** Render one of `item`'s patterns (chassis only) instead of the chassis
    *  itself — the pattern page's view. */
   pattern?: SURefObjectPattern
@@ -30,7 +29,6 @@ type ReferenceEntityIslandProps = {
 export function ReferenceEntityIsland({
   item,
   compact = false,
-  titleAs,
   pattern,
   preloadSchemas,
 }: ReferenceEntityIslandProps) {
@@ -40,9 +38,9 @@ export function ReferenceEntityIsland({
   const { ready } = useGameData({ schemas: preloadSchemas })
 
   // The static SEO/no-JS fallback stays in the served HTML (crawlers and no-JS
-  // users keep the content, including the page's only <h1>). For JS users it
-  // is hidden as soon as the island hydrates (avoids a duplicate-<h1> flash
-  // next to the skeleton)…
+  // users keep the content; the page's <h1> is its chapter band, outside
+  // both). For JS users it is hidden as soon as the island hydrates (avoids a
+  // duplicate body flashing next to the skeleton)…
   useEffect(() => {
     document.querySelectorAll('[data-static-fallback]').forEach((el) => {
       el.setAttribute('hidden', '')
@@ -61,37 +59,30 @@ export function ReferenceEntityIsland({
 
   return (
     <IslandErrorBoundary>
-      <GameDataGate
-        schemas={preloadSchemas}
-        fallback={
-          <div className="mx-auto w-full max-w-6xl p-4">
-            <Skeleton mode="card" compact={compact} />
-          </div>
-        }
-      >
-        <div className="mx-auto w-full max-w-6xl p-4">
-          <Suspense fallback={<Skeleton mode="card" compact={compact} />}>
-            <EntityHrefProvider value={srdEntityHref}>
-              <EntityDetailLinkProvider value={true}>
-                {/* Pattern rows on a chassis card link to the pattern's own
+      <GameDataGate schemas={preloadSchemas} fallback={<Skeleton mode="card" compact={compact} />}>
+        {/* The card is the page's body (`presentation="page"`): the page's
+            chapter band and foot band frame it, as on the static path. */}
+        <Suspense fallback={<Skeleton mode="card" compact={compact} />}>
+          <EntityHrefProvider value={srdEntityHref}>
+            <EntityDetailLinkProvider value={true}>
+              {/* Pattern rows on a chassis card link to the pattern's own
                     page. Harmless on the pattern page itself, whose card is a
                     pattern view and so carries no pattern list. */}
-                <PatternHrefProvider value={srdPatternHref}>
-                  <ReferenceEntityCard
-                    data={item}
-                    pattern={pattern}
-                    size={compact ? 'medium' : 'large'}
-                    titleAs={titleAs}
-                    afterExtraContent={
-                      classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
-                    }
-                    asideLead={!!classEntity}
-                  />
-                </PatternHrefProvider>
-              </EntityDetailLinkProvider>
-            </EntityHrefProvider>
-          </Suspense>
-        </div>
+              <PatternHrefProvider value={srdPatternHref}>
+                <ReferenceEntityCard
+                  data={item}
+                  pattern={pattern}
+                  size={compact ? 'medium' : 'large'}
+                  presentation={compact ? 'card' : 'page'}
+                  afterExtraContent={
+                    classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
+                  }
+                  asideLead={!!classEntity}
+                />
+              </PatternHrefProvider>
+            </EntityDetailLinkProvider>
+          </EntityHrefProvider>
+        </Suspense>
       </GameDataGate>
     </IslandErrorBoundary>
   )

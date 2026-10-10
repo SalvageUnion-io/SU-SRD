@@ -32,9 +32,7 @@ const NEEDS_A_LISTENER =
  */
 export function cardNeedsHydration(item: SURefEntity, pattern?: SURefObjectPattern): boolean {
   try {
-    const markup = renderToStaticMarkup(
-      <EntityCardStatic item={item} pattern={pattern} titleAs="h1" />
-    )
+    const markup = renderToStaticMarkup(<EntityCardStatic item={item} pattern={pattern} />)
     return NEEDS_A_LISTENER.test(markup)
   } catch {
     // The island renders the card too; if the static render cannot, ship the

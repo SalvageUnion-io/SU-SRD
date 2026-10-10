@@ -7,7 +7,7 @@
  * like every other page's.
  */
 
-import { assetSrcSetFor, cardImageSizes } from 'component-lib'
+import { assetSrcSetFor, heroImageSizes, resolveEntityPageMeta } from 'component-lib'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
 import type {
@@ -16,7 +16,9 @@ import type {
   RouteContext,
   StructuredData,
 } from '../../../../../../../ssg/types'
+import { EntityPageFrame } from '../../../../../../components/EntityPageFrame'
 import { EntityView } from '../../../../../../components/EntityView'
+import { chapterForSchema } from '../../../../../../lib/chapters'
 import { META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../../../../../lib/constants'
 import { itemHref, patternHref, schemaHref } from '../../../../../../lib/entityHref'
 import { getReferenceEntityData } from '../../../../../../lib/gameData'
@@ -41,6 +43,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 
   const displayData = getReferenceEntityData(chassis)
   const summary = patternStaticSummary(chassis, pattern)
+  const chapter = chapterForSchema(schemaId)
+  const pageMeta = resolveEntityPageMeta(chassis, pattern)
 
   // The PATTERN's own prose (`summary.description`), not the leading chassis
   // prose — otherwise every pattern of a chassis ships the same meta description
@@ -101,21 +105,25 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       structuredData,
       preloadImage: displayData?.assetUrl,
       preloadImageSrcSet,
-      preloadImageSizes: preloadImageSrcSet ? cardImageSizes() : undefined,
+      // The art is the page's hero now, so the preload repeats ITS `sizes`.
+      preloadImageSizes: preloadImageSrcSet ? heroImageSizes() : undefined,
       breadcrumbs: [
-        { name: 'SRD', url: `${SITE_URL}/` },
+        { name: 'Contents', url: `${SITE_URL}/` },
+        ...(chapter.href === '/'
+          ? []
+          : [{ name: chapter.title, url: `${SITE_URL}${chapter.href}` }]),
         { name: 'Chassis', url: `${SITE_URL}${schemaHref(schemaId)}` },
         { name: chassisName, url: chassisUrl },
         { name: patternName, url: canonicalUrl },
       ],
     },
     children: (
-      <article className="flex min-h-full flex-1 flex-col items-center justify-center p-4">
+      <EntityPageFrame title={`“${patternName}”`} tone={chapter.tone} meta={pageMeta}>
         {/* The pattern renders through the same Entity unit as every other page —
             the interactive island card (in its pattern view) plus the static
             SEO / no-JS sub-content. */}
         <EntityView item={chassis} schemaId={schemaId} pattern={pattern} />
-      </article>
+      </EntityPageFrame>
     ),
   }
 }

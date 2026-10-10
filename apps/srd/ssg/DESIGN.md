@@ -108,11 +108,12 @@ builds from.
 
 | island                  | client  | ssr      | why                                                              |
 | ----------------------- | ------- | -------- | ---------------------------------------------------------------- |
-| `SearchIsland`          | idle    | false    | chrome, no SEO value                                             |
+| `SearchIsland`          | idle    | false    | chrome, no SEO value (bar); the home band's `hero` variant is **true**: its server markup is a plain GET form to `/search/` |
 | `MobileSearchIsland`    | idle    | false    | chrome                                                           |
 | `MobileNavIsland`       | idle    | false    | chrome; props designed out                                       |
-| `SchemaViewerIsland`    | visible | **true** | SEO content; server markup is a link per entity, not the island  |
+| `SchemaViewerIsland`    | visible | **true** | SEO content; server markup is a named row per entity, not the island |
 | `ReferenceEntityIsland` | visible | false    | SSR would emit a skeleton; `StaticEntityContent` is the SEO path |
+| `RollTableIsland`       | idle    | **true** | a roll table's page (board 08b); server markup is the same `RollTableView` with no roll, so its bands are real content |
 | `ColophonIsland`        | visible | **true** | prose worth indexing                                             |
 | `SearchResultsIsland`   | only    | false    | a client-only results page                                       |
 | `OgCardIsland`          | load    | false    | screenshot target                                                |

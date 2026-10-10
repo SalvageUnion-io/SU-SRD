@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Story } from '../../stories/_harness'
+import type { NavDrawerCategory } from './NavDrawer'
 import { NavDrawer } from './NavDrawer'
 import { SearchField } from './SearchField'
 
@@ -14,30 +16,35 @@ const SrdBrand = () => (
   </span>
 )
 
-const CATEGORIES = [
+// The SRD's chapters, with real entry counts (reference data is preloaded by
+// catalog.tsx). The SRD builds the full set from its chapter map.
+const CATEGORIES: NavDrawerCategory[] = [
   {
-    label: 'Mechs',
+    label: 'Mech Workshop',
     schemas: [
-      { id: 'chassis', displayName: 'Chassis', catalogBg: 'var(--color-mech)' },
-      { id: 'systems', displayName: 'Systems', catalogBg: 'var(--color-mech-dark)' },
+      { id: 'chassis', displayName: 'Chassis', count: SalvageUnionReference.Chassis.all().length },
+      { id: 'systems', displayName: 'Systems', count: SalvageUnionReference.Systems.all().length },
+      { id: 'modules', displayName: 'Modules', count: SalvageUnionReference.Modules.all().length },
     ],
   },
   {
-    label: 'Reference',
+    label: 'Rules & Reference',
     schemas: [
+      { id: 'guides', displayName: 'Guides', count: SalvageUnionReference.Guides.all().length },
       {
-        id: 'traits',
-        displayName: 'Traits',
-        catalogBg: 'var(--color-ink)',
-        catalogLabel: 'var(--color-adversary)',
+        id: 'roll-tables',
+        displayName: 'Roll Tables',
+        count: SalvageUnionReference.RollTables.all().length,
       },
+      { id: 'traits', displayName: 'Traits', count: SalvageUnionReference.Traits.all().length },
     ],
   },
 ]
 
 /**
  * The unified mobile nav drawer, shown opened in its richest (SRD) form —
- * brand + search + catalog categories + primary nav links (active = rust). The
+ * brand + search + the index (a section stamp over compact rows with their
+ * counts, board 08) + primary nav links (the page you are on is ink). The
  * ITUN builder uses the same component with just `navItems` (no categories or
  * search) and a narrower panel.
  *

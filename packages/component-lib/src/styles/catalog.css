@@ -3,6 +3,9 @@
  * only the catalog renders.
  */
 @import './tailwind.css';
+/* srd's page layouts, so its stories (Home Contents, Entity Page Frame, Roll
+ * Table View) render as they do on the site. */
+@import '../../../../apps/srd/src/styles/pages.css';
 
 /* The catalog's own markup — the stories and Foundations pages the entry's
  * `@source not` leaves out of the apps. */

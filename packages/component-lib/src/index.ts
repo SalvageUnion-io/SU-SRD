@@ -1,8 +1,7 @@
 export { getCatalogBg, getCatalogLabel } from './catalog/catalogColors'
-export type { CatalogSection } from './catalog/catalogHelpers'
-// SRD catalog — the landing-page category sections and their tile colours.
-// Shared so srd's landing page/top nav and ITUN's Dashboard SRD Explorer
-// render one catalog rather than two hand-listed ones.
+// SRD catalog — the catalog categories and their tile colours, as ITUN's
+// Dashboard SRD Explorer renders them. (srd's own index is its chapters,
+// `apps/srd/src/lib/chapters.ts`.)
 export { buildCatalogSections } from './catalog/catalogSections'
 // Changelog view; its build-time git reader is the `./changelog/git` subpath
 export { Changelog } from './changelog/Changelog'
@@ -27,6 +26,8 @@ export { buttonVariants } from './components/chrome/buttonVariants'
 export { Callout } from './components/chrome/Callout'
 // ChapterBand — the page title notched into a band in the chapter's colour
 export { ChapterBand } from './components/chrome/ChapterBand'
+// ChapterFoot — the foot band: the chapter colour again, carrying the citation
+export { ChapterFoot } from './components/chrome/ChapterFoot'
 export { Checkbox, Radio } from './components/chrome/Checkbox'
 // Conditions — the entity-condition chip row. Public because ITUN's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
@@ -34,6 +35,8 @@ export { Conditions } from './components/chrome/Conditions'
 // ConditionChip is deliberately NOT exported: it is an internal sub-part of
 // Conditions (its only consumer), demonstrated via that component's story.
 export { CountStepper } from './components/chrome/CountStepper'
+export type { ChapterTone } from './components/chrome/chapterBandColor'
+export { CHAPTER_BAND_COLOR } from './components/chrome/chapterBandColor'
 // EmptyState — dashed stamp-headline empty slot (ruleset §"Empty state")
 export { EmptyState } from './components/chrome/EmptyState'
 export { Field, Input, Select } from './components/chrome/Field'
@@ -81,6 +84,9 @@ export { Tab, TabList, TabPanel, Tabs } from './components/chrome/Tabs'
 export { USER_MADE_HATCH } from './components/chrome/userMadeHatch'
 export { Content } from './components/referenceEntity/Content'
 export { entityGuideToneColor } from './components/referenceEntity/card/entityCardTone'
+// What an entity PAGE's chapter band and foot band say (`presentation="page"`)
+export type { EntityPageMeta } from './components/referenceEntity/card/entityPage'
+export { resolveEntityPageMeta } from './components/referenceEntity/card/entityPage'
 // Entity display system
 export { ReferenceEntityCard } from './components/referenceEntity/card/ReferenceEntityCard'
 export type { ReferenceCardEntity } from './components/referenceEntity/card/referenceEntityCardTypes'
@@ -128,14 +134,16 @@ export { ConfirmDialog } from './components/shared/ConfirmDialog'
 // ControlButtons — the control strip Card's rail renders; public because
 // ITUN's Dashboard display panel lays out entity controls with it directly.
 export { ControlButtons } from './components/shared/ControlButtons'
-export { cardImageSizes } from './components/shared/cardImageSizes'
+export { heroImageSizes } from './components/shared/cardImageSizes'
 export { CopyFeedbackProvider } from './components/shared/copyFeedbackContext'
+// digestRollTable — a banded d20 table as rows, highest first (the book's order)
+export { digestRollTable } from './components/shared/digestRollTable'
 export { EntitySearcher } from './components/shared/EntitySearcher'
 export { FilterRow } from './components/shared/FilterRow'
 export { Inset } from './components/shared/Inset'
 export { MasonryColumns } from './components/shared/MasonryColumns'
 export { ModalShell } from './components/shared/ModalShell'
-export type { NavDrawerItem } from './components/shared/NavDrawer'
+export type { NavDrawerCategory, NavDrawerItem } from './components/shared/NavDrawer'
 export { NavDrawer } from './components/shared/NavDrawer'
 // PopoverPanel — a trigger and the small non-modal panel of controls it opens
 // (Base UI Popover); ITUN's sheet "⋯" overflow
