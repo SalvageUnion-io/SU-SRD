@@ -227,6 +227,28 @@ describe('head assembly from DocumentMeta', () => {
     expect(metaContent(renderAbout(), 'theme-color')).toBe(THEME_COLOR)
   })
 
+  it('gives a link preview its own title, description and theme-color (issue 1280)', () => {
+    const html = renderAbout({
+      title: 'Scrapper - Chassis - Salvage Union SRD',
+      description: 'The body, for search.',
+      ogTitle: 'Scrapper',
+      ogDescription: 'Chassis · Tech Level 1 · Salvage Union Workshop Manual · p.104',
+      themeColor: 'var-free-tone',
+    })
+    expect(html).toContain('<title>Scrapper - Chassis - Salvage Union SRD</title>')
+    expect(metaContent(html, 'description')).toBe('The body, for search.')
+    expect(metaContent(html, 'og:title')).toBe('Scrapper')
+    expect(metaContent(html, 'twitter:title')).toBe('Scrapper')
+    expect(metaContent(html, 'og:description')).toBe(
+      'Chassis · Tech Level 1 · Salvage Union Workshop Manual · p.104'
+    )
+    expect(metaContent(html, 'twitter:description')).toBe(
+      'Chassis · Tech Level 1 · Salvage Union Workshop Manual · p.104'
+    )
+    expect(metaContent(html, 'og:image:alt')).toBe('Scrapper')
+    expect(metaContent(html, 'theme-color')).toBe('var-free-tone')
+  })
+
   it('emits robots only for a noindex page', () => {
     expect(renderAbout()).not.toContain('name="robots"')
     expect(metaContent(renderAbout({ noindex: true }), 'robots')).toBe('noindex, nofollow')

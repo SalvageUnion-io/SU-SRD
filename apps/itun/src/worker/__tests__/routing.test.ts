@@ -102,4 +102,16 @@ describe('wrangler.jsonc', () => {
     // responses would leave without `_headers` — the CSP among them.
     expect(config.assets.run_worker_first).toBeUndefined()
   })
+
+  it('reads link previews from the Convex deployment the SPA is built against', async () => {
+    const { default: config } = (await import('../../../wrangler.jsonc')) as {
+      default: { vars?: { CONVEX_URL?: string } }
+    }
+    const workflow = await Bun.file(
+      new URL('../../../../../.github/workflows/deploy-cloudflare.yml', import.meta.url)
+    ).text()
+    const built = workflow.match(/^\s*ITUN_CONVEX_URL:\s*(\S+)\s*$/m)?.[1]
+    expect(built).toBeString()
+    expect(config.vars?.CONVEX_URL).toBe(built)
+  })
 })

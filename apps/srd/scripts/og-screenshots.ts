@@ -1,15 +1,17 @@
 /**
  * Build-time OG-image generator.
  *
- * Renders the REAL catalog tile for every entity — the shared `CatalogTile` the
- * schema index grid emits — and composes it onto a 1200×630 canvas at
- * `dist/schema/{schemaId}/item/{itemId}.og.png`, the path each page references
- * as its og:image.
+ * Renders every entity's link preview — `OgCard` (issue 1280), built from the
+ * same ChapterBand, stat boxes and Union bar as the pages — at its own
+ * 1200×630 and writes it to `dist/schema/{schemaId}/item/{itemId}.og.png`, the
+ * path each page references as its og:image. It replaced the screenshot of the
+ * Catalog tile, keeping that pipeline's reason: the preview is drawn by the
+ * page's own parts, so it cannot drift from them.
  *
  * Chassis PATTERNS are covered as entities in their own right: a pattern has its
  * own page, its own card view (the card takes the chassis as `data` plus the
  * `pattern` it renders as the subject) and its own provenance, so it gets its
- * own tile at `…/item/{itemId}/pattern/{patternId}.og.png` rather than
+ * own card at `…/item/{itemId}/pattern/{patternId}.og.png` rather than
  * inheriting the chassis image.
  *
  * Pipeline:
@@ -23,15 +25,9 @@
  *      entity in place via `window.__ogSetEntity` — far faster and lighter than
  *      a navigation per entity, and it avoids the under-load dynamic-import
  *      failures that per-navigation rendering hits.
- *   4. Fit the tile to the canvas: re-flow the card at each candidate masonry
- *      width and keep the one that covers the most of the 1200×630 frame
- *      (`pickTileWidth`). The grid tile is fluid, so every candidate is a real
- *      catalog layout — this picks which of them to photograph.
- *   5. Screenshot the padded FRAME around the tile (not the viewport, and not
- *      the tile box itself — the card is `overflow-visible` and its decorations
- *      overhang) at a device scale factor that lands the narrowest candidate at
- *      exactly OG_WIDTH, then `contain`-fit it onto the canvas with sharp,
- *      matted in the surface the Catalog view puts behind its tiles.
+ *   4. Screenshot the `#og-card` frame — exactly the card, 1200×630 at a
+ *      device scale of 1, so nothing is fitted or resampled — and palette-
+ *      compress it with sharp.
  *
  * WHY THIS IS OPT-IN (read before re-enabling it in a deploy):
  * run unbounded on every build, a cold cache re-renders ~1.5k entity cards and
@@ -51,18 +47,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 import { DEFAULT_OG_IMAGE, SITE_URL } from '../src/lib/constants'
-import {
-  CATALOG_MIN_FRAME_WIDTH,
-  CATALOG_TILE_MAX_WIDTH,
-  CATALOG_TILE_MIN_WIDTH,
-  CATALOG_TILE_PADDING,
-  CATALOG_TILE_WIDTHS,
-  CATALOG_VIEWPORT_WIDTH,
-  OG_HEIGHT,
-  OG_WIDTH,
-  ogImagePath,
-  pickTileWidth,
-} from '../src/lib/ogCard'
+import { OG_HEIGHT, OG_WIDTH, ogImagePath } from '../src/lib/ogCard'
 import { getItemStaticPaths, getPatternStaticPaths } from '../src/lib/staticPaths'
 
 const PORT = Number(process.env.OG_SCREENSHOTS_PORT ?? 4399)
@@ -75,24 +60,12 @@ const RELOAD_EVERY = Number(process.env.OG_SCREENSHOTS_RELOAD_EVERY ?? 200)
 // keeps the site-wide default og:image — a partial run is always preferable to
 // a failed deploy (see the header note).
 const BUDGET_MS = Number(process.env.OG_SCREENSHOTS_BUDGET_MS ?? 10 * 60_000)
-// The island mounts inside its `[data-island]` placeholder, so the tile is a
+// The island mounts inside its `[data-island]` placeholder, so the card is a
 // descendant of #og-card rather than a child — match it by its own marker.
-const TILE_SELECTOR = '[data-og-tile]'
-// …but CAPTURE the padded frame, not the tile: the card is `overflow-visible`
-// and a pattern tile's chassis name-tab overhangs its box, which an
-// element-scoped screenshot of the tile would slice off.
+const CARD_SELECTOR = '[data-og-card]'
+// The frame IS the card: 1200×630 at the page's top-left (og-card.page.tsx).
 const FRAME_SELECTOR = '#og-card'
 const NAV_TIMEOUT = 30_000
-// Render the NARROWEST candidate frame at exactly OG_WIDTH device pixels. The
-// browser rasterises at this scale (real layout, not an image resize), so the
-// narrowest frame is written with no resampling at all and every wider one is
-// rasterised bigger than the canvas and downsampled — never upscaled.
-const SCALE = OG_WIDTH / CATALOG_MIN_FRAME_WIDTH
-// Viewport height only has to be generous: the capture is element-scoped, and
-// Playwright captures an element taller than the viewport in full. The widest
-// candidate tile still fits inside CATALOG_VIEWPORT_WIDTH, and the whole
-// viewport is rasterised at SCALE, so this is the memory knob — keep it tight.
-const VIEWPORT_HEIGHT = Number(process.env.OG_SCREENSHOTS_VIEWPORT_HEIGHT ?? 1000)
 // Container-hardening flags: no GPU process (it gets OOM-killed, exit_code=9,
 // and takes the browser down) and a small shared-memory footprint.
 const LAUNCH_ARGS = [
@@ -111,13 +84,13 @@ const DIST_DIR = join(APP_ROOT, 'dist')
 // The build wipes dist/ (`emptyOutDir`), so "skip unchanged" needs the PNGs to survive
 // OUTSIDE dist: a cache dir under node_modules/.cache keyed by a manifest of
 // content hashes. Hash input = the entity's JSON + SCRIPT_VERSION — bump
-// SCRIPT_VERSION whenever the card RENDERING changes (og-card page, the
-// ReferenceEntityCard stack in component-lib, fonts, dimensions), since the
-// entity data alone can't see those.
+// SCRIPT_VERSION whenever the card RENDERING changes (og-card page, OgCard and
+// the ChapterBand it is built from, fonts, dimensions), since the entity data
+// alone can't see those.
 //
 // Unchanged entity + cached PNG → copy into dist, no screenshot.
 // ---------------------------------------------------------------------------
-const SCRIPT_VERSION = 6
+const SCRIPT_VERSION = 7
 const CACHE_DIR = join(APP_ROOT, 'node_modules', '.cache', 'srd-og')
 
 /**
@@ -167,15 +140,10 @@ function readManifest(): Manifest {
 }
 
 function entityHash(item: unknown): string {
-  // Every geometry input that changes the OUTPUT is in the key — the width
-  // ladder, the padding and the layout viewport — so adjusting any of them
-  // self-invalidates instead of quietly serving PNGs rendered at the old
-  // geometry. (The width is CHOSEN per entity, so the key carries the ladder
-  // that choice is made from, not the chosen width.)
+  // The canvas size is in the key, so changing it self-invalidates instead of
+  // quietly serving PNGs rendered at the old geometry.
   return createHash('sha1')
-    .update(
-      `v${SCRIPT_VERSION}:${OG_WIDTH}x${OG_HEIGHT}@${CATALOG_TILE_MIN_WIDTH}-${CATALOG_TILE_MAX_WIDTH}x${CATALOG_TILE_WIDTHS.length}+${CATALOG_TILE_PADDING}vw${CATALOG_VIEWPORT_WIDTH}:`
-    )
+    .update(`v${SCRIPT_VERSION}:${OG_WIDTH}x${OG_HEIGHT}:`)
     .update(JSON.stringify(item))
     .digest('hex')
 }
@@ -254,8 +222,7 @@ async function run() {
   }
 
   // Items and chassis patterns alike — a pattern is its own kind of entity, so
-  // it gets its own Catalog tile and its own preview rather than inheriting the
-  // chassis banner.
+  // it gets its own card rather than inheriting the chassis banner.
   const allEntities: Entity[] = [
     ...getItemStaticPaths().map((p) => ({
       schemaId: p.params.schemaId,
@@ -267,7 +234,7 @@ async function run() {
       itemId: p.params.itemId,
       patternId: p.params.patternId,
       // Hash the PATTERN, not the chassis: two patterns of one chassis must not
-      // collide, and editing a pattern has to invalidate only its own tile.
+      // collide, and editing a pattern has to invalidate only its own card.
       hash: entityHash(p.props.pattern),
     })),
   ]
@@ -351,12 +318,6 @@ async function run() {
 
   const base = `http://127.0.0.1:${PORT}`
   const failures: { entity: Entity; error: string }[] = []
-  const overhangs: { key: string; overhang: number }[] = []
-  // Which tile width the canvas fit chose, per entity. Reported at the end: the
-  // fit is a heuristic over real measurements, and an unreported heuristic that
-  // quietly collapses onto one width (or onto the ladder's edge) looks exactly
-  // like a working one.
-  const widthPicks = new Map<number, number>()
   const deadline = Date.now() + BUDGET_MS
   let generated = 0
   let done = 0
@@ -388,95 +349,29 @@ async function run() {
       key,
       { timeout: NAV_TIMEOUT }
     )
-    const tile = page.locator(TILE_SELECTOR)
-    await tile.waitFor({ state: 'visible', timeout: NAV_TIMEOUT })
+    const card = page.locator(CARD_SELECTOR)
+    await card.waitFor({ state: 'visible', timeout: NAV_TIMEOUT })
     await page.evaluate(() => document.fonts.ready)
-    // Catalog tiles lead with artwork — capturing before it decodes would ship a
-    // preview with a blank image slot. Waiting on decode() (not just .complete)
-    // also covers images served from the memory cache on a later swap.
+    // The foot's mark is an image — capturing before it decodes would ship a
+    // preview with a blank slot. Waiting on decode() (not just .complete) also
+    // covers images served from the memory cache on a later swap.
     await page.evaluate(async () => {
       const imgs = Array.from(document.querySelectorAll<HTMLImageElement>('#og-card img'))
       await Promise.all(imgs.map((img) => img.decode().catch(() => undefined)))
     })
-
-    // Fit the tile to the canvas: re-flow this card at every candidate masonry
-    // width and keep the one that covers the most of the 1200×630 frame.
-    //
-    // Per-entity because card height is a step function of width that depends
-    // entirely on the content — a prose-heavy class tile keeps shrinking as it
-    // widens, while a two-line trait is already canvas-shaped at the grid width
-    // and only gets worse. A single fixed width has to letterbox one or the
-    // other. Reading getBoundingClientRect forces synchronous layout, so all
-    // ~19 candidates are measured in one round-trip with no paint in between.
-    const heights = await page.evaluate((widths) => {
-      const frame = document.getElementById('og-card')
-      const tile = document.querySelector('[data-og-tile]')
-      if (!frame || !tile) return []
-      return widths.map((w) => {
-        frame.style.setProperty('--tileWidth', `${w}px`)
-        return tile.getBoundingClientRect().height
-      })
-    }, CATALOG_TILE_WIDTHS as number[])
-    const tileWidth = pickTileWidth(
-      heights.map((height, i) => ({ width: CATALOG_TILE_WIDTHS[i] ?? 0, height }))
-    )
-    await page.evaluate(
-      (w) => document.getElementById('og-card')?.style.setProperty('--tileWidth', `${w}px`),
-      tileWidth
-    )
-    widthPicks.set(tileWidth, (widthPicks.get(tileWidth) ?? 0) + 1)
-
-    // One paint frame so the swapped, re-fitted card is fully rendered before capture.
+    // One paint frame so the swapped card is fully rendered before capture.
     await page.evaluate(
       () => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
     )
 
-    // The canvas is matted in the surface the Catalog view puts BEHIND its tiles
-    // (`--color-wk-bg`, carried by #og-card), read from the live page rather
-    // than hardcoded so a theme change can't leave the OG images on a stale
-    // colour.
-    const background = await page.evaluate(() => {
-      const frame = document.getElementById('og-card')
-      return frame ? getComputedStyle(frame).backgroundColor : 'rgb(255,255,255)'
-    })
-
-    // Guard the padding rather than trusting it: if a card ever overhangs its
-    // box by more than CATALOG_TILE_PADDING, say so instead of silently
-    // shipping a clipped preview.
-    const overhang = await page.evaluate(() => {
-      const el = document.querySelector('[data-og-tile]')
-      if (!el) return 0
-      const box = el.getBoundingClientRect()
-      let worst = 0
-      for (const child of Array.from(el.querySelectorAll('*'))) {
-        const r = child.getBoundingClientRect()
-        if (r.width === 0 && r.height === 0) continue
-        worst = Math.max(
-          worst,
-          box.top - r.top,
-          box.left - r.left,
-          r.right - box.right,
-          r.bottom - box.bottom
-        )
-      }
-      return Math.ceil(worst)
-    })
-    if (overhang > CATALOG_TILE_PADDING) {
-      overhangs.push({ key, overhang })
-    }
-
     const shot = await page.locator(FRAME_SELECTOR).screenshot({ type: 'png' })
     const outPath = distPngPath(entity)
     mkdirSync(dirname(outPath), { recursive: true })
-    // `contain` pads a tile that fits (no resampling — it was rasterised at
-    // exactly OG_WIDTH) and downsamples one taller than the canvas.
+    // The frame is the canvas, so there is nothing to fit.
     // Palette quantisation is near-lossless on these cards — flat brand colours,
     // text and line art, well inside 256 colours — and cuts the payload ~3×
     // (85MB → ~28MB across the corpus), which matters for a static deploy.
-    await sharp(shot)
-      .resize(OG_WIDTH, OG_HEIGHT, { fit: 'contain', background })
-      .png({ palette: true, quality: 90, effort: 8 })
-      .toFile(outPath)
+    await sharp(shot).png({ palette: true, quality: 90, effort: 8 }).toFile(outPath)
 
     // Mirror into the incremental cache so the next build can skip this one.
     const cached = cachePngPath(entity)
@@ -494,13 +389,10 @@ async function run() {
 
     try {
       const context = await browser.newContext({
-        // Lay out at the DESKTOP catalog viewport, not at the tile's own width:
-        // the card's `md:`/`lg:` variants key off the viewport, so a narrow one
-        // captures the mobile stack (artwork above the prose) instead of the
-        // tile a desktop reader sees. The capture is element-scoped, so the
-        // extra viewport width never lands in the image.
-        viewport: { width: CATALOG_VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT },
-        deviceScaleFactor: SCALE,
+        // The card's own size at a device scale of 1: the PNG is the card,
+        // pixel for pixel.
+        viewport: { width: OG_WIDTH, height: OG_HEIGHT },
+        deviceScaleFactor: 1,
       })
 
       let cursor = 0
@@ -567,26 +459,6 @@ async function run() {
     log(
       `budget of ${Math.round(BUDGET_MS / 1000)}s reached — ${entities.length - done} entit(ies) keep the default og:image. Re-run to continue; the cache carries what rendered.`
     )
-  }
-  if (widthPicks.size > 0) {
-    const picks = [...widthPicks.entries()].sort((a, b) => a[0] - b[0])
-    log(`tile widths chosen: ${picks.map(([w, n]) => `${w}px×${n}`).join(' ')}`)
-    // The ladder's top is a CAP, not a choice: piling up there means the widest
-    // candidate was still too narrow to be canvas-shaped, so those cards are
-    // letterboxed and CATALOG_TILE_MAX_WIDTH is what is holding them back.
-    const atMax = widthPicks.get(CATALOG_TILE_MAX_WIDTH) ?? 0
-    if (atMax > generated / 10) {
-      log(
-        `NOTE: ${atMax} card(s) hit the ${CATALOG_TILE_MAX_WIDTH}px ceiling — they would fill more canvas if CATALOG_TILE_MAX_WIDTH rose.`
-      )
-    }
-  }
-  if (overhangs.length > 0) {
-    const worst = Math.max(...overhangs.map((o) => o.overhang))
-    log(
-      `WARNING: ${overhangs.length} card(s) overhang their box by up to ${worst}px, beyond the ${CATALOG_TILE_PADDING}px capture padding — those previews are clipped. Raise CATALOG_TILE_PADDING in src/lib/ogCard.ts.`
-    )
-    for (const o of overhangs.slice(0, 5)) log(`  clipped: ${o.key} (${o.overhang}px)`)
   }
   if (failures.length > 0) {
     for (const f of failures.slice(0, 20)) {

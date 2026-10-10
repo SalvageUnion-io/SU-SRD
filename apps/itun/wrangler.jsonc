@@ -19,8 +19,20 @@
   "compatibility_flags": ["nodejs_als"],
 
   // A deploy fails while one is unset; set with `wrangler secret put`.
+  //
+  // Two more are OPTIONAL and so not listed: CF_ACCOUNT_ID and
+  // BROWSER_RENDERING_TOKEN (a token with Browser Rendering edit permission).
+  // With both, a shared thing's link preview carries its rendered card
+  // (src/worker/linkPreview.ts, issue 1280); without them it unfurls as text.
   "secrets": {
     "required": ["SENTRY_DSN"]
+  },
+
+  // The Convex deployment a link preview reads what a stranger may see from
+  // (`publicSheet.preview`, issue 1280): the URL the SPA is built against,
+  // `ITUN_CONVEX_URL` in deploy-cloudflare.yml (the routing test holds them equal).
+  "vars": {
+    "CONVEX_URL": "https://exuberant-porpoise-183.convex.cloud"
   },
 
   "assets": {
