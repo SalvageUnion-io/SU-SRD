@@ -74,7 +74,10 @@ describe('GamesMenu', () => {
     expect(screen.getAllByRole('separator')).toHaveLength(1)
   })
 
-  test('picking a Game makes it the active container and goes to the Roster', async () => {
+  // No router is mounted here, so picking falls back to the store
+  // (`useShowContainer`); the address it would go to is pinned in
+  // `useShowContainer.test.tsx`.
+  test('picking a Game shows that Game', async () => {
     setQueryAnswers({ 'games:listMine': GAMES })
     wrap(<GamesMenu />)
 
@@ -83,11 +86,10 @@ describe('GamesMenu', () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: /The Long Haul/ }))
     })
     expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g2' })
-    expect(convexMocks.navigations).toEqual([{ to: '/' }])
     expect(screen.queryByRole('menu')).toBeNull()
   })
 
-  test('picking My Stuff makes the Shelf the active container', async () => {
+  test('picking My Stuff shows the shelf', async () => {
     setActiveContainer({ kind: 'game', gameId: 'g1' })
     setQueryAnswers({ 'games:listMine': GAMES })
     wrap(<GamesMenu />)
@@ -97,7 +99,6 @@ describe('GamesMenu', () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'My Stuff' }))
     })
     expect(getActiveContainer()).toEqual(SHELF)
-    expect(convexMocks.navigations).toEqual([{ to: '/' }])
   })
 
   test('with no Games it says so, as an inert row', async () => {
@@ -106,10 +107,11 @@ describe('GamesMenu', () => {
 
     const empty = within(await openGames()).getByRole('menuitem', { name: 'No games yet' })
     expect(empty.getAttribute('aria-disabled')).toBe('true')
+    setActiveContainer(SHELF)
     await act(async () => {
       fireEvent.click(empty)
     })
-    expect(convexMocks.navigations).toEqual([])
+    expect(getActiveContainer()).toEqual(SHELF)
   })
 
   test('renders nothing signed out, or signed in but offline', () => {
@@ -127,7 +129,7 @@ describe('GamesMenu', () => {
 })
 
 describe('GamesDrawerList', () => {
-  test('picking a row sets the container, goes to the Roster and closes the drawer', () => {
+  test('picking a row shows that container and closes the drawer', () => {
     setQueryAnswers({ 'games:listMine': GAMES })
     let closed = 0
     wrap(<GamesDrawerList onPick={() => closed++} />)
@@ -135,7 +137,6 @@ describe('GamesDrawerList', () => {
     const list = screen.getByRole('navigation', { name: 'Games' })
     fireEvent.click(within(list).getByRole('button', { name: 'Union Crawler #430 · Mediator' }))
     expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g1' })
-    expect(convexMocks.navigations).toEqual([{ to: '/' }])
     expect(closed).toBe(1)
   })
 

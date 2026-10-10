@@ -3,7 +3,7 @@ import { MessageFlags } from 'discord-api-types/v10'
 import { inviteCommand } from '../commands/invite.js'
 import { setItunClient } from '../commands/itunReply.js'
 import type { InvitedResult } from '../inviteContainer.js'
-import { buildInviteDm, joinUrl } from '../inviteContainer.js'
+import { buildInviteDm, inviteUrl } from '../inviteContainer.js'
 import type { ItunClient } from '../itun/client.js'
 import { createItunClient } from '../itun/client.js'
 import type { InviteResult, ItunResult } from '../itun/types.js'
@@ -123,7 +123,7 @@ describe('/su invite', () => {
     expect(dm?.userId).toBe('snowflake-sam')
     expect(dm?.payload.flags).toBe(MessageFlags.IsComponentsV2)
     expect(JSON.stringify(dm?.payload.components)).toContain(
-      'https://intheunionnow.com/join/A1B2C3D4'
+      'https://intheunionnow.com/invite/A1B2C3D4'
     )
 
     expect(calls.delivery).toEqual([['snowflake-vex', 'A1B2C3D4', 'sent', undefined]])
@@ -146,7 +146,7 @@ describe('/su invite', () => {
     ])
     const reply = fake.edits.at(-1)?.content ?? ''
     expect(reply).toContain('couldn’t DM them')
-    expect(reply).toContain('https://intheunionnow.com/join/A1B2C3D4')
+    expect(reply).toContain('https://intheunionnow.com/invite/A1B2C3D4')
     // Never posted to the channel on anyone's behalf.
     expect(fake.followUps).toHaveLength(0)
     expect(fake.replies).toHaveLength(0)
@@ -168,7 +168,7 @@ describe('/su invite', () => {
     expect(calls.delivery).toHaveLength(0)
     const reply = fake.edits.at(-1)?.content ?? ''
     expect(reply).toContain('haven’t sent it again')
-    expect(reply).toContain('https://intheunionnow.com/join/A1B2C3D4')
+    expect(reply).toContain('https://intheunionnow.com/invite/A1B2C3D4')
   })
 
   test('someone already seated is reported, and nobody is DMed', async () => {
@@ -244,15 +244,15 @@ describe('the DM', () => {
     expect(JSON.stringify(dm)).toContain('\\\\*\\\\*loud\\\\*\\\\*')
   })
 
-  test('the button opens the join page', () => {
-    expect(joinUrl('https://intheunionnow.com/', 'A1B2C3D4')).toBe(
-      'https://intheunionnow.com/join/A1B2C3D4'
+  test('the button opens the invite link', () => {
+    expect(inviteUrl('https://intheunionnow.com/', 'A1B2C3D4')).toBe(
+      'https://intheunionnow.com/invite/A1B2C3D4'
     )
     const dm = buildInviteDm(INVITED, 'https://intheunionnow.com', NOW)
     expect(dm.blocks.at(-1)).toEqual({
       kind: 'buttons',
       buttons: [
-        { kind: 'link', url: 'https://intheunionnow.com/join/A1B2C3D4', label: 'Open invite' },
+        { kind: 'link', url: 'https://intheunionnow.com/invite/A1B2C3D4', label: 'Open invite' },
       ],
     })
   })

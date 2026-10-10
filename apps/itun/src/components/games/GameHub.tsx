@@ -1,20 +1,22 @@
 /**
- * GameHub — what `/` shows when a Game is picked in its "Showing" select.
+ * GameHub — a Game's own page, `/games/$gameId` (issue 1255).
  *
- * One place per table: the hub at `/` lists a Game the way it lists My Stuff
+ * One place per table: the hub lists a Game the way Shelves lists your things
  * and puts everything you can do about the table below the lists —
  *
  *  0. **Launch Dashboard** (`LaunchDashboard`), at the top: the one way into
  *     the Dashboard, for players and the Mediator alike, while the Game has a
  *     Mediator. It asks only which pilot to play.
  *  1. **The roster** (`GameRoster`): the three columns, yours first.
- *  2. **Game** — every member: the answer queue, Downtime; and, for the
- *     Organizer, invites, who mediates, and ending the game.
+ *  2. **Game** — every member: "Copy invite link", the answer queue,
+ *     Downtime; and, for the Organizer, the invite list, who mediates, and
+ *     ending the game.
  *  3. **Mediator** — the Mediator alone (`MediatorSection`): vitals, propose,
  *     tell the table, the opposition.
  *
- * Starting or joining a Game is "+ New game" at the top of the hub
- * (`NewGameControl`), so nothing here is about choosing a table.
+ * Starting a Game is "+ New game" at the top of the hub (`NewGameControl`), and
+ * joining one is an invite link (`InviteScreen`), so nothing here is about
+ * choosing a table.
  *
  * Connected only: `Roster` mounts this only when the mode is Connected and the
  * active container is a Game, so every hook below has a provider.
@@ -28,9 +30,10 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { SHELF } from '../../lib/container'
-import { setActiveContainer } from '../../stores/activeContainerStore'
+import { useShowContainer } from '../container/useShowContainer'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { ConvexPending } from '../shared/ConvexPending'
+import { CopyInviteLink } from './CopyInviteLink'
 import { DeleteGameDialog } from './DeleteGameDialog'
 import { DowntimePanel } from './DowntimePanel'
 import { GamePanel, GameSection } from './GamePanel'
@@ -60,23 +63,26 @@ const NOT_IN = {
 
 const NOT_IN_CARD = { marginTop: tokens.space[24] } satisfies CSSProperties
 
+const HINT = { textAlign: 'left' } satisfies CSSProperties
+
 /**
  * A Game the viewer is not in: they left, it ended, or a stale selection
  * points at it. `games.get` answers `null` for all of them alike, deliberately
  * — a non-member must not be able to tell an existing Game from a deleted one.
  */
 function NotInGame() {
+  const showContainer = useShowContainer()
   return (
     <div style={NOT_IN_CARD}>
       <Card>
         <div style={NOT_IN}>
           <Text>
-            You are not in this game. Ask whoever organises it for an invite code, then join with “+
-            New game”.
+            You are not in this game. Ask its Mediator or a crewmate for an invite link, then open
+            it to join.
           </Text>
           <div>
-            <Button variant="default" size="compact" onClick={() => setActiveContainer(SHELF)}>
-              Show My Stuff
+            <Button variant="default" size="compact" onClick={() => showContainer(SHELF)}>
+              Back to your shelves
             </Button>
           </div>
         </div>
@@ -89,6 +95,7 @@ function NotInGame() {
 function GameActions({ game }: { game: Game }) {
   const gameId = game._id as Id<'games'>
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const showContainer = useShowContainer()
 
   return (
     <>
@@ -101,13 +108,26 @@ function GameActions({ game }: { game: Game }) {
             : undefined
         }
       >
+        {/* Every member can bring someone to the table (issue 1255). What the link
+            does depends on who copied it: the Organizer's opens the door, and
+            anyone else's asks the Organizer to let them in (`invites.link`). */}
+        <GamePanel title="Invite a crewmate">
+          <Text variant="hint" style={HINT}>
+            {game.organizer
+              ? 'Anyone who opens this link and signs in joins the game.'
+              : 'Anyone who opens this link asks to join, and the organizer lets them in.'}
+          </Text>
+          <div>
+            <CopyInviteLink gameId={gameId} />
+          </div>
+        </GamePanel>
         {/* Renders nothing until the Mediator has asked something. */}
         <ProposalInbox gameId={gameId} />
         <DowntimePanel gameId={gameId} />
         {/* Invites are administrative, so only the Organizer sees them
             (ADR-030 §3); the server refuses `invites.list` to anyone else. */}
         {game.organizer && (
-          <GamePanel title="Invite someone">
+          <GamePanel title="Invite links">
             <InvitePanel gameId={gameId} />
           </GamePanel>
         )}
@@ -134,10 +154,10 @@ function GameActions({ game }: { game: Game }) {
       <DeleteGameDialog
         game={confirmingDelete ? game : null}
         onClose={() => setConfirmingDelete(false)}
-        // Back to My Stuff BEFORE `games.get` resolves to `null`, which would
+        // Back to Shelves BEFORE `games.get` resolves to `null`, which would
         // otherwise show "You are not in this game" — true, and read as an
         // error by someone who just deleted it.
-        onDeleted={() => setActiveContainer(SHELF)}
+        onDeleted={() => showContainer(SHELF)}
       />
     </>
   )
