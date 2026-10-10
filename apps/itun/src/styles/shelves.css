@@ -20,6 +20,49 @@
   background-color: var(--color-paper-15);
 }
 
+/* The band's actions and each shelf's "+ New…" (board S1): the uppercase
+   display face at the band's 40px, so they read as one row beside the Showing
+   toggle. Geometry and type only; the on-ink colours are above. */
+.shelves-band__btn,
+.shelves-action {
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  min-height: 40px;
+  padding-inline: var(--space-14);
+  text-transform: uppercase;
+}
+
+/* The import result: its own line under the band's controls, never a flex item
+   beside the button, so the button keeps its intrinsic width. */
+.shelves-band__status {
+  color: var(--color-paper);
+  flex: 1 1 100%;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  margin: 0;
+}
+
+/* Under a coarse pointer every control on the page is at least 44px tall
+   (ruleset §4.6): the band's and the shelves' buttons, the Starter Set's
+   entries, the "⋯" triggers and the menu rows. `theme.css` floors `button` and
+   `.su-btn`; this names the ones whose own 40px would otherwise sit under it,
+   and the menu rows, which are neither. */
+@media (pointer: coarse) {
+  .shelves-band__btn,
+  .shelves-action,
+  .shelves-starter__btn,
+  .shelves-toggle__option,
+  .header-menu-trigger--overflow,
+  .header-menu-item {
+    min-height: 44px;
+  }
+  .header-menu-trigger--overflow {
+    min-width: 44px;
+  }
+}
+
 .shelves-toggle__option {
   background-color: transparent;
   color: var(--color-paper);

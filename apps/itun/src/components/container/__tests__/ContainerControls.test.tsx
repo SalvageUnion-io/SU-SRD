@@ -192,7 +192,7 @@ describe('MoveToContainerControl', () => {
       <MoveHarness entityType="pilot" entityId="p1" entity={pilot} onChanged={() => changed++} />
     )
 
-    fireEvent.change(screen.getByLabelText('Move to a game or your shelves'), {
+    fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
       target: { value: 'game:g1' },
     })
 
@@ -230,7 +230,7 @@ describe('MoveToContainerControl', () => {
       />
     )
 
-    const select = screen.getByLabelText('Move to a game or your shelves') as HTMLSelectElement
+    const select = screen.getByLabelText('Move to a game or your shelf') as HTMLSelectElement
     // Only a Game this user runs is on offer for a crawler (ADR-037).
     expect([...select.options].map((o) => o.textContent)).toEqual(['Shelves', 'Run by me'])
 
@@ -254,7 +254,7 @@ describe('MoveToContainerControl', () => {
         entity={crawlerFixture({ id: 'c1', gameId: 'g2' })}
       />
     )
-    const select = screen.getByLabelText('Move to a game or your shelves') as HTMLSelectElement
+    const select = screen.getByLabelText('Move to a game or your shelf') as HTMLSelectElement
     expect([...select.options].map((o) => o.textContent)).toEqual(['Not mine'])
     expect(select.disabled).toBe(true)
   })
@@ -267,14 +267,14 @@ describe('MoveToContainerControl', () => {
         entity={{ name: 'Mira Cole', gameId: 'phantom' }}
       />
     )
-    const select = screen.getByLabelText('Move to a game or your shelves') as HTMLSelectElement
+    const select = screen.getByLabelText('Move to a game or your shelf') as HTMLSelectElement
     expect(select.value).toBe('game:phantom')
     expect(select.selectedOptions[0]?.textContent).toBe('Unknown game')
   })
 })
 
 describe('MoveToContainerControl — moving into a Game clears an assignment', () => {
-  const select = () => screen.getByLabelText('Move to a game or your shelves') as HTMLSelectElement
+  const select = () => screen.getByLabelText('Move to a game or your shelf') as HTMLSelectElement
 
   test('asks first, naming what is cleared, and writes nothing until confirmed', async () => {
     const pilot = await cachedPilot(null)
@@ -286,7 +286,7 @@ describe('MoveToContainerControl — moving into a Game clears an assignment', (
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain('Move Mira Cole into Union Crawler #430?')
     expect(dialog.textContent).toContain(
-      'Their pairing with Thresher (still on your shelves) is cleared.'
+      'Their pairing with Thresher (still on your shelf) is cleared.'
     )
     expect(gameIdOf()).toBeNull()
     expect(linkIds()).toEqual(['link-pairing'])
@@ -336,13 +336,13 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     const pilot = await cachedPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or your shelves'), {
+    fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
       target: { value: 'shelf' },
     })
 
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain('Take Mira Cole out of Union Crawler #430?')
-    expect(dialog.textContent).toContain('goes back to your shelves')
+    expect(dialog.textContent).toContain('goes back to your shelf')
     // A move prunes what it would leave straddling two containers (ADR-037).
     expect(dialog.textContent).toContain(
       'Their crawler assignment in Union Crawler #430 is cleared'
@@ -355,7 +355,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     const pilot = await cachedPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or your shelves'), {
+    fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
       target: { value: 'shelf' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
@@ -364,20 +364,20 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     expect(gameIdOf()).toBe('g1')
     expect(serverWrites).toHaveLength(0)
     // The select still says where the build actually is.
-    expect(
-      (screen.getByLabelText('Move to a game or your shelves') as HTMLSelectElement).value
-    ).toBe('game:g1')
+    expect((screen.getByLabelText('Move to a game or your shelf') as HTMLSelectElement).value).toBe(
+      'game:g1'
+    )
   })
 
   test('confirming moves it to your shelves', async () => {
     const pilot = await cachedPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or your shelves'), {
+    fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
       target: { value: 'shelf' },
     })
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Move to your shelves' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Move to your shelf' }))
     })
 
     await waitFor(() => expect(gameIdOf()).toBeNull())
@@ -392,7 +392,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     const pilot = await cachedPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or your shelves'), {
+    fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
       target: { value: 'game:g2' },
     })
 
@@ -406,12 +406,12 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     const pilot = await cachedPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or your shelves'), {
+    fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
       target: { value: 'shelf' },
     })
     failWrites = true
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Move to your shelves' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Move to your shelf' }))
     })
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy())
