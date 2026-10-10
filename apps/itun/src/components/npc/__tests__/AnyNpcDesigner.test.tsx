@@ -91,6 +91,43 @@ describe('the template step', () => {
   })
 })
 
+describe('starting over', () => {
+  async function editedVeteran() {
+    await renderDesigner()
+    await click('Start from Veteran')
+    await click('Next: Stats')
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Hit points/), { target: { value: '12' } })
+    })
+    await click('Back')
+  }
+
+  test('Start blank asks first once the stats were edited, and clears them on yes', async () => {
+    await editedVeteran()
+    await click(/Start blank/)
+    expect(screen.getAllByText('Start blank?').length).toBeGreaterThan(0)
+    await click('Clear')
+    await click('Next: Stats')
+    expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '')
+  })
+
+  test('declining the Start blank question keeps the edited stats', async () => {
+    await editedVeteran()
+    await click(/Start blank/)
+    await click('Cancel')
+    await click('Next: Stats')
+    expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '12')
+  })
+
+  test('Cancel on the first step asks before discarding a draft', async () => {
+    await editedVeteran()
+    await click('Cancel')
+    expect(screen.getAllByText('Discard this draft?').length).toBeGreaterThan(0)
+    await click('Keep editing')
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeTruthy()
+  })
+})
+
 describe('the preview', () => {
   test('is the card as others will see it: User-made, from Veteran, made by you', async () => {
     await renderDesigner()
@@ -127,7 +164,8 @@ describe('saving', () => {
       actions: ['green-laser-rifle-veteran'],
       templateRef: { schema: 'npcs', slug: 'veteran' },
     })
-    expect(npc?.description).toBeUndefined()
+    // The template's own words pre-fill the description, and the player may edit them.
+    expect(npc?.description).toContain('seasoned soldier')
     expect(created).toEqual([npc?.id ?? ''])
     // Server first: the body went up before it landed here.
     expect(writes).toContainEqual(expect.objectContaining({ table: 'npcs', appId: npc?.id }))

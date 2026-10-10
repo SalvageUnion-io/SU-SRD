@@ -22,7 +22,7 @@ import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
 import { SheetSkeleton } from '../../../components/sheet/SheetSkeleton'
 import { SheetView } from '../../../components/sheet/SheetView'
 import { pageTitle } from '../../../lib/pageTitle'
-import type { SheetEntityKind } from '../../../lib/schemas/entity'
+import type { EntityRef } from '../../../lib/schemas/entity'
 import { useEntityStore } from '../../../stores/entityStore'
 
 /**
@@ -30,7 +30,7 @@ import { useEntityStore } from '../../../stores/entityStore'
  * one renders in place on its host's sheet as a decorated reference entity, so
  * it never needed a route, and `EntityRef` never needed widening (ADR-028).
  */
-type SheetKind = SheetEntityKind | 'npc'
+type SheetKind = EntityRef['type']
 
 const VALID_KINDS: SheetKind[] = ['pilot', 'mech', 'crawler', 'npc']
 
