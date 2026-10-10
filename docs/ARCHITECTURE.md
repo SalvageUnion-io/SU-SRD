@@ -974,10 +974,10 @@ returns condensed docs: verify load-bearing APIs against `node_modules`.
 
 `gh` is preinstalled; the GitHub proxy authenticates it for REST only: `gh pr`
 and `gh issue` (GraphQL) get 403, and branch deletions are refused. Use `gh api`
-or the `mcp__github__*` tools. The Cloudflare and Sentry MCP
-servers need OAuth a cloud session cannot do: report their signals **unread**.
-Environment: [ops/cloud-environment.md](ops/cloud-environment.md). `convex` has no
-credentials: ask for data. If `bun --version` differs from the root
+or the `mcp__github__*` tools. Cloudflare and Sentry use claude.ai
+connectors, `convex` an anonymous local deployment:
+[ops/cloud-environment.md](ops/cloud-environment.md). No route: report
+**unread**; ask for staging or production data. If `bun --version` differs from the root
 `packageManager`, run with `PATH="$HOME/.local/share/su-srd-bun/<version>:$PATH"` (the
 SessionStart hook installs it there) and `bun install --frozen-lockfile`. Never fake
 a GitHub step that has no route.

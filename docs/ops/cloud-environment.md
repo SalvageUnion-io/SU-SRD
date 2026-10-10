@@ -11,6 +11,7 @@ together. No CLI or API edits it.
 
   ```text
   mcp.context7.com
+  version.convex.dev
   salvageunion.io
   www.salvageunion.io
   assets.salvageunion.io
@@ -24,8 +25,25 @@ together. No CLI or API edits it.
 
   The sites are what `tools/smoke-production.sh` and entity artwork reach; the
   Playwright hosts serve `bunx playwright install chromium`, which is left to the
-  session that needs it. The Cloudflare and Sentry MCP hosts are left out: they
-  authenticate by OAuth, which a cloud session cannot complete.
+  session that needs it. `version.convex.dev` is where `convex dev` resolves its
+  local backend (the binary itself comes from GitHub releases); without it
+  `bun run dev:itun` fails "Failed to fetch latest backend version". The
+  Cloudflare and Sentry MCP hosts are left out: those `.mcp.json` servers
+  authenticate by OAuth, which a cloud session cannot complete. claude.ai
+  connectors stand in for them (below).
+- **Connectors** (claude.ai → Settings → Connectors; a session reads them at
+  start):
+  - **Cloudflare Developer Platform** (directory): Workers, R2, KV, D1 — the
+    `cloudflare-bindings` equivalent, as `mcp__Cloudflare_Developer_Platform__*`.
+  - **Sentry** (directory): the `sentry` equivalent, org `susrd`.
+  - **Cloudflare Observability** (custom connector,
+    `https://observability.mcp.cloudflare.com/mcp`): Worker logs and errors.
+- **Convex:** the SessionStart hook exports `CONVEX_AGENT_MODE=anonymous` in
+  cloud sessions, so `bun run dev:itun` starts a local deployment without a
+  Convex account and writes `apps/itun/.env.local`; the `convex` MCP server
+  answers while it runs. The test-auth setup in
+  [`convex-ops`](../../.claude/skills/convex-ops/SKILL.md#local-backend) is per
+  container.
 - **Setup script:** runs as root before Claude Code starts and is snapshotted
   when it ends within about five minutes, so the pinned Bun and `node_modules`
   are already in place and the SessionStart hook is a no-op. It must exit 0: a
