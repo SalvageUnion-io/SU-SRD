@@ -4,8 +4,10 @@ A built **NPC** is ITUN's fourth owned entity, beside pilots, mechs and
 crawlers: anyone designs one, keeps it on their shelf, takes it into a Game,
 and can crew a crawler's slots with it. The decisions are
 [ADR-043](../ARCHITECTURE.md#adr-043); this page is the model and the
-surfaces. It began as the plan in issue 1269 and the design in issue 1277
-(boards N1 and N2 of the brand-refresh canvas).
+surfaces. It began as the plan in issue 1269 and the design in issue 1277.
+The design's origin, and its source of truth, is the brand-refresh canvas at
+<https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm> (boards N1 and N2); the
+issue's PNGs are captures of it.
 
 > **Status:** Proposed. The entity and the crew link are built; the sheet, the
 > roster column, the designer and the crew board are the layers above them,
