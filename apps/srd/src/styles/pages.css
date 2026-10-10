@@ -1,0 +1,762 @@
+/*
+ * srd's page layouts — the Contents home (board 06), the entity page frame
+ * (boards 07, 08), the roll-table page (board 08b), the listing rows and the
+ * footer band.
+ *
+ * Its own file so the component catalog can load it too: `global.css`
+ * imports it for the site, and component-lib's `catalog.css` imports it so
+ * srd's stories (`HomeContents`, `EntityPageFrame`, `RollTableView`) render
+ * as they do on the site. Classes are `srd-*`; the shared parts they compose
+ * (`ChapterBand`, `ChapterFoot`, the card's page presentation) style
+ * themselves.
+ */
+
+/*
+ * The home page — the manual's Contents page (board 06, `index.page.tsx` and
+ * `components/HomeContents.tsx`). A 1360px measure: three chapter columns and
+ * the "New to the Union?" panels beside them, all one column on a phone.
+ */
+.srd-home__lede {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  max-width: 38rem;
+  width: 100%;
+}
+
+.srd-home__lede p {
+  font-size: var(--text-readout);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Between the phone and the desktop the lede has no room beside the title,
+   so the band keeps the phone's stack (lede above the notch). */
+@media (min-width: 40rem) and (max-width: 63.99rem) {
+  .srd-home__band .su-chapter-band__row {
+    align-items: flex-start;
+    flex-direction: column-reverse;
+  }
+}
+
+@media (min-width: 64rem) {
+  .srd-home__band .su-chapter-band__title {
+    flex: none;
+  }
+
+  .srd-home__band .su-chapter-band__aside {
+    flex: 0 1 38rem;
+    min-width: 0;
+  }
+}
+
+.srd-home__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-28);
+  margin-inline: auto;
+  padding: var(--space-24) var(--space-16) var(--space-32);
+  width: 100%;
+}
+
+.srd-home__chapters {
+  align-content: start;
+  display: grid;
+  gap: var(--space-20) var(--space-28);
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  min-width: 0;
+}
+
+.srd-home__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  min-width: 0;
+}
+
+@media (min-width: 40rem) {
+  .srd-home__body {
+    padding-inline: var(--space-24);
+  }
+}
+
+@media (min-width: 64rem) {
+  .srd-home__body {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+
+  .srd-home__chapters {
+    flex: 1 1 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .srd-home__aside {
+    flex: 0 0 20rem;
+  }
+}
+
+/* The hero search on the Contents band (`HeroSearch.tsx`). */
+.srd-hero-search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-10);
+}
+
+.srd-hero-search__box {
+  flex: 1 1 16rem;
+  min-width: 0;
+  position: relative;
+}
+
+.srd-hero-search__field {
+  border-width: var(--bw-chrome);
+  min-height: 46px;
+  padding-inline: var(--space-14);
+}
+
+/* A chapter of the index: its colour band, its name and count, its rows. */
+.srd-contents__chapter {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.srd-contents__band {
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-bottom: 0;
+  height: 8px;
+}
+
+.srd-contents__heading {
+  align-items: baseline;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-12);
+  justify-content: space-between;
+  line-height: 1.1;
+  margin: 0;
+  padding: var(--space-6) 0;
+}
+
+.srd-contents__total {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+}
+
+.srd-contents__rows {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.srd-contents__rows > li {
+  border-top: var(--bw-hairline) solid var(--color-ink-15);
+}
+
+.srd-contents__row {
+  align-items: center;
+  color: var(--color-ink);
+  display: flex;
+  font-size: var(--text-base);
+  gap: var(--space-12);
+  justify-content: space-between;
+  min-height: 36px;
+  text-decoration: none;
+}
+
+.srd-contents__row:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.srd-contents__count {
+  color: var(--color-ink-2);
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The touch floor (ruleset §4.6), as theme.css's coarse-pointer rule. */
+@media (pointer: coarse) {
+  .srd-contents__row {
+    min-height: 44px;
+  }
+}
+
+/* The home page's panels: "New to the Union?" and "At the table". */
+.srd-panel {
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+}
+
+.srd-panel__heading {
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+  padding: var(--space-10) var(--space-14) var(--space-8);
+  text-transform: uppercase;
+}
+
+.srd-panel__heading--small {
+  font-size: var(--text-lg);
+}
+
+.srd-panel__rows {
+  padding: 0 var(--space-14) var(--space-8);
+}
+
+.srd-panel__foot {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-top: var(--space-6);
+  padding: var(--space-8) var(--space-14) var(--space-12);
+}
+
+.srd-panel__foot p {
+  color: var(--color-ink-2);
+  font-size: var(--text-lede);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.srd-panel__cta {
+  align-self: flex-start;
+}
+
+/* The path in: ink banners with the book's rounded tail (ruleset §4.4). */
+.srd-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  list-style: none;
+  margin: 0;
+  padding: 0 0 var(--space-4);
+}
+
+.srd-steps__step {
+  align-items: center;
+  background-color: var(--color-ink);
+  border-radius: 0 var(--radius-full) var(--radius-full) 0;
+  color: var(--color-paper);
+  display: flex;
+  gap: var(--space-12);
+  margin-right: var(--space-14);
+  min-height: 44px;
+  padding: var(--space-4) var(--space-20) var(--space-4) var(--space-14);
+  text-decoration: none;
+}
+
+.srd-steps__numeral {
+  font-family: var(--font-cond);
+  font-size: var(--text-display);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+}
+
+.srd-steps__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.srd-steps__title {
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-weight: var(--font-weight-bold);
+}
+
+.srd-steps__step:hover .srd-steps__title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.srd-steps__meta {
+  color: var(--color-paper-85);
+  font-size: var(--text-caption);
+}
+
+/*
+ * The site footer (`Footer.tsx`): the Contents chapter's foot band. Its start
+ * is the licence in body type, not the band's large page number.
+ */
+.srd-footer__legal {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.5;
+  max-width: 48rem;
+}
+
+.srd-footer__legal p {
+  margin: 0;
+}
+
+.srd-footer__end {
+  align-items: center;
+  display: flex;
+  gap: var(--space-16);
+}
+
+.srd-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-16);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.srd-footer__link {
+  align-items: center;
+  color: var(--color-ink);
+  display: flex;
+  min-height: 32px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.srd-footer__mark {
+  display: block;
+  flex: none;
+  height: 48px;
+  width: 48px;
+}
+
+/*
+ * An entity page (`EntityPageFrame`): band, body, foot band. The article
+ * fills the page so the citation band closes it at the foot.
+ */
+.srd-entity {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.srd-entity__body {
+  flex: 1;
+  margin-inline: auto;
+  padding: var(--space-20) var(--space-16) var(--space-48);
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .srd-entity__body {
+    padding: var(--space-32) var(--space-24) var(--space-48);
+  }
+}
+
+/*
+ * The roll-table page (`RollTableView`, board 08b). The "You rolled" panel
+ * comes first in the source, so a phone reads the result above the table;
+ * from `lg` the table takes the left and the panel the right.
+ */
+.srd-roll {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.srd-roll__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.srd-roll__description {
+  font-size: var(--text-lg);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 68ch;
+}
+
+.srd-roll__stamp-row {
+  align-items: center;
+  display: flex;
+  gap: var(--space-12);
+}
+
+.srd-roll__stamp {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  padding: var(--space-2) var(--space-8);
+  text-decoration: underline;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.srd-roll__leader {
+  border-top: var(--bw-chrome) dashed var(--color-ink-40);
+  flex: 1;
+}
+
+.srd-roll__hint {
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+}
+
+.srd-roll__rows {
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.srd-roll__row {
+  align-items: stretch;
+  display: flex;
+}
+
+.srd-roll__row + .srd-roll__row {
+  border-top: var(--bw-chrome) solid var(--color-ink);
+}
+
+.srd-roll__range {
+  align-items: center;
+  background-color: var(--color-wk-bg);
+  border-right: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  justify-content: center;
+  width: 4.5rem;
+}
+
+.srd-roll__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-12) var(--space-14);
+}
+
+.srd-roll__label {
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.srd-roll__value {
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
+
+/* Once a roll lands, the other bands step back and the hit is set in ink. */
+.srd-roll__rows[data-has-roll] .srd-roll__row:not([data-rolled]) .srd-roll__body {
+  color: var(--color-wk-muted);
+}
+
+.srd-roll__row[data-rolled] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.srd-roll__row[data-rolled] .srd-roll__range {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.srd-roll__tag {
+  align-self: center;
+  background-color: var(--color-paper);
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 14px 100%, 0 50%);
+  color: var(--color-ink);
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  margin-right: var(--space-14);
+  padding: var(--space-4) var(--space-8) var(--space-4) var(--space-20);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.srd-roll__panel {
+  background-color: var(--color-paper);
+  border: var(--bw-entity) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.srd-roll__panel-head {
+  align-items: center;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-10);
+  justify-content: space-between;
+  letter-spacing: var(--tracking-caps-snug);
+  padding: var(--space-8) var(--space-14);
+  text-transform: uppercase;
+}
+
+.srd-roll__panel-title {
+  font-size: inherit;
+  margin: 0;
+}
+
+.srd-roll__panel-name {
+  color: var(--color-paper-85);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.srd-roll__result {
+  display: flex;
+  flex-direction: column;
+}
+
+.srd-roll__prompt,
+.srd-roll__text {
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  margin: 0;
+  padding: var(--space-14);
+}
+
+.srd-roll__text {
+  padding-top: 0;
+}
+
+.srd-roll__readout {
+  align-items: center;
+  display: flex;
+  gap: var(--space-16);
+  padding: var(--space-16) var(--space-14) var(--space-14);
+}
+
+.srd-roll__number {
+  border: var(--bw-entity) solid var(--color-ink);
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-chapter);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 0.95;
+  min-width: 6rem;
+  padding: var(--space-4) var(--space-12) var(--space-8);
+  text-align: center;
+}
+
+.srd-roll__outcome {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.srd-roll__lands {
+  align-self: flex-start;
+  border: var(--bw-hairline) solid var(--color-ink);
+  display: inline-flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+}
+
+.srd-roll__lands-label {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  padding: var(--space-2) var(--space-6);
+  text-transform: uppercase;
+}
+
+.srd-roll__lands-range {
+  padding: var(--space-2) var(--space-8);
+}
+
+.srd-roll__outcome-title {
+  font-family: var(--font-cond);
+  font-size: var(--text-display-lg);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.srd-roll__controls {
+  align-items: center;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-10);
+  padding: var(--space-12) var(--space-14);
+}
+
+.srd-roll__typed {
+  align-items: center;
+  display: flex;
+  gap: var(--space-8);
+}
+
+.srd-roll__typed-label {
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+}
+
+.srd-roll__typed-input {
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) dashed var(--color-ink);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-extrabold);
+  min-height: 44px;
+  text-align: center;
+  width: 4rem;
+}
+
+.srd-roll__credit {
+  color: var(--color-wk-muted);
+  flex: 1 1 100%;
+  font-size: var(--text-xs);
+  margin: 0;
+}
+
+.srd-roll__earlier {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-10) var(--space-14) var(--space-12);
+}
+
+.srd-roll__earlier-title {
+  color: var(--color-ink-2);
+  font-family: var(--font-cond);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-snug);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.srd-roll__earlier-list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.srd-roll__earlier-row {
+  align-items: center;
+  border-top: var(--bw-hairline) solid var(--color-ink-12);
+  display: flex;
+  gap: var(--space-10);
+  min-height: 32px;
+}
+
+.srd-roll__earlier-n {
+  border: var(--bw-chrome) solid var(--color-ink);
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-base);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  text-align: center;
+  width: 2.25rem;
+}
+
+.srd-roll__earlier-outcome {
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+@media (min-width: 64rem) {
+  .srd-roll {
+    align-items: flex-start;
+    flex-direction: row-reverse;
+    gap: var(--space-32);
+  }
+
+  .srd-roll__main {
+    flex: 1 1 0;
+  }
+
+  .srd-roll__panel {
+    flex: 0 0 23rem;
+    position: sticky;
+    top: var(--space-16);
+  }
+
+  .srd-roll__range {
+    width: 5.75rem;
+  }
+}
+
+/*
+ * A schema listing's default view (`EntityListingRow`): the card's one-line
+ * header rows, as many columns as fit at 20rem. The server renders the same
+ * grid as plain named rows (`schema/[schemaId]/index.page.tsx`), so the first
+ * paint is the index, not a blank band, before the island mounts.
+ */
+.srd-listing__rows {
+  display: grid;
+  gap: var(--space-8) var(--space-14);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.srd-listing__row {
+  color: inherit;
+  display: block;
+  text-decoration: none;
+}
+
+.srd-listing__fallback-row {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-weight: var(--font-weight-bold);
+  min-height: 44px;
+  overflow: hidden;
+  padding: 0 var(--space-12);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}

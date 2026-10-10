@@ -3,13 +3,24 @@
  *
  * The largest route family on the site (~850 of 1,038 pages), so a change here
  * reaches almost the whole SRD at once.
+ *
+ * A Workshop Manual page (boards 07, 08): the entity's chapter band, the card
+ * as the page's body (`presentation="page"`), and the citation on the foot
+ * band. A roll table gets its own page to roll on (board 08b).
  */
 
-import { assetSrcSetFor, cardImageSizes } from 'component-lib'
+import { assetSrcSetFor, heroImageSizes, resolveEntityPageMeta } from 'component-lib'
 import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../../../ssg/types'
+import { EntityPageFrame } from '../../../../components/EntityPageFrame'
 import { EntityView } from '../../../../components/EntityView'
+import {
+  ROLL_TABLE_PAGE_MEASURE,
+  RollTablePage,
+  rollTablePageData,
+} from '../../../../components/RollTablePage'
+import { chapterForSchema } from '../../../../lib/chapters'
 import { META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../../../lib/constants'
 import { itemHref, schemaHref } from '../../../../lib/entityHref'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../../../lib/gameData'
@@ -29,6 +40,12 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const { schemaId, itemId } = params
 
   const schemaName = schema.displayName || 'Item'
+  const pluralName = schema.displayNamePlural || schemaName
+  const chapter = chapterForSchema(schemaId)
+  const pageMeta = resolveEntityPageMeta(item)
+  // A banded d20 table rolls on a page of its own (board 08b); a two-roll
+  // columns table, and every other entity, is the card's page.
+  const rollTable = rollTablePageData(item)
   const canonicalUrl = `${SITE_URL}${itemHref(schemaId, itemId)}`
 
   const displayData = item ? getReferenceEntityData(item) : null
@@ -109,19 +126,32 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       structuredData,
       preloadImage,
       preloadImageSrcSet,
-      preloadImageSizes: preloadImageSrcSet ? cardImageSizes() : undefined,
+      // The art is the page's hero now, so the preload repeats ITS `sizes`.
+      preloadImageSizes: preloadImageSrcSet ? heroImageSizes() : undefined,
       breadcrumbs: [
-        { name: 'SRD', url: `${SITE_URL}/` },
-        { name: schemaName, url: `${SITE_URL}${schemaHref(schemaId)}` },
+        { name: 'Contents', url: `${SITE_URL}/` },
+        ...(chapter.href === '/'
+          ? []
+          : [{ name: chapter.title, url: `${SITE_URL}${chapter.href}` }]),
+        { name: pluralName, url: `${SITE_URL}${schemaHref(schemaId)}` },
         { name: itemName, url: canonicalUrl },
       ],
     },
-    children: (
-      <article className="flex min-h-full flex-1 flex-col items-center justify-center p-4">
+    children: rollTable ? (
+      <EntityPageFrame
+        title={itemName}
+        tone={chapter.tone}
+        meta={pageMeta}
+        measure={ROLL_TABLE_PAGE_MEASURE}
+      >
+        <RollTablePage data={rollTable} />
+      </EntityPageFrame>
+    ) : (
+      <EntityPageFrame title={itemName} tone={chapter.tone} meta={pageMeta}>
         {/* The Entity renders as one unit — interactive island card + its static
             SEO / no-JS sub-content (EntityView). */}
         <EntityView item={item} schemaId={schemaId} />
-      </article>
+      </EntityPageFrame>
     ),
   }
 }

@@ -332,4 +332,51 @@ describe('SchemaViewerIsland', () => {
       replaceSpy.mockRestore()
     }
   })
+
+  // The listing's default is one header-only row per entity (ruleset §1,
+  // Listing); the Catalog toggle swaps in the artwork tiles.
+  describe('List | Catalog', () => {
+    const chassisEntities = () => required(getModel('chassis'), 'chassis model').all()
+    const renderChassis = () => {
+      const entities = chassisEntities()
+      return render(
+        <SchemaViewerIsland
+          schemaId="chassis"
+          techLevels={getUniqueTechLevels(entities)}
+          sources={getUniqueSources(entities)}
+        />
+      )
+    }
+
+    it('defaults to the list: one header-only row per entity, each a named link', () => {
+      const { container } = renderChassis()
+      expect(screen.getByRole('button', { name: 'List' }).getAttribute('aria-pressed')).toBe('true')
+      const rows = container.querySelectorAll('.srd-listing__rows > li > a[aria-label]')
+      expect(rows.length).toBe(chassisEntities().length)
+    })
+
+    it('Catalog swaps in the tiles and records the view in the URL', () => {
+      window.location.href = 'http://localhost/schema/chassis/'
+      const replaceSpy = spyOn(window.history, 'replaceState')
+      try {
+        const { container } = renderChassis()
+        fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
+        expect(container.querySelector('.srd-listing__rows')).toBeNull()
+        expect(container.querySelectorAll('a[aria-label]').length).toBe(chassisEntities().length)
+        const urls = replaceSpy.mock.calls.map((c) => String(c[2]))
+        expect(urls.some((u) => u.includes('view=catalog'))).toBe(true)
+      } finally {
+        replaceSpy.mockRestore()
+      }
+    })
+
+    it('opens on the catalog when the URL asks for it (?view=catalog)', () => {
+      window.location.href = 'http://localhost/schema/chassis/?view=catalog'
+      const { container } = renderChassis()
+      expect(screen.getByRole('button', { name: 'Catalog' }).getAttribute('aria-pressed')).toBe(
+        'true'
+      )
+      expect(container.querySelector('.srd-listing__rows')).toBeNull()
+    })
+  })
 })

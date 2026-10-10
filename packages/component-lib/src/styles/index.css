@@ -1302,6 +1302,373 @@ body {
   }
 }
 
+/* ══ The nav drawer's index (`components/shared/NavDrawer.tsx`) ═════════════
+ *
+ * A section stamp over compact rows (board 08): each row the full width, the
+ * name at its start and the count at its end, 44px tall — the drawer is a
+ * phone's nav, so its rows sit on the touch floor at every pointer.
+ */
+.su-nav-drawer__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-bottom: var(--space-12);
+}
+
+.su-nav-drawer__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-nav-drawer__rows > li + li {
+  border-top: var(--bw-hairline) solid var(--color-ink-15);
+}
+
+.su-nav-drawer__row {
+  align-items: center;
+  color: var(--color-ink);
+  display: flex;
+  font-size: var(--text-base);
+  gap: var(--space-12);
+  justify-content: space-between;
+  min-height: 44px;
+  text-decoration: none;
+}
+
+.su-nav-drawer__count {
+  color: var(--color-ink-2);
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ══ The foot band (`components/chrome/ChapterFoot.tsx`) ════════════════════
+ *
+ * Layout only — colour, speckle and the ink rule are the component's. The
+ * page number is set large at the start; the citation (or the site links)
+ * sits at the end, and wraps under it on a phone.
+ */
+.su-chapter-foot__row {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-24);
+  justify-content: space-between;
+  margin-inline: auto;
+  padding: var(--space-12) var(--space-16);
+}
+
+.su-chapter-foot__start {
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+}
+
+.su-chapter-foot__end {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+@media (min-width: 40rem) {
+  .su-chapter-foot__row {
+    padding-inline: var(--space-24);
+  }
+}
+
+/* ══ The stat column (`components/shared/StatColumn.tsx`) ═══════════════════
+ *
+ * The book's framed numeral beside its ink stamp. Two cells to a row on a
+ * phone; from `sm`, as many 200px cells as fit (two beside the entity art).
+ * `row-reverse` draws the numeral first while the source reads label, value.
+ */
+.su-stat-column {
+  display: grid;
+  gap: var(--space-6) var(--space-8);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.su-stat-column__cell {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  min-height: 40px;
+}
+
+.su-stat-column__value {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink);
+  display: flex;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  justify-content: center;
+  margin: 0;
+  width: 42px;
+}
+
+.su-stat-column__label {
+  align-items: center;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  display: flex;
+  flex: 1;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  min-width: 0;
+  padding: 0 var(--space-8);
+  text-transform: uppercase;
+}
+
+@media (min-width: 40rem) {
+  .su-stat-column {
+    gap: var(--space-6) var(--space-14);
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .su-stat-column__value {
+    width: 52px;
+  }
+
+  .su-stat-column__label {
+    font-size: var(--text-sm);
+    padding: 0 var(--space-12);
+  }
+}
+
+/* ══ The entity page (`ReferenceEntityCard presentation="page"`) ════════════
+ *
+ * Boards 07 and 08. The card hands its title to the page's chapter band and
+ * its footer to the foot band, and lays its body out as a page: the line art
+ * as the hero on the left, and on the right the chassis ability, the prose
+ * and the stat column. Everything the entity carries after that (its table,
+ * actions, nested trays, patterns) runs the full width beneath.
+ *
+ * A phone reads art, stats, prose, then the chassis ability (board 08). The
+ * right column is `display: contents` there, so its children join the page's
+ * flex column and `order` sets that sequence; from `lg` it is a column again.
+ */
+.su-entity-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+}
+
+.su-entity-page__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.su-entity-page__side {
+  display: contents;
+}
+
+.su-entity-page__art {
+  order: 1;
+}
+
+.su-entity-page__stats {
+  order: 2;
+}
+
+.su-entity-page__prose {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-lg);
+  gap: var(--space-8);
+  line-height: 1.6;
+  order: 3;
+}
+
+.su-entity-page__lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  order: 4;
+}
+
+.su-entity-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/* An entity's own table stands on the page in a frame of its own. */
+.su-entity-page__table {
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+/* With no art the body is one reading column. */
+.su-entity-page__main:not(.su-entity-page__main--art) {
+  max-width: 52rem;
+}
+
+@media (min-width: 64rem) {
+  .su-entity-page__main--art {
+    align-items: flex-start;
+    flex-direction: row;
+    gap: var(--space-40);
+  }
+
+  .su-entity-page__main--art > .su-entity-page__art {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .su-entity-page__side {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: var(--space-24);
+    min-width: 0;
+  }
+
+  .su-entity-page__side > * {
+    order: 0;
+  }
+}
+
+/* The hero: the line art on a paper plate, the full width of its column. */
+.su-entity-hero {
+  background-color: var(--color-paper);
+  border: var(--bw-hairline) solid var(--color-ink-20);
+  margin: 0;
+  padding: var(--space-16);
+}
+
+.su-entity-hero__img {
+  display: block;
+  height: auto;
+  margin-inline: auto;
+  max-height: 70vh;
+  max-width: 100%;
+  object-fit: contain;
+  transition: opacity 300ms;
+}
+
+/* ── Pattern rows (`PatternLinkRows`) ───────────────────────────────────────
+ * Full-width links with an arrow and no underline. On a phone the name sits
+ * over its description, and only two rows show until "Show all" targets the
+ * list (`:target`), which needs no script.
+ */
+.su-pattern-rows {
+  scroll-margin-top: var(--space-64);
+}
+
+.su-pattern-rows__frame {
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+}
+
+.su-pattern-rows__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-pattern-rows__item + .su-pattern-rows__item {
+  border-top: var(--bw-hairline) solid var(--color-ink-15);
+}
+
+.su-pattern-rows__row {
+  align-items: center;
+  color: var(--color-ink);
+  column-gap: var(--space-24);
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 44px;
+  padding: var(--space-10) var(--space-12);
+  row-gap: var(--space-4);
+  text-decoration: none;
+}
+
+a.su-pattern-rows__row:hover {
+  background-color: var(--color-wk-bg);
+}
+
+.su-pattern-rows__name {
+  flex: 1 1 100%;
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.su-pattern-rows__desc {
+  color: var(--color-ink-2);
+  flex: 1 1 0;
+  font-size: var(--text-lede);
+  line-height: 1.45;
+  min-width: 0;
+}
+
+.su-pattern-rows__arrow {
+  display: none;
+  flex: none;
+}
+
+.su-pattern-rows__more {
+  border-top: var(--bw-hairline) solid var(--color-ink-15);
+  color: var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-bold);
+  justify-content: center;
+  align-items: center;
+  letter-spacing: var(--tracking-caps-tight);
+  min-height: 44px;
+  text-transform: uppercase;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 39.99rem) {
+  .su-pattern-rows:not(:target) .su-pattern-rows__item:nth-child(n + 3) {
+    display: none;
+  }
+
+  .su-pattern-rows:target .su-pattern-rows__more {
+    display: none;
+  }
+}
+
+@media (min-width: 40rem) {
+  .su-pattern-rows__row {
+    flex-wrap: nowrap;
+    padding: var(--space-10) var(--space-16);
+  }
+
+  .su-pattern-rows__name {
+    flex: 0 0 200px;
+  }
+
+  .su-pattern-rows__desc {
+    font-size: var(--text-base);
+    line-height: 1.5;
+  }
+
+  .su-pattern-rows__arrow {
+    display: block;
+  }
+
+  .su-pattern-rows__more {
+    display: none;
+  }
+}
+
 /* ══ Mobile-first touch targets ═════════════════════════════════════════════
  *
  * The floor (ruleset §4.6) mirrors theme.css's unlayered copy, which is the

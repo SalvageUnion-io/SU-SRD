@@ -1,4 +1,4 @@
-import { InlineRef } from 'component-lib'
+import { ChapterFoot, InlineRef } from 'component-lib'
 
 /**
  * The site's own pages, which left the Union bar when the SRD dropped its second
@@ -17,11 +17,19 @@ type FooterProps = {
   poweredBySalvageUrl: string
 }
 
+/**
+ * The site footer: the Contents chapter's foot band (board 06) — the rules
+ * blue with its ink speckle under an ink rule, the licence and attribution at
+ * its start, the site's pages and the "Powered by Salvage" mark at its end.
+ */
 export function Footer({ poweredBySalvageUrl }: FooterProps) {
   return (
-    <footer className="border-t border-wk-faint bg-paper py-3 lg:shadow-sm">
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-3 px-4 text-xs text-ink sm:flex-row sm:flex-wrap sm:gap-4">
-        <div className="w-full min-w-0 text-center sm:w-auto sm:flex-1">
+    <ChapterFoot
+      as="footer"
+      tone="rules"
+      measure="85rem"
+      start={
+        <div className="srd-footer__legal">
           <p>
             Salvage Union is copyrighted by{' '}
             <InlineRef href="https://leyline.press" target="_blank" rel="noopener noreferrer">
@@ -49,21 +57,20 @@ export function Footer({ poweredBySalvageUrl }: FooterProps) {
             .
           </p>
         </div>
-        <nav aria-label="Site" className="w-full shrink-0 sm:w-auto">
-          <ul className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-body text-sm">
-            {SITE_LINKS.map((link) => (
-              <li key={link.href}>
-                <a
-                  href={link.href}
-                  className="text-ink underline underline-offset-2 hover:text-ink-75"
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <div className="inline-block shrink-0 rounded-md p-2">
+      }
+      end={
+        <div className="srd-footer__end">
+          <nav aria-label="Site">
+            <ul className="srd-footer__links">
+              {SITE_LINKS.map((link) => (
+                <li key={link.href}>
+                  <a href={link.href} className="srd-footer__link">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
           {/*
             48x48, matching the source's 1:1 ratio.
 
@@ -82,12 +89,12 @@ export function Footer({ poweredBySalvageUrl }: FooterProps) {
           <img
             src={poweredBySalvageUrl}
             alt="Powered by Salvage"
-            className="h-12 w-auto"
+            className="srd-footer__mark"
             width={48}
             height={48}
           />
         </div>
-      </div>
-    </footer>
+      }
+    />
   )
 }
