@@ -148,6 +148,18 @@ export { MasonryColumns } from './components/shared/MasonryColumns'
 export { ModalShell } from './components/shared/ModalShell'
 export type { NavDrawerCategory, NavDrawerItem } from './components/shared/NavDrawer'
 export { NavDrawer } from './components/shared/NavDrawer'
+// OgCard — the 1200 × 630 link preview (issue 1280), built from ChapterBand and
+// the Union bar's foot; `ogCardForEntity` is a reference entity's card.
+export { OgCard } from './components/shared/OgCard'
+export { ogCardForEntity } from './components/shared/ogCardForEntity'
+export type { OgCardProps, OgCardStat } from './components/shared/ogCardText'
+export {
+  OG_CARD_HEIGHT,
+  OG_CARD_WIDTH,
+  ogCardDescription,
+  ogCardThemeColor,
+  ogCardTitle,
+} from './components/shared/ogCardText'
 // PopoverPanel — a trigger and the small non-modal panel of controls it opens
 // (Base UI Popover); ITUN's sheet "⋯" overflow
 export { PopoverPanel } from './components/shared/PopoverPanel'

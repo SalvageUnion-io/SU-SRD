@@ -1670,6 +1670,36 @@ a.su-pattern-rows__row:hover {
   }
 }
 
+/* The link-preview scale (`scale="og"`, OgCard, issue 1280): a band drawn at
+   one fixed size inside a 1200 × 630 card, never responsive. The eyebrow (the
+   kicker and its stamps) sits at the top, the notch at the foot, and the band
+   fills the height the card gives it. The selectors outrank the responsive
+   rules above, so a 1200px viewport's `@media` padding never reaches it. */
+.su-chapter-band[data-scale='og'] {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.su-chapter-band[data-scale='og'] .su-chapter-band__eyebrow {
+  max-width: none;
+  padding: var(--space-48) calc(var(--space-48) + var(--space-8)) 0;
+}
+
+.su-chapter-band[data-scale='og'] .su-chapter-band__row {
+  align-items: flex-end;
+  flex-direction: row;
+  margin-inline: 0;
+  max-width: none;
+  padding: 0 calc(var(--space-48) + var(--space-8));
+}
+
+.su-chapter-band[data-scale='og'] .su-chapter-band__title {
+  font-size: 120px;
+  padding: var(--space-12) var(--space-24) 0;
+}
+
 /* ══ Mobile-first touch targets ═════════════════════════════════════════════
  *
  * The floor (ruleset §4.6) mirrors theme.css's unlayered copy, which is the
