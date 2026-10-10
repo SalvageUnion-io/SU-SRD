@@ -76,11 +76,17 @@ export { StatusBadge } from './components/chrome/StatusBadge'
 // STAMP_SEAM — the border-riding stamp placement, as a class string (ruleset §5)
 export { STAMP_SEAM } from './components/chrome/stampSeam'
 export { Tab, TabList, TabPanel, Tabs } from './components/chrome/Tabs'
+// USER_MADE_HATCH — the hatch a user-made page wears on its colour bands
+// (ruleset §3.9): ChapterBand's `userMade`, and the page's hatched foot.
+export { USER_MADE_HATCH } from './components/chrome/userMadeHatch'
 export { Content } from './components/referenceEntity/Content'
 export { entityGuideToneColor } from './components/referenceEntity/card/entityCardTone'
 // Entity display system
 export { ReferenceEntityCard } from './components/referenceEntity/card/ReferenceEntityCard'
 export type { ReferenceCardEntity } from './components/referenceEntity/card/referenceEntityCardTypes'
+// UserMadeStamp — the dashed User-made stamp (ruleset §3.9). The card wears it
+// on its seam; a full user-made page leads its title with it.
+export { UserMadeStamp } from './components/referenceEntity/card/UserMadeStamp'
 // Interactive choice cards (granted-equipment choices)
 export type { ChoiceSelections } from './components/referenceEntity/choiceCard/choiceSelectionHelpers'
 export type {

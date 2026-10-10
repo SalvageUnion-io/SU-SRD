@@ -59,9 +59,11 @@ export type ReferenceEntityCardProps = {
    */
   userMade?: boolean
   /**
-   * The maker of a USER-MADE card: its footer credit reads "Made by [madeBy]"
-   * in place of the book citation (ruleset §3.9). Without it the credit reads
-   * "Made by a player". Ignored unless `userMade`.
+   * USER-MADE credit (ruleset §3.9): who made it. With `userMade` the footer
+   * reads just "Made by [madeBy]" in place of the book citation — a player's
+   * pattern is not on any page of the book, and the chassis it is built on
+   * must not lend it one. Without it the credit reads "Made by a player".
+   * Ignored without `userMade`.
    */
   madeBy?: string
   /**

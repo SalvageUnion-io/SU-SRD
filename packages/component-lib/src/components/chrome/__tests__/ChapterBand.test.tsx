@@ -37,6 +37,33 @@ describe('ChapterBand', () => {
     expect(screen.getByText('Mech Chassis')).toBeTruthy()
   })
 
+  test('a canon band is solid: no hatch, no dashed notch', () => {
+    const { container } = render(<ChapterBand tone="mech">Gopher</ChapterBand>)
+    const band = container.firstElementChild as HTMLElement
+    expect(band.style.backgroundImage).toBe('')
+    expect(screen.getByRole('heading', { name: 'Gopher' }).style.borderTopStyle).toBe('')
+  })
+
+  test('a user-made band is hatched over its chapter colour, its notch framed in dashes', () => {
+    const { container } = render(
+      <ChapterBand tone="mech" userMade eyebrow={<span>User-made pattern</span>}>
+        Tow Rig
+      </ChapterBand>
+    )
+    const band = container.firstElementChild as HTMLElement
+    // The chapter colour still names the chapter; the hatch rides over it.
+    expect(band.style.backgroundColor).toBe(color.mech)
+    expect(band.style.backgroundImage).toContain('repeating-linear-gradient(135deg')
+    expect(band.dataset.userMade).toBe('true')
+    const title = screen.getByRole('heading', { level: 1, name: 'Tow Rig' })
+    for (const side of ['Top', 'Left', 'Right'] as const) {
+      expect(title.style[`border${side}Style`]).toBe('dashed')
+    }
+    // Flush on the band's foot: the fourth side is the band.
+    expect(title.style.borderBottomWidth).toBe('0px')
+    expect(screen.getByText('User-made pattern')).toBeTruthy()
+  })
+
   test('two bands on one page never share a filter id', () => {
     const html = renderToStaticMarkup(
       <>

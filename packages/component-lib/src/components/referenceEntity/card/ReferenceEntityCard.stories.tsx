@@ -568,12 +568,14 @@ function Matrix({
   label,
   userMade = false,
   oneCellPerRow = false,
+  madeBy,
 }: {
   entity: Parameters<typeof ReferenceEntityCard>[0]['data']
   label: string
   userMade?: boolean
   /** Stack every cell on its own row instead of three extents to a row. */
   oneCellPerRow?: boolean
+  madeBy?: string
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', padding: '16px' }}>
@@ -593,7 +595,7 @@ function Matrix({
                 size={size}
                 extent={extent}
                 userMade={userMade}
-                madeBy={userMade ? 'Rook' : undefined}
+                madeBy={madeBy ?? (userMade ? 'Rook' : undefined)}
               />
             </div>
           ))}
@@ -763,8 +765,16 @@ export const Contexts: Story = () => {
 /**
  * The user-made flag (ruleset §3.9, issue 1276) at every size × extent: a
  * dashed frame, a dashed User-made stamp, a dashed footer rule and a dashed
- * pill. One simple entity, one cell per row, so each device can be checked.
+ * pill, and a footer that credits the maker ("Made by alxjrvs") in place of the
+ * page citation. One simple entity, one cell per row, so each device can be
+ * checked.
  */
 export const UserMade: Story = () => (
-  <Matrix entity={system} label="Salvaging Drill · user-made" userMade oneCellPerRow />
+  <Matrix
+    entity={system}
+    label="Salvaging Drill · user-made"
+    userMade
+    madeBy="alxjrvs"
+    oneCellPerRow
+  />
 )

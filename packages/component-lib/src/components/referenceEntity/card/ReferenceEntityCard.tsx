@@ -994,13 +994,16 @@ function ReferenceEntityCardInner({
             and the catalog extent suppress it entirely. */}
         {rendersFooter
           ? (footerOverride ?? (
+              // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
+              // A player's pattern rides on a chassis whose provenance would
+              // otherwise put "Workshop Manual · p.104" under homebrew.
               <EntityCardIdentityFooter
                 typeLabel={footerType}
-                source={provenance.source}
-                booklet={provenance.booklet}
-                page={provenance.page}
+                source={userMade ? undefined : provenance.source}
+                booklet={userMade ? undefined : provenance.booklet}
+                page={userMade ? undefined : provenance.page}
                 // Reprints are the entity's OWN-PAGE fact — the roomy full card.
-                additionalSources={compact ? undefined : provenance.additionalSources}
+                additionalSources={compact || userMade ? undefined : provenance.additionalSources}
                 footMeta={footMeta}
                 externalLink={extent === 'full' && !insideTooltip ? externalLinkNode : undefined}
                 size={size}
