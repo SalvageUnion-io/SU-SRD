@@ -7,8 +7,7 @@ import { Toaster as SonnerToaster } from 'sonner'
 type ToasterProps = {
   /**
    * Distance from the viewport edges (desktop / below 600px). Sonner's defaults
-   * apply to any edge left out. ITUN raises the bottom edge so its toasts stack
-   * above the search FAB that shares their corner.
+   * apply to any edge left out.
    */
   offset?: SonnerToasterProps['offset']
   mobileOffset?: SonnerToasterProps['mobileOffset']

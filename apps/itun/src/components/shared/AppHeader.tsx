@@ -18,10 +18,10 @@ import { SRD_SITE_URL } from 'salvageunion-reference'
  * is no Games page; picking one sets what the Shelves hub shows — so it takes
  * its place in the nav as a slot.
  *
- * No search, yet. ITUN's reference search is a floating button in the
- * bottom-right corner (`Fab`, wired in ITUN's `GlobalSearch.tsx`), so this
- * preset fills nothing into `AppBar`'s `search` slot. It moves into the slot
- * with the ITUN surfaces (brand refresh P4).
+ * Search is a slot pair: `search` (the desktop "Search · ⌘K" trigger, in the
+ * bar from `lg`) and `mobileSearch` (the phone's icon button, in the mobile
+ * cluster before the account). Both are ITUN's `GlobalSearch`; there is no
+ * floating search button.
  *
  * The slots stay content-agnostic, so this file knows nothing about accounts,
  * Convex or Games. ITUN fills them (`src/components/account/HeaderAccount.tsx`).
@@ -57,6 +57,10 @@ type AppHeaderProps = {
   pathname?: string
   /** The nav's Games control (ITUN's Games menu), between Shelves and Starter Set. */
   games?: ReactNode
+  /** Desktop search trigger, before the account control. */
+  search?: ReactNode
+  /** Phone search icon button, beside the hamburger below `lg`. */
+  mobileSearch?: ReactNode
   /** Desktop controls at the bar's end — ITUN's account menu or sign-in. */
   actions?: ReactNode
   /** Mobile controls beside the hamburger, below `lg` — ITUN's avatar-only account menu. */
@@ -72,6 +76,8 @@ export function AppHeader({
   LinkComponent = 'a',
   pathname = '',
   games,
+  search,
+  mobileSearch,
   actions,
   mobileActions,
   drawerExtra,
@@ -104,9 +110,11 @@ export function AppHeader({
         { label: 'About', href: '/about', active: pathname.startsWith('/about') },
         { label: 'Changelog', href: '/changelog', active: pathname.startsWith('/changelog') },
       ]}
+      search={search}
       actions={actions}
       mobile={
         <>
+          {mobileSearch}
           {mobileActions}
           <NavDrawer
             brand={ITUN_DRAWER_BRAND}

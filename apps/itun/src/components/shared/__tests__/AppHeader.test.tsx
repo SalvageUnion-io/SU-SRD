@@ -155,4 +155,31 @@ describe('AppHeader', () => {
     fireEvent.click(within(drawer).getByRole('button', { name: 'My Stuff' }))
     expect(screen.queryByRole('dialog')).toBeFalsy()
   })
+
+  test('puts the search in the bar, before the account control', () => {
+    render(
+      <AppHeader
+        search={<button type="button">Search the rules</button>}
+        actions={<button type="button">Account menu</button>}
+      />
+    )
+    const search = screen.getByRole('button', { name: 'Search the rules' })
+    const account = screen.getByRole('button', { name: 'Account menu' })
+    expect(search.compareDocumentPosition(account) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // One bar: there is no floating button anywhere else.
+    expect(search.closest('header')).toBe(screen.getByRole('banner'))
+  })
+
+  test('puts the phone search beside the hamburger, before the mobile account', () => {
+    render(
+      <AppHeader
+        mobileSearch={<button type="button">Phone search</button>}
+        mobileActions={<button type="button">Account menu</button>}
+      />
+    )
+    const search = screen.getByRole('button', { name: 'Phone search' })
+    const account = screen.getByRole('button', { name: 'Account menu' })
+    expect(search.parentElement).toBe(account.parentElement)
+    expect(search.compareDocumentPosition(account) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
 })

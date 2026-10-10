@@ -52,6 +52,13 @@ describe('the coarse-pointer touch floor', () => {
     expect(floorSelectors(theme)).toContain('.su-btn:not(.su-btn--mini)')
   })
 
+  test('the Union bar switcher tabs and the brand link are on the floor', () => {
+    // They are anchors but not .su-btn, and the switcher's overflow:hidden
+    // would clip a hit-area pseudo-element, so they take the real 44px.
+    expect(floorSelectors(theme)).toContain('.su-union-bar__tab')
+    expect(floorSelectors(theme)).toContain('.su-union-bar__brand')
+  })
+
   test('mini buttons and interactive chips reach 44px through a hit area instead', () => {
     for (const selector of floorSelectors(theme).filter((s) => /^(button|\[role)/.test(s))) {
       expect(selector).toContain(':not(.su-btn--mini, .su-hit-area)')

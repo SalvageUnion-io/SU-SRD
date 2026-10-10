@@ -492,7 +492,9 @@
   input,
   select,
   textarea,
-  .su-btn:not(.su-btn--mini) {
+  .su-btn:not(.su-btn--mini),
+  .su-union-bar__tab,
+  .su-union-bar__brand {
     min-height: 44px;
     min-width: 44px;
   }

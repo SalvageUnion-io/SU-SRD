@@ -10,8 +10,7 @@ import { borderWidth, color, radius, space } from '../../design/tokens'
  * named by `label`.
  *
  * For a panel of arbitrary controls (ITUN's sheet "⋯" overflow). A list of
- * commands is a `HeaderMenu` (menu semantics, arrow keys); the corner search is
- * `Fab`.
+ * commands is a `HeaderMenu` (menu semantics, arrow keys).
  */
 
 type PopoverPanelProps = {
