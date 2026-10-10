@@ -2,16 +2,20 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } fr
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
- * The hub at `/`, signed in — the one place a player's builds and their Games
- * live now that the Games pages are gone.
+ * Shelves at `/` and a Game's page at `/games/:id`, signed in, end to end
+ * through the real `Roster` (issue 1279, board S1; issue 1255).
  *
- * What these pin, end to end through the real `Roster`:
+ * What these pin:
  *
- *  - the band carries "+ New game" and the "Showing" select, which lists
- *    Shelves and then every Game (never "Shelf")
- *  - Shelves rows each offer View, "Move to game…" and Delete
- *  - picking a Game swaps the body for that Game's roster — yours first —
- *    with the Game section below the lists; Shelves's rows are not shown
+ *  - Shelves lists everything you keep: a unit in a Game stays on your shelf
+ *    under Everything, with the Game's name in a chip, and leaves it under
+ *    Not in a Game
+ *  - a crawler in a Game you mediate says so
+ *  - "Move to a Game…" moves the same record into a Game, and back out again
+ *    behind a confirm; it never copies
+ *  - a pattern's chips say who can see it and how often it has been built
+ *  - a Game's page carries "+ New game" and the "Showing" select, which lists
+ *    Shelves and then every Game, and shows that Game's roster, yours first
  *  - a remembered Game (the `/games/:id` redirect, a reload) opens straight
  *    into it
  *
@@ -50,6 +54,7 @@ const { Roster } = await import('../Roster')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
+const { usePatternStore } = await import('../../../stores/patternStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 const { getActiveContainer, setActiveContainer } = await import(
   '../../../stores/activeContainerStore'
@@ -104,8 +109,9 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'proposals:pending': [],
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:amMediator': false,
-    // The hub's Invitations card (ADR-039); none addressed to this viewer.
+    // The Invited banner (ADR-039); none addressed to this viewer.
     'invites:forMe': [],
+    'shelf:patternSharing': [],
     ...over,
   }
 }
@@ -123,7 +129,8 @@ beforeEach(async () => {
     softLinks: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
-  // Shelves: a pilot and a crawler, cached where a signed-in roster is.
+  usePatternStore.setState({ mechPatterns: [], hydrated: true })
+  // On the shelf: a pilot and a crawler, cached where a signed-in roster is.
   setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
   await useEntityStore
     .getState()
@@ -144,6 +151,7 @@ afterAll(async () => {
   setActiveContainer({ kind: 'shelf' })
   await db.clearCache()
   useEntityStore.setState({ pilots: [], mechs: [], crawlers: [], softLinks: [] })
+  usePatternStore.setState({ mechPatterns: [], hydrated: false })
   convexMocks.restore()
 })
 
@@ -157,10 +165,134 @@ async function renderHub(): Promise<void> {
   })
 }
 
-const showing = () => screen.getByLabelText('Showing') as HTMLSelectElement
+async function settle(done: () => boolean): Promise<void> {
+  for (let i = 0; i < 100 && !done(); i++) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5))
+    })
+  }
+}
 
-describe('the band', () => {
+const pressed = (name: string) =>
+  within(screen.getByRole('group', { name: 'Showing' }))
+    .getByRole('button', { name })
+    .getAttribute('aria-pressed')
+
+describe('Shelves: everything you keep', () => {
+  test('a unit in a Game stays on the shelf under Everything, named by its Game', async () => {
+    await useEntityStore
+      .getState()
+      .adopt('pilot', pilotFixture({ id: 'p-game', name: 'Roach-Boy', gameId: 'g1' }))
+    await renderHub()
+
+    expect(pressed('Everything')).toBe('true')
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    expect(within(pilots).getByText('Roach-Boy')).toBeTruthy()
+    expect(within(pilots).getByText('Union Crawler #430')).toBeTruthy()
+    expect(within(pilots).getByText('Mira Cole')).toBeTruthy()
+    expect(within(pilots).getByText('Not in a Game')).toBeTruthy()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
+    })
+    expect(pressed('Not in a Game')).toBe('true')
+    expect(within(pilots).queryByText('Roach-Boy')).toBeNull()
+    expect(within(pilots).getByText('Mira Cole')).toBeTruthy()
+  })
+
+  test('a crawler in a Game you mediate says so', async () => {
+    await useEntityStore
+      .getState()
+      .adopt('crawler', crawlerFixture({ id: 'c-g2', name: 'Long Hauler', gameId: 'g2' }))
+    await renderHub()
+
+    const crawlers = screen.getByRole('region', { name: 'Crawlers' })
+    expect(within(crawlers).getByText('The Long Haul')).toBeTruthy()
+    expect(within(crawlers).getByText('You mediate')).toBeTruthy()
+  })
+
+  test('a pattern says who can see it and how often it has been built', async () => {
+    await usePatternStore.getState().adopt({
+      id: 'pat-tow-rig',
+      schemaVersion: 1,
+      name: 'Tow Rig',
+      chassisRef: 'scrapper',
+      systems: [],
+      modules: [],
+      cargoLots: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    })
+    setQueryAnswers(
+      answers({
+        'shelf:patternSharing': [
+          { appId: 'pat-tow-rig', visibility: 'link', gameName: null, builtCount: 2 },
+        ],
+      })
+    )
+    await renderHub()
+
+    const patterns = screen.getByRole('region', { name: 'Patterns' })
+    expect(within(patterns).getByText('“Tow Rig”')).toBeTruthy()
+    expect(within(patterns).getByText('Shared by link')).toBeTruthy()
+    expect(within(patterns).getByText('Built twice')).toBeTruthy()
+  })
+})
+
+describe('Move to a Game…', () => {
+  async function moveMira(to: string) {
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'More for Mira Cole' }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Move to a Game…' }))
+    })
+    await act(async () => {
+      fireEvent.click(
+        within(screen.getByRole('list', { name: 'Where to' })).getByRole('button', { name: to })
+      )
+    })
+  }
+
+  test('moves the same pilot into a Game, with no confirm — and it stays on the shelf', async () => {
+    await renderHub()
+    await moveMira('Union Crawler #430')
+    await settle(() => useEntityStore.getState().get('pilot', 'p-shelf')?.gameId === 'g1')
+
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(useEntityStore.getState().get('pilot', 'p-shelf')?.gameId).toBe('g1')
+    expect(useEntityStore.getState().list('pilot')).toHaveLength(1)
+    expect(serverWrites.find((w) => w.args.appId === 'p-shelf')?.args).toMatchObject({
+      gameId: 'g1',
+    })
+    // Still on the shelf, now named by its Game.
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    expect(within(pilots).getByText('Mira Cole')).toBeTruthy()
+    expect(within(pilots).getByText('Union Crawler #430')).toBeTruthy()
+  })
+
+  test('and back out, behind a confirm', async () => {
+    await useEntityStore
+      .getState()
+      .adopt('pilot', pilotFixture({ id: 'p-shelf', name: 'Mira Cole', gameId: 'g1' }))
+    await renderHub()
+    await moveMira('Not in a Game')
+
+    const dialog = screen.getByRole('alertdialog')
+    expect(useEntityStore.getState().get('pilot', 'p-shelf')?.gameId).toBe('g1')
+    await act(async () => {
+      fireEvent.click(within(dialog).getAllByRole('button').at(-1) as HTMLElement)
+    })
+    await settle(() => useEntityStore.getState().get('pilot', 'p-shelf')?.gameId === null)
+
+    expect(useEntityStore.getState().get('pilot', 'p-shelf')?.gameId).toBeNull()
+  })
+})
+
+describe('a Game’s page', () => {
+  const showing = () => screen.getByLabelText('Showing') as HTMLSelectElement
+
   test('"+ New game" and "Showing", which lists Shelves and then every Game', async () => {
+    setActiveContainer({ kind: 'game', gameId: 'g1' })
     await renderHub()
 
     expect(screen.getByRole('button', { name: '+ New game' })).toBeTruthy()
@@ -169,64 +301,15 @@ describe('the band', () => {
       'Union Crawler #430',
       'The Long Haul',
     ])
-    expect(showing().value).toBe('shelf')
-    // "Shelf" is a code word; nothing a player reads says it.
-    expect(document.body.textContent?.toLowerCase()).not.toContain('shelf')
-  })
-})
-
-describe('Shelves', () => {
-  test('each row offers View, "Move to game…" and Delete — moves only where its kind may go', async () => {
-    await renderHub()
-
-    expect(screen.getByRole('link', { name: 'View Mira Cole' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /Delete Mira Cole/ })).toBeTruthy()
-    const pilotMove = screen.getByLabelText('Move Mira Cole to a game') as HTMLSelectElement
-    expect([...pilotMove.options].map((o) => o.textContent)).toEqual([
-      'Move to game…',
-      'Union Crawler #430',
-      'The Long Haul',
-    ])
-    // A crawler goes only into a Game this player runs (ADR-037).
-    const crawlerMove = screen.getByLabelText('Move Old Hulk to a game') as HTMLSelectElement
-    expect([...crawlerMove.options].map((o) => o.textContent)).toEqual([
-      'Move to game…',
-      'The Long Haul',
-    ])
+    expect(showing().value).toBe('game:g1')
   })
 
-  test('moving a pilot into a Game takes it off Shelves, with no confirm', async () => {
+  test('shows that Game’s roster, yours first, then the Game section', async () => {
+    setActiveContainer({ kind: 'game', gameId: 'g1' })
     await renderHub()
-
-    await act(async () => {
-      fireEvent.change(screen.getByLabelText('Move Mira Cole to a game'), {
-        target: { value: 'game:g1' },
-      })
-    })
-    for (let i = 0; i < 100 && screen.queryByText('Mira Cole') !== null; i++) {
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 5))
-      })
-    }
-
-    expect(screen.queryByRole('alertdialog')).toBeNull()
-    expect(screen.queryByText('Mira Cole')).toBeNull()
-    expect(useEntityStore.getState().get('pilot', 'p-shelf')?.gameId).toBe('g1')
-    expect(serverWrites.find((w) => w.args.appId === 'p-shelf')?.args).toMatchObject({
-      gameId: 'g1',
-    })
-  })
-})
-
-describe('a Game picked in "Showing"', () => {
-  test('swaps Shelves for that Game: its roster, yours first, then the Game section', async () => {
-    await renderHub()
-    await act(async () => {
-      fireEvent.change(showing(), { target: { value: 'game:g1' } })
-    })
 
     expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g1' })
-    // Shelves's rows are not this container's.
+    // The shelf's rows are not this Game's.
     expect(screen.queryByText('Mira Cole')).toBeNull()
     expect(within(screen.getByRole('list', { name: 'Yours' })).getByText('Roach-Boy')).toBeTruthy()
     expect(
@@ -237,11 +320,14 @@ describe('a Game picked in "Showing"', () => {
     expect(screen.queryByRole('region', { name: 'Mediator' })).toBeNull()
   })
 
-  test('a remembered Game opens straight into it', async () => {
+  test('picking Shelves in "Showing" goes back to the shelf', async () => {
     setActiveContainer({ kind: 'game', gameId: 'g1' })
     await renderHub()
+    await act(async () => {
+      fireEvent.change(showing(), { target: { value: 'shelf' } })
+    })
 
-    expect(showing().value).toBe('game:g1')
-    expect(screen.getByText('Roach-Boy')).toBeTruthy()
+    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
+    expect(screen.getByRole('heading', { level: 1, name: 'Shelves' })).toBeTruthy()
   })
 })

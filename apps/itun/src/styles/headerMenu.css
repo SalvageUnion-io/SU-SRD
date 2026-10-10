@@ -49,3 +49,29 @@
 .header-menu-item[data-highlighted]:not([data-disabled]) .header-menu-item__hint {
   color: var(--color-paper-70);
 }
+
+/* The overflow trigger (a shelf item's "⋯", board S1): an ink-outlined square
+   on paper, taking the ink wash on hover and the inverse plate while open. */
+.header-menu-trigger--overflow {
+  background-color: var(--color-paper);
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+.header-menu-trigger--overflow:hover {
+  background-color: var(--color-ink-8);
+  color: var(--color-ink);
+}
+.header-menu-trigger--overflow[data-popup-open] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* A row that destroys something (Delete…) reads in the danger colour, and
+   highlights to the danger plate rather than the ink one. */
+.header-menu-item--danger {
+  color: var(--color-status-bad);
+}
+.header-menu-item--danger[data-highlighted]:not([data-disabled]) {
+  background-color: var(--color-status-bad);
+  color: var(--color-paper);
+}

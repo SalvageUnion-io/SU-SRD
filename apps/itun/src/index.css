@@ -10,6 +10,8 @@
 @import './styles/headerMenu.css';
 /* The NPC designer's responsive rules (step strip, phone preview). */
 @import './styles/npc.css';
+/* The Shelves band's paper-on-ink controls (board S1). */
+@import './styles/shelves.css';
 
 /*
  * ITUN's own components keep their stories beside them (the Dashboard

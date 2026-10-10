@@ -1,5 +1,6 @@
 /**
- * Roster component tests.
+ * Roster component tests: the front door signed out, Shelves signed in
+ * (issue 1279, board S1).
  *
  * fake-indexeddb/auto is preloaded via bunfig.toml.
  * We exercise the real entityStore to keep tests honest.
@@ -33,6 +34,7 @@ const convexMocks = await installConvexMocks({
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
 const { clearCache, _resetDbSingleton } = await import('../../../lib/db/index')
 const { useEntityStore } = await import('../../../stores/entityStore')
+const { usePatternStore } = await import('../../../stores/patternStore')
 const { Roster } = await import('../Roster')
 
 withSignedInBackend()
@@ -54,7 +56,7 @@ const basePilotInput = {
   schemaVersion: 1 as const,
   name: 'Yara Voss',
   callsign: 'Ghost',
-  classRef: 'scavenger',
+  classRef: 'engineer',
   abilities: [],
   equipment: [],
   motto: 'Everything burns.',
@@ -88,6 +90,7 @@ function resetEntityStore(): void {
       softLinks: false,
     },
   })
+  usePatternStore.setState({ mechPatterns: [], hydrated: false })
 }
 
 /**
@@ -103,13 +106,8 @@ async function settle(done: () => boolean): Promise<void> {
   }
 }
 
-/**
- * Render Roster and wait for hydration to complete (inside act). After
- * hydration the tree is either the normal grid (Pilots heading) or the
- * first-run welcome panel (Welcome heading) — poll on whichever appears so the
- * helper works for both an empty store and a seeded one.
- */
-async function renderRoster() {
+/** Render Shelves and wait for the shelves to replace the skeleton. */
+async function renderShelves() {
   await act(async () => {
     render(
       <ConnectionContext.Provider value={CONNECTED}>
@@ -117,26 +115,27 @@ async function renderRoster() {
       </ConnectionContext.Provider>
     )
   })
-  await settle(
-    () =>
-      screen.queryByRole('heading', { name: 'Pilots' }) !== null ||
-      screen.queryByRole('heading', { name: /Welcome/i }) !== null
-  )
+  await settle(() => screen.queryByRole('heading', { name: 'Pilots' }) !== null)
 }
 
-/**
- * Seed one entity so the normal 3-column grid renders (any non-empty total
- * exits the first-run aggregate empty state). Returns after resetting the
- * in-memory store so the subsequent render re-hydrates from IndexedDB.
- */
-async function seedEntity(type: 'pilot' | 'mech', name: string): Promise<void> {
+/** Seed one entity into the cache, then forget it in memory so the render re-hydrates. */
+async function seedEntity(type: 'pilot' | 'mech', name: string): Promise<string> {
   const store = useEntityStore.getState()
   await store.hydrate(type)
-  await store.create(
+  const created = await store.create(
     type,
     type === 'pilot' ? { ...basePilotInput, name } : { ...baseMechInput, name }
   )
   resetEntityStore()
+  return created.id
+}
+
+/** Open an item's ⋯ menu and return it. */
+async function openMenu(name: string): Promise<HTMLElement> {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: `More for ${name}` }))
+  })
+  return screen.getByRole('menu')
 }
 
 // ---------------------------------------------------------------------------
@@ -144,8 +143,8 @@ async function seedEntity(type: 'pilot' | 'mech', name: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 beforeEach(async () => {
-  // Shelves, with no Games and no invitations.
-  setQueryAnswers({ 'games:listMine': [], 'invites:forMe': [] })
+  // Shelves, with no Games, no invitations and no shared patterns.
+  setQueryAnswers({ 'games:listMine': [], 'invites:forMe': [], 'shelf:patternSharing': [] })
   _resetDbSingleton()
   await clearCache()
   resetEntityStore()
@@ -160,52 +159,8 @@ afterEach(async () => {
 })
 
 // ---------------------------------------------------------------------------
-// Tests
+// Signed out: the front door
 // ---------------------------------------------------------------------------
-
-describe('Roster — section headings', () => {
-  test('renders three sections: Pilots, Mechs, Crawlers', async () => {
-    await seedEntity('pilot', 'Seed Pilot')
-    await renderRoster()
-
-    expect(screen.getByRole('heading', { name: 'Pilots' })).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Mechs' })).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Crawlers' })).toBeTruthy()
-  })
-
-  test('renders the mobile segmented entity switch with Pilots active', async () => {
-    await seedEntity('pilot', 'Seed Pilot')
-    await renderRoster()
-
-    const pilotsBtn = screen.getByRole('button', { name: 'Pilots' })
-    const mechsBtn = screen.getByRole('button', { name: 'Mechs' })
-    const crawlersBtn = screen.getByRole('button', { name: 'Crawlers' })
-    expect(pilotsBtn.getAttribute('aria-pressed')).toBe('true')
-    expect(mechsBtn.getAttribute('aria-pressed')).toBe('false')
-    expect(crawlersBtn.getAttribute('aria-pressed')).toBe('false')
-
-    await act(async () => {
-      fireEvent.click(mechsBtn)
-    })
-    expect(mechsBtn.getAttribute('aria-pressed')).toBe('true')
-    expect(pilotsBtn.getAttribute('aria-pressed')).toBe('false')
-  })
-
-  test('links the mech patterns route from the Mechs column head', async () => {
-    await seedEntity('pilot', 'Seed Pilot')
-    await renderRoster()
-
-    const patternsLink = screen.getByRole('link', { name: 'Patterns' })
-    expect((patternsLink as HTMLAnchorElement).href).toContain('/mechs/patterns')
-  })
-
-  test('renders the Download all / Import header row', async () => {
-    await renderRoster()
-
-    expect(screen.getByRole('button', { name: 'Download all' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Import…' })).toBeTruthy()
-  })
-})
 
 describe('Roster — signed out, it is the front door (board 09)', () => {
   // Outside any provider the connection is Solo: a signed-out visitor. Every
@@ -219,8 +174,8 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'In The Union Now' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Sign in to build' })).toBeTruthy()
-    expect(screen.queryByRole('link', { name: /Create Pilot|Build your first pilot/ })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Import…' })).toBeNull()
+    expect(screen.queryByRole('link', { name: /Create Pilot|New pilot/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Import' })).toBeNull()
     expect(screen.queryByRole('button', { name: '+ New game' })).toBeNull()
   })
 
@@ -263,113 +218,97 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
   })
 })
 
-describe('Roster — empty states', () => {
-  // Per-column empty states are only reachable once at least one entity exists
-  // (a wholly empty store shows the first-run welcome panel instead), so each
-  // test seeds a NON-target entity to render the grid with the target column
-  // empty.
-  test('shows Create Pilot CTA when no pilots exist', async () => {
-    await seedEntity('mech', 'Seed Mech')
-    await renderRoster()
-    const createPilotLinks = screen.getAllByRole('link', {
-      name: /Create Pilot/i,
-    })
-    expect(createPilotLinks.length).toBeGreaterThan(0)
-  })
+// ---------------------------------------------------------------------------
+// Signed in: Shelves
+// ---------------------------------------------------------------------------
 
-  test('shows Create Mech CTA when no mechs exist', async () => {
-    await seedEntity('pilot', 'Seed Pilot')
-    await renderRoster()
-    const createMechLinks = screen.getAllByRole('link', {
-      name: /Create Mech/i,
-    })
-    expect(createMechLinks.length).toBeGreaterThan(0)
-  })
+describe('Shelves — the band', () => {
+  test('the notched title, the Showing toggle on Everything, Import and Export all', async () => {
+    await renderShelves()
 
-  test('shows Create Crawler CTA when no crawlers exist', async () => {
-    await seedEntity('pilot', 'Seed Pilot')
-    await renderRoster()
-    const createCrawlerLinks = screen.getAllByRole('link', {
-      name: /Create Crawler/i,
-    })
-    expect(createCrawlerLinks.length).toBeGreaterThan(0)
+    expect(screen.getByRole('heading', { level: 1, name: 'Shelves' })).toBeTruthy()
+    expect(screen.getByText(/Units in a Game stay on your shelf too\./)).toBeTruthy()
+    const showing = screen.getByRole('group', { name: 'Showing' })
+    expect(
+      within(showing)
+        .getAllByRole('button')
+        .map((b) => [b.textContent, b.getAttribute('aria-pressed')])
+    ).toEqual([
+      ['Everything', 'true'],
+      ['Not in a Game', 'false'],
+    ])
+    expect(screen.getByRole('button', { name: 'Import' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Export all' })).toBeTruthy()
+    // "My Stuff" is gone: the page is Shelves.
+    expect(screen.queryByText(/My Stuff/)).toBeNull()
   })
 })
 
-describe('Roster — first-run welcome', () => {
-  test('shows the welcome panel and build CTA when the store is wholly empty', async () => {
-    await renderRoster()
+describe('Shelves — one shelf per kind', () => {
+  test('Pilots, Mechs, Crawlers, Patterns and NPCs, then the Starter Set', async () => {
+    await renderShelves()
 
-    expect(screen.getByRole('heading', { name: /Welcome to In the Union Now/i })).toBeTruthy()
-    const buildLink = screen.getByRole('link', { name: /Build your first pilot/i })
-    expect((buildLink as HTMLAnchorElement).href).toContain('/pilots/new')
-    // Normal grid headings are absent in the first-run state.
-    expect(screen.queryByRole('heading', { name: 'Pilots' })).toBeFalsy()
+    for (const name of ['Pilots', 'Mechs', 'Crawlers', 'Patterns', 'NPCs', 'Starter Set']) {
+      expect(screen.getByRole('region', { name })).toBeTruthy()
+    }
   })
 
-  test('reverts to the normal grid once any entity exists', async () => {
-    await seedEntity('pilot', 'Seed Pilot')
-    await renderRoster()
+  test('each unit shelf builds a new one onto the shelf', async () => {
+    await renderShelves()
 
-    expect(screen.getByRole('heading', { name: 'Pilots' })).toBeTruthy()
-    expect(screen.queryByRole('heading', { name: /Welcome to In the Union Now/i })).toBeFalsy()
+    const hrefOf = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
+    expect(hrefOf('+ New pilot')).toBe('/pilots/new')
+    expect(hrefOf('+ New mech')).toBe('/mechs/new')
+    expect(hrefOf('+ New crawler')).toBe('/crawlers/new')
+    expect(screen.getByRole('button', { name: '+ From a mech' })).toBeTruthy()
+  })
+
+  test('an empty shelf says so', async () => {
+    await renderShelves()
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    expect(within(pilots).getByText('No pilots yet.')).toBeTruthy()
+  })
+
+  test('patterns are user-made, and the NPC shelf waits for the designer', async () => {
+    await renderShelves()
+    expect(screen.getByText('User-made: dashed, like everything players make.')).toBeTruthy()
+    const npcs = screen.getByRole('region', { name: 'NPCs' })
+    expect(within(npcs).getByText(/The NPC designer is on its way/)).toBeTruthy()
+    expect(within(npcs).queryByRole('button')).toBeNull()
+  })
+
+  test('the Starter Set is read-only: each unit opens its sheet to read', async () => {
+    await renderShelves()
+    const starter = screen.getByRole('region', { name: 'Starter Set' })
+    expect(within(starter).getByText('read-only')).toBeTruthy()
+    expect(within(starter).getByRole('link', { name: 'Read Bonesaw' }).getAttribute('href')).toBe(
+      '/starter/pilot/starter-pilot-bonesaw'
+    )
+    // Thirteen: six pilots, six mechs and the crawler.
+    expect(within(starter).getAllByRole('link')).toHaveLength(13)
   })
 })
 
-describe('Roster — Starter Set', () => {
-  // Reference, not builds: the header links its own page rather than seeding
-  // it into your shelves.
-  test('the header links the Starter Set, and nothing is seeded into your shelves', async () => {
-    await renderRoster()
+describe('Shelves — items', () => {
+  test('an item is one line that opens its sheet, with a chip saying where it is', async () => {
+    const id = await seedEntity('pilot', 'Nia Vale')
+    await renderShelves()
 
-    const link = screen.getByRole('link', { name: 'Starter Set' })
-    expect((link as HTMLAnchorElement).href).toContain('/starter')
-    expect(screen.queryByRole('button', { name: 'Load Starter Set' })).toBeNull()
-    expect(screen.queryByText('Bonesaw')).toBeNull()
-  })
-})
-
-describe('Roster — entity listing', () => {
-  test('shows pilot name after hydration when pilot exists in db', async () => {
-    // Pre-seed the db before rendering
-    await useEntityStore.getState().hydrate('pilot')
-    await useEntityStore.getState().create('pilot', { ...basePilotInput, name: 'Kael Dusk' })
-
-    // Reset to un-hydrated to simulate a fresh render
-    resetEntityStore()
-
-    await renderRoster()
-
-    expect(screen.getByText('Kael Dusk')).toBeTruthy()
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    const line = within(pilots)
+      .getAllByRole('link')
+      .find((a) => a.getAttribute('href') === `/sheet/pilot/${id}`)
+    expect(line?.textContent).toContain('Nia Vale')
+    expect(line?.textContent).toContain('Pilot · Engineer')
+    expect(line?.textContent).toContain('HP')
+    expect(within(pilots).getByText('Not in a Game')).toBeTruthy()
   })
 
-  test('row has a Sheet link that opens the live sheet', async () => {
-    await useEntityStore.getState().hydrate('pilot')
-    const pilot = await useEntityStore
-      .getState()
-      .create('pilot', { ...basePilotInput, name: 'Nia Vale' })
-    resetEntityStore()
-
-    await renderRoster()
-
-    // The link's accessible name now carries the entity (`View <name>`) so a rail
-    // of rows is distinguishable to a screen reader; the visible text is still 'View'.
-    const sheetLinks = screen.getAllByRole('link', { name: /^View / })
-    expect(sheetLinks.length).toBe(1)
-    expect((sheetLinks[0] as HTMLAnchorElement).href).toContain(`/sheet/pilot/${pilot.id}`)
-  })
-
-  test('row meta encodes cross-links as tone-tinted badges linking to the target sheet', async () => {
+  test('linked units are named in each other’s chips', async () => {
     const store = useEntityStore.getState()
     await Promise.all([store.hydrate('pilot'), store.hydrate('mech'), store.hydrate('softLink')])
-    const pilot = await store.create('pilot', {
-      ...basePilotInput,
-      name: 'Mara Vex',
-    })
-    const mech = await store.create('mech', {
-      ...baseMechInput,
-      name: 'Iron Fist',
-    })
+    const pilot = await store.create('pilot', { ...basePilotInput, name: 'Mara Vex' })
+    const mech = await store.create('mech', { ...baseMechInput, name: 'Iron Fist' })
     await store.create('softLink', {
       from: { type: 'mech', id: mech.id },
       to: { type: 'pilot', id: pilot.id },
@@ -377,93 +316,103 @@ describe('Roster — entity listing', () => {
     })
     resetEntityStore()
 
-    await renderRoster()
+    await renderShelves()
 
-    // Pilot row meta names the assigned mech; mech row meta names the pilot.
-    // These used to be muted '↳ Name' text; they are now Badges tinted with the
-    // TARGET's ontology tone, so the assertion is on the link + its tone class
-    // rather than on the arrow glyph.
-    // Targeted by accessible name, not by href: every row also has its own
-    // "View" link to the same sheet, so href alone matches two elements.
-    // The label names the TARGET, so the pilot row's badge reads "Iron Fist".
-    const toMech = screen.getByRole('link', { name: /open iron fist's mech sheet/i })
-    const toPilot = screen.getByRole('link', { name: /open mara vex's pilot sheet/i })
-    expect(toMech.getAttribute('href')).toBe(`/sheet/mech/${mech.id}`)
-    expect(toPilot.getAttribute('href')).toBe(`/sheet/pilot/${pilot.id}`)
-    expect(toMech.textContent).toContain('Iron Fist')
-    expect(toPilot.textContent).toContain('Mara Vex')
+    expect(screen.getByText('Linked: Iron Fist')).toBeTruthy()
+    expect(screen.getByText('Pilot: Mara Vex')).toBeTruthy()
+  })
 
-    // The tone is the destination's, not the row's — a pilot row's mech link is
-    // mech-toned. This is the whole point of the change. It is now carried as
-    // the Stat label plate's inline tint rather than a Badge tone class, so the
-    // assertion reads the token: same rule, different mechanism.
-    expect(toMech.innerHTML).toContain('--color-sheet-mech')
-    expect(toPilot.innerHTML).toContain('--color-sheet-pilot')
+  test('the ⋯ menu offers Open, Move, Make a copy, Save as pattern (mechs), Export and Delete', async () => {
+    await seedEntity('mech', 'Iron Jaw')
+    await renderShelves()
+
+    const menu = await openMenu('Iron Jaw')
+    expect(
+      within(menu)
+        .getAllByRole('menuitem')
+        .map((item) => item.textContent)
+    ).toEqual(['Open', 'Move to a Game…', 'Make a copy', 'Save as pattern', 'Export', 'Delete…'])
+  })
+
+  test('a pilot’s menu has no Save as pattern', async () => {
+    await seedEntity('pilot', 'Kael Dusk')
+    await renderShelves()
+
+    const menu = await openMenu('Kael Dusk')
+    expect(within(menu).queryByRole('menuitem', { name: 'Save as pattern' })).toBeNull()
   })
 })
 
-describe('Roster — delete flow', () => {
-  test('clicking delete opens confirm dialog with entity name', async () => {
-    await useEntityStore.getState().hydrate('pilot')
-    await useEntityStore.getState().create('pilot', { ...basePilotInput, name: 'Mira Cole' })
-    resetEntityStore()
+describe('Shelves — Make a copy', () => {
+  test('asks first, then puts a separate copy on the shelf', async () => {
+    await seedEntity('pilot', 'Fen Oya')
+    await renderShelves()
 
-    await renderRoster()
-
-    // Click the Delete button for the pilot
+    const menu = await openMenu('Fen Oya')
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Delete Mira Cole/i }))
+      fireEvent.click(within(menu).getByRole('menuitem', { name: 'Make a copy' }))
+    })
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog.textContent).toContain('Make a copy of Fen Oya?')
+
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Make a copy' }))
+    })
+    await settle(() => screen.queryByText('COPY OF Fen Oya') !== null)
+
+    expect(screen.getByText('COPY OF Fen Oya')).toBeTruthy()
+    expect(screen.getByText('Fen Oya')).toBeTruthy()
+    const names = useEntityStore
+      .getState()
+      .list('pilot')
+      .map((p) => p.name)
+    expect(names.sort()).toEqual(['COPY OF Fen Oya', 'Fen Oya'])
+  })
+})
+
+describe('Shelves — delete flow', () => {
+  test('Delete… opens the confirm, naming the build', async () => {
+    await seedEntity('pilot', 'Mira Cole')
+    await renderShelves()
+
+    const menu = await openMenu('Mira Cole')
+    await act(async () => {
+      fireEvent.click(within(menu).getByRole('menuitem', { name: 'Delete…' }))
     })
 
-    // The shared ConfirmDialog opens, an alert dialog naming the entity (its
-    // title renders visibly in the header plus the sr-only Dialog.Title)
     expect(screen.getByRole('alertdialog')).toBeTruthy()
     expect(screen.getAllByText(/Delete Mira Cole/i).length).toBeGreaterThan(0)
   })
 
-  test('confirming delete removes entity from listing', async () => {
-    await useEntityStore.getState().hydrate('pilot')
-    await useEntityStore.getState().create('pilot', { ...basePilotInput, name: 'Tov Heln' })
-    resetEntityStore()
+  test('confirming removes it from the shelf', async () => {
+    await seedEntity('pilot', 'Tov Heln')
+    await renderShelves()
 
-    await renderRoster()
-
-    // Open dialog
+    const menu = await openMenu('Tov Heln')
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Delete Tov Heln/i }))
+      fireEvent.click(within(menu).getByRole('menuitem', { name: 'Delete…' }))
     })
-
-    // Confirm deletion (drive the async store delete to completion inside act)
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
     })
     await settle(() => screen.queryAllByText('Tov Heln').filter((n) => n.isConnected).length === 0)
 
-    // Entity should no longer be in the connected document
-    const connected = screen.queryAllByText('Tov Heln').filter((n) => n.isConnected)
-    expect(connected.length).toBe(0)
+    expect(screen.queryAllByText('Tov Heln').filter((n) => n.isConnected)).toHaveLength(0)
   })
 
-  test('cancelling delete leaves entity in listing', async () => {
-    await useEntityStore.getState().hydrate('pilot')
-    await useEntityStore.getState().create('pilot', { ...basePilotInput, name: 'Fen Oya' })
-    resetEntityStore()
+  test('cancelling leaves it where it was', async () => {
+    await seedEntity('pilot', 'Fen Oya')
+    await renderShelves()
 
-    await renderRoster()
-
-    // Open dialog
+    const menu = await openMenu('Fen Oya')
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Delete Fen Oya/i }))
+      fireEvent.click(within(menu).getByRole('menuitem', { name: 'Delete…' }))
     })
-
-    // Cancel
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     })
 
-    // Entity should still be present
     expect(screen.getByText('Fen Oya')).toBeTruthy()
-    // Dialog should be closed
     expect(screen.queryByRole('alertdialog')).toBeFalsy()
   })
 })

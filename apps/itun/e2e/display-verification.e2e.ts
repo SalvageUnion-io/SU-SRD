@@ -85,20 +85,12 @@ test.describe('dashboard surfaces created entities with their identity', () => {
 
     // Name is displayed.
     await expect(page.getByText('Display Test Pilot').first()).toBeVisible({ timeout: 15_000 })
-    // EntityRow renders one link per entity, to its live sheet.
-    //
-    // Matched on the FULL accessible name, not the visible text. The visible
-    // label is "View" on every row, so the link carries
-    // `aria-label="View <name>"` — without it a screen-reader user hears
-    // "View, View, View" with no way to tell which unit each opens (WCAG 2.4.4).
-    //
-    // `/^View$/` therefore stopped matching the moment that aria-label landed,
-    // and this spec had been red every night since. Asserting the composed name
-    // fixes the break AND pins the accessibility fix, which a match on `href`
-    // alone would silently let regress.
-    await expect(page.getByRole('link', { name: 'View Display Test Pilot' })).toBeVisible({
-      timeout: 15_000,
-    })
+    // Each shelf item is one line that opens its live sheet (Shelves, board
+    // S1), and the line is named by what it is — kind, class, name, HP — so a
+    // screen-reader user can tell which unit each opens (WCAG 2.4.4).
+    const line = page.getByRole('link', { name: /Display Test Pilot/ })
+    await expect(line).toBeVisible({ timeout: 15_000 })
+    await expect(line).toHaveAttribute('href', /\/sheet\/pilot\//)
   })
 })
 
