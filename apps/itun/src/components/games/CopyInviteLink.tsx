@@ -22,13 +22,28 @@ import { failureMessage } from '../shared/useConfirm'
 
 type CopyInviteLinkProps = {
   gameId: Id<'games'>
-  /** Injectable clipboard writer for testing. */
-  clipboardWriter?: (text: string) => Promise<void>
+  /** Injectable clipboard writer for testing. Takes the URL as a promise. */
+  clipboardWriter?: (text: Promise<string>) => Promise<void>
+}
+
+/**
+ * WebKit (Safari and every iOS browser) allows a clipboard write only inside
+ * the user's gesture, and the invite token arrives over the Convex socket after
+ * it has expired. So the clipboard gets a promise inside the gesture
+ * (`ClipboardItem` accepts one); engines without it fall back to `writeText`.
+ */
+async function writeClipboardPromise(text: Promise<string>): Promise<void> {
+  if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+    const blob = text.then((t) => new Blob([t], { type: 'text/plain' }))
+    await navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob })])
+    return
+  }
+  await navigator.clipboard.writeText(await text)
 }
 
 function ConnectedCopyInviteLink({
   gameId,
-  clipboardWriter = (text) => navigator.clipboard.writeText(text),
+  clipboardWriter = writeClipboardPromise,
 }: CopyInviteLinkProps) {
   const link = useMutation(api.invites.link)
   const [busy, setBusy] = useState(false)
@@ -36,8 +51,8 @@ function ConnectedCopyInviteLink({
   async function copy(): Promise<void> {
     setBusy(true)
     try {
-      const token = await link({ gameId })
-      await clipboardWriter(inviteUrl(window.location.origin, token))
+      const url = link({ gameId }).then((token) => inviteUrl(window.location.origin, token))
+      await clipboardWriter(url)
       toast.success('Invite link copied', { id: 'invite-link-copy', duration: 2000 })
     } catch (err) {
       toast.error(failureMessage(err, 'The invite link could not be copied. Try again.'), {

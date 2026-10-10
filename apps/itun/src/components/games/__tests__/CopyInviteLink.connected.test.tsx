@@ -52,7 +52,7 @@ async function renderButton(): Promise<HTMLElement> {
         <CopyInviteLink
           gameId={'g1' as never}
           clipboardWriter={async (text) => {
-            copied.push(text)
+            copied.push(await text)
           }}
         />
       </ConnectionProvider>
