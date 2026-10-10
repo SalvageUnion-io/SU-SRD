@@ -596,7 +596,6 @@ launch config, port 61000) serves it from the package's own Vite dev server —
 the library's `src/`, `apps/itun/src/components/` and
 `apps/srd/src/components/`, lists every story in the sidebar and renders one at
 `?story=<story-id>`; it opens on `foundations--styleguide--overview`.
-[Capturing one](../packages/component-lib/CLAUDE.md#capturing-a-story).
 Story rules: [`packages/component-lib/CLAUDE.md`](../packages/component-lib/CLAUDE.md),
 enforced by `src/story-coverage.test.ts`; typecheck is what proves a story
 compiles.
@@ -5763,7 +5762,7 @@ table runner (ADR-030 §5), who alone assigns crew.
 The phone form is Guided Play, with the same enforcement, seat and Change Log
 as the canvas, so the taxonomy and the
 [rules and ITUN surfaces](#rules-and-itun-surfaces) matrix do not change.
-Built in issue #1256 ([origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) boards D4 and D5).
+Built in issue #1256 (boards D4 and D5).
 
 ### Context
 
