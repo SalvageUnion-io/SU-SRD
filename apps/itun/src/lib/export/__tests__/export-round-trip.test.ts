@@ -568,7 +568,7 @@ describe('identity: what keeps an id and what earns a new one', () => {
     const theirMechs: unknown[] = []
     const created: Record<string, string[]> = { pilot: [], mech: [], softLink: [] }
     const theirStore = {
-      hydrate: async () => {},
+      rehydrate: async () => {},
       list: (type: string) => (type === 'pilot' ? theirPilots : type === 'mech' ? theirMechs : []),
       create: async (type: string, input: Record<string, unknown>) => {
         const row = { ...input, id: crypto.randomUUID() }
@@ -598,7 +598,7 @@ describe('identity: what keeps an id and what earns a new one', () => {
 
     const captured: Record<string, unknown>[] = []
     const theirStore = {
-      hydrate: async () => {},
+      rehydrate: async () => {},
       list: () => [],
       create: async (_type: string, input: Record<string, unknown>) => {
         captured.push(input)

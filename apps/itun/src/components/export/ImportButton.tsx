@@ -23,14 +23,27 @@ import { useEntityStore } from '../../stores/entityStore'
 /** The inline summary on the ink band (Shelves): paper, not muted ink. */
 const ON_INK = { color: tokens.color.paper } satisfies CSSProperties
 
+/** The line an import leaves behind: what came in, and what was skipped. */
+function summaryText(summary: MergeSummary): string {
+  return `Imported: ${summary.created.pilots} pilot(s), ${summary.created.mechs} mech(s), ${summary.created.crawlers} crawler(s), ${summary.created.softLinks} link(s).${
+    summary.skippedDuplicates > 0 ? ` Skipped ${summary.skippedDuplicates} duplicate(s).` : ''
+  }`
+}
+
 type ImportButtonProps = {
   /** Extra classes for the button (the Shelves band's on-ink outline). */
   className?: string
   /** It sits on the ink band (Shelves, board S1): its summary reads in paper. */
   onInk?: boolean
+  /**
+   * Where the result goes. Given, the button reports its result line (or null
+   * to clear it) to the caller and renders none of its own, so the caller can
+   * set it on a line of its own instead of inside the button's flex item.
+   */
+  onResult?: (message: string | null) => void
 }
 
-export function ImportButton({ className, onInk = false }: ImportButtonProps = {}) {
+export function ImportButton({ className, onInk = false, onResult }: ImportButtonProps = {}) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -47,6 +60,7 @@ export function ImportButton({ className, onInk = false }: ImportButtonProps = {
     setBusy(true)
     setError(null)
     setSummary(null)
+    onResult?.(null)
 
     try {
       const text = await file.text()
@@ -54,11 +68,13 @@ export function ImportButton({ className, onInk = false }: ImportButtonProps = {
       const entityStore = useEntityStore.getState()
       const result = await mergeImport(bundle, entityStore)
       setSummary(result)
+      onResult?.(summaryText(result))
       const total = result.created.pilots + result.created.mechs + result.created.crawlers
       toast.success(`Import complete — ${total} entit${total === 1 ? 'y' : 'ies'} created.`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Import failed.'
       setError(message)
+      onResult?.(message)
       toast.error(message)
     } finally {
       setBusy(false)
@@ -84,12 +100,10 @@ export function ImportButton({ className, onInk = false }: ImportButtonProps = {
         tabIndex={-1}
         onChange={(e) => void handleFileChange(e)}
       />
-      <FieldError>{error}</FieldError>
-      {summary && !error && (
+      {!onResult && <FieldError>{error}</FieldError>}
+      {!onResult && summary && !error && (
         <p className="font-body text-xs text-wk-muted" style={onInk ? ON_INK : undefined}>
-          Imported: {summary.created.pilots} pilot(s), {summary.created.mechs} mech(s),{' '}
-          {summary.created.crawlers} crawler(s), {summary.created.softLinks} link(s).
-          {summary.skippedDuplicates > 0 && ` Skipped ${summary.skippedDuplicates} duplicate(s).`}
+          {summaryText(summary)}
         </p>
       )}
     </div>

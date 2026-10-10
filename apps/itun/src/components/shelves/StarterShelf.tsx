@@ -102,7 +102,7 @@ export function StarterShelf() {
             <AppLink
               href={`/starter/${unit.kind}/${unit.id}`}
               aria-label={`Read ${unit.name}`}
-              className={buttonVariants({ size: 'compact' })}
+              className={`${buttonVariants({ size: 'compact' })} shelves-starter__btn`}
               style={LINK}
             >
               {unit.name}

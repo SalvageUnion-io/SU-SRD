@@ -6,7 +6,7 @@ import { ROW_ACTION_COPY } from '../rowActionCopy'
 const said = (copy: ConfirmCopy) => [copy.title, ...copy.body, copy.confirmLabel].join(' ')
 
 describe('rowActionCopy', () => {
-  test('the personal shelf is "Shelves" in the confirms that mention it', () => {
+  test('the personal shelf is "your shelf" in the confirms that mention it', () => {
     const mentions = [
       ROW_ACTION_COPY.copy('Vex Arlo'),
       ROW_ACTION_COPY.leaveGame({
@@ -17,9 +17,8 @@ describe('rowActionCopy', () => {
       }),
     ]
     for (const copy of mentions) {
-      expect(said(copy).toLowerCase()).toContain('shelves')
-      expect(said(copy).toLowerCase()).not.toContain('shelf')
-      expect(said(copy).toLowerCase()).not.toContain('my stuff')
+      expect(said(copy)).toContain('your shelf')
+      expect(said(copy)).not.toContain('My Stuff')
     }
   })
 
@@ -58,9 +57,9 @@ describe('rowActionCopy', () => {
     // The pairing first, then the crew, whatever order the links came in.
     expect(copy.body).toEqual([
       "Mira Cole joins Union Crawler #430's roster.",
-      'Their pairing with Thresher (still on your shelves) is cleared.',
+      'Their pairing with Thresher (still on your shelf) is cleared.',
       "They leave Big Sal's crew.",
-      "You can move them back to your shelves later, but you'll need to make those assignments again.",
+      "You can move them back to your shelf later, but you'll need to make those assignments again.",
     ])
     expect(copy.confirmLabel).toBe('Move')
 
@@ -83,10 +82,10 @@ describe('rowActionCopy', () => {
         { type: 'pilot-to-crawler', other: { kind: 'pilot', name: 'Vex Arlo' } },
         { type: 'mech-to-crawler', other: { kind: 'mech', name: 'Thresher' } },
       ]).body[1]
-    ).toBe('Mira Cole, Vex Arlo and Thresher (still on your shelves) leave its crew.')
+    ).toBe('Mira Cole, Vex Arlo and Thresher (still on your shelf) leave its crew.')
     expect(
       enter([{ type: 'mech-to-crawler', other: { kind: 'mech', name: 'Thresher' } }]).body[1]
-    ).toBe('Thresher (still on your shelves) leaves its crew.')
+    ).toBe('Thresher (still on your shelf) leaves its crew.')
   })
 
   test('a move into a game still reads as sentences when it cannot name an end or the game', () => {
@@ -114,7 +113,7 @@ describe('rowActionCopy', () => {
           { type: 'mech-to-crawler', other: { kind: 'mech', name: null } },
         ],
       }).body[1]
-    ).toBe('Mira Cole (still on your shelves) and 1 more leave its crew.')
+    ).toBe('Mira Cole (still on your shelf) and 1 more leave its crew.')
   })
 
   test('a copy names the build it will make', () => {

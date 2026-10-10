@@ -75,39 +75,68 @@ const NAME = {
 
 const READING = { flex: 'none' } satisfies CSSProperties
 
+/** Clip to nothing without leaving the accessibility tree. */
+const VISUALLY_HIDDEN = {
+  border: 0,
+  clip: 'rect(0 0 0 0)',
+  clipPath: 'inset(50%)',
+  height: '1px',
+  margin: '-1px',
+  overflow: 'hidden',
+  padding: 0,
+  position: 'absolute',
+  whiteSpace: 'nowrap',
+  width: '1px',
+} satisfies CSSProperties
+
 type ShelfPillProps = {
   kind: ShelfKind
   /** The stamp: "Pilot · Engineer". */
   kicker: string
   name: string
   reading?: ShelfReading
-  /** Where the line opens. */
-  href: string
+  /** Where the line opens; a line with nowhere to open is not a link. */
+  href?: string
   /** A pattern or an NPC: dashed, its name quoted (ruleset §3.9). */
   userMade?: boolean
 }
 
 export function ShelfPill({ kind, kicker, name, reading, href, userMade = false }: ShelfPillProps) {
   const tone = TONE[kind]
-  return (
-    <AppLink
-      href={href}
-      className="su-focus-ring"
-      data-user-made={userMade || undefined}
-      style={{
-        ...PILL,
-        backgroundColor: tone.fill,
-        borderStyle: userMade ? 'dashed' : 'solid',
-        color: tone.text,
-      }}
-    >
+  const style = {
+    ...PILL,
+    backgroundColor: tone.fill,
+    borderStyle: userMade ? 'dashed' : 'solid',
+    color: tone.text,
+  } satisfies CSSProperties
+  const body = (
+    <>
       <span style={STAMP}>{kicker}</span>
       <span style={NAME}>{userMade ? `“${name}”` : name}</span>
+      {/* The dashes are the only visual cue, so the accessible name says it. */}
+      {userMade && <span style={VISUALLY_HIDDEN}>, user-made</span>}
       {reading && (
         <span style={READING}>
           <Stat orientation="horizontal" label={reading.label} value={reading.value} size="mini" />
         </span>
       )}
+    </>
+  )
+  if (href === undefined) {
+    return (
+      <span data-user-made={userMade || undefined} style={style}>
+        {body}
+      </span>
+    )
+  }
+  return (
+    <AppLink
+      href={href}
+      className="su-focus-ring"
+      data-user-made={userMade || undefined}
+      style={style}
+    >
+      {body}
     </AppLink>
   )
 }

@@ -269,12 +269,42 @@ describe('Shelves — one shelf per kind', () => {
     expect(within(pilots).getByText('No pilots yet.')).toBeTruthy()
   })
 
-  test('patterns are user-made, and the NPC shelf waits for the designer', async () => {
+  test('patterns are user-made, and the NPC shelf offers the designer', async () => {
     await renderShelves()
     expect(screen.getByText('User-made: dashed, like everything players make.')).toBeTruthy()
     const npcs = screen.getByRole('region', { name: 'NPCs' })
-    expect(within(npcs).getByText(/The NPC designer is on its way/)).toBeTruthy()
-    expect(within(npcs).queryByRole('button')).toBeNull()
+    expect(within(npcs).getByText(/No NPCs yet/)).toBeTruthy()
+    expect(within(npcs).queryByText(/on its way/)).toBeNull()
+    expect(within(npcs).getByRole('link', { name: '+ Design an NPC' }).getAttribute('href')).toBe(
+      '/npcs/new'
+    )
+  })
+
+  test('a designed NPC is a dashed line with who can see it, counted on the shelf', async () => {
+    const store = useEntityStore.getState()
+    await store.hydrate('npc')
+    const npc = await store.create('npc', {
+      schemaVersion: 1,
+      name: 'Doc Marrow',
+      position: 'Doc',
+      hitPoints: 6,
+      damageType: 'HP',
+      actions: [],
+      traits: [],
+    })
+    resetEntityStore()
+    await renderShelves()
+
+    const npcs = screen.getByRole('region', { name: 'NPCs' })
+    expect(within(npcs).getByText('1 · yours')).toBeTruthy()
+    const line = within(npcs)
+      .getAllByRole('link')
+      .find((a) => a.getAttribute('href') === `/sheet/npc/${npc.id}`)
+    expect(line?.getAttribute('data-user-made')).toBe('true')
+    // The dashes are the only visual cue, so the name says it too.
+    expect(line?.textContent).toContain('user-made')
+    expect(within(npcs).getByText('Only me')).toBeTruthy()
+    expect(within(npcs).getByRole('button', { name: 'More for Doc Marrow' })).toBeTruthy()
   })
 
   test('the Starter Set is read-only: each unit opens its sheet to read', async () => {
