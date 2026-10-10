@@ -709,15 +709,6 @@ describe('visiblePatterns (stored data tag — never computed)', () => {
     }
   })
 
-  it('tags exactly the Mech Monday patterns as homebrew', () => {
-    const all = getReference()
-      .Chassis.all()
-      .flatMap((c) => c.patterns)
-    const homebrew = all.filter((p) => p.homebrew)
-    expect(homebrew.length).toBeGreaterThan(0)
-    expect(homebrew).toEqual(all.filter((p) => p.source === 'Mech Monday'))
-  })
-
   it('every visible pattern carries its own source and page', () => {
     for (const chassis of getReference().Chassis.all()) {
       for (const pattern of visiblePatterns(chassis.patterns ?? [])) {
@@ -725,6 +716,19 @@ describe('visiblePatterns (stored data tag — never computed)', () => {
         expect(typeof pattern.page).toBe('number')
       }
     }
+  })
+})
+
+describe('homebrew patterns (stored data tag — never computed)', () => {
+  // One-way: Mech Monday is homebrew, but a homebrew pattern may come from
+  // another community source, so the tag is not just a copy of `source`.
+  it('tags every Mech Monday pattern as homebrew', () => {
+    const mechMonday = getReference()
+      .Chassis.all()
+      .flatMap((c) => c.patterns)
+      .filter((p) => p.source === 'Mech Monday')
+    expect(mechMonday.length).toBeGreaterThan(0)
+    expect(mechMonday.every((p) => p.homebrew === true)).toBe(true)
   })
 })
 

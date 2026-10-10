@@ -67,7 +67,7 @@ export const PatternSchema = z
         hidden: z
           .boolean()
           .describe(
-            'Withhold this pattern from every rendered surface while keeping the record in the dataset. A stored data tag (mirrors the legalStarting convention) — never computed from source. Set on the community-designed "Mech Monday" patterns, which are not rulebook-PDF-sourced.'
+            'Withhold this pattern from every rendered surface while keeping the record in the dataset. A stored data tag (mirrors the legalStarting convention) — never computed from source. Independent of `homebrew`: whether a pattern is shown is a display decision, not a statement about where it came from.'
           )
           .optional(),
         homebrew: z
