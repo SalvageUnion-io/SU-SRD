@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { rollTablePageData } from '../../components/RollTablePage'
-import { parseTypedRoll, rangeLabel, recordRoll, rowForRoll } from '../rollTablePage'
+import { outcomeLabel, parseTypedRoll, rangeLabel, recordRoll, rowForRoll } from '../rollTablePage'
 
 const need = <T>(value: T | undefined, label: string): T => {
   if (value === undefined) throw new Error(`fixture missing: ${label}`)
@@ -49,6 +49,26 @@ describe('rowForRoll', () => {
     const dramatic = need(rollTablePageData(firstOfType('dramatic')) ?? undefined, 'dramatic')
     expect(rowForRoll(dramatic.table, dramatic.rows, 20)?.key).toBe('20')
     expect(rowForRoll(dramatic.table, dramatic.rows, 5)).toBeUndefined()
+  })
+})
+
+describe('outcomeLabel — the earlier rolls', () => {
+  test('a table with no row labels reads "Roll N" for a hit, not a miss', () => {
+    const data = need(rollTablePageData(tableNamed('Crawler Damage')) ?? undefined, 'data')
+    expect(data.rows.some((row) => row.label === null)).toBe(true)
+    for (const roll of [9, 13, 15]) {
+      const row = rowForRoll(data.table, data.rows, roll)
+      expect(row).toBeDefined()
+      if (row?.label === null)
+        expect(outcomeLabel(data.table, data.rows, roll)).toBe(`Roll ${roll}`)
+    }
+  })
+
+  test('a labelled row reads its label; a roll with no row reads "No effect"', () => {
+    const core = need(rollTablePageData(tableNamed('Core Mechanic')) ?? undefined, 'core')
+    expect(outcomeLabel(core.table, core.rows, 20)).toBe('Nailed it')
+    const dramatic = need(rollTablePageData(firstOfType('dramatic')) ?? undefined, 'dramatic')
+    expect(outcomeLabel(dramatic.table, dramatic.rows, 5)).toBe('No effect')
   })
 })
 

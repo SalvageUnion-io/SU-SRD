@@ -19,6 +19,10 @@ export type CardProseContext = {
   chassisName: string | undefined
   headerBg: string | undefined
   headerBgColor: string | undefined
+  /** Overrides the compact/regular size class. A page's prose passes `''` so it
+   * inherits `.su-entity-page__prose`'s reading size; a leaf size class would
+   * beat the inherited one. */
+  fontSize?: string
 }
 
 /** A run of content blocks, rendered in the card's own prose styling. */
@@ -35,7 +39,7 @@ export function CardProse({
       body={body}
       compact={context.compact}
       chassisName={context.chassisName}
-      fontSize={context.compact ? 'text-xs' : 'text-sm'}
+      fontSize={context.fontSize ?? (context.compact ? 'text-xs' : 'text-sm')}
       headerBg={context.headerBg}
       headerBgColor={context.headerBgColor}
     />
