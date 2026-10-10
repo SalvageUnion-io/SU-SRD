@@ -63,6 +63,10 @@ export function previewStats(answer: PreviewAnswer): OgCardStat[] {
         { label: 'HP', value: pool(num(body, 'currentHP'), pilotMaxHP(input)) },
         { label: 'AP', value: pool(num(body, 'currentAP'), pilotMaxAP(input)) },
         { label: 'TP', value: String(num(body, 'currentTP') ?? 0) },
+        {
+          label: 'Mech',
+          value: answer.mechChassisRef ? referenceName('chassis', answer.mechChassisRef) : '—',
+        },
       ]
     }
     case 'mech': {

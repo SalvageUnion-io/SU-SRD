@@ -69,8 +69,9 @@ function SheetSurface({ kind, id }: { kind: PreviewKind; id: string }) {
 
 function InviteSurface({ code }: { code: string }) {
   const answer = useQuery(api.publicSheet.invitePreview, { code })
-  if (answer === undefined || answer === null) return null
-  return <Ready card={inviteCard(answer, host())} />
+  if (answer === undefined) return null
+  // An unknown or expired code gets the plain card, never a blank page.
+  return <Ready card={answer === null ? privateCard(host()) : inviteCard(answer, host())} />
 }
 
 export function LinkPreviewSurface({ kind, id }: { kind: string; id?: string }) {
