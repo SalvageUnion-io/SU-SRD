@@ -1,0 +1,35 @@
+/*
+ * shelves.css — the stateful half of the Shelves page's band controls
+ * (`components/shelves/ShelvesBand.tsx`, board S1); geometry and type are
+ * style objects there or the shared Button's. Only colour lives here, and every
+ * colour below changes on hover or on press — so each keeps its RESTING value
+ * here too, beside the state that overrides it. Loaded by `index.css`.
+ *
+ * The band is ink, so its controls are paper on ink: an outlined button
+ * (Import, Export all, + New game) and the Showing toggle, whose pressed half
+ * is the inverse plate — paper with ink text — as the Union bar's Reference |
+ * Build switcher draws its current side.
+ */
+
+.shelves-band__btn {
+  background-color: transparent;
+  border-color: var(--color-paper);
+  color: var(--color-paper);
+}
+.shelves-band__btn:hover:not(:disabled) {
+  background-color: var(--color-paper-15);
+}
+
+.shelves-toggle__option {
+  background-color: transparent;
+  color: var(--color-paper);
+  cursor: pointer;
+}
+.shelves-toggle__option:hover {
+  background-color: var(--color-paper-15);
+}
+.shelves-toggle__option[aria-pressed='true'],
+.shelves-toggle__option[aria-pressed='true']:hover {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}

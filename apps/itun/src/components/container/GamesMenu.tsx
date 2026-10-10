@@ -1,7 +1,7 @@
 /**
  * The masthead's Games menu — pick what the Roster shows (ADR-030 §2).
  *
- * "Shelves" (the personal Shelf) heads the list, then every Game the player is
+ * "Shelves" (the personal shelf, issue 1279) heads the list, then every Game the player is
  * in, each with their role in it. Picking one opens where it is shown: Shelves
  * at `/`, or the Game's own page at `/games/$gameId` (issue 1255). It is the same
  * decision the Roster's own "Showing" select (`ContainerSwitcher`) makes,

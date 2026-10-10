@@ -1,5 +1,5 @@
 import { Menu } from '@base-ui/react/menu'
-import { FOCUS_RING } from 'component-lib'
+import { buttonVariants, FOCUS_RING } from 'component-lib'
 import {
   borderWidth,
   color,
@@ -10,7 +10,7 @@ import {
   tracking,
   weight,
 } from 'component-lib/design/tokens'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Ellipsis } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { Fragment } from 'react'
 
@@ -40,8 +40,10 @@ import { Fragment } from 'react'
  * ## Styling
  *
  * The trigger is the masthead's paper-on-ink nav-link treatment, so it sits
- * beside the bar's links as one of them. It is the only surface this renders on
- * today; a second surface earns its own modifier when it exists. Colour lives
+ * beside the bar's links as one of them. The second surface is a shelf item's
+ * "⋯" on Shelves (board S1): `variant="overflow"` draws the trigger as a square
+ * ink-outlined button on paper with the ellipsis glyph, and a row with
+ * `tone: 'danger'` (Delete…) reads in the danger colour. Colour lives
  * in `.header-menu-trigger` / `.header-menu-item` (`styles/headerMenu.css`)
  * because it changes on hover, on open and on highlight (resting value included — the per-property split rule);
  * everything static is a style object.
@@ -55,6 +57,8 @@ export type HeaderMenuItem = {
   hint?: ReactNode
   /** Runs on click, Enter or Space; the menu closes afterwards. Omit for an inert row. */
   onSelect?: () => void
+  /** `danger` for a row that destroys something (Delete…). */
+  tone?: 'danger'
 }
 
 type HeaderMenuProps = {
@@ -77,6 +81,14 @@ type HeaderMenuProps = {
    * (`aria-current`, full paper and a rule beneath), as a link to this page would.
    */
   active?: boolean
+  /**
+   * `masthead` (default) — the Union bar's nav-link trigger. `overflow` — a
+   * square "⋯" button on paper (a shelf item's menu); it shows the glyph, so
+   * pass `label` to name it, and `trigger` is not drawn. `button` — the shared
+   * compact Button on paper, for a menu that is a page action (a shelf's
+   * "+ From a mech").
+   */
+  variant?: 'masthead' | 'overflow' | 'button'
 }
 
 const TRIGGER = {
@@ -94,6 +106,22 @@ const TRIGGER = {
   letterSpacing: tracking.capsTight,
   padding: `${space[4]} 0`,
   textTransform: 'uppercase',
+} satisfies CSSProperties
+
+// The overflow trigger: a square, 40px, ink-outlined button (board S1). Its
+// colours change on hover and while open, so they are the class's.
+const OVERFLOW_TRIGGER = {
+  alignItems: 'center',
+  borderRadius: radius.card,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.chrome,
+  cursor: 'pointer',
+  display: 'inline-flex',
+  flexShrink: 0,
+  height: '40px',
+  justifyContent: 'center',
+  padding: 0,
+  width: '40px',
 } satisfies CSSProperties
 
 const POSITIONER = {
@@ -173,19 +201,33 @@ export function HeaderMenu({
   chevron = true,
   align = 'end',
   active = false,
+  variant = 'masthead',
 }: HeaderMenuProps) {
   const filled = sections.filter((section) => section.length > 0)
+  const overflow = variant === 'overflow'
+  // The button variant is the shared Button's own classes, focus ring included.
+  const triggerClass =
+    variant === 'button'
+      ? buttonVariants({ size: 'compact' })
+      : `header-menu-trigger${overflow ? ' header-menu-trigger--overflow' : ''} ${FOCUS_RING}`
+  const triggerStyle = variant === 'button' ? undefined : overflow ? OVERFLOW_TRIGGER : TRIGGER
 
   return (
     <Menu.Root>
       <Menu.Trigger
-        className={`header-menu-trigger ${FOCUS_RING}`}
-        style={TRIGGER}
+        className={triggerClass}
+        style={triggerStyle}
         aria-label={label}
         aria-current={active ? 'page' : undefined}
       >
-        {trigger}
-        {chevron && <ChevronDown size={14} aria-hidden="true" />}
+        {overflow ? (
+          <Ellipsis size={18} aria-hidden="true" />
+        ) : (
+          <>
+            {trigger}
+            {chevron && <ChevronDown size={14} aria-hidden="true" />}
+          </>
+        )}
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner side="bottom" align={align} sideOffset={8} style={POSITIONER}>
@@ -196,7 +238,11 @@ export function HeaderMenu({
                 {section.map((item) => (
                   <Menu.Item
                     key={item.id}
-                    className="header-menu-item"
+                    className={
+                      item.tone === 'danger'
+                        ? 'header-menu-item header-menu-item--danger'
+                        : 'header-menu-item'
+                    }
                     style={ITEM}
                     disabled={item.onSelect === undefined}
                     onClick={item.onSelect}

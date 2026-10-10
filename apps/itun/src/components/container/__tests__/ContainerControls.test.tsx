@@ -3,8 +3,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import type { ComponentProps, ReactNode } from 'react'
 
 /**
- * The Game / Shelves controls (ADR-030 §2): the hub's "Showing" select, the
- * live-sheet move, and a Shelves row's "Move to game…".
+ * The Game / shelf controls (ADR-030 §2): the Game page's "Showing" select, the
+ * live-sheet move, and a shelf item's "Move to a Game…" (Shelves, board S1).
  *
  * What these pin: all three render nothing for somebody who is not signed in
  * (there is no second container to offer), all list the account's Games once
@@ -47,7 +47,7 @@ const convexMocks = await installConvexMocks({
 
 const { ContainerSwitcher } = await import('../ContainerSwitcher')
 const { MoveToContainerControl } = await import('../MoveToContainerControl')
-const { MoveToGameSelect } = await import('../MoveToGameSelect')
+const { MoveToGameDialog } = await import('../../shelves/MoveToGameDialog')
 const { useConfirm } = await import('../../shared/useConfirm')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 const { useEntityStore } = await import('../../../stores/entityStore')
@@ -422,69 +422,64 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
   })
 })
 
-type RowProps = Omit<ComponentProps<typeof MoveToGameSelect>, 'confirm'>
+type DialogProps = Omit<ComponentProps<typeof MoveToGameDialog>, 'confirm' | 'onClose'>
 
-/** The select as the Roster mounts it: the confirm owned by the page. */
-function RowHarness(props: RowProps) {
+/** The dialog as Shelves mounts it: the confirm owned by the page. */
+function DialogHarness(props: DialogProps) {
   const { confirm, dialog } = useConfirm()
   return (
     <>
-      <MoveToGameSelect {...props} confirm={confirm} />
+      <MoveToGameDialog {...props} onClose={() => {}} confirm={confirm} />
       {dialog}
     </>
   )
 }
 
-describe('MoveToGameSelect — "Move to game…" on a Shelves row', () => {
+/** `GAMES`, with who runs each — the shape the move rules read. */
+const GAMES_RUN = GAMES.map((g) => ({ ...g, tableRunner: false }))
+
+describe('MoveToGameDialog — "Move to a Game…" on a shelf item', () => {
   const RUN_AND_NOT = [
     { _id: 'g1', name: 'Run by me', tableRunner: true },
     { _id: 'g2', name: 'Not mine to run', tableRunner: false },
   ]
-  const optionsOf = (name: string) =>
-    [...(screen.getByLabelText(`Move ${name} to a game`) as HTMLSelectElement).options].map(
-      (o) => o.textContent
+  const choices = () =>
+    Array.from(
+      screen.getByRole('list', { name: 'Where to' }).querySelectorAll('button'),
+      (b) => b.textContent
     )
-
-  test('renders nothing for somebody who is not signed in', () => {
-    authed = false
-    const { container } = wrap(
-      <RowHarness entityType="pilot" entityId="p1" entity={{ name: 'Mira Cole', gameId: null }} />
-    )
-    expect(container.textContent).toBe('')
+  const pilotIn = (gameId: string | null) => ({
+    type: 'pilot' as const,
+    id: 'p1',
+    entity: { name: 'Mira Cole', gameId },
   })
 
   test('a pilot or mech may go into any of my Games', () => {
-    setQueryAnswers({ 'games:listMine': RUN_AND_NOT })
-    wrap(
-      <>
-        <RowHarness entityType="pilot" entityId="p1" entity={{ name: 'Mira', gameId: null }} />
-        <RowHarness entityType="mech" entityId="m1" entity={{ name: 'Jaw', gameId: null }} />
-      </>
-    )
-    expect(optionsOf('Mira')).toEqual(['Move to game…', 'Run by me', 'Not mine to run'])
-    expect(optionsOf('Jaw')).toEqual(['Move to game…', 'Run by me', 'Not mine to run'])
+    wrap(<DialogHarness subject={pilotIn(null)} games={RUN_AND_NOT} />)
+    expect(choices()).toEqual(['Run by me', 'Not mine to run'])
   })
 
-  test('a crawler only into a Game I run — and with none, there is no control at all', () => {
-    setQueryAnswers({ 'games:listMine': RUN_AND_NOT })
-    wrap(<RowHarness entityType="crawler" entityId="c1" entity={{ name: 'Hulk', gameId: null }} />)
-    expect(optionsOf('Hulk')).toEqual(['Move to game…', 'Run by me'])
+  test('out of a Game, the shelf reads "Not in a Game"', () => {
+    wrap(<DialogHarness subject={pilotIn('g1')} games={RUN_AND_NOT} />)
+    expect(choices()).toEqual(['Not in a Game', 'Not mine to run'])
+  })
+
+  test('a crawler only into a Game I run — and with none, it says so', () => {
+    const hulk = { type: 'crawler' as const, id: 'c1', entity: { name: 'Hulk', gameId: null } }
+    wrap(<DialogHarness subject={hulk} games={RUN_AND_NOT} />)
+    expect(choices()).toEqual(['Run by me'])
 
     cleanup()
-    setQueryAnswers({ 'games:listMine': [RUN_AND_NOT[1]] })
-    const { container } = wrap(
-      <RowHarness entityType="crawler" entityId="c1" entity={{ name: 'Hulk', gameId: null }} />
-    )
-    expect(container.textContent).toBe('')
+    wrap(<DialogHarness subject={hulk} games={RUN_AND_NOT.slice(1)} />)
+    expect(screen.queryByRole('list', { name: 'Where to' })).toBeNull()
+    expect(screen.getByText(/only into a Game you run/)).toBeTruthy()
   })
 
   test('moving in asks nothing and re-homes the same entity on the server', async () => {
     const pilot = await cachedPilot(null)
-    wrap(<RowHarness entityType="pilot" entityId="p1" entity={pilot} />)
+    wrap(<DialogHarness subject={{ type: 'pilot', id: 'p1', entity: pilot }} games={GAMES_RUN} />)
 
-    fireEvent.change(screen.getByLabelText('Move Mira Cole to a game'), {
-      target: { value: 'game:g2' },
-    })
+    fireEvent.click(screen.getByRole('button', { name: 'The Long Haul' }))
 
     await waitFor(() => expect(gameIdOf()).toBe('g2'))
     // Into a Game with nothing to clear: no confirm.
@@ -504,11 +499,9 @@ describe('MoveToGameSelect — "Move to game…" on a Shelves row', () => {
   test('a move that clears an assignment asks first and writes nothing until confirmed', async () => {
     const pilot = await cachedPilot(null)
     await crewingShelfCrawler()
-    wrap(<RowHarness entityType="pilot" entityId="p1" entity={pilot} />)
+    wrap(<DialogHarness subject={{ type: 'pilot', id: 'p1', entity: pilot }} games={GAMES_RUN} />)
 
-    fireEvent.change(screen.getByLabelText('Move Mira Cole to a game'), {
-      target: { value: 'game:g2' },
-    })
+    fireEvent.click(screen.getByRole('button', { name: 'The Long Haul' }))
 
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain('Move Mira Cole into The Long Haul?')
@@ -518,31 +511,12 @@ describe('MoveToGameSelect — "Move to game…" on a Shelves row', () => {
     expect(serverWrites).toHaveLength(0)
   })
 
-  test('Cancel leaves the row as it was', async () => {
-    const pilot = await cachedPilot(null)
-    await crewingShelfCrawler()
-    wrap(<RowHarness entityType="pilot" entityId="p1" entity={pilot} />)
-
-    const select = screen.getByLabelText('Move Mira Cole to a game') as HTMLSelectElement
-    fireEvent.change(select, { target: { value: 'game:g2' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-
-    expect(screen.queryByRole('alertdialog')).toBeNull()
-    expect(gameIdOf()).toBeNull()
-    expect(linkIds()).toEqual(['link-crew'])
-    expect(serverWrites).toHaveLength(0)
-    // Back on the placeholder: no move is chosen.
-    expect(select.value).toBe('')
-  })
-
   test('confirming moves it and clears the crew link', async () => {
     const pilot = await cachedPilot(null)
     await crewingShelfCrawler()
-    wrap(<RowHarness entityType="pilot" entityId="p1" entity={pilot} />)
+    wrap(<DialogHarness subject={{ type: 'pilot', id: 'p1', entity: pilot }} games={GAMES_RUN} />)
 
-    fireEvent.change(screen.getByLabelText('Move Mira Cole to a game'), {
-      target: { value: 'game:g2' },
-    })
+    fireEvent.click(screen.getByRole('button', { name: 'The Long Haul' }))
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Move' }))
     })
@@ -554,5 +528,16 @@ describe('MoveToGameSelect — "Move to game…" on a Shelves row', () => {
       appId: 'p1',
       gameId: 'g2',
     })
+  })
+
+  test('back out of a Game always asks first', async () => {
+    const pilot = await cachedPilot('g1')
+    wrap(<DialogHarness subject={{ type: 'pilot', id: 'p1', entity: pilot }} games={GAMES_RUN} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
+
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
+    expect(gameIdOf()).toBe('g1')
+    expect(serverWrites).toHaveLength(0)
   })
 })

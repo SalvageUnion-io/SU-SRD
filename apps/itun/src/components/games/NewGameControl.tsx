@@ -65,7 +65,12 @@ const HINT = { textAlign: 'left' } satisfies CSSProperties
 
 const ERROR = { ...HINT, color: tokens.color.rollCascade } satisfies CSSProperties
 
-function ConnectedNewGameControl() {
+type NewGameControlProps = {
+  /** Extra classes for the trigger (the Shelves band's on-ink outline). */
+  className?: string
+}
+
+function ConnectedNewGameControl({ className }: NewGameControlProps) {
   const [open, setOpen] = useState(false)
   // Read only while the dialog is open: the list is for choosing from, and a
   // subscription held for every visit to the hub would serve nobody.
@@ -116,7 +121,12 @@ function ConnectedNewGameControl() {
 
   return (
     <>
-      <Button variant="default" size="compact" onClick={() => openDialog(true)}>
+      <Button
+        variant="default"
+        size="compact"
+        onClick={() => openDialog(true)}
+        className={className}
+      >
         + New game
       </Button>
       <ModalShell open={open} onOpenChange={openDialog} title="New game">
@@ -195,8 +205,8 @@ function ConnectedNewGameControl() {
 }
 
 /** "+ New game" and its dialog; nothing at all outside Connected mode. */
-export function NewGameControl() {
+export function NewGameControl(props: NewGameControlProps) {
   const { mode } = useConnection()
   if (mode !== 'connected') return null
-  return <ConnectedNewGameControl />
+  return <ConnectedNewGameControl {...props} />
 }
