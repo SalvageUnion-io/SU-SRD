@@ -330,7 +330,7 @@ export const EditableStats: Story = () => {
 }
 
 /**
- * SUGGESTED — a rust "Suggested" stamp leading the sub-header, marking a
+ * SUGGESTED — an ink "Suggested" stamp leading the sub-header, marking a
  * recommended pick.
  */
 export const SuggestedItem: Story = () => (

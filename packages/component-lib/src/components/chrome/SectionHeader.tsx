@@ -14,7 +14,7 @@ type SectionHeaderProps = {
 }
 
 /**
- * SectionHeader — the centered "rule / LABEL / rule" band: a rust condensed-caps
+ * SectionHeader — the centered "rule / LABEL / rule" band: an ink condensed-caps
  * label flanked by two faint 1px leader rules. Promoted from srd's per-app
  * `.catalog-header` + `.catalog-group-title`. Distinct from `Slab`, which is a
  * left-aligned label with a single trailing rule.

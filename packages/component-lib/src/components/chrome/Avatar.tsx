@@ -52,7 +52,7 @@ export function Avatar({ src, name, size = 28 }: AvatarProps) {
     borderStyle: 'solid',
     borderWidth: borderWidth.hairline,
     boxSizing: 'border-box',
-    color: color.paper,
+    color: color.ink,
     display: 'inline-flex',
     flexShrink: 0,
     fontFamily: font.cond,

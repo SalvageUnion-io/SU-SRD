@@ -18,7 +18,7 @@
  * (DashboardCanvas.css) and the `.pc-grid` regions (DashboardGrid.css).
  */
 
-/* ---- Keyboard focus: the canonical rust ring, in raw CSS ----
+/* ---- Keyboard focus: the canonical ink ring, in raw CSS ----
  *
  * Every interactive surface in this file is a NATIVE <button>, so it takes
  * keyboard focus — but this
