@@ -5,9 +5,9 @@
  * counterpart of the pilot wizard's rollTableHelpers.
  */
 
+import { rollD20 } from 'component-lib'
 import type { SURefRollTable } from 'salvageunion-reference'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import { rollDie } from 'salvageunion-reference/rules'
 
 /** Roll-table names for mech wizard flavor fields. */
 export const MECH_ROLL_TABLE_NAMES = {
@@ -26,7 +26,8 @@ export type MechRollTableDeps = {
 
 const defaultDeps: MechRollTableDeps = {
   findTable: (name) => SalvageUnionReference.RollTables.getByName(name),
-  rollD20: () => rollDie(20),
+  // Not named Salvage Union tables: Randsum's plain d20 (component-lib).
+  rollD20,
 }
 
 /**

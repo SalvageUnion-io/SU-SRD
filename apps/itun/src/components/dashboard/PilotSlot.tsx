@@ -11,12 +11,12 @@
  * into never disagree about a maximum.
  */
 
-import { CountStepper } from 'component-lib'
+import { CountStepper, rollForTable } from 'component-lib'
 import { useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CriticalInjuryEffect } from 'salvageunion-reference/rules'
-import { pilotMaxHPParts, resolvePoolStart, rollDie } from 'salvageunion-reference/rules'
+import { pilotMaxHPParts, resolvePoolStart } from 'salvageunion-reference/rules'
 import { readReference } from '../../lib/readReference'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -147,8 +147,8 @@ export function PilotMajor({
     )
   }
 
-  function rollInjury() {
-    const { patch, effect } = critInjuryPatch(rollDie)
+  async function rollInjury() {
+    const { patch, effect } = critInjuryPatch(await rollForTable('Critical Injury'))
     const log = describeCritInjury(effect)
     runWrite(
       () => store.update('pilot', pilot.id, patch, DASHBOARD_TXN),

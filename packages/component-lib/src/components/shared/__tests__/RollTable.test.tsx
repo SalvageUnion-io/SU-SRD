@@ -7,13 +7,13 @@
  *
  * Two seams make that testable without a production change:
  *
- *  - **The die.** `RollTable.tsx` calls `rollDie(20)` inline with no injected
- *    roller, so `salvageunion-reference/rules` is replaced here with the real
- *    module plus a `rollDie` that serves a queue of chosen d20 values.
- *    `mock.module` is process-global (see `.claude/rules/testing-patterns.md`),
- *    hence the capture-before-mock and the `afterAll` restore — every other
- *    rules import must keep the real module in every file that runs after
- *    this one.
+ *  - **The die.** `RollTable.tsx` takes its dice from `utils/dice` inline with
+ *    no injected roller, so that module is replaced here with the real one
+ *    plus a `rollD20` and a `d20ForTable` that serve a queue of chosen d20
+ *    values. `mock.module` is process-global (see
+ *    `.claude/rules/testing-patterns.md`), hence the capture-before-mock and
+ *    the `afterAll` restore — every other dice import must keep the real
+ *    module in every file that runs after this one.
  *  - **The reveal delay.** Both variants set state inside a 300ms
  *    `setTimeout`, so tests drive fake timers rather than sleeping.
  *
@@ -32,7 +32,7 @@ import {
   mock,
   test,
 } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { CopyFeedbackProvider } from '../copyFeedbackContext'
 
 const ROLL_BUTTON = 'Roll on this table'
@@ -52,26 +52,33 @@ function nextRoll(): number {
 
 // Capture before mocking: a module namespace is a live view, so the spread has
 // to happen while it still reads as the real module.
-const realRules = { ...(await import('salvageunion-reference/rules')) }
+const realDice = { ...(await import('../../../utils/dice')) }
 
-mock.module('salvageunion-reference/rules', () => ({
-  ...realRules,
-  rollDie: () => nextRoll(),
+/** The table names the component asked a die for, in order. */
+const asked: string[] = []
+
+mock.module('../../../utils/dice', () => ({
+  ...realDice,
+  rollD20: () => nextRoll(),
+  d20ForTable: async (tableName: string) => {
+    asked.push(tableName)
+    return () => nextRoll()
+  },
 }))
 
 const { RollTable } = await import('../RollTable')
 
 afterAll(async () => {
-  mock.module('salvageunion-reference/rules', () => realRules)
+  mock.module('../../../utils/dice', () => realDice)
 
-  // Prove the restore actually took. No other component-lib test rolls, so a
-  // leaked mock would surface as "roll queue exhausted" thrown from some
-  // unrelated file — exactly the confusing, far-away failure the
-  // capture-and-restore dance exists to prevent. Assert it here instead.
-  const { rollDie } = await import('salvageunion-reference/rules')
-  const total = rollDie(20)
+  // Prove the restore actually took. A leaked mock would surface as "roll
+  // queue exhausted" thrown from some unrelated file — exactly the confusing,
+  // far-away failure the capture-and-restore dance exists to prevent. Assert
+  // it here instead.
+  const { rollD20 } = await import('../../../utils/dice')
+  const total = rollD20()
   if (!Number.isInteger(total) || total < 1 || total > 20) {
-    throw new Error(`salvageunion-reference/rules was not restored: rollDie(20) gave ${total}`)
+    throw new Error(`utils/dice was not restored: rollD20() gave ${total}`)
   }
 })
 
@@ -96,6 +103,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   queued = []
+  asked.length = 0
   copied.length = 0
   jest.useFakeTimers()
 })
@@ -104,20 +112,26 @@ afterEach(() => {
   jest.useRealTimers()
 })
 
-/** Click Roll and run out the 300ms reveal. */
-function rollAndReveal(): void {
-  fireEvent.click(screen.getByLabelText(ROLL_BUTTON))
+/** Let the (async) die land, then run out the 300ms reveal. */
+async function reveal(): Promise<void> {
+  await act(async () => {
+    await Promise.resolve()
+  })
   act(() => {
     jest.advanceTimersByTime(REVEAL_MS)
   })
 }
 
+/** Click Roll and run out the 300ms reveal. */
+async function rollAndReveal(): Promise<void> {
+  fireEvent.click(screen.getByLabelText(ROLL_BUTTON))
+  await reveal()
+}
+
 /** Click a result-bar action by its visible label and run out any reveal. */
-function clickAction(label: string): void {
+async function clickAction(label: string): Promise<void> {
   fireEvent.click(screen.getByText(label))
-  act(() => {
-    jest.advanceTimersByTime(REVEAL_MS)
-  })
+  await reveal()
 }
 
 /** The single `role="status"` live region each variant renders. */
@@ -171,7 +185,7 @@ const COLUMNS_TABLE = {
 // ---------------------------------------------------------------------------
 
 describe('rolling a standard table', () => {
-  test('a roll announces the result and marks exactly one row selected', () => {
+  test('a roll announces the result and marks exactly one row selected', async () => {
     queued = [7]
     render(<RollTable table={RANGE_TABLE} showCommand tableName="Core Mechanic" />)
 
@@ -179,7 +193,7 @@ describe('rolling a standard table', () => {
     expect(announcement()).toBe('')
     expect(document.querySelectorAll('[aria-selected="true"]')).toHaveLength(0)
 
-    rollAndReveal()
+    await rollAndReveal()
 
     // 7 falls in the 2-10 band, so that is the row that must light up.
     expect(announcement()).toBe('Rolled 2-10: Tough Choice - it works, but')
@@ -188,7 +202,20 @@ describe('rolling a standard table', () => {
     expect(selected[0]?.textContent).toContain('Tough Choice')
   })
 
-  test('the result is reported to the consumer with its label folded in', () => {
+  test('a named table asks for its own die; an unnamed one rolls a plain d20', async () => {
+    queued = [7, 7]
+    render(<RollTable table={RANGE_TABLE} showCommand tableName="Core Mechanic" />)
+    await rollAndReveal()
+    expect(asked).toEqual(['Core Mechanic'])
+
+    cleanup()
+    render(<RollTable table={RANGE_TABLE} showCommand />)
+    await rollAndReveal()
+    expect(asked).toEqual(['Core Mechanic'])
+    expect(queued).toEqual([])
+  })
+
+  test('the result is reported to the consumer with its label folded in', async () => {
     const reported: Array<[string, string]> = []
     queued = [20]
     render(
@@ -199,19 +226,19 @@ describe('rolling a standard table', () => {
       />
     )
 
-    rollAndReveal()
+    await rollAndReveal()
 
     expect(reported).toEqual([['Nailed It: nothing goes wrong', '20']])
   })
 
-  test('rerolling replaces the previous result rather than adding to it', () => {
+  test('rerolling replaces the previous result rather than adding to it', async () => {
     queued = [1, 20]
     render(<RollTable table={RANGE_TABLE} showCommand />)
 
-    rollAndReveal()
+    await rollAndReveal()
     expect(announcement()).toContain('Cascade Failure')
 
-    clickAction('Reroll')
+    await clickAction('Reroll')
 
     expect(announcement()).toBe('Rolled 20: Nailed It - nothing goes wrong')
     // The old row must have let go of its selection, not merely been joined.
@@ -221,10 +248,10 @@ describe('rolling a standard table', () => {
     expect(screen.queryAllByText('Reroll')).toHaveLength(1)
   })
 
-  test('clicking the selected row clears the result and silences the live region', () => {
+  test('clicking the selected row clears the result and silences the live region', async () => {
     queued = [20]
     render(<RollTable table={RANGE_TABLE} showCommand />)
-    rollAndReveal()
+    await rollAndReveal()
 
     const selected = document.querySelector('[aria-selected="true"]')
     if (!(selected instanceof HTMLElement)) throw new Error('expected a selected row')
@@ -235,10 +262,10 @@ describe('rolling a standard table', () => {
     expect(screen.queryByText('Reroll')).toBeNull()
   })
 
-  test('Enter on the selected row clears it too — the keyboard path is not a dead end', () => {
+  test('Enter on the selected row clears it too — the keyboard path is not a dead end', async () => {
     queued = [20]
     render(<RollTable table={RANGE_TABLE} showCommand />)
-    rollAndReveal()
+    await rollAndReveal()
 
     const selected = document.querySelector('[aria-selected="true"]')
     if (!(selected instanceof HTMLElement)) throw new Error('expected a selected row')
@@ -249,10 +276,10 @@ describe('rolling a standard table', () => {
     expect(announcement()).toBe('')
   })
 
-  test('Copy puts the labelled result text on the clipboard', () => {
+  test('Copy puts the labelled result text on the clipboard', async () => {
     queued = [20]
     render(<RollTable table={RANGE_TABLE} showCommand />)
-    rollAndReveal()
+    await rollAndReveal()
 
     fireEvent.click(screen.getByLabelText('Copy result to clipboard'))
 
@@ -271,7 +298,7 @@ describe('rolling a standard table', () => {
         <RollTable table={RANGE_TABLE} showCommand />
       </CopyFeedbackProvider>
     )
-    rollAndReveal()
+    await rollAndReveal()
 
     fireEvent.click(screen.getByLabelText('Copy result to clipboard'))
     await act(async () => {
@@ -281,11 +308,11 @@ describe('rolling a standard table', () => {
     expect(confirmed).toBe(1)
   })
 
-  test('a flat 1-20 table resolves on the rolled number itself', () => {
+  test('a flat 1-20 table resolves on the rolled number itself', async () => {
     queued = [13]
     render(<RollTable table={FLAT_TABLE} showCommand />)
 
-    rollAndReveal()
+    await rollAndReveal()
 
     expect(announcement()).toBe('Rolled 13: Outcome 13 - it happens 13')
   })
@@ -301,7 +328,7 @@ describe('rolling a standard table', () => {
 })
 
 describe('collapsible mode', () => {
-  test('starts collapsed, and a roll reveals the result without opening the table', () => {
+  test('starts collapsed, and a roll reveals the result without opening the table', async () => {
     queued = [20]
     render(<RollTable table={RANGE_TABLE} collapsible tableName="Core Mechanic" />)
 
@@ -309,7 +336,7 @@ describe('collapsible mode', () => {
     expect(screen.queryByText(/it works, but/, NOT_LIVE_REGION)).toBeNull()
     expect(screen.getByText('Show')).toBeTruthy()
 
-    rollAndReveal()
+    await rollAndReveal()
 
     // The rolled row slides out; the other 3 rows stay hidden.
     expect(announcement()).toContain('Nailed It')
@@ -318,14 +345,14 @@ describe('collapsible mode', () => {
     expect(screen.getByText('Show')).toBeTruthy()
   })
 
-  test('Clear is offered only in the slide-out, and empties it', () => {
+  test('Clear is offered only in the slide-out, and empties it', async () => {
     queued = [20]
     render(<RollTable table={RANGE_TABLE} collapsible />)
 
     // No result yet: no action bar at all.
     expect(screen.queryByLabelText('Clear result')).toBeNull()
 
-    rollAndReveal()
+    await rollAndReveal()
     expect(screen.getByLabelText('Clear result')).toBeTruthy()
 
     fireEvent.click(screen.getByLabelText('Clear result'))
@@ -389,12 +416,12 @@ describe('the title-as-picker trigger', () => {
 })
 
 describe('the columns variant', () => {
-  test('two rolls pick the column and the entry, and exactly that cell lights up', () => {
+  test('two rolls pick the column and the entry, and exactly that cell lights up', async () => {
     // 9 lands in the 9-12 column; 3 picks entry 3 within it.
     queued = [9, 3]
     render(<RollTable table={COLUMNS_TABLE} showCommand tableName="NPC Generator" />)
 
-    rollAndReveal()
+    await rollAndReveal()
 
     expect(announcement()).toBe('Column 9-12, Roll 3: 9-12 entry 3')
     const selected = document.querySelectorAll('[aria-selected="true"]')
@@ -402,33 +429,33 @@ describe('the columns variant', () => {
     expect(selected[0]?.textContent).toContain('9-12 entry 3')
   })
 
-  test('the column is chosen by range, not by the raw number', () => {
+  test('the column is chosen by range, not by the raw number', async () => {
     // 17..20 all share one column, so the boundary is the thing worth pinning.
     queued = [17, 1]
     render(<RollTable table={COLUMNS_TABLE} showCommand />)
 
-    rollAndReveal()
+    await rollAndReveal()
 
     expect(announcement()).toBe('Column 17-20, Roll 1: 17-20 entry 1')
   })
 
-  test('rerolling from the highlighted cell moves the highlight', () => {
+  test('rerolling from the highlighted cell moves the highlight', async () => {
     queued = [1, 1, 20, 20]
     render(<RollTable table={COLUMNS_TABLE} showCommand />)
 
-    rollAndReveal()
+    await rollAndReveal()
     expect(announcement()).toBe('Column 1-4, Roll 1: 1-4 entry 1')
 
-    clickAction('Reroll')
+    await clickAction('Reroll')
 
     expect(announcement()).toBe('Column 17-20, Roll 20: 17-20 entry 20')
     expect(document.querySelectorAll('[aria-selected="true"]')).toHaveLength(1)
   })
 
-  test('clicking the highlighted cell clears it', () => {
+  test('clicking the highlighted cell clears it', async () => {
     queued = [1, 1]
     render(<RollTable table={COLUMNS_TABLE} showCommand />)
-    rollAndReveal()
+    await rollAndReveal()
 
     const selected = document.querySelector('[aria-selected="true"]')
     if (!(selected instanceof HTMLElement)) throw new Error('expected a selected cell')
@@ -449,13 +476,13 @@ describe('the columns variant', () => {
     expect(document.querySelectorAll('tbody td')).toHaveLength(100)
   })
 
-  test('collapsed, a roll reveals only the rolled cell', () => {
+  test('collapsed, a roll reveals only the rolled cell', async () => {
     queued = [5, 6]
     render(<RollTable table={COLUMNS_TABLE} collapsible />)
 
     expect(screen.queryByText('5-8 entry 6', NOT_LIVE_REGION)).toBeNull()
 
-    rollAndReveal()
+    await rollAndReveal()
 
     expect(announcement()).toBe('Column 5-8, Roll 6: 5-8 entry 6')
     expect(screen.getByText(/5-8 entry 6/, NOT_LIVE_REGION)).toBeTruthy()

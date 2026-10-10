@@ -21,10 +21,11 @@ import { expect, test } from './fixtures'
  *
  * ## The dice
  *
- * `rollDie` draws one `Uint32Array` from `crypto.getRandomValues` per die. The
- * init script answers every one-element draw with 13, so every d20 lands on
- * 14: a Success on the Core Mechanic, and a safe Heat Check at any Heat below
- * 14. Any other draw (auth, ids) gets real randomness.
+ * Every die is Randsum's, which turns one `Math.random()` draw into a face
+ * (`Math.floor(r * sides) + 1`). The init script answers every draw with
+ * 13/20, so every d20 lands on 14: a Success on the Core Mechanic, and a safe
+ * Heat Check at any Heat below 14. Any other `Math.random` caller sees the
+ * same constant; `crypto` is left alone.
  *
  * ## Viewport
  *
@@ -41,16 +42,9 @@ const PHONES = [
   { width: 390, height: 844 },
 ] as const
 
-/** Every one-element Uint32 draw is 13, so every die `rollDie` throws is 14 on a d20. */
+/** Every `Math.random()` draw is 13/20, so every d20 Randsum rolls is 14. */
 function seedDice(): void {
-  const real = crypto.getRandomValues.bind(crypto)
-  crypto.getRandomValues = (<T extends ArrayBufferView | null>(array: T): T => {
-    if (array instanceof Uint32Array && array.length === 1) {
-      array[0] = 13
-      return array
-    }
-    return real(array as ArrayBufferView & Uint32Array) as unknown as T
-  }) as typeof crypto.getRandomValues
+  Math.random = () => 13 / 20
 }
 
 /** The page never scrolls sideways. */

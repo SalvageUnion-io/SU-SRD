@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, render, screen, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
 import { ConvexError } from 'convex/values'
@@ -604,6 +604,8 @@ describe("the Dashboard's display: the deck, the tabs and the table (plan layer 
       await act(async () => {
         screen.getByText('Roll').click()
       })
+      // The dice load on the first roll (component-lib's `rollForTable`).
+      await waitFor(() => expect(sent.some((w) => w.name === 'seats:setResolving')).toBe(true))
       const write = sent.find((w) => w.name === 'seats:setResolving')
       expect(write?.args).toMatchObject({
         gameId: GAME_ID,

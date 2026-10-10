@@ -13,7 +13,7 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
 import { useState } from 'react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
@@ -146,6 +146,19 @@ function ignoreRange(): void {
 }
 
 /**
+ * The deck's dice, injected: every die shows 14. A Core Mechanic Success; a
+ * Heat Check at Heat 14 or more overloads, and Reactor Overload 14 Overheats.
+ */
+const rollFourteen: NonNullable<ActionsDeckProps['rollFor']> = async () => () => 14
+
+/** Click a resolve control whose handler rolls, and let the (async) dice land. */
+async function clickRolling(text: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(screen.getByText(text))
+  })
+}
+
+/**
  * The deck as the Dashboard mounts it — the list beside the Resolve tab — with
  * the seat's `resolving` held in component state, as `useSeat`'s optimistic
  * update holds it. `written` records every write to the seat.
@@ -160,6 +173,7 @@ function ActionsDeck({
 }) {
   const [resolving, setResolving] = useState<SeatResolving | null>(initial)
   const deck = useActionsDeck({
+    rollFor: rollFourteen,
     ...props,
     resolving,
     onResolving: (next) => {
@@ -273,13 +287,13 @@ describe('the Actions deck', () => {
     expect(calls[0]?.patch.currentEP).toBe(Math.max(0, 6 - epCost))
   })
 
-  test('Roll shows a Core Mechanic band readout', () => {
+  test('Roll shows a Core Mechanic band readout', async () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
     expect(container.querySelector('.pc-deck-roll')).toBeNull()
-    fireEvent.click(screen.getByText('Roll'))
+    await clickRolling('Roll')
     expect(container.querySelector('.pc-deck-roll')).toBeTruthy()
     expect(container.querySelector('.pc-deck-d20')).toBeTruthy()
   })
@@ -337,7 +351,7 @@ describe('the Actions deck', () => {
     expect(sent).toEqual(['Far'])
   })
 
-  test('resolve panel exposes Back / Clear and an Apply gated on a roll', () => {
+  test('resolve panel exposes Back / Clear and an Apply gated on a roll', async () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
@@ -347,19 +361,19 @@ describe('the Actions deck', () => {
     // Apply is disabled until there is a roll to commit.
     const apply = screen.getByText<HTMLButtonElement>('Apply')
     expect(apply.disabled).toBe(true)
-    fireEvent.click(screen.getByText('Roll'))
+    await clickRolling('Roll')
     expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
     // Clear resets the resolve state (the roll readout disappears).
     fireEvent.click(screen.getByText('Clear'))
     expect(container.querySelector('.pc-deck-roll')).toBeNull()
   })
 
-  test('Apply commits a rolled outcome without ever auto-writing a destructive condition', () => {
+  test('Apply commits a rolled outcome without ever auto-writing a destructive condition', async () => {
     const mech = makeMech()
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
-    fireEvent.click(screen.getByText('Roll'))
+    await clickRolling('Roll')
     fireEvent.click(screen.getByText('Apply'))
     // Either the non-destructive auto-commit or the Cascade-Failure route note —
     // never both, and neither writes a destructive condition through the store.
@@ -580,12 +594,11 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
     expect(calls[0]?.patch.currentAP).toBe(apMax - 1)
   })
 
-  test('Push damages SP from the full pool when SP was never stored', () => {
+  test('Push damages SP from the full pool when SP was never stored', async () => {
     // Leviathan is SP 76 / Heat Cap 18. Starting at Heat 17 every Push clamps to
-    // the cap, so the Heat Check overloads on any d20 except a natural 20 (90%)
-    // and the 11-19 Overheat band (45%) then writes SP — ~40% of pushes. Over 80
-    // pushes at least one SP write is a certainty for any practical purpose.
-    // The damage is Heat-sized, so the expected write is 76 - 18 = 58, never 0.
+    // the cap, so the Heat Check's 14 overloads and Reactor Overload's 14 lands
+    // in the 11-19 Overheat band, which writes SP. The damage is Heat-sized, so
+    // the expected write is 76 - 18 = 58, never 0.
     const mech = mechFixture({
       id: 'm1',
       name: 'Rig',
@@ -602,12 +615,9 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
-    // Push stays disabled until a roll exists, and a pushed roll is not
-    // pushed again (Core Book p.233), so each Push gets a fresh roll.
-    for (let i = 0; i < 80; i += 1) {
-      fireEvent.click(screen.getByText('Roll'))
-      fireEvent.click(screen.getByText('Push'))
-    }
+    // Push stays disabled until a roll exists (Core Book p.233).
+    await clickRolling('Roll')
+    await clickRolling('Push')
 
     const spWrites = calls
       .map((c) => c.patch.currentSP)
@@ -625,7 +635,7 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
  * reopens on it.
  */
 describe('the resolve on the seat', () => {
-  test('open, activate, roll and back are each written to the seat', () => {
+  test('open, activate, roll and back are each written to the seat', async () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const written: (SeatResolving | null)[] = []
@@ -642,7 +652,7 @@ describe('the resolve on the seat', () => {
     )
     clickPrimaryAction(container)
     fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
-    fireEvent.click(screen.getByText('Roll'))
+    await clickRolling('Roll')
     fireEvent.click(screen.getByText('◀ Back'))
 
     const key = buildMechActions(mech)[0]?.key

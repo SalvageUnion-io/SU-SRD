@@ -16,6 +16,7 @@ import { buildPostedRollMessage, buildRollMessage } from './commands/roll.js'
 import { attributeRoll } from './commands/rollAttribution.js'
 import type { ContainerData } from './container.js'
 import { parseCustomId } from './customId.js'
+import { d20ForTable } from './dice.js'
 
 export async function handleButtonInteraction(
   interaction: CommandButtonInteraction
@@ -55,7 +56,7 @@ export async function handleButtonInteraction(
 
   const message =
     parsed.action === 'roll'
-      ? buildRollMessage(parsed.payload, roller)
+      ? buildRollMessage(parsed.payload, roller, await d20ForTable(parsed.payload))
       : buildTableLookupMessage(parsed.payload)
 
   if ('error' in message) {

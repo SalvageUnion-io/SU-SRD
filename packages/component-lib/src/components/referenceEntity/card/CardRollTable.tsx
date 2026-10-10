@@ -4,13 +4,13 @@ import { useState } from 'react'
 import type { SURefObjectTable } from 'salvageunion-reference'
 import { resultForTable } from 'salvageunion-reference'
 import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
+import { d20ForTable } from '../../../utils/dice'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Button } from '../../chrome/Button'
 import type { DigestedRollTable } from '../../shared/digestRollTable'
 import { digestRollTable } from '../../shared/digestRollTable'
 import type { CardSize } from '../../shared/displayMode'
 import { RollTable } from '../../shared/RollTable'
-import { rollTableDie } from '../../shared/rollTableDie'
 
 /** A roll on this table: the die and the row it landed on. */
 export type CardRoll = { roll: number; key: string }
@@ -121,11 +121,16 @@ export function CardRollTable({
   const rows = digestRollTable(table)
   const hit = rolled ? rows.find((row) => row.key === rolled.key) : undefined
   const roll = () => {
-    const die = rollTableDie()
-    const { key } = resultForTable(table, die)
-    setRolled({ roll: die, key })
-    const entry = rows.find((row) => row.key === key)
-    if (entry) onRollResult?.(entry.label ? `${entry.label}: ${entry.value}` : entry.value, key)
+    // A named table (the Core Mechanic's own card) rolls through
+    // @randsum/salvageunion; an entity's table gets Randsum's plain d20. Either
+    // way the row is read from this table's data, by the total.
+    void d20ForTable(name).then((d20) => {
+      const die = d20()
+      const { key } = resultForTable(table, die)
+      setRolled({ roll: die, key })
+      const entry = rows.find((row) => row.key === key)
+      if (entry) onRollResult?.(entry.label ? `${entry.label}: ${entry.value}` : entry.value, key)
+    })
   }
 
   return (

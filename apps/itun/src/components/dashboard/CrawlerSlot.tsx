@@ -21,10 +21,10 @@
  * through `transfer` as one all-or-nothing write (ADR-007).
  */
 
+import { rollForTable } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { rollDie } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import {
   crawlerUpgradeQuote,
@@ -192,11 +192,12 @@ export function CrawlerMajor({
   const fresh = () => store.get('crawler', crawler.id) ?? crawler
 
   /** Area Salvage (p.245) — roll, report, and deposit any scrap found. */
-  function doSalvage() {
+  async function doSalvage() {
+    const roll = await rollForTable('Area Salvage')
     const c = fresh()
     const { result, patch } = areaSalvageOutcome(c, {
       areaTl: crawlerTl ?? 1,
-      roll: rollDie,
+      roll,
     })
     const log = result.requiresPlayerChoice
       ? `${result.roll}: ${result.label} — pick a Damaged Chassis, System or Module at Tech ${result.areaTl}.`
@@ -353,7 +354,7 @@ export function CrawlerMajor({
             onClick: () =>
               crawlerTl === undefined
                 ? setPrompt({ kind: 'blocked', rule: NO_TECH_LEVEL_RULE })
-                : doSalvage(),
+                : void doSalvage(),
             title: 'Roll Area Salvage and deposit what you find',
           },
           { label: 'Craft', onClick: () => setPrompt({ kind: 'craft' }), title: 'Craft an item' },

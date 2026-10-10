@@ -19,10 +19,9 @@
 // The dashboard's `.pc-*` stylesheet (the canvas, grid and rail), loaded with
 // this route's chunk as the player Dashboard loads it with its own.
 import '../../styles/dashboard.css'
-import { toast } from 'component-lib'
+import { d20ForTable, toast } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import { useEffect, useRef, useState } from 'react'
-import { rollDie } from 'salvageunion-reference/rules'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -147,7 +146,9 @@ export function MediatorDashboard({ gameId, gameName }: { gameId: string; gameNa
       setHp: (npc, next) =>
         updateNpc({ npcId: npc.id as Id<'encounterNpcs'>, patch: { currentHp: next } }),
       morale: async (npc) => {
-        const result = rollMorale(() => rollDie(20), new Date().toISOString())
+        // Morale is a named Salvage Union table: its die is @randsum/salvageunion's
+        // rollTable('Morale'); rollMorale reads the row from our own data.
+        const result = rollMorale(await d20ForTable('Morale'), new Date().toISOString())
         if (result === null) throw new Error('The Morale table could not be read')
         await updateNpc({
           npcId: npc.id as Id<'encounterNpcs'>,

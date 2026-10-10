@@ -20,7 +20,7 @@
  * log (`dashboardRolls.ts`), where the crew's Log tab reads it.
  */
 
-import { CountStepper } from 'component-lib'
+import { CountStepper, rollForTable } from 'component-lib'
 import { useEffect, useState } from 'react'
 import type { CriticalDamageEffect } from 'salvageunion-reference/rules'
 import {
@@ -29,7 +29,6 @@ import {
   mechMaxSP,
   resolveGauge,
   resolvePoolStart,
-  rollDie,
 } from 'salvageunion-reference/rules'
 import { runWrite } from '../../lib/runWrite'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
@@ -173,7 +172,11 @@ export function MechMajor({
   // The rule a blocked control explains when the player reaches for it.
   const [blocked, setBlocked] = useState<StepRule | null>(null)
 
-  function doPush() {
+  /** A Heat Check's own d20 is plain; an overload rolls on Reactor Overload. */
+  const heatCheckDice = () => rollForTable('Reactor Overload', { plainD20s: 1 })
+
+  async function doPush() {
+    const roll = await heatCheckDice()
     const m = fresh()
     const cap = mechMaxHeat(m, chassis)
     const spMax = mechMaxSP(m, chassis, piloting)
@@ -181,7 +184,7 @@ export function MechMajor({
       heat: resolveGauge(m.currentHeat, cap),
       heatCap: cap,
       currentSP: resolvePoolStart(m.currentSP, spMax),
-      roll: rollDie,
+      roll,
     })
     const log = describePushOutcome(nextHeat, effect)
     runWrite(
@@ -198,14 +201,15 @@ export function MechMajor({
     })
   }
 
-  function doHeatCheck() {
+  async function doHeatCheck() {
+    const roll = await heatCheckDice()
     const m = fresh()
     const cap = mechMaxHeat(m, chassis)
     const spMax = mechMaxSP(m, chassis, piloting)
     const { patch, effect, meltdown } = heatCheckOncePatch({
       heat: resolveGauge(m.currentHeat, cap),
       currentSP: resolvePoolStart(m.currentSP, spMax),
-      roll: rollDie,
+      roll,
     })
     const log = describeHeatCheck(effect)
     runWrite(
@@ -259,8 +263,8 @@ export function MechMajor({
     )
   }
 
-  function rollCritical() {
-    const { patch, effect } = critDamagePatch(rollDie)
+  async function rollCritical() {
+    const { patch, effect } = critDamagePatch(await rollForTable('Critical Damage'))
     const log = describeCritDamage(effect)
     runWrite(
       () => store.update('mech', mech.id, patch, DASHBOARD_TXN),

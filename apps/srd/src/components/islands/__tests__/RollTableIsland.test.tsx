@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { rollTablePageData } from '../../RollTablePage'
@@ -15,10 +15,18 @@ const coreMechanic = () => {
   return data
 }
 
-/** A die that shows these faces in turn. */
+/** A die that shows these faces in turn, served the way `d20ForTable` serves one. */
 const dice = (...faces: number[]) => {
   let i = 0
-  return () => faces[i++ % faces.length] ?? 1
+  const die = () => faces[i++ % faces.length] ?? 1
+  return async () => die
+}
+
+/** Click a roll button and let the (async) die land. */
+async function roll(name: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name }))
+  })
 }
 
 describe('the roll-table page, before a roll (the server markup)', () => {
@@ -44,9 +52,9 @@ describe('the roll-table page, before a roll (the server markup)', () => {
 })
 
 describe('RollTableIsland', () => {
-  test('Roll reads the result in the panel and marks the row it lands on', () => {
-    render(<RollTableIsland data={coreMechanic()} rollD20={dice(14)} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Roll the die' }))
+  test('Roll reads the result in the panel and marks the row it lands on', async () => {
+    render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
+    await roll('Roll the die')
 
     const panel = screen.getByRole('region', { name: 'You rolled' })
     expect(within(panel).getByText('14')).toBeTruthy()
@@ -58,11 +66,27 @@ describe('RollTableIsland', () => {
     expect(rolled?.textContent).toContain('Success')
   })
 
-  test('Roll again keeps the earlier rolls, newest first', () => {
-    render(<RollTableIsland data={coreMechanic()} rollD20={dice(7, 20, 3)} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Roll the die' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Roll again' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Roll again' }))
+  test('rolls the die for this table, by its name', async () => {
+    const asked: string[] = []
+    const die = dice(14)
+    render(
+      <RollTableIsland
+        data={coreMechanic()}
+        dieFor={(tableName) => {
+          asked.push(tableName)
+          return die()
+        }}
+      />
+    )
+    await roll('Roll the die')
+    expect(asked).toEqual(['Core Mechanic'])
+  })
+
+  test('Roll again keeps the earlier rolls, newest first', async () => {
+    render(<RollTableIsland data={coreMechanic()} dieFor={dice(7, 20, 3)} />)
+    await roll('Roll the die')
+    await roll('Roll again')
+    await roll('Roll again')
 
     const earlier = screen.getByRole('heading', { name: 'Earlier rolls' }).parentElement
     const items = within(earlier as HTMLElement).getAllByRole('listitem')
@@ -70,7 +94,7 @@ describe('RollTableIsland', () => {
   })
 
   test('a roll made with real dice is recorded when the field is left', () => {
-    render(<RollTableIsland data={coreMechanic()} rollD20={dice(14)} />)
+    render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
     const field = screen.getByLabelText('Rolled real dice?')
     fireEvent.change(field, { target: { value: '1' } })
     fireEvent.blur(field)
@@ -79,7 +103,7 @@ describe('RollTableIsland', () => {
   })
 
   test('a typed roll no d20 can show is ignored', () => {
-    render(<RollTableIsland data={coreMechanic()} rollD20={dice(14)} />)
+    render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
     const field = screen.getByLabelText('Rolled real dice?')
     fireEvent.change(field, { target: { value: '25' } })
     fireEvent.blur(field)

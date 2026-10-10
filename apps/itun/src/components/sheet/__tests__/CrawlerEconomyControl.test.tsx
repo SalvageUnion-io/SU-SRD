@@ -100,7 +100,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
         store={store}
         open="upkeep"
         onClose={() => {}}
-        roll={seqRoll(1)}
+        rollFor={async () => seqRoll(1)}
       />
     )
 
@@ -127,7 +127,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
         store={store}
         open="upkeep"
         onClose={() => {}}
-        roll={seqRoll(4, 2)}
+        rollFor={async () => seqRoll(4, 2)}
       />
     )
 
@@ -158,7 +158,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
         store={store}
         open="upkeep"
         onClose={() => {}}
-        roll={seqRoll(15)}
+        rollFor={async () => seqRoll(15)}
       />
     )
 
@@ -178,7 +178,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
         store={store}
         open="upkeep"
         onClose={() => {}}
-        roll={seqRoll(7)}
+        rollFor={async () => seqRoll(7)}
       />
     )
 
@@ -292,7 +292,7 @@ describe('CrawlerEconomyControl — Trading Bay', () => {
         store={store}
         open="trade"
         onClose={() => {}}
-        roll={seqRoll(20)}
+        rollFor={async () => seqRoll(20)}
       />
     )
 
