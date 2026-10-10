@@ -1,60 +1,29 @@
 /**
- * Roster — the hub (design-spec §3.1, §3.7): Shelves at `/`, and a Game's own
- * page at `/games/$gameId` (issue 1255).
+ * Roster — what `/` and `/games/$gameId` show, by who is looking and which
+ * container the route picked (`activeContainerStore`):
  *
- * One container on screen at a time. The route picks it as it loads
- * (`activeContainerStore`), and the header's "Showing" select
- * (`ContainerSwitcher`) navigates between them:
+ *  - **Signed out** — the front door (`FrontDoor`, board 09).
+ *  - **Shelves** — everything you keep, on your account (`Shelves`, issue 1279,
+ *    board S1). Disconnected, it is also where a remembered Game falls through
+ *    to: with no live Game to show, the whole cached pile is the only rendering
+ *    that cannot lose a build.
+ *  - **A Game** — that table's own page (issue 1255): the band of hub controls
+ *    (backup, import, the Starter Set, the "Showing" select, "+ New game"), any
+ *    invitation, and `GameHub` — its roster, yours first, with every player and
+ *    Mediator action below the lists. Connected only; while the connection is
+ *    still being worked out, a remembered Game shows a skeleton rather than
+ *    flashing the shelf first.
  *
- *  - **Shelves** — your builds that are in no Game, in four columns of
- *    `EntityRow`s: pilots, mechs, crawlers and built NPCs (P7 D10, until the
- *    Shelves redesign gives NPCs their shelf). Each row: View, "Move to
- *    game…" (`MoveToGameSelect`), and Delete behind the shared confirm.
- *  - **A Game** — that table's roster, yours first, with every player and
- *    Mediator action below the lists (`GameHub`).
- *
- * "+ New game" (`NewGameControl`) heads the band, beside the select it adds
- * to. Signed out there is no game UI at all: the page is the front door
- * (`FrontDoor`, board 09).
- *
- * On mount: hydrates all three entity types + softLinks. At the mobile
- * endpoint (≤ md) the columns collapse to one behind a segmented
- * Pilot/Mech/Crawler switch (`RosterColumn.tsx`), whose choice is kept here so
- * it survives switching between Shelves and a Game.
- *
- * Delete flow:
- *   1. User clicks "Delete" on an EntityRow.
- *   2. The shared danger-tone confirm opens (`useConfirm` → component-lib
- *      `ConfirmDialog`, words from `lib/games/rowActionCopy.ts`).
- *   3. User confirms → entityStore.delete() is called, entity removed from
- *      listing immediately (Zustand in-memory update is synchronous). A failed
- *      delete keeps the dialog open with the reason.
+ * At the mobile endpoint (≤ md) a Game's columns collapse to one behind a
+ * segmented Pilot/Mech/Crawler switch (`RosterColumn.tsx`), whose choice is
+ * kept here so it survives switching between Games.
  */
 
-import { buttonVariants, cn, PageShell, RosterSkeleton, Stat, UserMadeStamp } from 'component-lib'
-import { UserRound } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { buttonVariants, cn, PageShell, RosterSkeleton } from 'component-lib'
 import { useState } from 'react'
-import {
-  useCrawlers,
-  useHydrateEntities,
-  useMechs,
-  useNpcs,
-  usePilots,
-  useSoftLinkList,
-} from '../../hooks/entities'
-import { resolveClassName } from '../../lib/classRef'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { ContainerFields } from '../../lib/container'
-import { containerOf, sameContainer } from '../../lib/container'
-import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
-import { crewLinkOf, slotName } from '../../lib/npcs/npcModel'
-import type { SoftLink } from '../../lib/schemas/softLink'
 import { useActiveContainer } from '../../stores/activeContainerStore'
-import type { EntityType } from '../../stores/entityStore'
-import { useEntityStore } from '../../stores/entityStore'
 import { ContainerSwitcher } from '../container/ContainerSwitcher'
-import { MoveToGameSelect } from '../container/MoveToGameSelect'
 import { useShowContainer } from '../container/useShowContainer'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
@@ -62,198 +31,40 @@ import { GameHub } from '../games/GameHub'
 import { InvitationsForYou } from '../games/InvitationsForYou'
 import { NewGameControl } from '../games/NewGameControl'
 import { AppLink } from '../shared/AppLink'
-import { EntityRow } from '../shared/EntityRow'
-import { useConfirm } from '../shared/useConfirm'
+import { Shelves } from '../shelves/Shelves'
 import { FrontDoor } from './FrontDoor'
 import type { SegmentKind } from './RosterColumn'
-import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from './RosterColumn'
-import { crawlerStats, mechChassisStats, npcStats, pilotStats } from './rowStats'
-
-// ---------------------------------------------------------------------------
-// Row-meta helpers
-// ---------------------------------------------------------------------------
-
-/**
- * The row's body details, blanks dropped.
- *
- * `label | value` stats, never one muted line joined with ' · ' separators: a
- * stat removes an inference the reader would make on the row's behalf.
- */
-function metaParts(parts: Array<ReactNode | null | undefined>): ReactNode[] | undefined {
-  const kept = parts.filter((part) => part != null && part !== '')
-  return kept.length === 0 ? undefined : kept
-}
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-/**
- * Label-plate tints for a cross-link, keyed to the TARGET's ontology — the same
- * `--color-sheet-*` tokens `EntityRow` bands itself with, so a link to a mech
- * is the green a mech row wears. Crawler takes paper text; it is the one dark
- * fill in the ramp.
- */
-const TONE_BG: Record<SegmentKind, string> = {
-  pilot: 'var(--color-sheet-pilot)',
-  mech: 'var(--color-sheet-mech)',
-  crawler: 'var(--color-sheet-crawler)',
-  npc: 'var(--color-adversary)',
-}
-const TONE_INK: Record<SegmentKind, string> = {
-  pilot: 'var(--color-ink)',
-  mech: 'var(--color-ink)',
-  crawler: 'var(--color-paper)',
-  npc: 'var(--color-paper)',
-}
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 export function Roster() {
-  const { confirm, dialog: confirmDialog } = useConfirm()
-  /** The current container (global, persisted). Only consulted when Connected. */
   const activeContainer = useActiveContainer()
   const { mode } = useConnection()
+
+  // Signed out there is nothing of theirs to list and nothing may be built:
+  // every build lives in an account (ADR-034 as amended). The front door says
+  // what ITUN is, offers the sign-in, and opens the Starter Set, which reading
+  // needs no account for.
+  if (mode === 'solo') return <FrontDoor />
+
+  if (activeContainer.kind === 'game' && mode === 'connected') {
+    return <GamePage gameId={activeContainer.gameId} />
+  }
+  if (activeContainer.kind === 'game' && mode === 'connecting') {
+    return <GamePage gameId={null} />
+  }
+  return <Shelves />
+}
+
+/** A Game's own page; `gameId` null while the connection settles. */
+function GamePage({ gameId }: { gameId: string | null }) {
+  const { mode } = useConnection()
+  const activeContainer = useActiveContainer()
   const showContainer = useShowContainer()
   /** Mobile-endpoint segmented switch (design §3.7) — which column shows ≤ md */
   const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
 
-  // Hydrate every entity type + softLinks on mount.
-  const hydratedAll = useHydrateEntities(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
-
-  const allPilots = usePilots()
-  const allMechs = useMechs()
-  const allCrawlers = useCrawlers()
-  const allNpcs = useNpcs()
-  const softLinks: SoftLink[] = useSoftLinkList()
-
-  // Name lookups for '↳ Name' cross-links — built from the UNFILTERED lists so
-  // links resolve across container boundaries.
-  const pilotNameById = new Map(allPilots.map((p) => [p.id, p.name]))
-  const mechNameById = new Map(allMechs.map((m) => [m.id, m.name]))
-  const crawlerNameById = new Map(allCrawlers.map((c) => [c.id, c.name]))
-  // …and the one fact each cross-link states about its target, so a link reads
-  // `IRON JAW | Titan` rather than naming a thing and saying nothing about it.
-  const pilotClassById = new Map(allPilots.map((p) => [p.id, resolveClassName(p.classRef)]))
-  const mechChassisNameById = new Map(
-    allMechs.map((m) => [m.id, mechChassisStats(m.chassisRef)?.[0]?.value as string | undefined])
-  )
-  const crawlerTlById = new Map(
-    allCrawlers.map((c) => {
-      const tl = c.techLevel.replace(/[^0-9]/g, '')
-      return [c.id, tl ? `TL ${tl}` : undefined]
-    })
-  )
-
-  /**
-   * A cross-link to another entity's live sheet, as a Badge tinted with THAT
-   * entity's ontology tone (design review U-4).
-   *
-   * The row already tones its band by ontology, so a monochrome cross-link
-   * would be the one place on the row where "which kind of thing is this?" had
-   * to be read rather than seen. The tone comes from the TARGET's kind, never
-   * the row's.
-   *
-   * Badge wrapped in the link rather than rendered `as={AppLink}`: its chip
-   * props are typed for a span and carry no `href`. This is the same shape the
-   * live-sheet header already uses for its linked-unit badges, so the two read
-   * identically — one anchor, one focus stop.
-   */
-  function linkSegment(
-    kind: SegmentKind,
-    id: string | undefined,
-    name: string | undefined,
-    detail: string | undefined
-  ): ReactNode | undefined {
-    if (!id || !name) return undefined
-    return (
-      <AppLink
-        href={`/sheet/${kind}/${id}`}
-        className="inline-flex max-w-full align-middle no-underline"
-        aria-label={`Open ${name}'s ${kind} sheet`}
-      >
-        {/* `NAME | detail` — the linked entity names ITSELF on the label plate
-            (a mech's name IS its pattern, SU rules), with its defining fact as
-            the value: a mech's chassis, a pilot's class, a crawler's TL. The
-            plate is tinted with the TARGET's ontology, never the row's, so the
-            kind of thing you are about to open is seen rather than read. */}
-        <Stat
-          label={name}
-          value={detail ?? '—'}
-          orientation="horizontal"
-          size="mini"
-          bgColor={TONE_BG[kind]}
-          textColor={TONE_INK[kind]}
-        />
-      </AppLink>
-    )
-  }
-
-  /**
-   * Scope the roster to the current container — but ONLY when Connected.
-   *
-   * Signed out, the roster renders the sign-in prompt below and lists nothing.
-   * Connecting or Disconnected (including blocked), there is no live Game list
-   * to check the persisted container against, so filtering would be a guess
-   * that can hide builds. Showing the cached pile whole is both simpler and
-   * the only rendering that cannot lose a build.
-   */
-  const inContainer = <T extends ContainerFields>(list: T[]): T[] => {
-    if (mode !== 'connected') return list
-    return list.filter((e) => sameContainer(containerOf(e), activeContainer))
-  }
-
-  const pilots = inContainer(allPilots)
-  const mechs = inContainer(allMechs)
-  const crawlers = inContainer(allCrawlers)
-  const npcs = inContainer(allNpcs)
-
-  /**
-   * Which container the body shows. A Game only when Connected: a Disconnected
-   * viewer has no live Games to show (see `inContainer`), so for them a
-   * remembered Game selection falls through to the whole cached pile. While the
-   * connection is still being worked out, a remembered Game shows a skeleton
-   * rather than flashing that unfiltered pile first.
-   */
-  const shownGameId =
-    mode === 'connected' && activeContainer.kind === 'game' ? activeContainer.gameId : null
-  const settlingIntoGame = mode === 'connecting' && activeContainer.kind === 'game'
-
-  /**
-   * First-run welcome: a brand-new user with nothing at all. Deliberately keyed
-   * to the UNFILTERED lists — an empty *container* belonging to someone who
-   * already has builds elsewhere is not a first run, and the big welcome would
-   * misfire there. Those fall through to the normal grid and its per-column
-   * "create" empty states.
-   */
-  const isFirstRun =
-    allPilots.length === 0 &&
-    allMechs.length === 0 &&
-    allCrawlers.length === 0 &&
-    allNpcs.length === 0
-
-  function openDeleteDialog(type: EntityType, id: string, name: string) {
-    confirm({
-      ...ROW_ACTION_COPY.deleteBuild(name),
-      onConfirm: () => useEntityStore.getState().delete(type, id),
-    })
-  }
-
-  // Signed out, there is nothing of theirs to list and nothing may be built:
-  // every build lives in an account (ADR-034 as amended).
-  // The Starter Set stays open to them: reading it needs no account.
-  // Signed out it is the front door (board 09): what ITUN is, the sign-in,
-  // how it works, and the Starter Set, which reading needs no account for.
-  if (mode === 'solo') return <FrontDoor />
-
   return (
     <PageShell stack={false}>
-      {/* Brand identity lives in the global AppHeader (routes/__root.tsx);
-          the page keeps an accessible title only. Visible header row:
-          Download all/Import · the "Showing" select · New game. */}
-      <h1 className="sr-only">Saved Builds</h1>
+      <h1 className="sr-only">Game</h1>
       <div className="border-b-2 border-ink pb-5">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-wrap items-start gap-2.5">
@@ -268,17 +79,14 @@ export function Roster() {
               Starter Set
             </AppLink>
           </div>
-          {/* What the hub shows, and how to get another table to show: the
-              select lists Shelves and every Game, and "+ New game" adds one.
-              Both render nothing outside Connected. */}
+          {/* Where else to go, and how to get another table: the select lists
+              Shelves and every Game, and "+ New game" adds one. Both render
+              nothing outside Connected. */}
           <div className="flex flex-wrap items-end gap-2.5">
             <ContainerSwitcher activeContainer={activeContainer} onSelect={showContainer} />
             <NewGameControl />
           </div>
         </div>
-        {/* Standing durability notice, next to the export controls. Only a
-            signed-in player reaches it: a signed-out visitor gets the sign-in
-            panel above instead (ADR-034 as amended). */}
         <p className="mt-2.5 font-body text-xs text-wk-muted">
           {mode === 'connecting'
             ? 'Download a backup any time to keep a copy yourself.'
@@ -286,283 +94,28 @@ export function Roster() {
         </p>
       </div>
 
-      {/* Invites addressed to your Discord account (ADR-039), whichever
-          container is showing — answering one is how you get a new one to
-          show. Renders nothing when there are none. */}
-      <InvitationsForYou />
+      {/* Invites addressed to your Discord account (ADR-039) — answering one is
+          how you get another table. Renders nothing when there are none. */}
+      <div className="mt-5">
+        <InvitationsForYou />
+      </div>
 
-      {/* Reserve a stable footprint so the grid replacing "Loading…" doesn't
-          shift the rest of the page on hydration. */}
+      {/* Reserve a stable footprint so the roster replacing the skeleton
+          doesn't shift the rest of the page. */}
       <div className="min-h-[60vh]">
-        {shownGameId !== null ? (
+        {gameId === null ? (
+          <RosterSkeleton />
+        ) : (
           <GameHub
             // Remount per Game, so one table's busy and error state never
             // shows on the next.
-            key={shownGameId}
-            gameId={shownGameId}
-            // A Game's roster has no NPC column yet: its phone switch starts on
-            // pilots rather than showing nothing.
-            activeSegment={activeSegment === 'npc' ? 'pilot' : activeSegment}
+            key={gameId}
+            gameId={gameId}
+            activeSegment={activeSegment}
             onSegmentChange={setActiveSegment}
           />
-        ) : !hydratedAll || settlingIntoGame ? (
-          <RosterSkeleton />
-        ) : isFirstRun ? (
-          <FirstRunWelcome />
-        ) : (
-          <>
-            <SegmentSwitch active={activeSegment} onChange={setActiveSegment} withNpcs />
-
-            <RosterGrid columns={4}>
-              <RosterColumn
-                kind="pilot"
-                title="Pilots"
-                active={activeSegment === 'pilot'}
-                create={{ href: '/pilots/new', label: 'Create Pilot' }}
-                emptyMessage="No pilots yet."
-                empty={pilots.length === 0}
-              >
-                <RosterList>
-                  {pilots.map((p) => {
-                    const mechLink = softLinks.find(
-                      (l) => l.type === 'mech-to-pilot' && l.to.id === p.id
-                    )
-                    const crawlerLink = softLinks.find(
-                      (l) => l.type === 'pilot-to-crawler' && l.from.id === p.id
-                    )
-                    return (
-                      <li key={p.id} className="list-none">
-                        <EntityRow
-                          entityType="pilot"
-                          name={p.name}
-                          sheetHref={`/sheet/pilot/${p.id}`}
-                          linkAs={AppLink}
-                          onDeleteClick={() => openDeleteDialog('pilot', p.id, p.name)}
-                          actions={
-                            <MoveToGameSelect
-                              entityType="pilot"
-                              entityId={p.id}
-                              entity={p}
-                              confirm={confirm}
-                            />
-                          }
-                          stats={pilotStats(p.classRef, p.callsign)}
-                          metaLine={metaParts([
-                            linkSegment(
-                              'mech',
-                              mechLink?.from.id,
-                              mechLink && mechNameById.get(mechLink.from.id),
-                              mechLink && mechChassisNameById.get(mechLink.from.id)
-                            ),
-                            linkSegment(
-                              'crawler',
-                              crawlerLink?.to.id,
-                              crawlerLink && crawlerNameById.get(crawlerLink.to.id),
-                              crawlerLink && crawlerTlById.get(crawlerLink.to.id)
-                            ),
-                          ])}
-                        />
-                      </li>
-                    )
-                  })}
-                </RosterList>
-              </RosterColumn>
-
-              <RosterColumn
-                kind="mech"
-                title="Mechs"
-                active={activeSegment === 'mech'}
-                create={{ href: '/mechs/new', label: 'Create Mech' }}
-                emptyMessage="No mechs yet."
-                empty={mechs.length === 0}
-                headExtra={
-                  <AppLink
-                    href="/mechs/patterns"
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'compact' }),
-                      'no-underline'
-                    )}
-                  >
-                    Patterns
-                  </AppLink>
-                }
-              >
-                <RosterList>
-                  {mechs.map((m) => {
-                    const pilotLink = softLinks.find(
-                      (l) => l.type === 'mech-to-pilot' && l.from.id === m.id
-                    )
-                    return (
-                      <li key={m.id} className="list-none">
-                        <EntityRow
-                          entityType="mech"
-                          name={m.name}
-                          sheetHref={`/sheet/mech/${m.id}`}
-                          linkAs={AppLink}
-                          onDeleteClick={() => openDeleteDialog('mech', m.id, m.name)}
-                          actions={
-                            <MoveToGameSelect
-                              entityType="mech"
-                              entityId={m.id}
-                              entity={m}
-                              confirm={confirm}
-                            />
-                          }
-                          // The chassis is a STAT (`CHASSIS | Iron Mongrel`), not
-                          // a caption chip: it is a named property of the mech,
-                          // and a bare chip left the reader to infer what the word
-                          // was doing there. Same call the crew roster makes.
-                          stats={mechChassisStats(m.chassisRef)}
-                          metaLine={metaParts([
-                            linkSegment(
-                              'pilot',
-                              pilotLink?.to.id,
-                              pilotLink && pilotNameById.get(pilotLink.to.id),
-                              pilotLink && pilotClassById.get(pilotLink.to.id)
-                            ),
-                          ])}
-                        />
-                      </li>
-                    )
-                  })}
-                </RosterList>
-              </RosterColumn>
-
-              <RosterColumn
-                kind="crawler"
-                title="Crawlers"
-                active={activeSegment === 'crawler'}
-                create={{ href: '/crawlers/new', label: 'Create Crawler' }}
-                emptyMessage="No crawlers yet."
-                empty={crawlers.length === 0}
-              >
-                <RosterList>
-                  {crawlers.map((c) => {
-                    const crewLinks = softLinks.filter(
-                      (l) => l.type === 'pilot-to-crawler' && l.to.id === c.id
-                    )
-                    return (
-                      <li key={c.id} className="list-none">
-                        <EntityRow
-                          entityType="crawler"
-                          name={c.name}
-                          sheetHref={`/sheet/crawler/${c.id}`}
-                          linkAs={AppLink}
-                          onDeleteClick={() => openDeleteDialog('crawler', c.id, c.name)}
-                          // Only into a Game you run (ADR-037); with none, no control.
-                          actions={
-                            <MoveToGameSelect
-                              entityType="crawler"
-                              entityId={c.id}
-                              entity={c}
-                              confirm={confirm}
-                            />
-                          }
-                          stats={crawlerStats(c.techLevel, c.crawlerBays?.length ?? 0)}
-                          metaLine={metaParts([
-                            ...crewLinks.map((l) =>
-                              linkSegment(
-                                'pilot',
-                                l.from.id,
-                                pilotNameById.get(l.from.id),
-                                pilotClassById.get(l.from.id)
-                              )
-                            ),
-                          ])}
-                        />
-                      </li>
-                    )
-                  })}
-                </RosterList>
-              </RosterColumn>
-
-              <RosterColumn
-                kind="npc"
-                title="NPCs"
-                active={activeSegment === 'npc'}
-                create={{ href: '/npcs/new', label: 'Design an NPC' }}
-                emptyMessage="No NPCs yet. Design one from a template, or from scratch."
-                empty={npcs.length === 0}
-              >
-                <RosterList>
-                  {npcs.map((n) => {
-                    const crew = crewLinkOf(softLinks, n.id)
-                    return (
-                      <li key={n.id} className="list-none">
-                        <EntityRow
-                          entityType="npc"
-                          name={n.name}
-                          // User-made: the dashed frame, and the stamp that tells
-                          // it from an empty slot's (ruleset §3.9).
-                          seal={<UserMadeStamp />}
-                          sheetHref={`/sheet/npc/${n.id}`}
-                          linkAs={AppLink}
-                          onDeleteClick={() => openDeleteDialog('npc', n.id, n.name)}
-                          actions={
-                            <MoveToGameSelect
-                              entityType="npc"
-                              entityId={n.id}
-                              entity={n}
-                              confirm={confirm}
-                            />
-                          }
-                          stats={npcStats(n)}
-                          metaLine={metaParts([
-                            crew &&
-                              linkSegment(
-                                'crawler',
-                                crew.to.id,
-                                crawlerNameById.get(crew.to.id),
-                                crew.slot && slotName(crew.slot)
-                              ),
-                          ])}
-                        />
-                      </li>
-                    )
-                  })}
-                </RosterList>
-              </RosterColumn>
-            </RosterGrid>
-          </>
         )}
       </div>
-
-      {confirmDialog}
     </PageShell>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// First-run welcome
-// ---------------------------------------------------------------------------
-
-/**
- * Aggregate empty state shown to a brand-new user (zero pilots + mechs +
- * crawlers). Orients them on what the app is and the pilot → mech → crawler
- * build order, with a single primary CTA (start a pilot). Styled as a sibling
- * of the per-column dashed Empty states (same dashed frame + rust accents),
- * not a bolted-on splash.
- */
-function FirstRunWelcome() {
-  return (
-    <div className="mt-6 flex flex-col items-center gap-4 rounded-card border-chrome border-dashed border-wk-faint p-8 text-center sm:p-12">
-      <UserRound aria-hidden="true" className="size-9 text-sheet-pilot-deep" />
-      <h2 className="font-cond text-xl font-bold uppercase tracking-widest text-ink">
-        Welcome to In the Union Now
-      </h2>
-      <p className="max-w-prose font-body text-sm text-wk-muted">
-        Build and run your Salvage Union crew — start with a pilot, kit them out with a mech, then
-        anchor your crew to a Union Crawler.
-      </p>
-      <AppLink
-        href="/pilots/new"
-        // Top rung deliberately: this is the Roster's page-level primary CTA. The
-        // sm/md merge dropped the default to the app's secondary workhorse size,
-        // which reads underweight for a primary page action.
-        className={cn(buttonVariants({ variant: 'primary', size: 'full' }), 'no-underline')}
-      >
-        Build your first pilot
-      </AppLink>
-    </div>
   )
 }

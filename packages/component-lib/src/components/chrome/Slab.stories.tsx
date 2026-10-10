@@ -56,6 +56,17 @@ export const Default: Story = () => (
           actions={<span className="font-cond text-xs font-bold uppercase text-ink">Edit</span>}
         />
       </Cluster>
+      <Cluster label="solid — count beside the stamp (ITUN Shelves, board S1)">
+        <Slab
+          variant="solid"
+          label="Mechs"
+          count="2"
+          countAt="label"
+          actions={
+            <span className="font-cond text-xs font-bold uppercase text-ink">+ New mech</span>
+          }
+        />
+      </Cluster>
     </div>
   </div>
 )

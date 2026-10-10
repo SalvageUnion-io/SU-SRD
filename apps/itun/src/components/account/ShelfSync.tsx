@@ -131,6 +131,9 @@ function ConnectedShelfSync() {
           adoptedAt: serverVersions(),
         })
         for (const { id, updatedAt, row } of plan) {
+          // A newer emission has spoken: this plan may name a row the player
+          // has deleted since, and adopting it would bring it back.
+          if (superseded) return
           try {
             await store.adopt(kind, row.body as never)
             noteVersion(id, updatedAt)
@@ -154,6 +157,7 @@ function ConnectedShelfSync() {
         adoptedAt: serverVersions(),
       })
       for (const { id, updatedAt, row } of patternPlan) {
+        if (superseded) return
         try {
           await patterns.adopt(row.body as MechPattern)
           noteVersion(id, updatedAt)
@@ -170,6 +174,7 @@ function ConnectedShelfSync() {
         adoptedAt: serverVersions(),
       })
       for (const { id, updatedAt, row } of npcPlan) {
+        if (superseded) return
         try {
           await npcs.adopt(row.body as EncounterNpc)
           noteVersion(id, updatedAt)

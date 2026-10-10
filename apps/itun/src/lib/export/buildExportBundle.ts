@@ -156,3 +156,19 @@ export async function buildEntityExport(
     }
   }
 }
+
+/**
+ * buildPatternExport — one saved pattern on its own, for a shelf item's
+ * "Export" (Shelves, board S1). Importing it makes a copy under a new id, as
+ * every import does (`mergeImport`).
+ */
+export function buildPatternExport(pattern: MechPattern): ExportBundle {
+  return {
+    schemaVersion: 2,
+    exportedAt: new Date().toISOString(),
+    entities: { pilots: [], mechs: [], crawlers: [], npcs: [] },
+    softLinks: [],
+    mechPatterns: [pattern],
+    encounterNpcs: [],
+  }
+}

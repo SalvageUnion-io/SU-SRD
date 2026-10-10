@@ -56,6 +56,7 @@ devices, and the apps quote them literally:
 | Mech Workshop     | `--color-mech`                | Chassis, Systems, Modules; ITUN mech sheets                      |
 | Union Crawler     | `--color-crawler`             | Crawlers, Bays, Crawler TLs; ITUN crawler sheets                 |
 | Denizens          | `--color-denizen-band`        | Bio-Titans, Creatures, NPCs, Squads (cards keep adversary brown) |
+| *(not the book)*  | ink, `--color-ink`            | ITUN's Shelves: the player's own things, so paper flecks (§3.5)  |
 
 The blue belongs here as a band, never as the page ground (§4.1).
 
