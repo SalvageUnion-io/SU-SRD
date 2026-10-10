@@ -2,7 +2,8 @@
 
 The **Dashboard** is ITUN's live actual-play surface: one pilot in a Game, with
 their **Mech** and the crew's **Crawler**, composed into one screen that never
-scrolls, where every game action is a button. Components are in
+scrolls, where every game action is a button. On a phone it is one scrolling
+column of the same instruments (§7, [ADR-043](../ARCHITECTURE.md#adr-043)). Components are in
 `apps/itun/src/components/dashboard/`, the remaining `.pc-*` stylesheets in
 `apps/itun/src/styles/dashboard/`, and the route is
 `/dashboard/$pilotId` (`apps/itun/src/routes/dashboard/$pilotId.tsx`).
@@ -32,9 +33,11 @@ uses it like any player, and a Mediator Dashboard is a later plan (#1062).
 
 A fixed **1280×800 canvas** (`DashboardCanvas`), scaled with one
 `transform: scale()` and letterboxed. `MAX_SCALE` caps the upscale;
-`MIN_SCALE` is not a scale floor but the width ratio below which the canvas is
-abandoned for the `.pc-reflow` "rotate to landscape" notice (§7). Overlays may
-scroll internally; the frame never does. `DashboardGrid` places three surfaces:
+`MIN_SCALE` (0.62) is the legibility floor: a host that would draw the canvas
+below it on either axis gets the **phone form** instead (§7). Overlays may
+scroll internally; the frame never does. The Dashboard has no app masthead at
+any width: the canvas's rail and the phone's bar take its place, and the
+offline banner stays. `DashboardGrid` places three surfaces:
 
 - **Rail** (`RailBar`) — the way back to the Game's page, the pilot's name, a
   stamp for where they are ("Boarded · Scrapper", "On foot", "Downtime · Step
@@ -196,18 +199,63 @@ ITUN's `src/styles/dashboard.css`.
 
 ## 7. Mobile
 
-There is no phone layout yet; it is #1063 (two Minors stacked above the
-Major). Until then the canvas guard reads **width only**, so a short, wide
-desktop window keeps the canvas and scales down to its height:
+[ADR-043](../ARCHITECTURE.md#adr-043) gives the Dashboard a **phone form**
+(`DashboardPhone`, boards D4 and D5, issue #1256). It is the same surface, not
+a second one: the same seat, store, rules and view models, and every phone
+control calls the handler its canvas twin calls.
 
-- **Portrait phone, or any host narrower than about 794 px**
-  (`MIN_SCALE` 0.62 × 1280): the `.pc-reflow` notice, which asks the player to
-  rotate to landscape or use a larger screen. Nothing else renders.
-- **Landscape phone:** it passes the width guard, so it gets the whole
-  canvas scaled to fit its height. An 852×393 phone renders it at about 0.49
-  scale or less, every control present but small. The notice does not appear.
+- **When.** `isPhoneForm` (`dashboardForm.ts`): the canvas would draw below
+  0.62 on **either** axis. So a portrait phone, a landscape phone (about 0.49
+  by height), a window under about 496 px tall and deep browser zoom all get
+  it. On a wide host it is a centred column at most 600 px wide. The state the
+  Dashboard keeps on the device lives above the switch, so rotating keeps it.
+- **The bar** (ground, sticky): the SU stamp back to the Game hub, "GAME ·
+  {name}", search (the SRD panel, its search box focused) and ≡, which carries
+  ▲ when the crew needs attention and the proposal count.
+- **Unit tabs**, fixed order Pilot · Mech · Crawler (component-lib `Tabs`).
+  The open tab is the Major on load and follows it on every mount change
+  (`useUnitTab`): Board selects Mech, Dismount and Eject Pilot, Downtime
+  Crawler. Nothing else moves it. An unselected tab whose `MinorModel` has a
+  problem carries ▲ and a red outline, spelled out in its name. A missing unit
+  keeps its tab and says where to fix it.
+- **A tab** is that unit's Major drawn as one column (`PhoneMajorFrame`, from
+  the same `MajorModel`): pools as numeral cells, a redlined gauge as its full
+  track, buttons two to a row at 44 px or more, then the deck on the Major's
+  tab, then the side bays. Mech: SP | EP, then Heat with **Push · +2 Heat** and
+  **Vent**, Heat Check, Shut Down, Take Damage and Storage, the deck, Effects
+  and Egress. Pilot: HP | AP, Mount, Kit, Abilities. Crawler: its bays in
+  model order, with `DowntimeWizard` in place of the deck in Downtime. A
+  Major's prompt covers the column, keeping the gauges it pins.
+- **Pinned vitals** (label | value `Stat`s) sit under the tabs on every tab
+  but the Major's (boarded SP · EP · Heat, on foot HP · AP, none in Downtime)
+  and in the resolve screen's header (Heat while boarded, plus the action's
+  currency).
+- **The deck** (`PhoneDeck`) holds the Major's actions as one-line rows. A
+  row's pennant opens the action and pays for it (`onActivate`, the same
+  `activate` as the resolve's pennant); its body only opens it. Range,
+  timing and source are wrapping `aria-pressed` keys.
+- **Resolving is a screen** (`PhoneResolve`) in place of the bar, tabs and
+  body: the action card, ROLL THE DIE and the rolled row (the whole table one
+  tap away), and a bottom bar with only the next step (Activate · cost, Roll
+  the die, Push · Re-roll +2 Heat and Apply, Done). Push shows on a mech
+  action only, once a roll (Core Book p.233). A Cascade Failure and a Push's
+  meltdown are confirmed in a `ConfirmDialog` (ADR-007). ‹ Back leaves the
+  resolve on the seat, and the Major's tab offers "Resolving · {action} ›" to
+  resume it; a reload with one open opens on the screen.
+- **≡** (`PhoneMenu`, a full-screen `ModalShell`): the Game (alert,
+  proposals, saved state), Log, Crew, Reference, Tables, SRD, the Mediator's
+  Start or End Downtime, and Return to Game. A panel opens in the same dialog
+  with ‹ back to the menu; the panels are the canvas's own components.
+- **Downtime** works at 375 px; it has no phone board yet.
+- **Disconnected and Outdated** open read-only: one `fieldset` disables every
+  control under the tabs and in the resolve screen, and the reason shows as
+  text. The resolve stays readable and resumable.
+- **Materials** keep ruleset §1's depth levels: the bar is the ground, the tab
+  body the chassis, the resolve screen and the panels the document.
 
-No-scroll is a landscape-desktop contract.
+No-scroll stays a landscape-desktop contract: the phone form scrolls. Undo
+exists in neither form; it is a follow-up for both
+([combat loop](../ARCHITECTURE.md#combat-loop)).
 
 ## 8. Launch flow
 
@@ -250,6 +298,15 @@ second client (`useSeat.connected.test.tsx`). Two clients follow one Downtime: t
 Mediator's advance moves both, and a player's "I'm done" reaches the other
 (`Downtime.connected.test.tsx`).
 
+The phone form (§7) is `phoneForm.test.tsx`: the both-axes switch, the open
+tab following the mount, a `MajorModel` drawn through both forms with the
+same handlers, the shell's tabs, pins, read-only and focus, and the resolve
+screen's next step. The deck's pennant paying in one press is in
+`useActionsDeck.test.tsx`. A full boarded turn at 375×812 and 390×844, with
+seeded dice, hit areas and overflow checked throughout, is
+`e2e/dashboard-phone.e2e.ts` (nightly `e2e-itun`; it skips without the test
+sign-in seam).
+
 ## 10. Accessibility, risks & open questions
 
 ### 10.1 CSP
@@ -280,13 +337,28 @@ A role here comes with its keyboard model; this list claims none without one.
   returns focus to ▾ on close, and each disabled mech's reason is visible text
   tied to it by `aria-describedby`.
 
+The phone form (§7) adds:
+
+- Every control is at least 44×44 (`.su-dash-phone` in
+  `styles/dashboard/DashboardPhone.css`), labels at token sizes.
+- The unit tabs are `Tabs` (arrows, Home and End). A tab's ▲ is
+  `aria-hidden`; its name says "needs attention".
+- A mount change moves focus to the new tab's heading and is announced in a
+  polite live region, since the control that caused it is gone.
+- The resolve screen takes focus at its heading; Back or Escape returns it to
+  the pennant, row or resume row that opened it. The Push line is a polite
+  live region.
+- ≡ and its panels are a `ModalShell`: focus trapped, Escape closes, focus
+  back to ≡ or search.
+
 Every hue pairs with a non-colour cue.
 
 ### 10.3 Scale-to-fit vs zoom
 
 A scaled canvas fights browser zoom: a user at 200% gets a smaller canvas, not
-bigger text. Open question: treat large zoom as a reflow trigger once the phone
-layout exists (#1063).
+bigger text. **Closed by [ADR-043](../ARCHITECTURE.md#adr-043):** zoom shrinks
+the CSS viewport, and past the floor on either axis the phone form takes
+over, whose type and targets zoom like any page.
 
 ### 10.4 Two gauges
 
