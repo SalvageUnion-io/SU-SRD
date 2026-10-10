@@ -5411,8 +5411,7 @@ pilot it had just built.
 
 **Accepted; not built** (2026-10-10). Amends [ADR-014](#adr-014); amends
 [ADR-040](#adr-040). The planned `apps/api` ships after the prerequisites
-listed under Decision 9. One question is still open: whether Mech Monday's
-patterns also carry an unverified flag (Decision 10).
+listed under Decision 9.
 
 ### Context
 
@@ -5449,7 +5448,7 @@ The owner has decided three questions that shape the contract:
    False Flag 2.0a, Rainmaker 2.0a, We Were Here First! 2.0, and the Starter
    Set booklets, Reclamation of the Wastes, Relics of a Time Gone By,
    Thatcher's Mech Base and The Hive at 1.1. Local text exists for every one
-   of them.
+   of them, and for Mech Monday.
 3. **Scope.** v1 publishes only what the dataset already captures. A new kind
    of entity, such as encounter tables, would be a new schema type and is out
    of scope for v1.
@@ -5520,9 +5519,9 @@ The owner has decided three questions that shape the contract:
    `flavor`) and the `catalog-categories` schema move to an overlay keyed by
    `{schema, slug}`. The apps read the overlay, and the API doesn't serve it.
    No field exposes artwork: no `hasArtwork`, and no `assets.salvageunion.io`
-   URL. Mech Monday's patterns ship in v1, each tagged "Homebrew Patterns": a
-   tag on the pattern that marks community-submitted content, so a consumer
-   can tell it apart from printed patterns.
+   URL. Mech Monday's patterns ship in v1 tagged as homebrew (#1311). The tag
+   marks community-submitted content, so a consumer can tell those patterns
+   apart from printed ones.
 6. **Licence on every surface.** The Required Legal Text is in
    `/v1/index.json` (`licence`), in `/v1/all.json`, on `/licence` and the docs
    page, in `llms.txt`, and in the `Link` header on every response. The
@@ -5565,14 +5564,12 @@ The owner has decided three questions that shape the contract:
    `apps/api` is wired into `tools/check.ts`, CI's path filters,
    `deploy-surfaces.ts`, `smoke-production.sh` and
    [services](#services-and-agent-tooling).
-10. **Open: an unverified flag for Mech Monday.** Every source except Mech
-    Monday has local text to verify against. Its patterns ship tagged
-    (Decision 5). Whether they also carry an unverified flag depends on
-    whether their source text is captured from Leyline's Mech Monday blog
-    posts. If it is, they are verified like any other source. If it is not,
-    the catalog marks Mech Monday `verified: false`. Adding the field is
-    additive, so it can land within v1, and it flips to `true` once the text
-    is captured. Removing the field would be a breaking change.
+10. **Every source is verifiable, so there is no `verified` field.** Mech
+    Monday's text is local: Leyline's blog posts, the compilation PDFs for
+    Mule, Mazona, Spectrum, Thresher, Bobcat, Goliath and Gatecrasher, and
+    the Goliath template. Its patterns are verified against that text like
+    any other source's. The five Scrapper patterns exist only as an image, so
+    they are checked by hand and are not flagged.
 
 ### Consequences
 
