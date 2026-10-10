@@ -1,6 +1,7 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { color, font, space, weight } from '../../design/tokens'
 import { Speckle } from './Speckle'
+import { USER_MADE_HATCH } from './userMadeHatch'
 
 /**
  * ChapterBand — the page title as the Workshop Manual sets it (ruleset, "The
@@ -31,8 +32,15 @@ import { Speckle } from './Speckle'
  * `tone` is the book's colour map (ruleset, "The source"): `rules` is the
  * rules-blue band of Contents, Core Rules, Salvaging, Guides and Keywords;
  * `pilot`, `mech`, `crawler` and `denizen` are the four chapters. Content in
- * `aside` is ink on every band but `denizen`, whose navy carries paper text —
- * the caller dresses it.
+ * `aside` and `eyebrow` is ink on every band but `denizen`, whose navy carries
+ * paper text — the caller dresses it.
+ *
+ * ## User-made
+ *
+ * A full page a player made that could pass for the book (a shared mech
+ * pattern) sets `userMade` (ruleset §3.9): the band is **hatched** in ink over
+ * its chapter colour (`USER_MADE_HATCH`, a hard-stop pattern) and the notched
+ * title is framed in dashes. Canon pages never set it.
  */
 
 export type ChapterTone = 'rules' | 'pilot' | 'mech' | 'crawler' | 'denizen'
@@ -54,6 +62,17 @@ export type ChapterBandProps = {
   measure?: string
   /** For a region that names itself by the title (`aria-labelledby`). */
   id?: string
+  /**
+   * Content on the band ABOVE the title row, left-aligned with the notch: a
+   * breadcrumb, or a page's stamps when they lead the title rather than trail
+   * it.
+   */
+  eyebrow?: ReactNode
+  /**
+   * USER-MADE (ruleset §3.9): a hatched band and a dashed frame around the
+   * notched title. For a player's page that could pass for the book.
+   */
+  userMade?: boolean
 }
 
 const BAND: Record<ChapterTone, string> = {
@@ -68,6 +87,31 @@ const ROOT = {
   isolation: 'isolate',
   position: 'relative',
   width: '100%',
+} satisfies CSSProperties
+
+// The user-made notch: the same cut-out, framed in dashes on three sides — the
+// fourth is the band's foot, which the notch sits flush on.
+// Longhands only, so no side's shorthand can reset another's.
+const DASH = 'var(--bw-chrome)'
+const USER_MADE_TITLE = {
+  borderBottomWidth: 0,
+  borderLeftColor: color.ink,
+  borderLeftStyle: 'dashed',
+  borderLeftWidth: DASH,
+  borderRightColor: color.ink,
+  borderRightStyle: 'dashed',
+  borderRightWidth: DASH,
+  borderTopColor: color.ink,
+  borderTopStyle: 'dashed',
+  borderTopWidth: DASH,
+} satisfies CSSProperties
+
+const EYEBROW = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[8],
+  marginInline: 'auto',
 } satisfies CSSProperties
 
 const ASIDE = {
@@ -98,12 +142,34 @@ export function ChapterBand({
   aside,
   measure,
   id,
+  eyebrow,
+  userMade = false,
 }: ChapterBandProps) {
   return (
-    <div className="su-chapter-band" style={{ ...ROOT, backgroundColor: BAND[tone] }}>
+    <div
+      className="su-chapter-band"
+      data-user-made={userMade || undefined}
+      style={{
+        ...ROOT,
+        backgroundColor: BAND[tone],
+        ...(userMade ? { backgroundImage: USER_MADE_HATCH } : {}),
+      }}
+    >
       <Speckle grain="ink" />
+      {eyebrow && (
+        <div
+          className="su-chapter-band__eyebrow"
+          style={{ ...EYEBROW, ...(measure ? { maxWidth: measure } : {}) }}
+        >
+          {eyebrow}
+        </div>
+      )}
       <div className="su-chapter-band__row" style={measure ? { maxWidth: measure } : undefined}>
-        <Tag id={id} className="su-chapter-band__title" style={TITLE}>
+        <Tag
+          id={id}
+          className="su-chapter-band__title"
+          style={userMade ? { ...TITLE, ...USER_MADE_TITLE } : TITLE}
+        >
           {children}
         </Tag>
         {aside && (

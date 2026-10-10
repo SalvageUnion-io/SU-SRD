@@ -183,6 +183,14 @@ export const MechSchema = z
     /** Which built-in template row this was spawned from. See `PilotSchema.seedRef`. */
     seedRef: z.string().optional(),
 
+    /**
+     * The saved mech pattern this mech was built from — the pattern's id, which
+     * is also its `/p/pattern/:id` address (issues 401 and 1276). Creation provenance
+     * only: the mech's own name is its pattern name, and editing the loadout
+     * never clears this. Counts toward the pattern page's "mechs built from it".
+     */
+    sourcePattern: z.string().optional(),
+
     // ---------------------------------------------------------------------------
     // Live-play current stat tracking (Wave 6, #199).
     // These are current values for the active session — separate from the chassis

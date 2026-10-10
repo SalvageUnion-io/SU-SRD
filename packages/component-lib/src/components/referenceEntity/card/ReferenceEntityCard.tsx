@@ -170,6 +170,7 @@ function ReferenceEntityCardInner({
   inline = false,
   shownProse,
   userMade = false,
+  madeBy,
   texture,
   parentSeal,
   pattern,
@@ -584,7 +585,7 @@ function ReferenceEntityCardInner({
     foldedAction,
     droneLoadout,
   })
-  const showImage = !!assetUrl
+  const showImage = !!assetUrl && !hide?.image
   const rawBodyContent = isTitanicMeta ? titanicBodyContent : content
   const foldedActionContent = foldedAction?.content ?? undefined
   // A SELF-action renders ITS content as the body, merged with the entity's own.
@@ -976,15 +977,19 @@ function ReferenceEntityCardInner({
             and the catalog extent suppress it entirely. */}
         {rendersFooter
           ? (footerOverride ?? (
+              // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
+              // A player's pattern rides on a chassis whose provenance would
+              // otherwise put "Workshop Manual · p.104" under homebrew.
               <EntityCardIdentityFooter
                 typeLabel={footerType}
-                source={provenance.source}
-                booklet={provenance.booklet}
-                page={provenance.page}
+                source={userMade ? undefined : provenance.source}
+                booklet={userMade ? undefined : provenance.booklet}
+                page={userMade ? undefined : provenance.page}
+                credit={userMade && madeBy ? `Made by ${madeBy}` : undefined}
                 // Reprints are the entity's OWN-PAGE fact — the roomy full card.
-                additionalSources={compact ? undefined : provenance.additionalSources}
+                additionalSources={compact || userMade ? undefined : provenance.additionalSources}
                 footMeta={footMeta}
-                externalLink={extent === 'full' ? externalLinkNode : undefined}
+                externalLink={extent === 'full' && !userMade ? externalLinkNode : undefined}
                 size={size}
                 dashed={userMade}
               />

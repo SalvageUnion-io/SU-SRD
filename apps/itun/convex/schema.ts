@@ -503,21 +503,47 @@ export default defineSchema({
     .index('by_owner_app_id', ['ownerId', 'appId']),
 
   /**
-   * A saved mech pattern. Personal — there is no sharing, so a pattern lives
-   * only on its owner's shelf and `gameId` is always null.
+   * A saved mech pattern (#1276). Always its maker's: `ownerId` is set on every
+   * row, and only the maker writes it.
+   *
+   * Who may READ it is the maker's choice of three, held in two columns:
+   *
+   * | Visibility           | `publicRead` | `gameId`  |
+   * | -------------------- | ------------ | --------- |
+   * | Only me              | false/absent | null      |
+   * | Anyone with the link | true         | null      |
+   * | My Game's crew       | false/absent | that Game |
+   *
+   * `publicRead` is the same opt-in the sheets carry (ADR-032), served by the
+   * same unauthenticated module (`publicSheet.pattern`). `gameId` here is a
+   * **read scope**, not a container: a pattern never moves into a Game the way
+   * a pilot does, has no `body.gameId` to keep in step, and stays on its
+   * maker's shelf whatever it is shared with.
    */
   mechPatterns: defineTable({
     ownerId: v.id('users'),
-    gameId: v.null(),
+    gameId: v.union(v.id('games'), v.null()),
     /**
      * The id inside the body (`body.id`), lifted into a column so a write
-     * finds its row with one read on `by_owner_app_id`.
+     * finds its row with one read on `by_owner_app_id`, and the pattern page
+     * finds it on `by_app_id`.
      */
     appId: v.string(),
     body: v.any(),
+    /** Readable with no account at `/p/pattern/:appId` (ADR-032). */
+    publicRead: v.optional(v.boolean()),
+    /** When it was last shared (link or crew), for the page's foot. */
+    sharedAt: v.optional(v.number()),
+    /**
+     * How many mechs have been built from it: counted by the mech create that
+     * carries `body.sourcePattern`, so the page reads one number, not a scan.
+     */
+    builtCount: v.optional(v.number()),
   })
     // `ownerId` alone is a prefix, so this also serves "all of mine".
-    .index('by_owner_app_id', ['ownerId', 'appId']),
+    .index('by_owner_app_id', ['ownerId', 'appId'])
+    .index('by_app_id', ['appId'])
+    .index('by_game', ['gameId']),
 
   /**
    * The Change Log (ADR-022), promoted from a local-only audit trail to the

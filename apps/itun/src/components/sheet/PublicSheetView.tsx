@@ -6,11 +6,17 @@
  * moving the route component out of the entry chunk, which is how
  * `PublicSheet` and the whole sheet tree it renders ended up downloaded on
  * every route (audit AP-11). Tests render it directly.
+ *
+ * A saved mech pattern joins the route as `/p/pattern/:appId` (issue 1276): its own
+ * query and its own page (`PublicPattern`), the same "not available" for
+ * anything the reader may not see.
  */
 
 import { buttonVariants, cn } from 'component-lib'
 import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
+import { MechPatternSchema } from '../../lib/schemas/pattern'
+import { PublicPattern } from '../mech/Pattern/PublicPattern'
 import { AppLink } from '../shared/AppLink'
 import { PublicSheet } from './PublicSheet'
 import { SheetSkeleton } from './SheetSkeleton'
@@ -22,10 +28,10 @@ function isPublicKind(value: string): value is PublicKind {
   return (KINDS as readonly string[]).includes(value)
 }
 
-function NotAvailable() {
+function NotAvailable({ what = 'sheet' }: { what?: 'sheet' | 'pattern' }) {
   return (
     <main className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-2 text-xl font-bold">This sheet isn&rsquo;t available</h1>
+      <h1 className="mb-2 text-xl font-bold">This {what} isn&rsquo;t available</h1>
       <p className="mb-4 text-sm text-wk-muted">
         The link may be wrong, or its owner may have stopped sharing it.
       </p>
@@ -51,11 +57,24 @@ function PublicSheetQuery({ kind, appId }: { kind: PublicKind; appId: string }) 
   return <PublicSheet appId={appId} answer={result} />
 }
 
+/** A saved pattern: readable by link, by its Game's crew, or by its maker. */
+function PublicPatternQuery({ appId }: { appId: string }) {
+  const result = useQuery(api.publicSheet.pattern, { appId })
+  if (result === undefined) return <SheetSkeleton />
+  if (result === null) return <NotAvailable what="pattern" />
+
+  // The body is `v.any()` on the server; parse it as every reader does.
+  const parsed = MechPatternSchema.safeParse(result.body)
+  if (!parsed.success) return <NotAvailable what="pattern" />
+  return <PublicPattern answer={{ ...result, pattern: parsed.data }} />
+}
+
 /**
  * Everything the route decides, minus the router. Exported so a test can
  * render it directly rather than through a `RouterProvider`.
  */
 export function PublicSheetView({ kind, appId }: { kind: string; appId: string }) {
+  if (kind === 'pattern') return <PublicPatternQuery appId={appId} />
   // A hand-typed path earns an explanation and a way back, not a validation
   // error from the server.
   if (!isPublicKind(kind)) return <NotAvailable />

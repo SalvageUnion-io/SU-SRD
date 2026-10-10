@@ -59,6 +59,13 @@ export type ReferenceEntityCardProps = {
    */
   userMade?: boolean
   /**
+   * USER-MADE credit (ruleset §3.9): who made it. With `userMade` the footer
+   * reads just "Made by [madeBy]" in place of a page citation — a player's
+   * pattern is not on any page of the book, and the chassis it is built on
+   * must not lend it one. Ignored without `userMade`.
+   */
+  madeBy?: string
+  /**
    * The light speckle on the header (ruleset §3.5) — on by default. `false`
    * turns it off for this card and every card nested in it: the Dashboard and
    * tooltips stay flat.
@@ -196,6 +203,8 @@ export type ReferenceEntityCardHideConfig = {
   stats?: boolean
   content?: boolean
   footer?: boolean
+  /** Suppress the entity's artwork (a preview that has none to show). */
+  image?: boolean
 }
 
 /** The action-shaped fields the card reads when `schemaName === 'actions'`. */

@@ -328,6 +328,12 @@ const EXEMPTIONS: Exemption[] = [
       'Named exemption: the Slab dashed leader (a repeating-linear-gradient) is a deliberate control-panel shape built on ink tokens, kept on purpose.',
   },
   {
+    file: 'packages/component-lib/src/components/chrome/userMadeHatch.ts',
+    rules: ['gradient'],
+    reason:
+      'The user-made hatch (ruleset §3.5 and §3.9): a HARD-STOP `repeating-linear-gradient(135deg, …)` — coincident stops on `--color-ink-20` over the band\'s own colour — so it paints rules and never blends. Ruled in the ruleset before it was built ("it joins EXEMPTIONS when it lands"); alone in its file so the exemption covers this one constant.',
+  },
+  {
     file: 'packages/component-lib/src/catalog/catalogColors.ts',
     rules: ['gradient'],
     reason:

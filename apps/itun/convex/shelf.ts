@@ -1,6 +1,10 @@
-import { v } from 'convex/values'
-import { bodyAppId, findOwnedByAppId, mutation, PARSERS } from './model/entities'
-import { requireUser } from './model/permissions'
+import { getAuthUserId } from '@convex-dev/auth/server'
+import { ConvexError, v } from 'convex/values'
+import type { Id } from './_generated/dataModel'
+import { query } from './_generated/server'
+import type { PatternVisibility } from './model/entities'
+import { bodyAppId, findOwnedByAppId, mutation, PARSERS, parseBody } from './model/entities'
+import { NotAuthorized, requireMemberAs, requireUser } from './model/permissions'
 
 /**
  * The server-first writes for the two shelf-only collections: saved mech
@@ -54,6 +58,92 @@ export const removeMechPattern = mutation({
     // reached the server, must not fail the local write that follows it.
     if (existing === null) return
     await ctx.db.delete(existing._id)
+  },
+})
+
+/**
+ * Who may read one of the caller's patterns (#1276, board P1): only them, anyone
+ * with the link, or one Game's crew.
+ *
+ * The maker's act and nobody else's, like publishing a sheet (ADR-032 §2) — a
+ * pattern has no communal case. Going public parses the body first, as
+ * `publicSheet.setPublic` does, and for the same reason: a body the page cannot
+ * render should fail here, where the maker is standing, not on a link they have
+ * already handed out. Sharing with a crew needs the maker to be in that crew.
+ *
+ * Narrowing is always allowed and needs no parse: it only reduces who can read.
+ */
+export const setPatternVisibility = mutation({
+  args: {
+    patternId: v.string(),
+    visibility: v.union(v.literal('private'), v.literal('link'), v.literal('game')),
+    gameId: v.optional(v.id('games')),
+  },
+  handler: async (ctx, args): Promise<{ visibility: PatternVisibility }> => {
+    const userId = await requireUser(ctx)
+    const row = await findOwnedByAppId(ctx, 'mechPatterns', userId, args.patternId)
+    if (row === null) throw new NotAuthorized('That pattern no longer exists')
+
+    let gameId: Id<'games'> | null = null
+    if (args.visibility === 'game') {
+      if (args.gameId === undefined) throw new ConvexError('Choose which Game to share it with')
+      await requireMemberAs(ctx, args.gameId, userId)
+      gameId = args.gameId
+    }
+    if (args.visibility !== 'private') {
+      try {
+        parseBody('mechPatterns', row.body)
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : 'unknown'
+        throw new ConvexError(`This pattern cannot be shared: ${detail}`)
+      }
+    }
+
+    await ctx.db.patch(row._id, {
+      publicRead: args.visibility === 'link',
+      gameId,
+      sharedAt: args.visibility === 'private' ? undefined : Date.now(),
+    })
+    return { visibility: args.visibility }
+  },
+})
+
+/**
+ * The patterns crewmates have shared with the caller's Games (#1276: "My Game's
+ * crew"), for the patterns page. The caller's own are on their shelf already and
+ * are left out. Signed out, there is no crew: an empty list.
+ */
+export const crewPatterns = query({
+  args: {},
+  handler: async (
+    ctx
+  ): Promise<Array<{ appId: string; body: unknown; madeBy: string; gameName: string }>> => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) return []
+    const memberships = await ctx.db
+      .query('memberships')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect()
+    const out: Array<{ appId: string; body: unknown; madeBy: string; gameName: string }> = []
+    for (const membership of memberships) {
+      const game = await ctx.db.get(membership.gameId)
+      if (game === null) continue
+      const rows = await ctx.db
+        .query('mechPatterns')
+        .withIndex('by_game', (q) => q.eq('gameId', membership.gameId))
+        .collect()
+      for (const row of rows) {
+        if (row.ownerId === userId) continue
+        const maker = await ctx.db.get(row.ownerId)
+        out.push({
+          appId: row.appId,
+          body: row.body,
+          madeBy: maker?.displayName ?? maker?.name ?? 'A crewmate',
+          gameName: game.name,
+        })
+      }
+    }
+    return out
   },
 })
 

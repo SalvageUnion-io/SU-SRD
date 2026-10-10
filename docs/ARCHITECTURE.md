@@ -782,7 +782,7 @@ bypassed), and a test that passes only on a retry fails the run
 `build-itun` builds against a throwaway self-hosted Convex backend
 (`.github/actions/convex-backend`, the one `e2e-nightly.yml` uses) carrying the
 PR's own functions, so its specs (the axe spec among them) see the signed-out UI production
-ships, never production itself; it also bundles the Worker (`bun --filter itun
+ships, never production itself; it bundles the Worker (`bun --filter itun
 worker:bundle`). ITUN's full browser suite is nightly (`e2e-nightly.yml`). `build-discord-bot`
 and `build-su-assets` bundle Workers. wrangler is
 one root devDependency that all four Worker apps run; keep each `wrangler.jsonc`
@@ -799,7 +799,7 @@ squash body is the PR body (`squash_merge_commit_message: PR_BODY`).
 
 `quality-checks`, named `CI Success`, fails on `failure` or `cancelled`.
 **Every job must be in its `needs:`** (`tools/check-workflows.ts`,
-`aggregator`). The ruleset also requires `PR title is a conventional commit`
+`aggregator`). The ruleset requires `PR title is a conventional commit`
 and waits on CodeQL through `code_scanning` (`GATE_WORKFLOWS`), so neither
 workflow is filtered. Change the trigger on `main` before the ruleset;
 never poll another workflow.
@@ -3509,6 +3509,9 @@ is each owner's own opt-in, decision 2) — and the page renders the live
 `<Sheet readOnly>` over `readOnlySheetStore.ts`, the store every read-only sheet
 uses. Every other decision stands.
 
+**Decision 7 added (2026-10-09, #1276):** saved mech patterns join, at
+`/p/pattern/:appId`. Decisions 1–6 otherwise stand.
+
 ### Context
 
 Two rules meet here and neither anticipated this case.
@@ -3599,6 +3602,20 @@ no account to open, is always current, and requires no publishing step.
    links to chase. This holds unconditionally — see the second half of decision
    2 — because a promise of revocation that an ordinary sequence of play can
    take away is not a promise.
+
+7. **Saved mech patterns join, with one more audience (#1276).** `mechPatterns`
+   gains the same `publicRead` column and a **Game scope**: its maker chooses
+   Only me, Anyone with the link (`publicRead`), or My Game's crew (`gameId`,
+   a read scope here and never a container — the pattern stays on its maker's
+   shelf). `shelf.setPatternVisibility` is the maker's act alone, and parses the
+   body before widening, as `setPublic` does. The page is the same route,
+   `/p/pattern/:appId`, served by its own query, `publicSheet.pattern`: a
+   pattern has no assignments or maxima, and a signed-in reader also reaches one
+   shared with a Game they are in, or their own. Everything else is the same
+   `null`, and there is still no listing outside the crew's own
+   (`shelf.crewPatterns`). The page wears the user-made treatment (ruleset
+   §3.9): a player's pattern must never pass for the book. Deleting the Game
+   drops a crew-scoped pattern back to Only me.
 
 ### Consequences
 
