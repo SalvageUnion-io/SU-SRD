@@ -8,11 +8,16 @@ type EntityCardStatBoxProps = {
   stats: StatItem[]
   /**
    * A one-line head row (ruleset §1 Listing): the cells hold ONE row and the
-   * name keeps its full width, so a cell that does not fit is dropped, last
-   * (lowest priority) first, rather than crushing the title to "L…". Cells wrap
-   * onto a second row that the clip hides.
+   * name keeps its full width, so a cell that does not fit is dropped whole,
+   * last (lowest priority) first, rather than crushing the title to "L…".
+   * Cells wrap onto a second row that the clip hides.
    */
   oneRow?: boolean
+  /**
+   * One row only: the room kept before the first cell (the gap from the
+   * title). It belongs to the first row, so it goes with the last cell.
+   */
+  lead?: string
 }
 
 /** One compact cell's height: the clip for a one-row cluster. */
@@ -25,7 +30,20 @@ const cluster = (oneRow: boolean): CSSProperties => ({
   gap: space[4],
   justifyContent: 'flex-end',
   minWidth: 0,
-  ...(oneRow ? { maxHeight: CELL_ROW, overflow: 'hidden' } : {}),
+  ...(oneRow ? { flex: '0 1 auto', maxHeight: CELL_ROW, overflow: 'hidden' } : {}),
+})
+
+/**
+ * The first row's lead-in: a row-high spacer (with the gap cancelled) ahead of
+ * the cells. The first cell must fit beside it or wrap onto the hidden row
+ * too, so the clip never slices a cell; and the row keeps its height, so a
+ * wrapped cell never rises into view.
+ */
+const leadIn = (lead: string): CSSProperties => ({
+  flex: 'none',
+  height: CELL_ROW,
+  marginRight: `calc(-1 * ${space[4]})`,
+  width: lead,
 })
 
 /**
@@ -37,10 +55,11 @@ const cluster = (oneRow: boolean): CSSProperties => ({
  *
  * An editable stat grows the horizontal stepper (the sheet's stat overrides).
  */
-export function EntityCardStatBox({ stats, oneRow = false }: EntityCardStatBoxProps) {
+export function EntityCardStatBox({ stats, oneRow = false, lead = '0px' }: EntityCardStatBoxProps) {
   if (stats.length === 0) return null
   return (
     <div style={cluster(oneRow)}>
+      {oneRow && <span aria-hidden="true" style={leadIn(lead)} />}
       {stats.map((stat) => (
         <Stat
           key={stat.key}

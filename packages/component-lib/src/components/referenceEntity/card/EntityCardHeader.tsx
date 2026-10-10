@@ -68,6 +68,16 @@ const BAND_PAD: Record<CardSize, string> = {
   small: `${space[6]} ${space[8]}`,
 }
 
+/** The one-line row's spacing between its parts (margins, not `gap`). */
+const ONE_LINE_GAP = space[8]
+
+/**
+ * The one-line cell box's shrink factor. Shrink is weighted by base width, so
+ * the title's share of a deficit is title / (title + cells × this): at a
+ * million it stays far below a layout pixel until the cells are gone.
+ */
+const CELL_SHRINK = 1_000_000
+
 const ONE_LINE: CSSProperties = {
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -119,14 +129,13 @@ export function EntityCardHeader({
       className={titleType}
       title={oneLine ? title : undefined}
       style={{
-        // One line: the NAME wins the row. It keeps its full width (it truncates
-        // only when it alone is wider than the row), after a hint has given way;
-        // the cells go first, last (lowest priority) first (`EntityCardStatBox`). Otherwise the title shares the row with the
-        // cells on the right at medium and small, and only a large header
-        // gives the title the whole row. Either way the cells wrap beneath
-        // when they truly cannot fit.
-        flex: oneLine ? '0 0 auto' : size === 'large' ? '1 1 auto' : '1 1 0',
-        maxWidth: oneLine ? '100%' : undefined,
+        // One line: the NAME wins the row. The cells give way first, whole and
+        // last first (`EntityCardStatBox`), and the title truncates only when
+        // it alone cannot fit beside the pennant and chevron. Otherwise the
+        // title shares the row with the cells on the right at medium and
+        // small, and only a large header gives the title the whole row; the
+        // cells wrap beneath when they truly cannot fit.
+        flex: oneLine ? '0 1 auto' : size === 'large' ? '1 1 auto' : '1 1 0',
         minWidth: oneLine ? 0 : size === 'large' ? 0 : 'min-content',
         overflowWrap: 'break-word',
         ...(oneLine ? ONE_LINE : {}),
@@ -140,7 +149,7 @@ export function EntityCardHeader({
       className={cn('font-body italic leading-snug', titleTextClass)}
       style={
         oneLine
-          ? { flex: '1 1 0', minWidth: 0, ...ONE_LINE }
+          ? { flex: '1 1 0', marginLeft: ONE_LINE_GAP, minWidth: 0, ...ONE_LINE }
           : { flex: '1 1 12rem', minWidth: 0, textAlign: 'right' }
       }
     >
@@ -167,47 +176,87 @@ export function EntityCardHeader({
           : {}),
         display: 'flex',
         flexWrap: oneLine ? 'nowrap' : 'wrap',
-        gap: oneLine ? space[8] : `${space[8]} ${space[14]}`,
+        // One line spaces its parts with margins: a cell box shrunk to nothing
+        // must not still hold two gaps' room from the title.
+        gap: oneLine ? 0 : `${space[8]} ${space[14]}`,
         minWidth: 0,
         padding: band ? BAND_PAD[size] : PAD[size],
         width: '100%',
       }}
     >
       {numeral && (
-        <span className={titleType} style={{ flex: 'none', opacity: 0.75 }}>
+        <span
+          className={titleType}
+          style={{ flex: 'none', marginRight: oneLine ? ONE_LINE_GAP : undefined, opacity: 0.75 }}
+        >
           {numeral}
         </span>
       )}
       {titleNode}
       {hint}
-      {hasCluster && (
-        <div
-          style={{
-            alignItems: 'center',
-            display: 'flex',
-            // One line: the cells take all of the shrink until only the first is
-            // left, and only then does the title truncate (flex-shrink is
-            // weighted by width, so a plain 8× still bit into the title early).
-            flex: oneLine ? '0 1000 auto' : '0 1 auto',
-            flexWrap: oneLine ? 'nowrap' : 'wrap',
-            gap: space[4],
-            justifyContent: 'flex-end',
-            marginLeft: oneLine ? 'auto' : undefined,
-            minWidth: 0,
-          }}
-        >
-          {stats.length > 0 && <EntityCardStatBox stats={stats} oneRow={oneLine} />}
-          {pennant}
-        </div>
+      {oneLine ? (
+        <>
+          {stats.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                // The cells take all of the shrink: the title gives way only
+                // once every cell has gone (flex-shrink is weighted by width,
+                // so the factor is large enough that the title's share stays
+                // below a pixel). The box clips; its cells drop out whole.
+                flex: `0 ${CELL_SHRINK} auto`,
+                justifyContent: 'flex-end',
+                marginLeft: 'auto',
+                minWidth: 0,
+              }}
+            >
+              <EntityCardStatBox stats={stats} oneRow lead={ONE_LINE_GAP} />
+            </div>
+          )}
+          {pennant && (
+            <span
+              style={{
+                display: 'flex',
+                flex: 'none',
+                marginLeft: stats.length > 0 ? ONE_LINE_GAP : 'auto',
+                paddingLeft: stats.length > 0 ? 0 : ONE_LINE_GAP,
+              }}
+            >
+              {pennant}
+            </span>
+          )}
+        </>
+      ) : (
+        hasCluster && (
+          <div
+            style={{
+              alignItems: 'center',
+              display: 'flex',
+              flex: '0 1 auto',
+              flexWrap: 'wrap',
+              gap: space[4],
+              justifyContent: 'flex-end',
+              minWidth: 0,
+            }}
+          >
+            {stats.length > 0 && <EntityCardStatBox stats={stats} />}
+            {pennant}
+          </div>
+        )
       )}
       {chevron && (
-        <ChevronRight
-          aria-hidden="true"
-          size={20}
-          strokeWidth={3}
-          className={titleTextClass}
-          style={{ flex: 'none', marginLeft: hasCluster ? 0 : 'auto' }}
-        />
+        // A head row's chevron (only head rows carry one): it never shrinks,
+        // and keeps a gap's room from whatever precedes it.
+        <span
+          style={{
+            display: 'flex',
+            flex: 'none',
+            marginLeft: hasCluster ? ONE_LINE_GAP : 'auto',
+            paddingLeft: hasCluster ? 0 : ONE_LINE_GAP,
+          }}
+        >
+          <ChevronRight aria-hidden="true" size={20} strokeWidth={3} className={titleTextClass} />
+        </span>
       )}
     </div>
   )
