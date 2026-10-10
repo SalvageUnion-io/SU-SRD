@@ -72,7 +72,7 @@ const NAV_LINK = `inline-flex shrink-0 items-center font-cond text-lede font-sem
 const NAV_LINK_ACTIVE = 'text-paper'
 
 const BUY_BUTTON =
-  'inline-flex shrink-0 items-center rounded-md border border-rust bg-rust px-4 py-1.5 font-cond text-caption font-medium uppercase tracking-caps-snug text-paper no-underline transition-colors'
+  'inline-flex shrink-0 items-center rounded-card border-chrome border-paper-60 bg-transparent px-4 py-1.5 font-cond text-caption font-medium uppercase tracking-caps-snug text-paper no-underline transition-colors hover:border-paper'
 
 const BREADCRUMB_TEXT = 'font-cond text-xs uppercase tracking-caps-wide text-wk-muted'
 
@@ -96,7 +96,7 @@ export function AppBar({
   return (
     <>
       <header
-        className="z-50 flex flex-col gap-2 border-b-entity border-rust bg-ink-deep px-5 py-3 sm:px-[34px] sm:py-[14px]"
+        className="z-50 flex flex-col gap-2 border-b-entity border-ink bg-ink-deep px-5 py-3 sm:px-[34px] sm:py-[14px]"
         style={viewTransitionName ? { viewTransitionName } : undefined}
       >
         {/* Brand + nav (or the mobile hamburger). */}
@@ -121,9 +121,9 @@ export function AppBar({
             <span className="flex min-w-0 flex-col">
               <span className="font-cond text-display font-bold leading-[0.98] tracking-normal text-paper sm:text-display-lg">
                 {wordmark}
-                {wordmarkAccent && <span className="text-rust">{wordmarkAccent}</span>}
+                {wordmarkAccent && <span className="text-paper-60">{wordmarkAccent}</span>}
                 {badge && (
-                  <span className="ml-2 inline-block rounded bg-rust px-1.5 py-0.5 align-[0.32em] font-cond text-caption font-bold uppercase leading-none tracking-caps text-paper">
+                  <span className="ml-2 inline-block bg-paper px-1.5 py-0.5 align-[0.32em] font-cond text-caption font-bold uppercase leading-none tracking-caps text-ink">
                     {badge}
                   </span>
                 )}
@@ -199,7 +199,10 @@ export function AppBar({
                         {item.name}
                       </span>
                     ) : (
-                      <a href={item.url} className="transition-colors hover:text-rust">
+                      <a
+                        href={item.url}
+                        className="transition-colors hover:text-ink hover:underline"
+                      >
                         {item.name}
                       </a>
                     )}

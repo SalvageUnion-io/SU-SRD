@@ -20,7 +20,7 @@
 
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { PageHeading, Slab } from 'component-lib'
+import { InlineRef, PageHeading, Slab } from 'component-lib'
 import { Fragment } from 'react'
 import type { PageModule, PageResult, RouteContext } from '../../ssg/types'
 import { ColophonIsland } from '../components/islands/ColophonIsland'
@@ -210,23 +210,23 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               <Slab as="h2" variant="solid" label="What is this?" />
               <p className="mb-2">
                 This is an unofficial, community-built System Reference Document (SRD) for{' '}
-                <a
+                <InlineRef
                   href="https://leyline.press/pages/salvage-union"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-bold text-rust hover:underline"
+                  className="font-bold"
                 >
                   Salvage Union
-                </a>
+                </InlineRef>
                 , a post-apocalyptic mech tabletop RPG published by{' '}
-                <a
+                <InlineRef
                   href="https://leyline.press"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-bold text-rust hover:underline"
+                  className="font-bold"
                 >
                   Leyline Press
-                </a>
+                </InlineRef>
                 . It provides a searchable, browsable reference for all game content released under
                 the Salvage Union OGL.
               </p>
@@ -235,14 +235,14 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                 I am not the owner or publisher of this content. Salvage Union and all associated
                 names, marks, characters, and artwork are the property of Leyline Press. Game text
                 and mechanics are used under the{' '}
-                <a
+                <InlineRef
                   href="https://leyline.press/pages/salvage-union-open-game-licence-1-0b"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-bold text-rust hover:underline"
+                  className="font-bold"
                 >
                   Salvage Union Open Game Licence 1.0b
-                </a>
+                </InlineRef>
                 . Artwork is not covered by that licence and is reproduced with the special
                 permission of Leyline Press. This is an unofficial fan project, and is not
                 affiliated with Leyline Press.
@@ -326,7 +326,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
           <div className="relative">
             <button
               type="button"
-              className="absolute right-2 top-2 z-10 rounded-panel bg-ink px-3 py-1 text-2xl font-bold text-paper hover:bg-rust"
+              className="absolute right-2 top-2 z-10 rounded-panel bg-ink px-3 py-1 text-2xl font-bold text-paper hover:bg-ink-2"
               id="close-modal"
               aria-label="Close"
             >

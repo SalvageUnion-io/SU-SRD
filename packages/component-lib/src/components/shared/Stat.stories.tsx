@@ -29,7 +29,7 @@ function Cell({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col items-center gap-1.5">
       <div className="flex min-h-[52px] items-center">{children}</div>
-      <code className="text-nano text-wk-muted">{label}</code>
+      <code className="text-badge text-wk-muted">{label}</code>
     </div>
   )
 }
@@ -103,7 +103,7 @@ export const ValueBox: Story = () => (
 
 /** State lives in the border — the ONLY thing that changes between states. */
 export const States: Story = () => (
-  <Gallery rule="State is carried entirely by the border colour via the `state` prop; fill, value and stamp stay constant. Default = ink · good (full/at-cap) = mech · modified = rust · caution = status-warn · critical = status-bad. Which value maps to which state is the consumer's call.">
+  <Gallery rule="State is carried entirely by the border colour via the `state` prop; fill, value and stamp stay constant. Default = ink · good (full/at-cap) = mech · modified = dashed ink · caution = status-warn · critical = status-bad. Which value maps to which state is the consumer's call.">
     <Cell label="default">
       <Stat label="SP" value={Math.ceil(sp * 0.5)} max={sp} />
     </Cell>

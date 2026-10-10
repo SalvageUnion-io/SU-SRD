@@ -63,7 +63,7 @@ function NpcRow({
 }) {
   return (
     <div className={cn('flex items-baseline gap-1.5', className)}>
-      <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps-wide text-ink">
+      <dt className="shrink-0 font-cond text-badge font-bold uppercase leading-none tracking-caps-wide text-ink">
         {label}
       </dt>
       <dd

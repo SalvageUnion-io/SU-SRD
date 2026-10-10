@@ -2,7 +2,7 @@
  * `/discord` — the Discord bot landing page.
  */
 
-import { buttonVariants, cn, PageHeading, Panel, Slab } from 'component-lib'
+import { buttonVariants, cn, InlineRef, PageHeading, Panel, Slab } from 'component-lib'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { ITUN_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { SalvageUnionReference } from '../lib/gameData'
@@ -114,7 +114,7 @@ function page(): PageResult {
             <Panel soft>
               <div className="border-b-chrome border-wk-faint px-5 py-3">
                 <p className="mt-1 font-body text-base font-bold">
-                  /su roll <span className="text-rust">[table]</span>
+                  /su roll <span className="italic">[table]</span>
                 </p>
               </div>
               <div className="flex flex-col gap-3 px-5 py-4 text-sm leading-relaxed">
@@ -158,7 +158,7 @@ function page(): PageResult {
             <Panel soft>
               <div className="border-b-chrome border-wk-faint px-5 py-3">
                 <p className="mt-1 font-body text-base font-bold">
-                  /su lookup <span className="text-rust">entity</span>
+                  /su lookup <span className="italic">entity</span>
                 </p>
               </div>
               <div className="flex flex-col gap-3 px-5 py-4 text-sm leading-relaxed">
@@ -212,16 +212,16 @@ function page(): PageResult {
                 It never reads messages — its only Discord capability is answering slash commands.
               </li>
             </ul>
-            <p className="rounded-panel border-l-4 border-rust bg-wk-bg px-4 py-3">
+            <p className="rounded-panel border-l-4 border-ink bg-wk-bg px-4 py-3">
               <strong>Running a campaign?</strong> Pair the bot with{' '}
-              <a
+              <InlineRef
                 href={ITUN_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-bold text-rust hover:underline"
+                className="font-bold"
               >
                 In The Union Now
-              </a>
+              </InlineRef>
               {/*
                 "no-account" means usable without one: signed out, ITUN is
                 read-only, and building needs an account (ADR-034). It must
@@ -235,26 +235,22 @@ function page(): PageResult {
           {/* Attribution */}
           <p className="border-t border-wk-faint pt-6 text-center text-xs text-wk-muted">
             Dice rolling powered by{' '}
-            <a
+            <InlineRef
               href="https://randsum.dev"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-bold text-rust hover:underline"
+              className="font-bold"
             >
               Randsum.dev
-            </a>
+            </InlineRef>
             .
           </p>
 
           {/* Legal */}
           <p className="text-center text-xs text-wk-muted">
-            <a href="/bot/terms" className="underline hover:text-rust">
-              Terms of Service
-            </a>
+            <InlineRef href="/bot/terms">Terms of Service</InlineRef>
             <span className="px-1.5 text-wk-faint">·</span>
-            <a href="/bot/privacy" className="underline hover:text-rust">
-              Privacy Policy
-            </a>
+            <InlineRef href="/bot/privacy">Privacy Policy</InlineRef>
           </p>
         </div>
       </div>

@@ -360,7 +360,7 @@ export function EntitySearcher({
   )
 
   const summaryNode = (
-    <span className="whitespace-nowrap font-cond text-label font-bold uppercase tracking-caps text-wk-muted">
+    <span className="whitespace-nowrap font-cond text-badge font-bold uppercase tracking-caps text-wk-muted">
       <span className="text-ink">{totalOnSheet}</span> on sheet · showing {visible.length} of{' '}
       {pool.length}
     </span>
@@ -894,7 +894,7 @@ function CountCard({
 }) {
   const installed = count > 0
   return (
-    <div className={cn('rounded-panel', installed && 'shadow-[0_0_0_3px_var(--color-rust)]')}>
+    <div className={cn('rounded-panel', installed && 'shadow-[0_0_0_3px_var(--color-ink)]')}>
       <ReferenceEntityCard data={entity} size="medium" hide={hide} />
       <div className="mt-1.5 flex items-center gap-2 px-1">
         {installed && (
@@ -1111,7 +1111,7 @@ function SelectionRail({
                 <ReferenceEntityCard data={entry.entity} size="medium" extent="head" hide={hide} />
                 {entry.total > 1 && (
                   <span
-                    className={capsLabel({ size: 'label', tracking: 'caps' })}
+                    className={capsLabel({ size: 'badge', tracking: 'caps' })}
                     style={COPY_STYLE}
                   >
                     Copy {entry.copy} of {entry.total}
@@ -1229,7 +1229,9 @@ function BudgetTrack({
 }) {
   const total = Math.max(max, value)
   const isOver = value > max
-  const fill = tone === 'ap' ? 'border-rust bg-rust' : 'border-ink bg-ink'
+  // AP is the pilot's resource, so its pips fill pilot inside an ink frame —
+  // never rust, which only an action may wear (ruleset §3.1).
+  const fill = tone === 'ap' ? 'border-ink bg-pilot' : 'border-ink bg-ink'
   return (
     <div>
       <p className="font-cond text-badge font-bold uppercase tracking-caps-wide text-ink">

@@ -38,13 +38,13 @@ export function EntityDetailDialog({
               card's top-right corner. */}
           <div className="relative">
             {/* The SRD black stamp is not a Button VARIANT (paper hairline on
-                ink, going rust on hover), but its geometry, focus ring and
+                ink, going ink-2 on hover), but its geometry, focus ring and
                 disabled treatment are the shared icon rung's — so it composes
                 `buttonVariants` and re-skins only the colours. */}
             <Dialog.Close
               className={cn(
                 buttonVariants({ variant: 'ghost', size: 'iconOnly' }),
-                'absolute -top-2 -right-2 z-[60] border-2 border-paper bg-ink text-paper shadow-lg hover:bg-rust'
+                'absolute -top-2 -right-2 z-[60] border-2 border-paper bg-ink text-paper shadow-lg hover:bg-ink-2'
               )}
             >
               <X className="h-5 w-5" aria-hidden="true" />

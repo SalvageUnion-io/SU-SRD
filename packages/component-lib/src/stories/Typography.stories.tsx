@@ -32,7 +32,7 @@ const specimenBody =
 // `tokens.parity.test.ts` spells it, so this page cannot claim a property the
 // stylesheet does not declare.
 
-/** `fontSize.labelLg` → `--text-label-lg`. */
+/** `fontSize.displayLg` → `--text-display-lg`. */
 const cssVarName = (group: string, key: string) =>
   `--${group}-${key
     .replace(/([A-Z])/g, '-$1')
@@ -40,18 +40,14 @@ const cssVarName = (group: string, key: string) =>
     .toLowerCase()}`
 
 /**
- * The semantic rungs this page specimens — nano through lede, the ladder the
- * chrome actually spends. The display end (readout … hero) is shown on
+ * The semantic rungs this page specimens — badge (the 11px floor) through
+ * lede, the ladder the chrome actually spends. The display end (readout … hero) is shown on
  * Foundations/Theme, and the inherited Tailwind rungs are deliberately absent:
  * `tokens.ts` carries them only so a migrating call site does not re-size, and
  * a catalog page that specimened them would advertise the debt as a choice.
  */
 const SCALE_RUNGS = [
-  ['nano', 'smallest markers — TL glyphs, unit suffixes'],
-  ['micro', 'dense caps meta labels (NPC insets, encounter cards)'],
-  ['label', 'standard uppercase condensed field / section label'],
-  ['labelLg', 'stamp / rail caps label'],
-  ['badge', 'badges, pills, compact caps values'],
+  ['badge', 'the floor — caps labels, stamps, badges, pills, unit suffixes'],
   ['note', 'small body copy in rails and insets'],
   ['caption', 'small body copy — hints, empty states, subtitles'],
   ['lede', 'emphasized inline values, inset titles'],
@@ -122,7 +118,7 @@ const specimenNameStyle = {
 const metaStyle = {
   color: color.wkMuted,
   fontFamily: font.body,
-  fontSize: fontSize.nano,
+  fontSize: fontSize.badge,
   letterSpacing: 'normal',
   marginLeft: space[8],
   textTransform: 'none',
@@ -186,7 +182,7 @@ function Section({
 export const Scale: Story = () => (
   <Section
     title="Type scale — the one font-size ladder"
-    blurb="design/tokens.ts fontSize.nano … fontSize.lede, declared as --text-nano … --text-lede. Reach for a rung by name; never an arbitrary pixel value for a step on this ladder."
+    blurb="design/tokens.ts fontSize.badge … fontSize.lede, declared as --text-badge … --text-lede. Nothing renders under the 11px floor (ruleset §4.6). Reach for a rung by name; never an arbitrary pixel value for a step on this ladder."
   >
     {SCALE_RUNGS.map(([key, use]) => (
       <Row

@@ -46,8 +46,9 @@
   /* The canonical focus ring, composed from two tokens. It is not a token
      itself: `tokens.parity.test.ts` compares atomic values, and this is a
      composite derived FROM them. Every ring rung reads it; none repeats the
-     literal, so they cannot drift apart. */
-  --focus-ring-shadow: 0 0 0 2px var(--color-paper), 0 0 0 4px var(--color-rust);
+     literal, so they cannot drift apart. Ink, not rust: rust means "do
+     something" and is painted only by Button and InlineRef (ruleset §3.1). */
+  --focus-ring-shadow: 0 0 0 2px var(--color-paper), 0 0 0 4px var(--color-ink);
 }
 
 /* ══ Base ═══════════════════════════════════════════════════════════════════
@@ -169,7 +170,7 @@ button {
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
-  border: var(--bw-entity) solid var(--color-rust);
+  border: var(--bw-entity) solid var(--color-ink);
   border-radius: var(--radius-card);
 }
 
@@ -214,8 +215,11 @@ body {
  */
 
 /**
- * The canonical rust focus ring (design-spec §2.4), on `:focus-visible` — a
- * button shows it to the keyboard, not to the mouse.
+ * The canonical focus ring (design-spec §2.4), on `:focus-visible` — a button
+ * shows it to the keyboard, not to the mouse. It was rust until the rust
+ * allowlist (ruleset §3.1): rust means "do something", and a ring on a
+ * field or a card is not an action, so the ring is ink. The two-ring
+ * construction below is unchanged, and ink only widens its margins.
  *
  * ## Why this is a paper-offset ring and not a wash
  *
@@ -225,28 +229,27 @@ body {
  *
  * The rule it broke is the one the ON-TONE rung below already states: *a ring
  * that vanishes on a legal background is not an accessibility affordance.* That
- * rung solved it with a paper offset under a solid ink ring; this is the same
- * construction in rust, so the two rungs are the same shape rather than two
- * different ideas.
+ * rung solved it with a paper offset under a solid ink ring, and since the
+ * rust allowlist this rung is that same ring: one shape, one idea.
  *
  * ## Why BOTH rings are load-bearing
  *
  * WCAG 1.4.11 asks for 3:1 against *adjacent* colours, and the two rings divide
  * that job by ground — neither one covers every case alone:
  *
- *   inner boundary   rust | paper      5.17  — constant, ground-independent
+ *   inner boundary   ink | paper      15.35  — constant, ground-independent
  *
- *   outer boundary   rust|ground   paper-ring|ground   whichever carries
- *     on paper           5.17            1.00              rust    5.17
- *     on wk-bg           4.66            1.11              rust    4.66
- *     on ink             2.97           15.35              paper  15.35
- *     on ink-deep        3.31           17.08              paper  17.08
+ *   outer boundary   ink|ground   paper-ring|ground   whichever carries
+ *     on paper          15.35            1.00              ink    15.35
+ *     on wk-bg          13.59            1.13              ink    13.59
+ *     on ink             1.00           15.35              paper  15.35
+ *     on ink-deep        1.11           17.08              paper  17.08
  *
- * Note the 2.97: **solid rust on its own would fail on the mid `ink` ground.**
+ * Note the 1.00: **a solid ink ring on its own vanishes on an ink ground.**
  * A single-ring "just make it solid" fix looks correct and is not. On light
- * grounds the rust carries; on dark grounds the paper ring carries; the inner
- * boundary holds at 5.17 regardless. That is the whole reason for two rings,
- * and why the on-tone rung below was built the same way.
+ * grounds the ink carries; on dark grounds the paper ring carries; the inner
+ * boundary holds at 15.35 regardless. That is the whole reason for two rings
+ * (`focusRing.contrast.test.ts` asserts both halves).
  *
  * All five ring rules below read ONE token, `--focus-ring-shadow`, so they
  * cannot drift apart.
@@ -263,9 +266,10 @@ body {
 
 /**
  * The ON-TONE rung: an ink ring with a paper offset, for a focusable surface
- * whose own background is a caller-supplied ENTITY TONE. The soft ring above
- * simply disappears against the dark end of the tech-level ramp, and a ring
- * that vanishes on a legal background is not an accessibility affordance.
+ * whose own background is a caller-supplied ENTITY TONE. Since the canonical
+ * ring above went ink it draws the same ring; it stays a named rung because
+ * callers on a tone say so, and a tone that ever needs a different ring has a
+ * place to get it.
  */
 .su-focus-ring-on-tone:focus-visible {
   outline: 3px solid transparent;
@@ -282,8 +286,8 @@ body {
  * because the two are different properties — which is why this rule works and
  * masks the precedence trap described at the top of this section. The real
  * `Button` (`components/chrome/buttonVariants.ts`) does not darken generically:
- * it swaps to a NAMED colour per variant (`hover:bg-ink-8`, `hover:bg-rust-hi`,
- * `hover:border-rust-hi`), and no brightness filter reproduces those without
+ * it swaps to a NAMED colour per variant (`hover:bg-ink-8`, the primary's
+ * darker action hover), and no brightness filter reproduces those without
  * re-toning them. Those live in `.su-btn--*` below, resting colour included.
  */
 .su-button:hover:not(:disabled) {
@@ -359,12 +363,13 @@ body {
  * CLAUDE.md), not because a style object could not hold them.
  */
 .su-selection-ring {
-  box-shadow: 0 0 0 3px var(--color-rust);
+  /* Ink, not rust: a selection is state, not an action (ruleset §3.1). */
+  box-shadow: 0 0 0 3px var(--color-ink);
 }
 
 /*
  * The double-ink "halo" — a ground-coloured gap, then a 3px ink ring. The
- * emphasis the onboarding doors use instead of the rust ring.
+ * emphasis the onboarding doors use instead of the plain selection ring.
  *
  * `--ground` is supplied by the CALLER, which is the whole point: the gap has
  * to match whatever surface the door is sitting on, so it is a bare custom
@@ -436,15 +441,17 @@ body {
   background-color: var(--color-ink-8);
 }
 
+/* The rust allowlist's stylesheet half (ruleset §3.1): rust is Button's.
+   These four lines are the only rust in this file, and each says so. */
 .su-btn--primary {
-  background-color: var(--color-rust);
-  border-color: var(--color-rust);
+  background-color: var(--color-rust); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
+  border-color: var(--color-rust); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
   color: var(--color-paper);
 }
 
 .su-btn--primary:hover:not(:disabled) {
-  background-color: var(--color-rust-hi);
-  border-color: var(--color-rust-hi);
+  background-color: var(--color-rust-hi); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
+  border-color: var(--color-rust-hi); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
 }
 
 .su-btn--danger {
@@ -589,18 +596,6 @@ body {
    (`text-sm`, `text-lg`, …) is deliberately NOT expressible here — moving
    `text-sm` (14px) to `text-caption` (13px) is a per-site design call, not a
    rename, so those keep their own size until someone rules on each one. */
-.su-caps--nano {
-  font-size: var(--text-nano);
-}
-.su-caps--micro {
-  font-size: var(--text-micro);
-}
-.su-caps--label {
-  font-size: var(--text-label);
-}
-.su-caps--label-lg {
-  font-size: var(--text-label-lg);
-}
 .su-caps--badge {
   font-size: var(--text-badge);
 }

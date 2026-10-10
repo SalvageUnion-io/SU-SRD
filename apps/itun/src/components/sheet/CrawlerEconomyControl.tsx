@@ -485,7 +485,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
               <div className="flex flex-wrap items-end gap-3">
                 <label
                   htmlFor="trade-from-tl"
-                  className="flex flex-col gap-1 font-cond text-label font-bold uppercase tracking-caps text-ink"
+                  className="flex flex-col gap-1 font-cond text-badge font-bold uppercase tracking-caps text-ink"
                 >
                   From
                   <Select
@@ -503,7 +503,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                 </label>
                 <label
                   htmlFor="trade-to-tl"
-                  className="flex flex-col gap-1 font-cond text-label font-bold uppercase tracking-caps text-ink"
+                  className="flex flex-col gap-1 font-cond text-badge font-bold uppercase tracking-caps text-ink"
                 >
                   To
                   <Select

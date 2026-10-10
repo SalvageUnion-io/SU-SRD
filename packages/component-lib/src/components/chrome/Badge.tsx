@@ -83,7 +83,7 @@ type BadgeChipProps = {
   /**
    * Render as a different element. The chip's escape hatch is interactivity:
    * `as="button"` turns the chip into a toggle. When overridden the chip gains
-   * `cursor-pointer` + the shared rust focus ring, and a `button` defaults to
+   * `cursor-pointer` + the shared focus ring, and a `button` defaults to
    * `type="button"`. The call site owns the toggle state — drive `surface`
    * (`solid` when pressed / `ghost` when not) and pass `aria-pressed` yourself,
    * so the Badge stays presentational.

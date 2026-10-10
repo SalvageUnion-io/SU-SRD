@@ -4,7 +4,7 @@
  * A plain static document: no islands, no data, no structured data.
  */
 
-import { PageHeading, Slab } from 'component-lib'
+import { InlineRef, PageHeading, Slab } from 'component-lib'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { TITLE_SUFFIX } from '../../lib/constants'
 
@@ -53,19 +53,19 @@ function page(): PageResult {
               <Slab as="h2" variant="solid" label="Intellectual property" />
               <p>
                 Salvage Union is copyrighted by{' '}
-                <a
+                <InlineRef
                   href="https://leyline.press"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-bold text-rust hover:underline"
+                  className="font-bold"
                 >
                   Leyline Press
-                </a>
+                </InlineRef>
                 . The Bot is an unofficial, community reference tool and is not affiliated with or
                 endorsed by Leyline Press. Game data is drawn from the community reference at{' '}
-                <a href="/" className="font-bold text-rust hover:underline">
+                <InlineRef href="/" className="font-bold">
                   salvageunion.io
-                </a>
+                </InlineRef>
                 .
               </p>
             </div>
@@ -82,21 +82,18 @@ function page(): PageResult {
               <Slab as="h2" variant="solid" label="Contact" />
               <p>
                 Questions about these terms:{' '}
-                <a
-                  href="mailto:privacy@salvageunion.io"
-                  className="font-bold text-rust hover:underline"
-                >
+                <InlineRef href="mailto:privacy@salvageunion.io" className="font-bold">
                   privacy@salvageunion.io
-                </a>
+                </InlineRef>
                 .
               </p>
             </div>
 
             <p className="text-xs text-ink/60">
               See also the{' '}
-              <a href="/bot/privacy" className="font-bold text-rust hover:underline">
+              <InlineRef href="/bot/privacy" className="font-bold">
                 Privacy Policy
-              </a>
+              </InlineRef>
               .
             </p>
           </section>

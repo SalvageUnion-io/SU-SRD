@@ -63,7 +63,7 @@ const STAMP: CSSProperties = {
   borderRadius: radius.card,
   paddingInline: space[4],
   paddingBlock: '1px',
-  fontSize: fontSize.label,
+  fontSize: fontSize.badge,
 }
 
 export function DeckList({ view }: { view: DeckListModel }) {

@@ -191,7 +191,7 @@ export const LabelVersusBody: Story = () => (
                 borderBottom: `${borderWidth.hairline} solid ${color.ink15}`,
                 color: color.wkMuted,
                 fontFamily: font.cond,
-                fontSize: fontSize.micro,
+                fontSize: fontSize.badge,
                 fontWeight: weight.bold,
                 letterSpacing: tracking.capsWide,
                 padding: `${space[6]} ${space[8]}`,

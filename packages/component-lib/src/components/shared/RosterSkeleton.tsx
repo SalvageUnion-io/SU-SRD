@@ -26,7 +26,7 @@ function SkeletonColumn({ hiddenOnMobile = false }: { hiddenOnMobile?: boolean }
   return (
     <section aria-hidden="true" className={cn(hiddenOnMobile && 'hidden md:block')}>
       <div className="mb-3 flex items-center justify-between">
-        <Ghost className="h-5 w-24 bg-rust/25" />
+        <Ghost className="h-5 w-24 bg-ink/25" />
         <Ghost className="h-7 w-28 rounded-card border-chrome border-ink/10 bg-paper" />
       </div>
       <ul className="flex flex-col gap-2.5">

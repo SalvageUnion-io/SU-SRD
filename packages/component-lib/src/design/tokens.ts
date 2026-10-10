@@ -20,8 +20,8 @@
  *     file, and the split rule in this package's CLAUDE.md). Two files holding
  *     one set of numbers is a drift risk, so `tokens.parity.test.ts` asserts
  *     they agree — that test is what makes the duplication safe.
- *   - **Names match theme.css.** `--color-ink-75` is `color.ink75`, `--text-label-lg`
- *     is `fontSize.labelLg`, `--bw-chrome` is `borderWidth.chrome`,
+ *   - **Names match theme.css.** `--color-ink-75` is `color.ink75`, `--text-display-lg`
+ *     is `fontSize.displayLg`, `--bw-chrome` is `borderWidth.chrome`,
  *     `--font-weight-bold` is `weight.bold`. A camelCase key maps to its
  *     kebab-case custom property mechanically (`inkDeep` → `ink-deep`, `wkBg2` →
  *     `wk-bg-2`, `tl1` → `tl-1`), which is what lets the parity test compare the
@@ -76,11 +76,8 @@ export const space = {
  * The first block is the SEMANTIC ladder (ruleset §4.2) — the one to reach for,
  * named by role rather than by size, and shared by every surface:
  *
- *   nano      8px      smallest markers — TL glyphs, unit suffixes
- *   micro     9px      dense caps meta labels
- *   label     10px     standard uppercase font-cond field/section label
- *   labelLg   10.5px   stamp / rail caps label
- *   badge     11px     badges, pills, compact caps values
+ *   badge     11px     THE FLOOR — caps labels, stamps, badges, pills, unit
+ *                      suffixes, compact caps values
  *   note      11.5px   small body copy in rails and insets
  *   caption   13px     hints, empty states, subtitles
  *   lede      15px     emphasized inline values, inset titles
@@ -89,6 +86,10 @@ export const space = {
  *   display   26px
  *   displayLg 31px
  *   hero      38px
+ *
+ * Nothing sits under 11px (ruleset §4.6): the four rungs that once did (8, 9,
+ * 10 and 10.5px) were retired into `badge`, and `bun run check styling`
+ * (tokens/type-floor) rejects any smaller size, by name or by literal.
  *
  * The second block is the INHERITED rungs, and they are here for an honest
  * reason rather than a tidy one. They are Tailwind's built-in `text-xs` …
@@ -106,10 +107,6 @@ export const space = {
  */
 export const fontSize = {
   // — semantic ladder (ruleset §4.2) —
-  nano: '8px',
-  micro: '9px',
-  label: '10px',
-  labelLg: '10.5px',
   badge: '11px',
   note: '11.5px',
   caption: '13px',
@@ -219,6 +216,12 @@ const base = {
   mech: 'rgb(122, 151, 138)',
   mechDark: 'rgb(92, 121, 108)',
   crawler: 'rgb(206, 88, 152)',
+  /** The deeper crawler band that carries paper text (4.6:1) — crawler pink
+   *  carries neither ink nor paper at 4.5:1 (ruleset §3.8). */
+  crawlerBand: 'rgb(184, 74, 134)',
+  /** The Denizens chapter band (navy), carrying paper text at 8.8:1. A band
+   *  only: Denizens cards keep `adversary`. */
+  denizenBand: 'rgb(47, 74, 102)',
   /** The world/opposition schemas — creatures, bio-titans, factions, npcs,
    *  meld, squads. NOT the action rust, despite the tone. */
   adversary: 'rgb(140, 75, 56)',
@@ -308,11 +311,13 @@ const base = {
 
   // — Workshop (light) ground: the step off-paper that makes a card read as a
   //   panel —
-  wkBg: 'rgb(230, 240, 245)',
+  /** The page ground: the book's own paper (ruleset §4.1, board 03). */
+  wkBg: 'rgb(239, 236, 230)',
   wkBg2: 'rgb(215, 230, 238)',
-  /** The muted secondary-text tone, toned to clear WCAG AA on all three
-   *  grounds it lands on (paper 5.78:1 · wkBg 5.22:1 · wkBg2 4.73:1). */
-  wkMuted: 'rgb(90, 100, 109)',
+  /** The muted secondary-text tone — warm, like the paper — toned to clear
+   *  WCAG AA on all three grounds it lands on (paper 5.73:1 · wkBg 5.07:1 ·
+   *  wkBg2 4.68:1). */
+  wkMuted: 'rgb(107, 98, 87)',
   /** NON-TEXT ONLY — 2.03:1 on paper. A hairline/divider tone. */
   wkFaint: 'rgb(167, 180, 189)',
   /** Advisory/info rule. */
@@ -332,6 +337,10 @@ const base = {
   cargoPale: 'rgb(239, 230, 212)',
 
   // — Sheet "deep" tones that are literals rather than aliases —
+  /** A LITERAL holding ink's value, never an alias of `rust`: rust means "do
+   *  something" and nothing may alias it (ruleset §3.1). Board 03 rules that
+   *  pilot-deep becomes ink. */
+  sheetPilotDeep: 'rgb(40, 32, 25)',
   sheetMechDeep: 'rgb(47, 67, 56)',
   sheetCrawlerDeep: 'rgb(126, 42, 91)',
   /** A LITERAL, not an alias of `tl5`, which holds the same value but means
@@ -370,10 +379,78 @@ export const color = {
 
   // — Sheet tones (Header C live sheets): base + deep pairs —
   sheetPilot: base.pilot,
-  sheetPilotDeep: base.rust,
   sheetMech: base.mech,
   sheetCrawler: base.crawler,
   /** The shared-table ontology (ADR-030). Blue, so a Game row never reads as
    *  the crawler row next to it. */
   sheetGame: base.wkAccent,
+} as const
+
+/**
+ * The light speckle (ruleset §3.5 "Texture", board 05c) — the printed book's
+ * bands and banners are speckled, so ours are, generated in code.
+ *
+ * `texture` holds the overlay opacities, which a stylesheet can read too
+ * (`--texture-*` in theme.css; `tokens.parity.test.ts` holds them equal). The
+ * filter primitives in `speckle` below have no CSS consumer — they are SVG
+ * filter attributes — so they live here alone.
+ *
+ * Grain, not shading: nothing interpolates between colours. Where it goes is
+ * a law with a guard behind it (`tokens/texture-placement`): ink speckle on
+ * colour bands and tone headers, paper flecks on ink grounds — never on
+ * paper, buttons, fields, the Dashboard or tooltips.
+ */
+export const texture = {
+  blotOpacity: '0.4',
+  speckOpacity: '0.35',
+  fleckOpacity: '0.55',
+} as const
+
+/**
+ * The three speckle filters, by the ids the canvas named them (`su-blot`,
+ * `su-speck`, `su-fleck`). Each is `feTurbulence` noise thresholded to hard
+ * specks by an `feColorMatrix` alpha row (`gain · noise + threshold`), then
+ * composited onto a flat fill. The thresholds are board 05c's QUIETER set —
+ * the "light speckle" chosen over the heavy one (−17.8 / −14.2 / −14.7).
+ *
+ * The two grains:
+ *   - `ink`   — blot + speck, filled with `ink`: the speckle on a colour band
+ *               or a tone header.
+ *   - `paper` — fleck, filled with `wkBg` (the book's paper): the flecks on a
+ *               dark ground — the Union bar, an ink banner, a unit stamp.
+ */
+export const speckle = {
+  filters: {
+    blot: {
+      id: 'su-blot',
+      baseFrequency: '0.32',
+      numOctaves: 2,
+      seed: 3,
+      gain: 26,
+      threshold: -20.4,
+    },
+    speck: {
+      id: 'su-speck',
+      baseFrequency: '0.85',
+      numOctaves: 2,
+      seed: 10,
+      gain: 22,
+      threshold: -16.9,
+    },
+    fleck: {
+      id: 'su-fleck',
+      baseFrequency: '0.5 0.9',
+      numOctaves: 2,
+      seed: 22,
+      gain: 22,
+      threshold: -17.3,
+    },
+  },
+  grains: {
+    ink: [
+      { filter: 'blot', fill: color.ink, opacity: texture.blotOpacity },
+      { filter: 'speck', fill: color.ink, opacity: texture.speckOpacity },
+    ],
+    paper: [{ filter: 'fleck', fill: color.wkBg, opacity: texture.fleckOpacity }],
+  },
 } as const

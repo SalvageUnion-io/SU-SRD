@@ -280,7 +280,7 @@ export function CrawlerBayCard({
                   `damaged` status, and this is the one thing the reader needs
                   off it while it is in that state. */}
               <div className="rounded-card border-chrome border-status-bad bg-paper px-4 py-3 text-center">
-                <span className="mb-1 block font-cond text-label font-bold uppercase leading-none tracking-caps text-status-bad">
+                <span className="mb-1 block font-cond text-badge font-bold uppercase leading-none tracking-caps text-status-bad">
                   When Damaged
                 </span>
                 <p className="m-0 font-body text-sm leading-snug text-ink">{damagedText}</p>

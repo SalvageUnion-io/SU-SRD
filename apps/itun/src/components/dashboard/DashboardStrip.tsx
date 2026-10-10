@@ -39,7 +39,7 @@ const LABEL: CSSProperties = {
   flex: '0 0 auto',
   fontFamily: font.cond,
   fontWeight: weight.bold,
-  fontSize: fontSize.label,
+  fontSize: fontSize.badge,
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   color: color.ink75,

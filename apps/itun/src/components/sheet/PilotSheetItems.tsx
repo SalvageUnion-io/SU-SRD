@@ -342,7 +342,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
       />
       <label
         htmlFor="new-item-slots"
-        className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted"
+        className="flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-wide text-wk-muted"
       >
         Slots
         <Input
@@ -358,7 +358,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
       </label>
       <label
         htmlFor="new-item-qty"
-        className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted"
+        className="flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-wide text-wk-muted"
       >
         Qty
         <Input

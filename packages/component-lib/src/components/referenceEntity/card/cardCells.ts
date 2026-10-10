@@ -138,7 +138,7 @@ export type TechScaling = {
   /** The header TL cell: the EFFECTIVE level (base, or bumped by the external
    * `scalingParent` control) on a TL-scalable entity, else the base. */
   techLevelDisplay: number | 'B' | 'N' | undefined
-  /** Scaled above base — the TL cell wears the rust `modified` border. */
+  /** Scaled above base — the TL cell wears the heavier solid `modified` frame. */
   techLevelModified: boolean
   /** A `perTechLevel` map (datavalue label, lowered → per-level increment) from
    * the entity's OWN datavalues, so a scaled value is highlighted as modified. */
@@ -244,8 +244,8 @@ export function buildHeaderStats(options: {
           label: asCompact ? 'TL' : 'Tech',
           bottomLabel: asCompact ? undefined : 'Level',
           value: String(options.techLevelDisplay),
-          // A TL-scalable item shows the EFFECTIVE level; a rust `modified`
-          // border when above base (controlled from without via `scalingParent`).
+          // A TL-scalable item shows the EFFECTIVE level; a heavier solid `modified`
+          // frame when above base (controlled from without via `scalingParent`).
           ...(options.techLevelModified ? { state: 'modified' as const } : {}),
         }
       : undefined
@@ -258,14 +258,17 @@ export function buildHeaderStats(options: {
   ]
 }
 
-/** The "modified stats" colour — a choice-touched or TL-scaled cell gets a rust
- * border (and, for traits, a rust label ground). */
-const MODIFIED = 'var(--color-rust)'
+/** The "modified stats" colour — a choice-touched or TL-scaled cell's border.
+ * Ink, not rust: rust is an action's colour (ruleset §3.1), and a player's
+ * change reads as pencil, which is `Stat`'s heavier solid `modified` frame (ADR-026
+ * §5). The sub-header renders its cells as text today, so this marks the data
+ * and draws nothing yet. */
+const MODIFIED = 'var(--color-ink)'
 
 /**
  * The SUB-HEADER cells — action type/range/damage/traits, then entity traits,
  * then every datavalue, with anything a choice or the Tech Level changed
- * bordered rust.
+ * marked "modified".
  *
  * CHOICE PLACEMENT: EVERYTHING INLINE (choice-plan Stage 7) — every choice
  * renders in the BODY, at its prose, in both modes; no choice is ever hoisted
@@ -333,7 +336,7 @@ export function resolveSubHeaderCells(options: {
   // MODIFIED-STATS LANGUAGE + DATAVALUES BUBBLE. `resolveChoiceView` applies the
   // selected choice effects to the entity's base datavalues + traits; diffing it
   // against the base (no selections) tells us what a choice CHANGED. Anything a
-  // choice touched gets a RUST cell BORDER (the "modified" colour) — a choice-ADDED
+  // choice touched gets the "modified" cell border — a choice-ADDED
   // trait (picking "Ballistic" → the Ballistic trait) and any datavalue an effect
   // UPGRADED (Damage 2→3, Range → Far; the value itself updates too). With no
   // selections this is just the base view — so Damage/Range still bubble normally.
@@ -360,7 +363,7 @@ export function resolveSubHeaderCells(options: {
       // TL scaling rides ON TOP of any choice effect already applied by
       // `resolveChoiceView`: the resolved value is the effective TL1 value, and
       // `perTechLevel` adds per tech level above the first. A scaled value is
-      // "modified" (rust border), same language as a choice-touched stat.
+      // "modified", same language as a choice-touched stat.
       const perTechLevel = options.perTechLevelByLabel.get(String(d.label).toLowerCase())
       const scaled =
         perTechLevel !== undefined

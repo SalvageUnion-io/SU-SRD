@@ -1,7 +1,17 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { borderWidth, color, font, fontSize, radius, space, tracking, weight } from './tokens'
+import {
+  borderWidth,
+  color,
+  font,
+  fontSize,
+  radius,
+  space,
+  texture,
+  tracking,
+  weight,
+} from './tokens'
 
 /**
  * Token-parity guard — the thing that makes it safe for the scale to exist
@@ -40,6 +50,7 @@ const GROUPS = {
   radius,
   space,
   text: fontSize,
+  texture,
   tracking,
 } as const satisfies Record<string, Record<string, string | number>>
 

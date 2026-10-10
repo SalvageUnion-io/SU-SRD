@@ -25,7 +25,7 @@ function Row({ label, skin, children }: { label: string; skin: string; children:
   return (
     <div className="flex flex-col gap-1.5">
       <div className={`${skin} max-w-md`}>{children}</div>
-      <code className="text-nano text-wk-muted">{label}</code>
+      <code className="text-badge text-wk-muted">{label}</code>
     </div>
   )
 }
@@ -133,7 +133,7 @@ export const Compact: Story = () => (
           style={HEAT_TONE}
         />
       </div>
-      <code className="text-nano text-wk-muted">compact · instrument surface (dark ground)</code>
+      <code className="text-badge text-wk-muted">compact · instrument surface (dark ground)</code>
     </div>
   </div>
 )

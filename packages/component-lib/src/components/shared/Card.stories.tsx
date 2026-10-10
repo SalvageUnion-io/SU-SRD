@@ -62,7 +62,7 @@ function Cell({
   return (
     <div className="flex flex-col gap-1.5">
       <div className={width}>{children}</div>
-      <code className="text-nano text-wk-muted">{label}</code>
+      <code className="text-badge text-wk-muted">{label}</code>
     </div>
   )
 }
@@ -94,7 +94,7 @@ export const Bands: Story = () => (
         subHeader={
           <Text
             as="span"
-            className="font-cond text-micro font-bold uppercase tracking-caps text-paper"
+            className="font-cond text-badge font-bold uppercase tracking-caps text-paper"
           >
             Custom sub-header content
           </Text>

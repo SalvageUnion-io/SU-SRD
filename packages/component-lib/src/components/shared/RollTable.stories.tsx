@@ -25,7 +25,7 @@ function Row({
   return (
     <div className="flex flex-col gap-1.5">
       <div className={width}>{children}</div>
-      <code className="font-body text-nano text-wk-muted">{label}</code>
+      <code className="font-body text-badge text-wk-muted">{label}</code>
     </div>
   )
 }
