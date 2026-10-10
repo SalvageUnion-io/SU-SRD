@@ -9,7 +9,7 @@ Shared React component library consumed by both `srd` and `itun`.
 - Vite in consuming apps handles `.ts/.tsx` compilation
 - **`sideEffects` is CSS only** (`package.json`): bundlers drop any module whose exports go unused. Never rely on an import running code; if a module truly must, add it to that list ([dependencies](../../docs/ARCHITECTURE.md#component-lib-dependencies))
 - Styling: tokens + style objects + one stylesheet, with Tailwind being removed — see [Styling](#styling)
-- **Design intent:** the origin (<https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm>) is the design's source of truth, and "board 05c" in a comment names one of its boards. [`ruleset.md`](../../docs/design-system/ruleset.md) codifies its rules for code and the gates; where they disagree, the origin wins and the ruleset is amended
+- **Design intent:** [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) is the source of truth ("board 05c" names one of its boards); [`ruleset.md`](../../docs/design-system/ruleset.md) codifies it and yields where they disagree
 
 ## Styling
 
@@ -93,7 +93,11 @@ Component stories live beside their components (`*.stories.tsx`) and are served 
   - The bar for an exception is that the prefix/suffix **carries information the bare name loses** — not that the rename would be laborious. Reach for it rarely, and record it here when you do.
 - **Title + story naming is standardized, and enforced.** The group title is **Title Case with spaces** — `Atoms/Stat`, `Containers/Card`, `Compositions/Entity/Content` — and its **last segment must name the component**, so the sidebar can be navigated by the symbol you would grep for. The story **file keeps the component symbol name** (`Stat.stories.tsx`). A sub-group may absorb a shared prefix, so `Compositions/Dashboard/Gauge` legitimately names ITUN's DashboardGauge. A file whose only story is a catch-all "show everything" page exports it as **`Default`** (not Variants / Costs / etc.).
   - This is a guard assertion, not a convention, because it had already drifted four ways: `Containers/Modal` pointed at `ModalShell`, `Atoms/Activation Cost` at `ActivationCostBox`, `Containers/Toast` at `Toaster`, `Compositions/Live Sheet` at `LiveSheetPoster` — labels that read correctly but match nothing in the code. Where the **symbol** carried a banned implementation suffix it was renamed (`ChangelogView` → `Changelog`, `ActivationCostBox` → `ActivationCost`); where the symbol was fine the **title** was corrected to match it.
-- **Stories render on a global paper canvas.** `catalog.tsx` frames every story on `bg-paper` (+ mono, padding), so a story does **not** need its own outer `bg-paper` wrapper. Shared caption/frame helpers that would otherwise be copy-pasted across story files live in `src/stories/_harness.tsx` (e.g. `Caption`) — import them instead of re-declaring a local copy.
+- **Stories render on a global paper canvas, in the product's Barlow.** `catalog.tsx` frames every story on paper, so a story does **not** need its own outer `bg-paper` wrapper; a wrapper fills the frame (no `w-fit` card). Shared caption/frame helpers that would otherwise be copy-pasted across story files live in `src/stories/_harness.tsx` (e.g. `Caption`) — import them instead of re-declaring a local copy.
+
+### Capturing a story
+
+Run your own server (`bunx vite --port N --strictPort` here), find the id with `bun run stories:ids [filter]` (or `?mode=index`), and open `/?story=<id>&mode=canvas&width=phone`: the story alone, no sidebar, in a fixed container (`phone` 375, `column` 480, `page` 1200, or px). Each entity-card matrix cell is a story (`…--size-by-extent-medium-head`).
 
 ## Testing
 

@@ -9,5 +9,12 @@
     "verbatimModuleSyntax": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "test", "vite.config.ts", "catalog.tsx", "catalogConvexClient.ts"]
+  "include": [
+    "src",
+    "test",
+    "vite.config.ts",
+    "catalog.tsx",
+    "catalogConvexClient.ts",
+    "listStories.ts"
+  ]
 }

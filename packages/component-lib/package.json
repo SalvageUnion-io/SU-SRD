@@ -19,7 +19,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "stories": "vite"
+    "stories": "vite",
+    "stories:ids": "bun listStories.ts"
   },
   "peerDependencies": {
     "react": "^19.2.0",

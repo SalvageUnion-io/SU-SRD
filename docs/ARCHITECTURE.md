@@ -593,7 +593,8 @@ launch config, port 61000) serves it from the package's own Vite dev server —
 `index.html` mounts the package-root `catalog.tsx`, and nothing builds it. It globs
 the library's `src/`, `apps/itun/src/components/` and
 `apps/srd/src/components/`, lists every story in the sidebar and renders one at
-`#<story-id>`; it opens on `foundations--styleguide--overview`.
+`?story=<story-id>`; it opens on `foundations--styleguide--overview`.
+[Capturing one](../packages/component-lib/CLAUDE.md#capturing-a-story).
 Story rules: [`packages/component-lib/CLAUDE.md`](../packages/component-lib/CLAUDE.md),
 enforced by `src/story-coverage.test.ts`; typecheck is what proves a story
 compiles.

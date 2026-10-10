@@ -548,12 +548,17 @@ const sestraDrone = pick(
 const SIZES = ['large', 'medium', 'small'] as const
 const EXTENTS = ['full', 'head', 'catalog'] as const
 
-/** One row per size; inside a row the extents sit side by side and stack when narrow. */
-const matrixRow = {
-  display: 'grid',
-  gap: '16px 24px',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 20rem), 1fr))',
-} as const
+/**
+ * One row per size; inside a row the extents sit side by side and stack when
+ * narrow. A large cell keeps a page column's measure (32rem) before it stacks,
+ * so it is never judged at a medium card's width.
+ */
+const matrixRow = (size: (typeof SIZES)[number]) =>
+  ({
+    display: 'grid',
+    gap: '16px 24px',
+    gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${size === 'large' ? 32 : 20}rem), 1fr))`,
+  }) as const
 
 /** One cell per row, at a readable measure: every device can be checked. */
 const singleRow = {
@@ -581,7 +586,7 @@ function Matrix({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', padding: '16px' }}>
       <Caption>{label}</Caption>
       {SIZES.map((size) => (
-        <div key={size} style={oneCellPerRow ? singleRow : matrixRow}>
+        <div key={size} style={oneCellPerRow ? singleRow : matrixRow(size)}>
           {EXTENTS.map((extent) => (
             <div
               key={extent}
@@ -610,6 +615,50 @@ export const SizeByExtent: Story = () => <Matrix entity={system} label="Salvagin
 
 /** Board E1 — a thing you DO: the ink banner, tier numeral, cost pennant. */
 export const SizeByExtentDo: Story = () => <Matrix entity={juryRig} label="Jury Rig" />
+
+/*
+ * Each matrix cell on its own, so a phone-width capture shows one card the
+ * width of the frame (`?story=…--size-by-extent-medium-head&mode=canvas&width=phone`).
+ * Ids: `size-by-extent-<size>-<extent>`, `size-by-extent-do-…`, `user-made-…`.
+ */
+function cell(
+  entity: Parameters<typeof ReferenceEntityCard>[0]['data'],
+  size: (typeof SIZES)[number],
+  extent: (typeof EXTENTS)[number],
+  userMade = false
+): Story {
+  return () => (
+    <div style={{ padding: '16px' }}>
+      <ReferenceEntityCard
+        data={entity}
+        size={size}
+        extent={extent}
+        userMade={userMade}
+        madeBy={userMade ? 'alxjrvs' : undefined}
+      />
+    </div>
+  )
+}
+
+export const SizeByExtentLargeFull = cell(system, 'large', 'full')
+export const SizeByExtentLargeHead = cell(system, 'large', 'head')
+export const SizeByExtentLargeCatalog = cell(system, 'large', 'catalog')
+export const SizeByExtentMediumFull = cell(system, 'medium', 'full')
+export const SizeByExtentMediumHead = cell(system, 'medium', 'head')
+export const SizeByExtentMediumCatalog = cell(system, 'medium', 'catalog')
+export const SizeByExtentSmallFull = cell(system, 'small', 'full')
+export const SizeByExtentSmallHead = cell(system, 'small', 'head')
+export const SizeByExtentSmallCatalog = cell(system, 'small', 'catalog')
+
+export const SizeByExtentDoLargeFull = cell(juryRig, 'large', 'full')
+export const SizeByExtentDoLargeHead = cell(juryRig, 'large', 'head')
+export const SizeByExtentDoLargeCatalog = cell(juryRig, 'large', 'catalog')
+export const SizeByExtentDoMediumFull = cell(juryRig, 'medium', 'full')
+export const SizeByExtentDoMediumHead = cell(juryRig, 'medium', 'head')
+export const SizeByExtentDoMediumCatalog = cell(juryRig, 'medium', 'catalog')
+export const SizeByExtentDoSmallFull = cell(juryRig, 'small', 'full')
+export const SizeByExtentDoSmallHead = cell(juryRig, 'small', 'head')
+export const SizeByExtentDoSmallCatalog = cell(juryRig, 'small', 'catalog')
 
 /**
  * Board E2 — the depth stack. Little Sestra (depth 0, large) → its drone in a
@@ -768,6 +817,16 @@ export const UserMade: Story = () => (
     oneCellPerRow
   />
 )
+
+export const UserMadeLargeFull = cell(system, 'large', 'full', true)
+export const UserMadeLargeHead = cell(system, 'large', 'head', true)
+export const UserMadeLargeCatalog = cell(system, 'large', 'catalog', true)
+export const UserMadeMediumFull = cell(system, 'medium', 'full', true)
+export const UserMadeMediumHead = cell(system, 'medium', 'head', true)
+export const UserMadeMediumCatalog = cell(system, 'medium', 'catalog', true)
+export const UserMadeSmallFull = cell(system, 'small', 'full', true)
+export const UserMadeSmallHead = cell(system, 'small', 'head', true)
+export const UserMadeSmallCatalog = cell(system, 'small', 'catalog', true)
 
 // The board-07 chassis: art, a chassis ability and five patterns.
 const gopher = pick(SalvageUnionReference.Chassis.all(), (c) => c.name === 'Gopher', 'chassis')
