@@ -20,6 +20,7 @@ Read with an offset and limit, never the whole file.
 | assigning pilots, mechs and crawlers to each other | ADR-037, `apps/itun/src/lib/links/linkRules.ts` |
 | working on the Discord bot as a Game client | [Discord bot](ARCHITECTURE.md#discord-bot-as-a-game-client) |
 | changing a package's public API | [packages and contracts](ARCHITECTURE.md#packages-and-contracts) |
+| changing what the public dataset API serves (`api.salvageunion.io`, srd's `/schema/*`) | ADR-043, ADR-040 |
 | changing hosting, deploys or CI | ADR-033, [CI and deploy](ARCHITECTURE.md#ci-and-deploy) |
 | moving a domain registration, or deleting what is left on Netlify | [ops/domain-transfer.md](ops/domain-transfer.md) (one-off runbook) |
 | adding, bumping or pinning a dependency | [dependencies](ARCHITECTURE.md#dependencies) |
