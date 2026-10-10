@@ -70,6 +70,12 @@ export const PatternSchema = z
             'Withhold this pattern from every rendered surface while keeping the record in the dataset. A stored data tag (mirrors the legalStarting convention) — never computed from source. Set on the community-designed "Mech Monday" patterns, which are not rulebook-PDF-sourced.'
           )
           .optional(),
+        homebrew: z
+          .boolean()
+          .describe(
+            'Homebrew Pattern: community-designed, not printed in a Leyline Press book. A stored data tag (mirrors the legalStarting convention) — never computed from source. Set on every "Mech Monday" pattern.'
+          )
+          .optional(),
         source: SourceSchema.describe('Source book for this pattern').optional(),
         page: PositiveIntegerSchema.describe('Page number in the source book').optional(),
         booklet: z
