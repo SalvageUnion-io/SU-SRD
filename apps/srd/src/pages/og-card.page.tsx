@@ -1,16 +1,10 @@
 /**
  * `/og-card` — the build-only OG-card render surface.
  *
- * A single static page that renders the REAL catalog `ReferenceEntityCard` for
- * the entity named by `?schema=&item=`, at a masonry-tile width the schema index
- * could give it. `scripts/og-screenshots.ts` drives chromium across every entity
- * here after the build, screenshots the TILE ELEMENT, and composes it onto a
- * 1200×630 canvas at `dist/schema/{schemaId}/item/{itemId}.og.png`.
- *
- * The tile width is not fixed: the generator re-measures the card at each
- * candidate width and re-sets `--tileWidth` on the frame to whichever one fills
- * the canvas best (see `pickTileWidth`). CATALOG_TILE_MIN_WIDTH below is only
- * the default this page loads at.
+ * A single static page that renders the link preview (`OgCard`, issue 1280)
+ * for the entity named by `?schema=&item=`. `scripts/og-screenshots.ts` drives
+ * chromium across every entity here after the build, screenshots the 1200 ×
+ * 630 frame, and writes it to `dist/schema/{schemaId}/item/{itemId}.og.png`.
  *
  * Resolving the entity client-side (OgCardIsland) keeps the build to ONE page
  * instead of ~1,000. Excluded from the sitemap and noindexed.
@@ -21,7 +15,7 @@
  * nav, no footer and no `<main>`; `ssg/__tests__/render.test.tsx` asserts that.
  * It is still a full island page though — the
  * built stylesheet and the islands entry are injected before `</head>`, which is
- * what makes the screenshotted tile the real, Tailwind-styled Catalog card.
+ * what gives the card the real component-lib styles and Barlow faces.
  *
  * ## Where the CSS comes from
  *
@@ -33,55 +27,22 @@
  */
 
 import type { PageModule, PageResult } from '../../ssg/types'
-import { CATALOG_TILE_MIN_WIDTH, CATALOG_TILE_PADDING } from '../lib/ogCard'
+import { OG_HEIGHT, OG_WIDTH } from '../lib/ogCard'
 import { Island } from '../runtime/Island'
 
 /**
- * The two geometry values are written as custom properties on `:root`, which
- * is the shape the generator's comment below assumes.
- *
- * One ordering note, since this block is emitted BEFORE the injected
- * stylesheet link: the only
- * declaration that competes with `global.css` is `body { background-color }`
- * (both unlayered, both specificity 0-0-1), so global.css now wins that one.
- * It is cosmetic and never photographed — the capture is scoped to `#og-card`,
- * whose ID rule (0-1-0, and unmatched by anything in global.css) wins
- * regardless of order, and the generator reads its matte colour off that same
- * element.
+ * The frame is exactly the card: 1200 × 630, at the page's top-left, so the
+ * generator's element screenshot is the card and nothing else.
  */
-const OG_CARD_STYLE = `:root {
-  --tileWidth: ${CATALOG_TILE_MIN_WIDTH}px;
-  --tilePad: ${CATALOG_TILE_PADDING}px;
-}
-html,
+const OG_CARD_STYLE = `html,
 body {
   margin: 0;
   padding: 0;
 }
-/* The tile is screenshotted as an ELEMENT, so the page only has to lay it
-   out at the right width. The frame carries \`--color-wk-bg\` — the surface
-   the schema index puts behind its tiles — so any transparency in the card
-   composites exactly as it does in the Catalog view, and the generator
-   reads this same computed colour to matte the canvas.
-
-   Set on #og-card rather than <body>: global.css styles \`body\` with an
-   unlayered rule, which beats Tailwind's layered utilities, so a
-   \`bg-wk-bg\` class there would silently lose to the page background. */
-/* content-box so the CONTENT is exactly the tile width and the padding sits
-   outside it — the tile must lay out at its true index-page width.
-
-   \`--tileWidth\` is re-set on this element by the generator once per entity
-   (custom properties inherit, so an element-level value beats the :root
-   default written above), which is the seam the wide-card fit uses to
-   re-flow the same card at a different masonry width. */
 #og-card {
-  box-sizing: content-box;
-  width: var(--tileWidth);
-  padding: var(--tilePad);
-  background-color: var(--color-wk-bg);
-}
-body {
-  background-color: var(--color-wk-bg);
+  width: ${OG_WIDTH}px;
+  height: ${OG_HEIGHT}px;
+  overflow: hidden;
 }`
 
 function page(): PageResult {
@@ -101,7 +62,7 @@ function page(): PageResult {
         <body>
           <div id="og-card">
             {/*
-              ssr={false} — the tile is resolved from the query string in the
+              ssr={false} — the card is resolved from the query string in the
               browser, so there is nothing to server-render, and passing no
               children keeps OgCardIsland out of the Bun SSR module graph.
             */}

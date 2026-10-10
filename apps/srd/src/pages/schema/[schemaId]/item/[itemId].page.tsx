@@ -24,6 +24,7 @@ import { chapterForSchema } from '../../../../lib/chapters'
 import { META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../../../lib/constants'
 import { itemHref, schemaHref } from '../../../../lib/entityHref'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../../../lib/gameData'
+import { ogCardFor, ogMetaFor } from '../../../../lib/ogCard'
 import { getItemStaticPaths } from '../../../../lib/staticPaths'
 
 type Params = { schemaId: string; itemId: string }
@@ -109,7 +110,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   //
   // The og:image is deliberately NOT set here: this page always emits the
   // site-wide default (BaseLayout's DEFAULT_OG_IMAGE), and `scripts/og-screenshots.ts`
-  // rewrites the meta afterwards for each entity whose Catalog-tile PNG actually
+  // rewrites the meta afterwards for each entity whose card PNG actually
   // rendered. Doing it in that order means a skipped, budget-capped or failed
   // generation leaves a working default rather than an og:image that 404s.
   const preloadImage = displayData?.assetUrl
@@ -117,10 +118,15 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   // different candidate and the page downloads both files. See `cardImageSizes`.
   const preloadImageSrcSet = assetSrcSetFor(displayData?.assetUrl)
 
+  // The preview's words and colour come from the same card its image is
+  // screenshotted from (issue 1280), so the text beside the image matches it.
+  const og = ogMetaFor(ogCardFor(schemaId, itemId, item))
+
   return {
     meta: {
       title: `${itemName} - ${schemaName}${TITLE_SUFFIX}`,
       description: metaDescription,
+      ...og,
       canonical: canonicalUrl,
       ogType: 'article',
       structuredData,

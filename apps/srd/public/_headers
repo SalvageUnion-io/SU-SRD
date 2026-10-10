@@ -57,7 +57,7 @@
 # import references (eldridge-coast-map) lands there with a hash in its name.
 # Every other image is a FIXED name replaced in place when it changes: the
 # og:image and manifest icons, the favicons, the header logos, and the
-# per-entity `*.og.png` unfurls that `og:generate` rewrites whenever the tile
+# per-entity `*.og.png` unfurls that `og:generate` rewrites whenever the card
 # rendering changes. Marking them `immutable` would mean a changed icon never
 # reaches a returning visitor; itun's `_headers` makes the same call.
 #
