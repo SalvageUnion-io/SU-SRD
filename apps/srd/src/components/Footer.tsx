@@ -20,8 +20,8 @@ type FooterProps = {
 export function Footer({ poweredBySalvageUrl }: FooterProps) {
   return (
     <footer className="border-t border-wk-faint bg-paper py-3 lg:shadow-sm">
-      <div className="mx-auto flex max-w-7xl flex-row flex-wrap items-center justify-center gap-4 text-xs text-ink">
-        <div className="min-w-0 flex-1 text-center">
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-3 px-4 text-xs text-ink sm:flex-row sm:flex-wrap sm:gap-4">
+        <div className="w-full min-w-0 text-center sm:w-auto sm:flex-1">
           <p>
             Salvage Union is copyrighted by{' '}
             <InlineRef href="https://leyline.press" target="_blank" rel="noopener noreferrer">
@@ -49,7 +49,7 @@ export function Footer({ poweredBySalvageUrl }: FooterProps) {
             .
           </p>
         </div>
-        <nav aria-label="Site" className="shrink-0">
+        <nav aria-label="Site" className="w-full shrink-0 sm:w-auto">
           <ul className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-body text-sm">
             {SITE_LINKS.map((link) => (
               <li key={link.href}>
