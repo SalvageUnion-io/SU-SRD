@@ -22,11 +22,13 @@ import { Route as InviteTokenRouteImport } from './routes/invite/$token'
 import { Route as JoinCodeRouteImport } from './routes/join/$code'
 import { Route as MechsNewRouteImport } from './routes/mechs/new'
 import { Route as MediatorGameIdRouteImport } from './routes/mediator/$gameId'
+import { Route as OgPrivateRouteImport } from './routes/og.private'
 import { Route as PilotsNewRouteImport } from './routes/pilots/new'
 import { Route as SIdRouteImport } from './routes/s/$id'
 import { Route as StarterIndexRouteImport } from './routes/starter.index'
 import { Route as MechsPatternsIndexRouteImport } from './routes/mechs/patterns/index'
 import { Route as MechsPatternsNewRouteImport } from './routes/mechs/patterns/new'
+import { Route as OgKindIdRouteImport } from './routes/og.$kind.$id'
 import { Route as PKindAppIdRouteImport } from './routes/p.$kind.$appId'
 import { Route as SheetKindIdRouteImport } from './routes/sheet/$kind/$id'
 import { Route as StarterKindIdRouteImport } from './routes/starter.$kind.$id'
@@ -97,6 +99,11 @@ const MediatorGameIdRoute = MediatorGameIdRouteImport.update({
   path: '/mediator/$gameId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OgPrivateRoute = OgPrivateRouteImport.update({
+  id: '/og/private',
+  path: '/og/private',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PilotsNewRoute = PilotsNewRouteImport.update({
   id: '/pilots/new',
   path: '/pilots/new',
@@ -120,6 +127,11 @@ const MechsPatternsIndexRoute = MechsPatternsIndexRouteImport.update({
 const MechsPatternsNewRoute = MechsPatternsNewRouteImport.update({
   id: '/mechs/patterns/new',
   path: '/mechs/patterns/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OgKindIdRoute = OgKindIdRouteImport.update({
+  id: '/og/$kind/$id',
+  path: '/og/$kind/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PKindAppIdRoute = PKindAppIdRouteImport.update({
@@ -158,10 +170,12 @@ export interface FileRoutesByFullPath {
   '/join/$code': typeof JoinCodeRoute
   '/mechs/new': typeof MechsNewRoute
   '/mediator/$gameId': typeof MediatorGameIdRoute
+  '/og/private': typeof OgPrivateRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
   '/starter/': typeof StarterIndexRoute
   '/mechs/patterns/new': typeof MechsPatternsNewRoute
+  '/og/$kind/$id': typeof OgKindIdRoute
   '/p/$kind/$appId': typeof PKindAppIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/starter/$kind/$id': typeof StarterKindIdRoute
@@ -182,10 +196,12 @@ export interface FileRoutesByTo {
   '/join/$code': typeof JoinCodeRoute
   '/mechs/new': typeof MechsNewRoute
   '/mediator/$gameId': typeof MediatorGameIdRoute
+  '/og/private': typeof OgPrivateRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
   '/starter': typeof StarterIndexRoute
   '/mechs/patterns/new': typeof MechsPatternsNewRoute
+  '/og/$kind/$id': typeof OgKindIdRoute
   '/p/$kind/$appId': typeof PKindAppIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/starter/$kind/$id': typeof StarterKindIdRoute
@@ -207,10 +223,12 @@ export interface FileRoutesById {
   '/join/$code': typeof JoinCodeRoute
   '/mechs/new': typeof MechsNewRoute
   '/mediator/$gameId': typeof MediatorGameIdRoute
+  '/og/private': typeof OgPrivateRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
   '/starter/': typeof StarterIndexRoute
   '/mechs/patterns/new': typeof MechsPatternsNewRoute
+  '/og/$kind/$id': typeof OgKindIdRoute
   '/p/$kind/$appId': typeof PKindAppIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/starter/$kind/$id': typeof StarterKindIdRoute
@@ -233,10 +251,12 @@ export interface FileRouteTypes {
     | '/join/$code'
     | '/mechs/new'
     | '/mediator/$gameId'
+    | '/og/private'
     | '/pilots/new'
     | '/s/$id'
     | '/starter/'
     | '/mechs/patterns/new'
+    | '/og/$kind/$id'
     | '/p/$kind/$appId'
     | '/sheet/$kind/$id'
     | '/starter/$kind/$id'
@@ -257,10 +277,12 @@ export interface FileRouteTypes {
     | '/join/$code'
     | '/mechs/new'
     | '/mediator/$gameId'
+    | '/og/private'
     | '/pilots/new'
     | '/s/$id'
     | '/starter'
     | '/mechs/patterns/new'
+    | '/og/$kind/$id'
     | '/p/$kind/$appId'
     | '/sheet/$kind/$id'
     | '/starter/$kind/$id'
@@ -281,10 +303,12 @@ export interface FileRouteTypes {
     | '/join/$code'
     | '/mechs/new'
     | '/mediator/$gameId'
+    | '/og/private'
     | '/pilots/new'
     | '/s/$id'
     | '/starter/'
     | '/mechs/patterns/new'
+    | '/og/$kind/$id'
     | '/p/$kind/$appId'
     | '/sheet/$kind/$id'
     | '/starter/$kind/$id'
@@ -306,10 +330,12 @@ export interface RootRouteChildren {
   JoinCodeRoute: typeof JoinCodeRoute
   MechsNewRoute: typeof MechsNewRoute
   MediatorGameIdRoute: typeof MediatorGameIdRoute
+  OgPrivateRoute: typeof OgPrivateRoute
   PilotsNewRoute: typeof PilotsNewRoute
   SIdRoute: typeof SIdRoute
   StarterIndexRoute: typeof StarterIndexRoute
   MechsPatternsNewRoute: typeof MechsPatternsNewRoute
+  OgKindIdRoute: typeof OgKindIdRoute
   PKindAppIdRoute: typeof PKindAppIdRoute
   SheetKindIdRoute: typeof SheetKindIdRoute
   StarterKindIdRoute: typeof StarterKindIdRoute
@@ -410,6 +436,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MediatorGameIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/og/private': {
+      id: '/og/private'
+      path: '/og/private'
+      fullPath: '/og/private'
+      preLoaderRoute: typeof OgPrivateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pilots/new': {
       id: '/pilots/new'
       path: '/pilots/new'
@@ -443,6 +476,13 @@ declare module '@tanstack/react-router' {
       path: '/mechs/patterns/new'
       fullPath: '/mechs/patterns/new'
       preLoaderRoute: typeof MechsPatternsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/og/$kind/$id': {
+      id: '/og/$kind/$id'
+      path: '/og/$kind/$id'
+      fullPath: '/og/$kind/$id'
+      preLoaderRoute: typeof OgKindIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/p/$kind/$appId': {
@@ -490,10 +530,12 @@ const rootRouteChildren: RootRouteChildren = {
   JoinCodeRoute: JoinCodeRoute,
   MechsNewRoute: MechsNewRoute,
   MediatorGameIdRoute: MediatorGameIdRoute,
+  OgPrivateRoute: OgPrivateRoute,
   PilotsNewRoute: PilotsNewRoute,
   SIdRoute: SIdRoute,
   StarterIndexRoute: StarterIndexRoute,
   MechsPatternsNewRoute: MechsPatternsNewRoute,
+  OgKindIdRoute: OgKindIdRoute,
   PKindAppIdRoute: PKindAppIdRoute,
   SheetKindIdRoute: SheetKindIdRoute,
   StarterKindIdRoute: StarterKindIdRoute,

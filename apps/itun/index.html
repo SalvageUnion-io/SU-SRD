@@ -3,22 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#282019" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <title>In The Union Now</title>
 
     <!--
-      Sitewide metadata, the same for every route.
+      Sitewide metadata: the defaults every route starts from.
 
       The app is client-rendered and a crawler runs no JavaScript, so anything
-      a route sets at runtime is invisible to an unfurl: every link, a shared
-      public sheet included, unfurls as the app itself.
+      a route sets at runtime is invisible to an unfurl. For the routes a
+      player shares (`/p/:kind/:appId`, `/join/:code`) the Worker swaps the
+      block between the `itun:meta` markers for that thing's link preview
+      (src/worker/shellMeta.ts, issue 1280); keep the markers around it.
 
       No `<link rel="canonical">` on purpose. A fixed canonical in a SPA shell
       claims every client route is the homepage, which is worse than none —
       it asks search engines to collapse the whole site into one URL.
     -->
+    <!-- itun:meta:start -->
+    <meta name="theme-color" content="#282019" />
     <meta
       name="description"
       content="Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable live sheets for the post-apocalyptic mech TTRPG."
@@ -42,6 +45,7 @@
       content="Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable live sheets."
     />
     <meta name="twitter:image" content="https://intheunionnow.com/icon-512.png" />
+    <!-- itun:meta:end -->
 
     <!-- Barlow superfamily is self-hosted via @fontsource (imported in src/routes/__root.tsx) -->
   </head>

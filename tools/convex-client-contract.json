@@ -1628,9 +1628,55 @@
         }
       }
     },
+    "publicSheet:invitePreview": {
+      "type": "object",
+      "value": {
+        "code": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
     "publicSheet:pattern": {
       "type": "object",
       "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "publicSheet:preview": {
+      "type": "object",
+      "value": {
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilot"
+              },
+              {
+                "type": "literal",
+                "value": "mech"
+              },
+              {
+                "type": "literal",
+                "value": "crawler"
+              },
+              {
+                "type": "literal",
+                "value": "pattern"
+              }
+            ]
+          },
+          "optional": false
+        },
         "appId": {
           "fieldType": {
             "type": "string"

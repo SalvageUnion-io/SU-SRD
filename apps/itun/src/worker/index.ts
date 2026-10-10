@@ -17,10 +17,15 @@
  *
  *   1. `/assets/*`        → **404**, never the shell.
  *   2. a missing FILE     → **404**: a dot in the last segment.
+ *   0. `/og/*.png`        → a link preview's picture (`linkPreview.ts`,
+ *      issue 1280), rendered on request and cached by version.
  *   3. anything else      → the shell, `/` read through the asset binding,
  *      so a crawler or an unfurl bot opening `/p/:kind/:appId` gets the same
  *      document a browser does. `/` rather than `/index.html`, which the
- *      asset server's HTML handling may answer with a redirect to `/`.
+ *      asset server's HTML handling may answer with a redirect to `/`. For
+ *      a route a player shares (`/p/:kind/:appId`, `/join/:code`) the shell's
+ *      `itun:meta` block is swapped for that thing's preview (`shellMeta.ts`):
+ *      what a stranger may see, or the plain Private card.
  *
  * ## Rule 1 is the one that has already broken production
  *
@@ -48,24 +53,46 @@
 
 import type { ObservabilityEnv } from 'observability/cloudflare'
 import { withObservability } from 'observability/cloudflare'
+import type { ImageCache, PreviewEnv } from './linkPreview'
+import { isOgImagePath, metaFor, ogImage, previewRouteOf } from './linkPreview'
+import { applyMeta } from './shellMeta'
 
-export type Env = ObservabilityEnv & {
-  /** Static assets (the built SPA), in `single-page-application` mode. */
-  ASSETS: { fetch(request: Request): Promise<Response> }
+export type Env = ObservabilityEnv &
+  PreviewEnv & {
+    /** Static assets (the built SPA), in `single-page-application` mode. */
+    ASSETS: { fetch(request: Request): Promise<Response> }
+  }
+
+/** The Cache API's default cache, where the runtime has one (never under Bun). */
+function defaultCache(): ImageCache | undefined {
+  return (globalThis as { caches?: { default?: ImageCache } }).caches?.default
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
 export default withObservability('su-itun', {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const path = new URL(request.url).pathname
+    const url = new URL(request.url)
+    const path = url.pathname
     const lastSegment = path.slice(path.lastIndexOf('/') + 1)
+
+    // 0. A link preview's picture — a file that exists only on request.
+    if (isOgImagePath(path)) return ogImage(request, env, { cache: defaultCache() })
 
     // 1 and 2. A file that is not there — a rotated chunk above all (#759).
     if (path.startsWith('/assets/') || lastSegment.includes('.')) {
       return new Response('Not found', { status: 404, headers: { 'cache-control': 'no-store' } })
     }
 
-    // 3. A client route asked for without a navigation: the shell.
-    return env.ASSETS.fetch(new Request(new URL('/', request.url), { method: 'GET' }))
+    // 3. A client route asked for without a navigation: the shell, carrying a
+    //    shared thing's preview when the route names one.
+    const shell = await env.ASSETS.fetch(new Request(new URL('/', request.url), { method: 'GET' }))
+    const route = previewRouteOf(path)
+    if (route === null || !shell.ok) return shell
+    const meta = await metaFor(route, url, env)
+    if (meta === null) return shell
+    const headers = new Headers(shell.headers)
+    // The body changed length; the runtime recomputes it.
+    headers.delete('content-length')
+    return new Response(applyMeta(await shell.text(), meta), { status: shell.status, headers })
   },
 })
