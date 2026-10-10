@@ -23,9 +23,11 @@ export const SLUG_ID_FILES = new Set(['catalog-categories.json'])
 export type FileResult = {
   file: string
   totalItems: number
-  itemsWithIds: number
+  /** Every `id` visited, at any depth (a row can carry many). */
+  idCount: number
   invalidUUIDs: Array<{ id: string; index: number; context: string }>
-  duplicatesInFile: Array<{ id: string; indices: number[] }>
+  /** `indices` are row indices; `contexts` the path of each copy inside its row. */
+  duplicatesInFile: Array<{ id: string; indices: number[]; contexts: string[] }>
 }
 
 export type ValidationResult = {
@@ -58,7 +60,10 @@ function walkEntityIds(item: unknown, visit: (id: string, context: string) => vo
     }
     if (value === null || typeof value !== 'object') return
     for (const [key, child] of Object.entries(value)) {
-      if (key === 'id' && typeof child === 'string') visit(child, context)
+      // A non-string id (a number, say) is still an id: visit it, so the UUID
+      // format check rejects it instead of the walk silently stepping over it.
+      if (key === 'id' && (typeof child === 'string' || typeof child === 'number'))
+        visit(String(child), context)
       else walk(child, `${context}.${key}`)
     }
   }
@@ -69,28 +74,32 @@ export function checkFile(filename: string, data: Record<string, unknown>[]): Fi
   const result: FileResult = {
     file: filename,
     totalItems: data.length,
-    itemsWithIds: 0,
+    idCount: 0,
     invalidUUIDs: [],
     duplicatesInFile: [],
   }
 
-  const idMap = new Map<string, number[]>()
+  const idMap = new Map<string, Array<{ index: number; context: string }>>()
 
   data.forEach((item, index) => {
     walkEntityIds(item, (id, context) => {
-      result.itemsWithIds++
+      result.idCount++
       if (!SLUG_ID_FILES.has(filename) && !validateUUID(id)) {
         result.invalidUUIDs.push({ id, index, context })
       }
-      const indices = idMap.get(id) || []
-      indices.push(index)
-      idMap.set(id, indices)
+      const seen = idMap.get(id) || []
+      seen.push({ index, context })
+      idMap.set(id, seen)
     })
   })
 
-  idMap.forEach((indices, id) => {
-    if (indices.length > 1) {
-      result.duplicatesInFile.push({ id, indices })
+  idMap.forEach((seen, id) => {
+    if (seen.length > 1) {
+      result.duplicatesInFile.push({
+        id,
+        indices: seen.map((s) => s.index),
+        contexts: seen.map((s) => s.context),
+      })
     }
   })
 
@@ -125,7 +134,7 @@ export function checkAllFiles(
     }
   })
 
-  const totalIds = fileResults.reduce((sum, r) => sum + r.itemsWithIds, 0)
+  const totalIds = fileResults.reduce((sum, r) => sum + r.idCount, 0)
   const uniqueIds = globalIdMap.size
   const invalidIds = fileResults.reduce((sum, r) => sum + r.invalidUUIDs.length, 0)
   const duplicateIds = globalDuplicates.length
