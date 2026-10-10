@@ -60,6 +60,46 @@ export type StepGateResult = { ok: boolean; reason?: string }
 
 const OK: StepGateResult = { ok: true }
 
+/**
+ * The NPC designer's gates (board N1; issue 1269 §4.1). This is GM-grade tooling
+ * (Adjudicate mode, ARCHITECTURE.md § Rules and ITUN surfaces): the designer
+ * guides and pre-fills rather than enforcing a build budget, so the only hard
+ * gates are a name and HP ≥ 1 — and the template step, which is answered by
+ * a template or by "Start blank" (D4).
+ *
+ * Crawler crew has no HP gate (D2): its HP is fixed by the slot's data, and
+ * the Augmented crawler's A.I. has none. Its one gate is `npcNameGate`.
+ */
+export function npcCreationStepGate(
+  step: 'template' | 'stats' | 'actions' | 'identity' | 'review',
+  form: { templateChosen: boolean; name: string; hitPoints: string }
+): StepGateResult {
+  switch (step) {
+    case 'template':
+      return form.templateChosen ? OK : { ok: false, reason: 'Choose a template, or start blank.' }
+    case 'stats':
+      return npcHitPointsGate(form.hitPoints)
+    case 'actions':
+      return OK
+    case 'identity':
+      return npcNameGate(form.name)
+    case 'review': {
+      const hp = npcHitPointsGate(form.hitPoints)
+      return hp.ok ? npcNameGate(form.name) : hp
+    }
+  }
+}
+
+/** An NPC needs a name — the one gate crawler crew shares with Any NPC. */
+function npcNameGate(name: string): StepGateResult {
+  return name.trim() ? OK : { ok: false, reason: 'Give the NPC a name.' }
+}
+
+function npcHitPointsGate(text: string): StepGateResult {
+  const hp = /^\d+$/.test(text.trim()) ? Number(text.trim()) : 0
+  return hp >= 1 ? OK : { ok: false, reason: 'An NPC needs at least 1 HP.' }
+}
+
 function findClass(classId: string): SURefClass | undefined {
   if (!classId) return undefined
   return SalvageUnionReference.Classes.getById(classId)
