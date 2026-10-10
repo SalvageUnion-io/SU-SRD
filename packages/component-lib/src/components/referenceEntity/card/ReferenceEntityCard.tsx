@@ -172,6 +172,16 @@ function bodyClassName(isDown: boolean, hasArt: boolean): string | undefined {
   return [isDown ? 'opacity-60' : '', hasArt ? 'su-ec-art-body' : ''].join(' ').trim() || undefined
 }
 
+/** An NPC's shortform stat: its hit points (or structure points), as `HP 9`. */
+function npcHitPointsTail(entity: object): ShortformTail | undefined {
+  if (!('schemaName' in entity) || entity.schemaName !== 'npcs') return undefined
+  if (!('hitPoints' in entity) || typeof entity.hitPoints !== 'number') return undefined
+  return {
+    label: 'damageType' in entity && entity.damageType === 'SP' ? 'SP' : 'HP',
+    value: String(entity.hitPoints),
+  }
+}
+
 function ReferenceEntityCardInner({
   data,
   size: sizeProp = 'large',
@@ -504,7 +514,7 @@ function ReferenceEntityCardInner({
       ? { label: 'LVL', value: numeral }
       : techLevel != null
         ? { label: 'TL', value: String(techLevel) }
-        : axisMarkers[0]
+        : (npcHitPointsTail(entity) ?? axisMarkers[0])
     return (
       <CardShortform
         outer={outer}

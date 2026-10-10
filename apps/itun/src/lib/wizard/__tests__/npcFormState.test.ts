@@ -47,8 +47,10 @@ describe('each template kind pre-fills correctly', () => {
       name: 'Sergeant Kessler',
       motto: 'Hold the line.',
     })
-    // The template's prose is never copied in (D5).
-    expect(form.description).toBe('')
+    // The template's own words pre-fill the description (D5).
+    expect(form.description).toBe(
+      'A well trained and seasoned soldier deployed on difficult operations.'
+    )
   })
 
   test('a bio-salvage template carries its value', () => {
@@ -117,7 +119,7 @@ describe('actions and traits come from the reference (D6)', () => {
 })
 
 describe('the create input', () => {
-  test('is a valid NPC, with only what the player wrote', () => {
+  test('is a valid NPC, with the description the template filled', () => {
     const form = {
       ...applyNpcTemplate(EMPTY_NPC_FORM, reference('Veteran')),
       name: '  Sergeant Kessler ',
@@ -128,6 +130,7 @@ describe('the create input', () => {
       schemaVersion: 1,
       name: 'Sergeant Kessler',
       position: 'Union Quartermaster',
+      description: 'A well trained and seasoned soldier deployed on difficult operations.',
       hitPoints: 9,
       damageType: 'HP',
       actions: ['green-laser-rifle-veteran', 'portable-comms-unit-npc'],

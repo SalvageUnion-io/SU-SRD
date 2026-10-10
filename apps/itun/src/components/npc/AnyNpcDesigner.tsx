@@ -12,8 +12,8 @@
  *   modal, and a search adds more.
  * - The only hard gates are a name and HP ≥ 1 (`npcCreationStepGate`).
  * - The preview is the card as it will look on a shelf and in a Game: dashed,
- *   User-made, "Made by [you]" (D9). It renders only what the player wrote: a
- *   template's prose shows as a placeholder, never as their description (D5).
+ *   User-made, "Made by [maker]" (D9). The template's description pre-fills
+ *   Identity, and the player's edits to it win (D5).
  *
  * The step machine and the create are `useWizardFlow`'s, as for the other
  * three wizards; the draft persists through `wizardDraft.ts`.
@@ -72,12 +72,6 @@ const STEP_INTRO: Record<NpcStepId, string> = {
     'Actions and traits come from the reference, so the rules text is always the book’s. You choose which ones this NPC carries.',
   identity: 'Who they are. Only the name is required.',
   review: 'Check the card, then save the NPC to your shelf.',
-}
-
-/** Where a reference template's own words are read, for a placeholder only (D5). */
-function templateProse(ref: SURefNPC | undefined): string {
-  const first = ref?.content?.find((b) => b.type === 'paragraph')
-  return typeof first?.value === 'string' ? first.value : ''
 }
 
 const CHECK_HIT = {
@@ -161,8 +155,10 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
     () => readWizardDraft<NpcFormState>(draftKey) ?? EMPTY_NPC_FORM
   )
   const formDirty = useWizardDraftSync(draftKey, form, EMPTY_NPC_FORM)
-  const [pendingTemplate, setPendingTemplate] = useState<SURefNPC | null>(null)
+  /** A restart waiting on the player's yes: a template, or `'blank'` (D4). */
+  const [pendingStart, setPendingStart] = useState<SURefNPC | 'blank' | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [confirmingCancel, setConfirmingCancel] = useState(false)
 
   const flow = useWizardFlow({
     entityType: 'npc',
@@ -203,13 +199,18 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
   /** Choose a template: fill at once, or ask first when the stats were edited (D4). */
   function chooseTemplate(ref: SURefNPC) {
     if (form.templateChosen && statsEditedSinceFill(form)) {
-      setPendingTemplate(ref)
+      setPendingStart(ref)
       return
     }
     setForm((prev) => applyNpcTemplate(prev, ref))
   }
 
+  /** Start blank: the same question as a template, since it clears the same fields (D4). */
   function chooseBlank() {
+    if (form.templateChosen && statsEditedSinceFill(form)) {
+      setPendingStart('blank')
+      return
+    }
     setForm((prev) => applyBlankStart(prev))
   }
 
@@ -251,9 +252,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
           )}
           {step === 'stats' && <StatsStep form={form} onChange={update} />}
           {step === 'actions' && <ActionsStep form={form} onChange={setForm} />}
-          {step === 'identity' && (
-            <IdentityStep form={form} onChange={update} placeholder={templateProse(template)} />
-          )}
+          {step === 'identity' && <IdentityStep form={form} onChange={update} />}
           {step === 'review' && <div>{preview}</div>}
 
           {!gate.ok && gate.reason && <p style={HINT}>{gate.reason}</p>}
@@ -261,7 +260,10 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
           <div className="npc-nav" style={ROW}>
             <Button
               variant="default"
-              onClick={shell.onBack ?? shell.onCancel}
+              onClick={
+                shell.onBack ??
+                (shell.confirmCancel ? () => setConfirmingCancel(true) : shell.onCancel)
+              }
               disabled={shell.busy}
             >
               {shell.onBack ? 'Back' : 'Cancel'}
@@ -310,18 +312,41 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
       </ModalShell>
 
       <ConfirmDialog
-        open={pendingTemplate !== null}
-        onOpenChange={(open) => {
-          if (!open) setPendingTemplate(null)
-        }}
-        title={`Start again from ${pendingTemplate?.name ?? 'this template'}?`}
-        body="Its stats, actions and traits replace the ones you changed. The name and identity you wrote stay."
-        confirmLabel="Replace"
+        open={confirmingCancel}
+        onOpenChange={setConfirmingCancel}
+        title="Discard this draft?"
+        body="Your unsaved changes will be lost."
+        confirmLabel="Discard"
+        cancelLabel="Keep editing"
         tone="danger"
         onConfirm={() => {
-          const ref = pendingTemplate
-          if (ref) setForm((prev) => applyNpcTemplate(prev, ref))
-          setPendingTemplate(null)
+          setConfirmingCancel(false)
+          shell.onCancel()
+        }}
+      />
+
+      <ConfirmDialog
+        open={pendingStart !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingStart(null)
+        }}
+        title={
+          pendingStart === 'blank'
+            ? 'Start blank?'
+            : `Start again from ${pendingStart?.name ?? 'this template'}?`
+        }
+        body={
+          pendingStart === 'blank'
+            ? 'Your stats, actions and traits are cleared. The name and identity you wrote stay.'
+            : 'Its stats, actions and traits replace the ones you changed. The name and identity you wrote stay.'
+        }
+        confirmLabel={pendingStart === 'blank' ? 'Clear' : 'Replace'}
+        tone="danger"
+        onConfirm={() => {
+          const start = pendingStart
+          if (start === 'blank') setForm((prev) => applyBlankStart(prev))
+          else if (start) setForm((prev) => applyNpcTemplate(prev, start))
+          setPendingStart(null)
         }}
       />
     </>
@@ -528,7 +553,7 @@ function PickRow({
   children: ReactNode
 }) {
   return (
-    <li style={PICK_ROW}>
+    <li className="npc-pick" style={PICK_ROW}>
       <label style={CHECK_HIT}>
         <input
           type="checkbox"
@@ -687,11 +712,9 @@ function ReferenceAdder({
 function IdentityStep({
   form,
   onChange,
-  placeholder,
 }: {
   form: NpcFormState
   onChange: (patch: Partial<NpcFormState>) => void
-  placeholder: string
 }) {
   return (
     <>
@@ -716,7 +739,7 @@ function IdentityStep({
         <Textarea
           id="npc-description"
           rows={3}
-          placeholder={placeholder || 'What they look like, and how they carry themselves.'}
+          placeholder="What they look like, and how they carry themselves."
           value={form.description}
           onChange={(e) => onChange({ description: e.target.value })}
           style={PENCIL}

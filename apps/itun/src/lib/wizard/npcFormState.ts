@@ -59,6 +59,12 @@ export type NpcFormState = {
    * the player has edited it since (D4: ask before re-filling only then).
    */
   filledFrom: NpcStatFill | null
+  /**
+   * The description the template last wrote, so changing the template
+   * replaces it only while the player has not touched it. Absent in a draft
+   * saved before it existed.
+   */
+  filledDescription?: string
 }
 
 export const EMPTY_NPC_FORM: NpcFormState = {
@@ -77,6 +83,7 @@ export const EMPTY_NPC_FORM: NpcFormState = {
   offeredActions: [],
   offeredTraits: [],
   filledFrom: null,
+  filledDescription: '',
 }
 
 /** The stat block as the form holds it, comparable with a template's fill. */
@@ -118,15 +125,29 @@ const BLANK_STATS: ReturnType<typeof statsOf> = {
   traits: [],
 }
 
+/** A reference NPC's own description: its first paragraph. */
+export function npcTemplateProse(ref: SURefNPC | undefined): string {
+  const first = ref?.content?.find((b) => b.type === 'paragraph')
+  return typeof first?.value === 'string' ? first.value : ''
+}
+
+/** Whether the description is empty or still what the last template wrote. */
+function untouchedDescription(form: NpcFormState): boolean {
+  return form.description.trim() === '' || form.description === (form.filledDescription ?? '')
+}
+
 /**
- * Apply a reference template: it fills Stats and Actions & traits, and keeps
- * Identity (D4). A template's prose is never copied in (D5) — the description
- * shows it as a placeholder instead.
+ * Apply a reference template: it fills Stats and Actions & traits, keeps the
+ * Identity the player wrote (D4), and pre-fills the description with the
+ * template's own words until the player changes them (D5).
  */
 export function applyNpcTemplate(form: NpcFormState, ref: SURefNPC): NpcFormState {
   const fill = statFillFromReference(ref)
+  const prose = npcTemplateProse(ref)
   return {
     ...form,
+    description: untouchedDescription(form) ? prose : form.description,
+    filledDescription: prose,
     templateRef: fill.templateRef,
     templateChosen: true,
     ...statsOfFill(fill),
@@ -199,6 +220,8 @@ export function applyBlankStart(form: NpcFormState): NpcFormState {
     offeredActions: [],
     offeredTraits: [],
     filledFrom: null,
+    description: untouchedDescription(form) ? '' : form.description,
+    filledDescription: '',
   }
 }
 

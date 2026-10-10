@@ -26,7 +26,8 @@ type NpcDesignerPageProps = {
 
 export function NpcDesignerPage({ onCreated, onCancel }: NpcDesignerPageProps) {
   const { mode } = useConnection()
-  const me = useQuery(api.account.me, mode === 'connected' ? {} : 'skip')
+  const signedIn = mode === 'connected' || mode === 'disconnected'
+  const me = useQuery(api.account.me, signedIn ? {} : 'skip')
   const madeBy = me?.displayName ?? 'you'
 
   return (

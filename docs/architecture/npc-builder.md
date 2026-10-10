@@ -31,7 +31,8 @@ choices by name (today only the Augmented A.I.'s "A.I. Personality"; D3).
 
 - **Refs, never copies.** An action is its slug (Q3: "a stored ref is a slug,
   and only a slug"); a trait is the package's `{ type, amount? }`. A
-  template's prose is never copied into `description` (D5).
+  template's description pre-fills `description` as the player's own text
+  to edit (D5, as the canvas draws it); the template stays a ref.
 - **Owned like a pilot.** The Convex `npcs` table has the pilot columns
   (`gameId`, `ownerId`, `appId`, `publicRead`, `body`, `updatedAt`); writes go
   through `entities.upsertByAppId` and `removeByAppId`; `listMine`,
