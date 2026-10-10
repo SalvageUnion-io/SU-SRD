@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import type { CrewSlot } from '../../schemas/softLink'
 import { SoftLinkSchema } from '../../schemas/softLink'
+import { assignCrew } from '../assignLink'
 import type { LinkShape } from '../linkRules'
 import { conflictingLinks, linkKey, linkTypeFor, sameLink } from '../linkRules'
 
@@ -73,5 +74,27 @@ describe('the record: a crew link names its slot, and no other link may', () => 
     }
     expect(SoftLinkSchema.safeParse(pilot).success).toBe(true)
     expect(SoftLinkSchema.safeParse({ ...pilot, slot: MED }).success).toBe(false)
+  })
+})
+
+describe('assignCrew', () => {
+  test('draws npc-to-crawler carrying the slot', async () => {
+    const drawn: unknown[] = []
+    const store = {
+      create: async (_type: 'softLink', input: Parameters<typeof SoftLinkSchema.parse>[0]) => {
+        drawn.push(input)
+        return SoftLinkSchema.parse({ ...(input as object), id: 'l1', createdAt: FIXTURE_NOW })
+      },
+    }
+    const link = await assignCrew('n1', 'c1', MED, store)
+    expect(drawn).toEqual([
+      {
+        type: 'npc-to-crawler',
+        from: { type: 'npc', id: 'n1' },
+        to: { type: 'crawler', id: 'c1' },
+        slot: MED,
+      },
+    ])
+    expect(link.slot).toEqual(MED)
   })
 })
