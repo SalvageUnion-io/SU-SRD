@@ -13,7 +13,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need
   - [ADR-007](docs/ARCHITECTURE.md#adr-007) — the automation boundary. Read before building rules-driven features.
 - **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/ARCHITECTURE.md#adr-033).
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — cross-cutting architecture, one section per area: `grep -n '^##'` it, then Read with an offset; never the whole file.
-- **Rules text:** `bun run rules:extract` (local only; the PDFs in `rules/` are gitignored), then grep `rules/extracted/*.txt`, which carries `<!-- page N -->` markers for citations. There is no curated rules digest.
+- **Rules text:** gitignored here; the private repo `SalvageUnion-io/su-rules` is the source of record. Locally, `bun run rules:extract`, then grep `rules/extracted/*.txt`; in a cloud session or Routine, attach `su-rules` as a second repo and grep its committed `extracted/*.txt` (sibling checkout, no poppler). Both carry `<!-- page N -->` markers for citations. There is no curated rules digest.
 
 ## Critical Rules
 

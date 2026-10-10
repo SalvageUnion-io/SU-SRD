@@ -27,7 +27,7 @@ Read with an offset and limit, never the whole file.
 | looking for a service id, deployment or dashboard URL | [services and agent tooling](ARCHITECTURE.md#services-and-agent-tooling) |
 | shipping SEO or accessibility work | [SEO and accessibility](ARCHITECTURE.md#seo-and-accessibility) |
 | changing how `srd` is built | [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md), ADR-031 |
-| checking how a Salvage Union rule works | `bun run rules:extract` (local only), then grep `rules/extracted/*.txt` |
+| checking how a Salvage Union rule works | locally `bun run rules:extract`, then grep `rules/extracted/*.txt`; in a cloud session, the attached `su-rules` repo's `extracted/*.txt` ([cloud sessions](ARCHITECTURE.md#cloud-sessions)) |
 
 ## ADRs
 

@@ -972,15 +972,16 @@ returns condensed docs: verify load-bearing APIs against `node_modules`.
 
 ### Cloud sessions
 
-`gh` is preinstalled; the GitHub proxy authenticates it for REST only: `gh pr`
-and `gh issue` (GraphQL) get 403, and branch deletions are refused. Use `gh api`
-or the `mcp__github__*` tools. The Cloudflare and Sentry MCP
-servers need OAuth a cloud session cannot do: report their signals **unread**.
-Environment: [ops/cloud-environment.md](ops/cloud-environment.md). `convex` has no
-credentials: ask for data. If `bun --version` differs from the root
-`packageManager`, run with `PATH="$HOME/.local/share/su-srd-bun/<version>:$PATH"` (the
-SessionStart hook installs it there) and `bun install --frozen-lockfile`. Never fake
-a GitHub step that has no route.
+`gh` is preinstalled, REST only via the GitHub proxy: `gh pr`/`gh issue`
+(GraphQL) get 403, branch deletions are refused; use `gh api` or
+`mcp__github__*`. Cloudflare and Sentry MCP need OAuth (impossible here):
+report their signals **unread**. `convex` has no credentials: ask for data.
+Environment and rules text (attach private `su-rules`; multi-repo skips repo
+hooks): [ops/cloud-environment.md](ops/cloud-environment.md). If `bun --version`
+differs from the root `packageManager`, run with
+`PATH="$HOME/.local/share/su-srd-bun/<version>:$PATH"` (where the setup
+script puts it) and `bun install --frozen-lockfile`. Never fake a GitHub step
+that has no route.
 
 ### Cloudflare
 
