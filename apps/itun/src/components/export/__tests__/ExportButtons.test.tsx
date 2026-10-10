@@ -74,7 +74,7 @@ describe('ExportAllButton', () => {
     await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'p1', name: 'Rook' }))
     render(<ExportAllButton />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Download all' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Export all' }))
 
     await waitFor(() => expect(downloads).toHaveLength(1))
     expect(downloads[0]?.filename).toMatch(/^itun-backup-\d{4}-\d{2}-\d{2}\.json$/)
@@ -85,13 +85,13 @@ describe('ExportAllButton', () => {
     failCreate = true
     render(<ExportAllButton />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Download all' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Export all' }))
 
     await waitFor(() => expect(screen.getByText('Disk full')).toBeTruthy())
     expect(downloads).toHaveLength(0)
 
     failCreate = false
-    fireEvent.click(screen.getByRole('button', { name: 'Download all' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Export all' }))
     await waitFor(() => expect(downloads).toHaveLength(1))
     // The retry clears the stale error rather than leaving it beside a success.
     expect(screen.queryByText('Disk full')).toBeNull()
