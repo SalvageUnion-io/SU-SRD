@@ -143,7 +143,7 @@ async function seedEntity(type: 'pilot' | 'mech', name: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 beforeEach(async () => {
-  // My Stuff, with no Games and no invitations.
+  // Shelves, with no Games and no invitations.
   setQueryAnswers({ 'games:listMine': [], 'invites:forMe': [] })
   _resetDbSingleton()
   await clearCache()
@@ -317,8 +317,8 @@ describe('Roster — first-run welcome', () => {
 
 describe('Roster — Starter Set', () => {
   // Reference, not builds: the header links its own page rather than seeding
-  // it into My Stuff.
-  test('the header links the Starter Set, and nothing is seeded into My Stuff', async () => {
+  // it into your shelves.
+  test('the header links the Starter Set, and nothing is seeded into your shelves', async () => {
     await renderRoster()
 
     const link = screen.getByRole('link', { name: 'Starter Set' })

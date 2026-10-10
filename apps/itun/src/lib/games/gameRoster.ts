@@ -61,7 +61,7 @@ export type RowCapabilities = {
   /** Crawler only: the table runner may make it the Game's primary (ADR-037). */
   makePrimary: boolean
   /**
-   * The viewer may take this row out of the Game, to My Stuff — the move rules
+   * The viewer may take this row out of the Game, to your shelves — the move rules
    * of ADR-037 read from inside the Game: a pilot or mech by its owner, a
    * crawler by the table runner (`entities.moveCrawler`). `moveDestinations`
    * is the same rule read from the entity's side.
@@ -176,12 +176,12 @@ export type MoveDestination = { container: Container; label: string }
  * Where the viewer may move one of their entities to — mirroring the server's
  * move rules (ADR-037), so the control lists only what would be accepted.
  *
- *  - A **pilot or mech** may go to My Stuff or to any Game the viewer belongs
+ *  - A **pilot or mech** may go to your shelves or to any Game the viewer belongs
  *    to (`upsertByAppId` + `assertMayAddToContainer`; leaving needs only
  *    ownership, which a live sheet already implies).
  *  - A **crawler** moves only at its table runner's hand
- *    (`entities.moveCrawler`): from My Stuff into a Game they run, or from a
- *    Game they run back to My Stuff — never Game to Game.
+ *    (`entities.moveCrawler`): from your shelves into a Game they run, or from a
+ *    Game they run back to your shelves — never Game to Game.
  *
  * The current container is always first, so a control can show where the
  * entity is even when it may go nowhere else.
@@ -191,7 +191,7 @@ export function moveDestinations(args: {
   current: Container
   games: readonly MoveTargetGame[]
 }): MoveDestination[] {
-  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: 'My Stuff' }
+  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: 'Shelves' }
   const toGame = (g: MoveTargetGame): MoveDestination => ({
     container: { kind: 'game', gameId: g._id },
     label: g.name,
@@ -200,7 +200,7 @@ export function moveDestinations(args: {
   const currentGame =
     current.kind === 'game' ? args.games.find((g) => g._id === current.gameId) : undefined
   // A record filed under a Game the viewer is not in (left, or a v13 phantom)
-  // is shown as such rather than as My Stuff, which would lie about where it is.
+  // is shown as such rather than as Shelves, which would lie about where it is.
   const here: MoveDestination =
     current.kind === 'shelf'
       ? shelf

@@ -1,6 +1,7 @@
 import { v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
+import { displayNameOf } from './model/bot'
 import type { LoggedTable } from './model/entities'
 import { loadLogged, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMember, requireMemberAs, requireUser } from './model/permissions'
@@ -162,7 +163,7 @@ export const rolls = query({
     const names = new Map<Id<'users'>, string>()
     for (const actorId of new Set(rows.flatMap((r) => (r.actorId === null ? [] : [r.actorId])))) {
       const user = await ctx.db.get(actorId)
-      names.set(actorId, user?.displayName ?? user?.name ?? 'Unknown pilot')
+      names.set(actorId, displayNameOf(user))
     }
 
     return rows.map((r) => {

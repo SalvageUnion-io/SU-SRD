@@ -34,7 +34,11 @@ const NAME = {
   lineHeight: 1,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
+  flexShrink: 0,
 } satisfies CSSProperties
+
+/** Board D3 sets the stamp on one line: it never gives up width to its neighbours. */
+const STAMP = { flexShrink: 0, whiteSpace: 'nowrap' } satisfies CSSProperties
 
 const CONTEXT = {
   color: tokens.color.ink75,
@@ -49,6 +53,7 @@ const CONTEXT = {
 const UNITS = {
   alignItems: 'center',
   display: 'flex',
+  flexShrink: 0,
   gap: tokens.space[16],
 } satisfies CSSProperties
 
@@ -91,7 +96,7 @@ export function RailBar({
       <Badge
         shape="stamp"
         className="px-[9px] py-[5px] text-caption text-paper"
-        style={{ backgroundColor: STAMP_BG[fam] }}
+        style={{ ...STAMP, backgroundColor: STAMP_BG[fam] }}
       >
         {stamp}
       </Badge>

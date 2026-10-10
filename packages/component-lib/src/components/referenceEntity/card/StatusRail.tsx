@@ -18,7 +18,7 @@ const PAD_X: Record<CardSize, string> = { large: space[14], medium: space[10], s
  * dashed frame, so the control reads as tall as the Remove beside it (E3)
  * rather than a tab riding a rule.
  */
-const segment = (active: boolean): CSSProperties => ({
+const segment = (active: boolean, live: boolean): CSSProperties => ({
   alignItems: 'center',
   backgroundColor: active ? 'var(--color-ink)' : 'var(--color-paper)',
   color: active ? 'var(--color-paper)' : 'var(--color-ink)',
@@ -28,7 +28,8 @@ const segment = (active: boolean): CSSProperties => ({
   fontWeight: weight.bold,
   letterSpacing: tracking.capsTight,
   lineHeight: 1,
-  minHeight: 'calc(44px - 2 * var(--bw-chrome))',
+  // Only the live control owes the 44px touch floor; a read-out has no pointer.
+  minHeight: live ? 'calc(44px - 2 * var(--bw-chrome))' : '28px',
   padding: `0 ${space[8]}`,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
@@ -54,8 +55,9 @@ export function StatusTriState({
   const group = (
     <span
       style={{
-        // Dashed: the live sheet's controls are pencil, not print (E3).
-        border: 'var(--bw-chrome) dashed var(--color-ink)',
+        // Dashed: the live sheet's controls are pencil, not print (E3). A
+        // read-out is print: solid, so it cannot pass for the control.
+        border: `var(--bw-chrome) ${onClick ? 'dashed' : 'solid'} var(--color-ink)`,
         display: 'inline-flex',
       }}
     >
@@ -63,7 +65,7 @@ export function StatusTriState({
         <span
           key={s.value}
           aria-current={s.value === status ? 'true' : undefined}
-          style={segment(s.value === status)}
+          style={segment(s.value === status, onClick !== undefined)}
         >
           {s.label}
         </span>
@@ -110,7 +112,7 @@ export function StatusRail({
     <div
       style={{
         alignItems: 'center',
-        borderTop: 'var(--bw-chrome) dashed var(--color-ink-40)',
+        borderTop: `var(--bw-chrome) ${onStatusClick || removers.length > 0 ? 'dashed' : 'solid'} var(--color-ink-40)`,
         display: 'flex',
         flexWrap: 'wrap',
         gap: space[8],

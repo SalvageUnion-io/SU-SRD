@@ -219,34 +219,45 @@ export function VitalGauge({
         ? 'border-status-bad bg-status-bad'
         : 'border-[var(--tone-deep)] bg-[var(--tone)]'
 
-  // COMPACT — the instrument bar (dashboard cue): label · fixed-size pips that
-  // wrap · value/max. No big numeral or caption.
+  // COMPACT — the instrument bar (dashboard cue): label and value/max on one row,
+  // a five-wide pip grid beneath. No big numeral or caption.
   if (size === 'compact') {
     const readout = (
-      <>
-        <span
-          className={cn(
-            capsLabel({ size: 'badge', tracking: 'caps' }),
-            'shrink-0 leading-none',
-            onDark ? 'text-paper' : 'text-ink'
-          )}
-        >
-          {label}
-        </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        {/* Board D2: the label and the value share one row, the pips sit below. */}
+        <div className="flex items-baseline justify-between gap-2">
+          <span
+            className={cn(
+              capsLabel({ size: 'badge', tracking: 'caps' }),
+              'shrink-0 leading-none',
+              onDark ? 'text-paper' : 'text-ink'
+            )}
+          >
+            {label}
+          </span>
+          <span
+            className={cn(
+              'shrink-0 whitespace-nowrap font-cond text-caption font-bold leading-none tabular-nums',
+              isOver ? 'text-status-bad' : onDark ? 'text-paper' : 'text-ink'
+            )}
+          >
+            {shown}/{max}
+          </span>
+        </div>
         {/*
-         * Fixed-size pips that wrap onto more rows (brand refresh P4, issue
-         * 1255). Dividing the bar's width by `max` made a long track's pips
-         * thinner the longer it ran — a crawler at SP 20/20 read as a dotted
-         * perforation strip — so a pip keeps its size and a long track takes
-         * a second row instead.
+         * Pips fill the bay's full width in a five-wide grid (brand refresh P4,
+         * issue 1255, board D2). Dividing the bar's width by `max` made a long
+         * track's pips thinner the longer it ran, and fixed 14px pips beside a
+         * readout left a narrow bay three to a row; a fixed column count keeps
+         * a pip's width steady and a long track takes another row.
          */}
-        <div className="flex min-w-0 flex-1 flex-wrap gap-[3px]">
+        <div className="grid min-w-0 grid-cols-5 gap-[3px]">
           {Array.from({ length: segCount }, (_, i) => ({
             i,
             state: trackSegmentState(i, shown, max, dangerFrom),
           })).map(({ i, state }) => {
             const on = state !== 'off'
-            const segClass = cn('h-[14px] w-[14px] shrink-0 rounded-badge border', segFill(state))
+            const segClass = cn('h-[14px] w-full min-w-0 rounded-badge border', segFill(state))
             return editable ? (
               <button
                 key={i}
@@ -264,15 +275,7 @@ export function VitalGauge({
             )
           })}
         </div>
-        <span
-          className={cn(
-            'shrink-0 whitespace-nowrap font-cond text-caption font-bold leading-none tabular-nums',
-            isOver ? 'text-status-bad' : onDark ? 'text-paper' : 'text-ink'
-          )}
-        >
-          {shown}/{max}
-        </span>
-      </>
+      </div>
     )
     /*
      * Guided Play teaches as it enforces (ADR-021), so the compact instrument
@@ -303,7 +306,7 @@ export function VitalGauge({
     if (!editable && trigger) {
       return (
         <div className={cn('flex w-full items-center gap-2', className)} style={style}>
-          <div role="img" aria-label={summary} className="flex min-w-0 flex-1 items-center gap-2">
+          <div role="img" aria-label={summary} className="flex min-w-0 flex-1">
             {readout}
           </div>
           {trigger}

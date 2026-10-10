@@ -84,6 +84,12 @@ export type ReferenceEntityCardProps = {
    * tooltips stay flat.
    */
   texture?: boolean
+  /**
+   * Start this card's roll tables folded to their header bar. Catalog cards and
+   * nested cards already do; a sheet card is depth 0 and would show every table
+   * open, so a sheet passes this (origin board 10: compact ability cards).
+   */
+  foldTables?: boolean
   /** The SUMMONING (parent) entity's display name — threaded so a nested
    * ACTION whose dataset name carries the ` (Host)`
    * disambiguation suffix (e.g. "Refine (Nanite Sifter)") drops it when the

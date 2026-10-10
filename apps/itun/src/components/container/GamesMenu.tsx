@@ -1,7 +1,7 @@
 /**
  * The masthead's Games menu — pick what the Roster shows (ADR-030 §2).
  *
- * "My Stuff" (the personal Shelf) heads the list, then every Game the player is
+ * "Shelves" (the personal Shelf) heads the list, then every Game the player is
  * in, each with their role in it. Picking one opens where it is shown: Shelves
  * at `/`, or the Game's own page at `/games/$gameId` (issue 1255). It is the same
  * decision the Roster's own "Showing" select (`ContainerSwitcher`) makes,
@@ -38,7 +38,7 @@ import { useShowContainer } from './useShowContainer'
 type Entry = { id: string; label: string; hint?: string; container: Container }
 
 /** What the player calls the Shelf. */
-const SHELF_ENTRY: Entry = { id: 'shelf', label: 'My Stuff', container: SHELF }
+const SHELF_ENTRY: Entry = { id: 'shelf', label: 'Shelves', container: SHELF }
 
 /**
  * The Games, as rows — `undefined` while the subscription is in flight.
@@ -57,7 +57,7 @@ function useGameEntries(): Entry[] | undefined {
   }))
 }
 
-function ConnectedGamesMenu() {
+function ConnectedGamesMenu({ active }: { active: boolean }) {
   const games = useGameEntries()
   const pick = useShowContainer()
 
@@ -77,13 +77,16 @@ function ConnectedGamesMenu() {
         ? [{ id: 'none', label: 'No games yet' }]
         : games.map(asItem)
 
-  return <HeaderMenu trigger="Games" sections={[[asItem(SHELF_ENTRY)], gameItems]} />
+  return (
+    <HeaderMenu trigger="Games" active={active} sections={[[asItem(SHELF_ENTRY)], gameItems]} />
+  )
 }
 
-export function GamesMenu() {
+/** `active`: the page is a Game's own (`/games/…`), so the menu is where you are. */
+export function GamesMenu({ active = false }: { active?: boolean }) {
   const { mode } = useConnection()
   if (mode !== 'connected') return null
-  return <ConnectedGamesMenu />
+  return <ConnectedGamesMenu active={active} />
 }
 
 const LIST = {

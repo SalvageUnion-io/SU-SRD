@@ -109,9 +109,7 @@ const NAME: CSSProperties = {
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   color: color.ink,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  overflowWrap: 'anywhere',
 }
 
 const NUMBER: CSSProperties = {

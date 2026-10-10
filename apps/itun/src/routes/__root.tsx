@@ -56,7 +56,7 @@ function RootHeader({ pathname }: { pathname: string }) {
     <AppHeader
       LinkComponent={AppLink}
       pathname={pathname}
-      games={<HeaderGames />}
+      games={<HeaderGames pathname={pathname} />}
       search={<GlobalSearch variant="bar" open={searchOpen} onOpenChange={setSearchOpen} />}
       mobileSearch={<GlobalSearch variant="icon" open={searchOpen} onOpenChange={setSearchOpen} />}
       actions={<HeaderActions />}

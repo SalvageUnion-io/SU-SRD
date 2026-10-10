@@ -13,7 +13,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
  *  - only the Mediator gets the Mediator section, and gets all of it; the
  *    propose form offers only entities somebody can answer for
  *  - `games.get` answering `null` reads as an explanation with a way back to
- *    My Stuff, and still loading is not the same as not a member
+ *    Shelves, and still loading is not the same as not a member
  *
  * And the one way into the Dashboard (ADR-038 §1): Launch Dashboard at the top
  * of the hub, for players and the Mediator alike, only while the Game has a
@@ -206,7 +206,9 @@ describe('the Game section', () => {
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain('It cannot be undone')
     expect(dialog.textContent).toContain('4 pilots and 3 mechs go back to whoever owns them')
-    expect(dialog.textContent).toContain('Hamlet and anything unclaimed come to you, in My Stuff')
+    expect(dialog.textContent).toContain(
+      'Hamlet and anything unclaimed come to you, in your shelves'
+    )
     expect(mutations).toHaveLength(0)
 
     await act(async () => {
@@ -220,7 +222,7 @@ describe('the Game section', () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true, crawlerName: null, pilotCount: 0 } })
     fireEvent.click(screen.getByRole('button', { name: 'Delete this game' }))
 
-    expect(screen.getByText(/^Anything unclaimed comes to you, in My Stuff\.$/)).toBeTruthy()
+    expect(screen.getByText(/^Anything unclaimed comes to you, in your shelves\.$/)).toBeTruthy()
     // With no pilots there is no "0 pilots" line to read past.
     expect(screen.queryByText(/0 pilots/)).toBeNull()
   })

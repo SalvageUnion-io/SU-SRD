@@ -83,6 +83,11 @@ export type BandBay = {
   side?: boolean
   /** Full-size gauges: the bigger stat rows of a bay with the width. */
   large?: boolean
+  /**
+   * How much of the row's spare width the bay takes, against one for a plain
+   * bay. A bay of entity pills asks for more, so every name fits on one line.
+   */
+  grow?: number
 }
 
 export type BandOverlay = {
@@ -361,7 +366,12 @@ export function MajorFrame({ view }: { view: MajorModel }) {
           // the top, a button at the bottom, and a stripe of nothing between.
           // Flagged so the stylesheet can centre those bays instead.
           // A bay of readouts or chips reads from the top like the rest.
-          <div key={bay.label} className="pc-bay" data-nogauge={buttonsOnly(bay) || undefined}>
+          <div
+            key={bay.label}
+            className="pc-bay"
+            data-nogauge={buttonsOnly(bay) || undefined}
+            style={bay.grow ? { flexGrow: bay.grow } : undefined}
+          >
             <BayBody bay={bay} />
           </div>
         ))}

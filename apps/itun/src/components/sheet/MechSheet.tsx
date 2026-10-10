@@ -279,6 +279,7 @@ export function MechSheet({
                           <ReferenceEntityCard
                             data={ability}
                             size="large"
+                            foldTables
                             // Only the FIRST ability carries the stats — they
                             // belong to the chassis, not to each ability, and
                             // repeating them down a list would read as though

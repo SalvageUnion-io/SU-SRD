@@ -72,6 +72,11 @@ type HeaderMenuProps = {
   chevron?: boolean
   /** Which edge of the trigger the popup lines up with. */
   align?: 'start' | 'center' | 'end'
+  /**
+   * The menu is where you are: the trigger takes the nav links' here-state
+   * (`aria-current`, full paper and a rule beneath), as a link to this page would.
+   */
+  active?: boolean
 }
 
 const TRIGGER = {
@@ -167,6 +172,7 @@ export function HeaderMenu({
   sections,
   chevron = true,
   align = 'end',
+  active = false,
 }: HeaderMenuProps) {
   const filled = sections.filter((section) => section.length > 0)
 
@@ -176,6 +182,7 @@ export function HeaderMenu({
         className={`header-menu-trigger ${FOCUS_RING}`}
         style={TRIGGER}
         aria-label={label}
+        aria-current={active ? 'page' : undefined}
       >
         {trigger}
         {chevron && <ChevronDown size={14} aria-hidden="true" />}

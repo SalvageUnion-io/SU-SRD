@@ -139,8 +139,8 @@ function GameActions({ game }: { game: Game }) {
           <GamePanel title="End this game">
             <Text>
               Deleting {game.name} disbands the crew for everyone in it. Every pilot and mech goes
-              back to its owner&rsquo;s My Stuff, and the crawler comes to yours — but the table,
-              its invites and its wiring are gone for good.
+              back to its owner&rsquo;s shelves, and the crawler comes to yours — but the table, its
+              invites and its wiring are gone for good.
             </Text>
             <div>
               <Button variant="danger" size="compact" onClick={() => setConfirmingDelete(true)}>

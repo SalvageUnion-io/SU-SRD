@@ -234,7 +234,7 @@ export function CrawlerSheet({
           return (
             <EntityGridRow key={slug}>
               {system ? (
-                <ReferenceEntityCard data={system} size="medium" collapsible />
+                <ReferenceEntityCard data={system} size="medium" collapsible foldTables />
               ) : (
                 <div className="flex items-center justify-between gap-2 rounded border border-ink px-2 py-1 text-sm text-wk-muted">
                   <span className="min-w-0 truncate">{slug}</span>

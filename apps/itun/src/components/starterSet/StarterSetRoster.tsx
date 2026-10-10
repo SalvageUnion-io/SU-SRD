@@ -5,7 +5,7 @@
  * It is a pseudo-Game rather than a Game. Nobody is a member, nothing in it can
  * change, and it is the same for everyone — signed out included, because
  * reading it needs no account. Each row opens the build's read-only sheet
- * (`/starter/:kind/:id`), and, signed in, offers "Copy to…" My Stuff or one of
+ * (`/starter/:kind/:id`), and, signed in, offers "Copy to…" Shelves or one of
  * the player's Games. The copy is theirs; the template is untouched
  * (`lib/starterSet/copyStarter.ts`).
  *
@@ -13,7 +13,7 @@
  * signed-out Roster.
  */
 
-import { Badge, ChapterBand, PageHeading, Text, tokens } from 'component-lib'
+import { ChapterBand, PageHeading, Text, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -92,8 +92,8 @@ export function StarterSetRoster({ headingLevel = 'h2' }: StarterSetRosterProps)
           The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
           Read-only reference: open any sheet to read it.{' '}
           {mode === 'connected'
-            ? 'Copy one into My Stuff or one of your Games to play it.'
-            : 'Sign in to copy one into My Stuff or a Game and play it.'}
+            ? 'Copy one into your shelves or one of your Games to play it.'
+            : 'Sign in to copy one into your shelves or a Game and play it.'}
         </Text>
       </div>
 
@@ -116,11 +116,6 @@ export function StarterSetRoster({ headingLevel = 'h2' }: StarterSetRosterProps)
                     name={row.name}
                     sheetHref={`/starter/${kind}/${row.id}`}
                     linkAs={AppLink}
-                    seal={
-                      <Badge shape="stamp" size="mini">
-                        {STARTER_SET_PUBLISHER}
-                      </Badge>
-                    }
                     stats={row.stats}
                     actions={
                       <CopyStarterSelect

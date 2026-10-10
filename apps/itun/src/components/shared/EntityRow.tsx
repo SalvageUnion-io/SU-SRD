@@ -18,7 +18,7 @@ import { Fragment } from 'react'
  *   │   crawler → pink, game → blue, the `--color-sheet-*` tokens), carrying
  *   │   the TITLE on the left and the row's `stats` on the right. What the
  *   │   thing IS, and how it is doing. The title follows the entity card's own
- *   │   rule (`EntityCardHeader`): paper-white text directly on the tone, no
+ *   │   rule (`EntityCardHeader`): ink text directly on the tone, no
  *   │   ink block behind it, at the size ladder's `small` rung.
  *   │ ▸ BODY — paper. Cross-links, and the trailing View / Unassign / Delete
  *   │   controls.
@@ -213,13 +213,13 @@ type EntityRowProps = FilledEntityRowProps | EmptyEntityRowProps
  * ontology, and an edge bar spends the highest-contrast element on the row on
  * decoration.
  *
- * `crawler` takes paper text for the same reason its Badge tone does: it is the
- * one dark fill in the ramp.
+ * Every tone takes ink text, crawler included: the origin draws ink on the unit
+ * colour, and paper on pilot orange or crawler pink fails contrast.
  */
 const TONE: Record<EntityRowType, { band: string; ink: string }> = {
   pilot: { band: 'var(--color-sheet-pilot)', ink: 'var(--color-ink)' },
   mech: { band: 'var(--color-sheet-mech)', ink: 'var(--color-ink)' },
-  crawler: { band: 'var(--color-sheet-crawler)', ink: 'var(--color-paper)' },
+  crawler: { band: 'var(--color-sheet-crawler)', ink: 'var(--color-ink)' },
   game: { band: 'var(--color-sheet-game)', ink: 'var(--color-ink)' },
 }
 
@@ -362,7 +362,7 @@ export function EntityRow(props: EntityRowProps) {
           style={{ background: tone.band, color: tone.ink }}
         >
           {/* The title, under the ENTITY CARD's title rule (`EntityCardHeader`):
-              plain paper-white text sitting directly ON the tone — no ink
+              plain ink text sitting directly ON the tone — no ink
               name-tab block behind it — condensed, bold, uppercase, tight caps
               tracking, hugging its own text rather than filling the band.
 
@@ -382,7 +382,7 @@ export function EntityRow(props: EntityRowProps) {
             className={cn(
               'w-fit min-w-0 self-center break-words',
               'font-cond text-base font-bold uppercase leading-none tracking-caps-tight',
-              'text-paper'
+              'text-ink'
             )}
           >
             {name}
