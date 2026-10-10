@@ -782,7 +782,7 @@ bypassed), and a test that passes only on a retry fails the run
 `build-itun` builds against a throwaway self-hosted Convex backend
 (`.github/actions/convex-backend`, the one `e2e-nightly.yml` uses) carrying the
 PR's own functions, so its specs (the axe spec among them) see the signed-out UI production
-ships, never production itself; it also bundles the Worker (`bun --filter itun
+ships, never production itself; it bundles the Worker (`bun --filter itun
 worker:bundle`). ITUN's full browser suite is nightly (`e2e-nightly.yml`). `build-discord-bot`
 and `build-su-assets` bundle Workers. wrangler is
 one root devDependency that all four Worker apps run; keep each `wrangler.jsonc`
@@ -799,7 +799,7 @@ squash body is the PR body (`squash_merge_commit_message: PR_BODY`).
 
 `quality-checks`, named `CI Success`, fails on `failure` or `cancelled`.
 **Every job must be in its `needs:`** (`tools/check-workflows.ts`,
-`aggregator`). The ruleset also requires `PR title is a conventional commit`
+`aggregator`). The ruleset requires `PR title is a conventional commit`
 and waits on CodeQL through `code_scanning` (`GATE_WORKFLOWS`), so neither
 workflow is filtered. Change the trigger on `main` before the ruleset;
 never poll another workflow.
