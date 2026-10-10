@@ -268,7 +268,7 @@ describe('references', () => {
     })
     expect(errors.map((e) => [e.field, e.referencedName])).toEqual([
       ['steps[1].guideRef', B],
-      ['steps.Pick.schemaEntities', 'Ghost'],
+      ['steps[2].schemaEntities', 'Ghost'],
     ])
   })
 
@@ -346,7 +346,15 @@ describe('references', () => {
   })
 
   test('a known-unresolved ref is tolerated, and a stale one fails', () => {
-    const known = [{ file: 'factions.json', referencedName: 'Mutant Mob', reason: 'owner call' }]
+    const known = [
+      {
+        file: 'factions.json',
+        entityName: 'F',
+        field: 'formation[0]',
+        referencedName: 'Mutant Mob',
+        reason: 'owner call',
+      },
+    ]
     const factions = (name: string) => ({
       'factions.json': [{ name: 'F', formation: [{ chassis: name, schema: 'npcs' }] }],
     })
@@ -357,6 +365,24 @@ describe('references', () => {
         known
       ).map((e) => e.message)
     ).toEqual(['stale entry — the ref now resolves or is gone; remove it'])
+    // The same name unresolved in another faction is not covered by the entry.
+    const elsewhere = {
+      'factions.json': [
+        { name: 'F', formation: [{ chassis: 'Mutant Mob', schema: 'npcs' }] },
+        { name: 'G', formation: [{ chassis: 'Mutant Mob', schema: 'npcs' }] },
+      ],
+    }
+    expect(findReferenceErrors({ ...base, ...elsewhere }, known).map((e) => e.entityName)).toEqual([
+      'G',
+    ])
+  })
+
+  test('a ref on the row itself reports a path with no leading dot', () => {
+    const errors = refs({
+      ...base,
+      'actions.json': [{ name: 'A', source: { kind: 'catalog' }, guideRef: 'nope' }],
+    })
+    expect(errors.map((e) => e.field).sort()).toEqual(['guideRef', 'source.schema'])
   })
 })
 

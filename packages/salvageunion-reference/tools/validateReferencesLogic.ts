@@ -30,7 +30,7 @@ function bag(filesByName: Record<string, unknown[]>, filename: string): Rec[] {
  */
 const CASE_INSENSITIVE_SCHEMAS = new Set(['traits'])
 
-/** Names (and ids, for guides) of every row, keyed by schema id (the filename without `.json`). */
+/** Names of every row, keyed by schema id (the filename without `.json`). Guide ids are indexed separately. */
 function buildNameIndex(filesByName: Record<string, unknown[]>): Record<string, Set<string>> {
   const index: Record<string, Set<string>> = {}
   for (const [file, rows] of Object.entries(filesByName)) {
@@ -52,6 +52,9 @@ function hasName(index: Record<string, Set<string>>, schema: string, name: strin
   return names.has(CASE_INSENSITIVE_SCHEMAS.has(schema) ? name.toLowerCase() : name)
 }
 
+/** `parent.key`, or just `key` at the top of a row. */
+const at = (path: string, key: string) => (path ? `${path}.${key}` : key)
+
 /** Visit every object at any depth of `node`, with its dotted path. */
 function walkObjects(node: unknown, path: string, visit: (obj: Rec, path: string) => void): void {
   if (Array.isArray(node)) {
@@ -62,7 +65,7 @@ function walkObjects(node: unknown, path: string, visit: (obj: Rec, path: string
   const obj = node as Rec
   visit(obj, path)
   for (const [key, child] of Object.entries(obj)) {
-    walkObjects(child, path ? `${path}.${key}` : key, visit)
+    walkObjects(child, at(path, key), visit)
   }
 }
 
@@ -85,13 +88,13 @@ function validateNestedRefs(
     for (const key of ['tableName', 'rollTable'] as const) {
       const table = obj[key]
       if (typeof table === 'string' && !hasName(index, 'roll-tables', table)) {
-        push(path ? `${path}.${key}` : key, table, `Table "${table}" not found in roll-tables.json`)
+        push(at(path, key), table, `Table "${table}" not found in roll-tables.json`)
       }
     }
 
     const guideRef = obj.guideRef
     if (typeof guideRef === 'string' && !guideIds.has(guideRef)) {
-      push(`${path}.guideRef`, guideRef, `Guide id "${guideRef}" not found in guides.json`)
+      push(at(path, 'guideRef'), guideRef, `Guide id "${guideRef}" not found in guides.json`)
     }
 
     const source = obj.source as { kind?: unknown; schema?: unknown; entities?: unknown } | null
@@ -100,7 +103,7 @@ function validateNestedRefs(
       const entities = Array.isArray(source.entities) ? (source.entities as string[]) : []
       if (schemas.length === 0) {
         push(
-          `${path}.source.schema`,
+          at(path, 'source.schema'),
           entities.join(', '),
           'catalog choice names no source.schema — its options cannot be resolved or validated'
         )
@@ -109,7 +112,7 @@ function validateNestedRefs(
       for (const entityRef of entities) {
         if (!schemas.some((schema) => hasName(index, schema, entityRef))) {
           push(
-            `${path}.source.entities`,
+            at(path, 'source.entities'),
             entityRef,
             `Entity "${entityRef}" not found in schemas: ${schemas.join(', ')}`
           )
@@ -187,11 +190,13 @@ function validateGrants(
   const grants = row.grants
   if (!Array.isArray(grants)) return
   const entityName = String(row.name ?? 'unknown')
-  for (const [i, grant] of (grants as Array<{ schema?: string; name?: string }>).entries()) {
+  const typed = grants as Array<{ schema?: string; name?: string }>
+  const ownChoices = typed.some((g) => g.schema === 'choice') ? choiceNames(row) : new Set<string>()
+  for (const [i, grant] of typed.entries()) {
     const name = grant.name ?? ''
     const found =
       grant.schema === 'choice'
-        ? choiceNames(row).has(name)
+        ? ownChoices.has(name)
         : !!grant.schema && hasName(index, grant.schema, name)
     if (!found) {
       errors.push({
@@ -215,11 +220,9 @@ function validateGuideSteps(
 ) {
   const steps = guide.steps
   if (!Array.isArray(steps)) return
-  for (const step of steps as Array<{
-    name?: string
-    schema?: string[]
-    schemaEntities?: string[]
-  }>) {
+  for (const [i, step] of (
+    steps as Array<{ name?: string; schema?: string[]; schemaEntities?: string[] }>
+  ).entries()) {
     if (!step.schemaEntities) continue
     const schemas = step.schema ?? []
     for (const entityRef of step.schemaEntities) {
@@ -227,7 +230,7 @@ function validateGuideSteps(
         errors.push({
           file: 'guides.json',
           entityName: String(guide.name ?? 'unknown'),
-          field: `steps.${step.name ?? 'unknown'}.schemaEntities`,
+          field: `steps[${i}].schemaEntities`,
           referencedName: entityRef,
           message: `Entity "${entityRef}" not found in schemas: ${schemas.join(', ') || '(none named)'}`,
         })
@@ -238,16 +241,21 @@ function validateGuideSteps(
 
 /**
  * Refs that are known not to resolve and wait on an owner decision. Each one
- * is tolerated by exact file + name; an entry that stops matching fails, so
+ * is tolerated only at its exact file, entity, field and name, so the same
+ * name unresolved anywhere else still fails; an entry that stops matching fails, so
  * the list cannot outlive its fix.
  */
 export const KNOWN_UNRESOLVED_REFS: ReadonlyArray<{
   file: string
+  entityName: string
+  field: string
   referencedName: string
   reason: string
 }> = [
   {
     file: 'factions.json',
+    entityName: 'Red Mesa Mutants',
+    field: 'formation[3]',
     referencedName: 'Chimerium Mutant Mob',
     reason:
       'WWHF p60 prints "Chimerium Mutant Mob" in the Red Mesa Mutants formation, but no entity ' +
@@ -262,7 +270,10 @@ export function findReferenceErrors(
 ): ValidationError[] {
   const errors = findAllReferenceErrors(filesByName)
   const isKnown = (e: ValidationError, k: (typeof KNOWN_UNRESOLVED_REFS)[number]) =>
-    e.file === k.file && e.referencedName === k.referencedName
+    e.file === k.file &&
+    e.entityName === k.entityName &&
+    e.field === k.field &&
+    e.referencedName === k.referencedName
   const stale: ValidationError[] = known
     .filter((k) => !errors.some((e) => isKnown(e, k)))
     .map((k) => ({
