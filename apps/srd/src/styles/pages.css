@@ -335,6 +335,80 @@
 }
 
 /*
+ * The footer refresh (`NEWFooter.tsx`, L2: catalog only, no consumers yet).
+ * One slim row: the licence in one small paragraph at the start, the site's
+ * pages and the mark at the end. The row wraps (`.su-chapter-foot__row`), so a
+ * phone stacks the licence over the links.
+ */
+.srd-footer-new {
+  display: block;
+  font-family: var(--font-body);
+}
+
+.srd-footer-new__legal {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 52rem;
+}
+
+.srd-footer-new__end {
+  align-items: center;
+  display: flex;
+  gap: var(--space-16);
+}
+
+.srd-footer-new__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-16);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Chrome, not prose: the band's own text colour (ink, or paper on a dark band), underlined. */
+.srd-footer-new__link {
+  align-items: center;
+  color: inherit;
+  display: flex;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  min-height: 32px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.srd-footer-new__link:hover,
+.srd-footer-new__link:focus-visible {
+  text-decoration-thickness: 2px;
+}
+
+/* Thumb first (ruleset §4.6): 44px targets under a coarse pointer. */
+@media (pointer: coarse) {
+  .srd-footer-new__link {
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+.srd-footer-new__mark {
+  display: block;
+  flex: none;
+  height: 40px;
+  width: 40px;
+}
+
+/* On a dark band the black mark reverses to paper, as Leyline's white mark does. */
+.srd-footer-new__mark--paper {
+  filter: invert(1);
+}
+
+/*
  * An entity page (`EntityPageFrame`): band, body, foot band. The article
  * fills the page so the citation band closes it at the foot.
  */
