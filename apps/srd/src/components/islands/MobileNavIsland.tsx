@@ -1,7 +1,6 @@
 import type { NavDrawerItem } from 'component-lib'
 import { Badge, NavDrawer } from 'component-lib'
 import { NAV_CATALOG } from '../../generated/navCatalog'
-import { ITUN_URL } from '../../lib/constants'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import { SearchIsland } from './SearchIsland'
 
@@ -84,7 +83,7 @@ function MobileNavIslandBody({ categories, currentPath }: MobileNavIslandProps) 
     { label: 'ABOUT', href: '/about/', active: isActive('/about') },
     { label: 'CHANGELOG', href: '/changelog/', active: isActive('/changelog') },
     { label: 'DISCORD', href: '/discord/', active: isActive('/discord') },
-    { label: 'BUILDER ↗', href: ITUN_URL, external: true },
+    { label: 'API', href: '/api/', active: isActive('/api') },
     {
       label: 'BUY THE GAME',
       href: 'https://leyline.press/collections/salvage-union',

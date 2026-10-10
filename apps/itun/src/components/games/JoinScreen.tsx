@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Badge, Button, Card, PageHeading, PageShell, Text, tokens } from 'component-lib'
+import { Badge, Button, Card, ChapterBand, PageShell, Text, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
@@ -262,7 +262,7 @@ export function JoinScreen({ code }: { code: string }) {
 
   return (
     <PageShell>
-      <PageHeading className="w-fit">Join a game</PageHeading>
+      <ChapterBand>Join a game</ChapterBand>
       {/* The page shell is the full-width one the hub uses, but the form
           inside is capped: the hub is wide because it lists a crew, and this
           holds a six-character code. Stretching the card to 1440px would make

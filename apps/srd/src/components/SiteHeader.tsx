@@ -1,14 +1,16 @@
-import type { AppBarNavItem } from 'component-lib'
 import { AppBar } from 'component-lib'
 import type { ReactNode } from 'react'
 
 /**
- * SiteHeader — the SRD reference site's masthead (app-local config over the
- * shared `AppBar`): the SalvageUnion.io brand, the SRD nav (SRD / About /
- * Changelog / Discord / API + outbound Builder cross-link), the "Buy the game"
- * button, and an optional breadcrumb bar with JSON-LD. The interactive search +
- * mobile-nav pieces are slotted (`search` / `mobile`) so the page mounts them as
- * independent islands.
+ * SiteHeader — the SRD's preset of the shared Union bar (`AppBar`, ruleset
+ * §3.11): the full-density bar on the **Reference** side of the switcher, the
+ * search slot, "Buy the game" and the breadcrumb trail. The interactive search
+ * + mobile-nav pieces are slotted (`search` / `mobile`) so the page mounts them
+ * as independent islands.
+ *
+ * There is no second nav row: Contents, Guides, Roll tables and Keywords were
+ * the home page's index over again, so the home page is the nav. Changelog,
+ * API, Discord and About live in the footer (`Footer.tsx`), and the drawer.
  */
 
 type BreadcrumbItem = {
@@ -17,22 +19,19 @@ type BreadcrumbItem = {
 }
 
 type SiteHeaderProps = {
-  /** Current pathname, drives the active nav state. */
-  currentPath: string
-  /** Destination for the outbound ITUN builder cross-link. */
+  /** Where the switcher's **Build** tab goes: ITUN. */
   itunUrl: string
   breadcrumbs?: BreadcrumbItem[]
   breadcrumbDescription?: string
   /** Stable `view-transition-name` forwarded to AppBar (cross-document view transitions). */
   viewTransitionName?: string
-  /** Desktop search trigger (srd slots its SearchIsland here). */
+  /** Desktop search (srd slots its SearchIsland here). */
   search?: ReactNode
   /** Mobile cluster — search trigger + hamburger drawer (slotted, hydrated by the site). */
   mobile?: ReactNode
 }
 
 export function SiteHeader({
-  currentPath,
   itunUrl,
   breadcrumbs,
   breadcrumbDescription,
@@ -40,24 +39,12 @@ export function SiteHeader({
   search,
   mobile,
 }: SiteHeaderProps) {
-  const isActive = (path: string) => currentPath.startsWith(path)
-
-  const navItems: AppBarNavItem[] = [
-    { label: 'SRD', href: '/', active: isActive('/schema') || currentPath === '/' },
-    { label: 'ABOUT', href: '/about/', active: isActive('/about') },
-    { label: 'CHANGELOG', href: '/changelog/', active: isActive('/changelog') },
-    { label: 'DISCORD', href: '/discord/', active: isActive('/discord') },
-    { label: 'API', href: '/api/', active: isActive('/api') },
-    { label: 'BUILDER ↗', href: itunUrl, external: true },
-  ]
-
   return (
     <AppBar
-      wordmark="SalvageUnion"
-      wordmarkAccent=".io"
-      eyebrow="The Salvage Union SRD"
+      product="reference"
+      referenceHref="/"
+      buildHref={itunUrl}
       viewTransitionName={viewTransitionName}
-      navItems={navItems}
       search={search}
       buyHref="https://leyline.press/collections/salvage-union"
       mobile={mobile}

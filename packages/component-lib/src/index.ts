@@ -25,6 +25,8 @@ export { buttonVariants } from './components/chrome/buttonVariants'
 // Callout — accent-framed note (stamp header + accent-bar body); list-items,
 // "When Damaged" effects, and similar accented notes compose on it.
 export { Callout } from './components/chrome/Callout'
+// ChapterBand — the page title notched into a band in the chapter's colour
+export { ChapterBand } from './components/chrome/ChapterBand'
 export { Checkbox, Radio } from './components/chrome/Checkbox'
 // Conditions — the entity-condition chip row. Public because ITUN's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
@@ -64,7 +66,6 @@ export { Panel, Row } from './components/chrome/Panel'
 // RadioCardGroup — the radiogroup around an exactly-one picker's cards (Base UI
 // RadioGroup): one tab stop, arrow keys between the cards
 export { RadioCardGroup } from './components/chrome/RadioCardGroup'
-export { SectionHeader } from './components/chrome/SectionHeader'
 export { Sel } from './components/chrome/Sel'
 export { Slab } from './components/chrome/Slab'
 // StepButton is deliberately NOT exported: it is an internal atom composed by
@@ -102,7 +103,6 @@ export { useChassisPatternConfig } from './components/referenceEntity/pattern/us
 export { navigateControl } from './components/referenceEntity/referenceEntityControls'
 export type { ReferenceEntityControl } from './components/referenceEntity/referenceEntityControlTypes'
 export { useDetailModal } from './components/referenceEntity/useDetailModal'
-export type { AppBarNavItem } from './components/shared/AppBar'
 export { AppBar } from './components/shared/AppBar'
 // Deliberately its own module rather than the card-image component's file.
 // `story-coverage.test.ts` decides what is public by regex-matching each

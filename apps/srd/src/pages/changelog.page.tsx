@@ -6,7 +6,7 @@
  * fetch — only the rendered entries ship.
  */
 
-import { Changelog, InlineRef, PageHeading } from 'component-lib'
+import { Changelog, ChapterBand, InlineRef } from 'component-lib'
 import { readChangelog } from 'component-lib/changelog/git'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
@@ -39,10 +39,9 @@ function page(): PageResult {
       ],
     },
     children: (
-      <div className="flex w-full flex-1 flex-col py-12">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6">
-          <PageHeading>Changelog</PageHeading>
-
+      <div className="flex w-full flex-1 flex-col pb-12">
+        <ChapterBand measure="48rem">Changelog</ChapterBand>
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 pt-8">
           <p className="text-sm leading-relaxed">
             Features, fixes and speed-ups to the SRD site, newest first. For full commit history see
             the{' '}

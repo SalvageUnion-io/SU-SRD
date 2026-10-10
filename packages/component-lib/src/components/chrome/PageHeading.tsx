@@ -4,25 +4,20 @@ import { cn } from '../../utils/cn'
 type PageHeadingProps = {
   children: ReactNode
   /**
-   * `heading` (default) — the ink stamp band: white condensed-caps on an ink
-   * ground, box-decoration cloned so a wrapped heading keeps its band per line
-   * (srd's former `.page-heading`, the page H1).
-   * `subheading` — the plain condensed-caps section subheading (former
-   * `.page-subheading`, the page H2s); keeps `text-lg`'s 1.75rem line-height.
+   * `subheading` (default) — the plain condensed-caps section subheading
+   * (former `.page-subheading`, the page H2s); keeps `text-lg`'s 1.75rem
+   * line-height.
    * `section` — the quietest rung: the in-panel section head a card or a
    * live-sheet region wears above a list. It exists because the apps had
    * fifteen hand-rolled `font-cond … uppercase` headings at five different
-   * sizes, and the two rungs above could only absorb the largest of them;
+   * sizes, and the rungs above could only absorb the largest of them;
    * without this one the smallest simply stayed hand-rolled. It emits NO text
    * colour, so a section head that needs one (a Game roster group's tone)
    * passes it through `className` instead of forking the rung. Never rust:
    * rust is an action's colour (ruleset §3.1).
    */
-  variant?: 'heading' | 'subheading' | 'section'
-  /**
-   * Element override. Defaults to `h1` for `heading`, `h2` for `subheading`
-   * and `section`.
-   */
+  variant?: 'subheading' | 'section'
+  /** Element override. Defaults to `h2`. */
   as?: ElementType
   className?: string
   /** For a region that names itself by its heading (`aria-labelledby`). */
@@ -37,32 +32,29 @@ type PageHeadingProps = {
 }
 
 /**
- * PageHeading — the page-level heading language promoted from srd's per-app
- * `.page-heading` / `.page-subheading`. `heading` is the ink stamp band; the
- * `subheading` variant is the quieter condensed-caps section head. Per-page
- * modifiers (e.g. `text-center`, `mb-2`) still ride alongside via `className`.
+ * PageHeading — the in-page heading rungs promoted from srd's per-app
+ * `.page-subheading`: the condensed-caps subheading and the quieter section
+ * head. The page's own title is not one of them: that is the `ChapterBand`,
+ * which replaced this component's former ink-stamp `heading` rung (brand refresh P2a).
+ * Per-page modifiers (e.g. `text-center`, `mb-2`) ride alongside via
+ * `className`.
  */
-/** The three rungs, spelled once so the variant switch stays a lookup. */
+/** The two rungs, spelled once so the variant switch stays a lookup. */
 const HEADING_VARIANTS = {
-  // Default letter-spacing: an off-ladder `0.01em` would be ~0.3px at this
-  // display size — imperceptible, and below the tracking ladder's tightest
-  // rung (ruleset §4.2, tokens-only tracking).
-  heading:
-    'box-decoration-clone bg-ink px-2 py-1 font-cond text-3xl/[1] font-bold uppercase text-paper',
   subheading: 'font-cond text-lg font-bold uppercase',
   section: 'font-cond text-sm font-bold uppercase tracking-caps',
 } as const
 
 export function PageHeading({
   children,
-  variant = 'heading',
+  variant = 'subheading',
   as,
   className,
   id,
   tabIndex,
   ref,
 }: PageHeadingProps) {
-  const Tag = as ?? (variant === 'heading' ? 'h1' : 'h2')
+  const Tag = as ?? 'h2'
   return (
     <Tag ref={ref} id={id} tabIndex={tabIndex} className={cn(HEADING_VARIANTS[variant], className)}>
       {children}

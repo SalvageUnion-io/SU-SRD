@@ -1,5 +1,17 @@
 import { InlineRef } from 'component-lib'
 
+/**
+ * The site's own pages, which left the Union bar when the SRD dropped its second
+ * nav row (ruleset §3.11, canvas v60): the bar carries the switcher, the search
+ * and the trail, and these four live down here, ink and underlined.
+ */
+const SITE_LINKS = [
+  { label: 'Changelog', href: '/changelog/' },
+  { label: 'API', href: '/api/' },
+  { label: 'Discord', href: '/discord/' },
+  { label: 'About', href: '/about/' },
+] as const
+
 type FooterProps = {
   /** URL for the "Powered by Salvage" logo image — passed by consuming app */
   poweredBySalvageUrl: string
@@ -37,6 +49,20 @@ export function Footer({ poweredBySalvageUrl }: FooterProps) {
             .
           </p>
         </div>
+        <nav aria-label="Site" className="shrink-0">
+          <ul className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-body text-sm">
+            {SITE_LINKS.map((link) => (
+              <li key={link.href}>
+                <a
+                  href={link.href}
+                  className="text-ink underline underline-offset-2 hover:text-ink-75"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
         <div className="inline-block shrink-0 rounded-md p-2">
           {/*
             48x48, matching the source's 1:1 ratio.

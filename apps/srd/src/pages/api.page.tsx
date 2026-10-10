@@ -7,7 +7,7 @@
  * `<pre>` block.
  */
 
-import { InlineRef, PageHeading, Panel, Slab } from 'component-lib'
+import { ChapterBand, InlineRef, Panel, Slab } from 'component-lib'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { apiSampleChassis } from '../lib/apiSample'
@@ -134,10 +134,9 @@ function page(): PageResult {
       },
     },
     children: (
-      <div className="flex w-full flex-1 flex-col py-12">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6">
-          <PageHeading>JSON API Reference</PageHeading>
-
+      <div className="flex w-full flex-1 flex-col pb-12">
+        <ChapterBand measure="64rem">JSON API Reference</ChapterBand>
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 pt-8">
           {/* Overview */}
           <section className="flex flex-col gap-3 text-sm leading-relaxed">
             <Slab as="h2" variant="solid" label="Overview" />
