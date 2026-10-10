@@ -119,14 +119,15 @@ export function EntityCardHeader({
       className={titleType}
       title={oneLine ? title : undefined}
       style={{
-        // One line: the title gives way after a hint has and before the pennant,
-        // but never below a readable stub (about eleven characters); the cells
-        // shed first, lowest priority first (`EntityCardStatBox`). Otherwise the title shares the row with the
+        // One line: the NAME wins the row. It keeps its full width (it truncates
+        // only when it alone is wider than the row), after a hint has given way;
+        // the cells go first, last (lowest priority) first (`EntityCardStatBox`). Otherwise the title shares the row with the
         // cells on the right at medium and small, and only a large header
         // gives the title the whole row. Either way the cells wrap beneath
         // when they truly cannot fit.
-        flex: oneLine ? '0 1 auto' : size === 'large' ? '1 1 auto' : '1 1 0',
-        minWidth: oneLine ? 'min(100%, 11ch)' : size === 'large' ? 0 : 'min-content',
+        flex: oneLine ? '0 0 auto' : size === 'large' ? '1 1 auto' : '1 1 0',
+        maxWidth: oneLine ? '100%' : undefined,
+        minWidth: oneLine ? 0 : size === 'large' ? 0 : 'min-content',
         overflowWrap: 'break-word',
         ...(oneLine ? ONE_LINE : {}),
       }}
@@ -192,7 +193,7 @@ export function EntityCardHeader({
             gap: space[4],
             justifyContent: 'flex-end',
             marginLeft: oneLine ? 'auto' : undefined,
-            minWidth: oneLine ? 'min-content' : 0,
+            minWidth: 0,
           }}
         >
           {stats.length > 0 && <EntityCardStatBox stats={stats} oneRow={oneLine} />}
