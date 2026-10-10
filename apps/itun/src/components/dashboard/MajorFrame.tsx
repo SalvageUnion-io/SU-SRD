@@ -13,9 +13,10 @@
  */
 
 import type { ProvenanceLine, VitalGaugeBreakdown } from 'component-lib'
-import { Badge, Button } from 'component-lib'
+import { Badge, Button, ReferenceEntityCard } from 'component-lib'
 import { radius } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
+import type { SURefEntity } from 'salvageunion-reference'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import type { GaugeTone } from './DashboardGauge'
 import { DashboardGauge } from './DashboardGauge'
@@ -50,7 +51,17 @@ export type BandButton = {
 }
 
 /** A short text readout in a bay; `warn` marks a problem (a damaged bay). */
-export type BandText = { text: string; warn?: boolean }
+export type BandText = {
+  text: string
+  warn?: boolean
+  /**
+   * The reference entity the chip names, when it is one (a pilot's equipment
+   * and abilities). It renders as the entity card's shortform pill — the same
+   * anatomy as everywhere else (issue 1255, board D2) — flat, as the Dashboard
+   * is. A chip with none stays a plain chip.
+   */
+  entity?: SURefEntity
+}
 
 export type BandBay = {
   label: string
@@ -237,14 +248,20 @@ function BayBody({ bay }: { bay: BandBay }) {
       {bay.lines && bay.lines.length > 0 && <Lines lines={bay.lines} />}
       {bay.chips && bay.chips.length > 0 && (
         <ul style={{ ...CHIPS, listStyle: 'none', margin: 0, padding: 0 }}>
-          {bay.chips.map((c) => (
-            <li
-              key={c.text}
-              style={c.warn ? { ...CHIP, ...WARN, borderColor: 'currentColor' } : CHIP}
-            >
-              {c.text}
-            </li>
-          ))}
+          {bay.chips.map((c) =>
+            c.entity ? (
+              <li key={c.text}>
+                <ReferenceEntityCard data={c.entity} size="small" extent="head" texture={false} />
+              </li>
+            ) : (
+              <li
+                key={c.text}
+                style={c.warn ? { ...CHIP, ...WARN, borderColor: 'currentColor' } : CHIP}
+              >
+                {c.text}
+              </li>
+            )
+          )}
         </ul>
       )}
       {bay.control}
