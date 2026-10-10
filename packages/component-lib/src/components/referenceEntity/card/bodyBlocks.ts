@@ -78,6 +78,48 @@ export function resolveBodyBlocks({
   return { bodyBlocks, showBody }
 }
 
+/** Below this length a paragraph is too short to call a repeat of anything. */
+const MIN_REPEAT_KEY = 24
+
+/**
+ * A paragraph's comparison key for "no repeated prose": lower-case words only,
+ * `[(CHASSIS)]` resolved to the chassis name, and the article "the" dropped —
+ * the book phrases the same sentence "[(CHASSIS)] comes with…" on a chassis
+ * ability and "The Little Sestra comes with…" on the drone it names.
+ */
+export function proseKey(text: string, chassisName: string | undefined): string {
+  return text
+    .replaceAll('[(CHASSIS)]', chassisName ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .split(' ')
+    .filter((word) => word.length > 0 && word !== 'the')
+    .join(' ')
+}
+
+/** A choice's key in the same "already printed" list (`choice` + its name). */
+export function choiceKey(name: string, chassisName: string | undefined): string {
+  return `choice ${proseKey(name, chassisName)}`
+}
+
+/**
+ * NO REPEATED PROSE (board E2): a nested child hides any paragraph its parent
+ * already prints — the Sestra Drone's description, under the Drone Controller
+ * ability that says the same thing. `shown` holds the parent's `proseKey`s.
+ */
+export function hideShownProse(
+  blocks: SURefObjectContentBlock[],
+  shown: readonly string[] | undefined,
+  chassisName: string | undefined
+): SURefObjectContentBlock[] {
+  if (!shown || shown.length === 0) return blocks
+  return blocks.filter((block) => {
+    if (block?.type !== 'paragraph') return true
+    const key = proseKey(blockPlainText(block), chassisName)
+    return key.length < MIN_REPEAT_KEY || !shown.some((parent) => parent.includes(key))
+  })
+}
+
 /**
  * How the body lays out around its left ANCHOR (the artwork, else a nested
  * NPC).

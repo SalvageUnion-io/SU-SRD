@@ -118,7 +118,7 @@ function EntityCard({
       </div>
     )
   }
-  return <ReferenceEntityCard data={data} hide={HIDE_CHOICES} controls={controls} />
+  return <ReferenceEntityCard data={data} hide={HIDE_CHOICES} controls={controls} texture={false} />
 }
 
 /** What the display shows — resolved by the app from the focus + store. */

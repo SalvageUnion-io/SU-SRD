@@ -141,9 +141,9 @@ describe('catalog tiles carry no authorship', () => {
     const text = container.textContent ?? ''
     expect(text).not.toContain(String(chassis.source))
     expect(text).not.toContain(`p.${chassis.page}`)
-    // …and not the entity TYPE either: every tile in a listing grid is the same
-    // type, so the label is the same word repeated down the page.
-    expect(text).not.toContain('Chassis')
+    // The TYPE prints once, on the seam stamp every card wears (board E1) —
+    // never a second time in a footer.
+    expect(text.match(/Chassis/g)?.length).toBe(1)
   })
 
   test('a borrowed lead is never the sentence the header already showed', () => {

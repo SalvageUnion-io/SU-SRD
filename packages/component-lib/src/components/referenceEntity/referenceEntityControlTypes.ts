@@ -59,4 +59,11 @@ export type ReferenceEntityControl = {
   /** When true, this control's onClick makes the entire card clickable (any mode).
    * The card gains a hover enlarge effect. If multiple controls set cardClick, the last one wins. */
   cardClick?: boolean
+  /**
+   * The control that RESOLVES the action this card is (the Dashboard): it
+   * renders AS the header's cost pennant — the same size, shape and place,
+   * filled rust, inside a 44px hit area (ruleset §1) — never in the rail.
+   * With no cost to show, the pennant reads `label`.
+   */
+  pennant?: boolean
 }

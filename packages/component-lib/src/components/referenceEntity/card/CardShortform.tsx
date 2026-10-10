@@ -1,130 +1,93 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { cn } from '../../../utils/cn'
-import { Badge } from '../../chrome/Badge'
+import { font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import { Stat } from '../../shared/Stat'
-import type { StatItem } from '../../shared/statsBarTypes'
 import type { CardOuterProps } from './CardOuter'
 import { CardOuter } from './CardOuter'
-import { formatActionType } from './cardCells'
-import type { AxisMarker } from './entityCardTone'
-import type { ActionFields } from './referenceEntityCardTypes'
+import { USER_MADE_TITLE } from './cardChrome'
+
+/** One `[label | value]` cell trailing the name. */
+export type ShortformTail = { label: string; value?: string }
+
+const pill: CSSProperties = {
+  alignItems: 'center',
+  alignSelf: 'flex-start',
+  borderRadius: 'var(--radius-card)',
+  display: 'inline-flex',
+  fontFamily: font.cond,
+  fontSize: fontSize.caption,
+  fontWeight: weight.bold,
+  gap: space[6],
+  letterSpacing: tracking.capsTight,
+  lineHeight: 1.2,
+  maxWidth: '100%',
+  overflow: 'hidden',
+  padding: `3px ${space[6]} 3px ${space[4]}`,
+  textTransform: 'uppercase',
+  whiteSpace: 'nowrap',
+}
+
+const stamp = (onInk: boolean): CSSProperties => ({
+  backgroundColor: 'var(--color-ink)',
+  border: `var(--bw-hairline) solid ${onInk ? 'var(--color-paper)' : 'var(--color-ink)'}`,
+  color: 'var(--color-paper)',
+  flex: 'none',
+  fontSize: fontSize.badge,
+  letterSpacing: tracking.capsSnug,
+  padding: `1px ${space[4]}`,
+})
 
 /**
- * BADGE — the SHORTFORM token (`size="small" extent="head"`): a single
- * tone-filled pill with the NAME leading, then a classification tail. Reuses
- * the same interaction/frame plumbing as every other size but collapses the
- * whole card to one line.
- *
- * ONE shell for both shortforms: the tone-filled pill (accent surface, 3px
- * frame, whole-card interaction plumbing) with the truncating name leading.
- * The name colour matches the header title everywhere else (`onBandText`):
- * white on the tone band, ink only on the light ghosted/greyed bands. Only the
- * tail cells differ between the action and entity forms.
+ * The SHORTFORM (`size="small" extent="head"`, board E1): one pill with the
+ * type stamp, the name and the first stat. It is how an entity sits in prose,
+ * inside a slot, or as a chip in a picker — the same anatomy as the card, at
+ * chip scale: a tone pill for a thing you have, an ink pill for a thing you do,
+ * and a dashed edge on a user-made one.
  */
 export function CardShortform({
   outer,
   accent,
   frameStyle,
   onBandText,
+  ink,
+  typeLabel,
   name,
-  action,
-  costNode,
-  axisMarkers,
-  techLevel,
+  tail,
+  pennant,
+  userMade,
 }: {
   outer: CardOuterProps
   accent: { className?: string; style?: CSSProperties }
   frameStyle: CSSProperties
   onBandText: string
+  /** An INK pill (a thing you do). */
+  ink: boolean
+  typeLabel: string
   name: string
-  /** Set when the card IS an action — switches to the action tail. */
-  action: ActionFields | undefined
-  costNode: ReactNode
-  axisMarkers: AxisMarker[]
-  techLevel: number | 'B' | 'N' | undefined
+  /** The first stat — TL, an ability's level, a class's kind. */
+  tail: ShortformTail | undefined
+  /** An action's cost pennant, in place of a stat. */
+  pennant: ReactNode
+  userMade: boolean
 }) {
   return (
     <CardOuter {...outer}>
       <div
-        className={cn(
-          'inline-flex max-w-full items-center gap-2 self-start overflow-hidden rounded-card px-2 py-1',
-          accent.className
-        )}
-        style={{ ...accent.style, ...frameStyle }}
+        className={accent.className}
+        title={userMade ? USER_MADE_TITLE : undefined}
+        style={{ ...accent.style, ...frameStyle, ...pill }}
       >
+        <span style={stamp(ink)}>{typeLabel}</span>
         <span
-          className={cn(
-            'min-w-0 truncate font-cond text-sm font-bold uppercase leading-none tracking-caps-tight',
-            onBandText
-          )}
+          className={onBandText}
+          style={{ flex: '1 1 auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}
         >
           {name}
         </span>
-        {action ? (
-          <ActionTail action={action} costNode={costNode} />
-        ) : (
-          <EntityTail axisMarkers={axisMarkers} techLevel={techLevel} />
+        {pennant}
+        {tail && (
+          <Stat orientation="horizontal" label={tail.label} value={tail.value} size="mini" />
         )}
       </div>
     </CardOuter>
   )
-}
-
-/**
- * Action shortform tail: Cost · type · Damage · range (each when present) —
- * the NAME leads (left-aligned so a stack of action badges reads down a name
- * column), then the AP/EP cost pennant, the action type as a stamp, then
- * Damage / Range as [label|value] Stat cells (if relevant).
- */
-function ActionTail({ action, costNode }: { action: ActionFields; costNode: ReactNode }) {
-  const typeLabel = action.actionType ? formatActionType(action.actionType) : undefined
-  const damageValue = action.damage
-    ? `${action.damage.amount}${action.damage.damageType ?? ''}`
-    : undefined
-  const rangeValue = action.range && action.range.length > 0 ? action.range.join(' / ') : undefined
-  return (
-    <>
-      {costNode}
-      {typeLabel && (
-        <Badge shape="stamp" size="mini">
-          {typeLabel}
-        </Badge>
-      )}
-      {damageValue && (
-        <Stat
-          key="damage"
-          orientation="horizontal"
-          label="Damage"
-          value={damageValue}
-          size="mini"
-        />
-      )}
-      {rangeValue && (
-        <Stat key="range" orientation="horizontal" label="Range" value={rangeValue} size="mini" />
-      )}
-    </>
-  )
-}
-
-/**
- * Entity shortform tail — the classification as Stat cells (matching the
- * sub-header's axis markers): abilities show [Ability Tree | …] [Level | n]; a
- * TL-bearing entity shows [TL | n]; everything else shows nothing.
- */
-function EntityTail({
-  axisMarkers,
-  techLevel,
-}: {
-  axisMarkers: AxisMarker[]
-  techLevel: number | 'B' | 'N' | undefined
-}) {
-  const badgeStats: StatItem[] =
-    axisMarkers.length > 0
-      ? axisMarkers.map((m) => ({ key: m.label, label: m.label, value: m.value }))
-      : techLevel != null
-        ? [{ key: 'tech-level', label: 'TL', value: String(techLevel) }]
-        : []
-  return badgeStats.map((s) => (
-    <Stat key={s.key} orientation="horizontal" label={s.label} value={s.value} size="mini" />
-  ))
 }
