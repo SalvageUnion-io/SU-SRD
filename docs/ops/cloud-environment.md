@@ -37,7 +37,8 @@ together. No CLI or API edits it.
   #!/bin/bash
   # SU-SRD: docs/ops/cloud-environment.md is this script's record.
   # Warm the snapshot with the repo's pinned Bun and node_modules by running
-  # its own SessionStart hook. Never fail: the hook fixes things at start anyway.
+  # its own SessionStart hook: repo hooks never run in a multi-repo session, so
+  # this is what pins Bun there. Never fail: a failure stops the session.
   for d in "${CLAUDE_PROJECT_DIR:-}" "$PWD" /home/user/* /root/* /workspace/*; do
     if [ -x "$d/.claude/hooks/session-start.sh" ] &&
       grep -q '"packageManager": *"bun@' "$d/package.json" 2>/dev/null; then
