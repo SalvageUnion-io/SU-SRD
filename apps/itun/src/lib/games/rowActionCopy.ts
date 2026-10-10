@@ -175,6 +175,25 @@ export const ROW_ACTION_COPY = {
   },
 
   /**
+   * "Make a copy" on Shelves (board S1): a second build of something already on
+   * your shelf, in no Game. Same promise as `copy` — it names the copy and says
+   * the two will not stay in step — for a reader who is already on the shelf.
+   */
+  copyOnShelf(name: string): ConfirmCopy {
+    return {
+      title: `Make a copy of ${name}?`,
+      body: [
+        `This puts “${copyName(name)}” on your shelf, in no Game. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
+        "Don't want it later? Delete the copy.",
+      ],
+      confirmLabel: 'Make a copy',
+      pendingLabel: 'Copying…',
+      tone: 'default',
+      failure: `${name} could not be copied. Try again.`,
+    }
+  },
+
+  /**
    * Deleting a character from a Game. It names the alternative on purpose: at
    * a shared table, "I am done with this character" almost always means
    * somebody else could have them, and a player who deletes when they meant to

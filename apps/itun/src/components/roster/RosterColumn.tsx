@@ -1,37 +1,29 @@
 /**
- * The hub's columns — Pilots, Mechs, Crawlers, and on My Stuff NPCs — and the
- * phone switch between them (design-spec §3.7).
+ * The hub's three columns — Pilots, Mechs, Crawlers — and the phone switch
+ * between them (design-spec §3.7).
  *
- * `/` shows one container at a time: My Stuff (`Roster`) or a Game
- * (`GameRoster`). Both answer "what have I got, and what can I do with it" of a
- * different container, so they share these columns rather than drawing two
- * vocabularies for one question. What goes INSIDE a column is the caller's: a
- * flat list on My Stuff, yours-then-everyone-else's in a Game.
+ * A Game's page (`GameRoster`) and the Starter Set (`StarterSetRoster`) lay
+ * their units out in these columns. What goes INSIDE a column is the caller's:
+ * yours-then-everyone-else's in a Game, the book's crew in the Starter Set.
+ * Shelves (`components/shelves/`) has shelves of its own, board S1.
  *
- * At the mobile endpoint (≤ md) the columns collapse to one, behind a
+ * At the mobile endpoint (≤ md) the three columns collapse to one, behind a
  * segmented switch the page owns — so the segment a player picked survives
- * switching between My Stuff and a Game.
- *
- * My Stuff's fourth column holds built NPCs (issue 1269 §4.3, P7 D10): four
- * columns at the wide breakpoint, two by two at the middle one, and a fourth
- * "NPCs" segment below that. The Shelves redesign (issue 1279) replaces it with its
- * NPC shelf.
+ * switching between Games.
  */
 
 import { Button, buttonVariants, cn, EmptyState, Slab } from 'component-lib'
-import { Bot, Skull, UserRound, Warehouse } from 'lucide-react'
+import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { AppLink } from '../shared/AppLink'
 
-export type SegmentKind = 'pilot' | 'mech' | 'crawler' | 'npc'
+export type SegmentKind = 'pilot' | 'mech' | 'crawler'
 
 const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
   { kind: 'pilot', label: 'Pilots' },
   { kind: 'mech', label: 'Mechs' },
   { kind: 'crawler', label: 'Crawlers' },
 ]
-
-const NPC_SEGMENT = { kind: 'npc', label: 'NPCs' } as const
 
 /** The column's create CTA. `onClick` runs before the wizard opens. */
 export type ColumnCreate = { href: string; label: string; onClick?: () => void }
@@ -51,16 +43,13 @@ const SELECTED: CSSProperties = {
 export function SegmentSwitch({
   active,
   onChange,
-  withNpcs = false,
 }: {
   active: SegmentKind
   onChange: (kind: SegmentKind) => void
-  /** My Stuff's fourth segment. A Game's roster has no NPC column yet. */
-  withNpcs?: boolean
 }) {
   return (
     <div className="mt-5 flex gap-2 md:hidden">
-      {(withNpcs ? [...SEGMENTS, NPC_SEGMENT] : SEGMENTS).map((seg) => (
+      {SEGMENTS.map((seg) => (
         <Button
           key={seg.kind}
           size="compact"
@@ -76,18 +65,9 @@ export function SegmentSwitch({
   )
 }
 
-/** One column on a phone; three from `md` up, or four as two by two, then four across. */
-export function RosterGrid({ children, columns = 3 }: { children: ReactNode; columns?: 3 | 4 }) {
-  return (
-    <div
-      className={cn(
-        'mt-5 grid grid-cols-1 gap-8 md:mt-6',
-        columns === 4 ? 'md:grid-cols-2 xl:grid-cols-4' : 'md:grid-cols-3'
-      )}
-    >
-      {children}
-    </div>
-  )
+/** One column on a phone, three from `md` up. */
+export function RosterGrid({ children }: { children: ReactNode }) {
+  return <div className="mt-5 grid grid-cols-1 gap-8 md:mt-6 md:grid-cols-3">{children}</div>
 }
 
 /** A column's rows; `labelledBy` names a sub-list (a Game's YOURS group). */
@@ -104,7 +84,6 @@ const EMPTY_ICON: Record<SegmentKind, ReactNode> = {
   pilot: <UserRound className="size-7 text-sheet-pilot-deep" />,
   mech: <Bot className="size-7 text-sheet-mech-deep" />,
   crawler: <Warehouse className="size-7 text-sheet-crawler-deep" />,
-  npc: <Skull className="size-7 text-ink" />,
 }
 
 type RosterColumnProps = {
