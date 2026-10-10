@@ -1,16 +1,26 @@
 /// <reference types="vite/client" />
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Component, Fragment, StrictMode, Suspense, use, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { color, font, fontSize, space, weight } from './src/design/tokens'
-import { storyGroups, storySubgroups } from './src/stories/_groups'
+import type { CatalogRoute, StoryRef } from './src/stories/_catalogRoute'
+import {
+  parseRoute,
+  routeHref,
+  sortStories,
+  storyId,
+  storyLabel,
+  WIDTH_PRESETS,
+} from './src/stories/_catalogRoute'
 import './src/styles/catalog.css'
-// The faces the SRD ships (apps/srd/src/runtime/styles.entry.ts), so a story —
-// the Og Card above all, which is a picture of what ships — draws in the real
-// display type, not a fallback. They are dev dependencies here, as in the apps.
+// The faces the apps ship (apps/srd/src/runtime/styles.entry.ts, ITUN's
+// __root.tsx), so a story draws in the product's type at the product's text
+// widths, not a fallback.
 import '@fontsource/barlow/400.css'
+import '@fontsource/barlow/500.css'
 import '@fontsource/barlow/600.css'
+import '@fontsource/barlow/700.css'
 import '@fontsource/barlow-semi-condensed/500.css'
 import '@fontsource/barlow-semi-condensed/600.css'
 import '@fontsource/barlow-semi-condensed/700.css'
@@ -19,11 +29,15 @@ import '@fontsource/barlow-semi-condensed/700.css'
  * The component catalog: a dev-only page (`bun run stories`) that this
  * package's Vite server mounts from `index.html`. It renders every story file
  * in the library and in the two apps' component folders, one story at a time
- * on the paper canvas, addressed as `#<story-id>`.
+ * on the paper ground. A story is addressed as `?story=<id>`; `&mode=canvas`
+ * drops the sidebar and toolbar, `&width=phone|column|page|<px>` fixes the
+ * story's container width, and `?mode=index` lists every id
+ * (`src/stories/_catalogRoute.ts`). `#<id>` still selects a story.
+ * `bun run stories:ids` prints the ids without a browser (`listStories.ts`).
  */
 
 type StoryFile = { default: { title: string } } & Record<string, unknown>
-type Entry = { id: string; title: string; name: string; Story: () => ReactNode }
+type Entry = StoryRef & { Story: () => ReactNode }
 
 const files = import.meta.glob<StoryFile>([
   './src/**/*.stories.tsx',
@@ -32,23 +46,6 @@ const files = import.meta.glob<StoryFile>([
 ])
 
 const DEFAULT_STORY = 'foundations--styleguide--overview'
-
-const kebab = (s: string) =>
-  s
-    .trim()
-    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-    .replace(/\s+/g, '-')
-    .toLowerCase()
-const label = (name: string) => name.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-
-/** Sidebar order: group, then sub-group (ungrouped leaves last), then id. */
-function rank({ title }: Entry): [number, number] {
-  const [group = '', sub = '', leaf] = title.split('/')
-  const g = storyGroups.indexOf(group)
-  const subs = storySubgroups[group] ?? []
-  const s = leaf === undefined ? -1 : subs.indexOf(sub)
-  return [g === -1 ? storyGroups.length : g, s === -1 ? subs.length : s]
-}
 
 /**
  * Every story reads `SalvageUnionReference.*` at module top level, so no story
@@ -59,27 +56,14 @@ function rank({ title }: Entry): [number, number] {
 async function loadStories(): Promise<Entry[]> {
   await SalvageUnionReference.preload('all')
   const loaded = await Promise.all(Object.values(files).map((load) => load()))
-  const entries = loaded.flatMap(({ default: meta, ...exports }) =>
+  const entries = loaded.flatMap(({ default: { title }, ...exports }) =>
     Object.entries(exports).flatMap(([name, Story]) =>
       typeof Story === 'function'
-        ? [
-            {
-              id: [...meta.title.split('/'), name].map(kebab).join('--'),
-              ...meta,
-              name,
-              Story: Story as Entry['Story'],
-            },
-          ]
+        ? [{ id: storyId(title, name), title, name, Story: Story as Entry['Story'] }]
         : []
     )
   )
-  return entries
-    .map((entry) => ({ entry, rank: rank(entry) }))
-    .sort(
-      (a, b) =>
-        a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1] || a.entry.id.localeCompare(b.entry.id)
-    )
-    .map(({ entry }) => entry)
+  return sortStories(entries)
 }
 
 const storiesPromise = loadStories()
@@ -96,21 +80,127 @@ class StoryBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
-const currentId = () => decodeURIComponent(location.hash.slice(1)) || DEFAULT_STORY
+const currentRoute = () => parseRoute(location.search, location.hash)
+
+/** The route, kept in step with the address bar (links, back and forward). */
+function useRoute(): [CatalogRoute, (route: CatalogRoute) => (e: MouseEvent) => void] {
+  const [route, setRoute] = useState(currentRoute)
+  useEffect(() => {
+    const sync = () => setRoute(currentRoute())
+    addEventListener('hashchange', sync)
+    addEventListener('popstate', sync)
+    return () => {
+      removeEventListener('hashchange', sync)
+      removeEventListener('popstate', sync)
+    }
+  }, [])
+  // A plain click moves without reloading every story module; a modified click
+  // (a new tab) falls through to the link.
+  const go = (next: CatalogRoute) => (e: MouseEvent) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    e.preventDefault()
+    history.pushState(null, '', routeHref(next))
+    setRoute(next)
+  }
+  return [route, go]
+}
+
+/** The story in its container: `width` px wide when set, else the space it has. */
+function StoryFrame({ entry, width }: { entry: Entry; width: number | null }) {
+  return (
+    <div style={width === null ? fillFrameStyle : { ...fixedFrameStyle, width: `${width}px` }}>
+      <StoryBoundary key={entry.id}>
+        <entry.Story />
+      </StoryBoundary>
+    </div>
+  )
+}
+
+function Index({ stories }: { stories: Entry[] }) {
+  return (
+    <main style={indexStyle}>
+      <h1 style={indexTitleStyle}>{stories.length} stories</h1>
+      <ol style={indexListStyle}>
+        {stories.map((s) => (
+          <li key={s.id} data-story-id={s.id}>
+            <a href={routeHref({ id: s.id, mode: 'canvas', width: null })}>{s.id}</a>
+          </li>
+        ))}
+      </ol>
+    </main>
+  )
+}
+
+function Toolbar({
+  entry,
+  route,
+  go,
+}: {
+  entry: Entry
+  route: CatalogRoute
+  go: ReturnType<typeof useRoute>[1]
+}) {
+  const widths: [string, number | null][] = [
+    ['fill', null],
+    ...Object.entries(WIDTH_PRESETS).map(([name, px]): [string, number] => [`${name} ${px}`, px]),
+  ]
+  return (
+    <div style={toolbarStyle}>
+      <code>{entry.id}</code>
+      {widths.map(([name, width]) => {
+        const next = { ...route, id: entry.id, width }
+        return (
+          <a
+            key={name}
+            href={routeHref(next)}
+            onClick={go(next)}
+            style={{
+              ...toolLinkStyle,
+              fontWeight: route.width === width ? weight.bold : undefined,
+            }}
+          >
+            {name}
+          </a>
+        )
+      })}
+      <a
+        href={routeHref({ id: entry.id, mode: 'canvas', width: route.width })}
+        style={toolLinkStyle}
+      >
+        canvas only ↗
+      </a>
+    </div>
+  )
+}
 
 function Catalog() {
   const stories = use(storiesPromise)
-  const [id, setId] = useState(currentId)
+  const [route, go] = useRoute()
   const [filter, setFilter] = useState('')
-  useEffect(() => {
-    const onHash = () => setId(currentId())
-    addEventListener('hashchange', onHash)
-    return () => removeEventListener('hashchange', onHash)
-  }, [])
 
-  const active = stories.find((s) => s.id === id) ?? stories[0]
+  const active =
+    stories.find((s) => s.id === (route.id ?? DEFAULT_STORY)) ??
+    stories.find((s) => s.id === DEFAULT_STORY) ??
+    stories[0]
+
+  useEffect(() => {
+    document.title = active ? `${active.id} · stories` : 'component-lib stories'
+  }, [active])
+
+  if (route.mode === 'index') return <Index stories={stories} />
+  if (!active) return null
+
+  if (route.mode === 'canvas')
+    return (
+      <main style={canvasModeStyle} data-story-id={active.id}>
+        <StoryFrame entry={active} width={route.width} />
+      </main>
+    )
+
   const query = filter.toLowerCase()
-  const shown = stories.filter((s) => `${s.title} ${label(s.name)}`.toLowerCase().includes(query))
+  const shown = stories.filter((s) =>
+    `${s.title} ${storyLabel(s.name)}`.toLowerCase().includes(query)
+  )
 
   return (
     <div style={layoutStyle}>
@@ -123,25 +213,25 @@ function Catalog() {
           onChange={(e) => setFilter(e.target.value)}
           style={filterStyle}
         />
-        {shown.map((s, i) => (
-          <Fragment key={s.id}>
-            {s.title !== shown[i - 1]?.title && <div style={titleStyle}>{s.title}</div>}
-            <a
-              href={`#${s.id}`}
-              style={{ ...linkStyle, fontWeight: s === active ? weight.bold : weight.normal }}
-            >
-              {label(s.name)}
-            </a>
-          </Fragment>
-        ))}
+        {shown.map((s, i) => {
+          const next = { ...route, id: s.id }
+          return (
+            <Fragment key={s.id}>
+              {s.title !== shown[i - 1]?.title && <div style={titleStyle}>{s.title}</div>}
+              <a
+                href={routeHref(next)}
+                onClick={go(next)}
+                style={{ ...linkStyle, fontWeight: s === active ? weight.bold : weight.normal }}
+              >
+                {storyLabel(s.name)}
+              </a>
+            </Fragment>
+          )
+        })}
       </nav>
-      {/* The canvas every story renders on, so a story adds no paper wrapper. */}
-      <main style={canvasStyle}>
-        {active && (
-          <StoryBoundary key={active.id}>
-            <active.Story />
-          </StoryBoundary>
-        )}
+      <main style={browseMainStyle} data-story-id={active.id}>
+        <Toolbar entry={active} route={route} go={go} />
+        <StoryFrame entry={active} width={route.width} />
       </main>
     </div>
   )
@@ -180,11 +270,50 @@ const linkStyle = {
   color: color.ink,
 } satisfies CSSProperties
 
-const canvasStyle = {
+/*
+ * The story's ground. It sets no font: the story inherits the product's body
+ * type from `index.css` (Barlow, through `--font-body`), as it does in the apps.
+ */
+const browseMainStyle = {
+  minWidth: 0,
   background: color.paper,
   padding: space[16],
-  fontFamily: 'Fira Code, monospace',
+  overflowX: 'auto',
 } satisfies CSSProperties
+
+const canvasModeStyle = {
+  minHeight: '100vh',
+  background: color.paper,
+  overflowX: 'auto',
+} satisfies CSSProperties
+
+/* A block that fills its column, so no story is sized to its own min-content. */
+const fillFrameStyle = { width: '100%', minWidth: 0 } satisfies CSSProperties
+const fixedFrameStyle = { flex: 'none', maxWidth: 'none' } satisfies CSSProperties
+
+const toolbarStyle = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: `${space[4]} ${space[12]}`,
+  alignItems: 'baseline',
+  marginBottom: space[16],
+  paddingBottom: space[8],
+  borderBottom: `1px solid ${color.wkBg}`,
+  color: color.wkMuted,
+  fontSize: fontSize.caption,
+} satisfies CSSProperties
+
+const toolLinkStyle = { color: color.ink } satisfies CSSProperties
+
+const indexStyle = {
+  padding: space[16],
+  background: color.paper,
+  fontSize: fontSize.caption,
+} satisfies CSSProperties
+
+const indexTitleStyle = { fontSize: fontSize.title, margin: 0 } satisfies CSSProperties
+
+const indexListStyle = { paddingLeft: space[24] } satisfies CSSProperties
 
 const errorStyle = { color: color.ink, whiteSpace: 'pre-wrap' } satisfies CSSProperties
 

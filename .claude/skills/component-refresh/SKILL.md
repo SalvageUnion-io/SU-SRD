@@ -57,6 +57,13 @@ component that does not exist.
   new editable, all driven by real data through the real components. Open the
   `stories` launch config (`.claude/launch.json`, port 61000), or `bun run stories`
   outside Claude Code.
+- **Capture the comparison from the canvas-only URL**, not the sidebar view:
+  `/?story=<id>&mode=canvas&width=phone` (presets `phone` 375, `column` 480,
+  `page` 1200), on a catalog started at your own port with
+  `bunx vite --port N --strictPort`. `bun run stories:ids <filter>` finds the
+  id. Stories render in the product's Barlow faces, so a wrap or clip in the
+  capture is real. The steps are in
+  [component-lib's guide](../../../packages/component-lib/CLAUDE.md#capturing-a-story).
 - Add any write layer as **evolutions of the read-only card, never a redesign**.
 
 ## L3 — cutover, staged and green at every step
