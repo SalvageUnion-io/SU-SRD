@@ -550,10 +550,10 @@ vs last-wins), and the entity header seats a numeral, cells and a pennant where
 **Sizing:** `size` (`large | medium | small`) × `extent`
 (`full | head | catalog`) in `packages/component-lib/src/components/shared/displayMode.ts`,
 resolved by `resolveCardDisplay`, projected by `displayBooleans`. Never add a
-`compact` / `listing` prop. `depth` 0 is solo; deeper levels tighten.
+`compact` / `listing` prop. `depth` 0 is solo; deeper ones tighten.
 
 **Anatomy** is ruleset §5: fill by `isDoEntity`, actions `inline`, trays in
-`card/NestedCards.tsx`; `texture={false}` flattens a subtree.
+`card/NestedCards.tsx`; `texture={false}` flattens a card.
 
 **Controls:** `ReferenceEntityControl` (`referenceEntityControlTypes.ts`)
 through `CardControlRail`; `stepper`, `badge`, `status`, `href` render their

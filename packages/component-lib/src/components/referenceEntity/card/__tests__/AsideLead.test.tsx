@@ -25,7 +25,7 @@ import { SalvageUnionReference, visiblePatterns } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** The float layout emits this class on the artwork; the aside layout drops it. */
-const FLOAT = 'md:float-left'
+const FLOAT = 'su-ec-art--float'
 
 /** The Engineer — a class with artwork and ability trees. */
 const engineer = () => {
