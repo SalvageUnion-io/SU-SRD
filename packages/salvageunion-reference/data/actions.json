@@ -3192,7 +3192,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "The [(CHASSIS)] can move an additional Range Band on its turn as a free action. In addition, it moves twice as fast across the Campaign, Area, and Region Maps."
+        "value": "[(CHASSIS)] can move an additional Range Band on its turn as a free action. In addition, it moves twice as fast across the Campaign, Area, and Region Maps."
       }
     ],
     "actionSource": "chassis",
@@ -12425,7 +12425,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "The [(CHASSIS)] Mech can produce clouds of superheated black smoke from deep within its core. This can be used to cover a retreat."
+        "value": "[(CHASSIS)] Mech can produce clouds of superheated black smoke from deep within its core. This can be used to cover a retreat."
       },
       {
         "type": "paragraph",
@@ -12456,7 +12456,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "The [(CHASSIS)] Mech is designed to evoke fear in all who look upon them. The first time any creature looks upon it, including player Pilots, they must make a Morale Check."
+        "value": "[(CHASSIS)] Mech is designed to evoke fear in all who look upon them. The first time any creature looks upon it, including player Pilots, they must make a Morale Check."
       }
     ],
     "actionSource": "chassis",
@@ -12470,7 +12470,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "When activated the next attack the [(CHASSIS)] makes with the Melee Trait deals an additional amount of SP damage equal to the amount of EP spent on this Ability. They must declare this before making the attack, and make the attack as normal. They may activate this Ability multiple times each turn."
+        "value": "When activated the next attack [(CHASSIS)] makes with the Melee Trait deals an additional amount of SP damage equal to the amount of EP spent on this Ability. They must declare this before making the attack, and make the attack as normal. They may activate this Ability multiple times each turn."
       }
     ],
     "actionSource": "chassis"
