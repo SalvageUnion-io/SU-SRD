@@ -1,10 +1,9 @@
-import { font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import { cn } from '../../../utils/cn'
 import { Badge } from '../../chrome/Badge'
 import { STAMP_SEAM } from '../../chrome/stampSeam'
 import { Stat } from '../../shared/Stat'
-import { USER_MADE_TITLE } from './cardChrome'
 import type { AxisMarker } from './entityCardTone'
+import { UserMadeStamp } from './UserMadeStamp'
 
 /**
  * SEAM — the stamps riding the card's top border (ruleset §7.2): the TYPE
@@ -63,33 +62,5 @@ export function CardSeam({
       )}
       {userMade && <UserMadeStamp />}
     </div>
-  )
-}
-
-/**
- * The dashed User-made stamp (ruleset §3.9; issue 1276): paper, a dashed ink edge,
- * and the tooltip saying what it means. Dashes already mean "pencil, not
- * print"; this carries that to the whole card.
- */
-export function UserMadeStamp() {
-  return (
-    <span
-      title={USER_MADE_TITLE}
-      style={{
-        backgroundColor: 'var(--color-paper)',
-        border: 'var(--bw-chrome) dashed var(--color-ink)',
-        color: 'var(--color-ink)',
-        fontFamily: font.cond,
-        fontSize: fontSize.badge,
-        fontWeight: weight.extrabold,
-        letterSpacing: tracking.caps,
-        lineHeight: 1.2,
-        padding: `0 ${space[6]}`,
-        textTransform: 'uppercase',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      User-made
-    </span>
   )
 }

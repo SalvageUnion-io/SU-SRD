@@ -1270,6 +1270,16 @@ body {
   padding-bottom: var(--space-12);
 }
 
+/* The eyebrow (a breadcrumb, or stamps that lead the title) takes the band's
+   top padding, so the title row under it closes up to it. */
+.su-chapter-band__eyebrow {
+  padding: var(--space-24) var(--space-16) 0;
+}
+
+.su-chapter-band__eyebrow + .su-chapter-band__row {
+  padding-top: var(--space-12);
+}
+
 @media (min-width: 40rem) {
   .su-chapter-band__row {
     align-items: flex-end;
@@ -1281,6 +1291,14 @@ body {
   .su-chapter-band__title {
     font-size: var(--text-chapter);
     padding: var(--space-12) var(--space-20) 0;
+  }
+
+  .su-chapter-band__eyebrow {
+    padding: var(--space-32) var(--space-24) 0;
+  }
+
+  .su-chapter-band__eyebrow + .su-chapter-band__row {
+    padding-top: var(--space-12);
   }
 }
 

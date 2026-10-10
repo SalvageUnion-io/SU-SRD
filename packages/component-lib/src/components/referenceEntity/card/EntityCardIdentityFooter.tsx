@@ -31,6 +31,11 @@ type EntityCardIdentityFooterProps = {
   size: CardSize
   /** USER-MADE (ruleset §3.9): the footer rule is dashed. */
   dashed?: boolean
+  /**
+   * USER-MADE (ruleset §3.9): "Made by [user]", in the place a page citation
+   * takes on a canon card. The card passes no source with it.
+   */
+  credit?: string
 }
 
 const PAD_X: Record<CardSize, string> = { large: space[14], medium: space[10], small: space[8] }
@@ -61,6 +66,7 @@ const truncate: CSSProperties = {
  * RIGHT — "Chassis … Salvage Union Workshop Manual · p.128". A SECOND,
  * right-aligned line follows when the entity carries reprints
  * (`additionalSources`) — "Also in  Salvage Union Starter Set (PH) · p.38".
+ * A user-made card puts its `credit` ("Made by alxjrvs") where the source goes.
  */
 export function EntityCardIdentityFooter({
   typeLabel,
@@ -72,8 +78,9 @@ export function EntityCardIdentityFooter({
   externalLink,
   size,
   dashed = false,
+  credit,
 }: EntityCardIdentityFooterProps) {
-  const primary = formatProvenance(source, booklet, page)
+  const primary = credit ?? formatProvenance(source, booklet, page)
   const reprints = (additionalSources ?? [])
     .map((entry) => formatProvenance(entry.source, entry.booklet, entry.page))
     .filter((line): line is string => !!line)
