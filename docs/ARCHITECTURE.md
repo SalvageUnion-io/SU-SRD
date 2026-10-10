@@ -1638,10 +1638,11 @@ replaced: [ADR-025](#adr-025) had unfrozen the package's `CHANGELOG.md` into a
 release stream, and ADR-040 deletes the file and the stream. ADR-040 also
 fixes what the API serves: the committed data and schema files, verbatim.
 
-**Amended by [ADR-043](#adr-043) (2026-10-10).** The first decision bullet is
-replaced: the dataset's public interface is the versioned contract at
-`https://api.salvageunion.io/v1/`, and srd's `/schema/*` becomes its legacy
-contract, still served. The package stays private and unpublished.
+**Amended by [ADR-043](#adr-043) (2026-10-10; not yet built).** Once the
+versioned contract at `https://api.salvageunion.io/v1/` ships, it replaces the
+first decision bullet as the dataset's public interface, and srd's `/schema/*`
+becomes its legacy contract, still served. Until then `/schema/*` is the
+interface. The package stays private and unpublished.
 
 ### Context
 
@@ -5228,9 +5229,10 @@ the closed PR #1047; if it returns, `target` is where a second kind goes.
 **Accepted; built** (2026-10-08, audit-4 P16, #1136). Supersedes
 [ADR-025](#adr-025); amends [ADR-014](#adr-014) and [ADR-024](#adr-024).
 
-**Amended by [ADR-043](#adr-043) (2026-10-10).** Decisions 1 and 2 now
-govern only srd's legacy `/schema/*`, which keeps serving the committed files
-verbatim with `$id`s on `salvageunion.io`. The public contract is
+**Amended by [ADR-043](#adr-043) (2026-10-10; not yet built).** Once
+`api.salvageunion.io/v1` ships, decisions 1 and 2 govern only srd's legacy
+`/schema/*`, which keeps serving the committed files
+verbatim with `$id`s on `salvageunion.io`. The public contract is then
 `api.salvageunion.io/v1`, whose rows and 2020-12 schemas are emitted rather
 than copied, and whose `$id`s are on that host. Decision 3 stands for the
 package: it has no release stream, no changelog and version `0.0.0`. The
@@ -5426,7 +5428,7 @@ and [ADR-040](#adr-040) made it serve the committed files byte for byte. The
   the 24 schema ids from `/api`.
 - **Rows carry no slug.** The item URL is derived from the display name, so a
   consumer has to re-implement `nameToSlug()`, and fixing a misspelt name breaks
-  the URL. That URL is also the only ref ITUN stores in players' Convex records.
+  the URL. The slug is also the only ref ITUN stores in players' Convex records.
 - **References don't resolve.** Abilities, systems and chassis name rows in
   `actions` and `ability-tree-requirements`, but both are meta schemas, so srd
   doesn't serve them. `actions.json` is the largest file in the dataset.
@@ -5461,8 +5463,8 @@ The owner has decided three questions that shape the contract:
    quota. The Worker script answers misses only, copying srd's
    `apps/srd/src/worker/index.ts`: a 404 with `cache-control: no-store`,
    wrapped in `withObservability`. One Bun emitter builds both this tree and
-   srd's `/schema/*` endpoints from the package's committed files, so the two
-   cannot disagree about a row. There is no query Worker and no `?expand=`:
+   srd's `/schema/*` endpoints from the package's committed files, so both
+   read the same rows, though each host serves its own shape of them. There is no query Worker and no `?expand=`:
    each would count every request against the quota and parse about 1 MB on a
    cold start. A reference is resolvable from static files instead.
 2. **URL layout.** Every path is under the major version except the
@@ -5480,23 +5482,29 @@ The owner has decided three questions that shape the contract:
    | `/llms.txt` | Machine discovery, naming only URLs the build emitted |
    | `/licence` | The SU OGL 1.0b and its Required Legal Text |
 
-   `dataRevision` is a content hash of the served data: it changes when, and
-   only when, a served value changes. `editions` lists each source's
-   `sources.version`. Every response carries
+   `dataRevision` is a hash of the served data in a canonical serialization
+   (sorted keys, no whitespace), so it changes when, and only when, a served
+   value changes. `editions` lists each source's `sources.version`. Every
+   served file carries
    `Link: <https://api.salvageunion.io/licence>; rel="license"`, set in
-   `_headers`, together with `Access-Control-Allow-Origin: *`.
+   `_headers`, together with `Access-Control-Allow-Origin: *`. The miss
+   Worker's 404s do not, because `_headers` is not applied to them.
 3. **What `/v1` promises.** The shape is stable for as long as `/v1` is
    served:
    - **Additive changes ship in place.** These are a new schema, a new row, a
      new optional field, a new `$defs` entry, or a new enum member. Consumers
      must ignore fields they don't know and tolerate enum values they don't
-     know, and the docs say so.
+     know, and the docs say so. So the `/v1` schemas leave objects open (no
+     `additionalProperties: false`): a consumer validating with a schema it
+     already holds accepts a row that gained a field.
    - **Data corrections ship in place.** A fixed stat or a corrected prose
      string is data, not shape, and `dataRevision` identifies it.
-   - **A breaking change opens `/v2`.** Breaking changes are a removed or
-     renamed field, a field that becomes required or narrower, a changed type,
-     a removed enum member, a moved URL, or a published slug that disappears
-     without an alias. When `/v2` opens, `/v1` is frozen: it keeps being
+   - **A breaking change opens `/v2`.** The contract is read-only, so a
+     change breaks it when a reader written against the old shape could
+     misread the new one: a removed or renamed field, a field that stops
+     being always present (it becomes optional or nullable), a changed or
+     wider type, a removed enum member, a moved URL, or a published slug that
+     disappears without an alias. When `/v2` opens, `/v1` is frozen: it keeps being
      served from its last build, its data no longer changes, and both catalogs
      state the date it ends, no sooner than six months later.
    - **A gate enforces it.** A schema-diff gate, modelled on
@@ -5512,9 +5520,10 @@ The owner has decided three questions that shape the contract:
    `href`. Once slugs are stored, a name can be corrected to the printed text
    without breaking a URL or a player's record. `printedNameDeviations.ts`
    exists to prevent that breakage today.
-5. **Publication scope.** `/v1` publishes every schema whose rows another
-   schema references, which adds `actions` and `ability-tree-requirements` to
-   the 24 srd serves. Fields that exist only to lay out srd and ITUN
+5. **Publication scope.** `/v1` publishes every schema except the
+   presentation-only ones. That adds `actions` and
+   `ability-tree-requirements`, which other schemas reference but srd doesn't
+   serve, to the 24 srd serves. Fields that exist only to lay out srd and ITUN
    (`entityLayout`, `guideTone`, `hidden`, `paperOnly`, `lead`, `hint`,
    `flavor`) and the `catalog-categories` schema move to an overlay keyed by
    `{schema, slug}`. The apps read the overlay, and the API doesn't serve it.
