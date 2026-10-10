@@ -260,8 +260,8 @@ export function buildHeaderStats(options: {
 
 /** The "modified stats" colour — a choice-touched or TL-scaled cell's border.
  * Ink, not rust: rust is an action's colour (ruleset §3.1), and a player's
- * change reads as pencil, which is `Stat`'s heavier solid `modified` frame (ADR-026
- * §5). The sub-header renders its cells as text today, so this marks the data
+ * change reads as `Stat`'s heavier solid `modified` frame, never the pencil
+ * dash (ADR-026 §5). The sub-header renders its cells as text today, so this marks the data
  * and draws nothing yet. */
 const MODIFIED = 'var(--color-ink)'
 

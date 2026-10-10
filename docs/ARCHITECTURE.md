@@ -2392,7 +2392,7 @@ a stat cell.
 
 - Demo: `Atoms/Stat` → **Anatomies** / **ValueBox**; `Atoms/Bay Status`.
 
-#### 5. "Modified stats" — the pencil language
+#### 5. "Modified stats" — the heavier-frame language
 
 A stat/trait cell that a **choice touched** (e.g. picking a Weapon Type adds the
 Ballistic trait; a Modification sets Range → Far) OR that **tech-level scaling

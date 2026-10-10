@@ -69,7 +69,7 @@ function PreloadGate({ children }: { children: ReactNode }) {
 
 /**
  * Branded full-viewport loading fallback (design-spec brand chrome): SU mark
- * on the ink-deep ground with an indeterminate rust loader bar. The status
+ * on the ink-deep ground with an indeterminate paper loader bar. The status
  * text stays in the accessibility tree for screen readers.
  */
 function GameDataFallback() {
