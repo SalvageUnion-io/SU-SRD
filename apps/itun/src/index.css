@@ -8,6 +8,8 @@
 @import './styles/print.css';
 /* HeaderMenu's hover/open/highlight colours (the per-property split rule). */
 @import './styles/headerMenu.css';
+/* The NPC designer's responsive rules (step strip, phone preview). */
+@import './styles/npc.css';
 
 /*
  * ITUN's own components keep their stories beside them (the Dashboard
