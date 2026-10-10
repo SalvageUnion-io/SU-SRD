@@ -266,11 +266,14 @@ export function CrawlerBayCard({
         data={cardData}
         size="medium"
         hide={HIDE_DAMAGED}
-        status={condition}
+        // Read draws no controls (board 10): no condition tri-state for an
+        // intact bay, no function or Repair. A damaged bay keeps its status,
+        // which greys the card — that is the fact to read.
+        status={readOnly && condition === 'intact' ? undefined : condition}
         onStatusClick={readOnly ? undefined : toggleCondition}
         selections={selections}
         onSelectionChange={readOnly ? undefined : setSelections}
-        controls={controls}
+        controls={readOnly ? undefined : controls}
         footMeta={footMeta}
         expand={
           damaged && damagedText ? (

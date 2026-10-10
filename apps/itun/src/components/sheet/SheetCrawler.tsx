@@ -397,7 +397,7 @@ export function SheetCrawler({
               : undefined
           }
           breakdown={editable ? spParts : undefined}
-          provenance={spLines}
+          provenance={editable ? spLines : undefined}
           onRevertOverride={
             editable ? () => overrideCrawlerMax({ maxSpOverride: undefined }) : undefined
           }
