@@ -10663,7 +10663,6 @@
   {
     "id": "50ecbfb3-8a66-43b2-a3dd-c328cea933e9",
     "name": "Chimerium Harvester",
-    "actionType": "Short",
     "content": [
       {
         "type": "paragraph",
