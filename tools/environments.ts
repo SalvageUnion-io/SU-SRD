@@ -22,7 +22,8 @@
  * ## What it checks
  *
  *   - every declared Environment exists, with a custom deployment branch
- *     policy admitting exactly its declared branches;
+ *     policy admitting exactly its declared branches, and exactly its declared
+ *     required reviewers (none, unless declared);
  *   - no Environment exists that is not declared (a leftover from a retired
  *     host still shows up on deployments and in the Environments picker);
  *   - each declared secret name exists on its Environment;
@@ -44,7 +45,7 @@
  * repository-level half with `--secrets-from-env` instead.
  *
  * It never reads, prints or writes a secret value. `--apply` creates or updates
- * Environments and their branch policies and nothing else: it prints the
+ * Environments, their branch policies and their required reviewers and nothing else: it prints the
  * `gh secret set` / `gh secret delete` / Environment delete commands for the
  * owner rather than running them.
  *
@@ -62,6 +63,11 @@ export type EnvironmentSpec = {
   branches: readonly string[]
   /** Secret names it must hold. Values never live in the repo. */
   secrets: readonly string[]
+  /**
+   * GitHub logins that must approve every job naming the Environment before it
+   * starts and can read a secret. Absent means none.
+   */
+  reviewers?: readonly string[]
 }
 
 export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
@@ -72,6 +78,19 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
     name: 'production',
     branches: ['main'],
     secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN'],
+  },
+  {
+    // `deploy-preview.yml`: uploads Worker versions under the `preview` alias
+    // and pushes the staging Convex deployment `perfect-donkey-72`. It is
+    // dispatched from ANY branch (`**/*`), so the branch policy protects
+    // nothing; the required reviewer is the gate. The Cloudflare token cannot
+    // be narrowed to the preview (ADR-033 §Credentials: Workers Scripts: Edit
+    // reaches every Worker on the account), so without a reviewer any branch's
+    // code would hold a credential that can deploy production.
+    name: 'preview',
+    branches: ['**/*'],
+    secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_PREVIEW_DEPLOY_KEY'],
+    reviewers: ['alxjrvs'],
   },
 ]
 
@@ -136,6 +155,8 @@ export type LiveEnvironment = {
   policy: 'custom' | 'protected' | 'none'
   branches: string[] | null
   secrets: string[] | null
+  /** Logins of its required reviewers; null for an undeclared Environment. */
+  reviewers: string[] | null
 }
 
 export type LiveState = {
@@ -185,6 +206,15 @@ export function compare(
       )
     }
     ran.push(`${want.name}: branch policy`)
+
+    const reviewers = want.reviewers ?? []
+    if (have.reviewers !== null && !same(have.reviewers, reviewers)) {
+      failures.push(
+        `Environment \`${want.name}\` requires reviewers [${sorted(have.reviewers).join(', ')}], ` +
+          `declared [${sorted(reviewers).join(', ')}] — run \`bun tools/environments.ts --apply\``
+      )
+    }
+    ran.push(`${want.name}: required reviewers`)
 
     if (have.secrets === null) {
       notRun.push(`${want.name}: secret names (this token cannot list secrets)`)
@@ -354,7 +384,19 @@ function secretNames(api: GhApi, path: string): string[] | null {
 type ApiEnvironment = {
   name: string
   deployment_branch_policy: { protected_branches: boolean; custom_branch_policies: boolean } | null
+  protection_rules?: {
+    type: string
+    reviewers?: { type: string; reviewer?: { login?: string; slug?: string } }[]
+  }[]
 }
+
+/** An Environment's required reviewers: a user's login, or `team:<slug>`. */
+const reviewerLogins = (e: ApiEnvironment): string[] =>
+  (e.protection_rules ?? [])
+    .filter((r) => r.type === 'required_reviewers')
+    .flatMap((r) => r.reviewers ?? [])
+    .map((r) => (r.type === 'User' ? r.reviewer?.login : `team:${r.reviewer?.slug ?? '?'}`))
+    .filter((l): l is string => typeof l === 'string')
 
 function branchPolicies(api: GhApi, env: string): { id: number; name: string; type?: string }[] {
   const body = must(
@@ -391,6 +433,7 @@ export function readLive(
       secrets: tracked
         ? secretNames(api, `repos/${REPO}/environments/${encodeURIComponent(e.name)}/secrets`)
         : null,
+      reviewers: tracked ? reviewerLogins(e) : null,
     }
   })
   const envSecrets = ENVIRONMENTS.flatMap((e) => e.secrets)
@@ -436,18 +479,29 @@ export function readRuleset(name: string, api: GhApi = gh): LiveRuleset | null |
   }
 }
 
-/** Create/update each declared Environment and its branch policies. Never touches secrets. */
+/**
+ * Create/update each declared Environment, its branch policies and its required
+ * reviewers. Never touches secrets. `reviewers` is always sent, `[]` included, so
+ * the PUT states the whole protection rather than leaving a reviewer the
+ * declaration does not name.
+ */
 export function apply(api: GhApi = gh): string[] {
   const done: string[] = []
   for (const env of ENVIRONMENTS) {
     const path = `repos/${REPO}/environments/${encodeURIComponent(env.name)}`
+    const reviewers = (env.reviewers ?? []).map((login) => {
+      const user = must(api([`users/${login}`]), `GET user ${login}`) as { id: number }
+      return { type: 'User', id: user.id }
+    })
     must(
       api(['-X', 'PUT', path], {
         deployment_branch_policy: { protected_branches: false, custom_branch_policies: true },
+        reviewers,
       }),
       `PUT ${env.name}`
     )
     done.push(`${env.name}: custom deployment branch policy`)
+    if (reviewers.length > 0) done.push(`${env.name}: requires ${env.reviewers?.join(', ')}`)
     const have = branchPolicies(api, env.name)
     for (const branch of env.branches.filter((b) => !have.some((h) => h.name === b))) {
       must(

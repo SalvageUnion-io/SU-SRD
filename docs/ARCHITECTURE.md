@@ -285,23 +285,24 @@ reporting, one-off repairs): the
 [`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill. Values here are
 public; secrets live only on the deployments.
 
-|  | Production |
-| --- | --- |
-| Deployment | `exuberant-porpoise-183` |
-| Client URL (`VITE_CONVEX_URL`) | `https://exuberant-porpoise-183.convex.cloud` |
-| HTTP actions (`VITE_CONVEX_SITE_URL`) | `https://exuberant-porpoise-183.convex.site` |
-| `SITE_URL` (the **frontend** origin) | `https://intheunionnow.com` |
+|  | Production | Staging ([preview slot](#preview-deploys)) |
+| --- | --- | --- |
+| Deployment | `exuberant-porpoise-183` | `perfect-donkey-72` (cloud dev) |
+| Client URL (`VITE_CONVEX_URL`) | `https://exuberant-porpoise-183.convex.cloud` | `https://perfect-donkey-72.convex.cloud` |
+| HTTP actions (`VITE_CONVEX_SITE_URL`) | `https://exuberant-porpoise-183.convex.site` | `https://perfect-donkey-72.convex.site` |
+| `SITE_URL` (the **frontend** origin) | `https://intheunionnow.com` | `https://preview-su-itun.alxjrvs.workers.dev` |
 
 Project `alex-jarvis:suref-itun`
 ([dashboard](https://dashboard.convex.dev/t/alex-jarvis/suref-itun)). The
 production origin is `https://intheunionnow.com`, never a `workers.dev`
 host. `apps/srd` has no accounts.
 
-Development has no cloud deployment. `bun run dev:itun` runs a **local**
+Local development has no cloud deployment. `bun run dev:itun` runs a **local**
 deployment (`convex dev --start vite`) and signs in through the test seam,
 `ITUN_TEST_AUTH` on the local deployment and `VITE_TEST_AUTH` in the dev
 server, not Discord. One-time setup: the
 [`convex-ops`](../.claude/skills/convex-ops/SKILL.md#local-backend) skill.
+Staging, the cloud dev deployment, is pushed only by `deploy-preview.yml`.
 
 ### Deployment variables
 
@@ -336,11 +337,12 @@ redacted defect; never string-match `'Server Error'`.
 ### Discord
 
 One application serves the bot and web sign-in; resetting the OAuth2 secret
-leaves the bot token alone. Its one redirect URI is production's
+leaves the bot token alone. Its redirect URIs are production's and staging's
 (`@convex-dev/auth` mounts `/api/auth/callback/` plus provider id `discord`):
 
 ```
 https://exuberant-porpoise-183.convex.site/api/auth/callback/discord
+https://perfect-donkey-72.convex.site/api/auth/callback/discord
 ```
 
 ### Secrets and denormalised columns
@@ -722,7 +724,7 @@ holds sub-headers and footers at 4.5:1 and names the header tones at 3:1.
 ## CI and deploy
 
 `.github/workflows/ci.yml`, `pr-title.yml`, `codeql.yml`,
-`deploy-cloudflare.yml`. Workflow comments say what; this says why.
+`deploy-cloudflare.yml`, `deploy-preview.yml`. Workflow comments say what; this says why.
 
 ### CI: triggers
 
@@ -854,6 +856,25 @@ top-level `env:`.
   dispatched `sha` reaches scripts through `env:`. The smoke list is
   `tools/smoke-production.sh`, also run daily by `e2e-nightly.yml`
   (`production-smoke`).
+
+### Preview deploys
+
+`gh workflow run deploy-preview.yml --ref <branch>` publishes any ref (one
+that carries the workflow) to one slot, `https://preview-su-srd.alxjrvs.workers.dev`
+and `https://preview-su-itun.alxjrvs.workers.dev`; last dispatch wins, and
+the run summary names the commit. Each Worker gets a version under the
+`preview` alias (`wrangler versions upload`), never a deployment. su-itun's
+`preview_urls: true` turns on version URLs only; `workers_dev` stays off.
+
+- **Backend:** staging, `perfect-donkey-72`. `ship` refuses any key but its
+  `dev:` deploy key and an `ITUN_TEST_AUTH=true` there, pushes `convex/` and
+  sets `SITE_URL` to the preview origin.
+- **Gate:** the `preview` Environment admits every branch, so its required
+  reviewer, the owner, is what guards the Cloudflare token ([ADR-033](#adr-033)).
+  Setup: `bun tools/environments.ts --apply`, then its two secrets.
+- **No browser Sentry** (no DSN); Workers report `SENTRY_ENVIRONMENT=preview`.
+- **Staging data persists across branches.** A branch whose schema rejects it
+  needs its tables cleared first (dashboard: `perfect-donkey-72` → Data).
 
 ## Dependencies
 
@@ -3667,6 +3688,13 @@ in effect on `salvageunion.io` (production answered `immutable`, and the deploy
 smoke failed on it). `src/worker/index.ts` now runs for every miss, as itun's
 does, and answers it with `no-store`; real files never run it. No rule outside
 the repo is relied on for this any more.
+
+**Amended 2026-10-10 — §Credentials: a second Environment, `preview`.** The
+[preview slot](#preview-deploys) is dispatched from any branch, so its
+Environment admits every branch and holds a copy of the Cloudflare token
+(which cannot be narrowed to the preview) behind a required reviewer, the
+owner. Production's Environment, its branch policy and its no-reviewer
+deploys are unchanged.
 
 **§3 is history since [ADR-036](#adr-036)** retired snapshots: nothing reads
 or binds the snapshot bucket.

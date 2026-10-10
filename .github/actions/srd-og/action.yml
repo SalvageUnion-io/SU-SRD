@@ -1,0 +1,54 @@
+name: Render srd OG images
+description: Provision Chromium and render srd's per-entity OG images into apps/srd/dist
+
+# The one OG pass, shared by deploy-cloudflare.yml's `og-srd` (production) and
+# deploy-preview.yml's `og-srd` (the preview slot). The caller has checked out
+# the tree, run ./.github/actions/setup-bun and downloaded srd's build into
+# apps/srd/dist; it uploads the result. The render never fails: a missing
+# browser or a wedged page keeps the default og:image.
+runs:
+  using: composite
+  steps:
+    # The same key as ci.yml's, so either workflow's save serves both.
+    - name: Cache Playwright browsers
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+    - name: Install Chromium
+      shell: bash
+      run: bun --filter srd og:install-browser
+
+    # The script re-renders only entities whose data changed since the cached
+    # manifest; it cannot see a rendering change. So the key's first half
+    # hashes everything that renders a card, and only a cache from an
+    # identical renderer is restored.
+    - name: Key the OG cache
+      id: og-key
+      shell: bash
+      env:
+        RENDER: >-
+          ${{ hashFiles('bun.lock', 'packages/component-lib/src/**',
+          'packages/component-lib/public/**', 'packages/salvageunion-reference/lib/**',
+          'packages/salvageunion-reference/schemas/**', 'apps/srd/src/**', 'apps/srd/ssg/**',
+          'apps/srd/scripts/**', 'apps/srd/public/**') }}
+        DATA: ${{ hashFiles('packages/salvageunion-reference/data/**') }}
+      run: |
+        echo "render=$RENDER" >> "$GITHUB_OUTPUT"
+        echo "data=$DATA" >> "$GITHUB_OUTPUT"
+
+    - name: Cache the OG renders
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: apps/srd/node_modules/.cache/srd-og
+        key: srd-og-${{ steps.og-key.outputs.render }}-${{ steps.og-key.outputs.data }}
+        restore-keys: srd-og-${{ steps.og-key.outputs.render }}-
+
+    - name: Render srd OG images
+      shell: bash
+      working-directory: apps/srd
+      env:
+        OG_SCREENSHOTS: '1'
+        OG_SCREENSHOTS_BUDGET_MS: '300000'
+      run: bun scripts/og-screenshots.ts

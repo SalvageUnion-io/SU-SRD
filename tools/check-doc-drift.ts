@@ -763,8 +763,9 @@ const OVER_BUDGET: Record<string, number> = {
  * saying why in the PR.
  */
 const COLLAPSED_DOCS: Record<string, number> = {
-  // The architecture sections as measured when the budget moved to live text.
-  'docs/ARCHITECTURE.md': 55_373,
+  // The architecture sections as measured when the budget moved to live text,
+  // plus "Preview deploys" and the staging backend (#preview-deploys).
+  'docs/ARCHITECTURE.md': 56_610,
 }
 
 export function checkDocSizes(
