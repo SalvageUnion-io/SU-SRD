@@ -3,7 +3,6 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { SURefObjectTable } from 'salvageunion-reference'
 import { resultForTable } from 'salvageunion-reference'
-import { rollDie } from 'salvageunion-reference/rules'
 import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Button } from '../../chrome/Button'
@@ -11,6 +10,7 @@ import type { DigestedRollTable } from '../../shared/digestRollTable'
 import { digestRollTable } from '../../shared/digestRollTable'
 import type { CardSize } from '../../shared/displayMode'
 import { RollTable } from '../../shared/RollTable'
+import { rollTableDie } from '../../shared/rollTableDie'
 
 /** A roll on this table: the die and the row it landed on. */
 export type CardRoll = { roll: number; key: string }
@@ -38,7 +38,13 @@ const BAR_BUTTON: CSSProperties = {
   textTransform: 'uppercase',
 }
 
+/**
+ * A truncating one-liner. `contain: inline-size` gives it NO min-content
+ * contribution, so a long name cannot widen a width-less ancestor (an island
+ * page's wrapper) past the viewport.
+ */
 const truncate: CSSProperties = {
+  contain: 'inline-size',
   minWidth: 0,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -115,7 +121,7 @@ export function CardRollTable({
   const rows = digestRollTable(table)
   const hit = rolled ? rows.find((row) => row.key === rolled.key) : undefined
   const roll = () => {
-    const die = rollDie(20)
+    const die = rollTableDie()
     const { key } = resultForTable(table, die)
     setRolled({ roll: die, key })
     const entry = rows.find((row) => row.key === key)
@@ -335,30 +341,45 @@ function RollRow({
           padding: `${space[8]} ${space[12]}`,
         }}
       >
-        {row.label && (
-          <span style={cond(size === 'small' ? fontSize.lede : fontSize.readout)}>{row.label}</span>
+        {(row.label || marked) && (
+          // The "Rolled" tag rides the title line, so the prose keeps the row's
+          // full width on a phone.
+          <div
+            style={{
+              alignItems: 'center',
+              display: 'flex',
+              gap: space[8],
+              justifyContent: 'space-between',
+            }}
+          >
+            {row.label ? (
+              <span style={cond(size === 'small' ? fontSize.lede : fontSize.readout)}>
+                {row.label}
+              </span>
+            ) : (
+              <span />
+            )}
+            {marked && (
+              <span
+                style={cond(fontSize.caption, {
+                  backgroundColor: 'var(--color-ink)',
+                  clipPath: 'polygon(18% 0, 100% 0, 100% 100%, 18% 100%, 0 50%)',
+                  color: 'var(--color-paper)',
+                  flex: 'none',
+                  fontWeight: weight.extrabold,
+                  padding: `3px ${space[6]} 3px ${space[14]}`,
+                  whiteSpace: 'nowrap',
+                })}
+              >
+                Rolled {rolled}
+              </span>
+            )}
+          </div>
         )}
         <span style={{ fontSize: size === 'small' ? fontSize.xs : fontSize.sm, lineHeight: 1.45 }}>
           {text}
         </span>
       </div>
-      {marked && (
-        <span
-          style={cond(fontSize.caption, {
-            alignSelf: 'center',
-            backgroundColor: 'var(--color-ink)',
-            clipPath: 'polygon(18% 0, 100% 0, 100% 100%, 18% 100%, 0 50%)',
-            color: 'var(--color-paper)',
-            flex: 'none',
-            fontWeight: weight.extrabold,
-            marginRight: space[10],
-            padding: `3px ${space[6]} 3px ${space[14]}`,
-            whiteSpace: 'nowrap',
-          })}
-        >
-          Rolled {rolled}
-        </span>
-      )}
     </li>
   )
 }

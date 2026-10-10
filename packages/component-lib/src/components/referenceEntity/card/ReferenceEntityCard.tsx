@@ -355,7 +355,8 @@ function ReferenceEntityCardInner({
     schemaName,
     asCompact: true,
     none: isAction || isPatternListing,
-    primaryOnly: !!primaryStatsOnly || extent === 'head',
+    // A head row keeps every cell: the one-line header sheds the ones that do not fit.
+    primaryOnly: !!primaryStatsOnly,
     techLevel,
     techLevelDisplay,
     techLevelModified,
@@ -492,9 +493,7 @@ function ReferenceEntityCardInner({
         frameStyle={frameStyle}
         onBandText={onBandText}
         ink={fill === 'ink'}
-        typeLabel={
-          action?.actionType ? resolveEyebrow(schemaName).type : resolveEyebrow(schemaName).type
-        }
+        typeLabel={resolveEyebrow(schemaName).type}
         name={name}
         tail={tail}
         pennant={isAction ? pennantNode : undefined}

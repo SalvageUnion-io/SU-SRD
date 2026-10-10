@@ -14,6 +14,7 @@ import { FOCUS_RING_ON_TONE } from '../chrome/interaction'
 import { useCopyFeedback } from './copyFeedbackContext'
 import type { RollTableType } from './digestRollTable'
 import { digestRollTable } from './digestRollTable'
+import { rollTableDie } from './rollTableDie'
 
 type ColumnsTableData = Extract<SURefObjectTable, { type: 'columns' }>
 
@@ -594,7 +595,7 @@ function StandardRollTable({
   const handleRoll = () => {
     setHighlightedKey(null)
     setRollAnnouncement('')
-    const { key } = resultForTable(table as SURefObjectTable, rollDie(20))
+    const { key } = resultForTable(table as SURefObjectTable, rollTableDie())
     setTimeout(() => {
       setHighlightedKey(key)
       const entry = digestedTable.find((d) => d.key === key)
