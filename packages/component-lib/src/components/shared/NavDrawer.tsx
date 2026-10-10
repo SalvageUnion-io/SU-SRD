@@ -2,7 +2,7 @@ import { Drawer } from '@base-ui/react/drawer'
 import { Menu, X } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useState } from 'react'
-import { borderWidth, color, space } from '../../design/tokens'
+import { borderWidth, color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { buttonVariants } from '../chrome/buttonVariants'
@@ -25,6 +25,9 @@ import { FOCUS_RING } from '../chrome/interaction'
  * `extra` is a render function, not a node, so its controls can close the
  * drawer too: the drawer owns its open state, and a control that navigates or
  * changes what the page shows should not leave the panel covering the result.
+ *
+ * `footItems` are quiet links pinned to the drawer's foot, under a hairline —
+ * the pages a reader looks for rarely (ITUN's About and Changelog, issue 1255).
  */
 
 export type NavDrawerItem = {
@@ -71,6 +74,8 @@ type NavDrawerProps = {
    * drawer when it is used.
    */
   extra?: (close: () => void) => ReactNode
+  /** Quiet links at the drawer's foot (About, Changelog). */
+  footItems?: NavDrawerItem[]
   /** Link component for internal items. Defaults to a plain anchor; ITUN passes AppLink. */
   LinkComponent?: ElementType
   /** Extra classes on the hamburger trigger (e.g. tint for a dark header). */
@@ -92,6 +97,27 @@ const EXTRA = {
   paddingBottom: space[16],
 } satisfies CSSProperties
 
+// The drawer's foot: quiet links under a hairline, pinned to the bottom.
+const FOOT = {
+  borderTopColor: color.wkFaint,
+  borderTopStyle: 'solid',
+  borderTopWidth: borderWidth.hairline,
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[16],
+  marginTop: space[12],
+  paddingTop: space[12],
+} satisfies CSSProperties
+
+const FOOT_LINK = {
+  color: color.wkMuted,
+  fontFamily: font.cond,
+  fontSize: fontSize.caption,
+  fontWeight: weight.bold,
+  letterSpacing: tracking.capsTight,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
 // The full-screen layer the panel sits in, against its right edge.
 const VIEWPORT = {
   display: 'flex',
@@ -107,6 +133,7 @@ export function NavDrawer({
   categories,
   search,
   extra,
+  footItems,
   LinkComponent = 'a',
   triggerClassName,
   panelClassName = 'w-full',
@@ -228,6 +255,28 @@ export function NavDrawer({
                 })}
               </div>
             </div>
+
+            {footItems && footItems.length > 0 && (
+              <nav aria-label="More" style={FOOT}>
+                {footItems.map((item) => {
+                  const Link = item.external ? 'a' : LinkComponent
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={FOCUS_RING}
+                      style={FOOT_LINK}
+                      onClick={close}
+                      {...(item.external
+                        ? { target: '_blank', rel: 'noopener noreferrer' }
+                        : { 'aria-current': item.active ? ('page' as const) : undefined })}
+                    >
+                      {item.label}
+                    </Link>
+                  )
+                })}
+              </nav>
+            )}
           </Drawer.Popup>
         </Drawer.Viewport>
       </Drawer.Portal>
