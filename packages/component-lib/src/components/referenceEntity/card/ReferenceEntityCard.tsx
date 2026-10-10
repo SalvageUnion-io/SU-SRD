@@ -39,6 +39,7 @@ import {
 } from './bodyBlocks'
 import { interleaveBody } from './bodyInterleave'
 import { CardOuter } from './CardOuter'
+import { CardPage } from './CardPage'
 import { CardPennant } from './CardPennant'
 import type { CardProseContext } from './CardProse'
 import { CardProse, FoldedActionProse, PatternProse } from './CardProse'
@@ -162,17 +163,28 @@ const INLINE_TITLE: Record<CardSize, string> = {
   small: 'text-lede',
 }
 
+/**
+ * The card body's class: dimmed when down, and with artwork a width container,
+ * so the art sits beside the prose only when the CARD is wide and stacks above
+ * it when narrow (`.su-ec-art-body`).
+ */
+function bodyClassName(isDown: boolean, hasArt: boolean): string | undefined {
+  return [isDown ? 'opacity-60' : '', hasArt ? 'su-ec-art-body' : ''].join(' ').trim() || undefined
+}
+
 function ReferenceEntityCardInner({
   data,
   size: sizeProp = 'large',
   extent = 'full',
   depth: depthProp = 0,
+  presentation = 'card',
   inline = false,
   shownProse,
   userMade = false,
   madeBy,
   texture,
   parentSeal,
+  readable = false,
   pattern,
   hostName,
   hostDown,
@@ -215,7 +227,10 @@ function ReferenceEntityCardInner({
 }: ReferenceEntityCardProps) {
   // Section bands become real headings only when this card IS the page — see
   // `sectionHeadingLevel` for why, and for what deliberately stays a span.
-  const sectionAs = sectionHeadingLevel(titleAs)
+  // A PAGE is the page whatever `titleAs` says: its title is the page's h1, in
+  // the chapter band. Only a top-level card takes the page presentation.
+  const onPage = presentation === 'page' && !inline && depthProp === 0
+  const sectionAs = sectionHeadingLevel(onPage ? 'h1' : titleAs)
 
   // MULTI-SELECT: a card driven by `onCountChange` reads as selected whenever its
   // chosen quantity is ≥ 1, unless `selected` is set explicitly.
@@ -613,6 +628,7 @@ function ReferenceEntityCardInner({
     chassisName: resolvedChassisName,
     headerBg: tone.bg,
     headerBgColor: tone.bgColor,
+    ...(onPage ? { fontSize: '' } : readable ? { fontSize: 'text-sm' } : {}),
   }
 
   // BONUS PER TECH LEVEL — anchored INLINE at the prose that describes it.
@@ -772,6 +788,7 @@ function ReferenceEntityCardInner({
         alt={`${entityName} illustration`}
         compact={compact}
         aside={asideLead}
+        hero={onPage}
       />
     ) : undefined
 
@@ -780,8 +797,13 @@ function ReferenceEntityCardInner({
     ...bodyNodes,
   ]
 
+  // On a PAGE the artwork is the hero beside the body, not a float inside it;
+  // an NPC anchor (no artwork) stays in the body's flow either way.
+  const heroNode: ReactNode = onPage && showImage ? anchorNode : undefined
+  const bodyAnchor: ReactNode = heroNode ? undefined : anchorNode
+
   const bodyHasContent =
-    !!anchorNode ||
+    !!bodyAnchor ||
     proseNodes.length > 0 ||
     catalogLeadBlocks.length > 0 ||
     (!isSelfAction && !!foldedActionContent?.length && !hide?.content && !hide?.actions) ||
@@ -802,32 +824,19 @@ function ReferenceEntityCardInner({
       )
     ) : null)
 
-  const body = bodyHasContent ? (
-    <div
-      // With artwork the body is a width container: the art sits beside the
-      // prose only when the CARD is wide, and stacks above it when narrow.
-      className={
-        [isDown ? 'opacity-60' : '', anchorNode ? 'su-ec-art-body' : ''].join(' ').trim() ||
-        undefined
-      }
-      style={{
-        display: flat ? 'flow-root' : 'flex',
-        flexDirection: 'column',
-        gap: space[6],
-        padding: hasSubLine ? BODY_PAD[size].ruled : BODY_PAD[size].open,
-      }}
-    >
+  const bodyContent: ReactNode = (
+    <>
       {/* In ASIDE LEAD the anchor and the prose are a centred row (a stack in
           a narrow card); otherwise the anchor floats and the prose flows
           around it. */}
-      {asideLead ? (
+      {asideLead && bodyAnchor ? (
         <div className="su-ec-lead">
-          {anchorNode}
+          {bodyAnchor}
           {proseNodes.length > 0 && <div style={{ flex: 1, minWidth: 0 }}>{proseNodes}</div>}
         </div>
       ) : (
         <>
-          {anchorNode}
+          {bodyAnchor}
           {proseNodes}
         </>
       )}
@@ -851,6 +860,20 @@ function ReferenceEntityCardInner({
       {guideStepsNode}
       {/* SLOT: afterChoicesContent — appended just below the choices. */}
       {afterChoicesContent}
+    </>
+  )
+
+  const body = bodyHasContent ? (
+    <div
+      className={bodyClassName(isDown, !!bodyAnchor)}
+      style={{
+        display: flat ? 'flow-root' : 'flex',
+        flexDirection: 'column',
+        gap: space[6],
+        padding: hasSubLine ? BODY_PAD[size].ruled : BODY_PAD[size].open,
+      }}
+    >
+      {bodyContent}
     </div>
   ) : null
 
@@ -879,6 +902,97 @@ function ReferenceEntityCardInner({
         )}
       </div>
     ) : null
+
+  // NESTED ENTITIES — each group in its tray, on a card or a page alike.
+  const nestedGroupsNode = (
+    <>
+      <DroneCards drones={droneInfos} host={nestedHost} />
+      {droneSystems.length > 0 && (
+        <NestedCardGroup
+          label="Systems"
+          entities={droneSystems}
+          sectionAs={sectionAs}
+          host={nestedHost}
+        />
+      )}
+      {droneModules.length > 0 && (
+        <NestedCardGroup
+          label="Modules"
+          entities={droneModules}
+          sectionAs={sectionAs}
+          host={nestedHost}
+        />
+      )}
+      {!isPattern &&
+        inFlowGroups.map((group) => (
+          <NestedCardGroup
+            key={group.label}
+            label={group.label === 'NPCs' && group.entities.length === 1 ? 'NPC' : group.label}
+            entities={group.entities}
+            sectionAs={sectionAs}
+            host={nestedHost}
+            write={group.label === 'NPCs' ? { selections, onSelectionChange, hide } : undefined}
+            seal={
+              group.label === 'Grants' ? { label: 'Grants', tone: 'var(--color-ink)' } : undefined
+            }
+          />
+        ))}
+    </>
+  )
+
+  // A PAGE (boards 07, 08): the card's parts laid out as a page (`CardPage`).
+  if (onPage) {
+    return (
+      <CardPage
+        entity={entity}
+        name={name}
+        hero={heroNode}
+        leadActions={hide?.actions ? [] : chassisAbilityEntities}
+        otherActions={hide?.actions ? [] : [...gridActions, ...titanicActions]}
+        subLine={
+          (subtitleExtra || hasSubLine) && (
+            <>
+              {subtitleExtra}
+              {hasSubLine && (
+                <EntityCardSubHeader cells={cells} leading={suggestedNode} size={size} />
+              )}
+            </>
+          )
+        }
+        body={bodyHasContent ? bodyContent : null}
+        stats={
+          hide?.stats
+            ? null
+            : {
+                techLevel: techLevelDisplay,
+                schemaName: schemaName === 'actions' ? undefined : schemaName,
+              }
+        }
+        table={rollTableNode}
+        abilitiesSection={abilitiesSection}
+        sections={
+          <>
+            {patternSection}
+            {nestedGroupsNode}
+          </>
+        }
+        patterns={hide?.patterns ? [] : patternList}
+        after={
+          <>
+            {afterExtraContent}
+            {expand}
+          </>
+        }
+        sectionAs={sectionAs}
+        action={{
+          NestedCard: ReferenceEntityCardInner,
+          hostDown: isDown,
+          hostName: entityName,
+          chassisName: resolvedChassisName,
+        }}
+      />
+    )
+  }
 
   // An INLINE action: the flush band, its "//" line, its body and its table —
   // no frame, no seam, no footer (board E1).
@@ -910,38 +1024,7 @@ function ReferenceEntityCardInner({
         {rollTableNode}
         {actionsNode}
         {patternSection}
-        {/* NESTED ENTITIES — each group in its tray. */}
-        <DroneCards drones={droneInfos} host={nestedHost} />
-        {droneSystems.length > 0 && (
-          <NestedCardGroup
-            label="Systems"
-            entities={droneSystems}
-            sectionAs={sectionAs}
-            host={nestedHost}
-          />
-        )}
-        {droneModules.length > 0 && (
-          <NestedCardGroup
-            label="Modules"
-            entities={droneModules}
-            sectionAs={sectionAs}
-            host={nestedHost}
-          />
-        )}
-        {!isPattern &&
-          inFlowGroups.map((group) => (
-            <NestedCardGroup
-              key={group.label}
-              label={group.label === 'NPCs' && group.entities.length === 1 ? 'NPC' : group.label}
-              entities={group.entities}
-              sectionAs={sectionAs}
-              host={nestedHost}
-              write={group.label === 'NPCs' ? { selections, onSelectionChange, hide } : undefined}
-              seal={
-                group.label === 'Grants' ? { label: 'Grants', tone: 'var(--color-ink)' } : undefined
-              }
-            />
-          ))}
+        {nestedGroupsNode}
         {/* BASIC CHASSIS → its patterns as head rows. */}
         {!hide?.patterns && patternList.length > 0 && (
           <CardTray label="Patterns" count={patternList.length} size={size} as={sectionAs}>

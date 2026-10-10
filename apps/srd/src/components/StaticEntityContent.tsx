@@ -1,4 +1,4 @@
-import { ChapterBand, PageHeading } from 'component-lib'
+import { PageHeading } from 'component-lib'
 import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
 
@@ -25,13 +25,8 @@ type StaticEntityContentProps = {
 export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityContentProps) {
   return (
     <div data-static-fallback className="mx-auto w-full max-w-6xl px-4 text-sm text-ink">
-      {/* SSR / no-JS heading. For JS users global.css's `@media (scripting: enabled)`
-          rule hides this block, ReferenceEntityIsland removes it, and the island
-          supplies the real <h1>, so they never double up. */}
-      <div className="mb-3">
-        <ChapterBand>{summary.name}</ChapterBand>
-      </div>
-
+      {/* No heading of its own: the page's chapter band is its <h1>, for
+          crawlers, no-JS readers and the hydrated page alike. */}
       {summary.description && <p className="mb-3 italic">{summary.description}</p>}
 
       {summary.stats.length > 0 && (

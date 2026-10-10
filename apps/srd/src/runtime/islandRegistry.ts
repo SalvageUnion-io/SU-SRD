@@ -41,6 +41,8 @@ export const islandRegistry = {
     import('../components/islands/ReferenceEntityIsland').then((m) =>
       asIsland(m.ReferenceEntityIsland)
     ),
+  RollTableIsland: () =>
+    import('../components/islands/RollTableIsland').then((m) => asIsland(m.RollTableIsland)),
   ColophonIsland: () =>
     import('../components/islands/ColophonIsland').then((m) => asIsland(m.ColophonIsland)),
   SearchResultsIsland: () =>

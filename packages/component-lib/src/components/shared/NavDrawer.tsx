@@ -3,11 +3,9 @@ import { Menu, X } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useState } from 'react'
 import { borderWidth, color, space } from '../../design/tokens'
-import type { CSSVarStyle } from '../../styles/cssVars'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { buttonVariants } from '../chrome/buttonVariants'
-import { CATALOG_TILE_CHROME, CATALOG_TILE_FILL, CATALOG_TILE_LABEL } from '../chrome/catalogTile'
 import { FOCUS_RING } from '../chrome/interaction'
 
 /**
@@ -18,7 +16,7 @@ import { FOCUS_RING } from '../chrome/interaction'
  *
  * Content is fully driven by props: a `brand` lockup, primary `navItems`
  * (rendered as the shared ghost `buttonVariants` buttons; the page you are on is
- * the inverse ink plate, never rust — ruleset §3.1), optional `categories` (catalog tiles) + `search` slot for the
+ * the inverse ink plate, never rust — ruleset §3.1), optional `categories` + `search` slot for the
  * SRD's richer drawer, and an optional `extra` slot for app-owned controls
  * (ITUN's Games list and sign-in). Router-agnostic: internal items render
  * through the injected `LinkComponent` (defaults to a plain anchor), external
@@ -43,11 +41,16 @@ export type NavDrawerItem = {
 type SchemaLink = {
   id: string
   displayName: string
-  catalogBg: string
-  catalogLabel?: string
   href?: string
+  /** How many entries the link opens onto, shown at the row's end. */
+  count?: number
 }
 
+/**
+ * A section of the drawer's index: an ink section stamp over compact rows
+ * (board 08, the SRD's chapters with their counts), the same index the SRD's
+ * home page prints.
+ */
 export type NavDrawerCategory = {
   label: string
   schemas: SchemaLink[]
@@ -58,7 +61,7 @@ type NavDrawerProps = {
   brand: ReactNode
   /** Primary nav links, rendered as buttonVariants buttons. */
   navItems: NavDrawerItem[]
-  /** Optional catalog categories (SRD schema tiles), rendered above navItems. */
+  /** Optional index sections (the SRD's chapters), rendered above navItems. */
   categories?: NavDrawerCategory[]
   /** Optional search slot (SRD combobox), rendered under the brand row. */
   search?: ReactNode
@@ -75,14 +78,6 @@ type NavDrawerProps = {
   /** Panel width class. Defaults to full-width; ITUN uses a narrower drawer. */
   panelClassName?: string
 }
-
-// Full-width catalog tile (compact drawer variant). The frame, fill and name
-// plate are the SHARED tile treatment, so the two tiles cannot drift; the
-// drawer only adds its own layout (full-width block, centred, one step down in
-// type).
-const TILE = cn(CATALOG_TILE_CHROME, CATALOG_TILE_FILL, 'block w-full text-center text-sm')
-
-const TILE_LABEL = CATALOG_TILE_LABEL
 
 // The rule between the app's `extra` controls and the nav links — the same
 // faint hairline that divides the SRD's catalog from its links. Hidden by
@@ -175,34 +170,30 @@ export function NavDrawer({
                 </div>
               )}
 
-              {/* Catalog categories (SRD) */}
+              {/* The index (SRD): a section stamp over compact rows, each with
+                  its count — the home page's chapters, one tap each. */}
               {categories?.map((cat) => (
-                <div key={cat.label} className="mb-2 flex flex-col gap-2">
-                  <div className="flex items-center gap-3">
-                    <Badge shape="stamp">{cat.label}</Badge>
-                  </div>
-                  {cat.schemas.map((schema) => {
-                    const tileStyle: CSSVarStyle = {
-                      '--catalog-bg': schema.catalogBg,
-                      ...(schema.catalogLabel ? { '--catalog-label': schema.catalogLabel } : {}),
-                    }
-                    return (
-                      <a
-                        key={schema.id}
-                        href={schema.href || `/schema/${schema.id}/`}
-                        className={TILE}
-                        style={tileStyle}
-                        onClick={close}
-                      >
-                        {schema.catalogLabel ? (
-                          <span className={TILE_LABEL}>{schema.displayName}</span>
-                        ) : (
-                          schema.displayName
-                        )}
-                      </a>
-                    )
-                  })}
-                </div>
+                <section key={cat.label} className="su-nav-drawer__section">
+                  <Badge shape="stamp" as="h2">
+                    {cat.label}
+                  </Badge>
+                  <ul className="su-nav-drawer__rows">
+                    {cat.schemas.map((schema) => (
+                      <li key={schema.id}>
+                        <a
+                          href={schema.href || `/schema/${schema.id}/`}
+                          className={cn('su-nav-drawer__row', FOCUS_RING)}
+                          onClick={close}
+                        >
+                          <span>{schema.displayName}</span>
+                          {schema.count != null && (
+                            <span className="su-nav-drawer__count">{schema.count}</span>
+                          )}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               ))}
 
               {/* Primary nav links */}

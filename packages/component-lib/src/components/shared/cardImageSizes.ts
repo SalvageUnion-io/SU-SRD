@@ -34,3 +34,12 @@ export function cardImageSizes(compact?: boolean): string {
   const width = compact ? CARD_IMAGE_CONTAINER_WIDTH.compact : CARD_IMAGE_CONTAINER_WIDTH.normal
   return `(max-width: ${width}) 100vw, ${width}`
 }
+
+/**
+ * The `sizes` of the entity page's HERO art (`CardImage hero`, board 07): half
+ * of the page's 1200px measure beside the stat column from `lg`, the full
+ * width of the column under it. srd's item pages preload with it.
+ */
+export function heroImageSizes(): string {
+  return '(min-width: 64rem) 560px, 100vw'
+}

@@ -602,8 +602,8 @@ compiles.
 - `catalog.tsx` preloads the reference data before it imports any story
   module, and frames every story on the paper canvas; stories add no outer
   `bg-paper`.
-- `src/styles/catalog.css` imports the shared `tailwind.css` entry and adds
-  `@source` for the stories and the two apps' component folders.
+- `src/styles/catalog.css` imports `tailwind.css` and srd's `pages.css`, and
+  adds `@source` for the stories and the two apps' component folders.
 - **Size ladder** (`src/styles/sizing.ts`): Full, **Compact** (default), Mini;
   offer only real rungs, compose from `RUNG_TYPE` / `RUNG_INLINE_PADDING` as
   `Badge`'s `STAMP_SIZE` does.
