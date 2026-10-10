@@ -108,7 +108,7 @@ export function EntityCardIdentityFooter({
           width: '100%',
         }}
       >
-        <span style={{ ...capsLabel, ...truncate }}>{typeLabel ?? ''}</span>
+        <span style={{ ...capsLabel, flex: 'none', whiteSpace: 'nowrap' }}>{typeLabel ?? ''}</span>
         {/* Foot extras — inline meta pairs (cost / SV) folded into the row, then
           the source/page on the far right. */}
         <div
@@ -118,6 +118,7 @@ export function EntityCardIdentityFooter({
             gap: space[8],
             justifyContent: 'flex-end',
             minWidth: 0,
+            flex: '0 1 auto',
           }}
         >
           {footMeta?.map(({ label, value }, i) => (

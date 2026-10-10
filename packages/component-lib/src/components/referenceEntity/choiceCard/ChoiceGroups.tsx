@@ -7,7 +7,7 @@ import { cn } from '../../../utils/cn'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Badge } from '../../chrome/Badge'
 import { INPUT_FOCUS } from '../../chrome/interaction'
-import { RollTable } from '../../shared/RollTable'
+import { CardRollTable } from '../card/CardRollTable'
 import { accentDeepColor } from '../referenceEntityHelpers'
 import type { ChoiceSelections } from './choiceSelectionHelpers'
 import {
@@ -244,11 +244,13 @@ function ChoiceOptionGroup({
           <StampsealField label={choice.name} value={value} onChange={onFreeTextChange} />
         )}
         {table && (
-          <RollTable
+          <CardRollTable
             table={table}
-            tableName={`${tableName} Table`}
-            size="compact"
+            name={`${tableName} Table`}
+            size={compact ? 'small' : 'medium'}
             collapsible
+            framed
+            disabled={false}
             onRollResult={readOnly ? undefined : (text) => onFreeTextChange(text)}
           />
         )}

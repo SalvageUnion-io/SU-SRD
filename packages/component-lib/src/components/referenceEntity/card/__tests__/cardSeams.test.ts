@@ -141,7 +141,6 @@ describe('bodyBlocks', () => {
     const layout = (over: Partial<Parameters<typeof resolveBodyLayout>[0]>) =>
       resolveBodyLayout({
         showImage: true,
-        hasNpcAnchor: false,
         isPattern: false,
         asideLeadRequested: false,
         hasTrailingSection: false,
@@ -152,10 +151,6 @@ describe('bodyBlocks', () => {
     // Opted in, but with no trailing section there is nothing to lead into.
     expect(layout({ asideLeadRequested: true })).toEqual({ asideLead: false, flat: true })
     expect(layout({ asideLeadRequested: true, hasTrailingSection: true }).asideLead).toBe(true)
-    expect(layout({ showImage: false, hasNpcAnchor: true })).toEqual({
-      asideLead: false,
-      flat: true,
-    })
     expect(layout({ showImage: false })).toEqual({ asideLead: false, flat: false })
   })
 })
