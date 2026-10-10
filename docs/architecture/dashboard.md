@@ -27,7 +27,8 @@ pilot _have_", the Dashboard asks "what can this pilot _do right now_".
 It is a curated, live game surface, so it opens only for a pilot in a Game that
 has a Mediator (§8). Solo, shelf and anonymous play, and a Game with no
 Mediator, use the live sheet. It is for pilots: a Mediator who plays a pilot
-uses it like any player, and a Mediator Dashboard is a later plan (#1062).
+uses it like any player. The Mediator runs the table from a separate surface,
+the Mediator Dashboard ([mediator-dashboard.md](mediator-dashboard.md)).
 
 ## 2. Layout
 

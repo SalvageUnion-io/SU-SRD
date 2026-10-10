@@ -373,7 +373,7 @@ are ours.
 | **Free Edit** | Live Sheet (`/sheet/:kind/:id`) | Edits _state_, never runs _transactions_ |
 | **Guided Play** | Dashboard (Pilot + Mech + Crawler) | Enforced play whose layers teach as they enforce |
 | **Frozen** | View (`/p/:kind/:appId`, a crewmate) | Read-only; evaluates nothing |
-| **Adjudicate** | Encounter (`/encounter`), later a Mediator layer | GM tooling on NPCs; enforces nothing on players |
+| **Adjudicate** | Mediator Dashboard (`/mediator/:gameId`) | GM tooling; reaches players only by proposal |
 
 A mode outlives its surface. Adjudicate acts on NPC instances, outside the
 matrix below. Free Edit edits end-states; the same change through a guided
@@ -2898,6 +2898,10 @@ Crew tab.
 
 **Amended 2026-10 (#1130)** — §4: a proposal carries no before, only its value.
 
+**Amended 2026-10 (#1278):** §4: a proposal may carry a reason, which the
+player sees with it. §6: `/mediator/:id` is the Mediator Dashboard again and
+no longer redirects ([mediator-dashboard.md](architecture/mediator-dashboard.md)).
+
 ### Context
 
 [ADR-001](#adr-001) made ITUN local-first with no
@@ -4913,6 +4917,11 @@ Tailwind-removal P5 (below).
 **Amended by [ADR-044](#adr-044) (2026-10-09, proposed):** §3, §4 and §9 —
 the phone form. Below the canvas's floor the slots become unit tabs, the
 display's other tabs go behind a menu, and the rotate notice is retired.
+
+§1's deferred Mediator Dashboard is decided in
+[mediator-dashboard.md](architecture/mediator-dashboard.md) (#1062): a
+separate surface at `/mediator/$gameId` in ADR-021's Adjudicate mode. It
+reuses §9's canvas and §7's instruments and writes nothing a player owns.
 
 This is the one Dashboard decision record. **It supersedes [ADR-015](#adr-015)**
 and the five sub-decisions merged into it (ADRs 016–020): §6 to §9 restate the
