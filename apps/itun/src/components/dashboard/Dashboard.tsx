@@ -37,7 +37,7 @@
  * deck's one-shot hand-off of a destructive outcome to the Major's Take Damage
  * overlay, which is component state here.
  *
- * **Two forms, one surface** (ADR-043). `DashboardCanvas` draws the canvas
+ * **Two forms, one surface** (ADR-044). `DashboardCanvas` draws the canvas
  * above when it fits at 0.62 scale or more on both axes, and the phone form
  * (`DashboardPhone`) otherwise: unit tabs in place of the slot row, the deck
  * on the Major's tab, a resolve screen, and the display's other tabs behind
@@ -212,7 +212,7 @@ function DashboardView({
   const displayRef = useRef<HTMLDivElement>(null)
   // The deck's Apply arms it; the slot row's Major opens Take Damage and consumes it.
   const [damageArmed, setDamageArmed] = useState(false)
-  // The phone form's arrangement (ADR-043): the ≡ menu and what it shows,
+  // The phone form's arrangement (ADR-044): the ≡ menu and what it shows,
   // whether the resolve screen is set aside, and what opened it.
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuView, setMenuView] = useState<PhoneMenuView>('menu')
@@ -397,7 +397,7 @@ function DashboardView({
   }
   const crewAttention = crew.some((c) => c.attention)
 
-  // The phone form (ADR-043). Built here, rendered by DashboardCanvas only
+  // The phone form (ADR-044). Built here, rendered by DashboardCanvas only
   // below the canvas's floor.
   const { major } = slotsFor(mount)
   const stats = mech ? mechStats(mech, pilot.abilities, seat.seat.activeEffects) : null

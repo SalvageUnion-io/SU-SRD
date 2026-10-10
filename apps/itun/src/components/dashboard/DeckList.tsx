@@ -54,7 +54,7 @@ export type DeckListModel =
       onOpen: (key: string) => void
       /**
        * Open an action and pay for it in one press: the phone's pennant
-       * (ADR-043 D6). The canvas pays from the resolve's own pennant.
+       * (ADR-044 D6). The canvas pays from the resolve's own pennant.
        */
       onActivate: (key: string) => void
     }

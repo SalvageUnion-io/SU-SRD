@@ -343,7 +343,7 @@ export function StorageBay({
 
 /**
  * Renders one computed Major model: on the canvas's band, or — in the phone
- * form (ADR-043) — as `PhoneMajorFrame`'s one column. Same model either way.
+ * form (ADR-044) — as `PhoneMajorFrame`'s one column. Same model either way.
  */
 export function MajorFrame({ view }: { view: MajorModel }) {
   const { overlay } = view

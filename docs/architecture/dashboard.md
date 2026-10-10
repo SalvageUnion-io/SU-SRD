@@ -3,7 +3,7 @@
 The **Dashboard** is ITUN's live actual-play surface: one pilot in a Game, with
 their **Mech** and the crew's **Crawler**, composed into one screen that never
 scrolls, where every game action is a button. On a phone it is one scrolling
-column of the same instruments (§7, [ADR-043](../ARCHITECTURE.md#adr-043)). Components are in
+column of the same instruments (§7, [ADR-044](../ARCHITECTURE.md#adr-044)). Components are in
 `apps/itun/src/components/dashboard/`, the remaining `.pc-*` stylesheets in
 `apps/itun/src/styles/dashboard/`, and the route is
 `/dashboard/$pilotId` (`apps/itun/src/routes/dashboard/$pilotId.tsx`).
@@ -199,7 +199,7 @@ ITUN's `src/styles/dashboard.css`.
 
 ## 7. Mobile
 
-[ADR-043](../ARCHITECTURE.md#adr-043) gives the Dashboard a **phone form**
+[ADR-044](../ARCHITECTURE.md#adr-044) gives the Dashboard a **phone form**
 (`DashboardPhone`, boards D4 and D5, issue #1256). It is the same surface, not
 a second one: the same seat, store, rules and view models, and every phone
 control calls the handler its canvas twin calls.
@@ -356,7 +356,7 @@ Every hue pairs with a non-colour cue.
 ### 10.3 Scale-to-fit vs zoom
 
 A scaled canvas fights browser zoom: a user at 200% gets a smaller canvas, not
-bigger text. **Closed by [ADR-043](../ARCHITECTURE.md#adr-043):** zoom shrinks
+bigger text. **Closed by [ADR-044](../ARCHITECTURE.md#adr-044):** zoom shrinks
 the CSS viewport, and past the floor on either axis the phone form takes
 over, whose type and targets zoom like any page.
 

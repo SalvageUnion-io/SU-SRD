@@ -3,7 +3,7 @@ import { gotoStable, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
- * The Dashboard on a phone (ADR-043, issue #1256): a full boarded turn at
+ * The Dashboard on a phone (ADR-044, issue #1256): a full boarded turn at
  * 375×812 and 390×844.
  *
  * Board, then the deck's pennant (which opens the resolve screen and pays the
@@ -61,7 +61,7 @@ async function expectNoOverflow(page: Page): Promise<void> {
   expect(overflow, 'horizontal page overflow (px)').toBeLessThanOrEqual(0)
 }
 
-/** Every visible control is at least 44×44 (ruleset §4.6, ADR-043 D14). */
+/** Every visible control is at least 44×44 (ruleset §4.6, ADR-044 D14). */
 async function expectHitAreas(page: Page): Promise<void> {
   const small = await page.evaluate(() => {
     const controls = document.querySelectorAll<HTMLElement>(

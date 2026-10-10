@@ -706,7 +706,7 @@ describe('the resolve on the seat', () => {
 })
 
 /**
- * The phone's deck (ADR-043 D6): the pennant opens an action AND pays for it,
+ * The phone's deck (ADR-044 D6): the pennant opens an action AND pays for it,
  * through the same activation the resolve's own pennant writes; the row's body
  * only opens it.
  */

@@ -1,6 +1,6 @@
 /**
  * PhoneMajorFrame — a `MajorModel` drawn as the phone form's one column
- * (ADR-043, board D4). `MajorFrame` hands the model here when the Dashboard is
+ * (ADR-044, board D4). `MajorFrame` hands the model here when the Dashboard is
  * in its phone form (`dashboardForm.ts`); the model, its handlers and its
  * rules are the canvas's own.
  *

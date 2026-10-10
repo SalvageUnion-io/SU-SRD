@@ -1,5 +1,5 @@
 /*
- * DashboardPhone — the Dashboard's phone form (ADR-043, boards D4 and D5).
+ * DashboardPhone — the Dashboard's phone form (ADR-044, boards D4 and D5).
  *
  * Only what a style object cannot say lives here (tailwind-removal.md §4):
  * rules over descendants, and states. The components carry the rest.
@@ -9,7 +9,7 @@
  */
 
 /*
- * The touch floor (ruleset §4.6, ADR-043 D14): every control in the phone form
+ * The touch floor (ruleset §4.6, ADR-044 D14): every control in the phone form
  * is at least 44×44, whichever component drew it. The canvas's own controls
  * are sized for a scaled 1280×800 frame (the Board caret, a provenance ⓘ, a
  * deck filter), and a phone is where those sizes stop being enough.
