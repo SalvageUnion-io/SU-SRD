@@ -125,7 +125,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   `salvageunion-reference/rules` subpath export, never the main barrel and
   never through a local re-export. `src/lib/rules/` holds only ITUN's
   app-local rules: e.g. `heatCheck.ts` adds `heatCheckPatch` (effect →
-  `Partial<Mech>`). Every real die roll is the package's `rollDie(sides)`.
+  `Partial<Mech>`). Every die is component-lib's Randsum `utils/dice.ts`.
 - **Play actions live on the Dashboard, not the Live Sheet.** Activation and
   heat check are assembled as patches in
   `src/components/dashboard/dashboardRules.ts` (`activationPatch`,
