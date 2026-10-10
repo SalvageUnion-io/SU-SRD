@@ -593,6 +593,49 @@ body {
   color: var(--color-ink-50);
 }
 
+/* ══ The entity card's artwork lead ══════════════════════════════════════════
+ *
+ * The art sits beside the prose only when the CARD is wide enough, never
+ * because the viewport is: a ~280px card in a wide page, or a narrow sheet
+ * column, stacks the art above the text instead of crushing the prose to a
+ * word a line. So the card body that holds artwork is an inline-size
+ * container, and the art's float (or the aside lead's row) waits on it.
+ * `ReferenceEntityCard.tsx`, `shared/CardImage.tsx`.
+ */
+.su-ec-art-body {
+  container-type: inline-size;
+}
+
+.su-ec-art {
+  background-color: var(--color-paper);
+  flex: none;
+  margin-inline: auto;
+  vertical-align: top;
+}
+
+.su-ec-lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+@container (min-width: 30rem) {
+  .su-ec-art {
+    margin-inline: 0;
+  }
+
+  .su-ec-art--float {
+    float: left;
+    margin-right: var(--space-16);
+  }
+
+  .su-ec-lead {
+    align-items: center;
+    flex-direction: row;
+    gap: var(--space-16);
+  }
+}
+
 /* ══ Tabs (`components/chrome/Tabs.tsx`) ════════════════════════════════════
  *
  * Colour only: geometry and type are the component's style objects. All three
