@@ -1,3 +1,4 @@
+import { ChevronRight } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { space } from '../../../design/tokens'
 import { cn } from '../../../utils/cn'
@@ -49,6 +50,8 @@ type EntityCardHeaderProps = {
   grain?: CardGrain
   /** Draw the 1.5px ink rule that closes the band (anything follows it). */
   ruled?: boolean
+  /** A clickable listing row: E3's chevron (›) at the far right says it opens. */
+  chevron?: boolean
 }
 
 /** The band's padding by size (board E1): room above for the seam stamp. */
@@ -102,6 +105,7 @@ export function EntityCardHeader({
   band = false,
   grain,
   ruled = false,
+  chevron = false,
 }: EntityCardHeaderProps) {
   const accent = accentSurface(bg, bgColor)
   const TitleTag = titleAs ?? 'span'
@@ -115,10 +119,14 @@ export function EntityCardHeader({
       className={titleType}
       title={oneLine ? title : undefined}
       style={{
-        // One line: the title gives way only after a hint has, and the cells
-        // never do. Otherwise it takes the row and the cells wrap beneath.
-        flex: oneLine ? '0 1 auto' : '1 1 auto',
-        minWidth: 0,
+        // One line: the title gives way after a hint has and before the pennant,
+        // but never below a readable stub; the lower-priority cells go first
+        // (`EntityCardStatBox`). Otherwise the title shares the row with the
+        // cells on the right at medium and small, and only a large header
+        // gives the title the whole row. Either way the cells wrap beneath
+        // when they truly cannot fit.
+        flex: oneLine ? '0 1 auto' : size === 'large' ? '1 1 auto' : '1 1 0',
+        minWidth: oneLine ? 'min(100%, 10ch)' : size === 'large' ? 0 : 'min-content',
         overflowWrap: 'break-word',
         ...(oneLine ? ONE_LINE : {}),
       }}
@@ -158,7 +166,7 @@ export function EntityCardHeader({
           : {}),
         display: 'flex',
         flexWrap: oneLine ? 'nowrap' : 'wrap',
-        gap: `${space[8]} ${space[14]}`,
+        gap: oneLine ? space[8] : `${space[8]} ${space[14]}`,
         minWidth: 0,
         padding: band ? BAND_PAD[size] : PAD[size],
         width: '100%',
@@ -176,17 +184,27 @@ export function EntityCardHeader({
           style={{
             alignItems: 'center',
             display: 'flex',
-            flex: oneLine ? 'none' : '0 1 auto',
+            // One line: the cells give way well before the title does, down to one cell.
+            flex: oneLine ? '0 8 auto' : '0 1 auto',
             flexWrap: oneLine ? 'nowrap' : 'wrap',
             gap: space[4],
             justifyContent: 'flex-end',
             marginLeft: oneLine ? 'auto' : undefined,
-            minWidth: 0,
+            minWidth: oneLine ? 'min-content' : 0,
           }}
         >
-          {stats.length > 0 && <EntityCardStatBox stats={stats} wrap={!oneLine} />}
+          {stats.length > 0 && <EntityCardStatBox stats={stats} oneRow={oneLine} />}
           {pennant}
         </div>
+      )}
+      {chevron && (
+        <ChevronRight
+          aria-hidden="true"
+          size={20}
+          strokeWidth={3}
+          className={titleTextClass}
+          style={{ flex: 'none', marginLeft: hasCluster ? 0 : 'auto' }}
+        />
       )}
     </div>
   )

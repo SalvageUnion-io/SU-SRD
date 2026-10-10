@@ -38,6 +38,7 @@ describe('top-right rail', () => {
     render(
       <ReferenceEntityCard
         data={equipment()}
+        extent="head"
         status="damaged"
         onStatusClick={() => {}}
         controls={[{ key: 'remove', ariaLabel: 'Remove', label: 'Remove', onClick: () => {} }]}
@@ -55,6 +56,7 @@ describe('top-right rail', () => {
     const { container } = render(
       <ReferenceEntityCard
         data={equipment()}
+        extent="head"
         status="intact"
         onStatusClick={() => {}}
         controls={[{ key: 'swap', ariaLabel: 'Swap', label: 'Swap', onClick: () => {} }]}
@@ -74,5 +76,30 @@ describe('top-right rail', () => {
       expect(cell.classList.contains('absolute')).toBe(false)
     }
     expect(container.querySelectorAll('.z-30').length).toBeLessThanOrEqual(2)
+  })
+
+  test('a full card puts the condition and a danger Remove in the body rail, not on the seam', () => {
+    render(
+      <ReferenceEntityCard
+        data={equipment()}
+        status="damaged"
+        onStatusClick={() => {}}
+        controls={[
+          {
+            key: 'remove',
+            ariaLabel: 'Remove',
+            label: 'Remove',
+            variant: 'danger',
+            onClick: () => {},
+          },
+        ]}
+      />
+    )
+    const status = screen.getByRole('button', { name: /status: damaged/i })
+    const remove = screen.getByRole('button', { name: 'Remove' })
+    expect(status.closest('div.absolute')).toBeNull()
+    expect(remove.closest('div.absolute')).toBeNull()
+    // State is a treatment: the current segment is marked, none is a hue.
+    expect(status.querySelector('[aria-current="true"]')?.textContent).toBe('Damaged')
   })
 })

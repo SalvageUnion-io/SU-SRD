@@ -127,6 +127,12 @@ export type ReferenceEntityCardProps = {
   cardClickLabel?: string
   /** Top-right overlay controls (reuse ControlButtons shapes/variants). */
   controls?: ReferenceEntityControl[]
+  /**
+   * Controls for each INLINE action band (the Dashboard, board E3): a `pennant`
+   * control makes that band's cost pennant the rust action button. Absent ⇒ the
+   * bands read as they always do.
+   */
+  actionControls?: (action: ReferenceCardEntity) => ReferenceEntityControl[] | undefined
   /** Controlled interactive-choice state (renders `ChoiceGroups` in the body). */
   selections?: ChoiceSelections
   /** Selection-change handler — its presence flips choices to editable body cards. */

@@ -230,15 +230,15 @@ describe('ChoiceGroups — table choice (A.I. Personality)', () => {
     expect(screen.getByText('A.I. Personality Table')).toBeTruthy()
     expect(screen.getByRole('button', { name: /Roll on this table/i })).toBeTruthy()
     // …but the rows are collapsed by default (no <table> in the DOM yet)
-    expect(screen.queryAllByRole('table').length).toBe(0)
+    expect(screen.queryAllByRole('listitem').length).toBe(0)
     // read-only: no input
     expect(screen.queryByRole('textbox')).toBeNull()
   })
 
   test('expands the table rows via the Show toggle', () => {
     render(<ChoiceGroups choices={[tableChoice]} readOnly />)
-    expect(screen.queryAllByRole('table').length).toBe(0)
-    fireEvent.click(screen.getByRole('button', { name: 'Show' }))
-    expect(screen.getAllByRole('table').length).toBeGreaterThan(0)
+    expect(screen.queryAllByRole('listitem').length).toBe(0)
+    fireEvent.click(screen.getByRole('button', { name: /Show the A.I. Personality Table table/i }))
+    expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0)
   })
 })
