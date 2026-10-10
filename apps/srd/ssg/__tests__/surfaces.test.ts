@@ -115,3 +115,75 @@ describe('a roll table rolls on its own page (board 08b)', () => {
     expect(html).toContain('11–19')
   })
 })
+
+/** The first route under a prefix, so the check follows the data rather than a slug. */
+function firstUnder(prefix: string): string {
+  for (const route of routes) {
+    const found = route.resolve().find((p) => p.route.startsWith(prefix))
+    if (found) return found.route
+  }
+  throw new Error(`no page under ${prefix}`)
+}
+
+/** Inline `background-color`s of a class's elements, in document order. */
+const backgrounds = (html: string, className: string) =>
+  [...html.matchAll(new RegExp(`class="${className}"[^>]*background-color: ?([^;"]+)`, 'g'))].map(
+    ([, bg]) => bg
+  )
+
+describe('every page ends on one footer (boards 06, 07)', () => {
+  const book = [
+    ['a Pilot Bay entity', firstUnder('/schema/classes/item/')],
+    ['a Mech Workshop entity', '/schema/chassis/item/gopher'],
+    ['a pattern', firstUnder('/schema/chassis/item/gopher/pattern/')],
+    ['a Union Crawler entity', firstUnder('/schema/crawlers/item/')],
+    ['a Denizens entity', firstUnder('/schema/bio-titans/item/')],
+    ['a roll table', '/schema/roll-tables/item/core-mechanic'],
+    ['a guide', firstUnder('/schema/guides/item/')],
+  ] as const
+  const site = [
+    ['home', '/'],
+    ['a listing', '/schema/chassis'],
+    ['about', '/about'],
+    ['changelog', '/changelog'],
+    ['the 404', '/404'],
+  ] as const
+
+  for (const [name, path] of [...book, ...site]) {
+    it(`${name} has exactly one footer landmark, carrying the licence`, () => {
+      const html = page(path)
+      expect(html.match(/<footer\b/g)?.length).toBe(1)
+      expect(html).toContain('Salvage Union is copyrighted by Leyline Press.')
+    })
+  }
+
+  for (const [name, path] of book) {
+    it(`${name} ends in its own chapter’s band, not a second one`, () => {
+      const html = page(path)
+      const [head] = backgrounds(html, 'su-chapter-band')
+      const feet = backgrounds(html, 'su-chapter-foot')
+      expect(feet.length).toBeGreaterThan(0)
+      expect(new Set(feet).size).toBe(1)
+      if (path.startsWith('/schema/crawlers/')) {
+        // The foot carries text, so it takes the deeper crawler pink (§3.8).
+        expect(feet[0]).not.toBe(head)
+        expect(feet[0]).not.toBe(backgrounds(page('/'), 'su-chapter-foot')[0])
+      } else {
+        expect(feet[0]).toBe(head)
+      }
+    })
+  }
+
+  it('the Gopher cites its page in that band', () => {
+    const html = page('/schema/chassis/item/gopher')
+    expect(html).toMatch(/<footer[^>]*>[\s\S]*p\.112[\s\S]*<\/footer>/)
+  })
+
+  for (const [name, path] of site) {
+    it(`${name} ends on the one rules-blue band, citing nothing`, () => {
+      const feet = backgrounds(page(path), 'su-chapter-foot')
+      expect(feet).toHaveLength(1)
+      expect(feet[0]).toBe(backgrounds(page('/'), 'su-chapter-foot')[0])
+    })
+  }
+})

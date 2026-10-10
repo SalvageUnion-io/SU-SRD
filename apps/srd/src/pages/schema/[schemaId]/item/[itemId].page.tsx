@@ -13,7 +13,7 @@ import { assetSrcSetFor, heroImageSizes, resolveEntityPageMeta } from 'component
 import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../../../ssg/types'
-import { EntityPageFrame } from '../../../../components/EntityPageFrame'
+import { EntityPageFrame, entityPageFoot } from '../../../../components/EntityPageFrame'
 import { EntityView } from '../../../../components/EntityView'
 import {
   ROLL_TABLE_PAGE_MEASURE,
@@ -143,6 +143,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         { name: itemName, url: canonicalUrl },
       ],
     },
+    foot: entityPageFoot(chapter.tone, pageMeta, rollTable ? ROLL_TABLE_PAGE_MEASURE : undefined),
     children: rollTable ? (
       <EntityPageFrame
         title={itemName}

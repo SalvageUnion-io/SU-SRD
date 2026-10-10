@@ -1,7 +1,8 @@
 import { resolveEntityPageMeta } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntityCardStatic } from './EntityCardStatic'
-import { EntityPageFrame } from './EntityPageFrame'
+import { EntityPageFrame, entityPageFoot } from './EntityPageFrame'
+import { Footer } from './Footer'
 
 export default {
   title: 'Compositions/Entity/Entity Page Frame',
@@ -11,15 +12,23 @@ export default {
  * An SRD entity page (boards 07, 08): the Gopher's Mech Workshop band with its
  * type stamps, the card as the page's body (`presentation="page"`) — line art,
  * chassis ability, prose, the book's stat column and the pattern rows — and
- * the citation on the foot band. Narrow the viewport for the phone (board 08).
+ * the site `Footer` the layout closes it on, carrying the citation in the
+ * same band. Narrow the viewport for the phone (board 08).
  */
 export const Chassis = () => {
   const gopher = SalvageUnionReference.Chassis.getByName('Gopher')
   if (!gopher) return null
+  const meta = resolveEntityPageMeta(gopher)
   return (
-    <EntityPageFrame title={gopher.name} tone="mech" meta={resolveEntityPageMeta(gopher)}>
-      <EntityCardStatic item={gopher} />
-    </EntityPageFrame>
+    <>
+      <EntityPageFrame title={gopher.name} tone="mech" meta={meta}>
+        <EntityCardStatic item={gopher} />
+      </EntityPageFrame>
+      <Footer
+        poweredBySalvageUrl="/Powered_by_Salvage_Black.webp"
+        foot={entityPageFoot('mech', meta)}
+      />
+    </>
   )
 }
 
