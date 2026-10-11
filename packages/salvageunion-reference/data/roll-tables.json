@@ -998,7 +998,7 @@
         "value": "Utterly paranoid about losing its sentience."
       },
       "6": {
-        "value": "Anxiously questions its own morality."
+        "value": "Anxiously questions its own mortality."
       },
       "7": {
         "value": "Dangerously pragmatic."
@@ -1044,7 +1044,7 @@
       },
       "type": "flat"
     },
-    "page": 208,
+    "page": 91,
     "additionalSources": [
       {
         "source": "Salvage Union Starter Set",
@@ -1971,7 +1971,7 @@
       },
       "type": "dramatic"
     },
-    "page": 71
+    "page": 72
   },
   {
     "id": "76535e17-f868-470f-86ec-72675281d90f",
@@ -2259,7 +2259,7 @@
       },
       "type": "standard"
     },
-    "page": 331
+    "page": 73
   },
   {
     "id": "579d82ab-fb44-4c4e-9b30-6ecf97df9f76",
@@ -2476,7 +2476,7 @@
   },
   {
     "id": "c93113c2-ac19-4c1b-abf3-76513366f6ad",
-    "source": "Salvage Union Workshop Manual",
+    "source": "We Were Here First!",
     "name": "Probing Proboscis",
     "table": {
       "1": {
@@ -2496,7 +2496,7 @@
       },
       "type": "standard"
     },
-    "page": 70
+    "page": 71
   },
   {
     "id": "b682a43f-e853-4e59-86cb-304eac9c338f",
@@ -2669,7 +2669,7 @@
       },
       "type": "standard"
     },
-    "page": 194
+    "page": 192
   },
   {
     "id": "117faf24-a910-4625-93bb-71572ff32cf6",
@@ -2741,7 +2741,7 @@
       },
       "type": "standard"
     },
-    "page": 75
+    "page": 76
   },
   {
     "id": "8b64a87b-258a-4917-acbb-3ad6c349d3fd",
@@ -2817,7 +2817,7 @@
   },
   {
     "id": "cc5aed4e-c782-4996-9472-ffb35e64d66c",
-    "source": "Salvage Union Workshop Manual",
+    "source": "We Were Here First!",
     "name": "Bio-Talon",
     "table": {
       "20": {
@@ -2829,7 +2829,7 @@
   },
   {
     "id": "8c107425-8ddf-49dd-9882-7559a4fda62b",
-    "source": "Salvage Union Workshop Manual",
+    "source": "False Flag",
     "name": "Nanite Reconstruction",
     "table": {
       "1": {
@@ -2858,7 +2858,7 @@
   },
   {
     "id": "b2eb603f-036a-4984-b79b-330e745554d3",
-    "source": "Salvage Union Workshop Manual",
+    "source": "False Flag",
     "name": "Meld Distorter",
     "table": {
       "1": {
