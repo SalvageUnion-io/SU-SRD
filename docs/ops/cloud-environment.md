@@ -56,8 +56,7 @@ together. No CLI or API edits it.
   #!/bin/bash
   # SU-SRD: docs/ops/cloud-environment.md is this script's record.
   # Warm the snapshot with the repo's pinned Bun and node_modules by running
-  # its own SessionStart hook: repo hooks never run in a multi-repo session, so
-  # this is what pins Bun there. Never fail: a failure stops the session.
+  # its own SessionStart hook. Never fail: the hook fixes things at start anyway.
   for d in "${CLAUDE_PROJECT_DIR:-}" "$PWD" /home/user/* /root/* /workspace/*; do
     if [ -x "$d/.claude/hooks/session-start.sh" ] &&
       grep -q '"packageManager": *"bun@' "$d/package.json" 2>/dev/null; then
@@ -70,4 +69,6 @@ together. No CLI or API edits it.
 - **Rules text:** attach the private `SalvageUnion-io/su-rules` repository as a
   second repository when a session or Routine needs the rulebooks. The GitHub
   proxy authenticates it, so it needs no secret and no network entry; grep its
-  committed `extracted/*.txt` in the sibling checkout (no poppler).
+  committed `extracted/*.txt` in the sibling checkout (no poppler). The
+  ruleset check reads it there too:
+  `RULES_EXTRACT_DIR=<su-rules>/extracted bun run check:rules-fidelity`.
