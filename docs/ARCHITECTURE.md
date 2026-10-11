@@ -595,7 +595,7 @@ launch config, port 61000) serves it from the package's own Vite dev server —
 `index.html` mounts the package-root `catalog.tsx`, and nothing builds it. It globs
 the library's `src/`, `apps/itun/src/components/` and
 `apps/srd/src/components/`, lists every story in the sidebar and renders one at
-`#<story-id>`; it opens on `foundations--styleguide--overview`.
+`?story=<story-id>`; it opens on `foundations--styleguide--overview`.
 Story rules: [`packages/component-lib/CLAUDE.md`](../packages/component-lib/CLAUDE.md),
 enforced by `src/story-coverage.test.ts`; typecheck is what proves a story
 compiles.
@@ -5776,7 +5776,7 @@ instead. In practice:
   22px.
 
 Players run their sheets on phones at the table. The brand refresh drew a
-phone form (boards D4 and D5, issue #1256).
+phone form (origin boards D4 and D5, issue #1256).
 
 ### Decision
 

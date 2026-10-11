@@ -23,6 +23,13 @@ Ask which level is being requested, and do not silently cross a gate:
 
 If the request is ambiguous, assume the _lower_ level and say so.
 
+**Design intent comes from the origin**
+(<https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm>), the design's source of
+truth. Open the board the refresh names before drawing anything.
+[`docs/design-system/ruleset.md`](../../../docs/design-system/ruleset.md)
+codifies the origin's rules for code and the gates; where the two disagree, the
+origin wins and the ruleset is amended to match.
+
 ## L1 — mockup, grounded in a real "before"
 
 The single rule that carries this level: **the "before" is the actual current
@@ -50,6 +57,15 @@ component that does not exist.
   new editable, all driven by real data through the real components. Open the
   `stories` launch config (`.claude/launch.json`, port 61000), or `bun run stories`
   outside Claude Code.
+- **Capture the comparison from the canvas-only URL**, not the sidebar view:
+  `/?story=<id>&mode=canvas&width=phone` (presets `phone` 375, `column` 480,
+  `page` 1200), on a catalog started at your own port with
+  `bunx vite --port N --strictPort`, in a viewport at least as wide as the
+  preset (`width=phone` at 375). `bun run stories:ids <filter>` finds the
+  id. Stories render in the product's Barlow faces, so with viewport >= preset
+  a wrap or clip in the capture is real; a wider preset overflows the page
+  instead, and a viewport screenshot cuts it off at the edge. The steps are in
+  [component-lib's guide](../../../packages/component-lib/CLAUDE.md#capturing-a-story).
 - Add any write layer as **evolutions of the read-only card, never a redesign**.
 
 ## L3 — cutover, staged and green at every step

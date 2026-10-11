@@ -6,7 +6,7 @@ import { Speckle } from '../chrome/Speckle'
 
 /**
  * AppBar — the Union bar: the one masthead both SU tools wear (ruleset §3.11,
- * "One union, two tools"; canvas board 05). The SRD `SiteHeader` and the ITUN
+ * "One union, two tools"; origin board 05). The SRD `SiteHeader` and the ITUN
  * `AppHeader` are thin presets over it.
  *
  * One lockup (the SU mark and "SalvageUnion.io"), then the **Reference | Build**
