@@ -3,9 +3,9 @@ import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefObjectTable, SURefObjectTableContent } from 'salvageunion-reference'
 import { resultForColumnsTable, resultForTable } from 'salvageunion-reference'
-import { rollDie } from 'salvageunion-reference/rules'
 import type { SizeRung } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
+import { d20ForTable, rollD20 } from '../../utils/dice'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { Text } from '../base/Text'
 import { Badge } from '../chrome/Badge'
@@ -14,7 +14,6 @@ import { FOCUS_RING_ON_TONE } from '../chrome/interaction'
 import { useCopyFeedback } from './copyFeedbackContext'
 import type { RollTableType } from './digestRollTable'
 import { digestRollTable } from './digestRollTable'
-import { rollTableDie } from './rollTableDie'
 
 type ColumnsTableData = Extract<SURefObjectTable, { type: 'columns' }>
 
@@ -420,8 +419,10 @@ function ColumnsRollTable({
   const handleRoll = () => {
     setResult(null)
     setRollAnnouncement('')
-    const colRoll = rollDie(20)
-    const entryRoll = rollDie(20)
+    // Two plain d20s: a columns table is never a named Salvage Union table,
+    // and @randsum/salvageunion's rollTable reads banded tables only.
+    const colRoll = rollD20()
+    const entryRoll = rollD20()
     const res = resultForColumnsTable(table, colRoll, entryRoll)
     setTimeout(() => {
       if (res.success) {
@@ -595,18 +596,23 @@ function StandardRollTable({
   const handleRoll = () => {
     setHighlightedKey(null)
     setRollAnnouncement('')
-    const { key } = resultForTable(table as SURefObjectTable, rollTableDie())
-    setTimeout(() => {
-      setHighlightedKey(key)
-      const entry = digestedTable.find((d) => d.key === key)
-      if (entry) {
-        const text = entry.label ? `${entry.label}: ${entry.value}` : entry.value
-        setRollAnnouncement(
-          `Rolled ${key}: ${entry.label ? `${entry.label} - ` : ''}${entry.value}`
-        )
-        onRollResult?.(text, key)
-      }
-    }, 300)
+    // A named table rolls through @randsum/salvageunion (d20ForTable); the row
+    // is still read from this table's own data, by the same total.
+    const die = tableName === undefined ? Promise.resolve(rollD20) : d20ForTable(tableName)
+    void die.then((d20) => {
+      const { key } = resultForTable(table as SURefObjectTable, d20())
+      setTimeout(() => {
+        setHighlightedKey(key)
+        const entry = digestedTable.find((d) => d.key === key)
+        if (entry) {
+          const text = entry.label ? `${entry.label}: ${entry.value}` : entry.value
+          setRollAnnouncement(
+            `Rolled ${key}: ${entry.label ? `${entry.label} - ` : ''}${entry.value}`
+          )
+          onRollResult?.(text, key)
+        }
+      }, 300)
+    })
   }
 
   const handleClearHighlight = () => {

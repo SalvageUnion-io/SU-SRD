@@ -17,6 +17,7 @@
     "@discordjs/builders": "1.14.1",
     "@discordjs/rest": "2.6.3",
     "@randsum/roller": "catalog:",
+    "@randsum/salvageunion": "catalog:",
     "discord-api-types": "0.38.53",
     "observability": "workspace:*",
     "salvageunion-reference": "workspace:*"

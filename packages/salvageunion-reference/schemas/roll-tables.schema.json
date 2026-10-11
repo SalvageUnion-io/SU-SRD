@@ -2955,6 +2955,11 @@
           }
         ],
         "description": "The roll table data with outcomes keyed by roll ranges"
+      },
+      "indexable": {
+        "type": "boolean",
+        "const": true,
+        "description": "A named Salvage Union table: @randsum/salvageunion's SALVAGE_UNION_TABLE_NAMES, which every roll on it goes through"
       }
     },
     "required": ["id", "name", "source", "page", "table"],

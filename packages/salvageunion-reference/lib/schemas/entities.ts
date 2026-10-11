@@ -399,6 +399,12 @@ export const NPCSchema = BaseEntitySchema.extend({
 export const RollTableSchema = BaseEntitySchema.extend({
   table: TableSchema.describe('The roll table data with outcomes keyed by roll ranges'),
   content: ContentSchema.describe('Descriptive content for this roll table').optional(),
+  indexable: z
+    .literal(true)
+    .describe(
+      "A named Salvage Union table: @randsum/salvageunion's SALVAGE_UNION_TABLE_NAMES, which every roll on it goes through"
+    )
+    .optional(),
 })
   .strict()
   .describe('Random tables and roll tables')

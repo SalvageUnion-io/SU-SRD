@@ -9,7 +9,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import type { RollTableDeps } from '../../wizard/rollTableHelpers'
-import { rollForPilotField } from '../../wizard/rollTableHelpers'
+import { rollForPilotField, rollOnNamedTable } from '../../wizard/rollTableHelpers'
 
 type StubTable = {
   id: string
@@ -21,18 +21,18 @@ type StubTable = {
 function makeDeps(table: StubTable | undefined, roll: number): RollTableDeps {
   return {
     findTable: () => table as never,
-    rollD20: () => roll,
+    d20For: async () => () => roll,
   }
 }
 
 describe('rollForPilotField', () => {
-  test('returns null when table is not found', () => {
-    const result = rollForPilotField('callsign', makeDeps(undefined, 5))
+  test('returns null when table is not found', async () => {
+    const result = await rollForPilotField('callsign', makeDeps(undefined, 5))
     expect(result).toBeNull()
   })
 
-  test('returns null when table exists but has no matching roll result', () => {
-    const result = rollForPilotField(
+  test('returns null when table exists but has no matching roll result', async () => {
+    const result = await rollForPilotField(
       'callsign',
       makeDeps(
         { id: 'rt-callsign', name: 'Callsign Table', schemaName: 'roll-tables', table: {} },
@@ -42,8 +42,8 @@ describe('rollForPilotField', () => {
     expect(result).toBeNull()
   })
 
-  test('returns the rolled value for a valid roll', () => {
-    const result = rollForPilotField(
+  test('returns the rolled value for a valid roll', async () => {
+    const result = await rollForPilotField(
       'callsign',
       makeDeps(
         {
@@ -58,8 +58,8 @@ describe('rollForPilotField', () => {
     expect(result).toBe('Ghost')
   })
 
-  test('prefixes label when entry has both label and value', () => {
-    const result = rollForPilotField(
+  test('prefixes label when entry has both label and value', async () => {
+    const result = await rollForPilotField(
       'motto',
       makeDeps(
         {
@@ -74,8 +74,8 @@ describe('rollForPilotField', () => {
     expect(result).toBe('Bold: Forward, always')
   })
 
-  test('uses bare value when entry has no label', () => {
-    const result = rollForPilotField(
+  test('uses bare value when entry has no label', async () => {
+    const result = await rollForPilotField(
       'keepsake',
       makeDeps(
         {
@@ -90,7 +90,7 @@ describe('rollForPilotField', () => {
     expect(result).toBe('A tarnished medal')
   })
 
-  test('navigates a columns-type table (Callsign Table) via two rolls', () => {
+  test('navigates a columns-type table (Callsign Table) via two rolls', async () => {
     // The real Callsign Table is `type: columns`, keyed 1-4 / 5-8 / … A flat
     // resultForTable can't walk it and returns failure → the roll button no-ops.
     // Both d20 rolls stub to 5: column roll 5 → the "5-8" column, entry roll 5 → "5".
@@ -103,10 +103,31 @@ describe('rollForPilotField', () => {
         '5-8': { '5': { value: 'Candyman' } },
       },
     }
-    const result = rollForPilotField('callsign', {
+    const result = await rollForPilotField('callsign', {
       findTable: () => columnsTable as never,
-      rollD20: () => 5,
+      d20For: async () => () => 5,
     })
     expect(result).toBe('Candyman')
+  })
+})
+
+describe('rollOnNamedTable', () => {
+  test("asks for the die by the table's own name, then reads the row from its data", async () => {
+    const asked: string[] = []
+    const result = await rollOnNamedTable('Critical Injury', {
+      findTable: () =>
+        ({
+          id: 'rt-critical-injury',
+          name: 'Critical Injury',
+          schemaName: 'roll-tables',
+          table: { '20': { label: 'Miraculous Survival', value: 'You survive.' } },
+        }) as never,
+      d20For: async (tableName) => {
+        asked.push(tableName)
+        return () => 20
+      },
+    })
+    expect(asked).toEqual(['Critical Injury'])
+    expect(result).toBe('Miraculous Survival: You survive.')
   })
 })
