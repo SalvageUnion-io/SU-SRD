@@ -141,15 +141,18 @@ describe('every page ends on one footer (boards 06, 07)', () => {
     ['a roll table', '/schema/roll-tables/item/core-mechanic'],
     ['a guide', firstUnder('/schema/guides/item/')],
   ] as const
+  const listings = [
+    ['a Mech Workshop listing', '/schema/chassis'],
+    ['a Union Crawler listing', '/schema/crawlers'],
+  ] as const
   const site = [
     ['home', '/'],
-    ['a listing', '/schema/chassis'],
     ['about', '/about'],
     ['changelog', '/changelog'],
     ['the 404', '/404'],
   ] as const
 
-  for (const [name, path] of [...book, ...site]) {
+  for (const [name, path] of [...book, ...listings, ...site]) {
     it(`${name} has exactly one footer landmark, carrying the licence`, () => {
       const html = page(path)
       expect(html.match(/<footer\b/g)?.length).toBe(1)
@@ -178,6 +181,19 @@ describe('every page ends on one footer (boards 06, 07)', () => {
     const html = page('/schema/chassis/item/gopher')
     expect(html).toMatch(/<footer[^>]*>[\s\S]*p\.112[\s\S]*<\/footer>/)
   })
+
+  for (const [name, path] of listings) {
+    it(`${name} ends in its chapter’s band, citing nothing`, () => {
+      const html = page(path)
+      const [head] = backgrounds(html, 'su-chapter-band')
+      const feet = backgrounds(html, 'su-chapter-foot')
+      expect(feet).toHaveLength(1)
+      expect(feet[0]).not.toBe(backgrounds(page('/'), 'su-chapter-foot')[0])
+      // A crawler foot carries text, so it takes the deeper pink (§3.8).
+      if (path.startsWith('/schema/crawlers')) expect(feet[0]).not.toBe(head)
+      else expect(feet[0]).toBe(head)
+    })
+  }
 
   for (const [name, path] of site) {
     it(`${name} ends on the one rules-blue band, citing nothing`, () => {

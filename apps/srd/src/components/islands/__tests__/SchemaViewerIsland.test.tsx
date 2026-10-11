@@ -29,9 +29,7 @@ describe('SchemaViewerIsland', () => {
     window.location.href = 'http://localhost/'
   })
 
-  it('renders FilterRow labels as visible text for filter sections', () => {
-    // FilterRow renders a visible <span> label — old code used aria-label (not visible text)
-    // Verifies FilterRow is used rather than the old manual div+role="group" pattern
+  it("names the rail's facets: the Tech Level toggle and the Source menu", () => {
     const firstSchema = required(entitySchemas[0], 'first entity schema')
 
     const { container } = render(
@@ -42,12 +40,13 @@ describe('SchemaViewerIsland', () => {
       />
     )
 
-    // FilterRow renders the label as visible text in a <span>. Scope to the
-    // filter rail — entity cards (e.g. granted equipment) also surface a
-    // "Tech Level" badge in the grid.
-    const filterRail = required(container.querySelector('aside'), 'the <aside> filter rail')
-    expect(within(filterRail).getByText('Tech Level')).toBeTruthy()
-    expect(within(filterRail).getByText('Source')).toBeTruthy()
+    // Scope to the rail: entity cards also surface a "Tech Level" cell in the grid.
+    const filterRail = required(
+      container.querySelector<HTMLElement>('.srd-rail'),
+      'the filter rail'
+    )
+    expect(within(filterRail).getByRole('group', { name: 'Tech Level' })).toBeTruthy()
+    expect(within(filterRail).getByRole('combobox', { name: 'Source' })).toBeTruthy()
   })
 
   for (const schema of entitySchemas) {
@@ -169,10 +168,11 @@ describe('SchemaViewerIsland', () => {
       />
     )
 
-    // Click the 'Nope' source filter chip — no entity carries this source, so the
-    // grid should be empty and the empty-state message + clear button appear.
-    const nopeChip = screen.getByRole('button', { name: 'Nope' })
-    fireEvent.click(nopeChip)
+    // Pick the 'Nope' source — no entity carries it, so the grid empties and
+    // the empty-state message + clear button appear.
+    fireEvent.change(screen.getByRole('combobox', { name: 'Source' }), {
+      target: { value: 'Nope' },
+    })
 
     expect(screen.getByText('No items match the current filters.')).toBeTruthy()
 
@@ -238,7 +238,7 @@ describe('SchemaViewerIsland', () => {
     expect(links.length).toBeLessThan(entities.length)
   })
 
-  it('tree filter: renders a Tree FilterRow only for the abilities schema', () => {
+  it('tree filter: renders a Tree menu for the abilities schema', () => {
     const abilitiesModel = required(getModel('abilities'), 'abilities model')
     const entities = abilitiesModel.all()
 
@@ -251,11 +251,14 @@ describe('SchemaViewerIsland', () => {
       />
     )
 
-    const filterRail = required(container.querySelector('aside'), 'the <aside> filter rail')
-    expect(within(filterRail).getByText('Tree')).toBeTruthy()
+    const filterRail = required(
+      container.querySelector<HTMLElement>('.srd-rail'),
+      'the filter rail'
+    )
+    expect(within(filterRail).getByRole('combobox', { name: 'Tree' })).toBeTruthy()
   })
 
-  it('tree filter: clicking a tree chip shows only that tree’s abilities', () => {
+  it('tree filter: picking a tree shows only that tree’s abilities', () => {
     const abilitiesModel = required(getModel('abilities'), 'abilities model')
     const entities = abilitiesModel.all()
     const trees = getUniqueTrees(entities)
@@ -271,8 +274,7 @@ describe('SchemaViewerIsland', () => {
       />
     )
 
-    const treeChip = screen.getByRole('button', { name: tree })
-    fireEvent.click(treeChip)
+    fireEvent.change(screen.getByRole('combobox', { name: 'Tree' }), { target: { value: tree } })
 
     const links = document.querySelectorAll('a[aria-label]')
     const matching = entities.filter((e) => getTree(e) === tree)
@@ -333,7 +335,7 @@ describe('SchemaViewerIsland', () => {
     }
   })
 
-  // The listing's default is one header-only row per entity (ruleset §1,
+  // The listing's default is one compact card per entity (ruleset §1,
   // Listing); the Catalog toggle swaps in the artwork tiles.
   describe('List | Catalog', () => {
     const chassisEntities = () => required(getModel('chassis'), 'chassis model').all()
@@ -348,11 +350,34 @@ describe('SchemaViewerIsland', () => {
       )
     }
 
-    it('defaults to the list: one header-only row per entity, each a named link', () => {
+    it('defaults to the list: one compact card per entity, each a named link', () => {
       const { container } = renderChassis()
       expect(screen.getByRole('button', { name: 'List' }).getAttribute('aria-pressed')).toBe('true')
-      const rows = container.querySelectorAll('.srd-listing__rows > li > a[aria-label]')
+      const rows = container.querySelectorAll('.srd-listing__cards > li > a[aria-label]')
       expect(rows.length).toBe(chassisEntities().length)
+    })
+
+    it('groups the list by tech level, each group under its slab, with no TL cell on the cards', () => {
+      const { container } = renderChassis()
+      const groups = container.querySelectorAll('.srd-listing__group')
+      const levels = new Set(chassisEntities().map((e) => String(getTechLevel(e))))
+      expect(groups.length).toBe(levels.size)
+      expect(groups[0]?.getAttribute('aria-label')).toBe('Tech Level 1')
+      // The group heading says the tech level, so no card repeats it.
+      expect(
+        within(container.querySelector('.srd-listing__cards') as HTMLElement).queryByText('TL')
+      ).toBeNull()
+    })
+
+    it('shows the filtered count and a removable token only while a filter is on', () => {
+      const { container } = renderChassis()
+      expect(container.querySelector('.srd-rail__status')).toBeNull()
+      fireEvent.click(screen.getByRole('button', { name: 'Tech Level 2' }))
+      const status = required(container.querySelector('.srd-rail__status'), 'the status line')
+      const matching = chassisEntities().filter((e) => getTechLevel(e) === 2)
+      expect(status.textContent).toContain(`${matching.length} of ${chassisEntities().length}`)
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Tech Level 2' }))
+      expect(container.querySelector('.srd-rail__status')).toBeNull()
     })
 
     it('Catalog swaps in the tiles and records the view in the URL', () => {
@@ -361,7 +386,7 @@ describe('SchemaViewerIsland', () => {
       try {
         const { container } = renderChassis()
         fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
-        expect(container.querySelector('.srd-listing__rows')).toBeNull()
+        expect(container.querySelector('.srd-listing__cards')).toBeNull()
         expect(container.querySelectorAll('a[aria-label]').length).toBe(chassisEntities().length)
         const urls = replaceSpy.mock.calls.map((c) => String(c[2]))
         expect(urls.some((u) => u.includes('view=catalog'))).toBe(true)
@@ -376,7 +401,7 @@ describe('SchemaViewerIsland', () => {
       expect(screen.getByRole('button', { name: 'Catalog' }).getAttribute('aria-pressed')).toBe(
         'true'
       )
-      expect(container.querySelector('.srd-listing__rows')).toBeNull()
+      expect(container.querySelector('.srd-listing__cards')).toBeNull()
     })
   })
 })

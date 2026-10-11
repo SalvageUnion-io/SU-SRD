@@ -113,7 +113,7 @@ and the surface/mode taxonomy of [ADR-021](../ARCHITECTURE.md#adr-021).
 | **Reference**  | The book, verbatim   | Cream/paper, read-only                                     | None. No play-state — no current values, conditions, controls. The only rust is an inline link.     |
 | **Live Sheet** | The pencil           | Same paper + editability                                   | `free` — dashed borders & steppers are the only "write here" cues; rules show but never gate.       |
 | **Dashboard**  | The instrument panel | **Paper instruments on a dark ground**, geometry identical | The only transactional surface: bookkeeping `auto`+undo; destruction `confirm`+undo; Change Log.    |
-| **Listing**    | One line, one click  | Header-only rows                                           | Nothing editable/expandable in place. Identify + click-through; nested entities live in the parent. |
+| **Listing**    | One card, one click  | Compact cards                                              | Nothing editable/expandable in place. Identify + click-through; nested entities live in the parent. |
 | **Tooltip**    | The glance           | Dense, lifted plate                                        | Terminal — no buttons, links, nested tooltips, or steppers, ever. Reuses the dense variants.        |
 
 **Automation vocabulary** (used in the matrix below):
@@ -128,7 +128,7 @@ and the surface/mode taxonomy of [ADR-021](../ARCHITECTURE.md#adr-021).
 - **Reference:** if it can't appear in the printed manual, it can't appear here.
 - **Live Sheet:** overrides are visibly non-canonical (dashed ring) **and logged**; the sheet never auto-applies. **Print reads, pencil writes:** the read state is typeset (label + value, empty fields omitted); dashed fields and steppers appear only in the edit state.
 - **Dashboard:** _every_ mutation of a pilot, mech or crawler writes a Change Log row, and every roll a row in the Game's log; the seat (mount, range, effects, the resolve) is shared play state and is not logged. Geometry is identical to the sheet. **The cockpit is warm-paper instruments on a dark ground** — three depth levels, all canonical tokens, no private layer and no gradients: the ground (`--color-ink-deep`, both the surround and the canvas behind the instruments), the instrument chassis (`--color-band-cream` — EVERY cockpit card: rail, the Major slot, the two Minor slots, and the overlays that open over them), and the one document surface (`--color-paper` — the display region alone, the thing the cockpit is reading). One card background throughout: the Major slot is not lit differently from the Minors beside it, because it is already marked by its size — emphasis comes from the frame, not the fill. This supersedes two earlier revisions: the original dark _instrument skin_ (which also named itself the one sanctioned pure-white exception in §4.1), and the all-paper flip that replaced it. The all-paper revision was correct to put the instruments and their type in the book vocabulary, but it left every region the same white box, so the ground was darkened back to restore the hierarchy the hairlines alone could not carry. The instruments themselves stay paper/ink — the dark is a framing ground, not a skin. Ratified here. **The cost pennant is the action button** (#1250): an action is resolved by tapping its pennant, which is the same size and shape as the read pennant, filled rust, with a 44px invisible hit area — there is no separate deck button. **The Dashboard stays flat:** no texture (§3.5). On a phone, the ground is the bar, the chassis is the tab body and the document is the resolve screen ([ADR-045](../ARCHITECTURE.md#adr-045)).
-- **Listing:** the row's whole job is identify + click-through; nested entities live inside the parent's expanded view. **A compact (head-extent) card is one line:** it never wraps; a long name truncates with "…" and keeps the full name in a tooltip, and the stats, pennant and chevron never wrap.
+- **Listing:** the row's whole job is identify + click-through; nested entities live inside the parent's expanded view. **The compact card (head extent) is the one rendering for a card that is a row** — a listing, search, a sheet slot, a deck, a nested card at depth 2. Its anatomy never changes: the **art column** (the entity's artwork, the card's full height, where it has some), the **head row** (tier numeral, the name, the cost pennant, the chevron — one row that never wraps; the name wraps to two lines inside it before it clamps with "…" and keeps its full name in a tooltip) and a **paper body** (the value cells at `Stat`'s `full` rung, then the "//" line on the same line while it fits). Context changes props, never the anatomy: a listing of one kind drops the seam stamp (`hide.seam`) and any cell its group heading already says (`hide.statKeys`), and keeps an empty art column where other entities in it have art (`artSlot`); a context with no room for art hides it (`hide.image`). The shortform (`size="small"`) stays the inline token. The SRD listing groups its cards the way the book prints them (by tech level, tree or class kind) under solid slabs, and ends on its chapter's foot band.
 - **Tooltip:** a glance and a page must never disagree — the tooltip reuses the dense variants, nothing inside acts.
 
 ---
@@ -177,7 +177,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 | **Cost (AP/EP)**   | Cost pennant                     | Cost pennant read-only                                   | pennant IS the rust Btn (read-pennant size, 44px hit) · tap spends `auto` | Cost pennant                              | Cost pennant                   |
 | **Range**          | Range badge + tooltip            | Range badge (never interactive)                          | Range badge                                                               | Range badge                               | badge (own tooltip suppressed) |
 | **Action type**    | Action-type stamp                | stamp                                                    | stamp = deck source-filter key                                            | stamp                                     | stamp                          |
-| **Entity card**    | Card full — THE canonical render | Card compact→expand · chrome layered on, never replacing | Card instrument-skin · actions → deck                                     | Card header-only row, one line, clickable | Card dense hovercard           |
+| **Entity card**    | Card full — THE canonical render | Card compact→expand · chrome layered on, never replacing | Card instrument-skin · actions → deck                                     | Compact card (art · head · body), clickable | Card dense hovercard         |
 | **Section header** | Slab                             | Slab                                                     | Slab instrument                                                           | Slab divider                              | — (bare Stamp at most)         |
 | **Source**         | in card foot                     | Change Log row (provenance = history)                    | Change Log row, instrument                                                | dense                                     | —                              |
 
@@ -308,7 +308,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    **User-made** stamp on the header seam (its tooltip: "Made by a player, not
    from the Workshop Manual"), a dashed footer rule and dashed pills, and a
    credit that reads just "Made by [user]" in place of a page citation. The
-   treatment holds at every size and extent, the one-line compact row
+   treatment holds at every size and extent, the compact card
    included, and in a link preview (§4.6). On a full page it also gets a **hatched band** (a hard-stop
    `repeating-linear-gradient`, §3.5), a dashed frame around the notched title
    and a banner naming the maker. Pilots, mechs and crawlers built from canon
@@ -554,7 +554,7 @@ actions, which sit inline as above):
 - **one tone per entity** — a child wears its own tone, never a blend of its
   parent's;
 - **a size step per depth:** large at depth 0, medium at depth 1, and **depth 2
-  renders as a header-only, one-line, clickable row**; the frame steps
+  renders as the compact card, clickable** (§1 Listing); the frame steps
   3 → 2 → 1.5px (§4.3);
 - **no prose a parent already shows** — a child hides what its parent prints;
 - **actions below depth 1 collapse to a "Show N actions" chip;**

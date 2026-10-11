@@ -2,8 +2,10 @@
  * `/schema/[schemaId]` — the per-schema listing page.
  *
  * Headed by its chapter's band (the schema's plural name notched in, its entry
- * count stamped beside it), then the listing: one header-only row per entity
- * by default, with a Catalog toggle for the artwork tiles.
+ * count stamped beside it), then the listing: one compact card per entity, in
+ * the groups the book prints them in, by default, with a Catalog toggle for the
+ * artwork tiles. It ends on the same chapter's band (`foot`), as an entity page
+ * does.
  *
  * `SchemaViewerIsland` is `ssr={true}` (see the per-island table in
  * `ssg/DESIGN.md`), but what it server-renders is `SchemaItemLinks`, not the
@@ -35,8 +37,8 @@ const MEASURE = '87.5rem'
 /** One named row per entity, in the list view's own grid, for the server render. */
 function SchemaItemLinks({ schemaId, data }: { schemaId: string; data: SURefEntity[] }) {
   return (
-    <div className="mx-auto w-full max-w-[1400px] px-2 pt-2 pb-6 md:px-6">
-      <ul className="srd-listing__rows">
+    <div className="srd-listing">
+      <ul className="srd-listing__cards">
         {data.map((item) => (
           <li key={item.id}>
             <a
@@ -104,8 +106,10 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       ],
       breadcrumbDescription: schema.description,
     },
+    // The listing ends on its chapter's band, as its entity pages do.
+    foot: { tone: chapter.tone, measure: MEASURE },
     children: (
-      <div className="flex min-h-full flex-col">
+      <div className="srd-listing-shell">
         {/* The chapter band is the visible heading: the plural name in the
             notch and the count beside it. The description rides the trail. */}
         <ChapterBand
@@ -119,7 +123,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         >
           {pluralName}
         </ChapterBand>
-        <div className="flex flex-0 flex-col bg-wk-bg px-2 pt-4 pb-8 md:px-8">
+        <div className="srd-listing-page">
           <Island
             name="SchemaViewerIsland"
             client="visible"

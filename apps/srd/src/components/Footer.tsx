@@ -23,7 +23,7 @@ const PAPER_ON = new Set<PageFoot['tone']>(['denizen', 'crawler', 'ink'])
 type FooterProps = {
   /** URL for the "Powered by Salvage" mark, from the app's public dir. */
   poweredBySalvageUrl: string
-  /** A book page's foot: its chapter tone and citation. Absent → the rules-blue band. */
+  /** A book page's foot: its chapter tone and citation (a listing: the tone alone). Absent → the rules-blue band. */
   foot?: PageFoot
 }
 
@@ -84,8 +84,10 @@ function End({ src, onPaper }: { src: string; onPaper: boolean }) {
  *   chapter's foot band: the page cite set large and the book at the end, then
  *   the licence row in the same tone under the band's ink rule. One band, so
  *   the page does not close twice.
- * - **Every other page** (home, listings, guides, about; board 06) ends on the
- *   slim rules-blue band of the Contents chapter.
+ * - **A schema listing** ends on its chapter's band too, with the licence row
+ *   alone: it cites no page.
+ * - **Every other page** (home, guides, about; board 06) ends on the slim
+ *   rules-blue band of the Contents chapter.
  */
 export function Footer({ poweredBySalvageUrl, foot }: FooterProps) {
   const tone = foot?.tone ?? 'rules'

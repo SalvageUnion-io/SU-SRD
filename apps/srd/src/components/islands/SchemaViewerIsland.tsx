@@ -1,35 +1,30 @@
 import {
-  Badge,
   Button,
   EmptyState,
   EntityDetailLinkProvider,
   EntityHrefProvider,
-  FilterRow,
   MasonryColumns,
+  SearchField,
+  Select,
   Skeleton,
-  TECH_LEVEL_STYLES,
-  techLevelLabel,
+  Slab,
 } from 'component-lib'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { getEntitySlug, getModel, getSource, getTechLevel, getTree } from 'salvageunion-reference'
+import {
+  getAssetUrl,
+  getEntitySlug,
+  getModel,
+  getSource,
+  getTechLevel,
+  getTree,
+} from 'salvageunion-reference'
 import { itemHref, srdEntityHref } from '../../lib/entityHref'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate } from '../../lib/useGameData'
 import { EntityCatalogTile } from './EntityCatalogTile'
 import { EntityListingRow } from './EntityListingRow'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
-
-// Hoisted to a stable module-level reference.
-//
-// The original comment justified this by "the `memo()` on ReferenceEntityCard".
-// There is no such memo — the card is a plain `export function` and `React.memo`
-// appears nowhere in this repo as code. Three separate comments asserted it.
-//
-// The hoist stays: a fresh inline object per render is what would defeat a memo,
-// so a stable identity here is the precondition for adding one, and it is free.
-// The cost it describes is real either way — each keystroke in the name filter
-// re-renders every card today, unmemoized.
 
 // URL query-param keys the filter state is synced to, so a filtered view is
 // bookmarkable/shareable and survives back-navigation.
@@ -41,8 +36,8 @@ const PARAM_VIEW = 'view'
 
 /**
  * How the listing lays its entities out (ruleset §1, the Listing context):
- * `list` — one header-only row each (`extent="head"`), the default, so a
- * listing reads as a scannable index; `catalog` — the artwork tiles.
+ * `list` — one compact card each (`extent="head"`), the default, so a listing
+ * reads as a scannable index; `catalog` — the artwork tiles.
  */
 export type ListingView = 'list' | 'catalog'
 
@@ -67,9 +62,95 @@ function readUrlSet(name: string): Set<string> {
   return new Set(raw ? raw.split(',').filter(Boolean) : [])
 }
 
+/** A single-choice param; an older shared link's comma list keeps its first entry. */
+function readUrlChoice(name: string): string {
+  return readUrlParam(name).split(',')[0] ?? ''
+}
+
+type TechLevel = number | 'B' | 'N'
+
+/** The book's tech-level order: TL1–6, then Bio-tech and Nanite. */
+const TL_ORDER: readonly TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
+
+/** A tech level as the rail's toggle prints it: the numeral, or the word. */
+function tlButtonLabel(level: TechLevel): string {
+  return level === 'B' ? 'Bio' : level === 'N' ? 'Nanite' : String(level)
+}
+
+/** A tech level as a group heading and a filter token say it. */
+function tlName(level: TechLevel): string {
+  return level === 'B' ? 'Bio-tech' : level === 'N' ? 'Nanite' : `Tech Level ${level}`
+}
+
+/** The source as the menu prints it: the core rulebook's series prefix is noise there. */
+function shortSource(source: string): string {
+  return source.replace(/^Salvage Union /, '')
+}
+
+/** A listing's groups, in the order the book prints them. */
+type ListingGroup = { key: string; label: string | undefined; items: SURefEntity[] }
+
+/**
+ * How a listing groups its entities, by data shape: abilities by tree, gear and
+ * chassis by tech level, classes into base and hybrid. The group heading then
+ * says what each card would otherwise repeat (the tree on its seam, its TL cell).
+ */
+type GroupBy = 'tree' | 'tl' | 'kind' | 'none'
+
+function resolveGroupBy(items: SURefEntity[], trees: string[], techLevels: TechLevel[]): GroupBy {
+  if (trees.length > 1) return 'tree'
+  if (techLevels.length > 1 && items.every((item) => getTechLevel(item) != null)) return 'tl'
+  if (items.length > 0 && items.every((item) => 'hybrid' in item)) return 'kind'
+  return 'none'
+}
+
+function groupEntities(items: SURefEntity[], groupBy: GroupBy): ListingGroup[] {
+  if (groupBy === 'none') return [{ key: 'all', label: undefined, items }]
+  const byKey = new Map<string, ListingGroup>()
+  for (const item of items) {
+    const tl = getTechLevel(item)
+    const tree = getTree(item)
+    const hybrid = 'hybrid' in item && item.hybrid === true
+    const key =
+      groupBy === 'tree'
+        ? String(tree ?? '')
+        : groupBy === 'tl'
+          ? String(tl ?? '')
+          : hybrid
+            ? 'hybrid'
+            : 'base'
+    const label =
+      groupBy === 'tree'
+        ? `${String(tree ?? '')} Tree`
+        : groupBy === 'tl'
+          ? tl != null
+            ? tlName(tl)
+            : ''
+          : hybrid
+            ? 'Hybrid Classes'
+            : 'Base Classes'
+    const group = byKey.get(key) ?? { key, label, items: [] }
+    group.items.push(item)
+    byKey.set(key, group)
+  }
+  const groups = [...byKey.values()]
+  if (groupBy === 'tl') {
+    const rank = (key: string) => TL_ORDER.findIndex((tl) => String(tl) === key)
+    groups.sort((a, b) => rank(a.key) - rank(b.key))
+  }
+  if (groupBy === 'kind') groups.sort((a) => (a.key === 'base' ? -1 : 1))
+  return groups
+}
+
+/**
+ * Listings whose cards carry a long row of value cells take a wider column, so
+ * the cells hold one line beside the art (two across at the page's measure).
+ */
+const WIDE_LISTINGS: ReadonlySet<string> = new Set(['chassis'])
+
 type SchemaViewerIslandProps = {
   schemaId: string
-  techLevels: (number | 'B' | 'N')[]
+  techLevels: TechLevel[]
   sources: string[]
   /** Ability trees to offer as a filter facet; only abilities carry a tree, so
    *  this defaults to empty and the facet is hidden for every other schema. */
@@ -78,10 +159,6 @@ type SchemaViewerIslandProps = {
    *  from `../../lib/schemaPreloadDeps.ts` to load only what this listing needs. */
   preloadSchemas?: SchemaList
 }
-
-// Browse layout: filters always stack in a bar above the entity grid (at every
-// breakpoint), with the grid spanning full width below them.
-const containerClass = 'mx-auto w-full max-w-[1400px]'
 
 /**
  * The listing's entities are not a prop: inlined into the page they were up to
@@ -95,15 +172,15 @@ export function SchemaViewerIsland({ preloadSchemas, ...props }: SchemaViewerIsl
       <GameDataGate
         schemas={preloadSchemas}
         fallback={
-          <div className={containerClass}>
-            <div className="w-full min-w-0 px-2 pb-6 md:px-6">
-              <MasonryColumns>
-                {Array.from({ length: 9 }, (_, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: static 9-item skeleton placeholder list, never reordered — index is stable
-                  <Skeleton key={i} mode="card" compact />
-                ))}
-              </MasonryColumns>
-            </div>
+          <div className="srd-listing">
+            <ul className="srd-listing__cards">
+              {Array.from({ length: 9 }, (_, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: static 9-item skeleton placeholder list, never reordered — index is stable
+                <li key={i}>
+                  <Skeleton mode="card" compact />
+                </li>
+              ))}
+            </ul>
           </div>
         }
       >
@@ -128,10 +205,12 @@ function SchemaViewer({
   const [techLevelFilters, setTechLevelFilters] = useState<Set<string>>(() =>
     readUrlSet(PARAM_TECH_LEVEL)
   )
-  const [sourceFilters, setSourceFilters] = useState<Set<string>>(() => readUrlSet(PARAM_SOURCE))
-  const [treeFilters, setTreeFilters] = useState<Set<string>>(() => readUrlSet(PARAM_TREE))
+  const [sourceFilter, setSourceFilter] = useState(() => readUrlChoice(PARAM_SOURCE))
+  const [treeFilter, setTreeFilter] = useState(() => readUrlChoice(PARAM_TREE))
   const [nameFilter, setNameFilter] = useState(() => readUrlParam(PARAM_NAME))
   const [view, setView] = useState<ListingView>(readListingView)
+  // On a phone the facets fold behind one button (the CSS decides when).
+  const [facetsOpen, setFacetsOpen] = useState(false)
 
   // Push filter state back into the URL (replaceState — bookmarkable/shareable
   // without spamming history on every keystroke). Idempotent: only writes when
@@ -145,8 +224,8 @@ function SchemaViewer({
       else params.delete(key)
     }
     setOrDelete(PARAM_TECH_LEVEL, [...techLevelFilters].join(','))
-    setOrDelete(PARAM_SOURCE, [...sourceFilters].join(','))
-    setOrDelete(PARAM_TREE, [...treeFilters].join(','))
+    setOrDelete(PARAM_SOURCE, sourceFilter)
+    setOrDelete(PARAM_TREE, treeFilter)
     setOrDelete(PARAM_NAME, nameFilter)
     setOrDelete(PARAM_VIEW, view === 'catalog' ? 'catalog' : '')
     const qs = params.toString()
@@ -155,269 +234,308 @@ function SchemaViewer({
     if (nextUrl !== currentUrl) {
       window.history.replaceState(window.history.state, '', nextUrl)
     }
-  }, [techLevelFilters, sourceFilters, treeFilters, nameFilter, view])
+  }, [techLevelFilters, sourceFilter, treeFilter, nameFilter, view])
 
   const filteredData = useMemo(() => {
+    const name = nameFilter.toLowerCase()
     return initialData.filter((item) => {
       if (techLevelFilters.size > 0) {
-        const techLevel = getTechLevel(item)
-        const itemTechLevel = techLevel?.toString()
-        if (!itemTechLevel || !techLevelFilters.has(itemTechLevel)) {
-          return false
-        }
+        const itemTechLevel = getTechLevel(item)?.toString()
+        if (!itemTechLevel || !techLevelFilters.has(itemTechLevel)) return false
       }
-
-      if (sourceFilters.size > 0) {
-        const itemSource = getSource(item)
-        if (!itemSource || !sourceFilters.has(itemSource)) {
-          return false
-        }
-      }
-
-      if (treeFilters.size > 0) {
-        const itemTree = getTree(item)
-        if (typeof itemTree !== 'string' || !treeFilters.has(itemTree)) {
-          return false
-        }
-      }
-
-      if (nameFilter) {
-        if (!item.name.toLowerCase().includes(nameFilter.toLowerCase())) {
-          return false
-        }
-      }
-
+      if (sourceFilter && getSource(item) !== sourceFilter) return false
+      if (treeFilter && getTree(item) !== treeFilter) return false
+      if (name && !item.name.toLowerCase().includes(name)) return false
       return true
     })
-  }, [initialData, techLevelFilters, sourceFilters, treeFilters, nameFilter])
+  }, [initialData, techLevelFilters, sourceFilter, treeFilter, nameFilter])
 
-  const toggleTechLevel = (level: number | 'B' | 'N') => {
+  const orderedTechLevels = useMemo(
+    () => TL_ORDER.filter((tl) => techLevels.some((level) => String(level) === String(tl))),
+    [techLevels]
+  )
+  const groupBy = resolveGroupBy(initialData, trees, orderedTechLevels)
+  const groups = useMemo(() => groupEntities(filteredData, groupBy), [filteredData, groupBy])
+  // Where some entities have art, every card keeps the column so names align.
+  const artSlot = useMemo(() => initialData.some((item) => !!getAssetUrl(item)), [initialData])
+  // A single-kind listing: no seam stamp, and no TL cell when the tech level heads the group.
+  const cardHide = useMemo(
+    () => ({ seam: true, statKeys: groupBy === 'tl' ? ['tech-level'] : undefined }),
+    [groupBy]
+  )
+
+  const toggleTechLevel = (level: TechLevel) => {
     setTechLevelFilters((prev) => {
-      if (prev.size === 0) return new Set([String(level)])
       const next = new Set(prev)
       const key = String(level)
       if (next.has(key)) next.delete(key)
       else next.add(key)
-      if (techLevels.every((tl) => next.has(String(tl)))) return new Set()
+      if (orderedTechLevels.every((tl) => next.has(String(tl)))) return new Set()
       return next
     })
   }
 
-  const toggleSource = (source: string) => {
-    setSourceFilters((prev) => {
-      if (prev.size === 0) return new Set([source])
-      const next = new Set(prev)
-      if (next.has(source)) next.delete(source)
-      else next.add(source)
-      if (sources.every((s) => next.has(s))) return new Set()
-      return next
-    })
-  }
-
-  const toggleTree = (tree: string) => {
-    setTreeFilters((prev) => {
-      if (prev.size === 0) return new Set([tree])
-      const next = new Set(prev)
-      if (next.has(tree)) next.delete(tree)
-      else next.add(tree)
-      if (trees.every((t) => next.has(t))) return new Set()
-      return next
-    })
-  }
-
+  const hasTechLevels = orderedTechLevels.length > 1
+  const hasSources = sources.length > 1
+  const hasTrees = trees.length > 1
+  const hasFacets = hasTechLevels || hasSources || hasTrees
   // Show the name input whenever the dataset is large enough to benefit from it
   const hasNameFilter = initialData.length > 12
 
-  const hasActiveFilters =
-    techLevelFilters.size > 0 || sourceFilters.size > 0 || treeFilters.size > 0 || nameFilter !== ''
-
+  const activeFacets = techLevelFilters.size + (sourceFilter ? 1 : 0) + (treeFilter ? 1 : 0)
+  const hasActiveFilters = activeFacets > 0 || nameFilter !== ''
   const clearFilters = () => {
     setTechLevelFilters(new Set())
-    setSourceFilters(new Set())
-    setTreeFilters(new Set())
+    setSourceFilter('')
+    setTreeFilter('')
     setNameFilter('')
   }
 
   return (
-    <div className={containerClass}>
-      {/* Always shown: the List | Catalog toggle heads it even where there is
-          nothing to filter. */}
-      <aside className="mb-6 flex w-full flex-col gap-4 px-2 pt-2 md:px-6 print:hidden">
-        <FilterRow label="View">
+    <div className="srd-listing" data-wide={WIDE_LISTINGS.has(schemaId) || undefined}>
+      {/* THE RAIL — one row of 44px controls: search, the TL badge, the menus,
+          then List | Catalog. On a phone the facets fold behind Filters. */}
+      <div className="srd-rail" data-open={facetsOpen || undefined}>
+        {hasNameFilter && (
+          <SearchField
+            type="search"
+            name="name-filter"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+            placeholder={`Filter ${initialData.length} by name`}
+            aria-label="Filter items by name"
+            containerClassName="srd-rail__search"
+            glyphSize={18}
+          />
+        )}
+        {hasFacets && (
+          <button
+            type="button"
+            className="srd-rail__filters su-focus-ring"
+            aria-expanded={facetsOpen}
+            aria-controls="srd-rail-facets"
+            onClick={() => setFacetsOpen((open) => !open)}
+          >
+            Filters
+            {activeFacets > 0 && <span className="srd-rail__count">{activeFacets}</span>}
+          </button>
+        )}
+        <span className="srd-rail__spring" />
+        <fieldset className="srd-seg">
+          <legend className="srd-vh">View</legend>
           {(['list', 'catalog'] as const).map((option) => (
-            <Badge
+            <button
               key={option}
-              shape="chip"
-              as="button"
+              type="button"
+              className="srd-seg__option su-focus-ring"
               aria-pressed={view === option}
-              surface={view === option ? 'solid' : 'ghost'}
               onClick={() => setView(option)}
             >
               {option === 'list' ? 'List' : 'Catalog'}
-            </Badge>
+            </button>
           ))}
-        </FilterRow>
-        {/* Search + Tech Level sit side by side on normal-sized screens
-                  (md+), stacking on narrow viewports. Source stays on its own row. */}
-        {(hasNameFilter || techLevels.length > 1) && (
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-6">
-            {hasNameFilter && (
-              <div className="md:shrink-0">
-                <FilterRow label="Name">
-                  <input
-                    type="search"
-                    name="name-filter"
-                    value={nameFilter}
-                    onChange={(e) => setNameFilter(e.target.value)}
-                    placeholder="Filter by name…"
-                    aria-label="Filter items by name"
-                    // `text-base`, not `text-caption`: iOS Safari zooms the
-                    // viewport on a focused control under 16px, and this is
-                    // the filter a phone user reaches for first on a schema
-                    // listing. See the note in `chrome/inputs.tsx`.
-                    className="w-full rounded-card border border-ink bg-paper px-2 py-1 font-body text-base md:w-64"
-                  />
-                </FilterRow>
-              </div>
-            )}
-            {techLevels.length > 1 && (
-              <div className="md:flex-1">
-                <FilterRow label="Tech Level">
-                  <Badge
-                    shape="chip"
-                    as="button"
-                    aria-pressed={techLevelFilters.size === 0}
-                    surface={techLevelFilters.size === 0 ? 'solid' : 'ghost'}
-                    onClick={() => setTechLevelFilters(new Set())}
+        </fieldset>
+        {hasFacets && (
+          <div className="srd-rail__facets" id="srd-rail-facets">
+            {hasTechLevels && (
+              <fieldset className="srd-seg srd-seg--tl">
+                <legend className="srd-vh">Tech Level</legend>
+                <span className="srd-seg__stamp" aria-hidden="true">
+                  TL
+                </span>
+                <button
+                  type="button"
+                  className="srd-seg__option su-focus-ring"
+                  aria-pressed={techLevelFilters.size === 0}
+                  onClick={() => setTechLevelFilters(new Set())}
+                >
+                  All
+                </button>
+                {orderedTechLevels.map((level) => (
+                  <button
+                    key={String(level)}
+                    type="button"
+                    className="srd-seg__option su-focus-ring"
+                    data-numeral={typeof level === 'number' || undefined}
+                    aria-pressed={techLevelFilters.has(String(level))}
+                    aria-label={tlName(level)}
+                    onClick={() => toggleTechLevel(level)}
                   >
-                    All
-                  </Badge>
-                  {techLevels.map((level) => {
-                    const numericLevel = typeof level === 'number' ? level : undefined
-                    const swatch =
-                      numericLevel !== undefined ? `var(--color-tl-${numericLevel})` : undefined
-                    const active = techLevelFilters.has(String(level))
-                    return (
-                      // Numeric tiers carry a colour swatch; B/N have no swatch and
-                      // tint the active fill via TECH_LEVEL_STYLES (className override).
-                      <Badge
-                        key={String(level)}
-                        shape="chip"
-                        as="button"
-                        aria-pressed={active}
-                        surface={active ? 'solid' : 'ghost'}
-                        swatch={swatch}
-                        className={active && !swatch ? TECH_LEVEL_STYLES[String(level)] : undefined}
-                        onClick={() => toggleTechLevel(level)}
-                      >
-                        {techLevelLabel(level)}
-                      </Badge>
-                    )
-                  })}
-                </FilterRow>
-              </div>
+                    {tlButtonLabel(level)}
+                  </button>
+                ))}
+              </fieldset>
+            )}
+            {hasSources && (
+              <Select
+                chevron
+                aria-label="Source"
+                className="srd-rail__menu"
+                data-on={sourceFilter ? true : undefined}
+                value={sourceFilter}
+                onChange={(e) => setSourceFilter(e.target.value)}
+              >
+                <option value="">All sources</option>
+                {sources.map((source) => (
+                  <option key={source} value={source}>
+                    {shortSource(source)}
+                  </option>
+                ))}
+              </Select>
+            )}
+            {hasTrees && (
+              <Select
+                chevron
+                aria-label="Tree"
+                className="srd-rail__menu"
+                data-on={treeFilter ? true : undefined}
+                value={treeFilter}
+                onChange={(e) => setTreeFilter(e.target.value)}
+              >
+                <option value="">All {trees.length} trees</option>
+                {trees.map((tree) => (
+                  <option key={tree} value={tree}>
+                    {tree}
+                  </option>
+                ))}
+              </Select>
             )}
           </div>
         )}
-
-        {sources.length > 1 && (
-          <FilterRow label="Source">
-            <Badge
-              shape="chip"
-              as="button"
-              aria-pressed={sourceFilters.size === 0}
-              surface={sourceFilters.size === 0 ? 'solid' : 'ghost'}
-              onClick={() => setSourceFilters(new Set())}
-            >
-              All
-            </Badge>
-            {sources.map((source) => (
-              <Badge
-                key={source}
-                shape="chip"
-                as="button"
-                aria-pressed={sourceFilters.has(source)}
-                surface={sourceFilters.has(source) ? 'solid' : 'ghost'}
-                onClick={() => toggleSource(source)}
-              >
-                {source}
-              </Badge>
-            ))}
-          </FilterRow>
-        )}
-
-        {trees.length > 1 && (
-          <FilterRow label="Tree">
-            <Badge
-              shape="chip"
-              as="button"
-              aria-pressed={treeFilters.size === 0}
-              surface={treeFilters.size === 0 ? 'solid' : 'ghost'}
-              onClick={() => setTreeFilters(new Set())}
-            >
-              All
-            </Badge>
-            {trees.map((tree) => (
-              <Badge
-                key={tree}
-                shape="chip"
-                as="button"
-                aria-pressed={treeFilters.has(tree)}
-                surface={treeFilters.has(tree) ? 'solid' : 'ghost'}
-                onClick={() => toggleTree(tree)}
-              >
-                {tree}
-              </Badge>
-            ))}
-          </FilterRow>
-        )}
-      </aside>
-
-      {/* Entity Grid */}
-      <div className="w-full min-w-0 px-2 pb-6 md:px-6">
-        {filteredData.length === 0 ? (
-          <EmptyState
-            className="m-4"
-            headline="Nothing here"
-            body="No items match the current filters."
-            action={
-              hasActiveFilters ? (
-                <Button variant="primary" size="mini" onClick={clearFilters}>
-                  Clear filters
-                </Button>
-              ) : undefined
-            }
-          />
-        ) : (
-          <EntityHrefProvider value={srdEntityHref}>
-            <EntityDetailLinkProvider value={true}>
-              {view === 'catalog' ? (
-                <MasonryColumns>
-                  {filteredData.map((item: SURefEntity) => (
-                    <Suspense key={item.id} fallback={<Skeleton mode="card" compact />}>
-                      <EntityCatalogTile
-                        entity={item}
-                        href={itemHref(schemaId, getEntitySlug(item))}
-                      />
-                    </Suspense>
-                  ))}
-                </MasonryColumns>
-              ) : (
-                <ul className="srd-listing__rows">
-                  {filteredData.map((item: SURefEntity) => (
-                    <li key={item.id}>
-                      <EntityListingRow
-                        entity={item}
-                        href={itemHref(schemaId, getEntitySlug(item))}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </EntityDetailLinkProvider>
-          </EntityHrefProvider>
-        )}
       </div>
+
+      {/* What is filtered, only while something is: the count, a token per
+          filter that removes it, and Clear all. */}
+      {hasActiveFilters && filteredData.length > 0 && (
+        <output className="srd-rail__status" aria-live="polite">
+          <span className="srd-rail__tally">
+            {filteredData.length} of {initialData.length}
+          </span>
+          {[...techLevelFilters].map((key) => {
+            const level = orderedTechLevels.find((tl) => String(tl) === key)
+            if (level == null) return null
+            return (
+              <FilterToken
+                key={key}
+                label={typeof level === 'number' ? `TL ${level}` : tlButtonLabel(level)}
+                name={tlName(level)}
+                onRemove={() => toggleTechLevel(level)}
+              />
+            )
+          })}
+          {sourceFilter && (
+            <FilterToken
+              label={shortSource(sourceFilter)}
+              name={`source ${sourceFilter}`}
+              onRemove={() => setSourceFilter('')}
+            />
+          )}
+          {treeFilter && (
+            <FilterToken
+              label={treeFilter}
+              name={`tree ${treeFilter}`}
+              onRemove={() => setTreeFilter('')}
+            />
+          )}
+          {nameFilter && (
+            <FilterToken
+              label={`“${nameFilter}”`}
+              name="name filter"
+              onRemove={() => setNameFilter('')}
+            />
+          )}
+          <button type="button" className="srd-rail__clear su-focus-ring" onClick={clearFilters}>
+            Clear all
+          </button>
+        </output>
+      )}
+
+      {filteredData.length === 0 ? (
+        <EmptyState
+          headline="Nothing here"
+          body="No items match the current filters."
+          action={
+            hasActiveFilters ? (
+              <Button variant="primary" size="mini" onClick={clearFilters}>
+                Clear filters
+              </Button>
+            ) : undefined
+          }
+        />
+      ) : (
+        <EntityHrefProvider value={srdEntityHref}>
+          <EntityDetailLinkProvider value={true}>
+            {view === 'catalog' ? (
+              <MasonryColumns>
+                {filteredData.map((item: SURefEntity) => (
+                  <Suspense key={item.id} fallback={<Skeleton mode="card" compact />}>
+                    <EntityCatalogTile
+                      entity={item}
+                      href={itemHref(schemaId, getEntitySlug(item))}
+                    />
+                  </Suspense>
+                ))}
+              </MasonryColumns>
+            ) : (
+              <div className="srd-listing__groups">
+                {groups.map((group) => (
+                  <section key={group.key} className="srd-listing__group" aria-label={group.label}>
+                    {group.label && (
+                      <Slab variant="solid" label={group.label} count={group.items.length} />
+                    )}
+                    <ul className="srd-listing__cards">
+                      {group.items.map((item: SURefEntity) => (
+                        <li key={item.id}>
+                          <EntityListingRow
+                            entity={item}
+                            href={itemHref(schemaId, getEntitySlug(item))}
+                            hide={cardHide}
+                            artSlot={artSlot}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            )}
+          </EntityDetailLinkProvider>
+        </EntityHrefProvider>
+      )}
     </div>
+  )
+}
+
+/** One active filter, as a token that removes it. */
+function FilterToken({
+  label,
+  name,
+  onRemove,
+}: {
+  label: string
+  name: string
+  onRemove: () => void
+}) {
+  return (
+    <button
+      type="button"
+      className="srd-rail__token su-focus-ring"
+      aria-label={`Remove ${name}`}
+      onClick={onRemove}
+    >
+      {label}
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        aria-hidden="true"
+      >
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
   )
 }

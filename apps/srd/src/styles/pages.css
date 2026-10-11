@@ -777,15 +777,62 @@
 }
 
 /*
- * A schema listing's default view (`EntityListingRow`): the card's one-line
- * header rows, as many columns as fit at 24rem. The server renders the same
- * grid as plain named rows (`schema/[schemaId]/index.page.tsx`), so the first
- * paint is the index, not a blank band, before the island mounts.
+ * A schema listing (`SchemaViewerIsland`): the filter rail, then the entities
+ * as compact cards (`EntityListingRow`, `extent="head"`) in groups the book
+ * prints them in, each under a solid slab. Each listing sets how narrow a card
+ * may get: chassis, with a long row of value cells, take two across; the rest
+ * three. The server renders the same grid as plain named rows
+ * (`schema/[schemaId]/index.page.tsx`), so the first paint is the index, not a
+ * blank band, before the island mounts.
  */
-.srd-listing__rows {
+.srd-listing-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.srd-listing-page {
+  background-color: var(--color-wk-bg);
+  padding: var(--space-16) var(--space-16) var(--space-32);
+}
+
+@media (min-width: 48rem) {
+  .srd-listing-page {
+    padding: var(--space-20) var(--space-32) var(--space-32);
+  }
+}
+
+.srd-listing {
+  --srd-listing-min: 19rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  margin: 0 auto;
+  max-width: 87.5rem;
+  width: 100%;
+}
+
+.srd-listing[data-wide] {
+  --srd-listing-min: 31rem;
+}
+
+.srd-listing__groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+}
+
+.srd-listing__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.srd-listing__cards {
+  align-items: start;
   display: grid;
-  gap: var(--space-8) var(--space-14);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+  gap: var(--space-8);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--srd-listing-min)), 1fr));
   list-style: none;
   margin: 0;
   padding: 0;
@@ -814,4 +861,240 @@
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+/* Visually hidden, still read: a fieldset's legend. */
+.srd-vh {
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+/*
+ * THE RAIL — one row of 44px controls (origin boards S1 and 05): search, the
+ * TL badge as a toggle, the Source / Tree menus, then List | Catalog. On a
+ * phone the facets fold behind a Filters button that counts the active ones.
+ */
+.srd-rail {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-10) var(--space-12);
+}
+
+.srd-rail .srd-rail__search {
+  flex: 1 1 16rem;
+  max-width: 22rem;
+  min-height: 44px;
+}
+
+.srd-rail__spring {
+  flex: 1 1 0;
+}
+
+.srd-rail__facets {
+  display: contents;
+}
+
+.srd-rail__filters {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  cursor: pointer;
+  display: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-8);
+  letter-spacing: var(--tracking-caps-tight);
+  min-height: 44px;
+  padding: 0 var(--space-14);
+  text-transform: uppercase;
+}
+
+.srd-rail__count {
+  align-items: center;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  display: inline-flex;
+  font-size: var(--text-xs);
+  height: 20px;
+  justify-content: center;
+  min-width: 20px;
+  padding: 0 var(--space-4);
+}
+
+.srd-rail .srd-rail__menu {
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  max-width: 16rem;
+  min-height: 44px;
+  text-transform: uppercase;
+  width: auto;
+}
+
+.srd-rail .srd-rail__menu[data-on] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* The segmented control (Shelves' toggle, on paper): an ink-ruled group, the pressed option inverse ink. */
+.srd-seg {
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  display: inline-flex;
+  margin: 0;
+  max-width: 100%;
+  min-inline-size: 0;
+  overflow-x: auto;
+  padding: 0;
+}
+
+.srd-seg__option {
+  background-color: transparent;
+  border: 0;
+  color: var(--color-ink);
+  cursor: pointer;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  min-height: 41px;
+  padding: 0 var(--space-12);
+  text-transform: uppercase;
+}
+
+.srd-seg__option + .srd-seg__option {
+  border-left: 1px solid var(--color-ink-30);
+}
+
+.srd-seg__option[data-numeral] {
+  font-size: var(--text-base);
+  min-width: 38px;
+  padding: 0 var(--space-8);
+}
+
+.srd-seg__option:hover {
+  background-color: var(--color-band-cream);
+}
+
+.srd-seg__option[aria-pressed='true'],
+.srd-seg__option[aria-pressed='true']:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* The TL badge: its ink stamp leads the toggle, as `[TL | 2]` reads on a card. */
+.srd-seg__stamp {
+  align-items: center;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  display: flex;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  padding: 0 var(--space-10);
+}
+
+/* What is filtered: the count, a token per filter, Clear all. */
+.srd-rail__status {
+  align-items: center;
+  color: var(--color-ink-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6) var(--space-10);
+}
+
+.srd-rail__tally {
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+.srd-rail__token {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-6);
+  letter-spacing: var(--tracking-caps-tight);
+  min-height: 32px;
+  padding: 0 var(--space-6) 0 var(--space-10);
+  text-transform: uppercase;
+}
+
+.srd-rail__token:hover {
+  background-color: var(--color-band-cream);
+}
+
+.srd-rail__clear {
+  background: none;
+  border: 0;
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  min-height: 32px;
+  padding: 0 var(--space-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Phone: search takes the row, then Filters and List | Catalog; the facets open beneath. */
+@media (max-width: 40rem) {
+  .srd-rail .srd-rail__search {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .srd-rail__filters {
+    display: inline-flex;
+  }
+
+  .srd-rail__facets {
+    display: none;
+  }
+
+  .srd-rail[data-open] .srd-rail__facets {
+    background-color: var(--color-paper);
+    border: var(--bw-chrome) solid var(--color-ink);
+    border-radius: var(--radius-card);
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: var(--space-10);
+    padding: var(--space-12);
+  }
+
+  .srd-rail[data-open] .srd-rail__menu {
+    max-width: none;
+    width: 100%;
+  }
+}
+
+@media print {
+  .srd-rail {
+    display: none;
+  }
 }
