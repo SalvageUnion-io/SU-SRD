@@ -48,17 +48,15 @@
  *
  * Requires the gitignored extract: `bun run rules:extract`. With none present
  * this exits 0 with a notice, like `check-printed-names.ts`: a local check,
- * not a CI gate. In a git worktree, which has no gitignored files, it reads
- * the main checkout's `rules/` (or `RULES_EXTRACT_DIR`).
+ * not a CI gate. Where it looks: `findExtractDir` in `extract-rules.ts`.
  *
  * Run:  bun tools/check-rules-fidelity.ts            # verify; report what the lock would change
  *       bun tools/check-rules-fidelity.ts --update   # ... and rewrite the lock
  *       bun tools/check-rules-fidelity.ts --show=paraphrase,omission   # list those, with diffs
  *       bun tools/check-rules-fidelity.ts --summary  # drift summary as markdown (no book text)
  */
-import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { basename, dirname, join } from 'node:path'
+import { basename, join } from 'node:path'
 import type { ProseRuleId } from '../packages/salvageunion-reference/lib/proseDeviations'
 import {
   BOILERPLATE_MIN_REPEATS,
@@ -70,7 +68,7 @@ import {
   TRAIT_MARKUP,
 } from '../packages/salvageunion-reference/lib/proseDeviations'
 import type { Layer } from './extract-rules'
-import { LAYER_DIR } from './extract-rules'
+import { findExtractDir, LAYER_DIR } from './extract-rules'
 import type { Anchor, Lock, LockEntry, ProseItem, Reason } from './lib/proseFidelity'
 import {
   collectProse,
@@ -326,20 +324,6 @@ function pageWindow(b: Book, page: number): [number, number] {
 // ---------------------------------------------------------------------------
 // Locating the extract
 // ---------------------------------------------------------------------------
-
-const REPO = join(import.meta.dir, '..')
-
-/** `rules/extracted`, here or — in a worktree, which has no gitignored files — in the main checkout. */
-function findExtractDir(): string | undefined {
-  const candidates = [process.env.RULES_EXTRACT_DIR, join(REPO, 'rules/extracted')]
-  const common = spawnSync('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'], {
-    cwd: REPO,
-    encoding: 'utf8',
-  })
-  if (common.status === 0 && common.stdout.trim())
-    candidates.push(join(dirname(common.stdout.trim()), 'rules/extracted'))
-  return candidates.find((d): d is string => !!d && existsSync(d))
-}
 
 /**
  * The extract(s) for each book present: the latest edition (names compared
