@@ -1,12 +1,11 @@
 /**
  * InstantiateFromPattern — creates a fresh Mech from a MechPattern.
  *
- * Copies the pattern's chassis/systems/modules/cargoLots into a new Mech
- * input (cargo lots get fresh ids), appends ' (from pattern)' to the name,
- * and calls entityStore.create('mech'). The new mech gets a fresh id and
- * fresh timestamps from the db layer, and is seeded with live stats exactly
- * like the MechWizard path (plan 2.3, gap 7): full SP/EP from the chassis
- * and currentHeat 0 — never Heat-at-capacity.
+ * The new mech is `mechFromPattern`'s (issue 1276): the pattern's chassis and
+ * loadout under the pattern's name, full SP/EP from the chassis, Heat 0, an
+ * empty hold — a mech built from a pattern starts fresh — and the pattern it
+ * came from in `sourcePattern` (issue 401), which the pattern page counts. The db
+ * layer gives it a fresh id and timestamps.
  *
  * Enforcement regime: NONE, deliberately (wizard-refresh plan §5.2) —
  * instantiate is a Blank-family shortcut and its write path is untouched.
@@ -18,7 +17,7 @@
 
 import { Button, FieldError, ModalShell } from 'component-lib'
 import { useState } from 'react'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { mechFromPattern } from '../../../lib/patterns/patterns'
 import type { MechPattern } from '../../../lib/schemas/pattern'
 import { useEntityStore } from '../../../stores/entityStore'
 
@@ -38,20 +37,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
     setError(null)
 
     try {
-      const chassis = resolveChassisRef(pattern.chassisRef)
-      const mech = await useEntityStore.getState().create('mech', {
-        schemaVersion: 1,
-        name: `${pattern.name} (from pattern)`,
-        chassisRef: pattern.chassisRef,
-        systems: [...pattern.systems],
-        modules: [...pattern.modules],
-        cargoLots: pattern.cargoLots.map((lot) => ({ ...lot, id: crypto.randomUUID() })),
-        conditions: [],
-        // Fresh mechs start at full SP/EP from the chassis; Heat starts at 0.
-        currentSP: chassis?.structurePoints,
-        currentEP: chassis?.energyPoints,
-        currentHeat: 0,
-      })
+      const mech = await useEntityStore.getState().create('mech', mechFromPattern(pattern))
       onSuccess(mech.id)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create mech from pattern.')
@@ -66,16 +52,16 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
         size="compact"
         onClick={() => setConfirming(true)}
         disabled={isInstantiating}
-        aria-label={`Instantiate mech from pattern ${pattern.name}`}
+        aria-label={`Build this mech from ${pattern.name}`}
       >
-        {isInstantiating ? 'Creating…' : 'Instantiate'}
+        {isInstantiating ? 'Building…' : 'Build this mech'}
       </Button>
       <ModalShell
         open={confirming}
         onOpenChange={(next) => {
           if (!next) setConfirming(false)
         }}
-        title={`Instantiate ${pattern.name}?`}
+        title={`Build a mech from ${pattern.name}?`}
         maxWidth="max-w-md"
       >
         <div className="flex flex-col gap-4 bg-paper p-5">
@@ -95,7 +81,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
                 void handleInstantiate()
               }}
             >
-              Instantiate
+              Build
             </Button>
           </div>
         </div>

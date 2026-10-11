@@ -1,8 +1,8 @@
 /**
  * PatternList — lists all saved MechPatterns via the patternStore.
  *
- * Each pattern row shows its name, chassisRef, and slot counts, along with an
- * InstantiateFromPattern button.
+ * Each pattern is a user-made `ReferenceEntityCard` row (dashed, stamped,
+ * credited: ruleset §3.9) linking to its page, with a build button beneath.
  *
  * Data fetching: subscribes to usePatternStore (audit item 22) — patterns get
  * the same lazy hydration as every other collection.
@@ -11,9 +11,32 @@
  * route boundary.
  */
 
-import { Badge, EmptyState } from 'component-lib'
+import { EmptyState, ReferenceEntityCard, Text, tokens } from 'component-lib'
+import { useQuery } from 'convex/react'
+import type { CSSProperties } from 'react'
+import { api } from '../../../../convex/_generated/api'
+import { useConnection } from '../../../lib/connection/connectionContext'
+import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
 import { usePatternStore } from '../../../stores/patternStore'
+import { AppLink } from '../../shared/AppLink'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
+
+const LIST = {
+  display: 'grid',
+  gap: tokens.space[12],
+  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 18rem), 1fr))',
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+} satisfies CSSProperties
+
+const ROW = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+const LINK = { color: 'inherit', display: 'block', textDecoration: 'none' } satisfies CSSProperties
 
 type PatternListProps = {
   /** Called with the new mech id when a pattern is instantiated. */
@@ -24,6 +47,9 @@ export function PatternList({ onInstantiated }: PatternListProps) {
   // Subscribing keeps the list live — saves from this tab, and those
   // `ShelfSync` adopts from elsewhere, appear without a refetch. list()
   // lazily hydrates.
+  const { mode } = useConnection()
+  const me = useQuery(api.account.me, mode === 'connected' ? {} : 'skip')
+  const madeBy = me?.displayName ?? 'you'
   const patterns = usePatternStore((s) => s.mechPatterns)
   const isLoading = !usePatternStore((s) => s.hydrated)
   usePatternStore.getState().list()
@@ -44,42 +70,43 @@ export function PatternList({ onInstantiated }: PatternListProps) {
     return (
       <EmptyState
         headline="No Patterns Yet"
-        body="Use “Save as pattern” from the mech builder to save a reusable template."
+        body="Use “Save as pattern” from a mech sheet’s ⋯ menu, or the mech builder, to save a reusable template."
       />
     )
   }
 
   return (
-    <ul
-      className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3"
-      aria-label="Saved mech patterns"
-    >
-      {patterns.map((pattern) => (
-        <li
-          key={pattern.id}
-          className="rounded-card border-chrome border-ink p-4 flex items-start justify-between gap-4"
-          data-testid="pattern-list-item"
-        >
-          <div className="flex flex-col gap-1 min-w-0">
-            <span className="truncate font-cond text-sm font-bold uppercase text-ink">
-              {pattern.name}
-            </span>
-            <span className="text-xs text-wk-muted">
-              Chassis: {pattern.chassisRef} &mdash; {pattern.systems.length} system
-              {pattern.systems.length !== 1 ? 's' : ''}, {pattern.modules.length} module
-              {pattern.modules.length !== 1 ? 's' : ''}, {pattern.cargoLots.length} cargo
-            </span>
-            {/* Saved patterns carry no stored `legalStarting` data tag (and
-                the flag is NEVER computed — project data convention), so the
-                Blank-family caveat badges every card. Presentation only
-                (wizard-refresh plan §5.2 / Phase 4 D). */}
-            <Badge surface="outline" className="w-fit">
-              Not a legal starting mech
-            </Badge>
-          </div>
-          <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
-        </li>
-      ))}
+    <ul style={LIST} aria-label="Saved mech patterns">
+      {patterns.map((pattern) => {
+        const chassis = patternChassis(pattern)
+        return (
+          <li key={pattern.id} style={ROW} data-testid="pattern-list-item">
+            {chassis ? (
+              // The row is its page: where the maker sees it as others will, and shares it.
+              <AppLink
+                href={patternHref(pattern.id)}
+                style={LINK}
+                aria-label={`View pattern ${pattern.name}`}
+              >
+                <ReferenceEntityCard
+                  data={chassis}
+                  pattern={asReferencePattern(pattern)}
+                  size="medium"
+                  extent="head"
+                  userMade
+                  madeBy={madeBy}
+                  cardClickable
+                />
+                {/* A header-only row has no footer, so the credit sits beneath it. */}
+                <Text variant="hint">Made by {madeBy}</Text>
+              </AppLink>
+            ) : (
+              <Text variant="hint">{pattern.name}: its chassis is not in the reference.</Text>
+            )}
+            <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
+          </li>
+        )
+      })}
     </ul>
   )
 }

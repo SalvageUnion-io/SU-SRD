@@ -32,8 +32,10 @@ type EntityCardIdentityFooterProps = {
   /** USER-MADE (ruleset §3.9): the footer rule is dashed. */
   dashed?: boolean
   /**
-   * USER-MADE credit ("Made by [user]"): replaces the book citation and the
-   * reprints line — a homebrew card has no page to cite.
+   * USER-MADE credit (ruleset §3.9): "Made by [user]", in the place a page
+   * citation takes on a canon card. It replaces the book citation and the
+   * reprints line — a homebrew card has no page to cite, and the card passes
+   * no source with it.
    */
   credit?: string
 }
@@ -66,6 +68,7 @@ const truncate: CSSProperties = {
  * RIGHT — "Chassis … Salvage Union Workshop Manual · p.128". A SECOND,
  * right-aligned line follows when the entity carries reprints
  * (`additionalSources`) — "Also in  Salvage Union Starter Set (PH) · p.38".
+ * A user-made card puts its `credit` ("Made by alxjrvs") where the source goes.
  */
 export function EntityCardIdentityFooter({
   typeLabel,

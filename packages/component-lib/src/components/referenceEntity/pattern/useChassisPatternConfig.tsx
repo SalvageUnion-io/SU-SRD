@@ -18,6 +18,7 @@ import { getReferenceEntityFontSizes, getReferenceEntitySpacing } from '../refer
 import { ChassisAbilitiesContent } from './ChassisAbilitiesContent'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 import { computeSvOverride, resolvePatternOverride } from './patternOverrideUtils'
+import { quotePatternName } from './quotePatternName'
 
 type ChassisPatternConfig = {
   /** Override the title to the quoted pattern name */
@@ -94,7 +95,7 @@ export function useChassisPatternConfig(
 
   const hasChassisAbilities = !!chassisAbilities && chassisAbilities.length > 0
 
-  const titleOverride = `\u201C${patternOverride.name}\u201D`
+  const titleOverride = quotePatternName(patternOverride.name)
 
   const subtitleExtra = (
     <>

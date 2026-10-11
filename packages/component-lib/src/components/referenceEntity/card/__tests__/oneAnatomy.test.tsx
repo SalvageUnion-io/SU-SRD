@@ -122,6 +122,27 @@ describe('the user-made flag', () => {
     expect(dashed.length).toBeGreaterThanOrEqual(2)
   })
 
+  test('credits the maker in place of the page citation', () => {
+    const chassis = sestra()
+    const pattern = need(chassis.patterns?.[0], 'pattern')
+    const canon = render(<ReferenceEntityCard data={chassis} pattern={pattern} />)
+    expect(canon.container.textContent).toContain('p.')
+    canon.unmount()
+
+    const { container } = render(
+      <ReferenceEntityCard data={chassis} pattern={pattern} userMade madeBy="alxjrvs" />
+    )
+    expect(screen.getByText('Made by alxjrvs')).toBeTruthy()
+    // The chassis it rides on must not lend homebrew a page of the book.
+    expect(container.textContent).not.toMatch(/Workshop Manual · p\.\d+/)
+  })
+
+  test('madeBy alone, on a canon card, changes nothing', () => {
+    const chassis = sestra()
+    render(<ReferenceEntityCard data={chassis} madeBy="alxjrvs" />)
+    expect(screen.queryByText('Made by alxjrvs')).toBeNull()
+  })
+
   test('dashes the shortform pill, at the smallest extent', () => {
     const { container } = render(
       <ReferenceEntityCard data={drill()} size="small" extent="head" userMade />

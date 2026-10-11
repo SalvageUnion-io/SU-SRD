@@ -28,6 +28,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../container/MoveToContainerControl'
 import { ExportEntityButton } from '../export/ExportEntityButton'
+import { AppLink } from '../shared/AppLink'
 import { NotFoundPanel } from '../shared/RouteFallbacks'
 import { useConfirm } from '../shared/useConfirm'
 import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
@@ -258,6 +259,17 @@ export function Sheet({
       Change Log
     </button>
   )
+  // A mech saves as a pattern on its own page (issue 1276, board P1): a write, so it
+  // is offered only where this sheet can write.
+  const savePatternLink =
+    kind === 'mech' && !writesBlocked ? (
+      <AppLink
+        href={`/mechs/patterns/new?from=${encodeURIComponent(id)}`}
+        className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
+      >
+        Save as pattern
+      </AppLink>
+    ) : null
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
   // Log are reads, and a disconnected player has more reason to want a local
   // export, not less. Only Share goes — switching the public sheet on or off is
@@ -287,6 +299,7 @@ export function Sheet({
         {printButton}
         {exportButton}
         {containerControl}
+        {savePatternLink}
         {changeLogButton}
       </SheetActionsMenu>
     </div>

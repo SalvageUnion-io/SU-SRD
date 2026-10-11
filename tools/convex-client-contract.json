@@ -1,5 +1,5 @@
 {
-  "floor": 1791587077,
+  "floor": 1791597883,
   "functions": {
     "account:deleteAccount": {
       "type": "object",
@@ -1616,6 +1616,17 @@
         }
       }
     },
+    "publicSheet:pattern": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
     "publicSheet:setPublic": {
       "type": "object",
       "value": {
@@ -1901,6 +1912,10 @@
         }
       }
     },
+    "shelf:crewPatterns": {
+      "type": "object",
+      "value": {}
+    },
     "shelf:removeEncounterNpc": {
       "type": "object",
       "value": {
@@ -1920,6 +1935,44 @@
             "type": "string"
           },
           "optional": false
+        }
+      }
+    },
+    "shelf:setPatternVisibility": {
+      "type": "object",
+      "value": {
+        "patternId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "visibility": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "private"
+              },
+              {
+                "type": "literal",
+                "value": "link"
+              },
+              {
+                "type": "literal",
+                "value": "game"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": true
         }
       }
     },

@@ -229,11 +229,13 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 
    Sanctioned patterns today: the `Slab` dashed leader, the **srd catalog tile
    ramps** (`CatalogTile`/`catalogColors` — tech-level and ability-tier bands
-   as a wayfinding cue) and its story. Each is still listed in `tools/rules/designTokens.ts`'s
+   as a wayfinding cue) and its story, and the **user-made hatch** (§3.9,
+   `USER_MADE_HATCH` in
+   `packages/component-lib/src/components/chrome/userMadeHatch.ts`), a hard-stop
+   `repeating-linear-gradient(135deg, …)` in ink over a band's own colour.
+   Each is listed in `tools/rules/designTokens.ts`'s
    `EXEMPTIONS` table with a written reason, because the checker matches the
-   CSS function and cannot itself tell a hard stop from a blend. Ruled and
-   still to be built: the **user-made hatched band** (§3.9), a hard-stop
-   `repeating-linear-gradient(135deg, …)`; it joins `EXEMPTIONS` when it lands.
+   CSS function and cannot itself tell a hard stop from a blend.
 
    **Texture: the light speckle** (board 05c). The printed bands and banners
    are speckled, and so are ours — generated in code, light, and never scuffed.
@@ -305,7 +307,8 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    stay **solid**: nobody mistakes a pilot sheet for a book page. Dashes
    already mean "pencil, not print" (§1 Live Sheet: the edit field, the
    override ring); this rule extends that meaning to a whole card. It is one
-   `userMade` flag on the entity card (#1276), never per-surface styling.
+   `userMade` flag on the entity card (with `madeBy` for the credit) and one on
+   `ChapterBand` for the full page (#1276), never per-surface styling.
 10. **No left-rail borders** on cards. Colour rides in top bands, stamps and
     gauges; nesting shows by containment and the seam stamp (§5), never by a
     coloured left edge. The book's ability-tree track stays a diagram.

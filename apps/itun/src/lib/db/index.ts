@@ -39,7 +39,7 @@ import { STORE_NAMES } from './stores'
  * shape of a cached record changes: the upgrade empties the cache and the
  * server refills it, so there is nothing else to write.
  */
-export const DB_VERSION = 19
+export const DB_VERSION = 20
 
 const DB_NAME = 'itun-v1'
 

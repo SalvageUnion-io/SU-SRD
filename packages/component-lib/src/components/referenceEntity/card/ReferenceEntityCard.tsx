@@ -28,6 +28,7 @@ import { resolveCardDisplay } from '../../shared/displayMode'
 import type { StatItem } from '../../shared/statsBarTypes'
 import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import { useEntityExternalLink } from '../entityHrefContext'
+import { quotePatternName } from '../pattern/quotePatternName'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { accentSurface } from '../referenceEntityHelpers'
 import { BonusPerTechLevel } from './BonusPerTechLevel'
@@ -310,12 +311,12 @@ function ReferenceEntityCardInner({
   // stats / tone / source. A `head` pattern is a LIST ROW.
   const isPattern = !!pattern
   const isPatternListing = isPattern && extent === 'head'
-  // A pattern's title is its name in QUOTES. A nested ACTION drops its
+  // A pattern's title is its name in typographic QUOTES. A nested ACTION drops its
   // ` (Host)` disambiguation suffix when the host is this card's own context.
   const name =
     titleOverride ??
     (isPattern
-      ? `"${pattern.name}"`
+      ? quotePatternName(pattern.name)
       : isAction
         ? stripHostParenthetical(entityName, hostName)
         : entityName)
@@ -602,7 +603,7 @@ function ReferenceEntityCardInner({
     foldedAction,
     droneLoadout,
   })
-  const showImage = !!assetUrl
+  const showImage = !!assetUrl && !hide?.image
   const rawBodyContent = isTitanicMeta ? titanicBodyContent : content
   const foldedActionContent = foldedAction?.content ?? undefined
   // A SELF-action renders ITS content as the body, merged with the entity's own.
@@ -994,15 +995,20 @@ function ReferenceEntityCardInner({
             and the catalog extent suppress it entirely. */}
         {rendersFooter
           ? (footerOverride ?? (
+              // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
+              // A player's pattern rides on a chassis whose provenance would
+              // otherwise put "Workshop Manual · p.104" under homebrew.
               <EntityCardIdentityFooter
                 typeLabel={footerType}
-                source={provenance.source}
-                booklet={provenance.booklet}
-                page={provenance.page}
+                source={userMade ? undefined : provenance.source}
+                booklet={userMade ? undefined : provenance.booklet}
+                page={userMade ? undefined : provenance.page}
                 // Reprints are the entity's OWN-PAGE fact — the roomy full card.
-                additionalSources={compact ? undefined : provenance.additionalSources}
+                additionalSources={compact || userMade ? undefined : provenance.additionalSources}
                 footMeta={footMeta}
-                externalLink={extent === 'full' && !insideTooltip ? externalLinkNode : undefined}
+                externalLink={
+                  extent === 'full' && !insideTooltip && !userMade ? externalLinkNode : undefined
+                }
                 size={size}
                 dashed={userMade}
                 credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
