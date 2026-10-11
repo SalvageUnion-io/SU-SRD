@@ -2,8 +2,8 @@
   "$schema": "https://unpkg.com/knip@latest/schema.json",
   "ignoreExportsUsedInFile": true,
   "includeEntryExports": true,
-  // Exports tagged `@public` or `@knipignore` are excluded from analysis. The
-  // decision procedure for reaching for either is in `.claude/skills/knip-triage`
+  // Exports tagged `@public` or `@knipignore` are excluded from analysis. When
+  // to reach for either is in docs/ARCHITECTURE.md ("Dead-code gate (knip)")
   // — delete by default; these two are the only exemptions.
   //
   // `--treat-tag-hints-as-errors` does NOT catch a tag that has outlived its

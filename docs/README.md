@@ -15,7 +15,7 @@ Read with an offset and limit, never the whole file.
 | working on the Dashboard | [architecture/dashboard.md](architecture/dashboard.md), ADR-038 (the one decision record) |
 | sharing a sheet (public sheets; retired snapshot links) | ADR-032, ADR-036 |
 | working on accounts, Games or the Convex backend | ADR-030, [accounts and Games operations](ARCHITECTURE.md#accounts-and-games-operations) |
-| setting up a Convex deployment, repairing data, rotating auth secrets or Convex error reporting | the [`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill |
+| setting up a Convex deployment, repairing data, rotating auth secrets or Convex error reporting | [ops/convex.md](ops/convex.md) |
 | inviting someone by their Discord account | ADR-039, `apps/itun/convex/model/invites.ts` |
 | assigning pilots, mechs and crawlers to each other | ADR-037, `apps/itun/src/lib/links/linkRules.ts` |
 | working on the Discord bot as a Game client | [Discord bot](ARCHITECTURE.md#discord-bot-as-a-game-client) |

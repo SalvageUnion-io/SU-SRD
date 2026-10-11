@@ -103,7 +103,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'knip',
     guards: 'no unused files, exports or dependencies',
-    fix: 'delete what it lists; the /knip-triage skill covers the two exceptions',
+    fix: 'delete what it lists; docs/ARCHITECTURE.md ("Dead-code gate") covers the two exceptions',
     cmd: ['bun', 'run', 'knip'],
     areas: ['code'],
     profiles: ALL,

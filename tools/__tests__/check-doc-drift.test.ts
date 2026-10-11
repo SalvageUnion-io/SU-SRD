@@ -321,15 +321,6 @@ describe('checkBacktickedPathsExist', () => {
     expect(failures).toHaveLength(1)
     expect(failures[0]).toContain('`tools/gone.ts`')
   })
-
-  it('scans skills as live-instruction docs', () => {
-    const root = fixture({
-      '.claude/skills/ux/SKILL.md': 'Tokens live in `packages/ui/theme.css`.\n',
-    })
-    const { failures } = checkBacktickedPathsExist(root)
-    expect(failures).toHaveLength(1)
-    expect(failures[0]).toContain('.claude/skills/ux/SKILL.md:1')
-  })
 })
 
 describe('checkRetiredClaims', () => {
@@ -537,20 +528,18 @@ describe('checkDecisions', () => {
 })
 
 describe('checkDocSizes', () => {
-  it('holds CLAUDE.md files and agents to 8,000 characters and rules to 4,000, with per-file overrides', () => {
+  it('holds CLAUDE.md files to 8,000 characters and rules to 4,000, with per-file overrides', () => {
     const root = fixture({
       'CLAUDE.md': 'x'.repeat(8_000),
       'apps/itun/CLAUDE.md': 'x'.repeat(8_001),
       'packages/ref/CLAUDE.md': 'é'.repeat(8_000),
       '.claude/rules/a.md': 'x'.repeat(4_001),
       '.claude/rules/b.md': 'x'.repeat(4_500),
-      '.claude/agents/x.md': 'x'.repeat(8_001),
     })
     const failures = checkDocSizes(root, { '.claude/rules/b.md': 4_500 }, {}).failures
-    expect(failures).toHaveLength(3)
+    expect(failures).toHaveLength(2)
     expect(failures.join('\n')).toContain('apps/itun/CLAUDE.md is 8001 characters')
     expect(failures.join('\n')).toContain('.claude/rules/a.md is 4001 characters')
-    expect(failures.join('\n')).toContain('.claude/agents/x.md is 8001 characters')
     expect(checkDocSizes(root, { 'gone.md': 1 }, {}).failures.join('\n')).toContain(
       'OVER_BUDGET names gone.md'
     )

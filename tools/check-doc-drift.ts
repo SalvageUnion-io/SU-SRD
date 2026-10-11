@@ -21,8 +21,8 @@
  *   links    every relative markdown link in a tracked `.md` file resolves,
  *            and its `#fragment`, into a `.md` file or the same file, names a
  *            heading there.
- *   size     root and per-directory CLAUDE.md files and `.claude/agents/*.md`
- *            stay under 8,000 characters and `.claude/rules/*.md` under 4,000.
+ *   size     root and per-directory CLAUDE.md files stay under 8,000
+ *            characters and `.claude/rules/*.md` under 4,000.
  *            They load into every agent session in scope, so growth costs
  *            every session. A collapsed doc (`COLLAPSED_DOCS`) holds its own
  *            budget on its live text: it replaced a folder, and terse is the
@@ -76,12 +76,7 @@ function workspaceDirs(root: string): string[] {
 }
 
 /** Docs an agent follows as a description of the code as it is now. */
-const LIVE_INSTRUCTION_DOC_DIRS = [
-  '.claude/rules',
-  '.claude/agents',
-  '.claude/skills',
-  'docs/architecture',
-]
+const LIVE_INSTRUCTION_DOC_DIRS = ['.claude/rules', 'docs/architecture']
 
 function liveInstructionDocs(root: string): string[] {
   return [
@@ -785,7 +780,6 @@ export function checkDocSizes(
   const budgeted: [string, number][] = [
     ...claudeMds.map((doc): [string, number] => [doc, CLAUDE_MD_BUDGET]),
     ...rules.map((doc): [string, number] => [doc, RULE_BUDGET]),
-    ...markdownIn(root, '.claude/agents').map((doc): [string, number] => [doc, CLAUDE_MD_BUDGET]),
   ]
   for (const [doc, budget] of Object.entries(collapsed)) {
     if (existsSync(join(root, doc))) budgeted.push([doc, budget])

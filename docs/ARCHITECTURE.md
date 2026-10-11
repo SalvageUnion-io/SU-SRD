@@ -282,7 +282,7 @@ so, and reads nothing.
 
 Procedures (setting a deployment up, the sign-in probe, rotations, error
 reporting, one-off repairs): the
-[`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill. Values here are
+[Convex runbook](ops/convex.md). Values here are
 public; secrets live only on the deployments.
 
 |  | Production | Staging ([preview slot](#preview-deploys)) |
@@ -301,7 +301,7 @@ Local development has no cloud deployment. `bun run dev:itun` runs a **local**
 deployment (`convex dev --start vite`) and signs in through the test seam,
 `ITUN_TEST_AUTH` on the local deployment and `VITE_TEST_AUTH` in the dev
 server, not Discord. One-time setup: the
-[`convex-ops`](../.claude/skills/convex-ops/SKILL.md#local-backend) skill.
+[Convex runbook](ops/convex.md#local-backend).
 Staging, the cloud dev deployment, is pushed only by `deploy-preview.yml`.
 
 ### Deployment variables
@@ -329,7 +329,7 @@ deployments, never in git.
 Convex reports through the dashboard's Exception Reporting integration, not
 code: queries and mutations have no network egress. It feeds Sentry project
 `itun-convex` (org `susrd`, EU region). A quiet project is not evidence of a
-healthy backend; re-verifying by probe is in the `convex-ops` skill. Client
+healthy backend; re-verify by probe ([runbook](ops/convex.md#convex-error-reporting)). Client
 side, `src/lib/connection/serverError.ts` (`serverMessage`,
 `isServerRefusal`) is the only way to tell a `ConvexError` refusal from a
 redacted defect; never string-match `'Server Error'`.
@@ -934,9 +934,9 @@ devDependency, which every workspace resolves.
 ### Dead-code gate (knip)
 
 `bun run knip` uses `includeEntryExports: true` (off in `srd` and `su-assets`).
-Delete what it flags; `@public` and `@knipignore` (tags in `knip.json`) are
-the escape hatches; the
-procedure is `/knip-triage`.
+Delete what it flags; the escape hatches (tags in `knip.json`) are `@public`
+for a framework contract or public API and `@knipignore` for a shown false
+positive.
 
 ## Services and agent tooling
 
@@ -2318,8 +2318,6 @@ Accepted.
 
 The reference-entity display was reconciled from a 57-file legacy render core
 (`ReferenceEntityDisplay/`, "RED") onto a single card. That migration
-(its methodology is now the `/component-refresh` skill,
-[`.claude/skills/component-refresh/SKILL.md`](../.claude/skills/component-refresh/SKILL.md))
 settled a set of **design rules** along the way — about how choices render, how
 stats read, how tech-level scaling looks, and which data carries a tech level.
 Those rules were decided interactively and proven in the story catalog, but were only
@@ -2872,7 +2870,7 @@ altering any of its enforcement modes.
 
 The operational reference (deployments, env vars, secrets, rotation) is
 [accounts and Games operations](#accounts-and-games-operations) and the
-`convex-ops` skill.
+[Convex runbook](ops/convex.md).
 
 **2026-10-06 — the Games pages are folded into the Roster hub.** §6's surfaces
 — the Games index (`/games`), a Game's crew page (`/games/:id`) and the
