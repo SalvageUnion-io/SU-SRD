@@ -101,8 +101,13 @@ test('export the shelf, and import it back', async ({ page }) => {
 
   // Lose it…
   await fromMenu(page, 'Backed Up', 'Delete…')
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Delete' }).click()
+  const confirmDelete = page.getByRole('alertdialog')
+  await confirmDelete.getByRole('button', { name: 'Delete' }).click()
   await expect(pilots.getByText('Backed Up')).toHaveCount(0, { timeout: 15_000 })
+  // The row leaves with the server's answer; the dialog closes only once the
+  // delete has also left this device's cache. Importing before then counts the
+  // cached row as a duplicate and skips it.
+  await expect(confirmDelete).toBeHidden({ timeout: 15_000 })
 
   // …and import it back from the file.
   await page.locator('input[type="file"]').setInputFiles(file)
