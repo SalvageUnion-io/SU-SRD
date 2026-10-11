@@ -11676,7 +11676,7 @@
   },
   {
     "id": "64a9f7ef-133a-46d8-be08-ab17be378985",
-    "name": "Thermal Optics (Fell Stalkers Squad)",
+    "name": "Thermal Goggles (Fell Stalkers Squad)",
     "content": [
       {
         "type": "paragraph",
@@ -12478,12 +12478,20 @@
     "actionSource": "chassis"
   },
   {
-    "name": "Integrated Advanced Deployable Locomotion System",
+    "name": "Integrated Advanced Stabilising Locomotion System",
     "id": "9dd10211-7f3d-410c-8975-93ca8ebf41f7",
     "content": [
       {
         "type": "paragraph",
-        "value": "This system functions as a deployable Locomotion System but boosts the damage dealt and damage reduced by 1 SP. Whilst deployed all of the attacks the Ravager makes deal an additional 3SP damage and whenever the Ravager receives damage it is reduced by 3 SP to a minimum of 1."
+        "value": "This Chassis Ability functions as a Stabilising Locomotion System. (p.181 SU Core Book) It has the following improvements:"
+      },
+      {
+        "type": "paragraph",
+        "value": "The Ravager reduces all damage dealt to it by 3 SP whilst stabilised, to a minimum of 1."
+      },
+      {
+        "type": "paragraph",
+        "value": "The first attack the Ravager makes on its turn whilst stabilised deals an additional 3 SP damage."
       }
     ],
     "actionSource": "chassis",
