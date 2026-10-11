@@ -409,5 +409,7 @@ describe('EntitySearcher — single mode', () => {
     expect(within(bar).getByTestId('rail-entry').textContent).toBe(chassis.name)
     expect(bar.querySelector('[aria-expanded]')).toBeNull()
     expect(within(bar).getByRole('button', { name: 'Apply chassis' })).toBeTruthy()
-  })
+    // Every chassis card in the results renders too: 1.6 s alone, past the
+    // default 5 s with the pre-push gates and every workspace in parallel.
+  }, 30_000)
 })
