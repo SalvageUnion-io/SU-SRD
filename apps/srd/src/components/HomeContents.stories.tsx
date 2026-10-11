@@ -1,6 +1,6 @@
 import { buildChapters } from '../lib/chapters'
-import { ITUN_URL } from '../lib/constants'
-import { AtTheTable, ContentsChapter, NewToTheUnion } from './HomeContents'
+import { DISCORD_INSTALL_URL, ITUN_URL } from '../lib/constants'
+import { ContentsChapter, DiscordBot, NewToTheUnion } from './HomeContents'
 
 export default {
   title: 'Compositions/Shell/Home Contents',
@@ -35,8 +35,9 @@ const AT_THE_TABLE = [
 /**
  * The SRD home as the manual's Contents page (board 06): the book's chapters
  * as an index, each with its colour band and real entry counts (from
- * `buildChapters`, the same source the nav drawer is frozen from), and the
- * "New to the Union?" path and "At the table" links beside them. Rows are
+ * `buildChapters`, the same source the nav drawer is frozen from), then "At
+ * the table" under an ink band; the "New to the Union?" path and the Discord
+ * bot beside them. Rows are
  * 36px for a mouse and 44px for a finger.
  */
 export const Default = () => (
@@ -52,10 +53,11 @@ export const Default = () => (
           total={chapter.total}
         />
       ))}
+      <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={AT_THE_TABLE} />
     </div>
     <aside className="srd-home__aside" aria-label="Getting started">
       <NewToTheUnion steps={STEPS} buildHref={ITUN_URL} />
-      <AtTheTable links={AT_THE_TABLE} />
+      <DiscordBot installHref={DISCORD_INSTALL_URL} aboutHref="/discord/" />
     </aside>
   </div>
 )

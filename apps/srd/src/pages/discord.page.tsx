@@ -4,7 +4,7 @@
 
 import { buttonVariants, ChapterBand, cn, InlineRef, Panel, Slab } from 'component-lib'
 import type { PageModule, PageResult } from '../../ssg/types'
-import { ITUN_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { DISCORD_INSTALL_URL, ITUN_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { SalvageUnionReference } from '../lib/gameData'
 
 /**
@@ -44,11 +44,6 @@ const installButtonClass = cn(
   buttonVariants({ variant: 'primary' }),
   'font-cond text-base uppercase tracking-caps-snug'
 )
-
-// The client id is public by design — it appears in every Discord invite
-// URL. The bot itself authenticates with its token, never this id.
-const DISCORD_CLIENT_ID = '1442878052823470172'
-const INSTALL_URL = `https://discord.com/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&scope=bot%20applications.commands&permissions=0`
 
 function page(): PageResult {
   const examples = buildExamples()
@@ -96,7 +91,7 @@ function page(): PageResult {
             </p>
             <p>
               <a
-                href={INSTALL_URL}
+                href={DISCORD_INSTALL_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={installButtonClass}

@@ -191,7 +191,7 @@
   }
 }
 
-/* The home page's panels: "New to the Union?" and "At the table". */
+/* The home page's panels: "New to the Union?" and the Discord bot. */
 .srd-panel {
   background-color: var(--color-paper);
   border: var(--bw-chrome) solid var(--color-ink);
@@ -209,12 +209,17 @@
   text-transform: uppercase;
 }
 
-.srd-panel__heading--small {
-  font-size: var(--text-lg);
+.srd-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: 0 var(--space-14) var(--space-4);
 }
 
-.srd-panel__rows {
-  padding: 0 var(--space-14) var(--space-8);
+.srd-panel__body p {
+  font-size: var(--text-lede);
+  line-height: 1.5;
+  margin: 0;
 }
 
 .srd-panel__foot {
@@ -235,6 +240,20 @@
 
 .srd-panel__cta {
   align-self: flex-start;
+}
+
+.srd-panel__foot--row {
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-14);
+}
+
+.srd-panel__link {
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-semibold);
+  text-underline-offset: 3px;
 }
 
 /* The path in: ink banners with the book's rounded tail (ruleset §4.4). */

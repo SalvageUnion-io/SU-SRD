@@ -1,26 +1,30 @@
 import type { ChapterTone } from 'component-lib'
 import { buttonVariants, CHAPTER_BAND_COLOR } from 'component-lib'
-import type { ChapterRow } from '../lib/chapters'
 
 /**
  * The home page as the manual's Contents page (board 06): the book's chapters
  * as an index, each headed by a band in its colour with its real entry count,
- * and beside them the "New to the Union?" path and the rules a table reaches
- * for. Server-rendered and static: every row is a plain link.
+ * then the rules a table reaches for under an ink band; beside them the "New
+ * to the Union?" path and the Discord bot. Server-rendered and static: every
+ * row is a plain link.
  *
  * Rows are 36px for a fine pointer and 44px under `(pointer: coarse)` or on a phone width (the
  * repo's touch floor, ruleset §4.6) — `global.css`'s `.srd-contents__row`.
  */
 
+/** One row of the index: an entry and, for a chapter's catalog, its count. */
+export type ContentsRow = { label: string; href: string; count?: number }
+
 type ContentsChapterProps = {
   id: string
   title: string
-  tone: ChapterTone
-  rows: ChapterRow[]
-  total: number
+  /** The band's colour: a chapter's tone, or ink for a section of rules. */
+  tone: ChapterTone | 'ink'
+  rows: ContentsRow[]
+  total?: number
 }
 
-/** One chapter of the index: its colour band, its name and count, its rows. */
+/** One section of the index: its colour band, its name and count, its rows. */
 export function ContentsChapter({ id, title, tone, rows, total }: ContentsChapterProps) {
   const headingId = `${id}-heading`
   return (
@@ -28,18 +32,18 @@ export function ContentsChapter({ id, title, tone, rows, total }: ContentsChapte
       <div
         aria-hidden="true"
         className="srd-contents__band"
-        style={{ backgroundColor: CHAPTER_BAND_COLOR[tone] }}
+        style={{ backgroundColor: tone === 'ink' ? 'var(--color-ink)' : CHAPTER_BAND_COLOR[tone] }}
       />
       <h2 id={headingId} className="srd-contents__heading">
         <span>{title}</span>
-        <span className="srd-contents__total">{total}</span>
+        {total !== undefined && <span className="srd-contents__total">{total}</span>}
       </h2>
       <ul className="srd-contents__rows">
         {rows.map((row) => (
-          <li key={row.schemaId}>
+          <li key={row.href}>
             <a href={row.href} className="srd-contents__row">
               <span>{row.label}</span>
-              <span className="srd-contents__count">{row.count}</span>
+              {row.count !== undefined && <span className="srd-contents__count">{row.count}</span>}
             </a>
           </li>
         ))}
@@ -101,24 +105,37 @@ export function NewToTheUnion({ steps, buildHref }: NewToTheUnionProps) {
   )
 }
 
-export type AtTheTableLink = { label: string; href: string }
-
-/** The rules a table reaches for mid-session, one click from Contents. */
-export function AtTheTable({ links }: { links: AtTheTableLink[] }) {
+/**
+ * The SURef Discord bot, offered beside the index: the same lookups and every
+ * table, rolled in the crew's own server. Installs from here; `/discord`
+ * documents the commands.
+ */
+export function DiscordBot({ installHref, aboutHref }: { installHref: string; aboutHref: string }) {
   return (
-    <section className="srd-panel" aria-labelledby="at-the-table">
-      <h2 id="at-the-table" className="srd-panel__heading srd-panel__heading--small">
-        At the table
+    <section className="srd-panel" aria-labelledby="discord-bot">
+      <h2 id="discord-bot" className="srd-panel__heading">
+        Roll on Discord
       </h2>
-      <ul className="srd-contents__rows srd-panel__rows">
-        {links.map((link) => (
-          <li key={link.href}>
-            <a href={link.href} className="srd-contents__row">
-              {link.label}
-            </a>
-          </li>
-        ))}
-      </ul>
+      <div className="srd-panel__body">
+        <p>
+          The SURef bot brings this reference to your table&rsquo;s server: roll on every Salvage
+          Union table and look up any chassis, system or module with <code>/su</code>.
+        </p>
+        <p>Free, no account, and it asks for no server permissions.</p>
+      </div>
+      <div className="srd-panel__foot srd-panel__foot--row">
+        <a
+          href={installHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${buttonVariants({ variant: 'primary', size: 'full' })} srd-panel__cta`}
+        >
+          Add to Discord
+        </a>
+        <a href={aboutHref} className="srd-panel__link">
+          See the commands
+        </a>
+      </div>
     </section>
   )
 }

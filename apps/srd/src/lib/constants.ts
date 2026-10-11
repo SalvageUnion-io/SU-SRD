@@ -6,6 +6,14 @@ export { SRD_SITE_URL as SITE_URL } from 'salvageunion-reference'
 /** In The Union Now — the companion character builder & game manager. */
 export const ITUN_URL = 'https://intheunionnow.com'
 
+/**
+ * The SURef Discord bot's install link. The client id is public by design —
+ * it appears in every Discord invite URL; the bot authenticates with its
+ * token, never this id. It asks for no server permissions.
+ */
+export const DISCORD_INSTALL_URL =
+  'https://discord.com/oauth2/authorize?client_id=1442878052823470172&scope=bot%20applications.commands&permissions=0'
+
 /** Default OG image path — the 1200×630 branded card. */
 export const DEFAULT_OG_IMAGE = '/og-image.png'
 

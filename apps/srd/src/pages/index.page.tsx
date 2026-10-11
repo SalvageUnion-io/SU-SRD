@@ -2,8 +2,9 @@
  * `/` — the landing page: the manual's Contents page (board 06).
  *
  * Search first, in the blue Contents band beside the title; then the book's
- * chapters as an index with their real entry counts; and beside them the "New
- * to the Union?" path into ITUN and the rules a table reaches for. The band's
+ * chapters as an index with their real entry counts, and the rules a table
+ * reaches for as one more section under an ink band; beside them the "New to
+ * the Union?" path into ITUN and the Discord bot. The band's
  * search is the page's search, so the Union bar carries none here.
  */
 
@@ -12,10 +13,10 @@ import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { HeroSearchStatic } from '../components/HeroSearch'
-import type { AtTheTableLink, NewToTheUnionStep } from '../components/HomeContents'
-import { AtTheTable, ContentsChapter, NewToTheUnion } from '../components/HomeContents'
+import type { ContentsRow, NewToTheUnionStep } from '../components/HomeContents'
+import { ContentsChapter, DiscordBot, NewToTheUnion } from '../components/HomeContents'
 import { buildChapters } from '../lib/chapters'
-import { ITUN_URL, SITE_URL } from '../lib/constants'
+import { DISCORD_INSTALL_URL, ITUN_URL, SITE_URL } from '../lib/constants'
 import { itemHref } from '../lib/entityHref'
 import '../lib/gameData'
 import { Island } from '../runtime/Island'
@@ -56,7 +57,7 @@ function page(): PageResult {
     const href = hrefByName('guides', guide)
     return href ? [{ title: guide, meta, href }] : []
   })
-  const atTheTable = AT_THE_TABLE.flatMap(({ schema, name, label }): AtTheTableLink[] => {
+  const atTheTable = AT_THE_TABLE.flatMap(({ schema, name, label }): ContentsRow[] => {
     const href = hrefByName(schema, name)
     return href ? [{ label, href }] : []
   })
@@ -104,10 +105,11 @@ function page(): PageResult {
                 total={chapter.total}
               />
             ))}
+            <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={atTheTable} />
           </div>
           <aside className="srd-home__aside" aria-label="Getting started">
             <NewToTheUnion steps={steps} buildHref={ITUN_URL} />
-            <AtTheTable links={atTheTable} />
+            <DiscordBot installHref={DISCORD_INSTALL_URL} aboutHref="/discord/" />
           </aside>
         </div>
       </div>

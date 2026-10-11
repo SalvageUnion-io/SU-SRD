@@ -63,6 +63,15 @@ describe('home: the manual’s Contents page (board 06)', () => {
     expect(html).toContain('Build a pilot')
     expect(html).toContain('href="/schema/guides/item/create-a-pilot/"')
   })
+
+  it('sets "At the table" as a section of the index, and offers the Discord bot beside it', () => {
+    const index = html.slice(html.indexOf('srd-home__chapters'), html.indexOf('srd-home__aside'))
+    expect(index).toContain('<span>At the table</span>')
+    expect(index).toContain('href="/schema/roll-tables/item/core-mechanic/"')
+    const aside = html.slice(html.indexOf('srd-home__aside'))
+    expect(aside).toContain('Add to Discord')
+    expect(aside).toContain('href="https://discord.com/oauth2/authorize?client_id=')
+  })
 })
 
 describe('a listing (compact cards under a visible heading)', () => {
