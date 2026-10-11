@@ -16,6 +16,7 @@ import { GameDataReady } from '../components/shared/GameDataReady'
 import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
+import { SiteFooter } from '../components/shared/SiteFooter'
 import { itunEntityHref } from '../lib/entityHref'
 import { pageTitle } from '../lib/pageTitle'
 // Self-hosted Barlow superfamily (mirrors srd) — keeps fonts on-origin so
@@ -97,6 +98,9 @@ function RootComponent() {
           <GameDataReady>
             <Outlet />
           </GameDataReady>
+          {/* About and Changelog for a signed-out desktop, which has neither
+              the drawer nor the account menu that carry them elsewhere. */}
+          <SiteFooter />
         </CopyFeedbackProvider>
         <Toaster />
       </EntityHrefProvider>

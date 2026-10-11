@@ -42,17 +42,15 @@ import {
 } from 'component-lib'
 import { Search } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
+import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 import { useGameDataLoaded } from './GameDataReady'
 
 /** The button's name, the panel's and the input's: one thing, one name. */
 const LABEL = 'Search the rules'
-
-/** The bar shows the desktop trigger from here (`lg`, 64rem). */
-const DESKTOP_QUERY = '(min-width: 64rem)'
 
 const BODY = {
   display: 'flex',
@@ -120,22 +118,6 @@ const PANEL = {
   outline: 'none',
   width: '28rem',
 } satisfies CSSProperties
-
-function subscribeDesktop(onChange: () => void) {
-  if (typeof window.matchMedia !== 'function') return () => undefined
-  const query = window.matchMedia(DESKTOP_QUERY)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
-}
-
-/** Whether the viewport is wide enough for the bar's desktop trigger. */
-function useIsDesktop(): boolean {
-  return useSyncExternalStore(
-    subscribeDesktop,
-    () => typeof window.matchMedia !== 'function' || window.matchMedia(DESKTOP_QUERY).matches,
-    () => true
-  )
-}
 
 /** "⌘K" where there is a Command key, else "Ctrl K". */
 function shortcutHint(): string {

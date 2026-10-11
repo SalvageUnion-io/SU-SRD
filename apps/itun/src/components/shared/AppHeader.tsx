@@ -12,8 +12,9 @@ import { SRD_SITE_URL } from 'salvageunion-reference'
  * `mobileActions` beside the hamburger and `drawerExtra` inside the drawer.
  *
  * About and Changelog are not destinations in the nav: they sit at the
- * drawer's foot (issue 1255), and in the account menu on a desktop. The bar
- * never carries them, signed in or out (board 09's bar has neither).
+ * drawer's foot (issue 1255), in the account menu on a signed-in desktop, and
+ * in the page foot on a signed-out one (`SiteFooter`). The bar never carries
+ * them, signed in or out (board 09's bar has neither).
  *
  * The switcher replaces the old "SRD ↗" link: the reference is the other tab
  * of the same bar, not an off-site destination.
