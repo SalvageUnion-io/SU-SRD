@@ -259,6 +259,7 @@
       {
         "name": "Appleseed",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -304,6 +305,7 @@
       {
         "name": "Bola Spider",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -337,6 +339,7 @@
       {
         "name": "Glorified Truck",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -368,6 +371,7 @@
       {
         "name": "Guardian Angel",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -407,6 +411,7 @@
       {
         "name": "Honey Bee",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -440,6 +445,7 @@
       {
         "name": "Party Bus",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -484,6 +490,7 @@
       {
         "name": "Steambender",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -526,6 +533,7 @@
       {
         "name": "Surprise",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -556,6 +564,7 @@
       {
         "name": "Swayback Wideloader",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -602,6 +611,7 @@
       {
         "name": "Wagon",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -633,6 +643,7 @@
       {
         "name": "Weatherboy",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -999,6 +1010,7 @@
       {
         "name": "3CH-0",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1033,6 +1045,7 @@
       {
         "name": "Antagonistic Wasp",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1066,6 +1079,7 @@
       {
         "name": "Firefighter",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1105,6 +1119,7 @@
       {
         "name": "Honeybee",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1132,6 +1147,7 @@
       {
         "name": "Incident Commander",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1171,6 +1187,7 @@
       {
         "name": "SFX",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1206,6 +1223,7 @@
       {
         "name": "Martinet",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1242,6 +1260,7 @@
       {
         "name": "Valet",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1278,6 +1297,7 @@
       {
         "name": "Valkyrie",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1531,6 +1551,7 @@
       {
         "name": "The Cleaner",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1558,6 +1579,7 @@
       {
         "name": "Dumpster Fire",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1594,6 +1616,7 @@
       {
         "name": "The Dungster",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1628,6 +1651,7 @@
       {
         "name": "Killdozer",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1667,6 +1691,7 @@
       {
         "name": "Knock-Down Drag-Out",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1930,6 +1955,7 @@
       {
         "name": "Forty-Niner",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -1966,6 +1992,7 @@
       {
         "name": "Gossipmonger",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -2008,6 +2035,7 @@
       {
         "name": "Hedgehog Dilemma",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -2044,6 +2072,7 @@
       {
         "name": "Interdictor",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -2080,6 +2109,7 @@
       {
         "name": "Pharmacy",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -2113,6 +2143,7 @@
       {
         "name": "Photo Finale",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -2370,6 +2401,7 @@
       {
         "name": "Newshound",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -2406,6 +2438,7 @@
       {
         "name": "Ripley",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -2439,6 +2472,7 @@
       {
         "name": "Suppressor",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3434,6 +3468,7 @@
       {
         "name": "Ant",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3477,6 +3512,7 @@
       {
         "name": "Atomiser",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3517,6 +3553,7 @@
       {
         "name": "Autogenous",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3556,6 +3593,7 @@
       {
         "name": "Doss",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3596,6 +3634,7 @@
       {
         "name": "Firefly",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3638,6 +3677,7 @@
       {
         "name": "Gridiron Webslinger",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3682,6 +3722,7 @@
       {
         "name": "Hellion",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3728,6 +3769,7 @@
       {
         "name": "King Crab",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3770,6 +3812,7 @@
       {
         "name": "Limpet Mine",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3812,6 +3855,7 @@
       {
         "name": "Orthrus",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3852,6 +3896,7 @@
       {
         "name": "Picket",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3897,6 +3942,7 @@
       {
         "name": "Riptide",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3937,6 +3983,7 @@
       {
         "name": "Tanks-A-Lot",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -3983,6 +4030,7 @@
       {
         "name": "Tollmaster",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -9335,6 +9383,7 @@
       {
         "name": "Bill E",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -9374,6 +9423,7 @@
       {
         "name": "Court Cat",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -9410,6 +9460,7 @@
       {
         "name": "Guano",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -9446,6 +9497,7 @@
       {
         "name": "Mag-Train",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -9482,6 +9534,7 @@
       {
         "name": "Magic Bus",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -9519,6 +9572,7 @@
       {
         "name": "Nyaa~",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
@@ -9558,6 +9612,7 @@
       {
         "name": "Osiris",
         "hidden": true,
+        "homebrew": true,
         "source": "Mech Monday",
         "systems": [
           {
