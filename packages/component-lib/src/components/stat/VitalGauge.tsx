@@ -5,7 +5,7 @@ import type { SizeRung } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
 import { capsLabel } from '../chrome/capsLabel'
 import { POSTER_STAMP } from '../chrome/posterStamp'
-import { pipClickValue, statBlockRowStarts, trackSegmentState } from './pipRows'
+import { pipClickValue, segmentLit, statBlockRowStarts, trackSegmentState } from './pipRows'
 import type { ProvenanceLine } from './StatProvenance'
 import { StatProvenance } from './StatProvenance'
 
@@ -212,12 +212,19 @@ export function VitalGauge({
   // Empty-segment fill differs by surface: recessed outline on a dark instrument
   // ground, paper on the light sheet.
   const emptyFill = onDark ? 'border-paper-30 bg-transparent' : 'border-ink-50 bg-paper'
+  // The redline zone is outlined in status-bad while unlit (board D1), so the
+  // danger line reads before the track reaches it — on the sheet and the
+  // Dashboard alike, since both draw this gauge.
   const segFill = (state: ReturnType<typeof trackSegmentState>): string =>
     state === 'off'
       ? emptyFill
-      : state === 'danger'
-        ? 'border-status-bad bg-status-bad'
-        : 'border-[var(--tone-deep)] bg-[var(--tone)]'
+      : state === 'redline'
+        ? onDark
+          ? 'border-status-bad bg-transparent'
+          : 'border-status-bad bg-paper'
+        : state === 'danger'
+          ? 'border-status-bad bg-status-bad'
+          : 'border-[var(--tone-deep)] bg-[var(--tone)]'
 
   // COMPACT — the instrument bar (dashboard cue): label and value/max on one row,
   // a five-wide pip grid beneath. No big numeral or caption.
@@ -256,7 +263,7 @@ export function VitalGauge({
             i,
             state: trackSegmentState(i, shown, max, dangerFrom),
           })).map(({ i, state }) => {
-            const on = state !== 'off'
+            const on = segmentLit(state)
             const segClass = cn('h-[14px] w-full min-w-0 rounded-badge border', segFill(state))
             return editable ? (
               <button
@@ -479,9 +486,12 @@ export function VitalGauge({
             {Array.from({ length: segRow.count }).map((_, c) => {
               const i = segRow.start + c
               const state = trackSegmentState(i, shown, max, dangerFrom)
-              const on = state !== 'off'
+              const on = segmentLit(state)
               const segClass = cn(
-                'min-h-0 min-w-0 flex-1 border-chrome p-0',
+                // `border-solid`: the base layer's `button { border: none }`
+                // leaves an editable segment with no border style, so an unlit
+                // pip vanished in Edit while Read drew it.
+                'min-h-0 min-w-0 flex-1 border-chrome border-solid p-0',
                 isDense ? 'h-[18px] rounded-badge' : 'h-[22px] rounded-card',
                 segFill(state)
               )

@@ -44,8 +44,13 @@ export type BandButton = {
   onClick: () => void
   disabled?: boolean
   title?: string
-  /** `danger` = destructive styling (Button `variant="danger"`); `go` = the
-   * primary "go" key (Button `variant="primary"`). Omit for the default. */
+  /**
+   * `go` = the primary "go" key; `danger` = a destructive or risky one (Eject,
+   * Crit Injury, Mark Destroyed). Both draw the rust action fill (Button
+   * `variant="primary"`): rust is the one action colour, and status-bad is a
+   * state, never a button fill (ruleset §3.1, board D1's EJECT). A destructive
+   * key says so in its word and its confirm step. Omit for the default.
+   */
   variant?: 'danger' | 'go'
   /** Full-width in the 2-col bay grid (spans both columns). */
   wide?: boolean
@@ -174,20 +179,38 @@ const CHIPS: CSSProperties = {
   overflowY: 'auto',
 }
 
+/**
+ * A bay of named things with no entity card (the crawler's bays) lays them
+ * out as TILES in a grid (board D3), not a run of pills.
+ */
+const TILES: CSSProperties = {
+  ...CHIPS,
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))',
+}
+
+/**
+ * One named tile: square-cornered on the 3px canon (ruleset §4.4 — rounding
+ * beyond it only where it copies a book style, and a bay is not one), framed in
+ * ink, condensed caps as board D3 sets them.
+ */
 const CHIP: CSSProperties = {
-  padding: '1px 8px',
-  border: 'var(--bw-chrome) solid var(--color-ink-30)',
-  borderRadius: radius.full,
+  padding: '6px 8px',
+  border: 'var(--bw-chrome) solid var(--color-ink)',
+  borderRadius: radius.card,
   background: 'var(--color-paper)',
   fontFamily: 'var(--font-cond)',
-  fontWeight: 600,
+  fontWeight: 700,
   fontSize: 'var(--text-note)',
-  whiteSpace: 'nowrap',
+  letterSpacing: 'var(--tracking-caps-tight)',
+  lineHeight: 1.2,
+  textTransform: 'uppercase',
 }
 
 /**
  * A bay/overlay action, rendered on the standard `Button` (dark instrument
- * surface). `danger`/`go` map to the danger/primary variants; `full` fills the
+ * surface). `danger` and `go` both map to the rust primary variant (see
+ * `BandButton.variant`); `full` fills the
  * bay grid cell (`wide` spans both columns), while overlay actions stay
  * auto-width with a 140px floor.
  */
@@ -196,7 +219,7 @@ function BandBtn({ btn, full = true }: { btn: BandButton; full?: boolean }) {
   if (btn.wide) style.gridColumn = 'span 2'
   return (
     <Button
-      variant={btn.variant === 'danger' ? 'danger' : btn.variant === 'go' ? 'primary' : 'default'}
+      variant={btn.variant === undefined ? 'default' : 'primary'}
       size="compact"
       style={style}
       onClick={btn.onClick}
@@ -253,7 +276,14 @@ function BayBody({ bay }: { bay: BandBay }) {
       {bay.gauges && bay.gauges.length > 0 && <Gauges gauges={bay.gauges} large={bay.large} />}
       {bay.lines && bay.lines.length > 0 && <Lines lines={bay.lines} />}
       {bay.chips && bay.chips.length > 0 && (
-        <ul style={{ ...CHIPS, listStyle: 'none', margin: 0, padding: 0 }}>
+        <ul
+          style={{
+            ...(bay.chips.some((c) => c.entity) ? CHIPS : TILES),
+            listStyle: 'none',
+            margin: 0,
+            padding: 0,
+          }}
+        >
           {bay.chips.map((c) =>
             c.entity ? (
               <li key={c.text}>

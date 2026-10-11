@@ -88,6 +88,7 @@ function MountBay({ menu }: { menu: BoardMenu }) {
               { label: 'Vitals', lines: [{ text: 'HP 7/10 · AP 3/5' }], buttons: [] },
               {
                 label: 'Mount',
+                side: true,
                 buttons: [],
                 control: (
                   <BoardControl

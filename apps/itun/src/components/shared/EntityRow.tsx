@@ -213,13 +213,16 @@ type EntityRowProps = FilledEntityRowProps | EmptyEntityRowProps
  * ontology, and an edge bar spends the highest-contrast element on the row on
  * decoration.
  *
- * Every tone takes ink text, crawler included: the origin draws ink on the unit
- * colour, and paper on pilot orange or crawler pink fails contrast.
+ * Pilot, mech and game take ink text: the origin draws ink on the unit colour,
+ * and paper on pilot orange fails contrast. Crawler pink carries neither ink
+ * (4.2 : 1) nor paper (3.7 : 1) at the 4.5 : 1 the 16px title needs, so the
+ * crawler band is the deeper `--color-crawler-band` with paper on it (4.6 : 1,
+ * ruleset §3.8) — the a11y scan of /starter fails the plain pink.
  */
 const TONE: Record<EntityRowType, { band: string; ink: string }> = {
   pilot: { band: 'var(--color-sheet-pilot)', ink: 'var(--color-ink)' },
   mech: { band: 'var(--color-sheet-mech)', ink: 'var(--color-ink)' },
-  crawler: { band: 'var(--color-sheet-crawler)', ink: 'var(--color-ink)' },
+  crawler: { band: 'var(--color-crawler-band)', ink: 'var(--color-paper)' },
   game: { band: 'var(--color-sheet-game)', ink: 'var(--color-ink)' },
 }
 
@@ -381,9 +384,9 @@ export function EntityRow(props: EntityRowProps) {
           <span
             className={cn(
               'w-fit min-w-0 self-center break-words',
-              'font-cond text-base font-bold uppercase leading-none tracking-caps-tight',
-              'text-ink'
+              'font-cond text-base font-bold uppercase leading-none tracking-caps-tight'
             )}
+            style={{ color: tone.ink }}
           >
             {name}
           </span>

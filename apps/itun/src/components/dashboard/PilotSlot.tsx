@@ -288,9 +288,12 @@ export function PilotMajor({
         lines: abilities.length > 0 ? undefined : [{ text: 'No abilities.' }],
         buttons: [],
       },
+      // Mount is the side column (board D2), as the Mech's Egress is: it gets
+      // its own width, so "Board <mech>" prints whole.
       boardedIn === null
         ? {
             label: 'Mount',
+            side: true,
             buttons: [],
             control: (
               <BoardControl
@@ -305,7 +308,7 @@ export function PilotMajor({
             ),
           }
         : // Boarded, the way out is the Mech's Egress, not a second control here.
-          { label: 'Mount', lines: [{ text: `In ${boardedIn}` }], buttons: [] },
+          { label: 'Mount', side: true, lines: [{ text: `In ${boardedIn}` }], buttons: [] },
     ],
     overlay,
   }

@@ -74,13 +74,6 @@ describe('AppHeader', () => {
     expect(foot.getByRole('link', { name: 'Changelog' }).getAttribute('href')).toBe('/changelog')
   })
 
-  test('signed out (aboutInBar), the desktop bar keeps a door to About and Changelog', () => {
-    render(<AppHeader aboutInBar />)
-    const banner = within(screen.getByRole('banner'))
-    expect(banner.getByRole('link', { name: 'About' }).getAttribute('href')).toBe('/about')
-    expect(banner.getByRole('link', { name: 'Changelog' }).getAttribute('href')).toBe('/changelog')
-  })
-
   test('search is the bar’s slot, and its phone form sits beside the hamburger', () => {
     render(
       <AppHeader

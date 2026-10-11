@@ -253,9 +253,17 @@ export function PilotSheet({
 
       {/* The printed pilot sheet (board 10): identity and abilities down the
           wide column; vitals, inventory and linked units down the narrow one.
-          One column below the container's 5xl, in that reading order. */}
+
+          One column below the container's 5xl, and there the vitals come
+          straight after the identity: HP, AP and TP are what a player reaches
+          for mid-session, and the full ability cards above them pushed them
+          thousands of pixels down a phone. Below 5xl both column wrappers are
+          `display: contents`, so the five sections are items of the one grid,
+          and `order` lifts the vitals above the abilities (identity, vitals,
+          abilities, inventory, linked units); from 5xl the columns return and
+          every `order` resets. */}
       <div className="grid grid-cols-1 items-start gap-6 @5xl:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="flex min-w-0 flex-col gap-6">
+        <div className="contents @5xl:flex @5xl:min-w-0 @5xl:flex-col @5xl:gap-6">
           <SheetSectionCard
             title="Identity"
             surface={readOnly ? 'paper' : 'frame'}
@@ -276,45 +284,47 @@ export function PilotSheet({
           {/* ===== Abilities — the Generic tree, then the ones this pilot owns =====
               A SLAB, not a card: the grid is entity cards, which carry their own
               frame. */}
-          <SheetSectionSlab
-            title="Abilities"
-            // The rule's caption names the trees the cards come from (board 10).
-            count={model.abilityTreeCaption ?? undefined}
-            controls={
-              readOnly ? undefined : (
-                <SectionManageButton label="abilities" onClick={() => setPicker('abilities')} />
-              )
-            }
-          >
-            {model.abilityCards.length === 0 && model.unresolvedAbilities.length === 0 ? (
-              <EmptyState variant="quiet" body="No abilities learned yet." />
-            ) : (
-              <div className="flex flex-col gap-5">
-                {/* The Generic tree every pilot has, then what this pilot owns,
+          <div className="order-1 min-w-0 @5xl:order-none">
+            <SheetSectionSlab
+              title="Abilities"
+              // The rule's caption names the trees the cards come from (board 10).
+              count={model.abilityTreeCaption ?? undefined}
+              controls={
+                readOnly ? undefined : (
+                  <SectionManageButton label="abilities" onClick={() => setPicker('abilities')} />
+                )
+              }
+            >
+              {model.abilityCards.length === 0 && model.unresolvedAbilities.length === 0 ? (
+                <EmptyState variant="quiet" body="No abilities learned yet." />
+              ) : (
+                <div className="flex flex-col gap-5">
+                  {/* The Generic tree every pilot has, then what this pilot owns,
                     each a full medium card so the action and range line and the
                     body read in Read. */}
-                {model.abilityCards.length > 0 && (
-                  <MasonryColumns maxColumns={3}>
-                    {model.abilityCards.map((entry) => (
-                      <EntityGridRow key={entry.slug}>{renderAbility(entry)}</EntityGridRow>
-                    ))}
-                  </MasonryColumns>
-                )}
+                  {model.abilityCards.length > 0 && (
+                    <MasonryColumns maxColumns={3}>
+                      {model.abilityCards.map((entry) => (
+                        <EntityGridRow key={entry.slug}>{renderAbility(entry)}</EntityGridRow>
+                      ))}
+                    </MasonryColumns>
+                  )}
 
-                {model.unresolvedAbilities.length > 0 && (
-                  <div className="flex flex-col gap-2">
-                    {model.unresolvedAbilities.map((slug) => (
-                      <Panel key={slug} className="px-3 py-2.5 font-body text-sm text-wk-muted">
-                        {slug}
-                      </Panel>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </SheetSectionSlab>
+                  {model.unresolvedAbilities.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                      {model.unresolvedAbilities.map((slug) => (
+                        <Panel key={slug} className="px-3 py-2.5 font-body text-sm text-wk-muted">
+                          {slug}
+                        </Panel>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </SheetSectionSlab>
+          </div>
         </div>
-        <div className="flex min-w-0 flex-col gap-6">
+        <div className="contents @5xl:flex @5xl:min-w-0 @5xl:flex-col @5xl:gap-6">
           <SheetSectionCard title="Vitals" surface={readOnly ? 'paper' : 'frame'}>
             <div className="flex w-full flex-col [&>*+*]:mt-[14px] [&>*+*]:border-t [&>*+*]:border-dashed [&>*+*]:border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] [&>*+*]:pt-[14px]">
               <VitalGauge
@@ -403,124 +413,128 @@ export function PilotSheet({
             </div>
           </SheetSectionCard>
           {/* ===== Inventory (full-width band, printed pilot sheet bottom) ===== */}
-          <SheetSectionSlab
-            title="Inventory"
-            count={
-              <span className={model.overCapacity ? 'text-status-bad' : undefined}>
-                {model.slotsUsed} / {model.slotsCap} slots
-              </span>
-            }
-            controls={
-              readOnly ? undefined : (
-                <SectionManageButton label="equipment" onClick={() => setPicker('equipment')} />
-              )
-            }
-          >
-            {pilot.equipment.length === 0 && model.genericInventory.length === 0 ? (
-              <EmptyState variant="quiet" body="Nothing carried." />
-            ) : readOnly ? (
-              // Read (board 10): the shortform pills, then a dashed box per
-              // slot still free, so capacity reads at a glance.
-              <div className="flex flex-wrap gap-2">
-                {model.ordinaryEquipment.map((slug) => (
-                  <PilotEquipmentItem
-                    key={slug}
-                    slug={slug}
-                    pilotId={pilot.id}
-                    seedSelections={pilot.equipmentChoices?.[slug]}
-                    condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
-                    usesLeft={pilot.equipmentUses?.[slug]}
-                    onConditionChange={() => undefined}
-                    onUsesChange={() => undefined}
-                    readOnly
-                    scalingParent={model.scalingParent}
-                    store={store}
-                  />
-                ))}
-                {model.genericInventory.map((entry) => (
-                  <GenericEntryCard key={entry.id} entry={entry} />
-                ))}
-                {Array.from(
-                  {
-                    length: Math.min(
-                      FREE_SLOT_BOXES,
-                      Math.max(0, model.slotsCap - model.slotsUsed)
-                    ),
-                  },
-                  (_, index) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: identical empty boxes; position is the only identity
-                    <span key={index} aria-hidden="true" style={FREE_SLOT} />
-                  )
-                )}
-              </div>
-            ) : (
-              // Edit: one item to a row, each its pill with the controls under
-              // it — the narrow column has no room for two cards side by side.
-              <div className="flex flex-col gap-4">
-                {model.ordinaryEquipment.map((slug) => (
-                  <PilotEquipmentItem
-                    key={slug}
-                    slug={slug}
-                    pilotId={pilot.id}
-                    seedSelections={pilot.equipmentChoices?.[slug]}
-                    condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
-                    usesLeft={pilot.equipmentUses?.[slug]}
-                    onConditionChange={(itemSlug, next) => {
-                      void actions.handleEquipmentConditionChange(itemSlug, next)
-                    }}
-                    onUsesChange={(itemSlug, next) => {
-                      void actions.handleUsesChange(itemSlug, next)
-                    }}
-                    onRemove={
+          <div className="order-2 min-w-0 @5xl:order-none">
+            <SheetSectionSlab
+              title="Inventory"
+              count={
+                <span className={model.overCapacity ? 'text-status-bad' : undefined}>
+                  {model.slotsUsed} / {model.slotsCap} slots
+                </span>
+              }
+              controls={
+                readOnly ? undefined : (
+                  <SectionManageButton label="equipment" onClick={() => setPicker('equipment')} />
+                )
+              }
+            >
+              {pilot.equipment.length === 0 && model.genericInventory.length === 0 ? (
+                <EmptyState variant="quiet" body="Nothing carried." />
+              ) : readOnly ? (
+                // Read (board 10): the shortform pills, then a dashed box per
+                // slot still free, so capacity reads at a glance.
+                <div className="flex flex-wrap gap-2">
+                  {model.ordinaryEquipment.map((slug) => (
+                    <PilotEquipmentItem
+                      key={slug}
+                      slug={slug}
+                      pilotId={pilot.id}
+                      seedSelections={pilot.equipmentChoices?.[slug]}
+                      condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
+                      usesLeft={pilot.equipmentUses?.[slug]}
+                      onConditionChange={() => undefined}
+                      onUsesChange={() => undefined}
                       readOnly
-                        ? undefined
-                        : () => {
-                            actions.toggleEquipment(slug)
-                          }
-                    }
-                    readOnly={readOnly}
-                    scalingParent={model.scalingParent}
-                    store={store}
+                      scalingParent={model.scalingParent}
+                      store={store}
+                    />
+                  ))}
+                  {model.genericInventory.map((entry) => (
+                    <GenericEntryCard key={entry.id} entry={entry} />
+                  ))}
+                  {Array.from(
+                    {
+                      length: Math.min(
+                        FREE_SLOT_BOXES,
+                        Math.max(0, model.slotsCap - model.slotsUsed)
+                      ),
+                    },
+                    (_, index) => (
+                      // biome-ignore lint/suspicious/noArrayIndexKey: identical empty boxes; position is the only identity
+                      <span key={index} aria-hidden="true" style={FREE_SLOT} />
+                    )
+                  )}
+                </div>
+              ) : (
+                // Edit: one item to a row, each its pill with the controls under
+                // it — the narrow column has no room for two cards side by side.
+                <div className="flex flex-col gap-4">
+                  {model.ordinaryEquipment.map((slug) => (
+                    <PilotEquipmentItem
+                      key={slug}
+                      slug={slug}
+                      pilotId={pilot.id}
+                      seedSelections={pilot.equipmentChoices?.[slug]}
+                      condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
+                      usesLeft={pilot.equipmentUses?.[slug]}
+                      onConditionChange={(itemSlug, next) => {
+                        void actions.handleEquipmentConditionChange(itemSlug, next)
+                      }}
+                      onUsesChange={(itemSlug, next) => {
+                        void actions.handleUsesChange(itemSlug, next)
+                      }}
+                      onRemove={
+                        readOnly
+                          ? undefined
+                          : () => {
+                              actions.toggleEquipment(slug)
+                            }
+                      }
+                      readOnly={readOnly}
+                      scalingParent={model.scalingParent}
+                      store={store}
+                    />
+                  ))}
+                  {model.genericInventory.map((entry, index) => (
+                    <GenericEntryCard
+                      key={entry.id}
+                      entry={entry}
+                      onRemove={
+                        readOnly
+                          ? undefined
+                          : () => {
+                              void actions.handleGenericInventoryChange(
+                                model.genericInventory.filter((_, i) => i !== index)
+                              )
+                            }
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+              {!readOnly && (
+                <div className="mt-3">
+                  <GenericEntryAdder
+                    onAdd={(entry) => {
+                      void actions.handleGenericInventoryChange([...model.genericInventory, entry])
+                    }}
                   />
-                ))}
-                {model.genericInventory.map((entry, index) => (
-                  <GenericEntryCard
-                    key={entry.id}
-                    entry={entry}
-                    onRemove={
-                      readOnly
-                        ? undefined
-                        : () => {
-                            void actions.handleGenericInventoryChange(
-                              model.genericInventory.filter((_, i) => i !== index)
-                            )
-                          }
-                    }
-                  />
-                ))}
-              </div>
-            )}
-            {!readOnly && (
-              <div className="mt-3">
-                <GenericEntryAdder
-                  onAdd={(entry) => {
-                    void actions.handleGenericInventoryChange([...model.genericInventory, entry])
-                  }}
-                />
-              </div>
-            )}
-          </SheetSectionSlab>
+                </div>
+              )}
+            </SheetSectionSlab>
+          </div>
 
           {/* ===== Linked Units — the assigned mech and the home crawler =====
               One line each in Read (board 10); full rows with Assign in Edit. */}
           {linkedUnits && (
-            <SheetSectionSlab
-              id="linked-units"
-              title="Linked Units"
-              bodyClassName="flex flex-col gap-4"
-            >
-              {linkedUnits}
-            </SheetSectionSlab>
+            <div className="order-2 min-w-0 @5xl:order-none">
+              <SheetSectionSlab
+                id="linked-units"
+                title="Linked Units"
+                bodyClassName="flex flex-col gap-4"
+              >
+                {linkedUnits}
+              </SheetSectionSlab>
+            </div>
           )}
         </div>
       </div>

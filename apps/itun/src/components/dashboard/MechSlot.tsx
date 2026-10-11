@@ -20,7 +20,7 @@
  * log (`dashboardRolls.ts`), where the crew's Log tab reads it.
  */
 
-import { CountStepper } from 'component-lib'
+import { CountStepper, heatDangerFrom } from 'component-lib'
 import { useEffect, useState } from 'react'
 import type { CriticalDamageEffect } from 'salvageunion-reference/rules'
 import {
@@ -306,7 +306,7 @@ export function MechMajor({
             value: heat,
             max: maxHeat,
             tone: 'mech',
-            danger: Math.max(0, maxHeat - 2),
+            danger: maxHeat > 0 ? heatDangerFrom(maxHeat) : undefined,
           },
         ],
         body: <RuleBrief rule={blocked.rule} cite={blocked.cite} />,
@@ -449,7 +449,7 @@ export function MechMajor({
             value: heat,
             max: maxHeat,
             tone: 'mech',
-            danger: Math.max(0, maxHeat - 2),
+            danger: maxHeat > 0 ? heatDangerFrom(maxHeat) : undefined,
           },
           { label: 'EP', value: ep, max: maxEP, tone: 'mech' },
         ],

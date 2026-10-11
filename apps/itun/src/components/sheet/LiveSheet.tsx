@@ -230,9 +230,12 @@ export function LiveSheet({
             aria-hidden={!condensed}
             className={cn(
               'flex min-w-0 flex-wrap items-center gap-2 transition-[opacity,transform] duration-150',
+              // At rest it is out of the flow as well as invisible: an
+              // invisible strip still took the bar's first row on a phone and
+              // pushed Share and ⋯ onto a row of their own.
               condensed
                 ? 'translate-y-0 opacity-100'
-                : 'pointer-events-none translate-y-[5px] opacity-0'
+                : 'pointer-events-none invisible absolute translate-y-[5px] opacity-0'
             )}
           >
             <Badge shape="stamp" size="full" className="block max-w-full truncate">

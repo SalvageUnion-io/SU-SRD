@@ -27,7 +27,8 @@
  *
  * Below it, the deck (`DeckList`) sits beside the display's tabs
  * (`DisplayTabs`, ADR-038 §4): an action chosen from the deck opens in the Resolve
- * tab, and its progress is saved on the seat (`useActionsDeck`). A strip along
+ * tab, and its progress is saved on the seat (`useActionsDeck`). The Crew tab
+ * takes the whole display, without the deck (board D2). A strip along
  * the bottom carries the Mediator's latest alert and the proposal count, and
  * the rail says whether play is being saved. What the rest of the table is
  * doing — the Game's rolls, alerts and the crew's derived status — is
@@ -135,6 +136,12 @@ const DECK_AND_TABS: CSSProperties = {
   gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1fr)',
   gridTemplateRows: 'minmax(0, 1fr)',
 }
+
+/**
+ * The Crew tab takes the whole display (board D2): a table of the crew's
+ * vitals and status needs the width, and the deck has nothing to say to it.
+ */
+const TABS_ALONE: CSSProperties = { ...DECK_AND_TABS, gridTemplateColumns: 'minmax(0, 1fr)' }
 
 const DECK: CSSProperties = {
   minHeight: 0,
@@ -394,10 +401,12 @@ function DashboardView({
                 />
               </div>
             ) : (
-              <div style={DECK_AND_TABS}>
-                <section aria-label="Actions" style={DECK}>
-                  <DeckList view={deckList} />
-                </section>
+              <div style={tab === 'crew' ? TABS_ALONE : DECK_AND_TABS}>
+                {tab === 'crew' ? null : (
+                  <section aria-label="Actions" style={DECK}>
+                    <DeckList view={deckList} />
+                  </section>
+                )}
                 <DisplayTabs
                   tab={tab}
                   onTab={setTab}

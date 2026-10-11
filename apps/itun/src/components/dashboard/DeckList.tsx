@@ -150,9 +150,8 @@ export function DeckList({ view }: { view: DeckListModel }) {
            * (`medium` + `head`, board D1): the name, the source stamp and the
            * cost pennant on one row, so a kitted pilot's deck stays a short
            * list. The full card — description, roll table, choices — is the
-           * Resolve pane's, one click away. A head row nests no buttons, which
-           * keeps it safe inside this entry's own `role="button"`. `<ul>/<li>`
-           * stays — a set of actions IS a list semantically.
+           * Resolve pane's, one tap on the pennant away. `<ul>/<li>` stays — a
+           * set of actions IS a list semantically.
            */}
           <ul className="pc-deck-grid">
             {view.rows.map((row) => (
@@ -164,15 +163,29 @@ export function DeckList({ view }: { view: DeckListModel }) {
                 className={row.locked ? 'is-locked' : undefined}
                 title={row.lockTitle}
               >
+                {/* The cost pennant IS the deck's action (ruleset §1, board
+                    D1): filled rust, in the pennant's own place, and tapping it
+                    takes the action to Resolve. There is no separate deck
+                    button and no chevron beside it. */}
                 <ReferenceEntityCard
                   data={row.entity}
                   size="medium"
                   extent="head"
                   // The Dashboard stays flat (ruleset §3.5): no speckle.
                   texture={false}
+                  // Dimmed, still openable: the lock is a caller-resolved
+                  // overlay (see above), and Resolve says why it cannot run.
                   disabled={row.locked}
-                  cardClickLabel={row.name}
-                  onCardClick={() => view.onOpen(row.key)}
+                  controls={[
+                    {
+                      key: 'resolve',
+                      pennant: true,
+                      label: 'Resolve',
+                      ariaLabel: `Resolve ${row.name}`,
+                      title: row.lockTitle,
+                      onClick: () => view.onOpen(row.key),
+                    },
+                  ]}
                 />
               </li>
             ))}

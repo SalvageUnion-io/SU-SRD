@@ -1,3 +1,4 @@
+import { heatDangerFrom } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
@@ -129,6 +130,7 @@ function pilotMajor(pilot: Pilot, crawler: Crawler | null): MajorModel {
       { label: 'Abilities', chips: pilot.abilities.map((text) => ({ text })), buttons: [] },
       {
         label: 'Mount',
+        side: true,
         buttons: [],
         // Its states and menu are the Board Control stories.
         control: (
@@ -164,7 +166,7 @@ function mechMajor(mech: Mech, pilot: Pilot, boarded: boolean): MajorModel {
             value: s.heat,
             max: s.maxHeat,
             tone: 'mech',
-            danger: Math.max(0, s.maxHeat - 2),
+            danger: s.maxHeat > 0 ? heatDangerFrom(s.maxHeat) : undefined,
           },
           { label: 'EP', value: s.ep, max: s.maxEP, tone: 'mech' },
         ],

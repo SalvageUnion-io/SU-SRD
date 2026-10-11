@@ -188,16 +188,21 @@ function timing(name: string): HTMLElement {
   return within(group).getByRole('button', { name })
 }
 
-/** The deck cards are catalog-extent `ReferenceEntityCard` tiles laid out as one
- * masonry grid: each is a clickable card exposing `role="button"` +
- * `aria-label` = the action name. */
+/** The deck rows are head-extent `ReferenceEntityCard`s laid out as one grid.
+ * Each row's cost pennant IS its action (ruleset §1): the one button on the
+ * row, named "Resolve <action>". These are those pennants. */
 function deckCards(container: HTMLElement): HTMLElement[] {
-  return [...container.querySelectorAll<HTMLElement>('.pc-deck-grid > li [role="button"]')]
+  return [...container.querySelectorAll<HTMLElement>('.pc-deck-grid > li button')]
 }
 
-/** Click the deck badge whose action name (aria-label) matches exactly. */
+/** The action a deck pennant resolves. */
+function deckLabel(el: HTMLElement): string | undefined {
+  return el.getAttribute('aria-label')?.replace(/^Resolve /, '')
+}
+
+/** Tap the deck pennant whose action name matches exactly. */
 function clickActionByName(container: HTMLElement, name: string) {
-  const card = deckCards(container).find((el) => el.getAttribute('aria-label') === name)
+  const card = deckCards(container).find((el) => deckLabel(el) === name)
   fireEvent.click(card as Element)
 }
 
@@ -207,9 +212,7 @@ function clickPrimaryAction(container: HTMLElement): { epCost: number } {
   if (!item) throw new Error(`unresolved system ${costedSystemId}`)
   const actions = SalvageUnionReference.resolveActions(item) ?? []
   const primary = actions.find((a) => typeof a.activationCost === 'number') ?? actions[0]
-  const card = deckCards(container).find(
-    (el) => el.getAttribute('aria-label') === (primary?.name ?? '')
-  )
+  const card = deckCards(container).find((el) => deckLabel(el) === (primary?.name ?? ''))
   fireEvent.click(card as Element)
   const epCost = typeof primary?.activationCost === 'number' ? primary.activationCost : 0
   return { epCost }
@@ -241,12 +244,12 @@ describe('the Actions deck', () => {
     })
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
-    const card = deckCards(container).find((el) => el.getAttribute('aria-label') === mod.actionName)
+    const card = deckCards(container).find((el) => deckLabel(el) === mod.actionName)
     expect(card).toBeTruthy()
-    // The tile's roll table (Show toggle + Roll button) is suppressed: a control
-    // inside the card would be invalid markup and its click would bubble into
-    // `onOpen`. The table is still one click away, in the resolve panel.
-    expect(card?.querySelectorAll('button, [role="button"]')).toHaveLength(0)
+    // The tile's roll table (Show toggle + Roll button) is suppressed: the
+    // pennant is the row's one control, and the table is one tap away, in the
+    // resolve panel.
+    expect(card?.closest('li')?.querySelectorAll('button, [role="button"]')).toHaveLength(1)
     // …and the resolve panel DOES render it.
     fireEvent.click(card as Element)
     expect(screen.getByText(/Roll the Die/)).toBeTruthy()
@@ -466,7 +469,7 @@ describe('the Actions deck', () => {
         />
       </EntityHrefProvider>
     )
-    const labels = deckCards(container).map((el) => el.getAttribute('aria-label'))
+    const labels = deckCards(container).map(deckLabel)
     // The mech's own system actions are there…
     expect(mechActionNames().some((n) => labels.includes(n))).toBe(true)
     // …and so is the pilot's ability action — the pilot is in the cockpit.
@@ -489,7 +492,7 @@ describe('the Actions deck', () => {
         />
       </EntityHrefProvider>
     )
-    const labels = deckCards(container).map((el) => el.getAttribute('aria-label'))
+    const labels = deckCards(container).map(deckLabel)
     expect(ability.actionNames.some((n) => labels.includes(n))).toBe(true)
     // The mech is left behind — none of its actions are reachable on foot.
     expect(mechActionNames().some((n) => labels.includes(n))).toBe(false)

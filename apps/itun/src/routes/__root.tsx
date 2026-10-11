@@ -16,7 +16,6 @@ import { GameDataReady } from '../components/shared/GameDataReady'
 import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
-import { useConnection } from '../lib/connection/connectionContext'
 import { itunEntityHref } from '../lib/entityHref'
 import { pageTitle } from '../lib/pageTitle'
 // Self-hosted Barlow superfamily (mirrors srd) — keeps fonts on-origin so
@@ -45,11 +44,11 @@ function toastCopied() {
 }
 
 /**
- * The Union bar with ITUN's slots filled. Its own component because it reads
- * the connection, which only exists inside `AppConvexProvider`.
+ * The Union bar with ITUN's slots filled. Its own component because its
+ * account slots read the connection, which only exists inside
+ * `AppConvexProvider`.
  */
 function RootHeader({ pathname }: { pathname: string }) {
-  const { mode } = useConnection()
   // The reference search's open state, shared by its desktop and phone triggers.
   const [searchOpen, setSearchOpen] = useState(false)
   return (
@@ -62,9 +61,6 @@ function RootHeader({ pathname }: { pathname: string }) {
       actions={<HeaderActions />}
       mobileActions={<HeaderMobileActions />}
       drawerExtra={(close) => <HeaderDrawerAccount close={close} />}
-      // Signed out there is no account menu, which is where a desktop keeps
-      // About and Changelog — so they come back to the bar.
-      aboutInBar={mode !== 'connected' && mode !== 'disconnected'}
     />
   )
 }

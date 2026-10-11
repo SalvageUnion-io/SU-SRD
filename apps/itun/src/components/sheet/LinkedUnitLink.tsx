@@ -45,6 +45,11 @@ const SEAM = {
   transform: 'translateY(-50%)',
 } satisfies CSSProperties
 
+/**
+ * The name WRAPS rather than trailing off: it is what identifies the unit, so
+ * in a header-only row the name wins over the one-line rule. Truncated, a
+ * crawler's "#430" survived and the name after it that tells it apart did not.
+ */
 const NAME = {
   flex: '1 1 auto',
   fontFamily: tokens.font.cond,
@@ -52,10 +57,8 @@ const NAME = {
   fontWeight: tokens.weight.extrabold,
   lineHeight: 1.1,
   minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
+  overflowWrap: 'anywhere',
   textTransform: 'uppercase',
-  whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
 const NO_SHRINK = { flexShrink: 0 } satisfies CSSProperties

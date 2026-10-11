@@ -44,18 +44,25 @@ export function pipClickValue(index: number, value: number): number {
  * Per-segment fill state for a value/max track — the shared "segmented track"
  * core used by both Stat's framed tracker (square pips) and VitalGauge
  * (full-width bars). 'off' = unlit, 'on' = lit, 'danger' = lit but past the cap
- * (over-capacity) or past the heat redline. `dangerFrom` is the first 0-based
- * index that reads danger (default Infinity = never). Each surface keeps its own
- * visual styling; only the state logic + the row split (statBlockRowStarts) are
- * shared.
+ * (over-capacity) or past the heat redline, 'redline' = UNLIT but inside the
+ * redline zone (board D1 outlines the danger zone before it is reached, so the
+ * track shows where it turns dangerous at Heat 0 as well as at Heat 7).
+ * `dangerFrom` is the first 0-based index that reads danger (default Infinity =
+ * never). Each surface keeps its own visual styling; only the state logic + the
+ * row split (statBlockRowStarts) are shared.
  */
-export type TrackSegmentState = 'off' | 'on' | 'danger'
+export type TrackSegmentState = 'off' | 'on' | 'danger' | 'redline'
 export function trackSegmentState(
   index: number,
   value: number,
   max: number,
   dangerFrom: number = Number.POSITIVE_INFINITY
 ): TrackSegmentState {
-  if (index >= value) return 'off'
+  if (index >= value) return index >= dangerFrom && index < max ? 'redline' : 'off'
   return index >= max || index >= dangerFrom ? 'danger' : 'on'
+}
+
+/** Whether a segment in `state` is lit (filled). */
+export function segmentLit(state: TrackSegmentState): boolean {
+  return state === 'on' || state === 'danger'
 }

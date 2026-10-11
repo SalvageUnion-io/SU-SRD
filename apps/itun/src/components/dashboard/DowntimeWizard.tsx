@@ -59,6 +59,9 @@ import type { DowntimeHandle } from './useDowntime'
 /** The guideType that identifies the Union Crawler Downtime procedure. */
 const DOWNTIME_GUIDE_TYPE = 'downtime'
 
+/** The phase stamp's fill: Downtime is the crawler's, and the stamp carries paper. */
+const PHASE_STAMP_BG = 'var(--color-crawler-band)'
+
 /** Fallback tone when the guide carries no `guideTone` (crawler ontology). */
 const CRAWLER_TONE = 'var(--color-sheet-crawler-deep)'
 
@@ -280,10 +283,12 @@ export function DowntimeWizardFrame({
         </div>
         <div className="pc-dt" style={STEP_BODY}>
           <div className="pc-dt-head">
+            {/* Paper on the deeper crawler band (4.6 : 1, ruleset §3.8): the
+                guide's own pink carries paper at only 3.7 : 1. */}
             <Badge
               shape="stamp"
               className="px-[9px] py-[5px] text-caption text-paper"
-              style={{ backgroundColor: headerBg }}
+              style={{ backgroundColor: PHASE_STAMP_BG }}
             >
               {phase}
             </Badge>
