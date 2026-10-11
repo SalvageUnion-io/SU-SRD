@@ -41,6 +41,11 @@ const BAY_FUNCTIONS: Record<string, string> = {
  * it is re-rendered as a centred callout over the dimmed card instead.
  */
 const HIDE_DAMAGED = { damagedEffect: true } as const
+/**
+ * Read draws no unchosen pick: a "Choose a …" disclosure is a write cue (board
+ * 10). A pick that WAS made still reads, so it is the unmade one that hides.
+ */
+const HIDE_DAMAGED_READ = { damagedEffect: true, choices: true } as const
 
 /**
  * Several bays ALSO restate their damaged clause as a trailing content
@@ -128,6 +133,9 @@ export function CrawlerBayCard({
     'bayChoices',
     seedSelections,
     store
+  )
+  const hasPick = Object.values(selections).some((picked) =>
+    Array.isArray(picked) ? picked.length > 0 : Boolean(picked)
   )
   const bay = resolveCrawlerBay(entry.bayRef)
   const detail = useDetailModal(bay ?? undefined)
@@ -265,12 +273,16 @@ export function CrawlerBayCard({
       <ReferenceEntityCard
         data={cardData}
         size="medium"
-        hide={HIDE_DAMAGED}
-        status={condition}
+        foldTables
+        hide={readOnly && !hasPick ? HIDE_DAMAGED_READ : HIDE_DAMAGED}
+        // Read draws no controls (board 10): no condition tri-state for an
+        // intact bay, no function or Repair. A damaged bay keeps its status,
+        // which greys the card — that is the fact to read.
+        status={readOnly && condition === 'intact' ? undefined : condition}
         onStatusClick={readOnly ? undefined : toggleCondition}
         selections={selections}
         onSelectionChange={readOnly ? undefined : setSelections}
-        controls={controls}
+        controls={readOnly ? undefined : controls}
         footMeta={footMeta}
         expand={
           damaged && damagedText ? (

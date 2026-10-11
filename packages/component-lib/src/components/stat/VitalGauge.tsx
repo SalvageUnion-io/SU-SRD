@@ -5,7 +5,7 @@ import type { SizeRung } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
 import { capsLabel } from '../chrome/capsLabel'
 import { POSTER_STAMP } from '../chrome/posterStamp'
-import { pipClickValue, statBlockRowStarts, trackSegmentState } from './pipRows'
+import { pipClickValue, segmentLit, statBlockRowStarts, trackSegmentState } from './pipRows'
 import type { ProvenanceLine } from './StatProvenance'
 import { StatProvenance } from './StatProvenance'
 
@@ -76,9 +76,9 @@ export type VitalGaugeProps = {
    *
    *   `full` (default) — the multi-row poster gauge: big numeral + caption. A
    *          gauge is a destination readout, so its resting rung is `full`.
-   *   `compact` — the single-row layout (the dashboard-instrument cue): label ·
-   *          one segment row · value/max, all on one line — no big numeral, no
-   *          caption, no multi-row split.
+   *   `compact` — the instrument layout (the dashboard cue): label · the pips ·
+   *          value/max on one line, no big numeral, no caption. Its pips take
+   *          the §4.5 row split, each a sixth of the bay wide.
    */
   size?: Extract<SizeRung, 'full' | 'compact'>
   /**
@@ -174,6 +174,9 @@ export function VitalGauge({
   const segCount = Math.max(max, shown)
   const dangerFrom = danger ?? Number.POSITIVE_INFINITY
   const [capLeft, capRight] = caption ?? ['Current', 'Max']
+  // A read-out prints without the default caption: the numeral already says
+  // current / max. A caller's own caption always shows.
+  const showCaption = !readOnly || caption !== undefined
 
   const summary = `${label} ${shown} of ${max}${isOver ? ' — over capacity' : ''}`
 
@@ -209,67 +212,83 @@ export function VitalGauge({
   // Empty-segment fill differs by surface: recessed outline on a dark instrument
   // ground, paper on the light sheet.
   const emptyFill = onDark ? 'border-paper-30 bg-transparent' : 'border-ink-50 bg-paper'
+  // The redline zone is outlined in status-bad while unlit (board D1), so the
+  // danger line reads before the track reaches it — on the sheet and the
+  // Dashboard alike, since both draw this gauge.
   const segFill = (state: ReturnType<typeof trackSegmentState>): string =>
     state === 'off'
       ? emptyFill
-      : state === 'danger'
-        ? 'border-status-bad bg-status-bad'
-        : 'border-[var(--tone-deep)] bg-[var(--tone)]'
+      : state === 'redline'
+        ? onDark
+          ? 'border-status-bad bg-transparent'
+          : 'border-status-bad bg-paper'
+        : state === 'danger'
+          ? 'border-status-bad bg-status-bad'
+          : 'border-[var(--tone-deep)] bg-[var(--tone)]'
 
-  // COMPACT — the single-row instrument bar (dashboard cue): label · one segment
-  // row · value/max on one line. No big numeral, caption, or multi-row split.
+  // COMPACT — the instrument bar (dashboard cue): label and value/max on one row,
+  // the §4.5 pip rows beneath. No big numeral or caption.
   if (size === 'compact') {
     const readout = (
-      <>
-        <span
-          className={cn(
-            capsLabel({ size: 'badge', tracking: 'caps' }),
-            'shrink-0 leading-none',
-            onDark ? 'text-paper' : 'text-ink'
-          )}
-        >
-          {label}
-        </span>
-        {/*
-         * The 3px inter-segment gap is a constant, so a long track spends more
-         * of its width on gaps than on segments: a crawler at SP 20/20 divided
-         * the compact bar into 20 slivers and read as a dotted perforation
-         * strip rather than a bar. Past a dozen segments the gap tightens to
-         * 1px, which keeps the segments legible as segments at any max.
-         */}
-        <div className={cn('flex min-w-0 flex-1', segCount > 12 ? 'gap-px' : 'gap-[3px]')}>
-          {Array.from({ length: segCount }, (_, i) => ({
-            i,
-            state: trackSegmentState(i, shown, max, dangerFrom),
-          })).map(({ i, state }) => {
-            const on = state !== 'off'
-            const segClass = cn('h-[10px] min-w-0 flex-1 rounded-badge border', segFill(state))
-            return editable ? (
-              <button
-                key={i}
-                type="button"
-                data-pip={on ? 'on' : 'off'}
-                aria-label={`Set ${label} to ${i + 1}`}
-                onClick={() => setValue(pipClickValue(i, shown))}
-                className={cn(
-                  segClass,
-                  'cursor-pointer p-0 transition-transform duration-[120ms] motion-safe:hover:-translate-y-px'
-                )}
-              />
-            ) : (
-              <span key={i} data-pip={on ? 'on' : 'off'} className={segClass} />
-            )
-          })}
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        {/* Board D2: the label and the value share one row, the pips sit below. */}
+        <div className="flex items-baseline justify-between gap-2">
+          <span
+            className={cn(
+              capsLabel({ size: 'badge', tracking: 'caps' }),
+              'shrink-0 leading-none',
+              onDark ? 'text-paper' : 'text-ink'
+            )}
+          >
+            {label}
+          </span>
+          <span
+            className={cn(
+              'shrink-0 whitespace-nowrap font-cond text-caption font-bold leading-none tabular-nums',
+              isOver ? 'text-status-bad' : onDark ? 'text-paper' : 'text-ink'
+            )}
+          >
+            {shown}/{max}
+          </span>
         </div>
-        <span
-          className={cn(
-            'shrink-0 whitespace-nowrap font-cond text-caption font-bold leading-none tabular-nums',
-            isOver ? 'text-status-bad' : onDark ? 'text-paper' : 'text-ink'
-          )}
-        >
-          {shown}/{max}
-        </span>
-      </>
+        {/*
+         * Pips follow the §4.5 row split (`statBlockRowStarts`: at most six a
+         * row, balanced, bottom-heavy) — the same split the sheet's gauges
+         * draw, so Heat 6 is one row of 6, SP 12 is 6/6 and Cargo 16 is 5/5/6.
+         * Every pip is one sixth of the bay (less the gaps) whatever its row
+         * holds, so a pip's width stays steady; a shorter row sits centred.
+         */}
+        <div className="flex min-w-0 flex-col gap-[3px]">
+          {statBlockRowStarts(segCount).map((segRow) => (
+            <div key={segRow.start} className="flex min-w-0 justify-center gap-[3px]">
+              {Array.from({ length: segRow.count }, (_, c) => {
+                const i = segRow.start + c
+                const state = trackSegmentState(i, shown, max, dangerFrom)
+                const on = segmentLit(state)
+                const segClass = cn(
+                  'h-[14px] w-[calc((100%-15px)/6)] min-w-0 shrink-0 rounded-badge border',
+                  segFill(state)
+                )
+                return editable ? (
+                  <button
+                    key={i}
+                    type="button"
+                    data-pip={on ? 'on' : 'off'}
+                    aria-label={`Set ${label} to ${i + 1}`}
+                    onClick={() => setValue(pipClickValue(i, shown))}
+                    className={cn(
+                      segClass,
+                      'cursor-pointer p-0 transition-transform duration-[120ms] motion-safe:hover:-translate-y-px'
+                    )}
+                  />
+                ) : (
+                  <span key={i} data-pip={on ? 'on' : 'off'} className={segClass} />
+                )
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
     )
     /*
      * Guided Play teaches as it enforces (ADR-021), so the compact instrument
@@ -300,7 +319,7 @@ export function VitalGauge({
     if (!editable && trigger) {
       return (
         <div className={cn('flex w-full items-center gap-2', className)} style={style}>
-          <div role="img" aria-label={summary} className="flex min-w-0 flex-1 items-center gap-2">
+          <div role="img" aria-label={summary} className="flex min-w-0 flex-1">
             {readout}
           </div>
           {trigger}
@@ -473,9 +492,12 @@ export function VitalGauge({
             {Array.from({ length: segRow.count }).map((_, c) => {
               const i = segRow.start + c
               const state = trackSegmentState(i, shown, max, dangerFrom)
-              const on = state !== 'off'
+              const on = segmentLit(state)
               const segClass = cn(
-                'min-h-0 min-w-0 flex-1 border-chrome p-0',
+                // `border-solid`: the base layer's `button { border: none }`
+                // leaves an editable segment with no border style, so an unlit
+                // pip vanished in Edit while Read drew it.
+                'min-h-0 min-w-0 flex-1 border-chrome border-solid p-0',
                 isDense ? 'h-[18px] rounded-badge' : 'h-[22px] rounded-card',
                 segFill(state)
               )
@@ -500,21 +522,27 @@ export function VitalGauge({
       </div>
 
       {/* Caption — right-aligned Current / Max; an override note sits left. */}
-      <div
-        className={cn(
-          capsLabel({ size: 'badge', weight: 'semibold', tracking: 'eyebrow' }),
-          'mt-1.5 flex items-center justify-end gap-1 leading-none text-ink-75'
-        )}
-      >
-        {isOverridden && (
-          <span className="mr-auto tracking-caps-snug text-[var(--tone-deep)]">
-            overridden from {overriddenFrom}
-          </span>
-        )}
-        <span>{capLeft}</span>
-        <span>/</span>
-        <span>{capRight}</span>
-      </div>
+      {(showCaption || isOverridden) && (
+        <div
+          className={cn(
+            capsLabel({ size: 'badge', weight: 'semibold', tracking: 'eyebrow' }),
+            'mt-1.5 flex items-center justify-end gap-1 leading-none text-ink-75'
+          )}
+        >
+          {isOverridden && (
+            <span className="mr-auto tracking-caps-snug text-[var(--tone-deep)]">
+              overridden from {overriddenFrom}
+            </span>
+          )}
+          {showCaption && (
+            <>
+              <span>{capLeft}</span>
+              <span>/</span>
+              <span>{capRight}</span>
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }

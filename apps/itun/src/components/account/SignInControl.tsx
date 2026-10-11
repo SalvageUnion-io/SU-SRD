@@ -18,10 +18,26 @@ const DARK_BUTTON = 'border-paper/40 bg-transparent text-paper hover:border-pape
 type SignInControlProps = {
   /** Render for a dark surface (the masthead nav) instead of paper. */
   onDark?: boolean
+  /**
+   * Where Discord's round trip lands, as a path on this site (Convex Auth
+   * accepts a relative `redirectTo`). An invite link passes its own address,
+   * so signing in from it comes back to it and joins (issue 1255). Unset, the
+   * deployment's site URL.
+   */
+  redirectTo?: string
+  /** The button's words. Defaults to "Sign in with Discord". */
+  label?: string
+  /** `full` for a page's primary call to action (the front door). */
+  size?: 'compact' | 'full'
 }
 
 /** Sign in / sign out with Discord. */
-export function SignInControl({ onDark }: SignInControlProps) {
+export function SignInControl({
+  onDark,
+  redirectTo,
+  label = 'Sign in with Discord',
+  size = 'compact',
+}: SignInControlProps) {
   const { signIn } = useAuthActions()
   const signOut = useSignOutAndForget()
   const { mode } = useConnection()
@@ -46,11 +62,13 @@ export function SignInControl({ onDark }: SignInControlProps) {
   return (
     <Button
       variant={onDark ? 'ghost' : 'primary'}
-      size="compact"
+      size={size}
       className={onDark ? DARK_BUTTON : undefined}
-      onClick={() => void signIn('discord')}
+      onClick={() =>
+        void (redirectTo === undefined ? signIn('discord') : signIn('discord', { redirectTo }))
+      }
     >
-      Sign in with Discord
+      {label}
     </Button>
   )
 }

@@ -41,13 +41,13 @@ function held(softLinks: LinkShape[]): HeldEntities {
 const PILOT = { type: 'pilot', id: 'p1' } as const
 
 describe('assignmentsClearedByMove', () => {
-  test('a pilot moving into a game loses its pairing with a mech left in My Stuff', () => {
+  test('a pilot moving into a game loses its pairing with a mech left in your shelves', () => {
     expect(assignmentsClearedByMove(held([l('mech-to-pilot', 'm1', 'p1')]), PILOT, G1)).toEqual([
       { type: 'mech-to-pilot', other: { kind: 'mech', name: 'Thresher' } },
     ])
   })
 
-  test('and the crew of a crawler left in My Stuff', () => {
+  test('and the crew of a crawler left in your shelves', () => {
     expect(
       assignmentsClearedByMove(
         held([l('mech-to-pilot', 'm1', 'p1'), l('pilot-to-crawler', 'p1', 'c1')]),

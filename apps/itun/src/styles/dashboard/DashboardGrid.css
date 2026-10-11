@@ -18,10 +18,14 @@
   gap: 10px;
   padding: 8px 10px;
   grid-template-columns: minmax(0, 1fr);
-  /* The slot row (ADR-038 §3): tall enough
-     for a Major's bays — two gauges over a row of buttons — and the Minors'
-     gauges, text and a problem line. */
-  grid-template-rows: 40px 208px minmax(0, 1fr);
+  /* The slot row (ADR-038 §3): at least tall enough for a Major's bays — two
+     gauges over a row of buttons — and the Minors' gauges, text and a problem
+     line, and it grows with its content. Pips are a fixed size and wrap onto
+     more rows on a long track (issue 1255), so a boarded mech's SP and Cargo
+     can need more than the floor; a fixed track let the bays spill over the
+     display, whose controls then drew on top of them. The display takes what
+     is left. */
+  grid-template-rows: 40px minmax(208px, auto) minmax(0, 1fr);
   grid-template-areas:
     'rail'
     'primary'

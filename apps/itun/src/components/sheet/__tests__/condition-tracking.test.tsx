@@ -249,9 +249,10 @@ describe('PilotSheet — equipment condition toggle (REQ-011 #240)', () => {
       <PilotSheet pilot={fakePilot} store={makePilotStubStore(fakePilot, updateSpy)} readOnly />
     )
 
-    // In readOnly mode the badge renders as a static span, not a button
+    // Read state (board 10): the item is its shortform pill, with no status
+    // control to press — and nothing is written.
     expect(screen.queryByRole('button', { name: /status:/i })).toBeNull()
-    expect(screen.getByText('Intact')).toBeTruthy()
+    expect(screen.getAllByText(/pistol/i).length).toBeGreaterThan(0)
     expect(updateSpy).not.toHaveBeenCalled()
   })
 })

@@ -2,7 +2,7 @@ import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
 import { toContainer } from '../container.js'
 import { denialMessage, ITUN_ORIGIN } from '../gameCards.js'
-import { buildInviteDm, joinUrl } from '../inviteContainer.js'
+import { buildInviteDm, inviteUrl } from '../inviteContainer.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { itun } from './itunReply.js'
 
@@ -110,7 +110,7 @@ export const inviteCommand = {
     }
 
     const seat = invite.role === 'mediator' ? ' as its Mediator' : ''
-    const link = joinUrl(ITUN_ORIGIN, invite.code)
+    const link = inviteUrl(ITUN_ORIGIN, invite.code)
 
     // The server says no fresh DM: this person was DMed this invite recently.
     // Re-offer the link to the Organizer and leave the invitee alone.

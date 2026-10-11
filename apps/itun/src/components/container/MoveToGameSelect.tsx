@@ -1,8 +1,8 @@
 /**
- * MoveToGameSelect — "Move to game…" on a My Stuff row (ADR-030 §2, ADR-037).
+ * MoveToGameSelect — "Move to game…" on a Shelves row (ADR-030 §2, ADR-037).
  *
  * The row-sized twin of the live sheet's `MoveToContainerControl`, for the one
- * direction a My Stuff row needs: into a Game. It lists only what the server
+ * direction a Shelves row needs: into a Game. It lists only what the server
  * would accept, from the same mirror (`moveDestinations`): a pilot or mech may
  * go into any Game the player belongs to; a crawler only into a Game they run.
  * With nowhere to go it renders nothing, rather than a select of one.
@@ -11,15 +11,15 @@
  *
  * Moving into a Game takes nothing from the table, so with nothing to clear it
  * is one pick: a move is one field (`gameId`) on the same record, so the row
- * simply leaves My Stuff, and a toast says where it went. But a move prunes
+ * simply leaves Shelves, and a toast says where it went. But a move prunes
  * every assignment that would straddle two containers (ADR-037), so when
  * `assignmentsClearedByMove` finds one — a pilot paired with a mech that stays
- * in My Stuff — it asks first (`ROW_ACTION_COPY.enterGame`, naming each), and
+ * in your shelves — it asks first (`ROW_ACTION_COPY.enterGame`, naming each), and
  * moves nothing until the player says yes. The select always rests on its
  * placeholder, so a cancelled move leaves the row as it was.
  *
  * The confirm is the CALLER's (`confirm`, from the Roster's `useConfirm`): a
- * move takes the row out of My Stuff, which unmounts this select, and the
+ * move takes the row out of Shelves, which unmounts this select, and the
  * dialog has to outlive it to close cleanly or show a failure.
  *
  * ## Connected only

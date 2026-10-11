@@ -23,7 +23,9 @@ export type StampSurface = 'on-ink' | 'inverse' | 'on-tone'
 const BADGE_TONES: Record<BadgeTone, string> = {
   pilot: 'border-ink bg-pilot text-ink',
   mech: 'border-ink bg-mech text-ink',
-  crawler: 'border-ink bg-crawler text-paper',
+  // Paper on the deeper crawler band (4.6 : 1, ruleset §3.8): plain crawler pink
+  // carries neither paper (3.7) nor ink (4.2) at 4.5 : 1.
+  crawler: 'border-ink bg-crawler-band text-paper',
   // Light enough for dark ink, like pilot and mech — crawler is the dark one.
   game: 'border-ink bg-sheet-game text-ink',
   ok: 'border-status-ok bg-status-ok text-paper',

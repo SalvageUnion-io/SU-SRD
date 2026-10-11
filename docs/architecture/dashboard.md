@@ -36,14 +36,16 @@ A fixed **1280×800 canvas** (`DashboardCanvas`), scaled with one
 abandoned for the `.pc-reflow` "rotate to landscape" notice (§7). Overlays may
 scroll internally; the frame never does. `DashboardGrid` places three surfaces:
 
-- **Rail** (`RailBar`) — Return to Roster, the stamp of the entity in the
-  Major slot, whether play is saved (`SavedIndicator`, from `useConnection()`),
-  and on the right the Mediator's Start or End Downtime (a player sees a
-  disabled Settings placeholder); the one hard-bordered frame besides the
-  display.
+- **Rail** (`RailBar`) — the way back to the Game's page, the pilot's name, a
+  stamp for where they are ("Boarded · Scrapper", "On foot", "Downtime · Step
+  3 of 10"), the Game, whether play is saved (`SavedIndicator`, from
+  `useConnection()`), and on the right the Mediator's Start or End Downtime;
+  the one hard-bordered frame besides the display.
 - **Slot row** (`SlotRow`) — one **Major** slot and two **Minors**, placed by
-  the mount (`slotLayout.ts`): on foot the Pilot is Major, boarded the Mech,
-  in Downtime the Crawler; nothing else moves them. A Major (`MajorFrame`) is
+  the mount (`slotLayout.ts`): on foot the Pilot is Major, boarded the Mech;
+  nothing else moves them. In Downtime the Crawler takes the whole row, since
+  every step acts on it, and the pilot and mech ride the rail as compact links
+  with their pips (`RailUnit`) that open their Majors (issue 1255, board D3). A Major (`MajorFrame`) is
   the entity's responsibility **bays**, each gauges plus a button grid, with a
   narrow side column. Mech: Reactor · Chassis, side Effects · Egress. Pilot:
   Vitals · Kit · Abilities · Mount. Crawler: Hull · Stores · Bays, side
@@ -57,14 +59,15 @@ scroll internally; the frame never does. `DashboardGrid` places three surfaces:
   beside the display's tabs (`DisplayTabs`): Resolve (the chosen action,
   `ResolvePanel`), Reference (the pilot's, mech's or crawler's card, picked by
   `DisplayPicker`), Tables, SRD, then Log (the Game's rolls and the
-  Mediator's alerts, `LogTab`) and Crew (`CrewTab`: one row per crewmate,
-  pilot first, with HP and AP, their mech's SP and Heat while boarded, and
-  the action they are resolving; a row opens that crewmate's live sheet).
+  Mediator's alerts, `LogTab`) and Crew (`CrewTab`: a table, one row per
+  crewmate, pilot first — Pilot · HP · AP · Mech · Status — and the action
+  they are resolving; a row opens that crewmate's live sheet, and "Copy
+  invite link" sits under it).
   Rows are keyed by link id, the id seats and soft links use, so a template
   pre-gen with no app id (the Starter Set's) gets a row too. A parked mech is
-  one line, which names what is wrong when it draws the outline. A red
-  outline marks a crewmate who is dead, injured, ejected, overheating or
-  destroyed, and a ▲ on the tab says someone is. A strip along the bottom
+  one line, which names what is wrong when it draws the outline. An outline
+  and a ▲ word mark a crewmate who is dead, injured, ejected, overheating or
+  destroyed, never a second hue, and a ▲ on the tab says someone is. A strip along the bottom
   (`DashboardStrip`) carries the latest alert, the proposal count and the
   link to the Game, where proposals are answered.
 

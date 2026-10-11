@@ -459,6 +459,11 @@ describe('CrawlerSheet — crew readOnly', () => {
     expect(within(inset).getByText('Dax Orsund')).toBeTruthy()
     expect(within(inset).getByText('A stern veteran.')).toBeTruthy()
     expect(within(inset).getByText('Hates synths')).toBeTruthy()
+    // Read leaves an empty field out (board 10): no Keepsake or Motto row with
+    // a dash in it, when neither was ever filled in.
+    expect(within(inset).queryByText('Keepsake')).toBeNull()
+    expect(within(inset).queryByText('Motto')).toBeNull()
+    expect(within(inset).queryByText('—')).toBeNull()
 
     expect(screen.queryByLabelText('Edit Command Bay crew name')).toBeNull()
     expect(screen.queryByLabelText('Edit Command Bay crew detail')).toBeNull()

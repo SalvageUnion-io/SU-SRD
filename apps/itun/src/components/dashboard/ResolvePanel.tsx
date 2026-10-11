@@ -99,24 +99,11 @@ export function ResolvePanel({ view }: { view: ResolveModel }) {
           <span className="pc-deck-cost">{view.costLabel}</span>
         </div>
 
-        {/* The cost pennant IS the Activate button (ruleset §1, board E3): the
-            same size, shape and place as the read pennant, filled rust, inside
-            a 44px hit area — there is no separate deck button. The Dashboard
-            stays flat, so no speckle. */}
-        <ReferenceEntityCard
-          data={view.entity}
-          texture={false}
-          controls={[
-            {
-              key: 'activate',
-              pennant: true,
-              label: controls.activateLabel,
-              onClick: controls.onActivate,
-              disabled: controls.activateDisabled,
-              title: controls.activateTitle,
-            },
-          ]}
-        />
+        {/* The card being resolved prints its READ pennant (board D1): the
+            rust pennant is the deck row's, which brought the action here
+            (ruleset §1). Activate is a step of the resolve, beside Roll and
+            Apply. The Dashboard stays flat, so no speckle. */}
+        <ReferenceEntityCard data={view.entity} texture={false} />
 
         {currencyChoice && (
           <fieldset className="pc-deck-cost-choice">
@@ -184,6 +171,16 @@ export function ResolvePanel({ view }: { view: ResolveModel }) {
         )}
 
         <div className="pc-deck-controls">
+          <Button
+            variant="primary"
+            size="compact"
+            style={GROW}
+            onClick={controls.onActivate}
+            disabled={controls.activateDisabled}
+            title={controls.activateTitle}
+          >
+            {controls.activateLabel}
+          </Button>
           <Button size="compact" style={GROW} onClick={controls.onRoll}>
             Roll
           </Button>

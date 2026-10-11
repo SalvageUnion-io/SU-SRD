@@ -140,9 +140,12 @@
   flex-direction: column;
   gap: 5px;
 }
+/* Two a row while each button keeps room for a spelled-out label (board D1:
+   TAKE DAMAGE, HEAT CHECK); a bay too narrow for two stacks them, rather
+   than a label running past the bay's edge. */
 .pc-btn-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(max(104px, calc(50% - 2px)), 1fr));
   gap: 4px;
   margin-top: auto;
   grid-auto-rows: 27px;
@@ -269,7 +272,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  /* Wide enough that a catalog tile's description keeps a readable measure. */
+  /* Wide enough that a header row keeps its name, stamp and pennant on one line. */
   column-width: 320px;
   column-gap: 8px;
 }
@@ -550,18 +553,19 @@
   font-size: var(--text-note);
   color: var(--color-ink-50);
 }
+/* The step name, notched in ink into the foot of its crawler-pink band
+   (board D3): the page ground cut out of the band, as a chapter title is. */
 .pc-dt-step-name {
+  display: inline-block;
   margin: 0;
-  padding: 0 0 4px;
-  border-bottom: var(--bw-rail) solid var(--color-sheet-crawler-deep);
+  padding: 6px 12px 0;
+  background: var(--color-paper);
   font-family: var(--font-cond);
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
-  /* Was a raw `20px`; `--text-title` (22) is the nearest rung and the correct
-     role — this is a banner heading, not a readout. */
-  font-size: var(--text-title);
-  line-height: 1.1;
+  font-size: var(--text-display-lg);
+  line-height: 1;
   color: var(--color-ink);
 }
 .pc-dt-gate {

@@ -27,12 +27,16 @@ const SPLIT: CSSProperties = { display: 'flex', gap: '2px', minWidth: 0 }
 
 const MAIN: CSSProperties = { flex: '1 1 auto', minWidth: 0, paddingInline: '8px' }
 
-/** A long mech name trails off inside its button rather than widening it. */
+/**
+ * A long mech name WRAPS inside its button rather than widening it or trailing
+ * off: the control's label must not lose the unit's name (board D2 prints
+ * "Board Scrapper" whole).
+ */
 const LABEL: CSSProperties = {
   minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  overflowWrap: 'anywhere',
+  textAlign: 'center',
+  whiteSpace: 'normal',
 }
 
 const CARET: CSSProperties = { flex: '0 0 auto', minWidth: '28px', paddingInline: '6px' }

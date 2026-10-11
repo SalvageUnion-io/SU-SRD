@@ -13,6 +13,11 @@ type SlotGridProps = {
   scale?: 'pip' | 'sheet'
   /** Accessible label; defaults to "used of cap slots filled". */
   label?: string
+  /**
+   * A read surface: an empty cell is a plain outline, not a dashed drop target.
+   * Dashed means "fillable" and a read-only sheet fills nothing.
+   */
+  readOnly?: boolean
   className?: string
 }
 
@@ -31,7 +36,14 @@ type SlotGridProps = {
  * Cells lay out on the shared pip-row split (ruleset §4.5): ≤6 per row,
  * bottom-heavy, centred — the same rhythm as the gauge / statblock tracks.
  */
-export function SlotGrid({ used, cap, scale = 'pip', label, className }: SlotGridProps) {
+export function SlotGrid({
+  used,
+  cap,
+  scale = 'pip',
+  label,
+  readOnly = false,
+  className,
+}: SlotGridProps) {
   const safeCap = Math.max(0, Math.floor(cap))
   const safeUsed = Math.max(0, Math.floor(used))
   const total = Math.max(safeCap, safeUsed)
@@ -60,7 +72,8 @@ export function SlotGrid({ used, cap, scale = 'pip', label, className }: SlotGri
                   'inline-block border-chrome',
                   cell,
                   state === 'filled' && 'border-cargo bg-cargo',
-                  state === 'empty' && 'border-dashed border-ink/40 bg-paper',
+                  state === 'empty' &&
+                    (readOnly ? 'border-ink/25 bg-paper' : 'border-dashed border-ink/40 bg-paper'),
                   state === 'over' && 'border-status-bad bg-status-bad'
                 )}
               />

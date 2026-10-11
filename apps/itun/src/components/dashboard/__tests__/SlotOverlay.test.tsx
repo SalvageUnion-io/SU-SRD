@@ -109,7 +109,7 @@ describe('⤢ overlay', () => {
   test('Escape inside a prompt closes the prompt, not the overlay', async () => {
     const { dialog } = await openMech()
     await act(async () => {
-      fireEvent.click(within(dialog).getByText('Take Dmg'))
+      fireEvent.click(within(dialog).getByText('Take Damage'))
     })
     expect(within(dialog).getByRole('dialog', { name: 'Take Structure Damage' })).toBeTruthy()
     await act(async () => {

@@ -17,9 +17,12 @@ export type InvitedResult = Extract<InviteResult, { outcome: 'invited' }>
 
 const DAY_MS = 1000 * 60 * 60 * 24
 
-/** The web page an invite code opens. */
-export function joinUrl(webUrl: string, code: string): string {
-  return `${webUrl.replace(/\/+$/, '')}/join/${encodeURIComponent(code)}`
+/**
+ * The invite link (issue 1255): ITUN's `/invite/<token>`, where the token is the
+ * invite's code. Opening it signs the invitee in and joins the Game.
+ */
+export function inviteUrl(webUrl: string, code: string): string {
+  return `${webUrl.replace(/\/+$/, '')}/invite/${encodeURIComponent(code)}`
 }
 
 /** Discord markdown is live in a TextDisplay; a Game called `**x**` must not bold. */
@@ -65,7 +68,7 @@ export function buildInviteDm(
       },
       {
         kind: 'buttons',
-        buttons: [{ kind: 'link', url: joinUrl(webUrl, invite.code), label: 'Open invite' }],
+        buttons: [{ kind: 'link', url: inviteUrl(webUrl, invite.code), label: 'Open invite' }],
       },
     ],
   }

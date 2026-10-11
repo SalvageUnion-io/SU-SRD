@@ -20,6 +20,9 @@ export const Default = () => (
         <DashboardGauge label="HEAT" value={5} max={6} tone="mech" danger={4} />
         <DashboardGauge label="EP" value={2} max={4} tone="pilot" />
         <DashboardGauge label="HP" value={8} max={10} tone="crawler" />
+        {/* The §4.5 row split on a long track: 12 → 6/6, 16 → 5/5/6. */}
+        <DashboardGauge label="SP" value={9} max={12} tone="mech" />
+        <DashboardGauge label="CARGO" value={7} max={16} tone="mech" />
       </div>
     </InstrumentStage>
   </div>

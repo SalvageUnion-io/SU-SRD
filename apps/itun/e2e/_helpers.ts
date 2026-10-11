@@ -405,10 +405,24 @@ export async function openSheetFor(page: Page, name: string): Promise<void> {
 }
 
 /**
+ * Put the open sheet in Edit. A sheet opens in Read (board 10, issue 1255:
+ * "print reads, pencil writes"), so every Manage, Assign and bay control is
+ * one press of the band's Edit away. Pressing it when it is already on is a
+ * no-op, and the choice holds for the rest of the visit.
+ */
+export async function editSheet(page: Page): Promise<void> {
+  const edit = page.getByRole('button', { name: 'Edit', exact: true })
+  await expect(edit).toBeVisible({ timeout: 15_000 })
+  if ((await edit.getAttribute('aria-pressed')) !== 'true') await edit.click()
+  await expect(edit).toHaveAttribute('aria-pressed', 'true')
+}
+
+/**
  * Wire a pilot onto the mech sheet currently open, via the rail's
  * 'Assign Pilot' dialog. Resolves when the pilot's rail row renders.
  */
 export async function assignPilotOnMechSheet(page: Page, pilotName: string): Promise<void> {
+  await editSheet(page)
   await page.getByRole('button', { name: /assign pilot to mech/i }).click()
   await page.getByRole('dialog').getByText(pilotName).click()
   await page.getByRole('button', { name: /confirm pilot assignment/i }).click()
@@ -422,6 +436,7 @@ export async function assignPilotOnMechSheet(page: Page, pilotName: string): Pro
  * 'Assign Crawler' dialog. Resolves when the crawler's rail row renders.
  */
 export async function assignCrawlerOnPilotSheet(page: Page, crawlerName: string): Promise<void> {
+  await editSheet(page)
   await page.getByRole('button', { name: /assign crawler to pilot/i }).click()
   await page.getByRole('dialog').getByText(crawlerName).click()
   await page.getByRole('button', { name: /confirm crawler assignment/i }).click()

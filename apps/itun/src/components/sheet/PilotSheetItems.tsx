@@ -5,8 +5,18 @@
  * owns all persistence.
  */
 
-import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from 'component-lib'
-import { Button, Input, Panel, ReferenceEntityCard, Stat, StatusBadge } from 'component-lib'
+import type { ChoiceSelections, ReferenceEntityControl } from 'component-lib'
+import {
+  Button,
+  Input,
+  Panel,
+  ReferenceEntityCard,
+  Stat,
+  StatusBadge,
+  StatusTriState,
+  tokens,
+} from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
@@ -18,6 +28,45 @@ import { equipmentMaxUses, genericEntrySlots, resolveEquipment } from './pilotIn
 import { CardRemoveButton } from './SheetSection'
 
 const HIDE_CHOICES = { choices: true } as const
+
+/** An inventory item in Edit: the pill, its control row, then any details. */
+const ITEM_EDIT = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
+  minWidth: 0,
+} satisfies CSSProperties
+
+const ITEM_CONTROLS = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+const ITEM_USES = {
+  alignItems: 'center',
+  display: 'inline-flex',
+  fontFamily: tokens.font.cond,
+  fontWeight: tokens.weight.bold,
+  gap: tokens.space[6],
+} satisfies CSSProperties
+
+const ITEM_USES_LABEL = {
+  color: tokens.color.ink75,
+  fontSize: tokens.fontSize.badge,
+  letterSpacing: tokens.tracking.caps,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+/** An ability card's Edit row: Spend AP and the used toggle, under the body. */
+const ABILITY_ACTIONS = {
+  borderTop: `${tokens.borderWidth.chrome} dashed ${tokens.color.ink40}`,
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+  paddingTop: tokens.space[8],
+} satisfies CSSProperties
 
 /** Per-item condition cycle (design §4.5: Intact → Damaged → Destroyed → Intact). */
 const CONDITION_CYCLE: Record<ItemCondition, ItemCondition> = {
@@ -66,42 +115,51 @@ export function PilotAbilityItem({
   // fact (the cost scales with what you spend) with an em-dash. The cost still
   // reaches the player as an affordance — the Spend AP control names it.
   //
-  // All interactivity rides the controls bar (no footer actions). Read-only
-  // shows a static Used stamp; editable shows Spend AP + the used toggle, with
-  // the per-card remove (✕) last, in the card HEADER (G4).
-  const controls: ReferenceEntityControl[] = []
-  if (readOnly) {
-    if (used) controls.push({ key: 'used', badge: 'Used' })
-  } else {
-    if (apCost !== null) {
-      controls.push({
-        key: 'spend',
-        label: 'Spend AP',
-        ariaLabel: `Spend ${apCost} AP for ${ability.name}`,
-        onClick: () => {
-          onSpend(apCost)
-        },
-        variant: 'primary',
-        disabled: !canSpend,
-      })
-    }
-    controls.push({
-      key: 'toggle-used',
-      label: used ? 'Recharge' : 'Mark Used',
-      ariaLabel: used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`,
-      onClick: () => {
-        onToggleUsed(!used)
-      },
-    })
-  }
+  // Read shows a static Used stamp on the seam. Edit's Spend AP and the used
+  // toggle do NOT ride the seam: there they sat on the "Ability · … tree" label
+  // strip and cut it short. They are the card's own row instead, under the
+  // body, above the source footer.
+  const usedStamp: ReferenceEntityControl[] | undefined =
+    readOnly && used ? [{ key: 'used', badge: 'Used' }] : undefined
+
+  const actionRow = readOnly ? undefined : (
+    <div style={ABILITY_ACTIONS}>
+      {apCost !== null && (
+        <Button
+          size="compact"
+          variant="primary"
+          aria-label={`Spend ${apCost} AP for ${ability.name}`}
+          disabled={!canSpend}
+          onClick={() => {
+            onSpend(apCost)
+          }}
+        >
+          Spend AP
+        </Button>
+      )}
+      <Button
+        size="compact"
+        variant="ghost"
+        aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
+        aria-pressed={used}
+        onClick={() => {
+          onToggleUsed(!used)
+        }}
+      >
+        {used ? 'Recharge' : 'Mark Used'}
+      </Button>
+    </div>
+  )
 
   return (
     <ReferenceEntityCard
       data={ability}
       size="medium"
-      collapsible
+      extent="full"
+      foldTables
       hide={HIDE_CHOICES}
-      controls={controls.length > 0 ? controls : undefined}
+      controls={usedStamp}
+      expand={actionRow}
     />
   )
 }
@@ -141,8 +199,9 @@ type PilotEquipmentItemProps = {
 }
 
 /**
- * One inventory equipment card: choice cards enabled, condition cycled via the
- * card's status badge, uses counted in the foot with Use / Restock actions.
+ * One inventory item: the shortform pill in both states. Edit adds a row under
+ * it — the condition tri-state, uses with Use / Restock, Details (the full card,
+ * with its choices) and Remove.
  *
  * Extracted from the map body so it can legally call the useEntityChoices hook.
  */
@@ -168,6 +227,8 @@ export function PilotEquipmentItem({
     seedSelections,
     store
   )
+  // Edit: whether the full card (its text and any choices) is open under the row.
+  const [detailsOpen, setDetailsOpen] = useState(false)
 
   if (!equipment) {
     // Unresolved slug — still shown, still counted (1 slot), still toggleable.
@@ -200,59 +261,97 @@ export function PilotEquipmentItem({
   // than duplicating one. Either way it is not part of the SRD card, and the
   // inventory band already states slot usage against capacity, once. `Uses`
   // stays: that is live sheet state, not a restatement of reference data.
-  const footMeta: CardFootMeta[] = [
-    ...(maxUses !== null ? [{ label: 'Uses', value: `${uses}/${maxUses}` }] : []),
-  ]
-  // Use / Restock ride the controls bar (no footer actions); the per-card
-  // remove (✕) stays last, beside the status control in the header (G4).
-  const controls: ReferenceEntityControl[] = []
-  if (!readOnly && maxUses !== null && uses !== null) {
-    controls.push({
-      key: 'use',
-      label: 'Use',
-      ariaLabel: `Use ${equipment.name}`,
-      onClick: () => {
-        onUsesChange(slug, Math.max(0, uses - 1))
-      },
-      disabled: uses <= 0,
-    })
-    controls.push({
-      key: 'restock',
-      label: 'Restock',
-      ariaLabel: `Restock ${equipment.name}`,
-      onClick: () => {
-        onUsesChange(slug, maxUses)
-      },
-      variant: 'ghost',
-      disabled: uses >= maxUses,
-    })
-  }
-
+  //
   // Drone/companion equipment (Survey Drone, Mecha Companion, Auto-Turret)
   // never reaches this component. A granting slug is rendered by `PartnerCard`
   // instead — full width, with the instance's own stats, loadout, conditions
   // and hold — because the grant and the granted thing are one entry to the
   // player (ADR-028). PilotSheet filters those slugs out before mapping here.
 
-  return (
+  // The shortform pill — the item named, typed and tech-levelled on one line
+  // (board 10). It is the item in BOTH states: the name always wins, and is
+  // never ellipsized to make room for a control. A damaged item's pill greys,
+  // as its card's header does.
+  const pill = (
     <ReferenceEntityCard
       data={equipment}
-      size="medium"
-      collapsible
-      selections={selections}
-      onSelectionChange={readOnly ? undefined : setSelections}
-      scalingParent={scalingParent}
+      size="small"
+      extent="head"
       status={condition}
-      onStatusClick={
-        readOnly
-          ? undefined
-          : () => {
-              onConditionChange(slug, CONDITION_CYCLE[condition])
-            }
-      }
-      footMeta={footMeta}
-      controls={controls.length > 0 ? controls : undefined}
+      selections={selections}
     />
+  )
+
+  // Read state: the pill and nothing else. Uses, condition and choices are
+  // the Edit state's.
+  if (readOnly) return pill
+
+  // Edit state: the same pill, with its controls in a row of their own under
+  // it — the condition tri-state, the uses counter, Remove — so nothing rides
+  // above the item or over its neighbour. Details opens the full card (its
+  // text and any choices) under the row.
+  return (
+    <div style={ITEM_EDIT}>
+      {pill}
+      <div style={ITEM_CONTROLS}>
+        <StatusTriState
+          status={condition}
+          onClick={() => {
+            onConditionChange(slug, CONDITION_CYCLE[condition])
+          }}
+          subject={equipment.name}
+        />
+        {maxUses !== null && uses !== null && (
+          <span style={ITEM_USES}>
+            <span style={ITEM_USES_LABEL}>Uses</span>
+            <span>{`${uses}/${maxUses}`}</span>
+            <Button
+              size="compact"
+              aria-label={`Use ${equipment.name}`}
+              disabled={uses <= 0}
+              onClick={() => {
+                onUsesChange(slug, Math.max(0, uses - 1))
+              }}
+            >
+              Use
+            </Button>
+            <Button
+              size="compact"
+              variant="ghost"
+              aria-label={`Restock ${equipment.name}`}
+              disabled={uses >= maxUses}
+              onClick={() => {
+                onUsesChange(slug, maxUses)
+              }}
+            >
+              Restock
+            </Button>
+          </span>
+        )}
+        <Button
+          size="compact"
+          variant="ghost"
+          aria-expanded={detailsOpen}
+          aria-label={`${detailsOpen ? 'Collapse' : 'Expand'} ${equipment.name}`}
+          onClick={() => {
+            setDetailsOpen((open) => !open)
+          }}
+        >
+          Details
+        </Button>
+        {onRemove && <CardRemoveButton name={equipment.name} onRemove={onRemove} />}
+      </div>
+      {detailsOpen && (
+        <ReferenceEntityCard
+          data={equipment}
+          size="medium"
+          foldTables
+          selections={selections}
+          onSelectionChange={setSelections}
+          scalingParent={scalingParent}
+        />
+      )}
+    </div>
   )
 }
 

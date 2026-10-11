@@ -46,3 +46,12 @@ export function sameContainer(a: Container, b: Container): boolean {
 export function moveTo(container: Container): { gameId: string | null } {
   return { gameId: container.kind === 'game' ? container.gameId : null }
 }
+
+/**
+ * Where a container is shown (issue 1255): the shelf on Shelves at `/`, a Game on
+ * its own page at `/games/<id>`. A Game has a real address, so a link to one
+ * opens it whatever the hub showed last.
+ */
+export function containerHref(container: Container): string {
+  return container.kind === 'game' ? `/games/${encodeURIComponent(container.gameId)}` : '/'
+}

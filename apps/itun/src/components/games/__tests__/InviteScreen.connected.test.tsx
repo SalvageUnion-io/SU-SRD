@@ -2,16 +2,18 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
- * `/join/$code` — the link half of an invite.
+ * `/invite/$token` — an invite link (issue 1255).
  *
  * This is the one URL in the app a stranger can be handed, so the failure modes
- * worth defending are about people who are not signed in and codes that are no
+ * worth defending are about people who are not signed in and links that are no
  * longer any good:
  *
- *  - a dead code must say which kind of dead, and must NOT prompt a sign-in
- *    (authenticating only to learn the code expired is the worst version of it)
+ *  - a dead link must say which kind of dead, explain how invite links work, and
+ *    must NOT prompt a sign-in (authenticating only to learn the link expired is
+ *    the worst version of it)
  *  - a signed-out visitor must still see what they were invited to
  *  - a gated invite must say it is asking, not claim it joined
+ *  - back from "Sign in to join", the page joins without asking again
  *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  * This screen asks only `invites.preview`, from two components.
@@ -19,6 +21,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
+import { ConvexError } from 'convex/values'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 let redeemResult: unknown = { kind: 'joined', gameId: 'g1', granted: 0 }
@@ -59,7 +62,7 @@ const convexMocks = await installConvexMocks({
 
 const navigations = convexMocks.navigations
 
-const { JoinScreen } = await import('../JoinScreen')
+const { InviteScreen } = await import('../InviteScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 const { getActiveContainer, setActiveContainer } = await import(
   '../../../stores/activeContainerStore'
@@ -80,7 +83,10 @@ function preview(over: Record<string, unknown> = {}) {
   }
 }
 
-function renderJoin(value: unknown) {
+/** What joining shows: the Game (its own page, with a router — `useShowContainer`). */
+const THE_GAME = { kind: 'game' as const, gameId: 'g1' }
+
+function renderJoin(value: unknown, joinOnArrival = false) {
   setActiveContainer({ kind: 'shelf' })
   setQueryAnswers({ 'invites:preview': value })
   navigations.length = 0
@@ -89,7 +95,7 @@ function renderJoin(value: unknown) {
   isAuthenticated = true
   return render(
     <ConnectionProvider>
-      <JoinScreen code="A1B2C3D4" />
+      <InviteScreen token="A1B2C3D4E5F6G7H8" joinOnArrival={joinOnArrival} />
     </ConnectionProvider>
   )
 }
@@ -121,17 +127,27 @@ describe('a live invite', () => {
     expect(screen.getByText(/read each other/i)).toBeTruthy()
   })
 
-  test('accepting shows the game on the hub — there is no Games page to route to', async () => {
+  test('accepting shows the Game', async () => {
     renderJoin(preview())
     fireEvent.click(screen.getByText('Join this game'))
-    await waitFor(() => expect(navigations).toHaveLength(1))
-    expect(navigations[0]).toEqual({ to: '/' })
-    expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g1' })
+    await waitFor(() => expect(getActiveContainer()).toEqual(THE_GAME))
+  })
+
+  test('back from "Sign in to join", it joins without asking again', async () => {
+    renderJoin(preview(), true)
+    await waitFor(() => expect(getActiveContainer()).toEqual(THE_GAME))
+    expect(mutationCalls).toEqual(['invites:redeem'])
+  })
+
+  test('arriving to join a dead link spends nothing', () => {
+    renderJoin(preview({ status: 'revoked' }), true)
+    expect(mutationCalls).toHaveLength(0)
+    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
   })
 
   test('a refusal is surfaced in the server’s own words', async () => {
     renderJoin(preview())
-    redeemError = new Error('That invite code has been revoked')
+    redeemError = new ConvexError('That invite link has been revoked')
     fireEvent.click(screen.getByText('Join this game'))
     await waitFor(() => expect(screen.getByText(/has been revoked/)).toBeTruthy())
   })
@@ -152,8 +168,10 @@ describe('a gated invite', () => {
 
     expect(navigations).toHaveLength(0)
     expect(getActiveContainer()).toEqual({ kind: 'shelf' })
-    // The way out is the hub, where the game will appear once approved.
-    expect(screen.getByRole('link', { name: 'Go to your games' }).getAttribute('href')).toBe('/')
+    // The way out is Shelves; the game appears in Games once approved.
+    expect(screen.getByRole('link', { name: 'Back to your shelves' }).getAttribute('href')).toBe(
+      '/'
+    )
     redeemResult = { kind: 'joined', gameId: 'g1', granted: 0 }
   })
 })
@@ -189,12 +207,16 @@ describe('an invite addressed to you (ADR-039)', () => {
   })
 })
 
-describe('a code that is no good', () => {
-  test('an unknown code says so and offers no sign-in', () => {
+describe('a link that is no good', () => {
+  test('an unknown link says so, explains invite links and offers no sign-in', () => {
     renderJoin(null)
     expect(screen.getByText(/not valid/i)).toBeTruthy()
+    // An old typed code from `/join/…` lands here too: say how joining works now.
+    expect(screen.getByText(/there is no code to type/i)).toBeTruthy()
     expect(screen.queryByText('Join this game')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Go to your games' }).getAttribute('href')).toBe('/')
+    expect(screen.getByRole('link', { name: 'Back to your shelves' }).getAttribute('href')).toBe(
+      '/'
+    )
   })
 
   test('each kind of dead code says which kind it is', () => {
@@ -229,12 +251,13 @@ describe('a visitor who is not signed in', () => {
     setQueryAnswers({ 'invites:preview': preview() })
     render(
       <ConnectionProvider>
-        <JoinScreen code="A1B2C3D4" />
+        <InviteScreen token="A1B2C3D4E5F6G7H8" />
       </ConnectionProvider>
     )
 
     expect(screen.getByText('Union Crawler #430')).toBeTruthy()
-    expect(screen.getByText(/Sign in to accept/i)).toBeTruthy()
+    expect(screen.getByText(/Sign in to join\. Your pilots/i)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Sign in to join' })).toBeTruthy()
     // Not offered the button, because pressing it could not work yet.
     expect(screen.queryByText('Join this game')).toBeNull()
   })
@@ -244,7 +267,7 @@ describe('a visitor who is not signed in', () => {
     setQueryAnswers({ 'invites:preview': preview({ addressed: 'discord' }) })
     render(
       <ConnectionProvider>
-        <JoinScreen code="A1B2C3D4" />
+        <InviteScreen token="A1B2C3D4E5F6G7H8" />
       </ConnectionProvider>
     )
 
@@ -256,12 +279,17 @@ describe('a visitor who is not signed in', () => {
     setQueryAnswers({ 'invites:preview': preview({ status: 'expired' }) })
     render(
       <ConnectionProvider>
-        <JoinScreen code="A1B2C3D4" />
+        <InviteScreen token="A1B2C3D4E5F6G7H8" />
       </ConnectionProvider>
     )
 
     expect(screen.getByText(/has expired/i)).toBeTruthy()
-    expect(screen.queryByText(/Sign in to accept/i)).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Sign in to join' })).toBeNull()
+    // Its ways on: back to your shelves, and — signed out — a plain sign-in.
+    expect(screen.getByRole('link', { name: 'Back to your shelves' }).getAttribute('href')).toBe(
+      '/'
+    )
+    expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
     isAuthenticated = true
   })
 })

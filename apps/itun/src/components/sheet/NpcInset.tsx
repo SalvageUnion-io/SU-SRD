@@ -12,7 +12,9 @@
  * Persistence stays with the caller: name/HP/detail/facts patch the crawler's
  * bay entry; keepsake persists through the bay's SRD freeform 'Keepsake'
  * choice (see CrawlerSheet). Handler absence IS the read-only encoding —
- * omit a field's handler and it renders plain text, no edit affordances.
+ * omit a field's handler and it renders plain text, no edit affordances, and
+ * an empty field is left out rather than printed as a dash (the sheet's Read
+ * state, board 10).
  */
 
 import { cn, InlineEditField, Inset, Stat } from 'component-lib'
@@ -96,6 +98,13 @@ export function NpcInset({
   onDetailChange,
   onFactsChange,
 }: NpcInsetProps) {
+  // Read leaves an empty field out: a row prints when it can be written or has
+  // something to read.
+  const showKeepsake = onKeepsakeChange !== undefined || keepsake.trim() !== ''
+  const showMotto = onMottoChange !== undefined || motto.trim() !== ''
+  const showDetail = onDetailChange !== undefined || detail.trim() !== ''
+  const showFacts = onFactsChange !== undefined || facts.length > 0
+  const hasBody = showKeepsake || showMotto || showDetail || showFacts
   return (
     // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the crew-lead inset so multiple insets per crawler stay distinguishable; Inset exposes no aria-label of its own, and a <section> here would become a region landmark once named
     <div role="group" aria-label={`${bayName} crew lead`}>
@@ -118,7 +127,7 @@ export function NpcInset({
               className="text-paper [&>span]:text-paper [&>span]:opacity-100"
             />
           ) : (
-            name || '—'
+            name || undefined
           )
         }
         // HP rides the head bar's right edge — it is this crew member's one
@@ -141,55 +150,63 @@ export function NpcInset({
         {/* Keepsake and Motto SHARE a row: both are one short phrase, and each
             taking a full 44px row of its own made a four-row inset out of two
             lines of content. Detail and Facts keep their own rows — they grow. */}
-        <dl className="m-0 grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 @md:grid-cols-2">
-          <NpcRow label="Keepsake">
-            {onKeepsakeChange ? (
-              <InlineEditField
-                value={keepsake}
-                onSave={(next) => onKeepsakeChange(String(next))}
-                type="text"
-                ariaLabel={`Edit ${bayName} crew keepsake`}
-              />
-            ) : (
-              keepsake || '—'
+        {hasBody && (
+          <dl className="m-0 grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 @md:grid-cols-2">
+            {showKeepsake && (
+              <NpcRow label="Keepsake">
+                {onKeepsakeChange ? (
+                  <InlineEditField
+                    value={keepsake}
+                    onSave={(next) => onKeepsakeChange(String(next))}
+                    type="text"
+                    ariaLabel={`Edit ${bayName} crew keepsake`}
+                  />
+                ) : (
+                  keepsake
+                )}
+              </NpcRow>
             )}
-          </NpcRow>
-          <NpcRow label="Motto">
-            {onMottoChange ? (
-              <InlineEditField
-                value={motto}
-                onSave={(next) => onMottoChange(String(next))}
-                type="text"
-                ariaLabel={`Edit ${bayName} crew motto`}
-              />
-            ) : (
-              motto || '—'
+            {showMotto && (
+              <NpcRow label="Motto">
+                {onMottoChange ? (
+                  <InlineEditField
+                    value={motto}
+                    onSave={(next) => onMottoChange(String(next))}
+                    type="text"
+                    ariaLabel={`Edit ${bayName} crew motto`}
+                  />
+                ) : (
+                  motto
+                )}
+              </NpcRow>
             )}
-          </NpcRow>
-          <NpcRow label="Detail" grow className="@md:col-span-2">
-            {onDetailChange ? (
-              <InlineEditField
-                multiline
-                value={detail}
-                onSave={(next) => onDetailChange(String(next))}
-                ariaLabel={`Edit ${bayName} crew detail`}
-                placeholder="Add a detail…"
-              />
-            ) : (
-              detail || '—'
+            {showDetail && (
+              <NpcRow label="Detail" grow className="@md:col-span-2">
+                {onDetailChange ? (
+                  <InlineEditField
+                    multiline
+                    value={detail}
+                    onSave={(next) => onDetailChange(String(next))}
+                    ariaLabel={`Edit ${bayName} crew detail`}
+                    placeholder="Add a detail…"
+                  />
+                ) : (
+                  detail
+                )}
+              </NpcRow>
             )}
-          </NpcRow>
-          {(onFactsChange !== undefined || facts.length > 0) && (
-            <NpcRow label="Facts" grow plain className="@md:col-span-2">
-              <NpcFactsEditor
-                facts={facts}
-                onChange={(next) => onFactsChange?.(next)}
-                npcLabel={`${bayName} crew`}
-                readOnly={onFactsChange === undefined}
-              />
-            </NpcRow>
-          )}
-        </dl>
+            {showFacts && (
+              <NpcRow label="Facts" grow plain className="@md:col-span-2">
+                <NpcFactsEditor
+                  facts={facts}
+                  onChange={(next) => onFactsChange?.(next)}
+                  npcLabel={`${bayName} crew`}
+                  readOnly={onFactsChange === undefined}
+                />
+              </NpcRow>
+            )}
+          </dl>
+        )}
       </Inset>
     </div>
   )

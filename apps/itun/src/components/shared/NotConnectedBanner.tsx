@@ -1,3 +1,5 @@
+import { Banner, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 
 /**
@@ -12,19 +14,31 @@ import { useConnection } from '../../lib/connection/connectionContext'
  * on its own does not tell a player why their edit did not stick. Writes are
  * blocked rather than queued, so the honest message is that this is read-only
  * until the connection returns.
+ *
+ * It is the shared `Banner` at its warn severity: the status-warn treatment
+ * with ink text (issue 1255). Its own strip set roll-failure text on cream, which
+ * measured 2.97 : 1, under the 4.5 : 1 body text needs.
  */
+
+const STRIP = {
+  backgroundColor: tokens.color.wkBg,
+  padding: `${tokens.space[6]} ${tokens.space[12]}`,
+} satisfies CSSProperties
+
+const NOT_CONNECTED = [
+  {
+    severity: 'warn' as const,
+    message: 'Not connected — your games are read-only until the connection returns',
+  },
+]
+
 export function NotConnectedBanner() {
   const { showDisconnectedWarning } = useConnection()
   if (!showDisconnectedWarning) return null
 
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="flex items-center justify-center gap-2 border-b-2 border-[var(--color-roll-failure)] bg-[var(--color-band-cream)] px-3 py-1.5 text-center font-[var(--font-cond)] text-xs font-bold tracking-wider text-[var(--color-roll-failure)] uppercase"
-    >
-      <span aria-hidden="true">◆</span>
-      <span>Not connected — your games are read-only until the connection returns</span>
+    <div style={STRIP}>
+      <Banner warnings={NOT_CONNECTED} />
     </div>
   )
 }

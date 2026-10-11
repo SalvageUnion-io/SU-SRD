@@ -43,13 +43,16 @@ type InsetProps = {
  * prevent.
  */
 export function Inset({ label, tone, tag, headRight, bodyClassName, children }: InsetProps) {
+  // An inset with nothing to say below its head bar is just the bar: no empty
+  // padded strip under it (a read-state crew lead with every field blank).
+  const hasBody = children !== null && children !== undefined && children !== false
   return (
     <Card
       size="small"
       frame="chrome"
       headerBg="bg-ink"
       cardStyle={{ className: 'bg-paper' }}
-      bodyPadding="p-2.5"
+      bodyPadding={hasBody ? 'p-2.5' : 'p-0'}
       headerContent={
         <div className="flex w-full flex-wrap items-center gap-2">
           {tag && (
@@ -71,7 +74,7 @@ export function Inset({ label, tone, tag, headRight, bodyClassName, children }: 
           consumer's row layout (`flex flex-wrap items-start`) into it would
           leave `flex-col` standing — silently turning NpcInset's row into a
           column. Layering keeps every consumer's child layout exactly as it was. */}
-      <div className={bodyClassName}>{children}</div>
+      {hasBody && <div className={bodyClassName}>{children}</div>}
     </Card>
   )
 }

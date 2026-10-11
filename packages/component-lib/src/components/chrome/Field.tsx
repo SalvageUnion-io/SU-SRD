@@ -1,4 +1,5 @@
-import type { ComponentPropsWithRef, ReactNode } from 'react'
+import type { ComponentPropsWithRef, CSSProperties, ReactNode } from 'react'
+import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { EDIT_CUE_HOVER_CLASS } from '../shared/editLanguage'
 import { Badge } from './Badge'
@@ -30,8 +31,14 @@ type FieldStaticProps = FieldCommon & {
  * Edit-in-place / picker field (the merged `IdentityField`): renders a stored
  * `value` inside an ink-bordered value box under the same straddling stamp.
  * ALWAYS editable when it is given a handler — there is no section Edit toggle
- * to unlock first. The dashed "write here" cue appears on hover / focus rather
- * than permanently, so a sheet of fields is not a sheet of dashes.
+ * to unlock first. The value box is DASHED: on a sheet, dashed borders and
+ * steppers are the only "write here" cues (ruleset §1, Live Sheet; issue 1255),
+ * and the Read | Edit toggle means a sheet only draws them while it is in Edit.
+ * The deep-tone outline still comes on hover / focus to mark the one in hand.
+ *
+ * With NO handler it is the read state, and the read state is typeset, not a
+ * form (brand refresh P4, board 10: "print reads, pencil writes"): a small caps
+ * label over the value, no box, and nothing at all when the value is empty.
  */
 type FieldEditableProps = FieldCommon & {
   /** Current stored value. */
@@ -69,9 +76,39 @@ type FieldEditableProps = FieldCommon & {
 
 type FieldProps = FieldStaticProps | FieldEditableProps
 
+/** Typeset read state: the label, set small over its value. */
+const TYPESET_LABEL = {
+  alignItems: 'center',
+  color: color.ink75,
+  display: 'flex',
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  fontWeight: weight.bold,
+  gap: space[8],
+  letterSpacing: tracking.caps,
+  lineHeight: 1.2,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const TYPESET_VALUE = {
+  color: color.ink,
+  fontFamily: font.body,
+  fontSize: fontSize.readout,
+  lineHeight: 1.5,
+  margin: `${space[4]} 0 0`,
+  overflowWrap: 'anywhere',
+} satisfies CSSProperties
+
+const TYPESET_PROSE = { ...TYPESET_VALUE, whiteSpace: 'pre-line' } satisfies CSSProperties
+
+const TYPESET_PROMINENT = { ...TYPESET_VALUE, fontSize: fontSize.title } satisfies CSSProperties
+
 /** The ink `Input` skin as a value-box shell (paper bg, 1.5px ink border, 3px radius). */
 const FIELD_BOX =
   'flex min-h-11 w-full items-center rounded-card border-chrome border-ink bg-paper px-3 font-body text-sm text-ink'
+
+/** A writable value box is pencil, not print: its border is dashed (ruleset §1). */
+const WRITE_CUE = 'border-dashed'
 
 /**
  * Form field block (design-spec §2.5 `.field`) — the ONE labelled control. The
@@ -86,6 +123,10 @@ const FIELD_BOX =
  *
  * Shapes 2–3 are the absorbed `IdentityField`: the sheet identity rows lose the
  * old label-tab + pen framing and gain the canonical straddling stamp.
+ *
+ * 4. **typeset** — `value` with neither handler: the read state. Label over
+ *    value, no box, no placeholder; an empty value renders nothing, so a read
+ *    sheet omits what was never filled in.
  */
 export function Field(props: FieldProps) {
   const { label, required = false, labelAction, className } = props
@@ -130,6 +171,23 @@ export function Field(props: FieldProps) {
   } = props
   const labelText = ariaLabel ?? (typeof label === 'string' ? label : '')
 
+  // ---- Typeset: the read state. Nothing to write, so nothing that looks like
+  // a form: the label over the value, and no row at all for an empty one. ------
+  if (onSave === undefined && onEditClick === undefined) {
+    if (value.trim() === '') return null
+    return (
+      <div className={className}>
+        <div style={TYPESET_LABEL}>
+          {label}
+          {labelAction}
+        </div>
+        <p style={prominent ? TYPESET_PROMINENT : multiline ? TYPESET_PROSE : TYPESET_VALUE}>
+          {value}
+        </p>
+      </div>
+    )
+  }
+
   const stamp = (
     <span className={cn(STAMP_SEAM, 'left-2 flex w-fit items-center')}>{stampBadge}</span>
   )
@@ -139,48 +197,43 @@ export function Field(props: FieldProps) {
     </span>
   )
 
-  // ---- Picker: a value box that opens a modal (or a read-only readout). -------
+  // ---- Picker: a value box that opens a modal. -------------------------------
   if (onEditClick) {
     return (
       <div className={cn('relative block', className)}>
         {stamp}
         {action}
-        {onEditClick ? (
-          <button
-            type="button"
-            aria-label={`Change ${labelText.toLowerCase()}`}
-            onClick={onEditClick}
-            // The VALUE lives inside this button, not beside it, so the print
-            // stylesheets' `button:not([data-print='keep'])` rule took the
-            // field's content along with its affordance: a printed sheet lost
-            // the pilot's class, the mech's chassis and the crawler's type —
-            // each surface's single most identifying field — while every other
-            // field printed, because `InlineEditField` renders a
-            // `<span role="button">` that the element selector never matched.
-            // This is the case the hatch was written for; it is shared verbatim
-            // by both apps' print CSS, so the opt-in belongs on the markup.
-            // Only the editable branch needs it: a read-only Field renders the
-            // `<div>` below and was never hidden.
-            data-print="keep"
-            className={cn(
-              FIELD_BOX,
-              'cursor-pointer text-left hover:bg-ink-8',
-              EDIT_CUE_HOVER_CLASS
-            )}
-          >
-            {valueSpan}
-          </button>
-        ) : (
-          <div className={FIELD_BOX}>{valueSpan}</div>
-        )}
+        <button
+          type="button"
+          aria-label={`Change ${labelText.toLowerCase()}`}
+          onClick={onEditClick}
+          // The VALUE lives inside this button, not beside it, so the print
+          // stylesheets' `button:not([data-print='keep'])` rule took the
+          // field's content along with its affordance: a printed sheet lost
+          // the pilot's class, the mech's chassis and the crawler's type —
+          // each surface's single most identifying field — while every other
+          // field printed, because `InlineEditField` renders a
+          // `<span role="button">` that the element selector never matched.
+          // This is the case the hatch was written for; it is shared verbatim
+          // by both apps' print CSS, so the opt-in belongs on the markup.
+          // A read-only Field is typeset, with no button to hide.
+          data-print="keep"
+          className={cn(
+            FIELD_BOX,
+            WRITE_CUE,
+            'cursor-pointer text-left hover:bg-ink-8',
+            EDIT_CUE_HOVER_CLASS
+          )}
+        >
+          {valueSpan}
+        </button>
       </div>
     )
   }
 
   // ---- Edit-in-place: the InlineEditField engine inside the value box. --------
   // A handler is the ONLY gate: if the caller can persist it, the reader can
-  // edit it.
-  const editable = onSave !== undefined
+  // edit it. (Without one the field was typeset above.)
   return (
     <div className={cn('relative block', fill && 'flex h-full flex-col', className)}>
       {stamp}
@@ -188,8 +241,7 @@ export function Field(props: FieldProps) {
       <InlineEditField
         bordered
         value={value}
-        onSave={onSave ? (next) => onSave(String(next)) : () => undefined}
-        readOnly={!editable}
+        onSave={(next) => onSave?.(String(next))}
         multiline={multiline}
         placeholder={placeholder}
         ariaLabel={`Edit ${labelText.toLowerCase()}`}
@@ -197,7 +249,8 @@ export function Field(props: FieldProps) {
         // than a new InlineEditField prop: the box is a flex row, so stretching
         // it and its child span is all the readout needs to fill.
         className={cn(
-          editable && EDIT_CUE_HOVER_CLASS,
+          WRITE_CUE,
+          EDIT_CUE_HOVER_CLASS,
           fill &&
             'h-full flex-1 items-stretch [&>span]:h-full [&>span]:items-start [&>span]:py-2.5',
           // Reaches the readout through the box's class hook, like `fill`.

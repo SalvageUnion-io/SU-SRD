@@ -243,20 +243,14 @@ describe('CrawlerSheet — bay choice cards (Slice B)', () => {
     expect(autocannon.getAttribute('aria-pressed')).toBe('false')
   })
 
-  test('readOnly: choice cards render but toggling does not persist', async () => {
+  test('readOnly: an unmade pick draws no choice cards, so there is nothing to toggle', async () => {
     restore = await patchCrawlerBays()
     const crawler = makeCrawler()
     const { store, updateMock } = makeCrawlerStubStore(crawler)
     render(<CrawlerSheet crawler={crawler} store={store} readOnly />)
     expandCards()
 
-    const autocannon = screen.getByRole('button', { name: /Autocannon/i })
-    expect(autocannon).toBeTruthy()
-
-    await act(async () => {
-      fireEvent.click(autocannon)
-    })
-
+    expect(screen.queryByRole('button', { name: /Autocannon/i })).toBeNull()
     expect(updateMock).not.toHaveBeenCalled()
   })
 })

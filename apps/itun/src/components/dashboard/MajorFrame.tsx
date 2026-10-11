@@ -13,12 +13,14 @@
  */
 
 import type { ProvenanceLine, VitalGaugeBreakdown } from 'component-lib'
-import { Badge, Button } from 'component-lib'
+import { Badge, Button, ReferenceEntityCard } from 'component-lib'
 import { radius } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
+import type { SURefEntity } from 'salvageunion-reference'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import type { GaugeTone } from './DashboardGauge'
 import { DashboardGauge } from './DashboardGauge'
+import { slotRule } from './slotLayout'
 
 /** Stable no-op, so the Escape effect doesn't re-bind when no overlay is open. */
 const NOOP = () => {
@@ -42,15 +44,30 @@ export type BandButton = {
   onClick: () => void
   disabled?: boolean
   title?: string
-  /** `danger` = destructive styling (Button `variant="danger"`); `go` = the
-   * primary "go" key (Button `variant="primary"`). Omit for the default. */
+  /**
+   * `go` = the primary "go" key; `danger` = a destructive or risky one (Eject,
+   * Crit Injury, Mark Destroyed). Both draw the rust action fill (Button
+   * `variant="primary"`): rust is the one action colour, and status-bad is a
+   * state, never a button fill (ruleset §3.1, board D1's EJECT). A destructive
+   * key says so in its word and its confirm step. Omit for the default.
+   */
   variant?: 'danger' | 'go'
   /** Full-width in the 2-col bay grid (spans both columns). */
   wide?: boolean
 }
 
 /** A short text readout in a bay; `warn` marks a problem (a damaged bay). */
-export type BandText = { text: string; warn?: boolean }
+export type BandText = {
+  text: string
+  warn?: boolean
+  /**
+   * The reference entity the chip names, when it is one (a pilot's equipment
+   * and abilities). It renders as the entity card's shortform pill — the same
+   * anatomy as everywhere else (issue 1255, board D2) — flat, as the Dashboard
+   * is. A chip with none stays a plain chip.
+   */
+  entity?: SURefEntity
+}
 
 export type BandBay = {
   label: string
@@ -71,6 +88,11 @@ export type BandBay = {
   side?: boolean
   /** Full-size gauges: the bigger stat rows of a bay with the width. */
   large?: boolean
+  /**
+   * How much of the row's spare width the bay takes, against one for a plain
+   * bay. A bay of entity pills asks for more, so every name fits on one line.
+   */
+  grow?: number
 }
 
 export type BandOverlay = {
@@ -157,20 +179,38 @@ const CHIPS: CSSProperties = {
   overflowY: 'auto',
 }
 
+/**
+ * A bay of named things with no entity card (the crawler's bays) lays them
+ * out as TILES in a grid (board D3), not a run of pills.
+ */
+const TILES: CSSProperties = {
+  ...CHIPS,
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))',
+}
+
+/**
+ * One named tile: square-cornered on the 3px canon (ruleset §4.4 — rounding
+ * beyond it only where it copies a book style, and a bay is not one), framed in
+ * ink, condensed caps as board D3 sets them.
+ */
 const CHIP: CSSProperties = {
-  padding: '1px 8px',
-  border: 'var(--bw-chrome) solid var(--color-ink-30)',
-  borderRadius: radius.full,
+  padding: '6px 8px',
+  border: 'var(--bw-chrome) solid var(--color-ink)',
+  borderRadius: radius.card,
   background: 'var(--color-paper)',
   fontFamily: 'var(--font-cond)',
-  fontWeight: 600,
+  fontWeight: 700,
   fontSize: 'var(--text-note)',
-  whiteSpace: 'nowrap',
+  letterSpacing: 'var(--tracking-caps-tight)',
+  lineHeight: 1.2,
+  textTransform: 'uppercase',
 }
 
 /**
  * A bay/overlay action, rendered on the standard `Button` (dark instrument
- * surface). `danger`/`go` map to the danger/primary variants; `full` fills the
+ * surface). `danger` and `go` both map to the rust primary variant (see
+ * `BandButton.variant`); `full` fills the
  * bay grid cell (`wide` spans both columns), while overlay actions stay
  * auto-width with a 140px floor.
  */
@@ -179,7 +219,7 @@ function BandBtn({ btn, full = true }: { btn: BandButton; full?: boolean }) {
   if (btn.wide) style.gridColumn = 'span 2'
   return (
     <Button
-      variant={btn.variant === 'danger' ? 'danger' : btn.variant === 'go' ? 'primary' : 'default'}
+      variant={btn.variant === undefined ? 'default' : 'primary'}
       size="compact"
       style={style}
       onClick={btn.onClick}
@@ -236,15 +276,28 @@ function BayBody({ bay }: { bay: BandBay }) {
       {bay.gauges && bay.gauges.length > 0 && <Gauges gauges={bay.gauges} large={bay.large} />}
       {bay.lines && bay.lines.length > 0 && <Lines lines={bay.lines} />}
       {bay.chips && bay.chips.length > 0 && (
-        <ul style={{ ...CHIPS, listStyle: 'none', margin: 0, padding: 0 }}>
-          {bay.chips.map((c) => (
-            <li
-              key={c.text}
-              style={c.warn ? { ...CHIP, ...WARN, borderColor: 'currentColor' } : CHIP}
-            >
-              {c.text}
-            </li>
-          ))}
+        <ul
+          style={{
+            ...(bay.chips.some((c) => c.entity) ? CHIPS : TILES),
+            listStyle: 'none',
+            margin: 0,
+            padding: 0,
+          }}
+        >
+          {bay.chips.map((c) =>
+            c.entity ? (
+              <li key={c.text}>
+                <ReferenceEntityCard data={c.entity} size="small" extent="head" texture={false} />
+              </li>
+            ) : (
+              <li
+                key={c.text}
+                style={c.warn ? { ...CHIP, ...WARN, borderColor: 'currentColor' } : CHIP}
+              >
+                {c.text}
+              </li>
+            )
+          )}
         </ul>
       )}
       {bay.control}
@@ -325,7 +378,12 @@ export function MajorFrame({ view }: { view: MajorModel }) {
   const main = view.bays.filter((b) => !b.side)
   const side = view.bays.filter((b) => b.side)
   return (
-    <div className="pc-band" data-fam={view.fam}>
+    <div
+      className="pc-band"
+      data-fam={view.fam}
+      // The unit colour as the slot's top rule, as every Minor wears it (D1–D3).
+      style={{ borderTop: slotRule(view.fam) }}
+    >
       <div className="pc-band-id">
         <Badge shape="stamp" style={{ ...STAMP, backgroundColor: STAMP_BG[view.fam] }}>
           {view.stampLabel}
@@ -338,7 +396,12 @@ export function MajorFrame({ view }: { view: MajorModel }) {
           // the top, a button at the bottom, and a stripe of nothing between.
           // Flagged so the stylesheet can centre those bays instead.
           // A bay of readouts or chips reads from the top like the rest.
-          <div key={bay.label} className="pc-bay" data-nogauge={buttonsOnly(bay) || undefined}>
+          <div
+            key={bay.label}
+            className="pc-bay"
+            data-nogauge={buttonsOnly(bay) || undefined}
+            style={bay.grow ? { flexGrow: bay.grow } : undefined}
+          >
             <BayBody bay={bay} />
           </div>
         ))}

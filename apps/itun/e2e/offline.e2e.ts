@@ -133,7 +133,7 @@ test('the app opens and reads with the network cut', async ({ page, context }) =
   // The shell renders from cache. This is the whole promise: an installed app
   // opens with no network.
   await expect(page).toHaveTitle(/In The Union Now/i)
-  await expect(page.getByRole('heading', { name: /Welcome to In the Union Now/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /^In The Union Now$/i })).toBeVisible()
 
   await context.setOffline(false)
 })

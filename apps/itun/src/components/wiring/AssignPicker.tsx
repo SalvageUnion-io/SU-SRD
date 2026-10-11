@@ -11,7 +11,7 @@
  *
  * ## Which candidates
  *
- * Only entities in the SUBJECT's container: the same Game, or My Stuff, which is
+ * Only entities in the SUBJECT's container: the same Game, or your shelves, which is
  * a solo Game for this purpose. Filtering applies only when `mode ===
  * 'connected'` — signed out there is one pile, and every entity is in it.
  *
@@ -201,7 +201,7 @@ function emptyCopy(kind: Kind, scope: Container | null, anyAtAll: boolean): stri
   if (scope.kind === 'game') {
     return anyAtAll ? `No other ${many} in this game.` : `No ${many} in this game yet.`
   }
-  return anyAtAll ? `No other ${many} in My Stuff.` : `No ${many} in My Stuff.`
+  return anyAtAll ? `No other ${many} in your shelves.` : `No ${many} in your shelves.`
 }
 
 /** Player copy for a failed assignment. Never the raw message of a defect. */

@@ -16,6 +16,7 @@ import { GameDataReady } from '../components/shared/GameDataReady'
 import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
+import { SiteFooter } from '../components/shared/SiteFooter'
 import { itunEntityHref } from '../lib/entityHref'
 import { pageTitle } from '../lib/pageTitle'
 // Self-hosted Barlow superfamily (mirrors srd) — keeps fonts on-origin so
@@ -43,10 +44,30 @@ function toastCopied() {
   toast.success('Copied', { id: 'clipboard-copy', duration: 1500 })
 }
 
-function RootComponent() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname })
+/**
+ * The Union bar with ITUN's slots filled. Its own component because its
+ * account slots read the connection, which only exists inside
+ * `AppConvexProvider`.
+ */
+function RootHeader({ pathname }: { pathname: string }) {
   // The reference search's open state, shared by its desktop and phone triggers.
   const [searchOpen, setSearchOpen] = useState(false)
+  return (
+    <AppHeader
+      LinkComponent={AppLink}
+      pathname={pathname}
+      games={<HeaderGames pathname={pathname} />}
+      search={<GlobalSearch variant="bar" open={searchOpen} onOpenChange={setSearchOpen} />}
+      mobileSearch={<GlobalSearch variant="icon" open={searchOpen} onOpenChange={setSearchOpen} />}
+      actions={<HeaderActions />}
+      mobileActions={<HeaderMobileActions />}
+      drawerExtra={(close) => <HeaderDrawerAccount close={close} />}
+    />
+  )
+}
+
+function RootComponent() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   return (
     <AppConvexProvider>
@@ -73,21 +94,13 @@ function RootComponent() {
         {/* Above the header, not just the routes: the search in AppHeader opens
             entity detail modals whose RollTables raise the same Copy toast. */}
         <CopyFeedbackProvider value={toastCopied}>
-          <AppHeader
-            LinkComponent={AppLink}
-            pathname={pathname}
-            games={<HeaderGames />}
-            search={<GlobalSearch variant="bar" open={searchOpen} onOpenChange={setSearchOpen} />}
-            mobileSearch={
-              <GlobalSearch variant="icon" open={searchOpen} onOpenChange={setSearchOpen} />
-            }
-            actions={<HeaderActions />}
-            mobileActions={<HeaderMobileActions />}
-            drawerExtra={(close) => <HeaderDrawerAccount close={close} />}
-          />
+          <RootHeader pathname={pathname} />
           <GameDataReady>
             <Outlet />
           </GameDataReady>
+          {/* About and Changelog for a signed-out desktop, which has neither
+              the drawer nor the account menu that carry them elsewhere. */}
+          <SiteFooter />
         </CopyFeedbackProvider>
         <Toaster />
       </EntityHrefProvider>

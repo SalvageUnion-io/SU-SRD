@@ -77,6 +77,9 @@ const ROW: CSSProperties = {
   height: '100%',
 }
 
+/** Downtime: the Crawler alone, across the whole row. */
+const ROW_ALONE: CSSProperties = { ...ROW, gridTemplateColumns: 'minmax(0, 1fr)' }
+
 const EMPTY: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
@@ -223,7 +226,7 @@ export function SlotRow({
   }
   const { major, minors } = slotsFor(mount)
   return (
-    <div style={ROW} data-major={major}>
+    <div style={minors.length === 0 ? ROW_ALONE : ROW} data-major={major}>
       <SlotMajor kind={major} mount={mount} damagePrompt={damagePrompt} {...e} />
       {minors.map((kind) => (
         <SlotMinor key={kind} kind={kind} onExpand={(trigger) => onExpand(kind, trigger)} {...e} />

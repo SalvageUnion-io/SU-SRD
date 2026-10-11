@@ -1,8 +1,8 @@
 /**
  * SheetHero — the sheet's opening region (Workshop-Manual identity band):
  * a wide "thick" card of identity FIELDS beside a narrow "long" card of
- * current/max GAUGES. There is no name stamp; the name lives in its own field
- * and becomes the accessible `<h1>`.
+ * current/max GAUGES. There is no name stamp here: the name is the chapter
+ * band's notched `<h1>` above it (`LiveSheet`, board 10).
  *
  * Pure layout — all content arrives via slots so the three variant sheets
  * compose it without forking the frame.
@@ -28,6 +28,8 @@ type SheetHeroProps = {
   vitals?: ReactNode
   /** Title of the fields card. */
   fieldsTitle?: string
+  /** `paper` is the printed read state (board 10); `frame` the Edit state's card. */
+  surface?: 'frame' | 'paper'
   className?: string
 }
 
@@ -37,6 +39,7 @@ export function SheetHero({
   fields,
   vitals,
   fieldsTitle = 'Identity',
+  surface = 'frame',
   className,
 }: SheetHeroProps) {
   return (
@@ -55,20 +58,24 @@ export function SheetHero({
         className
       )}
     >
-      <h1 className="sr-only">{name}</h1>
       {/* The OPENING sections are the only ones that keep a card container:
           they are the sheet's subject and its live state, so they read as
           framed objects. Everything below them is a slab. They do not fold —
           a card has no chevron, which is exactly right here. */}
       <SheetSectionCard
         title={fieldsTitle}
+        surface={surface}
         count={meta}
         className="flex h-full flex-col"
         bodyClassName="flex min-h-0 flex-1 flex-col"
       >
         {fields}
       </SheetSectionCard>
-      {vitals && <SheetSectionCard title="Vitals">{vitals}</SheetSectionCard>}
+      {vitals && (
+        <SheetSectionCard title="Vitals" surface={surface}>
+          {vitals}
+        </SheetSectionCard>
+      )}
     </section>
   )
 }
