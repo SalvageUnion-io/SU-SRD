@@ -974,8 +974,8 @@ returns condensed docs: verify load-bearing APIs against `node_modules`.
 
 `gh` is preinstalled, REST only via the GitHub proxy: `gh pr`/`gh issue`
 (GraphQL) get 403, branch deletions are refused; use `gh api` or
-`mcp__github__*`. Cloudflare and Sentry MCP need OAuth (impossible here):
-report their signals **unread**. `convex` has no credentials: ask for data.
+`mcp__github__*`. Cloudflare and Sentry use claude.ai connectors, `convex` an
+anonymous local one; no route: report **unread**, ask for remote data.
 Environment and rules text (attach private `su-rules`; multi-repo skips repo
 hooks): [ops/cloud-environment.md](ops/cloud-environment.md). If `bun --version`
 differs from the root `packageManager`, run with

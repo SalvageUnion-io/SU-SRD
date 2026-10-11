@@ -16,16 +16,17 @@ recommendation you cannot justify.
 
 **A signal you could not reach is a finding, not a skip.** In a cloud session
 `gh` answers REST only (`gh pr` and `gh issue` get 403) and the `cloudflare-*`
-and `sentry` MCP servers cannot authenticate (see
+and `sentry` MCP servers cannot authenticate; their claude.ai connectors stand in
+when connected (see
 [cloud sessions](../../../docs/ARCHITECTURE.md#cloud-sessions)).
 For every step, use the first route that works and record which one you used:
 
-| Signal | Route 1 | Route 2 (`gh` fails) |
+| Signal | Route 1 | Route 2 (cloud session) |
 | --- | --- | --- |
 | Workflow runs (steps 1, 3, 4) | `gh run list …` | `mcp__github__actions_list` (load it with ToolSearch) |
 | Issues and PRs (steps 1, 4, 5) | `gh issue list …` / `gh pr list …` | `mcp__github__list_issues` / `mcp__github__list_pull_requests` |
-| Production errors (step 2) | `sentry` MCP | none — record it as unread |
-| Worker logs (step 3) | `cloudflare-observability` MCP | none — the deploy workflow's smoke job still counts |
+| Production errors (step 2) | `sentry` MCP | the Sentry claude.ai connector (same tools; find them with ToolSearch `sentry`); neither → unread |
+| Worker logs (step 3) | `cloudflare-observability` MCP | the Cloudflare Observability custom connector; neither → the deploy workflow's smoke job still counts |
 
 1. **Nightly E2E** — did last night's run pass?
 
