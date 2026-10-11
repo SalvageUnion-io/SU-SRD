@@ -152,11 +152,29 @@ const MARK_NOW: CSSProperties = {
 /** A step still to come. */
 const MARK_NEXT: CSSProperties = MARK
 
+/**
+ * The step column: the step itself scrolls (`STEP_SCROLL`) and the controls sit
+ * in a footer below it (`STEP_FOOT`), so "I'm done" is in view however long the
+ * step runs. At the end of the scroll it was clipped by the panel's foot.
+ */
 const STEP_COLUMN: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   minHeight: 0,
+}
+
+const STEP_SCROLL: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  flex: '1 1 auto',
+  minHeight: 0,
   overflowY: 'auto',
+}
+
+const STEP_FOOT: CSSProperties = {
+  flexShrink: 0,
+  padding: '10px 18px 14px',
+  borderTop: 'var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
 }
 
 /** The step's band, in crawler pink (board D3): the step name notched into its foot. */
@@ -278,75 +296,77 @@ export function DowntimeWizardFrame({
       </nav>
 
       <div style={STEP_COLUMN}>
-        <div style={STEP_BAND}>
-          <h3 className="pc-dt-step-name">{step.name}</h3>
-        </div>
-        <div className="pc-dt" style={STEP_BODY}>
-          <div className="pc-dt-head">
-            {/* Paper on the deeper crawler band (4.6 : 1, ruleset §3.8): the
-                guide's own pink carries paper at only 3.7 : 1. */}
-            <Badge
-              shape="stamp"
-              className="px-[9px] py-[5px] text-caption text-paper"
-              style={{ backgroundColor: PHASE_STAMP_BG }}
-            >
-              {phase}
-            </Badge>
-            <span className="pc-dt-count">
-              Step {idx + 1} / {steps.length}
-            </span>
+        <div style={STEP_SCROLL}>
+          <div style={STEP_BAND}>
+            <h3 className="pc-dt-step-name">{step.name}</h3>
           </div>
-
-          {step.content && step.content.length > 0 && (
-            <Content body={step.content} headerBg={headerBg} />
-          )}
-
-          {renderStepGate?.(step)}
-
-          {table && (
-            <div className="pc-dt-table">
-              <RollTable table={table} tableName={tableName} size="compact" showCommand />
+          <div className="pc-dt" style={STEP_BODY}>
+            <div className="pc-dt-head">
+              {/* Paper on the deeper crawler band (4.6 : 1, ruleset §3.8): the
+                guide's own pink carries paper at only 3.7 : 1. */}
+              <Badge
+                shape="stamp"
+                className="px-[9px] py-[5px] text-caption text-paper"
+                style={{ backgroundColor: PHASE_STAMP_BG }}
+              >
+                {phase}
+              </Badge>
+              <span className="pc-dt-count">
+                Step {idx + 1} / {steps.length}
+              </span>
             </div>
-          )}
 
-          {ready.length > 0 ? (
-            <ul style={READY} aria-label={`Done with this step: ${doneCount} of ${ready.length}`}>
-              {ready.map((r) => (
-                <li key={r.userId} style={READY_ITEM}>
-                  <span style={r.done ? PIP_DONE : PIP_WAITING} aria-hidden="true" />
-                  {r.done ? `✓ ${r.name}` : r.name}
-                </li>
-              ))}
-            </ul>
-          ) : null}
+            {step.content && step.content.length > 0 && (
+              <Content body={step.content} headerBg={headerBg} />
+            )}
 
-          <p className="pc-dt-note">
-            {onNext
-              ? 'You move the table on. Each player marks the step done when they are.'
-              : 'The Mediator moves the table on. Mark the step done when you are.'}
-          </p>
+            {renderStepGate?.(step)}
 
-          <div className="pc-dt-controls">
+            {table && (
+              <div className="pc-dt-table">
+                <RollTable table={table} tableName={tableName} size="compact" showCommand />
+              </div>
+            )}
+
+            {ready.length > 0 ? (
+              <ul style={READY} aria-label={`Done with this step: ${doneCount} of ${ready.length}`}>
+                {ready.map((r) => (
+                  <li key={r.userId} style={READY_ITEM}>
+                    <span style={r.done ? PIP_DONE : PIP_WAITING} aria-hidden="true" />
+                    {r.done ? `✓ ${r.name}` : r.name}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            <p className="pc-dt-note">
+              {onNext
+                ? 'You move the table on. Each player marks the step done when they are.'
+                : 'The Mediator moves the table on. Mark the step done when you are.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="pc-dt-controls" style={STEP_FOOT}>
+          <Button
+            size="compact"
+            variant={doneByMe ? 'ghost' : 'primary'}
+            style={CONTROL}
+            onClick={() => onDone(!doneByMe)}
+            aria-pressed={doneByMe}
+          >
+            {doneByMe ? '✓ Done' : "I'm done"}
+          </Button>
+          {onNext ? (
             <Button
               size="compact"
-              variant={doneByMe ? 'ghost' : 'primary'}
               style={CONTROL}
-              onClick={() => onDone(!doneByMe)}
-              aria-pressed={doneByMe}
+              onClick={() => onNext()}
+              disabled={idx === steps.length - 1}
             >
-              {doneByMe ? '✓ Done' : "I'm done"}
+              Next step ›
             </Button>
-            {onNext ? (
-              <Button
-                size="compact"
-                style={CONTROL}
-                onClick={() => onNext()}
-                disabled={idx === steps.length - 1}
-              >
-                Next step ›
-              </Button>
-            ) : null}
-          </div>
+          ) : null}
         </div>
       </div>
     </div>

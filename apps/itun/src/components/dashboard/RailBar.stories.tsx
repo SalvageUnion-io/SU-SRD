@@ -61,7 +61,7 @@ export const Default = () => (
             name="Bonesaw"
             stamp="Downtime · Step 3 of 10"
             fam="crawler"
-            context="Run by the Mediator"
+            context="You run it"
             returnControl={BackLink}
             units={
               <>
@@ -87,6 +87,11 @@ export const Default = () => (
               </>
             }
             status={<span>Saved</span>}
+            downtimeAction={{
+              label: '■ End Downtime',
+              title: 'End Downtime for the whole table',
+              onClick: () => {},
+            }}
           />
         </div>
       </div>

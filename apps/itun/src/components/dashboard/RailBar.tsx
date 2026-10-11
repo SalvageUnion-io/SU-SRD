@@ -2,7 +2,7 @@
  * RailBar — the Dashboard's top rail (boards D1–D3, issue 1255): the way back
  * to the Game, the SU mark, the pilot this Dashboard plays, a stamp for where
  * they are ("Boarded · Scrapper", "On foot", "Downtime · Step 3 of 10"), the
- * Game it saves to, then — in Downtime — the pilot and mech as compact links
+ * Game it saves to (set under the name), then — in Downtime — the pilot and mech as compact links
  * with their pips (`RailUnit`), whether play is being saved (`status`, the
  * app's `SavedIndicator`), and the Mediator's Start or End Downtime.
  *
@@ -40,13 +40,24 @@ const NAME = {
 /** Board D3 sets the stamp on one line: it never gives up width to its neighbours. */
 const STAMP = { flexShrink: 0, whiteSpace: 'nowrap' } satisfies CSSProperties
 
+/**
+ * The name and the context line stack: the context sets under the name rather
+ * than after the stamp. In Downtime the rail units take the width, and inline
+ * the context was the one thing left to give, cut to "You r…". Under the name
+ * it costs no width it does not already have, and it never truncates.
+ */
+const IDENTITY = {
+  display: 'flex',
+  flexDirection: 'column',
+  flexShrink: 0,
+  gap: '2px',
+} satisfies CSSProperties
+
 const CONTEXT = {
   color: tokens.color.ink75,
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.caption,
-  minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
+  lineHeight: 1.1,
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
@@ -92,7 +103,10 @@ export function RailBar({
     <>
       {returnControl}
       <img src="/logos/su-cargo-dark.svg" alt="" width={24} height={24} style={MARK} />
-      <span style={NAME}>{name}</span>
+      <span style={IDENTITY}>
+        <span style={NAME}>{name}</span>
+        {context && <span style={CONTEXT}>{context}</span>}
+      </span>
       <Badge
         shape="stamp"
         className="px-[9px] py-[5px] text-caption text-paper"
@@ -100,7 +114,6 @@ export function RailBar({
       >
         {stamp}
       </Badge>
-      {context && <span style={CONTEXT}>{context}</span>}
       <span className="flex-1" />
       {units && <div style={UNITS}>{units}</div>}
       {status}
