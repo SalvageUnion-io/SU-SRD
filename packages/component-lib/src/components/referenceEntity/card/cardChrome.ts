@@ -13,7 +13,7 @@ import { activateOnKey, FOCUS_RING } from '../../chrome/interaction'
 import type { CardExtent, CardSize } from '../../shared/displayMode'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import type { OnToneText } from '../referenceEntityHelpers'
-import { borderColorFromHeaderBg, onToneText } from '../referenceEntityHelpers'
+import { borderColorFromHeaderBg, onToneText, textBand } from '../referenceEntityHelpers'
 import type { CardOuterProps } from './CardOuter'
 import type { DomainTone } from './entityCardTone'
 import { firstParagraphText } from './firstParagraphText'
@@ -47,6 +47,8 @@ export type CardColors = {
  * - TONE fill: the entity's own tone. ONE tone per entity — a nested child
  *   wears its own, never a blend of its parent's. (The ghosted action tones
  *   are retired: an action is an ink banner, not a faded relative of its host.)
+ *   Crawler pink carries neither ink nor paper at 4.5:1, so a crawler header
+ *   paints the deeper crawler band and prints paper (ruleset §3.8, `textBand`).
  * - INK fill: `--color-ink`, paper text.
  * - DAMAGED/DESTROYED (write layer): the header goes flat grey, whatever the fill.
  *
@@ -73,8 +75,19 @@ export function resolveCardColors({
   if (fill === 'ink') {
     return { onBandText: 'text-paper', headerBg: undefined, headerBgColor: 'var(--color-ink)' }
   }
+  // A tone that carries neither foreground at 4.5:1 paints its deeper text
+  // band instead (ruleset §3.8): crawler pink becomes the crawler band, paper text.
+  const band = borderColorFromHeaderBg(tone.bg, tone.bgColor)
+  const painted = textBand(band)
+  if (painted !== band) {
+    return {
+      onBandText: onToneText(painted, 'text-paper'),
+      headerBg: undefined,
+      headerBgColor: painted,
+    }
+  }
   return {
-    onBandText: onToneText(borderColorFromHeaderBg(tone.bg, tone.bgColor), 'text-paper'),
+    onBandText: onToneText(band, 'text-paper'),
     headerBg: tone.bg,
     headerBgColor: tone.bgColor,
   }

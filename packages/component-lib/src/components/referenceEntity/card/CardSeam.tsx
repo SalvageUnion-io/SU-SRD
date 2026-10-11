@@ -56,6 +56,9 @@ export function CardSeam({
           label={marker.label}
           value={marker.value}
           size="mini"
+          // A long value ("Chassis | Little Sestra") truncates with "…" on a
+          // phone rather than being cut mid-word by the seam's clip.
+          truncate
         />
       ))}
       {/* A pattern the book sanctions as a starting loadout wears a stamp on the

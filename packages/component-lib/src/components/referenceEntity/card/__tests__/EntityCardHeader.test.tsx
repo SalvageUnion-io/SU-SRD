@@ -120,7 +120,33 @@ describe('EntityCardHeader — the one-line head row', () => {
     expect(title.getAttribute('title')).toBe('Electro-Magnetic Shield Projector')
     expect(title.style.textOverflow).toBe('ellipsis')
     expect(title.style.whiteSpace).toBe('nowrap')
-    expect(band('Electro-Magnetic Shield Projector').style.flexWrap).toBe('nowrap')
+    // One line on ranked grid tracks: the name's track fills to the full name
+    // before the cells' `fr` track gets any room, so the cells drop first.
+    const row = band('Electro-Magnetic Shield Projector')
+    expect(row.style.display).toBe('grid')
+    expect(row.style.gridTemplateColumns).toBe('minmax(0, max-content) minmax(0, 1fr)')
+  })
+
+  test('the numeral, pennant and chevron keep their own tracks around the name', () => {
+    render(
+      <EntityCardHeader
+        title="Jury Rig"
+        fill="ink"
+        bg={undefined}
+        bgColor="var(--color-ink)"
+        titleClass="text-title"
+        numeral="1"
+        stats={[]}
+        pennant={<span>2 AP</span>}
+        size="medium"
+        oneLine
+        chevron
+      />
+    )
+    // No cells: an empty `fr` track keeps the pennant and chevron at the right.
+    expect(band('Jury Rig').style.gridTemplateColumns).toBe(
+      'auto minmax(0, max-content) minmax(0, 1fr) auto auto'
+    )
   })
 
   test('a full card title wraps and carries no truncation tooltip', () => {

@@ -100,6 +100,7 @@ type StatPropKey =
   | 'labelId'
   | 'ariaLabel'
   | 'className'
+  | 'truncate'
 
 /** `T`, plus every stat prop NOT in `T` forbidden (`?: never`) — the exclusion
  * that makes the anatomies genuinely non-overlapping at the type level. */
@@ -187,6 +188,12 @@ type HorizontalValueProps = Exact<{
    * the value box's `hoverText` — a compact header cell states the SAME stat as
    * the full box, so it must be able to explain itself too. */
   hoverText?: string
+  /**
+   * A cell in a row that may be too narrow for it (a seam marker on a phone):
+   * the cell may shrink, and its value truncates with "…" rather than being
+   * cut mid-word by the row's clip. The label never shrinks.
+   */
+  truncate?: boolean
   className?: string
 }>
 
@@ -298,6 +305,7 @@ function HorizontalValue({
   step = 1,
   stepperLabel,
   hoverText,
+  truncate = false,
   className,
 }: HorizontalValueProps) {
   const fontSize = size === 'mini' ? 'text-badge' : size === 'compact' ? 'text-xs' : 'text-sm'
@@ -349,6 +357,7 @@ function HorizontalValue({
         STATE_BORDER[state],
         inline ? 'inline-flex' : 'flex',
         'w-fit',
+        truncate && 'min-w-0 shrink',
         className
       )}
     >
@@ -387,7 +396,9 @@ function HorizontalValue({
             'flex items-center gap-px self-stretch uppercase',
             fontSize,
             fontWeight,
-            plate
+            plate,
+            // A block, so the ellipsis applies (a flex box's text never gets one).
+            truncate && 'block min-w-0 truncate'
           )}
         >
           {value}

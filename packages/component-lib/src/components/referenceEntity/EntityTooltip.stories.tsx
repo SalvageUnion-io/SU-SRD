@@ -2,9 +2,8 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Story } from '../../stories/_harness'
 import { Badge } from '../chrome/Badge'
 import { Stat } from '../shared/Stat'
-import { InsideTooltipContext } from '../ui/insideTooltipContext'
-import { ReferenceEntityCard } from './card/ReferenceEntityCard'
-import { EntityTooltip } from './EntityTooltip'
+import { EntityHovercardCard, EntityTooltip } from './EntityTooltip'
+import { HOVERCARD_PLATE_FILTER } from './hovercardPlate'
 
 export default {
   title: 'Compositions/Entity/Entity Tooltip',
@@ -37,15 +36,16 @@ export const Default: Story = () => (
       </EntityTooltip>
     </div>
     <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
-      What the popup renders, shown statically for the catalog: the DENSE catalog-extent card inside
-      the terminal context. A chassis makes the law visible — its full card would carry pattern and
-      system cards, expandable listings and trait hover-refs; the hovercard suppresses all of them
-      (nested elements via the catalog extent, nested tooltips via InsideTooltipContext).
+      What the popup renders, shown statically for the catalog: the real hovercard plate
+      (`EntityHovercardCard`, the small card at full extent inside the terminal context) on its
+      lifted plate. A chassis makes the law visible: its pattern rows and trait refs still print,
+      but nothing on the plate acts — no links, buttons, rows to open or nested hovercards — and,
+      like the Dashboard, it is flat: no speckle (ruleset §3.5).
     </p>
-    <div className="max-w-[500px]">
-      <InsideTooltipContext.Provider value={true}>
-        <ReferenceEntityCard data={chassis} size="medium" extent="catalog" />
-      </InsideTooltipContext.Provider>
+    <div
+      style={{ filter: HOVERCARD_PLATE_FILTER, maxWidth: 'min(500px, 100%)', paddingTop: '12px' }}
+    >
+      {chassis && <EntityHovercardCard entity={chassis} />}
     </div>
   </div>
 )

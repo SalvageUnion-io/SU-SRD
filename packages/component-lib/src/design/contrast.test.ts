@@ -135,13 +135,13 @@ const ratio = (band: Band) => contrastRatio(band.ground ?? PAPER, FOREGROUND[ban
 
 /**
  * Headers whose BEST foreground still misses 4.5:1. Neither ink nor paper
- * reaches it on these three book tones; fixing that is re-toning the palette
- * away from the printed book, which this guard does not do. They clear 3:1,
+ * reaches it on these two book tones; fixing that is re-toning the palette
+ * away from the printed book, which this guard does not do. (Crawler pink is
+ * not here: its header paints the crawler band, ruleset §3.8.) They clear 3:1,
  * which the header's title — large text at every top-level card size — owes.
  * This list is exact: a tone that starts passing must be deleted from it.
  */
 const HEADER_SHORTFALL = new Set([
-  'var(--color-crawler) solid header',
   'var(--color-tl-3) solid header',
   'var(--color-tl-n) solid header',
 ])
@@ -219,6 +219,16 @@ describe('ink on colour — the refresh pairs', () => {
     // the band is redundant and this says so.
     expect(contrastRatio(opaque(color.crawler), INK)).toBeLessThan(4.5)
     expect(contrastRatio(opaque(color.crawler), PAPER)).toBeLessThan(4.5)
+  })
+
+  test('a crawler header paints the crawler band and prints paper on it', () => {
+    const crawler: DomainTone = { domain: 'crawler', bg: 'bg-crawler', bgColor: undefined }
+    const c = resolveCardColors({ tone: crawler, isDown: false, fill: 'tone' })
+    expect(c.headerBg).toBeUndefined()
+    expect(c.headerBgColor).toBe('var(--color-crawler-band)')
+    expect(c.onBandText).toBe('text-paper')
+    expect(onToneText('var(--color-crawler)')).toBe('text-paper')
+    expect(contrastRatio(opaque(color.crawlerBand), PAPER)).toBeGreaterThanOrEqual(4.5)
   })
 
   test('muted text clears 4.5:1 on paper and on every page ground', () => {

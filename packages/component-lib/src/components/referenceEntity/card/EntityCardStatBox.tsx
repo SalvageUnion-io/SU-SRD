@@ -7,10 +7,10 @@ type EntityCardStatBoxProps = {
   /** Every header stat, in order. */
   stats: StatItem[]
   /**
-   * A one-line head row (ruleset §1 Listing): the cells hold ONE row and the
-   * title keeps a minimum width, so a cell that does not fit is dropped, last
-   * (lowest priority) first, rather than crushing the title to "L…". Cells wrap
-   * onto a second row that the clip hides.
+   * A one-line head row (ruleset §1 Listing): the cells hold ONE row in the
+   * room the full name leaves them, and a cell that does not fit is dropped,
+   * last (lowest priority) first — every cell goes before the name truncates.
+   * A dropped cell wraps onto a second row that the clip hides.
    */
   oneRow?: boolean
 }
@@ -24,9 +24,17 @@ const cluster = (oneRow: boolean): CSSProperties => ({
   flexWrap: 'wrap',
   gap: space[4],
   justifyContent: 'flex-end',
-  minWidth: oneRow ? 'min-content' : 0,
+  minWidth: 0,
   ...(oneRow ? { maxHeight: CELL_ROW, overflow: 'hidden' } : {}),
 })
+
+/**
+ * The first item of a one-row cluster: no width, one cell tall. A wrapping row
+ * always keeps its first item, so without it a first cell too wide for the
+ * room would stay on the visible row and be cut; behind it, that cell wraps
+ * onto the hidden row like the rest.
+ */
+const ROW_ANCHOR: CSSProperties = { flex: 'none', height: CELL_ROW, width: 0 }
 
 /**
  * EntityCardStatBox — the header's value cells (board E1): each stat is the
@@ -41,6 +49,7 @@ export function EntityCardStatBox({ stats, oneRow = false }: EntityCardStatBoxPr
   if (stats.length === 0) return null
   return (
     <div style={cluster(oneRow)}>
+      {oneRow && <span aria-hidden="true" style={ROW_ANCHOR} />}
       {stats.map((stat) => (
         <Stat
           key={stat.key}

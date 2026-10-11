@@ -69,19 +69,56 @@ const BAND_PAD: Record<CardSize, string> = {
 }
 
 /**
- * A truncating one-liner. `contain: inline-size` gives it NO min-content
- * contribution: a nowrap title or hint would otherwise add its whole text
- * length to a width-less ancestor (an island page's wrapper) and push the
- * page wider than the viewport.
+ * A truncating one-liner. `contain: inline-size` gives it NO intrinsic width:
+ * the hint takes only the room the name and the cells leave it.
  */
-/** The title's readable stub in a one-line row (about eleven characters). */
-const STUB: Record<CardSize, string> = { large: '11rem', medium: '8.5rem', small: '6rem' }
-
 const ONE_LINE: CSSProperties = {
   contain: 'inline-size',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
+}
+
+/** The title's truncation, without containment: it keeps its full width. */
+const TRUNCATE: CSSProperties = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+}
+
+/**
+ * A one-line head row's columns (board E3). A grid, because its tracks rank the
+ * parts where a flex row only weighs them:
+ *
+ * - the TITLE's track is `minmax(0, max-content)`: it fills to the full name
+ *   before any `fr` track gets a pixel, so every cell drops before the name
+ *   truncates;
+ * - the CELLS (and a hint) share what is left (`minmax(0, 1fr)`), and the
+ *   cells drop last-first in it (`EntityCardStatBox`); a row with neither
+ *   keeps an empty `fr` track, so the pennant and chevron stay at the right;
+ * - the numeral, the pennant and the chevron keep their own width.
+ *
+ * The 0 minimums also mean a long name adds nothing to the row's min-content,
+ * so it cannot push a width-less ancestor (an island page's wrapper) past the
+ * viewport.
+ */
+function oneLineColumns(parts: {
+  numeral: boolean
+  hint: boolean
+  cells: boolean
+  pennant: boolean
+  chevron: boolean
+}): string {
+  return [
+    parts.numeral && 'auto',
+    'minmax(0, max-content)',
+    parts.hint && 'minmax(0, 1fr)',
+    (parts.cells || !parts.hint) && 'minmax(0, 1fr)',
+    parts.pennant && 'auto',
+    parts.chevron && 'auto',
+  ]
+    .filter(Boolean)
+    .join(' ')
 }
 
 /**
@@ -95,7 +132,8 @@ const ONE_LINE: CSSProperties = {
  *   flecks.
  *
  * The title takes the row and the cells follow it, wrapping beneath when the
- * band is too narrow; a one-line head row never wraps, so its title truncates.
+ * band is too narrow. A one-line head row never wraps: its cells drop, last
+ * first, and only then does its title truncate.
  */
 export function EntityCardHeader({
   title,
@@ -129,33 +167,18 @@ export function EntityCardHeader({
       className={titleType}
       title={oneLine ? title : undefined}
       style={{
-        // One line: the title gives way after a hint has and before the pennant,
-        // but never below a readable stub (about eleven characters); the cells
-        // shed first, lowest priority first (`EntityCardStatBox`). Otherwise the title shares the row with the
-        // cells on the right at medium and small, and only a large header
-        // gives the title the whole row. Either way the cells wrap beneath
-        // when they truly cannot fit.
-        // One line: basis 0 (contained, it has no intrinsic width) and a heavy
-        // grow, so it takes the row the cells and a hint leave it.
-        // A hint (a pattern row's description) NEVER outranks the name: the
-        // title keeps its own width and shrinks only once the hint, whose
-        // basis is 0, has nothing left to give.
-        flex: oneLine
-          ? rightContent
-            ? '0 1 auto'
-            : '1 1 0'
-          : size === 'large'
-            ? '1 1 auto'
-            : '1 1 0',
-        // One line: the title may go to nothing rather than push the cells or
-        // the chevron past the card's edge; its stub is kept by the cluster's cap.
-        minWidth: oneLine ? 0 : size === 'large' ? 0 : 'min-content',
-        overflowWrap: 'break-word',
+        // One line: a grid track (`oneLineColumns`) holds the full name, and the
+        // title truncates only once every cell has dropped. Otherwise the title
+        // shares the row with the cells on the right at medium and small, and
+        // only a large header gives the title the whole row; the cells wrap
+        // beneath when they truly cannot fit.
         ...(oneLine
-          ? rightContent
-            ? { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
-            : ONE_LINE
-          : {}),
+          ? { minWidth: 0, ...TRUNCATE }
+          : {
+              flex: size === 'large' ? '1 1 auto' : '1 1 0',
+              minWidth: size === 'large' ? 0 : 'min-content',
+              overflowWrap: 'break-word',
+            }),
       }}
     >
       {title}
@@ -166,14 +189,74 @@ export function EntityCardHeader({
       className={cn('font-body italic leading-snug', titleTextClass)}
       style={
         oneLine
-          ? { flex: '1 1 0', minWidth: 0, textAlign: 'right', ...ONE_LINE }
+          ? { minWidth: 0, textAlign: 'right', ...ONE_LINE }
           : { flex: '1 1 12rem', minWidth: 0, textAlign: 'right' }
       }
     >
       {rightContent}
     </span>
   ) : null
-  const hasCluster = stats.length > 0 || !!pennant
+  const cells = stats.length > 0 ? <EntityCardStatBox stats={stats} oneRow={oneLine} /> : null
+  const hasCluster = !!cells || !!pennant
+  const chevronNode = chevron ? (
+    <ChevronRight
+      aria-hidden="true"
+      size={20}
+      strokeWidth={3}
+      className={titleTextClass}
+      style={{ flex: 'none', marginLeft: hasCluster || oneLine ? 0 : 'auto' }}
+    />
+  ) : null
+  const numeralNode = numeral ? (
+    <span className={titleType} style={{ flex: 'none', opacity: 0.75 }}>
+      {numeral}
+    </span>
+  ) : null
+  const bandStyle: CSSProperties = {
+    ...accent.style,
+    ...grainStyle(grain),
+    alignItems: 'center',
+    ...(ruled
+      ? {
+          borderBottomColor: 'var(--color-ink)',
+          borderBottomStyle: 'solid',
+          borderBottomWidth: 'var(--bw-chrome)',
+        }
+      : {}),
+    minWidth: 0,
+    padding: band ? BAND_PAD[size] : PAD[size],
+    width: '100%',
+  }
+
+  // HEAD extent: ONE line, on ranked grid tracks (`oneLineColumns`).
+  if (oneLine) {
+    return (
+      <div
+        data-fill={fill}
+        data-grain={grain}
+        className={accent.className}
+        style={{
+          ...bandStyle,
+          columnGap: space[8],
+          display: 'grid',
+          gridTemplateColumns: oneLineColumns({
+            numeral: !!numeralNode,
+            hint: !!hint,
+            cells: !!cells,
+            pennant: !!pennant,
+            chevron: !!chevronNode,
+          }),
+        }}
+      >
+        {numeralNode}
+        {titleNode}
+        {hint}
+        {cells ?? (hint ? null : <span aria-hidden="true" />)}
+        {pennant}
+        {chevronNode}
+      </div>
+    )
+  }
 
   return (
     <div
@@ -181,29 +264,13 @@ export function EntityCardHeader({
       data-grain={grain}
       className={accent.className}
       style={{
-        ...accent.style,
-        ...grainStyle(grain),
-        alignItems: 'center',
-        ...(ruled
-          ? {
-              borderBottomColor: 'var(--color-ink)',
-              borderBottomStyle: 'solid',
-              borderBottomWidth: 'var(--bw-chrome)',
-            }
-          : {}),
+        ...bandStyle,
         display: 'flex',
-        flexWrap: oneLine ? 'nowrap' : 'wrap',
-        gap: oneLine ? space[8] : `${space[8]} ${space[14]}`,
-        minWidth: 0,
-        padding: band ? BAND_PAD[size] : PAD[size],
-        width: '100%',
+        flexWrap: 'wrap',
+        gap: `${space[8]} ${space[14]}`,
       }}
     >
-      {numeral && (
-        <span className={titleType} style={{ flex: 'none', opacity: 0.75 }}>
-          {numeral}
-        </span>
-      )}
+      {numeralNode}
       {titleNode}
       {hint}
       {hasCluster && (
@@ -211,35 +278,18 @@ export function EntityCardHeader({
           style={{
             alignItems: 'center',
             display: 'flex',
-            // One line: the cells take all of the shrink until only the first is
-            // left, and only then does the title truncate (flex-shrink is
-            // weighted by width, so a plain 8× still bit into the title early).
-            flex: oneLine ? '0 1000 auto' : '0 1 auto',
-            flexWrap: oneLine ? 'nowrap' : 'wrap',
+            flex: '0 1 auto',
+            flexWrap: 'wrap',
             gap: space[4],
             justifyContent: 'flex-end',
-            marginLeft: oneLine ? 'auto' : undefined,
-            // One line: the cluster leaves the title about eleven characters
-            // (and the chevron's room) so the cells shed first; its min-content
-            // floor beats the cap, so the first cell and the pennant are never
-            // cut when the row is simply too narrow.
-            maxWidth: oneLine ? `calc(100% - ${STUB[size]} - 3rem)` : undefined,
-            minWidth: oneLine ? 'min-content' : 0,
+            minWidth: 0,
           }}
         >
-          {stats.length > 0 && <EntityCardStatBox stats={stats} oneRow={oneLine} />}
+          {cells}
           {pennant}
         </div>
       )}
-      {chevron && (
-        <ChevronRight
-          aria-hidden="true"
-          size={20}
-          strokeWidth={3}
-          className={titleTextClass}
-          style={{ flex: 'none', marginLeft: hasCluster ? 0 : 'auto' }}
-        />
-      )}
+      {chevronNode}
     </div>
   )
 }
