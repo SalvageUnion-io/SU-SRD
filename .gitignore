@@ -52,6 +52,9 @@ apps/itun/src/.routeTree.gen.*.ts
 .claude/settings.local.json
 # Agent/background-job worktrees: full checkouts that must never be committed.
 .claude/worktrees/
+# Per-agent memory a subagent writes for itself (e.g. a design reviewer's notes):
+# working state, not project docs. Durable rules go in .claude/rules or a skill.
+.claude/agent-memory/
 # .mcp.json IS tracked: it is the shared, secret-free project MCP config
 # (Cloudflare, Sentry, Convex, Context7). Every server authenticates by OAuth on
 # first connect — never put tokens in it.
@@ -68,10 +71,11 @@ apps/itun/src/.routeTree.gen.*.ts
 *.sw?
 
 
-# Salvage Union rules content is NOT checked into git. The source PDFs and their
-# text extract (rules/) are copyright-bearing verbatim material, generated and
-# local-only — produce the extract with `bun run rules:extract`. Only the tooling
-# (tools/extract-rules.ts) lives in git.
+# Salvage Union rules content is NOT checked into this public repo. The source
+# PDFs and their text extract (rules/) are copyright-bearing verbatim material;
+# their source of record is the private repo SalvageUnion-io/su-rules (a cloud
+# session attaches it as a second repository). Locally, produce the extract with
+# `bun run rules:extract`. Only the tooling (tools/extract-rules.ts) lives here.
 rules/*
 
 # Playwright artifacts (per-app)

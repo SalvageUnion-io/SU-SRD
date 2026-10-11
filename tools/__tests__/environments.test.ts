@@ -35,6 +35,7 @@ const env = (over: Partial<LiveEnvironment> = {}): LiveEnvironment => ({
   policy: 'custom',
   branches: ['main'],
   secrets: ['A_TOKEN', 'B_KEY'],
+  reviewers: [],
   ...over,
 })
 
@@ -81,6 +82,21 @@ describe('compare', () => {
     )
   })
 
+  test('a required reviewer the declaration does not name fails, and a missing one too', () => {
+    expect(failures(live({ environments: [env({ reviewers: ['someone'] })] }))).toEqual([
+      expect.stringContaining('requires reviewers [someone], declared []'),
+    ])
+    const gated: EnvironmentSpec[] = [
+      { ...SPEC[0], name: 'production', reviewers: ['owner'] },
+    ] as EnvironmentSpec[]
+    expect(compare(gated, [], live()).failures).toEqual([
+      expect.stringContaining('requires reviewers [], declared [owner]'),
+    ])
+    expect(
+      compare(gated, [], live({ environments: [env({ reviewers: ['owner'] })] })).failures
+    ).toEqual([])
+  })
+
   test('a missing Environment secret fails with the command that prompts for it', () => {
     expect(failures(live({ environments: [env({ secrets: ['A_TOKEN'] })] }))).toEqual([
       expect.stringContaining('has no secret B_KEY — `gh secret set B_KEY --env production'),
@@ -94,7 +110,13 @@ describe('compare', () => {
   })
 
   test('an undeclared Environment fails with its URL-encoded delete command', () => {
-    const extra = env({ name: 'main - old-host', policy: 'none', branches: null, secrets: null })
+    const extra = env({
+      name: 'main - old-host',
+      policy: 'none',
+      branches: null,
+      secrets: null,
+      reviewers: null,
+    })
     expect(failures(live({ environments: [env(), extra] }))).toEqual([
       expect.stringContaining('environments/main%20-%20old-host'),
     ])
@@ -142,14 +164,22 @@ describe('compare', () => {
 })
 
 describe('the declaration', () => {
-  test('production admits main alone and holds the three deploy secrets', () => {
-    expect(ENVIRONMENTS).toEqual([
-      {
-        name: 'production',
-        branches: ['main'],
-        secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN'],
-      },
-    ])
+  test('production admits main alone, unreviewed, and holds the three deploy secrets', () => {
+    expect(ENVIRONMENTS[0]).toEqual({
+      name: 'production',
+      branches: ['main'],
+      secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN'],
+    })
+  })
+
+  test('preview admits every branch, so a required reviewer gates its secrets', () => {
+    expect(ENVIRONMENTS[1]).toEqual({
+      name: 'preview',
+      branches: ['**/*'],
+      secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_PREVIEW_DEPLOY_KEY'],
+      reviewers: ['alxjrvs'],
+    })
+    expect(ENVIRONMENTS).toHaveLength(2)
   })
 
   test('no secret is allowed at repository level', () => {
@@ -162,7 +192,7 @@ function fakeGh(routes: Record<string, GhResult>) {
   const calls: { args: string[]; input?: unknown }[] = []
   const api: GhApi = (args, input) => {
     calls.push({ args, input })
-    const path = args.find((a) => a.startsWith('repos/')) ?? ''
+    const path = args.find((a) => a.startsWith('repos/') || a.startsWith('users/')) ?? ''
     const method = args[0] === '-X' ? args[1] : 'GET'
     if (method !== 'GET') return { ok: true, json: null }
     const hit = Object.entries(routes).find(([prefix]) => path.startsWith(prefix))
@@ -194,6 +224,16 @@ describe('readLive', () => {
           {
             name: 'production',
             deployment_branch_policy: { protected_branches: false, custom_branch_policies: true },
+            protection_rules: [
+              { type: 'wait_timer' },
+              {
+                type: 'required_reviewers',
+                reviewers: [
+                  { type: 'User', reviewer: { login: 'owner' } },
+                  { type: 'Team', reviewer: { slug: 'ops' } },
+                ],
+              },
+            ],
           },
           {
             name: 'github-pages',
@@ -211,9 +251,16 @@ describe('readLive', () => {
           policy: 'custom',
           branches: ['main'],
           secrets: ['CONVEX_DEPLOY_KEY'],
+          reviewers: ['owner', 'team:ops'],
         },
-        { name: 'github-pages', policy: 'protected', branches: null, secrets: null },
-        { name: 'old', policy: 'none', branches: null, secrets: null },
+        {
+          name: 'github-pages',
+          policy: 'protected',
+          branches: null,
+          secrets: null,
+          reviewers: null,
+        },
+        { name: 'old', policy: 'none', branches: null, secrets: null, reviewers: null },
       ],
       repositorySecrets: ['OLD_HOST_SITE_ID'],
       readableOutside: null,
@@ -241,39 +288,56 @@ describe('readLive', () => {
 })
 
 describe('apply', () => {
-  test('sets the custom policy, adds the missing branch, removes a stale one, never touches secrets', () => {
+  const policy = { protected_branches: false, custom_branch_policies: true }
+
+  test('sets the policy and reviewers, adds the missing branch, removes a stale one, never touches secrets', () => {
     const { api, calls } = fakeGh({
       [`${E}/production/deployment-branch-policies`]: ok({
         branch_policies: [{ id: 7, name: 'release', type: 'branch' }],
       }),
+      [`${E}/preview/deployment-branch-policies`]: ok({ branch_policies: [] }),
+      'users/alxjrvs': ok({ id: 42 }),
     })
     expect(apply(api)).toEqual([
       'production: custom deployment branch policy',
       'production: admits main',
       'production: no longer admits release',
+      'preview: custom deployment branch policy',
+      'preview: requires alxjrvs',
+      'preview: admits **/*',
     ])
     const writes = calls
       .filter((c) => c.args[0] === '-X')
       .map((c) => [c.args[1], c.args[2], c.input])
     expect(writes).toEqual([
-      [
-        'PUT',
-        `${E}/production`,
-        { deployment_branch_policy: { protected_branches: false, custom_branch_policies: true } },
-      ],
+      ['PUT', `${E}/production`, { deployment_branch_policy: policy, reviewers: [] }],
       ['POST', `${E}/production/deployment-branch-policies`, { name: 'main', type: 'branch' }],
       ['DELETE', `${E}/production/deployment-branch-policies/7`, undefined],
+      [
+        'PUT',
+        `${E}/preview`,
+        { deployment_branch_policy: policy, reviewers: [{ type: 'User', id: 42 }] },
+      ],
+      ['POST', `${E}/preview/deployment-branch-policies`, { name: '**/*', type: 'branch' }],
     ])
     expect(calls.some((c) => c.args.some((a) => a.includes('secrets')))).toBe(false)
   })
 
-  test('is idempotent: a matching Environment only re-asserts the policy', () => {
+  test('is idempotent: matching Environments only re-assert the policy and reviewers', () => {
     const { api } = fakeGh({
       [`${E}/production/deployment-branch-policies`]: ok({
         branch_policies: [{ id: 1, name: 'main', type: 'branch' }],
       }),
+      [`${E}/preview/deployment-branch-policies`]: ok({
+        branch_policies: [{ id: 2, name: '**/*', type: 'branch' }],
+      }),
+      'users/alxjrvs': ok({ id: 42 }),
     })
-    expect(apply(api)).toEqual(['production: custom deployment branch policy'])
+    expect(apply(api)).toEqual([
+      'production: custom deployment branch policy',
+      'preview: custom deployment branch policy',
+      'preview: requires alxjrvs',
+    ])
   })
 })
 

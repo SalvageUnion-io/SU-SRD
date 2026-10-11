@@ -125,6 +125,15 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
+    id: 'rules-fidelity',
+    guards:
+      'every prose string in the dataset has a verdict in fidelity.lock.json for its current text (checked against the books)',
+    fix: 'where the rules extract exists: `bun tools/check-rules-fidelity.ts --update`, then commit the lock; a deleted string needs only `bun tools/check-fidelity-lock.ts --prune`',
+    cmd: ['bun', 'tools/check-fidelity-lock.ts'],
+    areas: REPO_INVARIANT,
+    profiles: ALL,
+  },
+  {
     id: 'doc-drift',
     guards:
       'cited paths, bun scripts and markdown links exist (live docs plus each ADR Status and Decision); no agent doc repeats a retired claim; each ADR once in ARCHITECTURE.md and named in the Status of any ADR it amends; agent-doc size budgets',

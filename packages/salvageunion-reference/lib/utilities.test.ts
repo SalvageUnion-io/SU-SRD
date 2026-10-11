@@ -719,6 +719,19 @@ describe('visiblePatterns (stored data tag — never computed)', () => {
   })
 })
 
+describe('homebrew patterns (stored data tag — never computed)', () => {
+  // One-way: Mech Monday is homebrew, but a homebrew pattern may come from
+  // another community source, so the tag is not just a copy of `source`.
+  it('tags every Mech Monday pattern as homebrew', () => {
+    const mechMonday = getReference()
+      .Chassis.all()
+      .flatMap((c) => c.patterns)
+      .filter((p) => p.source === 'Mech Monday')
+    expect(mechMonday.length).toBeGreaterThan(0)
+    expect(mechMonday.every((p) => p.homebrew === true)).toBe(true)
+  })
+})
+
 /**
  * The reference site's origin and route grammar. Previously hardcoded in four
  * places (`apps/srd`, `apps/itun`, and TWICE inside the Discord bot) — the same

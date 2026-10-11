@@ -1,0 +1,260 @@
+name: Deploy preview (Cloudflare)
+
+# Publishes any ref to ONE stable preview slot, by hand:
+#
+#   gh workflow run deploy-preview.yml --ref <branch>
+#
+#   srd   https://preview-su-srd.alxjrvs.workers.dev
+#   itun  https://preview-su-itun.alxjrvs.workers.dev, against the staging
+#         Convex deployment perfect-donkey-72
+#
+# The last dispatch wins; the run's summary names the ref and commit the slot
+# now serves. docs/ARCHITECTURE.md#preview-deploys has the trade-offs.
+#
+# IT CANNOT MOVE PRODUCTION. Each Worker gets a new VERSION (`wrangler versions
+# upload --preview-alias preview`), never a deployment: production traffic
+# stays on the version deploy-cloudflare.yml deployed, and the alias URL serves
+# the uploaded one. The Convex push takes a deploy key that the `ship` job
+# refuses unless it is the dev key for perfect-donkey-72, so a production key
+# stored here by mistake fails the run before anything is pushed.
+#
+# THE GATE IS THE REVIEWER. Any branch may be dispatched, so the `preview`
+# Environment's branch policy admits every branch and protects nothing; its
+# required reviewer (tools/environments.ts) is what stands between a branch's
+# code and the Cloudflare token, which can deploy any Worker on the account
+# (ADR-033 §Credentials). Only `ship` names the Environment, so a run asks for
+# one approval, after every build is green.
+#
+# THE BUILDS HOLD NO SECRET. They are deploy-cloudflare.yml's builds minus
+# Sentry: the browser bundles carry no DSN (a preview's errors would otherwise
+# land in the production projects as `environment: production`) and upload no
+# source maps. The Workers keep their Sentry secret and report as
+# SENTRY_ENVIRONMENT=preview.
+
+on:
+  workflow_dispatch:
+
+# One preview slot, so one run at a time. Never cancelled mid-upload; GitHub
+# keeps one pending run, so the newest dispatch replaces any queued one.
+concurrency:
+  group: deploy-preview
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  PREVIEW_ALIAS: preview
+  SRD_PREVIEW_URL: https://preview-su-srd.alxjrvs.workers.dev
+  ITUN_PREVIEW_URL: https://preview-su-itun.alxjrvs.workers.dev
+  # The staging backend: the project's cloud dev deployment. Public, like
+  # production's (docs/ARCHITECTURE.md#accounts-and-games-operations).
+  STAGING_CONVEX_DEPLOYMENT: perfect-donkey-72
+  STAGING_CONVEX_URL: https://perfect-donkey-72.convex.cloud
+  STAGING_CONVEX_SITE_URL: https://perfect-donkey-72.convex.site
+
+jobs:
+  build-srd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The changelog page is `main`'s history (ADR-041); a shallow clone
+          # would render one commit of it.
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Build srd
+        env:
+          VITE_COMMIT_REF: ${{ github.sha }}
+        run: bun --filter srd build
+
+      - name: Upload the srd build
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: srd-build
+          path: apps/srd/dist/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
+
+  og-srd:
+    needs: build-srd
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Download the srd build
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: srd-build
+          path: apps/srd/dist
+
+      - name: Render srd OG images
+        uses: ./.github/actions/srd-og
+
+      - name: Upload the srd artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: srd-dist
+          path: apps/srd/dist/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
+
+  build-itun:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      # Against the staging URL as a constant, as production builds against
+      # ITUN_CONVEX_URL: `ship` checks the deploy key resolves to it before it
+      # pushes anything.
+      - name: Build itun
+        working-directory: apps/itun
+        env:
+          VITE_CONVEX_URL: ${{ env.STAGING_CONVEX_URL }}
+          VITE_CONVEX_SITE_URL: ${{ env.STAGING_CONVEX_SITE_URL }}
+          VITE_COMMIT_REF: ${{ github.sha }}
+        run: bun run build
+
+      - name: Upload the itun artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: itun-dist
+          path: apps/itun/dist/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
+
+  # The only job holding a secret: push the staging backend, then upload both
+  # Worker versions. One job so the reviewer approves once, and only after both
+  # builds are green.
+  ship:
+    needs: [og-srd, build-itun]
+    runs-on: ubuntu-latest
+    environment: preview
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      # A dev deploy key reads `dev:<deployment>|<token>`. Matched by prefix,
+      # never printed. A production or preview key, or one for another
+      # deployment, stops the run here.
+      - name: Refuse any key but perfect-donkey-72's dev key
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          case "$CONVEX_DEPLOY_KEY" in
+            "dev:$STAGING_CONVEX_DEPLOYMENT|"?*) ;;
+            "")
+              echo "FATAL: no CONVEX_PREVIEW_DEPLOY_KEY in the preview Environment." >&2
+              exit 1 ;;
+            *)
+              echo "FATAL: CONVEX_PREVIEW_DEPLOY_KEY is not the dev deploy key for $STAGING_CONVEX_DEPLOYMENT." >&2
+              echo "Refusing to push: it could name production." >&2
+              exit 1 ;;
+          esac
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "FATAL: no CLOUDFLARE_API_TOKEN in the preview Environment." >&2
+            exit 1
+          fi
+
+      # The slot is public. With ITUN_TEST_AUTH on, anyone could sign up a
+      # password account against it (convex/auth.ts); production never has it.
+      - name: Refuse a staging backend with the test sign-in on
+        working-directory: apps/itun
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
+        run: |
+          if [ "$(bunx convex env get ITUN_TEST_AUTH | tr -d '[:space:]')" = "true" ]; then
+            echo "FATAL: ITUN_TEST_AUTH=true on $STAGING_CONVEX_DEPLOYMENT, which the preview serves publicly." >&2
+            echo "Unset it: bunx convex env remove ITUN_TEST_AUTH --deployment $STAGING_CONVEX_DEPLOYMENT" >&2
+            exit 1
+          fi
+
+      - name: Push Convex (after confirming the URL itun was built against)
+        working-directory: apps/itun
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
+          URL_GUARD: >-
+            [ "$CANONICAL_CONVEX_URL" = "$STAGING_CONVEX_URL" ] || {
+            echo "FATAL: the deploy key resolves to $CANONICAL_CONVEX_URL but itun was built
+            against $STAGING_CONVEX_URL." >&2; exit 1; }
+        run: bunx convex deploy --cmd-url-env-var-name CANONICAL_CONVEX_URL --cmd "$URL_GUARD"
+
+      # Every run: the OAuth callback redirects to SITE_URL, which must be the
+      # preview origin. Not a secret.
+      - name: Point the staging backend's SITE_URL at the preview
+        working-directory: apps/itun
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
+        run: bunx convex env set SITE_URL "$ITUN_PREVIEW_URL"
+
+      - name: Download the srd artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: srd-dist
+          path: apps/srd/dist
+
+      - name: Download the itun artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: itun-dist
+          path: apps/itun/dist
+
+      # `versions upload`, never `deploy`: a version under an alias serves at
+      # <alias>-<worker>.alxjrvs.workers.dev and takes no production traffic.
+      - name: Upload the Worker versions
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SHA: ${{ github.sha }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          for app in srd itun; do
+            (cd "apps/$app" && bunx wrangler versions upload \
+              --preview-alias "$PREVIEW_ALIAS" \
+              --message "preview: ${REF_NAME:0:60}@${SHA:0:12}" \
+              --var "SENTRY_RELEASE:$SHA" \
+              --var "SENTRY_ENVIRONMENT:preview")
+          done
+
+      - name: Summary
+        env:
+          SHA: ${{ github.sha }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          {
+            echo "### Preview slot now serves \`$REF_NAME\` at \`$SHA\`"
+            echo
+            echo "- srd: $SRD_PREVIEW_URL"
+            echo "- itun: $ITUN_PREVIEW_URL (Convex \`$STAGING_CONVEX_DEPLOYMENT\`)"
+          } >> "$GITHUB_STEP_SUMMARY"

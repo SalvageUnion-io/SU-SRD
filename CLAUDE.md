@@ -13,7 +13,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need
   - [ADR-007](docs/ARCHITECTURE.md#adr-007) — the automation boundary. Read before building rules-driven features.
 - **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/ARCHITECTURE.md#adr-033).
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — cross-cutting architecture, one section per area: `grep -n '^##'` it, then Read with an offset; never the whole file.
-- **Rules text:** `bun run rules:extract` (local only; the PDFs in `rules/` are gitignored), then grep `rules/extracted/*.txt`, which carries `<!-- page N -->` markers for citations. There is no curated rules digest.
+- **Rules text:** gitignored here; the private repo `SalvageUnion-io/su-rules` is the source of record. Locally, `bun run rules:extract`, then grep `rules/extracted/*.txt`; in a cloud session or Routine, attach `su-rules` as a second repo and grep its committed `extracted/*.txt` (sibling checkout, no poppler; the rules checks find it there). Both carry `<!-- page N -->` markers for citations. There is no curated rules digest.
 
 ## Critical Rules
 
@@ -115,7 +115,7 @@ For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `la
 The registry — ids, deployments, dashboards, how each server authenticates — is [services](docs/ARCHITECTURE.md#services-and-agent-tooling). [`.mcp.json`](.mcp.json) declares `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (stdio, targets the **local** deployment `bun run dev:itun` runs, from `CONVEX_DEPLOYMENT` in `apps/itun/.env.local`) and `context7` (version-pinned library docs — this repo runs ahead of training data; versions: the manifests).
 
 - `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Authenticate each server locally (OAuth on first connect).
-- `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI, or in a cloud session (no `gh`, remote MCP hosts blocked by the egress proxy, possibly a pre-pin Bun) the session's `mcp__github__*` tools — see [cloud sessions](docs/ARCHITECTURE.md#cloud-sessions).
+- `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI. In a cloud session `gh` is preinstalled and authenticated by the GitHub proxy, but only REST answers (`gh api`); GraphQL subcommands such as `gh pr` and `gh issue` get 403, so use `gh api` or the session's `mcp__github__*` tools — see [cloud sessions](docs/ARCHITECTURE.md#cloud-sessions).
 - **Sentry fails silently.** No DSN means Vite tree-shakes the SDK out; a `connect-src` missing the ingest origin blocks every event. `tools/check-observability.ts` (the `observability` check) checks DSN gating, each app's CSP source against `SENTRY_INGEST_HOST`, and that each Worker wraps its export with `withObservability` and grants `nodejs_als`. **Change the CSP or Sentry region in every source for that app together.**
 
 ## Merging
