@@ -156,6 +156,33 @@ const BODY_PAD: Record<CardSize, { ruled: string; open: string }> = {
   small: { ruled: `${space[2]} ${space[8]} ${space[8]}`, open: `${space[8]}` },
 }
 
+/**
+ * What a card hides. CATALOG — the SRD index tile — keeps artwork and
+ * description ONLY, so every nested element is suppressed here rather than at
+ * each call-site. TERMINAL (ruleset §1, board E3): inside a tooltip popup
+ * nothing acts, so the roll-table controls go too (the link, depth-2 rows and
+ * the actions chip are handled where they render).
+ */
+function resolveHide(
+  hideProp: ReferenceEntityCardHideConfig | undefined,
+  isCatalog: boolean,
+  insideTooltip: boolean
+): ReferenceEntityCardHideConfig | undefined {
+  const base = isCatalog ? { ...hideProp, actions: true, choices: true, patterns: true } : hideProp
+  return insideTooltip ? { ...base, rollTable: true } : base
+}
+
+/**
+ * The title's type step: by size, stepping down with depth (`titleSizeClass`).
+ * The ink banner's large title sits one rung under the tone header's, beside
+ * its numeral (board E1); an inline action band takes its own rung.
+ */
+function resolveTitleClass(inline: boolean, fill: HeaderFill, depth: number, size: CardSize) {
+  if (inline) return INLINE_TITLE[size]
+  const ladderTitle = titleSizeClass(depth, size)
+  return fill === 'ink' && ladderTitle === 'text-display-lg' ? 'text-display' : ladderTitle
+}
+
 /** An inline action's title: one step under its host's (board E1). */
 const INLINE_TITLE: Record<CardSize, string> = {
   large: 'text-readout',
@@ -249,18 +276,8 @@ function ReferenceEntityCardInner({
   const size: CardSize = isAction && !inline && sizeProp === 'large' ? 'medium' : sizeProp
   const depth = isAction ? Math.max(depthProp, 1) : depthProp
   const compact = depth > 0 || size !== 'large'
-  // CATALOG — the SRD index tile: artwork + description ONLY. Every nested
-  // element is suppressed here rather than at each call-site.
   const isCatalog = extent === 'catalog'
-  const hideBase: ReferenceEntityCardHideConfig | undefined = isCatalog
-    ? { ...hideProp, actions: true, choices: true, patterns: true }
-    : hideProp
-  // TERMINAL (ruleset §1, board E3): inside a tooltip popup nothing acts, so
-  // the roll-table controls go too (the link, depth-2 rows and the actions
-  // chip are handled where they render).
-  const hide: ReferenceEntityCardHideConfig | undefined = insideTooltip
-    ? { ...hideBase, rollTable: true }
-    : hideBase
+  const hide = resolveHide(hideProp, isCatalog, insideTooltip)
   const tone = resolveCardTone(schemaName, entity)
   // HAVE vs DO, by data shape.
   const fill: HeaderFill = isDoEntity(entity) ? 'ink' : 'tone'
@@ -282,15 +299,7 @@ function ReferenceEntityCardInner({
     dataValueBonuses,
   } = resolveTechScaling(entity, techLevel, entityChoices, scalingParent)
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
-  // Title: by size, stepping down with depth (`titleSizeClass`). The ink
-  // banner's large title sits one rung under the tone header's, beside its
-  // numeral (board E1); an inline action band takes its own rung.
-  const ladderTitle = titleSizeClass(depth, size)
-  const titleClass = inline
-    ? INLINE_TITLE[size]
-    : fill === 'ink' && ladderTitle === 'text-display-lg'
-      ? 'text-display'
-      : ladderTitle
+  const titleClass = resolveTitleClass(inline, fill, depth, size)
   // ARTWORK — a MINI catalog tile drops it: at the small size the image would
   // crowd out the description it exists to caption.
   const isMiniCatalog = isCatalog && size === 'small'
