@@ -114,9 +114,10 @@ export type ReferenceEntityCardProps = {
    * Rendered as listings INSIDE this drone card, never at the parent level. */
   droneLoadout?: { systems: SURefEntity[]; modules: SURefEntity[] }
   /**
-   * The compact card (`extent="head"`) keeps its art column, empty, when this
-   * entity has no artwork — a listing where some entities have art, so every
-   * name starts in the same place.
+   * Keep the art place when this entity has no artwork, filled with a censor
+   * mark (`MissingArt`): the compact card's art column (`extent="head"`) and a
+   * page's hero (`presentation="page"`). For a schema where some entities have
+   * art, so every name starts in the same place and every page has a hero.
    */
   artSlot?: boolean
   /**

@@ -13,6 +13,8 @@ import { ClassAbilityTree } from './ClassAbilityTree'
 type EntityCardStaticProps = {
   item: SURefEntity
   pattern?: SURefObjectPattern
+  /** The schema keeps an art place: a censor mark when this item has no art. */
+  artSlot?: boolean
 }
 
 /**
@@ -36,7 +38,7 @@ type EntityCardStaticProps = {
  * before rendering this, so the ORM lookups the card makes for
  * nested entities resolve synchronously during the build.
  */
-export function EntityCardStatic({ item, pattern }: EntityCardStaticProps) {
+export function EntityCardStatic({ item, pattern, artSlot = false }: EntityCardStaticProps) {
   const classSelections = getClassSelections(item)
   const classEntity = classSelections.selectedClass || classSelections.selectedAdvancedClass
 
@@ -49,6 +51,7 @@ export function EntityCardStatic({ item, pattern }: EntityCardStaticProps) {
             pattern={pattern}
             size="large"
             presentation="page"
+            artSlot={artSlot}
             afterExtraContent={
               classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
             }

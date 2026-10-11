@@ -100,7 +100,7 @@ export function CompactCardFrame({
   frameStyle,
   art,
   artSrcSet,
-  artSlot,
+  missingArt,
   header,
   body,
   bodyless,
@@ -110,8 +110,8 @@ export function CompactCardFrame({
   frameStyle: CSSProperties
   art: string | undefined
   artSrcSet: string | undefined
-  /** Keep the column, empty, when there is no art (a listing where others have some). */
-  artSlot: boolean
+  /** The column's stand-in when there is no art (`MissingArt`), or none to drop it. */
+  missingArt: ReactNode
   header: ReactNode
   body:
     | { stats: StatItem[]; cells: EntityCardSubHeaderCell[]; leading?: ReactNode; lead?: string }
@@ -125,7 +125,7 @@ export function CompactCardFrame({
       {art ? (
         <CompactCardArt src={art} srcSet={artSrcSet} />
       ) : (
-        artSlot && <span className="su-ec-head-art su-ec-head-art--empty" aria-hidden="true" />
+        missingArt && <span className="su-ec-head-art su-ec-head-art--missing">{missingArt}</span>
       )}
       <div style={{ display: 'flex', flex: '1 1 auto', flexDirection: 'column', minWidth: 0 }}>
         {header}

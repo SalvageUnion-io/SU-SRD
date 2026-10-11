@@ -11,15 +11,9 @@ import {
 } from 'component-lib'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import {
-  getAssetUrl,
-  getEntitySlug,
-  getModel,
-  getSource,
-  getTechLevel,
-  getTree,
-} from 'salvageunion-reference'
+import { getEntitySlug, getModel, getSource, getTechLevel, getTree } from 'salvageunion-reference'
 import { itemHref, srdEntityHref } from '../../lib/entityHref'
+import { schemaHasArt } from '../../lib/schemaArt'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate } from '../../lib/useGameData'
 import { EntityCatalogTile } from './EntityCatalogTile'
@@ -257,7 +251,7 @@ function SchemaViewer({
   const groupBy = resolveGroupBy(initialData, trees, orderedTechLevels)
   const groups = useMemo(() => groupEntities(filteredData, groupBy), [filteredData, groupBy])
   // Where some entities have art, every card keeps the column so names align.
-  const artSlot = useMemo(() => initialData.some((item) => !!getAssetUrl(item)), [initialData])
+  const artSlot = useMemo(() => schemaHasArt(schemaId), [schemaId])
   // A single-kind listing: no seam stamp, and no TL cell when the tech level heads the group.
   const cardHide = useMemo(
     () => ({ seam: true, statKeys: groupBy === 'tl' ? ['tech-level'] : undefined }),

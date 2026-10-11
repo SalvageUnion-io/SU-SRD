@@ -28,6 +28,7 @@ import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
 import { extractStaticEntitySummary } from '../lib/gameData'
 import { patternStaticSummary } from '../lib/patternSummary'
+import { schemaHasArt } from '../lib/schemaArt'
 import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
 import { resolveTraitHref } from '../lib/staticLinks'
 import { Island } from '../runtime/Island'
@@ -42,8 +43,9 @@ type EntityViewProps = {
 }
 
 export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
+  const artSlot = schemaHasArt(schemaId)
   if (!cardNeedsHydration(item, pattern)) {
-    return <EntityCardStatic item={item} pattern={pattern} />
+    return <EntityCardStatic item={item} pattern={pattern} artSlot={artSlot} />
   }
 
   const staticSummary = pattern
@@ -60,6 +62,7 @@ export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
           item,
           pattern,
           preloadSchemas: getSchemaPreloadList(schemaId),
+          artSlot,
         }}
       />
       <StaticEntityContent summary={staticSummary} resolveTraitHref={resolveTraitHref} />

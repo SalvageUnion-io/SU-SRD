@@ -24,6 +24,8 @@ type ReferenceEntityIslandProps = {
   /** Which schemas to preload — defaults to `'all'`. Pass the per-route list
    *  from `../../lib/schemaPreloadDeps.ts` to load only what this item needs. */
   preloadSchemas?: SchemaList
+  /** The schema keeps an art place: a censor mark when this item has no art. */
+  artSlot?: boolean
 }
 
 export function ReferenceEntityIsland({
@@ -31,6 +33,7 @@ export function ReferenceEntityIsland({
   compact = false,
   pattern,
   preloadSchemas,
+  artSlot = false,
 }: ReferenceEntityIslandProps) {
   const classSelections = useMemo(() => getClassSelections(item), [item])
   const classEntity = classSelections.selectedClass || classSelections.selectedAdvancedClass
@@ -74,6 +77,7 @@ export function ReferenceEntityIsland({
                   pattern={pattern}
                   size={compact ? 'medium' : 'large'}
                   presentation={compact ? 'card' : 'page'}
+                  artSlot={artSlot}
                   afterExtraContent={
                     classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
                   }

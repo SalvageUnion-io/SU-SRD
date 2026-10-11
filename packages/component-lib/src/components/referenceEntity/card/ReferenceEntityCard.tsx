@@ -96,6 +96,7 @@ import {
   titleSizeClass,
 } from './entityCardTone'
 import { GuideSteps } from './GuideSteps'
+import { MissingArt, MissingHero } from './MissingArt'
 import type { NestedCardHost } from './NestedCards'
 import { ActionsChip, CardTray, DroneCards, InlineActions, NestedCardGroup } from './NestedCards'
 import { resolveNestedSections } from './nestedSections'
@@ -370,6 +371,7 @@ function ReferenceEntityCardInner({
   // stats / tone / source. A `head` pattern is a LIST ROW.
   const isPattern = !!pattern
   const isPatternListing = isPattern && extent === 'head'
+  const keepsArt = artSlot && !isPattern && !hide?.image // no art: a censor mark (`MissingArt`)
   // A pattern's title is its name in typographic QUOTES. A nested ACTION drops its
   // ` (Host)` disambiguation suffix when the host is this card's own context.
   const name =
@@ -614,7 +616,7 @@ function ReferenceEntityCardInner({
           frameStyle={frameBox}
           art={isPattern || hide?.image ? undefined : assetUrl}
           artSrcSet={assetSrcSet}
-          artSlot={artSlot && !isPattern}
+          missingArt={keepsArt && <MissingArt entity={entity} />}
           header={header}
           body={{
             stats: effectiveHeaderStats,
@@ -843,8 +845,7 @@ function ReferenceEntityCardInner({
       />
     ) : null
 
-  // LEFT ANCHOR — the artwork, when there is one. Nested NPCs are a group like
-  // any other: they sit in the "NPC · n" tray, not floated on the parent's paper.
+  // LEFT ANCHOR — the artwork; nested NPCs sit in their tray, not on the parent's paper.
   const { asideLead, flat } = resolveBodyLayout({
     showImage,
     isPattern,
@@ -870,9 +871,9 @@ function ReferenceEntityCardInner({
     ...bodyNodes,
   ]
 
-  // On a PAGE the artwork is the hero beside the body, not a float inside it;
-  // an NPC anchor (no artwork) stays in the body's flow either way.
-  const heroNode: ReactNode = onPage && showImage ? anchorNode : undefined
+  // On a PAGE the art, or its censor mark, is the hero; an NPC anchor stays in flow.
+  const heroNode: ReactNode =
+    onPage && (showImage ? anchorNode : keepsArt && !assetUrl && <MissingHero entity={entity} />)
   const bodyAnchor: ReactNode = heroNode ? undefined : anchorNode
 
   const bodyHasContent =
