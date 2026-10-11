@@ -321,6 +321,15 @@ describe('checkBacktickedPathsExist', () => {
     expect(failures).toHaveLength(1)
     expect(failures[0]).toContain('`tools/gone.ts`')
   })
+
+  it('scans skills as live-instruction docs', () => {
+    const root = fixture({
+      '.claude/skills/ux/SKILL.md': 'Tokens live in `packages/ui/theme.css`.\n',
+    })
+    const { failures } = checkBacktickedPathsExist(root)
+    expect(failures).toHaveLength(1)
+    expect(failures[0]).toContain('.claude/skills/ux/SKILL.md:1')
+  })
 })
 
 describe('checkRetiredClaims', () => {

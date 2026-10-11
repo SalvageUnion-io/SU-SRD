@@ -15,7 +15,7 @@ import { e2eConfig } from '../../tools/lib/playwrightBase'
  * `e2e-itun` job provisions a throwaway Convex backend and runs them for real.
  * Locally, `bun run dev` always carries the seam on a local Convex deployment,
  * so those specs need the one-time "Local backend" setup in
- * docs/ops/convex.md and FAIL without it.
+ * .claude/skills/convex-ops/SKILL.md and FAIL without it.
  */
 export default e2eConfig({
   port: 5173,

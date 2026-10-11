@@ -76,7 +76,7 @@ function workspaceDirs(root: string): string[] {
 }
 
 /** Docs an agent follows as a description of the code as it is now. */
-const LIVE_INSTRUCTION_DOC_DIRS = ['.claude/rules', 'docs/architecture']
+const LIVE_INSTRUCTION_DOC_DIRS = ['.claude/rules', '.claude/skills', 'docs/architecture']
 
 function liveInstructionDocs(root: string): string[] {
   return [
@@ -748,7 +748,8 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/itun/CLAUDE.md': 13_154,
+  // +464 for the `convex-ai` block `convex ai-files` writes and maintains.
+  'apps/itun/CLAUDE.md': 13_618,
   'apps/srd/CLAUDE.md': 11_748,
   'CLAUDE.md': 12_065,
   'packages/component-lib/CLAUDE.md': 15_948,

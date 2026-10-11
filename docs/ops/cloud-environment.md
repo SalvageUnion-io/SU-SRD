@@ -45,7 +45,7 @@ together. No CLI or API edits it.
   Convex account and writes `apps/itun/.env.local`; the `convex` MCP server
   answers while it runs. A multi-repo session runs no repo hooks, so there
   prefix it: `CONVEX_AGENT_MODE=anonymous bun run dev:itun`. The test-auth setup in
-  [`convex.md`](convex.md#local-backend) is per
+  [`convex-ops`](../../.claude/skills/convex-ops/SKILL.md#local-backend) is per
   container. In a fresh container, first `cp apps/itun/.env.example
   apps/itun/.env.local`: `vite` is a root dependency, so the CLI misses it and
   writes `CONVEX_URL` instead of `VITE_CONVEX_URL`. That first run then exits

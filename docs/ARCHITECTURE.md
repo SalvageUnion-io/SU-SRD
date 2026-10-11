@@ -282,7 +282,7 @@ so, and reads nothing.
 
 Procedures (setting a deployment up, the sign-in probe, rotations, error
 reporting, one-off repairs): the
-[Convex runbook](ops/convex.md). Values here are
+[`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill. Values here are
 public; secrets live only on the deployments.
 
 |  | Production | Staging ([preview slot](#preview-deploys)) |
@@ -301,7 +301,7 @@ Local development has no cloud deployment. `bun run dev:itun` runs a **local**
 deployment (`convex dev --start vite`) and signs in through the test seam,
 `ITUN_TEST_AUTH` on the local deployment and `VITE_TEST_AUTH` in the dev
 server, not Discord. One-time setup: the
-[Convex runbook](ops/convex.md#local-backend).
+[`convex-ops`](../.claude/skills/convex-ops/SKILL.md#local-backend) skill.
 Staging, the cloud dev deployment, is pushed only by `deploy-preview.yml`.
 
 ### Deployment variables
@@ -329,7 +329,7 @@ deployments, never in git.
 Convex reports through the dashboard's Exception Reporting integration, not
 code: queries and mutations have no network egress. It feeds Sentry project
 `itun-convex` (org `susrd`, EU region). A quiet project is not evidence of a
-healthy backend; re-verify by probe ([runbook](ops/convex.md#convex-error-reporting)). Client
+healthy backend; re-verifying by probe is in the `convex-ops` skill. Client
 side, `src/lib/connection/serverError.ts` (`serverMessage`,
 `isServerRefusal`) is the only way to tell a `ConvexError` refusal from a
 redacted defect; never string-match `'Server Error'`.
@@ -934,9 +934,8 @@ devDependency, which every workspace resolves.
 ### Dead-code gate (knip)
 
 `bun run knip` uses `includeEntryExports: true` (off in `srd` and `su-assets`).
-Delete what it flags; the escape hatches (tags in `knip.json`) are `@public`
-for a framework contract or public API and `@knipignore` for a shown false
-positive.
+Delete what it flags; `@public` and `@knipignore` (tags in `knip.json`) are
+the only escape hatches.
 
 ## Services and agent tooling
 
@@ -2870,7 +2869,7 @@ altering any of its enforcement modes.
 
 The operational reference (deployments, env vars, secrets, rotation) is
 [accounts and Games operations](#accounts-and-games-operations) and the
-[Convex runbook](ops/convex.md).
+`convex-ops` skill.
 
 **2026-10-06 — the Games pages are folded into the Roster hub.** §6's surfaces
 — the Games index (`/games`), a Game's crew page (`/games/:id`) and the

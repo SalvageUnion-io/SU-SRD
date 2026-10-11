@@ -155,7 +155,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   mutations have no `fetch`). **A quiet Sentry project is not evidence of a
   healthy backend:** re-verify by forcing an error and comparing against
   `bunx convex logs --deployment alex-jarvis:suref-itun:prod`. Runbook:
-  [docs/ops/convex.md](../../docs/ops/convex.md).
+  [convex-ops](../../.claude/skills/convex-ops/SKILL.md).
 - **Throw `ConvexError` when the message is for a player; plain `Error` when it
   is not.** Convex redacts every non-`ConvexError` throw to
   `"[CONVEX M(fn)] […] Server Error"` before the client sees it, so a
@@ -210,7 +210,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 ## Commands
 
 ```bash
-bun run dev:itun          # local Convex; setup in docs/ops/convex.md
+bun run dev:itun          # local Convex; setup in the convex-ops skill
 bun --filter itun test
 bun run e2e:itun          # Playwright e2e (chromium)
 bun --filter itun typecheck
@@ -220,3 +220,17 @@ Deploys to Cloudflare Workers Static Assets in single-page-application mode, wit
 a Worker script for the misses that are not navigations; config in
 `wrangler.jsonc`, headers in `public/_headers`, deployed from
 `.github/workflows/deploy-cloudflare.yml`.
+
+<!-- convex-ai-start -->
+
+This project uses [Convex](https://convex.dev) as its backend.
+
+When working on Convex code, **always read
+`convex/_generated/ai/guidelines.md` first** for important guidelines on
+how to correctly use Convex APIs and patterns. The file contains rules that
+override what you may have learned about Convex from training data.
+
+Convex agent skills for common tasks can be installed by running
+`npx convex ai-files install`.
+
+<!-- convex-ai-end -->
