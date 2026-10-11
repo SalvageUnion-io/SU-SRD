@@ -1,7 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { space } from '../../../design/tokens'
+import { borderWidth, color, fontSize, space } from '../../../design/tokens'
 import type { CardSize } from '../../shared/displayMode'
 import type { StatItem } from '../../shared/statsBarTypes'
+import { hasCompactBody } from './compactLead'
 import { EntityCardStatBox } from './EntityCardStatBox'
 import type { EntityCardSubHeaderCell } from './EntityCardSubHeader'
 import { EntityCardSubHeader } from './EntityCardSubHeader'
@@ -20,26 +21,44 @@ const BODY_PAD: Record<CardSize, string> = {
   small: `${space[4]} ${space[8]} ${space[4]}`,
 }
 
+/** The lead: three lines of ink-2 prose under the cells, clamped with "…". */
+const LEAD: CSSProperties = {
+  color: color.ink2,
+  display: '-webkit-box',
+  flexBasis: '100%',
+  fontSize: fontSize.sm,
+  lineHeight: 1.4,
+  margin: 0,
+  overflow: 'hidden',
+  WebkitBoxOrient: 'vertical',
+  WebkitLineClamp: 3,
+}
+
 /**
  * The compact card's BODY: the value cells (`Stat` at its `full` rung, the
- * row's content) and then, on the same line while it fits, the "//" line.
+ * row's content), then, on the same line while it fits, the "//" line, then
+ * the lead when the context asks for it.
  */
 function CompactCardBody({
   stats,
   cells,
   leading,
+  lead,
   size,
 }: {
   stats: StatItem[]
   cells: EntityCardSubHeaderCell[]
   /** A node leading the "//" line — the "Suggested" stamp. */
   leading?: ReactNode
+  /** The entity's opening prose (`leadProse`). */
+  lead?: string
   size: CardSize
 }) {
   return (
     <div
       style={{
         alignItems: 'center',
+        borderTop: `${borderWidth.chrome} solid ${color.ink}`,
         display: 'flex',
         flex: '1 1 auto',
         flexWrap: 'wrap',
@@ -49,6 +68,11 @@ function CompactCardBody({
     >
       <EntityCardStatBox stats={stats} cellSize="full" align="start" />
       <EntityCardSubHeader cells={cells} leading={leading} size={size} flush />
+      {lead && (
+        <p style={LEAD} title={lead}>
+          {lead}
+        </p>
+      )}
     </div>
   )
 }
@@ -79,6 +103,7 @@ export function CompactCardFrame({
   artSlot,
   header,
   body,
+  bodyless,
   size,
 }: {
   /** The card's frame box (its border, ground and clip), laid out as a row here. */
@@ -88,7 +113,11 @@ export function CompactCardFrame({
   /** Keep the column, empty, when there is no art (a listing where others have some). */
   artSlot: boolean
   header: ReactNode
-  body: { stats: StatItem[]; cells: EntityCardSubHeaderCell[]; leading?: ReactNode } | undefined
+  body:
+    | { stats: StatItem[]; cells: EntityCardSubHeaderCell[]; leading?: ReactNode; lead?: string }
+    | undefined
+  /** A row that is its head alone (an inline band, a pattern row). */
+  bodyless: boolean
   size: CardSize
 }) {
   return (
@@ -100,7 +129,11 @@ export function CompactCardFrame({
       )}
       <div style={{ display: 'flex', flex: '1 1 auto', flexDirection: 'column', minWidth: 0 }}>
         {header}
-        {body && <CompactCardBody {...body} size={size} />}
+        {body &&
+          !bodyless &&
+          hasCompactBody(body.stats.length, !!body.leading || body.cells.length > 0, body.lead) && (
+            <CompactCardBody {...body} size={size} />
+          )}
       </div>
     </div>
   )

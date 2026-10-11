@@ -65,13 +65,13 @@ describe('home: the manual’s Contents page (board 06)', () => {
   })
 })
 
-describe('a listing (header-only rows, a visible heading with its count)', () => {
+describe('a listing (compact cards under a visible heading)', () => {
   const html = page('/schema/chassis')
 
-  it('has a visible heading — the chapter band — with its count', () => {
+  it('has a visible heading — the chapter band — and no count stamp beside it', () => {
     expect(h1s(html)).toEqual(['Chassis'])
     expect(html).not.toContain('class="sr-only">Chassis</h1>')
-    expect(html).toMatch(/\d+ Chassis/)
+    expect(html).not.toMatch(/\d+ Chassis/)
   })
 
   it('first paints the index, not a blank band', () => {

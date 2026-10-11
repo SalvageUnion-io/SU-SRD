@@ -16,7 +16,8 @@ type EntityListingRowProps = {
  * One entity in a schema listing's default view (ruleset §1, Listing: "one
  * card, one click"): the compact card, `size="medium" extent="head"`, as a link
  * to the entity's page. Its head carries the name (wrapping to two lines before
- * it clamps), its body the value cells and the "//" line, its art column the
+ * it clamps), its body the value cells, the "//" line and the entity's opening
+ * prose (its lore, clamped to three lines), its art column the
  * artwork where the entity has some.
  *
  * The anchor carries the interaction and the accessible name; the card takes
@@ -31,6 +32,7 @@ export function EntityListingRow({ entity, href, hide, artSlot }: EntityListingR
         extent="head"
         hide={hide}
         artSlot={artSlot}
+        leadProse
         cardClickable
       />
     </a>

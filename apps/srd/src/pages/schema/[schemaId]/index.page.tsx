@@ -1,11 +1,10 @@
 /**
  * `/schema/[schemaId]` — the per-schema listing page.
  *
- * Headed by its chapter's band (the schema's plural name notched in, its entry
- * count stamped beside it), then the listing: one compact card per entity, in
- * the groups the book prints them in, by default, with a Catalog toggle for the
- * artwork tiles. It ends on the same chapter's band (`foot`), as an entity page
- * does.
+ * Headed by its chapter's band (the schema's plural name notched in), then the
+ * listing: one compact card per entity, in the groups the book prints them in,
+ * by default, with a Catalog toggle for the artwork tiles. It ends on the same
+ * chapter's band (`foot`), as an entity page does.
  *
  * `SchemaViewerIsland` is `ssr={true}` (see the per-island table in
  * `ssg/DESIGN.md`), but what it server-renders is `SchemaItemLinks`, not the
@@ -16,7 +15,7 @@
  * discarded on the client and no mismatch is possible.
  */
 
-import { Badge, ChapterBand } from 'component-lib'
+import { ChapterBand } from 'component-lib'
 import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
@@ -111,16 +110,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     children: (
       <div className="srd-listing-shell">
         {/* The chapter band is the visible heading: the plural name in the
-            notch and the count beside it. The description rides the trail. */}
-        <ChapterBand
-          tone={chapter.tone}
-          measure={MEASURE}
-          aside={
-            <Badge shape="stamp" size="compact">
-              {data.length} {data.length === 1 ? schemaName : pluralName}
-            </Badge>
-          }
-        >
+            notch. The description rides the trail. */}
+        <ChapterBand tone={chapter.tone} measure={MEASURE}>
           {pluralName}
         </ChapterBand>
         <div className="srd-listing-page">

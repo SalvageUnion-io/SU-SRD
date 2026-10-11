@@ -119,6 +119,13 @@ export type ReferenceEntityCardProps = {
    * name starts in the same place.
    */
   artSlot?: boolean
+  /**
+   * The compact card (`extent="head"`) ends its body with the entity's own
+   * opening prose — its lore paragraph, or an ability's description — clamped
+   * to three lines; the full text is on the entity's page. A listing turns it
+   * on; a slot or a deck, which has no room for prose, leaves it off.
+   */
+  leadProse?: boolean
 
   // ─── WRITE LAYER (all additive — absent ⇒ read-only is byte-identical) ───
   /** Render guards that SUBTRACT already-rendered sections. */

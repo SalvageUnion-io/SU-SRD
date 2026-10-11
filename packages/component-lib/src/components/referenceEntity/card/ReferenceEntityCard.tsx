@@ -65,6 +65,7 @@ import {
   resolveCardColors,
   resolveCardInteraction,
   resolveFrameWidth,
+  resolveHeaderFill,
   resolveHeaderHint,
 } from './cardChrome'
 import type { CardGrain } from './cardGrain'
@@ -80,13 +81,13 @@ import { CardTextureContext } from './cardTexture'
 import { resolveCatalogLeadBlocks } from './catalogLead'
 import type { AnchoredContentBlock } from './choiceAnchoring'
 import { anchorBonusMarker, anchorChoiceMarkers } from './choiceAnchoring'
+import { compactLead } from './compactLead'
 import { DamagedEffectCallout } from './DamagedEffectCallout'
 import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
 import { EntityCardSubHeader } from './EntityCardSubHeader'
 import type { AxisMarker } from './entityCardTone'
 import {
-  isDoEntity,
   resolveAxisMarkers,
   resolveCardTone,
   resolveEyebrow,
@@ -261,6 +262,7 @@ function ReferenceEntityCardInner({
   chassisName,
   droneLoadout,
   artSlot = false,
+  leadProse = false,
   hide: hideProp,
   status,
   onStatusClick,
@@ -337,8 +339,8 @@ function ReferenceEntityCardInner({
   const isCatalog = extent === 'catalog'
   const hide = resolveHide(hideProp, isCatalog, insideTooltip)
   const tone = resolveCardTone(schemaName, entity)
-  // HAVE vs DO, by data shape.
-  const fill: HeaderFill = isDoEntity(entity) ? 'ink' : 'tone'
+  // HAVE vs DO, by data shape (an ability row wears its tier tone).
+  const fill: HeaderFill = resolveHeaderFill(entity, extent)
   // A damaged/destroyed card — or one nested under a damaged host — greys its
   // header; its body dims.
   const isDown = status === 'damaged' || status === 'destroyed' || !!hostDown
@@ -493,12 +495,8 @@ function ReferenceEntityCardInner({
   })
   const hasSubLine = !!suggestedNode || cells.length > 0
 
-  // THE COMPACT CARD (`extent="head"`): see `CompactCard.tsx`. A pattern row
-  // is its head alone; its chassis' art and cells belong to the chassis.
+  // THE COMPACT CARD (`extent="head"`): see `CompactCard.tsx`.
   const isHead = extent === 'head'
-  const hasHeadBody =
-    isHead && !inline && !isPatternListing && (effectiveHeaderStats.length > 0 || hasSubLine)
-
   const header = (
     <EntityCardHeader
       title={name}
@@ -518,7 +516,7 @@ function ReferenceEntityCardInner({
       size={size}
       band={inline}
       grain={grain}
-      ruled={!inline && (!isHead || hasHeadBody)}
+      ruled={!inline && !isHead}
       chevron={isHead && !inline && (!!onCardClick || !!cardClickable)}
     />
   )
@@ -618,9 +616,13 @@ function ReferenceEntityCardInner({
           artSrcSet={assetSrcSet}
           artSlot={artSlot && !isPattern}
           header={header}
-          body={
-            hasHeadBody ? { stats: effectiveHeaderStats, cells, leading: suggestedNode } : undefined
-          }
+          body={{
+            stats: effectiveHeaderStats,
+            cells,
+            leading: suggestedNode,
+            lead: leadProse && !hide?.content ? compactLead(entity, hintText) : undefined,
+          }}
+          bodyless={inline || isPatternListing}
           size={size}
         />
       </CardOuter>

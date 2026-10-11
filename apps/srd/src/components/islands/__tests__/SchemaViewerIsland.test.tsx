@@ -369,6 +369,17 @@ describe('SchemaViewerIsland', () => {
       ).toBeNull()
     })
 
+    it('carries each entity’s lore under its cells', () => {
+      const { container } = renderChassis()
+      const gopher = required(
+        container.querySelector<HTMLElement>('.srd-listing__cards a[aria-label="Gopher"]'),
+        'the Gopher card'
+      )
+      expect(gopher.querySelector('p')?.textContent).toStartWith(
+        "The 'TC40' Gopher was originally designed"
+      )
+    })
+
     it('shows the filtered count and a removable token only while a filter is on', () => {
       const { container } = renderChassis()
       expect(container.querySelector('.srd-rail__status')).toBeNull()

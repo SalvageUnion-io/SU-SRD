@@ -16,6 +16,7 @@ import type { OnToneText } from '../referenceEntityHelpers'
 import { borderColorFromHeaderBg, onToneText, textBand } from '../referenceEntityHelpers'
 import type { CardOuterProps } from './CardOuter'
 import type { DomainTone } from './entityCardTone'
+import { isDoEntity } from './entityCardTone'
 import { firstParagraphText } from './firstParagraphText'
 
 /** The book's pennant: a box with a pointed tail. Hard edges, no tail rounding.
@@ -35,6 +36,18 @@ const GREY_HEADER = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper)
  * banner — for things you DO (abilities, actions).
  */
 export type HeaderFill = 'tone' | 'ink'
+
+/**
+ * Which fill a card's header takes, by data shape. Things you do are the ink
+ * banner, except an ABILITY in the compact card (`extent="head"`): a row of
+ * abilities wears each one's tier tone, as the book's ability-tree spreads do
+ * (Core brick, Advanced and Hybrid orange, Legendary pink). Its full card and
+ * its page keep the ink banner; an action is ink everywhere.
+ */
+export function resolveHeaderFill(entity: SURefMetaEntity, extent: CardExtent): HeaderFill {
+  if (extent === 'head' && isAbility(entity)) return 'tone'
+  return isDoEntity(entity) ? 'ink' : 'tone'
+}
 
 /** Every colour a card's header takes. The frame, the "//" line and the footer
  * are ink on paper on every card, so they need no colour of their own. */
