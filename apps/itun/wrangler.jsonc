@@ -12,6 +12,12 @@
   ],
   // The smoke list probes the custom domains only (tools/smoke-production.sh).
   "workers_dev": false,
+  // Version URLs (`<version|alias>-su-itun.alxjrvs.workers.dev`), for the
+  // preview slot (.github/workflows/deploy-preview.yml). Separate from
+  // `workers_dev`: su-itun.alxjrvs.workers.dev stays off. Unset, they follow
+  // `workers_dev` and are off. Applied by `wrangler deploy`, not by
+  // `versions upload`.
+  "preview_urls": true,
   "main": "src/worker/index.ts",
   // At or below the workerd the wrangler devDependency bundles (deploy-cloudflare.yml).
   "compatibility_date": "2026-07-13",

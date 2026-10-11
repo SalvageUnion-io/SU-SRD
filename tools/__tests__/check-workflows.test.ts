@@ -672,6 +672,25 @@ describe('secrets-env', () => {
     ])
   })
 
+  test('a secret held by two Environments may be read inside either, and not outside both', () => {
+    const shared = {
+      environments: [
+        ...decl.environments,
+        { name: 'preview', branches: ['**/*'], secrets: ['SENTRY_AUTH_TOKEN'], reviewers: ['o'] },
+      ],
+      sentinel: null,
+    }
+    const runShared = (...extra: WorkflowFile[]) => checkSecretsEnv(ctx({ extra }), shared).failures
+    expect(runShared(job('SENTRY_AUTH_TOKEN', 'production'))).toEqual([])
+    expect(runShared(job('SENTRY_AUTH_TOKEN', 'preview'))).toEqual([])
+    expect(runShared(job('CONVEX_DEPLOY_KEY', 'preview'))).toEqual([
+      expect.stringContaining('without `environment: production`'),
+    ])
+    expect(runShared(job('SENTRY_AUTH_TOKEN'))).toEqual([
+      expect.stringContaining('without `environment: production` or `preview`'),
+    ])
+  })
+
   test('a job reading only GITHUB_TOKEN needs no environment', () => {
     expect(run(job('GITHUB_TOKEN'), job('SENTRY_AUTH_TOKEN', 'production'))).toEqual([])
   })

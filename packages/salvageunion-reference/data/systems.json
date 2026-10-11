@@ -1509,9 +1509,9 @@
     "id": "f08c58e7-1e14-4bd6-a508-55e00d369e7e",
     "source": "Rainmaker",
     "name": "Napalm Shotgun",
-    "techLevel": 4,
+    "techLevel": 3,
     "slotsRequired": 3,
-    "salvageValue": 3,
+    "salvageValue": 4,
     "page": 76,
     "actions": ["Napalm Shotgun"]
   },

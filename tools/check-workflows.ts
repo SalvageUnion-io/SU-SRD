@@ -42,13 +42,15 @@
  *                 function in its `if:` — the implicit `success()` is false
  *                 whenever any ancestor was skipped.
  *   secrets-env   every job that reads an Environment secret declared in
- *                 `tools/environments.ts` (today: Cloudflare, Convex and
- *                 Sentry, all `production`) declares that Environment,
- *                 and every Environment a job names is declared there. The
- *                 secrets live only in the Environment, which admits `main`
- *                 alone, so a workflow copy dispatched from a branch cannot
- *                 read one. The nightly repository-secret sentinel is the one
- *                 exemption, and it must stay outside every Environment.
+ *                 `tools/environments.ts` (`production`: Cloudflare, Convex
+ *                 and Sentry; `preview`: Cloudflare and the staging Convex
+ *                 key) declares an Environment holding it, and every
+ *                 Environment a job names is declared there. The secrets live
+ *                 only in Environments: `production` admits `main` alone, and
+ *                 `preview` admits any branch only past its required
+ *                 reviewer, so a workflow copy run from a branch cannot read
+ *                 one unapproved. The nightly repository-secret sentinel is the
+ *                 one exemption, and it must stay outside every Environment.
  *
  * Every check refuses to pass by absence: a parse that found no jobs, no
  * filter groups or no workflow files is a failure, not a clean result.
@@ -738,9 +740,12 @@ export function checkSecretsEnv(
 ): CheckResult {
   const failures: string[] = []
   const workflows = new Set<string>()
-  const owner = new Map(
-    decl.environments.flatMap((e) => e.secrets.map((s) => [s, e.name] as const))
-  )
+  // A name may live in more than one Environment (the Cloudflare token is in
+  // `production` and `preview`); a job inside any of them may read it.
+  const owner = new Map<string, string[]>()
+  for (const e of decl.environments) {
+    for (const s of e.secrets) owner.set(s, [...(owner.get(s) ?? []), e.name])
+  }
   const declaredEnvs = new Set(decl.environments.map((e) => e.name))
   const secretRef = new RegExp(`\\$\\{\\{\\s*secrets\\.(${[...owner.keys()].join('|')})\\b`, 'g')
   let readers = 0
@@ -780,13 +785,14 @@ export function checkSecretsEnv(
       readers++
       workflows.add(f.path)
       for (const name of names) {
-        const want = owner.get(name)
-        if (env === want) continue
+        const want = owner.get(name) ?? []
+        if (env !== undefined && want.includes(env)) continue
+        const admits = want
+          .map((w) => `${w} (${decl.environments.find((e) => e.name === w)?.branches.join(', ')})`)
+          .join(' or ')
         failures.push(
-          `${f.path} job \`${id}\` reads secrets.${name} without \`environment: ${want}\` — ` +
-            `the secret lives only in that environment, which admits ${
-              decl.environments.find((e) => e.name === want)?.branches.join(', ') ?? '?'
-            } alone. Add \`environment: ${want}\` under its \`runs-on:\`.`
+          `${f.path} job \`${id}\` reads secrets.${name} without \`environment: ${want.join('` or `')}\` — ` +
+            `the secret lives only in ${admits}. Add the Environment under its \`runs-on:\`.`
         )
       }
     }

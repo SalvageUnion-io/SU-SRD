@@ -20,13 +20,15 @@ Read with an offset and limit, never the whole file.
 | assigning pilots, mechs and crawlers to each other | ADR-037, `apps/itun/src/lib/links/linkRules.ts` |
 | working on the Discord bot as a Game client | [Discord bot](ARCHITECTURE.md#discord-bot-as-a-game-client) |
 | changing a package's public API | [packages and contracts](ARCHITECTURE.md#packages-and-contracts) |
+| changing what the public dataset API serves (`api.salvageunion.io`, srd's `/schema/*`) | ADR-043, ADR-040 |
 | changing hosting, deploys or CI | ADR-033, [CI and deploy](ARCHITECTURE.md#ci-and-deploy) |
+| changing the Claude Code cloud environment (network allowlist, setup script) | [ops/cloud-environment.md](ops/cloud-environment.md) |
 | moving a domain registration, or deleting what is left on Netlify | [ops/domain-transfer.md](ops/domain-transfer.md) (one-off runbook) |
 | adding, bumping or pinning a dependency | [dependencies](ARCHITECTURE.md#dependencies) |
 | looking for a service id, deployment or dashboard URL | [services and agent tooling](ARCHITECTURE.md#services-and-agent-tooling) |
 | shipping SEO or accessibility work | [SEO and accessibility](ARCHITECTURE.md#seo-and-accessibility) |
 | changing how `srd` is built | [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md), ADR-031 |
-| checking how a Salvage Union rule works | `bun run rules:extract` (local only), then grep `rules/extracted/*.txt` |
+| checking how a Salvage Union rule works | locally `bun run rules:extract`, then grep `rules/extracted/*.txt`; in a cloud session, the attached `su-rules` repo's `extracted/*.txt` ([cloud sessions](ARCHITECTURE.md#cloud-sessions)) |
 
 ## ADRs
 

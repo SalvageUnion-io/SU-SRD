@@ -40,6 +40,7 @@ the corpus size, not just the finding count.
 | `knip` | `bun run knip` | — |
 | `biome` | `biome ci .`, plus the GritQL plugins in `biome/` | — |
 | `data` | `packages/salvageunion-reference/tools/validate.ts` (`--only=` runs a subset) | — |
+| `rules-fidelity` | `check-fidelity-lock.ts`: fails a prose string whose text has no verdict in the lock (`--prune` drops entries for deleted strings). Needs no book; the verdicts come from `check-rules-fidelity.ts --update` | `packages/salvageunion-reference/fidelity.lock.json` |
 | `doc-drift` | `check-doc-drift.ts` | `OVER_BUDGET`, `COLLAPSED_DOCS` and `RETIRED_CLAIMS` in the script |
 | `observability` | `check-observability.ts` | — |
 | `convex-callers` | `check-convex-callers.ts` (also: `api.d.ts` registers exactly the modules on disk) | — |
@@ -57,21 +58,23 @@ the corpus size, not just the finding count.
 | `run-coverage.ts` | `test:coverage`: CI's `coverage` job, and pre-push when shared code or manifests change | Every workspace's suite (`tools/` included) under `bun test --coverage`, concurrently, each workspace's output printed whole under its name. Fails a workspace whose line coverage of its own files is under its floor. | `FLOORS` in the script. Add tests; lower a floor only on purpose, saying so in the PR. Raise one to lock in a gain. |
 | `lib/a11yScan.ts` | each app's `e2e/a11y.e2e.ts`, in `build-srd` and `build-itun` in `ci.yml` (every srd / ITUN PR) | WCAG 2.2 AA scan (axe-core in the suite's own Playwright browser) of the pages keyed in the baseline, at desktop and as a Pixel 7. Fails on a violation not accepted per page, and on a stale entry; `A11Y_UPDATE_BASELINE=1` deletes stale entries and nothing else. | `a11y-baseline.json` (srd), `a11y-baseline-itun.json` |
 | `deploy-surfaces.ts` | `.github/workflows/deploy-cloudflare.yml` | Diffs HEAD against the last successful deploy tag and decides which Cloudflare surfaces ship. Fails safe: when unsure it deploys everything. | — |
-| `environments.ts` | `e2e-nightly.yml` (`environments`); `--apply` by hand | The GitHub Environments declared once (branches, secret names) and compared against the live settings: no branch policy, a missing or repository-level secret, an undeclared Environment. `--apply` sets Environments and branch policies, never secrets. Its static half is `workflows`' `secrets-env`. | — |
+| `environments.ts` | `e2e-nightly.yml` (`environments`); `--apply` by hand | The GitHub Environments declared once (branches, secret names, required reviewers) and compared against the live settings: no branch policy, a missing or repository-level secret, an undeclared Environment. `--apply` sets Environments and branch policies, never secrets. Its static half is `workflows`' `secrets-env`. | — |
 | `smoke-production.sh` | `deploy-cloudflare.yml` (`smoke` job) and `e2e-nightly.yml` (`production-smoke`) | Curls every production surface: status codes, www and http→https redirects, CSP/HSTS reaching the browser, the rotated-chunk 404 (and that it is not `immutable`), artwork robots.txt, bot token health. Runs every check, then exits 1 if any failed. | — |
 
 ## Local-only and by hand
 
 | Script | Run as | Purpose |
 | --- | --- | --- |
-| `extract-rules.ts` | `rules:extract` | Rules PDFs in `rules/` to `rules/extracted/*.txt` with page markers. The PDFs are gitignored; no-ops without them. |
-| `check-printed-names.ts` | `check:printed-names` | Entity names and pages against the Core Book index. Advisory; needs the extract. Run after a data import. |
+| `extract-rules.ts` | `rules:extract` | Rules PDFs in `rules/` to `rules/extracted/*.txt` with page markers, plus a content-stream-order layer in `rules/extracted/raw/` for the fidelity check. The PDFs are gitignored here (source of record: the private `su-rules` repo, extract committed); no-ops without them. |
+| `check-rules-fidelity.ts` | `check:rules-fidelity` | Every prose string against the books: verbatim, an allowlisted deviation (`lib/proseDeviations.ts` in the package), authored, or unverified drift. `--update` rewrites the lock the `rules-fidelity` gate reads; `--show=<reason>` lists strings with diffs; `--summary` prints a drift summary for a PR body. Needs the extract: `findExtractDir` in `extract-rules.ts` takes `RULES_EXTRACT_DIR`, then `rules/extracted` here, the main checkout's, or a sibling `su-rules` checkout's. |
+| `check-printed-names.ts` | `check:printed-names` | Entity names and pages against the Core Book index. Advisory; needs the extract (found as above). Run after a data import. |
 | `export-lp-assets.ts` | `assets:export` | Backs up the `su-lp-assets` R2 bucket locally and proves the copy byte-exact — the only backup path for the licensed artwork. Needs R2 credentials. |
 | `upload-lp-assets.ts` | `assets:upload` | The artwork ingest path into `su-lp-assets`. Needs R2 credentials. |
 
 `lib/` holds the shared pieces: `ruleEngine.ts` (the styling engine: walk,
 exemptions, zero/ratchet verdicts), `scanFloor.ts`, `workspaceCoverage.ts`,
-`tailwindClasses.ts` (the Tailwind-file ratchet's detector), `r2.ts` (R2
-through `Bun.S3Client`, because `wrangler r2 object` cannot list) and
-`playwrightBase.ts` (the one Playwright config both apps' suites run).
+`tailwindClasses.ts` (the Tailwind-file ratchet's detector),
+`proseFidelity.ts` (prose collection, hashing and the fidelity lock format),
+`r2.ts` (R2 through `Bun.S3Client`, because `wrangler r2 object` cannot list)
+and `playwrightBase.ts` (the one Playwright config both apps' suites run).
 `rules/` holds the three styling rule sets.

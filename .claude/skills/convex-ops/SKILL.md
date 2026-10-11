@@ -19,9 +19,11 @@ This skill is the procedures.
 ## Before anything: which deployment?
 
 Production is `exuberant-porpoise-183` (`--prod`, or `--deployment
-alex-jarvis:suref-itun:prod`). There is no cloud dev deployment: without
-`--prod`, `bunx convex` targets the **local** deployment `bun run dev:itun`
-runs. Confirm which one you mean before running anything, and say so in your
+alex-jarvis:suref-itun:prod`). Staging is the cloud dev deployment
+`perfect-donkey-72` (`--deployment perfect-donkey-72`), the preview
+slot's backend: only `deploy-preview.yml` pushes to it, never `dev:itun`.
+Without either flag, `bunx convex` targets the **local** deployment `bun run
+dev:itun` runs. Confirm which one you mean before running anything, and say so in your
 report.
 
 ## Local backend

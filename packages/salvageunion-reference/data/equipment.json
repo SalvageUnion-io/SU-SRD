@@ -218,7 +218,7 @@
       },
       {
         "type": "paragraph",
-        "value": "Their personality develops over time, based on a learning algorithm. During Downtime, they gain an A.I. [[Personality]] Trait based on their recent experiences. You can use the A.I. [[Personality]] Trait Table for this or consider your own."
+        "value": "Their personality develops over time, based on a learning algorithm. During Downtime, they gain an A.I. Personality Trait based on their recent experiences. You can use the A.I. Personality Trait Table for this or consider your own."
       },
       {
         "type": "paragraph",
@@ -684,6 +684,9 @@
         "id": "d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a",
         "source": {
           "kind": "catalog",
+          "schema": [
+            "traits"
+          ],
           "entities": [
             "Ballistic",
             "Energy"
@@ -820,13 +823,13 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Auto-Turret",
     "techLevel": 1,
-    "moduleSlots": 4,
-    "systemSlots": 15,
-    "structurePoints": 15,
-    "energyPoints": 10,
-    "heatCapacity": 10,
+    "moduleSlots": 1,
+    "systemSlots": 9,
+    "structurePoints": 9,
+    "energyPoints": 2,
+    "heatCapacity": 4,
     "cargoCapacity": 0,
-    "salvageValue": 1,
+    "salvageValue": 2,
     "bonusPerTechLevel": {
       "structurePoints": 3,
       "energyPoints": 2,
@@ -1285,7 +1288,7 @@
     "bonusPerTechLevel": {
       "structurePoints": 2,
       "energyPoints": 2,
-      "heatCapacity": 2,
+      "heatCapacity": 1,
       "systemSlots": 1,
       "moduleSlots": 1,
       "cargoCapacity": 1,
@@ -1325,7 +1328,7 @@
   },
   {
     "name": "Mecha Companion",
-    "techLevel": 1,
+    "techLevel": 3,
     "moduleSlots": 2,
     "systemSlots": 12,
     "structurePoints": 12,
@@ -1534,7 +1537,7 @@
     "source": "Reclamation of the Wastes",
     "page": 106,
     "name": "Camouflage Fatigues",
-    "techLevel": 1,
+    "techLevel": 2,
     "actions": [],
     "additionalSources": [
       {
@@ -1549,7 +1552,7 @@
     "source": "Reclamation of the Wastes",
     "page": 106,
     "name": "Oil Bomb",
-    "techLevel": 1,
+    "techLevel": 2,
     "actions": ["Oil Bomb"],
     "additionalSources": [
       {
@@ -1564,7 +1567,7 @@
     "source": "Reclamation of the Wastes",
     "page": 106,
     "name": "Electrostatic Mine",
-    "techLevel": 1,
+    "techLevel": 3,
     "actions": ["Electrostatic Mine"],
     "additionalSources": [
       {
@@ -1579,7 +1582,7 @@
     "source": "Reclamation of the Wastes",
     "page": 106,
     "name": "Hobbler Mine",
-    "techLevel": 1,
+    "techLevel": 2,
     "actions": ["Hobbler Mine"],
     "additionalSources": [
       {
