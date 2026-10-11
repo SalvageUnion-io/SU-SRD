@@ -62,11 +62,10 @@ export type OwnedTable = OwnableTable | 'npcs'
  *
  * Deliberately a *partial* of the local `EncounterNpcSchema` rather than the
  * whole thing. That schema describes a tracked instance in the local store —
- * reference slug, HP track, conditions, timestamps — whereas the tray on the
- * server holds prepared opposition that has not been instantiated yet, and the
- * Mediator surface sends only a name. Demanding the full record here would
- * reject every write the app actually makes, which is a broken feature rather
- * than a validated one.
+ * reference slug, HP track, conditions, timestamps. The Mediator Dashboard's
+ * Opposition tab (issue 1278) sends a whole instance, but rows written before it
+ * carry only a name, and `mediator.updateNpc` re-parses them on every change:
+ * demanding the full record would strand those rows.
  *
  * What it still buys, and what the table had none of before: a body must be an
  * object, every field it *does* carry must be the shape the local store will

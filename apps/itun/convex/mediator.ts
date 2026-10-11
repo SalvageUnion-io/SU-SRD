@@ -1,4 +1,5 @@
-import { v } from 'convex/values'
+import { ConvexError, v } from 'convex/values'
+import { MediatorRollResultSchema } from '../src/lib/schemas/encounterNpc'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
@@ -83,6 +84,53 @@ export const removeNpc = mutation({
     if (doc === null) return
     await requireNpcWriter(ctx, doc)
     await ctx.db.delete(args.npcId)
+  },
+})
+
+/**
+ * Change one tray NPC as the fight goes (issue 1278): its HP or SP, its
+ * conditions, its name, or the last Morale roll made for it.
+ *
+ * Only these four fields, merged into the stored body and parsed before it is
+ * written, like every other write to this table. HP is clamped to the
+ * instance's own `maxHp` (and 0), so a stale tab cannot push it past either
+ * end. A Morale result is stored here, on the NPC, and nowhere else: the
+ * Game's log is crew-readable, and the tray is the one thing ADR-030 §5 hides.
+ */
+export const updateNpc = mutation({
+  args: {
+    npcId: v.id('encounterNpcs'),
+    patch: v.object({
+      currentHp: v.optional(v.number()),
+      conditions: v.optional(v.array(v.string())),
+      name: v.optional(v.string()),
+      lastMediatorRoll: v.optional(v.any()),
+    }),
+  },
+  handler: async (ctx, args): Promise<void> => {
+    const doc = await ctx.db.get(args.npcId)
+    if (doc === null) throw new ConvexError('That NPC is no longer on the tray')
+    await requireNpcWriter(ctx, doc)
+
+    const body = doc.body as Record<string, unknown>
+    const next: Record<string, unknown> = { ...body }
+    const { currentHp, conditions, name, lastMediatorRoll } = args.patch
+    if (currentHp !== undefined) {
+      const max = typeof body.maxHp === 'number' ? body.maxHp : Number.POSITIVE_INFINITY
+      next.currentHp = Math.min(Math.max(0, Math.round(currentHp)), max)
+    }
+    if (conditions !== undefined) next.conditions = conditions
+    if (name !== undefined) {
+      const trimmed = name.trim()
+      if (trimmed.length === 0) throw new ConvexError('An NPC needs a name')
+      next.name = trimmed
+    }
+    if (lastMediatorRoll !== undefined) {
+      next.lastMediatorRoll = MediatorRollResultSchema.parse(lastMediatorRoll)
+    }
+    if (typeof body.updatedAt === 'string') next.updatedAt = new Date().toISOString()
+
+    await ctx.db.patch(doc._id, { body: parseBody('encounterNpcs', next) })
   },
 })
 

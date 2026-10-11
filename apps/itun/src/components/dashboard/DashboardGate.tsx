@@ -54,7 +54,7 @@ type RefusalProps = {
 }
 
 /** The shell every refusal renders: what is missing, and where to go instead. */
-function DashboardRefusal({ title, body, link }: RefusalProps) {
+export function DashboardRefusal({ title, body, link }: RefusalProps) {
   return (
     <PageShell>
       <ChapterBand>{title}</ChapterBand>

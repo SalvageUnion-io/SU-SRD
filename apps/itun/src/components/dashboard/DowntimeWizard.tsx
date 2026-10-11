@@ -14,7 +14,8 @@
  * Next step. The step track shows where the table is in the procedure; the
  * ready pips, one per member, fill from the row's `completedBy` as each presses
  * "I'm done". Only the Mediator moves the table on; a player cannot step ahead
- * alone. The Game hub's `DowntimePanel` reads and writes the same row.
+ * alone. The Game page's `DowntimeTrack` and the Mediator Dashboard's
+ * `DowntimeMinor` read and write the same row.
  *
  * `DowntimeWizard` binds it to ITUN's state + rules: the read-only rules gate
  * readout (bay status / upkeep / trading) is computed from the crawler and the
