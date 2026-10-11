@@ -256,12 +256,7 @@ export function OppositionTab({
     <div style={SCROLL}>
       <div style={HEAD_ROW}>
         <h3 style={EYEBROW}>Hidden from players · {onField} on the field</h3>
-        <Button
-          variant="default"
-          size="compact"
-          disabled={!canWrite}
-          onClick={() => setPicking(true)}
-        >
+        <Button variant="default" size="full" disabled={!canWrite} onClick={() => setPicking(true)}>
           + From the reference
         </Button>
       </div>

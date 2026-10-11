@@ -117,6 +117,29 @@ describe('the rail and the table', () => {
   })
 })
 
+describe('the display', () => {
+  test('its tabs, Tables between Tell the table and SRD, and Log at the far end', async () => {
+    await renderView()
+    const list = screen.getAllByRole('tablist', { name: 'Display' })[0]
+    if (!list) throw new Error('no Display tabs')
+    expect(
+      within(list)
+        .getAllByRole('tab')
+        .map((t) => t.textContent)
+    ).toEqual(['Opposition', 'Proposals', 'Tell the table', 'Tables', 'SRD', 'Log'])
+  })
+
+  test('Tables opens the roll tables', async () => {
+    await renderView()
+    const tab = screen.getAllByRole('tab', { name: 'Tables' })[0]
+    if (!tab) throw new Error('no Tables tab')
+    await act(async () => {
+      fireEvent.click(tab)
+    })
+    expect(screen.getAllByText('Core Mechanic').length).toBeGreaterThan(0)
+  })
+})
+
 describe('see the problem, propose the fix', () => {
   test('tapping a seat aims the dock at that pilot and moves focus to To', async () => {
     const toRef = await renderView()

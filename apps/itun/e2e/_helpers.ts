@@ -246,8 +246,15 @@ export async function fillIdentity(page: Page, label: string, value: string): Pr
   return false
 }
 
+/** Shelves at `/`, or a Game's own page: where a finished build returns to. */
+function isContainerPage(pathname: string): boolean {
+  return pathname === '/' || /^\/games\/[^/]+\/?$/.test(pathname)
+}
+
 /**
- * Drive a `/new` wizard to completion and return once the redirect to `/` lands.
+ * Drive a `/new` wizard to completion and return once the redirect to the
+ * active container's page lands: `/` for Shelves, or `/games/<id>` when a Game
+ * is active (`useReturnToContainer`), so a pilot built in a Game finishes too.
  *
  * Deliberately step-AGNOSTIC. These wizards have been restructured repeatedly —
  * the pilot went from 6 steps to 9, the mech to 9, the crawler to 6, and a
@@ -284,7 +291,7 @@ async function runWizard(
     const create = page.getByRole('button', { name: createLabel }).first()
     if (await create.isVisible().catch(() => false)) {
       await create.click()
-      await page.waitForURL((url) => url.pathname === '/', { timeout: 30_000 })
+      await page.waitForURL((url) => isContainerPage(url.pathname), { timeout: 30_000 })
       return
     }
 

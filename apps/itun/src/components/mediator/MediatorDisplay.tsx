@@ -3,10 +3,11 @@
  * docs/architecture/mediator-dashboard.md Q8, Q14): the tabs across the top,
  * the open tab on the left, and the propose dock on the right under every tab.
  *
- * P8a's tabs: **Opposition**, **Proposals**, **Tell the table**, **SRD**, and
- * **Log** set apart at the far end. (Tables, with private Mediator rolls, is
- * P8b.) They are component-lib's `Tabs`, so one tab stop and arrow keys
- * between tabs. Which tab is open is the caller's state, kept on the device.
+ * The tabs: **Opposition**, **Proposals**, **Tell the table**, **Tables**,
+ * **SRD**, and **Log** set apart at the far end (issue 1278, board M1). They
+ * are component-lib's `Tabs`, so one tab stop and arrow keys between tabs, each
+ * at the canvas's 48-unit control height. Which tab is open is the caller's
+ * state, kept on the device.
  *
  * Presentational: the Dashboard builds each panel and the dock.
  */
@@ -16,12 +17,13 @@ import type { CSSProperties, ReactNode } from 'react'
 
 const { borderWidth, color, space } = tokens
 
-export type MediatorTab = 'opposition' | 'proposals' | 'tell' | 'srd' | 'log'
+export type MediatorTab = 'opposition' | 'proposals' | 'tell' | 'tables' | 'srd' | 'log'
 
 const PRIMARY: readonly { tab: MediatorTab; label: string }[] = [
   { tab: 'opposition', label: 'Opposition' },
   { tab: 'proposals', label: 'Proposals' },
   { tab: 'tell', label: 'Tell the table' },
+  { tab: 'tables', label: 'Tables' },
   { tab: 'srd', label: 'SRD' },
 ]
 
@@ -41,6 +43,9 @@ const LIST: CSSProperties = {
 }
 
 const SPACER: CSSProperties = { flex: 1 }
+
+/** The canvas's control height (48 design units), as Begin Downtime has. */
+const TAB: CSSProperties = { minHeight: '48px' }
 
 /** The open tab beside the dock; each side scrolls inside itself. */
 const SPLIT: CSSProperties = {
@@ -82,13 +87,13 @@ export function MediatorDisplay({
     <Tabs value={tab} onValueChange={onTab} style={stacked ? undefined : ROOT}>
       <TabList label="Display" style={LIST}>
         {PRIMARY.map((t) => (
-          <Tab key={t.tab} value={t.tab}>
+          <Tab key={t.tab} value={t.tab} style={TAB}>
             {t.label}
           </Tab>
         ))}
         <span aria-hidden="true" style={SPACER} />
         {SECONDARY.map((t) => (
-          <Tab key={t.tab} value={t.tab}>
+          <Tab key={t.tab} value={t.tab} style={TAB}>
             {t.label}
           </Tab>
         ))}

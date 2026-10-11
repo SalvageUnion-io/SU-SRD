@@ -19,6 +19,7 @@ import { useState } from 'react'
 import type { ProposalTarget } from '../../lib/games/proposals'
 import { DashboardCanvas } from '../dashboard/DashboardCanvas'
 import { DashboardGrid } from '../dashboard/DashboardGrid'
+import { DisplayPanelFrame } from '../dashboard/DisplayPanel'
 import { LogTab } from '../dashboard/LogTab'
 import { SrdExplorer } from '../dashboard/SrdExplorer'
 import type { AlertLine, RollLine } from '../dashboard/useGameFeed'
@@ -45,6 +46,9 @@ const { space } = tokens
 
 /** The canvas floor for this surface: below it, the stacked column (Q4). */
 const MEDIATOR_MIN_SCALE = 0.8
+
+/** The Tables tab: the Dashboard's table picker, its rolls kept off the log. */
+const TABLES = { kind: 'tables' } as const
 
 export type MediatorTableView = {
   gameId: string
@@ -184,6 +188,9 @@ function Panels({
             onSend={writes.broadcast}
           />
         ),
+        // The roll tables, rolled privately: nothing goes to the Game's log
+        // (docs/architecture/mediator-dashboard.md Q14).
+        tables: <DisplayPanelFrame content={TABLES} />,
         srd: <SrdExplorer />,
         log: <LogTab rolls={view.rolls} alerts={[...view.alerts]} />,
       }}

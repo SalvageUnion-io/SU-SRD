@@ -5,8 +5,9 @@
  *
  * The track is the guide's ten steps (Workshop Manual p.227–228,
  * `guides.json` "Crawler Downtime") as a 5 × 2 grid, not the board's five
- * boxes. The current step has an ink frame and the word NOW; before Downtime
- * begins, the first step reads NEXT. Under it, the upkeep due —
+ * boxes; a narrow column (a phone) takes fewer columns, so a step name wraps
+ * at its words and never mid-word. The current step has an ink frame and the
+ * word NOW; before Downtime begins, the first step reads NEXT. Under it, the upkeep due —
  * `DOWNTIME_UPKEEP_SCRAP` (5) Scrap of the crawler's tech level — and what the
  * crawler holds of it.
  *
@@ -40,12 +41,17 @@ import { HUB_COPY } from './hubStyles'
 
 const { borderWidth, color, font, fontSize, radius, space, tracking, weight } = tokens
 
+/** The narrowest a step cell gets: "Equipment," or "Customise" on one line. */
+const STEP_MIN = '8rem'
+
 const GRID: CSSProperties = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
   display: 'grid',
-  gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+  // At most five columns (each at least a fifth of the row), and none
+  // narrower than STEP_MIN, so a phone gets two or three.
+  gridTemplateColumns: `repeat(auto-fill, minmax(max(${STEP_MIN}, calc((100% - 4 * ${space[6]}) / 5)), 1fr))`,
   gap: space[6],
 }
 
@@ -91,7 +97,8 @@ const NAME: CSSProperties = {
   fontWeight: weight.medium,
   lineHeight: 1.3,
   color: color.ink,
-  overflowWrap: 'anywhere',
+  // Wrap at words: `anywhere` split "Upgrade" and left "Chassis," its comma.
+  overflowWrap: 'normal',
 }
 
 const ROW: CSSProperties = {

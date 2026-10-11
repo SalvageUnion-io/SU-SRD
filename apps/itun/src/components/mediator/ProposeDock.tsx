@@ -202,7 +202,7 @@ export function ProposeDock({
         </p>
         <Button
           variant="primary"
-          size="compact"
+          size="full"
           disabled={!canWrite || target === null || value === null || sending}
           onClick={send}
         >

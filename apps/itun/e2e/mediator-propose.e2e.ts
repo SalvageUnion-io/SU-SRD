@@ -44,7 +44,7 @@ test('a Mediator proposes a change and the player applies it', async ({ page, br
     await expect(seat).toBeVisible({ timeout: 30_000 })
     await seat.click()
     await expect(page.getByLabel('Target')).toHaveValue(/.+/)
-    await page.getByLabel('To').fill('4')
+    await page.getByLabel('To', { exact: true }).fill('4')
     await page.getByLabel('Reason (optional)').fill('Rifle Squad volley')
     await page.getByRole('button', { name: 'Propose' }).click()
 
@@ -52,7 +52,7 @@ test('a Mediator proposes a change and the player applies it', async ({ page, br
     await expect(newest.getByText('Sparks · HP → 4 · “Rifle Squad volley”')).toBeVisible({
       timeout: 15_000,
     })
-    await expect(newest.getByText('Pending')).toBeVisible()
+    await expect(newest.getByText('Pending', { exact: true })).toBeVisible()
 
     // --- The player answers on the Game page ---
     await gotoStable(player.page, `/games/${gameId}`)
@@ -64,7 +64,7 @@ test('a Mediator proposes a change and the player applies it', async ({ page, br
     })
 
     // --- The Mediator's screen follows, live ---
-    await expect(newest.getByText('Applied')).toBeVisible({ timeout: 20_000 })
+    await expect(newest.getByText('Applied', { exact: true })).toBeVisible({ timeout: 20_000 })
     await expect(page.getByRole('button', { name: /^Sparks, HP 4 of / })).toBeVisible()
   } finally {
     await player.context.close()

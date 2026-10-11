@@ -10,8 +10,11 @@
  *
  * The body of a card is a button: tapping it picks that pilot as the propose
  * dock's target (the commonest Mediator loop, see the problem, propose the
- * fix). Its accessible name reads the whole line. Seven or more seats scroll
- * sideways with scroll-snap, the one panel-internal scroll on the canvas.
+ * fix). Its accessible name reads the whole line. A card is a sixth of the
+ * strip or as wide as its lines, whichever is wider, and its lines wrap
+ * between values rather than end in an ellipsis, so no value is ever cut.
+ * Seats past the strip scroll sideways with scroll-snap, the one
+ * panel-internal scroll on the canvas.
  *
  * Presentational: `tableSeats()` builds the cards.
  */
@@ -32,7 +35,9 @@ const LIST: CSSProperties = {
   minHeight: 0,
   display: 'grid',
   gridAutoFlow: 'column',
-  gridAutoColumns: 'calc((100% - 5 * 10px) / 6)',
+  // A sixth of the strip, grown to the card's widest line: a vitals line is
+  // never cut to fit.
+  gridAutoColumns: 'minmax(max-content, calc((100% - 5 * 10px) / 6))',
   gap: '10px',
   overflowX: 'auto',
   scrollSnapType: 'x mandatory',
@@ -108,15 +113,16 @@ const BODY_BUTTON: CSSProperties = {
   color: color.ink,
 }
 
+// Wraps between words, never an ellipsis: a cut line could hide a value.
 const LINE: CSSProperties = {
   ...NUMBERS,
   fontFamily: font.body,
   fontSize: fontSize.caption,
   color: color.ink,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
 }
+
+/** One reading ("HP 8/10"), kept whole when its line wraps. */
+const VALUE: CSSProperties = { whiteSpace: 'nowrap' }
 
 const STRONG: CSSProperties = { fontWeight: weight.bold }
 
@@ -131,7 +137,28 @@ const MARK: CSSProperties = { color: color.statusBad }
 function Vitals({ hp, ap }: { hp: string; ap: string }) {
   return (
     <span style={LINE}>
-      HP <span style={STRONG}>{hp}</span> · AP <span style={STRONG}>{ap}</span>
+      <span style={VALUE}>
+        HP <span style={STRONG}>{hp}</span>
+      </span>{' '}
+      ·{' '}
+      <span style={VALUE}>
+        AP <span style={STRONG}>{ap}</span>
+      </span>
+    </span>
+  )
+}
+
+/** "In Spectrum · SP 6/9", wrapping only at its " · " joins. */
+function Readings({ line }: { line: string }) {
+  const parts = line.split(' · ')
+  return (
+    <span style={LINE}>
+      {parts.map((part, i) => (
+        <span key={part}>
+          {i > 0 ? ' · ' : null}
+          <span style={VALUE}>{part}</span>
+        </span>
+      ))}
     </span>
   )
 }
@@ -180,7 +207,7 @@ export function TableSeats({
                   onClick={() => onPick(seat)}
                 >
                   <Vitals hp={seat.hp} ap={seat.ap} />
-                  <span style={LINE}>{seat.unit}</span>
+                  <Readings line={seat.unit} />
                   {seat.status === 'Fine' ? (
                     <span style={FINE}>Fine</span>
                   ) : (

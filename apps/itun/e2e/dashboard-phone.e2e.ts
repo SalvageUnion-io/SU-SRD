@@ -122,7 +122,9 @@ async function setUpTable(page: Page): Promise<void> {
   await waitForReady(page)
   await page.getByRole('button', { name: '+ New game' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Start this game' }).first().click()
-  await page.getByRole('button', { name: 'Make Mediator' }).first().click()
+  // The Organizer appoints the Mediator, here themselves (TheGame's Appoint).
+  await page.getByRole('button', { name: 'Appoint' }).click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
   await expect(page.getByRole('button', { name: 'Launch Dashboard' })).toBeVisible({
     timeout: 20_000,
   })

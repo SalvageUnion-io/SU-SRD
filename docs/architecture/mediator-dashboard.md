@@ -232,17 +232,17 @@ gets its own issue. Rename and the Discord channel line are P8b.
 **Q14. Which tabs ship first?** P8a ships Opposition, Proposals, Tell the
 table (`AlertBar` restyled, last five alerts), SRD (`SrdExplorer`, which takes
 no props) and Log (`LogTab` over `changeLog.rolls` and `proposals.alerts`).
-**Tables waits for P8b.** Mediator rolls on Reaction, Morale and Retreat are
-decided as **private by default**, with a "Show the table" action that posts
-the result as an alert. Wiring `DisplayPanel`'s tables focus to roll without
-logging is P8b work.
+**Tables** sits between Tell the table and SRD, as board M1 draws it: the
+Dashboard's table picker (`DisplayPanelFrame`'s tables view) with no log
+writer, so a Mediator's roll is **private by default**. The "Show the table"
+action that posts the result as an alert is P8b work.
 
 ## 3. Phases
 
 | Phase | Ships | Gate |
 | --- | --- | --- |
-| **P8a (built, #1278)** | This doc. §4 server work. M1 at `/mediator/$gameId`: rail, The table, Crawler minor, Downtime minor, the Opposition / Proposals / Tell the table / SRD / Log tabs, the propose dock, and the stacked fallback. M2's Mediator and Organizer sections per Q10–Q13. `MediatorSection` removed from the Game page. | Two e2e specs: (1) the Mediator proposes HP 6 → 4 with a reason, the player applies it from the Game page, and the Mediator's row reads Applied and the seat card's HP reads 4. (2) The Organizer makes an approval link, a second account opens it and asks, Let in seats them, and their Game page loads. Plus `bun run check` and `bun run test`. |
-| **P8b** | The Tables tab (private rolls plus Show the table). `games.rename`. The Discord channel line (needs a member-readable binding query). Grant names on Asking to join. The crawler's ⤢ as a canvas overlay with its Guided controls instead of the sheet. | Unit tests for each new query and mutation; e2e for Rename. |
+| **P8a (built, #1278)** | This doc. §4 server work. M1 at `/mediator/$gameId`: rail, The table, Crawler minor, Downtime minor, the Opposition / Proposals / Tell the table / Tables / SRD / Log tabs, the propose dock, and the stacked fallback. M2's Mediator and Organizer sections per Q10–Q13. `MediatorSection` removed from the Game page. | Two e2e specs: (1) the Mediator proposes HP 6 → 4 with a reason, the player applies it from the Game page, and the Mediator's row reads Applied and the seat card's HP reads 4. (2) The Organizer makes an approval link, a second account opens it and asks, Let in seats them, and their Game page loads. Plus `bun run check` and `bun run test`. |
+| **P8b** | The Tables tab's Show the table. `games.rename`. The Discord channel line (needs a member-readable binding query). Grant names on Asking to join. The crawler's ⤢ as a canvas overlay with its Guided controls instead of the sheet. | Unit tests for each new query and mutation; e2e for Rename. |
 | **Own issues (owner decides)** | Archive. Presence (needs a writer and a definition of "here"). A below-the-cap heat warning for every client. | — |
 
 The two e2e specs need two signed-in browser contexts. If `e2e/fixtures.ts`
