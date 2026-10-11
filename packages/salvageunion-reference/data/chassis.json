@@ -8939,7 +8939,7 @@
     "cargoCapacity": 6,
     "techLevel": 2,
     "salvageValue": 8,
-    "chassisAbilities": ["Integrated Advanced Stabilising Locomotion System"],
+    "chassisAbilities": ["Integrated Advanced Stabilising Locomotion System", "Stabilise"],
     "patterns": [
       {
         "name": "Hunchback",
