@@ -482,8 +482,9 @@ export function Roster() {
                 kind="npc"
                 title="NPCs"
                 active={activeSegment === 'npc'}
-                create={{ href: '/npcs/new', label: 'Design an NPC' }}
-                emptyMessage="No NPCs yet. Design one from a template, or from scratch."
+                // No create CTA yet: the designer route (/npcs/new) lands with
+                // the next layer, which adds the CTA alongside it.
+                emptyMessage="No NPCs yet."
                 empty={npcs.length === 0}
               >
                 <RosterList>
