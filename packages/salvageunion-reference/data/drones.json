@@ -258,7 +258,7 @@
     "source": "Thatcher's Mech Base",
     "name": "The Iron Lady",
     "structurePoints": 87,
-    "salvageValue": 87,
+    "salvageValue": 15,
     "actions": [
       "Iron Claws (The Iron Lady)",
       "Corrosive M.I.L.K. Spray (The Iron Lady)",
@@ -275,6 +275,7 @@
         "type": "paragraph",
         "value": "A monstrous mecha-android built specifically to house the Thatcher Steel CEO. A reinforced glass cockpit reveals her emaciated body, allowing her worshippers to look upon her terrible visage. Sustained far beyond her mortal years, she requires only 4 hours sleep."
       }
-    ]
+    ],
+    "techLevel": 6
   }
 ]
