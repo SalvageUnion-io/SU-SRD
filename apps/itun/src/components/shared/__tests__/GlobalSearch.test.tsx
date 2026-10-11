@@ -1,15 +1,15 @@
 /**
- * GlobalSearch tests — ITUN's reference search, behind the bottom-right FAB
- * (report item P-2).
+ * GlobalSearch tests — ITUN's reference search, a trigger in the Union bar
+ * ("Search · ⌘K") that opens a panel under it.
  *
  * Runs against the real salvageunion-reference dataset (preloaded via
  * bunfig.toml, same as every other workspace) so search behaviour stays
  * honest — "iron wyrm" is a known-stable chassis name in the dataset.
  *
- * What these pin: the FAB opens and closes the panel (button, Cmd/Ctrl+K,
+ * What these pin: the trigger opens and closes the panel (button, Cmd/Ctrl+K,
  * Escape, an outside press) with focus going where a keyboard user expects;
- * results render ABOVE the input with the best match nearest it, and the
- * arrow keys follow that screen order; an entity opens the detail modal and a
+ * results render BELOW the input, best match first, and the arrow keys follow
+ * that order; an entity opens the detail modal and a
  * category opens the SRD in a new tab. Structure is asserted through DOM
  * order and ARIA, never pixels.
  *
@@ -20,20 +20,26 @@
 
 import { describe, expect, jest, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { useState } from 'react'
 import { must } from '../../__tests__/must'
 import { GlobalSearch } from '../GlobalSearch'
+
+/** The root's shape: one open state, handed to the trigger. */
+function Harness({ variant = 'bar' }: { variant?: 'bar' | 'icon' }) {
+  const [open, setOpen] = useState(false)
+  return <GlobalSearch variant={variant} open={open} onOpenChange={setOpen} />
+}
 
 /** `useSearchCombobox`'s own `debounceMs` default. */
 const DEBOUNCE_MS = 150
 
-const fab = () => screen.getByRole('button', { name: 'Search the rules' })
-const closeButton = () => screen.getByRole('button', { name: 'Close: Search the rules' })
+const trigger = () => screen.getByRole('button', { name: 'Search the rules' })
 const panel = () => screen.queryByRole('dialog', { name: 'Search the rules' })
 const input = () => screen.getByRole('combobox', { name: 'Search the rules' })
 
-async function openWithFab() {
+async function openWithTrigger() {
   await act(async () => {
-    fireEvent.click(fab())
+    fireEvent.click(trigger())
   })
   return must(panel())
 }
@@ -66,25 +72,25 @@ async function typeQuery(value: string) {
   return field
 }
 
-describe('the FAB', () => {
+describe('the trigger', () => {
   test('is a collapsed button that opens the search panel and focuses its input', async () => {
-    render(<GlobalSearch />)
-    expect(fab().getAttribute('aria-expanded')).toBe('false')
+    render(<Harness />)
+    expect(trigger().getAttribute('aria-expanded')).toBe('false')
     expect(panel()).toBeFalsy()
 
-    const opened = await openWithFab()
-    expect(closeButton().getAttribute('aria-expanded')).toBe('true')
-    expect(closeButton().getAttribute('aria-controls')).toBe(opened.id)
+    const opened = await openWithTrigger()
+    expect(trigger().getAttribute('aria-expanded')).toBe('true')
+    expect(trigger().getAttribute('aria-controls')).toBe(opened.id)
     await waitFor(() => expect(document.activeElement).toBe(input()))
   })
 
   test('reopening keeps the last query, selected so typing replaces it', async () => {
-    render(<GlobalSearch />)
-    await openWithFab()
+    render(<Harness />)
+    await openWithTrigger()
     await typeQuery('iron wyrm')
-    await settle(() => fireEvent.click(closeButton()))
+    await settle(() => fireEvent.click(trigger()))
 
-    await openWithFab()
+    await openWithTrigger()
     const field = input() as HTMLInputElement
     expect(field.value).toBe('iron wyrm')
     await waitFor(() => expect(document.activeElement).toBe(field))
@@ -93,24 +99,24 @@ describe('the FAB', () => {
   })
 
   test('pressing it again collapses the panel, focus staying on the button', async () => {
-    render(<GlobalSearch />)
-    await openWithFab()
-    await settle(() => fireEvent.click(closeButton()))
+    render(<Harness />)
+    await openWithTrigger()
+    await settle(() => fireEvent.click(trigger()))
     expect(panel()).toBeFalsy()
-    await waitFor(() => expect(document.activeElement).toBe(fab()))
+    await waitFor(() => expect(document.activeElement).toBe(trigger()))
   })
 
   test('Escape collapses it and returns focus to the button', async () => {
-    render(<GlobalSearch />)
-    await openWithFab()
+    render(<Harness />)
+    await openWithTrigger()
     await settle(() => fireEvent.keyDown(input(), { key: 'Escape' }))
     expect(panel()).toBeFalsy()
-    await waitFor(() => expect(document.activeElement).toBe(fab()))
+    await waitFor(() => expect(document.activeElement).toBe(trigger()))
   })
 
   test('a press outside collapses it', async () => {
-    render(<GlobalSearch />)
-    await openWithFab()
+    render(<Harness />)
+    await openWithTrigger()
     await settle(() => {
       fireEvent.pointerDown(document.body)
       fireEvent.click(document.body)
@@ -119,8 +125,8 @@ describe('the FAB', () => {
   })
 
   test('a press inside the panel does not collapse it', async () => {
-    render(<GlobalSearch />)
-    await openWithFab()
+    render(<Harness />)
+    await openWithTrigger()
     await settle(() => {
       fireEvent.pointerDown(input())
       fireEvent.click(input())
@@ -129,78 +135,101 @@ describe('the FAB', () => {
   })
 
   test('Cmd+K opens and focuses the search; Ctrl+K again closes it', async () => {
-    render(<GlobalSearch />)
+    render(<Harness />)
     await settle(() => fireEvent.keyDown(document, { key: 'k', metaKey: true }))
     expect(panel()).toBeTruthy()
     await waitFor(() => expect(document.activeElement).toBe(input()))
 
     await settle(() => fireEvent.keyDown(document, { key: 'k', ctrlKey: true }))
     expect(panel()).toBeFalsy()
-    await waitFor(() => expect(document.activeElement).toBe(fab()))
+    await waitFor(() => expect(document.activeElement).toBe(trigger()))
   })
 
   test('plain "k" does not toggle it', () => {
-    render(<GlobalSearch />)
+    render(<Harness />)
     fireEvent.keyDown(document, { key: 'k' })
     expect(panel()).toBeFalsy()
   })
 
   test('advertises the shortcut it answers to', () => {
-    render(<GlobalSearch />)
-    expect(fab().getAttribute('aria-keyshortcuts')).toBe('Meta+K Control+K')
+    render(<Harness />)
+    expect(trigger().getAttribute('aria-keyshortcuts')).toBe('Meta+K Control+K')
   })
+})
 
-  test('where the corner is taken it hides, and Cmd+K still opens the search', async () => {
-    render(<GlobalSearch fabHidden />)
-    expect(screen.queryByRole('button', { name: 'Search the rules' })).toBeFalsy()
+describe('the phone trigger', () => {
+  /** A viewport narrower than `lg`: the desktop query does not match. */
+  function onPhone() {
+    const original = window.matchMedia
+    window.matchMedia = ((query: string) => ({
+      matches: false,
+      media: query,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    })) as unknown as typeof window.matchMedia
+    return () => {
+      window.matchMedia = original
+    }
+  }
 
-    await settle(() => fireEvent.keyDown(document, { key: 'k', metaKey: true }))
-    expect(panel()).toBeTruthy()
-    await waitFor(() => expect(document.activeElement).toBe(input()))
+  test('the icon button opens the panel; the bar trigger, hidden at this width, does not', async () => {
+    const restore = onPhone()
+    try {
+      const { unmount } = render(<Harness variant="icon" />)
+      expect(trigger().getAttribute('aria-keyshortcuts')).toBeNull()
+      await openWithTrigger()
+      expect(panel()).toBeTruthy()
+      unmount()
+
+      render(<Harness variant="bar" />)
+      await settle(() => fireEvent.click(trigger()))
+      expect(panel()).toBeFalsy()
+    } finally {
+      restore()
+    }
   })
 })
 
 describe('the results', () => {
-  test('render above the input, best match nearest it', async () => {
-    render(<GlobalSearch />)
-    await openWithFab()
+  test('render below the input, best match first', async () => {
+    render(<Harness />)
+    await openWithTrigger()
     const field = await typeQuery('chassis')
 
     const listbox = screen.getByRole('listbox', { name: 'Search results' })
-    // The list comes BEFORE the input in the panel: it grows upward from it.
-    expect(listbox.compareDocumentPosition(field) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // The list comes AFTER the input in the panel.
+    expect(listbox.compareDocumentPosition(field) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy()
 
     const options = within(listbox).getAllByRole('option')
     expect(options.length).toBeGreaterThan(1)
-    // Category rows rank first ("chassis" is a schema), so the LAST row — the
-    // one directly above the input — is a category, and the first is not.
-    expect(options.at(-1)?.textContent).toContain('Category')
-    expect(options[0]?.textContent).not.toContain('Category')
+    // Category rows rank first ("chassis" is a schema), so the FIRST row —
+    // the one directly under the input — is a category.
+    expect(options[0]?.textContent).toContain('Category')
   })
 
-  test('the arrow keys follow the screen: ↑ leaves the input, ↓ comes back', async () => {
-    render(<GlobalSearch />)
-    await openWithFab()
+  test('the arrow keys follow the screen: ↓ leaves the input, ↑ comes back', async () => {
+    render(<Harness />)
+    await openWithTrigger()
     const field = await typeQuery('chassis')
     const options = screen.getAllByRole('option')
-    const nearest = must(options.at(-1))
-    const next = must(options.at(-2))
+    const nearest = must(options[0])
+    const next = must(options[1])
 
-    fireEvent.keyDown(field, { key: 'ArrowUp' })
+    fireEvent.keyDown(field, { key: 'ArrowDown' })
     expect(nearest.getAttribute('aria-selected')).toBe('true')
     expect(field.getAttribute('aria-activedescendant')).toBe(nearest.id)
 
-    fireEvent.keyDown(field, { key: 'ArrowUp' })
+    fireEvent.keyDown(field, { key: 'ArrowDown' })
     expect(next.getAttribute('aria-selected')).toBe('true')
 
-    fireEvent.keyDown(field, { key: 'ArrowDown' })
-    fireEvent.keyDown(field, { key: 'ArrowDown' })
+    fireEvent.keyDown(field, { key: 'ArrowUp' })
+    fireEvent.keyDown(field, { key: 'ArrowUp' })
     expect(field.getAttribute('aria-activedescendant')).toBeNull()
   })
 
   test('a no-hit query shows the empty state', async () => {
-    render(<GlobalSearch />)
-    await openWithFab()
+    render(<Harness />)
+    await openWithTrigger()
     await typeQuery('zzzz-no-such-entity')
     // Rendered twice: the visible empty state + the sr-only live region.
     expect(screen.getAllByText('No results found').length).toBeGreaterThan(0)
@@ -208,8 +237,8 @@ describe('the results', () => {
   })
 
   test('Enter opens the entity detail modal and collapses the panel', async () => {
-    render(<GlobalSearch />)
-    await openWithFab()
+    render(<Harness />)
+    await openWithTrigger()
     const field = await typeQuery('iron wyrm')
 
     // The best match is the Iron Wyrm chassis (no schema matches "iron wyrm").
@@ -226,8 +255,8 @@ describe('the results', () => {
     const originalOpen = window.open
     window.open = openSpy
     try {
-      render(<GlobalSearch />)
-      await openWithFab()
+      render(<Harness />)
+      await openWithTrigger()
       await typeQuery('chassis')
 
       const categoryOption = screen

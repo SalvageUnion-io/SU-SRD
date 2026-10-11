@@ -4,7 +4,7 @@
  * A plain static document: no islands, no data, no structured data.
  */
 
-import { InlineRef, PageHeading, Slab } from 'component-lib'
+import { ChapterBand, InlineRef, Slab } from 'component-lib'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { TITLE_SUFFIX } from '../../lib/constants'
 
@@ -18,9 +18,9 @@ function page(): PageResult {
         'Terms of Service for the Salvage Union Discord bot — an unofficial, community reference tool for the Salvage Union TTRPG.',
     },
     children: (
-      <div className="flex w-full flex-1 flex-col py-12">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6">
-          <PageHeading>Salvage Union Bot — Terms of Service</PageHeading>
+      <div className="flex w-full flex-1 flex-col pb-12">
+        <ChapterBand measure="48rem">Salvage Union Bot — Terms of Service</ChapterBand>
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 pt-8">
           <p className="text-xs uppercase tracking-caps-snug text-ink/60">
             Last updated: {LAST_UPDATED}
           </p>

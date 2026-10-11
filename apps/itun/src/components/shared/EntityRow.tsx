@@ -324,9 +324,9 @@ export function EntityRow(props: EntityRowProps) {
         'group relative flex flex-col overflow-visible rounded-card bg-paper',
         // The frame is the card's, at the card's weight — a row is the compact
         // translation of an entity card, not a lighter-weight cousin of one.
-        'border-[length:var(--bw-entity)] border-ink',
-        'shadow-[0_1px_0_var(--color-ink-8)] transition-all duration-200',
-        'md:hover:-translate-y-0.5 md:hover:shadow-[0_7px_18px_var(--color-ink-20)]'
+        // Flat chrome (brand refresh P2a), as `Card`: no drop shadow and no
+        // hover lift; the row is printed on the page and the frame is its edge.
+        'border-[length:var(--bw-entity)] border-ink'
       )}
     >
       {/* Inner wrapper clips the bands to the frame's radius. */}

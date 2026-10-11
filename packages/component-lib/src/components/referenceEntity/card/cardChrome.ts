@@ -132,8 +132,9 @@ export function resolveCardInteraction({
     'relative flex flex-col overflow-visible',
     disabled && 'opacity-50',
     selectable === false && 'opacity-50 saturate-50',
-    isHoverable &&
-      'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]',
+    // Flat chrome (brand refresh P2a): a clickable card says so with the pointer, not by
+    // lifting and scaling off the page.
+    isHoverable && 'cursor-pointer',
     resolvedCardClick && FOCUS_RING,
     className
   )

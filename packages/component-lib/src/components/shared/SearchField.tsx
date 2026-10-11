@@ -21,11 +21,18 @@ type SearchFieldProps = ComponentPropsWithRef<'input'> & {
   containerClassName?: string
   /** Magnifier glyph size in px. */
   glyphSize?: number
+  /**
+   * The keyboard shortcut that focuses the field, shown as a key cap at its
+   * end (`⌘K` — the Union bar's search slot reads the same in both tools).
+   * Decorative: the shortcut is the caller's to wire and announce.
+   */
+  shortcut?: string
 }
 
 export function SearchField({
   containerClassName,
   glyphSize = 14,
+  shortcut,
   className,
   ref,
   ...inputProps
@@ -62,6 +69,13 @@ export function SearchField({
         )}
         {...inputProps}
       />
+      {shortcut && (
+        <span aria-hidden="true" className="shrink-0">
+          <kbd className="rounded-badge border border-ink-30 px-1.5 py-0.5 font-body text-badge leading-none text-wk-muted">
+            {shortcut}
+          </kbd>
+        </span>
+      )}
     </div>
   )
 }

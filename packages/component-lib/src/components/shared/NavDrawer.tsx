@@ -17,8 +17,8 @@ import { FOCUS_RING } from '../chrome/interaction'
  * that slides in (`.su-drawer`) and can be swiped back out.
  *
  * Content is fully driven by props: a `brand` lockup, primary `navItems`
- * (rendered as the shared `buttonVariants` buttons — `active` = primary/rust, else
- * ghost), optional `categories` (catalog tiles) + `search` slot for the
+ * (rendered as the shared ghost `buttonVariants` buttons; the page you are on is
+ * the inverse ink plate, never rust — ruleset §3.1), optional `categories` (catalog tiles) + `search` slot for the
  * SRD's richer drawer, and an optional `extra` slot for app-owned controls
  * (ITUN's Games list and sign-in). Router-agnostic: internal items render
  * through the injected `LinkComponent` (defaults to a plain anchor), external
@@ -32,7 +32,7 @@ import { FOCUS_RING } from '../chrome/interaction'
 export type NavDrawerItem = {
   label: ReactNode
   href: string
-  /** Renders as the primary (rust) button instead of ghost. */
+  /** The page you are on: an ink plate and `aria-current="page"`. */
   active?: boolean
   /** Opens in a new tab via a plain anchor (bypasses LinkComponent). */
   external?: boolean
@@ -141,7 +141,7 @@ export function NavDrawer({
         <Drawer.Viewport style={VIEWPORT}>
           <Drawer.Popup
             className={cn(
-              'su-drawer flex h-full max-w-[85vw] flex-col bg-paper p-4 shadow-lg',
+              'su-drawer flex h-full max-w-[85vw] flex-col bg-paper p-4',
               panelClassName
             )}
           >
@@ -221,11 +221,14 @@ export function NavDrawer({
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        buttonVariants({ variant: item.active ? 'primary' : 'ghost' }),
-                        'w-full'
+                        buttonVariants({ variant: 'ghost' }),
+                        'w-full',
+                        item.active && 'su-btn--here'
                       )}
                       onClick={close}
-                      {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                      {...(item.external
+                        ? { target: '_blank', rel: 'noopener noreferrer' }
+                        : { 'aria-current': item.active ? ('page' as const) : undefined })}
                     >
                       {item.label}
                       {item.badge}

@@ -11,8 +11,8 @@ import { useSignOutAndForget } from './useSignOutAndForget'
  * The account menu — who is signed in, and the two things to do about it.
  *
  * The masthead trigger shows the player's display name beside their Discord
- * avatar in a circle (the initial when there is no avatar, or it will not
- * load); it opens a `HeaderMenu` holding **Settings** (`/settings`) and
+ * avatar on a square chip (two initials when there is no avatar, or it will
+ * not load); it opens a `HeaderMenu` holding **Settings** (`/settings`) and
  * **Sign out**. The `compact` form is the avatar alone, for the mobile header
  * row, which has no room for a name.
  *

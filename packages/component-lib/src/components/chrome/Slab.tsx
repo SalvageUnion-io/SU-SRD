@@ -21,48 +21,58 @@ type SlabProps = {
    */
   actions?: ReactNode
   className?: string
+  /** For a region that names itself by its slab (`aria-labelledby`). */
+  id?: string
   /**
    * 'dashed' (default, unchanged) — tone-deep colored text label + dashed
    * leader rule, the original live-play control-panel shape. 'solid' — the
-   * poster `.sect` shape (clean-pilot.html :215-218): black-stamp label
-   * (white-on-ink) + a SOLID ink-35 leader rule. Additive opt-in so existing
-   * consumers (and any future srd use) keep the default unless they
-   * ask for the poster shape.
+   * section stamp of the brand refresh (boards 06–10): a solid ink stamp,
+   * paper text, then a dashed ink hairline running to the count at the far
+   * end ("PATTERNS ┄┄┄ 5 patterns"). It replaced the centred rust
+   * `SectionHeader` and the roster's column headings.
    */
   variant?: 'dashed' | 'solid'
 }
 
 /**
- * Live-sheet section header (design-spec §2.10 `.slab`): uppercase cond label
- * with a leader rule. Default ('dashed') keeps the original tone-deep text +
- * dashed rule; 'solid' matches the poster `.sect` region-divider shape.
+ * The section header (ruleset §5 atom 7, "section stamp + leader rule";
+ * design-spec §2.10 `.slab`): an uppercase cond label with a leader rule.
+ * Default ('dashed') keeps the original tone-deep text + dashed rule; 'solid'
+ * is the ink section stamp with its count at the end of the rule.
  */
-export function Slab({ label, as, count, actions, className, variant = 'dashed' }: SlabProps) {
+export function Slab({ label, as, count, actions, className, id, variant = 'dashed' }: SlabProps) {
   const isSolid = variant === 'solid'
   const Label = as ?? 'span'
+  const countNode = count != null && (
+    <span className="shrink-0 font-body text-xs font-bold normal-case tracking-normal text-wk-muted">
+      {count}
+    </span>
+  )
   return (
     <div className={cn('mb-3.5 flex items-center gap-3', className)}>
       {isSolid ? (
         <Label
+          id={id}
           className={cn(POSTER_STAMP, 'shrink-0 px-2 pb-[3px] pt-[2px] text-sm leading-relaxed')}
         >
           {label}
         </Label>
       ) : (
         <Label
+          id={id}
           className="shrink-0 font-cond text-sm font-bold uppercase tracking-caps-wide"
           style={{ color: 'var(--tone-deep, var(--color-ink))' }}
         >
           {label}
         </Label>
       )}
-      {count != null && (
-        <span className="shrink-0 font-body text-xs font-bold normal-case tracking-normal text-wk-muted">
-          {count}
-        </span>
-      )}
+      {/* The dashed slab counts beside its label; the solid one at the rule's end. */}
+      {!isSolid && countNode}
       {isSolid ? (
-        <span aria-hidden="true" className="h-0 min-w-3 flex-1 border-t-chrome border-ink-30" />
+        <span
+          aria-hidden="true"
+          className="h-0 min-w-3 flex-1 border-t border-dashed border-ink-50"
+        />
       ) : (
         <span
           aria-hidden="true"
@@ -73,6 +83,7 @@ export function Slab({ label, as, count, actions, className, variant = 'dashed' 
           }}
         />
       )}
+      {isSolid && countNode}
       {/* A div, not a span: actions carry block-level content (the Ko-fi widget
           renders a div), and a div inside a span is invalid HTML. Both are flex
           items of the same row, so nothing moves. */}

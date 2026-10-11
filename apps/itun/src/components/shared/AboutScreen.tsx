@@ -8,7 +8,7 @@
  * it reads as part of this app.
  */
 
-import { Colophon, InlineRef, PageHeading, Slab } from 'component-lib'
+import { ChapterBand, Colophon, InlineRef, Slab } from 'component-lib'
 
 type AboutScreenProps = {
   /** The build the app is running: the deployed commit's short SHA (ADR-041).
@@ -28,7 +28,7 @@ export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: A
     <main className="min-h-screen bg-wk-bg px-4 py-8 sm:px-8 sm:py-12 lg:px-12">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
         <header className="border-b-2 border-ink pb-5">
-          <PageHeading className="w-fit">About</PageHeading>
+          <ChapterBand>About</ChapterBand>
           <p className="mt-2 font-body text-sm text-wk-muted">
             In the Union Now — a character builder &amp; game manager for Salvage Union.
           </p>

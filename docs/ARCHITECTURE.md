@@ -694,32 +694,30 @@ not an island.
 
 **Sitemap:** `ssg/sitemap.ts`; exclude with `register(page, { sitemap: false })`
 in `ssg/routes.ts` (`ssg/__tests__/routes.test.ts` fails a noindexed page
-without it). `src/lib/staticPaths.ts` excludes meta schemas
-(`src/lib/__tests__/staticPaths.test.ts`) from `getSchemaStaticPaths()` and
-`getItemStaticPaths()`; routes are slugs, never UUIDs;
+without it). `src/lib/staticPaths.ts` drops meta schemas
+(`src/lib/__tests__/staticPaths.test.ts`); routes are slugs;
 `apps/srd/public/robots.txt` names the sitemap.
 
 **Accessibility:** Biome's `a11y` group (`biome.jsonc`). Each app's
-`e2e/a11y.e2e.ts` (`tools/lib/a11yScan.ts`: axe-core `wcag2a`, `wcag2aa`,
-`wcag21a`, `wcag21aa`, `wcag22aa`, `best-practice`) scans the pages in
-`tools/a11y-baseline.json` and `tools/a11y-baseline-itun.json` at desktop and
-as a Pixel 7; a stale entry fails until a run with `A11Y_UPDATE_BASELINE=1`.
-Locally: `bunx playwright test a11y.e2e.ts` in the app.
-Landmarks: two labelled `<nav>`s in `AppBar.tsx`, `<main>` in `BaseLayout.tsx`,
+`e2e/a11y.e2e.ts` (`tools/lib/a11yScan.ts`: axe-core WCAG 2.2 AA plus
+`best-practice`) scans the pages in `tools/a11y-baseline.json` and
+`tools/a11y-baseline-itun.json` at desktop and as a Pixel 7; a stale entry
+fails until a run with `A11Y_UPDATE_BASELINE=1`.
+Landmarks: labelled `<nav>`s in `AppBar.tsx` (switcher, product nav, and a
+breadcrumb trail shown once per width), `<main>` in `BaseLayout.tsx`,
 `Footer.tsx`. One `<h1>` per page (entity pages pass `titleAs="h1"` from `EntityView.tsx`
 to `EntityCardHeader`).
-Clickable `Card`s are `role="button"` with Enter/Space; search
-(`SearchIsland.tsx`, `useSearchCombobox`) is a combobox with
-`aria-activedescendant`; breadcrumbs mark `aria-current="page"`; filter chips
-are `Badge as="button"` with `aria-pressed`; `ModalShell` traps focus and
-`ConfirmDialog` starts on Cancel when destructive; touch targets are 44px under
-`@media (pointer: coarse)`.
+Clickable `Card`s are `role="button"`; search (`useSearchCombobox`) is a
+combobox with `aria-activedescendant`; filter chips are `Badge as="button"`
+with `aria-pressed`; `ModalShell` traps focus and a destructive
+`ConfirmDialog` starts on Cancel; touch targets are 44px under
+`@media (pointer: coarse)`, minis, chips and breadcrumb links through a hit area
+(`touchFloor.test.ts`).
 
 **Contrast:** tokens in component-lib's `src/styles/theme.css`
-(`--color-rust` is the one action colour). Entity accents never colour small
-body text. Text on a tone band is `onToneText`
+(`--color-rust` is the one action colour). Text on a tone band is `onToneText`
 (`packages/component-lib/src/design/contrast.ts`); `design/contrast.test.ts`
-holds sub-headers and footers at 4.5:1 and names the header tones at 3:1.
+holds sub-headers and footers at 4.5:1, header tones at 3:1.
 
 ## CI and deploy
 

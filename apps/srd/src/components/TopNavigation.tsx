@@ -20,20 +20,14 @@ type BreadcrumbItem = {
 }
 
 type TopNavigationProps = {
-  currentPath: string
   breadcrumbs?: BreadcrumbItem[]
   /** Optional descriptive tail rendered after the trail (e.g. a schema description) */
   breadcrumbDescription?: string
 }
 
-export function TopNavigation({
-  currentPath,
-  breadcrumbs,
-  breadcrumbDescription,
-}: TopNavigationProps) {
+export function TopNavigation({ breadcrumbs, breadcrumbDescription }: TopNavigationProps) {
   return (
     <SiteHeader
-      currentPath={currentPath}
       itunUrl={ITUN_URL}
       breadcrumbs={breadcrumbs}
       breadcrumbDescription={breadcrumbDescription}

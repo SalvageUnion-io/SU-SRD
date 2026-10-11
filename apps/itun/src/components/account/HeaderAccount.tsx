@@ -4,39 +4,37 @@ import { AccountMenu } from './AccountMenu'
 import { SignInControl } from './SignInControl'
 
 /**
- * What ITUN puts in the masthead's three app slots (`AppHeader`'s `actions`,
- * `mobileActions` and `drawerExtra`) — the account and the Games, wired to
- * Convex here so `component-lib` stays persistence-agnostic.
+ * What ITUN puts in the masthead's app slots (`AppHeader`'s `games`,
+ * `actions`, `mobileActions` and `drawerExtra`) — the account and the Games,
+ * wired to Convex here so `component-lib` stays persistence-agnostic.
  *
- * There is no sub-header: Games, Account and Sign out are two menus on the
- * nav's own row:
+ * There is no sub-header: Games sits in the Union bar's nav (Shelves · Games ·
+ * Starter Set), and the account is the menu at the bar's end:
  *
  * | Where                      | Signed in (Connected)    | Signed in (offline) | Signed out           |
  * | -------------------------- | ------------------------ | ------------------- | -------------------- |
- * | desktop, after "Buy"       | Games ▾ · name + avatar ▾ | name + avatar ▾     | Sign in with Discord |
+ * | desktop nav, after Shelves | Games ▾                  | —                   | —                    |
+ * | desktop, at the bar's end  | name + avatar ▾          | name + avatar ▾     | Sign in with Discord |
  * | mobile header row          | avatar                   | avatar              | —                    |
  * | mobile drawer, top         | Games list               | —                   | Sign in with Discord |
  *
  * Mobile is split because the row beside the hamburger has room for one
- * avatar-sized control and no more: the brand already wraps there, and a
- * "Games ▾" trigger or a "Sign in with Discord" button beside it pushed the
- * wordmark onto three lines. The avatar stays in the row so who is signed in
- * is visible on every screen; the rest goes into the drawer.
+ * avatar-sized control and no more: a "Games ▾" trigger or a "Sign in with
+ * Discord" button beside it would crowd the switcher out of the bar. The avatar
+ * stays in the row so who is signed in is visible on every screen; the rest
+ * goes into the drawer.
  */
 
-/** Desktop: the Games menu, then the account menu (or sign-in). */
+/** Desktop nav: the Games menu (renders nothing unless Connected). */
+export function HeaderGames() {
+  return <GamesMenu />
+}
+
+/** Desktop, at the bar's end: the account menu (or sign-in). */
 export function HeaderActions() {
   const { mode } = useConnection()
 
-  if (mode === 'connected' || mode === 'disconnected') {
-    return (
-      <>
-        {/* GamesMenu renders nothing unless Connected. */}
-        <GamesMenu />
-        <AccountMenu />
-      </>
-    )
-  }
+  if (mode === 'connected' || mode === 'disconnected') return <AccountMenu />
   return <SignInControl onDark />
 }
 

@@ -29,7 +29,7 @@
  */
 
 import { useNavigate } from '@tanstack/react-router'
-import { PageHeading, PageShell, Text, tokens } from 'component-lib'
+import { ChapterBand, PageShell, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
@@ -57,7 +57,7 @@ type RefusalProps = {
 function DashboardRefusal({ title, body, link }: RefusalProps) {
   return (
     <PageShell>
-      <PageHeading>{title}</PageHeading>
+      <ChapterBand>{title}</ChapterBand>
       <Text variant="hint" style={BODY}>
         {body}
       </Text>

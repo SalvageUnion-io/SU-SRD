@@ -9,7 +9,7 @@
  * sign-in rather than a wizard whose last step would be refused.
  */
 
-import { PageHeading, Text, tokens } from 'component-lib'
+import { ChapterBand, Text, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { SignInControl } from './SignInControl'
 
@@ -29,7 +29,7 @@ type SignInToBuildProps = {
 export function SignInToBuild({ title }: SignInToBuildProps) {
   return (
     <section style={PANEL} aria-label={title}>
-      <PageHeading>{title}</PageHeading>
+      <ChapterBand>{title}</ChapterBand>
       <Text variant="body">
         Build and run your Salvage Union crew — pilots, mechs and Union Crawlers. Everything you
         build is kept in your account, saved as you go, and ready to share with a Game, so building

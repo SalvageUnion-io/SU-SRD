@@ -84,7 +84,7 @@ const TRIGGER = {
   flexShrink: 0,
   fontFamily: font.cond,
   fontSize: fontSize.lede,
-  fontWeight: weight.semibold,
+  fontWeight: weight.bold,
   gap: space[6],
   letterSpacing: tracking.capsTight,
   padding: `${space[4]} 0`,
@@ -101,8 +101,9 @@ const POPUP = {
   borderColor: color.ink,
   borderRadius: radius.card,
   borderStyle: 'solid',
-  borderWidth: borderWidth.chrome,
-  boxShadow: `0 6px 18px ${color.ink20}`,
+  // Flat paper on an ink hairline, like every other piece of chrome (ruleset
+  // §3.5): no drop shadow, the rule alone lifts it off the page.
+  borderWidth: borderWidth.hairline,
   boxSizing: 'border-box',
   color: color.ink,
   // Long game lists scroll inside the popup rather than off the screen.

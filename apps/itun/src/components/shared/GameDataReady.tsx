@@ -1,6 +1,6 @@
 import { EntityExternalLinkProvider } from 'component-lib'
 import type { ReactNode } from 'react'
-import { Suspense, use } from 'react'
+import { Suspense, use, useEffect, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 
@@ -61,6 +61,24 @@ const preloadPromise: Promise<unknown> = SalvageUnionReference.preload('all').th
     document.body.dataset.gameDataReady = 'true'
   }
 })
+
+/**
+ * Whether the dataset has loaded — for the controls that live in the bar, which
+ * paints above the gate and so cannot suspend on it.
+ */
+export function useGameDataLoaded(): boolean {
+  const [loaded, setLoaded] = useState(() => SalvageUnionReference.isLoaded('chassis'))
+  useEffect(() => {
+    let live = true
+    void preloadPromise.then(() => {
+      if (live) setLoaded(true)
+    })
+    return () => {
+      live = false
+    }
+  }, [])
+  return loaded
+}
 
 function PreloadGate({ children }: { children: ReactNode }) {
   use(preloadPromise)

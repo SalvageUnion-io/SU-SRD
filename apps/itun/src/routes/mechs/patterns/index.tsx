@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { PageHeading } from 'component-lib'
+import { ChapterBand } from 'component-lib'
 import { PatternList } from '../../../components/mech/Pattern/PatternList'
 import { pageTitle } from '../../../lib/pageTitle'
 
@@ -14,7 +14,7 @@ function MechPatternsPage() {
   return (
     <main className="mx-auto max-w-5xl p-6 flex flex-col gap-6">
       <div>
-        <PageHeading className="w-fit">Mech Patterns</PageHeading>
+        <ChapterBand tone="mech">Mech Patterns</ChapterBand>
         <p className="font-body text-sm text-wk-muted mt-1">
           Saved mech templates. Instantiate one to create a fresh mech with the same chassis,
           systems, modules, and cargo.

@@ -6,10 +6,10 @@
  * state that overrides it. Loaded by `index.css`, and by the component's story.
  */
 
-/* The masthead nav-link ramp (AppBar's links): paper at 60%, full paper on
+/* The Union bar's nav-link ramp (AppBar's links): paper at 70%, full paper on
    hover and while its menu is open. */
 .header-menu-trigger {
-  color: var(--color-paper-60);
+  color: var(--color-paper-70);
   transition: color 120ms;
 }
 .header-menu-trigger:hover,

@@ -1,40 +1,40 @@
-import type { AppBarNavItem, NavDrawerItem } from 'component-lib'
+import type { NavDrawerItem } from 'component-lib'
 import { AppBar, Badge, NavDrawer } from 'component-lib'
 import type { ElementType, ReactNode } from 'react'
 import { SRD_SITE_URL } from 'salvageunion-reference'
 
 /**
- * AppHeader — the ITUN builder's masthead (app-local config over the shared
- * `AppBar`): the "In the Union Now" brand, ITUN's nav (About / Changelog +
- * outbound Discord / SRD cross-links), the "Buy the game" button, and
- * app-supplied `actions` after it (ITUN's Games and account menus). Below `lg` the nav
- * collapses into the shared `NavDrawer`, with `mobileActions` beside the
- * hamburger and `drawerExtra` inside the drawer.
+ * AppHeader — ITUN's preset of the shared Union bar (`AppBar`, ruleset §3.11):
+ * the compact 48px bar on the **Build** side of the switcher, with ITUN's nav
+ * inline — Shelves · Games · Starter Set — then About and Changelog as quiet
+ * links and the app-supplied `actions` (the account menu) at the end. Below
+ * `lg` the nav collapses into the shared `NavDrawer`, with `mobileActions`
+ * beside the hamburger and `drawerExtra` inside the drawer.
  *
- * One row, with no sub-header: the account cluster is those menus.
+ * The switcher replaces the old "SRD ↗" link: the reference is the other tab
+ * of the same bar, not an off-site destination.
  *
- * No search, either. ITUN's reference search is a floating button in the
- * bottom-right corner (`Fab`, wired in ITUN's `GlobalSearch.tsx`), so this
- * preset fills nothing into `AppBar`'s `search` slot. That slot stays on
- * `AppBar`, where the SRD site's `SiteHeader` mounts its top-of-page search.
+ * "Games" is the app's own control (`games`), a menu rather than a link — there
+ * is no Games page; picking one sets what the Shelves hub shows — so it takes
+ * its place in the nav as a slot.
  *
- * The three slots stay content-agnostic, so this file knows nothing about
- * accounts, Convex or Games. ITUN fills them (`src/components/account/
- * HeaderAccount.tsx`).
+ * Search is a slot pair: `search` (the desktop "Search · ⌘K" trigger, in the
+ * bar from `lg`) and `mobileSearch` (the phone's icon button, in the mobile
+ * cluster before the account). Both are ITUN's `GlobalSearch`; there is no
+ * floating search button.
+ *
+ * The slots stay content-agnostic, so this file knows nothing about accounts,
+ * Convex or Games. ITUN fills them (`src/components/account/HeaderAccount.tsx`).
  *
  * There is no Encounter entry. GM opposition lives on the Mediator sheet's NPC
  * tray, backed by Convex (`api.mediator.*`), not at a top-level destination.
  *
  * Router-agnostic: internal links route through the injected `LinkComponent`
- * (ITUN passes its router-aware AppLink; defaults to a plain anchor).
+ * (ITUN passes its router-aware AppLink; defaults to a plain anchor), and
+ * `pathname` marks the page you are on.
  */
 
-const DESKTOP_NAV: AppBarNavItem[] = [
-  { label: 'About', href: '/about' },
-  { label: 'Changelog', href: '/changelog' },
-  { label: 'Discord ↗', href: `${SRD_SITE_URL}/discord/`, external: true },
-  { label: 'SRD ↗', href: SRD_SITE_URL, external: true },
-]
+const BUY_HREF = 'https://leyline.press/collections/salvage-union'
 
 /** ITUN's two-tone brand tag for the mobile drawer. */
 const ITUN_DRAWER_BRAND = (
@@ -50,22 +50,18 @@ const ITUN_DRAWER_BRAND = (
   </span>
 )
 
-const DRAWER_NAV: NavDrawerItem[] = [
-  { label: 'About', href: '/about' },
-  { label: 'Changelog', href: '/changelog' },
-  { label: 'Discord ↗', href: `${SRD_SITE_URL}/discord/`, external: true },
-  { label: 'SalvageUnion.io SRD ↗', href: SRD_SITE_URL, external: true },
-  {
-    label: 'Buy the game',
-    href: 'https://leyline.press/collections/salvage-union',
-    external: true,
-  },
-]
-
 type AppHeaderProps = {
   /** Link component for internal routes. Defaults to a plain anchor; ITUN passes AppLink. */
   LinkComponent?: ElementType
-  /** Desktop controls after "Buy the game" — ITUN's Games and account menus. */
+  /** The current route, to mark "you are here" in the nav. */
+  pathname?: string
+  /** The nav's Games control (ITUN's Games menu), between Shelves and Starter Set. */
+  games?: ReactNode
+  /** Desktop search trigger, before the account control. */
+  search?: ReactNode
+  /** Phone search icon button, beside the hamburger below `lg`. */
+  mobileSearch?: ReactNode
+  /** Desktop controls at the bar's end — ITUN's account menu or sign-in. */
   actions?: ReactNode
   /** Mobile controls beside the hamburger, below `lg` — ITUN's avatar-only account menu. */
   mobileActions?: ReactNode
@@ -78,27 +74,51 @@ type AppHeaderProps = {
 
 export function AppHeader({
   LinkComponent = 'a',
+  pathname = '',
+  games,
+  search,
+  mobileSearch,
   actions,
   mobileActions,
   drawerExtra,
 }: AppHeaderProps) {
+  const onShelves = pathname === '/'
+  const onStarterSet = pathname.startsWith('/starter')
+
+  const drawerNav: NavDrawerItem[] = [
+    { label: 'Shelves', href: '/', active: onShelves },
+    { label: 'Starter Set', href: '/starter/', active: onStarterSet },
+    { label: 'About', href: '/about', active: pathname.startsWith('/about') },
+    { label: 'Changelog', href: '/changelog', active: pathname.startsWith('/changelog') },
+    { label: 'Discord', href: `${SRD_SITE_URL}/discord/`, external: true },
+    { label: 'Buy the game', href: BUY_HREF, external: true },
+  ]
+
   return (
     <AppBar
-      wordmark="IN THE UNION NOW"
-      badge="Beta"
-      eyebrow="A Salvage Union Character Manager"
-      brandShrink
+      product="build"
+      referenceHref={SRD_SITE_URL}
+      buildHref="/"
+      density="compact"
       LinkComponent={LinkComponent}
-      navItems={DESKTOP_NAV}
-      buyHref="https://leyline.press/collections/salvage-union"
-      buyLabel="Buy the game"
+      navItems={[
+        { label: 'Shelves', href: '/', active: onShelves },
+        ...(games ? [{ id: 'games', node: games }] : []),
+        { label: 'Starter Set', href: '/starter/', active: onStarterSet },
+      ]}
+      secondaryItems={[
+        { label: 'About', href: '/about', active: pathname.startsWith('/about') },
+        { label: 'Changelog', href: '/changelog', active: pathname.startsWith('/changelog') },
+      ]}
+      search={search}
       actions={actions}
       mobile={
         <>
+          {mobileSearch}
           {mobileActions}
           <NavDrawer
             brand={ITUN_DRAWER_BRAND}
-            navItems={DRAWER_NAV}
+            navItems={drawerNav}
             extra={drawerExtra}
             LinkComponent={LinkComponent}
             triggerClassName="p-1.5"
