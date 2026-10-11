@@ -57,18 +57,26 @@ const PILL = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
+/**
+ * On a header-only line the name wins: when the line runs short the stamp
+ * gives way first, down to an ellipsis, and the name keeps its natural width.
+ * The name truncates only once the stamp has nothing left to give.
+ */
 const STAMP = {
   backgroundColor: tokens.color.ink,
   color: tokens.color.paper,
-  flex: 'none',
+  flex: '0 1 auto',
   fontSize: tokens.fontSize.badge,
   letterSpacing: tokens.tracking.capsSnug,
+  minWidth: 0,
+  overflow: 'hidden',
   padding: `1px ${tokens.space[4]}`,
+  textOverflow: 'ellipsis',
 } satisfies CSSProperties
 
 const NAME = {
-  flex: '1 1 auto',
-  minWidth: 0,
+  flex: 'none',
+  maxWidth: '100%',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
 } satisfies CSSProperties
