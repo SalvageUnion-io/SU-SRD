@@ -68,6 +68,17 @@ describe('resolveCatalogChoiceEntities — shortlist catalog', () => {
     expect(names).toEqual(['ballistic', 'energy'])
   })
 
+  test('matches shortlist names without case, as the data writes traits in Title Case', () => {
+    const titleCase: SURefObjectChoice = {
+      ...shortlistChoice,
+      source: { kind: 'catalog', schema: ['traits'], entities: ['Ballistic', 'Energy'] },
+    }
+    const names = resolveCatalogChoiceEntities(titleCase)
+      .map((e) => e.name)
+      .sort()
+    expect(names).toEqual(['ballistic', 'energy'])
+  })
+
   test('is NOT a schema-only catalog (renders as an option grid)', () => {
     expect(isSchemaOnlyCatalogChoice(shortlistChoice)).toBe(false)
   })
