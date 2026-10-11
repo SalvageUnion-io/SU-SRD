@@ -140,9 +140,12 @@
   flex-direction: column;
   gap: 5px;
 }
+/* Two a row while each button keeps room for a spelled-out label (board D1:
+   TAKE DAMAGE, HEAT CHECK); a bay too narrow for two stacks them, rather
+   than a label running past the bay's edge. */
 .pc-btn-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(max(104px, calc(50% - 2px)), 1fr));
   gap: 4px;
   margin-top: auto;
   grid-auto-rows: 27px;

@@ -124,7 +124,7 @@ function pilotMajor(pilot: Pilot, crawler: Crawler | null): MajorModel {
         label: 'Vitals',
         gauges: pilotVitals(pilot, crawler).gauges,
         lines: injuryLines(pilot).map((text) => ({ text, warn: true })),
-        buttons: [btn('Take Dmg'), btn('Crit Injury', 'danger')],
+        buttons: [btn('Take Damage'), btn('Crit Injury', 'danger')],
       },
       { label: 'Kit', chips: [{ text: 'Salvaging Tools' }, { text: 'Pistol' }], buttons: [] },
       { label: 'Abilities', chips: pilot.abilities.map((text) => ({ text })), buttons: [] },
@@ -158,7 +158,6 @@ function mechMajor(mech: Mech, pilot: Pilot, boarded: boolean): MajorModel {
     bays: [
       {
         label: 'Reactor',
-        columns: 4,
         large: true,
         gauges: [
           {
@@ -170,7 +169,7 @@ function mechMajor(mech: Mech, pilot: Pilot, boarded: boolean): MajorModel {
           },
           { label: 'EP', value: s.ep, max: s.maxEP, tone: 'mech' },
         ],
-        buttons: [btn('Push', 'go'), btn('Heat Chk', 'go'), btn('Vent', 'go'), btn('Shutdn')],
+        buttons: [btn('Push', 'go'), btn('Heat Check', 'go'), btn('Vent', 'go'), btn('Shut Down')],
       },
       {
         label: 'Chassis',
@@ -179,7 +178,7 @@ function mechMajor(mech: Mech, pilot: Pilot, boarded: boolean): MajorModel {
           { label: 'SP', value: s.sp, max: s.maxSP, tone: 'mech' },
           { label: 'Cargo', value: s.cargo, max: s.maxCargo, tone: 'mech' },
         ],
-        buttons: [btn('Take Dmg'), btn('Storage')],
+        buttons: [btn('Take Damage'), btn('Storage')],
       },
       ...(boarded ? rider : []),
     ],

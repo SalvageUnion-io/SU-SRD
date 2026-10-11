@@ -72,7 +72,7 @@ describe('Major slot rules buttons', () => {
     expect(calls[0]?.patch).toEqual({ currentHeat: 0, vulnerable: true })
   })
 
-  test('Shutdn toggles the shutdown flag', () => {
+  test('Shut Down toggles the shutdown flag', () => {
     const { store, calls } = stubStore([mech])
     render(
       <SlotRow
@@ -84,11 +84,11 @@ describe('Major slot rules buttons', () => {
         store={store}
       />
     )
-    fireEvent.click(screen.getByText('Shutdn'))
+    fireEvent.click(screen.getByText('Shut Down'))
     expect(calls[0]?.patch).toEqual({ shutdown: true })
   })
 
-  test('Take Dmg applies the entered SP damage', async () => {
+  test('Take Damage applies the entered SP damage', async () => {
     const { store, calls } = stubStore([mech])
     render(
       <SlotRow
@@ -100,7 +100,7 @@ describe('Major slot rules buttons', () => {
         store={store}
       />
     )
-    fireEvent.click(screen.getByText('Take Dmg'))
+    fireEvent.click(screen.getByText('Take Damage'))
     // Bump damage 1 → 3, then apply.
     fireEvent.click(screen.getByLabelText('Add one damage point'))
     fireEvent.click(screen.getByLabelText('Add one damage point'))
@@ -108,7 +108,7 @@ describe('Major slot rules buttons', () => {
     expect(calls[0]?.patch).toEqual({ currentSP: 7 })
   })
 
-  test('pilot Take Dmg applies HP damage on foot', async () => {
+  test('pilot Take Damage applies HP damage on foot', async () => {
     const { store, calls } = stubStore([mech, pilot])
     render(
       <SlotRow
@@ -121,7 +121,7 @@ describe('Major slot rules buttons', () => {
         store={store}
       />
     )
-    fireEvent.click(screen.getByText('Take Dmg'))
+    fireEvent.click(screen.getByText('Take Damage'))
     await clickAndSettle(screen.getByText('Apply −1 HP'))
     expect(calls[0]).toEqual({ type: 'pilot', id: 'p1', patch: { currentHP: 9 } })
   })

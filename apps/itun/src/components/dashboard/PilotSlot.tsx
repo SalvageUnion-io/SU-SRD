@@ -258,7 +258,7 @@ export function PilotMajor({
         lines: injuryLines(pilot).map((text) => ({ text, warn: true })),
         buttons: [
           {
-            label: 'Take Dmg',
+            label: 'Take Damage',
             onClick: () => {
               setDmg(1)
               setPrompt({ kind: 'dmg' })

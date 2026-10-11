@@ -441,7 +441,8 @@ export function MechMajor({
     bays: [
       {
         label: 'Reactor',
-        columns: 4,
+        // Two a row (the default): board D1 spells the labels out (HEAT CHECK,
+        // SHUT DOWN), and four to a row cut the fourth off the bay's edge.
         large: true,
         gauges: [
           {
@@ -467,13 +468,13 @@ export function MechMajor({
               : '+2 Heat, then a Heat Check',
           },
           {
-            label: 'Heat Chk',
+            label: 'Heat Check',
             onClick: doHeatCheck,
             variant: 'go',
             title: 'Roll a Heat Check at current Heat',
           },
           { label: 'Vent', onClick: doVent, variant: 'go', title: 'Vent Heat to 0' },
-          { label: 'Shutdn', onClick: doShutdown, title: 'Toggle reactor shutdown' },
+          { label: 'Shut Down', onClick: doShutdown, title: 'Toggle reactor shutdown' },
         ],
       },
       {
@@ -485,7 +486,7 @@ export function MechMajor({
         ],
         buttons: [
           {
-            label: 'Take Dmg',
+            label: 'Take Damage',
             onClick: () => {
               setDmg(1)
               setPrompt({ kind: 'dmg' })
