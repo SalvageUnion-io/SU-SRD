@@ -750,21 +750,50 @@ export const upsertByAppId = mutation({
  * template carries the same body ids, and `byAppId` and `resolveLinkEnd` look
  * an app id up across every Game, so a stamped pre-gen would answer for its
  * namesake in the next Game (boarding a second table's Scrapper found the
- * first's). A row in the write's own Game wins over one elsewhere.
+ * first's).
+ *
+ * `gameId` narrows the search to the write's own Game (`undefined` searches
+ * every container the writer holds rows in).
  */
 async function ownedTemplateRow(
   ctx: MutationCtx,
   userId: Id<'users'>,
   table: OwnedTable,
-  gameId: Id<'games'> | null,
+  gameId: Id<'games'> | null | undefined,
   bodyId: string
 ): Promise<Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'> | null> {
   const owned = (await ctx.db
     .query(table)
-    .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
+    .withIndex('by_owner_game', (q) =>
+      gameId === undefined ? q.eq('ownerId', userId) : q.eq('ownerId', userId).eq('gameId', gameId)
+    )
     .collect()) as Array<Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'>>
-  const seeded = owned.filter((r) => r.appId === undefined && linkIdOf(r) === bodyId)
-  return seeded.find((r) => r.gameId === gameId) ?? seeded[0] ?? null
+  return owned.find((r) => r.appId === undefined && linkIdOf(r) === bodyId) ?? null
+}
+
+/**
+ * The row a write addressed by `appId` lands on.
+ *
+ * The writer's own seeded pre-gen in the write's Game answers first. Only then
+ * is the app id looked up, because rows stamped with a template body id exist
+ * (edits to claimed pre-gens inserted them before `ownedTemplateRow` did), and
+ * `byAppId` searches every account and Game: answering with another player's
+ * stamped row refused the write as theirs, and the writer's own stamped row in
+ * another Game was moved into this one, leaving the seeded row unwritten.
+ *
+ * A stamped row the writer does not own still loses to a seeded row of theirs
+ * elsewhere (a claimed pre-gen moved to the shelf names the shelf).
+ */
+async function writeTarget(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  args: Pick<ObjectType<typeof OWNABLE_WRITE>, 'table' | 'gameId' | 'appId'>
+): Promise<Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'> | null> {
+  const seededHere = await ownedTemplateRow(ctx, userId, args.table, args.gameId, args.appId)
+  if (seededHere !== null) return seededHere
+  const stamped = await byAppId(ctx, args.table, args.appId)
+  if (stamped !== null && stamped.ownerId === userId) return stamped
+  return (await ownedTemplateRow(ctx, userId, args.table, undefined, args.appId)) ?? stamped
 }
 
 /** `upsertByAppId`'s write, shared with `transfer`. */
@@ -778,9 +807,7 @@ async function writeOwnable(
   // A built NPC is owned like a pilot but plays no part in the primary
   // crawler's crew or a seat: it boards nothing and is never auto-assigned.
   const kind = args.table === 'pilots' ? 'pilot' : args.table === 'mechs' ? 'mech' : null
-  const existing =
-    (await byAppId(ctx, args.table, args.appId)) ??
-    (await ownedTemplateRow(ctx, userId, args.table, args.gameId, args.appId))
+  const existing = await writeTarget(ctx, userId, args)
   const updatedAt = Date.now()
   if (existing === null) {
     await assertMayAddToContainer(ctx, args.gameId, userId)

@@ -172,6 +172,87 @@ describe('starter-set template', () => {
     expect(after).toHaveLength(pilots.length)
   })
 
+  // Rows stamped with a template body id as their appId exist: edits to claimed
+  // pre-gens inserted them before writes looked for the seeded row. `byAppId`
+  // finds them in every account and Game, so they must not answer first.
+  test("another player's row stamped with the body id does not block the write", async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'Organizer')
+    const other = await makeUser(t, 'Other')
+    const gameId = await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
+    const seeded = await t.run(async (ctx) => await ctx.db.query('pilots').first())
+    if (!seeded) throw new Error('no pre-gen pilot')
+    const bodyId = (seeded.body as { id: string }).id
+    const stampedId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('pilots', {
+          gameId: null,
+          ownerId: other.userId,
+          appId: bodyId,
+          body: { ...(seeded.body as object), name: 'Theirs' },
+          updatedAt: 1,
+        })
+    )
+    await u.as.mutation(api.ownership.claim, { table: 'pilots', entityId: seeded._id })
+
+    await u.as.mutation(api.entities.upsertByAppId, {
+      table: 'pilots',
+      appId: bodyId,
+      gameId,
+      body: { ...(seeded.body as object), gameId, name: 'Mine' },
+      expectedUpdatedAt: null,
+    })
+
+    const { mine, theirs } = await t.run(async (ctx) => ({
+      mine: await ctx.db.get(seeded._id),
+      theirs: await ctx.db.get(stampedId),
+    }))
+    expect((mine?.body as { name: string } | undefined)?.name).toBe('Mine')
+    expect((theirs?.body as { name: string } | undefined)?.name).toBe('Theirs')
+    expect(theirs?.ownerId).toBe(other.userId)
+  })
+
+  test("the writer's own stamped row in another Game is not moved into this one", async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'Organizer')
+    const gameA = await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
+    const gameB = await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
+    const seededB = await t.run(async (ctx) =>
+      (await ctx.db.query('pilots').collect()).find((p) => p.gameId === gameB)
+    )
+    if (!seededB) throw new Error('no pre-gen pilot in B')
+    const bodyId = (seededB.body as { id: string }).id
+    const legacyId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('pilots', {
+          gameId: gameA,
+          ownerId: u.userId,
+          appId: bodyId,
+          body: { ...(seededB.body as object), gameId: gameA, name: 'Legacy' },
+          updatedAt: 1,
+        })
+    )
+    await u.as.mutation(api.ownership.claim, { table: 'pilots', entityId: seededB._id })
+
+    await u.as.mutation(api.entities.upsertByAppId, {
+      table: 'pilots',
+      appId: bodyId,
+      gameId: gameB,
+      body: { ...(seededB.body as object), gameId: gameB, name: 'In B' },
+      expectedUpdatedAt: null,
+    })
+
+    const { b, legacy } = await t.run(async (ctx) => ({
+      b: await ctx.db.get(seededB._id),
+      legacy: await ctx.db.get(legacyId),
+    }))
+    expect((b?.body as { name: string } | undefined)?.name).toBe('In B')
+    expect(b?.gameId).toBe(gameB)
+    // The legacy row stays where it was, with its body untouched.
+    expect(legacy?.gameId).toBe(gameA)
+    expect((legacy?.body as { name: string } | undefined)?.name).toBe('Legacy')
+  })
+
   test('an anonymous caller cannot create one', async () => {
     const t = testConvex()
     await expect(
