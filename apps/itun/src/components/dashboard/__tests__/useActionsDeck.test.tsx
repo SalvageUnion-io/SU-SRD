@@ -13,7 +13,7 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
 import { useState } from 'react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
@@ -34,6 +34,7 @@ import { itemEconomy, resolveModule, resolveSystem } from '../../sheet/mechItemR
 import { DeckList } from '../DeckList'
 import { buildMechActions, hasCurrencyChoice, hasVariableHot, hotHeatFor } from '../dashboardRules'
 import { PhoneDeck } from '../PhoneDeck'
+import type { ResolveModel } from '../ResolvePanel'
 import { ResolvePanel } from '../ResolvePanel'
 import type { PlayStore } from '../SlotRow'
 import type { ActionsDeckProps } from '../useActionsDeck'
@@ -584,22 +585,25 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
   })
 
   test('Push damages SP from the full pool when SP was never stored', () => {
-    // Leviathan is SP 76 / Heat Cap 18. Starting at Heat 17 every Push clamps to
-    // the cap, so the Heat Check overloads on any d20 except a natural 20 (90%)
-    // and the 11-19 Overheat band (45%) then writes SP — ~40% of pushes. Over 80
-    // pushes at least one SP write is a certainty for any practical purpose.
-    // The damage is Heat-sized, so the expected write is 76 - 18 = 58, never 0.
+    // Leviathan is SP 76 / Heat Cap 18. Starting at Heat 16 every Push lands on
+    // the cap exactly (the last Push the cap allows, Quick Ref p.233; the stub
+    // store never moves the Heat on), so the Heat Check overloads on any d20
+    // except a natural 20 (90%) and the 11-19 Overheat band (45%) then writes
+    // SP — ~40% of pushes. Over 80 pushes at least one SP write is a certainty
+    // for any practical purpose. The damage is Heat-sized, so the expected
+    // write is 76 - 18 = 58, never 0.
     const mech = mechFixture({
       id: 'm1',
       name: 'Rig',
       chassisRef: CHASSIS,
       systems: [costedSystemId],
-      currentHeat: 17,
+      currentHeat: 16,
     })
     expect(mech.currentSP).toBeUndefined()
     const chassis = resolveChassisRef(CHASSIS)
     const spMax = mechMaxSP(mech, chassis)
     const heatAtCheck = mechMaxHeat(mech, chassis)
+    expect(mech.currentHeat).toBe(heatAtCheck - 2)
     expect(spMax).toBeGreaterThan(heatAtCheck)
 
     const { store, calls } = stubStore(mech)
@@ -619,6 +623,73 @@ describe('the Actions deck — unrecorded live stats default to full, not empty'
     // Previously every one of these was Math.max(0, 0 - heat) === 0: an undamaged
     // mech recorded at SP 0, one hit from destroyed.
     for (const v of spWrites) expect(v).toBe(spMax - heatAtCheck)
+  })
+})
+
+/**
+ * Quick Ref p.233: a Push adds 2 Heat, and a mech never exceeds its Heat Cap,
+ * so the resolve refuses a Push that would — as the Reactor bay does
+ * (`MechSlot`), rather than re-rolling and clamping the Heat at the cap.
+ */
+describe('useActionsDeck — Push and the Heat Cap', () => {
+  type Resolving = Extract<ResolveModel, { kind: 'resolve' }>
+
+  /** The hook alone; `seen` holds the resolve model of the latest render. */
+  function Harness({
+    seen,
+    ...props
+  }: Omit<ActionsDeckProps, 'resolving' | 'onResolving'> & {
+    seen: { view: ResolveModel | null }
+  }) {
+    const [resolving, setResolving] = useState<SeatResolving | null>(null)
+    const deck = useActionsDeck({ ...props, resolving, onResolving: setResolving })
+    seen.view = deck.resolve
+    return <DeckList view={deck.list} />
+  }
+
+  /** Open the costed action at `heat` on Leviathan (Heat Cap 18) and roll. */
+  function rolledAt(heat: number) {
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: 'leviathan',
+      systems: [costedSystemId],
+      currentHeat: heat,
+    })
+    expect(mechMaxHeat(mech, resolveChassisRef('leviathan'))).toBe(18)
+    const { store, calls } = stubStore(mech)
+    const seen: { view: ResolveModel | null } = { view: null }
+    const { container } = render(
+      <EntityHrefProvider value={() => undefined}>
+        <Harness mech={mech} range="Close" onRange={ignoreRange} store={store} seen={seen} />
+      </EntityHrefProvider>
+    )
+    clickPrimaryAction(container)
+    const resolve = (): Resolving => {
+      if (seen.view?.kind !== 'resolve') throw new Error('no resolve open')
+      return seen.view
+    }
+    act(() => resolve().controls.onRoll())
+    return { resolve, calls }
+  }
+
+  test('at Heat 17/18 Push is disabled, says why, and writes nothing', () => {
+    const { resolve, calls } = rolledAt(17)
+    const push = resolve().controls.push
+    expect(push?.disabled).toBe(true)
+    expect(push?.lockedReason).toBe('No Push at Heat 17/18: +2 Heat would pass the Heat Cap.')
+    act(() => push?.onPush())
+    expect(calls).toHaveLength(0)
+    expect(resolve().pushLog).toBeNull()
+  })
+
+  test('at Heat 16/18 Push is offered, and lands the Heat on the cap', () => {
+    const { resolve, calls } = rolledAt(16)
+    const push = resolve().controls.push
+    expect(push?.disabled).toBe(false)
+    expect(push?.lockedReason).toBeUndefined()
+    act(() => push?.onPush())
+    expect(calls[0]?.patch.currentHeat).toBe(18)
   })
 })
 

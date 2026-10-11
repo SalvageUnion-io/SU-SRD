@@ -78,6 +78,9 @@ import type { ResolveModel } from './ResolvePanel'
 import type { PlayStore } from './SlotRow'
 import type { MountState } from './useSeat'
 
+/** The Heat a Push adds before its re-roll (Quick Ref p.233). */
+const PUSH_HEAT = 2
+
 export type ActionsDeckProps = {
   /** The boarded mech; on foot, the assigned one or null with none. */
   mech: Mech | null
@@ -286,6 +289,9 @@ export function useActionsDeck({
     const chassis = resolveChassisRef(mech.chassisRef)
     const fresh = s.get('mech', mech.id) ?? mech
     const cap = mechMaxHeat(fresh, chassis)
+    // Quick Ref p.233: no Push that would take Heat past the cap. The control
+    // is disabled for it; this holds the line against a stale render too.
+    if (!canActivateAction(resolveGauge(fresh.currentHeat, cap), PUSH_HEAT, cap)) return
     const {
       patch,
       effect,
@@ -463,6 +469,9 @@ export function useActionsDeck({
     // Core Book p.233: a pushed roll is not pushed again. A new roll clears
     // the Push readout, and with it this.
     const pushed = pushLog !== null
+    // Quick Ref p.233: a Push adds 2 Heat, and a mech never exceeds its Heat
+    // Cap, so it is refused where that would — as the Reactor bay refuses it.
+    const pushLocked = !canActivateAction(heatCtx.currentHeat, PUSH_HEAT, heatCtx.heatCap)
 
     const cost: string[] = []
     if (eco.epCost > 0) cost.push(`${eco.epCost} ${effCurrency}`)
@@ -508,8 +517,11 @@ export function useActionsDeck({
         push: isPilotAction
           ? undefined
           : {
-              disabled: roll === null || pushed,
+              disabled: roll === null || pushed || pushLocked,
               pushed,
+              lockedReason: pushLocked
+                ? `No Push at Heat ${heatCtx.currentHeat}/${heatCtx.heatCap}: +2 Heat would pass the Heat Cap.`
+                : undefined,
               onPush: () => doPush(current, selected),
             },
         applyLabel: applied ? 'Applied' : 'Apply',

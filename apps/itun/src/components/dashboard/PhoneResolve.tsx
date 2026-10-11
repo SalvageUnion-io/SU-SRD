@@ -10,7 +10,9 @@
  *    row, with the whole table one tap away; the Push and Heat Check line.
  *  - **Bottom bar:** only the next step of the `ResolveModel` the canvas's
  *    Resolve tab renders — Activate, then Roll, then Push (mech actions, once
- *    a roll, never past the Heat Cap: Core Book p.233) and Apply, then Done.
+ *    a roll) and Apply, then Done. Push is disabled where +2 Heat would pass
+ *    the Heat Cap (Quick Ref p.233), and the bar says so in words. The screen
+ *    is at least the viewport tall, with the bar at its foot.
  *
  * Back leaves the resolve on the seat, where the crew sees it; the Major's tab
  * then offers to resume it. A meltdown and a Cascade Failure are confirmed in
@@ -71,16 +73,14 @@ const TITLE: CSSProperties = {
 
 const ICON: CSSProperties = { minWidth: '44px', minHeight: '44px' }
 
-/** A fieldset that draws nothing: it only carries `disabled` when read-only. */
-const PLAIN: CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  flex: 1,
-  minWidth: 0,
-  border: 0,
-  margin: 0,
-  padding: 0,
-}
+/**
+ * A fieldset that draws nothing: it only carries `disabled` when read-only.
+ * It lays nothing out either, so the body and the bar are the screen's own
+ * flex items: a fieldset's content box does not stretch to a height the
+ * screen only has as a minimum, and the bar then sat under the content,
+ * mid-screen, instead of at the foot (board D5).
+ */
+const PLAIN: CSSProperties = { display: 'contents' }
 
 const BODY: CSSProperties = {
   display: 'flex',
@@ -129,9 +129,8 @@ const BAR: CSSProperties = {
   position: 'sticky',
   bottom: 0,
   zIndex: 2,
-  display: 'grid',
-  gridAutoColumns: 'minmax(0, 1fr)',
-  gridAutoFlow: 'column',
+  display: 'flex',
+  flexDirection: 'column',
   gap: space[8],
   minInlineSize: 0,
   margin: 0,
@@ -139,6 +138,14 @@ const BAR: CSSProperties = {
   background: color.bandCream,
   border: 0,
   borderTop: `${borderWidth.chrome} solid ${color.ink20}`,
+}
+
+/** The bar's buttons, side by side in equal columns. */
+const STEPS: CSSProperties = {
+  display: 'grid',
+  gridAutoColumns: 'minmax(0, 1fr)',
+  gridAutoFlow: 'column',
+  gap: space[8],
 }
 
 const STEP: CSSProperties = { width: '100%', minHeight: '48px' }
@@ -199,28 +206,32 @@ function NextStep({
     )
   }
   const push = controls.push
+  const offered = push !== undefined && !push.pushed
   return (
     <>
-      {push && !push.pushed && (
+      {offered && push.lockedReason ? <p style={TEXT}>{push.lockedReason}</p> : null}
+      <div style={STEPS}>
+        {offered && (
+          <Button
+            size="full"
+            style={STEP}
+            onClick={push.onPush}
+            disabled={push.disabled}
+            title="Re-roll the d20: +2 Heat, then a Heat Check"
+          >
+            Push · Re-roll +2 Heat
+          </Button>
+        )}
         <Button
+          variant="primary"
           size="full"
           style={STEP}
-          onClick={push.onPush}
-          disabled={push.disabled}
-          title="Re-roll the d20: +2 Heat, then a Heat Check"
+          onClick={onApply}
+          disabled={controls.applyDisabled}
         >
-          Push · Re-roll +2 Heat
+          {`Apply · ${roll.bandLabel}`}
         </Button>
-      )}
-      <Button
-        variant="primary"
-        size="full"
-        style={STEP}
-        onClick={onApply}
-        disabled={controls.applyDisabled}
-      >
-        {`Apply · ${roll.bandLabel}`}
-      </Button>
+      </div>
     </>
   )
 }

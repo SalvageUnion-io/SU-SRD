@@ -445,6 +445,24 @@ describe('PhoneResolve — only the next step (D7)', () => {
     expect(screen.getByText('11–19 · Success')).toBeTruthy()
   })
 
+  test('over the Heat Cap: Push is disabled and the bar says why', () => {
+    const reason = 'No Push at Heat 7/8: +2 Heat would pass the Heat Cap.'
+    renderResolve(
+      resolveModel(
+        { roll: ROLLED },
+        {
+          activated: true,
+          applyDisabled: false,
+          push: { disabled: true, pushed: false, onPush: noop, lockedReason: reason },
+        }
+      )
+    )
+    const step = within(screen.getByRole('group', { name: 'Next step' }))
+    expect(step.getByText(reason)).toBeTruthy()
+    const push = step.getByRole('button', { name: 'Push · Re-roll +2 Heat' })
+    expect((push as HTMLButtonElement).disabled).toBe(true)
+  })
+
   test('pushed, or a pilot action: Apply alone', () => {
     const { unmount } = renderResolve(
       resolveModel(

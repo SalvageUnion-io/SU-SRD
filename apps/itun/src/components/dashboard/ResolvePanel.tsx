@@ -53,9 +53,16 @@ export type ResolveModel =
         onRoll: () => void
         /**
          * Mech actions only (pilots cannot Push, Core Book p.233). Disabled
-         * before a roll and once this roll is pushed.
+         * before a roll, once this roll is pushed, and where +2 Heat would
+         * pass the Heat Cap (Quick Ref p.233).
          */
-        push?: { disabled: boolean; pushed: boolean; onPush: () => void }
+        push?: {
+          disabled: boolean
+          pushed: boolean
+          onPush: () => void
+          /** Why Push is refused at this Heat, or undefined when it is not. */
+          lockedReason?: string
+        }
         /** The activation is paid (or the action needs none paid). */
         activated: boolean
         applyLabel: string
@@ -226,7 +233,7 @@ export function ResolvePanel({ view }: { view: ResolveModel }) {
               style={GROW}
               onClick={controls.push.onPush}
               disabled={controls.push.disabled}
-              title="Reroll the d20, +2 Heat, forcing a Heat Check"
+              title={controls.push.lockedReason ?? 'Reroll the d20, +2 Heat, forcing a Heat Check'}
             >
               Push
             </Button>
