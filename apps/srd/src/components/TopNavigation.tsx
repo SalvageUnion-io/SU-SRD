@@ -23,9 +23,19 @@ type TopNavigationProps = {
   breadcrumbs?: BreadcrumbItem[]
   /** Optional descriptive tail rendered after the trail (e.g. a schema description) */
   breadcrumbDescription?: string
+  /**
+   * The page carries its own search (the home page's Contents band, board 06),
+   * so the bar's desktop field would be a second copy. The phone's search
+   * trigger stays: below `lg` the band's field sits under the fold of the bar.
+   */
+  pageHasSearch?: boolean
 }
 
-export function TopNavigation({ breadcrumbs, breadcrumbDescription }: TopNavigationProps) {
+export function TopNavigation({
+  breadcrumbs,
+  breadcrumbDescription,
+  pageHasSearch = false,
+}: TopNavigationProps) {
   return (
     <SiteHeader
       itunUrl={ITUN_URL}
@@ -34,7 +44,7 @@ export function TopNavigation({ breadcrumbs, breadcrumbDescription }: TopNavigat
       // Cross-document view transitions (`@view-transition { navigation: auto }`)
       // match on this name.
       viewTransitionName="nav"
-      search={<Island name="SearchIsland" client="idle" />}
+      search={pageHasSearch ? undefined : <Island name="SearchIsland" client="idle" />}
       mobile={
         <>
           <Island name="MobileSearchIsland" client="idle" />

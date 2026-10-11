@@ -19,9 +19,13 @@ for (const schema of entitySchemas) {
     for (const entity of entities) {
       const entityName = getName(entity) ?? entity.id
 
-      it(`renders "${entityName}"`, () => {
+      // The island is the body of the entity's page (`presentation="page"`):
+      // its title is the page's chapter band, outside the island
+      // (`EntityPageFrame`), so what it must render is the page body.
+      it(`renders "${entityName}" as its page's body`, () => {
         const { container } = render(<ReferenceEntityIsland item={entity} />)
-        expect(container.textContent).toContain(entityName)
+        expect(container.querySelector('.su-entity-page')).not.toBeNull()
+        expect(container.textContent?.trim().length ?? 0).toBeGreaterThan(0)
       })
     }
 

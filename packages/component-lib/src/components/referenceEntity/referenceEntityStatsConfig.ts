@@ -35,6 +35,12 @@ type StatConfig = {
    * Heat, Cargo).
    */
   shortLabel?: string
+  /**
+   * The stat as the Workshop Manual's stat column prints it (ruleset, "The
+   * source": the framed numeral + ink stamp) — "Structure Pts.", "Heat Cap.".
+   * The entity page's `StatColumn` reads it; cards keep their own labels.
+   */
+  bookLabel: string
   /** Tooltip text explaining what this stat represents */
   tooltip?: string
   /** When true, this stat is shown even when primaryOnly filtering is active */
@@ -48,12 +54,14 @@ type StatConfig = {
 const ENTITY_STATS_CONFIG: StatConfig[] = [
   {
     getter: getSlotsRequired,
+    bookLabel: 'Slots Required',
     normalLabel: 'Slots',
     normalBottomLabel: 'Required',
     tooltip: 'The number of slots required to install this System or Module on a Mech.',
   },
   {
     getter: getStructurePoints,
+    bookLabel: 'Structure Pts.',
     normalLabel: 'Structure',
     normalBottomLabel: 'Points',
     shortLabel: 'SP',
@@ -63,6 +71,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
   },
   {
     getter: getHitPoints,
+    bookLabel: 'Hit Pts.',
     normalLabel: 'Hit',
     normalBottomLabel: 'Points',
     shortLabel: 'HP',
@@ -71,6 +80,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
   },
   {
     getter: getEnergyPoints,
+    bookLabel: 'Energy Pts.',
     normalLabel: 'Energy',
     normalBottomLabel: 'Points',
     shortLabel: 'EP',
@@ -80,6 +90,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
   },
   {
     getter: getSalvageValue,
+    bookLabel: 'Salvage Value',
     normalLabel: 'Salvage',
     normalBottomLabel: 'Value',
     shortLabel: 'SV',
@@ -89,6 +100,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
   },
   {
     getter: getBioSalvageValue,
+    bookLabel: 'Bio-Salvage Value',
     normalLabel: 'Bio',
     normalBottomLabel: 'SV',
     tooltip:
@@ -97,6 +109,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
   },
   {
     getter: getSystemSlots,
+    bookLabel: 'System Slots',
     normalLabel: 'System',
     normalBottomLabel: 'Slots',
     shortLabel: 'SYS',
@@ -105,6 +118,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
   },
   {
     getter: getModuleSlots,
+    bookLabel: 'Module Slots',
     normalLabel: 'Module',
     normalBottomLabel: 'Slots',
     shortLabel: 'MODS',
@@ -113,6 +127,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
   },
   {
     getter: getCargoCapacity,
+    bookLabel: 'Cargo Cap.',
     normalLabel: 'Cargo',
     normalBottomLabel: 'Capacity',
     tooltip:
@@ -120,6 +135,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
   },
   {
     getter: getHeatCapacity,
+    bookLabel: 'Heat Cap.',
     normalLabel: 'Heat',
     normalBottomLabel: 'Capacity',
     tooltip:
@@ -134,6 +150,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
   // tech level rendered with nothing but its name, TL and SP.
   {
     getter: getUpkeepCost,
+    bookLabel: 'Upkeep Cost',
     normalLabel: 'Upkeep',
     normalBottomLabel: 'Cost',
     tooltip:
@@ -141,6 +158,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
   },
   {
     getter: getUpgradeCost,
+    bookLabel: 'Upgrade Cost',
     normalLabel: 'Upgrade',
     normalBottomLabel: 'Cost',
     tooltip:
@@ -223,4 +241,69 @@ export function buildReferenceEntityStats(
   }
 
   return items
+}
+
+/** One cell of the book's stat column: `14 | STRUCTURE PTS.` */
+export type BookStat = {
+  key: string
+  label: string
+  value: string
+  hoverText?: string
+}
+
+/**
+ * The book's stat column order (ruleset, "The source"): STRUCTURE PTS., ENERGY
+ * PTS., HEAT CAP., SYSTEM SLOTS, MODULE SLOTS, CARGO CAP., TECH LEVEL, SALVAGE
+ * VALUE. The stats the manual's chassis spread does not print (a System's
+ * slots, an NPC's HP, a crawler's upkeep) take their places around it.
+ */
+const BOOK_ORDER: StatConfig['getter'][] = [
+  getSlotsRequired,
+  getStructurePoints,
+  getHitPoints,
+  getEnergyPoints,
+  getHeatCapacity,
+  getSystemSlots,
+  getModuleSlots,
+  getCargoCapacity,
+  // TECH LEVEL sits here, between CARGO CAP. and SALVAGE VALUE.
+  getSalvageValue,
+  getBioSalvageValue,
+  getUpkeepCost,
+  getUpgradeCost,
+]
+
+const TECH_LEVEL_INDEX = BOOK_ORDER.indexOf(getSalvageValue)
+
+/**
+ * The entity page's stat column: every stat the entity carries, in the book's
+ * order and the book's own words. Built from the same config as the card's
+ * header cells, so the two can never disagree on a value — only on how much
+ * room the label gets. Zero and absent stats are dropped, as on the card.
+ */
+export function buildBookStats(
+  data: SURefMetaEntity,
+  options: { techLevel?: number | 'B' | 'N'; schemaName?: SURefEnumSchemaName }
+): BookStat[] {
+  const { techLevel, schemaName } = options
+  const isBioTechLevel = techLevel === 'B'
+  const out: BookStat[] = []
+  BOOK_ORDER.forEach((getter, index) => {
+    if (index === TECH_LEVEL_INDEX && techLevel != null) {
+      out.push({ key: 'tech-level', label: 'Tech Level', value: String(techLevel) })
+    }
+    const config = ENTITY_STATS_CONFIG.find((c) => c.getter === getter)
+    if (!config) return
+    let value = getter(data)
+    // Bio-Titans: bio-salvage equals Structure Points (see buildReferenceEntityStats).
+    if (value === undefined && getter === getBioSalvageValue && schemaName === 'bio-titans') {
+      value = getStructurePoints(data)
+    }
+    const display = applyStatLabel(value)
+    if (display === undefined) return
+    const label =
+      getter === getSalvageValue && isBioTechLevel ? 'Bio-Salvage Value' : config.bookLabel
+    out.push({ key: `book-${config.bookLabel}`, label, value: display, hoverText: config.tooltip })
+  })
+  return out
 }

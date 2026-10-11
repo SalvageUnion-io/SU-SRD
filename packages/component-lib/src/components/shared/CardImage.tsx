@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { CARD_IMAGE_CONTAINER_WIDTH, cardImageSizes } from './cardImageSizes'
+import { CARD_IMAGE_CONTAINER_WIDTH, cardImageSizes, heroImageSizes } from './cardImageSizes'
 
 type CardImageProps = {
   url?: string
@@ -22,6 +22,13 @@ type CardImageProps = {
    * width beneath — see `ReferenceEntityCard`'s aside lead.
    */
   aside?: boolean
+  /**
+   * HERO mode: the entity page's line art (board 07) — the full width of its
+   * column, eagerly loaded because it is the page's largest paint, on a paper
+   * plate with a hairline frame. Its `sizes` is `heroImageSizes`, which the
+   * page's preload must repeat.
+   */
+  hero?: boolean
 }
 
 /**
@@ -31,7 +38,7 @@ type CardImageProps = {
  * one. When one does, it arrives as a deliberate design whose destructive
  * action uses the danger tone, never an ONTOLOGY hue (ruleset §3.3).
  */
-export function CardImage({ url, srcSet, alt, compact, aside }: CardImageProps) {
+export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageProps) {
   const [showImage, setShowImage] = useState(true)
   // The fade-in is a CLIENT-ONLY enhancement, so it starts already-`loaded` on
   // the server. On srd an entity card is rendered by the ZERO-JS static path
@@ -75,6 +82,25 @@ export function CardImage({ url, srcSet, alt, compact, aside }: CardImageProps) 
   const containerWidth = compact
     ? CARD_IMAGE_CONTAINER_WIDTH.compact
     : CARD_IMAGE_CONTAINER_WIDTH.normal
+
+  if (hero) {
+    return (
+      <figure className="su-entity-hero">
+        <img
+          ref={imgRef}
+          src={url}
+          srcSet={srcSet}
+          sizes={srcSet ? heroImageSizes() : undefined}
+          alt={alt}
+          className="su-entity-hero__img"
+          style={{ opacity: loaded ? 1 : 0 }}
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => setShowImage(false)}
+        />
+      </figure>
+    )
+  }
 
   return (
     <div

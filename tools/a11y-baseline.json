@@ -1,10 +1,9 @@
 {
   "$rationale": {
-    "color-contrast": "ACCEPTED DEBT on `/` only: the landing page's quick-link tiles (`CatalogTile`, default variant). Each tile name is 15px `text-paper` on its section's catalog colour with `[text-shadow:0_1px_2px_var(--color-ink-75)]`, and axe measures the text against the shadow colour rather than the tile fill: 'Create a Pilot' at 3.71:1 and 'Safety Protocols' at 4.37:1, where AA wants 4.5:1. Clearing it means changing the tile's fill or its text treatment, a visible design call on the landing page that is out of scope for the change that made card bands pick their text by contrast.",
     "why-a-baseline-at-all": "Every finding in the 2026-08 audit — a 1.42:1 focus ring, no skip link, one heading per page, 96 roll tables rendering nothing without JS — was invisible to CI, because this scan ran nightly with `continue-on-error: true` and was excluded from the notify job's `needs:`. Nothing could ever turn red. Fixing those without closing that gap just resets the clock, so the scan now blocks on anything NOT listed here."
   },
   "pages": {
-    "/": ["color-contrast"],
+    "/": [],
     "/about/": [],
     "/api/": [],
     "/discord/": [],

@@ -63,6 +63,11 @@ const SINGLE_APP: Readonly<Record<string, string>> = {
     "the `ReferenceEntityControl` preset for the card shells' `controls` overlay, carrying the library's detail icon",
   useChassisPatternConfig:
     'entity display system: returns the generic override props a chassis pattern hands `ReferenceEntityCard`',
+  resolveEntityPageMeta:
+    'entity display system: what an entity page\'s chapter band and foot band say, resolved from the card\'s own seam, header and footer helpers (`presentation="page"`)',
+  EntityPageMeta: 'the shape `resolveEntityPageMeta` returns',
+  buildCatalogSections:
+    "binds the library's catalog categories and tile colours (`catalogColors`) to the reference ORM, for ITUN's SRD Explorer",
 }
 
 export type BarrelExport = { name: string; module: string }

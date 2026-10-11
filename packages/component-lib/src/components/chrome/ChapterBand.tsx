@@ -1,5 +1,7 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { color, font, space, weight } from '../../design/tokens'
+import type { ChapterTone } from './chapterBandColor'
+import { CHAPTER_BAND_COLOR } from './chapterBandColor'
 import { Speckle } from './Speckle'
 import { USER_MADE_HATCH } from './userMadeHatch'
 
@@ -43,7 +45,7 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * title is framed in dashes. Canon pages never set it.
  */
 
-export type ChapterTone = 'rules' | 'pilot' | 'mech' | 'crawler' | 'denizen'
+export type { ChapterTone } from './chapterBandColor'
 
 export type ChapterBandProps = {
   /** The page title. */
@@ -73,14 +75,6 @@ export type ChapterBandProps = {
    * notched title. For a player's page that could pass for the book.
    */
   userMade?: boolean
-}
-
-const BAND: Record<ChapterTone, string> = {
-  rules: color.wkLine,
-  pilot: color.pilot,
-  mech: color.mech,
-  crawler: color.crawler,
-  denizen: color.denizenBand,
 }
 
 const ROOT = {
@@ -151,7 +145,7 @@ export function ChapterBand({
       data-user-made={userMade || undefined}
       style={{
         ...ROOT,
-        backgroundColor: BAND[tone],
+        backgroundColor: CHAPTER_BAND_COLOR[tone],
         ...(userMade ? { backgroundImage: USER_MADE_HATCH } : {}),
       }}
     >

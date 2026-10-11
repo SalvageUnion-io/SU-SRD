@@ -1,21 +1,8 @@
-import type { NavDrawerItem } from 'component-lib'
+import type { NavDrawerCategory, NavDrawerItem } from 'component-lib'
 import { Badge, NavDrawer } from 'component-lib'
 import { NAV_CATALOG } from '../../generated/navCatalog'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import { SearchIsland } from './SearchIsland'
-
-type SchemaLink = {
-  id: string
-  displayName: string
-  catalogBg: string
-  catalogLabel?: string
-  href?: string
-}
-
-type SchemaCategory = {
-  label: string
-  schemas: SchemaLink[]
-}
 
 /**
  * Both props are optional and neither is passed by the SSG.
@@ -31,7 +18,7 @@ type SchemaCategory = {
  * `location` read. Nothing in the SSG does.
  */
 type MobileNavIslandProps = {
-  categories?: SchemaCategory[]
+  categories?: readonly NavDrawerCategory[]
   currentPath?: string
 }
 
@@ -75,7 +62,7 @@ function MobileNavIslandBody({ categories, currentPath }: MobileNavIslandProps) 
   // this island's chunk (~13 KB of source, one shared copy). Instant, no ORM,
   // no preload, nothing per-page. This is what DESIGN.md meant by "islands
   // import their own static data in their own chunk".
-  const resolvedCategories = categories ?? (NAV_CATALOG as unknown as SchemaCategory[])
+  const resolvedCategories = categories ?? NAV_CATALOG
   const path = currentPath ?? (typeof location === 'undefined' ? '/' : location.pathname)
   const isActive = (candidate: string) => path.startsWith(candidate)
 
@@ -94,7 +81,7 @@ function MobileNavIslandBody({ categories, currentPath }: MobileNavIslandProps) 
   return (
     <NavDrawer
       brand={SRD_BRAND}
-      categories={resolvedCategories}
+      categories={[...resolvedCategories]}
       search={<SearchIsland />}
       navItems={navItems}
     />

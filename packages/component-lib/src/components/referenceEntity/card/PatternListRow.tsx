@@ -1,9 +1,13 @@
+import { ChevronRight } from 'lucide-react'
+import type { ElementType } from 'react'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { normalizePatternName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { cn } from '../../../utils/cn'
 import { FOCUS_RING } from '../../chrome/interaction'
+import { Slab } from '../../chrome/Slab'
 import { usePatternHref } from '../entityHrefContext'
+import { firstParagraphText } from './firstParagraphText'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
@@ -91,5 +95,105 @@ export function PatternList({
         />
       ))}
     </div>
+  )
+}
+
+/**
+ * PAGE view — one pattern as a full-width link row (boards 07, 08): the
+ * pattern's quoted name, its first paragraph and an arrow, with no underline.
+ * The row is the link, so the whole width opens the pattern's page.
+ */
+function PatternLinkRow({
+  chassis,
+  chassisName,
+  pattern,
+}: {
+  chassis: ReferenceCardEntity
+  chassisName: string
+  pattern: SURefObjectPattern
+}) {
+  const href = usePatternHref(chassis as SURefEntity, pattern)
+  const name = normalizePatternName(pattern.name)
+  const description = firstParagraphText(pattern.content)
+  const body = (
+    <>
+      <span className="su-pattern-rows__name">“{name}”</span>
+      {description && <span className="su-pattern-rows__desc">{description}</span>}
+      {href && (
+        <ChevronRight
+          size={18}
+          strokeWidth={2.5}
+          aria-hidden="true"
+          className="su-pattern-rows__arrow"
+        />
+      )}
+    </>
+  )
+  return (
+    <li className="su-pattern-rows__item">
+      {href ? (
+        <a
+          href={href}
+          aria-label={`${name} — ${chassisName} pattern`}
+          className={cn('su-pattern-rows__row', FOCUS_RING)}
+        >
+          {body}
+        </a>
+      ) : (
+        <div className="su-pattern-rows__row">{body}</div>
+      )}
+    </li>
+  )
+}
+
+/** How many patterns a phone shows before "Show all N patterns". */
+const PATTERNS_ON_A_PHONE = 2
+
+/**
+ * PAGE view — a basic chassis's patterns under an ink section stamp with its
+ * count (boards 07, 08). A phone shows the first two and a "Show all" link;
+ * the link targets the list (`#patterns`) and `:target` opens the rest, so
+ * the reveal ships no JavaScript and the static page stays static.
+ */
+export function PatternLinkRows({
+  chassis,
+  chassisName,
+  patterns,
+  sectionAs,
+}: {
+  chassis: ReferenceCardEntity
+  chassisName: string
+  patterns: SURefObjectPattern[]
+  /** A real heading on the page (`sectionHeadingLevel`). */
+  sectionAs?: ElementType
+}) {
+  if (patterns.length === 0) return null
+  const count = patterns.length
+  return (
+    <section id="patterns" className="su-pattern-rows">
+      <Slab
+        as={sectionAs}
+        variant="solid"
+        label="Patterns"
+        count={`${count} ${count === 1 ? 'pattern' : 'patterns'}`}
+      />
+      <div className="su-pattern-rows__frame">
+        <ul className="su-pattern-rows__list">
+          {patterns.map((pat) => (
+            <PatternLinkRow
+              key={pat.name}
+              chassis={chassis}
+              chassisName={chassisName}
+              pattern={pat}
+            />
+          ))}
+        </ul>
+        {count > PATTERNS_ON_A_PHONE && (
+          <a href="#patterns" className={cn('su-pattern-rows__more', FOCUS_RING)}>
+            Show all {count} patterns
+          </a>
+        )}
+      </div>
+    </section>
   )
 }

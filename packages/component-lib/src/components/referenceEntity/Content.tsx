@@ -317,6 +317,7 @@ function ContentBlock({
         <Text
           variant="flavor"
           as="div"
+          data-prose="flavor"
           className={cn('mb-1', fontSize)}
           style={{ overflowWrap: 'break-word' }}
         >
