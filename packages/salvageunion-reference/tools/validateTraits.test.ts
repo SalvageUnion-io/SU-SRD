@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   collectTraitTypes,
+  findDeadInlineTraitLinks,
   findTraitCasingIssues,
   findTraitIssues,
   findUnknownTraitTypes,
@@ -217,5 +218,59 @@ describe('findTraitIssues (live data)', () => {
   test('real data has no unknown-trait-type issues', () => {
     const issues = findTraitIssues(filesByName).filter((i) => i.kind === 'unknown-trait-type')
     expect(issues).toEqual([])
+  })
+})
+
+describe('findDeadInlineTraitLinks', () => {
+  const traits = { 'traits.json': [{ name: 'hot' }, { name: 'shield' }] }
+
+  it('accepts simple and parameterised links to a trait, in any case and at any depth', () => {
+    const files = {
+      ...traits,
+      'actions.json': [
+        {
+          name: 'A',
+          content: [{ type: 'paragraph', value: 'Gains [[Shield]] and [[[Hot] (3)]].' }],
+        },
+      ],
+    }
+    expect(findDeadInlineTraitLinks(files)).toEqual([])
+  })
+
+  it('resolves exactly as the web renderer does: case-folded, not trimmed', () => {
+    const files = {
+      ...traits,
+      'actions.json': [{ name: 'A', content: [{ value: 'Has [[ Hot ]].' }] }],
+    }
+    expect(findDeadInlineTraitLinks(files).map((i) => i.kind)).toEqual(['dead-inline-trait'])
+  })
+
+  it('flags unreadable [[ markup and an article before the chassis token', () => {
+    const files = {
+      ...traits,
+      'actions.json': [
+        { name: 'Broken', content: [{ value: 'Gains [[Shield] here.' }] },
+        { name: 'Fast', content: [{ value: 'The [(CHASSIS)] can move.' }] },
+        { name: 'Ok', content: [{ value: '[(CHASSIS)] can move; [[Shield]] and [[[Hot] (2)]].' }] },
+      ],
+    }
+    expect(findDeadInlineTraitLinks(files).map((i) => [i.entity, i.kind])).toEqual([
+      ['Broken', 'inline-markup'],
+      ['Fast', 'inline-markup'],
+    ])
+  })
+
+  it('flags a link that names no trait, wherever the string sits', () => {
+    const files = {
+      ...traits,
+      'equipment.json': [
+        { name: 'Holo', choices: [{ content: [{ value: 'an A.I. [[Personality]] Trait' }] }] },
+      ],
+      'actions.json': [{ name: 'Fast', content: [{ value: '[[CHASSIS]] can move' }] }],
+    }
+    expect(findDeadInlineTraitLinks(files).map((i) => [i.file, i.entity, i.kind])).toEqual([
+      ['equipment.json', 'Holo', 'dead-inline-trait'],
+      ['actions.json', 'Fast', 'dead-inline-trait'],
+    ])
   })
 })
