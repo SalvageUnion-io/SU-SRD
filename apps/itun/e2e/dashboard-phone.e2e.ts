@@ -22,10 +22,16 @@ import { expect, test } from './fixtures'
  * ## The dice
  *
  * Every die is Randsum's, which turns one `Math.random()` draw into a face
- * (`Math.floor(r * sides) + 1`). The init script answers every draw with
+ * (`Math.floor(r * sides) + 1`). Once the table is set up, every draw answers
  * 13/20, so every d20 lands on 14: a Success on the Core Mechanic, and a safe
  * Heat Check at any Heat below 14. Any other `Math.random` caller sees the
  * same constant; `crypto` is left alone.
+ *
+ * The seed goes in after setup, never as an init script: the Convex client
+ * draws its session id from `Math.random()` when the page loads, and the
+ * server replays a mutation it has already seen from a session id. With every
+ * browser on one constant id, `createGame` answered with another account's
+ * Game, and the Appoint button never came.
  *
  * ## Viewport
  *
@@ -129,8 +135,10 @@ async function setUpTable(page: Page): Promise<void> {
 for (const phone of PHONES) {
   test(`a boarded turn on a ${phone.width}×${phone.height} phone`, async ({ page }) => {
     test.slow()
-    await page.addInitScript(seedDice)
     await setUpTable(page)
+    // After the Convex client has its session id; Launch below is a client
+    // navigation, so the seed holds for the whole turn.
+    await page.evaluate(seedDice)
 
     await page.setViewportSize(phone)
     await page.getByRole('button', { name: 'Launch Dashboard' }).click()
