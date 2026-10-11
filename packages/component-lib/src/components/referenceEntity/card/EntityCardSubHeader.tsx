@@ -32,6 +32,11 @@ type EntityCardSubHeaderProps = {
   /** A node leading the line — the "Suggested" stamp on a recommended pick. */
   leading?: ReactNode
   size: CardSize
+  /**
+   * In the compact card's body the line runs on after the value cells, so it
+   * carries no padding of its own and takes the room they leave.
+   */
+  flush?: boolean
 }
 
 /** Padding by size: the line sits a few pixels above the body (board E1). */
@@ -56,7 +61,12 @@ const TYPE: Record<CardSize, string> = {
  * description so the two read as one block. (It replaced the darker tone
  * band the sub-header used to be.)
  */
-export function EntityCardSubHeader({ cells, leading, size }: EntityCardSubHeaderProps) {
+export function EntityCardSubHeader({
+  cells,
+  leading,
+  size,
+  flush = false,
+}: EntityCardSubHeaderProps) {
   if (!leading && cells.length === 0) return null
 
   // Each cell's `label value` pairing is punctuated by kind:
@@ -104,7 +114,7 @@ export function EntityCardSubHeader({ cells, leading, size }: EntityCardSubHeade
     fontStyle: 'italic',
     gap: space[6],
     lineHeight: 1.35,
-    padding: PAD[size],
+    ...(flush ? { flex: '1 1 12rem', minWidth: 0 } : { padding: PAD[size] }),
   }
 
   return (

@@ -183,7 +183,6 @@ export type { StatState, StatTone } from './components/shared/Stat'
 export { Stat } from './components/shared/Stat'
 /** The `statsOverride` element type — public because the prop that takes it is. */
 export type { StatItem } from './components/shared/statsBarTypes'
-export { TECH_LEVEL_STYLES, techLevelLabel } from './components/shared/techLevelStyles'
 export type { SearchComboboxResult } from './components/shared/useSearchCombobox'
 export { useSearchCombobox } from './components/shared/useSearchCombobox'
 // Skeletons

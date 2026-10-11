@@ -113,6 +113,12 @@ export type ReferenceEntityCardProps = {
    * uses the drone's own loadout; a pattern uses its pattern-specific config).
    * Rendered as listings INSIDE this drone card, never at the parent level. */
   droneLoadout?: { systems: SURefEntity[]; modules: SURefEntity[] }
+  /**
+   * The compact card (`extent="head"`) keeps its art column, empty, when this
+   * entity has no artwork — a listing where some entities have art, so every
+   * name starts in the same place.
+   */
+  artSlot?: boolean
 
   // ─── WRITE LAYER (all additive — absent ⇒ read-only is byte-identical) ───
   /** Render guards that SUBTRACT already-rendered sections. */
@@ -231,6 +237,17 @@ export type ReferenceEntityCardHideConfig = {
   footer?: boolean
   /** Suppress the entity's artwork (a preview that has none to show). */
   image?: boolean
+  /**
+   * Suppress the seam's type stamp and classification pills — a listing of one
+   * kind, whose page already names it. A seal, the User-made stamp and the
+   * Legal Starting Pattern stamp still ride the seam.
+   */
+  seam?: boolean
+  /**
+   * Drop these value cells by key (`'tech-level'`, …) — a listing grouped by
+   * the value, whose group heading already says it.
+   */
+  statKeys?: readonly string[]
 }
 
 /** The action-shaped fields the card reads when `schemaName === 'actions'`. */

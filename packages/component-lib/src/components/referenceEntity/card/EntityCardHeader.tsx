@@ -35,11 +35,15 @@ type EntityCardHeaderProps = {
   /** The cost pennant (read) or the pennant button (Dashboard), at the right. */
   pennant?: ReactNode
   /**
-   * HEAD extent: the card is ONE LINE (ruleset §1 Listing). The title
-   * truncates with "…" and keeps its full name in a tooltip; the stats,
-   * pennant and controls never wrap.
+   * HEAD extent, the compact card (ruleset §1 Listing): one no-wrap row of the
+   * numeral, the title, the pennant and the chevron. The title takes the room
+   * and wraps to two lines before it clamps with "…" (its full name in a
+   * tooltip). The value cells are not here: the compact card draws them in its
+   * body, under the head.
    */
-  oneLine?: boolean
+  head?: boolean
+  /** No seam stamp rides this band, so it needs no room above the title. */
+  seamless?: boolean
   size: CardSize
   /**
    * An INLINE action band inside its host card (board E1): flush, tighter
@@ -61,6 +65,13 @@ const PAD: Record<CardSize, string> = {
   small: `${space[12]} ${space[8]} ${space[6]}`,
 }
 
+/** A compact head with no seam stamp above it: tight all round. */
+const SEAMLESS_PAD: Record<CardSize, string> = {
+  large: `${space[8]} ${space[12]} ${space[6]}`,
+  medium: `${space[6]} ${space[10]} ${space[6]}`,
+  small: `${space[4]} ${space[8]} ${space[4]}`,
+}
+
 /** An inline action band keeps its host's gutter. */
 const BAND_PAD: Record<CardSize, string> = {
   large: `${space[8]} ${space[14]}`,
@@ -79,31 +90,23 @@ const ONE_LINE: CSSProperties = {
   whiteSpace: 'nowrap',
 }
 
-/** The title's truncation, without containment: it keeps its full width. */
-const TRUNCATE: CSSProperties = {
+/**
+ * The compact title: it takes the row's room and wraps to two lines, then
+ * clamps with "…". `minWidth: 0` keeps a long name out of the row's
+ * min-content, so it cannot push a width-less ancestor (an island page's
+ * wrapper) past the viewport.
+ */
+const CLAMP_TWO: CSSProperties = {
+  display: '-webkit-box',
+  flex: '1 1 0',
+  minWidth: 0,
   overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  overflowWrap: 'anywhere',
+  WebkitBoxOrient: 'vertical',
+  WebkitLineClamp: 2,
 }
 
-/**
- * A one-line head row (boards E1–E3) is a NO-WRAP flex row, so nothing in it
- * can ever fall to a second line, whatever width it is given:
- *
- * - the TITLE (`0 1 auto`) asks for its full name and is the only part that
- *   shrinks against the fixed parts, so it truncates only when the name alone
- *   cannot fit;
- * - the CELLS (and a hint) have no basis (`1 1 0`, min 0): they take only the
- *   room the full name leaves, and the cells drop last-first inside it
- *   (`EntityCardStatBox`), so every cell goes before the name truncates. A row
- *   with neither keeps an empty filler, so the pennant and chevron sit at the
- *   right;
- * - the numeral, the pennant and the chevron keep their natural width.
- *
- * The title's 0 minimum also keeps a long name out of the row's min-content,
- * so it cannot push a width-less ancestor (an island page's wrapper) past the
- * viewport.
- */
+/** A hint on a compact head (a pattern row's description) takes the room the title leaves. */
 const FILL: CSSProperties = { flex: '1 1 0', minWidth: 0 }
 
 /**
@@ -117,8 +120,8 @@ const FILL: CSSProperties = { flex: '1 1 0', minWidth: 0 }
  *   flecks.
  *
  * The title takes the row and the cells follow it, wrapping beneath when the
- * band is too narrow. A one-line head row never wraps: its cells drop, last
- * first, and only then does its title truncate.
+ * band is too narrow. A compact HEAD keeps one row: the title wraps to two
+ * lines inside it, and the cells move to the compact card's body.
  */
 export function EntityCardHeader({
   title,
@@ -133,7 +136,8 @@ export function EntityCardHeader({
   stats,
   rightContent,
   pennant,
-  oneLine = false,
+  head = false,
+  seamless = false,
   size,
   band = false,
   grain,
@@ -150,15 +154,15 @@ export function EntityCardHeader({
   const titleNode = titleSlot ?? (
     <TitleTag
       className={titleType}
-      title={oneLine ? title : undefined}
+      title={head ? title : undefined}
       style={{
-        // One line: the title asks for the full name and truncates only once
-        // every cell has dropped (see `FILL`). Otherwise the title
-        // shares the row with the cells on the right at medium and small, and
-        // only a large header gives the title the whole row; the cells wrap
-        // beneath when they truly cannot fit.
-        ...(oneLine
-          ? { flex: '0 1 auto', minWidth: 0, ...TRUNCATE }
+        // A compact head: the title takes the row and wraps to two lines
+        // before it clamps (see `CLAMP_TWO`). Otherwise the title shares the
+        // row with the cells on the right at medium and small, and only a
+        // large header gives the title the whole row; the cells wrap beneath
+        // when they truly cannot fit.
+        ...(head
+          ? CLAMP_TWO
           : {
               flex: size === 'large' ? '1 1 auto' : '1 1 0',
               minWidth: size === 'large' ? 0 : 'min-content',
@@ -173,7 +177,7 @@ export function EntityCardHeader({
     <span
       className={cn('font-body italic leading-snug', titleTextClass)}
       style={
-        oneLine
+        head
           ? { ...FILL, textAlign: 'right', ...ONE_LINE }
           : { flex: '1 1 12rem', minWidth: 0, textAlign: 'right' }
       }
@@ -181,7 +185,7 @@ export function EntityCardHeader({
       {rightContent}
     </span>
   ) : null
-  const cells = stats.length > 0 ? <EntityCardStatBox stats={stats} oneRow={oneLine} /> : null
+  const cells = stats.length > 0 && !head ? <EntityCardStatBox stats={stats} /> : null
   const hasCluster = !!cells || !!pennant
   const chevronNode = chevron ? (
     <ChevronRight
@@ -189,7 +193,7 @@ export function EntityCardHeader({
       size={20}
       strokeWidth={3}
       className={titleTextClass}
-      style={{ flex: 'none', marginLeft: hasCluster || oneLine ? 0 : 'auto' }}
+      style={{ flex: 'none', marginLeft: hasCluster || head ? 0 : 'auto' }}
     />
   ) : null
   const numeralNode = numeral ? (
@@ -209,12 +213,12 @@ export function EntityCardHeader({
         }
       : {}),
     minWidth: 0,
-    padding: band ? BAND_PAD[size] : PAD[size],
+    padding: band ? BAND_PAD[size] : seamless ? SEAMLESS_PAD[size] : PAD[size],
     width: '100%',
   }
 
-  // HEAD extent: ONE line that never wraps (see `FILL`).
-  if (oneLine) {
+  // HEAD extent: one row that never wraps; the title wraps inside it.
+  if (head) {
     return (
       <div
         data-fill={fill}
@@ -230,11 +234,6 @@ export function EntityCardHeader({
         {numeralNode}
         {titleNode}
         {hint}
-        {cells ? (
-          <div style={FILL}>{cells}</div>
-        ) : hint ? null : (
-          <span aria-hidden="true" style={FILL} />
-        )}
         {pennant && <div style={{ display: 'flex', flex: 'none' }}>{pennant}</div>}
         {chevronNode}
       </div>

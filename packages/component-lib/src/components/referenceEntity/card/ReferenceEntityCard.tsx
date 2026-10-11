@@ -51,6 +51,7 @@ import type { ShortformTail } from './CardShortform'
 import { CardShortform } from './CardShortform'
 import { CardTopRail } from './CardTopRail'
 import { ChoiceRegion } from './ChoiceRegion'
+import { CompactCardFrame } from './CompactCard'
 import type { BonusCell } from './cardCells'
 import {
   bonusCells,
@@ -211,6 +212,34 @@ function npcHitPointsTail(entity: object): ShortformTail | undefined {
   }
 }
 
+/**
+ * The card's frame box: the frame lives on the INNER clipping element; the
+ * OUTER div is overflow-visible only so the seam escapes the clip.
+ */
+function frameBoxStyle(frameStyle: CSSProperties): CSSProperties {
+  return {
+    ...frameStyle,
+    backgroundColor: 'var(--color-paper)',
+    borderRadius: 'var(--radius-card)',
+    display: 'flex',
+    flex: '1 1 auto',
+    flexDirection: 'column',
+    overflow: 'hidden',
+  }
+}
+
+/** The shortform's tail: an ability's level, a tech level, an NPC's hit points or a classification. */
+function shortformTail(
+  numeral: string | undefined,
+  techLevel: number | 'B' | 'N' | undefined,
+  entity: object,
+  axisMarker: ShortformTail | undefined
+): ShortformTail | undefined {
+  if (numeral) return { label: 'LVL', value: numeral }
+  if (techLevel != null) return { label: 'TL', value: String(techLevel) }
+  return npcHitPointsTail(entity) ?? axisMarker
+}
+
 function ReferenceEntityCardInner({
   data,
   size: sizeProp = 'large',
@@ -231,6 +260,7 @@ function ReferenceEntityCardInner({
   hostDown,
   chassisName,
   droneLoadout,
+  artSlot = false,
   hide: hideProp,
   status,
   onStatusClick,
@@ -385,12 +415,14 @@ function ReferenceEntityCardInner({
   const foldedActionFields: ActionFields | undefined = foldedAction ?? undefined
 
   // The parent seal (e.g. GRANTS) takes the type stamp's place, so the seam
-  // keeps ONE stamp.
+  // keeps ONE stamp. A listing of one kind (`hide.seam`) drops the type stamp
+  // and the classification pills: the page already names them.
+  const seamless = !!hide?.seam && !parentSeal && !userMade && !isLegalStartingPatternCard
   const seam = (
     <CardSeam
       seal={parentSeal}
-      typeStamp={parentSeal ? undefined : seamType}
-      axisMarkers={axisMarkers}
+      typeStamp={parentSeal || hide?.seam ? undefined : seamType}
+      axisMarkers={hide?.seam ? [] : axisMarkers}
       legalStartingPattern={isLegalStartingPatternCard}
       userMade={userMade}
     />
@@ -408,7 +440,9 @@ function ReferenceEntityCardInner({
     techLevelDisplay,
     techLevelModified,
   })
-  const effectiveHeaderStats: StatItem[] = hide?.stats ? [] : (statsOverride ?? headerStats)
+  const effectiveHeaderStats: StatItem[] = hide?.stats
+    ? []
+    : (statsOverride ?? headerStats).filter((stat) => !hide?.statKeys?.includes(stat.key))
 
   // COST PENNANT — the action's own cost, or its folded self-action's. In the
   // Dashboard a `pennant` control makes it the action button.
@@ -443,6 +477,28 @@ function ReferenceEntityCardInner({
   const headerHint = isPatternListing ? hintText : undefined
   const leadHint = isPatternListing ? undefined : hintText
 
+  // The "//" LINE — an action's facets, then entity traits, then the
+  // datavalues, with anything a choice or the Tech Level changed marked
+  // modified (see `resolveSubHeaderCells`).
+  const editableChoices = !!onSelectionChange
+  const cells = resolveSubHeaderCells({
+    entity,
+    entityName,
+    action,
+    foldedAction,
+    entityChoices,
+    selections,
+    perTechLevelByLabel,
+    effTechLevel,
+  })
+  const hasSubLine = !!suggestedNode || cells.length > 0
+
+  // THE COMPACT CARD (`extent="head"`): see `CompactCard.tsx`. A pattern row
+  // is its head alone; its chassis' art and cells belong to the chassis.
+  const isHead = extent === 'head'
+  const hasHeadBody =
+    isHead && !inline && !isPatternListing && (effectiveHeaderStats.length > 0 || hasSubLine)
+
   const header = (
     <EntityCardHeader
       title={name}
@@ -454,15 +510,16 @@ function ReferenceEntityCardInner({
       titleClass={titleClass}
       titleTextClass={onBandText}
       numeral={numeral}
-      stats={effectiveHeaderStats}
+      stats={isHead ? [] : effectiveHeaderStats}
       rightContent={rightContentProp ?? headerHint}
       pennant={pennantNode}
-      oneLine={extent === 'head'}
+      head={isHead}
+      seamless={isHead && seamless}
       size={size}
       band={inline}
       grain={grain}
-      ruled={!inline && extent !== 'head'}
-      chevron={extent === 'head' && !inline && (!!onCardClick || !!cardClickable)}
+      ruled={!inline && (!isHead || hasHeadBody)}
+      chevron={isHead && !inline && (!!onCardClick || !!cardClickable)}
     />
   )
 
@@ -531,11 +588,7 @@ function ReferenceEntityCardInner({
 
   // SHORTFORM — the one-pill token (`size="small" extent="head"`).
   if (size === 'small' && extent === 'head') {
-    const tail: ShortformTail | undefined = numeral
-      ? { label: 'LVL', value: numeral }
-      : techLevel != null
-        ? { label: 'TL', value: String(techLevel) }
-        : (npcHitPointsTail(entity) ?? axisMarkers[0])
+    const tail = shortformTail(numeral, techLevel, entity, axisMarkers[0])
     return (
       <CardShortform
         outer={outer}
@@ -552,43 +605,27 @@ function ReferenceEntityCardInner({
     )
   }
 
-  // The frame lives on the INNER clipping element; the OUTER div is
-  // overflow-visible only so the seam escapes the clip.
-  const frameBox: CSSProperties = {
-    ...frameStyle,
-    backgroundColor: 'var(--color-paper)',
-    borderRadius: 'var(--radius-card)',
-    display: 'flex',
-    flex: '1 1 auto',
-    flexDirection: 'column',
-    overflow: 'hidden',
-  }
+  const frameBox = frameBoxStyle(frameStyle)
 
-  if (extent === 'head') {
+  if (isHead) {
     return (
       <CardOuter {...outer}>
-        {seam}
+        {!seamless && seam}
         {topRightRail}
-        <div style={frameBox}>{header}</div>
+        <CompactCardFrame
+          frameStyle={frameBox}
+          art={isPattern || hide?.image ? undefined : assetUrl}
+          artSrcSet={assetSrcSet}
+          artSlot={artSlot && !isPattern}
+          header={header}
+          body={
+            hasHeadBody ? { stats: effectiveHeaderStats, cells, leading: suggestedNode } : undefined
+          }
+          size={size}
+        />
       </CardOuter>
     )
   }
-
-  // The "//" LINE — an action's facets, then entity traits, then the
-  // datavalues, with anything a choice or the Tech Level changed marked
-  // modified (see `resolveSubHeaderCells`).
-  const editableChoices = !!onSelectionChange
-  const cells = resolveSubHeaderCells({
-    entity,
-    entityName,
-    action,
-    foldedAction,
-    entityChoices,
-    selections,
-    perTechLevelByLabel,
-    effTechLevel,
-  })
-  const hasSubLine = !!suggestedNode || cells.length > 0
 
   // BODY — content + nested groups. A granting ability collapses its own
   // content AND actions (they belong to the granted entity); its description

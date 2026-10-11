@@ -593,6 +593,49 @@ body {
   color: var(--color-ink-50);
 }
 
+/* ══ The compact card's art column ══════════════════════════════════════════
+ *
+ * `extent="head"` (ruleset §1 Listing): a portrait thumbnail beside the head
+ * row and the body, the card's full height, ruled off in ink. The line art is
+ * printed on white, so `multiply` lays it onto the paper. Narrower on a phone.
+ * `ReferenceEntityCard.tsx`.
+ */
+.su-ec-head-art {
+  align-items: center;
+  align-self: stretch;
+  background-color: var(--color-paper);
+  border-right: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  flex: none;
+  justify-content: center;
+  min-height: 4.75rem;
+  padding: var(--space-2);
+  width: 4rem;
+}
+
+.su-ec-head-art--empty {
+  background-color: var(--color-band-cream);
+}
+
+.su-ec-head-art img {
+  height: 100%;
+  max-height: 4.5rem;
+  mix-blend-mode: multiply;
+  object-fit: contain;
+  width: 100%;
+}
+
+@media (max-width: 40rem) {
+  .su-ec-head-art {
+    min-height: 4.25rem;
+    width: 3.5rem;
+  }
+
+  .su-ec-head-art img {
+    max-height: 4rem;
+  }
+}
+
 /* ══ The entity card's artwork lead ══════════════════════════════════════════
  *
  * The art sits beside the prose only when the CARD is wide enough, never

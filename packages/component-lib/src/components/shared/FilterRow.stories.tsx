@@ -4,7 +4,6 @@ import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { Badge } from '../chrome/Badge'
 import { FilterRow } from './FilterRow'
-import { techLevelLabel } from './techLevelStyles'
 
 /**
  * FilterRow — the labelled filter band above SRD listings (SchemaViewerIsland,
@@ -87,7 +86,7 @@ export const Default: Story = () => {
               swatch={typeof level === 'number' ? `var(--color-tl-${level})` : undefined}
               onClick={() => setTlFilters((s) => toggle(s, String(level)))}
             >
-              {techLevelLabel(level)}
+              {level === 'B' ? 'BIO' : level === 'N' ? 'NANITE' : `TL${level}`}
             </Badge>
           ))}
         </FilterRow>

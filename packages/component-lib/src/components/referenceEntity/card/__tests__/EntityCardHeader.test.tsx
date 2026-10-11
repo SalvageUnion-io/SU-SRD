@@ -7,8 +7,8 @@
  *   the tier numeral before the title and the pennant after the cells;
  * - the speckle rides the band as a background image (ink grain on tone, paper
  *   flecks on ink), and is absent when the card asks for none;
- * - a one-line HEAD row never wraps: the title truncates and keeps its full
- *   name in a tooltip.
+ * - a compact HEAD keeps one row: the title wraps to two lines and clamps,
+ *   keeping its full name in a tooltip, and the cells move to the card body.
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
@@ -102,8 +102,8 @@ describe('EntityCardHeader — two fills', () => {
   })
 })
 
-describe('EntityCardHeader — the one-line head row', () => {
-  test('never wraps; the title truncates and keeps its full name as a tooltip', () => {
+describe('EntityCardHeader — the compact head', () => {
+  test('one no-wrap row: the title takes the room and clamps at two lines, its name a tooltip', () => {
     render(
       <EntityCardHeader
         title="Electro-Magnetic Shield Projector"
@@ -113,22 +113,19 @@ describe('EntityCardHeader — the one-line head row', () => {
         titleClass="text-title"
         stats={stats}
         size="medium"
-        oneLine
+        head
       />
     )
     const title = screen.getByText('Electro-Magnetic Shield Projector')
     expect(title.getAttribute('title')).toBe('Electro-Magnetic Shield Projector')
-    expect(title.style.textOverflow).toBe('ellipsis')
-    expect(title.style.whiteSpace).toBe('nowrap')
-    // A no-wrap row: the title asks for its full name and the cells take only
-    // the room it leaves (no basis), so the cells drop before the name truncates.
+    expect(title.style.flex).toBe('1 1 0px')
+    expect(title.style.minWidth).toBe('0')
+    expect(title.style.overflow).toBe('hidden')
     const row = band('Electro-Magnetic Shield Projector')
     expect(row.style.display).toBe('flex')
     expect(row.style.flexWrap).toBe('nowrap')
-    expect(title.style.flex).toBe('0 1 auto')
-    const cells = row.children[1] as HTMLElement
-    expect(cells.style.flex).toBe('1 1 0px')
-    expect(cells.style.minWidth).toBe('0')
+    // The value cells live in the compact card's body, not the head.
+    expect(screen.queryByText('Slots')).toBeNull()
   })
 
   test('the numeral, pennant and chevron keep their natural width around the name', () => {
@@ -143,20 +140,35 @@ describe('EntityCardHeader — the one-line head row', () => {
         stats={[]}
         pennant={<span>2 AP</span>}
         size="medium"
-        oneLine
+        head
         chevron
       />
     )
-    // No cells: an empty filler keeps the pennant and chevron at the right,
-    // one line, at their natural width.
     const row = band('Jury Rig')
     expect(row.style.flexWrap).toBe('nowrap')
-    const [numeral, , filler, pennant, chevron] = [...row.children] as HTMLElement[]
+    const [numeral, title, pennant, chevron] = [...row.children] as HTMLElement[]
     expect(numeral?.style.flex).toBe('0 0 auto')
-    expect(filler?.style.flex).toBe('1 1 0px')
+    expect(title?.style.flex).toBe('1 1 0px')
     expect(pennant?.style.flex).toBe('0 0 auto')
     expect(pennant?.textContent).toBe('2 AP')
     expect((chevron as unknown as SVGElement | undefined)?.style.flex).toBe('0 0 auto')
+  })
+
+  test('a seamless head needs no room above the title for a stamp', () => {
+    render(
+      <EntityCardHeader
+        title="Cargo Pod"
+        fill="tone"
+        bg="bg-tl-1"
+        bgColor={undefined}
+        titleClass="text-title"
+        stats={[]}
+        size="medium"
+        head
+        seamless
+      />
+    )
+    expect(band('Cargo Pod').style.padding).toBe('6px 10px')
   })
 
   test('a full card title wraps and carries no truncation tooltip', () => {

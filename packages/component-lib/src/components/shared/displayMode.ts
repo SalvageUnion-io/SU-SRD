@@ -12,9 +12,11 @@
  *
  * EXTENT — how much of the entity renders, at whatever size:
  * - `full`    — the whole card: header, body, expand slot, footer.
- * - `head`    — header only; body, expand and footer are suppressed. At `small`
- *               this is the shortform token: one tone-filled pill carrying the
- *               type stamp, the name and the classification tail.
+ * - `head`    — the COMPACT CARD: the art column, the head row and a paper
+ *               body of value cells and the "//" line; the prose, expand and
+ *               footer are suppressed. At `small` this is the shortform token:
+ *               one tone-filled pill carrying the type stamp, the name and the
+ *               classification tail.
  * - `catalog` — the index tile: artwork + description ONLY, with every nested
  *               element (entities, actions, choices, patterns, roll tables)
  *               suppressed so an index page reads uniformly whatever the entity
