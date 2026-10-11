@@ -29,13 +29,13 @@ const MASTHEAD = {
 } satisfies CSSProperties
 
 /**
- * Avatar — a person's picture in a circle. With no picture (or one that will
- * not load) it shows their initial; with no name either, a generic glyph.
+ * Avatar — a person's picture on a square 3px chip. With no picture (or one
+ * that will not load) it shows two initials; with no name either, a generic glyph.
  * Shown at the masthead's two sizes: 28 beside a name, 32 alone on mobile.
  */
 export const Default: Story = () => (
   <div>
-    <Caption>initial fallback · 28px (beside a name)</Caption>
+    <Caption>initials fallback · 28px (beside a name)</Caption>
     <div style={ROW}>
       {names.map((name) => (
         <Avatar key={name} name={name} />

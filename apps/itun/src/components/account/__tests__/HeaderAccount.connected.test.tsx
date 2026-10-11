@@ -77,7 +77,7 @@ afterEach(() => {
 afterAll(convexMocks.restore)
 
 describe('signed in and connected', () => {
-  test('the trigger is a menu button showing the display name and avatar initial', () => {
+  test('the trigger is a menu button showing the display name and avatar initials', () => {
     setQueryAnswers(QUERIES)
     wrap(<HeaderActions />)
 
@@ -85,8 +85,8 @@ describe('signed in and connected', () => {
     expect(trigger.getAttribute('aria-haspopup')).toBe('menu')
     expect(trigger.getAttribute('aria-expanded')).toBe('false')
     expect(trigger.textContent).toContain('Beefcake')
-    // No avatar URL: the circle falls back to the initial.
-    expect(trigger.textContent).toContain('B')
+    // No avatar URL: the chip falls back to the initials.
+    expect(trigger.textContent).toContain('BE')
   })
 
   test('its menu holds Settings and Sign out, and nothing else', async () => {
