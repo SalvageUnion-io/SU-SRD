@@ -86,10 +86,10 @@ function bar() {
 }
 
 function stripWrapper(): HTMLElement {
-  // The condensed block wraps the name stamp and the live readouts — hidden at
-  // rest, fading in together once the hero scrolls out of view (Option A: the
-  // resting bar is slim, back + actions only). Find it via the name stamp.
-  return bar().getByText('Mara Vex').parentElement as HTMLElement
+  // The condensed block wraps the name stamp and the live readouts — empty at
+  // rest, filled and faded in once the hero scrolls out of view (Option A: the
+  // resting bar is slim, back + actions only).
+  return must(document.querySelector<HTMLElement>('header [data-sheet-strip]'))
 }
 
 // The KIND PILL is gone from the bar (and from the props): the gutter wordmark
@@ -98,11 +98,13 @@ function stripWrapper(): HTMLElement {
 // on one screen. These tests pin the NAME stamp alone, and that no kind label
 // is rendered in the bar.
 describe('LiveSheet — condensed identity (name stamp)', () => {
-  test('the name is hidden at rest — it lives in the poster below', () => {
+  test('the name is not in the bar at rest — it lives in the poster below', () => {
     renderShell()
-    // It sits inside the condense block, aria-hidden until the hero scrolls out
-    // of view, so the resting bar stays slim (only back + actions show).
-    expect(bar().getByText('Mara Vex').closest('[aria-hidden="true"]')).not.toBeNull()
+    // The condense block mounts its contents only once the hero scrolls out of
+    // view, so the resting bar stays slim (only back + actions show) and the
+    // hero h1 is the one copy of the name on the page.
+    expect(bar().queryByText('Mara Vex')).toBeNull()
+    expect(stripWrapper().getAttribute('aria-hidden')).toBe('true')
   })
 
   test('the kind pill is never rendered in the bar', () => {
@@ -179,6 +181,7 @@ describe('LiveSheet — condense strip gating (S11)', () => {
       must(observerCallbacks[0])([ioEntry(true)], observerStub)
     })
     expect(stripWrapper().getAttribute('aria-hidden')).toBe('true')
+    expect(bar().queryByText('Mara Vex')).toBeNull()
   })
 
   test('condense=false renders no condensed block and observes nothing', () => {

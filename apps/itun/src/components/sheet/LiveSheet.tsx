@@ -227,6 +227,7 @@ export function LiveSheet({
             so the anchored bar keeps them in view (S11). */}
         {condense && (
           <div
+            data-sheet-strip=""
             aria-hidden={!condensed}
             className={cn(
               'flex min-w-0 flex-wrap items-center gap-2 transition-[opacity,transform] duration-150',
@@ -238,20 +239,27 @@ export function LiveSheet({
                 : 'pointer-events-none invisible absolute translate-y-[5px] opacity-0'
             )}
           >
-            <Badge shape="stamp" size="full" className="block max-w-full truncate">
-              {name}
-            </Badge>
-            {stripItems.map((item) => (
-              <Stat
-                key={item.key}
-                orientation="horizontal"
-                label={item.label}
-                value={item.max !== undefined ? `${item.value}/${item.max}` : item.value}
-                // U-5: non-priority readouts fold below sm so the condensed
-                // bar leads with Heat + SP on phones.
-                className={item.mobilePriority === false ? 'hidden sm:inline-flex' : undefined}
-              />
-            ))}
+            {/* The contents mount only while condensed: an invisible copy of
+                the name ahead of the hero h1 was the first match for a text
+                query, and a hidden duplicate is noise to every reader. */}
+            {condensed && (
+              <>
+                <Badge shape="stamp" size="full" className="block max-w-full truncate">
+                  {name}
+                </Badge>
+                {stripItems.map((item) => (
+                  <Stat
+                    key={item.key}
+                    orientation="horizontal"
+                    label={item.label}
+                    value={item.max !== undefined ? `${item.value}/${item.max}` : item.value}
+                    // U-5: non-priority readouts fold below sm so the condensed
+                    // bar leads with Heat + SP on phones.
+                    className={item.mobilePriority === false ? 'hidden sm:inline-flex' : undefined}
+                  />
+                ))}
+              </>
+            )}
           </div>
         )}
 
