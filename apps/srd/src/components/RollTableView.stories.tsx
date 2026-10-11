@@ -2,6 +2,7 @@ import { digestRollTable } from 'component-lib'
 import type { SURefObjectTable } from 'salvageunion-reference'
 import { extractStaticEntitySummary, SalvageUnionReference } from 'salvageunion-reference'
 import type { RollTablePageData } from '../lib/rollTablePage'
+import { refText } from '../lib/rollTablePage'
 import { RollTableIsland } from './islands/RollTableIsland'
 import { RollTableView } from './RollTableView'
 
@@ -17,7 +18,11 @@ function coreMechanic(): RollTablePageData | null {
   return {
     name: table.name,
     description: extractStaticEntitySummary(table).contentParagraphs,
-    rows: digestRollTable(data).map(({ key, label, value }) => ({ key, label, value })),
+    rows: digestRollTable(data).map(({ key, label, value }) => ({
+      key,
+      label,
+      value: refText(value, () => null),
+    })),
     table: data,
   }
 }
@@ -40,16 +45,11 @@ export const BeforeRolling = () => {
 export const Rolled = () => {
   const data = coreMechanic()
   return data ? (
-    <RollTableView
-      data={data}
-      state={{ roll: 14, history: [7, 20, 3] }}
-      onRoll={() => {}}
-      typed="14"
-    />
+    <RollTableView data={data} state={{ roll: 14, history: [7, 20, 3] }} onRoll={() => {}} />
   ) : null
 }
 
-/** Live: Roll rolls a d20 with Randsum; "Rolled real dice?" records a physical roll. */
+/** Live: Roll rolls a d20 with Randsum. */
 export const Live = () => {
   const data = coreMechanic()
   return data ? <RollTableIsland data={data} /> : null

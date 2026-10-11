@@ -1,4 +1,5 @@
 import type { SURefMetaEntity } from 'salvageunion-reference'
+import { plainTraitText } from 'salvageunion-reference'
 import { firstParagraphText } from './firstParagraphText'
 
 /**
@@ -9,8 +10,9 @@ import { firstParagraphText } from './firstParagraphText'
  * stays compact rather than borrowing rules text.
  */
 export function compactLead(entity: SURefMetaEntity, hint: string | undefined): string | undefined {
-  if (hint) return hint
-  return firstParagraphText('content' in entity ? entity.content : undefined)
+  // A clamped line renders no references, so they read as words.
+  const lead = hint || firstParagraphText('content' in entity ? entity.content : undefined)
+  return lead ? plainTraitText(lead) : undefined
 }
 
 /** Whether the compact card has a body: value cells, a "//" line or a lead. */

@@ -16,9 +16,11 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  * CardPage — the card when it IS the page (`presentation="page"`, boards 07
  * and 08). No frame, seam, header or footer: the page's `ChapterBand` carries
  * the title and stamps, its `ChapterFoot` the citation. The line art is the
- * hero on the left; beside it the chassis ability, the prose and the book's
- * stat column; then everything the entity carries, full width — its table,
- * its other actions, its nested trays and its patterns as link rows.
+ * hero on the left; beside it the prose, the book's stat column and, beneath
+ * the stats, the chassis ability; then everything the entity carries, full
+ * width — its table, its other actions, its nested trays and its patterns as
+ * link rows. A pattern page leads the right column with the pattern itself
+ * (`opening`), then the base chassis's prose under its own slab.
  *
  * The card decides what each part is (`ReferenceEntityCardInner`); this lays
  * the parts out as a page. Layout is `index.css`'s `.su-entity-page*`, which
@@ -31,10 +33,17 @@ type CardPageProps = {
   name: string
   /** The artwork, as `CardImage hero`. */
   hero: ReactNode
-  /** Chassis abilities: framed cards at the top of the right column. */
+  /** Chassis abilities: framed cards in the right column, beneath the stats. */
   leadActions: ReferenceCardEntity[]
   /** Every other action: framed cards under an "Actions" stamp, full width. */
   otherActions: ReferenceCardEntity[]
+  /**
+   * What the page leads with, above the entity's own prose: a pattern page's
+   * pattern (its prose and loadout), before the base chassis it is built on.
+   */
+  opening?: ReactNode
+  /** A solid slab naming the prose when something else leads ("Mazona chassis"). */
+  bodyLabel?: string
   /** The "//" line and any `subtitleExtra`. */
   subLine: ReactNode
   /** The prose body (`bodyContent`), or null when there is none. */
@@ -67,6 +76,8 @@ export function CardPage({
   hero,
   leadActions,
   otherActions,
+  opening,
+  bodyLabel,
   subLine,
   body,
   stats,
@@ -99,13 +110,10 @@ export function CardPage({
       <div className={cn('su-entity-page__main', !!hero && 'su-entity-page__main--art')}>
         {hero && <div className="su-entity-page__art">{hero}</div>}
         <div className="su-entity-page__side">
-          {leadActions.length > 0 && (
-            <div className="su-entity-page__lead">
-              {leadActions.map((data, index) => actionCard(data, index, 'Chassis Ability'))}
-            </div>
-          )}
+          {opening && <div className="su-entity-page__opening">{opening}</div>}
           {(subLine || body) && (
             <div className="su-entity-page__prose">
+              {bodyLabel && <Slab as={sectionAs} variant="solid" label={bodyLabel} />}
               {subLine}
               {body}
             </div>
@@ -113,6 +121,11 @@ export function CardPage({
           {bookStats.length > 0 && (
             <div className="su-entity-page__stats">
               <StatColumn stats={bookStats} label={`${name} stats`} />
+            </div>
+          )}
+          {leadActions.length > 0 && (
+            <div className="su-entity-page__lead">
+              {leadActions.map((data, index) => actionCard(data, index, 'Chassis Ability'))}
             </div>
           )}
         </div>

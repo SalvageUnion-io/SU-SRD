@@ -62,6 +62,16 @@ describe('the compact card lead', () => {
     expect(lead(container)).toBeNull()
   })
 
+  test('trait markup in a lead reads as plain words, never raw brackets', () => {
+    const overpower = need(SalvageUnionReference.Abilities.getByName('Overpower'), 'overpower')
+    const { container } = render(
+      <ReferenceEntityCard data={overpower} size="medium" extent="head" leadProse />
+    )
+    const text = lead(container)?.textContent ?? ''
+    expect(text).toContain('Vulnerable')
+    expect(text).not.toContain('[[')
+  })
+
   test('without leadProse the compact card prints no prose', () => {
     const { container } = render(
       <ReferenceEntityCard data={gopher()} size="medium" extent="head" />

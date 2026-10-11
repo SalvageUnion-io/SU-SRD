@@ -16,6 +16,8 @@ import type { PageModule, PageResult, RouteContext, StructuredData } from '../..
 import { EntityPageFrame, entityPageFoot } from '../../../../components/EntityPageFrame'
 import { EntityView } from '../../../../components/EntityView'
 import {
+  ColumnsTablePage,
+  columnsTablePageData,
   ROLL_TABLE_PAGE_MEASURE,
   RollTablePage,
   rollTablePageData,
@@ -44,9 +46,15 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const pluralName = schema.displayNamePlural || schemaName
   const chapter = chapterForSchema(schemaId)
   const pageMeta = resolveEntityPageMeta(item)
-  // A banded d20 table rolls on a page of its own (board 08b); a two-roll
-  // columns table, and every other entity, is the card's page.
+  // A banded d20 table rolls on a page of its own (board 08b), and so does a
+  // two-roll columns table; every other entity is the card's page.
   const rollTable = rollTablePageData(item)
+  const columnsTable = rollTable ? null : columnsTablePageData(item)
+  const rollPage = rollTable ? (
+    <RollTablePage data={rollTable} />
+  ) : columnsTable ? (
+    <ColumnsTablePage data={columnsTable} />
+  ) : null
   const canonicalUrl = `${SITE_URL}${itemHref(schemaId, itemId)}`
 
   const displayData = item ? getReferenceEntityData(item) : null
@@ -143,15 +151,15 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         { name: itemName, url: canonicalUrl },
       ],
     },
-    foot: entityPageFoot(chapter.tone, pageMeta, rollTable ? ROLL_TABLE_PAGE_MEASURE : undefined),
-    children: rollTable ? (
+    foot: entityPageFoot(chapter.tone, pageMeta, rollPage ? ROLL_TABLE_PAGE_MEASURE : undefined),
+    children: rollPage ? (
       <EntityPageFrame
         title={itemName}
         tone={chapter.tone}
         meta={pageMeta}
         measure={ROLL_TABLE_PAGE_MEASURE}
       >
-        <RollTablePage data={rollTable} />
+        {rollPage}
       </EntityPageFrame>
     ) : (
       <EntityPageFrame title={itemName} tone={chapter.tone} meta={pageMeta}>

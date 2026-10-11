@@ -1,51 +1,55 @@
 import { Button, InlineRef } from 'component-lib'
-import type { FormEvent } from 'react'
-import type { RollState, RollTablePageData } from '../lib/rollTablePage'
-import { D20_FACES, outcomeLabel, rangeLabel, rowForRoll } from '../lib/rollTablePage'
+import type { RefText, RollState, RollTablePageData } from '../lib/rollTablePage'
+import { outcomeLabel, rangeLabel, rowForRoll, splitRows } from '../lib/rollTablePage'
 
 /**
  * RollTableView — a roll table's page, rolled and read (board 08b).
  *
  * The table on the left in the book's bands under its "ROLL THE DIE:" stamp;
  * on the right the "You rolled" panel: the number, the range it lands on, the
- * outcome and its text, then Roll again, a field for a roll made with real
- * dice, the Randsum credit and the earlier rolls. The matching row is set in
- * ink with a "Rolled 14" tag. The die is not named: it is always a d20.
+ * outcome and its text, and the earlier rolls. Roll again and the Randsum
+ * credit sit under the panel's head, above the result, so the button stays
+ * put whatever length the outcome's text runs to. The matching row is set in
+ * ink with a "Rolled 14" tag. The die is not named: it is always a d20. A
+ * long or wordy table (`splitRows`) sets its bands in two columns on a wide
+ * screen, the ranges on the outer edges, so the page fits one screen.
  *
  * Presentational, so the server and the island draw the same page: the server
  * renders it with no roll and no handlers (the bands are real content for a
  * crawler or a no-JS reader), and `RollTableIsland` mounts it live.
  */
 
+/** Prose with its trait references as `InlineRef` links (inert when unresolved). */
+function RefProse({ parts }: { parts: RefText }) {
+  return parts.map((part, index) =>
+    typeof part === 'string' ? (
+      part
+    ) : (
+      // biome-ignore lint/suspicious/noArrayIndexKey: a fixed run of prose; position is identity
+      <InlineRef key={index} href={part.href ?? undefined}>
+        {part.ref}
+      </InlineRef>
+    )
+  )
+}
+
 type RollTableViewProps = {
   data: RollTablePageData
   state: RollState
   /** Roll the die. Absent on the server, where the controls are inert. */
   onRoll?: () => void
-  /** The "Rolled real dice?" field's text. */
-  typed?: string
-  onTypedChange?: (text: string) => void
-  /** Commit the typed roll (Enter, or leaving the field). */
-  onTypedCommit?: () => void
 }
 
-export function RollTableView({
-  data,
-  state,
-  onRoll,
-  typed = '',
-  onTypedChange,
-  onTypedCommit,
-}: RollTableViewProps) {
+export function RollTableView({ data, state, onRoll }: RollTableViewProps) {
   const { roll, history } = state
   const live = !!onRoll
   const hit = roll === null ? undefined : rowForRoll(data.table, data.rows, roll)
   const outcomeOf = (n: number) => outcomeLabel(data.table, data.rows, n)
-
-  const commit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    onTypedCommit?.()
-  }
+  // A dense table splits in two down the middle, ranges on the outer edges.
+  const half = Math.ceil(data.rows.length / 2)
+  const halves = splitRows(data.rows)
+    ? [data.rows.slice(0, half), data.rows.slice(half)]
+    : [data.rows]
 
   return (
     <div className="srd-roll">
@@ -57,12 +61,27 @@ export function RollTableView({
           <span className="srd-roll__panel-name">{data.name}</span>
         </div>
 
+        <div className="srd-roll__controls">
+          <Button
+            variant="primary"
+            size="full"
+            className="srd-roll__roll"
+            onClick={onRoll}
+            disabled={!live}
+          >
+            {roll === null ? 'Roll the die' : 'Roll again'}
+          </Button>
+          <p className="srd-roll__credit">
+            Dice rolling powered by{' '}
+            <InlineRef href="https://randsum.dev" target="_blank" rel="noopener noreferrer">
+              Randsum.dev
+            </InlineRef>
+          </p>
+        </div>
+
         <div aria-live="polite" className="srd-roll__result">
           {roll === null ? (
-            <p className="srd-roll__prompt">
-              Roll the die, or enter a roll you made at the table, and the result is marked in the
-              table.
-            </p>
+            <p className="srd-roll__prompt">Roll the die, and the result is marked in the table.</p>
           ) : (
             <>
               <div className="srd-roll__readout">
@@ -79,38 +98,13 @@ export function RollTableView({
                   </span>
                 </div>
               </div>
-              {hit && <p className="srd-roll__text">{hit.value}</p>}
+              {hit && (
+                <p className="srd-roll__text">
+                  <RefProse parts={hit.value} />
+                </p>
+              )}
             </>
           )}
-        </div>
-
-        <div className="srd-roll__controls">
-          <Button variant="primary" size="full" onClick={onRoll} disabled={!live}>
-            {roll === null ? 'Roll the die' : 'Roll again'}
-          </Button>
-          <form className="srd-roll__typed" onSubmit={commit}>
-            <label className="srd-roll__typed-label" htmlFor="roll-typed">
-              Rolled real dice?
-            </label>
-            <input
-              id="roll-typed"
-              className="srd-roll__typed-input"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={D20_FACES}
-              value={typed}
-              disabled={!live}
-              onChange={(event) => onTypedChange?.(event.target.value)}
-              onBlur={() => onTypedCommit?.()}
-            />
-          </form>
-          <p className="srd-roll__credit">
-            Dice rolling powered by{' '}
-            <InlineRef href="https://randsum.dev" target="_blank" rel="noopener noreferrer">
-              Randsum.dev
-            </InlineRef>
-          </p>
         </div>
 
         {history.length > 0 && (
@@ -140,30 +134,38 @@ export function RollTableView({
           <span aria-hidden="true" className="srd-roll__leader" />
           <span className="srd-roll__hint">Your result is marked in the table</span>
         </div>
-        <ol
-          className="srd-roll__rows"
-          aria-label={`${data.name} table`}
-          data-has-roll={hit ? 'true' : undefined}
-        >
-          {data.rows.map((row) => {
-            const rolled = hit?.key === row.key
-            return (
-              <li
-                key={row.key}
-                className="srd-roll__row"
-                data-rolled={rolled ? 'true' : undefined}
-                aria-current={rolled ? 'true' : undefined}
-              >
-                <span className="srd-roll__range">{rangeLabel(row.key)}</span>
-                <div className="srd-roll__body">
-                  {row.label && <span className="srd-roll__label">{row.label}</span>}
-                  <span className="srd-roll__value">{row.value}</span>
-                </div>
-                {rolled && <span className="srd-roll__tag">Rolled {roll}</span>}
-              </li>
-            )
-          })}
-        </ol>
+        <div className="srd-roll__bands" data-split={halves.length > 1 ? 'true' : undefined}>
+          {halves.map((rows, side) => (
+            <ol
+              key={side === 0 ? 'left' : 'right'}
+              className="srd-roll__rows"
+              aria-label={side === 0 ? `${data.name} table` : `${data.name} table, continued`}
+              data-has-roll={hit ? 'true' : undefined}
+              data-side={side === 1 ? 'right' : undefined}
+            >
+              {rows.map((row) => {
+                const rolled = hit?.key === row.key
+                return (
+                  <li
+                    key={row.key}
+                    className="srd-roll__row"
+                    data-rolled={rolled ? 'true' : undefined}
+                    aria-current={rolled ? 'true' : undefined}
+                  >
+                    <span className="srd-roll__range">{rangeLabel(row.key)}</span>
+                    <div className="srd-roll__body">
+                      {row.label && <span className="srd-roll__label">{row.label}</span>}
+                      <span className="srd-roll__value">
+                        <RefProse parts={row.value} />
+                      </span>
+                    </div>
+                    {rolled && <span className="srd-roll__tag">Rolled {roll}</span>}
+                  </li>
+                )
+              })}
+            </ol>
+          ))}
+        </div>
       </div>
     </div>
   )

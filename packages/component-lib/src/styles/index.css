@@ -596,7 +596,9 @@ body {
 /* ══ The compact card's art column ══════════════════════════════════════════
  *
  * `extent="head"` (ruleset §1 Listing): a portrait thumbnail beside the head
- * row and the body, the card's full height, ruled off in ink. The line art is
+ * row and the body, the card's full height, ruled off in ink. A listing may
+ * size the column through `--su-head-art-width` / `--su-head-art-min` (and
+ * their `-phone` pair) on an ancestor (srd's `.srd-listing__cards`). The line art is
  * printed on white, so `multiply` lays it onto the paper. Narrower on a phone.
  * `ReferenceEntityCard.tsx`.
  */
@@ -608,31 +610,25 @@ body {
   display: flex;
   flex: none;
   justify-content: center;
-  min-height: 4.75rem;
-  padding: var(--space-2);
-  width: 4rem;
+  min-height: var(--su-head-art-min, 4.75rem);
+  position: relative;
+  width: var(--su-head-art-width, 4rem);
 }
 
-.su-ec-head-art--missing {
-  padding: 0;
-}
-
+/* The art fills the column top to bottom, however tall the card grows. */
 .su-ec-head-art img {
-  height: 100%;
-  max-height: 4.5rem;
+  height: calc(100% - 2 * var(--space-4));
+  inset: var(--space-4);
   mix-blend-mode: multiply;
   object-fit: contain;
-  width: 100%;
+  position: absolute;
+  width: calc(100% - 2 * var(--space-4));
 }
 
 @media (max-width: 40rem) {
   .su-ec-head-art {
-    min-height: 4.25rem;
-    width: 3.5rem;
-  }
-
-  .su-ec-head-art img {
-    max-height: 4rem;
+    min-height: var(--su-head-art-min-phone, 4.25rem);
+    width: var(--su-head-art-width-phone, 3.5rem);
   }
 }
 
@@ -640,8 +636,8 @@ body {
  *
  * `MissingArt` (ruleset §1): an entity with no artwork, in a place that keeps
  * one, wears one of the Workshop Manual's three censor marks — the torn ink
- * patch (`file`), the torn strip across a row (`row`) or the red "Removed"
- * pill (`removed`). The tear is a seeded `clip-path` on the ink, so the same
+ * patch (`file`), the torn strip across a row (`row`) or a red REMOVED
+ * rubber stamp (`removed`). The tear is a seeded `clip-path` on the ink, so the same
  * entity tears the same way on the listing and on its page. The thumbnail
  * fills the compact card's art column; `--hero` is the page's large form.
  */
@@ -749,23 +745,30 @@ body {
   right: 12%;
 }
 
-/* The manual's contents pill: paper on the state red, ringed in ink. */
-.su-missing-art__pill {
-  background-color: var(--color-status-bad);
-  border-radius: 999px;
-  box-shadow: 0 0 0 var(--bw-hairline) var(--color-ink);
-  color: var(--color-paper);
+/* REMOVED as a rubber stamp: red ink, a ruled double frame, set askew, on the
+   paper with no fill of its own. */
+.su-missing-art__stamp {
+  border: var(--bw-chrome) solid var(--color-status-bad);
+  color: var(--color-status-bad);
   font-family: var(--font-cond);
   font-size: var(--text-badge);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.08em;
   line-height: 1;
-  padding: 0.1875rem 0.25rem;
+  outline: var(--bw-hairline) solid var(--color-status-bad);
+  outline-offset: 2px;
+  padding: 0.25rem 0.25rem 0.25rem 0.33rem;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
 }
 
-.su-missing-art--hero .su-missing-art__pill {
-  box-shadow: 0 0 0 var(--bw-chrome) var(--color-ink);
-  font-size: 1.25rem;
-  padding: 0.375rem 1.375rem;
+.su-missing-art--hero .su-missing-art__stamp {
+  border-width: 3px;
+  font-size: 2rem;
+  letter-spacing: 0.14em;
+  outline-offset: 4px;
+  outline-width: var(--bw-chrome);
+  padding: 0.5rem 0.875rem 0.375rem 1rem;
 }
 
 /* ══ The entity card's artwork lead ══════════════════════════════════════════
@@ -1624,8 +1627,8 @@ body {
  *
  * Boards 07 and 08. The card hands its title to the page's chapter band and
  * its footer to the foot band, and lays its body out as a page: the line art
- * as the hero on the left, and on the right the chassis ability, the prose
- * and the stat column. Everything the entity carries after that (its table,
+ * as the hero on the left, and on the right the prose, the stat column and,
+ * beneath the stats, the chassis ability. Everything the entity carries after that (its table,
  * actions, nested trays, patterns) runs the full width beneath.
  *
  * A phone reads art, stats, prose, then the chassis ability (board 08). The
@@ -1649,6 +1652,14 @@ body {
 }
 
 .su-entity-page__art {
+  order: 1;
+}
+
+/* A pattern page's pattern: on a phone it follows the art, before the stats. */
+.su-entity-page__opening {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
   order: 1;
 }
 
@@ -1964,4 +1975,34 @@ a.su-pattern-rows__row:hover {
     /* biome-ignore lint/complexity/noImportantStyles: same — smooth scrolling is vestibular motion */
     scroll-behavior: auto !important;
   }
+}
+
+/* ══ InlineRef: an in-prose reference ══════════════════════════════════════
+ *
+ * The word keeps its prose's type and colour (so it reads on paper, an ink
+ * band or a tone header alike); its state is the border. A link: a rust
+ * border, and rust text on hover or keyboard focus (ruleset §3.1). Inert: a
+ * dashed border in the text's own colour, at half strength, and the help
+ * cursor — it only summons a tooltip.
+ */
+.su-inline-ref {
+  border-bottom: var(--bw-chrome) solid currentColor;
+  color: inherit;
+  text-decoration: none;
+  transition: color 120ms;
+}
+
+.su-inline-ref--link {
+  border-bottom-color: var(--color-rust); /* design-tokens-ignore: InlineRef §3.1 */
+}
+
+.su-inline-ref--link:hover,
+.su-inline-ref--link:focus-visible {
+  color: var(--color-rust); /* design-tokens-ignore: InlineRef §3.1 */
+}
+
+.su-inline-ref--inert {
+  border-bottom-color: color-mix(in srgb, currentColor 50%, transparent);
+  border-bottom-style: dashed;
+  cursor: help;
 }

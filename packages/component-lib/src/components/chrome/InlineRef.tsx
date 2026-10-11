@@ -27,21 +27,17 @@ type InlineRefProps = {
  *   it only summons the tooltip.
  *
  * The distinguishing rule is the border + navigability; a richer hovercard is a
- * composition concern (wrap in `Tooltip` / `EntityTooltip`).
+ * composition concern (wrap in `Tooltip` / `EntityTooltip`). The word keeps
+ * its prose's own type and colour, so a reference reads on any ground — paper
+ * prose, an ink roll band, a tone header (`.su-inline-ref` in `index.css`).
  */
 export function InlineRef({ children, href, title, className, ...rest }: InlineRefProps) {
-  const base = 'font-body underline-offset-2 border-b-chrome transition-colors duration-[120ms]'
-
   if (href) {
     return (
       <a
         href={href}
         title={title}
-        className={cn(
-          base,
-          'border-rust text-ink no-underline hover:text-rust focus-visible:text-rust',
-          className
-        )}
+        className={cn('su-inline-ref su-inline-ref--link', className)}
         {...rest}
       >
         {children}
@@ -50,10 +46,7 @@ export function InlineRef({ children, href, title, className, ...rest }: InlineR
   }
 
   return (
-    <span
-      title={title}
-      className={cn(base, 'cursor-help border-dashed border-ink-50 text-ink', className)}
-    >
+    <span title={title} className={cn('su-inline-ref su-inline-ref--inert', className)}>
       {children}
     </span>
   )

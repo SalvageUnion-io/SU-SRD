@@ -1,13 +1,40 @@
 /**
  * The roll-table page's pure logic (board 08b): which row a roll lands on, the
- * running list of earlier rolls, and reading a typed physical roll. Kept apart
+ * running list of earlier rolls. Kept apart
  * from the island so it is tested without a DOM, and so the island's chunk
  * carries no ORM: `resultForTable` is the reference package's pure rules
  * helper (ADR-006), not a data read.
  */
 
 import type { SURefObjectTable } from 'salvageunion-reference'
-import { resultForTable } from 'salvageunion-reference'
+import { parseTraitReferences, resultForTable } from 'salvageunion-reference'
+
+/**
+ * Prose with its trait references resolved at build time: plain runs, and
+ * each `[[Trait]]` as its name and (when the trait or keyword exists) its
+ * page. Resolved on the server so the island reads no game data.
+ */
+export type RefText = (string | { ref: string; href: string | null })[]
+
+/** Split prose on its `[[Trait]]` markup, resolving each name through `hrefFor`. */
+export function refText(text: string, hrefFor: (name: string) => string | null): RefText {
+  const parts: RefText = []
+  let at = 0
+  for (const match of parseTraitReferences(text)) {
+    if (match.startIndex > at) parts.push(text.slice(at, match.startIndex))
+    const ref =
+      match.parameter === undefined ? match.traitName : `${match.traitName} (${match.parameter})`
+    parts.push({ ref, href: hrefFor(match.traitName) })
+    at = match.startIndex + match.fullMatch.length
+  }
+  if (at < text.length) parts.push(text.slice(at))
+  return parts
+}
+
+/** The same prose as plain text, each reference by its name. */
+export function plainText(parts: RefText): string {
+  return parts.map((part) => (typeof part === 'string' ? part : part.ref)).join('')
+}
 
 /** One banded row, as the page prints it. */
 export type RollTableRow = {
@@ -15,7 +42,8 @@ export type RollTableRow = {
   key: string
   /** The outcome's name, when the row names one ("Success"). */
   label: string | null
-  value: string
+  /** The outcome's text, its trait references resolved (`refText`). */
+  value: RefText
 }
 
 /** Everything the page and its island need, serialised once as island props. */
@@ -27,8 +55,22 @@ export type RollTablePageData = {
   table: SURefObjectTable
 }
 
-/** A d20 has twenty faces. */
-export const D20_FACES = 20
+/**
+ * A table this long or this wordy sets its bands in two columns on a wide
+ * screen, so the page fits one screen: twenty-one bands (a d20 read one face
+ * at a time), or a few bands of long text (Crawler Destruction).
+ */
+const SPLIT_ROWS = 10
+const SPLIT_CHARS = 1400
+
+/** Whether a table's bands split into two columns on a wide screen. */
+export function splitRows(rows: RollTableRow[]): boolean {
+  const chars = rows.reduce(
+    (sum, row) => sum + (row.label?.length ?? 0) + plainText(row.value).length,
+    0
+  )
+  return rows.length >= SPLIT_ROWS || chars >= SPLIT_CHARS
+}
 
 /** How many earlier rolls the panel keeps. */
 export const EARLIER_ROLLS = 5
@@ -76,12 +118,4 @@ export function recordRoll(state: RollState, roll: number): RollState {
     history:
       state.roll === null ? state.history : [state.roll, ...state.history].slice(0, EARLIER_ROLLS),
   }
-}
-
-/** A typed physical roll, if it is a whole number a d20 can show. */
-export function parseTypedRoll(text: string): number | undefined {
-  const trimmed = text.trim()
-  if (!/^\d+$/.test(trimmed)) return undefined
-  const value = Number(trimmed)
-  return value >= 1 && value <= D20_FACES ? value : undefined
 }

@@ -67,12 +67,12 @@ describe('InlineRef', () => {
     render(<InlineRef href="/systems/autocannon">Autocannon</InlineRef>)
     const link = screen.getByRole('link', { name: 'Autocannon' })
     expect(link.getAttribute('href')).toBe('/systems/autocannon')
-    expect(link.className).toContain('border-rust')
+    expect(link.className).toContain('su-inline-ref--link')
   })
 
   test('no href is an inert ink-dashed span, not a link', () => {
     render(<InlineRef>Widget</InlineRef>)
     expect(screen.queryByRole('link')).toBeNull()
-    expect(screen.getByText('Widget').className).toContain('border-dashed')
+    expect(screen.getByText('Widget').className).toContain('su-inline-ref--inert')
   })
 })

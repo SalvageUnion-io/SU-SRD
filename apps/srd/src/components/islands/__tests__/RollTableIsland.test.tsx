@@ -92,21 +92,4 @@ describe('RollTableIsland', () => {
     const items = within(earlier as HTMLElement).getAllByRole('listitem')
     expect(items.map((item) => item.textContent)).toEqual(['20Nailed it', '7Tough Choice'])
   })
-
-  test('a roll made with real dice is recorded when the field is left', () => {
-    render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
-    const field = screen.getByLabelText('Rolled real dice?')
-    fireEvent.change(field, { target: { value: '1' } })
-    fireEvent.blur(field)
-    expect(screen.getByText('Rolled 1')).toBeTruthy()
-    expect(screen.getAllByText('Cascade Failure').length).toBeGreaterThan(0)
-  })
-
-  test('a typed roll no d20 can show is ignored', () => {
-    render(<RollTableIsland data={coreMechanic()} dieFor={dice(14)} />)
-    const field = screen.getByLabelText('Rolled real dice?')
-    fireEvent.change(field, { target: { value: '25' } })
-    fireEvent.blur(field)
-    expect(screen.queryByText(/^Rolled \d+$/)).toBeNull()
-  })
 })

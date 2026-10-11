@@ -406,6 +406,42 @@
 }
 
 /*
+ * A page's link back to what its entity is built on (`EntityPageFrame`'s
+ * `parent`): on the chapter band above the title, an ink stamp naming the
+ * relation joined to a paper cell carrying the parent's name. The whole pair
+ * is the link; hover underlines the name.
+ */
+.srd-parent-link {
+  align-items: stretch;
+  border: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink);
+  display: inline-flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-snug);
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.srd-parent-link__label {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  padding: var(--space-6) var(--space-8);
+}
+
+.srd-parent-link__name {
+  background-color: var(--color-paper);
+  padding: var(--space-6) var(--space-10);
+}
+
+.srd-parent-link:hover .srd-parent-link__name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/*
  * The roll-table page (`RollTableView`, board 08b). The "You rolled" panel
  * comes first in the source, so a phone reads the result above the table;
  * from `lg` the table takes the left and the panel the right.
@@ -545,6 +581,17 @@
   white-space: nowrap;
 }
 
+/* Under `lg` a split table's halves stack as one list: the second continues
+   the first inside the same frame. */
+.srd-roll__bands {
+  display: flex;
+  flex-direction: column;
+}
+
+.srd-roll__bands > .srd-roll__rows + .srd-roll__rows {
+  border-top: 0;
+}
+
 /* A phone: the pennant moves to a line of its own above the body, so the body
    keeps the row's whole width beside the range (board 08b). */
 @media (max-width: 40rem) {
@@ -681,37 +728,21 @@
   text-transform: uppercase;
 }
 
+/* Under the panel's head, above the result: the button never moves, however
+   long the outcome's text runs. */
 .srd-roll__controls {
   align-items: center;
-  border-top: var(--bw-chrome) solid var(--color-ink);
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-10);
   padding: var(--space-12) var(--space-14);
 }
 
-.srd-roll__typed {
-  align-items: center;
-  display: flex;
-  gap: var(--space-8);
-}
-
-.srd-roll__typed-label {
-  color: var(--color-ink-2);
-  font-size: var(--text-sm);
-}
-
-.srd-roll__typed-input {
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) dashed var(--color-ink);
-  border-radius: var(--radius-card);
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-size: var(--text-xl);
-  font-weight: var(--font-weight-extrabold);
-  min-height: 44px;
-  text-align: center;
-  width: 4rem;
+/* "Roll the die" and "Roll again" hold one width, so the credit beside it
+   does not shift either. */
+.srd-roll__roll {
+  min-width: 9rem;
 }
 
 .srd-roll__credit {
@@ -791,8 +822,152 @@
   }
 
   .srd-roll__range {
-    width: 5.75rem;
+    font-size: var(--text-xl);
+    width: 4.5rem;
   }
+
+  /* Wide screens set the bands tighter, so a table reads on one screen. */
+  .srd-roll__description {
+    font-size: var(--text-base);
+    line-height: 1.5;
+  }
+
+  .srd-roll__body {
+    gap: var(--space-2);
+    padding: var(--space-8) var(--space-12);
+  }
+
+  .srd-roll__label {
+    font-size: var(--text-lg);
+  }
+
+  .srd-roll__value {
+    line-height: 1.4;
+  }
+
+  /*
+   * A long or wordy table (`splitRows`) splits in two down the middle: the
+   * first half on the left with its ranges on the left edge, the rest on the
+   * right with its ranges on the right edge, so the numbers stay on the
+   * outside. Each half packs its own bands, so neither waits on the other.
+   */
+  .srd-roll__bands[data-split] {
+    align-items: start;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .srd-roll__bands[data-split] > .srd-roll__rows[data-side='right'] {
+    border-left: 0;
+    border-top: var(--bw-chrome) solid var(--color-ink);
+  }
+
+  .srd-roll__rows[data-side='right'] > .srd-roll__row {
+    flex-direction: row-reverse;
+  }
+
+  .srd-roll__rows[data-side='right'] .srd-roll__range {
+    border-left: var(--bw-chrome) solid var(--color-ink);
+    border-right: 0;
+  }
+
+  .srd-roll__rows[data-side='right'] .srd-roll__tag {
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);
+    margin: 0 0 0 var(--space-14);
+    padding: var(--space-4) var(--space-20) var(--space-4) var(--space-8);
+  }
+
+  .srd-roll__bands[data-split] .srd-roll__range {
+    width: 3.5rem;
+  }
+
+  .srd-roll__bands[data-split] .srd-roll__body {
+    padding: var(--space-6) var(--space-10);
+  }
+
+  .srd-roll__bands[data-split] .srd-roll__value {
+    font-size: var(--text-sm);
+    line-height: 1.35;
+  }
+}
+
+/*
+ * A two-roll columns table (`ColumnsTableView`, Callsign Table): the columns'
+ * d20 ranges across an ink head, the entry numbers down both outer edges,
+ * every entry one cell. A roll sets its column's head and its cell in ink and
+ * the rest step back, as the banded table's rows do. A phone scrolls the grid
+ * sideways inside its own frame.
+ */
+.srd-cols {
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  overflow-x: auto;
+  /* Holds the visually hidden labels inside the scroller, not the page. */
+  position: relative;
+}
+
+.srd-cols__table {
+  border-collapse: collapse;
+  font-size: var(--text-base);
+  min-width: 34rem;
+  width: 100%;
+}
+
+.srd-cols__table thead th {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-cond);
+  font-size: var(--text-lg);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  padding: var(--space-4) var(--space-10);
+  text-align: left;
+}
+
+.srd-cols__table thead th[data-rolled] {
+  background-color: var(--color-paper);
+  box-shadow: inset 0 0 0 var(--bw-chrome) var(--color-ink);
+  color: var(--color-ink);
+}
+
+.srd-cols__table tbody tr + tr > * {
+  border-top: var(--bw-hairline) solid var(--color-ink-15);
+}
+
+.srd-cols__edge {
+  background-color: var(--color-wk-bg);
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  text-align: center;
+  width: 2.75rem;
+}
+
+.srd-cols__table tbody .srd-cols__edge:first-child {
+  border-right: var(--bw-chrome) solid var(--color-ink);
+}
+
+.srd-cols__table tbody .srd-cols__edge:last-child {
+  border-left: var(--bw-chrome) solid var(--color-ink);
+}
+
+.srd-cols__cell {
+  line-height: 1.25;
+  padding: var(--space-2) var(--space-10);
+}
+
+.srd-cols__cell + .srd-cols__cell {
+  border-left: var(--bw-hairline) solid var(--color-ink-15);
+}
+
+.srd-cols__table[data-has-roll] .srd-cols__cell:not([data-rolled]) {
+  color: var(--color-wk-muted);
+}
+
+.srd-cols__cell[data-rolled] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-weight: var(--font-weight-semibold);
 }
 
 /*
@@ -848,6 +1023,12 @@
 }
 
 .srd-listing__cards {
+  /* The compact card's art column, wider here so the line art reads at a
+     glance; the art fills it top to bottom. */
+  --su-head-art-min: 7rem;
+  --su-head-art-min-phone: 6rem;
+  --su-head-art-width: 6.5rem;
+  --su-head-art-width-phone: 5rem;
   align-items: start;
   display: grid;
   gap: var(--space-8);

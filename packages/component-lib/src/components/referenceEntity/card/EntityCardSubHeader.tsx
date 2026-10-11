@@ -33,10 +33,12 @@ type EntityCardSubHeaderProps = {
   leading?: ReactNode
   size: CardSize
   /**
-   * In the compact card's body the line runs on after the value cells, so it
-   * carries no padding of its own and takes the room they leave.
+   * No padding of its own, for a parent that sets the edge: `inline` in the
+   * compact card's body, where the line runs on after the value cells and
+   * takes the room they leave; `block` in a page's prose column, where it
+   * starts on the prose's own left edge.
    */
-  flush?: boolean
+  flush?: 'inline' | 'block'
 }
 
 /** Padding by size: the line sits a few pixels above the body (board E1). */
@@ -61,12 +63,7 @@ const TYPE: Record<CardSize, string> = {
  * description so the two read as one block. (It replaced the darker tone
  * band the sub-header used to be.)
  */
-export function EntityCardSubHeader({
-  cells,
-  leading,
-  size,
-  flush = false,
-}: EntityCardSubHeaderProps) {
+export function EntityCardSubHeader({ cells, leading, size, flush }: EntityCardSubHeaderProps) {
   if (!leading && cells.length === 0) return null
 
   // Each cell's `label value` pairing is punctuated by kind:
@@ -114,7 +111,8 @@ export function EntityCardSubHeader({
     fontStyle: 'italic',
     gap: space[6],
     lineHeight: 1.35,
-    ...(flush ? { flex: '1 1 12rem', minWidth: 0 } : { padding: PAD[size] }),
+    ...(flush === 'inline' && { flex: '1 1 12rem', minWidth: 0 }),
+    ...(!flush && { padding: PAD[size] }),
   }
 
   return (

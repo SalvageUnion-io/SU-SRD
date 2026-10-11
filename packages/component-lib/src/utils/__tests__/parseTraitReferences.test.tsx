@@ -17,7 +17,7 @@ describe('useParseTraitReferences', () => {
     render(<Prose text="This mech is [[Amphibious]] in water." />)
     const mark = screen.getByText('Amphibious')
     expect(mark.tagName).toBe('SPAN')
-    expect(mark.className).toContain('border-dashed')
+    expect(mark.className).toContain('su-inline-ref--inert')
     expect(screen.queryByRole('link')).toBeNull()
   })
 
@@ -25,13 +25,13 @@ describe('useParseTraitReferences', () => {
     render(<Prose text="Deals [[[Burn] (2)]] on a hit." />)
     const mark = screen.getByText('Burn (2)')
     expect(mark.tagName).toBe('SPAN')
-    expect(mark.className).toContain('border-dashed')
+    expect(mark.className).toContain('su-inline-ref--inert')
   })
 
   test('an unknown reference still renders as an inert mark', () => {
     render(<Prose text="A [[Phantom Widget]] reference." />)
     const mark = screen.getByText('Phantom Widget')
     expect(mark.tagName).toBe('SPAN')
-    expect(mark.className).toContain('border-dashed')
+    expect(mark.className).toContain('su-inline-ref--inert')
   })
 })

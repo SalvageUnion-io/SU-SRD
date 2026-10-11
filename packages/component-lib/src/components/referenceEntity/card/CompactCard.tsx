@@ -67,7 +67,7 @@ function CompactCardBody({
       }}
     >
       <EntityCardStatBox stats={stats} cellSize="full" align="start" />
-      <EntityCardSubHeader cells={cells} leading={leading} size={size} flush />
+      <EntityCardSubHeader cells={cells} leading={leading} size={size} flush="inline" />
       {lead && (
         <p style={LEAD} title={lead}>
           {lead}

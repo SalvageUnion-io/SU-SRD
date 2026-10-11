@@ -154,7 +154,7 @@ export {
   tokenizeSearchQuery,
 } from './searchRanking.js'
 export { findEntityBySlug, getEntitySlug } from './slug.js'
-export { parseTraitReferences, replaceTraitReferences } from './traitText.js'
+export { parseTraitReferences, plainTraitText, replaceTraitReferences } from './traitText.js'
 export { truncate } from './truncate.js'
 export { resultForColumnsTable, resultForTable } from './utils/resultForTable.js'
 

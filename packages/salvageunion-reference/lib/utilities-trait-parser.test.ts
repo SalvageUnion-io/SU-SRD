@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { findEntityBySlug, getDataMaps, nameToSlug } from './index.js'
-import { parseTraitReferences, replaceTraitReferences } from './traitText.js'
+import { parseTraitReferences, plainTraitText, replaceTraitReferences } from './traitText.js'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {
@@ -272,5 +272,14 @@ describe('replaceTraitReferences', () => {
 
     expect(collected).toEqual(spans)
     expect(replaceTraitReferences(text, () => '')).toBe('A  B  C ')
+  })
+})
+
+describe('plainTraitText', () => {
+  test('reads each reference as its words, parameter included', () => {
+    expect(plainTraitText('Gains the [[Vulnerable]] Trait and [[[Burn](X)]].')).toBe(
+      'Gains the Vulnerable Trait and Burn (X).'
+    )
+    expect(plainTraitText('No references here.')).toBe('No references here.')
   })
 })

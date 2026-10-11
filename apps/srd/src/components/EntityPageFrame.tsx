@@ -17,6 +17,23 @@ import { EntityPageStamps } from './EntityPageStamps'
  * seam, header and footer read.
  */
 
+/**
+ * The band's link back to what this entity is built on, above the title: a
+ * stamp naming the relation ("Pattern of") and the parent's name as a link,
+ * with an arrow (`.srd-parent-link`).
+ */
+function ParentLink({ label, name, href }: { label: string; name: string; href: string }) {
+  return (
+    <a className="srd-parent-link" href={href}>
+      <span className="srd-parent-link__label">{label}</span>
+      <span className="srd-parent-link__name">
+        {name}
+        <span aria-hidden="true"> →</span>
+      </span>
+    </a>
+  )
+}
+
 /** An entity page's measure (board 07). */
 export const ENTITY_PAGE_MEASURE = '75rem'
 
@@ -27,6 +44,8 @@ type EntityPageFrameProps = {
   meta: EntityPageMeta
   /** The inner row's max width; the roll-table page runs wider (board 08b). */
   measure?: string
+  /** What the entity is built on, linked above the title: a pattern's chassis. */
+  parent?: { label: string; name: string; href: string }
   children: ReactNode
 }
 
@@ -35,11 +54,17 @@ export function EntityPageFrame({
   tone,
   meta,
   measure = ENTITY_PAGE_MEASURE,
+  parent,
   children,
 }: EntityPageFrameProps) {
   return (
     <article className="srd-entity">
-      <ChapterBand tone={tone} measure={measure} aside={<EntityPageStamps meta={meta} />}>
+      <ChapterBand
+        tone={tone}
+        measure={measure}
+        aside={<EntityPageStamps meta={meta} />}
+        eyebrow={parent && <ParentLink {...parent} />}
+      >
         {title}
       </ChapterBand>
       <div className="srd-entity__body" style={{ maxWidth: measure }}>

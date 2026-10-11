@@ -2,7 +2,15 @@ import { describe, expect, test } from 'bun:test'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { rollTablePageData } from '../../components/RollTablePage'
-import { outcomeLabel, parseTypedRoll, rangeLabel, recordRoll, rowForRoll } from '../rollTablePage'
+import {
+  outcomeLabel,
+  plainText,
+  rangeLabel,
+  recordRoll,
+  refText,
+  rowForRoll,
+  splitRows,
+} from '../rollTablePage'
 
 const need = <T>(value: T | undefined, label: string): T => {
   if (value === undefined) throw new Error(`fixture missing: ${label}`)
@@ -16,6 +24,33 @@ const firstOfType = (type: string) =>
     SalvageUnionReference.RollTables.all().find((t) => t.table.type === type),
     `a ${type} table`
   ) as SURefEntity
+
+describe('refText', () => {
+  test('a band’s trait markup becomes references, resolved where the trait exists', () => {
+    const href = (name: string) =>
+      name === 'Vulnerable' ? '/schema/traits/item/vulnerable/' : null
+    const parts = refText('It gains the [[Vulnerable]] Trait and [[[Burn](X)]].', href)
+    expect(parts).toEqual([
+      'It gains the ',
+      { ref: 'Vulnerable', href: '/schema/traits/item/vulnerable/' },
+      ' Trait and ',
+      { ref: 'Burn (X)', href: null },
+      '.',
+    ])
+    expect(plainText(parts)).toBe('It gains the Vulnerable Trait and Burn (X).')
+  })
+})
+
+describe('splitRows', () => {
+  const rowsOf = (name: string) => need(rollTablePageData(tableNamed(name)) ?? undefined, name).rows
+
+  test('a long or wordy table splits in two; a short one stays one column', () => {
+    expect(splitRows(rowsOf('Mechapult'))).toBe(true)
+    expect(splitRows(rowsOf('Motto'))).toBe(true)
+    expect(splitRows(rowsOf('Crawler Destruction'))).toBe(true)
+    expect(splitRows(rowsOf('Core Mechanic'))).toBe(false)
+  })
+})
 
 describe('rollTablePageData', () => {
   test('the Core Mechanic: its prose and its five bands, highest first', () => {
@@ -92,13 +127,5 @@ describe('reading the page', () => {
   test('a range reads with an en dash, as the book sets it', () => {
     expect(rangeLabel('11-19')).toBe('11–19')
     expect(rangeLabel('20')).toBe('20')
-  })
-
-  test('a typed roll is a whole number a d20 can show', () => {
-    expect(parseTypedRoll(' 14 ')).toBe(14)
-    expect(parseTypedRoll('0')).toBeUndefined()
-    expect(parseTypedRoll('21')).toBeUndefined()
-    expect(parseTypedRoll('3.5')).toBeUndefined()
-    expect(parseTypedRoll('')).toBeUndefined()
   })
 })

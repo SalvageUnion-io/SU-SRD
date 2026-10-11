@@ -12,7 +12,7 @@ const GHOST_ROWS = ['12%', '25%', '66%', '79%']
  *
  * - `file`: a torn ink patch, REDACTED and a code line carrying the page;
  * - `row`: a torn ink strip laid askew across the frame;
- * - `removed`: the red "Removed" pill.
+ * - `removed`: a red REMOVED rubber stamp.
  *
  * `hero` is the page's large form; without it, the compact card's thumbnail.
  * It is decoration (`aria-hidden`): the entity's name is the card's title.
@@ -25,7 +25,7 @@ export function MissingArt({ entity, hero = false }: { entity: SURefMetaEntity; 
   if (variant === 'removed') {
     return (
       <span className={className} data-missing-art={variant} aria-hidden="true">
-        <span className="su-missing-art__pill">Removed</span>
+        <span className="su-missing-art__stamp">Removed</span>
       </span>
     )
   }

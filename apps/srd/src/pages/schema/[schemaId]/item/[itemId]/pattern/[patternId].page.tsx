@@ -125,7 +125,12 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     },
     foot: entityPageFoot(chapter.tone, pageMeta),
     children: (
-      <EntityPageFrame title={`“${patternName}”`} tone={chapter.tone} meta={pageMeta}>
+      <EntityPageFrame
+        title={`“${patternName}”`}
+        tone={chapter.tone}
+        meta={pageMeta}
+        parent={{ label: 'Pattern of', name: chassisName, href: itemHref(schemaId, itemId) }}
+      >
         {/* The pattern renders through the same Entity unit as every other page —
             the interactive island card (in its pattern view) plus the static
             SEO / no-JS sub-content. */}

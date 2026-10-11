@@ -13,7 +13,7 @@ import {
  *
  * - `file`: the redaction patch over a censored system (p.85, p.182);
  * - `row`: the torn strip across a contents row (p.163);
- * - `removed`: the contents' red "Removed" pill (p.163).
+ * - `removed`: the contents' red Removed mark (p.163), set as a rubber stamp.
  */
 export type MissingArtVariant = 'file' | 'row' | 'removed'
 

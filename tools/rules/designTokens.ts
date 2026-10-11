@@ -313,7 +313,8 @@ const EXEMPTIONS: Exemption[] = [
   {
     file: 'packages/component-lib/src/components/chrome/InlineRef.tsx',
     rules: ['rust-allowlist'],
-    reason: 'THE rust allowlist (ruleset §3.1): the one Reference exception — an inline link.',
+    reason:
+      'THE rust allowlist (ruleset §3.1): the one Reference exception — an inline link. Its paint lives in the stylesheet half, `.su-inline-ref--link` in styles/index.css, whose rust lines carry a `design-tokens-ignore` naming this allowlist; this entry keeps the component itself sanctioned to name rust.',
   },
   {
     file: 'apps/discord-bot/src',

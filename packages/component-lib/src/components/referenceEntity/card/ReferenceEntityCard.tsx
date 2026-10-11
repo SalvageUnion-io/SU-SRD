@@ -85,6 +85,7 @@ import { compactLead } from './compactLead'
 import { DamagedEffectCallout } from './DamagedEffectCallout'
 import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
+import type { EntityCardSubHeaderCell } from './EntityCardSubHeader'
 import { EntityCardSubHeader } from './EntityCardSubHeader'
 import type { AxisMarker } from './entityCardTone'
 import {
@@ -240,6 +241,29 @@ function shortformTail(
   if (numeral) return { label: 'LVL', value: numeral }
   if (techLevel != null) return { label: 'TL', value: String(techLevel) }
   return npcHitPointsTail(entity) ?? axisMarker
+}
+
+/** A page's "//" line, on the prose's own left edge, after any `subtitleExtra`. */
+function PageSubLine({
+  extra,
+  cells,
+  size,
+  children,
+}: {
+  extra: ReactNode
+  cells: EntityCardSubHeaderCell[]
+  size: CardSize
+  /** The line's leading stamp ("Suggested"). */
+  children: ReactNode
+}) {
+  return (
+    <>
+      {extra}
+      {(cells.length > 0 || !!children) && (
+        <EntityCardSubHeader cells={cells} leading={children} size={size} flush="block" />
+      )}
+    </>
+  )
 }
 
 function ReferenceEntityCardInner({
@@ -952,8 +976,8 @@ function ReferenceEntityCardInner({
   ) : null
 
   // PATTERN view → the pattern's own prose, then its side-by-side loadout of
-  // shortform badges — AFTER the chassis ability, so a pattern reads chassis →
-  // chassis ability → pattern → systems → modules.
+  // shortform badges. On a card it follows the chassis ability (chassis →
+  // ability → pattern → loadout); on a page it leads (`CardPage`'s `opening`).
   const showLoadout = isPattern && !hide?.patterns && inFlowGroups.length > 0
   const patternSection =
     patternProse || showLoadout ? (
@@ -962,7 +986,7 @@ function ReferenceEntityCardInner({
           display: 'flex',
           flexDirection: 'column',
           gap: space[6],
-          padding: BODY_PAD[size].open,
+          padding: onPage ? 0 : BODY_PAD[size].open,
         }}
       >
         {patternProse}
@@ -1025,15 +1049,14 @@ function ReferenceEntityCardInner({
         otherActions={hide?.actions ? [] : [...gridActions, ...titanicActions]}
         subLine={
           (subtitleExtra || hasSubLine) && (
-            <>
-              {subtitleExtra}
-              {hasSubLine && (
-                <EntityCardSubHeader cells={cells} leading={suggestedNode} size={size} />
-              )}
-            </>
+            <PageSubLine extra={subtitleExtra} cells={cells} size={size}>
+              {suggestedNode}
+            </PageSubLine>
           )
         }
         body={bodyHasContent ? bodyContent : null}
+        opening={patternSection}
+        bodyLabel={isPattern ? `${resolvedChassisName ?? entityName} chassis` : undefined}
         stats={
           hide?.stats
             ? null
@@ -1044,12 +1067,7 @@ function ReferenceEntityCardInner({
         }
         table={rollTableNode}
         abilitiesSection={abilitiesSection}
-        sections={
-          <>
-            {patternSection}
-            {nestedGroupsNode}
-          </>
-        }
+        sections={nestedGroupsNode}
         patterns={hide?.patterns ? [] : patternList}
         after={
           <>

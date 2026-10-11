@@ -30,6 +30,7 @@ import type { EnhancedSchemaMetadata } from './ModelFactory.js'
 import { getSchemaCatalog } from './ModelFactory.js'
 import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './schemas/index.js'
 import { getEntitySlug } from './slug.js'
+import { plainTraitText } from './traitText.js'
 import { isColumnsTable } from './utils/resultForTable.js'
 import type { TableRow } from './utils/tableRows.js'
 import { tableRows } from './utils/tableRows.js'
@@ -400,7 +401,7 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
         (!block.type || block.type === 'paragraph') &&
         typeof block.value === 'string'
       ) {
-        contentParagraphs.push(block.value)
+        contentParagraphs.push(plainTraitText(block.value))
       }
     }
   }
@@ -477,7 +478,7 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
             (!block.type || block.type === 'paragraph') &&
             typeof block.value === 'string'
           ) {
-            paragraphs.push(block.value)
+            paragraphs.push(plainTraitText(block.value))
           }
         }
       }
@@ -489,12 +490,13 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
   // note on `StaticEntitySummary.table`.
   const table =
     'table' in entity && entity.table && !isColumnsTable(entity.table)
-      ? tableRows(entity.table)
+      ? tableRows(entity.table).map((row) => ({ ...row, value: plainTraitText(row.value) }))
       : []
 
   return {
     name,
-    description,
+    // Prose prints here without rendering references: read them as words.
+    description: description === undefined ? undefined : plainTraitText(description),
     source,
     page,
     techLevel,
