@@ -42,7 +42,19 @@ export function rollForPilotField(
   field: PilotRollField,
   deps: RollTableDeps = defaultRollTableDeps
 ): string | null {
-  const tableName = PILOT_ROLL_TABLE_NAMES[field]
+  return rollOnNamedTable(PILOT_ROLL_TABLE_NAMES[field], deps)
+}
+
+/**
+ * Rolls on any roll table by its name — the one a choice's data points at
+ * (`source.rollTable`, e.g. the Augmented crawler's "A.I. Personality"), so a
+ * Roll appears only where the data has a table (P7 D1). Null when the table
+ * cannot be found or the roll fails.
+ */
+export function rollOnNamedTable(
+  tableName: string,
+  deps: RollTableDeps = defaultRollTableDeps
+): string | null {
   const table = deps.findTable(tableName)
   if (!table) return null
 
