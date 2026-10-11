@@ -3309,7 +3309,7 @@
     "structurePoints": 13,
     "energyPoints": 11,
     "heatCapacity": 12,
-    "systemSlots": 20,
+    "systemSlots": 18,
     "moduleSlots": 3,
     "cargoCapacity": 6,
     "techLevel": 2,
@@ -4062,7 +4062,6 @@
         ]
       }
     ],
-    "page": 4,
     "id": "76345263-a5a4-4fb0-8aa3-0b154cff797c",
     "content": [
       {
@@ -4073,9 +4072,8 @@
     "chassisAbilities": ["Scrap Plating"],
     "additionalSources": [
       {
-        "source": "Salvage Union Starter Set",
-        "booklet": "PC",
-        "page": 24
+        "source": "Mech Monday",
+        "page": 4
       }
     ]
   },
