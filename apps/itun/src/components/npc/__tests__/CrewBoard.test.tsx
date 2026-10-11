@@ -5,7 +5,7 @@
  */
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
@@ -148,7 +148,8 @@ describe('design, assign, unassign', () => {
     // The NPC survives, and the bay is back to the book's line, byte for byte.
     expect(useEntityStore.getState().npcs).toHaveLength(1)
     expect(JSON.stringify(useEntityStore.getState().crawlers[0])).toBe(before)
-    expect(screen.getByText(/Old Mags ·/)).toBeTruthy()
+    // The slot closes in the write's success callback, a tick after the store empties.
+    await waitFor(() => expect(screen.getByText(/Old Mags ·/)).toBeTruthy())
   })
 
   test('the Augmented A.I. rolls its personality, because its data has a table (D1)', async () => {
@@ -177,5 +178,42 @@ describe('only whoever may write the crawler assigns its crew (D7)', () => {
     await renderBoard('c1')
     expect(screen.queryByRole('button', { name: 'Design Med Bay crew' })).toBeNull()
     expect(screen.getByText(/Only the Mediator assigns crawler crew/)).toBeTruthy()
+  })
+})
+
+describe('below 48rem the slot opens in a modal (§5)', () => {
+  /** A phone viewport: the designer's wide query does not match. */
+  function onPhone() {
+    const original = window.matchMedia
+    window.matchMedia = ((query: string) => ({
+      matches: false,
+      media: query,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    })) as unknown as typeof window.matchMedia
+    return () => {
+      window.matchMedia = original
+    }
+  }
+
+  test('the modal names the slot once, and its body carries its own gutter', async () => {
+    const restore = onPhone()
+    try {
+      await renderBoard('c1', 'med-bay')
+      const dialog = await screen.findByRole('dialog')
+      // The modal title is the only heading naming the slot: the panel drops its own.
+      expect(within(dialog).getAllByRole('heading', { name: 'Med Bay · the Doc' })).toHaveLength(1)
+      // ModalShell's Card body adds no padding, so the panel's wrapper does.
+      const intro = within(dialog).getByText(/position Doc, HP 4/)
+      expect(intro.parentElement?.style.padding).not.toBe('')
+    } finally {
+      restore()
+    }
+  })
+
+  test('on a wide screen the panel keeps its own heading', async () => {
+    await renderBoard('c1', 'med-bay')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getAllByRole('heading', { name: 'Med Bay · the Doc' })).toHaveLength(1)
   })
 })

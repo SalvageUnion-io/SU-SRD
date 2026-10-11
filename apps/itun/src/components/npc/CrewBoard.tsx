@@ -118,6 +118,12 @@ const SLOT_LABEL = {
   fontSize: tokens.fontSize.caption,
 } satisfies CSSProperties
 
+/** The phone modal's body: the gutter and rhythm the wide column gets from the page. */
+const MODAL_BODY = {
+  ...COLUMN,
+  padding: tokens.space[20],
+} satisfies CSSProperties
+
 const FIELD_ROW = {
   alignItems: 'stretch',
   display: 'flex',
@@ -264,7 +270,8 @@ function CrewSlots({
   const allowed = writer && canWrite
   const typeName = slots.find((s) => s.slot.kind === 'type')?.name
 
-  const panel =
+  /** In the modal the slot's name is the modal title, so the panel drops its own. */
+  const panel = (inModal: boolean) =>
     selected === undefined ? (
       <p style={HINT}>
         {allowed
@@ -283,6 +290,7 @@ function CrewSlots({
         madeBy={madeBy}
         makerOf={makerOf}
         gameId={gameId}
+        titled={!inModal}
         onDone={() => onSelect(undefined)}
       />
     )
@@ -326,7 +334,7 @@ function CrewSlots({
 
       {wide ? (
         <section style={COLUMN} aria-label="Crew slot">
-          {panel}
+          {panel(false)}
         </section>
       ) : (
         <ModalShell
@@ -337,7 +345,8 @@ function CrewSlots({
           title={selected ? slotTitle(selected) : 'Crew slot'}
           align="top"
         >
-          {panel}
+          {/* ModalShell's Card body supplies no padding: the gutter is ours. */}
+          <div style={MODAL_BODY}>{panel(true)}</div>
         </ModalShell>
       )}
     </div>
@@ -440,6 +449,7 @@ function SlotPanel({
   madeBy,
   makerOf,
   gameId,
+  titled = true,
   onDone,
 }: {
   crawler: Crawler
@@ -453,6 +463,8 @@ function SlotPanel({
   /** Who made an NPC already built. */
   makerOf: (npc: Npc) => string
   gameId: string | null
+  /** Render the slot's own heading; off inside the modal, whose title names it. */
+  titled?: boolean
   onDone: () => void
 }) {
   const [draft, setDraft] = useState<CrewDraft>({})
@@ -461,7 +473,9 @@ function SlotPanel({
   const [announcement, setAnnouncement] = useState('')
   const titleId = `crew-slot-${nameToSlug(slot.key)}`
 
-  const heading = <Slab variant="solid" as="h2" id={titleId} label={slotTitle(slot)} />
+  const heading = titled ? (
+    <Slab variant="solid" as="h2" id={titleId} label={slotTitle(slot)} />
+  ) : null
 
   if (assignment) {
     const npc = assignment.npc
