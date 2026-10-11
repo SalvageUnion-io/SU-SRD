@@ -269,10 +269,18 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
   const pilots = allPilots.filter((p) => shownUnder(filter, p))
   const mechs = allMechs.filter((m) => shownUnder(filter, m))
   // A Game's crawler is the crew's: on your shelf only where you run the table.
-  const crawlers = allCrawlers.filter((c) => crawlerIsKept(c, games) && shownUnder(filter, c))
+  const keptCrawlers = allCrawlers.filter((c) => crawlerIsKept(c, games))
+  const crawlers = keptCrawlers.filter((c) => shownUnder(filter, c))
   const npcs = allNpcs.filter((n) => shownUnder(filter, n))
   // The personal tray is on the shelf alone: it is in no Game to filter by.
   const tray = filter === 'everything' ? trayNpcs.filter((n) => typeof n.gameId !== 'string') : []
+
+  /**
+   * A filtered-out shelf says why: "Every pilot is in a Game." only when there
+   * are pilots at all, and "No pilots yet." when there are none to filter.
+   */
+  const emptyText = (total: number, none: string, plural: string): string =>
+    filter === 'everything' || total === 0 ? none : `Every ${plural} is in a Game.`
 
   // -- the verbs ------------------------------------------------------------
 
@@ -490,7 +498,7 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
                 count={pilots.length}
                 action={newLink('/pilots/new', '+ New pilot')}
                 isEmpty={pilots.length === 0}
-                empty={filter === 'everything' ? 'No pilots yet.' : 'Every pilot is in a Game.'}
+                empty={emptyText(allPilots.length, 'No pilots yet.', 'pilot')}
               >
                 {pilots.map((p) => (
                   <ShelfItem
@@ -512,7 +520,7 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
                 count={mechs.length}
                 action={newLink('/mechs/new', '+ New mech')}
                 isEmpty={mechs.length === 0}
-                empty={filter === 'everything' ? 'No mechs yet.' : 'Every mech is in a Game.'}
+                empty={emptyText(allMechs.length, 'No mechs yet.', 'mech')}
               >
                 {mechs.map((m) => (
                   <ShelfItem
@@ -534,7 +542,7 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
                 count={crawlers.length}
                 action={newLink('/crawlers/new', '+ New crawler')}
                 isEmpty={crawlers.length === 0}
-                empty={filter === 'everything' ? 'No crawlers yet.' : 'Every crawler is in a Game.'}
+                empty={emptyText(keptCrawlers.length, 'No crawlers yet.', 'crawler')}
               >
                 {crawlers.map((c) => (
                   <ShelfItem
@@ -594,11 +602,11 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
                 note="Your NPCs, ready to drop into a Game you mediate."
                 action={newLink('/npcs/new', '+ Design an NPC')}
                 isEmpty={npcs.length + tray.length === 0}
-                empty={
-                  filter === 'everything'
-                    ? 'No NPCs yet. Design one and it is kept here.'
-                    : 'Every NPC is in a Game.'
-                }
+                empty={emptyText(
+                  allNpcs.length + tray.length,
+                  'No NPCs yet. Design one and it is kept here.',
+                  'NPC'
+                )}
               >
                 {npcs.map((n) => (
                   <ShelfItem

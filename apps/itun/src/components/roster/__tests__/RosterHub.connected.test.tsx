@@ -200,6 +200,35 @@ describe('Shelves: everything you keep', () => {
     expect(within(pilots).getByText('Mira Cole')).toBeTruthy()
   })
 
+  test('under Not in a Game, a shelf whose units are all in Games says so', async () => {
+    // The shelf's one pilot moves into a Game: every pilot is now in one.
+    await useEntityStore
+      .getState()
+      .adopt('pilot', pilotFixture({ id: 'p-shelf', name: 'Mira Cole', gameId: 'g1' }))
+    await renderHub()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
+    })
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    expect(within(pilots).queryByText('Mira Cole')).toBeNull()
+    expect(within(pilots).getByText('Every pilot is in a Game.')).toBeTruthy()
+  })
+
+  test('under Not in a Game, a shelf with nothing on it at all is empty, not "in a Game"', async () => {
+    await renderHub()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
+    })
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    expect(within(mechs).getByText('No mechs yet.')).toBeTruthy()
+    expect(within(mechs).queryByText('Every mech is in a Game.')).toBeNull()
+    const npcs = screen.getByRole('region', { name: 'NPCs' })
+    expect(within(npcs).getByText(/No NPCs yet/)).toBeTruthy()
+    expect(within(npcs).queryByText('Every NPC is in a Game.')).toBeNull()
+  })
+
   test('a crawler in a Game you mediate says so', async () => {
     await useEntityStore
       .getState()
