@@ -39,9 +39,16 @@ export function patternHref(schemaName: string, slug: string, patternSlug: strin
  * srd's show-page route for an entity, as a `component-lib` href builder.
  * Supplied to component-lib via `EntityHrefProvider` so nested "View Details"
  * links resolve to this app's routes (the shared library stays route-agnostic).
+ *
+ * Only a dataset record has a page. A record with no `id` was assembled for
+ * display — a crawler bay's commander is its bay's embedded `npc` object,
+ * dressed as an `npcs` entity so it wears the NPC card (`resolveNestedEntities`)
+ * — and a link built from its name would 404, so it gets none and renders
+ * unlinked.
  */
 export const srdEntityHref: EntityHrefBuilder = (entity) => {
   const schemaName =
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
-  return schemaName ? itemHref(schemaName, getEntitySlug(entity)) : undefined
+  const isRecord = 'id' in entity && typeof entity.id === 'string' && entity.id.length > 0
+  return schemaName && isRecord ? itemHref(schemaName, getEntitySlug(entity)) : undefined
 }

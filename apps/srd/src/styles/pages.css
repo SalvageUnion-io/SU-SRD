@@ -436,9 +436,99 @@
   padding: var(--space-6) var(--space-10);
 }
 
-.srd-parent-link:hover .srd-parent-link__name {
+.srd-parent-link:hover .srd-parent-link__name,
+.srd-parent-link:focus-visible .srd-parent-link__name {
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* The canonical ring (paper offset under ink), so it reads on any band tone. */
+.srd-parent-link:focus-visible {
+  box-shadow: var(--focus-ring-shadow);
+  outline: 3px solid transparent;
+}
+
+/*
+ * The SEO / no-JS entity fallback (`StaticEntityContent`): plain reading
+ * prose, a label/value stat list, a real roll table and named sections. Its
+ * references are component-lib `InlineRef`s.
+ */
+.srd-static {
+  color: var(--color-ink);
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-base);
+  gap: var(--space-12);
+  line-height: 1.6;
+  max-width: 52rem;
+}
+
+/* `ReferenceEntityIsland` hides the fallback with `hidden` on mount; the
+   `display` above must not out-rank it. */
+.srd-static[hidden] {
+  display: none;
+}
+
+.srd-static__label {
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-snug);
+  text-transform: uppercase;
+}
+
+.srd-static__stats {
+  display: grid;
+  gap: var(--space-4) var(--space-16);
+  grid-template-columns: auto 1fr;
+}
+
+.srd-static__table-wrap {
+  overflow-x: auto;
+}
+
+.srd-static__table {
+  border-collapse: collapse;
+  text-align: left;
+  width: 100%;
+}
+
+.srd-static__table th,
+.srd-static__table td {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-20);
+  padding: var(--space-4) var(--space-8);
+  vertical-align: top;
+}
+
+.srd-static__table thead th {
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+  font-family: var(--font-cond);
+  text-transform: uppercase;
+}
+
+.srd-static__table tbody th {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Named for a screen reader's table list; not drawn. */
+.srd-static__caption {
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.srd-static__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.srd-static__source {
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
 }
 
 /*

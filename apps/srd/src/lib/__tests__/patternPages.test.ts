@@ -127,13 +127,23 @@ describe('patternStaticSummary', () => {
     expect(prose).toContain('Reactor Flare')
   })
 
-  it('reads chassis prose before pattern prose', () => {
-    const chassisProse = summary.contentParagraphs.findIndex((p) => p.includes("'M-63' Mule"))
-    const patternProse = summary.contentParagraphs.findIndex((p) =>
-      p.includes('favoured by wastelanders')
-    )
-    expect(chassisProse).toBeGreaterThan(-1)
-    expect(patternProse).toBeGreaterThan(chassisProse)
+  it('leads with the pattern, then the base chassis under its own heading', () => {
+    // The pattern's prose and loadout come first (description + content) ...
+    expect(summary.description).toContain('favoured by wastelanders')
+    expect(summary.contentParagraphs.join('\n')).not.toContain("'M-63' Mule")
+    // ... and the chassis prose follows, as a section named for the chassis.
+    const [chassisSection] = summary.sections
+    expect(chassisSection?.name).toBe('Mule chassis')
+    expect(chassisSection?.paragraphs.join('\n')).toContain("'M-63' Mule")
+  })
+
+  it('never repeats a paragraph', () => {
+    const all = [
+      summary.description,
+      ...summary.contentParagraphs,
+      ...summary.sections.flatMap((s) => s.paragraphs),
+    ]
+    expect(new Set(all).size).toBe(all.length)
   })
 
   it('counts a repeated loadout entry rather than listing it twice', () => {

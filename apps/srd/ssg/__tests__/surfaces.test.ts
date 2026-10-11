@@ -113,6 +113,48 @@ describe('an entity page (boards 07, 08)', () => {
   })
 })
 
+describe('a pattern page names and links its base chassis', () => {
+  const html = page('/schema/chassis/item/mazona/pattern/buzzard')
+
+  it('links back to the chassis in the band, above the title', () => {
+    const link = html.indexOf('<a class="srd-parent-link" href="/schema/chassis/item/mazona/">')
+    expect(link).toBeGreaterThan(-1)
+    expect(html.slice(link, link + 300)).toContain('Pattern of')
+    expect(link).toBeLessThan(html.indexOf('<h1'))
+    expect(h1s(html)).toEqual(['“Buzzard”'])
+  })
+
+  it('leads with the pattern, then the base chassis under its own slab', () => {
+    // The body only: the head's meta description quotes the pattern too.
+    const body = html.slice(html.indexOf('<h1'))
+    const patternProse = body.indexOf('Buzzards of the wastes')
+    const chassisSlab = body.indexOf('Mazona chassis')
+    const chassisProse = body.indexOf('The Mazona')
+    expect(patternProse).toBeGreaterThan(-1)
+    expect(chassisSlab).toBeGreaterThan(patternProse)
+    expect(chassisProse).toBeGreaterThan(chassisSlab)
+  })
+
+  it('links the chassis from the no-JS fallback too, as an inline reference', () => {
+    const fallback = page('/schema/chassis/item/jackhammer/pattern/auger')
+    expect(fallback).toContain('data-static-fallback')
+    expect(fallback).toMatch(
+      /<a href="\/schema\/chassis\/item\/jackhammer\/" class="su-inline-ref su-inline-ref--link">Jackhammer<\/a>/
+    )
+  })
+})
+
+describe('a class page links its abilities', () => {
+  const html = page('/schema/classes/item/hacker')
+
+  it('as same-tab links to each ability’s page', () => {
+    const links = [...html.matchAll(/<a href="(\/schema\/abilities\/item\/[^"]+)"([^>]*)>/g)]
+    expect(links.length).toBeGreaterThan(0)
+    expect(links.map(([, href]) => href)).toContain('/schema/abilities/item/hacking-kit/')
+    expect(links.every(([, , attrs]) => !attrs?.includes('target='))).toBe(true)
+  })
+})
+
 describe('a roll table rolls on its own page (board 08b)', () => {
   const html = page('/schema/roll-tables/item/core-mechanic')
 

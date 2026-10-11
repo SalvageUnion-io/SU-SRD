@@ -68,6 +68,8 @@ const SINGLE_APP: Readonly<Record<string, string>> = {
   EntityPageMeta: 'the shape `resolveEntityPageMeta` returns',
   buildCatalogSections:
     "binds the library's catalog categories and tile colours (`catalogColors`) to the reference ORM, for ITUN's SRD Explorer",
+  useDetailModal:
+    'the reference card shells\' "View details" control (modal, or a link out under `EntityDetailLinkProvider`), which the library\'s own `PatternEquipmentItem` renders too',
   ogCardForEntity:
     "a reference entity's `OgCard` props, read through the entity card's own internal tone, stat, cost and provenance helpers so the link preview says what the card says (issue 1280)",
 }

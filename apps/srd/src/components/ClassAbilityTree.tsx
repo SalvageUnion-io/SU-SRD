@@ -1,7 +1,13 @@
-import { ReferenceEntityCard, Slab, useDetailModal } from 'component-lib'
+import { ReferenceEntityCard, Slab } from 'component-lib'
 import { useMemo } from 'react'
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
-import { isBaseAdvancedClass, isCoreClass, SalvageUnionReference } from 'salvageunion-reference'
+import {
+  getEntitySlug,
+  isBaseAdvancedClass,
+  isCoreClass,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
+import { itemHref } from '../lib/entityHref'
 
 type TreeGroup = { tree: string; abilities: SURefAbility[] }
 
@@ -48,19 +54,21 @@ function resolveClassTrees(classEntity: SURefClass): ResolvedTrees {
   return { coreTrees: [], advancedTree: null, legendaryTree: null }
 }
 
+/**
+ * One ability in its tree: the compact card as a real, same-tab link to the
+ * ability's page — the listing row's shape (`EntityListingRow`), so a crawler
+ * follows it and a reader keeps their back button. The anchor carries the
+ * interaction and the accessible name; `cardClickable` is the hover affordance.
+ */
 function AbilityTreeListing({ ability }: { ability: SURefAbility }) {
-  const detailModal = useDetailModal(ability)
-
   return (
-    <>
-      <ReferenceEntityCard
-        data={ability}
-        size="medium"
-        extent="head"
-        controls={[detailModal.control]}
-      />
-      {detailModal.modal}
-    </>
+    <a
+      href={itemHref('abilities', getEntitySlug(ability))}
+      aria-label={ability.name}
+      className="srd-listing__row"
+    >
+      <ReferenceEntityCard data={ability} size="medium" extent="head" cardClickable />
+    </a>
   )
 }
 

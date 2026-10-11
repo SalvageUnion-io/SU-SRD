@@ -1655,11 +1655,14 @@ body {
   order: 1;
 }
 
-/* A pattern page's pattern: on a phone it follows the art, before the stats. */
+/* A pattern page's pattern: on a phone it follows the art, before the stats.
+   Its prose reads at the page's reading size, as the chassis prose under it does. */
 .su-entity-page__opening {
   display: flex;
   flex-direction: column;
+  font-size: var(--text-lg);
   gap: var(--space-12);
+  line-height: 1.6;
   order: 1;
 }
 
@@ -1684,6 +1687,7 @@ body {
 
 /* A phone reads at 17px (SrdMobile). */
 @media (max-width: 40rem) {
+  .su-entity-page__opening,
   .su-entity-page__prose {
     font-size: 17px;
   }

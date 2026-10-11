@@ -25,7 +25,9 @@
  */
 
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import { getEntitySlug } from 'salvageunion-reference'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
+import { itemHref } from '../lib/entityHref'
 import { extractStaticEntitySummary } from '../lib/gameData'
 import { patternStaticSummary } from '../lib/patternSummary'
 import { schemaHasArt } from '../lib/schemaArt'
@@ -65,7 +67,19 @@ export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
           artSlot,
         }}
       />
-      <StaticEntityContent summary={staticSummary} resolveTraitHref={resolveTraitHref} />
+      <StaticEntityContent
+        summary={staticSummary}
+        resolveTraitHref={resolveTraitHref}
+        parent={
+          pattern
+            ? {
+                label: 'Pattern of',
+                name: item.name,
+                href: itemHref(schemaId, getEntitySlug(item)),
+              }
+            : undefined
+        }
+      />
     </>
   )
 }

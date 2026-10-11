@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test'
+import type { SURefEntity } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { itemHref, patternHref, schemaHref, srdEntityHref } from '../entityHref'
 import { ogImagePath } from '../ogCard'
@@ -59,5 +60,20 @@ describe('srdEntityHref', () => {
     // and the builder must decline it rather than emit `/schema/undefined/...`.
     const { schemaName: _stampedByTheOrm, ...bare } = chassis
     expect(srdEntityHref(bare)).toBeUndefined()
+  })
+
+  it('declines a record assembled for display, which has no page', () => {
+    // A crawler bay's commander: its bay's embedded `npc` object, dressed as an
+    // `npcs` entity by `resolveNestedEntities`. It has no `id` and no page, so
+    // a name-built link (`/schema/npcs/item/princeps/`) would 404.
+    const bay = SalvageUnionReference.CrawlerBays.all().find((b) => 'npc' in b && b.npc)
+    if (!bay || !('npc' in bay) || !bay.npc) throw new Error('no crawler bay carries an npc')
+    // Built exactly as `resolveNestedEntities` builds it, cast included.
+    const commander = {
+      ...bay.npc,
+      name: 'position' in bay.npc ? bay.npc.position : 'NPC',
+      schemaName: 'npcs',
+    } as unknown as SURefEntity
+    expect(srdEntityHref(commander)).toBeUndefined()
   })
 })

@@ -1,4 +1,4 @@
-import { PageHeading } from 'component-lib'
+import { InlineRef, Slab } from 'component-lib'
 import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
 
@@ -13,40 +13,51 @@ import type { StaticEntitySummary } from 'salvageunion-reference'
  *
  * Route-agnostic: trait/keyword links are resolved by the injected
  * `resolveTraitHref` (srd passes its build-time resolver); without it,
- * traits render as plain text.
+ * traits render as plain text. Every link to another entity is an `InlineRef`,
+ * the one in-prose reference the design system has. Layout is
+ * `pages.css`'s `.srd-static*`.
  */
 
 type StaticEntityContentProps = {
   summary: StaticEntitySummary
   /** Resolve a trait/keyword name to an href, or null for no link. */
   resolveTraitHref?: (traitName: string) => string | null
+  /** What the entity is built on, linked first: a pattern's base chassis. */
+  parent?: { label: string; name: string; href: string }
 }
 
-export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityContentProps) {
+export function StaticEntityContent({
+  summary,
+  resolveTraitHref,
+  parent,
+}: StaticEntityContentProps) {
   return (
-    <div data-static-fallback className="mx-auto w-full max-w-6xl px-4 text-sm text-ink">
+    <div data-static-fallback className="srd-static">
       {/* No heading of its own: the page's chapter band is its <h1>, for
           crawlers, no-JS readers and the hydrated page alike. */}
-      {summary.description && <p className="mb-3 italic">{summary.description}</p>}
+      {parent && (
+        <p>
+          <span className="srd-static__label">{parent.label}</span>{' '}
+          <InlineRef href={parent.href}>{parent.name}</InlineRef>
+        </p>
+      )}
+
+      {summary.description && <p>{summary.description}</p>}
 
       {summary.stats.length > 0 && (
-        <dl className="mb-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+        <dl className="srd-static__stats">
           {summary.stats.map(({ label, value }) => (
             <Fragment key={label}>
-              <dt className="font-cond font-bold uppercase">{label}</dt>
+              <dt className="srd-static__label">{label}</dt>
               <dd>{value}</dd>
             </Fragment>
           ))}
         </dl>
       )}
 
-      {summary.contentParagraphs.length > 0 && (
-        <div className="mb-3 space-y-2">
-          {summary.contentParagraphs.map((p) => (
-            <p key={p}>{p}</p>
-          ))}
-        </div>
-      )}
+      {summary.contentParagraphs.map((p) => (
+        <p key={p}>{p}</p>
+      ))}
 
       {/*
         A roll table's rows, as a REAL table.
@@ -62,36 +73,21 @@ export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityC
         what a rotor listing reads.
       */}
       {summary.table.length > 0 && (
-        <div className="mb-3 overflow-x-auto">
-          <table className="w-full border-collapse text-left">
-            <caption className="sr-only">{`${summary.name} roll table`}</caption>
+        <div className="srd-static__table-wrap">
+          <table className="srd-static__table">
+            <caption className="srd-static__caption">{`${summary.name} roll table`}</caption>
             <thead>
               <tr>
-                <th
-                  scope="col"
-                  className="border-ink border-b-chrome px-2 py-1 font-cond uppercase"
-                >
-                  Roll
-                </th>
-                <th
-                  scope="col"
-                  className="border-ink border-b-chrome px-2 py-1 font-cond uppercase"
-                >
-                  Outcome
-                </th>
+                <th scope="col">Roll</th>
+                <th scope="col">Outcome</th>
               </tr>
             </thead>
             <tbody>
               {summary.table.map((row) => (
                 <tr key={row.key}>
-                  <th
-                    scope="row"
-                    className="whitespace-nowrap border-ink/20 border-b px-2 py-1 text-left align-top font-bold tabular-nums"
-                  >
-                    {row.key}
-                  </th>
-                  <td className="border-ink/20 border-b px-2 py-1 align-top">
-                    {row.label && <span className="font-bold">{row.label}: </span>}
+                  <th scope="row">{row.key}</th>
+                  <td>
+                    {row.label && <strong>{row.label}: </strong>}
                     {row.value}
                   </td>
                 </tr>
@@ -101,41 +97,28 @@ export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityC
         </div>
       )}
 
-      {/* Named sections (a guide's steps) — most of a guide's text lives here,
-          so without it a guide's no-JS/crawler rendering is a title and one
-          paragraph. Headings are h2: they sit under the h1 above. */}
-      {summary.sections.length > 0 && (
-        <div className="mb-3 space-y-3">
-          {summary.sections.map((section) => (
-            <section key={section.name}>
-              <PageHeading variant="section" as="h2" className="mb-1">
-                {section.name}
-              </PageHeading>
-              <div className="space-y-2">
-                {section.paragraphs.map((p) => (
-                  <p key={p}>{p}</p>
-                ))}
-              </div>
-            </section>
+      {/* Named sections (a guide's steps; a pattern's base chassis) — most of a
+          guide's text lives here, so without it a guide's no-JS/crawler
+          rendering is a title and one paragraph. Headings are h2: they sit
+          under the h1 above. */}
+      {summary.sections.map((section) => (
+        <section key={section.name} className="srd-static__section">
+          <Slab as="h2" variant="solid" label={section.name} />
+          {section.paragraphs.map((p) => (
+            <p key={p}>{p}</p>
           ))}
-        </div>
-      )}
+        </section>
+      ))}
 
       {summary.traits.length > 0 && (
-        <p className="mb-3">
-          <span className="font-cond font-bold uppercase">Traits:</span>{' '}
+        <p>
+          <span className="srd-static__label">Traits:</span>{' '}
           {summary.traits.map((t, i) => {
             const href = resolveTraitHref?.(t) ?? null
             return (
               <Fragment key={t}>
                 {i > 0 && ', '}
-                {href ? (
-                  <a href={href} className="underline">
-                    {t}
-                  </a>
-                ) : (
-                  t
-                )}
+                {href ? <InlineRef href={href}>{t}</InlineRef> : t}
               </Fragment>
             )
           })}
@@ -143,7 +126,7 @@ export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityC
       )}
 
       {summary.source && (
-        <p className="text-xs text-wk-muted">
+        <p className="srd-static__source">
           Source: {summary.source}
           {summary.page ? `, p. ${summary.page}` : ''}
         </p>

@@ -849,7 +849,7 @@ function ReferenceEntityCardInner({
   // PATTERN PROSE — the pattern's own flavour, ahead of the loadout.
   const patternProse =
     isPattern && pattern.content && pattern.content.length > 0 ? (
-      <PatternProse name={pattern.name} content={pattern.content} context={prose} />
+      <PatternProse name={pattern.name} content={pattern.content} context={prose} fill={onPage} />
     ) : null
 
   // GUIDE STEPS — the bulk of a guide's prose.

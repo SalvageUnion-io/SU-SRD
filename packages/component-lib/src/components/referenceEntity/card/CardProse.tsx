@@ -90,19 +90,30 @@ export function PatternProse({
   name,
   content,
   context,
+  fill = false,
 }: {
   name: string
   content: SURefObjectContentBlock[]
   context: CardProseContext
+  /**
+   * Run the leader rule the full width: on a page, where the pattern leads
+   * and the base chassis's own full-width slab follows it, the two read as
+   * a pair of sections.
+   */
+  fill?: boolean
 }) {
   return (
     <div className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
-      {/* `w-fit` scopes the title to ITSELF: the solid Slab's leader rule is
-          `flex-1`, so at full width it ran a line clear across the card and
-          read as a page-wide divider rather than a label on the pattern
-          block below it. Shrink-to-fit collapses the rule to its `min-w-3`
-          stub, leaving a tight name tab. */}
-      <Slab variant="solid" label={normalizePatternName(name)} className="w-fit" />
+      {/* `w-fit` scopes the title to ITSELF on a card: the solid Slab's leader
+          rule is `flex-1`, so at full width it ran a line clear across the
+          card and read as a card-wide divider rather than a label on the
+          pattern block below it. Shrink-to-fit collapses the rule to its
+          `min-w-3` stub, leaving a tight name tab. */}
+      <Slab
+        variant="solid"
+        label={normalizePatternName(name)}
+        className={fill ? undefined : 'w-fit'}
+      />
       <CardProse body={content} context={context} />
     </div>
   )
