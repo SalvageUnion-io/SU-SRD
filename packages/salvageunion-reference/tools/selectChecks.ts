@@ -7,6 +7,8 @@
 /** The ids of every check `validate.ts` runs, in run order. */
 export const CHECK_IDS = [
   'ids',
+  'duplicate-keys',
+  'self-citations',
   'slugs',
   'references',
   'actions',

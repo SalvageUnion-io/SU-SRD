@@ -4,9 +4,11 @@
  * Unified validation runner.
  *
  * One shared data-load pass over the ~1.3MB `data/*.json` corpus, fed to all
- * 9 checks (it replaced separate per-check processes, each re-reading the corpus):
+ * 11 checks (it replaced separate per-check processes, each re-reading the corpus):
  *
  *   - ids              (checkUniqueIdsLogic.ts)
+ *   - duplicate-keys   (validateDuplicateKeysLogic.ts — reads the raw text)
+ *   - self-citations   (validateDuplicateKeysLogic.ts)
  *   - slugs            (validateSlugsLogic.ts)
  *   - references       (validateReferencesLogic.ts)
  *   - actions          (validateActionReferencesLogic.ts)
@@ -28,14 +30,17 @@
  * `data/*.json`, and `edit-data add` mints a missing `id`.
  */
 
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { checkAllFiles } from './checkUniqueIdsLogic.js'
 import type { DataBag } from './loadData.js'
-import { loadAllDataFiles } from './loadData.js'
+import { dataDir, listDataFiles, loadAllDataFiles } from './loadData.js'
 import type { CheckId } from './selectChecks.js'
 import { CHECK_IDS, selectChecks } from './selectChecks.js'
 import { runActionBackrefCheck } from './validateActionBackrefsLogic.js'
 import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
 import { runContentDupeCheck } from './validateContentDupesLogic.js'
+import { findDuplicateKeys, findSelfCitations } from './validateDuplicateKeysLogic.js'
 import { runOrphanCheck } from './validateOrphansLogic.js'
 import { auditParity, KNOWN_UNRESOLVED, unresolvedFindings } from './validateParityLogic.js'
 import { findReferenceErrors } from './validateReferencesLogic.js'
@@ -82,6 +87,30 @@ function idsCheck(data: DataBag): Diagnostic[] {
   }
 
   return diagnostics
+}
+
+/**
+ * A key spelled twice in one object. The parsed bag cannot show it (the last
+ * value wins), so this check reads each file's raw text.
+ */
+function duplicateKeysCheck(): Diagnostic[] {
+  return listDataFiles().flatMap((file) =>
+    findDuplicateKeys(readFileSync(join(dataDir, file), 'utf-8')).map(({ path, key, lines }) => ({
+      check: 'duplicate-keys',
+      file,
+      path: path || '(root)',
+      message: `"${key}" is spelled ${lines.length} times in one object (lines ${lines.join(', ')}); JSON keeps only the last, so delete the stale one`,
+    }))
+  )
+}
+
+function selfCitationsCheck(data: DataBag): Diagnostic[] {
+  return findSelfCitations(data).map(({ file, path, source }) => ({
+    check: 'self-citations',
+    file,
+    path,
+    message: `repeats its own primary citation (${source}) — remove the entry, and the array if it is left empty`,
+  }))
 }
 
 function slugsCheck(data: DataBag): Diagnostic[] {
@@ -231,6 +260,8 @@ type CheckDefinition = {
 // A Record, so a check id added to CHECK_IDS without an entry here fails typecheck.
 const CHECK_TABLE: Record<CheckId, Omit<CheckDefinition, 'id'>> = {
   ids: { label: 'Unique IDs', run: idsCheck },
+  'duplicate-keys': { label: 'Duplicate JSON keys', run: duplicateKeysCheck },
+  'self-citations': { label: 'Self-repeating additional sources', run: selfCitationsCheck },
   slugs: { label: 'Slug uniqueness', run: slugsCheck },
   references: { label: 'Cross-references', run: referencesCheck },
   actions: { label: 'Action references', run: actionReferencesCheck },
