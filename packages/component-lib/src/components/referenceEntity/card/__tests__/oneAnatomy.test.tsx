@@ -128,6 +128,8 @@ describe('the user-made flag', () => {
     )
     const pill = container.querySelector<HTMLElement>('[title^="Made by a player"]')
     expect(pill?.style.borderStyle).toBe('dashed')
+    // The dashes are its only visual cue, so it also says so to assistive tech.
+    expect(pill?.textContent?.startsWith('User-made')).toBe(true)
   })
 })
 

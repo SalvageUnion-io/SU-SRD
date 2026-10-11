@@ -87,39 +87,24 @@ const TRUNCATE: CSSProperties = {
 }
 
 /**
- * A one-line head row's columns (board E3). A grid, because its tracks rank the
- * parts where a flex row only weighs them:
+ * A one-line head row (boards E1–E3) is a NO-WRAP flex row, so nothing in it
+ * can ever fall to a second line, whatever width it is given:
  *
- * - the TITLE's track is `minmax(0, max-content)`: it fills to the full name
- *   before any `fr` track gets a pixel, so every cell drops before the name
- *   truncates;
- * - the CELLS (and a hint) share what is left (`minmax(0, 1fr)`), and the
- *   cells drop last-first in it (`EntityCardStatBox`); a row with neither
- *   keeps an empty `fr` track, so the pennant and chevron stay at the right;
- * - the numeral, the pennant and the chevron keep their own width.
+ * - the TITLE (`0 1 auto`) asks for its full name and is the only part that
+ *   shrinks against the fixed parts, so it truncates only when the name alone
+ *   cannot fit;
+ * - the CELLS (and a hint) have no basis (`1 1 0`, min 0): they take only the
+ *   room the full name leaves, and the cells drop last-first inside it
+ *   (`EntityCardStatBox`), so every cell goes before the name truncates. A row
+ *   with neither keeps an empty filler, so the pennant and chevron sit at the
+ *   right;
+ * - the numeral, the pennant and the chevron keep their natural width.
  *
- * The 0 minimums also mean a long name adds nothing to the row's min-content,
+ * The title's 0 minimum also keeps a long name out of the row's min-content,
  * so it cannot push a width-less ancestor (an island page's wrapper) past the
  * viewport.
  */
-function oneLineColumns(parts: {
-  numeral: boolean
-  hint: boolean
-  cells: boolean
-  pennant: boolean
-  chevron: boolean
-}): string {
-  return [
-    parts.numeral && 'auto',
-    'minmax(0, max-content)',
-    parts.hint && 'minmax(0, 1fr)',
-    (parts.cells || !parts.hint) && 'minmax(0, 1fr)',
-    parts.pennant && 'auto',
-    parts.chevron && 'auto',
-  ]
-    .filter(Boolean)
-    .join(' ')
-}
+const FILL: CSSProperties = { flex: '1 1 0', minWidth: 0 }
 
 /**
  * EntityCardHeader — the card's flush header band, ONE anatomy with TWO fills
@@ -167,13 +152,13 @@ export function EntityCardHeader({
       className={titleType}
       title={oneLine ? title : undefined}
       style={{
-        // One line: a grid track (`oneLineColumns`) holds the full name, and the
-        // title truncates only once every cell has dropped. Otherwise the title
+        // One line: the title asks for the full name and truncates only once
+        // every cell has dropped (see `FILL`). Otherwise the title
         // shares the row with the cells on the right at medium and small, and
         // only a large header gives the title the whole row; the cells wrap
         // beneath when they truly cannot fit.
         ...(oneLine
-          ? { minWidth: 0, ...TRUNCATE }
+          ? { flex: '0 1 auto', minWidth: 0, ...TRUNCATE }
           : {
               flex: size === 'large' ? '1 1 auto' : '1 1 0',
               minWidth: size === 'large' ? 0 : 'min-content',
@@ -189,7 +174,7 @@ export function EntityCardHeader({
       className={cn('font-body italic leading-snug', titleTextClass)}
       style={
         oneLine
-          ? { minWidth: 0, textAlign: 'right', ...ONE_LINE }
+          ? { ...FILL, textAlign: 'right', ...ONE_LINE }
           : { flex: '1 1 12rem', minWidth: 0, textAlign: 'right' }
       }
     >
@@ -228,7 +213,7 @@ export function EntityCardHeader({
     width: '100%',
   }
 
-  // HEAD extent: ONE line, on ranked grid tracks (`oneLineColumns`).
+  // HEAD extent: ONE line that never wraps (see `FILL`).
   if (oneLine) {
     return (
       <div
@@ -238,21 +223,19 @@ export function EntityCardHeader({
         style={{
           ...bandStyle,
           columnGap: space[8],
-          display: 'grid',
-          gridTemplateColumns: oneLineColumns({
-            numeral: !!numeralNode,
-            hint: !!hint,
-            cells: !!cells,
-            pennant: !!pennant,
-            chevron: !!chevronNode,
-          }),
+          display: 'flex',
+          flexWrap: 'nowrap',
         }}
       >
         {numeralNode}
         {titleNode}
         {hint}
-        {cells ?? (hint ? null : <span aria-hidden="true" />)}
-        {pennant}
+        {cells ? (
+          <div style={FILL}>{cells}</div>
+        ) : hint ? null : (
+          <span aria-hidden="true" style={FILL} />
+        )}
+        {pennant && <div style={{ display: 'flex', flex: 'none' }}>{pennant}</div>}
         {chevronNode}
       </div>
     )

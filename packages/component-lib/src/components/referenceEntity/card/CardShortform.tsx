@@ -26,6 +26,19 @@ const pill: CSSProperties = {
   whiteSpace: 'nowrap',
 }
 
+/** Read by assistive tech only: the dashes are the pill's only visual user-made cue. */
+const VISUALLY_HIDDEN: CSSProperties = {
+  border: 0,
+  clip: 'rect(0, 0, 0, 0)',
+  height: '1px',
+  margin: '-1px',
+  overflow: 'hidden',
+  padding: 0,
+  position: 'absolute',
+  whiteSpace: 'nowrap',
+  width: '1px',
+}
+
 const stamp = (onInk: boolean): CSSProperties => ({
   backgroundColor: 'var(--color-ink)',
   border: `var(--bw-hairline) solid ${onInk ? 'var(--color-paper)' : 'var(--color-ink)'}`,
@@ -74,8 +87,9 @@ export function CardShortform({
       <div
         className={accent.className}
         title={userMade ? USER_MADE_TITLE : undefined}
-        style={{ ...accent.style, ...frameStyle, ...pill }}
+        style={{ ...accent.style, ...frameStyle, ...pill, position: 'relative' }}
       >
+        {userMade && <span style={VISUALLY_HIDDEN}>User-made </span>}
         <span style={stamp(ink)}>{typeLabel}</span>
         <span
           className={onBandText}

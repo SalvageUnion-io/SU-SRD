@@ -120,14 +120,18 @@ describe('EntityCardHeader — the one-line head row', () => {
     expect(title.getAttribute('title')).toBe('Electro-Magnetic Shield Projector')
     expect(title.style.textOverflow).toBe('ellipsis')
     expect(title.style.whiteSpace).toBe('nowrap')
-    // One line on ranked grid tracks: the name's track fills to the full name
-    // before the cells' `fr` track gets any room, so the cells drop first.
+    // A no-wrap row: the title asks for its full name and the cells take only
+    // the room it leaves (no basis), so the cells drop before the name truncates.
     const row = band('Electro-Magnetic Shield Projector')
-    expect(row.style.display).toBe('grid')
-    expect(row.style.gridTemplateColumns).toBe('minmax(0, max-content) minmax(0, 1fr)')
+    expect(row.style.display).toBe('flex')
+    expect(row.style.flexWrap).toBe('nowrap')
+    expect(title.style.flex).toBe('0 1 auto')
+    const cells = row.children[1] as HTMLElement
+    expect(cells.style.flex).toBe('1 1 0px')
+    expect(cells.style.minWidth).toBe('0')
   })
 
-  test('the numeral, pennant and chevron keep their own tracks around the name', () => {
+  test('the numeral, pennant and chevron keep their natural width around the name', () => {
     render(
       <EntityCardHeader
         title="Jury Rig"
@@ -143,10 +147,16 @@ describe('EntityCardHeader — the one-line head row', () => {
         chevron
       />
     )
-    // No cells: an empty `fr` track keeps the pennant and chevron at the right.
-    expect(band('Jury Rig').style.gridTemplateColumns).toBe(
-      'auto minmax(0, max-content) minmax(0, 1fr) auto auto'
-    )
+    // No cells: an empty filler keeps the pennant and chevron at the right,
+    // one line, at their natural width.
+    const row = band('Jury Rig')
+    expect(row.style.flexWrap).toBe('nowrap')
+    const [numeral, , filler, pennant, chevron] = [...row.children] as HTMLElement[]
+    expect(numeral?.style.flex).toBe('0 0 auto')
+    expect(filler?.style.flex).toBe('1 1 0px')
+    expect(pennant?.style.flex).toBe('0 0 auto')
+    expect(pennant?.textContent).toBe('2 AP')
+    expect((chevron as unknown as SVGElement | undefined)?.style.flex).toBe('0 0 auto')
   })
 
   test('a full card title wraps and carries no truncation tooltip', () => {
