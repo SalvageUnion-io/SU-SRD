@@ -84,6 +84,12 @@ export type BandBay = {
    * grid's floor: the Pilot's Board split button (`BoardControl`).
    */
   control?: ReactNode
+  /**
+   * A bay that is one card, drawn bare with no bay frame around it: the phone
+   * Mech tab's Chassis Ability (board D4). Phone form only; the canvas has no
+   * bay that carries one.
+   */
+  card?: ReactNode
   /** Columns in the button grid. Two unless the bay has the width for more. */
   columns?: number
   /** Stacks in the narrow side column instead of sharing the main width. */

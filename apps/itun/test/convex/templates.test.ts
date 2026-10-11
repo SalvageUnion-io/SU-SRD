@@ -98,6 +98,80 @@ describe('starter-set template', () => {
     expect(game?.name).toBe('Our Tuesday Game')
   })
 
+  test('a claimed pre-gen comes down in its Game, not on the shelf', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'Organizer')
+    const gameId = await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
+    const seeded = await t.run(async (ctx) => await ctx.db.query('pilots').first())
+    if (!seeded) throw new Error('no pre-gen pilot')
+
+    await u.as.mutation(api.ownership.claim, { table: 'pilots', entityId: seeded._id })
+    const mine = await u.as.query(api.entities.listMine, {})
+    // The template's body says `gameId: null`; the row is in the Game, and the
+    // Dashboard opens only a pilot whose local copy says so.
+    expect(mine.pilots.map((p) => (p.body as { gameId: unknown }).gameId)).toEqual([gameId])
+  })
+
+  test('a claimed pre-gen written by its body id updates its own row', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'Organizer')
+    const gameId = await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
+    const seeded = await t.run(async (ctx) => await ctx.db.query('pilots').first())
+    if (!seeded) throw new Error('no pre-gen pilot')
+    const bodyId = (seeded.body as { id: string }).id
+    const before = await t.run(async (ctx) => (await ctx.db.query('pilots').collect()).length)
+
+    await u.as.mutation(api.ownership.claim, { table: 'pilots', entityId: seeded._id })
+    // The browser holds a claimed pre-gen under its body id, and writes it so.
+    await u.as.mutation(api.entities.upsertByAppId, {
+      table: 'pilots',
+      appId: bodyId,
+      gameId,
+      body: { ...(seeded.body as object), name: 'Renamed' },
+      expectedUpdatedAt: null,
+    })
+
+    const pilots = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
+    // One row per pre-gen still: the write found the seeded row, not a second copy.
+    expect(pilots).toHaveLength(before)
+    const row = pilots.find((p) => p._id === seeded._id)
+    expect((row?.body as { name: string } | undefined)?.name).toBe('Renamed')
+    // Not stamped: the body id repeats in every Game made from the template.
+    expect(row?.appId).toBeUndefined()
+  })
+
+  test('the same pre-gen claimed in two Games: a write lands in its own Game', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'Organizer')
+    const first = await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
+    const second = await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
+    const pilots = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
+    const idOf = (p: { body: unknown }) => (p.body as { id: string }).id
+    const bodyId = pilots[0] ? idOf(pilots[0]) : 'missing'
+    const twins = pilots.filter((p) => idOf(p) === bodyId)
+    expect(twins.map((p) => p.gameId).sort()).toEqual([first, second].sort())
+    for (const twin of twins) {
+      await u.as.mutation(api.ownership.claim, { table: 'pilots', entityId: twin._id })
+    }
+
+    await u.as.mutation(api.entities.upsertByAppId, {
+      table: 'pilots',
+      appId: bodyId,
+      gameId: second,
+      body: { ...(twins[0]?.body as object), gameId: second, name: 'Second' },
+      expectedUpdatedAt: null,
+    })
+
+    const after = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
+    const nameIn = (gameId: string) => {
+      const row = after.find((p) => p.gameId === gameId && idOf(p) === bodyId)
+      return row ? (row.body as { name: string }).name : undefined
+    }
+    expect(nameIn(second)).toBe('Second')
+    expect(nameIn(first)).not.toBe('Second')
+    expect(after).toHaveLength(pilots.length)
+  })
+
   test('an anonymous caller cannot create one', async () => {
     const t = testConvex()
     await expect(

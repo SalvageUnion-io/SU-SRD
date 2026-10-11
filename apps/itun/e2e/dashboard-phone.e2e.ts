@@ -180,7 +180,8 @@ for (const phone of PHONES) {
     const cost = Number(pennantName.match(/spend (\d+) EP$/)?.[1] ?? 0)
     await pennant.click()
     await expect(page.getByRole('heading', { name: 'Resolving' })).toBeFocused()
-    expect(await pinned(page, 'EP')).toBe(epBefore - cost)
+    // Polled, as Heat is below: the spend lands once the server takes the write.
+    await expect.poll(() => pinned(page, 'EP')).toBe(epBefore - cost)
     await expectNoOverflow(page)
     await expectHitAreas(page)
 

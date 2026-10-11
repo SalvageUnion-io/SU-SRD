@@ -1,3 +1,4 @@
+import { heatDangerFrom, ReferenceEntityCard } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
@@ -9,6 +10,7 @@ import type { PhoneUnit } from './DashboardPhone'
 import { DashboardPhone } from './DashboardPhone'
 import type { DeckListModel } from './DeckList'
 import { DashboardFormContext } from './dashboardForm'
+import { coreMechanicRowText } from './dashboardRules'
 import type { MajorModel } from './MajorFrame'
 import { MajorFrame } from './MajorFrame'
 import { PhoneDeck } from './PhoneDeck'
@@ -63,6 +65,12 @@ function deck(): DeckListModel {
   }
 }
 
+/** The Scrapper chassis's abilities, the card bay under its Reactor. */
+function scrapperAbilities() {
+  const chassis = SalvageUnionReference.Chassis.getByName('Scrapper')
+  return chassis ? (SalvageUnionReference.resolveActions(chassis) ?? []) : []
+}
+
 /** The Scrapper boarded, as `MechMajor` builds it in the phone form. */
 const SCRAPPER: MajorModel = {
   fam: 'mech',
@@ -78,7 +86,7 @@ const SCRAPPER: MajorModel = {
     },
     {
       label: 'Reactor',
-      gauges: [{ label: 'Heat', value: 0, max: 8, tone: 'mech', danger: 6 }],
+      gauges: [{ label: 'Heat', value: 0, max: 8, tone: 'mech', danger: heatDangerFrom(8) }],
       buttons: [
         { label: 'Push · +2 Heat', onClick: ignore, variant: 'go' },
         { label: 'Vent', onClick: ignore, variant: 'go' },
@@ -88,6 +96,19 @@ const SCRAPPER: MajorModel = {
         { label: 'Storage · 0/6', onClick: ignore },
       ],
     },
+    ...scrapperAbilities().map((ability) => ({
+      label: `Chassis Ability: ${ability.name}`,
+      buttons: [],
+      card: (
+        <ReferenceEntityCard
+          data={ability}
+          size="medium"
+          texture={false}
+          parentSeal={{ label: 'Chassis Ability', tone: 'var(--color-ink)' }}
+          chassisName="Scrapper"
+        />
+      ),
+    })),
     {
       label: 'Egress',
       side: true,
@@ -192,7 +213,7 @@ export const Resolving = () => {
               band: 'success',
               bandRange: success.range,
               bandLabel: success.label,
-              bandSummary: success.summary,
+              bandSummary: coreMechanicRowText(14),
               destructive: false,
             },
             pushLog: null,

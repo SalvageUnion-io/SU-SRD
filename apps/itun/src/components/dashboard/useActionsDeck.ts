@@ -62,6 +62,7 @@ import {
   activationPatch,
   buildMechActions,
   buildPilotActions,
+  coreMechanicRowText,
   economyForActivation,
   groupBySource,
   hasCurrencyChoice,
@@ -524,7 +525,7 @@ export function useActionsDeck({
             band: roll.band,
             bandRange: CORE_ROLL_BANDS[roll.band].range,
             bandLabel: CORE_ROLL_BANDS[roll.band].label,
-            bandSummary: CORE_ROLL_BANDS[roll.band].summary,
+            bandSummary: coreMechanicRowText(roll.roll),
             destructive: isDestructiveOutcome(roll.band),
           }
         : null,

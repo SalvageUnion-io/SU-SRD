@@ -13,6 +13,7 @@
  *    gauge, with a line saying where the redline starts;
  *  - every other gauge is a `numeral` cell, two to a row;
  *  - a bay of nothing but numeral cells draws no frame (the SP | EP pair);
+ *  - a card bay (`card`, the Mech's Chassis Ability) is the card alone;
  *  - buttons sit two to a row, each at least 44px tall; a `wide` one spans
  *    both.
  *
@@ -212,6 +213,8 @@ function cellsOnly(bay: BandBay): boolean {
 }
 
 function PhoneBay({ bay }: { bay: BandBay }) {
+  // A card bay is the card alone: it carries its own frame (board D4).
+  if (bay.card !== undefined) return bay.card
   const gauges = bay.gauges ?? []
   if (gauges.length > 0 && cellsOnly(bay)) return <Cells gauges={gauges} />
   const cells = gauges.filter((g) => g.danger === undefined)

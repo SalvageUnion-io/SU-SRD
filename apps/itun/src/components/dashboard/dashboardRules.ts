@@ -22,7 +22,7 @@ import type {
   SURefMetaAction,
   SURefMetaEntity,
 } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type {
   CoreRollBand,
   CriticalDamageEffect,
@@ -527,6 +527,17 @@ export function economyForActivation(
  */
 export function isDestructiveOutcome(band: CoreRollBand): boolean {
   return band === 'cascade'
+}
+
+/**
+ * The rolled row's text, verbatim from the Core Mechanic roll table (ruleset
+ * §3.6: copy is 1:1 with the SRD). The resolve readout prints this under the
+ * band, never the rules module's condensed summary.
+ */
+export function coreMechanicRowText(roll: number): string {
+  const table = SalvageUnionReference.RollTables.getByName('Core Mechanic')?.table
+  const row = resultForTable(table, roll)
+  return row.success ? row.result.value : ''
 }
 
 /** The write-through patch for one on-foot (AP) activation. */

@@ -222,15 +222,17 @@ control calls the handler its canvas twin calls.
   the same `MajorModel`): pools as numeral cells, a redlined gauge as its full
   track, buttons two to a row at 44 px or more, then the deck on the Major's
   tab, then the side bays. Mech: SP | EP, then Heat with **Push · +2 Heat** and
-  **Vent**, Heat Check, Shut Down, Take Damage and Storage, the deck, Effects
-  and Egress. Pilot: HP | AP, Mount, Kit, Abilities. Crawler: its bays in
+  **Vent**, Heat Check, Shut Down, Take Damage and Storage, the chassis's
+  ability as its own ink-banner card (a `card` bay), the deck, Effects and
+  Egress. Pilot: HP | AP, Mount, Kit, Abilities. Crawler: its bays in
   model order, with `DowntimeWizard` in place of the deck in Downtime. A
   Major's prompt covers the column, keeping the gauges it pins.
 - **Pinned vitals** (label | value `Stat`s) sit under the tabs on every tab
   but the Major's (boarded SP · EP · Heat, on foot HP · AP, none in Downtime)
   and in the resolve screen's header (Heat while boarded, plus the action's
   currency).
-- **The deck** (`PhoneDeck`) holds the Major's actions as one-line rows. A
+- **The deck** (`PhoneDeck`) holds the Major's actions as one-line rows (the
+  `medium` head-extent listing row, not the `small` shortform pill). A
   row's pennant opens the action and pays for it (`onActivate`, the same
   `activate` as the resolve's pennant); its body only opens it. Range,
   timing and source are wrapping `aria-pressed` keys.

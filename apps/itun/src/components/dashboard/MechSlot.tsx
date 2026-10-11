@@ -20,8 +20,9 @@
  * log (`dashboardRolls.ts`), where the crew's Log tab reads it.
  */
 
-import { CountStepper, heatDangerFrom } from 'component-lib'
+import { CountStepper, heatDangerFrom, ReferenceEntityCard } from 'component-lib'
 import { useEffect, useState } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CriticalDamageEffect } from 'salvageunion-reference/rules'
 import {
   describePushOutcome,
@@ -506,7 +507,10 @@ export function MechMajor({
     },
   ]
   // The phone's (board D4, ADR-045): SP and EP as cells, then Heat with Push
-  // and Vent at thumb height, then the other verbs. Cargo is on Storage.
+  // and Vent at thumb height, then the other verbs, then the Chassis Ability
+  // as its own ink-banner card. Cargo is on Storage.
+  const chassisAbilities =
+    phone && chassis ? (SalvageUnionReference.resolveActions(chassis) ?? []) : []
   const phoneBays: BandBay[] = [
     { label: 'Pools', gauges: [sp, ep], buttons: [] },
     {
@@ -514,6 +518,23 @@ export function MechMajor({
       gauges: [heatGauge],
       buttons: [push, vent, heatCheck, shutdown, takeDamage, storage],
     },
+    ...chassisAbilities.map(
+      (ability): BandBay => ({
+        label: `Chassis Ability: ${ability.name}`,
+        buttons: [],
+        card: (
+          <ReferenceEntityCard
+            data={ability}
+            size="medium"
+            // The Dashboard stays flat (ruleset §3.5): no speckle.
+            texture={false}
+            parentSeal={{ label: 'Chassis Ability', tone: 'var(--color-ink)' }}
+            // `[(CHASSIS)]` reads as this machine, as on the Live Sheet.
+            chassisName={mech.name}
+          />
+        ),
+      })
+    ),
   ]
 
   const view: MajorModel = {

@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { CORE_ROLL_BANDS } from 'salvageunion-reference/rules'
 import { InstrumentStage } from './_dashboardStage'
+import { coreMechanicRowText } from './dashboardRules'
 import { ResolvePanel } from './ResolvePanel'
 
 export default { title: 'Compositions/Dashboard/Resolve Panel' }
@@ -52,7 +53,7 @@ export const Default = () => {
                   bandRange: tough.range,
                   destructive: false,
                   bandLabel: tough.label,
-                  bandSummary: tough.summary,
+                  bandSummary: coreMechanicRowText(8),
                 },
                 pushLog: null,
                 applied: false,

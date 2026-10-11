@@ -18,6 +18,7 @@ import {
   activationPatch,
   buildMechActions,
   buildPilotActions,
+  coreMechanicRowText,
   critDamagePatch,
   critInjuryPatch,
   economyForActivation,
@@ -377,5 +378,14 @@ describe('resolve flow helpers', () => {
     expect(isDestructiveOutcome('tough')).toBe(false)
     expect(isDestructiveOutcome('success')).toBe(false)
     expect(isDestructiveOutcome('nailed')).toBe(false)
+  })
+
+  test('coreMechanicRowText: the rolled row, verbatim from the SRD table', () => {
+    expect(coreMechanicRowText(14)).toBe(
+      'You have achieved your goal without any compromises. When attacking, you hit the target and deal standard damage.'
+    )
+    expect(coreMechanicRowText(8)).toStartWith('You succeed in your action, but at a cost.')
+    expect(coreMechanicRowText(1)).toStartWith('Something has gone terribly wrong.')
+    expect(coreMechanicRowText(20)).toStartWith('You have overcome the odds')
   })
 })

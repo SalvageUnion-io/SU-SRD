@@ -176,7 +176,12 @@ export function PhoneDeck({
               <li key={row.key} data-deck-key={row.key} style={row.locked ? LOCKED : undefined}>
                 <ReferenceEntityCard
                   data={row.entity}
-                  size="small"
+                  // `medium` at the head extent is the one-line listing row
+                  // (ruleset §1 Listing): it spans the column, truncates a
+                  // long name with its full name in a tooltip, and keeps the
+                  // pennant right-aligned. `small` is the shortform pill,
+                  // which sizes to its content.
+                  size="medium"
                   extent="head"
                   // The Dashboard stays flat (issue 1255): no speckle.
                   texture={false}

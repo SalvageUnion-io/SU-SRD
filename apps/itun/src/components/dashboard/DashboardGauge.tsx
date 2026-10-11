@@ -10,8 +10,9 @@
  *
  *  - `numeral` — a framed value cell, the label stamp under a big `9/9`: the
  *    pools a phone tab leads with (SP and EP, HP and AP). No track.
- *  - `track` — `VitalGauge`'s `full` rung, with the Cap as its sub-label: the
- *    one gauge whose redline matters at a glance (Heat).
+ *  - `track` — `VitalGauge`'s `full` rung, with the Cap as a `Cap | N` Stat
+ *    chip beside the stamp (ruleset §3.7): the one gauge whose redline
+ *    matters at a glance (Heat).
  *
  * Variants of this gauge, never a third gauge (dashboard.md §10.4).
  *
@@ -125,7 +126,7 @@ export function DashboardGauge({
         surface="sheet"
         readOnly
         label={label}
-        subLabel={`Cap ${max}`}
+        cap={max}
         value={value}
         max={max}
         danger={danger}

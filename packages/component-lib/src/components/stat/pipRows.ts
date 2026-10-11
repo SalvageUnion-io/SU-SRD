@@ -45,13 +45,13 @@ export function pipClickValue(index: number, value: number): number {
  * core used by both Stat's framed tracker (square pips) and VitalGauge
  * (full-width bars). 'off' = unlit, 'on' = lit, 'danger' = lit but past the cap
  * (over-capacity) or past the heat redline, 'redline' = UNLIT but inside the
- * redline zone (board D1 outlines the danger zone before it is reached, so the
- * track shows where it turns dangerous at Heat 0 as well as at Heat 7).
+ * redline zone, so the track shows where it turns dangerous before the value
+ * reaches it, at Heat 0 as well as at Heat 7 (ruleset §4.5, boards D1 and D4).
  * `dangerFrom` is the first 0-based index that reads danger (default Infinity =
  * never). Each surface keeps its own visual styling; only the state logic + the
  * row split (statBlockRowStarts) are shared.
  */
-export type TrackSegmentState = 'off' | 'on' | 'danger' | 'redline'
+export type TrackSegmentState = 'off' | 'redline' | 'on' | 'danger'
 export function trackSegmentState(
   index: number,
   value: number,
