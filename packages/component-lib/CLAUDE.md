@@ -97,7 +97,7 @@ Component stories live beside their components (`*.stories.tsx`) and are served 
 
 ### Capturing a story
 
-Run your own server (`bunx vite --port N --strictPort` here), find the id with `bun run stories:ids [filter]` (or `?mode=index`), and open `/?story=<id>&mode=canvas&width=phone`: the story alone, no sidebar, in a fixed container (`phone` 375, `column` 480, `page` 1200, or px). Each entity-card matrix cell is a story (`…--size-by-extent-medium-head`).
+Run your own server (`bunx vite --port N --strictPort` here), find the id with `bun run stories:ids [filter]` or `?mode=index`, and open `/?story=<id>&mode=canvas&width=phone` at viewport >= preset (else it overflows): the story alone, `phone` 375, `column` 480, `page` 1200 or px. Each entity-card matrix cell is a story (`…--size-by-extent-medium-head`).
 
 ## Testing
 

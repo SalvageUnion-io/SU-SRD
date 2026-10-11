@@ -192,7 +192,10 @@ function Catalog() {
 
   if (route.mode === 'canvas')
     return (
-      <main style={canvasModeStyle} data-story-id={active.id}>
+      <main
+        style={route.width === null ? canvasModeStyle : { ...canvasModeStyle, ...canvasFixedStyle }}
+        data-story-id={active.id}
+      >
         <StoryFrame entry={active} width={route.width} />
       </main>
     )
@@ -281,11 +284,17 @@ const browseMainStyle = {
   overflowX: 'auto',
 } satisfies CSSProperties
 
+/*
+ * Canvas mode never scrolls or clips inside itself: a fixed width wider than
+ * the viewport overflows the document instead, and the ground grows with it,
+ * so a full-page capture shows the whole story and the page scrolls sideways,
+ * rather than a silent clip that reads as a design defect.
+ */
 const canvasModeStyle = {
   minHeight: '100vh',
   background: color.paper,
-  overflowX: 'auto',
 } satisfies CSSProperties
+const canvasFixedStyle = { width: 'max-content', minWidth: '100%' } satisfies CSSProperties
 
 /* A block that fills its column, so no story is sized to its own min-content. */
 const fillFrameStyle = { width: '100%', minWidth: 0 } satisfies CSSProperties
