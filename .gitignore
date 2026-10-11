@@ -68,10 +68,11 @@ apps/itun/src/.routeTree.gen.*.ts
 *.sw?
 
 
-# Salvage Union rules content is NOT checked into git. The source PDFs and their
-# text extract (rules/) are copyright-bearing verbatim material, generated and
-# local-only — produce the extract with `bun run rules:extract`. Only the tooling
-# (tools/extract-rules.ts) lives in git.
+# Salvage Union rules content is NOT checked into this public repo. The source
+# PDFs and their text extract (rules/) are copyright-bearing verbatim material;
+# their source of record is the private repo SalvageUnion-io/su-rules (a cloud
+# session attaches it as a second repository). Locally, produce the extract with
+# `bun run rules:extract`. Only the tooling (tools/extract-rules.ts) lives here.
 rules/*
 
 # Playwright artifacts (per-app)
