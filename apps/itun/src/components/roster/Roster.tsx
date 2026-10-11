@@ -87,14 +87,16 @@ function metaParts(parts: Array<ReactNode | null | undefined>): ReactNode[] | un
 
 /**
  * Label-plate tints for a cross-link, keyed to the TARGET's ontology — the same
- * `--color-sheet-*` tokens `EntityRow` bands itself with, so a link to a mech
- * is the green a mech row wears. Crawler takes paper text; it is the one dark
- * fill in the ramp.
+ * tokens `EntityRow` bands itself with, so a link to a mech is the green a mech
+ * row wears. Ink on pilot and mech (ruleset §3.8). Crawler pink carries neither
+ * ink (4.2 : 1) nor paper (3.7 : 1), so the crawler plate is the deeper
+ * `--color-crawler-band` with paper on it (4.6 : 1), as the crawler Badge tone
+ * and EntityRow do.
  */
 const TONE_BG: Record<SegmentKind, string> = {
   pilot: 'var(--color-sheet-pilot)',
   mech: 'var(--color-sheet-mech)',
-  crawler: 'var(--color-sheet-crawler)',
+  crawler: 'var(--color-crawler-band)',
 }
 const TONE_INK: Record<SegmentKind, string> = {
   pilot: 'var(--color-ink)',
