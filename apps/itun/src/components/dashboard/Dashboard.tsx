@@ -572,6 +572,7 @@ function DashboardView({
                 gameHref={feed.gameHref}
                 alerts={feed.alerts}
                 inbox={feed.inbox}
+                stacked
               />
               <SavedIndicator />
             </>
