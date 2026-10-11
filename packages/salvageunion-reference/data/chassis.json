@@ -3309,7 +3309,9 @@
   },
   {
     "name": "Goliath",
-    "source": "Mech Monday",
+    "source": "Salvage Union Starter Set",
+    "booklet": "PC",
+    "page": 24,
     "structurePoints": 13,
     "energyPoints": 11,
     "heatCapacity": 12,
