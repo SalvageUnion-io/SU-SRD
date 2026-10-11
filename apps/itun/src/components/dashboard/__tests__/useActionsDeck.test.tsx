@@ -657,7 +657,7 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
   }
 
   /** Open the costed action at `heat` on Leviathan (Heat Cap 18) and roll. */
-  function rolledAt(heat: number) {
+  async function rolledAt(heat: number) {
     const mech = mechFixture({
       id: 'm1',
       name: 'Rig',
@@ -678,26 +678,27 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
       if (seen.view?.kind !== 'resolve') throw new Error('no resolve open')
       return seen.view
     }
-    act(() => resolve().controls.onRoll())
+    // The roll is async (Randsum); flush it before reading the model.
+    await act(async () => resolve().controls.onRoll())
     return { resolve, calls }
   }
 
-  test('at Heat 17/18 Push is disabled, says why, and writes nothing', () => {
-    const { resolve, calls } = rolledAt(17)
+  test('at Heat 17/18 Push is disabled, says why, and writes nothing', async () => {
+    const { resolve, calls } = await rolledAt(17)
     const push = resolve().controls.push
     expect(push?.disabled).toBe(true)
     expect(push?.lockedReason).toBe('No Push at Heat 17/18: +2 Heat would pass the Heat Cap.')
-    act(() => push?.onPush())
+    await act(async () => push?.onPush())
     expect(calls).toHaveLength(0)
     expect(resolve().pushLog).toBeNull()
   })
 
-  test('at Heat 16/18 Push is offered, and lands the Heat on the cap', () => {
-    const { resolve, calls } = rolledAt(16)
+  test('at Heat 16/18 Push is offered, and lands the Heat on the cap', async () => {
+    const { resolve, calls } = await rolledAt(16)
     const push = resolve().controls.push
     expect(push?.disabled).toBe(false)
     expect(push?.lockedReason).toBeUndefined()
-    act(() => push?.onPush())
+    await act(async () => push?.onPush())
     expect(calls[0]?.patch.currentHeat).toBe(18)
   })
 })
