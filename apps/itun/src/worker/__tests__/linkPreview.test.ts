@@ -6,7 +6,7 @@ import type { Env } from '../index'
 import worker from '../index'
 import type { ImageCache } from '../linkPreview'
 import { ogImage, previewRouteOf, versionOf } from '../linkPreview'
-import { META_END, META_START } from '../shellMeta'
+import { applyMeta, META_END, META_START } from '../shellMeta'
 
 /**
  * Link previews for player things (issue 1280). Discord's unfurler
@@ -157,6 +157,24 @@ describe('a Discordbot fetch of a pilot sheet', () => {
   })
 })
 
+describe('a name with a $ in it', () => {
+  it.each(['$&', "$'", '$`', '$$', 'Cash $1'])('is written literally: %p', (name) => {
+    const html = applyMeta(SHELL, {
+      title: name,
+      description: 'Pilot',
+      url: 'https://intheunionnow.com/p/pilot/p-1',
+      themeColor: color.pilot,
+    })
+    const escaped = name.replace(/&/g, '&amp;')
+    expect(html).toContain(`<title>${escaped}</title>`)
+    expect(html.match(/<title>/g)).toHaveLength(1)
+    // The head is intact: the meta block still sits inside it.
+    expect(html.indexOf(META_END)).toBeLessThan(html.indexOf('</head>'))
+    expect(html.indexOf('</head>')).toBeLessThan(html.indexOf('<body'))
+    expect(meta(html, 'og:title')).toBe(escaped)
+  })
+})
+
 describe('a Discordbot fetch of a private sheet', () => {
   it('unfurls as the plain Private card and leaks nothing', async () => {
     const html = await unfurl('/p/pilot/p-2')
@@ -174,7 +192,18 @@ describe('a Discordbot fetch of a private sheet', () => {
 })
 
 describe('a Discordbot fetch of an invite', () => {
-  it('names the Game, its Mediator and the expiry, never the code', async () => {
+  it('unfurls the /invite/<token> link ITUN and the bot hand out', async () => {
+    const html = await unfurl('/invite/K7QR2XA')
+    expect(meta(html, 'og:title')).toBe('Reclamation of the Wastes')
+    expect(meta(html, 'og:description')).toBe("You're invited · Player seat · Mediated by alxjrvs.")
+    expect(meta(html, 'og:title')).not.toContain('K7QR2XA')
+    expect(meta(html, 'og:description')).not.toContain('K7QR2XA')
+    expect(meta(html, 'og:url')).toBe('https://intheunionnow.com/invite/K7QR2XA')
+    expect(meta(html, 'theme-color')).toBe(color.crawler)
+    expect(html).toContain('<title>Reclamation of the Wastes</title>')
+  })
+
+  it('still unfurls an old /join/<code> link: names the Game, its Mediator and the expiry, never the code', async () => {
     const html = await unfurl('/join/K7QR2XA')
     expect(meta(html, 'og:title')).toBe('Reclamation of the Wastes')
     expect(meta(html, 'og:description')).toBe("You're invited · Player seat · Mediated by alxjrvs.")
@@ -185,8 +214,8 @@ describe('a Discordbot fetch of an invite', () => {
   })
 
   it('keeps the sitewide defaults for a dead code', async () => {
-    const html = await unfurl('/join/DEADCODE')
-    expect(meta(html, 'og:title')).toBe('In The Union Now')
+    expect(meta(await unfurl('/invite/DEADCODE'), 'og:title')).toBe('In The Union Now')
+    expect(meta(await unfurl('/join/DEADCODE'), 'og:title')).toBe('In The Union Now')
   })
 })
 
@@ -213,7 +242,12 @@ describe('previewRouteOf', () => {
   it('reads the routes a player shares, and nothing else', () => {
     expect(previewRouteOf('/p/pilot/abc')).toEqual({ type: 'sheet', kind: 'pilot', id: 'abc' })
     expect(previewRouteOf('/p/pattern/abc')).toEqual({ type: 'sheet', kind: 'pattern', id: 'abc' })
+    expect(previewRouteOf('/invite/0123456789ABCDEF')).toEqual({
+      type: 'invite',
+      code: '0123456789ABCDEF',
+    })
     expect(previewRouteOf('/join/K7QR2XA')).toEqual({ type: 'invite', code: 'K7QR2XA' })
+    expect(previewRouteOf('/invite')).toBeNull()
     expect(previewRouteOf('/p/npc/abc')).toBeNull()
     expect(previewRouteOf('/sheet/pilot/abc')).toBeNull()
     expect(previewRouteOf('/p/pilot/<script>')).toBeNull()

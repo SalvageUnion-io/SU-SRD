@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
 import { FIXTURE_NOW } from '../../src/components/__tests__/fixtures'
+import type { Ctx } from './fixtures'
 import { addPilot, makeUser, seedTable } from './fixtures'
 import { testConvex } from './harness'
 
@@ -74,6 +76,102 @@ describe('publicSheet.preview', () => {
     expect(
       await t.query(api.publicSheet.preview, { kind: 'pattern', appId: PATTERN_ID })
     ).toMatchObject({ kind: 'pattern', ownerName: 'Organizer', gameName: null })
+  })
+})
+
+/** Where a row sits: a Game, or one user's shelf. */
+type Container = { gameId: Id<'games'> | null; ownerId: Id<'users'> }
+
+/**
+ * A published pilot and, optionally, a mech assigned to it, written as rows so
+ * a test can place the mech in another container (a stale or forged link that
+ * the client's own write path would refuse).
+ */
+async function seedPilotAndMech(
+  t: Ctx,
+  pilot: Container,
+  mech?: Container & { publicRead: boolean }
+) {
+  await t.run(async (ctx) => {
+    await ctx.db.insert('pilots', {
+      gameId: pilot.gameId,
+      ownerId: pilot.ownerId,
+      appId: 'p-vex',
+      publicRead: true,
+      body: { callsign: 'Vex', classRef: 'engineer' },
+      updatedAt: Date.now(),
+    })
+    if (mech === undefined) return
+    await ctx.db.insert('mechs', {
+      gameId: mech.gameId,
+      ownerId: mech.ownerId,
+      appId: 'm-rustjaw',
+      publicRead: mech.publicRead,
+      body: { name: 'Rustjaw', chassisRef: 'mule' },
+      updatedAt: Date.now(),
+    })
+    await ctx.db.insert('softLinks', {
+      gameId: pilot.gameId,
+      from: { type: 'mech', id: 'm-rustjaw' },
+      to: { type: 'pilot', id: 'p-vex' },
+      type: 'mech-to-pilot',
+    })
+  })
+}
+
+async function mechOfPilot(t: Ctx) {
+  const answer = await t.query(api.publicSheet.preview, { kind: 'pilot', appId: 'p-vex' })
+  expect(answer).not.toBeNull()
+  return answer?.mechChassisRef
+}
+
+describe("publicSheet.preview names a pilot's mech only when the page would", () => {
+  test('a published mech in the same container gives its chassis', async () => {
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    const shelf = { gameId: null, ownerId: owner.userId }
+    await seedPilotAndMech(t, shelf, { ...shelf, publicRead: true })
+    expect(await mechOfPilot(t)).toBe('mule')
+  })
+
+  test('a private mech is not named', async () => {
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    const shelf = { gameId: null, ownerId: owner.userId }
+    await seedPilotAndMech(t, shelf, { ...shelf, publicRead: false })
+    expect(await mechOfPilot(t)).toBeNull()
+  })
+
+  test('a published mech in another Game is not named', async () => {
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    const here = await owner.as.mutation(api.games.create, { name: 'Tenacity' })
+    const there = await owner.as.mutation(api.games.create, { name: 'Elsewhere' })
+    await seedPilotAndMech(
+      t,
+      { gameId: here, ownerId: owner.userId },
+      { gameId: there, ownerId: owner.userId, publicRead: true }
+    )
+    expect(await mechOfPilot(t)).toBeNull()
+  })
+
+  test("a published mech on another player's shelf is not named", async () => {
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    const stranger = await makeUser(t, 'Stranger')
+    await seedPilotAndMech(
+      t,
+      { gameId: null, ownerId: owner.userId },
+      { gameId: null, ownerId: stranger.userId, publicRead: true }
+    )
+    expect(await mechOfPilot(t)).toBeNull()
+  })
+
+  test('a pilot with no mech names none', async () => {
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    await seedPilotAndMech(t, { gameId: null, ownerId: owner.userId })
+    expect(await mechOfPilot(t)).toBeNull()
   })
 })
 

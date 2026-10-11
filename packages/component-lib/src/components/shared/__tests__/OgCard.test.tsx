@@ -99,13 +99,13 @@ function ability(name: string): SURefMetaEntity {
 const THING = ogCardForEntity({
   schemaName: 'chassis',
   entity: chassis('Scrapper'),
-  address: 'salvageunion.io/schema/chassis/item/scrapper',
+  address: '/chassis/scrapper',
 })
 
 const DO = ogCardForEntity({
   schemaName: 'abilities',
   entity: ability('Mass Field Repair'),
-  address: 'salvageunion.io/schema/abilities/item/mass-field-repair',
+  address: '/abilities/mass-field-repair',
 })
 
 const KINDS: [string, OgCardProps][] = [
@@ -291,7 +291,7 @@ describe('ogCardForEntity', () => {
       schemaName: 'chassis',
       entity: scrapper,
       pattern: pattern as never,
-      address: 'salvageunion.io/schema/chassis/item/scrapper/pattern/x',
+      address: '/chassis/scrapper/pattern/x',
     })
     expect(card.kind).toBe('thing')
     if (card.kind !== 'thing') return

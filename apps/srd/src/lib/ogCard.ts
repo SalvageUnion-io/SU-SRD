@@ -14,13 +14,13 @@ import {
   ogCardForEntity,
   ogCardThemeColor,
   ogCardTitle,
+  ogReferenceAddressFits,
 } from 'component-lib'
 import type {
   SURefEnumSchemaName,
   SURefMetaEntity,
   SURefObjectPattern,
 } from 'salvageunion-reference'
-import { SITE_URL } from './constants'
 import { itemHref, patternHref } from './entityHref'
 
 /**
@@ -46,10 +46,27 @@ export function ogCardFor(
     schemaName: schemaId as SURefEnumSchemaName,
     entity,
     pattern,
-    // The foot prints the page's real URL without its scheme, host and path,
-    // as the origin's PV1 does (salvageunion.io/schema/chassis/item/scrapper).
-    address: `${new URL(SITE_URL).host}${href.slice(0, -1)}`,
+    address: ogAddress(href),
   })
+}
+
+/**
+ * What the foot prints for a page: its bare path, as board OgCard does
+ * (`/chassis/scrapper`). The SalvageUnion.io wordmark beside it already names
+ * the host, and the grammar's constant `schema` and `item` segments say
+ * nothing about where the link goes.
+ *
+ * The address is a readout, so it is never clipped. A path too long for the
+ * foot's one line (`/roll-tables/salvage-cache-table-reclamation-of-the-wastes`)
+ * steps down to the slug alone, which holds the longest SRD slug.
+ */
+export function ogAddress(href: string): string {
+  const parts = href.split('/').filter((part) => part.length > 0)
+  const bare = parts.filter(
+    (part, index) => !(index === 0 && part === 'schema') && !(index === 2 && part === 'item')
+  )
+  const path = `/${bare.join('/')}`
+  return ogReferenceAddressFits(path) ? path : `/${parts.at(-1) ?? ''}`
 }
 
 /**

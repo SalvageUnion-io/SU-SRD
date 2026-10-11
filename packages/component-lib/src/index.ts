@@ -160,6 +160,7 @@ export {
   ogCardDescription,
   ogCardThemeColor,
   ogCardTitle,
+  ogReferenceAddressFits,
 } from './components/shared/ogCardText'
 // PopoverPanel — a trigger and the small non-modal panel of controls it opens
 // (Base UI Popover); ITUN's sheet "⋯" overflow

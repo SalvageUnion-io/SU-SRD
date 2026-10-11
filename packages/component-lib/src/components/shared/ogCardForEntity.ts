@@ -43,7 +43,7 @@ export function ogCardForEntity(options: {
   schemaName: SURefEnumSchemaName
   entity: SURefMetaEntity
   pattern?: SURefObjectPattern
-  /** The address the foot prints: the page's host and path. */
+  /** The address the foot prints: the page's bare path (`/chassis/scrapper`). */
   address: string
 }): OgCardProps {
   const { schemaName, entity, pattern, address } = options

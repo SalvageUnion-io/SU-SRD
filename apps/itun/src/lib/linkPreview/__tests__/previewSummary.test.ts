@@ -137,7 +137,7 @@ describe('previewStats', () => {
   })
 
   test('a pattern reads its chassis: TL, slots and SP', () => {
-    expect(previewStats(PATTERN).map((s) => s.label)).toEqual(['TL', 'SYS', 'MODS', 'SP'])
+    expect(previewStats(PATTERN).map((s) => s.label)).toEqual(['TL', 'SYS', 'MOD', 'SP'])
     expect(previewStats({ ...PATTERN, body: { chassisRef: 'no-such' } })).toEqual([])
   })
 

@@ -23,9 +23,10 @@
  *      so a crawler or an unfurl bot opening `/p/:kind/:appId` gets the same
  *      document a browser does. `/` rather than `/index.html`, which the
  *      asset server's HTML handling may answer with a redirect to `/`. For
- *      a route a player shares (`/p/:kind/:appId`, `/join/:code`) the shell's
- *      `itun:meta` block is swapped for that thing's preview (`shellMeta.ts`):
- *      what a stranger may see, or the plain Private card.
+ *      a route a player shares (`/p/:kind/:appId`, `/invite/:token`, and
+ *      the retired `/join/:code`) the shell's `itun:meta` block is swapped
+ *      for that thing's preview (`shellMeta.ts`): what a stranger may see,
+ *      or the plain Private card.
  *
  * ## Rule 1 is the one that has already broken production
  *

@@ -93,7 +93,7 @@ export function previewStats(answer: PreviewAnswer): OgCardStat[] {
       return [
         { label: 'TL', value: String(chassis.techLevel) },
         { label: 'SYS', value: `${slotsUsed(systems)}/${chassis.systemSlots ?? 0}` },
-        { label: 'MODS', value: `${slotsUsed(modules)}/${chassis.moduleSlots ?? 0}` },
+        { label: 'MOD', value: `${slotsUsed(modules)}/${chassis.moduleSlots ?? 0}` },
         { label: 'SP', value: String(chassis.structurePoints ?? 0) },
       ]
     }

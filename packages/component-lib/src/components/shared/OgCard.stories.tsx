@@ -47,7 +47,7 @@ export const Default: Story = () => (
             { label: 'Cargo', value: String(scrapper.cargoCapacity) },
           ]}
           cite={`${scrapper.source} · p.${scrapper.page}`}
-          address="salvageunion.io/schema/chassis/item/scrapper"
+          address="/chassis/scrapper"
         />
       </div>
     )}
@@ -62,7 +62,7 @@ export const Default: Story = () => (
           cost="X AP"
           rules="You repair any number of damaged Mech Chassis, Vehicles, Systems, or Modules within Range to Intact Condition."
           cite={`${repair.source} · p.${repair.page}`}
-          address="salvageunion.io/schema/abilities/item/mass-field-repair"
+          address="/abilities/mass-field-repair"
         />
       </div>
     )}
@@ -93,7 +93,7 @@ export const Default: Story = () => (
         stats={[
           { label: 'TL', value: '1' },
           { label: 'SYS', value: '12/12' },
-          { label: 'MODS', value: '2/2' },
+          { label: 'MOD', value: '2/2' },
           { label: 'SP', value: '9' },
         ]}
         madeBy="alxjrvs"

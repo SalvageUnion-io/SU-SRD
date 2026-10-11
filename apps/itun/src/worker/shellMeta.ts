@@ -95,8 +95,9 @@ export function applyMeta(shell: string, meta: ShellMeta): string {
 
   // The <title> is outside the block (it is not `og:` metadata); a link that
   // unfurls correctly while its tab says "In The Union Now" is half the fix.
-  return withMeta.replace(
-    /<title>[\s\S]*?<\/title>/,
-    `<title>${escapeAttr(tidy(meta.title, 70))}</title>`
-  )
+  // A function replacer: a string one reads `$&`, `$'` and `` $` `` in a
+  // player-typed name as replacement patterns, splicing the document into
+  // the title and ending the <head> early.
+  const title = `<title>${escapeAttr(tidy(meta.title, 70))}</title>`
+  return withMeta.replace(/<title>[\s\S]*?<\/title>/, () => title)
 }

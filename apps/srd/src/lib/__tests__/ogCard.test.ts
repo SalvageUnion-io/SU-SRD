@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import { tokens } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { OG_HEIGHT, OG_WIDTH, ogCardFor, ogImagePath, ogMetaFor } from '../ogCard'
+import { OG_HEIGHT, OG_WIDTH, ogAddress, ogCardFor, ogImagePath, ogMetaFor } from '../ogCard'
 
 describe('the og canvas', () => {
   it('is the 1200×630 BaseLayout declares for every og:image', () => {
@@ -13,10 +13,8 @@ describe('ogCardFor', () => {
   const scrapper = SalvageUnionReference.Chassis.getByName('Scrapper')
   if (!scrapper) throw new Error('no Scrapper')
 
-  it('prints the host and page path in the foot', () => {
-    expect(ogCardFor('chassis', 'scrapper', scrapper).address).toBe(
-      'salvageunion.io/schema/chassis/item/scrapper'
-    )
+  it('prints the bare path in the foot, as board OgCard does', () => {
+    expect(ogCardFor('chassis', 'scrapper', scrapper).address).toBe('/chassis/scrapper')
   })
 
   it("draws a chassis's row as the origin does: SP, EP, Heat, SYS, MOD, Cargo", () => {
@@ -37,7 +35,21 @@ describe('ogCardFor', () => {
     const pattern = scrapper.patterns?.[0]
     if (!pattern) throw new Error('Scrapper has no pattern')
     const card = ogCardFor('chassis', 'scrapper', scrapper, pattern, 'tow-rig')
-    expect(card.address).toBe('salvageunion.io/schema/chassis/item/scrapper/pattern/tow-rig')
+    expect(card.address).toBe('/chassis/scrapper/pattern/tow-rig')
+  })
+})
+
+describe('ogAddress', () => {
+  it("drops the grammar's constant segments", () => {
+    expect(ogAddress('/schema/abilities/item/mass-field-repair/')).toBe(
+      '/abilities/mass-field-repair'
+    )
+  })
+
+  it('steps a path too long for the foot down to the slug, never clipping it', () => {
+    expect(
+      ogAddress('/schema/roll-tables/item/salvage-cache-table-reclamation-of-the-wastes/')
+    ).toBe('/salvage-cache-table-reclamation-of-the-wastes')
   })
 })
 

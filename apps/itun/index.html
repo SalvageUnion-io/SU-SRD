@@ -12,9 +12,10 @@
 
       The app is client-rendered and a crawler runs no JavaScript, so anything
       a route sets at runtime is invisible to an unfurl. For the routes a
-      player shares (`/p/:kind/:appId`, `/join/:code`) the Worker swaps the
-      block between the `itun:meta` markers for that thing's link preview
-      (src/worker/shellMeta.ts, issue 1280); keep the markers around it.
+      player shares (`/p/:kind/:appId`, `/invite/:token`, and the retired
+      `/join/:code`) the Worker swaps the block between the `itun:meta`
+      markers for that thing's link preview (src/worker/shellMeta.ts, issue
+      1280); keep the markers around it.
 
       No `<link rel="canonical">` on purpose. A fixed canonical in a SPA shell
       claims every client route is the homepage, which is worse than none —

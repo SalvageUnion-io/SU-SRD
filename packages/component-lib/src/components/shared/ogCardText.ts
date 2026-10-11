@@ -20,7 +20,11 @@ type OgCardBase = {
   kicker: string
   /** The notched title: the thing's name. */
   title: string
-  /** The address the foot prints (host and path, on both sites). */
+  /**
+   * The address the foot prints. ITUN prints host and path; the SRD prints the
+   * bare path (`/chassis/scrapper`), since its wordmark already names the host
+   * (see `ogReferenceAddressFits`).
+   */
   address: string
 }
 
@@ -163,4 +167,28 @@ const TITLE_ADVANCE = 0.62
 export function ogTitleSize(printed: string): number {
   const fit = Math.floor(NOTCH_ROOM / (TITLE_ADVANCE * Math.max(printed.length, 1)))
   return Math.max(TITLE_MIN, Math.min(TITLE_MAX, fit))
+}
+
+/**
+ * The reference foot's room for the address, in px: the card less its gutters,
+ * the mark, the SalvageUnion.io wordmark and the gap, measured in the real
+ * face. ITUN's shorter wordmark leaves it more.
+ */
+const REFERENCE_ADDRESS_ROOM = 672
+/** The foot's address size: the 34px source floor. */
+const ADDRESS_SIZE = 34
+/**
+ * Barlow Semi Condensed semibold advances about 0.42em a character over SRD
+ * paths (lowercase, digits, hyphens and slashes) when measured; 0.45 leaves
+ * room for the wide letters (m, w).
+ */
+const ADDRESS_ADVANCE = 0.45
+
+/**
+ * Whether an address fits the reference foot on one line. The foot is a
+ * readout of where the link goes, so it is never clipped: the SRD picks the
+ * longest form of the page's path that fits (`apps/srd/src/lib/ogCard.ts`).
+ */
+export function ogReferenceAddressFits(address: string): boolean {
+  return address.length * ADDRESS_ADVANCE * ADDRESS_SIZE <= REFERENCE_ADDRESS_ROOM
 }
