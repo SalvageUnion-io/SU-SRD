@@ -48,9 +48,11 @@ together. No CLI or API edits it.
 - **Setup script:** runs as root before Claude Code starts and is snapshotted
   when it ends within about five minutes, so the pinned Bun and `node_modules`
   are already in place and the SessionStart hook is a no-op. In a multi-repo
-  session repo hooks do not run at all, so this script is what pins Bun there;
-  its `packageManager` test picks the SU-SRD checkout out of the siblings. It
-  must exit 0: a failure stops the session starting.
+  session repo hooks do not run at all: this script still installs the pinned
+  Bun (its `packageManager` test picks the SU-SRD checkout out of the
+  siblings), but nothing puts it on `PATH`, so prefix commands with
+  `PATH="$HOME/.local/share/su-srd-bun/<version>:$PATH"`. It must exit 0: a
+  failure stops the session starting.
 
   ```bash
   #!/bin/bash
