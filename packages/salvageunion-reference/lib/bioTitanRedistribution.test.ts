@@ -51,7 +51,9 @@ describe('Bio-Titan / Iron Lady redistribution', () => {
     const ironLady = getReference().Drones.getByName('The Iron Lady')
     expect(ironLady).toBeDefined()
     expect(defined(ironLady).structurePoints).toBe(87)
-    expect(defined(ironLady).salvageValue).toBe(87)
+    // Thatcher's Mech Base p.2: "87 STRUCTURE PTS.", "Can be salvaged for T6 15".
+    expect(defined(ironLady).salvageValue).toBe(15)
+    expect(defined(ironLady).techLevel).toBe(6)
     expect(defined(ironLady).actions).toBeDefined()
     expect(defined(ironLady).modules).toEqual([
       'Comms Module',
