@@ -40,7 +40,7 @@ const segment = (active: boolean, live: boolean): CSSProperties => ({
  * framed group, the current one inverted. State is a treatment, not a hue
  * (ruleset §3 law 3) — never the green and red the status badge wore. With a
  * handler the whole group is ONE 44px button that steps to the next state;
- * without one it is a read-only group.
+ * without one it is a single solid stamp naming the state.
  */
 export function StatusTriState({
   status,
@@ -52,12 +52,29 @@ export function StatusTriState({
   subject: string
 }) {
   const label = STATES.find((s) => s.value === status)?.label ?? status
+  // Print reads, pencil writes (ruleset §1): with no handler the condition is
+  // a read-out, so it prints ONE solid stamp naming the state rather than the
+  // three-way switch, which would read as a control the viewer cannot use.
+  if (!onClick) {
+    return (
+      <span title={`${subject}: ${label}`} style={{ display: 'inline-flex' }}>
+        <span
+          style={{
+            ...segment(true, false),
+            border: 'var(--bw-chrome) solid var(--color-ink)',
+          }}
+        >
+          {label}
+        </span>
+      </span>
+    )
+  }
   const group = (
     <span
       style={{
         // Dashed: the live sheet's controls are pencil, not print (E3). A
         // read-out is print: solid, so it cannot pass for the control.
-        border: `var(--bw-chrome) ${onClick ? 'dashed' : 'solid'} var(--color-ink)`,
+        border: 'var(--bw-chrome) dashed var(--color-ink)',
         display: 'inline-flex',
       }}
     >
@@ -65,14 +82,13 @@ export function StatusTriState({
         <span
           key={s.value}
           aria-current={s.value === status ? 'true' : undefined}
-          style={segment(s.value === status, onClick !== undefined)}
+          style={segment(s.value === status, true)}
         >
           {s.label}
         </span>
       ))}
     </span>
   )
-  if (!onClick) return <span title={`${subject}: ${label}`}>{group}</span>
   return (
     <button
       type="button"

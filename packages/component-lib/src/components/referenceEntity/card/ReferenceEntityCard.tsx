@@ -479,10 +479,13 @@ function ReferenceEntityCardInner({
   const removers = hasBodyRail ? (railControls ?? []).filter((c) => c.variant === 'danger') : []
   const seamControls =
     removers.length > 0 ? railControls?.filter((c) => !removers.includes(c)) : railControls
+  // A read card (no handler) prints only a condition worth reporting: Intact
+  // is the default, so it draws nothing rather than a stamp on every card.
+  const shownStatus = onStatusClick || status !== 'intact' ? status : undefined
   const statusRail =
-    hasBodyRail && (status || removers.length > 0) ? (
+    hasBodyRail && (shownStatus || removers.length > 0) ? (
       <StatusRail
-        status={status}
+        status={shownStatus}
         onStatusClick={onStatusClick}
         removers={removers}
         subject={entityName}
@@ -494,8 +497,8 @@ function ReferenceEntityCardInner({
       controls={seamControls}
       status={undefined}
       statusSeal={
-        status && !hasBodyRail ? (
-          <StatusTriState status={status} onClick={onStatusClick} subject={entityName} />
+        shownStatus && !hasBodyRail ? (
+          <StatusTriState status={shownStatus} onClick={onStatusClick} subject={entityName} />
         ) : undefined
       }
       onStatusClick={undefined}

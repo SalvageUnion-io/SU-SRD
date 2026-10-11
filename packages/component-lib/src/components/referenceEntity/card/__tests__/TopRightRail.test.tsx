@@ -103,3 +103,39 @@ describe('top-right rail', () => {
     expect(status.querySelector('[aria-current="true"]')?.textContent).toBe('Damaged')
   })
 })
+
+// Print reads, pencil writes (ruleset §1): a card with no status handler is a
+// read, so its condition is a read-out, never the three-way switch.
+describe('read-state condition', () => {
+  test.each(['head', 'full'] as const)('Intact prints nothing on a read %s card', (extent) => {
+    render(<ReferenceEntityCard data={equipment()} extent={extent} status="intact" />)
+    expect(screen.queryByText('Intact')).toBeNull()
+    expect(screen.queryByText('Damaged')).toBeNull()
+    expect(screen.queryByText('Destroyed')).toBeNull()
+  })
+
+  test.each(['head', 'full'] as const)(
+    'a damaged read %s card prints one stamp, not the switch',
+    (extent) => {
+      render(<ReferenceEntityCard data={equipment()} extent={extent} status="damaged" />)
+      expect(screen.getByText('Damaged')).toBeTruthy()
+      expect(screen.queryByText('Intact')).toBeNull()
+      expect(screen.queryByText('Destroyed')).toBeNull()
+      expect(screen.queryByRole('button', { name: /status/i })).toBeNull()
+    }
+  )
+
+  test('with a handler the switch keeps all three states', () => {
+    render(
+      <ReferenceEntityCard
+        data={equipment()}
+        extent="head"
+        status="intact"
+        onStatusClick={() => {}}
+      />
+    )
+    const status = screen.getByRole('button', { name: /intact/i })
+    expect(status.textContent).toContain('Damaged')
+    expect(status.textContent).toContain('Destroyed')
+  })
+})
