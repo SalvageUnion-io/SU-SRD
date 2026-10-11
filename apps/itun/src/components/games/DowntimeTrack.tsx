@@ -49,9 +49,11 @@ const GRID: CSSProperties = {
   margin: 0,
   padding: 0,
   display: 'grid',
-  // At most five columns (each at least a fifth of the row), and none
-  // narrower than STEP_MIN, so a phone gets two or three.
-  gridTemplateColumns: `repeat(auto-fill, minmax(max(${STEP_MIN}, calc((100% - 4 * ${space[6]}) / 5)), 1fr))`,
+  // Five columns when five STEP_MIN cells fit, else two (one below two), so
+  // ten steps never leave an orphan row. The `* 999` term is a switch: it is
+  // at most zero once five fit, and a half-row track below that. The 0.1px
+  // keeps rounding from dropping a column.
+  gridTemplateColumns: `repeat(auto-fill, minmax(max(${STEP_MIN}, calc((100% - 4 * ${space[6]}) / 5 - 0.1px), min(calc(50% - ${space[6]} / 2 - 0.1px), calc((5 * ${STEP_MIN} + 4 * ${space[6]} - 100%) * 999))), 1fr))`,
   gap: space[6],
 }
 
