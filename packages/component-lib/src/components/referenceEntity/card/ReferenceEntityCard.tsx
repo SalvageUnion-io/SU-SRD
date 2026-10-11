@@ -28,6 +28,7 @@ import { resolveCardDisplay } from '../../shared/displayMode'
 import type { StatItem } from '../../shared/statsBarTypes'
 import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import { useEntityExternalLink } from '../entityHrefContext'
+import { quotePatternName } from '../pattern/quotePatternName'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { accentSurface } from '../referenceEntityHelpers'
 import { BonusPerTechLevel } from './BonusPerTechLevel'
@@ -310,12 +311,12 @@ function ReferenceEntityCardInner({
   // stats / tone / source. A `head` pattern is a LIST ROW.
   const isPattern = !!pattern
   const isPatternListing = isPattern && extent === 'head'
-  // A pattern's title is its name in QUOTES. A nested ACTION drops its
+  // A pattern's title is its name in typographic QUOTES. A nested ACTION drops its
   // ` (Host)` disambiguation suffix when the host is this card's own context.
   const name =
     titleOverride ??
     (isPattern
-      ? `"${pattern.name}"`
+      ? quotePatternName(pattern.name)
       : isAction
         ? stripHostParenthetical(entityName, hostName)
         : entityName)

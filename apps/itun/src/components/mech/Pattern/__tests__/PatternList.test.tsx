@@ -57,6 +57,9 @@ describe('PatternList', () => {
     )
 
     expect(screen.getByText('User-made')).toBeTruthy()
+    // Titled in typographic quotes, as on the Save preview and the public page.
+    expect(screen.getByText('“Tow Rig”')).toBeTruthy()
+    expect(screen.queryByText('"Tow Rig"')).toBeNull()
     const dashed = [...container.querySelectorAll<HTMLElement>('div')].filter(
       (el) => el.style.borderStyle === 'dashed'
     )

@@ -99,6 +99,7 @@ export {
   EntityHrefProvider,
   PatternHrefProvider,
 } from './components/referenceEntity/entityHrefContext'
+export { quotePatternName } from './components/referenceEntity/pattern/quotePatternName'
 export { useChassisPatternConfig } from './components/referenceEntity/pattern/useChassisPatternConfig'
 // Entity controls — `navigateControl` is the only live preset. `addControl`,
 // `deleteControl` and `selectControl` were measured to zero production call

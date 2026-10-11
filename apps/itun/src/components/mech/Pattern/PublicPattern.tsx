@@ -18,6 +18,7 @@ import { useNavigate } from '@tanstack/react-router'
 import {
   Button,
   ChapterBand,
+  quotePatternName,
   ReferenceEntityCard,
   Slab,
   Text,
@@ -404,7 +405,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
           </>
         }
       >
-        &ldquo;{pattern.name}&rdquo;
+        {quotePatternName(pattern.name)}
       </ChapterBand>
 
       <div role="note" aria-label="Who made this" style={BANNER}>
