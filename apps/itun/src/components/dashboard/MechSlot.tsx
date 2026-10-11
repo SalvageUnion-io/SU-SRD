@@ -20,8 +20,9 @@
  * log (`dashboardRolls.ts`), where the crew's Log tab reads it.
  */
 
-import { CountStepper, heatDangerFrom } from 'component-lib'
+import { CountStepper, heatDangerFrom, ReferenceEntityCard } from 'component-lib'
 import { useEffect, useState } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CriticalDamageEffect } from 'salvageunion-reference/rules'
 import {
   describePushOutcome,
@@ -38,6 +39,7 @@ import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import type { StepRule } from '../wizard/RuleBrief'
 import { RuleBrief } from '../wizard/RuleBrief'
 import { activatableEffects } from './dashboardEffects'
+import { usePhoneForm } from './dashboardForm'
 import { recordRoll } from './dashboardRolls'
 import {
   critDamagePatch,
@@ -49,7 +51,7 @@ import {
   shutdownTogglePatch,
   VENT_PATCH,
 } from './dashboardRules'
-import type { BandBay, BandButton, MajorModel } from './MajorFrame'
+import type { BandBay, BandButton, BandGauge, MajorModel } from './MajorFrame'
 import { MajorFrame, StorageBay } from './MajorFrame'
 import { MinorFrame } from './MinorFrame'
 import type { DamagePrompt, PlayStore } from './SlotRow'
@@ -140,11 +142,12 @@ export function MechMajor({
     maxEP,
     maxHeat,
     maxCargo,
-    sp,
-    ep,
+    sp: spNow,
+    ep: epNow,
     heat,
     cargo,
   } = mechStats(mech, pilotAbilities, switchedOn)
+  const phone = usePhoneForm()
   // What this mech/pilot could switch on (F1). Manual expiry: the table keeps
   // time, the app keeps state.
   const activatable = activatableEffects(mech, pilotAbilities)
@@ -336,7 +339,7 @@ export function MechMajor({
         title: 'Take Structure Damage',
         onClose,
         // Keep the gauge being edited on screen (see BandOverlay.gauges).
-        gauges: [{ label: 'SP', value: sp, max: maxSP, tone: 'mech' }],
+        gauges: [{ label: 'SP', value: spNow, max: maxSP, tone: 'mech' }],
         body: (
           <CountStepper
             count={dmg}
@@ -435,71 +438,110 @@ export function MechMajor({
     },
   ]
 
+  const heatGauge: BandGauge = {
+    label: 'Heat',
+    value: heat,
+    max: maxHeat,
+    tone: 'mech',
+    danger: maxHeat > 0 ? heatDangerFrom(maxHeat) : undefined,
+  }
+  const push: BandButton = {
+    label: phone ? 'Push · +2 Heat' : 'Push',
+    // Guided Play teaches as it enforces (ADR-021). A blocked Push used
+    // to grey out with a hover title — unreachable on touch, and it
+    // taught nothing at the moment the rule actually bit. It now stays
+    // pressable and opens the rule instead of performing the action.
+    onClick: pushLocked ? () => setBlocked(PUSH_RULE(heat, maxHeat)) : doPush,
+    variant: 'go',
+    title: pushLocked
+      ? `Can't Push at Heat ${heat}/${maxHeat} — why?`
+      : '+2 Heat, then a Heat Check',
+  }
+  const heatCheck: BandButton = {
+    label: 'Heat Check',
+    onClick: doHeatCheck,
+    title: 'Roll a Heat Check at current Heat',
+  }
+  const vent: BandButton = {
+    label: 'Vent',
+    onClick: doVent,
+    variant: 'go',
+    title: 'Vent Heat to 0',
+  }
+  const shutdown: BandButton = {
+    label: 'Shut Down',
+    onClick: doShutdown,
+    title: 'Toggle reactor shutdown',
+  }
+  const takeDamage: BandButton = {
+    label: 'Take Damage',
+    onClick: () => {
+      setDmg(1)
+      setPrompt({ kind: 'dmg' })
+    },
+    title: 'Take Structure damage',
+  }
+  const storage: BandButton = {
+    label: phone ? `Storage · ${cargo}/${maxCargo}` : 'Storage',
+    onClick: () => setPrompt({ kind: 'storage' }),
+    title: 'Open the cargo hold',
+  }
+  const sp: BandGauge = { label: 'SP', value: spNow, max: maxSP, tone: 'mech' }
+  const ep: BandGauge = { label: 'EP', value: epNow, max: maxEP, tone: 'mech' }
+
+  // The canvas's bays: the Reactor and the Chassis share the width.
+  const canvasBays: BandBay[] = [
+    {
+      label: 'Reactor',
+      // Two a row (the default): board D1 spells the labels out (HEAT CHECK,
+      // SHUT DOWN), and four to a row cut the fourth off the bay's edge.
+      large: true,
+      gauges: [heatGauge, ep],
+      buttons: [push, { ...heatCheck, variant: 'go' }, vent, shutdown],
+    },
+    {
+      label: 'Chassis',
+      large: true,
+      gauges: [sp, { label: 'Cargo', value: cargo, max: maxCargo, tone: 'mech' }],
+      buttons: [takeDamage, storage],
+    },
+  ]
+  // The phone's (board D4, ADR-045): SP and EP as cells, then Heat with Push
+  // and Vent at thumb height, then the other verbs, then the Chassis Ability
+  // as its own ink-banner card. Cargo is on Storage.
+  const chassisAbilities =
+    phone && chassis ? (SalvageUnionReference.resolveActions(chassis) ?? []) : []
+  const phoneBays: BandBay[] = [
+    { label: 'Pools', gauges: [sp, ep], buttons: [] },
+    {
+      label: 'Reactor',
+      gauges: [heatGauge],
+      buttons: [push, vent, heatCheck, shutdown, takeDamage, storage],
+    },
+    ...chassisAbilities.map(
+      (ability): BandBay => ({
+        label: `Chassis Ability: ${ability.name}`,
+        buttons: [],
+        card: (
+          <ReferenceEntityCard
+            data={ability}
+            size="medium"
+            // The Dashboard stays flat (ruleset §3.5): no speckle.
+            texture={false}
+            parentSeal={{ label: 'Chassis Ability', tone: 'var(--color-ink)' }}
+            // `[(CHASSIS)]` reads as this machine, as on the Live Sheet.
+            chassisName={mech.name}
+          />
+        ),
+      })
+    ),
+  ]
+
   const view: MajorModel = {
     fam: 'mech',
     stampLabel: boarded ? 'Boarded' : 'Parked',
     bays: [
-      {
-        label: 'Reactor',
-        // Two a row (the default): board D1 spells the labels out (HEAT CHECK,
-        // SHUT DOWN), and four to a row cut the fourth off the bay's edge.
-        large: true,
-        gauges: [
-          {
-            label: 'Heat',
-            value: heat,
-            max: maxHeat,
-            tone: 'mech',
-            danger: maxHeat > 0 ? heatDangerFrom(maxHeat) : undefined,
-          },
-          { label: 'EP', value: ep, max: maxEP, tone: 'mech' },
-        ],
-        buttons: [
-          {
-            label: 'Push',
-            // Guided Play teaches as it enforces (ADR-021). A blocked Push used
-            // to grey out with a hover title — unreachable on touch, and it
-            // taught nothing at the moment the rule actually bit. It now stays
-            // pressable and opens the rule instead of performing the action.
-            onClick: pushLocked ? () => setBlocked(PUSH_RULE(heat, maxHeat)) : doPush,
-            variant: 'go',
-            title: pushLocked
-              ? `Can't Push at Heat ${heat}/${maxHeat} — why?`
-              : '+2 Heat, then a Heat Check',
-          },
-          {
-            label: 'Heat Check',
-            onClick: doHeatCheck,
-            variant: 'go',
-            title: 'Roll a Heat Check at current Heat',
-          },
-          { label: 'Vent', onClick: doVent, variant: 'go', title: 'Vent Heat to 0' },
-          { label: 'Shut Down', onClick: doShutdown, title: 'Toggle reactor shutdown' },
-        ],
-      },
-      {
-        label: 'Chassis',
-        large: true,
-        gauges: [
-          { label: 'SP', value: sp, max: maxSP, tone: 'mech' },
-          { label: 'Cargo', value: cargo, max: maxCargo, tone: 'mech' },
-        ],
-        buttons: [
-          {
-            label: 'Take Damage',
-            onClick: () => {
-              setDmg(1)
-              setPrompt({ kind: 'dmg' })
-            },
-            title: 'Take Structure damage',
-          },
-          {
-            label: 'Storage',
-            onClick: () => setPrompt({ kind: 'storage' }),
-            title: 'Open the cargo hold',
-          },
-        ],
-      },
+      ...(phone ? phoneBays : canvasBays),
       // The side column: what a pilot aboard switches on, and the ways out.
       ...(boarded ? riderBays : []),
     ],

@@ -5,6 +5,7 @@ import type { SizeRung } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
 import { capsLabel } from '../chrome/capsLabel'
 import { POSTER_STAMP } from '../chrome/posterStamp'
+import { Stat } from '../shared/Stat'
 import { pipClickValue, segmentLit, statBlockRowStarts, trackSegmentState } from './pipRows'
 import type { ProvenanceLine } from './StatProvenance'
 import { StatProvenance } from './StatProvenance'
@@ -20,6 +21,12 @@ export type VitalGaugeProps = {
   label: string
   /** Optional muted sub-label after the stamp (e.g. mech-frame 'Structure'). */
   subLabel?: string
+  /**
+   * The track's cap, read beside the stamp as a `Cap | N` Stat chip (ruleset
+   * §3.7: a cap is a `label | value`, so it is a Stat, never bare text). The
+   * `full` rung only; the Dashboard's Heat track passes it (board D4).
+   */
+  cap?: number
   /** Current value. */
   value: number
   /** Track maximum (segment count). */
@@ -108,6 +115,7 @@ export type VitalGaugeProps = {
 export function VitalGauge({
   label,
   subLabel,
+  cap,
   value,
   max,
   onChange,
@@ -212,16 +220,15 @@ export function VitalGauge({
   // Empty-segment fill differs by surface: recessed outline on a dark instrument
   // ground, paper on the light sheet.
   const emptyFill = onDark ? 'border-paper-30 bg-transparent' : 'border-ink-50 bg-paper'
-  // The redline zone is outlined in status-bad while unlit (board D1), so the
-  // danger line reads before the track reaches it — on the sheet and the
-  // Dashboard alike, since both draw this gauge.
+  // An unlit pip past the redline keeps the empty ground and takes the
+  // status-bad outline (boards D1, D4): the redline reads before the value
+  // reaches it — on the sheet and the Dashboard alike, since both draw this gauge.
+  const redlineFill = onDark ? 'border-status-bad bg-transparent' : 'border-status-bad bg-paper'
   const segFill = (state: ReturnType<typeof trackSegmentState>): string =>
     state === 'off'
       ? emptyFill
       : state === 'redline'
-        ? onDark
-          ? 'border-status-bad bg-transparent'
-          : 'border-status-bad bg-paper'
+        ? redlineFill
         : state === 'danger'
           ? 'border-status-bad bg-status-bad'
           : 'border-[var(--tone-deep)] bg-[var(--tone)]'
@@ -378,6 +385,9 @@ export function VitalGauge({
             >
               {subLabel}
             </span>
+          )}
+          {cap !== undefined && (
+            <Stat orientation="horizontal" label="Cap" value={cap} size="mini" />
           )}
         </span>
         {/* The numeral sizes below are off-ladder ON PURPOSE, not un-burnt debt:

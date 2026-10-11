@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { CORE_ROLL_BANDS } from 'salvageunion-reference/rules'
 import { InstrumentStage } from './_dashboardStage'
+import { coreMechanicRowText } from './dashboardRules'
 import { ResolvePanel } from './ResolvePanel'
 
 export default { title: 'Compositions/Dashboard/Resolve Panel' }
@@ -32,13 +33,15 @@ export const Default = () => {
                 kind: 'resolve',
                 onBack: ignore,
                 costLabel: '2 EP · +1 Heat',
+                currency: 'EP',
                 entity: action,
                 controls: {
                   activateLabel: 'Activated',
                   activateDisabled: true,
                   onActivate: ignore,
+                  activated: true,
                   onRoll: ignore,
-                  push: { disabled: false, onPush: ignore },
+                  push: { disabled: false, pushed: false, onPush: ignore },
                   applyLabel: 'Apply',
                   applyDisabled: false,
                   onApply: ignore,
@@ -47,8 +50,10 @@ export const Default = () => {
                 roll: {
                   roll: 8,
                   band: 'tough',
+                  bandRange: tough.range,
+                  destructive: false,
                   bandLabel: tough.label,
-                  bandSummary: tough.summary,
+                  bandSummary: coreMechanicRowText(8),
                 },
                 pushLog: null,
                 applied: false,

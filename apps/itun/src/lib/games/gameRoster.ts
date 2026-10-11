@@ -270,6 +270,12 @@ function nameOf(body: unknown, fallback: string): string {
   return typeof value === 'string' && value.length > 0 ? value : fallback
 }
 
+/** The id inside an opaque server body, when it carries one. */
+function bodyIdOf(body: unknown): string | null {
+  const value = (body as Record<string, unknown> | null)?.id
+  return typeof value === 'string' && value.length > 0 ? value : null
+}
+
 /** The body as a record, so callers can read known fields without casting. */
 function bodyOf(body: unknown): Record<string, unknown> {
   return (body ?? {}) as Record<string, unknown>
@@ -309,7 +315,10 @@ export function ownableRows(args: {
   return args.rows.map((row) => {
     const owner = ownerChipFor(row.ownerId, lookup)
     const mine = owner.mine
-    const localId = row.appId !== null && args.localIds.has(row.appId) ? row.appId : null
+    // A template pre-gen has no app id: a claimed one is held here under its
+    // body id (`listMine` serves the body), so that is the id it is found by.
+    const heldAs = row.appId ?? bodyIdOf(row.body)
+    const localId = heldAs !== null && args.localIds.has(heldAs) ? heldAs : null
 
     return {
       kind: args.kind,

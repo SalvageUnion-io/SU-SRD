@@ -22,6 +22,7 @@ import type { CSSProperties } from 'react'
 import { useEffect, useId, useRef } from 'react'
 import type { BoardMenu, BoardOption } from './boardMenu'
 import { boardable } from './boardMenu'
+import { usePhoneForm } from './dashboardForm'
 
 const SPLIT: CSSProperties = { display: 'flex', gap: '2px', minWidth: 0 }
 
@@ -40,6 +41,9 @@ const LABEL: CSSProperties = {
 }
 
 const CARET: CSSProperties = { flex: '0 0 auto', minWidth: '28px', paddingInline: '6px' }
+
+/** On a phone the caret holds the 44px touch floor (ruleset §4.6, ADR-045 D14). */
+const PHONE_CARET: CSSProperties = { ...CARET, minWidth: '44px' }
 
 const WHOLE: CSSProperties = { width: '100%' }
 
@@ -76,6 +80,7 @@ export function BoardControl({
   onOpenMenu: (trigger: HTMLButtonElement) => void
 }) {
   const noteId = useId()
+  const phone = usePhoneForm()
   const { main } = menu
 
   if (main === null) {
@@ -110,7 +115,7 @@ export function BoardControl({
         <Button
           variant="primary"
           size="compact"
-          style={CARET}
+          style={phone ? PHONE_CARET : CARET}
           aria-label="Choose a mech to board"
           aria-haspopup="dialog"
           onClick={(e) => onOpenMenu(e.currentTarget)}

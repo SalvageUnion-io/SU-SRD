@@ -20,6 +20,8 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import type { GaugeTone } from './DashboardGauge'
 import { DashboardGauge } from './DashboardGauge'
+import { useDashboardForm } from './dashboardForm'
+import { PhoneMajorFrame } from './PhoneMajorFrame'
 import { slotRule } from './slotLayout'
 
 /** Stable no-op, so the Escape effect doesn't re-bind when no overlay is open. */
@@ -82,6 +84,12 @@ export type BandBay = {
    * grid's floor: the Pilot's Board split button (`BoardControl`).
    */
   control?: ReactNode
+  /**
+   * A bay that is one card, drawn bare with no bay frame around it: the phone
+   * Mech tab's Chassis Ability (board D4). Phone form only; the canvas has no
+   * bay that carries one.
+   */
+  card?: ReactNode
   /** Columns in the button grid. Two unless the bay has the width for more. */
   columns?: number
   /** Stacks in the narrow side column instead of sharing the main width. */
@@ -369,12 +377,17 @@ export function StorageBay({
   )
 }
 
-/** Renders one computed Major model. */
+/**
+ * Renders one computed Major model: on the canvas's band, or — in the phone
+ * form (ADR-045) — as `PhoneMajorFrame`'s one column. Same model either way.
+ */
 export function MajorFrame({ view }: { view: MajorModel }) {
   const { overlay } = view
+  const form = useDashboardForm()
   // Escape dismisses the resolve/damage/storage prompt, like every other
   // dismissible surface in the app.
   useEscapeKey(overlay != null, overlay?.onClose ?? NOOP)
+  if (form.form === 'phone') return <PhoneMajorFrame view={view} between={form.between} />
   const main = view.bays.filter((b) => !b.side)
   const side = view.bays.filter((b) => b.side)
   return (

@@ -149,6 +149,19 @@ describe('rows carry ownership as a state, never a blank', () => {
     expect(built('u-play', ['a1'])[0]?.localId).toBe('a1')
   })
 
+  test('a claimed template pre-gen, with no app id, is held by its body id', () => {
+    const [row] = ownableRows({
+      kind: 'pilot',
+      rows: [{ _id: 's4', appId: null, ownerId: 'u-play', body: { id: 'bonesaw', name: 'B' } }],
+      viewerId: 'u-play',
+      members: ALL,
+      localIds: new Set(['bonesaw']),
+    })
+    // `LaunchDashboard` lists only rows with a local copy, so without this a
+    // Starter Set table could never launch the Dashboard.
+    expect(row?.localId).toBe('bonesaw')
+  })
+
   test('a body with no name still renders something', () => {
     const [row] = ownableRows({
       kind: 'mech',

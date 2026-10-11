@@ -265,6 +265,25 @@ describe('VitalGauge — danger', () => {
     const toneSegs = segments.filter((s) => must(s).className.includes('bg-[var(--tone)]'))
     expect(toneSegs.length).toBe(7)
   })
+
+  test('the cap reads as a Cap | N Stat chip beside the stamp', () => {
+    render(<VitalGauge label="Heat" value={0} max={8} cap={8} readOnly />)
+    const track = screen.getByRole('img', { name: 'Heat 0 of 8' })
+    const cap = Array.from(track.querySelectorAll('span')).find(
+      (s) => s.textContent === 'Cap8' && s.className.includes('rounded-badge')
+    )
+    expect(cap).toBeDefined()
+  })
+
+  test('unlit segments past the danger index carry the status-bad outline', () => {
+    render(<VitalGauge label="Heat" value={0} max={8} danger={5} readOnly />)
+    const track = screen.getByRole('img', { name: 'Heat 0 of 8' })
+    const unlit = Array.from(track.querySelectorAll('[data-pip="off"]'))
+    expect(unlit.length).toBe(8)
+    const redline = unlit.filter((s) => must(s).className.includes('border-status-bad'))
+    expect(redline.length).toBe(3)
+    expect(redline.every((s) => !must(s).className.includes('bg-status-bad'))).toBe(true)
+  })
 })
 
 // The compact (Dashboard) gauge takes the §4.5 row split like every other pip
