@@ -70,19 +70,21 @@ function RootComponent() {
         <AccountReconciler />
         {/* A test seam, compiled out of production builds — see its header. */}
         <TestAuthBridge />
-        <AppHeader
-          LinkComponent={AppLink}
-          pathname={pathname}
-          games={<HeaderGames />}
-          search={<GlobalSearch variant="bar" open={searchOpen} onOpenChange={setSearchOpen} />}
-          mobileSearch={
-            <GlobalSearch variant="icon" open={searchOpen} onOpenChange={setSearchOpen} />
-          }
-          actions={<HeaderActions />}
-          mobileActions={<HeaderMobileActions />}
-          drawerExtra={(close) => <HeaderDrawerAccount close={close} />}
-        />
+        {/* Above the header, not just the routes: the search in AppHeader opens
+            entity detail modals whose RollTables raise the same Copy toast. */}
         <CopyFeedbackProvider value={toastCopied}>
+          <AppHeader
+            LinkComponent={AppLink}
+            pathname={pathname}
+            games={<HeaderGames />}
+            search={<GlobalSearch variant="bar" open={searchOpen} onOpenChange={setSearchOpen} />}
+            mobileSearch={
+              <GlobalSearch variant="icon" open={searchOpen} onOpenChange={setSearchOpen} />
+            }
+            actions={<HeaderActions />}
+            mobileActions={<HeaderMobileActions />}
+            drawerExtra={(close) => <HeaderDrawerAccount close={close} />}
+          />
           <GameDataReady>
             <Outlet />
           </GameDataReady>
