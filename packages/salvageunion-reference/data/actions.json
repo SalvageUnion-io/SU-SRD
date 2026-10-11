@@ -288,6 +288,10 @@
     "traits": [
       {
         "type": "heat spike"
+      },
+      {
+        "type": "hot",
+        "amount": "X"
       }
     ],
     "name": "Adv. Weapon Link",
@@ -690,7 +694,8 @@
         ]
       }
     ],
-    "actionSource": "modules"
+    "actionSource": "modules",
+    "activationCost": 2
   },
   {
     "name": "Auto-Scan",
@@ -1859,7 +1864,12 @@
         "value": "When you salvage Chimerium with this equipped you may Push the Salvage roll for free."
       }
     ],
-    "actionSource": "equipment"
+    "actionSource": "equipment",
+    "traits": [
+      {
+        "type": "salvaging"
+      }
+    ]
   },
   {
     "name": "Claw Swipes",
@@ -2076,7 +2086,7 @@
     "actionSource": "modules"
   },
   {
-    "name": "Coolant Flush",
+    "name": "Active Scan",
     "activationCost": 2,
     "actionType": "Short",
     "range": ["Medium"],
@@ -2420,6 +2430,10 @@
     "traits": [
       {
         "type": "heat spike"
+      },
+      {
+        "type": "hot",
+        "amount": 2
       }
     ],
     "name": "Dash Protocols",
@@ -3025,6 +3039,10 @@
     "traits": [
       {
         "type": "heat spike"
+      },
+      {
+        "type": "hot",
+        "amount": 2
       }
     ],
     "actionType": "Reaction",
@@ -5568,7 +5586,8 @@
       }
     ],
     "actionSource": "modules",
-    "tableName": "Mech Scrambler"
+    "tableName": "Mech Scrambler",
+    "activationCost": "X"
   },
   {
     "id": "e373a4fa-56bf-41fa-ba10-07f1b6ff4998",
@@ -5811,7 +5830,6 @@
   },
   {
     "id": "926ca713-d1b3-45db-966a-67955cff0ecf",
-    "actionType": "Reaction",
     "name": "Metal Detector",
     "content": [
       {
@@ -6689,6 +6707,10 @@
     "traits": [
       {
         "type": "heat spike"
+      },
+      {
+        "type": "hot",
+        "amount": 2
       }
     ],
     "name": "Offensive Protocols",
@@ -7666,6 +7688,10 @@
     "traits": [
       {
         "type": "heat spike"
+      },
+      {
+        "type": "hot",
+        "amount": 2
       }
     ],
     "actionType": "Reaction",
@@ -7680,7 +7706,8 @@
         "value": "When activated, you may attack with any Weapons System or activate any System, Module, or Ability your Mech has access to as a Reaction. This Reaction always resolves first. After this has resolved, increase your Mech's Heat by 2 and make a Heat Check."
       }
     ],
-    "actionSource": "modules"
+    "actionSource": "modules",
+    "activationCost": 3
   },
   {
     "id": "43d6fbfd-6fac-4b36-b4ff-833286cad3d7",
@@ -10366,13 +10393,18 @@
         "value": "When activated, a Weapons System of your choice mounted on your Mech gains the Guided Trait meaning it does not need line of sight to hit any target within its Range."
       }
     ],
-    "actionSource": "modules"
+    "actionSource": "modules",
+    "activationCost": 1
   },
   {
     "id": "7802f9b5-357c-4795-adb3-10e456917970",
     "traits": [
       {
         "type": "heat spike"
+      },
+      {
+        "type": "hot",
+        "amount": "X"
       }
     ],
     "actionType": "Turn",
@@ -10564,6 +10596,9 @@
     "traits": [
       {
         "type": "melee"
+      },
+      {
+        "type": "rigging"
       }
     ],
     "content": [
@@ -10628,7 +10663,6 @@
   {
     "id": "50ecbfb3-8a66-43b2-a3dd-c328cea933e9",
     "name": "Chimerium Harvester",
-    "actionType": "Short",
     "content": [
       {
         "type": "paragraph",
@@ -10643,7 +10677,12 @@
         "value": "When you salvage Bio-Salvage with this System, you find Chimerium on the roll of a 19 or 20."
       }
     ],
-    "actionSource": "systems"
+    "actionSource": "systems",
+    "traits": [
+      {
+        "type": "salvaging"
+      }
+    ]
   },
   {
     "id": "610ae724-5c73-437f-bf19-ff3af032885e",
