@@ -28,14 +28,35 @@
  * Run directly:  bun tools/extract-rules.ts [rulesDir=rules]
  * Or import:     import { extractAll } from './extract-rules'
  */
-import { mkdirSync, readdirSync, writeFileSync } from 'node:fs'
-import { basename, join } from 'node:path'
+import { spawnSync } from 'node:child_process'
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs'
+import { basename, dirname, join } from 'node:path'
 
 /** `flow`: poppler's reading order. `raw`: content-stream order (`-raw`). */
 export type Layer = 'flow' | 'raw'
 
 /** The subdirectory of `rules/extracted/` each layer is written to. */
 export const LAYER_DIR: Record<Layer, string> = { flow: '.', raw: 'raw' }
+
+const REPO = join(import.meta.dir, '..')
+
+/**
+ * The extract every rules check reads, first found of: `RULES_EXTRACT_DIR`;
+ * `rules/extracted` here; the main checkout's (a worktree has no gitignored
+ * files); a sibling `su-rules` checkout's `extracted/` (a cloud session or
+ * Routine that attached the private repo).
+ */
+export function findExtractDir(): string | undefined {
+  const candidates = [process.env.RULES_EXTRACT_DIR, join(REPO, 'rules/extracted')]
+  const common = spawnSync('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'], {
+    cwd: REPO,
+    encoding: 'utf8',
+  })
+  if (common.status === 0 && common.stdout.trim())
+    candidates.push(join(dirname(common.stdout.trim()), 'rules/extracted'))
+  candidates.push(join(dirname(REPO), 'su-rules', 'extracted'))
+  return candidates.find((d): d is string => !!d && existsSync(d))
+}
 
 export async function extractPdf(pdfPath: string, layer: Layer = 'flow'): Promise<string> {
   // No -layout for `flow`: poppler's reading-order heuristic keeps two-column

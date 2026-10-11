@@ -54,12 +54,11 @@
  *
  * Run:  bun tools/check-printed-names.ts
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { SalvageUnionReference } from '../packages/salvageunion-reference/lib/index'
 import { NAME_DEVIATIONS } from '../packages/salvageunion-reference/lib/proseDeviations'
-
-const EXTRACT_DIR = 'rules/extracted'
+import { findExtractDir } from './extract-rules'
 
 /**
  * Which extract is the Core Book.
@@ -228,9 +227,10 @@ type Finding = {
 }
 
 async function main() {
-  if (!existsSync(EXTRACT_DIR)) {
+  const EXTRACT_DIR = findExtractDir()
+  if (!EXTRACT_DIR) {
     console.log(
-      `No ${EXTRACT_DIR}/ — run \`bun tools/extract-rules.ts\` first (needs the PDFs in rules/).`
+      'No rules/extracted/ — run `bun tools/extract-rules.ts` first (needs the PDFs in rules/).'
     )
     return
   }

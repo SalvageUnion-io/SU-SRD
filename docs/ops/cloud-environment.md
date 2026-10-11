@@ -69,6 +69,5 @@ together. No CLI or API edits it.
 - **Rules text:** attach the private `SalvageUnion-io/su-rules` repository as a
   second repository when a session or Routine needs the rulebooks. The GitHub
   proxy authenticates it, so it needs no secret and no network entry; grep its
-  committed `extracted/*.txt` in the sibling checkout (no poppler). The
-  ruleset check reads it there too:
-  `RULES_EXTRACT_DIR=<su-rules>/extracted bun run check:rules-fidelity`.
+  committed `extracted/*.txt` in the sibling checkout (no poppler).
+  `check:rules-fidelity` and `check:printed-names` find it there themselves.
