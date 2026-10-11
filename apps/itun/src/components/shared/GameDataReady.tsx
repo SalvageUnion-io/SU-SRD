@@ -69,7 +69,7 @@ function PreloadGate({ children }: { children: ReactNode }) {
 
 /**
  * Branded full-viewport loading fallback (design-spec brand chrome): SU mark
- * on the ink-deep ground with an indeterminate rust loader bar. The status
+ * on the ink-deep ground with an indeterminate paper loader bar. The status
  * text stays in the accessibility tree for screen readers.
  */
 function GameDataFallback() {
@@ -92,7 +92,7 @@ function GameDataFallback() {
       {/* motion-safe: prefers-reduced-motion users get a static bar instead
           of the infinite translateX sweep (matches the heat-pulse guard). */}
       <div aria-hidden="true" className="h-1 w-56 overflow-hidden rounded-full bg-paper/20">
-        <div className="h-full w-1/3 rounded-full bg-rust motion-safe:animate-loader-slide" />
+        <div className="h-full w-1/3 rounded-full bg-paper motion-safe:animate-loader-slide" />
       </div>
     </div>
   )

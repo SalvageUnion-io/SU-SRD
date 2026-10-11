@@ -258,7 +258,7 @@ export function CrawlerSheet({
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       <div>
         <span
-          className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
+          className="mb-2 block font-cond text-badge font-bold uppercase leading-none tracking-caps"
           style={{ color: 'var(--tone-deep, var(--color-ink))' }}
         >
           Scrap Pool

@@ -184,14 +184,20 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    **The rust allowlist.** Rust is painted only by `Button` / `buttonVariants`
    (every action, the Dashboard's cost-pennant button included) and by
    `InlineRef`. Nothing else may reference `--color-rust`, and no other token
-   may alias it: `--color-sheet-pilot-deep` stops resolving to
-   `var(--color-rust)` and gets a literal value of its own. Chrome never
+   may alias it: `--color-sheet-pilot-deep` no longer resolves to
+   `var(--color-rust)`; it holds a literal (ink's value — pilot-deep becomes
+   ink, board 03). Focus and selection rings are ink, not rust: a focused field
+   or a picked card is state, not an action. Chrome never
    borrows rust as a brand accent — not the ".io" or "Beta" marks, not a "Buy
    the game" link, not the "you are here" state (an inverse ink stamp).
    Abilities are drawn as the book draws them, as ink banners (§5): the Core
    tier fill (`--color-tier-core`, #a85947) is rust's near twin, so an ability
-   card filled with it reads as a button. `bun run check styling` learns this
-   allowlist in #1251.
+   card filled with it reads as a button. `bun run check styling`
+   (`tokens/rust-allowlist`) enforces this allowlist: every spelling of rust —
+   the custom property, a utility under any variant, a `color.rust*` token —
+   fails outside those three files, the token definitions and the four
+   `.su-btn--primary` lines that are Button's stylesheet half. A prose link in
+   either app is an `InlineRef`.
 2. **Stamps label · slabs section · tags cite.** These three never trade jobs. A
    stamp is the ink label/header atom; a slab titles a section; a badge/tag cites
    categorical metadata.
@@ -241,7 +247,13 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 
    Never on paper, buttons, fields, the Dashboard or tooltips. The speckle
    sits behind the content: a band's notched title is on clean paper and is
-   untouched. This supersedes the earlier "every band is flat" decision. The
+   untouched. The three filters (`su-blot`, `su-speck`, `su-fleck`, at the
+   quieter thresholds −20.4 / −16.9 / −17.3) and their overlay opacities
+   (0.4 / 0.35 / 0.55) are tokens: `speckle` and `texture` in `tokens.ts`, the
+   opacities also as `--texture-*` in `theme.css`. `bun run check styling`
+   (`tokens/texture-placement`) fails a texture reference in a file that draws
+   a button, a field, the Dashboard or a tooltip, or on a line that paints a
+   paper ground. This supersedes the earlier "every band is flat" decision. The
    `/about` panel below stays its own ruling; the speckle is not a precedent
    for it, nor it for the speckle.
 
@@ -340,8 +352,8 @@ The values live in `theme.css` alone; this table names each role and its use.
 | roll tiers · **BOT ONLY** | re-toned ramp             | Discord roll outcomes only                                                           |
 | tech-level blues          | TL 1–6 · B · N            | TL badge ramp                                                                        |
 
-**Ratified by the brand refresh (#1250).** These values land in `theme.css`
-with #1251; until then `theme.css` still ships the old ones, and is behind.
+**Ratified by the brand refresh (#1250), shipped in `theme.css` with #1251.**
+`contrast.test.ts` pins every pair below.
 
 - **The page ground is the book's paper.** `--color-wk-bg` moves from the cool
   #e6f0f5 to **#efece6**. The blue stops being the ground of every page and
@@ -352,7 +364,8 @@ with #1251; until then `theme.css` still ships the old ones, and is behind.
 - **Two new closed-set colours:** `--color-crawler-band` **#b84a86** (paper
   text on it measures 4.6 : 1) and the Denizens navy `--color-denizen-band`
   **#2f4a66** (8.8 : 1).
-- **`--color-sheet-pilot-deep` stops aliasing rust** (§3.1).
+- **`--color-sheet-pilot-deep` no longer aliases rust** (§3.1): a literal,
+  holding ink's value.
 
 **There is no second spelling.** The `su-*` brand family that these tokens were
 once defined as aliases _of_ is deleted (see the note in `theme.css`). It was a
@@ -438,9 +451,10 @@ The redline pip sits at the **70% law**.
   caps label, not a seam stamp, not a roll-table stamp, not a wizard (the
   near-frozen wizards keep their look, but the floor applies there too). A
   caps label at the floor is **11px at 0.06em** (`--tracking-caps-snug`): at
-  that size the caps need the air. Today's sub-floor rungs (`--text-nano` 8px,
-  `--text-micro` 9px, `--text-label` 10px, `--text-label-lg` 10.5px) fold into
-  the floor in #1251, and `bun run check styling` rejects anything smaller.
+  that size the caps need the air. The four rungs that sat under the floor
+  (8, 9, 10 and 10.5px) were retired into `--text-badge` (11px) in #1251, and
+  `bun run check styling` (`tokens/type-floor`) rejects a retired rung's name
+  in any spelling and any literal size under 11px.
 - **The floor holds at the size the reader sees.** A link preview is drawn at
   1200 × 630 and shown about 400px wide in a Discord embed, so its source type
   is never under **34px** (34px at 1200 is 11px at 400). Any surface that is

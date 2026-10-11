@@ -380,11 +380,11 @@ function ReferenceEntityCardInner({
       />
     ) : undefined
 
-  // SUGGESTED — a rust stamp that LEADS the sub-header row (before the cost box),
-  // marking a recommended pick. Rust ground, paper text (the on-ink stamp's bg
-  // overridden to rust via tailwind-merge).
+  // SUGGESTED — an ink stamp that LEADS the sub-header row (before the cost box),
+  // marking a recommended pick. The plain on-ink stamp: a recommendation is not
+  // an action, so it is never rust (ruleset §3.1).
   const suggestedNode: ReactNode = suggested ? (
-    <Badge shape="stamp" size="mini" className="bg-rust text-paper">
+    <Badge shape="stamp" size="mini">
       Suggested
     </Badge>
   ) : undefined

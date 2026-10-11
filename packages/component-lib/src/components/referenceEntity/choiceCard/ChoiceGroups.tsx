@@ -26,7 +26,7 @@ import {
  * masonry of compact option cards, in the SAME chrome as any nested card — a tone
  * band with a black name-tab (the option label) + a paper description body. The
  * selection layer is the exact write-layer idiom: dim-until-chosen (editable) and
- * the canonical rust `SELECTION_RING` when chosen. Read-only shows every option
+ * the canonical `SELECTION_RING` when chosen. Read-only shows every option
  * full and static (the choices are readable; they just aren't choosable).
  *
  * One selection state machinery (controlled / ephemeral, id-keyed, cap
@@ -48,7 +48,7 @@ type ChoiceGroupsProps = {
 }
 
 /** A selectable OPTION card — the NEW compact-card chrome (tone band + black
- *  name-tab + paper body), dim-until-chosen with the rust ring when chosen.
+ *  name-tab + paper body), dim-until-chosen with the selection ring when chosen.
  *  The card grid is a deliberate break from the book's prose list. */
 function ChoiceOption({
   label,
@@ -92,7 +92,7 @@ function ChoiceOption({
           <div
             className={cn(
               'bg-paper leading-snug text-ink',
-              compact ? 'px-2.5 py-1.5 text-label' : 'px-3 py-2 text-xs'
+              compact ? 'px-2.5 py-1.5 text-badge' : 'px-3 py-2 text-xs'
             )}
           >
             {parsedDescription}
@@ -140,7 +140,7 @@ function StampsealField({
   multiline?: boolean
   onChange: (value: string) => void
 }): ReactNode {
-  const fieldClass = `peer w-full rounded border border-ink/20 bg-paper px-2 pt-3.5 pb-1 font-body text-xs text-ink focus:border-rust ${INPUT_FOCUS}`
+  const fieldClass = `peer w-full rounded border border-ink/20 bg-paper px-2 pt-3.5 pb-1 font-body text-xs text-ink focus:border-ink ${INPUT_FOCUS}`
   const badge = (
     // A single space placeholder makes `:placeholder-shown` track "is empty".
     <span
@@ -268,7 +268,7 @@ function ChoiceOptionGroup({
   return (
     <div style={toneVar}>
       {counter && !readOnly && (
-        <div className="mb-1 font-body text-nano text-wk-muted">{counter}</div>
+        <div className="mb-1 font-body text-badge text-wk-muted">{counter}</div>
       )}
       <div className={cn('gap-1.5', compact ? 'columns-1' : 'columns-1 sm:columns-2')}>
         {options.map((option) => {

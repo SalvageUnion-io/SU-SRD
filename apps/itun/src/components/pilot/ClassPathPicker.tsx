@@ -50,7 +50,7 @@ function OptionCard({
         onCardClick={onSelect}
       />
       {note !== undefined && (
-        <p className="mb-2 pl-1 font-cond text-label font-bold uppercase tracking-caps text-wk-muted">
+        <p className="mb-2 pl-1 font-cond text-badge font-bold uppercase tracking-caps text-wk-muted">
           {note}
         </p>
       )}

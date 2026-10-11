@@ -40,6 +40,9 @@ export { FieldError } from './components/chrome/FieldError'
 // Glyph — the hand-drawn UI glyph set (the sheet's edit/add/remove marks)
 export { Glyph } from './components/chrome/glyphs'
 export { InlineEditField } from './components/chrome/InlineEditField'
+// The one link look (ruleset §3.1): rust is painted only by Button and by
+// InlineRef, so a prose link in either app is an InlineRef.
+export { InlineRef } from './components/chrome/InlineRef'
 export { Textarea } from './components/chrome/inputs'
 /**
  * The focus vocabulary. Exported because the APPS need it, not only the lib:
@@ -174,7 +177,7 @@ export { Toaster, toast } from './components/ui/toaster'
  * The styling foundation (#798, epic #802) — the target pattern Tailwind is
  * being removed in favour of. Namespaced rather than spread flat into this
  * barrel, because the token names are deliberately generic (`color`, `space`,
- * `radius`) and read correctly only when qualified: `tokens.color.rust`.
+ * `radius`) and read correctly only when qualified: `tokens.color.ink`.
  *
  * `tokens` is the values. The other two halves of L1 are `styles/index.css`
  * (the stateful half — `:hover`, `:focus-visible`, `:disabled`, `@media` —

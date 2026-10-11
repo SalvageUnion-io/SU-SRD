@@ -37,19 +37,16 @@
   /* Semantic type scale (ruleset §4.2 — the ONE font-size ladder; never an
      arbitrary bracket size for these steps). Shared by every surface (was
      ITUN-local):
-       nano     8px    smallest markers — TL glyphs, unit suffixes
-       micro    9px    dense caps meta labels (NPC insets, encounter cards)
-       label    10px   standard uppercase font-cond field/section label
-       label-lg 10.5px stamp / rail caps label
-       badge    11px   badges, pills, compact caps values
+       badge    11px   THE FLOOR — every caps label, stamp, badge, pill,
+                       unit suffix and compact caps value
        note     11.5px small body copy in rails and insets
        caption  13px   small body copy — hints, empty states, subtitles
        lede     15px   emphasized inline values, inset titles
-     Generates text-nano … text-lede. */
-  --text-nano: 8px;
-  --text-micro: 9px;
-  --text-label: 10px;
-  --text-label-lg: 10.5px;
+     Nothing renders under 11px (ruleset §4.6, board 04 "raise the floor"):
+     the four rungs that sat below it (8, 9, 10 and 10.5px) were retired into
+     `badge`, and `bun run check styling` (tokens/type-floor) rejects any size
+     under it — a retired rung's name included.
+     Generates text-badge … text-lede. */
   --text-badge: 11px;
   --text-note: 11.5px;
   --text-caption: 13px;
@@ -112,6 +109,13 @@
   --color-mech: rgb(122, 151, 138); /* #7a978a */
   --color-mech-dark: rgb(92, 121, 108); /* #5c796c */
   --color-crawler: rgb(206, 88, 152); /* #ce5898 */
+  /* Ink on colour (ruleset §3.8, board 03). Crawler pink carries neither ink
+     (4.2:1) nor paper (3.7:1) at 4.5:1, so a crawler band that carries paper
+     text is this deeper pink: paper on it measures 4.6:1. */
+  --color-crawler-band: rgb(184, 74, 134); /* #b84a86 */
+  /* The Denizens chapter band (board 05c) — navy, carrying paper text at
+     8.8:1. A chapter band only: Denizens cards keep the adversary brown. */
+  --color-denizen-band: rgb(47, 74, 102); /* #2f4a66 */
   /* The 5th ontology domain — NOT the action rust (#a85222). It is the shared
      header tone for the world/opposition schemas: creatures, bio-titans,
      factions, npcs, meld, squads. Named `adversary` so it never collides with
@@ -207,19 +211,22 @@
      (creature/faction/NPC headers) and never does state's job. */
 
   /* Workshop (light) ground — the step off-paper that makes a card read as a
-     panel. */
-  --color-wk-bg: rgb(230, 240, 245); /* #e6f0f5 */
+     panel. The page ground is the book's own paper (ruleset §4.1, board 03):
+     the cover blue stopped being every page's ground and went back to being a
+     chapter band (`--color-wk-line`). */
+  --color-wk-bg: rgb(239, 236, 230); /* #efece6 */
   --color-wk-bg-2: rgb(215, 230, 238); /* #d7e6ee */
   /* The muted secondary-text tone. It must pass WCAG 2.1 AA (4.5:1) on every
-     ground it lands on — paper, `--color-wk-bg` (the ITUN <body> background)
-     and `--color-wk-bg-2` — because most of its call sites are small text
-     (`text-sm` / `text-caption` / `text-label`), where the 3:1 large-text floor
+     ground it lands on — paper, `--color-wk-bg` (both apps' page ground) and
+     `--color-wk-bg-2` — because most of its call sites are small text
+     (`text-sm` / `text-caption` / `text-badge`), where the 3:1 large-text floor
      does not apply. The value is chosen against the DARKEST ground it can sit
      on (wk-bg-2), not against paper, because the same token is used on all three:
-       #5a646d → paper 5.78:1 · wk-bg 5.22:1 · wk-bg-2 4.73:1
-     It stays a cool grey-blue, lighter than `--color-ink-2` (10.20:1 on paper),
-     so the primary/secondary hierarchy holds. */
-  --color-wk-muted: rgb(90, 100, 109); /* #5a646d */
+       #6b6257 → paper 5.73:1 · wk-bg 5.07:1 · wk-bg-2 4.68:1
+     Warm, like the paper it sits on (board 03), and lighter than
+     `--color-ink-2` (10.20:1 on paper), so the primary/secondary hierarchy
+     holds. `contrast.test.ts` pins all three. */
+  --color-wk-muted: rgb(107, 98, 87); /* #6b6257 */
   /* NON-TEXT ONLY — 2.03:1 on paper. This is a hairline/divider tone (~18 border
      uses) and must never carry text; the placeholder and separator uses it once
      had now resolve to `wk-muted`. */
@@ -248,7 +255,12 @@
 
   /* Sheet tones (Header C live sheets) — base + deep pairs */
   --color-sheet-pilot: var(--color-pilot); /* #ef894f */
-  --color-sheet-pilot-deep: var(--color-rust); /* #a85222 */
+  /* A LITERAL, never `var(--color-rust)`: rust means "do something" and
+     nothing else may alias it (ruleset §3.1, the rust allowlist). Board 03
+     rules that pilot-deep becomes ink — frames and deep chrome on a pilot
+     sheet stay ink — so this holds ink's value, spelled out, the way the game
+     deep holds tl-5's: the role is the sheet's deep tone, not "ink". */
+  --color-sheet-pilot-deep: rgb(40, 32, 25); /* #282019 */
   --color-sheet-mech: var(--color-mech); /* #7a978a */
   --color-sheet-mech-deep: rgb(47, 67, 56); /* #2f4338 */
   --color-sheet-crawler: var(--color-crawler); /* #ce5898 */
@@ -353,6 +365,15 @@
   --space-48: 48px;
   --space-64: 64px;
   --space-96: 96px;
+
+  /* The light speckle's overlay opacities (ruleset §3.5 "Texture", board
+     05c): ink blot and ink speck on a colour band, paper flecks on an ink
+     ground. The SVG filters they modulate (`su-blot`, `su-speck`, `su-fleck`)
+     are `speckle` in tokens.ts. Never on paper, buttons, fields, the Dashboard
+     or tooltips — `bun run check styling` (tokens/texture-placement). */
+  --texture-blot-opacity: 0.4;
+  --texture-speck-opacity: 0.35;
+  --texture-fleck-opacity: 0.55;
 }
 
 /*

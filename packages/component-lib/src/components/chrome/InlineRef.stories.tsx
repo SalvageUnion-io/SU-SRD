@@ -36,11 +36,11 @@ export const Default: Story = () => (
         <InlineRef href={systemHref} title={systemName}>
           {systemName}
         </InlineRef>
-        <code className="font-body text-nano text-wk-muted">navigable (href)</code>
+        <code className="font-body text-badge text-wk-muted">navigable (href)</code>
       </div>
       <div className="flex flex-col gap-1.5">
         <InlineRef title="No such entity">Phantom System</InlineRef>
-        <code className="font-body text-nano text-wk-muted">inert</code>
+        <code className="font-body text-badge text-wk-muted">inert</code>
       </div>
     </div>
   </div>

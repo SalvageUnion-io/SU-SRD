@@ -36,15 +36,15 @@ export const Bounds: Story = () => {
       <Caption>At floor (0), mid, and cap (3) — the bounding button disables.</Caption>
       <div className="flex items-center gap-6">
         <div className="flex flex-col items-start gap-1">
-          <span className="font-cond text-label uppercase tracking-caps text-wk-muted">Floor</span>
+          <span className="font-cond text-badge uppercase tracking-caps text-wk-muted">Floor</span>
           <CountStepper subject={subject} count={0} onChange={() => {}} max={3} />
         </div>
         <div className="flex flex-col items-start gap-1">
-          <span className="font-cond text-label uppercase tracking-caps text-wk-muted">Mid</span>
+          <span className="font-cond text-badge uppercase tracking-caps text-wk-muted">Mid</span>
           <CountStepper subject={subject} count={2} onChange={() => {}} max={3} />
         </div>
         <div className="flex flex-col items-start gap-1">
-          <span className="font-cond text-label uppercase tracking-caps text-wk-muted">Cap</span>
+          <span className="font-cond text-badge uppercase tracking-caps text-wk-muted">Cap</span>
           <CountStepper subject={subject} count={3} onChange={() => {}} max={3} />
         </div>
       </div>

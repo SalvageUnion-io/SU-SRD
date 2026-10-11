@@ -241,7 +241,7 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
               title={disabledReason ?? undefined}
               aria-label={`Load ${lot.name}`}
               onClick={handleMove}
-              className="rounded-badge border-0 px-2 py-0.5 font-cond text-label font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
+              className="rounded-badge border-0 px-2 py-0.5 font-cond text-badge font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
             >
               {label}
             </Button>
@@ -251,7 +251,7 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
                 aria-label={`Unstow ${lot.name}`}
                 title={`Unstow "${lot.name}" from the Storage Bay`}
                 onClick={onRemove}
-                className="rounded-badge border-0 px-2 py-0.5 font-cond text-label font-bold uppercase tracking-caps-tight text-status-bad hover:bg-status-bad hover:text-paper"
+                className="rounded-badge border-0 px-2 py-0.5 font-cond text-badge font-bold uppercase tracking-caps-tight text-status-bad hover:bg-status-bad hover:text-paper"
               >
                 Unstow
               </Button>
@@ -284,7 +284,7 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
             &#9670;
           </span>
         )}
-        <span className="relative font-cond text-nano font-semibold uppercase tracking-caps">
+        <span className="relative font-cond text-badge font-semibold uppercase tracking-caps">
           {lot.kind === 'bulk' ? 'Bulk' : 'Unit'}
         </span>
       </span>
@@ -294,7 +294,7 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
         <span className="truncate font-cond text-sm font-bold uppercase leading-none text-ink">
           {lot.name}
         </span>
-        <span className="font-body text-label uppercase tracking-caps-tight text-wk-muted">
+        <span className="font-body text-badge uppercase tracking-caps-tight text-wk-muted">
           {lot.cat}
           {lot.tl !== undefined ? ` T${lot.tl}` : ''} &middot; {lot.code}
         </span>
@@ -307,7 +307,7 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
         style={{ background: 'var(--ground-2)' }}
       >
         <span className="font-body text-lede font-bold leading-none text-ink">{lot.units}</span>
-        <span className="font-cond text-nano uppercase text-wk-muted">U</span>
+        <span className="font-cond text-badge uppercase text-wk-muted">U</span>
       </span>
 
       {/* Actions: Stow → (offload to the crawler's Storage Bay — disabled with a
@@ -319,7 +319,7 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
           title={disabledReason ?? undefined}
           aria-label={`${side === 'mech' ? 'Stow' : 'Load'} ${lot.name}`}
           onClick={handleMove}
-          className="shrink-0 rounded-none border-0 px-2.5 py-0 font-cond text-label font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
+          className="shrink-0 rounded-none border-0 px-2.5 py-0 font-cond text-badge font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
         >
           {label}
         </Button>
@@ -330,7 +330,7 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
           aria-label={`Unload ${lot.name}`}
           title={`Unload "${lot.name}" from the mech hold`}
           onClick={onRemove}
-          className="shrink-0 rounded-none border-0 border-ink border-l-chrome px-2.5 py-0 font-cond text-label font-bold uppercase tracking-caps-tight text-status-bad hover:bg-status-bad hover:text-paper"
+          className="shrink-0 rounded-none border-0 border-ink border-l-chrome px-2.5 py-0 font-cond text-badge font-bold uppercase tracking-caps-tight text-status-bad hover:bg-status-bad hover:text-paper"
         >
           Unload
         </Button>
@@ -424,7 +424,7 @@ function HoldAdder({
       ) : (
         <label
           htmlFor={tlId}
-          className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted"
+          className="flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-wide text-wk-muted"
         >
           Tech
           <Input
@@ -444,7 +444,7 @@ function HoldAdder({
 
       <label
         htmlFor={slotsId}
-        className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted"
+        className="flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-wide text-wk-muted"
       >
         {kind === 'scrap' ? 'Qty' : 'Slots'}
         <Input
@@ -518,7 +518,7 @@ export function StorageManifest({
               <span className="font-body text-2xl font-bold leading-none text-ink">
                 {used}/{cap}
               </span>
-              <span className="font-cond text-label font-bold uppercase tracking-caps text-ink opacity-70">
+              <span className="font-cond text-badge font-bold uppercase tracking-caps text-ink opacity-70">
                 Units
               </span>
               {/* The canonical addressable-slot cells (ruleset §5 atom 10):
@@ -531,12 +531,12 @@ export function StorageManifest({
                 label={`Hold ${used} of ${cap} slots used${over ? ' — over capacity' : ''}`}
               />
               {free > 0 && (
-                <span className="font-cond text-label font-bold uppercase text-ink opacity-70">
+                <span className="font-cond text-badge font-bold uppercase text-ink opacity-70">
                   {free} free
                 </span>
               )}
               {over && (
-                <span className="font-cond text-label font-bold uppercase text-status-bad">
+                <span className="font-cond text-badge font-bold uppercase text-status-bad">
                   Over capacity
                 </span>
               )}
@@ -549,7 +549,7 @@ export function StorageManifest({
               >
                 &infin;
               </span>
-              <span className="font-cond text-label font-bold uppercase tracking-caps text-ink opacity-70">
+              <span className="font-cond text-badge font-bold uppercase tracking-caps text-ink opacity-70">
                 Unlimited
               </span>
               <span className="font-body text-xs text-ink">
@@ -623,7 +623,7 @@ export function StorageManifest({
         style={{ background: 'var(--ground-2)' }}
       >
         <span
-          className="font-cond text-label-lg font-bold uppercase tracking-caps"
+          className="font-cond text-badge font-bold uppercase tracking-caps"
           style={{ color: 'var(--tone-deep, var(--color-ink))' }}
         >
           {side === 'mech' ? 'Stow target →' : '← Load target'}

@@ -230,7 +230,7 @@ type SelectProps = ComponentPropsWithRef<'select'> & {
 /**
  * Native `<select>` in the `Input` skin (design-spec §2.5): the app's
  * hand-copied `SELECT_CLASS` promoted to a real atom — same paper / 1.5px-ink /
- * 3px-radius / rust-ring chrome as `Input`, `Field`-wrappable, keeping the
+ * 3px-radius / focus-ring chrome as `Input`, `Field`-wrappable, keeping the
  * native disclosure affordance. Compact call-sites pass `px-2 py-1.5` via
  * `className`; `chevron` swaps the native arrow for the styled faux-select one.
  */

@@ -38,7 +38,7 @@ const NUMERIC_KEYPAD = { inputMode: 'numeric', pattern: '[0-9]*', enterKeyHint: 
 
 /**
  * Text input (design-spec §2.5 `.input`): paper bg, 1.5px ink border, 3px
- * radius, rust focus ring (no outline).
+ * radius, the focus ring (no outline).
  */
 export function Input({ className, numeric = false, ref, ...props }: InputProps) {
   return (
@@ -60,7 +60,7 @@ type TextareaProps = ComponentPropsWithRef<'textarea'>
 
 /**
  * Multiline text input (design-spec §2.5): the `Input` sibling — identical
- * paper / 1.5px-ink / 3px-radius / rust-ring skin, with vertical resize.
+ * paper / 1.5px-ink / 3px-radius / focus-ring skin, with vertical resize.
  * `Field`-wrappable exactly like `Input`. Distinct from `InlineEditField`'s
  * internal textarea (that one is a click-to-edit control, this is a plain field).
  */

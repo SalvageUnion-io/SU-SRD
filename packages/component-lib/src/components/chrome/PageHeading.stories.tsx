@@ -9,7 +9,7 @@ export default {
 function Cluster({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <div className="mb-1.5 font-cond text-label uppercase tracking-caps text-wk-muted">
+      <div className="mb-1.5 font-cond text-badge uppercase tracking-caps text-wk-muted">
         {label}
       </div>
       {children}

@@ -15,7 +15,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 const BASE: CSSProperties = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
-  fontSize: fontSize.label,
+  fontSize: fontSize.badge,
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',

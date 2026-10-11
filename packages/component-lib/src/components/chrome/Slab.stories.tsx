@@ -16,7 +16,7 @@ const cargoCapacity = chassis?.cargoCapacity ?? 6
 function Cluster({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <div className="mb-1.5 font-cond text-label uppercase tracking-caps text-wk-muted">
+      <div className="mb-1.5 font-cond text-badge uppercase tracking-caps text-wk-muted">
         {label}
       </div>
       {children}
@@ -42,7 +42,7 @@ export const Default: Story = () => (
         <Slab
           label="Modules"
           count={`${moduleSlots}`}
-          actions={<span className="font-cond text-xs font-bold uppercase text-rust">+ Add</span>}
+          actions={<span className="font-cond text-xs font-bold uppercase text-ink">+ Add</span>}
         />
       </Cluster>
       <Cluster label="solid (poster .sect) — label only">
@@ -53,7 +53,7 @@ export const Default: Story = () => (
           variant="solid"
           label="Salvage"
           count="5 items"
-          actions={<span className="font-cond text-xs font-bold uppercase text-rust">Edit</span>}
+          actions={<span className="font-cond text-xs font-bold uppercase text-ink">Edit</span>}
         />
       </Cluster>
     </div>

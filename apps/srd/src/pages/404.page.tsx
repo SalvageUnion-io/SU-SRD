@@ -25,8 +25,8 @@ function page(): PageResult {
       <div className="flex w-full flex-1 flex-col justify-center py-12">
         <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6">
           <div className="text-center">
-            <h1 className="text-8xl font-bold text-rust">404</h1>
-            <p className="mt-2 text-sm uppercase tracking-caps-snug text-rust">
+            <h1 className="text-8xl font-bold text-ink">404</h1>
+            <p className="mt-2 text-sm uppercase tracking-caps-snug text-ink">
               Salvage Operation Failed
             </p>
           </div>

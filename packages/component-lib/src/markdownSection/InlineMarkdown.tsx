@@ -1,4 +1,5 @@
 import { Fragment } from 'react'
+import { InlineRef } from '../components/chrome/InlineRef'
 import type { InlineNode } from './parseMarkdownSection'
 import { parseInline } from './parseMarkdownSection'
 
@@ -17,9 +18,6 @@ type InlineMarkdownProps = {
   text: string
 }
 
-/** The one link look both markdown surfaces render. */
-const LINK_CLASS = 'font-semibold text-rust hover:underline'
-
 /**
  * The inline half of the shared markdown contract: split `text` into plain runs
  * and `[label](href)` links (via {@link parseInline}) and render each, links as
@@ -37,15 +35,17 @@ export function InlineMarkdown({ text }: InlineMarkdownProps) {
           and `key={node.text}` would collide on those. */}
       {withOffsets(parseInline(text)).map(({ node, offset }) =>
         node.href ? (
-          <a
+          // The one link look both markdown surfaces render: an InlineRef, the
+          // only thing besides Button that may paint rust (ruleset §3.1).
+          <InlineRef
             key={`${offset}-${node.text}`}
             href={node.href}
             target="_blank"
             rel="noopener noreferrer"
-            className={LINK_CLASS}
+            className="font-semibold"
           >
             {node.text}
-          </a>
+          </InlineRef>
         ) : (
           <Fragment key={`${offset}-${node.text}`}>{node.text}</Fragment>
         )

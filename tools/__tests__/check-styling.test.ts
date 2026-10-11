@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import type { Finding, RuleSet } from '../lib/ruleEngine'
 import { evaluate, formatFailures, increases, listFiles, ratchetCounts } from '../lib/ruleEngine'
-import { scanTokenSources } from '../rules/designTokens'
+import { fontSizePx, scanTokenSources } from '../rules/designTokens'
 import { SRD_CSS_ENTRY, srdCss } from '../rules/srdCss'
 import { stylingOwnership } from '../rules/stylingOwnership'
 
@@ -153,6 +153,136 @@ describe('tokens rule set', () => {
     ]) {
       expect(found[id]?.length).toBe(1)
     }
+  })
+
+  test('type-floor: a retired rung by any name, or a literal under 11px, fails', () => {
+    const found = scan(
+      'apps/itun/src/x.tsx',
+      [
+        'text-nano text-micro text-label text-label-lg',
+        'font-size: var(--text-micro);',
+        'fontSize: fontSize.labelLg,',
+        'capsLabel() // su-caps--label',
+        'text-[9.5px] text-[0.6rem]',
+        'font-size: 10px;',
+        "style={{ fontSize: '10.5px' }}",
+        '<text fontSize={9}>',
+      ].join('\n')
+    )
+    expect(found['type-floor']?.map((f) => f.detail)).toEqual([
+      'text-nano',
+      'text-micro',
+      'text-label',
+      'text-label-lg',
+      '--text-micro',
+      'fontSize.labelLg',
+      'su-caps--label',
+      'text-[9.5px]',
+      'text-[0.6rem]',
+      'font-size: 10px',
+      "fontSize: '10.5px",
+      'fontSize={9',
+    ])
+  })
+
+  test('type-floor: the floor itself and everything above it pass', () => {
+    const found = scan(
+      'apps/itun/src/x.tsx',
+      [
+        'text-badge text-note text-labels text-label-ish',
+        'font-size: 11px; font-size: 0.75rem; font-size: 9pt;',
+        "style={{ fontSize: 13 }} fontSize: '0.8125rem' fontSize: fontSize.badge",
+        'text-[12px] text-[clamp(26px,4vw,40px)]',
+      ].join('\n')
+    )
+    expect(found['type-floor']).toEqual([])
+  })
+
+  test('rust-allowlist: every spelling of rust fails outside Button / buttonVariants / InlineRef', () => {
+    const found = scan(
+      'apps/srd/src/x.tsx',
+      [
+        'text-rust hover:text-rust border-rust/40 bg-rust-hi accent-rust',
+        'outline: var(--color-rust); box-shadow: 0 0 0 3px var(--color-rust-25)',
+        'backgroundColor: color.rust, color.rustHi',
+        'trust the rustic text-rusty', // not rust
+      ].join('\n')
+    )
+    expect(found['rust-allowlist']?.map((f) => f.detail)).toEqual([
+      'text-rust',
+      'text-rust',
+      'border-rust',
+      'bg-rust-hi',
+      'accent-rust',
+      '--color-rust',
+      '--color-rust-25',
+      'color.rust',
+      'color.rustHi',
+    ])
+  })
+
+  test('rust-allowlist: the allowlisted files and a Button-rust ignore line pass', () => {
+    for (const file of [
+      'packages/component-lib/src/components/chrome/Button.tsx',
+      'packages/component-lib/src/components/chrome/buttonVariants.ts',
+      'packages/component-lib/src/components/chrome/InlineRef.tsx',
+      'packages/component-lib/src/styles/theme.css',
+    ]) {
+      expect(scan(file, 'bg-rust var(--color-rust)')['rust-allowlist']).toEqual([])
+    }
+    const css = scan(
+      'packages/component-lib/src/styles/index.css',
+      "background: var(--color-rust); /* design-tokens-ignore: Button's rust */\nborder-color: var(--color-rust);"
+    )
+    expect(css['rust-allowlist']?.map((f) => f.line)).toEqual([2])
+  })
+
+  test('texture-placement: speckle is a finding on a forbidden surface or a paper ground', () => {
+    const ref = "filter: 'url(#su-blot)', opacity: tokens.texture.blotOpacity"
+    for (const file of [
+      'apps/itun/src/components/dashboard/MajorFrame.tsx',
+      'apps/itun/src/styles/dashboard/instruments.css',
+      'packages/component-lib/src/components/chrome/Button.tsx',
+      'packages/component-lib/src/components/shared/KofiButton.tsx',
+      'packages/component-lib/src/components/chrome/buttonVariants.ts',
+      'packages/component-lib/src/components/chrome/Field.tsx',
+      'packages/component-lib/src/components/chrome/inputs.tsx',
+      'packages/component-lib/src/components/shared/SearchField.tsx',
+      'packages/component-lib/src/components/ui/tooltip.tsx',
+      'packages/component-lib/src/components/referenceEntity/EntityTooltip.tsx',
+    ]) {
+      expect(scan(file, ref)['texture-placement']?.length, file).toBe(2)
+    }
+    const onPaper = scan(
+      'packages/component-lib/src/components/chrome/BandTitle.tsx',
+      '<div className="bg-paper"><svg><rect filter="url(#su-speck)" /></svg></div>\n' +
+        "const s = { backgroundColor: color.paper, opacity: 'var(--texture-speck-opacity)' }"
+    )
+    expect(onPaper['texture-placement']?.map((f) => f.detail)).toEqual([
+      'su-speck',
+      '--texture-speck-opacity',
+    ])
+  })
+
+  test('texture-placement: speckle on a band or an ink ground passes', () => {
+    const found = scan(
+      'packages/component-lib/src/components/chrome/BandTitle.tsx',
+      [
+        '<div className="bg-mech"><svg><rect filter="url(#su-blot)" /></svg></div>',
+        'const s = { backgroundColor: color.ink, opacity: tokens.texture.fleckOpacity }',
+        "const t = { color: color.paper, filter: 'url(#su-fleck)' }", // paper TEXT, ink ground
+      ].join('\n')
+    )
+    expect(found['texture-placement']).toEqual([])
+  })
+})
+
+describe('fontSizePx', () => {
+  test('reads px, rem and unitless (style-object) sizes; names have no size', () => {
+    expect(fontSizePx('text-[9.5px]')).toBe(9.5)
+    expect(fontSizePx('font-size: 0.5rem')).toBe(8)
+    expect(fontSizePx('fontSize={9')).toBe(9)
+    expect(fontSizePx('text-label-lg')).toBeUndefined()
   })
 })
 

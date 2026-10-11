@@ -8,7 +8,7 @@
  * it reads as part of this app.
  */
 
-import { Colophon, PageHeading, Slab } from 'component-lib'
+import { Colophon, InlineRef, PageHeading, Slab } from 'component-lib'
 
 type AboutScreenProps = {
   /** The build the app is running: the deployed commit's short SHA (ADR-041).
@@ -39,23 +39,23 @@ export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: A
           <p>
             <strong>In the Union Now</strong> is an unofficial, community-built character builder
             and game manager for{' '}
-            <a
+            <InlineRef
               href="https://leyline.press/pages/salvage-union"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-rust hover:underline"
+              className="font-semibold"
             >
               Salvage Union
-            </a>
+            </InlineRef>
             , the post-apocalyptic mech tabletop RPG published by{' '}
-            <a
+            <InlineRef
               href="https://leyline.press"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-rust hover:underline"
+              className="font-semibold"
             >
               Leyline Press
-            </a>
+            </InlineRef>
             . Build pilots, mechs, and crawlers, then run them at the table with live sheets you can
             share.
           </p>
@@ -66,28 +66,28 @@ export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: A
           </p>
           <p>
             Looking for the rules? Browse the full searchable reference at{' '}
-            <a
+            <InlineRef
               href="https://salvageunion.io"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-rust hover:underline"
+              className="font-semibold"
             >
               salvageunion.io
-            </a>
+            </InlineRef>
             .
           </p>
           <p>
             I am not the owner or publisher of this content. Salvage Union and all associated names,
             marks, characters, and artwork are the property of Leyline Press. Game text and
             mechanics are used under the{' '}
-            <a
+            <InlineRef
               href="https://leyline.press/pages/salvage-union-open-game-licence-1-0b"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-rust hover:underline"
+              className="font-semibold"
             >
               Salvage Union Open Game Licence 1.0b
-            </a>
+            </InlineRef>
             . Artwork is not covered by that licence and is reproduced with the special permission
             of Leyline Press. This is an unofficial fan project, and is not affiliated with Leyline
             Press.

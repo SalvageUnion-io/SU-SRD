@@ -340,6 +340,9 @@ describe('collapsible mode', () => {
     const toggle = screen.getByText('Show').closest('button')
     if (!toggle) throw new Error('expected an expand toggle')
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    // It sits on the ink band, where only the paper ring of the two-ring
+    // construction is visible; the browser's own outline is not the house ring.
+    expect(toggle.classList.contains('su-focus-ring-on-tone')).toBe(true)
 
     fireEvent.click(toggle)
 

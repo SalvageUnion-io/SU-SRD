@@ -223,7 +223,7 @@ export function VitalGauge({
       <>
         <span
           className={cn(
-            capsLabel({ size: 'label', tracking: 'caps' }),
+            capsLabel({ size: 'badge', tracking: 'caps' }),
             'shrink-0 leading-none',
             onDark ? 'text-paper' : 'text-ink'
           )}
@@ -287,7 +287,7 @@ export function VitalGauge({
         total={max}
         overridden={isOverridden}
         className={cn(
-          'inline-flex min-h-[24px] min-w-[24px] shrink-0 items-center justify-center border-0 text-label leading-none',
+          'inline-flex min-h-[24px] min-w-[24px] shrink-0 items-center justify-center border-0 text-badge leading-none',
           onDark ? 'text-paper-60 hover:text-paper' : 'text-wk-muted hover:text-ink'
         )}
       >
@@ -353,7 +353,7 @@ export function VitalGauge({
           {subLabel && (
             <span
               className={cn(
-                capsLabel({ size: 'label', weight: 'inherit', tracking: 'caps' }),
+                capsLabel({ size: 'badge', weight: 'inherit', tracking: 'caps' }),
                 'truncate leading-none text-wk-muted'
               )}
             >
@@ -424,14 +424,14 @@ export function VitalGauge({
                 lines={provenance}
                 total={max}
                 overridden
-                className="ml-0.5 border-b-0 align-super text-label font-bold text-[var(--tone-deep)]"
+                className="ml-0.5 border-b-0 align-super text-badge font-bold text-[var(--tone-deep)]"
               >
                 *
               </StatProvenance>
             ) : (
               <sup
                 title={`Overridden from ${overriddenFrom}`}
-                className="ml-0.5 text-label font-bold text-[var(--tone-deep)]"
+                className="ml-0.5 text-badge font-bold text-[var(--tone-deep)]"
               >
                 *
               </sup>
@@ -441,7 +441,7 @@ export function VitalGauge({
               statLabel={`Max ${label}`}
               lines={provenance}
               total={max}
-              className="ml-1 border-b-0 align-middle text-label leading-none text-wk-muted hover:text-ink"
+              className="ml-1 border-b-0 align-middle text-badge leading-none text-wk-muted hover:text-ink"
             >
               ⓘ
             </StatProvenance>
@@ -502,7 +502,7 @@ export function VitalGauge({
       {/* Caption — right-aligned Current / Max; an override note sits left. */}
       <div
         className={cn(
-          capsLabel({ size: 'nano', weight: 'semibold', tracking: 'eyebrow' }),
+          capsLabel({ size: 'badge', weight: 'semibold', tracking: 'eyebrow' }),
           'mt-1.5 flex items-center justify-end gap-1 leading-none text-ink-75'
         )}
       >

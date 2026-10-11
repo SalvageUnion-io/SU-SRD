@@ -14,7 +14,7 @@ type SectionHeaderProps = {
 }
 
 /**
- * SectionHeader — the centered "rule / LABEL / rule" band: a rust condensed-caps
+ * SectionHeader — the centered "rule / LABEL / rule" band: an ink condensed-caps
  * label flanked by two faint 1px leader rules. Promoted from srd's per-app
  * `.catalog-header` + `.catalog-group-title`. Distinct from `Slab`, which is a
  * left-aligned label with a single trailing rule.
@@ -26,7 +26,7 @@ export function SectionHeader({ label, as: Tag = 'h2', className }: SectionHeade
       <Tag
         className={cn(
           capsLabel({ size: 'caption', tracking: 'wide' }),
-          'whitespace-nowrap leading-none text-rust'
+          'whitespace-nowrap leading-none text-ink'
         )}
       >
         {label}

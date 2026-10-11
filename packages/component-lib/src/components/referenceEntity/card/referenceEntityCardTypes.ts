@@ -70,7 +70,7 @@ export type ReferenceEntityCardProps = {
   onStatusClick?: () => void
   /** Whole-card opacity-50 (an unavailable/inactive item). */
   disabled?: boolean
-  /** Draw the canonical rust selection border (SELECTION_RING) — non-layout-shifting. */
+  /** Draw the canonical ink selection border (SELECTION_RING) — non-layout-shifting. */
   selected?: boolean
   /** When `selected`, stamp this label as an `ok`-tone "chosen" seal riding the
    * top-right frame (e.g. "Equipped ✓"). Picker-cell affordance. */
@@ -80,7 +80,7 @@ export type ReferenceEntityCardProps = {
   /** MULTI-SELECT: the chosen quantity. With `onCountChange` present the card
    * renders a "Chosen" seal + `[− n +]` `CountStepper` overlay (mutually
    * exclusive with the single-select `selectionSeal`), and `count >= 1` reads as
-   * selected (rust ring) unless `selected` is set explicitly. */
+   * selected (ink ring) unless `selected` is set explicitly. */
   count?: number
   /** MULTI-SELECT: emit the next chosen quantity (already clamped by the caller).
    * Its presence turns the card into a duplicate-allowed multi-select cell. */

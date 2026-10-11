@@ -45,7 +45,7 @@ export type StatState = EntityStatus
  *
  *   default  -> ink border (the resting state)
  *   good     -> mech   (full / at-cap-good)
- *   modified -> rust       (value changed from its base, e.g. a modified TL)
+ *   modified -> heavier solid ink frame, border plus a 1px ring (value changed from its base, e.g. a modified TL)
  *   caution  -> status-warn
  *   critical -> status-bad
  */
@@ -54,7 +54,7 @@ export type StatBorderState = 'default' | 'good' | 'modified' | 'caution' | 'cri
 const STATE_BORDER: Record<StatBorderState, string> = {
   default: 'border-ink',
   good: 'border-mech',
-  modified: 'border-rust',
+  modified: 'border-ink ring-1 ring-ink',
   caution: 'border-status-warn',
   critical: 'border-status-bad',
 }
@@ -143,7 +143,7 @@ type HorizontalValueProps = Exact<{
   /**
    * Ladder rung (styles/sizing.ts). This anatomy's resting state is a reading
    * cell, so it defaults to `full`; `compact` is the listing-row scale and
-   * `mini` the seam-tag size (text-label / 10px). One axis: a pair of booleans
+   * `mini` the seam-tag size (text-badge / 11px). One axis: a pair of booleans
    * could be combined into a rung that doesn't exist; a single `size` cannot.
    */
   size?: SizeRung
@@ -300,7 +300,7 @@ function HorizontalValue({
   hoverText,
   className,
 }: HorizontalValueProps) {
-  const fontSize = size === 'mini' ? 'text-label' : size === 'compact' ? 'text-xs' : 'text-sm'
+  const fontSize = size === 'mini' ? 'text-badge' : size === 'compact' ? 'text-xs' : 'text-sm'
   const fontWeight =
     size === 'mini' ? 'font-bold' : size === 'compact' ? 'font-normal' : 'font-semibold'
   const mainSurface: StampSurface = inverse ? 'inverse' : 'on-ink'
@@ -530,7 +530,7 @@ function ValueBox({
   const atMin = numericValue <= min
   const atMax = max !== undefined && numericValue >= max
   const btnSize =
-    size === 'mini' ? 'h-3 w-3 text-micro' : size === 'full' ? 'h-5 w-5 text-sm' : 'h-4 w-4 text-xs'
+    size === 'mini' ? 'h-3 w-3 text-badge' : size === 'full' ? 'h-5 w-5 text-sm' : 'h-4 w-4 text-xs'
   const btnResting = inverse ? 'border-paper bg-ink text-paper' : 'border-ink bg-paper text-ink'
   const btnHover = inverse ? 'hover:bg-paper hover:text-ink' : 'hover:bg-ink hover:text-paper'
 
@@ -560,7 +560,7 @@ function ValueBox({
           className={cn(
             'font-normal',
             mutedMaxColor,
-            size === 'mini' ? 'text-micro' : size === 'full' ? 'text-caption' : 'text-label'
+            size === 'mini' ? 'text-badge' : size === 'full' ? 'text-caption' : 'text-badge'
           )}
         >
           /{max}
@@ -592,7 +592,7 @@ function ValueBox({
         size="mini"
         className={cn(
           'block z-[1] -mb-2 origin-center self-center whitespace-nowrap uppercase',
-          size === 'mini' ? 'text-label' : 'text-xs',
+          size === 'mini' ? 'text-badge' : 'text-xs',
           'leading-none'
         )}
         id={labelId}
@@ -642,7 +642,7 @@ function ValueBox({
         size="mini"
         className={cn(
           'block z-[1] -mt-2 origin-center self-center whitespace-nowrap uppercase',
-          size === 'mini' ? 'text-label' : 'text-xs',
+          size === 'mini' ? 'text-badge' : 'text-xs',
           'leading-none',
           !bottomLabel && 'invisible'
         )}

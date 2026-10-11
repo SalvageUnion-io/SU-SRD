@@ -20,7 +20,7 @@ export function FilterRow({ label, children, onDark = false }: FilterRowProps) {
     >
       <span
         className={cn(
-          'font-cond text-label font-bold uppercase tracking-caps-snug sm:w-[4.5rem] sm:shrink-0 sm:text-right',
+          'font-cond text-badge font-bold uppercase tracking-caps-snug sm:w-[4.5rem] sm:shrink-0 sm:text-right',
           onDark ? 'text-paper/85' : 'text-wk-muted'
         )}
       >

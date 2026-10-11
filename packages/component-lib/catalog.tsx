@@ -162,7 +162,7 @@ const titleStyle = {
   marginTop: space[12],
   color: color.wkMuted,
   fontFamily: font.cond,
-  fontSize: fontSize.label,
+  fontSize: fontSize.badge,
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
