@@ -86,6 +86,9 @@ describe('schemaPreloadDeps render-equivalence', () => {
       const computed = entities.map((entity) => renderEntity(entity))
 
       expect(computed).toEqual(baseline)
-    })
+      // Every entity of the schema, rendered twice: a whole-dataset render, not
+      // a unit test. The default 5 s cannot hold roll-tables once each card
+      // embeds its table (E4), with the coverage run's workspaces in parallel.
+    }, 30_000)
   }
 })

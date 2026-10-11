@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react'
-import type { SURefEnumSchemaName, SURefMetaAction, SURefMetaEntity } from 'salvageunion-reference'
+import type { CSSProperties, ReactNode } from 'react'
+import type { SURefMetaAction, SURefMetaEntity } from 'salvageunion-reference'
 import { extractVisibleActions, SalvageUnionReference } from 'salvageunion-reference'
+import { space } from '../../../design/tokens'
 import type { Story } from '../../../stories/_harness'
-import { borderColorFromHeaderBg } from '../referenceEntityHelpers'
-import { resolveCardTone } from './entityCardTone'
+import { Caption } from '../../../stories/_harness'
 import { ReferenceEntityCard } from './ReferenceEntityCard'
 
 export default {
@@ -11,36 +11,23 @@ export default {
 }
 
 /**
- * This story is the SPEC for how actions render. Actions are NOT a separate
- * component — an action is `ReferenceEntityCard` rendering an `actions`-schema
- * entity in "action mode". These are the enshrined rendering rules:
+ * This story is the SPEC for how actions render (ruleset §5, board E1).
+ * Actions are NOT a separate component — an action is `ReferenceEntityCard`
+ * rendering an action-shaped entity, and it is a thing you DO, so:
  *
- * - GHOSTED PARENT TONE on the header + sub-header bands + 3px frame (an action
- *   is a faded relative of the entity that summons it — same colour family).
- * - PAPER body with ink text (readable, like an entity body).
- * - EP-LED sub-header: EP cost · Action Type · Range · Damage · Traits.
- * - The ACTION TYPE lives in the sub-header (a leading cell) — there is NO seam
- *   type-stamp on an action.
- * - Always COMPACT.
+ * - its header is the book's INK BANNER: the title, the cost pennant at the
+ *   right, paper flecks — never a ghost of its host's tone (retired);
+ * - INSIDE its host it sits inline: a flush band, its "//" line, its body, no
+ *   frame and no "Action" stamp;
+ * - on its own (the Dashboard deck and resolve panel) it is the same banner in
+ *   a frame, and in the Dashboard the pennant IS the action button.
  */
 
 /** Real SRD lookup with a first-entry fallback (data-drift safety). */
 function pick<T>(list: T[], predicate: (item: T) => boolean, label: string): T {
   const found = list.find(predicate) ?? list[0]
-  if (!found) throw new Error(`NEW/Actions story: no ${label} loaded`)
+  if (!found) throw new Error(`Actions story: no ${label} loaded`)
   return found
-}
-
-/**
- * Resolve a parent entity's tone base EXACTLY as the card does internally — the
- * value threaded to the action as `hostTone`, which the action then ghosts.
- */
-function parentToneBase(parent: SURefMetaEntity): string {
-  const schemaName = (
-    'schemaName' in parent && typeof parent.schemaName === 'string' ? parent.schemaName : undefined
-  ) as SURefEnumSchemaName | 'actions'
-  const tone = resolveCardTone(schemaName, parent)
-  return borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-ink)'
 }
 
 /** Pick a named action off a parent via the same resolver the card uses. */
@@ -49,8 +36,6 @@ function actionOf(parent: SURefMetaEntity, actionName: string): SURefMetaAction 
   return pick(actions, (a) => a.name === actionName, `${actionName} action`)
 }
 
-// Canonical real actions from a FEW DIFFERENT PARENTS — each ghosts its parent's
-// tone. Resolved the same way the card resolves them internally.
 const drill = pick(
   SalvageUnionReference.Systems.all(),
   (s) => s.name === 'Salvaging Drill',
@@ -63,127 +48,92 @@ const engineering = pick(
   'ability'
 )
 
-type ActionSpec = {
-  /** Parent entity that summons the action. */
-  parent: SURefMetaEntity
-  /** Human label for the parent + the tone the action inherits. */
-  parentLabel: string
-  /** The action to render. */
-  action: SURefMetaAction
-}
-
-const SPECS: ActionSpec[] = [
+const ACTIONS: { label: string; action: SURefMetaAction }[] = [
+  { label: 'Salvaging Drill · Auger', action: actionOf(drill, 'Auger') },
+  { label: 'Scylla · Scythe Attack', action: actionOf(scylla, 'Scythe Attack') },
   {
-    parent: drill,
-    parentLabel: 'System · Salvaging Drill -> GHOSTED TECH-BLUE',
-    action: actionOf(drill, 'Auger'),
-  },
-  {
-    parent: scylla,
-    parentLabel: 'Bio-Titan · Scylla -> GHOSTED NAVY',
-    action: actionOf(scylla, 'Scythe Attack'),
-  },
-  {
-    parent: engineering,
-    parentLabel: 'Ability · Engineering Expertise -> GHOSTED ORANGE',
+    label: 'Engineering Expertise (its self-action)',
     action: actionOf(engineering, 'Engineering Expertise'),
   },
 ]
 
-/** The rules each card demonstrates — captioned so the story documents the spec. */
-const RULES = [
-  'ghosted-parent-tone bands + 3px frame',
-  'paper / ink body',
-  'EP-led sub-header (EP · Type · Range · Damage · Traits)',
-  'action type in the sub-header — no seam type-stamp',
-  'always compact',
-]
+const column: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[16],
+  maxWidth: '36rem',
+  padding: space[16],
+}
 
-function HeaderNote(): ReactNode {
+function Labelled({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-1 border-b-2 border-ink pb-3">
-      <code className="font-body text-caption font-bold text-ink">
-        Actions = the card in action mode; these are the rendering rules.
-      </code>
-      <ul className="flex flex-col gap-0.5">
-        {RULES.map((rule) => (
-          <li key={rule} className="font-body text-badge text-wk-muted">
-            · {rule}
-          </li>
-        ))}
-      </ul>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[8] }}>
+      <Caption>{label}</Caption>
+      {children}
     </div>
   )
 }
 
-/** One action card + a caption naming the parent tone it ghosts. */
-function ActionSpecCard({ spec }: { spec: ActionSpec }): ReactNode {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <code className="font-body text-badge text-wk-muted">{spec.parentLabel}</code>
-      <ReferenceEntityCard
-        data={spec.action}
-        hostTone={parentToneBase(spec.parent)}
-        size="medium"
-      />
-    </div>
-  )
-}
-
-export const Auger_GhostedTechBlue: Story = () => (
-  <div className="flex flex-col gap-4 bg-paper p-4">
-    <HeaderNote />
-    {SPECS[0] && <ActionSpecCard spec={SPECS[0]} />}
+/** Inline, in the card that does them: flush ink bands under the system's body. */
+export const Inline: Story = () => (
+  <div style={column}>
+    <Labelled label="Salvaging Drill — Auger and Drill sit inline, no tray, no stamp">
+      <ReferenceEntityCard data={drill} />
+    </Labelled>
+    <Labelled label="Scylla — a bio-titan's actions, inline (Titanic Actions included)">
+      <ReferenceEntityCard data={scylla} size="medium" />
+    </Labelled>
   </div>
 )
 
-export const ScytheAttack_GhostedNavy: Story = () => (
-  <div className="flex flex-col gap-4 bg-paper p-4">
-    <HeaderNote />
-    {SPECS[1] && <ActionSpecCard spec={SPECS[1]} />}
-  </div>
-)
-
-export const EngineeringExpertise_GhostedOrange: Story = () => (
-  <div className="flex flex-col gap-4 bg-paper p-4">
-    <HeaderNote />
-    {SPECS[2] && <ActionSpecCard spec={SPECS[2]} />}
-  </div>
-)
-
-/** All three parents together — the full action-rendering spec at a glance. */
-export const Spec: Story = () => (
-  <div className="flex flex-col gap-6 bg-paper p-4">
-    <HeaderNote />
-    {SPECS.map((spec) => (
-      <ActionSpecCard key={spec.parentLabel} spec={spec} />
+/** On its own: the framed ink banner the Dashboard deck and resolve panel show. */
+export const Framed: Story = () => (
+  <div style={column}>
+    {ACTIONS.map(({ label, action }) => (
+      <Labelled key={label} label={label}>
+        <ReferenceEntityCard data={action} size="medium" />
+      </Labelled>
     ))}
   </div>
 )
 
 /**
- * Action BADGE mode — the shortform token for an action, collapsed to a single
- * pill. Field order: **name · Cost · type · Damage · range** — the name always
- * leads (left-aligned so a stack of badges reads down a name column), the rest
- * render only when the action carries them (Scythe Attack has damage + range but
- * no cost; Engineering Expertise, a passive, has neither). Same ghosted-parent
- * tone as the full action card.
+ * In the Dashboard the cost pennant IS the action button (ruleset §1, board
+ * E3): same size, shape and place, filled rust, with a 44px hit area. The
+ * Dashboard stays flat, so no speckle.
  */
-export const Badge: Story = () => (
-  <div className="flex flex-col items-start gap-3 bg-paper p-4">
-    <code className="font-body text-caption font-bold text-ink">
-      Action badge = name · Cost · type · Damage · range (name always leads)
-    </code>
-    {SPECS.map((spec) => (
-      <div key={spec.parentLabel} className="flex flex-col items-start gap-1.5">
-        <code className="font-body text-badge text-wk-muted">{spec.parentLabel}</code>
+export const DashboardPennant: Story = () => (
+  <div style={{ ...column, backgroundColor: 'var(--color-ink-deep)' }}>
+    {ACTIONS.slice(0, 1).map(({ label, action }) => (
+      <div key={label} style={{ backgroundColor: 'var(--color-band-cream)', padding: space[12] }}>
         <ReferenceEntityCard
-          data={spec.action}
-          hostTone={parentToneBase(spec.parent)}
-          size="small"
-          extent="head"
+          data={action}
+          size="medium"
+          texture={false}
+          controls={[
+            {
+              key: 'activate',
+              pennant: true,
+              ariaLabel: `Activate ${action.name}`,
+              onClick: () => {},
+            },
+          ]}
         />
       </div>
+    ))}
+  </div>
+)
+
+/**
+ * The SHORTFORM of an action: one ink pill — the type stamp, the name and the
+ * cost pennant (an action with no cost shows none).
+ */
+export const Badge: Story = () => (
+  <div style={{ ...column, alignItems: 'flex-start' }}>
+    {ACTIONS.map(({ label, action }) => (
+      <Labelled key={label} label={label}>
+        <ReferenceEntityCard data={action} size="small" extent="head" />
+      </Labelled>
     ))}
   </div>
 )

@@ -12,7 +12,12 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { entityFixture } from 'salvageunion-reference/testing'
 import { resolveBodyBlocks, resolveBodyLayout } from '../bodyBlocks'
 import { actionCells, bonusCells, buildHeaderStats, resolveTechScaling } from '../cardCells'
-import { resolveCardColors, resolveCardInteraction, resolveHeaderHint } from '../cardChrome'
+import {
+  resolveCardColors,
+  resolveCardInteraction,
+  resolveFrameWidth,
+  resolveHeaderHint,
+} from '../cardChrome'
 import { resolveNestedSections } from '../nestedSections'
 
 const paragraph = (value: string): SURefObjectContentBlock => ({ type: 'paragraph', value })
@@ -136,7 +141,6 @@ describe('bodyBlocks', () => {
     const layout = (over: Partial<Parameters<typeof resolveBodyLayout>[0]>) =>
       resolveBodyLayout({
         showImage: true,
-        hasNpcAnchor: false,
         isPattern: false,
         asideLeadRequested: false,
         hasTrailingSection: false,
@@ -147,10 +151,6 @@ describe('bodyBlocks', () => {
     // Opted in, but with no trailing section there is nothing to lead into.
     expect(layout({ asideLeadRequested: true })).toEqual({ asideLead: false, flat: true })
     expect(layout({ asideLeadRequested: true, hasTrailingSection: true }).asideLead).toBe(true)
-    expect(layout({ showImage: false, hasNpcAnchor: true })).toEqual({
-      asideLead: false,
-      flat: true,
-    })
     expect(layout({ showImage: false })).toEqual({ asideLead: false, flat: false })
   })
 })
@@ -158,42 +158,73 @@ describe('bodyBlocks', () => {
 describe('cardChrome', () => {
   const tone = { domain: 'gear' as const, bg: 'bg-x', bgColor: 'red' }
 
-  test('each band reads ink or paper by its own contrast', () => {
-    // TL1 is light: ink on its header, paper on its deep shade below.
+  test('a tone header reads ink or paper by its own contrast', () => {
+    // TL1 is light: ink on its header.
     const tl1 = { domain: 'gear' as const, bg: 'bg-tl-1', bgColor: undefined }
-    expect(
-      resolveCardColors({ tone: tl1, isDown: false, isGhosted: false, hostTone: undefined })
-    ).toMatchObject({ onBandText: 'text-ink', onDarkText: 'text-paper' })
-    // The damaged grey is light on top and dark below, like any tone.
-    const tl6 = { domain: 'gear' as const, bg: 'bg-tl-6', bgColor: undefined }
-    expect(
-      resolveCardColors({ tone: tl6, isDown: true, isGhosted: false, hostTone: undefined })
-    ).toMatchObject({ onBandText: 'text-ink', onDarkText: 'text-paper' })
+    expect(resolveCardColors({ tone: tl1, isDown: false, fill: 'tone' })).toMatchObject({
+      onBandText: 'text-ink',
+      headerBg: 'bg-tl-1',
+    })
+    // A band it cannot resolve reads paper, the solid-tone case.
+    expect(resolveCardColors({ tone, isDown: false, fill: 'tone' })).toMatchObject({
+      onBandText: 'text-paper',
+      headerBg: 'bg-x',
+      headerBgColor: 'red',
+    })
   })
 
-  test('a band it cannot resolve reads paper when solid; ghosted and damaged ones read ink', () => {
-    expect(
-      resolveCardColors({ tone, isDown: false, isGhosted: false, hostTone: undefined })
-    ).toMatchObject({ onBandText: 'text-paper', headerBg: 'bg-x', headerBgColor: 'red' })
-    const ghosted = resolveCardColors({ tone, isDown: false, isGhosted: true, hostTone: 'blue' })
-    expect(ghosted.onBandText).toBe('text-ink')
-    expect(ghosted.headerBg).toBeUndefined()
-    const down = resolveCardColors({ tone, isDown: true, isGhosted: false, hostTone: undefined })
-    expect(down.onBandText).toBe('text-ink')
-    expect(down.headerBgColor).toContain('color-mix')
+  test('an ink header is the ink banner whatever the tone; a damaged one is grey', () => {
+    expect(resolveCardColors({ tone, isDown: false, fill: 'ink' })).toEqual({
+      onBandText: 'text-paper',
+      headerBg: undefined,
+      headerBgColor: 'var(--color-ink)',
+    })
+    for (const fill of ['tone', 'ink'] as const) {
+      const down = resolveCardColors({ tone, isDown: true, fill })
+      expect(down.onBandText).toBe('text-ink')
+      expect(down.headerBg).toBeUndefined()
+      expect(down.headerBgColor).toContain('color-mix')
+    }
+  })
+
+  test('the frame steps 3 → 2 → 1.5px with size and depth', () => {
+    expect(resolveFrameWidth({ size: 'large', extent: 'full', depth: 0 })).toBe('var(--bw-entity)')
+    expect(resolveFrameWidth({ size: 'medium', extent: 'full', depth: 1 })).toBe(
+      'var(--bw-entity-compact)'
+    )
+    expect(resolveFrameWidth({ size: 'medium', extent: 'head', depth: 2 })).toBe('var(--bw-chrome)')
+    expect(resolveFrameWidth({ size: 'small', extent: 'full', depth: 0 })).toBe('var(--bw-chrome)')
+  })
+
+  const base = {
+    onCardClick: () => {},
+    controls: undefined,
+    cardClickable: undefined,
+    disabled: undefined,
+    selectable: undefined,
+    className: undefined,
+    cardClickLabel: 'Mule',
+    frameWidth: 'var(--bw-entity)',
+    dashed: false,
+  }
+
+  test('the frame is ink, and dashed on a user-made card', () => {
+    const solid = resolveCardInteraction({ ...base, selectionRole: undefined, selected: undefined })
+    expect(solid.frameStyle).toMatchObject({
+      borderColor: 'var(--color-ink)',
+      borderStyle: 'solid',
+      borderTopWidth: 'var(--bw-entity)',
+    })
+    const userMade = resolveCardInteraction({
+      ...base,
+      dashed: true,
+      selectionRole: undefined,
+      selected: undefined,
+    })
+    expect(userMade.frameStyle.borderStyle).toBe('dashed')
   })
 
   test('a whole-card click announces selection by role', () => {
-    const base = {
-      onCardClick: () => {},
-      controls: undefined,
-      cardClickable: undefined,
-      disabled: undefined,
-      selectable: undefined,
-      className: undefined,
-      cardClickLabel: 'Mule',
-      frameColor: 'red',
-    }
     // A radio is a RadioCard: it carries the name and the checked state, and
     // Base UI's Radio supplies the role.
     const radio = resolveCardInteraction({ ...base, selectionRole: 'radio', selected: true })

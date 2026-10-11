@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { cn } from '../../utils/cn'
 import { CARD_IMAGE_CONTAINER_WIDTH, cardImageSizes } from './cardImageSizes'
 
 type CardImageProps = {
@@ -79,10 +78,9 @@ export function CardImage({ url, srcSet, alt, compact, aside }: CardImageProps) 
 
   return (
     <div
-      className={cn(
-        'mx-auto shrink-0 bg-paper align-top md:mx-0',
-        !aside && 'md:float-left md:mr-4'
-      )}
+      // The float (or the aside row) waits on the CARD's width, not the
+      // viewport's: `.su-ec-art` in `styles/index.css` queries the body.
+      className={aside ? 'su-ec-art' : 'su-ec-art su-ec-art--float'}
       style={{ width: containerWidth, maxWidth: '100%', shapeOutside: 'margin-box' }}
     >
       <div

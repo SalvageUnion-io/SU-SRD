@@ -142,13 +142,34 @@ export type OnToneText = 'text-ink' | 'text-paper'
 const ON_TONE_TEXT: Record<Foreground, OnToneText> = { ink: 'text-ink', paper: 'text-paper' }
 
 /**
+ * Tones that carry neither ink nor paper at 4.5:1, each with the deeper band
+ * painted in its place wherever text sits on it (ruleset §3.8). Crawler pink
+ * is the one: ink measures 4.2:1 on it and paper 3.7:1, so a crawler band that
+ * carries text is `--color-crawler-band`, where paper measures 4.6:1.
+ */
+const TEXT_BAND: Partial<Record<string, string>> = {
+  'var(--color-crawler)': 'var(--color-crawler-band)',
+}
+
+/**
+ * The band a tone fill paints when it carries text: the tone itself, or the
+ * deeper band that stands in for it (crawler pink → the crawler band).
+ */
+export function textBand(band: string | undefined): string | undefined {
+  return band === undefined ? undefined : (TEXT_BAND[band.trim()] ?? band)
+}
+
+/**
  * The text class for a tone band (header, sub-header, footer): ink or paper,
  * whichever contrasts more with the band actually painted — see
  * `design/contrast.ts`. `fallback` covers a band the arithmetic cannot resolve.
+ *
+ * The crawler case: a band that carries text is painted `textBand(band)`, so
+ * crawler pink is measured as the crawler band it becomes, and reads paper.
  */
 export function onToneText(
   band: string | undefined,
   fallback: OnToneText = 'text-paper'
 ): OnToneText {
-  return ON_TONE_TEXT[foregroundOn(band, fallback === 'text-ink' ? 'ink' : 'paper')]
+  return ON_TONE_TEXT[foregroundOn(textBand(band), fallback === 'text-ink' ? 'ink' : 'paper')]
 }

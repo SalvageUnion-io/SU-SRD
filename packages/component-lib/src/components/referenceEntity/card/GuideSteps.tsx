@@ -1,8 +1,10 @@
 import type { ElementType } from 'react'
+import { useContext } from 'react'
 import { Slab } from '../../chrome/Slab'
-import { RollTable } from '../../shared/RollTable'
+import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
+import { CardRollTable } from './CardRollTable'
 import { cardKey } from './cardHelpers'
 import type { NestedCard } from './referenceEntityCardTypes'
 import type { ResolvedGuideStep } from './resolveGuideSteps'
@@ -44,6 +46,8 @@ export function GuideSteps({
   chassisName: string | undefined
   NestedCard: NestedCard
 }) {
+  // Terminal in a tooltip popup (ruleset §1): the step table carries controls.
+  const insideTooltip = useContext(InsideTooltipContext)
   return (
     <div className="flex flex-col gap-3">
       {steps.map(({ step, number, section, entities, table, subGuide }) => {
@@ -94,14 +98,16 @@ export function GuideSteps({
                 )}
               </>
             )}
-            {table && (
-              <RollTable
+            {/* The step's table: the same embedded table an entity owns
+                (board E4), framed because it sits in the padded body. */}
+            {table && !insideTooltip && (
+              <CardRollTable
                 table={table.table}
-                tableName={table.name}
-                showCommand
-                size={compact ? 'compact' : 'full'}
+                name={table.name}
+                size={compact ? 'medium' : 'large'}
                 collapsible={collapsibleTables}
                 disabled={isDown}
+                framed
               />
             )}
             {subGuide && (

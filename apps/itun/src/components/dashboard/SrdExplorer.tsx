@@ -210,7 +210,7 @@ function SrdEntity({ entity, onBack }: { entity: SURefEntity; onBack: () => void
           ◀ Back
         </Button>
       </div>
-      <ReferenceEntityCard data={entity} hide={HIDE_CHOICES} />
+      <ReferenceEntityCard data={entity} hide={HIDE_CHOICES} texture={false} />
     </div>
   )
 }

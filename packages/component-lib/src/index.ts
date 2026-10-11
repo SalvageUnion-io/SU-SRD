@@ -77,10 +77,7 @@ export { StatusBadge } from './components/chrome/StatusBadge'
 export { STAMP_SEAM } from './components/chrome/stampSeam'
 export { Tab, TabList, TabPanel, Tabs } from './components/chrome/Tabs'
 export { Content } from './components/referenceEntity/Content'
-export {
-  entityGuideToneColor,
-  entityHostTone,
-} from './components/referenceEntity/card/entityCardTone'
+export { entityGuideToneColor } from './components/referenceEntity/card/entityCardTone'
 // Entity display system
 export { ReferenceEntityCard } from './components/referenceEntity/card/ReferenceEntityCard'
 export type { ReferenceCardEntity } from './components/referenceEntity/card/referenceEntityCardTypes'

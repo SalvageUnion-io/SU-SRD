@@ -63,7 +63,6 @@ export const Default = () => {
               sourceFilter: source,
               onSourceFilter: setSource,
               familyClass: 'pc-deck-fam-mech',
-              hostTone: 'var(--color-mech)',
               rows: realRows(),
               onOpen: () => {},
             }}

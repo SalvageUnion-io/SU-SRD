@@ -191,6 +191,8 @@ export const borderWidth = {
   chrome: '1.5px',
   pill: '2px',
   rail: '2.5px',
+  /** The entity card's frame one size down: 3 → 2 → 1.5px (ruleset §4.3). */
+  entityCompact: '2px',
   entity: '3px',
 } as const
 
