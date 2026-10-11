@@ -70,7 +70,7 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStor
   })
   return makeEntityStoreMock({
     mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
     get: mock((_type: string, id: string) => (id === current.id ? current : null)),

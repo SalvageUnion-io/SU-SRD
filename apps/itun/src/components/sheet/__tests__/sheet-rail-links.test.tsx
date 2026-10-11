@@ -48,7 +48,7 @@ afterEach(() => {
     mechs: [],
     crawlers: [],
     softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
   })
 })
 
@@ -239,7 +239,7 @@ describe('Sheet — rail unassign availability (unified edit language)', () => {
     // type is marked hydrated so no read starts a load that lands after act().
     useEntityStore.setState({
       softLinks: [mechToPilot],
-      hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
+      hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
     })
 
     const { unmount } = render(

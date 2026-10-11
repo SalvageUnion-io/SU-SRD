@@ -78,7 +78,7 @@ beforeEach(() => {
   visibilityWrites.length = 0
   useEntityStore.setState({
     mechs: [mech],
-    hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
+    hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
   usePatternStore.setState({ mechPatterns: [], hydrated: true })
   setQueryAnswers({

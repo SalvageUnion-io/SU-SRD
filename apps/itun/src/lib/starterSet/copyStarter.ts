@@ -38,7 +38,7 @@ export const STARTER_SET_PUBLISHER = 'Leyline Press'
 /** The adventure the pre-generated crew comes from. */
 export const STARTER_SET_ADVENTURE = 'Reclamation of the Wastes'
 
-export type StarterKind = Exclude<EntityType, 'softLink'>
+export type StarterKind = Exclude<EntityType, 'softLink' | 'npc'>
 
 /** One template by kind and id, or null when there is no such template. */
 export function starterTemplate(kind: StarterKind, id: string): Pilot | Mech | Crawler | null {

@@ -30,6 +30,7 @@ const SEAMS = {
   pilots: { kind: 'convex', commit: commitEntityWrite },
   mechs: { kind: 'convex', commit: commitEntityWrite },
   crawlers: { kind: 'convex', commit: commitEntityWrite },
+  npcs: { kind: 'convex', commit: commitEntityWrite },
   softLinks: { kind: 'convex', commit: commitSoftLink },
   // makeHydratedCollectionSlice's commit
   mechPatterns: { kind: 'convex', commit: commitPatternWrite },

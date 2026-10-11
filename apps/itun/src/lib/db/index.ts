@@ -26,6 +26,7 @@ import { openDB } from 'idb'
 import { CrawlerSchema } from '../schemas/crawler'
 import { EncounterNpcSchema } from '../schemas/encounterNpc'
 import { MechSchema } from '../schemas/mech'
+import { NpcSchema } from '../schemas/npc'
 import { MechPatternSchema } from '../schemas/pattern'
 import { PilotSchema } from '../schemas/pilot'
 import { SoftLinkSchema } from '../schemas/softLink'
@@ -39,7 +40,7 @@ import { STORE_NAMES } from './stores'
  * shape of a cached record changes: the upgrade empties the cache and the
  * server refills it, so there is nothing else to write.
  */
-export const DB_VERSION = 20
+export const DB_VERSION = 21
 
 const DB_NAME = 'itun-v1'
 
@@ -273,7 +274,7 @@ export async function atomicWrite(ops: AtomicWriteOp[]): Promise<string[]> {
 }
 
 // Per-entity store accessors
-// hasUpdatedAt=true for Pilot, Mech, Crawler (their schemas include updatedAt)
+// hasUpdatedAt=true for Pilot, Mech, Crawler, Npc (their schemas include updatedAt)
 // hasUpdatedAt=false (default) for SoftLink (createdAt only)
 // and MechPattern (createdAt only — patterns are immutable after creation).
 
@@ -282,6 +283,7 @@ export const mechs = makeStore(getDb, MechSchema, STORE_NAMES.mechs, { hasUpdate
 export const crawlers = makeStore(getDb, CrawlerSchema, STORE_NAMES.crawlers, {
   hasUpdatedAt: true,
 })
+export const npcs = makeStore(getDb, NpcSchema, STORE_NAMES.npcs, { hasUpdatedAt: true })
 export const softLinks = makeStore(getDb, SoftLinkSchema, STORE_NAMES.softLinks)
 export const mechPatterns = makeStore(getDb, MechPatternSchema, STORE_NAMES.mechPatterns)
 export const encounterNpcs = makeStore(getDb, EncounterNpcSchema, STORE_NAMES.encounterNpcs, {

@@ -85,7 +85,7 @@ function renderAs(connection: ConnectionState) {
 beforeEach(() => {
   useEntityStore.setState({
     mechs: [],
-    hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
+    hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
   usePatternStore.setState({ mechPatterns: [], hydrated: true })
   convexMocks.navigations.length = 0

@@ -106,7 +106,7 @@ function makeStubStore(crawler: Crawler, spies?: Partial<Spies>): typeof useEnti
   const updateCrawlerBay = spies?.updateCrawlerBay ?? mock(async () => crawler)
   return makeEntityStoreMock({
     crawlers: [crawler],
-    hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
+    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [crawler]),
     get: mock((_type: string, id: string) => (id === crawler.id ? crawler : null)),

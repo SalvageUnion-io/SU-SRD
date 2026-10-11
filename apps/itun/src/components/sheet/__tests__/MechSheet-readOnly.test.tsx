@@ -63,7 +63,7 @@ function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof 
   return makeEntityStoreMock({
     mechs: [mech],
     crawlers: [fakeCrawler],
-    hydrated: { pilots: false, mechs: true, crawlers: true, softLinks: false },
+    hydrated: { pilots: false, mechs: true, crawlers: true, npcs: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
     get: mock((type: string, id: string) => {

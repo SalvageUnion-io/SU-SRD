@@ -107,6 +107,7 @@ function listing(over: Record<string, unknown> = {}) {
     ],
     mechs: [{ _id: 'row-mech', appId: THEIR_MECH.id, ownerId: 'u-them', body: THEIR_MECH }],
     crawlers: [{ _id: 'row-crawler', appId: CRAWLER.id, body: CRAWLER }],
+    npcs: [],
     softLinks: [
       link('l1', 'mech-to-pilot', THEIR_MECH.id, THEIR_PILOT.id),
       link('l2', 'pilot-to-crawler', THEIR_PILOT.id, CRAWLER.id),

@@ -25,7 +25,7 @@
  */
 
 import type { Crawler } from '../../lib/schemas/crawler'
-import type { EntityRef } from '../../lib/schemas/entity'
+import type { EntityRef, SheetEntityKind } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLink } from '../../lib/schemas/softLink'
@@ -55,7 +55,7 @@ export type SheetComposition = {
 }
 
 type ResolveArgs = {
-  kind: EntityRef['type']
+  kind: SheetEntityKind
   id: string
   links: SoftLink[]
   store: EntityLookup

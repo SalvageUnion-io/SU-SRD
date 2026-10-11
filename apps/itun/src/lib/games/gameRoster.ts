@@ -187,7 +187,8 @@ export type MoveDestination = { container: Container; label: string }
  * entity is even when it may go nowhere else.
  */
 export function moveDestinations(args: {
-  kind: RosterKind
+  /** A built NPC moves as a pilot does: by its owner, into any Game they belong to. */
+  kind: RosterKind | 'npc'
   current: Container
   games: readonly MoveTargetGame[]
 }): MoveDestination[] {
