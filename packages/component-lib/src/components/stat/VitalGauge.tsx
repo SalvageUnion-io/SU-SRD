@@ -77,8 +77,8 @@ export type VitalGaugeProps = {
    *   `full` (default) — the multi-row poster gauge: big numeral + caption. A
    *          gauge is a destination readout, so its resting rung is `full`.
    *   `compact` — the instrument layout (the dashboard cue): label · the pips ·
-   *          value/max on one line, no big numeral, no caption. Its pips are a
-   *          fixed size and wrap onto a second row on a long track.
+   *          value/max on one line, no big numeral, no caption. Its pips take
+   *          the §4.5 row split, each a sixth of the bay wide.
    */
   size?: Extract<SizeRung, 'full' | 'compact'>
   /**
@@ -227,7 +227,7 @@ export function VitalGauge({
           : 'border-[var(--tone-deep)] bg-[var(--tone)]'
 
   // COMPACT — the instrument bar (dashboard cue): label and value/max on one row,
-  // a five-wide pip grid beneath. No big numeral or caption.
+  // the §4.5 pip rows beneath. No big numeral or caption.
   if (size === 'compact') {
     const readout = (
       <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -252,35 +252,41 @@ export function VitalGauge({
           </span>
         </div>
         {/*
-         * Pips fill the bay's full width in a five-wide grid (brand refresh P4,
-         * issue 1255, board D2). Dividing the bar's width by `max` made a long
-         * track's pips thinner the longer it ran, and fixed 14px pips beside a
-         * readout left a narrow bay three to a row; a fixed column count keeps
-         * a pip's width steady and a long track takes another row.
+         * Pips follow the §4.5 row split (`statBlockRowStarts`: at most six a
+         * row, balanced, bottom-heavy) — the same split the sheet's gauges
+         * draw, so Heat 6 is one row of 6, SP 12 is 6/6 and Cargo 16 is 5/5/6.
+         * Every pip is one sixth of the bay (less the gaps) whatever its row
+         * holds, so a pip's width stays steady; a shorter row sits centred.
          */}
-        <div className="grid min-w-0 grid-cols-5 gap-[3px]">
-          {Array.from({ length: segCount }, (_, i) => ({
-            i,
-            state: trackSegmentState(i, shown, max, dangerFrom),
-          })).map(({ i, state }) => {
-            const on = segmentLit(state)
-            const segClass = cn('h-[14px] w-full min-w-0 rounded-badge border', segFill(state))
-            return editable ? (
-              <button
-                key={i}
-                type="button"
-                data-pip={on ? 'on' : 'off'}
-                aria-label={`Set ${label} to ${i + 1}`}
-                onClick={() => setValue(pipClickValue(i, shown))}
-                className={cn(
-                  segClass,
-                  'cursor-pointer p-0 transition-transform duration-[120ms] motion-safe:hover:-translate-y-px'
-                )}
-              />
-            ) : (
-              <span key={i} data-pip={on ? 'on' : 'off'} className={segClass} />
-            )
-          })}
+        <div className="flex min-w-0 flex-col gap-[3px]">
+          {statBlockRowStarts(segCount).map((segRow) => (
+            <div key={segRow.start} className="flex min-w-0 justify-center gap-[3px]">
+              {Array.from({ length: segRow.count }, (_, c) => {
+                const i = segRow.start + c
+                const state = trackSegmentState(i, shown, max, dangerFrom)
+                const on = segmentLit(state)
+                const segClass = cn(
+                  'h-[14px] w-[calc((100%-15px)/6)] min-w-0 shrink-0 rounded-badge border',
+                  segFill(state)
+                )
+                return editable ? (
+                  <button
+                    key={i}
+                    type="button"
+                    data-pip={on ? 'on' : 'off'}
+                    aria-label={`Set ${label} to ${i + 1}`}
+                    onClick={() => setValue(pipClickValue(i, shown))}
+                    className={cn(
+                      segClass,
+                      'cursor-pointer p-0 transition-transform duration-[120ms] motion-safe:hover:-translate-y-px'
+                    )}
+                  />
+                ) : (
+                  <span key={i} data-pip={on ? 'on' : 'off'} className={segClass} />
+                )
+              })}
+            </div>
+          ))}
         </div>
       </div>
     )

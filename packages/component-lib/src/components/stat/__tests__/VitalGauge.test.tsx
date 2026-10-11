@@ -266,3 +266,23 @@ describe('VitalGauge — danger', () => {
     expect(toneSegs.length).toBe(7)
   })
 })
+
+// The compact (Dashboard) gauge takes the §4.5 row split like every other pip
+// surface: at most six a row, balanced, bottom-heavy — never a fixed five.
+describe('VitalGauge — compact pip rows', () => {
+  test.each([
+    [6, [6]],
+    [12, [6, 6]],
+    [16, [5, 5, 6]],
+  ])('max %i splits into rows %p', (max, rows) => {
+    const { container } = render(
+      <VitalGauge size="compact" label="SP" value={1} max={max} readOnly />
+    )
+    const pips = Array.from(container.querySelectorAll('[data-pip]'))
+    const perRow = Array.from(new Set(pips.map((p) => p.parentElement))).map(
+      (row) => row?.children.length
+    )
+    expect(perRow).toEqual(rows)
+    cleanup()
+  })
+})
