@@ -5,9 +5,7 @@ import { buttonVariants } from '../../chrome/buttonVariants'
 import { FOCUS_RING } from '../../chrome/interaction'
 import type { CardSize } from '../../shared/displayMode'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
-
-/** The book's pennant: a box with a pointed tail. Hard edges, no tail rounding. */
-const PENNANT_SHAPE = 'polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%)'
+import { PENNANT_SHAPE } from './cardChrome'
 
 const TYPE: Record<CardSize, string> = {
   large: fontSize.caption,

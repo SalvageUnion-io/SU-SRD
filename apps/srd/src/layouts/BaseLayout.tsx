@@ -42,6 +42,9 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
     ogType = 'website',
     ogImage = DEFAULT_OG_IMAGE,
     ogImageAlt,
+    ogTitle = title,
+    ogDescription = description,
+    themeColor = THEME_COLOR,
     structuredData,
     additionalStructuredData,
     noindex = false,
@@ -69,13 +72,13 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
         <link rel="icon" type="image/png" sizes="16x16" href="/favicons/su/favicon-16.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicons/su/favicon-180.png" />
         <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content={THEME_COLOR} />
+        <meta name="theme-color" content={themeColor} />
         {/* Service-worker registration: public/registerSW.js. */}
         <script defer src="/registerSW.js" />
 
         {/* Open Graph */}
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
+        <meta property="og:title" content={ogTitle} />
+        <meta property="og:description" content={ogDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content={ogType} />
         <meta property="og:site_name" content="Salvage Union SRD" />
@@ -83,12 +86,12 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
         <meta property="og:image" content={ogImageUrl} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content={ogImageAlt ?? title} />
+        <meta property="og:image:alt" content={ogImageAlt ?? ogTitle} />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
+        <meta name="twitter:title" content={ogTitle} />
+        <meta name="twitter:description" content={ogDescription} />
         <meta name="twitter:image" content={ogImageUrl} />
 
         {noindex ? <meta name="robots" content="noindex, nofollow" /> : null}

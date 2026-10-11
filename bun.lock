@@ -109,6 +109,8 @@
         "tailwind-merge": "3.6.0",
       },
       "devDependencies": {
+        "@fontsource/barlow": "catalog:",
+        "@fontsource/barlow-semi-condensed": "catalog:",
         "react": "catalog:",
         "react-dom": "catalog:",
       },

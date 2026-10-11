@@ -13,6 +13,16 @@ export type DocumentMeta = {
   ogType?: string
   ogImage?: string
   ogImageAlt?: string
+  /**
+   * The link preview's own title and description (issue 1280), when they differ
+   * from the page's: `og:title` is the thing's name and `og:description` its
+   * kicker and byline, never the body, while `<title>` and the meta description
+   * keep serving search. Unset, both mirror `title` and `description`.
+   */
+  ogTitle?: string
+  ogDescription?: string
+  /** The page's `theme-color`: an entity's tone, so an unfurl's side bar matches its card. */
+  themeColor?: string
   structuredData?: StructuredData
   additionalStructuredData?: StructuredData[]
   noindex?: boolean

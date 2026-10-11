@@ -22,6 +22,7 @@ import { chapterForSchema } from '../../../../../../lib/chapters'
 import { META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../../../../../lib/constants'
 import { itemHref, patternHref, schemaHref } from '../../../../../../lib/entityHref'
 import { getReferenceEntityData } from '../../../../../../lib/gameData'
+import { ogCardFor, ogMetaFor } from '../../../../../../lib/ogCard'
 import { patternStaticSummary } from '../../../../../../lib/patternSummary'
 import { getPatternStaticPaths } from '../../../../../../lib/staticPaths'
 
@@ -96,10 +97,15 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   // different candidate and the page downloads both files. See `cardImageSizes`.
   const preloadImageSrcSet = assetSrcSetFor(displayData?.assetUrl)
 
+  // The preview's words and colour come from the card its image is
+  // screenshotted from (issue 1280).
+  const og = ogMetaFor(ogCardFor(schemaId, itemId, chassis, pattern, patternId))
+
   return {
     meta: {
       title: `${patternName} - ${chassisName} Pattern${TITLE_SUFFIX}`,
       description: metaDescription,
+      ...og,
       canonical: canonicalUrl,
       ogType: 'article',
       structuredData,

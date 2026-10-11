@@ -6,6 +6,14 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { color, font, fontSize, space, weight } from './src/design/tokens'
 import { storyGroups, storySubgroups } from './src/stories/_groups'
 import './src/styles/catalog.css'
+// The faces the SRD ships (apps/srd/src/runtime/styles.entry.ts), so a story —
+// the Og Card above all, which is a picture of what ships — draws in the real
+// display type, not a fallback. They are dev dependencies here, as in the apps.
+import '@fontsource/barlow/400.css'
+import '@fontsource/barlow/600.css'
+import '@fontsource/barlow-semi-condensed/500.css'
+import '@fontsource/barlow-semi-condensed/600.css'
+import '@fontsource/barlow-semi-condensed/700.css'
 
 /**
  * The component catalog: a dev-only page (`bun run stories`) that this
