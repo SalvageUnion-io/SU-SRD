@@ -108,7 +108,7 @@ For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `la
 ## `.claude/`
 
 - **Rules** (`.claude/rules/`) load automatically by `paths:` when you touch matching files — testing, the display system, the ITUN router and data access, the Discord bot, and workspace manifests. There is nothing to open by hand.
-- **Skills** (`.claude/skills/`) encode decision procedures: `/triage`, `/component-refresh`, `/knip-triage` (delete by default), `/convex-ops`. There is no `/commit` skill; use the commit plugin.
+- **Skills** (`.claude/skills/`): `/convex-ops` (Convex deployment setup, probes, rotations, repairs). There is no `/commit` skill; use the commit plugin.
 
 ## External Integrations & MCP Servers
 

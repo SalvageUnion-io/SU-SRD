@@ -53,7 +53,7 @@ apps/itun/src/.routeTree.gen.*.ts
 # Agent/background-job worktrees: full checkouts that must never be committed.
 .claude/worktrees/
 # Per-agent memory a subagent writes for itself (e.g. a design reviewer's notes):
-# working state, not project docs. Durable rules go in .claude/rules or a skill.
+# working state, not project docs. Durable rules go in .claude/rules.
 .claude/agent-memory/
 # .mcp.json IS tracked: it is the shared, secret-free project MCP config
 # (Cloudflare, Sentry, Convex, Context7). Every server authenticates by OAuth on

@@ -7,8 +7,8 @@
 # When those disagree across a lockfile-format boundary the repo does not merely
 # degrade, it stops working entirely: `bun.lock` is lockfileVersion 2, a Bun that
 # predates it fails `bun install --frozen-lockfile` with "Unknown lockfile
-# version", and from there every `bun run` script, both lefthook hooks and the
-# /triage skill are inert. `node_modules` never gets populated, so even commands
+# version", and from there every `bun run` script and both lefthook hooks are
+# inert. `node_modules` never gets populated, so even commands
 # that do not need the lockfile fail on missing binaries.
 #
 # That is not a hypothetical: it is how the repo was found in an audit session,

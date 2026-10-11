@@ -936,8 +936,7 @@ devDependency, which every workspace resolves.
 
 `bun run knip` uses `includeEntryExports: true` (off in `srd` and `su-assets`).
 Delete what it flags; `@public` and `@knipignore` (tags in `knip.json`) are
-the escape hatches; the
-procedure is `/knip-triage`.
+the only escape hatches.
 
 ## Services and agent tooling
 
@@ -2341,8 +2340,6 @@ the modified treatment a dash.
 
 The reference-entity display was reconciled from a 57-file legacy render core
 (`ReferenceEntityDisplay/`, "RED") onto a single card. That migration
-(its methodology is now the `/component-refresh` skill,
-[`.claude/skills/component-refresh/SKILL.md`](../.claude/skills/component-refresh/SKILL.md))
 settled a set of **design rules** along the way — about how choices render, how
 stats read, how tech-level scaling looks, and which data carries a tech level.
 Those rules were decided interactively and proven in the story catalog, but were only
