@@ -6,7 +6,7 @@
  * (`PilotMajor`, `MechMajor`, `CrawlerMajor`) build the same `MajorModel` with
  * the same handlers in both; `MajorFrame` reads this to choose how to draw
  * it, and a Major reads it only to order its bays and spell its buttons out
- * where the phone has the room ("Heat Check" for the canvas's "Heat Chk").
+ * where the phone has the room ("Storage · 3/6" for the canvas's "Storage").
  *
  * No provider means the canvas, so every existing caller and story keeps the
  * canvas without saying so. The phone form wraps each unit tab in
