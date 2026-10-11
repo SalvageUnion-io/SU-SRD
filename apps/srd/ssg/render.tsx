@@ -58,8 +58,8 @@ export function renderRoute<Params extends Record<string, string>, Props>(
     builtAssets: assets.built,
   }
 
-  const { meta, children, shell } = resolved.module.page(ctx)
-  return renderDocument({ meta, pathname, children, assets, shell })
+  const { meta, children, shell, foot } = resolved.module.page(ctx)
+  return renderDocument({ meta, pathname, children, assets, shell, foot })
 }
 
 /** One concrete page, with its own Params/Props already erased away. */

@@ -12,7 +12,7 @@
  */
 
 import type { ReactNode } from 'react'
-import type { DocumentMeta } from '../../ssg/types'
+import type { DocumentMeta, PageFoot } from '../../ssg/types'
 import { Footer } from '../components/Footer'
 import { TopNavigation } from '../components/TopNavigation'
 import { DEFAULT_OG_IMAGE, SITE_URL, THEME_COLOR } from '../lib/constants'
@@ -32,9 +32,11 @@ export type BaseLayoutProps = {
   /** Pathname WITH a trailing slash — the canonical URL is built from it. */
   pathname: string
   children: ReactNode
+  /** A book page's foot (chapter tone and citation); absent → the rules-blue band. */
+  foot?: PageFoot
 }
 
-export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
+export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) {
   const {
     title = DEFAULT_TITLE,
     description = DEFAULT_DESCRIPTION,
@@ -166,7 +168,7 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
           <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col bg-wk-bg">
             {children}
           </main>
-          <Footer poweredBySalvageUrl="/Powered_by_Salvage_Black.webp" />
+          <Footer poweredBySalvageUrl="/Powered_by_Salvage_Black.webp" foot={foot} />
         </div>
       </body>
     </html>

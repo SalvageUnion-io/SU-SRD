@@ -1,3 +1,7 @@
+import { resolveEntityPageMeta } from 'component-lib'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { chapterForSchema } from '../lib/chapters'
+import { entityPageFoot } from './EntityPageFrame'
 import { Footer } from './Footer'
 
 export default {
@@ -5,10 +9,46 @@ export default {
 }
 
 /**
- * The site footer — the site's own pages (Changelog, API, Discord, About), the
- * Leyline Press copyright + Salvage Union OGL 1.0b attribution
- * + the "Powered by Salvage" logo. (Still on pre-canon `the ink ramp`/`ink`
- * tokens — pending refresh + approval. The `poweredBySalvageUrl` asset lives in
- * each app's public dir, so the logo shows broken here in the shared library.)
+ * Where every SRD page ends. Real data: each book page's foot is built the way
+ * its page module builds it — `chapterForSchema` for the tone,
+ * `resolveEntityPageMeta` for the citation, `entityPageFoot` to join them. The
+ * mark is the app's public asset, which the catalog also serves.
  */
-export const Default = () => <Footer poweredBySalvageUrl="/Powered_by_Salvage_Black.webp" />
+
+const MARK = '/Powered_by_Salvage_Black.webp'
+
+function footFor(
+  schemaId: Parameters<typeof chapterForSchema>[0],
+  entity: Parameters<typeof resolveEntityPageMeta>[0] | undefined
+) {
+  return entity
+    ? entityPageFoot(chapterForSchema(schemaId).tone, resolveEntityPageMeta(entity))
+    : undefined
+}
+
+/** Home, listings, guides and the site's own pages: the slim rules-blue band (board 06). */
+export const Rules = () => <Footer poweredBySalvageUrl={MARK} />
+
+/** A Mech Workshop page (board 07): the Gopher's citation in the mech band, ink text. */
+export const Mech = () => (
+  <Footer
+    poweredBySalvageUrl={MARK}
+    foot={footFor('chassis', SalvageUnionReference.Chassis.getByName('Gopher'))}
+  />
+)
+
+/** A Denizens page: the navy band carries paper text, and the mark reverses to paper. */
+export const Denizen = () => (
+  <Footer
+    poweredBySalvageUrl={MARK}
+    foot={footFor('bio-titans', SalvageUnionReference.BioTitans.all()[0])}
+  />
+)
+
+/** A Union Crawler page: the deeper crawler pink carries paper text (ruleset §3.8). */
+export const Crawler = () => (
+  <Footer
+    poweredBySalvageUrl={MARK}
+    foot={footFor('crawlers', SalvageUnionReference.Crawlers.all()[0])}
+  />
+)

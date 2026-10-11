@@ -14,7 +14,7 @@ import { BaseLayout } from '../src/layouts/BaseLayout'
 import { escapeJsonForScript } from '../src/lib/escapeJsonForScript'
 import type { CollectedIslandProps } from '../src/runtime/Island'
 import { beginIslandCollection, endIslandCollection } from '../src/runtime/Island'
-import type { BuiltAssets, DocumentMeta, DocumentShell } from './types'
+import type { BuiltAssets, DocumentMeta, DocumentShell, PageFoot } from './types'
 
 /** Hashed URLs of the built client assets, read from `dist/.vite/manifest.json`. */
 export type BuildAssets = {
@@ -52,6 +52,8 @@ export type RenderDocumentInput = {
   assets: BuildAssets
   /** `'bare'` renders `children` AS the document; see `DocumentShell`. */
   shell?: DocumentShell
+  /** A book page's foot: its chapter tone and citation; see `PageFoot`. */
+  foot?: PageFoot
 }
 
 export function renderDocument({
@@ -60,6 +62,7 @@ export function renderDocument({
   children,
   assets,
   shell = 'base',
+  foot,
 }: RenderDocumentInput): string {
   beginIslandCollection()
   let markup: string
@@ -72,7 +75,7 @@ export function renderDocument({
       shell === 'bare' ? (
         children
       ) : (
-        <BaseLayout meta={meta} pathname={pathname}>
+        <BaseLayout meta={meta} pathname={pathname} foot={foot}>
           {children}
         </BaseLayout>
       )
