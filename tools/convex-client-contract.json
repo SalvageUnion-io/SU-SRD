@@ -2152,6 +2152,10 @@
       "type": "object",
       "value": {}
     },
+    "shelf:patternSharing": {
+      "type": "object",
+      "value": {}
+    },
     "shelf:removeEncounterNpc": {
       "type": "object",
       "value": {

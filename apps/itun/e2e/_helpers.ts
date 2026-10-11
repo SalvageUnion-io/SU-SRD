@@ -385,22 +385,24 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Open the live sheet for the named entity from the Roster's saved rows.
+ * Open the live sheet for the named entity from Shelves (issue 1279, board S1).
  *
- * Each row is an <li> rendering component-lib's `EntityRow`, whose sheet link
- * is labelled **"View"**. Match the link by its `/sheet/` href, not its text:
- * the href is the contract this helper depends on, and it survives a copy
- * change that would otherwise leave the helper waiting until the job's
- * 30-minute ceiling.
+ * Each item on a shelf is one line, a link to its sheet whose text carries the
+ * entity's name. Match the link by its `/sheet/` href and that text, not by
+ * the row around it: an item's chips name the units linked to it ("Linked:
+ * Stomper"), so the first row mentioning a name may be somebody else's. The
+ * href is the contract this helper depends on, and it survives a copy change
+ * that would otherwise leave the helper waiting until the job's 30-minute
+ * ceiling.
  */
 export async function openSheetFor(page: Page, name: string): Promise<void> {
   await gotoStable(page, '/')
   await waitForReady(page)
-  const row = page.locator('li', { hasText: name }).first()
-  await expect(row, `roster row for "${name}" should render`).toBeVisible({
+  const line = page.locator('a[href*="/sheet/"]', { hasText: name }).first()
+  await expect(line, `shelf item for "${name}" should render`).toBeVisible({
     timeout: 15_000,
   })
-  await row.locator('a[href*="/sheet/"]').first().click()
+  await line.click()
   await page.waitForURL(/\/sheet\//, { timeout: 20_000 })
 }
 

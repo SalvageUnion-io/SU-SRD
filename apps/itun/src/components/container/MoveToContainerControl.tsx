@@ -62,15 +62,14 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { Container, ContainerFields } from '../../lib/container'
-import { containerOf, moveTo, sameContainer } from '../../lib/container'
+import { containerOf, moveTo } from '../../lib/container'
 import { moveDestinations } from '../../lib/games/gameRoster'
-import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
-import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
 import type { Confirm } from '../shared/useConfirm'
+import { requestMove } from './requestMove'
 
 type MoveToContainerControlProps = {
   entityType: AssignableType
@@ -133,43 +132,19 @@ function ConnectedMoveToContainerControl({
   }
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const next = parseContainer(e.target.value)
-    // Either confirm shows a failure on the dialog, which outlives this
-    // control, so the move it runs is bare.
-    if (current.kind === 'game' && !sameContainer(current, next)) {
-      // Out of a Game: always ask.
-      confirm({
-        ...ROW_ACTION_COPY.leaveGame({
-          name: entity.name,
-          kind: entityType,
-          from: gameName(current.gameId),
-          to: next.kind === 'shelf' ? next : { kind: 'game', name: gameName(next.gameId) },
-        }),
-        onConfirm: () => move(next),
-      })
-      return
-    }
-    // Into a Game from your shelves: ask only when the move clears an assignment.
-    const cleared =
-      next.kind === 'game'
-        ? assignmentsClearedByMove(
-            useEntityStore.getState(),
-            { type: entityType, id: entityId },
-            next
-          )
-        : []
-    if (next.kind === 'shelf' || cleared.length === 0) {
-      void moveNow(next)
-      return
-    }
-    confirm({
-      ...ROW_ACTION_COPY.enterGame({
-        name: entity.name,
-        kind: entityType,
-        game: gameName(next.gameId),
-        cleared,
-      }),
-      onConfirm: () => move(next),
+    // Out of a Game always asks; into one asks only when it clears an
+    // assignment (`requestMove`). Either confirm shows a failure on the
+    // dialog, which outlives this control, so the move it runs is bare.
+    requestMove({
+      entityType,
+      entityId,
+      name: entity.name,
+      current,
+      next: parseContainer(e.target.value),
+      gameName,
+      confirm,
+      move,
+      moveNow: (next) => void moveNow(next),
     })
   }
 
@@ -185,7 +160,7 @@ function ConnectedMoveToContainerControl({
           onChange={handleChange}
           disabled={pending || destinations.length <= 1}
           className="w-auto disabled:opacity-50 sm:min-h-9"
-          aria-label="Move to a game or your shelves"
+          aria-label="Move to a game or your shelf"
         >
           {shelfOptions.map((d) => (
             <option key="shelf" value="shelf">

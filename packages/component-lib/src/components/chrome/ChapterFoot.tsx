@@ -29,6 +29,7 @@ const FOOT_BAND: Record<ChapterTone, { background: string; text: string }> = {
   mech: { background: CHAPTER_BAND_COLOR.mech, text: color.ink },
   crawler: { background: color.crawlerBand, text: color.paper },
   denizen: { background: CHAPTER_BAND_COLOR.denizen, text: color.paper },
+  ink: { background: CHAPTER_BAND_COLOR.ink, text: color.paper },
 }
 
 export type ChapterFootProps = {

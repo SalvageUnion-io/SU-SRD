@@ -99,12 +99,12 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 - `entityStore` (pilots/mechs/crawlers/npcs/softLinks), plus `activeContainerStore`,
   `patternStore` and `encounterStore`.
 - **There are no workspaces.** An entity lives in exactly one **container** — a
-  shared **Game** or the owner's **Shelf** ("My Stuff") — encoded as one
+  shared **Game** or the owner's **Shelf** — encoded as one
   nullable `gameId` and resolved through `src/lib/container.ts`. Filter with `containerOf` +
   `sameContainer`, and only when `mode === 'connected'`: signed out there is
   nothing to show, and Disconnected has no live Game list to filter against, so
-  it shows the cached pile whole. `Roster` shows one container: the shelf at
-  `/`, a Game at `/games/$gameId`.
+  it shows the cached pile whole. `Roster` shows Shelves at `/` (all you
+  keep, Games too) and a Game at `/games/$gameId`.
 - **Assignments** ([ADR-037](../../docs/ARCHITECTURE.md#adr-037)):
   draw soft links only via `assignLink`; the rules are
   `src/lib/links/linkRules.ts`, shared with `convex/`.

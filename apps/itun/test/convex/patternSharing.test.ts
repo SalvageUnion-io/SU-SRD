@@ -220,3 +220,29 @@ describe('mechs built from it are counted', () => {
     expect(answer?.builtCount).toBe(0)
   })
 })
+
+describe('the maker’s shelf reads who can see each pattern', () => {
+  test('one row per pattern of theirs: its visibility, its crew and its build count', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedTable(t)
+    await savePattern(player)
+    await savePattern(player, { id: 'pat-quiet-hours', name: 'Quiet Hours' })
+    await player.as.mutation(api.shelf.setPatternVisibility, {
+      patternId: PATTERN_ID,
+      visibility: 'game',
+      gameId,
+    })
+
+    const facts = await player.as.query(api.shelf.patternSharing, {})
+    expect(facts).toHaveLength(2)
+    expect(facts).toEqual(
+      expect.arrayContaining([
+        { appId: PATTERN_ID, visibility: 'game', gameName: 'Tenacity', builtCount: 0 },
+        { appId: 'pat-quiet-hours', visibility: 'private', gameName: null, builtCount: 0 },
+      ])
+    )
+    // Nobody else's, and nothing signed out.
+    expect(await organizer.as.query(api.shelf.patternSharing, {})).toEqual([])
+    expect(await t.query(api.shelf.patternSharing, {})).toEqual([])
+  })
+})

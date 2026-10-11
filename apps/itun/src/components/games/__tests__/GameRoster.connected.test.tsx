@@ -421,7 +421,7 @@ describe('every verb that changes who has a build asks first', () => {
     await renderAs(ME, listing({ pilots: [WHOLE_PILOT] }))
     const dialog = press('Copy to your shelves')
 
-    expect(dialog.textContent).toContain('Copy Vex Arlo to your shelves?')
+    expect(dialog.textContent).toContain('Copy Vex Arlo to your shelf?')
     expect(dialog.textContent).toContain("won't sync back")
     expect(localPilotNames()).not.toContain('COPY OF Vex Arlo')
 
@@ -543,7 +543,7 @@ describe('remove from game', () => {
     const dialog = press('Remove from game')
 
     expect(dialog.textContent).toContain('Take Roach-Boy out of Tenacity?')
-    expect(dialog.textContent).toContain('goes back to your shelves')
+    expect(dialog.textContent).toContain('goes back to your shelf')
     expect(dialog.textContent).toContain('Their crawler assignment in Tenacity is cleared')
     expect(gameIdOf('a-mine')).toBe('g1')
 
@@ -556,7 +556,7 @@ describe('remove from game', () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
     press('Remove from game')
 
-    await confirmWith('Move to your shelves')
+    await confirmWith('Move to your shelf')
     // The move writes through IndexedDB, which outlasts one act() scope.
     await settle(() => screen.queryByRole('alertdialog') === null)
     expect(screen.queryByRole('alertdialog')).toBeNull()
