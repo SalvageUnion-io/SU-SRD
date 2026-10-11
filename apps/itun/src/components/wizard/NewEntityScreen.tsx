@@ -10,6 +10,10 @@
  * Signed out, none of these: building needs an account (ADR-034 as amended),
  * so the visitor gets the sign-in panel instead of a wizard whose last step
  * would be refused.
+ *
+ * An NPC has no Blank door (P7 D4): the designer carries its own "Start blank"
+ * tile, because a blank NPC made outside it could never gain the actions only
+ * the designer picks. `kind="npc"` is the guided wizard at every `mode`.
  */
 
 import { tokens } from 'component-lib'
@@ -24,7 +28,7 @@ import { CreateModeChooser } from './CreateModeChooser'
 const SIGNED_OUT = { padding: `${tokens.space[20]} ${tokens.space[16]}` } satisfies CSSProperties
 
 type NewEntityScreenProps = {
-  kind: BlankCreateKind
+  kind: BlankCreateKind | 'npc'
   mode: CreateMode
   /** The existing guided wizard — rendered UNCHANGED when mode==='guided'. */
   wizard: ReactNode
@@ -51,7 +55,7 @@ export function NewEntityScreen({
     )
   }
 
-  if (mode === 'guided') {
+  if (mode === 'guided' || kind === 'npc') {
     return <>{wizard}</>
   }
 

@@ -18,7 +18,7 @@ import { useEffect, useMemo, useRef } from 'react'
 
 const PREFIX = 'itun-wizard-draft'
 
-type WizardKind = 'pilot' | 'mech' | 'crawler'
+type WizardKind = 'pilot' | 'mech' | 'crawler' | 'npc'
 
 /**
  * Draft slot: one per wizard kind. The `:new` suffix is load-bearing — it is
