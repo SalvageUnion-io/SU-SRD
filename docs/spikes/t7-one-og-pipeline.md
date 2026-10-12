@@ -1,7 +1,15 @@
 # Spike T7: one OG image pipeline
 
-Refit ledger item T7, spike. **Status: for the owner to decide.** Nothing here
-is built; this doc is the deliverable.
+Refit ledger item T7, spike. **Status: decided (2026-10-12): option B. Closed
+as measured; re-opens when S2 moves ITUN to salvageunion.io/build.** Nothing
+here is built; this doc is the deliverable.
+
+## Decision
+
+The owner chose **B** ([#1396](https://github.com/SalvageUnion-io/SU-SRD/pull/1396#issuecomment-6124251979)):
+srd's OG images stay build-time (`og-srd`, E6's cache) and ITUN keeps its
+runtime render. T7 closes as measured. **Re-open T7 when S2 moves ITUN to
+salvageunion.io/build**, the first trigger under Recommendation.
 
 ## The question
 
