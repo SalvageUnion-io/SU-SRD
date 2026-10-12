@@ -96,6 +96,27 @@ describe('a listing (compact cards under a visible heading)', () => {
     expect(html).toContain('srd-listing__fallback-row')
   })
 
+  it('first paints the island’s rail and default groups, so the mount moves nothing', () => {
+    const groups = [...html.matchAll(/class="srd-listing__group" aria-label="([^"]+)"/g)].map(
+      (match) => match[1]
+    )
+    expect(groups).toEqual([
+      'Tech Level 1',
+      'Tech Level 2',
+      'Tech Level 3',
+      'Tech Level 4',
+      'Tech Level 5',
+      'Tech Level 6',
+      'Bio-tech',
+      'Nanite',
+    ])
+    // The rail is its inert placeholder, above the first group.
+    expect(html).toContain('<div class="srd-rail" inert="">')
+    expect(html.indexOf('srd-rail')).toBeLessThan(html.indexOf('srd-listing__group'))
+    // The skeleton takes the same groups from the island's props.
+    expect(html).toContain('"groups":[{"key":"1","label":"Tech Level 1","count":')
+  })
+
   it('trails Contents / Mech Workshop / Chassis', () => {
     expect(html).toContain('>Contents<')
     expect(html).toContain('>Mech Workshop<')

@@ -11,19 +11,26 @@
  * `ssg/DESIGN.md`), but what it server-renders is `SchemaItemLinks`, not the
  * island: the island's grid sits behind a client-only data gate, so its server
  * render was nine skeletons. The named rows are the page's content for
- * crawlers, no-JS readers and the moment before the island mounts, laid out in
- * the list view's own grid. Mounting is still `createRoot`, so the rows are
- * discarded on the client and no mismatch is possible.
+ * crawlers, no-JS readers and the moment before the island mounts, laid out as
+ * the island lays its grid out: below its rail (`ListingRail`, inert here), in
+ * its default groups (`lib/listingGroups.ts`), each row in a tile's shape where
+ * the Catalog is the default. The island's skeleton takes the same rail and
+ * groups (its `shape` prop), so neither the mount nor the data arriving moves
+ * the grid. Mounting is still `createRoot`, so the rows are discarded on the
+ * client and no mismatch is possible.
  */
 
-import { ChapterBand } from 'component-lib'
+import { ChapterBand, Slab } from 'component-lib'
 import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
 import { getAssetUrl, getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
+import { ListingRail } from '../../../components/islands/ListingRail'
 import { chapterForSchema } from '../../../lib/chapters'
 import { SITE_URL, TITLE_SUFFIX } from '../../../lib/constants'
 import { itemHref, schemaHref } from '../../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../lib/gameData'
+import type { ListingGroup, ListingShape, TechLevel } from '../../../lib/listingGroups'
+import { defaultGroups, orderTechLevels, WIDE_LISTINGS } from '../../../lib/listingGroups'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
 import { getSchemaStaticPaths } from '../../../lib/staticPaths'
 import { Island } from '../../../runtime/Island'
@@ -34,31 +41,57 @@ type Props = { schema: EnhancedSchemaMetadata; data: SURefEntity[] }
 /** The listing's measure — the island's own container. */
 const MEASURE = '87.5rem'
 
-/** One named row per entity, in the list view's own grid, for the server render. */
+/**
+ * One named row per entity, in the island's default groups under their
+ * headings and below its rail (inert until the island's replaces it), for the
+ * server render: the grid the island mounts lands where this one stood.
+ */
 function SchemaItemLinks({
   schemaId,
-  data,
+  groups,
+  count,
+  techLevels,
+  sources,
+  trees,
   hasArt,
 }: {
   schemaId: string
-  data: SURefEntity[]
+  groups: ListingGroup[]
+  count: number
+  techLevels: TechLevel[]
+  sources: string[]
+  trees: string[]
   hasArt: boolean
 }) {
   return (
-    <div className="srd-listing" data-art={hasArt || undefined}>
-      <ul className="srd-listing__cards">
-        {data.map((item) => (
-          <li key={item.id}>
-            <a
-              href={itemHref(schemaId, getEntitySlug(item))}
-              aria-label={item.name}
-              className="srd-listing__fallback-row"
-            >
-              {item.name}
-            </a>
-          </li>
+    <div
+      className="srd-listing"
+      data-art={hasArt || undefined}
+      data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
+    >
+      <ListingRail
+        facets={{ count, techLevels: orderTechLevels(techLevels), sources, trees, hasArt }}
+      />
+      <div className="srd-listing__groups">
+        {groups.map((group) => (
+          <section key={group.key} className="srd-listing__group" aria-label={group.label}>
+            {group.label && <Slab variant="solid" label={group.label} />}
+            <ul className="srd-listing__cards">
+              {group.items.map((item) => (
+                <li key={item.id}>
+                  <a
+                    href={itemHref(schemaId, getEntitySlug(item))}
+                    aria-label={item.name}
+                    className="srd-listing__fallback-row"
+                  >
+                    {item.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
         ))}
-      </ul>
+      </div>
     </div>
   )
 }
@@ -80,6 +113,13 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const preloadSchemas = getSchemaPreloadList(schemaId)
   // A schema with artwork has a Catalog view, the default at a desktop measure.
   const hasArt = data.some((item) => !!getAssetUrl(item))
+  // The island's default grouping, so the server render and the skeleton
+  // set the same headings the grid mounts under.
+  const groups = defaultGroups(data, trees, techLevels)
+  const shape: ListingShape = {
+    count: data.length,
+    groups: groups.map(({ key, label, items }) => ({ key, label, count: items.length })),
+  }
 
   return {
     meta: {
@@ -130,9 +170,17 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             name="SchemaViewerIsland"
             client="visible"
             ssr
-            props={{ schemaId, techLevels, sources, trees, preloadSchemas, hasArt }}
+            props={{ schemaId, techLevels, sources, trees, preloadSchemas, hasArt, shape }}
           >
-            <SchemaItemLinks schemaId={schemaId} data={data} hasArt={hasArt} />
+            <SchemaItemLinks
+              schemaId={schemaId}
+              groups={groups}
+              count={data.length}
+              techLevels={techLevels}
+              sources={sources}
+              trees={trees}
+              hasArt={hasArt}
+            />
           </Island>
         </div>
       </div>

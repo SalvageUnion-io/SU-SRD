@@ -1,23 +1,24 @@
-import {
-  Button,
-  EmptyState,
-  Entity,
-  EntitySurfaceProvider,
-  SearchField,
-  Select,
-  Skeleton,
-  Slab,
-} from 'component-lib'
+import { Button, EmptyState, Entity, EntitySurfaceProvider, Skeleton, Slab } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getEntitySlug, getModel, getSource, getTechLevel, getTree } from 'salvageunion-reference'
 import { itemHref, srdHrefFor } from '../../lib/entityHref'
+import type { ListingShape, TechLevel } from '../../lib/listingGroups'
+import {
+  groupEntities,
+  orderTechLevels,
+  resolveGroupBy,
+  tlName,
+  WIDE_LISTINGS,
+} from '../../lib/listingGroups'
 import type { ListingView } from '../../lib/listingView'
 import { PARAM_VIEW, useListingView } from '../../lib/listingView'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate } from '../../lib/useGameData'
 import { EntityListingRow } from './EntityListingRow'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
+import type { RailActions } from './ListingRail'
+import { ListingRail, shortSource, tlButtonLabel } from './ListingRail'
 
 // URL query-param keys the filter state is synced to, so a filtered view is
 // bookmarkable/shareable and survives back-navigation.
@@ -46,87 +47,6 @@ function readUrlChoice(name: string): string {
   return readUrlParam(name).split(',')[0] ?? ''
 }
 
-type TechLevel = number | 'B' | 'N'
-
-/** The book's tech-level order: TL1–6, then Bio-tech and Nanite. */
-const TL_ORDER: readonly TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
-
-/** A tech level as the rail's toggle prints it: the numeral, or the word. */
-function tlButtonLabel(level: TechLevel): string {
-  return level === 'B' ? 'Bio' : level === 'N' ? 'Nanite' : String(level)
-}
-
-/** A tech level as a group heading and a filter token say it. */
-function tlName(level: TechLevel): string {
-  return level === 'B' ? 'Bio-tech' : level === 'N' ? 'Nanite' : `Tech Level ${level}`
-}
-
-/** The source as the menu prints it: the core rulebook's series prefix is noise there. */
-function shortSource(source: string): string {
-  return source.replace(/^Salvage Union /, '')
-}
-
-/** A listing's groups, in the order the book prints them. */
-type ListingGroup = { key: string; label: string | undefined; items: SURefEntity[] }
-
-/**
- * How a listing groups its entities, by data shape: abilities by tree, gear and
- * chassis by tech level, classes into base and hybrid. The group heading then
- * says what each card would otherwise repeat (the tree on its type stamp, its TL cell).
- */
-type GroupBy = 'tree' | 'tl' | 'kind' | 'none'
-
-function resolveGroupBy(items: SURefEntity[], trees: string[], techLevels: TechLevel[]): GroupBy {
-  if (trees.length > 1) return 'tree'
-  if (techLevels.length > 1 && items.every((item) => getTechLevel(item) != null)) return 'tl'
-  if (items.length > 0 && items.every((item) => 'hybrid' in item)) return 'kind'
-  return 'none'
-}
-
-function groupEntities(items: SURefEntity[], groupBy: GroupBy): ListingGroup[] {
-  if (groupBy === 'none') return [{ key: 'all', label: undefined, items }]
-  const byKey = new Map<string, ListingGroup>()
-  for (const item of items) {
-    const tl = getTechLevel(item)
-    const tree = getTree(item)
-    const hybrid = 'hybrid' in item && item.hybrid === true
-    const key =
-      groupBy === 'tree'
-        ? String(tree ?? '')
-        : groupBy === 'tl'
-          ? String(tl ?? '')
-          : hybrid
-            ? 'hybrid'
-            : 'base'
-    const label =
-      groupBy === 'tree'
-        ? `${String(tree ?? '')} Tree`
-        : groupBy === 'tl'
-          ? tl != null
-            ? tlName(tl)
-            : ''
-          : hybrid
-            ? 'Hybrid Classes'
-            : 'Base Classes'
-    const group = byKey.get(key) ?? { key, label, items: [] }
-    group.items.push(item)
-    byKey.set(key, group)
-  }
-  const groups = [...byKey.values()]
-  if (groupBy === 'tl') {
-    const rank = (key: string) => TL_ORDER.findIndex((tl) => String(tl) === key)
-    groups.sort((a, b) => rank(a.key) - rank(b.key))
-  }
-  if (groupBy === 'kind') groups.sort((a) => (a.key === 'base' ? -1 : 1))
-  return groups
-}
-
-/**
- * Listings whose cards carry a long row of value cells take a wider column, so
- * the cells hold one line beside the art (two across at the page's measure).
- */
-const WIDE_LISTINGS: ReadonlySet<string> = new Set(['chassis'])
-
 type SchemaViewerIslandProps = {
   schemaId: string
   techLevels: TechLevel[]
@@ -140,6 +60,10 @@ type SchemaViewerIslandProps = {
   /** Whether any entity in the schema has artwork: only then is there a
    *  Catalog view (the default at a desktop measure, `listingView.ts`). */
   hasArt?: boolean
+  /** The unfiltered listing's size and groups, from build-time data: the
+   *  skeleton sets the rail and the group headings where the grid will put
+   *  them. Without it the skeleton is a flat run of placeholders. */
+  shape?: ListingShape
 }
 
 /**
@@ -156,6 +80,7 @@ type SchemaViewerIslandProps = {
 export function SchemaViewerIsland({
   preloadSchemas,
   hasArt = false,
+  shape,
   ...props
 }: SchemaViewerIslandProps) {
   // Resolved here, above the gate, so the skeletons already take the view's shape.
@@ -166,25 +91,7 @@ export function SchemaViewerIsland({
         schemas={preloadSchemas}
         projection="list"
         fallback={
-          <div className="srd-listing">
-            {listingView.view === 'catalog' ? (
-              <ul className="srd-listing__tiles" aria-hidden="true">
-                {Array.from({ length: 12 }, (_, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: static 12-item skeleton placeholder list, never reordered — index is stable
-                  <li key={i} className="srd-listing__tile-skeleton" />
-                ))}
-              </ul>
-            ) : (
-              <ul className="srd-listing__cards" data-entity-grid="">
-                {Array.from({ length: 9 }, (_, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: static 9-item skeleton placeholder list, never reordered — index is stable
-                  <li key={i}>
-                    <Skeleton mode="card" compact />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          <ListingSkeleton {...props} hasArt={hasArt} shape={shape} view={listingView.view} />
         }
       >
         <SchemaViewer {...props} hasArt={hasArt} listingView={listingView} />
@@ -201,7 +108,7 @@ function SchemaViewer({
   trees = [],
   hasArt,
   listingView,
-}: Omit<SchemaViewerIslandProps, 'preloadSchemas'> & {
+}: Omit<SchemaViewerIslandProps, 'preloadSchemas' | 'shape'> & {
   listingView: ReturnType<typeof useListingView>
 }) {
   const { view, setView, fromUrl: viewInUrl } = listingView
@@ -257,10 +164,7 @@ function SchemaViewer({
     })
   }, [initialData, techLevelFilters, sourceFilter, treeFilter, nameFilter])
 
-  const orderedTechLevels = useMemo(
-    () => TL_ORDER.filter((tl) => techLevels.some((level) => String(level) === String(tl))),
-    [techLevels]
-  )
+  const orderedTechLevels = useMemo(() => orderTechLevels(techLevels), [techLevels])
   const groupBy = resolveGroupBy(initialData, trees, orderedTechLevels)
   const groups = useMemo(() => groupEntities(filteredData, groupBy), [filteredData, groupBy])
   // A single-kind listing: no type stamp, and no TL cell when the tech level heads the group.
@@ -277,13 +181,6 @@ function SchemaViewer({
     })
   }
 
-  const hasTechLevels = orderedTechLevels.length > 1
-  const hasSources = sources.length > 1
-  const hasTrees = trees.length > 1
-  const hasFacets = hasTechLevels || hasSources || hasTrees
-  // Show the name input whenever the dataset is large enough to benefit from it
-  const hasNameFilter = initialData.length > 12
-
   const activeFacets = techLevelFilters.size + (sourceFilter ? 1 : 0) + (treeFilter ? 1 : 0)
   const hasActiveFilters = activeFacets > 0 || nameFilter !== ''
   const clearFilters = () => {
@@ -292,6 +189,15 @@ function SchemaViewer({
     setTreeFilter('')
     setNameFilter('')
   }
+  const railActions: RailActions = {
+    setName: setNameFilter,
+    toggleTechLevel,
+    clearTechLevels: () => setTechLevelFilters(new Set()),
+    setSource: setSourceFilter,
+    setTree: setTreeFilter,
+    setView,
+    toggleFacets: () => setFacetsOpen((open) => !open),
+  }
 
   return (
     <div
@@ -299,119 +205,24 @@ function SchemaViewer({
       data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
       data-view={view}
     >
-      {/* THE RAIL — one row of 44px controls: search, the TL badge, the menus,
-          then List | Catalog where the schema has art. On a phone the facets
-          fold behind Filters. */}
-      <div className="srd-rail" data-open={facetsOpen || undefined}>
-        {hasNameFilter && (
-          <SearchField
-            type="search"
-            name="name-filter"
-            value={nameFilter}
-            onChange={(e) => setNameFilter(e.target.value)}
-            placeholder={`Filter ${initialData.length} by name`}
-            aria-label="Filter items by name"
-            containerClassName="srd-rail__search"
-            glyphSize={18}
-          />
-        )}
-        {hasFacets && (
-          <button
-            type="button"
-            className="srd-rail__filters su-focus-ring"
-            aria-expanded={facetsOpen}
-            aria-controls="srd-rail-facets"
-            onClick={() => setFacetsOpen((open) => !open)}
-          >
-            Filters
-            {activeFacets > 0 && <span className="srd-rail__count">{activeFacets}</span>}
-          </button>
-        )}
-        <span className="srd-rail__spring" />
-        {hasArt && (
-          <fieldset className="srd-seg srd-rail__view">
-            <legend className="srd-vh">View</legend>
-            {(['list', 'catalog'] as const satisfies readonly ListingView[]).map((option) => (
-              <button
-                key={option}
-                type="button"
-                className="srd-seg__option su-focus-ring"
-                aria-pressed={view === option}
-                onClick={() => setView(option)}
-              >
-                {option === 'list' ? 'List' : 'Catalog'}
-              </button>
-            ))}
-          </fieldset>
-        )}
-        {hasFacets && (
-          <div className="srd-rail__facets" id="srd-rail-facets">
-            {hasTechLevels && (
-              <fieldset className="srd-seg srd-seg--tl">
-                <legend className="srd-vh">Tech Level</legend>
-                <span className="srd-seg__stamp" aria-hidden="true">
-                  TL
-                </span>
-                <button
-                  type="button"
-                  className="srd-seg__option su-focus-ring"
-                  aria-pressed={techLevelFilters.size === 0}
-                  onClick={() => setTechLevelFilters(new Set())}
-                >
-                  All
-                </button>
-                {orderedTechLevels.map((level) => (
-                  <button
-                    key={String(level)}
-                    type="button"
-                    className="srd-seg__option su-focus-ring"
-                    data-numeral={typeof level === 'number' || undefined}
-                    aria-pressed={techLevelFilters.has(String(level))}
-                    aria-label={tlName(level)}
-                    onClick={() => toggleTechLevel(level)}
-                  >
-                    {tlButtonLabel(level)}
-                  </button>
-                ))}
-              </fieldset>
-            )}
-            {hasSources && (
-              <Select
-                chevron
-                aria-label="Source"
-                className="srd-rail__menu"
-                data-on={sourceFilter ? true : undefined}
-                value={sourceFilter}
-                onChange={(e) => setSourceFilter(e.target.value)}
-              >
-                <option value="">All sources</option>
-                {sources.map((source) => (
-                  <option key={source} value={source}>
-                    {shortSource(source)}
-                  </option>
-                ))}
-              </Select>
-            )}
-            {hasTrees && (
-              <Select
-                chevron
-                aria-label="Tree"
-                className="srd-rail__menu"
-                data-on={treeFilter ? true : undefined}
-                value={treeFilter}
-                onChange={(e) => setTreeFilter(e.target.value)}
-              >
-                <option value="">All {trees.length} trees</option>
-                {trees.map((tree) => (
-                  <option key={tree} value={tree}>
-                    {tree}
-                  </option>
-                ))}
-              </Select>
-            )}
-          </div>
-        )}
-      </div>
+      <ListingRail
+        facets={{
+          count: initialData.length,
+          techLevels: orderedTechLevels,
+          sources,
+          trees,
+          hasArt: !!hasArt,
+        }}
+        filters={{
+          techLevels: techLevelFilters,
+          source: sourceFilter,
+          tree: treeFilter,
+          name: nameFilter,
+        }}
+        facetsOpen={facetsOpen}
+        view={view}
+        actions={railActions}
+      />
 
       {/* What is filtered, only while something is: the count, a token per
           filter that removes it, and Clear all. */}
@@ -509,6 +320,70 @@ function SchemaViewer({
           </div>
         </EntitySurfaceProvider>
       )}
+    </div>
+  )
+}
+
+/**
+ * The listing while its schema loads: the rail as its inert placeholder, then
+ * the default groups under their headings, a placeholder per entity in the
+ * view's shape — the server render's layout, so neither the gate opening nor
+ * the mount before it moves the grid.
+ */
+function ListingSkeleton({
+  schemaId,
+  techLevels,
+  sources,
+  trees = [],
+  hasArt,
+  shape,
+  view,
+}: Omit<SchemaViewerIslandProps, 'preloadSchemas'> & { view: ListingView }) {
+  const catalog = view === 'catalog'
+  const groups = shape?.groups ?? [{ key: 'all', label: undefined, count: catalog ? 12 : 9 }]
+  return (
+    <div
+      className="srd-listing"
+      data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
+      data-view={view}
+      aria-hidden="true"
+    >
+      {shape && (
+        <ListingRail
+          facets={{
+            count: shape.count,
+            techLevels: orderTechLevels(techLevels),
+            sources,
+            trees,
+            hasArt: !!hasArt,
+          }}
+          view={view}
+        />
+      )}
+      <div className="srd-listing__groups">
+        {groups.map((group) => (
+          <section key={group.key} className="srd-listing__group">
+            {group.label && <Slab variant="solid" label={group.label} />}
+            {catalog ? (
+              <ul className="srd-listing__tiles">
+                {Array.from({ length: group.count }, (_, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholder list, never reordered — index is stable
+                  <li key={i} className="srd-listing__tile-skeleton" />
+                ))}
+              </ul>
+            ) : (
+              <ul className="srd-listing__cards" data-entity-grid="">
+                {Array.from({ length: group.count }, (_, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholder list, never reordered — index is stable
+                  <li key={i}>
+                    <Skeleton mode="card" compact />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ))}
+      </div>
     </div>
   )
 }
