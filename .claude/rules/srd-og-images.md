@@ -1,6 +1,6 @@
 ---
 paths:
-  - 'apps/srd/scripts/og-screenshots.ts'
+  - 'apps/srd/scripts/og*'
   - 'apps/srd/src/lib/ogCard.ts'
   - 'apps/srd/src/components/islands/OgCardIsland.tsx'
   - 'packages/component-lib/src/components/shared/OgCard*'
@@ -31,10 +31,14 @@ pages agree on it. `apps/srd/scripts/og-screenshots.ts` screenshots it at
   only for pages whose PNG actually landed. Generation being skipped, capped by
   `OG_SCREENSHOTS_BUDGET_MS`, or failing outright therefore degrades to the
   default banner and **never fails the build** (#482).
-- Bump `SCRIPT_VERSION` in the script whenever the card's _rendering_ changes
-  (OgCard, ChapterBand, fonts, dimensions); entity data changes invalidate on their own.
-  The deploy's `og-srd` job keys its persisted copy of this cache on every
-  render input as well, so there a rendering change starts cold regardless.
+- There is no version to bump. Each cached PNG is keyed on its entity's JSON
+  and the render key: `apps/srd/scripts/ogRenderFingerprint.ts` hashes the built
+  bytes that draw the card (the og-card page, its CSS and fonts, the
+  `OgCardIsland` chunk graph; never the data chunks or other islands), plus the
+  script and the Playwright and sharp versions. A rendering change re-renders
+  every card; an unrelated commit restores them all. The deploy's `og-srd` job
+  (`.github/actions/srd-og`) persists the cache under the same key
+  (`og-screenshots.ts --fingerprint`).
 - **Patterns** (a chassis's, a Bio-Titan's) get their own card at
   `…/item/{itemId}/pattern/{patternId}.og.png` rather than inheriting the
   host's image.
