@@ -3,8 +3,8 @@
  *
  * - **`RootErrorComponent`** is the last resort, on the root route. It replaces
  *   the whole app — header included — because what failed may be the chrome
- *   itself (a rejected game-data preload behind the root gate, a blocked
- *   IndexedDB upgrade), so the only honest recovery is a reload.
+ *   itself (a rejected game-data preload behind the root gate), so the only
+ *   honest recovery is a reload.
  * - **`RouteErrorComponent`** is the router's `defaultErrorComponent`, so every
  *   other route gets its own boundary. A throw inside the Dashboard, a sheet or
  *   a Game replaces only that route's content, leaves the header in place to
@@ -20,8 +20,9 @@
 import type { ErrorComponentProps } from '@tanstack/react-router'
 import { useRouter } from '@tanstack/react-router'
 import { RecoveryPanel } from 'component-lib'
-import type { ReactNode } from 'react'
-import { isBlockedUpgrade, savedWorkCopy } from '../../lib/routeErrorCopy'
+import { borderWidth, color, fontSize, radius, space } from 'component-lib/design/tokens'
+import type { CSSProperties, ReactNode } from 'react'
+import { savedWorkCopy } from '../../lib/routeErrorCopy'
 import type { BackendKind } from '../../stores/entityBackend'
 import { selectBackend } from '../../stores/entityBackend'
 
@@ -36,36 +37,52 @@ function currentBackend(): BackendKind | null {
   }
 }
 
-const BLOCKED_UPGRADE_MESSAGE =
-  'In the Union Now is open in another browser tab running an older version, which is blocking this one from loading. Close every other In the Union Now tab, then reload. Your saved data is safe.'
+const ERROR_DUMP = {
+  backgroundColor: color.wkBg,
+  borderColor: color.ink20,
+  borderRadius: radius.card,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.chrome,
+  color: color.ink,
+  fontSize: fontSize.xs,
+  lineHeight: '1rem',
+  maxWidth: '100%',
+  overflow: 'auto',
+  padding: space[12],
+  textAlign: 'left',
+} satisfies CSSProperties
+
+/** The whole-app error screen: the panel centred on the workshop ground. */
+const ROOT_SHELL = {
+  alignItems: 'center',
+  backgroundColor: color.wkBg,
+  display: 'flex',
+  justifyContent: 'center',
+  minHeight: '100dvh',
+  padding: space[24],
+} satisfies CSSProperties
+
+/** A route's error screen: the panel centred in the route's own content. */
+const ROUTE_SHELL = {
+  display: 'flex',
+  justifyContent: 'center',
+  padding: space[24],
+} satisfies CSSProperties
 
 /** The error text itself — development builds only. */
 function DevErrorDump({ error }: { error: unknown }): ReactNode {
   if (!import.meta.env.DEV) return null
-  return (
-    <pre className="max-w-full overflow-auto rounded-card border-chrome border-ink/20 bg-wk-bg p-3 text-left text-xs text-ink">
-      {error instanceof Error ? error.message : String(error)}
-    </pre>
-  )
+  return <pre style={ERROR_DUMP}>{error instanceof Error ? error.message : String(error)}</pre>
 }
 
 /** Top-level error boundary: replaces the whole app and offers a reload. */
 export function RootErrorComponent({ error }: ErrorComponentProps) {
-  const blocked = isBlockedUpgrade(error)
-
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-wk-bg p-6">
+    <main style={ROOT_SHELL}>
       <RecoveryPanel
-        title={blocked ? 'Close the other tab' : 'Something went wrong'}
-        message={
-          blocked
-            ? BLOCKED_UPGRADE_MESSAGE
-            : `The app hit an unexpected error. ${savedWorkCopy(currentBackend())}`
-        }
-        action={{
-          label: blocked ? 'Reload' : 'Reload app',
-          onClick: () => window.location.reload(),
-        }}
+        title="Something went wrong"
+        message={`The app hit an unexpected error. ${savedWorkCopy(currentBackend())}`}
+        action={{ label: 'Reload app', onClick: () => window.location.reload() }}
       >
         <DevErrorDump error={error} />
       </RecoveryPanel>
@@ -82,20 +99,8 @@ export function RootErrorComponent({ error }: ErrorComponentProps) {
 export function RouteErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter()
 
-  if (isBlockedUpgrade(error)) {
-    return (
-      <div className="flex justify-center p-6">
-        <RecoveryPanel
-          title="Close the other tab"
-          message={BLOCKED_UPGRADE_MESSAGE}
-          action={{ label: 'Reload', onClick: () => window.location.reload() }}
-        />
-      </div>
-    )
-  }
-
   return (
-    <div className="flex justify-center p-6">
+    <div style={ROUTE_SHELL}>
       <RecoveryPanel
         title="This page hit an error"
         message={`Something on this page failed to load. ${savedWorkCopy(currentBackend())}`}

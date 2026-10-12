@@ -6,7 +6,7 @@
  * `rowVersion` in `lib/links/linkSync.ts`). Two readers need it:
  *
  *  - **`ShelfSync`** adopts a served row only when it is newer than the version
- *    recorded here, so a body edited on another device reaches this cache even
+ *    recorded here, so a body edited on another device reaches this tab even
  *    though no id changed, and an emission older than a write this tab already
  *    made is not adopted over it.
  *  - **`commitEntityWrite`** sends it with a pilot or mech write as the version
@@ -15,7 +15,7 @@
  *    copy would otherwise undo the other device's edit without anyone seeing.
  *
  * Module state rather than a store: nothing renders from it. It is one
- * account's, so it is forgotten with the cache (`lib/account/cacheOwner.ts`).
+ * account's, so it is forgotten when the session ends (`sessionRows.ts`).
  */
 
 const versions = new Map<string, number>()
@@ -36,7 +36,7 @@ export function noteVersion(id: string, updatedAt: number): void {
   if (known === undefined || updatedAt > known) versions.set(id, updatedAt)
 }
 
-/** Forget every version: the cache they describe is gone. */
+/** Forget every version: the rows they describe are gone. */
 export function forgetVersions(): void {
   versions.clear()
 }

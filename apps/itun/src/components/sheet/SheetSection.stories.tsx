@@ -1,6 +1,8 @@
-import { ReferenceEntityCard, Slab } from 'component-lib'
+import '../../styles/sheet.css'
+import { ReferenceEntityCard, Slab, tokens } from 'component-lib'
 import type { Story } from 'component-lib/stories/harness'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { CardRemoveButton, HButton, SectionManageButton, SheetPickerModal } from './SheetSection'
@@ -13,6 +15,21 @@ export default {
 const system = SalvageUnionReference.Systems.all()[0]
 const ability = SalvageUnionReference.Abilities.all()[0]
 
+const FRAME = {
+  display: 'flex',
+  maxWidth: '48rem',
+  flexDirection: 'column',
+  gap: tokens.space[32],
+  backgroundColor: tokens.color.paper,
+  padding: tokens.space[16],
+} satisfies CSSProperties
+
+const CARDS = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
 /**
  * The live sheets' edit language, in the arrangement the sheets actually use: a
  * solid `Slab` section header whose `actions` slot carries an always-live Add
@@ -22,7 +39,7 @@ export const Default: Story = () => {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="sheet--mech flex max-w-3xl flex-col gap-8 bg-paper p-4">
+    <div className="sheet--mech" style={FRAME}>
       <div>
         <Caption>COLLECTION section — always-live Add + per-card remove</Caption>
         <Slab
@@ -31,7 +48,7 @@ export const Default: Story = () => {
           count={1}
           actions={<SectionManageButton label="systems" onClick={() => setOpen(true)} />}
         />
-        <div className="mt-2 flex flex-col gap-2">
+        <div style={{ ...CARDS, marginTop: tokens.space[8] }}>
           {system ? <ReferenceEntityCard data={system} size="medium" /> : null}
           <div>
             <CardRemoveButton name={system?.name ?? 'System'} onRemove={() => {}} />
@@ -45,7 +62,7 @@ export const Default: Story = () => {
       </div>
 
       <SheetPickerModal open={open} onClose={() => setOpen(false)} title="Add a System">
-        <div className="flex flex-col gap-2 p-2">
+        <div style={{ ...CARDS, padding: tokens.space[8] }}>
           {ability ? <ReferenceEntityCard data={ability} size="medium" extent="catalog" /> : null}
         </div>
       </SheetPickerModal>

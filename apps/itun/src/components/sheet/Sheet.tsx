@@ -16,8 +16,8 @@
  * live — and hands the views resolved data via props.
  */
 
-import { buttonVariants, cn } from 'component-lib'
-import type { ReactNode } from 'react'
+import { buttonVariants, cn, tokens } from 'component-lib'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { runWrite } from '../../lib/runWrite'
@@ -156,6 +156,15 @@ const liveSheetHref = (kind: EntityRef['type'], id: string): string => `/sheet/$
 
 const NONE_WITHHELD: readonly WithheldUnit[] = []
 
+/** The bar's trailing cluster: Share (or the offline lozenge) and ⋯. */
+const ACTIONS = {
+  alignItems: 'center',
+  display: 'flex',
+  gap: tokens.space[10],
+} satisfies CSSProperties
+
+const LINK = { textDecoration: 'none' } satisfies CSSProperties
+
 export function Sheet({
   kind,
   id,
@@ -253,7 +262,7 @@ export function Sheet({
       type="button"
       aria-label={`Print this ${kind} sheet`}
       onClick={() => window.print()}
-      className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'cursor-pointer')}
+      className={buttonVariants({ variant: 'ghost', size: 'compact' })}
     >
       Print
     </button>
@@ -273,7 +282,7 @@ export function Sheet({
       type="button"
       aria-label={`View the change log for this ${kind}`}
       onClick={() => setChangeLogOpen(true)}
-      className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'cursor-pointer')}
+      className={buttonVariants({ variant: 'ghost', size: 'compact' })}
     >
       Change Log
     </button>
@@ -284,7 +293,8 @@ export function Sheet({
     kind === 'mech' && !writesBlocked ? (
       <AppLink
         href={`/mechs/patterns/new?from=${encodeURIComponent(id)}`}
-        className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
+        className={buttonVariants({ variant: 'ghost', size: 'compact' })}
+        style={LINK}
       >
         Save as pattern
       </AppLink>
@@ -301,7 +311,7 @@ export function Sheet({
   // component could be, and it cannot disagree with what the recipient sees.
   // See ShareStatusDialog's header.
   const actions = !readOnlyProp ? (
-    <div className="flex items-center gap-2.5">
+    <div style={ACTIONS}>
       {writesBlocked ? (
         <WritesBlockedNotice />
       ) : (
@@ -309,7 +319,7 @@ export function Sheet({
           type="button"
           aria-label={`Share this ${kind}`}
           onClick={() => setShareOpen(true)}
-          className={cn(buttonVariants({ size: 'compact' }), 'min-h-11 cursor-pointer sm:min-h-9')}
+          className={cn(buttonVariants({ size: 'compact' }), 'su-sheet-share')}
         >
           Share
         </button>

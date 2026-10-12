@@ -82,7 +82,7 @@ export type SheetPatchFields = Partial<Pilot> & Partial<Mech> & Partial<Crawler>
  *
  * Accepts either a plain fields object, or an updater `(current) => fields`
  * that receives the FRESHEST store record. Array edits (loadout, abilities,
- * weapons) MUST use the updater form: `store.update` awaits an IndexedDB write
+ * weapons) MUST use the updater form: `store.update` awaits the server commit
  * before it re-renders, so computing `[...prop.array, x]` from the render-time
  * prop races on rapid clicks and silently drops a selection. The updater reads
  * live in-memory state instead (same guard as SheetPilot's `toggleUsed`).

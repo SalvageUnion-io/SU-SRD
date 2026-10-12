@@ -13,8 +13,8 @@
  *    (ADR-038 §5) — the same `<Sheet>`, read-only, from a store built out of
  *    `entities.listForGame` (`readOnlySheetStore.ts`). Every body and link in
  *    the Game is in it, so the sheet shows their mech and crawler, and the query
- *    is reactive, so it stays current as they play. Nothing is cached locally:
- *    a crewmate's sheet in your IndexedDB would be an editor whose every save
+ *    is reactive, so it stays current as they play. Nothing is adopted into the
+ *    entity store: a crewmate's sheet there would be an editor whose every save
  *    the server refuses (ADR-037).
  *  - **Neither** — not found, the same answer as no such entity.
  *
@@ -33,7 +33,9 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
+import { tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import type { CSSProperties } from 'react'
 import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -51,6 +53,18 @@ import { SheetSkeleton } from './SheetSkeleton'
 import { SheetModeContext, useSheetModeStore } from './sheetMode'
 
 type SheetViewProps = { kind: SheetEntityKind; id: string }
+
+/** The read-only crew banner over a crewmate's sheet; its gutter is `.su-sheet-gutter`. */
+const CREW_NOTE = {
+  backgroundColor: tokens.color.caution,
+  borderBottom: `${tokens.borderWidth.pill} solid ${tokens.color.ink}`,
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  fontWeight: tokens.weight.semibold,
+  lineHeight: 'calc(1.25 / 0.875)',
+  paddingBlock: tokens.space[8],
+} satisfies CSSProperties
 
 /**
  * Names the tab after the entity, and follows a rename. The route's `head`
@@ -138,7 +152,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
     return (
       <NotFoundPanel
         title={`${kind} unavailable offline`}
-        message={`This ${kind} is not saved in this browser, and reading a crewmate's sheet needs a connection.`}
+        message={`This ${kind} was not loaded before the connection dropped, and loading it needs a connection.`}
       />
     )
   }
@@ -147,7 +161,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
   // Not yours, not at a table of yours, or nothing at all — one answer for all
   // three, as `listForGame` gives a non-member.
   if (located === null) return <Sheet kind={kind} id={id} />
-  // Yours, and on its way into this browser's cache (`ShelfSync`): wait for it
+  // Yours, and on its way into the store (`ShelfSync`): wait for it
   // rather than flash a read-only copy of your own sheet.
   if (located.mayEdit) return <SheetSkeleton />
 
@@ -172,7 +186,8 @@ export function SheetView({ kind, id }: SheetViewProps) {
       <div
         role="note"
         aria-label="Read-only crew sheet"
-        className="border-b-2 border-ink bg-caution px-4 py-2 font-body text-sm font-semibold text-ink sm:px-[30px]"
+        className="su-sheet-gutter"
+        style={CREW_NOTE}
       >
         {kind === 'crawler'
           ? 'This is the crew’s crawler. Only the Mediator changes it; ask at the table.'

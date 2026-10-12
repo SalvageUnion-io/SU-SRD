@@ -6,10 +6,23 @@
  */
 
 import { Button, toast } from 'component-lib'
+import { color, fontSize, space } from 'component-lib/design/tokens'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
+
+const STACK = { display: 'flex', flexDirection: 'column', gap: space[4] } satisfies CSSProperties
+
+/** The 44px touch target. */
+const BUTTON = { minHeight: '2.75rem' } satisfies CSSProperties
+
+const FAILURE = {
+  color: color.statusBad,
+  fontSize: fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+} satisfies CSSProperties
 
 type ExportEntityButtonProps = {
   type: 'pilot' | 'mech' | 'crawler'
@@ -45,16 +58,11 @@ export function ExportEntityButton({ type, id, name }: ExportEntityButtonProps) 
   }
 
   return (
-    <div className="flex flex-col gap-1">
-      <Button
-        size="compact"
-        disabled={busy}
-        onClick={() => void handleExport()}
-        className="min-h-11"
-      >
+    <div style={STACK}>
+      <Button size="compact" disabled={busy} onClick={() => void handleExport()} style={BUTTON}>
         {busy ? 'Exporting…' : 'Export'}
       </Button>
-      {error && <p className="text-sm text-status-bad">{error}</p>}
+      {error && <p style={FAILURE}>{error}</p>}
     </div>
   )
 }

@@ -5,17 +5,17 @@
  *
  * Exercises the flow Gain Scrap → Chassis → Statistics → Systems → Modules →
  * Quirk → Appearance → Pattern Name → Review → submit using the real wizard,
- * real SalvageUnionReference data, real Zod validation, and a
- * fake-indexeddb-backed entityStore.
+ * real SalvageUnionReference data, real Zod validation, and the real
+ * in-memory entityStore (signed in, server commits stubbed).
  *
- * fake-indexeddb/auto and SalvageUnionReference are preloaded via bunfig.toml.
+ * SalvageUnionReference is preloaded via bunfig.toml.
  */
 
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { legalStartingPatterns, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
-import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { must } from '../../__tests__/must'
@@ -29,30 +29,12 @@ withSignedInBackend()
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
-// Store reset helpers
+// Store reset
 // ---------------------------------------------------------------------------
-
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: {
-      pilots: false,
-      mechs: false,
-      crawlers: false,
-      npcs: false,
-      softLinks: false,
-    },
-  })
-}
 
 beforeEach(async () => {
   sessionStorage.clear()
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
   await useEntityStore.getState().hydrate('mech')
 })
 
@@ -61,8 +43,7 @@ afterEach(async () => {
     cleanup()
   })
   sessionStorage.clear()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
 })
 
 // ---------------------------------------------------------------------------

@@ -29,7 +29,7 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * ## The axes
  *
  * The `surface` axis picks the WORLD the button lives on: `paper` (default —
- * the light app chrome) or `instrument` (the dashboard HUD scope, `.pc-root`).
+ * the light app chrome) or `instrument` (the dashboard HUD scope, `.su-dash-root`).
  * The instrument surface swaps in the condensed-caps HUD typography and the
  * recessed treatment — one standard Button for both worlds. Colour deltas ride on `compoundVariants` (surface × variant);
  * only `ghost` has an instrument recolour — the sole variant the HUD uses.

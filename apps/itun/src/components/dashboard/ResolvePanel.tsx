@@ -112,31 +112,31 @@ export function ResolveCost({
   return (
     <>
       {currencyChoice && (
-        <fieldset className="pc-deck-cost-choice">
+        <fieldset className="su-dash-deck-cost-choice">
           {/*
            * Deliberately NATIVE radios, not the chrome `Radio` primitive.
            * That primitive is a self-framed choice-row card; here the two
-           * options are compact inline `pc-deck-radio` labels inside the
-           * already-bordered `pc-deck-cost-choice` fieldset, and the framed
+           * options are compact inline `su-dash-deck-radio` labels inside the
+           * already-bordered `su-dash-deck-cost-choice` fieldset, and the framed
            * primitive would turn the tight EP/AP pair into two bordered cards
            * nested in a bordered fieldset. Adopt only once `Radio` grows a
            * bare/instrument rung.
            */}
-          <legend className="pc-deck-cost-choice-lab">Pay with</legend>
-          <label className="pc-deck-radio">
+          <legend className="su-dash-deck-cost-choice-lab">Pay with</legend>
+          <label className="su-dash-deck-radio">
             <input
               type="radio"
-              name="pc-deck-currency"
+              name="su-dash-deck-currency"
               checked={currencyChoice.currency === 'EP'}
               disabled={currencyChoice.activated}
               onChange={() => currencyChoice.onCurrency('EP')}
             />
             {currencyChoice.epCost} EP
           </label>
-          <label className="pc-deck-radio">
+          <label className="su-dash-deck-radio">
             <input
               type="radio"
-              name="pc-deck-currency"
+              name="su-dash-deck-currency"
               checked={currencyChoice.currency === 'AP'}
               disabled={currencyChoice.activated || !currencyChoice.pilotAvailable}
               onChange={() => currencyChoice.onCurrency('AP')}
@@ -147,9 +147,9 @@ export function ResolveCost({
       )}
 
       {variableHot && (
-        <div className="pc-deck-hotx">
-          <span className="pc-deck-hotx-lab">Hot</span>
-          <div className="pc-step">
+        <div className="su-dash-deck-hotx">
+          <span className="su-dash-deck-hotx-lab">Hot</span>
+          <div className="su-dash-step">
             <Button
               size="compact"
               style={STEP}
@@ -159,7 +159,7 @@ export function ResolveCost({
             >
               −
             </Button>
-            <span className="pc-step-num">{variableHot.hotX}</span>
+            <span className="su-dash-step-num">{variableHot.hotX}</span>
             <Button
               size="compact"
               style={STEP}
@@ -170,7 +170,7 @@ export function ResolveCost({
               +
             </Button>
           </div>
-          <span className={`pc-deck-hotx-proj${variableHot.over ? ' is-over' : ''}`}>
+          <span className={`su-dash-deck-hotx-proj${variableHot.over ? ' is-over' : ''}`}>
             {variableHot.projText}
           </span>
         </div>
@@ -183,7 +183,7 @@ export function ResolvePanel({ view }: { view: ResolveModel }) {
   if (view.kind === 'idle') {
     return (
       <div style={IDLE}>
-        <div className="pc-deck-empty">{view.text}</div>
+        <div className="su-dash-deck-empty">{view.text}</div>
         {view.onClear ? (
           <Button variant="ghost" size="compact" onClick={view.onClear}>
             Clear
@@ -195,13 +195,13 @@ export function ResolvePanel({ view }: { view: ResolveModel }) {
 
   const { currencyChoice, variableHot, controls, roll } = view
   return (
-    <div className="pc-display-scroll">
-      <div className="pc-deck-panel">
-        <div className="pc-deck-panel-head">
+    <div className="su-dash-display-scroll">
+      <div className="su-dash-deck-panel">
+        <div className="su-dash-deck-panel-head">
           <Button variant="ghost" size="compact" onClick={view.onBack}>
             ◀ Back
           </Button>
-          <span className="pc-deck-cost">{view.costLabel}</span>
+          <span className="su-dash-deck-cost">{view.costLabel}</span>
         </div>
 
         {/* The card being resolved prints its READ pennant (board D1): the
@@ -212,7 +212,7 @@ export function ResolvePanel({ view }: { view: ResolveModel }) {
 
         <ResolveCost currencyChoice={currencyChoice} variableHot={variableHot} />
 
-        <div className="pc-deck-controls">
+        <div className="su-dash-deck-controls">
           <Button
             variant="primary"
             size="compact"
@@ -249,32 +249,32 @@ export function ResolvePanel({ view }: { view: ResolveModel }) {
           </Button>
         </div>
 
-        <div className="pc-deck-controls">
+        <div className="su-dash-deck-controls">
           <Button variant="ghost" size="compact" onClick={controls.onClear}>
             Clear
           </Button>
         </div>
 
         {roll && (
-          <div className="pc-deck-roll" data-band={roll.band}>
-            <span className="pc-deck-d20">{roll.roll}</span>
-            <div className="pc-deck-band">
+          <div className="su-dash-deck-roll" data-band={roll.band}>
+            <span className="su-dash-deck-d20">{roll.roll}</span>
+            <div className="su-dash-deck-band">
               <strong>{roll.bandLabel}</strong>
               <span>{roll.bandSummary}</span>
             </div>
           </div>
         )}
-        {view.pushLog && <p className="pc-deck-pushlog">{view.pushLog}</p>}
+        {view.pushLog && <p className="su-dash-deck-pushlog">{view.pushLog}</p>}
         {view.meltdown && (
-          <div className="pc-deck-controls">
+          <div className="su-dash-deck-controls">
             <Button variant="danger" size="compact" style={GROW} onClick={view.meltdown.onConfirm}>
               Confirm Meltdown — Mark Mech Destroyed
             </Button>
           </div>
         )}
-        {view.applied && <p className="pc-deck-applied">Result applied ✓</p>}
+        {view.applied && <p className="su-dash-deck-applied">Result applied ✓</p>}
         {view.applyRouted && (
-          <p className="pc-deck-apply-route">
+          <p className="su-dash-deck-apply-route">
             Cascade Failure — a severe consequence. The Take-Damage control is open on the Mech's
             Major slot above; confirm the hit there. Nothing was auto-applied.
           </p>

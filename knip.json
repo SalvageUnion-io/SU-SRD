@@ -79,9 +79,6 @@
         // The Worker entry (`src/worker/index.ts`) is NOT listed: knip's
         // wrangler plugin reads `main` from wrangler.jsonc (wrangler is a root
         // devDependency), and flags a manual entry as redundant.
-        "src/lib/db/index.ts",
-        "src/lib/db/stores.ts",
-        "src/lib/db/crud.ts",
         "src/stores/entityStore.ts",
         "src/stores/activeContainerStore.ts",
         "src/stores/types.ts",

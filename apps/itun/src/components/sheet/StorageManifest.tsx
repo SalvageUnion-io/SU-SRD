@@ -43,7 +43,8 @@
  * the Storage Bay needs no docked mech. Only the two BOUNDARY moves are gated.
  */
 
-import { Badge, BandTitle, Button, Card, cn, Input, SlotGrid, Stat } from 'component-lib'
+import { Badge, BandTitle, Button, Card, cn, Input, SlotGrid, Stat, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
@@ -74,6 +75,368 @@ const SIDE_TINT: Record<StorageManifestSide, string> = {
   crawler: 'var(--color-crawler)',
 }
 
+/** An SVG backdrop filling its positioned parent. */
+const BACKDROP = {
+  pointerEvents: 'none',
+  position: 'absolute',
+  inset: 0,
+  height: '100%',
+  width: '100%',
+} satisfies CSSProperties
+
+const CAPS_BUTTON = {
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: tokens.tracking.capsTight,
+  borderWidth: 0,
+} satisfies CSSProperties
+
+// — The crawler tile —
+
+const TILE = {
+  display: 'flex',
+  minHeight: '64px',
+  flexDirection: 'column',
+  gap: tokens.space[6],
+  borderRadius: tokens.radius.card,
+  border: `${tokens.borderWidth.pill} solid var(--tone)`,
+  padding: tokens.space[8],
+  background: 'var(--tone)',
+} satisfies CSSProperties
+
+const TILE_HEAD = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: tokens.space[6],
+} satisfies CSSProperties
+
+const TILE_NAME = { minWidth: 0, flex: 1, overflowWrap: 'break-word' } satisfies CSSProperties
+
+const TILE_ACTIONS = {
+  marginTop: 'auto',
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: tokens.space[4],
+} satisfies CSSProperties
+
+/** A tile's chip button; its hover ground is the `.su-sheet-crawler-*` class. */
+const TILE_BUTTON = {
+  ...CAPS_BUTTON,
+  borderRadius: tokens.radius.badge,
+  padding: `${tokens.space[2]} ${tokens.space[8]}`,
+} satisfies CSSProperties
+
+// — The mech chit —
+
+const CHIT = {
+  display: 'flex',
+  alignItems: 'stretch',
+  overflow: 'hidden',
+  borderRadius: tokens.radius.badge,
+  border: `${tokens.borderWidth.chrome} solid ${tokens.color.ink}`,
+  backgroundColor: tokens.color.paper,
+} satisfies CSSProperties
+
+const MARKER = {
+  position: 'relative',
+  display: 'flex',
+  width: '42px',
+  flexShrink: 0,
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: tokens.space[2],
+  overflow: 'hidden',
+  padding: `${tokens.space[6]} 0`,
+  color: tokens.color.paper,
+} satisfies CSSProperties
+
+const MARKER_UNIT = { ...MARKER, backgroundColor: tokens.color.ink } satisfies CSSProperties
+
+const MARKER_QTY = {
+  position: 'relative',
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.lede,
+  fontWeight: tokens.weight.bold,
+  lineHeight: 1,
+} satisfies CSSProperties
+
+const MARKER_GLYPH = {
+  position: 'relative',
+  fontSize: tokens.fontSize.caption,
+  lineHeight: 1,
+} satisfies CSSProperties
+
+const MARKER_KIND = {
+  position: 'relative',
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.semibold,
+  textTransform: 'uppercase',
+  letterSpacing: tokens.tracking.caps,
+} satisfies CSSProperties
+
+const NAME_CELL = {
+  display: 'flex',
+  minWidth: 0,
+  flex: 1,
+  flexDirection: 'column',
+  justifyContent: 'center',
+  gap: tokens.space[2],
+  padding: `${tokens.space[6]} ${tokens.space[10]}`,
+} satisfies CSSProperties
+
+const CHIT_NAME = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.sm,
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  lineHeight: 1,
+  color: tokens.color.ink,
+} satisfies CSSProperties
+
+const CHIT_META = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.badge,
+  textTransform: 'uppercase',
+  letterSpacing: tokens.tracking.capsTight,
+  color: tokens.color.wkMuted,
+} satisfies CSSProperties
+
+const UNITS_CELL = {
+  display: 'flex',
+  width: '36px',
+  flexShrink: 0,
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: `${tokens.space[4]} 0`,
+  background: tokens.color.wkBg,
+} satisfies CSSProperties
+
+const UNITS_VALUE = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.lede,
+  fontWeight: tokens.weight.bold,
+  lineHeight: 1,
+  color: tokens.color.ink,
+} satisfies CSSProperties
+
+const UNITS_SUFFIX = {
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  textTransform: 'uppercase',
+  color: tokens.color.wkMuted,
+} satisfies CSSProperties
+
+/** A chit's edge-to-edge button; its hover ground is the `.su-sheet-crawler-*` class. */
+const CHIT_BUTTON = {
+  ...CAPS_BUTTON,
+  flexShrink: 0,
+  borderRadius: 0,
+  padding: `0 ${tokens.space[10]}`,
+} satisfies CSSProperties
+
+const CHIT_UNLOAD = {
+  ...CHIT_BUTTON,
+  borderLeft: `${tokens.borderWidth.chrome} solid ${tokens.color.ink}`,
+} satisfies CSSProperties
+
+// — The intake form —
+
+const ADDER = {
+  marginTop: tokens.space[12],
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: tokens.space[8],
+  borderRadius: tokens.radius.card,
+  border: `${tokens.borderWidth.chrome} dashed ${tokens.color.wkFaint}`,
+  padding: tokens.space[10],
+} satisfies CSSProperties
+
+const KIND_TOGGLE = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: tokens.space[4],
+} satisfies CSSProperties
+
+const ADDER_LABEL = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: tokens.space[4],
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: '0.025em',
+  color: tokens.color.wkMuted,
+} satisfies CSSProperties
+
+/** A compact `Input`: tighter and smaller than its own skin. */
+const COMPACT_INPUT = {
+  padding: `${tokens.space[6]} ${tokens.space[8]}`,
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 1 / 0.75,
+} satisfies CSSProperties
+
+const NAME_INPUT = { ...COMPACT_INPUT, width: '144px', flex: 1 } satisfies CSSProperties
+
+const NUMBER_INPUT = { ...COMPACT_INPUT, width: '56px' } satisfies CSSProperties
+
+// — The manifest —
+
+/** The column template is `.su-sheet-crawler-manifest` (it splits at md). */
+const MANIFEST = { display: 'grid', gap: tokens.space[12] } satisfies CSSProperties
+
+const HOLD_CARD = { boxShadow: '0 2px 8px -3px var(--color-ink-50)' } satisfies CSSProperties
+
+const HOLD_TITLE = {
+  margin: 0,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 1 / 0.75,
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: tokens.tracking.caps,
+  color: tokens.color.paper,
+} satisfies CSSProperties
+
+const STRIP = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: tokens.space[12],
+  borderBottom: `${tokens.borderWidth.pill} solid ${tokens.color.ink}`,
+  padding: `${tokens.space[8]} ${tokens.space[12]}`,
+  background: tokens.color.paper,
+} satisfies CSSProperties
+
+const STRIP_FIGURE = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize['2xl'],
+  fontWeight: tokens.weight.bold,
+  lineHeight: 1,
+  color: tokens.color.ink,
+} satisfies CSSProperties
+
+const STRIP_INFINITY = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize['3xl'],
+  fontWeight: tokens.weight.bold,
+  lineHeight: 1,
+  color: tokens.color.cargoDeep,
+} satisfies CSSProperties
+
+const STRIP_CAPS = {
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  color: tokens.color.ink,
+  opacity: 0.7,
+} satisfies CSSProperties
+
+const STRIP_LABEL = { ...STRIP_CAPS, letterSpacing: tokens.tracking.caps } satisfies CSSProperties
+
+const STRIP_OVER = {
+  ...STRIP_CAPS,
+  color: tokens.color.statusBad,
+  opacity: undefined,
+} satisfies CSSProperties
+
+const SMALL_TEXT = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 1 / 0.75,
+  color: tokens.color.ink,
+} satisfies CSSProperties
+
+const EMPTY = {
+  ...SMALL_TEXT,
+  margin: 0,
+  padding: `${tokens.space[16]} ${tokens.space[12]}`,
+  textAlign: 'center',
+  color: tokens.color.wkMuted,
+} satisfies CSSProperties
+
+const STORE_BODY = {
+  position: 'relative',
+  backgroundColor: tokens.color.paper,
+  padding: tokens.space[12],
+} satisfies CSSProperties
+
+const STORE_GRID = {
+  position: 'relative',
+  margin: 0,
+  display: 'grid',
+  listStyle: 'none',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+  gap: tokens.space[10],
+  padding: 0,
+} satisfies CSSProperties
+
+const CHIT_LIST = {
+  margin: 0,
+  display: 'flex',
+  listStyle: 'none',
+  flexDirection: 'column',
+  gap: '7px',
+  padding: '11px',
+} satisfies CSSProperties
+
+const ADDER_WRAP = { padding: `0 ${tokens.space[12]} ${tokens.space[12]}` } satisfies CSSProperties
+
+const COUNTERPART = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
+  borderRadius: tokens.radius.card,
+  borderWidth: tokens.borderWidth.pill,
+  padding: tokens.space[12],
+  background: tokens.color.paper,
+} satisfies CSSProperties
+
+const COUNTERPART_LINKED = {
+  ...COUNTERPART,
+  borderStyle: 'solid',
+  borderColor: tokens.color.ink,
+} satisfies CSSProperties
+
+const COUNTERPART_EMPTY = {
+  ...COUNTERPART,
+  borderStyle: 'dashed',
+  borderColor: tokens.color.wkFaint,
+} satisfies CSSProperties
+
+const COUNTERPART_LABEL = {
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: tokens.tracking.caps,
+  color: 'var(--tone-deep, var(--color-ink))',
+} satisfies CSSProperties
+
+const COUNTERPART_STAMP = { alignSelf: 'flex-start' } satisfies CSSProperties
+
+const NOTE = {
+  margin: 0,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.note,
+  lineHeight: 1.375,
+  color: tokens.color.wkMuted,
+} satisfies CSSProperties
+
 /**
  * Diagonal cargo hazard stripes for the BULK marker cell — the poster's
  * repeating-gradient fill rebuilt as an SVG pattern. Flat repeating patterns
@@ -82,7 +445,7 @@ const SIDE_TINT: Record<StorageManifestSide, string> = {
 function HazardStripes() {
   const id = useId()
   return (
-    <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full">
+    <svg aria-hidden="true" style={BACKDROP}>
       <defs>
         <pattern
           id={id}
@@ -91,8 +454,8 @@ function HazardStripes() {
           patternUnits="userSpaceOnUse"
           patternTransform="rotate(45)"
         >
-          <rect width="10" height="10" className="fill-cargo" />
-          <rect x="5" width="5" height="10" className="fill-cargo-deep" />
+          <rect width="10" height="10" fill={tokens.color.cargo} />
+          <rect x="5" width="5" height="10" fill={tokens.color.cargoDeep} />
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill={`url(#${id})`} />
@@ -108,7 +471,7 @@ function GraphPaper() {
   const id = useId()
   const line = { fill: 'color-mix(in srgb, var(--tone) 16%, transparent)' }
   return (
-    <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full">
+    <svg aria-hidden="true" style={BACKDROP}>
       <defs>
         <pattern id={id} width="34" height="34" patternUnits="userSpaceOnUse">
           <rect width="34" height="1" style={line} />
@@ -218,30 +581,23 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
           : { label: 'U', value: lot.units }
 
     return (
-      <li
-        className="flex min-h-[64px] flex-col gap-1.5 rounded-card border-2 p-2"
-        style={{ borderColor: 'var(--tone)', background: 'var(--tone)' }}
-      >
-        <div className="flex flex-wrap items-start justify-between gap-1.5">
-          <Badge
-            shape="stamp"
-            size="mini"
-            leading="leading-[1.4]"
-            className="min-w-0 flex-1 break-words"
-          >
+      <li style={TILE}>
+        <div style={TILE_HEAD}>
+          <Badge shape="stamp" size="mini" style={TILE_NAME}>
             {lot.name}
           </Badge>
-          <Stat orientation="horizontal" label={tag.label} value={tag.value} className="shrink-0" />
+          <Stat orientation="horizontal" label={tag.label} value={tag.value} />
         </div>
         {!readOnly && (
-          <div className="mt-auto flex flex-wrap items-center justify-end gap-1">
+          <div style={TILE_ACTIONS}>
             <Button
               variant="default"
               disabled={moveDisabled}
               title={disabledReason ?? undefined}
               aria-label={`Load ${lot.name}`}
               onClick={handleMove}
-              className="rounded-badge border-0 px-2 py-0.5 font-cond text-badge font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
+              className="su-sheet-crawler-move"
+              style={TILE_BUTTON}
             >
               {label}
             </Button>
@@ -251,7 +607,8 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
                 aria-label={`Unstow ${lot.name}`}
                 title={`Unstow "${lot.name}" from the Storage Bay`}
                 onClick={onRemove}
-                className="rounded-badge border-0 px-2 py-0.5 font-cond text-badge font-bold uppercase tracking-caps-tight text-status-bad hover:bg-status-bad hover:text-paper"
+                className="su-sheet-crawler-remove"
+                style={TILE_BUTTON}
               >
                 Unstow
               </Button>
@@ -263,38 +620,24 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
   }
 
   return (
-    <li
-      className="flex items-stretch overflow-hidden rounded-badge border-chrome border-ink bg-paper"
-      style={{ boxShadow: `inset 3px 0 0 -1px ${SIDE_TINT[side]}` }}
-    >
+    <li style={{ ...CHIT, boxShadow: `inset 3px 0 0 -1px ${SIDE_TINT[side]}` }}>
       {/* Marker cell: BULK ×N bronze stripes / UNIT ink diamond */}
-      <span
-        className={cn(
-          'relative flex w-[42px] shrink-0 flex-col items-center justify-center gap-0.5 overflow-hidden py-1.5 text-paper',
-          lot.kind !== 'bulk' && 'bg-ink'
-        )}
-      >
+      <span style={lot.kind === 'bulk' ? MARKER : MARKER_UNIT}>
         {lot.kind === 'bulk' && <HazardStripes />}
         {lot.kind === 'bulk' ? (
-          <span className="relative font-body text-lede font-bold leading-none">
-            &times;{lot.qty ?? lot.units}
-          </span>
+          <span style={MARKER_QTY}>&times;{lot.qty ?? lot.units}</span>
         ) : (
-          <span aria-hidden="true" className="relative text-caption leading-none">
+          <span aria-hidden="true" style={MARKER_GLYPH}>
             &#9670;
           </span>
         )}
-        <span className="relative font-cond text-badge font-semibold uppercase tracking-caps">
-          {lot.kind === 'bulk' ? 'Bulk' : 'Unit'}
-        </span>
+        <span style={MARKER_KIND}>{lot.kind === 'bulk' ? 'Bulk' : 'Unit'}</span>
       </span>
 
       {/* Name + category/code */}
-      <span className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 px-2.5 py-1.5">
-        <span className="truncate font-cond text-sm font-bold uppercase leading-none text-ink">
-          {lot.name}
-        </span>
-        <span className="font-body text-badge uppercase tracking-caps-tight text-wk-muted">
+      <span style={NAME_CELL}>
+        <span style={CHIT_NAME}>{lot.name}</span>
+        <span style={CHIT_META}>
           {lot.cat}
           {lot.tl !== undefined ? ` T${lot.tl}` : ''} &middot; {lot.code}
         </span>
@@ -303,12 +646,9 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
       {/* Units cost cell — the workshop step off paper (not a border)
           separates it from the name cell and, in turn, sets the move button
           off on its other edge. */}
-      <span
-        className="flex w-9 shrink-0 flex-col items-center justify-center py-1"
-        style={{ background: 'var(--color-wk-bg)' }}
-      >
-        <span className="font-body text-lede font-bold leading-none text-ink">{lot.units}</span>
-        <span className="font-cond text-badge uppercase text-wk-muted">U</span>
+      <span style={UNITS_CELL}>
+        <span style={UNITS_VALUE}>{lot.units}</span>
+        <span style={UNITS_SUFFIX}>U</span>
       </span>
 
       {/* Actions: Stow → (offload to the crawler's Storage Bay — disabled with a
@@ -320,7 +660,8 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
           title={disabledReason ?? undefined}
           aria-label={`${side === 'mech' ? 'Stow' : 'Load'} ${lot.name}`}
           onClick={handleMove}
-          className="shrink-0 rounded-none border-0 px-2.5 py-0 font-cond text-badge font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
+          className="su-sheet-crawler-move"
+          style={CHIT_BUTTON}
         >
           {label}
         </Button>
@@ -331,7 +672,8 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
           aria-label={`Unload ${lot.name}`}
           title={`Unload "${lot.name}" from the mech hold`}
           onClick={onRemove}
-          className="shrink-0 rounded-none border-0 border-ink border-l-chrome px-2.5 py-0 font-cond text-badge font-bold uppercase tracking-caps-tight text-status-bad hover:bg-status-bad hover:text-paper"
+          className="su-sheet-crawler-remove"
+          style={CHIT_UNLOAD}
         >
           Unload
         </Button>
@@ -390,13 +732,11 @@ function HoldAdder({
     setAmount(1)
   }
 
-  const compactInput = 'px-2 py-1.5 text-xs'
-
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2 rounded-card border-chrome border-dashed border-wk-faint p-2.5">
+    <div style={ADDER}>
       {/* Kind toggle — Cargo (named lot) vs Scrap (TL bulk lot). */}
       {/* biome-ignore lint/a11y/useSemanticElements: a fieldset+legend carries min-content sizing quirks in this inline add-row; role="group" + aria-label conveys the same semantics (matches FilterRow/Stat) */}
-      <div className="flex items-center gap-1" role="group" aria-label="Cargo kind">
+      <div style={KIND_TOGGLE} role="group" aria-label="Cargo kind">
         {(['cargo', 'scrap'] as const).map((k) => (
           <Badge
             key={k}
@@ -420,13 +760,10 @@ function HoldAdder({
           onKeyDown={(e) => {
             if (e.key === 'Enter') commit()
           }}
-          className={`${compactInput} w-36 flex-1`}
+          style={NAME_INPUT}
         />
       ) : (
-        <label
-          htmlFor={tlId}
-          className="flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-wide text-wk-muted"
-        >
+        <label htmlFor={tlId} style={ADDER_LABEL}>
           Tech
           <Input
             id={tlId}
@@ -438,15 +775,12 @@ function HoldAdder({
             value={tl}
             aria-label="Scrap tech level"
             onChange={(e) => setTl(coerceTl(e.target.value))}
-            className={`${compactInput} w-14`}
+            style={NUMBER_INPUT}
           />
         </label>
       )}
 
-      <label
-        htmlFor={slotsId}
-        className="flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-wide text-wk-muted"
-      >
+      <label htmlFor={slotsId} style={ADDER_LABEL}>
         {kind === 'scrap' ? 'Qty' : 'Slots'}
         <Input
           id={slotsId}
@@ -461,7 +795,7 @@ function HoldAdder({
           // parse on commit — and since the form clears itself immediately, the
           // cargo would just vanish. Coerce at the edge instead.
           onChange={(e) => setAmount(coerceSlots(e.target.value))}
-          className={`${compactInput} w-14`}
+          style={NUMBER_INPUT}
         />
       </label>
       <Button
@@ -494,43 +828,36 @@ export function StorageManifest({
   return (
     <div
       className={cn(
-        'grid grid-cols-1 gap-3',
-        showCounterpart && 'md:grid-cols-[minmax(0,1fr)_250px]',
+        'su-sheet-crawler-manifest',
+        showCounterpart && 'su-sheet-crawler-manifest--split',
         className
       )}
+      style={MANIFEST}
       data-storage-side={side}
     >
       {/* Hold panel */}
       <Card
-        headerBg="bg-ink"
+        headerBgColor="var(--color-ink)"
         headerContent={
           <>
-            <span className="m-0 font-cond text-xs font-bold uppercase tracking-caps text-paper">
-              {side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}
-            </span>
+            <span style={HOLD_TITLE}>{side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}</span>
             <BandTitle variant="mute" fill={false}>
               {side === 'mech' ? mechName : crawlerName}
             </BandTitle>
           </>
         }
-        cardStyle={{ className: 'shadow-[0_2px_8px_-3px_var(--color-ink-50)]' }}
-        bodyPadding="p-0"
+        cardStyle={{ style: HOLD_CARD }}
       >
         {/* Capacity strip — paper, like the rest of the Hold body: the
             tone-tinted ground it once wore was off the closed palette
             (ruleset §4.1). */}
-        <div
-          className="flex flex-wrap items-center gap-3 border-b-2 border-ink px-3 py-2"
-          style={{ background: 'var(--color-paper)' }}
-        >
+        <div style={STRIP}>
           {side === 'mech' ? (
             <>
-              <span className="font-body text-2xl font-bold leading-none text-ink">
+              <span style={STRIP_FIGURE}>
                 {used}/{cap}
               </span>
-              <span className="font-cond text-badge font-bold uppercase tracking-caps text-ink opacity-70">
-                Units
-              </span>
+              <span style={STRIP_LABEL}>Units</span>
               {/* The canonical addressable-slot cells (ruleset §5 atom 10):
                   dashed = empty, cargo = filled, status-bad = over-capacity —
                   never clamped. */}
@@ -541,29 +868,14 @@ export function StorageManifest({
                 readOnly={readOnly}
                 label={`Hold ${used} of ${cap} slots used${over ? ' — over capacity' : ''}`}
               />
-              {free > 0 && (
-                <span className="font-cond text-badge font-bold uppercase text-ink opacity-70">
-                  {free} free
-                </span>
-              )}
-              {over && (
-                <span className="font-cond text-badge font-bold uppercase text-status-bad">
-                  Over capacity
-                </span>
-              )}
+              {free > 0 && <span style={STRIP_CAPS}>{free} free</span>}
+              {over && <span style={STRIP_OVER}>Over capacity</span>}
             </>
           ) : (
             <>
-              <span
-                className="font-body text-3xl font-bold leading-none"
-                style={{ color: 'var(--color-cargo-deep)' }}
-              >
-                &infin;
-              </span>
-              <span className="font-cond text-badge font-bold uppercase tracking-caps text-ink opacity-70">
-                Unlimited
-              </span>
-              <span className="font-body text-xs text-ink">
+              <span style={STRIP_INFINITY}>&infin;</span>
+              <span style={STRIP_LABEL}>Unlimited</span>
+              <span style={SMALL_TEXT}>
                 {totalLotUnits(lots)} units stowed &middot; {lots.length}{' '}
                 {lots.length === 1 ? 'lot' : 'lots'}
               </span>
@@ -575,11 +887,11 @@ export function StorageManifest({
             crawler Hold renders the poster's dense `.storegrid` of magenta
             `.slot` tiles on a graph-paper `.storebody` backdrop. */}
         {lots.length === 0 ? (
-          <p className="m-0 px-3 py-4 text-center font-body text-xs text-wk-muted">Hold empty.</p>
+          <p style={EMPTY}>Hold empty.</p>
         ) : side === 'crawler' ? (
-          <div className="relative bg-paper p-3">
+          <div style={STORE_BODY}>
             <GraphPaper />
-            <ul className="relative m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5 p-0">
+            <ul style={STORE_GRID}>
               {lots.map((lot) => (
                 <CargoLotItem
                   key={lot.id}
@@ -594,7 +906,7 @@ export function StorageManifest({
             </ul>
           </div>
         ) : (
-          <ul className="m-0 flex list-none flex-col gap-[7px] p-[11px]">
+          <ul style={CHIT_LIST}>
             {lots.map((lot) => (
               <CargoLotItem
                 key={lot.id}
@@ -613,7 +925,7 @@ export function StorageManifest({
             other side of the boundary: 'Load' into the mech hold (no crawler
             needed), 'Stow' into the crawler Storage Bay (no docked mech needed). */}
         {!readOnly && (
-          <div className="px-3 pb-3">
+          <div style={ADDER_WRAP}>
             <HoldAdder
               verb={side === 'mech' ? 'Load' : 'Stow'}
               containerLabel={side === 'mech' ? 'mech hold' : 'Storage Bay'}
@@ -627,41 +939,28 @@ export function StorageManifest({
 
       {/* Counterpart panel */}
       {showCounterpart && (
-        <div
-          className={cn(
-            'flex flex-col gap-2 rounded-card border-2 p-3',
-            linkedCounterpart !== null ? 'border-ink' : 'border-dashed border-wk-faint'
-          )}
-          style={{ background: 'var(--color-paper)' }}
-        >
-          <span
-            className="font-cond text-badge font-bold uppercase tracking-caps"
-            style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-          >
+        <div style={linkedCounterpart !== null ? COUNTERPART_LINKED : COUNTERPART_EMPTY}>
+          <span style={COUNTERPART_LABEL}>
             {side === 'mech' ? 'Stow target →' : '← Load target'}
           </span>
           {linkedCounterpart !== null ? (
             <>
-              <Badge shape="stamp" size="full" className="self-start">
+              <Badge shape="stamp" size="full" style={COUNTERPART_STAMP}>
                 {linkedCounterpart}
               </Badge>
               {side === 'mech' ? (
-                <span className="font-body text-xs text-ink">
-                  &infin; Storage Bay &middot; unlimited
-                </span>
+                <span style={SMALL_TEXT}>&infin; Storage Bay &middot; unlimited</span>
               ) : (
-                <span className="font-body text-xs text-ink">
+                <span style={SMALL_TEXT}>
                   {used}/{cap} slots &middot; {free} free
                 </span>
               )}
               {cargo.crawlerLocked !== null && !readOnly && (
-                <p className="m-0 font-body text-note leading-snug text-wk-muted">
-                  {cargo.crawlerLocked}
-                </p>
+                <p style={NOTE}>{cargo.crawlerLocked}</p>
               )}
             </>
           ) : (
-            <p className="m-0 font-body text-note leading-snug text-wk-muted">
+            <p style={NOTE}>
               {side === 'mech'
                 ? 'No crawler linked — stow is disabled until a home crawler is wired.'
                 : 'No mech docked — load is disabled until a mech is wired.'}

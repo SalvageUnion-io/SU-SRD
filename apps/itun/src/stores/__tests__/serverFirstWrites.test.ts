@@ -8,31 +8,31 @@
  * (`apps/itun/test/convexClientStub.ts`), which accepts every commit. That is
  * deliberate and is worth being explicit about: what is asserted here is the
  * **ordering contract** — that a record is built, committed and only then
- * persisted. The refusal path itself is exercised against a real server in
+ * placed in the store. The refusal path itself is exercised against a real server in
  * `test/convex/*`, which is where a mutation can actually refuse.
  */
 
-import { afterEach, describe, expect, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { pilotFixture } from '../../components/__tests__/fixtures'
-import * as db from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
+import { prepareCreate, RECORD_KINDS } from '../records'
+import { resetStores } from './resetStores'
 import { withSignedInBackend } from './signedInBackend'
 
-// These assert durability — a write surviving a rehydrate or a direct read of
-// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+// These write, and only the signed-in backend writes. See signedInBackend.ts.
 withSignedInBackend()
 
-afterEach(async () => {
-  const store = useEntityStore.getState()
-  for (const type of ['pilot', 'mech', 'crawler'] as const) {
-    for (const row of store.list(type)) await store.forget(type, row.id)
-  }
-  await db.clearCache()
+beforeEach(() => {
+  resetStores()
 })
 
-describe('a record is built before it is persisted', () => {
-  test('prepareCreate mints an id and timestamps without writing', async () => {
-    const built = await db.pilots.prepareCreate({
+afterEach(() => {
+  resetStores()
+})
+
+describe('a record is built before it is stored', () => {
+  test('prepareCreate mints an id and timestamps without writing', () => {
+    const built = prepareCreate(RECORD_KINDS.pilot, {
       ...pilotFixture({ id: 'ignored' }),
       id: undefined,
       createdAt: undefined,
@@ -42,13 +42,13 @@ describe('a record is built before it is persisted', () => {
     expect(built.id).toBeTruthy()
     expect(built.createdAt).toBeTruthy()
 
-    // The whole point of the split: nothing reached disk. Without this, the id
-    // and timestamps only came into existence as a side effect of persisting,
-    // so there was no record to offer the server before committing to it.
-    expect(await db.pilots.get(built.id)).toBeNull()
+    // The whole point of the split: nothing reached the store. Without this,
+    // the id and timestamps only came into existence as a side effect of
+    // storing, so there was no record to offer the server before committing.
+    expect(useEntityStore.getState().get('pilot', built.id)).toBeNull()
   })
 
-  test('create still persists — the split did not lose the write', async () => {
+  test('create still stores — the split did not lose the write', async () => {
     const created = await useEntityStore.getState().create('pilot', {
       ...pilotFixture({ id: 'ignored' }),
       id: undefined,
@@ -56,13 +56,13 @@ describe('a record is built before it is persisted', () => {
       updatedAt: undefined,
     } as never)
 
-    expect(await db.pilots.get(created.id)).not.toBeNull()
+    expect(useEntityStore.getState().get('pilot', created.id)).not.toBeNull()
     expect(useEntityStore.getState().list('pilot')).toHaveLength(1)
   })
 })
 
 describe('update keeps its contract through the reorder', () => {
-  test('the patch lands locally and in the cache', async () => {
+  test('the patch lands in the store', async () => {
     const store = useEntityStore.getState()
     const created = await store.create('pilot', {
       ...pilotFixture({ id: 'ignored' }),
@@ -77,7 +77,7 @@ describe('update keeps its contract through the reorder', () => {
     })
 
     expect(updated.callsign).toBe('Renamed')
-    expect((await db.pilots.get(created.id))?.callsign).toBe('Renamed')
+    expect(useEntityStore.getState().get('pilot', created.id)?.callsign).toBe('Renamed')
   })
 
   test('a rejected patch changes nothing', async () => {
@@ -99,6 +99,6 @@ describe('update keeps its contract through the reorder', () => {
       })
     ).rejects.toThrow()
 
-    expect((await db.pilots.get(created.id))?.callsign).toBe(created.callsign)
+    expect(useEntityStore.getState().get('pilot', created.id)?.callsign).toBe(created.callsign)
   })
 })

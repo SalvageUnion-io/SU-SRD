@@ -97,7 +97,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
     timeout: 15_000,
   })
 
-  // Reload — the edit persisted to IndexedDB (no duplicate pilot).
+  // Reload — the edit persisted on the server (no duplicate pilot).
   await page.reload()
   await waitForReady(page)
   await expect(page.getByText('Talk Shop').first()).toBeVisible({

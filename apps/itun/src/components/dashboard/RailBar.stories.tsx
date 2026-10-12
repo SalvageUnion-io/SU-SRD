@@ -1,9 +1,21 @@
-import { buttonVariants } from 'component-lib'
+import { buttonVariants, tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
 import { ChevronLeft } from 'lucide-react'
+import type { CSSProperties } from 'react'
 import { InstrumentStage } from './_dashboardStage'
 import { RailBar } from './RailBar'
 import { RailUnit } from './RailUnit'
+
+const STACK_12 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+const STACK_16 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+} satisfies CSSProperties
 
 export default { title: 'Compositions/Dashboard/Rail Bar' }
 
@@ -25,13 +37,13 @@ const BackLink = (
  * because the crawler has the whole unit row.
  */
 export const Default = () => (
-  <div className="flex flex-col gap-4">
+  <div style={STACK_16}>
     <Caption>
       Top rail — boarded, on foot (the Mediator's Start), Downtime (the Mediator's End).
     </Caption>
     <InstrumentStage width={1260}>
-      <div className="flex flex-col gap-3">
-        <div className="pc-rail">
+      <div style={STACK_12}>
+        <div className="su-dash-rail">
           <RailBar
             name="Bonesaw"
             stamp="Boarded · Scrapper"
@@ -41,7 +53,7 @@ export const Default = () => (
             status={<span>Saved</span>}
           />
         </div>
-        <div className="pc-rail">
+        <div className="su-dash-rail">
           <RailBar
             name="Bonesaw"
             stamp="On foot"
@@ -56,7 +68,7 @@ export const Default = () => (
             }}
           />
         </div>
-        <div className="pc-rail">
+        <div className="su-dash-rail">
           <RailBar
             name="Bonesaw"
             stamp="Downtime · Step 3 of 10"

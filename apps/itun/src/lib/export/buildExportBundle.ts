@@ -24,7 +24,7 @@ type ExportPatternStore = {
 
 /**
  * Minimal encounter-NPC source for export. Like patterns, encounterNpcs are
- * not in entityStore — they live in their own Zustand store/db object store;
+ * not in entityStore — they live in their own Zustand store;
  * tests may pass a double.
  */
 type ExportEncounterNpcStore = {
@@ -32,18 +32,15 @@ type ExportEncounterNpcStore = {
 }
 
 /**
- * Read a collection store the way the app reads it right now.
- *
- * `rehydrate`, not the IndexedDB table: the store answers with the account's
- * cache signed in and with nothing signed out (`readableRows`), so an anonymous
- * backup cannot reach into IndexedDB for rows the visitor cannot see.
+ * Read a collection store the way the app reads it right now: the account's
+ * rows once they have arrived, and nothing signed out.
  */
 function fromStore<T>(store: {
-  getState: () => { rehydrate: () => Promise<void>; list: () => T[] }
+  getState: () => { hydrate: () => Promise<void>; list: () => T[] }
 }): { list: () => Promise<T[]> } {
   return {
     async list() {
-      await store.getState().rehydrate()
+      await store.getState().hydrate()
       return store.getState().list()
     },
   }
@@ -53,7 +50,7 @@ function fromStore<T>(store: {
  * buildExportBundle — full backup of all entities and softLinks.
  *
  * Hydrates every store type first so the caller does not need to pre-hydrate.
- * The returned bundle is a plain serialisable object — no IDB references.
+ * The returned bundle is a plain serialisable object.
  */
 export async function buildExportBundle(
   entityStore: ExportStore,

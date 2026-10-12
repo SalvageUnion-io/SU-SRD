@@ -20,12 +20,28 @@
  * // deliberately omitted rather than rendered dead.
  */
 
-import { cn, Field } from 'component-lib'
-import type { ReactNode } from 'react'
+import { Field, tokens } from 'component-lib'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import type { Mech } from '../../lib/schemas/mech'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import type { SheetPatch } from './sheetViewProps'
+
+const PANEL = { minWidth: 0 } satisfies CSSProperties
+
+const STACK = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+  minWidth: 0,
+} satisfies CSSProperties
+
+/** Chassis + Quirk; the row splits in two at sm (`.su-sheet-mech-chassis-row`). */
+const CHASSIS_ROW = {
+  columnGap: tokens.space[16],
+  display: 'grid',
+  rowGap: tokens.space[12],
+} satisfies CSSProperties
 
 type MechIdentityPanelProps = {
   mech: Mech
@@ -82,8 +98,8 @@ export function MechIdentityPanel({
   }
 
   return (
-    <section aria-label="Mech identity" className={cn('min-w-0', className)}>
-      <div className="flex min-w-0 flex-col gap-3">
+    <section aria-label="Mech identity" className={className} style={PANEL}>
+      <div style={STACK}>
         {/* The prominent identity: pattern name (== the mech's name). */}
         <Field
           label="Pattern Name"
@@ -97,7 +113,7 @@ export function MechIdentityPanel({
             the rest of the chassis-derived numbers. */}
         {/* Half width: the chassis is a one-word picker value, and a full-bleed
             box for it competed with the pattern name above. */}
-        <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+        <div className="su-sheet-mech-chassis-row" style={CHASSIS_ROW}>
           <Field
             label="Chassis"
             value={chassisName}

@@ -1,19 +1,20 @@
 import { useAuthActions } from '@convex-dev/auth/react'
 import { Button } from 'component-lib'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { useSignOutAndForget } from './useSignOutAndForget'
+import { useSignOut } from './useSignOut'
 
 /**
- * The dark-masthead treatment: a paper hairline on the near-black bar. The
- * merge order in `Button`'s `cn()` lets these win over the variant's own
- * border/text colours.
+ * The dark-masthead treatment: a paper hairline on the near-black bar.
+ * `.sign-in-control--dark` (`styles/screens.css`) is an app rule outside the
+ * cascade layers, so it wins over the variant's own border/text colours and
+ * its hover ink wash.
  *
  * Both states use it, including sign-in. `variant="primary"` is right on the
  * paper settings screen and in the mobile drawer, but in the masthead it would
  * put a second rust button directly beside "Buy the game" — two identical
  * CTAs, neither reading as the primary one. The bar keeps one loud action.
  */
-const DARK_BUTTON = 'border-paper/40 bg-transparent text-paper hover:border-paper hover:bg-paper/10'
+const DARK_BUTTON = 'sign-in-control--dark'
 
 type SignInControlProps = {
   /** Render for a dark surface (the masthead nav) instead of paper. */
@@ -39,7 +40,7 @@ export function SignInControl({
   size = 'compact',
 }: SignInControlProps) {
   const { signIn } = useAuthActions()
-  const signOut = useSignOutAndForget()
+  const signOut = useSignOut()
   const { mode } = useConnection()
 
   if (mode === 'connected') {

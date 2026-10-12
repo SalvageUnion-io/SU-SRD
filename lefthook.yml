@@ -28,7 +28,12 @@ pre-commit:
     # tidy by hand. Add a step back here if Biome ships the formatters.
 
 pre-push:
-  parallel: true
+  # In order, not side by side: the checks first (they fail fast, ~15 s warm),
+  # then the tests with every core to themselves. Run together on a 4-core
+  # machine, typecheck/knip/biome pushed itun's renders past Bun's 5 s default
+  # even under `nice`, failing the base itself; in order the whole hook was
+  # also quicker (130 s against 147 s, all workspaces selected).
+  piped: true
   commands:
     checks:
       # Every gate except the test suite, from the ONE registry in
@@ -36,15 +41,13 @@ pre-push:
       # job run, with a different profile. Do not add a gate here: add it to
       # that registry, and every path picks it up. `pre-push` = the fast profile
       # plus generated-file drift, the likeliest avoidable CI bounce.
-      # `nice`: the checks have no timeouts and the tests do, so the tests get
-      # the cores first. Without it itun's renders ran past the 5 s default
-      # beside typecheck, knip and biome on a 4-core machine.
-      run: nice -n 15 bun tools/check.ts --profile=pre-push
+      priority: 1
+      run: bun tools/check.ts --profile=pre-push
 
     test:
       # The changed workspaces' suites plus their dependents', from the
       # manifest graph — Bun's `--changed` stops at a workspace boundary. No
-      # coverage: the floors are CI's gate alone. Running them here beside the
-      # checks took longer than CI and pushed tests past their 5 s budget.
-      # The why and the selection rules: tools/pre-push-test.ts.
+      # coverage: the floors are CI's gate alone. The why and the selection
+      # rules: tools/pre-push-test.ts.
+      priority: 2
       run: bun tools/pre-push-test.ts

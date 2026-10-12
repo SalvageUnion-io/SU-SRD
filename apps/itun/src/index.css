@@ -14,6 +14,13 @@
 @import './styles/npc.css';
 /* The Shelves band's paper-on-ink controls (board S1). */
 @import './styles/shelves.css';
+/* TW-g: the rest of ITUN's components off Tailwind (stateful halves). */
+@import './styles/entityRow.css';
+@import './styles/routeStates.css';
+@import './styles/screens.css';
+@import './styles/controls.css';
+/* The live and public sheet (TW-d). */
+@import './styles/sheet.css';
 
 /*
  * ITUN's own components keep their stories beside them (the Dashboard
@@ -21,23 +28,6 @@
  * audit PK-02); their demo markup is not the app's.
  */
 @source not './**/*.stories.tsx';
-
-/*
- * Indeterminate loader bar (branded loading states, e.g. GameDataReady).
- * Registered through @theme so `animate-loader-slide` is a real utility.
- */
-@theme {
-  --animate-loader-slide: loader-slide 1.4s ease-in-out infinite;
-
-  @keyframes loader-slide {
-    0% {
-      transform: translateX(-150%);
-    }
-    100% {
-      transform: translateX(400%);
-    }
-  }
-}
 
 /* === Base layout === */
 html,

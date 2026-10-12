@@ -27,7 +27,8 @@
  * affordance renders regardless).
  */
 
-import { Badge, Button, cn, Field } from 'component-lib'
+import { Badge, Button, Field, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { resolveClassName } from '../../lib/classRef'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -38,6 +39,61 @@ import { SheetPickerModal } from './SheetSection'
 import type { SheetPatch } from './sheetViewProps'
 
 export type UsedToggleKey = 'background' | 'motto' | 'keepsake'
+
+/** The used pip: a hollow chip in the stamp's current colour. */
+const PIP = {
+  border: `${tokens.borderWidth.pill} solid currentColor`,
+  borderRadius: tokens.radius.badge,
+  flexShrink: 0,
+  height: '12px',
+  width: '16px',
+} satisfies CSSProperties
+
+/** Set: the pip fills with the sheet's tone. */
+const PIP_SET = {
+  backgroundColor: 'var(--tone, var(--color-pilot))',
+  borderColor: 'var(--tone, var(--color-pilot))',
+} satisfies CSSProperties
+
+const USED_CHIP = { gap: tokens.space[6] } satisfies CSSProperties
+
+const PANEL = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+  height: '100%',
+  minWidth: 0,
+} satisfies CSSProperties
+
+/** A field grid; its two-column split from `sm` is `.su-sheet-pilot-split`. */
+const FIELD_GRID = {
+  columnGap: tokens.space[16],
+  display: 'grid',
+  rowGap: tokens.space[12],
+} satisfies CSSProperties
+
+const ONE_COLUMN = { gridTemplateColumns: 'repeat(1, minmax(0, 1fr))' } satisfies CSSProperties
+
+const FIELD_COLUMN = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+  minWidth: 0,
+} satisfies CSSProperties
+
+const BIO = {
+  display: 'flex',
+  flex: '1 1 0%',
+  flexDirection: 'column',
+  minHeight: 0,
+} satisfies CSSProperties
+
+const PICKER_ACTIONS = {
+  display: 'flex',
+  gap: tokens.space[8],
+  justifyContent: 'flex-end',
+  paddingTop: tokens.space[16],
+} satisfies CSSProperties
 
 // ---------------------------------------------------------------------------
 // Used chip (once-per-Downtime toggles, rules A8–A10) — live-play control,
@@ -59,21 +115,13 @@ function UsedChip({
   // stable and the eye isn't asked to re-read the label to learn the state.
   // ONLY the pip carries it — a small CHIP (the stamp's own rectangular
   // vocabulary), hollow when unset and tone-filled when set.
-  const pip = (
-    <span
-      aria-hidden="true"
-      className={cn(
-        'h-3 w-4 shrink-0 rounded-badge border-2 border-current',
-        used && 'border-[color:var(--tone,var(--color-pilot))] bg-[var(--tone,var(--color-pilot))]'
-      )}
-    />
-  )
+  const pip = <span aria-hidden="true" style={{ ...PIP, ...(used && PIP_SET) }} />
   if (!onToggle) {
     // Read-only: the stamp shows only when set (nothing to toggle, so an unset
     // one would be a control that isn't).
     if (!used) return null
     return (
-      <Badge shape="chip" surface="solid" className="gap-1.5">
+      <Badge shape="chip" surface="solid" style={USED_CHIP}>
         {pip}
         Used
       </Badge>
@@ -89,7 +137,7 @@ function UsedChip({
       aria-pressed={used}
       aria-label={used ? `Reset ${label} used` : `Mark ${label} used`}
       onClick={() => onToggle(!used)}
-      className="gap-1.5"
+      style={USED_CHIP}
     >
       {pip}
       Used
@@ -184,15 +232,18 @@ export function PilotIdentityPanel({
     // `h-full` + a flex column: the identity card is stretched to match the
     // vitals card beside it, so the panel spends that height on its fields
     // (the Bio grows into whatever is left) instead of leaving dead paper.
-    <div className={cn('flex h-full min-w-0 flex-col gap-3', className)}>
+    <div className={className} style={PANEL}>
       {/* Poster field grid — left / right columns; single column on mobile in
           the poster's reading order. The columns keep their natural row rhythm
           — spreading them independently pulled Keepsake/Background out of line
           with Callsign/Class, since each column distributes its own slack. All
           the leftover height goes to the Bio instead. */}
-      <div className={cn('grid grid-cols-1 gap-x-4 gap-y-3', leftColumn && 'sm:grid-cols-2')}>
+      <div
+        className={leftColumn ? 'su-sheet-pilot-split' : undefined}
+        style={leftColumn ? FIELD_GRID : { ...FIELD_GRID, ...ONE_COLUMN }}
+      >
         {leftColumn && (
-          <div className="flex min-w-0 flex-col gap-3">
+          <div style={FIELD_COLUMN}>
             {/* Callsign and Class lead TOGETHER, at the same prominence: what a
               pilot is called and what they do are the two facts you identify
               them by. Name lives here too, in Edit: this is the pilot's name edit
@@ -203,7 +254,7 @@ export function PilotIdentityPanel({
               when it is the name. Repeating them straight under the band read
               as a subtitle saying the title twice. */}
             {(canEdit || showCallsign) && (
-              <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+              <div className="su-sheet-pilot-split" style={FIELD_GRID}>
                 {showCallsign && (
                   <Field
                     label="Callsign"
@@ -232,7 +283,7 @@ export function PilotIdentityPanel({
             />
           </div>
         )}
-        <div className="flex min-w-0 flex-col gap-3">
+        <div style={FIELD_COLUMN}>
           <Field
             label="Motto"
             value={pilot.motto}
@@ -267,7 +318,7 @@ export function PilotIdentityPanel({
       />
 
       {/* Bio — the freeform backstory, a full-width identity field. */}
-      <div className="flex min-h-0 flex-1 flex-col">
+      <div style={BIO}>
         <Field
           label="Bio"
           value={pilot.description ?? ''}
@@ -275,7 +326,7 @@ export function PilotIdentityPanel({
           fill
           onSave={canEdit ? saveText('description') : undefined}
           placeholder="No bio written yet."
-          className="flex-1"
+          className="su-sheet-pilot-fill"
         />
       </div>
 
@@ -300,7 +351,7 @@ export function PilotIdentityPanel({
           answeredOrigin={answeredOrigin}
           onAnswerOrigin={setAnsweredOrigin}
         />
-        <div className="flex justify-end gap-2 pt-4">
+        <div style={PICKER_ACTIONS}>
           <Button variant="ghost" size="compact" onClick={() => setClassPickerOpen(false)}>
             Cancel
           </Button>

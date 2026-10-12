@@ -3,7 +3,7 @@
  *
  * AC-1: Sheet renders without horizontal overflow at 320px viewport width.
  * AC-5: the top-bar Share control and InlineEditField display state have ≥44px touch targets
- *       (verified via the `min-h-11` class on the Share control, and the inline
+ *       (verified via the `.su-sheet-share` class on the Share control, and the inline
  *       `min-height: 2.75rem` on InlineEditField's display state).
  *
  * Design choices:
@@ -13,8 +13,9 @@
  *   (entity content appears without throwing). Real 320px overflow verification
  *   requires a browser engine — this is tracked in the M3 a11y/perf work and
  *   should be covered by a Playwright / puppeteer visual regression test.
- * - Touch target: we assert the Share button carries `min-h-11` in its
- *   className string, and InlineEditField's display span its inline
+ * - Touch target: we assert the Share button carries `.su-sheet-share` (whose
+ *   rule in `styles/sheet/mech.css` is the 2.75rem floor below sm — a class
+ *   because sm lifts it), and InlineEditField's display span its inline
  *   `minHeight` (it moved off Tailwind onto a style object). Both are the most
  *   reliable assertions in happy-dom (no computed styles).
  *
@@ -25,6 +26,7 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
+import { readFileSync } from 'node:fs'
 import { render, screen } from '@testing-library/react'
 import { InlineEditField } from 'component-lib'
 import {
@@ -158,7 +160,7 @@ describe('Mobile responsive — renders without error at 320px container', () =>
 // AC-5: Touch targets ≥44px on mobile
 // ---------------------------------------------------------------------------
 
-describe('Mobile responsive — touch targets min-h-11', () => {
+describe('Mobile responsive — 44px touch targets', () => {
   test('InlineEditField display state carries a 44px min-height', () => {
     render(
       <InlineEditField
@@ -183,7 +185,7 @@ describe('Mobile responsive — touch targets min-h-11', () => {
     expect((span as HTMLElement).style.minHeight).toBe('2.75rem')
   })
 
-  test('the top-bar Share control carries min-h-11 (AC-5 touch target)', () => {
+  test('the top-bar Share control carries the 44px floor (AC-5 touch target)', () => {
     render(
       <Sheet
         kind="pilot"
@@ -194,7 +196,10 @@ describe('Mobile responsive — touch targets min-h-11', () => {
     )
     // A button since the share screen was deleted — same target, same rule.
     const share = screen.getByRole('button', { name: /share this pilot/i })
-    expect((share as HTMLElement).className).toContain('min-h-11')
+    expect((share as HTMLElement).className).toContain('su-sheet-share')
+    // …and that class is the 44px (2.75rem) floor below sm.
+    const css = readFileSync(new URL('../../../styles/sheet/mech.css', import.meta.url), 'utf8')
+    expect(css).toMatch(/\.su-sheet-share \{\s*min-height: 2\.75rem;/)
   })
 })
 

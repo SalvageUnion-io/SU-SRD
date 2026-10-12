@@ -1,7 +1,7 @@
 /**
  * ADR (inline) — MechPattern as a separate entity type
  *
- * Decision: patterns live in a dedicated `mechPatterns` IndexedDB object store.
+ * Decision: patterns live in a dedicated `mechPatterns` store and Convex table.
  *
  * Rejected:
  *   - Storing patterns as a flag/boolean on Mech records: would require a

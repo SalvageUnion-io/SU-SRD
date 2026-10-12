@@ -65,14 +65,14 @@
 
 import {
   buttonVariants,
-  cn,
   EmptyState,
   MasonryColumns,
   ReferenceEntityCard,
   SheetSectionSlab,
   Stat,
+  tokens,
 } from 'component-lib'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
@@ -96,6 +96,62 @@ import { SheetHero } from './SheetHero'
 import { CardRemoveButton } from './SheetSection'
 import { StorageManifest } from './StorageManifest'
 
+/** A full-width column of the given gap. */
+const column = (gap: string) =>
+  ({ display: 'flex', minWidth: 0, flexDirection: 'column', gap }) satisfies CSSProperties
+
+const STACK_16 = column(tokens.space[16])
+const STACK_24 = column(tokens.space[24])
+
+/** The section root: `@container` scopes the region grids to the sheet's own width. */
+const ROOT = {
+  containerType: 'inline-size',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[24],
+} satisfies CSSProperties
+
+/** A mounted weapon the catalog does not know: its slug and the remove ✕. */
+const UNKNOWN_WEAPON = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: tokens.space[8],
+  borderRadius: '0.25rem',
+  border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink}`,
+  padding: `${tokens.space[4]} ${tokens.space[8]}`,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 1.25 / 0.875,
+  color: tokens.color.wkMuted,
+} satisfies CSSProperties
+
+const TRUNCATE = {
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+const POOL_LABEL = {
+  marginBottom: tokens.space[8],
+  display: 'block',
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  lineHeight: 1,
+  letterSpacing: tokens.tracking.caps,
+  color: 'var(--tone-deep, var(--color-ink))',
+} satisfies CSSProperties
+
+const POOL_ROW = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
+
+const TABULAR = { fontVariantNumeric: 'tabular-nums' } satisfies CSSProperties
+
+const CREW_LINK = { textDecoration: 'none' } satisfies CSSProperties
+
+const STORAGE_BAY = { marginTop: tokens.space[24], minWidth: 0 } satisfies CSSProperties
+
 type CrawlerSheetProps = {
   crawler: Crawler
   /**
@@ -106,7 +162,7 @@ type CrawlerSheetProps = {
   mech?: Mech | null
   /**
    * Injectable store — defaults to useEntityStore.
-   * Pass a stub in tests to avoid Zustand/IndexedDB side effects.
+   * Pass a stub in tests to avoid Zustand side effects.
    */
   store?: typeof useEntityStore
   /** Suppresses every edit affordance (published snapshots). */
@@ -245,7 +301,7 @@ export function CrawlerSheet({
       // A full-width STACK, not a 2-up masonry: a mounted weapon reads as a
       // listing row across the bay, and half a bay's width squeezed the card's
       // header stats onto a second line.
-      <div className="flex min-w-0 flex-col gap-4">
+      <div style={STACK_16}>
         {crawler.systems.map((slug) => {
           const system = resolveCrawlerSystem(slug)
           return (
@@ -253,8 +309,8 @@ export function CrawlerSheet({
               {system ? (
                 <ReferenceEntityCard data={system} size="medium" collapsible foldTables />
               ) : (
-                <div className="flex items-center justify-between gap-2 rounded border border-ink px-2 py-1 text-sm text-wk-muted">
-                  <span className="min-w-0 truncate">{slug}</span>
+                <div style={UNKNOWN_WEAPON}>
+                  <span style={TRUNCATE}>{slug}</span>
                   {!readOnly && (
                     <CardRemoveButton name={slug} onRemove={() => removeWeapon(slug)} />
                   )}
@@ -268,19 +324,14 @@ export function CrawlerSheet({
 
   /** The Storage Bay's scrap pool + the crawler hold — rendered INSIDE it. */
   const storageContents = (
-    <div className="flex min-w-0 flex-col gap-4">
+    <div style={STACK_16}>
       {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (rules
           S12; the bucket bay-repair spends). Per-tech-level `Stat` steppers let
           a crawler stow arbitrary scrap by hand (Free Edit). The
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       <div>
-        <span
-          className="mb-2 block font-cond text-badge font-bold uppercase leading-none tracking-caps"
-          style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-        >
-          Scrap Pool
-        </span>
-        <div className="flex flex-wrap gap-2">
+        <span style={POOL_LABEL}>Scrap Pool</span>
+        <div style={POOL_ROW}>
           {SCRAP_TLS.map((t) => (
             <Stat
               key={t}
@@ -353,14 +404,15 @@ export function CrawlerSheet({
       // `.sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
       // width, not the viewport.
-      className="sheet-section @container flex flex-col gap-6"
+      className="sheet-section"
+      style={ROOT}
     >
       {/* ===== Single-column region flow (Workshop-Manual crawler sheet):
           Identity → Bays → Armament Weapons → Linked Units → Storage Bay.
           Storage is the FULL-WIDTH band at the very bottom (printed
           `Editable_..._Crawler_Sheets.pdf` p.2), not a full-height right
           column. ===== */}
-      <div className="flex min-w-0 flex-col gap-6">
+      <div style={STACK_24}>
         {/* ===== Identity Band (Workshop-Manual crawler sheet top region) =====
             Edge wordmark ∥ Name/Type/Ability/Description fields ∥ the Economy
             rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts), in one
@@ -369,7 +421,7 @@ export function CrawlerSheet({
           name={crawler.name}
           surface={readOnly ? 'paper' : 'frame'}
           fields={
-            <div className="flex min-w-0 flex-col gap-4">
+            <div style={STACK_16}>
               <CrawlerIdentityPanel
                 crawler={crawler}
                 store={store}
@@ -384,7 +436,7 @@ export function CrawlerSheet({
         />
 
         {/* ----- Content region (Bays, Weapons) ----- */}
-        <div className="flex min-w-0 flex-col gap-6">
+        <div style={STACK_24}>
           {/* Bays — ONE unified grid, all bays together (no crew/functional
               split). // TODO(redesign): render homebrew/custom bays in a
               separate "Custom Bays" group underneath once the data
@@ -393,7 +445,7 @@ export function CrawlerSheet({
             <SheetSectionSlab
               title="Bays"
               count={
-                <span className="tabular-nums">
+                <span style={TABULAR}>
                   {intactBays}/{bays.length} intact
                 </span>
               }
@@ -401,10 +453,8 @@ export function CrawlerSheet({
                 crewHref === undefined ? undefined : (
                   <AppLink
                     href={crewHref}
-                    className={cn(
-                      buttonVariants({ variant: 'default', size: 'compact' }),
-                      'no-underline'
-                    )}
+                    className={buttonVariants({ variant: 'default', size: 'compact' })}
+                    style={CREW_LINK}
                     aria-label={`Crew ${crawler.name}: design and assign crawler crew`}
                   >
                     Crew…
@@ -429,7 +479,7 @@ export function CrawlerSheet({
               {bays.map((entry, i) =>
                 bayKind(entry) === 'storage' ? (
                   // biome-ignore lint/suspicious/noArrayIndexKey: positional, as above
-                  <div key={`storage-${i}`} className="mt-6 min-w-0">
+                  <div key={`storage-${i}`} style={STORAGE_BAY}>
                     {renderBay(entry, i)}
                   </div>
                 ) : null
@@ -457,9 +507,7 @@ export function CrawlerSheet({
             // page wider than the viewport. Read stacks one-line listing cards;
             // Edit stacks the full rows with their Assign controls.
             bodyClassName={
-              readOnly
-                ? 'grid min-w-0 grid-cols-1 gap-x-4 @3xl:grid-cols-2 @5xl:grid-cols-3'
-                : 'flex min-w-0 flex-col gap-4'
+              readOnly ? 'su-sheet-crawler-linked-read' : 'su-sheet-crawler-linked-edit'
             }
           >
             {linkedUnits}

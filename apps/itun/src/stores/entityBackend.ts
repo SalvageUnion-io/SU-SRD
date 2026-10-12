@@ -16,10 +16,9 @@ import { knownVersion, noteVersion } from './serverVersions'
 /**
  * Where entity writes actually go (ADR-030 §1).
  *
- * `entityStore` reaches its persistence through one indirection —
- * `dbStoreFor(type)` — so swapping the backend is a matter of changing what
- * that returns rather than rewriting the store. The store's public API, its
- * in-memory cache and its lazy hydration are untouched by this file.
+ * The stores hold rows in memory only — what this page load's subscriptions
+ * delivered (`ShelfSync`) and the writes the server accepted. This file decides
+ * whether a write may go up at all, and sends it.
  *
  * ## There are exactly three answers, and one of them is "nowhere"
  *
@@ -28,16 +27,16 @@ import { knownVersion, noteVersion } from './serverVersions'
  * auth handshake, or running a build older than the backend's floor
  * (`outdated`, `lib/connection/buildFloor.ts`). There is no fourth case.
  *
- * `signedOut` is read-only and reads nothing: there is no anonymous store at
- * all (`readableRows`). Signed out, ITUN shows reference and nothing of a
+ * `signedOut` is read-only and holds nothing: there is no anonymous store at
+ * all, and nothing syncs signed out. Signed out, ITUN shows reference and nothing of a
  * player's own (ADR-034 decision 1, as amended). The durable path the tests
  * exercise is the signed-in one (`src/stores/__tests__/signedInBackend.ts`
  * for unit tests, the `TestAuthBridge` seam for e2e).
  *
- * ## Disconnected does not fall back to IndexedDB
+ * ## Disconnected does not write locally
  *
- * A signed-in user who loses connectivity is **read-only** (ADR-030 §1), not
- * quietly-writing-to-IndexedDB. Falling back would fork their data against the
+ * A signed-in user who loses connectivity is **read-only** (ADR-030 §1): the
+ * rows already on screen stay, and nothing is written. Writing locally would fork their data against the
  * server of record and reintroduce, by accident, the conflict resolution the
  * server-of-record decision exists to avoid. Callers check `canWrite` before
  * offering the affordance; this module refuses if they do not.
@@ -77,6 +76,22 @@ let authState: AuthState = { signedIn: false, online: true, authSettled: true }
  */
 export function setEntityBackendAuthState(next: AuthState): void {
   authState = next
+  for (const listener of [...listeners]) listener()
+}
+
+const listeners = new Set<() => void>()
+
+/** Hear every auth/connectivity push. Returns the unsubscribe. */
+export function subscribeBackend(listener: () => void): () => void {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
+
+/** Whether the initial auth handshake is still in flight (`connecting`). */
+export function backendSettling(): boolean {
+  return isSettlingConnection(currentMode())
 }
 
 export type BackendKind = 'remote' | 'blocked' | 'signedOut'
@@ -196,9 +211,9 @@ const OWNED_TABLE = { pilot: 'pilots', mech: 'mechs', npc: 'npcs' } as const
 /**
  * Write one entity to the server of record, and **fail if it does not land**.
  *
- * IndexedDB is a cache of Convex (ADR-034), and a cache cannot legitimately be
- * ahead of its source: a write the server refused **did not happen**, so the
- * store awaits this before touching the cache and lets the refusal throw.
+ * Convex is the server of record (ADR-034), and the stores cannot legitimately
+ * be ahead of it: a write the server refused **did not happen**, so the store
+ * awaits this before touching its rows and lets the refusal throw.
  *
  * Returns immediately unless the backend is `remote`; the store has already
  * refused any other write (`requireWritableBackend`).
@@ -493,20 +508,4 @@ export function requireWritableBackend(): 'remote' {
     throw new WritesBlockedOffline(isSettlingConnection(currentMode()) ? 'settling' : 'offline')
   }
   return backend
-}
-
-/**
- * The rows a store may show: its IndexedDB cache signed in (or blocked, where
- * the cache is what a Disconnected reader still opens), and **nothing** signed
- * out.
- *
- * The one read rule for every player-entity store. Signed out there is no
- * anonymous store to read — nothing can be built without an account — and the
- * cache must not stand in for one: it may still hold the last account's rows.
- * Resolved per call, like `selectBackend`, so a sign-in is seen on the next
- * read.
- */
-export async function readableRows<T>(cache: { list: () => Promise<T[]> }): Promise<T[]> {
-  if (selectBackend() === 'signedOut') return []
-  return cache.list()
 }
