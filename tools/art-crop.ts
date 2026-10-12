@@ -39,6 +39,8 @@ const DATA = join(REPO, 'packages/salvageunion-reference/data')
 const OUT = join(REPO, 'packages/component-lib/src/components/shared/heroArtCrop.data.ts')
 const ASSET_BASE_URL = 'https://assets.salvageunion.io'
 const FALLBACK_CHROME = '/opt/pw-browsers/chromium'
+const ASSET_ORIGIN = new URL(ASSET_BASE_URL).origin
+const ART_KEY = /^[a-z0-9-]+\/[a-z0-9-]+$/
 
 /** The ink's box as fractions of the canvas, then its own aspect ratio in pixels. */
 type Box = readonly [x: number, y: number, w: number, h: number, aspect: number]
@@ -111,7 +113,15 @@ async function main() {
   const crops: Record<string, Box> = {}
   try {
     for (const key of keys) {
-      const res = await fetch(`${ASSET_BASE_URL}/${key}-440.webp`)
+      // The key comes from the dataset's names: only a plain `schema/slug`
+      // reaches the network, and only ever on the asset origin.
+      if (!ART_KEY.test(key)) {
+        console.warn(`[art-crop] ${key}: not a schema/slug key, skipped`)
+        continue
+      }
+      const url = new URL(`${key}-440.webp`, `${ASSET_BASE_URL}/`)
+      if (url.origin !== ASSET_ORIGIN) throw new Error(`[art-crop] ${key} left the asset origin`)
+      const res = await fetch(url)
       if (!res.ok) {
         console.warn(`[art-crop] ${key}: HTTP ${res.status}, skipped`)
         continue
