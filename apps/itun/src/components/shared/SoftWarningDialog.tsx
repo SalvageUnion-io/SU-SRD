@@ -14,7 +14,31 @@
  */
 
 import { Banner, Button, ModalShell } from 'component-lib'
+import { color, font, fontSize, space } from 'component-lib/design/tokens'
+import type { CSSProperties } from 'react'
 import type { SoftWarning } from 'salvageunion-reference/rules'
+
+const BODY = {
+  backgroundColor: color.paper,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[16],
+  padding: space[20],
+} satisfies CSSProperties
+
+const LEDE = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  lineHeight: '1.25rem',
+  margin: 0,
+} satisfies CSSProperties
+
+const ACTIONS = {
+  display: 'flex',
+  gap: space[8],
+  justifyContent: 'flex-end',
+} satisfies CSSProperties
 
 type SoftWarningDialogProps = {
   open: boolean
@@ -44,15 +68,15 @@ export function SoftWarningDialog({
       title="Check this edit?"
       subtitle={subtitle}
       description="Advisory rule warnings for this edit. Saving is always allowed."
-      maxWidth="max-w-lg"
+      maxWidth="soft-warning-dialog"
     >
-      <div className="flex flex-col gap-4 bg-paper p-5">
-        <p className="m-0 font-body text-sm text-wk-muted">
+      <div style={BODY}>
+        <p style={LEDE}>
           This edit is legal to make — the rules just flag it. Save anyway, or go back and change
           it.
         </p>
         <Banner warnings={warnings} />
-        <div className="flex justify-end gap-2">
+        <div style={ACTIONS}>
           <Button variant="ghost" size="compact" onClick={onCancel}>
             Cancel
           </Button>

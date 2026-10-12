@@ -1,5 +1,6 @@
 import { EntityExternalLinkProvider } from 'component-lib'
-import type { ReactNode } from 'react'
+import { color, font, fontSize, radius, space, tracking, weight } from 'component-lib/design/tokens'
+import type { CSSProperties, ReactNode } from 'react'
 import { Suspense, use, useEffect, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
@@ -29,7 +30,7 @@ import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
  * above exists to avoid) and not an app-wide non-blocking preload (which
  * would need every ORM-touching component, not just this one gate, to
  * tolerate a not-ready state — a much larger change). One known trade-off:
- * `GameDataFallback` below still sizes itself to `min-h-dvh`, so while
+ * `GameDataFallback` below still sizes itself to the full dynamic viewport height, so while
  * `AppHeader` is also visible the fallback overshoots the remaining viewport
  * by the header's height for the brief loading window — acceptable given
  * it's transient and avoids threading `showAppHeader` through as a prop for
@@ -85,6 +86,46 @@ function PreloadGate({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+const FALLBACK = {
+  alignItems: 'center',
+  backgroundColor: color.inkDeep,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[24],
+  justifyContent: 'center',
+  minHeight: '100dvh',
+  paddingInline: space[24],
+} satisfies CSSProperties
+
+/** The SU mark; its size steps up from `sm` (routeStates.css). */
+const MARK = { borderRadius: '0.375rem' } satisfies CSSProperties
+
+const STATUS = {
+  color: color.paper,
+  fontFamily: font.cond,
+  fontSize: fontSize.sm,
+  fontWeight: weight.semibold,
+  letterSpacing: tracking.eyebrow,
+  lineHeight: '1.25rem',
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const TRACK = {
+  backgroundColor: `color-mix(in oklab, ${color.paper} 20%, transparent)`,
+  borderRadius: radius.full,
+  height: space[4],
+  overflow: 'hidden',
+  width: '14rem',
+} satisfies CSSProperties
+
+/** The sweeping third; its motion is routeStates.css's, under motion-safe. */
+const BAR = {
+  backgroundColor: color.paper,
+  borderRadius: radius.full,
+  height: '100%',
+  width: 'calc(1 / 3 * 100%)',
+} satisfies CSSProperties
+
 /**
  * Branded full-viewport loading fallback (design-spec brand chrome): SU mark
  * on the ink-deep ground with an indeterminate paper loader bar. The status
@@ -92,25 +133,20 @@ function PreloadGate({ children }: { children: ReactNode }) {
  */
 function GameDataFallback() {
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-ink-deep px-6"
-    >
+    <div role="status" aria-live="polite" style={FALLBACK}>
       <img
         src="/logos/su-cargo-dark.svg"
         alt=""
         width={96}
         height={96}
-        className="size-20 rounded-md sm:size-24"
+        className="game-data-fallback__mark"
+        style={MARK}
       />
-      <p className="font-cond text-sm font-semibold uppercase tracking-eyebrow text-paper">
-        Loading reference data…
-      </p>
+      <p style={STATUS}>Loading reference data…</p>
       {/* motion-safe: prefers-reduced-motion users get a static bar instead
           of the infinite translateX sweep (matches the heat-pulse guard). */}
-      <div aria-hidden="true" className="h-1 w-56 overflow-hidden rounded-full bg-paper/20">
-        <div className="h-full w-1/3 rounded-full bg-paper motion-safe:animate-loader-slide" />
+      <div aria-hidden="true" style={TRACK}>
+        <div className="game-data-fallback__bar" style={BAR} />
       </div>
     </div>
   )

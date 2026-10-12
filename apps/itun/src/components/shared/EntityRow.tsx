@@ -1,7 +1,17 @@
-import { Badge, Button, buttonVariants, cn, STAMP_SEAM, Stat } from 'component-lib'
+import { Badge, Button, buttonVariants, STAMP_SEAM, Stat } from 'component-lib'
+import {
+  borderWidth,
+  color,
+  font,
+  fontSize,
+  radius,
+  space,
+  tracking,
+  weight,
+} from 'component-lib/design/tokens'
 import type { LucideIcon } from 'lucide-react'
 import { Bot, Trash2, Unlink, UserRound, Users, Warehouse } from 'lucide-react'
-import type { ElementType, ReactNode } from 'react'
+import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Fragment } from 'react'
 
 /**
@@ -49,6 +59,11 @@ import { Fragment } from 'react'
  * with `buttonVariants`, so the primitive works with any router or none — an
  * app with client-side routing injects its own Link rather than the row taking
  * a router dependency.
+ *
+ * Styling: geometry and type are the style objects below, over component-lib's
+ * tokens. The two rules a style object cannot express — the empty foot's
+ * child-stretch and the Delete button's colour, which must beat the ghost
+ * variant's hover fill — live in `styles/entityRow.css`.
  */
 
 /**
@@ -249,6 +264,173 @@ const EMPTY_GLYPH: Record<EntityRowType, LucideIcon> = {
   npc: UserRound,
 }
 
+// — Empty variant —
+
+const EMPTY_ROW = {
+  backgroundColor: color.paper,
+  borderColor: color.ink,
+  borderRadius: radius.card,
+  borderStyle: 'dashed',
+  borderWidth: borderWidth.entity,
+  display: 'flex',
+  flexDirection: 'column',
+  minWidth: 0,
+  overflow: 'hidden',
+} satisfies CSSProperties
+
+const EMPTY_BAND = {
+  alignItems: 'center',
+  display: 'flex',
+  paddingBlock: space[6],
+  paddingInline: space[10],
+} satisfies CSSProperties
+
+const EMPTY_BODY = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[12],
+  paddingBlock: space[8],
+  paddingInline: space[10],
+} satisfies CSSProperties
+
+const EMPTY_GLYPH_BOX = {
+  flexShrink: 0,
+  height: space[24],
+  width: space[24],
+} satisfies CSSProperties
+
+const EMPTY_MESSAGE = {
+  color: color.ink,
+  flex: 1,
+  fontFamily: font.body,
+  fontSize: fontSize.note,
+  // Tailwind's `leading-snug`.
+  lineHeight: 1.375,
+  margin: 0,
+  minWidth: '140px',
+} satisfies CSSProperties
+
+/** The dashed foot: only its top edge is drawn, so the other three widths are 0. */
+const EMPTY_FOOT = {
+  alignItems: 'stretch',
+  borderColor: color.ink,
+  borderStyle: 'dashed',
+  borderWidth: `${borderWidth.pill} 0 0`,
+  display: 'flex',
+  gap: space[8],
+  marginTop: 'auto',
+  paddingBlock: space[6],
+  paddingInline: space[10],
+} satisfies CSSProperties
+
+// — Filled variant —
+
+const ROW_FRAME = {
+  backgroundColor: color.paper,
+  borderColor: color.ink,
+  borderRadius: radius.card,
+  borderWidth: borderWidth.entity,
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'visible',
+  position: 'relative',
+} satisfies CSSProperties
+
+/** Clips the bands to the frame's radius. */
+const ROW_CLIP = {
+  borderRadius: 'calc(var(--radius-card) - var(--bw-entity))',
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
+} satisfies CSSProperties
+
+const ROW_BAND = {
+  alignItems: 'center',
+  columnGap: space[12],
+  display: 'flex',
+  flexWrap: 'wrap',
+  minWidth: 0,
+  paddingBottom: space[6],
+  paddingInline: space[10],
+  rowGap: space[6],
+} satisfies CSSProperties
+
+const ROW_TITLE = {
+  alignSelf: 'center',
+  fontFamily: font.cond,
+  fontSize: fontSize.base,
+  fontWeight: weight.bold,
+  letterSpacing: tracking.capsTight,
+  lineHeight: 1,
+  minWidth: 0,
+  overflowWrap: 'break-word',
+  textTransform: 'uppercase',
+  width: 'fit-content',
+} satisfies CSSProperties
+
+const ROW_STATS = {
+  alignItems: 'center',
+  columnGap: space[8],
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+  marginLeft: 'auto',
+  rowGap: space[4],
+} satisfies CSSProperties
+
+const ROW_BODY = {
+  alignItems: 'center',
+  columnGap: space[12],
+  display: 'flex',
+  flex: 1,
+  flexWrap: 'wrap',
+  minWidth: 0,
+  paddingBlock: space[8],
+  paddingInline: space[10],
+  rowGap: space[8],
+} satisfies CSSProperties
+
+const ROW_DETAILS = {
+  alignItems: 'center',
+  columnGap: space[8],
+  display: 'flex',
+  flex: 1,
+  flexWrap: 'wrap',
+  minWidth: '9rem',
+  rowGap: space[4],
+} satisfies CSSProperties
+
+const ROW_CHIP = {
+  maxWidth: '100%',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+const ROW_CONTROLS = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[6],
+  justifyContent: 'flex-end',
+  marginLeft: 'auto',
+} satisfies CSSProperties
+
+const VIEW_LINK = { textDecorationLine: 'none' } satisfies CSSProperties
+
+const UNASSIGN_GLYPH = { height: space[14], width: space[14] } satisfies CSSProperties
+
+/** Static half of the Delete button; its colours are `.entity-row__delete`. */
+const DELETE_BUTTON = {
+  borderColor: 'transparent',
+  paddingInline: space[8],
+} satisfies CSSProperties
+
+const DELETE_GLYPH = { height: space[16], width: space[16] } satisfies CSSProperties
+
+const SEAL_INSET = { right: space[12] } satisfies CSSProperties
+
 export function EntityRow(props: EntityRowProps) {
   const tone = TONE[props.entityType]
 
@@ -257,34 +439,23 @@ export function EntityRow(props: EntityRowProps) {
     const { roleLabel, message, mock, actions, className } = props
     const EmptyGlyph = EMPTY_GLYPH[props.entityType]
     return (
-      <div
-        className={cn(
-          'flex min-w-0 flex-col overflow-hidden rounded-card bg-paper',
-          'border-[length:var(--bw-entity)] border-dashed border-ink',
-          className
-        )}
-      >
+      <div className={className} style={EMPTY_ROW}>
         {/* The role tab rides its own tone band, the same way the filled row's
             name does — an empty slot is still a slot for a KIND of thing, and
             it should announce which one in the same place its filled sibling
             would. Dashed frame is what marks it empty; the band is not. */}
-        <div
-          className="flex items-center px-2.5 py-1.5"
-          style={{ background: tone.band, color: tone.ink }}
-        >
+        <div style={{ ...EMPTY_BAND, background: tone.band, color: tone.ink }}>
           <Badge shape="stamp" size="compact">
             {roleLabel}
           </Badge>
         </div>
-        <div className="flex flex-wrap items-center gap-3 px-2.5 py-2">
-          <EmptyGlyph aria-hidden="true" className="size-6 shrink-0" style={{ color: tone.band }} />
+        <div style={EMPTY_BODY}>
+          <EmptyGlyph aria-hidden="true" style={{ ...EMPTY_GLYPH_BOX, color: tone.band }} />
           {mock}
-          <p className="m-0 min-w-[140px] flex-1 font-body text-note leading-snug text-ink">
-            {message}
-          </p>
+          <p style={EMPTY_MESSAGE}>{message}</p>
         </div>
         {actions && (
-          <div className="mt-auto flex items-stretch gap-2 border-t-2 border-dashed border-ink px-2.5 py-1.5 *:flex-1">
+          <div className="entity-row__empty-actions" style={EMPTY_FOOT}>
             {actions}
           </div>
         )}
@@ -323,28 +494,25 @@ export function EntityRow(props: EntityRowProps) {
 
   return (
     <div
-      className={cn(
-        // `overflow-visible`, so the seal can ride the top border: a clipped
-        // frame would slice the stamp in half along the seam it is meant to
-        // straddle. The inner wrapper does the clipping instead — the same
-        // split `Card` uses for its callout.
-        'group relative flex flex-col overflow-visible rounded-card bg-paper',
+      style={{
+        // `overflow: visible` (ROW_FRAME), so the seal can ride the top border:
+        // a clipped frame would slice the stamp in half along the seam it is
+        // meant to straddle. The inner wrapper does the clipping instead — the
+        // same split `Card` uses for its callout.
+        //
         // The frame is the card's, at the card's weight — a row is the compact
         // translation of an entity card, not a lighter-weight cousin of one.
         // Flat chrome (brand refresh P2a), as `Card`: no drop shadow and no
         // hover lift; the row is printed on the page and the frame is its edge.
-        'border-[length:var(--bw-entity)] border-ink',
+        ...ROW_FRAME,
         // A built NPC is user-made (ruleset §3.9), so its frame is dashed. The
         // caller seals it with the User-made stamp, which is what tells it from
         // an empty slot's dashed frame.
-        entityType === 'npc' && 'border-dashed'
-      )}
+        borderStyle: entityType === 'npc' ? 'dashed' : 'solid',
+      }}
     >
       {/* Inner wrapper clips the bands to the frame's radius. */}
-      <div
-        className="flex flex-col overflow-hidden"
-        style={{ borderRadius: 'calc(var(--radius-card) - var(--bw-entity))' }}
-      >
+      <div style={ROW_CLIP}>
         {/* HEADER BAND — the card's, in row form: a solid strip of the ontology
             tone carrying the name stamp on the left and the row's vitals on the
             right. This is where the row states what kind of thing it is and how
@@ -356,21 +524,22 @@ export function EntityRow(props: EntityRowProps) {
             clearing the stamp riding the border above (the same allowance
             `Card` makes for its callout). */}
         <div
-          className={cn(
-            'flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 px-2.5 py-1.5',
+          style={{
+            ...ROW_BAND,
             // Only extra TOP padding, no right reserve: the seal rides the
             // border half above the frame, so its intrusion is vertical, and
             // clearing it downward frees the band's right edge for the stats
-            // (which a `pr-24` reserve had stranded in the middle of the band).
+            // (which a 96px right reserve had stranded in the middle of the band).
             //
             // The clearance is generous on purpose. The stats sit at the same
             // right edge the seal hangs over, so a tight allowance left the
             // stamp appearing to rest ON the first stat plate rather than on
             // the border above it — two black plates a hair apart, reading as
             // one smudged stack.
-            seal && 'pt-5'
-          )}
-          style={{ background: tone.band, color: tone.ink }}
+            paddingTop: seal ? space[20] : space[6],
+            background: tone.band,
+            color: tone.ink,
+          }}
         >
           {/* The title, under the ENTITY CARD's title rule (`EntityCardHeader`):
               plain ink text sitting directly ON the tone — no ink
@@ -383,23 +552,15 @@ export function EntityRow(props: EntityRowProps) {
               the drift; the card's is the one that wins, so a row's title and a
               card's title are now the same object at a different rung.
 
-              `text-base` is the ladder's `small` rung at depth 0 — a row is the
-              card's compact translation, so it sits where a small card sits,
-              and it is meaningfully larger than the stamp it replaces.
+              `fontSize.base` is the ladder's `small` rung at depth 0 — a row is
+              the card's compact translation, so it sits where a small card
+              sits, and it is meaningfully larger than the stamp it replaces.
 
-              `break-words` so an unbreakable token wraps instead of running
-              under the stat cluster beside it. */}
-          <span
-            className={cn(
-              'w-fit min-w-0 self-center break-words',
-              'font-cond text-base font-bold uppercase leading-none tracking-caps-tight'
-            )}
-            style={{ color: tone.ink }}
-          >
-            {name}
-          </span>
+              `overflowWrap: break-word` so an unbreakable token wraps instead
+              of running under the stat cluster beside it. */}
+          <span style={{ ...ROW_TITLE, color: tone.ink }}>{name}</span>
           {hasStats && (
-            <div className="ml-auto flex flex-wrap items-center justify-end gap-x-2 gap-y-1">
+            <div style={ROW_STATS}>
               {stats?.map((stat) => (
                 <Stat
                   key={String(stat.label)}
@@ -422,12 +583,12 @@ export function EntityRow(props: EntityRowProps) {
             just a name and its stats closes at the band rather than opening an
             empty strip beneath it. */}
         {hasBody && (
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2 px-2.5 py-2">
-            {/* `min-w` is a wrap TRIGGER, not a width: without it the detail
+          <div style={ROW_BODY}>
+            {/* `minWidth` is a wrap TRIGGER, not a width: without it the detail
                 block shrinks to whatever the controls leave behind, and a row
                 with four buttons truncated its chips rather than dropping the
                 controls to their own line. */}
-            <div className="flex min-w-[9rem] flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+            <div style={ROW_DETAILS}>
               {/* The SECONDARY stats — the same cell as the band's, in the
                   quieter register. See `bodyStats`. */}
               {bodyStats?.map((stat) => (
@@ -447,7 +608,7 @@ export function EntityRow(props: EntityRowProps) {
                   key={i}
                   surface={entityType === 'npc' ? 'quiet' : 'tone'}
                   {...(entityType === 'npc' ? {} : { tone: entityType })}
-                  className="max-w-full truncate"
+                  style={ROW_CHIP}
                 >
                   {badge}
                 </Badge>
@@ -458,7 +619,7 @@ export function EntityRow(props: EntityRowProps) {
                     // biome-ignore lint/suspicious/noArrayIndexKey: positional caption parts that never reorder; a value is a worse key than its slot
                     key={i}
                     surface="quiet"
-                    className="max-w-full truncate"
+                    style={ROW_CHIP}
                   >
                     {part}
                   </Badge>
@@ -474,7 +635,7 @@ export function EntityRow(props: EntityRowProps) {
             {/* The controls, trailing the body. They do not compete with the
                 name for width — the name has its own band above — so this is a
                 plain right-aligned cluster that wraps when it must. */}
-            <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
+            <div style={ROW_CONTROLS}>
               {actions}
               {sheetHref !== undefined && (
                 <Link
@@ -486,10 +647,8 @@ export function EntityRow(props: EntityRowProps) {
                   // from its name). The visible text stays "View" — the rail is
                   // tight and the name already has its own band above.
                   aria-label={`View ${name}`}
-                  className={cn(
-                    buttonVariants({ variant: 'default', size: 'mini' }),
-                    'no-underline'
-                  )}
+                  className={buttonVariants({ variant: 'default', size: 'mini' })}
+                  style={VIEW_LINK}
                 >
                   View
                 </Link>
@@ -502,7 +661,7 @@ export function EntityRow(props: EntityRowProps) {
                   // which assignment it ends, as View's does (WCAG 2.4.4).
                   aria-label={`Unassign ${name}`}
                   onClick={onUnassignClick}
-                  glyph={<Unlink className="size-3.5" />}
+                  glyph={<Unlink style={UNASSIGN_GLYPH} />}
                 >
                   Unassign
                 </Button>
@@ -513,9 +672,10 @@ export function EntityRow(props: EntityRowProps) {
                   size="mini"
                   aria-label={`Delete ${name}`}
                   onClick={onDeleteClick}
-                  className="border-transparent px-2 text-status-bad hover:bg-transparent hover:text-status-bad"
+                  className="entity-row__delete"
+                  style={DELETE_BUTTON}
                 >
-                  <Trash2 aria-hidden="true" className="size-4" />
+                  <Trash2 aria-hidden="true" style={DELETE_GLYPH} />
                 </Button>
               )}
             </div>
@@ -528,7 +688,11 @@ export function EntityRow(props: EntityRowProps) {
           plate riveted across the seam. It is outside the clipping wrapper for
           exactly that reason; the band's extra top padding is what keeps its
           contents clear of the half that overhangs them. */}
-      {seal && <span className={cn(STAMP_SEAM, 'right-3')}>{seal}</span>}
+      {seal && (
+        <span className={STAMP_SEAM} style={SEAL_INSET}>
+          {seal}
+        </span>
+      )}
     </div>
   )
 }

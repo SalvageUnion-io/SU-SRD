@@ -1,5 +1,8 @@
+import { borderWidth, color, font, fontSize, radius, space } from 'component-lib/design/tokens'
 import type { Story } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import '../../styles/entityRow.css'
 import { EntityRow } from './EntityRow'
 
 export default {
@@ -14,6 +17,37 @@ const mech = SalvageUnionReference.Chassis.all()[0]
 const pilotClass = SalvageUnionReference.Classes.all()[0]
 const crawlerType = SalvageUnionReference.Crawlers.all()[0]
 
+/** The story frame: a 28rem paper column. */
+const FRAME = {
+  backgroundColor: color.paper,
+  maxWidth: '28rem',
+  padding: space[20],
+} satisfies CSSProperties
+
+const COLUMN = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[10],
+} satisfies CSSProperties
+
+const LIST = { ...COLUMN, listStyleType: 'none' } satisfies CSSProperties
+
+const CREATE_LINK = {
+  backgroundColor: color.paper,
+  borderColor: color.ink,
+  borderRadius: radius.card,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.chrome,
+  color: color.ink,
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  lineHeight: '1.25rem',
+  paddingBlock: space[4],
+  paddingInline: space[12],
+  textAlign: 'center',
+  textDecorationLine: 'none',
+} satisfies CSSProperties
+
 /**
  * A roster column: three saved builds — a pilot, a mech, and a crawler — each a
  * header-only listing row keyed to its ontology tone. The mech reads live from
@@ -21,8 +55,8 @@ const crawlerType = SalvageUnionReference.Crawlers.all()[0]
  * real Class and Crawler type.
  */
 export const Default: Story = () => (
-  <div className="max-w-md bg-paper p-5">
-    <ul className="flex list-none flex-col gap-2.5">
+  <div style={FRAME}>
+    <ul style={LIST}>
       <li>
         <EntityRow
           entityType="pilot"
@@ -73,8 +107,8 @@ export const Default: Story = () => (
  * carry them.
  */
 export const Game: Story = () => (
-  <div className="max-w-md bg-paper p-5">
-    <ul className="flex list-none flex-col gap-2.5">
+  <div style={FRAME}>
+    <ul style={LIST}>
       <li>
         <EntityRow
           entityType="game"
@@ -100,7 +134,7 @@ export const Game: Story = () => (
 )
 
 export const Empty: Story = () => (
-  <div className="flex max-w-md flex-col gap-2.5 bg-paper p-5">
+  <div style={{ ...FRAME, ...COLUMN }}>
     <EntityRow
       empty
       entityType="game"
@@ -113,10 +147,7 @@ export const Empty: Story = () => (
       roleLabel="Assigned Mech"
       message="No mech assigned — build one to track its loadout and heat from here."
       actions={
-        <a
-          href="#/mech/new"
-          className="rounded-card border-chrome border-ink bg-paper px-3 py-1 text-center font-body text-sm text-ink no-underline"
-        >
+        <a href="#/mech/new" style={CREATE_LINK}>
           + Create
         </a>
       }

@@ -7,15 +7,26 @@
  * failure stays visible next to the retry affordance.
  */
 
-import { Button, toast, tokens } from 'component-lib'
+import { Button, toast } from 'component-lib'
+import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
 
-/** The inline failure line on the ink band (Shelves): paper, not muted ink. */
-const ON_INK = { color: tokens.color.paper } satisfies CSSProperties
+const STACK = { display: 'flex', flexDirection: 'column', gap: space[4] } satisfies CSSProperties
+
+/** The inline failure line. */
+const FAILURE = {
+  color: color.statusBad,
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+} satisfies CSSProperties
+
+/** The same line on the ink band (Shelves): paper, not the danger colour. */
+const FAILURE_ON_INK = { ...FAILURE, color: color.paper } satisfies CSSProperties
 
 type ExportAllButtonProps = {
   /** Extra classes for the button (the Shelves band's on-ink outline). */
@@ -46,7 +57,7 @@ export function ExportAllButton({ className, onInk = false }: ExportAllButtonPro
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div style={STACK}>
       <Button
         size="compact"
         disabled={busy}
@@ -55,11 +66,7 @@ export function ExportAllButton({ className, onInk = false }: ExportAllButtonPro
       >
         {busy ? 'Exporting…' : 'Export all'}
       </Button>
-      {error && (
-        <p className="font-body text-xs text-status-bad" style={onInk ? ON_INK : undefined}>
-          {error}
-        </p>
-      )}
+      {error && <p style={onInk ? FAILURE_ON_INK : FAILURE}>{error}</p>}
     </div>
   )
 }

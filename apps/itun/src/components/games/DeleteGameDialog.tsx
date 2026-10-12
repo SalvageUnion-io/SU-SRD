@@ -29,7 +29,9 @@
  */
 
 import { ConfirmDialog, Text } from 'component-lib'
+import { space } from 'component-lib/design/tokens'
 import { useMutation } from 'convex/react'
+import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { failureMessage } from '../shared/useConfirm'
@@ -57,6 +59,23 @@ type Props = {
    */
   onDeleted?: () => void
 }
+
+const SURVIVORS = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[8],
+} satisfies CSSProperties
+
+const SURVIVOR_LIST = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[4],
+  listStyleType: 'disc',
+  paddingLeft: space[20],
+} satisfies CSSProperties
+
+/** The hint rung is centred; these asides read as a left-set list. */
+const LEFT = { textAlign: 'left' } satisfies CSSProperties
 
 /** "4 pilots", "1 pilot", or null when there are none to mention. */
 function countPhrase(n: number, singular: string): string | null {
@@ -106,20 +125,20 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
             This ends the table for all {game?.memberCount ?? 0} of you. It cannot be undone.
           </Text>
 
-          <div className="flex flex-col gap-2">
-            <Text variant="hint" className="text-left">
+          <div style={SURVIVORS}>
+            <Text variant="hint" style={LEFT}>
               Nothing anybody built is destroyed:
             </Text>
-            <ul className="flex list-disc flex-col gap-1 pl-5">
+            <ul style={SURVIVOR_LIST}>
               {surviving.length > 0 && (
                 <li>
-                  <Text variant="hint" className="text-left">
+                  <Text variant="hint" style={LEFT}>
                     {surviving.join(' and ')} go back to whoever owns them, in their shelves.
                   </Text>
                 </li>
               )}
               <li>
-                <Text variant="hint" className="text-left">
+                <Text variant="hint" style={LEFT}>
                   {game?.crawlerName === null || game?.crawlerName === undefined
                     ? 'Anything unclaimed comes to you, in your shelves.'
                     : `${game.crawlerName} and anything unclaimed come to you, in your shelves.`}
@@ -128,7 +147,7 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
             </ul>
           </div>
 
-          <Text variant="hint" className="text-left">
+          <Text variant="hint" style={LEFT}>
             The crew, its invites, any pending join requests, the opposition tray and the wiring
             between everyone's builds go with the game.
           </Text>

@@ -24,8 +24,8 @@
  * baselined, so it starts at zero. Two rules still carry a backlog and are
  * `ratchet` rules, counted against `tools/styling-baseline.json`:
  *
- *   - `raw-color` — the Discord bot restates the palette as hex integers
- *     (`format.ts`, `gameCards.ts`).
+ *   - `raw-color` — at zero: the Discord bot's hex-integer accents, its last
+ *     findings, are exempt below (Discord's API takes integers, not CSS).
  *   - `arbitrary-font-size` — `WizShell.tsx` and `LiveSheet.tsx`.
  *
  * An upward rebaseline is sanctioned only when a rule is made STRICTER, so its
@@ -51,9 +51,10 @@ export const SCAN_DIRS = [
   'packages/salvageunion-reference/data',
   'apps/srd/src',
   'apps/itun/src',
-  // An entire APP the guard could not see. It restates the palette as hex ints
-  // (see the `0x` arm of raw-color) — 12 of them, tracked in the baseline and
-  // burning down.
+  // An entire APP the guard could not see. Its accent colours restate the
+  // palette as hex ints (the `0x` arm of raw-color), the form Discord's API
+  // takes; those two files are exempt below, so a new literal anywhere else in
+  // the bot still fails.
   'apps/discord-bot/src',
   'apps/su-assets/src',
   'packages/observability/src',
@@ -448,6 +449,18 @@ const EXEMPTIONS: Exemption[] = [
     rules: ['raw-color'],
     reason:
       "Self-citation, not a colour: the sole match is a doc comment describing the `hostBase` parameter as accepting a resolvable CSS colour, naming the `rgb()` form it accepts. The rule matches the empty-parens spelling. Rewording the comment to dodge the regex would make the parameter's contract less clear to satisfy a lint — the same trade the raw-color rule already refuses for PR and issue references.",
+  },
+  {
+    file: 'apps/discord-bot/src/format.ts',
+    rules: ['raw-color'],
+    reason:
+      "Not CSS: the bot renders no stylesheet. Discord's `setAccentColor()` takes a 0xRRGGBB integer, so NEUTRAL_ACCENT and ROLL_COLORS restate `--color-rust` and the `--color-roll-*` ramp in the only form the API accepts; each doc comment cites the token's rgb()/hex it was converted from. There is no token to read instead (the bot does not depend on component-lib), and `src/__tests__/themeLockstep.test.ts` reads theme.css and fails if any of these drifts — the lockstep the rule exists to enforce, done by a test rather than a lookup.",
+  },
+  {
+    file: 'apps/discord-bot/src/gameCards.ts',
+    rules: ['raw-color'],
+    reason:
+      "Not CSS, same reason as format.ts above: SHEET_ACCENT is the Discord container accent for pilot / mech / crawler sheets, the `--color-sheet-*` tones (= `--color-pilot` / `--color-mech` / `--color-crawler`) as the 0xRRGGBB integers `setAccentColor()` takes. Values verified equal to theme.css when exempted; unlike format.ts's colours, no test pins them to theme.css yet.",
   },
 ]
 
