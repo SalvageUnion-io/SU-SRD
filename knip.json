@@ -25,10 +25,14 @@
     },
     "tools": {
       // Every top-level script is run directly (`bun tools/<name>.ts`), by a
-      // root script, the check registry or a workflow. `rules/*.ts` is listed
-      // because knip reads `.gitignore`'s `rules/*` (the local rules extract)
-      // as matching `tools/rules/` too, and would not otherwise follow it.
-      "entry": ["*.ts", "rules/*.ts"]
+      // root script, the check registry or a workflow.
+      "entry": ["*.ts"]
+    },
+    "packages/gates": {
+      // `rules/*.ts` is listed because knip reads `.gitignore`'s `rules/*`
+      // (the local rules extract) as matching `packages/gates/rules/` too, and
+      // would not otherwise follow it.
+      "entry": ["rules/*.ts"]
     },
     "packages/salvageunion-reference": {
       "entry": ["tools/**/*.ts"],
@@ -72,7 +76,7 @@
         "src/runtime/islands.client.ts",
         "src/runtime/styles.entry.ts",
         "src/runtime/assets.entry.ts",
-        // The one spec whose import reaches `tools/` (`tools/lib/a11yScan.ts`).
+        // The one spec that imports `gates` (`packages/gates/lib/a11yScan.ts`).
         "e2e/a11y.e2e.ts"
       ],
       "project": ["src/**/*.{ts,tsx}", "ssg/**/*.{ts,tsx}"],
@@ -87,7 +91,7 @@
         "src/stores/entityStore.ts",
         "src/stores/activeContainerStore.ts",
         "src/stores/types.ts",
-        // The one spec whose import reaches `tools/` (`tools/lib/a11yScan.ts`).
+        // The one spec that imports `gates` (`packages/gates/lib/a11yScan.ts`).
         "e2e/a11y.e2e.ts"
       ],
       // `test/**` covers the Convex test suite, which lives OUTSIDE `convex/`

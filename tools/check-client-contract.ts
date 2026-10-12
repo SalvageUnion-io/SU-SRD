@@ -18,7 +18,7 @@
  * It imports every module `convex/_generated/api.d.ts` registers and reads each
  * public function's argument validator (`exportArgs()`, the same JSON
  * `convex deploy` pushes). Then it compares them against the committed
- * snapshot, `tools/convex-client-contract.json`, which records the validators
+ * snapshot, `tools/baselines/convex-client-contract.json`, which records the validators
  * as of the floor in force.
  *
  * - A change that rejects calls the snapshot's validators accepted is
@@ -47,12 +47,12 @@
 
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { assertScanFloor } from './lib/scanFloor'
+import { assertScanFloor } from 'gates/lib/scanFloor'
 
 const ROOT = join(import.meta.dir, '..')
 const CONVEX_DIR = join(ROOT, 'apps/itun/convex')
 const API_PATH = join(CONVEX_DIR, '_generated/api.d.ts')
-export const SNAPSHOT_PATH = join(ROOT, 'tools/convex-client-contract.json')
+export const SNAPSHOT_PATH = join(ROOT, 'tools/baselines/convex-client-contract.json')
 
 /** Well under today's ~77: trips only if the import walk found next to nothing. */
 const FUNCTION_FLOOR = 50
@@ -260,7 +260,7 @@ async function main(): Promise<void> {
   }
   if (result.write && !write) {
     console.error(
-      `\n✗ client contract: tools/convex-client-contract.json is out of date (${result.message}). Run \`bun tools/check-client-contract.ts --write\` and commit it.\n`
+      `\n✗ client contract: tools/baselines/convex-client-contract.json is out of date (${result.message}). Run \`bun tools/check-client-contract.ts --write\` and commit it.\n`
     )
     process.exit(1)
   }

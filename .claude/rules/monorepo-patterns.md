@@ -46,7 +46,7 @@ Bare `--parallel` and `--isolate` stay banned: both measured slower than serial
 win (the itun, srd and component-lib `test` scripts); `--changed` is the other
 flag that helps. Keep each `test:coverage` process serial: `--parallel`
 coverage writes different lcov line counts. ITUN runs as fixed serial shards
-(`SHARDS` in `tools/run-coverage.ts`) whose lcov `tools/lib/lcov.ts` merges
+(`SHARDS` in `tools/run-coverage.ts`) whose lcov `packages/gates/lib/lcov.ts` merges
 back to a serial run's exact `DA` lines; diff the merge against one serial run
 on the same commit, per file, before changing the split or the shard count.
 

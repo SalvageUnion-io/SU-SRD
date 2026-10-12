@@ -23,7 +23,7 @@
  * ratified in #1250: `rust-allowlist` (§3.1), `type-floor` (§4.6) and
  * `texture-placement` (§3.5). Each landed with its backlog fixed, not
  * baselined, so it starts at zero. Two rules still carry a backlog and are
- * `ratchet` rules, counted against `tools/styling-baseline.json`:
+ * `ratchet` rules, counted against `tools/baselines/styling-baseline.json`:
  *
  *   - `raw-color` — at zero: the Discord bot's hex-integer accents, its last
  *     findings, are exempt below (Discord's API takes integers, not CSS).
@@ -468,7 +468,7 @@ const EXEMPTIONS: Exemption[] = [
 
 /**
  * Catastrophe floor for SCAN_DIRS, counted AFTER tests and generated files are
- * dropped: ~760 files today. See tools/lib/scanFloor.ts for why this is
+ * dropped: ~760 files today. See packages/gates/lib/scanFloor.ts for why this is
  * deliberately far below the real count (~65%).
  */
 const SCAN_FLOOR = 500
@@ -513,12 +513,15 @@ export const designTokens: RuleSet = {
   id: 'tokens',
   label: 'design tokens',
   rules: TOKEN_RULES,
-  exemptionsLive: 'tools/rules/designTokens.ts (or a `design-tokens-ignore` line comment)',
+  exemptionsLive: 'packages/gates/rules/designTokens.ts (or a `design-tokens-ignore` line comment)',
   preflight(root) {
     assertScanFloor('design tokens', scannedFiles(root).length, SCAN_FLOOR)
     // A workspace never added to SCAN_DIRS only makes the floor go up, so the
-    // floor is blind to it. See tools/lib/workspaceCoverage.ts.
-    assertCoversWorkspaces('design tokens', SCAN_DIRS)
+    // floor is blind to it. See packages/gates/lib/workspaceCoverage.ts.
+    assertCoversWorkspaces('design tokens', SCAN_DIRS, {
+      'packages/gates':
+        'the gates themselves: the rule sets quote the literals they forbid, and nothing here renders.',
+    })
   },
   scan(root) {
     const sources = new Map<string, string>()

@@ -1,13 +1,11 @@
 /**
- * Tests for the R2 helpers and the export's write path.
+ * Tests for the R2 helpers.
  *
  * `listObjects` is driven through the real `Bun.S3Client` against a local server
  * answering `ListObjectsV2`, so what is tested is the pagination this tool
  * relies on, not a mock of it.
  */
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
-import { join, resolve } from 'node:path'
-import { destinationFor } from '../export-lp-assets'
 import { credentialsFromEnv, listObjects, r2Client } from '../lib/r2'
 
 describe('credentialsFromEnv', () => {
@@ -113,19 +111,5 @@ describe('listObjects', () => {
         status: 403,
       })
     await expect(listObjects(client())).rejects.toMatchObject({ code: 'AccessDenied' })
-  })
-})
-
-describe('destinationFor', () => {
-  const out = resolve('/tmp/export')
-
-  test('places a key under the output directory', () => {
-    expect(destinationFor(out, 'chassis/mule.webp')).toBe(join(out, 'chassis/mule.webp'))
-  })
-
-  test('refuses a key that climbs out of the output directory (CodeQL #93)', () => {
-    expect(() => destinationFor(out, '../../etc/passwd')).toThrow(/escapes/)
-    expect(() => destinationFor(out, 'chassis/../../x')).toThrow(/escapes/)
-    expect(() => destinationFor(out, '/etc/passwd')).toThrow(/escapes/)
   })
 })

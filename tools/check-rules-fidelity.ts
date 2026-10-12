@@ -56,6 +56,18 @@
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
+import type { Anchor, Lock, LockEntry, ProseItem, Reason } from 'gates/lib/proseFidelity'
+import {
+  collectProse,
+  compareWithLock,
+  DRIFT_REASONS,
+  fold,
+  proseHash,
+  readLockFile,
+  toLockFile,
+  VERDICTS,
+  writeLockFile,
+} from 'gates/lib/proseFidelity'
 import type { ProseRuleId } from '../packages/salvageunion-reference/lib/proseDeviations'
 import {
   BOILERPLATE_MIN_REPEATS,
@@ -68,18 +80,6 @@ import {
 } from '../packages/salvageunion-reference/lib/proseDeviations'
 import type { Layer } from './extract-rules'
 import { findExtractDir, LAYER_DIR } from './extract-rules'
-import type { Anchor, Lock, LockEntry, ProseItem, Reason } from './lib/proseFidelity'
-import {
-  collectProse,
-  compareWithLock,
-  DRIFT_REASONS,
-  fold,
-  proseHash,
-  readLockFile,
-  toLockFile,
-  VERDICTS,
-  writeLockFile,
-} from './lib/proseFidelity'
 
 // ---------------------------------------------------------------------------
 // Books
