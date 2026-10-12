@@ -1,16 +1,12 @@
 /*
  * Salvage Union Design System — the ONE token set.
  *
- * Every design token the repo styles with is declared in this file: the
- * `@theme` block (which Tailwind turns into utilities) and the `:root` block
- * below it. `src/styles/index.css` reads these properties and declares none of
+ * Every design token the repo styles with is declared in this file, as `:root`
+ * custom properties: the scales first, then the derived and spacing tokens. `src/styles/index.css` reads these properties and declares none of
  * its own; `src/design/tokens.ts` mirrors them for style objects, and
  * `src/design/tokens.parity.test.ts` fails if the two disagree. Edit both.
  */
-/* `static`: Tailwind otherwise emits only the variables some utility uses, and
-   a component moved onto a style object reads `var(--color-tl-2)` with no
-   utility left to keep it alive. Every token is emitted, used or not. */
-@theme static {
+:root {
   /* === Typography === */
   /* TWO faces, no aliases: Barlow for body/values, Barlow Semi Condensed for
      all-caps chrome. */
@@ -20,8 +16,7 @@
   /* === Caps tracking steps (canonical primitive language §3) ===
      Promoted up from the ITUN app so BOTH apps (and the shared components they
      render) resolve the same letter-spacing ladder. `tracking-caps-tight`
-     (0.04em) is the canonical Stamp/label tracking. Slots around Tailwind's
-     built-ins (wide 0.025 / wider 0.05 / widest 0.1). */
+     (0.04em) is the canonical Stamp/label tracking. */
   --tracking-caps-tight: 0.04em;
   --tracking-caps-snug: 0.06em;
   --tracking-caps: 0.08em;
@@ -31,7 +26,7 @@
   /* Radius scale (ruleset §4.4 — the ONE radius vocabulary; never rounded-[Npx]):
      pip = tracker pips · badge = the stamp-chip family · card = cards, inputs,
      buttons (the outer 3px) · panel = app-chrome panels & pick cards. Stamps are
-     square (no radius). These generate rounded-pip/badge/card/panel utilities. */
+     square (no radius). */
   --radius-pip: 1px;
   --radius-badge: 2px;
   --radius-card: 3px;
@@ -72,9 +67,8 @@
   /* The ChapterBand's notched page title (ruleset, "The source": the chapter
      band), at sm and up; a phone sets it at hero. */
   --text-chapter: 64px;
-  /* Tailwind's built-in rungs, restated so the token set stands without
-     Tailwind: `text-xs` … `text-3xl` are still in live use. These are the values
-     Tailwind ships, so no utility moves. Prefer a semantic rung above. */
+  /* The inherited rem rungs, `xs` … `3xl`, still in live use. Prefer a
+     semantic rung above. */
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -83,7 +77,7 @@
   --text-2xl: 1.5rem;
   --text-3xl: 1.875rem;
 
-  /* Font weights in use — Tailwind's own values, restated for the same reason. */
+  /* Font weights in use. */
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
@@ -286,12 +280,13 @@
      applies it.
 
      A prefers-reduced-motion user gets the static end state, never the loop.
-     Prefer stating that at the call site with `motion-safe:` — it is the
-     honest, per-site expression of the intent. But do NOT rely on it: a
-     per-call-site convention that nothing enforces will drift. The
-     `@media (prefers-reduced-motion: reduce)` backstop below the `@theme`
-     block is what makes the guarantee true, and it holds for a call site
-     nobody remembered to mark. */
+     Prefer stating that at the call site with a
+     `@media (prefers-reduced-motion: no-preference)` rule — it is the honest,
+     per-site expression of the intent. But do NOT rely on it: a per-call-site
+     convention that nothing enforces will drift. The
+     `@media (prefers-reduced-motion: reduce)` backstop below this block is what
+     makes the guarantee true, and it holds for a call site nobody remembered
+     to mark. */
 }
 
 /*
@@ -299,27 +294,27 @@
  * prefers-reduced-motion user" guarantee is actually made true.
  *
  * Without it the guarantee is a convention, and a convention that nothing
- * enforces is a promise the next unmarked `animate-*` quietly breaks.
+ * enforces is a promise the next unmarked `animation` quietly breaks.
  *
  * `animation-duration: 0.01ms` + `animation-iteration-count: 1` does NOT strip
  * the animation — it runs it once, instantly, so the element lands on the
- * keyframes' END state rather than being left mid-transform: `animate-pulse`
+ * keyframes' END state rather than being left mid-transform: a pulse
  * ends at full opacity (a static skeleton), and a Base UI exit transition (the
  * `.su-drawer` slide) still ends, so its unmount still fires. Simply disabling
  * the motion would strand an exit case mounted forever.
  *
- * The per-call-site `motion-safe:` marks stay and are still preferred — they
+ * The per-call-site `no-preference` guards stay and are still preferred — they
  * say what the author meant. This is the floor under them, not a replacement.
  */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    /* biome-ignore lint/complexity/noImportantStyles: an accessibility backstop must out-rank every animation utility and inline style it covers, whatever their specificity or layer */
+    /* biome-ignore lint/complexity/noImportantStyles: an accessibility backstop must out-rank every animation rule and inline style it covers, whatever their specificity or layer */
     animation-duration: 0.01ms !important;
     /* biome-ignore lint/complexity/noImportantStyles: same — a loop must not survive because one call site set iteration-count inline */
     animation-iteration-count: 1 !important;
-    /* biome-ignore lint/complexity/noImportantStyles: same — transitions are motion too, and `motion-reduce:transition-none` covers only the two components that remembered it */
+    /* biome-ignore lint/complexity/noImportantStyles: same — transitions are motion too, and a per-site `reduce` guard covers only the components that remembered it */
     transition-duration: 0.01ms !important;
     /* biome-ignore lint/complexity/noImportantStyles: same — smooth scrolling is vestibular motion; nothing in the repo sets it today, and this keeps it that way */
     scroll-behavior: auto !important;
@@ -327,9 +322,8 @@
 }
 
 /*
- * The tokens that are not Tailwind theme keys: declaring them in `@theme` would
- * generate (or re-size) utilities, so they are plain custom properties. They
- * are still part of the one token set and `tokens.parity.test.ts` reads them.
+ * The derived, border-weight, spacing and texture tokens. Part of the one
+ * token set; `tokens.parity.test.ts` reads them too.
  */
 :root {
   --background: var(--color-paper);
@@ -348,15 +342,11 @@
   --bw-chrome: 1.5px;
   --bw-hairline: 1px;
 
-  /* The radius rungs Tailwind spells as static utilities (`rounded-none`,
-     `rounded-full`), declared here rather than in @theme so those utilities do
-     not change. */
+  /* The radius ends: square, and a full pill. */
   --radius-none: 0px;
   --radius-full: 9999px;
 
-  /* The spacing rhythm, keyed by its own pixel value (`space[8]` in tokens.ts).
-     Not `--spacing-*`: that is Tailwind's namespace, and declaring it would
-     re-size every `p-8`. */
+  /* The spacing rhythm, keyed by its own pixel value (`space[8]` in tokens.ts). */
   --space-0: 0px;
   --space-2: 2px;
   --space-4: 4px;
@@ -383,48 +373,6 @@
   --texture-blot-opacity: 0.4;
   --texture-speck-opacity: 0.35;
   --texture-fleck-opacity: 0.55;
-}
-
-/*
- * === Semantic border-width utilities (canonical primitive language §3) ===
- *
- * Promoted up from the ITUN app so every surface (srd + ITUN + the shared
- * components) names border weights by role instead of hardcoding pixels. Only
- * the NON-native weights get a utility — hairline 1px is native `border`, pill
- * 2px is native `border-2`; these fill chrome 1.5px / rail 2.5px / entity 3px.
- * This is the ONE border vocabulary — never `border-[1.5px]`.
- */
-@utility border-chrome {
-  border-width: var(--bw-chrome);
-}
-@utility border-t-chrome {
-  border-top-width: var(--bw-chrome);
-}
-@utility border-b-chrome {
-  border-bottom-width: var(--bw-chrome);
-}
-@utility border-l-chrome {
-  border-left-width: var(--bw-chrome);
-}
-@utility border-r-chrome {
-  border-right-width: var(--bw-chrome);
-}
-@utility border-rail {
-  border-width: var(--bw-rail);
-}
-@utility border-entity {
-  border-width: var(--bw-entity);
-}
-@utility border-b-entity {
-  border-bottom-width: var(--bw-entity);
-}
-/* The LEFT entity edge — the accent spine on a sheet-section card and the
-   live-sheet rail callout. Both had been writing the pixel by hand, for the
-   ordinary reason: this utility did not exist, so the vocabulary had no word
-   for the thing they were drawing. Adding it is the whole fix; neither call
-   site changes weight. */
-@utility border-l-entity {
-  border-left-width: var(--bw-entity);
 }
 
 /* Per-sheet one-variable theming (design-spec §1.4): each sheet class sets its
@@ -491,7 +439,7 @@
    keep the size they are drawn at, so they are left off the floor here and
    reach it through the hit-area pseudo-element in index.css instead, as the
    Dashboard pennant does. Mirrored in index.css: this unlayered copy is the
-   one that outranks the Tailwind utilities while both systems are live. */
+   one that also outranks the apps' own (unlayered) stylesheets. */
 @media (pointer: coarse) {
   button:not(.su-btn--mini, .su-hit-area),
   [role='button']:not(.su-btn--mini, .su-hit-area),

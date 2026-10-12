@@ -9,10 +9,9 @@ import { cva } from 'class-variance-authority'
  * deliberately has no stamp/label variant (that role is `Badge shape="stamp"`),
  * so without this recipe every caps label in a rail, a section header, a gauge
  * cap or a key/value row re-derives the same five decisions from scratch, and
- * siblings drift between Tailwind's built-in `tracking-wide` and a semantic
- * rung.
+ * siblings drift between a stock `tracking-wide` and a semantic rung.
  *
- * ## Emits `.su-*` class names now, not Tailwind classes (#799, epic #802)
+ * ## Emits `.su-*` class names (#799, epic #802)
  *
  * The recipe's SHAPE is unchanged — same axes, same values, same defaults, same
  * `(opts) => string` signature — so **no call site moves**. Only the class names
@@ -39,7 +38,7 @@ import { cva } from 'class-variance-authority'
  * deliberately"), not a constant.
  *
  * The `size` axis carries only rungs of the **semantic** type ladder. Sites
- * currently on Tailwind's default scale (`text-xs`, `text-sm`, `text-lg`,
+ * currently on the inherited rem scale (`text-xs`, `text-sm`, `text-lg`,
  * `text-3xl`) are deliberately NOT expressible here — moving `text-sm` (14px) to
  * `text-caption` (13px) is a per-site design call, not a rename, so those sites
  * keep their own size class until someone rules on each one. `size` has no

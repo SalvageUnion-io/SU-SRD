@@ -170,7 +170,7 @@ const railTabFutureStyle: CSSProperties = {
 
 /**
  * Hidden until 721px (`.wiz-rail-label`). No line height of its own: the
- * Tailwind version asked for 1.15, but `cn()` (tailwind-merge) dropped it in
+ * utility version asked for 1.15, but the old `cn()` class merge dropped it in
  * favour of the size class that followed, so the label has always inherited.
  */
 const railLabelStyle: CSSProperties = {

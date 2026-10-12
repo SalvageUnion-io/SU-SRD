@@ -26,7 +26,7 @@ export type StampSurface = 'on-ink' | 'inverse' | 'on-tone'
  * most-overridden atom in the system: call sites restyle padding, display, size,
  * tracking, colour and the inset ring through `className`, and a caller's utility
  * only beats the base while the base is a stylesheet rule — an inline style would
- * silently win over every one of those overrides (tailwind-removal plan §6).
+ * silently win over every one of those overrides.
  */
 
 /** Tone fills for `surface="tone"` — kind fills frame in ink, status fills self-border. */
@@ -157,13 +157,13 @@ type BadgeStampProps = {
   seam?: boolean
   /**
    * Meant to override the stamp's line-height for a wrapping display headline
-   * (a Tailwind leading utility, e.g. `leading-[1.28]`). **Currently inert, as
-   * it always was:** it used to be merged ahead of the rung's `text-*` size,
-   * and tailwind-merge drops a leading class that precedes a font-size, so it
-   * never reached the DOM. The stamp's line-height is its rung's (`.su-rung-
+   * (a leading class, e.g. `leading-[1.28]`). **Currently inert, as it always
+   * was:** it used to be merged ahead of the rung's `text-*` size, and the old
+   * class merge dropped a leading class that preceded a font-size, so it never
+   * reached the DOM. The stamp's line-height is its rung's (`.su-rung-
    * label--*`); a call site that needs another passes it through `className`
    * or `style`, which do reach it. Kept so call sites compile; wiring it up is
-   * a visible change, not a port (tailwind-removal TW2).
+   * a visible change, not a port (styling phase TW2).
    */
   leading?: string
   as?: ElementType
@@ -213,7 +213,7 @@ export function Badge(props: BadgeProps) {
           // caps role (font-cond / uppercase / bold / caps-tight).
           capsLabel(),
           // No line-height of its own: the `leading-none` this once carried
-          // sat before the rung's `text-*` size, which tailwind-merge let
+          // sat before the rung's `text-*` size, which the old class merge let
           // win, so the line-height has always been the rung's.
           'su-badge-stamp',
           STAMP_SIZE[size],

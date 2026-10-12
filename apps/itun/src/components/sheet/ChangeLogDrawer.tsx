@@ -25,7 +25,7 @@ type ChangeLogDrawerProps = {
   onOpenChange: (open: boolean) => void
 }
 
-/** A `color-mix()` wash of a theme colour, as Tailwind's `/NN` modifier emitted it. */
+/** A `color-mix()` wash of a theme colour: `pct`% of it over transparent. */
 const wash = (value: string, pct: number) => `color-mix(in oklab, ${value} ${pct}%, transparent)`
 
 /** Kind → human label + badge tone. */

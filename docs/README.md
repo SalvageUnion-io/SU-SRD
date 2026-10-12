@@ -3,9 +3,9 @@
 Intent → doc. "Areas N" and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 1. **UI component** — [ruleset.md](design-system/ruleset.md) (the laws); Areas 21–22.
-2. **Drawing an entity anywhere (forms, modes, the entity model)** — [entity-display-language.md](design-system/entity-display-language.md).
-3. **Styling off Tailwind** — [tailwind-removal.md](design-system/tailwind-removal.md).
-4. **Design refresh: phases, refit PRs, the origin's boards** — [refresh-ledger.md](design-system/refresh-ledger.md).
+2. **Drawing an entity (forms, modes, the model)** — [entity-display-language.md](design-system/entity-display-language.md).
+3. **Styling** — ADR-046 ([record](design-system/tailwind-removal.md)).
+4. **Design refresh, refit PRs, the origin's boards** — [refresh-ledger.md](design-system/refresh-ledger.md).
 5. **Data flow or persistence** — Areas 9–12; ADR-030, ADR-034.
 6. **Where a rule is enforced, combat** — Areas 17–20; ADR-021, ADR-007.
 7. **Dashboard** — [dashboard.md](architecture/dashboard.md); ADR-038, ADR-045.
@@ -20,6 +20,6 @@ Intent → doc. "Areas N" and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITECT
 16. **Hosting, CI, deploys** — ADR-033; Areas 26–29.
 17. **Dependencies** — Areas 30–32.
 18. **Services, MCP, cloud sessions** — Areas 33–37; [cloud-environment.md](ops/cloud-environment.md).
-19. **Domain transfer** — [domain-transfer.md](ops/domain-transfer.md) (one-off runbook).
+19. **Domain transfer** — [domain-transfer.md](ops/domain-transfer.md).
 20. **A Salvage Union rule** — `bun run rules:extract`, then grep `rules/extracted/*.txt` (cloud: the attached `su-rules` repo).
 21. **Per-package guidance** — each workspace's `CLAUDE.md` loads when you work there; path rules in [`.claude/rules/`](../.claude/rules/).

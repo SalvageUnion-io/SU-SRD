@@ -30,4 +30,4 @@ M1 is the Mediator's surface (`apps/itun/src/components/mediator/`); M2 is the G
 6. **§6 M1 layout** — Rail; The table, Crawler minor, Downtime minor; tabs left, propose dock right. Ground ink-deep, instruments band-cream, display paper.
    Controls are 48 design units tall, so at least 38px at the 0.8 floor.
 7. **§7 Accessibility** — Base UI tabs; a seat card is a button whose label reads its whole line (▲ `aria-hidden`); polite live regions only; `ConfirmDialog` focuses Cancel.
-8. **§8 Guardrails** — No new `.pc-*` class, no Tailwind, existing `theme.css` tokens only.
+8. **§8 Guardrails** — No new `.su-dash-*` class, no utility classes, existing `theme.css` tokens only.

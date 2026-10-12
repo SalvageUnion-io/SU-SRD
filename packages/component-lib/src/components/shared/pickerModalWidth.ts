@@ -7,7 +7,7 @@
  * that wraps a searcher. A single-select searcher keeps its rail as a band at
  * every width, so it needs no extra room.
  *
- * A `.su-*` class name (`src/styles/index.css`), not a Tailwind string: the
+ * A `.su-*` class name (`src/styles/index.css`), not a style object: the
  * width is responsive, and `maxWidth` is a class-string prop. Its own module
  * because a component file may export only components (Fast Refresh).
  */

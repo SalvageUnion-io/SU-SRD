@@ -1,8 +1,8 @@
 /*
- * Tailwind, the token set and the package stylesheet, in their load-bearing
+ * The token set, the reset and the package stylesheet, in their load-bearing
  * cascade order, come from the one shared entry; see its header.
  */
-@import 'component-lib/styles/tailwind.css';
+@import 'component-lib/styles/entry.css';
 /* The app's ONE print stylesheet. index.css declares no print rules of its own
    — a second block here is what let six rules duplicate and one contradict. */
 @import './styles/print.css';
@@ -14,20 +14,13 @@
 @import './styles/npc.css';
 /* The Shelves band's paper-on-ink controls (board S1). */
 @import './styles/shelves.css';
-/* TW-g: the rest of ITUN's components off Tailwind (stateful halves). */
+/* The stateful halves of ITUN's other components. */
 @import './styles/entityRow.css';
 @import './styles/routeStates.css';
 @import './styles/screens.css';
 @import './styles/controls.css';
 /* The live and public sheet (TW-d). */
 @import './styles/sheet.css';
-
-/*
- * ITUN's own components keep their stories beside them (the Dashboard
- * instruments, sheet presentation and wizard steps that left the library in
- * audit PK-02); their demo markup is not the app's.
- */
-@source not './**/*.stories.tsx';
 
 /* === Base layout === */
 html,

@@ -7,8 +7,9 @@
  * at every call site.
  *
  * Why this must exist as a build step rather than a review habit: these tokens
- * are Tailwind v4 `@theme` entries, so a deleted token does not fail typecheck —
- * the utility simply stops being generated and the element renders unstyled.
+ * are CSS custom properties, so a deleted token does not fail typecheck — the
+ * `var()` that reads it simply resolves to nothing and the element renders
+ * unstyled.
  * There is no compiler backstop for this class of mistake. This rule set is it.
  *
  * Every rule maps to a law in docs/design-system/ruleset.md; the `rule` field
@@ -158,7 +159,7 @@ export const TOKEN_RULES: TokenRule[] = [
     //    a valid hex *length*, so only the lookbehind can tell it from a colour.
     //
     // 4. The `rgb()` arm uses `(?<![a-zA-Z0-9])`, not `\b`: `_` is a WORD
-    //    character, so `\b` never fires inside a Tailwind arbitrary value, where
+    //    character, so `\b` never fires inside a bracketed class value, where
     //    `_` is the space separator, and every `shadow-[0_5px_18px_rgba(...)]`
     //    would be invisible to this rule — the exact place raw colour is most
     //    likely to hide, since there is no shadow token ladder to reach for
@@ -250,8 +251,8 @@ export const TOKEN_RULES: TokenRule[] = [
     // selection rings — and `--color-sheet-pilot-deep` aliased it outright, so
     // nothing on screen said "this does something" any more (board 03, issue
     // register #7). Every spelling of the rust family counts: the custom
-    // property (rust, rust-hi, rust-25), a Tailwind utility under any variant
-    // prefix, and the `color.rust*` token keys.
+    // property (rust, rust-hi, rust-25), a utility-style class under any
+    // variant prefix, and the `color.rust*` token keys.
     fix: 'Rust is painted only by `Button` / `buttonVariants` (every action) and `InlineRef` (an inline link). A link in prose is `InlineRef`; a heading or a "here" state is ink (an ink Slab, an inverse stamp); a focus or selection ring is ink. Never alias a token to rust.',
     pattern:
       /--color-rust(?:-[a-z0-9]+)?(?![\w-])|\b(?:bg|text|border(?:-[trblxy])?|ring|ring-offset|outline|fill|stroke|decoration|from|via|to|shadow|accent|caret|divide)-rust(?:-hi|-25)?(?![\w-])|\bcolor\.rust(?:Hi|25)?\b/g,
@@ -282,7 +283,7 @@ export const TOKEN_RULES: TokenRule[] = [
     // refresh moved it to the book's warm paper (#1250). It survived as a
     // second "ground" on a quiet chip and a search row, which put the cool
     // palette back on a warm page. Every spelling counts: the custom property,
-    // a Tailwind utility under any prefix, and the `color.wkBg2` token key.
+    // a utility-style class under any prefix, and the `color.wkBg2` token key.
     // "Print" means the print stylesheet only (`apps/itun/src/styles/print.css`,
     // all of it inside `@media print`), which whites the token out for paper;
     // theme.css / tokens.ts still DEFINE it and are exempt below like every

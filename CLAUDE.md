@@ -24,11 +24,11 @@ Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need
 - Reuse shared components (`ReferenceEntityCard`, `Card`, …) before building one-off UI; check `component-lib` first.
 - Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `bun run shot <story-id|/route> --width phone|column|page [--dark]` prints PNGs to Read (ITUN: its stories). Prefer simple, well-understood CSS.
 - Default to compact, header-only, clickable listings for entity lists; never render nested entities as separate grids — render them inside the parent's expanded/modal view. Ask if unsure how much detail to show.
-- Styling is migrating off Tailwind ([plan](docs/design-system/tailwind-removal.md)); `bun run check styling` fails a change that raises the count of files carrying a Tailwind utility (a heuristic scan: class-list contexts plus class strings in constants and maps — not proof of absence; TW6's exit adds the built-CSS check) or adds a `.pc-*` class.
+- Styling is tokens, style objects and one stylesheet ([ADR-046](docs/ARCHITECTURE.md#decisions); rules: [`.claude/rules/styling.md`](.claude/rules/styling.md)). There is no utility framework: never write a utility class.
 
 ## Build & Validation
 
-After any cross-package change, run typecheck, tests and lint before calling the task done, and check every consuming app (Tailwind `@source` paths, imports).
+After any cross-package change, run typecheck, tests and lint before calling the task done, and check every consuming app (stylesheet imports, package `exports`).
 
 ```bash
 bun install              # first-time setup; postinstall builds the reference schemas
@@ -101,7 +101,7 @@ Each workspace's own `CLAUDE.md` loads when you work in it; "Build & Validation"
 
 ### Debugging
 
-For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `layer(su-base)` import) before component or data logic.
+For styling bugs, check the stylesheet wiring (`entry.css`'s `layer(su-reset)` / `layer(su-base)` imports, the app's import of it) before component or data logic.
 
 ## `.claude/`
 

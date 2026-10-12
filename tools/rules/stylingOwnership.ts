@@ -15,18 +15,7 @@
  *
  * The analyses here are structural (cross-file reference graphs, brace-context
  * parsing) rather than per-line regexes, so each rule has its own scan function.
- * Four rules are `zero` (any finding fails); the two #802 migration counts are
- * `ratchet` rules against `tools/styling-baseline.json`.
- *
- * ONE UPWARD REBASELINE of `tailwind-utility-file` is on record, and it wrote no
- * Tailwind. The rule counts FILES, so splitting one Tailwind-carrying file into
- * several raises it by construction. Audits PK-08 and AP-16 (2026-09-25) split
- * `ReferenceEntityCard.tsx` into per-section components and gave each Active
- * Item band its own file: 326 -> 343 files, while the utility TOTAL across every
- * file those commits touched FELL, 773 -> 767 (the split deduplicated repeated
- * class lists). Raised with `--allow-increase`. A split may do this only with
- * that evidence in hand — the utility total over the touched files must not
- * rise — and the new files migrate with their parents' phase of the plan.
+ * Every rule is `zero` (any finding fails).
  */
 
 import { readFileSync } from 'node:fs'
@@ -34,21 +23,12 @@ import { join } from 'node:path'
 import type { Exemption, Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { isExempt, listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
-import { tailwindUtilitiesIn } from '../lib/tailwindClasses'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
 // ── file gathering ─────────────────────────────────────────────────────────
 
 const APP_DIRS = ['apps/itun/src', 'apps/srd/src'] as const
 const DASHBOARD_DIR = 'apps/itun/src/styles/dashboard'
-
-/**
- * UI source a Tailwind class could live in. Tests are excluded because they
- * assert on class names rather than style with them; stories are INCLUDED,
- * because a story group is only migrated when none of its files carries a
- * Tailwind class (the plan's per-group exit criterion).
- */
-const UI_SOURCE_DIRS = ['packages/component-lib/src', 'apps/itun/src', 'apps/srd/src'] as const
 
 /** The file sets the rules share, gathered once per scan. Repo-relative paths. */
 type Corpus = {
@@ -57,7 +37,6 @@ type Corpus = {
   appSource: string[]
   /** su-dash-* usage is checked repo-wide (both apps + the library + tests). */
   allTs: string[]
-  uiSource: string[]
   read: (rel: string) => string
 }
 
@@ -69,9 +48,6 @@ function corpus(root: string): Corpus {
     // `.astro` was in this list until apps/srd moved off Astro.
     appSource: listFiles(root, APP_DIRS, ['.tsx', '.ts']),
     allTs: listFiles(root, ['apps', 'packages'], ['.tsx', '.ts']),
-    uiSource: listFiles(root, UI_SOURCE_DIRS, ['.tsx', '.ts']).filter(
-      (f) => !/\.test\.tsx?$/.test(f) && !/[\\/]__tests__[\\/]/.test(f)
-    ),
     read(rel) {
       let text = cache.get(rel)
       if (text === undefined) {
@@ -249,10 +225,10 @@ function scanDeadAppCss(c: Corpus): Finding[] {
   return out
 }
 
-// ── Rule 3: pc-class-contract ─────────────────────────────────────────────────
+// ── Rule 3: dash-class-contract ───────────────────────────────────────────────
 //
-// Named for the retired `.pc-*` scope: TW5 renamed it `.su-dash-*` (ITUN's own
-// stylesheets), and the contract moved with it. The id stays until TW7.
+// The Dashboard's `.su-dash-*` classes (ITUN's own stylesheets; the retired
+// `.pc-*` scope, renamed in TW5).
 
 const DASHBOARD_CSS_FILES = [
   'DashboardCanvas.css',
@@ -288,7 +264,7 @@ function scanDashContract(c: Corpus): Finding[] {
   //  - a `su-dash-*` string sitting in a NON-class attribute
   //    (`name="su-dash-deck-currency"`
   //    is a radio-group name, not a class) is skipped — it is not part of the
-  //    class contract and must not gate the ratchet.
+  //    class contract and must not gate it.
   const used = new Map<string, { file: string; line: number }>()
   for (const relPath of c.allTs) {
     stripTsComments(c.read(relPath))
@@ -326,62 +302,18 @@ function scanDashContract(c: Corpus): Finding[] {
   return out
 }
 
-// ── Rules 4 + 5: the #802 migration ratchets ──────────────────────────────────
-//
-// The repo runs four styling systems at once — Tailwind utilities, the `.su-*`
-// package stylesheet, `theme.css`'s `@theme`, and the Dashboard's `.pc-*` scope
-// — and the plan (docs/design-system/tailwind-removal.md) ends at one: the
-// `theme.css` tokens (mirrored by `tokens.ts`) plus `index.css`. Until the last phase lands, these two rules make the count of
-// the retiring systems a number that can only go DOWN. They are the whole
-// enforcement story for "new code does not add to the migration": neither
-// system errors when it grows, so without a ratchet the backlog would refill as
-// fast as the phases drain it.
-
-function scanTailwindFiles(c: Corpus): Finding[] {
-  const out: Finding[] = []
-  for (const file of c.uiSource) {
-    const found = tailwindUtilitiesIn(c.read(file))
-    if (found.length === 0) continue
-    out.push({
-      file,
-      line: 1,
-      detail: `${found.length} Tailwind utilit${found.length === 1 ? 'y' : 'ies'} (e.g. ${found.slice(0, 3).join(' ')})`,
-    })
-  }
-  return out
-}
-
-/** One violation per distinct `.pc-*` class the Dashboard stylesheets DEFINE. */
-function scanPcDefinitions(c: Corpus): Finding[] {
-  const seen = new Set<string>()
-  const out: Finding[] = []
-  for (const relPath of DASHBOARD_CSS_FILES) {
-    stripCssComments(c.read(relPath))
-      .split('\n')
-      .forEach((line, i) => {
-        for (const m of line.matchAll(/\.(pc-[a-z0-9-]+)/g)) {
-          const name = m[1] as string
-          if (seen.has(name)) continue
-          seen.add(name)
-          out.push({ file: relPath, line: i + 1, detail: `.${name}` })
-        }
-      })
-  }
-  return out
-}
-
 // ── rule table ────────────────────────────────────────────────────────────────
 
-/** The ONE Tailwind entry: it alone imports Tailwind and the package stylesheet. */
-const TAILWIND_ENTRY = 'packages/component-lib/src/styles/tailwind.css'
+/** The ONE stylesheet entry: it alone imports the reset and the package stylesheet. */
+const STYLESHEET_ENTRY = 'packages/component-lib/src/styles/entry.css'
 
 /**
- * Every stylesheet that compiles Tailwind — the two app entries and the story catalog's.
+ * Every stylesheet that loads the package — the two app entries and the story catalog's.
  * Named explicitly rather than discovered, because the property being checked
  * is about these files SPECIFICALLY: a partial like `print.css` neither should
  * nor could carry the import.
  */
-const TAILWIND_CONSUMERS = [
+const ENTRY_CONSUMERS = [
   'apps/itun/src/index.css',
   'apps/srd/src/styles/global.css',
   'packages/component-lib/src/styles/catalog.css',
@@ -391,92 +323,100 @@ const TAILWIND_CONSUMERS = [
  * The package-stylesheet wiring, in the one file that owns it, and the one
  * import every consumer makes of that file.
  *
- * WHY A GUARD. This is the highest-consequence silent failure in the Tailwind
- * migration, and it fails in three different directions:
+ * WHY A GUARD. This is the highest-consequence silent failure in the styling
+ * system, and it fails in three different directions:
  *
- *   MISSING IMPORT — every component already migrated off Tailwind renders
+ *   MISSING IMPORT — every component styled by a `.su-*` class renders
  *   unstyled. The library still compiles and every test still passes. Nothing
  *   but a human eye on the real app would notice.
  *
- *   UNLAYERED IMPORT — worse, because it looks like the tidier spelling.
- *   `index.css` is written to be loaded ALONE once Tailwind leaves, so its base
- *   block is unlayered; unlayered CSS beats layered CSS whatever the source
- *   order, and Tailwind v4 puts utilities in `@layer utilities`. Measured on the
- *   real build, a bare `@import` landed `h1,…,h6 { font-size: inherit }` past
- *   the end of the utilities layer, outranking every `text-*` utility and
- *   flattening the type on every heading in the app.
+ *   UNLAYERED IMPORT — worse, because it looks like the tidier spelling. The
+ *   apps' stylesheets are unlayered, and unlayered CSS beats layered CSS
+ *   whatever the specificity. Imported bare, `index.css` would compete with
+ *   every app rule on specificity instead, and win wherever it out-specifies
+ *   one: the cascade the apps are written against flips, rule by rule. (Under
+ *   the old utilities layer a bare import measurably flattened the type on
+ *   every heading: `h1,…,h6 { font-size: inherit }` outranked every size.)
+ *   The reset likewise sits in a layer BEFORE the package's, or its element
+ *   rules override the components.
  *
- *   A SECOND ENTRY — a consumer that imports Tailwind itself instead of the
- *   shared entry restates the layer order, the imports and the library scan,
- *   and the copies drift. There were four once.
+ *   A SECOND ENTRY — a consumer that imports `index.css` or the reset itself
+ *   instead of the shared entry restates the layer order and the imports, and
+ *   the copies drift. There were four once.
  *
  * All three are invisible to typecheck, lint and the test suite, which is
  * exactly the standard the sibling rules in this file are held to. The layer
- * NAME is not asserted — only that the import carries some `layer(...)` and
- * that the declared order puts it before `utilities` — so renaming `su-base`
+ * NAMES are not asserted — only that each import carries some `layer(...)` and
+ * that the declared order puts the reset's first — so renaming `su-base`
  * stays cheap while removing the layering does not.
  */
 function scanPackageStylesheetImport(c: Corpus): Finding[] {
   const out: Finding[] = []
 
-  for (const rel of TAILWIND_CONSUMERS) {
+  for (const rel of ENTRY_CONSUMERS) {
     const css = stripCssComments(c.read(rel))
-    if (!/@import\s+['"](?:component-lib\/styles|\.)\/tailwind\.css['"]/.test(css)) {
+    if (!/@import\s+['"](?:component-lib\/styles|\.)\/entry\.css['"]/.test(css)) {
       out.push({
         file: rel,
         line: 1,
-        detail: `does not import the shared Tailwind entry (${TAILWIND_ENTRY})`,
+        detail: `does not import the shared stylesheet entry (${STYLESHEET_ENTRY})`,
       })
     }
-    const own = css.split('\n').findIndex((l) => /@import\s+['"]tailwindcss['"]/.test(l))
+    const own = css
+      .split('\n')
+      .findIndex((l) => /@import\s+['"][^'"]*\/(?:index|reset)\.css['"]/.test(l))
     if (own !== -1) {
       out.push({
         file: rel,
         line: own + 1,
-        detail: "imports 'tailwindcss' itself — a second Tailwind entry beside the shared one",
+        detail:
+          'imports the package stylesheet or the reset itself — a second entry beside the shared one',
       })
     }
   }
 
-  const css = stripCssComments(c.read(TAILWIND_ENTRY))
+  const css = stripCssComments(c.read(STYLESHEET_ENTRY))
   const lines = css.split('\n')
-  const importLine = lines.findIndex((l) => /@import\s+['"]\.\/index\.css['"]/.test(l))
-  if (importLine === -1) {
-    out.push({
-      file: TAILWIND_ENTRY,
-      line: 1,
-      detail:
-        "does not import './index.css' — every component migrated off Tailwind renders unstyled",
-    })
-    return out
-  }
-
-  const line = lines[importLine] ?? ''
-  const layerMatch = line.match(/layer\(([a-z0-9-]+)\)/i)
-  if (!layerMatch) {
-    out.push({
-      file: TAILWIND_ENTRY,
-      line: importLine + 1,
-      detail:
-        'imports the package stylesheet WITHOUT a cascade layer — unlayered CSS outranks Tailwind utilities, which flattens every heading',
-    })
-    return out
-  }
-
-  const layerName = layerMatch[1] as string
   const orderDecl = css.match(/@layer\s+([a-z0-9,\s-]+);/i)
   const order = orderDecl?.[1]?.split(',').map((n) => n.trim()) ?? []
-  if (!order.includes(layerName)) {
+  const layers: number[] = []
+  for (const file of ['reset.css', 'index.css']) {
+    const importLine = lines.findIndex((l) =>
+      new RegExp(`@import\\s+['"]\\./${file.replace('.', '\\.')}['"]`).test(l)
+    )
+    if (importLine === -1) {
+      out.push({
+        file: STYLESHEET_ENTRY,
+        line: 1,
+        detail: `does not import './${file}' — ${file === 'index.css' ? 'every `.su-*` component renders unstyled' : 'every element loses its reset'}`,
+      })
+      return out
+    }
+    const layerName = (lines[importLine] ?? '').match(/layer\(([a-z0-9-]+)\)/i)?.[1]
+    if (layerName === undefined) {
+      out.push({
+        file: STYLESHEET_ENTRY,
+        line: importLine + 1,
+        detail: `imports './${file}' WITHOUT a cascade layer — unlayered, it competes with the apps' own rules on specificity`,
+      })
+      return out
+    }
+    if (!order.includes(layerName)) {
+      out.push({
+        file: STYLESHEET_ENTRY,
+        line: importLine + 1,
+        detail: `imports into layer(${layerName}) but no @layer declaration names it — layer order then depends on emission order`,
+      })
+      return out
+    }
+    layers.push(order.indexOf(layerName))
+  }
+  if ((layers[0] ?? 0) >= (layers[1] ?? 0)) {
     out.push({
-      file: TAILWIND_ENTRY,
-      line: importLine + 1,
-      detail: `imports into layer(${layerName}) but no @layer declaration names it — layer order then depends on emission order`,
-    })
-  } else if (order.includes('utilities') && order.indexOf(layerName) > order.indexOf('utilities')) {
-    out.push({
-      file: TAILWIND_ENTRY,
-      line: importLine + 1,
-      detail: `layer(${layerName}) is declared AFTER 'utilities' — the package base then outranks every Tailwind utility`,
+      file: STYLESHEET_ENTRY,
+      line: 1,
+      detail:
+        "the reset's layer is not declared BEFORE the package stylesheet's — the reset then overrides the components",
     })
   }
   return out
@@ -500,7 +440,7 @@ const RULES: OwnershipRule[] = [
     scan: scanDeadAppCss,
   },
   {
-    id: 'pc-class-contract',
+    id: 'dash-class-contract',
     mode: 'zero',
     rule: 'source-of-truth §the dashboard class contract is closed and bidirectional',
     fix: 'used-but-undefined: define the `su-dash-*` class in apps/itun/src/styles/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-display and su-dash-display-light are different classes.',
@@ -509,23 +449,9 @@ const RULES: OwnershipRule[] = [
   {
     id: 'package-stylesheet-import',
     mode: 'zero',
-    rule: 'ruleset §the package stylesheet is the ONE stylesheet a consumer loads, and it must not outrank Tailwind while both are live (#799, epic #802)',
-    fix: "Every Tailwind consumer imports 'component-lib/styles/tailwind.css' (the story catalog: './tailwind.css') and never 'tailwindcss' itself. That one entry imports './index.css' into a cascade layer declared BEFORE Tailwind's `utilities`: `@layer theme, base, su-base, components, utilities;` at the top and `@import './index.css' layer(su-base);` after the theme.css import.",
+    rule: 'ruleset §the package stylesheet is the ONE stylesheet a consumer loads, layered under the apps (#799, epic #802)',
+    fix: "Every consumer imports 'component-lib/styles/entry.css' (the story catalog: './entry.css') and never index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
     scan: scanPackageStylesheetImport,
-  },
-  {
-    id: 'tailwind-utility-file',
-    mode: 'ratchet',
-    rule: 'tailwind-removal plan §ratchet — the number of UI source files carrying a Tailwind utility only goes down (#802)',
-    fix: 'Style the new or edited code with the split rule instead: a style object from `tokens.ts` for static properties, a `.su-*` class in component-lib/src/styles/index.css for anything stateful or responsive. See docs/design-system/tailwind-removal.md. If you REMOVED Tailwind from a file, lower the baseline with --update-baseline.',
-    scan: scanTailwindFiles,
-  },
-  {
-    id: 'pc-class-defined',
-    mode: 'ratchet',
-    rule: 'tailwind-removal plan §ratchet — the retired Dashboard `.pc-*` scope stays at 0 (#802, phase TW5)',
-    fix: "Do not add a `.pc-*` class (the scope is retired; Dashboard rules are `.su-dash-*`). Dashboard styling that needs a new rule is a style object from `tokens.ts`, or a stateful rule in ITUN's own stylesheet — never component-lib's index.css, which srd loads too. If you removed one, lower the baseline with --update-baseline.",
-    scan: scanPcDefinitions,
   },
 ]
 
@@ -535,7 +461,7 @@ function preflight(root: string): void {
   const c = corpus(root)
   /**
    * Catastrophe floors for the file sets. Today: 3 app CSS files, ~510 app
-   * source files, ~1,170 repo-wide TS files, ~800 UI source files. Each is set
+   * source files, ~1,170 repo-wide TS files. Each is set
    * far below the real count — see tools/lib/scanFloor.ts. `appCss` is only 3
    * files, so its floor is necessarily blunt; it still catches the directory
    * list going stale and the set collapsing to zero.
@@ -543,7 +469,6 @@ function preflight(root: string): void {
   assertScanFloor('styling ownership (app CSS)', c.appCss.length, 2)
   assertScanFloor('styling ownership (app source)', c.appSource.length, 350)
   assertScanFloor('styling ownership (repo TS)', c.allTs.length, 800)
-  assertScanFloor('styling ownership (UI source)', c.uiSource.length, 500)
 
   /**
    * APP_DIRS is the set of apps whose LOCAL css this rule set audits, and it is

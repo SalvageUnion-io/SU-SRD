@@ -102,7 +102,7 @@ const SHEET = {
   gap: tokens.space[24],
 } satisfies CSSProperties
 
-/** Visually hidden, still read (Tailwind's `sr-only`). */
+/** Visually hidden, still read. */
 const SR_ONLY = {
   borderWidth: 0,
   clip: 'rect(0, 0, 0, 0)',

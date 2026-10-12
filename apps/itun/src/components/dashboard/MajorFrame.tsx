@@ -9,7 +9,7 @@
  * Main bays share the width; bays flagged `side` stack in one narrow column on
  * the right (the Mech's Effects and Egress, the Crawler's Upkeep, Upgrade and
  * Scrap), so the main bays get the room (ADR-038 §3). It reuses the band's `.su-dash-*` rules and adds none; everything else is a
- * style object (tailwind-removal.md §4).
+ * style object (ADR-046).
  */
 
 import type { ProvenanceLine, VitalGaugeBreakdown } from 'component-lib'

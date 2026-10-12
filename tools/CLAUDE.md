@@ -77,7 +77,6 @@ the corpus size, not just the finding count.
 `lib/` holds the shared pieces: `ruleEngine.ts` (the styling engine: walk,
 exemptions, zero/ratchet verdicts), `scanFloor.ts`, `workspaceCoverage.ts`,
 `workspaceGraph.ts` (the manifests' `workspace:` edges, for pre-push),
-`tailwindClasses.ts` (the Tailwind-file ratchet's detector),
 `lcov.ts` (shard merge),
 `proseFidelity.ts` (prose collection, hashing and the fidelity lock format),
 `r2.ts` (R2 through `Bun.S3Client`, because `wrangler r2 object` cannot list)

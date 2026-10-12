@@ -199,8 +199,8 @@ export { Toaster, toast } from './components/ui/toaster'
 /** Ink or paper: which foreground reads better on a band colour (the token scale, rgb or hex). */
 export { foregroundOn } from './design/contrast'
 /**
- * The styling foundation (#798, epic #802) — the target pattern Tailwind is
- * being removed in favour of. Namespaced rather than spread flat into this
+ * The styling foundation (#798, epic #802): tokens, style objects and one
+ * stylesheet (ADR-046). Namespaced rather than spread flat into this
  * barrel, because the token names are deliberately generic (`color`, `space`,
  * `radius`) and read correctly only when qualified: `tokens.color.ink`.
  *
@@ -231,9 +231,7 @@ export { findPageRefs } from './entity/pageRefs'
 export type { EntityRowModel } from './entity/types'
 /** `CSSProperties` that also admits `--custom-property` keys (see styles/cssVars). */
 export type { CSSVarStyle } from './styles/cssVars'
-// Utilities — the ONE cn(): its tailwind-merge config knows the custom
-// text/tracking/border-width utilities (consumers must not re-wrap twMerge
-// with the default config, which drops them as unknown "colors").
+// Utilities — the ONE cn(): joins class names, dropping falsy entries.
 export { cn } from './utils/cn'
 // The one dice source (Randsum): a named Salvage Union table rolls through
 // @randsum/salvageunion, every other die through @randsum/roller.

@@ -20,7 +20,7 @@ const SURFACE: CSSVarStyle = {
   padding: space[32],
 }
 
-/** One column, two from Tailwind's `sm` (40rem) up: `.su-story-door-grid`. */
+/** One column, two from the `sm` breakpoint (40rem) up: `.su-story-door-grid`. */
 const DOORS = { display: 'grid', gap: space[24], marginTop: space[16] } satisfies CSSProperties
 
 const CUSTOM_BUILD = {

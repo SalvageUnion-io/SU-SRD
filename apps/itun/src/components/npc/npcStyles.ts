@@ -1,6 +1,6 @@
 /**
  * The NPC designer's static geometry and type (boards N1 and N2), as style
- * objects (tailwind-removal.md §4). Responsive rules — the step strip and the
+ * objects (ADR-046). Responsive rules — the step strip and the
  * phone preview — are classes in `styles/npc.css`, because a style object has
  * no media query.
  */

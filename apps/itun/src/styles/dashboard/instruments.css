@@ -31,7 +31,7 @@
  *
  * This is `FOCUS_RING` (chrome/interaction.ts) transcribed into CSS rather than
  * a new treatment: the dashboard is a self-contained stylesheet by design, so
- * it restates the canonical rung instead of importing Tailwind utilities into
+ * it restates the canonical rung instead of mixing utility classes into
  * markup that is otherwise class-driven.
  *
  * It READS the canonical token rather than transcribing a literal, because the
@@ -231,7 +231,7 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   /* Was a raw 24px. The token guard's arbitrary-font-size rule only matches the
-     Tailwind BRACKET spelling, so a raw declaration in a `.css` file it already
+     bracketed class spelling, so a raw declaration in a `.css` file it already
      scans was invisible — this readout, `.su-dash-deck-d20` and `.su-dash-deck-band` were
      the only three font sizes in this 1100-line sheet not coming from the
      ladder. (Deliberately describing the anti-pattern rather than spelling it:

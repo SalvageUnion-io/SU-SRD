@@ -25,7 +25,7 @@ type MasonryColumnsProps = {
 }
 
 // Column count is driven purely by viewport width via matchMedia, mirroring the
-// previous Tailwind breakpoints (1 column < md, 2 at md=48rem, 3 at xl=80rem).
+// the md and xl breakpoints (1 column < 48rem, 2 from 48rem, 3 from 80rem).
 // matchMedia listeners fire ONLY when a breakpoint is crossed, so resizing
 // within a breakpoint does zero JS work and triggers no redistribution.
 const MD = '(min-width: 48rem)'

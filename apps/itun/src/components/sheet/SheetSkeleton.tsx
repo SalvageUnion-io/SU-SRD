@@ -93,7 +93,7 @@ const HERO_STATS = {
 const HERO_STAT = {
   height: '56px',
   width: '96px',
-  // Tailwind's bare `rounded` (0.25rem): no rung on the radius ladder.
+  // A bare 0.25rem rounding: no rung on the radius ladder.
   borderRadius: '0.25rem',
   border: `${tokens.borderWidth.chrome} solid ${tokens.color.ink10}`,
   backgroundColor: tokens.color.wkBg,

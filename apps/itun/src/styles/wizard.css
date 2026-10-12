@@ -1,7 +1,7 @@
 /*
  * The guided builders' stylesheet: the wizard shell and steps
  * (`components/wizard/`), the mech, crawler and pilot builders, and the
- * Guided/Blank chooser (refit TW-e, tailwind-removal plan TW6).
+ * Guided/Blank chooser (refit TW-e, styling phase TW6).
  *
  * Everything static is a style object over component-lib's `tokens`, in the
  * component. What is here is what a style object cannot hold (plan §4.1): a
@@ -12,12 +12,11 @@
  * catalog (which loads no ITUN stylesheet) renders these components the way
  * the app does. Unlayered, like the app's other stylesheets.
  *
- * The breakpoints are Tailwind's, which these rules replace: sm 40rem,
- * md 48rem, lg 64rem.
+ * The breakpoints: sm 40rem, md 48rem, lg 64rem.
  */
 
-/* — Stacks: the `space-y-*` child-selector rule, as Tailwind emitted it.
-   `:where()` keeps it at zero specificity, as Tailwind's was, so a child's
+/* — Stacks: the `space-y-*` child-selector rule.
+   `:where()` keeps it at zero specificity, so a child's
    own margin still wins. — */
 :where(.wiz-stack > :not(:last-child)) {
   margin-block-start: 0;
@@ -53,8 +52,7 @@
 }
 
 /* — ModalShell widths. `maxWidth` takes a class (a style object there would
-   be overridden by the popup's own inline default): Tailwind's `max-w-md`
-   and `max-w-5xl`. — */
+   be overridden by the popup's own inline default): 28rem and 64rem. — */
 .wiz-modal-md {
   max-width: 28rem;
 }

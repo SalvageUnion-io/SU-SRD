@@ -5,12 +5,12 @@ import type { KeyboardEvent } from 'react'
  * the focus ring, disabled treatment, selection ring, and keyboard activation
  * that Button / StepButton / Sel would otherwise each re-inline.
  *
- * ## These are `.su-*` class NAMES now, not Tailwind class strings (#799, #802)
+ * ## These are `.su-*` class NAMES (#799, #802)
  *
  * The SHAPE is unchanged — each is still a string you drop into `className`,
  * still composes through `cn()`, still works on any element — so no call site
  * moves, in this package or in either app. What changed is where the rules
- * live: `src/styles/index.css`, rather than Tailwind's generated utilities.
+ * live: `src/styles/index.css`, rather than generated utilities.
  *
  * **Why these do not get the split rule's style-object half.** That half
  * assumes the library owns the element being styled. These deliberately do not:
@@ -18,7 +18,7 @@ import type { KeyboardEvent } from 'react'
  * never renders, which is the whole reason they are exported. A constant
  * holding a string cannot carry a style object without changing its type, and
  * its type is public API. So they were always going to be stylesheet-only the
- * moment Tailwind left — a class name is the only thing they can carry. The
+ * moment the utilities left — a class name is the only thing they can carry. The
  * category is written up in this package's CLAUDE.md as the split rule's
  * BOUNDARY, not an exception to it.
  *

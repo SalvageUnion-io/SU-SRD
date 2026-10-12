@@ -7,14 +7,14 @@ import type { CSSProperties } from 'react'
  * `styles/wizard.css`.
  */
 
-/** The prose/form column a form step sits in (Tailwind's `max-w-3xl`). */
+/** The prose/form column a form step sits in (a 48rem measure). */
 export const stepColumnStyle: CSSProperties = { maxWidth: '48rem' }
 
 /** An input with its Roll button beside it. */
 export const fieldRowStyle: CSSProperties = { display: 'flex', gap: tokens.space[8] }
 
 /**
- * Small body copy at Tailwind's `text-sm`, whose line height (1.25rem) came
+ * Small body copy at the `text-sm` rung, whose line height (1.25rem) comes
  * with the size.
  */
 export const textSmStyle: CSSProperties = {

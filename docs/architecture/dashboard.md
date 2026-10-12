@@ -12,7 +12,7 @@ One pilot's live-play surface in a Game (`apps/itun/src/components/dashboard/`).
 5. **§5 Rules** — A thin driver over `packages/salvageunion-reference/lib/rules`; `dashboardRules.ts` is glue, never math. Destructive results are the player's act (ADR-007).
    - **§5.2 Action activation** — Activate → Roll → optional Push → Apply, economy derived per action; `useActionsDeck` feeds `DeckList` and `ResolvePanel`.
 6. **§6 Components** — Store-wired containers build view models their presentational halves render; the Game arrives through `useSeat`, `useBoardSources`, `useGameFeed` and `useDowntime`.
-   New styling is style objects over tokens with no new `.pc-*` ([tailwind-removal.md](../design-system/tailwind-removal.md) §4).
+   New styling is style objects over tokens, plus ITUN `.su-dash-*` rules only where a state needs one (ADR-046).
 7. **§7 Phone form** — Below 0.62 scale on either axis, `DashboardPhone` draws the same seat, view models and handlers as one scrolling column with unit tabs.
    Resolving is its own screen; Disconnected and Outdated open read-only.
 8. **§8 Launch** — Only from Launch Dashboard on the Game hub; `DashboardGate` shows a shell for anonymous, shelf, non-member and Mediator-less cases.

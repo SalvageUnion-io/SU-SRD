@@ -12,8 +12,7 @@ export default {
 }
 
 /**
- * The stage each layout is demonstrated on. `maxWidth` is the Tailwind rung
- * ported verbatim — `max-w-4xl` is 56rem, `max-w-2xl` is 42rem.
+ * The stage each layout is demonstrated on: a 56rem or a 42rem measure.
  */
 const stage = {
   backgroundColor: color.paper,

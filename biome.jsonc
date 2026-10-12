@@ -197,11 +197,6 @@
     }
   },
   "css": {
-    // Tailwind v4 CSS (@theme, @utility, @source, @plugin, @custom-variant)
-    // used in apps/itun, apps/srd, packages/component-lib.
-    "parser": {
-      "tailwindDirectives": true
-    },
     "formatter": {
       // Prettier's global singleQuote:true applied to CSS too; match it
       // (Biome's CSS default is double quotes).

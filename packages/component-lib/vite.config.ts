@@ -1,5 +1,4 @@
 import { fileURLToPath } from 'node:url'
-import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 
@@ -7,7 +6,7 @@ import { defineConfig } from 'vite'
 // `catalog.tsx`. Nothing builds it; the apps compile this
 // package's source with their own Vite configs.
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
   resolve: {
     // ITUN's Convex client is built from `VITE_CONVEX_URL` when its module
     // evaluates. The catalog has no deployment, so it gets a stub instead.

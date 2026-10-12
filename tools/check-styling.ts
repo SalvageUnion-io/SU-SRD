@@ -10,7 +10,7 @@
  *   - `tone-ground` — no tech-level blue as a header ground (tools/rules/toneGround.ts)
  *
  * Why these gates exist at all: none of what they catch fails typecheck, lint or
- * a test. A deleted Tailwind token stops generating its utility, a stray app
+ * a test. A deleted token leaves its `var()` resolving to nothing, a stray app
  * `@theme` compiles, a stylesheet imported from an SSR module silently never
  * ships. Each rule set's header carries its full reasoning.
  *

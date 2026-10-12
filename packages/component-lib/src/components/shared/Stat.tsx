@@ -68,7 +68,7 @@ function classes(...names: (string | false | null | undefined)[]): string | unde
   return joined === '' ? undefined : joined
 }
 
-/** Tailwind's `transition-colors`, ported verbatim. */
+/** The colour transition: the colour properties over 150ms, standard easing. */
 const TRANSITION_COLORS = {
   transitionDuration: '150ms',
   transitionProperty:
@@ -76,7 +76,7 @@ const TRANSITION_COLORS = {
   transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
 } satisfies CSSProperties
 
-/** The inherited `text-xs` / `text-sm` rungs carry Tailwind's paired line-height. */
+/** The inherited `text-xs` / `text-sm` rungs carry their paired line-height. */
 const LINE_HEIGHT_XS = 'calc(1 / 0.75)'
 const LINE_HEIGHT_SM = 'calc(1.25 / 0.875)'
 

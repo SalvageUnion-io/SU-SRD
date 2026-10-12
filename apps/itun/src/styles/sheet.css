@@ -1,7 +1,7 @@
 /*
- * The live and public sheet's own rules (Tailwind removal TW6, item TW-d):
+ * The live and public sheet's own rules (styling phase TW6, item TW-d):
  * the properties with a hover, focus, responsive or pseudo-element variant,
- * resting value included (tailwind-removal.md §4.1). Everything static is a
+ * resting value included (ADR-046). Everything static is a
  * style object over component-lib's `tokens`.
  *
  * Unlayered, so it sits over the shared `su-base` layer as the utilities did.

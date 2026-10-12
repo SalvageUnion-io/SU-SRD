@@ -16,7 +16,7 @@
  * - Touch target: we assert the Share button carries `.su-sheet-share` (whose
  *   rule in `styles/sheet/mech.css` is the 2.75rem floor below sm — a class
  *   because sm lifts it), and InlineEditField's display span its inline
- *   `minHeight` (it moved off Tailwind onto a style object). Both are the most
+ *   `minHeight` (a style object). Both are the most
  *   reliable assertions in happy-dom (no computed styles).
  *
  * Conventions:

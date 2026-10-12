@@ -1,4 +1,3 @@
-import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react-swc'
 import { readChangelog } from 'component-lib/changelog/git'
@@ -30,7 +29,6 @@ export default defineConfig(({ mode }) => {
     define: { __ITUN_CHANGELOG__: JSON.stringify(readChangelog('itun', 'App')) },
     plugins: [
       TanStackRouterVite(ROUTER_PLUGIN_OPTIONS),
-      tailwindcss(),
       // `@vitejs/plugin-react-swc` always uses the automatic JSX runtime, so the
       // explicit `jsxRuntime: 'automatic'` the Babel plugin needed is gone — it
       // is not an option on this plugin and would be rejected.
