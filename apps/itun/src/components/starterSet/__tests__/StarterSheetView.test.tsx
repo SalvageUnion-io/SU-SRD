@@ -33,14 +33,19 @@ describe('a Starter Set sheet', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Bonesaw' })).toBeTruthy()
     expect(screen.getByText('Starter Set · Leyline Press · read-only')).toBeTruthy()
-    // Read-only: no edit affordance at all, so nothing can reach a template.
-    // Read | Edit prints beside "Make a copy" (board 10), with Edit off.
+    // Read-only: no edit affordance at all, so nothing can reach a template —
+    // not even a disabled Read | Edit, which could only say no.
     expect(screen.queryByLabelText(/Share this pilot/i)).toBeNull()
-    expect(screen.getByRole('group', { name: /Read or edit/ })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Read' }).getAttribute('aria-pressed')).toBe('true')
-    expect((screen.getByRole('button', { name: 'Edit' }) as HTMLButtonElement).disabled).toBe(true)
-    // Signed out, "Make a copy" signs in first.
-    expect(screen.getByRole('button', { name: 'Sign in to make a copy' })).toBeTruthy()
+    expect(screen.queryByRole('group', { name: /Read or edit/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
+    // Signed out, "Make a copy" signs in first, at the full rung (a 44px
+    // target, not the 30px compact one).
+    const copy = screen.getByRole('button', { name: 'Sign in to make a copy' })
+    expect(copy.className).toContain('su-btn--full')
+    // The band names the class and Bonesaw's callsign is the title, so the
+    // identity card repeats neither under it.
+    expect(screen.getAllByText('Engineer')).toHaveLength(1)
+    expect(screen.queryByText('Callsign')).toBeNull()
   })
 
   test('its crewmates open as Starter Set sheets too', () => {

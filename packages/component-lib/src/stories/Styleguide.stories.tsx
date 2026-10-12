@@ -10,7 +10,7 @@ export default {
 // The orientation front-door for the catalog. This page is DOCUMENTATION rendered
 // as a story: it explains how to read the catalog and how to add to it, in the
 // catalog's own voice (paper canvas, condensed caps labels, canon tokens). The
-// full contributor reference lives at docs/ARCHITECTURE.md#component-catalog.
+// full contributor reference lives at docs/ARCHITECTURE.md#areas.
 //
 // Migrated off Tailwind in #799 (epic #802). Every value is read from
 // `design/tokens.ts`; the `ch`/`rem` measures are the Tailwind rungs ported

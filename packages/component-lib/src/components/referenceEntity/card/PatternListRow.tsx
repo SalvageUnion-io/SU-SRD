@@ -1,8 +1,13 @@
-import { ChevronRight } from 'lucide-react'
 import type { ElementType } from 'react'
+import { useMemo } from 'react'
 import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
-import { normalizePatternName } from 'salvageunion-reference'
+import { normalizePatternName, toEntityModel } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import { useEntitySurface } from '../../../entity/entitySurfaceContext'
+import { LinkChevron } from '../../../entity/modes/link'
+import { Head } from '../../../entity/parts/Head'
+import { Lead } from '../../../entity/parts/Lead'
+import { paintFor } from '../../../entity/parts/paint'
 import { cn } from '../../../utils/cn'
 import { FOCUS_RING } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
@@ -116,10 +121,13 @@ export function PatternList({
 }
 
 /**
- * PAGE view — one pattern as a full-width link row (boards 07, 08): the
- * pattern's quoted name, its first paragraph and an arrow, with no underline.
- * The row is the link, so the whole width opens the pattern's page. Under it,
- * aligned to the paragraph, what the pattern changes (`PatternUniques`).
+ * PAGE view — one pattern as a CARD in the Row's language (entity display
+ * language, Row): the host's tone in the head with the pattern's quoted name
+ * and the chevron, then a paper body with the pattern's opening paragraph
+ * clamped as a lead, and under it what the pattern changes (`PatternUniques`),
+ * its loadout Tokens, each of which links and Peeks. The HEAD is the link to
+ * the pattern's page; the body cannot be, because its Tokens are links of
+ * their own.
  */
 function PatternLinkRow({
   chassis,
@@ -133,21 +141,16 @@ function PatternLinkRow({
   host: PatternRowsHost
 }) {
   const href = usePatternHref(chassis as SURefEntity, pattern)
+  const surface = useEntitySurface()
+  const model = useMemo(
+    () => toEntityModel(chassis as SURefEntity, undefined, { pattern }),
+    [chassis, pattern]
+  )
   const name = normalizePatternName(pattern.name)
   const description = firstParagraphText(pattern.content)
-  const body = (
-    <>
-      <span className="su-pattern-rows__name">“{name}”</span>
-      {description && <span className="su-pattern-rows__desc">{description}</span>}
-      {href && (
-        <ChevronRight
-          size={18}
-          strokeWidth={2.5}
-          aria-hidden="true"
-          className="su-pattern-rows__arrow"
-        />
-      )}
-    </>
+  const paint = paintFor(model.tone, { down: host.hostDown, texture: surface.texture })
+  const head = (
+    <Head title={`“${name}”`} paint={paint} affordance={href ? <LinkChevron /> : undefined} />
   )
   return (
     <li className="su-pattern-rows__item">
@@ -155,22 +158,31 @@ function PatternLinkRow({
         <a
           href={href}
           aria-label={`${name} — ${chassisName} pattern`}
-          className={cn('su-pattern-rows__row', FOCUS_RING)}
+          className={cn('su-pattern-rows__head', FOCUS_RING)}
         >
-          {body}
+          {head}
         </a>
       ) : (
-        <div className="su-pattern-rows__row">{body}</div>
+        head
       )}
-      <PatternUniques
-        className="su-pattern-rows__unique"
-        pattern={pattern}
-        depth={1}
-        hostDown={host.hostDown}
-        hostName={chassisName}
-        chassisName={host.chassisName}
-        NestedCard={host.NestedCard}
-      />
+      <div className="su-pattern-rows__body">
+        {/* Wrapped: the lead's 100% basis is for a Row's wrapping body, and in
+            this column it would stretch the clamp's box past its three lines. */}
+        {description && (
+          <div>
+            <Lead text={description} />
+          </div>
+        )}
+        <PatternUniques
+          className="su-pattern-rows__unique"
+          pattern={pattern}
+          depth={1}
+          hostDown={host.hostDown}
+          hostName={chassisName}
+          chassisName={host.chassisName}
+          NestedCard={host.NestedCard}
+        />
+      </div>
     </li>
   )
 }
@@ -215,24 +227,22 @@ export function PatternLinkRows({
         label="Patterns"
         count={`${count} ${count === 1 ? 'pattern' : 'patterns'}`}
       />
-      <div className="su-pattern-rows__frame">
-        <ul className="su-pattern-rows__list">
-          {patterns.map((pat) => (
-            <PatternLinkRow
-              key={pat.name}
-              chassis={chassis}
-              chassisName={chassisName}
-              pattern={pat}
-              host={host}
-            />
-          ))}
-        </ul>
-        {count > PATTERNS_ON_A_PHONE && (
-          <a href="#patterns" className={cn('su-pattern-rows__more', FOCUS_RING)}>
-            Show all {count} patterns
-          </a>
-        )}
-      </div>
+      <ul className="su-pattern-rows__list">
+        {patterns.map((pat) => (
+          <PatternLinkRow
+            key={pat.name}
+            chassis={chassis}
+            chassisName={chassisName}
+            pattern={pat}
+            host={host}
+          />
+        ))}
+      </ul>
+      {count > PATTERNS_ON_A_PHONE && (
+        <a href="#patterns" className={cn('su-pattern-rows__more', FOCUS_RING)}>
+          Show all {count} patterns
+        </a>
+      )}
     </section>
   )
 }

@@ -7,12 +7,11 @@ the ADRs and architecture docs this file points to.
 
 Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need to find a doc.
 
-- [ADRs](docs/ARCHITECTURE.md#decisions) — one `## ADR-NNN` each, closing `docs/ARCHITECTURE.md`. **Read an ADR's Status first**: a superseded or merged ADR says so only there (`grep -n '^## ADR-' docs/ARCHITECTURE.md` lists them). The three that govern:
-  - [ADR-030](docs/ARCHITECTURE.md#adr-030) — accounts, Games, and Convex as the server of record. Ops: [accounts](docs/ARCHITECTURE.md#accounts-and-games-operations).
-  - [ADR-021](docs/ARCHITECTURE.md#adr-021) — the surface/mode taxonomy for **where a rule is enforced**.
-  - [ADR-007](docs/ARCHITECTURE.md#adr-007) — the automation boundary. Read before building rules-driven features.
-- **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/ARCHITECTURE.md#adr-033).
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — cross-cutting architecture, one section per area: `grep -n '^##'` it, then Read with an offset; never the whole file.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the whole architecture as terse numbered entries (Areas, then Decisions: entry N is ADR-N, its status first). Read it whole; §-level detail cited in code is in git (the file's header says where). The three ADRs that govern:
+  - [ADR-030](docs/ARCHITECTURE.md) — accounts, Games, and Convex as the server of record. Ops: [accounts](docs/ARCHITECTURE.md#areas).
+  - [ADR-021](docs/ARCHITECTURE.md) — the surface/mode taxonomy for **where a rule is enforced**.
+  - [ADR-007](docs/ARCHITECTURE.md) — the automation boundary. Read before building rules-driven features.
+- **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/ARCHITECTURE.md).
 - **Rules text:** gitignored here; the private repo `SalvageUnion-io/su-rules` is the source of record. Locally, `bun run rules:extract`, then grep `rules/extracted/*.txt`; in a cloud session or Routine, attach `su-rules` as a second repo and grep its committed `extracted/*.txt` (sibling checkout, no poppler; the rules checks find it there). Both carry `<!-- page N -->` markers for citations. There is no curated rules digest.
 
 ## Critical Rules
@@ -51,9 +50,9 @@ bun run build            # package + srd + ITUN (the bot has no build; wrangler 
 bun run deploy-commands[:global]   # Discord slash commands: test guild / production
 ```
 
-- **Bare `--parallel` and `--isolate` stay banned**: both measured slower than serial (`--parallel` implies `--isolate`). `--parallel=N --no-isolate` is the measured win, and ITUN's `test` script uses it; `--changed` is the other flag that helps. Leave `test:coverage` serial: parallel coverage writes different lcov line counts.
+- **Bare `--parallel` and `--isolate` stay banned**: both measured slower than serial (`--parallel` implies `--isolate`). `--parallel=N --no-isolate` is the measured win (the itun, srd and component-lib `test` scripts); `--changed` is the other flag that helps. Leave `test:coverage` serial: parallel coverage writes different lcov line counts.
 - **A gate failed?** Its fix prints under the failure banner; `bun run check --list` shows every check's. [`tools/CLAUDE.md`](tools/CLAUDE.md) maps checks to scripts and baselines. **Adding a gate** means adding it to the registry in `tools/check.ts` — `bun run check`, pre-push and CI all read that one list.
-- **Dependencies:** read [dependencies](docs/ARCHITECTURE.md#dependencies) before touching `package.json`, `bunfig.toml` or `overrides`. In short: Bun deps are updated by hand, Actions by Dependabot; `bun run audit` (any severity, no `--ignore`) gates every PR that changes `bun.lock` or a `package.json` and runs nightly; `bunfig.toml` refuses versions under three days old and makes `bun add` pin exactly. A shared dev tool is a root devDependency; a shared runtime package is a root `catalog:` entry.
+- **Dependencies:** read [dependencies](docs/ARCHITECTURE.md#areas) before touching `package.json`, `bunfig.toml` or `overrides`. In short: Bun deps are updated by hand, Actions by Dependabot; `bun run audit` (any severity, no `--ignore`) gates every PR that changes `bun.lock` or a `package.json` and runs nightly; `bunfig.toml` refuses versions under three days old and makes `bun add` pin exactly. A shared dev tool is a root devDependency; a shared runtime package is a root `catalog:` entry.
 - **Profiling:** use Bun's markdown profiles into the gitignored `.profiles/` (`bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles <script>`, `--heap-prof-md` likewise). `bun build --metafile-md` needs `--outdir`, or it prints the bundle to stdout.
 
 ### Hooks (Lefthook)
@@ -86,7 +85,7 @@ salvageunion-reference (game data ORM)
 discord-bot (standalone, depends on salvageunion-reference)
 ```
 
-Each workspace's own `CLAUDE.md` loads when you work in it; "Build & Validation" above is the cross-package checklist, and [display system](docs/ARCHITECTURE.md#display-system) has the two card shells (`ReferenceEntityCard` for every SRD entity, `Card` for everything else).
+Each workspace's own `CLAUDE.md` loads when you work in it; "Build & Validation" above is the cross-package checklist, and [display system](docs/ARCHITECTURE.md#areas) has the two card shells (`ReferenceEntityCard` for every SRD entity, `Card` for everything else).
 
 ## Code Conventions
 
@@ -108,14 +107,14 @@ For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `la
 ## `.claude/`
 
 - **Rules** (`.claude/rules/`) load automatically by `paths:` when you touch matching files — testing, the display system, the ITUN router and data access, the Discord bot, and workspace manifests. There is nothing to open by hand.
-- **Skills** (`.claude/skills/`): `/convex-ops` (Convex deployment setup, probes, rotations, repairs). There is no `/commit` skill; use the commit plugin.
+- **Skills** (`.claude/skills/`): `/convex-ops` (Convex setup, probes, rotations, repairs), `/open-pr` (PR title, body, cloud route, stacks).
 
 ## External Integrations & MCP Servers
 
-The registry — ids, deployments, dashboards, how each server authenticates — is [services](docs/ARCHITECTURE.md#services-and-agent-tooling). [`.mcp.json`](.mcp.json) declares `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (stdio, targets the **local** deployment `bun run dev:itun` runs, from `CONVEX_DEPLOYMENT` in `apps/itun/.env.local`) and `context7` (version-pinned library docs — this repo runs ahead of training data; versions: the manifests).
+The registry — ids, deployments, dashboards, how each server authenticates — is [services](docs/ARCHITECTURE.md#areas). [`.mcp.json`](.mcp.json) declares `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (stdio, targets the **local** deployment `bun run dev:itun` runs, from `CONVEX_DEPLOYMENT` in `apps/itun/.env.local`) and `context7` (version-pinned library docs — this repo runs ahead of training data; versions: the manifests).
 
-- `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Only `context7` and `convex` are enabled; opt into the rest [locally](docs/ARCHITECTURE.md#mcp-servers).
-- `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI. In a cloud session `gh` is preinstalled and authenticated by the GitHub proxy, but only REST answers (`gh api`); GraphQL subcommands such as `gh pr` and `gh issue` get 403, so use `gh api` or the session's `mcp__github__*` tools — see [cloud sessions](docs/ARCHITECTURE.md#cloud-sessions).
+- `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Only `context7` and `convex` are enabled; opt into the rest [locally](docs/ARCHITECTURE.md#areas).
+- `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI. In a cloud session `gh` is preinstalled and authenticated by the GitHub proxy, but only REST answers (`gh api`); GraphQL subcommands such as `gh pr` and `gh issue` get 403, so use `gh api` or the session's `mcp__github__*` tools — see [cloud sessions](docs/ARCHITECTURE.md#areas).
 - **Sentry fails silently.** No DSN means Vite tree-shakes the SDK out; a `connect-src` missing the ingest origin blocks every event. `tools/check-observability.ts` (the `observability` check) checks DSN gating, each app's CSP source against `SENTRY_INGEST_HOST`, and that each Worker wraps its export with `withObservability` and grants `nodejs_als`. **Change the CSP or Sentry region in every source for that app together.**
 
 ## Merging

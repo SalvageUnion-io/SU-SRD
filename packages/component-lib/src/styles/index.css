@@ -1787,6 +1787,11 @@ body {
   order: 2;
 }
 
+/* A pattern page's loadout follows the stats (`PatternLoadoutRows`). */
+.su-entity-page__loadout {
+  order: 2;
+}
+
 .su-entity-page__prose {
   display: flex;
   flex-direction: column;
@@ -2295,89 +2300,75 @@ body {
 }
 
 /* ── Pattern rows (`PatternLinkRows`) ───────────────────────────────────────
- * Full-width links with an arrow and no underline. On a phone the name sits
- * over its description, and only two rows show until "Show all" targets the
- * list (`:target`), which needs no script.
+ * Each pattern is a card in the Row's language: its host's tone in the head
+ * (the link, with the chevron), a paper body with the pattern's opening as a
+ * clamped lead and its loadout Tokens (links of their own, so outside the
+ * head's anchor). As many abreast as fit; a row of cards is one height. On a
+ * phone only two show until "Show all" targets the list (`:target`), which
+ * needs no script.
  */
 .su-pattern-rows {
   scroll-margin-top: var(--space-64);
 }
 
-.su-pattern-rows__frame {
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-}
-
 .su-pattern-rows__list {
+  display: grid;
+  gap: var(--space-12);
+  grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr));
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.su-pattern-rows__item + .su-pattern-rows__item {
-  border-top: var(--bw-hairline) solid var(--color-ink-15);
+.su-pattern-rows__item {
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.su-pattern-rows__row {
-  align-items: center;
-  color: var(--color-ink);
-  column-gap: var(--space-24);
-  display: flex;
-  flex-wrap: wrap;
-  min-height: 44px;
-  padding: var(--space-10) var(--space-12);
-  row-gap: var(--space-4);
+.su-pattern-rows__head {
+  color: inherit;
+  display: block;
   text-decoration: none;
 }
 
-a.su-pattern-rows__row:hover {
-  background-color: var(--color-wk-bg);
+.su-pattern-rows__body {
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-10);
+  padding: var(--space-8) var(--space-10) var(--space-10);
 }
 
-.su-pattern-rows__name {
-  flex: 1 1 100%;
-  font-family: var(--font-cond);
-  font-size: var(--text-readout);
-  font-weight: var(--font-weight-bold);
-  text-transform: uppercase;
-}
-
-.su-pattern-rows__desc {
-  color: var(--color-ink-2);
-  flex: 1 1 0;
-  font-size: var(--text-lede);
-  line-height: 1.45;
-  min-width: 0;
-}
-
-.su-pattern-rows__arrow {
-  display: none;
-  flex: none;
-}
-
-/* What the pattern changes (`PatternUniques`): its loadout tokens or its added
-   action cards, under the row's link rather than inside it (they are links of
-   their own), lined up with the paragraph above on a wide screen. */
+/* What the pattern changes (`PatternUniques`): its loadout Tokens, or the
+   actions a Bio-Titan pattern adds. */
 .su-pattern-rows__unique {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
-  padding: 0 var(--space-12) var(--space-12);
 }
 
 .su-pattern-rows__more {
-  border-top: var(--bw-hairline) solid var(--color-ink-15);
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
   color: var(--color-ink);
   display: flex;
   font-family: var(--font-cond);
   font-size: var(--text-lede);
   font-weight: var(--font-weight-bold);
   justify-content: center;
-  align-items: center;
   letter-spacing: var(--tracking-caps-tight);
+  margin-top: var(--space-12);
   min-height: 44px;
+  text-decoration: none;
   text-transform: uppercase;
-  text-underline-offset: 3px;
 }
 
 @media (max-width: 39.99rem) {
@@ -2391,30 +2382,6 @@ a.su-pattern-rows__row:hover {
 }
 
 @media (min-width: 40rem) {
-  .su-pattern-rows__row {
-    flex-wrap: nowrap;
-    padding: var(--space-10) var(--space-16);
-  }
-
-  .su-pattern-rows__name {
-    flex: 0 0 200px;
-  }
-
-  .su-pattern-rows__desc {
-    font-size: var(--text-base);
-    line-height: 1.5;
-  }
-
-  .su-pattern-rows__arrow {
-    display: block;
-  }
-
-  /* Indented past the 200px name column and its gap; clear of the arrow. */
-  .su-pattern-rows__unique {
-    padding: 0 calc(var(--space-16) + 18px + var(--space-24)) var(--space-14)
-      calc(var(--space-16) + 200px + var(--space-24));
-  }
-
   .su-pattern-rows__more {
     display: none;
   }
