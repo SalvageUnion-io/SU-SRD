@@ -7,8 +7,10 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { crawlerPopulationRange } from '../crawlerPopulationRange'
+import {
+  populationRange as crawlerPopulationRange,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const tier = (name: string) => {

@@ -646,7 +646,7 @@ function ReferenceEntityCardInner({
             stats: effectiveHeaderStats,
             cells,
             leading: suggestedNode,
-            lead: leadProse && !hide?.content ? compactLead(entity, hintText) : undefined,
+            lead: leadProse && !hide?.content ? compactLead(entity) : undefined,
           }}
           bodyless={inline || isPatternListing}
           size={size}

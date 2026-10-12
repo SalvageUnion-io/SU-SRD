@@ -11,9 +11,15 @@ import {
 } from 'component-lib'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { getEntitySlug, getModel, getSource, getTechLevel, getTree } from 'salvageunion-reference'
+import {
+  getEntitySlug,
+  getModel,
+  getSource,
+  getTechLevel,
+  getTree,
+  schemaHasArt,
+} from 'salvageunion-reference'
 import { itemHref, srdEntityHref } from '../../lib/entityHref'
-import { schemaHasArt } from '../../lib/schemaArt'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate } from '../../lib/useGameData'
 import { EntityCatalogTile } from './EntityCatalogTile'

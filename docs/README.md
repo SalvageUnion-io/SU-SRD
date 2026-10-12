@@ -10,6 +10,7 @@ Read with an offset and limit, never the whole file.
 | --- | --- |
 | adding or changing a UI component | [design-system/ruleset.md](design-system/ruleset.md) (the laws), [display system](ARCHITECTURE.md#display-system), [component catalog](ARCHITECTURE.md#component-catalog) |
 | moving styling off Tailwind | [design-system/tailwind-removal.md](design-system/tailwind-removal.md) |
+| drawing a game entity anywhere (forms, modes, the entity model) | [design-system/entity-display-language.md](design-system/entity-display-language.md) |
 | changing how data flows or persists | [data flow](ARCHITECTURE.md#data-flow), ADR-030, ADR-034, ADR-035 |
 | deciding where a rule is enforced, or touching combat | [rules and ITUN surfaces](ARCHITECTURE.md#rules-and-itun-surfaces), [combat loop](ARCHITECTURE.md#combat-loop), ADR-021, ADR-007 |
 | working on the Dashboard | [architecture/dashboard.md](architecture/dashboard.md), ADR-038 (the one decision record) |

@@ -25,12 +25,11 @@
  */
 
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
-import { getEntitySlug } from 'salvageunion-reference'
+import { getEntitySlug, schemaHasArt } from 'salvageunion-reference'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
 import { itemHref } from '../lib/entityHref'
 import { extractStaticEntitySummary } from '../lib/gameData'
 import { patternStaticSummary } from '../lib/patternSummary'
-import { schemaHasArt } from '../lib/schemaArt'
 import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
 import { resolveTraitHref } from '../lib/staticLinks'
 import { Island } from '../runtime/Island'

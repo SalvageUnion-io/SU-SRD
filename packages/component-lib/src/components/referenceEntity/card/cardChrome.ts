@@ -7,7 +7,7 @@
 
 import type { CSSProperties } from 'react'
 import type { SURefMetaEntity, SURefObjectContentBlock } from 'salvageunion-reference'
-import { isAbility, parseContentBlockString } from 'salvageunion-reference'
+import { headerFill, isAbility, parseContentBlockString } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { activateOnKey, FOCUS_RING } from '../../chrome/interaction'
 import type { CardExtent, CardSize } from '../../shared/displayMode'
@@ -16,7 +16,6 @@ import type { OnToneText } from '../referenceEntityHelpers'
 import { borderColorFromHeaderBg, onToneText, textBand } from '../referenceEntityHelpers'
 import type { CardOuterProps } from './CardOuter'
 import type { DomainTone } from './entityCardTone'
-import { isDoEntity } from './entityCardTone'
 import { firstParagraphText } from './firstParagraphText'
 
 /** The book's pennant: a box with a pointed tail. Hard edges, no tail rounding.
@@ -45,8 +44,8 @@ export type HeaderFill = 'tone' | 'ink'
  * its page keep the ink banner; an action is ink everywhere.
  */
 export function resolveHeaderFill(entity: SURefMetaEntity, extent: CardExtent): HeaderFill {
-  if (extent === 'head' && isAbility(entity)) return 'tone'
-  return isDoEntity(entity) ? 'ink' : 'tone'
+  // The entity model's rule (E12), with the compact card as its Row.
+  return headerFill(entity, extent === 'head' ? 'row' : 'card')
 }
 
 /** Every colour a card's header takes. The frame, the "//" line and the footer

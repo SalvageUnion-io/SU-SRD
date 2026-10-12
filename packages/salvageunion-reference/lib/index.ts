@@ -157,6 +157,60 @@ export { findEntityBySlug, getEntitySlug } from './slug.js'
 export { parseTraitReferences, plainTraitText, replaceTraitReferences } from './traitText.js'
 export { truncate } from './truncate.js'
 export { resultForColumnsTable, resultForTable } from './utils/resultForTable.js'
+// The entity VIEW MODEL (docs/design-system/entity-display-language.md): an
+// entity resolved once into what every form draws. Its parts are public too,
+// for component-lib's card helpers, which read them rather than keep a copy.
+export { missingArt, schemaHasArt } from './view/parts/art.js'
+export {
+  droneOwnLoadout,
+  foldedActionOf,
+  isTitanicAction,
+  type NestedGroup,
+  nestedEntityGroups,
+  patternGroups,
+  resolveLoadout,
+} from './view/parts/children.js'
+export {
+  type AdditionalSource,
+  formatProvenance,
+  resolveAdditionalSources,
+  resolveProvenance,
+} from './view/parts/cite.js'
+export { bookStats, entityStats } from './view/parts/facts.js'
+export { entityTone, guideTone, headerFill } from './view/parts/fill.js'
+export {
+  classKind,
+  classRequirements,
+  entityStamp,
+  entityTypeLabel,
+  isClassEntity,
+  isDoEntity,
+  schemaDomain,
+  tierNumeral,
+} from './view/parts/kind.js'
+export { entityLead, firstParagraphText } from './view/parts/lead.js'
+export { resolveTable } from './view/parts/table.js'
+export {
+  actionFacets,
+  type FacetCell,
+  facetCells,
+  formatActionType,
+  formatCost,
+  populationRange,
+} from './view/parts/traits.js'
+export { toEntityModel } from './view/toEntityModel.js'
+export type {
+  EntityArt,
+  EntityChildGroup,
+  EntityCite,
+  EntityDomain,
+  EntityInstance,
+  EntityModel,
+  EntityRef,
+  EntityTable,
+  Fact,
+  TraitMention,
+} from './view/types.js'
 
 import type { SearchOptions, SearchResult } from './search.js'
 import { search as searchFn, searchIn as searchInFn } from './search.js'

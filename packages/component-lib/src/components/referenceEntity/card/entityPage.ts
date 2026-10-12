@@ -6,23 +6,22 @@
  * `ChapterBand` and its footer to the page's `ChapterFoot`. Those two are the
  * app's chrome, so the app renders them, but what they SAY is the card's: the
  * seam's type stamp, the header's tier numeral, TL and cost pennant, and the
- * identity footer's provenance. Resolving them here, from the same helpers the
- * card uses, keeps a page from ever describing an entity differently from its
- * own card.
+ * identity footer's provenance. Reading them off the entity model
+ * (`toEntityModel`), which the card's helpers read too, keeps a page from
+ * describing an entity differently from its own card (one known exception:
+ * `bandCost`).
  */
 
 import type { SURefMetaEntity, SURefObjectPattern } from 'salvageunion-reference'
 import {
   extractVisibleActions,
-  getTechLevel,
+  foldedActionOf,
+  formatCost,
+  isTitanicAction,
   resolveActivationCurrency,
+  toEntityModel,
 } from 'salvageunion-reference'
-import { formatCost } from './cardCells'
-import { isTitanicAction } from './cardHelpers'
-import { resolveSeamLabel, resolveTierNumeral } from './entityCardTone'
-import { formatProvenance, resolveFooterProvenance } from './provenance'
 import type { ActionFields } from './referenceEntityCardTypes'
-import { resolveFoldedAction } from './resolveFoldedAction'
 
 export type EntityPageMeta = {
   /** The seam's type stamp: "Chassis", "Ability · Hacking Tree", "Pattern". */
@@ -42,47 +41,37 @@ export type EntityPageMeta = {
   citation?: string
 }
 
-function entitySchemaName(entity: SURefMetaEntity): string | undefined {
-  return 'schemaName' in entity && typeof entity.schemaName === 'string'
-    ? entity.schemaName
+/**
+ * The band's cost pennant: the entity's own cost, else its self-named action's.
+ *
+ * KNOWN BUG, kept so the page does not change before the Page form (phase 5):
+ * unlike the card (and the entity model), this does not skip a GRANTING
+ * ability, whose self-named action belongs to the item it grants — so the
+ * band of Camo Suit, Knife Missile, Wingsuit… prints the granted item's cost.
+ */
+function bandCost(entity: SURefMetaEntity): string | undefined {
+  const name = 'name' in entity ? String(entity.name) : ''
+  const own = entity as ActionFields
+  const foldable = (extractVisibleActions(entity) ?? []).filter((a) => !isTitanicAction(a))
+  const folded = foldedActionOf(foldable, name) as ActionFields | undefined
+  const source: ActionFields | undefined = own.activationCost != null ? own : folded
+  return source?.activationCost != null
+    ? formatCost(source.activationCost, resolveActivationCurrency(source.actionSource))
     : undefined
 }
 
+/** What an entity's page says around its body, read off its entity model. */
 export function resolveEntityPageMeta(
   entity: SURefMetaEntity,
   pattern?: SURefObjectPattern
 ): EntityPageMeta {
-  const schemaName = entitySchemaName(entity) as Parameters<typeof resolveSeamLabel>[0] | undefined
-  const typeLabel = pattern ? 'Pattern' : schemaName ? resolveSeamLabel(schemaName, entity) : ''
-  const techLevel = getTechLevel(entity)
-  const name = 'name' in entity ? String(entity.name) : ''
-
-  // The cost pennant: the entity's own cost, else its folded self-action's —
-  // the same source the card's header reads.
-  const ownCost = entity as ActionFields
-  const foldable = (extractVisibleActions(entity) ?? []).filter((a) => !isTitanicAction(a))
-  const folded = resolveFoldedAction(foldable, name) as ActionFields | undefined
-  const costSource: ActionFields | undefined = ownCost.activationCost != null ? ownCost : folded
-  const cost =
-    costSource?.activationCost != null
-      ? formatCost(costSource.activationCost, resolveActivationCurrency(costSource.actionSource))
-      : undefined
-
-  const provenance = resolveFooterProvenance(entity, pattern)
-  const book = formatProvenance(provenance.source, provenance.booklet, undefined)
-  const reprints = provenance.additionalSources
-    .map((entry) => formatProvenance(entry.source, entry.booklet, entry.page))
-    .filter((line): line is string => !!line)
-  const citation = [book, ...reprints.map((line, i) => (i === 0 ? `also in ${line}` : line))]
-    .filter((part): part is string => !!part)
-    .join(' · ')
-
+  const model = toEntityModel(entity, undefined, { pattern })
   return {
-    typeLabel,
-    techLevel: techLevel != null ? String(techLevel) : undefined,
-    numeral: resolveTierNumeral(entity),
-    cost,
-    page: provenance.page,
-    citation: citation || undefined,
+    typeLabel: model.kind.stamp,
+    techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
+    numeral: model.tier,
+    cost: bandCost(entity),
+    page: model.cite.page,
+    citation: model.cite.citation,
   }
 }

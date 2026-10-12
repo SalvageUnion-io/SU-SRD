@@ -108,6 +108,12 @@ interactivity_ a primitive is rendered with; it never changes the primitive's
 identity. Automation semantics follow [ADR-007](../ARCHITECTURE.md#adr-007)
 and the surface/mode taxonomy of [ADR-021](../ARCHITECTURE.md#adr-021).
 
+How an ENTITY is drawn in each context — its five forms (Mention, Token, Row,
+Card, Page), its interaction modes and rules E1–E17 — is the
+[entity display language](entity-display-language.md), agreed and landing in
+phases; the Listing and Missing-art rules below describe the card as it is
+until its phase lands.
+
 | Context        | Metaphor             | Materials                                                  | Interactivity                                                                                       |
 | -------------- | -------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | **Reference**  | The book, verbatim   | Cream/paper, read-only                                     | None. No play-state — no current values, conditions, controls. The only rust is an inline link.     |
