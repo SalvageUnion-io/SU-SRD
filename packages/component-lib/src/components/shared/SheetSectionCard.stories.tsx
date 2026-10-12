@@ -1,3 +1,4 @@
+import { color, font, fontSize, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import type { CSSVarStyle } from '../../styles/cssVars'
@@ -13,9 +14,11 @@ const PILOT_TONE: CSSVarStyle = {
   '--tone-deep': 'var(--color-sheet-pilot-deep)',
 }
 
+const STACK = { display: 'flex', flexDirection: 'column', gap: space[12] } satisfies CSSVarStyle
+
 /** The poster section frame — accent header band, deep-tone left rule, footer. */
 export const Default: Story = () => (
-  <div className="flex flex-col gap-3" style={PILOT_TONE}>
+  <div style={{ ...PILOT_TONE, ...STACK }}>
     <Caption>
       Accent-framed section: black title stamp + count, controls, paper body, source footer.
     </Caption>
@@ -29,7 +32,15 @@ export const Default: Story = () => (
       }
       source="Salvage Union · Pilot Abilities"
     >
-      <p className="m-0 font-body text-sm leading-relaxed text-ink">
+      <p
+        style={{
+          margin: 0,
+          fontFamily: font.body,
+          fontSize: fontSize.sm,
+          lineHeight: 1.625,
+          color: color.ink,
+        }}
+      >
         Entity cards nest inside this body untouched — the card only frames the region.
       </p>
     </SheetSectionCard>

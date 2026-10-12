@@ -22,6 +22,7 @@ import {
   RollTablePage,
   rollTablePageData,
 } from '../../../../components/RollTablePage'
+import { buildLinkFor } from '../../../../lib/buildLink'
 import { chapterForSchema } from '../../../../lib/chapters'
 import { META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../../../lib/constants'
 import { itemHref, schemaHref } from '../../../../lib/entityHref'
@@ -162,7 +163,12 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         {rollPage}
       </EntityPageFrame>
     ) : (
-      <EntityPageFrame title={itemName} tone={chapter.tone} meta={pageMeta}>
+      <EntityPageFrame
+        title={itemName}
+        tone={chapter.tone}
+        meta={pageMeta}
+        build={buildLinkFor(schemaId, item)}
+      >
         {/* The Entity renders as one unit — interactive island card + its static
             SEO / no-JS sub-content (EntityView). */}
         <EntityView item={item} schemaId={schemaId} />

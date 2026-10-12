@@ -1,11 +1,15 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useMemo } from 'react'
 import { parseTraitReferences as parseTraitRefs } from 'salvageunion-reference'
+import { space } from '../design/tokens'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
 import { Mention } from '../entity/forms/Mention'
 import { findPageRefs, resolvePageRef } from '../entity/pageRefs'
 import { mentionRef } from '../entity/parts/tagItems'
 import { useInsidePeek } from '../entity/peekContext'
+
+/** The blank line a `\n\n` paragraph break renders as. */
+const PARAGRAPH_BREAK = { display: 'block', height: space[12] } satisfies CSSProperties
 
 /**
  * One in-prose trait reference: a MENTION (entity display language E4). The
@@ -105,7 +109,7 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
         nodes.push(text.substring(currentIndex, seg.start))
       }
       if (seg.kind === 'break') {
-        nodes.push(<span key={`break-${seg.start}`} className="block h-3" />)
+        nodes.push(<span key={`break-${seg.start}`} style={PARAGRAPH_BREAK} />)
       } else if (seg.kind === 'page') {
         nodes.push(
           <Mention key={`page-${seg.start}`} entityRef={seg.ref}>

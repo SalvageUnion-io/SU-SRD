@@ -8,12 +8,17 @@
  * - Accessing an unloaded schema throws a descriptive error
  * - preload() is idempotent (calling twice is safe)
  * - After preload, all ORM methods work synchronously as before
+ * - preload(ids, { projection: 'list' }) installs a list projection a full load replaces
  */
 
 import { afterAll, beforeEach, describe, expect, it } from 'bun:test'
+import actionRows from '../data/actions.json' with { type: 'json' }
 import chassisRows from '../data/chassis.json' with { type: 'json' }
+import { extractActions } from './actionResolution.js'
 import { BaseModel } from './BaseModel.js'
+import actionListRows from './generated/actions.list.generated.json' with { type: 'json' }
 import { resetAllForTesting, SalvageUnionReference, SchemaNotLoadedError } from './index.js'
+import { toListRow } from './listProjection.js'
 
 // After all preload tests complete, restore the global preload state so
 // other test files that run after this one see loaded schemas.
@@ -300,5 +305,73 @@ describe('SalvageUnionReference.install — data the caller imported', () => {
     expect(() => SalvageUnionReference.install(unknown)).toThrow(
       'No loader found for schema ID: no-such-schema'
     )
+  })
+})
+
+describe('SalvageUnionReference.preload — list projection', () => {
+  beforeEach(() => {
+    resetAllForTesting()
+  })
+
+  /** Every row's prose blocks, flattened: what the projection drops. */
+  const proseOf = (rows: readonly { content?: readonly { type: string }[] }[]) =>
+    rows.flatMap((row) => (row.content ?? []).filter((block) => block.type === 'paragraph'))
+
+  it('the generated file is the projection of the committed data', () => {
+    expect(JSON.stringify(actionListRows)).toBe(JSON.stringify(actionRows.map(toListRow)))
+  })
+
+  it('keeps every row and every non-content field, and drops only prose', () => {
+    expect(actionListRows.map((a) => a.id)).toEqual(actionRows.map((a) => a.id))
+    actionRows.forEach((full, i) => {
+      const { content: fullContent, ...fullRest } = full
+      const { content: listContent, ...listRest } = actionListRows[i] ?? {}
+      expect(listRest).toEqual(fullRest)
+      expect(listContent === undefined).toBe(fullContent === undefined)
+      for (const block of listContent ?? []) {
+        expect(['paragraph', 'list-item', 'heading', 'flavor', 'hint']).not.toContain(block.type)
+      }
+    })
+  })
+
+  it('installs the projection: loaded for a listing, not loaded in full', async () => {
+    await SalvageUnionReference.preload(['actions'], { projection: 'list' })
+    expect(SalvageUnionReference.isLoaded('actions', { projection: 'list' })).toBe(true)
+    expect(SalvageUnionReference.isLoaded('actions')).toBe(false)
+    expect(SalvageUnionReference.Actions.all().length).toBe(actionRows.length)
+    expect(proseOf(SalvageUnionReference.Actions.all())).toEqual([])
+  })
+
+  it('loads a schema with no projection in full', async () => {
+    await SalvageUnionReference.preload(['chassis'], { projection: 'list' })
+    expect(SalvageUnionReference.isLoaded('chassis')).toBe(true)
+  })
+
+  it('a later full preload replaces it, and the action map sees the prose', async () => {
+    await SalvageUnionReference.preload(['actions', 'systems'], { projection: 'list' })
+    const system = SalvageUnionReference.Systems.all().find((s) => (s.actions ?? []).length > 0)
+    if (!system) throw new Error('expected a system with actions')
+    expect(proseOf(extractActions(system) ?? [])).toEqual([])
+
+    await SalvageUnionReference.preload(['actions'])
+    expect(SalvageUnionReference.isLoaded('actions')).toBe(true)
+    expect(proseOf(SalvageUnionReference.Actions.all()).length).toBe(proseOf(actionRows).length)
+    expect(proseOf(extractActions(system) ?? []).length).toBeGreaterThan(0)
+  })
+
+  it('never replaces a full load with the projection', async () => {
+    await SalvageUnionReference.preload(['actions'])
+    await SalvageUnionReference.preload(['actions'], { projection: 'list' })
+    expect(SalvageUnionReference.isLoaded('actions')).toBe(true)
+    expect(proseOf(SalvageUnionReference.Actions.all()).length).toBe(proseOf(actionRows).length)
+  })
+
+  it('a full load that lands first wins over a projection still in flight', async () => {
+    await Promise.all([
+      SalvageUnionReference.preload(['actions'], { projection: 'list' }),
+      SalvageUnionReference.preload(['actions']),
+    ])
+    expect(SalvageUnionReference.isLoaded('actions')).toBe(true)
+    expect(proseOf(SalvageUnionReference.Actions.all()).length).toBe(proseOf(actionRows).length)
   })
 })

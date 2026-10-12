@@ -39,16 +39,27 @@
  * Generate locally (`bun --filter srd og:generate`) and let the cache carry it.
  *
  * Set OG_CHROME_PATH to use a specific chromium executable.
+ *
+ * `bun scripts/og-screenshots.ts --fingerprint` prints the render key (below)
+ * and exits: the deploy's `og-srd` job keys its persisted cache on it.
  */
 /* eslint-disable no-console -- build-time CLI: stdout progress is intended output */
-import { createHash } from 'node:crypto'
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { createHash, randomUUID } from 'node:crypto'
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 import { DEFAULT_OG_IMAGE, SITE_URL } from '../src/lib/constants'
 import { OG_HEIGHT, OG_WIDTH, ogImagePath } from '../src/lib/ogCard'
 import { getItemStaticPaths, getPatternStaticPaths } from '../src/lib/staticPaths'
+import { ogRenderFingerprint } from './ogRenderFingerprint'
 
 const PORT = Number(process.env.OG_SCREENSHOTS_PORT ?? 4399)
 // How long `wrangler dev` may take to start answering.
@@ -83,15 +94,35 @@ const DIST_DIR = join(APP_ROOT, 'dist')
 //
 // The build wipes dist/ (`emptyOutDir`), so "skip unchanged" needs the PNGs to survive
 // OUTSIDE dist: a cache dir under node_modules/.cache keyed by a manifest of
-// content hashes. Hash input = the entity's JSON + SCRIPT_VERSION — bump
-// SCRIPT_VERSION whenever the card RENDERING changes (og-card page, OgCard and
-// the ChapterBand it is built from, fonts, dimensions), since the entity data
-// alone can't see those.
+// content hashes. Hash input = the entity's JSON + the render key: the built
+// bytes that draw the card (ogRenderFingerprint — the og-card page, its CSS and
+// fonts, the OgCardIsland chunk graph, never the data chunks), this script's
+// own source, and the Playwright and sharp versions that capture and encode it.
+// A rendering change therefore re-renders every card, and nothing else does.
 //
 // Unchanged entity + cached PNG → copy into dist, no screenshot.
 // ---------------------------------------------------------------------------
-const SCRIPT_VERSION = 7
 const CACHE_DIR = join(APP_ROOT, 'node_modules', '.cache', 'srd-og')
+const DATA_DIR = join(APP_ROOT, '..', '..', 'packages', 'salvageunion-reference', 'data')
+
+function packageVersion(name: string): string {
+  const path = Bun.resolveSync(`${name}/package.json`, APP_ROOT)
+  return (JSON.parse(readFileSync(path, 'utf8')) as { version: string }).version
+}
+
+/** Everything but the entity that decides a card's pixels. Throws if unknowable. */
+function renderKey(): string {
+  const dataNames = new Set(
+    readdirSync(DATA_DIR)
+      .filter((f) => f.endsWith('.json'))
+      .map((f) => f.slice(0, -'.json'.length))
+  )
+  return createHash('sha256')
+    .update(ogRenderFingerprint(DIST_DIR, dataNames))
+    .update(readFileSync(fileURLToPath(import.meta.url)))
+    .update(`playwright@${packageVersion('@playwright/test')} sharp@${packageVersion('sharp')}`)
+    .digest('hex')
+}
 
 /**
  * `bun run preview` on PORT, resolved once it answers. Pinned to 127.0.0.1 so
@@ -139,11 +170,11 @@ function readManifest(): Manifest {
   }
 }
 
-function entityHash(item: unknown): string {
+function entityHash(render: string, item: unknown): string {
   // The canvas size is in the key, so changing it self-invalidates instead of
   // quietly serving PNGs rendered at the old geometry.
   return createHash('sha1')
-    .update(`v${SCRIPT_VERSION}:${OG_WIDTH}x${OG_HEIGHT}:`)
+    .update(`${render}:${OG_WIDTH}x${OG_HEIGHT}:`)
     .update(JSON.stringify(item))
     .digest('hex')
 }
@@ -216,9 +247,32 @@ function log(msg: string) {
 }
 
 async function run() {
+  if (process.argv.includes('--fingerprint')) {
+    // Stdout is the key and nothing else; a failure exits 1 with an empty
+    // stdout, and the job keys its cache on the commit instead.
+    try {
+      // biome-ignore lint/suspicious/noConsole: the key is this mode's whole output
+      console.log(renderKey())
+    } catch (err) {
+      console.error('[og-screenshots] render key unavailable:', err)
+      process.exitCode = 1
+    }
+    return
+  }
   if (!process.env.OG_SCREENSHOTS) {
     log('OG_SCREENSHOTS not set — skipping og:image generation (see script header).')
     return
+  }
+
+  // An unknowable renderer matches no cached PNG: every card re-renders.
+  let render: string
+  try {
+    render = renderKey()
+  } catch (err) {
+    log(
+      `render key unavailable (${err instanceof Error ? err.message : String(err)}) — not reusing the cache.`
+    )
+    render = randomUUID()
   }
 
   // Items and chassis patterns alike — a pattern is its own kind of entity, so
@@ -227,7 +281,7 @@ async function run() {
     ...getItemStaticPaths().map((p) => ({
       schemaId: p.params.schemaId,
       itemId: p.params.itemId,
-      hash: entityHash(p.props.item),
+      hash: entityHash(render, p.props.item),
     })),
     ...getPatternStaticPaths().map((p) => ({
       schemaId: p.params.schemaId,
@@ -235,7 +289,7 @@ async function run() {
       patternId: p.params.patternId,
       // Hash the PATTERN, not the chassis: two patterns of one chassis must not
       // collide, and editing a pattern has to invalidate only its own card.
-      hash: entityHash(p.props.pattern),
+      hash: entityHash(render, p.props.pattern),
     })),
   ]
   if (allEntities.length === 0) {

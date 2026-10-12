@@ -11,6 +11,7 @@ import {
 } from '../../lib/rules/creation'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { EMPTY_MECH_FORM_STATE, mechFormToCreateInput } from '../../lib/wizard/mechFormState'
+import { withPreselection } from '../../lib/wizard/preselect'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { GainScrapStep } from '../wizard/GainScrapStep'
 import { MechFlavorStep } from '../wizard/MechFlavorStep'
@@ -70,6 +71,8 @@ type MechWizardProps = {
   onCancel: () => void
   /** Leaves the guided flow for the blank Free-Edit path (P3.3). */
   onOffRules?: () => void
+  /** A chassis slug to start on (`?chassis=`), already checked by `preselectedChassis`. */
+  preselectChassis?: string
 }
 
 /** Slot pips for the tracker tab: ●●●○○ (capped so the tab stays a tab). */
@@ -102,19 +105,31 @@ function slotPips(used: number, max: number): string {
  * chassisSV + Σ(itemSV × count) ≤ 20 ∧ both slot budgets respected — every
  * guided mech is a legal starting mech by construction.
  */
-export function MechWizard({ onComplete, onCancel, onOffRules }: MechWizardProps) {
+export function MechWizard({
+  onComplete,
+  onCancel,
+  onOffRules,
+  preselectChassis,
+}: MechWizardProps) {
   // Draft-aware init: a stored session draft (refresh, back-nav, PWA reload)
   // wins over the empty state; cleared on submit/cancelled exit. Drafts pass
   // through the deterministic knapsack clamp (§5.3); removals are announced
   // once, by toast.
   const draftKey = wizardDraftKey('mech')
   const clampRemovedRef = useRef<string[] | null>(null)
+  // A deep-linked pick (`?chassis=` — see `lib/wizard/preselect.ts`) seeds the
+  // fresh form and fills an empty draft; it is the baseline, so following the
+  // link alone leaves nothing to discard.
+  const baseline = useMemo(
+    () => withPreselection(EMPTY_MECH_FORM_STATE, 'chassisName', preselectChassis),
+    [preselectChassis]
+  )
   const [form, setForm] = useState<MechWizardFormState>(() => {
     const draft = readWizardDraft<MechWizardFormState>(draftKey)
-    if (!draft) return EMPTY_MECH_FORM_STATE
+    if (!draft) return baseline
     const { form: clamped, removed } = clampMechCreationDraft(draft)
     if (removed.length > 0) clampRemovedRef.current = removed
-    return clamped
+    return withPreselection(clamped, 'chassisName', preselectChassis)
   })
   useEffect(() => {
     const removed = clampRemovedRef.current
@@ -123,7 +138,7 @@ export function MechWizard({ onComplete, onCancel, onOffRules }: MechWizardProps
       toast.info(`Draft trimmed to the starting rules — removed ${removed.join(', ')}.`)
     }
   }, [])
-  const formDirty = useWizardDraftSync(draftKey, form, EMPTY_MECH_FORM_STATE)
+  const formDirty = useWizardDraftSync(draftKey, form, baseline)
 
   // The step machine + the create submit, shared with the pilot and crawler
   // wizards (`useWizardFlow`); the mech's create input is a plain projection

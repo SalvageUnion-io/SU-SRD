@@ -5,9 +5,9 @@ import { join } from 'node:path'
 import { GENERATED_PATHS } from '../check-generated'
 
 /**
- * The agent guards in `.claude/`: the `typecheck-scoped.sh` hook, and the
- * `deny` rules in `.claude/settings.json` that keep agents off generated files
- * and other package managers.
+ * The agent guards in `.claude/`: the typecheck hooks, the `session-status.sh`
+ * SessionStart report, and the `deny` rules in `.claude/settings.json` that
+ * keep agents off generated files and other package managers.
  *
  * The deny rules are native permission rules, enforced by Claude Code before a
  * tool runs, so there is no script to drive. What can drift is the list: a new
@@ -31,10 +31,9 @@ async function runHook(script: string, payload: unknown): Promise<number> {
 /** A hook blocks on exit 2; 0 allows. */
 const ALLOW = 0
 
-const settings: { permissions: { deny: string[] } } = await Bun.file(
-  join(ROOT, '.claude', 'settings.json')
-).json()
-const deny = settings.permissions.deny
+const settings: { permissions: { allow: string[]; ask: string[]; deny: string[] } } =
+  await Bun.file(join(ROOT, '.claude', 'settings.json')).json()
+const { allow, ask, deny } = settings.permissions
 
 /** The globs inside the `Edit(...)` deny rules. */
 const editGlobs = deny.flatMap((rule) => /^Edit\((.+)\)$/.exec(rule)?.[1] ?? [])
@@ -89,6 +88,14 @@ describe('settings.json deny rules', () => {
       denied: false,
     },
     'apps/itun/src/routeTree.gen.ts': { file: 'apps/itun/src/routeTree.gen.ts', denied: true },
+    'apps/srd/worker-configuration.d.ts': {
+      file: 'apps/srd/worker-configuration.d.ts',
+      denied: true,
+    },
+    'apps/itun/worker-configuration.d.ts': {
+      file: 'apps/itun/worker-configuration.d.ts',
+      denied: true,
+    },
     'apps/su-assets/worker-configuration.d.ts': {
       file: 'apps/su-assets/worker-configuration.d.ts',
       denied: true,
@@ -106,6 +113,23 @@ describe('settings.json deny rules', () => {
   test.each(['npm', 'yarn', 'pnpm'])('denies %s, directly and behind bunx', (pm) => {
     expect(deny).toContain(`Bash(${pm} *)`)
     expect(deny).toContain(`Bash(bunx ${pm}*)`)
+  })
+
+  // `Bash(gh *)` and the git allow rules would otherwise run these unprompted;
+  // CLAUDE.md's Merging section forbids a hand rebase or a force push.
+  test.each([
+    'Bash(gh pr merge*)',
+    'Bash(gh pr close*)',
+    'Bash(gh release create*)',
+    'Bash(git rebase*)',
+    'Bash(git push --force-with-lease*)',
+    'Bash(git push * --force-with-lease*)',
+  ])('asks before %s', (rule) => {
+    expect(ask).toContain(rule)
+  })
+
+  test.each(['rebase', 'push --force-with-lease'])('never allows git %s outright', (cmd) => {
+    expect(allow.filter((rule) => rule.startsWith(`Bash(git ${cmd}`))).toEqual([])
   })
 
   test.each(['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml'])(
@@ -326,5 +350,149 @@ describe('typecheck hooks against a stub workspace', () => {
         f.cleanup()
       }
     })
+  })
+})
+
+// A throwaway clone of a local "origin" (so the fetch needs no network) with a
+// stub `gh` first on PATH, so the API answers, failures and hangs are scripted.
+describe('session-status.sh (SessionStart)', () => {
+  const cleanEnv = Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))
+  )
+
+  const STUBS = {
+    ok: `case "$*" in
+  *pulls*) echo '#42 feat: x (draft) → design-refresh https://example.test/pull/42' ;;
+  *e2e-nightly*) echo 'success 2026-10-11 https://example.test/runs/1' ;;
+esac`,
+    empty: 'exit 0',
+    forbidden: 'echo "gh: HTTP 403: Forbidden" >&2; exit 1',
+    hang: 'exec sleep 30',
+  }
+
+  async function fixture(gh: keyof typeof STUBS | null) {
+    const dir = mkdtempSync(join(tmpdir(), 'session-status-'))
+    const git = (...args: string[]) =>
+      Bun.spawn(['git', ...args], { cwd: dir, env: cleanEnv, stdout: 'pipe', stderr: 'pipe' })
+        .exited
+    const origin = join(dir, 'SalvageUnion-io', 'SU-SRD.git')
+    const work = join(dir, 'work')
+    await git('init', '-q', '--bare', '-b', 'main', origin)
+    await git('clone', '-q', origin, work)
+    const inWork = (...args: string[]) =>
+      Bun.spawn(['git', '-c', 'user.name=t', '-c', 'user.email=t@t', ...args], {
+        cwd: work,
+        env: cleanEnv,
+        stderr: 'pipe',
+      }).exited
+    await inWork('commit', '-q', '--allow-empty', '-m', 'base')
+    await inWork('push', '-q', 'origin', 'main')
+    await inWork('checkout', '-q', '-b', 'feature')
+    await inWork('commit', '-q', '--allow-empty', '-m', 'one')
+    await inWork('commit', '-q', '--allow-empty', '-m', 'two')
+
+    // Only the tools the hook calls, so a real gh elsewhere on PATH stays out.
+    const bin = join(dir, 'bin')
+    mkdirSync(bin)
+    for (const tool of ['git', 'sed', 'mktemp', 'head', 'grep', 'rm', 'sleep', 'touch', 'cat']) {
+      const real = Bun.which(tool)
+      if (real) await Bun.spawn(['ln', '-s', real, join(bin, tool)]).exited
+    }
+    if (gh) writeFileSync(join(bin, 'gh'), `#!/bin/bash\n${STUBS[gh]}\n`, { mode: 0o755 })
+
+    const run = async (extraEnv: Record<string, string> = {}) => {
+      const started = performance.now()
+      const proc = Bun.spawn([join(HOOKS, 'session-status.sh')], {
+        cwd: work,
+        env: { ...cleanEnv, PATH: bin, CLAUDE_PROJECT_DIR: work, ...extraEnv },
+        stdout: 'pipe',
+        stderr: 'pipe',
+      })
+      const [code, stdout, stderr] = await Promise.all([
+        proc.exited,
+        new Response(proc.stdout).text(),
+        new Response(proc.stderr).text(),
+      ])
+      return { code, stdout, stderr, ms: performance.now() - started }
+    }
+    return { work, run, cleanup: () => rmSync(dir, { recursive: true, force: true }) }
+  }
+
+  test('prints the branch, ahead/behind, the open PR and the nightly result', async () => {
+    const f = await fixture('ok')
+    try {
+      const { code, stdout, stderr } = await f.run()
+      expect({ code, stderr }).toEqual({ code: ALLOW, stderr: '' })
+      expect(stdout).toContain('[status] branch: feature\n')
+      expect(stdout).toContain('vs origin/main (just fetched): 2 ahead, 0 behind')
+      expect(stdout).toContain('open PR: #42 feat: x (draft) → design-refresh')
+      expect(stdout).toContain('nightly E2E: success 2026-10-11')
+    } finally {
+      f.cleanup()
+    }
+  })
+
+  test('empty answers read as "none", not as a failure', async () => {
+    const f = await fixture('empty')
+    try {
+      const { stdout } = await f.run()
+      expect(stdout).toContain('open PR: none for this branch')
+      expect(stdout).toContain('nightly E2E: no runs yet')
+    } finally {
+      f.cleanup()
+    }
+  })
+
+  test.each([
+    ['a 403', 'forbidden'],
+    ['no gh at all', null],
+  ] as const)('%s prints one "unavailable" line each and exits 0', async (_label, gh) => {
+    const f = await fixture(gh)
+    try {
+      const { code, stdout, stderr } = await f.run()
+      expect({ code, stderr }).toEqual({ code: ALLOW, stderr: '' })
+      expect(stdout).toMatch(/open PR: unavailable \(.+\)\n/)
+      expect(stdout).toMatch(/nightly E2E: unavailable \(.+\)\n/)
+      expect(stdout).not.toContain('403')
+    } finally {
+      f.cleanup()
+    }
+  })
+
+  test('a hanging API is cut off at the deadline', async () => {
+    const f = await fixture('hang')
+    try {
+      const { code, stdout, ms } = await f.run({ SU_STATUS_DEADLINE: '1' })
+      expect(code).toBe(ALLOW)
+      expect(stdout).toContain('open PR: unavailable (gh api failed or timed out)')
+      expect(ms).toBeLessThan(5000)
+    } finally {
+      f.cleanup()
+    }
+  })
+
+  test('an unreachable origin still reports from the last fetch', async () => {
+    const f = await fixture('ok')
+    try {
+      await Bun.spawn(['git', 'remote', 'set-url', 'origin', join(f.work, 'gone', 'x.git')], {
+        cwd: f.work,
+        env: cleanEnv,
+      }).exited
+      const { code, stdout, stderr } = await f.run()
+      expect({ code, stderr }).toEqual({ code: ALLOW, stderr: '' })
+      expect(stdout).toContain('(fetch failed; as of the last fetch): 2 ahead, 0 behind')
+    } finally {
+      f.cleanup()
+    }
+  })
+
+  test('is registered as a SessionStart hook with a short timeout', () => {
+    const hooks = (
+      settings as unknown as {
+        hooks: { SessionStart: { hooks: { command: string; timeout: number }[] }[] }
+      }
+    ).hooks.SessionStart.flatMap((entry) => entry.hooks)
+    const status = hooks.find((hook) => hook.command.endsWith('/session-status.sh'))
+    expect(status?.timeout).toBeLessThanOrEqual(10)
   })
 })

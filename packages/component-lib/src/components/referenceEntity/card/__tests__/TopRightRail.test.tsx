@@ -21,15 +21,15 @@ const equipment = () => {
 }
 
 /**
- * The rail itself — the one absolutely-positioned flex row. Cells sit at
+ * The rail itself (`data-card-rail`) — the one absolutely-positioned flex row. Cells sit at
  * varying depths inside it (a control rides its own `ControlButtons` cluster,
  * a seal is a direct child), so this climbs to the row rather than to the
  * nearest `div.flex`, which would stop at a cluster wrapper.
  */
 function rail(el: HTMLElement): HTMLElement {
-  const parent = el.closest('div.absolute.flex')
+  const parent = el.closest('[data-card-rail]')
   if (!(parent instanceof HTMLElement))
-    throw new Error('no absolute flex ancestor — the cell is not in the rail')
+    throw new Error('no rail ancestor — the cell is not in the rail')
   return parent
 }
 
@@ -66,8 +66,8 @@ describe('top-right rail', () => {
     const status = screen.getByRole('button', { name: /intact/i })
     const row = rail(status)
 
-    expect(row.className).toContain('absolute')
-    expect(row.className).toContain('flex-wrap')
+    expect(row.style.position).toBe('absolute')
+    expect(row.style.flexWrap).toBe('wrap')
     // A cell that re-grows its own `absolute` is the exact regression: it would
     // leave the row and re-stack on whatever else claims that coordinate.
     // Checked over every descendant, not just direct children, since cells now
@@ -97,8 +97,8 @@ describe('top-right rail', () => {
     )
     const status = screen.getByRole('button', { name: /status: damaged/i })
     const remove = screen.getByRole('button', { name: 'Remove' })
-    expect(status.closest('div.absolute')).toBeNull()
-    expect(remove.closest('div.absolute')).toBeNull()
+    expect(status.closest('[data-card-rail]')).toBeNull()
+    expect(remove.closest('[data-card-rail]')).toBeNull()
     // State is a treatment: the current segment is marked, none is a hue.
     expect(status.querySelector('[aria-current="true"]')?.textContent).toBe('Damaged')
   })

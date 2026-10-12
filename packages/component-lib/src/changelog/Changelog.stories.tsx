@@ -1,9 +1,14 @@
+import type { CSSProperties } from 'react'
+import { space } from '../design/tokens'
 import type { Story } from '../stories/_harness'
 import { Caption } from '../stories/_harness'
 import type { ChangelogEntry } from './Changelog'
 import { Changelog } from './Changelog'
 
 export default { title: 'Compositions/Changelog' }
+
+/** Tailwind's `max-w-2xl`, ported verbatim. */
+const STAGE = { maxWidth: '42rem' } satisfies CSSProperties
 
 // Real-shaped entries (one per day, newest first) as `gitChangelog.ts` reads
 // them from a site's scoped squash titles.
@@ -30,7 +35,7 @@ const ENTRIES: ChangelogEntry[] = [
 
 /** The history — each day a paper panel with an area badge. */
 export const Default: Story = () => (
-  <div className="flex max-w-2xl flex-col gap-3">
+  <div style={{ ...STAGE, display: 'flex', flexDirection: 'column', gap: space[12] }}>
     <Caption>One entry per day, newest first — date headline, area badge, items.</Caption>
     <Changelog entries={ENTRIES} />
   </div>
@@ -38,7 +43,7 @@ export const Default: Story = () => (
 
 /** The empty state (no history yet). */
 export const Empty: Story = () => (
-  <div className="max-w-2xl">
+  <div style={STAGE}>
     <Changelog entries={[]} />
   </div>
 )

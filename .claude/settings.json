@@ -20,8 +20,6 @@
       "Bash(git push)",
       "Bash(git push origin *)",
       "Bash(git push -u origin *)",
-      "Bash(git push --force-with-lease*)",
-      "Bash(git rebase *)",
       "Bash(git merge *)",
       "Bash(git merge-base *)",
       "Bash(git cherry-pick *)",
@@ -88,7 +86,13 @@
       "Bash(git push * --no-verify*)",
       "Bash(git switch --force*)",
       "Bash(git switch * --force*)",
-      "Bash(gh run rerun*)"
+      "Bash(gh run rerun*)",
+      "Bash(gh pr merge*)",
+      "Bash(gh pr close*)",
+      "Bash(gh release create*)",
+      "Bash(git rebase*)",
+      "Bash(git push --force-with-lease*)",
+      "Bash(git push * --force-with-lease*)"
     ],
     "deny": [
       "Bash(npm *)",
@@ -161,6 +165,12 @@
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh",
             "statusMessage": "Preparing the repo toolchain...",
             "timeout": 600
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-status.sh",
+            "statusMessage": "Checking branch, PR and nightly status...",
+            "timeout": 10
           }
         ]
       }

@@ -524,7 +524,7 @@ const RULES: OwnershipRule[] = [
   {
     id: 'pc-class-defined',
     mode: 'ratchet',
-    rule: 'tailwind-removal plan §ratchet — the Dashboard `.pc-*` scope only shrinks (#802, phase 5)',
+    rule: 'tailwind-removal plan §ratchet — the Dashboard `.pc-*` scope only shrinks (#802, phase TW5)',
     fix: "Do not add a `.pc-*` class. Dashboard styling that needs a new rule is a style object from `tokens.ts`, or a stateful rule in ITUN's own stylesheet — never component-lib's index.css, which srd loads too. If you removed one, lower the baseline with --update-baseline.",
     scan: scanPcDefinitions,
   },

@@ -69,8 +69,8 @@ describe('ModalShell', () => {
         <p>Content</p>
       </ModalShell>
     )
-    // Dialog.Title renders with sr-only — it's in document.body (portaled)
-    const srOnlyEls = document.body.querySelectorAll('.sr-only')
+    // Dialog.Title renders visually hidden (clipped) — it's in document.body (portaled)
+    const srOnlyEls = document.body.querySelectorAll<HTMLElement>('[style*="clip-path"]')
     const titleEl = Array.from(srOnlyEls).find((el) => el.textContent === 'Accessible Title')
     expect(titleEl).toBeTruthy()
   })

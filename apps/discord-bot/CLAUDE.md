@@ -15,7 +15,7 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
 
 ## Runtime
 
-The bot is an **HTTP-interactions Cloudflare Worker** (`src/http/worker.ts`,
+The bot is an **HTTP-interactions Cloudflare Worker** (`src/worker/index.ts`,
 deployed by `wrangler.jsonc`). There is no Node gateway, no `dist/` bundle and
 no `build`/`start` script; the Worker reports to Sentry through
 `observability/cloudflare`. There is no `discord.js` dependency: slash commands
@@ -29,7 +29,7 @@ the bot uses.
 
 ## Structure
 
-- `src/http/` - THE entry point (`worker.ts`), request verification, and the
+- `src/worker/` - THE entry point (`index.ts`), request verification, and the
   adapter from raw interactions to the narrow types in `src/commands/interactions.ts`
 - `src/commands/` - Slash command definitions and handlers
 - `src/buttons.ts` + `src/customId.ts` - stateless button routing (`su:<action>:<payload>`)
@@ -51,7 +51,7 @@ bun run deploy-commands:global     # Register globally (production)
 
 There is no local Worker loop: the Interactions Endpoint URL is
 application-wide, so Discord only ever reaches the deployed Worker.
-`src/http/__tests__/replay.test.ts` drives the Worker with signed,
+`src/worker/__tests__/replay.test.ts` drives the Worker with signed,
 Discord-shaped payloads instead.
 
 ## In The Union Now (ADR-030 Phase 6)

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { EntityStatus } from '../shared/entityStatus'
 import type { BadgeTone } from './Badge'
 import { Badge } from './Badge'
@@ -8,6 +9,8 @@ const STATUS_STYLES: Record<EntityStatus, { label: string; tone: BadgeTone }> = 
   damaged: { label: 'Damaged', tone: 'warn' },
   destroyed: { label: 'Destroyed', tone: 'bad' },
 }
+
+const CYCLE_BUTTON = { cursor: 'pointer', display: 'inline-flex' } satisfies CSSProperties
 
 type StatusBadgeProps = {
   status: EntityStatus
@@ -44,7 +47,7 @@ export function StatusBadge({ status, onClick, subject, className }: StatusBadge
             ? `${subject} status: ${label} — click to change`
             : `Status: ${label} — click to change`
         }
-        className="inline-flex cursor-pointer"
+        style={CYCLE_BUTTON}
       >
         {badge}
       </button>

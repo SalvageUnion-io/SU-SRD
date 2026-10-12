@@ -191,6 +191,10 @@ jobs:
       - name: Check printed examples against the built site
         run: bun --filter srd check:examples
 
+      # The build emits the assets; this bundles the Worker `main` that ships.
+      - name: Bundle the Worker that actually deploys
+        run: bun --filter srd worker:bundle --outdir /tmp/srd-worker
+
       - name: Cache Playwright browsers
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -294,7 +298,8 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # The bot has no build script; wrangler bundles `src/http/worker.ts`.
+      # Its `build` is typecheck + this bundle; the typecheck already runs in
+      # static-checks, so only the bundle here.
       - name: Bundle the Worker that actually deploys
         run: bun --filter discord-bot worker:bundle --outdir /tmp/bot-worker
 

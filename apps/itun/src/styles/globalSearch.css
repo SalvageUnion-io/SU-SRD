@@ -1,0 +1,16 @@
+/*
+ * globalSearch.css — the stateful half of `GlobalSearch`'s plain result rows
+ * (components/shared/GlobalSearch.tsx). The row's ground changes on hover and
+ * while the row is the keyboard selection, so its resting value lives here too
+ * (the per-property split rule). Loaded by `index.css`.
+ *
+ * The highlight is the workshop step off the paper panel (ruleset §4.1); it was
+ * the cool `wk-bg-2` until the brand refresh warmed the page.
+ */
+.global-search-option {
+  background-color: transparent;
+}
+.global-search-option:hover,
+.global-search-option[aria-selected='true'] {
+  background-color: var(--color-wk-bg);
+}

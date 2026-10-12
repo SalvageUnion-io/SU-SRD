@@ -1,6 +1,6 @@
 import { toast } from 'component-lib'
 import { PilotSchema } from 'itun-domain/schemas/pilot'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
@@ -14,6 +14,7 @@ import type { PilotWizardStepId } from '../../lib/rules/creation'
 import { clampPilotCreationDraft, pilotCreationStepGate } from '../../lib/rules/creation'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import { EMPTY_PILOT_FORM_STATE, pilotFormToCreateInput } from '../../lib/wizard/pilotFormState'
+import { withPreselection } from '../../lib/wizard/preselect'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../sheet/pilotInventory'
 import { BackgroundStep } from '../wizard/BackgroundStep'
@@ -88,6 +89,8 @@ type PilotWizardProps = {
   onCancel: () => void
   /** Leaves the guided flow for the blank Free-Edit path (P3.3). */
   onOffRules?: () => void
+  /** A class id to start on (`?class=` slug, resolved by `preselectedClassId`). */
+  preselectClassId?: string
   /**
    * Injectable roll table deps for testing — omit in production.
    * Used to stub the SalvageUnionReference.RollTables accessor in tests.
@@ -118,6 +121,7 @@ export function PilotWizard({
   onComplete,
   onCancel,
   onOffRules,
+  preselectClassId,
   _rollDeps,
   _sur,
 }: PilotWizardProps) {
@@ -135,12 +139,19 @@ export function PilotWizard({
   // removals are announced once, by toast.
   const draftKey = wizardDraftKey('pilot')
   const clampRemovedRef = useRef<string[] | null>(null)
+  // A deep-linked pick (`?class=` — see `lib/wizard/preselect.ts`) seeds the
+  // fresh form and fills an empty draft; it is the baseline, so following the
+  // link alone leaves nothing to discard.
+  const baseline = useMemo(
+    () => withPreselection(EMPTY_PILOT_FORM_STATE, 'classId', preselectClassId),
+    [preselectClassId]
+  )
   const [form, setForm] = useState<PilotWizardFormState>(() => {
     const draft = readWizardDraft<PilotWizardFormState>(draftKey)
-    if (!draft) return EMPTY_PILOT_FORM_STATE
+    if (!draft) return baseline
     const { form: clamped, removed } = clampPilotCreationDraft(draft)
     if (removed.length > 0) clampRemovedRef.current = removed
-    return clamped
+    return withPreselection(clamped, 'classId', preselectClassId)
   })
   useEffect(() => {
     const removed = clampRemovedRef.current
@@ -149,7 +160,7 @@ export function PilotWizard({
       toast.info(`Draft trimmed to creation limits — removed ${removed.join(', ')}.`)
     }
   }, [])
-  const formDirty = useWizardDraftSync(draftKey, form, EMPTY_PILOT_FORM_STATE)
+  const formDirty = useWizardDraftSync(draftKey, form, baseline)
 
   // The step machine + the create submit, shared with the mech and crawler
   // wizards (`useWizardFlow`); the pilot's create input is a plain projection

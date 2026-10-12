@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+import { color, font, fontSize, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { PageHeading } from './PageHeading'
 import { PageShell } from './PageShell'
@@ -14,18 +16,21 @@ export default {
  *  `<main>`. The literal it replaces was written out seven times — five Games
  *  screens plus the Roster and the encounter tray — which is why the Games
  *  surface had grown a local class-string constant for it. */
+const NOTE = {
+  padding: space[16],
+  fontFamily: font.body,
+  fontSize: fontSize.caption,
+  color: color.wkMuted,
+} satisfies CSSProperties
+
 export const Default: Story = () => (
   <PageShell>
     <PageHeading>Games</PageHeading>
     <Panel soft>
-      <div className="p-4 font-body text-caption text-wk-muted">
-        Children are stacked in a column with the standard gap.
-      </div>
+      <div style={NOTE}>Children are stacked in a column with the standard gap.</div>
     </Panel>
     <Panel soft>
-      <div className="p-4 font-body text-caption text-wk-muted">
-        Two siblings, so the gap between them is visible.
-      </div>
+      <div style={NOTE}>Two siblings, so the gap between them is visible.</div>
     </Panel>
   </PageShell>
 )
@@ -35,12 +40,19 @@ export const Default: Story = () => (
 export const Unstacked: Story = () => (
   <PageShell stack={false}>
     <PageHeading>Saved Builds</PageHeading>
-    <div className="mt-6 grid grid-cols-2 gap-3">
+    <div
+      style={{
+        marginTop: space[24],
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+        gap: space[12],
+      }}
+    >
       <Panel soft>
-        <div className="p-4 font-body text-caption text-wk-muted">Screen owns its own layout</div>
+        <div style={NOTE}>Screen owns its own layout</div>
       </Panel>
       <Panel soft>
-        <div className="p-4 font-body text-caption text-wk-muted">— here, a two-column grid</div>
+        <div style={NOTE}>— here, a two-column grid</div>
       </Panel>
     </div>
   </PageShell>

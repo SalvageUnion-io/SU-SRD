@@ -9,7 +9,14 @@
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { cleanup, fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react'
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render as rtlRender,
+  screen,
+  waitFor,
+} from '@testing-library/react'
 import { PilotSchema } from 'itun-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -98,6 +105,28 @@ describe('NewEntityScreen — signed out', () => {
       expect(screen.queryByRole('dialog')).toBeNull()
       cleanup()
     }
+  })
+})
+
+describe('NewEntityScreen — signed out, deep-linked', () => {
+  test("signing in comes back to the route's own URL, so the preselection survives", async () => {
+    convexMocks.signIns.length = 0
+    rtlRender(
+      <NewEntityScreen
+        kind="mech"
+        mode="guided"
+        returnTo="/mechs/new?mode=guided&chassis=mule"
+        wizard={<div data-testid="stub-wizard" />}
+        onModeChange={noop}
+        onCreated={noop}
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Sign in with Discord' }))
+    })
+    expect(convexMocks.signIns).toEqual([
+      ['discord', { redirectTo: '/mechs/new?mode=guided&chassis=mule' }],
+    ])
   })
 })
 

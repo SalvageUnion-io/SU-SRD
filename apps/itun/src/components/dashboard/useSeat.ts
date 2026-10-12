@@ -1,7 +1,7 @@
 /**
  * useSeat — the pilot's seat in its Game: mount, range band, activated effects
  * and the deck action being resolved, read from and written to Convex
- * ([ADR-038](../../../../../docs/ARCHITECTURE.md#decisions) §2;
+ * ([ADR-038](../../../../../docs/adr/038-dashboard-game-surface.md) §2;
  * `convex/seats.ts`).
  *
  * Every member reads the whole crew's seats through one `seats.forGame`

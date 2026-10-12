@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",
+    "@cloudflare/workers-types": "5.20261001.1",
     "@happy-dom/global-registrator": "20.11.6",
     "@playwright/test": "1.62.1",
     "@tailwindcss/vite": "4.3.3",
@@ -76,8 +77,10 @@
     "check:rules-fidelity": "bun tools/check-rules-fidelity.ts",
     "assets:export": "bun tools/export-lp-assets.ts",
     "assets:upload": "bun tools/upload-lp-assets.ts",
+    "assets:crop": "bun tools/art-crop.ts",
     "stories": "bun --filter component-lib stories",
     "stories:ids": "bun packages/component-lib/listStories.ts",
+    "gallery": "bun tools/gallery.ts",
     "shot": "bun tools/shot.ts"
   }
 }

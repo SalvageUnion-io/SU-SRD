@@ -12,10 +12,12 @@
  *      identity block and persist usedToggles.
  *   5. Dead state (derived max HP ≤ 0) surfaces a Dead pill + KIA banner.
  *   6. readOnly suppresses steppers, used-toggle buttons and all writes.
+ *   7. readOnly prints no Read | Edit, and the identity card repeats
+ *      nothing the band already says (class; a callsign that is the name).
  */
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
@@ -26,6 +28,8 @@ import {
   makeEntityStoreMock,
   makeSoftLinkStoreMock,
 } from '../../__tests__/mockEntityStore'
+import { must } from '../../__tests__/must'
+import { pilotStamp } from '../bandStamps'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
@@ -255,5 +259,43 @@ describe('Pilot hero — readOnly', () => {
     expect(screen.queryByRole('button', { name: /increase/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /decrease/i })).toBeNull()
     expect(updateSpy).not.toHaveBeenCalled()
+  })
+})
+
+describe('Pilot hero — readOnly identity (refit S7)', () => {
+  test('prints no Read | Edit: a read-only sheet has nothing to switch to', () => {
+    renderHero(makePilot(), undefined, true)
+    expect(screen.queryByRole('group', { name: /Read or edit/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
+  })
+
+  test('the class is the band’s stamp alone, not a field under it', () => {
+    const pilot = makePilot()
+    renderHero(pilot, undefined, true)
+    const band = must(
+      screen.getByRole('heading', { level: 1 }).closest<HTMLElement>('.su-chapter-band')
+    )
+    const className = must(pilotStamp(pilot.classRef))
+    expect(within(band).getByText(className)).toBeTruthy()
+    expect(screen.getAllByText(className)).toHaveLength(1)
+    expect(screen.queryByText('Class')).toBeNull()
+  })
+
+  test('a callsign that differs from the name still prints', () => {
+    renderHero(makePilot({ name: 'Yara Voss', callsign: 'Ghost' }), undefined, true)
+    expect(screen.getByText('Callsign')).toBeTruthy()
+    expect(screen.getByText('Ghost')).toBeTruthy()
+  })
+
+  test('a callsign that is the name is the band’s title alone', () => {
+    renderHero(makePilot({ name: 'Bonesaw', callsign: 'Bonesaw' }), undefined, true)
+    expect(screen.queryByText('Callsign')).toBeNull()
+    expect(screen.getByRole('heading', { level: 1, name: 'Bonesaw' })).toBeTruthy()
+  })
+
+  test('Edit keeps both fields: they are where callsign and class are changed', () => {
+    renderHero(makePilot({ name: 'Bonesaw', callsign: 'Bonesaw' }))
+    expect(screen.getByText('Callsign')).toBeTruthy()
+    expect(screen.getByText('Class')).toBeTruthy()
   })
 })

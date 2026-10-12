@@ -1,7 +1,7 @@
 {
   // intheunionnow.com — the ITUN SPA on Workers Static Assets (ADR-033). The
-  // script runs only for a miss that is not a navigation (src/worker/index.ts);
-  // every header is public/_headers.
+  // script runs only for a miss that is not a navigation, and for the retired
+  // addresses below (src/worker/index.ts); every header is public/_headers.
   "name": "su-itun",
 
   // `www` is attached so the zone's Redirect Rule can act on it (ADR-033,
@@ -46,7 +46,12 @@
     "binding": "ASSETS",
     // A navigation miss gets index.html without running the Worker; any other
     // miss runs it, which keeps a rotated chunk a 404 (#759).
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    // The retired addresses old Discord links still use, and nothing else: the
+    // Worker answers them with a 301 (src/worker/retiredRedirects.ts, which the
+    // routing test holds this list equal to). Every other navigation stays
+    // asset-first, so it keeps `_headers` and the CSP.
+    "run_worker_first": ["/games", "/games/", "/games/*/view/*", "/join/*"]
   },
 
   "observability": {

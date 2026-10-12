@@ -13,29 +13,41 @@ import { ChapterBand, Text, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { SignInControl } from './SignInControl'
 
-const PANEL = {
+/** The column under the band; the band's notch starts where it does. */
+const MEASURE = '36rem'
+
+/** The band runs the full width of the route's `<main>`; the content centres under it. */
+const COLUMN = {
+  alignItems: 'flex-start',
+  boxSizing: 'border-box',
   display: 'flex',
   flexDirection: 'column',
-  alignItems: 'flex-start',
-  gap: tokens.space[16],
-  maxWidth: '36rem',
+  gap: tokens.space[20],
+  marginInline: 'auto',
+  maxWidth: MEASURE,
+  padding: `${tokens.space[32]} ${tokens.space[16]}`,
+  width: '100%',
 } satisfies CSSProperties
 
 type SignInToBuildProps = {
   /** The heading: what the visitor came here to do. */
   title: string
+  /** Where Discord's round trip lands (`SignInControl`'s `redirectTo`); unset, the site root. */
+  redirectTo?: string
 }
 
-export function SignInToBuild({ title }: SignInToBuildProps) {
+export function SignInToBuild({ title, redirectTo }: SignInToBuildProps) {
   return (
-    <section style={PANEL} aria-label={title}>
-      <ChapterBand>{title}</ChapterBand>
-      <Text variant="body">
-        Build and run your Salvage Union crew — pilots, mechs and Union Crawlers. Everything you
-        build is kept in your account, saved as you go, and ready to share with a Game, so building
-        needs you signed in.
-      </Text>
-      <SignInControl />
+    <section aria-label={title}>
+      <ChapterBand measure={MEASURE}>{title}</ChapterBand>
+      <div style={COLUMN}>
+        <Text variant="body">
+          Build and run your Salvage Union crew — pilots, mechs and Union Crawlers. Everything you
+          build is kept in your account, saved as you go, and ready to share with a Game, so
+          building needs you signed in.
+        </Text>
+        <SignInControl size="full" redirectTo={redirectTo} />
+      </div>
     </section>
   )
 }
