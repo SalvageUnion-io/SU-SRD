@@ -123,7 +123,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const hasArt = data.some((item) => !!getAssetUrl(item))
   // The island's default grouping, so the server render and the skeleton
   // set the same headings the grid mounts under.
-  const groups = defaultGroups(data, trees, techLevels)
+  const groups = defaultGroups(data, trees, techLevels, schemaId)
   const shape: ListingShape = {
     count: data.length,
     groups: groups.map(({ key, label, items }) => ({ key, label, count: items.length })),

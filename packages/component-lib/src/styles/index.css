@@ -840,6 +840,18 @@ body {
   flex: 1 1 auto;
 }
 
+/* A Row that is its head alone (`data-bodyless`: a roll table with no opening
+   prose) keeps its head's height: stretched to its cell it was an empty paper
+   strip under the head. A grid holding one sizes each line to its own content,
+   so a line of heads is a head tall; a bodied Row still fills its line. */
+[data-entity-grid]:has(.su-entity-row__frame[data-bodyless]) {
+  grid-auto-rows: auto;
+}
+
+[data-entity-grid] > * > .su-entity-row:has(> .su-entity-row__frame[data-bodyless]) {
+  flex: none;
+}
+
 /* Two title lines (22px at 1.05) on the head's title line, so the labels
    above it and the band's padding stay each head's own and the name centres
    in its line. */
