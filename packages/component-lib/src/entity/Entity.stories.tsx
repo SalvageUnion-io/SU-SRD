@@ -11,7 +11,13 @@ export default {
 }
 
 const STACK = { display: 'flex', flexDirection: 'column', gap: space[16] } satisfies CSSProperties
-const ROWS = { display: 'flex', flexDirection: 'column', gap: space[8] } satisfies CSSProperties
+/** Room above each Row for the kind stamp that rides its seam. */
+const ROWS = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[16],
+  paddingTop: space[8],
+} satisfies CSSProperties
 const GRID = {
   display: 'grid',
   gap: space[8],
