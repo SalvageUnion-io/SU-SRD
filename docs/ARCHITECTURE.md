@@ -110,7 +110,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `gh` is REST only (GraphQL gets 403): use `gh api` or `mcp__github__*`; no route means report it unread.
     Merge: `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash` or `mcp__github__merge_pull_request`; no `gh stack`. Environment, `su-rules`: [cloud-environment.md](ops/cloud-environment.md).
 36. **Cloudflare**
-    Workers `su-srd` (`salvageunion.io`), `su-itun` (`salvageunion.io/build`), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
+    Workers `su-srd` (`salvageunion.io`), `su-itun` (route `/build`), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
     The account is shared with RANDSUM; re-derive from `apps/*/wrangler.jsonc` and `wrangler deployments list`.
 37. **Sentry**
     Org `susrd`, EU region; projects `srd`, `itun`, `itun-convex` (a Convex dashboard toggle), `workers`.
