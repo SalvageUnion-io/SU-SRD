@@ -144,6 +144,19 @@ describe('a public command', () => {
     expect(edits[0]?.content).toBe('Posted to the channel.')
   })
 
+  test('the text-only option posts the board without bar glyphs', async () => {
+    connect(OK_CREW)
+    const bars = fakeExecute({ subcommand: 'crew' })
+    await crewCommand.execute(bars.interaction)
+    const text = fakeExecute({ subcommand: 'crew', booleans: { 'text-only': true } })
+    await crewCommand.execute(text.interaction)
+
+    expect(JSON.stringify(bars.followUps[0]?.components)).toContain('6/10 █')
+    const plain = JSON.stringify(text.followUps[0]?.components)
+    expect(plain).toContain('6/10')
+    expect(plain).not.toMatch(/[█░]/)
+  })
+
   test('keeps a DENIAL ephemeral even though the command is public', async () => {
     connect({ kind: 'denied', reason: 'not-a-member', message: 'no' })
     const { interaction, edits, followUps } = fakeExecute({ subcommand: 'crew' })
