@@ -270,7 +270,7 @@ lost (the second sign-out).
 > Workers route `salvageunion.io/build*` on `su-itun`, ahead of `su-srd`'s
 > Custom Domain; ITUN built under base `/build/`; intheunionnow.com 301s there
 > by zone Redirect Rule. Separate Workers, CSPs, Sentry projects and deploys.
-> One Union bar and one Footer in component-lib. [Spike](spikes/s2-one-product.md).
+> One Union bar and one Footer in component-lib. Spike: this file.
 
 Re-opens T7 (one OG pipeline), as its own trigger says.
 
