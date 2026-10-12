@@ -304,8 +304,39 @@ describe('StatusBadge', () => {
     render(<StatusBadge status="intact" onClick={() => {}} subject="Plasma Torch" />)
     expect(
       screen.getByRole('button', {
-        name: 'Plasma Torch status: Intact — click to change',
+        name: 'Plasma Torch status: Intact. Activate to mark Damaged',
       })
     ).toBeTruthy()
+  })
+
+  test('the label names the state activation leads to, around the cycle', () => {
+    const { rerender } = render(<StatusBadge status="damaged" onClick={() => {}} />)
+    expect(
+      screen.getByRole('button', { name: 'Status: Damaged. Activate to mark Destroyed' })
+    ).toBeTruthy()
+    rerender(<StatusBadge status="destroyed" onClick={() => {}} />)
+    expect(
+      screen.getByRole('button', { name: 'Status: Destroyed. Activate to mark Intact' })
+    ).toBeTruthy()
+  })
+
+  test('announces the new state politely once the write lands, not before', () => {
+    const { rerender } = render(
+      <StatusBadge status="damaged" onClick={() => {}} subject="Plasma Torch" />
+    )
+    const region = screen.getByRole('status')
+    expect(region.getAttribute('aria-live')).toBe('polite')
+    expect(region.textContent).toBe('')
+    fireEvent.click(screen.getByRole('button'))
+    // The handler may be async: nothing is announced until the status changes.
+    expect(region.textContent).toBe('')
+    rerender(<StatusBadge status="destroyed" onClick={() => {}} subject="Plasma Torch" />)
+    expect(screen.getByRole('status').textContent).toBe('Plasma Torch status: Destroyed')
+  })
+
+  test('a status change this control did not make is not announced', () => {
+    const { rerender } = render(<StatusBadge status="intact" onClick={() => {}} />)
+    rerender(<StatusBadge status="damaged" onClick={() => {}} />)
+    expect(screen.getByRole('status').textContent).toBe('')
   })
 })
