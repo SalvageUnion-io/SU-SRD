@@ -130,6 +130,13 @@ export const BioTitanPatternSchema = z
       .describe(
         'Action names this pattern ADDS to its Bio-Titan; the base Structure Points and actions are inherited'
       ),
+    formerSlugs: z
+      .array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/))
+      .min(1)
+      .describe(
+        "Slugs this pattern was once published under as a row of its host's schema (ADR-043: a published slug never dies). Each resolves, and redirects, to this pattern."
+      )
+      .optional(),
   })
   .strict()
   .describe("A Bio-Titan variant: the base Bio-Titan's stats plus the actions it adds")

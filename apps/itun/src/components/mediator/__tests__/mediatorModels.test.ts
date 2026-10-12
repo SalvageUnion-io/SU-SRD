@@ -158,6 +158,24 @@ describe('the Opposition tray', () => {
     expect(readTrayNpc({ _id: 'n1', body }).entity?.name).toBe(squad.name)
   })
 
+  test('a row drawn before the Hill Worm became a pattern resolves to Typhon’s pattern', () => {
+    const npc = readTrayNpc({
+      _id: 'n1',
+      body: {
+        refSchema: 'bio-titans',
+        refSlug: 'hill-worm-pattern-typhon',
+        name: 'Hill Worm Pattern Typhon',
+        currentHp: 40,
+        maxHp: 67,
+        statKind: 'sp',
+      },
+    })
+    expect(npc.entity?.name).toBe('Typhon')
+    expect(npc.pattern?.name).toBe('Hill Worm')
+    // The row's own name and track are untouched.
+    expect(npc).toMatchObject({ name: 'Hill Worm Pattern Typhon', currentHp: 40, maxHp: 67 })
+  })
+
   test('a vehicle tracks SP', () => {
     if (vehicle === undefined) throw new Error('no vehicles in the reference')
     expect(trackOf(vehicle).statKind).toBe('sp')
@@ -173,7 +191,13 @@ describe('the Opposition tray', () => {
       true
     )
     const legacy = readTrayNpc({ _id: 'n2', body: { name: 'Scrap Hound' } })
-    expect(legacy).toMatchObject({ name: 'Scrap Hound', entity: null, down: false, lastRoll: null })
+    expect(legacy).toMatchObject({
+      name: 'Scrap Hound',
+      entity: null,
+      pattern: null,
+      down: false,
+      lastRoll: null,
+    })
   })
 
   test('Morale is a d20 on the reference table (p.268)', () => {

@@ -52,7 +52,8 @@
             "value": "A bloated, heavily armoured, insatiably hungry worm that lurks beneath the Wild Hills."
           }
         ],
-        "actions": ["Metallic Reconstitution"]
+        "actions": ["Metallic Reconstitution"],
+        "formerSlugs": ["hill-worm-pattern-typhon"]
       }
     ]
   },

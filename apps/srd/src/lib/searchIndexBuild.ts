@@ -7,7 +7,8 @@
  *
  * Mirrors the field extraction `salvageunion-reference`'s internal
  * `buildSearchIndex` (lib/search.ts) uses — name, description, effect,
- * goals, assets, weaknesses, content, and resolved action content — but
+ * goals, assets, weaknesses, content, resolved action content and the
+ * host's patterns (`patternSearchText`) — but
  * flattens everything into one lowercased `text` field and drops the full
  * entity, since the client only needs to match a query and link to the
  * entity's page (see `searchIndexTypes.ts`). This is a deliberate,
@@ -26,6 +27,7 @@ import {
   extractContentText,
   getEntitySlug,
   isSchemaName,
+  patternSearchText,
   toEntityModel,
 } from 'salvageunion-reference'
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
@@ -86,6 +88,10 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
           }
         }
       }
+
+      // A pattern is found through its host ("Hill Worm" finds Typhon).
+      const patternText = patternSearchText(entity)
+      if (patternText) parts.push(patternText)
 
       entries.push({
         id: entity.id,

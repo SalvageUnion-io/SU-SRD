@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import type { StatItem } from '../shared/statsBarTypes'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
 import type { ReferenceEntityCardHideConfig } from './card/referenceEntityCardTypes'
@@ -32,6 +32,8 @@ type UseDetailModalOptions = {
    * with, so the hook still reads the ambient link mode.
    */
   forceModal?: boolean
+  /** Open the card in its PATTERN view: `data` is the pattern's host. */
+  pattern?: SURefObjectAnyPattern
 }
 
 export function useDetailModal(
@@ -75,6 +77,7 @@ export function useDetailModal(
       <EntityDetailDialog open={open} onOpenChange={setOpen} title={title}>
         <ReferenceEntityCard
           data={data}
+          pattern={options?.pattern}
           disabled={false}
           hide={options?.hide}
           controls={options?.modalControls}

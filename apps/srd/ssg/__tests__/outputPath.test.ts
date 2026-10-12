@@ -135,11 +135,14 @@ describe('endpoint output paths are files, not directories', () => {
       expect(path).not.toContain('index.html')
       expect(path.startsWith('/')).toBe(false)
       expect(path.endsWith('/')).toBe(false)
-      expect(path).toMatch(/\.(json|txt)$/)
+      // `_redirects` is the one dotless output: Workers Static Assets reads it
+      // by that exact name.
+      if (path !== '_redirects') expect(path).toMatch(/\.(json|txt)$/)
     }
 
     // The four dotted shapes, named so a pattern regression is a readable diff.
     expect(paths).toContain('llms.txt')
+    expect(paths).toContain('_redirects')
     expect(paths).toContain('search-index.json')
     expect(paths).toContain('schema/chassis.json')
     expect(paths).toContain('schema/chassis.schema.json')

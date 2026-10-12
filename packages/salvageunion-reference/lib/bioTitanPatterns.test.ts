@@ -7,6 +7,7 @@
 
 import { describe, expect, it } from 'bun:test'
 import { extractPatternActions } from './actionResolution.js'
+import { resolveFormerSlug } from './formerSlugs.js'
 import { SalvageUnionReference } from './index.js'
 import { getPatterns, isBioTitanPattern } from './patterns.js'
 
@@ -48,5 +49,25 @@ describe('Bio-Titan patterns', () => {
     if (!hauler) throw new Error('Mule pattern missing')
     expect(isBioTitanPattern(hauler)).toBe(false)
     expect(extractPatternActions(hauler)).toEqual([])
+  })
+})
+
+describe('Bio-Titan patterns in search', () => {
+  it('finds the host by its pattern name', () => {
+    const hits = SalvageUnionReference.search({ query: 'Hill Worm', schemas: ['bio-titans'] })
+    expect(hits.map((h) => h.entity.name)).toContain('Typhon')
+  })
+})
+
+describe('former slugs (ADR-043)', () => {
+  it('resolves the Hill Worm’s old Bio-Titan slug to Typhon’s pattern', () => {
+    const found = resolveFormerSlug('bio-titans', 'hill-worm-pattern-typhon')
+    expect(found?.host.name).toBe('Typhon')
+    expect(found?.pattern.name).toBe('Hill Worm')
+  })
+
+  it('resolves nothing for a live or unknown slug', () => {
+    expect(resolveFormerSlug('bio-titans', 'typhon')).toBeNull()
+    expect(resolveFormerSlug('chassis', 'hill-worm-pattern-typhon')).toBeNull()
   })
 })

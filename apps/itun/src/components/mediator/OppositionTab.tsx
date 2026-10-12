@@ -108,7 +108,9 @@ function NpcRow({
   onFailure: (err: unknown) => void
   onRemove: (npc: TrayNpc) => void
 }) {
-  const detail = useDetailModal(npc.entity ?? undefined)
+  const detail = useDetailModal(npc.entity ?? undefined, {
+    pattern: npc.pattern ?? undefined,
+  })
   const stat = npc.statKind === 'sp' ? 'SP' : 'HP'
   return (
     <li>
@@ -122,6 +124,7 @@ function NpcRow({
             <Entity
               form="row"
               entity={npc.entity}
+              pattern={npc.pattern ?? undefined}
               instance={{ title: npc.name, ...(npc.down ? { condition: 'destroyed' } : {}) }}
               mode={{
                 kind: 'link',

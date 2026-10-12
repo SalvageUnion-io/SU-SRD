@@ -6,6 +6,7 @@ import {
   getEntitySlug,
   isSchemaName,
   nameToSlug,
+  resolveFormerSlug,
   search,
 } from 'salvageunion-reference'
 import type { ContainerData } from '../container.js'
@@ -94,7 +95,9 @@ function findByChoiceValue(value: string): Hit | null {
   const schemaName = value.slice(0, separator)
   if (!isSchemaName(schemaName)) return null
   const slug = value.slice(separator + 2)
-  const entity = findEntityBySlug(schemaName, slug)
+  // A choice offered before its slug was retired (ADR-043) — the Hill Worm,
+  // once its own Bio-Titan — answers with the host that now carries it.
+  const entity = findEntityBySlug(schemaName, slug) ?? resolveFormerSlug(schemaName, slug)?.host
   if (!entity) return null
   return { schemaName, entity: { ...entity, schemaName } }
 }

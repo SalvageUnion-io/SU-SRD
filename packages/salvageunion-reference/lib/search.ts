@@ -2,9 +2,10 @@
  * Search functionality for Salvage Union data
  */
 
-import { extractActions } from './actionResolution.js'
+import { extractActions, extractPatternActions } from './actionResolution.js'
 import { getDataMaps, getSchemaCatalog } from './ModelFactory.js'
-import type { SURefEntity, SURefEnumSchemaName } from './schemas/index.js'
+import { getPatterns } from './patterns.js'
+import type { SURefEntity, SURefEnumSchemaName, SURefMetaEntity } from './schemas/index.js'
 import {
   matchSearchTokens,
   scoreSearchMatch,
@@ -62,6 +63,7 @@ type SearchIndexEntry = {
   weaknessesText: string
   contentText: string
   actionsText: string
+  patternsText: string
   /** [fieldName, loweredText] pairs for every non-empty searchable field. */
   fields: ReadonlyArray<readonly [string, string]>
   /** Lowercased name words for bounded typo matching. */
@@ -75,6 +77,25 @@ let searchIndex: SearchIndexEntry[] | null = null
 export function invalidateSearchIndex(): void {
   searchIndex = null
   searchCache.clear()
+}
+
+/**
+ * A host's PATTERNS as searchable text: each visible pattern's name, its prose,
+ * and the rules of the actions it adds. A pattern has no row of its own, so it
+ * is found through its host — "Hill Worm" finds Typhon, "Hauler" the Mule.
+ * Shared with srd's compact index (`searchIndexBuild.ts`), which mirrors this.
+ */
+export function patternSearchText(entity: SURefEntity): string {
+  return (getPatterns(entity as SURefMetaEntity) ?? [])
+    .flatMap((pattern) => [
+      pattern.name,
+      extractContentText(pattern.content ?? []),
+      ...extractPatternActions(pattern).map(
+        (action) => `${action.name} ${extractContentText(action.content ?? [])}`
+      ),
+    ])
+    .filter((part) => part.length > 0)
+    .join(' ')
 }
 
 /**
@@ -135,6 +156,8 @@ function buildSearchIndex(): SearchIndexEntry[] {
           ? extractContentText(entity.content).toLowerCase()
           : ''
 
+      const patternsText = patternSearchText(entity).toLowerCase()
+
       const fieldPairs: Array<readonly [string, string]> = [['name', nameText]]
       if (descriptionText) fieldPairs.push(['description', descriptionText])
       if (goalsText) fieldPairs.push(['goals', goalsText])
@@ -142,6 +165,7 @@ function buildSearchIndex(): SearchIndexEntry[] {
       if (weaknessesText) fieldPairs.push(['weaknesses', weaknessesText])
       if (contentText) fieldPairs.push(['content', contentText])
       if (actionsText) fieldPairs.push(['actions.content', actionsText])
+      if (patternsText) fieldPairs.push(['patterns', patternsText])
 
       entries.push({
         schemaName: schemaId,
@@ -156,6 +180,7 @@ function buildSearchIndex(): SearchIndexEntry[] {
         weaknessesText,
         contentText,
         actionsText,
+        patternsText,
         fields: fieldPairs,
         nameWords: searchNameWords(nameText),
       })
