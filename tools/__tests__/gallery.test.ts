@@ -1,9 +1,81 @@
-import { describe, expect, test } from 'bun:test'
-import { pageEntity, parseGalleryArgs, resolvePath } from '../gallery'
-import type { PullRequest } from '../gallery-pages'
-import { publishable, renderIndex } from '../gallery-pages'
+import { afterAll, describe, expect, spyOn, test } from 'bun:test'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
+import type { GalleryArgs } from '../gallery'
+import {
+  capturedAtStamp,
+  failureLine,
+  fetchOgImage,
+  ogSource,
+  pageEntity,
+  parseGalleryArgs,
+  resolvePath,
+  signedInTargets,
+  signedOutTargets,
+  writeGallery,
+} from '../gallery'
+import type { GallerySource, PullRequest } from '../gallery-pages'
+import {
+  buildSite,
+  githubSource,
+  main,
+  publishable,
+  readGalleryMeta,
+  renderIndex,
+} from '../gallery-pages'
+import type { GalleryRun } from '../lib/galleryHtml'
 import { escapeHtml, renderGallery } from '../lib/galleryHtml'
+import type { GalleryPage, GallerySection } from '../lib/galleryPages'
 import { GALLERY_SECTIONS, pageSlug } from '../lib/galleryPages'
+
+const root = mkdtempSync(join(tmpdir(), 'gallery-test-'))
+afterAll(() => rmSync(root, { recursive: true, force: true }))
+
+const ALL_PAGES = GALLERY_SECTIONS.flatMap((s) => s.pages)
+
+const warn = spyOn(console, 'warn').mockImplementation(() => {})
+afterAll(() => warn.mockRestore())
+
+/** A zip holding `files` uncompressed (method 0), enough for `unzip`. */
+function storedZip(files: Record<string, string>): Uint8Array {
+  const enc = new TextEncoder()
+  const locals: Uint8Array[] = []
+  const centrals: Uint8Array[] = []
+  let offset = 0
+  for (const [name, text] of Object.entries(files)) {
+    const n = enc.encode(name)
+    const d = enc.encode(text)
+    const crc = Bun.hash.crc32(d)
+    const local = new DataView(new ArrayBuffer(30))
+    local.setUint32(0, 0x04034b50, true)
+    local.setUint16(4, 20, true)
+    local.setUint32(14, crc, true)
+    local.setUint32(18, d.length, true)
+    local.setUint32(22, d.length, true)
+    local.setUint16(26, n.length, true)
+    const central = new DataView(new ArrayBuffer(46))
+    central.setUint32(0, 0x02014b50, true)
+    central.setUint16(4, 20, true)
+    central.setUint16(6, 20, true)
+    central.setUint32(16, crc, true)
+    central.setUint32(20, d.length, true)
+    central.setUint32(24, d.length, true)
+    central.setUint16(28, n.length, true)
+    central.setUint32(42, offset, true)
+    locals.push(new Uint8Array(local.buffer), n, d)
+    centrals.push(new Uint8Array(central.buffer), n)
+    offset += 30 + n.length + d.length
+  }
+  const cdSize = centrals.reduce((sum, b) => sum + b.length, 0)
+  const end = new DataView(new ArrayBuffer(22))
+  end.setUint32(0, 0x06054b50, true)
+  end.setUint16(8, Object.keys(files).length, true)
+  end.setUint16(10, Object.keys(files).length, true)
+  end.setUint32(12, cdSize, true)
+  end.setUint32(16, offset, true)
+  return new Uint8Array(Buffer.concat([...locals, ...centrals, new Uint8Array(end.buffer)]))
+}
 
 describe('parseGalleryArgs', () => {
   test('reads every flag, trimming trailing slashes off the bases', () => {
@@ -125,5 +197,514 @@ describe('gallery-pages', () => {
     )
     expect(html.indexOf('#9')).toBeLessThan(html.indexOf('#3'))
     expect(html).toContain('&lt;New&gt;')
+  })
+})
+
+describe('parseGalleryArgs, defaults and values', () => {
+  test('a bare run is signed out, unlinkable, sha "local", written to .gallery', () => {
+    expect(parseGalleryArgs(['--srd', 'http://a'])).toEqual({
+      srd: 'http://a',
+      itun: undefined,
+      signedIn: false,
+      out: resolve('.gallery'),
+      sha: 'local',
+      pr: undefined,
+      linkable: false,
+    })
+  })
+
+  test('--out resolves its directory; a flag with no value is refused', () => {
+    expect(parseGalleryArgs(['--srd=http://a', '--out', 'shots-here']).out).toBe(
+      resolve('shots-here')
+    )
+    expect(() => parseGalleryArgs(['--srd'])).toThrow('--srd needs a value')
+    expect(() => parseGalleryArgs(['--srd', 'x', '--pr', '0'])).toThrow('--pr must be')
+    expect(() => parseGalleryArgs(['--srd', 'x', '--pr', '1.5'])).toThrow('--pr must be')
+  })
+
+  test('every trailing slash is trimmed', () => {
+    expect(parseGalleryArgs(['--srd', 'http://a///']).srd).toBe('http://a')
+  })
+})
+
+describe('signedOutTargets', () => {
+  test('srd alone shoots only the srd pages, each on its base', () => {
+    const targets = signedOutTargets({ srd: 'http://srd' })
+    expect(targets.length).toBe(ALL_PAGES.filter((p) => p.site === 'srd').length)
+    for (const t of targets) {
+      expect(t.page.site).toBe('srd')
+      expect(t.base).toBe('http://srd')
+      expect(t.url).toBe(`http://srd${t.page.path}`)
+      expect(t.slug).toBe(pageSlug(t.page))
+    }
+  })
+
+  test('with itun it adds the signed-out ITUN pages, never a signed-in one', () => {
+    const targets = signedOutTargets({ srd: 'http://srd', itun: 'http://itun' })
+    const itun = targets.filter((t) => t.page.site === 'itun')
+    expect(itun.length).toBe(ALL_PAGES.filter((p) => p.site === 'itun' && !p.signedIn).length)
+    expect(itun.map((t) => t.url)).toContain('http://itun/starter')
+    expect(targets.some((t) => t.page.signedIn)).toBe(false)
+  })
+})
+
+describe('signedInTargets', () => {
+  const signedIn = ALL_PAGES.filter((p) => p.signedIn)
+
+  test('a full seed resolves every placeholder and fails nothing', () => {
+    const { targets, failures } = signedInTargets('http://itun', {
+      pilot: '/sheet/pilot/p1',
+      mech: '/sheet/mech/m1',
+      crawler: '/sheet/crawler/c1',
+      game: '/games/g1',
+    })
+    expect(failures).toEqual([])
+    expect(targets.length).toBe(signedIn.length)
+    const urls = targets.map((t) => t.url)
+    expect(urls).toContain('http://itun/sheet/pilot/p1')
+    expect(urls).toContain('http://itun/games/g1')
+    expect(urls).toContain('http://itun/pilots/new')
+    expect(targets.every((t) => t.base === 'http://itun' && t.slug.startsWith('itun-in-'))).toBe(
+      true
+    )
+  })
+
+  test('a failed seed still shoots the fixed paths and names each missing entity', () => {
+    const { targets, failures } = signedInTargets('http://itun', {})
+    expect(targets.map((t) => t.page.path)).toEqual(
+      signedIn.filter((p) => !p.path.startsWith(':')).map((p) => p.path)
+    )
+    expect(failures).toEqual([
+      'itun :pilot: the seed made no such entity',
+      'itun :mech: the seed made no such entity',
+      'itun :crawler: the seed made no such entity',
+      'itun :game: the seed made no such entity',
+    ])
+  })
+})
+
+describe('ogSource', () => {
+  const srdPage = (path: string): GalleryPage => ({ site: 'srd', path, name: 'x', note: '' })
+
+  test('an srd entity page renders its own card, whatever og:image the build emitted', () => {
+    expect(
+      ogSource(
+        srdPage('/schema/chassis/item/mazona/'),
+        'http://srd',
+        'https://salvageunion.io/og.png'
+      )
+    ).toEqual({ kind: 'card', entity: { schema: 'chassis', item: 'mazona' } })
+  })
+
+  test('any other page fetches the og:image path from the build it was shot from', () => {
+    expect(
+      ogSource(srdPage('/schema/chassis/'), 'http://srd', 'https://salvageunion.io/og/default.png')
+    ).toEqual({
+      kind: 'file',
+      url: 'http://srd/og/default.png',
+    })
+    const itunPage: GalleryPage = {
+      site: 'itun',
+      path: '/schema/chassis/item/x/',
+      name: 'x',
+      note: '',
+    }
+    expect(ogSource(itunPage, 'http://itun', 'https://intheunionnow.com/og.png')).toEqual({
+      kind: 'file',
+      url: 'http://itun/og.png',
+    })
+  })
+
+  test('a page with no og:image and no card has no preview', () => {
+    expect(ogSource(srdPage('/'), 'http://srd', undefined)).toBeUndefined()
+  })
+})
+
+describe('failureLine and capturedAtStamp', () => {
+  test('a failure keeps only the first line of its error', () => {
+    expect(failureLine('srd /x', new Error('timed out\n  at stack'))).toBe('srd /x: timed out')
+    expect(failureLine('itun seed', 'plain')).toBe('itun seed: plain')
+  })
+
+  test('the stamp is to the minute, in UTC', () => {
+    expect(capturedAtStamp(new Date('2026-10-12T09:41:27.123Z'))).toBe('2026-10-12 09:41 UTC')
+  })
+})
+
+describe('writeGallery', () => {
+  const args = (out: string, extra: Partial<GalleryArgs> = {}): GalleryArgs => ({
+    srd: 'http://srd',
+    signedIn: false,
+    out,
+    sha: 'abcdef1234',
+    linkable: false,
+    ...extra,
+  })
+  const log = spyOn(console, 'log').mockImplementation(() => {})
+  afterAll(() => log.mockRestore())
+
+  test('writes the page and its manifest, and exits 0 when everything was shot', () => {
+    const out = join(root, 'clean')
+    const home = pageSlug({ site: 'srd', path: '/' })
+    const code = writeGallery(
+      args(out, { pr: 12 }),
+      { shot: new Set([home]), og: new Map(), failures: [] },
+      '2026-10-12 09:00 UTC'
+    )
+    expect(code).toBe(0)
+    expect(readFileSync(join(out, 'index.html'), 'utf8')).toContain('PR #12 gallery')
+    expect(JSON.parse(readFileSync(join(out, 'gallery.json'), 'utf8'))).toEqual({
+      pr: 12,
+      sha: 'abcdef1234',
+      capturedAt: '2026-10-12 09:00 UTC',
+      pages: 1,
+      failures: [],
+    })
+  })
+
+  test('a failure exits 1 and is recorded; a run with no PR records null', () => {
+    const out = join(root, 'failed')
+    const code = writeGallery(
+      args(out),
+      { shot: new Set(), og: new Map(), failures: ['srd /x: answered 500'] },
+      'now'
+    )
+    expect(code).toBe(1)
+    const manifest = JSON.parse(readFileSync(join(out, 'gallery.json'), 'utf8'))
+    expect(manifest).toMatchObject({ pr: null, pages: 0, failures: ['srd /x: answered 500'] })
+    expect(log).toHaveBeenCalledWith('  ✗ srd /x: answered 500')
+  })
+})
+
+describe('renderGallery, page by page', () => {
+  const run = (extra: Partial<GalleryRun> = {}): GalleryRun => ({
+    sha: 'abcdef1234',
+    bases: { srd: 'http://srd', itun: 'http://itun' },
+    linkable: true,
+    capturedAt: 'then',
+    ...extra,
+  })
+  const section = (pages: GalleryPage[]): GallerySection => ({
+    id: 'one',
+    title: 'One & only',
+    tone: 'var(--rust)',
+    intro: 'Intro <b>',
+    pages,
+  })
+  const srdPage: GalleryPage = {
+    site: 'srd',
+    path: '/schema/chassis/',
+    name: 'Chassis',
+    note: 'A "note"',
+    chips: ['Art'],
+  }
+  const itunIn: GalleryPage = {
+    site: 'itun',
+    path: '/pilots/new',
+    name: 'New',
+    note: '',
+    signedIn: true,
+  }
+  const itunOut: GalleryPage = { site: 'itun', path: '/starter', name: 'Starter', note: '' }
+  const render = (pages: GalleryPage[], r: GalleryRun, og = new Map()) =>
+    renderGallery(
+      { sections: [section(pages)], shot: new Set(pages.map(pageSlug)), og, failures: [] },
+      r
+    )
+
+  test('a linkable run links each signed-out page to its site, never a signed-in one', () => {
+    const html = render([srdPage, itunIn, itunOut], run())
+    expect(html).toContain('<a class="shot__frames" href="http://srd/schema/chassis/">')
+    expect(html).toContain('href="http://itun/starter"')
+    expect(html).not.toContain('href="http://itun/pilots/new"')
+    expect(html).toContain('<span class="chip">Signed in</span>')
+    expect(html).toContain('<span class="chip">Art</span>')
+    expect(html).toContain('ITUN /pilots/new')
+  })
+
+  test('an unlinkable run, or a site with no base, frames the shots without a link', () => {
+    expect(render([srdPage], run({ linkable: false }))).not.toContain('<a class="shot__frames"')
+    expect(render([itunOut], run({ bases: { srd: 'http://srd' } }))).not.toContain(
+      '<a class="shot__frames"'
+    )
+  })
+
+  test('no PR titles it "Gallery" with no PR link; one page reads "1 page"', () => {
+    const html = render([srdPage], run())
+    expect(html).toContain('<title>Gallery</title>')
+    expect(html).not.toContain('/pull/')
+    expect(html).toContain('1 page</small>')
+    expect(html).toContain('from abcdef1.')
+    expect(html).not.toContain('not captured')
+  })
+
+  test('escapes the section and page text', () => {
+    const html = render([srdPage], run())
+    expect(html).toContain('One &amp; only')
+    expect(html).toContain('Intro &lt;b&gt;')
+    expect(html).toContain('A &quot;note&quot;')
+  })
+
+  test('link previews: signed-out pages only, their og text, or the name and no image', () => {
+    const og = new Map([
+      [pageSlug(itunOut), { title: 'ITUN', description: 'Builder', image: true }],
+    ])
+    const html = render([srdPage, itunIn, itunOut], run(), og)
+    expect(html).toContain('Link previews <small>2 pages</small>')
+    expect(html).toContain('salvageunion.io/schema/chassis/')
+    expect(html).toContain('intheunionnow.com/starter')
+    expect(html).toContain(`shots/${pageSlug(itunOut)}-og.png`)
+    expect(html).toContain('<strong>Chassis</strong>')
+    expect(html).toContain('No og:image')
+    expect(html).toContain('<span>Builder</span>')
+  })
+
+  test('a section with nothing shot is dropped from the page and the jump list', () => {
+    const html = renderGallery(
+      { sections: [section([srdPage])], shot: new Set(), og: new Map(), failures: ['x'] },
+      run()
+    )
+    expect(html).not.toContain('id="one"')
+    expect(html).not.toContain('href="#one"')
+    expect(html).toContain('0 pages.')
+  })
+})
+
+describe('pageSlug', () => {
+  test('home, query strings, signed-in and case', () => {
+    expect(pageSlug({ site: 'srd', path: '/' })).toBe('srd-home')
+    expect(pageSlug({ site: 'srd', path: '/search?q=drill' })).toBe('srd-search-q-drill')
+    expect(pageSlug({ site: 'itun', path: '/', signedIn: true })).toBe('itun-in-home')
+    expect(pageSlug({ site: 'itun', path: ':Pilot' })).toBe('itun-pilot')
+    expect(pageSlug({ site: 'srd', path: '/schema/Chassis/item/“x”/' })).toBe(
+      'srd-schema-chassis-item-x'
+    )
+  })
+
+  test('every section has pages, a unique id, and every page a note', () => {
+    const ids = GALLERY_SECTIONS.map((s) => s.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    for (const s of GALLERY_SECTIONS) expect(s.pages.length).toBeGreaterThan(0)
+    for (const p of ALL_PAGES) expect(p.note.length).toBeGreaterThan(0)
+  })
+})
+
+describe('gallery-pages, building the site', () => {
+  const pr = (number: number, repo = 'o/r'): PullRequest => ({
+    number,
+    title: `PR ${number}`,
+    head: { sha: `sha${number}`, repo: { full_name: repo } },
+    html_url: `https://github.com/o/r/pull/${number}`,
+  })
+
+  test('readGalleryMeta takes the sha and time from gallery.json, else from the PR', () => {
+    const dir = join(root, 'meta')
+    mkdirSync(dir, { recursive: true })
+    writeFileSync(
+      join(dir, 'gallery.json'),
+      JSON.stringify({ pr: 5, sha: 'abc', capturedAt: 'then' })
+    )
+    expect(readGalleryMeta(dir, pr(5))).toEqual({
+      number: 5,
+      title: 'PR 5',
+      sha: 'abc',
+      capturedAt: 'then',
+      url: 'https://github.com/o/r/pull/5',
+    })
+    writeFileSync(join(dir, 'gallery.json'), JSON.stringify({ pr: 5, sha: 7 }))
+    expect(readGalleryMeta(dir, pr(5))).toMatchObject({ sha: 'sha5', capturedAt: '' })
+  })
+
+  test('readGalleryMeta refuses another PR, a string number, unreadable JSON and no file', () => {
+    const dir = join(root, 'meta-bad')
+    mkdirSync(dir, { recursive: true })
+    expect(readGalleryMeta(dir, pr(5))).toBeUndefined()
+    writeFileSync(join(dir, 'gallery.json'), JSON.stringify({ pr: 6 }))
+    expect(readGalleryMeta(dir, pr(5))).toBeUndefined()
+    writeFileSync(join(dir, 'gallery.json'), JSON.stringify({ pr: '5' }))
+    expect(readGalleryMeta(dir, pr(5))).toBeUndefined()
+    writeFileSync(join(dir, 'gallery.json'), '{not json')
+    expect(readGalleryMeta(dir, pr(5))).toBeUndefined()
+    writeFileSync(join(dir, 'gallery.json'), 'null')
+    expect(readGalleryMeta(dir, pr(5))).toBeUndefined()
+  })
+
+  test('rebuilds the site: same-repo PRs with a valid gallery in, everything else out', async () => {
+    const site = join(root, 'site')
+    mkdirSync(join(site, '99'), { recursive: true })
+    writeFileSync(join(site, '99', 'stale.html'), 'closed PR')
+    const unpacked: number[] = []
+    const source: GallerySource = {
+      openPrs: async () => [pr(1), pr(2), pr(3), pr(4), pr(5, 'fork/r')],
+      async unpack(p, dir) {
+        unpacked.push(p.number)
+        if (p.number === 2) return false // no artifact
+        const meta =
+          p.number === 3 ? { pr: 30 } : { pr: p.number, sha: `g${p.number}`, capturedAt: 't' }
+        writeFileSync(join(dir, 'gallery.json'), JSON.stringify(meta))
+        writeFileSync(join(dir, 'index.html'), `gallery ${p.number}`)
+        return true
+      },
+    }
+    const { published, open } = await buildSite(site, 'o/r', source)
+    expect(open).toBe(4)
+    expect(unpacked).toEqual([1, 2, 3, 4])
+    expect(published.map((e) => e.number)).toEqual([1, 4])
+    expect(existsSync(join(site, '99'))).toBe(false)
+    expect(existsSync(join(site, '2'))).toBe(false)
+    expect(existsSync(join(site, '3'))).toBe(false)
+    expect(existsSync(join(site, '5'))).toBe(false)
+    expect(readFileSync(join(site, '1', 'index.html'), 'utf8')).toBe('gallery 1')
+    expect(existsSync(join(site, '.nojekyll'))).toBe(true)
+    const index = readFileSync(join(site, 'index.html'), 'utf8')
+    expect(index.indexOf('<strong>#4</strong>')).toBeLessThan(index.indexOf('<strong>#1</strong>'))
+    expect(warn).toHaveBeenCalledWith('[gallery-pages] #3: gallery.json names another PR; skipped')
+  })
+
+  test('with no open PR the index says so', async () => {
+    const site = join(root, 'site-empty')
+    const { published } = await buildSite(site, 'o/r', {
+      openPrs: async () => [],
+      unpack: async () => true,
+    })
+    expect(published).toEqual([])
+    expect(readFileSync(join(site, 'index.html'), 'utf8')).toContain(
+      'No open pull request has a gallery yet.'
+    )
+  })
+})
+
+describe('the network edges, against a stubbed fetch', () => {
+  type Reply = { status?: number; body?: string | Uint8Array; type?: string; json?: unknown }
+  const stub = (routes: Record<string, Reply>) => {
+    const calls: { url: string; headers: Record<string, string> }[] = []
+    const spy = spyOn(globalThis, 'fetch').mockImplementation((async (
+      input: string | URL | Request,
+      init?: RequestInit
+    ) => {
+      const url = String(input)
+      calls.push({ url, headers: (init?.headers ?? {}) as Record<string, string> })
+      const r = routes[url] ?? { status: 404 }
+      const body = r.json !== undefined ? JSON.stringify(r.json) : (r.body ?? null)
+      return new Response(body, {
+        status: r.status ?? 200,
+        headers: r.type ? { 'content-type': r.type } : {},
+      })
+    }) as typeof fetch)
+    return { calls, restore: () => spy.mockRestore() }
+  }
+
+  test('fetchOgImage writes an image and refuses anything else', async () => {
+    const net = stub({
+      'http://srd/og.png': { body: 'PNG', type: 'image/png' },
+      'http://srd/page': { body: '<html>', type: 'text/html' },
+    })
+    try {
+      const file = join(root, 'og.png')
+      expect(await fetchOgImage('http://srd/og.png', file)).toBe(true)
+      expect(readFileSync(file, 'utf8')).toBe('PNG')
+      expect(await fetchOgImage('http://srd/page', join(root, 'page.png'))).toBe(false)
+      expect(await fetchOgImage('http://srd/missing.png', join(root, 'missing.png'))).toBe(false)
+      expect(existsSync(join(root, 'page.png'))).toBe(false)
+    } finally {
+      net.restore()
+    }
+  })
+
+  const API = 'https://api.github.com/repos/o/r'
+  const artifacts = (n: number) => `${API}/actions/artifacts?name=pr-gallery-${n}&per_page=5`
+  const pr = (number: number): PullRequest => ({
+    number,
+    title: 't',
+    head: { sha: 's', repo: { full_name: 'o/r' } },
+    html_url: 'u',
+  })
+
+  test("githubSource lists main's open PRs with the token", async () => {
+    const net = stub({ [`${API}/pulls?state=open&base=main&per_page=100`]: { json: [pr(1)] } })
+    try {
+      expect((await githubSource('o/r', 'tok').openPrs()).map((p) => p.number)).toEqual([1])
+      expect(net.calls[0]?.headers.authorization).toBe('Bearer tok')
+    } finally {
+      net.restore()
+    }
+  })
+
+  test('githubSource: an API error throws; no unexpired artifact, a failed download or a bad zip unpacks nothing; a good one unpacks', async () => {
+    const net = stub({
+      [artifacts(2)]: {
+        json: { artifacts: [{ name: 'pr-gallery-2', expired: true, archive_download_url: 'x' }] },
+      },
+      [artifacts(3)]: {
+        json: {
+          artifacts: [
+            { name: 'pr-gallery-3', expired: false, archive_download_url: 'http://dl/3' },
+          ],
+        },
+      },
+      'http://dl/3': { status: 410 },
+      [artifacts(4)]: {
+        json: {
+          artifacts: [
+            { name: 'pr-gallery-4', expired: false, archive_download_url: 'http://dl/4' },
+          ],
+        },
+      },
+      'http://dl/4': { body: 'not a zip' },
+      [artifacts(5)]: {
+        json: {
+          artifacts: [
+            { name: 'pr-gallery-5', expired: false, archive_download_url: 'http://dl/5' },
+          ],
+        },
+      },
+      'http://dl/5': { body: storedZip({ 'gallery.json': '{"pr":5}', 'index.html': 'five' }) },
+    })
+    try {
+      const source = githubSource('o/r', 'tok')
+      await expect(source.unpack(pr(1), join(root, 'u1'))).rejects.toThrow('→ 404')
+      expect(await source.unpack(pr(2), join(root, 'u2'))).toBe(false)
+      expect(await source.unpack(pr(3), join(root, 'u3'))).toBe(false)
+      expect(warn).toHaveBeenCalledWith('[gallery-pages] #3: download → 410')
+      const dir = join(root, 'u4')
+      mkdirSync(dir, { recursive: true })
+      expect(await source.unpack(pr(4), dir)).toBe(false)
+      expect(warn).toHaveBeenCalledWith('[gallery-pages] #4: unzip failed')
+      expect(existsSync(`${dir}.zip`)).toBe(false)
+      const five = join(root, 'u5')
+      mkdirSync(five, { recursive: true })
+      expect(await source.unpack(pr(5), five)).toBe(true)
+      expect(readFileSync(join(five, 'index.html'), 'utf8')).toBe('five')
+      expect(readGalleryMeta(five, pr(5))).toMatchObject({ number: 5 })
+      expect(existsSync(`${five}.zip`)).toBe(false)
+    } finally {
+      net.restore()
+    }
+  })
+
+  test('main: refuses a run without a site dir, token or repository', async () => {
+    const error = spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      expect(await main([], { GITHUB_TOKEN: 't', GITHUB_REPOSITORY: 'o/r' })).toBe(2)
+      expect(await main([join(root, 'm')], { GITHUB_REPOSITORY: 'o/r' })).toBe(2)
+      expect(await main([join(root, 'm')], { GITHUB_TOKEN: 't' })).toBe(2)
+      expect(error).toHaveBeenCalledTimes(3)
+    } finally {
+      error.mockRestore()
+    }
+  })
+
+  test('main: builds the site from GitHub and reports the count', async () => {
+    const net = stub({ [`${API}/pulls?state=open&base=main&per_page=100`]: { json: [] } })
+    const log = spyOn(console, 'log').mockImplementation(() => {})
+    try {
+      const site = join(root, 'main-site')
+      expect(await main([site], { GITHUB_TOKEN: 't', GITHUB_REPOSITORY: 'o/r' })).toBe(0)
+      expect(existsSync(join(site, 'index.html'))).toBe(true)
+      expect(log).toHaveBeenCalledWith('[gallery-pages] 0 of 0 open PRs published')
+    } finally {
+      log.mockRestore()
+      net.restore()
+    }
   })
 })

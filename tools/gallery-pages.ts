@@ -78,6 +78,64 @@ ${entries.length ? `<ul>\n${rows}\n</ul>` : '<p>No open pull request has a galle
 `
 }
 
+/**
+ * The index entry for a gallery unpacked to `dir`, or undefined when its
+ * `gallery.json` is missing, unreadable or names another PR.
+ */
+export function readGalleryMeta(dir: string, pr: PullRequest): IndexEntry | undefined {
+  let meta: { pr?: unknown; sha?: unknown; capturedAt?: unknown }
+  try {
+    meta = JSON.parse(readFileSync(join(dir, 'gallery.json'), 'utf8'))
+  } catch {
+    // No readable gallery.json: the check below skips it as naming no PR.
+    meta = {}
+  }
+  if (meta?.pr !== pr.number) return undefined
+  return {
+    number: pr.number,
+    title: pr.title,
+    sha: typeof meta.sha === 'string' ? meta.sha : pr.head.sha,
+    capturedAt: typeof meta.capturedAt === 'string' ? meta.capturedAt : '',
+    url: pr.html_url,
+  }
+}
+
+/** Where the site's galleries come from: GitHub in `main`, a stand-in in the tests. */
+export type GallerySource = {
+  /** The open PRs to main. */
+  openPrs(): Promise<PullRequest[]>
+  /** Unpacks a PR's newest gallery artifact into `dir`; false (with the reason logged) when there is none to unpack. */
+  unpack(pr: PullRequest, dir: string): Promise<boolean>
+}
+
+/** Rebuilds the whole site in `site`: each publishable PR's gallery under `<n>/`, then the index. */
+export async function buildSite(
+  site: string,
+  repo: string,
+  source: GallerySource
+): Promise<{ published: IndexEntry[]; open: number }> {
+  rmSync(site, { recursive: true, force: true })
+  mkdirSync(site, { recursive: true })
+  const prs = publishable(await source.openPrs(), repo)
+  const published: IndexEntry[] = []
+  for (const pr of prs) {
+    const dir = join(site, String(pr.number))
+    mkdirSync(dir, { recursive: true })
+    const unpacked = await source.unpack(pr, dir)
+    const entry = unpacked ? readGalleryMeta(dir, pr) : undefined
+    if (!entry) {
+      if (unpacked)
+        console.warn(`[gallery-pages] #${pr.number}: gallery.json names another PR; skipped`)
+      rmSync(dir, { recursive: true, force: true })
+      continue
+    }
+    published.push(entry)
+  }
+  writeFileSync(join(site, 'index.html'), renderIndex(published, repo))
+  writeFileSync(join(site, '.nojekyll'), '')
+  return { published, open: prs.length }
+}
+
 async function api<T>(path: string, token: string): Promise<T> {
   const res = await fetch(`https://api.github.com${path}`, {
     headers: { authorization: `Bearer ${token}`, accept: 'application/vnd.github+json' },
@@ -88,71 +146,55 @@ async function api<T>(path: string, token: string): Promise<T> {
 
 type Artifact = { name: string; expired: boolean; archive_download_url: string }
 
-async function main(): Promise<void> {
-  const site = resolve(process.argv[2] ?? '')
-  const token = process.env.GITHUB_TOKEN
-  const repo = process.env.GITHUB_REPOSITORY
-  if (!process.argv[2] || !token || !repo) {
+/** The galleries as GitHub holds them: each PR's newest unexpired `pr-gallery-<n>` artifact. */
+export function githubSource(repo: string, token: string): GallerySource {
+  return {
+    openPrs: () =>
+      api<PullRequest[]>(`/repos/${repo}/pulls?state=open&base=main&per_page=100`, token),
+    async unpack(pr, dir) {
+      const { artifacts } = await api<{ artifacts: Artifact[] }>(
+        `/repos/${repo}/actions/artifacts?name=pr-gallery-${pr.number}&per_page=5`,
+        token
+      )
+      const artifact = artifacts.find((a) => !a.expired)
+      if (!artifact) return false
+      const zip = await fetch(artifact.archive_download_url, {
+        headers: { authorization: `Bearer ${token}` },
+      })
+      if (!zip.ok) {
+        console.warn(`[gallery-pages] #${pr.number}: download → ${zip.status}`)
+        return false
+      }
+      const file = `${dir}.zip`
+      await Bun.write(file, await zip.arrayBuffer())
+      const unzip = Bun.spawnSync(['unzip', '-q', '-o', file, '-d', dir])
+      rmSync(file)
+      if (unzip.exitCode !== 0) {
+        console.warn(`[gallery-pages] #${pr.number}: unzip failed`)
+        return false
+      }
+      return true
+    },
+  }
+}
+
+/** The CLI: builds the site in `argv[0]` from `env`'s token and repository; returns the exit code. */
+export async function main(
+  argv: readonly string[],
+  env: Record<string, string | undefined>
+): Promise<number> {
+  const [dir] = argv
+  const token = env.GITHUB_TOKEN
+  const repo = env.GITHUB_REPOSITORY
+  if (!dir || !token || !repo) {
     console.error(
       'usage: GITHUB_TOKEN=… GITHUB_REPOSITORY=owner/repo bun tools/gallery-pages.ts <site-dir>'
     )
-    process.exit(2)
+    return 2
   }
-  rmSync(site, { recursive: true, force: true })
-  mkdirSync(site, { recursive: true })
-  const prs = publishable(
-    await api<PullRequest[]>(`/repos/${repo}/pulls?state=open&base=main&per_page=100`, token),
-    repo
-  )
-  const entries: IndexEntry[] = []
-  for (const pr of prs) {
-    const { artifacts } = await api<{ artifacts: Artifact[] }>(
-      `/repos/${repo}/actions/artifacts?name=pr-gallery-${pr.number}&per_page=5`,
-      token
-    )
-    const artifact = artifacts.find((a) => !a.expired)
-    if (!artifact) continue
-    const zip = await fetch(artifact.archive_download_url, {
-      headers: { authorization: `Bearer ${token}` },
-    })
-    if (!zip.ok) {
-      console.warn(`[gallery-pages] #${pr.number}: download → ${zip.status}`)
-      continue
-    }
-    const dir = join(site, String(pr.number))
-    mkdirSync(dir, { recursive: true })
-    const file = join(site, `${pr.number}.zip`)
-    await Bun.write(file, await zip.arrayBuffer())
-    const unzip = Bun.spawnSync(['unzip', '-q', '-o', file, '-d', dir])
-    rmSync(file)
-    if (unzip.exitCode !== 0) {
-      console.warn(`[gallery-pages] #${pr.number}: unzip failed`)
-      rmSync(dir, { recursive: true, force: true })
-      continue
-    }
-    let meta: { pr?: unknown; sha?: unknown; capturedAt?: unknown }
-    try {
-      meta = JSON.parse(readFileSync(join(dir, 'gallery.json'), 'utf8'))
-    } catch {
-      // No readable gallery.json: the check below skips it as naming no PR.
-      meta = {}
-    }
-    if (meta.pr !== pr.number) {
-      console.warn(`[gallery-pages] #${pr.number}: gallery.json names another PR; skipped`)
-      rmSync(dir, { recursive: true, force: true })
-      continue
-    }
-    entries.push({
-      number: pr.number,
-      title: pr.title,
-      sha: typeof meta.sha === 'string' ? meta.sha : pr.head.sha,
-      capturedAt: typeof meta.capturedAt === 'string' ? meta.capturedAt : '',
-      url: pr.html_url,
-    })
-  }
-  writeFileSync(join(site, 'index.html'), renderIndex(entries, repo))
-  writeFileSync(join(site, '.nojekyll'), '')
-  console.log(`[gallery-pages] ${entries.length} of ${prs.length} open PRs published`)
+  const { published, open } = await buildSite(resolve(dir), repo, githubSource(repo, token))
+  console.log(`[gallery-pages] ${published.length} of ${open} open PRs published`)
+  return 0
 }
 
-if (import.meta.main) await main()
+if (import.meta.main) process.exit(await main(process.argv.slice(2), process.env))
