@@ -13,7 +13,7 @@ The Dashboard ([ADR-038](../ARCHITECTURE.md#adr-038),
 [dashboard.md](../architecture/dashboard.md)) and the Mediator Dashboard
 ([mediator-dashboard.md](../architecture/mediator-dashboard.md)) are ITUN's two
 largest features. The next styling phase,
-[Tailwind-removal P5](../design-system/tailwind-removal.md#p5--the-dashboard-pc-scope),
+[Tailwind-removal P5](../design-system/tailwind-removal.md),
 exists only to port their `.pc-*` stylesheet. Before that work starts: do
 enough people use them to justify the port? Or should one or both be frozen or
 cut?
