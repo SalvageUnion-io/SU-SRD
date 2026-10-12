@@ -363,7 +363,7 @@ The values live in `theme.css` alone; this table names each role and its use.
 | adversary                 | `--color-adversary`       | creatures · bio-titans · factions · npcs · meld · squads                             |
 | cargo                     | `--color-cargo`           | cargo fills                                                                          |
 | tier · core               | `--color-tier-core`       | Core ability-tree tier (Advanced = pilot, Legendary = crawler)                       |
-| workshop ground           | `--color-wk-bg` / `-2`    | the page ground (the book's paper): the step off-paper that makes a card a panel     |
+| workshop ground           | `--color-wk-bg`           | the page ground (the book's paper): the step off-paper that makes a card a panel. The cool `-2` is off-palette on screen (tokens rule `cool-ground`) |
 | workshop muted            | `--color-wk-muted`        | muted text on paper                                                                  |
 | workshop rules            | `--color-wk-line/-accent` | advisory rule and the rules-blue chapter band · game-state accent                    |
 | caution                   | `--color-caution`         | attention fill that is neither ontology nor status                                   |
