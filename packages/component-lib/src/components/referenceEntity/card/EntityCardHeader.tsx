@@ -106,12 +106,16 @@ const CLAMP_TWO: CSSProperties = {
   WebkitLineClamp: 2,
 }
 
-/** The title's caps face; its size and colour come from the band. */
+/**
+ * The title's caps face; its size and colour come from the band. No line
+ * height of its own: the title inherits the band's, which is what it rendered
+ * with under Tailwind (the size class after `leading-none` had tailwind-merge
+ * drop it).
+ */
 const TITLE_TYPE: CSSProperties = {
   fontFamily: font.cond,
   fontWeight: weight.extrabold,
   textTransform: 'uppercase',
-  lineHeight: 1,
   letterSpacing: tracking.capsTight,
 }
 
