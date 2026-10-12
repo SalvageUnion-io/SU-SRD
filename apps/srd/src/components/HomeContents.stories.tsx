@@ -1,5 +1,6 @@
 import { assetSrcSetFor } from 'component-lib'
 import { assetUrl } from 'salvageunion-reference'
+import { STARTER_SET_HREF } from '../lib/buildLink'
 import { buildChapters } from '../lib/chapters'
 import { DISCORD_INSTALL_URL, ITUN_URL } from '../lib/constants'
 import type { ContentsArt } from './HomeContents'
@@ -61,7 +62,7 @@ const AT_THE_TABLE = [
 export const Default = () => (
   <div className="srd-home__body">
     <aside className="srd-home__aside" aria-label="Getting started">
-      <NewToTheUnion steps={STEPS} buildHref={ITUN_URL} />
+      <NewToTheUnion steps={STEPS} buildHref={ITUN_URL} starterSetHref={STARTER_SET_HREF} />
     </aside>
     <div className="srd-home__index">
       {buildChapters().map((chapter) => (

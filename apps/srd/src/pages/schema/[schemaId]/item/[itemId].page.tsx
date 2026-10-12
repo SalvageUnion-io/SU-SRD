@@ -22,7 +22,7 @@ import {
   RollTablePage,
   rollTablePageData,
 } from '../../../../components/RollTablePage'
-import { buildLinkFor } from '../../../../lib/buildLink'
+import { buildLinkFor, guideExitsFor } from '../../../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../../../lib/chapters'
 import { componentEmbedFor } from '../../../../lib/componentEmbed'
 import { META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../../../lib/constants'
@@ -178,6 +178,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         fill={fill?.band}
         meta={pageMeta}
         build={buildLinkFor(schemaId, item)}
+        exits={guideExitsFor(schemaId, item)}
       >
         {/* The Entity renders as one unit — interactive island card + its static
             SEO / no-JS sub-content (EntityView). */}

@@ -19,6 +19,7 @@ import type { PageModule, PageResult } from '../../ssg/types'
 import { HeroSearchStatic } from '../components/HeroSearch'
 import type { ContentsArt, ContentsRow, NewToTheUnionStep } from '../components/HomeContents'
 import { ContentsChapter, DiscordBot, NewToTheUnion } from '../components/HomeContents'
+import { STARTER_SET_HREF } from '../lib/buildLink'
 import { buildChapters } from '../lib/chapters'
 import { DISCORD_INSTALL_URL, ITUN_URL, SITE_URL } from '../lib/constants'
 import { itemHref } from '../lib/entityHref'
@@ -119,7 +120,7 @@ function page(): PageResult {
         </div>
         <div className="srd-home__body" style={{ maxWidth: MEASURE }}>
           <aside className="srd-home__aside" aria-label="Getting started">
-            <NewToTheUnion steps={steps} buildHref={ITUN_URL} />
+            <NewToTheUnion steps={steps} buildHref={ITUN_URL} starterSetHref={STARTER_SET_HREF} />
           </aside>
           <div className="srd-home__index">
             {chapters.map((chapter) => (

@@ -95,14 +95,17 @@ type NewToTheUnionProps = {
   steps: NewToTheUnionStep[]
   /** Where "Build a pilot" hands off: ITUN. */
   buildHref: string
+  /** The fourth line, "Play now": ITUN's Starter Set (`STARTER_SET_HREF`). */
+  starterSetHref: string
 }
 
 /**
  * The path in for a new player: Create a Pilot, then a Mech, then a Crawler,
- * each opening its guide, and the hand-off to In The Union Now, which turns
- * those pages into a live sheet.
+ * each opening its guide; then "Play now", the shortcut past all three to the
+ * Starter Set's ready-made crew; and the hand-off to In The Union Now, which
+ * turns those pages into a live sheet.
  */
-export function NewToTheUnion({ steps, buildHref }: NewToTheUnionProps) {
+export function NewToTheUnion({ steps, buildHref, starterSetHref }: NewToTheUnionProps) {
   return (
     <section className="srd-panel" aria-labelledby="new-to-the-union">
       <h2 id="new-to-the-union" className="srd-panel__heading">
@@ -122,6 +125,17 @@ export function NewToTheUnion({ steps, buildHref }: NewToTheUnionProps) {
             </a>
           </li>
         ))}
+        <li>
+          <a href={starterSetHref} className="srd-steps__step">
+            <span aria-hidden="true" className="srd-steps__numeral">
+              →
+            </span>
+            <span className="srd-steps__text">
+              <span className="srd-steps__title">Play now</span>
+              <span className="srd-steps__meta">Starter Set · A pre-generated crew</span>
+            </span>
+          </a>
+        </li>
       </ol>
       <div className="srd-panel__foot">
         <p>Ready to build? {PRODUCT.name} turns these pages into a live sheet for your crew.</p>

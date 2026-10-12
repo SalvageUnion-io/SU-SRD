@@ -2,7 +2,7 @@ import type { ChapterTone, EntityPageMeta } from 'component-lib'
 import { buttonVariants, ChapterBand, cn } from 'component-lib'
 import type { ReactNode } from 'react'
 import type { PageFoot } from '../../ssg/types'
-import type { BuildLink } from '../lib/buildLink'
+import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { EntityPageStamps } from './EntityPageStamps'
 
 /**
@@ -36,6 +36,34 @@ function ParentLink({ label, name, href }: { label: string; name: string; href: 
   )
 }
 
+/**
+ * A creation guide's foot (`guideExitsFor`): the page ends on a way out, as
+ * the book's chapter openers end on an exit arrow. "Build" hands off to ITUN's
+ * wizard, "Next" walks on to the following guide, and the Starter Set is the
+ * shortcut past building at all.
+ */
+function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
+  return (
+    <nav className="srd-guide-exits" aria-label="Where next">
+      <a
+        href={build.href}
+        className={cn(buttonVariants({ variant: 'primary', size: 'compact' }), 'su-page-action')}
+      >
+        {build.label}
+      </a>
+      {next && (
+        <a href={next.href} className="srd-guide-exits__next">
+          {next.label}
+          <span aria-hidden="true">→</span>
+        </a>
+      )}
+      <a href={starterSet.href} className="srd-guide-exits__starter">
+        {starterSet.label}
+      </a>
+    </nav>
+  )
+}
+
 /** An entity page's measure (board 07). */
 export const ENTITY_PAGE_MEASURE = '75rem'
 
@@ -52,6 +80,8 @@ type EntityPageFrameProps = {
   parent?: { label: string; name: string; href: string }
   /** "Build with this": the deep link into ITUN's builder (`buildLinkFor`), atop the body. */
   build?: BuildLink | null
+  /** A creation guide's way out (`guideExitsFor`), under the body. */
+  exits?: GuideExits | null
   children: ReactNode
 }
 
@@ -63,6 +93,7 @@ export function EntityPageFrame({
   measure = ENTITY_PAGE_MEASURE,
   parent,
   build,
+  exits,
   children,
 }: EntityPageFrameProps) {
   return (
@@ -95,6 +126,7 @@ export function EntityPageFrame({
           </div>
         )}
         {children}
+        {exits && <GuideExitsFoot {...exits} />}
       </div>
     </article>
   )
