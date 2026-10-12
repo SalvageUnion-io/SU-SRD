@@ -157,3 +157,5 @@ Open:
 - **Tabs are shared.** A tap redraws a public card for everyone. If that proves
   noisy, answer tabs ephemerally instead.
 - **The foot's brand** waits on the ITUN domain move (#1244).
+- **Which commands to keep at all** is measured, not decided here: the
+  [D12 usage spike](../spikes/d12-bot-command-usage.md).

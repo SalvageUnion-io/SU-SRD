@@ -40,6 +40,7 @@ import type { SignedInteraction } from '../commands/interactions.js'
 import { setItunClient } from '../commands/itunReply.js'
 import { createItunClient } from '../itun/client.js'
 import {
+  interactionName,
   makeAutocompleteInteraction,
   makeButtonInteraction,
   makeExecuteInteraction,
@@ -89,6 +90,10 @@ async function dispatch(
     sink,
     signed,
   }
+
+  // One line per interaction, so usage can be counted per command in Workers
+  // Logs (docs/spikes/d12-bot-command-usage.md).
+  console.log(JSON.stringify({ evt: 'interaction', type: raw.type, name: interactionName(raw) }))
 
   let work: Promise<void>
 

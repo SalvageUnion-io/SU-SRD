@@ -256,6 +256,21 @@ function targetMessageOf(
   return { content: message.content ?? '', ...(author ? { author } : {}) }
 }
 
+/**
+ * The command an interaction ran, for the one usage log line per interaction
+ * (spike D12): `su game bind` for a command or its autocomplete, `su:roll` for
+ * a button. Never a user id, an option value or a button payload.
+ */
+export function interactionName(raw: APIInteraction): string | null {
+  const data = (raw as { data?: { name?: string; custom_id?: string } }).data
+  if (data?.custom_id !== undefined) return data.custom_id.split(':').slice(0, 2).join(':')
+  if (data?.name === undefined) return null
+  const { group, subcommand } = resolveOptionPath(
+    (data as { options?: APIApplicationCommandInteractionDataOption[] }).options
+  )
+  return [data.name, group, subcommand].filter((part) => part !== null).join(' ')
+}
+
 /** Build the chat-input surface `Command.execute` expects. */
 export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInteraction {
   const raw = ctx.raw as {
