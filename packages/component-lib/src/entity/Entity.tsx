@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import type { EntityInstance, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { Row } from './forms/Row'
+import { Tile } from './forms/Tile'
 import type { TokenFact } from './forms/Token'
 import { Token } from './forms/Token'
 import type { EntityForm, EntityMode, EntityOmit, EntityRowModel } from './types'
@@ -13,12 +14,12 @@ type EntitySource =
   | { model: EntityRowModel; entity?: never; pattern?: never }
 
 export type EntityProps = EntitySource & {
-  form: Extract<EntityForm, 'row' | 'token'>
+  form: Extract<EntityForm, 'row' | 'token' | 'tile'>
   /** A player's copy: its title, condition and whether it is user-made. */
   instance?: EntityInstance
   /** Default `read`; `link` on a surface that routes, `select` in a picker. */
   mode?: EntityMode
-  /** Row only: the opening prose, in browse contexts (E11). */
+  /** Row and Tile: the opening prose, in browse contexts (E11). */
   lead?: boolean
   /** Facts the context already states, by key, or `kind` under a slab that names it. */
   omit?: readonly EntityOmit[]
@@ -26,17 +27,19 @@ export type EntityProps = EntitySource & {
   fact?: TokenFact | null
   /** Row only: hover, focus or a long press Peeks it (a Token always does). */
   peek?: boolean
+  /** Row only: a "do" entity's head wears its tone (an ability's tier), not the ink banner. */
+  toned?: boolean
 }
 
 /**
  * `<Entity>` — THE way to draw a game entity (entity display language): the
  * entity resolves once into its model (`toEntityModel`), the FORM picks which
- * parts to draw and the MODE fills the form's slots. Phase 2 draws the Row
- * and the Token; Mention, Card and Page follow, and until then
+ * parts to draw and the MODE fills the form's slots. Phase 2 draws the Row,
+ * the Token and the catalog's Tile; Mention, Card and Page follow, and until then
  * `ReferenceEntityCard` draws those.
  */
 export function Entity(props: EntityProps) {
-  const { form, instance, mode, lead, omit, fact, peek } = props
+  const { form, instance, mode, lead, omit, fact, peek, toned } = props
   const { entity, pattern } = props
   const ownModel = props.model
   const model = useMemo(
@@ -47,13 +50,32 @@ export function Entity(props: EntityProps) {
   switch (form) {
     case 'row':
       return (
-        <Row model={model} instance={instance} mode={mode} lead={lead} omit={omit} peek={peek} />
+        <Row
+          model={model}
+          instance={instance}
+          mode={mode}
+          lead={lead}
+          omit={omit}
+          peek={peek}
+          toned={toned}
+        />
       )
     case 'token':
       return <Token model={model} instance={instance} mode={mode} fact={fact} />
+    case 'tile':
+      return (
+        <Tile
+          model={model}
+          mode={mode?.kind === 'link' || mode?.kind === 'read' ? mode : undefined}
+          omit={omit}
+          lead={lead}
+        />
+      )
     default: {
       const unknown: never = form
-      throw new Error(`<Entity form="${String(unknown)}">: only "row" and "token" are drawn yet`)
+      throw new Error(
+        `<Entity form="${String(unknown)}">: only "row", "token" and "tile" are drawn yet`
+      )
     }
   }
 }
