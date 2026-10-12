@@ -48,7 +48,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
     Snapshots are retired (ADR-036).
 15. **Convex deployments**
-    Production `exuberant-porpoise-183` (frontend `https://intheunionnow.com`); staging `perfect-donkey-72`, the preview slot only.
+    Production `exuberant-porpoise-183`; staging `perfect-donkey-72`, the preview slot only.
     `bun run dev:itun` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
 16. **Convex environment**
     Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `ITUN_BOT_SECRET`, `DISCORD_PUBLIC_KEY`.
@@ -110,7 +110,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `gh` is REST only (GraphQL gets 403): use `gh api` or `mcp__github__*`; no route means report it unread.
     Merge: `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash` or `mcp__github__merge_pull_request`; no `gh stack`. Environment, `su-rules`: [cloud-environment.md](ops/cloud-environment.md).
 36. **Cloudflare**
-    Workers `su-srd` (`salvageunion.io`), `su-itun` (`intheunionnow.com`), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
+    Workers `su-srd` (`salvageunion.io`), `su-itun` (`salvageunion.io/build`), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
     The account is shared with RANDSUM; re-derive from `apps/*/wrangler.jsonc` and `wrangler deployments list`.
 37. **Sentry**
     Org `susrd`, EU region; projects `srd`, `itun`, `itun-convex` (a Convex dashboard toggle), `workers`.
@@ -196,13 +196,12 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted: opt-in `publicRead` per entity; the owner decides, the table runner for a crawler.
     Amends ADR-030's visibility rule; amended by ADR-036.
 33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
-    Accepted, delivered: every hostname is a Worker (Static Assets, R2); builds run in Actions, deploys use `wrangler`.
-    Its snapshot store is history (ADR-036); cutover phases cited in code are in git. Amended by ADR-047.
+    Accepted, delivered: Workers (Static Assets, R2) serve every site; Actions builds, `wrangler` deploys. Amended by ADR-047, ADR-048.
 34. **ADR-034 Persistence requires an account; the local store is a cache**
     Accepted: signed out is read-only, every record is Convex-backed, both apps are PWAs; the pre-account migration is gone.
     Supersedes ADR-030's Solo guarantee; amends ADR-002 and ADR-022. D9 removed the cache.
 35. **ADR-035 No isolated local-only data**
-    Partly superseded by its own 2026-10-08 amendment: anonymous visitors get the `signedOut` backend; the legacy claim is retired.
+    Partly superseded by its 2026-10-08 amendment: anonymous visitors get the `signedOut` backend; no legacy claim.
 36. **ADR-036 Retire snapshot shares**
     Accepted: the public sheet is the only account-free share; no `/api/snapshots` endpoint exists.
     Supersedes ADR-004; amends ADR-032.
@@ -238,3 +237,5 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 47. **ADR-047 One salvageunion.io edge Worker**
     Accepted, not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
     Supersedes ADR-043 decision 1; amends ADR-033. [Spike](spikes/o3-one-edge-worker.md).
+48. **ADR-048 ITUN at salvageunion.io/build** · [spike](spikes/s2-one-product.md)
+    Accepted: a route ahead of srd; the old host 301s. Amends ADR-033.
