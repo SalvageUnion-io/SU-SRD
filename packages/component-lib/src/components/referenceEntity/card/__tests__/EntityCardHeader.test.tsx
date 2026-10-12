@@ -149,7 +149,7 @@ describe('EntityCardHeader — the compact head', () => {
     expect((chevron as unknown as SVGElement | undefined)?.style.flex).toBe('0 0 auto')
   })
 
-  test('a seamless head needs no room above the title for a stamp', () => {
+  test('a head is tight all round: no room is held above the title', () => {
     render(
       <EntityCardHeader
         title="Cargo Pod"
@@ -159,10 +159,29 @@ describe('EntityCardHeader — the compact head', () => {
         stats={[]}
         size="medium"
         head
-        seamless
       />
     )
     expect(band('Cargo Pod').style.padding).toBe('6px 10px')
+  })
+
+  test('the labels are the band’s first line, in flow above the title', () => {
+    render(
+      <EntityCardHeader
+        title="Cargo Pod"
+        fill="tone"
+        bandColor="var(--color-tl-1)"
+        titleSize="22px"
+        stats={[]}
+        size="medium"
+        labels={<span>System</span>}
+      />
+    )
+    const row = band('Cargo Pod')
+    // Symmetric: the band holds no room above for a border-riding stamp.
+    expect(row.style.padding).toBe('8px 10px')
+    const first = row.firstElementChild as HTMLElement
+    expect(first.textContent).toBe('System')
+    expect(first.style.flex).toBe('1 1 100%')
   })
 
   test('a full card title wraps and carries no truncation tooltip', () => {

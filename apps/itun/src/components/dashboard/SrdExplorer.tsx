@@ -64,9 +64,7 @@ const TILE_GRID = {
 const LISTBOX = {
   display: 'flex',
   flexDirection: 'column',
-  // Room above each Row for its kind stamp.
   gap: tokens.space[12],
-  paddingTop: tokens.space[8],
   maxHeight: 260,
   overflowY: 'auto',
 } satisfies CSSProperties

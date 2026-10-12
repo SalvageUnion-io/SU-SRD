@@ -150,7 +150,7 @@ const surveyorPattern = pick(
 )
 
 // The Mule's Hauler — one of the five patterns the book tags `legalStarting`,
-// which stamps "Legal Starting Pattern" on the seam beside the chassis marker.
+// which stamps "Legal Starting Pattern" in the header beside the chassis marker.
 const muleChassis = pick(SalvageUnionReference.Chassis.all(), (c) => c.name === 'Mule', 'chassis')
 const haulerPattern = pick(
   muleChassis.patterns ?? [],
@@ -243,7 +243,7 @@ export const Catalog: Story = () => (
 )
 
 /**
- * CLASS KIND — every pilot class stamps WHICH KIND it is in the seam, derived
+ * CLASS KIND — every pilot class stamps WHICH KIND it is in its header labels, derived
  * from the flags already in the data (`hybrid`, `advanceable`): BASE, HYBRID, or
  * NON-ADVANCEABLE (the Salvager, alone — it advances into nothing). A HYBRID
  * additionally names the two ability trees it advances from in the sub-header
@@ -273,7 +273,7 @@ export const ClassKinds: Story = () => (
 
 /**
  * PATTERN rendering — the pattern is the subject: the chassis name ("Little
- * Sestra") rides the seam as a stampseal, and the pattern's systems + modules
+ * Sestra") leads the header as a stampseal, and the pattern's systems + modules
  * render as nested compact cards. Distinct from the basic ChassisCard above,
  * which shows the overview (ability + a pattern LIST).
  */
@@ -284,7 +284,7 @@ export const PatternCard: Story = () => (
     </code>
     <ReferenceEntityCard data={chassis} pattern={surveyorPattern} />
     {/* A `legalStarting`-tagged pattern adds the "Legal Starting Pattern" stamp
-        to the seam, right of the chassis marker — full card and listing row
+        to the header labels, right of the chassis marker — full card and listing row
         alike (the row is what the chassis page's Patterns list renders). */}
     <code style={CODE}>
       {muleChassis.name} · {haulerPattern.name} (legal starting — full + listing)
@@ -877,7 +877,7 @@ const storyPatternHref = () => '#patterns'
 
 /**
  * PAGE — the card as an SRD entity page's body (`presentation="page"`, boards
- * 07 and 08). No frame, seam, header or footer: the page's chapter band and
+ * 07 and 08). No frame, header or footer: the page's chapter band and
  * foot band carry the title and the citation. The line art is the hero; beside
  * it the chassis ability, the prose and the book's stat column; the patterns
  * run full width as link rows. An ability has no art, so it reads as one

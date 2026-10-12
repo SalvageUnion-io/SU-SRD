@@ -42,8 +42,11 @@ type EntityCardHeaderProps = {
    * body, under the head.
    */
   head?: boolean
-  /** No seam stamp rides this band, so it needs no room above the title. */
-  seamless?: boolean
+  /**
+   * The labels (`CardLabels`): the type stamp, the classification pills, the
+   * User-made stamp. The band's first line, in flow above the title.
+   */
+  labels?: ReactNode
   size: CardSize
   /**
    * An INLINE action band inside its host card (board E1): flush, tighter
@@ -58,15 +61,15 @@ type EntityCardHeaderProps = {
   chevron?: boolean
 }
 
-/** The band's padding by size (board E1): room above for the seam stamp. */
+/** The band's padding by size (board E1). */
 const PAD: Record<CardSize, string> = {
-  large: `${space[16]} ${space[14]} ${space[12]}`,
-  medium: `${space[14]} ${space[10]} ${space[8]}`,
-  small: `${space[12]} ${space[8]} ${space[6]}`,
+  large: `${space[12]} ${space[14]}`,
+  medium: `${space[8]} ${space[10]}`,
+  small: `${space[6]} ${space[8]}`,
 }
 
-/** A compact head with no seam stamp above it: tight all round. */
-const SEAMLESS_PAD: Record<CardSize, string> = {
+/** A compact head: tight all round. */
+const HEAD_PAD: Record<CardSize, string> = {
   large: `${space[8]} ${space[12]} ${space[6]}`,
   medium: `${space[6]} ${space[10]} ${space[6]}`,
   small: `${space[4]} ${space[8]} ${space[4]}`,
@@ -150,7 +153,7 @@ export function EntityCardHeader({
   stamps = [],
   pennant,
   head = false,
-  seamless = false,
+  labels,
   size,
   band = false,
   grain,
@@ -232,7 +235,7 @@ export function EntityCardHeader({
         }
       : {}),
     minWidth: 0,
-    padding: band ? BAND_PAD[size] : seamless ? SEAMLESS_PAD[size] : PAD[size],
+    padding: band ? BAND_PAD[size] : head ? HEAD_PAD[size] : PAD[size],
     width: '100%',
   }
 
@@ -270,6 +273,8 @@ export function EntityCardHeader({
         gap: `${space[8]} ${space[14]}`,
       }}
     >
+      {/* The labels take a line of their own, above the title. */}
+      {labels && <div style={{ flex: '1 1 100%', minWidth: 0 }}>{labels}</div>}
       {numeralNode}
       {titleNode}
       {hint}

@@ -1,7 +1,7 @@
 /**
  * CLASS KIND STAMP + HYBRID REQUIREMENTS.
  *
- * A pilot class card names WHICH KIND of class it is in the seam — `[Class |
+ * A pilot class card names WHICH KIND of class it is in its labels — `[Class |
  * BASE / HYBRID / NON-ADVANCEABLE]` — and a hybrid additionally names the two
  * ability trees it advances from in the sub-header row, joined by "or".
  *
@@ -101,7 +101,7 @@ describe('class kind derivation', () => {
     }
   })
 
-  test('the kind rides the seam as a [Class | KIND] axis marker', () => {
+  test('the kind sits in the labels as a [Class | KIND] axis marker', () => {
     expect(resolveAxisMarkers(classByName('Ranger'))).toEqual([{ label: 'Class', value: 'HYBRID' }])
     expect(resolveAxisMarkers(classByName('Salvager'))).toEqual([
       { label: 'Class', value: 'NON-ADVANCEABLE' },
