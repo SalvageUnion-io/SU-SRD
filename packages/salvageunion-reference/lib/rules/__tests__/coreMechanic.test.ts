@@ -2,7 +2,7 @@
  * Core Mechanic d20 band tests (design review R-6/U-3).
  *
  * Band boundaries per Core Book p.229-232 / Quick Ref 2.0:
- * 20 Nailed It · 11-19 Success · 6-10 Tough Choice · 2-5 Failure · 1 Cascade.
+ * 20 Nailed it · 11-19 Success · 6-10 Tough Choice · 2-5 Failure · 1 Cascade.
  * The d20 is injectable, so every test is deterministic.
  */
 
@@ -10,6 +10,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   CORE_ROLL_BANDS,
   coreRollBand,
+  coreRollBandLabel,
   describePushOutcome,
   performCoreRoll,
 } from '../coreMechanic'
@@ -64,10 +65,26 @@ describe('performCoreRoll', () => {
     expect(result.band).toBe('tough')
   })
 
-  test('every band carries printed label + range metadata', () => {
-    expect(CORE_ROLL_BANDS[performCoreRoll(seqRoll(20)).band].label).toBe('Nailed It')
+  test('every band carries its range metadata', () => {
     expect(CORE_ROLL_BANDS.success.range).toBe('11–19')
-    expect(CORE_ROLL_BANDS.cascade.label).toBe('Cascade Failure')
+  })
+})
+
+describe('coreRollBandLabel', () => {
+  // The titles are the Core Mechanic table's own, as Workshop Manual p.232
+  // prints them: "Nailed it", lower-case "it", on that table.
+  test('reads each band title from the Core Mechanic roll table', () => {
+    expect(coreRollBandLabel(performCoreRoll(seqRoll(20)).band)).toBe('Nailed it')
+    expect(coreRollBandLabel('success')).toBe('Success')
+    expect(coreRollBandLabel('tough')).toBe('Tough Choice')
+    expect(coreRollBandLabel('failure')).toBe('Failure')
+    expect(coreRollBandLabel('cascade')).toBe('Cascade Failure')
+  })
+
+  test("each band's low face lands inside its own range", () => {
+    for (const info of Object.values(CORE_ROLL_BANDS)) {
+      expect(coreRollBand(info.low)).toBe(info.band)
+    }
   })
 })
 

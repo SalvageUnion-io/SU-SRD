@@ -8,7 +8,7 @@ the ADRs and architecture docs this file points to.
 Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need to find a doc.
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the architecture as terse numbered entries (Areas, then Decisions: entry N is ADR-N, status first). Read it whole; §-cited ADRs keep full text in [`docs/adr/`](docs/adr/). The three ADRs that govern:
-  - [ADR-030](docs/adr/030-accounts-games-server-of-record.md) — accounts, Games, Convex of record. Ops: [accounts](docs/ARCHITECTURE.md#areas).
+  - [ADR-030](docs/adr/030-accounts-games-server-of-record.md) — accounts, Games, Convex of record. Ops: [accounts](docs/ARCHITECTURE.md#deployments).
   - [ADR-021](docs/adr/021-itun-surface-taxonomy.md) — surface/mode taxonomy: **where a rule is enforced**.
   - [ADR-007](docs/adr/007-automation-boundary.md) — automation boundary; read before rules work.
 - **Hosting:** Cloudflare Workers + R2 — [ADR-033](docs/adr/033-hosting-on-cloudflare.md).
@@ -56,7 +56,7 @@ bun run deploy-commands[:global]   # Discord slash commands: test guild / produc
 ### Hooks (Lefthook)
 
 - **Pre-commit:** `biome check --write` on staged files only (lint + safe fixes + format in one pass). No typecheck.
-- **Pre-push (in order):** `bun tools/check.ts --profile=pre-push` (every gate but the suite and the network ones), then `bun tools/pre-push-test.ts`: a plain run of the workspaces changed since the merge-base with `origin/main`, their dependents by `workspace:` edges (`--changed` stops at a workspace boundary) and `tools`. No coverage: floors are CI's `test:coverage` alone. Raise a test's timeout only for a measured intrinsic cost, never for contention.
+- **Pre-push (in order):** `bun tools/check.ts --profile=pre-push` (every gate but the suite and the network ones), then `bun tools/pre-push-test.ts`: tests the workspaces changed since the merge-base with its base (`baseBranch.ts`), their dependents by `workspace:` edges (`--changed` stops at a workspace boundary) and `tools`. No coverage: floors are CI's `test:coverage` alone. Raise a test's timeout only for a measured intrinsic cost, never for contention.
 
 ## Repository Overview
 
@@ -79,14 +79,14 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static referenc
 **Dependency graph:**
 
 ```
-salvageunion-reference (game data ORM)
-  └── component-lib (shared UI components)
-        ├── srd (static reference site)
-        └── itun (character builder + game manager)
-discord-bot (salvageunion-reference + itun-domain types)
+salvageunion-reference
+  └── component-lib
+        ├── srd
+        └── itun (its convex/: component-lib/product only)
+discord-bot (salvageunion-reference, itun-domain types, component-lib/product only)
 ```
 
-Each workspace's own `CLAUDE.md` loads when you work in it; "Build & Validation" above is the cross-package checklist, and [display system](docs/ARCHITECTURE.md#areas) has the two card shells (`ReferenceEntityCard` for every SRD entity, `Card` for everything else).
+Each workspace's own `CLAUDE.md` loads when you work in it; "Build & Validation" above is the cross-package checklist, and [display system](docs/ARCHITECTURE.md#display) has the two card shells (`ReferenceEntityCard` for every SRD entity, `Card` for everything else).
 
 ## Code Conventions
 
@@ -113,14 +113,14 @@ For styling bugs, check the stylesheet wiring (`entry.css`'s `layer(su-reset)` /
 
 ## External Integrations & MCP Servers
 
-The registry — ids, deployments, dashboards, how each server authenticates — is [services](docs/ARCHITECTURE.md#areas). [`.mcp.json`](.mcp.json) declares `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (stdio, targets the **local** deployment `bun run dev:itun` runs, from `CONVEX_DEPLOYMENT` in `apps/itun/.env.local`) and `context7` (version-pinned library docs — this repo runs ahead of training data; versions: the manifests).
+The registry — ids, deployments, dashboards, how each server authenticates — is [services](docs/ARCHITECTURE.md#mcp). [`.mcp.json`](.mcp.json) declares `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (stdio, targets the **local** deployment `bun run dev:itun` runs, from `CONVEX_DEPLOYMENT` in `apps/itun/.env.local`) and `context7` (version-pinned library docs — this repo runs ahead of training data; versions: the manifests).
 
-- `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Only `context7` and `convex` are enabled; opt into the rest [locally](docs/ARCHITECTURE.md#areas).
-- `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI. In a cloud session `gh` is preinstalled and authenticated by the GitHub proxy, but only REST answers (`gh api`); GraphQL subcommands such as `gh pr` and `gh issue` get 403, so use `gh api` or the session's `mcp__github__*` tools — see [cloud sessions](docs/ARCHITECTURE.md#areas).
+- `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Only `context7` and `convex` are enabled; opt into the rest [locally](docs/ARCHITECTURE.md#mcp).
+- `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI. In a cloud session `gh` is preinstalled and authenticated by the GitHub proxy, but only REST answers (`gh api`); GraphQL subcommands such as `gh pr` and `gh issue` get 403, so use `gh api` or the session's `mcp__github__*` tools — see [cloud sessions](docs/ARCHITECTURE.md#cloud).
 - **Sentry fails silently**: no DSN tree-shakes the SDK out, and a `connect-src` missing the ingest origin blocks every event. The rules are [`packages/observability/CLAUDE.md`](packages/observability/CLAUDE.md)'s, gated by the `observability` check; **change the CSP or Sentry region in every source for that app together.**
 
 ## Merging
 
-`main` requires linear history and status checks; **no merge queue**. Squash-merge: locally `gh pr merge <pr> --squash` (`--auto` too); in cloud, see [cloud sessions](docs/ARCHITECTURE.md#areas). The squash body is the PR body (`PR_BODY`); `git log --format='%h %s%n%b'` is the decision record.
+`main` requires linear history and status checks; **no merge queue**. Squash-merge: locally `gh pr merge <pr> --squash` (`--auto` too); in cloud, see [cloud sessions](docs/ARCHITECTURE.md#cloud). The squash body is the PR body (`PR_BODY`); `git log --format='%h %s%n%b'` is the decision record.
 
 Dependent PRs land only as a `gh stack`, local-only: `submit --auto --open`, then `merge --squash`; after a merge beneath you, `gh stack sync`. Never a hand rebase or `--force`. Stack state is per worktree (`gh stack checkout <pr>`).

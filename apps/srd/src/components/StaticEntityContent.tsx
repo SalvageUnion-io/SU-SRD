@@ -8,11 +8,11 @@ import { MentionProse } from './MentionProse'
 /**
  * StaticEntityContent — the SSR / no-JS entity fallback. Renders a plain,
  * crawler-friendly summary of an entity (name, description, stats, content,
- * traits, source). On the static site the hydrated island supplies the real
- * display: `global.css`'s `@media (scripting: enabled)` rule hides this
- * `data-static-fallback` block for JS users before first paint, and
- * `ReferenceEntityIsland` hides it on mount and removes it once game data is
- * ready, so the two never double up.
+ * traits, source). On the static site the island supplies the real display:
+ * every reader sees this `data-static-fallback` block until the card can draw,
+ * and `ReferenceEntityIsland` removes it in the same commit that puts the card
+ * on screen, so the two never double up and nothing blank or skeletal stands
+ * between them.
  *
  * Every trait or keyword it names, in its prose or its trait list, is a
  * Mention resolved at build time (`resolveMentionRef`): a link to its page

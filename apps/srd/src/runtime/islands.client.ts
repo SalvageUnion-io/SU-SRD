@@ -2,22 +2,23 @@
  * islands.client — the one client entry every page loads.
  *
  * Scans `[data-island]` placeholders, resolves each one's chunk from
- * `islandRegistry`, and mounts it with **`createRoot`, never `hydrateRoot`**.
+ * `islandRegistry`, and mounts it with **`createRoot`, never `hydrateRoot`**
+ * (`mountIsland`).
  *
  * That choice is the whole reason this migration is tractable (see
  * `ssg/DESIGN.md`): `useGameData`'s server snapshot is hardcoded `false`, so a
  * hydrating card renders its fallback on the client's first pass while the
  * server rendered the real thing — React #418. Client-only mounting has no
  * mismatch class at all, because the server markup is discarded rather than
- * matched. `el.replaceChildren()` below is what discards it, and is what keeps
- * an `ssr: true` island from double-rendering.
+ * matched. React's first commit into the root is what discards it, in the same
+ * step that inserts the island, which keeps an `ssr: true` island from
+ * double-rendering without an empty frame between the two.
  */
 
-import { createElement } from 'react'
-import { createRoot } from 'react-dom/client'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
 import type { IslandComponent } from './islandRegistry'
 import { islandRegistry } from './islandRegistry'
+import { mountIsland } from './mountIsland'
 import { schedule } from './scheduleIsland'
 
 // Env-gated browser error tracking, initialised from the single client entry.
@@ -72,10 +73,10 @@ function mountIslands(): void {
           // `createElement(undefined)` throws React's "Element type is invalid"
           // before the reload lands (SRD-H).
           if (Component === undefined) return
-          // Discard any ssr:true placeholder markup BEFORE mounting, so the
-          // island renders once rather than appending beside its own SSR copy.
-          el.replaceChildren()
-          createRoot(el).render(createElement(Component, props))
+          // No `replaceChildren()` first: the ssr:true markup stays on screen,
+          // and keeps the reader's focus and input, until the island's first
+          // commit replaces it (see `mountIsland`).
+          mountIsland(el, Component, props)
         })
         .catch((error: unknown) => {
           // A chunk that failed to load has already reached chunk recovery via

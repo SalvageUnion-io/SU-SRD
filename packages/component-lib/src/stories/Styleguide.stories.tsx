@@ -11,7 +11,7 @@ export default {
 // The catalog's front door: what it is, how the sidebar is ordered, and where
 // the rules live. It restates none of them — the group definitions and story
 // conventions are component-lib's CLAUDE.md, the contributor reference is
-// docs/ARCHITECTURE.md#areas, and the groups below are read from
+// docs/ARCHITECTURE.md#catalog, and the groups below are read from
 // `_groups.ts`, the list the coverage guard and the sidebar both use.
 
 const REPO_URL = 'https://github.com/SalvageUnion-io/SU-SRD/blob/main'
@@ -84,7 +84,7 @@ export const Overview: Story = () => (
       What belongs in each group and how a story is written:{' '}
       <DocLink path="packages/component-lib/CLAUDE.md#stories">component-lib CLAUDE.md</DocLink>.
       The contributor reference:{' '}
-      <DocLink path="docs/ARCHITECTURE.md#areas">component catalog</DocLink>. What the tokens are
+      <DocLink path="docs/ARCHITECTURE.md#catalog">component catalog</DocLink>. What the tokens are
       for: <DocLink path="docs/design-system/ruleset.md">the design ruleset</DocLink>.
     </p>
   </div>

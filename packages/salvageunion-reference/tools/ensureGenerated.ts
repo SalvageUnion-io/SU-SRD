@@ -10,7 +10,8 @@
  *
  *   - the root `postinstall` (a fresh `git clone && bun install`, every CI job
  *     and deploy, and the IDE, which typechecks whatever is on disk)
- *   - each consuming workspace's `typecheck`, srd's and ITUN's `build` / `dev`
+ *   - the root `typecheck`, `test` and `build`, once before they fan out over
+ *     the workspaces, and each app's `dev`
  *   - `test/reference-preload.ts`, so a bare `bun test` works too
  *   - `tools/check.ts`, before it launches checks in parallel
  *
@@ -27,12 +28,13 @@
  *
  * ## Why a lock
  *
- * `bun --filter "*" test` (and a scoped `bun --filter … typecheck`) start every
- * workspace at once, and each one runs this. The first takes the lock
+ * Its callers overlap: `bun --filter "*" test` starts every workspace at once,
+ * and each one whose test preload loads reference data runs this; a dev server
+ * may be starting beside them. The first takes the lock
  * (`mkdir` is atomic) and regenerates; the rest wait for it, then find the
  * stamp current and return — so no reader ever sees a half-written file.
  *
- * Usage: bun tools/ensureGenerated.ts [--force]
+ * Usage: su-ref-generate [--force] (this file is the package's bin)
  */
 
 import { spawnSync } from 'node:child_process'

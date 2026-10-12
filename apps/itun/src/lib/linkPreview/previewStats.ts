@@ -43,6 +43,11 @@ function num(body: Body, key: string): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
 }
 
+function text(body: Body, key: string): string | undefined {
+  const value = body[key]
+  return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
 function strings(body: Body, key: string): string[] {
   const value = body[key]
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
@@ -84,6 +89,10 @@ export function previewStats(answer: PreviewAnswer): OgCardStat[] {
         { label: 'TL', value: String(body.techLevel ?? 1) },
         { label: 'SP', value: pool(num(body, 'currentSP'), max) },
       ]
+    }
+    case 'npc': {
+      const max = num(body, 'hitPoints') ?? 0
+      return [{ label: text(body, 'damageType') ?? 'HP', value: pool(num(body, 'currentHP'), max) }]
     }
     case 'pattern': {
       const chassis = resolveChassisRef(String(body.chassisRef ?? ''))

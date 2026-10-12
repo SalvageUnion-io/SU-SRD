@@ -1,5 +1,5 @@
 /**
- * Schema-id naming helpers.
+ * Naming helpers: schema ids, and entity names as the book prints them.
  *
  * Zero imports by design: both tools/generateRegistry.ts (a build-time
  * script that must run before any generated code exists) and runtime code
@@ -23,4 +23,17 @@ export function toPascalCase(id: string): string {
     .split(/[-.]/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('')
+}
+
+/**
+ * A name as the book prints it. The glossaries (keywords, traits) store their
+ * names lower-case ("bio-titan"); the web sets them in caps with CSS, which
+ * plain text cannot carry — a page `<title>`, meta and JSON-LD, a link
+ * preview, a Discord heading. A name with any capital is already as printed
+ * and is left alone.
+ *   bio-titan -> Bio-Titan
+ *   Mule -> Mule
+ */
+export function displayTitle(title: string): string {
+  return title === title.toLowerCase() ? title.replace(/\b\p{L}/gu, (c) => c.toUpperCase()) : title
 }

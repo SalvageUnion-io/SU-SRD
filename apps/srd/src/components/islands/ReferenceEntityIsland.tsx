@@ -4,16 +4,15 @@ import {
   EntityHrefProvider,
   PatternHrefProvider,
   ReferenceEntityCard,
-  Skeleton,
   Toaster,
 } from 'component-lib'
-import { Suspense, useEffect, useMemo } from 'react'
+import { Suspense, useLayoutEffect, useMemo } from 'react'
 import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { getClassSelections } from '../../lib/classSelections'
 import { srdEntityHref } from '../../lib/entityHref'
 import { srdPatternHref } from '../../lib/patternHref'
 import type { SchemaList } from '../../lib/useGameData'
-import { GameDataGate, useGameData } from '../../lib/useGameData'
+import { GameDataGate } from '../../lib/useGameData'
 import { ClassAbilityTree } from '../ClassAbilityTree'
 import { ReferenceSurface } from '../ReferenceSurface'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
@@ -33,6 +32,21 @@ type ReferenceEntityIslandProps = {
   pageRefs?: PageRefIndex
 }
 
+/**
+ * Removes the page's static fallback when the card commits, before paint: it
+ * sits beside the card inside the Suspense boundary, so it commits only with
+ * it. View transitions swap in fresh HTML and remount the island, so it runs
+ * again per page.
+ */
+function DropStaticFallback() {
+  useLayoutEffect(() => {
+    document.querySelectorAll('[data-static-fallback]').forEach((el) => {
+      el.remove()
+    })
+  }, [])
+  return null
+}
+
 export function ReferenceEntityIsland({
   item,
   compact = false,
@@ -44,34 +58,18 @@ export function ReferenceEntityIsland({
   const classSelections = useMemo(() => getClassSelections(item), [item])
   const classEntity = classSelections.selectedClass || classSelections.selectedAdvancedClass
 
-  const { ready } = useGameData({ schemas: preloadSchemas })
-
-  // The static SEO/no-JS fallback stays in the served HTML (crawlers and no-JS
-  // users keep the content; the page's <h1> is its chapter band, outside
-  // both). For JS users it is hidden as soon as the island hydrates (avoids a
-  // duplicate body flashing next to the skeleton)…
-  useEffect(() => {
-    document.querySelectorAll('[data-static-fallback]').forEach((el) => {
-      el.setAttribute('hidden', '')
-    })
-  }, [])
-
-  // …and only removed once game data is ready, so a failed preload leaves the
-  // static content recoverable instead of a blank page. View transitions swap
-  // in fresh HTML and remount the island, so both effects re-run per page.
-  useEffect(() => {
-    if (!ready) return
-    document.querySelectorAll('[data-static-fallback]').forEach((el) => {
-      el.remove()
-    })
-  }, [ready])
-
+  // The static SEO/no-JS fallback (`StaticEntityContent`) stays on screen,
+  // for JS readers too, until the card can draw: the gate and the Suspense
+  // boundary render nothing rather than a skeleton, and the card's commit drops
+  // the fallback in the same step (`DropStaticFallback`). A failed preload
+  // leaves the static content readable instead of a blank page.
   return (
     <IslandErrorBoundary>
-      <GameDataGate schemas={preloadSchemas} fallback={<Skeleton mode="card" compact={compact} />}>
+      <GameDataGate schemas={preloadSchemas} fallback={null}>
         {/* The card is the page's body (`presentation="page"`): the page's
             chapter band and foot band frame it, as on the static path. */}
-        <Suspense fallback={<Skeleton mode="card" compact={compact} />}>
+        <Suspense fallback={null}>
+          <DropStaticFallback />
           <EntityHrefProvider value={srdEntityHref}>
             <EntityDetailLinkProvider value={true}>
               {/* Pattern rows on a chassis card link to the pattern's own
@@ -94,10 +92,10 @@ export function ReferenceEntityIsland({
               </PatternHrefProvider>
             </EntityDetailLinkProvider>
           </EntityHrefProvider>
+          {/* Where a roll on the card's tables lands (`ReferenceSurface`). */}
+          <Toaster />
         </Suspense>
       </GameDataGate>
-      {/* Where a roll on the card's tables lands (`ReferenceSurface`). */}
-      <Toaster />
     </IslandErrorBoundary>
   )
 }

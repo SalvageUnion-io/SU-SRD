@@ -5,7 +5,7 @@ import type { SURefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForTable } from 'salvageunion-reference'
 import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import { useEntitySurface } from '../../../entity/entitySurfaceContext'
-import { d20ForTable } from '../../../utils/dice'
+import { dieForTable } from '../../../utils/dice'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Button } from '../../atoms/Button'
 import type { DigestedRollTable } from '../../compositions/digestRollTable'
@@ -123,7 +123,7 @@ export function CardRollTable({
     // A named table (the Core Mechanic's own card) rolls through
     // @randsum/salvageunion; an entity's table gets Randsum's plain d20. Either
     // way the row is read from this table's data, by the total.
-    void d20ForTable(name).then((d20) => {
+    void dieForTable(name).then((d20) => {
       const die = d20()
       const { key } = resultForTable(table, die)
       setRolled({ roll: die, key })

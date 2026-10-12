@@ -22,6 +22,9 @@ export const PatternSystemModuleSchema = z
       .record(z.string(), NameSchema)
       .describe('Preselected choices for this system or module, keyed by choice ID')
       .optional(),
+    head: NameSchema.describe(
+      "The chassis head this system or module is mounted on (one of its chassis's `heads`); absent means the chassis itself"
+    ).optional(),
   })
   .strict()
   .describe('System or module configuration within a pattern')

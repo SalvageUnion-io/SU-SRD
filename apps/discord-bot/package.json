@@ -7,7 +7,7 @@
   "scripts": {
     "deploy-commands": "bun run src/deploy-commands.ts",
     "deploy-commands:global": "DEPLOY_GLOBAL=true bun run src/deploy-commands.ts",
-    "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
+    "typecheck": "tsc -b",
     "test": "bun test --parallel=4 --no-isolate",
     "clean": "true",
     "deploy": "wrangler deploy",
@@ -20,6 +20,7 @@
     "@discordjs/rest": "2.6.3",
     "@randsum/roller": "catalog:",
     "@randsum/salvageunion": "catalog:",
+    "component-lib": "workspace:*",
     "discord-api-types": "0.38.53",
     "itun-domain": "workspace:*",
     "observability": "workspace:*",

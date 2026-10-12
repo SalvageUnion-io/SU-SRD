@@ -134,6 +134,37 @@ describe('changeLog.forEntity', () => {
     ).toEqual([])
   })
 
+  test('past 100 rows, the newest 100 across every stream, newest first', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId, mechId } = await seedMech(t)
+    // Four streams: applied and proposed rows under both ids, their times
+    // interleaved so no one stream holds the newest 100 on its own.
+    await t.run(async (ctx) => {
+      for (let ts = 1; ts <= 240; ts++) {
+        await ctx.db.insert('changeLog', {
+          gameId,
+          entityType: 'mech',
+          entityId: ts % 2 === 0 ? 'm-app' : mechId,
+          ts,
+          kind: 'manual',
+          field: `f${ts}`,
+          before: null,
+          after: ts,
+          source: 'live-sheet',
+          actorId: organizer.userId,
+          state: ts % 3 === 0 ? 'proposed' : 'applied',
+        })
+      }
+    })
+
+    const log = await player.as.query(api.changeLog.forEntity, {
+      entityType: 'mech',
+      entityId: 'm-app',
+    })
+
+    expect(log.map((r) => r.ts)).toEqual(Array.from({ length: 100 }, (_, i) => 240 - i))
+  })
+
   test('ownership changes are named by the app id too', async () => {
     const t = testConvex()
     const { player, mechId } = await seedMech(t)

@@ -1,15 +1,13 @@
 import type { CSSProperties } from 'react'
+import { CONDITION_LABELS } from 'salvageunion-reference'
 import { font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import { Button } from '../../atoms/Button'
 import type { EntityStatus } from '../../atoms/entityStatus'
 import type { CardSize } from '../../containers/displayMode'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 
-const STATES: { value: EntityStatus; label: string }[] = [
-  { value: 'intact', label: 'Intact' },
-  { value: 'damaged', label: 'Damaged' },
-  { value: 'destroyed', label: 'Destroyed' },
-]
+const ORDER: EntityStatus[] = ['intact', 'damaged', 'destroyed']
+const STATES = ORDER.map((value) => ({ value, label: CONDITION_LABELS[value] }))
 
 const PAD_X: Record<CardSize, string> = { large: space[14], medium: space[10], small: space[8] }
 
@@ -51,7 +49,7 @@ export function StatusTriState({
   onClick: (() => void) | undefined
   subject: string
 }) {
-  const label = STATES.find((s) => s.value === status)?.label ?? status
+  const label = CONDITION_LABELS[status]
   // Print reads, pencil writes (ruleset §1): with no handler the condition is
   // a read-out, so it prints ONE solid stamp naming the state rather than the
   // three-way switch, which would read as a control the viewer cannot use.

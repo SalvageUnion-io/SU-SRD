@@ -13,6 +13,7 @@ import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import {
   findEntityBySlug,
   getEntitySlug,
+  NO_EFFECT,
   resolveFormerSlug,
   rollOnTable,
   SalvageUnionReference,
@@ -141,12 +142,16 @@ export function newTrayNpc(
 
 /**
  * Roll Morale: a d20 on the reference "Morale" table (p.268). Null when the
- * table cannot be read, so the button says so rather than inventing a result.
+ * table cannot be read, so the button says so rather than inventing a result;
+ * a roll that lands on no row reads `NO_EFFECT`, as everywhere else.
  */
 export function rollMorale(rollD20: () => number, now: string): MoraleRoll | null {
   const table = SalvageUnionReference.RollTables.getByName('Morale')
   const outcome = rollOnTable(table?.table, rollD20)
-  if (!outcome.success || outcome.kind !== 'flat') return null
+  if (!outcome.success || outcome.kind === 'columns') return null
+  if (outcome.kind === 'no-effect') {
+    return { table: 'morale', roll: outcome.roll, value: NO_EFFECT, rolledAt: now }
+  }
   return {
     table: 'morale',
     roll: outcome.roll,

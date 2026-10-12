@@ -2,7 +2,7 @@ import { toast } from 'component-lib'
 import { PilotSchema } from 'itun-domain/schemas/pilot'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
-import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { bookQuote, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
   isLegalCreationAbility,
   PILOT_BASE_AP,
@@ -253,47 +253,72 @@ export function PilotWizard({
     })
   }
 
-  // Per-step RuleBrief: the Core Book's own creation copy, pp.18–19.
+  // Per-step RuleBrief: the Core Book's own creation copy, pp.18–19,
+  // each quote a `bookQuote` so the rules-fidelity lock holds it to the book.
   const stepRule: StepRule = (() => {
     switch (step) {
       case 'stats':
         return {
-          rule: 'Make a copy of the Character Sheet; your Pilot starts with 10 Hit Points, 5 Ability Points, and 6 Inventory Slots.',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 18 },
+            'Make a copy of the Character Sheet; your Pilot starts with 10 Hit Points, 5 Ability Points, and 6 Inventory Slots.'
+          ),
           cite: 'Core Book · p.18 · Pilot Stats p.20',
         }
       case 'classAbility':
         return {
-          rule: 'There are six core Pilot classes; Engineer, Hacker, Hauler, Salvager, Scout, and Soldier. Each is differentiated by the different Ability trees they can pick from. Your Pilot starts with 1 Ability of your choice. The Salvager is an exception: as a ‘jack of all trades’ Class, they can pick from any of the Core Ability trees — however, they can never advance beyond them.',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 18 },
+            'There are six core Pilot classes; Engineer, Hacker, Hauler, Salvager, Scout, and Soldier. Each is differentiated by the different Ability trees they can pick from. Your Pilot starts with 1 Ability of your choice. The Salvager is an exception: as a ‘jack of all trades’ Class, they can pick from any of the Core Ability trees — however, they can never advance beyond them.'
+          ),
           cite: 'Core Book · p.18 · Pilot Classes pp.26–77',
         }
       case 'equipment':
         return {
-          rule: 'You may choose two pieces of Tech 1 Pilot Equipment from the list. Note these in your inventory. Most items fill 1 Inventory Slot; Heavy and Portable gear fills 2.',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 19 },
+            'You may choose two pieces of Tech 1 Pilot Equipment from the list. Note these in your inventory. Most items fill 1 Inventory Slot; Heavy and Portable gear fills 2.'
+          ),
           cite: 'Core Book · p.19 · Pilot Equipment pp.78–87',
         }
       case 'callsign':
         return {
-          rule: 'Your Pilot’s Callsign is the name everyone on the Union Crawler refers to them as. It is typically a nickname, but can be their actual name. Pick or roll on the Callsign Table, or have everyone else at the table choose one for your Pilot based on their impression of them. Callsigns may also change in play in this manner.',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 19 },
+            'Your Pilot’s Callsign is the name everyone on the Union Crawler refers to them as. It is typically a nickname, but can be their actual name. Pick or roll on the Callsign Table, or have everyone else at the table choose one for your Pilot based on their impression of them. Callsigns may also change in play in this manner.'
+          ),
           cite: 'Core Book · p.19 · Callsign Table p.88',
         }
       case 'background':
         return {
-          rule: 'Your Pilot’s Background is where they came from before they joined the Union Crawler. They may have been a wastelander, a member of the corpos, a wanderer, or even a born salvager. If a Pilot takes an action that aligns with their Background they may re-roll the dice on the action, accepting the second result. This Ability can be used once; a Pilot regains its use following Downtime.',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 19 },
+            'Your Pilot’s Background is where they came from before they joined the Union Crawler. They may have been a wastelander, a member of the corpos, a wanderer, or even a born salvager. If a Pilot takes an action that aligns with their Background they may re-roll the dice on the action, accepting the second result. This Ability can be used once; a Pilot regains its use following Downtime.'
+          ),
           cite: 'Core Book · p.19 · Background Table p.89',
         }
       case 'motto':
         return {
-          rule: 'Your Pilot’s Motto is a phrase they happen to be fond of using. They may say this phrase, as a Free Action or Reaction, at a time during the game that feels appropriate, and another Pilot may re-roll the dice, accepting the second result. This Ability can be used once; a Pilot regains its use following Downtime.',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 19 },
+            'Your Pilot’s Motto is a phrase they happen to be fond of using. They may say this phrase, as a Free Action or Reaction, at a time during the game that feels appropriate, and another Pilot may re-roll the dice, accepting the second result. This Ability can be used once; a Pilot regains its use following Downtime.'
+          ),
           cite: 'Core Book · p.19 · Motto Table p.90',
         }
       case 'keepsake':
         return {
-          rule: 'Your Pilot’s Keepsake is an item that is personal and important to them. It could be an old photograph, a childhood bobblehead toy, or a music mixtape from an old sweetheart. If a Pilot takes an action that aligns with why their Keepsake is important to them, they may re-roll the dice on the action, accepting the second result. This Ability can be used once; a Pilot regains its use following Downtime.',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 18 },
+            'Your Pilot’s Keepsake is an item that is personal and important to them. It could be an old photograph, a childhood bobblehead toy, or a music mixtape from an old sweetheart. If a Pilot takes an action that aligns with why their Keepsake is important to them, they may re-roll the dice on the action, accepting the second result. This Ability can be used once; a Pilot regains its use following Downtime.'
+          ),
           cite: 'Core Book · p.18 · Keepsake Table p.90',
         }
       case 'appearance':
         return {
-          rule: 'Briefly describe the appearance of your Pilot, and consider their gender and pronouns. Are they alluring, fancy, glamorous, tall, stocky, sloppy, or intimidating? Do they have any iconic features such as scars, wildly spiked hair, a mischievous grin, or crooked teeth? What type of clothing do they wear? Do they go by she, he, they, or something else?',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 18 },
+            'Briefly describe the appearance of your Pilot, and consider their gender and pronouns. Are they alluring, fancy, glamorous, tall, stocky, sloppy, or intimidating? Do they have any iconic features such as scars, wildly spiked hair, a mischievous grin, or crooked teeth? What type of clothing do they wear? Do they go by she, he, they, or something else?'
+          ),
           cite: 'Core Book · p.18 · Appearance Table p.91',
         }
       case 'review':

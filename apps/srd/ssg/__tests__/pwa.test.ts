@@ -8,8 +8,15 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { Glob } from 'bun'
 import { PAGES_CACHE as WARMED_CACHE } from '../../src/runtime/offlineWarm.client'
-import { NAVIGATION_TIMEOUT_SECONDS, PAGES_CACHE, RUNTIME_CACHING } from '../pwa'
+import {
+  NAVIGATION_TIMEOUT_SECONDS,
+  PAGES_CACHE,
+  RUNTIME_CACHING,
+  UNFETCHED_FONT_SUBSETS,
+  WORKBOX_OPTIONS,
+} from '../pwa'
 
 /** The slice of a fetch event's request the route matchers read. */
 const requestOf = (mode: RequestMode, path = '/schema/chassis/') => ({
@@ -72,5 +79,27 @@ describe('the search index', () => {
     const pattern = searchIndex?.urlPattern as RegExp
     expect(pattern.test('https://salvageunion.io/search-index.json')).toBe(true)
     expect(pattern.test('https://salvageunion.io/schema/chassis.json')).toBe(false)
+  })
+})
+
+describe('the precache', () => {
+  // As Vite emits them: the @fontsource file name, then a hash.
+  const emitted = (subset: string) =>
+    `assets/barlow-semi-condensed-${subset}-500-normal-G0uxJNrM.woff2`
+  const ignored = new Glob(UNFETCHED_FONT_SUBSETS)
+
+  test('leaves out the font subsets no rendered text fetches', () => {
+    expect(WORKBOX_OPTIONS.globIgnores).toContain(UNFETCHED_FONT_SUBSETS)
+    expect(ignored.match(emitted('latin-ext'))).toBe(true)
+    expect(ignored.match(emitted('vietnamese'))).toBe(true)
+  })
+
+  test('keeps the latin subset every page draws with', () => {
+    expect(ignored.match(emitted('latin'))).toBe(false)
+    expect(ignored.match('assets/barlow-latin-400-normal-qiz4-Cze.woff2')).toBe(false)
+  })
+
+  test("keeps workbox-build's default ignore, which setting globIgnores replaces", () => {
+    expect(WORKBOX_OPTIONS.globIgnores).toContain('**/node_modules/**/*')
   })
 })

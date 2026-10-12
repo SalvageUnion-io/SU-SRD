@@ -3,7 +3,7 @@
  * reaches Discord: the bot's `/su lookup` card, and the Component Embed the
  * SRD puts in each page's head, which Discord draws when someone pastes a
  * salvageunion.io link. One renderer, so a pasted link and a lookup can never
- * disagree. The design is `docs/architecture/discord-bot-refresh.md`.
+ * disagree (`docs/ARCHITECTURE.md#discord-bot`).
  *
  * Pure, and fed by the model (`toEntityModel`): no fact is computed here. A
  * colour stays a tone KEY, as everywhere in the view model; each consumer maps
@@ -25,6 +25,7 @@ import { srdEntityUrl } from '../assets'
 import { replaceChassisPlaceholder } from '../contentBlockHelpers'
 import { SalvageUnionReference } from '../index'
 import { nameToSlug } from '../nameToSlug'
+import { displayTitle } from '../naming'
 import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index'
 import { replaceTraitReferences } from '../traitText'
 import { toEntityModel } from './toEntityModel'
@@ -50,12 +51,12 @@ export const DISCORD_TONE_ACCENT: Readonly<Record<string, number>> = {
   'guide-hazard': 0xb84c4c,
   'tl-1': 0x73c9e6,
   'tl-2': 0x57a9c8,
-  'tl-3': 0x4487a2,
+  'tl-3': 0x5391a9,
   'tl-4': 0x306b80,
   'tl-5': 0x1e5364,
   'tl-6': 0x063441,
   'tl-b': 0x569c68,
-  'tl-n': 0x926db8,
+  'tl-n': 0x8664a9,
   'wk-line': 0x8fc3d8,
   ink: 0x8fc3d8,
   'ink-2': 0x8fc3d8,
@@ -242,14 +243,6 @@ export function traitTags(traits: TraitMention[]): string {
       return trait.param ? `${label} ${trait.param}` : label
     })
     .join(' · ')
-}
-
-/**
- * A title as the book prints it. The glossaries store their names lower-case
- * ("vulnerable"); the web sets them in caps, which a Discord heading cannot.
- */
-function displayTitle(title: string): string {
-  return title === title.toLowerCase() ? title.replace(/\b\p{L}/gu, (c) => c.toUpperCase()) : title
 }
 
 /** The seam stamp as a kicker: `-# ABILITY · ADVANCED HACKING TREE · REACTION · \`1 AP\``. */

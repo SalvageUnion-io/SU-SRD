@@ -7,7 +7,7 @@
 
 import { rollD20 } from 'component-lib'
 import type { SURefRollTable } from 'salvageunion-reference'
-import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
+import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 
 const CRAWLER_NAME_TABLE = 'Crawler Name'
 
@@ -25,6 +25,7 @@ const defaultDeps: CrawlerRollTableDeps = {
 
 /**
  * Rolls a d20 on the Crawler Name Table and returns the result string.
+ * A roll that lands on no row reads `NO_EFFECT`, as on the SRD and in the bot.
  * Returns null when the table cannot be found or the roll fails — the roll
  * is an assist, never a commitment (the result stays editable).
  */
@@ -33,5 +34,7 @@ export function rollCrawlerName(deps: CrawlerRollTableDeps = defaultDeps): strin
   if (!table) return null
   const outcome = rollOnTable(table.table, deps.rollD20)
   if (!outcome.success) return null
+  // A roll that lands on no row reads as it does on the SRD and in the bot.
+  if (outcome.kind === 'no-effect') return NO_EFFECT
   return outcome.label ? `${outcome.label}: ${outcome.value}` : outcome.value
 }

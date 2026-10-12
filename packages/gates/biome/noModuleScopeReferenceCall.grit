@@ -1,6 +1,6 @@
 // A `SalvageUnionReference` accessor called at module scope runs at import
 // time, before the app's `preload()` has, and throws "Schema not loaded" with a
-// stack trace far from the call (docs/ARCHITECTURE.md#areas).
+// stack trace far from the call (docs/ARCHITECTURE.md#lazy-loading).
 // This matches a one- or two-level accessor call
 // with no function-like ancestor. `preload()` and `isLoaded()` are the lifecycle
 // calls the contract exists to make eagerly, so they are exempt.
@@ -31,5 +31,5 @@ or {
     JsSetterObjectMember(),
     JsConstructorClassMember()
   } ,
-  register_diagnostic(span=$call, message="This SalvageUnionReference call runs at import time, before preload(), and throws 'Schema not loaded'. Move it inside a function, hook or effect (docs/ARCHITECTURE.md#areas).", severity="error")
+  register_diagnostic(span=$call, message="This SalvageUnionReference call runs at import time, before preload(), and throws 'Schema not loaded'. Move it inside a function, hook or effect (docs/ARCHITECTURE.md#lazy-loading).", severity="error")
 }

@@ -207,13 +207,15 @@ const base = {
   // — Tech Level blues —
   tl1: 'rgb(115, 201, 230)',
   tl2: 'rgb(87, 169, 200)',
-  tl3: 'rgb(68, 135, 162)',
+  /** One step lighter than the earlier TL3 (68, 135, 162), so ink clears 4.5:1 on it. */
+  tl3: 'rgb(83, 145, 169)',
   tl4: 'rgb(48, 107, 128)',
   tl5: 'rgb(30, 83, 100)',
   tl6: 'rgb(6, 52, 65)',
   // Non-numeric equipment tiers (Core Book p.3): Bio + Nanite.
   tlB: 'rgb(86, 156, 104)',
-  tlN: 'rgb(146, 109, 184)',
+  /** One step deeper than the earlier Nanite (146, 109, 184), so paper clears 4.5:1 on it. */
+  tlN: 'rgb(134, 100, 169)',
 
   // — Entity colours: hue encodes ontology (ruleset §3/§4.1) —
   pilot: 'rgb(239, 137, 79)',

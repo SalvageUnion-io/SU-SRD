@@ -18,7 +18,7 @@ import { attributeRoll } from './commands/rollAttribution'
 import type { ContainerData } from './container'
 import { toContainer } from './container'
 import { decodeRollRequest, parseCustomId } from './customId'
-import { d20ForTable } from './dice'
+import { dieForTable } from './dice'
 import { entityFromKey, parseViewPayload, patternPeek } from './lookupCard'
 
 /**
@@ -136,7 +136,7 @@ export async function handleButtonInteraction(
     ? buildRollMessage(
         request.tableName,
         roller,
-        await d20ForTable(request.tableName),
+        await dieForTable(request.tableName),
         // A re-roll shares its first roll's status: private stays private.
         request.isPrivate,
         interaction.user.id

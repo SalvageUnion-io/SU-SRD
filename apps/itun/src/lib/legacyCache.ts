@@ -2,7 +2,7 @@ import { captureException } from './observability'
 
 /**
  * The IndexedDB database ITUN kept before the D9 decision removed the device
- * cache (`docs/spikes/d9-offline-cache.md`).
+ * cache (`docs/ARCHITECTURE.md#no-device-cache`).
  */
 const LEGACY_DB_NAME = 'itun-v1'
 

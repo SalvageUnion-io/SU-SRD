@@ -182,7 +182,7 @@ function SchemaViewer({
   }, [initialData, techLevelFilters, sourceFilter, treeFilter, nameFilter])
 
   const orderedTechLevels = useMemo(() => orderTechLevels(techLevels), [techLevels])
-  const groupBy = resolveGroupBy(initialData, trees, orderedTechLevels)
+  const groupBy = resolveGroupBy(initialData, trees, orderedTechLevels, schemaId)
   const groups = useMemo(() => groupEntities(filteredData, groupBy), [filteredData, groupBy])
   // A single-kind listing: no type stamp, and no TL cell when the tech level
   // heads the group or is the tile's plate.

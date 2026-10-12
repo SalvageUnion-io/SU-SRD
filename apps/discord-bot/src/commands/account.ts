@@ -1,4 +1,5 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
+import { PRODUCT } from 'component-lib/product'
 import { gamesCard, ITUN_ORIGIN, meCard, shelfCard } from '../gameCards'
 import type { CommandExecuteInteraction } from './interactions'
 import { respondWithItun } from './itunReply'
@@ -17,7 +18,7 @@ import { respondWithItun } from './itunReply'
 
 export const meCommand = {
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
-    return sub.setName('me').setDescription('Your In The Union Now account and games')
+    return sub.setName('me').setDescription(`Your ${PRODUCT.name} account and games`)
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {

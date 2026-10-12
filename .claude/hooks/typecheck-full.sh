@@ -24,6 +24,11 @@ if [ ! -e "$MARKER" ]; then
   exit 0
 fi
 
+# A worktree created mid-session has no node_modules yet: install it once.
+# shellcheck source=ensure-install.sh
+. "$(dirname "${BASH_SOURCE[0]}")/ensure-install.sh"
+ensure_install || exit 2
+
 OUTPUT=$(bun run typecheck 2>&1)
 STATUS=$?
 

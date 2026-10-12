@@ -16,6 +16,7 @@ import {
   AdvancedClassSchema,
   BaseEntitySchema,
   BioTitanPatternSchema,
+  ChassisHeadSchema,
   ChassisStatsSchema,
   ChoicesSchema,
   CombatEntitySchema,
@@ -120,6 +121,13 @@ export const ChassisSchema = BaseEntitySchema.extend({
     chassisAbilities: z
       .array(z.string())
       .describe('Array of chassis ability names that reference actions.json'),
+    heads: z
+      .array(ChassisHeadSchema)
+      .min(1)
+      .describe(
+        'Separately-crafted heads, each with its own stats and slots; the chassis stats are the body that carries them'
+      )
+      .optional(),
     patterns: z.array(PatternSchema).describe('Available mech patterns for this chassis'),
   })
   .strict()

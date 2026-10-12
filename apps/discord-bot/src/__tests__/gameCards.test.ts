@@ -245,6 +245,10 @@ describe('crewCard', () => {
     // Derived from the `mule` chassis, which the server could not have done.
     expect(text).toContain('8/12')
     expect(text).toContain('3/6')
+    // The sheets' own short names: Heat is "Heat", never a bot-only "HT".
+    expect(text).toContain('SP ')
+    expect(text).toContain('Heat ')
+    expect(text).not.toContain('HT ')
   })
 
   test('renders unclaimed entities in their own bucket rather than dropping them', () => {

@@ -13,7 +13,7 @@
  * So this asserts both halves: for every record kind (`RECORD_KINDS`) there is
  * a Convex table that could receive it, and a client commit path that actually
  * writes to it (the store → commit-path table is in
- * `docs/ARCHITECTURE.md#areas`). The first catches the cheaper and more
+ * `docs/ARCHITECTURE.md#convex`). The first catches the cheaper and more
  * common mistake: adding store number nine and forgetting the server entirely.
  *
  * ## Reading a failure

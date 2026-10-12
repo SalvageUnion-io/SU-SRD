@@ -90,14 +90,16 @@ describe('Pilot hero — HP/AP trackers', () => {
   })
 
   test('clicking the top-lit HP segment persists the decremented currentHP', async () => {
-    // HP/AP are now VitalGauges (poster §gauge): clicking the top-lit segment
-    // (index 6 = "Set HP to 7") steps HP 7 → 6 (pipClickValue click-to-set).
+    // HP/AP are VitalGauges (poster §gauge): clicking the top-lit segment
+    // (index 6) steps HP 7 → 6 (pipClickValue click-to-set). The segments are
+    // pointer-only; the track is the one `slider` tab stop that takes the click.
     const pilot = makePilot({ currentHP: 7 })
     const updateSpy = mock(async () => pilot)
     renderHero(pilot, updateSpy)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Set HP to 7' }))
+      const hp = screen.getByRole('slider', { name: 'HP' })
+      fireEvent.click(must(hp.querySelector('[data-pip-index="6"]')))
     })
 
     expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentHP: 6 }, LIVE_SHEET_MANUAL)
@@ -109,8 +111,9 @@ describe('Pilot hero — HP/AP trackers', () => {
     renderHero(pilot, updateSpy)
 
     await act(async () => {
-      // "Set AP to 5" fills the last segment → currentAP 5 (max).
-      fireEvent.click(screen.getByRole('button', { name: 'Set AP to 5' }))
+      // The last segment (index 4) fills to currentAP 5 (max).
+      const ap = screen.getByRole('slider', { name: 'AP' })
+      fireEvent.click(must(ap.querySelector('[data-pip-index="4"]')))
     })
 
     expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 5 }, LIVE_SHEET_MANUAL)

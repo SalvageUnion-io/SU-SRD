@@ -7,7 +7,7 @@
 
 import { rollD20 } from 'component-lib'
 import type { SURefRollTable } from 'salvageunion-reference'
-import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
+import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 
 /** Roll-table names for mech wizard flavor fields. */
 export const MECH_ROLL_TABLE_NAMES = {
@@ -32,6 +32,7 @@ const defaultDeps: MechRollTableDeps = {
 
 /**
  * Rolls a d20 and returns the result string for the given mech flavor field.
+ * A roll that lands on no row reads `NO_EFFECT`, as on the SRD and in the bot.
  * Returns null when the table cannot be found or the roll fails — the roll
  * is an assist, never a commitment (the result stays editable).
  */
@@ -43,5 +44,7 @@ export function rollForMechField(
   if (!table) return null
   const outcome = rollOnTable(table.table, deps.rollD20)
   if (!outcome.success) return null
+  // A roll that lands on no row reads as it does on the SRD and in the bot.
+  if (outcome.kind === 'no-effect') return NO_EFFECT
   return outcome.label ? `${outcome.label}: ${outcome.value}` : outcome.value
 }
