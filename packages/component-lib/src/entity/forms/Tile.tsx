@@ -37,6 +37,26 @@ function derivative(url: string, width: 440 | 880): string {
   return url.replace(/\.webp$/, `-${width}.webp`)
 }
 
+/** The schemas whose entity IS a tech level: their plate is the numeral. */
+export const TECH_LEVEL_SCHEMAS: ReadonlySet<string> = new Set([
+  'tech-levels',
+  'crawler-tech-levels',
+])
+
+/**
+ * The plate of a tile with no art place that is not a tech level (a crawler
+ * type, a distance, a faction): the initials of the name's first two words that open
+ * on a letter — "Trade Caravan" TC, "Close" C, "Crawler #693 Salvagers" CS.
+ */
+export function monogram(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter((word) => /^\p{L}/u.test(word))
+    .slice(0, 2)
+    .map((word) => word.charAt(0).toUpperCase())
+    .join('')
+}
+
 /** The name on its cut-out of the paper below, in ink (ruleset, "Chapter band"). */
 const NAME: CSSProperties = {
   color: 'var(--color-ink)',
@@ -58,8 +78,8 @@ const NAME: CSSProperties = {
 /**
  * TILE — the catalog form: the artwork is the hero. The art at 3:4 on paper
  * (the line art multiplied onto it, or the entity's censor mark when its
- * schema has art and it has none; for a tech level with no art, its numeral
- * as the plate), then the tone band with the name notched
+ * schema has art and it has none; with no art place at all, a tech level's
+ * numeral or any other entity's monogram as the plate), then the tone band with the name notched
  * into its foot on a cut-out of the paper below, in ink — the Workshop
  * Manual's chapter band at a tile's scale — then the facts as value cells and,
  * while browsing, the lead clamped to three lines.
@@ -72,8 +92,13 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
   const facts = factCells(model.facts, omit)
   const { art } = model
   const leadText = lead ? model.lead : undefined
-  // No art place at all, but a tech level: its numeral is the plate.
-  const numeral = art.kind === 'none' && model.techLevel != null ? model.techLevel : undefined
+  // No art place at all: a tech level's numeral is the plate, else the name's monogram.
+  const numeral =
+    art.kind !== 'none'
+      ? undefined
+      : TECH_LEVEL_SCHEMAS.has(model.ref.schemaName)
+        ? model.techLevel
+        : monogram(model.title) || undefined
   const artClass =
     art.kind === 'missing'
       ? ' su-entity-tile__art--missing'
