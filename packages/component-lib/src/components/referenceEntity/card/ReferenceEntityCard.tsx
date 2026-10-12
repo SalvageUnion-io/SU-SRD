@@ -29,12 +29,12 @@ import { Row } from '../../../entity/forms/Row'
 import type { TokenFact, TokenSlots } from '../../../entity/forms/Token'
 import { Token } from '../../../entity/forms/Token'
 import { InsidePeekContext } from '../../../entity/peekContext'
-import { Badge } from '../../chrome/Badge'
-import { assetSrcSetFor } from '../../shared/assetSrcSet'
-import { CardImage } from '../../shared/CardImage'
-import type { CardExtent, CardSize } from '../../shared/displayMode'
-import { resolveCardDisplay } from '../../shared/displayMode'
-import type { StatItem } from '../../shared/statsBarTypes'
+import { Badge } from '../../atoms/Badge'
+import { assetSrcSetFor } from '../../compositions/assetSrcSet'
+import { CardImage } from '../../compositions/CardImage'
+import type { CardExtent, CardSize } from '../../containers/displayMode'
+import { resolveCardDisplay } from '../../containers/displayMode'
+import type { StatItem } from '../../containers/statsBarTypes'
 import { useEntityExternalLink } from '../entityHrefContext'
 import { quotePatternName } from '../pattern/quotePatternName'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
@@ -1228,7 +1228,7 @@ export type ReferenceEntityCardWrapperProps = Omit<
 
 /**
  * `ReferenceEntityCard` — the public entry point for rendering a reference
- * entity. It takes the `size` / `extent` axes (`shared/displayMode.ts`),
+ * entity. It takes the `size` / `extent` axes (`containers/displayMode.ts`),
  * renders nothing for a null `data`, and greys the header for a damaged or
  * destroyed `status`. The recursive card body is `ReferenceEntityCardInner`.
  */

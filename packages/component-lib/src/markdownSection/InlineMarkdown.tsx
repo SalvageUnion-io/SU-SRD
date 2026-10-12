@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import { InlineRef } from '../components/chrome/InlineRef'
+import { InlineRef } from '../components/atoms/InlineRef'
 import { weight } from '../design/tokens'
 import type { InlineNode } from './parseMarkdownSection'
 import { parseInline } from './parseMarkdownSection'

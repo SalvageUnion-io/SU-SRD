@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Badge } from '../components/chrome/Badge'
-import { Card } from '../components/shared/Card'
-import { FilterRow } from '../components/shared/FilterRow'
-import { MasonryColumns } from '../components/shared/MasonryColumns'
+import { Badge } from '../components/atoms/Badge'
+import { Card } from '../components/containers/Card'
+import { FilterRow } from '../components/containers/FilterRow'
+import { MasonryColumns } from '../components/containers/MasonryColumns'
 import { color, font, space, weight } from '../design/tokens'
 import type { Story } from './_harness'
 

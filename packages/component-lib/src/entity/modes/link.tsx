@@ -1,6 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { activateOnKey, FOCUS_RING } from '../../components/chrome/interaction'
+import { activateOnKey, FOCUS_RING } from '../../components/atoms/interaction'
 import type { PeekAttrs } from '../peekContext'
 import type { EntityLinkAttrs, EntityMode } from '../types'
 import type { LinkTarget } from './linkTarget'

@@ -12,12 +12,12 @@ import {
   schemaDomain,
   tierNumeral,
 } from 'salvageunion-reference'
-import type { CardSize } from '../../shared/displayMode'
+import type { CardSize } from '../../containers/displayMode'
 /** The six card domains + `action` — the entity model's (`EntityDomain`). */
 export type CardDomain = EntityDomain
 
 /* The sizes a card renders at are NOT declared here. They live once, at the
- * Card layer (`shared/displayMode.ts`), and the entity card imports
+ * Card layer (`containers/displayMode.ts`), and the entity card imports
  * `CardSize` directly — an alias here would just be the second name that let
  * `head` and `listing` drift apart in the first place. */
 

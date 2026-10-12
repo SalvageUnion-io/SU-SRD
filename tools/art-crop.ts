@@ -3,7 +3,7 @@
 /**
  * art-crop — measure where each entity's line art actually sits on its canvas,
  * and write the map the entity page's hero crops to
- * (`packages/component-lib/src/components/shared/heroArtCrop.data.ts`).
+ * (`packages/component-lib/src/components/compositions/heroArtCrop.data.ts`).
  *
  *   bun run assets:crop
  *
@@ -36,7 +36,7 @@ import { nameToSlug } from '../packages/salvageunion-reference/lib/nameToSlug'
 
 const REPO = resolve(import.meta.dir, '..')
 const DATA = join(REPO, 'packages/salvageunion-reference/data')
-const OUT = join(REPO, 'packages/component-lib/src/components/shared/heroArtCrop.data.ts')
+const OUT = join(REPO, 'packages/component-lib/src/components/compositions/heroArtCrop.data.ts')
 const ASSET_BASE_URL = 'https://assets.salvageunion.io'
 const FALLBACK_CHROME = '/opt/pw-browsers/chromium'
 const ASSET_ORIGIN = new URL(ASSET_BASE_URL).origin

@@ -33,8 +33,8 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 - **No TanStack Query** — entity read hooks are store selectors in
   `src/hooks/entities/`; see `.claude/rules/itun-data-access.md`.
 - **Zustand** stores for persistent client state (`src/stores/`).
-- **Base UI** primitives from `component-lib` (`ui/`, `chrome/`, `base/`) —
-  there is no app-local `src/components/ui/`. Styling is the `component-lib`
+- **Base UI** primitives from `component-lib` (`atoms/`, `containers/`) —
+  there is no app-local primitives folder. Styling is the `component-lib`
   tokens and stylesheet (ADR-046).
 - **PWA** (`vite-plugin-pwa`, **`registerType: 'prompt'`**) — installable;
   the shell boots offline (signed out and empty: there is no data cache). It is `prompt` and must stay that way: `autoUpdate` force-sets

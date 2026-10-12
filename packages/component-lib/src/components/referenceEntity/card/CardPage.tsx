@@ -5,8 +5,8 @@ import type {
   SURefObjectAnyPattern,
 } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
-import { Slab } from '../../chrome/Slab'
-import { StatColumn } from '../../shared/StatColumn'
+import { Slab } from '../../atoms/Slab'
+import { StatColumn } from '../../atoms/StatColumn'
 import { buildBookStats } from '../referenceEntityStatsConfig'
 import { cardKey } from './cardHelpers'
 import { PatternLinkRows } from './PatternListRow'

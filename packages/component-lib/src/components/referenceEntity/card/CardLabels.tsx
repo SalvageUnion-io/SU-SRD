@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { space } from '../../../design/tokens'
-import { Badge } from '../../chrome/Badge'
-import { Stat } from '../../shared/Stat'
+import { Badge } from '../../atoms/Badge'
+import { Stat } from '../../atoms/Stat'
 import type { AxisMarker } from './entityCardTone'
 import { UserMadeStamp } from './UserMadeStamp'
 

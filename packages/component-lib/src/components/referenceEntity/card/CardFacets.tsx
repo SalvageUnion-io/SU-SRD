@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { space } from '../../../design/tokens'
 import { Facts } from '../../../entity/parts/Facts'
 import { Tags } from '../../../entity/parts/Tags'
-import type { CardSize } from '../../shared/displayMode'
+import type { CardSize } from '../../containers/displayMode'
 import type { SplitFacets } from './facetSplit'
 
 /** Padding by size: the row sits a few pixels above the body (board E1). */

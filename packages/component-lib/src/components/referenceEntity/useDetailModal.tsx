@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
-import type { StatItem } from '../shared/statsBarTypes'
+import type { StatItem } from '../containers/statsBarTypes'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
 import type { ReferenceEntityCardHideConfig } from './card/referenceEntityCardTypes'
 import { DetailIcon } from './DetailIcon'

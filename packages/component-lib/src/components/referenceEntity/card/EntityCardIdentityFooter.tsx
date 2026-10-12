@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
-import type { CardFootMeta } from '../../shared/Card'
-import type { CardSize } from '../../shared/displayMode'
+import type { CardFootMeta } from '../../containers/Card'
+import type { CardSize } from '../../containers/displayMode'
 import type { AdditionalSource } from './provenance'
 import { formatProvenance } from './provenance'
 

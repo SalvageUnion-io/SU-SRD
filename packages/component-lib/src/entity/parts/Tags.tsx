@@ -1,4 +1,4 @@
-import { Badge } from '../../components/chrome/Badge'
+import { Badge } from '../../components/atoms/Badge'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { useInsidePeek, usePeekAttrs } from '../peekContext'
 import type { TagItem } from './tagItems'

@@ -1,5 +1,5 @@
-import { Stat } from '../../components/shared/Stat'
-import type { StatItem } from '../../components/shared/statsBarTypes'
+import { Stat } from '../../components/atoms/Stat'
+import type { StatItem } from '../../components/containers/statsBarTypes'
 import type { SizeRung } from '../../styles/sizing'
 
 /**

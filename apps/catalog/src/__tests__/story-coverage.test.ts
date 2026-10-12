@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { Glob } from 'bun'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 import { storyGroups, storySubgroups } from 'component-lib/stories/groups'
 
@@ -27,7 +27,7 @@ const SRC = join(import.meta.dir, '../../../../packages/component-lib/src')
 /**
  * Barrel-exported components that intentionally have no standalone story.
  *
- * Currently EMPTY, and that is the healthy state. Every former entry
+ * One entry, below. Every earlier entry
  * (`CardImage`, `ControlButtons`, `ChassisAbilitiesContent`,
  * `SectionSeparator`) was an internal sub-part that had been published from the
  * barrel with no consumer outside this package; the barrel prune un-exported
@@ -36,7 +36,12 @@ const SRC = join(import.meta.dir, '../../../../packages/component-lib/src')
  * parent's story — with a one-line rationale. The stale-entry test below keeps
  * this list honest.
  */
-const ALLOWLIST = new Set<string>([])
+const ALLOWLIST = new Set<string>([
+  // SearchField's button twin, demonstrated in the Union bar it exists for
+  // (`compositions/AppBar.stories.tsx`); the taxonomy split put the two in
+  // different folders.
+  'SearchFieldTrigger',
+])
 
 /**
  * The only `*.stories.tsx` allowed to live in `src/stories/` — catalog-level
@@ -98,6 +103,9 @@ function scan(pattern: string, { apps }: { apps: boolean }): string[] {
     [...new Glob(pattern).scanSync(join(SRC, root))].map((f) => (root === '.' ? f : `${root}/${f}`))
   )
 }
+
+/** `components/` folders named for a story group: each holds only that group's stories. */
+const GROUP_FOLDERS = new Set(storyGroups.map((g) => g.toLowerCase()))
 
 const isComponentFile = (f: string) => !f.includes('.stories.') && !f.includes('__tests__')
 
@@ -259,6 +267,33 @@ describe('Story catalog: taxonomy', () => {
       .map(([title, files]) => `'${title}' claimed by ${files.join(' + ')}`)
       .sort()
     expect(collisions).toEqual([])
+  })
+
+  test("a library story's folder is its group", () => {
+    // `components/` is sorted by the taxonomy: a component lives in the folder
+    // of the group its story declares (`atoms/`, `containers/`,
+    // `compositions/`, `foundations/`), so a retitle and a move land together.
+    // `referenceEntity/` is the entity display system, kept whole across groups.
+    const offenders: string[] = []
+    const folders = readdirSync(join(SRC, 'components'), { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name)
+    for (const folder of folders) {
+      if (folder !== 'referenceEntity' && !GROUP_FOLDERS.has(folder)) {
+        offenders.push(
+          `components/${folder}/ is not a group folder (${[...GROUP_FOLDERS].join(', ')})`
+        )
+      }
+    }
+    for (const s of libStoryFiles) {
+      const folder = s.split('/')[1]
+      if (!s.startsWith('components/') || !folder || !GROUP_FOLDERS.has(folder)) continue
+      const group = stories.find((st) => st.file === s)?.title?.split('/')[0]
+      if (group?.toLowerCase() !== folder) {
+        offenders.push(`${s}: group '${group ?? '<none>'}' lives in components/${folder}/`)
+      }
+    }
+    expect(offenders.sort()).toEqual([])
   })
 
   test("a title's last segment names the component it demonstrates", () => {

@@ -13,7 +13,7 @@
  * card, which is what keeps the first clause true under a small parent.
  */
 import { describe, expect, test } from 'bun:test'
-import type { CardSize } from '../../../shared/displayMode'
+import type { CardSize } from '../../../containers/displayMode'
 import { nestedChildSize, titleSizeRung } from '../entityCardTone'
 
 // The canonical ladder, largest → smallest. A later position = a smaller title.

@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
-import { PageHeading } from '../components/chrome/PageHeading'
-import { Card } from '../components/shared/Card'
+import { PageHeading } from '../components/atoms/PageHeading'
+import { Card } from '../components/containers/Card'
 import { color, font, fontSize, space } from '../design/tokens'
 import { InlineMarkdown } from '../markdownSection/InlineMarkdown'
 

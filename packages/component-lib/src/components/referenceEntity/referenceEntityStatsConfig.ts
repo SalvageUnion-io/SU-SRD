@@ -13,7 +13,7 @@ import type {
   SURefObjectBonusPerTechLevel,
 } from 'salvageunion-reference'
 import { bookStats, entityStats } from 'salvageunion-reference'
-import type { StatItem } from '../shared/statsBarTypes'
+import type { StatItem } from '../containers/statsBarTypes'
 
 type BuildReferenceEntityStatsOptions = {
   compact: boolean

@@ -1,6 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import type { PeekAttrs } from '../../../entity/peekContext'
-import { RadioCard } from '../../chrome/RadioCardGroup'
+import { RadioCard } from '../../containers/RadioCardGroup'
 
 /** The card's outer wrapper, as `resolveCardInteraction` decides it. */
 export type CardOuterProps = {

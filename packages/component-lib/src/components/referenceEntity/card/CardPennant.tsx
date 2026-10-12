@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react'
 import { font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import { cn } from '../../../utils/cn'
-import { buttonVariants } from '../../chrome/buttonVariants'
-import { FOCUS_RING } from '../../chrome/interaction'
-import type { CardSize } from '../../shared/displayMode'
+import { buttonVariants } from '../../atoms/buttonVariants'
+import { FOCUS_RING } from '../../atoms/interaction'
+import type { CardSize } from '../../containers/displayMode'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { PENNANT_SHAPE } from './cardChrome'
 

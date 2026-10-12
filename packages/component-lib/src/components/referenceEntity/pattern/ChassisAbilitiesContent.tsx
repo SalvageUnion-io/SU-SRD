@@ -1,7 +1,7 @@
 import type { SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
-import { Slab } from '../../chrome/Slab'
+import { Slab } from '../../atoms/Slab'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
 import { getReferenceEntitySpacing, stackClassName } from '../referenceEntityTypes'
 import { PatternEquipmentItem } from './PatternEquipmentItem'

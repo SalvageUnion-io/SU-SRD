@@ -1,10 +1,10 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Badge } from '../components/chrome/Badge'
-import { RollTable } from '../components/shared/RollTable'
-import { SlotGrid } from '../components/shared/SlotGrid'
-import { Stat } from '../components/shared/Stat'
-import { VitalGauge } from '../components/stat/VitalGauge'
+import { Badge } from '../components/atoms/Badge'
+import { SlotGrid } from '../components/atoms/SlotGrid'
+import { Stat } from '../components/atoms/Stat'
+import { VitalGauge } from '../components/atoms/VitalGauge'
+import { RollTable } from '../components/compositions/RollTable'
 import {
   borderWidth,
   color,

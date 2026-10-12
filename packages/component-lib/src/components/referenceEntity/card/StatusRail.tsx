@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react'
 import { font, fontSize, space, tracking, weight } from '../../../design/tokens'
-import { Button } from '../../chrome/Button'
-import type { CardSize } from '../../shared/displayMode'
-import type { EntityStatus } from '../../shared/entityStatus'
+import { Button } from '../../atoms/Button'
+import type { EntityStatus } from '../../atoms/entityStatus'
+import type { CardSize } from '../../containers/displayMode'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 
 const STATES: { value: EntityStatus; label: string }[] = [
