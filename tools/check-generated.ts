@@ -5,15 +5,16 @@
  * Several committed files are machine output: the reference package's JSON
  * schemas, catalog and registry (`bun run build:package`), the VS Code
  * schema map, ITUN's `src/routeTree.gen.ts`, and the `worker-configuration.d.ts`
- * that `wrangler types` writes for su-assets and the bot (their `Env` comes from
- * wrangler.jsonc, so a binding added there without the code knowing fails
- * here). Each is regenerated here and then compared with what is committed. A
+ * that `wrangler types` writes for each of the four Workers (`Env` from
+ * wrangler.jsonc, so a binding added there without the types fails here). Each is regenerated here and then compared with what is committed. A
  * stale one fails.
  *
  * The Worker files hold `Env` only (`--include-runtime=false`): the workerd
  * runtime globals come once from the `@cloudflare/workers-types` root
- * devDependency, listed in each Worker's tsconfig `types`, instead of a 16k-line
- * copy per Worker. Bump it with `wrangler` — its peer range names the version
+ * devDependency, listed in su-assets' and the bot's tsconfig `types`, instead
+ * of a 16k-line copy per Worker. srd and ITUN typecheck their Worker with the
+ * DOM lib, which conflicts with that package, so their file is committed and
+ * drift-checked but no tsconfig includes it; their `Env` stays hand-written. Bump it with `wrangler` — its peer range names the version
  * matching the workerd it bundles.
  *
  * ## Why one tool
@@ -31,8 +32,8 @@
  *      - `bun apps/itun/scripts/generate-route-tree.ts` — the router plugin's
  *        own generator with the Vite config's options, without a build;
  *      - `wrangler types --strict-vars=false --include-runtime=false` in
- *        su-assets and discord-bot (not strict: the bot's tests sign with their
- *        own public key).
+ *        each Worker app (not strict: the bot's tests sign with their own
+ *        public key).
  *   2. Fails on any tracked change OR untracked file under GENERATED_PATHS.
  *
  * It WRITES those files — that is how the diff is produced — so it must run
@@ -73,6 +74,8 @@ export const GENERATED_PATHS = [
   'packages/salvageunion-reference/lib/generated',
   'packages/salvageunion-reference/lib/index.ts',
   'apps/itun/src/routeTree.gen.ts',
+  'apps/srd/worker-configuration.d.ts',
+  'apps/itun/worker-configuration.d.ts',
   'apps/su-assets/worker-configuration.d.ts',
   'apps/discord-bot/worker-configuration.d.ts',
 ] as const
@@ -98,14 +101,25 @@ const SHARED_INPUTS = [
   'tools/check-generated.ts',
 ]
 
-const workerTypes = (app: 'apps/su-assets' | 'apps/discord-bot'): GeneratorSpec => ({
+/** The four Worker apps; the `workers` check holds them to one shape. */
+export const WORKER_APPS = ['apps/srd', 'apps/itun', 'apps/su-assets', 'apps/discord-bot'] as const
+
+const workerTypes = (app: (typeof WORKER_APPS)[number]): GeneratorSpec => ({
   label: `${app} worker types`,
   cmd: ['bunx', 'wrangler', 'types', '--strict-vars=false', '--include-runtime=false'],
   cwd: app,
   outputs: [`${app}/worker-configuration.d.ts`],
-  // The whole app: wrangler.jsonc, the `.dev.vars`/`.env*` it reads secret
-  // names from, and the main module it names.
-  inputs: [app],
+  // What wrangler reads: wrangler.jsonc, the `.dev.vars`/`.env*` it takes
+  // secret names from, and the main module it names. Not the whole app: srd
+  // and ITUN would re-run it on every UI edit.
+  inputs: [
+    `${app}/wrangler.jsonc`,
+    `${app}/.dev.vars`,
+    `${app}/.env`,
+    `${app}/.env.local`,
+    `${app}/src/worker/index.ts`,
+    `${app}/worker-configuration.d.ts`,
+  ],
   tools: ['wrangler'],
 })
 
@@ -137,8 +151,7 @@ export const GENERATORS: GeneratorSpec[] = [
     ],
     tools: ['@tanstack/router-plugin'],
   },
-  workerTypes('apps/su-assets'),
-  workerTypes('apps/discord-bot'),
+  ...WORKER_APPS.map(workerTypes),
 ]
 
 export type Drift = { changed: string[]; untracked: string[] }

@@ -2595,3 +2595,238 @@ body {
     aspect-ratio: 4 / 3;
   }
 }
+
+/* — Containers (TW3) — */
+
+/*
+ * The stateful and caller-overridable half of the Containers group
+ * (`Containers/*` stories). A rule lands here, rather than in a style object,
+ * when its element takes a variant (`:hover`, `@media`) or merges a caller's
+ * `className`: an inline style would beat the caller's class, so the base
+ * stays a class the caller can still override.
+ */
+
+/* Card (`components/shared/Card.tsx`): the frame, the header row and the body.
+   `cardStyle.className`, `headerStyle.className` and `bodyPadding` are
+   callers' classes, merged onto these three. */
+.su-card {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  overflow: visible;
+  border-radius: var(--radius-card);
+}
+
+/* px-3 lines the header content up with the body and the footer. */
+.su-card-head {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-8);
+  overflow: visible;
+  min-height: 44px;
+  padding: var(--space-8) var(--space-12);
+}
+
+/* The label stamp riding the top border: the row top-aligns and pads under it,
+   so the gap below the stamp is the same whatever the header's height —
+   centred, a short header collided with the stamp and a tall one sat low.
+   Compact, the stamp sits centred on the edge, so 12px on top clears it. */
+.su-card-head[data-callout] {
+  align-items: flex-start;
+  padding-top: var(--space-20);
+  padding-bottom: var(--space-16);
+}
+
+.su-card-head[data-compact] {
+  min-height: 34px;
+  padding: var(--space-6) var(--space-10);
+}
+
+.su-card-head[data-compact][data-callout] {
+  padding-top: var(--space-12);
+}
+
+.su-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  isolation: isolate;
+  background-color: var(--color-paper);
+  padding: 0;
+}
+
+/* ModalShell's close ×: ink (paper on the danger band) at 60%, full strength
+   on a faint ink wash under the pointer. */
+.su-modal-close {
+  display: flex;
+  flex-shrink: 0;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  padding: var(--space-4);
+  color: color-mix(in oklab, var(--color-ink) 60%, transparent);
+  transition-property: color, background-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.su-modal-close:hover {
+  background-color: color-mix(in oklab, var(--color-ink) 20%, transparent);
+  color: var(--color-ink);
+}
+
+.su-modal-close[data-tone='danger'] {
+  color: color-mix(in oklab, var(--color-paper) 60%, transparent);
+}
+
+.su-modal-close[data-tone='danger']:hover {
+  color: var(--color-paper);
+}
+
+/* SheetSectionCard (`components/shared/SheetSectionCard.tsx`): its body block,
+   which merges the caller's `bodyClassName` (the sheets' grid gaps). */
+.su-sheet-section-stack {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* The framed surface's paper block, ruled down its left in the deep tone. */
+.su-sheet-section-paper {
+  flex: 1;
+  border-left: var(--bw-entity) solid var(--tone-deep);
+  background-color: var(--color-paper);
+  padding: var(--space-12) var(--space-14);
+}
+
+/* RecoveryPanel (`components/shared/RecoveryPanel.tsx`): the padding steps up
+   at `sm`; the heading takes the tight caps tracking in ink. */
+.su-recovery-panel {
+  padding: var(--space-24);
+}
+
+@media (min-width: 40rem) {
+  .su-recovery-panel {
+    padding: var(--space-32);
+  }
+}
+
+.su-recovery-panel-title {
+  letter-spacing: var(--tracking-caps-tight);
+  color: var(--color-ink);
+}
+
+/* FilterRow (`components/shared/FilterRow.tsx`): a centred stack on a phone;
+   from `sm`, a right-aligned 4.5rem label column beside left-aligned chips. */
+.su-filter-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.su-filter-row-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+@media (min-width: 40rem) {
+  .su-filter-row {
+    flex-direction: row;
+  }
+
+  .su-filter-row-label {
+    width: 4.5rem;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .su-filter-row-chips {
+    justify-content: flex-start;
+  }
+}
+
+/* MasonryColumns (`components/shared/MasonryColumns.tsx`): independent flex
+   columns, collapsed to one stacked column in print. */
+.su-masonry {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-16);
+}
+
+.su-masonry-column {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+@media print {
+  .su-masonry {
+    display: block;
+  }
+
+  .su-masonry-column {
+    width: 100%;
+  }
+}
+
+/* Skeleton (`components/skeleton/Skeleton.tsx`): the ghost bar, and the pulse
+   every loading placeholder breathes with — only for a reader who has not
+   asked for reduced motion. */
+.su-ghost {
+  border-radius: var(--radius-badge);
+  background-color: color-mix(in oklab, var(--color-ink) 10%, transparent);
+}
+
+@keyframes su-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .su-pulse {
+    animation: su-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+/* RosterSkeleton (`components/shared/RosterSkeleton.tsx`): one column on a
+   phone, the hydrated roster's three from `md`. */
+.su-roster-skeleton {
+  margin-top: var(--space-20);
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: var(--space-32);
+}
+
+.su-roster-skeleton-wide {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .su-roster-skeleton {
+    margin-top: var(--space-24);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .su-roster-skeleton-wide {
+    display: block;
+  }
+}
+
+/* SheetSectionSlab (`components/shared/SheetSectionSlab.tsx`): its slab
+   leader wraps, so a long title beside a long control drops the controls to
+   their own line rather than overflowing a phone's column. */
+.su-sheet-slab-lead {
+  flex-wrap: wrap;
+}

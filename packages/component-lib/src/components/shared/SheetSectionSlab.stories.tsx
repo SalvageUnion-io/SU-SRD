@@ -1,4 +1,5 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import type { CSSVarStyle } from '../../styles/cssVars'
@@ -15,11 +16,13 @@ const MECH_TONE: CSSVarStyle = {
   '--tone-deep': 'var(--color-mech-dark)',
 }
 
+const STACK = { display: 'flex', flexDirection: 'column', gap: space[12] } satisfies CSSVarStyle
+
 /** The unframed section: slab leader over entity cards on the bare sheet ground. */
 export const Default: Story = () => {
   const systems = SalvageUnionReference.Systems.all().slice(0, 3)
   return (
-    <div className="flex flex-col gap-3" style={MECH_TONE}>
+    <div style={{ ...MECH_TONE, ...STACK }}>
       <Caption>
         Entity-card sections use the slab: a stamp title, count and rule, then the cards themselves
         — no second frame around cards that are already framed.

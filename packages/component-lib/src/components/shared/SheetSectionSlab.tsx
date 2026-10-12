@@ -27,8 +27,9 @@
  */
 
 import { ChevronDown } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useId, useState } from 'react'
+import { color, space } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { Button } from '../chrome/Button'
 import { Slab } from '../chrome/Slab'
@@ -63,6 +64,25 @@ type SheetSectionSlabProps = {
   children: ReactNode
 }
 
+/** `compact`'s 28px, the one documented override on the `iconOnly` rung: this
+ *  chevron shares the slab's actions rail with the section Edit/Add buttons,
+ *  which run at `compact`, so it matches THEM rather than the rung's 36px. */
+const FOLD_BUTTON = {
+  width: space[28],
+  height: space[28],
+  borderColor: color.ink35,
+} satisfies CSSProperties
+
+const CHEVRON = {
+  width: space[16],
+  height: space[16],
+  transitionProperty: 'transform, translate, scale, rotate',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  transitionDuration: '150ms',
+} satisfies CSSProperties
+
+const BODY = { minWidth: 0 } satisfies CSSProperties
+
 /** Slab-led, unframed section container for entity-card collections. */
 export function SheetSectionSlab({
   title,
@@ -85,7 +105,7 @@ export function SheetSectionSlab({
     // `.sheet-section` keeps the print page-break rule the card container also
     // carries, so moving a section between the two never changes pagination.
     <section id={id} className={cn('sheet-section', className)}>
-      {/* `flex-wrap`: the slab leader is one flex row of shrink-0 parts (stamp,
+      {/* Wrapping (`.su-sheet-slab-lead`): the slab leader is one flex row of shrink-0 parts (stamp,
           count, rule, controls). A long title beside a long control — e.g.
           "Armament Bay Weapons" + "+ Add weapons system" — is 432px of content
           in a 350px column at 390px viewport, which overflowed the sheet
@@ -96,7 +116,7 @@ export function SheetSectionSlab({
         variant="solid"
         label={title}
         count={count}
-        className="flex-wrap"
+        className="su-sheet-slab-lead"
         actions={
           <>
             {controls}
@@ -110,18 +130,11 @@ export function SheetSectionSlab({
                 // The accessible name carries the section, so a screen reader
                 // hears "Collapse Systems" rather than a rail of bare chevrons.
                 aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${title}`}
-                // `size-7` (28px) is the one documented override on the rung:
-                // this chevron shares the slab's actions rail with the section
-                // Edit/Add buttons, which run at `compact`, so it matches THEM
-                // rather than the rung's 36px resting height.
-                className="size-7 border-ink/35"
+                style={FOLD_BUTTON}
               >
                 <ChevronDown
                   aria-hidden="true"
-                  className={cn(
-                    'size-4 transition-transform duration-150',
-                    collapsed && '-rotate-90'
-                  )}
+                  style={collapsed ? { ...CHEVRON, rotate: '-90deg' } : CHEVRON}
                 />
               </Button>
             )}
@@ -131,7 +144,7 @@ export function SheetSectionSlab({
       {/* Kept mounted and hidden rather than unmounted: the cards inside hold
           their own open/closed state, and unmounting would silently reset every
           one of them each time the section was folded. */}
-      <div id={bodyId} hidden={folded} className={cn('min-w-0', bodyClassName)}>
+      <div id={bodyId} hidden={folded} className={bodyClassName} style={BODY}>
         {children}
       </div>
     </section>

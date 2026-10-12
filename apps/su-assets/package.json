@@ -8,7 +8,9 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "deploy": "wrangler deploy",
-    "worker:bundle": "wrangler deploy --dry-run"
+    "worker:bundle": "wrangler deploy --dry-run",
+    "dev": "wrangler dev",
+    "build": "bun run typecheck && bun run worker:bundle"
   },
   "dependencies": {
     "observability": "workspace:*"

@@ -43,6 +43,7 @@ the corpus size, not just the finding count.
 | `rules-fidelity` | `check-fidelity-lock.ts`: fails a prose string whose text has no verdict in the lock (`--prune` drops entries for deleted strings). Needs no book; the verdicts come from `check-rules-fidelity.ts --update` | `packages/salvageunion-reference/fidelity.lock.json` |
 | `doc-drift` | `check-doc-drift.ts` | `OVER_BUDGET`, `COLLAPSED_DOCS` and `RETIRED_CLAIMS` in the script |
 | `observability` | `check-observability.ts` | — |
+| `workers` | `check-workers.ts` | — |
 | `convex-callers` | `check-convex-callers.ts` (also: `api.d.ts` registers exactly the modules on disk) | — |
 | `client-contract` | `check-client-contract.ts` (`--write` records the snapshot; refuses a breaking change without a raised `BUILD_FLOOR`) | `convex-client-contract.json` |
 | `barrel-consumers` | `check-barrel-consumers.ts` | `SINGLE_APP` in the script (storyless helpers only) |
