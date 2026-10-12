@@ -68,8 +68,9 @@
   }
 }
 
-/* The aside, then the index: one stack on a phone, the aside first so a
-   first-timer meets "New to the Union?" before the index. */
+/* The aside, the index, then the Discord bot: one stack on a phone, the aside
+   first so a first-timer meets "New to the Union?" before the index, and the
+   bot after it so the index is not pushed a screen down. */
 .srd-home__body {
   display: flex;
   flex-direction: column;
@@ -106,13 +107,18 @@
   }
 }
 
-/* A desktop pins the aside to a 20rem sidebar at the right of the index. */
+/* A desktop pins the aside and the Discord bot to a 20rem sidebar at the
+   right of the index, the bot under the aside. The index spans both rows; the
+   second row is the flexible one, so the index's height lands there and the
+   bot sits a panel's gap under "New to the Union?". */
 @media (min-width: 64rem) {
   .srd-home__body {
     align-items: start;
     column-gap: var(--space-28);
     display: grid;
     grid-template-columns: minmax(0, 1fr) 20rem;
+    grid-template-rows: auto 1fr;
+    row-gap: var(--space-14);
   }
 
   .srd-home__aside {
@@ -122,7 +128,12 @@
 
   .srd-home__index {
     grid-column: 1;
-    grid-row: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .srd-home__discord {
+    grid-column: 2;
+    grid-row: 2;
   }
 }
 
@@ -286,6 +297,25 @@
   border: var(--bw-chrome) solid var(--color-ink);
   border-bottom: 0;
   height: 8px;
+}
+
+/* A chapter opener's artwork, under its band: the line art is printed on
+   white, so `multiply` lays it onto the paper, ruled in ink at the sides like
+   the band; the heading's rule closes the plate. */
+.srd-contents__art {
+  background-color: var(--color-paper);
+  border-inline: var(--bw-chrome) solid var(--color-ink);
+  height: 10rem;
+  position: relative;
+}
+
+.srd-contents__art img {
+  height: calc(100% - 2 * var(--space-6));
+  inset: var(--space-6);
+  mix-blend-mode: multiply;
+  object-fit: contain;
+  position: absolute;
+  width: calc(100% - 2 * var(--space-6));
 }
 
 .srd-contents__heading {
