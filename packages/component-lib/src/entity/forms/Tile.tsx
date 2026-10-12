@@ -11,6 +11,7 @@ import { Facts } from '../parts/Facts'
 import { factCells } from '../parts/factCells'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
+import { monogram, TECH_LEVEL_SCHEMAS } from '../parts/plate'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
 
 export type TileProps = {
@@ -58,8 +59,8 @@ const NAME: CSSProperties = {
 /**
  * TILE — the catalog form: the artwork is the hero. The art at 3:4 on paper
  * (the line art multiplied onto it, or the entity's censor mark when its
- * schema has art and it has none; for a tech level with no art, its numeral
- * as the plate), then the tone band with the name notched
+ * schema has art and it has none; with no art place at all, a tech level's
+ * numeral or any other entity's monogram as the plate), then the tone band with the name notched
  * into its foot on a cut-out of the paper below, in ink — the Workshop
  * Manual's chapter band at a tile's scale — then the facts as value cells and,
  * while browsing, the lead clamped to three lines.
@@ -72,8 +73,13 @@ export function Tile({ model, mode = READ, omit = [], lead = false }: TileProps)
   const facts = factCells(model.facts, omit)
   const { art } = model
   const leadText = lead ? model.lead : undefined
-  // No art place at all, but a tech level: its numeral is the plate.
-  const numeral = art.kind === 'none' && model.techLevel != null ? model.techLevel : undefined
+  // No art place at all: a tech level's numeral is the plate, else the name's monogram.
+  const numeral =
+    art.kind !== 'none'
+      ? undefined
+      : TECH_LEVEL_SCHEMAS.has(model.ref.schemaName)
+        ? model.techLevel
+        : monogram(model.title) || undefined
   const artClass =
     art.kind === 'missing'
       ? ' su-entity-tile__art--missing'

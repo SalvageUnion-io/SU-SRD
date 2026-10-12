@@ -19,7 +19,7 @@
 @import './styles/routeStates.css';
 @import './styles/screens.css';
 @import './styles/controls.css';
-/* The live and public sheet (TW-d). */
+/* The live and public sheet. */
 @import './styles/sheet.css';
 
 /* === Base layout === */

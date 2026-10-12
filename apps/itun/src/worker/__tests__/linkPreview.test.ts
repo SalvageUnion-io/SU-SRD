@@ -214,7 +214,7 @@ describe('a Discordbot fetch of an invite', () => {
   })
 
   it('keeps the sitewide defaults for a dead code', async () => {
-    expect(meta(await unfurl('/invite/DEADCODE'), 'og:title')).toBe('In The Union Now')
+    expect(meta(await unfurl('/invite/DEADCODE'), 'og:title')).toBe('In the Union now')
   })
 })
 
@@ -233,7 +233,7 @@ describe('when Convex does not answer', () => {
       new Response('down', { status: 503 })) as unknown as typeof fetch
     const res = await worker.fetch(discordbot('/p/pilot/p-1'), env())
     expect(res.status).toBe(200)
-    expect(meta(await res.text(), 'og:title')).toBe('In The Union Now')
+    expect(meta(await res.text(), 'og:title')).toBe('In the Union now')
   })
 })
 
@@ -241,13 +241,14 @@ describe('previewRouteOf', () => {
   it('reads the routes a player shares, and nothing else', () => {
     expect(previewRouteOf('/p/pilot/abc')).toEqual({ type: 'sheet', kind: 'pilot', id: 'abc' })
     expect(previewRouteOf('/p/pattern/abc')).toEqual({ type: 'sheet', kind: 'pattern', id: 'abc' })
+    expect(previewRouteOf('/p/npc/abc')).toEqual({ type: 'sheet', kind: 'npc', id: 'abc' })
     expect(previewRouteOf('/invite/0123456789ABCDEF')).toEqual({
       type: 'invite',
       code: '0123456789ABCDEF',
     })
     expect(previewRouteOf('/join/K7QR2XA')).toBeNull()
     expect(previewRouteOf('/invite')).toBeNull()
-    expect(previewRouteOf('/p/npc/abc')).toBeNull()
+    expect(previewRouteOf('/p/encounter/abc')).toBeNull()
     expect(previewRouteOf('/sheet/pilot/abc')).toBeNull()
     expect(previewRouteOf('/p/pilot/<script>')).toBeNull()
   })

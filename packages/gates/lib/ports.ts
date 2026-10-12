@@ -1,0 +1,72 @@
+/**
+ * ports — each checkout's own dev-server ports, so parallel worktrees never
+ * share one.
+ *
+ * srd's dev server (`bun run dev`) and the story catalog (`bun run stories`)
+ * used to listen on fixed ports, 4321 and 61000. A second worktree then either
+ * failed to start its server or, worse, `bun run shot` and srd's Playwright
+ * suite reused the first checkout's server and silently measured that
+ * checkout's code.
+ *
+ * - The primary checkout (its `.git` is a directory) and CI keep the base
+ *   ports: `.claude/launch.json`, `wrangler.jsonc`'s `dev.port` and the CI
+ *   workflows name them.
+ * - A linked worktree (its `.git` is a file) adds an offset of 1–99 hashed
+ *   from its own path: stable across restarts, distinct between worktrees
+ *   but for a rare collision.
+ * - An explicit `PORT` wins over both. The browser preview
+ *   (`.claude/launch.json`, `autoPort`) always starts a server with `PORT` set
+ *   to the port it waits on: the base port, or a free one when another
+ *   checkout holds that. `tools/shot.ts` passes `PORT` too (and `--port` to
+ *   ITUN's Vite, which leaves its port at 5173 for `bun run dev:itun`).
+ * - Every server, ITUN's Vite included, answers with
+ *   `x-su-checkout: <this checkout's root>`, so a client that finds its port
+ *   busy can tell its own server from another checkout's (a collision, or a
+ *   stale process) and refuse the latter, as `tools/shot.ts` does.
+ */
+import { createHash } from 'node:crypto'
+import { realpathSync, statSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+/**
+ * The ports the primary checkout listens on. `itun` is ITUN booted signed out
+ * with no backend, `bun run shot itun:/route`'s own server; `bun run dev:itun`
+ * is not on it, and stays on 5173, where its local Convex backend expects it.
+ */
+export const BASE_PORTS = { srd: 4321, stories: 61000, itun: 5180 } as const
+export type DevServer = keyof typeof BASE_PORTS
+
+/** The response header each dev server names its checkout in. */
+export const CHECKOUT_HEADER = 'x-su-checkout'
+
+/** Offsets run 1..SPAN-1; 0 is the primary checkout's. */
+const SPAN = 100
+
+/** This checkout's root, symlinks resolved: three levels above `packages/gates/lib/`. */
+export const CHECKOUT_ROOT = realpathSync(fileURLToPath(new URL('../../../', import.meta.url)))
+
+/** True for the primary checkout, whose `.git` is a directory (a linked worktree's is a file). */
+export function isPrimaryCheckout(root: string): boolean {
+  try {
+    return statSync(join(root, '.git')).isDirectory()
+  } catch {
+    // No `.git` at all (an exported tree): nothing shares its ports.
+    return true
+  }
+}
+
+/** 0 for the primary checkout, else 1..99 hashed from the checkout's path. */
+export function portOffset(root: string, primary: boolean): number {
+  if (primary) return 0
+  const hash = createHash('sha256').update(root).digest().readUInt32BE(0)
+  return 1 + (hash % (SPAN - 1))
+}
+
+/** The port `server` listens on in this checkout (CI always uses the base port). */
+export function portFor(
+  server: DevServer,
+  { root = CHECKOUT_ROOT, ci = Boolean(process.env.CI) }: { root?: string; ci?: boolean } = {}
+): number {
+  return BASE_PORTS[server] + (ci ? 0 : portOffset(root, isPrimaryCheckout(root)))
+}

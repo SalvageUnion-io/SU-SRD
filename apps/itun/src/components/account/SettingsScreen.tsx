@@ -1,5 +1,6 @@
 import { Button, Card, ChapterBand, Input, PageHeading, Text } from 'component-lib'
 import { space } from 'component-lib/design/tokens'
+import { PRODUCT } from 'component-lib/product'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
@@ -178,8 +179,8 @@ function SettingsBody() {
     <Card>
       <div style={CARD_BODY}>
         <Text>
-          You are not signed in. Signed out, In the Union Now is read-only: you can browse the
-          Starter Set, but building anything needs an account.
+          You are not signed in. Signed out, {PRODUCT.name} is read-only: you can browse the Starter
+          Set, but building anything needs an account.
         </Text>
         <Text variant="hint" style={HINT}>
           Signing in saves your builds to your account, carries them between devices, and lets you

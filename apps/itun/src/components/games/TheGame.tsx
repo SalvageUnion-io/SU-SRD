@@ -11,7 +11,7 @@
  * solo Organizer may appoint themselves.
  *
  * Rename, the Discord channel line and Archive are not here: the first two are
- * P8b, and what archiving a Game should mean is the owner's decision.
+ * not built yet, and what archiving a Game should mean is the owner's decision.
  */
 
 import { Button, ConfirmDialog, Field, Select, tokens } from 'component-lib'

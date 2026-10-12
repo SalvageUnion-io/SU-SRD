@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Doc drift — `bun run check doc-drift`. Seven checks, each asking whether
+ * Doc drift — `bun run check doc-drift`. Eight checks, each asking whether
  * what a doc tells a reader is still true:
  *
  *   paths    every backticked repo path in a live-instruction doc exists,
@@ -22,7 +22,12 @@
  *            sections: a bold headline, then at most two lines.
  *   links    every relative markdown link in a tracked `.md` file resolves,
  *            and its `#fragment`, into a `.md` file or the same file, names a
- *            heading there.
+ *            heading or an `<a id>` anchor there.
+ *   areas    every entry under `## Areas` in docs/ARCHITECTURE.md carries one
+ *            `<a id="slug"></a>` anchor, and every tracked file cites an Area
+ *            by that slug: no bare "Areas N" (the numbers shift whenever an
+ *            Area is inserted), and every `ARCHITECTURE.md#fragment` names an
+ *            anchor there other than the whole-section `#areas`.
  *   size     root and per-directory CLAUDE.md files stay under 8,000
  *            characters and `.claude/rules/*.md` under 4,000.
  *            They load into every agent session in scope, so growth costs
@@ -531,7 +536,13 @@ export function headingSlug(heading: string): string {
     .replace(/\s/g, '-')
 }
 
-/** Every heading anchor in a markdown source, fences skipped, repeats suffixed `-1`, `-2`. */
+/** An anchor GitHub keeps in rendered markdown: `<a id="slug">` or `<a name="slug">`. */
+const HTML_ANCHOR = /<a\s+(?:id|name)="([^"]+)"/g
+
+/**
+ * Every anchor in a markdown source, fences skipped: each heading's slug,
+ * repeats suffixed `-1`, `-2`, and each `<a id>` / `<a name>`.
+ */
 function headingSlugs(source: string): Set<string> {
   const slugs = new Set<string>()
   const seen = new Map<string, number>()
@@ -541,7 +552,11 @@ function headingSlugs(source: string): Set<string> {
       inFence = !inFence
       continue
     }
-    const heading = inFence ? null : line.match(/^\s{0,3}#{1,6}\s+(.*?)(?:\s+#+)?\s*$/)
+    if (inFence) continue
+    for (const anchor of line.replace(/`[^`]*`/g, '').matchAll(HTML_ANCHOR)) {
+      slugs.add(anchor[1] as string)
+    }
+    const heading = line.match(/^\s{0,3}#{1,6}\s+(.*?)(?:\s+#+)?\s*$/)
     if (!heading) continue
     const base = headingSlug(heading[1] as string)
     const repeat = seen.get(base) ?? 0
@@ -588,7 +603,7 @@ export function checkMarkdownLinks(
         if (fragment === undefined || fragment === '' || !resolved.endsWith('.md')) continue
         if (!slugsOf(resolved).has(decodeURIComponent(fragment))) {
           failures.push(
-            `${at} links to \`${target}\`, whose #${fragment} is no heading in ${resolved}.`
+            `${at} links to \`${target}\`, whose #${fragment} is no heading or anchor in ${resolved}.`
           )
         }
       }
@@ -600,7 +615,112 @@ export function checkMarkdownLinks(
   }
 }
 
-// ─── decisions ──────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 areas \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+/** The doc whose `## Areas` entries the rest of the repo cites. */
+const AREAS_DOC = 'docs/ARCHITECTURE.md'
+
+/** An Area's anchor, closing its headline line: ` <a id="slug"></a>`, the slug lowercase and hyphenated. */
+const AREA_ANCHOR = / <a id="([a-z0-9]+(?:-[a-z0-9]+)*)"><\/a>$/
+
+/** "Areas 17", "Area 9\u201312": an Area cited by a number, which shifts whenever one is inserted. */
+const AREA_NUMBER = /\bAreas?\s+\d+/g
+
+/** `ARCHITECTURE.md#fragment`, as a link target or a path in a comment. */
+const AREAS_DOC_FRAGMENT = /\bARCHITECTURE\.md#([\w%-]+)/g
+
+/** `ARCHITECTURE.md ("Title")`, `ARCHITECTURE.md, "Title"` or `ARCHITECTURE.md § Title`: a title nothing resolves. */
+const AREAS_DOC_TITLE = /\bARCHITECTURE\.md(?: \("|, "| §)/g
+
+/** The checker and its tests, whose fixtures cite fragments that do not exist on purpose. */
+const AREA_CITATION_EXEMPT = new Set([
+  'tools/check-doc-drift.ts',
+  'tools/__tests__/check-doc-drift.test.ts',
+])
+
+/** Every tracked text file that cites `ARCHITECTURE.md#…`, a section by title, or an Area by number. */
+function filesCitingAreas(root: string): string[] {
+  const out = Bun.spawnSync(
+    [
+      'git',
+      'grep',
+      '-lIE',
+      '-e',
+      'ARCHITECTURE\\.md#',
+      '-e',
+      'ARCHITECTURE\\.md( \\("|, "| §)',
+      '-e',
+      'Areas? +[0-9]',
+    ],
+    { cwd: root }
+  )
+  // git grep exits 1 when nothing matches.
+  if (out.exitCode > 1) throw new Error(`git grep failed: ${out.stderr.toString()}`)
+  return out.stdout
+    .toString()
+    .split('\n')
+    .filter((file) => file !== '' && !AREA_CITATION_EXEMPT.has(file))
+}
+
+export function checkAreaCitations(
+  root: string,
+  files: string[] = filesCitingAreas(root)
+): CheckResult {
+  const failures: string[] = []
+  const source = read(root, AREAS_DOC)
+  const areas = entriesOf(source).filter((entry) => entry.section === 'Areas')
+  if (areas.length === 0) failures.push(`${AREAS_DOC} has no numbered entries under \`## Areas\`.`)
+  const seen = new Set<string>()
+  for (const entry of areas) {
+    const at = `${AREAS_DOC}:${entry.start + 1}`
+    const slug = entry.lines[0]?.match(AREA_ANCHOR)?.[1]
+    if (slug === undefined) {
+      failures.push(
+        `${at} is an Area with no anchor. End its headline line with \` <a id="slug"></a>\` (lowercase, hyphenated).`
+      )
+    } else if (seen.has(slug)) {
+      failures.push(`${at} repeats the anchor #${slug}. Give each Area its own.`)
+    } else {
+      seen.add(slug)
+    }
+  }
+  const anchors = headingSlugs(source)
+  let cited = 0
+  for (const file of files) {
+    for (const [index, line] of read(root, file).split('\n').entries()) {
+      const at = `${file}:${index + 1}`
+      for (const m of line.matchAll(AREA_NUMBER)) {
+        failures.push(
+          `${at} cites "${m[0]}" by number, which shifts when an Area is inserted. Cite its anchor: \`ARCHITECTURE.md#slug\`.`
+        )
+      }
+      for (const m of line.matchAll(AREAS_DOC_TITLE)) {
+        failures.push(
+          `${at} cites ARCHITECTURE.md by a section title (\`${m[0].slice(m[0].indexOf(' '))}\`), which nothing resolves. Cite its anchor: \`ARCHITECTURE.md#slug\`.`
+        )
+      }
+      for (const m of line.matchAll(AREAS_DOC_FRAGMENT)) {
+        cited++
+        const fragment = decodeURIComponent(m[1] as string)
+        if (fragment === 'areas') {
+          failures.push(
+            `${at} cites ARCHITECTURE.md#areas, the whole section. Cite the Area's own anchor.`
+          )
+        } else if (!anchors.has(fragment)) {
+          failures.push(
+            `${at} cites ARCHITECTURE.md#${fragment}, which is no heading or anchor in ${AREAS_DOC}.`
+          )
+        }
+      }
+    }
+  }
+  return {
+    ok: `${areas.length} Areas anchored; ${cited} ARCHITECTURE.md# citations in ${files.length} files resolve`,
+    failures,
+  }
+}
+
+// \u2500\u2500\u2500 decisions \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 /** The one file the ADRs live in, as the numbered entries under its `## Decisions`. */
 const DECISIONS_DOC = 'docs/ARCHITECTURE.md'
@@ -785,26 +905,27 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/itun/CLAUDE.md': 11_751,
-  'CLAUDE.md': 10_862,
+  'apps/itun/CLAUDE.md': 11_686,
+  'CLAUDE.md': 10_221,
 }
 
 /**
  * Context docs collapsed to terse lists, each held near its collapsed size so
  * prose cannot creep back. Raise one only on purpose, saying why in the PR.
+ * ARCHITECTURE.md and README.md rose once for the Area anchors and the links
+ * that cite them by slug (the `areas` check), not for prose.
  */
 const COLLAPSED_DOCS: Record<string, number> = {
   'apps/srd/ssg/DESIGN.md': 5_400,
-  'docs/ARCHITECTURE.md': 19_500,
-  'docs/README.md': 2_000,
+  'docs/ARCHITECTURE.md': 20_500,
+  'docs/README.md': 2_600,
   'docs/architecture/dashboard.md': 3_000,
   'docs/architecture/mediator-dashboard.md': 4_500,
   'docs/architecture/npc-builder.md': 2_000,
   'docs/design-system/entity-display-language.md': 6_000,
-  'docs/design-system/refresh-ledger.md': 6_500,
   'docs/design-system/ruleset.md': 13_000,
+  'docs/design-system/sources.md': 3_600,
   'docs/ops/cloud-environment.md': 3_800,
-  'docs/ops/domain-transfer.md': 2_500,
 }
 
 export function checkDocSizes(
@@ -851,6 +972,7 @@ const CHECKS = [
   checkReferencedScripts,
   (root: string) => checkRetiredClaims(root),
   (root: string) => checkMarkdownLinks(root),
+  (root: string) => checkAreaCitations(root),
   (root: string) => checkDecisions(root),
   (root: string) => checkTerseShape(root),
   (root: string) => checkDocSizes(root),

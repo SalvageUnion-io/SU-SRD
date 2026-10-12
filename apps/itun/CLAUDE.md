@@ -8,7 +8,8 @@ touching data.** They live in
 which loads with the stores, hooks, `src/lib/connection/`, `convex/` and
 `e2e/`. In short: signed out, ITUN is read-only and holds nothing; signed in,
 Convex is the truth and the stores hold its rows in memory. Nothing
-player-owned is kept on the device (D9: no IndexedDB).
+player-owned is kept on the device
+([no device cache](../../docs/ARCHITECTURE.md#no-device-cache)).
 
 **One account-free way to share: the public sheet
 ([ADR-032](../../docs/ARCHITECTURE.md)).** A **live**
@@ -23,7 +24,8 @@ static "retired" page and reads nothing. Nothing binds the `su-itun-snapshots`
 R2 bucket; deleting it is the owner's call, never an agent's.
 
 Every read-only sheet — a crewmate's at `/sheet/:kind/:id`, the public one —
-is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
+is the live `<Sheet readOnly>` over `src/components/sheet/readOnlySheetStore.ts`.
+Don't add another.
 
 ## Stack
 
@@ -32,31 +34,30 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   generated to `src/routeTree.gen.ts` (do not hand-edit).
 - **No TanStack Query** — entity read hooks are store selectors in
   `src/hooks/entities/`; see `.claude/rules/itun-data-access.md`.
-- **Zustand** stores for persistent client state (`src/stores/`).
+- **Zustand** stores (`src/stores/`), in memory; only the active container
+  persists (`localStorage`).
 - **Base UI** primitives from `component-lib` (`atoms/`, `containers/`) —
   there is no app-local primitives folder. Styling is the `component-lib`
   tokens and stylesheet (ADR-046).
 - **PWA** (`vite-plugin-pwa`, **`registerType: 'prompt'`**) — installable;
-  the shell boots offline (signed out and empty: there is no data cache). It is `prompt` and must stay that way: `autoUpdate` force-sets
-  `skipWaiting` + `clientsClaim` (a plugin assignment the `workbox` block
-  cannot override), which activated a new worker under a live page and dropped
-  the precache entries it was still resolving chunks against. Navigations are **network-first** (`src/lib/sw/workbox.ts`): online
-  boots the deployed shell, offline the precached one. No update toast. A
-  compatible build is picked up at the next page change
-  (`src/lib/sw/softUpdate.ts`); a breaking one raises the build floor
-  (`convex/buildFloor.ts`, by hand), which reloads stale tabs. See the headers of `vite.config.ts`,
-  `src/lib/sw/`, `src/lib/connection/buildFloor.ts`, `installChunkRecovery`
-  and the Worker's `/assets/*` → 404 rule (`src/worker/index.ts`).
+  the shell boots offline (signed out and empty: there is no data cache). It
+  is `prompt` and must stay that way: `autoUpdate` force-sets `skipWaiting` +
+  `clientsClaim`, which activated a new worker under a live page and dropped
+  the precache entries it was still resolving chunks against. Navigations are
+  **network-first** (`src/lib/sw/workbox.ts`): online boots the deployed shell,
+  offline the precached one. A compatible build is picked up at the next page
+  change (`src/lib/sw/softUpdate.ts`); a breaking one raises the build floor
+  (`convex/buildFloor.ts`, by hand), which reloads stale tabs.
 
 ## Persistence (read before touching data)
 
-- Player data lives in **Convex** only; the stores hold this page load's rows
-  in memory. Record kinds (`src/stores/records.ts`): `pilots`, `mechs`, `crawlers`, `npcs`, `softLinks`,
+- Record kinds (`src/stores/records.ts`): `pilots`, `mechs`, `crawlers`, `npcs`, `softLinks`,
   `mechPatterns`, `encounterNpcs`. The Change Log
   ([ADR-022](../../docs/ARCHITECTURE.md)) has no device store: it is
   the Convex `changeLog` table, written by `commitChangeLog` and read by
   `changeLog.forEntity`.
-- **Zod schemas (`src/lib/schemas/`) are the source of truth** for entity shape;
+- **Zod schemas (`packages/itun-domain/src/schemas/`, imported as
+  `itun-domain/schemas/*`) are the source of truth** for entity shape;
   every create, update and adopted server row parses strictly
   (`src/stores/records.ts`); `ShelfSync` reports a row that does not parse and
   carries on.
@@ -109,7 +110,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   ([ADR-007](../../docs/ARCHITECTURE.md),
   [ADR-009](../../docs/ARCHITECTURE.md)).
 - The one sheet-local play control is `CrawlerEconomyControl.tsx`.
-- Full picture: [combat loop](../../docs/ARCHITECTURE.md#areas).
+- Full picture: [combat loop](../../docs/ARCHITECTURE.md#combat).
 
 ## Conventions
 
@@ -154,23 +155,25 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   stays silent for `SchemaNotLoadedError` and reports anything else once per
   source — never a bare `try { SalvageUnionReference… } catch { return [] }`.
 - **Never insert into an `appId`-addressed table without checking first.**
-  `pilots`, `mechs` and `crawlers` are looked up by the client's `appId`, and
-  `by_app_id` is an ordinary index — **not** a uniqueness constraint — so
-  nothing in the database stops a second row. Prevention is the rule: look the
-  app id up (`byAppId`) before any insert.
+  `pilots`, `mechs`, `crawlers`, `npcs` and `mechPatterns` are looked up by
+  the client's `appId`, and `by_app_id` is an ordinary index — **not** a
+  uniqueness constraint — so nothing in the database stops a second row.
+  Prevention is the rule: look the app id up (`byAppId`) before any insert.
 
-  The lookups (`byAppId` / `crawlerByAppId`) do **not** throw on a duplicate:
-  they resolve to the oldest row and `console.warn`.
+  The lookups (`byAppId` / `crawlerByAppId`, `patternByAppId`) do **not** throw
+  on a duplicate: they resolve to the oldest row (the first two also
+  `console.warn`).
 - **A copy gets a new UUID; a move keeps its own.** These pull in opposite
   directions, so both matter:
-  - **Copy → new id.** Importing a bundle (`mergeImport`) and seeding the
-    Starter Set (`seedStarterSet`) each mint a fresh UUID per row and remap the
-    soft links onto them. An entity id becomes its `appId` on the server, so a
-    copy that kept its id would put one id in two accounts — and since a
-    duplicate resolves to the oldest row, the second account's writes aim at the first account's entity and are refused by `assertMayWrite`
-    as somebody else's. Never write a fixed or template id into
-    `pilots`/`mechs`/`crawlers`; record provenance in `seedRef`, which is what
-    it is for.
+  - **Copy → new id.** Importing a bundle (`mergeImport`) mints a fresh UUID
+    per row and remaps the soft links onto them; copying a Starter Set template
+    (`copyStarter`) mints a fresh id through `entityStore.create`. An entity id
+    becomes its `appId` on the server, so a copy that kept its id would put one
+    id in two accounts — and since a duplicate resolves to the oldest row, the
+    second account's writes aim at the first account's entity and are refused
+    by `assertMayWrite` as somebody else's. Never write a fixed or template id
+    into `pilots`/`mechs`/`crawlers`/`npcs`; record provenance in `seedRef`,
+    which is what it is for.
   - **Move → same id.** Shelf ↔ Game is a container change, patching `gameId`
     and nothing else. A Game is a viewport onto the same sheet, not a duplicate
     of it — never re-mint on a move, and never treat one as a fork.
@@ -190,6 +193,9 @@ Static Assets in single-page-application mode on a Workers route, a script
 for misses and intheunionnow.com's 301s; config in
 `wrangler.jsonc`, headers in `public/_headers`, deployed from
 `.github/workflows/deploy-cloudflare.yml`.
+
+Convex AI-files rules (scope, `bunx` not `npx`, the vendored skills):
+[AGENTS.md](AGENTS.md).
 
 <!-- convex-ai-start -->
 

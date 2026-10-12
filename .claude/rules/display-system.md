@@ -2,11 +2,12 @@
 paths:
   - packages/component-lib/src/components/*/Card*
   - packages/component-lib/src/components/referenceEntity/**
+  - packages/component-lib/src/entity/**
 ---
 
 # Display System Rules
 
-See `docs/ARCHITECTURE.md#areas` for the architecture, and
+See `docs/ARCHITECTURE.md#display` for the architecture, and
 `docs/design-system/ruleset.md` for the governing design laws.
 
 Do not re-add prop tables or component lists here: state the rule, point at the
@@ -25,7 +26,7 @@ There are two, and the separation is a decision, not an accident:
   `ModalShell` is built on it.
 
 **They are NOT being merged** (and their `cardClick` fallback resolves
-first-wins vs last-wins); the assessment is `docs/ARCHITECTURE.md#areas`.
+first-wins vs last-wins); the assessment is `docs/ARCHITECTURE.md#display`.
 
 So: **do not add entity-card features to Card**, and do not route the
 entity card through it. Share the VOCABULARY (`displayMode`, the controls
@@ -73,9 +74,8 @@ display layer stays schema-agnostic.
 
 ## Controls
 
-Card-level actions go through the `controls` API. Only ONE preset factory still
-exists — `navigateControl`; `addControl`, `deleteControl` and `selectControl`
-were measured to zero production call sites and deleted. Build controls directly.
+Card-level actions go through the `controls` API. The one preset factory is
+`navigateControl`; build any other control directly.
 
 A control with `cardClick: true` makes the whole card clickable; `hidden: true`
 keeps it out of the button rail. `status` is presentational sugar that folds into

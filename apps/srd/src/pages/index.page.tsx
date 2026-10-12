@@ -3,19 +3,21 @@
  *
  * The title, then search: beside the title on the blue Contents band on a
  * desktop, under the notch on a phone. Then the "Getting started" aside — the
- * "New to the Union?" path into ITUN and the Discord bot — and the index: the
- * book's chapters with their real entry counts, then the rules a table reaches
- * for under an ink band. The aside comes first in the DOM, so a phone reads it
- * before the index; a desktop pins it to a right-hand sidebar.
+ * "New to the Union?" path into ITUN — the index, and the Discord bot. The
+ * index is the book's chapters, each opened by its band and a piece of its
+ * artwork, with their real entry counts, then the rules a table reaches for
+ * under an ink band. The DOM order is a phone's: "New to the Union?", the
+ * index, then the Discord bot; a desktop pins the aside and the bot to a
+ * right-hand sidebar.
  * The band's search is the page's search, so the Union bar carries none here.
  */
 
-import { ChapterBand } from 'component-lib'
+import { assetSrcSetFor, ChapterBand } from 'component-lib'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { getAssetUrl, getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { HeroSearchStatic } from '../components/HeroSearch'
-import type { ContentsRow, NewToTheUnionStep } from '../components/HomeContents'
+import type { ContentsArt, ContentsRow, NewToTheUnionStep } from '../components/HomeContents'
 import { ContentsChapter, DiscordBot, NewToTheUnion } from '../components/HomeContents'
 import { buildChapters } from '../lib/chapters'
 import { DISCORD_INSTALL_URL, ITUN_URL, SITE_URL } from '../lib/constants'
@@ -34,6 +36,26 @@ const MEASURE = '85rem'
 function hrefByName(schemaName: SURefEnumSchemaName, name: string): string | undefined {
   const entity = SalvageUnionReference.findIn(schemaName, (e) => e.name === name)
   return entity ? itemHref(schemaName, getEntitySlug(entity)) : undefined
+}
+
+/**
+ * Each chapter's opener artwork, from su-assets, by the entity it illustrates.
+ * Union Crawler has none: no crawler carries artwork yet (`hasArtwork`), so
+ * its chapter opens on its band alone, as Rules & Reference does.
+ */
+const CHAPTER_ART: Partial<Record<string, { schema: SURefEnumSchemaName; name: string }>> = {
+  'pilot-bay': { schema: 'classes', name: 'Hacker' },
+  'mech-workshop': { schema: 'chassis', name: 'Mule' },
+  denizens: { schema: 'bio-titans', name: 'Tyrant' },
+}
+
+/** A chapter's opener artwork, or nothing when the entity or its artwork is gone. */
+function chapterArt(chapterId: string): ContentsArt | undefined {
+  const piece = CHAPTER_ART[chapterId]
+  if (!piece) return undefined
+  const entity = SalvageUnionReference.findIn(piece.schema, (e) => e.name === piece.name)
+  const src = entity ? getAssetUrl(entity) : undefined
+  return src ? { src, srcSet: assetSrcSetFor(src) } : undefined
 }
 
 /** The three creation guides, in the order a new crew walks them. */
@@ -98,7 +120,6 @@ function page(): PageResult {
         <div className="srd-home__body" style={{ maxWidth: MEASURE }}>
           <aside className="srd-home__aside" aria-label="Getting started">
             <NewToTheUnion steps={steps} buildHref={ITUN_URL} />
-            <DiscordBot installHref={DISCORD_INSTALL_URL} aboutHref="/discord/" />
           </aside>
           <div className="srd-home__index">
             {chapters.map((chapter) => (
@@ -109,9 +130,13 @@ function page(): PageResult {
                 tone={chapter.tone}
                 rows={chapter.rows}
                 total={chapter.total}
+                art={chapterArt(chapter.id)}
               />
             ))}
             <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={atTheTable} />
+          </div>
+          <div className="srd-home__discord">
+            <DiscordBot installHref={DISCORD_INSTALL_URL} aboutHref="/discord/" />
           </div>
         </div>
       </div>

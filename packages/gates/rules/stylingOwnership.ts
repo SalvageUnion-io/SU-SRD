@@ -231,8 +231,8 @@ function scanDeadAppCss(c: Corpus): Finding[] {
 
 // ── Rule 3: dash-class-contract ───────────────────────────────────────────────
 //
-// The Dashboard's `.su-dash-*` classes (ITUN's own stylesheets; the retired
-// `.pc-*` scope, renamed in TW5).
+// The Dashboard's `.su-dash-*` classes (ITUN's own stylesheets; formerly the
+// `.pc-*` scope).
 
 const DASHBOARD_CSS_FILES = [
   'DashboardCanvas.css',
@@ -462,16 +462,15 @@ const DEPENDENCY_FIELDS = [
 
 /**
  * The at-rules only Tailwind gives meaning to. `@layer utilities` is the layer
- * its utilities compile into: TW6's exit was that no built page carried a class
- * from one.
+ * its utilities compile into: no built page carries a class from one.
  */
 const TAILWIND_AT_RULE =
   /@(?:tailwind|apply|theme|utility|variant|custom-variant|source|plugin|config|reference)\b|@layer\s+utilities\b/
 
 /**
- * Tailwind is gone (TW7, ADR-046) and this keeps it gone. TW6's exit was a
- * one-off crawl of every built page and story for a class from built CSS's
- * `@layer utilities`; it found none. A utility can only reach built CSS again
+ * Tailwind is gone (ADR-046) and this keeps it gone. A one-off crawl of every
+ * built page and story for a class from built CSS's `@layer utilities` found
+ * none. A utility can only reach built CSS again
  * through a Tailwind package (it generates them) or a Tailwind directive in
  * a stylesheet (the compiler reads them), so this checks both sources, every
  * workspace's manifest and every stylesheet under `apps/` and `packages/`, and
@@ -537,7 +536,7 @@ const RULES: OwnershipRule[] = [
   {
     id: 'no-tailwind',
     mode: 'zero',
-    rule: 'ADR-046 §no utility framework: Tailwind stays removed (TW7)',
+    rule: 'ADR-046 §no utility framework: Tailwind stays removed',
     fix: "Remove the Tailwind package or directive. A value goes in theme.css (and tokens.ts), a style in a style object or a `.su-*` rule in index.css (an app's own stylesheet when only that app uses it); see .claude/rules/styling.md.",
     scan: scanNoTailwind,
   },

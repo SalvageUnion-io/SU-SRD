@@ -4,7 +4,7 @@ import { expect, test } from './fixtures'
 
 /**
  * An approval link, used, and the Organizer lets the person in (issue 1278, board
- * M2; docs/architecture/mediator-dashboard.md §3, P8a gate 2).
+ * M2; docs/architecture/mediator-dashboard.md).
  *
  * The Organizer makes a link with "I approve each person who uses it" ticked.
  * A second account opens it and asks to join, and is told they wait. The

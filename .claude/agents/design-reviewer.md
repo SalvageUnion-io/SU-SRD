@@ -16,11 +16,12 @@ renders an entity.
 
 - **Targets.** `bun run stories:ids [filter]` lists story ids. Given a
   component or a diff, find its `*.stories.tsx` and filter by its id; given an
-  srd page, use its route (`/schema/chassis/item/mule/`).
-- **Screenshots.** `bun run shot <story-id|/route>` (see `tools/shot.ts`); it
-  starts the catalog or srd server if none is up and prints each PNG's path.
-  Take `--width phone` as well as the default, and `--dark` where the surface
-  has a dark skin; Read each PNG to look at it. PNGs go to the gitignored
+  srd page, use its route (`/schema/chassis/item/mule/`); given a signed-out
+  ITUN page, `itun:` and its route (`itun:/starter`).
+- **Screenshots.** `bun run shot <story-id|/route|itun:/route>` (see
+  `tools/shot.ts`); it starts the catalog, srd or ITUN server if none is up and
+  prints each PNG's path. Take `--width phone` as well as the default (there is
+  no dark theme to take); Read each PNG to look at it. PNGs go to the gitignored
   `.shots/`, never anywhere tracked.
 - **Source.** Read the component and its CSS. Rendered sizes, colours and
   tracking the screenshot cannot settle, take from the source tokens or

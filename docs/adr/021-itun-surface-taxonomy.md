@@ -12,11 +12,9 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 21, which
 game rules. **Where it conflicts with any prior ADR, this ADR wins** (scope and
 the specific overrides are listed under [Supersession](#supersession--precedence)).
 
-"Accepted" records the **decision**; the code has since largely caught up (the
-Wizard enforces Guided Creation hard on the create path, the Dashboard ships at
-`/dashboard/$pilotId`, and ADR-022's Change Log is live). The living, authoritative
-placement table is the matrix in
-[rules and ITUN surfaces](../ARCHITECTURE.md#areas) — keep
+Built: Guided Creation on the Wizard's create path, the Dashboard and
+ADR-022's Change Log. The living, authoritative placement table is the matrix in
+[rules and ITUN surfaces](../ARCHITECTURE.md#surfaces) — keep
 placements in sync **there**, not by re-editing the summary below. This ADR
 records _why_ the taxonomy exists; the arch doc records _what goes where_.
 
@@ -26,8 +24,8 @@ ITUN grew a set of distinct surfaces — a roster, build wizards, the live sheet
 encounter tray, snapshot publish/view. Our rules docs described "the app" as one
 actor that enforces "economic" rules and defers "procedural" ones. The code never
 matched that flatness: the _same_ constraint is a gentle advisory while you build
-a character (`PilotWizard.tsx:96–97`, "never blocking") and a hard block while you
-play one (`SheetMech.tsx:71–76`, Push disabled at the Heat Capacity). Enforcement
+a character (`PilotWizard.tsx`, "never blocking") and a hard block while you
+play one (`SheetMech.tsx`, Push disabled at the Heat Capacity). Enforcement
 is not a property of the rule; it is a property of **what the player is doing**.
 
 The design intent, stated by the owner, is sharper than "economic vs procedural":
@@ -63,11 +61,11 @@ procedure.
 | **Guided Creation** | Wizard                                       | Enforce creation rules; a how-to guide for making a legal entity.    |
 | **Free Edit**       | Live Sheet                                   | No lifecycle enforcement. Edit end-state directly; override caps.    |
 | **Guided Play**     | **Dashboard** (Pilot + Mech + Crawler, live) | Enforce play; interactive rules-layers that teach as they enforce.   |
-| **Frozen**          | Share / View                                 | Read-only snapshot.                                                  |
-| **Adjudicate**      | Encounter (→ future Mediator layer)          | Mediator tooling; surfaces rules, enforces nothing on player sheets. |
+| **Frozen**          | Public sheet (`/p/`), a crewmate's sheet     | Read-only, live (snapshots retired by ADR-036).                      |
+| **Adjudicate**      | Mediator Dashboard (`/mediator/$gameId`)     | Mediator tooling; surfaces rules, enforces nothing on player sheets. |
 
 **Rule placement** (full matrix in
-[rules and ITUN surfaces](../ARCHITECTURE.md#areas)):
+[rules and ITUN surfaces](../ARCHITECTURE.md#surfaces)):
 
 - **Lifecycle transactions** (use a system → EP/Heat/uses, Push, Scrap/TP costs,
   Downtime, craft, salvage, repair, upgrade, advancement) — **enforced +
@@ -93,10 +91,8 @@ the behavior.
 
 **The Dashboard is a separate, multi-entity surface — built.** It composes a
 player's Pilot + Mech + Crawler into one live play surface (distinct from the
-single-entity Live Sheet), shipped at `/dashboard/$pilotId`
-(`src/components/dashboard/`). The code rename from the working title "Play
-Cockpit" has landed, and the Live Sheet's leftover play control (`QuickRollFab`)
-is gone. Detail in the architecture doc.
+single-entity Live Sheet), at `/dashboard/$pilotId`
+(`src/components/dashboard/`). Detail in the architecture doc.
 
 ## Supersession / precedence
 
@@ -104,7 +100,7 @@ This ADR is the top of the stack for **rules enforcement and surface behavior**.
 Concretely it overrides:
 
 - The enforcement framing of the former _Rules Engine Boundary_ doc — rewritten as
-  [rules and ITUN surfaces](../ARCHITECTURE.md#areas) around
+  [rules and ITUN surfaces](../ARCHITECTURE.md#surfaces) around
   this model.
 - Any assumption that ITUN has a single, app-wide enforcement stance. Enforcement
   is per-mode.
@@ -135,10 +131,8 @@ a rule is enforced on which surface_:
 - The Live Sheet is intentionally the least-enforced surface. Wanting a Live-Sheet
   _hard block_ (beyond structural coherence) is a proposal to change this ADR, not
   a bug.
-- Unwired rules primitives (`salvage`, `crafting`, `downtime`, `scrapMech`,
-  `takeDamage`) have a defined destination: Dashboard layers, enforced + interactive.
-- When the Dashboard splits out from the Sheet it inherits Guided Play with no
-  reclassification — the taxonomy already accounts for it.
+- Lifecycle rules primitives (`salvage`, `downtime`, `scrapMech`, `takeDamage`)
+  land as Dashboard layers, enforced + interactive.
 - The Dashboard's phone form ([ADR-045](045-dashboard-phone-form.md)) is Guided Play; no
   reclassification.
 - The provenance log and stat-override model that this surface split requires are
@@ -148,19 +142,18 @@ a rule is enforced on which surface_:
   [dashboard.md](../architecture/dashboard.md). It instantiates this taxonomy; it
   does not compete with it (ADR-038 §6 is the Guided-Play surface and obeys the
   ADR-007 boundary this ADR scopes; §2 is its play state).
-- **Long-tail, out of scope** (all gated on revisiting
-  [ADR-001](../ARCHITECTURE.md#decisions), and none alter this taxonomy):
-  - **Shared, live Dashboard** — several players on one Dashboard at once,
-    synchronized with a Mediator live. The single-player Dashboard is the first step
-    toward it. **Partly delivered by [ADR-038](038-dashboard-game-surface.md):** each pilot's play
-    state is saved on the Game and visible to the crew live, though each player
-    still has their own screen.
-  - **Workspaces → "Game spaces"** — shared spaces with entities owned by you vs.
-    by others; ownership scopes _who_ may edit, not _what_ each mode enforces.
-  - **A dedicated Mediator layer** — the Adjudicate mode moves off Encounter into
-    a GM-facing surface (the Guided Play → Dashboard move applied to the GM side).
-    The mode already exists here, so the move needs no reclassification.
-  - **Net-new homebrew content authoring** — a path to author systems/abilities
+- **Long-tail** (gated on revisiting [ADR-001](../ARCHITECTURE.md#decisions),
+  which [ADR-030](030-accounts-games-server-of-record.md) did; none alter this
+  taxonomy):
+  - **Shared, live Dashboard** — partly delivered by
+    [ADR-038](038-dashboard-game-surface.md): each pilot's play state is on the
+    Game, live to the crew; each player keeps their own screen.
+  - **Game spaces** — delivered as ADR-030's Games; ownership scopes _who_
+    may edit, not _what_ each mode enforces.
+  - **A Mediator layer** — delivered as the
+    [Mediator Dashboard](../architecture/mediator-dashboard.md); Adjudicate, no
+    reclassification.
+  - **Net-new homebrew content authoring** (out of scope) — a path to author systems/abilities
     absent from the dataset, which Free Edit cannot express (an unresolved ref is
     incoherent). A future authoring surface feeding the dataset, not a Free-Edit
     affordance.

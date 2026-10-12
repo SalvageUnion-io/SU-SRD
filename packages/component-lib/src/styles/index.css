@@ -557,6 +557,18 @@ body {
   width: 36px;
 }
 
+/*
+ * A show page's top controls, one height in both apps: the srd entity page's
+ * "Build with this", the ITUN sheet bar's back, Share, "⋯" and phone switch,
+ * and the sheet band's Read | Edit and "Make a copy". Each was sized by its
+ * own rung (a compact link, a 38px square, a 40px toggle, a full button), so a
+ * row of them stepped. Height only: each keeps its own padding and type. Under
+ * a coarse pointer the 44px floor lifts them all alike.
+ */
+.su-page-action {
+  height: var(--space-40);
+}
+
 /* ══ The entity card's cost pennant as the action button ════════════════════
  *
  * In the Dashboard the pennant on an action's ink banner IS the action button
@@ -729,9 +741,9 @@ body {
   }
 }
 
-/* A tech level's plate (no art, `Tile.tsx`): its numeral, set as large as the
-   plate holds in the condensed face, in ink on paper. The band below carries
-   the level's colour. */
+/* The plate of a tile with no art place (`Tile.tsx`): a tech level's numeral,
+   or another entity's monogram, set as large as the plate holds in the
+   condensed face, in ink on paper. The band below carries the tone. */
 .su-entity-tile__art--numeral {
   align-items: center;
   aspect-ratio: 2 / 1;
@@ -828,9 +840,20 @@ body {
   flex: 1 1 auto;
 }
 
-/* Two title lines (22px at 1.05) on the head's title line, so the labels
-   above it and the band's padding stay each head's own and the name centres
-   in its line. */
+/* A Row that is its head alone (`data-bodyless`: a roll table with no opening
+   prose) keeps its head's height: stretched to its cell it was an empty paper
+   strip under the head. A grid holding one sizes each line to its own content,
+   so a line of heads is a head tall; a bodied Row still fills its line. */
+[data-entity-grid]:has(.su-entity-row__frame[data-bodyless]) {
+  grid-auto-rows: auto;
+}
+
+[data-entity-grid] > * > .su-entity-row:has(> .su-entity-row__frame[data-bodyless]) {
+  flex: none;
+}
+
+/* Two title lines (22px at 1.05) on the head's title line, so every head in
+   the grid is one height and the name centres in its line. */
 [data-entity-grid] .su-entity-row__line {
   min-height: calc(2.1 * var(--text-title));
 }
@@ -853,6 +876,19 @@ body {
   justify-content: center;
   overflow: hidden;
   position: relative;
+}
+
+/* The faded blueprint behind the mark (`backdrop`): it fills the frame and
+   sits under the ink. Doubled so `.su-entity-row__art img` cannot reach it. */
+.su-missing-art .su-missing-art__backdrop {
+  height: 100%;
+  inset: 0;
+  mix-blend-mode: normal;
+  object-fit: cover;
+  opacity: 0.16;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
 }
 
 .su-missing-art--hero {
@@ -1291,7 +1327,7 @@ body {
  * the component's style objects; what is here changes at a breakpoint, on
  * hover or with "you are here".
  *
- * One geometry for both (refit S2): a 56px row at every width, the wordmark
+ * One geometry for both: a 56px row at every width, the wordmark
  * from 40rem, the product nav inline from `lg`, the search entry 14rem wide.
  *
  * "Here" is never rust (§3.1): the switcher's current tab is the inverse stamp,
@@ -1683,7 +1719,7 @@ body {
   }
 }
 
-/* `asideAt="notch"`: the aside right beside the notch, after it, at every
+/* `asideAt="notch"`: the aside on the notch's row, after it, at every
    width. `wrap-reverse` keeps the notch on the band's foot: when a long name
    leaves no room beside it the aside wraps ABOVE the notch, never under it
    (and swaps the cross axis, so `flex-start` is the foot). */
@@ -1692,6 +1728,12 @@ body {
   column-gap: var(--space-16);
   flex-flow: row wrap-reverse;
   justify-content: flex-start;
+}
+
+/* …and at the band's far end, as the tags under it are: on the notch's line
+   when it fits, and at the end of its own line when it wraps. */
+.su-chapter-band[data-aside='notch'] .su-chapter-band__aside {
+  margin-inline-start: auto;
 }
 
 /* ══ The nav drawer's index (`components/compositions/NavDrawer.tsx`) ═════════════
@@ -1856,7 +1898,7 @@ body {
  * beneath the stats, the chassis ability. Everything the entity carries after that (its table,
  * actions, nested trays, patterns) runs the full width beneath.
  *
- * One content order at every width, the DOM's (refit B4): art, then a
+ * One content order at every width, the DOM's: art, then a
  * pattern's opening, the prose, the stat column and the chassis ability, so a
  * keyboard and a screen reader meet them in the order the eye does. The right
  * column is `display: contents` on a phone, so its children join the page's
@@ -1930,8 +1972,14 @@ body {
   overflow: hidden;
 }
 
-/* With no art the body is one reading column. */
-.su-entity-page__main:not(.su-entity-page__main--art) {
+/* With no art the body is one reading column, but for the tags, which run
+   to the page's far end under the band's stamps. */
+.su-entity-page__main:not(.su-entity-page__main--art)
+  > .su-entity-page__side
+  > :not(.su-entity-page__prose),
+.su-entity-page__main:not(.su-entity-page__main--art)
+  .su-entity-page__prose
+  > :not(.su-entity-page__tags) {
   max-width: 52rem;
 }
 
@@ -2393,7 +2441,7 @@ body {
   --su-hero-max-h: 70vh;
 }
 
-/* Cropped to the line art (`heroArtCrop`, refit B4): the artwork's canvas
+/* Cropped to the line art (`heroArtCrop`): the artwork's canvas
    carries a margin that differs per image, so the plate takes the ink's own
    aspect (`--su-art-aspect`) and the window shows only the ink's box; the
    image inside is scaled and offset by its inline style. The plate is as wide
@@ -2697,10 +2745,10 @@ body {
   }
 }
 
-/* — Atoms (TW2) — ═══════════════════════════════════════════════════════════
+/* — Atoms — ═════════════════════════════════════════════════════════════════
  *
- * The rules the `Atoms/*` components need (phase TW2 of the styling
- * migration): the stateful, responsive and class-string halves of the split.
+ * The rules the `Atoms/*` components need: the stateful, responsive and
+ * class-string halves of the split.
  * Static values live in each component's style objects.
  */
 
@@ -3431,6 +3479,14 @@ body {
   color: var(--color-status-bad);
 }
 
+/* A toast's description reads in the toast's own paper. Sonner injects an
+   unlayered grey for it, which outranks any class in this layer. */
+.su-toast__description {
+  /* biome-ignore lint/complexity/noImportantStyles: Sonner's unlayered description colour outranks this layer */
+  color: inherit !important;
+  opacity: 0.85;
+}
+
 /* ── StatProvenance, Tooltip, Text ── */
 /* components/atoms/Text.tsx — every property a class, because callers restyle
  * Text through `className` (their utilities must keep winning). Two classes of
@@ -3483,7 +3539,7 @@ body {
   cursor: help;
 }
 
-/* — Containers (TW3) — */
+/* — Containers — */
 
 /*
  * The stateful and caller-overridable half of the Containers group
@@ -3718,9 +3774,9 @@ body {
   flex-wrap: wrap;
 }
 
-/* — Compositions (TW4) — */
+/* — Compositions — */
 
-/* ── TW4 group A: compositions/RollTable ── */
+/* ── compositions/RollTable ── */
 
 /*
  * RollTable's collapsible-header Show/Hide toggle. Its colour is a class
@@ -3752,7 +3808,7 @@ body {
 
 /* ── end group A ── */
 
-/* ── TW4 group B: compositions/EntitySearcher ── */
+/* ── compositions/EntitySearcher ── */
 
 /* The search input's text colour. A class, not a style object, because the
    `::placeholder` recolours it — the resting `color` comes along so the two
@@ -3786,7 +3842,7 @@ body {
 
 /* ── end group B ── */
 
-/* ── TW4 group C: shell and flat leaves ── */
+/* ── shell and flat leaves ── */
 
 /* ControlButtons (`compositions/ControlButtons.tsx`). The link control and the paper
    icon stamp flip fill and ink on hover, so both colours are here, resting
@@ -3813,6 +3869,14 @@ body {
 .su-control-icon__glyph {
   height: var(--space-12);
   width: var(--space-12);
+}
+
+/* A folded card's chevron (`ReferenceEntityCard` `collapsible`): the card's ONE
+   fold control, so it takes the WCAG 2.2 minimum target (24px) a stamp's 24×20
+   misses. A coarse pointer lifts it to 44px through the shared touch floor. */
+.su-card-fold {
+  min-height: var(--space-24);
+  min-width: var(--space-24);
 }
 
 /* NavDrawer (`compositions/NavDrawer.tsx`). The trigger's padding and ink, and the
@@ -3903,7 +3967,7 @@ body {
 
 /* ── end group C ── */
 
-/* ── TW4 group D: choices, content and patterns ── */
+/* ── choices, content and patterns ── */
 
 /* `choiceCard/ChoiceGroups.tsx` — the option masonry. One column, two from `sm`
    unless compact: the column count is responsive, so it lives here. */
@@ -4019,7 +4083,7 @@ body {
 
 /* ── end group D ── */
 
-/* ── TW4 group E: the reference entity card ── */
+/* ── the reference entity card ── */
 
 /* The card's outer box (`card/cardChrome.ts`). Classes rather than a style
    object because a caller's `className` may override any of them. */

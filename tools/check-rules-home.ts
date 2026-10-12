@@ -3,7 +3,7 @@
  * check-rules-home — domain rules live in a rules home, never in a component
  * folder or the client app (`bun run check rules-home`).
  *
- * The refit ledger (T4) found ITUN's rules in four places: the reference
+ * ITUN's rules once lived in four places: the reference
  * package's `lib/rules`, ITUN's `src/lib/rules`, `*Rules.ts` files beside the
  * components, and `convex/model`, with Convex importing client `src/` to reach
  * shared logic. Convex bundles what it imports, so a client import drags React-

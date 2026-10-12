@@ -37,23 +37,31 @@ function pilot(overrides: Partial<OwnedEntity> & { body?: Record<string, unknown
 }
 
 describe('gauge', () => {
-  test('renders a proportional bar with the raw numbers beside it', () => {
+  test('puts the number first, then a proportional bar', () => {
     // The numbers matter more than the bar: a bar is a glance, `6/10` is the
-    // answer to "how bad is it".
-    expect(gauge(6, 10)).toBe('██████░░░░ 6/10')
-    expect(gauge(10, 10)).toBe('██████████ 10/10')
-    expect(gauge(0, 10)).toBe('░░░░░░░░░░ 0/10')
+    // answer to "how bad is it" — and a screen reader reaches it before ten
+    // block glyphs rather than after.
+    expect(gauge(6, 10)).toBe('6/10 ██████░░░░')
+    expect(gauge(10, 10)).toBe('10/10 ██████████')
+    expect(gauge(0, 10)).toBe('0/10 ░░░░░░░░░░')
   })
 
   test('tracks small maxima exactly rather than scaling them', () => {
     // AP 5 and Heat 6 are the common SU values; showing 3/5 as a ten-segment
     // approximation would round a number the player is tracking precisely.
-    expect(gauge(3, 5)).toBe('███░░ 3/5')
-    expect(gauge(3, 6, '▲')).toBe('▲▲▲░░░ 3/6')
+    expect(gauge(3, 5)).toBe('3/5 ███░░')
+    expect(gauge(3, 6, '▲')).toBe('3/6 ▲▲▲░░░')
   })
 
   test('compresses a maximum larger than ten segments', () => {
-    expect(gauge(10, 20)).toBe('█████░░░░░ 10/20')
+    expect(gauge(10, 20)).toBe('10/20 █████░░░░░')
+  })
+
+  test('the text style is the number alone, with no glyph', () => {
+    expect(gauge(6, 10, '█', 'text')).toBe('6/10')
+    expect(gauge(3, 6, '▲', 'text')).toBe('3/6')
+    expect(gauge(null, 10, '█', 'text')).toBe('0/10')
+    expect(gauge(4, null, '█', 'text')).toBe('4')
   })
 
   test('degrades rather than throwing on missing or nonsensical data', () => {
@@ -61,10 +69,10 @@ describe('gauge', () => {
     // normal input here, not an exceptional one.
     expect(gauge(null, null)).toBe('—')
     expect(gauge(4, null)).toBe('4')
-    expect(gauge(null, 10)).toBe('░░░░░░░░░░ 0/10')
+    expect(gauge(null, 10)).toBe('0/10 ░░░░░░░░░░')
     // Over-max (a stale override, a hand-edited body) clamps the BAR but
     // reports the real number — hiding it would be lying about the sheet.
-    expect(gauge(14, 10)).toBe('██████████ 14/10')
+    expect(gauge(14, 10)).toBe('14/10 ██████████')
   })
 })
 
@@ -245,6 +253,10 @@ describe('crewCard', () => {
     // Derived from the `mule` chassis, which the server could not have done.
     expect(text).toContain('8/12')
     expect(text).toContain('3/6')
+    // The sheets' own short names: Heat is "Heat", never a bot-only "HT".
+    expect(text).toContain('SP ')
+    expect(text).toContain('Heat ')
+    expect(text).not.toContain('HT ')
   })
 
   test('renders unclaimed entities in their own bucket rather than dropping them', () => {
@@ -271,6 +283,65 @@ describe('crewCard', () => {
     // system already shares with the bot's roll outcomes.
     expect(wrecked.accent).not.toBe(healthy.accent)
     expect(cardText(wrecked)).toContain('✖')
+  })
+
+  test('says each state in words, not only as a glyph', () => {
+    // A lone ✖ or ⚠ said nothing a screen reader could pass on, and did not
+    // tell a dead pilot from one about to roll. Each word is the rules' term.
+    const card = crewCard(
+      crewOf({
+        pilots: [
+          pilot({ id: 'p1', body: { callsign: 'Rook', currentHP: 0 } }),
+          pilot({
+            id: 'p2',
+            body: {
+              callsign: 'Wren',
+              injuries: Array.from({ length: 5 }, () => ({ severity: 'major', note: '' })),
+            },
+          }),
+        ],
+        mechs: [
+          {
+            id: 'm1',
+            ownerId: 'u1',
+            ownerName: 'alxjrvs',
+            body: { name: 'Iron Mongrel', chassisRef: 'mule', currentSP: 0, currentHeat: 6 },
+          },
+        ],
+      }),
+      WEB
+    )
+    const text = cardText(card)
+    expect(text).toMatch(/Rook.*\*\* ✖ Critical Injury/)
+    expect(text).toMatch(/Wren.*\*\* ✖ Dead/)
+    expect(text).toMatch(/Iron Mongrel.* ✖ Critical Damage/)
+    expect(text).toContain('Heat 6/6 ▲▲▲▲▲▲ ⚠ At Heat Capacity')
+  })
+
+  test('the text-only form keeps the numbers and words and drops every glyph', () => {
+    const card = crewCard(
+      crewOf({
+        pilots: [pilot({ body: { callsign: 'Rook', currentHP: 0, currentAP: 3 } })],
+        mechs: [
+          {
+            id: 'm1',
+            ownerId: 'u1',
+            ownerName: 'alxjrvs',
+            body: { name: 'Iron Mongrel', chassisRef: 'mule', currentSP: 0, currentHeat: 6 },
+          },
+        ],
+      }),
+      WEB,
+      'text'
+    )
+    const text = cardText(card)
+    expect(text).toContain('HP 0/10')
+    expect(text).toContain('AP 3/5')
+    expect(text).toContain('SP 0/12')
+    expect(text).toContain('Heat 6/6 — At Heat Capacity')
+    expect(text).toMatch(/Rook.*\*\* — Critical Injury/)
+    expect(text).toMatch(/Iron Mongrel.* — Critical Damage/)
+    expect(text).not.toMatch(/[█░▲✖⚠]/)
   })
 
   test('links back to the game in the app', () => {

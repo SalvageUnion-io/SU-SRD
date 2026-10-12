@@ -2,10 +2,10 @@
  * ShelfSync — brings the account's rows down from the server of record.
  *
  * The read-down half of ADR-034 decision 2: writes go **up** server-first, and
- * this brings the account's rows back **down**. There is no device cache (the
- * D9 decision), so this is the only way a row reaches the stores: every page
- * load starts empty and fills from here, and the stores' `hydrate()` resolves
- * once the first answer is applied (`markArrived`, `stores/rowArrival.ts`).
+ * this brings the account's rows back **down**. There is no device cache, so
+ * this is the only way a row reaches the stores: every page load starts empty
+ * and fills from here, and the stores' `hydrate()` resolves once the first
+ * answer is applied (`markArrived`, `stores/rowArrival.ts`).
  *
  * ## Server wins, and that is the point
  *

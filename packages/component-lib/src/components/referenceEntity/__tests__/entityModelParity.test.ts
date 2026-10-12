@@ -14,6 +14,7 @@
 import { describe, expect, test } from 'bun:test'
 import type {
   EntityModel,
+  SURefEntity,
   SURefEnumSchemaName,
   SURefMetaEntity,
   SURefObjectAnyPattern,
@@ -44,12 +45,14 @@ import {
 } from '../card/cardCells'
 import { resolveHeaderFill, resolveHeaderHint } from '../card/cardChrome'
 import { isTitanicAction } from '../card/cardHelpers'
+import { resolveCatalogLeadBlocks } from '../card/catalogLead'
 import { resolveCardTone } from '../card/entityCardTone'
 import { resolveEntityPageMeta } from '../card/entityPage'
 import { resolveNestedSections } from '../card/nestedSections'
 import type { ActionFields } from '../card/referenceEntityCardTypes'
 import { resolveCardTable } from '../card/resolveCardTable'
 import { resolveFoldedAction } from '../card/resolveFoldedAction'
+import { resolveGuideLead } from '../card/resolveGuideLead'
 import {
   resolveDroneOwnLoadout,
   resolveNestedEntities,
@@ -258,14 +261,21 @@ describe('toEntityModel parity, every entity', () => {
 
   test('lead is the card header hint, else the first paragraph, as plain text', () => {
     // The Row's lead is the model's; this is the formula the compact card used
-    // before it did (`resolveHeaderHint`'s hint, else the first paragraph).
+    // before it did (`resolveHeaderHint`'s hint, else the first paragraph),
+    // then what the catalog card borrows: a step-only guide's first step
+    // (`resolveGuideLead`), then a grant's or an action's opening paragraph
+    // (`resolveCatalogLeadBlocks`).
     for (const row of ENTITIES) {
       const { schemaName, entity } = row
       const { hintText } = resolveHeaderHint(entity, {
         isTitanicMeta: schemaName === 'actions' && isTitanicAction(entity as { name?: string }),
         patternListingContent: undefined,
       })
-      const lead = hintText || firstParagraphText('content' in entity ? entity.content : undefined)
+      const lead =
+        hintText ||
+        firstParagraphText('content' in entity ? entity.content : undefined) ||
+        resolveGuideLead(entity) ||
+        String(resolveCatalogLeadBlocks(entity as SURefEntity)[0]?.value ?? '')
       agree(label(row), toEntityModel(entity).lead, lead ? plainTraitText(lead) : undefined)
     }
   })
@@ -302,6 +312,7 @@ describe('toEntityModel parity, every entity', () => {
           code: `UNION_ARCHIVE._${page}`,
           short: `P.${page}`,
           seed: art.kind === 'missing' ? art.seed : undefined,
+          backdrop: art.kind === 'missing' ? art.backdrop : undefined,
         })
         agree(label(row), missingArt(entity), art)
       } else {

@@ -2,6 +2,7 @@ import { ChevronDown, Search } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { PRODUCT } from '../../product'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { Avatar } from '../atoms/Avatar'
@@ -79,7 +80,7 @@ const srdSearch = (
 /**
  * The Union bar (board 05) — one lockup, the Reference | Build switcher, the
  * search slot and the product's own nav. Both tools wear the same 56px bar and
- * the same search entry (refit S2); the SRD's carries its breadcrumb trail
+ * the same search entry; the SRD's carries its breadcrumb trail
  * (board 07), ITUN's its nav inline (boards 09 and 10). The "here" tab is the inverse stamp,
  * never rust. Narrow the window below 1024px to see the phone shape: the trail
  * moves to its own paper row under the bar.
@@ -181,7 +182,7 @@ export const Default: Story = () => (
             >
               <Avatar src={null} name={PLAYER} size={32} />
             </button>
-            <NavDrawer brand={<span>In the Union Now</span>} navItems={itunDrawerNav} />
+            <NavDrawer brand={<span>{PRODUCT.name}</span>} navItems={itunDrawerNav} />
           </>
         }
       />

@@ -1,14 +1,14 @@
-/* The mech sheet group's rules (TW-d): only what a style object cannot express. */
+/* The mech sheet group's rules: only what a style object cannot express. */
 
 /* ---- Shared sheet chrome (LiveSheet, Sheet, sheetChrome, SheetRailParts) ---- */
 
 /* `SHEET_ICONBTN_CLASS`'s square geometry over `buttonVariants`: a class
-   because the export is a class string (sheetChrome.ts). */
+   because the export is a class string (sheetChrome.ts). Its height is
+   `.su-page-action`'s, so the width matches it. */
 .su-sheet-iconbtn {
   flex-shrink: 0;
-  height: 38px;
   padding: 0;
-  width: 38px;
+  width: var(--space-40);
 }
 
 /* A rail slot's share of the Linked Units row. `EntityRow` takes a className
@@ -62,17 +62,6 @@
 @media print {
   .su-sheet-live-segments {
     display: none;
-  }
-}
-
-/* Share in the bar: a 44px touch target on phones, the compact 36px from sm. */
-.su-sheet-share {
-  min-height: 2.75rem;
-}
-
-@media (width >= 40rem) {
-  .su-sheet-share {
-    min-height: 2.25rem;
   }
 }
 

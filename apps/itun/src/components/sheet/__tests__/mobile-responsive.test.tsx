@@ -3,8 +3,8 @@
  *
  * AC-1: Sheet renders without horizontal overflow at 320px viewport width.
  * AC-5: the top-bar Share control and InlineEditField display state have ≥44px touch targets
- *       (verified via the `.su-sheet-share` class on the Share control, and the inline
- *       `min-height: 2.75rem` on InlineEditField's display state).
+ *       (verified via the coarse-pointer floor every `.su-btn` gets, the Share control
+ *       included, and the inline `min-height: 2.75rem` on InlineEditField's display state).
  *
  * Design choices:
  * - 320px overflow check: happy-dom does not implement a full layout engine, so
@@ -13,9 +13,9 @@
  *   (entity content appears without throwing). Real 320px overflow verification
  *   requires a browser engine — this is tracked in the M3 a11y/perf work and
  *   should be covered by a Playwright / puppeteer visual regression test.
- * - Touch target: we assert the Share button carries `.su-sheet-share` (whose
- *   rule in `styles/sheet/mech.css` is the 2.75rem floor below sm — a class
- *   because sm lifts it), and InlineEditField's display span its inline
+ * - Touch target: we assert the Share button is a `.su-btn` at the page-top
+ *   height (`.su-page-action`), and that `theme.css`'s coarse-pointer floor
+ *   lifts every `.su-btn` to 44px; and InlineEditField's display span its inline
  *   `minHeight` (a style object). Both are the most
  *   reliable assertions in happy-dom (no computed styles).
  *
@@ -196,10 +196,14 @@ describe('Mobile responsive — 44px touch targets', () => {
     )
     // A button since the share screen was deleted — same target, same rule.
     const share = screen.getByRole('button', { name: /share this pilot/i })
-    expect((share as HTMLElement).className).toContain('su-sheet-share')
-    // …and that class is the 44px (2.75rem) floor below sm.
-    const css = readFileSync(new URL('../../../styles/sheet/mech.css', import.meta.url), 'utf8')
-    expect(css).toMatch(/\.su-sheet-share \{\s*min-height: 2\.75rem;/)
+    const className = (share as HTMLElement).className
+    expect(className).toContain('su-btn')
+    expect(className).toContain('su-page-action')
+    // …and a touch screen lifts every `.su-btn` to the 44px floor.
+    const css = readFileSync(new URL(import.meta.resolve('component-lib/styles/theme.css')), 'utf8')
+    expect(css).toMatch(
+      /@media \(pointer: coarse\) \{[^}]*\.su-btn:not\(\.su-btn--mini\)[^}]*min-height: 44px;/
+    )
   })
 })
 

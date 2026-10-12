@@ -1,4 +1,4 @@
-/* The chrome sheet group's rules (TW-d): only what a style object cannot express. */
+/* The chrome sheet group's rules: only what a style object cannot express. */
 
 /* HButton (`SheetSection.tsx`, design `.hbtn`): display goes in print, the
    44px coarse-pointer floor collapses to the 32px design height at `sm`, and
@@ -72,7 +72,7 @@
   max-width: 80vw;
 }
 
-/* ShareStatusDialog + PublicSheetPanel. */
+/* ShareStatusDialog + ShareSettings (components/sharing). */
 .su-sheet-share-dialog {
   max-width: 36rem;
 }

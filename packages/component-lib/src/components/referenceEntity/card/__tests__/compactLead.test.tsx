@@ -4,9 +4,9 @@
  *
  * Rendered through the real card with real SRD data:
  * - a chassis leads with its lore paragraph, an ability with its description;
- * - it is the entity's own prose only: a system leads with its own paragraph
- *   when it has one, and one whose meaning lives in its actions borrows no
- *   rules text;
+ * - a system leads with its own paragraph when it has one, and one whose
+ *   meaning lives in its actions with its action's opening paragraph — a
+ *   listing shows prose whenever the entity carries any;
  * - without the prop (a slot, a deck) the compact card prints no prose.
  */
 import { describe, expect, test } from 'bun:test'
@@ -55,11 +55,11 @@ describe('the compact card lead', () => {
     expect(lead(container)?.textContent).toStartWith('An Opus-designed industrial sized drill')
   })
 
-  test('a system whose meaning lives in its actions borrows no rules text', () => {
+  test('a system whose meaning lives in its actions leads with its action', () => {
     const { container } = render(
       <ReferenceEntityCard data={cal50()} size="medium" extent="head" leadProse />
     )
-    expect(lead(container)).toBeNull()
+    expect(lead(container)?.textContent).toStartWith('This simple ballistic weapon')
   })
 
   test('trait markup in a lead reads as plain words, never raw brackets', () => {

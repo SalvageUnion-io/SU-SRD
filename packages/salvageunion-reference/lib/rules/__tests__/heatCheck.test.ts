@@ -51,7 +51,7 @@ describe('clampHeat', () => {
 })
 
 // ---------------------------------------------------------------------------
-// reactorOverloadOutcome — table band mapping (p.234-235)
+// reactorOverloadOutcome — table band mapping (p.235)
 // ---------------------------------------------------------------------------
 
 describe('reactorOverloadOutcome', () => {
@@ -74,8 +74,8 @@ describe('reactorOverloadOutcome', () => {
     expect(reactorOverloadOutcome(19)).toBe('overheat')
   })
 
-  test('20 → safe', () => {
-    expect(reactorOverloadOutcome(20)).toBe('safe')
+  test('20 → overdrive (Reactor Overdrive, not a no-effect roll)', () => {
+    expect(reactorOverloadOutcome(20)).toBe('overdrive')
   })
 })
 
@@ -96,11 +96,11 @@ describe('performHeatCheck', () => {
   })
 
   test('roll <= heat → overloads', () => {
-    // heat 5, roll 5 → 5 <= 5 → overload; overload roll 20 → safe band
+    // heat 5, roll 5 → 5 <= 5 → overload; overload roll 20 → overdrive band
     const effect = performHeatCheck({ heat: 5, currentSP: 10, roll: seqRoll(5, 20), now: fixedNow })
     expect(effect.result.overloaded).toBe(true)
     expect(effect.result.overloadRoll).toBe(20)
-    expect(effect.result.outcome).toBe('safe')
+    expect(effect.result.outcome).toBe('overdrive')
   })
 
   test('natural 20 always passes even at high heat (Heat Cap can exceed 20)', () => {

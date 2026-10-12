@@ -11,7 +11,9 @@
  *
  * Readable with no account when its maker shared it by link; by its Game's crew
  * when they shared it with the crew (`publicSheet.pattern`). Building from it,
- * and copying it to your own shelf, need an account, as every write does.
+ * and copying it to your own shelf, need an account, as every write does. Its
+ * maker changes who can see it with the Share button every player thing
+ * carries: the same "Who can see it" dialog a sheet opens (`ShareStatusDialog`).
  */
 
 import { useNavigate } from '@tanstack/react-router'
@@ -28,7 +30,6 @@ import {
   USER_MADE_HATCH,
   UserMadeStamp,
 } from 'component-lib'
-import { useMutation } from 'convex/react'
 import type { MechPattern } from 'itun-domain/schemas/pattern'
 import type { Photo } from 'itun-domain/schemas/photo'
 import type { CSSProperties } from 'react'
@@ -38,8 +39,8 @@ import {
   getAssetUrl,
   getChassisAbilities,
   getEntitySlug,
+  STAT_LABELS,
 } from 'salvageunion-reference'
-import { api } from '../../../../convex/_generated/api'
 import { BASE_PATH } from '../../../lib/appUrl'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { serverMessage } from '../../../lib/connection/serverError'
@@ -58,6 +59,7 @@ import { useEntityStore } from '../../../stores/entityStore'
 import { usePatternStore } from '../../../stores/patternStore'
 import { SignInControl } from '../../account/SignInControl'
 import { EntityPhoto } from '../../shared/EntityPhoto'
+import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
 
 /** `publicSheet.pattern`'s answer, its body parsed. */
 export type PublicPatternAnswer = {
@@ -300,12 +302,9 @@ const VISIBILITY_COPY: Record<PatternVisibility, string> = {
   game: 'Your Game’s crew can read this pattern and build from it.',
 }
 
-/** The manual's wording for a stat label (the reference spells them out). */
-const MANUAL_LABEL: Record<string, string> = {
-  'Structure Points': 'Structure Pts.',
-  'Energy Points': 'Energy Pts.',
-  'Heat Capacity': 'Heat Cap.',
-  'Cargo Capacity': 'Cargo Cap.',
+/** The manual's wording for a stat label (the summary spells them out). */
+function manualLabel(label: string): string {
+  return Object.values(STAT_LABELS).find((names) => names.label === label)?.book ?? label
 }
 
 function sharedDate(at: number): string {
@@ -333,9 +332,8 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const { pattern, madeBy, sharedAt, builtCount, mine, visibility } = answer
   const navigate = useNavigate()
   const { mode, canWrite } = useConnection()
-  const [busy, setBusy] = useState<'build' | 'copy' | 'unshare' | null>(null)
-  const [unshared, setUnshared] = useState(false)
-  const setPatternVisibility = useMutation(api.shelf.setPatternVisibility)
+  const [busy, setBusy] = useState<'build' | 'copy' | null>(null)
+  const [shareOpen, setShareOpen] = useState(false)
 
   const chassis = patternChassis(pattern)
   const loadout = patternLoadout(pattern)
@@ -368,20 +366,6 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
     }
   }
 
-  async function stopSharing() {
-    setBusy('unshare')
-    try {
-      await setPatternVisibility({ patternId: pattern.id, visibility: 'private' })
-      setUnshared(true)
-      toast.success('Only you can see this pattern now.')
-    } catch (err) {
-      toast.error(serverMessage(err) ?? 'The pattern could not be made private. Try again.')
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  const shownVisibility: PatternVisibility | null = unshared ? 'private' : visibility
   const builtLine = `${builtCount} ${builtCount === 1 ? 'mech' : 'mechs'} built from it`
 
   return (
@@ -458,7 +442,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               {stats.map((s) => (
                 <div key={s.label} style={PLATE}>
                   <span style={PLATE_VALUE}>{s.value}</span>
-                  <span style={PLATE_LABEL}>{MANUAL_LABEL[s.label] ?? s.label}</span>
+                  <span style={PLATE_LABEL}>{manualLabel(s.label)}</span>
                 </div>
               ))}
             </div>
@@ -504,17 +488,17 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               )}
               <Text variant="hint">{builtLine}</Text>
             </div>
-            {mine && shownVisibility && (
+            {mine && visibility && (
               <div style={ACTIONS}>
-                <Text variant="hint">{VISIBILITY_COPY[shownVisibility]}</Text>
-                {shownVisibility !== 'private' && canWrite && mode === 'connected' && (
+                <Text variant="hint">{VISIBILITY_COPY[visibility]}</Text>
+                {canWrite && mode === 'connected' && (
                   <Button
                     variant="ghost"
                     style={ACTION_BUTTON}
-                    onClick={() => void stopSharing()}
-                    disabled={busy !== null}
+                    onClick={() => setShareOpen(true)}
+                    aria-label={`Share ${pattern.name}`}
                   >
-                    {busy === 'unshare' ? 'Stopping…' : 'Stop sharing'}
+                    Share
                   </Button>
                 )}
               </div>
@@ -557,6 +541,15 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
           </span>
         </div>
       </footer>
+      {mine && (
+        <ShareStatusDialog
+          kind="pattern"
+          id={pattern.id}
+          name={pattern.name}
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+        />
+      )}
     </main>
   )
 }

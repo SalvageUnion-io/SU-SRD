@@ -1,4 +1,5 @@
 import { Button, InlineRef } from 'component-lib'
+import { NO_EFFECT } from 'salvageunion-reference'
 import type { RollState, RollTablePageData } from '../lib/rollTablePage'
 import {
   outcomeLabel,
@@ -88,7 +89,7 @@ export function RollTableView({ data, state, onRoll }: RollTableViewProps) {
                     </span>
                   )}
                   <span className="srd-roll__outcome-title">
-                    {hit ? (hit.label ?? `Roll ${roll}`) : 'No effect'}
+                    {hit ? (hit.label ?? `Roll ${roll}`) : NO_EFFECT}
                   </span>
                 </div>
               </div>

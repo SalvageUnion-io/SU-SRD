@@ -1,3 +1,4 @@
+import { PRODUCT } from 'component-lib/product'
 import type { FunctionArgs } from 'convex/server'
 import type { EntityRef } from 'itun-domain/schemas/entity'
 import type { SoftLink } from 'itun-domain/schemas/softLink'
@@ -149,7 +150,7 @@ const BLOCKED_WRITE_COPY: Record<BlockedWriteReason, string> = {
   settling: 'Still signing in — that change was not saved. Try again in a moment.',
   offline: 'Not connected — your games are read-only until the connection returns',
   signedOut: 'Sign in to build and edit — nothing is saved without an account.',
-  outdated: 'ITUN has been updated — that change was not saved. Reloading onto the new version.',
+  outdated: `${PRODUCT.shortName} has been updated — that change was not saved. Reloading onto the new version.`,
 }
 
 /**

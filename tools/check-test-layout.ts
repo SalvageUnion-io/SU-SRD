@@ -4,9 +4,9 @@
  * check-test-layout — one test layout and one test script
  * (`bun run check test-layout`).
  *
- * The refit ledger (T5) found two layouts: ITUN kept ~233 tests in
- * `__tests__/` and ~41 beside its Convex harness, the reference package kept
- * all ~56 beside their subjects. Refit II (W-T5) found two `test` scripts:
+ * There were once two layouts: ITUN kept ~233 tests in `__tests__/` and ~41
+ * beside its Convex harness, the reference package kept all ~56 beside their
+ * subjects. There were also two `test` scripts:
  * `bun test` in seven workspaces, `bun test --parallel=4 --no-isolate` in
  * three. This gate fails when either comes back:
  *

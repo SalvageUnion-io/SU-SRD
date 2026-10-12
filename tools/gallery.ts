@@ -10,7 +10,7 @@
  * `pr-gallery.yml` runs it on every PR to main against the PR's own builds,
  * served on localhost (srd's `dist`, ITUN's `dist` built against a throwaway
  * Convex backend with the test sign-in), and `pr-gallery-pages.yml` publishes
- * the result to GitHub Pages. It began as the design-refresh review's
+ * the result to GitHub Pages. It replaced a
  * hand-run Playwright loop over the preview slot.
  *
  * - A link preview is rendered the way `apps/srd/scripts/og-screenshots.ts`

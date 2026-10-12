@@ -14,7 +14,8 @@
  *     6-10  → a Module is destroyed (player picks which)
  *     11-19 → reactor overheat: mech shuts down, becomes Vulnerable, and takes
  *             SP damage equal to current Heat
- *     20    → safe (no effect)
+ *     20    → reactor overdrive: the mech may take any additional action this
+ *             turn, or Push its next roll within 10 minutes, for free (p.235)
  * - Push: re-roll a die, +2 Heat (clamped to cap), then immediately a Heat Check.
  *
  * This module is PURE: no React, no IndexedDB, no real randomness. The d20 is
@@ -52,19 +53,21 @@ export function canActivateAction(currentHeat: number, heatCost: number, heatCap
 }
 
 /**
- * Maps a Reactor Overload Table d20 roll to its outcome band (p.234-235).
+ * Maps a Reactor Overload Table d20 roll to its outcome band (p.235).
  *   1     → meltdown
  *   2-5   → system-destroyed
  *   6-10  → module-destroyed
  *   11-19 → overheat
- *   20    → safe
+ *   20    → overdrive
+ * Each band is one row of the `Reactor Overload` roll table, which
+ * `describeOverloadOutcome` reads for the readout.
  */
 export function reactorOverloadOutcome(roll: number): ReactorOverloadOutcome {
   if (roll <= 1) return 'meltdown'
   if (roll <= 5) return 'system-destroyed'
   if (roll <= 10) return 'module-destroyed'
   if (roll <= 19) return 'overheat'
-  return 'safe'
+  return 'overdrive'
 }
 
 type HeatCheckInput = {

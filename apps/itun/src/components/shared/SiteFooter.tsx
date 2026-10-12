@@ -4,11 +4,10 @@ import { publicPath } from '../../lib/appUrl'
 import { AppLink } from './AppLink'
 
 /**
- * SiteFooter — ITUN's page foot: the shared `Footer` both tools end on (refit
- * S2), on the rules-blue band with the licence row and ITUN's About and
- * Changelog.
+ * SiteFooter — ITUN's page foot: the shared `Footer` both tools end on, here
+ * on the rules-blue band with the licence row and ITUN's About and Changelog.
  *
- * It ends every page, signed in or out, at every width (refit F1). It sits in
+ * It ends every page, signed in or out, at every width. It sits in
  * normal flow after the route, so nothing pinned can cover it: the bars that
  * stay in view (the sheet's control bar, the wizard's next/back, the phone
  * Dashboard's menu and resolve bar) are `sticky` inside their own screen and

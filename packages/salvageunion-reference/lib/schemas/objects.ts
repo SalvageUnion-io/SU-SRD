@@ -49,6 +49,7 @@ export {
   PatternSystemModuleSchema,
 } from './objects/patterns'
 export {
+  ChassisHeadSchema,
   ChassisStatsSchema,
   CombatEntitySchema,
   DamageSchema,

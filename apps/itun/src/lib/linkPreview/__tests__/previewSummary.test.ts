@@ -45,6 +45,13 @@ const PATTERN: PreviewAnswer = {
   gameName: null,
 }
 
+const NPC: PreviewAnswer = {
+  kind: 'npc',
+  body: { name: 'Old Mags', position: 'Medic', hitPoints: 6, currentHP: 4, damageType: 'HP' },
+  ownerName: 'Rosa',
+  gameName: null,
+}
+
 const INVITE: InvitePreviewAnswer = {
   gameName: 'Reclamation of the Wastes',
   mediatedBy: 'alxjrvs',
@@ -60,6 +67,7 @@ const CARDS: [string, PreviewCard][] = [
   ['mech', fullSheetCard(MECH, ADDRESS)],
   ['crawler', fullSheetCard(CRAWLER, ADDRESS)],
   ['pattern', fullSheetCard(PATTERN, ADDRESS)],
+  ['npc', fullSheetCard(NPC, ADDRESS)],
   ['invite', inviteCard(INVITE, 'intheunionnow.com')],
   ['private', privateCard('intheunionnow.com')],
 ]
@@ -102,6 +110,16 @@ describe('sheetCard', () => {
     })
   })
 
+  test('a built NPC is user-made, in the Denizens navy, credited only "Made by"', () => {
+    expect(sheetCard(NPC, titleCaseSlug, ADDRESS)).toMatchObject({
+      kind: 'userMade',
+      title: 'Old Mags',
+      kicker: 'NPC · Medic',
+      tone: color.denizenBand,
+      madeBy: 'Rosa',
+    })
+  })
+
   test('an unclaimed sheet says so plainly', () => {
     expect(sheetCard({ ...MECH, ownerName: null }, titleCaseSlug, ADDRESS)).toMatchObject({
       byline: 'A mech',
@@ -139,6 +157,10 @@ describe('previewStats', () => {
   test('a pattern reads its chassis: TL, slots and SP', () => {
     expect(previewStats(PATTERN).map((s) => s.label)).toEqual(['TL', 'SYS', 'MOD', 'SP'])
     expect(previewStats({ ...PATTERN, body: { chassisRef: 'no-such' } })).toEqual([])
+  })
+
+  test('a built NPC reads its hit points as the sheet does', () => {
+    expect(previewStats(NPC)).toEqual([{ label: 'HP', value: '4/6' }])
   })
 
   test('a mech and a crawler read their structure', () => {

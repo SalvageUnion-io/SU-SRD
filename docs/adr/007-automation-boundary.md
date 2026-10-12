@@ -26,12 +26,13 @@ changes an item's condition without explicit player action.**
 Auto-applied (non-destructive, recoverable):
 
 - Heat generated when using an action; AP/EP spent; item uses decremented
-  (`activateItem` in the mech sheet performs these as sequential mutations —
-  see [ADR-008](../ARCHITECTURE.md#decisions)).
+  (`activationPatch` in `apps/itun/src/lib/rules/playActions.ts` builds them as
+  one write-through patch — see [ADR-008](../ARCHITECTURE.md#decisions)).
 - Heat clamping to the cap; Heat Check prompt when heat is gained.
 - SP damage from a Reactor Overload high roll (damage = current heat), and other
   pure bookkeeping computed by the rules functions
-  ([ADR-006](../ARCHITECTURE.md#decisions), `lib/rules/heatCheck.ts`).
+  ([ADR-006](../ARCHITECTURE.md#decisions),
+  `packages/salvageunion-reference/lib/rules/heatCheck.ts`).
 - Blocking an action when resources are insufficient or the heat cost would
   exceed the cap.
 

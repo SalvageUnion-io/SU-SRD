@@ -57,6 +57,9 @@ export type EntityDomain = 'pilot' | 'mech' | 'crawler' | 'actor' | 'gear' | 'gl
 /** The three kinds of pilot class. */
 export type ClassKind = 'BASE' | 'HYBRID' | 'NON-ADVANCEABLE'
 
+/** The two kinds of crawler bay: on every Union Crawler, or added in play. */
+export type BayKind = 'Standard' | 'Expansion'
+
 /** A labelled group of nested entities ("Grants", "Systems"). */
 export type EntityChildGroup = { key: string; label: string; items: EntityRef[] }
 
@@ -72,13 +75,15 @@ export type MissingArtVariant = 'file' | 'row' | 'removed'
 export type EntityArt =
   | { kind: 'image'; url: string }
   /** The schema has art and this entity has none: its censor mark. `seed`
-   * tears its edge the same way in every form. */
+   * tears its edge the same way in every form; `backdrop` is the master URL of
+   * the faded blueprint drawn behind it. */
   | {
       kind: 'missing'
       variant: MissingArtVariant
       code: string
       short: string
       seed: number
+      backdrop: string
     }
   /** The schema has no art at all: no art place. */
   | { kind: 'none' }

@@ -90,6 +90,12 @@ export type MechCapacityResult = {
   moduleSlotsUsed: number
   moduleSlotsMax: number
   violations: CapacityViolation[]
+  /**
+   * Set when the loadout is exactly a pattern the book prints over its
+   * chassis's slots (`AS_PRINTED_OVERFLOW`): its over-slot counts are the
+   * book's, so they are reported here rather than as violations.
+   */
+  asPrinted?: { pattern: string; cite: string }
 }
 
 /**
@@ -227,19 +233,21 @@ export type EditSnapshot<T> = {
 export type Roll = (sides: number) => number
 
 /**
- * Reactor Overload outcome categories (Core Book p.234-235).
- *   1     → meltdown
- *   2-5   → system-destroyed
- *   6-10  → module-destroyed
- *   11-19 → overheat
- *   20    → safe
+ * Reactor Overload outcome categories (Core Book p.235, the Reactor Overload
+ * Table; the book's row titles in brackets).
+ *   1     → meltdown          (Reactor Overload)
+ *   2-5   → system-destroyed  (System Overload)
+ *   6-10  → module-destroyed  (Module Overload)
+ *   11-19 → overheat          (Reactor Overheat)
+ *   20    → overdrive         (Reactor Overdrive: a free additional action
+ *                              this turn, or a free Push within 10 minutes)
  */
 export type ReactorOverloadOutcome =
   | 'meltdown'
   | 'system-destroyed'
   | 'module-destroyed'
   | 'overheat'
-  | 'safe'
+  | 'overdrive'
 
 /**
  * Recorded result of a Heat Check (and any subsequent Reactor Overload roll).

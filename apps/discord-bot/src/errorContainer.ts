@@ -16,7 +16,7 @@
 
 import { ButtonStyle } from 'discord-api-types/v10'
 import type { SURefRollTable } from 'salvageunion-reference'
-import { searchIn } from 'salvageunion-reference'
+import { NO_EFFECT, searchIn } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerData } from './container'
 import { encodeRollRequest, makeCustomId } from './customId'
 import { NEUTRAL_ACCENT } from './format'
@@ -69,9 +69,8 @@ export function unknownTableContainer(query: string, indexed: number): Container
  * A roll that matched no entry on a well-formed table.
  *
  * The two `dramatic` tables — Blinding Blue Laser Rifle and Bio-Talon — carry
- * only a `20` key, so `resultForTable` reports failure on **19 of every 20
- * rolls**, with an internal diagnostic ("No result found for roll 7") that is
- * never shown to the user.
+ * only a `20` key, so `rollOnTable` answers `{ kind: 'no-effect' }` on **19 of
+ * every 20 rolls**.
  *
  * That is not an error. It is what the book means: the effect triggers on a 20
  * and otherwise nothing happens. Rendered as a result, in neutral rust, because
@@ -96,7 +95,7 @@ export function noEffectContainer(
     accent: NEUTRAL_ACCENT,
     blocks: [
       { kind: 'text', content: roller ? `-# ${name} · rolled by ${roller}` : `-# ${name}` },
-      { kind: 'text', content: rollHeadline(String(roll), 'NO EFFECT') },
+      { kind: 'text', content: rollHeadline(String(roll), NO_EFFECT.toUpperCase()) },
       { kind: 'separator' },
       { kind: 'text', content: '-# this table only triggers on a 20' },
       ...(buttons.length > 0 ? [{ kind: 'buttons' as const, buttons }] : []),

@@ -9,7 +9,7 @@ import { space } from '../../design/tokens'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkChevron, LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
-import { SelectedSeal, SelectSurface } from '../modes/select'
+import { SelectCheck, SelectedSeal, SelectSurface } from '../modes/select'
 import { SELECTED_RING } from '../modes/selectedRing'
 import { Art } from '../parts/Art'
 import { actionTypeStamps } from '../parts/actionStamps'
@@ -34,7 +34,7 @@ export type RowSlots = {
   outer?: CardOuterProps
   /** The card's frame (its weight, dash and selection ring). */
   frameStyle?: CSSProperties
-  /** The card's labels (the head's first line); `null` for none. */
+  /** The card's labels (right of the name); `null` for none. */
   labels?: ReactNode
   /** The card's top-right control rail. */
   rail?: ReactNode
@@ -143,6 +143,12 @@ export function Row({
   const affordance =
     slots.chevron || target.href || target.onOpen ? (
       <LinkChevron />
+    ) : mode.kind === 'select' && mode.role === 'toggle' && !slots.outer ? (
+      // A toggle's control is a real checkbox; the seal still marks the pick.
+      <>
+        {selected && <SelectedSeal word={mode.seal} />}
+        <SelectCheck mode={mode} label={mode.label ?? title} accent={paint.color} />
+      </>
     ) : selected ? (
       <SelectedSeal word={mode.seal} />
     ) : undefined
@@ -164,6 +170,7 @@ export function Row({
     <div
       className="su-entity-row__frame"
       data-user-made={userMade || undefined}
+      data-bodyless={!hasBody || undefined}
       style={{ ...frameOf(userMade, selected), ...slots.frameStyle }}
     >
       {slots.art !== false && !omit.includes('art') && <Art art={model.art} />}

@@ -67,10 +67,10 @@ export type DocumentMeta = {
 export type DocumentShell = 'base' | 'bare'
 
 /**
- * Where a book page ends (board 07): the site footer takes the page's chapter
- * tone and, when the page has one, its citation — the page number set large
- * and the book (and any reprint). Entity, pattern and roll-table pages pass it;
- * every other page leaves it out and ends on the rules-blue band (board 06).
+ * Where a book page ends (board 07): when the page has a citation, the footer
+ * bands it in the page's chapter tone — the page number set large and the book
+ * (and any reprint) — above the licence row, which is the Union bar's ink on
+ * every page. A listing passes only its measure; other pages leave it out.
  */
 /** A book page's foot: the shared `Footer`'s (component-lib), named for the page. */
 export type PageFoot = FooterFoot

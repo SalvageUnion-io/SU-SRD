@@ -22,9 +22,10 @@ export type Paint = {
   ink: boolean
   /**
    * The name sits on a PAPER chip only where neither ink nor paper reaches
-   * 4.5:1 on the band (ruleset §3.8): TL3 and Nanite, where ink measures
-   * 3.99:1 and paper 3.84:1. Every other tone prints the name in the
-   * foreground that passes (ink on TL1 at 8.6:1, paper on TL4 at 5.7:1).
+   * 4.5:1 on the band (ruleset §3.8). No tone band is such a band since TL3
+   * and Nanite were retoned (ink on TL3 at 4.6:1, paper on Nanite at 4.6:1);
+   * a damaged band's grey is measured the same way. Every tone prints the name
+   * in the foreground that passes (ink on TL1 at 8.6:1, paper on TL4 at 5.7:1).
    */
   nameOnPaper: boolean
 }

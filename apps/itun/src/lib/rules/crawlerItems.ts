@@ -1,6 +1,6 @@
 /**
- * crawlerItems — the crawler sheet's non-component helpers (moved out of
- * `components/sheet/` by refit T4). Pure lookups + constants shared by
+ * crawlerItems — the crawler sheet's non-component helpers (a rules home, not
+ * `components/sheet/`). Pure lookups + constants shared by
  * CrawlerSheetItems and CrawlerSheet.
  */
 

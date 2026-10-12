@@ -18,7 +18,7 @@ You turn a red gate green by fixing the code, never the gate.
 4. Finish with one full `bun run check:fast`.
 
 Prefer the repo's own fixers where the fix names one: `bun run format`
-(Biome), `bun run build:package` for generated files. Generated files
+(Biome); `bun run check generated` regenerates the committed generated files, then commit them. Generated files
 (`routeTree.gen.ts`, `schemas/*.schema.json`, `lib/generated/`) are
 regenerated, never hand-edited.
 

@@ -8,7 +8,7 @@
  * WHY A LIFECYCLE TRANSACTION LIVES ON A FREE-EDIT SURFACE. ADR-021 puts
  * lifecycle transactions on the guided modes, so this control is an exception
  * — a **sanctioned** one, recorded in the "Sanctioned Live-Sheet transactions"
- * table in `docs/ARCHITECTURE.md#areas`, which is the
+ * table in `docs/ARCHITECTURE.md#live-sheet`, which is the
  * authoritative placement doc. The short version: the crawler has no Dashboard
  * presence, the whole economy hangs off the crawler hero's lozenges, nothing
  * here blocks (every gate is a disabled button plus a visible advisory), and
@@ -47,6 +47,7 @@ import { parseCrawlerTechLevel } from 'itun-domain/crawlerLevel'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useReducer, useState } from 'react'
+import { plainTraitText, resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
 import { crawlerMaxSP, resolvePool } from 'salvageunion-reference/rules'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
@@ -220,24 +221,21 @@ type DialogProps = {
 // Pay Upkeep + failed-Upkeep Deterioration (p.218-219)
 // ---------------------------------------------------------------------------
 
+/**
+ * The Deterioration readout: the rolled row of the Crawler Deterioration table
+ * (p.219), verbatim, then what was applied — the SP left and the Bay the
+ * random pick landed on — so the readout and the book cannot disagree.
+ */
 function describeDeterioration(effect: DeteriorationEffect, bayName: string | null): string {
-  const head = `Deterioration ${effect.roll}: `
-  switch (effect.outcome) {
-    case 'safe':
-      return `${head}the crawler chugs along for now — no effect.`
-    case 'lose-sp':
-      return `${head}the crawler loses ${effect.spLoss} SP (now ${effect.nextSP}).${
-        effect.nextSP === 0 ? ' At 0 SP, roll the Crawler Damage Table.' : ''
-      }`
-    case 'choose-bay':
-      return `${head}a Bay of your choice becomes Damaged and inoperable.`
-    case 'random-bay':
-      return `${head}${bayName ?? 'a random Bay'} is Damaged and inoperable until repaired.`
-    case 'sp-and-random-bay':
-      return `${head}the crawler loses ${effect.spLoss} SP (now ${effect.nextSP}) and ${
-        bayName ?? 'a random Bay'
-      } is Damaged until repaired.${effect.nextSP === 0 ? ' At 0 SP, roll the Crawler Damage Table.' : ''}`
-  }
+  const table = SalvageUnionReference.RollTables.getByName('Crawler Deterioration')?.table
+  const row = resultForTable(table, effect.roll)
+  const applied = [
+    row.success ? plainTraitText(row.result.value) : '',
+    bayName === null ? '' : `${bayName} is Damaged.`,
+    effect.spLoss > 0 ? `SP now ${effect.nextSP}.` : '',
+    effect.spLoss > 0 && effect.nextSP === 0 ? 'At 0 SP, roll the Crawler Damage Table.' : '',
+  ]
+  return `Deterioration ${effect.roll}: ${applied.filter(Boolean).join(' ')}`
 }
 
 type RollFor = { rollFor: (tableName: string) => Promise<Roll> }

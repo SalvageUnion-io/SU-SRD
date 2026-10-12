@@ -246,7 +246,7 @@ export function CrawlerSheet({
    *
    * Tagged `LIVE_SHEET_TXN`: Scrap leaves the pool by a rule, so the Change Log
    * should not call it a hand edit. One of the three sanctioned Live-Sheet
-   * transactions in `docs/ARCHITECTURE.md#areas`.
+   * transactions in `docs/ARCHITECTURE.md#live-sheet`.
    */
   function repairBay(entry: CrawlerBayEntry, index: number) {
     if (readOnly) return

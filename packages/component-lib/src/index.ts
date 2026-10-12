@@ -220,7 +220,7 @@ export * as tokens from './design/tokens'
 // how refs resolve, texture and the user-made treatment once.
 export { Entity } from './entity/Entity'
 export { EntitySurfaceProvider } from './entity/EntitySurface'
-export type { EntitySurfaceValue } from './entity/entitySurfaceContext'
+export type { AnnouncedRoll, EntitySurfaceValue } from './entity/entitySurfaceContext'
 // MENTION and PEEK (E4, E16): an entity named in prose, and the page's one
 // host for the read-only card a mention or a trait tag shows on hover, focus
 // or long-press.
@@ -229,6 +229,7 @@ export type { PeekLoader } from './entity/Peek'
 export { PeekHost } from './entity/Peek'
 export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'
 export { findPageRefs } from './entity/pageRefs'
+export { TECH_LEVEL_SCHEMAS } from './entity/parts/plate'
 export type { EntityRowModel } from './entity/types'
 /** `CSSProperties` that also admits `--custom-property` keys (see styles/cssVars). */
 export type { CSSVarStyle } from './styles/cssVars'
@@ -237,7 +238,7 @@ export { cn } from './utils/cn'
 // The one dice source (Randsum): a named Salvage Union table rolls through
 // @randsum/salvageunion, every other die through @randsum/roller.
 export type { TableDie } from './utils/dice'
-export { d20ForTable, rollD20, rollForTable } from './utils/dice'
+export { dieForTable, rollD20, rollForTable } from './utils/dice'
 // The one place a schema id becomes a human label ('crawler-bays' →
 // 'Crawler Bays'), so the combobox, the /search page and the catalog can't
 // spell the same schema differently.

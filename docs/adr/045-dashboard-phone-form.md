@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # ADR-045: The Dashboard Has a Phone Form
@@ -8,12 +8,11 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 45, which
 
 ## Status
 
-**Proposed** (2026-10-09; design lead, owner to confirm). Amends
+**Accepted; built.** Amends
 [ADR-038](038-dashboard-game-surface.md) §3, §4 and §9. It adds no mode to [ADR-021](021-itun-surface-taxonomy.md).
 The phone form is Guided Play, with the same enforcement, seat and Change Log
 as the canvas, so the taxonomy and the
-[rules and ITUN surfaces](../ARCHITECTURE.md#areas) matrix do not change.
-Built in issue #1256 (boards D4 and D5).
+[rules and ITUN surfaces](../ARCHITECTURE.md#surfaces) matrix do not change.
 
 ## Context
 
@@ -27,7 +26,7 @@ instead. In practice:
   22px.
 
 Players run their sheets on phones at the table. The brand refresh drew a
-phone form (origin boards D4 and D5, issue #1256).
+phone form (boards D4 and D5).
 
 ## Decision
 
@@ -74,7 +73,7 @@ phone form (origin boards D4 and D5, issue #1256).
   scaling fights browser zoom.
 - **A fluid canvas that reflows its grid.** ADR-038 rejected this because
   no-scroll cannot hold. The phone form scrolls, and says so.
-- **Two Minors stacked above the Major** (the #1063 sketch). At 812px the
+- **Two Minors stacked above the Major** (an earlier sketch). At 812px the
   Major's controls would start below the fold, and the deck would sit under
   all three units.
 - **A separate phone route.** It gives one seat two URLs, and every link
@@ -95,5 +94,5 @@ phone form (origin boards D4 and D5, issue #1256).
   `MajorModel` through both (`phoneForm.test.tsx`).
 - The masthead's ⌘K search is not on the Dashboard; its own search is the
   SRD panel (the canvas's SRD tab, the phone's search key).
-- Undo stays unbuilt in both forms (see [combat loop](../ARCHITECTURE.md#areas)). A
+- Undo stays unbuilt in both forms (see [combat loop](../ARCHITECTURE.md#combat)). A
   follow-up decides it.

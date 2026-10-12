@@ -57,6 +57,7 @@ export {
   srdSchemaPath,
   srdSchemaUrl,
 } from './assets'
+export { type BookAnchor, bookQuote } from './bookQuote'
 export {
   parseContentBlockString,
   replaceChassisPlaceholder,
@@ -118,6 +119,7 @@ export {
 export { getInventorySlots } from './inventorySlots'
 export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory'
 export { nameToSlug } from './nameToSlug'
+export { displayTitle } from './naming'
 export {
   getPatterns,
   isBioTitanPattern,
@@ -125,7 +127,13 @@ export {
   visiblePatterns,
 } from './patterns'
 export { type ChoiceSelections, resolveChoiceView } from './resolveChoiceView'
-export { type RollOnTableOutcome, rollOnTable } from './rollOnTable'
+export {
+  d20ForTable,
+  NO_EFFECT,
+  type RollOnTableOutcome,
+  rollOnTable,
+  type TableDice,
+} from './rollOnTable'
 export { SchemaNotLoadedError } from './SchemaNotLoadedError'
 export type {
   SURefEnumSchemaName,
@@ -180,6 +188,11 @@ export {
   linkTraitReferences,
   rangeLabel,
 } from './view/discordCard'
+export {
+  COMPONENT_EMBED_MAX_BYTES,
+  componentEmbedJson,
+  discordEntryCard,
+} from './view/discordEntryCard'
 // The entity VIEW MODEL (docs/design-system/entity-display-language.md): an
 // entity resolved once into what every form draws. Its parts are public too,
 // for component-lib's card helpers, which read them rather than keep a copy.
@@ -199,9 +212,11 @@ export {
   resolveAdditionalSources,
   resolveProvenance,
 } from './view/parts/cite'
-export { bookStats, entityStats } from './view/parts/facts'
+export type { ItemCondition, StatLabel } from './view/parts/facts'
+export { bookStats, CONDITION_LABELS, entityStats, STAT_LABELS } from './view/parts/facts'
 export { entityTone, guideTone, headerFill } from './view/parts/fill'
 export {
+  bayKind,
   classKind,
   classRequirements,
   entityStamp,

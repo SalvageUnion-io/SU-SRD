@@ -11,7 +11,7 @@ paths:
 # srd social preview images (og:image)
 
 Each entity page's `og:image` is its **link preview card**, `OgCard` from
-component-lib (issue 1280): the chapter band with speckle, the notched title,
+component-lib: the chapter band with speckle, the notched title,
 the stat boxes and the Union bar's foot, the same parts the pages are built
 from, so the preview cannot drift from the page. A reference thing (chassis,
 system, equipment) takes its tone, stats and page cite; a thing you do (ability,
@@ -30,7 +30,7 @@ pages agree on it. `apps/srd/scripts/og-screenshots.ts` screenshots it at
 - The build always emits the _default_ og:image; the script then rewrites the meta
   only for pages whose PNG actually landed. Generation being skipped, capped by
   `OG_SCREENSHOTS_BUDGET_MS`, or failing outright therefore degrades to the
-  default banner and **never fails the build** (#482).
+  default banner and **never fails the build**.
 - There is no version to bump. Each cached PNG is keyed on its entity's JSON
   and the render key: `apps/srd/scripts/ogRenderFingerprint.ts` hashes the built
   bytes that draw the card (the og-card page, its CSS and fonts, the

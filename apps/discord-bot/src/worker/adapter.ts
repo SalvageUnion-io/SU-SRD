@@ -257,8 +257,8 @@ function targetMessageOf(
 }
 
 /**
- * The command an interaction ran, for the one usage log line per interaction
- * (spike D12): `su game bind` for a command or its autocomplete, `su:roll` for
+ * The command an interaction ran, for the one usage log line per interaction:
+ * `su game bind` for a command or its autocomplete, `su:roll` for
  * a button. Never a user id, an option value or a button payload.
  */
 export function interactionName(raw: APIInteraction): string | null {

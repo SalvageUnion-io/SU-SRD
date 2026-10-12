@@ -9,42 +9,22 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 33, which
 ## Status
 
 **Accepted and delivered.** Every production hostname is served by a
-Cloudflare Worker: `intheunionnow.com` since 2026-08-19, `salvageunion.io` and
-`assets.salvageunion.io` since 2026-08-31; Netlify and Render serve none of them.
-Code comments that cite a cutover phase (`ADR-033 P4`) mean the deleted plan:
-`git show c2476d1c:docs/architecture/cloudflare-cutover.md`. The decision as
-first written, with the cutover's context and hazards:
+Cloudflare Worker; Netlify and Render serve none. The decision as first
+written, with the cutover's context and hazards:
 `git show bc9f08ce:docs/ARCHITECTURE.md`. Current identifiers (Workers,
-buckets, zones) are in [services and agent tooling](../ARCHITECTURE.md#areas).
+buckets, zones) are in [Cloudflare](../ARCHITECTURE.md#cloudflare).
 
-**Amended 2026-10-06 — §Credentials: the deploy secrets move into a `production`
-GitHub Environment** restricted to `main`, so a workflow copy
-dispatched from a branch cannot read them.
+**Amended by ADR-048:** ITUN is the Workers route `salvageunion.io/build*` on
+`su-itun`, ahead of `su-srd`'s Custom Domain; `intheunionnow.com` stays attached
+only to 301 to the same page there. **ADR-047** (one edge Worker for `api.`) is
+accepted, not built.
 
-**Amended 2026-10-08 — §Credentials: the deploy runs on `push` to `main`**,
-gated by the strict `main` ruleset.
+**Amended — srd answers misses.** `src/worker/index.ts` runs for every miss and
+answers it with `no-store` (see Configuration outside the repo). §Credentials
+carries the `production` and `preview` Environments.
 
-**Amended 2026-10-09 — `srd` gains a Worker script that answers misses.**
-`_headers` matches by path, not status, and Static Assets applied its
-`/assets/*` rule to the `404-page` response, so a missing chunk's 404 was
-`immutable` for a year. The zone Transform Rule meant to override that was not
-in effect on `salvageunion.io` (production answered `immutable`, and the deploy
-smoke failed on it). `src/worker/index.ts` now runs for every miss, as itun's
-does, and answers it with `no-store`; real files never run it. No rule outside
-the repo is relied on for this any more.
-
-**Amended 2026-10-10 — §Credentials: a second Environment, `preview`.** The
-[preview slot](../ARCHITECTURE.md#areas) is dispatched from any branch, so its
-Environment admits every branch and holds a copy of the Cloudflare token
-(which cannot be narrowed to the preview) behind a required reviewer, the
-owner. Production's Environment, its branch policy and its no-reviewer
-deploys are unchanged.
-
-**§3 is history since [ADR-036](../ARCHITECTURE.md#decisions)** retired snapshots: nothing reads
-or binds the snapshot bucket.
-
-Amends [ADR-004](../ARCHITECTURE.md#decisions), since superseded: snapshots moved from Netlify
-Functions + Blobs to a Worker + R2 with ADR-004's contract unchanged.
+**§3 is history:** [ADR-036](../ARCHITECTURE.md#decisions) retired snapshots
+(and superseded ADR-004, which §3 amended).
 
 Re-affirms [ADR-031](../ARCHITECTURE.md#decisions) and
 [ADR-030](030-accounts-games-server-of-record.md) without changing either.
@@ -86,11 +66,11 @@ So the Worker↔Convex boundary stays plain HTTP with a bearer token.
 account was declined. Cloudflare isolates by account, not project, so this
 project shares the Workers Free quota (100k requests/day, 10 ms CPU) and the
 `alxjrvs.workers.dev` subdomain with RANDSUM's two Workers, `randsum-rdn` and
-`randsum-site`; preview URLs are `<worker>.alxjrvs.workers.dev`, and renaming
+`randsum-site`; preview URLs are `<alias>-<worker>.alxjrvs.workers.dev`, and renaming
 the subdomain would move RANDSUM's Workers.
 
 **7. A failed gate halts the deploy.** No gate is worked around, relaxed, or
-retried with different parameters to obtain a pass. With no rollback, treating
+retried with different parameters to obtain a pass. The cutover had no rollback; treating
 a red gate as an obstacle converts a caught problem into an unrecoverable one.
 This rule exists to be cited.
 
@@ -120,10 +100,15 @@ that can deploy production. The bar it is held to:
   **narrowed to the named buckets** rather than account-wide. Cloudflare scopes
   R2 per bucket but not Workers per script, so the Workers half can edit any
   Worker on the account (§6). Narrow the half that can be narrowed, and do not
-  describe the other half as contained.
+  describe the other half as contained. Since ADR-048 it also holds *Zone:
+  Read* and *Workers Routes: Edit* on `salvageunion.io`; the deploy refuses to
+  start without them.
 - Stored as a secret of the `production` GitHub Environment, restricted to
   `main`, with no reviewers. Never at repository
   level, in a `wrangler.jsonc`, or in a `.env` git can see.
+- The [preview slot](../ARCHITECTURE.md#previews) runs from any branch, so its
+  `preview` Environment admits every branch and holds a copy of the token (it
+  cannot be narrowed to the preview) behind a required reviewer, the owner.
 - Every deploy follows a merge, and the `main` ruleset merges only a branch
   that is up to date with `main` and passed `CI Success`, so a red gate cannot
   deploy. A green gate suffices: production deploys need no environment
@@ -131,14 +116,13 @@ that can deploy production. The bar it is held to:
 
 ## Accepted risks
 
-- **No rollback**, chosen deliberately.
+- **No automatic rollback.** Recovery is a dispatched deploy of a known-good `sha` ([deploy](../ARCHITECTURE.md#deploy)).
 - **The CI token reaches the whole personal account**, RANDSUM's two Workers
   included. With an agent PAT carrying `workflow` scope and no required human
   review, "merge a PR" reaches production with no human in it, and not only
   this project's. Revisit if RANDSUM's deployments become something this
   repository must not be able to touch; adding anything else to the account
   widens it.
-- **The bot displays permanently offline** in every server.
 
 ## Configuration outside the repo
 
@@ -162,6 +146,8 @@ seen an https response, and the Redirect Rule matches `www` over https only.
 | ------------------- | ----------------------- | --------------------------------------------- |
 | `salvageunion.io`   | `www.salvageunion.io`   | 301 → `https://salvageunion.io` + path, query |
 | `intheunionnow.com` | `www.intheunionnow.com` | 301 → `https://intheunionnow.com` + path, query |
+
+`intheunionnow.com` itself 301s to `salvageunion.io/build` (ADR-048), so `www` takes two hops.
 
 `_redirects` cannot do this: Cloudflare lists domain-level redirects as
 unsupported and ignores malformed rules silently. Built from the dashboard's

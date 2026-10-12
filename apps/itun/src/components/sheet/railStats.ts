@@ -11,6 +11,7 @@ import type { pilotingContext } from 'itun-domain/rules/pilotingContext'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
+import { CONDITION_LABELS, STAT_LABELS } from 'salvageunion-reference'
 import {
   crawlerMaxSP,
   mechMaxEP,
@@ -54,6 +55,12 @@ export type RailStat = {
  */
 type Piloting = ReturnType<typeof pilotingContext>
 
+/** The stats' short names, from the reference vocabulary. */
+const { short: SP } = STAT_LABELS.structurePoints
+const { short: EP } = STAT_LABELS.energyPoints
+const { short: HEAT } = STAT_LABELS.heatCapacity
+const { short: HP } = STAT_LABELS.hitPoints
+
 /**
  * Mech rail vitals: "SP 9/13 · EP 6/11 · Heat 4/12".
  *
@@ -70,9 +77,9 @@ export function mechRailItems(mech: Mech, piloting?: Piloting): RailStat[] {
   const maxEP = mechMaxEP(mech, undefined, piloting)
   const maxHeat = mechMaxHeat(mech, undefined, piloting)
   return [
-    { label: 'SP', value: resolvePool(mech.currentSP, maxSP), max: maxSP },
-    { label: 'EP', value: resolvePool(mech.currentEP, maxEP), max: maxEP },
-    { label: 'Heat', value: resolveGauge(mech.currentHeat, maxHeat), max: maxHeat },
+    { label: SP, value: resolvePool(mech.currentSP, maxSP), max: maxSP },
+    { label: EP, value: resolvePool(mech.currentEP, maxEP), max: maxEP },
+    { label: HEAT, value: resolveGauge(mech.currentHeat, maxHeat), max: maxHeat },
   ]
 }
 
@@ -89,7 +96,7 @@ export function pilotRailItems(pilot: Pilot, crawlerTechLevel?: number): RailSta
   const maxHP = Math.max(0, pilotMaxHP(input))
   const maxAP = Math.max(0, pilotMaxAP(input))
   return [
-    { label: 'HP', value: resolvePool(pilot.currentHP, maxHP), max: maxHP },
+    { label: HP, value: resolvePool(pilot.currentHP, maxHP), max: maxHP },
     { label: 'AP', value: resolvePool(pilot.currentAP, maxAP), max: maxAP },
   ]
 }
@@ -100,11 +107,11 @@ export function crawlerRailItems(crawler: Crawler): RailStat[] {
   const states = bayStates(crawler)
   const intact = states.filter((s) => s === 'intact').length
   return [
-    { label: 'SP', value: resolvePool(crawler.currentSP, maxSP), max: maxSP },
+    { label: SP, value: resolvePool(crawler.currentSP, maxSP), max: maxSP },
     // Bays only appear once the crawler HAS bays — an empty "Bays 0/0" line was
     // never rendered before and must not start now.
     ...(states.length > 0
-      ? [{ label: 'Bays', value: intact, max: states.length, suffix: 'Intact' }]
+      ? [{ label: 'Bays', value: intact, max: states.length, suffix: CONDITION_LABELS.intact }]
       : []),
   ]
 }
@@ -116,12 +123,14 @@ export function bayStates(crawler: Crawler): StatState[] {
 
 /** Destroyed > Damaged > Intact status pill for a mech. */
 export function mechStatusPill(mech: Mech): { label: string; tone: BadgeTone } {
-  if (mech.destroyed) return { label: 'Destroyed', tone: 'bad' }
+  if (mech.destroyed) return { label: CONDITION_LABELS.destroyed, tone: 'bad' }
   const anyDamaged = [
     ...Object.values(mech.systemConditions ?? {}),
     ...Object.values(mech.moduleConditions ?? {}),
   ].some((c) => c !== 'intact')
-  return anyDamaged ? { label: 'Damaged', tone: 'warn' } : { label: 'Intact', tone: 'ok' }
+  return anyDamaged
+    ? { label: CONDITION_LABELS.damaged, tone: 'warn' }
+    : { label: CONDITION_LABELS.intact, tone: 'ok' }
 }
 
 /**

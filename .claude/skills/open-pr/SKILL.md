@@ -31,7 +31,7 @@ in order, each short:
 - **What changed** — the change by area, not by file.
 - **Verification** — what you ran (`bun run check`, a `bun run shot`) and what
   you looked at.
-- **Follow-ups** — what is left, or "None". Ideas you did not build go here,
+- **Follow-ups** — what is left. Ideas you did not build go here,
   not into the diff.
 
 Delete a heading only when it would read "None" and add nothing. Never paste
@@ -40,7 +40,9 @@ tokens, secrets or environment values into a body: it is permanent history.
 ## Opening it
 
 Validate first: `bun run check:fast` at least, `bun run check` for anything
-cross-package. Push the branch, then open the PR as a **draft**:
+cross-package. Push the branch, then open the PR as a **draft** against the
+base `bun packages/gates/lib/baseBranch.ts` prints (a branch cut from
+`design-refresh` targets it, not `main`):
 
 - **Locally:** `gh pr create --draft --title … --body-file …`.
 - **Cloud session:** `gh` answers REST only, so `gh pr create` gets 403. Use

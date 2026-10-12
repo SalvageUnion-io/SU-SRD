@@ -57,4 +57,25 @@ describe('MechSchema', () => {
   test('rejects unknown fields (strict)', () => {
     expect(() => MechSchema.parse({ ...validMech, secretField: 'oops' })).toThrow()
   })
+
+  test('a Reactor Overload 20 is stored as overdrive; a stored legacy safe reads as overdrive', () => {
+    const lastHeatCheck = {
+      heatCheckRoll: 3,
+      heatAtCheck: 6,
+      overloaded: true,
+      overloadRoll: 20,
+      outcome: 'overdrive',
+      rolledAt: '2026-05-18T00:00:00.000Z',
+    }
+    expect(MechSchema.parse({ ...validMech, lastHeatCheck }).lastHeatCheck?.outcome).toBe(
+      'overdrive'
+    )
+    const legacy = { ...lastHeatCheck, outcome: 'safe' }
+    expect(MechSchema.parse({ ...validMech, lastHeatCheck: legacy }).lastHeatCheck?.outcome).toBe(
+      'overdrive'
+    )
+    expect(() =>
+      MechSchema.parse({ ...validMech, lastHeatCheck: { ...lastHeatCheck, outcome: 'calm' } })
+    ).toThrow()
+  })
 })

@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react-swc'
 import { readChangelog } from 'component-lib/changelog/git'
+import { CHECKOUT_HEADER, CHECKOUT_ROOT } from 'gates/ports'
 import { sentrySourcemaps } from 'observability/vite'
 import type { Plugin } from 'vite'
 import { defineConfig, loadEnv } from 'vite'
@@ -108,7 +109,7 @@ export default defineConfig(({ mode }) => {
         includeAssets: ['favicon.svg'],
         workbox: WORKBOX_OPTIONS,
         manifest: {
-          name: 'ITUN — In The Union Now',
+          name: 'ITUN — In the Union now',
           short_name: 'ITUN',
           // index.html's meta description, verbatim (lib/__tests__/manifestDescription.test.ts).
           description:
@@ -225,6 +226,11 @@ export default defineConfig(({ mode }) => {
       entries: ['index.html', 'src/**/*.{ts,tsx}'],
     },
     server: {
+      // Names this checkout, so `bun run shot itun:/route` reuses only its own
+      // checkout's server (`packages/gates/lib/ports.ts`). The port stays
+      // Vite's default, 5173, where the local Convex backend expects it; shot
+      // passes its own on the command line.
+      headers: { [CHECKOUT_HEADER]: CHECKOUT_ROOT },
       watch: {
         ignored: ['**/routeTree.gen.ts'],
       },

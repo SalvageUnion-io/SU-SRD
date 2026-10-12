@@ -4,7 +4,7 @@ import { HERO_ART_CROP } from './heroArtCrop.data'
 
 /**
  * heroArtCrop — how the entity page's hero crops its artwork to the line art
- * (refit ledger B4). The artwork ships on the book's canvas with a margin that
+ * The artwork ships on the book's canvas with a margin that
  * differs per image (the Mule's ink fills 75% × 60% of it, a bio-titan's
  * ~96%), so the box each image's ink sits in is measured once
  * (`bun run assets:crop`) and looked up here by the image's own URL.

@@ -1,6 +1,6 @@
 # Discord Bot
 
-Discord bot for rolling on Salvage Union random tables. Standalone consumer of
+The Discord bot: `/su` rolls and lookups, and an In the Union now Game client. A consumer of
 `salvageunion-reference` — it reuses the same pure rules/data logic the apps do
 ([ADR-006](../../docs/ARCHITECTURE.md#decisions)) and preloads the dataset
 at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
@@ -11,21 +11,20 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
 - **Library:** `@discordjs/builders` (commands + Components V2),
   `@discordjs/rest`, `discord-api-types`. **Not `discord.js`** — nothing here
   needs its gateway client.
-- **Data:** `salvageunion-reference` workspace package (standalone, no component-lib)
+- **Data:** `salvageunion-reference` workspace package. From `component-lib` it
+  imports only the dependency-free `component-lib/product` subpath (the product's
+  names), never the barrel.
 
 ## Runtime
 
 The bot is an **HTTP-interactions Cloudflare Worker** (`src/worker/index.ts`,
-deployed by `wrangler.jsonc`). There is no Node gateway, no `dist/` bundle and
-no `build`/`start` script; the Worker reports to Sentry through
-`observability/cloudflare`. There is no `discord.js` dependency: slash commands
-and replies are built with `@discordjs/builders`, the wire types and `Routes`
-come from `discord-api-types`, and both the Worker and `deploy-commands.ts`
-talk to Discord through `@discordjs/rest`. Reply payloads are the local
-`ReplyPayload` / `EditReplyPayload` in `src/commands/interactions.ts`, not
-`discord.js`'s options classes. Do not re-add `discord.js` for a type — its
-value import cannot run on workerd, and the portable packages cover everything
-the bot uses.
+deployed by `wrangler.jsonc`). There is no Node gateway and no `start` script;
+`build` is typecheck plus a `wrangler` dry-run bundle. The Worker reports to
+Sentry through `observability/cloudflare`. Wire types and `Routes` come from
+`discord-api-types`; the Worker and `deploy-commands.ts` talk to Discord through
+`@discordjs/rest`; reply payloads are the local `ReplyPayload` /
+`EditReplyPayload` in `src/commands/interactions.ts`. Never add `discord.js`,
+even for a type: its value import cannot run on workerd.
 
 ## Structure
 
@@ -35,10 +34,9 @@ the bot uses.
 - `src/buttons.ts` + `src/customId.ts` - stateless button routing (`su:<action>:<payload>`)
 - `src/container.ts` - the Components V2 seam: pure `ContainerData` → `ContainerBuilder`,
   and `entityCard()`, the one render for sheets and Game cards
-- `src/lookupCard.ts` - the `/su lookup` card: the shared Discord card
-  (`discordCardParts` in `salvageunion-reference`, also the SRD's Component
-  Embed) plus tabs, pages, the pattern picker and roll buttons. Design:
-  [discord-bot-refresh.md](../../docs/architecture/discord-bot-refresh.md)
+- `src/lookupCard.ts` - the `/su lookup` card: the entry's one Discord card
+  (`discordEntryCard` in `salvageunion-reference`, block for block the SRD's
+  Component Embed) plus its roll buttons. A pattern is its own entry.
 - `src/gameCards.ts` - Game cards (`data → entityCard`)
 - `src/termFinder.ts`, `src/commands/lookUpMessage.ts` - "Look up in Salvage
   Union", the message context menu
@@ -55,18 +53,13 @@ bun run deploy-commands            # Register slash commands to a test guild
 bun run deploy-commands:global     # Register globally (production)
 ```
 
-There is no local Worker loop: the Interactions Endpoint URL is
-application-wide, so Discord only ever reaches the deployed Worker.
-`src/worker/__tests__/replay.test.ts` drives the Worker with signed,
-Discord-shaped payloads instead.
-
-## In The Union Now (ADR-030 Phase 6)
+## In the Union now
 
 The bot is also an authenticated ITUN Game client. It reaches Convex through a
 `/bot/*` HTTP route with a bearer credential that authenticates the **bot**,
 never the **actor** — every call carries a Discord id that the server resolves
 against a linked account and a real membership. See
-[the bot as a Game client](../../docs/ARCHITECTURE.md#areas).
+[the bot as a Game client](../../docs/ARCHITECTURE.md#bot-game-client).
 
 - `src/itun/` — the client (`fetch`, no `convex` dependency) and the wire types,
   which are **imported** (`import type`) from `itun-domain/botWire`
@@ -74,8 +67,6 @@ against a linked account and a real membership. See
   annotates its handlers with. Never copy a shape into the bot; add it there.
   That module must stay import-free, so the bot's type-check never pulls in
   Convex's generated model.
-- `src/gameCards.ts` — pure `data → ContainerData` card builders through
-  `entityCard()`
 - `src/commands/itunReply.ts` — the shared defer / result-kind / ephemerality
   spine, and the one client (`itun()`, installed per request from `env`)
 
@@ -95,8 +86,8 @@ does not exist.
 
 **Maxima are derived here, not fetched.** `gameCards.ts` derives max
 HP/SP/Heat via `salvageunion-reference/rules`
-([ADR-006](../../docs/ARCHITECTURE.md#decisions)). Convex's `crew.vitals` now
-derives them too, with the same rules; moving the bot onto those is #1068.
+([ADR-006](../../docs/ARCHITECTURE.md#decisions)). Convex's `crew.vitals`
+derives the same maxima with the same rules; the two must agree.
 
 **`/su sheet` is the live sheet folded into a message.** `gameCards.ts` maps it
 one-to-one onto an entity card — identity band → description, vitals rail →
@@ -126,7 +117,6 @@ crewmate's read-only.
 
 ## Conventions
 
-- Slash commands use `@discordjs/builders`' `SlashCommandBuilder`
 - Everything hangs off the single `/su` top-level command (`src/commands/su.ts`)
   — subcommands, plus the `game` subcommand **group**
 - Commands live in `src/commands/`, generally one file per command; the three

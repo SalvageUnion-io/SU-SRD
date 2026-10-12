@@ -2,10 +2,10 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { SURefObjectTable } from 'salvageunion-reference'
-import { resultForTable } from 'salvageunion-reference'
+import { plainTraitText, resultForTable } from 'salvageunion-reference'
 import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import { useEntitySurface } from '../../../entity/entitySurfaceContext'
-import { d20ForTable } from '../../../utils/dice'
+import { dieForTable } from '../../../utils/dice'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Button } from '../../atoms/Button'
 import type { DigestedRollTable } from '../../compositions/digestRollTable'
@@ -60,10 +60,10 @@ const rangeLabel = (key: string) => key.replace('-', '–')
  * The rows are BANDED, paper and `--color-band-cream` in turn (ruleset §2,
  * "RollTable banded d20"), so a long outcome's lines stay with their range.
  *
- * On a Reference surface (`EntitySurfaceValue.rolls` off — the SRD) there is
- * no Roll: the matrix's Reference cell is the banded table under its stamp,
- * and a rust button on a read-only page is the defect §3.1 names. The table
- * still reads and still folds.
+ * A surface that announces rolls (`EntitySurfaceValue.announceRoll` — the
+ * SRD's toast) gets the result there instead of the readout; the open table
+ * still marks the row. A surface with `rolls` off has no Roll at all: the
+ * table still reads and still folds.
  *
  * A COLUMNS table (a d20 × d20 grid) keeps the shared `RollTable`: its two
  * dice and five columns are a different shape from a banded table.
@@ -96,7 +96,7 @@ export function CardRollTable({
   /** Called with the outcome's text (and its range key) on every roll. */
   onRollResult?: (text: string, key: string) => void
 }) {
-  const { rolls } = useEntitySurface()
+  const { rolls, announceRoll } = useEntitySurface()
   const noRoll = disabled || !rolls
   const [expanded, setExpanded] = useState(!collapsible)
   const [rolled, setRolled] = useState<CardRoll | null>(() =>
@@ -123,12 +123,20 @@ export function CardRollTable({
     // A named table (the Core Mechanic's own card) rolls through
     // @randsum/salvageunion; an entity's table gets Randsum's plain d20. Either
     // way the row is read from this table's data, by the total.
-    void d20ForTable(name).then((d20) => {
+    void dieForTable(name).then((d20) => {
       const die = d20()
       const { key } = resultForTable(table, die)
       setRolled({ roll: die, key })
       const entry = rows.find((row) => row.key === key)
-      if (entry) onRollResult?.(entry.label ? `${entry.label}: ${entry.value}` : entry.value, key)
+      if (!entry) return
+      onRollResult?.(entry.label ? `${entry.label}: ${entry.value}` : entry.value, key)
+      announceRoll?.({
+        table: name,
+        roll: die,
+        range: rangeLabel(key),
+        ...(entry.label ? { label: entry.label } : {}),
+        text: plainTraitText(entry.value),
+      })
     })
   }
 
@@ -207,10 +215,12 @@ export function CardRollTable({
       </div>
 
       {/* The live region is always mounted, so the announcement fires on the
-          first roll too. */}
-      <div aria-live="polite">
-        {rolled && hit && <RollReadout rolled={rolled} hit={hit} size={size} />}
-      </div>
+          first roll too. A surface that announces rolls shows its own. */}
+      {!announceRoll && (
+        <div aria-live="polite">
+          {rolled && hit && <RollReadout rolled={rolled} hit={hit} size={size} />}
+        </div>
+      )}
 
       {expanded && (
         <ol

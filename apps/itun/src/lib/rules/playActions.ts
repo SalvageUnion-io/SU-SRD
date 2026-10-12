@@ -2,9 +2,8 @@
  * playActions — the Dashboard's thin, PURE driver over the existing rules engine
  * (docs/architecture/dashboard.md §5). Nothing here touches React or the store: every function takes the
  * live numbers (+ an injectable `Roll`) and returns the `Partial<Mech>` /
- * `Partial<Pilot>` write-through patch the caller hands to
- * `storeState.update(...)`, mirroring `MechSheet.activateItem` / `SheetMech`'s
- * `pushMech`. This keeps the Phase-5 button/action handlers trivially testable
+ * `Partial<Pilot>` write-through patch the caller (`useActionsDeck`, the slots)
+ * hands to `storeState.update(...)`. This keeps the button/action handlers trivially testable
  * (assert the patch) and keeps the ADR-006 pure-math boundary intact — the math
  * lives in `lib/rules/*`, this only assembles patches and readouts.
  *
@@ -548,8 +547,9 @@ export function pilotActivationPatch(args: { apCost: number; currentAP: number }
 
 /**
  * The write-through patch for one activation — spend EP, add Hot Heat (clamped
- * to cap), tick the Uses counter down. Byte-for-byte the shape
- * `MechSheet.activateItem` writes, so the Dashboard and the sheet can't drift.
+ * to cap), tick the Uses counter down. Applied by `useActionsDeck`; the Uses
+ * map is the `itemUses` shape the sheet's hand edit (`setItemUses` in
+ * `mechSheetActions.ts`) writes, so the Dashboard and the sheet can't drift.
  */
 export function activationPatch(args: {
   slug: string

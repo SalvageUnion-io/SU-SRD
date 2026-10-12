@@ -1,5 +1,13 @@
-import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import { findEntityBySlug, getAssetUrl, getEntitySlug, srdEntityUrl } from 'salvageunion-reference'
+import { PRODUCT } from 'component-lib/product'
+import type { ItemCondition, SURefEnumSchemaName } from 'salvageunion-reference'
+import {
+  CONDITION_LABELS,
+  findEntityBySlug,
+  getAssetUrl,
+  getEntitySlug,
+  STAT_LABELS,
+  srdEntityUrl,
+} from 'salvageunion-reference'
 import {
   mechMaxHeat,
   mechMaxSP,
@@ -66,7 +74,12 @@ const CRITICAL = ROLL_COLORS.cascade
  */
 export const ITUN_ORIGIN = 'https://salvageunion.io/build'
 
-const FOOTER = 'In The Union Now'
+const FOOTER = PRODUCT.name
+
+/** The stats' short names, from the reference vocabulary the sheets print. */
+const HP = STAT_LABELS.hitPoints.short
+const SP = STAT_LABELS.structurePoints.short
+const HEAT = STAT_LABELS.heatCapacity.short
 
 /**
  * Read a number off an opaque body, trying each name in order.
@@ -108,7 +121,18 @@ function strArray(body: EntityBody, key: string): string[] {
 }
 
 /**
- * A proportional gauge, e.g. `██████░░░░ 6/10`.
+ * How a vital renders: `bars` puts a glyph bar after the number, `text` is the
+ * number alone. Text is the form a screen reader reads cleanly — ten block
+ * glyphs are ten announcements — so `/su crew` offers it as an option.
+ */
+export type GaugeStyle = 'bars' | 'text'
+
+/**
+ * A vital as its number, then a proportional bar, e.g. `6/10 ██████░░░░`.
+ *
+ * The number comes first because it is the answer ("how bad is it") and the bar
+ * only a glance; a screen reader reaches it before the glyphs, and the `text`
+ * style drops the glyphs altogether.
  *
  * Width tracks the real maximum up to ten segments so small SU values (AP 5,
  * Heat 6) read as exact ticks rather than as a scaled approximation, and only
@@ -120,15 +144,22 @@ function strArray(body: EntityBody, key: string): string[] {
  * none is used, because a fence would cost links for an alignment nothing here
  * depends on.
  */
-export function gauge(current: number | null, max: number | null, filledGlyph = '█'): string {
+export function gauge(
+  current: number | null,
+  max: number | null,
+  filledGlyph = '█',
+  style: GaugeStyle = 'bars'
+): string {
   if (max === null || max <= 0) {
     return current === null ? '—' : String(current)
   }
+  const value = `${current ?? 0}/${max}`
+  if (style === 'text') return value
   const safeCurrent = Math.max(0, Math.min(current ?? 0, max))
   const width = Math.min(max, 10)
   const filled = Math.round((safeCurrent / max) * width)
   const bar = filledGlyph.repeat(filled) + '░'.repeat(Math.max(0, width - filled))
-  return `${bar} ${current ?? 0}/${max}`
+  return `${value} ${bar}`
 }
 
 /** The narrow view of a pilot body the derivation functions need. */
@@ -294,7 +325,7 @@ export function denialMessage(
   switch (reason) {
     case 'unlinked':
       return [
-        '**You don’t have an In The Union Now account yet.**',
+        `**You don’t have an ${PRODUCT.name} account yet.**`,
         '',
         'Sign in with this same Discord account and the bot will recognise you here',
         'automatically — there’s nothing to copy across and no code to enter.',
@@ -335,7 +366,7 @@ function gameLines(games: GameSummary[], webUrl: string, currentGameId?: string)
 /** `/su me` — who the bot thinks you are, and what you are part of. */
 export function meCard(me: MeResult, webUrl: string, currentGameId?: string): ContainerData {
   return entityCard({
-    title: `${me.user.displayName} — In The Union Now`,
+    title: `${me.user.displayName} — ${PRODUCT.name}`,
     url: `${webUrl.replace(/\/+$/, '')}/account`,
     accent: NEUTRAL,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',
@@ -404,28 +435,64 @@ export function shelfCard(shelf: ShelfResult, webUrl: string): ContainerData {
   })
 }
 
+/**
+ * The words for a crewmate's state, each the term the rules use for it:
+ *
+ * - Dead: derived max HP at or below 0, the app's own "Killed in Action".
+ * - Critical Injury: a Pilot on 0 HP rolls on the Critical Injury Table (Core
+ *   Book p.241); that roll, not 0 HP, decides whether they live.
+ * - Critical Damage: a Mech on 0 SP rolls on the Critical Damage Table (Core
+ *   Book pp.239-240); it "can lose Systems or Modules, or even be destroyed",
+ *   so 0 SP is not yet "Destroyed".
+ * - At Heat Capacity: a Mech that reaches or starts its turn at its Heat
+ *   Capacity must make a Heat Check (Core Book p.234).
+ *
+ * The glyph rides beside the word on the `bars` style and is dropped on `text`:
+ * a glyph alone ("✖") said nothing a screen reader could pass on.
+ */
+const CREW_STATE = {
+  dead: { glyph: '✖', word: 'Dead' },
+  criticalInjury: { glyph: '✖', word: 'Critical Injury' },
+  criticalDamage: { glyph: '✖', word: 'Critical Damage' },
+  atHeatCapacity: { glyph: '⚠', word: 'At Heat Capacity' },
+} as const
+
+/** ` ✖ Dead` on `bars`, ` — Dead` on `text`, empty with no state. */
+function stateSuffix(state: keyof typeof CREW_STATE | null, style: GaugeStyle): string {
+  if (state === null) return ''
+  const { glyph, word } = CREW_STATE[state]
+  return style === 'text' ? ` — ${word}` : ` ${glyph} ${word}`
+}
+
 /** One crewmate's block on the crew board: their pilots, then their mechs. */
-function crewFieldValue(pilots: OwnedEntity[], mechs: OwnedEntity[], webUrl: string): string {
+function crewFieldValue(
+  pilots: OwnedEntity[],
+  mechs: OwnedEntity[],
+  webUrl: string,
+  style: GaugeStyle
+): string {
   const lines: string[] = []
   for (const pilot of pilots) {
     const stats = pilotStats(pilot.body)
-    const dead = stats.maxHp <= 0 || stats.hp === 0
+    const state = stats.maxHp <= 0 ? 'dead' : stats.hp === 0 ? 'criticalInjury' : null
     const pilotName = maybeLink(
       str(pilot.body, 'callsign') ?? 'Pilot',
       sheetUrl(webUrl, 'pilots', pilot.id)
     )
-    lines.push(`**${pilotName}**${dead ? ' ✖' : ''}`)
-    lines.push(`HP ${gauge(stats.hp, stats.maxHp)}`)
-    lines.push(`AP ${gauge(stats.ap, stats.maxAp)}`)
+    lines.push(`**${pilotName}**${stateSuffix(state, style)}`)
+    lines.push(`${HP} ${gauge(stats.hp, stats.maxHp, '█', style)}`)
+    lines.push(`AP ${gauge(stats.ap, stats.maxAp, '█', style)}`)
   }
   for (const mech of mechs) {
     const stats = mechStats(mech.body)
-    const destroyed = stats.sp === 0
-    const overheated = stats.heat !== null && stats.maxHeat > 0 && stats.heat >= stats.maxHeat
+    const atZero = stats.sp === 0
+    const atCapacity = stats.heat !== null && stats.maxHeat > 0 && stats.heat >= stats.maxHeat
     const mechName = maybeLink(str(mech.body, 'name') ?? 'Mech', sheetUrl(webUrl, 'mechs', mech.id))
-    lines.push(`${mechName}${destroyed ? ' ✖' : ''}`)
-    lines.push(`SP ${gauge(stats.sp, stats.maxSp)}`)
-    lines.push(`HT ${gauge(stats.heat, stats.maxHeat, '▲')}${overheated ? ' ⚠' : ''}`)
+    lines.push(`${mechName}${stateSuffix(atZero ? 'criticalDamage' : null, style)}`)
+    lines.push(`${SP} ${gauge(stats.sp, stats.maxSp, '█', style)}`)
+    lines.push(
+      `${HEAT} ${gauge(stats.heat, stats.maxHeat, '▲', style)}${stateSuffix(atCapacity ? 'atHeatCapacity' : null, style)}`
+    )
   }
   return lines.length > 0 ? lines.join('\n') : '_Nothing yet._'
 }
@@ -435,9 +502,13 @@ function crewFieldValue(pilots: OwnedEntity[], mechs: OwnedEntity[], webUrl: str
  *
  * Grouped by owner, one inline field each, so each crewmate reads as a unit
  * on the rail. The unclaimed bucket is rendered last and labelled, never
- * omitted.
+ * omitted. `style` is the `text-only` option: numbers and words, no glyphs.
  */
-export function crewCard(crew: CrewResult, webUrl: string): ContainerData {
+export function crewCard(
+  crew: CrewResult,
+  webUrl: string,
+  style: GaugeStyle = 'bars'
+): ContainerData {
   type Bucket = { label: string; pilots: OwnedEntity[]; mechs: OwnedEntity[] }
 
   // Owners in a map, unclaimed in its own variable — rather than one map with a
@@ -473,7 +544,7 @@ export function crewCard(crew: CrewResult, webUrl: string): ContainerData {
 
   const fields: CardField[] = ordered.map((bucket) => ({
     name: bucket.label,
-    value: crewFieldValue(bucket.pilots, bucket.mechs, webUrl),
+    value: crewFieldValue(bucket.pilots, bucket.mechs, webUrl, style),
     inline: true,
   }))
 
@@ -596,8 +667,6 @@ function refArtwork(schemaName: SURefEnumSchemaName, slug: string | null): strin
 }
 
 /** Item condition as stored per-slug on a mech body. */
-type ItemCondition = 'intact' | 'damaged' | 'destroyed'
-
 function conditionOf(body: EntityBody, key: string, slug: string): ItemCondition {
   const map = body[key]
   if (map === null || typeof map !== 'object') return 'intact'
@@ -625,8 +694,9 @@ function collectionLines(
       const link = refLink(schemaName, slug)
       if (body === undefined || conditionKey === undefined) return link
       const condition = conditionOf(body, conditionKey, slug)
-      if (condition === 'damaged') return `${link} · damaged`
-      if (condition === 'destroyed') return `~~${link}~~ · destroyed`
+      const word = CONDITION_LABELS[condition].toLowerCase()
+      if (condition === 'damaged') return `${link} · ${word}`
+      if (condition === 'destroyed') return `~~${link}~~ · ${word}`
       return link
     })
     .join('\n')
@@ -673,7 +743,7 @@ function pilotSheet(body: EntityBody): RenderedSheet {
   const stats = pilotStats(body)
   const classRef = str(body, 'classRef')
   const fields: CardField[] = [
-    { name: 'HP', value: gauge(stats.hp, stats.maxHp), inline: true },
+    { name: HP, value: gauge(stats.hp, stats.maxHp), inline: true },
     { name: 'AP', value: gauge(stats.ap, stats.maxAp), inline: true },
     { name: 'Class', value: refName('classes', classRef), inline: true },
   ]
@@ -711,8 +781,8 @@ function mechSheet(body: EntityBody): RenderedSheet {
   const stats = mechStats(body)
   const chassisRef = str(body, 'chassisRef')
   const fields: CardField[] = [
-    { name: 'SP', value: gauge(stats.sp, stats.maxSp), inline: true },
-    { name: 'Heat', value: gauge(stats.heat, stats.maxHeat, '▲'), inline: true },
+    { name: SP, value: gauge(stats.sp, stats.maxSp), inline: true },
+    { name: HEAT, value: gauge(stats.heat, stats.maxHeat, '▲'), inline: true },
     { name: 'Chassis', value: refName('chassis', chassisRef), inline: true },
   ]
 
@@ -731,7 +801,7 @@ function mechSheet(body: EntityBody): RenderedSheet {
   const status = chipRun([
     body.shutdown === true ? 'Shutdown' : '',
     body.vulnerable === true ? 'Vulnerable' : '',
-    body.destroyed === true ? 'Destroyed' : '',
+    body.destroyed === true ? CONDITION_LABELS.destroyed : '',
     ...strArray(body, 'conditions'),
   ])
   if (status !== null) fields.push({ name: 'Status', value: status, inline: true })
@@ -760,7 +830,7 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
   const sp = num(body, 'currentSP', 'currentSp')
   const maxSp = num(body, 'maxSpOverride')
   fields.push({
-    name: 'SP',
+    name: SP,
     value: maxSp === null ? (sp === null ? '—' : String(sp)) : gauge(sp, maxSp),
     inline: true,
   })

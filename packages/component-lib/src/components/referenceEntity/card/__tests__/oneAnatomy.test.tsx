@@ -6,7 +6,7 @@
  * - every card wears the type stamp in its header; an ability adds its tree and its
  *   tier numeral;
  * - actions sit inline as flush ink bands, with no "Action" stamp;
- * - nested entities sit in a labelled tray, depth 2 is a one-line row that
+ * - nested entities stack under their own type stamp with no tray label, depth 2 is a one-line row that
  *   opens the entity, and a child hides prose its parent already prints;
  * - below depth 1 actions fold behind a chip;
  * - the user-made flag dashes the frame, the footer rule and the pill;
@@ -79,10 +79,12 @@ describe('actions sit inline', () => {
 })
 
 describe('nesting legibility', () => {
-  test('the drone sits in a labelled tray, and hides the prose its parent prints', () => {
+  test('the drone stacks under its own stamp, and hides the prose its parent prints', () => {
     render(<ReferenceEntityCard data={sestra()} />)
+    // The drone card's type stamp names it; no "Drone" or "Systems" tray
+    // label repeats what each nested card already stamps.
     expect(screen.getAllByText('Drone').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Systems').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Systems')).toBeNull()
     // "…comes with a single Sestra Drone…" is printed once — by the Drone
     // Controller ability — not again by the drone it names.
     expect(screen.getAllByText(/comes with a single Sestra Drone/).length).toBe(1)

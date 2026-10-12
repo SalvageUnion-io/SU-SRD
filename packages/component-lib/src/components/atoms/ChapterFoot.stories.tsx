@@ -29,8 +29,8 @@ function citation(entity: Parameters<typeof resolveEntityPageMeta>[0] | undefine
  * The band across the foot of a Workshop Manual page: the chapter's colour and
  * ink speckle again, under an ink rule, carrying the citation — the page
  * number large at its start, the book (and any reprint) at its end. An SRD
- * entity page closes on it (board 07); the site footer is the Contents
- * chapter's (board 06). Real citations, from `resolveEntityPageMeta`.
+ * entity page closes on it (board 07), above the site footer's ink licence
+ * row. Real citations, from `resolveEntityPageMeta`.
  */
 export const Default: Story = () => (
   <div style={STACK}>

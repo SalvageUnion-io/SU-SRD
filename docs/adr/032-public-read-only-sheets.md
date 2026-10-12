@@ -9,25 +9,20 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 32, which
 ## Status
 
 **Accepted.** Amends [ADR-030](030-accounts-games-server-of-record.md) §5
-(visibility) with one explicit exception, and narrowed what
-[ADR-004](../ARCHITECTURE.md#decisions)'s snapshots were _for_ without
-changing anything ADR-004 decided.
+(visibility) with one explicit exception.
 
-**Amended by [ADR-036](../ARCHITECTURE.md#decisions) (2026-10-06):** snapshots
-are retired, so the public sheet is now the **only** account-free way to share.
-The consequence below that kept both surfaces ("ADR-004 is narrowed, not
-superseded") is withdrawn. An old `/s/:id` link shows a retired page (ADR-036,
-as amended 2026-10-09).
-
-**Decisions 4–5 amended (2026-10-06):** `publicSheet.get` also returns the
-entity's direct assignments — a linked entity that is published itself with its
-name and body, any other by its kind alone ("Not shared" on the page; publishing
-is each owner's own opt-in, decision 2) — and the page renders the live
-`<Sheet readOnly>` over `readOnlySheetStore.ts`, the store every read-only sheet
-uses. Every other decision stands.
-
-**Decision 7 added (2026-10-09, #1276):** saved mech patterns join, at
-`/p/pattern/:appId`. Decisions 1–6 otherwise stand.
+**Amended:** [ADR-036](../ARCHITECTURE.md#decisions) retired snapshots, so the
+public sheet is the **only** account-free way to share; an old `/s/:id` link
+shows a retired page. `publicSheet.get` also returns the entity's direct
+assignments — a linked entity that is itself published with its name and body,
+any other by its kind alone ("Not shared"; publishing is each owner's opt-in,
+decision 2) — and the page renders the live `<Sheet readOnly>` over
+`readOnlySheetStore.ts`. Saved mech patterns join at `/p/pattern/:appId`
+(decision 7), and built NPCs ([ADR-044](../ARCHITECTURE.md#decisions)) at
+`/p/npc/:appId`, maker credited. Every kind a player shares — pilot, mech,
+crawler, NPC, pattern — sets this from one "Who can see it" control (Only me,
+My Game's crew, Anyone with the link). A public crawler page draws its book
+crew line, not a linked NPC.
 
 ## Context
 
@@ -80,8 +75,9 @@ no account to open, is always current, and requires no publishing step.
    **on** is owner-only for a pilot or mech, with no Mediator override — the
    same rule `assertMayWrite` applies to edits, though this is its own gate
    (`assertMayPublish`) rather than a reuse, for the reason in the next clause.
-   The crawler has no `ownerId` at all, so it follows §5a and is the table
-   runner's act (Mediator, or Organizer where a Game has no Mediator).
+   A crawler in a Game is communal (`ownerId: null`), so it follows §5a and is
+   the table runner's act (Mediator, or Organizer where a Game has no
+   Mediator); a crawler on a shelf is its owner's.
 
    Turning it **off is always permitted**, including on an entity whose
    `ownerId` has become null. This is where publishing deliberately diverges
@@ -107,12 +103,10 @@ no account to open, is always current, and requires no publishing step.
    `null` — not a refusal — for an entity that is not public, so a flipped-off
    sheet is indistinguishable from one that never existed.
 
-5. **Rendered by the machinery that already exists.** `frozenSheet.ts` (since
-   deleted) parsed a bare entity against the Zod schemas and wrapped it in a
-   store whose every write throws; the snapshot page and the Game view were
-   already its two consumers. The public sheet was a third and added no
-   rendering code. (The snapshot page is gone since ADR-036; the store is now
-   `readOnlySheetStore.ts` — see Status.)
+5. **Rendered by the machinery that already exists.** `readOnlySheetStore.ts`
+   parses the entity against the Zod schemas behind a store whose every write
+   throws, the store every read-only sheet uses; the public sheet adds no
+   rendering code.
 
 6. **Turning it off revokes it everywhere, immediately.** There is one URL per
    entity and it is derived, not minted, so there is no set of outstanding
@@ -120,7 +114,7 @@ no account to open, is always current, and requires no publishing step.
    2 — because a promise of revocation that an ordinary sequence of play can
    take away is not a promise.
 
-7. **Saved mech patterns join, with one more audience (#1276).** `mechPatterns`
+7. **Saved mech patterns join, with one more audience.** `mechPatterns`
    gains the same `publicRead` column and a **Game scope**: its maker chooses
    Only me, Anyone with the link (`publicRead`), or My Game's crew (`gameId`,
    a read scope here and never a container — the pattern stays on its maker's
@@ -160,20 +154,16 @@ no account to open, is always current, and requires no publishing step.
 - **Solo still works and is untouched.** `publicRead` is a Convex column, so a
   Solo user simply has no public sheets — the toggle is absent rather than
   broken, exactly as every other account-shaped feature behaves.
-- **A public sheet is crawlable in principle.** ITUN ships no `robots.txt`, no
-  sitemap and no server-rendered meta, and `/p/:kind/:appId` is a client-rendered
-  route with no link graph pointing at it — so it is discoverable by nobody in
+- **A public sheet is crawlable in principle.** ITUN ships no `robots.txt` and no
+  sitemap, and `/p/:kind/:appId` is a client-rendered route with no link graph
+  pointing at it — so it is discoverable by nobody in
   practice, and deliberately not blocked either. If that changes, a `noindex` on
   this one route is the lever, and it is a decision to take on purpose rather
   than to inherit.
-- **The link does not unfurl.** `index.html` carries no Open Graph tags and the
-  route is client-rendered, so a bare link pasted into Discord or Slack shows
-  nothing. That is why the bot renders the URL inside its own card. Giving this
-  route server-rendered meta tags is a separate, later piece of work.
-  *Amended 2026-10-09 (#1280):* it unfurls now. For a bot's request the Worker
-  swaps the shell's `itun:meta` block for the thing's preview
-  (`src/worker/linkPreview.ts`, from `publicSheet.preview`, public reads
-  only) and renders its `OgCard` through Browser Rendering, cached by
+- **The link unfurls.** For a bot's request the Worker swaps the shell's
+  `itun:meta` block for the thing's preview
+  (`apps/itun/src/worker/linkPreview.ts`, from `publicSheet.preview`, public
+  reads only) and renders its `OgCard` through Browser Rendering, cached by
   version. A private sheet unfurls as the Private card.
 
 ## Alternatives considered

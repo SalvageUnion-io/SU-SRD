@@ -43,6 +43,8 @@ const OTHER_TEST = 'apps/srd/src/__biome_fixture__/y.test.ts'
 /** A file that asserts on load behaviour, excluded from the preload ban by path. */
 const EXEMPT_TEST = 'packages/salvageunion-reference/lib/__tests__/preload.test.ts'
 const BIG_LIB = 'packages/component-lib/src/__biome_fixture__/big.tsx'
+/** A Convex function file, where collecting the Change Log is banned. */
+const CONVEX = 'apps/itun/convex/__biome_fixture__/z.ts'
 const BIG_APP = 'apps/itun/src/__biome_fixture__/big.tsx'
 
 const FIXTURES: Record<string, string> = {
@@ -78,6 +80,18 @@ const FIXTURES: Record<string, string> = {
     'SalvageUnionReference.Chassis.label = "x"',
     'export const stamp = new Date().toISOString()', // 16: flagged
     'export const fixed = new Date(0).toISOString()',
+    "export const log = (ctx: any) => ctx.db.query('changeLog').collect()",
+    '',
+  ].join('\n'),
+  [CONVEX]: [
+    'declare const ctx: any',
+    "export const all = ctx.db.query('changeLog').collect()", // 2: flagged
+    'export const indexed = ctx.db', // 3: flagged
+    "  .query('changeLog')",
+    "  .withIndex('by_game_state', (q: any) => q.eq('gameId', 1))",
+    '  .collect()',
+    "export const newest = ctx.db.query('changeLog').order('desc').take(10)",
+    "export const games = ctx.db.query('games').collect()",
     '',
   ].join('\n'),
   [OTHER_TEST]: [
@@ -187,6 +201,16 @@ describe('noLiveClockFixture', () => {
   test('flags a live clock in an ITUN test, not a fixed date or another workspace', () => {
     expect(flagged(TEST_FILE, 'plugin', 'Use FIXTURE_NOW')).toEqual([16])
     expect(flagged(OTHER_TEST, 'plugin', 'Use FIXTURE_NOW')).toEqual([])
+  })
+})
+
+describe('noChangeLogCollect', () => {
+  test('flags collecting the Change Log in a Convex function, not take() or another table', () => {
+    expect(flagged(CONVEX, 'plugin', 'Do not collect the Change Log')).toEqual([2, 3])
+  })
+
+  test('does not apply to tests, which read their own fixture rows', () => {
+    expect(flagged(TEST_FILE, 'plugin', 'Do not collect the Change Log')).toEqual([])
   })
 })
 

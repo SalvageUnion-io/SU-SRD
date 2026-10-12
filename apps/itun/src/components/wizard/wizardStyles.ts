@@ -2,7 +2,7 @@ import { tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 
 /**
- * Style objects the wizard steps share (refit TW-e). Rules a style object
+ * Style objects the wizard steps share. Rules a style object
  * cannot hold (responsive, stateful, child-selector stacks) are in
  * `styles/wizard.css`.
  */

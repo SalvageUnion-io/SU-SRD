@@ -151,3 +151,58 @@ describe('computeMechCapacity — chassis-not-found violation', () => {
     expect(result.moduleSlotsMax).toBe(0)
   })
 })
+
+describe('computeMechCapacity — chassis heads', () => {
+  it("adds each Cerberus head's slots to the chassis's (Rainmaker p.72–73)", () => {
+    const result = computeMechCapacity({ chassisRef: 'cerberus', systems: [], modules: [] })
+    // Chassis 5 + Kyrios 15 + Phren 9 + Morphos 12; modules 2 + 2 + 4 + 3.
+    expect(result.systemSlotsMax).toBe(41)
+    expect(result.moduleSlotsMax).toBe(11)
+  })
+})
+
+describe('computeMechCapacity — patterns printed over their slots', () => {
+  // Manic Miner (Starter Set Parts Catalogue p.11): 14 System Slots on the
+  // 13 the Bobcat prints (p.10).
+  const manicMiner: MechInput = {
+    chassisRef: 'bobcat',
+    systems: [
+      'locomotion-system',
+      'mining-rig',
+      'escape-hatch',
+      'riveting-gun',
+      'floodlights',
+      'cargo-pod',
+      'cargo-pod',
+    ].map((ref) => ({ ref })),
+    modules: [{ ref: 'comms-module' }, { ref: 'survey-scanner' }],
+  }
+
+  it('reads the printed loadout as printed, not as a violation', () => {
+    const result = computeMechCapacity(manicMiner)
+    expect(result.systemSlotsUsed).toBe(14)
+    expect(result.systemSlotsMax).toBe(13)
+    expect(result.violations).toEqual([])
+    expect(result.asPrinted).toEqual({
+      pattern: 'Manic Miner',
+      cite: 'Salvage Union Starter Set, Parts Catalogue p.11',
+    })
+  })
+
+  it('matches the loadout in any order', () => {
+    const result = computeMechCapacity({
+      ...manicMiner,
+      systems: [...manicMiner.systems].reverse(),
+    })
+    expect(result.asPrinted?.pattern).toBe('Manic Miner')
+  })
+
+  it('reports the overflow again once the loadout leaves the printed one', () => {
+    const result = computeMechCapacity({
+      ...manicMiner,
+      systems: [...manicMiner.systems, { ref: 'cargo-pod' }],
+    })
+    expect(result.asPrinted).toBeUndefined()
+    expect(result.violations.map((v) => v.kind)).toEqual(['system-over-slots'])
+  })
+})

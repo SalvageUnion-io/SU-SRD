@@ -11,7 +11,7 @@
  *
  * The artwork ships on the book's canvas: the Mule's line art fills 75% × 60%
  * of its image, the Gopher's 57% × 74%, a bio-titan's ~96%. Drawn whole on the
- * page's paper plate, that margin read as ~40% empty paper (refit ledger B4).
+ * page's paper plate, that margin read as ~40% empty paper.
  * The margin differs per image, so no single CSS crop can remove it without
  * clipping the art that fills its canvas; the page needs each image's own
  * content box.
@@ -32,7 +32,7 @@
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import { nameToSlug } from '../packages/salvageunion-reference/lib/nameToSlug'
+import { nameToSlug } from 'salvageunion-reference'
 
 const REPO = resolve(import.meta.dir, '..')
 const DATA = join(REPO, 'packages/salvageunion-reference/data')

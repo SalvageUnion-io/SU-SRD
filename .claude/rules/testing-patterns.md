@@ -10,7 +10,7 @@ paths:
 
 Every test lives in a `__tests__/` beside its subject; ITUN's Convex suites in
 `apps/itun/test/convex/__tests__/` (Convex deploys any helper inside `convex/`).
-`check test-layout` fails a sibling test or a second `test` script. Preloads
+`check test-layout` enforces it and one `test` script per workspace. Preloads
 live in workspace bunfigs, not the root's.
 
 ## Component Testing

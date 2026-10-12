@@ -49,7 +49,7 @@ void initBrowserObservability()
 // route the router resolves. See `installChunkRecovery` in observability/browser.
 installChunkRecovery()
 
-// D9 removed the device cache; a browser that ran an older build still holds
+// There is no device cache; a browser that ran an older build still holds
 // the last account's roster in IndexedDB. Delete it (lib/legacyCache.ts).
 deleteLegacyCache(typeof indexedDB === 'undefined' ? undefined : indexedDB)
 

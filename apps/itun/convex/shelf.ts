@@ -169,6 +169,7 @@ export const patternSharing = query({
     Array<{
       appId: string
       visibility: PatternVisibility
+      gameId: Id<'games'> | null
       gameName: string | null
       builtCount: number
     }>
@@ -185,11 +186,41 @@ export const patternSharing = query({
         return {
           appId: row.appId,
           visibility: patternVisibilityOf(row),
+          gameId: row.gameId,
           gameName: game?.name ?? null,
           builtCount: row.builtCount ?? 0,
         }
       })
     )
+  },
+})
+
+/**
+ * Which of the caller's own sheets anyone with the link may read: the pilots,
+ * mechs, crawlers and built NPCs they set to "Anyone with the link"
+ * (`publicSheet.setPublic`), for the Shelves page's "Shared by link" chip — the
+ * same chip a pattern carries (`patternSharing`). `publicRead` is a column, not
+ * a body field, so the local rows cannot answer it. Signed out there is no
+ * shelf: an empty list.
+ */
+export const sharedByLink = query({
+  args: {},
+  handler: async (ctx): Promise<string[]> => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) return []
+    const tables = ['pilots', 'mechs', 'crawlers', 'npcs'] as const
+    const out: string[] = []
+    for (const table of tables) {
+      const rows = await ctx.db
+        .query(table)
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
+        .collect()
+      for (const row of rows) {
+        const appId = row.appId ?? bodyAppId(row.body)
+        if (row.publicRead === true && appId !== undefined) out.push(appId)
+      }
+    }
+    return out
   },
 })
 

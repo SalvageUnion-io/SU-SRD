@@ -1,5 +1,5 @@
 import type { ChapterTone, EntityPageMeta } from 'component-lib'
-import { buttonVariants, ChapterBand } from 'component-lib'
+import { buttonVariants, ChapterBand, cn } from 'component-lib'
 import type { ReactNode } from 'react'
 import type { PageFoot } from '../../ssg/types'
 import type { BuildLink } from '../lib/buildLink'
@@ -8,8 +8,8 @@ import { EntityPageStamps } from './EntityPageStamps'
 /**
  * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,
  * 08b): its chapter's band at the head, the title notched in and the type
- * stamps right beside the notch (wrapping above it when a long name leaves no
- * room: the band's `asideAt="notch"`); then the body. The page's foot band — the citation
+ * stamps at the band's far end on the notch's row (wrapping above it when a
+ * long name leaves no room: the band's `asideAt="notch"`); then the body. The page's foot band — the citation
  * ("p.112 · Salvage Union Workshop Manual · also in …") — is the site
  * `Footer`'s, so the page ends once: the page module hands `entityPageFoot`
  * to the layout as its `PageResult.foot`.
@@ -85,7 +85,10 @@ export function EntityPageFrame({
           <div className="srd-entity__build">
             <a
               href={build.href}
-              className={buttonVariants({ variant: 'primary', size: 'compact' })}
+              className={cn(
+                buttonVariants({ variant: 'primary', size: 'compact' }),
+                'su-page-action'
+              )}
             >
               {build.label}
             </a>

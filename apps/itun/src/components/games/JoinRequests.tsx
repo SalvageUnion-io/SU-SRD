@@ -7,7 +7,7 @@
  * A pending request is not a membership, so nothing of the Game is theirs to
  * read until they are let in; letting them in seats them exactly as a direct
  * redeem would (`invites.decideRequest`). Which pilot a link brings them is
- * P8b: `pendingRequests` does not return the invite's grant names yet.
+ * not shown: `pendingRequests` does not return the invite's grant names.
  */
 
 import { Button, toast, tokens } from 'component-lib'

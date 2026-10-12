@@ -10,14 +10,12 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 30, which
 
 **Accepted and built — governing ADR for identity, ownership, and sharing.**
 
-[ADR-034](../ARCHITECTURE.md#decisions) **partially supersedes it**,
-and the partial is the important word: §1 promises Solo mode — not signed in,
-IndexedDB as the source of truth — "must keep working forever", and **that one
-guarantee is withdrawn**. Persistence requires an account, and since the D9
-decision ([spike](../spikes/d9-offline-cache.md)) nothing is kept on the device
-at all: no IndexedDB cache. Everything else here — Games,
-memberships, roles, ownership, the two containers, Convex as server of record —
-stands, so citing this ADR remains correct for all of it.
+[ADR-034](../ARCHITECTURE.md#decisions) **partially supersedes it**: §1's
+promise that Solo mode — not signed in, IndexedDB as the source of truth —
+"must keep working forever" is withdrawn. Persistence requires an account, and
+nothing is kept on the device ([no device cache](../ARCHITECTURE.md#no-device-cache)).
+Everything else here — Games, memberships, roles, ownership, the two
+containers, Convex as server of record — stands.
 
 **Supersedes [ADR-001](../ARCHITECTURE.md#decisions)** (local-first, no
 backend, no auth). **Amends [ADR-022](../ARCHITECTURE.md#decisions)**
@@ -25,46 +23,25 @@ backend, no auth). **Amends [ADR-022](../ARCHITECTURE.md#decisions)**
 [ADR-021](021-itun-surface-taxonomy.md) with an ownership axis without
 altering any of its enforcement modes.
 
-The operational reference (deployments, env vars, secrets, rotation) is
-[accounts and Games operations](../ARCHITECTURE.md#areas) and the
-`convex-ops` skill.
+The operational reference is [Convex deployments](../ARCHITECTURE.md#deployments),
+[Convex environment](../ARCHITECTURE.md#convex-env) and the `convex-ops` skill.
 
-**2026-10-06 — the Games pages are folded into the Roster hub.** §6's surfaces
-— the Games index (`/games`), a Game's crew page (`/games/:id`) and the
-Mediator page (`/mediator/:id`) — are one place now: the hub at `/`, whose
-"Showing" select lists My Stuff (the shelf) and every Game. A picked Game shows
-its roster there, the viewer's own builds first, with the members' actions and
-then the Mediator's instruments below the lists; "+ New game" starts or joins
-one. The old URLs redirect (the two with an id pick that Game first). §6 is
-otherwise unchanged: the Mediator keeps a surface of their own, as a section
-only they see.
+**Surfaces now** (amending §6): `/` is Shelves, everything the player keeps —
+a unit in a Game stays listed, with a chip naming its Game; Patterns, NPCs and
+the read-only Starter Set are shelves of their own. `/games/:id` is a Game's
+page: its roster, then the members', Mediator's and Organizer's sections.
+`/mediator/:id` is the Mediator Dashboard
+([mediator-dashboard.md](../architecture/mediator-dashboard.md)). "On your
+shelf" in the page's sense means *yours*, not `gameId === null`; the container
+model is unchanged.
 
-**2026-10-09 — a Game has its own address again (#1255).** The hub is still the
-one surface, but `/games/:id` now renders it for that Game instead of
-redirecting, and `/` always shows the shelf (Shelves): the route picks the
-active container as it loads. `/mediator/:id` redirects to `/games/:id`.
-
-**2026-10-09 — Shelves (#1279).** `/` lists everything the player keeps: a
-unit in a Game stays on their shelf too, so every pilot, mech and crawler the
-account holds is listed wherever it is, with a chip naming its Game, and a
-Showing toggle (Everything | Not in a Game) narrows it. Patterns, NPCs and the
-read-only Starter Set are shelves of their own. The "Showing" select is the
-Game page's now. The container model is unchanged: "on your shelf" in the
-page's sense means *yours*, not `gameId === null`.
-
-**§5 is amended by [ADR-032](032-public-read-only-sheets.md)**: a public read-only sheet is the one
-exception to its visibility rules. **§5a is amended by [ADR-037](../ARCHITECTURE.md#decisions)**: a
-Game takes a player's crew before it has a crawler.
-
-**§5 and §6 are amended by [ADR-038](038-dashboard-game-surface.md)** (built): only the table runner
-edits a Game's crawler, and crew status reaches the Game-only Dashboard as a
-Crew tab.
-
-**Amended 2026-10 (#1130)** — §4: a proposal carries no before, only its value.
-
-**Amended 2026-10 (#1278):** §4: a proposal may carry a reason, which the
-player sees with it. §6: `/mediator/:id` is the Mediator Dashboard again and
-no longer redirects ([mediator-dashboard.md](../architecture/mediator-dashboard.md)).
+**Amended:** §4 — a proposal carries its value and an optional reason, never a
+before. §5 by [ADR-032](032-public-read-only-sheets.md) — a public read-only
+sheet is the one exception to its visibility rules. §5a by
+[ADR-037](../ARCHITECTURE.md#decisions) — a Game takes a player's crew before
+it has a crawler. §5 and §6 by [ADR-038](038-dashboard-game-surface.md) — only
+the table runner edits a Game's crawler, and crew status reaches the Game-only
+Dashboard as a Crew tab.
 
 ## Context
 
@@ -109,14 +86,13 @@ already ships a bot, which this makes a first-class authenticated client rather
 than something needing its own credential story.
 
 **Convex is the server of record.** A signed-in client reads through a reactive
-subscription and writes to Convex; IndexedDB was demoted from source of truth to a
-warm cache, and the D9 decision then removed it. Reactive subscriptions are the product feature here — synchronized
+subscription and writes to Convex; nothing is kept on the device
+([no device cache](../ARCHITECTURE.md#no-device-cache)). Reactive subscriptions are the product feature here — synchronized
 alerts and a live table are the point — not an add-on.
 
-This produces **three modes**, and every surface must be legible in all three.
-The current table — Solo is signed out and read-only, Connected writes to
-Convex, Disconnected keeps what is on screen, read-only — is [data flow](../ARCHITECTURE.md#areas) and
-[`apps/itun/CLAUDE.md`](../../apps/itun/CLAUDE.md). A **NOT CONNECTED** banner and
+This produces **four modes** — Solo, Connected, Disconnected, Outdated — and
+every surface must be legible in all of them; the table is
+[`.claude/rules/itun-data-access.md`](../../.claude/rules/itun-data-access.md). A **NOT CONNECTED** banner and
 read-only state are the honest cost of choosing a server of record, and only a
 signed-in user offline ever pays it.
 
@@ -164,7 +140,7 @@ step, which is exactly the property a fork would not have had.
 So a character in somebody else's Game can be copied to your shelf without
 copying the Game, and editing your copy can never touch theirs.
 
-> **Amended 2026-08-06.** This clause previously read: _"a pilot's crawler
+> **Amended.** This clause previously read: _"a pilot's crawler
 > level, scrap, TP, and injuries are Game-specific, so a shared pilot would be
 > incoherent rather than convenient. Moving one is an explicit **fork** that
 > copies and records its origin."_
@@ -210,8 +186,8 @@ closer to membership than to content — assigning a pilot never edits one.
 ### 4. Cross-player writes: propose, never impose
 
 **A Mediator never writes another person's sheet.** They push a **proposal**; it
-arrives on the player's Dashboard with the before/after visible, and the player
-applies or declines it. Proposals persist until answered — no timers, no expiry,
+arrives on the player's Game page with its value and the Mediator's reason, if
+any, and the player applies or declines it. Proposals persist until answered — no timers, no expiry,
 and **no force-apply**, which would collapse this straight back into the direct
 write this decision rejects. A newer proposal against the same field marks the
 older one superseded, so a player never faces two contradictory pending changes
@@ -285,19 +261,17 @@ tray is absorbed into it and `/encounter` retires. The player Dashboard's locked
 ([ADR-038](038-dashboard-game-surface.md) §4).
 
 **A Game's crew is rendered as the Roster renders a shelf.** `/games/:id` (any
-member) and `/mediator/:id` (the Mediator, who gets the private instruments
-below it) both open with the same three ontology-toned columns of `EntityRow`s
-the home Roster uses, with a create CTA per column and a Dashboard launch on the
-rows that support one. A Game asks "what have we got and what can I do with it"
+member) opens with the same three ontology-toned columns of `EntityRow`s the
+home Roster uses, with a create CTA per column. The Mediator's instruments are
+`/mediator/:id`, a 1280×800 canvas
+([mediator-dashboard.md](../architecture/mediator-dashboard.md)). A Game asks "what have we got and what can I do with it"
 of a different container, and answering it in a second visual vocabulary is how
 an app stops feeling like one app.
 
 What a shared roster adds on top of the personal one: an owner chip per row,
 an **UNCLAIMED** stamp seal that opens the pick-up confirm, and creation gated by
-§5a. Only entities the viewer **owns** offer a sheet link; ITUN's sheet is a live
-editing surface, so opening a crewmate's would hand over an editor whose writes
-the server refuses. The read-only drill-in §5 permits is a separate surface and
-is not built — the crew vitals strip carries that information for now.
+§5a. Every row opens its live sheet: editable when the viewer may edit it,
+otherwise the read-only drill-in §5 permits, `/sheet/:kind/:id`.
 
 ## Amendment — an invite carries what the Organizer decided
 
@@ -343,15 +317,15 @@ Enforced in `convex/invites.ts` (`seat`, `assertSpendable`, `decideRequest`).
 an address — a Discord account, which alone may redeem it. An addressed invite
 is single use and its addressee may decline it.
 
-## Amendment — an invite is a link, never a typed code (#1255)
+## Amendment — an invite is a link, never a typed code
 
 A Game is joined from a link, `/invite/:token`, whose token is the invite's
 `code` column, now 16 Crockford characters (80 bits) since nobody types it. The
 code-entry door in "+ New game" is gone. Opening a link signed out previews it
 and offers "Sign in to join"; the OAuth round trip returns with `?join=1` and
-the page joins on arrival. **Old `/join/:code` links resolve**: the route
-redirects to `/invite/:code`, so a live code joins and a dead one gets the
-invite page's explanation of invite links.
+the page joins on arrival. **Old `/join/:code` links resolve**: the Worker 301s
+them to `/invite/:code` (`apps/itun/src/worker/retiredRedirects.ts`), so a live
+code joins and a dead one gets the invite page's explanation of invite links.
 
 **Any member may hand out the Game's link** (`invites.link`, "Copy invite
 link" on the Game page and the Dashboard's Crew tab). The Organizer's is an
@@ -416,10 +390,10 @@ shelved entities land unwired.
 
 The rejected alternative was to copy the crawler into IndexedDB on deletion and
 leave the server out of it, which needs no schema change. It is rejected on
-principle: offline-first in ITUN is ordinary PWA caching, so the local store is
-a **reflection** of Convex and never a second source of truth. A record with no
-server row to reflect is invisible on the player's other devices, invisible to
-sync, and lost with the browser's storage.
+principle: Convex is the one source of truth, and there is now no local store
+at all ([no device cache](../ARCHITECTURE.md#no-device-cache)). A record with no
+server row is invisible on the player's other devices and lost with the
+browser's storage.
 
 ## Amendment to ADR-022
 
@@ -429,8 +403,8 @@ published snapshot. The first half no longer holds: the log is now
 `applied | proposed | rejected | superseded`, and a `supersededBy` pointer. A
 proposal _is_ a log entry; applying one commits it.
 
-The second half stands unchanged — **a published snapshot remains frozen,
-historyless, and bare**. ADR-004 is not modified.
+The second half stood — **a published snapshot remained frozen, historyless,
+and bare** — until [ADR-036](../ARCHITECTURE.md#decisions) retired snapshots.
 
 ## Consequences
 
@@ -443,7 +417,7 @@ historyless, and bare**. ADR-004 is not modified.
 - **Anonymous use must keep working, forever.** Withdrawn by ADR-034: anonymous
   use still works, but nothing it builds persists without an account.
 - **Convex cannot validate entity bodies.** The Zod schemas in
-  `apps/itun/src/lib/schemas/` stay the source of truth and Convex stores bodies
+  `packages/itun-domain/src/schemas/` stay the source of truth and Convex stores bodies
   opaquely, so **every mutation must Zod-parse before persisting**. The
   alternative — mirroring every field into Convex validators — forks the source of
   truth into a second copy that rots.

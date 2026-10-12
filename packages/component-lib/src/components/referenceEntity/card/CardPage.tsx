@@ -8,7 +8,7 @@ import { cn } from '../../../utils/cn'
 import { Slab } from '../../atoms/Slab'
 import { StatColumn } from '../../atoms/StatColumn'
 import { buildBookStats } from '../referenceEntityStatsConfig'
-import { cardKey } from './cardHelpers'
+import { cardKey, nestedTitleLevel } from './cardHelpers'
 import { PatternLinkRows } from './PatternListRow'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 
@@ -18,7 +18,7 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  * the title and stamps, its `ChapterFoot` the citation. The line art is the
  * hero on the left; beside it the prose, the book's stat column and, beneath
  * the stats, the chassis ability; then everything the entity carries, full
- * width — its table, its other actions, its nested trays and its patterns as
+ * width — its table, its other actions, its nested cards and its patterns as
  * link rows. A pattern page leads the right column with the pattern itself
  * (`opening`), then the base chassis's prose under its own slab.
  *
@@ -58,7 +58,7 @@ type CardPageProps = {
   abilitiesSection: ReactNode
   /** A guide's steps (`GuideSteps`): on a page they follow the prose, full section. */
   guide?: ReactNode
-  /** The nested trays. */
+  /** The nested cards. */
   sections: ReactNode
   /** A basic host's patterns, as full-width link rows. */
   patterns: SURefObjectAnyPattern[]
@@ -101,12 +101,20 @@ export function CardPage({
     ? buildBookStats(entity, stats).filter((stat) => stat.key !== 'tech-level')
     : []
   const { NestedCard } = action
-  const actionCard = (data: ReferenceCardEntity, index: number, seal?: string) => (
+  // `titleAs` is the card title's element: an `h3` only where a section band's
+  // `h2` holds the card (`nestedTitleLevel`), else the header's `span`.
+  const actionCard = (
+    data: ReferenceCardEntity,
+    index: number,
+    titleAs: 'h3' | undefined,
+    seal?: string
+  ) => (
     <NestedCard
       key={cardKey(data, index)}
       data={data}
       size="medium"
       depth={1}
+      titleAs={titleAs}
       readable={!!seal}
       hostDown={action.hostDown}
       hostName={action.hostName}
@@ -142,7 +150,12 @@ export function CardPage({
             {loadout}
             {leadActions.length > 0 && (
               <div className="su-entity-page__lead">
-                {leadActions.map((data, index) => actionCard(data, index, 'Chassis Ability'))}
+                {/* No band holds the chassis ability (the page's h1 is the
+                    ChapterBand above), so its title stays a span: an h3 here
+                    would skip a level. */}
+                {leadActions.map((data, index) =>
+                  actionCard(data, index, undefined, 'Chassis Ability')
+                )}
               </div>
             )}
           </div>
@@ -153,7 +166,9 @@ export function CardPage({
       {!abilitiesSection && otherActions.length > 0 && (
         <section className="su-entity-page__section">
           <Slab as={sectionAs} variant="solid" label="Actions" />
-          {otherActions.map((data, index) => actionCard(data, index))}
+          {otherActions.map((data, index) =>
+            actionCard(data, index, nestedTitleLevel(!!sectionAs))
+          )}
         </section>
       )}
       {guide}

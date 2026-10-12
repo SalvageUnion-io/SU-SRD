@@ -21,7 +21,7 @@ import { fakeExecute } from './fakeInteraction'
  * the unconfigured client, which makes no request at all.
  */
 
-describe('with In The Union Now unavailable', () => {
+describe('with In the Union now unavailable', () => {
   test('rolling is untouched — no defer, no edit, just the reply', async () => {
     const { interaction, replies, deferred, edits } = fakeExecute({
       subcommand: 'roll',
@@ -71,7 +71,7 @@ describe('with In The Union Now unavailable', () => {
     expect(deferred.ephemeral).toBe(true)
     expect(followUps).toHaveLength(0)
     expect(edits).toHaveLength(1)
-    expect(edits[0]?.content).toContain('In The Union Now')
+    expect(edits[0]?.content).toContain('In the Union now')
   })
 
   test('/su game bind says the same thing', async () => {
@@ -81,7 +81,7 @@ describe('with In The Union Now unavailable', () => {
       strings: { game: 'jd7k2m9p4q8r3s6t1v5w0x2y' },
     })
     await gameCommand.execute(interaction)
-    expect(edits[0]?.content).toContain('In The Union Now')
+    expect(edits[0]?.content).toContain('In the Union now')
   })
 
   test('a Game command outside a channel says so before anything else', async () => {

@@ -4,7 +4,7 @@ import { expect, test } from './fixtures'
 
 /**
  * The Mediator proposes; the player decides (issue 1278, boards M1 and M2;
- * docs/architecture/mediator-dashboard.md §3, P8a gate 1).
+ * docs/architecture/mediator-dashboard.md).
  *
  * The Organizer makes a Game and appoints themselves Mediator; a player joins
  * by a link and builds a pilot in it. From the Mediator Dashboard the Mediator

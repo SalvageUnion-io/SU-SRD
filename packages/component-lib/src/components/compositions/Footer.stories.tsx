@@ -8,7 +8,7 @@ export default {
 }
 
 /**
- * Where every page of both tools ends (refit S2: one Footer). Real data: each
+ * Where every page of both tools ends. Real data: each
  * book page's foot is its chapter tone and the citation
  * `resolveEntityPageMeta` gives the SRD's page for it. The links are each
  * tool's own; the mark is the apps' public asset, which the catalog also
@@ -38,13 +38,13 @@ function footFor(
   return { tone, page: meta.page, citation: meta.citation, measure: '75rem' }
 }
 
-/** The SRD's home, listings, guides and own pages: the slim rules-blue band (board 06). */
-export const Rules = () => <Footer links={SRD_LINKS} poweredBySalvageUrl={MARK} />
+/** The SRD's home, listings, guides and own pages: the licence row alone, in the Union bar's ink. */
+export const Site = () => <Footer links={SRD_LINKS} poweredBySalvageUrl={MARK} />
 
-/** Every ITUN page: the same band and licence row, ITUN's own pages at the end. */
+/** Every ITUN page: the same licence row, ITUN's own pages at the end. */
 export const Itun = () => <Footer links={ITUN_LINKS} poweredBySalvageUrl={MARK} />
 
-/** A Mech Workshop page (board 07): the Gopher's citation in the mech band, ink text. */
+/** A Mech Workshop page (board 07): the Gopher's citation in the mech band, over the licence row. */
 export const Mech = () => (
   <Footer
     links={SRD_LINKS}
@@ -53,7 +53,7 @@ export const Mech = () => (
   />
 )
 
-/** A Denizens page: the navy band carries paper text, and the mark reverses to paper. */
+/** A Denizens page: the citation's navy band carries paper text. */
 export const Denizen = () => (
   <Footer
     links={SRD_LINKS}

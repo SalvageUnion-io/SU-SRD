@@ -31,7 +31,7 @@ editor needs:
   token set (`:root` custom properties), and
   `src/design/__tests__/tokens.parity.test.ts` fails if they disagree.
 - **The one entry:** `packages/component-lib/src/styles/entry.css` declares
-  `@layer su-reset, su-base;` and imports `theme.css`, `reset.css` into
+  `@layer su-reset, su-base;`, imports `theme.css` unlayered, `reset.css` into
   `su-reset` and `index.css` into `su-base`. The two apps and
   `apps/catalog/src/catalog.css` import it, never `index.css` itself, and their own
   stylesheets stay unlayered so an app rule always outranks a package rule.

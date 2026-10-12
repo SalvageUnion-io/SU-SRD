@@ -43,7 +43,7 @@ Canonical URLs always carry a trailing slash.
 | `MobileSearchIsland`    | idle    | false    | chrome                                                           |
 | `MobileNavIsland`       | idle    | false    | chrome; props designed out                                       |
 | `SchemaViewerIsland`    | visible | **true** | SEO; server markup is a named row per entity, not the island     |
-| `ReferenceEntityIsland` | visible | false    | SSR would be a skeleton; `StaticEntityContent` is the SEO path   |
+| `ReferenceEntityIsland` | visible | false    | SSR would be empty; `StaticEntityContent` is the SEO path        |
 | `RollTableIsland`       | idle    | **true** | the bands are real content (same `RollTableView`, no roll)       |
 | `ColophonIsland`        | visible | **true** | prose worth indexing                                             |
 | `SearchResultsIsland`   | only    | false    | client-only results page                                         |

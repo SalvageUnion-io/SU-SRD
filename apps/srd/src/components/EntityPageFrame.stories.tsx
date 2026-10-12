@@ -14,7 +14,7 @@ export default {
  * type stamps, the card as the page's body (`presentation="page"`) — line art,
  * chassis ability, prose, the book's stat column and the pattern rows — and
  * the site `Footer` the layout closes it on, carrying the citation in the
- * same band. The stamps sit beside the notch and the art is cropped to its
+ * same band. The stamps sit at the band's far end and the art is cropped to its
  * line work; narrow the viewport for the phone (board 08), which keeps the
  * same order. The Gopher is Tech 2, so it offers no "Build with this".
  */
@@ -73,7 +73,7 @@ export const Ability = () => {
 }
 
 /**
- * A long name: where the stamps no longer fit beside the notch they wrap
+ * A long name: where the stamps no longer fit on the notch's row they wrap
  * above it, and the title stays on the band's foot. The art fills its canvas,
  * so its crop is a hair.
  */
