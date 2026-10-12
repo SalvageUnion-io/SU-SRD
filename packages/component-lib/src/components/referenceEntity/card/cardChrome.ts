@@ -37,11 +37,10 @@ export const GREY_HEADER = 'color-mix(in srgb, var(--color-ink) 50%, var(--color
 export type HeaderFill = 'tone' | 'ink'
 
 /**
- * Which fill a card's header takes, by data shape. Things you do are the ink
- * banner, except an ABILITY in the compact card (`extent="head"`): a row of
- * abilities wears each one's tier tone, as the book's ability-tree spreads do
- * (Core brick, Advanced and Hybrid orange, Legendary pink). Its full card and
- * its page keep the ink banner; an action is ink everywhere.
+ * Which fill a card's header takes, by data shape. Things you do (abilities,
+ * actions) are the ink banner at every extent, the compact card included: the
+ * Core tier fill is rust's near twin and reads as a button (ruleset §3.1). An
+ * ability's tier rides on its numeral and pennant.
  */
 export function resolveHeaderFill(entity: SURefMetaEntity, extent: CardExtent): HeaderFill {
   // The entity model's rule (E12), with the compact card as its Row.

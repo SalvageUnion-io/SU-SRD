@@ -148,7 +148,7 @@ describe('toEntityModel parity, every entity', () => {
       agree(label(row), model.tone, schemaName === 'actions' ? 'ink' : toneToken(tone))
       const doFill = model.kind.nature === 'do' ? 'ink' : 'tone'
       agree(label(row), resolveHeaderFill(entity, 'full'), doFill)
-      agree(label(row), resolveHeaderFill(entity, 'head'), isAbility(entity) ? 'tone' : doFill)
+      agree(label(row), resolveHeaderFill(entity, 'head'), doFill)
     }
   })
 

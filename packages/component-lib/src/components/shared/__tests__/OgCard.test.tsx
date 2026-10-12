@@ -18,9 +18,9 @@ import {
 
 /**
  * OgCard (issue 1280, board PV1): the link preview, one layout for both apps.
- * A snapshot per kind holds the markup each preview is screenshotted from, so
- * a change to a shared part (ChapterBand, the speckle, the stat boxes) shows
- * up here as a reviewed diff rather than silently in every unfurl.
+ * Each kind's card is read back for what a reader sees in the unfurl (the
+ * title, the band's tone, the mark, the stat cells, the lines and the foot)
+ * rather than snapshotted, so a token change does not rewrite every card.
  */
 
 const SHEET: OgCardProps = {
@@ -121,10 +121,223 @@ const KINDS: [string, OgCardProps][] = [
   ['private', PRIVATE],
 ]
 
-describe('OgCard snapshots', () => {
-  for (const [name, props] of KINDS) {
+type Seen = {
+  kind: string
+  title: string
+  printed: string
+  tone: string
+  cells: [string, string][]
+  lines: string[]
+  wordmark: string
+  address: string
+}
+
+/** Reads a rendered card back as the parts a reader sees. */
+function read(props: OgCardProps): Seen & { src: string | null } {
+  const host = document.createElement('div')
+  host.innerHTML = renderToStaticMarkup(<OgCard {...props} />)
+  const card = host.querySelector('article')
+  const band = host.querySelector('.su-chapter-band')
+  const body = card?.children[1]
+  const foot = card?.children[2]
+  if (!card || !band || !body || !foot) throw new Error('the card lost a part')
+  const text = (el: Element | null | undefined) => el?.textContent ?? ''
+  return {
+    kind: card.getAttribute('data-og-card') ?? '',
+    title: card.getAttribute('aria-label') ?? '',
+    printed: text(host.querySelector('.su-chapter-band__title')),
+    tone: band.getAttribute('style')?.match(/background-color:([^;]+)/)?.[1] ?? '',
+    cells: [...body.querySelectorAll(':scope > div > div')].map((cell) => [
+      text(cell.children[0]),
+      text(cell.children[1]),
+    ]),
+    lines: [...body.querySelectorAll(':scope > p')].map(text),
+    src: foot.querySelector('img')?.getAttribute('src') ?? null,
+    wordmark: text(foot.querySelector('img + span')),
+    address: text(foot.querySelector(':scope > span')),
+  }
+}
+
+const SEEN: [string, OgCardProps, Seen][] = [
+  [
+    'reference thing',
+    THING,
+    {
+      kind: 'thing',
+      title: 'Scrapper',
+      printed: 'Scrapper',
+      tone: 'var(--color-mech)',
+      cells: [
+        ['SP', '9'],
+        ['EP', '9'],
+        ['Heat', '8'],
+        ['SYS', '12'],
+        ['MOD', '2'],
+        ['Cargo', '6'],
+      ],
+      lines: ['Salvage Union Workshop Manual · p.104 · 5 patterns'],
+      wordmark: 'SalvageUnion.io',
+      address: '/chassis/scrapper',
+    },
+  ],
+  [
+    'reference do',
+    DO,
+    {
+      kind: 'do',
+      title: 'Mass Field Repair',
+      printed: 'Mass Field Repair',
+      tone: color.inkDeep,
+      cells: [],
+      lines: [
+        'You repair any number of damaged Mech Chassis, Vehicles, Systems, or Modules within Range to Intact Condition. They must be of a Tech Level equal to or lower than your Union Crawler.',
+        'Salvage Union Workshop Manual · p.29',
+      ],
+      wordmark: 'SalvageUnion.io',
+      address: '/abilities/mass-field-repair',
+    },
+  ],
+  [
+    'player sheet',
+    SHEET,
+    {
+      kind: 'sheet',
+      title: 'Bonesaw',
+      printed: 'Bonesaw',
+      tone: color.pilot,
+      cells: [
+        ['HP', '8/10'],
+        ['AP', '3/5'],
+        ['TP', '2'],
+        ['Mech', 'Scrapper'],
+      ],
+      lines: ["Rosa's pilot · Reclamation of the Wastes"],
+      wordmark: 'ITUN',
+      address: 'itun.salvageunion.io/p/pilot/0a1b',
+    },
+  ],
+  [
+    'user-made pattern',
+    PATTERN,
+    {
+      kind: 'userMade',
+      title: 'Tow Rig',
+      printed: '\u201CTow Rig\u201D',
+      tone: color.mech,
+      cells: [
+        ['TL', '1'],
+        ['SYS', '12/12'],
+      ],
+      lines: ['Made by alxjrvs'],
+      wordmark: 'ITUN',
+      address: 'itun.salvageunion.io/p/pattern/0a1b',
+    },
+  ],
+  [
+    'user-made NPC',
+    NPC,
+    {
+      kind: 'userMade',
+      title: 'Sergeant Kessler',
+      printed: 'Sergeant Kessler',
+      tone: color.adversary,
+      cells: [
+        ['HP', '9'],
+        ['Actions', '2'],
+      ],
+      lines: ['Made by alxjrvs'],
+      wordmark: 'ITUN',
+      address: 'itun.salvageunion.io',
+    },
+  ],
+  [
+    'game invite',
+    INVITE,
+    {
+      kind: 'invite',
+      title: 'Reclamation of the Wastes',
+      printed: 'Reclamation of the Wastes',
+      tone: color.crawler,
+      cells: [],
+      lines: ['Mediated by alxjrvs.', 'Link expires 15 Oct · the Mediator lets you in'],
+      wordmark: 'ITUN',
+      address: 'itun.salvageunion.io',
+    },
+  ],
+  [
+    'long user-made NPC name',
+    LONG_NPC,
+    {
+      kind: 'userMade',
+      title: LONG,
+      printed: LONG,
+      tone: color.adversary,
+      cells: [
+        ['HP', '9'],
+        ['Actions', '2'],
+      ],
+      lines: ['Made by alxjrvs'],
+      wordmark: 'ITUN',
+      address: 'itun.salvageunion.io',
+    },
+  ],
+  [
+    'long user-made pattern name',
+    LONG_PATTERN,
+    {
+      kind: 'userMade',
+      title: LONG,
+      printed: `\u201C${LONG}\u201D`,
+      tone: color.mech,
+      cells: [
+        ['TL', '1'],
+        ['SYS', '12/12'],
+      ],
+      lines: ['Made by alxjrvs'],
+      wordmark: 'ITUN',
+      address: 'itun.salvageunion.io/p/pattern/0a1b',
+    },
+  ],
+  [
+    'long invite name',
+    LONG_INVITE,
+    {
+      kind: 'invite',
+      title: LONG,
+      printed: LONG,
+      tone: color.crawler,
+      cells: [],
+      lines: ['Mediated by alxjrvs.', 'Link expires 15 Oct · the Mediator lets you in'],
+      wordmark: 'ITUN',
+      address: 'itun.salvageunion.io',
+    },
+  ],
+  [
+    'private',
+    PRIVATE,
+    {
+      kind: 'private',
+      title: 'Private',
+      printed: 'Private',
+      tone: color.inkDeep,
+      cells: [],
+      lines: ["Its owner hasn't shared this."],
+      wordmark: 'ITUN',
+      address: 'itun.salvageunion.io',
+    },
+  ],
+]
+
+describe('OgCard, read back per kind', () => {
+  test('covers every kind the layout tests draw', () => {
+    expect(SEEN.map(([name]) => name)).toEqual(KINDS.map(([name]) => name))
+  })
+
+  for (const [name, props, seen] of SEEN) {
     test(name, () => {
-      expect(renderToStaticMarkup(<OgCard {...props} />)).toMatchSnapshot()
+      const { src, ...rest } = read(props)
+      expect(rest).toEqual(seen)
+      expect(src).toBe('/logos/su-cargo-dark.svg')
     })
   }
 })

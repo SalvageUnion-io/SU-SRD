@@ -47,8 +47,7 @@
  * `rules/` is picked up without a code change (the latest by version wins).
  *
  * Requires the gitignored extract: `bun run rules:extract`. With none present
- * this exits 0 with a notice, like `check-printed-names.ts`: a local check,
- * not a CI gate. Where it looks: `findExtractDir` in `extract-rules.ts`.
+ * this exits 0 with a notice: a local check, not a CI gate. Where it looks: `findExtractDir` in `extract-rules.ts`.
  *
  * Run:  bun tools/check-rules-fidelity.ts            # verify; report what the lock would change
  *       bun tools/check-rules-fidelity.ts --update   # ... and rewrite the lock

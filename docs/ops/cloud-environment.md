@@ -98,4 +98,4 @@ together. No CLI or API edits it.
   second repository when a session or Routine needs the rulebooks. The GitHub
   proxy authenticates it, so it needs no secret and no network entry; grep its
   committed `extracted/*.txt` in the sibling checkout (no poppler).
-  `check:rules-fidelity` and `check:printed-names` find it there themselves.
+  `check:rules-fidelity` finds it there itself.
