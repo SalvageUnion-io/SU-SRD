@@ -12,7 +12,10 @@ import { PAGES_CACHE as WARMED_CACHE } from '../../src/runtime/offlineWarm.clien
 import { NAVIGATION_TIMEOUT_SECONDS, PAGES_CACHE, RUNTIME_CACHING } from '../pwa'
 
 /** The slice of a fetch event's request the route matchers read. */
-const requestOf = (mode: RequestMode) => ({ request: { mode } as Request })
+const requestOf = (mode: RequestMode, path = '/schema/chassis/') => ({
+  request: { mode } as Request,
+  url: new URL(`https://salvageunion.io${path}`),
+})
 
 const [pages, , searchIndex] = RUNTIME_CACHING
 
@@ -38,19 +41,28 @@ describe('navigations', () => {
   })
 
   test('the rule matches navigations and nothing else', () => {
-    const matches = pages?.urlPattern as (options: { request: Request }) => boolean
+    const matches = pages?.urlPattern as (options: ReturnType<typeof requestOf>) => boolean
     expect(matches(requestOf('navigate'))).toBe(true)
     expect(matches(requestOf('cors'))).toBe(false)
     expect(matches(requestOf('no-cors'))).toBe(false)
   })
 
+  test("leaves ITUN's /build navigations to ITUN's own worker (refit S2)", () => {
+    const matches = pages?.urlPattern as (options: ReturnType<typeof requestOf>) => boolean
+    expect(matches(requestOf('navigate', '/build'))).toBe(false)
+    expect(matches(requestOf('navigate', '/build/'))).toBe(false)
+    expect(matches(requestOf('navigate', '/build/sheet/pilot/x'))).toBe(false)
+    expect(matches(requestOf('navigate', '/buildings/'))).toBe(true)
+  })
+
   test('the matcher survives being stringified into sw.js', () => {
     // workbox-build writes `urlPattern.toString()` into the worker, so a
     // closure over this module would be a ReferenceError there.
-    const rebuilt = new Function(`return (${pages?.urlPattern.toString()})`)() as (options: {
-      request: Request
-    }) => boolean
+    const rebuilt = new Function(`return (${pages?.urlPattern.toString()})`)() as (
+      options: ReturnType<typeof requestOf>
+    ) => boolean
     expect(rebuilt(requestOf('navigate'))).toBe(true)
+    expect(rebuilt(requestOf('navigate', '/build/'))).toBe(false)
   })
 })
 

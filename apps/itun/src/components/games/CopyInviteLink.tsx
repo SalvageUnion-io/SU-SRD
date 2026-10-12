@@ -16,6 +16,7 @@ import { Link2 } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { appRoot } from '../../lib/appUrl'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { inviteUrl } from '../../lib/games/inviteLink'
 import { failureMessage } from '../shared/useConfirm'
@@ -51,7 +52,7 @@ function ConnectedCopyInviteLink({
   async function copy(): Promise<void> {
     setBusy(true)
     try {
-      const url = link({ gameId }).then((token) => inviteUrl(window.location.origin, token))
+      const url = link({ gameId }).then((token) => inviteUrl(appRoot(), token))
       await clipboardWriter(url)
       toast.success('Invite link copied', { id: 'invite-link-copy', duration: 2000 })
     } catch (err) {

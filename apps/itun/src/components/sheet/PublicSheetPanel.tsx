@@ -31,6 +31,7 @@ import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { appUrl } from '../../lib/appUrl'
 import { isServerRefusal, serverMessage } from '../../lib/connection/serverError'
 import { LinkQr } from './LinkQr'
 
@@ -95,7 +96,7 @@ export function PublicSheetPanel({
 
   // `undefined` is still loading; `null` is a real "not published".
   const isPublic = published === undefined ? null : published !== null
-  const url = typeof window === 'undefined' ? '' : `${window.location.origin}/p/${kind}/${appId}`
+  const url = typeof window === 'undefined' ? '' : appUrl(`/p/${kind}/${appId}`)
 
   async function toggle(next: boolean): Promise<void> {
     setBusy(true)

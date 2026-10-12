@@ -2,7 +2,7 @@ import { Search } from 'lucide-react'
 import type { ComponentPropsWithRef, CSSProperties } from 'react'
 import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
 import { cn } from '../../utils/cn'
-import { FOCUS_WITHIN } from '../chrome/interaction'
+import { FOCUS_RING, FOCUS_WITHIN } from '../chrome/interaction'
 
 /**
  * SearchField — the shared search box (canonical; hoisted from the SRD search
@@ -79,5 +79,55 @@ export function SearchField({
         </span>
       )}
     </div>
+  )
+}
+
+type SearchFieldTriggerProps = ComponentPropsWithRef<'button'> & {
+  /** What the field would say empty: its placeholder, drawn as the label. */
+  label: string
+  /** Classes on the label, where `SearchField` takes them on its input (the bar's width). */
+  labelClassName?: string
+  /** Magnifier glyph size in px. */
+  glyphSize?: number
+  /** The shortcut's key cap, as on `SearchField`. Decorative. */
+  shortcut?: string
+}
+
+/**
+ * SearchFieldTrigger — `SearchField`'s shape as a button, for a search that
+ * opens elsewhere (ITUN's popover) rather than in place (the SRD's combobox).
+ * Refit S2: the Union bar's search entry looks the same in both tools — the
+ * same paper field, glyph, words and key cap — whichever way it opens.
+ *
+ * It forwards `ref` and every extra prop to the `<button>`, so a popover
+ * library can render it as its trigger.
+ */
+export function SearchFieldTrigger({
+  label,
+  labelClassName,
+  glyphSize = 14,
+  shortcut,
+  className,
+  ref,
+  type = 'button',
+  ...buttonProps
+}: SearchFieldTriggerProps) {
+  return (
+    <button
+      ref={ref}
+      type={type}
+      className={cn('su-search-field su-search-field--trigger', FOCUS_RING, className)}
+      {...buttonProps}
+    >
+      <Search size={glyphSize} strokeWidth={2.5} aria-hidden="true" style={GLYPH} />
+      <span className={cn('su-search-field__input su-search-field__label', labelClassName)}>
+        {label}
+      </span>
+      {shortcut && (
+        <span aria-hidden="true" style={SHORTCUT}>
+          <kbd style={KEY_CAP}>{shortcut}</kbd>
+        </span>
+      )}
+    </button>
   )
 }

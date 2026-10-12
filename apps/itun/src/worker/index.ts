@@ -58,6 +58,7 @@
 
 import type { ObservabilityEnv } from 'observability/cloudflare'
 import { withObservability } from 'observability/cloudflare'
+import { pathInApp } from './basePath'
 import type { ImageCache, PreviewEnv } from './linkPreview'
 import { isOgImagePath, metaFor, ogImage, previewRouteOf } from './linkPreview'
 import { isRetiredPath, retiredRedirect } from './retiredRedirects'
@@ -67,6 +68,12 @@ export type Env = ObservabilityEnv &
   PreviewEnv & {
     /** Static assets (the built SPA), in `single-page-application` mode. */
     ASSETS: { fetch(request: Request): Promise<Response> }
+    /**
+     * The path ITUN is served under, without a trailing slash: `/build` in
+     * `wrangler.jsonc`'s `one-domain` environment (refit S2 spike), unset (the
+     * root) everywhere else. Matches the build's `ITUN_SITE` (`lib/site.ts`).
+     */
+    BASE_PATH?: string
   }
 
 /** The Cache API's default cache, where the runtime has one (never under Bun). */
@@ -78,14 +85,17 @@ function defaultCache(): ImageCache | undefined {
 export default withObservability('su-itun', {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
-    const path = url.pathname
+    // Every rule below reads the path inside the app; a URL it builds puts the
+    // base back. At the root the two are the same.
+    const base = env.BASE_PATH ?? ''
+    const path = pathInApp(url.pathname, base)
     const lastSegment = path.slice(path.lastIndexOf('/') + 1)
 
     // R. A retired address, which `run_worker_first` routes here first.
-    if (isRetiredPath(path)) return retiredRedirect(url)
+    if (isRetiredPath(path)) return retiredRedirect(url, base)
 
     // 0. A link preview's picture — a file that exists only on request.
-    if (isOgImagePath(path)) return ogImage(request, env, { cache: defaultCache() })
+    if (isOgImagePath(path)) return ogImage(request, env, { cache: defaultCache(), base })
 
     // 1 and 2. A file that is not there — a rotated chunk above all (#759).
     if (path.startsWith('/assets/') || lastSegment.includes('.')) {
@@ -94,10 +104,12 @@ export default withObservability('su-itun', {
 
     // 3. A client route asked for without a navigation: the shell, carrying a
     //    shared thing's preview when the route names one.
-    const shell = await env.ASSETS.fetch(new Request(new URL('/', request.url), { method: 'GET' }))
+    const shell = await env.ASSETS.fetch(
+      new Request(new URL(`${base}/`, request.url), { method: 'GET' })
+    )
     const route = previewRouteOf(path)
     if (route === null || !shell.ok) return shell
-    const meta = await metaFor(route, url, env)
+    const meta = await metaFor(route, url, env, fetch, base)
     if (meta === null) return shell
     const headers = new Headers(shell.headers)
     // The body changed length; the runtime recomputes it.

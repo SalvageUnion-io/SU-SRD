@@ -1,9 +1,9 @@
-import { resolveEntityPageMeta } from 'component-lib'
+import { Footer, resolveEntityPageMeta } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { buildLinkFor } from '../lib/buildLink'
+import { SITE_LINKS } from '../lib/constants'
 import { EntityCardStatic } from './EntityCardStatic'
 import { EntityPageFrame, entityPageFoot } from './EntityPageFrame'
-import { Footer } from './Footer'
 
 export default {
   title: 'Compositions/Entity/Entity Page Frame',
@@ -33,6 +33,7 @@ export const Chassis = () => {
         <EntityCardStatic item={gopher} />
       </EntityPageFrame>
       <Footer
+        links={SITE_LINKS}
         poweredBySalvageUrl="/Powered_by_Salvage_Black.webp"
         foot={entityPageFoot('mech', meta)}
       />

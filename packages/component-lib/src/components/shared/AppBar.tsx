@@ -15,14 +15,13 @@ import { Speckle } from '../chrome/Speckle'
  * bar, never an off-site "Builder ↗" / "SRD ↗" link. The tab you are on is an
  * inverse stamp — a paper plate on the ink bar — and never rust (§3.1).
  *
- * ## Densities
+ * ## One geometry
  *
- * - `full` (the SRD) — a 64px bar with the wordmark. Its `navItems`, when it has
- *   any, sit one row down in a 44px paper product row; the SRD passes none, its
- *   index being the home page itself.
- * - `compact` (ITUN's app routes) — one 48px row: the mark without the
- *   wordmark, the switcher, and the product nav inline beside it. It gives a
- *   sheet or a Game its height back.
+ * Both tools wear the same bar (refit S2: one product at one domain): one
+ * 56px row at every width, the 40px mark, the wordmark from 40rem, the product
+ * nav inline beside the switcher from `lg`, and the search entry at the same
+ * place in the same shape (`SearchField` / `SearchFieldTrigger`). There are no
+ * densities: the SRD's 64px bar and ITUN's 48px one were two products.
  *
  * ## Breadcrumbs
  *
@@ -79,16 +78,17 @@ type AppBarProps = {
   referenceHref: string
   /** Where "Build" goes — ITUN's home. */
   buildHref: string
-  /** `full` — 64px bar (+ 44px product row). `compact` — one 48px row. */
-  density?: 'full' | 'compact'
   /** Link component for the brand + internal links. Defaults to a plain anchor. */
   LinkComponent?: ElementType
   viewTransitionName?: string
-  /** The product's own nav (desktop). */
+  /** The product's own nav (desktop), inline beside the switcher. */
   navItems?: AppBarNavEntry[]
   /** Quiet links at the nav's far end (an About, a Changelog). */
   secondaryItems?: AppBarNavItem[]
-  /** Desktop search slot — the site's combobox island or a trigger button. */
+  /**
+   * Desktop search slot — the SRD's `SearchField` combobox or ITUN's
+   * `SearchFieldTrigger`: one shape, `su-union-bar__search-input` wide.
+   */
   search?: ReactNode
   /** "Buy the game" outbound link. Omit to hide. */
   buyHref?: string
@@ -236,7 +236,6 @@ export function AppBar({
   product,
   referenceHref,
   buildHref,
-  density = 'full',
   LinkComponent = 'a',
   viewTransitionName,
   navItems = [],
@@ -249,7 +248,6 @@ export function AppBar({
   breadcrumbs,
   breadcrumbDescription,
 }: AppBarProps) {
-  const compact = density === 'compact'
   const hasCrumbs = breadcrumbs !== undefined && breadcrumbs.length > 0
 
   // The switcher: this product's tab routes home; the other is a same-tab
@@ -259,7 +257,7 @@ export function AppBar({
     { key: 'build', label: 'Build', href: buildHref },
   ]
 
-  const navLinks = (linkClass: string) =>
+  const navLinks = () =>
     navItems.map((entry) =>
       isSlot(entry) ? (
         <Fragment key={entry.id}>{entry.node}</Fragment>
@@ -267,7 +265,7 @@ export function AppBar({
         <NavLink
           key={entry.href}
           item={entry}
-          className={linkClass}
+          className="su-union-bar__link"
           LinkComponent={LinkComponent}
         />
       )
@@ -286,7 +284,6 @@ export function AppBar({
     <>
       <header
         className="su-union-bar"
-        data-density={density}
         style={viewTransitionName ? { ...BAR, viewTransitionName } : BAR}
       >
         <Speckle grain="paper" />
@@ -297,15 +294,14 @@ export function AppBar({
             <img
               src="/logos/su-cargo-dark.svg"
               alt="Salvage Union"
-              width={compact ? 32 : 40}
-              height={compact ? 32 : 40}
+              width={40}
+              height={40}
+              className="su-union-bar__mark"
               style={MARK}
             />
-            {!compact && (
-              <span aria-hidden="true" className="su-union-bar__wordmark" style={WORDMARK}>
-                SalvageUnion<span style={WORDMARK_ACCENT}>.io</span>
-              </span>
-            )}
+            <span aria-hidden="true" className="su-union-bar__wordmark" style={WORDMARK}>
+              SalvageUnion<span style={WORDMARK_ACCENT}>.io</span>
+            </span>
           </LinkComponent>
 
           <nav aria-label="Salvage Union tools" style={SWITCH}>
@@ -325,9 +321,9 @@ export function AppBar({
             })}
           </nav>
 
-          {compact && navItems.length > 0 && (
+          {navItems.length > 0 && (
             <nav aria-label="Main navigation" className="su-union-bar__nav">
-              {navLinks('su-union-bar__link')}
+              {navLinks()}
             </nav>
           )}
 
@@ -339,7 +335,7 @@ export function AppBar({
 
           {/* Desktop: the right-hand cluster, pushed to the end. */}
           <div className="su-union-bar__end">
-            {compact && quietLinks}
+            {quietLinks}
             {search}
             {buyHref && (
               <a
@@ -357,13 +353,6 @@ export function AppBar({
           {/* Mobile: search trigger + hamburger, below `lg`. */}
           {mobile && <div className="su-union-bar__mobile">{mobile}</div>}
         </div>
-
-        {!compact && (navItems.length > 0 || secondaryItems.length > 0) && (
-          <nav aria-label="Main navigation" className="su-union-bar__product-row">
-            {navLinks('su-union-bar__product-link')}
-            <span className="su-union-bar__product-end">{quietLinks}</span>
-          </nav>
-        )}
       </header>
 
       {hasCrumbs && (

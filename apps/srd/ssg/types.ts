@@ -1,4 +1,4 @@
-import type { ChapterTone } from 'component-lib'
+import type { FooterFoot } from 'component-lib'
 import type { ReactNode } from 'react'
 
 /** A JSON-LD object. */
@@ -72,17 +72,8 @@ export type DocumentShell = 'base' | 'bare'
  * and the book (and any reprint). Entity, pattern and roll-table pages pass it;
  * every other page leaves it out and ends on the rules-blue band (board 06).
  */
-export type PageFoot = {
-  tone: ChapterTone
-  /** The band colour when the page wears its own rather than its chapter's (`bandFillFor`). */
-  fill?: string
-  /** The page number the citation leads with (`p.112`). */
-  page?: number
-  /** The book, then any reprints, from `resolveEntityPageMeta`. */
-  citation?: string
-  /** The inner row's max width, matching the page's own measure. */
-  measure?: string
-}
+/** A book page's foot: the shared `Footer`'s (component-lib), named for the page. */
+export type PageFoot = FooterFoot
 
 /** What a page returns: its head metadata, its body tree and, for a book page, its foot. */
 export type PageResult = {

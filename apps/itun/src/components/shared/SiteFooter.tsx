@@ -1,11 +1,13 @@
-import { tokens } from 'component-lib'
+import { Footer, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { AppLink } from './AppLink'
 
 /**
- * SiteFooter — About and Changelog for a signed-out desktop.
+ * SiteFooter — ITUN's page foot: the shared `Footer` both tools end on (refit
+ * S2), on the rules-blue band with the licence row and ITUN's About and
+ * Changelog.
  *
  * Those two live at the drawer's foot (issue 1255) and, signed in, in the
  * account menu. From `lg` up the drawer is gone, and signed out there is no
@@ -15,23 +17,16 @@ import { AppLink } from './AppLink'
  * renders nothing there.
  */
 
-const FOOT = {
-  borderTop: `${tokens.borderWidth.hairline} solid ${tokens.color.ink}`,
-  display: 'flex',
-  gap: tokens.space[20],
-  justifyContent: 'center',
-  marginTop: tokens.space[48],
-  padding: `${tokens.space[16]} ${tokens.space[24]}`,
-} satisfies CSSProperties
+const LINKS = [
+  { label: 'About', href: '/about' },
+  { label: 'Changelog', href: '/changelog' },
+] as const
 
-const LINK = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.caption,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsTight,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
+/** Room between the page and its foot band, as the old hairline foot had. */
+const GAP = { marginTop: tokens.space[48] } satisfies CSSProperties
+
+/** The mark ships in ITUN's own `public/`, under whatever base the build has. */
+const MARK = `${import.meta.env.BASE_URL ?? '/'}Powered_by_Salvage_Black.webp`
 
 export function SiteFooter() {
   const { mode } = useConnection()
@@ -39,13 +34,8 @@ export function SiteFooter() {
   // The account menu carries both while signed in (online or not).
   if (!desktop || mode === 'connected' || mode === 'disconnected') return null
   return (
-    <footer style={FOOT}>
-      <AppLink href="/about" style={LINK}>
-        About
-      </AppLink>
-      <AppLink href="/changelog" style={LINK}>
-        Changelog
-      </AppLink>
-    </footer>
+    <div style={GAP}>
+      <Footer links={LINKS} poweredBySalvageUrl={MARK} LinkComponent={AppLink} />
+    </div>
   )
 }

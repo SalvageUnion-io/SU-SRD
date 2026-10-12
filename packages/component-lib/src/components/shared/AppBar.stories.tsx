@@ -1,22 +1,13 @@
 import { ChevronDown, Search } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import {
-  borderWidth,
-  color,
-  font,
-  fontSize,
-  radius,
-  space,
-  tracking,
-  weight,
-} from '../../design/tokens'
+import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { Avatar } from '../chrome/Avatar'
 import { AppBar } from './AppBar'
 import { NavDrawer } from './NavDrawer'
-import { SearchField } from './SearchField'
+import { SearchField, SearchFieldTrigger } from './SearchField'
 
 export default {
   title: 'Compositions/Shell/App Bar',
@@ -33,7 +24,7 @@ const BUY = 'https://leyline.press/collections/salvage-union'
 // ITUN's signed-in slots are app code (`GamesMenu`, `AccountMenu` and
 // `GlobalSearch` in apps/itun, wired to Convex), so the row below draws their
 // closed triggers with the same type and geometry: a menu trigger on the bar's
-// nav-link ramp, the "Search · ⌘K" field button, and the avatar.
+// nav-link ramp, the search field's trigger, and the avatar.
 const MENU_TRIGGER = {
   alignItems: 'center',
   alignSelf: 'center',
@@ -53,34 +44,6 @@ const MENU_TRIGGER = {
 } satisfies CSSProperties
 
 const ACCOUNT_NAME = { color: color.paper, textTransform: 'none' } satisfies CSSProperties
-
-const ITUN_SEARCH = {
-  alignItems: 'center',
-  background: 'transparent',
-  borderColor: color.paper60,
-  borderRadius: radius.card,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.chrome,
-  color: color.paper,
-  cursor: 'pointer',
-  display: 'inline-flex',
-  flexShrink: 0,
-  fontFamily: font.cond,
-  fontSize: fontSize.caption,
-  fontWeight: weight.bold,
-  gap: space[8],
-  height: 36,
-  letterSpacing: tracking.capsSnug,
-  paddingInline: space[12],
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
-const KEY_HINT = {
-  color: color.paper60,
-  fontFamily: font.body,
-  fontWeight: weight.medium,
-  letterSpacing: 0,
-} satisfies CSSProperties
 
 // The phone's search icon: a 44px square, the touch floor (ruleset §4.6).
 const ICON_BUTTON = {
@@ -105,21 +68,26 @@ const itunDrawerNav = [
 ]
 
 const srdSearch = (
-  <SearchField placeholder="Search the SRD" aria-label="Search the SRD" shortcut="⌘K" />
+  <SearchField
+    placeholder="Search the SRD"
+    aria-label="Search the SRD"
+    shortcut="⌘K"
+    className="su-union-bar__search-input"
+  />
 )
 
 /**
  * The Union bar (board 05) — one lockup, the Reference | Build switcher, the
- * search slot and the product's own nav. The SRD wears the full 64px bar with
- * its breadcrumb trail in the bar (board 07); ITUN wears the compact 48px row
- * with its nav inline (boards 09 and 10). The "here" tab is the inverse stamp,
+ * search slot and the product's own nav. Both tools wear the same 56px bar and
+ * the same search entry (refit S2); the SRD's carries its breadcrumb trail
+ * (board 07), ITUN's its nav inline (boards 09 and 10). The "here" tab is the inverse stamp,
  * never rust. Narrow the window below 1024px to see the phone shape: the trail
  * moves to its own paper row under the bar.
  */
 export const Default: Story = () => (
   <div style={STACK}>
     <div>
-      <Caption>SRD · full · an entity page, breadcrumbs in the bar</Caption>
+      <Caption>SRD · an entity page, breadcrumbs in the bar</Caption>
       <AppBar
         product="reference"
         referenceHref="/"
@@ -134,7 +102,7 @@ export const Default: Story = () => (
       />
     </div>
     <div>
-      <Caption>SRD · full · home: no second nav row</Caption>
+      <Caption>SRD · home</Caption>
       <AppBar
         product="reference"
         referenceHref="/"
@@ -144,32 +112,11 @@ export const Default: Story = () => (
       />
     </div>
     <div>
-      <Caption>full · with a product row (44px, paper)</Caption>
-      <AppBar
-        product="reference"
-        referenceHref="/"
-        buildHref="https://intheunionnow.com"
-        search={srdSearch}
-        buyHref={BUY}
-        navItems={[
-          { label: 'Chassis', href: '/schema/chassis/', active: true },
-          { label: 'Systems', href: '/schema/systems/' },
-          { label: 'Modules', href: '/schema/modules/' },
-        ]}
-        secondaryItems={[
-          { label: 'Changelog', href: '/changelog/' },
-          { label: 'API', href: '/api/' },
-          { label: 'About', href: '/about/' },
-        ]}
-      />
-    </div>
-    <div>
-      <Caption>ITUN · compact · signed out: one 48px row</Caption>
+      <Caption>ITUN · signed out</Caption>
       <AppBar
         product="build"
         referenceHref="https://salvageunion.io"
         buildHref="/"
-        density="compact"
         navItems={[
           { label: 'Shelves', href: '/', active: true },
           { label: 'Starter Set', href: '/starter/' },
@@ -181,14 +128,11 @@ export const Default: Story = () => (
       />
     </div>
     <div>
-      <Caption>
-        ITUN · compact · signed in: Shelves · Games · Starter Set, search and the account
-      </Caption>
+      <Caption>ITUN · signed in: Shelves · Games · Starter Set, search and the account</Caption>
       <AppBar
         product="build"
         referenceHref="https://salvageunion.io"
         buildHref="/"
-        density="compact"
         navItems={[
           { label: 'Shelves', href: '/', active: true },
           {
@@ -206,19 +150,11 @@ export const Default: Story = () => (
           { label: 'Changelog', href: '/changelog' },
         ]}
         search={
-          <button
-            type="button"
-            aria-label="Search"
-            aria-keyshortcuts="Meta+K Control+K"
-            className="su-union-bar__search"
-            style={ITUN_SEARCH}
-          >
-            <Search size={16} aria-hidden="true" />
-            <span aria-hidden="true">Search</span>
-            <span aria-hidden="true" style={KEY_HINT}>
-              ⌘K
-            </span>
-          </button>
+          <SearchFieldTrigger
+            label="Search the SRD"
+            shortcut="⌘K"
+            labelClassName="su-union-bar__search-input"
+          />
         }
         actions={
           <button
