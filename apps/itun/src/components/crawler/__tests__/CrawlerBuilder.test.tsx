@@ -426,3 +426,19 @@ describe('CrawlerBuilder — create mode', () => {
     expect(screen.queryByRole('button', { name: /Add Bay/i })).toBeNull()
   })
 })
+
+describe('CrawlerBuilder — preselected type', () => {
+  it('starts on the deep-linked crawler type', async () => {
+    const battle = must(SalvageUnionReference.Crawlers.getByName('Battle'))
+    render(
+      <CrawlerBuilder
+        onComplete={() => {}}
+        onCancel={() => {}}
+        preselectType={getEntitySlug(battle)}
+      />
+    )
+    await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
+    expect(screen.getByRole('radio', { name: 'Battle' }).getAttribute('aria-checked')).toBe('true')
+    expect(getNextButton().disabled).toBe(false)
+  }, 30000)
+})

@@ -10,6 +10,12 @@
  * here). Each is regenerated here and then compared with what is committed. A
  * stale one fails.
  *
+ * The Worker files hold `Env` only (`--include-runtime=false`): the workerd
+ * runtime globals come once from the `@cloudflare/workers-types` root
+ * devDependency, listed in each Worker's tsconfig `types`, instead of a 16k-line
+ * copy per Worker. Bump it with `wrangler` — its peer range names the version
+ * matching the workerd it bundles.
+ *
  * ## Why one tool
  *
  * CI, lefthook and `bun run check` all run this file, so one question gets one
@@ -24,8 +30,9 @@
  *      - `bun run build` in packages/salvageunion-reference (every generator);
  *      - `bun apps/itun/scripts/generate-route-tree.ts` — the router plugin's
  *        own generator with the Vite config's options, without a build;
- *      - `wrangler types --strict-vars=false` in su-assets and discord-bot (not
- *        strict: the bot's tests sign with their own public key).
+ *      - `wrangler types --strict-vars=false --include-runtime=false` in
+ *        su-assets and discord-bot (not strict: the bot's tests sign with their
+ *        own public key).
  *   2. Fails on any tracked change OR untracked file under GENERATED_PATHS.
  *
  * It WRITES those files — that is how the diff is produced — so it must run
@@ -93,7 +100,7 @@ const SHARED_INPUTS = [
 
 const workerTypes = (app: 'apps/su-assets' | 'apps/discord-bot'): GeneratorSpec => ({
   label: `${app} worker types`,
-  cmd: ['bunx', 'wrangler', 'types', '--strict-vars=false'],
+  cmd: ['bunx', 'wrangler', 'types', '--strict-vars=false', '--include-runtime=false'],
   cwd: app,
   outputs: [`${app}/worker-configuration.d.ts`],
   // The whole app: wrangler.jsonc, the `.dev.vars`/`.env*` it reads secret

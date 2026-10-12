@@ -143,6 +143,8 @@ export type ConvexMockHandle = {
   restore: () => void
   /** Every `useNavigate()(opts)` the render made. Only fills with `router: true`. */
   navigations: unknown[]
+  /** Every `signIn(provider, params?)` call, as its argument list. Only fills with `authReact: true`. */
+  signIns: unknown[][]
 }
 
 /**
@@ -165,6 +167,7 @@ export type ConvexMockHandle = {
  */
 export async function installConvexMocks(options: InstallOptions = {}): Promise<ConvexMockHandle> {
   const navigations: unknown[] = []
+  const signIns: unknown[][] = []
 
   // --- capture, before anything is mocked (rule 1) ---
   const realConvexClient = { ...(await import('../../lib/connection/convexClient')) }
@@ -184,7 +187,12 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
 
   if (realAuthReact !== null) {
     mock.module('@convex-dev/auth/react', () => ({
-      useAuthActions: () => ({ signIn: async () => undefined, signOut: async () => undefined }),
+      useAuthActions: () => ({
+        signIn: async (...args: unknown[]) => {
+          signIns.push(args)
+        },
+        signOut: async () => undefined,
+      }),
       ConvexAuthProvider: ({ children }: { children: ReactNode }) => children,
     }))
   }
@@ -206,6 +214,7 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
 
   return {
     navigations,
+    signIns,
     restore() {
       mock.module('../../lib/connection/convexClient', () => realConvexClient)
       mock.module('convex/react', () => realConvexReact)
