@@ -137,6 +137,17 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/typecheck-scoped.sh",
+            "statusMessage": "Typechecking the edited workspace..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/typecheck-full.sh",
             "statusMessage": "Typechecking the repo..."
           }
         ]
