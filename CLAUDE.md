@@ -31,7 +31,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need
 After any cross-package change, run typecheck, tests and lint before calling the task done, and check every consuming app (Tailwind `@source` paths, imports).
 
 ```bash
-bun install              # first-time setup; postinstall generates the reference schemas
+bun install              # first-time setup; postinstall builds the reference schemas
 
 bun run dev              # srd dev server (ssg/dev.ts, same render path as prod)
 bun run dev:itun         # ITUN dev server on a local Convex backend
