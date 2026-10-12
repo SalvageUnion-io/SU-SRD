@@ -22,7 +22,7 @@ that builds srd's `/schema/*`. A new Worker brings what every Worker brings:
 its own `withObservability` entry and `check-observability` row, its own
 `_headers` and CSP, its own `SURFACES` entry in `tools/deploy-surfaces.ts`, CI
 path filters, a deploy matrix leg, smoke lines, a preview slot and a row in
-[services](../ARCHITECTURE.md#areas). ADR-043's last consequence names that
+[services](../ARCHITECTURE.md#cloudflare). ADR-043's last consequence names that
 cost; this spike asks whether to pay it.
 
 ## Facts the options turn on

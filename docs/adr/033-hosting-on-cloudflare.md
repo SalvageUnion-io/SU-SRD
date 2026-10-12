@@ -15,7 +15,7 @@ Code comments that cite a cutover phase (`ADR-033 P4`) mean the deleted plan:
 `git show c2476d1c:docs/architecture/cloudflare-cutover.md`. The decision as
 first written, with the cutover's context and hazards:
 `git show bc9f08ce:docs/ARCHITECTURE.md`. Current identifiers (Workers,
-buckets, zones) are in [services and agent tooling](../ARCHITECTURE.md#areas).
+buckets, zones) are in [services and agent tooling](../ARCHITECTURE.md#cloudflare).
 
 **Amended 2026-10-06 — §Credentials: the deploy secrets move into a `production`
 GitHub Environment** restricted to `main`, so a workflow copy
@@ -34,7 +34,7 @@ does, and answers it with `no-store`; real files never run it. No rule outside
 the repo is relied on for this any more.
 
 **Amended 2026-10-10 — §Credentials: a second Environment, `preview`.** The
-[preview slot](../ARCHITECTURE.md#areas) is dispatched from any branch, so its
+[preview slot](../ARCHITECTURE.md#previews) is dispatched from any branch, so its
 Environment admits every branch and holds a copy of the Cloudflare token
 (which cannot be narrowed to the preview) behind a required reviewer, the
 owner. Production's Environment, its branch policy and its no-reviewer

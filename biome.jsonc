@@ -661,7 +661,7 @@
       // ADR-013: no app/package outside the canonical module may import zod
       // directly. salvageunion-reference gets an extra restriction on top:
       // it must never import from apps/* (one-way dependency rule, see
-      // docs/ARCHITECTURE.md#areas). Restates the root `zod` path + `@/*`
+      // docs/ARCHITECTURE.md#packages). Restates the root `zod` path + `@/*`
       // pattern because overrides replace (not merge into) a rule's options
       // for matched files.
       "includes": ["packages/salvageunion-reference/**"],
@@ -681,7 +681,7 @@
                   },
                   {
                     "group": ["**/apps/**"],
-                    "message": "salvageunion-reference must never import from apps/* — the dependency flows one way (docs/ARCHITECTURE.md#areas)."
+                    "message": "salvageunion-reference must never import from apps/* — the dependency flows one way (docs/ARCHITECTURE.md#packages)."
                   }
                 ]
               }
@@ -742,7 +742,7 @@
                   // own consumers. Zero such imports today.
                   {
                     "group": ["**/apps/**", "itun/**", "srd/**"],
-                    "message": "component-lib must never import from an app — the dependency flows one way (apps depend on the library). Inject app-specific behaviour through slot props instead (docs/ARCHITECTURE.md#areas)."
+                    "message": "component-lib must never import from an app — the dependency flows one way (apps depend on the library). Inject app-specific behaviour through slot props instead (docs/ARCHITECTURE.md#packages)."
                   },
                   {
                     "group": ["salvageunion-reference/lib/**"],

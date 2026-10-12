@@ -109,7 +109,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   ([ADR-007](../../docs/ARCHITECTURE.md),
   [ADR-009](../../docs/ARCHITECTURE.md)).
 - The one sheet-local play control is `CrawlerEconomyControl.tsx`.
-- Full picture: [combat loop](../../docs/ARCHITECTURE.md#areas).
+- Full picture: [combat loop](../../docs/ARCHITECTURE.md#combat).
 
 ## Conventions
 

@@ -11,7 +11,7 @@ name: Deploy (Cloudflare)
 # THE GATE IS THE RULESET. A push to `main` is a merged PR, and the `main`
 # ruleset (strict, no bypass actors) merges only a branch that is up to date
 # with `main` and passed `CI Success`, so the tree this deploys has already
-# passed CI as that PR (docs/ARCHITECTURE.md#areas).
+# passed CI as that PR (docs/ARCHITECTURE.md#deploy).
 #
 # ---------------------------------------------------------------------------
 # SHAPE: plan -> build-* -> push-convex -> deploy -> smoke -> record (CI-12)
@@ -111,7 +111,7 @@ permissions:
 env:
   # The production Convex deployment's client URL, which itun is compiled
   # against. Public — it is in every shipped bundle — and documented in
-  # docs/ARCHITECTURE.md#areas. It is a constant rather than whatever
+  # docs/ARCHITECTURE.md#identifiers. It is a constant rather than whatever
   # `convex deploy --cmd` hands the build, because that command PUSHES the
   # backend, and the push must wait until every build is green (see
   # `push-convex`). `push-convex` asserts it equals the canonical URL the
@@ -124,7 +124,7 @@ env:
   ITUN_SITE_URL: https://salvageunion.io/build
   # Sentry's client keys and org slug. Public by construction: each DSN is
   # inlined into a bundle anyone can download, and the slug is in every Sentry
-  # URL (docs/ARCHITECTURE.md#areas). The one Sentry secret is
+  # URL (docs/ARCHITECTURE.md#sentry). The one Sentry secret is
   # SENTRY_AUTH_TOKEN, which can write to the org.
   SRD_SENTRY_DSN: https://543122dc077d63448e70d33b0a120283@o4511811110764544.ingest.de.sentry.io/4511811268902992
   ITUN_SENTRY_DSN: https://bc1ea4e8e45b338d4b5d8ac5ee1016ae@o4511811110764544.ingest.de.sentry.io/4511811273097296

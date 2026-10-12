@@ -217,8 +217,8 @@ replaced the rotate-to-landscape notice.
 ## Consequences
 
 - **Fewer people can use the Dashboard.** Anonymous visitors, shelf play and
-  Games without a Mediator have none, as [data flow](../ARCHITECTURE.md#areas) and
-  [combat loop](../ARCHITECTURE.md#areas) say.
+  Games without a Mediator have none, as [data flow](../ARCHITECTURE.md#data-flow) and
+  [combat loop](../ARCHITECTURE.md#combat) say.
 - **There is server surface.** A `seats` table and its functions. Seats are
   cleaned up when a Game, pilot or account is deleted and when a pilot or mech
   leaves the Game. Every toggle is a mutation, so the client uses optimistic

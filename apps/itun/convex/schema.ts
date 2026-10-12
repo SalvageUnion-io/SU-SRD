@@ -6,7 +6,7 @@ import { v } from 'convex/values'
  * Convex schema for ITUN accounts, Games, and entity ownership.
  *
  * This is the server of record introduced by ADR-030, which
- * supersedes ADR-001's "no backend, no auth". See docs/ARCHITECTURE.md#areas
+ * supersedes ADR-001's "no backend, no auth". See docs/ARCHITECTURE.md#convex
  * and ADR-030 for the full record; the short version of what this file assumes:
  *
  *   - Two containers, not one (ADR-030 §2). An entity lives in a shared `games` row OR

@@ -66,7 +66,7 @@ The bot is also an authenticated ITUN Game client. It reaches Convex through a
 `/bot/*` HTTP route with a bearer credential that authenticates the **bot**,
 never the **actor** — every call carries a Discord id that the server resolves
 against a linked account and a real membership. See
-[the bot as a Game client](../../docs/ARCHITECTURE.md#areas).
+[the bot as a Game client](../../docs/ARCHITECTURE.md#bot-game-client).
 
 - `src/itun/` — the client (`fetch`, no `convex` dependency) and the wire types,
   which are **imported** (`import type`) from `itun-domain/botWire`

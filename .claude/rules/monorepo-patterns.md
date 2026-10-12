@@ -20,20 +20,20 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 - One version, one place: a dev tool more than one workspace runs is a root
   devDependency, and a runtime package more than one workspace imports is a
   root `workspaces.catalog` entry, named `catalog:` per manifest
-  ([declare what you import](../../docs/ARCHITECTURE.md#areas)).
+  ([declare what you import](../../docs/ARCHITECTURE.md#dependencies)).
 - Workspace dependencies use the `workspace:*` protocol
   (e.g. `"salvageunion-reference": "workspace:*"`).
 - Run `bun install` from the root to install for all workspaces.
 - Add a dependency to a specific workspace by `cd`-ing into that package
   directory first. No bot updates the manifests; see
-  [dependencies](../../docs/ARCHITECTURE.md#areas).
+  [dependencies](../../docs/ARCHITECTURE.md#dependencies).
 - A `workspace:*` dependency also has to appear in that app's CI path filter, or
   a change to it silently skips the app's build job. The `workflows` check
   (`tools/check-workflows.ts`, its `path-filters` half) asserts this from the manifests, so you will be told rather than bitten.
 
 ## Dependencies
 
-Read [dependencies](../../docs/ARCHITECTURE.md#areas) before touching a
+Read [dependencies](../../docs/ARCHITECTURE.md#dependencies) before touching a
 `package.json`, `bunfig.toml` or `overrides`. Bun deps are updated by hand,
 Actions by Dependabot; `bun run audit` (any severity, no `--ignore`) gates every
 PR that changes `bun.lock` or a `package.json` and runs nightly; `bunfig.toml`

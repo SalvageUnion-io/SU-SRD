@@ -1,121 +1,121 @@
 # Architecture
 
-What is true now: one entry each, a headline and at most two lines.
+What is true now: one entry each, a headline and at most two lines. Cite an Area by its anchor (`#ci`), never its number.
 The ADRs code cites by § keep their full text in [`docs/adr/`](adr/), linked from their entries; the rest of
 the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 
 ## Areas
 
-1. **Packages**
+1. **Packages** <a id="packages"></a>
    `salvageunion-reference` → `component-lib` → `srd` / `itun` → `catalog`; `itun-domain` → `itun` / `discord-bot`; `gates` → `tools/` and the apps' e2e.
    Packages never import an app (`noRestrictedImports` in [`biome.jsonc`](../biome.jsonc)); deps use `workspace:*`.
-2. **salvageunion-reference**
+2. **salvageunion-reference** <a id="reference"></a>
    Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `SURef*` types, gitignored and rebuilt on install, typecheck, build and test (its `su-ref-generate` bin).
    Exports `.`, `./rules`, `./zod`, `./testing`; `lib/index.ts` is an explicit barrel; refs are `schemaId::entityId`.
-3. **Lazy loading**
+3. **Lazy loading** <a id="lazy-loading"></a>
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`noModuleScopeReferenceCall.grit`).
    Tests preload through `test/reference-preload.ts` in each workspace's `bunfig.toml`, never `preload('all')` per file.
-4. **component-lib**
+4. **component-lib** <a id="component-lib"></a>
    TypeScript source, no build; `src/index.ts` barrel; tokens in `src/styles/theme.css`, mirrored by `src/design/tokens.ts`.
    A composition one app renders lives in that app; `bun run check barrel-consumers` enforces both halves.
-5. **Stylesheet wiring**
+5. **Stylesheet wiring** <a id="stylesheets"></a>
    One entry, `packages/component-lib/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by the apps and the catalog.
    App stylesheets stay unlayered, so they win; rules: `.claude/rules/styling.md`.
-6. **srd build**
+6. **srd build** <a id="srd-build"></a>
    In-house Vite SSG with React islands ([DESIGN.md](../apps/srd/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.
    No `.css` import reachable from SSR (CSS enters via `src/runtime/styles.entry.ts`); no auth, router or Zustand.
-7. **Dataset API**
+7. **Dataset API** <a id="dataset-api"></a>
    srd serves the package's committed `data/` and `schemas/` verbatim at `/schema/*` (`apps/srd/src/lib/referenceFiles.ts`), CORS on.
    Each schema's `$id` is the URL it is served at; `api.salvageunion.io/v1` is decided, not built (ADR-043).
-8. **discord-bot**
+8. **discord-bot** <a id="discord-bot"></a>
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
    Imports `itun-domain/botWire` as a type only: changing it is a cross-package change.
-9. **itun-domain**
+9. **itun-domain** <a id="itun-domain"></a>
    Zod schemas, link/crew/downtime rules and bot wire types for ITUN, Convex and the bot; import by subpath.
    Rules: pure → reference `lib/rules`; shared → here; client → `apps/itun/src/lib/rules`; `check rules-home` bars Convex→`src/`.
-10. **Data flow and connection modes**
+10. **Data flow and connection modes** <a id="data-flow"></a>
     Records store slug refs, resolved at render; ITUN preloads once in `GameDataReady.tsx`.
     `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).
-11. **Convex, the server of record**
+11. **Convex, the server of record** <a id="convex"></a>
     `apps/itun/convex/`: bodies are opaque (`v.any()`), Zod parses before every mutation; an entity is in a Game or on a Shelf.
     Every store commits through a `commit*` in `apps/itun/src/stores/`; `containerParity.test.ts` asserts each has a table.
-12. **No device cache** (D9, [spike](spikes/d9-offline-cache.md))
+12. **No device cache** (D9, [spike](spikes/d9-offline-cache.md)) <a id="no-device-cache"></a>
     No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/offline.e2e.ts` pins both offline cases.
-13. **Zustand stores**
+13. **Zustand stores** <a id="stores"></a>
     `apps/itun/src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs.
     A refused write changes nothing; no TanStack Query, reads are `src/hooks/entities/` and `convex/react`.
-14. **Sharing**
+14. **Sharing** <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
     Snapshots are retired (ADR-036).
-15. **Convex deployments**
+15. **Convex deployments** <a id="deployments"></a>
     Production `exuberant-porpoise-183`; staging `perfect-donkey-72`, the preview slot only.
     `bun run dev:itun` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
-16. **Convex environment**
+16. **Convex environment** <a id="convex-env"></a>
     Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `ITUN_BOT_SECRET`, `DISCORD_PUBLIC_KEY`.
     `ITUN_TEST_AUTH` never in production; `convex env list` prints values, so pipe it through `cut -d= -f1`.
-17. **Convex conventions**
+17. **Convex conventions** <a id="convex-conventions"></a>
     Mutations use `mutation` / `internalMutation` from `apps/itun/convex/model/entities.ts` (its triggers keep `games.summary`).
     Tell refusals from defects with `src/lib/connection/serverError.ts`; a one-off repair runs once from the dashboard, then is deleted.
-18. **Surfaces and enforcement (ADR-021)**
+18. **Surfaces and enforcement (ADR-021)** <a id="surfaces"></a>
     Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play (Dashboard), Frozen (`/p/`), Adjudicate (Mediator Dashboard).
     Lifecycle transactions are enforced in guided modes and bypassed in Free Edit; caps are overridable with a callout.
-19. **Live-Sheet transactions**
+19. **Live-Sheet transactions** <a id="live-sheet"></a>
     A closed list: crawler Upkeep / Upgrade / Trade, bay Repair, item repair and uses; advisory, never blocking.
     Any new transaction goes on the Dashboard.
-20. **Change Log**
+20. **Change Log** <a id="change-log"></a>
     Every write appends a `transaction` / `override` / `manual` row to Convex `changeLog` at `entityStore.update`.
     Read in `ChangeLogDrawer`; destruction waits for the player (ADR-007).
-21. **Combat loop**
+21. **Combat loop** <a id="combat"></a>
     A shared living sheet: no combat RPCs, turns or undo; the math is the reference package's `lib/rules/`, patches are the app's.
     Activation is a sequential write-through (ADR-008); item conditions change only by player action (ADR-009).
-22. **Display system**
+22. **Display system** <a id="display"></a>
     Entity forms (Mention, Token, Row, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
     `Card` is the generic container, never merged with it; app UI goes through `controls` and slot props, never schema props.
-23. **Component catalog**
+23. **Component catalog** <a id="catalog"></a>
     `bun run stories` serves `apps/catalog`: component-lib's and both apps' stories.
     Story rules: [component-lib's CLAUDE.md](../packages/component-lib/CLAUDE.md), enforced by `story-coverage.test.ts`.
-24. **Discord bot as a Game client**
+24. **Discord bot as a Game client** <a id="bot-game-client"></a>
     `/su` commands call `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`) with `ITUN_BOT_SECRET`; `/su invite` is Discord-signed.
     Reads widely, writes only existing mutations; Convex unreachable means every Game command answers `unavailable`.
-25. **SEO**
+25. **SEO** <a id="seo"></a>
     srd's head is `BaseLayout.tsx` from `DocumentMeta`; JSON-LD, `ssg/sitemap.ts`, `/llms.txt` (byte for byte), PWA via `ssg/pwa.ts`.
     No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot` (no hydration).
-26. **Accessibility**
+26. **Accessibility** <a id="a11y"></a>
     Biome's a11y rules plus each app's `e2e/a11y.e2e.ts` (axe, WCAG 2.2 AA) over its `PAGES`, failing on any violation.
     Contrast is held by `design/__tests__/contrast.test.ts`; coarse-pointer touch targets are 44px.
-27. **CI**
+27. **CI** <a id="ci"></a>
     `ci.yml` runs on every `pull_request` (no branch filter), path-filtered per app; `CI Success` must need every job.
     Static checks are `bun tools/check.ts --profile=ci`; tests are `bun run test:coverage` against per-workspace `FLOORS`.
-28. **Repository settings**
+28. **Repository settings** <a id="repo-settings"></a>
     `main` ruleset (`MAIN_RULESET` in `tools/environments.ts`): linear history, strict `CI Success` + PR-title checks, CodeQL.
     Actions are allowlisted and SHA-pinned; both drift-checked nightly; no merge queue.
-29. **Deploy**
+29. **Deploy** <a id="deploy"></a>
     `deploy-cloudflare.yml` on `main` push: plan → build → `push-convex` → deploy (srd's after `og-srd`) → smoke → record (tag `deployed/cloudflare`).
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back.
-30. **Preview deploys**
+30. **Preview deploys** <a id="previews"></a>
     `gh workflow run deploy-preview.yml --ref <branch>`, and each `design-refresh` push → `preview-su-srd` / `preview-su-itun.alxjrvs.workers.dev` on staging Convex.
     The owner approves the `preview` Environment; staging data persists across branches.
-31. **Dependencies**
+31. **Dependencies** <a id="dependencies"></a>
     Dependabot updates Actions only; Bun deps by hand, pinned exactly, with a 3-day `bunfig.toml` cooldown.
     Declare every import; a shared runtime package is a root `catalog:` entry, a shared dev tool a root devDependency.
-32. **Audit and overrides**
+32. **Audit and overrides** <a id="audit"></a>
     `bun run audit` fails any advisory (PRs touching manifests, and nightly); it ignores nothing.
     `overrides` are floors only, deleted once the dependent asks for the fixed version itself (`sharp`, until `miniflare` does).
-33. **Dead code**
+33. **Dead code** <a id="dead-code"></a>
     `bun run knip` with `includeEntryExports`; delete what it flags; `@public` and `@knipignore` are the only escape hatches.
-34. **MCP servers**
+34. **MCP servers** <a id="mcp"></a>
     `.mcp.json` is secret-free: `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (local deployment), `context7`.
     Only `context7` and `convex` are enabled; opt into the OAuth three in `.claude/settings.local.json`. `claude mcp list` proves one works.
-35. **Cloud sessions**
+35. **Cloud sessions** <a id="cloud"></a>
     `gh` is REST only (GraphQL gets 403): use `gh api` or `mcp__github__*`; no route means report it unread.
     Merge: `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash` or `mcp__github__merge_pull_request`; no `gh stack`. Environment, `su-rules`: [cloud-environment.md](ops/cloud-environment.md).
-36. **Cloudflare**
+36. **Cloudflare** <a id="cloudflare"></a>
     Workers `su-srd` (`salvageunion.io`), `su-itun` (route `/build`), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
     The account is shared with RANDSUM; re-derive from `apps/*/wrangler.jsonc` and `wrangler deployments list`.
-37. **Sentry**
+37. **Sentry** <a id="sentry"></a>
     Org `susrd`, EU region; projects `srd`, `itun`, `itun-convex` (a Convex dashboard toggle), `workers`.
     `tools/check-observability.ts` guards DSN gating and CSP; change an app's CSP or region in every source together.
-38. **Convex and GitHub identifiers**
+38. **Convex and GitHub identifiers** <a id="identifiers"></a>
     Project `alex-jarvis:suref-itun`; `.convex.cloud` is the client, `.convex.site` HTTP actions (swapped, both read "unreachable").
     Repo `SalvageUnion-io/SU-SRD`, branch `main`; the deployed commit is the release (ADR-041).
 
@@ -166,7 +166,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Merged into ADR-015; superseded by ADR-038 §9.
 21. **ADR-021 ITUN surface taxonomy** · [full text](adr/021-itun-surface-taxonomy.md)
     Accepted, governing: a rule's enforcement depends on the surface's mode; the border is the lifecycle transaction.
-    Wins over any earlier ADR; the live matrix is Areas 17.
+    Wins over any earlier ADR; the live matrix is [surfaces](#surfaces).
 22. **ADR-022 Change Log and stat overrides**
     Accepted, built: every write appends to a per-entity log; a cap override is an absolute pin, a zero-delta pin none.
     Amended by ADR-030 and ADR-034: the log is account data on Convex.
