@@ -444,7 +444,10 @@ export function checkReferencedScripts(root: string): CheckResult {
 export const RETIRED_CLAIMS: [RegExp, string][] = [
   [/local-first/i, 'ITUN is account-gated: persistence requires an account (ADR-034)'],
   [/no auth\/backend|do not introduce a backend/i, 'Convex is the server of record (ADR-030)'],
-  [/in-memory (?:backend|only)/i, 'signed out, ITUN is read-only: see apps/itun/CLAUDE.md'],
+  [
+    /in-memory (?:backend|only)/i,
+    'signed out, ITUN is read-only: see .claude/rules/itun-data-access.md',
+  ],
   [/\bEntityDisplay\b|\bDisplayCard\b/, 'the card shells are ReferenceEntityCard and Card'],
   [/prettier/i, 'Biome is the only formatter'],
   [/"bun test"/, 'the gate is `bun run test`'],
@@ -727,11 +730,8 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/itun/CLAUDE.md': 13_483,
-  'apps/srd/CLAUDE.md': 11_724,
-  'CLAUDE.md': 11_797,
-  'packages/component-lib/CLAUDE.md': 15_719,
-  'packages/salvageunion-reference/CLAUDE.md': 8_922,
+  'apps/itun/CLAUDE.md': 11_751,
+  'CLAUDE.md': 10_915,
 }
 
 /**
