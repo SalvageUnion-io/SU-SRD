@@ -70,6 +70,7 @@ the corpus size, not just the finding count.
 | `check-printed-names.ts` | `check:printed-names` | Entity names and pages against the Core Book index. Advisory; needs the extract (found as above). Run after a data import. |
 | `export-lp-assets.ts` | `assets:export` | Backs up the `su-lp-assets` R2 bucket locally and proves the copy byte-exact — the only backup path for the licensed artwork. Needs R2 credentials. |
 | `upload-lp-assets.ts` | `assets:upload` | The artwork ingest path into `su-lp-assets`. Needs R2 credentials. |
+| `shot.ts` | `shot` | A headless full-page PNG of a story (`?mode=canvas`, catalog on 61000) or an srd `/route` (dev on 4321) at a `WIDTH_PRESETS` width, `--dark` emulated. Reuses a server already on the port, else starts and stops one. Writes to the gitignored `.shots/` (or `--out`) and prints each path. |
 
 `lib/` holds the shared pieces: `ruleEngine.ts` (the styling engine: walk,
 exemptions, zero/ratchet verdicts), `scanFloor.ts`, `workspaceCoverage.ts`,
