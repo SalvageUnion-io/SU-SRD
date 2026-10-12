@@ -82,10 +82,12 @@ export function noEffectContainer(
   roll: number,
   roller?: string,
   /** The roller's Discord id: only they can roll again. */
-  ownerId?: string
+  ownerId?: string,
+  /** A private roll's re-roll is private too. */
+  isPrivate = false
 ): ContainerData {
   const name = table.name.toUpperCase()
-  const rerollId = makeCustomId('roll', encodeRollRequest(table.name, ownerId))
+  const rerollId = makeCustomId('roll', encodeRollRequest(table.name, ownerId, isPrivate))
   const buttons: ButtonSpec[] = rerollId
     ? [{ kind: 'action', customId: rerollId, label: '↻ Roll again', style: ButtonStyle.Primary }]
     : []
