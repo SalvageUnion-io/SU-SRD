@@ -40,7 +40,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `apps/itun/convex/`: bodies are opaque (`v.any()`), Zod parses before every mutation; an entity is in a Game or on a Shelf.
     Every store commits through a `commit*` in `apps/itun/src/stores/`; `containerParity.test.ts` asserts each has a table.
 12. **No device cache** (D9, [spike](spikes/d9-offline-cache.md))
-    No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable.
+    No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/offline.e2e.ts` pins both offline cases.
 13. **Zustand stores**
     `apps/itun/src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs.
     A refused write changes nothing; no TanStack Query, reads are `src/hooks/entities/` and `convex/react`.

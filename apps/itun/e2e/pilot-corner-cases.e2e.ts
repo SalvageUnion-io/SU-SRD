@@ -19,8 +19,8 @@ import { expect, test } from './fixtures'
 test('cancel mid-wizard leaves the dashboard with no new pilot', async ({ page }) => {
   await page.goto('/')
   await waitForReady(page)
-  // Count pilots already on the dashboard (could be 0 or whatever fake-idb
-  // carries between tests in the same browser context).
+  // Count pilots already on the dashboard (0 for the fresh account, but count
+  // rather than assume).
   const initialCount = await page.getByRole('link', { name: /Sheet$/i }).count()
 
   await page.goto('/pilots/new?mode=guided')
