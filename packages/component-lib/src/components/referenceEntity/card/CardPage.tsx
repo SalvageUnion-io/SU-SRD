@@ -24,7 +24,7 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  *
  * The card decides what each part is (`ReferenceEntityCardInner`); this lays
  * the parts out as a page. Layout is `index.css`'s `.su-entity-page*`, which
- * also gives a phone the board-08 order: art, stats, prose, chassis ability.
+ * keeps this DOM order at every width, so tab order matches what you see.
  */
 
 type CardPageProps = {
