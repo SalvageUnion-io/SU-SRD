@@ -22,6 +22,7 @@ Read with an offset and limit, never the whole file.
 | assigning pilots, mechs and crawlers to each other | ADR-037, `apps/itun/src/lib/links/linkRules.ts` |
 | adding or assigning an NPC (the designer, crawler crew) | [architecture/npc-builder.md](architecture/npc-builder.md), ADR-044 |
 | working on the Discord bot as a Game client | [Discord bot](ARCHITECTURE.md#discord-bot-as-a-game-client) |
+| deciding whether to cut Discord bot commands (usage, cost, thresholds) | [spikes/d12-bot-command-usage.md](spikes/d12-bot-command-usage.md) (open spike) |
 | changing a package's public API | [packages and contracts](ARCHITECTURE.md#packages-and-contracts) |
 | changing what the public dataset API serves (`api.salvageunion.io`, srd's `/schema/*`) | ADR-043, ADR-040 |
 | changing hosting, deploys or CI | ADR-033, [CI and deploy](ARCHITECTURE.md#ci-and-deploy) |
