@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Roster } from '../components/roster/Roster'
-import { pageTitle } from '../lib/pageTitle'
-import { setActiveContainer } from '../stores/activeContainerStore'
+import { Roster } from '../../components/roster/Roster'
+import { pageTitle } from '../../lib/pageTitle'
+import { setActiveContainer } from '../../stores/activeContainerStore'
 
 /**
  * `/games/$gameId` — a Game's own page (issue 1255): its crew, its panels and the

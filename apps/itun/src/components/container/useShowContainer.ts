@@ -5,7 +5,7 @@ import { getActiveContainer, setActiveContainer } from '../../stores/activeConta
 /**
  * Go to where a container is shown: Shelves at `/`, or the Game's own page at
  * `/games/$gameId` (issue 1255). The route picks the container as it loads
- * (`routes/index.tsx`, `routes/games_.$gameId.tsx`), so navigating is the whole
+ * (`routes/index.tsx`, `routes/games_/$gameId.tsx`), so navigating is the whole
  * of choosing what the hub shows.
  *
  * With no router mounted (a component test, a story), it picks the container

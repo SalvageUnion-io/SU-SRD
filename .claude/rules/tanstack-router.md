@@ -7,6 +7,11 @@ paths:
 
 - File-based routes in `apps/itun/src/routes/`; `src/routeTree.gen.ts` is
   generated — never hand-edit it.
+- **Directory routes only**: one path segment per directory
+  (`p/$kind/$appId.tsx`, `starter/index.tsx`), never flat dot names
+  (`p.$kind.$appId.tsx`). A trailing `_` un-nests a segment from a same-named
+  parent and stays on the directory (`games_/$gameId.tsx` → id
+  `/games_/$gameId`, URL `/games/$gameId`).
 - A route module exports **`Route = createFileRoute('/path')({ … })`** and
   names its component as a local function (`component: NewPilotRoute`). No
   route uses a default export; don't start.
