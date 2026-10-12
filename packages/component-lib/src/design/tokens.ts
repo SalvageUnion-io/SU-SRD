@@ -263,8 +263,7 @@ const base = {
    *  which a true-neutral grey does not against warm paper.
    *
    *  An `/NN` alpha with no rung here is never rounded to a neighbouring
-   *  one: it ports as the `color-mix()` it was compiled to (styling phase
-   *  TW1). */
+   *  one: it ports as the `color-mix()` it was compiled to. */
   ink85: 'rgb(40 32 25 / 0.85)',
   ink75: 'rgb(40 32 25 / 0.75)',
   /** ModalShell's scrim edge. */

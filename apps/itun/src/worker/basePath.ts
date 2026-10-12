@@ -1,5 +1,5 @@
 /**
- * The app's base path on the Worker (refit S2 spike): `/build` in
+ * The app's base path on the Worker: `/build` in
  * `wrangler.jsonc`'s `one-domain` environment, `''` at the root. The rules in
  * `index.ts`, `retiredRedirects.ts` and `linkPreview.ts` match on the path
  * inside the app, and put the base back on every URL they build.

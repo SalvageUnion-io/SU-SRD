@@ -1,6 +1,6 @@
 /**
  * Retired addresses that links in Discord history still point at, all on
- * intheunionnow.com. Until refit D6 these were TanStack routes that redirected
+ * intheunionnow.com. These were once TanStack routes that redirected
  * in the browser; since ADR-048 the old host's 301 (`legacyHost.ts`) sends each
  * straight to where it lives now under salvageunion.io/build, in one hop:
  *

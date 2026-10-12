@@ -103,11 +103,10 @@ export const RUNTIME_CACHING = [
     // the header. Stringified into sw.js, so it must not reference anything
     // outside its own parameters.
     //
-    // Not under `/build`: that is ITUN's, on this origin once refit S2 routes
-    // it here, and ITUN's own worker (scope `/build/`) decides how its shell
-    // is fetched. Without the carve-out this worker, scoped `/`, would answer
-    // ITUN's first visit from srd's `pages` cache when the network is slow.
-    // Inert until then: srd has no `/build` page.
+    // Not under `/build`: that is ITUN's, on this origin, and ITUN's own worker
+    // (scope `/build/`) decides how its shell is fetched. Without the carve-out
+    // this worker, scoped `/`, would answer ITUN's first visit from srd's
+    // `pages` cache when the network is slow.
     urlPattern: ({ request, url }: { request: Request; url: URL }) =>
       request.mode === 'navigate' && !/^\/build(\/|$)/.test(url.pathname),
     handler: 'NetworkFirst' as const,

@@ -1,6 +1,6 @@
 /**
  * Where ITUN is served: `salvageunion.io/build/`, beside the SRD on one
- * origin, as its own app, Worker and deploy (ADR-048, refit S2).
+ * origin, as its own app, Worker and deploy (ADR-048).
  *
  * The build lands in `dist/build/` so Static Assets finds every file under the
  * path the browser asks for (`vite.config.ts`). App code reads the base back

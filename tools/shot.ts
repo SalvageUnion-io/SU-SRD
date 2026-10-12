@@ -6,9 +6,9 @@
  *   bun run shot <story-id|/route> [--width phone|column|page] [--dark] [--out <dir>]
  *
  * `.claude/launch.json`'s previews exist only in the Desktop app, so a cloud
- * agent restyling a component could not see what it changed (refit ledger
- * A8: the design-refresh audit hand-rolled a Playwright script for its
- * screenshots). This is that script, once.
+ * agent restyling a component could not see what it changed (a design audit
+ * once hand-rolled a Playwright script for its screenshots). This is that
+ * script, once.
  *
  * - A target starting with `/` is an srd route, served by `bun run dev`.
  *   Anything else is a story id (`bun run stories:ids [filter]` lists them),

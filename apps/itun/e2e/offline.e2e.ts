@@ -11,11 +11,11 @@ import { expect, test } from './fixtures'
  * service worker and a manifest, and this is the spec that exercises them —
  * the root Playwright config blocks service workers for every other spec.
  *
- * ## What offline promises since D9
+ * ## What offline promises
  *
- * The D9 decision (`docs/ARCHITECTURE.md#no-device-cache`) removed the IndexedDB
- * cache: nothing player-owned is kept on the device. So offline promises two
- * things, and this spec pins both:
+ * There is no device cache (`docs/ARCHITECTURE.md#no-device-cache`): nothing
+ * player-owned is kept on the device. So offline promises two things, and this
+ * spec pins both:
  *
  *  - **Mid-session**, a signed-in player's open sheet stays on screen,
  *    read-only, under the NOT CONNECTED banner. The rows are this page load's
@@ -198,7 +198,7 @@ test.describe('signed out: the shell', () => {
 
 test.describe('signed in: what a player keeps', () => {
   /**
-   * The behaviour D9 kept: the sheet a player has open survives the network
+   * Mid-session: the sheet a player has open survives the network
    * dropping. Writes are blocked, not queued (ADR-030 §1), so the sheet leaves
    * Edit and its Read | Edit toggle goes; it comes back with the connection.
    * No worker is involved, so this runs with service workers blocked, on the
@@ -225,10 +225,10 @@ test.describe('signed in: what a player keeps', () => {
   })
 
   /**
-   * The behaviour D9 removed, pinned so it is not quietly half-restored: an
-   * offline reload boots the precached shell, and the player's rows do not
-   * come back, because nothing kept them. The pre-D9 database (`itun-v1`) is
-   * gone too (`lib/legacyCache.ts`).
+   * What is not kept, pinned so it is not quietly half-restored: an offline
+   * reload boots the precached shell, and the player's rows do not come back,
+   * because nothing kept them. The old IndexedDB database (`itun-v1`) is gone
+   * too (`lib/legacyCache.ts`).
    */
   test.describe(() => {
     test.use({ serviceWorkers: 'allow' })

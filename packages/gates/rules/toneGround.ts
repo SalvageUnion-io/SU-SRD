@@ -3,7 +3,7 @@
  *
  * Ruleset §3.8: **TL is the framed ink-on-paper badge, never a text ground.** A
  * tech-level blue (`--color-tl-1`…`-6`, `-b`, `-n`) is the badge's ramp; no
- * header band, and so no title, sits on one. The refit audit found systems and
+ * header band, and so no title, sits on one. An audit found systems and
  * modules wearing TL-1 sky blue as their header fill, with ink titles, under the
  * green Mech Workshop band: on the mech sheet they read as a second product.
  *

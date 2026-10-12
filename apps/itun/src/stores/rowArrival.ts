@@ -1,7 +1,7 @@
 /**
  * When a store's rows have arrived.
  *
- * There is no device cache (the D9 decision, `docs/ARCHITECTURE.md#no-device-cache`):
+ * There is no device cache (`docs/ARCHITECTURE.md#no-device-cache`):
  * a store holds what `ShelfSync` brings down from Convex this page load, so
  * "hydrated" means **the server's answer is in**, not "the disk was read". A
  * store's `hydrate()` waits on this module, and resolves:

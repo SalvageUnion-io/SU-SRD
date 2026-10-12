@@ -54,7 +54,7 @@ describe('navigations', () => {
     expect(matches(requestOf('no-cors'))).toBe(false)
   })
 
-  test("leaves ITUN's /build navigations to ITUN's own worker (refit S2)", () => {
+  test("leaves ITUN's /build navigations to ITUN's own worker", () => {
     const matches = pages?.urlPattern as (options: ReturnType<typeof requestOf>) => boolean
     expect(matches(requestOf('navigate', '/build'))).toBe(false)
     expect(matches(requestOf('navigate', '/build/'))).toBe(false)

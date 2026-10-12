@@ -8,7 +8,7 @@ export default {
 }
 
 /**
- * Where every page of both tools ends (refit S2: one Footer). Real data: each
+ * Where every page of both tools ends. Real data: each
  * book page's foot is its chapter tone and the citation
  * `resolveEntityPageMeta` gives the SRD's page for it. The links are each
  * tool's own; the mark is the apps' public asset, which the catalog also

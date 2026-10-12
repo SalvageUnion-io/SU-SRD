@@ -1315,7 +1315,7 @@ body {
  * the component's style objects; what is here changes at a breakpoint, on
  * hover or with "you are here".
  *
- * One geometry for both (refit S2): a 56px row at every width, the wordmark
+ * One geometry for both: a 56px row at every width, the wordmark
  * from 40rem, the product nav inline from `lg`, the search entry 14rem wide.
  *
  * "Here" is never rust (§3.1): the switcher's current tab is the inverse stamp,
@@ -1880,7 +1880,7 @@ body {
  * beneath the stats, the chassis ability. Everything the entity carries after that (its table,
  * actions, nested trays, patterns) runs the full width beneath.
  *
- * One content order at every width, the DOM's (refit B4): art, then a
+ * One content order at every width, the DOM's: art, then a
  * pattern's opening, the prose, the stat column and the chassis ability, so a
  * keyboard and a screen reader meet them in the order the eye does. The right
  * column is `display: contents` on a phone, so its children join the page's
@@ -2417,7 +2417,7 @@ body {
   --su-hero-max-h: 70vh;
 }
 
-/* Cropped to the line art (`heroArtCrop`, refit B4): the artwork's canvas
+/* Cropped to the line art (`heroArtCrop`): the artwork's canvas
    carries a margin that differs per image, so the plate takes the ink's own
    aspect (`--su-art-aspect`) and the window shows only the ink's box; the
    image inside is scaled and offset by its inline style. The plate is as wide
@@ -2721,10 +2721,10 @@ body {
   }
 }
 
-/* — Atoms (TW2) — ═══════════════════════════════════════════════════════════
+/* — Atoms — ═════════════════════════════════════════════════════════════════
  *
- * The rules the `Atoms/*` components need (phase TW2 of the styling
- * migration): the stateful, responsive and class-string halves of the split.
+ * The rules the `Atoms/*` components need: the stateful, responsive and
+ * class-string halves of the split.
  * Static values live in each component's style objects.
  */
 
@@ -3507,7 +3507,7 @@ body {
   cursor: help;
 }
 
-/* — Containers (TW3) — */
+/* — Containers — */
 
 /*
  * The stateful and caller-overridable half of the Containers group
@@ -3742,9 +3742,9 @@ body {
   flex-wrap: wrap;
 }
 
-/* — Compositions (TW4) — */
+/* — Compositions — */
 
-/* ── TW4 group A: compositions/RollTable ── */
+/* ── compositions/RollTable ── */
 
 /*
  * RollTable's collapsible-header Show/Hide toggle. Its colour is a class
@@ -3776,7 +3776,7 @@ body {
 
 /* ── end group A ── */
 
-/* ── TW4 group B: compositions/EntitySearcher ── */
+/* ── compositions/EntitySearcher ── */
 
 /* The search input's text colour. A class, not a style object, because the
    `::placeholder` recolours it — the resting `color` comes along so the two
@@ -3810,7 +3810,7 @@ body {
 
 /* ── end group B ── */
 
-/* ── TW4 group C: shell and flat leaves ── */
+/* ── shell and flat leaves ── */
 
 /* ControlButtons (`compositions/ControlButtons.tsx`). The link control and the paper
    icon stamp flip fill and ink on hover, so both colours are here, resting
@@ -3935,7 +3935,7 @@ body {
 
 /* ── end group C ── */
 
-/* ── TW4 group D: choices, content and patterns ── */
+/* ── choices, content and patterns ── */
 
 /* `choiceCard/ChoiceGroups.tsx` — the option masonry. One column, two from `sm`
    unless compact: the column count is responsive, so it lives here. */
@@ -4051,7 +4051,7 @@ body {
 
 /* ── end group D ── */
 
-/* ── TW4 group E: the reference entity card ── */
+/* ── the reference entity card ── */
 
 /* The card's outer box (`card/cardChrome.ts`). Classes rather than a style
    object because a caller's `className` may override any of them. */

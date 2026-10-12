@@ -153,7 +153,7 @@ describe('Footer', () => {
   })
 })
 
-/** Refit S2: ITUN ends on the same Footer, with its own pages through its router's link. */
+/** ITUN ends on the same Footer, with its own pages through its router's link. */
 describe('Footer in another tool', () => {
   test('routes its links through the injected LinkComponent, with the same licence row', () => {
     function RouterLink({ href, children, ...rest }: { href: string; children: ReactNode }) {

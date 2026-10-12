@@ -18,7 +18,7 @@ import { Speckle } from '../atoms/Speckle'
  *
  * ## One geometry
  *
- * Both tools wear the same bar (refit S2: one product at one domain): one
+ * Both tools wear the same bar (one product at one domain): one
  * 56px row at every width, the 40px mark, the wordmark from 40rem, the product
  * nav inline beside the switcher from `lg`, and the search entry at the same
  * place in the same shape (`SearchField` / `SearchFieldTrigger`). There are no

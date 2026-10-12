@@ -66,7 +66,7 @@ describe('AppBar', () => {
     expect(screen.getByRole('link', { name: 'About' }).className).toContain('su-union-bar__quiet')
     const banner = screen.getByRole('banner')
     expect(banner.hasAttribute('data-density')).toBe(false)
-    // The same lockup in both tools (refit S2): the wordmark is always drawn.
+    // The same lockup in both tools: the wordmark is always drawn.
     expect(banner.querySelector('.su-union-bar__wordmark')).not.toBeNull()
   })
 

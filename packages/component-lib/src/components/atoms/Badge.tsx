@@ -163,7 +163,7 @@ type BadgeStampProps = {
    * reached the DOM. The stamp's line-height is its rung's (`.su-rung-
    * label--*`); a call site that needs another passes it through `className`
    * or `style`, which do reach it. Kept so call sites compile; wiring it up is
-   * a visible change, not a port (styling phase TW2).
+   * a visible change, not a port.
    */
   leading?: string
   as?: ElementType

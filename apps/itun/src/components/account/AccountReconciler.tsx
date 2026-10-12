@@ -2,7 +2,7 @@
  * AccountReconciler — keeps the stores the signed-in account's.
  *
  * The stores hold one account's Convex rows in memory, and nothing on the
- * device (ADR-034; the D9 decision removed the IndexedDB cache). Nothing held
+ * device (ADR-034; `docs/ARCHITECTURE.md#no-device-cache`). Nothing held
  * is ever sent up: every row came from the server or from a write it accepted
  * first, so the server is always the copy to keep.
  *

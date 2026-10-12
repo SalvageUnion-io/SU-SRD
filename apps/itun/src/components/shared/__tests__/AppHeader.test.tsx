@@ -135,7 +135,7 @@ describe('AppHeader', () => {
     expect(nav.compareDocumentPosition(account) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  test('is the one Union bar: one nav, the same lockup as the SRD (refit S2)', () => {
+  test('is the one Union bar: one nav, the same lockup as the SRD', () => {
     render(<AppHeader actions={<button type="button">Account menu</button>} />)
     expect(screen.getAllByRole('navigation', { name: 'Main navigation' })).toHaveLength(1)
     const banner = screen.getByRole('banner')

@@ -265,7 +265,7 @@ describe('Pilot hero — readOnly', () => {
   })
 })
 
-describe('Pilot hero — readOnly identity (refit S7)', () => {
+describe('Pilot hero — readOnly identity', () => {
   test('prints no Read | Edit: a read-only sheet has nothing to switch to', () => {
     renderHero(makePilot(), undefined, true)
     expect(screen.queryByRole('group', { name: /Read or edit/ })).toBeNull()

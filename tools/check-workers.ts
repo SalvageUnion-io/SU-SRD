@@ -5,7 +5,7 @@
  * The Workers grew apart one at a time: three entry layouts (`src/worker.ts`,
  * `src/http/worker.ts`, `src/worker/index.ts`), `workers_dev` true, false or
  * unset, `worker:bundle` in three of four, generated `Env` types in two, and a
- * typechecking build in one (refit ledger T3). Each difference is a question a
+ * typechecking build in one. Each difference is a question a
  * reader has to answer per app. This gate fails when one comes back:
  *
  *   1. every `apps/<app>/wrangler.jsonc` is one of `WORKER_APPS`, and the

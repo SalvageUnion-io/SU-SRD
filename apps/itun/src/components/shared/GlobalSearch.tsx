@@ -259,7 +259,7 @@ export function GlobalSearch({
 
   const trigger =
     variant === 'bar' ? (
-      // The SRD's search field, as a button (refit S2: one search entry in
+      // The SRD's search field, as a button (one search entry in
       // both tools); the panel opens below it.
       <SearchFieldTrigger
         label={LABEL}

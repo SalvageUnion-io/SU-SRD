@@ -102,8 +102,8 @@ describe('a client route that is not a navigation gets the shell', () => {
 /**
  * intheunionnow.com, where ITUN lived until ADR-048: every request is a 301 to
  * the same page under salvageunion.io/build, query kept, and a retired address
- * (refit D6) goes straight to where it lives now. One hop, decided without the
- * asset binding.
+ * goes straight to where it lives now. One hop, decided without the asset
+ * binding.
  */
 describe('the old host 301s to salvageunion.io/build', () => {
   const cases: [string, string][] = [
@@ -113,7 +113,7 @@ describe('the old host 301s to salvageunion.io/build', () => {
     ['https://intheunionnow.com/sheet/mech/row-2', '/sheet/mech/row-2'],
     ['https://intheunionnow.com/assets/index-DEADBEEF.js', '/assets/index-DEADBEEF.js'],
     ['https://www.intheunionnow.com/about', '/about'],
-    // Refit D6's retired addresses, mapped on the way.
+    // The retired addresses, mapped on the way.
     ['https://intheunionnow.com/games', '/'],
     ['https://intheunionnow.com/games?from=discord', '/?from=discord'],
     ['https://intheunionnow.com/games/g1/view/pilot/row-1', '/sheet/pilot/row-1'],

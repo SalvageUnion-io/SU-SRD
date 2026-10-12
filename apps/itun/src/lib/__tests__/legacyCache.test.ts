@@ -1,5 +1,5 @@
 /**
- * The pre-D9 IndexedDB cache is deleted at boot, and a failure never throws.
+ * The old IndexedDB cache is deleted at boot, and a failure never throws.
  */
 
 import { describe, expect, test } from 'bun:test'

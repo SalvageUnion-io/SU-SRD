@@ -5,7 +5,7 @@ import type { ChapterTone } from '../atoms/chapterBandColor'
 
 /**
  * Footer — where every page of both tools ends, as the Workshop Manual's pages
- * do (refit S2: one product, so one foot; hoisted from the SRD's site footer).
+ * do (one product, so one foot).
  *
  * - **A book page** (entity, pattern, roll table; board 07) ends on its
  *   chapter's foot band: the page cite set large and the book at the end.

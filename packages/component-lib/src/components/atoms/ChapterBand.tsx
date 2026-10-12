@@ -34,7 +34,7 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * the notch (a sheet's Read | Edit). Below `sm` it stacks above the notch,
  * where the band has room for it. `asideAt="notch"` instead sets it right
  * beside the notch at every width, after the title in reading order as in the
- * DOM (an entity's type stamps, refit B4); when a long name leaves no room
+ * DOM (an entity's type stamps); when a long name leaves no room
  * there it wraps above the notch, which stays on the band's foot.
  *
  * ## Colour map

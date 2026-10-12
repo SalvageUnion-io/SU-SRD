@@ -133,7 +133,7 @@ function RootComponent() {
               <GameDataReady>
                 <Outlet />
               </GameDataReady>
-              {/* The shared page foot, on every route (refit F1). */}
+              {/* The shared page foot, on every route. */}
               <SiteFooter />
             </EntityPageHost>
           </CopyFeedbackProvider>
