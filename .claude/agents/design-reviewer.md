@@ -18,14 +18,17 @@ live in `theme.css`.
 - **Screenshots.** Start the catalog if it is not up
   (`bun run stories`, port 61000; check with `curl -s localhost:61000`).
   If `bun run shot` exists in the root `package.json`, use it. Otherwise
-  screenshot directly with Playwright (Chromium is preinstalled; never
-  `playwright install`):
+  screenshot directly with Playwright. Never `playwright install`: launch the
+  preinstalled browser by path, because the repo's Playwright may expect a
+  newer build than the one under `/opt/pw-browsers` (run from the repo root so
+  `@playwright/test` resolves):
 
   ```bash
+  export CHROME=$(ls -d /opt/pw-browsers/chromium_headless_shell-*/chrome-linux/headless_shell | tail -1)
   bun -e '
   import { chromium } from "@playwright/test"
   const [url, out, w = "1280"] = process.argv.slice(1)
-  const b = await chromium.launch()
+  const b = await chromium.launch({ executablePath: process.env.CHROME })
   const p = await b.newPage({ viewport: { width: +w, height: 900 } })
   await p.goto(url, { waitUntil: "networkidle" })
   await p.screenshot({ path: out, fullPage: true })
@@ -38,7 +41,9 @@ live in `theme.css`.
   each PNG to look at it.
 - **Source.** Read the component and its CSS. Rendered sizes, colours and
   borders the screenshot cannot settle, measure in the page
-  (`getComputedStyle` via `p.evaluate`) rather than guessing.
+  (`getComputedStyle` via `p.evaluate`) rather than guessing. Headless
+  Chromium floors a `1.5px` border to 1px, so judge §4.3 border weights from
+  the source tokens, not from pixels.
 
 ## Report
 

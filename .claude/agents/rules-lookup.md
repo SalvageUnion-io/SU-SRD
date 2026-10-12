@@ -16,13 +16,20 @@ Use the first of these that exists (the same order `findExtractDir` in
 
 1. `$RULES_EXTRACT_DIR`
 2. `rules/extracted/` in this checkout (written by `bun run rules:extract`)
-3. `rules/extracted/` in the main checkout, when this is a worktree
-   (`git rev-parse --path-format=absolute --git-common-dir`, then its parent)
-4. `../su-rules/extracted/` — a sibling checkout of the private
-   `SalvageUnion-io/su-rules` repo (cloud sessions and Routines)
+3. Worktrees only: `rules/extracted/` in the main checkout (the parent of
+   `git rev-parse --path-format=absolute --git-common-dir`)
+4. `su-rules/extracted/` beside the repo root — a sibling checkout of the
+   private `SalvageUnion-io/su-rules` repo (cloud sessions and Routines)
 
-Search the flow layer, `<dir>/*.txt`. Ignore `<dir>/raw/` unless a table's
-columns came out scrambled; the raw layer keeps the page layout.
+Search the flow layer, `<dir>/*.txt`. Its subdirectories (`raw/`, `briefs/`,
+`premade/`, `sheets/`) only when that comes up short; `raw/` keeps the page
+layout when a table's columns came out scrambled. Filenames contain spaces
+(`Salvage Union Digital Edition 2.0a.txt`): quote them, and never pipe them
+through `xargs` or `$(ls)`.
+
+Several editions sit side by side (the 1.1 `SUSS` books, the 2.0a books, the
+Quickstart and quick-reference sheets). Cite the 2.0a core book first and flag
+any other edition that disagrees, rather than reconciling them yourself.
 
 If none exists, stop and say so: locally the fix is `bun run rules:extract`
 (needs the PDFs in `rules/`); in the cloud, attach `su-rules` as a second repo.
@@ -32,7 +39,9 @@ Do not guess.
 
 - Grep case-insensitively with a few lines of context
   (`grep -n -i -C3 'term' <dir>/*.txt`); try singular/plural, hyphenated and
-  spaced spellings, and the printed name in caps.
+  spaced spellings, the printed name in caps, and the long form of a
+  stat-block abbreviation (stat blocks print "Heat Cap"; the rules text says
+  "Heat Capacity").
 - A page's number is the nearest `<!-- page N -->` marker **above** the hit.
   Find it with `grep -n '<!-- page' <file>` and take the last marker before
   the hit's line.
@@ -42,7 +51,7 @@ Do not guess.
 
 For each finding:
 
-- **Source:** the file's basename and page — `core-book.txt p. 42`
+- **Source:** the file's basename and page — `Salvage Union Digital Edition 2.0a.txt` p. 42
 - **Quote:** the exact text, trimmed to the rule
 - One line on how it answers the question
 
