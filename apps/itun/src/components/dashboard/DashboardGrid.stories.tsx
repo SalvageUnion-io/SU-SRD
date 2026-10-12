@@ -1,8 +1,16 @@
+import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 // The components import no CSS; the app (or story) loads the bundle.
 import '../../styles/dashboard.css'
 import { DashboardCanvas } from './DashboardCanvas'
 import { DashboardGrid } from './DashboardGrid'
+
+const STACK_12 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
 
 export default { title: 'Compositions/Dashboard/Grid' }
 
@@ -12,7 +20,7 @@ export default { title: 'Compositions/Dashboard/Grid' }
  * row, DisplayPanel). `data-mount="mech"` tints the rail green.
  */
 export const Default = () => (
-  <div className="flex flex-col gap-3">
+  <div style={STACK_12}>
     <Caption>Three-region layout: rail (top), the slot row (mid), display (bottom).</Caption>
     <div style={{ height: 520, resize: 'both', overflow: 'hidden', border: '1px solid #ccc' }}>
       <DashboardCanvas>
@@ -35,8 +43,8 @@ export const Default = () => (
               Mech · Iron Mongrel
             </span>
           }
-          primary={<div className="pc-placeholder">Slot row · Major + two Minors</div>}
-          display={<div className="pc-fill">Display · Actions / Tables / SRD</div>}
+          primary={<div className="su-dash-placeholder">Slot row · Major + two Minors</div>}
+          display={<div className="su-dash-fill">Display · Actions / Tables / SRD</div>}
         />
       </DashboardCanvas>
     </div>

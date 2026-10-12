@@ -69,7 +69,7 @@ type UseSoftWarningsOptions<T extends Exclude<AssignableType, 'npc'>> = {
   evaluate?: typeof defaultEvaluate
   /**
    * Injectable store hook — defaults to useEntityStore.
-   * Pass a stub in tests to avoid Zustand/IndexedDB side effects.
+   * Pass a stub in tests to avoid Zustand side effects.
    */
   store?: typeof useEntityStore
 }

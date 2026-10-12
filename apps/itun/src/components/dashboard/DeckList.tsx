@@ -72,22 +72,22 @@ const STAMP: CSSProperties = {
 export function DeckList({ view }: { view: DeckListModel }) {
   if (view.kind === 'empty') {
     return (
-      <div className="pc-display-scroll">
-        <div className="pc-deck-empty">{view.text}</div>
+      <div className="su-dash-display-scroll">
+        <div className="su-dash-deck-empty">{view.text}</div>
       </div>
     )
   }
 
   return (
-    <div className="pc-display-scroll">
-      <div className="pc-deck-controls-bar">
-        <fieldset className="pc-deck-tabs" style={GROUP} aria-label="Filter actions by timing">
+    <div className="su-dash-display-scroll">
+      <div className="su-dash-deck-controls-bar">
+        <fieldset className="su-dash-deck-tabs" style={GROUP} aria-label="Filter actions by timing">
           {view.tabs.map((t) => (
             <button
               key={t}
               type="button"
               aria-pressed={view.activeTab === t}
-              className={`pc-deck-tab${view.activeTab === t ? ' is-active' : ''}`}
+              className={`su-dash-deck-tab${view.activeTab === t ? ' is-active' : ''}`}
               onClick={() => view.onTab(t)}
             >
               {t}
@@ -95,30 +95,30 @@ export function DeckList({ view }: { view: DeckListModel }) {
           ))}
         </fieldset>
 
-        <div className="pc-deck-toolrow">
-          <div className="pc-deck-range">
+        <div className="su-dash-deck-toolrow">
+          <div className="su-dash-deck-range">
             {view.rangeBands.map((band) => (
               <button
                 key={band}
                 type="button"
                 aria-pressed={view.activeRange === band}
-                className={`pc-deck-range-btn${view.activeRange === band ? ' is-active' : ''}`}
+                className={`su-dash-deck-range-btn${view.activeRange === band ? ' is-active' : ''}`}
                 onClick={() => view.onRange(band)}
                 title={`Set engagement range to ${band}`}
               >
                 {band[0]}
               </button>
             ))}
-            <span className="pc-deck-reach">{view.reachText}</span>
+            <span className="su-dash-deck-reach">{view.reachText}</span>
           </div>
         </div>
 
         {view.sources.length > 1 && (
-          <div className={`pc-deck-sources ${view.familyClass}`}>
+          <div className={`su-dash-deck-sources ${view.familyClass}`}>
             <button
               type="button"
               aria-pressed={view.sourceFilter === null}
-              className={`pc-deck-source${view.sourceFilter === null ? ' is-active' : ''}`}
+              className={`su-dash-deck-source${view.sourceFilter === null ? ' is-active' : ''}`}
               onClick={() => view.onSourceFilter(null)}
             >
               All
@@ -128,7 +128,7 @@ export function DeckList({ view }: { view: DeckListModel }) {
                 key={`${src.stamp}:${src.label}`}
                 type="button"
                 aria-pressed={view.sourceFilter === src.label}
-                className={`pc-deck-source${view.sourceFilter === src.label ? ' is-active' : ''}`}
+                className={`su-dash-deck-source${view.sourceFilter === src.label ? ' is-active' : ''}`}
                 onClick={() =>
                   view.onSourceFilter(view.sourceFilter === src.label ? null : src.label)
                 }
@@ -145,9 +145,9 @@ export function DeckList({ view }: { view: DeckListModel }) {
       </div>
 
       {view.rows.length === 0 ? (
-        <div className="pc-deck-empty">No actions match this filter.</div>
+        <div className="su-dash-deck-empty">No actions match this filter.</div>
       ) : (
-        <div className="pc-deck">
+        <div className="su-dash-deck">
           {/*
            * ONE grid over the whole deck — no source/timing headings, so an
            * action is never filed under a name of its own; the entry already
@@ -158,7 +158,7 @@ export function DeckList({ view }: { view: DeckListModel }) {
            * Resolve pane's, one tap on the pennant away. `<ul>/<li>` stays — a
            * set of actions IS a list semantically.
            */}
-          <ul className="pc-deck-grid">
+          <ul className="su-dash-deck-grid">
             {view.rows.map((row) => (
               // Lock (out of range / overheat) is a caller-resolved overlay,
               // layered on the canonical card — dim + tooltip — never a

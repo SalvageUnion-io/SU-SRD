@@ -233,7 +233,7 @@ const major = (client: HTMLElement) =>
   client.querySelector('[data-major]')?.getAttribute('data-major') ?? null
 
 const stepCount = (client: HTMLElement) =>
-  client.querySelector('.pc-dt-count')?.textContent?.replace(/\s+/g, ' ') ?? null
+  client.querySelector('.su-dash-dt-count')?.textContent?.replace(/\s+/g, ' ') ?? null
 
 async function press(client: HTMLElement, name: string) {
   await act(async () => {
@@ -287,7 +287,7 @@ describe('Downtime follows the Game on every client', () => {
     // Each returns to whatever their seat says: Rook is still aboard Thresher.
     expect(major(mediator)).toBe('pilot')
     expect(major(player)).toBe('mech')
-    expect(player.querySelector('.pc-dt')).toBeNull()
+    expect(player.querySelector('.su-dash-dt')).toBeNull()
   })
 
   test("a player's I'm done shows on the other client, and clears when the step moves on", async () => {

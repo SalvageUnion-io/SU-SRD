@@ -5,10 +5,10 @@
  *
  * `entities.listWiring` is the server's answer to "every assignment you can
  * see, and every crawler at your tables". These functions turn one answer plus
- * the local cache into the writes that make the cache reflect it — the same
+ * the local store into the writes that make the store reflect it — the same
  * "server wins" reconcile `ShelfSync` does for owned rows. They live here, as
  * functions, so the tests assert the rule itself rather than a copy of it
- * (the reason `lib/db/pruneRules.ts` exists too).
+ * (the reason `stores/pruneRules.ts` exists too).
  *
  * ## Absence means deleted only where the server spoke
  *

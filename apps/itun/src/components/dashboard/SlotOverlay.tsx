@@ -4,8 +4,8 @@
  * (ADR-038 §3).
  *
  * A `ModalShell` portalled into `container` — the display region — so it stays
- * inside the scaled canvas, where the Major's `.pc-*` styling lives in the
- * `.pc-root` scope. Base UI moves focus into it, keeps Tab inside it, closes it
+ * inside the scaled canvas, where the Major's `.su-dash-*` styling lives in the
+ * `.su-dash-root` scope. Base UI moves focus into it, keeps Tab inside it, closes it
  * on Escape (unless something inside it, the Major's own Take Damage prompt,
  * already took that Escape) and gives focus back to the ⤢ that opened it.
  */

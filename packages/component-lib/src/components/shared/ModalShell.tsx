@@ -54,7 +54,7 @@ type ModalShellProps = {
    * popup then cover the container rather than the viewport (it must be a
    * positioned box), and focus is trapped without locking page scroll —
    * the Dashboard's overlays, which open over one region of a scaled canvas
-   * and need its `.pc-root` styling.
+   * and need its `.su-dash-root` styling.
    */
   container?: RefObject<HTMLElement | null>
   /** Element to focus when the dialog closes (defaults to base-ui's: the

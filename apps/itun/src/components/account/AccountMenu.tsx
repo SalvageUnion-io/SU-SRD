@@ -5,7 +5,7 @@ import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { HeaderMenu } from '../shared/HeaderMenu'
-import { useSignOutAndForget } from './useSignOutAndForget'
+import { useSignOut } from './useSignOut'
 
 /**
  * The account menu — who is signed in, and the two things to do about it.
@@ -48,7 +48,7 @@ const NAME = {
 
 function SignedInAccountMenu({ compact = false }: AccountMenuProps) {
   const me = useQuery(api.account.me, {})
-  const signOut = useSignOutAndForget()
+  const signOut = useSignOut()
   const navigate = useNavigate()
 
   const name = me?.displayName ?? null

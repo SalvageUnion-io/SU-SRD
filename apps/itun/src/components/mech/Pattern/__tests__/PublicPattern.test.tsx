@@ -65,7 +65,7 @@ function answer(over: Record<string, unknown> = {}) {
   }
 }
 
-/** Drive the store's server-first write (stub commit, then IndexedDB) to completion. */
+/** Drive the store's server-first write (stub commit, then memory) to completion. */
 async function settle(done: () => boolean): Promise<void> {
   for (let i = 0; i < 200 && !done(); i++) {
     await act(async () => {

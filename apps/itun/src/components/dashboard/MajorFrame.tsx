@@ -8,7 +8,7 @@
  *
  * Main bays share the width; bays flagged `side` stack in one narrow column on
  * the right (the Mech's Effects and Egress, the Crawler's Upkeep, Upgrade and
- * Scrap), so the main bays get the room (ADR-038 §3). It reuses the band's `.pc-*` rules and adds none; everything else is a
+ * Scrap), so the main bays get the room (ADR-038 §3). It reuses the band's `.su-dash-*` rules and adds none; everything else is a
  * style object (tailwind-removal.md §4).
  */
 
@@ -241,7 +241,7 @@ function BandBtn({ btn, full = true }: { btn: BandButton; full?: boolean }) {
 
 function Gauges({ gauges, large }: { gauges: BandGauge[]; large?: boolean }) {
   return (
-    <div className="pc-bay-gauges" style={large ? LARGE : undefined}>
+    <div className="su-dash-bay-gauges" style={large ? LARGE : undefined}>
       {gauges.map((g) => (
         <DashboardGauge
           key={g.label}
@@ -280,7 +280,7 @@ function BayBody({ bay }: { bay: BandBay }) {
   const columns = bay.columns ?? 2
   return (
     <>
-      <span className="pc-bay-lab">{bay.label}</span>
+      <span className="su-dash-bay-lab">{bay.label}</span>
       {bay.gauges && bay.gauges.length > 0 && <Gauges gauges={bay.gauges} large={bay.large} />}
       {bay.lines && bay.lines.length > 0 && <Lines lines={bay.lines} />}
       {bay.chips && bay.chips.length > 0 && (
@@ -311,7 +311,7 @@ function BayBody({ bay }: { bay: BandBay }) {
       {bay.control}
       {bay.buttons.length > 0 && (
         <div
-          className="pc-btn-grid"
+          className="su-dash-btn-grid"
           style={columns === 2 ? undefined : { gridTemplateColumns: `repeat(${columns}, 1fr)` }}
         >
           {bay.buttons.map((btn) => (
@@ -345,21 +345,21 @@ export function StorageBay({
   onJettison: (lotId: string) => void
 }) {
   return (
-    <div className="pc-cargo">
-      <p className="pc-cargo-usage">
+    <div className="su-dash-cargo">
+      <p className="su-dash-cargo-usage">
         Hold {used}/{cap}
       </p>
       {lots.length === 0 ? (
-        <p className="pc-resolve-log">Cargo hold is empty.</p>
+        <p className="su-dash-resolve-log">Cargo hold is empty.</p>
       ) : (
-        <ul className="pc-cargo-list">
+        <ul className="su-dash-cargo-list">
           {lots.map((lot) => (
-            <li key={lot.id} className="pc-cargo-row">
-              <span className="pc-cargo-name">
-                <span className="pc-cargo-code">{lot.code}</span>
+            <li key={lot.id} className="su-dash-cargo-row">
+              <span className="su-dash-cargo-name">
+                <span className="su-dash-cargo-code">{lot.code}</span>
                 {lot.name}
                 {lot.kind === 'bulk' && lot.qty !== undefined ? ` ×${lot.qty}` : ''}
-                <span className="pc-cargo-units">{lot.units}u</span>
+                <span className="su-dash-cargo-units">{lot.units}u</span>
               </span>
               <Button
                 variant="danger"
@@ -392,17 +392,17 @@ export function MajorFrame({ view }: { view: MajorModel }) {
   const side = view.bays.filter((b) => b.side)
   return (
     <div
-      className="pc-band"
+      className="su-dash-band"
       data-fam={view.fam}
       // The unit colour as the slot's top rule, as every Minor wears it (D1–D3).
       style={{ borderTop: slotRule(view.fam) }}
     >
-      <div className="pc-band-id">
+      <div className="su-dash-band-id">
         <Badge shape="stamp" style={{ ...STAMP, backgroundColor: STAMP_BG[view.fam] }}>
           {view.stampLabel}
         </Badge>
       </div>
-      <div className="pc-bays" style={BAYS}>
+      <div className="su-dash-bays" style={BAYS}>
         {main.map((bay) => (
           // A bay with only buttons (Mount) has nothing to fill its middle, and
           // the button grid is floor-pinned — so it would render as a label at
@@ -411,7 +411,7 @@ export function MajorFrame({ view }: { view: MajorModel }) {
           // A bay of readouts or chips reads from the top like the rest.
           <div
             key={bay.label}
-            className="pc-bay"
+            className="su-dash-bay"
             data-nogauge={buttonsOnly(bay) || undefined}
             style={bay.grow ? { flexGrow: bay.grow } : undefined}
           >
@@ -430,11 +430,11 @@ export function MajorFrame({ view }: { view: MajorModel }) {
       </div>
 
       {overlay && (
-        <div className="pc-resolve" role="dialog" aria-label={overlay.title}>
-          <div className="pc-resolve-head">
-            <span className="pc-resolve-title">{overlay.title}</span>
+        <div className="su-dash-resolve" role="dialog" aria-label={overlay.title}>
+          <div className="su-dash-resolve-head">
+            <span className="su-dash-resolve-title">{overlay.title}</span>
             {overlay.gauges && overlay.gauges.length > 0 && (
-              <div className="pc-resolve-gauges">
+              <div className="su-dash-resolve-gauges">
                 {overlay.gauges.map((g) => (
                   <DashboardGauge
                     key={g.label}
@@ -451,10 +451,10 @@ export function MajorFrame({ view }: { view: MajorModel }) {
               Close
             </Button>
           </div>
-          <div className="pc-resolve-body">
+          <div className="su-dash-resolve-body">
             {overlay.body}
             {overlay.actions && overlay.actions.length > 0 && (
-              <div className="pc-resolve-actions">
+              <div className="su-dash-resolve-actions">
                 {overlay.actions.map((btn) => (
                   <BandBtn key={btn.label} btn={btn} full={false} />
                 ))}

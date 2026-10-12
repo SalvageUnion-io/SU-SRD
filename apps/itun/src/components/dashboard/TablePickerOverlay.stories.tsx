@@ -1,8 +1,16 @@
+import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { InstrumentStage } from './_dashboardStage'
 import { TablePickerOverlay } from './TablePickerOverlay'
+
+const STACK_16 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+} satisfies CSSProperties
 
 export default { title: 'Compositions/Dashboard/Table Picker Overlay' }
 
@@ -20,7 +28,7 @@ export const Default = () => {
   // Open once the host has mounted: the portal resolves its container on open.
   useEffect(() => setOpen(true), [])
   return (
-    <div className="flex flex-col gap-4">
+    <div style={STACK_16}>
       <Caption>Tables picker — 5 category columns, real SRD roll tables.</Caption>
       <button type="button" onClick={() => setOpen(true)}>
         Reopen

@@ -127,12 +127,12 @@ function CraftBody({ crawler, store }: { crawler: Crawler; store: PlayStore }) {
   }
 
   if (items.length === 0) {
-    return <p className="pc-resolve-log">Nothing is craftable at Tech {crawlerTl}.</p>
+    return <p className="su-dash-resolve-log">Nothing is craftable at Tech {crawlerTl}.</p>
   }
 
   return (
     <div style={CRAFT_LIST}>
-      {note ? <p className="pc-resolve-log">{note}</p> : null}
+      {note ? <p className="su-dash-resolve-log">{note}</p> : null}
       {items.slice(0, 40).map((item) => (
         <Button
           key={`${item.techLevel}-${item.name}`}
@@ -298,14 +298,14 @@ export function CrawlerMajor({
       return {
         title: 'Area Salvage',
         onClose,
-        body: <p className="pc-resolve-log">{prompt.log}</p>,
+        body: <p className="su-dash-resolve-log">{prompt.log}</p>,
       }
     }
     if (prompt.kind === 'upkeep') {
       return {
         title: 'Upkeep',
         onClose,
-        body: <p className="pc-resolve-log">{prompt.log}</p>,
+        body: <p className="su-dash-resolve-log">{prompt.log}</p>,
       }
     }
     if (prompt.kind === 'scrap') {
@@ -313,7 +313,7 @@ export function CrawlerMajor({
         title: 'Mech Scrapped',
         onClose,
         body: (
-          <p className="pc-resolve-log">
+          <p className="su-dash-resolve-log">
             {prompt.total} Scrap into the pool
             {prompt.skipped > 0 ? `; ${prompt.skipped} component(s) yielded nothing.` : '.'}
           </p>

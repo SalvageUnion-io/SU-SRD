@@ -45,6 +45,4 @@ preload = [
   # The ORM refuses to serve data until preloaded; without this every test that
   # touches SalvageUnionReference throws "Schema '<x>' not loaded".
   "./test/reference-preload.ts",
-  # ITUN's storage layer is IndexedDB-backed and has no in-memory fallback.
-  "fake-indexeddb/auto",
 ]

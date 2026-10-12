@@ -8,7 +8,7 @@ import { testConvex } from './harness'
 /**
  * One entity's Change Log, as the sheet's drawer reads it (`changeLog.forEntity`).
  *
- * The log used to be two spines: the drawer read a device-only IndexedDB copy,
+ * The log used to be two spines: the drawer read a device-only copy,
  * so a proposal, an ownership change, or an edit made on another device never
  * showed. These pin that the server's one table is the whole history, read by
  * the id the client addresses the entity by, and that the rows written before

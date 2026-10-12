@@ -14,7 +14,7 @@
  * viewport. The phone form scrolls the page; the canvas never does. The
  * rotate-to-landscape notice it replaces is retired.
  *
- * The dashboard layout shell. It owns the `.pc-root` scope (see
+ * The dashboard layout shell. It owns the `.su-dash-root` scope (see
  * DashboardCanvas.css) that every dashboard surface inherits, and paints the
  * dark ground the instruments sit on; the grid regions and instruments fill
  * `children`.
@@ -26,7 +26,7 @@
  * stack its panels in one scrolling column so a Mediator on a phone keeps
  * everything. The host scrolls only while that node is showing.
  *
- * It imports NO stylesheet. The `.pc-*` rules live in ITUN's
+ * It imports NO stylesheet. The `.su-dash-*` rules live in ITUN's
  * `src/styles/dashboard.css`, which `Dashboard.tsx` (the route component)
  * imports, so the stylesheet loads with the dashboard route's chunk.
  */
@@ -41,6 +41,16 @@ import { CANVAS_H, CANVAS_W, isPhoneForm } from './dashboardForm'
 const MAX_SCALE = 2.6
 
 /** The caller's own fallback below the floor: it fills the host and scrolls. */
+/** The canvas form's host: the dark ground, the canvas centred in it. */
+const HOST: CSSProperties = {
+  alignItems: 'center',
+  background: 'var(--color-ink-deep)',
+  display: 'flex',
+  justifyContent: 'center',
+  overflow: 'hidden',
+  width: '100%',
+}
+
 const REFLOW_HOST: CSSProperties = {
   alignSelf: 'stretch',
   width: '100%',
@@ -123,7 +133,7 @@ export function DashboardCanvas({
       // height (at least the screen's) rather than the viewport's.
       <div
         ref={hostRef}
-        className="pc-root su-dash-phone"
+        className="su-dash-root su-dash-phone"
         style={{ background: 'var(--color-band-cream)', minHeight: hostH, width: '100%' }}
       >
         {phone}
@@ -142,15 +152,15 @@ export function DashboardCanvas({
       // DISPLAY panel, not bare page. Sampled pixels show the ground reaching
       // the viewport bottom either way, so the choice between the two is an
       // open styling question and not a defect.
-      className="pc-root flex w-full items-center justify-center overflow-hidden"
-      style={{ background: 'var(--color-ink-deep)', height: hostH }}
+      className="su-dash-root"
+      style={{ ...HOST, height: hostH }}
     >
       {reflow && reflowNode !== undefined ? (
         <div style={REFLOW_HOST}>{reflowNode}</div>
       ) : (
         <div
-          className="pc-canvas shrink-0"
-          style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
+          className="su-dash-canvas"
+          style={{ flexShrink: 0, transform: `scale(${scale})`, transformOrigin: 'center center' }}
         >
           {children}
         </div>

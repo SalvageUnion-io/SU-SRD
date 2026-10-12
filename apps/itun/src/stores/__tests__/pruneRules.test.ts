@@ -1,5 +1,5 @@
 /**
- * The rule that decides whether a cached row may be deleted (P4b).
+ * The rule that decides whether a held row may be dropped (P4b).
  *
  * Pruning is the most destructive operation in the codebase, and its guard is
  * the kind that looks like defensive noise right up until the day it is

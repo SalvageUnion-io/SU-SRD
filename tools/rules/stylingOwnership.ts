@@ -10,8 +10,8 @@
  *
  * Why a build step and not a review habit: like the design-token drift, none of
  * these violations fail typecheck. A stray app `@theme` block compiles. Dead CSS
- * compiles. A `pc-*` class referenced but never defined renders unstyled — no
- * error, just a wrong-looking element.
+ * compiles. A Dashboard `su-dash-*` class referenced but never defined renders
+ * unstyled — no error, just a wrong-looking element.
  *
  * The analyses here are structural (cross-file reference graphs, brace-context
  * parsing) rather than per-line regexes, so each rule has its own scan function.
@@ -55,7 +55,7 @@ type Corpus = {
   root: string
   appCss: string[]
   appSource: string[]
-  /** pc-* usage is checked repo-wide (both apps + the library + tests). */
+  /** su-dash-* usage is checked repo-wide (both apps + the library + tests). */
   allTs: string[]
   uiSource: string[]
   read: (rel: string) => string
@@ -257,20 +257,26 @@ function scanDeadAppCss(c: Corpus): Finding[] {
 }
 
 // ── Rule 3: pc-class-contract ─────────────────────────────────────────────────
+//
+// Named for the retired `.pc-*` scope: TW5 renamed it `.su-dash-*` (ITUN's own
+// stylesheets), and the contract moved with it. The id stays until TW7.
 
-const PC_CSS_FILES = ['DashboardCanvas.css', 'DashboardGrid.css', 'instruments.css'].map(
-  (f) => `${DASHBOARD_DIR}/${f}`
-)
+const DASHBOARD_CSS_FILES = [
+  'DashboardCanvas.css',
+  'DashboardGrid.css',
+  'instruments.css',
+  'DashboardPhone.css',
+].map((f) => `${DASHBOARD_DIR}/${f}`)
 
-function scanPcContract(c: Corpus): Finding[] {
+function scanDashContract(c: Corpus): Finding[] {
   const out: Finding[] = []
 
-  // DEFINED: `.pc-*` class selectors in the three dashboard CSS files (exact).
+  // DEFINED: `.su-dash-*` class selectors in the dashboard CSS files (exact).
   const defined = new Map<string, { file: string; line: number }>()
-  for (const relPath of PC_CSS_FILES) {
+  for (const relPath of DASHBOARD_CSS_FILES) {
     const css = stripCssComments(c.read(relPath))
     css.split('\n').forEach((line, i) => {
-      for (const m of line.matchAll(/\.(pc-[a-z0-9-]+)/g)) {
+      for (const m of line.matchAll(/\.(su-dash-[a-z0-9-]+)/g)) {
         const name = m[1]
         if (name !== undefined && !defined.has(name))
           defined.set(name, { file: relPath, line: i + 1 })
@@ -278,16 +284,16 @@ function scanPcContract(c: Corpus): Finding[] {
     })
   }
 
-  // USED: exact `pc-*` tokens appearing in any .tsx/.ts (incl. tests + stories)
-  // repo-wide. Exact-token extraction (not prefix matching) is load-bearing:
-  // `pc-crawler-focus` and `pc-crawler-focus-note` are DIFFERENT classes, and a
-  // prefix match would let the -note usage falsely "cover" the bare class.
+  // USED: exact `su-dash-*` tokens appearing in any .tsx/.ts (incl. tests +
+  // stories) repo-wide. Exact-token extraction (not prefix matching) is
+  // load-bearing: `su-dash-display` and `su-dash-display-light` are DIFFERENT
+  // classes, and a prefix match would let one usage falsely "cover" the other.
   //
   // Two precision guards keep this to genuine className references:
   //  - block comments are stripped, so a JSDoc line documenting a REMOVED class
-  //    (buttonVariants.ts describes the retired `.pc-btn`/`.pc-deck-btn`/… HUD
-  //    classes) is not mistaken for a live usage.
-  //  - a `pc-*` string sitting in a NON-class attribute (`name="pc-deck-currency"`
+  //    is not mistaken for a live usage.
+  //  - a `su-dash-*` string sitting in a NON-class attribute
+  //    (`name="su-dash-deck-currency"`
   //    is a radio-group name, not a class) is skipped — it is not part of the
   //    class contract and must not gate the ratchet.
   const used = new Map<string, { file: string; line: number }>()
@@ -295,7 +301,7 @@ function scanPcContract(c: Corpus): Finding[] {
     stripTsComments(c.read(relPath))
       .split('\n')
       .forEach((line, i) => {
-        for (const m of line.matchAll(/\bpc-[a-z0-9-]+/g)) {
+        for (const m of line.matchAll(/\bsu-dash-[a-z0-9-]+/g)) {
           const before = line.slice(0, m.index)
           // Skip non-class attribute values (form name/id/htmlFor/key).
           if (/\b(?:name|id|htmlFor|key)\s*=\s*["'`{]$/.test(before)) continue
@@ -310,7 +316,7 @@ function scanPcContract(c: Corpus): Finding[] {
       out.push({
         file: where.file,
         line: where.line,
-        detail: `pc class '${name}' used but not defined in {DashboardCanvas,DashboardGrid,instruments}.css`,
+        detail: `dashboard class '${name}' used but not defined in styles/dashboard/*.css`,
       })
     }
   }
@@ -320,7 +326,7 @@ function scanPcContract(c: Corpus): Finding[] {
       out.push({
         file: where.file,
         line: where.line,
-        detail: `pc class '.${name}' defined but never referenced`,
+        detail: `dashboard class '.${name}' defined but never referenced`,
       })
     }
   }
@@ -356,7 +362,7 @@ function scanTailwindFiles(c: Corpus): Finding[] {
 function scanPcDefinitions(c: Corpus): Finding[] {
   const seen = new Set<string>()
   const out: Finding[] = []
-  for (const relPath of PC_CSS_FILES) {
+  for (const relPath of DASHBOARD_CSS_FILES) {
     stripCssComments(c.read(relPath))
       .split('\n')
       .forEach((line, i) => {
@@ -504,8 +510,8 @@ const RULES: OwnershipRule[] = [
     id: 'pc-class-contract',
     mode: 'zero',
     rule: 'source-of-truth §the dashboard class contract is closed and bidirectional',
-    fix: 'used-but-undefined: define the class in dashboard/{DashboardCanvas,DashboardGrid,instruments}.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — pc-crawler-focus and pc-crawler-focus-note are different classes.',
-    scan: scanPcContract,
+    fix: 'used-but-undefined: define the `su-dash-*` class in apps/itun/src/styles/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-display and su-dash-display-light are different classes.',
+    scan: scanDashContract,
   },
   {
     id: 'package-stylesheet-import',
@@ -524,8 +530,8 @@ const RULES: OwnershipRule[] = [
   {
     id: 'pc-class-defined',
     mode: 'ratchet',
-    rule: 'tailwind-removal plan §ratchet — the Dashboard `.pc-*` scope only shrinks (#802, phase TW5)',
-    fix: "Do not add a `.pc-*` class. Dashboard styling that needs a new rule is a style object from `tokens.ts`, or a stateful rule in ITUN's own stylesheet — never component-lib's index.css, which srd loads too. If you removed one, lower the baseline with --update-baseline.",
+    rule: 'tailwind-removal plan §ratchet — the retired Dashboard `.pc-*` scope stays at 0 (#802, phase TW5)',
+    fix: "Do not add a `.pc-*` class (the scope is retired; Dashboard rules are `.su-dash-*`). Dashboard styling that needs a new rule is a style object from `tokens.ts`, or a stateful rule in ITUN's own stylesheet — never component-lib's index.css, which srd loads too. If you removed one, lower the baseline with --update-baseline.",
     scan: scanPcDefinitions,
   },
 ]

@@ -19,7 +19,7 @@ import { expect, test } from './fixtures'
  * completes — not while still on "/pilots/new" (whose path also contains
  * "/pilots/", which a looser regex would match).
  *
- * Dashboard entity hydration is async (IndexedDB read inside useEffect). We
+ * Dashboard entity hydration is async (the account's rows arrive from Convex). We
  * wait for the pilot's name to become visible in the entity list rather than
  * relying solely on waitForReady (which only signals game-data preload).
  *
@@ -36,7 +36,7 @@ test('create then delete a pilot from the dashboard', async ({ page }) => {
   await waitForReady(page)
 
   // ── Step 2: Verify pilot appears and trigger delete ─────────────────────────
-  // Wait for IndexedDB entity hydration to complete (hydratedAll = true)
+  // Wait for entity hydration to complete (hydratedAll = true)
   // and the pilot to appear in the Pilots list.
   await expect(page.getByLabel('Loading saved builds')).not.toBeVisible({
     timeout: 20_000,

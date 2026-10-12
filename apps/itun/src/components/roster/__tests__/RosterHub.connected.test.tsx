@@ -59,7 +59,7 @@ const { setEntityBackendAuthState } = await import('../../../stores/entityBacken
 const { getActiveContainer, setActiveContainer } = await import(
   '../../../stores/activeContainerStore'
 )
-const db = await import('../../../lib/db/index')
+const { resetStores } = await import('../../../stores/__tests__/resetStores')
 
 const GAMES = [
   { _id: 'g1', name: 'Union Crawler #430', mediator: false, organizer: false, tableRunner: false },
@@ -120,17 +120,11 @@ beforeAll(hydrateStores)
 
 beforeEach(async () => {
   serverWrites.length = 0
-  db._resetDbSingleton()
-  await db.clearCache()
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
-  })
-  usePatternStore.setState({ mechPatterns: [], hydrated: true })
-  // On the shelf: a pilot and a crawler, cached where a signed-in roster is.
+  resetStores()
+  // The server's first answer is in, as `ShelfSync` marks it.
+  useEntityStore.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
+  usePatternStore.getState().markArrived()
+  // On the shelf: a pilot and a crawler, adopted as the server sends them.
   setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
   await useEntityStore
     .getState()
@@ -147,11 +141,9 @@ afterEach(() => {
   setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
 })
 
-afterAll(async () => {
+afterAll(() => {
   setActiveContainer({ kind: 'shelf' })
-  await db.clearCache()
-  useEntityStore.setState({ pilots: [], mechs: [], crawlers: [], softLinks: [] })
-  usePatternStore.setState({ mechPatterns: [], hydrated: false })
+  resetStores()
   convexMocks.restore()
 })
 

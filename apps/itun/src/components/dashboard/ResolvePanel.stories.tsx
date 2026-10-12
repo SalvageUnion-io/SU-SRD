@@ -26,7 +26,7 @@ export const Default = () => {
     <div style={STACK}>
       <Caption>Resolve tab — activated and rolled; Push and Apply offered.</Caption>
       <InstrumentStage width={560}>
-        <div className="pc-display-light" style={FRAME}>
+        <div className="su-dash-display-light" style={FRAME}>
           {action ? (
             <ResolvePanel
               view={{
@@ -72,7 +72,7 @@ export const Idle = () => (
   <div style={STACK}>
     <Caption>Resolve tab with no action chosen.</Caption>
     <InstrumentStage width={560}>
-      <div className="pc-display-light" style={FRAME}>
+      <div className="su-dash-display-light" style={FRAME}>
         <ResolvePanel
           view={{ kind: 'idle', text: 'Choose an action from the deck to resolve it here.' }}
         />

@@ -2,9 +2,8 @@
  * Cap-override integration (P2.2 / ADR-022): a Live-Sheet stat gauge with a
  * hand-pinned maximum shows an "overridden from N" indicator + a one-click
  * revert, and reverting clears the max*Modifier delta while logging an
- * `override` Change Log entry. Exercises the real store + db against
- * fake-indexeddb (preloaded via bunfig.toml), with the Convex client a
- * recorder of the Change Log batches the store sends.
+ * `override` Change Log entry. Exercises the real in-memory store, signed in,
+ * with the Convex client a recorder of the Change Log batches the store sends.
  */
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
@@ -27,7 +26,7 @@ const convexMocks = await installConvexMocks({
   },
 })
 
-const { _resetDbSingleton, clearCache } = await import('../../../lib/db/index')
+const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { Sheet } = await import('../Sheet')
@@ -53,21 +52,9 @@ const basePilotInput = {
   conditions: [],
 }
 
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
-  })
-}
-
-beforeEach(async () => {
+beforeEach(() => {
   logged.length = 0
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
 })
 
 describe('Live Sheet — cap override (P2.2)', () => {
