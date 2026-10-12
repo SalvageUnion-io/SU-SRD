@@ -35,7 +35,8 @@ minimumReleaseAgeExcludes = ["bun-types"]
 [test]
 # Preloads for a ROOT-level `bun test` run, which uses this bunfig for every
 # file it collects rather than each workspace's: the UNION of the workspace
-# preloads. Paths are relative to the repo root.
+# preloads, each workspace's in its own order. Paths are relative to the repo
+# root. `bun run check test-layout` fails when this drifts from them.
 preload = [
   # First: ITUN's `convex/auth.ts` reads the Discord client env at import, and
   # this must also precede happy-dom (see the file).
@@ -45,4 +46,6 @@ preload = [
   # The ORM refuses to serve data until preloaded; without this every test that
   # touches SalvageUnionReference throws "Schema '<x>' not loaded".
   "./test/reference-preload.ts",
+  # ITUN's stand-in Convex client (see the file).
+  "./apps/itun/test/convexClientStub.ts",
 ]

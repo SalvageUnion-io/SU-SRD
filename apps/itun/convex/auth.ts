@@ -111,7 +111,7 @@ function withoutNullFields(profile: User): User {
  * ## Why it is not a second door into real accounts
  *
  * It is included **only** when `ITUN_TEST_AUTH` is exactly `'true'` on the
- * deployment. Production never sets it, and `test/convex/authProviders.test.ts`
+ * deployment. Production never sets it, and `test/convex/__tests__/authProviders.test.ts`
  * asserts that a deployment without it exposes Discord and nothing else — an
  * assertion, not a comment, because a comment cannot fail.
  *

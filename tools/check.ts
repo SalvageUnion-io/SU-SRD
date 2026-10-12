@@ -187,6 +187,15 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
+    id: 'test-layout',
+    guards:
+      'every *.test.ts(x) sits in a __tests__/ directory; the root bunfig preload is the union of the workspace preloads',
+    fix: "git mv the test into a __tests__/ beside its subject (deepen its relative paths); copy the named preload into the root bunfig.toml in its workspace's order",
+    cmd: ['bun', 'tools/check-test-layout.ts'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
     id: 'barrel-consumers',
     guards:
       'every component-lib export has an app importer, and none is a composition only one app renders',

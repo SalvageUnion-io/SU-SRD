@@ -15,7 +15,7 @@
  * renders: a product surface assembled from those primitives. The catalog
  * already files every public component under one of those groups (its
  * co-located story's meta title, held to the taxonomy by
- * `packages/component-lib/src/story-coverage.test.ts`), so this check reads
+ * `packages/component-lib/src/__tests__/story-coverage.test.ts`), so this check reads
  * the group from there rather than keeping a second list.
  *
  * Fails:

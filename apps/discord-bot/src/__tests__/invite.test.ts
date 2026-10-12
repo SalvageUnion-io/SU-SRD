@@ -13,7 +13,7 @@ import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
  * `/su invite @user` (ADR-039 §3).
  *
  * The server half — signature, Organizer check, who may redeem — is
- * `apps/itun/test/convex/botInvite.test.ts`. What this file defends is the
+ * `apps/itun/test/convex/__tests__/botInvite.test.ts`. What this file defends is the
  * bot's half: it forwards Discord's signed request **untouched** and never a
  * Discord id of its own, it DMs the person the server named, a refused DM ends
  * with the Organizer holding a link rather than nothing, and every reply stays

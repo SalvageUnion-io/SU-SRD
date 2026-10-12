@@ -11,7 +11,7 @@ import { z } from 'salvageunion-reference/zod'
  * state out of sheets and public sheets.
  *
  * This is the source of truth for `seats` in `convex/schema.ts`, whose unions
- * mirror the enums below; `test/convex/seatSchemaParity.test.ts` keeps them in
+ * mirror the enums below; `test/convex/__tests__/seatSchemaParity.test.ts` keeps them in
  * step.
  *
  * "In Downtime" is deliberately absent: it is the Game's `downtime` row, not

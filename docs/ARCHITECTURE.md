@@ -82,7 +82,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot` (no hydration).
 26. **Accessibility**
     Biome's a11y rules plus each app's `e2e/a11y.e2e.ts` (axe, WCAG 2.2 AA) over its `PAGES`, failing on any violation.
-    Contrast is held by `design/contrast.test.ts`; coarse-pointer touch targets are 44px.
+    Contrast is held by `design/__tests__/contrast.test.ts`; coarse-pointer touch targets are 44px.
 27. **CI**
     `ci.yml` runs on every `pull_request` (no branch filter), path-filtered per app; `CI Success` must need every job.
     Static checks are `bun tools/check.ts --profile=ci`; tests are `bun run test:coverage` against per-workspace `FLOORS`.

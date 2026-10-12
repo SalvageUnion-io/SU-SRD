@@ -18,7 +18,7 @@
  * generated from this manifest by tools/generateRegistry.ts into
  * lib/generated/*.generated.ts (and, for the static accessors, injected into
  * lib/index.ts between the `GENERATED:BEGIN`/`GENERATED:END` markers).
- * lib/registryConsistency.test.ts independently verifies every generated
+ * lib/__tests__/registryConsistency.test.ts independently verifies every generated
  * registry still covers the same key set.
  *
  * This file has ZERO imports on purpose: tools/generateRegistry.ts imports
