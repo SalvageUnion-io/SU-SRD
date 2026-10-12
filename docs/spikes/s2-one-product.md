@@ -141,9 +141,10 @@ The first deploy of `main` with this change, in its own job order:
 
 1. `plan` checks the token can read the zone and its Workers routes.
 2. `build-itun` builds under `/build/`; `push-convex` pushes the backend.
-3. `deploy`: `su-itun` gets its new version, the `salvageunion.io/build*` route
-   and keeps both intheunionnow.com domains; srd and the bot ship their links.
-   Then the itun leg sets `SITE_URL` to `https://salvageunion.io/build`.
+3. `deploy` (and `deploy-srd`, which alone also waits on `og-srd`): `su-itun`
+   gets its new version, the `salvageunion.io/build*` route and keeps both
+   intheunionnow.com domains; srd and the bot ship their links. Then the itun
+   leg sets `SITE_URL` to `https://salvageunion.io/build`.
 4. `smoke` checks `salvageunion.io/build/` (200, CSP, HSTS, the chunk 404 and
    its `no-store`), the bare `/build` 301, and intheunionnow.com's 301s
    (`/`, a path with a query, a retired `/join` link).
