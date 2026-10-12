@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import {
   getChoices,
@@ -5,6 +6,7 @@ import {
   nameToSlug,
   SalvageUnionReference,
 } from 'salvageunion-reference'
+import { space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { Button } from '../chrome/Button'
@@ -23,6 +25,22 @@ import { PICKER_MODAL_WIDTH } from './pickerModalWidth'
  * ReferenceEntityCard cards) and the CatalogChoiceModal that wraps it for a
  * single-select catalog choice.
  */
+/** The story column: caption over the picker. */
+const STACK_STYLE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[12],
+} satisfies CSSProperties
+const STACK_START_STYLE = { ...STACK_STYLE, alignItems: 'flex-start' } satisfies CSSProperties
+/** Centred at full width; the cap is `PICKER_MODAL_WIDTH`'s responsive class. */
+const FRAME_STYLE = {
+  width: '100%',
+  marginLeft: 'auto',
+  marginRight: 'auto',
+} satisfies CSSProperties
+/** The single-select modal's cap — 64rem at every width. */
+const WIDE_FRAME_STYLE = { ...FRAME_STYLE, maxWidth: '64rem' } satisfies CSSProperties
+
 export default {
   title: 'Compositions/Catalog/Entity Searcher',
 }
@@ -48,12 +66,12 @@ export const Default: Story = () => {
   const toggle = (ref: string) =>
     setSelected((s) => (s.includes(ref) ? s.filter((r) => r !== ref) : [...s, ref]))
   return (
-    <div className="flex flex-col gap-3">
+    <div style={STACK_STYLE}>
       <Caption>
         Search + filters in the sub-header; the rail is a band above the pool below 1280px and a
         column beside it from there.
       </Caption>
-      <div className={`mx-auto w-full ${PICKER_MODAL_WIDTH}`}>
+      <div className={PICKER_MODAL_WIDTH} style={FRAME_STYLE}>
         <EntitySearcher
           schema="equipment"
           selected={selected}
@@ -81,12 +99,12 @@ export const BigEntitySingleSelect: Story = () => {
     nameToSlug(SalvageUnionReference.Chassis.all()[0]?.name ?? '')
   )
   return (
-    <div className="flex flex-col gap-3">
+    <div style={STACK_STYLE}>
       <Caption>
         Single-select over `chassis` — a `radiogroup` pool under a one-line Chosen bar that carries
         the picker's actions, at every width.
       </Caption>
-      <div className="mx-auto w-full max-w-5xl">
+      <div style={WIDE_FRAME_STYLE}>
         <EntitySearcher
           schema="chassis"
           mode="single"
@@ -135,12 +153,12 @@ export const CountWithBudget: Story = () => {
     return n + (system ? (getSlotsRequired(system) ?? 0) : 0)
   }, 0)
   return (
-    <div className="flex flex-col gap-3">
+    <div style={STACK_STYLE}>
       <Caption>
         Count mode over `systems` — duplicate copies, each removable, against the Mule's System
         Slots and Energy.
       </Caption>
-      <div className={`mx-auto w-full ${PICKER_MODAL_WIDTH}`}>
+      <div className={PICKER_MODAL_WIDTH} style={FRAME_STYLE}>
         <EntitySearcher
           schema="systems"
           mode="count"
@@ -166,7 +184,7 @@ export const Cells: Story = () => {
   const [chosen, setChosen] = useState<string>('')
   const items = SalvageUnionReference.Equipment.all().slice(0, 4)
   return (
-    <div className="flex flex-col gap-3">
+    <div style={STACK_STYLE}>
       <Caption>
         MasonryColumns packs the selection cells — each is a plain ReferenceEntityCard with the
         card's native `selected` ring + radio a11y (no SelCard wrapper).
@@ -197,7 +215,7 @@ export const CatalogPicker: Story = () => {
   if (!choice) return <Caption>Armament Bay fixture missing.</Caption>
   const chosen = selections[choice.id]?.[0]
   return (
-    <div className="flex flex-col items-start gap-3">
+    <div style={STACK_START_STYLE}>
       <Caption>
         CatalogChoiceModal — the Armament Bay Weapons System pick (any SP-damage system).
       </Caption>
