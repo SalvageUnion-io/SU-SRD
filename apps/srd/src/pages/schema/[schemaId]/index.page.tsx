@@ -4,8 +4,9 @@
  * Headed by its chapter's band (the schema's plural name notched in), then the
  * listing, in the groups the book prints them in: one Row per entity, or where
  * the schema has art an art-first Tile (the Catalog, the default at a desktop
- * measure; `lib/listingView.ts`). It ends on the same chapter's band (`foot`),
- * as an entity page does.
+ * measure; `lib/listingView.ts`). A `CATALOG_LISTINGS` schema (tech levels) is
+ * a Catalog at every width, one grid with no groups. It ends on the same
+ * chapter's band (`foot`), as an entity page does.
  *
  * `SchemaViewerIsland` is `ssr={true}` (see the per-island table in
  * `ssg/DESIGN.md`), but what it server-renders is `SchemaItemLinks`, not the
@@ -31,6 +32,7 @@ import { itemHref, schemaHref } from '../../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../lib/gameData'
 import type { ListingGroup, ListingShape, TechLevel } from '../../../lib/listingGroups'
 import { defaultGroups, orderTechLevels, WIDE_LISTINGS } from '../../../lib/listingGroups'
+import { CATALOG_LISTINGS } from '../../../lib/listingView'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
 import { getSchemaStaticPaths } from '../../../lib/staticPaths'
 import { Island } from '../../../runtime/Island'
@@ -54,6 +56,7 @@ function SchemaItemLinks({
   sources,
   trees,
   hasArt,
+  catalogOnly,
 }: {
   schemaId: string
   groups: ListingGroup[]
@@ -62,12 +65,14 @@ function SchemaItemLinks({
   sources: string[]
   trees: string[]
   hasArt: boolean
+  catalogOnly: boolean
 }) {
   return (
     <div
       className="srd-listing"
       data-art={hasArt || undefined}
       data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
+      data-catalog={catalogOnly || undefined}
     >
       <ListingRail
         facets={{ count, techLevels: orderTechLevels(techLevels), sources, trees, hasArt }}
@@ -106,8 +111,11 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const canonicalUrl = `${SITE_URL}${schemaHref(schemaId)}`
   const description = `Browse all ${schemaName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`
 
-  // Pre-compute filter facets at build time
-  const techLevels = getUniqueTechLevels(data)
+  // A listing whose tiles are the content is a Catalog at every width.
+  const catalogOnly = CATALOG_LISTINGS.has(schemaId)
+  // Pre-compute filter facets at build time. A Catalog-only listing's tiles
+  // are each a tech level, so it has no TL facet and no TL groups.
+  const techLevels = catalogOnly ? [] : getUniqueTechLevels(data)
   const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
   const trees = schemaId === 'abilities' ? getUniqueTrees(data) : []
   const preloadSchemas = getSchemaPreloadList(schemaId)
@@ -170,7 +178,16 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             name="SchemaViewerIsland"
             client="visible"
             ssr
-            props={{ schemaId, techLevels, sources, trees, preloadSchemas, hasArt, shape }}
+            props={{
+              schemaId,
+              techLevels,
+              sources,
+              trees,
+              preloadSchemas,
+              hasArt,
+              catalogOnly,
+              shape,
+            }}
           >
             <SchemaItemLinks
               schemaId={schemaId}
@@ -180,6 +197,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
               sources={sources}
               trees={trees}
               hasArt={hasArt}
+              catalogOnly={catalogOnly}
             />
           </Island>
         </div>

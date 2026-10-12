@@ -64,6 +64,10 @@ type SchemaViewerIslandProps = {
    *  skeleton sets the rail and the group headings where the grid will put
    *  them. Without it the skeleton is a flat run of placeholders. */
   shape?: ListingShape
+  /** A Catalog at every width (`CATALOG_LISTINGS`): one grid of tiles, each
+   *  its own tech level. The page passes it no tech levels, so it has no
+   *  groups and no TL facet. */
+  catalogOnly?: boolean
 }
 
 /**
@@ -80,21 +84,33 @@ type SchemaViewerIslandProps = {
 export function SchemaViewerIsland({
   preloadSchemas,
   hasArt = false,
+  catalogOnly = false,
   shape,
   ...props
 }: SchemaViewerIslandProps) {
   // Resolved here, above the gate, so the skeletons already take the view's shape.
-  const listingView = useListingView(hasArt)
+  const listingView = useListingView(hasArt, catalogOnly)
   return (
     <IslandErrorBoundary>
       <GameDataGate
         schemas={preloadSchemas}
         projection="list"
         fallback={
-          <ListingSkeleton {...props} hasArt={hasArt} shape={shape} view={listingView.view} />
+          <ListingSkeleton
+            {...props}
+            hasArt={hasArt}
+            catalogOnly={catalogOnly}
+            shape={shape}
+            view={listingView.view}
+          />
         }
       >
-        <SchemaViewer {...props} hasArt={hasArt} listingView={listingView} />
+        <SchemaViewer
+          {...props}
+          hasArt={hasArt}
+          catalogOnly={catalogOnly}
+          listingView={listingView}
+        />
       </GameDataGate>
     </IslandErrorBoundary>
   )
@@ -107,6 +123,7 @@ function SchemaViewer({
   sources,
   trees = [],
   hasArt,
+  catalogOnly,
   listingView,
 }: Omit<SchemaViewerIslandProps, 'preloadSchemas' | 'shape'> & {
   listingView: ReturnType<typeof useListingView>
@@ -167,8 +184,12 @@ function SchemaViewer({
   const orderedTechLevels = useMemo(() => orderTechLevels(techLevels), [techLevels])
   const groupBy = resolveGroupBy(initialData, trees, orderedTechLevels)
   const groups = useMemo(() => groupEntities(filteredData, groupBy), [filteredData, groupBy])
-  // A single-kind listing: no type stamp, and no TL cell when the tech level heads the group.
-  const omit = useMemo(() => (groupBy === 'tl' ? ['kind', 'tech-level'] : ['kind']), [groupBy])
+  // A single-kind listing: no type stamp, and no TL cell when the tech level
+  // heads the group or is the tile's plate.
+  const omit = useMemo(
+    () => (groupBy === 'tl' || catalogOnly ? ['kind', 'tech-level'] : ['kind']),
+    [groupBy, catalogOnly]
+  )
 
   const toggleTechLevel = (level: TechLevel) => {
     setTechLevelFilters((prev) => {
@@ -203,6 +224,7 @@ function SchemaViewer({
     <div
       className="srd-listing"
       data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
+      data-catalog={catalogOnly || undefined}
       data-view={view}
     >
       <ListingRail
@@ -336,6 +358,7 @@ function ListingSkeleton({
   sources,
   trees = [],
   hasArt,
+  catalogOnly,
   shape,
   view,
 }: Omit<SchemaViewerIslandProps, 'preloadSchemas'> & { view: ListingView }) {
@@ -345,6 +368,7 @@ function ListingSkeleton({
     <div
       className="srd-listing"
       data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
+      data-catalog={catalogOnly || undefined}
       data-view={view}
       aria-hidden="true"
     >
