@@ -7,6 +7,10 @@
  * Signed out, the same button signs in first and comes back to this sheet: a
  * copy is a build of your own, and builds live in an account (ADR-034 as
  * amended). Offline it is absent, as every write is.
+ *
+ * Both states sit at the `full` rung: this is the sheet's one action, the band
+ * carries nothing else, and `compact` drew a 30px target under the 44px floor
+ * (ruleset §4.6).
  */
 
 import { Button, toast } from 'component-lib'
@@ -30,7 +34,11 @@ export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
 
   if (mode === 'solo') {
     return (
-      <SignInControl label="Sign in to make a copy" redirectTo={`/starter/${kind}/${templateId}`} />
+      <SignInControl
+        label="Sign in to make a copy"
+        redirectTo={`/starter/${kind}/${templateId}`}
+        size="full"
+      />
     )
   }
   if (mode !== 'connected') return null
@@ -38,7 +46,7 @@ export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
   return (
     <Button
       variant="primary"
-      size="compact"
+      size="full"
       onClick={() =>
         confirm({
           title: `Make a copy of ${name}?`,

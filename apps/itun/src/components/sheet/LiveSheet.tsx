@@ -341,7 +341,8 @@ export function LiveSheet({
 
       {/* The chapter band (board 10): the sheet's one h1, notched into a band
           in its own tone with the speckle behind it; the type stamps and where
-          the sheet comes from above the name, Read | Edit beside it. Full-bleed,
+          the sheet comes from above the name, Read | Edit beside it where the viewer
+          may write (a read-only sheet has nothing to switch to). Full-bleed,
           like the SRD's. */}
       <ChapterBand
         layout="bleed"
