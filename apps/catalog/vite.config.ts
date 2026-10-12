@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react-swc'
+import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import { defineConfig } from 'vite'
 
 // Serves the dev-only story catalog (`bun run stories`): `index.html` mounts
@@ -17,5 +18,14 @@ export default defineConfig({
       },
     ],
   },
-  server: { port: 61000, strictPort: true },
+  // This checkout's port (61000 in the primary checkout, offset in a worktree:
+  // `packages/gates/lib/ports.ts`), and the header that names the checkout so
+  // `bun run shot` can refuse another checkout's server. An explicit `PORT`
+  // wins, as in srd's `ssg/dev.ts`: the browser preview (`.claude/launch.json`)
+  // passes the port it waits on that way.
+  server: {
+    port: Number(process.env.PORT ?? portFor('stories')),
+    strictPort: true,
+    headers: { [CHECKOUT_HEADER]: CHECKOUT_ROOT },
+  },
 })

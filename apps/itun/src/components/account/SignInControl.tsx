@@ -1,5 +1,5 @@
 import { useAuthActions } from '@convex-dev/auth/react'
-import { Button } from 'component-lib'
+import { Button, cn } from 'component-lib'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useSignOut } from './useSignOut'
 
@@ -30,6 +30,8 @@ type SignInControlProps = {
   label?: string
   /** `full` for a page's primary call to action (the front door). */
   size?: 'compact' | 'full'
+  /** Placement classes from the caller, e.g. `su-page-action` on a sheet band. */
+  className?: string
 }
 
 /** Sign in / sign out with Discord. */
@@ -38,6 +40,7 @@ export function SignInControl({
   redirectTo,
   label = 'Sign in with Discord',
   size = 'compact',
+  className,
 }: SignInControlProps) {
   const { signIn } = useAuthActions()
   const signOut = useSignOut()
@@ -48,7 +51,7 @@ export function SignInControl({
       <Button
         variant="ghost"
         size="compact"
-        className={onDark ? DARK_BUTTON : undefined}
+        className={cn(onDark && DARK_BUTTON, className)}
         onClick={signOut}
       >
         Sign out
@@ -64,7 +67,7 @@ export function SignInControl({
     <Button
       variant={onDark ? 'ghost' : 'primary'}
       size={size}
-      className={onDark ? DARK_BUTTON : undefined}
+      className={cn(onDark && DARK_BUTTON, className)}
       onClick={() =>
         void (redirectTo === undefined ? signIn('discord') : signIn('discord', { redirectTo }))
       }

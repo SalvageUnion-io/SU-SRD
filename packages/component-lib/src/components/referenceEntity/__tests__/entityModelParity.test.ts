@@ -50,6 +50,7 @@ import { resolveNestedSections } from '../card/nestedSections'
 import type { ActionFields } from '../card/referenceEntityCardTypes'
 import { resolveCardTable } from '../card/resolveCardTable'
 import { resolveFoldedAction } from '../card/resolveFoldedAction'
+import { resolveGuideLead } from '../card/resolveGuideLead'
 import {
   resolveDroneOwnLoadout,
   resolveNestedEntities,
@@ -258,14 +259,19 @@ describe('toEntityModel parity, every entity', () => {
 
   test('lead is the card header hint, else the first paragraph, as plain text', () => {
     // The Row's lead is the model's; this is the formula the compact card used
-    // before it did (`resolveHeaderHint`'s hint, else the first paragraph).
+    // before it did (`resolveHeaderHint`'s hint, else the first paragraph),
+    // plus a step-only guide's first step, as the catalog card's
+    // `resolveGuideLead`.
     for (const row of ENTITIES) {
       const { schemaName, entity } = row
       const { hintText } = resolveHeaderHint(entity, {
         isTitanicMeta: schemaName === 'actions' && isTitanicAction(entity as { name?: string }),
         patternListingContent: undefined,
       })
-      const lead = hintText || firstParagraphText('content' in entity ? entity.content : undefined)
+      const lead =
+        hintText ||
+        firstParagraphText('content' in entity ? entity.content : undefined) ||
+        resolveGuideLead(entity)
       agree(label(row), toEntityModel(entity).lead, lead ? plainTraitText(lead) : undefined)
     }
   })

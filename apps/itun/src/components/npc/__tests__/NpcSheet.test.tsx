@@ -78,9 +78,23 @@ describe('the sheet', () => {
     expect(screen.getByLabelText(/Move to a game or your shelf/)).toBeTruthy()
   })
 
+  test('its owner shares it with the Share button every player thing carries', async () => {
+    setQueryAnswers({ 'games:listMine': [], 'publicSheet:get': null })
+    await renderSheet()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Share Sergeant Kessler' }))
+    })
+    expect(screen.getByRole('dialog')).toBeTruthy()
+    expect(screen.getByText(/choose who can see sergeant kessler/i)).toBeTruthy()
+    expect(
+      (screen.getByRole('radio', { name: /anyone with the link/i }) as HTMLInputElement).checked
+    ).toBe(false)
+  })
+
   test('a crewmate’s NPC is read-only and says so', async () => {
     await renderSheet({ readOnly: true, confirm: undefined, madeBy: 'Sam' })
     expect(screen.queryByRole('button', { name: 'Delete Sergeant Kessler' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Share Sergeant Kessler' })).toBeNull()
     expect(screen.getByText(/You are reading a crewmate’s NPC/)).toBeTruthy()
     expect(screen.getByText('Made by Sam')).toBeTruthy()
   })

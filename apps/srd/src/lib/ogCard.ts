@@ -21,6 +21,7 @@ import type {
   SURefMetaEntity,
   SURefObjectAnyPattern,
 } from 'salvageunion-reference'
+import { displayTitle } from 'salvageunion-reference'
 import { itemHref, patternHref } from './entityHref'
 
 /**
@@ -70,7 +71,8 @@ export function ogAddress(href: string): string {
 }
 
 /**
- * The head tags a preview needs beyond the image: `og:title` is the name,
+ * The head tags a preview needs beyond the image: `og:title` is the name as
+ * the book prints it (the card sets it in caps; the tag is plain text),
  * `og:description` the kicker and byline (never the body), and `theme-color`
  * the band's tone so Discord's side bar matches the card.
  */
@@ -80,7 +82,7 @@ export function ogMetaFor(card: OgCardProps): {
   themeColor: string
 } {
   return {
-    ogTitle: ogCardTitle(card),
+    ogTitle: displayTitle(ogCardTitle(card)),
     ogDescription: ogCardDescription(card),
     themeColor: ogCardThemeColor(card),
   }

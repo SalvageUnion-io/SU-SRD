@@ -50,8 +50,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 
 ## Persistence (read before touching data)
 
-- Player data lives in **Convex** only; the stores hold this page load's rows
-  in memory. Record kinds (`src/stores/records.ts`): `pilots`, `mechs`, `crawlers`, `npcs`, `softLinks`,
+- Record kinds (`src/stores/records.ts`): `pilots`, `mechs`, `crawlers`, `npcs`, `softLinks`,
   `mechPatterns`, `encounterNpcs`. The Change Log
   ([ADR-022](../../docs/ARCHITECTURE.md)) has no device store: it is
   the Convex `changeLog` table, written by `commitChangeLog` and read by
@@ -109,7 +108,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   ([ADR-007](../../docs/ARCHITECTURE.md),
   [ADR-009](../../docs/ARCHITECTURE.md)).
 - The one sheet-local play control is `CrawlerEconomyControl.tsx`.
-- Full picture: [combat loop](../../docs/ARCHITECTURE.md#areas).
+- Full picture: [combat loop](../../docs/ARCHITECTURE.md#combat).
 
 ## Conventions
 
@@ -190,6 +189,10 @@ Static Assets in single-page-application mode on a Workers route, a script
 for misses and intheunionnow.com's 301s; config in
 `wrangler.jsonc`, headers in `public/_headers`, deployed from
 `.github/workflows/deploy-cloudflare.yml`.
+
+The `convex ai-files` block below binds `convex/**` only; amend it here.
+`npx` is denied: use `bunx convex`. Skills: `skills-lock.json`'s;
+`convex-expert` means `guidelines.md`.
 
 <!-- convex-ai-start -->
 

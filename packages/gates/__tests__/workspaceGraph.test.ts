@@ -72,9 +72,19 @@ describe('readWorkspaces, against this repo', () => {
     expect(deps('srd')).toEqual(expect.arrayContaining(['component-lib', 'observability']))
   })
 
-  test('a component-lib edit reaches both browser apps and the catalog but not the Workers', () => {
+  // The bot imports one dependency-free module, `component-lib/product` (the
+  // product's names), so it is the one Worker a component-lib edit reaches.
+  test('a component-lib edit reaches both browser apps, the catalog and the bot, not su-assets', () => {
     const selected = selectWorkspaces(['packages/component-lib/src/index.ts'], graph)
-    expect(selected).toEqual(['catalog', 'component-lib', 'gates', 'itun', 'srd', 'tools'])
+    expect(selected).toEqual([
+      'catalog',
+      'component-lib',
+      'discord-bot',
+      'gates',
+      'itun',
+      'srd',
+      'tools',
+    ])
   })
 
   test("an app's edit runs the catalog, whose story guard reads that app's stories", () => {

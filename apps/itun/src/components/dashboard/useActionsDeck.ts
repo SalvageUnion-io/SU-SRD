@@ -38,6 +38,7 @@ import type { CoreRollResult } from 'salvageunion-reference/rules'
 import {
   CORE_ROLL_BANDS,
   canActivateAction,
+  coreRollBandLabel,
   describePushOutcome,
   mechMaxEP,
   mechMaxHeat,
@@ -120,7 +121,7 @@ export type ActionsDeck = {
 const HUGE_HEAT_CAP = Number.MAX_SAFE_INTEGER
 
 function bandText(roll: CoreRollResult): string {
-  return `${roll.roll}, ${CORE_ROLL_BANDS[roll.band].label}`
+  return `${roll.roll}, ${coreRollBandLabel(roll.band)}`
 }
 
 export function useActionsDeck({
@@ -545,7 +546,7 @@ export function useActionsDeck({
             roll: roll.roll,
             band: roll.band,
             bandRange: CORE_ROLL_BANDS[roll.band].range,
-            bandLabel: CORE_ROLL_BANDS[roll.band].label,
+            bandLabel: coreRollBandLabel(roll.band),
             bandSummary: coreMechanicRowText(roll.roll),
             destructive: isDestructiveOutcome(roll.band),
           }

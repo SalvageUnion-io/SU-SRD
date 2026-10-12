@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { scanPages } from 'gates/lib/a11yScan'
+import { scanPages } from 'gates/a11y'
 import { at } from './_base'
 
 /**

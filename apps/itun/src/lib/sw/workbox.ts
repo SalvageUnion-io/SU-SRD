@@ -51,12 +51,23 @@ import type { VitePWAOptions } from 'vite-plugin-pwa'
 /** The precached app shell: the offline answer to every navigation. */
 const SHELL = 'index.html'
 
+/**
+ * The font subsets left out of the precache. Each `@fontsource` face ships
+ * `latin`, `latin-ext` and `vietnamese` subsets split by `unicode-range`, and
+ * the browser fetches a subset only when the page draws a glyph in its range;
+ * no text the app ships does, so precaching the last two cost every first visit
+ * about 157 KB of fonts it never loads. Their `@font-face` rules stay, so a
+ * name typed with, say, a Polish letter still fetches its subset online. Vite
+ * keeps the file name ahead of its hash (`barlow-latin-ext-400-normal-<hash>.woff2`).
+ */
+export const UNFETCHED_FONT_SUBSETS = '**/*-{latin-ext,vietnamese}-*.woff2'
+
 export const WORKBOX_OPTIONS = {
   globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
   // ITUN loads `actions` in full (GameDataReady's preload('all')), never as the
   // list projection the reference package also emits as a chunk, so the
   // precache skips that one. The first entry is workbox-build's default.
-  globIgnores: ['**/node_modules/**/*', '**/actions.list.generated-*.js'],
+  globIgnores: ['**/node_modules/**/*', '**/actions.list.generated-*.js', UNFETCHED_FONT_SUBSETS],
   // Replaces a worker from before network-first navigations at once and
   // reloads its tabs, which `prompt` would otherwise leave on the old build
   // indefinitely. See the header of public/sw-takeover.js.

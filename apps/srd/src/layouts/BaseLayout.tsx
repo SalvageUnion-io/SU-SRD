@@ -57,7 +57,7 @@ export type BaseLayoutProps = {
   /** Pathname WITH a trailing slash — the canonical URL is built from it. */
   pathname: string
   children: ReactNode
-  /** A book page's foot (chapter tone and citation); absent → the rules-blue band. */
+  /** A book page's foot (chapter tone and citation); absent → the licence row alone. */
   foot?: PageFoot
 }
 

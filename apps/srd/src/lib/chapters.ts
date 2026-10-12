@@ -159,9 +159,10 @@ export type BandFill = {
 const TECH_LEVEL_PAGES: ReadonlySet<string> = new Set(['systems', 'modules'])
 
 /**
- * Tech level 3's blue carries neither ink (4.0:1) nor paper (3.8:1) at 4.5:1,
- * so the foot band, which carries the citation, takes tech level 4's beneath it
- * (as a Union Crawler foot takes the deeper `crawlerBand`).
+ * Tech level 3's foot band, which carries the citation, takes tech level 4's
+ * blue beneath it (as a Union Crawler foot takes the deeper `crawlerBand`).
+ * The shade dates from when TL3 carried neither ink nor paper at 4.5:1; since
+ * its retone TL3 carries ink at 4.6:1 (`design/__tests__/contrast.test.ts`).
  */
 const FOOT_SHADE: Partial<Record<string, string>> = {
   'var(--color-tl-3)': 'var(--color-tl-4)',

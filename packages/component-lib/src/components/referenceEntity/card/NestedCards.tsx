@@ -13,7 +13,7 @@ import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityDetailDialog } from '../EntityDetailDialog'
 import { useEntityDetailLink, useEntityHref } from '../entityHrefContext'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
-import { cardKey } from './cardHelpers'
+import { cardKey, nestedTitleLevel } from './cardHelpers'
 import { nestedChildSize } from './entityCardTone'
 import type {
   NestedCard,
@@ -153,6 +153,8 @@ export function NestedCardList({
         hostDown={host.isDown}
         data={nested}
         parentSeal={seal}
+        // On a page, a heading under its tray's section band.
+        titleAs={nestedTitleLevel(host.onPage)}
         hostName={host.entityName}
         chassisName={host.chassisName}
         shownProse={host.shownProse}
@@ -262,7 +264,8 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
     />
   ))
   // On a page the drone card's own type stamp says what it is: no tray, no
-  // "Drone" slab around it.
+  // "Drone" slab around it. With no section band holding it, its title stays a
+  // span (`nestedTitleLevel` is for a card under a band's h2).
   if (host.onPage) return <div style={TRAY_STACK}>{cards}</div>
   return (
     <CardTray label={drones.length === 1 ? 'Drone' : 'Drones'} size={host.size}>

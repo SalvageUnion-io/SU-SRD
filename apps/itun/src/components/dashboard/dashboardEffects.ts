@@ -13,7 +13,8 @@
  */
 
 import type { Mech } from 'itun-domain/schemas/mech'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import type { StatLabel } from 'salvageunion-reference'
+import { SalvageUnionReference, STAT_LABELS } from 'salvageunion-reference'
 import { resolveInstalledRef } from 'salvageunion-reference/rules'
 
 export type ActivatableEffect = {
@@ -30,11 +31,18 @@ type WithContributions = {
   contributions?: Array<{ stat: string; amount: unknown; duration?: string }>
 }
 
+/** A stat's names by the data's key; a key the vocabulary lacks reads as itself. */
+const STAT_NAMES: Readonly<Record<string, StatLabel | undefined>> = STAT_LABELS
+
+function statName(key: string): string {
+  return STAT_NAMES[key]?.label ?? key
+}
+
 function describe(c: { stat: string; amount: unknown }): string {
-  const stat = c.stat === 'cargoCapacity' ? 'Cargo Capacity' : c.stat
+  const stat = statName(c.stat)
   if (typeof c.amount === 'number') return `+${c.amount} ${stat}`
   if (c.amount && typeof c.amount === 'object' && 'fromStat' in c.amount) {
-    return `${stat} by this Mech's ${String((c.amount as { fromStat: string }).fromStat)}`
+    return `${stat} by this Mech's ${statName(String((c.amount as { fromStat: string }).fromStat))}`
   }
   return `changes ${stat}`
 }

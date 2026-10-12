@@ -1,3 +1,4 @@
+import type { ElementType } from 'react'
 import { useMemo } from 'react'
 import type { EntityInstance, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
@@ -29,6 +30,8 @@ export type EntityProps = EntitySource & {
   peek?: boolean
   /** Row only: a "do" entity's head wears its tone (an ability's tier), not the ink banner. */
   toned?: boolean
+  /** Row only: the title's element — a heading where the Row is a page's entry (default `span`). */
+  titleAs?: ElementType
 }
 
 /**
@@ -39,7 +42,7 @@ export type EntityProps = EntitySource & {
  * `ReferenceEntityCard` draws those.
  */
 export function Entity(props: EntityProps) {
-  const { form, instance, mode, lead, omit, fact, peek, toned } = props
+  const { form, instance, mode, lead, omit, fact, peek, toned, titleAs } = props
   const { entity, pattern } = props
   const ownModel = props.model
   const model = useMemo(
@@ -58,6 +61,7 @@ export function Entity(props: EntityProps) {
           omit={omit}
           peek={peek}
           toned={toned}
+          slots={titleAs ? { titleAs } : undefined}
         />
       )
     case 'token':

@@ -1,6 +1,6 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Badge } from '../../components/atoms/Badge'
-import { activateOnKey, FOCUS_RING } from '../../components/atoms/interaction'
+import { FOCUS_RING } from '../../components/atoms/interaction'
 import { RadioCard } from '../../components/containers/RadioCardGroup'
 import type { EntityMode } from '../types'
 
@@ -20,10 +20,50 @@ export function SelectedSeal({ word = 'Selected' }: { word?: string }) {
   )
 }
 
+/** The toggle's checkbox: the WCAG 2.2 minimum target, no shrinking in the head. */
+const CHECK = {
+  flex: 'none',
+  height: 'var(--space-24)',
+  margin: 0,
+  width: 'var(--space-24)',
+} satisfies CSSProperties
+
 /**
- * SELECT's surface: the whole form toggles. `radio` is a `RadioCard`
- * (`role="radio"`, `aria-checked`, the arrow keys inside a `RadioCardGroup`);
- * `toggle` is a button with `aria-pressed`. Enter and Space select.
+ * SELECT's control in `toggle` mode: a real `<input type="checkbox">` in the
+ * head, named for what choosing does. It is the surface's one keyboard and
+ * screen-reader path; `accent` paints its check in the head's own foreground
+ * so it reads on an ink band and a tone band alike. Its click stops at the box,
+ * so the surface's pointer convenience never toggles it a second time.
+ */
+export function SelectCheck({
+  mode,
+  label,
+  accent,
+}: {
+  mode: SelectMode
+  label: string
+  accent: string
+}) {
+  return (
+    <input
+      type="checkbox"
+      checked={mode.selected}
+      onChange={mode.onSelect}
+      onClick={(e: MouseEvent) => e.stopPropagation()}
+      aria-label={label}
+      className={FOCUS_RING}
+      style={{ ...CHECK, accentColor: accent, cursor: 'pointer' }}
+    />
+  )
+}
+
+/**
+ * SELECT's surface. `radio` is a `RadioCard` (`role="radio"`, `aria-checked`,
+ * the arrow keys inside a `RadioCardGroup`). `toggle` is a plain element whose
+ * click is a POINTER convenience only — no role, tab stop or name — because
+ * the real control is the `SelectCheck` checkbox inside it: a `role="button"`
+ * surface would nest that checkbox in another control and turn the Row's
+ * facts and traits presentational.
  */
 export function SelectSurface({
   mode,
@@ -38,15 +78,13 @@ export function SelectSurface({
   style?: CSSProperties
   children: ReactNode
 }) {
-  const cls = `${className} ${FOCUS_RING}`
-  const surfaceStyle = { ...style, cursor: 'pointer' }
   if (mode.role === 'radio') {
     return (
       <RadioCard
         selected={mode.selected}
         onSelect={mode.onSelect}
-        className={cls}
-        style={surfaceStyle}
+        className={`${className} ${FOCUS_RING}`}
+        style={{ ...style, cursor: 'pointer' }}
         aria-label={label}
       >
         {children}
@@ -54,17 +92,9 @@ export function SelectSurface({
     )
   }
   return (
-    // biome-ignore lint/a11y/useSemanticElements: the surface holds block content (the head and the body), which a <button> may not
-    <div
-      role="button"
-      tabIndex={0}
-      aria-pressed={mode.selected}
-      aria-label={label}
-      className={cls}
-      style={surfaceStyle}
-      onClick={mode.onSelect}
-      onKeyDown={activateOnKey(mode.onSelect)}
-    >
+    // biome-ignore lint/a11y/noStaticElementInteractions: a pointer convenience; the SelectCheck checkbox inside is the control
+    // biome-ignore lint/a11y/useKeyWithClickEvents: the keyboard path is the SelectCheck checkbox inside
+    <div className={className} style={{ ...style, cursor: 'pointer' }} onClick={mode.onSelect}>
       {children}
     </div>
   )

@@ -71,6 +71,7 @@ import {
   encounterNpcChips,
   encounterNpcReading,
   kicker,
+  linkChip,
   mechChips,
   npcChips,
   npcReading,
@@ -201,19 +202,22 @@ type ServerFacts = {
   games: (ShelfGame & MoveTargetGame)[] | undefined
   /** Who can see each of your patterns; undefined likewise. */
   sharing: PatternSharing[] | undefined
+  /** The ids of your sheets anyone with the link may read; undefined likewise. */
+  sharedByLink: string[] | undefined
 }
 
 function ConnectedShelves() {
   const games = useQuery(api.games.listMine, {})
   const sharing = useQuery(api.shelf.patternSharing, {})
-  return <ShelvesPage games={games} sharing={sharing} />
+  const sharedByLink = useQuery(api.shelf.sharedByLink, {})
+  return <ShelvesPage games={games} sharing={sharing} sharedByLink={sharedByLink} />
 }
 
 /** Shelves: the server's facts when Connected, the cached pile otherwise. */
 export function Shelves() {
   const { mode } = useConnection()
   if (mode === 'connected') return <ConnectedShelves />
-  return <ShelvesPage games={undefined} sharing={undefined} />
+  return <ShelvesPage games={undefined} sharing={undefined} sharedByLink={undefined} />
 }
 
 // ---------------------------------------------------------------------------
@@ -241,7 +245,7 @@ function fileStem(name: string): string {
     .slice(0, 40)
 }
 
-function ShelvesPage({ games, sharing }: ServerFacts) {
+function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const { mode, canWrite } = useConnection()
   const { confirm, dialog } = useConfirm()
   const go = useGo()
@@ -507,7 +511,10 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
                     name={p.name}
                     reading={rowStats(pilotRailItems(p))[0]}
                     href={`/sheet/pilot/${p.id}`}
-                    chips={pilotChips({ pilot: p, games, softLinks, mechNames })}
+                    chips={[
+                      ...pilotChips({ pilot: p, games, softLinks, mechNames }),
+                      ...linkChip(sharedByLink, p.id),
+                    ]}
                     menu={unitMenu('pilot', p, p)}
                   />
                 ))}
@@ -528,7 +535,10 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
                     name={m.name}
                     reading={rowStats(mechRailItems(m))[0]}
                     href={`/sheet/mech/${m.id}`}
-                    chips={mechChips({ mech: m, games, softLinks, pilotNames, patternNames })}
+                    chips={[
+                      ...mechChips({ mech: m, games, softLinks, pilotNames, patternNames }),
+                      ...linkChip(sharedByLink, m.id),
+                    ]}
                     menu={unitMenu('mech', m, m)}
                   />
                 ))}
@@ -549,7 +559,10 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
                     name={c.name}
                     reading={crawlerReading(c) ?? rowStats(crawlerRailItems(c))[0]}
                     href={`/sheet/crawler/${c.id}`}
-                    chips={crawlerChips({ crawler: c, games })}
+                    chips={[
+                      ...crawlerChips({ crawler: c, games }),
+                      ...linkChip(sharedByLink, c.id),
+                    ]}
                     menu={unitMenu('crawler', c, c)}
                   />
                 ))}
@@ -614,7 +627,11 @@ function ShelvesPage({ games, sharing }: ServerFacts) {
                     reading={npcReading(n)}
                     href={`/sheet/npc/${n.id}`}
                     userMade
-                    chips={npcChips({ npc: n, games })}
+                    chips={npcChips({
+                      npc: n,
+                      games,
+                      sharedByLink: sharedByLink?.includes(n.id) ?? false,
+                    })}
                     menu={unitMenu('npc', n, n)}
                   />
                 ))}

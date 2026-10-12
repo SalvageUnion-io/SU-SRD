@@ -7,16 +7,20 @@ import { buttonVariants, cn } from 'component-lib'
  */
 
 /**
- * App-bar icon button (poster `.iconbtn`, clean-pilot.html:117-129): a 38px
- * bordered square. Shared by LiveSheet's back button and SheetActionsMenu's
+ * App-bar icon button (poster `.iconbtn`, clean-pilot.html:117-129): a
+ * bordered square at the page-top control height (`.su-page-action`). Shared by LiveSheet's back button and SheetActionsMenu's
  * "⋯" overflow trigger so the bar's two icon buttons can never drift apart.
  *
  * Built ON `buttonVariants` rather than re-inlining its class string — that
  * recipe is exported precisely for non-`<button>` elements, and one of these
  * two consumers is a link. Restating it by hand meant every Button change
  * (focus ring, disabled state, radius) silently skipped the app bar. Only the
- * square 38px geometry is layered on top: `.su-sheet-iconbtn`
- * (`styles/sheet/mech.css`), a class rather than a style object because this
- * export is a class string.
+ * square geometry is layered on top: `.su-page-action`'s height and
+ * `.su-sheet-iconbtn`'s matching width (`styles/sheet/mech.css`), classes
+ * rather than a style object because this export is a class string.
  */
-export const SHEET_ICONBTN_CLASS = cn(buttonVariants({ variant: 'default' }), 'su-sheet-iconbtn')
+export const SHEET_ICONBTN_CLASS = cn(
+  buttonVariants({ variant: 'default' }),
+  'su-page-action',
+  'su-sheet-iconbtn'
+)

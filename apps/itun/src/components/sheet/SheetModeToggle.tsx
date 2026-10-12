@@ -10,34 +10,50 @@ import { tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { SheetMode } from './sheetMode'
 
+/** The pair's row. The frame is the buttons' own, so the toggle stands exactly
+ * as tall as its neighbours (`.su-page-action`); a frame on this row would add
+ * its two borders on top. */
 const GROUP = {
-  borderColor: tokens.color.ink,
-  borderRadius: tokens.radius.card,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.chrome,
   display: 'inline-flex',
-  overflow: 'hidden',
 } satisfies CSSProperties
 
 const BUTTON = {
   backgroundColor: tokens.color.paper,
-  border: 0,
+  borderColor: tokens.color.ink,
+  borderStyle: 'solid',
+  borderWidth: tokens.borderWidth.chrome,
   color: tokens.color.ink,
   cursor: 'pointer',
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.lede,
   fontWeight: tokens.weight.bold,
   letterSpacing: tokens.tracking.capsTight,
-  minHeight: '40px',
   padding: `0 ${tokens.space[16]}`,
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-const ON = {
+/** The leading half: the frame's left corners. */
+const FIRST = {
   ...BUTTON,
+  borderEndStartRadius: tokens.radius.card,
+  borderStartStartRadius: tokens.radius.card,
+} satisfies CSSProperties
+
+/** The trailing half: its right corners, and no left border to double the seam. */
+const LAST = {
+  ...BUTTON,
+  borderEndEndRadius: tokens.radius.card,
+  borderInlineStartWidth: 0,
+  borderStartEndRadius: tokens.radius.card,
+} satisfies CSSProperties
+
+const ON = {
   backgroundColor: tokens.color.ink,
   color: tokens.color.paper,
 } satisfies CSSProperties
+
+const FIRST_ON = { ...FIRST, ...ON } satisfies CSSProperties
+const LAST_ON = { ...LAST, ...ON } satisfies CSSProperties
 
 /**
  * Only on a sheet the viewer may write: a read-only sheet has nothing to switch
@@ -50,8 +66,8 @@ export function SheetModeToggle({ mode, kind }: { mode: SheetMode; kind: string 
       <button
         type="button"
         aria-pressed={!mode.editing}
-        className="su-focus-ring"
-        style={mode.editing ? BUTTON : ON}
+        className="su-focus-ring su-page-action"
+        style={mode.editing ? FIRST : FIRST_ON}
         onClick={() => mode.setEditing(false)}
       >
         Read
@@ -59,8 +75,8 @@ export function SheetModeToggle({ mode, kind }: { mode: SheetMode; kind: string 
       <button
         type="button"
         aria-pressed={mode.editing}
-        className="su-focus-ring"
-        style={mode.editing ? ON : BUTTON}
+        className="su-focus-ring su-page-action"
+        style={mode.editing ? LAST_ON : LAST}
         onClick={() => mode.setEditing(true)}
       >
         Edit

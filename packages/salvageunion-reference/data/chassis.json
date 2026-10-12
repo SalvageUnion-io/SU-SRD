@@ -9142,6 +9142,41 @@
     "techLevel": 5,
     "salvageValue": 18,
     "chassisAbilities": ["Automech", "Cerberus Control System"],
+    "heads": [
+      {
+        "name": "Kyrios",
+        "structurePoints": 25,
+        "energyPoints": 0,
+        "heatCapacity": 0,
+        "systemSlots": 15,
+        "moduleSlots": 2,
+        "cargoCapacity": 0,
+        "techLevel": 5,
+        "salvageValue": 10
+      },
+      {
+        "name": "Phren",
+        "structurePoints": 15,
+        "energyPoints": 0,
+        "heatCapacity": 0,
+        "systemSlots": 9,
+        "moduleSlots": 4,
+        "cargoCapacity": 0,
+        "techLevel": 5,
+        "salvageValue": 10
+      },
+      {
+        "name": "Morphos",
+        "structurePoints": 20,
+        "energyPoints": 0,
+        "heatCapacity": 0,
+        "systemSlots": 12,
+        "moduleSlots": 3,
+        "cargoCapacity": 0,
+        "techLevel": 5,
+        "salvageValue": 10
+      }
+    ],
     "patterns": [
       {
         "name": "TAC-OS",
@@ -9149,58 +9184,75 @@
         "page": 75,
         "systems": [
           {
-            "name": "Railgun"
+            "name": "Railgun",
+            "head": "Kyrios"
           },
           {
-            "name": "Multi-Phase Shield"
+            "name": "Multi-Phase Shield",
+            "head": "Kyrios"
           },
           {
-            "name": "Ion Cannon"
+            "name": "Ion Cannon",
+            "head": "Phren"
           },
           {
-            "name": "Shield Dome"
+            "name": "Shield Dome",
+            "head": "Phren"
           },
           {
-            "name": "Missile Pod"
+            "name": "Missile Pod",
+            "head": "Morphos"
           },
           {
             "name": "Automated Weapon Turret",
             "preselectedChoices": {
               "c05fd7f4-cd5a-4c0d-8518-3566cece416d": "Automated Machine Gun Turret"
-            }
+            },
+            "head": "Morphos"
           },
           {
             "name": "Chaff Launcher",
-            "count": 2
+            "head": "Morphos"
           },
           {
             "name": "Stabilising Locomotion System"
+          },
+          {
+            "name": "Chaff Launcher"
           }
         ],
         "modules": [
           {
-            "name": "Laser Guidance"
+            "name": "Laser Guidance",
+            "head": "Kyrios"
           },
           {
-            "name": "Thermal Optics"
+            "name": "Thermal Optics",
+            "head": "Kyrios"
           },
           {
-            "name": "Firewall"
+            "name": "Firewall",
+            "head": "Phren"
           },
           {
-            "name": "Mech Scrambler"
+            "name": "Mech Scrambler",
+            "head": "Phren"
           },
           {
-            "name": "Sonic Screecher"
+            "name": "Sonic Screecher",
+            "head": "Phren"
           },
           {
-            "name": "Comms Tapper"
+            "name": "Comms Tapper",
+            "head": "Phren"
           },
           {
-            "name": "Coolant Flow Manifold"
+            "name": "Coolant Flow Manifold",
+            "head": "Morphos"
           },
           {
-            "name": "Offensive Protocols"
+            "name": "Offensive Protocols",
+            "head": "Morphos"
           },
           {
             "name": "Comms Module"

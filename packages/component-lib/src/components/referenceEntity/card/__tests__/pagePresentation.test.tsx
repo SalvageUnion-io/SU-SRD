@@ -7,6 +7,10 @@
  * - the line art is the hero, and the stat column is the book's, in its order
  *   and its words (`buildBookStats`);
  * - a chassis ability is a framed card stamped "Chassis Ability";
+ * - the page's section bands are h2s and the cards nested under them title
+ *   themselves h3 (`nestedTitleLevel`), a Bio-Titan pattern's "Pattern
+ *   Actions" among them; a card no band holds (the chassis ability, a page's
+ *   drone) keeps a span, so the outline never skips a level;
  * - a basic chassis's patterns are full-width link rows with a "Show all"
  *   link for a phone;
  * - what the page's bands say comes from the card's own helpers
@@ -181,6 +185,112 @@ describe('the card as a page', () => {
     expect(container.querySelector('.su-entity-page')).not.toBeNull()
     expect(container.querySelector('.su-entity-page__main--art')).toBeNull()
     expect(container.querySelector('.su-entity-page__art')).toBeNull()
+  })
+
+  test('cards nested in a page title themselves h3, under the section band’s h2', () => {
+    const scylla = need(SalvageUnionReference.BioTitans.getByName('Scylla'), 'scylla')
+    render(<ReferenceEntityCard data={scylla} presentation="page" />)
+    expect(screen.getByRole('heading', { name: 'Actions', level: 2 })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Tail Sweep', level: 3 })).toBeTruthy()
+  })
+
+  test('a tray’s nested card is an h3 under the tray’s h2', () => {
+    const bay = need(SalvageUnionReference.CrawlerBays.getByName('Command Bay'), 'command bay')
+    render(<ReferenceEntityCard data={bay} presentation="page" />)
+    expect(screen.getByRole('heading', { name: 'NPC', level: 2 })).toBeTruthy()
+    expect(screen.getAllByRole('heading', { level: 3 }).length).toBeGreaterThan(0)
+  })
+
+  test('the chassis ability and its seal stay spans: no band holds them', () => {
+    const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
+    const lead = need(container.querySelector('.su-entity-page__lead') ?? undefined, 'lead')
+    expect(lead.querySelectorAll('h1, h2, h3, h4, h5, h6')).toHaveLength(0)
+  })
+
+  // The srd page's h1 is its ChapterBand, outside the card: from there the
+  // outline may go down one level at a time, never skip one (axe
+  // `heading-order`, which the srd a11y gate runs).
+  const outlineSkips = (page: ReturnType<typeof render>) =>
+    Array.from(page.container.querySelectorAll('h1, h2, h3, h4, h5, h6'))
+      .map((h) => ({ level: Number(h.tagName[1]), text: h.textContent ?? '' }))
+      .filter((h, i, all) => i > 0 && h.level > (all[i - 1]?.level ?? 0) + 1)
+      .map((h) => `h${h.level} ${h.text}`)
+  type CardProps = Parameters<typeof ReferenceEntityCard>[0]
+  const asPage = (data: CardProps['data'], pattern?: CardProps['pattern']) =>
+    render(
+      <main>
+        <h1>Page</h1>
+        <ReferenceEntityCard data={data} pattern={pattern} presentation="page" />
+      </main>
+    )
+  // The headings between a band's h2 and the next h2: what the band holds.
+  const underBand = (page: ReturnType<typeof render>, band: string) => {
+    const headings = Array.from(page.container.querySelectorAll('h1, h2, h3, h4, h5, h6'))
+    const start = headings.findIndex((h) => h.tagName === 'H2' && h.textContent === band)
+    if (start === -1) return []
+    const end = headings.findIndex((h, i) => i > start && Number(h.tagName[1]) <= 2)
+    return headings
+      .slice(start + 1, end === -1 ? undefined : end)
+      .map((h) => `${h.tagName.toLowerCase()} ${h.textContent ?? ''}`)
+  }
+
+  test('a basic chassis page’s outline never skips a level from its h1', () => {
+    for (const name of ['Gopher', 'Aegis']) {
+      const page = asPage(need(SalvageUnionReference.Chassis.getByName(name), name))
+      expect(outlineSkips(page)).toEqual([])
+      page.unmount()
+    }
+  })
+
+  // Every chassis page renders here (about a second alone, several under a
+  // loaded parallel run), so it takes a longer timeout than the default 5s.
+  test('no chassis page skips a heading level', () => {
+    const skips = SalvageUnionReference.Chassis.all().flatMap((chassis) => {
+      const page = asPage(chassis)
+      const found = outlineSkips(page).map((skip) => `${chassis.name}: ${skip}`)
+      page.unmount()
+      return found
+    })
+    expect(skips).toEqual([])
+  }, 30_000)
+
+  test('a Bio-Titan pattern page titles its own actions h3 under "Pattern Actions"', () => {
+    const typhon = need(SalvageUnionReference.BioTitans.getByName('Typhon'), 'typhon')
+    const hillWorm = need(
+      typhon.patterns?.find((p) => p.name === 'Hill Worm'),
+      'typhon hill worm pattern'
+    )
+    const page = asPage(typhon, hillWorm)
+    expect(screen.getByRole('heading', { name: 'Pattern Actions', level: 2 })).toBeTruthy()
+    expect(underBand(page, 'Pattern Actions')).toContain('h3 Metallic Reconstitution')
+    expect(outlineSkips(page)).toEqual([])
+  })
+
+  // Skip-free alone is not enough: a "Pattern Actions" h2 over span titles
+  // skips nothing yet holds nothing, so each page's band must hold h3s too.
+  test('every Bio-Titan pattern page holds its actions as h3s and skips no level', () => {
+    const problems = SalvageUnionReference.BioTitans.all().flatMap((titan) =>
+      (titan.patterns ?? []).flatMap((pattern) => {
+        const page = asPage(titan, pattern)
+        const label = `${titan.name} / ${pattern.name}`
+        const found = outlineSkips(page).map((skip) => `${label}: ${skip}`)
+        if ((pattern.actions?.length ?? 0) > 0) {
+          const held = underBand(page, 'Pattern Actions')
+          if (held.length === 0 || !held.every((h) => h.startsWith('h3 '))) {
+            found.push(`${label}: Pattern Actions holds [${held.join(', ')}]`)
+          }
+        }
+        page.unmount()
+        return found
+      })
+    )
+    expect(problems).toEqual([])
+  }, 30_000)
+
+  test('off a page, nested card titles stay spans', () => {
+    const scylla = need(SalvageUnionReference.BioTitans.getByName('Scylla'), 'scylla')
+    render(<ReferenceEntityCard data={scylla} />)
+    expect(screen.queryAllByRole('heading')).toHaveLength(0)
   })
 
   test('a nested card never takes the page presentation', () => {

@@ -64,22 +64,36 @@ describe('home: the manual’s Contents page (board 06)', () => {
     expect(html).toContain('href="/schema/guides/item/create-a-pilot/"')
   })
 
-  it('sets "At the table" as a section of the index, and offers the Discord bot in the aside', () => {
-    const index = html.slice(html.indexOf('srd-home__index'))
+  it('sets "At the table" as a section of the index, and offers the Discord bot after it', () => {
+    const index = html.slice(html.indexOf('srd-home__index'), html.indexOf('srd-home__discord'))
     expect(index).toContain('<span>At the table</span>')
     expect(index).toContain('href="/schema/roll-tables/item/core-mechanic/"')
     const aside = html.slice(html.indexOf('srd-home__aside'), html.indexOf('srd-home__index'))
     expect(aside).toContain('id="new-to-the-union"')
-    expect(aside).toContain('Add to Discord')
-    expect(aside).toContain('href="https://discord.com/oauth2/authorize?client_id=')
+    expect(aside).not.toContain('Add to Discord')
+    const discord = html.slice(html.indexOf('srd-home__discord'))
+    expect(discord).toContain('Add to Discord')
+    expect(discord).toContain('href="https://discord.com/oauth2/authorize?client_id=')
   })
 
-  it('puts first-timer content first: title, search, "New to the Union?", then the index', () => {
+  it('opens Pilot Bay, Mech Workshop and Denizens on su-assets artwork', () => {
+    const art = [...html.matchAll(/class="srd-contents__art"><img src="([^"]+)"/g)].map(
+      ([, src]) => src
+    )
+    expect(art).toEqual([
+      'https://assets.salvageunion.io/classes/hacker.webp',
+      'https://assets.salvageunion.io/chassis/mule.webp',
+      'https://assets.salvageunion.io/bio-titans/tyrant.webp',
+    ])
+  })
+
+  it('puts first-timer content first: title, search, "New to the Union?", the index, then Discord', () => {
     const at = (needle: string) => html.indexOf(needle)
     expect(at('<h1')).toBeGreaterThan(-1)
     expect(at('<h1')).toBeLessThan(at('action="/search/"'))
     expect(at('action="/search/"')).toBeLessThan(at('id="new-to-the-union"'))
     expect(at('id="new-to-the-union"')).toBeLessThan(at('id="pilot-bay"'))
+    expect(at('id="at-the-table"')).toBeLessThan(at('id="discord-bot"'))
   })
 })
 
@@ -241,20 +255,23 @@ describe('every page ends on one footer (boards 06, 07)', () => {
     })
   }
 
+  /** The licence row: the Union bar's ink, the same on every page. */
+  const licence = () => backgrounds(page('/'), 'su-chapter-foot')[0]
+
   for (const [name, path] of book) {
-    it(`${name} ends in its own chapter’s band, not a second one`, () => {
+    it(`${name} cites itself in its own chapter’s band, over the one licence row`, () => {
       const html = page(path)
       const [head] = backgrounds(html, 'su-chapter-band')
       const feet = backgrounds(html, 'su-chapter-foot')
-      expect(feet.length).toBeGreaterThan(0)
-      expect(new Set(feet).size).toBe(1)
+      expect(feet).toHaveLength(2)
       if (path.startsWith('/schema/crawlers/')) {
         // The foot carries text, so it takes the deeper crawler pink (§3.8).
         expect(feet[0]).not.toBe(head)
-        expect(feet[0]).not.toBe(backgrounds(page('/'), 'su-chapter-foot')[0])
       } else {
         expect(feet[0]).toBe(head)
       }
+      expect(feet[1]).toBe(licence())
+      expect(feet[0]).not.toBe(feet[1])
     })
   }
 
@@ -263,24 +280,11 @@ describe('every page ends on one footer (boards 06, 07)', () => {
     expect(html).toMatch(/<footer[^>]*>[\s\S]*p\.112[\s\S]*<\/footer>/)
   })
 
-  for (const [name, path] of listings) {
-    it(`${name} ends in its chapter’s band, citing nothing`, () => {
-      const html = page(path)
-      const [head] = backgrounds(html, 'su-chapter-band')
-      const feet = backgrounds(html, 'su-chapter-foot')
-      expect(feet).toHaveLength(1)
-      expect(feet[0]).not.toBe(backgrounds(page('/'), 'su-chapter-foot')[0])
-      // A crawler foot carries text, so it takes the deeper pink (§3.8).
-      if (path.startsWith('/schema/crawlers')) expect(feet[0]).not.toBe(head)
-      else expect(feet[0]).toBe(head)
-    })
-  }
-
-  for (const [name, path] of site) {
-    it(`${name} ends on the one rules-blue band, citing nothing`, () => {
+  for (const [name, path] of [...listings, ...site]) {
+    it(`${name} ends on the one licence row, citing nothing`, () => {
       const feet = backgrounds(page(path), 'su-chapter-foot')
       expect(feet).toHaveLength(1)
-      expect(feet[0]).toBe(backgrounds(page('/'), 'su-chapter-foot')[0])
+      expect(feet[0]).toBe(licence())
     })
   }
 })
