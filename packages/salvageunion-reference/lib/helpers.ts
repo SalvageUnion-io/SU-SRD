@@ -34,6 +34,7 @@ import { plainTraitText } from './traitText'
 import { isColumnsTable } from './utils/resultForTable'
 import type { TableRow } from './utils/tableRows'
 import { tableRows } from './utils/tableRows'
+import { STAT_LABELS } from './view/parts/facts'
 
 /**
  * Get the display name for a schema
@@ -418,31 +419,31 @@ export function extractStaticEntitySummary(
   const stats: { label: string; value: string | number }[] = []
 
   const sp = getStructurePoints(entity)
-  if (sp != null) stats.push({ label: 'Structure Points', value: sp })
+  if (sp != null) stats.push({ label: STAT_LABELS.structurePoints.label, value: sp })
 
   const ep = getEnergyPoints(entity)
-  if (ep != null) stats.push({ label: 'Energy Points', value: ep })
+  if (ep != null) stats.push({ label: STAT_LABELS.energyPoints.label, value: ep })
 
   const hc = getHeatCapacity(entity)
-  if (hc != null) stats.push({ label: 'Heat Capacity', value: hc })
+  if (hc != null) stats.push({ label: STAT_LABELS.heatCapacity.label, value: hc })
 
   const ss = getSystemSlots(entity)
-  if (ss != null) stats.push({ label: 'System Slots', value: ss })
+  if (ss != null) stats.push({ label: STAT_LABELS.systemSlots.label, value: ss })
 
   const ms = getModuleSlots(entity)
-  if (ms != null) stats.push({ label: 'Module Slots', value: ms })
+  if (ms != null) stats.push({ label: STAT_LABELS.moduleSlots.label, value: ms })
 
   const cc = getCargoCapacity(entity)
-  if (cc != null) stats.push({ label: 'Cargo Capacity', value: cc })
+  if (cc != null) stats.push({ label: STAT_LABELS.cargoCapacity.label, value: cc })
 
   const sv = getSalvageValue(entity)
-  if (sv != null) stats.push({ label: 'Salvage Value', value: sv })
+  if (sv != null) stats.push({ label: STAT_LABELS.salvageValue.label, value: sv })
 
   const sr = getSlotsRequired(entity)
-  if (sr != null) stats.push({ label: 'Slots Required', value: sr })
+  if (sr != null) stats.push({ label: STAT_LABELS.slotsRequired.label, value: sr })
 
   const hp = getHitPoints(entity)
-  if (hp != null) stats.push({ label: 'Hit Points', value: hp })
+  if (hp != null) stats.push({ label: STAT_LABELS.hitPoints.label, value: hp })
 
   if (techLevel != null) stats.push({ label: 'Tech Level', value: techLevel })
 

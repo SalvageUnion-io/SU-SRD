@@ -3,7 +3,7 @@ import { Caption } from 'component-lib/stories/harness'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { CORE_ROLL_BANDS } from 'salvageunion-reference/rules'
+import { CORE_ROLL_BANDS, coreRollBandLabel } from 'salvageunion-reference/rules'
 // The components import no CSS; the app (or story) loads the bundle.
 import '../../styles/dashboard.css'
 import { coreMechanicRowText } from '../../lib/rules/playActions'
@@ -212,7 +212,7 @@ export const Resolving = () => {
               roll: 14,
               band: 'success',
               bandRange: success.range,
-              bandLabel: success.label,
+              bandLabel: coreRollBandLabel(success.band),
               bandSummary: coreMechanicRowText(14),
               destructive: false,
             },

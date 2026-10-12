@@ -38,6 +38,7 @@ import {
   getAssetUrl,
   getChassisAbilities,
   getEntitySlug,
+  STAT_LABELS,
 } from 'salvageunion-reference'
 import { api } from '../../../../convex/_generated/api'
 import { BASE_PATH } from '../../../lib/appUrl'
@@ -300,12 +301,9 @@ const VISIBILITY_COPY: Record<PatternVisibility, string> = {
   game: 'Your Game’s crew can read this pattern and build from it.',
 }
 
-/** The manual's wording for a stat label (the reference spells them out). */
-const MANUAL_LABEL: Record<string, string> = {
-  'Structure Points': 'Structure Pts.',
-  'Energy Points': 'Energy Pts.',
-  'Heat Capacity': 'Heat Cap.',
-  'Cargo Capacity': 'Cargo Cap.',
+/** The manual's wording for a stat label (the summary spells them out). */
+function manualLabel(label: string): string {
+  return Object.values(STAT_LABELS).find((names) => names.label === label)?.book ?? label
 }
 
 function sharedDate(at: number): string {
@@ -458,7 +456,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               {stats.map((s) => (
                 <div key={s.label} style={PLATE}>
                   <span style={PLATE_VALUE}>{s.value}</span>
-                  <span style={PLATE_LABEL}>{MANUAL_LABEL[s.label] ?? s.label}</span>
+                  <span style={PLATE_LABEL}>{manualLabel(s.label)}</span>
                 </div>
               ))}
             </div>

@@ -1,13 +1,14 @@
 import type { CSSProperties } from 'react'
+import { CONDITION_LABELS } from 'salvageunion-reference'
 import type { BadgeTone } from '../atoms/Badge'
 import { Badge } from '../atoms/Badge'
 import type { EntityStatus } from '../atoms/entityStatus'
 
 /** The domain vocabulary maps onto the shared badge tones — one rendering. */
-const STATUS_STYLES: Record<EntityStatus, { label: string; tone: BadgeTone }> = {
-  intact: { label: 'Intact', tone: 'ok' },
-  damaged: { label: 'Damaged', tone: 'warn' },
-  destroyed: { label: 'Destroyed', tone: 'bad' },
+const STATUS_TONES: Record<EntityStatus, BadgeTone> = {
+  intact: 'ok',
+  damaged: 'warn',
+  destroyed: 'bad',
 }
 
 const CYCLE_BUTTON = { cursor: 'pointer', display: 'inline-flex' } satisfies CSSProperties
@@ -31,7 +32,8 @@ type StatusBadgeProps = {
  * handler is provided.
  */
 export function StatusBadge({ status, onClick, subject, className }: StatusBadgeProps) {
-  const { label, tone } = STATUS_STYLES[status]
+  const label = CONDITION_LABELS[status]
+  const tone = STATUS_TONES[status]
   const badge = (
     <Badge surface="tone" tone={tone} className={className}>
       {label}

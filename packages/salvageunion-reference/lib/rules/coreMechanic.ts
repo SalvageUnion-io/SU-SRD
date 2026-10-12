@@ -4,7 +4,7 @@
  * Salvage Union Core Book p.232 / Quick Ref 2.0 p.1 — the game's single
  * resolution roll. Roll a d20 and read the band:
  *
- *   20    → Nailed It       (outstanding success + a bonus of your choice)
+ *   20    → Nailed it       (outstanding success + a bonus of your choice)
  *   11-19 → Success         (goal achieved without compromise)
  *   6-10  → Tough Choice    (success at a cost — Setback attached)
  *   2-5   → Failure         (failed; Setback of the Mediator's choice)
@@ -16,17 +16,24 @@
  * auto-applies; the player marks any destroyed System/Module by hand).
  *
  * This module is PURE: no React, no store, no real randomness — the d20 is
- * injected via the shared `Roll` type so tests are deterministic.
+ * injected via the shared `Roll` type so tests are deterministic. The one read
+ * of the catalog is {@link coreRollBandLabel}: a band's title is the Core
+ * Mechanic roll table's own label, so it needs `roll-tables` preloaded.
  */
 
+import { SalvageUnionReference } from '../index'
+import { resultForTable } from '../utils/resultForTable'
 import type { HeatCheckEffect, Roll } from './types'
 
 export type CoreRollBand = 'nailed' | 'success' | 'tough' | 'failure' | 'cascade'
 
 export type CoreRollBandInfo = {
   band: CoreRollBand
-  /** Band title as printed on the Quick Ref ("Nailed It", "Tough Choice", …). */
-  label: string
+  /**
+   * The band's lowest face: where it starts on the Core Mechanic table. The
+   * title is read from the table there by {@link coreRollBandLabel}.
+   */
+  low: number
   /** The d20 range, e.g. '11–19'. */
   range: string
   /** One-line rules summary (Quick Ref 2.0 wording, condensed). */
@@ -37,34 +44,48 @@ export type CoreRollBandInfo = {
 export const CORE_ROLL_BANDS: Record<CoreRollBand, CoreRollBandInfo> = {
   nailed: {
     band: 'nailed',
-    label: 'Nailed It',
+    low: 20,
     range: '20',
     summary: 'An outstanding success — take an additional bonus of your choice.',
   },
   success: {
     band: 'success',
-    label: 'Success',
+    low: 11,
     range: '11–19',
     summary: 'You achieve your goal without any compromises.',
   },
   tough: {
     band: 'tough',
-    label: 'Tough Choice',
+    low: 6,
     range: '6–10',
     summary: 'You succeed, but the Mediator gives you a Tough Choice with a Setback attached.',
   },
   failure: {
     band: 'failure',
-    label: 'Failure',
+    low: 2,
     range: '2–5',
     summary: "You fail, and face a Setback of the Mediator's choice.",
   },
   cascade: {
     band: 'cascade',
-    label: 'Cascade Failure',
+    low: 1,
     range: '1',
     summary: 'Something has gone terribly wrong — you suffer a severe consequence.',
   },
+}
+
+/**
+ * A band's title, as the Core Mechanic roll table prints it (Workshop Manual
+ * p.232: "Nailed it", "Success", "Tough Choice", "Failure", "Cascade Failure").
+ * Read from the table's data, so the readout and the table cannot disagree.
+ *
+ * Preload requirement: `roll-tables`.
+ */
+export function coreRollBandLabel(band: CoreRollBand): string {
+  const table = SalvageUnionReference.RollTables.getByName('Core Mechanic')?.table
+  const label = resultForTable(table, CORE_ROLL_BANDS[band].low).result.label
+  if (label === undefined) throw new Error(`The Core Mechanic table has no label for ${band}`)
+  return label
 }
 
 /**

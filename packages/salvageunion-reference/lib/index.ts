@@ -200,7 +200,8 @@ export {
   resolveAdditionalSources,
   resolveProvenance,
 } from './view/parts/cite'
-export { bookStats, entityStats } from './view/parts/facts'
+export type { ItemCondition, StatLabel } from './view/parts/facts'
+export { bookStats, CONDITION_LABELS, entityStats, STAT_LABELS } from './view/parts/facts'
 export { entityTone, guideTone, headerFill } from './view/parts/fill'
 export {
   classKind,
