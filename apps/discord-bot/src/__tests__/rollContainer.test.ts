@@ -8,10 +8,10 @@ import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import type { SURefRollTable } from 'salvageunion-reference'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import { buildPostedRollMessage, buildRollMessage } from '../commands/roll.js'
-import type { ContainerData } from '../container.js'
-import { NEUTRAL_ACCENT, ROLL_COLORS } from '../format.js'
-import { buildRollContainerData, isTieredTable } from '../rollContainer.js'
+import { buildPostedRollMessage, buildRollMessage } from '../commands/roll'
+import type { ContainerData } from '../container'
+import { NEUTRAL_ACCENT, ROLL_COLORS } from '../format'
+import { buildRollContainerData, isTieredTable } from '../rollContainer'
 
 // No preload here. `apps/discord-bot/bunfig.toml` preloads
 // `../../test/reference-preload.ts`, which loads every schema once for the

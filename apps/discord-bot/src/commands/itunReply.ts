@@ -1,11 +1,11 @@
 import { MessageFlags } from 'discord-api-types/v10'
-import type { ContainerData } from '../container.js'
-import { toContainer } from '../container.js'
-import { denialMessage, ITUN_ORIGIN } from '../gameCards.js'
-import type { ItunClient } from '../itun/client.js'
-import { createItunClient } from '../itun/client.js'
-import type { ItunResult } from '../itun/types.js'
-import type { CommandExecuteInteraction } from './interactions.js'
+import type { ContainerData } from '../container'
+import { toContainer } from '../container'
+import { denialMessage, ITUN_ORIGIN } from '../gameCards'
+import type { ItunClient } from '../itun/client'
+import { createItunClient } from '../itun/client'
+import type { ItunResult } from '../itun/types'
+import type { CommandExecuteInteraction } from './interactions'
 
 /**
  * The shared spine of every ITUN Game command (ADR-030 Phase 6).

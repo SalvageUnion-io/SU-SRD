@@ -21,7 +21,7 @@
 import { describe, expect, it } from 'bun:test'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { z } from '../zod.js'
+import type { z } from '../zod'
 import {
   ActionSchema,
   ChoiceSchema,
@@ -29,7 +29,7 @@ import {
   GuideStepSchema,
   NpcSchema,
   PatternSchema,
-} from './objects.js'
+} from './objects'
 
 // --- 1. the annotation may not come back -----------------------------------
 

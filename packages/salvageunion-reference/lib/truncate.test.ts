@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { truncate } from './truncate.js'
+import { truncate } from './truncate'
 
 describe('truncate', () => {
   test('passes text at or under the cap through unchanged', () => {

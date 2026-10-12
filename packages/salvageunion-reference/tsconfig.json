@@ -1,10 +1,10 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig.worker.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "NodeNext",
-    "lib": ["ES2020"],
-    "moduleResolution": "nodenext"
+    // `tools/` are Bun scripts, and the workerd globals retype `process` so
+    // `process.exit()` stops returning `never`. The library itself uses no
+    // runtime globals, so it type-checks against Node + Bun only.
+    "types": ["node", "bun-types"]
   },
   "include": ["lib/**/*.ts", "tools/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.template.ts"]

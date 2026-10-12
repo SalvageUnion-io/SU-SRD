@@ -3,14 +3,14 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import type { SalvageUnionReference as SURefType } from './index.js'
+import type { SalvageUnionReference as SURefType } from './index'
 
 let SalvageUnionReference: typeof SURefType
 
 function getReference() {
   if (!SalvageUnionReference) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    SalvageUnionReference = require('./index.js').SalvageUnionReference
+    SalvageUnionReference = require('./index').SalvageUnionReference
   }
   return SalvageUnionReference
 }

@@ -5,9 +5,9 @@
  * costs, and hand-crafted fixtures for item-level tests.
  */
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from '../index.js'
-import { scrapCostFor, tierUpgradeCost } from './scrap.js'
-import type { ScrapableItem } from './types.js'
+import { SalvageUnionReference } from '../index'
+import { scrapCostFor, tierUpgradeCost } from './scrap'
+import type { ScrapableItem } from './types'
 
 // ---------------------------------------------------------------------------
 // Fixtures — hand-crafted items for isolation

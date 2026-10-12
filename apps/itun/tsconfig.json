@@ -1,14 +1,7 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig.dom.json",
   "compilerOptions": {
-    "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["vite/client", "node", "bun-types", "@testing-library/jest-dom"],
-
-    /* Bundler mode */
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "jsx": "react-jsx"
+    "types": ["vite/client", "node", "bun-types", "@testing-library/jest-dom"]
   },
   // `convex/**/*` is the Convex backend — auth, ownership, games, invites,
   // proposals, schema and the bot HTTP seam, i.e. the server of record for

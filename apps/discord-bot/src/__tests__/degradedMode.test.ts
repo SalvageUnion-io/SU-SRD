@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'bun:test'
-import { gamesCommand, meCommand, shelfCommand } from '../commands/account.js'
-import { crewCommand } from '../commands/crew.js'
-import { gameCommand } from '../commands/game.js'
-import { inviteCommand } from '../commands/invite.js'
-import { lookupCommand } from '../commands/lookup.js'
-import { rollCommand } from '../commands/roll.js'
-import { fakeExecute } from './fakeInteraction.js'
+import { gamesCommand, meCommand, shelfCommand } from '../commands/account'
+import { crewCommand } from '../commands/crew'
+import { gameCommand } from '../commands/game'
+import { inviteCommand } from '../commands/invite'
+import { lookupCommand } from '../commands/lookup'
+import { rollCommand } from '../commands/roll'
+import { fakeExecute } from './fakeInteraction'
 
 /**
  * **The reference bot must keep working when In The Union Now does not.**

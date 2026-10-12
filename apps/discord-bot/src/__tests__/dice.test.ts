@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import { d20ForTable, rollD20 } from '../dice.js'
+import { d20ForTable, rollD20 } from '../dice'
 
 /** Randsum's roller draws `Math.floor(Math.random() * 20) + 1`: pin the face. */
 const face = (value: number) => spyOn(Math, 'random').mockReturnValue((value - 1) / 20)

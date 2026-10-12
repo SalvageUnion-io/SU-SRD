@@ -15,8 +15,8 @@
  * consumers import.
  */
 
-import { getTraits } from './actionResolution.js'
-import type { SURefMetaEntity } from './schemas/index.js'
+import { getTraits } from './actionResolution'
+import type { SURefMetaEntity } from './schemas/index'
 
 /**
  * Get the number of inventory slots an equipment entity occupies.

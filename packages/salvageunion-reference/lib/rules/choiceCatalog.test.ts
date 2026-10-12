@@ -4,10 +4,10 @@
  * or lower) and the shortlist vs schema-only distinction.
  */
 import { describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from '../index.js'
-import type { SURefObjectChoice } from '../schemas/index.js'
-import { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities } from './choiceCatalog.js'
-import { isWeaponSystem } from './crawlerSystems.js'
+import { SalvageUnionReference } from '../index'
+import type { SURefObjectChoice } from '../schemas/index'
+import { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities } from './choiceCatalog'
+import { isWeaponSystem } from './crawlerSystems'
 
 const armamentBayChoice: SURefObjectChoice = {
   id: 'armament-bay-weapon',

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from './index.js'
+import { SalvageUnionReference } from './index'
 
 /**
  * The `expansion` data tag distinguishes base crawler facilities (pre-installed

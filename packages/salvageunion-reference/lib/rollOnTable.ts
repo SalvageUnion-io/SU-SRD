@@ -10,8 +10,8 @@
  * advantage" features) control the dice.
  */
 
-import type { SURefObjectTable } from './schemas/index.js'
-import { isColumnsTable, resultForColumnsTable, resultForTable } from './utils/resultForTable.js'
+import type { SURefObjectTable } from './schemas/index'
+import { isColumnsTable, resultForColumnsTable, resultForTable } from './utils/resultForTable'
 
 /** A d20 roller: returns an integer 1–20. Injectable for tests. */
 export type D20Roller = () => number

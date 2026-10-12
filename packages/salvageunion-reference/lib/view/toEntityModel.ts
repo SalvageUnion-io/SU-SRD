@@ -9,33 +9,28 @@ import {
   extractVisibleActions,
   getChassisAbilities,
   getChoices,
-} from '../actionResolution.js'
-import { getAssetUrl } from '../assets.js'
-import { getReferenceEntityName, getTechLevel } from '../entityFields.js'
-import type { EntitySchemaName } from '../generated/schemaRegistry.generated.js'
-import { resolveActivationCurrency } from '../helpers.js'
-import { SalvageUnionReference } from '../index.js'
-import { nameToSlug } from '../nameToSlug.js'
+} from '../actionResolution'
+import { getAssetUrl } from '../assets'
+import { getReferenceEntityName, getTechLevel } from '../entityFields'
+import type { EntitySchemaName } from '../generated/schemaRegistry.generated'
+import { resolveActivationCurrency } from '../helpers'
+import { SalvageUnionReference } from '../index'
+import { nameToSlug } from '../nameToSlug'
 import type {
   SURefEntity,
   SURefEnumSchemaName,
   SURefMetaEntity,
   SURefObjectAnyPattern,
   SURefObjectContentBlock,
-} from '../schemas/index.js'
-import { getEntitySlug } from '../slug.js'
-import { plainTraitText } from '../traitText.js'
-import { entityArt } from './parts/art.js'
-import type { NestedGroup } from './parts/children.js'
-import {
-  droneOwnLoadout,
-  entityActions,
-  nestedEntityGroups,
-  patternGroups,
-} from './parts/children.js'
-import { entityCite } from './parts/cite.js'
-import { bookStats, entityStats, techLevelFact } from './parts/facts.js'
-import { entityTone } from './parts/fill.js'
+} from '../schemas/index'
+import { getEntitySlug } from '../slug'
+import { plainTraitText } from '../traitText'
+import { entityArt } from './parts/art'
+import type { NestedGroup } from './parts/children'
+import { droneOwnLoadout, entityActions, nestedEntityGroups, patternGroups } from './parts/children'
+import { entityCite } from './parts/cite'
+import { bookStats, entityStats, techLevelFact } from './parts/facts'
+import { entityTone } from './parts/fill'
 import {
   classKind,
   entityStamp,
@@ -43,11 +38,11 @@ import {
   isDoEntity,
   schemaDomain,
   tierNumeral,
-} from './parts/kind.js'
-import { entityLead, firstParagraphText } from './parts/lead.js'
-import { entityTable } from './parts/table.js'
-import type { ActionFacets, FacetCell } from './parts/traits.js'
-import { facetCells, formatCost, perTechLevelByLabel } from './parts/traits.js'
+} from './parts/kind'
+import { entityLead, firstParagraphText } from './parts/lead'
+import { entityTable } from './parts/table'
+import type { ActionFacets, FacetCell } from './parts/traits'
+import { facetCells, formatCost, perTechLevelByLabel } from './parts/traits'
 import type {
   EntityChildGroup,
   EntityInstance,
@@ -55,7 +50,7 @@ import type {
   EntityRef,
   Fact,
   TraitMention,
-} from './types.js'
+} from './types'
 
 function schemaNameOf(entity: SURefMetaEntity): EntitySchemaName | undefined {
   return 'schemaName' in entity && typeof entity.schemaName === 'string'

@@ -12,16 +12,16 @@
  * whole dataset for this workspace.
  */
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from '../index.js'
-import type { SURefClass } from '../schemas/index.js'
-import type { AdvancementDataset } from './advancement.js'
+import { SalvageUnionReference } from '../index'
+import type { SURefClass } from '../schemas/index'
+import type { AdvancementDataset } from './advancement'
 import {
   advancementOptionsFor,
   gateTreeFor,
   hybridGrantedTrees,
   originsForHybrid,
   resolveAdvancementTrees,
-} from './advancement.js'
+} from './advancement'
 
 const data: AdvancementDataset = {
   classes: (SalvageUnionReference.Classes.all() as SURefClass[]).map((c) => ({

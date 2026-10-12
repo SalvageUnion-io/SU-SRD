@@ -18,8 +18,8 @@
  * `isWeaponSystem`, made damage-type-explicit). Requires the referenced schemas
  * (and `actions`, for a `damageType` filter) to be preloaded.
  */
-import { SalvageUnionReference } from '../index.js'
-import type { SURefMetaAction, SURefMetaEntity, SURefObjectChoice } from '../schemas/index.js'
+import { SalvageUnionReference } from '../index'
+import type { SURefMetaAction, SURefMetaEntity, SURefObjectChoice } from '../schemas/index'
 
 type DamageType = 'HP' | 'SP'
 

@@ -4,9 +4,9 @@
  * vocabulary that admits `actions` alongside the entity schemas.
  */
 
-import { z } from '../../zod.js'
-import { NameSchema, PositiveIntegerSchema } from '../common.js'
-import { SchemaNameSchema, SourceSchema } from '../enums.js'
+import { z } from '../../zod'
+import { NameSchema, PositiveIntegerSchema } from '../common'
+import { SchemaNameSchema, SourceSchema } from '../enums'
 
 /**
  * Formation member schema

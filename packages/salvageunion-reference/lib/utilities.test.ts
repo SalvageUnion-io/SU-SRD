@@ -3,8 +3,8 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { extractActions, getChassisAbilities } from './actionResolution.js'
-import { getAssetUrl, SRD_SITE_URL, srdEntityPath, srdEntityUrl } from './assets.js'
+import { extractActions, getChassisAbilities } from './actionResolution'
+import { getAssetUrl, SRD_SITE_URL, srdEntityPath, srdEntityUrl } from './assets'
 import {
   getCargoCapacity,
   getEnergyPoints,
@@ -20,18 +20,18 @@ import {
   getTechLevelNumber,
   getUpgradeCost,
   getUpkeepCost,
-} from './entityFields.js'
+} from './entityFields'
 // Import SalvageUnionReference - use lazy getter to avoid initialization issues
-import type { SalvageUnionReference as SURefType } from './index.js'
-import { getPatterns, isHiddenPattern, normalizePatternName, visiblePatterns } from './patterns.js'
-import { getEntitySlug } from './slug.js'
+import type { SalvageUnionReference as SURefType } from './index'
+import { getPatterns, isHiddenPattern, normalizePatternName, visiblePatterns } from './patterns'
+import { getEntitySlug } from './slug'
 
 let SalvageUnionReference: typeof SURefType
 
 function getReference() {
   if (!SalvageUnionReference) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    SalvageUnionReference = require('./index.js').SalvageUnionReference
+    SalvageUnionReference = require('./index').SalvageUnionReference
   }
   return SalvageUnionReference
 }

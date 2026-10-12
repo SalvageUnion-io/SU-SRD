@@ -14,11 +14,11 @@
 import { afterAll, beforeEach, describe, expect, it } from 'bun:test'
 import actionRows from '../data/actions.json' with { type: 'json' }
 import chassisRows from '../data/chassis.json' with { type: 'json' }
-import { extractActions } from './actionResolution.js'
-import { BaseModel } from './BaseModel.js'
+import { extractActions } from './actionResolution'
+import { BaseModel } from './BaseModel'
 import actionListRows from './generated/actions.list.generated.json' with { type: 'json' }
-import { resetAllForTesting, SalvageUnionReference, SchemaNotLoadedError } from './index.js'
-import { toListRow } from './listProjection.js'
+import { resetAllForTesting, SalvageUnionReference, SchemaNotLoadedError } from './index'
+import { toListRow } from './listProjection'
 
 // After all preload tests complete, restore the global preload state so
 // other test files that run after this one see loaded schemas.

@@ -3,7 +3,7 @@
  * of bucket layouts the books actually print.
  */
 
-import { z } from '../../zod.js'
+import { z } from '../../zod'
 
 /**
  * Table content with label and value

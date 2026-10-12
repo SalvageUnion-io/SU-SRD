@@ -16,7 +16,7 @@
 
 import type { SURefEntity } from 'salvageunion-reference'
 import { getDataMaps, getSchemaCatalog, isSchemaName, toEntityModel } from 'salvageunion-reference'
-import type { LookupHit } from './lookupCard.js'
+import type { LookupHit } from './lookupCard'
 
 /** A term found in a message: the entry, the words that named it, and the row a label matched. */
 export type FoundTerm = { hit: LookupHit; matched: string; row?: string }

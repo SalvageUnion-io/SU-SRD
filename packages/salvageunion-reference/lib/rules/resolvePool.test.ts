@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { resolveGauge, resolvePool } from './derivedStats.js'
+import { resolveGauge, resolvePool } from './derivedStats'
 
 /**
  * The two rules these encode look alike and mean opposite things, which is why

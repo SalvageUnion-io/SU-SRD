@@ -3,9 +3,9 @@
  * These functions provide convenient access patterns used by consuming applications
  */
 
-import { getActionType, getDamage, getRange, getTraits } from './actionResolution.js'
-import { getAssetUrl } from './assets.js'
-import type { ModelWithMetadata } from './BaseModel.js'
+import { getActionType, getDamage, getRange, getTraits } from './actionResolution'
+import { getAssetUrl } from './assets'
+import type { ModelWithMetadata } from './BaseModel'
 import {
   getCargoCapacity,
   getContent,
@@ -23,17 +23,17 @@ import {
   getSystemSlots,
   getTechLevel,
   getTree,
-} from './entityFields.js'
-import { lazyModelMap } from './generated/schemaRegistry.generated.js'
-import { SalvageUnionReference, SchemaToDisplayName } from './index.js'
-import type { EnhancedSchemaMetadata } from './ModelFactory.js'
-import { getSchemaCatalog } from './ModelFactory.js'
-import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './schemas/index.js'
-import { getEntitySlug } from './slug.js'
-import { plainTraitText } from './traitText.js'
-import { isColumnsTable } from './utils/resultForTable.js'
-import type { TableRow } from './utils/tableRows.js'
-import { tableRows } from './utils/tableRows.js'
+} from './entityFields'
+import { lazyModelMap } from './generated/schemaRegistry.generated'
+import { SalvageUnionReference, SchemaToDisplayName } from './index'
+import type { EnhancedSchemaMetadata } from './ModelFactory'
+import { getSchemaCatalog } from './ModelFactory'
+import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './schemas/index'
+import { getEntitySlug } from './slug'
+import { plainTraitText } from './traitText'
+import { isColumnsTable } from './utils/resultForTable'
+import type { TableRow } from './utils/tableRows'
+import { tableRows } from './utils/tableRows'
 
 /**
  * Get the display name for a schema

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import { resolveDataValueForTechLevel } from './contentBlockHelpers.js'
-import type { SURefObjectDataValue } from './schemas/index.js'
+import { resolveDataValueForTechLevel } from './contentBlockHelpers'
+import type { SURefObjectDataValue } from './schemas/index'
 
 const damage: SURefObjectDataValue = {
   label: 'Damage',
@@ -37,7 +37,7 @@ describe('resolveDataValueForTechLevel', () => {
   })
 
   it('resolves the real Custom Sniper Rifle damage from reference data', async () => {
-    const { SalvageUnionReference } = await import('./index.js')
+    const { SalvageUnionReference } = await import('./index')
     const sniper = SalvageUnionReference.Equipment.getByName('Custom Sniper Rifle')
     expect(sniper?.techLevel).toBe(1)
     const dv = sniper?.content

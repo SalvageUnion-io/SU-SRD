@@ -16,8 +16,8 @@
  * 'classes' before calling (the app root preloads 'all').
  */
 
-import { SalvageUnionReference } from '../index.js'
-import type { AbilityInput, AbilityTier, PilotSnapshot } from './types.js'
+import { SalvageUnionReference } from '../index'
+import type { AbilityInput, AbilityTier, PilotSnapshot } from './types'
 
 type TreeTierIndex = {
   core: Set<string>

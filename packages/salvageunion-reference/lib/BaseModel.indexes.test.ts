@@ -14,11 +14,11 @@
  * id is also some other row's name or slug — which the dataset never does.
  */
 import { describe, expect, test } from 'bun:test'
-import type { ModelWithMetadata } from './BaseModel.js'
-import { BaseModel } from './BaseModel.js'
-import { SalvageUnionReference, SchemaToModelMap } from './index.js'
-import { nameToSlug } from './nameToSlug.js'
-import { malformed } from './testing.js'
+import type { ModelWithMetadata } from './BaseModel'
+import { BaseModel } from './BaseModel'
+import { SalvageUnionReference, SchemaToModelMap } from './index'
+import { nameToSlug } from './nameToSlug'
+import { malformed } from './testing'
 
 type Row = { id?: string; name?: string }
 

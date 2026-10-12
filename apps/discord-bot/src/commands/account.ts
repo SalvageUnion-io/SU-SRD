@@ -1,7 +1,7 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
-import { gamesCard, ITUN_ORIGIN, meCard, shelfCard } from '../gameCards.js'
-import type { CommandExecuteInteraction } from './interactions.js'
-import { respondWithItun } from './itunReply.js'
+import { gamesCard, ITUN_ORIGIN, meCard, shelfCard } from '../gameCards'
+import type { CommandExecuteInteraction } from './interactions'
+import { respondWithItun } from './itunReply'
 
 /**
  * The three **personal** ITUN subcommands: `/su me`, `/su games`, `/su my-stuff`.

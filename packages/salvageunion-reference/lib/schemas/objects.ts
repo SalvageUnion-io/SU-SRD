@@ -28,26 +28,26 @@
  * naming the re-exports keeps those from leaking into the package's surface.
  */
 
-export { ActionSchema } from './objects/actions.js'
-export { ChoiceSchema, ChoicesSchema } from './objects/choices.js'
-export { ContentBlockSchema, ContentSchema } from './objects/content.js'
+export { ActionSchema } from './objects/actions'
+export { ChoiceSchema, ChoicesSchema } from './objects/choices'
+export { ContentBlockSchema, ContentSchema } from './objects/content'
 export {
   ContributionAmountSchema,
   ContributionSchema,
   ContributionStatSchema,
   ContributionTargetSchema,
-} from './objects/contributions.js'
-export { CrawlerMutationSchema } from './objects/crawlerMutations.js'
-export { ChoiceEffectSchema, EffectTargetSchema } from './objects/effects.js'
-export { AdvancedClassSchema, BaseEntitySchema } from './objects/entityBase.js'
-export { GuideStepSchema, GuideToneSchema, GuideTypeSchema } from './objects/guides.js'
-export { NpcSchema } from './objects/npc.js'
+} from './objects/contributions'
+export { CrawlerMutationSchema } from './objects/crawlerMutations'
+export { ChoiceEffectSchema, EffectTargetSchema } from './objects/effects'
+export { AdvancedClassSchema, BaseEntitySchema } from './objects/entityBase'
+export { GuideStepSchema, GuideToneSchema, GuideTypeSchema } from './objects/guides'
+export { NpcSchema } from './objects/npc'
 export {
   BioTitanPatternSchema,
   PatternDroneConfigSchema,
   PatternSchema,
   PatternSystemModuleSchema,
-} from './objects/patterns.js'
+} from './objects/patterns'
 export {
   ChassisStatsSchema,
   CombatEntitySchema,
@@ -57,12 +57,12 @@ export {
   StatsSchema,
   StructurePointsSchema,
   TraitSchema,
-} from './objects/primitives.js'
+} from './objects/primitives'
 export {
   FormationMechSchema,
   GrantSchema,
   SchemaNameWithActionsSchema,
-} from './objects/references.js'
-export { AdditionalSourceSchema } from './objects/sources.js'
-export { SystemModuleSchema } from './objects/systemModule.js'
-export { TableContentSchema, TableSchema } from './objects/tables.js'
+} from './objects/references'
+export { AdditionalSourceSchema } from './objects/sources'
+export { SystemModuleSchema } from './objects/systemModule'
+export { TableContentSchema, TableSchema } from './objects/tables'

@@ -8,9 +8,9 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import type { CardField, ContainerData } from './container.js'
-import { entityCard } from './container.js'
-import { NEUTRAL_ACCENT, ROLL_COLORS } from './format.js'
+import type { CardField, ContainerData } from './container'
+import { entityCard } from './container'
+import { NEUTRAL_ACCENT, ROLL_COLORS } from './format'
 import type {
   ChannelResult,
   CrewResult,
@@ -22,7 +22,7 @@ import type {
   SheetResult,
   SheetTable,
   ShelfResult,
-} from './itun/types.js'
+} from './itun/types'
 
 /**
  * Card builders for the ITUN Game commands (ADR-030 Phase 6).

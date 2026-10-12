@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test'
-import { EntitySchemaNames } from './index.js'
-import { BaseEntitySchema } from './schemas/objects/entityBase.js'
-import { entityFixture } from './testing.js'
+import { EntitySchemaNames } from './index'
+import { BaseEntitySchema } from './schemas/objects/entityBase'
+import { entityFixture } from './testing'
 
 describe('entityFixture', () => {
   // The header promises the defaulted base fields are valid for every entity

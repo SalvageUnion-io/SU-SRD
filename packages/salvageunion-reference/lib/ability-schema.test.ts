@@ -13,7 +13,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { AbilitySchema } from './schemas/entities.js'
+import { AbilitySchema } from './schemas/entities'
 
 describe('AbilitySchema field optionality', () => {
   const baseAbility = {

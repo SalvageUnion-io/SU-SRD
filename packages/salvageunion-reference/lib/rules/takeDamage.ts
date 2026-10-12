@@ -48,7 +48,7 @@ import type {
   CriticalInjuryOutcome,
   CriticalInjuryResult,
   Roll,
-} from './types.js'
+} from './types'
 
 /** What the incoming weapon lists in its profile (drives the p.240/241 conversions). */
 export type DamageKind = 'sp' | 'hp'

@@ -2,11 +2,11 @@
  * An entity's ROLL TABLE. Ported from component-lib's `resolveCardTable.ts`.
  */
 
-import { SalvageUnionReference } from '../../index.js'
-import type { SURefObjectTable } from '../../schemas/index.js'
-import { isColumnsTable } from '../../utils/resultForTable.js'
-import { tableRows } from '../../utils/tableRows.js'
-import type { EntityTable } from '../types.js'
+import { SalvageUnionReference } from '../../index'
+import type { SURefObjectTable } from '../../schemas/index'
+import { isColumnsTable } from '../../utils/resultForTable'
+import { tableRows } from '../../utils/tableRows'
+import type { EntityTable } from '../types'
 
 /**
  * The table a record carries: INLINE as `table`, or BY REFERENCE as a

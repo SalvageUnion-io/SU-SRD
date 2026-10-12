@@ -12,7 +12,7 @@
  * consumers import.
  */
 
-import type { SURefMetaEntity, SURefObjectGrant } from './schemas/index.js'
+import type { SURefMetaEntity, SURefObjectGrant } from './schemas/index'
 
 // ============================================================================
 // PROPERTY EXTRACTORS

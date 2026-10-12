@@ -1,6 +1,6 @@
-import { handleButtonInteraction } from '../buttons.js'
-import type { CommandButtonInteraction } from '../commands/interactions.js'
-import type { ReplyArg } from './fakeInteraction.js'
+import { handleButtonInteraction } from '../buttons'
+import type { CommandButtonInteraction } from '../commands/interactions'
+import type { ReplyArg } from './fakeInteraction'
 
 /**
  * A fake button interaction, wired to the real router.

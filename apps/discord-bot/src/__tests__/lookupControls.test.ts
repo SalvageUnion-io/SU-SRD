@@ -5,7 +5,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import { buttonInteractionHandlerFor } from './helpers.js'
+import { buttonInteractionHandlerFor } from './helpers'
 
 type Node = { content?: string; components?: Node[] }
 type Json = { toJSON(): { components: Node[] } }

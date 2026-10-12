@@ -8,9 +8,9 @@
  * getSubcommand() and getSubcommandGroup().
  */
 import { describe, expect, test } from 'bun:test'
-import { commands } from '../commands/index.js'
-import { suCommand } from '../commands/su.js'
-import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
+import { commands } from '../commands/index'
+import { suCommand } from '../commands/su'
+import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
 describe('/su command', () => {
   test('is the one slash command, beside the message context menu', () => {

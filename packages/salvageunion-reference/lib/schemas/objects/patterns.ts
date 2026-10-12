@@ -3,11 +3,11 @@
  * drone configuration entries a pattern is built from.
  */
 
-import { z } from '../../zod.js'
-import { NameSchema, NonNegativeIntegerSchema, PositiveIntegerSchema } from '../common.js'
-import { SourceSchema } from '../enums.js'
-import { ContentSchema } from './content.js'
-import { AdditionalSourceSchema } from './sources.js'
+import { z } from '../../zod'
+import { NameSchema, NonNegativeIntegerSchema, PositiveIntegerSchema } from '../common'
+import { SourceSchema } from '../enums'
+import { ContentSchema } from './content'
+import { AdditionalSourceSchema } from './sources'
 
 /**
  * Pattern system/module configuration

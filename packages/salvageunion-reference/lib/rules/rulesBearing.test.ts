@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { statesMechanicalChange } from './rulesBearing.js'
+import { statesMechanicalChange } from './rulesBearing'
 
 describe('statesMechanicalChange', () => {
   it('detects a cap claim', () => {

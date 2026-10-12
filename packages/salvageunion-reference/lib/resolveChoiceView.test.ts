@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'bun:test'
-import type { ChoiceSelections } from './resolveChoiceView.js'
-import { resolveChoiceView } from './resolveChoiceView.js'
+import type { ChoiceSelections } from './resolveChoiceView'
+import { resolveChoiceView } from './resolveChoiceView'
 import type {
   SURefObjectChoice,
   SURefObjectContentBlock,
   SURefObjectDataValue,
   SURefObjectTrait,
-} from './schemas/index.js'
+} from './schemas/index'
 
 /**
  * These tests drive the resolver from the schema, not from any specific real

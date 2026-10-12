@@ -23,7 +23,7 @@
  *     lazy fixture.
  */
 
-import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated.js'
+import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated'
 
 /** The fields BaseEntitySchema requires of every entity, defaulted per schema. */
 function requiredEntityFields(schemaName: EntitySchemaName) {

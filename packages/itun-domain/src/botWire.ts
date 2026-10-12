@@ -10,14 +10,13 @@
  *
  * ## Why this module imports NOTHING
  *
- * That is the whole reason it is separate from `apps/itun/convex/model/bot.ts`. The bot
- * type-checks under `moduleResolution: nodenext`, and every file it imports is
- * type-checked under the bot's settings — including this one. `model/bot.ts`
- * imports `_generated/*` extensionlessly, which nodenext rejects, and would drag
- * Convex's generated data model into the bot's program besides. A leaf module
- * with no imports is valid under both configurations and costs the bot nothing
- * at runtime: `import type` is erased, so no Convex or React code can reach the
- * Worker bundle through it.
+ * That is the whole reason it is separate from `apps/itun/convex/model/bot.ts`.
+ * Every file the bot imports is type-checked under the bot's settings —
+ * including this one. `model/bot.ts` imports `_generated/*`, which would drag
+ * Convex's generated data model (and the `convex` package the bot does not
+ * depend on) into the bot's program. A leaf module with no imports is valid in
+ * both programs and costs the bot nothing at runtime: `import type` is erased,
+ * so no Convex or React code can reach the Worker bundle through it.
  *
  * Keep it that way. Ids are plain `string` here — a Convex `Id<'games'>` is a
  * branded string and assigns to it, and on the wire it is only ever a string.

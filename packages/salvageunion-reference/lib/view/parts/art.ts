@@ -4,12 +4,12 @@
  * component-lib's `missingArtMark.ts`; drawing it (the torn edge) stays there.
  */
 
-import { getAssetUrl } from '../../assets.js'
-import { getPageReference, getTechLevel } from '../../entityFields.js'
-import { getModel } from '../../helpers.js'
-import { SalvageUnionReference } from '../../index.js'
-import type { SURefMetaEntity } from '../../schemas/index.js'
-import type { EntityArt, MissingArtVariant } from '../types.js'
+import { getAssetUrl } from '../../assets'
+import { getPageReference, getTechLevel } from '../../entityFields'
+import { getModel } from '../../helpers'
+import { SalvageUnionReference } from '../../index'
+import type { SURefMetaEntity } from '../../schemas/index'
+import type { EntityArt, MissingArtVariant } from '../types'
 
 const VARIANTS: readonly MissingArtVariant[] = ['file', 'row', 'removed']
 

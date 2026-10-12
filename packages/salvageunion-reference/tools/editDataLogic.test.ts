@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { parseTree } from 'jsonc-parser'
-import { addEntity, setField, withId } from './editDataLogic.js'
+import { addEntity, setField, withId } from './editDataLogic'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {

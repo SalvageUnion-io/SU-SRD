@@ -8,14 +8,14 @@ import {
   SalvageUnionReference,
   toEntityModel,
 } from 'salvageunion-reference'
-import type { ButtonSpec, ContainerData } from '../container.js'
-import { containerTextLength, toContainer, V2_LIMIT } from '../container.js'
-import { decodeRollResult, encodeRollRequest, encodeRollResult, makeCustomId } from '../customId.js'
-import { d20ForTable, rollD20 } from '../dice.js'
-import { noEffectContainer, unknownTableContainer } from '../errorContainer.js'
-import { buildRollContainerData } from '../rollContainer.js'
-import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-import { attributeRoll } from './rollAttribution.js'
+import type { ButtonSpec, ContainerData } from '../container'
+import { containerTextLength, toContainer, V2_LIMIT } from '../container'
+import { decodeRollResult, encodeRollRequest, encodeRollResult, makeCustomId } from '../customId'
+import { d20ForTable, rollD20 } from '../dice'
+import { noEffectContainer, unknownTableContainer } from '../errorContainer'
+import { buildRollContainerData } from '../rollContainer'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
+import { attributeRoll } from './rollAttribution'
 
 /**
  * An error container, ephemeral. A typo is the asker's problem, not the

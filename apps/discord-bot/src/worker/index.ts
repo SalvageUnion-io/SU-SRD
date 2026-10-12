@@ -34,11 +34,11 @@ import type { APIInteraction } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType } from 'discord-api-types/v10'
 import { reportError, withObservability } from 'observability/cloudflare'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { handleButtonInteraction } from '../buttons.js'
-import { commands } from '../commands/index.js'
-import type { SignedInteraction } from '../commands/interactions.js'
-import { setItunClient } from '../commands/itunReply.js'
-import { createItunClient } from '../itun/client.js'
+import { handleButtonInteraction } from '../buttons'
+import { commands } from '../commands/index'
+import type { SignedInteraction } from '../commands/interactions'
+import { setItunClient } from '../commands/itunReply'
+import { createItunClient } from '../itun/client'
 import {
   interactionName,
   makeAutocompleteInteraction,
@@ -46,8 +46,8 @@ import {
   makeExecuteInteraction,
   ResponseSink,
   webhookRoutes,
-} from './adapter.js'
-import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './verify.js'
+} from './adapter'
+import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './verify'
 
 /**
  * Reference data, loaded once per isolate at module scope.

@@ -13,8 +13,8 @@
  * All functions are pure — no side effects, no async, no React.
  */
 
-import { SalvageUnionReference } from '../index.js'
-import type { ScrapableItem, TechLevel } from './types.js'
+import { SalvageUnionReference } from '../index'
+import type { ScrapableItem, TechLevel } from './types'
 
 /**
  * Returns the buy (install) cost of an item in units of its own tech level's

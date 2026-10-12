@@ -9,11 +9,7 @@
   // merge green. As a workspace, `bun --filter "*" typecheck` reaches it.
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "lib": ["ES2022"],
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    // `tools/` reads JSON baselines (styling-baseline) directly.
-    "resolveJsonModule": true
+    "lib": ["ES2022"]
   },
   "include": ["**/*.ts", "../test/**/*.ts"]
 }

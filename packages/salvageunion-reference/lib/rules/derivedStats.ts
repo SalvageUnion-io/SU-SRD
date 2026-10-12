@@ -18,11 +18,11 @@
  * `src/lib/schemas/`) satisfy them automatically.
  */
 
-import { SalvageUnionReference } from '../index.js'
-import type { ActiveEffects, ResolvedContribution } from './contributions.js'
-import { abilityContributions, installedContributions, sumContributions } from './contributions.js'
-import { crawlerMaxSpBonus } from './creation.js'
-import { resolveChassisRef, resolveCrawlerRef } from './resolveRefs.js'
+import { SalvageUnionReference } from '../index'
+import type { ActiveEffects, ResolvedContribution } from './contributions'
+import { abilityContributions, installedContributions, sumContributions } from './contributions'
+import { crawlerMaxSpBonus } from './creation'
+import { resolveChassisRef, resolveCrawlerRef } from './resolveRefs'
 
 // ---------------------------------------------------------------------------
 // Pilot

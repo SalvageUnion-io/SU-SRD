@@ -1,4 +1,4 @@
-import type { SignedInteraction } from '../commands/interactions.js'
+import type { SignedInteraction } from '../commands/interactions'
 import type {
   BindResult,
   ChannelResult,
@@ -12,7 +12,7 @@ import type {
   SheetResult,
   SheetTable,
   ShelfResult,
-} from './types.js'
+} from './types'
 
 /**
  * The bot's client for the ITUN Convex deployment (ADR-030 Phase 6).

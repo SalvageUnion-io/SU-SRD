@@ -22,7 +22,7 @@
  *     renders "The The …".
  */
 
-import { parseTraitReferences } from '../lib/traitText.js'
+import { parseTraitReferences } from '../lib/traitText'
 
 export type TraitIssue = {
   file: string

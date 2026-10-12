@@ -4,9 +4,9 @@ import type {
   SlashCommandOptionsOnlyBuilder,
   SlashCommandSubcommandsOnlyBuilder,
 } from '@discordjs/builders'
-import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-import { lookUpMessageCommand } from './lookUpMessage.js'
-import { suCommand } from './su.js'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
+import { lookUpMessageCommand } from './lookUpMessage'
+import { suCommand } from './su'
 
 export type Command = {
   data:

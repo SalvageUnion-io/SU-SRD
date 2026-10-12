@@ -12,8 +12,8 @@
  * consumers import.
  */
 
-import type { SURefMetaEntity } from './schemas/index.js'
-import { getEntitySlug } from './slug.js'
+import type { SURefMetaEntity } from './schemas/index'
+import { getEntitySlug } from './slug'
 
 /**
  * Base URL of the artwork CDN — the `su-assets` Cloudflare Worker, backed by the

@@ -10,7 +10,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { NEUTRAL_ACCENT, ROLL_COLORS } from '../format.js'
+import { NEUTRAL_ACCENT, ROLL_COLORS } from '../format'
 
 const THEME_CSS = new URL(
   '../../../../packages/component-lib/src/styles/theme.css',
