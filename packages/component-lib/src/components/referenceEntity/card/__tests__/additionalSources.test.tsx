@@ -53,7 +53,7 @@ describe('the "Also in" reprint line', () => {
     render(<ReferenceEntityCard data={kit} />)
 
     // The PRIMARY source keeps its line, unchanged and unlabelled…
-    expect(screen.getByText(`Salvage Union Workshop Manual · p.${kit.page}`)).toBeTruthy()
+    expect(screen.getByText(`Workshop Manual · p.${kit.page}`)).toBeTruthy()
     // …and the reprint is a labelled SECOND line in the same treatment, so it
     // reads as an additional printing rather than a competing provenance.
     expect(screen.getByText('Also in')).toBeTruthy()
@@ -84,7 +84,7 @@ describe('the "Also in" reprint line', () => {
     render(<ReferenceEntityCard data={sled} />)
 
     // The footer is otherwise intact: the primary source still prints.
-    expect(screen.getByText(`Salvage Union Workshop Manual · p.${sled.page}`)).toBeTruthy()
+    expect(screen.getByText(`Workshop Manual · p.${sled.page}`)).toBeTruthy()
     expect(screen.queryByText('Also in')).toBeNull()
   })
 })
@@ -111,7 +111,7 @@ describe('reprint provenance across the size / extent axes', () => {
     const kit = equipmentNamed('First Aid Kit')
     const { container } = render(<ReferenceEntityCard data={kit} size="medium" />)
     const text = container.textContent ?? ''
-    expect(text).toContain(`Salvage Union Workshop Manual · p.${kit.page}`)
+    expect(text).toContain(`Workshop Manual · p.${kit.page}`)
     expect(text).not.toContain('Also in')
   })
 })
@@ -161,8 +161,9 @@ describe('provenance formatting', () => {
     )
     // A booklet code names nothing without the book it indexes into.
     expect(formatProvenance(undefined, 'PH', 38)).toBe('p.38')
+    // The core book prints by its one name, whatever the data calls it.
     expect(formatProvenance('Salvage Union Workshop Manual', undefined, undefined)).toBe(
-      'Salvage Union Workshop Manual'
+      'Workshop Manual'
     )
     expect(formatProvenance(undefined, undefined, undefined)).toBeUndefined()
   })

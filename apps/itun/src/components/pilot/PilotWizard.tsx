@@ -263,7 +263,11 @@ export function PilotWizard({
             { source: 'Salvage Union Workshop Manual', page: 18 },
             'Make a copy of the Character Sheet; your Pilot starts with 10 Hit Points, 5 Ability Points, and 6 Inventory Slots.'
           ),
-          cite: 'Core Book · p.18 · Pilot Stats p.20',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 18,
+            see: [{ label: 'Pilot Stats', page: 20 }],
+          },
         }
       case 'classAbility':
         return {
@@ -271,7 +275,11 @@ export function PilotWizard({
             { source: 'Salvage Union Workshop Manual', page: 18 },
             'There are six core Pilot classes; Engineer, Hacker, Hauler, Salvager, Scout, and Soldier. Each is differentiated by the different Ability trees they can pick from. Your Pilot starts with 1 Ability of your choice. The Salvager is an exception: as a ‘jack of all trades’ Class, they can pick from any of the Core Ability trees — however, they can never advance beyond them.'
           ),
-          cite: 'Core Book · p.18 · Pilot Classes pp.26–77',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 18,
+            see: [{ label: 'Pilot Classes', page: [26, 77] }],
+          },
         }
       case 'equipment':
         return {
@@ -279,7 +287,11 @@ export function PilotWizard({
             { source: 'Salvage Union Workshop Manual', page: 19 },
             'You may choose two pieces of Tech 1 Pilot Equipment from the list. Note these in your inventory. Most items fill 1 Inventory Slot; Heavy and Portable gear fills 2.'
           ),
-          cite: 'Core Book · p.19 · Pilot Equipment pp.78–87',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 19,
+            see: [{ label: 'Pilot Equipment', page: [78, 87] }],
+          },
         }
       case 'callsign':
         return {
@@ -287,7 +299,11 @@ export function PilotWizard({
             { source: 'Salvage Union Workshop Manual', page: 19 },
             'Your Pilot’s Callsign is the name everyone on the Union Crawler refers to them as. It is typically a nickname, but can be their actual name. Pick or roll on the Callsign Table, or have everyone else at the table choose one for your Pilot based on their impression of them. Callsigns may also change in play in this manner.'
           ),
-          cite: 'Core Book · p.19 · Callsign Table p.88',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 19,
+            see: [{ label: 'Callsign Table', page: 88 }],
+          },
         }
       case 'background':
         return {
@@ -295,7 +311,11 @@ export function PilotWizard({
             { source: 'Salvage Union Workshop Manual', page: 19 },
             'Your Pilot’s Background is where they came from before they joined the Union Crawler. They may have been a wastelander, a member of the corpos, a wanderer, or even a born salvager. If a Pilot takes an action that aligns with their Background they may re-roll the dice on the action, accepting the second result. This Ability can be used once; a Pilot regains its use following Downtime.'
           ),
-          cite: 'Core Book · p.19 · Background Table p.89',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 19,
+            see: [{ label: 'Background Table', page: 89 }],
+          },
         }
       case 'motto':
         return {
@@ -303,7 +323,11 @@ export function PilotWizard({
             { source: 'Salvage Union Workshop Manual', page: 19 },
             'Your Pilot’s Motto is a phrase they happen to be fond of using. They may say this phrase, as a Free Action or Reaction, at a time during the game that feels appropriate, and another Pilot may re-roll the dice, accepting the second result. This Ability can be used once; a Pilot regains its use following Downtime.'
           ),
-          cite: 'Core Book · p.19 · Motto Table p.90',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 19,
+            see: [{ label: 'Motto Table', page: 90 }],
+          },
         }
       case 'keepsake':
         return {
@@ -311,7 +335,11 @@ export function PilotWizard({
             { source: 'Salvage Union Workshop Manual', page: 18 },
             'Your Pilot’s Keepsake is an item that is personal and important to them. It could be an old photograph, a childhood bobblehead toy, or a music mixtape from an old sweetheart. If a Pilot takes an action that aligns with why their Keepsake is important to them, they may re-roll the dice on the action, accepting the second result. This Ability can be used once; a Pilot regains its use following Downtime.'
           ),
-          cite: 'Core Book · p.18 · Keepsake Table p.90',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 18,
+            see: [{ label: 'Keepsake Table', page: 90 }],
+          },
         }
       case 'appearance':
         return {
@@ -319,12 +347,16 @@ export function PilotWizard({
             { source: 'Salvage Union Workshop Manual', page: 18 },
             'Briefly describe the appearance of your Pilot, and consider their gender and pronouns. Are they alluring, fancy, glamorous, tall, stocky, sloppy, or intimidating? Do they have any iconic features such as scars, wildly spiked hair, a mischievous grin, or crooked teeth? What type of clothing do they wear? Do they go by she, he, they, or something else?'
           ),
-          cite: 'Core Book · p.18 · Appearance Table p.91',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 18,
+            see: [{ label: 'Appearance Table', page: 91 }],
+          },
         }
       case 'review':
         return {
           rule: `Recap: 1 class · 1 ability · 2 Tech 1 items · ${PILOT_BASE_HP} HP · ${PILOT_BASE_AP} AP · ${PILOT_BASE_INVENTORY_SLOTS} slots. Check the build, then create.`,
-          cite: 'Core Book · pp.18–19',
+          cite: { source: 'Salvage Union Workshop Manual', page: [18, 19] },
         }
     }
   })()

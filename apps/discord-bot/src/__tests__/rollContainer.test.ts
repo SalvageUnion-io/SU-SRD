@@ -166,7 +166,7 @@ describe('every roll renders the same furniture', () => {
       .filter((line) => line.startsWith('-# '))
     expect(small).toHaveLength(3)
     expect(small[1]).toBe('-# Lands on 11–19')
-    expect(small.at(-1)).toStartWith('-# Salvage Union Workshop Manual p.')
+    expect(small.at(-1)).toStartWith('-# Workshop Manual p.')
     expect(small.at(-1)).toEndWith(' · Powered by Randsum.dev')
   })
 

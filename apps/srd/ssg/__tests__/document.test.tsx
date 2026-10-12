@@ -232,7 +232,7 @@ describe('head assembly from DocumentMeta', () => {
       title: 'Scrapper - Chassis - Salvage Union SRD',
       description: 'The body, for search.',
       ogTitle: 'Scrapper',
-      ogDescription: 'Chassis · Tech Level 1 · Salvage Union Workshop Manual · p.104',
+      ogDescription: 'Chassis · Tech Level 1 · Workshop Manual · p.104',
       themeColor: 'var-free-tone',
     })
     expect(html).toContain('<title>Scrapper - Chassis - Salvage Union SRD</title>')
@@ -240,10 +240,10 @@ describe('head assembly from DocumentMeta', () => {
     expect(metaContent(html, 'og:title')).toBe('Scrapper')
     expect(metaContent(html, 'twitter:title')).toBe('Scrapper')
     expect(metaContent(html, 'og:description')).toBe(
-      'Chassis · Tech Level 1 · Salvage Union Workshop Manual · p.104'
+      'Chassis · Tech Level 1 · Workshop Manual · p.104'
     )
     expect(metaContent(html, 'twitter:description')).toBe(
-      'Chassis · Tech Level 1 · Salvage Union Workshop Manual · p.104'
+      'Chassis · Tech Level 1 · Workshop Manual · p.104'
     )
     expect(metaContent(html, 'og:image:alt')).toBe('Scrapper')
     expect(metaContent(html, 'theme-color')).toBe('var-free-tone')

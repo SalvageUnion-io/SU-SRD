@@ -34,7 +34,7 @@ export type OgCardProps =
       /** The band colour: the entity's tone, any CSS colour. */
       tone: string
       stats: OgCardStat[]
-      /** The page cite: "Salvage Union Workshop Manual · p.104". */
+      /** The page cite: "Workshop Manual · p.104". */
       cite?: string
     })
   | (OgCardBase & {

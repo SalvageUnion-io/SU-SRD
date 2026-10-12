@@ -221,7 +221,7 @@ describe('blocked controls teach the rule (F6, ADR-021)', () => {
 
     // It teaches rather than acting: the rule is shown and NOTHING is written.
     expect(screen.getByText(/Heat Cap/i)).toBeTruthy()
-    expect(screen.getByText(/Core Book · p\.234/)).toBeTruthy()
+    expect(screen.getByText(/Workshop Manual · p\.234/)).toBeTruthy()
     expect(calls).toHaveLength(0)
   })
 
@@ -241,7 +241,7 @@ describe('blocked controls teach the rule (F6, ADR-021)', () => {
 
     await clickAndSettle(screen.getByRole('button', { name: /push/i }))
 
-    expect(screen.queryByText(/Core Book · p\.234/)).toBeNull()
+    expect(screen.queryByText(/Workshop Manual · p\.234/)).toBeNull()
     expect(calls.length).toBeGreaterThan(0)
   })
 })

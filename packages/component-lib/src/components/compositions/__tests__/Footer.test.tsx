@@ -15,7 +15,7 @@ const LINKS = [
 const GOPHER: FooterFoot = {
   tone: 'mech',
   page: 112,
-  citation: 'Salvage Union Workshop Manual · also in Salvage Union Starter Set (PC) · p.26',
+  citation: 'Workshop Manual · also in Salvage Union Starter Set (PC) · p.26',
   measure: '75rem',
 }
 

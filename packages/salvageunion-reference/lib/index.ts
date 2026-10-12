@@ -208,6 +208,9 @@ export {
 } from './view/parts/children'
 export {
   type AdditionalSource,
+  type BookCite,
+  type CitePage,
+  formatCite,
   formatProvenance,
   resolveAdditionalSources,
   resolveProvenance,

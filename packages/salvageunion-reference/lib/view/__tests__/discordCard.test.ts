@@ -50,7 +50,7 @@ describe('discordCardParts', () => {
     expect(parts.head[2]).toBe('`12` STRUCTURE PTS. · `4` ENERGY PTS. · `6` HEAT CAP.')
     expect(parts.thumbnail?.url).toContain('mule')
     expect(parts.cite).toBe(
-      '-# Salvage Union Workshop Manual p.100 · also in Salvage Union Starter Set (PC) p.12'
+      '-# Workshop Manual p.100 · also in Salvage Union Starter Set (PC) p.12'
     )
   })
 

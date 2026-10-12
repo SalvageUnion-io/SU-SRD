@@ -28,6 +28,7 @@ import { nameToSlug } from '../nameToSlug'
 import { displayTitle } from '../naming'
 import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index'
 import { replaceTraitReferences } from '../traitText'
+import { formatProvenance } from './parts/cite'
 import { toEntityModel } from './toEntityModel'
 import type { EntityModel, EntityRef, Fact, TraitMention } from './types'
 
@@ -260,10 +261,10 @@ function heading(model: EntityModel, url: string | undefined): string {
   return `## ${tier}${link(displayTitle(model.title), url)}`
 }
 
-/** `Salvage Union Workshop Manual p.100 · also in … (PC) p.12`. */
+/** `Workshop Manual p.100 · also in … (PC) p.12`. */
 export function discordCiteLine(model: EntityModel): string {
   const { source, booklet, page, citation } = model.cite
-  const book = source ? (booklet ? `${source} (${booklet})` : source) : undefined
+  const book = formatProvenance(source, booklet, undefined)
   const head = [book, page !== undefined ? `p.${page}` : undefined].filter(Boolean).join(' ')
   const reprints =
     book && citation?.startsWith(book) ? citation.slice(book.length).replace(/ · p\./g, ' p.') : ''

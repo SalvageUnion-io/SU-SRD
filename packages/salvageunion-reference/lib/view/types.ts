@@ -92,7 +92,7 @@ export type EntityCite = {
   source?: string
   booklet?: string
   page?: number
-  /** The book, then any reprints: "Salvage Union Workshop Manual · also in …". */
+  /** The book, then any reprints: "Workshop Manual · also in …". */
   citation?: string
 }
 
