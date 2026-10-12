@@ -56,3 +56,13 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/*
+ * The narrower drawer panel ITUN asks for (its `w-72`, 18rem), on the Nav
+ * Drawer story's ITUN example. A class because it reaches the panel through
+ * `panelClassName`; this file is imported unlayered, so it beats the panel's
+ * full-width default in `index.css` just as the app's utility does.
+ */
+.su-story-nav-drawer-narrow {
+  width: 18rem;
+}
