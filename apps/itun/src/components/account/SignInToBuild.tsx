@@ -2,7 +2,7 @@
  * SignInToBuild — what a signed-out visitor sees where building would be.
  *
  * Signed out, ITUN is read-only
- * ([ADR-034](../../../../../docs/ARCHITECTURE.md#adr-034) decision 1, as
+ * ([ADR-034](../../../../../docs/ARCHITECTURE.md#decisions) decision 1, as
  * amended): every pilot, mech and crawler lives in an account, so there is
  * nothing to build into without one. The Roster and the three `/…/new` routes
  * render this in place of their create affordances, so a visitor meets the
