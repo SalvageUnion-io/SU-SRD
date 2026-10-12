@@ -13,8 +13,10 @@ import { FOCUS_RING } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
 import { usePatternHref } from '../entityHrefContext'
 import { firstParagraphText } from './firstParagraphText'
+import { PatternLoadout } from './PatternLoadout'
 import { PatternUniques } from './PatternUniques'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
+import { resolvePatternGroups } from './resolveNestedEntities'
 
 /**
  * `PatternListRow` — one row of a host's (a chassis's or a Bio-Titan's)
@@ -124,10 +126,11 @@ export function PatternList({
  * PAGE view — one pattern as a CARD in the Row's language (entity display
  * language, Row): the host's tone in the head with the pattern's quoted name
  * and the chevron, then a paper body with the pattern's opening paragraph
- * clamped as a lead, and under it what the pattern changes (`PatternUniques`),
- * its loadout Tokens, each of which links and Peeks. The HEAD is the link to
- * the pattern's page; the body cannot be, because its Tokens are links of
- * their own.
+ * clamped as a lead, and under it what the pattern changes: its loadout,
+ * Systems beside Modules, one full-width Token a line (`PatternLoadout fill`),
+ * or the actions a Bio-Titan pattern adds (`PatternUniques`). The HEAD is the
+ * link to the pattern's page; the body cannot be, because its Tokens are links
+ * of their own.
  */
 function PatternLinkRow({
   chassis,
@@ -148,6 +151,7 @@ function PatternLinkRow({
   )
   const name = normalizePatternName(pattern.name)
   const description = firstParagraphText(pattern.content)
+  const loadout = useMemo(() => resolvePatternGroups(pattern), [pattern])
   const paint = paintFor(model.tone, { down: host.hostDown, texture: surface.texture })
   const head = (
     <Head title={`“${name}”`} paint={paint} affordance={href ? <LinkChevron /> : undefined} />
@@ -173,6 +177,15 @@ function PatternLinkRow({
             <Lead text={description} />
           </div>
         )}
+        {loadout.length > 0 && (
+          <PatternLoadout
+            groups={loadout}
+            sectionAs={undefined}
+            hostDown={host.hostDown}
+            fill
+            owner={name}
+          />
+        )}
         <PatternUniques
           className="su-pattern-rows__unique"
           pattern={pattern}
@@ -181,6 +194,7 @@ function PatternLinkRow({
           hostName={chassisName}
           chassisName={host.chassisName}
           NestedCard={host.NestedCard}
+          loadout={false}
         />
       </div>
     </li>

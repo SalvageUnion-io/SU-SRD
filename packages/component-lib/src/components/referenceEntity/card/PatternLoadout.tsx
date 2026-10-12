@@ -9,6 +9,9 @@ import { cardKey } from './cardHelpers'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 import type { NestedGroup } from './resolveNestedEntities'
 
+/** `fill`: the list stacks its Tokens and stretches each across the column. */
+const FILL_LIST: CSSProperties = { alignItems: 'stretch', flexDirection: 'column' }
+
 /**
  * A pattern's LOADOUT — its Systems and Modules groups SIDE BY SIDE, each a
  * dashed Slab over a wrap of shortform badges (see `LoadoutBadge`).
@@ -27,13 +30,32 @@ export function PatternLoadout({
   groups,
   sectionAs,
   hostDown,
+  fill = false,
+  owner,
 }: {
   groups: NestedGroup[]
   sectionAs: ElementType | undefined
   hostDown: boolean
+  /**
+   * One Token a line, each the column's full width (`.su-pattern-loadout--fill`):
+   * a pattern's card in its host's list on a page, where the card spans the
+   * page and a wrap of short Tokens would leave each column ragged.
+   */
+  fill?: boolean
+  /**
+   * Whose loadout, prefixed to each list's name ("Hauler Systems installed"):
+   * a page lists many patterns, and a bare "Systems installed" would not say
+   * which one a list belongs to.
+   */
+  owner?: string
 }) {
   return (
-    <div className="grid grid-cols-1 gap-x-3 gap-y-1.5 sm:grid-cols-2">
+    <div
+      className={cn(
+        'grid grid-cols-1 gap-x-3 gap-y-1.5 sm:grid-cols-2',
+        fill && 'su-pattern-loadout--fill'
+      )}
+    >
       {groups.map((group, index) => (
         <div
           key={group.label}
@@ -57,8 +79,9 @@ export function PatternLoadout({
               a screen reader should announce "list, 6 items" rather than a run
               of anonymous links. `list-none` keeps the markers off. */}
           <ul
-            aria-label={`${group.label} installed`}
+            aria-label={`${owner ? `${owner} ` : ''}${group.label} installed`}
             className="flex list-none flex-wrap items-start gap-1.5"
+            style={fill ? FILL_LIST : undefined}
           >
             {group.entities.map((item, itemIndex) => (
               <li key={cardKey(item, itemIndex)} className="min-w-0">

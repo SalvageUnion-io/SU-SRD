@@ -329,9 +329,17 @@ describe('pattern rows show what each pattern changes', () => {
   for (const presentation of ['card', 'page'] as const) {
     test(`a mech pattern row lists its loadout as tokens (${presentation})`, () => {
       render(<ReferenceEntityCard data={mule()} presentation={presentation} />)
-      const loadout = screen.getByRole('list', { name: 'Hauler loadout' })
-      expect(loadout.textContent).toContain('Transport Hold')
-      expect(loadout.textContent).toContain('Reactor Flare')
+      // A card wraps one list of Tokens; a page's card splits Systems from
+      // Modules, each list named for its pattern.
+      const [systems, modules] =
+        presentation === 'page'
+          ? [
+              screen.getByRole('list', { name: 'Hauler Systems installed' }),
+              screen.getByRole('list', { name: 'Hauler Modules installed' }),
+            ]
+          : [screen.getByRole('list', { name: 'Hauler loadout' })]
+      expect(systems?.textContent).toContain('Transport Hold')
+      expect((modules ?? systems)?.textContent).toContain('Reactor Flare')
     })
 
     test(`a Bio-Titan pattern row embeds the action it adds (${presentation})`, () => {
