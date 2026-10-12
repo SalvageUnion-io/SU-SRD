@@ -81,6 +81,9 @@ Two rules the owner set:
   (`su:roll:<table>|<userId>`); anyone else is told, privately, to roll it
   themselves. Lookup's `Roll on this table` is a first roll and stays open, as
   do buttons posted before the id was added.
+- **A re-roll shares its first roll's status.** A private roll's `Roll again`
+  carries `|p` and answers privately, recording nothing until posted; a public
+  or posted roll's re-roll is public. A private miss stays private too.
 
 **See table** (`su:table:<table>|<rolls>`) answers privately with the whole
 table and this roll's row marked (`> ▶`, `ROLLED 14 · Alex`). It carries the
@@ -157,3 +160,5 @@ Open:
 - **Tabs are shared.** A tap redraws a public card for everyone. If that proves
   noisy, answer tabs ephemerally instead.
 - **The foot's brand** waits on the ITUN domain move (#1244).
+- **Which commands to keep at all** is measured, not decided here: the
+  [D12 usage spike](../spikes/d12-bot-command-usage.md).

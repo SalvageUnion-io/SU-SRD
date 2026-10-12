@@ -1,4 +1,5 @@
-import type { ComponentPropsWithRef, ReactNode } from 'react'
+import type { ComponentPropsWithRef, CSSProperties, ReactNode } from 'react'
+import { color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { INPUT_FOCUS } from './interaction'
 
@@ -18,17 +19,50 @@ type ChoiceProps = Omit<ComponentPropsWithRef<'input'>, 'type'> & {
 
 /**
  * The framed choice row shared by `Checkbox` and `Radio`: a paper card with a
- * 1.5px ink border (the same `border-chrome border-ink bg-paper` chrome `Input`
- * wears), a native `<input>` at the left, then the bold-ink label and an
+ * 1.5px ink border (the same paper / ink chrome `Input` wears), a native `<input>` at the left, then the bold-ink label and an
  * optional muted description. Clicking anywhere on the row toggles it because
  * the whole row IS the `<label>` — native semantics, so screen readers get the
  * right role and radio groups arrow-key between options for free.
  */
-const CHOICE_ROW =
-  'flex cursor-pointer items-center gap-2 rounded-card border-chrome border-ink bg-paper p-2 hover:bg-ink-8'
+const CHOICE_ROW = {
+  alignItems: 'center',
+  borderColor: color.ink,
+  borderRadius: radius.card,
+  borderStyle: 'solid',
+  cursor: 'pointer',
+  display: 'flex',
+  gap: space[8],
+} satisfies CSSProperties
 
-/** The native input in the form vocabulary: ink check/fill + the shared focus ring. */
-const CHOICE_INPUT = cn('accent-ink', INPUT_FOCUS)
+/** Stacked: the label sits on the hint's first line, not centred on the pair. */
+const CHOICE_ROW_STACKED = { ...CHOICE_ROW, alignItems: 'flex-start' } satisfies CSSProperties
+
+/** The native input in the form vocabulary: an ink check/fill. */
+const CHOICE_INPUT = { accentColor: color.ink } satisfies CSSProperties
+const CHOICE_INPUT_STACKED = { ...CHOICE_INPUT, marginTop: space[2] } satisfies CSSProperties
+
+const LABEL_TEXT = {
+  color: color.ink,
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  fontWeight: weight.medium,
+  lineHeight: 'calc(1.25 / 0.875)',
+} satisfies CSSProperties
+const LABEL_TEXT_STACKED = { ...LABEL_TEXT, fontWeight: weight.bold } satisfies CSSProperties
+
+const DESCRIPTION = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+} satisfies CSSProperties
+
+const STACK = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[2],
+  minWidth: 0,
+} satisfies CSSProperties
 
 function ChoiceControl({
   type,
@@ -36,28 +70,27 @@ function ChoiceControl({
   description,
   stacked = false,
   className,
+  style,
   ...props
 }: ChoiceProps & { type: 'checkbox' | 'radio' }) {
   const text = (
     <>
-      <span className={cn('font-body text-sm text-ink', stacked ? 'font-bold' : 'font-medium')}>
-        {label}
-      </span>
-      {description != null && (
-        <span className="font-body text-xs text-wk-muted">{description}</span>
-      )}
+      <span style={stacked ? LABEL_TEXT_STACKED : LABEL_TEXT}>{label}</span>
+      {description != null && <span style={DESCRIPTION}>{description}</span>}
     </>
   )
   return (
     <label
-      className={cn(
-        CHOICE_ROW,
-        stacked && 'items-start has-[:checked]:border-2 has-[:checked]:p-[calc(0.5rem-0.5px)]',
-        className
-      )}
+      className={cn('su-choice', stacked && 'su-choice--stacked', className)}
+      style={stacked ? CHOICE_ROW_STACKED : CHOICE_ROW}
     >
-      <input type={type} className={cn(CHOICE_INPUT, stacked && 'mt-0.5')} {...props} />
-      {stacked ? <span className="flex min-w-0 flex-col gap-0.5">{text}</span> : text}
+      <input
+        type={type}
+        className={INPUT_FOCUS}
+        style={{ ...(stacked ? CHOICE_INPUT_STACKED : CHOICE_INPUT), ...style }}
+        {...props}
+      />
+      {stacked ? <span style={STACK}>{text}</span> : text}
     </label>
   )
 }

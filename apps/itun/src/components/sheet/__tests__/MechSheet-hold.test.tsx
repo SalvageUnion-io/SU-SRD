@@ -14,6 +14,7 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import { color } from 'component-lib/design/tokens'
 import { makeScrapLot, makeUnitLot } from 'itun-domain/schemas/cargoLot'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
@@ -170,8 +171,9 @@ describe('MechSheet — The Hold (Stow →)', () => {
     const grid = screen.getByRole('img', {
       name: /hold 8 of 6 slots used — over capacity/i,
     })
-    expect(grid.querySelectorAll('.bg-status-bad').length).toBe(2)
-    expect(grid.querySelectorAll('.bg-cargo').length).toBe(6)
+    const cells = Array.from(grid.querySelectorAll<HTMLElement>('[aria-hidden="true"]'))
+    expect(cells.filter((c) => c.style.backgroundColor === color.statusBad).length).toBe(2)
+    expect(cells.filter((c) => c.style.backgroundColor === color.cargo).length).toBe(6)
     expect(screen.getByText(/over capacity/i)).toBeTruthy()
   })
 

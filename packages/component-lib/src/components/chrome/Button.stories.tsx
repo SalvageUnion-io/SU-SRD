@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+import { radius, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { Button } from './Button'
@@ -15,6 +17,22 @@ const BTN_SIZES = ['full', 'compact', 'mini'] as const
 
 type BtnVariant = (typeof BTN_VARIANTS)[number]
 
+const STACK = { display: 'flex', flexDirection: 'column', gap: space[20] } satisfies CSSProperties
+
+const ROW = {
+  alignItems: 'flex-start',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[12],
+} satisfies CSSProperties
+
+/** The dashboard HUD's dark ground. */
+const INSTRUMENT_GROUND = {
+  backgroundColor: 'var(--color-ink-deep)',
+  borderRadius: radius.panel,
+  padding: space[16],
+} satisfies CSSProperties
+
 /**
  * One story per variant: each rung of the ladder (full / compact — the
  * default — / mini) plus the disabled treatment (opacity .4, pointer-events
@@ -22,10 +40,10 @@ type BtnVariant = (typeof BTN_VARIANTS)[number]
  */
 function VariantShowcase({ variant, label }: { variant: BtnVariant; label: string }) {
   return (
-    <div className="flex flex-col gap-5">
+    <div style={STACK}>
       <div>
         <Caption>{variant} · sizes</Caption>
-        <div className="flex flex-wrap items-start gap-3">
+        <div style={ROW}>
           {BTN_SIZES.map((size) => (
             <Button key={size} variant={variant} size={size}>
               {label}
@@ -35,7 +53,7 @@ function VariantShowcase({ variant, label }: { variant: BtnVariant; label: strin
       </div>
       <div>
         <Caption>{variant} · disabled</Caption>
-        <div className="flex flex-wrap items-start gap-3">
+        <div style={ROW}>
           <Button variant={variant} disabled>
             {label}
           </Button>
@@ -59,10 +77,10 @@ export const Danger: Story = () => <VariantShowcase variant="danger" label="Ejec
 
 /** Every variant side-by-side at the default size, plus the disabled row. */
 export const AllVariants: Story = () => (
-  <div className="flex flex-col gap-5">
+  <div style={STACK}>
     <div>
       <Caption>every variant · default size</Caption>
-      <div className="flex flex-wrap items-start gap-3">
+      <div style={ROW}>
         {BTN_VARIANTS.map((variant) => (
           <Button key={variant} variant={variant}>
             {variant}
@@ -72,7 +90,7 @@ export const AllVariants: Story = () => (
     </div>
     <div>
       <Caption>every variant · disabled</Caption>
-      <div className="flex flex-wrap items-start gap-3">
+      <div style={ROW}>
         {BTN_VARIANTS.map((variant) => (
           <Button key={variant} variant={variant} disabled>
             {variant}
@@ -90,11 +108,11 @@ export const AllVariants: Story = () => (
  * uses, so it is the only instrument recolour that ships.
  */
 export const Instrument: Story = () => (
-  <div className="rounded-panel bg-[var(--color-ink-deep)] p-4">
-    <div className="flex flex-col gap-5">
+  <div style={INSTRUMENT_GROUND}>
+    <div style={STACK}>
       <div>
         <Caption>ghost · instrument</Caption>
-        <div className="flex flex-wrap items-start gap-3">
+        <div style={ROW}>
           <Button variant="ghost" surface="instrument">
             SRD
           </Button>
@@ -105,7 +123,7 @@ export const Instrument: Story = () => (
       </div>
       <div>
         <Caption>ghost · instrument · sizes</Caption>
-        <div className="flex flex-wrap items-start gap-3">
+        <div style={ROW}>
           {BTN_SIZES.map((size) => (
             <Button key={size} variant="ghost" surface="instrument" size={size}>
               Activate
@@ -122,10 +140,10 @@ export const Instrument: Story = () => (
  * '⇄ Swap' on rail chips. Default + disabled.
  */
 export const MiniButtons: Story = () => (
-  <div className="flex flex-col gap-5">
+  <div style={STACK}>
     <div>
       <Caption>default</Caption>
-      <div className="flex flex-wrap items-start gap-3">
+      <div style={ROW}>
         <Button size="mini">⇄ Swap</Button>
         <Button size="mini">Remove</Button>
         <Button size="mini">Details</Button>
@@ -133,7 +151,7 @@ export const MiniButtons: Story = () => (
     </div>
     <div>
       <Caption>disabled</Caption>
-      <div className="flex flex-wrap items-start gap-3">
+      <div style={ROW}>
         <Button size="mini" disabled>
           ⇄ Swap
         </Button>
@@ -150,7 +168,7 @@ export const MiniButtons: Story = () => (
 export const GlyphButtons: Story = () => (
   <div>
     <Caption>roll assist</Caption>
-    <div className="flex flex-wrap items-start gap-3">
+    <div style={ROW}>
       <Button size="compact" glyph="⚄">
         Roll callsign
       </Button>

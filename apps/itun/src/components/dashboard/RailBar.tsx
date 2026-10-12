@@ -110,7 +110,9 @@ export function RailBar({
       <Badge
         shape="stamp"
         className="px-[9px] py-[5px] text-caption text-paper"
-        style={{ ...STAMP, backgroundColor: STAMP_BG[fam] }}
+        // `text-caption` used to merge the stamp's rung size and line-height:1
+        // away, leaving the inherited line-height; the stamp now keeps both.
+        style={{ ...STAMP, backgroundColor: STAMP_BG[fam], lineHeight: 'inherit' }}
       >
         {stamp}
       </Badge>

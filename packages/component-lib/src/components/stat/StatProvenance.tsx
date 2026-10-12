@@ -1,6 +1,7 @@
 import { Popover } from '@base-ui/react/popover'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { cn } from '../../utils/cn'
+import { color, fontSize, space, weight } from '../../design/tokens'
 import { capsLabel } from '../chrome/capsLabel'
 import { FOCUS_RING } from '../chrome/interaction'
 
@@ -43,6 +44,55 @@ export type StatProvenanceProps = {
   className?: string
 }
 
+/** Tailwind's `shadow-md`, ported as its computed value. */
+const POPUP: CSSProperties = {
+  backgroundColor: color.ink,
+  borderRadius: '0.375rem',
+  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', // design-tokens-ignore: Tailwind's shadow-md, ported verbatim
+  color: color.paper,
+  maxWidth: '22rem',
+  minWidth: '15rem',
+  paddingBlock: space[10],
+  paddingInline: space[12],
+  zIndex: 50,
+}
+
+const TITLE: CSSProperties = { marginBottom: space[6], opacity: 0.6 }
+
+const LEDGER: CSSProperties = {
+  fontSize: fontSize.caption,
+  fontVariantNumeric: 'tabular-nums',
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+}
+
+const ROW: CSSProperties = {
+  alignItems: 'baseline',
+  display: 'flex',
+  gap: space[16],
+  justifyContent: 'space-between',
+  paddingBottom: space[2],
+  paddingTop: space[2],
+}
+
+/** The rule over a subtotal: `mt-1.5 border-t border-paper-30 pt-1.5`. */
+const RULED: CSSProperties = {
+  borderTop: `1px solid ${color.paper30}`,
+  marginTop: space[6],
+  paddingTop: space[6],
+}
+
+const DETAIL: CSSProperties = { fontSize: fontSize.note, marginLeft: space[4], opacity: 0.6 }
+
+const TRIGGER_CLASS = `su-stat-provenance__trigger ${FOCUS_RING}`
+
+function rowStyle(kind: ProvenanceLineKind): CSSProperties {
+  if (kind === 'derived') return { ...ROW, ...RULED }
+  if (kind === 'override') return { ...ROW, color: color.caution, fontWeight: weight.semibold }
+  return ROW
+}
+
 function signed(n: number): string {
   return n < 0 ? `−${Math.abs(n)}` : `+${n}`
 }
@@ -77,14 +127,10 @@ export function StatProvenance({
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
-        className={cn(
-          'cursor-help border-b border-dotted border-current/40',
-          // Was the three classes of `FOCUS_RING` spelled out by hand. Same
-          // rung, imported rather than re-inlined so the ring can never drift
-          // from the canonical one.
-          FOCUS_RING,
-          className
-        )}
+        // The dotted underline is `.su-stat-provenance__trigger` (callers
+        // restyle it through `className`). `FOCUS_RING` was the three classes
+        // spelled out by hand; imported so the ring can never drift.
+        className={[TRIGGER_CLASS, className].filter(Boolean).join(' ')}
         aria-label={`${statLabel}: how this is derived`}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
@@ -94,19 +140,17 @@ export function StatProvenance({
       <Popover.Portal>
         <Popover.Positioner side="top" sideOffset={6}>
           <Popover.Popup
-            className="z-50 min-w-[15rem] max-w-[22rem] rounded-md bg-ink px-3 py-2.5 text-paper shadow-md"
+            style={POPUP}
             onMouseEnter={() => setOpen(true)}
             onMouseLeave={() => setOpen(false)}
           >
             <Popover.Title
-              className={cn(
-                capsLabel({ size: 'badge', weight: 'inherit', tracking: 'caps' }),
-                'mb-1.5 opacity-60'
-              )}
+              className={capsLabel({ size: 'badge', weight: 'inherit', tracking: 'caps' })}
+              style={TITLE}
             >
               {statLabel} · how this is derived
             </Popover.Title>
-            <ul className="m-0 list-none p-0 text-caption tabular-nums">
+            <ul style={LEDGER}>
               {/* Keyed by CONTENT, not by array index. kind+label alone can
                   collide (two +1 bonuses of the same source type); including
                   detail and amount disambiguates those without keying on
@@ -116,26 +160,25 @@ export function StatProvenance({
               {lines.map((line) => (
                 <li
                   key={`${line.kind}-${line.label}-${line.detail ?? ''}-${line.amount}`}
-                  className={cn(
-                    'flex items-baseline justify-between gap-4 py-[2px]',
-                    line.kind === 'derived' && 'mt-1.5 border-t border-paper-30 pt-1.5',
-                    line.kind === 'override' && 'font-semibold text-caution'
-                  )}
+                  style={rowStyle(line.kind)}
                 >
                   <span>
                     {line.label}
-                    {line.detail ? (
-                      <span className="ml-1 text-note opacity-60">{line.detail}</span>
-                    ) : null}
+                    {line.detail ? <span style={DETAIL}>{line.detail}</span> : null}
                   </span>
-                  <span className={cn('font-semibold', line.amount < 0 && 'text-status-bad')}>
+                  <span
+                    style={{
+                      fontWeight: weight.semibold,
+                      ...(line.amount < 0 ? { color: color.statusBad } : {}),
+                    }}
+                  >
                     {line.kind === 'base' || line.kind === 'derived' || line.kind === 'override'
                       ? line.amount
                       : signed(line.amount)}
                   </span>
                 </li>
               ))}
-              <li className="mt-1.5 flex items-baseline justify-between gap-4 border-t border-paper-30 pt-1.5 font-semibold">
+              <li style={{ ...ROW, ...RULED, fontWeight: weight.semibold, paddingBottom: 0 }}>
                 <span>Showing</span>
                 <span>
                   {total}
@@ -143,7 +186,7 @@ export function StatProvenance({
                 </span>
               </li>
             </ul>
-            <Popover.Arrow className="fill-ink" />
+            <Popover.Arrow style={{ fill: color.ink }} />
           </Popover.Popup>
         </Popover.Positioner>
       </Popover.Portal>

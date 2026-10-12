@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Slab } from './Slab'
 
@@ -13,12 +14,34 @@ const systemSlots = chassis?.systemSlots ?? 6
 const moduleSlots = chassis?.moduleSlots ?? 2
 const cargoCapacity = chassis?.cargoCapacity ?? 6
 
+/** The gauge caption above each cluster. */
+const CLUSTER_LABEL = {
+  color: color.wkMuted,
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  letterSpacing: tracking.caps,
+  marginBottom: space[6],
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+/** A stand-in caps action for the `actions` slot. */
+const ACTION = {
+  color: color.ink,
+  fontFamily: font.cond,
+  fontSize: fontSize.xs,
+  fontWeight: weight.bold,
+  lineHeight: 'calc(1 / 0.75)',
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const FRAME = { backgroundColor: color.paper, padding: space[16] } satisfies CSSProperties
+
+const STACK = { display: 'flex', flexDirection: 'column', gap: space[24] } satisfies CSSProperties
+
 function Cluster({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <div className="mb-1.5 font-cond text-badge uppercase tracking-caps text-wk-muted">
-        {label}
-      </div>
+      <div style={CLUSTER_LABEL}>{label}</div>
       {children}
     </div>
   )
@@ -27,8 +50,8 @@ function Cluster({ label, children }: { label: string; children: ReactNode }) {
 /** `Slab` — the section separator: dashed (default) or solid (poster `.sect`),
  *  with an optional count and trailing actions. */
 export const Default: Story = () => (
-  <div className="bg-paper p-4">
-    <div className="flex flex-col gap-6">
+  <div style={FRAME}>
+    <div style={STACK}>
       <Cluster label="dashed (default) — label only">
         <Slab label="Systems" />
       </Cluster>
@@ -42,7 +65,7 @@ export const Default: Story = () => (
         <Slab
           label="Modules"
           count={`${moduleSlots}`}
-          actions={<span className="font-cond text-xs font-bold uppercase text-ink">+ Add</span>}
+          actions={<span style={ACTION}>+ Add</span>}
         />
       </Cluster>
       <Cluster label="solid (poster .sect) — label only">
@@ -53,7 +76,7 @@ export const Default: Story = () => (
           variant="solid"
           label="Salvage"
           count="5 items"
-          actions={<span className="font-cond text-xs font-bold uppercase text-ink">Edit</span>}
+          actions={<span style={ACTION}>Edit</span>}
         />
       </Cluster>
       <Cluster label="solid — count beside the stamp (ITUN Shelves, board S1)">
@@ -62,9 +85,7 @@ export const Default: Story = () => (
           label="Mechs"
           count="2"
           countAt="label"
-          actions={
-            <span className="font-cond text-xs font-bold uppercase text-ink">+ New mech</span>
-          }
+          actions={<span style={ACTION}>+ New mech</span>}
         />
       </Cluster>
     </div>

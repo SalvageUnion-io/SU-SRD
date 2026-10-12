@@ -17,5 +17,4 @@
  * The always-on variant this replaced is gone: its last consumer was the
  * standalone remove button, which is a red stamp now.
  */
-export const EDIT_CUE_HOVER_CLASS =
-  'outline-offset-2 outline-[color:var(--tone-deep,var(--color-ink))] hover:outline-dashed hover:outline-2 focus-within:outline-dashed focus-within:outline-2'
+export const EDIT_CUE_HOVER_CLASS = 'su-edit-cue'

@@ -1,4 +1,6 @@
+import type { CSSProperties, ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { borderWidth, color, font, fontSize, space, tracking } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Badge } from './Badge'
 import { BandTitle } from './BandTitle'
@@ -8,12 +10,38 @@ export default {
   title: 'Atoms/Band Title',
 }
 
-function Band({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex w-full items-center gap-3 border-chrome border-ink bg-pilot px-3 py-2">
-      {children}
-    </div>
-  )
+/** A pilot-tone header band, as a `Card` draws it. */
+const BAND = {
+  alignItems: 'center',
+  backgroundColor: color.pilot,
+  borderColor: color.ink,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.chrome,
+  display: 'flex',
+  gap: space[12],
+  paddingBlock: space[8],
+  paddingInline: space[12],
+  width: '100%',
+} satisfies CSSProperties
+
+const STACK = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[24],
+  maxWidth: '28rem',
+} satisfies CSSProperties
+
+const LABEL = {
+  color: color.wkMuted,
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  letterSpacing: tracking.caps,
+  marginBottom: space[6],
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+function Band({ children }: { children: ReactNode }) {
+  return <div style={BAND}>{children}</div>
 }
 
 /** `BandTitle` — the paper-on-tone title inside a `Card`'s header band.
@@ -30,11 +58,9 @@ export const Default: Story = () => {
   const longest = [...chassis].sort((a, b) => b.name.length - a.name.length)[0]?.name ?? short
 
   return (
-    <div className="flex max-w-md flex-col gap-6">
+    <div style={STACK}>
       <div>
-        <div className="mb-1.5 font-cond text-badge uppercase tracking-caps text-wk-muted">
-          lead — fills the track
-        </div>
+        <div style={LABEL}>lead — fills the track</div>
         <Band>
           <BandTitle>{short}</BandTitle>
           <Button variant="default" size="iconOnly" aria-label="Close">
@@ -44,9 +70,7 @@ export const Default: Story = () => {
       </div>
 
       <div>
-        <div className="mb-1.5 font-cond text-badge uppercase tracking-caps text-wk-muted">
-          lead — truncates rather than pushing the control off
-        </div>
+        <div style={LABEL}>lead — truncates rather than pushing the control off</div>
         <Band>
           <BandTitle>{longest}</BandTitle>
           <Button variant="default" size="iconOnly" aria-label="Close">
@@ -56,9 +80,7 @@ export const Default: Story = () => {
       </div>
 
       <div>
-        <div className="mb-1.5 font-cond text-badge uppercase tracking-caps text-wk-muted">
-          mute — a secondary band label
-        </div>
+        <div style={LABEL}>mute — a secondary band label</div>
         <Band>
           <BandTitle>{short}</BandTitle>
           <BandTitle variant="mute" fill={false}>
@@ -68,9 +90,7 @@ export const Default: Story = () => {
       </div>
 
       <div>
-        <div className="mb-1.5 font-cond text-badge uppercase tracking-caps text-wk-muted">
-          contrast — a stamp beside it, sized to its own text
-        </div>
+        <div style={LABEL}>contrast — a stamp beside it, sized to its own text</div>
         <Band>
           <BandTitle>{longest}</BandTitle>
           <Badge shape="stamp" size="mini">

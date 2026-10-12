@@ -1,7 +1,9 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Stat } from './Stat'
+import '../../stories/_stories.css'
 
 export default {
   title: 'Atoms/Stat',
@@ -23,22 +25,76 @@ const traitLabel = weaponAction?.traits?.[0]?.type ?? 'ballistic'
 
 const noop = () => {}
 
+const CELL = {
+  alignItems: 'center',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[6],
+} satisfies CSSProperties
+const CELL_STAGE = {
+  alignItems: 'center',
+  display: 'flex',
+  minHeight: '52px',
+} satisfies CSSProperties
+const CELL_CAPTION = { color: color.wkMuted, fontSize: fontSize.badge } satisfies CSSProperties
+
+const GALLERY = {
+  backgroundColor: color.paper,
+  color: color.ink,
+  display: 'flex',
+  flexDirection: 'column',
+  fontFamily: font.body,
+  gap: space[16],
+  padding: space[20],
+} satisfies CSSProperties
+const GALLERY_RULE = {
+  color: color.wkMuted,
+  fontSize: fontSize.xs,
+  lineHeight: 1.625,
+  maxWidth: '42rem',
+} satisfies CSSProperties
+const GALLERY_ROW = {
+  alignItems: 'flex-start',
+  columnGap: space[24],
+  display: 'flex',
+  flexWrap: 'wrap',
+  rowGap: space[20],
+} satisfies CSSProperties
+
+/** The ITUN sheet rail's vitals line, as the app styles it (its `<b>` reading
+ * is weighted by `.su-story-stat-rail`). */
+const RAIL = {
+  backgroundColor: color.paper,
+  borderInlineStart: `3px solid ${color.ink}`,
+  color: `color-mix(in oklab, ${color.ink} 70%, transparent)`,
+  fontFamily: font.cond,
+  fontSize: '12px',
+  fontWeight: weight.semibold,
+  letterSpacing: tracking.caps,
+  lineHeight: 1.375,
+  maxWidth: '28rem',
+  paddingBlock: space[8],
+  paddingInline: space[10],
+  textTransform: 'uppercase',
+  width: '100%',
+} satisfies CSSProperties
+
 // Each option is captioned with the prop combo that selects it, so the story
 // doubles as the prop reference. Every gallery leads with its governing rule.
 function Cell({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <div className="flex min-h-[52px] items-center">{children}</div>
-      <code className="text-badge text-wk-muted">{label}</code>
+    <div style={CELL}>
+      <div style={CELL_STAGE}>{children}</div>
+      <code style={CELL_CAPTION}>{label}</code>
     </div>
   )
 }
 
 function Gallery({ rule, children }: { rule: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-4 bg-paper p-5 font-body text-ink">
-      <p className="max-w-2xl text-xs leading-relaxed text-wk-muted">{rule}</p>
-      <div className="flex flex-wrap items-start gap-x-6 gap-y-5">{children}</div>
+    <div style={GALLERY}>
+      <p style={GALLERY_RULE}>{rule}</p>
+      <div style={GALLERY_ROW}>{children}</div>
     </div>
   )
 }
@@ -170,7 +226,7 @@ export const Horizontal: Story = () => (
  */
 export const PlainMaterial: Story = () => (
   <Gallery rule="surface='plain' → the same [label | value] geometry with no plate, no border and no radius. The label inherits the line's colour; the reading (value AND /max) is one bold <b>, so a text container can weight it. It absorbed StatLine, which argued running text was a different job — it is the same cell in a different material.">
-    <div className="w-full max-w-md border-l-[3px] border-ink bg-paper px-2.5 py-2 font-cond text-[12px] font-semibold uppercase leading-snug tracking-caps text-ink/70 [&_b]:font-bold [&_b]:text-ink">
+    <div className="su-story-stat-rail" style={RAIL}>
       <Stat
         orientation="horizontal"
         surface="plain"
@@ -195,7 +251,7 @@ export const PlainMaterial: Story = () => (
         max={heat}
       />
     </div>
-    <div className="w-full max-w-md border-l-[3px] border-ink bg-paper px-2.5 py-2 font-cond text-[12px] font-semibold uppercase leading-snug tracking-caps text-ink/70 [&_b]:font-bold [&_b]:text-ink">
+    <div className="su-story-stat-rail" style={RAIL}>
       <Stat
         orientation="horizontal"
         surface="plain"
@@ -215,8 +271,13 @@ export const PlainMaterial: Story = () => (
 export const CompactHeaderCluster: Story = () => (
   <Gallery rule="A full mech's stats as the compact header cluster — always TWO rows, columns = ceil(count/2). Eight stats → 2 rows of 4 (the top-right axis on a compact/nested card).">
     <div
-      className="grid w-fit justify-items-end gap-1"
-      style={{ gridTemplateColumns: 'repeat(4, max-content)' }}
+      style={{
+        display: 'grid',
+        gap: space[4],
+        gridTemplateColumns: 'repeat(4, max-content)',
+        justifyItems: 'end',
+        width: 'fit-content',
+      }}
     >
       <Stat orientation="horizontal" label="TL" value={tl} size="compact" />
       <Stat orientation="horizontal" label="SP" value={sp} size="compact" />

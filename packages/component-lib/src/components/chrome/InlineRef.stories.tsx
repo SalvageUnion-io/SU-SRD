@@ -1,4 +1,6 @@
+import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { color, font, fontSize, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { InlineRef } from './InlineRef'
 
@@ -15,14 +17,50 @@ const systemSlug = systemName
   .replace(/^-|-$/g, '')
 const systemHref = `/systems/${systemSlug}`
 
+const PAGE = {
+  backgroundColor: color.paper,
+  color: color.ink,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[20],
+  padding: space[20],
+} satisfies CSSProperties
+
+const INTRO = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: 1.625,
+  maxWidth: '42rem',
+} satisfies CSSProperties
+
+/** `font-body text-sm`, with `text-sm`'s paired line-height. */
+const PROSE = {
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+} satisfies CSSProperties
+
+const STANDALONE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[6],
+} satisfies CSSProperties
+
+const NOTE = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.badge,
+} satisfies CSSProperties
+
 /** Navigable vs inert references, in prose and standalone — on one page. */
 export const Default: Story = () => (
-  <div className="flex flex-col gap-5 bg-paper p-5 text-ink">
-    <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
+  <div style={PAGE}>
+    <p style={INTRO}>
       An in-prose entity reference: navigable (rust border, a real keyboard-reachable link, from
       `href`) or inert (ink dashed border — only summons a tooltip).
     </p>
-    <div className="max-w-md font-body text-sm">
+    <div style={{ ...PROSE, maxWidth: '28rem' }}>
       Mount a{' '}
       <InlineRef href={systemHref} title={`${systemName} — navigable`}>
         {systemName}
@@ -31,16 +69,24 @@ export const Default: Story = () => (
       <InlineRef title="Inert — summons a tooltip">unresolved Widget</InlineRef> if the reference
       can&apos;t be found.
     </div>
-    <div className="flex flex-wrap items-start gap-6 font-body text-sm">
-      <div className="flex flex-col gap-1.5">
+    <div
+      style={{
+        ...PROSE,
+        alignItems: 'flex-start',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: space[24],
+      }}
+    >
+      <div style={STANDALONE}>
         <InlineRef href={systemHref} title={systemName}>
           {systemName}
         </InlineRef>
-        <code className="font-body text-badge text-wk-muted">navigable (href)</code>
+        <code style={NOTE}>navigable (href)</code>
       </div>
-      <div className="flex flex-col gap-1.5">
+      <div style={STANDALONE}>
         <InlineRef title="No such entity">Phantom System</InlineRef>
-        <code className="font-body text-badge text-wk-muted">inert</code>
+        <code style={NOTE}>inert</code>
       </div>
     </div>
   </div>

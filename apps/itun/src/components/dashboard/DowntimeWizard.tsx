@@ -308,7 +308,10 @@ export function DowntimeWizardFrame({
               <Badge
                 shape="stamp"
                 className="px-[9px] py-[5px] text-caption text-paper"
-                style={{ backgroundColor: PHASE_STAMP_BG }}
+                // `text-caption` used to merge the stamp's rung size and
+                // line-height:1 away, leaving the inherited line-height; the
+                // stamp now keeps both.
+                style={{ backgroundColor: PHASE_STAMP_BG, lineHeight: 'inherit' }}
               >
                 {phase}
               </Badge>

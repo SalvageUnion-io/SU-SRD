@@ -121,7 +121,8 @@ export function RosterColumn({
         id={headingId}
         variant="solid"
         label={title}
-        className="mb-3 flex-wrap"
+        className="flex-wrap"
+        style={{ marginBottom: '12px' }}
         actions={
           headExtra !== undefined || (create !== undefined && !empty) ? (
             <>

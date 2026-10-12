@@ -669,6 +669,102 @@ body {
   box-shadow: 0 0 0 3px var(--color-ink);
 }
 
+/*
+ * THE TILE (`src/entity/forms/Tile.tsx`): a listing's Catalog view, art first.
+ * The art at 3:4 on paper (the line art multiplied onto it), then the tone
+ * band with the name notched into its foot on a cut-out of the paper below,
+ * in ink (ruleset, "Chapter band"), then the value cells. The art box holds
+ * its ratio before the image arrives, so a lazy image never shifts the grid.
+ */
+.su-entity-tile {
+  color: inherit;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.su-entity-tile__frame {
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.su-entity-tile__frame[data-user-made] {
+  border-style: dashed;
+}
+
+.su-entity-tile__art {
+  aspect-ratio: 3 / 4;
+  background-color: var(--color-paper);
+  display: flex;
+  position: relative;
+}
+
+.su-entity-tile__art img {
+  height: calc(100% - 2 * var(--space-10));
+  inset: var(--space-10);
+  mix-blend-mode: multiply;
+  object-fit: contain;
+  position: absolute;
+  transition: transform 160ms ease-out;
+  width: calc(100% - 2 * var(--space-10));
+}
+
+.su-entity-tile:hover .su-entity-tile__art img {
+  transform: scale(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .su-entity-tile__art img {
+    transition: none;
+  }
+
+  .su-entity-tile:hover .su-entity-tile__art img {
+    transform: none;
+  }
+}
+
+/* The band: the tone, with the name's cut-out sitting on its foot and the
+   pennant and chevron at the right. Its top edge rules the art off. */
+.su-entity-tile__band {
+  align-items: flex-end;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  min-height: calc(2.1 * var(--text-title) + var(--space-10));
+  padding: var(--space-8) var(--space-8) 0;
+}
+
+.su-entity-tile__band > :not(.su-entity-tile__notch) {
+  align-self: center;
+  flex: none;
+  margin-bottom: var(--space-4);
+}
+
+/* The notch: a cut-out of the paper below, its foot open into the cells. */
+.su-entity-tile__notch {
+  background-color: var(--color-paper);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  flex: 0 1 auto;
+  margin-right: auto;
+  min-width: 0;
+  padding: var(--space-4) var(--space-8) var(--space-2);
+}
+
+.su-entity-tile__cells {
+  align-content: flex-start;
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-8) var(--space-8);
+}
+
 .su-entity-token {
   color: inherit;
   display: inline-flex;
@@ -843,6 +939,16 @@ body {
   outline-offset: 4px;
   outline-width: var(--bw-chrome);
   padding: 0.5rem 0.875rem 0.375rem 1rem;
+}
+
+/* The censor mark at a catalog Tile's scale (`.su-entity-tile__art`): a patch
+   and a strip sized to the 3:4 art box, not torn edge to edge across it. */
+.su-entity-tile__art .su-missing-art__patch {
+  inset: 30% 14%;
+}
+
+.su-entity-tile__art .su-missing-art__strip {
+  height: 16%;
 }
 
 /* ══ The entity card's artwork lead ══════════════════════════════════════════
@@ -2593,6 +2699,731 @@ body {
   .su-entity-page--flow .su-missing-art--hero {
     aspect-ratio: 4 / 3;
   }
+}
+
+/* — Atoms (TW2) — ═══════════════════════════════════════════════════════════
+ *
+ * The rules the `Atoms/*` components moved off Tailwind need (tailwind-removal
+ * plan, TW2): the stateful, responsive and class-string halves of the split.
+ * Static values live in each component's style objects.
+ */
+
+/* The size ladder's class strings (`styles/sizing.ts`: `RUNG_TYPE`,
+ * `RUNG_INLINE_PADDING`). The two inherited rungs carry the line-height
+ * Tailwind's `text-sm` / `text-xs` paired them with; the semantic rungs set
+ * size alone, as their utilities did. */
+.su-rung-label--full {
+  font-size: var(--text-sm);
+  line-height: calc(1.25 / 0.875);
+}
+
+.su-rung-label--compact {
+  font-size: var(--text-xs);
+  line-height: calc(1 / 0.75);
+}
+
+.su-rung-label--mini {
+  font-size: var(--text-badge);
+}
+
+.su-rung-body--full {
+  font-size: var(--text-lede);
+}
+
+.su-rung-body--compact {
+  font-size: var(--text-caption);
+}
+
+.su-rung-body--mini {
+  font-size: var(--text-note);
+}
+
+.su-rung-pad--full {
+  padding-block: var(--space-4);
+  padding-inline: var(--space-8);
+}
+
+.su-rung-pad--compact {
+  padding-block: var(--space-2);
+  padding-inline: var(--space-6);
+}
+
+.su-rung-pad--mini {
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+}
+
+/* `STAMP_SEAM` (`chrome/stampSeam.ts`): a stamp centred on its container's
+ * top border by its own height. The horizontal inset is the caller's. */
+.su-stamp-seam {
+  position: absolute;
+  top: 0;
+  translate: 0 -50%;
+  z-index: 10;
+}
+
+/* `POSTER_STAMP` (`chrome/posterStamp.ts`), after `capsLabel`: the wrapping
+ * ink label whose ground repeats on every line. */
+.su-poster-stamp {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  display: inline;
+}
+
+/* `EDIT_CUE_HOVER_CLASS` (`shared/editLanguage.ts`): the dashed edit outline
+ * in the sheet's deep tone, on hover or keyboard focus. */
+.su-edit-cue {
+  outline-color: var(--tone-deep, var(--color-ink));
+  outline-offset: 2px;
+}
+
+.su-edit-cue:hover,
+.su-edit-cue:focus-within {
+  outline-style: dashed;
+  outline-width: 2px;
+}
+
+/* Visually hidden, still announced (Tailwind's `sr-only`). */
+.su-sr-only {
+  border-width: 0;
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+/* ── Stat ── */
+/* `shared/Stat.tsx`. The horizontal cell's `display` and `flex-shrink`: callers
+ * override both by className (`hidden sm:inline-flex`), which an inline style
+ * would beat. */
+.su-stat-cell {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.su-stat-cell--block {
+  display: flex;
+}
+
+.su-stat-cell--truncate {
+  flex-shrink: 1;
+}
+
+/* `state="modified"`: the heavier frame's 1px ink ring. A class, so the
+ * clickable box's focus ring is not masked by an inline box-shadow. */
+.su-stat--modified {
+  box-shadow: 0 0 0 1px var(--color-ink);
+}
+
+/* The clickable value box dims on hover. */
+.su-stat__box--clickable {
+  opacity: 1;
+}
+
+.su-stat__box--clickable:hover {
+  opacity: 0.8;
+}
+
+/* `flash`: the value box's grow/shrink pulse, off under reduced motion. */
+.su-stat__box--flash {
+  animation: growShrink 3s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .su-stat__box--flash {
+    animation: none;
+  }
+}
+
+/* The +/- steppers: a 44px coarse-pointer floor that drops at sm (the box's
+ * square steppers floor both axes), and a resting fill/ink that swaps on hover
+ * while the stepper is live (not at its limit). */
+.su-stat-step {
+  min-height: 44px;
+}
+
+.su-stat-step--square {
+  min-width: 44px;
+}
+
+@media (min-width: 40rem) {
+  .su-stat-step {
+    min-height: 0;
+  }
+
+  .su-stat-step--square {
+    min-width: 0;
+  }
+}
+
+.su-stat-step--on-paper {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.su-stat-step--on-paper.su-stat-step--live:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-stat-step--on-ink {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-stat-step--on-ink.su-stat-step--live:hover {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+/* ── VitalGauge ── */
+/* components/stat/VitalGauge.tsx — the hover halves; the rest is inline.
+ * An editable segment lifts a pixel on hover, unless motion is reduced. */
+.su-vital-gauge__pip {
+  translate: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .su-vital-gauge__pip:hover {
+    translate: 0 -1px;
+  }
+}
+
+/* The ↺ revert glyph: muted, inking on hover. */
+.su-vital-gauge__revert {
+  color: var(--color-wk-muted);
+}
+
+.su-vital-gauge__revert:hover {
+  color: var(--color-ink);
+}
+
+/* The provenance triggers. `StatProvenance` takes no `style`, so every
+ * property is a class; each is compounded with the trigger's own class so it
+ * outranks `.su-stat-provenance__trigger`'s dotted underline, as the
+ * `border-0` / `border-b-0` utilities did through tailwind-merge. */
+.su-stat-provenance__trigger.su-vital-gauge__prov-compact {
+  align-items: center;
+  border-width: 0;
+  color: var(--color-wk-muted);
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: var(--text-badge);
+  justify-content: center;
+  line-height: 1;
+  min-height: 24px;
+  min-width: 24px;
+}
+
+.su-stat-provenance__trigger.su-vital-gauge__prov-compact:hover {
+  color: var(--color-ink);
+}
+
+.su-stat-provenance__trigger.su-vital-gauge__prov-compact--on-dark {
+  color: var(--color-paper-60);
+}
+
+.su-stat-provenance__trigger.su-vital-gauge__prov-compact--on-dark:hover {
+  color: var(--color-paper);
+}
+
+/* The overridden-max `*`, superscript in the deep tone. */
+.su-stat-provenance__trigger.su-vital-gauge__prov-mark {
+  border-bottom-width: 0;
+  color: var(--tone-deep);
+  font-size: var(--text-badge);
+  font-weight: var(--font-weight-bold);
+  margin-left: var(--space-2);
+  vertical-align: super;
+}
+
+/* The ⓘ beside an un-overridden max. */
+.su-stat-provenance__trigger.su-vital-gauge__prov-info {
+  border-bottom-width: 0;
+  color: var(--color-wk-muted);
+  font-size: var(--text-badge);
+  line-height: 1;
+  margin-left: var(--space-4);
+  vertical-align: middle;
+}
+
+.su-stat-provenance__trigger.su-vital-gauge__prov-info:hover {
+  color: var(--color-ink);
+}
+
+/* ── Field, inputs, InlineEditField, Sel, Checkbox ── */
+/* `chrome/inputs.tsx` + `chrome/Field.tsx`: the `Input` / `Textarea` / `Select`
+ * skin. ALL of it is a class, geometry included: the three are public and
+ * callers restyle them by className (`px-2 py-1.5 text-xs`, `w-auto
+ * sm:min-h-9`) and by `style` (a dashed `borderStyle`), and an inline style
+ * would beat the one and be replaced wholesale by the other. */
+.su-text-input {
+  background-color: var(--color-paper);
+  border-color: var(--color-ink);
+  border-radius: var(--radius-card);
+  border-style: solid;
+  border-width: var(--bw-chrome);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  padding-block: 10px;
+  padding-inline: 12px;
+  width: 100%;
+}
+
+.su-text-input::placeholder {
+  color: var(--color-wk-muted);
+}
+
+.su-textarea {
+  resize: vertical;
+}
+
+/* `Select`: the `Input` skin one rung smaller, held to the 44px target. */
+.su-select {
+  font-size: var(--text-sm);
+  line-height: calc(1.25 / 0.875);
+  min-height: 2.75rem;
+}
+
+.su-select--chevron {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 32px;
+}
+
+/* `chrome/InlineEditField.tsx`. The readout's alignment and colour stay in a
+ * class: `Field`'s `fill` and callers' `[&>span]:` reach in to restyle them. */
+.su-inline-edit__readout {
+  align-items: center;
+  color: var(--color-ink);
+}
+
+.su-inline-edit__readout--empty {
+  color: var(--color-wk-muted);
+}
+
+.su-inline-edit__readout--editable:hover {
+  background-color: var(--color-ink-8);
+}
+
+/* The bordered value box — a class, because `Field` re-strokes it dashed and
+ * stretches it (`fill`). */
+.su-inline-edit__box {
+  align-items: center;
+  background-color: var(--color-paper);
+  border-color: var(--color-ink);
+  border-radius: var(--radius-card);
+  border-style: solid;
+  border-width: var(--bw-chrome);
+  display: flex;
+  min-height: 2.75rem;
+  width: 100%;
+}
+
+/* The number editor's invalid skin, over `.su-text-input`. */
+.su-inline-edit__error {
+  border-color: var(--color-status-bad);
+}
+
+/* `chrome/Field.tsx`. The picker value box fills on hover. */
+.su-field__picker {
+  background-color: var(--color-paper);
+}
+
+.su-field__picker:hover {
+  background-color: var(--color-ink-8);
+}
+
+/* A writable value box is pencil, not print: dashed (ruleset §1). */
+.su-field__write-cue {
+  border-style: dashed;
+}
+
+/* `fill`: the value box and its readout stretch, the text at the top. */
+.su-field__fill {
+  align-items: stretch;
+  flex: 1;
+  height: 100%;
+}
+
+.su-field__fill > span {
+  align-items: flex-start;
+  height: 100%;
+  padding-block: 10px;
+}
+
+/* `prominent`: the readout one rung up (Tailwind's `text-xl`). */
+.su-field__prominent > span {
+  font-size: var(--text-xl);
+  line-height: calc(1.75 / 1.25);
+}
+
+/* `chrome/Checkbox.tsx`: the choice row fills on hover, and the stacked row
+ * thickens its border (padding paying the difference) once checked. */
+.su-choice {
+  background-color: var(--color-paper);
+  border-width: var(--bw-chrome);
+  padding: 8px;
+}
+
+.su-choice:hover {
+  background-color: var(--color-ink-8);
+}
+
+.su-choice--stacked:has(:checked) {
+  border-width: 2px;
+  padding: calc(0.5rem - 0.5px);
+}
+
+/* ── Badge, BandTitle, Button, SmallButtons, CountStepper ── */
+
+/* `chrome/Badge.tsx` — every property is a class, not a style object: call
+ * sites override padding, display, size, tracking, colour and the inset ring
+ * through `className`, and only a stylesheet base lets their utility win. The
+ * chip (default shape): a fixed 22px rounded stamp-chip. */
+.su-badge {
+  align-items: center;
+  border-radius: var(--radius-badge);
+  display: inline-flex;
+  height: 22px;
+  line-height: 1;
+}
+
+.su-badge--swatch {
+  gap: var(--space-6);
+}
+
+.su-badge--interactive {
+  cursor: pointer;
+}
+
+.su-badge--solid {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  letter-spacing: var(--tracking-caps-snug);
+  padding-inline: 7px;
+}
+
+.su-badge--ghost {
+  background-color: var(--color-paper);
+  box-shadow: inset 0 0 0 1px var(--color-ink-20);
+  color: var(--color-ink);
+  letter-spacing: var(--tracking-caps-snug);
+  padding-inline: 7px;
+}
+
+.su-badge--outline {
+  background-color: var(--color-paper);
+  border: 2px solid var(--color-ink);
+  color: var(--color-ink);
+  letter-spacing: var(--tracking-caps);
+  padding-inline: 9px;
+}
+
+.su-badge--tone {
+  border: 2px solid;
+  letter-spacing: var(--tracking-caps);
+  padding-inline: 9px;
+}
+
+.su-badge--quiet {
+  color: var(--color-wk-muted);
+  padding-inline: var(--space-8);
+}
+
+.su-badge--tone-pilot {
+  background-color: var(--color-pilot);
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+.su-badge--tone-mech {
+  background-color: var(--color-mech);
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+.su-badge--tone-crawler {
+  background-color: var(--color-crawler-band);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-badge--tone-game {
+  background-color: var(--color-sheet-game);
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+.su-badge--tone-ok {
+  background-color: var(--color-status-ok);
+  border-color: var(--color-status-ok);
+  color: var(--color-paper);
+}
+
+.su-badge--tone-warn {
+  background-color: var(--color-status-warn);
+  border-color: var(--color-status-warn);
+  color: var(--color-paper);
+}
+
+.su-badge--tone-bad {
+  background-color: var(--color-status-bad);
+  border-color: var(--color-status-bad);
+  color: var(--color-paper);
+}
+
+/* The square stamp (`shape="stamp"`): a plate cut to its text. Its line-height
+ * is its rung's (`.su-rung-label--*`). */
+.su-badge-stamp {
+  display: inline-block;
+  width: fit-content;
+}
+
+.su-badge--on-ink {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-badge--inverse {
+  background-color: var(--color-paper);
+  box-shadow: inset 0 0 0 1px var(--color-ink);
+  color: var(--color-ink);
+}
+
+.su-badge--on-tone {
+  background-color: transparent;
+  color: var(--color-ink);
+}
+
+/* `chrome/SmallButtons.tsx` (`StepButton`): the ground hovers to the sheet's
+ * `--ground`, and the 44px tap floor below `sm` relaxes at `sm`. The frame and
+ * ink ride along so `CountStepper` can re-skin them by class. */
+.su-step-btn {
+  background-color: var(--color-paper);
+  /* Frameless by design: the `button` reset above sets `border: none`. */
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.su-step-btn:hover {
+  background-color: var(--ground, var(--color-ink-8));
+}
+
+@media (min-width: 40rem) {
+  .su-step-btn {
+    min-height: 0;
+    min-width: 0;
+  }
+}
+
+/* `chrome/CountStepper.tsx`: the pill's ink step buttons (after `.su-step-btn`,
+ * which they re-skin), and the instrument cluster's narrow `Button`s (after
+ * `.su-btn--compact`, whose padding they replace). */
+.su-count-stepper__step {
+  background-color: var(--color-ink);
+  border-radius: 0;
+  border-width: 0;
+  color: var(--color-paper);
+}
+
+.su-count-stepper__step:hover {
+  background-color: var(--color-ink-2);
+}
+
+.su-count-stepper__btn {
+  min-width: 0;
+  padding-inline: var(--space-8);
+}
+
+/* ── Conditions, ModeDoor, Panel, Slab, PageHeading, KvRow ── */
+/* Conditions.tsx — the remove glyph brightens on hover. */
+.su-condition-chip__remove {
+  opacity: 0.8;
+}
+
+.su-condition-chip__remove:hover {
+  opacity: 1;
+}
+
+/* Conditions.tsx — the dashed '+ Add' chip inks in on hover. */
+.su-conditions__add {
+  border-color: var(--color-wk-faint);
+  color: var(--color-wk-muted);
+}
+
+.su-conditions__add:hover {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+/* ModeDoor.tsx — the door lifts 2px on hover. */
+.su-mode-door {
+  transition-duration: 120ms;
+  transition-property: transform, translate, scale, rotate;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.su-mode-door:hover {
+  translate: 0 calc(var(--space-2) * -1);
+}
+
+/* PageHeading.tsx — each rung's size, leading and tracking, which callers
+   retune through `className` (`leading-tight`, `tracking-caps-tight`). */
+.su-page-heading--subheading {
+  font-size: var(--text-lg);
+  line-height: calc(1.75 / 1.125);
+}
+
+.su-page-heading--section {
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-caps);
+  line-height: calc(1.25 / 0.875);
+}
+
+/* KvRow.tsx — the bottom rule, cleared on the last row. */
+.su-kv-row {
+  border-bottom-width: var(--bw-hairline);
+}
+
+.su-kv-row:last-child {
+  border-width: 0;
+}
+
+/* ── ActivationCost, CatalogTile, KofiButton, SearchField, SlotGrid ── */
+/* `CATALOG_TILE_*` (`chrome/catalogTile.ts`, used by `shared/CatalogTile.tsx`):
+ * the tile frame and its hover lift. Only box-shadow and transform transition,
+ * as before — the lift is the `translate` property, so it steps rather than
+ * slides. The frame is explicit, so the link tile and the `<button>` tile
+ * (`onActivate`, which the `button` reset would leave frameless) match, and
+ * neither depends on Tailwind's preflight. */
+.su-catalog-tile {
+  border-color: var(--color-ink);
+  border-style: solid;
+  border-radius: var(--radius-card);
+  border-width: var(--bw-chrome);
+  padding-block: 13px;
+  padding-inline: 15px;
+  text-decoration-line: none;
+  transition-duration: 120ms;
+  transition-property: box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.su-catalog-tile:hover {
+  box-shadow: 0 5px 18px var(--color-ink-20);
+  translate: 0 -2px;
+}
+
+.su-catalog-tile--fill {
+  background: var(--catalog-bg);
+  color: var(--color-paper);
+}
+
+.su-catalog-tile__label {
+  background-color: var(--catalog-label);
+  border-radius: var(--radius-badge);
+  display: inline-block;
+  padding-block: var(--space-2);
+  padding-inline: var(--space-10);
+  text-shadow: none;
+}
+
+/* `shared/SearchField.tsx`: the bordered shell and its input. Callers restyle
+ * both by className (`containerClassName`, `className`), so neither is inline. */
+.su-search-field {
+  align-items: center;
+  background-color: var(--color-paper);
+  border-color: var(--color-ink);
+  border-radius: 0.25rem;
+  border-style: solid;
+  border-width: 1px;
+  color: var(--color-wk-muted);
+  display: flex;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  gap: var(--space-8);
+  padding-block: 7px;
+  padding-inline: var(--space-12);
+}
+
+/* 16px on the input itself: iOS Safari zooms on a focused control under 16px. */
+.su-search-field__input {
+  background-color: transparent;
+  color: var(--color-ink);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  width: 100%;
+}
+
+.su-search-field__input::placeholder {
+  color: var(--color-wk-muted);
+}
+
+.su-search-field__input:focus {
+  outline-style: none;
+}
+
+/* ── StatProvenance, Tooltip, Text ── */
+/* components/base/Text.tsx — every property a class, because callers restyle
+ * Text through `className` (their utilities must keep winning). Two classes of
+ * specificity so a package rule such as `.su-entity-page__prose
+ * [data-prose='flavor']` loses to the variant, as it lost to the variant's
+ * utilities before. */
+.su-text.su-text--default {
+  color: var(--foreground);
+  font-family: var(--font-body);
+}
+
+.su-text.su-text--body {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.375;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+  white-space: normal;
+}
+
+.su-text.su-text--hint {
+  color: var(--color-ink);
+  font-style: italic;
+  font-weight: var(--font-weight-normal);
+  line-height: 1.375;
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  text-align: center;
+  text-wrap: pretty;
+  white-space: normal;
+}
+
+.su-text.su-text--flavor {
+  color: var(--color-ink-2);
+  font-style: italic;
+  font-weight: var(--font-weight-normal);
+  line-height: 1.375;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+  white-space: normal;
+}
+
+/* components/stat/StatProvenance.tsx — the trigger's dotted underline; callers
+ * restyle it (`border-0`, `border-b-0`, `cursor`) through `className`. */
+.su-stat-provenance__trigger {
+  border-bottom-width: 1px;
+  border-color: color-mix(in oklab, currentcolor 40%, transparent);
+  border-style: dotted;
+  cursor: help;
 }
 
 /* — Containers (TW3) — */

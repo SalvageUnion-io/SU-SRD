@@ -41,7 +41,9 @@ export type SizeRung = 'full' | 'compact' | 'mini'
 export const DEFAULT_RUNG: SizeRung = 'compact'
 
 /**
- * Type scale per rung, as theme tokens (see `theme.css`).
+ * Type scale per rung, as `.su-rung-*` classes (rules in `styles/index.css`,
+ * over the `theme.css` type tokens). A class-string export, so stylesheet-only
+ * and its class names are public API (tailwind-removal plan §4.3).
  *
  * `label` is the condensed-caps size used by stamps, eyebrows and column
  * headers; `body` is the prose size used for readable copy at that rung. They
@@ -49,18 +51,19 @@ export const DEFAULT_RUNG: SizeRung = 'compact'
  * a compact row can carry mini labels above body-size text.
  */
 export const RUNG_TYPE: Record<SizeRung, { label: string; body: string }> = {
-  full: { label: 'text-sm', body: 'text-lede' },
-  compact: { label: 'text-xs', body: 'text-caption' },
-  mini: { label: 'text-badge', body: 'text-note' },
+  full: { label: 'su-rung-label--full', body: 'su-rung-body--full' },
+  compact: { label: 'su-rung-label--compact', body: 'su-rung-body--compact' },
+  mini: { label: 'su-rung-label--mini', body: 'su-rung-body--mini' },
 }
 
 /**
- * Padding per rung for a stamp-like inline element. Components with different
+ * Padding per rung for a stamp-like inline element, as `.su-rung-pad--*`
+ * classes. Components with different
  * geometry (a button has a larger tap target than a stamp) scale their own
  * padding, but keep the same rung NAMES so the vocabulary still reads.
  */
 export const RUNG_INLINE_PADDING: Record<SizeRung, string> = {
-  full: 'px-2 py-1',
-  compact: 'px-1.5 py-0.5',
-  mini: 'px-1 py-0.5',
+  full: 'su-rung-pad--full',
+  compact: 'su-rung-pad--compact',
+  mini: 'su-rung-pad--mini',
 }

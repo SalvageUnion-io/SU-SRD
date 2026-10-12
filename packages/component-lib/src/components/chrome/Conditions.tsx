@@ -1,4 +1,5 @@
-import { cn } from '../../utils/cn'
+import type { CSSProperties } from 'react'
+import { borderWidth, font, radius, space } from '../../design/tokens'
 import { Badge } from './Badge'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
@@ -29,6 +30,48 @@ type ConditionChipProps = {
   className?: string
 }
 
+const CHIP_LABEL_BUTTON = {
+  borderRadius: radius.badge,
+  cursor: 'pointer',
+} satisfies CSSProperties
+
+/** 24px hit area (WCAG 2.5.8). Its opacity is `.su-condition-chip__remove`,
+ * which brightens it on hover. */
+const REMOVE_BUTTON = {
+  alignItems: 'center',
+  cursor: 'pointer',
+  display: 'inline-flex',
+  flexShrink: 0,
+  fontFamily: font.body,
+  height: space[24],
+  justifyContent: 'center',
+  lineHeight: 1,
+  marginBlock: `-${space[4]}`,
+  marginRight: `-${space[6]}`,
+  width: space[24],
+} satisfies CSSProperties
+
+const ROW = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[6],
+} satisfies CSSProperties
+
+/** The '+ Add' chip's static geometry; its border and text colours change on
+ * hover, so they are `.su-conditions__add`. */
+const ADD_BUTTON = {
+  alignItems: 'center',
+  borderRadius: radius.badge,
+  borderStyle: 'dashed',
+  borderWidth: borderWidth.pill,
+  cursor: 'pointer',
+  display: 'inline-flex',
+  height: '22px',
+  lineHeight: 1,
+  paddingInline: '9px',
+} satisfies CSSProperties
+
 /**
  * Condition chip (design-spec §2.10 `.cond__chip`): active = solid warn fill,
  * inactive = the ink outline, optional '×' remove. The label and the remove
@@ -55,11 +98,8 @@ export function ConditionChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={cn(
-        'cursor-pointer rounded-badge',
-        quiet ? 'normal-case' : 'uppercase',
-        FOCUS_RING
-      )}
+      className={FOCUS_RING}
+      style={{ ...CHIP_LABEL_BUTTON, textTransform: quiet ? 'none' : 'uppercase' }}
     >
       {label}
     </button>
@@ -70,9 +110,10 @@ export function ConditionChip({
     <Badge
       surface={quiet ? 'quiet' : active ? 'tone' : 'outline'}
       tone={!quiet && active ? 'warn' : undefined}
-      // `normal-case` is part of what `quiet` MEANS here: the neutral rung
-      // carries prose, and Badge's baked-in `uppercase` would shout it.
-      className={cn('gap-1.5', quiet && 'normal-case', className)}
+      className={className}
+      // `textTransform: none` is part of what `quiet` MEANS here: the neutral
+      // rung carries prose, and Badge's baked-in `uppercase` would shout it.
+      style={{ gap: space[6], ...(quiet ? { textTransform: 'none' } : undefined) }}
     >
       {labelNode}
       {onRemove && (
@@ -82,7 +123,8 @@ export function ConditionChip({
           type="button"
           aria-label={removeLabel ?? `Remove condition ${label}`}
           onClick={onRemove}
-          className="-my-1 -mr-1.5 inline-flex size-6 shrink-0 cursor-pointer items-center justify-center font-body leading-none opacity-80 hover:opacity-100"
+          className="su-condition-chip__remove"
+          style={REMOVE_BUTTON}
         >
           ×
         </button>
@@ -132,7 +174,7 @@ export function Conditions({
   className,
 }: ConditionsProps) {
   return (
-    <div className={cn('flex flex-wrap items-center gap-1.5', className)}>
+    <div className={className} style={ROW}>
       {conditions.map((condition, index) => (
         <ConditionChip
           // biome-ignore lint/suspicious/noArrayIndexKey: conditions are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
@@ -151,10 +193,8 @@ export function Conditions({
           type="button"
           aria-label={addLabel ?? 'Add condition'}
           onClick={onAdd}
-          className={cn(
-            capsLabel({ size: 'badge', weight: 'semibold', tracking: 'caps' }),
-            'inline-flex h-[22px] cursor-pointer items-center rounded-badge border-2 border-dashed border-wk-faint px-[9px] leading-none text-wk-muted hover:border-ink hover:text-ink'
-          )}
+          className={`${capsLabel({ size: 'badge', weight: 'semibold', tracking: 'caps' })} su-conditions__add`}
+          style={ADD_BUTTON}
         >
           + Add
         </button>

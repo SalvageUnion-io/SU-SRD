@@ -3,7 +3,8 @@
  *
  * AC-1: Sheet renders without horizontal overflow at 320px viewport width.
  * AC-5: the top-bar Share control and InlineEditField display state have ≥44px touch targets
- *       (verified via class attribute containing min-h-11).
+ *       (verified via the `min-h-11` class on the Share control, and the inline
+ *       `min-height: 2.75rem` on InlineEditField's display state).
  *
  * Design choices:
  * - 320px overflow check: happy-dom does not implement a full layout engine, so
@@ -12,9 +13,10 @@
  *   (entity content appears without throwing). Real 320px overflow verification
  *   requires a browser engine — this is tracked in the M3 a11y/perf work and
  *   should be covered by a Playwright / puppeteer visual regression test.
- * - Touch target: we assert the display-state span/button carries `min-h-11`
- *   in its className string, matching the Tailwind class applied in the source.
- *   This is the most reliable assertion in happy-dom (no computed styles).
+ * - Touch target: we assert the Share button carries `min-h-11` in its
+ *   className string, and InlineEditField's display span its inline
+ *   `minHeight` (it moved off Tailwind onto a style object). Both are the most
+ *   reliable assertions in happy-dom (no computed styles).
  *
  * Conventions:
  * - toBeTruthy() not toBeInTheDocument()
@@ -157,7 +159,7 @@ describe('Mobile responsive — renders without error at 320px container', () =>
 // ---------------------------------------------------------------------------
 
 describe('Mobile responsive — touch targets min-h-11', () => {
-  test('InlineEditField display state carries min-h-11 class', () => {
+  test('InlineEditField display state carries a 44px min-height', () => {
     render(
       <InlineEditField
         value={42}
@@ -168,17 +170,17 @@ describe('Mobile responsive — touch targets min-h-11', () => {
     )
     // Display state renders a span with role=button
     const displayEl = screen.getByRole('button')
-    expect((displayEl as HTMLElement).className).toContain('min-h-11')
+    expect((displayEl as HTMLElement).style.minHeight).toBe('2.75rem')
   })
 
-  test('InlineEditField readOnly display state also carries min-h-11 class', () => {
+  test('InlineEditField readOnly display state also carries a 44px min-height', () => {
     const { container } = render(
       <InlineEditField value={42} onSave={() => Promise.resolve()} type="number" readOnly />
     )
     // readOnly renders no button role — get via container querySelector
     const span = container.querySelector('span')
     expect(span).toBeTruthy()
-    expect((span as HTMLElement).className).toContain('min-h-11')
+    expect((span as HTMLElement).style.minHeight).toBe('2.75rem')
   })
 
   test('the top-bar Share control carries min-h-11 (AC-5 touch target)', () => {
