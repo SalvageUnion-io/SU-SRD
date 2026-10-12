@@ -746,6 +746,7 @@ const COLLAPSED_DOCS: Record<string, number> = {
   'docs/architecture/mediator-dashboard.md': 4_500,
   'docs/architecture/npc-builder.md': 2_000,
   'docs/design-system/entity-display-language.md': 6_000,
+  'docs/design-system/refresh-ledger.md': 6_500,
   'docs/design-system/ruleset.md': 13_000,
   'docs/design-system/tailwind-removal.md': 4_500,
   'docs/ops/cloud-environment.md': 3_800,
