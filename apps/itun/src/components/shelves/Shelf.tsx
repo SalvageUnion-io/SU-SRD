@@ -37,8 +37,8 @@ type ShelfProps = {
   title: string
   /** Its id, for `aria-labelledby`. */
   id: string
-  /** Beside the stamp: "3", or "2 · yours". */
-  count: ReactNode
+  /** Beside the stamp: a qualifier ("Yours"), never a tally of the shelf. */
+  aside?: ReactNode
   /** At the rule's end: the shelf's "+ New…" control. */
   action?: ReactNode
   /** What the shelf is for, under the stamp. */
@@ -51,7 +51,7 @@ type ShelfProps = {
   isEmpty: boolean
 }
 
-export function Shelf({ title, id, count, action, note, empty, children, isEmpty }: ShelfProps) {
+export function Shelf({ title, id, aside, action, note, empty, children, isEmpty }: ShelfProps) {
   return (
     <section aria-labelledby={id} style={SECTION}>
       <Slab
@@ -59,7 +59,7 @@ export function Shelf({ title, id, count, action, note, empty, children, isEmpty
         as="h2"
         id={id}
         label={title}
-        count={count}
+        count={aside}
         countAt="label"
         actions={action}
       />

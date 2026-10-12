@@ -39,6 +39,13 @@ const badgeListStyle = {
   gap: space[6],
 } satisfies CSSProperties
 
+/** `fill`: the list stacks its Tokens and stretches each across the column. */
+const fillListStyle = {
+  ...badgeListStyle,
+  alignItems: 'stretch',
+  flexDirection: 'column',
+} satisfies CSSProperties
+
 /**
  * A pattern's LOADOUT — its Systems and Modules groups SIDE BY SIDE, each a
  * dashed Slab over a wrap of shortform badges (see `LoadoutBadge`).
@@ -57,13 +64,30 @@ export function PatternLoadout({
   groups,
   sectionAs,
   hostDown,
+  fill = false,
+  owner,
 }: {
   groups: NestedGroup[]
   sectionAs: ElementType | undefined
   hostDown: boolean
+  /**
+   * One Token a line, each the column's full width (`.su-pattern-loadout--fill`):
+   * a pattern's card in its host's list on a page, where the card spans the
+   * page and a wrap of short Tokens would leave each column ragged.
+   */
+  fill?: boolean
+  /**
+   * Whose loadout, prefixed to each list's name ("Hauler Systems installed"):
+   * a page lists many patterns, and a bare "Systems installed" would not say
+   * which one a list belongs to.
+   */
+  owner?: string
 }) {
   return (
-    <div className="su-pattern-loadout" style={gridStyle}>
+    <div
+      className={fill ? 'su-pattern-loadout su-pattern-loadout--fill' : 'su-pattern-loadout'}
+      style={gridStyle}
+    >
       {groups.map((group, index) => (
         <div
           key={group.label}
@@ -80,7 +104,10 @@ export function PatternLoadout({
           {/* A real LIST: the loadout is a countable set of installed parts, so
               a screen reader should announce "list, 6 items" rather than a run
               of anonymous links. `listStyle: none` keeps the markers off. */}
-          <ul aria-label={`${group.label} installed`} style={badgeListStyle}>
+          <ul
+            aria-label={`${owner ? `${owner} ` : ''}${group.label} installed`}
+            style={fill ? fillListStyle : badgeListStyle}
+          >
             {group.entities.map((item, itemIndex) => (
               <li key={cardKey(item, itemIndex)} style={{ minWidth: 0 }}>
                 <LoadoutBadge data={item} hostDown={hostDown} />
@@ -173,7 +200,7 @@ export function PatternLoadoutRows({
     <div className="su-entity-page__loadout" style={LOADOUT_PAGE}>
       {groups.map((group) => (
         <section key={group.label} style={LOADOUT_GROUP}>
-          <Slab variant="solid" as={sectionAs} label={group.label} count={group.entities.length} />
+          <Slab variant="solid" as={sectionAs} label={group.label} />
           <ul aria-label={`${group.label} installed`} data-entity-grid="" style={LOADOUT_ROWS}>
             {group.entities.map((item, index) => (
               <li key={cardKey(item, index)} style={{ minWidth: 0 }}>

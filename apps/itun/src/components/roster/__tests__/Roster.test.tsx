@@ -284,7 +284,7 @@ describe('Shelves — one shelf per kind', () => {
     )
   })
 
-  test('a designed NPC is a dashed line with who can see it, counted on the shelf', async () => {
+  test('a designed NPC is a dashed line with who can see it, on a shelf marked yours', async () => {
     const store = useEntityStore.getState()
     await store.hydrate('npc')
     const npc = await store.create('npc', {
@@ -300,7 +300,7 @@ describe('Shelves — one shelf per kind', () => {
     await renderShelves()
 
     const npcs = screen.getByRole('region', { name: 'NPCs' })
-    expect(within(npcs).getByText('1 · yours')).toBeTruthy()
+    expect(within(npcs).getByText('Yours')).toBeTruthy()
     const line = within(npcs)
       .getAllByRole('link')
       .find((a) => a.getAttribute('href') === `/sheet/npc/${npc.id}`)

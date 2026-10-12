@@ -88,7 +88,7 @@ export function ClassPathPicker({
       <RadioCardGroup label="Class">
         {groups.map((group) => (
           <div key={group.kind} className="mb-4">
-            <Slab label={group.label} count={group.options.length} />
+            <Slab label={group.label} />
             {group.options.map((option) => (
               <OptionCard
                 key={option.cls.id}

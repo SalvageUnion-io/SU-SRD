@@ -177,13 +177,14 @@ describe('MechSheet — The Hold (Stow →)', () => {
     expect(screen.getByText(/over capacity/i)).toBeTruthy()
   })
 
-  test('the slab counts lots and slots truthfully', () => {
+  test("the slab reads the hold's slots truthfully, without tallying its lots", () => {
     const mech = makeMech({
       cargoLots: [makeUnitLot('Sealed Crate', { units: 2 }), makeScrapLot(1, 1)],
     })
     render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
 
-    expect(screen.getByText(/2 lots · 3\/6 slots/i)).toBeTruthy()
+    expect(screen.getByText(/^3\/6 slots$/i)).toBeTruthy()
+    expect(screen.queryByText(/2 lots/i)).toBeNull()
   })
 })
 
