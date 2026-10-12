@@ -69,17 +69,15 @@ jobs:
               - *shared
               - 'apps/itun/**'
               - 'packages/component-lib/**'
-              # the build job's Playwright config, axe spec and the debt it accepts
+              # the build job's Playwright config and axe scan
               - 'tools/lib/a11y*.ts'
               - 'tools/lib/playwrightBase.ts'
-              - 'tools/a11y-baseline-itun.json'
             web:
               - *shared
               - 'apps/srd/**'
               - 'packages/component-lib/**'
               - 'tools/lib/a11y*.ts'
               - 'tools/lib/playwrightBase.ts'
-              - 'tools/a11y-baseline.json'
             bot:
               - *shared
               - 'apps/discord-bot/**'
@@ -204,9 +202,8 @@ jobs:
 
       # The PR-blocking browser tier, and srd's whole Playwright suite: there
       # is no nightly srd run. Add a spec to this line; do NOT add a job.
-      # `a11y.e2e.ts` is WCAG 2.2 AA on the pages in tools/a11y-baseline.json,
-      # at desktop and as a phone: it blocks on any violation the baseline does
-      # not accept, and on a baseline entry that no longer fires.
+      # `a11y.e2e.ts` is WCAG 2.2 AA on the pages it lists, at desktop and as a
+      # phone: it blocks on any violation.
       - name: Run smoke + bundle-budget + JSON API + a11y specs
         working-directory: apps/srd
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts
@@ -264,8 +261,8 @@ jobs:
         run: bunx playwright install chromium
 
       # The PR-blocking browser tier. Add a spec to this line; do NOT add a job.
-      # `a11y.e2e.ts` is srd's scan, for ITUN: the routes in
-      # tools/a11y-baseline-itun.json, signed out, at desktop and as a phone.
+      # `a11y.e2e.ts` is srd's scan, for ITUN: the routes it lists, signed out,
+      # at desktop and as a phone.
       - name: Run smoke + bundle-budget + a11y specs
         working-directory: apps/itun
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts a11y.e2e.ts
