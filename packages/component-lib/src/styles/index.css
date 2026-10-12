@@ -1798,11 +1798,6 @@ body {
   line-height: 1.6;
 }
 
-/* A pattern page's loadout follows the stats (`PatternLoadoutRows`). */
-.su-entity-page__loadout {
-  order: 2;
-}
-
 .su-entity-page__prose {
   display: flex;
   flex-direction: column;
