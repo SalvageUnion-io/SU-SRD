@@ -23,13 +23,14 @@ const DEFAULT_TITLE = 'Salvage Union System Reference Document'
 const DEFAULT_DESCRIPTION =
   'System Reference Document (SRD) for the Salvage Union TTRPG. Complete reference guide with chassis, systems, modules, abilities, and more.'
 
-/** Prefetch same-site links on hover via Speculation Rules. Browser-native, zero JS. */
 /**
  * Pages whose own search (the home band's, the 404's) stands in for the Union
- * bar's: two fields on one page would both claim ⌘K.
+ * bar's: two fields on one page would both claim ⌘K. Keyed by the route's
+ * pathname, so the 404 is `/404/` though it is emitted as `404.html`.
  */
 const PAGES_WITH_SEARCH = new Set(['/', '/404/'])
 
+/** Prefetch same-site links on hover via Speculation Rules. Browser-native, zero JS. */
 const SPECULATION_RULES = JSON.stringify({
   prefetch: [{ source: 'document', where: { href_matches: '/*' }, eagerness: 'moderate' }],
 })
