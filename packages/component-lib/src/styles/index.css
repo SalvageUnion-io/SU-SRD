@@ -3172,6 +3172,42 @@ body {
   translate: 0 calc(var(--space-2) * -1);
 }
 
+/* ModeDoor's shadows. Here, not inline, because the focus ring is a
+   box-shadow too and an inline one would out-rank it.
+   guided: a ground gap, a 3px ink ring, then a soft drop shadow. */
+.su-mode-door--guided {
+  box-shadow:
+    0 0 0 3px var(--ground),
+    0 0 0 7px var(--color-ink),
+    0 18px 30px -14px var(--color-ink-50);
+}
+
+.su-mode-door--blank {
+  box-shadow: 0 14px 26px -14px var(--color-ink-40);
+}
+
+/* The canonical ring (`--focus-ring-shadow`: paper offset, ink ring) with
+   the door's own shadows kept. guided already wears an ink ring at rest, so
+   its focus ring sits OUTSIDE the halo, the same paper-then-ink pair offset
+   by the halo's 7px; laid on the edge it would merge into the halo and read
+   as no change. */
+.su-mode-door--guided:focus-visible {
+  outline: 3px solid transparent;
+  box-shadow:
+    0 0 0 3px var(--ground),
+    0 0 0 7px var(--color-ink),
+    0 0 0 9px var(--color-paper),
+    0 0 0 11px var(--color-ink),
+    0 18px 30px -14px var(--color-ink-50);
+}
+
+.su-mode-door--blank:focus-visible {
+  outline: 3px solid transparent;
+  box-shadow:
+    var(--focus-ring-shadow),
+    0 14px 26px -14px var(--color-ink-40);
+}
+
 /* PageHeading.tsx — each rung's size, leading and tracking, which callers
    retune through `className` (`leading-tight`, `tracking-caps-tight`). */
 .su-page-heading--subheading {
