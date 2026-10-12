@@ -1,4 +1,5 @@
-import { cn } from '../../utils/cn'
+import type { CSSProperties } from 'react'
+import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
 
 export type BannerSeverity = 'info' | 'warn'
 
@@ -22,10 +23,35 @@ type BannerProps = {
  * sickly-yellow caution keyed to the warn state tone. Both keep ink text —
  * these are advisory strips, never the rust action colour.
  */
-const SEVERITY_PILL: Record<BannerSeverity, string> = {
-  info: 'border-wk-line bg-wk-bg text-ink',
-  warn: 'border-status-warn bg-caution/25 text-ink',
+const SEVERITY_PILL: Record<BannerSeverity, CSSProperties> = {
+  info: { borderColor: color.wkLine, backgroundColor: color.wkBg, color: color.ink },
+  warn: { borderColor: color.statusWarn, backgroundColor: color.caution25, color: color.ink },
 }
+
+const ROOT = {
+  fontFamily: font.body,
+  fontSize: fontSize.caption,
+  color: color.ink,
+} satisfies CSSProperties
+
+const LIST = { display: 'flex', flexDirection: 'column', gap: space[6] } satisfies CSSProperties
+
+const PILL = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: space[8],
+  borderRadius: radius.card,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.chrome,
+  padding: `${space[8]} ${space[12]}`,
+} satisfies CSSProperties
+
+const ICON = {
+  marginTop: '1px',
+  flexShrink: 0,
+  fontSize: fontSize.base,
+  lineHeight: 1,
+} satisfies CSSProperties
 
 const SEVERITY_ICON: Record<BannerSeverity, string> = {
   info: 'ℹ',
@@ -46,22 +72,15 @@ export function Banner({ warnings, className }: BannerProps) {
   if (warnings.length === 0) return null
 
   return (
-    <div
-      role="alert"
-      aria-live="polite"
-      className={cn('font-body text-caption text-ink', className)}
-    >
-      <ul className="flex flex-col gap-1.5">
+    <div role="alert" aria-live="polite" className={className} style={ROOT}>
+      <ul style={LIST}>
         {warnings.map((warning, index) => (
           <li
             // biome-ignore lint/suspicious/noArrayIndexKey: warnings carry no id and may repeat a severity; severity+index is the stablest available key
             key={`${warning.severity}-${index}`}
-            className={cn(
-              'flex items-start gap-2 rounded-card border-chrome px-3 py-2',
-              SEVERITY_PILL[warning.severity]
-            )}
+            style={{ ...PILL, ...SEVERITY_PILL[warning.severity] }}
           >
-            <span aria-hidden="true" className="mt-px shrink-0 text-base leading-none">
+            <span aria-hidden="true" style={ICON}>
               {SEVERITY_ICON[warning.severity]}
             </span>
             <span>{warning.message}</span>

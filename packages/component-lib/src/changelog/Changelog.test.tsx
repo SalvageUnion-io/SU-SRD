@@ -30,7 +30,7 @@ describe('Changelog', () => {
     ]
     const { container } = render(<Changelog entries={entries} />)
     const frame = container.querySelector('li > div')
-    expect(frame?.className).toContain('rounded-card')
+    expect(frame?.className).toContain('su-card')
     // Card draws its frame as longhand inline style off the border glossary;
     // `chrome` is the sub-panel weight this listing asks for.
     expect(frame?.getAttribute('style')).toContain('var(--bw-chrome)')

@@ -1,4 +1,4 @@
-import type { ElementType, ReactNode } from 'react'
+import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { POSTER_STAMP } from './posterStamp'
 
@@ -21,6 +21,8 @@ type SlabProps = {
    */
   actions?: ReactNode
   className?: string
+  /** Inline style on the leader row. */
+  style?: CSSProperties
   /** For a region that names itself by its slab (`aria-labelledby`). */
   id?: string
   /**
@@ -53,6 +55,7 @@ export function Slab({
   count,
   actions,
   className,
+  style,
   id,
   variant = 'dashed',
   countAt = 'end',
@@ -66,7 +69,7 @@ export function Slab({
     </span>
   )
   return (
-    <div className={cn('mb-3.5 flex items-center gap-3', className)}>
+    <div className={cn('mb-3.5 flex items-center gap-3', className)} style={style}>
       {isSolid ? (
         <Label
           id={id}

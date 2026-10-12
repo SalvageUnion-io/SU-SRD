@@ -2,6 +2,7 @@ import { AlertDialog } from '@base-ui/react/alert-dialog'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
+import { color, fontSize, space } from '../../design/tokens'
 import { Badge } from '../chrome/Badge'
 import { Card } from './Card'
 
@@ -31,9 +32,9 @@ type ModalShellProps = {
    */
   tone?: 'action' | 'danger'
   /**
-   * Tailwind max-width class. Defaults to `max-w-3xl`, or `max-w-md` for an
-   * `alertdialog` — the narrow width every confirm in the apps had already
-   * chosen by hand.
+   * A max-width class on the popup (e.g. `max-w-lg`). Omitted, the popup is
+   * 48rem wide at most, or 28rem for an `alertdialog` — the narrow width every
+   * confirm in the apps had already chosen by hand.
    */
   maxWidth?: string
   align?: 'center' | 'top'
@@ -78,6 +79,61 @@ const CONTAINED_POPUP: CSSProperties = {
   outline: 'none',
 }
 
+/** The default popup: a fit-height box centred over the scrim. */
+const POPUP: CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 50,
+  height: 'fit-content',
+  maxHeight: 'calc(100vh - 4rem)',
+  width: '100%',
+  backgroundColor: 'transparent',
+  outline: 'none',
+}
+
+/** Visually hidden, still read: the popup's title and description. */
+const SR_ONLY: CSSProperties = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clipPath: 'inset(50%)',
+  whiteSpace: 'nowrap',
+  borderWidth: 0,
+}
+
+const HEAD = {
+  display: 'flex',
+  width: '100%',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: space[8],
+} satisfies CSSProperties
+
+const TITLES = {
+  display: 'flex',
+  minWidth: 0,
+  flexDirection: 'column',
+  gap: space[2],
+} satisfies CSSProperties
+
+/** A stamp sized over the stamp ladder's top rung, as a single-line plate. */
+const STAMP = {
+  display: 'block',
+  alignSelf: 'flex-start',
+  lineHeight: 1,
+} satisfies CSSProperties
+
+const SUBTITLE = {
+  ...STAMP,
+  fontSize: fontSize.xs,
+  color: `color-mix(in oklab, ${color.paper} 80%, transparent)`,
+} satisfies CSSProperties
+
+const CLOSE_ICON = { width: space[20], height: space[20] } satisfies CSSProperties
+
 /** A full-screen popup covers the viewport and scrolls inside itself. */
 const FULLSCREEN_POPUP: CSSProperties = {
   position: 'fixed',
@@ -107,12 +163,17 @@ export function ModalShell({
   // `tone` is the whole API: a union, never a raw class string compared by
   // value, so a token rename cannot silently change the behaviour.
   const isDanger = tone === 'danger'
-  const headerBgClass = isDanger ? 'bg-status-bad' : 'bg-pilot'
+  const headerBgColor = isDanger ? 'var(--color-status-bad)' : 'var(--color-pilot)'
 
   // Bare mode: a fit-height, non-scrolling popup — the child owns its frame and
   // any internal scroll. Default: a scrolling popup wrapping the Card.
-  const overflow = bare ? 'overflow-hidden' : 'overflow-y-auto'
-  const width = maxWidth ?? (role === 'alertdialog' ? 'max-w-md' : 'max-w-3xl')
+  const popupStyle: CSSProperties = {
+    ...POPUP,
+    ...(bare ? { overflow: 'hidden' } : { overflowY: 'auto' }),
+    // A caller's `maxWidth` class sets the cap; inline, the default would beat it.
+    ...(maxWidth ? {} : { maxWidth: role === 'alertdialog' ? '28rem' : '48rem' }),
+    margin: align === 'center' ? 'auto' : `${space[32]} auto auto`,
+  }
 
   // An Escape something inside the dialog already handled (an inline edit
   // cancelling, the Dashboard Major's own Take Damage prompt closing) is not a
@@ -134,60 +195,51 @@ export function ModalShell({
       <Dialog.Popup
         initialFocus={initialFocus}
         finalFocus={finalFocus}
-        className={
-          container || fullscreen
-            ? undefined
-            : `fixed inset-0 z-50 h-fit max-h-[calc(100vh-4rem)] w-full ${width} ${overflow} bg-transparent outline-none ${align === 'center' ? 'm-auto' : 'mx-auto mt-8 mb-auto'}`
-        }
-        style={container ? CONTAINED_POPUP : fullscreen ? FULLSCREEN_POPUP : undefined}
+        className={container || fullscreen ? undefined : maxWidth}
+        style={container ? CONTAINED_POPUP : fullscreen ? FULLSCREEN_POPUP : popupStyle}
       >
-        <Dialog.Title className="sr-only">{title}</Dialog.Title>
+        <Dialog.Title style={SR_ONLY}>{title}</Dialog.Title>
         {description !== null && (
-          <Dialog.Description className="sr-only">{description ?? title}</Dialog.Description>
+          <Dialog.Description style={SR_ONLY}>{description ?? title}</Dialog.Description>
         )}
 
         {bare ? (
           children
         ) : (
           <Card
-            headerBg={headerBgClass}
+            headerBgColor={headerBgColor}
             headerContent={
-              <div className="flex w-full items-center justify-between gap-2">
-                <div className="flex min-w-0 flex-col gap-0.5">
+              <div style={HEAD}>
+                <div style={TITLES}>
                   {/*
-                   * `text-xl` / `text-2xl` sit ABOVE the stamp ladder's top
-                   * rung (`full` = `text-sm`), so the dialog title keeps an
-                   * explicit font-size override rather than inventing a new
-                   * rung. `leading-none` must trail it — a font-size utility
-                   * reinstates its own line-height, and the stamp is a
-                   * single-line plate.
+                   * `xl` / `2xl` sit ABOVE the stamp ladder's top rung
+                   * (`full` = `sm`), so the dialog title keeps an explicit
+                   * font-size override rather than inventing a new rung, at
+                   * line-height 1: the stamp is a single-line plate.
                    */}
                   <Badge
                     shape="stamp"
                     size="mini"
-                    className={`${isDanger ? 'text-xl' : 'text-2xl'} block self-start leading-none text-paper`}
+                    style={{
+                      ...STAMP,
+                      fontSize: isDanger ? fontSize.xl : fontSize['2xl'],
+                      color: color.paper,
+                    }}
                   >
                     {title}
                   </Badge>
                   {subtitle && (
-                    <Badge
-                      shape="stamp"
-                      size="mini"
-                      className="block self-start text-xs leading-none text-paper/80"
-                    >
+                    <Badge shape="stamp" size="mini" style={SUBTITLE}>
                       {subtitle}
                     </Badge>
                   )}
                 </div>
                 <Dialog.Close
-                  className={`flex shrink-0 cursor-pointer items-center justify-center rounded p-1 transition-colors ${
-                    isDanger
-                      ? 'text-paper/60 hover:bg-ink/20 hover:text-paper'
-                      : 'text-ink/60 hover:bg-ink/20 hover:text-ink'
-                  }`}
+                  className="su-modal-close"
+                  data-tone={isDanger ? 'danger' : undefined}
                 >
-                  <X className="h-5 w-5" />
-                  <span className="sr-only">Close</span>
+                  <X style={CLOSE_ICON} />
+                  <span style={SR_ONLY}>Close</span>
                 </Dialog.Close>
               </div>
             }
