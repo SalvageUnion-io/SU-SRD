@@ -47,12 +47,13 @@
 
 import { createHash } from 'node:crypto'
 import {
-  existsSync,
+  closeSync,
+  fstatSync,
   mkdirSync,
+  openSync,
   readdirSync,
   readFileSync,
   realpathSync,
-  statSync,
   writeFileSync,
 } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -148,6 +149,16 @@ export function parsePorcelain(output: string): Drift {
   return { changed, untracked }
 }
 
+/** Open `abs` read-only (a directory too, on Linux and macOS), or undefined if absent. */
+function openIfPresent(abs: string): number | undefined {
+  try {
+    return openSync(abs, 'r')
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined
+    throw error
+  }
+}
+
 /** Feed a file or directory (recursively, sorted, minus node_modules) into `hash`. */
 function hashPath(
   hash: ReturnType<typeof createHash>,
@@ -157,16 +168,24 @@ function hashPath(
 ): void {
   if (skip.has(rel)) return
   const abs = join(root, rel)
-  if (!existsSync(abs)) {
+  // One handle for the check and the read, so the path can't change between.
+  const fd = openIfPresent(abs)
+  if (fd === undefined) {
     hash.update(`absent ${rel}\0`)
     return
   }
-  if (!statSync(abs).isDirectory()) {
-    hash.update(`file ${rel}\0`)
-    hash.update(readFileSync(abs))
-    hash.update('\0')
-    return
+  let isDirectory: boolean
+  try {
+    isDirectory = fstatSync(fd).isDirectory()
+    if (!isDirectory) {
+      hash.update(`file ${rel}\0`)
+      hash.update(readFileSync(fd))
+      hash.update('\0')
+    }
+  } finally {
+    closeSync(fd)
   }
+  if (!isDirectory) return
   for (const name of readdirSync(abs).sort()) {
     if (name === 'node_modules') continue
     hashPath(hash, root, join(rel, name), skip)
@@ -177,7 +196,14 @@ function hashPath(
 function installedTool(root: string, cwd: string, pkg: string): string {
   for (let dir = join(root, cwd); ; dir = dirname(dir)) {
     const manifest = join(dir, 'node_modules', pkg, 'package.json')
-    if (existsSync(manifest)) return `${realpathSync(manifest)}\0${readFileSync(manifest, 'utf8')}`
+    const fd = openIfPresent(manifest)
+    if (fd !== undefined) {
+      try {
+        return `${realpathSync(manifest)}\0${readFileSync(fd, 'utf8')}`
+      } finally {
+        closeSync(fd)
+      }
+    }
     if (dir === root || dir === dirname(dir)) return `missing ${pkg}`
   }
 }
