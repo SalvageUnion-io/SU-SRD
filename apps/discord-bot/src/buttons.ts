@@ -137,7 +137,8 @@ export async function handleButtonInteraction(
         request.tableName,
         roller,
         await d20ForTable(request.tableName),
-        false,
+        // A re-roll shares its first roll's status: private stays private.
+        request.isPrivate,
         interaction.user.id
       )
     : lookupFromPayload(parsed.payload)
@@ -149,14 +150,21 @@ export async function handleButtonInteraction(
 
   // `data` rides along on every V2 payload so attributeRoll can rebuild the
   // container; a lookup is not a roll, so its copy is simply unused.
-  const { data, ...payload } = message as typeof message & { data?: ContainerData }
+  // `ephemeral` is ours, not Discord's: the flags already carry it.
+  const {
+    data,
+    ephemeral: _ephemeral,
+    ...payload
+  } = message as typeof message & { data?: ContainerData; ephemeral?: true }
   await interaction.reply(payload)
 
   // A re-roll is a roll. Recording only the slash-command form would mean the
   // Change Log quietly disagreed with the channel about what happened at the
   // table — and "why is my re-roll missing?" is a worse question than any this
   // saves. `lookup` is not a roll and is deliberately excluded.
-  if (request && data !== undefined) {
+  // A private roll has not happened at the table until it is posted, so,
+  // like `/su roll private`, its re-roll records nothing yet.
+  if (request && !request.isPrivate && data !== undefined) {
     await attributeRoll(interaction, data, `Rolled on ${request.tableName}`, {
       rerolled: request.tableName,
     })

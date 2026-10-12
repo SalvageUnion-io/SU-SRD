@@ -1145,7 +1145,7 @@ function ReferenceEntityCardInner({
         {nestedGroupsNode}
         {/* BASIC CHASSIS → its patterns as head rows. */}
         {!hide?.patterns && patternList.length > 0 && (
-          <CardTray label="Patterns" count={patternList.length} size={size} as={sectionAs}>
+          <CardTray label="Patterns" size={size} as={sectionAs}>
             <PatternList
               chassis={entity}
               chassisName={entityName}
