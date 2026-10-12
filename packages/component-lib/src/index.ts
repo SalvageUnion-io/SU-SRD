@@ -1,4 +1,3 @@
-export { getCatalogBg, getCatalogLabel } from './catalog/catalogColors'
 // SRD catalog — the catalog categories and their tile colours, as ITUN's
 // Dashboard SRD Explorer renders them. (srd's own index is its chapters,
 // `apps/srd/src/lib/chapters.ts`.)

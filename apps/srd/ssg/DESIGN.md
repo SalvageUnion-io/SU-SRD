@@ -117,6 +117,7 @@ builds from.
 | `ColumnsTableIsland`    | idle    | **true** | a two-roll columns table's page (Callsign Table); server markup is the same `ColumnsTableView` with no roll, so its entries are real content |
 | `ColophonIsland`        | visible | **true** | prose worth indexing                                             |
 | `SearchResultsIsland`   | only    | false    | a client-only results page                                       |
+| `DidYouMeanIsland`      | idle    | false    | the 404's guesses: the missed path is only known in the browser (every miss is the one `404.html`) |
 | `OgCardIsland`          | load    | false    | screenshot target                                                |
 | `PeekIsland`            | idle    | false    | every page (`BaseLayout`), no props: the page's one Peek host; Mentions and Tags carry only `data-peek`, and the popup, card and schema load on the first Peek |
 
