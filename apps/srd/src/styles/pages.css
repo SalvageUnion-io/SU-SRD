@@ -521,6 +521,26 @@
   }
 }
 
+/*
+ * The type and cost stamps beside an entity page's Tech Level
+ * (`EntityPageStamps`): the height and type of the stat column's ink label
+ * (`.su-stat-column__label`), so the row reads as one size.
+ */
+.srd-entity-stamp {
+  align-items: center;
+  display: inline-flex;
+  font-size: var(--text-caption);
+  min-height: 40px;
+  padding-inline: var(--space-8);
+}
+
+@media (min-width: 40rem) {
+  .srd-entity-stamp {
+    font-size: var(--text-sm);
+    padding-inline: var(--space-12);
+  }
+}
+
 /* "Build with this" (`EntityPageFrame`'s `build`): one action, above the card at its end. */
 .srd-entity__build {
   display: flex;
