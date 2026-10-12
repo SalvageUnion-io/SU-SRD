@@ -1,3 +1,4 @@
+import type { PageRefIndex } from 'component-lib'
 import {
   EntityDetailLinkProvider,
   EntityHrefProvider,
@@ -9,12 +10,15 @@ import { getClassSelections } from '../lib/classSelections'
 import { srdEntityHref } from '../lib/entityHref'
 import { srdPatternHref } from '../lib/patternHref'
 import { ClassAbilityTree } from './ClassAbilityTree'
+import { ReferenceSurface } from './ReferenceSurface'
 
 type EntityCardStaticProps = {
   item: SURefEntity
   pattern?: SURefObjectAnyPattern
   /** The schema keeps an art place: a censor mark when this item has no art. */
   artSlot?: boolean
+  /** The pages its text cites (`lib/pageRefIndex.ts`), to link "p. N". */
+  pageRefs?: PageRefIndex
 }
 
 /**
@@ -38,7 +42,12 @@ type EntityCardStaticProps = {
  * before rendering this, so the ORM lookups the card makes for
  * nested entities resolve synchronously during the build.
  */
-export function EntityCardStatic({ item, pattern, artSlot = false }: EntityCardStaticProps) {
+export function EntityCardStatic({
+  item,
+  pattern,
+  artSlot = false,
+  pageRefs,
+}: EntityCardStaticProps) {
   const classSelections = getClassSelections(item)
   const classEntity = classSelections.selectedClass || classSelections.selectedAdvancedClass
 
@@ -46,17 +55,19 @@ export function EntityCardStatic({ item, pattern, artSlot = false }: EntityCardS
     <EntityHrefProvider value={srdEntityHref}>
       <EntityDetailLinkProvider value={true}>
         <PatternHrefProvider value={srdPatternHref}>
-          <ReferenceEntityCard
-            data={item}
-            pattern={pattern}
-            size="large"
-            presentation="page"
-            artSlot={artSlot}
-            afterExtraContent={
-              classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
-            }
-            asideLead={!!classEntity}
-          />
+          <ReferenceSurface pageRefs={pageRefs}>
+            <ReferenceEntityCard
+              data={item}
+              pattern={pattern}
+              size="large"
+              presentation="page"
+              artSlot={artSlot}
+              afterExtraContent={
+                classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
+              }
+              asideLead={!!classEntity}
+            />
+          </ReferenceSurface>
         </PatternHrefProvider>
       </EntityDetailLinkProvider>
     </EntityHrefProvider>

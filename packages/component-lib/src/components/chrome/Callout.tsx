@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { color, fontSize, space } from '../../design/tokens'
 import type { SizeRung } from '../../styles/sizing'
-import { cn } from '../../utils/cn'
 import { Card } from '../shared/Card'
 import { Badge } from './Badge'
 
@@ -40,6 +40,21 @@ type CalloutProps = {
   className?: string
 }
 
+/** The band is tighter than a card header and has no min-height — it sizes to
+ * the stamp riding in it. */
+const BAND = {
+  full: { minHeight: 0, padding: `${space[6]} ${space[12]}` },
+  compact: { minHeight: 0, padding: `${space[4]} ${space[8]}` },
+} satisfies Record<string, CSSProperties>
+
+const BODY = {
+  full: { padding: space[12], fontSize: fontSize.sm, lineHeight: 1.375, color: color.ink },
+  compact: { padding: space[8], fontSize: fontSize.xs, lineHeight: 1.375, color: color.ink },
+} satisfies Record<string, CSSProperties>
+
+/** Replaces Card's default drop shadow — a callout sits flat in prose. */
+const FRAME = { overflow: 'hidden' } satisfies CSSProperties
+
 /**
  * Callout — the accent-framed note in the "When Damaged" style: a 3px solid
  * accent border around an optional colour-banded stamp header and a paper body.
@@ -73,12 +88,9 @@ export function Callout({ label, tone = 'ink', size = 'full', children, classNam
           </Badge>
         ) : undefined
       }
-      // The callout band is tighter than a card header and has no min-height —
-      // it sizes to the stamp riding in it.
-      headerStyle={{ className: cn('min-h-0', compact ? 'px-2 py-1' : 'px-3 py-1.5') }}
-      bodyPadding={cn('leading-snug text-ink', compact ? 'p-2 text-xs' : 'p-3 text-sm')}
-      // Replaces Card's default drop shadow — a callout sits flat in prose.
-      cardStyle={{ className: cn('overflow-hidden', className) }}
+      headerStyle={{ style: BAND[size] }}
+      bodyStyle={BODY[size]}
+      cardStyle={{ className, style: FRAME }}
     >
       {children}
     </Card>

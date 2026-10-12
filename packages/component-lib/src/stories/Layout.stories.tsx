@@ -27,6 +27,10 @@ const headerTitle = {
   color: color.ink,
 } satisfies CSSProperties
 
+// The header tone as the custom property Card derives its frame and deep band
+// from — the same `var(--color-mech)` it resolved from the `bg-mech` class.
+const MECH = 'var(--color-mech)'
+
 // Real SRD content fills every layout so wrapping/overflow read truthfully.
 const chassis = SalvageUnionReference.Chassis.all().slice(0, 6)
 const traits = SalvageUnionReference.Traits.all()
@@ -37,7 +41,7 @@ function ChassisRow({ name }: { name: string }) {
   return (
     <Card
       extent="head"
-      headerBg="bg-mech"
+      headerBgColor={MECH}
       headerContent={<span style={headerTitle}>{name}</span>}
     />
   )

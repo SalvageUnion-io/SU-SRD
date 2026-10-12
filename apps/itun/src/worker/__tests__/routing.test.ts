@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import type { Env } from '../index'
 import worker from '../index'
+import { RETIRED_PATTERNS } from '../retiredRedirects'
 
 /**
  * The itun Worker, which Static Assets runs only for a miss that is not a
@@ -32,6 +33,8 @@ function envWith(files: Record<string, string> = { '/': '<!doctype html>SPA' }) 
 }
 
 const req = (path: string) => new Request(`https://intheunionnow.com${path}`)
+const navigate = (path: string) =>
+  new Request(`https://intheunionnow.com${path}`, { headers: { 'sec-fetch-mode': 'navigate' } })
 
 describe('/assets/* — a miss must 404, never the shell', () => {
   it('404s a rotated-away chunk instead of returning the SPA shell', async () => {
@@ -88,8 +91,57 @@ describe('a client route that is not a navigation gets the shell', () => {
   }
 })
 
+/**
+ * Retired addresses that old Discord links still use (refit D6): a 301 to
+ * exactly where the TanStack route used to send them, query string kept, with
+ * a path and no origin. `run_worker_first` routes navigations for them here.
+ */
+describe('a retired address is a 301 to where it lives now', () => {
+  const cases: [string, string][] = [
+    ['/games', '/'],
+    ['/games/', '/'],
+    ['/games?from=discord', '/?from=discord'],
+    ['/games/g1/view/pilot/row-1', '/sheet/pilot/row-1'],
+    ['/games/g1/view/mech/row-2', '/sheet/mech/row-2'],
+    ['/games/g1/view/crawler/row-3?tab=gear', '/sheet/crawler/row-3?tab=gear'],
+    ['/join/A1B2C3D4', '/invite/A1B2C3D4'],
+    ['/join/A1B2C3D4/', '/invite/A1B2C3D4'],
+    ['/join/A1B2C3D4?ref=dm', '/invite/A1B2C3D4?ref=dm'],
+  ]
+  for (const [from, to] of cases) {
+    it(`${from} → ${to}`, async () => {
+      const env = envWith()
+      const res = await worker.fetch(navigate(from), env)
+
+      expect(res.status).toBe(301)
+      expect(res.headers.get('location')).toBe(to)
+      // Decided without the binding.
+      expect(env.ASSETS.asked).toEqual([])
+    })
+  }
+
+  it('404s a path under a retired prefix that names no retired shape', async () => {
+    for (const path of [
+      '/join/',
+      '/join/a/b',
+      '/games/g1/view/pilot',
+      '/games/g1/view/pilot/x/y',
+    ]) {
+      const res = await worker.fetch(navigate(path), envWith())
+      expect(res.status).toBe(404)
+      expect(res.headers.get('cache-control')).toBe('no-store')
+    }
+  })
+
+  it('leaves the live addresses beside them alone', async () => {
+    for (const path of ['/games/g1', '/invite/A1B2C3D4', '/sheet/pilot/row-1']) {
+      expect((await worker.fetch(req(path), envWith())).status).toBe(200)
+    }
+  })
+})
+
 describe('wrangler.jsonc', () => {
-  it('is in single-page-application mode, with the Worker only on a miss', async () => {
+  it('is in single-page-application mode, with the Worker first only for retired addresses', async () => {
     const { default: config } = (await import('../../../wrangler.jsonc')) as {
       default: { compatibility_date: string; assets: Record<string, unknown> }
     }
@@ -98,9 +150,10 @@ describe('wrangler.jsonc', () => {
     // From 2025-04-01 a navigation miss is answered with the shell without
     // invoking the Worker (`assets_navigation_prefers_asset_serving`).
     expect(config.compatibility_date >= '2025-04-01').toBe(true)
-    // Running the Worker first would route navigations through it, and its
-    // responses would leave without `_headers` — the CSP among them.
-    expect(config.assets.run_worker_first).toBeUndefined()
+    // Running the Worker first routes navigations through it, and its responses
+    // leave without `_headers` — the CSP among them. So it runs first only for
+    // the retired addresses, every one of which it answers with a redirect.
+    expect(config.assets.run_worker_first).toEqual([...RETIRED_PATTERNS])
   })
 
   it('reads link previews from the Convex deployment the SPA is built against', async () => {

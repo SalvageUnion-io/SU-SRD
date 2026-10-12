@@ -21,7 +21,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { borderWidth, color, space } from '../../design/tokens'
+import { borderWidth, color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { Card } from './Card'
@@ -65,6 +65,50 @@ const PAPER_PANEL = {
   padding: `${space[16]} ${space[20]}`,
 } satisfies CSSProperties
 
+const PAPER_CONTROLS = {
+  marginBottom: space[12],
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: space[8],
+} satisfies CSSProperties
+
+const HEAD_LEFT = {
+  display: 'flex',
+  minWidth: 0,
+  alignItems: 'center',
+  gap: space[8],
+} satisfies CSSProperties
+
+const HEAD_RIGHT = {
+  marginLeft: 'auto',
+  display: 'flex',
+  alignItems: 'center',
+  gap: space[8],
+} satisfies CSSProperties
+
+const SOURCE = {
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  fontWeight: weight.semibold,
+  textTransform: 'uppercase',
+  lineHeight: 1,
+  letterSpacing: tracking.caps,
+} satisfies CSSProperties
+
+/** The tone side strips around the paper block. */
+const STRIPS = {
+  display: 'flex',
+  flex: 1,
+  flexDirection: 'column',
+  backgroundColor: 'var(--tone)',
+  padding: `0 ${space[12]} ${space[12]}`,
+} satisfies CSSProperties
+
 /** Card-composed poster section container. */
 export function SheetSectionCard({
   title,
@@ -80,73 +124,56 @@ export function SheetSectionCard({
     return (
       <section aria-label={title} className={cn('sheet-section', className)} style={PAPER_PANEL}>
         {(count || controls) && (
-          <div className="mb-3 flex items-center justify-end gap-2">
+          <div style={PAPER_CONTROLS}>
             {count}
             {controls}
           </div>
         )}
-        <div className={cn('flex flex-1 flex-col', bodyClassName)}>{children}</div>
+        <div className={cn('su-sheet-section-stack', bodyClassName)}>{children}</div>
       </section>
     )
   }
   return (
     <Card
-      // Accent band on header + footer.
-      //
-      // `headerBgColor` is load-bearing, not redundant with `headerBg`. Card
-      // derives the DEEP accent for its sub-header and footer bands from the
-      // header, and its derivation is a string rewrite of the utility class:
-      // `bg-mech` → `var(--color-mech)`. Handed the arbitrary-value class
-      // `bg-[var(--tone)]` that rewrite produces `var(--color-[var(--tone)])`,
-      // which is not a variable that exists, so the `color-mix` around it was
-      // invalid and the whole declaration was dropped — the footer band painted
-      // no colour at all and the section's citation line sat on bare paper.
-      // Passing the colour directly gives the derivation something real to work
-      // from; `headerBg` stays for the header's own fill.
-      headerBg="bg-[var(--tone)]"
+      // Accent band on header + footer. The colour goes in as `headerBgColor`,
+      // never as a `headerBg` class: Card derives the DEEP accent for its
+      // sub-header and footer bands from the header, and from a class that is a
+      // string rewrite (`bg-mech` → `var(--color-mech)`) that an arbitrary value
+      // such as `bg-[var(--tone)]` turns into a variable that does not exist —
+      // the footer band then painted no colour at all.
       headerBgColor="var(--tone)"
       borderColor="var(--tone)"
       // `.sheet-section` keeps the print page-break rule; cardStyle.className
       // REPLACES the default shadow, so sections read flat like the poster.
       cardStyle={{ className: cn('sheet-section', className) }}
-      bodyPadding="p-0"
       headerContent={
         <>
-          <div className="flex min-w-0 items-center gap-2">
+          <div style={HEAD_LEFT}>
             <Badge shape="stamp" size="full">
               {title}
             </Badge>
             {count}
           </div>
-          {controls && <div className="ml-auto flex items-center gap-2">{controls}</div>}
+          {controls && <div style={HEAD_RIGHT}>{controls}</div>}
         </>
       }
       footerContent={
         source ? (
-          // No colour of its own — it inherits the footer band's `text-paper`:
+          // No colour of its own — it inherits the footer band's paper text:
           // dark text on the band's deep accent would be unreadable.
-          <span className="min-w-0 truncate font-cond text-badge font-semibold uppercase leading-none tracking-caps">
-            {source}
-          </span>
+          <span style={SOURCE}>{source}</span>
         ) : undefined
       }
     >
       {/* Accent side strips (`.dcard-body` margin) wrap the paper block; the
           paper block carries the deep-tone LEFT rule. */}
-      {/* `pb-3` matches the `px-3` side strips. Without it the card showed 12px
+      {/* The 12px foot matches the 12px side strips. Without it the card showed 12px
           of tone down each side but nothing along the bottom, so the foot was
           just the frame border and read thin against those sides — the card
           looked unterminated. A footer band supplies this weight when there is
           one; this is the same weight for the sections that have none. */}
-      <div className="flex flex-1 flex-col bg-[var(--tone)] px-3 pb-3">
-        <div
-          className={cn(
-            'flex-1 border-l-entity border-[var(--tone-deep)] bg-paper px-3.5 py-3',
-            bodyClassName
-          )}
-        >
-          {children}
-        </div>
+      <div style={STRIPS}>
+        <div className={cn('su-sheet-section-paper', bodyClassName)}>{children}</div>
       </div>
     </Card>
   )

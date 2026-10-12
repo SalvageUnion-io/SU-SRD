@@ -1497,6 +1497,30 @@ body {
   }
 }
 
+/* ══ The page shell (`components/chrome/PageShell.tsx`) ══════════════════════
+ *
+ * The shell's gutters, as custom properties as well as its padding, so a child
+ * that bleeds to the shell's edges (a `ChapterBand`) can undo exactly them.
+ */
+.su-page-shell {
+  --su-page-gutter-inline: var(--space-16);
+  --su-page-gutter-block: var(--space-20);
+  padding: var(--su-page-gutter-block) var(--su-page-gutter-inline);
+}
+
+@media (min-width: 40rem) {
+  .su-page-shell {
+    --su-page-gutter-inline: var(--space-32);
+    --su-page-gutter-block: var(--space-40);
+  }
+}
+
+@media (min-width: 64rem) {
+  .su-page-shell {
+    --su-page-gutter-inline: var(--space-48);
+  }
+}
+
 /* ══ The chapter band (`components/chrome/ChapterBand.tsx`) ═════════════════
  *
  * Layout only — the band's colour, its speckle and the notch's ink on the page
@@ -1504,6 +1528,21 @@ body {
  * sets the title at hero; from `sm` they share one row and the title is the
  * chapter size.
  */
+/* `layout="bleed"` (the default) fills its container; a band that is a page
+   shell's first child also reaches out to the shell's edges and up to its top,
+   by the shell's own gutters. The gutter properties inherit to every
+   descendant, so this selector, not their presence, is what stops a band
+   deeper in the shell (mid-page, in a column) from bleeding past its box. */
+.su-chapter-band[data-layout='bleed'] {
+  width: 100%;
+}
+
+.su-page-shell > .su-chapter-band[data-layout='bleed']:first-child {
+  margin-inline: calc(-1 * var(--su-page-gutter-inline));
+  margin-top: calc(-1 * var(--su-page-gutter-block));
+  width: calc(100% + 2 * var(--su-page-gutter-inline));
+}
+
 .su-chapter-band__row {
   align-items: flex-start;
   display: flex;
@@ -1552,6 +1591,17 @@ body {
   .su-chapter-band__eyebrow + .su-chapter-band__row {
     padding-top: var(--space-12);
   }
+}
+
+/* `asideAt="notch"`: the aside right beside the notch, after it, at every
+   width. `wrap-reverse` keeps the notch on the band's foot: when a long name
+   leaves no room beside it the aside wraps ABOVE the notch, never under it
+   (and swaps the cross axis, so `flex-start` is the foot). */
+.su-chapter-band[data-aside='notch'] .su-chapter-band__row {
+  align-items: flex-start;
+  column-gap: var(--space-16);
+  flex-flow: row wrap-reverse;
+  justify-content: flex-start;
 }
 
 /* ══ The nav drawer's index (`components/shared/NavDrawer.tsx`) ═════════════
@@ -1634,6 +1684,10 @@ body {
  * The book's framed numeral beside its ink stamp. Two cells to a row on a
  * phone; from `sm`, as many 200px cells as fit (two beside the entity art).
  * `row-reverse` draws the numeral first while the source reads label, value.
+ * The stamp is sized to its label, not to the cell: the rest of the cell is
+ * paper, so a column of stats reads as numerals with tags (the book's weight)
+ * rather than as solid ink bars that outweigh the title and the art. It may
+ * still shrink and wrap when the cell is narrower than the label.
  */
 .su-stat-column {
   display: grid;
@@ -1670,7 +1724,7 @@ body {
   background-color: var(--color-ink);
   color: var(--color-paper);
   display: flex;
-  flex: 1;
+  flex: 0 1 auto;
   font-family: var(--font-cond);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
@@ -1697,6 +1751,13 @@ body {
   }
 }
 
+/* A lone stat on a band (an entity's Tech Level, `ChapterBand asideAt="notch"`)
+   is one cell, not a two-column grid whose empty column would push the aside
+   off the notch. */
+.su-chapter-band[data-aside='notch'] .su-stat-column {
+  grid-template-columns: auto;
+}
+
 /* ══ The entity page (`ReferenceEntityCard presentation="page"`) ════════════
  *
  * Boards 07 and 08. The card hands its title to the page's chapter band and
@@ -1705,9 +1766,11 @@ body {
  * beneath the stats, the chassis ability. Everything the entity carries after that (its table,
  * actions, nested trays, patterns) runs the full width beneath.
  *
- * A phone reads art, stats, prose, then the chassis ability (board 08). The
- * right column is `display: contents` there, so its children join the page's
- * flex column and `order` sets that sequence; from `lg` it is a column again.
+ * One content order at every width, the DOM's (refit B4): art, then a
+ * pattern's opening, the prose, the stat column and the chassis ability, so a
+ * keyboard and a screen reader meet them in the order the eye does. The right
+ * column is `display: contents` on a phone, so its children join the page's
+ * flex column; from `lg` it runs beside (and flows around) the art.
  */
 .su-entity-page {
   display: flex;
@@ -1725,11 +1788,7 @@ body {
   display: contents;
 }
 
-.su-entity-page__art {
-  order: 1;
-}
-
-/* A pattern page's pattern: on a phone it follows the art, before the stats.
+/* A pattern page's pattern, after the art and before the chassis prose.
    Its prose reads at the page's reading size, as the chassis prose under it does. */
 .su-entity-page__opening {
   display: flex;
@@ -1737,11 +1796,6 @@ body {
   font-size: var(--text-lg);
   gap: var(--space-12);
   line-height: 1.6;
-  order: 1;
-}
-
-.su-entity-page__stats {
-  order: 2;
 }
 
 .su-entity-page__prose {
@@ -1750,7 +1804,6 @@ body {
   font-size: var(--text-lg);
   gap: var(--space-8);
   line-height: 1.6;
-  order: 3;
 }
 
 /* The flavour line is set one step under the prose (boards 07, 08). */
@@ -1771,7 +1824,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
-  order: 4;
 }
 
 .su-entity-page__section {
@@ -1803,7 +1855,6 @@ body {
   .su-entity-page__main--art > .su-entity-page__art {
     flex: 1 1 0;
     min-width: 0;
-    order: 0;
   }
 
   .su-entity-page__side {
@@ -1812,10 +1863,6 @@ body {
     flex-direction: column;
     gap: var(--space-24);
     min-width: 0;
-  }
-
-  .su-entity-page__side > * {
-    order: 0;
   }
 }
 
@@ -2075,6 +2122,159 @@ body {
   }
 }
 
+/*
+ * A guide on its own page (`GuideSteps`'s `page`): the hierarchy and the rail.
+ *
+ * A section ("Post-Session") opens on the page's H2: condensed caps at the
+ * display size over a chrome rule, a rung above the step banners it holds —
+ * where it was a 12px stamp, below them. Every head is an anchor target.
+ *
+ * The contents ("On this page") are a sticky rail in the column's right third
+ * on a wide screen, beside the 52rem measure; narrower, the same list folds
+ * into a disclosure above the steps, so a phone never scrolls sideways.
+ */
+.su-guide__section-head {
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-display);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  margin: 0 0 var(--space-16);
+  padding-bottom: var(--space-6);
+  text-transform: uppercase;
+}
+
+.su-guide--page .su-guide__section {
+  gap: 0;
+}
+
+.su-guide--page .su-guide__section + .su-guide__section {
+  margin-top: var(--space-24);
+}
+
+.su-guide--page .su-guide__section-head,
+.su-guide--page .su-guide__head {
+  scroll-margin-top: var(--space-24);
+}
+
+.su-guide__flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  min-width: 0;
+}
+
+.su-guide__toc-fold {
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.su-guide__toc-summary {
+  cursor: pointer;
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  min-height: 44px;
+  padding: var(--space-12) var(--space-16);
+  text-transform: uppercase;
+}
+
+.su-guide__rail {
+  display: none;
+}
+
+.su-guide__toc-title {
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  margin: 0 0 var(--space-8);
+  padding-bottom: var(--space-6);
+  text-transform: uppercase;
+}
+
+.su-guide__toc,
+.su-guide__toc-steps {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-guide__toc {
+  gap: var(--space-8);
+}
+
+.su-guide__toc-fold > .su-guide__toc {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+  padding: var(--space-8) var(--space-16) var(--space-12);
+}
+
+.su-guide__toc-link {
+  align-items: baseline;
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  display: flex;
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-2);
+  text-decoration: none;
+}
+
+.su-guide__toc-link:hover {
+  text-decoration: underline;
+}
+
+.su-guide__toc-link:focus-visible {
+  outline: 3px solid transparent;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+.su-guide__toc-link--section {
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+.su-guide__toc-num {
+  flex: none;
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  min-width: 1.5ch;
+}
+
+@media (min-width: 72rem) {
+  .su-entity-page > .su-guide--page {
+    align-items: start;
+    column-gap: var(--space-48);
+    display: grid;
+    grid-template-columns: minmax(0, 52rem) minmax(12rem, 16rem);
+    max-width: none;
+  }
+
+  .su-guide--page .su-guide__toc-fold {
+    display: none;
+  }
+
+  .su-guide--page .su-guide__rail {
+    display: block;
+    font-size: var(--text-sm);
+    line-height: 1.4;
+    max-height: calc(100vh - var(--space-48));
+    overflow-y: auto;
+    position: sticky;
+    top: var(--space-24);
+  }
+}
+
 /* The hero: the line art on a paper plate, the full width of its column. */
 .su-entity-hero {
   background-color: var(--color-paper);
@@ -2092,96 +2292,119 @@ body {
   display: block;
   height: auto;
   margin-inline: auto;
-  max-height: 70vh;
+  max-height: var(--su-hero-max-h);
   max-width: 100%;
   object-fit: contain;
   transition: opacity 300ms;
 }
 
+/* The tallest the art draws: most of a phone's screen; beside the flowing
+   page's text, capped lower (see `.su-entity-page--flow` below). */
+.su-entity-hero {
+  --su-hero-max-h: 70vh;
+}
+
+/* Cropped to the line art (`heroArtCrop`, refit B4): the artwork's canvas
+   carries a margin that differs per image, so the plate takes the ink's own
+   aspect (`--su-art-aspect`) and the window shows only the ink's box; the
+   image inside is scaled and offset by its inline style. The plate is as wide
+   as the art drawn at its tallest, or its column, whichever is narrower, so a
+   tall figure no longer sits in a wide box of empty paper. */
+.su-entity-hero--crop {
+  margin-inline: auto;
+  max-width: 100%;
+  width: calc(
+    var(--su-hero-max-h) *
+    var(--su-art-aspect) +
+    2 *
+    var(--space-16) +
+    2 *
+    var(--bw-hairline)
+  );
+}
+
+.su-entity-hero__window {
+  aspect-ratio: var(--su-art-aspect);
+  overflow: hidden;
+  position: relative;
+}
+
+.su-entity-hero__img--crop {
+  max-height: none;
+  max-width: none;
+  position: absolute;
+}
+
 /* ── Pattern rows (`PatternLinkRows`) ───────────────────────────────────────
- * Full-width links with an arrow and no underline. On a phone the name sits
- * over its description, and only two rows show until "Show all" targets the
- * list (`:target`), which needs no script.
+ * Each pattern is a card in the Row's language: its host's tone in the head
+ * (the link, with the chevron), a paper body with the pattern's opening as a
+ * clamped lead and its loadout Tokens (links of their own, so outside the
+ * head's anchor). As many abreast as fit; a row of cards is one height. On a
+ * phone only two show until "Show all" targets the list (`:target`), which
+ * needs no script.
  */
 .su-pattern-rows {
   scroll-margin-top: var(--space-64);
 }
 
-.su-pattern-rows__frame {
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-}
-
 .su-pattern-rows__list {
+  display: grid;
+  gap: var(--space-12);
+  grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr));
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.su-pattern-rows__item + .su-pattern-rows__item {
-  border-top: var(--bw-hairline) solid var(--color-ink-15);
+.su-pattern-rows__item {
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.su-pattern-rows__row {
-  align-items: center;
-  color: var(--color-ink);
-  column-gap: var(--space-24);
-  display: flex;
-  flex-wrap: wrap;
-  min-height: 44px;
-  padding: var(--space-10) var(--space-12);
-  row-gap: var(--space-4);
+.su-pattern-rows__head {
+  color: inherit;
+  display: block;
   text-decoration: none;
 }
 
-a.su-pattern-rows__row:hover {
-  background-color: var(--color-wk-bg);
+.su-pattern-rows__body {
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-10);
+  padding: var(--space-8) var(--space-10) var(--space-10);
 }
 
-.su-pattern-rows__name {
-  flex: 1 1 100%;
-  font-family: var(--font-cond);
-  font-size: var(--text-readout);
-  font-weight: var(--font-weight-bold);
-  text-transform: uppercase;
-}
-
-.su-pattern-rows__desc {
-  color: var(--color-ink-2);
-  flex: 1 1 0;
-  font-size: var(--text-lede);
-  line-height: 1.45;
-  min-width: 0;
-}
-
-.su-pattern-rows__arrow {
-  display: none;
-  flex: none;
-}
-
-/* What the pattern changes (`PatternUniques`): its loadout tokens or its added
-   action cards, under the row's link rather than inside it (they are links of
-   their own), lined up with the paragraph above on a wide screen. */
+/* What the pattern changes (`PatternUniques`): its loadout Tokens, or the
+   actions a Bio-Titan pattern adds. */
 .su-pattern-rows__unique {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
-  padding: 0 var(--space-12) var(--space-12);
 }
 
 .su-pattern-rows__more {
-  border-top: var(--bw-hairline) solid var(--color-ink-15);
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
   color: var(--color-ink);
   display: flex;
   font-family: var(--font-cond);
   font-size: var(--text-lede);
   font-weight: var(--font-weight-bold);
   justify-content: center;
-  align-items: center;
   letter-spacing: var(--tracking-caps-tight);
+  margin-top: var(--space-12);
   min-height: 44px;
+  text-decoration: none;
   text-transform: uppercase;
-  text-underline-offset: 3px;
 }
 
 @media (max-width: 39.99rem) {
@@ -2195,30 +2418,6 @@ a.su-pattern-rows__row:hover {
 }
 
 @media (min-width: 40rem) {
-  .su-pattern-rows__row {
-    flex-wrap: nowrap;
-    padding: var(--space-10) var(--space-16);
-  }
-
-  .su-pattern-rows__name {
-    flex: 0 0 200px;
-  }
-
-  .su-pattern-rows__desc {
-    font-size: var(--text-base);
-    line-height: 1.5;
-  }
-
-  .su-pattern-rows__arrow {
-    display: block;
-  }
-
-  /* Indented past the 200px name column and its gap; clear of the arrow. */
-  .su-pattern-rows__unique {
-    padding: 0 calc(var(--space-16) + 18px + var(--space-24)) var(--space-14)
-      calc(var(--space-16) + 200px + var(--space-24));
-  }
-
   .su-pattern-rows__more {
     display: none;
   }
@@ -2379,11 +2578,599 @@ a.su-pattern-rows__row:hover {
    hero's own rules: capped so a tall portrait does not hold the wide blocks
    (a class's ability tree) far down the page, and a censor mark kept squat. */
 @media (min-width: 64rem) {
-  .su-entity-page--flow .su-entity-hero__img {
-    max-height: 32rem;
+  .su-entity-page--flow .su-entity-hero {
+    --su-hero-max-h: 32rem;
+  }
+
+  /* Cropped art floats at its own width (up to the 42% column), so the text
+     beside it starts where the art ends. */
+  .su-entity-page--flow
+    > .su-entity-page__main--art
+    > .su-entity-page__art:has(.su-entity-hero--crop) {
+    max-width: 42%;
+    width: auto;
   }
 
   .su-entity-page--flow .su-missing-art--hero {
     aspect-ratio: 4 / 3;
   }
 }
+
+/* — Containers (TW3) — */
+
+/*
+ * The stateful and caller-overridable half of the Containers group
+ * (`Containers/*` stories). A rule lands here, rather than in a style object,
+ * when its element takes a variant (`:hover`, `@media`) or merges a caller's
+ * `className`: an inline style would beat the caller's class, so the base
+ * stays a class the caller can still override.
+ */
+
+/* Card (`components/shared/Card.tsx`): the frame, the header row and the body.
+   `cardStyle.className`, `headerStyle.className` and `bodyPadding` are
+   callers' classes, merged onto these three. */
+.su-card {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  overflow: visible;
+  border-radius: var(--radius-card);
+}
+
+/* px-3 lines the header content up with the body and the footer. */
+.su-card-head {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-8);
+  overflow: visible;
+  min-height: 44px;
+  padding: var(--space-8) var(--space-12);
+}
+
+/* The label stamp riding the top border: the row top-aligns and pads under it,
+   so the gap below the stamp is the same whatever the header's height —
+   centred, a short header collided with the stamp and a tall one sat low.
+   Compact, the stamp sits centred on the edge, so 12px on top clears it. */
+.su-card-head[data-callout] {
+  align-items: flex-start;
+  padding-top: var(--space-20);
+  padding-bottom: var(--space-16);
+}
+
+.su-card-head[data-compact] {
+  min-height: 34px;
+  padding: var(--space-6) var(--space-10);
+}
+
+.su-card-head[data-compact][data-callout] {
+  padding-top: var(--space-12);
+}
+
+.su-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  isolation: isolate;
+  background-color: var(--color-paper);
+  padding: 0;
+}
+
+/* ModalShell's close ×: ink (paper on the danger band) at 60%, full strength
+   on a faint ink wash under the pointer. */
+.su-modal-close {
+  display: flex;
+  flex-shrink: 0;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  padding: var(--space-4);
+  color: color-mix(in oklab, var(--color-ink) 60%, transparent);
+  transition-property: color, background-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.su-modal-close:hover {
+  background-color: color-mix(in oklab, var(--color-ink) 20%, transparent);
+  color: var(--color-ink);
+}
+
+.su-modal-close[data-tone='danger'] {
+  color: color-mix(in oklab, var(--color-paper) 60%, transparent);
+}
+
+.su-modal-close[data-tone='danger']:hover {
+  color: var(--color-paper);
+}
+
+/* SheetSectionCard (`components/shared/SheetSectionCard.tsx`): its body block,
+   which merges the caller's `bodyClassName` (the sheets' grid gaps). */
+.su-sheet-section-stack {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* The framed surface's paper block, ruled down its left in the deep tone. */
+.su-sheet-section-paper {
+  flex: 1;
+  border-left: var(--bw-entity) solid var(--tone-deep);
+  background-color: var(--color-paper);
+  padding: var(--space-12) var(--space-14);
+}
+
+/* RecoveryPanel (`components/shared/RecoveryPanel.tsx`): the padding steps up
+   at `sm`; the heading takes the tight caps tracking in ink. */
+.su-recovery-panel {
+  padding: var(--space-24);
+}
+
+@media (min-width: 40rem) {
+  .su-recovery-panel {
+    padding: var(--space-32);
+  }
+}
+
+.su-recovery-panel-title {
+  letter-spacing: var(--tracking-caps-tight);
+  color: var(--color-ink);
+}
+
+/* FilterRow (`components/shared/FilterRow.tsx`): a centred stack on a phone;
+   from `sm`, a right-aligned 4.5rem label column beside left-aligned chips. */
+.su-filter-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.su-filter-row-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+@media (min-width: 40rem) {
+  .su-filter-row {
+    flex-direction: row;
+  }
+
+  .su-filter-row-label {
+    width: 4.5rem;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .su-filter-row-chips {
+    justify-content: flex-start;
+  }
+}
+
+/* MasonryColumns (`components/shared/MasonryColumns.tsx`): independent flex
+   columns, collapsed to one stacked column in print. */
+.su-masonry {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-16);
+}
+
+.su-masonry-column {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+@media print {
+  .su-masonry {
+    display: block;
+  }
+
+  .su-masonry-column {
+    width: 100%;
+  }
+}
+
+/* Skeleton (`components/skeleton/Skeleton.tsx`): the ghost bar, and the pulse
+   every loading placeholder breathes with — only for a reader who has not
+   asked for reduced motion. */
+.su-ghost {
+  border-radius: var(--radius-badge);
+  background-color: color-mix(in oklab, var(--color-ink) 10%, transparent);
+}
+
+@keyframes su-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .su-pulse {
+    animation: su-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+/* RosterSkeleton (`components/shared/RosterSkeleton.tsx`): one column on a
+   phone, the hydrated roster's three from `md`. */
+.su-roster-skeleton {
+  margin-top: var(--space-20);
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: var(--space-32);
+}
+
+.su-roster-skeleton-wide {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .su-roster-skeleton {
+    margin-top: var(--space-24);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .su-roster-skeleton-wide {
+    display: block;
+  }
+}
+
+/* SheetSectionSlab (`components/shared/SheetSectionSlab.tsx`): its slab
+   leader wraps, so a long title beside a long control drops the controls to
+   their own line rather than overflowing a phone's column. */
+.su-sheet-slab-lead {
+  flex-wrap: wrap;
+}
+
+/* — Compositions (TW4) — */
+
+/* ── TW4 group A: shared/RollTable ── */
+
+/*
+ * RollTable's collapsible-header Show/Hide toggle. Its colour is a class
+ * because it brightens on :hover (paper at 80% → full paper); everything
+ * static on it is a style object in RollTable.tsx.
+ */
+.su-roll-table__toggle {
+  color: var(--color-paper-80);
+}
+
+.su-roll-table__toggle:hover {
+  color: var(--color-paper);
+}
+
+/*
+ * The header title as a table-picker trigger (`titleSelect`). Border colour
+ * and fill both change on :hover, so both live here; the fill's resting value
+ * is the transparent a button gets from the preflight reset.
+ */
+.su-roll-table__title-select {
+  border-color: color-mix(in oklab, var(--color-paper) 40%, transparent);
+  background-color: transparent;
+}
+
+.su-roll-table__title-select:hover {
+  border-color: var(--color-paper);
+  background-color: color-mix(in oklab, var(--color-paper) 10%, transparent);
+}
+
+/* ── end group A ── */
+
+/* ── TW4 group B: shared/EntitySearcher ── */
+
+/* The search input's text colour. A class, not a style object, because the
+   `::placeholder` recolours it — the resting `color` comes along so the two
+   live in one place. Every other input property is the component's style. */
+.su-searcher__input {
+  color: var(--color-ink);
+}
+
+.su-searcher__input::placeholder {
+  color: var(--color-wk-muted);
+}
+
+/* The wide sub-header's search slot: the full row until `sm` (40rem), then a
+   fixed 280px opposite the Show facet. A class because the width is
+   responsive. */
+.su-searcher__search-slot {
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .su-searcher__search-slot {
+    width: 280px;
+  }
+}
+
+/* The header titles never outgrow their column, so `BandTitle`'s truncation
+   engages. A class only because `BandTitle` takes a className, not a style. */
+.su-searcher__band-title {
+  max-width: 100%;
+}
+
+/* ── end group B ── */
+
+/* ── TW4 group C: shell and flat leaves ── */
+
+/* ControlButtons (`shared/ControlButtons.tsx`). The link control and the paper
+   icon stamp flip fill and ink on hover, so both colours are here, resting
+   value included; their geometry is the component's style objects. */
+.su-control-link,
+.su-control-icon--plain {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.su-control-link:hover,
+.su-control-icon--plain:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* A live worded control, and the red icon stamp, brighten on hover. */
+.su-control-button--live:hover {
+  filter: brightness(110%);
+}
+
+/* The icon stamp's glyph. A class rather than a style object only because the
+   control's `icon` contract takes `className` and nothing else. */
+.su-control-icon__glyph {
+  height: var(--space-12);
+  width: var(--space-12);
+}
+
+/* NavDrawer (`shared/NavDrawer.tsx`). The trigger's padding and ink, and the
+   panel's width, are classes because the app overrides them through
+   `triggerClassName` / `panelClassName` (ITUN passes `p-1.5` and `w-72`): a
+   utility there still beats this layer, where an inline style would not. */
+.su-nav-drawer__trigger {
+  color: var(--color-paper);
+  padding: var(--space-8);
+}
+
+.su-nav-drawer__panel {
+  width: 100%;
+}
+
+/* The close button's fill and ink change on hover. */
+.su-nav-drawer__close {
+  background-color: transparent;
+  color: var(--color-ink-60);
+}
+
+.su-nav-drawer__close:hover {
+  background-color: var(--color-ink-10);
+  color: var(--color-ink);
+}
+
+/* The search slot: its field fills the drawer whatever width the app's own
+   field asks for (the SRD passes `w-56`). That width is a utility, a layer above
+   this one, so only `!important` reaches past it from here — as the arbitrary
+   `[&_input]:w-full` variant used to, from inside the utilities layer. */
+.su-nav-drawer__search {
+  margin-bottom: var(--space-12);
+}
+
+.su-nav-drawer__search input,
+.su-nav-drawer__search input:focus {
+  /* biome-ignore lint/complexity/noImportantStyles: the slot's input carries the app's own width utility, which sits in a higher layer than this one */
+  width: 100% !important;
+}
+
+/* A primary nav link spans the drawer. A class, because the link is a
+   `buttonVariants` element rendered through the app's own LinkComponent. */
+.su-nav-drawer__link {
+  width: 100%;
+}
+
+/* Changelog (`changelog/Changelog.tsx`). The bullets' spacing and marker colour
+   are child and pseudo-element selectors (Tailwind's `space-y-1` and
+   `marker:` emit exactly these). */
+.su-changelog__items > :not(:last-child) {
+  margin-block-end: var(--space-4);
+}
+
+.su-changelog__items *::marker,
+.su-changelog__items::marker {
+  color: var(--color-wk-muted);
+}
+
+/* The entry's date, set on `PageHeading`, which takes a className and no style.
+   Its `subheading` rung brings `text-lg`'s 1.75rem line-height as a utility, a
+   layer above this one; the date's tighter line-height overrode it through
+   tailwind-merge, and from here only `!important` can. */
+.su-changelog__date {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-caps-tight);
+  /* biome-ignore lint/complexity/noImportantStyles: PageHeading's own text-lg line-height is a utility in a higher layer */
+  line-height: 1.25 !important;
+}
+
+/* Colophon (`shared/Colophon.tsx`): one column, two from `md` (48rem) up. */
+.su-colophon {
+  grid-template-columns: none;
+}
+
+@media (min-width: 48rem) {
+  .su-colophon {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The support section's slab spans its column and drops its own bottom margin
+   (the section's gap spaces it). Slab takes a className and no style, and its
+   `mb-3.5` is a utility a layer above this one, so the reset needs `!important`
+   — what tailwind-merge's `mb-0` did before. */
+.su-colophon__support-slab {
+  /* biome-ignore lint/complexity/noImportantStyles: Slab's own mb-3.5 is a utility in a higher layer */
+  margin-bottom: 0 !important;
+  width: 100%;
+}
+
+/* ── end group C ── */
+
+/* ── TW4 group D: choices, content and patterns ── */
+
+/* `choiceCard/ChoiceGroups.tsx` — the option masonry. One column, two from `sm`
+   unless compact: the column count is responsive, so it lives here. */
+.su-choice-options {
+  columns: 1;
+}
+
+@media (min-width: 40rem) {
+  .su-choice-options--split {
+    columns: 2;
+  }
+}
+
+/* The free-text field's border colour: ink at 20%, full ink while focused. */
+.su-stampseal-field__input {
+  border-color: var(--color-ink-20);
+}
+
+.su-stampseal-field__input:focus {
+  border-color: var(--color-ink);
+}
+
+/* The field's floating stamp label. It rides the field's top border; while
+   the field is empty and unfocused (a single-space placeholder makes
+   `:placeholder-shown` mean "empty") it drops inside like a placeholder, and
+   focus snaps it back up. Sibling-state driven, so a class; the focus rule
+   comes last and wins when both match, as Tailwind's variant order had it. */
+.su-stampseal-field__label {
+  top: 0;
+  translate: 0 -50%;
+}
+
+.su-stampseal-field__input:placeholder-shown ~ .su-stampseal-field__label {
+  top: var(--space-14);
+  translate: 0 0;
+  opacity: 0.6;
+}
+
+.su-stampseal-field__input:focus ~ .su-stampseal-field__label {
+  top: 0;
+  translate: 0 -50%;
+  opacity: 1;
+}
+
+/* `card/ChoiceRegion.tsx` — a choice sits 12px above whatever follows it, and
+   flush when it is last (a structural `:not(:last-child)`). */
+.su-choice-region:not(:last-child) {
+  margin-bottom: var(--space-12);
+}
+
+/* `EntityDetailDialog.tsx` — the black close stamp: ink, ink-2 on hover.
+   Doubled with `.su-btn` so it out-ranks the ghost variant's resting and hover
+   fills it composes (`.su-btn--ghost:hover:not(:disabled)`). */
+.su-btn.su-detail-dialog__close {
+  background-color: var(--color-ink);
+}
+
+.su-btn.su-detail-dialog__close:hover:not(:disabled) {
+  background-color: var(--color-ink-2);
+}
+
+/* `card/PatternLoadout.tsx` — Systems and Modules side by side from `sm`, with
+   a rule between the columns there and nowhere else. */
+.su-pattern-loadout {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 40rem) {
+  .su-pattern-loadout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .su-pattern-loadout__column--ruled {
+    border-left: var(--bw-chrome) solid var(--color-ink-20);
+    padding-left: var(--space-12);
+  }
+}
+
+/* `pattern/*` — a pattern's equipment groups, side by side from `lg`. */
+.su-pattern-equipment {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 64rem) {
+  .su-pattern-equipment {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* `pattern/*` — the `space-y-*` stacks (`stackClassName` in
+   `referenceEntityTypes.ts`): a child-selector rule, as Tailwind emits it.
+   `:where()` keeps it at zero specificity, as Tailwind's own was, so a child's
+   own margin class still wins over the stack's. */
+:where(.su-pattern-stack > :not(:last-child)) {
+  margin-block-start: 0;
+}
+
+:where(.su-pattern-stack--6 > :not(:last-child)) {
+  margin-block-end: var(--space-6);
+}
+
+:where(.su-pattern-stack--8 > :not(:last-child)) {
+  margin-block-end: var(--space-8);
+}
+
+:where(.su-pattern-stack--12 > :not(:last-child)) {
+  margin-block-end: var(--space-12);
+}
+
+:where(.su-pattern-stack--16 > :not(:last-child)) {
+  margin-block-end: var(--space-16);
+}
+
+/* ── end group D ── */
+
+/* ── TW4 group E: the reference entity card ── */
+
+/* The card's outer box (`card/cardChrome.ts`). Classes rather than a style
+   object because a caller's `className` may override any of them. */
+.su-ec-outer {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.su-ec-outer--dim {
+  opacity: 0.5;
+}
+
+/* A card the picker cannot take: dimmed and drained. */
+.su-ec-outer--unselectable {
+  opacity: 0.5;
+  filter: saturate(50%);
+}
+
+.su-ec-outer--clickable {
+  cursor: pointer;
+}
+
+/* A block in the card body (a prose run, a folded action, the bonus row):
+   the gap to whatever follows it, dropped on the last. */
+.su-ec-block:not(:last-child) {
+  margin-bottom: var(--space-12);
+}
+
+/* A pattern's name tab on a card: shrink-to-fit, so the solid Slab's leader
+   rule collapses to its stub instead of running across the card. */
+.su-ec-name-tab {
+  width: fit-content;
+}
+
+/* ── end group E ── */

@@ -4,7 +4,7 @@ import { Text } from '../components/base/Text'
 import { Badge } from '../components/chrome/Badge'
 import { borderWidth, color, font, fontSize, space, tracking, weight } from '../design/tokens'
 import type { SizeRung } from '../styles/sizing'
-import { DEFAULT_RUNG } from '../styles/sizing'
+import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE } from '../styles/sizing'
 import type { Story } from './_harness'
 import { Caption } from './_harness'
 import './_stories.css'
@@ -13,38 +13,30 @@ export default {
   title: 'Foundations/Sizing',
 }
 
-// `RUNG_TYPE` / `RUNG_INLINE_PADDING` (`styles/sizing.ts`) as token values, so
-// the page prints real sizes rather than utility-class names. They port 1:1:
-// `text-sm` is `fontSize.sm`, and `px-2 py-1` is 8px/4px on Tailwind's 4px step.
-const RUNG_FONT_SIZE: Record<SizeRung, { label: string; body: string }> = {
-  full: { label: fontSize.sm, body: fontSize.lede },
-  compact: { label: fontSize.xs, body: fontSize.caption },
-  mini: { label: fontSize.badge, body: fontSize.note },
-}
+// Every size below is read from `styles/sizing.ts` — the constants Badge and
+// the control buttons compose — so the page cannot drift from the code. Those
+// constants are still Tailwind class names; each is turned into the theme.css
+// token or the px it names (Tailwind's spacing step is 4px).
+const fontToken = (utility: string) => `--${utility}`
+const step = (utility: string, axis: 'x' | 'y') =>
+  `${Number(utility.match(new RegExp(`\\bp${axis}-([\\d.]+)`))?.[1] ?? 0) * 4}px`
 
-const RUNG_INLINE_PAD: Record<SizeRung, string> = {
-  full: `${space[4]} ${space[8]}`,
-  compact: `${space[2]} ${space[6]}`,
-  mini: `${space[2]} ${space[4]}`,
-}
+const RUNG_FONT_SIZE = (rung: SizeRung) => ({
+  label: fontToken(RUNG_TYPE[rung].label),
+  body: fontToken(RUNG_TYPE[rung].body),
+})
+
+const RUNG_INLINE_PAD = (rung: SizeRung) =>
+  `${step(RUNG_INLINE_PADDING[rung], 'y')} ${step(RUNG_INLINE_PADDING[rung], 'x')}`
 
 /** Ladder order, largest first — specimen iteration only (the catalog page). */
 const SIZE_RUNGS: readonly SizeRung[] = ['full', 'compact', 'mini']
 
-/** What each rung is FOR — the rule, not the pixel count. */
-const INTENT: Record<SizeRung, { line: string; use: string }> = {
-  full: {
-    line: 'The reading size.',
-    use: 'A surface the user is looking at — a sheet header, a primary action, the card the page is about.',
-  },
-  compact: {
-    line: 'The default.',
-    use: 'A surface the user is scanning past — a listing row, a section label, a secondary control.',
-  },
-  mini: {
-    line: 'The annotation size.',
-    use: 'Attached to another element and never read alone — a count, a tech-level tag, a stamp riding a frame.',
-  },
+/** What each rung is FOR, in one line; the definition is `styles/sizing.ts`. */
+const INTENT: Record<SizeRung, string> = {
+  full: 'The reading size.',
+  compact: 'The default.',
+  mini: 'The annotation size.',
 }
 
 /** Real game terms — a specimen must never be lorem. */
@@ -98,7 +90,7 @@ function Rung({ rung }: { rung: SizeRung }) {
         <Badge shape="stamp" size={rung}>
           {rung}
         </Badge>
-        <span style={intentLineStyle}>{intent.line}</span>
+        <span style={intentLineStyle}>{intent}</span>
         {rung === DEFAULT_RUNG && (
           <Badge shape="stamp" size="mini" surface="inverse">
             default
@@ -106,25 +98,23 @@ function Rung({ rung }: { rung: SizeRung }) {
         )}
       </header>
 
-      <p style={{ ...mutedBodyStyle, marginBottom: space[16], maxWidth: '65ch' }}>{intent.use}</p>
-
       {/* The one responsive rule on this page — a media query, so a class. */}
       <div className="su-story-split">
         <div style={columnStyle}>
-          <Caption>label · {RUNG_FONT_SIZE[rung].label}</Caption>
+          <Caption>label · {RUNG_FONT_SIZE(rung).label}</Caption>
           {/* The stamp reads its geometry from the ladder, so this specimen
               cannot drift from the token the way a hand-set example would. */}
           <Badge shape="stamp" size={rung}>
             {chassis?.name ?? 'Mule'}
           </Badge>
           <p style={{ ...mutedBodyStyle, fontSize: fontSize.note }}>
-            {RUNG_INLINE_PAD[rung]} · {RUNG_FONT_SIZE[rung].label}
+            {RUNG_INLINE_PAD(rung)} · {RUNG_FONT_SIZE(rung).label}
           </p>
         </div>
 
         <div style={columnStyle}>
-          <Caption>body · {RUNG_FONT_SIZE[rung].body}</Caption>
-          <Text variant="body" style={{ fontSize: RUNG_FONT_SIZE[rung].body }}>
+          <Caption>body · {RUNG_FONT_SIZE(rung).body}</Caption>
+          <Text variant="body" style={{ fontSize: `var(${RUNG_FONT_SIZE(rung).body})` }}>
             Structure Points are restored during Downtime at the Union Crawler.
           </Text>
         </div>
@@ -159,12 +149,8 @@ export const Default: Story = () => (
         The size ladder
       </h2>
       <p style={{ ...mutedBodyStyle, maxWidth: '65ch' }}>
-        Three rungs, named for what they are for. A component offers the rungs it genuinely has and
-        names them from this list — a two-rung component with{' '}
-        <code style={monoNoteStyle}>compact</code> and <code style={monoNoteStyle}>mini</code> is
-        correct and complete. Scan-past elements rest at <code style={monoNoteStyle}>compact</code>
-        {'; '}a component whose resting anatomy is a destination readout (the poster gauge, the
-        reading callout) rests at <code style={monoNoteStyle}>full</code>.
+        Three rungs, named for what they are for. Which rungs a component offers and which it rests
+        at: <code style={monoNoteStyle}>src/styles/sizing.ts</code>.
       </p>
     </div>
 
@@ -216,7 +202,7 @@ export const LabelVersusBody: Story = () => (
                 style={{
                   color: color.ink,
                   fontFamily: font.cond,
-                  fontSize: RUNG_FONT_SIZE[rung].label,
+                  fontSize: `var(${RUNG_FONT_SIZE(rung).label})`,
                   fontWeight: weight.bold,
                   textTransform: 'uppercase',
                 }}
@@ -229,13 +215,13 @@ export const LabelVersusBody: Story = () => (
                 style={{
                   color: color.ink,
                   fontFamily: font.body,
-                  fontSize: RUNG_FONT_SIZE[rung].body,
+                  fontSize: `var(${RUNG_FONT_SIZE(rung).body})`,
                 }}
               >
                 Salvage Union
               </span>
             </td>
-            <td style={{ ...cellStyle, ...monoNoteStyle }}>{RUNG_INLINE_PAD[rung]}</td>
+            <td style={{ ...cellStyle, ...monoNoteStyle }}>{RUNG_INLINE_PAD(rung)}</td>
           </tr>
         ))}
       </tbody>

@@ -24,7 +24,7 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  *
  * The card decides what each part is (`ReferenceEntityCardInner`); this lays
  * the parts out as a page. Layout is `index.css`'s `.su-entity-page*`, which
- * also gives a phone the board-08 order: art, stats, prose, chassis ability.
+ * keeps this DOM order at every width, so tab order matches what you see.
  */
 
 type CardPageProps = {
@@ -39,9 +39,11 @@ type CardPageProps = {
   otherActions: ReferenceCardEntity[]
   /**
    * What the page leads with, above the entity's own prose: a pattern page's
-   * pattern (its prose and loadout), before the base chassis it is built on.
+   * pattern prose, before the base chassis it is built on.
    */
   opening?: ReactNode
+  /** A pattern page's loadout (`PatternLoadoutRows`, nothing when empty), under the stat column. */
+  loadout?: ReactNode
   /** A solid slab naming the prose when something else leads ("Mazona chassis"). */
   bodyLabel?: string
   /** The "//" line and any `subtitleExtra`. */
@@ -79,6 +81,7 @@ export function CardPage({
   leadActions,
   otherActions,
   opening,
+  loadout,
   bodyLabel,
   subLine,
   body,
@@ -136,6 +139,7 @@ export function CardPage({
                 <StatColumn stats={bookStats} label={`${name} stats`} />
               </div>
             )}
+            {loadout}
             {leadActions.length > 0 && (
               <div className="su-entity-page__lead">
                 {leadActions.map((data, index) => actionCard(data, index, 'Chassis Ability'))}

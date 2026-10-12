@@ -64,13 +64,21 @@ describe('home: the manual’s Contents page (board 06)', () => {
     expect(html).toContain('href="/schema/guides/item/create-a-pilot/"')
   })
 
-  it('sets "At the table" as a section of the index, and offers the Discord bot beside it', () => {
-    const index = html.slice(html.indexOf('srd-home__chapters'), html.indexOf('srd-home__aside'))
+  it('sets "At the table" as a section of the index, and offers the Discord bot after it', () => {
+    const index = html.slice(html.indexOf('id="at-the-table"'), html.indexOf('id="discord-bot"'))
     expect(index).toContain('<span>At the table</span>')
     expect(index).toContain('href="/schema/roll-tables/item/core-mechanic/"')
-    const aside = html.slice(html.indexOf('srd-home__aside'))
-    expect(aside).toContain('Add to Discord')
-    expect(aside).toContain('href="https://discord.com/oauth2/authorize?client_id=')
+    const discord = html.slice(html.indexOf('id="discord-bot"'))
+    expect(discord).toContain('Add to Discord')
+    expect(discord).toContain('href="https://discord.com/oauth2/authorize?client_id=')
+  })
+
+  it('puts first-timer content first: title, search, "New to the Union?", then the index', () => {
+    const at = (needle: string) => html.indexOf(needle)
+    expect(at('<h1')).toBeGreaterThan(-1)
+    expect(at('<h1')).toBeLessThan(at('action="/search/"'))
+    expect(at('action="/search/"')).toBeLessThan(at('id="new-to-the-union"'))
+    expect(at('id="new-to-the-union"')).toBeLessThan(at('id="pilot-bay"'))
   })
 })
 

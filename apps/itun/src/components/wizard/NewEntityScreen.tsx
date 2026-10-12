@@ -16,16 +16,13 @@
  * the designer picks. `kind="npc"` is the guided wizard at every `mode`.
  */
 
-import { tokens } from 'component-lib'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import type { CreateMode } from '../../lib/wizard/createMode'
 import { SignInToBuild } from '../account/SignInToBuild'
 import { BlankCreateDialog } from './BlankCreateDialog'
 import { CreateModeChooser } from './CreateModeChooser'
-
-const SIGNED_OUT = { padding: `${tokens.space[20]} ${tokens.space[16]}` } satisfies CSSProperties
 
 type NewEntityScreenProps = {
   kind: BlankCreateKind | 'npc'
@@ -36,6 +33,11 @@ type NewEntityScreenProps = {
   onModeChange: (mode: CreateMode) => void
   /** A Blank entity was persisted — navigate to its live sheet. */
   onCreated: (id: string) => void
+  /**
+   * Where signing in from the gate lands: the route's own URL, so a deep link
+   * (`?chassis=mule`) survives the Discord round trip. Unset, the site root.
+   */
+  returnTo?: string
 }
 
 export function NewEntityScreen({
@@ -44,15 +46,13 @@ export function NewEntityScreen({
   wizard,
   onModeChange,
   onCreated,
+  returnTo,
 }: NewEntityScreenProps) {
   const connection = useConnection()
   if (connection.mode === 'solo') {
-    // Not a PageShell: the routes already wrap this screen in their `<main>`.
-    return (
-      <div style={SIGNED_OUT}>
-        <SignInToBuild title={`Sign in to build a ${kind}`} />
-      </div>
-    )
+    // Not a PageShell: the routes already wrap this screen in their `<main>`,
+    // and the gate's band runs its full width.
+    return <SignInToBuild title={`Sign in to build a ${kind}`} redirectTo={returnTo} />
   }
 
   if (mode === 'guided' || kind === 'npc') {

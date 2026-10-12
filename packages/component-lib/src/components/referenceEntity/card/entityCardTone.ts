@@ -32,7 +32,9 @@ export function resolveSchemaDomain(schemaName: string): CardDomain | undefined 
 
 export type DomainTone = {
   domain: CardDomain
+  /** The domain tone as a CSS colour (`var(--color-mech)`). */
   bg: string | undefined
+  /** A guide's own authored tone, which wins over `bg`. */
   bgColor: string | undefined
 }
 
@@ -47,32 +49,36 @@ export function entityGuideToneColor(entity: SURefMetaEntity): string | undefine
 }
 
 /**
- * Each tone token the entity model paints with (`entityTone`), as its `bg-*`
- * class. LITERAL strings, so Tailwind's scanner sees and emits every one; a
- * template-built `bg-${token}` would compile to nothing.
+ * The tone tokens the entity model paints with (`entityTone`). A token outside
+ * this set paints no tone (the card falls back to paper).
  */
-const TONE_CLASS: Record<string, string> = {
-  mech: 'bg-mech',
-  crawler: 'bg-crawler',
-  adversary: 'bg-adversary',
-  pilot: 'bg-pilot',
-  'tier-core': 'bg-tier-core',
-  'ink-2': 'bg-ink-2',
-  'tl-1': 'bg-tl-1',
-  'tl-2': 'bg-tl-2',
-  'tl-3': 'bg-tl-3',
-  'tl-4': 'bg-tl-4',
-  'tl-5': 'bg-tl-5',
-  'tl-6': 'bg-tl-6',
-  'tl-b': 'bg-tl-b',
-  'tl-n': 'bg-tl-n',
+const TONE_TOKENS: ReadonlySet<string> = new Set([
+  'mech',
+  'crawler',
+  'adversary',
+  'pilot',
+  'tier-core',
+  'ink-2',
+  'tl-1',
+  'tl-2',
+  'tl-3',
+  'tl-4',
+  'tl-5',
+  'tl-6',
+  'tl-b',
+  'tl-n',
+])
+
+/** A tone token as its CSS colour, or `undefined` outside `TONE_TOKENS`. */
+function toneColor(token: string): string | undefined {
+  return TONE_TOKENS.has(token) ? `var(--color-${token})` : undefined
 }
 
 /**
  * The tone resolution: DOMAIN from the exhaustive map, ACCENT from the entity
  * model's tone token (`entityTone`). A guide's authored tone comes back as a
- * raw colour (`bgColor`), which the card applies inline over any class; every
- * other tone as its `bg-*` class.
+ * raw colour (`bgColor`), which wins over the domain tone; every other tone
+ * as `bg`, its token's colour.
  */
 export function resolveDomainTone(
   schemaName: SURefEnumSchemaName,
@@ -81,7 +87,7 @@ export function resolveDomainTone(
   const domain = schemaDomain(schemaName) ?? 'glossary'
   const guideColor = entityGuideToneColor(entity)
   if (guideColor) return { domain, bg: undefined, bgColor: guideColor }
-  return { domain, bg: TONE_CLASS[entityTone(schemaName, entity)], bgColor: undefined }
+  return { domain, bg: toneColor(entityTone(schemaName, entity)), bgColor: undefined }
 }
 
 /**
@@ -134,25 +140,23 @@ export function resolveSeamLabel(
  * row, not the type. Nested children are spawned at `medium`, or at `small`
  * inside a small card (`nestedChildSize`), so a child never outgrows its parent.
  *
- * THE FLOOR: the ladder bottoms out at `text-badge` (11px), the legibility
- * floor (ruleset §4.6); past it a title holds at the floor.
+ * THE FLOOR: the ladder bottoms out at `badge` (11px), the legibility floor
+ * (ruleset §4.6); past it a title holds at the floor.
+ *
+ * The rungs are `fontSize` keys (`design/tokens.ts`).
  */
-const TITLE_SIZE_LADDER = [
-  'text-display-lg',
-  'text-title',
-  'text-readout',
-  'text-lede',
-  'text-caption',
-  'text-badge',
-] as const
+const TITLE_SIZE_LADDER = ['displayLg', 'title', 'readout', 'lede', 'caption', 'badge'] as const
+
+/** A rung of the title ladder, as its `fontSize` token key. */
+export type TitleRung = (typeof TITLE_SIZE_LADDER)[number]
 
 /** SIZE as the ladder rung a depth-0 card starts on — see docblock. */
 const SIZE_LADDER_OFFSET: Record<CardSize, number> = { large: 0, medium: 1, small: 2 }
 
-export function titleSizeClass(depth: number, size: CardSize = 'large'): string {
+export function titleSizeRung(depth: number, size: CardSize = 'large'): TitleRung {
   const rung = Math.max(depth, 0, SIZE_LADDER_OFFSET[size])
   const index = Math.min(rung, TITLE_SIZE_LADDER.length - 1)
-  return TITLE_SIZE_LADDER[index] ?? 'text-badge'
+  return TITLE_SIZE_LADDER[index] ?? 'badge'
 }
 
 /**

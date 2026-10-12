@@ -16,7 +16,7 @@ import { convexAuth } from '@convex-dev/auth/server'
  *   bunx convex env set AUTH_DISCORD_SECRET <client-secret>
  *
  * Signed out, ITUN is read-only; building anything needs an account
- * ([ADR-034](../../../docs/ARCHITECTURE.md#adr-034), as amended). Discord is
+ * ([ADR-034](../../../docs/ARCHITECTURE.md#decisions), as amended). Discord is
  * the only door for real users — see `testOnlyProviders` below for the one
  * exception and why it is not one.
  */

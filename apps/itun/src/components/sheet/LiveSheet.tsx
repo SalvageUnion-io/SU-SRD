@@ -194,9 +194,10 @@ export function LiveSheet({
           ride their card's top edge and were sliding OVER the sticky bar as
           they scrolled under it.
 
-          Tinted with the same wash the ENTITY ROWS use — a 10% tone over paper,
-          not the full tone — so it reads as this entity's chrome without
-          fighting the ink on it. */}
+          Its ground is the page's own workshop ground, not a tone wash: a 10%
+          mech or pilot tone over paper made a pale blue-grey or pink bar that
+          sat off the closed palette (ruleset §4.1). The entity's tone stays in
+          the hero below. */}
       <header
         className={cn(
           'sticky top-0 z-40 flex min-h-[58px] flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 transition-[border-color,box-shadow] duration-150 sm:px-[30px]',
@@ -204,7 +205,7 @@ export function LiveSheet({
             ? 'border-b-2 border-ink shadow-[0_2px_0_var(--color-ink),0_14px_20px_-18px_var(--color-ink-50)]'
             : 'border-b-2 border-transparent'
         )}
-        style={{ background: 'color-mix(in srgb, var(--tone) 10%, var(--color-paper))' }}
+        style={{ background: 'var(--color-wk-bg)' }}
       >
         {back && (
           <>
@@ -341,8 +342,11 @@ export function LiveSheet({
 
       {/* The chapter band (board 10): the sheet's one h1, notched into a band
           in its own tone with the speckle behind it; the type stamps and where
-          the sheet comes from above the name, Read | Edit beside it. */}
+          the sheet comes from above the name, Read | Edit beside it where the viewer
+          may write (a read-only sheet has nothing to switch to). Full-bleed,
+          like the SRD's. */}
       <ChapterBand
+        layout="bleed"
         tone={variant}
         eyebrow={
           <>

@@ -11,7 +11,7 @@ Measured on `design-refresh` at 2026-10-12.
 
 ## The question
 
-The Dashboard ([ADR-038](../ARCHITECTURE.md#adr-038),
+The Dashboard ([ADR-038](../adr/038-dashboard-game-surface.md),
 [dashboard.md](../architecture/dashboard.md)) and the Mediator Dashboard
 ([mediator-dashboard.md](../architecture/mediator-dashboard.md)) are ITUN's two
 largest features. The next styling phase,
@@ -40,7 +40,7 @@ Shared by both:
   1,428 lines.
 - **e2e:** `dashboard-delete`, `dashboard-phone` and `mediator-propose` total
   400 lines.
-- **ADR-038:** 237 lines of `docs/ARCHITECTURE.md`.
+- **ADR-038:** 237 lines of `docs/ARCHITECTURE.md` when measured (its full text now lives in `docs/adr/038-dashboard-game-surface.md`).
 - **Styling debt** (`bun tools/check-styling.ts --report`):
   - `pc-class-defined` is **102**. All 102 classes live in
     `src/styles/dashboard.css` and `src/styles/dashboard/*.css` (1,161 lines).

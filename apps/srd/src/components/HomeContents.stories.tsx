@@ -33,31 +33,27 @@ const AT_THE_TABLE = [
 ]
 
 /**
- * The SRD home as the manual's Contents page (board 06): the book's chapters
- * as an index, each with its colour band and real entry counts (from
- * `buildChapters`, the same source the nav drawer is frozen from), then "At
- * the table" under an ink band; the "New to the Union?" path and the Discord
- * bot beside them. Rows are
- * 36px for a mouse and 44px for a finger.
+ * The SRD home as the manual's Contents page (board 06): the "New to the
+ * Union?" path first, then the book's chapters as an index, each with its
+ * colour band and real entry counts (from `buildChapters`, the same source the
+ * nav drawer is frozen from), then "At the table" under an ink band and the
+ * Discord bot — one flow, set as columns on a wide screen and one stack on a
+ * phone. Rows are 36px for a mouse and 44px for a finger.
  */
 export const Default = () => (
   <div className="srd-home__body">
-    <div className="srd-home__chapters">
-      {buildChapters().map((chapter) => (
-        <ContentsChapter
-          key={chapter.id}
-          id={chapter.id}
-          title={chapter.title}
-          tone={chapter.tone}
-          rows={chapter.rows}
-          total={chapter.total}
-        />
-      ))}
-      <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={AT_THE_TABLE} />
-    </div>
-    <aside className="srd-home__aside" aria-label="Getting started">
-      <NewToTheUnion steps={STEPS} buildHref={ITUN_URL} />
-      <DiscordBot installHref={DISCORD_INSTALL_URL} aboutHref="/discord/" />
-    </aside>
+    <NewToTheUnion steps={STEPS} buildHref={ITUN_URL} />
+    {buildChapters().map((chapter) => (
+      <ContentsChapter
+        key={chapter.id}
+        id={chapter.id}
+        title={chapter.title}
+        tone={chapter.tone}
+        rows={chapter.rows}
+        total={chapter.total}
+      />
+    ))}
+    <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={AT_THE_TABLE} />
+    <DiscordBot installHref={DISCORD_INSTALL_URL} aboutHref="/discord/" />
   </div>
 )

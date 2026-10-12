@@ -450,11 +450,9 @@
         // Each entry location is named
         // explicitly rather than globbing `src/**`, so an ordinary module in the
         // same app cannot quietly acquire a default export under this exemption.
-        // These three globs are the `main` of the four wrangler configs; another
-        // Worker adds a fourth line here, deliberately.
-        "apps/*/src/worker.ts",
+        // This glob is the `main` of all four wrangler configs (the `workers`
+        // check holds them to it).
         "apps/*/src/worker/index.ts",
-        "apps/*/src/http/worker.ts",
         "apps/itun/convex/http.ts",
         "apps/itun/convex/crons.ts",
         "apps/itun/convex/schema.ts",
@@ -663,7 +661,7 @@
       // ADR-013: no app/package outside the canonical module may import zod
       // directly. salvageunion-reference gets an extra restriction on top:
       // it must never import from apps/* (one-way dependency rule, see
-      // docs/ARCHITECTURE.md#one-way-dependencies). Restates the root `zod` path + `@/*`
+      // docs/ARCHITECTURE.md#areas). Restates the root `zod` path + `@/*`
       // pattern because overrides replace (not merge into) a rule's options
       // for matched files.
       "includes": ["packages/salvageunion-reference/**"],
@@ -683,7 +681,7 @@
                   },
                   {
                     "group": ["**/apps/**"],
-                    "message": "salvageunion-reference must never import from apps/* — the dependency flows one way (docs/ARCHITECTURE.md#one-way-dependencies)."
+                    "message": "salvageunion-reference must never import from apps/* — the dependency flows one way (docs/ARCHITECTURE.md#areas)."
                   }
                 ]
               }
@@ -711,7 +709,7 @@
     {
       // ADR-010 ("the shared library never persists"): component-lib must stay
       // free of storage-layer imports. `idb` is ITUN's IndexedDB wrapper (see
-      // docs/ARCHITECTURE.md#itun-consumes) — it doesn't belong in the shared component library. Zustand is
+      // docs/ARCHITECTURE.md#areas) — it doesn't belong in the shared component library. Zustand is
       // deliberately NOT blocked here: it's a state-management library, not
       // itself a storage layer (ADR-010's literal contract is "never
       // persists"), and component-lib doesn't use it today — blocking it would
@@ -744,7 +742,7 @@
                   // own consumers. Zero such imports today.
                   {
                     "group": ["**/apps/**", "itun/**", "srd/**"],
-                    "message": "component-lib must never import from an app — the dependency flows one way (apps depend on the library). Inject app-specific behaviour through slot props instead (docs/ARCHITECTURE.md#one-way-dependencies)."
+                    "message": "component-lib must never import from an app — the dependency flows one way (apps depend on the library). Inject app-specific behaviour through slot props instead (docs/ARCHITECTURE.md#areas)."
                   },
                   {
                     "group": ["salvageunion-reference/lib/**"],

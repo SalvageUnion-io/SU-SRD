@@ -11,7 +11,7 @@ import { seatRange, seatResolving } from './schema'
 
 /**
  * Seats: each pilot's play state in a Game, shared with the crew and saved on
- * the Game ([ADR-038](../../../docs/ARCHITECTURE.md#adr-038) §2).
+ * the Game ([ADR-038](../../../docs/adr/038-dashboard-game-surface.md) §2).
  *
  * A seat says whether its pilot is on foot or boarded (and in which mech), the
  * range band they declared, which activated effects are switched on, and the

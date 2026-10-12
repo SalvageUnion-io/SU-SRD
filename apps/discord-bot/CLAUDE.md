@@ -2,8 +2,8 @@
 
 Discord bot for rolling on Salvage Union random tables. Standalone consumer of
 `salvageunion-reference` — it reuses the same pure rules/data logic the apps do
-([ADR-006](../../docs/ARCHITECTURE.md#adr-006)) and preloads the dataset
-at startup ([ADR-005](../../docs/ARCHITECTURE.md#adr-005)).
+([ADR-006](../../docs/ARCHITECTURE.md#decisions)) and preloads the dataset
+at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
 
 ## Stack
 
@@ -15,7 +15,7 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#adr-005)).
 
 ## Runtime
 
-The bot is an **HTTP-interactions Cloudflare Worker** (`src/http/worker.ts`,
+The bot is an **HTTP-interactions Cloudflare Worker** (`src/worker/index.ts`,
 deployed by `wrangler.jsonc`). There is no Node gateway, no `dist/` bundle and
 no `build`/`start` script; the Worker reports to Sentry through
 `observability/cloudflare`. There is no `discord.js` dependency: slash commands
@@ -29,7 +29,7 @@ the bot uses.
 
 ## Structure
 
-- `src/http/` - THE entry point (`worker.ts`), request verification, and the
+- `src/worker/` - THE entry point (`index.ts`), request verification, and the
   adapter from raw interactions to the narrow types in `src/commands/interactions.ts`
 - `src/commands/` - Slash command definitions and handlers
 - `src/buttons.ts` + `src/customId.ts` - stateless button routing (`su:<action>:<payload>`)
@@ -51,7 +51,7 @@ bun run deploy-commands:global     # Register globally (production)
 
 There is no local Worker loop: the Interactions Endpoint URL is
 application-wide, so Discord only ever reaches the deployed Worker.
-`src/http/__tests__/replay.test.ts` drives the Worker with signed,
+`src/worker/__tests__/replay.test.ts` drives the Worker with signed,
 Discord-shaped payloads instead.
 
 ## In The Union Now (ADR-030 Phase 6)
@@ -60,7 +60,7 @@ The bot is also an authenticated ITUN Game client. It reaches Convex through a
 `/bot/*` HTTP route with a bearer credential that authenticates the **bot**,
 never the **actor** — every call carries a Discord id that the server resolves
 against a linked account and a real membership. See
-[the bot as a Game client](../../docs/ARCHITECTURE.md#discord-bot-as-a-game-client).
+[the bot as a Game client](../../docs/ARCHITECTURE.md#areas).
 
 - `src/itun/` — the client (`fetch`, no `convex` dependency) and the wire types,
   which are **imported** (`import type`) from
@@ -89,7 +89,7 @@ does not exist.
 
 **Maxima are derived here, not fetched.** `gameCards.ts` derives max
 HP/SP/Heat via `salvageunion-reference/rules`
-([ADR-006](../../docs/ARCHITECTURE.md#adr-006)). Convex's `crew.vitals` now
+([ADR-006](../../docs/ARCHITECTURE.md#decisions)). Convex's `crew.vitals` now
 derives them too, with the same rules; moving the bot onto those is #1068.
 
 **`/su sheet` is the live sheet folded into a message.** `gameCards.ts` maps it

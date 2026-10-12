@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+import { borderWidth, color, radius, space } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 
 export type SkeletonMode = 'card' | 'list' | 'text'
@@ -14,10 +16,55 @@ type SkeletonProps = {
 }
 
 /** One ink-alpha ghost bar on off-white — the shared unit every skeleton
- * surface composes (this file's modes, SheetSkeleton's sheet-shaped ghosts). */
-export function Ghost({ className }: { className?: string }) {
-  return <div className={cn('rounded-badge bg-ink/10', className)} />
+ * surface composes (this file's modes, SheetSkeleton's sheet-shaped ghosts).
+ * Its fill and radius are `.su-ghost`'s, so a caller's class can still retone
+ * it; this file sizes and retones its own ghosts through `style`. */
+export function Ghost({ className, style }: { className?: string; style?: CSSProperties }) {
+  return <div className={cn('su-ghost', className)} style={style} />
 }
+
+/** A text line's width: the last runs short, the rest alternate full / 80%. */
+function lineWidth(i: number, rows: number): string {
+  return i === rows - 1 ? '60%' : i % 2 === 0 ? '100%' : '80%'
+}
+
+const STACK = { display: 'flex', flexDirection: 'column', gap: space[8] } satisfies CSSProperties
+
+const LIST_ROW = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: space[12],
+  borderRadius: radius.card,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.chrome,
+  borderColor: color.ink15,
+  backgroundColor: color.paper,
+  padding: `${space[10]} ${space[12]}`,
+} satisfies CSSProperties
+
+const LIST_LINES = {
+  display: 'flex',
+  minWidth: 0,
+  flex: 1,
+  flexDirection: 'column',
+  gap: space[6],
+} satisfies CSSProperties
+
+const CARD = {
+  overflow: 'hidden',
+  borderRadius: radius.card,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.pill,
+  borderColor: color.ink15,
+  backgroundColor: color.paper,
+} satisfies CSSProperties
+
+const CARD_BAND = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: space[8],
+  backgroundColor: color.ink10,
+} satisfies CSSProperties
 
 /**
  * Skeleton — the generic loading placeholder (ruleset §"Skeleton").
@@ -25,21 +72,18 @@ export function Ghost({ className }: { className?: string }) {
  * Mirrors the real anatomy (frame / band / body) with **ink-alpha ghosts on
  * off-white**, so the loaded content drops in with **zero layout shift**. The
  * former card-specific `CardSkeleton` is absorbed here as `mode="card"` (+
- * `compact`); this is the atom, driven by `mode` + `rows`.
+ * `compact`); this is the atom, driven by `mode` + `rows`. The pulse is
+ * `.su-pulse`, which a reduced-motion reader never sees.
  */
 export function Skeleton({ mode = 'card', rows = 3, compact = false, className }: SkeletonProps) {
   if (mode === 'text') {
     return (
-      <div
-        role="status"
-        aria-label="Loading"
-        className={cn('motion-safe:animate-pulse space-y-2', className)}
-      >
+      <div role="status" aria-label="Loading" className={cn('su-pulse', className)} style={STACK}>
         {Array.from({ length: rows }).map((_, i) => (
           <Ghost
             // biome-ignore lint/suspicious/noArrayIndexKey: ghost lines are positional
             key={i}
-            className={cn('h-3', i === rows - 1 ? 'w-3/5' : i % 2 === 0 ? 'w-full' : 'w-4/5')}
+            style={{ height: space[12], width: lineWidth(i, rows) }}
           />
         ))}
       </div>
@@ -48,22 +92,15 @@ export function Skeleton({ mode = 'card', rows = 3, compact = false, className }
 
   if (mode === 'list') {
     return (
-      <div
-        role="status"
-        aria-label="Loading"
-        className={cn('motion-safe:animate-pulse space-y-2', className)}
-      >
+      <div role="status" aria-label="Loading" className={cn('su-pulse', className)} style={STACK}>
         {Array.from({ length: rows }).map((_, i) => (
-          <div
-            // biome-ignore lint/suspicious/noArrayIndexKey: ghost rows are positional
-            key={i}
-            className="flex items-center gap-3 rounded-card border-chrome border-ink/15 bg-paper px-3 py-2.5"
-          >
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <Ghost className="h-3.5 w-2/5" />
-              <Ghost className="h-2.5 w-3/5" />
+          // biome-ignore lint/suspicious/noArrayIndexKey: ghost rows are positional
+          <div key={i} style={LIST_ROW}>
+            <div style={LIST_LINES}>
+              <Ghost style={{ height: space[14], width: '40%' }} />
+              <Ghost style={{ height: space[10], width: '60%' }} />
             </div>
-            <Ghost className="h-6 w-14" />
+            <Ghost style={{ height: space[24], width: '56px' }} />
           </div>
         ))}
       </div>
@@ -73,32 +110,35 @@ export function Skeleton({ mode = 'card', rows = 3, compact = false, className }
   // card — frame + band + body, mirroring the Card anatomy. `compact`
   // mirrors the medium (compact) card density: shorter band, tighter body.
   return (
-    <div
-      role="status"
-      aria-label="Loading"
-      className={cn(
-        'motion-safe:animate-pulse overflow-hidden rounded-card border-2 border-ink/15 bg-paper',
-        className
-      )}
-    >
+    <div role="status" aria-label="Loading" className={cn('su-pulse', className)} style={CARD}>
       <div
-        className={cn(
-          'flex items-center gap-2 bg-ink/10 px-3',
-          compact ? 'min-h-[60px] py-2' : 'min-h-[80px] py-2.5'
-        )}
+        style={{
+          ...CARD_BAND,
+          minHeight: compact ? '60px' : '80px',
+          padding: compact ? `${space[8]} ${space[12]}` : `${space[10]} ${space[12]}`,
+        }}
       >
-        <Ghost className={cn('w-2/5 bg-ink/20', compact ? 'h-4' : 'h-6')} />
-        <Ghost className={cn('w-1/4 bg-ink/15', compact ? 'h-3' : 'h-4')} />
+        <Ghost
+          style={{
+            width: '40%',
+            height: compact ? space[16] : space[24],
+            backgroundColor: color.ink20,
+          }}
+        />
+        <Ghost
+          style={{
+            width: '25%',
+            height: compact ? space[12] : space[16],
+            backgroundColor: color.ink15,
+          }}
+        />
       </div>
-      <div className={cn('space-y-2', compact ? 'p-2' : 'p-3')}>
+      <div style={{ ...STACK, padding: compact ? space[8] : space[12] }}>
         {Array.from({ length: rows }).map((_, i) => (
           <Ghost
             // biome-ignore lint/suspicious/noArrayIndexKey: ghost body lines are positional
             key={i}
-            className={cn(
-              compact ? 'h-3' : 'h-4',
-              i === rows - 1 ? 'w-3/5' : i % 2 === 0 ? 'w-full' : 'w-4/5'
-            )}
+            style={{ height: compact ? space[12] : space[16], width: lineWidth(i, rows) }}
           />
         ))}
       </div>

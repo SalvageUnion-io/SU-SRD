@@ -14,6 +14,7 @@ import {
   checkMarkdownLinks,
   checkReferencedScripts,
   checkRetiredClaims,
+  checkTerseShape,
   citationReadsAsHistoryOrProposal,
   gitignoredMatcher,
   headingSlug,
@@ -216,41 +217,20 @@ describe('checkBacktickedPathsExist', () => {
     expect(failures[0]).toContain('docs/ARCHITECTURE.md:3 cites `apps/itun/src/stores/gone.ts`')
   })
 
-  it('scans only the Status and Decision of an ADR that still carries a Decision', () => {
+  it('scans the ADR entries as live text, paths and scripts alike', () => {
     const root = fixture({
       'package.json': JSON.stringify({ scripts: {} }),
       'docs/ARCHITECTURE.md': [
-        '## Data flow',
+        '## Decisions',
         '',
-        'Writes go through `apps/itun/src/stores/gone.ts`.',
-        '',
-        '# Decisions',
-        '',
-        '## ADR-001',
-        '',
-        '### Status',
-        '',
-        'Superseded. We kept `apps/itun/old-host/functions/` and ran `bun run old-host`.',
-        '',
-        '## ADR-002',
-        '',
-        '### Status',
-        '',
-        'Accepted. The rules are `apps/itun/src/rules.ts`.',
-        '',
-        '### Context',
-        '',
-        'We used to run `bun run old-host` against `apps/itun/old-host/`.',
-        '',
-        '### Decision',
-        '',
-        'Run `bun run new-host` over `apps/itun/src/host.ts`.',
+        '1. **ADR-001 Old host**',
+        '   Superseded. Its `apps/itun/old-host/` was removed.',
+        '2. **ADR-002 New host**',
+        '   Accepted: `bun run new-host` over `apps/itun/src/host.ts`.',
       ].join('\n'),
     })
     const paths = checkBacktickedPathsExist(root).failures.join('\n')
-    expect(paths).toContain('docs/ARCHITECTURE.md:3 cites `apps/itun/src/stores/gone.ts`')
-    expect(paths).toContain('docs/ARCHITECTURE.md:17 cites `apps/itun/src/rules.ts`')
-    expect(paths).toContain('docs/ARCHITECTURE.md:25 cites `apps/itun/src/host.ts`')
+    expect(paths).toContain('docs/ARCHITECTURE.md:6 cites `apps/itun/src/host.ts`')
     expect(paths).not.toContain('old-host')
     const scripts = checkReferencedScripts(root).failures
     expect(scripts).toHaveLength(1)
@@ -340,7 +320,7 @@ describe('checkRetiredClaims', () => {
       '.env.example': '# unset = in-memory only\n',
       'CLAUDE.md': 'Commit with /ship.\n',
       'docs/ARCHITECTURE.md':
-        '# Architecture\n\n# Decisions\n\n## ADR-001\n\nLocal-first, no backend.\n',
+        '# Architecture\n\n## Decisions\n\n1. **ADR-001 Local-first, no backend**\n   Superseded.\n',
     })
     const failures = checkRetiredClaims(root).failures.join('\n')
     expect(failures).toContain('.claude/rules/x.md:1 matches /in-memory (?:backend|only)/i')
@@ -359,7 +339,7 @@ describe('checkRetiredClaims', () => {
       '.claude/rules/e.md': 'Guard on isConvexConfigured().\n',
       '.claude/rules/f.md': 'Reads are salvage-tolerant.\n',
       'docs/ARCHITECTURE.md':
-        '# Architecture\n\n# Decisions\n\n## ADR-001\n\n### Context\n\nAnonymous play stays first-class.\n',
+        '# Architecture\n\n## Decisions\n\n1. **ADR-001 Old**\n   Superseded: anonymous play stayed first-class.\n',
     })
     const failures = checkRetiredClaims(root).failures
     for (const doc of ['a', 'b', 'c', 'd', 'e', 'f']) {
@@ -475,63 +455,114 @@ describe('headingSlug', () => {
 })
 
 describe('checkDecisions', () => {
-  const doc = (adrs: string): string => `# Architecture\n\n# Decisions\n\n${adrs}`
+  const doc = (entries: string): string => `# Architecture\n\n## Decisions\n\n${entries}`
+  const entry = (n: number, text: string): string =>
+    `${n}. **ADR-${String(n).padStart(3, '0')} Title**\n   ${text}\n`
 
-  it('passes ADR-001 to the floor, each one bare heading under # Decisions', () => {
+  it('passes ADR-001 to the floor, entry N naming ADR-N under ## Decisions', () => {
     const root = fixture({
-      'docs/ARCHITECTURE.md': doc('## ADR-001\n\n**One**\n\n### Status\n\n## ADR-002\n\n**Two**\n'),
+      'docs/ARCHITECTURE.md': doc(entry(1, 'Accepted.') + entry(2, 'Accepted.')),
     })
     expect(checkDecisions(root, 2).failures).toEqual([])
   })
 
-  it('fails a missing, repeated, titled or misplaced ADR, and docs/adrs/ coming back', () => {
+  it('fails a missing, repeated, misnumbered, misplaced or headed ADR, and docs/adrs/ coming back', () => {
     const root = fixture({
       'docs/adrs/ADR-005.md': '# ADR-005\n',
-      'docs/ARCHITECTURE.md':
-        '## ADR-001\n\n# Decisions\n\n## ADR-002: Titled\n\n## ADR-002\n\n```md\n## ADR-003\n```\n',
+      'docs/ARCHITECTURE.md': [
+        '## Areas',
+        '',
+        '1. **ADR-001 Misplaced**',
+        '',
+        '## Decisions',
+        '',
+        '2. **ADR-002 Two**',
+        '2. **ADR-002 Again**',
+        '4. **ADR-003 Misnumbered**',
+        '',
+        '## ADR-006',
+        '',
+        '```md',
+        '7. **ADR-007 Fenced**',
+        '```',
+      ].join('\n'),
     })
     const failures = checkDecisions(root, 4).failures.join('\n')
     expect(failures).toContain('docs/adrs/ exists again')
-    expect(failures).toContain('docs/ARCHITECTURE.md:1 is an ADR above `# Decisions`')
-    expect(failures).toContain('docs/ARCHITECTURE.md:5 heads an ADR "## ADR-002: Titled"')
-    expect(failures).toContain('heads `## ADR-002` 2 times')
-    expect(failures).toContain('has no `## ADR-003`')
-    expect(failures).toContain('has no `## ADR-004`')
+    expect(failures).toContain('docs/ARCHITECTURE.md:3 is an ADR entry outside `## Decisions`')
+    expect(failures).toContain('lists ADR-002 2 times')
+    expect(failures).toContain('docs/ARCHITECTURE.md:9 numbers ADR-003 as entry 4')
+    expect(failures).toContain('has no ADR-004 entry')
+    expect(failures).toContain('docs/ARCHITECTURE.md:11 heads an ADR')
+    expect(failures).not.toContain('ADR-007')
   })
 
-  it("fails an amendment the amended ADR's Status does not name", () => {
-    const adr = (n: string, status: string): string =>
-      `## ADR-${n}\n\n**T**\n\n### Status\n\n${status}\n\n### Decision\n\nSee ADR-001.\n\n`
+  it('fails an amendment the amended entry does not name', () => {
     const root = fixture({
       'docs/ARCHITECTURE.md': doc(
-        adr('001', 'Accepted. **Amended by [ADR-003](#adr-003).**') +
-          adr('002', 'Accepted. Superseded in part.') +
-          adr('003', 'Accepted. **Amends [ADR-001](#adr-001)** and supersedes ADR-002.')
+        entry(1, 'Accepted; amended by ADR-003.') +
+          entry(2, 'Accepted.') +
+          entry(3, 'Accepted. Amends ADR-001; supersedes ADR-002.')
       ),
     })
     expect(checkDecisions(root, 3).failures).toEqual([
-      "docs/ARCHITECTURE.md: ADR-003 supersedes ADR-002, but ADR-002's Status does not name " +
-        'ADR-003. Add a dated line there ("**Amended by [ADR-003](#adr-003)** …").',
+      "docs/ARCHITECTURE.md: ADR-003 supersedes ADR-002, but ADR-002's entry does not name " +
+        'ADR-003. Add "amended by ADR-003" there.',
     ])
   })
-
-  it('fails an ADR named in an "**Also amends:**" list whose Status does not name the amender', () => {
-    const adr = (n: string, status: string): string =>
-      `## ADR-${n}\n\n**T**\n\n### Status\n\n${status}\n\n### Decision\n\nSee ADR-001.\n\n`
+  it('passes a full-text ADR file linked from its entry', () => {
     const root = fixture({
       'docs/ARCHITECTURE.md': doc(
-        adr('001', 'Accepted. **Amended by [ADR-003](#adr-003).**') +
-          adr('002', 'Accepted.') +
-          adr(
-            '003',
-            'Accepted.\n\n**Also amends:**\n- [ADR-001](#adr-001) §1: one thing.\n' +
-              '- [ADR-002](#adr-002)\'s "Scope": another,\n  wrapped onto a second line.'
-          )
+        `1. **ADR-001 Title** · [full text](adr/001-one.md)\n   Accepted.\n${entry(2, 'Accepted.')}`
       ),
+      'docs/adr/001-one.md': '---\nstatus: accepted\n---\n\n# ADR-001: One\n\nBody.\n',
     })
-    expect(checkDecisions(root, 3).failures).toEqual([
-      "docs/ARCHITECTURE.md: ADR-003 amends ADR-002, but ADR-002's Status does not name " +
-        'ADR-003. Add a dated line there ("**Amended by [ADR-003](#adr-003)** …").',
+    expect(checkDecisions(root, 2).failures).toEqual([])
+  })
+
+  it('fails an ADR file that is misnamed, unlinked, orphaned, repeated or malformed', () => {
+    const root = fixture({
+      'docs/ARCHITECTURE.md': doc(entry(1, 'Accepted.') + entry(2, 'Accepted.')),
+      'docs/adr/001-one.md': '---\nstatus: accepted\n---\n\n# ADR-001: One\n',
+      'docs/adr/002-two.md': '---\nstatus: superseded\n---\n\n# ADR-003: Wrong\n',
+      'docs/adr/002-again.md': '# ADR-002: No front-matter\n',
+      'docs/adr/009-orphan.md': '---\nstatus: accepted\n---\n\n# ADR-009: Orphan\n',
+      'docs/adr/ADR-004.md': '# ADR-004\n',
+    })
+    const failures = checkDecisions(root, 2).failures.join('\n')
+    expect(failures).toContain('docs/adr/ADR-004.md is not an ADR file')
+    expect(failures).toContain(
+      'docs/ARCHITECTURE.md:5 is ADR-001, whose full text is docs/adr/001-one.md'
+    )
+    expect(failures).toContain(
+      'ADR-002 has two files, docs/adr/002-again.md and docs/adr/002-two.md'
+    )
+    expect(failures).toContain('docs/adr/002-two.md needs front-matter')
+    expect(failures).toContain('docs/adr/002-again.md needs front-matter')
+    expect(failures).toContain('docs/adr/002-two.md opens on "# ADR-003: Wrong"')
+    expect(failures).toContain('docs/adr/009-orphan.md has no ADR-009 entry')
+  })
+})
+
+describe('checkTerseShape', () => {
+  it('passes headline entries of at most two indented lines', () => {
+    const root = fixture({
+      'docs/ARCHITECTURE.md':
+        '# A\n\nIntro.\n\n## Areas\n\n1. **One**\n   a\n   b\n10. **Ten**\n    c\n',
+    })
+    expect(checkTerseShape(root, ['docs/ARCHITECTURE.md']).failures).toEqual([])
+  })
+
+  it('fails a long entry, prose between entries, and a missing doc', () => {
+    const root = fixture({
+      'docs/ARCHITECTURE.md':
+        '## Areas\n\n1. **One**\n   a\n   b\n   c\n2. **Two**\n\nA paragraph.\n',
+    })
+    const failures = checkTerseShape(root, ['docs/ARCHITECTURE.md', 'docs/GONE.md']).failures
+    expect(failures).toEqual([
+      'docs/ARCHITECTURE.md:3 runs 3 lines under its headline; the limit is 2. Cut it: history is in git.',
+      'docs/ARCHITECTURE.md:9 is prose between entries. Fold it into an entry or cut it.',
+      'TERSE_DOCS names docs/GONE.md, which does not exist. Remove the entry.',
     ])
   })
 })
@@ -554,10 +585,8 @@ describe('checkDocSizes', () => {
     )
   })
 
-  it("holds a collapsed doc's live text to its own budget, and fails an entry whose file is gone", () => {
-    const root = fixture({
-      'docs/ARCHITECTURE.md': `${'x'.repeat(100)}\n# Decisions\n\n## ADR-001\n\n${'y'.repeat(500)}`,
-    })
+  it('holds a collapsed doc to its own budget, and fails an entry whose file is gone', () => {
+    const root = fixture({ 'docs/ARCHITECTURE.md': 'x'.repeat(101) })
     expect(checkDocSizes(root, {}, { 'docs/ARCHITECTURE.md': 101 }).failures).toEqual([])
     expect(checkDocSizes(root, {}, { 'docs/ARCHITECTURE.md': 100 }).failures.join('\n')).toContain(
       'docs/ARCHITECTURE.md is 101 characters, over its 100-character budget'

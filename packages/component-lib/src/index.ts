@@ -1,4 +1,3 @@
-export { getCatalogBg, getCatalogLabel } from './catalog/catalogColors'
 // SRD catalog — the catalog categories and their tile colours, as ITUN's
 // Dashboard SRD Explorer renders them. (srd's own index is its chapters,
 // `apps/srd/src/lib/chapters.ts`.)
@@ -143,7 +142,6 @@ export { CopyFeedbackProvider } from './components/shared/copyFeedbackContext'
 // digestRollTable — a banded d20 table as rows, highest first (the book's order)
 export { digestRollTable } from './components/shared/digestRollTable'
 export { EntitySearcher } from './components/shared/EntitySearcher'
-export { FilterRow } from './components/shared/FilterRow'
 export { Inset } from './components/shared/Inset'
 export { MasonryColumns } from './components/shared/MasonryColumns'
 export { ModalShell } from './components/shared/ModalShell'
@@ -226,6 +224,8 @@ export type { EntitySurfaceValue } from './entity/entitySurfaceContext'
 export { Mention } from './entity/forms/Mention'
 export type { PeekLoader } from './entity/Peek'
 export { PeekHost } from './entity/Peek'
+export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'
+export { findPageRefs } from './entity/pageRefs'
 export type { EntityRowModel } from './entity/types'
 /** `CSSProperties` that also admits `--custom-property` keys (see styles/cssVars). */
 export type { CSSVarStyle } from './styles/cssVars'

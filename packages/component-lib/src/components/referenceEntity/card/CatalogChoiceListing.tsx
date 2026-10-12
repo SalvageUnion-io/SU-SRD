@@ -1,11 +1,40 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import type { SURefEntity, SURefMetaEntity, SURefObjectChoice } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
+import { color, font, fontSize, space, tracking } from '../../../design/tokens'
 import { Button } from '../../chrome/Button'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { firstParagraphText } from './firstParagraphText'
+
+/** `ink/70` — no ink-opacity rung sits at 70%. */
+const ink70 = `color-mix(in oklab, ${color.ink} 70%, transparent)`
+
+const stackStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[6],
+} satisfies CSSProperties
+
+/** `text-xs` with its paired line height. */
+const textXs = { fontSize: fontSize.xs, lineHeight: '1rem' } satisfies CSSProperties
+
+const promptStyle = { fontFamily: font.body, ...textXs, color: ink70 } satisfies CSSProperties
+
+const summaryStyle = {
+  cursor: 'pointer',
+  fontFamily: font.cond,
+  textTransform: 'uppercase',
+  lineHeight: 1,
+  letterSpacing: tracking.capsTight,
+  color: ink70,
+} satisfies CSSProperties
+
+const chooseButtonStyle = {
+  width: 'fit-content',
+  padding: `${space[4]} ${space[12]}`,
+} satisfies CSSProperties
 
 /**
  * A SCHEMA-ONLY catalog choice — "pick any entity from the collection" (the
@@ -64,14 +93,14 @@ export function CatalogChoiceListing({
   // EDITABLE — the modal picker (launched by a button), plus the current pick.
   if (editable) {
     return (
-      <div className="flex flex-col gap-1.5">
-        {prompt && <p className="font-body text-xs text-ink/70">{prompt}</p>}
+      <div style={stackStyle}>
+        {prompt && <p style={promptStyle}>{prompt}</p>}
         {chosenEntity && renderEntity(chosenEntity, 'chosen')}
         <Button
           variant="primary"
           size="mini"
           onClick={() => setModalOpen(true)}
-          className="w-fit px-3 py-1"
+          style={chooseButtonStyle}
         >
           {chosen ? `Change — ${chosen}` : `Choose ${choice.name}…`}
         </Button>
@@ -101,14 +130,12 @@ export function CatalogChoiceListing({
   }
   const summary = chosen ? `${choice.name}: ${chosen}` : choice.name
   return (
-    <div className="flex flex-col gap-1.5">
-      {prompt && <p className="font-body text-xs text-ink/70">{prompt}</p>}
-      <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)} className="text-xs">
-        <summary className="cursor-pointer font-cond uppercase leading-none tracking-caps-tight text-ink/70">
-          {summary}
-        </summary>
+    <div style={stackStyle}>
+      {prompt && <p style={promptStyle}>{prompt}</p>}
+      <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)} style={textXs}>
+        <summary style={summaryStyle}>{summary}</summary>
         {open && (
-          <div className="mt-2 flex flex-col gap-1.5">
+          <div style={{ ...stackStyle, marginTop: space[8] }}>
             {entities.map((entity, index) => {
               const name = typeof entity.name === 'string' ? entity.name : ''
               const key =

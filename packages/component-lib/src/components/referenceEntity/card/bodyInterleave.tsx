@@ -46,7 +46,7 @@ export function interleaveBody({
   const flush = () => {
     if (buffer.length > 0 && showProse) {
       nodes.push(
-        <div key={`seg-${seg}`} className="[&:not(:last-child)]:mb-3">
+        <div key={`seg-${seg}`} className="su-ec-block">
           <CardProse body={buffer} context={prose} />
         </div>
       )

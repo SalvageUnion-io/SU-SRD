@@ -7,14 +7,15 @@
   "scripts": {
     "dev": "bun ssg/dev.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "build": "bun ssg/build.ts",
+    "build": "bun run typecheck && bun ssg/build.ts",
     "og:generate": "bun ssg/build.ts && OG_SCREENSHOTS=1 bun scripts/og-screenshots.ts",
     "og:install-browser": "playwright install chromium",
     "preview": "wrangler dev",
-    "test": "bun test",
+    "test": "bun test --parallel=4 --no-isolate",
     "clean": "rm -rf dist node_modules/.vite",
     "check:examples": "bun ssg/checkPageExamples.ts",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "worker:bundle": "wrangler deploy --dry-run"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",

@@ -1,3 +1,4 @@
+import type { PageRefIndex } from 'component-lib'
 import {
   EntityDetailLinkProvider,
   EntityHrefProvider,
@@ -13,6 +14,7 @@ import { srdPatternHref } from '../../lib/patternHref'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate, useGameData } from '../../lib/useGameData'
 import { ClassAbilityTree } from '../ClassAbilityTree'
+import { ReferenceSurface } from '../ReferenceSurface'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ReferenceEntityIslandProps = {
@@ -26,6 +28,8 @@ type ReferenceEntityIslandProps = {
   preloadSchemas?: SchemaList
   /** The schema keeps an art place: a censor mark when this item has no art. */
   artSlot?: boolean
+  /** The pages its text cites, built at build time, to link "p. N". */
+  pageRefs?: PageRefIndex
 }
 
 export function ReferenceEntityIsland({
@@ -34,6 +38,7 @@ export function ReferenceEntityIsland({
   pattern,
   preloadSchemas,
   artSlot = false,
+  pageRefs,
 }: ReferenceEntityIslandProps) {
   const classSelections = useMemo(() => getClassSelections(item), [item])
   const classEntity = classSelections.selectedClass || classSelections.selectedAdvancedClass
@@ -72,17 +77,19 @@ export function ReferenceEntityIsland({
                     page. Harmless on the pattern page itself, whose card is a
                     pattern view and so carries no pattern list. */}
               <PatternHrefProvider value={srdPatternHref}>
-                <ReferenceEntityCard
-                  data={item}
-                  pattern={pattern}
-                  size={compact ? 'medium' : 'large'}
-                  presentation={compact ? 'card' : 'page'}
-                  artSlot={artSlot}
-                  afterExtraContent={
-                    classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
-                  }
-                  asideLead={!!classEntity}
-                />
+                <ReferenceSurface pageRefs={pageRefs}>
+                  <ReferenceEntityCard
+                    data={item}
+                    pattern={pattern}
+                    size={compact ? 'medium' : 'large'}
+                    presentation={compact ? 'card' : 'page'}
+                    artSlot={artSlot}
+                    afterExtraContent={
+                      classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
+                    }
+                    asideLead={!!classEntity}
+                  />
+                </ReferenceSurface>
               </PatternHrefProvider>
             </EntityDetailLinkProvider>
           </EntityHrefProvider>
