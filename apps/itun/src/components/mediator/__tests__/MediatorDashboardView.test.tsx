@@ -10,9 +10,9 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { proposalTargets } from 'itun-domain/games/proposals'
+import { downtimeStepNames } from 'itun-domain/rules/downtime'
 import { createRef } from 'react'
-import { proposalTargets } from '../../../lib/games/proposals'
-import { downtimeStepNames } from '../../../lib/rules/downtime'
 import type { MediatorTableView, MediatorTableWrites } from '../MediatorDashboardView'
 import { MediatorDashboardView } from '../MediatorDashboardView'
 import { readTrayNpc } from '../opposition'

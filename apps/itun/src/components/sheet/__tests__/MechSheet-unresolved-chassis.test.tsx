@@ -9,7 +9,7 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import type { Mech } from '../../../lib/schemas/mech'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'

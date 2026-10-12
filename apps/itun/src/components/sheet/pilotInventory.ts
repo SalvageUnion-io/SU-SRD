@@ -17,10 +17,10 @@
  * Pure functions — no React, no IndexedDB.
  */
 
+import type { GenericInventoryEntry, Pilot } from 'itun-domain/schemas/pilot'
 import type { SURefEquipment } from 'salvageunion-reference'
 import { getInventorySlots, getTraits, SalvageUnionReference } from 'salvageunion-reference'
 import { pilotMaxInventorySlots } from 'salvageunion-reference/rules'
-import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 
 /** Resolve a stored equipment slug (e.g. `remote-mine`) against the reference data. */
 export function resolveEquipment(slug: string): SURefEquipment | null {

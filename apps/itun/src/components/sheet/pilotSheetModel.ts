@@ -14,6 +14,9 @@
 
 import type { ProvenanceLine } from 'component-lib'
 import { linesFromBreakdown } from 'component-lib'
+import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { GenericInventoryEntry, Pilot } from 'itun-domain/schemas/pilot'
 import { useMemo } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
@@ -23,10 +26,7 @@ import {
   pilotMaxHPParts,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { readReference } from '../../lib/readReference'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 import type { ClassLike } from '../pilot/abilityTrees'
 import { treesFor } from '../pilot/abilityTrees'
 import { useSoftLinks } from '../wiring/useSoftLinks'

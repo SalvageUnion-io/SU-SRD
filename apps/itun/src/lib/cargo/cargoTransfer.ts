@@ -38,9 +38,9 @@
  *   interaction: it never entered the pool, so nothing is withdrawn.
  */
 
-import type { CargoLot } from '../schemas/cargoLot'
-import { makeScrapLot, totalLotUnits } from '../schemas/cargoLot'
-import type { ScrapPool } from '../schemas/crawler'
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import { makeScrapLot, totalLotUnits } from 'itun-domain/schemas/cargoLot'
+import type { ScrapPool } from 'itun-domain/schemas/crawler'
 
 export type CargoBoundaryState = {
   /** Lots in the carrier's hold — a mech's, or a partner's. */

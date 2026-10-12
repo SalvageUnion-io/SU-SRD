@@ -1,4 +1,5 @@
 import { toast } from 'component-lib'
+import { CrawlerSchema } from 'itun-domain/schemas/crawler'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type {
   SURefCrawler,
@@ -21,7 +22,6 @@ import {
   crawlerCreationStepGate,
   crawlerWeaponSlotsFor,
 } from '../../lib/rules/creation'
-import { CrawlerSchema } from '../../lib/schemas/crawler'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import {
   crawlerFormToCreateInput,

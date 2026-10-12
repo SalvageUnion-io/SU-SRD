@@ -10,8 +10,8 @@
  */
 
 import { tokens } from 'component-lib'
+import { PROPOSAL_STATE_WORD } from 'itun-domain/games/proposals'
 import type { CSSProperties } from 'react'
-import { PROPOSAL_STATE_WORD } from '../../lib/games/proposals'
 import { NUMBERS } from './mediatorStyles'
 import type { SentProposal } from './proposalLine'
 import { ago, proposalLine } from './proposalLine'

@@ -44,11 +44,11 @@
  */
 
 import { Badge, BandTitle, Button, Card, cn, Input, SlotGrid, Stat } from 'component-lib'
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import { makeScrapLot, makeUnitLot, totalLotUnits } from 'itun-domain/schemas/cargoLot'
 import { useId, useState } from 'react'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
-import type { CargoLot } from '../../lib/schemas/cargoLot'
-import { makeScrapLot, makeUnitLot, totalLotUnits } from '../../lib/schemas/cargoLot'
 
 /** A slot cost is a non-negative INTEGER (`CargoLotSchema.units` is `.int()`). */
 function coerceSlots(raw: string): number {

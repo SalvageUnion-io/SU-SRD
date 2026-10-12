@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
+import { MechSchema } from 'itun-domain/schemas/mech'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { MechSchema } from '../../src/lib/schemas/mech'
 import type { Ctx } from './fixtures'
 import { makeUser, mechBody } from './fixtures'
 import { testConvex } from './harness'

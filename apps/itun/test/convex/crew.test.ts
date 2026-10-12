@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
+import { MechSchema } from 'itun-domain/schemas/mech'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
 import { api } from '../../convex/_generated/api'
-import { MechSchema } from '../../src/lib/schemas/mech'
-import { PilotSchema } from '../../src/lib/schemas/pilot'
 import { makeUser, mechBody, pilotBody, seedTable } from './fixtures'
 import { testConvex } from './harness'
 

@@ -7,13 +7,13 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { CrawlerSchema } from 'itun-domain/schemas/crawler'
+import { MechSchema } from 'itun-domain/schemas/mech'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { _resetDbSingleton, clearCache } from '../../db/index'
-import { CrawlerSchema } from '../../schemas/crawler'
-import { MechSchema } from '../../schemas/mech'
-import { PilotSchema } from '../../schemas/pilot'
 import { createBlank } from '../blankCreate'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.

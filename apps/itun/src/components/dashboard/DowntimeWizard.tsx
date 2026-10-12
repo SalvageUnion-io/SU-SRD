@@ -36,23 +36,23 @@
  */
 
 import { Badge, Button, Content, entityGuideToneColor, RollTable } from 'component-lib'
-import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
-import type { SURefObjectGuideStep, SURefObjectTable } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
-import { bayGate, UPKEEP_SCRAP } from '../../lib/rules/crawlerEconomy'
+import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
 import {
   allDowntimeSteps,
   downtimeMechPatch,
   downtimePilotPatch,
   mechBayStatus,
   medBayStatus,
-} from '../../lib/rules/downtime'
+} from 'itun-domain/rules/downtime'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { CSSProperties, ReactNode } from 'react'
+import { useState } from 'react'
+import type { SURefObjectGuideStep, SURefObjectTable } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { bayGate, UPKEEP_SCRAP } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import type { DowntimeHandle } from './useDowntime'

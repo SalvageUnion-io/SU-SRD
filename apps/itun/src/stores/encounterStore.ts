@@ -9,11 +9,11 @@
  * `containerOf`; `listForContainer(null)` returns everything.
  */
 
+import type { Container } from 'itun-domain/container'
+import { containerOf, sameContainer } from 'itun-domain/container'
+import type { EncounterNpc } from 'itun-domain/schemas/encounterNpc'
 import { create } from 'zustand'
-import type { Container } from '../lib/container'
-import { containerOf, sameContainer } from '../lib/container'
 import * as db from '../lib/db/index'
-import type { EncounterNpc } from '../lib/schemas/encounterNpc'
 import { commitNpcWrite } from './entityBackend'
 import type { HydratedCollectionActions, HydratedCollectionSlice } from './makeHydratedCollection'
 import { makeHydratedCollectionSlice } from './makeHydratedCollection'

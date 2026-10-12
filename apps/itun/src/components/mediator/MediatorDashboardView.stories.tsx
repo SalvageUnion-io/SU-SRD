@@ -1,5 +1,5 @@
-import { proposalTargets } from '../../lib/games/proposals'
-import { downtimeStepNames } from '../../lib/rules/downtime'
+import { proposalTargets } from 'itun-domain/games/proposals'
+import { downtimeStepNames } from 'itun-domain/rules/downtime'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './__tests__/tableFixture'
 import type { MediatorTableView, MediatorTableWrites } from './MediatorDashboardView'
 import { MediatorDashboardView } from './MediatorDashboardView'

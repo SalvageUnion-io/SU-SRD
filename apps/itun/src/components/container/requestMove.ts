@@ -14,8 +14,8 @@
  * error state.
  */
 
-import type { Container } from '../../lib/container'
-import { sameContainer } from '../../lib/container'
+import type { Container } from 'itun-domain/container'
+import { sameContainer } from 'itun-domain/container'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
 import { useEntityStore } from '../../stores/entityStore'

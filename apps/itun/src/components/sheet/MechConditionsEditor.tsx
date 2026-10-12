@@ -10,8 +10,8 @@
  * `conditions[]`. The two storage forms can never disagree on screen.
  */
 
+import type { Mech } from 'itun-domain/schemas/mech'
 import { unifiedMechConditions } from 'salvageunion-reference/rules'
-import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { ConditionsEditor } from './ConditionsEditor'

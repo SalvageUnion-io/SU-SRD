@@ -1,8 +1,8 @@
 /** Unit tests for the crawler wizard form-state mappers (plan 3.1). */
 import { describe, expect, it } from 'bun:test'
+import { CrawlerSchema } from 'itun-domain/schemas/crawler'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { CrawlerSchema } from '../../schemas/crawler'
 import {
   crawlerFormCrewToPatches,
   crawlerFormToCreateInput,

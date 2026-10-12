@@ -47,6 +47,9 @@
 
 import { Badge, Button, buttonVariants, Text, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -61,9 +64,6 @@ import {
   tableCapabilities,
 } from '../../lib/games/gameRoster'
 import { rosterRowStats } from '../../lib/games/rosterRowStats'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 import type { ColumnCreate, SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { AppLink } from '../shared/AppLink'

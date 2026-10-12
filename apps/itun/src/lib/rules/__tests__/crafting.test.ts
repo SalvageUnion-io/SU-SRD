@@ -5,7 +5,7 @@
  * Pure arithmetic on hand-crafted pools/items — no reference data needed.
  */
 import { describe, expect, it } from 'bun:test'
-import type { ScrapPool } from '../../schemas/crawler'
+import type { ScrapPool } from 'itun-domain/schemas/crawler'
 import { craftableAtTl, craftedLot, craftQuote } from '../crafting'
 
 const RED_LASER = { name: 'Red Laser', techLevel: 1, salvageValue: 3 }

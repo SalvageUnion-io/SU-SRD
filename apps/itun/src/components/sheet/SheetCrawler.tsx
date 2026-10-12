@@ -14,14 +14,14 @@
  */
 
 import { linesFromBreakdown, VitalGauge } from 'component-lib'
+import { containerOf } from 'itun-domain/container'
+import { parseCrawlerTechLevel, resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
+import { pilotingContext } from 'itun-domain/rules/pilotingContext'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import { useState } from 'react'
 import { crawlerMaxSPParts, pinFor, resolvePool } from 'salvageunion-reference/rules'
-import { containerOf } from '../../lib/container'
-import { parseCrawlerTechLevel, resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
-import { pilotingContext } from '../../lib/rules/pilotingContext'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AppLink } from '../shared/AppLink'
 import { EntityRow } from '../shared/EntityRow'

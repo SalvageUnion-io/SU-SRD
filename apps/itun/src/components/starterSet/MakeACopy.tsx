@@ -10,8 +10,8 @@
  */
 
 import { Button, toast } from 'component-lib'
+import { SHELF } from 'itun-domain/container'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { SHELF } from '../../lib/container'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
 import { copyStarter, STARTER_SET_PUBLISHER } from '../../lib/starterSet/copyStarter'
 import { SignInControl } from '../account/SignInControl'

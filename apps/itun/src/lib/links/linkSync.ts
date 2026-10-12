@@ -19,12 +19,12 @@
  * not this answer's to judge and is left alone.
  */
 
-import type { Container } from '../container'
-import { containerOf } from '../container'
-import type { EntityRef } from '../schemas/entity'
-import type { CrewSlot, SoftLink } from '../schemas/softLink'
-import type { EndContainer } from './linkRules'
-import { linkKey } from './linkRules'
+import type { Container } from 'itun-domain/container'
+import { containerOf } from 'itun-domain/container'
+import type { EndContainer } from 'itun-domain/links/linkRules'
+import { linkKey } from 'itun-domain/links/linkRules'
+import type { EntityRef } from 'itun-domain/schemas/entity'
+import type { CrewSlot, SoftLink } from 'itun-domain/schemas/softLink'
 
 /** A link row as `entities.listWiring` returns it. */
 export type ServedLink = {

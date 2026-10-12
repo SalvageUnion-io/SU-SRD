@@ -6,8 +6,8 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { CargoLot } from '../../schemas/cargoLot'
-import { makeScrapLot } from '../../schemas/cargoLot'
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import { makeScrapLot } from 'itun-domain/schemas/cargoLot'
 import type { CargoBoundaryState } from '../cargoTransfer'
 import { addToScrapPool, cargoTransfer, carrierCargoUsage, scrapPoolBucket } from '../cargoTransfer'
 

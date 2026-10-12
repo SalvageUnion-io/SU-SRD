@@ -15,7 +15,7 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { pilotFixture } from '../../__tests__/fixtures'

@@ -34,6 +34,7 @@ import {
   tokens,
   useDetailModal,
 } from 'component-lib'
+import { NpcSchema } from 'itun-domain/schemas/npc'
 import type { CSSProperties, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import type { SURefEntity, SURefNPC } from 'salvageunion-reference'
@@ -42,7 +43,6 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { npcActionName, npcActionSlug, resolveNpcAction } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
 import { npcCreationStepGate } from '../../lib/rules/creation'
-import { NpcSchema } from '../../lib/schemas/npc'
 import type { NpcFormState, NpcStepId } from '../../lib/wizard/npcFormState'
 import {
   addNpcAction,

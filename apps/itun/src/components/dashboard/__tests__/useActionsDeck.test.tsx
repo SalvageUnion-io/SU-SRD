@@ -15,6 +15,8 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { useState } from 'react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
@@ -24,8 +26,6 @@ import {
   pilotMaxAP,
   resolveChassisRef,
 } from 'salvageunion-reference/rules'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SeatResolving } from '../../../lib/schemas/seat'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'

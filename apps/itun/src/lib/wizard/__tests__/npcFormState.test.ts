@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'bun:test'
+import { NpcSchema } from 'itun-domain/schemas/npc'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
 import { crewSlotsOf } from '../../npcs/npcModel'
 import { npcCreationStepGate } from '../../rules/creation'
-import { NpcSchema } from '../../schemas/npc'
 import { crewDraftToCreateInput, crewDraftView } from '../crewFormState'
 import {
   addNpcAction,

@@ -58,11 +58,11 @@
 
 import { FieldError, Select } from 'component-lib'
 import { useQuery } from 'convex/react'
+import type { Container, ContainerFields } from 'itun-domain/container'
+import { containerOf, moveTo } from 'itun-domain/container'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { Container, ContainerFields } from '../../lib/container'
-import { containerOf, moveTo } from '../../lib/container'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'

@@ -10,9 +10,9 @@
  * under its name (today only the Augmented A.I.'s "A.I. Personality").
  */
 
+import type { Npc } from 'itun-domain/schemas/npc'
 import type { CreateInput } from '../../stores/types'
 import type { CrewSlotView, NpcView } from '../npcs/npcModel'
-import type { Npc } from '../schemas/npc'
 
 /** The typed values, keyed by choice name ("Name", "Keepsake", …). */
 export type CrewDraft = Record<string, string>

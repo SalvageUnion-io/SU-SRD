@@ -16,9 +16,9 @@
  */
 
 import { Button, FieldError, ModalShell } from 'component-lib'
+import type { MechPattern } from 'itun-domain/schemas/pattern'
 import { useState } from 'react'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
-import type { MechPattern } from '../../../lib/schemas/pattern'
 import { useEntityStore } from '../../../stores/entityStore'
 
 type InstantiateFromPatternProps = {

@@ -17,7 +17,7 @@
  * Server-side coverage of these shapes: `apps/itun/test/convex/bot.test.ts`.
  */
 
-import type { BotDenialReason } from '../../../itun/convex/model/botWire.js'
+import type { BotDenialReason } from 'itun-domain/botWire'
 
 export type {
   BindResult,
@@ -33,7 +33,7 @@ export type {
   SheetResult,
   SheetTable,
   ShelfResult,
-} from '../../../itun/convex/model/botWire.js'
+} from 'itun-domain/botWire'
 
 /** Why a call could not be satisfied: `BotDenial` plus the mutation cases. */
 export type DenialReason = BotDenialReason

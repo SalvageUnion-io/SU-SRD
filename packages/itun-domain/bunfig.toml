@@ -1,0 +1,9 @@
+[test]
+# `../../test/reference-preload.ts` loads every schema once for the whole
+# workspace, the same way the other workspaces do (the downtime rules read the
+# ORM). No DOM preload: nothing here renders.
+preload = ["../../test/reference-preload.ts"]
+
+# Coverage counts this workspace's own files, not the other workspaces'
+# sources its tests load (tools/run-coverage.ts gates on this total).
+coveragePathIgnorePatterns = ["../**"]

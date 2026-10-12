@@ -12,9 +12,9 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { ConnectionContext } from '../../../lib/connection/connectionContext'
-import type { Pilot } from '../../../lib/schemas/pilot'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'

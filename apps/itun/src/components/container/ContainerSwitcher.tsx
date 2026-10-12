@@ -16,9 +16,9 @@
 
 import { Select } from 'component-lib'
 import { useQuery } from 'convex/react'
+import type { Container } from 'itun-domain/container'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { Container } from '../../lib/container'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 
 const SHELF_VALUE = 'shelf'

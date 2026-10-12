@@ -8,9 +8,9 @@
  * the slice's update() comes along for free should that change.
  */
 
+import type { MechPattern } from 'itun-domain/schemas/pattern'
 import { create } from 'zustand'
 import * as db from '../lib/db/index'
-import type { MechPattern } from '../lib/schemas/pattern'
 import { commitPatternWrite } from './entityBackend'
 import type { HydratedCollectionActions, HydratedCollectionSlice } from './makeHydratedCollection'
 import { makeHydratedCollectionSlice } from './makeHydratedCollection'

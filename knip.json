@@ -40,6 +40,11 @@
       // redundant pattern.
       "project": ["src/**/*.ts"]
     },
+    "packages/itun-domain": {
+      // No `entry`: knip derives the subpaths from the manifest's `exports`
+      // wildcard, as for `packages/observability`.
+      "project": ["src/**/*.ts"]
+    },
     "packages/component-lib": {
       // `includeEntryExports` is ON here, unlike the app workspaces below.
       //

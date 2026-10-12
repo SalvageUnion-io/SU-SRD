@@ -16,6 +16,8 @@
  * confirmation itself stays an explicit call at the UI layer.
  */
 
+import type { Crawler, ScrapPool } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { Roll } from 'salvageunion-reference/rules'
 import type { CraftableItem } from '../../lib/rules/crafting'
 import { craftedLot, craftQuote } from '../../lib/rules/crafting'
@@ -27,8 +29,6 @@ import {
   mechScrapComponents,
   scrapMechBreakdown,
 } from '../../lib/rules/scrapMech'
-import type { Crawler, ScrapPool } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
 
 /** The crawler's numeric Tech Level, or undefined when the slug is unparseable. */
 export function crawlerTechLevelOf(crawler: Pick<Crawler, 'techLevel'>): number | undefined {

@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test'
+import type { LinkShape } from 'itun-domain/links/linkRules'
+import { conflictingLinks, linkKey, linkTypeFor, sameLink } from 'itun-domain/links/linkRules'
+import type { CrewSlot } from 'itun-domain/schemas/softLink'
+import { SoftLinkSchema } from 'itun-domain/schemas/softLink'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import type { CrewSlot } from '../../schemas/softLink'
-import { SoftLinkSchema } from '../../schemas/softLink'
 import { assignCrew } from '../assignLink'
-import type { LinkShape } from '../linkRules'
-import { conflictingLinks, linkKey, linkTypeFor, sameLink } from '../linkRules'
 
 /**
  * `npc-to-crawler` (ADR-044): the slot lives on the link. An NPC fills one

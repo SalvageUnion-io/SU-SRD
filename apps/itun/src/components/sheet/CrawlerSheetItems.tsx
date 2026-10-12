@@ -6,12 +6,12 @@
 
 import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from 'component-lib'
 import { Content, ReferenceEntityCard, useDetailModal } from 'component-lib'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { ComponentProps, ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { LinkedCrewInset } from '../npc/LinkedCrewInset'

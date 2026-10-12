@@ -29,6 +29,10 @@
  */
 
 import { rollForTable } from 'component-lib'
+import { resolveEffectiveCrawlerLevel } from 'itun-domain/crawlerLevel'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { useState } from 'react'
 import type { CoreRollResult } from 'salvageunion-reference/rules'
 import {
@@ -44,11 +48,7 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
-import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 import type { RangeBand, SeatResolving } from '../../lib/schemas/seat'
 import { RANGE_BANDS } from '../../lib/schemas/seat'
 import { useEntityStore } from '../../stores/entityStore'

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, setSystemTime, test } from 'bun:test'
+import { staleWriteOf } from 'itun-domain/connection/staleWrite'
 import { api } from '../../convex/_generated/api'
-import { staleWriteOf } from '../../src/lib/connection/staleWrite'
 import { makeUser, pilotBody } from './fixtures'
 import { testConvex } from './harness'
 

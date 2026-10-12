@@ -15,8 +15,8 @@
  * a Game there is no log to write to, and nothing is sent.
  */
 
-import type { ContainerFields } from '../../lib/container'
-import { containerOf } from '../../lib/container'
+import type { ContainerFields } from 'itun-domain/container'
+import { containerOf } from 'itun-domain/container'
 import { commitChangeLog } from '../../stores/entityBackend'
 
 /** Which roll it was. The Log tab reads `description`; `result` keeps the numbers. */

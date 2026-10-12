@@ -5,7 +5,7 @@
  * provenance row per field to the server of record, which holds the only copy.
  */
 
-import { containerOf } from '../lib/container'
+import { containerOf } from 'itun-domain/container'
 import type { ChangeLogKind } from '../lib/schemas/changeLog'
 import { commitChangeLog } from './entityBackend'
 import type { EntityForType, EntityType } from './types'

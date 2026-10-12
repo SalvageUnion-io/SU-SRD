@@ -15,8 +15,8 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import type { Pilot } from '../../../lib/schemas/pilot'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../__tests__/expandCards'
 import { pilotFixture } from '../../__tests__/fixtures'

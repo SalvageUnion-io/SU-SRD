@@ -20,10 +20,10 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, renderHook, screen, within } from '@testing-library/react'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
 import { mechFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import type { PhoneUnit } from '../DashboardPhone'

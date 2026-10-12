@@ -23,14 +23,14 @@
  * "COPY OF" anything.
  */
 
+import type { Container } from 'itun-domain/container'
+import { moveTo } from 'itun-domain/container'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import type { EntityType } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
-import type { Container } from '../container'
-import { moveTo } from '../container'
-import type { Crawler } from '../schemas/crawler'
-import type { Mech } from '../schemas/mech'
-import type { Pilot } from '../schemas/pilot'
-import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from './starterSet'
 
 /** Who the Starter Set belongs to — the seal on every row and sheet. */
 export const STARTER_SET_PUBLISHER = 'Leyline Press'

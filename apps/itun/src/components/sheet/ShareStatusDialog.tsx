@@ -25,11 +25,11 @@
  */
 
 import { ModalShell } from 'component-lib'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { SheetEntityKind } from 'itun-domain/schemas/entity'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { SheetEntityKind } from '../../lib/schemas/entity'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 import { SignInControl } from '../account/SignInControl'
 import { PublicSheetPanel } from './PublicSheetPanel'
 

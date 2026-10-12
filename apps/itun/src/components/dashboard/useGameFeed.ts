@@ -12,12 +12,12 @@
 
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
+import { containerOf } from 'itun-domain/container'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { CORE_ROLL_BANDS, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { containerOf } from '../../lib/container'
-import type { Pilot } from '../../lib/schemas/pilot'
 import type { SeatResolving } from '../../lib/schemas/seat'
 import type { BoardSources } from './boardMenu'
 

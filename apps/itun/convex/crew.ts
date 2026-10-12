@@ -1,5 +1,5 @@
 import { v } from 'convex/values'
-import type { MechStatus, PilotStatus } from '../src/lib/rules/crewStatus'
+import type { MechStatus, PilotStatus } from 'itun-domain/rules/crewStatus'
 import {
   mechMaxima,
   mechNeedsAttention,
@@ -7,11 +7,11 @@ import {
   pilotMaxima,
   pilotNeedsAttention,
   pilotStatus,
-} from '../src/lib/rules/crewStatus'
-import type { Mech } from '../src/lib/schemas/mech'
-import { MechSchema } from '../src/lib/schemas/mech'
-import type { Pilot } from '../src/lib/schemas/pilot'
-import { PilotSchema } from '../src/lib/schemas/pilot'
+} from 'itun-domain/rules/crewStatus'
+import type { Mech } from 'itun-domain/schemas/mech'
+import { MechSchema } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
 import { query } from './_generated/server'
 import { linkIdOf } from './model/entities'
 import { requireMember, requireUser } from './model/permissions'

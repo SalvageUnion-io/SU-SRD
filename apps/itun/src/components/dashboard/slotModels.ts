@@ -6,6 +6,11 @@
  */
 
 import { linesFromBreakdown } from 'component-lib'
+import { mechMaxima, pilotMaxima } from 'itun-domain/rules/crewStatus'
+import { totalLotUnits } from 'itun-domain/schemas/cargoLot'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import {
   crawlerMaxSPParts,
   mechMaxCargo,
@@ -18,11 +23,6 @@ import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
 import { readReference } from '../../lib/readReference'
 import { SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
-import { mechMaxima, pilotMaxima } from '../../lib/rules/crewStatus'
-import { totalLotUnits } from '../../lib/schemas/cargoLot'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 import { crawlerTechLevelOf } from './dashboardEconomy'
 import type { BandGauge } from './MajorFrame'
 import type { MinorModel } from './MinorFrame'

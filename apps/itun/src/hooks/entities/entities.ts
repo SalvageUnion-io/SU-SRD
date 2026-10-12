@@ -19,11 +19,11 @@
  * `useEntityStore.getState()` (legitimate — no subscription needed).
  */
 
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Npc } from '../../lib/schemas/npc'
-import type { Pilot } from '../../lib/schemas/pilot'
-import type { SoftLink } from '../../lib/schemas/softLink'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Npc } from 'itun-domain/schemas/npc'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import type { EntityType } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import type { EntityForType } from '../../stores/types'

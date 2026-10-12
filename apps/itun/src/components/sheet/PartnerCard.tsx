@@ -30,6 +30,9 @@
 
 import type { ReferenceEntityControl, StatItem } from 'component-lib'
 import { Field, MasonryColumns, ReferenceEntityCard, summarizeBreakdown } from 'component-lib'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import type { PartnerInstance } from 'itun-domain/schemas/partner'
 import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
@@ -43,9 +46,6 @@ import {
   resolvePartnerStatBlock,
 } from '../../lib/rules/partnerStats'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { ItemCondition } from '../../lib/schemas/itemCondition'
-import type { PartnerInstance } from '../../lib/schemas/partner'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MechItemCard } from './MechItemCard'

@@ -18,12 +18,12 @@
  */
 
 import { buttonVariants, ChapterBand, Slab, tokens } from 'component-lib'
+import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import { ChevronRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { resolveClassName } from '../../lib/classRef'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/copyStarter'
-import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from '../../lib/starterSet/starterSet'
 import { SignInControl } from '../account/SignInControl'
 import { AppLink } from '../shared/AppLink'
 import { crawlerStats, mechChassisStats } from './rowStats'

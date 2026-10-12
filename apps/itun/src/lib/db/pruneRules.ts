@@ -13,8 +13,8 @@
  * opposite.
  */
 
-import type { ContainerFields } from '../container'
-import { containerOf } from '../container'
+import type { ContainerFields } from 'itun-domain/container'
+import { containerOf } from 'itun-domain/container'
 
 /**
  * May this pilot, mech or crawler be pruned, given `listMine` did not return it?

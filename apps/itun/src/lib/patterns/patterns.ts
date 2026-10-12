@@ -8,11 +8,11 @@
  * own the writes.
  */
 
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { MechPattern } from 'itun-domain/schemas/pattern'
 import type { SURefChassis, SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import type { CreateInput } from '../../stores/types'
-import type { Mech } from '../schemas/mech'
-import type { MechPattern } from '../schemas/pattern'
 
 /** What `patternStore.create` takes: the id and timestamp come from the db layer. */
 type PatternInput = Omit<MechPattern, 'id' | 'createdAt'>

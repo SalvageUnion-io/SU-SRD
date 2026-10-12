@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { ConvexError } from 'convex/values'
+import { CROSS_CONTAINER_REFUSAL } from 'itun-domain/links/linkRules'
 import { api } from '../../convex/_generated/api'
-import { CROSS_CONTAINER_REFUSAL } from '../../src/lib/links/linkRules'
 import {
   addCrawler,
   addMech,

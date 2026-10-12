@@ -24,13 +24,13 @@
  * SoftLink list (orphaned links resolve to null entities and are skipped).
  */
 
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { EntityRef, SheetEntityKind } from 'itun-domain/schemas/entity'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { crewAssignmentsOf } from '../../lib/npcs/npcModel'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { EntityRef, SheetEntityKind } from '../../lib/schemas/entity'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
-import type { SoftLink } from '../../lib/schemas/softLink'
 import type { EntityForType } from '../../stores/types'
 
 type CompositionMode = 'wired' | 'pilot-only' | 'mech-only' | 'crawler-only'

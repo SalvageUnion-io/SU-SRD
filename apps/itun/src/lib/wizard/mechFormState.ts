@@ -11,10 +11,10 @@
  * the reference ORM (chassis stats) and so requires `chassis` preloaded.
  */
 
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { mechPartnerSeeds, syncPartners } from '../rules/partnerGrants'
-import type { CargoLot } from '../schemas/cargoLot'
-import type { Mech } from '../schemas/mech'
 
 /** Shape of form state carried through the mech wizard. */
 export type MechWizardFormState = {

@@ -19,9 +19,9 @@
  */
 
 import { Button, ConfirmDialog, tokens } from 'component-lib'
+import { DOWNTIME_UPKEEP_SCRAP, isUpkeepStep, UPKEEP_STEP_NAME } from 'itun-domain/rules/downtime'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { DOWNTIME_UPKEEP_SCRAP, isUpkeepStep, UPKEEP_STEP_NAME } from '../../lib/rules/downtime'
 import { BODY, bandTop, HEADING, MUTED, NUMBERS } from './mediatorStyles'
 
 const { color, space, weight } = tokens

@@ -14,12 +14,12 @@
  */
 
 import { ChapterBand, PageHeading, Text, tokens } from 'component-lib'
+import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/copyStarter'
-import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from '../../lib/starterSet/starterSet'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { crawlerStats, mechChassisStats, pilotStats } from '../roster/rowStats'

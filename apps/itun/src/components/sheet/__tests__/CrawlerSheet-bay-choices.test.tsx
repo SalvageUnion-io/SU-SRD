@@ -25,9 +25,9 @@
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { SURefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../../../test/patchModel'
-import type { Crawler } from '../../../lib/schemas/crawler'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../__tests__/expandCards'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'

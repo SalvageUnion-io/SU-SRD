@@ -11,7 +11,7 @@
  */
 
 import { Entity } from 'component-lib'
-import type { SheetEntityKind } from '../../lib/schemas/entity'
+import type { SheetEntityKind } from 'itun-domain/schemas/entity'
 import { unitRowModel } from '../../lib/units/unitModel'
 
 type LinkedUnitLinkProps = {

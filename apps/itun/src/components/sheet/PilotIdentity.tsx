@@ -28,9 +28,9 @@
  */
 
 import { Badge, Button, cn, Field } from 'component-lib'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { useState } from 'react'
 import { resolveClassName } from '../../lib/classRef'
-import type { Pilot } from '../../lib/schemas/pilot'
 import { ClassPathPicker } from '../pilot/ClassPathPicker'
 import { classChangePatch } from '../pilot/classPathOptions'
 import { selectableClasses } from '../wizard/classOptions'

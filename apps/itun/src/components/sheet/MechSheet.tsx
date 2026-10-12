@@ -63,14 +63,14 @@ import {
   SheetSectionSlab,
   VitalGauge,
 } from 'component-lib'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { EntityGridRow } from './EntityGrid'

@@ -18,13 +18,13 @@
  * render-time prop, so rapid sequential edits do not stomp each other.
  */
 
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { useState } from 'react'
 import type { SoftWarning } from 'salvageunion-reference/rules'
 import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { ItemCondition } from '../../lib/schemas/itemCondition'
-import type { Mech } from '../../lib/schemas/mech'
 import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { useSoftWarnings } from '../shared/useSoftWarnings'

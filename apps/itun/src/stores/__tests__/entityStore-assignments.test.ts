@@ -13,11 +13,11 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { ConvexError } from 'convex/values'
+import { CROSS_CONTAINER_REFUSAL } from 'itun-domain/links/linkRules'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { _resetDbSingleton, clearCache, softLinks as dbSoftLinks } from '../../lib/db/index'
 import { assignLink } from '../../lib/links/assignLink'
 import { LinkRefused } from '../../lib/links/linkRefused'
-import { CROSS_CONTAINER_REFUSAL } from '../../lib/links/linkRules'
-import type { SoftLink } from '../../lib/schemas/softLink'
 import { useEntityStore } from '../entityStore'
 import { CONTAINER_MOVE } from '../surfaceProvenance'
 import { withSignedInBackend } from './signedInBackend'
