@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { CARD_IMAGE_CONTAINER_WIDTH, cardImageSizes, heroImageSizes } from './cardImageSizes'
+import { heroArtCrop } from './heroArtCrop'
 
 type CardImageProps = {
   url?: string
@@ -84,21 +85,29 @@ export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageP
     : CARD_IMAGE_CONTAINER_WIDTH.normal
 
   if (hero) {
-    return (
-      <figure className="su-entity-hero">
-        <img
-          ref={imgRef}
-          src={url}
-          srcSet={srcSet}
-          sizes={srcSet ? heroImageSizes() : undefined}
-          alt={alt}
-          className="su-entity-hero__img"
-          style={{ opacity: loaded ? 1 : 0 }}
-          decoding="async"
-          onLoad={() => setLoaded(true)}
-          onError={() => setShowImage(false)}
-        />
+    // Cropped to the line art where its box is known (`heroArtCrop`): the
+    // plate takes the ink's aspect and the canvas's empty margin falls outside.
+    const crop = heroArtCrop(url)
+    const img = (
+      <img
+        ref={imgRef}
+        src={url}
+        srcSet={srcSet}
+        sizes={srcSet ? heroImageSizes() : undefined}
+        alt={alt}
+        className={crop ? 'su-entity-hero__img su-entity-hero__img--crop' : 'su-entity-hero__img'}
+        style={{ ...crop?.image, opacity: loaded ? 1 : 0 }}
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        onError={() => setShowImage(false)}
+      />
+    )
+    return crop ? (
+      <figure className="su-entity-hero su-entity-hero--crop" style={crop.frame}>
+        <div className="su-entity-hero__window">{img}</div>
       </figure>
+    ) : (
+      <figure className="su-entity-hero">{img}</figure>
     )
   }
 

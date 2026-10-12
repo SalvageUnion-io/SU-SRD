@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties } from 'react'
 import { statBlockRowStarts } from '../components/stat/pipRows'
 import {
   borderWidth,
@@ -8,492 +8,140 @@ import {
   radius,
   space,
   speckle,
-  tracking,
   weight,
 } from '../design/tokens'
+import themeCss from '../styles/theme.css?raw'
+import { FoundationPage, RulesetRef, TokenLabel } from './_foundations'
 import type { Story } from './_harness'
+import { Caption } from './_harness'
+import type { ThemeToken } from './_themeTokens'
+import { familiesOf, parseThemeTokens, resolveToken, tokensIn } from './_themeTokens'
 
 export default {
   title: 'Foundations/Theme',
 }
 
-// Every specimen on this page resolves through `design/tokens.ts`, so a name
-// that is not on the scale is a TYPE ERROR rather than a variable that
-// silently resolves to nothing.
+// The token specimens below (Colors, BorderMap, RadiusSpacing) are generated
+// from theme.css's own source, so they cannot drift from it; what each token
+// is FOR is the ruleset's, and each page links to its section. PipSplit and
+// Texture specimen the code and tokens.ts objects that render them.
+const tokens = parseThemeTokens(themeCss)
 
-// Shared caption in the catalog's canonical voice (design ruleset §4).
-const captionStyle = {
-  color: color.wkMuted,
-  fontFamily: font.cond,
-  fontSize: fontSize.badge,
-  letterSpacing: tracking.caps,
-  textTransform: 'uppercase',
+const swatchStyle = {
+  border: `${borderWidth.hairline} solid ${color.ink}`,
+  borderRadius: radius.card,
+  height: '56px',
+  width: '100%',
 } satisfies CSSProperties
 
-function Caption({ children }: { children: ReactNode }) {
-  return <span style={captionStyle}>{children}</span>
-}
-
-const pageStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  padding: space[16],
-} satisfies CSSProperties
-
-const h2Style = {
-  color: color.ink,
-  fontFamily: font.cond,
-  fontSize: fontSize.lg,
-  letterSpacing: tracking.capsTight,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
-const tokenNameStyle = {
-  color: color.ink,
-  fontFamily: font.cond,
-  fontSize: fontSize.badge,
-  letterSpacing: tracking.capsTight,
-} satisfies CSSProperties
-
-// --- §4.1 Colour roles ---------------------------------------------------
-// Every swatch renders a REAL token, never a raw hex, so the catalog stays
-// ground-truth against the scale.
-type ColorRole = {
-  /** A key on the token scale — mistyping one does not compile. */
-  swatch: keyof typeof color
-  role: string
-}
-
-const colorRoles: ColorRole[] = [
-  { swatch: 'ink', role: 'ink' },
-  { swatch: 'paper', role: 'paper · system white' },
-  { swatch: 'rust', role: 'rust · action' },
-  { swatch: 'pilot', role: 'pilot' },
-  { swatch: 'mech', role: 'mech' },
-  { swatch: 'crawler', role: 'crawler' },
-  { swatch: 'cargo', role: 'cargo' },
-  { swatch: 'statusOk', role: 'status · ok' },
-  { swatch: 'statusWarn', role: 'status · warn' },
-  { swatch: 'statusBad', role: 'status · bad' },
-]
-
-/** `statusOk` → `--color-status-ok`, spelled as tokens.parity.test.ts spells it. */
-const colorVarName = (key: string) =>
-  `--color-${key
-    .replace(/([A-Z])/g, '-$1')
-    .replace(/([a-zA-Z])(\d+)/g, '$1-$2')
-    .toLowerCase()}`
-
-function RoleSwatch({ swatch, role }: ColorRole) {
+function Swatch({ token }: { token: ThemeToken }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: space[4], width: '128px' }}>
-      <div
-        style={{
-          backgroundColor: color[swatch],
-          border: `${borderWidth.chrome} solid ${color.ink}`,
-          borderRadius: radius.card,
-          height: '80px',
-          width: '100%',
-        }}
-      />
-      <Caption>{role}</Caption>
-      <span style={tokenNameStyle}>{colorVarName(swatch)}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[4], width: '148px' }}>
+      <div style={{ ...swatchStyle, background: resolveToken(token.value, tokens) }} />
+      <TokenLabel token={token} />
     </div>
   )
 }
 
-/* Each specimen map is a list of KEYS on the token scale rather than a list of
-   values. This is load-bearing, not stylistic: this page is the ground truth
-   for the token system, and a key cannot drift from the value it names. */
-const coreColors = ['ink', 'ink2', 'inkDeep', 'paper', 'bandCream', 'rust', 'rustHi'] as const
+const wrapStyle = { display: 'flex', flexWrap: 'wrap', gap: space[16] } satisfies CSSProperties
 
-const inkRamp = ['ink75', 'ink50', 'ink30', 'ink20', 'ink15', 'ink12', 'ink10', 'ink8'] as const
-
-const groundColors = [
-  'wkBg',
-  'wkBg2',
-  'wkMuted',
-  'wkFaint',
-  'wkLine',
-  'wkAccent',
-  'caution',
-  'inert',
-] as const
-
-const techLevelColors = ['tl1', 'tl2', 'tl3', 'tl4', 'tl5', 'tl6', 'tlB', 'tlN'] as const
-
-const semanticColors = [
-  'pilot',
-  'pilotLight',
-  'mech',
-  'mechDark',
-  'crawler',
-  'crawlerBand',
-  'denizenBand',
-  'adversary',
-  'cargo',
-  'tierCore',
-  'tierCorePale',
-] as const
-
-/* Bot-only. The web never colours roll outcomes (ruleset §3.4); these are shown
-   so the warm ramp is inspectable, not because a web surface may use them. */
-const rollColors = ['rollCascade', 'rollFailure', 'rollTough', 'rollSuccess', 'rollNailed'] as const
-
-const statusColors = ['statusOk', 'statusWarn', 'statusBad'] as const
-
-/* These two are NOT tokens: they are the ShadCN-compat aliases declared in
-   theme.css's plain `:root`, and `Text` still reads `--foreground`. They are
-   shown as the raw custom properties they are, because that is precisely what
-   this story documents. */
-const cssVarMappings: Record<string, string> = {
-  '--background': 'var(--color-paper)',
-  '--foreground': 'var(--color-ink)',
-}
-
-function Swatch({ name, value }: { name: string; value: string }) {
-  return (
-    <div
-      style={{
-        alignItems: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: space[4],
-        width: '120px',
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: value,
-          border: `${borderWidth.hairline} solid ${color.ink}`,
-          borderRadius: radius.panel,
-          height: '80px',
-          width: '80px',
-        }}
-      />
-      <span style={{ fontFamily: 'monospace', fontSize: fontSize.xs, textAlign: 'center' }}>
-        {name}
-      </span>
-    </div>
-  )
-}
-
-function ColorSection({ title, keys }: { title: string; keys: readonly (keyof typeof color)[] }) {
-  return (
-    <div style={{ marginBottom: space[24] }}>
-      <h3
-        style={{
-          fontFamily: "'Fira Code', monospace",
-          fontSize: fontSize.xl,
-          fontWeight: weight.bold,
-          marginBottom: space[12],
-        }}
-      >
-        {title}
-      </h3>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[16] }}>
-        {keys.map((key) => (
-          <Swatch key={key} name={colorVarName(key).replace('--color-', '')} value={color[key]} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-const pageHeadingStyle = {
-  fontSize: fontSize['2xl'],
-  fontWeight: weight.bold,
-  marginBottom: space[16],
-} satisfies CSSProperties
-
-const monoPageStyle = {
-  fontFamily: "'Fira Code', monospace",
-  padding: space[16],
-} satisfies CSSProperties
-
-export const ColorPalette: Story = () => (
-  <div style={monoPageStyle}>
-    <h2 style={pageHeadingStyle}>The Closed Colour Set</h2>
-    <ColorSection title="Core — ink · paper · action" keys={coreColors} />
-    <ColorSection title="Ink ramp — hairlines, placeholders, ghosts" keys={inkRamp} />
-    <ColorSection title="Ground & attention" keys={groundColors} />
-    <ColorSection title="State overlays" keys={statusColors} />
-  </div>
-)
-
-export const TechLevelColors: Story = () => (
-  <div style={monoPageStyle}>
-    <h2 style={pageHeadingStyle}>Tech Level Colors</h2>
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[8] }}>
-      {techLevelColors.map((key) => (
-        <div
-          key={key}
-          style={{
-            alignItems: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: space[4],
-          }}
-        >
-          <div
-            style={{
-              alignItems: 'center',
-              backgroundColor: color[key],
-              borderRadius: radius.panel,
-              display: 'flex',
-              height: '60px',
-              justifyContent: 'center',
-              width: '100px',
-            }}
-          >
-            <span style={{ color: 'white', fontSize: fontSize.xl, fontWeight: weight.bold }}>
-              TL {key.replace('tl', '').toLowerCase()}
-            </span>
-          </div>
-          <span style={{ fontSize: fontSize.badge }}>
-            {colorVarName(key).replace('--color-', '')}
-          </span>
+/** Every `--color-*` theme.css declares, grouped by family, in source order. */
+export const Colors: Story = () => (
+  <FoundationPage
+    title="The closed colour set"
+    blurb={
+      <>
+        Every <code>--color-*</code> in theme.css, grouped by family. Roles and uses:{' '}
+        <RulesetRef section="4.1" />; the roll tiers are bot-only (<RulesetRef section="3.4" />
+        ).
+      </>
+    }
+  >
+    {familiesOf(tokens, '--color-').map(([family, members]) => (
+      <section key={family} style={{ display: 'flex', flexDirection: 'column', gap: space[8] }}>
+        <Caption>{family}</Caption>
+        <div style={wrapStyle}>
+          {members.map((t) => (
+            <Swatch key={t.name} token={t} />
+          ))}
         </div>
-      ))}
-    </div>
-  </div>
+      </section>
+    ))}
+  </FoundationPage>
 )
 
-export const SemanticColors: Story = () => (
-  <div style={monoPageStyle}>
-    <h2 style={pageHeadingStyle}>Semantic Colors</h2>
-
-    <ColorSection title="Entity Types" keys={semanticColors} />
-    <ColorSection title="Roll Results" keys={rollColors} />
-  </div>
-)
-
-export const CSSVariables: Story = () => (
-  <div style={monoPageStyle}>
-    <h2 style={pageHeadingStyle}>ShadCN CSS Variable Mappings</h2>
-    <p style={{ color: 'rgb(80, 80, 80)', fontSize: fontSize.sm, marginBottom: space[16] }}>
-      These CSS custom properties are set in <code>:root</code> and map to SU brand colors.
-    </p>
-    <div
-      style={{
-        display: 'grid',
-        gap: space[12],
-        gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-      }}
-    >
-      {Object.entries(cssVarMappings).map(([varName, value]) => (
+/** Every `--bw-*` border weight, drawn at its own width. */
+export const BorderMap: Story = () => (
+  <FoundationPage
+    title="The border map"
+    blurb={
+      <>
+        Every <code>--bw-*</code> in theme.css. One meaning per weight: <RulesetRef section="4.3" />
+        .
+      </>
+    }
+  >
+    <div style={wrapStyle}>
+      {tokensIn(tokens, '--bw-').map((t) => (
         <div
-          key={varName}
-          style={{
-            alignItems: 'center',
-            border: '1px solid rgb(199, 199, 199)',
-            borderRadius: radius.panel,
-            display: 'flex',
-            gap: space[12],
-            padding: space[8],
-          }}
+          key={t.name}
+          style={{ display: 'flex', flexDirection: 'column', gap: space[4], width: '148px' }}
         >
           <div
             style={{
-              backgroundColor: `var(${varName})`,
-              border: `${borderWidth.hairline} solid ${color.ink}`,
-              borderRadius: radius.badge,
-              flexShrink: 0,
-              height: '40px',
-              width: '40px',
+              backgroundColor: color.paper,
+              border: `${t.value} solid ${color.ink}`,
+              borderRadius: radius.card,
+              height: '64px',
             }}
           />
-          <div style={{ overflow: 'hidden' }}>
-            <div style={{ fontSize: fontSize.xs, fontWeight: weight.bold }}>{varName}</div>
-            <div
-              style={{
-                color: 'rgb(80, 80, 80)',
-                fontSize: fontSize.badge,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {value}
-            </div>
-          </div>
+          <TokenLabel token={t} />
         </div>
       ))}
     </div>
-  </div>
+  </FoundationPage>
 )
 
-// === Foundations, mirroring codex §03 =====================================
-
-export const ColorRoles: Story = () => (
-  <div style={{ ...pageStyle, gap: space[12] }}>
-    <h2 style={h2Style}>Colour roles</h2>
-    <Caption>
-      the closed set — ink, paper (the one light surface), rust = action, the three entity tones,
-      cargo, and status ok/warn/bad. State is a treatment, never a random colour.
-    </Caption>
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[16] }}>
-      {colorRoles.map((role) => (
-        <RoleSwatch key={role.swatch} {...role} />
-      ))}
-    </div>
-  </div>
-)
-
-/**
- * The caps tracking ladder.
- *
- * BEFORE #799 this story captioned two custom properties that do not exist —
- * `--tracking-label` and `--tracking-display` — and the second specimen set its
- * 0.01em inline, so the page asserted a token the stylesheet never declared.
- * (Foundations/Typography carried the same two phantoms in its own table, and
- * additionally rendered them via `tracking-label` / `tracking-display` utility
- * classes that resolved to nothing.) The real ladder is the five rungs below,
- * and iterating the token object is what keeps it honest.
- */
-export const Tracking: Story = () => (
-  <div style={{ ...pageStyle, gap: space[24] }}>
-    <h2 style={h2Style}>The caps tracking ladder</h2>
-    <Caption>Five rungs, shown on real uppercase label text.</Caption>
-
-    {(Object.keys(tracking) as (keyof typeof tracking)[]).map((key) => (
-      <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: space[4] }}>
-        <span
-          style={{
-            color: color.ink,
-            fontFamily: font.cond,
-            fontSize: fontSize.xl,
-            letterSpacing: tracking[key],
-            textTransform: 'uppercase',
-          }}
-        >
-          Systems &amp; Modules
-        </span>
-        <Caption>
-          {`--tracking-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`} · {tracking[key]} ·{' '}
-          tracking.{key}
-        </Caption>
-      </div>
-    ))}
-  </div>
-)
-
-type BorderWeight = {
-  token: keyof typeof borderWidth
-  applies: string
-}
-
-const borderWeights: BorderWeight[] = [
-  { token: 'entity', applies: 'entity cards + hero header' },
-  { token: 'rail', applies: 'rail cards & Hold frames' },
-  { token: 'pill', applies: 'pills / status badges / dividers' },
-  { token: 'chrome', applies: 'buttons, inputs, panels, rows, pips' },
-]
-
-export const BorderMap: Story = () => (
-  <div style={{ ...pageStyle, gap: space[12] }}>
-    <h2 style={h2Style}>The border map</h2>
-    <Caption>Canon weights, one meaning each — the ONE border vocabulary.</Caption>
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[20] }}>
-      {borderWeights.map((w) => (
+/** Every `--radius-*` on a frame, and every `--space-*` as a bar of its length. */
+export const RadiusSpacing: Story = () => (
+  <FoundationPage
+    title="Radius &amp; spacing"
+    blurb={
+      <>
+        Every <code>--radius-*</code> and <code>--space-*</code> in theme.css. Which rungs a surface
+        may spend: <RulesetRef section="4.4" />.
+      </>
+    }
+  >
+    <div style={wrapStyle}>
+      {tokensIn(tokens, '--radius-').map((t) => (
         <div
-          key={w.token}
-          style={{ display: 'flex', flexDirection: 'column', gap: space[4], width: '160px' }}
+          key={t.name}
+          style={{ display: 'flex', flexDirection: 'column', gap: space[4], width: '148px' }}
         >
           <div
             style={{
-              alignItems: 'center',
               backgroundColor: color.paper,
-              borderColor: color.ink,
-              borderRadius: radius.card,
-              borderStyle: 'solid',
-              borderWidth: borderWidth[w.token],
-              display: 'flex',
-              height: '80px',
-              justifyContent: 'center',
-              width: '100%',
+              border: `${borderWidth.entity} solid ${color.ink}`,
+              borderRadius: t.value,
+              height: '64px',
             }}
-          >
-            <span
-              style={{
-                color: color.ink,
-                fontFamily: font.cond,
-                fontSize: fontSize.sm,
-                letterSpacing: tracking.capsTight,
-              }}
-            >
-              {borderWidth[w.token]}
-            </span>
-          </div>
-          <span style={tokenNameStyle}>--bw-{w.token}</span>
-          <Caption>{w.applies}</Caption>
+          />
+          <TokenLabel token={t} />
         </div>
       ))}
     </div>
-  </div>
-)
-
-export const RadiusSpacing: Story = () => (
-  <div style={{ ...pageStyle, gap: space[24] }}>
-    <h2 style={h2Style}>Radius &amp; spacing</h2>
-    <Caption>
-      3px outer radius (card + Button — the one primitive allowed to round); inner = calc(3px −
-      frame). Stamps are square. Spacing spends only {'{2, 4, 6, 8, 12}px'} — 12px = the card
-      gutter.
-    </Caption>
-
-    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: space[24] }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: space[4] }}>
-        <div
-          style={{
-            backgroundColor: color.paper,
-            border: `${borderWidth.entity} solid ${color.ink}`,
-            borderRadius: radius.card,
-            height: '96px',
-            width: '160px',
-          }}
-        />
-        <Caption>card · radius.card outer</Caption>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: space[4] }}>
-        <button
-          type="button"
-          style={{
-            backgroundColor: color.rust,
-            borderRadius: radius.card,
-            color: color.paper,
-            fontFamily: font.cond,
-            letterSpacing: tracking.capsTight,
-            padding: `${space[8]} ${space[16]}`,
-            textTransform: 'uppercase',
-          }}
-        >
-          Commit
-        </button>
-        <Caption>Button · radius.card · rust = action</Caption>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: space[4] }}>
-        <span
-          style={{
-            backgroundColor: color.ink,
-            borderRadius: radius.none,
-            color: color.paper,
-            display: 'inline-block',
-            fontFamily: font.cond,
-            fontSize: fontSize.xs,
-            letterSpacing: tracking.capsTight,
-            padding: `${space[4]} ${space[8]}`,
-            textTransform: 'uppercase',
-          }}
-        >
-          Stamp
-        </span>
-        <Caption>stamp · square (radius.none)</Caption>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[8] }}>
+      {tokensIn(tokens, '--space-').map((t) => (
+        <div key={t.name} style={{ alignItems: 'center', display: 'flex', gap: space[12] }}>
+          <span style={{ width: '96px' }}>
+            <TokenLabel token={t} />
+          </span>
+          <span style={{ backgroundColor: color.ink, height: space[12], width: t.value }} />
+        </div>
+      ))}
     </div>
-  </div>
+  </FoundationPage>
 )
 
 const pipStyle = {
@@ -503,7 +151,8 @@ const pipStyle = {
   width: space[12] as string,
 } satisfies CSSProperties
 
-function PipRows({ max, label }: { max: number; label: string }) {
+function PipRows({ max }: { max: number }) {
+  const rows = statBlockRowStarts(max)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: space[8], width: '160px' }}>
       <div
@@ -514,7 +163,7 @@ function PipRows({ max, label }: { max: number; label: string }) {
           gap: space[4],
         }}
       >
-        {statBlockRowStarts(max).map((row) => (
+        {rows.map((row) => (
           <div key={row.start} style={{ display: 'flex', gap: space[4] }}>
             {Array.from({ length: row.count }, (_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: pips are positional — the index IS their identity
@@ -525,27 +174,31 @@ function PipRows({ max, label }: { max: number; label: string }) {
       </div>
       <div style={{ color: color.ink, fontSize: fontSize.xs, fontWeight: weight.bold }}>
         max = {max}{' '}
-        <span style={{ color: color.wkMuted, fontWeight: weight.normal }}>({label})</span>
+        <span style={{ color: color.wkMuted, fontWeight: weight.normal }}>
+          ({rows.map((row) => row.count).join('/')})
+        </span>
       </div>
     </div>
   )
 }
 
-/** Pip-row split — ≤6 per row, bottom-heavy (heavy row on the bottom), centred. */
+/** Pip-row split, drawn by the real `statBlockRowStarts`. */
 export const PipSplit: Story = () => (
-  <div style={{ ...pageStyle, gap: space[24] }}>
-    <h2 style={h2Style}>Pip-row split</h2>
-    <Caption>
-      Every pip surface (gauges, statblocks, cargo) splits into balanced rows via the real
-      statBlockRowStarts — ≤6 per row, bottom-heavy (the heavier row rides on the bottom).
-    </Caption>
+  <FoundationPage
+    title="Pip-row split"
+    blurb={
+      <>
+        Every pip surface splits its rows with the real <code>statBlockRowStarts</code>. The rule:{' '}
+        <RulesetRef section="4.5" />.
+      </>
+    }
+  >
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[32] }}>
-      <PipRows max={6} label="6" />
-      <PipRows max={11} label="5/6" />
-      <PipRows max={12} label="6/6" />
-      <PipRows max={13} label="4/4/5" />
+      {[6, 11, 12, 13].map((max) => (
+        <PipRows key={max} max={max} />
+      ))}
     </div>
-  </div>
+  </FoundationPage>
 )
 
 /* ── Texture: the light speckle (ruleset §3.5, board 05c) ─────────────────── */
@@ -651,21 +304,23 @@ function ChapterBand({ name, band }: { name: string; band: keyof typeof color })
  * buttons, fields, the Dashboard or tooltips (`tokens/texture-placement`).
  */
 export const Texture: Story = () => (
-  <div style={{ ...pageStyle, gap: space[16] }}>
+  <FoundationPage
+    title="Texture — the light speckle"
+    blurb={
+      <>
+        Drawn from the <code>speckle</code> filters and the <code>--texture-*</code> opacities.
+        Where it may sit: <RulesetRef section="3.5" />.
+      </>
+    }
+  >
     <SpeckleFilters />
-    <h2 style={h2Style}>Texture — the light speckle</h2>
-    <Caption>
-      Ink speckle on every chapter band and tone header (su-blot + su-speck); the notched title sits
-      on clean paper.
-    </Caption>
+    <Caption>Ink speckle on a chapter band (su-blot + su-speck)</Caption>
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[16] }}>
       {chapterBands.map((b) => (
         <ChapterBand key={b.name} {...b} />
       ))}
     </div>
-    <Caption>
-      Paper flecks (su-fleck) on an ink ground — the Union bar, an ink banner, a unit stamp.
-    </Caption>
+    <Caption>Paper flecks on an ink ground (su-fleck)</Caption>
     <div
       style={{
         backgroundColor: color.ink,
@@ -682,5 +337,5 @@ export const Texture: Story = () => (
       <SpeckleLayers grain="paper" />
       <span style={{ position: 'relative' }}>Workshop Manual</span>
     </div>
-  </div>
+  </FoundationPage>
 )

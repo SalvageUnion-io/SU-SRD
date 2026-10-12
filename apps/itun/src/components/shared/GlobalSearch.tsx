@@ -340,10 +340,8 @@ export function GlobalSearch({
                             role="option"
                             aria-selected={index === selectedIndex}
                             onClick={() => submit(result)}
-                            className={`flex w-full cursor-pointer items-baseline justify-between gap-3 rounded-card border-chrome px-3 py-2 text-left transition-colors ${
-                              index === selectedIndex
-                                ? 'border-ink bg-wk-bg-2'
-                                : 'border-transparent hover:bg-wk-bg-2'
+                            className={`global-search-option flex w-full cursor-pointer items-baseline justify-between gap-3 rounded-card border-chrome px-3 py-2 text-left transition-colors ${
+                              index === selectedIndex ? 'border-ink' : 'border-transparent'
                             }`}
                           >
                             <span className="min-w-0 truncate font-body text-sm font-medium text-ink">
