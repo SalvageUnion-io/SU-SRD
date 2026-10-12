@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { GENERATED_PATHS } from '../check-generated'
 
 /**
@@ -384,10 +384,20 @@ esac`,
     await inWork('commit', '-q', '--allow-empty', '-m', 'two')
 
     // Only the tools the hook calls, so a real gh elsewhere on PATH stays out.
+    // A git hook puts git's exec-path first on PATH; that dir's `git`, symlinked
+    // into bin/, looks for git-upload-pack beside the link and the fetch fails.
+    // Resolve past it to the git a shell would run.
+    const execPath = resolve(
+      Bun.spawnSync(['git', '--exec-path'], { env: cleanEnv }).stdout.toString().trim()
+    )
+    const toolPath = (cleanEnv.PATH ?? '')
+      .split(':')
+      .filter((entry) => resolve(entry) !== execPath)
+      .join(':')
     const bin = join(dir, 'bin')
     mkdirSync(bin)
     for (const tool of ['git', 'sed', 'mktemp', 'head', 'grep', 'rm', 'sleep', 'touch', 'cat']) {
-      const real = Bun.which(tool)
+      const real = Bun.which(tool, { PATH: toolPath })
       if (real) await Bun.spawn(['ln', '-s', real, join(bin, tool)]).exited
     }
     if (gh) writeFileSync(join(bin, 'gh'), `#!/bin/bash\n${STUBS[gh]}\n`, { mode: 0o755 })
