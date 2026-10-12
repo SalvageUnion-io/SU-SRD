@@ -31,6 +31,22 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
   a change to it silently skips the app's build job. The `workflows` check
   (`tools/check-workflows.ts`, its `path-filters` half) asserts this from the manifests, so you will be told rather than bitten.
 
+## Dependencies
+
+Read [dependencies](../../docs/ARCHITECTURE.md#areas) before touching a
+`package.json`, `bunfig.toml` or `overrides`. Bun deps are updated by hand,
+Actions by Dependabot; `bun run audit` (any severity, no `--ignore`) gates every
+PR that changes `bun.lock` or a `package.json` and runs nightly; `bunfig.toml`
+refuses versions under three days old and makes `bun add` pin exactly.
+
+## Test-script flags
+
+Bare `--parallel` and `--isolate` stay banned: both measured slower than serial
+(`--parallel` implies `--isolate`). `--parallel=N --no-isolate` is the measured
+win (the itun, srd and component-lib `test` scripts); `--changed` is the other
+flag that helps. Leave `test:coverage` serial: parallel coverage writes
+different lcov line counts.
+
 ## Generated files
 
 Generated files — `routeTree.gen.ts` from TanStack Router, `schemas/*.schema.json`
