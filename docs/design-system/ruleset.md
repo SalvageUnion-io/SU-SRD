@@ -30,7 +30,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
       Where the schema has art, the SRD listing's **Catalog** draws the same groups as art-first Tiles (`<Entity form="tile">`: art at 3:4 from the `-440` derivative, the name notched into the tone band in ink, compact value cells, the lead): the default at ≥ 75rem, the List below it, and a reader's List | Catalog choice is kept.
    6. **Peek — the glance** — the Card at compact density (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
       Terminal: no buttons, links, nested Peeks or steppers; children are Tokens, Mentions inert.
-   7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and trays flow around it, then run full width; trays sit flush with the column.
+   7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and nested cards flow around it, then run full width, flush with the column.
    8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E17: [entity-display-language.md](entity-display-language.md). Card and Page are still `ReferenceEntityCard`.
 2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Dashboard → Listing → Peek); the `Foundations/Rendering Matrix` story shows it.
    1. **Vitals** — `VitalGauge`: sheet skin, Dashboard instrument, compact in the Peek; MiniStat in listings. TP is a counter (no cap, no gauge).
@@ -82,7 +82,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs. The technique is StampSeam (§7.2): `STAMP_SEAM`.
    - **The entity card: one anatomy, two header fills** — a flush header whose first line is its labels (type stamp, classification pills, User-made; in flow, never riding the frame), then the title left, value cells and action-type stamps right), the facets row (facet Stats then trait Tags, E17), body, foot. Tone header for things you have; ink banner for things you do, decided by data shape.
    - **Actions sit inline** — flush ink bands, no Actions tray or stamp (on a Page, framed cards under an Actions slab); a roll table sits inline under a ROLL THE DIE: bar.
-   - **Nesting legibility** — nested entities sit in a page-colour tray under stamp-and-leader labels (no item counts: a section never tallies itself), one tone each; large → medium → a Row at depth 2 (frames 3 → 2 → 1.5px).
+   - **Nesting legibility** — nested entities stack in the parent's frame under their type stamp, no tray or label repeating it. One tone each; large → medium → a Row at depth 2 (frames 3 → 2 → 1.5px).
      A child hides prose its parent shows; below depth 1, actions collapse to "Show N actions".
 6. **§6 The merge map** — merge any primitive that does not serve a different reader intent.
    1. **Badge** — folds ValueDisplay, Tag, Pill, Chip, cost pennant, Range, Action-type, TL and the StatusBadge shell.

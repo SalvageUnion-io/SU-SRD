@@ -136,7 +136,7 @@ export function resolveSeamLabel(
  * The invariant this keeps: a nested title is NEVER LARGER than its parent's.
  * Under a large card it is strictly smaller at every level (31 → 22 → 17 → 15).
  * A medium card's depth-1 child is medium too and shares its rung — what tells
- * them apart there is the tray, the frame (3 → 2 → 1.5px) and the depth-2 head
+ * them apart there is containment, the frame (3 → 2 → 1.5px) and the depth-2 head
  * row, not the type. Nested children are spawned at `medium`, or at `small`
  * inside a small card (`nestedChildSize`), so a child never outgrows its parent.
  *

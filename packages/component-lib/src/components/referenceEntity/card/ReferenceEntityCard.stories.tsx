@@ -709,8 +709,8 @@ export const SizeByExtentDoSmallHead = cell(juryRig, 'small', 'head')
 export const SizeByExtentDoSmallCatalog = cell(juryRig, 'small', 'catalog')
 
 /**
- * Board E2 — the depth stack. Little Sestra (depth 0, large) → its drone in a
- * Drone tray (depth 1, medium; its description hidden because the Drone
+ * Board E2 — the depth stack. Little Sestra (depth 0, large) → its drone, no
+ * tray (depth 1, medium; its description hidden because the Drone
  * Controller above already says it) → the drone's system as a one-line head
  * row (depth 2) that opens the entity. Then the same drone mounted at depth 2
  * full (its actions behind a "Show N actions" chip) and at depth 3, where

@@ -103,7 +103,7 @@ import { splitFacets } from './facetSplit'
 import { GuideSteps } from './GuideSteps'
 import { MissingHero } from './MissingArt'
 import type { NestedCardHost } from './NestedCards'
-import { ActionsChip, CardTray, DroneCards, InlineActions, NestedCardGroup } from './NestedCards'
+import { ActionsChip, CardStack, DroneCards, InlineActions, NestedCardGroup } from './NestedCards'
 import { resolveNestedSections } from './nestedSections'
 import { PatternList } from './PatternListRow'
 import { PatternLoadoutRows } from './PatternLoadout'
@@ -139,8 +139,8 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  *
  * The frame, the "//" line and the footer are ink on paper on every card; the
  * tone lives in the header alone. Actions sit INLINE as flush ink bands; an
- * entity's own roll table sits inline the same way; nested ENTITIES sit in a
- * tray, one size step per depth (large → medium → a one-line head row), the
+ * entity's own roll table sits inline the same way; nested ENTITIES stack in
+ * the frame, one size step per depth (large → medium → a one-line head row), the
  * frame stepping 3 → 2 → 1.5px with them.
  *
  * ## How this file is laid out
@@ -682,7 +682,7 @@ function ReferenceEntityCardInner({
 
   // BODY — content + nested groups. A granting ability collapses its own
   // content AND actions (they belong to the granted entity); its description
-  // leads, then the Grants tray.
+  // leads, then the granted cards.
   const grantedCount = resolveGrantedEntities(entity as SURefEntity).length
   const isGrantingAbility = !isCatalog && isAbility(entity) && grantedCount > 0
   // CATALOG guide lead — narrow a guide tile to its own opening paragraph,
@@ -896,7 +896,7 @@ function ReferenceEntityCardInner({
       />
     ) : null
 
-  // LEFT ANCHOR — the artwork; nested NPCs sit in their tray, not on the parent's paper.
+  // LEFT ANCHOR — the artwork; nested NPCs stack below it, not on the parent's paper.
   const { asideLead, flat } = resolveBodyLayout({
     showImage,
     isPattern,
@@ -1021,33 +1021,18 @@ function ReferenceEntityCardInner({
   // With no chassis ability to follow, the pattern leads the actions.
   const patternLeads = chassisAbilityEntities.length === 0
 
-  // NESTED ENTITIES — each group in its tray, on a card or a page alike.
+  // NESTED ENTITIES — each group stacked in the frame, on a card or a page
+  // alike; every child wears its own type stamp, so no group is labelled.
   const nestedGroupsNode = (
     <>
       <DroneCards drones={droneInfos} host={nestedHost} />
-      {droneSystems.length > 0 && (
-        <NestedCardGroup
-          label="Systems"
-          entities={droneSystems}
-          sectionAs={sectionAs}
-          host={nestedHost}
-        />
-      )}
-      {droneModules.length > 0 && (
-        <NestedCardGroup
-          label="Modules"
-          entities={droneModules}
-          sectionAs={sectionAs}
-          host={nestedHost}
-        />
-      )}
+      {droneSystems.length > 0 && <NestedCardGroup entities={droneSystems} host={nestedHost} />}
+      {droneModules.length > 0 && <NestedCardGroup entities={droneModules} host={nestedHost} />}
       {!isPattern &&
         inFlowGroups.map((group) => (
           <NestedCardGroup
             key={group.label}
-            label={group.label === 'NPCs' && group.entities.length === 1 ? 'NPC' : group.label}
             entities={group.entities}
-            sectionAs={sectionAs}
             host={nestedHost}
             write={group.label === 'NPCs' ? { selections, onSelectionChange, hide } : undefined}
             seal={
@@ -1145,7 +1130,7 @@ function ReferenceEntityCardInner({
         {nestedGroupsNode}
         {/* BASIC CHASSIS → its patterns as head rows. */}
         {!hide?.patterns && patternList.length > 0 && (
-          <CardTray label="Patterns" size={size} as={sectionAs}>
+          <CardStack size={size}>
             <PatternList
               chassis={entity}
               chassisName={entityName}
@@ -1154,7 +1139,7 @@ function ReferenceEntityCardInner({
               hostDown={isDown}
               NestedCard={ReferenceEntityCardInner}
             />
-          </CardTray>
+          </CardStack>
         )}
         {/* SLOT: afterExtraContent — trailing body content (absent ⇒ nothing). */}
         {afterExtraContent && (
