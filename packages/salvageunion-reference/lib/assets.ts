@@ -42,8 +42,19 @@ export function getAssetUrl(entity: SURefMetaEntity): string | undefined {
   if (!('schemaName' in entity) || typeof entity.schemaName !== 'string') {
     return undefined
   }
-  const slug = getEntitySlug(entity)
-  return `${ASSET_BASE_URL}/${entity.schemaName}/${slug}.webp`
+  return assetUrl(`${entity.schemaName}/${getEntitySlug(entity)}.webp`)
+}
+
+/**
+ * The artwork CDN URL for one object key — the same base {@link getAssetUrl}
+ * derives from, for artwork that is not a reference entity's (the Starter
+ * Set crew's portraits live under `starter-set/`).
+ *
+ * @param path - The object key, without a leading slash
+ * @returns The asset URL
+ */
+export function assetUrl(path: string): string {
+  return `${ASSET_BASE_URL}/${path}`
 }
 
 /**

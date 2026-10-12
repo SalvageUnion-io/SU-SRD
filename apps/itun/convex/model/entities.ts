@@ -15,6 +15,7 @@ import {
   internalMutation as rawInternalMutation,
   mutation as rawMutation,
 } from '../_generated/server'
+import { PHOTO_TABLES, trackPhoto } from './photos'
 
 /**
  * Shared entity-document helpers for the mutation modules (ADR-030).
@@ -912,6 +913,14 @@ triggers.register('crawlers', async (ctx, change) => {
   )
   for (const gameId of touched) await refreshGameSummary(ctx, gameId)
 })
+
+// Photo files are reference-counted by the entity rows that hold them
+// (`model/photos.ts`), so every write and delete of those rows moves the count.
+for (const table of PHOTO_TABLES) {
+  triggers.register(table, async (ctx, change) => {
+    await trackPhoto(ctx, change.oldDoc?.body, change.newDoc?.body)
+  })
+}
 
 /**
  * The mutation builders every Convex module uses. Identical to the generated

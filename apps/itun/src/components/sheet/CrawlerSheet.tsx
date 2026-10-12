@@ -81,6 +81,7 @@ import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { assignmentFor } from '../../lib/npcs/npcModel'
+import { crawlerTypeArt } from '../../lib/photos/defaultArt'
 import { drawFromPool, poolAvailableAtOrAbove, SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
 import { BAY_REPAIR_COST, resolveCrawlerSystem } from '../../lib/rules/crawlerItems'
 import { runWrite } from '../../lib/runWrite'
@@ -88,10 +89,12 @@ import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import { AppLink } from '../shared/AppLink'
+import { EntityPhoto } from '../shared/EntityPhoto'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
 import { EntityGridRow } from './EntityGrid'
+import { PhotoBeside } from './PhotoBeside'
 import { SheetHero } from './SheetHero'
 import { CardRemoveButton } from './SheetSection'
 import { StorageManifest } from './StorageManifest'
@@ -421,16 +424,32 @@ export function CrawlerSheet({
           name={crawler.name}
           surface={readOnly ? 'paper' : 'frame'}
           fields={
-            <div style={STACK_16}>
-              <CrawlerIdentityPanel
-                crawler={crawler}
-                store={store}
-                storeState={storeState}
-                patch={readOnly ? undefined : patchCrawler}
-                readOnly={readOnly}
-                typeCrew={assignmentFor(crew, { kind: 'type' })}
-              />
-            </div>
+            <PhotoBeside
+              photo={
+                <EntityPhoto
+                  photo={crawler.photo}
+                  fallback={crawlerTypeArt(crawler.type)}
+                  name={crawler.name}
+                  onChange={
+                    readOnly
+                      ? undefined
+                      : (photo) =>
+                          storeState.update('crawler', crawler.id, { photo }, LIVE_SHEET_MANUAL)
+                  }
+                />
+              }
+            >
+              <div style={STACK_16}>
+                <CrawlerIdentityPanel
+                  crawler={crawler}
+                  store={store}
+                  storeState={storeState}
+                  patch={readOnly ? undefined : patchCrawler}
+                  readOnly={readOnly}
+                  typeCrew={assignmentFor(crew, { kind: 'type' })}
+                />
+              </div>
+            </PhotoBeside>
           }
           vitals={economy}
         />

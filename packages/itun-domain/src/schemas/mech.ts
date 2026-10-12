@@ -3,6 +3,7 @@ import { CargoLotSchema } from './cargoLot'
 import { containerFields } from './entity'
 import { ItemConditionMapSchema } from './itemCondition'
 import { PartnerInstanceSchema } from './partner'
+import { photoFields } from './photo'
 
 /**
  * Reactor Overload outcome categories (Core Book p.234-235). Distinct from the
@@ -179,6 +180,8 @@ export const MechSchema = z
     maxCargoOverride: z.number().int().nonnegative().optional(),
 
     ...containerFields,
+    /** The entity's own picture; see `PhotoSchema`. */
+    ...photoFields,
 
     /** Which built-in template row this was spawned from. See `PilotSchema.seedRef`. */
     seedRef: z.string().optional(),

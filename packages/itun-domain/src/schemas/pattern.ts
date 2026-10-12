@@ -25,6 +25,7 @@
 
 import { z } from 'salvageunion-reference/zod'
 import { CargoLotSchema } from './cargoLot'
+import { photoFields } from './photo'
 
 export const MechPatternSchema = z
   .object({
@@ -49,6 +50,8 @@ export const MechPatternSchema = z
      * pattern page in a dashed box: the maker's words, not the book's.
      */
     notes: z.string().optional(),
+    /** The pattern's own picture, in place of its chassis art; see `PhotoSchema`. */
+    ...photoFields,
     createdAt: z.string().datetime(),
   })
   .strict()

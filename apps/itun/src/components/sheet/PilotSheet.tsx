@@ -69,10 +69,13 @@ import type { SURefAbility } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { pinFor } from 'salvageunion-reference/rules'
 import { useEntityStore } from '../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { EntityPhoto } from '../shared/EntityPhoto'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { ConditionsEditor } from './ConditionsEditor'
 import { EntityGridRow } from './EntityGrid'
 import { PartnerCard } from './PartnerCard'
+import { PhotoBeside } from './PhotoBeside'
 import { PilotIdentityPanel } from './PilotIdentity'
 import {
   GenericEntryAdder,
@@ -390,11 +393,28 @@ export function PilotSheet({
               ) : undefined
             }
           >
-            <PilotIdentityPanel
-              pilot={pilot}
-              onToggleUsed={readOnly ? undefined : actions.toggleUsed}
-              patch={readOnly ? undefined : actions.patchPilot}
-            />
+            <PhotoBeside
+              photo={
+                <EntityPhoto
+                  photo={pilot.photo}
+                  name={pilot.callsign || pilot.name}
+                  onChange={
+                    readOnly
+                      ? undefined
+                      : (photo) =>
+                          useEntityStore
+                            .getState()
+                            .update('pilot', pilot.id, { photo }, LIVE_SHEET_MANUAL)
+                  }
+                />
+              }
+            >
+              <PilotIdentityPanel
+                pilot={pilot}
+                onToggleUsed={readOnly ? undefined : actions.toggleUsed}
+                patch={readOnly ? undefined : actions.patchPilot}
+              />
+            </PhotoBeside>
           </SheetSectionCard>
           {/* ===== Abilities — the Generic tree, then the ones this pilot owns =====
               A SLAB, not a card: the grid is entity cards, which carry their own

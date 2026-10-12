@@ -1,5 +1,6 @@
 import { z } from 'salvageunion-reference/zod'
 import { containerFields } from './entity'
+import { photoFields } from './photo'
 
 /**
  * A built NPC: the fourth owned entity, beside pilots, mechs and crawlers
@@ -42,6 +43,8 @@ export const NpcSchema = z
     id: z.string(),
     schemaVersion: z.literal(1),
     ...containerFields,
+    /** The entity's own picture; see `PhotoSchema`. */
+    ...photoFields,
 
     templateRef: NpcTemplateRefSchema.optional(),
 

@@ -1,0 +1,45 @@
+/* ---- EntityPhoto beside an identity card's fields (`PhotoBeside`) ----
+
+   The wrapper is its own inline-size container, so the photo goes beside the
+   fields when THE CARD is wide enough rather than when the page is: the same
+   card is full-width on a phone, a column on the pilot sheet and the narrower
+   half of the mech and crawler heroes. Below that it stacks above them. An
+   empty slot (no photo, no art, read-only) takes no room. */
+.su-photo-beside {
+  container-type: inline-size;
+  /* Fills a card body that is a flex column (the heroes'), so the fields
+     inside keep the height they stretch to without it. */
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.su-photo-beside-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  height: 100%;
+}
+
+.su-photo-beside-slot {
+  max-width: 12rem;
+  width: 100%;
+}
+
+.su-photo-beside-slot:empty {
+  display: none;
+}
+
+.su-photo-beside-content {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+@container (width >= 30rem) {
+  .su-photo-beside-row {
+    flex-direction: row;
+  }
+
+  .su-photo-beside-slot {
+    flex: 0 0 11rem;
+  }
+}
