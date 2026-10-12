@@ -19,9 +19,11 @@ import type { GallerySource, PullRequest } from '../gallery-pages'
 import {
   buildSite,
   githubSource,
+  isMainTour,
   main,
   publishable,
   readGalleryMeta,
+  readTourMeta,
   renderIndex,
 } from '../gallery-pages'
 import type { GalleryRun } from '../lib/galleryHtml'
@@ -545,8 +547,11 @@ describe('gallery-pages, building the site', () => {
         writeFileSync(join(dir, 'index.html'), `gallery ${p.number}`)
         return true
       },
+      unpackTour: async () => false,
     }
-    const { published, open } = await buildSite(site, 'o/r', source)
+    const { published, open, tour } = await buildSite(site, 'o/r', source)
+    expect(tour).toBeUndefined()
+    expect(existsSync(join(site, 'tour'))).toBe(false)
     expect(open).toBe(4)
     expect(unpacked).toEqual([1, 2, 3, 4])
     expect(published.map((e) => e.number)).toEqual([1, 4])
@@ -566,11 +571,84 @@ describe('gallery-pages, building the site', () => {
     const { published } = await buildSite(site, 'o/r', {
       openPrs: async () => [],
       unpack: async () => true,
+      unpackTour: async () => false,
     })
     expect(published).toEqual([])
     expect(readFileSync(join(site, 'index.html'), 'utf8')).toContain(
       'No open pull request has a gallery yet.'
     )
+  })
+})
+
+describe('gallery-pages, the Preview Tour', () => {
+  const tourSource = (meta: unknown): GallerySource => ({
+    openPrs: async () => [],
+    unpack: async () => false,
+    async unpackTour(dir) {
+      writeFileSync(join(dir, 'gallery.json'), JSON.stringify(meta))
+      writeFileSync(join(dir, 'index.html'), 'tour')
+      return true
+    },
+  })
+
+  test('readTourMeta takes a gallery naming no PR, and refuses one naming a PR, no sha or no file', () => {
+    const dir = join(root, 'tour-meta')
+    mkdirSync(dir, { recursive: true })
+    expect(readTourMeta(dir)).toBeUndefined()
+    writeFileSync(
+      join(dir, 'gallery.json'),
+      JSON.stringify({ pr: null, sha: 'abc', capturedAt: 't' })
+    )
+    expect(readTourMeta(dir)).toEqual({ sha: 'abc', capturedAt: 't' })
+    writeFileSync(join(dir, 'gallery.json'), JSON.stringify({ pr: null, sha: 'abc' }))
+    expect(readTourMeta(dir)).toEqual({ sha: 'abc', capturedAt: '' })
+    writeFileSync(join(dir, 'gallery.json'), JSON.stringify({ pr: 4, sha: 'abc' }))
+    expect(readTourMeta(dir)).toBeUndefined()
+    writeFileSync(join(dir, 'gallery.json'), JSON.stringify({ sha: 'abc' }))
+    expect(readTourMeta(dir)).toBeUndefined()
+    writeFileSync(join(dir, 'gallery.json'), JSON.stringify({ pr: null }))
+    expect(readTourMeta(dir)).toBeUndefined()
+    writeFileSync(join(dir, 'gallery.json'), 'null')
+    expect(readTourMeta(dir)).toBeUndefined()
+  })
+
+  test('buildSite publishes the tour under tour/ and links it first in the index', async () => {
+    const site = join(root, 'site-tour')
+    const { tour } = await buildSite(
+      site,
+      'o/r',
+      tourSource({ pr: null, sha: 'deadbeef1', capturedAt: 'now' })
+    )
+    expect(tour).toEqual({ sha: 'deadbeef1', capturedAt: 'now' })
+    expect(readFileSync(join(site, 'tour', 'index.html'), 'utf8')).toBe('tour')
+    const index = readFileSync(join(site, 'index.html'), 'utf8')
+    expect(index).toContain('<a href="./tour/"><strong>Preview tour</strong>')
+    expect(index).toContain('deadbee · now')
+  })
+
+  test('buildSite drops a tour whose gallery.json names a PR, and says why', async () => {
+    const site = join(root, 'site-tour-bad')
+    const { tour } = await buildSite(site, 'o/r', tourSource({ pr: 7, sha: 'x' }))
+    expect(tour).toBeUndefined()
+    expect(existsSync(join(site, 'tour'))).toBe(false)
+    expect(readFileSync(join(site, 'index.html'), 'utf8')).not.toContain('./tour/')
+    expect(warn).toHaveBeenCalledWith('[gallery-pages] tour: gallery.json is not a tour; skipped')
+  })
+
+  test('isMainTour takes only an unexpired artifact from a main run of this repository', () => {
+    const art = (expired: boolean, run?: Record<string, unknown>) => ({
+      name: 'preview-tour',
+      expired,
+      archive_download_url: 'x',
+      ...(run ? { workflow_run: run } : {}),
+    })
+    const main = { head_branch: 'main', repository_id: 1, head_repository_id: 1 }
+    expect(isMainTour(art(false, main))).toBe(true)
+    expect(isMainTour(art(true, main))).toBe(false)
+    expect(isMainTour(art(false))).toBe(false)
+    expect(isMainTour(art(false, { ...main, head_branch: 'feature' }))).toBe(false)
+    expect(isMainTour(art(false, { ...main, head_repository_id: 2 }))).toBe(false)
+    expect(isMainTour(art(false, { head_branch: 'main' }))).toBe(false)
   })
 })
 
@@ -613,6 +691,7 @@ describe('the network edges, against a stubbed fetch', () => {
 
   const API = 'https://api.github.com/repos/o/r'
   const artifacts = (n: number) => `${API}/actions/artifacts?name=pr-gallery-${n}&per_page=5`
+  const tours = `${API}/actions/artifacts?name=preview-tour&per_page=20`
   const pr = (number: number): PullRequest => ({
     number,
     title: 't',
@@ -694,14 +773,72 @@ describe('the network edges, against a stubbed fetch', () => {
     }
   })
 
+  test("githubSource.unpackTour skips a PR-branch or fork artifact and unpacks main's newest", async () => {
+    const fromMain = { head_branch: 'main', repository_id: 1, head_repository_id: 1 }
+    const net = stub({
+      [tours]: {
+        json: {
+          artifacts: [
+            {
+              name: 'preview-tour',
+              expired: false,
+              archive_download_url: 'http://dl/pr',
+              workflow_run: { ...fromMain, head_branch: 'sneaky' },
+            },
+            {
+              name: 'preview-tour',
+              expired: false,
+              archive_download_url: 'http://dl/fork',
+              workflow_run: { ...fromMain, head_repository_id: 9 },
+            },
+            {
+              name: 'preview-tour',
+              expired: false,
+              archive_download_url: 'http://dl/tour',
+              workflow_run: fromMain,
+            },
+          ],
+        },
+      },
+      'http://dl/tour': {
+        body: storedZip({ 'gallery.json': '{"pr":null,"sha":"abc"}', 'index.html': 'tour' }),
+      },
+    })
+    try {
+      const dir = join(root, 'tour-dl')
+      mkdirSync(dir, { recursive: true })
+      expect(await githubSource('o/r', 'tok').unpackTour(dir)).toBe(true)
+      expect(readFileSync(join(dir, 'index.html'), 'utf8')).toBe('tour')
+      expect(readTourMeta(dir)).toEqual({ sha: 'abc', capturedAt: '' })
+      expect(net.calls.map((c) => c.url)).not.toContain('http://dl/pr')
+      expect(net.calls.map((c) => c.url)).not.toContain('http://dl/fork')
+    } finally {
+      net.restore()
+    }
+  })
+
+  test('githubSource.unpackTour with no tour from main unpacks nothing and says so', async () => {
+    const net = stub({ [tours]: { json: { artifacts: [] } } })
+    try {
+      expect(await githubSource('o/r', 'tok').unpackTour(join(root, 'tour-none'))).toBe(false)
+      expect(warn).toHaveBeenCalledWith('[gallery-pages] tour: no unexpired preview-tour from main')
+    } finally {
+      net.restore()
+    }
+  })
+
   test('main: builds the site from GitHub and reports the count', async () => {
-    const net = stub({ [`${API}/pulls?state=open&base=main&per_page=100`]: { json: [] } })
+    const net = stub({
+      [`${API}/pulls?state=open&base=main&per_page=100`]: { json: [] },
+      [tours]: { json: { artifacts: [] } },
+    })
     const log = spyOn(console, 'log').mockImplementation(() => {})
     try {
       const site = join(root, 'main-site')
       expect(await main([site], { GITHUB_TOKEN: 't', GITHUB_REPOSITORY: 'o/r' })).toBe(0)
       expect(existsSync(join(site, 'index.html'))).toBe(true)
       expect(log).toHaveBeenCalledWith('[gallery-pages] 0 of 0 open PRs published')
+      expect(log).toHaveBeenCalledWith('[gallery-pages] preview tour: none')
     } finally {
       log.mockRestore()
       net.restore()
