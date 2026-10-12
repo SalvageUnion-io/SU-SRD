@@ -55,6 +55,11 @@ export type RollTablePageData = {
   table: SURefObjectTable
 }
 
+/** The characters a table's bands print: every label and every outcome's text. */
+function bandChars(rows: RollTableRow[]): number {
+  return rows.reduce((sum, row) => sum + (row.label?.length ?? 0) + plainText(row.value).length, 0)
+}
+
 /**
  * A table this long or this wordy sets its bands in two columns on a wide
  * screen, so the page fits one screen: twenty-one bands (a d20 read one face
@@ -65,11 +70,34 @@ const SPLIT_CHARS = 1400
 
 /** Whether a table's bands split into two columns on a wide screen. */
 export function splitRows(rows: RollTableRow[]): boolean {
-  const chars = rows.reduce(
-    (sum, row) => sum + (row.label?.length ?? 0) + plainText(row.value).length,
-    0
-  )
-  return rows.length >= SPLIT_ROWS || chars >= SPLIT_CHARS
+  return rows.length >= SPLIT_ROWS || bandChars(rows) >= SPLIT_CHARS
+}
+
+/**
+ * How tightly a wide screen sets the page, so the table and its panel end
+ * above the fold (board 08b):
+ *
+ * - `roomy`: a short table under a short note, set as the board draws it.
+ * - `compact`: a split table, or bands and note that together run long
+ *   (Morale's note outruns its five bands): the note in smaller type across a
+ *   wider measure, the bands and the panel narrower.
+ * - `dense`: bands that run long even in two columns (Mechapult, Background):
+ *   each band's label runs in ahead of its text, set at the caption size
+ *   (13px, above the 11px type floor), and the ranges narrower still.
+ *
+ * A phone sets every table alike: one list, scrolled.
+ */
+export type RollTableDensity = 'roomy' | 'compact' | 'dense'
+
+const COMPACT_CHARS = 1200
+const DENSE_CHARS = 1800
+
+/** The setting a table's page takes on a wide screen, from its bands and its note. */
+export function rollTableDensity(rows: RollTableRow[], description: string[]): RollTableDensity {
+  const chars = bandChars(rows)
+  if (chars >= DENSE_CHARS) return 'dense'
+  const note = description.reduce((sum, paragraph) => sum + paragraph.length, 0)
+  return splitRows(rows) || chars + note >= COMPACT_CHARS ? 'compact' : 'roomy'
 }
 
 /** How many earlier rolls the panel keeps. */

@@ -903,12 +903,24 @@
 
   .srd-roll__main {
     flex: 1 1 0;
+    gap: var(--space-12);
   }
 
   .srd-roll__panel {
     flex: 0 0 23rem;
     position: sticky;
     top: var(--space-16);
+  }
+
+  /* The result and the earlier rolls set tighter too, so the panel still
+     ends above the fold once a long outcome and five earlier rolls fill it. */
+  .srd-roll__text {
+    font-size: var(--text-base);
+    line-height: 1.45;
+  }
+
+  .srd-roll__earlier-row {
+    min-height: 28px;
   }
 
   .srd-roll__range {
@@ -978,6 +990,71 @@
   .srd-roll__bands[data-split] .srd-roll__value {
     font-size: var(--text-sm);
     line-height: 1.35;
+  }
+
+  /*
+   * A wordy page (`rollTableDensity`) sets tighter so it ends above the fold:
+   * `compact` sets the note smaller across a wider measure and narrows the
+   * panel, so the bands get the width; `dense` also runs each band's label in
+   * ahead of its text, at the caption size, with narrower ranges.
+   */
+  .srd-roll:is([data-density='compact'], [data-density='dense']) {
+    gap: var(--space-24);
+  }
+
+  .srd-roll[data-density='compact'] .srd-roll__panel {
+    flex-basis: 20rem;
+  }
+
+  .srd-roll[data-density='dense'] .srd-roll__panel {
+    flex-basis: 18rem;
+  }
+
+  .srd-roll:is([data-density='compact'], [data-density='dense']) .srd-roll__description {
+    font-size: var(--text-sm);
+    line-height: 1.45;
+    max-width: 92ch;
+  }
+
+  .srd-roll[data-density='compact'] .srd-roll__body {
+    padding: var(--space-6) var(--space-12);
+  }
+
+  .srd-roll[data-density='compact'] .srd-roll__label {
+    font-size: var(--text-base);
+  }
+
+  .srd-roll[data-density='compact'] .srd-roll__value {
+    font-size: var(--text-sm);
+    line-height: 1.4;
+  }
+
+  .srd-roll[data-density='dense'] .srd-roll__bands[data-split] .srd-roll__range {
+    font-size: var(--text-lg);
+    width: 2.75rem;
+  }
+
+  .srd-roll[data-density='dense'] .srd-roll__bands[data-split] .srd-roll__body {
+    display: block;
+    font-size: var(--text-caption);
+    line-height: 1.25;
+    padding: var(--space-4) var(--space-8);
+  }
+
+  .srd-roll[data-density='dense'] .srd-roll__label {
+    display: inline;
+    font-size: var(--text-sm);
+    margin-right: var(--space-6);
+  }
+
+  .srd-roll[data-density='dense'] .srd-roll__bands[data-split] .srd-roll__value {
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  /* The page sits closer under its band: a line the fold needs. */
+  .srd-entity__body:has(.srd-roll) {
+    padding-top: var(--space-16);
   }
 }
 
@@ -1058,6 +1135,24 @@
   background-color: var(--color-ink);
   color: var(--color-paper);
   font-weight: var(--font-weight-semibold);
+}
+
+/* A wide screen sets the grid's twenty rows tighter, so it ends above the fold. */
+@media (min-width: 64rem) {
+  .srd-cols__table {
+    font-size: var(--text-sm);
+  }
+
+  .srd-cols__table thead th {
+    font-size: var(--text-base);
+    padding-block: var(--space-2);
+  }
+
+  .srd-cols__table tbody th,
+  .srd-cols__table tbody td {
+    line-height: 1.2;
+    padding-block: var(--space-2);
+  }
 }
 
 /*

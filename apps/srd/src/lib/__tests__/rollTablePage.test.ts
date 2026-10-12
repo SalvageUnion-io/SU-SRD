@@ -2,12 +2,14 @@ import { describe, expect, test } from 'bun:test'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { rollTablePageData } from '../../components/RollTablePage'
+import type { RollTableRow } from '../rollTablePage'
 import {
   outcomeLabel,
   plainText,
   rangeLabel,
   recordRoll,
   refText,
+  rollTableDensity,
   rowForRoll,
   splitRows,
 } from '../rollTablePage'
@@ -49,6 +51,43 @@ describe('splitRows', () => {
     expect(splitRows(rowsOf('Motto'))).toBe(true)
     expect(splitRows(rowsOf('Crawler Destruction'))).toBe(true)
     expect(splitRows(rowsOf('Core Mechanic'))).toBe(false)
+  })
+})
+
+describe('rollTableDensity', () => {
+  const densityOf = (name: string) => {
+    const data = need(rollTablePageData(tableNamed(name)) ?? undefined, name)
+    return rollTableDensity(data.rows, data.description)
+  }
+  const row = (label: string | null, value: string): RollTableRow => ({
+    key: '1',
+    label,
+    value: [value],
+  })
+
+  test('bands that run long even in two columns set dense', () => {
+    expect(densityOf('Mechapult')).toBe('dense')
+    expect(densityOf('Anomalous Zone')).toBe('dense')
+    expect(densityOf('Background')).toBe('dense')
+  })
+
+  test('a split table, or a long note over short bands, sets compact', () => {
+    expect(densityOf('Motto')).toBe('compact')
+    expect(densityOf('Crawler Destruction')).toBe('compact')
+    expect(densityOf('Morale')).toBe('compact')
+  })
+
+  test('a short table under a short note keeps the board’s setting', () => {
+    expect(densityOf('Area Salvage')).toBe('roomy')
+  })
+
+  test('labels count toward the bands, and the note toward compact only', () => {
+    const bands = [row('x'.repeat(900), 'y'.repeat(900))]
+    expect(rollTableDensity(bands, [])).toBe('dense')
+    const short = [row(null, 'y'.repeat(600))]
+    expect(rollTableDensity(short, [])).toBe('roomy')
+    expect(rollTableDensity(short, ['z'.repeat(600)])).toBe('compact')
+    expect(rollTableDensity(short, ['z'.repeat(5000)])).toBe('compact')
   })
 })
 
