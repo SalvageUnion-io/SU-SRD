@@ -50,9 +50,7 @@ bun run build            # package + srd + ITUN (the bot has no build; wrangler 
 bun run deploy-commands[:global]   # Discord slash commands: test guild / production
 ```
 
-- **Bare `--parallel` and `--isolate` stay banned**: both measured slower than serial (`--parallel` implies `--isolate`). `--parallel=N --no-isolate` is the measured win (the itun, srd and component-lib `test` scripts); `--changed` is the other flag that helps. Leave `test:coverage` serial: parallel coverage writes different lcov line counts.
 - **A gate failed?** Its fix prints under the failure banner; `bun run check --list` shows every check's. [`tools/CLAUDE.md`](tools/CLAUDE.md) maps checks to scripts and baselines. **Adding a gate** means adding it to the registry in `tools/check.ts` — `bun run check`, pre-push and CI all read that one list.
-- **Dependencies:** read [dependencies](docs/ARCHITECTURE.md#areas) before touching `package.json`, `bunfig.toml` or `overrides`. In short: Bun deps are updated by hand, Actions by Dependabot; `bun run audit` (any severity, no `--ignore`) gates every PR that changes `bun.lock` or a `package.json` and runs nightly; `bunfig.toml` refuses versions under three days old and makes `bun add` pin exactly. A shared dev tool is a root devDependency; a shared runtime package is a root `catalog:` entry.
 - **Profiling:** use Bun's markdown profiles into the gitignored `.profiles/` (`bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles <script>`, `--heap-prof-md` likewise). `bun build --metafile-md` needs `--outdir`, or it prints the bundle to stdout.
 
 ### Hooks (Lefthook)
@@ -67,7 +65,7 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static referenc
 **Workspace structure:**
 
 - `apps/srd/` - Static SRD reference site: in-house SSG on Vite, React 19 islands. No auth, no backend. Read [`apps/srd/CLAUDE.md`](apps/srd/CLAUDE.md) first.
-- `apps/itun/` - Character builder & game manager (React 19, TanStack Router, Zustand, Convex, Vite). Storage modes and the account gate: [`apps/itun/CLAUDE.md`](apps/itun/CLAUDE.md) — **read it before touching data.**
+- `apps/itun/` - Character builder & game manager (React 19, TanStack Router, Zustand, Convex, Vite). Read [`apps/itun/CLAUDE.md`](apps/itun/CLAUDE.md); storage modes and the account gate are [`.claude/rules/itun-data-access.md`](.claude/rules/itun-data-access.md) — **read it before touching data.**
 - `apps/discord-bot/` - Discord bot on a Cloudflare Worker (HTTP interactions, Components V2 replies); also an ITUN Game client.
 - `apps/su-assets/` - Cloudflare Worker (`assets.salvageunion.io`) serving licensed entity artwork from the `su-lp-assets` R2 bucket, with `-440`/`-880` derivatives from Cloudflare Images. Image bytes never live in git; entity-card artwork in both apps depends on it (`ASSET_BASE_URL` in `packages/salvageunion-reference/lib/assets.ts`).
 - `packages/component-lib/` - Shared React component library (Base UI primitives, entity display system, typography, tokens). No build step.
@@ -115,7 +113,7 @@ The registry — ids, deployments, dashboards, how each server authenticates —
 
 - `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Only `context7` and `convex` are enabled; opt into the rest [locally](docs/ARCHITECTURE.md#areas).
 - `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI. In a cloud session `gh` is preinstalled and authenticated by the GitHub proxy, but only REST answers (`gh api`); GraphQL subcommands such as `gh pr` and `gh issue` get 403, so use `gh api` or the session's `mcp__github__*` tools — see [cloud sessions](docs/ARCHITECTURE.md#areas).
-- **Sentry fails silently.** No DSN means Vite tree-shakes the SDK out; a `connect-src` missing the ingest origin blocks every event. `tools/check-observability.ts` (the `observability` check) checks DSN gating, each app's CSP source against `SENTRY_INGEST_HOST`, and that each Worker wraps its export with `withObservability` and grants `nodejs_als`. **Change the CSP or Sentry region in every source for that app together.**
+- **Sentry fails silently**: no DSN tree-shakes the SDK out, and a `connect-src` missing the ingest origin blocks every event. The rules are [`packages/observability/CLAUDE.md`](packages/observability/CLAUDE.md)'s, gated by the `observability` check; **change the CSP or Sentry region in every source for that app together.**
 
 ## Merging
 
