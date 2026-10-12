@@ -35,9 +35,9 @@ Read with an offset and limit, never the whole file.
 
 ## ADRs
 
-The [Decisions](ARCHITECTURE.md#decisions) that close ARCHITECTURE.md, one
-`## ADR-NNN` each: `grep -n '^## ADR-' docs/ARCHITECTURE.md` lists them. Each
-one's own Status block is authoritative.
+One file each in [`docs/adr/`](adr/), `NNN-slug.md`
+([how they work](ARCHITECTURE.md#decisions)): `grep -H '^status:' docs/adr/*.md`
+lists them. Each one's front-matter and Status are authoritative.
 
 ## Per-package guidance
 

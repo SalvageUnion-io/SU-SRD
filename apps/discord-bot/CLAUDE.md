@@ -2,8 +2,8 @@
 
 Discord bot for rolling on Salvage Union random tables. Standalone consumer of
 `salvageunion-reference` — it reuses the same pure rules/data logic the apps do
-([ADR-006](../../docs/ARCHITECTURE.md#adr-006)) and preloads the dataset
-at startup ([ADR-005](../../docs/ARCHITECTURE.md#adr-005)).
+([ADR-006](../../docs/adr/006-rules-as-pure-functions.md)) and preloads the dataset
+at startup ([ADR-005](../../docs/adr/005-game-data-orm.md)).
 
 ## Stack
 
@@ -89,7 +89,7 @@ does not exist.
 
 **Maxima are derived here, not fetched.** `gameCards.ts` derives max
 HP/SP/Heat via `salvageunion-reference/rules`
-([ADR-006](../../docs/ARCHITECTURE.md#adr-006)). Convex's `crew.vitals` now
+([ADR-006](../../docs/adr/006-rules-as-pure-functions.md)). Convex's `crew.vitals` now
 derives them too, with the same rules; moving the bot onto those is #1068.
 
 **`/su sheet` is the live sheet folded into a message.** `gameCards.ts` maps it

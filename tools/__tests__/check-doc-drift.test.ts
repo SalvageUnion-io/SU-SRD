@@ -219,38 +219,41 @@ describe('checkBacktickedPathsExist', () => {
   it('scans only the Status and Decision of an ADR that still carries a Decision', () => {
     const root = fixture({
       'package.json': JSON.stringify({ scripts: {} }),
-      'docs/ARCHITECTURE.md': [
-        '## Data flow',
+      'docs/ARCHITECTURE.md': '## Data flow\n\nWrites go through `apps/itun/src/stores/gone.ts`.\n',
+      'docs/adr/001-old.md': [
+        '---',
+        'status: superseded',
+        'supersededBy: [2]',
+        '---',
         '',
-        'Writes go through `apps/itun/src/stores/gone.ts`.',
-        '',
-        '# Decisions',
-        '',
-        '## ADR-001',
-        '',
-        '### Status',
+        '# ADR-001: Old',
         '',
         'Superseded. We kept `apps/itun/old-host/functions/` and ran `bun run old-host`.',
+      ].join('\n'),
+      'docs/adr/002-new.md': [
+        '---',
+        'status: accepted',
+        '---',
         '',
-        '## ADR-002',
+        '# ADR-002: New',
         '',
-        '### Status',
+        '## Status',
         '',
         'Accepted. The rules are `apps/itun/src/rules.ts`.',
         '',
-        '### Context',
+        '## Context',
         '',
         'We used to run `bun run old-host` against `apps/itun/old-host/`.',
         '',
-        '### Decision',
+        '## Decision',
         '',
         'Run `bun run new-host` over `apps/itun/src/host.ts`.',
       ].join('\n'),
     })
     const paths = checkBacktickedPathsExist(root).failures.join('\n')
     expect(paths).toContain('docs/ARCHITECTURE.md:3 cites `apps/itun/src/stores/gone.ts`')
-    expect(paths).toContain('docs/ARCHITECTURE.md:17 cites `apps/itun/src/rules.ts`')
-    expect(paths).toContain('docs/ARCHITECTURE.md:25 cites `apps/itun/src/host.ts`')
+    expect(paths).toContain('docs/adr/002-new.md:9 cites `apps/itun/src/rules.ts`')
+    expect(paths).toContain('docs/adr/002-new.md:17 cites `apps/itun/src/host.ts`')
     expect(paths).not.toContain('old-host')
     const scripts = checkReferencedScripts(root).failures
     expect(scripts).toHaveLength(1)
@@ -339,15 +342,14 @@ describe('checkRetiredClaims', () => {
       '.claude/hooks/h.sh': '# formats with prettier\n',
       '.env.example': '# unset = in-memory only\n',
       'CLAUDE.md': 'Commit with /ship.\n',
-      'docs/ARCHITECTURE.md':
-        '# Architecture\n\n# Decisions\n\n## ADR-001\n\nLocal-first, no backend.\n',
+      'docs/adr/001-local-first.md': '# ADR-001: Local-first, no backend\n',
     })
     const failures = checkRetiredClaims(root).failures.join('\n')
     expect(failures).toContain('.claude/rules/x.md:1 matches /in-memory (?:backend|only)/i')
     expect(failures).toContain('.claude/hooks/h.sh:1 matches /prettier/i')
     expect(failures).toContain('.env.example:1 matches /in-memory (?:backend|only)/i')
     expect(failures).toContain('CLAUDE.md:1 matches /\\/ship\\b/')
-    expect(failures).not.toContain('ARCHITECTURE')
+    expect(failures).not.toContain('docs/adr')
   })
 
   it('fails each claim the account-gated, Convex-only design retired', () => {
@@ -358,14 +360,13 @@ describe('checkRetiredClaims', () => {
       '.claude/rules/d.md': 'A Solo build has no Convex URL.\n',
       '.claude/rules/e.md': 'Guard on isConvexConfigured().\n',
       '.claude/rules/f.md': 'Reads are salvage-tolerant.\n',
-      'docs/ARCHITECTURE.md':
-        '# Architecture\n\n# Decisions\n\n## ADR-001\n\n### Context\n\nAnonymous play stays first-class.\n',
+      'docs/adr/001-x.md': '# ADR-001: X\n\n## Context\n\nAnonymous play stays first-class.\n',
     })
     const failures = checkRetiredClaims(root).failures
     for (const doc of ['a', 'b', 'c', 'd', 'e', 'f']) {
       expect(failures.some((f) => f.startsWith(`.claude/rules/${doc}.md:1 matches`))).toBe(true)
     }
-    expect(failures.join('\n')).not.toContain('ARCHITECTURE')
+    expect(failures.join('\n')).not.toContain('docs/adr')
   })
 
   it('passes a doc that states the current design', () => {
@@ -475,63 +476,125 @@ describe('headingSlug', () => {
 })
 
 describe('checkDecisions', () => {
-  const doc = (adrs: string): string => `# Architecture\n\n# Decisions\n\n${adrs}`
+  /** An ADR file: front-matter, title, then `body`. */
+  const adr = (n: number, meta: string, body = '## Status\n\nAccepted.\n'): string =>
+    `---\n${meta}\n---\n\n# ADR-${String(n).padStart(3, '0')}: T\n\n${body}`
+  const tombstone = (n: number, by: number): string =>
+    adr(
+      n,
+      `status: superseded\nsupersededBy: [${by}]`,
+      'Superseded.\n\nFull text: `git show abc1234:docs/x.md`\n'
+    )
 
-  it('passes ADR-001 to the floor, each one bare heading under # Decisions', () => {
+  it('passes ADR-001 to the floor, one valid file each, a superseded one a tombstone', () => {
     const root = fixture({
-      'docs/ARCHITECTURE.md': doc('## ADR-001\n\n**One**\n\n### Status\n\n## ADR-002\n\n**Two**\n'),
+      'docs/ARCHITECTURE.md': '# Architecture\n\n## Decisions\n\nSee docs/adr/.\n',
+      'docs/adr/001-one.md': tombstone(1, 2),
+      'docs/adr/002-two.md': adr(
+        2,
+        'status: accepted',
+        '## Status\n\nAccepted. Supersedes ADR-001.\n'
+      ),
+      'docs/adr/003-three.md': adr(3, 'status: superseded-in-part\nsupersededBy: [2]'),
     })
-    expect(checkDecisions(root, 2).failures).toEqual([])
+    expect(checkDecisions(root, 3).failures).toEqual([])
   })
 
-  it('fails a missing, repeated, titled or misplaced ADR, and docs/adrs/ coming back', () => {
+  it('fails a missing, repeated or misnamed ADR, one left in ARCHITECTURE.md, and docs/adrs/', () => {
     const root = fixture({
       'docs/adrs/ADR-005.md': '# ADR-005\n',
-      'docs/ARCHITECTURE.md':
-        '## ADR-001\n\n# Decisions\n\n## ADR-002: Titled\n\n## ADR-002\n\n```md\n## ADR-003\n```\n',
+      'docs/ARCHITECTURE.md': '# Architecture\n\n## ADR-001\n\n```md\n## ADR-009\n```\n',
+      'docs/adr/001-one.md': adr(1, 'status: accepted'),
+      'docs/adr/002-two.md': adr(2, 'status: accepted'),
+      'docs/adr/002-again.md': adr(2, 'status: accepted'),
+      'docs/adr/ADR-003.md': adr(3, 'status: accepted'),
     })
     const failures = checkDecisions(root, 4).failures.join('\n')
     expect(failures).toContain('docs/adrs/ exists again')
-    expect(failures).toContain('docs/ARCHITECTURE.md:1 is an ADR above `# Decisions`')
-    expect(failures).toContain('docs/ARCHITECTURE.md:5 heads an ADR "## ADR-002: Titled"')
-    expect(failures).toContain('heads `## ADR-002` 2 times')
-    expect(failures).toContain('has no `## ADR-003`')
-    expect(failures).toContain('has no `## ADR-004`')
+    expect(failures).toContain('docs/ARCHITECTURE.md:3 heads an ADR')
+    expect(failures).not.toContain('ARCHITECTURE.md:6')
+    expect(failures).toContain('docs/adr/ADR-003.md is not an ADR file')
+    expect(failures).toContain('ADR-002 is docs/adr/002-again.md and docs/adr/002-two.md')
+    expect(failures).toContain('docs/adr/ has no ADR-003')
+    expect(failures).toContain('docs/adr/ has no ADR-004')
+  })
+
+  it('fails bad front-matter, a wrong title and a superseded ADR that is not a tombstone', () => {
+    const root = fixture({
+      'docs/adr/001-one.md': '# ADR-001: No front-matter\n',
+      'docs/adr/002-two.md': adr(2, 'status: done\nowner: me'),
+      'docs/adr/003-three.md': adr(3, 'status: superseded'),
+      'docs/adr/004-four.md': adr(4, 'status: accepted\nsupersededBy: [9]'),
+      'docs/adr/005-five.md': '---\nstatus: accepted\n---\n\n# ADR-006: Wrong number\n',
+    })
+    const failures = checkDecisions(root, 5).failures.join('\n')
+    expect(failures).toContain('docs/adr/001-one.md has no front-matter')
+    expect(failures).toContain('docs/adr/002-two.md has status "done"')
+    expect(failures).toContain('docs/adr/002-two.md: unknown front-matter key `owner`')
+    expect(failures).toContain('docs/adr/003-three.md is superseded but names no `supersededBy`')
+    expect(failures).toContain('docs/adr/003-three.md is superseded, so it is a tombstone')
+    expect(failures).toContain(
+      'docs/adr/004-four.md lists `supersededBy` but its status is "accepted"'
+    )
+    expect(failures).toContain(
+      'docs/adr/004-four.md is superseded by ADR-009, which is no other ADR'
+    )
+    expect(failures).toContain('docs/adr/005-five.md opens on "# ADR-006: Wrong number"')
   })
 
   it("fails an amendment the amended ADR's Status does not name", () => {
-    const adr = (n: string, status: string): string =>
-      `## ADR-${n}\n\n**T**\n\n### Status\n\n${status}\n\n### Decision\n\nSee ADR-001.\n\n`
     const root = fixture({
-      'docs/ARCHITECTURE.md': doc(
-        adr('001', 'Accepted. **Amended by [ADR-003](#adr-003).**') +
-          adr('002', 'Accepted. Superseded in part.') +
-          adr('003', 'Accepted. **Amends [ADR-001](#adr-001)** and supersedes ADR-002.')
+      'docs/adr/001-one.md': adr(
+        1,
+        'status: accepted',
+        '## Status\n\nAmended by [ADR-003](003-three.md).\n'
+      ),
+      'docs/adr/002-two.md': adr(
+        2,
+        'status: superseded-in-part',
+        '## Status\n\nSuperseded in part.\n'
+      ),
+      'docs/adr/003-three.md': adr(
+        3,
+        'status: accepted',
+        '## Status\n\n**Amends [ADR-001](001-one.md)** and supersedes ADR-002.\n\n## Decision\n\nSee ADR-001.\n'
       ),
     })
     expect(checkDecisions(root, 3).failures).toEqual([
-      "docs/ARCHITECTURE.md: ADR-003 supersedes ADR-002, but ADR-002's Status does not name " +
-        'ADR-003. Add a dated line there ("**Amended by [ADR-003](#adr-003)** …").',
+      "docs/adr/003-three.md: ADR-003 supersedes ADR-002, but docs/adr/002-two.md's Status does " +
+        'not name ADR-003. Add a dated line there ("**Amended by [ADR-003](003-three.md)** …").',
     ])
   })
 
   it('fails an ADR named in an "**Also amends:**" list whose Status does not name the amender', () => {
-    const adr = (n: string, status: string): string =>
-      `## ADR-${n}\n\n**T**\n\n### Status\n\n${status}\n\n### Decision\n\nSee ADR-001.\n\n`
     const root = fixture({
-      'docs/ARCHITECTURE.md': doc(
-        adr('001', 'Accepted. **Amended by [ADR-003](#adr-003).**') +
-          adr('002', 'Accepted.') +
-          adr(
-            '003',
-            'Accepted.\n\n**Also amends:**\n- [ADR-001](#adr-001) §1: one thing.\n' +
-              '- [ADR-002](#adr-002)\'s "Scope": another,\n  wrapped onto a second line.'
-          )
+      'docs/adr/001-one.md': adr(1, 'status: accepted', '## Status\n\nAmended by ADR-003.\n'),
+      'docs/adr/002-two.md': adr(2, 'status: accepted'),
+      'docs/adr/003-three.md': adr(
+        3,
+        'status: accepted',
+        '## Status\n\nAccepted.\n\n**Also amends:**\n- [ADR-001](001-one.md) §1: one thing.\n' +
+          '- [ADR-002](002-two.md)\'s "Scope": another,\n  wrapped onto a second line.\n'
       ),
     })
     expect(checkDecisions(root, 3).failures).toEqual([
-      "docs/ARCHITECTURE.md: ADR-003 amends ADR-002, but ADR-002's Status does not name " +
-        'ADR-003. Add a dated line there ("**Amended by [ADR-003](#adr-003)** …").',
+      "docs/adr/003-three.md: ADR-003 amends ADR-002, but docs/adr/002-two.md's Status does " +
+        'not name ADR-003. Add a dated line there ("**Amended by [ADR-003](003-three.md)** …").',
+    ])
+  })
+
+  it("requires a superseder in a tombstone's supersededBy, and nothing else of a tombstone", () => {
+    const root = fixture({
+      'docs/adr/001-one.md': tombstone(1, 3),
+      'docs/adr/002-two.md': adr(
+        2,
+        'status: accepted',
+        '## Status\n\nSupersedes ADR-001. Amends [ADR-001](001-one.md).\n'
+      ),
+      'docs/adr/003-three.md': adr(3, 'status: accepted', '## Status\n\nSupersedes ADR-001.\n'),
+    })
+    expect(checkDecisions(root, 3).failures).toEqual([
+      'docs/adr/001-one.md: ADR-002 supersedes ADR-001, but its supersededBy does not list 2.',
     ])
   })
 })
@@ -554,9 +617,9 @@ describe('checkDocSizes', () => {
     )
   })
 
-  it("holds a collapsed doc's live text to its own budget, and fails an entry whose file is gone", () => {
+  it('holds a collapsed doc to its own budget, and fails an entry whose file is gone', () => {
     const root = fixture({
-      'docs/ARCHITECTURE.md': `${'x'.repeat(100)}\n# Decisions\n\n## ADR-001\n\n${'y'.repeat(500)}`,
+      'docs/ARCHITECTURE.md': `${'x'.repeat(100)}\n`,
     })
     expect(checkDocSizes(root, {}, { 'docs/ARCHITECTURE.md': 101 }).failures).toEqual([])
     expect(checkDocSizes(root, {}, { 'docs/ARCHITECTURE.md': 100 }).failures.join('\n')).toContain(

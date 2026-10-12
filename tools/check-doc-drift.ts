@@ -5,19 +5,22 @@
  *
  *   paths    every backticked repo path in a live-instruction doc exists,
  *            unless the words beside it mark it as history or a proposal.
- *            Under `# Decisions`, only the Status and Decision of an ADR that
- *            still carries a Decision are scanned: they state what governs
- *            now; the rest of an ADR is the record of how it was decided.
+ *            In an ADR (`docs/adr/NNN-slug.md`), only the Status and Decision
+ *            of one that still carries a Decision are scanned: they state
+ *            what governs now; the rest is the record of how it was decided.
  *   scripts  every `bun run <script>`, `bun --filter <ws> <script>` and
  *            `bun run check <id>` in that same text, or in a Claude hook,
  *            names a real script or check id.
- *   claims   no agent doc (the live text of the docs above, the hooks and
+ *   claims   no agent doc (the docs above but the ADRs, the hooks and
  *            `.env.example`) repeats a claim the repo has retired
  *            (`RETIRED_CLAIMS`).
- *   decisions every ADR is one bare `## ADR-NNN` heading under `# Decisions`
- *            in docs/ARCHITECTURE.md, none missing or repeated, docs/adrs/
- *            stays gone, and an ADR whose Status amends, supersedes or
- *            reverses another is named in that other ADR's Status.
+ *   decisions every ADR is one `docs/adr/NNN-slug.md`, none missing or
+ *            repeated, with `status` (and, when superseded, `supersededBy`)
+ *            front-matter; a superseded ADR is a tombstone pointing at its
+ *            full text in git; none is left in docs/ARCHITECTURE.md and
+ *            docs/adrs/ stays gone; and an ADR whose Status amends,
+ *            supersedes or reverses another is named in that other ADR's
+ *            Status (or, for a superseder, its `supersededBy`).
  *   links    every relative markdown link in a tracked `.md` file resolves,
  *            and its `#fragment`, into a `.md` file or the same file, names a
  *            heading there.
@@ -25,8 +28,7 @@
  *            characters and `.claude/rules/*.md` under 4,000.
  *            They load into every agent session in scope, so growth costs
  *            every session. A collapsed doc (`COLLAPSED_DOCS`) holds its own
- *            budget on its live text: it replaced a folder, and terse is the
- *            point; the ADRs below it are an append-only record.
+ *            budget: it replaced a folder, and terse is the point.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -88,6 +90,19 @@ function liveInstructionDocs(root: string): string[] {
   ].filter((doc) => existsSync(join(root, doc)))
 }
 
+/** The directory of architecture decision records, one `NNN-slug.md` each. */
+const ADR_DIR = 'docs/adr'
+
+/** `docs/adr/030-accounts-games-server-of-record.md` → 30. */
+const ADR_FILE = /^(\d{3})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/
+
+/** Every ADR file, sorted by name (so by number). */
+const adrDocs = (root: string): string[] =>
+  filesIn(root, ADR_DIR, '.md').filter((doc) => ADR_FILE.test(doc.slice(ADR_DIR.length + 1)))
+
+/** Docs whose paths and scripts must exist: the live docs, and the governing text of each ADR. */
+const checkedDocs = (root: string): string[] => [...liveInstructionDocs(root), ...adrDocs(root)]
+
 const hookScripts = (root: string): string[] => filesIn(root, '.claude/hooks', '.sh')
 
 /** Markdown text split into blocks (blank-line separated; list items apart), fences dropped. */
@@ -121,73 +136,87 @@ export function splitMarkdownBlocks(source: string): { line: number; text: strin
 const lineOf = (block: { line: number; text: string }, index: number): number =>
   block.line + (block.text.slice(0, index).match(/\n/g)?.length ?? 0)
 
-/** The heading that opens the architecture decision records. */
-const DECISIONS_HEADING = /^# Decisions$/m
+/** An ADR's front-matter: its status, and the ADRs that superseded it. */
+export type AdrMeta = { status: string; supersededBy: number[] }
+
+/** The statuses an ADR's front-matter may carry. */
+const ADR_STATUSES = ['proposed', 'accepted', 'superseded-in-part', 'superseded']
 
 /**
- * A markdown doc up to its `# Decisions` heading: the part that describes the
- * code as it is now.
+ * An ADR file split into its front-matter and body. `meta` is null when the
+ * file opens without a `---` block; `bodyStart` is the body's 0-based first line.
  */
-export function liveTextOf(source: string): string {
-  const at = source.search(DECISIONS_HEADING)
-  return at === -1 ? source : source.slice(0, at)
-}
-
-/** One `## ADR-NNN` section: its number and its lines, `start` 0-based in the doc. */
-type AdrSection = { n: number; start: number; lines: string[] }
-
-/** The ADR sections under `# Decisions`, each running to the next `## ` heading. */
-export function adrSections(source: string): AdrSection[] {
+export function parseAdr(source: string): {
+  meta: AdrMeta | null
+  metaErrors: string[]
+  body: string[]
+  bodyStart: number
+} {
   const lines = source.split('\n')
-  const decisions = lines.findIndex((line) => DECISIONS_HEADING.test(line))
-  if (decisions === -1) return []
-  const sections: AdrSection[] = []
-  let inFence = false
-  for (let i = decisions + 1; i < lines.length; i++) {
-    const line = lines[i] as string
-    if (/^\s{0,3}(```|~~~)/.test(line)) inFence = !inFence
-    if (inFence) continue
-    const adr = line.match(/^##\s+ADR-(\d+)/)
-    if (adr) sections.push({ n: Number(adr[1]), start: i, lines: [] })
-    else if (/^##\s/.test(line)) sections.push({ n: Number.NaN, start: i, lines: [] })
-    sections.at(-1)?.lines.push(line)
+  const close = lines[0] === '---' ? lines.indexOf('---', 1) : -1
+  if (close === -1) return { meta: null, metaErrors: [], body: lines, bodyStart: 0 }
+  const fields = new Map<string, string>()
+  const metaErrors: string[] = []
+  for (const line of lines.slice(1, close)) {
+    const field = line.match(/^(\w+):\s*(.*)$/)
+    if (field) fields.set(field[1] as string, (field[2] as string).trim())
+    else metaErrors.push(`front-matter line "${line}" is not \`key: value\``)
   }
-  return sections.filter((section) => !Number.isNaN(section.n))
+  for (const key of fields.keys()) {
+    if (key !== 'status' && key !== 'supersededBy')
+      metaErrors.push(`unknown front-matter key \`${key}\``)
+  }
+  const by = fields.get('supersededBy')
+  const list = by?.match(/^\[\s*(\d+(?:\s*,\s*\d+)*)?\s*\]$/)
+  if (by !== undefined && !list) metaErrors.push(`supersededBy "${by}" is not a list like [30, 34]`)
+  const meta = {
+    status: fields.get('status') ?? '',
+    supersededBy: (list?.[1] ?? '')
+      .split(',')
+      .map((n) => n.trim())
+      .filter(Boolean)
+      .map(Number),
+  }
+  return { meta, metaErrors, body: lines.slice(close + 1), bodyStart: close + 1 }
 }
 
-/** Line offsets (within the section) of its `### <name>` subsection's body. */
-function subsectionLines(section: AdrSection, name: string): number[] {
+/** Line offsets (within `body`) of its `## <name>` subsection's body, fences respected. */
+function subsectionLines(body: string[], name: string): number[] {
   const out: number[] = []
   let inside = false
-  for (const [i, line] of section.lines.entries()) {
-    if (/^###\s/.test(line)) inside = line.trim() === `### ${name}`
+  let inFence = false
+  for (const [i, line] of body.entries()) {
+    if (/^\s{0,3}(```|~~~)/.test(line)) inFence = !inFence
+    if (!inFence && /^##\s/.test(line)) inside = line.trim() === `## ${name}`
     else if (inside) out.push(i)
   }
   return out
 }
 
-/** The text of an ADR's `### Status`. */
-const statusOf = (section: AdrSection): string =>
-  subsectionLines(section, 'Status')
-    .map((i) => section.lines[i])
-    .join('\n')
+/** The text of an ADR's `## Status`; a tombstone, which has none, is all Status. */
+function statusOf(body: string[]): string {
+  const lines = subsectionLines(body, 'Status')
+  if (lines.length === 0) return body.filter((line) => !/^#\s/.test(line)).join('\n')
+  return lines.map((i) => body[i]).join('\n')
+}
+
+const isAdrDoc = (doc: string): boolean =>
+  doc.startsWith(`${ADR_DIR}/`) && ADR_FILE.test(doc.slice(ADR_DIR.length + 1))
 
 /**
- * The part of a doc whose paths and scripts must exist: its live text, plus the
- * Status and Decision of every ADR that still carries a `### Decision` (a
- * superseded ADR is a stub: heading, Status and a `git show` pointer). Every
- * other line is blanked, so line numbers still match the file.
+ * The part of a doc whose paths and scripts must exist. A doc is whole, but an
+ * ADR is only the Status and Decision of one that still carries a `## Decision`
+ * (a superseded ADR is a tombstone: title, Status and a `git show` pointer).
+ * Every other line is blanked, so line numbers still match the file.
  */
-export function checkedTextOf(source: string): string {
-  const at = source.search(DECISIONS_HEADING)
-  if (at === -1) return source
+export function checkedTextOf(doc: string, source: string): string {
+  if (!isAdrDoc(doc)) return source
   const lines = source.split('\n')
+  const { body, bodyStart } = parseAdr(source)
   const keep = new Set<number>()
-  for (let i = 0; i < source.slice(0, at).split('\n').length - 1; i++) keep.add(i)
-  for (const section of adrSections(source)) {
-    if (!section.lines.some((line) => line.trim() === '### Decision')) continue
+  if (body.some((line) => line.trim() === '## Decision')) {
     for (const name of ['Status', 'Decision']) {
-      for (const i of subsectionLines(section, name)) keep.add(section.start + i)
+      for (const i of subsectionLines(body, name)) keep.add(bodyStart + i)
     }
   }
   return lines.map((line, i) => (keep.has(i) ? line : '')).join('\n')
@@ -369,8 +398,8 @@ export function checkBacktickedPathsExist(root: string): CheckResult {
     )
   }
 
-  for (const doc of liveInstructionDocs(root)) {
-    const source = checkedTextOf(read(root, doc))
+  for (const doc of checkedDocs(root)) {
+    const source = checkedTextOf(doc, read(root, doc))
     if (PLAN_DOC_STATUS.test(source.split('\n').slice(0, 20).join('\n'))) continue
     for (const block of splitMarkdownBlocks(source)) {
       for (const match of block.text.matchAll(/`([^`\n]+)`/g)) {
@@ -418,8 +447,8 @@ export function checkReferencedScripts(root: string): CheckResult {
   const manifests = workspaceManifests(root)
   let checked = 0
 
-  for (const doc of [...liveInstructionDocs(root), ...hookScripts(root)]) {
-    const text = doc.endsWith('.md') ? checkedTextOf(read(root, doc)) : read(root, doc)
+  for (const doc of [...checkedDocs(root), ...hookScripts(root)]) {
+    const text = doc.endsWith('.md') ? checkedTextOf(doc, read(root, doc)) : read(root, doc)
     const owner = owningManifest(doc)
     const localScripts = owner ? scriptsOf(root, owner) : new Set<string>()
 
@@ -490,7 +519,7 @@ export const RETIRED_CLAIMS: [RegExp, string][] = [
   ],
 ]
 
-/** Every doc an agent reads as instructions: live text only, so ADRs keep their history. */
+/** Every doc an agent reads as instructions; not the ADRs, which keep their history. */
 const agentDocs = (root: string): string[] => [
   ...liveInstructionDocs(root),
   ...hookScripts(root),
@@ -504,8 +533,7 @@ export function checkRetiredClaims(
   const failures: string[] = []
   const docs = agentDocs(root)
   for (const doc of docs) {
-    const text = doc.endsWith('.md') ? liveTextOf(read(root, doc)) : read(root, doc)
-    for (const [index, line] of text.split('\n').entries()) {
+    for (const [index, line] of read(root, doc).split('\n').entries()) {
       for (const [pattern, truth] of claims) {
         if (pattern.test(line)) {
           failures.push(`${doc}:${index + 1} matches ${pattern}, a retired claim: ${truth}.`)
@@ -623,11 +651,15 @@ export function checkMarkdownLinks(
 
 // ─── decisions ──────────────────────────────────────────────────────────────
 
-/** The one file the ADRs live in, under its `# Decisions` heading. */
-const DECISIONS_DOC = 'docs/ARCHITECTURE.md'
+/** The doc the ADRs were split out of: none may come back to it. */
+const ARCHITECTURE_DOC = 'docs/ARCHITECTURE.md'
 
-/** The ADR count when docs/adrs/ was folded into DECISIONS_DOC: none may go missing. */
-const ADR_FLOOR = 39
+/** The ADR count when the ADRs were split into docs/adr/: none may go missing. */
+const ADR_FLOOR = 45
+
+/** A tombstone's body: the title, at most this many other lines, one a `git show <sha>:` pointer. */
+const TOMBSTONE_LINES = 2
+const GIT_SHOW_POINTER = /`git show [0-9a-f]{7,40}:[^`]+`/
 
 const adrId = (n: number): string => `ADR-${String(n).padStart(3, '0')}`
 
@@ -637,7 +669,7 @@ const ACTS_ON = /\b(amends|supersedes|reverses|replaces)\b[\s*_]*\[?ADR-(\d{3})\
 /** "**Also amends:**": a lead-in whose list items below it each open on the ADR acted on. */
 const ACTS_ON_LIST = /\b(amends|supersedes|reverses|replaces)\b[^\n]*:[\s*_]*$/i
 
-/** "- [ADR-030](#adr-030) §5: …": the ADR a list item under an ACTS_ON_LIST lead-in names first. */
+/** "- [ADR-030](030-x.md) §5: …": the ADR a list item under an ACTS_ON_LIST lead-in names first. */
 const LIST_ITEM_ADR = /^\s*[-*+]\s+[*_]*\[?ADR-(\d{3})\b/
 
 /** Every (verb, target ADR) a Status states, inline or as a list under a lead-in. */
@@ -665,25 +697,77 @@ function actsOn(status: string): { verb: string; target: number }[] {
   return acts
 }
 
+/** One parsed ADR file. */
+type AdrRecord = { n: number; doc: string; meta: AdrMeta; status: string }
+
 /**
  * An ADR whose Status amends, supersedes or reverses another must be named in
- * that other ADR's Status, which is where a reader of it looks first.
+ * that other ADR's Status, which is where a reader of it looks first. A
+ * superseded ADR is a tombstone and names only its superseders, in
+ * `supersededBy`; an amendment of one is history and needs no back-reference.
  */
-export function missingBackReferences(source: string): string[] {
-  const sections = adrSections(source)
-  const status = new Map(sections.map((section) => [section.n, statusOf(section)]))
+export function missingBackReferences(adrs: AdrRecord[]): string[] {
+  const byN = new Map(adrs.map((adr) => [adr.n, adr]))
   const failures: string[] = []
-  for (const section of sections) {
-    const self = adrId(section.n)
-    for (const { verb, target } of actsOn(status.get(section.n) ?? '')) {
-      if (target === section.n || !status.has(target)) continue
-      if (status.get(target)?.includes(self)) continue
+  for (const adr of adrs) {
+    const self = adrId(adr.n)
+    for (const { verb, target } of actsOn(adr.status)) {
+      const other = byN.get(target)
+      if (target === adr.n || other === undefined) continue
+      if (other.meta.supersededBy.includes(adr.n)) continue
+      if (other.meta.status === 'superseded') {
+        if (verb === 'supersedes' || verb === 'replaces') {
+          failures.push(
+            `${other.doc}: ${self} ${verb} ${adrId(target)}, but its supersededBy does not list ${adr.n}.`
+          )
+        }
+        continue
+      }
+      if (other.status.includes(self)) continue
       failures.push(
-        `${DECISIONS_DOC}: ${self} ${verb} ${adrId(target)}, but ` +
-          `${adrId(target)}'s Status does not name ${self}. Add a dated line there ` +
-          `("**Amended by [${self}](#${self.toLowerCase()})** …").`
+        `${adr.doc}: ${self} ${verb} ${adrId(target)}, but ${other.doc}'s Status does not ` +
+          `name ${self}. Add a dated line there ("**Amended by [${self}](${adr.doc.slice(ADR_DIR.length + 1)})** …").`
       )
     }
+  }
+  return failures
+}
+
+/** Every way one ADR file breaks the layout: name, front-matter, title, tombstone. */
+function adrFileFailures(doc: string, n: number, source: string, known: Set<number>): string[] {
+  const failures: string[] = []
+  const { meta, metaErrors, body } = parseAdr(source)
+  if (meta === null) {
+    return [`${doc} has no front-matter. Open it with \`---\`, \`status: …\`, \`---\`.`]
+  }
+  for (const error of metaErrors) failures.push(`${doc}: ${error}.`)
+  if (!ADR_STATUSES.includes(meta.status)) {
+    failures.push(`${doc} has status "${meta.status}", not one of ${ADR_STATUSES.join(', ')}.`)
+  }
+  const superseded = meta.status === 'superseded'
+  if (superseded && meta.supersededBy.length === 0) {
+    failures.push(`${doc} is superseded but names no \`supersededBy\`.`)
+  }
+  if (!meta.status.startsWith('superseded') && meta.supersededBy.length > 0) {
+    failures.push(`${doc} lists \`supersededBy\` but its status is "${meta.status}".`)
+  }
+  for (const by of meta.supersededBy) {
+    if (by === n || !known.has(by)) {
+      failures.push(`${doc} is superseded by ${adrId(by)}, which is no other ADR in ${ADR_DIR}/.`)
+    }
+  }
+  const content = body.filter((line) => line.trim() !== '')
+  const title = content[0] ?? ''
+  if (!title.startsWith(`# ${adrId(n)}: `)) {
+    failures.push(
+      `${doc} opens on "${title}". Its first line after the front-matter is \`# ${adrId(n)}: Title\`.`
+    )
+  }
+  if (superseded && (content.length - 1 > TOMBSTONE_LINES || !GIT_SHOW_POINTER.test(source))) {
+    failures.push(
+      `${doc} is superseded, so it is a tombstone: its title, one Status line and a ` +
+        '`git show <sha>:<path>` pointer to the last commit that held its full text.'
+    )
   }
   return failures
 }
@@ -692,48 +776,55 @@ export function checkDecisions(root: string, floor: number = ADR_FLOOR): CheckRe
   const failures: string[] = []
   if (existsSync(join(root, 'docs/adrs'))) {
     failures.push(
-      `docs/adrs/ exists again. An ADR is a \`## ADR-NNN\` section under \`# Decisions\` in ${DECISIONS_DOC}: move it there.`
+      `docs/adrs/ exists again. An ADR is one \`${ADR_DIR}/NNN-slug.md\`: move it there.`
     )
   }
-  if (!existsSync(join(root, DECISIONS_DOC))) {
-    failures.push(`${DECISIONS_DOC}, which holds the ADRs, does not exist.`)
-    return { ok: '', failures }
-  }
-  const count = new Map<number, number>()
-  let inFence = false
-  let inDecisions = false
-  for (const [index, line] of read(root, DECISIONS_DOC).split('\n').entries()) {
-    if (/^\s{0,3}(```|~~~)/.test(line)) inFence = !inFence
-    if (inFence) continue
-    if (DECISIONS_HEADING.test(line)) inDecisions = true
-    const adr = line.match(/^##\s+ADR-(\d+)/)
-    if (!adr) continue
-    const at = `${DECISIONS_DOC}:${index + 1}`
-    if (!/^## ADR-\d{3}$/.test(line)) {
-      failures.push(
-        `${at} heads an ADR "${line}". The heading is bare (\`## ADR-NNN\`); the title goes on the line below.`
-      )
-    } else if (!inDecisions) {
-      failures.push(`${at} is an ADR above \`# Decisions\`. Move it into that section.`)
+  if (existsSync(join(root, ARCHITECTURE_DOC))) {
+    let inFence = false
+    for (const [index, line] of read(root, ARCHITECTURE_DOC).split('\n').entries()) {
+      if (/^\s{0,3}(```|~~~)/.test(line)) inFence = !inFence
+      if (!inFence && /^#{1,6}\s+ADR-\d+/.test(line)) {
+        failures.push(
+          `${ARCHITECTURE_DOC}:${index + 1} heads an ADR. Each ADR is its own \`${ADR_DIR}/NNN-slug.md\`.`
+        )
+      }
     }
-    const n = Number(adr[1])
-    count.set(n, (count.get(n) ?? 0) + 1)
+  }
+  for (const name of existsSync(join(root, ADR_DIR)) ? readdirSync(join(root, ADR_DIR)) : []) {
+    if (!ADR_FILE.test(name)) {
+      failures.push(
+        `${ADR_DIR}/${name} is not an ADR file. Name it \`NNN-slug.md\` (lowercase, hyphenated).`
+      )
+    }
+  }
+  const docs = adrDocs(root)
+  const numbered = docs.map((doc) => ({
+    doc,
+    n: Number(doc.slice(ADR_DIR.length + 1, ADR_DIR.length + 4)),
+  }))
+  const known = new Set(numbered.map(({ n }) => n))
+  const count = new Map<number, string[]>()
+  const adrs: AdrRecord[] = []
+  for (const { doc, n } of numbered) {
+    count.set(n, [...(count.get(n) ?? []), doc])
+    const source = read(root, doc)
+    failures.push(...adrFileFailures(doc, n, source, known))
+    const { meta, body } = parseAdr(source)
+    if (meta) adrs.push({ n, doc, meta, status: statusOf(body) })
   }
   const highest = Math.max(floor, ...count.keys())
   for (let n = 1; n <= highest; n++) {
-    const seen = count.get(n) ?? 0
-    if (seen === 0)
+    const files = count.get(n) ?? []
+    if (files.length === 0)
       failures.push(
-        `${DECISIONS_DOC} has no \`## ${adrId(n)}\`. ADRs are never deleted or renumbered: restore it.`
+        `${ADR_DIR}/ has no ${adrId(n)}. ADRs are never deleted or renumbered: restore it.`
       )
-    if (seen > 1)
-      failures.push(
-        `${DECISIONS_DOC} heads \`## ${adrId(n)}\` ${seen} times. Give the new decision the next number.`
-      )
+    if (files.length > 1)
+      failures.push(`${adrId(n)} is ${files.join(' and ')}. Give the new decision the next number.`)
   }
-  failures.push(...missingBackReferences(read(root, DECISIONS_DOC)))
+  failures.push(...missingBackReferences(adrs))
   return {
-    ok: `${count.size} ADRs, ${adrId(1)} to ${adrId(highest)}, once each under # Decisions in ${DECISIONS_DOC}, every amendment named in the Status it amends`,
+    ok: `${count.size} ADRs, ${adrId(1)} to ${adrId(highest)}, one file each in ${ADR_DIR}/ with valid front-matter, every amendment named in the Status it amends`,
     failures,
   }
 }
@@ -757,15 +848,15 @@ const OVER_BUDGET: Record<string, number> = {
 }
 
 /**
- * A doc that replaced a folder of docs, and the budget that keeps its live
- * text (`liveTextOf`: everything above `# Decisions`) terse. The ADRs below
- * are an append-only record and are not counted. Raise one only on purpose,
- * saying why in the PR.
+ * A doc that replaced a folder of docs, and the budget that keeps it terse.
+ * Raise one only on purpose, saying why in the PR.
  */
 const COLLAPSED_DOCS: Record<string, number> = {
   // The architecture sections as measured when the budget moved to live text,
-  // plus "Preview deploys" and the staging backend (#preview-deploys).
-  'docs/ARCHITECTURE.md': 56_610,
+  // plus "Preview deploys" and the staging backend (#preview-deploys), plus
+  // 1,177 when the ADRs moved to docs/adr/: longer link targets
+  // (`#adr-030` → `adr/030-….md`) and the Decisions pointer, no new prose.
+  'docs/ARCHITECTURE.md': 57_787,
 }
 
 export function checkDocSizes(
@@ -788,8 +879,7 @@ export function checkDocSizes(
   }
   for (const [doc, base] of budgeted) {
     const budget = overBudget[doc] ?? base
-    const text = doc in collapsed ? liveTextOf(read(root, doc)) : read(root, doc)
-    const size = [...text].length
+    const size = [...read(root, doc)].length
     if (size > budget) {
       failures.push(
         `${doc} is ${size} characters, over its ${budget}-character budget. Cut it: no rosters, ` +

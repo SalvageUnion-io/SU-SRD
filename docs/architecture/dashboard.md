@@ -3,12 +3,12 @@
 The **Dashboard** is ITUN's live actual-play surface: one pilot in a Game, with
 their **Mech** and the crew's **Crawler**, composed into one screen that never
 scrolls, where every game action is a button. On a phone it is one scrolling
-column of the same instruments (§7, [ADR-045](../ARCHITECTURE.md#adr-045)). Components are in
+column of the same instruments (§7, [ADR-045](../adr/045-dashboard-phone-form.md)). Components are in
 `apps/itun/src/components/dashboard/`, the remaining `.pc-*` stylesheets in
 `apps/itun/src/styles/dashboard/`, and the route is
 `/dashboard/$pilotId` (`apps/itun/src/routes/dashboard/$pilotId.tsx`).
 
-The decisions are [ADR-038](../ARCHITECTURE.md#adr-038), the one Dashboard
+The decisions are [ADR-038](../adr/038-dashboard-game-surface.md), the one Dashboard
 record: Game-only, play state on a seat, Major and Minor slots, tabs, the
 reused display and the fixed canvas. Code cites its §1–§9. The live-play state
 model it drives is
@@ -119,13 +119,13 @@ Mount state must never reach the pilot/mech schema or a shared sheet: there is n
 that points at both by link id (the app id, or a template pre-gen's body id).
 Every member reads the crew's seats; only whoever may write the pilot writes its
 seat, and boarding also needs the mech
-([ADR-038](../ARCHITECTURE.md#adr-038) §2).
+([ADR-038](../adr/038-dashboard-game-surface.md) §2).
 
 ### 4.2 Persistence
 
 Live-play writes to the pilot, mech and crawler go through `entityStore.update`,
 exactly the sheet's path ([data flow](../ARCHITECTURE.md#data-flow)). In a Game
-the crawler is the table runner's ([ADR-038](../ARCHITECTURE.md#adr-038) §5):
+the crawler is the table runner's ([ADR-038](../adr/038-dashboard-game-surface.md) §5):
 the Mediator, or the Organizer while the Game has none, raises, edits and
 scraps it. The server refuses anyone else's crawler write
 (`assertMayEditCrawler`), so the crawler sheet is read-only for players, and
@@ -200,7 +200,7 @@ ITUN's `src/styles/dashboard.css`.
 
 ## 7. Mobile
 
-[ADR-045](../ARCHITECTURE.md#adr-045) gives the Dashboard a **phone form**
+[ADR-045](../adr/045-dashboard-phone-form.md) gives the Dashboard a **phone form**
 (`DashboardPhone`, origin boards D4 and D5, issue #1256). It is the same surface, not
 a second one: the same seat, store, rules and view models, and every phone
 control calls the handler its canvas twin calls.
@@ -263,7 +263,7 @@ exists in neither form; it is a follow-up for both
 ## 8. Launch flow
 
 The Dashboard opens for a pilot in a Game that has a Mediator
-([ADR-038](../ARCHITECTURE.md#adr-038) §1), and from one place: **Launch
+([ADR-038](../adr/038-dashboard-game-surface.md) §1), and from one place: **Launch
 Dashboard** at the top of the Game hub, the page `/` shows once a Game is
 picked (`LaunchDashboard.tsx`, mounted by `GameHub.tsx`). Players and the
 Mediator see it alike, only while the Game has a Mediator; without one the hub
@@ -314,7 +314,7 @@ sign-in seam).
 
 ### 10.1 CSP
 
-No `eval` or `new Function` ([ADR-013](../ARCHITECTURE.md#adr-013)).
+No `eval` or `new Function` ([ADR-013](../adr/013-csp-compliant-zod.md)).
 
 ### 10.2 Accessibility (WCAG 2.1 AA)
 
@@ -359,7 +359,7 @@ Every hue pairs with a non-colour cue.
 ### 10.3 Scale-to-fit vs zoom
 
 A scaled canvas fights browser zoom: a user at 200% gets a smaller canvas, not
-bigger text. **Closed by [ADR-045](../ARCHITECTURE.md#adr-045):** zoom shrinks
+bigger text. **Closed by [ADR-045](../adr/045-dashboard-phone-form.md):** zoom shrinks
 the CSS viewport, and past the floor on either axis the phone form takes
 over, whose type and targets zoom like any page.
 

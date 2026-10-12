@@ -5,10 +5,10 @@
 > lead — owner to confirm)**. §3 says what is left for P8b and what waits on the
 > owner.
 >
-> Read with [ADR-030](../ARCHITECTURE.md#adr-030) §3–§6 (roles, propose-never-impose,
-> visibility, surfaces), [ADR-038](../ARCHITECTURE.md#adr-038) (the player
+> Read with [ADR-030](../adr/030-accounts-games-server-of-record.md) §3–§6 (roles, propose-never-impose,
+> visibility, surfaces), [ADR-038](../adr/038-dashboard-game-surface.md) (the player
 > Dashboard: seats, Downtime, the 1280×800 canvas) and
-> [ADR-021](../ARCHITECTURE.md#adr-021) (the Adjudicate mode).
+> [ADR-021](../adr/021-itun-surface-taxonomy.md) (the Adjudicate mode).
 
 **Builds on:** #1252, #1253, and #1255 (the Game page at `/games/$gameId`,
 and invite links instead of codes). M2 is a set of sections on that page, not

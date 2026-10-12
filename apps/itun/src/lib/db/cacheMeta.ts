@@ -2,7 +2,7 @@
  * Whose rows this browser's cache holds.
  *
  * IndexedDB is a cache of one account's Convex rows
- * ([ADR-034](../../../../../docs/ARCHITECTURE.md#adr-034)). A cache that can
+ * ([ADR-034](../../../../../docs/adr/034-persistence-requires-account.md)). A cache that can
  * hold two accounts' rows is not one, so one row records the owner:
  * **`userId`**, the account the cached rows belong to, or `null` when they
  * belong to nobody yet (a fresh or just-emptied database).

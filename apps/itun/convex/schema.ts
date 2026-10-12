@@ -172,7 +172,7 @@ function containerTable() {
       appId: v.optional(v.string()),
       /**
        * Whether this entity is readable by anybody, with no account
-       * ([ADR-032](../../../docs/ARCHITECTURE.md#adr-032)).
+       * ([ADR-032](../../../docs/adr/032-public-read-only-sheets.md)).
        *
        * A column rather than a body field because it is a **visibility** fact,
        * which is server state in the same way `gameId` and `ownerId` are — and
@@ -506,7 +506,7 @@ export default defineSchema({
   /** Mediator-owned and Mediator-visible. The one thing that must stay hidden. */
   /**
    * An NPC, in exactly one of the two containers everything else uses
-   * ([ADR-034](../../../docs/ARCHITECTURE.md#adr-034)
+   * ([ADR-034](../../../docs/adr/034-persistence-requires-account.md)
    * decision 2).
    *
    * In a Game (`gameId` set, `ownerId: null`) it is the **Mediator's prepared

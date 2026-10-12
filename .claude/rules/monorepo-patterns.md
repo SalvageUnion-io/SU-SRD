@@ -15,7 +15,7 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 
 - Root `package.json` is `"private": true` to prevent accidental publishing. So
   is every workspace — nothing here is published to npm
-  ([ADR-014](../../docs/ARCHITECTURE.md#adr-014):
+  ([ADR-014](../../docs/adr/014-dataset-json-api.md):
   the dataset's public interface is the served JSON API).
 - One version, one place: a dev tool more than one workspace runs is a root
   devDependency, and a runtime package more than one workspace imports is a

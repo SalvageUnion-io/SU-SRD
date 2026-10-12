@@ -7,11 +7,11 @@ the ADRs and architecture docs this file points to.
 
 Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need to find a doc.
 
-- [ADRs](docs/ARCHITECTURE.md#decisions) — one `## ADR-NNN` each, closing `docs/ARCHITECTURE.md`. **Read an ADR's Status first**: a superseded or merged ADR says so only there (`grep -n '^## ADR-' docs/ARCHITECTURE.md` lists them). The three that govern:
-  - [ADR-030](docs/ARCHITECTURE.md#adr-030) — accounts, Games, and Convex as the server of record. Ops: [accounts](docs/ARCHITECTURE.md#accounts-and-games-operations).
-  - [ADR-021](docs/ARCHITECTURE.md#adr-021) — the surface/mode taxonomy for **where a rule is enforced**.
-  - [ADR-007](docs/ARCHITECTURE.md#adr-007) — the automation boundary. Read before building rules-driven features.
-- **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/ARCHITECTURE.md#adr-033).
+- [ADRs](docs/adr/) — one `NNN-slug.md` each. **Read its `status` front-matter first**: a superseded ADR is a tombstone naming its `supersededBy` (`grep -H '^status:' docs/adr/*.md` lists them). The three that govern:
+  - [ADR-030](docs/adr/030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record. Ops: [accounts](docs/ARCHITECTURE.md#accounts-and-games-operations).
+  - [ADR-021](docs/adr/021-itun-surface-taxonomy.md) — the surface/mode taxonomy for **where a rule is enforced**.
+  - [ADR-007](docs/adr/007-automation-boundary.md) — the automation boundary. Read before building rules-driven features.
+- **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/adr/033-hosting-on-cloudflare.md).
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — cross-cutting architecture, one section per area: `grep -n '^##'` it, then Read with an offset; never the whole file.
 - **Rules text:** gitignored here; the private repo `SalvageUnion-io/su-rules` is the source of record. Locally, `bun run rules:extract`, then grep `rules/extracted/*.txt`; in a cloud session or Routine, attach `su-rules` as a second repo and grep its committed `extracted/*.txt` (sibling checkout, no poppler; the rules checks find it there). Both carry `<!-- page N -->` markers for citations. There is no curated rules digest.
 

@@ -325,7 +325,7 @@ export const locate = query({
  * It is the way down outside a Game (`listForGame` is scoped to one): without
  * it a signed-in player opening ITUN on a second device would see an **empty
  * roster**. A cache is something that can be *filled*, and this is what fills
- * it ([ADR-034](../../../docs/ARCHITECTURE.md#adr-034) decision 2).
+ * it ([ADR-034](../../../docs/adr/034-persistence-requires-account.md) decision 2).
  *
  * ## Owned, not shelved
  *

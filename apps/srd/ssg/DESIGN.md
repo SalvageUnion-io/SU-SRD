@@ -1,7 +1,7 @@
 # srd SSG — design contract
 
 The in-house static-site generator behind `apps/srd`
-([ADR-031](../../../docs/ARCHITECTURE.md#adr-031) records why). Implement
+([ADR-031](../../../docs/adr/031-srd-in-house-vite-ssg.md) records why). Implement
 against this contract; do not invent a different one. The files are listed in
 [`apps/srd/CLAUDE.md`](../CLAUDE.md), and the types are
 [`ssg/types.ts`](types.ts): read them there.

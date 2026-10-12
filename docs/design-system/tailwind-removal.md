@@ -151,7 +151,7 @@ one most likely to be left behind "because it already works".
   deleted; no `apps/itun/src/components/dashboard/` file in the Tailwind list; the Dashboard
   stories and the ITUN dashboard route render identically to `main`.
 - **Status (2026-10-07): open.** The Dashboard redesign
-  ([ADR-038](../ARCHITECTURE.md#adr-038)) was to finish P5 and did not. Its new components are style objects with no `.pc-*`
+  ([ADR-038](../adr/038-dashboard-game-surface.md)) was to finish P5 and did not. Its new components are style objects with no `.pc-*`
   class, and its deletions took `pc-class-defined` from 129 to 103, but the
   Major's bays, the deck, resolve, Tables, SRD and Downtime surfaces still use
   `.pc-*` rules, and 13 files under `components/dashboard/` are still in the

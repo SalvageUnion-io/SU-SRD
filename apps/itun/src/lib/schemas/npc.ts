@@ -3,7 +3,7 @@ import { containerFields } from './entity'
 
 /**
  * A built NPC: the fourth owned entity, beside pilots, mechs and crawlers
- * ([ADR-044](../../../../../docs/ARCHITECTURE.md#adr-044); the model is
+ * ([ADR-044](../../../../../docs/adr/044-built-npcs.md); the model is
  * `docs/architecture/npc-builder.md`).
  *
  * It combines the data's two NPC shapes. The stat block takes its names from

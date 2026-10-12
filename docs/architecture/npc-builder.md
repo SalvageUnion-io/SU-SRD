@@ -3,7 +3,7 @@
 A built **NPC** is ITUN's fourth owned entity, beside pilots, mechs and
 crawlers: anyone designs one, keeps it on their shelf, takes it into a Game,
 and can crew a crawler's slots with it. The decisions are
-[ADR-044](../ARCHITECTURE.md#adr-044); this page is the model and the
+[ADR-044](../adr/044-built-npcs.md); this page is the model and the
 surfaces. It began as the plan in issue 1269 and the design in issue 1277.
 The design's origin, and its source of truth, is the brand-refresh canvas at
 <https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm> (boards N1 and N2); the
@@ -13,10 +13,10 @@ issue's PNGs are captures of it.
 > **(owner to confirm)** below was made by the design lead and waits on the
 > product owner.
 
-Read alongside [ADR-030](../ARCHITECTURE.md#adr-030) (containers and
-ownership), [ADR-034](../ARCHITECTURE.md#adr-034) (Convex is the only source
-of truth), [ADR-037](../ARCHITECTURE.md#adr-037) (assignments) and
-[ADR-007](../ARCHITECTURE.md#adr-007) (the automation boundary).
+Read alongside [ADR-030](../adr/030-accounts-games-server-of-record.md) (containers and
+ownership), [ADR-034](../adr/034-persistence-requires-account.md) (Convex is the only source
+of truth), [ADR-037](../adr/037-assignment-model.md) (assignments) and
+[ADR-007](../adr/007-automation-boundary.md) (the automation boundary).
 
 ## 1. The record
 
