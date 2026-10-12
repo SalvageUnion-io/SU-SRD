@@ -142,7 +142,6 @@ export { CopyFeedbackProvider } from './components/shared/copyFeedbackContext'
 // digestRollTable — a banded d20 table as rows, highest first (the book's order)
 export { digestRollTable } from './components/shared/digestRollTable'
 export { EntitySearcher } from './components/shared/EntitySearcher'
-export { FilterRow } from './components/shared/FilterRow'
 export { Inset } from './components/shared/Inset'
 export { MasonryColumns } from './components/shared/MasonryColumns'
 export { ModalShell } from './components/shared/ModalShell'
