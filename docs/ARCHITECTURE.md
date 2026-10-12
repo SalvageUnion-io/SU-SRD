@@ -703,9 +703,8 @@ without it). `src/lib/staticPaths.ts` drops meta schemas
 
 **Accessibility:** Biome's `a11y` group (`biome.jsonc`). Each app's
 `e2e/a11y.e2e.ts` (`tools/lib/a11yScan.ts`: axe-core WCAG 2.2 AA plus
-`best-practice`) scans the pages in `tools/a11y-baseline.json` and
-`tools/a11y-baseline-itun.json` at desktop and as a Pixel 7; a stale entry
-fails until a run with `A11Y_UPDATE_BASELINE=1`.
+`best-practice`) scans the pages its `PAGES` array lists at desktop and as a
+Pixel 7, and fails on any violation.
 Landmarks: labelled `<nav>`s in `AppBar.tsx` (switcher, product nav, and a
 breadcrumb trail shown once per width), `<main>` in `BaseLayout.tsx`,
 `Footer.tsx`. One `<h1>` per page (entity pages pass `titleAs="h1"` from `EntityView.tsx`
@@ -958,10 +957,11 @@ identifier: **never** add a token, DSN, bot token, OAuth secret,
 | `convex` | stdio, `bunx convex@1.45.0 mcp start --project-dir apps/itun --disable-tools envSet,envRemove,run` | `~/.convex/config.json` | ITUN deployments |
 | `context7` | `https://mcp.context7.com/mcp` | none | version-pinned docs |
 
-`claude mcp list` is the only proof a server works. GitHub has no declared
-server (`https://api.githubcopilot.com/mcp/` lacks dynamic client
-registration): use `gh`, or a local-scope `~/.claude.json` entry with a
-`headersHelper`. `convex` refuses production unless flagged
+`enabledMcpjsonServers` holds `context7` and `convex`; opt into the OAuth
+three in `.claude/settings.local.json`.
+
+GitHub has no declared server (no dynamic client registration): use `gh`, or a
+local `headersHelper` entry. `convex` refuses production unless flagged
 (`--dangerously-enable-production-deployments`,
 `--cautiously-allow-production-pii`); never add either. Its pin matches
 `apps/itun/package.json`. It targets the local deployment named by

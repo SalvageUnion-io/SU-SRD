@@ -1481,3 +1481,112 @@
     display: none;
   }
 }
+
+/*
+ * A class page's ability trees (`components/ClassAbilityTree.tsx`): the
+ * "Abilities" section slab, then a row of the Core trees (three across from
+ * 40rem) and a row of the Advanced + Legendary trees (two across).
+ *
+ * Each sequential tree draws the book's track (ruleset, "Where the screen
+ * departs from print"): a thick pipe down the tree's left with a stub into
+ * each tier's Row, so tiers 1-2-3 read as one chain trained in order. It is a
+ * diagram beside the Rows, never a left border on a card (§3.10). The pipe is
+ * one segment per tier: the first starts at its stub, the last ends at its
+ * stub, and each but the last runs down through the gap to the next tier.
+ * `data-track` picks the tier hue; a Legendary tree (pick one) has none.
+ */
+.srd-ability-tree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.srd-ability-tree__row {
+  display: grid;
+  gap: var(--space-16);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 40rem) {
+  .srd-ability-tree__row[data-columns='3'] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .srd-ability-tree__row[data-columns='2'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.srd-ability-tree__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding-top: var(--space-8);
+}
+
+.srd-ability-tree__track {
+  /* The pipe's centre line, its weight, the gap it bridges between tiers, and
+     how far down a Row its stub lands (the middle of a one-line head). */
+  --srd-track-x: var(--space-6);
+  --srd-track-weight: var(--space-6);
+  --srd-track-gap: var(--space-16);
+  --srd-track-node: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--srd-track-gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.srd-ability-tree__track[data-track='core'] {
+  --srd-track-color: var(--color-tier-core);
+}
+
+.srd-ability-tree__track[data-track='advanced'] {
+  --srd-track-color: var(--color-pilot);
+}
+
+.srd-ability-tree__tier {
+  position: relative;
+}
+
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier {
+  padding-left: var(--space-20);
+}
+
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier::before,
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier::after {
+  background: var(--srd-track-color);
+  content: '';
+  position: absolute;
+}
+
+/* The pipe segment. */
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier::before {
+  bottom: calc(-1 * var(--srd-track-gap));
+  left: calc(var(--srd-track-x) - var(--srd-track-weight) / 2);
+  top: 0;
+  width: var(--srd-track-weight);
+}
+
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier:first-child::before {
+  top: var(--srd-track-node);
+}
+
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier:last-child::before {
+  bottom: auto;
+  height: calc(var(--srd-track-node) + var(--srd-track-weight) / 2);
+}
+
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier:first-child:last-child::before {
+  content: none;
+}
+
+/* The stub from the pipe into the tier's Row. */
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier::after {
+  height: var(--srd-track-weight);
+  left: calc(var(--srd-track-x) - var(--srd-track-weight) / 2);
+  right: calc(100% - var(--space-20));
+  top: calc(var(--srd-track-node) - var(--srd-track-weight) / 2);
+}

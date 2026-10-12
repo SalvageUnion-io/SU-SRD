@@ -64,7 +64,6 @@ describe('settings.json deny rules', () => {
     ['an app component', 'apps/itun/src/components/Foo.tsx'],
     ['a tool', 'tools/check-path-filters.ts'],
     ['a doc', 'docs/README.md'],
-    ['the a11y baseline — new debt is accepted by hand, with a reason', 'tools/a11y-baseline.json'],
   ])('allow editing %s', (_label, path) => {
     expect(editDenied(path)).toBe(false)
   })
