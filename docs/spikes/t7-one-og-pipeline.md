@@ -1,174 +1,143 @@
 # Spike T7: one OG image pipeline
 
-Refit ledger item T7, spike. **Status: decided (2026-10-12): option B. Closed
-as measured; re-opens when S2 moves ITUN to salvageunion.io/build.** Nothing
-here is built; this doc is the deliverable.
-
-## Decision
-
-The owner chose **B** ([#1396](https://github.com/SalvageUnion-io/SU-SRD/pull/1396#issuecomment-6124251979)):
-srd's OG images stay build-time (`og-srd`, E6's cache) and ITUN keeps its
-runtime render. T7 closes as measured. **Re-open T7 when S2 moves ITUN to
-salvageunion.io/build**, the first trigger under Recommendation.
+Refit ledger item T7, spike. **Status: decided round 2 (2026-10-12): B.** Closed until a
+[re-open trigger](#recommendation) fires. First round: option B, chosen 2026-10-12
+([#1396](https://github.com/SalvageUnion-io/SU-SRD/pull/1396#issuecomment-6124251979)),
+re-open trigger "S2 moves ITUN to salvageunion.io/build". S2 has landed (#1423,
+#1426): ITUN is the Workers route `salvageunion.io/build*` on `su-itun`, its own
+app, Worker and deploy leg (ADR-048). Nothing here is built; the doc is the
+deliverable (see [Prototype](#prototype)).
 
 ## The question
 
 Two pipelines draw the same `OgCard` (issue 1280):
 
-| | srd (salvageunion.io) | ITUN (intheunionnow.com) |
+| | srd (salvageunion.io) | ITUN (salvageunion.io/build) |
 | --- | --- | --- |
 | What | ~1,004 reference cards (entities + chassis patterns) | player sheets, patterns, invites |
-| When | build time, in the deploy's `og-srd` job | runtime, on the unfurl's image request |
+| When | build time, the deploy's `og-srd` job | runtime, on the unfurl's image request |
 | How | Playwright + Chromium over `wrangler dev`, `sharp` palette compression (`apps/srd/scripts/og-screenshots.ts`) | Browser Rendering REST `/screenshot` of the SPA's `/og/:kind/:id` surface (`apps/itun/src/worker/linkPreview.ts`) |
 | Cache | `actions/cache`, keyed on the card's built closure + entity JSON (E6, #1391) | Cache API (per colo), keyed on a hash of the public answer |
 | Secrets | none | `CF_ACCOUNT_ID`, `BROWSER_RENDERING_TOKEN` (optional) |
 
-ITUN cannot go build-time: its cards are user data that changes at any
-moment. So "one pipeline" can only mean srd moves to runtime, or srd stops
-having per-entity images.
+ITUN cannot go build-time: its cards are user data. So "one pipeline" means srd
+renders at runtime, or something other than a browser draws both, or srd drops
+per-entity images.
 
-## What the build-time path costs now (after E6)
+## Measured (round 2)
 
-Measured on the last preview deploy before E6 landed
-([run 38223710175](https://github.com/SalvageUnion-io/SU-SRD/actions/runs/38223710175),
-cold cache), and from E6's own local runs:
+**`og-srd` on main**, the last six deploys that built srd (runs 38005649860 to
+38102977883): **warm 22–28 s, cold 140–173 s**, and **four of the six were cold**.
+Cold is any change to the card's rendering (`OgCard`, `ChapterBand`, the og-card
+page's CSS or fonts), which the refresh does most days. `deploy` needs `og-srd`;
+the job beside it, `push-convex`, ends ~15–20 s after `build-srd`. So `og-srd`
+puts **~10 s (warm) to ~150 s (cold)** on every leg's critical path, ITUN's, the
+bot's and su-assets' included, since `deploy` is one matrix with one `needs`.
+Round 1's "110 s cold" was a preview run; main is slower.
 
-- **Cold** (any change to the card's rendering, i.e. `OgCard`, `ChapterBand`, the
-  og-card page's CSS or fonts, the script, or a Playwright/sharp bump):
-  `og-srd` job **110 s**, of which the render is 80 s (1,004 cards, 5 workers).
-- **Warm** (every other commit): E6 restores all 1,004 PNGs in about 1 s. The job
-  still costs its fixed overhead: about 6 s of checkout, Bun and artifact download,
-  about 6 s of Chromium install and fingerprinting, about 4 s re-uploading the 29 MB
-  `srd-dist` artifact, and runner start. That puts **~25–30 s** on the deploy's
-  critical path, because `ship` needs `og-srd` and `build-itun` finishes first.
-- **Data edit**: only the touched cards re-render (E6: a Mule rename re-rendered
-  7 cards in 8 s).
+**Satori + resvg, against the real `OgCard`** (a scratch probe: `satori@0.18.3`,
+`@resvg/resvg-js@2.6.2`, the Scrapper card). It renders only after a pre-pass
+that rewrites the tree, and it is not the same picture:
 
-So the saving on offer is ~25–30 s per deploy, plus the cold re-renders,
-which the design refresh triggers often while the card is still changing.
-That is far less than the 108 s the ledger was written against.
+- Satori reads inline styles only. `ChapterBand`'s layout is stylesheet classes
+  (`.su-chapter-band__row`, `__title`, `__eyebrow`: padding, the hero size, the
+  `@media` steps) with `var(--space-*)`, so the band collapsed to a strip and the
+  notched title lost its seat on the band's foot.
+- Every multi-child box needs an explicit `display: flex`; `calc()` borders,
+  `useId` (Speckle's filter ids), a root-relative logo `src` and `z-index` (the
+  speckle layers) all needed rewriting or were dropped.
+- The speckle's SVG filters (`feTurbulence`) did draw, through resvg.
+- Speed: **~20 ms layout + ~270 ms PNG** per card, warm (2.7 s cold, font parse).
 
-## Options
+So a Satori renderer is a **second drawing of the card** in Satori's subset, which
+is the drift issue 1280 built `OgCard` to prevent. The card's fonts, stats, foot
+and frame came through; the band would need its og-scale layout moved out of the
+stylesheet into style objects first.
 
-### A. Runtime for both, cached in R2
+## What S2 changes, per option
 
-srd pages always advertise `/schema/…/item/{id}.og.png?v=<key>`. The file is never
-in `dist`, so Static Assets misses. srd's `not_found_handling` is `none`, so a miss
-already runs `apps/srd/src/worker/index.ts`. A new branch there would:
+### A. srd renders at runtime, cached in R2
 
-1. read `og/<key>.png` from an R2 binding and serve it if present;
-2. otherwise call Browser Rendering's `/screenshot` on
-   `https://salvageunion.io/og-card/?schema=…&item=…[&pattern=…]`. The
-   page already reads its target from the query string (`OgCardIsland`), so the
-   surface needs no change beyond waiting on `html[data-og-current="<key>"]`
-   rather than `[data-og-ready]`. Then `put` the PNG to R2 and serve it.
+Round 1's design, unchanged: srd pages advertise `…/item/{id}.og.png?v=<key>`
+(`<key>` = `ogRenderFingerprint.ts` + entity JSON, ~1 s, no Chromium); a miss
+reads R2, else screenshots `/og-card/?schema=…&item=…` through Browser Rendering
+and `put`s it. Deletes `og-screenshots.ts`, `.github/actions/srd-og/`, both `og-srd`
+jobs, `og:generate` / `og:install-browser`, srd's `sharp`. S2 adds two variants:
 
-`<key>` is the hash the build already computes per entity (the render fingerprint
-plus entity JSON, `ogRenderFingerprint.ts`). It is computed without Chromium in about 1 s
-and baked into the page's meta, so a new deploy changes the URL and an unchanged
-card hits R2 on every deploy. ITUN would move its Cache API store to the same kind of
-R2 bucket so a cold colo stops re-rendering (optional; its key scheme is fine).
+- **A1, in srd's Worker.** As round 1: an R2 binding and the two secrets on `su-srd`,
+  a paid runtime API on the site that has no backend (ADR-033).
+- **A2, in ITUN's Worker.** `/build/og/ref/…png` answered by `ogImage`, which already
+  has the screenshot, the secrets and the route. **No new route or secret**: both secrets are set on `su-itun` (owner, 2026-10-12). The
+  same-origin page it shoots is srd's `/og-card/`. But srd's unfurls then ship on
+  ITUN's Worker and deploy leg, and a broken `su-itun` blanks every rule reference's
+  preview: the coupling "merge the sites, not the code" (ADR-048) rules out. The
+  preview slot breaks too: a preview srd page would point at production ITUN.
+- **One bucket, one module.** A shared `su-og` bucket bound to both Workers is
+  natural on one zone. A shared `screenshot + cache` module is not worth having
+  today: srd's half is Playwright in CI, ITUN's a REST call in a Worker; they share
+  a viewport and a selector. It becomes real only once A exists, and then it is
+  ITUN's `screenshot` + an R2 `ImageCache` moved to a package both Workers import.
 
-- **Deletes:** `og-screenshots.ts` (533 lines), `.github/actions/srd-og/`, the `og-srd` jobs in `deploy-cloudflare.yml` and
-  `deploy-preview.yml`, the `og:generate` / `og:install-browser` scripts, and
-  srd's `sharp` dependency (`og-screenshots.ts` is its only importer). It
-  **keeps** `ogRenderFingerprint.ts` (the key) and Playwright (the e2e suites).
-- **Adds:** about 80–120 lines in srd's Worker (largely a port of `ogImage` and
-  `screenshot` from ITUN's `linkPreview.ts`, which could move into a shared
-  module), an R2 binding, two secrets on `su-srd`, and a runtime dependency on a
-  paid API for the reference site, which today has no backend at all (ADR-033).
-- **Loses:** `sharp`'s palette compression. Browser Rendering returns plain PNGs
-  (about 78 KiB per card measured locally, against the compressed build output), unless the
-  Worker re-encodes them, for example through Cloudflare Images as `su-assets` already does.
+S2 does **not** change A's costs: first-unfurl latency (an estimated 3–8 s cold;
+Discord caches a timed-out embed by URL), and so the **warm sweep**. New in round 2:
+the sweep runs *after* `deploy`, so it is **off the critical path**, which is
+A's real gain. A cold key is ~1,004 renders at BR's 10 req/s: ~2–7 min after each
+cold deploy, ~1–1.4 browser-hours each. At four cold deploys a day that is
+~120–170 h/month past the included 10 h, **~$10–15/month** at $0.09/h, during the
+refresh only. Loses `sharp` compression (~78 KiB/card plain).
 
-### B. Keep build-time for srd (status quo after E6)
+### B. Keep build-time for srd (status quo)
 
-- **Costs:** ~25–30 s per warm deploy, ~110 s cold, and Chromium in CI.
-- **Keeps:** zero first-hit latency, no secrets or paid API on srd, and every
-  card is known-good before it ships. The "never fails the build" contract (#482)
-  already holds.
+Costs ~10 s warm / ~150 s cold on every leg's deploy. Keeps zero first-unfurl
+latency, no runtime dependency on srd, every card known-good before it ships, and
+"never fails the build" (#482). S2 changes nothing here.
 
 ### C. One static image per site
 
-Every srd page uses `/og-image.png` (and ITUN its default). This deletes
-everything in A's list and adds nothing. The cost is the product: issue 1280's
-per-entity preview, with its name, stats, tone and cite, was the point. A link to
-`/schema/chassis/item/mule/` would unfurl as the site banner, with only
-`og:title`/`og:description` to tell it apart. It does not unify ITUN (its sheets
-need per-thing cards), so it only removes srd's half.
+Deletes everything in A's list, adds nothing, and loses issue 1280's per-entity
+preview; ITUN keeps its renderer, so it unifies nothing. Unchanged by S2.
 
-## Cost of runtime rendering (A)
+### D. A browser-free renderer (Satori + resvg-wasm), for both
 
-**Browser Rendering** (now "Browser Run"; REST API billed on duration only):
-Workers Paid includes **10 browser-hours/month**, then **$0.09/browser-hour**.
-REST limit: 10 requests/s. (Workers Free: 10 min/day, which is not enough for a backfill.)
+The real "one pipeline": the same JSX → PNG in srd's build (or Worker) and ITUN's
+Worker, no Chromium anywhere, no Browser Rendering secrets, ~0.3 s a card. **Not
+viable as `OgCard` stands** (measured above): it needs `ChapterBand`'s og scale and
+`Speckle` rewritten into Satori's subset, and a test that holds the Satori and
+browser pictures equal, or the preview drifts from the page.
 
-- A full re-render of all 1,004 cards at an assumed 3–5 s of billed browser time
-  each is **0.8–1.4 browser-hours**. Lazily (A as written), only cards someone
-  actually shares are ever rendered, so a month is very likely well inside the
-  included 10 h. A design-refresh week of daily card changes, *with* a warm-on-deploy
-  sweep, could be 5–10 h, which is still at or near free. Worst case
-  past the allowance is cents.
-- That per-card time is **an estimate, not a measurement**: this session has no
-  Browser Rendering token. Locally, a fresh Chromium (no reuse) loads `/og-card/`,
-  fetches 0.3–0.8 MB of chunks and data, and screenshots in **0.75–1.1 s**
-  (launch 0.2–1.4 s more). Browser Rendering adds a browser start in Cloudflare's
-  pool and the round trip to salvageunion.io.
+## Owner steps
 
-**R2:** about 1,004 × ~80 KiB ≈ 80 MB per render key, so one live key plus a few stale ones
-stays inside the free 10 GB-month. Writes are Class A, ~1k per full re-render
-(free tier 1M/month). Reads are Class B (free tier 10M/month). There is no egress
-charge. A lifecycle rule (delete after N days) would clear stale keys.
-
-**First-hit latency:** the risk that decides it. The first unfurl of a card
-waits on the screenshot, an estimated **3–8 s** cold (one Worker subrequest, Browser
-Rendering's page load with `waitUntil: networkidle0`, and the R2 put). Discord, X and
-Slack do not document their image-fetch timeouts (searched; nothing official). What
-is documented in practice is that Discord **caches the embed and image by URL**,
-so a first fetch that times out can stick as a picture-less embed for that URL.
-ITUN accepts this today. srd's links are posted far more (every rule
-reference), so it matters more there. The mitigation is a post-deploy **warm sweep**:
-a job that requests every changed card's URL so R2 is filled before anyone
-shares it. That brings back a CI job (without Chromium, about 1–2 min of HTTP
-calls on a cold key at 10 req/s) and re-creates most of what A set out to delete.
-
-## Owner steps (only if A is chosen)
-
-1. Create an R2 bucket for OG renders (e.g. `su-og`), with a lifecycle rule.
-2. Add an `r2_buckets` binding to `apps/srd/wrangler.jsonc` (and to
-   `apps/itun/wrangler.jsonc` if ITUN moves off the Cache API).
-3. `wrangler secret put CF_ACCOUNT_ID` and `BROWSER_RENDERING_TOKEN` on
-   `su-srd` (reusing ITUN's token, which needs Browser Rendering edit permission).
-   Leave them optional as on ITUN: without them srd advertises the default image.
-4. If the warm sweep is wanted, give it its own deploy job (it needs no secrets beyond
-   the site URL).
+- **A1:** create an R2 bucket (`su-og`) with a lifecycle rule; bind it in
+  `apps/srd/wrangler.jsonc` (and ITUN's, to replace its Cache API); `wrangler secret
+  put CF_ACCOUNT_ID` and `BROWSER_RENDERING_TOKEN` on `su-srd` (ITUN's token can be
+  reused); accept the BR bill; approve a post-deploy warm-sweep job.
+- **A2:** the bucket and ITUN binding as A1; both secrets are already set on
+  `su-itun` (owner, 2026-10-12); accept srd unfurls depending on `su-itun`;
+  approve the sweep. No new route or secret.
+- **B, C:** none.
+- **D:** none for infrastructure; a design call that the og-scale band may be
+  restyled for Satori, then a build-out PR (and A's bucket if ITUN's renders should
+  outlive a colo's cache).
 
 ## Recommendation
 
-**B: keep build-time for srd, and close T7 as measured.** After E6 the
-build-time path costs ~25–30 s on a warm deploy. A trades that for a paid
-runtime dependency, two secrets and a bucket on a site that has no backend
-(ADR-033), uncompressed PNGs, and a first-unfurl latency that only a warm sweep
-fixes, and that sweep is a CI job again. Unifying the *code* has value (one
-`screenshot` + cache module), but the two pipelines already share the part that
-matters, the drawing (`OgCard`, `ogCardForEntity`), so the preview cannot drift
-between sites.
+**B again, with the next trigger named. The owner chose it (2026-10-12, #1429).** S2 makes A cheaper only as A2, and A2
+puts srd's previews on ITUN's leg, against ADR-048. A1 is round 1's trade with one
+new fact on each side: cold deploys cost ~150 s and happen most refresh days, but
+moving the work to a post-deploy sweep moves it to a paid API and a sticky-blank
+first unfurl. D is the only option that is truly one pipeline, and it fails on
+fidelity today.
 
-Revisit when one of these changes:
+Re-open when:
 
-- **S2** puts ITUN at salvageunion.io/build. One zone then makes a shared R2 bucket
-  and a single OG Worker route natural, and srd's Worker gains a second job anyway.
-- The deploy's critical path shrinks enough that `og-srd`'s ~30 s is the
-  largest remaining step.
-- A browser-free renderer (Satori + resvg-wasm in a Worker, say) can draw
-  `OgCard` faithfully. That would take Chromium out of both pipelines and is the
-  real "one pipeline", but the card's CSS (the speckle, the notched title, the fonts)
-  would need proving against Satori's subset first. Out of scope here.
+- `ChapterBand`'s og scale is pure style objects (D becomes a port, not a redraw);
+- the refresh ends and cold deploys stop being daily (B's cost falls to ~10 s); or
+- the deploy's critical path is otherwise short enough that ~150 s cold dominates.
 
 ## Prototype
 
-None shipped. A Worker branch would need the bindings and secrets above to do
-anything, and a dormant code path would fail `knip`'s dead-code gate. The only
-prototype run was a local measurement: Playwright over the built
-`apps/srd/dist`, a fresh browser per card, rendering `/og-card/?schema=…&item=…`
-for a chassis, a system, an ability and a chassis pattern. Numbers are above.
+None shipped: nothing in this round needs no new infrastructure *and* is worth
+having regardless (see "One bucket, one module"), and a dormant path would fail
+`knip`. Round 1 measured a local Playwright render of `/og-card/` (0.75–1.1 s a
+card, fresh browser). Round 2's Satori probe ran from a scratch directory against
+`component-lib`'s `OgCard`, compared with `bun run shot compositions--og-card--default`.

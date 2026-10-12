@@ -328,9 +328,54 @@ describe('styling rule set', () => {
       'dead-app-css',
       'dash-class-contract',
       'package-stylesheet-import',
+      'no-tailwind',
     ]) {
       expect(found[id]).toEqual([])
     }
+  })
+
+  test('a Tailwind package in any workspace manifest (tools/ included) and a Tailwind directive in any stylesheet are found', () => {
+    const found = stylingOwnership.scan(
+      fixture({
+        ...STYLING_BASE,
+        'package.json': JSON.stringify(
+          {
+            devDependencies: { tailwindcss: '4.1.0', typescript: '5.9.0' },
+            workspaces: { packages: ['apps/*', 'packages/*', 'tools'] },
+          },
+          null,
+          2
+        ),
+        'tools/package.json': JSON.stringify(
+          { devDependencies: { '@tailwindcss/cli': '4.1.0' } },
+          null,
+          2
+        ),
+        'packages/component-lib/package.json': JSON.stringify(
+          { dependencies: { clsx: '2.1.1', 'tailwind-merge': '3.0.0' } },
+          null,
+          2
+        ),
+        'apps/itun/package.json': JSON.stringify(
+          { devDependencies: { '@tailwindcss/vite': '4.1.0' } },
+          null,
+          2
+        ),
+        'packages/component-lib/src/styles/index.css':
+          '/* @apply in a comment is prose */\n.su-x { color: red }\n@layer utilities {\n  .flex { display: flex }\n}\n',
+        'apps/srd/src/styles/global.css':
+          "@import 'component-lib/styles/entry.css';\n@source '../src';\n.su-y {\n  @apply flex;\n}\n",
+      })
+    )
+    expect(found['no-tailwind']?.map((f) => `${f.file}:${f.line} ${f.detail}`)).toEqual([
+      "package.json:3 devDependencies declares 'tailwindcss'",
+      "apps/itun/package.json:3 devDependencies declares '@tailwindcss/vite'",
+      "packages/component-lib/package.json:4 dependencies declares 'tailwind-merge'",
+      "tools/package.json:3 devDependencies declares '@tailwindcss/cli'",
+      "apps/srd/src/styles/global.css:2 Tailwind directive '@source'",
+      "apps/srd/src/styles/global.css:4 Tailwind directive '@apply'",
+      "packages/component-lib/src/styles/index.css:3 Tailwind directive '@layer utilities'",
+    ])
   })
 
   test('an app @theme, dead app CSS and an undefined dashboard class are all found', () => {

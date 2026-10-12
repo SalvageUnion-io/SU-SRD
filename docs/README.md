@@ -4,7 +4,7 @@ Intent → doc. "Areas N" and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITECT
 
 1. **UI component** — [ruleset.md](design-system/ruleset.md) (the laws); Areas 21–22.
 2. **Drawing an entity (forms, modes, the model)** — [entity-display-language.md](design-system/entity-display-language.md).
-3. **Styling** — ADR-046 ([record](design-system/tailwind-removal.md)).
+3. **Styling** — ADR-046; the working rules: [`.claude/rules/styling.md`](../.claude/rules/styling.md).
 4. **Design refresh, refit PRs, the origin's boards** — [refresh-ledger.md](design-system/refresh-ledger.md).
 5. **Data flow or persistence** — Areas 9–12; ADR-030, ADR-034.
 6. **Where a rule is enforced, combat** — Areas 17–20; ADR-021, ADR-007.

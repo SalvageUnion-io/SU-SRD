@@ -9,8 +9,8 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 38, which
 ## Status
 
 **Accepted; built.** Every decision below is in code; the Dashboard as built
-is [dashboard.md](../architecture/dashboard.md). One consequence fell short:
-Tailwind-removal P5 (below).
+is [dashboard.md](../architecture/dashboard.md). One consequence fell short
+until TW-f: Tailwind-removal P5 (below).
 
 **Amended by [ADR-045](045-dashboard-phone-form.md) (2026-10-09, proposed):** §3, §4 and §9 —
 the phone form. Below the canvas's floor the slots become unit tabs, the
@@ -228,8 +228,8 @@ replaced the rotate-to-landscape notice.
   subscription).
 - **The Dashboard's Tailwind-removal phase was to be absorbed.** The
   components use style objects and add no `.pc-*` class, but 103 `.pc-*`
-  classes remain, so [tailwind-removal.md](../design-system/tailwind-removal.md)
-  P5 is still open.
+  classes remain, so Tailwind-removal P5 stayed open until TW-f renamed them
+  `.su-dash-*` (ADR-046).
 - **Players cannot edit a Game's crawler,** on the Dashboard or the sheet.
   Until players can send requests to the Mediator in the app, they ask at the
   table.

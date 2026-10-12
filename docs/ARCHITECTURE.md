@@ -90,7 +90,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `main` ruleset (`MAIN_RULESET` in `tools/environments.ts`): linear history, strict `CI Success` + PR-title checks, CodeQL.
     Actions are allowlisted and SHA-pinned; both drift-checked nightly; no merge queue.
 29. **Deploy**
-    `deploy-cloudflare.yml` on push to `main`: plan → build → `push-convex` → deploy → smoke → record (tag `deployed/cloudflare`).
+    `deploy-cloudflare.yml` on `main` push: plan → build → `push-convex` → deploy (srd's after `og-srd`) → smoke → record (tag `deployed/cloudflare`).
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back.
 30. **Preview deploys**
     `gh workflow run deploy-preview.yml --ref <branch>`, and each `design-refresh` push → `preview-su-srd` / `preview-su-itun.alxjrvs.workers.dev` on staging Convex.
@@ -233,7 +233,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Proposed: below a 0.62 canvas scale the Dashboard renders a phone form over the same seat, models and enforcement.
     Amends ADR-038.
 46. **ADR-046 Styling is tokens, style objects and one stylesheet**
-    Accepted: `theme.css` tokens, `tokens.ts` objects, `index.css`; no Tailwind after TW7 ([plan](design-system/tailwind-removal.md)).
+    Accepted, built (TW0–TW7): `theme.css` tokens, `tokens.ts` objects, `index.css`; `styling`'s `no-tailwind` keeps Tailwind out.
 47. **ADR-047 One salvageunion.io edge Worker**
     Accepted, not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
     Supersedes ADR-043 decision 1; amends ADR-033. [Spike](spikes/o3-one-edge-worker.md).
