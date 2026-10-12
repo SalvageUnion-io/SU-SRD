@@ -15,6 +15,7 @@
     { "path": "packages/component-lib" },
     { "path": "apps/srd" },
     { "path": "apps/itun" },
+    { "path": "apps/catalog" },
     { "path": "apps/discord-bot" },
     { "path": "apps/su-assets" },
     { "path": "tools" }

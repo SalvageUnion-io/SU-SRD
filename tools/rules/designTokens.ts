@@ -58,6 +58,8 @@ export const SCAN_DIRS = [
   // the bot still fails.
   'apps/discord-bot/src',
   'apps/su-assets/src',
+  // The story catalog's chrome (sidebar, toolbar), styled from the tokens.
+  'apps/catalog/src',
   'packages/observability/src',
   'packages/itun-domain/src',
 ]

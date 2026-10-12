@@ -69,9 +69,14 @@ describe('readWorkspaces, against this repo', () => {
     expect(deps('srd')).toEqual(expect.arrayContaining(['component-lib', 'observability']))
   })
 
-  test('a component-lib edit reaches both browser apps but not the Workers', () => {
+  test('a component-lib edit reaches both browser apps and the catalog but not the Workers', () => {
     const selected = selectWorkspaces(['packages/component-lib/src/index.ts'], graph)
-    expect(selected).toEqual(['component-lib', 'itun', 'srd', 'tools'])
+    expect(selected).toEqual(['catalog', 'component-lib', 'itun', 'srd', 'tools'])
+  })
+
+  test("an app's edit runs the catalog, whose story guard reads that app's stories", () => {
+    expect(selectWorkspaces(['apps/itun/src/main.tsx'], graph)).toContain('catalog')
+    expect(selectWorkspaces(['apps/srd/src/main.tsx'], graph)).toContain('catalog')
   })
 
   test('a salvageunion-reference edit reaches every consumer', () => {

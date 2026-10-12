@@ -10,7 +10,8 @@ import {
   storyId,
   storyLabel,
   WIDTH_PRESETS,
-} from '../_catalogRoute'
+} from '../catalogRoute'
+import { STORY_GLOBS } from '../storyRoots'
 
 describe('storyId', () => {
   test('kebab-cases the title segments and the export, joined by --', () => {
@@ -133,10 +134,11 @@ describe('storiesInSource', () => {
     expect(storiesInSource('export const Default = () => null')).toEqual([])
   })
 
-  test('every story file in the package yields unique ids', () => {
-    const src = join(import.meta.dir, '../..')
-    const ids = [...new Glob('**/*.stories.tsx').scanSync(src)].flatMap((file) =>
-      storiesInSource(readFileSync(join(src, file), 'utf8')).map((s) => s.id)
+  test('every story file the catalog serves yields unique ids', () => {
+    const repo = join(import.meta.dir, '../../../..')
+    const files = STORY_GLOBS.flatMap((pattern) => [...new Glob(pattern).scanSync(repo)])
+    const ids = files.flatMap((file) =>
+      storiesInSource(readFileSync(join(repo, file), 'utf8')).map((s) => s.id)
     )
     expect(ids.length).toBeGreaterThan(100)
     expect(new Set(ids).size).toBe(ids.length)

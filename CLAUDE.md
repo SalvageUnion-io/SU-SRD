@@ -66,6 +66,7 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static referenc
 
 - `apps/srd/` - Static SRD reference site: in-house SSG on Vite, React 19 islands. No auth, no backend. Read [`apps/srd/CLAUDE.md`](apps/srd/CLAUDE.md) first.
 - `apps/itun/` - Character builder & game manager (React 19, TanStack Router, Zustand, Convex, Vite). Read [`apps/itun/CLAUDE.md`](apps/itun/CLAUDE.md); storage modes and the account gate are [`.claude/rules/itun-data-access.md`](.claude/rules/itun-data-access.md) — **read it before touching data.**
+- `apps/catalog/` - Dev-only story catalog (`bun run stories`, port 61000) over component-lib's and both apps' stories.
 - `apps/discord-bot/` - Discord bot on a Cloudflare Worker (HTTP interactions, Components V2 replies); also an ITUN Game client.
 - `apps/su-assets/` - Worker (`assets.salvageunion.io`) serving licensed artwork from the `su-lp-assets` R2 bucket, `-440`/`-880` sizes via Cloudflare Images. Image bytes never live in git; both apps' artwork depends on it (`ASSET_BASE_URL` in `packages/salvageunion-reference/lib/assets.ts`).
 - `packages/component-lib/` - Shared React component library (Base UI primitives, entity display system, typography, tokens). No build step.
