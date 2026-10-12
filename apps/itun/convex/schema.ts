@@ -90,8 +90,11 @@ export const crewSlot = v.union(
  * (`appendChangeLog`, from `dashboardRolls.ts`) are log rows about the Game
  * itself rather than about anybody's sheet. Everything that reads a row's target must therefore handle a
  * row that names no entity table — see `ownableTableFor` in `proposals.ts`.
+ *
+ * Exported so `changeLog.appendChangeLog` validates its entries against this
+ * union rather than a hand-copied one, as `entityRefType` is above.
  */
-const changeLogEntityType = v.union(
+export const changeLogEntityType = v.union(
   v.literal('pilot'),
   v.literal('mech'),
   v.literal('crawler'),
@@ -651,6 +654,10 @@ export default defineSchema({
     // which supersedes live proposals against one field without collecting an
     // entity's entire history to find them.
     .index('by_entity_state_field', ['entityId', 'state', 'field'])
+    // `changeLog.forEntity`: one entity's applied or proposed rows, newest
+    // first, read `MAX_ENTITY_ROWS` at a time rather than collected — every
+    // write appends a row, so the entity's whole history grows without limit.
+    .index('by_entity_state_ts', ['entityId', 'state', 'ts'])
     // `gameId` alone is a prefix of this. `ts` last so `proposals.alerts` can
     // read the newest N alerts in order instead of the whole log.
     .index('by_game_field', ['gameId', 'field', 'ts'])

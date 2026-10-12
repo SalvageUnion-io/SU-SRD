@@ -77,6 +77,11 @@
     {
       "path": "./packages/gates/biome/noPartialModelPatch.grit",
       "includes": ["**/*.test.ts", "**/*.test.tsx"]
+    },
+    {
+      // Convex functions only: a test reads its own handful of fixture rows.
+      "path": "./packages/gates/biome/noChangeLogCollect.grit",
+      "includes": ["**/apps/itun/convex/**", "!**/_generated/**"]
     }
   ],
   "files": {
