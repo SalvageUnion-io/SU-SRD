@@ -216,6 +216,20 @@ describe('the static summary the SRD indexes on', () => {
     expect(labels).toContain('Tech Level')
   })
 
+  test('references read as words, unless the caller draws them', () => {
+    const entity = malformed<SURefEntity>({
+      id: 'x',
+      name: 'X',
+      content: [{ type: 'paragraph', value: 'It gains the [[Vulnerable]] Trait.' }],
+    })
+    expect(extractStaticEntitySummary(entity).contentParagraphs).toEqual([
+      'It gains the Vulnerable Trait.',
+    ])
+    expect(extractStaticEntitySummary(entity, { keepReferences: true }).contentParagraphs).toEqual([
+      'It gains the [[Vulnerable]] Trait.',
+    ])
+  })
+
   test('paragraph blocks are collected and non-paragraph blocks are not', () => {
     const summary = extractStaticEntitySummary(
       malformed<SURefEntity>({

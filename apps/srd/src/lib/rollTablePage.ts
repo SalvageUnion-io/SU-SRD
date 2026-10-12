@@ -6,25 +6,27 @@
  * helper (ADR-006), not a data read.
  */
 
-import type { SURefObjectTable } from 'salvageunion-reference'
+import type { EntityRef, SURefObjectTable } from 'salvageunion-reference'
 import { parseTraitReferences, resultForTable } from 'salvageunion-reference'
 
 /**
  * Prose with its trait references resolved at build time: plain runs, and
- * each `[[Trait]]` as its name and (when the trait or keyword exists) its
- * page. Resolved on the server so the island reads no game data.
+ * each `[[Trait]]` as the words it prints and the glossary entry it names
+ * (`null` when it names none). Resolved on the server so the island reads no
+ * game data: a ref is a few strings, and the Mention draws its page and its
+ * Peek from them.
  */
-export type RefText = (string | { ref: string; href: string | null })[]
+export type RefText = (string | { text: string; ref: EntityRef | null })[]
 
-/** Split prose on its `[[Trait]]` markup, resolving each name through `hrefFor`. */
-export function refText(text: string, hrefFor: (name: string) => string | null): RefText {
+/** Split prose on its `[[Trait]]` markup, resolving each name through `resolve`. */
+export function refText(text: string, resolve: (name: string) => EntityRef | null): RefText {
   const parts: RefText = []
   let at = 0
   for (const match of parseTraitReferences(text)) {
     if (match.startIndex > at) parts.push(text.slice(at, match.startIndex))
-    const ref =
+    const words =
       match.parameter === undefined ? match.traitName : `${match.traitName} (${match.parameter})`
-    parts.push({ ref, href: hrefFor(match.traitName) })
+    parts.push({ text: words, ref: resolve(match.traitName) })
     at = match.startIndex + match.fullMatch.length
   }
   if (at < text.length) parts.push(text.slice(at))
@@ -33,7 +35,7 @@ export function refText(text: string, hrefFor: (name: string) => string | null):
 
 /** The same prose as plain text, each reference by its name. */
 export function plainText(parts: RefText): string {
-  return parts.map((part) => (typeof part === 'string' ? part : part.ref)).join('')
+  return parts.map((part) => (typeof part === 'string' ? part : part.text)).join('')
 }
 
 /** One banded row, as the page prints it. */

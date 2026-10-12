@@ -28,13 +28,13 @@ import type { RowSlots } from '../../../entity/forms/Row'
 import { Row } from '../../../entity/forms/Row'
 import type { TokenFact, TokenSlots } from '../../../entity/forms/Token'
 import { Token } from '../../../entity/forms/Token'
+import { InsidePeekContext } from '../../../entity/peekContext'
 import { Badge } from '../../chrome/Badge'
 import { assetSrcSetFor } from '../../shared/assetSrcSet'
 import { CardImage } from '../../shared/CardImage'
 import type { CardExtent, CardSize } from '../../shared/displayMode'
 import { resolveCardDisplay } from '../../shared/displayMode'
 import type { StatItem } from '../../shared/statsBarTypes'
-import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import { useEntityExternalLink } from '../entityHrefContext'
 import { quotePatternName } from '../pattern/quotePatternName'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
@@ -176,10 +176,10 @@ const BODY_PAD: Record<CardSize, { ruled: string; open: string }> = {
 function resolveHide(
   hideProp: ReferenceEntityCardHideConfig | undefined,
   isCatalog: boolean,
-  insideTooltip: boolean
+  insidePeek: boolean
 ): ReferenceEntityCardHideConfig | undefined {
   const base = isCatalog ? { ...hideProp, actions: true, choices: true, patterns: true } : hideProp
-  return insideTooltip ? { ...base, rollTable: true } : base
+  return insidePeek ? { ...base, rollTable: true } : base
 }
 
 /**
@@ -371,7 +371,7 @@ function ReferenceEntityCardInner({
   const entity = data as SURefMetaEntity
   // Hooks run above every early return below.
   const externalLinkNode = useEntityExternalLink(data as SURefEntity)
-  const insideTooltip = useContext(InsideTooltipContext)
+  const insidePeek = useContext(InsidePeekContext)
   const textureFromHost = useContext(CardTextureContext)
   const textured = texture ?? textureFromHost
   const schemaName = (
@@ -391,7 +391,7 @@ function ReferenceEntityCardInner({
   const depth = isAction ? Math.max(depthProp, 1) : depthProp
   const compact = depth > 0 || size !== 'large'
   const isCatalog = extent === 'catalog'
-  const hide = resolveHide(hideProp, isCatalog, insideTooltip)
+  const hide = resolveHide(hideProp, isCatalog, insidePeek)
   const tone = resolveCardTone(schemaName, entity)
   // HAVE vs DO, by data shape (an ability row wears its tier tone).
   const fill: HeaderFill = resolveHeaderFill(entity, extent)
@@ -1188,7 +1188,7 @@ function ReferenceEntityCardInner({
                 additionalSources={compact || userMade ? undefined : provenance.additionalSources}
                 footMeta={footMeta}
                 externalLink={
-                  extent === 'full' && !insideTooltip && !userMade ? externalLinkNode : undefined
+                  extent === 'full' && !insidePeek && !userMade ? externalLinkNode : undefined
                 }
                 size={size}
                 dashed={userMade}

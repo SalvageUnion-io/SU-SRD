@@ -1,17 +1,16 @@
-import { Tooltip } from '@base-ui/react/tooltip'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { getChoices, SalvageUnionReference } from 'salvageunion-reference'
+import { getChoices, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
+import { Mention } from '../../../entity/forms/Mention'
+import { PeekCard } from '../../../entity/PeekCard'
+import { PEEK_PLATE } from '../../../entity/peekPlate'
 import type { Story } from '../../../stories/_harness'
 import { Caption } from '../../../stories/_harness'
-import { InlineRef } from '../../chrome/InlineRef'
 import type { EntityStatus } from '../../shared/entityStatus'
 import type { StatItem } from '../../shared/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
-import { EntityHovercard, EntityHovercardCard } from '../EntityTooltip'
 import { PatternHrefProvider } from '../entityHrefContext'
-import { HOVERCARD_PLATE_FILTER } from '../hovercardPlate'
 import { ReferenceEntityCard } from './ReferenceEntityCard'
 
 export default {
@@ -777,35 +776,18 @@ export const Contexts: Story = () => {
         <Caption>in prose: the shortform</Caption>
         <ReferenceEntityCard data={system} size="small" extent="head" />
       </div>
-      {/* The whole row. The popup is portaled over the page, so it would sit
+      {/* The whole row. The Peek is portaled over the page, so it would sit
           on the Listing rows and the in-prose pill above: the cell lays the
-          same plate out IN FLOW, under a closed trigger that still opens the
-          real popup on hover. */}
+          same plate out IN FLOW, under a Mention that still opens the real
+          Peek on hover (the catalog mounts the page's PeekHost). */}
       <div style={{ ...panel, gridColumn: '1 / -1' }}>
-        <Caption>Tooltip · the hovercard plate — a lifted plate, terminal and flat</Caption>
+        <Caption>Peek · the compact card on its plate — lifted, terminal and flat</Caption>
         <p style={{ fontSize: '14px', margin: 0 }}>
-          …then mount the{' '}
-          <Tooltip.Root>
-            <Tooltip.Trigger
-              // The prose link (ruleset §3.1): an InlineRef, here to the card's story.
-              render={
-                <InlineRef href="#compositions--entity--reference-entity-card--system-card">
-                  Salvaging Drill
-                </InlineRef>
-              }
-            />
-            <EntityHovercard entity={system} />
-          </Tooltip.Root>{' '}
+          …then mount the <Mention entityRef={toEntityModel(system).ref}>Salvaging Drill</Mention>{' '}
           and roll.
         </p>
-        <div
-          style={{
-            filter: HOVERCARD_PLATE_FILTER,
-            maxWidth: 'min(500px, 100%)',
-            paddingBottom: '4px',
-          }}
-        >
-          <EntityHovercardCard entity={system} />
+        <div style={{ ...PEEK_PLATE, maxWidth: 'min(500px, 100%)', paddingBottom: '4px' }}>
+          <PeekCard entity={system} />
         </div>
       </div>
     </div>

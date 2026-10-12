@@ -4,11 +4,11 @@ import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
 import { getReferenceEntityName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { Entity } from '../../../entity/Entity'
+import { InsidePeekContext } from '../../../entity/peekContext'
 import type { EntityMode } from '../../../entity/types'
 import { Button } from '../../chrome/Button'
 import { Slab } from '../../chrome/Slab'
 import type { CardSize } from '../../shared/displayMode'
-import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityDetailDialog } from '../EntityDetailDialog'
 import { useEntityDetailLink, useEntityHref } from '../entityHrefContext'
@@ -108,6 +108,22 @@ export function CardTray({
   )
 }
 
+/** Children inside a Peek: one read-only Token each, on a wrapping line (E16). */
+function PeekTokens({ entities }: { entities: ReferenceCardEntity[] }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[4] }}>
+      {entities.map((nested, index) => (
+        <Entity
+          key={cardKey(nested, index)}
+          form="token"
+          entity={nested as SURefMetaEntity}
+          mode={{ kind: 'read' }}
+        />
+      ))}
+    </div>
+  )
+}
+
 /**
  * A list of nested cards, stacked in their tray. Depth 1 renders the full
  * medium card; from depth 2 a child is a one-line head row that opens the
@@ -126,6 +142,8 @@ export function NestedCardList({
 }) {
   const { NestedCard } = host
   const depth = host.depth + 1
+  // A Peek draws its children as Tokens only (E16).
+  if (useContext(InsidePeekContext)) return <PeekTokens entities={entities} />
   return entities.map((nested, index) =>
     depth >= 2 ? (
       <NestedRow key={cardKey(nested, index)} data={nested} host={host} />
@@ -157,14 +175,14 @@ export function NestedCardList({
 export function NestedRow({ data, host }: { data: ReferenceCardEntity; host: NestedCardHost }) {
   const { NestedCard } = host
   const [open, setOpen] = useState(false)
-  const insideTooltip = useContext(InsideTooltipContext)
+  const insidePeek = useContext(InsidePeekContext)
   const href = useEntityHref(data as SURefEntity)
   const linkOut = useEntityDetailLink() && !!href
   const entityName = getReferenceEntityName(data) ?? 'Entity details'
   // A nested ACTION drops its ` (Host)` suffix: its host is right above it.
   const title = stripHostParenthetical(entityName, host.entityName)
   const instance = { title, ...(host.isDown ? { condition: 'damaged' as const } : {}) }
-  const mode: EntityMode = insideTooltip
+  const mode: EntityMode = insidePeek
     ? { kind: 'read' }
     : linkOut
       ? { kind: 'link', href, attrs: { 'aria-label': `Open ${entityName}` } }
@@ -226,7 +244,19 @@ export function NestedCardGroup({
  */
 export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: NestedCardHost }) {
   const { NestedCard } = host
+  const insidePeek = useContext(InsidePeekContext)
   if (drones.length === 0) return null
+  if (insidePeek) {
+    return (
+      <CardTray
+        label={drones.length === 1 ? 'Drone' : 'Drones'}
+        count={drones.length}
+        size={host.size}
+      >
+        <PeekTokens entities={drones.map((info) => info.drone)} />
+      </CardTray>
+    )
+  }
   return (
     <CardTray
       label={drones.length === 1 ? 'Drone' : 'Drones'}
@@ -301,7 +331,7 @@ export function ActionsChip({
 }) {
   const [open, setOpen] = useState(false)
   // Terminal in a tooltip popup: no chip to press.
-  if (useContext(InsideTooltipContext)) return null
+  if (useContext(InsidePeekContext)) return null
   const noun = count === 1 ? 'action' : 'actions'
   return (
     <>

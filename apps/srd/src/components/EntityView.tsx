@@ -31,7 +31,6 @@ import { itemHref } from '../lib/entityHref'
 import { extractStaticEntitySummary } from '../lib/gameData'
 import { patternStaticSummary } from '../lib/patternSummary'
 import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
-import { resolveTraitHref } from '../lib/staticLinks'
 import { Island } from '../runtime/Island'
 import { EntityCardStatic } from './EntityCardStatic'
 import { StaticEntityContent } from './StaticEntityContent'
@@ -49,9 +48,10 @@ export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
     return <EntityCardStatic item={item} pattern={pattern} artSlot={artSlot} />
   }
 
+  // The fallback draws its references as Mentions, so it keeps their markup.
   const staticSummary = pattern
-    ? patternStaticSummary(item, pattern)
-    : extractStaticEntitySummary(item)
+    ? patternStaticSummary(item, pattern, { keepReferences: true })
+    : extractStaticEntitySummary(item, { keepReferences: true })
 
   return (
     <>
@@ -68,7 +68,6 @@ export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
       />
       <StaticEntityContent
         summary={staticSummary}
-        resolveTraitHref={resolveTraitHref}
         parent={
           pattern
             ? {

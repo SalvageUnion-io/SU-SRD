@@ -111,7 +111,7 @@ two. A composition only one app renders, and its styles, live in that app
 `.pc-*` rules in `apps/itun/src/styles/dashboard/`) until a second app renders
 it. `bun run check barrel-consumers` enforces both halves: it fails an export
 no app imports, and a single-app export whose story files it under
-`Compositions/`. Internal on purpose: no `Tooltip`; `EntityTooltip` and `ConditionChip` are
+`Compositions/`. Internal on purpose: no `Tooltip`; `PeekCard` and `ConditionChip` are
 sub-parts. Customise through generic slot props and hooks that return them.
 
 ### component-lib dependencies

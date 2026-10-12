@@ -2346,6 +2346,24 @@ a.su-pattern-rows__row:hover {
   cursor: help;
 }
 
+/* The opener form (ITUN's Page): a button that reads as the same word. */
+.su-inline-ref--button {
+  background: none;
+  border-inline: 0;
+  border-top: 0;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  padding: 0;
+  text-align: inherit;
+  text-transform: inherit;
+}
+
+/* A Peek trigger: a long press opens the Peek, not the phone's link callout. */
+[data-peek] {
+  -webkit-touch-callout: none;
+}
+
 /* The flowing entity page's art (see `.su-entity-page--flow`), after the
    hero's own rules: capped so a tall portrait does not hold the wide blocks
    (a class's ability tree) far down the page, and a censor mark kept squat. */

@@ -219,6 +219,12 @@ export * as tokens from './design/tokens'
 export { Entity } from './entity/Entity'
 export { EntitySurfaceProvider } from './entity/EntitySurface'
 export type { EntitySurfaceValue } from './entity/entitySurfaceContext'
+// MENTION and PEEK (E4, E16): an entity named in prose, and the page's one
+// host for the read-only card a mention or a trait tag shows on hover, focus
+// or long-press.
+export { Mention } from './entity/forms/Mention'
+export type { PeekLoader } from './entity/Peek'
+export { PeekHost } from './entity/Peek'
 export type { EntityRowModel } from './entity/types'
 /** `CSSProperties` that also admits `--custom-property` keys (see styles/cssVars). */
 export type { CSSVarStyle } from './styles/cssVars'

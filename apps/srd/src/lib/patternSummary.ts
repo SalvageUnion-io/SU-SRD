@@ -34,9 +34,12 @@ function loadoutLine(items: { name: string; count?: number }[] | undefined): str
  */
 export function patternStaticSummary(
   host: SURefEntity,
-  pattern: SURefObjectAnyPattern
+  pattern: SURefObjectAnyPattern,
+  /** Keep `[[Trait]]` markup for a renderer that draws Mentions (the fallback). */
+  options: { keepReferences?: boolean } = {}
 ): StaticEntitySummary {
-  const hostSummary = extractStaticEntitySummary(host)
+  const hostSummary = extractStaticEntitySummary(host, options)
+  const prose = options.keepReferences ? (text: string) => text : plainTraitText
   const patternName = normalizePatternName(pattern.name)
 
   const patternParagraphs = (pattern.content ?? [])
@@ -44,7 +47,7 @@ export function patternStaticSummary(
       (block) =>
         block && (!block.type || block.type === 'paragraph') && typeof block.value === 'string'
     )
-    .map((block) => plainTraitText(String(block.value)))
+    .map((block) => prose(String(block.value)))
 
   const systems = 'systems' in pattern ? loadoutLine(pattern.systems) : undefined
   const modules = 'modules' in pattern ? loadoutLine(pattern.modules) : undefined

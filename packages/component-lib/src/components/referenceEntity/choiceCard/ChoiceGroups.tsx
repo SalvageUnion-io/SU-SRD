@@ -3,12 +3,12 @@ import { useCallback, useContext, useState } from 'react'
 import type { SURefEntity, SURefObjectChoice } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
 import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
+import { InsidePeekContext } from '../../../entity/peekContext'
 import type { CSSVarStyle } from '../../../styles/cssVars'
 import { cn } from '../../../utils/cn'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Badge } from '../../chrome/Badge'
 import { FOCUS_RING, INPUT_FOCUS } from '../../chrome/interaction'
-import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import { CardRollTable } from '../card/CardRollTable'
 import { CardTopRail } from '../card/CardTopRail'
 import { onToneText, textBand } from '../referenceEntityHelpers'
@@ -273,7 +273,7 @@ function ChoiceOptionGroup({
   renderEntityOption?: (option: EntityOption) => ReactNode
 }): ReactNode {
   // Terminal in a tooltip popup (ruleset §1): the table's Roll/Show controls go.
-  const insideTooltip = useContext(InsideTooltipContext)
+  const insidePeek = useContext(InsidePeekContext)
   const toneVar: CSSVarStyle = { '--tone-deep': toneColor }
   const kind = getChoiceSourceKind(choice)
   const value = selected[0] ?? ''
@@ -314,7 +314,7 @@ function ChoiceOptionGroup({
           // rolling the table below fills it (RollTable.onRollResult).
           <StampsealField label={choice.name} value={value} onChange={onFreeTextChange} />
         )}
-        {table && !insideTooltip && (
+        {table && !insidePeek && (
           <CardRollTable
             table={table}
             name={`${tableName} Table`}

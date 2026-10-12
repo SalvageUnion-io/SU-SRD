@@ -380,10 +380,18 @@ export type StaticEntitySummary = {
  * Collects text content, numeric stats, and trait names into a flat structure
  * suitable for rendering as static HTML at build time.
  * @param entity - The entity to extract a summary from
+ * @param options.keepReferences - Keep the prose's `[[Trait]]` markup, for a
+ *   renderer that draws each reference as a Mention (the SRD's static
+ *   fallback). By default the references read as plain words, for every
+ *   surface that prints text (meta descriptions, the roll-table page's note).
  * @returns Static summary data
  */
 
-export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySummary {
+export function extractStaticEntitySummary(
+  entity: SURefEntity,
+  options: { keepReferences?: boolean } = {}
+): StaticEntitySummary {
+  const prose = options.keepReferences ? (text: string) => text : plainTraitText
   const name = getName(entity) ?? entity.id
   const description = getDescription(entity)
   const source = getSource(entity)
@@ -401,7 +409,7 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
         (!block.type || block.type === 'paragraph') &&
         typeof block.value === 'string'
       ) {
-        contentParagraphs.push(plainTraitText(block.value))
+        contentParagraphs.push(prose(block.value))
       }
     }
   }
@@ -478,7 +486,7 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
             (!block.type || block.type === 'paragraph') &&
             typeof block.value === 'string'
           ) {
-            paragraphs.push(plainTraitText(block.value))
+            paragraphs.push(prose(block.value))
           }
         }
       }
@@ -490,13 +498,13 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
   // note on `StaticEntitySummary.table`.
   const table =
     'table' in entity && entity.table && !isColumnsTable(entity.table)
-      ? tableRows(entity.table).map((row) => ({ ...row, value: plainTraitText(row.value) }))
+      ? tableRows(entity.table).map((row) => ({ ...row, value: prose(row.value) }))
       : []
 
   return {
     name,
-    // Prose prints here without rendering references: read them as words.
-    description: description === undefined ? undefined : plainTraitText(description),
+    // Unless the caller draws references, they read as words (`prose`).
+    description: description === undefined ? undefined : prose(description),
     source,
     page,
     techLevel,
