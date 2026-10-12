@@ -231,10 +231,44 @@ function replyMembers(ctx: AdapterContext) {
   }
 }
 
+/**
+ * The message a message context-menu command was used on: Discord sends it
+ * whole under `resolved.messages`, keyed by `target_id`. Null for a slash
+ * command, which has no target.
+ */
+function targetMessageOf(
+  data:
+    | {
+        target_id?: string
+        resolved?: {
+          messages?: Record<
+            string,
+            { content?: string; author?: { global_name?: string | null; username?: string } }
+          >
+        }
+      }
+    | undefined
+): { content: string; author?: string } | null {
+  const id = data?.target_id
+  const message = id ? data?.resolved?.messages?.[id] : undefined
+  if (!message) return null
+  const author = message.author?.global_name ?? message.author?.username
+  return { content: message.content ?? '', ...(author ? { author } : {}) }
+}
+
 /** Build the chat-input surface `Command.execute` expects. */
 export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInteraction {
   const raw = ctx.raw as {
-    data?: { options?: APIApplicationCommandInteractionDataOption[] }
+    data?: {
+      options?: APIApplicationCommandInteractionDataOption[]
+      target_id?: string
+      resolved?: {
+        messages?: Record<
+          string,
+          { content?: string; author?: { global_name?: string | null; username?: string } }
+        >
+      }
+    }
     channel_id?: string | null
     member?: {
       nick?: string | null
@@ -261,6 +295,7 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
     // actually used.
     user: { id: raw.member?.user?.id ?? raw.user?.id ?? '', displayName: displayNameOf(raw) },
     channelId: raw.channel_id ?? null,
+    targetMessage: targetMessageOf(raw.data),
     signed: ctx.signed ?? null,
     directMessage: (userId: string, payload: unknown) => directMessage(ctx.rest, userId, payload),
     ...replyMembers(ctx),
@@ -296,7 +331,7 @@ async function directMessage(
 /** Build the button surface `handleButtonInteraction` expects. */
 export function makeButtonInteraction(ctx: AdapterContext): CommandButtonInteraction {
   const raw = ctx.raw as {
-    data?: { custom_id?: string }
+    data?: { custom_id?: string; values?: string[] }
     channel_id?: string | null
     member?: {
       nick?: string | null
@@ -307,9 +342,20 @@ export function makeButtonInteraction(ctx: AdapterContext): CommandButtonInterac
 
   return {
     customId: raw.data?.custom_id ?? '',
+    values: raw.data?.values ?? [],
     user: { id: raw.member?.user?.id ?? raw.user?.id ?? '', displayName: displayNameOf(raw) },
     channelId: raw.channel_id ?? null,
     ...replyMembers(ctx),
+    // Redraw the message the control is on. First, it IS the HTTP response
+    // (UPDATE_MESSAGE); after that, the component's message is `@original`.
+    async update(payload: unknown): Promise<unknown> {
+      if (!ctx.sink.settled) {
+        ctx.sink.send({ type: InteractionResponseType.UpdateMessage, data: payload })
+        return undefined
+      }
+      const token = (ctx.raw as { token: string }).token
+      return ctx.rest.patch(webhookRoutes(ctx.applicationId, token).original, { body: payload })
+    },
   } as CommandButtonInteraction
 }
 
