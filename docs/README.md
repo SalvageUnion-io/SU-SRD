@@ -15,7 +15,7 @@ Read with an offset and limit, never the whole file.
 | deciding where a rule is enforced, or touching combat | [rules and ITUN surfaces](ARCHITECTURE.md#rules-and-itun-surfaces), [combat loop](ARCHITECTURE.md#combat-loop), ADR-021, ADR-007 |
 | working on the Dashboard | [architecture/dashboard.md](architecture/dashboard.md), ADR-038 (the one decision record) |
 | working on the Mediator Dashboard or a Game's own page | [architecture/mediator-dashboard.md](architecture/mediator-dashboard.md), ADR-030 §3–§6, ADR-038 |
-| deciding whether to keep, freeze or cut the Dashboard or Mediator Dashboard | [spikes/d8-dashboard-usage.md](spikes/d8-dashboard-usage.md) (usage spike; Dashboard kept for now) |
+| deciding whether to keep, freeze or cut the Dashboard or Mediator Dashboard | [spikes/d8-dashboard-usage.md](spikes/d8-dashboard-usage.md) (usage spike; both kept for now) |
 | sharing a sheet (public sheets; retired snapshot links) | ADR-032, ADR-036 |
 | working on accounts, Games or the Convex backend | ADR-030, [accounts and Games operations](ARCHITECTURE.md#accounts-and-games-operations) |
 | setting up a Convex deployment, repairing data, rotating auth secrets or Convex error reporting | the [`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill |

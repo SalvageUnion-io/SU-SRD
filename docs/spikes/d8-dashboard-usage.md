@@ -1,11 +1,11 @@
 # D8 spike — is the Dashboard and Mediator Dashboard use worth the next styling phase?
 
-**Status:** decided 2026-10-12. **The owner is keeping the Dashboard for
-now.** Tailwind-removal P5 stays on the plan, and no cut is scheduled. The
-decision was made without the production numbers, which were out of reach
-from the cloud session that wrote this doc. The queries and thresholds below
-remain the way to revisit it. The Mediator Dashboard was not part of the
-decision. No code was deleted.
+**Status:** decided 2026-10-12. **The owner is keeping both the Dashboard
+and the Mediator Dashboard for now.** Tailwind-removal P5 stays on the plan,
+and no cut is scheduled. The decision was made without the production
+numbers, which were out of reach from the cloud session that wrote this doc.
+The queries and thresholds below remain the way to revisit it. No code was
+deleted.
 
 Measured on `design-refresh` at 2026-10-12.
 
@@ -257,4 +257,4 @@ both).**
 | writes: dashboard / live-sheet / discord-bot / mediator-proposal | | |
 | `mediator:amMediator` calls | | |
 | `seats:forGame` calls | | |
-| Decision | Keep the Dashboard for now (owner, without usage numbers); Mediator Dashboard not decided | 2026-10-12 |
+| Decision | Keep both the Dashboard and the Mediator Dashboard for now (owner, without usage numbers) | 2026-10-12 |
