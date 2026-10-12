@@ -12,7 +12,7 @@
     "lib": ["ES2022"],
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    // `tools/` reads JSON baselines (styling-baseline, a11y-baseline) directly.
+    // `tools/` reads JSON baselines (styling-baseline) directly.
     "resolveJsonModule": true
   },
   "include": ["**/*.ts", "../test/**/*.ts"]

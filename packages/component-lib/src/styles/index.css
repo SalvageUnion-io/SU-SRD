@@ -1634,6 +1634,10 @@ body {
  * The book's framed numeral beside its ink stamp. Two cells to a row on a
  * phone; from `sm`, as many 200px cells as fit (two beside the entity art).
  * `row-reverse` draws the numeral first while the source reads label, value.
+ * The stamp is sized to its label, not to the cell: the rest of the cell is
+ * paper, so a column of stats reads as numerals with tags (the book's weight)
+ * rather than as solid ink bars that outweigh the title and the art. It may
+ * still shrink and wrap when the cell is narrower than the label.
  */
 .su-stat-column {
   display: grid;
@@ -1670,7 +1674,7 @@ body {
   background-color: var(--color-ink);
   color: var(--color-paper);
   display: flex;
-  flex: 1;
+  flex: 0 1 auto;
   font-family: var(--font-cond);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);

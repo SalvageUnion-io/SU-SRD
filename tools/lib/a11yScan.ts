@@ -1,25 +1,16 @@
 /**
  * The WCAG 2.2 AA scan both apps run as a Playwright spec (`e2e/a11y.e2e.ts`):
- * axe-core over every page keyed in the app's baseline, at a 1280×900 desktop
- * and again as a Pixel 7, judged by `diffAgainstBaseline`.
+ * axe-core over the spec's page list, at a 1280×900 desktop and again as a
+ * Pixel 7. Any violation, on any page or device, fails the spec.
  *
  * It is a spec rather than a script so the scan rides the suite's own browser
  * and `webServer`: one Playwright setup per app, not a second launcher with its
- * own server boot, readiness loop and emulation. The page list lives in ONE
- * place, the baseline's keys, so it cannot drift from what is scanned: a page
- * in the baseline but not scanned would otherwise be reported stale.
- *
- * `A11Y_UPDATE_BASELINE=1` deletes stale entries from the baseline and nothing
- * else; accepting new debt stays a hand-edit with its reason beside it.
+ * own server boot, readiness loop and emulation.
  */
 
-import { readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { fileURLToPath } from 'node:url'
 import type { Browser, BrowserContextOptions, Page, Request } from '@playwright/test'
 import { devices } from '@playwright/test'
-import type { Baseline } from './a11yBaseline'
-import { diffAgainstBaseline, serializeBaseline } from './a11yBaseline'
 
 /** axe-core from the local install: the scan needs no network egress. */
 const require = createRequire(import.meta.url)
@@ -28,7 +19,7 @@ const AXE_PATH = require.resolve('axe-core/axe.min.js')
 /**
  * Every page is scanned at a desktop, then as a phone. A phone lays the apps
  * out differently — a drawer for the nav, stacked cards, narrow scroll regions
- * — so the one baseline is judged on the union of both.
+ * — so each page must pass on both.
  */
 const EMULATIONS: Record<string, BrowserContextOptions> = {
   desktop: { viewport: { width: 1280, height: 900 } },
@@ -178,12 +169,12 @@ async function waitUntilSettled(
   }
 }
 
-/** Every baseline page, scanned in one context emulating `device`. A page whose scan throws is -1. */
+/** Every page, scanned in one context emulating `device`. A page whose scan throws is -1. */
 async function scanAs(
   browser: Browser,
   device: string,
   baseURL: string,
-  pages: string[],
+  pages: readonly string[],
   ready: string | undefined
 ): Promise<PageResult[]> {
   const context = await browser.newContext({
@@ -233,36 +224,34 @@ async function scanAs(
 }
 
 /**
- * Scan every page in `tools/<baselineFile>` on every emulation and judge the
- * run against that baseline. With `A11Y_UPDATE_BASELINE=1`, stale entries are
- * deleted from the file and no longer reported.
+ * Scan every page on every emulation. Returns each result, and one line per
+ * violation (or crashed scan): the spec asserts that list is empty.
  */
-export async function scanAgainstBaseline({
+export async function scanPages({
   browser,
   baseURL,
-  baselineFile,
+  pages,
   ready,
 }: {
   browser: Browser
   baseURL: string
-  baselineFile: string
+  pages: readonly string[]
   /** An element the page must contain before it counts as settled, for a loading state `unsettled` does not know. */
   ready?: string
-}): Promise<{ results: PageResult[]; regressions: string[]; stale: string[] }> {
-  const baselinePath = fileURLToPath(new URL(`../${baselineFile}`, import.meta.url))
-  const baseline = JSON.parse(readFileSync(baselinePath, 'utf8')) as Baseline
-  const pages = Object.keys(baseline.pages)
-
+}): Promise<{ results: PageResult[]; violations: string[] }> {
   const results: PageResult[] = []
   for (const device of Object.keys(EMULATIONS)) {
     results.push(...(await scanAs(browser, device, baseURL, pages, ready)))
   }
 
-  const { regressions, stale, pruned } = diffAgainstBaseline(results, baseline)
-  if (process.env.A11Y_UPDATE_BASELINE === '1' && stale.length > 0) {
-    writeFileSync(baselinePath, serializeBaseline(pruned))
-    for (const line of stale) console.error(`a11y: PRUNED ${line}`)
-    return { results, regressions, stale: [] }
+  const violations: string[] = []
+  for (const result of results) {
+    // A crashed scan is -1. It must never read as "no violations".
+    if (result.violations < 0) {
+      violations.push(`${result.page} (${result.device}): the scan itself failed`)
+      continue
+    }
+    for (const { id } of result.details) violations.push(`${result.page} (${result.device}): ${id}`)
   }
-  return { results, regressions, stale }
+  return { results, violations }
 }
