@@ -1350,6 +1350,8 @@
 
 .srd-listing {
   --srd-listing-min: 19rem;
+  /* A tile's band under its art (the Catalog's placeholders, below). */
+  --srd-tile-band: 9.75rem;
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
@@ -1360,6 +1362,7 @@
 
 .srd-listing[data-wide] {
   --srd-listing-min: 31rem;
+  --srd-tile-band: 10.8125rem;
 }
 
 .srd-listing__groups {
@@ -1442,16 +1445,24 @@
   min-width: 0;
 }
 
-/* A tile's place while the data loads: the art box, the band, the cells and
-   the lore line's three lines. A tile is a 3:4 art box over ~10rem of band
-   and cells, so its ratio drifts with the column; measured at 1280px and
-   1440px, chassis and NPC rows run 1:2.00–1:2.12, and 1:2.06 sits within
-   ~13px of each. The server-rendered names below take the same shape. */
+/* A tile's place while the data loads, in the tile's own structure: its 3:4
+   art box (inside the frame's border), then a fixed band for the tone band,
+   the cells and the lore line's three lines. The band does not scale with the
+   column, so the shape holds at every column width. Measured on the built
+   site at 1280px and 1440px, the band under the art runs 9.75rem in most
+   listings and 10.8125rem in the wide one (chassis, whose cells take two
+   lines); a row whose tiles fall short of that stretches to it. The
+   server-rendered names below take the same shape. */
 .srd-listing__tile-skeleton {
-  aspect-ratio: 1 / 2.06;
   background-color: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink-20);
   border-radius: var(--radius-card);
+  padding-bottom: var(--srd-tile-band);
+}
+
+.srd-listing__tile-skeleton::before {
+  aspect-ratio: 3 / 4;
+  content: '';
 }
 
 /* Before the island mounts, a listing with art sets its server-rendered names
@@ -1464,11 +1475,20 @@
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
   }
 
+  /* The art box spans the frame (out through the row's side padding), the
+     name sits in the band below it, as a tile's does. */
   .srd-listing[data-art] .srd-listing__fallback-row {
-    align-items: flex-end;
-    aspect-ratio: 1 / 2.06;
-    padding-bottom: var(--space-12);
+    align-items: center;
+    display: grid;
+    grid-template-rows: auto var(--srd-tile-band);
     white-space: normal;
+  }
+
+  .srd-listing[data-art] .srd-listing__fallback-row::before {
+    align-self: stretch;
+    aspect-ratio: 3 / 4;
+    content: '';
+    margin: 0 calc(-1 * var(--space-12));
   }
 }
 
