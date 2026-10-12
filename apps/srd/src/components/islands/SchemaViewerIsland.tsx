@@ -148,12 +148,18 @@ type SchemaViewerIslandProps = {
  * 162 KB of JSON per listing. The schema is already in `preloadSchemas` (see
  * `getSchemaPreloadList`), so the grid reads it from the ORM once the gate
  * opens — the same `getModel(id).all()` the page builds from.
+ *
+ * A listing row never prints an action's prose, so it loads `actions` as its
+ * list projection (`projection="list"`): a fraction of the full chunk. A
+ * listing row renders the same from either copy
+ * (`src/lib/__tests__/preloadEquivalence.tsx`).
  */
 export function SchemaViewerIsland({ preloadSchemas, ...props }: SchemaViewerIslandProps) {
   return (
     <IslandErrorBoundary>
       <GameDataGate
         schemas={preloadSchemas}
+        projection="list"
         fallback={
           <div className="srd-listing">
             <ul className="srd-listing__cards" data-entity-grid="">

@@ -14,15 +14,17 @@ describe('Skeleton', () => {
   test('list mode renders one ghost row per `rows`', () => {
     const { container } = render(<Skeleton mode="list" rows={4} />)
     // Each row is a bordered flex container under the status root.
-    const rows = container.querySelectorAll('.border-chrome')
+    const rows = container.querySelectorAll('[role="status"] > div')
     expect(rows.length).toBe(4)
   })
 
   test('card mode: compact tightens the band (absorbed CardSkeleton density)', () => {
     const { container: full } = render(<Skeleton mode="card" />)
-    expect(full.querySelector('.min-h-\\[80px\\]')).not.toBeNull()
+    const band = (root: HTMLElement) =>
+      root.querySelector<HTMLElement>('[role="status"] > div')?.style.minHeight
+    expect(band(full)).toBe('80px')
     cleanup()
     const { container: compact } = render(<Skeleton mode="card" compact />)
-    expect(compact.querySelector('.min-h-\\[60px\\]')).not.toBeNull()
+    expect(band(compact)).toBe('60px')
   })
 })

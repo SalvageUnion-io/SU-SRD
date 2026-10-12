@@ -32,9 +32,11 @@ const COLUMN = {
 type SignInToBuildProps = {
   /** The heading: what the visitor came here to do. */
   title: string
+  /** Where Discord's round trip lands (`SignInControl`'s `redirectTo`); unset, the site root. */
+  redirectTo?: string
 }
 
-export function SignInToBuild({ title }: SignInToBuildProps) {
+export function SignInToBuild({ title, redirectTo }: SignInToBuildProps) {
   return (
     <section aria-label={title}>
       <ChapterBand measure={MEASURE}>{title}</ChapterBand>
@@ -44,7 +46,7 @@ export function SignInToBuild({ title }: SignInToBuildProps) {
           build is kept in your account, saved as you go, and ready to share with a Game, so
           building needs you signed in.
         </Text>
-        <SignInControl size="full" />
+        <SignInControl size="full" redirectTo={redirectTo} />
       </div>
     </section>
   )

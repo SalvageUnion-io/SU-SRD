@@ -33,6 +33,11 @@ type NewEntityScreenProps = {
   onModeChange: (mode: CreateMode) => void
   /** A Blank entity was persisted — navigate to its live sheet. */
   onCreated: (id: string) => void
+  /**
+   * Where signing in from the gate lands: the route's own URL, so a deep link
+   * (`?chassis=mule`) survives the Discord round trip. Unset, the site root.
+   */
+  returnTo?: string
 }
 
 export function NewEntityScreen({
@@ -41,12 +46,13 @@ export function NewEntityScreen({
   wizard,
   onModeChange,
   onCreated,
+  returnTo,
 }: NewEntityScreenProps) {
   const connection = useConnection()
   if (connection.mode === 'solo') {
     // Not a PageShell: the routes already wrap this screen in their `<main>`,
     // and the gate's band runs its full width.
-    return <SignInToBuild title={`Sign in to build a ${kind}`} />
+    return <SignInToBuild title={`Sign in to build a ${kind}`} redirectTo={returnTo} />
   }
 
   if (mode === 'guided' || kind === 'npc') {

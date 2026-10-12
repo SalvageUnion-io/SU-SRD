@@ -2,37 +2,12 @@
 
 React app for building and running Salvage Union pilots, mechs, and crawlers.
 
-**Storage modes — read before touching data.** This file owns them;
-[ADR-030](../../docs/ARCHITECTURE.md),
-[ADR-034](../../docs/ARCHITECTURE.md) and
-[ADR-035](../../docs/ARCHITECTURE.md) record why.
-
-| Mode | When | Source of truth |
-| --- | --- | --- |
-| **Solo** | not signed in — in **every** build, CI and `bun run dev` included | nothing: **read-only** — writes are refused (`signedOut`); no Dashboard |
-| **Connected** | signed in, online | Convex; IndexedDB is a cache |
-| **Disconnected** | signed in, offline | read-only — not a write queue |
-| **Outdated** | bundle below `build.floor` | read-only until it reloads |
-
-- Resolve the mode via `src/lib/connection/`, never `navigator.onLine` or an
-  auth flag.
-- **No IndexedDB store without a Convex commit seam:** `storeSeams.test.ts`.
-- **There is no anonymous backend.** `selectBackend()` is
-  `signedOut | remote | blocked`; signed out, every store reads empty
-  (`readableRows`), never IndexedDB. A unit test that needs durability calls
-  `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`); an e2e
-  spec signs in through `e2e/fixtures.ts`.
-- **The cache follows the account; nothing goes up from it.**
-  `AccountReconciler` (root-mounted) makes the cache the signed-in account's
-  (`claimCacheFor` in `src/lib/account/cacheOwner.ts`) and then mounts
-  `ShelfSync`; signed out it renders nothing. No surface uploads rows from
-  IndexedDB: every cached row came from the server or from a write it accepted.
-- **A container written twice must be written together** — the row's `gameId`
-  column and the body's `gameId`. Where they disagree, the column is the
-  authority.
-- **e2e durability specs need an account.** Without `VITE_TEST_AUTH` in the
-  build and `ITUN_TEST_AUTH` on the deployment they SKIP; the nightly `e2e-itun` job provisions a throwaway Convex backend and
-  runs them for real. See `e2e/fixtures.ts`.
+**Storage modes (Solo / Connected / Disconnected / Outdated) — read them before
+touching data.** They live in
+[`.claude/rules/itun-data-access.md`](../../.claude/rules/itun-data-access.md),
+which loads with the stores, hooks, `src/lib/db/`, `src/lib/connection/`,
+`convex/` and `e2e/`. In short: signed out, ITUN is read-only and reads
+nothing; signed in, Convex is the truth and IndexedDB its per-account cache.
 
 **One account-free way to share: the public sheet
 ([ADR-032](../../docs/ARCHITECTURE.md)).** A **live**
@@ -81,8 +56,6 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   ([ADR-022](../../docs/ARCHITECTURE.md)) has no device store: it is
   the Convex `changeLog` table, written by `commitChangeLog` and read by
   `changeLog.forEntity`.
-- **The cache is one account's** (`src/lib/account/cacheOwner.ts`): sign-out
-  or another account empties it.
 - **Zod schemas (`src/lib/schemas/`) are the source of truth** for entity shape;
   the DB layer parses on read/write ([ADR-002](../../docs/ARCHITECTURE.md)).
 - Reads are strict: an unreadable cached row is skipped with a warning and
@@ -115,8 +88,6 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   IndexedDB cache, then in-memory state; a refused write changes nothing, and
   other tabs hear it from Convex
   ([ADR-034](../../docs/ARCHITECTURE.md)).
-- Route persistent entity state through the store, **never** through a
-  separate query cache (see `.claude/rules/itun-data-access.md`).
 
 ## Combat / rules
 

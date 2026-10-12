@@ -82,3 +82,17 @@
   color: var(--color-ink);
   font-weight: var(--font-weight-bold);
 }
+
+/*
+ * Containers/Filter Row's name input: full width, then a fixed 16rem from
+ * Tailwind's `md` (48rem) — ported from `w-full md:w-64`.
+ */
+.su-story-filter-input {
+  width: 100%;
+}
+
+@media (min-width: 48rem) {
+  .su-story-filter-input {
+    width: 16rem;
+  }
+}

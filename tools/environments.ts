@@ -92,6 +92,14 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
     secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_PREVIEW_DEPLOY_KEY'],
     reviewers: ['alxjrvs'],
   },
+  {
+    // `pr-gallery-pages.yml`: deploys the PR screenshot galleries to GitHub
+    // Pages. A `workflow_run` job runs main's code, so the main-only policy
+    // holds; it needs no secret (the job's own token deploys).
+    name: 'github-pages',
+    branches: ['main'],
+    secrets: [],
+  },
 ]
 
 /** A `code_scanning` rule entry: which tool's results gate a merge, and at what severity. */

@@ -10,6 +10,13 @@
  *       code-splitting to statically analyze them) plus schemaDisplayNames.
  *       It imports NO Zod: this module is on every consumer's load path.
  *
+ *       It also emits listDataLoaders, the same for each entry marked
+ *       `listProjection`, pointing at that entry's projection file:
+ *
+ *   - lib/generated/<id>.list.generated.json
+ *       the entry's rows without their prose (lib/listProjection.ts), which
+ *       `preload(ids, { projection: 'list' })` loads for listings.
+ *
  *   - lib/generated/zodSchemaMap.generated.ts
  *       zodSchemaMap — the entity Zod schemas keyed by schema id. Kept in its
  *       own module because only tools and tests import it; the runtime loader
@@ -44,6 +51,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { toListRow } from '../lib/listProjection.js'
 import { toPascalCase } from '../lib/naming.js'
 import type { RegistryEntry } from '../lib/schemas/registry.js'
 import { registry } from '../lib/schemas/registry.js'
@@ -142,6 +150,14 @@ function generateModelFactoryRegistry(entries: RegistryEntry[]): string {
     )
     .join('\n')
 
+  const listDataLoaders = entries
+    .filter((e) => e.listProjection)
+    .map(
+      (e) =>
+        `  '${e.id}': () => import('./${e.id}.list.generated.json').then((m) => m.default as unknown[]),`
+    )
+    .join('\n')
+
   const schemaDisplayNames = entries
     .map(
       (e) =>
@@ -163,6 +179,14 @@ function generateModelFactoryRegistry(entries: RegistryEntry[]): string {
 
 export const dataLoaders: Record<string, () => Promise<unknown[]>> = {
 ${dataLoaders}
+}
+
+/**
+ * List-projection loaders (rows without their prose; see lib/listProjection.ts),
+ * for the schemas whose registry entry sets \`listProjection\`.
+ */
+export const listDataLoaders: Record<string, () => Promise<unknown[]>> = {
+${listDataLoaders}
 }
 
 /**
@@ -341,6 +365,18 @@ async function main() {
 
   writeFileSync(schemaRegistryOut, formatGenerated(generateSchemaRegistry(registry)))
   console.log('✓ Generated lib/generated/schemaRegistry.generated.ts')
+
+  for (const entry of registry.filter((e) => e.listProjection)) {
+    const rows: Record<string, unknown>[] = JSON.parse(
+      readFileSync(join(packageRoot, 'data', `${entry.id}.json`), 'utf-8')
+    )
+    // Compact: the file is bundled as-is into a client chunk, and is never read by hand.
+    writeFileSync(
+      join(generatedDir, `${entry.id}.list.generated.json`),
+      `${JSON.stringify(rows.map(toListRow))}\n`
+    )
+    console.log(`✓ Generated lib/generated/${entry.id}.list.generated.json`)
+  }
 
   const indexSource = readFileSync(indexPath, 'utf-8')
   const injected = injectStaticAccessors(indexSource, registry)

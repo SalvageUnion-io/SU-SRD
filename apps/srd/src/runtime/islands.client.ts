@@ -18,6 +18,7 @@ import { createRoot } from 'react-dom/client'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
 import type { IslandComponent } from './islandRegistry'
 import { islandRegistry } from './islandRegistry'
+import { schedule } from './scheduleIsland'
 
 // Env-gated browser error tracking, initialised from the single client entry.
 void initBrowserObservability()
@@ -38,32 +39,6 @@ function readIslandProps(): PropsById {
     console.error('[islands] could not parse data-island-props', error)
     return {}
   }
-}
-
-function schedule(directive: string, el: Element, mount: () => void): void {
-  if (directive === 'idle') {
-    if ('requestIdleCallback' in window) window.requestIdleCallback(() => mount())
-    else setTimeout(mount, 200)
-    return
-  }
-  if (directive === 'visible') {
-    if (!('IntersectionObserver' in window)) {
-      mount()
-      return
-    }
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue
-        observer.disconnect()
-        mount()
-        return
-      }
-    })
-    observer.observe(el)
-    return
-  }
-  // 'load' and 'only' both mean "as soon as this entry runs".
-  mount()
 }
 
 function mountIslands(): void {

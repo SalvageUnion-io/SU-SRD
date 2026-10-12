@@ -59,7 +59,7 @@ describe('EmptyState', () => {
 
   test('the frame is dashed (fillable)', () => {
     const { container } = render(<EmptyState headline="Empty" />)
-    expect(container.firstElementChild?.className).toContain('border-dashed')
+    expect((container.firstElementChild as HTMLElement | null)?.style.borderStyle).toBe('dashed')
   })
 })
 

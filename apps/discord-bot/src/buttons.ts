@@ -1,5 +1,5 @@
 /**
- * Button interaction router. The Worker (`http/worker.ts`) dispatches every
+ * Button interaction router. The Worker (`worker/index.ts`) dispatches every
  * message-component interaction here; we parse the namespaced customId (see customId.ts) and
  * re-invoke the matching roll, replying with a fresh message that carries its
  * own "Roll again" button so the chain continues indefinitely.

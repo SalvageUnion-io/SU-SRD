@@ -1,5 +1,6 @@
 import { resolveEntityPageMeta } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { buildLinkFor } from '../lib/buildLink'
 import { EntityCardStatic } from './EntityCardStatic'
 import { EntityPageFrame, entityPageFoot } from './EntityPageFrame'
 import { Footer } from './Footer'
@@ -15,7 +16,7 @@ export default {
  * the site `Footer` the layout closes it on, carrying the citation in the
  * same band. The stamps sit beside the notch and the art is cropped to its
  * line work; narrow the viewport for the phone (board 08), which keeps the
- * same order.
+ * same order. The Gopher is Tech 2, so it offers no "Build with this".
  */
 export const Chassis = () => {
   const gopher = SalvageUnionReference.Chassis.getByName('Gopher')
@@ -23,7 +24,12 @@ export const Chassis = () => {
   const meta = resolveEntityPageMeta(gopher)
   return (
     <>
-      <EntityPageFrame title={gopher.name} tone="mech" meta={meta}>
+      <EntityPageFrame
+        title={gopher.name}
+        tone="mech"
+        meta={meta}
+        build={buildLinkFor('chassis', gopher)}
+      >
         <EntityCardStatic item={gopher} />
       </EntityPageFrame>
       <Footer
@@ -31,6 +37,26 @@ export const Chassis = () => {
         foot={entityPageFoot('mech', meta)}
       />
     </>
+  )
+}
+
+/**
+ * A Tech 1 chassis (the Mule): one the mech wizard can start from, so the body
+ * opens on "Build a mech with this", the deep link into ITUN (`buildLinkFor`).
+ */
+export const BuildWithThis = () => {
+  const mule = SalvageUnionReference.Chassis.getByName('Mule')
+  if (!mule) return null
+  const meta = resolveEntityPageMeta(mule)
+  return (
+    <EntityPageFrame
+      title={mule.name}
+      tone="mech"
+      meta={meta}
+      build={buildLinkFor('chassis', mule)}
+    >
+      <EntityCardStatic item={mule} />
+    </EntityPageFrame>
   )
 }
 
