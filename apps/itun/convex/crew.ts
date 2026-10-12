@@ -33,7 +33,7 @@ import { seatsInGame } from './model/seats'
  *
  * Max HP, AP, SP, EP and Heat, and each crewmate's status (dead, injured,
  * ejected; destroyed, shut down, overheating, destroyed systems and modules),
- * are computed here with the rules the client uses (`src/lib/rules/crewStatus.ts`
+ * are computed here with the rules the client uses (`itun-domain/rules/crewStatus`
  * over `salvageunion-reference/rules`), from the stored records and the seats.
  * One answer for the whole table: the Crew tab's ▲ and red outlines read it,
  * so every client agrees on who needs looking at. Nothing derived is stored.

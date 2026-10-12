@@ -44,7 +44,7 @@ import { v } from 'convex/values'
  */
 
 /**
- * Mirrors `EntityRefSchema.type` (src/lib/schemas/entity.ts) — ADR-027.
+ * Mirrors `EntityRefSchema.type` (itun-domain/schemas/entity) — ADR-027.
  *
  * Exported so a mutation that takes an endpoint as an *argument* validates it
  * against this same union rather than a hand-copied one. `entities.upsertSoftLink`
@@ -58,7 +58,7 @@ export const entityRefType = v.union(
 )
 
 /**
- * Mirrors `SoftLinkSchema.type` (src/lib/schemas/softLink.ts). Exported: see above.
+ * Mirrors `SoftLinkSchema.type` (itun-domain/schemas/softLink). Exported: see above.
  *
  * `mech-to-crawler` (ADR-037): a mech's crawler is its own link, not reached
  * through its pilot. Adding a literal is the backward-compatible direction —
@@ -72,7 +72,7 @@ export const softLinkType = v.union(
 )
 
 /**
- * Mirrors `CrewSlotSchema` (src/lib/schemas/softLink.ts) — ADR-044. The crew
+ * Mirrors `CrewSlotSchema` (itun-domain/schemas/softLink) — ADR-044. The crew
  * slot an `npc-to-crawler` link fills: a bay by its slug, or the crawler
  * type's NPC. Required on that type and refused on every other, which the
  * writers in `entities.ts` enforce (a validator cannot see the link's type).
@@ -486,7 +486,7 @@ export default defineSchema({
    *   - **cardinality** — a pilot crews ≤1 crawler and flies ≤1 mech; a mech
    *     flies ≤1 pilot and docks in ≤1 crawler; an NPC fills ≤1 crew slot and
    *     a slot holds ≤1 NPC. Drawing a link replaces the ones it conflicts
-   *     with (`conflictingLinks` in `src/lib/links/linkRules.ts`).
+   *     with (`conflictingLinks` in `itun-domain/links/linkRules`).
    *   - **one container** — both ends share a Game, or the same owner's shelf.
    *   - **`gameId` is that container** — it moves with its ends, and a move that
    *     would leave a link straddling two containers deletes it instead.

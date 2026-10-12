@@ -10,7 +10,7 @@
  *
  * ## Why this module imports NOTHING
  *
- * That is the whole reason it is separate from `model/bot.ts`. The bot
+ * That is the whole reason it is separate from `apps/itun/convex/model/bot.ts`. The bot
  * type-checks under `moduleResolution: nodenext`, and every file it imports is
  * type-checked under the bot's settings — including this one. `model/bot.ts`
  * imports `_generated/*` extensionlessly, which nodenext rejects, and would drag

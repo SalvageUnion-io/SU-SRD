@@ -10,6 +10,7 @@ paths:
   - 'apps/itun/src/components/container/**'
   - 'apps/itun/src/components/games/**'
   - 'apps/itun/convex/**'
+  - 'packages/itun-domain/**'
 ---
 
 # Data access in ITUN — stores and Convex

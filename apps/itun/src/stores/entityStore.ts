@@ -28,7 +28,7 @@
  * Assignments (ADR-037): creating a SoftLink goes through the assignment
  * model — it is refused across containers and REPLACES the links it conflicts
  * with in one write — and moving an entity drops the links the move leaves
- * straddling two containers. The rules are `lib/links/linkRules.ts`, shared
+ * straddling two containers. The rules are `itun-domain/links/linkRules`, shared
  * with the server, which enforces the same ones.
  */
 
@@ -357,7 +357,7 @@ function storeNameFor(type: EntityType): StoreName {
  * Applies to pilots/mechs/crawlers only; SoftLinks carry no container. An
  * input that already decided its own container is left untouched so it isn't
  * clobbered — and "already decided" includes an explicit `gameId: null`,
- * because null *is* the Shelf rather than an absence (see lib/container.ts).
+ * because null *is* the Shelf rather than an absence (see itun-domain/container).
  * Testing for `undefined` rather than nullishness is what keeps a deliberate
  * shelving from being overwritten by whatever container happens to be open.
  */

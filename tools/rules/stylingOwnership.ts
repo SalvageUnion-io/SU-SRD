@@ -558,7 +558,8 @@ function preflight(root: string): void {
     'apps/discord-bot':
       'ships no stylesheet — it renders Discord Components V2 containers, not DOM.',
     'apps/su-assets': 'a Worker that serves image bytes and short error strings; no CSS, no DOM.',
-    'packages/itun-domain': 'schemas and rules shared with Convex and the bot; no components and no stylesheet.',
+    'packages/itun-domain':
+      'schemas and rules shared with Convex and the bot; no components and no stylesheet.',
     'packages/observability': 'Sentry wiring only; no components and no stylesheet.',
     'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',
     'packages/component-lib': 'is the OWNER this gate checks apps against, not an app to audit.',

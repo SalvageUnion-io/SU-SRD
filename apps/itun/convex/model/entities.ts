@@ -347,7 +347,7 @@ export function linkIdOf(row: ContainedRow): string | undefined {
  * that is about *where*, not *how many*.
  *
  * The same Game, or the same owner's shelf. The second clause is the one
- * `lib/container.ts`'s `sameContainer` cannot express: every player's shelf has
+ * `itun-domain/container`'s `sameContainer` cannot express: every player's shelf has
  * the same `null` game id, and "My Stuff" is a solo Game per person, not one
  * shared bucket. A shelf row with no owner is the invalid row (ADR-030 §2), so
  * it shares a container with nothing.
@@ -475,7 +475,7 @@ export async function linksTouching(
  * The cardinality invariant's single server-side writer: `upsertSoftLink`, the
  * claim, and the primary-crawler auto-assignment all draw through here, so
  * "a pilot crews one crawler" cannot hold on one path and not another. The
- * rule itself is `conflictingLinks` (`src/lib/links/linkRules.ts`), shared with
+ * rule itself is `conflictingLinks` (`itun-domain/links/linkRules`), shared with
  * the client.
  *
  * The caller has already decided the link is allowed — who may draw it, and

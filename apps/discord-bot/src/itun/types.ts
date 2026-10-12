@@ -2,7 +2,7 @@
  * The wire shapes the ITUN Convex deployment returns to the bot.
  *
  * These are **imported**, not copied: the single declaration is
- * `apps/itun/convex/model/botWire.ts`, which `convex/botClient.ts` annotates
+ * `packages/itun-domain/src/botWire.ts`, which `convex/botClient.ts` annotates
  * every handler with. Change a `botClient` return shape and both sides fail to
  * compile until that file agrees. Importing cannot drag React into the Worker:
  * `import type` is erased at bundle time, and `botWire.ts` imports nothing at
