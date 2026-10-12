@@ -202,6 +202,7 @@ export {
 export { bookStats, entityStats } from './view/parts/facts'
 export { entityTone, guideTone, headerFill } from './view/parts/fill'
 export {
+  bayKind,
   classKind,
   classRequirements,
   entityStamp,

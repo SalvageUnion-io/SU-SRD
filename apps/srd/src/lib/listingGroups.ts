@@ -1,5 +1,5 @@
 import type { SURefEntity } from 'salvageunion-reference'
-import { getTechLevel, getTree } from 'salvageunion-reference'
+import { bayKind, getTechLevel, getTree } from 'salvageunion-reference'
 
 /**
  * How a schema listing groups its entities. The island groups its live grid
@@ -36,10 +36,11 @@ export type ListingShape = {
 
 /**
  * How a listing groups its entities, by data shape: abilities by tree, gear and
- * chassis by tech level, classes into base and hybrid. The group heading then
- * says what each card would otherwise repeat (the tree on its type stamp, its TL cell).
+ * chassis by tech level, classes into base and hybrid, crawler bays into
+ * standard and expansion. The group heading then says what each card would
+ * otherwise repeat (the tree on its type stamp, its TL cell).
  */
-export type GroupBy = 'tree' | 'tl' | 'kind' | 'none'
+export type GroupBy = 'tree' | 'tl' | 'kind' | 'bay' | 'none'
 
 export function resolveGroupBy(
   items: SURefEntity[],
@@ -49,6 +50,7 @@ export function resolveGroupBy(
   if (trees.length > 1) return 'tree'
   if (techLevels.length > 1 && items.every((item) => getTechLevel(item) != null)) return 'tl'
   if (items.length > 0 && items.every((item) => 'hybrid' in item)) return 'kind'
+  if (items.length > 0 && items.every((item) => bayKind(item) != null)) return 'bay'
   return 'none'
 }
 
@@ -59,14 +61,17 @@ export function groupEntities(items: SURefEntity[], groupBy: GroupBy): ListingGr
     const tl = getTechLevel(item)
     const tree = getTree(item)
     const hybrid = 'hybrid' in item && item.hybrid === true
+    const bay = bayKind(item)
     const key =
       groupBy === 'tree'
         ? String(tree ?? '')
         : groupBy === 'tl'
           ? String(tl ?? '')
-          : hybrid
-            ? 'hybrid'
-            : 'base'
+          : groupBy === 'bay'
+            ? String(bay).toLowerCase()
+            : hybrid
+              ? 'hybrid'
+              : 'base'
     const label =
       groupBy === 'tree'
         ? `${String(tree ?? '')} Tree`
@@ -74,9 +79,11 @@ export function groupEntities(items: SURefEntity[], groupBy: GroupBy): ListingGr
           ? tl != null
             ? tlName(tl)
             : ''
-          : hybrid
-            ? 'Hybrid Classes'
-            : 'Base Classes'
+          : groupBy === 'bay'
+            ? `${String(bay)} Bays`
+            : hybrid
+              ? 'Hybrid Classes'
+              : 'Base Classes'
     const group = byKey.get(key) ?? { key, label, items: [] }
     group.items.push(item)
     byKey.set(key, group)
@@ -87,6 +94,7 @@ export function groupEntities(items: SURefEntity[], groupBy: GroupBy): ListingGr
     groups.sort((a, b) => rank(a.key) - rank(b.key))
   }
   if (groupBy === 'kind') groups.sort((a) => (a.key === 'base' ? -1 : 1))
+  if (groupBy === 'bay') groups.sort((a) => (a.key === 'standard' ? -1 : 1))
   return groups
 }
 
