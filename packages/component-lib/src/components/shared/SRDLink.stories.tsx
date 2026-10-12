@@ -1,5 +1,7 @@
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
+import '../../stories/_stories.css'
 import { SRDLink } from './SRDLink'
 
 export default {
@@ -18,12 +20,8 @@ const href = `https://salvageunion.io/schema/chassis/item/${slug}`
  * owns only the new-tab presentation and the accessible label.
  */
 export const Default: Story = () => (
-  <div className="flex flex-col gap-4">
-    <SRDLink
-      href={href}
-      entityName={name}
-      className="text-pilot underline decoration-1 underline-offset-2 hover:opacity-70"
-    />
-    <SRDLink href={href} className="text-pilot underline decoration-1 underline-offset-2" />
+  <div style={{ display: 'flex', flexDirection: 'column', gap: space[16] }}>
+    <SRDLink href={href} entityName={name} className="su-story-srd-link su-story-srd-link--hover" />
+    <SRDLink href={href} className="su-story-srd-link" />
   </div>
 )

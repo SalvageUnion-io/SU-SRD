@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { radius } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { activateOnKey, FOCUS_RING, SELECTION_RING, SELECTION_RING_INK_DOUBLE } from './interaction'
 import { RadioCard } from './RadioCardGroup'
@@ -27,6 +28,9 @@ type SelProps = {
   ring?: 'single' | 'ink-double'
 }
 
+const RING = { borderRadius: radius.panel } satisfies CSSProperties
+const RING_INTERACTIVE = { ...RING, cursor: 'pointer' } satisfies CSSProperties
+
 /**
  * Selection ring wrapper for entity cards in wizards (design-spec §2.8 Sel):
  * a non-layout-shifting 3px ink box-shadow ring around the card. The card
@@ -43,12 +47,8 @@ export function Sel({
 }: SelProps) {
   const interactive = !!onToggle
   const selectionRing = ring === 'ink-double' ? SELECTION_RING_INK_DOUBLE : SELECTION_RING
-  const ringClass = cn(
-    'rounded-panel',
-    interactive && cn('cursor-pointer', FOCUS_RING),
-    selected && selectionRing,
-    className
-  )
+  const ringClass = cn(interactive && FOCUS_RING, selected && selectionRing, className)
+  const ringStyle = interactive ? RING_INTERACTIVE : RING
   if (radio && onToggle) {
     return (
       <RadioCard
@@ -56,6 +56,7 @@ export function Sel({
         onSelect={onToggle}
         aria-label={ariaLabel}
         className={ringClass}
+        style={ringStyle}
       >
         {children}
       </RadioCard>
@@ -72,6 +73,7 @@ export function Sel({
       onClick={onToggle}
       onKeyDown={interactive ? activateOnKey(onToggle) : undefined}
       className={ringClass}
+      style={ringStyle}
     >
       {children}
     </div>

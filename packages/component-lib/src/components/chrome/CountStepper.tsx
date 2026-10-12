@@ -1,7 +1,55 @@
-import { cn } from '../../utils/cn'
+import type { CSSProperties } from 'react'
+import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { Button } from './Button'
 import { capsLabel } from './capsLabel'
 import { StepButton } from './SmallButtons'
+
+/** The joined `[− n +]` ink pill (the `sheet` surface). */
+const PILL = {
+  alignItems: 'stretch',
+  borderColor: color.ink,
+  borderRadius: radius.card,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.pill,
+  display: 'inline-flex',
+  lineHeight: 1,
+  overflow: 'hidden',
+} satisfies CSSProperties
+
+/** The pill's readout cell; a labelled readout widens to fit "Uses 3/5". */
+const PILL_READOUT = {
+  backgroundColor: color.paper,
+  color: color.ink,
+  display: 'grid',
+  lineHeight: 1,
+  placeItems: 'center',
+} satisfies CSSProperties
+
+const PILL_READOUT_LABELLED = {
+  fontVariantNumeric: 'tabular-nums',
+  minWidth: '4.5rem',
+  paddingInline: space[6],
+} satisfies CSSProperties
+
+const PILL_READOUT_BARE = { width: space[32] } satisfies CSSProperties
+
+/** The `instrument` cluster: spaced buttons around a large tabular readout. */
+const CLUSTER = {
+  alignItems: 'center',
+  display: 'flex',
+  gap: space[10],
+  justifyContent: 'center',
+} satisfies CSSProperties
+
+const CLUSTER_READOUT = {
+  color: color.ink,
+  fontFamily: font.cond,
+  fontSize: fontSize.title,
+  fontVariantNumeric: 'tabular-nums',
+  fontWeight: weight.bold,
+  minWidth: '44px',
+  textAlign: 'center',
+} satisfies CSSProperties
 
 type CountStepperProps = {
   /** Current count. */
@@ -60,7 +108,7 @@ export function CountStepper({
   }
   /** Announced separately from the aria-hidden readout, in both surfaces. */
   const liveRegion = (
-    <span role="status" aria-live="polite" className="sr-only">
+    <span role="status" aria-live="polite" className="su-sr-only">
       {subject} count: {count}
     </span>
   )
@@ -69,26 +117,23 @@ export function CountStepper({
     // The dashboard overlay cluster:
     // spaced buttons, no joining border, and a large tabular readout.
     return (
-      <div className="flex items-center justify-center gap-[10px]">
+      <div style={CLUSTER}>
         <Button
           size="compact"
-          className="min-w-0 px-2"
+          className="su-count-stepper__btn"
           aria-label={`Remove one ${subject}`}
           disabled={atMin}
           onClick={step(count - 1)}
         >
           −
         </Button>
-        <span
-          aria-hidden="true"
-          className="min-w-[44px] text-center font-cond text-title font-bold tabular-nums text-ink"
-        >
+        <span aria-hidden="true" style={CLUSTER_READOUT}>
           {readout}
         </span>
         {liveRegion}
         <Button
           size="compact"
-          className="min-w-0 px-2"
+          className="su-count-stepper__btn"
           aria-label={`Add one ${subject}`}
           disabled={atMax}
           onClick={step(count + 1)}
@@ -100,12 +145,12 @@ export function CountStepper({
   }
 
   return (
-    <span className="inline-flex items-stretch overflow-hidden rounded-card border-2 border-ink leading-none">
+    <span style={PILL}>
       <StepButton
         aria-label={`Remove one ${subject}`}
         disabled={atMin}
         onClick={step(count - 1)}
-        className="rounded-none border-0 bg-ink text-paper hover:bg-ink-2"
+        className="su-count-stepper__step"
       >
         −
       </StepButton>
@@ -114,12 +159,12 @@ export function CountStepper({
           the sr-only live region below; the ± buttons stay the operable controls. */}
       <span
         aria-hidden="true"
-        className={cn(
-          capsLabel({ size: 'caption', tracking: 'inherit' }),
-          'grid place-items-center bg-paper leading-none text-ink',
-          label !== undefined ? 'min-w-[4.5rem] px-1.5 tabular-nums' : 'w-8',
-          count === 0 && 'opacity-55'
-        )}
+        className={capsLabel({ size: 'caption', tracking: 'inherit' })}
+        style={{
+          ...PILL_READOUT,
+          ...(label !== undefined ? PILL_READOUT_LABELLED : PILL_READOUT_BARE),
+          ...(count === 0 ? { opacity: 0.55 } : undefined),
+        }}
       >
         {readout}
       </span>
@@ -128,7 +173,7 @@ export function CountStepper({
         aria-label={`Add one ${subject}`}
         disabled={atMax}
         onClick={step(count + 1)}
-        className="rounded-none border-0 bg-ink text-paper hover:bg-ink-2"
+        className="su-count-stepper__step"
       >
         +
       </StepButton>

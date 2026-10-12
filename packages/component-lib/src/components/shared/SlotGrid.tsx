@@ -1,4 +1,5 @@
-import { cn } from '../../utils/cn'
+import type { CSSProperties } from 'react'
+import { borderWidth, color, radius, space } from '../../design/tokens'
 import { statBlockRowStarts } from '../stat/pipRows'
 
 type SlotGridProps = {
@@ -36,6 +37,38 @@ type SlotGridProps = {
  * Cells lay out on the shared pip-row split (ruleset §4.5): ≤6 per row,
  * bottom-heavy, centred — the same rhythm as the gauge / statblock tracks.
  */
+const GRID = {
+  alignItems: 'center',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[4],
+} satisfies CSSProperties
+
+const ROW = { display: 'flex', gap: space[4], justifyContent: 'center' } satisfies CSSProperties
+
+const CELL = {
+  borderStyle: 'solid',
+  borderWidth: borderWidth.chrome,
+  display: 'inline-block',
+} satisfies CSSProperties
+
+const CELL_SCALE = {
+  pip: { borderRadius: radius.pip, height: '0.625rem', width: '0.625rem' },
+  sheet: { borderRadius: radius.badge, height: '1.25rem', width: '1.25rem' },
+} satisfies Record<'pip' | 'sheet', CSSProperties>
+
+const CELL_STATE = {
+  filled: { backgroundColor: color.cargo, borderColor: color.cargo },
+  /** Fillable: a dashed ink-40 outline on paper. */
+  empty: { backgroundColor: color.paper, borderColor: color.ink40, borderStyle: 'dashed' },
+  /** Read-only: a plain outline at ink 25% (no rung, so the `color-mix()` the old alpha emitted). */
+  emptyReadOnly: {
+    backgroundColor: color.paper,
+    borderColor: `color-mix(in oklab, ${color.ink} 25%, transparent)`,
+  },
+  over: { backgroundColor: color.statusBad, borderColor: color.statusBad },
+} satisfies Record<string, CSSProperties>
+
 export function SlotGrid({
   used,
   cap,
@@ -49,18 +82,17 @@ export function SlotGrid({
   const total = Math.max(safeCap, safeUsed)
   const over = safeUsed > safeCap
 
-  const cell = scale === 'sheet' ? 'size-5 rounded-badge' : 'size-2.5 rounded-pip'
-
   return (
     <div
       role="img"
       aria-label={
         label ?? `${safeUsed} of ${safeCap} slots filled${over ? ' — over capacity' : ''}`
       }
-      className={cn('flex flex-col items-center gap-1', className)}
+      className={className}
+      style={GRID}
     >
       {statBlockRowStarts(total).map((row) => (
-        <div key={row.start} className="flex justify-center gap-1">
+        <div key={row.start} style={ROW}>
           {Array.from({ length: row.count }, (_, c) => {
             const i = row.start + c
             const state = i >= safeCap ? 'over' : i < safeUsed ? 'filled' : 'empty'
@@ -68,14 +100,11 @@ export function SlotGrid({
               <span
                 key={i}
                 aria-hidden="true"
-                className={cn(
-                  'inline-block border-chrome',
-                  cell,
-                  state === 'filled' && 'border-cargo bg-cargo',
-                  state === 'empty' &&
-                    (readOnly ? 'border-ink/25 bg-paper' : 'border-dashed border-ink/40 bg-paper'),
-                  state === 'over' && 'border-status-bad bg-status-bad'
-                )}
+                style={{
+                  ...CELL,
+                  ...CELL_SCALE[scale],
+                  ...CELL_STATE[state === 'empty' && readOnly ? 'emptyReadOnly' : state],
+                }}
               />
             )
           })}

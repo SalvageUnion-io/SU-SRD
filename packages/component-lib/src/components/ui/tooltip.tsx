@@ -1,5 +1,7 @@
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
+import type { CSSProperties } from 'react'
 import { useContext } from 'react'
+import { color, fontSize, space } from '../../design/tokens'
 import { InsidePeekContext } from '../../entity/peekContext'
 
 type TooltipProps = {
@@ -7,6 +9,21 @@ type TooltipProps = {
   content: React.ReactNode
   side?: 'top' | 'right' | 'bottom' | 'left'
   delayDuration?: number
+}
+
+/** `text-xs` carries its paired line-height; `shadow-md` is ported as its computed value. */
+const POPUP: CSSProperties = {
+  backgroundColor: color.ink,
+  borderRadius: '0.375rem',
+  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', // design-tokens-ignore: Tailwind's shadow-md, ported verbatim
+  color: color.paper,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+  maxWidth: '500px',
+  overflow: 'hidden',
+  paddingBlock: space[6],
+  paddingInline: space[12],
+  zIndex: 50,
 }
 
 export function Tooltip({ children, content, side = 'top', delayDuration = 200 }: TooltipProps) {
@@ -19,9 +36,9 @@ export function Tooltip({ children, content, side = 'top', delayDuration = 200 }
         <BaseTooltip.Trigger render={children as React.ReactElement} />
         <BaseTooltip.Portal>
           <BaseTooltip.Positioner side={side} sideOffset={4}>
-            <BaseTooltip.Popup className="z-50 max-w-[500px] overflow-hidden rounded-md bg-ink px-3 py-1.5 text-xs text-paper shadow-md">
+            <BaseTooltip.Popup style={POPUP}>
               {content}
-              <BaseTooltip.Arrow className="fill-ink" />
+              <BaseTooltip.Arrow style={{ fill: color.ink }} />
             </BaseTooltip.Popup>
           </BaseTooltip.Positioner>
         </BaseTooltip.Portal>

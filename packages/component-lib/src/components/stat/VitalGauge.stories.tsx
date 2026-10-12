@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { color, font, fontSize, radius, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import type { CSSVarStyle } from '../../styles/cssVars'
 import { VitalGauge } from './VitalGauge'
@@ -21,19 +22,47 @@ const ep = chassis?.energyPoints ?? 4
 const heat = chassis?.heatCapacity ?? 6
 const cargo = chassis?.cargoCapacity ?? 16
 
+const PAGE: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[20],
+  backgroundColor: color.paper,
+  padding: space[20],
+  fontFamily: font.body,
+  color: color.ink,
+}
+const INTRO: CSSProperties = {
+  maxWidth: '42rem',
+  fontSize: fontSize.xs,
+  lineHeight: 1.625,
+  color: color.wkMuted,
+}
+const ROW: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[6] }
+const ROW_LABEL: CSSProperties = { fontSize: fontSize.badge, color: color.wkMuted }
+const INSTRUMENT_GROUND: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[8],
+  borderRadius: radius.card,
+  backgroundColor: '#1b1712',
+  padding: space[12],
+}
+
 function Row({ label, skin, children }: { label: string; skin: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className={`${skin} max-w-md`}>{children}</div>
-      <code className="text-badge text-wk-muted">{label}</code>
+    <div style={ROW}>
+      <div className={skin} style={{ maxWidth: '28rem' }}>
+        {children}
+      </div>
+      <code style={ROW_LABEL}>{label}</code>
     </div>
   )
 }
 
 /** Every VitalGauge variant on one page — read-only through overridden-max. */
 export const Default: Story = () => (
-  <div className="flex flex-col gap-5 bg-paper p-5 font-body text-ink">
-    <p className="max-w-2xl text-xs leading-relaxed text-wk-muted">
+  <div style={PAGE}>
+    <p style={INTRO}>
       The segmented current/max gauge. readOnly is a static read-out; onChange makes segments
       click-to-set; dense auto-engages at max ≥ 12; danger redlines from a segment index; caption /
       subLabel annotate; an overridden max shows the hand-pinned cap + revert.
@@ -92,8 +121,8 @@ export const Default: Story = () => (
  *  `surface="sheet"` (light, default) and `surface="instrument"` (dark ground):
  *  the same primitive the dashboard now renders in place of its bespoke gauge. */
 export const Compact: Story = () => (
-  <div className="flex flex-col gap-5 bg-paper p-5 font-body text-ink">
-    <p className="max-w-2xl text-xs leading-relaxed text-wk-muted">
+  <div style={PAGE}>
+    <p style={INTRO}>
       The compact gauge: label, the pips, and value/max — no big numeral or caption. The pips are a
       fixed size and a long track wraps onto a second row rather than thinning (issue 1255). Filled
       segments use the sheet's <code>--tone</code>, and Heat redlines at its danger index. The
@@ -116,8 +145,8 @@ export const Compact: Story = () => (
         <VitalGauge label="SP" value={17} max={20} size="compact" readOnly />
       </div>
     </Row>
-    <div className="flex flex-col gap-1.5">
-      <div className="flex flex-col gap-2 rounded-card bg-[#1b1712] p-3">
+    <div style={ROW}>
+      <div style={INSTRUMENT_GROUND}>
         <VitalGauge
           label="SP"
           value={12}
@@ -138,7 +167,7 @@ export const Compact: Story = () => (
           style={HEAT_TONE}
         />
       </div>
-      <code className="text-badge text-wk-muted">compact · instrument surface (dark ground)</code>
+      <code style={ROW_LABEL}>compact · instrument surface (dark ground)</code>
     </div>
   </div>
 )

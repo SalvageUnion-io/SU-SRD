@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { mechMaxSPParts } from 'salvageunion-reference/rules'
+import { font, fontSize, space } from '../../design/tokens'
 import { Caption } from '../../stories/_harness'
 import type { ProvenanceLine } from './StatProvenance'
 import { StatProvenance } from './StatProvenance'
@@ -7,6 +9,21 @@ import { StatProvenance } from './StatProvenance'
 export default {
   title: 'Atoms/Stat Provenance',
 }
+
+const PAGE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[32],
+  padding: space[16],
+} satisfies CSSProperties
+
+/** `mt-2 font-cond text-2xl` — `text-2xl` carries its paired line-height. */
+const NUMERAL = {
+  fontFamily: font.cond,
+  fontSize: fontSize['2xl'],
+  lineHeight: 'calc(2 / 1.5)',
+  marginTop: space[8],
+} satisfies CSSProperties
 
 /**
  * Every ledger below is built from the real derivation
@@ -53,12 +70,12 @@ function atlasLedger(overrideValue?: number) {
 export const Default = () => {
   const { lines, parts } = atlasLedger()
   return (
-    <div className="flex flex-col gap-8 p-4">
+    <div style={PAGE}>
       <div>
         <Caption>
           Derived — hover, focus (Tab) or tap the numeral. Hover alone is never the only way in.
         </Caption>
-        <div className="mt-2 font-cond text-2xl">
+        <div style={NUMERAL}>
           <StatProvenance statLabel="Max SP" lines={lines} total={parts.total}>
             {parts.total}
           </StatProvenance>
@@ -71,13 +88,13 @@ export const Default = () => {
 export const Overridden = () => {
   const { lines, parts } = atlasLedger(60)
   return (
-    <div className="flex flex-col gap-8 p-4">
+    <div style={PAGE}>
       <div>
         <Caption>
           Pinned on the Live Sheet. The override appends as the final line — it never replaces the
           derivation, so the revert target stays visible and explained.
         </Caption>
-        <div className="mt-2 font-cond text-2xl">
+        <div style={NUMERAL}>
           <StatProvenance
             statLabel="Max SP"
             lines={lines}
@@ -99,13 +116,13 @@ export const WithPenalty = () => {
     { kind: 'adjustment', label: 'Manual adjustment', amount: 2 },
   ]
   return (
-    <div className="flex flex-col gap-8 p-4">
+    <div style={PAGE}>
       <Caption>
         A negative contribution is still a contribution. A manual adjustment is shown as its own
         line, so a hand-entered bonus duplicating a real one is visible rather than silently
         doubled.
       </Caption>
-      <div className="mt-2 font-cond text-2xl">
+      <div style={NUMERAL}>
         <StatProvenance statLabel="Max HP" lines={lines} total={10}>
           10
         </StatProvenance>

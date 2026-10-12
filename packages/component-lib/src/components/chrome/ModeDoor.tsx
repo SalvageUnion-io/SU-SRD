@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { cn } from '../../utils/cn'
+import type { CSSProperties, ReactNode } from 'react'
+import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 
@@ -19,17 +19,88 @@ type ModeDoorProps = {
   className?: string
 }
 
-const DOOR_BASE =
-  'relative min-h-[170px] cursor-pointer rounded-xl p-[22px] pb-5 pl-[26px] text-left transition-transform duration-[120ms] hover:-translate-y-0.5'
-const TAB =
-  'absolute -left-3.5 top-[18px] grid h-12 w-11 place-items-center rounded-badge bg-ink font-cond text-title font-bold text-paper shadow-[0_8px_14px_-8px_var(--color-ink-50)]'
-const HEAD = cn(capsLabel({ size: 'display' }), 'mb-1.5 ml-[34px] block leading-none')
-const BODY = 'ml-[34px] block font-body text-caption leading-[1.55] text-ink'
-const CITE = 'ml-[34px] mt-2.5 block font-body text-caption font-bold text-ink'
+/**
+ * The door's static frame. Its transition and hover lift are `.su-mode-door`
+ * (a `:hover` rule cannot be inline).
+ *
+ * The halo and drop shadows ARE inline, deliberately: on the Tailwind build
+ * they were `shadow-[…]` utilities, which out-ranked `.su-focus-ring`'s
+ * `:focus-visible` box-shadow (layer `utilities` over `su-base`), and inline
+ * keeps that precedence exactly.
+ */
+const DOOR = {
+  borderRadius: '0.75rem',
+  cursor: 'pointer',
+  minHeight: '170px',
+  paddingBottom: space[20],
+  paddingLeft: '26px',
+  paddingRight: '22px',
+  paddingTop: '22px',
+  position: 'relative',
+  textAlign: 'left',
+} satisfies CSSProperties
 
-/** guided emphasis: a ground gap, a 3px ink ring, then a soft drop shadow. */
-const GUIDED_HALO =
-  'shadow-[0_0_0_3px_var(--ground),0_0_0_7px_var(--color-ink),0_18px_30px_-14px_var(--color-ink-50)]'
+/** guided emphasis: a ground gap, a 3px ink ring, then a soft drop shadow.
+ *  The plate always fills with the surrounding surface tone. */
+const GUIDED = {
+  background: 'var(--tone)',
+  boxShadow:
+    '0 0 0 3px var(--ground), 0 0 0 7px var(--color-ink), 0 18px 30px -14px var(--color-ink-50)',
+} satisfies CSSProperties
+
+const BLANK = {
+  backgroundColor: color.paper,
+  borderColor: color.ink50,
+  borderStyle: 'dashed',
+  borderWidth: borderWidth.entity,
+  boxShadow: '0 14px 26px -14px var(--color-ink-40)',
+  color: color.ink,
+} satisfies CSSProperties
+
+const TAB = {
+  backgroundColor: color.ink,
+  borderRadius: radius.badge,
+  boxShadow: '0 8px 14px -8px var(--color-ink-50)',
+  color: color.paper,
+  display: 'grid',
+  fontFamily: font.cond,
+  fontSize: fontSize.title,
+  fontWeight: weight.bold,
+  height: space[48],
+  left: `-${space[14]}`,
+  placeItems: 'center',
+  position: 'absolute',
+  top: '18px',
+  width: '44px',
+} satisfies CSSProperties
+
+const HEAD = capsLabel({ size: 'display' })
+
+const HEAD_STYLE = {
+  display: 'block',
+  lineHeight: 1,
+  marginBottom: space[6],
+  marginLeft: '34px',
+} satisfies CSSProperties
+
+const BODY = {
+  color: color.ink,
+  display: 'block',
+  fontFamily: font.body,
+  fontSize: fontSize.caption,
+  lineHeight: 1.55,
+  marginLeft: '34px',
+} satisfies CSSProperties
+
+const CITE = {
+  color: color.ink,
+  display: 'block',
+  fontFamily: font.body,
+  fontSize: fontSize.caption,
+  fontWeight: weight.bold,
+  marginLeft: '34px',
+  marginTop: space[10],
+} satisfies CSSProperties
 
 /**
  * ModeDoor — the onboarding "choose how to create" poster card (mockup `.door`,
@@ -53,30 +124,24 @@ export function ModeDoor({
     <button
       type="button"
       onClick={onSelect}
-      // The guided plate always fills with the surrounding surface tone.
-      style={guided ? { background: 'var(--tone)' } : undefined}
-      className={cn(
-        DOOR_BASE,
-        FOCUS_RING,
-        guided
-          ? GUIDED_HALO
-          : 'border-entity border-dashed border-ink-50 bg-paper text-ink shadow-[0_14px_26px_-14px_var(--color-ink-40)]',
-        className
-      )}
+      className={`su-mode-door ${FOCUS_RING}${className ? ` ${className}` : ''}`}
+      style={{ ...DOOR, ...(guided ? GUIDED : BLANK) }}
     >
-      <span className={TAB} aria-hidden="true">
+      <span style={TAB} aria-hidden="true">
         {tab}
       </span>
       <span
-        className={cn(
-          HEAD,
-          guided ? 'text-paper [text-shadow:0_1px_0_var(--color-ink-40)]' : 'text-ink'
-        )}
+        className={HEAD}
+        style={
+          guided
+            ? { ...HEAD_STYLE, color: color.paper, textShadow: '0 1px 0 var(--color-ink-40)' }
+            : { ...HEAD_STYLE, color: color.ink }
+        }
       >
         {headline}
       </span>
-      <span className={BODY}>{children}</span>
-      {cite && <span className={CITE}>{cite}</span>}
+      <span style={BODY}>{children}</span>
+      {cite && <span style={CITE}>{cite}</span>}
     </button>
   )
 }

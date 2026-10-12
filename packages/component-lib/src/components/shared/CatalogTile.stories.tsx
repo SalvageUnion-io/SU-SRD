@@ -1,4 +1,5 @@
 import type { Story } from '../../stories/_harness'
+import '../../stories/_stories.css'
 import { CatalogTile } from './CatalogTile'
 
 /**
@@ -30,7 +31,7 @@ export default {
  * for grouped sub-categories).
  */
 export const Default: Story = () => (
-  <div className="grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-3">
+  <div className="su-story-catalog-grid">
     <CatalogTile href="/schema/chassis" name="Chassis" catalogBg="var(--color-mech)" />
     <CatalogTile href="/schema/pilots" name="Pilots" catalogBg="var(--color-pilot)" />
     <CatalogTile href="/schema/crawlers" name="Crawlers" catalogBg="var(--color-crawler)" />

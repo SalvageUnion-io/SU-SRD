@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { color, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { Checkbox, Radio } from './Checkbox'
@@ -7,6 +9,16 @@ import { Checkbox, Radio } from './Checkbox'
 export default {
   title: 'Atoms/Checkbox',
 }
+
+const stack = (gap: string) =>
+  ({ display: 'flex', flexDirection: 'column', gap }) satisfies CSSProperties
+
+const PAGE = {
+  ...stack(space[32]),
+  backgroundColor: color.paper,
+  maxWidth: '28rem',
+  padding: space[32],
+} satisfies CSSProperties
 
 /** Real chassis, for the one-of-many radio group. */
 const chassis = SalvageUnionReference.Chassis.all()
@@ -36,12 +48,12 @@ export const Default: Story = () => {
   }
 
   return (
-    <div className="flex max-w-md flex-col gap-8 bg-paper p-8">
-      <div className="flex flex-col gap-2">
+    <div style={PAGE}>
+      <div style={stack(space[8])}>
         <Caption>
           Radio — choose one chassis (name shares a group; arrow keys move between).
         </Caption>
-        <div className="space-y-2">
+        <div style={stack(space[8])}>
           {chassis.map((c) => (
             <Radio
               key={c.name}
@@ -56,9 +68,9 @@ export const Default: Story = () => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div style={stack(space[8])}>
         <Caption>Checkbox — multi-select systems for a loadout (independent toggles).</Caption>
-        <div className="space-y-2">
+        <div style={stack(space[8])}>
           {systems.map((name) => (
             <Checkbox
               key={name}
@@ -71,7 +83,7 @@ export const Default: Story = () => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div style={stack(space[8])}>
         <Caption>Disabled — native disabled attribute on the same row.</Caption>
         <Checkbox label="Reinforced Chassis" description="Locked" disabled checked readOnly />
       </div>

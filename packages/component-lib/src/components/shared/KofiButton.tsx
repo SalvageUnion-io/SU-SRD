@@ -1,5 +1,5 @@
+import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
-import { cn } from '../../utils/cn'
 
 /**
  * KofiButton — the official Ko-fi "Support me on Ko-fi" widget button.
@@ -18,6 +18,8 @@ import { cn } from '../../utils/cn'
  * (the button image is served from the same host, covered by `img-src https:`).
  * See each app's `public/_headers`.
  */
+
+const CONTAINER = { display: 'inline-block' } satisfies CSSProperties
 
 const WIDGET_SRC = 'https://storage.ko-fi.com/cdn/widget/Widget_2.js'
 
@@ -101,5 +103,5 @@ export function KofiButton({
     }
   }, [code, label, color])
 
-  return <div ref={ref} className={cn('inline-block', className)} />
+  return <div ref={ref} className={className} style={CONTAINER} />
 }

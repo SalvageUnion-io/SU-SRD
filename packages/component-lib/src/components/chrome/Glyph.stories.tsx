@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { Button } from './Button'
@@ -13,6 +15,32 @@ const FILLED: GlyphName[] = ['gear', 'clock', 'pennant', 'x']
 /** Stroked geometry — the live-sheet edit-language affordances. */
 const STROKED: GlyphName[] = ['pencil', 'check', 'plus', 'remove', 'swap']
 
+const FRAME = { backgroundColor: color.paper, padding: space[16] } satisfies CSSProperties
+
+const SET_ROW = {
+  alignItems: 'center',
+  color: color.ink,
+  display: 'flex',
+  gap: space[24],
+} satisfies CSSProperties
+
+/** `text-2xl`, with its paired line-height. */
+const SPECIMEN = {
+  alignItems: 'center',
+  display: 'flex',
+  fontSize: fontSize['2xl'],
+  gap: space[8],
+  lineHeight: 'calc(2 / 1.5)',
+} satisfies CSSProperties
+
+const NAME = {
+  fontFamily: font.cond,
+  fontSize: fontSize.xs,
+  letterSpacing: tracking.capsTight,
+  lineHeight: 'calc(1 / 0.75)',
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
 /**
  * name — the whole set at a glance. The set carries BOTH filled icons (gear /
  * clock / pennant / ✕) and stroked control affordances (pencil / check / plus /
@@ -20,25 +48,25 @@ const STROKED: GlyphName[] = ['pencil', 'check', 'plus', 'remove', 'swap']
  * has to know which is which.
  */
 export const AllGlyphs: Story = () => (
-  <div className="space-y-5 bg-paper p-4">
-    <div>
+  <div style={FRAME}>
+    <div style={{ marginBottom: space[20] }}>
       <Caption>filled · currentColor at 1em</Caption>
-      <div className="flex items-center gap-6 text-ink">
+      <div style={SET_ROW}>
         {FILLED.map((name) => (
-          <span key={name} className="flex items-center gap-2 text-2xl">
+          <span key={name} style={SPECIMEN}>
             <Glyph name={name} />
-            <span className="font-cond text-xs uppercase tracking-caps-tight">{name}</span>
+            <span style={NAME}>{name}</span>
           </span>
         ))}
       </div>
     </div>
     <div>
       <Caption>stroked · the edit-language affordances</Caption>
-      <div className="flex items-center gap-6 text-ink">
+      <div style={SET_ROW}>
         {STROKED.map((name) => (
-          <span key={name} className="flex items-center gap-2 text-2xl">
+          <span key={name} style={SPECIMEN}>
             <Glyph name={name} />
-            <span className="font-cond text-xs uppercase tracking-caps-tight">{name}</span>
+            <span style={NAME}>{name}</span>
           </span>
         ))}
       </div>
@@ -48,11 +76,28 @@ export const AllGlyphs: Story = () => (
 
 /** currentColor — a glyph takes its colour from surrounding text (rust in action). */
 export const CurrentColor: Story = () => (
-  <div className="space-y-3 bg-paper p-4">
+  <div style={FRAME}>
     <Caption>currentColor · inherits ink, or paper on an action</Caption>
-    <div className="flex items-center gap-2 text-ink">
+    <div
+      style={{
+        alignItems: 'center',
+        color: color.ink,
+        display: 'flex',
+        gap: space[8],
+        marginBottom: space[12],
+      }}
+    >
       <Glyph name="gear" />
-      <span className="font-cond text-sm font-bold uppercase tracking-caps-tight">
+      <span
+        style={{
+          fontFamily: font.cond,
+          fontSize: fontSize.sm,
+          fontWeight: weight.bold,
+          letterSpacing: tracking.capsTight,
+          lineHeight: 'calc(1.25 / 0.875)',
+          textTransform: 'uppercase',
+        }}
+      >
         Turn Action · ink
       </span>
     </div>
@@ -64,17 +109,25 @@ export const CurrentColor: Story = () => (
 
 /** 1em — the glyph scales with the font-size of its container. */
 export const Sizing: Story = () => (
-  <div className="flex items-end gap-4 bg-paper p-4 text-ink">
-    <span className="text-sm">
+  <div
+    style={{
+      ...FRAME,
+      alignItems: 'flex-end',
+      color: color.ink,
+      display: 'flex',
+      gap: space[16],
+    }}
+  >
+    <span style={{ fontSize: fontSize.sm, lineHeight: 'calc(1.25 / 0.875)' }}>
       <Glyph name="clock" />
     </span>
-    <span className="text-xl">
+    <span style={{ fontSize: fontSize.xl, lineHeight: 'calc(1.75 / 1.25)' }}>
       <Glyph name="clock" />
     </span>
-    <span className="text-3xl">
+    <span style={{ fontSize: fontSize['3xl'], lineHeight: 'calc(2.25 / 1.875)' }}>
       <Glyph name="clock" />
     </span>
-    <span className="text-5xl">
+    <span style={{ fontSize: '3rem', lineHeight: 1 }}>
       <Glyph name="clock" />
     </span>
   </div>
@@ -82,7 +135,9 @@ export const Sizing: Story = () => (
 
 /** title — an accessible (non-decorative) glyph exposes an img role + label. */
 export const Accessible: Story = () => (
-  <div className="bg-paper p-4 text-2xl text-ink">
+  <div
+    style={{ ...FRAME, color: color.ink, fontSize: fontSize['2xl'], lineHeight: 'calc(2 / 1.5)' }}
+  >
     <Glyph name="pennant" title="1 Action Point" />
   </div>
 )

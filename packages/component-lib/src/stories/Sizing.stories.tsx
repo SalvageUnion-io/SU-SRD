@@ -13,21 +13,30 @@ export default {
   title: 'Foundations/Sizing',
 }
 
-// Every size below is read from `styles/sizing.ts` — the constants Badge and
-// the control buttons compose — so the page cannot drift from the code. Those
-// constants are still Tailwind class names; each is turned into the theme.css
-// token or the px it names (Tailwind's spacing step is 4px).
-const fontToken = (utility: string) => `--${utility}`
-const step = (utility: string, axis: 'x' | 'y') =>
-  `${Number(utility.match(new RegExp(`\\bp${axis}-([\\d.]+)`))?.[1] ?? 0) * 4}px`
+// Every size below is keyed by the constants Badge and the control buttons
+// compose (`styles/sizing.ts`). Those constants are `.su-rung-*` class names
+// now; these tables restate the theme.css token or px each class's rule in
+// `styles/index.css` sets.
+const RUNG_TYPE_TOKEN: Record<string, string> = {
+  'su-rung-label--full': '--text-sm',
+  'su-rung-label--compact': '--text-xs',
+  'su-rung-label--mini': '--text-badge',
+  'su-rung-body--full': '--text-lede',
+  'su-rung-body--compact': '--text-caption',
+  'su-rung-body--mini': '--text-note',
+}
+const RUNG_PAD_PX: Record<string, string> = {
+  'su-rung-pad--full': '4px 8px',
+  'su-rung-pad--compact': '2px 6px',
+  'su-rung-pad--mini': '2px 4px',
+}
 
 const RUNG_FONT_SIZE = (rung: SizeRung) => ({
-  label: fontToken(RUNG_TYPE[rung].label),
-  body: fontToken(RUNG_TYPE[rung].body),
+  label: RUNG_TYPE_TOKEN[RUNG_TYPE[rung].label] ?? '',
+  body: RUNG_TYPE_TOKEN[RUNG_TYPE[rung].body] ?? '',
 })
 
-const RUNG_INLINE_PAD = (rung: SizeRung) =>
-  `${step(RUNG_INLINE_PADDING[rung], 'y')} ${step(RUNG_INLINE_PADDING[rung], 'x')}`
+const RUNG_INLINE_PAD = (rung: SizeRung) => RUNG_PAD_PX[RUNG_INLINE_PADDING[rung]] ?? ''
 
 /** Ladder order, largest first — specimen iteration only (the catalog page). */
 const SIZE_RUNGS: readonly SizeRung[] = ['full', 'compact', 'mini']

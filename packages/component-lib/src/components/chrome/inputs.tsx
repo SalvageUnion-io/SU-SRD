@@ -10,10 +10,13 @@
  * Nothing else changes — `Field.tsx` re-exports both, so every existing import
  * still resolves and no rendered markup moves.
  *
- * ## Both are `text-base`, and that is a functional requirement
+ * Their skin is the `.su-text-input` class (`styles/index.css`), all of it: callers
+ * restyle both by className and by `style`.
+ *
+ * ## Both are 16px, and that is a functional requirement
  *
  * iOS Safari zooms the viewport whenever a focused form control renders below
- * 16px. These were `text-sm` (14px), so every tap into a field on an iPhone
+ * 16px. These were 14px, so every tap into a field on an iPhone
  * yanked the page — on the live sheets, that is most of the app's input. The
  * rung is therefore not a typographic preference and should not be tuned down
  * to match a neighbouring label; a control the user types into is the one place
@@ -44,11 +47,7 @@ export function Input({ className, numeric = false, ref, ...props }: InputProps)
   return (
     <input
       ref={ref}
-      className={cn(
-        'w-full rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-base text-ink placeholder:text-wk-muted',
-        INPUT_FOCUS,
-        className
-      )}
+      className={cn('su-text-input', INPUT_FOCUS, className)}
       // Before `props`, so an explicit inputMode/pattern/enterKeyHint wins.
       {...(numeric ? NUMERIC_KEYPAD : {})}
       {...props}
@@ -69,11 +68,7 @@ export function Textarea({ className, rows = 3, ref, ...props }: TextareaProps) 
     <textarea
       ref={ref}
       rows={rows}
-      className={cn(
-        'w-full resize-y rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-base text-ink placeholder:text-wk-muted',
-        INPUT_FOCUS,
-        className
-      )}
+      className={cn('su-text-input su-textarea', INPUT_FOCUS, className)}
       {...props}
     />
   )

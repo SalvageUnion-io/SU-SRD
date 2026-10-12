@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react'
-import type { ComponentPropsWithRef } from 'react'
+import type { ComponentPropsWithRef, CSSProperties } from 'react'
+import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { FOCUS_WITHIN } from '../chrome/interaction'
 
@@ -29,6 +30,23 @@ type SearchFieldProps = ComponentPropsWithRef<'input'> & {
   shortcut?: string
 }
 
+const GLYPH = { flexShrink: 0, opacity: 0.6 } satisfies CSSProperties
+
+const SHORTCUT = { flexShrink: 0 } satisfies CSSProperties
+
+const KEY_CAP = {
+  borderColor: color.ink30,
+  borderRadius: radius.badge,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.hairline,
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.badge,
+  lineHeight: 1,
+  paddingBlock: space[2],
+  paddingInline: space[6],
+} satisfies CSSProperties
+
 export function SearchField({
   containerClassName,
   glyphSize = 14,
@@ -38,42 +56,26 @@ export function SearchField({
   ...inputProps
 }: SearchFieldProps) {
   return (
-    <div
-      className={cn(
-        'flex items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-wk-muted',
-        FOCUS_WITHIN,
-        containerClassName
-      )}
-    >
-      <Search
-        size={glyphSize}
-        strokeWidth={2.5}
-        aria-hidden="true"
-        className="shrink-0 opacity-60"
-      />
+    <div className={cn('su-search-field', FOCUS_WITHIN, containerClassName)}>
+      <Search size={glyphSize} strokeWidth={2.5} aria-hidden="true" style={GLYPH} />
       <input
         ref={ref}
-        className={cn(
-          // `text-base` (16px) is REQUIRED, not a style choice, and it must sit
-          // on the input rather than the container. iOS Safari zooms the page
-          // whenever a focused form control renders below 16px — so the
-          // container's `text-caption`, which the input would otherwise
-          // inherit, made every tap on search yank the viewport. Measured at
-          // 390px against the built output: 13px inherited here before this.
-          //
-          // Only the input is raised. The container stays `text-caption` so the
-          // glyph and the field's own metrics are unchanged, which keeps the
-          // header search the same size it has always been.
-          'w-full bg-transparent text-base text-ink placeholder:text-wk-muted focus:outline-none',
-          className
-        )}
+        // The 16px font size is REQUIRED, not a style choice, and it must sit
+        // on the input rather than the container. iOS Safari zooms the page
+        // whenever a focused form control renders below 16px — so the
+        // container's caption size, which the input would otherwise inherit,
+        // made every tap on search yank the viewport. Measured at 390px
+        // against the built output: 13px inherited here before this.
+        //
+        // Only the input is raised. The container stays at the caption size so
+        // the glyph and the field's own metrics are unchanged, which keeps the
+        // header search the same size it has always been.
+        className={cn('su-search-field__input', className)}
         {...inputProps}
       />
       {shortcut && (
-        <span aria-hidden="true" className="shrink-0">
-          <kbd className="rounded-badge border border-ink-30 px-1.5 py-0.5 font-body text-badge leading-none text-wk-muted">
-            {shortcut}
-          </kbd>
+        <span aria-hidden="true" style={SHORTCUT}>
+          <kbd style={KEY_CAP}>{shortcut}</kbd>
         </span>
       )}
     </div>
