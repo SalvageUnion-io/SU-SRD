@@ -18,8 +18,7 @@ the modified treatment a dash.
 
 The reference-entity display was reconciled from a 57-file legacy render core
 (`ReferenceEntityDisplay/`, "RED") onto a single card. That migration
-(its methodology is now the `/component-refresh` skill,
-[`.claude/skills/component-refresh/SKILL.md`](../../.claude/skills/component-refresh/SKILL.md))
+(its methodology was the `/component-refresh` skill, since removed)
 settled a set of **design rules** along the way — about how choices render, how
 stats read, how tech-level scaling looks, and which data carries a tech level.
 Those rules were decided interactively and proven in the story catalog, but were only
