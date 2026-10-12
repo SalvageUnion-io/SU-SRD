@@ -1697,8 +1697,9 @@
 
 /*
  * A class page's ability trees (`components/ClassAbilityTree.tsx`): the
- * "Abilities" section slab, then a row of the Core trees (three across from
- * 40rem) and a row of the Advanced + Legendary trees (two across).
+ * training brief, then sections under dashed slabs — a Core class's Core trees
+ * (three across from 40rem) and the paths it advances along; a Hybrid Class's
+ * own tree + Legendary tree (two across) and the Core trees it branches into.
  *
  * Each sequential tree draws the book's track (ruleset, "Where the screen
  * departs from print"): a thick pipe down the tree's left with a stub into
@@ -1709,6 +1710,12 @@
  * `data-track` picks the tier hue; a Legendary tree (pick one) has none.
  */
 .srd-ability-tree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+}
+
+.srd-ability-tree__section {
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
@@ -1802,4 +1809,240 @@
   left: calc(var(--srd-track-x) - var(--srd-track-weight) / 2);
   right: calc(100% - var(--space-20));
   top: calc(var(--srd-track-node) - var(--srd-track-weight) / 2);
+}
+
+/*
+ * The training brief (Workshop Manual p.23, "Gaining Abilities"): an ink head,
+ * then label | rule rows on paper. On a wide page it fills the room beside the
+ * art that a class's short prose leaves: the trees' slot stops clearing the
+ * float (CardPage's `__wide` clears it), the brief becomes a block formatting
+ * context so it narrows beside the art, and everything after it clears.
+ */
+.srd-class-brief {
+  background: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.srd-class-brief__head {
+  align-items: center;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-12);
+  justify-content: space-between;
+  letter-spacing: var(--tracking-caps);
+  padding: var(--space-6) var(--space-12);
+  text-transform: uppercase;
+}
+
+.srd-class-brief__cite {
+  letter-spacing: var(--tracking-caps-tight);
+}
+
+.srd-class-brief__rows {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  margin: 0;
+}
+
+.srd-class-brief__row {
+  display: contents;
+}
+
+.srd-class-brief__row > dt,
+.srd-class-brief__row > dd {
+  border-top: var(--bw-hairline) solid var(--color-ink-15);
+  padding: var(--space-8) var(--space-12);
+}
+
+.srd-class-brief__row:first-child > dt,
+.srd-class-brief__row:first-child > dd {
+  border-top: 0;
+}
+
+.srd-class-brief__row > dt {
+  border-right: var(--bw-hairline) solid var(--color-ink-15);
+  color: var(--color-ink-2);
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-snug);
+  text-transform: uppercase;
+}
+
+.srd-class-brief__row > dd {
+  font-size: var(--text-base);
+  line-height: 1.45;
+  margin: 0;
+}
+
+@media (min-width: 64rem) {
+  .su-entity-page--flow:has(.srd-class-brief) > .su-entity-page__wide {
+    clear: none;
+  }
+
+  .su-entity-page--flow:has(.srd-class-brief) > .su-entity-page__wide:empty {
+    display: none;
+  }
+
+  .srd-ability-tree:has(> .srd-class-brief) {
+    display: block;
+  }
+
+  .srd-ability-tree > .srd-class-brief {
+    display: flow-root;
+  }
+
+  .srd-ability-tree:has(> .srd-class-brief) > :not(.srd-class-brief) {
+    clear: left;
+    margin-top: var(--space-32);
+  }
+}
+
+/*
+ * A Core class's paths (the book's spread lists them under its Advanced and
+ * Legendary Abilities and "Hybrid Classes"), one card each, stacked: the
+ * class's own Advanced tree first, then each Hybrid Class. Every card is the
+ * same shell — a pilot head naming the path and its kind, then what opens it
+ * beside its trees (their Rows on the same track as the class's own), then
+ * the citation. A hybrid's head is a link to its page; the class's own path
+ * has no page, so its head links nowhere.
+ */
+.srd-class-paths {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.srd-class-path {
+  background: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.srd-class-path__head {
+  align-items: center;
+  background: var(--color-pilot);
+  border-bottom: var(--bw-entity-compact) solid var(--color-ink);
+  color: var(--color-ink);
+  display: flex;
+  gap: var(--space-10);
+  min-height: 2.75rem;
+  padding: var(--space-8) var(--space-12);
+  text-decoration: none;
+}
+
+a.srd-class-path__head:hover {
+  color: var(--color-ink);
+}
+
+a.srd-class-path__head:focus-visible {
+  outline: var(--bw-chrome) solid var(--color-ink);
+  outline-offset: calc(-1 * var(--space-4));
+}
+
+.srd-class-path__name {
+  flex: 1;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.05;
+  min-width: 0;
+  text-transform: uppercase;
+}
+
+.srd-class-path__chevron {
+  flex: none;
+  height: 1.1rem;
+  transition: transform 120ms;
+  width: 1.1rem;
+}
+
+a.srd-class-path__head:hover .srd-class-path__chevron {
+  transform: translateX(2px);
+}
+
+.srd-class-path__body {
+  display: grid;
+  gap: var(--space-16) var(--space-28);
+  grid-template-columns: minmax(0, 1fr);
+  padding: var(--space-14);
+}
+
+@media (min-width: 64rem) {
+  .srd-class-path__body {
+    grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+  }
+}
+
+.srd-class-path__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.srd-class-path__req {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+/* "or" / "Engineer only": a lone-label caps badge, frameless (§7.1). */
+.srd-class-path__or {
+  color: var(--color-wk-muted);
+  font-family: var(--font-cond);
+  font-size: var(--text-badge);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-wide);
+  text-transform: uppercase;
+}
+
+.srd-class-path__note {
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.srd-class-path__trees {
+  display: grid;
+  gap: var(--space-8) var(--space-24);
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+
+@media (min-width: 40rem) {
+  .srd-class-path__trees {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.srd-class-path__foot {
+  align-items: center;
+  border-top: var(--bw-hairline) solid var(--color-ink-15);
+  color: var(--color-wk-muted);
+  display: flex;
+  font-size: var(--text-caption);
+  gap: var(--space-8);
+  justify-content: space-between;
+  padding: var(--space-6) var(--space-14);
+}
+
+.srd-class-path__page {
+  border: var(--bw-hairline) solid var(--color-ink);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-bold);
+  padding: 0 var(--space-6);
 }

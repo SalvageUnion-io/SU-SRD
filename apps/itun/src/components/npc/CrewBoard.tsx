@@ -298,13 +298,7 @@ function CrewSlots({
   return (
     <div style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
       <section style={COLUMN} aria-labelledby="crew-slots">
-        <Slab
-          variant="solid"
-          as="h2"
-          id="crew-slots"
-          label="Crew slots"
-          count={String(slots.length)}
-        />
+        <Slab variant="solid" as="h2" id="crew-slots" label="Crew slots" />
         <p style={HINT}>
           {typeName
             ? 'One slot for the crawler type’s NPC, then one per bay. '

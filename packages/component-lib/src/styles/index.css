@@ -2443,10 +2443,10 @@ body {
 /* ── Pattern rows (`PatternLinkRows`) ───────────────────────────────────────
  * Each pattern is a card in the Row's language: its host's tone in the head
  * (the link, with the chevron), a paper body with the pattern's opening as a
- * clamped lead and its loadout Tokens (links of their own, so outside the
- * head's anchor). As many abreast as fit; a row of cards is one height. On a
- * phone only two show until "Show all" targets the list (`:target`), which
- * needs no script.
+ * clamped lead and its loadout, Systems beside Modules, one full-width Token
+ * a line (links of their own, so outside the head's anchor). One card a line.
+ * On a phone only two show until "Show all" targets the list (`:target`),
+ * which needs no script.
  */
 .su-pattern-rows {
   scroll-margin-top: var(--space-64);
@@ -2455,10 +2455,22 @@ body {
 .su-pattern-rows__list {
   display: grid;
   gap: var(--space-12);
-  grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+/* A pattern card's loadout on a page (`PatternLoadout fill`): each Token the
+   full width of its column, its name taking the slack so its fact sits at the
+   right edge. The pill sets no width of its own, so this needs no override. */
+.su-pattern-loadout--fill .su-entity-token {
+  display: flex;
+  width: 100%;
+}
+
+.su-pattern-loadout--fill .su-entity-token > span {
+  flex: 1 1 auto;
 }
 
 .su-pattern-rows__item {
@@ -3276,6 +3288,42 @@ body {
 
 .su-mode-door:hover {
   translate: 0 calc(var(--space-2) * -1);
+}
+
+/* ModeDoor's shadows. Here, not inline, because the focus ring is a
+   box-shadow too and an inline one would out-rank it.
+   guided: a ground gap, a 3px ink ring, then a soft drop shadow. */
+.su-mode-door--guided {
+  box-shadow:
+    0 0 0 3px var(--ground),
+    0 0 0 7px var(--color-ink),
+    0 18px 30px -14px var(--color-ink-50);
+}
+
+.su-mode-door--blank {
+  box-shadow: 0 14px 26px -14px var(--color-ink-40);
+}
+
+/* The canonical ring (`--focus-ring-shadow`: paper offset, ink ring) with
+   the door's own shadows kept. guided already wears an ink ring at rest, so
+   its focus ring sits OUTSIDE the halo, the same paper-then-ink pair offset
+   by the halo's 7px; laid on the edge it would merge into the halo and read
+   as no change. */
+.su-mode-door--guided:focus-visible {
+  outline: 3px solid transparent;
+  box-shadow:
+    0 0 0 3px var(--ground),
+    0 0 0 7px var(--color-ink),
+    0 0 0 9px var(--color-paper),
+    0 0 0 11px var(--color-ink),
+    0 18px 30px -14px var(--color-ink-50);
+}
+
+.su-mode-door--blank:focus-visible {
+  outline: 3px solid transparent;
+  box-shadow:
+    var(--focus-ring-shadow),
+    0 14px 26px -14px var(--color-ink-40);
 }
 
 /* PageHeading.tsx — each rung's size, leading and tracking, which callers
