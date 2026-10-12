@@ -19,6 +19,12 @@ describe('parseThemeTokens', () => {
     ])
   })
 
+  test('reads a `@theme static` block too', () => {
+    expect(parseThemeTokens('@theme static { --color-tl-2: rgb(1, 2, 3); }')).toEqual([
+      { name: '--color-tl-2', value: 'rgb(1, 2, 3)' },
+    ])
+  })
+
   test('finds every namespace the Foundations pages specimen in the real theme.css', () => {
     for (const prefix of ['--color-', '--text-', '--font-', '--tracking-', '--bw-', '--radius-'])
       expect(tokensIn(tokens, prefix).length).toBeGreaterThan(0)

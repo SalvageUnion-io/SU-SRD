@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { InteractionResponseType, InteractionType } from 'discord-api-types/v10'
-import worker from '../worker.js'
+import worker from '../index.js'
 
 /**
  * The signed replay harness — the bot's pre-deploy gate (ADR-033).

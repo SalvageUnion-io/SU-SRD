@@ -54,6 +54,12 @@ export type RegistryEntry = {
    * schemas/index.json catalog entries, which is a different set.)
    */
   excludeFromEntityUnion?: boolean
+  /**
+   * Set to `true` to also generate the schema's LIST projection
+   * (`lib/generated/<id>.list.generated.json`, rows without their prose — see
+   * `lib/listProjection.ts`), loadable with `preload(ids, { projection: 'list' })`.
+   */
+  listProjection?: boolean
 }
 
 export const registry: RegistryEntry[] = [
@@ -79,6 +85,7 @@ export const registry: RegistryEntry[] = [
     singular: 'Action',
     plural: 'Actions',
     excludeFromEntityUnion: true,
+    listProjection: true,
   },
   {
     id: 'chassis',

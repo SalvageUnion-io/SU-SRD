@@ -47,6 +47,14 @@ export const dataLoaders: Record<string, () => Promise<unknown[]>> = {
 }
 
 /**
+ * List-projection loaders (rows without their prose; see lib/listProjection.ts),
+ * for the schemas whose registry entry sets `listProjection`.
+ */
+export const listDataLoaders: Record<string, () => Promise<unknown[]>> = {
+  actions: () => import('./actions.list.generated.json').then((m) => m.default as unknown[]),
+}
+
+/**
  * Schema display name mappings
  */
 export const schemaDisplayNames: Record<string, { singular: string; plural: string }> = {

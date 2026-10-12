@@ -1,7 +1,7 @@
 /**
  * The NARROW interaction surface the command handlers actually use.
  *
- * `http/adapter.ts` builds these objects from Discord's raw `APIInteraction`
+ * `worker/adapter.ts` builds these objects from Discord's raw `APIInteraction`
  * (`makeExecuteInteraction`, `makeAutocompleteInteraction`), and tests fake
  * them in `__tests__/fakeInteraction.ts` without any forced casts. Handlers
  * must depend on THESE types, and members are added here only when a handler
@@ -15,7 +15,7 @@ import type { APIMessageTopLevelComponent, MessageFlags } from 'discord-api-type
  *
  * `@discordjs/builders`' `ContainerBuilder` / `ActionRowBuilder` satisfy this
  * through `toJSON()`, which `JSON.stringify` calls when the payload goes over
- * the wire (`http/adapter.ts`).
+ * the wire (`worker/adapter.ts`).
  */
 export type ReplyComponent = APIMessageTopLevelComponent | { toJSON(): APIMessageTopLevelComponent }
 
@@ -85,7 +85,7 @@ export type DirectMessageOutcome = { ok: true } | { ok: false; code: number | nu
 /**
  * What the button router reads off a message-component interaction.
  *
- * Narrow for the same reason the command surfaces are: `http/adapter.ts`
+ * Narrow for the same reason the command surfaces are: `worker/adapter.ts`
  * (`makeButtonInteraction`) builds it from the raw message-component
  * interaction, while a test builds the members it actually uses with no cast.
  * `user`/`channelId`/`editReply` are here because a re-roll is a roll and is
