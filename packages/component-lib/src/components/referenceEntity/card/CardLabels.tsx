@@ -13,19 +13,17 @@ const TRUNCATE = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
-/** The line: the stamps on the left, the User-made stamp pushed to the right. */
+/** The cluster: the stamps, then the User-made stamp. */
 const LINE: CSSProperties = {
   alignItems: 'center',
   display: 'flex',
   gap: space[6],
   minWidth: 0,
-  width: '100%',
 }
 
 /**
- * The left cluster never runs past the band: on a phone the stamps share the
- * room and the last (the Legal Starting Pattern) gives way, instead of running
- * off the edge.
+ * The stamps never run past the band: on a phone they share the room and the
+ * last (the Legal Starting Pattern) gives way, instead of running off the edge.
  */
 const STAMPS: CSSProperties = {
   alignItems: 'center',
@@ -36,13 +34,19 @@ const STAMPS: CSSProperties = {
   overflow: 'hidden',
 }
 
-const NO_WRAP: CSSProperties = { flex: 'none', whiteSpace: 'nowrap' }
+/**
+ * The type stamp (or the seal in its place) gives way LAST: it never shrinks,
+ * so the stamps after it go first, and only when it alone overflows the room
+ * does it truncate with "…" rather than being cut mid-letter by the band's edge.
+ */
+const LEAD: CSSProperties = { ...TRUNCATE, flex: 'none', maxWidth: '100%' }
 
 /**
- * LABELS — the first line of an entity's head band, in flow above the title:
+ * LABELS — the categorization stamps of an entity's head band, on the title's
+ * line, right of the name:
  * the TYPE stamp (every card, every depth — board E1), or a parent-provided
  * seal in its place; the classification pills; the Legal Starting Pattern
- * stamp; and on a user-made card the dashed User-made stamp at the right. On
+ * stamp; and on a user-made card the dashed User-made stamp after them. On
  * the ink banner the stamps take the `inverse` plate so they still read.
  */
 export function CardLabels({
@@ -59,7 +63,7 @@ export function CardLabels({
   typeStamp: string | undefined
   axisMarkers: AxisMarker[]
   legalStartingPattern: boolean
-  /** USER-MADE (ruleset §3.9): a dashed User-made stamp at the line's right. */
+  /** USER-MADE (ruleset §3.9): a dashed User-made stamp after the others. */
   userMade?: boolean
   /** The band is the ink banner (a thing you do). */
   onInk?: boolean
@@ -75,16 +79,14 @@ export function CardLabels({
             size="mini"
             surface={surface}
             style={
-              seal.tone === 'var(--color-ink)'
-                ? NO_WRAP
-                : { ...NO_WRAP, backgroundColor: seal.tone }
+              seal.tone === 'var(--color-ink)' ? LEAD : { ...LEAD, backgroundColor: seal.tone }
             }
           >
             {seal.label}
           </Badge>
         )}
         {typeStamp && (
-          <Badge shape="stamp" size="mini" surface={surface} style={NO_WRAP}>
+          <Badge shape="stamp" size="mini" surface={surface} style={LEAD}>
             {typeStamp}
           </Badge>
         )}
@@ -110,10 +112,9 @@ export function CardLabels({
           </Badge>
         )}
       </div>
-      {/* The dashed stamp sits at the RIGHT end of the line (board P1), apart
-          from the type stamp on the left. */}
+      {/* The dashed stamp closes the cluster (board P1). */}
       {userMade && (
-        <span style={{ flex: 'none', marginLeft: 'auto' }}>
+        <span style={{ flex: 'none' }}>
           <UserMadeStamp />
         </span>
       )}
