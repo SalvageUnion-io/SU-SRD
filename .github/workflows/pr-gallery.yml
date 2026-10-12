@@ -89,14 +89,23 @@ jobs:
 
       # srd is static files: a plain server answers `/route/` with its
       # index.html. ITUN is a single-page app: `vite preview` falls back to
-      # index.html for its routes.
+      # index.html for its routes. `vite preview` loads apps/itun/vite.config.ts,
+      # which refuses to start without VITE_CONVEX_URL (the build already
+      # carries it; the config only checks it is set), so pass the same URL.
       - name: Serve both builds
+        env:
+          VITE_CONVEX_URL: ${{ steps.convex.outputs.url }}
         run: |
           (cd apps/srd/dist && python3 -m http.server 4321 --bind 127.0.0.1 > /tmp/srd.log 2>&1 &)
           (cd apps/itun && bunx vite preview --port 5173 --strictPort > /tmp/itun.log 2>&1 &)
           for url in http://127.0.0.1:4321/ http://localhost:5173/; do
             for _ in $(seq 1 60); do curl -sf -o /dev/null "$url" && break; sleep 1; done
-            curl -sf -o /dev/null "$url" || { echo "::error::$url never answered"; exit 1; }
+            curl -sf -o /dev/null "$url" || {
+              echo "::error::$url never answered"
+              echo "--- /tmp/srd.log"; cat /tmp/srd.log
+              echo "--- /tmp/itun.log"; cat /tmp/itun.log
+              exit 1
+            }
           done
 
       - name: Shoot the gallery

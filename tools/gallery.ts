@@ -32,6 +32,7 @@ import { join, resolve } from 'node:path'
 import type { Browser, BrowserContext, Page } from '@playwright/test'
 import type { OgMeta } from './lib/galleryHtml'
 import { renderGallery } from './lib/galleryHtml'
+import type { GalleryPage } from './lib/galleryPages'
 import { GALLERY_SECTIONS, pageSlug } from './lib/galleryPages'
 import { launchBrowser } from './shot'
 
@@ -52,6 +53,8 @@ const VIEWS = [
   { key: 'desk', width: 1440, height: 900 },
   { key: 'phone', width: 390, height: 844 },
 ] as const
+
+const GALLERY_PAGES = GALLERY_SECTIONS.flatMap((s) => s.pages)
 
 const trimSlash = (url: string) => url.replace(/\/+$/, '')
 
@@ -244,85 +247,73 @@ async function seed(page: Page, itun: string): Promise<Partial<Seeded>> {
   return seeded
 }
 
-async function run(args: GalleryArgs): Promise<number> {
-  const shots = join(args.out, 'shots')
-  mkdirSync(shots, { recursive: true })
-  const shot = new Set<string>()
-  const og = new Map<string, OgMeta>()
+/** One page to shoot: its file stem, its site's base and the URL it is shot from. */
+export type GalleryTarget = { page: GalleryPage; slug: string; base: string; url: string }
+
+/** The signed-out pages, each on its site's base; a page whose site was not given is left out. */
+export function signedOutTargets(args: Pick<GalleryArgs, 'srd' | 'itun'>): GalleryTarget[] {
+  return GALLERY_PAGES.filter((p) => !p.signedIn).flatMap((page) => {
+    const base = page.site === 'srd' ? args.srd : args.itun
+    return base ? [{ page, slug: pageSlug(page), base, url: `${base}${page.path}` }] : []
+  })
+}
+
+/** The signed-in pages with the seed's placeholders resolved, and a failure for each the seed did not make. */
+export function signedInTargets(
+  itun: string,
+  seeded: Partial<Seeded>
+): { targets: GalleryTarget[]; failures: string[] } {
+  const targets: GalleryTarget[] = []
   const failures: string[] = []
-  const pages = GALLERY_SECTIONS.flatMap((s) => s.pages)
-  const browser: Browser = await launchBrowser()
-  try {
-    const context = await browser.newContext()
-    const page = await context.newPage()
-    for (const p of pages.filter((x) => !x.signedIn)) {
-      const base = p.site === 'srd' ? args.srd : args.itun
-      if (!base) continue
-      const slug = pageSlug(p)
-      try {
-        await shootPage(page, `${base}${p.path}`, (v) => join(shots, `${slug}-${v}.jpg`), false)
-        shot.add(slug)
-        const meta = await readOg(page)
-        let image = false
-        const entity = p.site === 'srd' ? pageEntity(p.path) : undefined
-        if (entity || meta.image) {
-          const path = meta.image ? new URL(meta.image).pathname : ''
-          const file = join(shots, `${slug}-og.png`)
-          if (entity) {
-            await renderOgCard(context, args.srd, entity, file)
-            image = true
-          } else {
-            const res = await fetch(`${base}${path}`)
-            if (res.ok && res.headers.get('content-type')?.startsWith('image/')) {
-              await Bun.write(file, await res.arrayBuffer())
-              image = true
-            }
-          }
-        }
-        og.set(slug, { title: meta.title, description: meta.description, image })
-      } catch (error) {
-        failures.push(`${p.site} ${p.path}: ${(error as Error).message.split('\n')[0]}`)
-      }
-      process.stdout.write('.')
-    }
-    await context.close()
-
-    if (args.signedIn && args.itun) {
-      const signed = await browser.newContext()
-      const sp = await signed.newPage()
-      let seeded: Partial<Seeded> = {}
-      try {
-        seeded = await seed(sp, args.itun)
-      } catch (error) {
-        failures.push(`itun seed: ${(error as Error).message.split('\n')[0]}`)
-      }
-      for (const p of pages.filter((x) => x.signedIn)) {
-        const path = resolvePath(p.path, seeded)
-        if (!path) {
-          failures.push(`itun ${p.path}: the seed made no such entity`)
-          continue
-        }
-        const slug = pageSlug(p)
-        try {
-          await shootPage(
-            sp,
-            `${args.itun}${path}`,
-            (v) => join(shots, `${slug}-${v}.jpg`),
-            !!p.edit
-          )
-          shot.add(slug)
-        } catch (error) {
-          failures.push(`itun ${p.path}: ${(error as Error).message.split('\n')[0]}`)
-        }
-        process.stdout.write('.')
-      }
-      await signed.close()
-    }
-  } finally {
-    await browser.close()
+  for (const page of GALLERY_PAGES.filter((p) => p.signedIn)) {
+    const path = resolvePath(page.path, seeded)
+    if (path) targets.push({ page, slug: pageSlug(page), base: itun, url: `${itun}${path}` })
+    else failures.push(`itun ${page.path}: the seed made no such entity`)
   }
+  return { targets, failures }
+}
 
-  const capturedAt = `${new Date().toISOString().replace('T', ' ').slice(0, 16)} UTC`
+/**
+ * Where a page's link-preview image comes from: its entity's card rendered on
+ * `/og-card/`, the og:image file it names fetched from the same build, or
+ * nothing.
+ */
+export function ogSource(
+  page: GalleryPage,
+  base: string,
+  image: string | undefined
+):
+  | { kind: 'card'; entity: NonNullable<ReturnType<typeof pageEntity>> }
+  | { kind: 'file'; url: string }
+  | undefined {
+  const entity = page.site === 'srd' ? pageEntity(page.path) : undefined
+  if (entity) return { kind: 'card', entity }
+  if (image) return { kind: 'file', url: `${base}${new URL(image).pathname}` }
+  return undefined
+}
+
+/** A failure's line in the gallery: what failed, then the first line of why. */
+export const failureLine = (what: string, error: unknown): string =>
+  `${what}: ${(error instanceof Error ? error.message : String(error)).split('\n')[0]}`
+
+/** The capture time the gallery prints, to the minute. */
+export const capturedAtStamp = (date: Date): string =>
+  `${date.toISOString().replace('T', ' ').slice(0, 16)} UTC`
+
+export type GalleryCapture = {
+  shot: ReadonlySet<string>
+  og: ReadonlyMap<string, OgMeta>
+  failures: readonly string[]
+}
+
+/** Writes `index.html` and `gallery.json` into `args.out`; returns the exit code (1 if anything failed). */
+export function writeGallery(
+  args: GalleryArgs,
+  capture: GalleryCapture,
+  capturedAt: string
+): number {
+  const { shot, og, failures } = capture
+  mkdirSync(args.out, { recursive: true })
   writeFileSync(
     join(args.out, 'index.html'),
     renderGallery(
@@ -343,6 +334,73 @@ async function run(args: GalleryArgs): Promise<number> {
   console.log(`\n[gallery] ${shot.size} pages, ${failures.length} not captured → ${args.out}`)
   for (const f of failures) console.log(`  ✗ ${f}`)
   return failures.length ? 1 : 0
+}
+
+/** Fetches a default og:image into `file`; true when it answered with an image. */
+export async function fetchOgImage(url: string, file: string): Promise<boolean> {
+  const res = await fetch(url)
+  if (!res.ok || !res.headers.get('content-type')?.startsWith('image/')) return false
+  await Bun.write(file, await res.arrayBuffer())
+  return true
+}
+
+async function run(args: GalleryArgs): Promise<number> {
+  const shots = join(args.out, 'shots')
+  mkdirSync(shots, { recursive: true })
+  const shot = new Set<string>()
+  const og = new Map<string, OgMeta>()
+  const failures: string[] = []
+  const file = (slug: string) => (view: string) => join(shots, `${slug}-${view}.jpg`)
+  const browser: Browser = await launchBrowser()
+  try {
+    const context = await browser.newContext()
+    const page = await context.newPage()
+    for (const t of signedOutTargets(args)) {
+      try {
+        await shootPage(page, t.url, file(t.slug), false)
+        shot.add(t.slug)
+        const meta = await readOg(page)
+        const source = ogSource(t.page, t.base, meta.image)
+        const ogFile = join(shots, `${t.slug}-og.png`)
+        let image = false
+        if (source?.kind === 'card') {
+          await renderOgCard(context, args.srd, source.entity, ogFile)
+          image = true
+        } else if (source) image = await fetchOgImage(source.url, ogFile)
+        og.set(t.slug, { title: meta.title, description: meta.description, image })
+      } catch (error) {
+        failures.push(failureLine(`${t.page.site} ${t.page.path}`, error))
+      }
+      process.stdout.write('.')
+    }
+    await context.close()
+
+    if (args.signedIn && args.itun) {
+      const signed = await browser.newContext()
+      const sp = await signed.newPage()
+      let seeded: Partial<Seeded> = {}
+      try {
+        seeded = await seed(sp, args.itun)
+      } catch (error) {
+        failures.push(failureLine('itun seed', error))
+      }
+      const planned = signedInTargets(args.itun, seeded)
+      failures.push(...planned.failures)
+      for (const t of planned.targets) {
+        try {
+          await shootPage(sp, t.url, file(t.slug), !!t.page.edit)
+          shot.add(t.slug)
+        } catch (error) {
+          failures.push(failureLine(`itun ${t.page.path}`, error))
+        }
+        process.stdout.write('.')
+      }
+      await signed.close()
+    }
+  } finally {
+    await browser.close()
+  }
+  return writeGallery(args, { shot, og, failures }, capturedAtStamp(new Date()))
 }
 
 if (import.meta.main) {
