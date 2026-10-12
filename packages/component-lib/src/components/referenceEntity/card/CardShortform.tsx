@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { font, fontSize, space, tracking, weight } from '../../../design/tokens'
+import { color, font, fontSize, radius, space, tracking, weight } from '../../../design/tokens'
 import { Stat } from '../../shared/Stat'
 import type { CardOuterProps } from './CardOuter'
 import { CardOuter } from './CardOuter'
@@ -56,6 +56,14 @@ const stamp = (onInk: boolean): CSSProperties => ({
   padding: `1px ${space[4]}`,
 })
 
+/** The name's own paper ground, on a tone that cannot carry text. */
+const NAME_ON_PAPER: CSSProperties = {
+  backgroundColor: color.paper,
+  borderRadius: radius.badge,
+  color: color.ink,
+  padding: `0 ${space[4]}`,
+}
+
 /**
  * The SHORTFORM (`size="small" extent="head"`, board E1): one pill with the
  * type stamp, the name and the first stat. It is how an entity sits in prose,
@@ -89,6 +97,10 @@ export function CardShortform({
   pennant: ReactNode
   userMade: boolean
 }) {
+  // A tech-level ramp is never a text ground (ruleset §3.8): its middle steps
+  // carry neither ink nor paper at 4.5 : 1, so the name sits on paper.
+  const nameOnPaper = /\bbg-tl-/.test(accent.className ?? '')
+  const nameStyle = nameOnPaper ? { ...NAME, ...NAME_ON_PAPER } : NAME
   return (
     <CardOuter {...outer}>
       <div
@@ -101,7 +113,7 @@ export function CardShortform({
         {/* The name wins: in a narrow slot it wraps onto a second line rather
             than being clipped or ellipsized. A pill exists to say which thing
             it is, and half a name does not. */}
-        <span className={onBandText} style={NAME}>
+        <span className={nameOnPaper ? undefined : onBandText} style={nameStyle}>
           {name}
         </span>
         {pennant}
