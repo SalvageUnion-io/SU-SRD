@@ -34,7 +34,7 @@ the corpus size, not just the finding count.
 
 | Id | Script | Baseline |
 | --- | --- | --- |
-| `generated` | `check-generated.ts` (runs first and alone: it rewrites files) | — |
+| `generated` | `check-generated.ts` (runs first and alone: it rewrites files; off CI it skips generators whose inputs are unchanged, `--force` re-runs all) | — |
 | `test` | `bun run test` | — |
 | `typecheck` | `bun run typecheck` | — |
 | `knip` | `bun run knip` | — |
@@ -69,6 +69,7 @@ the corpus size, not just the finding count.
 | `check-rules-fidelity.ts` | `check:rules-fidelity` | Every prose string against the books: verbatim, an allowlisted deviation (`lib/proseDeviations.ts` in the package), authored, or unverified drift. `--update` rewrites the lock the `rules-fidelity` gate reads; `--show=<reason>` lists strings with diffs; `--summary` prints a drift summary for a PR body. Needs the extract: `findExtractDir` in `extract-rules.ts` takes `RULES_EXTRACT_DIR`, then `rules/extracted` here, the main checkout's, or a sibling `su-rules` checkout's. |
 | `export-lp-assets.ts` | `assets:export` | Backs up the `su-lp-assets` R2 bucket locally and proves the copy byte-exact — the only backup path for the licensed artwork. Needs R2 credentials. |
 | `upload-lp-assets.ts` | `assets:upload` | The artwork ingest path into `su-lp-assets`. Needs R2 credentials. |
+| `art-crop.ts` | `assets:crop` | Measures each artwork's ink box from its `-440` derivative and writes component-lib's `heroArtCrop.data.ts`, which the entity page's hero crops to. Re-run after adding or replacing art; unmeasured art renders whole. |
 | `shot.ts` | `shot` | A headless full-page PNG of a story (`?mode=canvas`, catalog on 61000) or an srd `/route` (dev on 4321) at a `WIDTH_PRESETS` width, `--dark` emulated. Reuses a server already on the port, else starts and stops one. Writes to the gitignored `.shots/` (or `--out`) and prints each path. |
 
 `lib/` holds the shared pieces: `ruleEngine.ts` (the styling engine: walk,
@@ -77,4 +78,4 @@ exemptions, zero/ratchet verdicts), `scanFloor.ts`, `workspaceCoverage.ts`,
 `proseFidelity.ts` (prose collection, hashing and the fidelity lock format),
 `r2.ts` (R2 through `Bun.S3Client`, because `wrangler r2 object` cannot list)
 and `playwrightBase.ts` (the one Playwright config both apps' suites run).
-`rules/` holds the three styling rule sets.
+`rules/` holds the styling rule sets.

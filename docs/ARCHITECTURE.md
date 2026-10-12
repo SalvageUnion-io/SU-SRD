@@ -106,7 +106,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Only `context7` and `convex` are enabled; opt into the OAuth three in `.claude/settings.local.json`. `claude mcp list` proves one works.
 34. **Cloud sessions**
     `gh` is REST only (GraphQL gets 403): use `gh api` or `mcp__github__*`; no route means report it unread.
-    Environment and the `su-rules` attachment: [cloud-environment.md](ops/cloud-environment.md).
+    Merge: `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash` or `mcp__github__merge_pull_request`; no `gh stack`. Environment, `su-rules`: [cloud-environment.md](ops/cloud-environment.md).
 35. **Cloudflare**
     Workers `su-srd` (`salvageunion.io`), `su-itun` (`intheunionnow.com`), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
     The account is shared with RANDSUM; re-derive from `apps/*/wrangler.jsonc` and `wrangler deployments list`.

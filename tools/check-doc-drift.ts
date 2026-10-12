@@ -447,7 +447,10 @@ export function checkReferencedScripts(root: string): CheckResult {
 export const RETIRED_CLAIMS: [RegExp, string][] = [
   [/local-first/i, 'ITUN is account-gated: persistence requires an account (ADR-034)'],
   [/no auth\/backend|do not introduce a backend/i, 'Convex is the server of record (ADR-030)'],
-  [/in-memory (?:backend|only)/i, 'signed out, ITUN is read-only: see apps/itun/CLAUDE.md'],
+  [
+    /in-memory (?:backend|only)/i,
+    'signed out, ITUN is read-only: see .claude/rules/itun-data-access.md',
+  ],
   [/\bEntityDisplay\b|\bDisplayCard\b/, 'the card shells are ReferenceEntityCard and Card'],
   [/prettier/i, 'Biome is the only formatter'],
   [/"bun test"/, 'the gate is `bun run test`'],
@@ -782,11 +785,8 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/itun/CLAUDE.md': 13_483,
-  'apps/srd/CLAUDE.md': 11_724,
-  'CLAUDE.md': 11_797,
-  'packages/component-lib/CLAUDE.md': 15_719,
-  'packages/salvageunion-reference/CLAUDE.md': 9_309,
+  'apps/itun/CLAUDE.md': 11_751,
+  'CLAUDE.md': 10_915,
 }
 
 /**
@@ -801,6 +801,7 @@ const COLLAPSED_DOCS: Record<string, number> = {
   'docs/architecture/mediator-dashboard.md': 4_500,
   'docs/architecture/npc-builder.md': 2_000,
   'docs/design-system/entity-display-language.md': 6_000,
+  'docs/design-system/refresh-ledger.md': 6_500,
   'docs/design-system/ruleset.md': 13_000,
   'docs/design-system/tailwind-removal.md': 4_500,
   'docs/ops/cloud-environment.md': 3_800,
