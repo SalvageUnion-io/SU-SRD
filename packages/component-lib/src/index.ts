@@ -220,7 +220,7 @@ export * as tokens from './design/tokens'
 // how refs resolve, texture and the user-made treatment once.
 export { Entity } from './entity/Entity'
 export { EntitySurfaceProvider } from './entity/EntitySurface'
-export type { EntitySurfaceValue } from './entity/entitySurfaceContext'
+export type { AnnouncedRoll, EntitySurfaceValue } from './entity/entitySurfaceContext'
 // MENTION and PEEK (E4, E16): an entity named in prose, and the page's one
 // host for the read-only card a mention or a trait tag shows on hover, focus
 // or long-press.
