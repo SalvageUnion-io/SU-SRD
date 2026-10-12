@@ -741,9 +741,9 @@ body {
   }
 }
 
-/* A tech level's plate (no art, `Tile.tsx`): its numeral, set as large as the
-   plate holds in the condensed face, in ink on paper. The band below carries
-   the level's colour. */
+/* The plate of a tile with no art place (`Tile.tsx`): a tech level's numeral,
+   or another entity's monogram, set as large as the plate holds in the
+   condensed face, in ink on paper. The band below carries the tone. */
 .su-entity-tile__art--numeral {
   align-items: center;
   aspect-ratio: 2 / 1;
@@ -1720,7 +1720,7 @@ body {
   }
 }
 
-/* `asideAt="notch"`: the aside right beside the notch, after it, at every
+/* `asideAt="notch"`: the aside on the notch's row, after it, at every
    width. `wrap-reverse` keeps the notch on the band's foot: when a long name
    leaves no room beside it the aside wraps ABOVE the notch, never under it
    (and swaps the cross axis, so `flex-start` is the foot). */
@@ -1729,6 +1729,12 @@ body {
   column-gap: var(--space-16);
   flex-flow: row wrap-reverse;
   justify-content: flex-start;
+}
+
+/* …and at the band's far end, as the tags under it are: on the notch's line
+   when it fits, and at the end of its own line when it wraps. */
+.su-chapter-band[data-aside='notch'] .su-chapter-band__aside {
+  margin-inline-start: auto;
 }
 
 /* ══ The nav drawer's index (`components/compositions/NavDrawer.tsx`) ═════════════
@@ -1967,8 +1973,14 @@ body {
   overflow: hidden;
 }
 
-/* With no art the body is one reading column. */
-.su-entity-page__main:not(.su-entity-page__main--art) {
+/* With no art the body is one reading column, but for the tags, which run
+   to the page's far end under the band's stamps. */
+.su-entity-page__main:not(.su-entity-page__main--art)
+  > .su-entity-page__side
+  > :not(.su-entity-page__prose),
+.su-entity-page__main:not(.su-entity-page__main--art)
+  .su-entity-page__prose
+  > :not(.su-entity-page__tags) {
   max-width: 52rem;
 }
 
