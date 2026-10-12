@@ -1,6 +1,13 @@
 # Spike D12: cut the Discord bot's Game client by usage?
 
-Status: **awaiting the owner's decision.** Nothing is deleted by this spike.
+Status: **decided 2026-10-12: cut nothing yet, measure first.** Nothing is
+deleted. The owner's decision, on the spike PR:
+
+- Ship the per-interaction log. It shipped with this spike, in
+  `apps/discord-bot/src/worker/index.ts`.
+- The owner runs [queries 1 and 2](#what-the-owner-needs-to-run) now.
+- After 30 days of the log, the owner picks an [option](#options) against the
+  [thresholds](#decision-thresholds-proposed-the-owner-may-adjust-them).
 
 ## Question
 
@@ -11,10 +18,11 @@ the roll attribution that rides on `/su roll`. Should any of them be cut?
 
 ## Measurements
 
-### Usage: not measured, and today it cannot be
+### Usage: not measured, and before the log it could not be
 
 I tried every source a cloud session can reach. None of them gives a count per
-command.
+command. The table describes the bot as it was before the spike added its log
+line.
 
 | Source | Result in this session | Could it answer the question? |
 | --- | --- | --- |
@@ -24,7 +32,7 @@ command.
 | `wrangler tail` | not runnable here (no Cloudflare credentials) | **No.** `--search` matches log messages, and the Worker logs none. It cannot filter on the interaction name. |
 | Convex MCP | connected, but bound to the **local** deployment | No. Production is `alex-jarvis:suref-itun:prod`. |
 
-The only total the Worker can report today is the request count, and that
+Before the log, the only total the Worker could report was the request count, and that
 mixes autocomplete, button presses and Discord's pings with real commands. So
 there are **no usage numbers in this doc**. The two things that *can* be
 measured are listed under [what the owner needs to run](#what-the-owner-needs-to-run).
@@ -91,14 +99,13 @@ thresholds below.**
 - Run the Convex queries below now. They are durable, all-time data, and they
   can settle option E today: a Game client that has never been bound in
   production does not need a month of logging to judge.
-- For B, C and D, a per-command count is needed. Getting one takes a small
-  follow-up that this spike does **not** make, because it is a code change:
-  - In `dispatch` (`apps/discord-bot/src/http/worker.ts`), emit one structured
-    line per interaction: `{ evt: 'interaction', type, group, sub }`, with no
-    user ids and no option values.
-  - Better: write the same fields as a Workers Analytics Engine data point. It
-    keeps data far longer than Workers Logs.
-  - Leave it running for **30 days**.
+- For B, C and D, a per-command count is needed. `dispatch`
+  (`apps/discord-bot/src/worker/index.ts`) now logs one line per interaction,
+  `{ evt: 'interaction', type, name }`. `name` is `su game bind` for a command
+  or its autocomplete, `su:roll` for a button, and `null` for a ping. It never
+  carries a user id, an option value or a button payload. Leave it running for
+  **30 days**. If Workers Logs retention proves too short, an Analytics Engine
+  data point with the same fields is the follow-up.
 
 ### Decision thresholds (proposed; the owner may adjust them)
 
@@ -199,25 +206,15 @@ Field names in `--jsonl` vary by CLI version. Check one line first and adjust
 the `jq` path. The window is whatever history the deployment keeps; note it
 next to the counts.
 
-### 3. After instrumentation ships: per-subcommand counts across the whole bot
+### 3. Once the log is deployed: per-command counts across the whole bot
 
-Once the logging follow-up is merged, wait 30 days. This is the only way to
-compare the Game commands against `/su roll` and `/su lookup`. Then run one of
-these:
+This is the only way to compare the Game commands against `/su roll` and
+`/su lookup`. Count from the day the log deploys, for 30 days:
 
 - **Workers Logs** (Observability → `su-discord-bot`): filter
-  `evt = "interaction"` and `type = 2`, group by `group`, `sub`, count. Repeat
-  for each retention window, because Workers Logs keeps days, not months.
-- **Analytics Engine** (if used instead):
-
-  ```sql
-  SELECT blob2 AS grp, blob3 AS sub, SUM(_sample_interval) AS n
-  FROM su_bot_interactions
-  WHERE double1 = 2 AND timestamp > NOW() - INTERVAL '30' DAY
-  GROUP BY grp, sub
-  ORDER BY n DESC
-  ```
-
+  `evt = "interaction"` and `type = 2` (commands; `4` is autocomplete, `3` a
+  button), group by `name`, count. Workers Logs keeps days, not months, so
+  record a count at the end of each retention window and sum them.
 - **Live spot check:** `wrangler tail su-discord-bot --format json --search '"evt":"interaction"'`.
 
 ### 4. Decide
