@@ -17,6 +17,7 @@ Status: agreed; phases 1–3 have landed (`packages/component-lib/src/entity/`).
 2. **Token** — `[kind] name [one fact]`, one size; always opens its entity; Peeks on hover or long-press.
 3. **Row** — every list: art column (≥ 18rem, where the schema has art), head (the kind stamp as its first line, then tier, name, cost pennant, mode slot), paper body (facts, traits, lead while browsing).
    In a `data-entity-grid` every Row is the same height and every head's name line reserves two lines.
+   **Tile** — the SRD Catalog's Row: 3:4 art, name notched into the band, compact facts, lead; link only.
 4. **Card** — the whole entity in place: head (its labels — kind stamp, pills, User-made — as the first line, in flow), facts, prose, actions as bands, children as Rows, table as a roll bar, cite; comfortable (≥ 30rem) or compact.
 5. **Page** — the detail view: an SRD route, an ITUN drawer (sheet on phone). From 64rem the hero floats left (42%, ≤ 32rem tall) and sections flow beside it.
    Ability trees and pattern rows clear the art; a tray spans the column (`CardTray`'s `flush`); on a phone the art stacks above.
@@ -36,7 +37,7 @@ Status: agreed; phases 1–3 have landed (`packages/component-lib/src/entity/`).
 Each is checkable; breaking one needs an amendment here first.
 
 - **E1** Choose the form by the job and the room, never by the app.
-- **E2** Every list of entities is a list of Rows (grid, masonry and columns are layout). The SRD catalog view is retired.
+- **E2** Every list of entities is a list of Rows (grid, masonry and columns are layout). Except the SRD Catalog: Tiles where the schema has art, default at ≥ 75rem; the reader's choice is kept.
 - **E3** Use a Token only when a Row will not fit: three or more on a line, or a slot under 12rem.
 - **E4** An entity named in prose is a Mention: Peek on hover or long-press, the Page on click. Never a chip, Stat or raw markup.
 - **E5** The detail view is always a Page: no large-card modals, no new-tab `window.open`.
@@ -55,7 +56,7 @@ Each is checkable; breaking one needs an amendment here first.
 
 ## Which form, where
 
-1. **SRD listing** — Row (art, lead), link. **SRD entity, pattern, table or guide page** — Page, read; children link.
+1. **SRD listing** — Row (art, lead), link; Tile at ≥ 75rem with art (E2). **SRD entity, pattern, table or guide page** — Page, read; children link.
 2. **Search, both apps** — Row (no lead), link. **Any prose** — Mention: Peek, then Page.
 3. **ITUN wizard or picker** — Row, Card for the focused pick; select / count. **Live sheet** — Row expanding to Card, hold.
 4. **ITUN dense slots** (inventory strip, bays, loadouts) — Token, hold / link. **Deck, resolve** — Row / Card, act.

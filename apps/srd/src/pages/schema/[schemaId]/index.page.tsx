@@ -2,9 +2,10 @@
  * `/schema/[schemaId]` — the per-schema listing page.
  *
  * Headed by its chapter's band (the schema's plural name notched in), then the
- * listing: one compact card per entity, in the groups the book prints them in,
- * by default, with a Catalog toggle for the artwork tiles. It ends on the same
- * chapter's band (`foot`), as an entity page does.
+ * listing, in the groups the book prints them in: one Row per entity, or where
+ * the schema has art an art-first Tile (the Catalog, the default at a desktop
+ * measure; `lib/listingView.ts`). It ends on the same chapter's band (`foot`),
+ * as an entity page does.
  *
  * `SchemaViewerIsland` is `ssr={true}` (see the per-island table in
  * `ssg/DESIGN.md`), but what it server-renders is `SchemaItemLinks`, not the
@@ -17,7 +18,7 @@
 
 import { ChapterBand } from 'component-lib'
 import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
-import { getEntitySlug } from 'salvageunion-reference'
+import { getAssetUrl, getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
 import { chapterForSchema } from '../../../lib/chapters'
 import { SITE_URL, TITLE_SUFFIX } from '../../../lib/constants'
@@ -34,9 +35,17 @@ type Props = { schema: EnhancedSchemaMetadata; data: SURefEntity[] }
 const MEASURE = '87.5rem'
 
 /** One named row per entity, in the list view's own grid, for the server render. */
-function SchemaItemLinks({ schemaId, data }: { schemaId: string; data: SURefEntity[] }) {
+function SchemaItemLinks({
+  schemaId,
+  data,
+  hasArt,
+}: {
+  schemaId: string
+  data: SURefEntity[]
+  hasArt: boolean
+}) {
   return (
-    <div className="srd-listing">
+    <div className="srd-listing" data-art={hasArt || undefined}>
       <ul className="srd-listing__cards">
         {data.map((item) => (
           <li key={item.id}>
@@ -69,6 +78,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
   const trees = schemaId === 'abilities' ? getUniqueTrees(data) : []
   const preloadSchemas = getSchemaPreloadList(schemaId)
+  // A schema with artwork has a Catalog view, the default at a desktop measure.
+  const hasArt = data.some((item) => !!getAssetUrl(item))
 
   return {
     meta: {
@@ -119,9 +130,9 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             name="SchemaViewerIsland"
             client="visible"
             ssr
-            props={{ schemaId, techLevels, sources, trees, preloadSchemas }}
+            props={{ schemaId, techLevels, sources, trees, preloadSchemas, hasArt }}
           >
-            <SchemaItemLinks schemaId={schemaId} data={data} />
+            <SchemaItemLinks schemaId={schemaId} data={data} hasArt={hasArt} />
           </Island>
         </div>
       </div>
