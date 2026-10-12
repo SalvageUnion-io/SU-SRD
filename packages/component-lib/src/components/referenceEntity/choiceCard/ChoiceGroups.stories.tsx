@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
+import { color, font, fontSize, space } from '../../../design/tokens'
 import type { Story } from '../../../stories/_harness'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
 import type { EntityOption } from './ChoiceGroups'
@@ -56,27 +57,56 @@ const entityOption = (option: EntityOption) => (
   />
 )
 
+const rowStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[6],
+} satisfies CSSProperties
+
+const rowLabelStyle = {
+  fontFamily: font.body,
+  fontSize: fontSize.badge,
+  color: color.wkMuted,
+} satisfies CSSProperties
+
+const pageStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[24],
+  backgroundColor: color.paper,
+  padding: space[20],
+  color: color.ink,
+} satisfies CSSProperties
+
+const introStyle = {
+  maxWidth: '42rem',
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: 1.625,
+  color: color.wkMuted,
+} satisfies CSSProperties
+
 function Row({
   label,
-  width = 'w-[500px]',
+  width = 500,
   children,
 }: {
   label: string
-  width?: string
+  width?: number
   children: ReactNode
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className={width}>{children}</div>
-      <code className="font-body text-badge text-wk-muted">{label}</code>
+    <div style={rowStyle}>
+      <div style={{ width }}>{children}</div>
+      <code style={rowLabelStyle}>{label}</code>
     </div>
   )
 }
 
 /** Each choice type × its states — exclusive, multi-select (capped), free-text. */
 export const Types: Story = () => (
-  <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
-    <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
+  <div style={pageStyle}>
+    <p style={introStyle}>
       Exclusive (single-select), multi-select (with a TL-scaled cap counter), and free-text choices
       — unselected vs a pre-seeded controlled selection.
     </p>
@@ -108,10 +138,10 @@ export const Types: Story = () => (
         toneColor="var(--color-tl-3)"
       />
     </Row>
-    <Row label="free-text · editable" width="w-[400px]">
+    <Row label="free-text · editable" width={400}>
       <ChoiceGroups choices={[nameChoice]} parent={parent} toneColor="var(--color-tl-3)" />
     </Row>
-    <Row label="free-text · read-only" width="w-[400px]">
+    <Row label="free-text · read-only" width={400}>
       <ChoiceGroups
         choices={[nameChoice]}
         parent={parent}
@@ -125,8 +155,8 @@ export const Types: Story = () => (
 
 /** All choice types together on one granted card — full and compact. */
 export const Composed: Story = () => (
-  <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
-    <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
+  <div style={pageStyle}>
+    <p style={introStyle}>
       Multiple choices as they render on a real granted-equipment card; compact tightens for
       listings.
     </p>
@@ -138,7 +168,7 @@ export const Composed: Story = () => (
         toneColor="var(--color-tl-3)"
       />
     </Row>
-    <Row label="compact" width="w-[420px]">
+    <Row label="compact" width={420}>
       <ChoiceGroups
         choices={[weaponType, modification]}
         parent={parent}

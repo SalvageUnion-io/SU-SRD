@@ -1,6 +1,8 @@
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { getChoices, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
+import { space } from '../../../design/tokens'
 import type { Story } from '../../../stories/_harness'
 import { Caption } from '../../../stories/_harness'
 import { Button } from '../../chrome/Button'
@@ -21,6 +23,21 @@ export default {
 const bay = SalvageUnionReference.CrawlerBays.getByName('Armament Bay')
 const choice = bay ? (getChoices(bay) ?? [])[0] : undefined
 
+const demoStyle = {
+  display: 'flex',
+  width: '100%',
+  maxWidth: '28rem',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: space[6],
+} satisfies CSSProperties
+
+const pageStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[12],
+} satisfies CSSProperties
+
 /** The editable card flow: Choose… button → modal pick → the chosen entity as a real listing card. */
 function PickerDemo({ techLevel }: { techLevel?: number }) {
   const [open, setOpen] = useState(false)
@@ -36,7 +53,7 @@ function PickerDemo({ techLevel }: { techLevel?: number }) {
       ).find((e) => e.name === chosen)
     : undefined
   return (
-    <div className="flex w-full max-w-md flex-col items-start gap-1.5">
+    <div style={demoStyle}>
       {chosenEntity && <ReferenceEntityCard data={chosenEntity} size="medium" extent="head" />}
       <Button variant="primary" size="mini" onClick={() => setOpen(true)}>
         {chosen ? `Change — ${chosen}` : `Choose ${choice.name}…`}
@@ -54,7 +71,7 @@ function PickerDemo({ techLevel }: { techLevel?: number }) {
 }
 
 export const Default: Story = () => (
-  <div className="flex flex-col gap-3">
+  <div style={pageStyle}>
     <Caption>
       Armament Bay · Weapons System — single-select; picking replaces the prior pick, re-picking the
       chosen one clears it.
@@ -65,7 +82,7 @@ export const Default: Story = () => (
 
 /** The crawler's Tech Level caps the pool — TL 2 here narrows the searcher's facets and entities. */
 export const TechLevelCapped: Story = () => (
-  <div className="flex flex-col gap-3">
+  <div style={pageStyle}>
     <Caption>techLevel=2 — the pool and its facets narrow to TL 2 and below.</Caption>
     <PickerDemo techLevel={2} />
   </div>
