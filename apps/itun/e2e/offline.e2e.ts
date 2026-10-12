@@ -13,7 +13,7 @@ import { expect, test } from './fixtures'
  *
  * ## What offline promises since D9
  *
- * The D9 decision (`docs/spikes/d9-offline-cache.md`) removed the IndexedDB
+ * The D9 decision (`docs/ARCHITECTURE.md#no-device-cache`) removed the IndexedDB
  * cache: nothing player-owned is kept on the device. So offline promises two
  * things, and this spec pins both:
  *

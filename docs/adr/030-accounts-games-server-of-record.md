@@ -14,7 +14,7 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 30, which
 and the partial is the important word: §1 promises Solo mode — not signed in,
 IndexedDB as the source of truth — "must keep working forever", and **that one
 guarantee is withdrawn**. Persistence requires an account, and since the D9
-decision ([spike](../spikes/d9-offline-cache.md)) nothing is kept on the device
+decision ([no device cache](../ARCHITECTURE.md#no-device-cache)) nothing is kept on the device
 at all: no IndexedDB cache. Everything else here — Games,
 memberships, roles, ownership, the two containers, Convex as server of record —
 stands, so citing this ADR remains correct for all of it.

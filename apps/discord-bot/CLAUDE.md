@@ -37,8 +37,7 @@ the bot uses.
   and `entityCard()`, the one render for sheets and Game cards
 - `src/lookupCard.ts` - the `/su lookup` card: the shared Discord card
   (`discordCardParts` in `salvageunion-reference`, also the SRD's Component
-  Embed) plus tabs, pages, the pattern picker and roll buttons. Design:
-  [discord-bot-refresh.md](../../docs/architecture/discord-bot-refresh.md)
+  Embed) plus tabs, pages, the pattern picker and roll buttons
 - `src/gameCards.ts` - Game cards (`data → entityCard`)
 - `src/termFinder.ts`, `src/commands/lookUpMessage.ts` - "Look up in Salvage
   Union", the message context menu

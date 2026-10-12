@@ -5,8 +5,7 @@
  * The card itself is `discordCardParts` (salvageunion-reference, fed by the
  * entity model): the same renderer the SRD puts in each page's head as a
  * Component Embed, so a lookup and a pasted salvageunion.io link read as one
- * product and cannot disagree. Nothing about an entity is computed here. The
- * design is `docs/architecture/discord-bot-refresh.md`.
+ * product and cannot disagree. Nothing about an entity is computed here.
  *
  * What the bot adds, all stateless (`customId.ts`):
  *

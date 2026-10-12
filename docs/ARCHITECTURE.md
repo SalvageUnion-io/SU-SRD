@@ -29,7 +29,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Each schema's `$id` is the URL it is served at; `api.salvageunion.io/v1` is decided, not built (ADR-043).
 8. **discord-bot** <a id="discord-bot"></a>
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
-   Imports `itun-domain/botWire` as a type only: changing it is a cross-package change.
+   Imports `itun-domain/botWire` as a type only: changing it is a cross-package change. Bot and embed cards share `discordCard.ts`.
 9. **itun-domain** <a id="itun-domain"></a>
    Zod schemas, link/crew/downtime rules and bot wire types for ITUN, Convex and the bot; import by subpath.
    Rules: pure → reference `lib/rules`; shared → here; client → `apps/itun/src/lib/rules`; `check rules-home` bars Convex→`src/`.
@@ -39,7 +39,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 11. **Convex, the server of record** <a id="convex"></a>
     `apps/itun/convex/`: bodies are opaque (`v.any()`), Zod parses before every mutation; an entity is in a Game or on a Shelf.
     Every store commits through a `commit*` in `apps/itun/src/stores/`; `containerParity.test.ts` asserts each has a table.
-12. **No device cache** (D9, [spike](spikes/d9-offline-cache.md)) <a id="no-device-cache"></a>
+12. **No device cache** (D9, #1383) <a id="no-device-cache"></a>
     No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/offline.e2e.ts` pins both offline cases.
 13. **Zustand stores** <a id="stores"></a>
     `apps/itun/src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs.
@@ -76,7 +76,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Story rules: [component-lib's CLAUDE.md](../packages/component-lib/CLAUDE.md), enforced by `story-coverage.test.ts`.
 24. **Discord bot as a Game client** <a id="bot-game-client"></a>
     `/su` commands call `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`) with `ITUN_BOT_SECRET`; `/su invite` is Discord-signed.
-    Reads widely, writes only existing mutations; Convex unreachable means every Game command answers `unavailable`.
+    Reads widely, writes only existing mutations; Convex unreachable means every Game command answers `unavailable`. D12 (#1351): no cut before 30 days of logs.
 25. **SEO** <a id="seo"></a>
     srd's head is `BaseLayout.tsx` from `DocumentMeta`; JSON-LD, `ssg/sitemap.ts`, `/llms.txt` (byte for byte), PWA via `ssg/pwa.ts`.
     No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot` (no hydration).
@@ -91,7 +91,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Actions are allowlisted and SHA-pinned; both drift-checked nightly; no merge queue.
 29. **Deploy** <a id="deploy"></a>
     `deploy-cloudflare.yml` on `main` push: plan → build → `push-convex` → deploy (srd's after `og-srd`) → smoke → record (tag `deployed/cloudflare`).
-    `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back.
+    `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back. T7 (#1429): srd OG stays build-time.
 30. **Preview deploys** <a id="previews"></a>
     `gh workflow run deploy-preview.yml --ref <branch>`, and each `design-refresh` push → `preview-su-srd` / `preview-su-itun.alxjrvs.workers.dev` on staging Convex.
     The owner approves the `preview` Environment; staging data persists across branches.
@@ -210,7 +210,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Amends ADR-030; amended by ADR-044. Code: `packages/itun-domain/src/links/linkRules.ts`.
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
     Accepted, built: Game-only with a Mediator; a seat on the Game; Major / Minor slots; fixed 1280×800 canvas.
-    Supersedes ADR-015; amended by ADR-045. As built: [dashboard.md](architecture/dashboard.md).
+    Supersedes ADR-015; amended by ADR-045. As built: [dashboard.md](architecture/dashboard.md). D8 (#1355): both dashboards stay.
 39. **ADR-039 Addressed invites by Discord account** · [full text](adr/039-addressed-invites.md)
     Accepted: an invite may carry `invites.target`; `/su invite` is Discord-signed; both doors mint through `mintInvite`.
     Amends ADR-030's invite rules (`apps/itun/convex/model/invites.ts`).
@@ -236,6 +236,6 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted, built (TW0–TW7): `theme.css` tokens, `tokens.ts` objects, `index.css`; `styling`'s `no-tailwind` keeps Tailwind out.
 47. **ADR-047 One salvageunion.io edge Worker**
     Accepted, not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
-    Supersedes ADR-043 decision 1; amends ADR-033. [Spike](spikes/o3-one-edge-worker.md).
-48. **ADR-048 ITUN at salvageunion.io/build** · [spike](spikes/s2-one-product.md)
-    Accepted: a route ahead of srd; the old host 301s. Amends ADR-033.
+    Supersedes ADR-043 decision 1; amends ADR-033. O3: #1397.
+48. **ADR-048 ITUN at salvageunion.io/build**
+    Accepted: a route ahead of srd; the old host 301s. Amends ADR-033. S2: #1423.

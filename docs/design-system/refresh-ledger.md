@@ -16,7 +16,7 @@ From `git log origin/design-refresh`; one squash-merged PR each unless noted.
 7. **PL** Compact-card listings grouped as the book prints them, censor marks for missing art, one-screen roll tables — no PR: 8 direct commits (`6044219`…`58692ee`).
 8. **EDL** ([entity-display-language.md](entity-display-language.md)) — phases 1 model (`18bb05f`), 2 Row + Token (`0223974`), 3 Mention + Peek (`c49a5ef`) merged without PRs.
    Remaining: 4 Card + Hold, 5 Page + instruments, 6 delete `ReferenceEntityCard` and add the E15 lint.
-9. **DB** The Discord bot on the shared card, and Component Embeds on SRD pages ([discord-bot-refresh.md](../architecture/discord-bot-refresh.md)) — direct commits.
+9. **DB** The Discord bot on the shared card, and Component Embeds on SRD pages ([discord-bot](../ARCHITECTURE.md#discord-bot)) — direct commits.
 
 ## Refit fleet
 

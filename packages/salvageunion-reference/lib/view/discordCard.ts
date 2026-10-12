@@ -3,7 +3,7 @@
  * reaches Discord: the bot's `/su lookup` card, and the Component Embed the
  * SRD puts in each page's head, which Discord draws when someone pastes a
  * salvageunion.io link. One renderer, so a pasted link and a lookup can never
- * disagree. The design is `docs/architecture/discord-bot-refresh.md`.
+ * disagree (`docs/ARCHITECTURE.md#discord-bot`).
  *
  * Pure, and fed by the model (`toEntityModel`): no fact is computed here. A
  * colour stays a tone KEY, as everywhere in the view model; each consumer maps

@@ -528,7 +528,7 @@ jobs:
   # Two jobs over the same steps: `deploy-srd`, and `deploy`, a matrix over
   # the rest of the deploy set. A matrix cannot vary `needs` per leg, and only
   # srd ships `og-srd`'s output — which takes 20-30 s warm and up to ~3 min
-  # cold (docs/spikes/t7-one-og-pipeline.md) — so only srd waits for it. Keep
+  # cold (T7, docs/ARCHITECTURE.md#deploy) — so only srd waits for it. Keep
   # the two jobs' steps in step.
   #
   # Both `need` both build jobs and the push, not just what one leg ships: a
