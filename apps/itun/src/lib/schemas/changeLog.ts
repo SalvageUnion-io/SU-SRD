@@ -1,6 +1,6 @@
 /**
  * Change Log (provenance) — the per-entity, append-only audit trail
- * ([ADR-022](../../../../../docs/ARCHITECTURE.md#adr-022)).
+ * ([ADR-022](../../../../../docs/ARCHITECTURE.md#decisions)).
  *
  * Every mutation to a player entity, on every surface, appends a Change Log
  * entry — _all_ changes, not just overrides. Each entry is tagged with its

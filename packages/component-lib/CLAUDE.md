@@ -4,17 +4,16 @@ Shared React component library consumed by both `srd` and `itun`.
 
 ## Key Facts
 
-- **No build step** - exports TypeScript source directly via `src/index.ts` barrel ([ADR-011](../../docs/ARCHITECTURE.md#adr-011))
-- **Data-source agnostic** - no backend/persistence dependency; consumers inject behavior via slot props, and choice components are persistence-agnostic ([ADR-010](../../docs/ARCHITECTURE.md#adr-010))
+- **No build step** - exports TypeScript source directly via `src/index.ts` barrel ([ADR-011](../../docs/ARCHITECTURE.md#decisions))
+- **Data-source agnostic** - no backend/persistence dependency; consumers inject behavior via slot props, and choice components are persistence-agnostic ([ADR-010](../../docs/ARCHITECTURE.md#decisions))
 - Vite in consuming apps handles `.ts/.tsx` compilation
-- **`sideEffects` is CSS only** (`package.json`): bundlers drop any module whose exports go unused. Never rely on an import running code; if a module truly must, add it to that list ([dependencies](../../docs/ARCHITECTURE.md#component-lib-dependencies))
+- **`sideEffects` is CSS only** (`package.json`): bundlers drop any module whose exports go unused. Never rely on an import running code; if a module truly must, add it to that list ([dependencies](../../docs/ARCHITECTURE.md#areas))
 - Styling: tokens + style objects + one stylesheet, with Tailwind being removed — see [Styling](#styling)
 - **Design intent:** [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) is the source of truth ("board 05c" names one of its boards); [`ruleset.md`](../../docs/design-system/ruleset.md) codifies it and yields where they disagree
 
 ## Styling
 
-Tailwind is being removed. **The plan, the phases and every piece of
-evidence behind the rules below live in
+Tailwind is being removed. **The plan and its phases live in
 [`docs/design-system/tailwind-removal.md`](../../docs/design-system/tailwind-removal.md)**
 — read it before migrating a component. What an editor of this package needs:
 
@@ -53,7 +52,7 @@ silently every time a component lands or is deleted.
 
 - For the export surface: the barrel, [`src/index.ts`](src/index.ts).
 - For the rules governing that surface (what may be exported, what consumers may
-  import): [packages and contracts](../../docs/ARCHITECTURE.md#component-lib).
+  import): [packages and contracts](../../docs/ARCHITECTURE.md#areas).
 - For a browsable, rendered catalog: the `stories` launch config (`bun run stories`
   outside Claude Code) — the story-coverage guard
   proves it covers every public visual component.
@@ -68,9 +67,9 @@ The entity display uses **generic slot props** (`afterExtraContent`, `abilitiesS
 
 Component stories live beside their components (`*.stories.tsx`) and are served by the catalog, `catalog.tsx` at the package root.
 
-**The catalog also serves the apps' own components.** A composition only one app renders lives in that app (see [component-lib](../../docs/ARCHITECTURE.md#component-lib)): ITUN's Dashboard instruments, sheet presentation, wizard shell and steps, masthead and roster row under `apps/itun/src/components/`, srd's site-only components under `apps/srd/src/components/`. A primitive (an Atom or a Container) stays here however many apps render it. The story's group is the classification: `bun run check barrel-consumers` fails a barrel export only one app reaches whose story files it under `Compositions/`, so file a new component in the group it truly belongs to. Their stories moved with them and `catalog.tsx` globs both folders, so they keep their pages. The taxonomy, unique-title and co-location rules below apply to them too — `story-coverage.test.ts` scans all three roots — while coverage (every *public* component has a story) is about this package's barrel only. App stories are plain components and take `Story` and `Caption` from `component-lib/stories/harness`.
+**The catalog also serves the apps' own components.** A composition only one app renders lives in that app (see [component-lib](../../docs/ARCHITECTURE.md#areas)): ITUN's Dashboard instruments, sheet presentation, wizard shell and steps, masthead and roster row under `apps/itun/src/components/`, srd's site-only components under `apps/srd/src/components/`. A primitive (an Atom or a Container) stays here however many apps render it. The story's group is the classification: `bun run check barrel-consumers` fails a barrel export only one app reaches whose story files it under `Compositions/`, so file a new component in the group it truly belongs to. Their stories moved with them and `catalog.tsx` globs both folders, so they keep their pages. The taxonomy, unique-title and co-location rules below apply to them too — `story-coverage.test.ts` scans all three roots — while coverage (every *public* component has a story) is about this package's barrel only. App stories are plain components and take `Story` and `Caption` from `component-lib/stories/harness`.
 
-**The standard, in one line: ONE public component = ONE co-located story file = ONE nav leaf, titled `Group[/Sub-group]/Component Title Case`.** Every clause is enforced by `src/story-coverage.test.ts`; the contributor-facing explanation lives in [component catalog](../../docs/ARCHITECTURE.md#component-catalog).
+**The standard, in one line: ONE public component = ONE co-located story file = ONE nav leaf, titled `Group[/Sub-group]/Component Title Case`.** Every clause is enforced by `src/story-coverage.test.ts`; the contributor-facing explanation lives in [component catalog](../../docs/ARCHITECTURE.md#areas).
 
 - **No multi-component gallery story files.** A story file demonstrates exactly one component. A file that renders several sibling primitives leaves all but one of them with **no sidebar entry at all** — they look covered to a text-matching guard while being undiscoverable in the catalog, which is the exact failure a styleguide exists to prevent.
 - **`src/stories/` is for catalog pages only** — the flat set `Styleguide`, `Theme`, `Typography`, `Layout`, `Sizing`, `RenderingMatrix`, plus the underscore-prefixed scaffolding (`_harness.tsx`, `_groups.ts`, `_stories.css`, and `_themeTokens.ts` + `_foundations.tsx`, which generate the token pages from `theme.css`). No subdirectories, and every page there is a `Foundations/*` story. Anything with a backing component belongs beside that component.
@@ -91,7 +90,7 @@ Component stories live beside their components (`*.stories.tsx`) and are served 
   - **Containers** — content-agnostic wrappers / state shells that hold or announce arbitrary content, and would still make sense with entirely different content inside.
   - **Compositions** — domain/game components: they know about Salvage Union entities, or they assemble atoms into a product surface.
 - **Components are named for what they are** — no `-Display` / `-View` / `-Renderer` suffixes or redundant `Reference*` prefixes. So `Stat`, `Content` and `DisplayPanel`, never `StatDisplay`, `BlockContentRendererView` or `DisplayView`.
-  - **`ReferenceEntityCard` is a sanctioned exception — do not re-flag it.** Here `Reference*` is a **domain qualifier, not a redundant prefix**: it is the card whose `data` prop is a `SURefEntity` (reference data from the `salvageunion-reference` ORM), as opposed to `Card`, the content-agnostic shell the player-data surfaces build on. [display system](../../docs/ARCHITECTURE.md#display-system) and [`.claude/rules/display-system.md`](../../.claude/rules/display-system.md) both name the two side by side as the two card shells and state they are deliberately **not** merged, so collapsing the name to EntityCard would erase the one word carrying that distinction — and EntityCard is already taken by a private helper in ITUN's `apps/itun/src/components/dashboard/DisplayPanel.tsx`. The prefix earns its place; the rule targets prefixes that restate the component's own directory with no added meaning.
+  - **`ReferenceEntityCard` is a sanctioned exception — do not re-flag it.** Here `Reference*` is a **domain qualifier, not a redundant prefix**: it is the card whose `data` prop is a `SURefEntity` (reference data from the `salvageunion-reference` ORM), as opposed to `Card`, the content-agnostic shell the player-data surfaces build on. [display system](../../docs/ARCHITECTURE.md#areas) and [`.claude/rules/display-system.md`](../../.claude/rules/display-system.md) both name the two side by side as the two card shells and state they are deliberately **not** merged, so collapsing the name to EntityCard would erase the one word carrying that distinction — and EntityCard is already taken by a private helper in ITUN's `apps/itun/src/components/dashboard/DisplayPanel.tsx`. The prefix earns its place; the rule targets prefixes that restate the component's own directory with no added meaning.
   - The bar for an exception is that the prefix/suffix **carries information the bare name loses** — not that the rename would be laborious. Reach for it rarely, and record it here when you do.
 - **Title + story naming is standardized, and enforced.** The group title is **Title Case with spaces** — `Atoms/Stat`, `Containers/Card`, `Compositions/Entity/Content` — and its **last segment must name the component**, so the sidebar can be navigated by the symbol you would grep for. The story **file keeps the component symbol name** (`Stat.stories.tsx`). A sub-group may absorb a shared prefix, so `Compositions/Dashboard/Gauge` legitimately names ITUN's DashboardGauge. A file whose only story is a catch-all "show everything" page exports it as **`Default`** (not Variants / Costs / etc.).
   - This is a guard assertion, not a convention: titles had drifted from their symbols. A symbol with a banned suffix is renamed (`ActivationCostBox` → `ActivationCost`); a fine symbol keeps its name and the title is corrected.

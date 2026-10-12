@@ -98,7 +98,7 @@ function currentMode(): ConnectionMode {
  * and every mode can be driven here without a Convex client.
  *
  * Anonymous (`solo`) is `signedOut` unconditionally
- * ([ADR-034](../../../../docs/ARCHITECTURE.md#adr-034)
+ * ([ADR-034](../../../../docs/ARCHITECTURE.md#decisions)
  * decision 1). There is no build flag and no exemption for a browser that
  * already holds rows (ADR-035): the cache is never read signed out.
  */
@@ -483,7 +483,7 @@ export async function commitTransfer(
  * write right now".
  *
  * `signedOut` is refused too: signed out, ITUN is read-only
- * ([ADR-034](../../../../docs/ARCHITECTURE.md#adr-034) decision 1, as amended).
+ * ([ADR-034](../../../../docs/ARCHITECTURE.md#decisions) decision 1, as amended).
  */
 export function requireWritableBackend(): 'remote' {
   const backend = selectBackend()
