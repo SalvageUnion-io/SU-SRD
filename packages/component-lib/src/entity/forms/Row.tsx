@@ -34,7 +34,7 @@ export type RowSlots = {
   outer?: CardOuterProps
   /** The card's frame (its weight, dash and selection ring). */
   frameStyle?: CSSProperties
-  /** The card's labels (the head's first line); `null` for none. */
+  /** The card's labels (right of the name); `null` for none. */
   labels?: ReactNode
   /** The card's top-right control rail. */
   rail?: ReactNode

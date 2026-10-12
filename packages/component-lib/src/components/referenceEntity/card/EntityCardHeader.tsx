@@ -44,7 +44,7 @@ type EntityCardHeaderProps = {
   head?: boolean
   /**
    * The labels (`CardLabels`): the type stamp, the classification pills, the
-   * User-made stamp. The band's first line, in flow above the title.
+   * User-made stamp. On the title's line, right after the title.
    */
   labels?: ReactNode
   size: CardSize
@@ -168,17 +168,13 @@ export function EntityCardHeader({
       style={{
         ...titleType,
         // A compact head: the title takes the row and wraps to two lines
-        // before it clamps (see `CLAMP_TWO`). Otherwise the title shares the
-        // row with the cells on the right at medium and small, and only a
-        // large header gives the title the whole row; the cells wrap beneath
-        // when they truly cannot fit.
+        // before it clamps (see `CLAMP_TWO`). Otherwise it sits at the start
+        // of the name group, its labels right after it: it wraps at spaces
+        // first (a high shrink) but keeps its longest word whole, and only
+        // then do the labels give way, truncating with "…".
         ...(head
           ? CLAMP_TWO
-          : {
-              flex: size === 'large' ? '1 1 auto' : '1 1 0',
-              minWidth: size === 'large' ? 0 : 'min-content',
-              overflowWrap: 'break-word',
-            }),
+          : { flex: '0 100 auto', minWidth: 'min-content', overflowWrap: 'break-word' }),
       }}
     >
       {title}
@@ -273,10 +269,23 @@ export function EntityCardHeader({
         gap: `${space[8]} ${space[14]}`,
       }}
     >
-      {/* The labels take a line of their own, above the title. */}
-      {labels && <div style={{ flex: '1 1 100%', minWidth: 0 }}>{labels}</div>}
       {numeralNode}
-      {titleNode}
+      {/* The name group: the title, its labels right after it. It shares the
+        row with the cells on the right at medium and small, and only a large
+        header gives it the whole row; the cells wrap beneath when they truly
+        cannot fit. */}
+      <div
+        style={{
+          alignItems: 'center',
+          columnGap: space[8],
+          display: 'flex',
+          flex: size === 'large' ? '1 1 auto' : '1 1 0',
+          minWidth: size === 'large' ? 0 : 'min-content',
+        }}
+      >
+        {titleNode}
+        {labels && <div style={{ display: 'flex', flex: '0 1 auto', minWidth: 0 }}>{labels}</div>}
+      </div>
       {hint}
       {hasCluster && (
         <div
