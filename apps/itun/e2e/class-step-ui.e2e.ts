@@ -1,3 +1,4 @@
+import { at } from './_base'
 import {
   advanceUntilVisible,
   choiceCardByName,
@@ -29,7 +30,7 @@ import { expect, test } from './fixtures'
  * the detail pane fails to mount, ability listing fails to render.
  */
 test('selecting a class marks it selected and reveals its trees', async ({ page }) => {
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
   // "Your Stats" precedes the Class step, so walk to the class cards first.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
@@ -49,7 +50,7 @@ test('selecting a class marks it selected and reveals its trees', async ({ page 
 })
 
 test('switching class moves the selection', async ({ page }) => {
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
   // "Your Stats" precedes the Class step, so walk to the class cards first.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))

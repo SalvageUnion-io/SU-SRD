@@ -1,49 +1,32 @@
 /**
- * Where ITUN is served — refit S2 spike, `docs/spikes/s2-one-product.md`.
+ * Where ITUN is served: `salvageunion.io/build/`, beside the SRD on one
+ * origin, as its own app, Worker and deploy (ADR-048, refit S2;
+ * `docs/spikes/s2-one-product.md`).
  *
- * Two sites, picked at BUILD time by the `ITUN_SITE` environment variable:
- *
- * - `standalone` (the default, and what production builds today): the root of
- *   intheunionnow.com.
- * - `one-domain`: `salvageunion.io/build/`, beside the SRD on one origin.
- *   Built into `dist/build/` so Static Assets finds every file under the path
- *   the browser asks for, and deployed with `wrangler deploy --env one-domain`.
- *
- * Unset, nothing changes: same base, same output, same URLs. Nothing in the
- * deploy sets it until the owner flips S2.
- *
- * `vite.config.ts` reads this; app code reads the result back through
- * `import.meta.env.BASE_URL` (`appUrl.ts`), and the Worker through its
- * `BASE_PATH` var, so neither depends on the build-time variable itself.
+ * The build lands in `dist/build/` so Static Assets finds every file under the
+ * path the browser asks for (`vite.config.ts`). App code reads the base back
+ * through `import.meta.env.BASE_URL` (`appUrl.ts`); the Worker through its
+ * `BASE_PATH` var (`wrangler.jsonc`), which the routing test holds equal.
  */
 
 export type ItunSite = {
-  /** `ITUN_SITE`'s value for this site. */
-  name: 'standalone' | 'one-domain'
   /** The public origin, without a trailing slash. */
   origin: string
   /** Vite's `base`: the path every URL the app serves starts with. */
-  base: '/' | '/build/'
+  base: string
 }
 
-export const STANDALONE: ItunSite = {
-  name: 'standalone',
-  origin: 'https://intheunionnow.com',
-  base: '/',
-}
-
-export const ONE_DOMAIN: ItunSite = {
-  name: 'one-domain',
+export const SITE: ItunSite = {
   origin: 'https://salvageunion.io',
   base: '/build/',
 }
 
-/** The site an `ITUN_SITE` value names. Anything else is refused, not guessed. */
-export function itunSite(value: string | undefined): ItunSite {
-  if (value === undefined || value === '' || value === STANDALONE.name) return STANDALONE
-  if (value === ONE_DOMAIN.name) return ONE_DOMAIN
-  throw new Error(`ITUN_SITE must be "${STANDALONE.name}" or "${ONE_DOMAIN.name}", not "${value}".`)
-}
+/**
+ * Where ITUN was served until ADR-048. Its Worker keeps both custom domains
+ * and answers every request on them with a 301 to the same page under `SITE`
+ * (`src/worker/legacyHost.ts`), so links already posted keep working.
+ */
+export const LEGACY_HOSTS: readonly string[] = ['intheunionnow.com', 'www.intheunionnow.com']
 
 /**
  * A base without its trailing slash: `''` at the root, `/build` under it. The
@@ -54,25 +37,20 @@ export function basePathOf(base: string): string {
   return base.replace(/\/+$/, '')
 }
 
-/** The site's home page, absolute: what `og:url` and the manifest point at. */
-export function siteUrl(site: ItunSite): string {
+/** The app's home page, absolute: what `og:url` points at, and Convex's `SITE_URL` without the slash. */
+export function siteUrl(site: ItunSite = SITE): string {
   return `${site.origin}${site.base}`
 }
 
 /**
  * `public/_headers` for a site under a base. Static Assets reads `_headers`
  * only at the asset root (`dist/`), and matches its rules against the request
- * path, so a one-domain build moves the file up out of `dist/build/` and
- * scopes its `/assets/*` rule to the base. `/*` stays as it is: the Worker is
- * routed only `/build*`, so it already means "every ITUN path".
+ * path, so the build moves the file up out of `dist/build/` and scopes its
+ * `/assets/*` rule to the base. `/*` stays as it is: it already means every
+ * response this Worker's assets serve.
  */
 export function headersForBase(headers: string, base: string): string {
   const prefix = basePathOf(base)
   if (prefix === '') return headers
   return headers.replace(/^\/assets\/\*/m, `${prefix}/assets/*`)
-}
-
-/** The shell's sitewide `og:url` / `og:image`, re-pointed at the site's origin. */
-export function shellForSite(html: string, site: ItunSite): string {
-  return html.replaceAll(siteUrl(STANDALONE), siteUrl(site))
 }

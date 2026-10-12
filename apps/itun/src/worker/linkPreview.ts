@@ -6,7 +6,7 @@
  *
  * An unfurl bot (`Discordbot/2.0`) asks for `/p/:kind/:appId` or
  * `/invite/:token` (the link ITUN and the bot hand out, issue 1255; an old
- * `/join/:code` link 301s there first, `retiredRedirects.ts`) without
+ * `/join/:code` link 301s there first, `legacyHost.ts`) without
  * `Sec-Fetch-Mode: navigate`, so it reaches the Worker
  * rather than Static Assets' SPA fallback. `metaFor` asks Convex what a
  * stranger may see (`publicSheet.preview`, `publicSheet.invitePreview`), turns
@@ -35,8 +35,8 @@
  * Rendering needs `CF_ACCOUNT_ID` and `BROWSER_RENDERING_TOKEN` (owner-set
  * secrets). Without them no `og:image` is advertised and the unfurl is text.
  *
- * Every URL is built from the request's own origin, so this works on
- * intheunionnow.com today and on itun.salvageunion.io after the move.
+ * Every URL is built from the request's own origin and the app's base, so
+ * it works on salvageunion.io/build and on the preview slot alike.
  */
 import { reportError } from 'observability/cloudflare'
 import type {

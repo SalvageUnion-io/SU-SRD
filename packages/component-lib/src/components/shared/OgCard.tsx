@@ -255,12 +255,20 @@ function StatBoxes({ stats }: { stats: OgCardStat[] }) {
   )
 }
 
-function UnionFoot({ reference, address }: { reference: boolean; address: string }) {
+function UnionFoot({
+  reference,
+  address,
+  markSrc,
+}: {
+  reference: boolean
+  address: string
+  markSrc: string
+}) {
   return (
     <div style={BAR}>
       <Speckle grain="paper" />
       <div style={LOCKUP}>
-        <img src="/logos/su-cargo-dark.svg" alt="" width={56} height={56} />
+        <img src={markSrc} alt="" width={56} height={56} />
         <span style={WORDMARK}>{reference ? 'SalvageUnion.io' : 'ITUN'}</span>
       </div>
       <span style={ADDRESS}>{address}</span>
@@ -277,7 +285,14 @@ function Eyebrow({ kicker, ink, end }: { kicker: string; ink: boolean; end?: Rea
   )
 }
 
-export function OgCard(props: OgCardProps) {
+/**
+ * `markSrc` is the SU mark's URL, the app's own copy (ITUN serves its files
+ * under `/build/`, ADR-048); the root's by default.
+ */
+export function OgCard({
+  markSrc = '/logos/su-cargo-dark.svg',
+  ...props
+}: OgCardProps & { markSrc?: string }) {
   const fill = bandColor(props)
   const ink = foregroundOn(fill, 'ink') === 'ink'
   const userMade = props.kind === 'userMade'
@@ -323,7 +338,7 @@ export function OgCard(props: OgCardProps) {
         {props.kind === 'invite' && <p style={PROSE}>{props.summary}</p>}
         {byline && <p style={LINE}>{byline}</p>}
       </div>
-      <UnionFoot reference={reference} address={props.address} />
+      <UnionFoot reference={reference} address={props.address} markSrc={markSrc} />
     </article>
   )
 }

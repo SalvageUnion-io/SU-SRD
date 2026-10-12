@@ -117,6 +117,10 @@ env:
   # deploy key resolves to before it pushes, so a moved deployment fails the
   # run before anything ships instead of shipping a client aimed elsewhere.
   ITUN_CONVEX_URL: https://exuberant-porpoise-183.convex.cloud
+  # Where ITUN is served (ADR-048): `SITE` in apps/itun/src/lib/site.ts, with
+  # no trailing slash, as Convex Auth's SITE_URL wants it (the routing test
+  # holds them equal). The itun deploy leg sets it on the production backend.
+  ITUN_SITE_URL: https://salvageunion.io/build
   # Sentry's client keys and org slug. Public by construction: each DSN is
   # inlined into a bundle anyone can download, and the slug is in every Sentry
   # URL (docs/ARCHITECTURE.md#areas). The one Sentry secret is
@@ -256,6 +260,39 @@ jobs:
             echo "FATAL: no CLOUDFLARE_API_TOKEN." >&2
             exit 1
           fi
+
+      # ITUN is served by a Workers ROUTE, `salvageunion.io/build*`
+      # (apps/itun/wrangler.jsonc, ADR-048), and `wrangler deploy` publishes
+      # routes AFTER it uploads the script. A token that cannot touch the zone's
+      # routes would leave the new build live on the old hostnames with no
+      # route to salvageunion.io/build: a half-deploy. So it is checked here,
+      # before anything is built. Workers Scripts: Edit (the rest of the token,
+      # ADR-033 §Credentials) does not cover it; the token also needs, on the
+      # salvageunion.io zone, Zone: Read (wrangler resolves `zone_name`) and
+      # Workers Routes: Edit. A GET proves the read half of that; a refusal to
+      # write still fails `wrangler deploy` loudly.
+      - name: Refuse to deploy itun without access to salvageunion.io's Workers routes
+        if: contains(fromJSON(steps.surfaces.outputs.deploy), 'itun')
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ZONE: salvageunion.io
+        run: |
+          set -euo pipefail
+          api() {
+            curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4$1"
+          }
+          zone_id=$(api "/zones?name=$ZONE" | jq -r '.result[0].id // empty')
+          if [ -z "$zone_id" ]; then
+            echo "FATAL: the Cloudflare token cannot read the $ZONE zone." >&2
+            echo "Add Zone: Read and Workers Routes: Edit on $ZONE to the production token (ADR-048)." >&2
+            exit 1
+          fi
+          if [ "$(api "/zones/$zone_id/workers/routes" | jq -r '.success')" != "true" ]; then
+            echo "FATAL: the Cloudflare token cannot read $ZONE's Workers routes." >&2
+            echo "Add Workers Routes: Edit on $ZONE to the production token (ADR-048)." >&2
+            exit 1
+          fi
+          echo "OK: the token reads $ZONE and its Workers routes."
 
       # A DSN gets events to Sentry; source maps make them readable. Both apps'
       # Vite builds take `sentrySourcemaps()` from
@@ -550,6 +587,17 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           DEPLOYED_SHA: ${{ needs.plan.outputs.sha }}
         run: bun run deploy -- --var "SENTRY_RELEASE:$DEPLOYED_SHA"
+
+      # Every itun deploy, once it is live: Convex Auth sends a signed-in
+      # player back to SITE_URL, which must be where the app is served
+      # (salvageunion.io/build since ADR-048). Kept here, not set by hand, so
+      # the repo says where it points; idempotent. Not a secret.
+      - name: Point the production backend's SITE_URL at ITUN
+        if: matrix.app == 'itun'
+        working-directory: apps/itun
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        run: bunx convex env set SITE_URL "$ITUN_SITE_URL"
 
   # ===========================================================================
   # Post-deploy smoke. Cheap, and it is the only thing that knows whether what
