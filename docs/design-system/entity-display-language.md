@@ -35,7 +35,7 @@ carry texture, the user-made treatment); nothing passes it per call.
 | Form | Job | Anatomy |
 | --- | --- | --- |
 | **Mention** | Name an entity in prose | The name in the prose's own type, linked where a route exists; hover or long-press opens a Peek |
-| **Token** | Identify one among many on a line | `[kind] name [one fact]`; one size; always opens its entity |
+| **Token** | Identify one among many on a line | `[kind] name [one fact]`; one size; always opens its entity, and hover or long-press opens a Peek |
 | **Row** | Every list: scan, compare, choose, hold | Art column (≥ 18rem, schema has art), head (tier, name, cost pennant, mode slot), paper body (facts, traits, lead while browsing) |
 | **Card** | The whole entity, in place | Seam stamps, head, facts, prose, actions as bands, children as Rows, table as a roll bar, cite. Two densities by container: comfortable (≥ 30rem) and compact |
 | **Page** | The detail view: learn, cite, share | Chapter band, title and stamps, parent link, art as hero, prose, stat column, actions, children, table, patterns, foot citation. An SRD route; a drawer (desktop) or sheet (phone) in ITUN |

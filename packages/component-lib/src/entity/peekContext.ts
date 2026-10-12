@@ -35,12 +35,15 @@ export function parsePeekAddress(
   return { schemaName: address.slice(0, at), id: address.slice(at + 1) }
 }
 
+/** A Peek trigger's attributes: its address, or nothing. */
+export type PeekAttrs = { [PEEK_ATTRIBUTE]?: string }
+
 /**
  * The attributes that make an element a Peek trigger, or none: a synthetic ref
  * (built from embedded data) has no dataset row to show, a pattern is drawn by
  * its own page, and inside a Peek nothing peeks again.
  */
-export function usePeekAttrs(ref: EntityRef | undefined): { [PEEK_ATTRIBUTE]?: string } {
+export function usePeekAttrs(ref: EntityRef | undefined): PeekAttrs {
   const inside = useInsidePeek()
   if (!ref || inside || ref.synthetic || ref.pattern) return {}
   return { [PEEK_ATTRIBUTE]: peekAddress(ref) }

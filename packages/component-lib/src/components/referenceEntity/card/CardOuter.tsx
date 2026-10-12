@@ -1,4 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react'
+import type { PeekAttrs } from '../../../entity/peekContext'
 import { RadioCard } from '../../chrome/RadioCardGroup'
 
 /** The card's outer wrapper, as `resolveCardInteraction` decides it. */
@@ -8,6 +9,8 @@ export type CardOuterProps = {
   interaction: HTMLAttributes<HTMLDivElement>
   /** Set when the card is an option in an exactly-one picker. */
   radio?: { selected: boolean; onSelect: () => void }
+  /** Makes the card a Peek trigger (a Token's hover card). */
+  peek?: PeekAttrs
 }
 
 /**
@@ -19,6 +22,7 @@ export function CardOuter({
   className,
   interaction,
   radio,
+  peek,
   children,
 }: CardOuterProps & { children: ReactNode }) {
   if (radio) {
@@ -34,7 +38,7 @@ export function CardOuter({
     )
   }
   return (
-    <div className={className} {...interaction}>
+    <div className={className} {...interaction} {...peek}>
       {children}
     </div>
   )

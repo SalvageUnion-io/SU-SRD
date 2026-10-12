@@ -9,6 +9,7 @@ import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
 import { PAPER_NAME, paintFor } from '../parts/paint'
+import { usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityRowModel } from '../types'
 
 /** The one fact a Token carries: `[TL | 2]`, `[LVL | 1]`, `[HP | 9]`. */
@@ -89,7 +90,8 @@ const kindStamp = (ink: boolean): CSSProperties => ({
  * TOKEN — the shortform (§3): `[kind] name [fact]`, one size, for many on a
  * line or a slot under 12rem (E3). A tone pill for a thing you have, the tier
  * tone or ink for a thing you do, dashed when player-made. It wraps as a
- * whole, never mid-token; in link mode it opens its entity.
+ * whole, never mid-token; in link mode it opens its entity. Hover, focus or a
+ * long press Peeks it: the whole card, read-only (E16).
  */
 export function Token({
   model,
@@ -107,6 +109,7 @@ export function Token({
 }) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
+  const peek = usePeekAttrs(model.ref)
   const down =
     slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
   const paint = paintFor(model.tone, { down, texture: false })
@@ -139,7 +142,11 @@ export function Token({
   )
   if (slots.outer) {
     return (
-      <CardOuter {...slots.outer} className={`${slots.outer.className} su-entity-token`}>
+      <CardOuter
+        {...slots.outer}
+        className={`${slots.outer.className} su-entity-token`}
+        peek={peek}
+      >
         {pill}
       </CardOuter>
     )
@@ -149,6 +156,7 @@ export function Token({
       target={target}
       label={title}
       attrs={mode.kind === 'link' ? mode.attrs : undefined}
+      peek={peek}
       className="su-entity-token"
     >
       {pill}

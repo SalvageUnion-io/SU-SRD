@@ -7,6 +7,7 @@ import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { EntityRef } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
+import { Entity } from '../Entity'
 import { EntitySurfaceProvider } from '../EntitySurface'
 import { Mention } from '../forms/Mention'
 import { PeekHost } from '../Peek'
@@ -94,5 +95,23 @@ describe('PeekHost', () => {
     await waitFor(() => expect(peek.textContent).toContain('Salvaging Drill'))
     expect(peek.querySelector('[data-peek]')).toBeNull()
     expect(peek.querySelector('a, button')).toBeNull()
+  })
+
+  test('a Token is a trigger: hovering or focusing it shows its whole card', async () => {
+    const drill = SalvageUnionReference.getByNameIn('systems', 'Salvaging Drill')
+    if (!drill) throw new Error('Salvaging Drill fixture missing')
+    render(
+      <EntitySurfaceProvider value={{ hrefFor }}>
+        <Entity form="token" entity={drill} mode={{ kind: 'link' }} />
+        <PeekHost />
+      </EntitySurfaceProvider>
+    )
+    const token = screen.getByRole('link', { name: 'Salvaging Drill' })
+    expect(token.getAttribute('data-peek')).toBe(`systems:${drill.id}`)
+    act(() => token.focus())
+    const peek = await screen.findByRole('tooltip')
+    // More than the token says: the card's rules text, not just its name.
+    await waitFor(() => expect(peek.textContent?.length ?? 0).toBeGreaterThan(100))
+    expect(token.getAttribute('aria-describedby')).toBe(peek.id)
   })
 })

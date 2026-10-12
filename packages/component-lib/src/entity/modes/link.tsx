@@ -1,6 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { activateOnKey, FOCUS_RING } from '../../components/chrome/interaction'
+import type { PeekAttrs } from '../peekContext'
 import type { EntityLinkAttrs, EntityMode } from '../types'
 import type { LinkTarget } from './linkTarget'
 
@@ -20,6 +21,7 @@ export function LinkSurface({
   target,
   label,
   attrs,
+  peek,
   className,
   style,
   children,
@@ -27,6 +29,8 @@ export function LinkSurface({
   target: LinkTarget
   label: string
   attrs?: LinkMode['attrs']
+  /** The Peek trigger's address (`usePeekAttrs`), on the focusable element itself. */
+  peek?: PeekAttrs
   className: string
   style?: CSSProperties
   children: ReactNode
@@ -37,7 +41,14 @@ export function LinkSurface({
     // (another site's page) is a plain anchor.
     const Anchor = target.linkAs && target.href.startsWith('/') ? target.linkAs : 'a'
     return (
-      <Anchor href={target.href} aria-label={label} className={cls} style={style} {...attrs}>
+      <Anchor
+        href={target.href}
+        aria-label={label}
+        className={cls}
+        style={style}
+        {...attrs}
+        {...peek}
+      >
         {children}
       </Anchor>
     )
@@ -58,6 +69,7 @@ export function LinkSurface({
       style={{ ...style, ...(open ? { cursor: 'pointer' } : {}) }}
       {...interaction}
       {...attrs}
+      {...peek}
     >
       {children}
     </div>
