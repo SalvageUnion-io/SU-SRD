@@ -51,6 +51,15 @@ every Row in it is the same height at every width, and every head reserves its
 name's two lines, so the heads end on one line and the bodies start on one.
 Outside a grid a Row is its own height.
 
+A **Page** wastes no column on its art. At desktop width (64rem and up) the
+hero floats left (42% of the column, capped at 32rem tall; a censor mark 30%)
+and the opening, stat column, actions and trays run beside it, then take the
+full width once they pass it: each section, card and tray narrows beside the
+float rather than running under it. The ability tree, pattern rows and
+anything after them clear the art and start full width. A tray on a Page has
+no frame to inset from, so it spans the column (`CardTray`'s `flush`). On a
+phone the art stacks above the body.
+
 ## Modes
 
 One discriminated value per form; a mode fills slots and never changes the

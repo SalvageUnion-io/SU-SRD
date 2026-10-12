@@ -16,10 +16,10 @@ source for the roster.
 
 There are two, and the separation is a decision, not an accident:
 
-- **`ReferenceEntityCard`** (`referenceEntity/card/`) — THE renderer for game
-  data. Every SRD entity goes through it. It implements the printed-card spec:
-  the frame lives on the inner clipping element so the seam stamp can escape the
-  clip, plus a book-style text sub-header and an identity footer.
+- **`ReferenceEntityCard`** (`referenceEntity/card/`) — the Card and Page for
+  game data until phase 6. The printed-card spec: the frame on the inner
+  clipping element so the seam stamp escapes the clip, the facets row (E17),
+  an identity footer.
 - **`Card`** (`shared/`) — the generic four-band container (header /
   sub-header / body / footer) that the poster, sheet and modal surfaces compose.
   `ModalShell` is built on it.
@@ -44,8 +44,14 @@ duplicates an axis.
 
 ## When to use which
 
-- Rendering a reference entity (chassis, ability, equipment, action, NPC…)?
-  **`ReferenceEntityCard`.** Always. Never hand-assemble entity markup.
+Choose the entity's FORM by the job and the room
+([`entity-display-language.md`](../../docs/design-system/entity-display-language.md), E1–E17):
+
+- An entity in a list (listing, search, picker, slot, deck)? **`<Entity form="row">`.**
+  Three or more on a line, or a slot under 12rem? **`form="token"`.**
+- An entity named in prose? **`<Mention>`** — it links and Peeks; never a chip or raw `[[` markup.
+- The whole entity, in place or as its page? **`ReferenceEntityCard`** (`presentation="page"` for a page).
+- Never hand-assemble entity markup.
 - Rendering a non-entity container (a modal body, a sheet section, a poster
   panel)? **`Card`.**
 

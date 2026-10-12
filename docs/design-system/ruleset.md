@@ -52,7 +52,9 @@ devices, and the apps quote them literally:
   card's ink header (§5), not a separate component.
 - **"ROLL THE DIE:"** — the underlined ink stamp over the banded d20 tables.
 - **"//" lines.** Italic trait and meta lines, items separated by "//"
-  (`Turn Action // Range: Close`).
+  (`Turn Action // Range: Close`). The screen does not reprint them: the
+  action type is a head stamp, the facets Stat cells and the traits Tags
+  ([E17](entity-display-language.md#hard-rules)).
 
 **The book's colour map** — which chapter band a page wears:
 
@@ -111,16 +113,17 @@ and the surface/mode taxonomy of [ADR-021](../ARCHITECTURE.md#adr-021).
 How an ENTITY is drawn in each context — its five forms (Mention, Token, Row,
 Card, Page), its interaction modes and rules E1–E17 — is the
 [entity display language](entity-display-language.md), agreed and landing in
-phases; the Listing and Missing-art rules below describe the card as it is
-until its phase lands.
+phases. The Row, Token, Mention and Peek have landed (phases 1–3), so the
+Listing and Peek rules below are those forms; the Card and the Page are still
+`ReferenceEntityCard` until phases 4–6.
 
 | Context        | Metaphor             | Materials                                                  | Interactivity                                                                                       |
 | -------------- | -------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | **Reference**  | The book, verbatim   | Cream/paper, read-only                                     | None. No play-state — no current values, conditions, controls. The only rust is an inline link.     |
 | **Live Sheet** | The pencil           | Same paper + editability                                   | `free` — dashed borders & steppers are the only "write here" cues; rules show but never gate.       |
 | **Dashboard**  | The instrument panel | **Paper instruments on a dark ground**, geometry identical | The only transactional surface: bookkeeping `auto`+undo; destruction `confirm`+undo; Change Log.    |
-| **Listing**    | One card, one click  | Compact cards                                              | Nothing editable/expandable in place. Identify + click-through; nested entities live in the parent. |
-| **Tooltip**    | The glance           | Dense, lifted plate                                        | Terminal — no buttons, links, nested tooltips, or steppers, ever. Reuses the dense variants.        |
+| **Listing**    | One card, one click  | Rows                                                       | Nothing editable/expandable in place. Identify + click-through; nested entities live in the parent. |
+| **Peek**       | The glance           | A compact Card on a lifted plate                           | Terminal — no buttons, links, nested Peeks, or steppers, ever. Children are Tokens; Mentions inert. |
 
 **Automation vocabulary** (used in the matrix below):
 
@@ -134,9 +137,10 @@ until its phase lands.
 - **Reference:** if it can't appear in the printed manual, it can't appear here.
 - **Live Sheet:** overrides are visibly non-canonical (dashed ring) **and logged**; the sheet never auto-applies. **Print reads, pencil writes:** the read state is typeset (label + value, empty fields omitted); dashed fields and steppers appear only in the edit state.
 - **Dashboard:** _every_ mutation of a pilot, mech or crawler writes a Change Log row, and every roll a row in the Game's log; the seat (mount, range, effects, the resolve) is shared play state and is not logged. Geometry is identical to the sheet. **The cockpit is warm-paper instruments on a dark ground** — three depth levels, all canonical tokens, no private layer and no gradients: the ground (`--color-ink-deep`, both the surround and the canvas behind the instruments), the instrument chassis (`--color-band-cream` — EVERY cockpit card: rail, the Major slot, the two Minor slots, and the overlays that open over them), and the one document surface (`--color-paper` — the display region alone, the thing the cockpit is reading). One card background throughout: the Major slot is not lit differently from the Minors beside it, because it is already marked by its size — emphasis comes from the frame, not the fill. This supersedes two earlier revisions: the original dark _instrument skin_ (which also named itself the one sanctioned pure-white exception in §4.1), and the all-paper flip that replaced it. The all-paper revision was correct to put the instruments and their type in the book vocabulary, but it left every region the same white box, so the ground was darkened back to restore the hierarchy the hairlines alone could not carry. The instruments themselves stay paper/ink — the dark is a framing ground, not a skin. Ratified here. **The cost pennant is the action button** (#1250): an action is resolved by tapping its pennant, which is the same size and shape as the read pennant, filled rust, with a 44px invisible hit area — there is no separate deck button. **The Dashboard stays flat:** no texture (§3.5). On a phone, the ground is the bar, the chassis is the tab body and the document is the resolve screen ([ADR-045](../ARCHITECTURE.md#adr-045)).
-- **Listing:** the row's whole job is identify + click-through; nested entities live inside the parent's expanded view. **The compact card (head extent) is the one rendering for a card that is a row** — a listing, search, a sheet slot, a deck, a nested card at depth 2. Its anatomy never changes: the **art column** (the entity's artwork, the card's full height, where it has some), the **head row** (tier numeral, the name, the cost pennant, the chevron — one row that never wraps; the name wraps to two lines inside it before it clamps with "…" and keeps its full name in a tooltip) and a **paper body** (the value cells at `Stat`'s `full` rung, then the "//" line on the same line while it fits). Context changes props, never the anatomy: a listing of one kind drops the seam stamp (`hide.seam`) and any cell its group heading already says (`hide.statKeys`), keeps the art column where other entities in it have art (`artSlot`), and ends each body with the entity's own opening prose, its lore or an ability's description, clamped to three lines (`leadProse`); a context with no room for art hides it (`hide.image`), and a slot or a deck leaves the prose off. The shortform (`size="small"`) stays the inline token. The SRD listing groups its cards the way the book prints them (by tech level, tree or class kind) under solid slabs, and ends on its chapter's foot band.
+- **Listing:** the row's whole job is identify + click-through; nested entities live inside the parent's expanded view. **The Row is the one rendering for an entity in a list** — a listing, search, a sheet slot, a deck, a nested entity at depth 2 (`<Entity form="row">`, [E2](entity-display-language.md#hard-rules)). Its anatomy never changes: the **art column** (the entity's artwork, the Row's full height, where its schema has art), the **head** (tier numeral, the name, the action-type stamps, the cost pennant, the mode's slot — one row that never wraps; the name wraps to two lines inside it before it clamps with "…") and a **paper body** (the facts as value cells at `Stat`'s `full` rung, then the trait Tags, then the lead while browsing). Modes fill slots, never the anatomy: `link` makes the whole Row the link and adds the chevron, `select` the ink ring and the "Selected" seal. A listing of one kind drops the seam stamp and any cell its group heading already says (`omit`), and ends each body with the entity's own opening prose, its lore or an ability's description, clamped to three lines (`lead`); a slot or a deck leaves the lead off. In an **entity grid** (`data-entity-grid`) every Row is one height at every width. The **Token** (`form="token"`, `[kind] name [one fact]`) is for three or more on a line or a slot under 12rem. The SRD listing groups its Rows the way the book prints them (by tech level, tree or class kind) under solid slabs, and ends on its chapter's foot band.
 - **Missing art** (`MissingArt`): where a schema keeps an art place (`artSlot` — the listing's column and the page's hero), an entity with no artwork wears one of the Workshop Manual's censor marks: the torn ink **patch** with REDACTED and a `UNION_ARCHIVE._<page>` code line (manual p.85, p.182), the torn ink **strip** across a row (p.163), or a red **REMOVED** rubber stamp (after the contents page's red Removed mark, p.163). A schema's art-less entities take the three in turn, in listing order, and the choice reads only the dataset, so an entity's thumbnail and its page's hero always wear the same mark. Two quoted exceptions, sanctioned here and nowhere else: the torn edge is a seeded `clip-path` shape on the ink, not a texture, so §3.5's paper rule is not engaged; and the stamp is inked in `status-bad` because the book prints the mark red — it is a quotation of the page, not a state (§3.3), and it measures 4.97 : 1 on paper.
-- **Tooltip:** a glance and a page must never disagree — the tooltip reuses the dense variants, nothing inside acts.
+- **Peek:** a glance and a page must never disagree — the Peek is the Card at compact density (`PeekCard`), read-only and terminal. A Mention or Tag carries `data-peek`; one `PeekHost` per app opens it on hover, keyboard focus or a long press, and inside it nothing acts.
+- **Page:** the entity's own route. Its body uses the column, not just the half beside the art: on desktop the hero floats and the opening, stats, actions and trays flow around it, then run full width; ability trees, pattern rows and later sections clear it; trays sit flush with the column. On a phone the art stacks above the body.
 
 ---
 
@@ -146,13 +150,13 @@ until its phase lands.
 job a piece of data does on screen — maps to exactly one primitive, and the rule
 tailors it. Instances collapse into their role (a Tech level is not a role; it is
 the Stat / `label | value` role). The tables below read left-to-right across
-**surfaces** — Reference → Live Sheet → Dashboard → Listing → Tooltip; `—` = not
+**surfaces** — Reference → Live Sheet → Dashboard → Listing → Peek; `—` = not
 rendered on that surface. For the at-a-glance role → primitive summary, see the
 `Rendering Matrix` story (`bun run stories`).
 
 ### Vitals — Heat · HP · AP/EP · SP · TP
 
-| Role      | Reference                               | Live Sheet                                                   | Dashboard                                                                              | Listing  | Tooltip          |
+| Role      | Reference                               | Live Sheet                                                   | Dashboard                                                                              | Listing  | Peek          |
 | --------- | --------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------- | -------- | ---------------- |
 | **Heat**  | — (only Heat Cap canon)                 | VitalGauge sheet-skin, redline at cap `free` + overload hint | VitalGauge instrument · Push +2 `auto` · at cap → Overload `confirm` · Vent = rust Btn | MiniStat | VitalGauge dense |
 | **HP**    | VitalGauge sheet-skin (read)            | VitalGauge sheet-skin `free` · at 0 → Critical Injury hint   | VitalGauge instrument · damage `auto` · 0 → Critical Injury `confirm`                  | MiniStat | VitalGauge dense |
@@ -162,7 +166,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 
 ### Stats / Caps · Conditions
 
-| Role              | Reference                 | Live Sheet                                                        | Dashboard                                                | Listing                | Tooltip             |
+| Role              | Reference                 | Live Sheet                                                        | Dashboard                                                | Listing                | Peek             |
 | ----------------- | ------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------- | ---------------------- | ------------------- |
 | **Cap / stat**    | Stat — the printed number | Stat; Override → StatControl w/ dashed non-canonical ring, logged | `free` — cap is the gauge's max end                      | MiniStat               | MiniStat            |
 | **Sys/Mod slots** | Stat pair                 | Stat used/max (derives from chassis)                              | MiniStat in the deck header                              | MiniStat               | MiniStat            |
@@ -170,7 +174,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 
 ### Rolls · Resources
 
-| Role             | Reference                                                                  | Live Sheet                                  | Dashboard                              | Listing                | Tooltip                  |
+| Role             | Reference                                                                  | Live Sheet                                  | Dashboard                              | Listing                | Peek                  |
 | ---------------- | -------------------------------------------------------------------------- | ------------------------------------------- | -------------------------------------- | ---------------------- | ------------------------ |
 | **Roll table**   | RollTable banded d20 (peach/cream) under a ROLL THE DIE: stamp             | RollTable in a modal · rust Roll Btn `free` | RollTable dense, instrument · Roll Btn | Stamp + d20 Pill       | RollTable dense, no Roll |
 | **Roll result**  | Readout (number · outcome · text) + marked row · no tier colour · no Apply | Readout + marked row + Apply · lines        | `auto` / `confirm`                     | —                      | —                        |
@@ -179,12 +183,12 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 
 ### Action facets · Entities · Chrome
 
-| Role               | Reference                        | Live Sheet                                               | Dashboard                                                                 | Listing                                   | Tooltip                        |
+| Role               | Reference                        | Live Sheet                                               | Dashboard                                                                 | Listing                                   | Peek                        |
 | ------------------ | -------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------ |
 | **Cost (AP/EP)**   | Cost pennant                     | Cost pennant read-only                                   | pennant IS the rust Btn (read-pennant size, 44px hit) · tap spends `auto` | Cost pennant                              | Cost pennant                   |
 | **Range**          | Range badge + tooltip            | Range badge (never interactive)                          | Range badge                                                               | Range badge                               | badge (own tooltip suppressed) |
 | **Action type**    | Action-type stamp                | stamp                                                    | stamp = deck source-filter key                                            | stamp                                     | stamp                          |
-| **Entity card**    | Card full — THE canonical render | Card compact→expand · chrome layered on, never replacing | Card instrument-skin · actions → deck                                     | Compact card (art · head · body), clickable | Card dense hovercard         |
+| **Entity card**    | Card full — THE canonical render | Card compact→expand · chrome layered on, never replacing | Card instrument-skin · actions → deck                                     | Row (art · head · body), clickable          | Card compact (the Peek)      |
 | **Section header** | Slab                             | Slab                                                     | Slab instrument                                                           | Slab divider                              | — (bare Stamp at most)         |
 | **Source**         | in card foot                     | Change Log row (provenance = history)                    | Change Log row, instrument                                                | dense                                     | —                              |
 
@@ -193,7 +197,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 ## 3. Cross-cutting laws
 
 1. **Rust = action, only action.** `--color-rust` is the single mutator
-   signal. A rust element in a read-only context (Reference, Tooltip) is a defect.
+   signal. A rust element in a read-only context (Reference, Peek) is a defect.
    The one Reference exception is an **inline link** (InlineRef resolved state).
 
    **The rust allowlist.** Rust is painted only by `Button` / `buttonVariants`
@@ -315,7 +319,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    **User-made** stamp on the header seam (its tooltip: "Made by a player, not
    from the Workshop Manual"), a dashed footer rule and dashed pills, and a
    credit that reads just "Made by [user]" in place of a page citation. The
-   treatment holds at every size and extent, the compact card
+   treatment holds at every size and form, the Row and Token
    included, and in a link preview (§4.6). On a full page it also gets a **hatched band** (a hard-stop
    `repeating-linear-gradient`, §3.5), a dashed frame around the notched title
    and a banner naming the maker. Pilots, mechs and crawlers built from canon
@@ -427,7 +431,7 @@ untracked outside ITUN.
 | Weight | Token                         | Applies to                                                                   |
 | ------ | ----------------------------- | ---------------------------------------------------------------------------- |
 | 3px    | `--bw-entity`                 | Card frame (full)                                                            |
-| 2px    | `--bw-entity-compact` _(new)_ | compact card frame                                                           |
+| 2px    | `--bw-entity-compact` _(new)_ | Card frame below large (medium, small) and the Row                           |
 | 1.5px  | `--bw-chrome`                 | Stat box, gauge segments, inputs, buttons, pips, steppers                    |
 | 1px    | `--bw-hairline` _(new)_       | value-cell badge frame & table rules — the ink stamp inside carries the mass |
 
@@ -529,9 +533,10 @@ RollTable✦    = Card + SRD description + banded table
 
 `ReferenceEntityCard` has **one anatomy** across every size × extent × context
 (origin boards E1–E3): the seam type stamp, a flush header (title on the left, value
-cells on the right), an italic "//" line, the body and the footer. The "//"
-line has no rule under it; it sits a few pixels above the description, so the
-two read as one block.
+cells and action-type stamps on the right), the facets row (the facet Stat
+cells, then the trait Tags, E17), the body and the footer. The facets row has
+no rule under it; it sits a few pixels above the description, so the two read
+as one block.
 
 The header has **two fills**, and the choice is the reader's question:
 
@@ -545,8 +550,9 @@ The header has **two fills**, and the choice is the reader's question:
 
 Have vs do is decided by **data shape**, never by a schema name (the display
 system's slot rule). **Actions sit inline** in the card as flush ink bands
-(name and cost, then the "//" line and body), with no "Actions" tray and no
-"Action" stamp. An entity's own roll table sits inline the same way, under a
+(name, type stamp and cost, then the facets row and body), with no "Actions"
+tray and no "Action" stamp. On a Page the actions stand as framed cards under
+an Actions slab. An entity's own roll table sits inline the same way, under a
 ROLL THE DIE: bar, its result as a readout (§3.4). In the Dashboard the cost
 pennant is the action button (§1).
 
@@ -555,13 +561,14 @@ pennant is the action button (§1).
 A card that holds cards must still read at a glance. Nested _entities_ (not
 actions, which sit inline as above):
 
-- **sit in a tray** in the page colour, inside the parent's frame;
+- **sit in a tray** in the page colour, inside the parent's frame (on a Page,
+  flush with the column);
 - **every group gets a stamp-and-leader label with a count** (a Slab-style
   stamp and leader rule, naming the group and how many it holds);
 - **one tone per entity** — a child wears its own tone, never a blend of its
   parent's;
 - **a size step per depth:** large at depth 0, medium at depth 1, and **depth 2
-  renders as the compact card, clickable** (§1 Listing); the frame steps
+  renders as a Row, clickable** (§1 Listing); the frame steps
   3 → 2 → 1.5px (§4.3);
 - **no prose a parent already shows** — a child hides what its parent prints;
 - **actions below depth 1 collapse to a "Show N actions" chip;**

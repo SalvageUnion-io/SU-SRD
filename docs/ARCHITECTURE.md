@@ -531,30 +531,31 @@ State rules, point at source; no prop tables. Session rules:
 
 **Two card shells, not merged.** `ReferenceEntityCard`
 (`packages/component-lib/src/components/referenceEntity/card/ReferenceEntityCard.tsx`)
-renders every SRD entity in both apps and owns recursion (bounded by
+renders every entity's Card and Page in both apps and owns recursion (bounded by
 `MAX_DEPTH`); body sections are components beside it in `card/`, pure rules in
 `cardCells.ts`, `bodyBlocks.ts`, `cardChrome.ts`, `nestedSections.ts`, and
 nesting sections take a `NestedCard` prop. `Card`
 (`packages/component-lib/src/components/shared/Card.tsx`) is the generic
 four-band container (`ModalShell`, `SheetSectionCard`, `Callout`, `Skeleton`,
 app panels). The entity card does not render through `Card`; never add entity
-features to `Card`. A full composition assessment found the merge impossible
-without visual deltas: the frame sits on different elements (shifting every
-absolute overlay 3px), the header's two fills cannot be derived inside `Card`,
-the shells resolve the `cardClick` fallback in opposite directions (first-wins
-vs last-wins), and the entity header seats a numeral, cells and a pennant where
-`Card`'s header slot is opaque. They share `displayMode`, the controls contract,
+features to `Card`. Not merged: fills, header slot and `cardClick` fallback differ. They share `displayMode`, the controls contract,
 `CardFootMeta` and `foldStatusControl`. Grids are `MasonryColumns` of ITUN's
 `EntityGridRow` cells. Never hand-assemble a `label | value` readout: that is `Stat`
 (ruleset §3.7).
+
+**Entity forms** ([EDL](design-system/entity-display-language.md)):
+`<Entity form>` and `<Mention>` in `packages/component-lib/src/entity/`, from
+`toEntityModel`; `EntitySurfaceProvider` gives `hrefFor` and `openPage`
+once; each app mounts one `PeekHost` for `data-peek` triggers.
 
 **Sizing:** `size` (`large | medium | small`) × `extent`
 (`full | head | catalog`) in `packages/component-lib/src/components/shared/displayMode.ts`,
 resolved by `resolveCardDisplay`, projected by `displayBooleans`. Never add a
 `compact` / `listing` prop. `depth` 0 is solo; deeper ones tighten.
 
-**Anatomy** is ruleset §5: fill by `isDoEntity`, actions `inline`, trays in
-`card/NestedCards.tsx`; `texture={false}` flattens a card.
+**Anatomy** is ruleset §5: fill by `isDoEntity`, actions `inline`, the facets
+row in `card/CardFacets.tsx` (E17), trays in `card/NestedCards.tsx`;
+`texture={false}` flattens a card; a page's body is `card/CardPage.tsx`.
 
 **Controls:** `ReferenceEntityControl` (`referenceEntityControlTypes.ts`)
 through `CardControlRail`; `stepper`, `badge`, `status`, `href` render their
