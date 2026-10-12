@@ -18,8 +18,8 @@
 import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { ProseRuleId } from '../../salvageunion-reference/lib/proseDeviations'
-import { PROSE_RULES, STRUCTURAL_FIELDS } from '../../salvageunion-reference/lib/proseDeviations'
+import type { ProseRuleId } from 'salvageunion-reference/proseDeviations'
+import { PROSE_RULES, STRUCTURAL_FIELDS } from 'salvageunion-reference/proseDeviations'
 
 const REPO = join(import.meta.dir, '../../..')
 export const DATA_DIR = join(REPO, 'packages/salvageunion-reference/data')

@@ -1,8 +1,10 @@
 # tools/ — the repo's gates and one-off scripts
 
 Every file here is a CLI entry point run directly by Bun (`bun tools/<name>.ts`);
-what they share is the `gates` workspace (`packages/gates`), imported by name.
-Both are Bun workspaces, so `bun run test` and `bun run typecheck` reach them;
+they reach other workspaces (`gates` in `packages/gates`, `salvageunion-reference`,
+`catalog` for the shot test)
+only by package name, each declared `workspace:*`, never by relative path.
+`tools` and `gates` are workspaces, so `bun run test` and `bun run typecheck` reach them;
 `tools`' `typecheck` also checks the root `test/` preloads. Most are
 **gates**, and every gate is registered in ONE place: the `CHECKS` list in
 [`check.ts`](check.ts). `bun run check`, `bun run check:fast`, lefthook's

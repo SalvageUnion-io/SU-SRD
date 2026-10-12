@@ -59,5 +59,6 @@ be hand-edited. `Edit(...)` deny rules in `.claude/settings.json` block edits to
 and `bun run check generated` (`tools/check-generated.ts`) fails on drift of the
 committed ones — locally, at pre-push and in CI. The reference package's
 `schemas/` and `lib/generated/` are gitignored instead: never
-commit them; `packages/salvageunion-reference/tools/ensureGenerated.ts` rebuilds them (postinstall, typecheck,
-build, the test preload).
+commit them; the package's `su-ref-generate` bin (`packages/salvageunion-reference/tools/ensureGenerated.ts`) rebuilds them,
+once per run: postinstall, the root `typecheck`, `test` and `build`, `bun run check`,
+each app's `dev` and the test preload. A workspace's own `typecheck` is plain `tsc -b`.

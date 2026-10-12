@@ -425,10 +425,15 @@ async function main(argv: readonly string[]): Promise<number> {
 
   // The reference package's generated files are gitignored build output that
   // half the checks read. Bring them current once, here, rather than letting
-  // parallel checks race to do it. Imported here, not at the top, so the tests
-  // that import this registry do not load it.
-  const reference = '../packages/salvageunion-reference/tools/ensureGenerated'
-  ;(await import(reference)).ensureGenerated()
+  // parallel checks race to do it, through the package's `su-ref-generate` bin
+  // (this workspace declares the package, so bun links the bin here).
+  const generate = Bun.spawnSync([join(import.meta.dir, 'node_modules/.bin/su-ref-generate')])
+  if (generate.exitCode !== 0) {
+    process.stderr.write(generate.stdout)
+    process.stderr.write(generate.stderr)
+    console.error('✗ su-ref-generate failed: the checks read lib/generated/ and schemas/')
+    return 1
+  }
 
   // Nothing streams on success: the table at the end is the whole report.
   const ci = process.env.GITHUB_ACTIONS === 'true'

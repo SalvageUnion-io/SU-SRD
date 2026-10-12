@@ -5,8 +5,8 @@
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
-    "dev": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && bun scripts/assert-local-convex.ts && VITE_TEST_AUTH=true convex dev --start vite",
-    "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
+    "dev": "su-ref-generate && bun scripts/assert-local-convex.ts && VITE_TEST_AUTH=true convex dev --start vite",
+    "typecheck": "tsc -b",
     "build": "bun run typecheck && vite build",
     "preview": "wrangler dev",
     "test": "bun test --parallel=4 --no-isolate",

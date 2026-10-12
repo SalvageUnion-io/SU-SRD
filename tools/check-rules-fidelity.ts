@@ -68,7 +68,7 @@ import {
   VERDICTS,
   writeLockFile,
 } from 'gates/lib/proseFidelity'
-import type { ProseRuleId } from '../packages/salvageunion-reference/lib/proseDeviations'
+import type { ProseRuleId } from 'salvageunion-reference/proseDeviations'
 import {
   BOILERPLATE_MIN_REPEATS,
   BOOK_TYPOS,
@@ -77,7 +77,7 @@ import {
   NAME_DEVIATIONS,
   OWNER_SUFFIX,
   TRAIT_MARKUP,
-} from '../packages/salvageunion-reference/lib/proseDeviations'
+} from 'salvageunion-reference/proseDeviations'
 import type { Layer } from './extract-rules'
 import { findExtractDir, LAYER_DIR } from './extract-rules'
 

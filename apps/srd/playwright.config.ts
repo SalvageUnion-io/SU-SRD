@@ -1,4 +1,4 @@
-import { e2eConfig } from 'gates/lib/playwrightBase'
+import { e2eConfig } from 'gates/playwright'
 
 /**
  * srd's end-to-end suite: `packages/gates/lib/playwrightBase.ts` with srd's port and

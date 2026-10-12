@@ -5,6 +5,14 @@
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "exports": {
+    "./a11y": {
+      "types": "./lib/a11yScan.ts",
+      "default": "./lib/a11yScan.ts"
+    },
+    "./playwright": {
+      "types": "./lib/playwrightBase.ts",
+      "default": "./lib/playwrightBase.ts"
+    },
     "./lib/*": {
       "types": "./lib/*.ts",
       "default": "./lib/*.ts"
@@ -15,11 +23,12 @@
     }
   },
   "scripts": {
-    "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
+    "typecheck": "tsc -b",
     "test": "bun test --parallel=4 --no-isolate"
   },
   "devDependencies": {
     "axe-core": "4.13.0",
-    "oxc-parser": "0.143.0"
+    "oxc-parser": "0.143.0",
+    "salvageunion-reference": "workspace:*"
   }
 }
