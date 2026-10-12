@@ -85,4 +85,26 @@ describe('ChapterBand', () => {
     expect(new Set(ids).size).toBe(ids.length)
     for (const id of ids) expect(html).toContain(`url(#${id})`)
   })
+
+  test('bleeds by default: the band carries the bleed hook and no fixed width', () => {
+    const { container } = render(<ChapterBand>Starter Set</ChapterBand>)
+    const band = container.firstElementChild as HTMLElement
+    expect(band.dataset.layout).toBe('bleed')
+    // The bleed's width is the stylesheet's, widened by the shell's gutters.
+    expect(band.style.width).toBe('')
+  })
+
+  test('`inset` fills its container and nothing more', () => {
+    const { container } = render(<ChapterBand layout="inset">Starter Set</ChapterBand>)
+    const band = container.firstElementChild as HTMLElement
+    expect(band.dataset.layout).toBeUndefined()
+    expect(band.style.width).toBe('100%')
+  })
+
+  test('a link preview never bleeds: it is a picture at one size', () => {
+    const { container } = render(<ChapterBand scale="og">Gopher</ChapterBand>)
+    const band = container.firstElementChild as HTMLElement
+    expect(band.dataset.layout).toBeUndefined()
+    expect(band.style.width).toBe('100%')
+  })
 })

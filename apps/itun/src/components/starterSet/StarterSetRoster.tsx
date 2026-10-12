@@ -33,8 +33,12 @@ const HEADER = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[8],
-  marginTop: tokens.space[32],
 } satisfies CSSProperties
+
+// Under the signed-out Roster's sign-in panel the h2 keeps its distance. On its
+// own page the band is the page shell's first child, so it bleeds to the
+// masthead.
+const SUB_HEADER = { ...HEADER, marginTop: tokens.space[32] } satisfies CSSProperties
 
 const ROW = { listStyle: 'none' } satisfies CSSProperties
 
@@ -81,58 +85,57 @@ export function StarterSetRoster({ headingLevel = 'h2' }: StarterSetRosterProps)
   const { confirm, dialog } = useConfirm()
 
   return (
-    <section aria-label="Starter Set">
-      <div style={HEADER}>
-        {headingLevel === 'h1' ? (
-          <ChapterBand>Starter Set</ChapterBand>
-        ) : (
-          <PageHeading>Starter Set</PageHeading>
-        )}
-        <Text variant="body">
-          The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
-          Read-only reference: open any sheet to read it.{' '}
-          {mode === 'connected'
-            ? 'Copy one onto your shelf or into one of your Games to play it.'
-            : 'Sign in to copy one onto your shelf or into a Game and play it.'}
-        </Text>
-      </div>
+    <>
+      {headingLevel === 'h1' && <ChapterBand layout="bleed">Starter Set</ChapterBand>}
+      <section aria-label="Starter Set">
+        <div style={headingLevel === 'h1' ? HEADER : SUB_HEADER}>
+          {headingLevel === 'h2' && <PageHeading>Starter Set</PageHeading>}
+          <Text variant="body">
+            The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
+            Read-only reference: open any sheet to read it.{' '}
+            {mode === 'connected'
+              ? 'Copy one onto your shelf or into one of your Games to play it.'
+              : 'Sign in to copy one onto your shelf or into a Game and play it.'}
+          </Text>
+        </div>
 
-      <SegmentSwitch active={activeSegment} onChange={setActiveSegment} />
-      <RosterGrid>
-        {COLUMNS.map(({ kind, title, rows }) => (
-          <RosterColumn
-            key={kind}
-            kind={kind}
-            title={title}
-            active={activeSegment === kind}
-            emptyMessage=""
-            empty={false}
-          >
-            <RosterList>
-              {rows.map((row) => (
-                <li key={row.id} style={ROW}>
-                  <EntityRow
-                    entityType={kind}
-                    name={row.name}
-                    sheetHref={`/starter/${kind}/${row.id}`}
-                    linkAs={AppLink}
-                    stats={row.stats}
-                    actions={
-                      <CopyStarterSelect
-                        kind={kind}
-                        templateId={row.id}
-                        name={row.name}
-                        confirm={confirm}
-                      />
-                    }
-                  />
-                </li>
-              ))}
-            </RosterList>
-          </RosterColumn>
-        ))}
-      </RosterGrid>
-      {dialog}
-    </section>
+        <SegmentSwitch active={activeSegment} onChange={setActiveSegment} />
+        <RosterGrid>
+          {COLUMNS.map(({ kind, title, rows }) => (
+            <RosterColumn
+              key={kind}
+              kind={kind}
+              title={title}
+              active={activeSegment === kind}
+              emptyMessage=""
+              empty={false}
+            >
+              <RosterList>
+                {rows.map((row) => (
+                  <li key={row.id} style={ROW}>
+                    <EntityRow
+                      entityType={kind}
+                      name={row.name}
+                      sheetHref={`/starter/${kind}/${row.id}`}
+                      linkAs={AppLink}
+                      stats={row.stats}
+                      actions={
+                        <CopyStarterSelect
+                          kind={kind}
+                          templateId={row.id}
+                          name={row.name}
+                          confirm={confirm}
+                        />
+                      }
+                    />
+                  </li>
+                ))}
+              </RosterList>
+            </RosterColumn>
+          ))}
+        </RosterGrid>
+        {dialog}
+      </section>
+    </>
   )
 }
