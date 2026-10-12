@@ -3206,16 +3206,20 @@ body {
   color: var(--color-ink);
 }
 
+/* Ok and warn are light enough to carry ink, not paper (paper measures 3.72:1
+ * and 3.32:1 there, and the badge sets 11px text). Ink clears warn (4.63:1)
+ * but not ok (4.13:1), so ok prints in the deeper ink (4.59:1).
+ * `contrast.test.ts` measures every tone this file paints. */
 .su-badge--tone-ok {
   background-color: var(--color-status-ok);
   border-color: var(--color-status-ok);
-  color: var(--color-paper);
+  color: var(--color-ink-deep);
 }
 
 .su-badge--tone-warn {
   background-color: var(--color-status-warn);
   border-color: var(--color-status-warn);
-  color: var(--color-paper);
+  color: var(--color-ink);
 }
 
 .su-badge--tone-bad {

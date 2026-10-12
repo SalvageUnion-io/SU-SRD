@@ -10,7 +10,10 @@
  * `--text-*` / `--tracking-*` tokens (component-lib theme.css) directly. Three
  * grounds, and brightest always means "read this": `--color-ink-deep` behind
  * everything, `--color-band-cream` for instrument chassis, `--color-paper` for
- * the display. Hue encodes ONTOLOGY (mech green / pilot orange / crawler pink),
+ * the display. Muted text on the two light grounds is `--color-wk-muted`
+ * (5.13:1 on band-cream, 5.73:1 on paper), never an ink alpha: `--color-ink-50`
+ * composites to 3.07:1 and 3.15:1 there, under AA's 4.5:1 (contrast.test.ts
+ * measures both). Hue encodes ONTOLOGY (mech green / pilot orange / crawler pink),
  * never identity; the one hard 2.5px (--bw-rail) border marks a "forward" surface
  * (rail + display); everything else is flat/inset (ADR-038 §8).
  *
@@ -84,7 +87,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-note);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
 }
 
 /* ---- Major slot band: responsibility bays (gauge + button grid) ---- */
@@ -197,7 +200,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-badge);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
 }
 .su-dash-resolve-body {
   display: flex;
@@ -255,7 +258,7 @@
   padding: 12px;
   font-family: var(--font-body);
   font-size: var(--text-caption);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
   text-align: center;
 }
 /*
@@ -294,7 +297,7 @@
   font-family: var(--font-cond);
   font-weight: 700;
   font-size: var(--text-note);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
 }
 .su-dash-deck-controls {
   display: flex;
@@ -335,7 +338,7 @@
   font-family: var(--font-body);
   font-size: var(--text-note);
   line-height: 1.4;
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
 }
 
 /* ---- Resolve flow: cost choice, Hot(X) stepper, Apply readouts ---- */
@@ -355,7 +358,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-note);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
 }
 .su-dash-deck-radio {
   display: inline-flex;
@@ -377,7 +380,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-note);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
 }
 .su-dash-deck-hotx-proj {
   font-family: var(--font-cond);
@@ -421,7 +424,7 @@
   border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
   border-radius: var(--radius-card);
   background: var(--color-paper);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
   cursor: pointer;
   font-family: var(--font-cond);
   font-weight: 700;
@@ -455,7 +458,7 @@
   border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
   border-radius: var(--radius-card);
   background: var(--color-paper);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
   cursor: pointer;
   font-family: var(--font-cond);
   font-weight: 700;
@@ -473,7 +476,7 @@
   font-size: var(--text-badge);
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
   white-space: nowrap;
 }
 .su-dash-deck-sources {
@@ -513,7 +516,7 @@
   font-family: var(--font-body);
   font-size: var(--text-caption);
   line-height: 1.4;
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
   max-width: 40ch;
 }
 .su-dash-entity-fallback {
@@ -549,7 +552,7 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-size: var(--text-note);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
 }
 /* The step name, notched in ink into the foot of its crawler-pink band
    (board D3): the page ground cut out of the band, as a chapter title is. */
@@ -588,7 +591,7 @@
   font-family: var(--font-body);
   font-size: var(--text-note);
   line-height: 1.4;
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
 }
 .su-dash-dt-controls {
   display: flex;
@@ -614,7 +617,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-badge);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
   text-align: center;
 }
 .su-dash-cargo-list {
@@ -650,11 +653,11 @@
   font-weight: 700;
   font-size: var(--text-badge);
   letter-spacing: var(--tracking-caps-tight);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
 }
 .su-dash-cargo-units {
   font-size: var(--text-badge);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
 }
 /* ------------------------------------------------------------------------
  * The Tables tab: 5-column category picker (its rolls go to the Log tab).
@@ -695,7 +698,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-badge);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
 }
 .su-dash-tablepick-grid {
   flex: 1 1 auto;
@@ -736,7 +739,7 @@
 .su-dash-tablepick-empty {
   font-family: var(--font-body);
   font-size: var(--text-note);
-  color: var(--color-ink-50);
+  color: var(--color-wk-muted);
   text-align: center;
   padding: 4px 0;
 }

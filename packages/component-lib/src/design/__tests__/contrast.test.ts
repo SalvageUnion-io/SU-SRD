@@ -1,4 +1,6 @@
 import { describe, expect, test } from 'bun:test'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import { EntitySchemaNames, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveCardColors } from '../../components/referenceEntity/card/cardChrome'
@@ -10,7 +12,13 @@ import {
 } from '../../components/referenceEntity/card/entityCardTone'
 import { onTone } from '../../components/referenceEntity/referenceEntityHelpers'
 import type { Rgb } from '../contrast'
-import { contrastRatio, foregroundOn, resolveColor } from '../contrast'
+import {
+  contrastRatio,
+  foregroundOn,
+  resolveColor,
+  resolveColorOver,
+  TEXT_CONTRAST,
+} from '../contrast'
 import { color, fontSize, weight } from '../tokens'
 
 /**
@@ -265,7 +273,7 @@ describe('ink on colour — the refresh pairs', () => {
   })
 
   test('muted text clears 4.5:1 on paper and on every page ground', () => {
-    for (const ground of [color.paper, color.wkBg, color.wkBg2]) {
+    for (const ground of [color.paper, color.wkBg, color.wkBg2, color.bandCream]) {
       expect(contrastRatio(opaque(color.wkMuted), opaque(ground))).toBeGreaterThanOrEqual(4.5)
     }
   })
@@ -278,4 +286,121 @@ describe('ink on colour — the refresh pairs', () => {
     expect(step).toBeGreaterThan(1.1)
     expect(step).toBeLessThan(1.25)
   })
+})
+
+describe('resolveColorOver', () => {
+  const WHITE: Rgb = [255, 255, 255]
+
+  test('composites a translucent colour over its ground by its alpha', () => {
+    expect(resolveColorOver('rgb(0 0 0 / 0.5)', WHITE)).toEqual([127.5, 127.5, 127.5])
+    expect(resolveColorOver('rgb(0 0 0 / 25%)', WHITE)).toEqual([191.25, 191.25, 191.25])
+    expect(resolveColorOver('rgb(0 0 0/1)', WHITE)).toEqual([0, 0, 0])
+  })
+
+  test('reads a translucent token through its variable', () => {
+    const [r, g, b] = INK
+    const [pr, pg, pb] = PAPER
+    expect(resolveColorOver('var(--color-ink-50)', PAPER)).toEqual([
+      (r + pr) / 2,
+      (g + pg) / 2,
+      (b + pb) / 2,
+    ])
+  })
+
+  test('an opaque colour paints itself, whatever the ground', () => {
+    expect(resolveColorOver('var(--color-ink)', WHITE)).toEqual(INK)
+    expect(resolveColorOver('#ff8000', [0, 0, 0])).toEqual([255, 128, 0])
+  })
+
+  test('refuses what it does not model', () => {
+    expect(resolveColorOver('var(--color-not-a-token)', WHITE)).toBeUndefined()
+    expect(resolveColorOver('red', WHITE)).toBeUndefined()
+    expect(resolveColorOver('color-mix(in srgb, black 20%, transparent)', WHITE)).toBeUndefined()
+  })
+
+  test('rejects a long run of spaces without backtracking (CodeQL js/polynomial-redos)', () => {
+    const start = performance.now()
+    expect(resolveColorOver(`rgb(1\t1\t1 /${' '.repeat(100_000)}`, WHITE)).toBeUndefined()
+    expect(performance.now() - start).toBeLessThan(500)
+  })
+})
+
+/**
+ * Muted text over the known light grounds.
+ *
+ * The ink alpha rungs are translucent, so `resolveColor` refuses them and the
+ * guard above never saw them: the Dashboard printed `ink-50` text in twenty
+ * rules at 3.04–3.14:1. Composited over each ground a page paints — card
+ * paper, the workshop grounds, and the band-cream of the Dashboard's
+ * instrument chassis — the rung that reads muted is measured, not assumed.
+ */
+describe('muted text, composited over the known grounds', () => {
+  const GROUNDS = {
+    paper: color.paper,
+    wkBg: color.wkBg,
+    wkBg2: color.wkBg2,
+    bandCream: color.bandCream,
+  } as const
+
+  const over = (fg: string, ground: string): number => {
+    const bg = opaque(ground)
+    const painted = resolveColorOver(fg, bg)
+    if (!painted) throw new Error(`cannot composite ${fg}`)
+    return contrastRatio(painted, bg)
+  }
+
+  for (const [name, ground] of Object.entries(GROUNDS)) {
+    test(`wk-muted and ink-75 clear 4.5:1 on ${name}; ink-50 does not`, () => {
+      expect(over('var(--color-wk-muted)', ground)).toBeGreaterThanOrEqual(4.5)
+      expect(over('var(--color-ink-75)', ground)).toBeGreaterThanOrEqual(4.5)
+      // Why ink-50 is a hairline and ghost rung, never a text colour.
+      expect(over('var(--color-ink-50)', ground)).toBeLessThan(4.5)
+    })
+  }
+})
+
+/**
+ * Badge tone contrast.
+ *
+ * Each `.su-badge--tone-*` rule in `styles/index.css` sets the fill and the
+ * text a tone chip prints. The text is `--text-badge` (11px), far under
+ * WCAG's large-text sizes, so every tone owes 4.5:1. The rules are read off
+ * the stylesheet, not restated here, so a re-tone or a new tone is measured
+ * the day it lands. Ok and warn printed paper at 3.72:1 and 3.31:1 — on the
+ * Damaged badge players act on — until they took ink.
+ */
+describe('badge tone contrast', () => {
+  const css = readFileSync(join(import.meta.dir, '../../styles/index.css'), 'utf8').replace(
+    /\/\*[\s\S]*?\*\//g,
+    ''
+  )
+  const tones = [...css.matchAll(/\.su-badge--tone-([a-z-]+)\s*\{([^}]*)\}/g)].map(
+    ([, tone, body]) => {
+      const decl = (prop: string) =>
+        (body ?? '').match(new RegExp(`(?:^|[;\\s])${prop}:\\s*([^;]+);`))?.[1]?.trim()
+      return { tone: tone ?? '', fill: decl('background-color'), text: decl('color') }
+    }
+  )
+
+  test('the guard found every tone', () => {
+    expect(tones.map((t) => t.tone).sort()).toEqual(
+      ['bad', 'crawler', 'game', 'mech', 'ok', 'pilot', 'warn'].sort()
+    )
+  })
+
+  test('badge text is under the large-text threshold, so owes 4.5:1', () => {
+    expect(px(fontSize.badge)).toBeLessThan(LARGE_BOLD_TEXT_PX)
+  })
+
+  for (const tone of ['bad', 'crawler', 'game', 'mech', 'ok', 'pilot', 'warn']) {
+    test(`the ${tone} badge's text clears 4.5:1 on its fill`, () => {
+      const rule = tones.find((t) => t.tone === tone)
+      const fill = rule?.fill ? resolveColor(rule.fill) : undefined
+      const text = rule?.text ? resolveColor(rule.text) : undefined
+      expect(fill).toBeDefined()
+      expect(text).toBeDefined()
+      if (!fill || !text) return
+      expect(contrastRatio(fill, text)).toBeGreaterThanOrEqual(TEXT_CONTRAST)
+    })
+  }
 })
