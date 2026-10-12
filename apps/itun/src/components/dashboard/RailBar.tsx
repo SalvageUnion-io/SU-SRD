@@ -6,7 +6,7 @@
  * with their pips (`RailUnit`), whether play is being saved (`status`, the
  * app's `SavedIndicator`), and the Mediator's Start or End Downtime.
  *
- * Presentational only — the `.pc-rail` region wrapper (grid area + flex row +
+ * Presentational only — the `.su-dash-rail` region wrapper (grid area + flex row +
  * forward border) is supplied by DashboardGrid's rail slot, and the app
  * injects its own router link via `returnControl` (component-lib stays
  * routing-agnostic).
@@ -38,7 +38,18 @@ const NAME = {
 } satisfies CSSProperties
 
 /** Board D3 sets the stamp on one line: it never gives up width to its neighbours. */
-const STAMP = { flexShrink: 0, whiteSpace: 'nowrap' } satisfies CSSProperties
+/** The context stamp: paper caption type on the family's band, at a 9×5 inset. */
+const STAMP = {
+  color: tokens.color.paper,
+  flexShrink: 0,
+  fontSize: tokens.fontSize.caption,
+  paddingBlock: '5px',
+  paddingInline: '9px',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+/** Pushes the units, status and actions to the rail's end. */
+const SPACER = { flex: '1 1 0%' } satisfies CSSProperties
 
 /**
  * The name and the context line stack: the context sets under the name rather
@@ -109,14 +120,13 @@ export function RailBar({
       </span>
       <Badge
         shape="stamp"
-        className="px-[9px] py-[5px] text-caption text-paper"
-        // `text-caption` used to merge the stamp's rung size and line-height:1
+        // The caption size once merged the stamp's rung size and line-height:1
         // away, leaving the inherited line-height; the stamp now keeps both.
         style={{ ...STAMP, backgroundColor: STAMP_BG[fam], lineHeight: 'inherit' }}
       >
         {stamp}
       </Badge>
-      <span className="flex-1" />
+      <span style={SPACER} />
       {units && <div style={UNITS}>{units}</div>}
       {status}
       {downtimeAction && (

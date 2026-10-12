@@ -8,24 +8,13 @@
  *   3. Deletes cascade SoftLinks, same as delete().
  */
 import { beforeEach, describe, expect, test } from 'bun:test'
-import { _resetDbSingleton, clearCache, crawlers, mechs, softLinks } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
 import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
+import { resetStores } from './resetStores'
 import { withSignedInBackend } from './signedInBackend'
 
-// These assert durability — a write surviving a rehydrate or a direct read of
-// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+// These write, and only the signed-in backend writes. See signedInBackend.ts.
 withSignedInBackend()
-
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
-  })
-}
 
 async function seed() {
   const mech = await useEntityStore.getState().create('mech', {
@@ -47,9 +36,7 @@ async function seed() {
 }
 
 beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
   await useEntityStore.getState().hydrate('mech')
   await useEntityStore.getState().hydrate('crawler')
   await useEntityStore.getState().hydrate('softLink')
@@ -67,10 +54,6 @@ describe('entityStore.transfer', () => {
       LIVE_SHEET_MANUAL
     )
 
-    // On disk:
-    expect((await crawlers.get(crawler.id))?.scrapPool).toEqual({ tl1: 3 })
-    expect(await mechs.get(mech.id)).toBeNull()
-    // In memory:
     expect(useEntityStore.getState().get('crawler', crawler.id)?.scrapPool).toEqual({ tl1: 3 })
     expect(useEntityStore.getState().get('mech', mech.id)).toBeNull()
   })
@@ -92,9 +75,8 @@ describe('entityStore.transfer', () => {
     ).rejects.toThrow()
 
     // Nothing changed: the mech still exists, the crawler is untouched.
-    expect(await mechs.get(mech.id)).not.toBeNull()
-    expect((await crawlers.get(crawler.id))?.currentSP).toBeUndefined()
     expect(useEntityStore.getState().get('mech', mech.id)).not.toBeNull()
+    expect(useEntityStore.getState().get('crawler', crawler.id)?.currentSP).toBeUndefined()
   })
 
   test('an update on a missing record aborts the delete too', async () => {
@@ -110,7 +92,7 @@ describe('entityStore.transfer', () => {
       )
     ).rejects.toThrow()
 
-    expect(await mechs.get(mech.id)).not.toBeNull()
+    expect(useEntityStore.getState().get('mech', mech.id)).not.toBeNull()
   })
 
   test('deletes cascade SoftLinks inside the same transaction', async () => {
@@ -129,7 +111,7 @@ describe('entityStore.transfer', () => {
       LIVE_SHEET_MANUAL
     )
 
-    expect(await softLinks.get(link.id)).toBeNull()
+    expect(useEntityStore.getState().get('softLink', link.id)).toBeNull()
     expect(useEntityStore.getState().list('softLink')).toHaveLength(0)
   })
 

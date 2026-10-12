@@ -29,7 +29,7 @@
  *
  * ## The thing this deliberately does NOT do
  *
- * It never calls `entityStore.adopt`. Caching a crewmate's pilot into IndexedDB
+ * It never calls `entityStore.adopt`. Adopting a crewmate's pilot into the store
  * to render it would put somebody else's character among the viewer's own
  * builds, with a local copy that goes stale the moment its owner edits it and an
  * editor whose every save the server refuses (ADR-037: other members' pilots
@@ -209,7 +209,7 @@ export function makeReadOnlySheetStore(data: ReadOnlySheetData): typeof useEntit
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
     // Already fully in memory: there is nothing to load.
     hydrate: async () => undefined,
-    rehydrate: async () => undefined,
+    markArrived: () => undefined,
     list: ((type: EntityType) => [...byType(type)]) as EntityState['list'],
     get: ((type: EntityType, id: string) =>
       byType(type).find((e) => e.id === id) ?? null) as EntityState['get'],

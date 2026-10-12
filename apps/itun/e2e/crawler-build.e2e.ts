@@ -91,7 +91,7 @@ test('arm a crawler further from its live sheet', async ({ page }) => {
   await expect(picker).toBeHidden()
 
   // The bay's installed count is the write-through's visible effect, and it
-  // survives a reload (IndexedDB, same record — no duplicate crawler).
+  // survives a reload (the server, same record — no duplicate crawler).
   await expect(page.getByText('No weapons mounted.')).toHaveCount(0)
 
   await page.reload()

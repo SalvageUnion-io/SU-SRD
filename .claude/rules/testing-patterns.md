@@ -15,7 +15,7 @@ paths:
 
 ## Mocking
 
-- ITUN data-layer tests run against `fake-indexeddb` (preloaded via `bunfig.toml`)
+- ITUN stores are in memory: reset with `resetStores()`, seed with `adopt` (`src/stores/__tests__/`)
 - Use `mock()` from `bun:test` for module/function mocking
 
 ### `mock.module` is process-global — restore what you replace

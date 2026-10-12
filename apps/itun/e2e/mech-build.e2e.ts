@@ -98,7 +98,7 @@ test('edit a mech loadout on its live sheet', async ({ page }) => {
 
   await expect(page.getByText('Cargo Pod').first()).toBeVisible({ timeout: 15_000 })
 
-  // Reload — the edit persisted to IndexedDB against the same record.
+  // Reload — the edit persisted on the server against the same record.
   await page.reload()
   await waitForReady(page)
   await expect(page.getByText('Cargo Pod').first()).toBeVisible({ timeout: 15_000 })

@@ -11,8 +11,8 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
 import type { ExportBundle } from '../../../lib/schemas/exportBundle'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW, pilotFixture } from '../../__tests__/fixtures'
@@ -32,7 +32,7 @@ const realCreate = URL.createObjectURL
 const realRevoke = URL.revokeObjectURL
 const realClick = HTMLAnchorElement.prototype.click
 
-beforeEach(async () => {
+beforeEach(() => {
   downloads = []
   lastBlob = null
   failCreate = false
@@ -46,15 +46,7 @@ beforeEach(async () => {
     if (lastBlob !== null) downloads.push({ filename: this.download, blob: lastBlob })
   }
 
-  _resetDbSingleton()
-  await clearCache()
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
-  })
+  resetStores()
 })
 
 afterEach(() => {

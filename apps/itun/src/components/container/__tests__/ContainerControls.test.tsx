@@ -52,7 +52,7 @@ const { useConfirm } = await import('../../shared/useConfirm')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const db = await import('../../../lib/db/index')
+const { resetStores } = await import('../../../stores/__tests__/resetStores')
 
 afterAll(() => {
   convexMocks.restore()
@@ -65,19 +65,13 @@ const GAMES = [
 
 const wrap = (ui: ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvider>)
 
-beforeEach(async () => {
+beforeEach(() => {
   authed = true
   failWrites = false
   serverWrites.length = 0
-  db._resetDbSingleton()
-  await db.clearCache()
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
-  })
+  resetStores()
+  // The server's first answer is in, as `ShelfSync` marks it.
+  useEntityStore.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
   setQueryAnswers({ 'games:listMine': GAMES })
 })
 
@@ -133,12 +127,12 @@ function MoveHarness(props: MoveProps) {
   )
 }
 
-/** A signed-in player's pilot, cached where a move will look for it. */
-async function cachedPilot(gameId: string | null) {
+/** A signed-in player's pilot, held in the store where a move will look for it. */
+async function heldPilot(gameId: string | null) {
   const pilot = pilotFixture({ id: 'p1', name: 'Mira Cole', gameId })
-  // Cached the way a signed-in player's roster is: in the IndexedDB cache.
-  // `ConnectionProvider` pushes this same state on mount; pushing it first
-  // puts the row where the move will look for it.
+  // Held the way a signed-in player's roster is: adopted as the server sent it.
+  // `ConnectionProvider` pushes this same signed-in state on mount; pushing it
+  // first lets the move commit.
   setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
   await useEntityStore.getState().adopt('pilot', pilot)
   return pilot
@@ -146,7 +140,7 @@ async function cachedPilot(gameId: string | null) {
 
 const gameIdOf = () => useEntityStore.getState().list('pilot')[0]?.gameId
 
-/** Thresher, a mech on the shelf, flying Mira Cole (who must be cached first). */
+/** Thresher, a mech on the shelf, flying Mira Cole (who must be held first). */
 async function pairedWithShelfMech() {
   await useEntityStore
     .getState()
@@ -160,7 +154,7 @@ async function pairedWithShelfMech() {
   })
 }
 
-/** Big Sal, a crawler on the shelf, crewed by Mira Cole (who must be cached first). */
+/** Big Sal, a crawler on the shelf, crewed by Mira Cole (who must be held first). */
 async function crewingShelfCrawler() {
   await useEntityStore
     .getState()
@@ -186,7 +180,7 @@ describe('MoveToContainerControl', () => {
   })
 
   test('a move re-homes the same entity — same id, new gameId, sent to the server', async () => {
-    const pilot = await cachedPilot(null)
+    const pilot = await heldPilot(null)
     let changed = 0
     wrap(
       <MoveHarness entityType="pilot" entityId="p1" entity={pilot} onChanged={() => changed++} />
@@ -277,7 +271,7 @@ describe('MoveToContainerControl — moving into a Game clears an assignment', (
   const select = () => screen.getByLabelText('Move to a game or your shelf') as HTMLSelectElement
 
   test('asks first, naming what is cleared, and writes nothing until confirmed', async () => {
-    const pilot = await cachedPilot(null)
+    const pilot = await heldPilot(null)
     await pairedWithShelfMech()
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
@@ -294,7 +288,7 @@ describe('MoveToContainerControl — moving into a Game clears an assignment', (
   })
 
   test('Cancel leaves the build, its pairing and the select where they were', async () => {
-    const pilot = await cachedPilot(null)
+    const pilot = await heldPilot(null)
     await pairedWithShelfMech()
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
@@ -309,7 +303,7 @@ describe('MoveToContainerControl — moving into a Game clears an assignment', (
   })
 
   test('confirming moves it, and clears exactly what the dialog named', async () => {
-    const pilot = await cachedPilot(null)
+    const pilot = await heldPilot(null)
     await pairedWithShelfMech()
     let changed = 0
     wrap(
@@ -333,7 +327,7 @@ describe('MoveToContainerControl — moving into a Game clears an assignment', (
 
 describe('MoveToContainerControl — taking a build out of a Game', () => {
   test('asks first, naming the game, and moves nothing until confirmed', async () => {
-    const pilot = await cachedPilot('g1')
+    const pilot = await heldPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
     fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
@@ -352,7 +346,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
   })
 
   test('Cancel leaves it in the game', async () => {
-    const pilot = await cachedPilot('g1')
+    const pilot = await heldPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
     fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
@@ -370,7 +364,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
   })
 
   test('confirming moves it to your shelves', async () => {
-    const pilot = await cachedPilot('g1')
+    const pilot = await heldPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
     fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
@@ -389,7 +383,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
   })
 
   test('a move to another game is asked about too, naming both', async () => {
-    const pilot = await cachedPilot('g1')
+    const pilot = await heldPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
     fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
@@ -403,7 +397,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
   })
 
   test('a failed move keeps the dialog open with a reason, and the build where it was', async () => {
-    const pilot = await cachedPilot('g1')
+    const pilot = await heldPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
     fireEvent.change(screen.getByLabelText('Move to a game or your shelf'), {
@@ -476,7 +470,7 @@ describe('MoveToGameDialog — "Move to a Game…" on a shelf item', () => {
   })
 
   test('moving in asks nothing and re-homes the same entity on the server', async () => {
-    const pilot = await cachedPilot(null)
+    const pilot = await heldPilot(null)
     wrap(<DialogHarness subject={{ type: 'pilot', id: 'p1', entity: pilot }} games={GAMES_RUN} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'The Long Haul' }))
@@ -497,7 +491,7 @@ describe('MoveToGameDialog — "Move to a Game…" on a shelf item', () => {
   })
 
   test('a move that clears an assignment asks first and writes nothing until confirmed', async () => {
-    const pilot = await cachedPilot(null)
+    const pilot = await heldPilot(null)
     await crewingShelfCrawler()
     wrap(<DialogHarness subject={{ type: 'pilot', id: 'p1', entity: pilot }} games={GAMES_RUN} />)
 
@@ -512,7 +506,7 @@ describe('MoveToGameDialog — "Move to a Game…" on a shelf item', () => {
   })
 
   test('confirming moves it and clears the crew link', async () => {
-    const pilot = await cachedPilot(null)
+    const pilot = await heldPilot(null)
     await crewingShelfCrawler()
     wrap(<DialogHarness subject={{ type: 'pilot', id: 'p1', entity: pilot }} games={GAMES_RUN} />)
 
@@ -531,7 +525,7 @@ describe('MoveToGameDialog — "Move to a Game…" on a shelf item', () => {
   })
 
   test('back out of a Game always asks first', async () => {
-    const pilot = await cachedPilot('g1')
+    const pilot = await heldPilot('g1')
     wrap(<DialogHarness subject={{ type: 'pilot', id: 'p1', entity: pilot }} games={GAMES_RUN} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))

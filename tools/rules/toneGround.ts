@@ -16,12 +16,19 @@
  * entity by entity, what ground each "have" header takes (the ink banner of a
  * "do" entity is never toned), and fails on any `tl-*`.
  *
+ * ## The book's own TL grounds
+ *
+ * Systems and modules are headed in their tech level's blue in the book
+ * itself: every entry and every index row, under the green Mech Workshop band
+ * (Core Book pp. 162–164, 188–190). The owner ruled they follow the book, so
+ * they are exempt by design, not pending (`BOOK_TL_GROUNDS`).
+ *
  * ## Pending schemas
  *
  * The rest of the gear (equipment, drones, vehicles) and the tech-level
- * entries themselves still ride the ramp; the audit item that wrote this rule
- * moved only mech gear. They are listed below with their reason, and an entry
- * that no longer paints a TL ground fails as stale, so the list only burns down.
+ * entries themselves still ride the ramp, undecided. They are listed below
+ * with their reason, and an entry that no longer paints a TL ground fails as
+ * stale, so the list only burns down.
  */
 
 import { readdirSync, readFileSync } from 'node:fs'
@@ -35,6 +42,12 @@ import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 
 export const DATA_DIR = 'packages/salvageunion-reference/data'
+
+/** Schemas the book itself heads in a tech-level blue, each with where. */
+export const BOOK_TL_GROUNDS: Readonly<Record<string, string>> = {
+  systems: 'Core Book pp. 162–164: each entry and index row in its tech level’s blue',
+  modules: 'Core Book pp. 188–190: each entry and index row in its tech level’s blue',
+}
 
 /** Schemas whose headers still paint a TL ground, each with why. */
 export const PENDING_TL_GROUNDS: Readonly<Record<string, string>> = {
@@ -53,8 +66,8 @@ const RULES: Rule[] = [
     rule: 'ruleset §3.8 — TL is the framed ink-on-paper badge, never a header or text ground',
     fix:
       'Give the schema a non-TL tone in `entityTone` (packages/salvageunion-reference/lib/' +
-      'view/parts/fill.ts) — mech gear is `mech` — and leave the tech level to the framed ' +
-      'TECH LEVEL badge. A stale pending entry: delete it from PENDING_TL_GROUNDS.',
+      'view/parts/fill.ts) and leave the tech level to the framed TECH LEVEL badge. A ' +
+      'stale pending entry: delete it from PENDING_TL_GROUNDS.',
   },
 ]
 
@@ -109,7 +122,7 @@ export const toneGround: RuleSet = {
   id: 'tone-ground',
   label: 'tech-level grounds',
   rules: RULES,
-  exemptionsLive: 'tools/rules/toneGround.ts (PENDING_TL_GROUNDS)',
+  exemptionsLive: 'tools/rules/toneGround.ts (BOOK_TL_GROUNDS, PENDING_TL_GROUNDS)',
   preflight(root) {
     assertScanFloor('tone-ground (header grounds)', headerGrounds(root).length, 500)
   },
@@ -119,7 +132,7 @@ export const toneGround: RuleSet = {
     for (const g of headerGrounds(root)) {
       if (!isTlGround(g.tone)) continue
       painted.add(g.schema)
-      if (g.schema in PENDING_TL_GROUNDS) continue
+      if (g.schema in PENDING_TL_GROUNDS || g.schema in BOOK_TL_GROUNDS) continue
       findings.push({
         file: g.file,
         line: g.line,

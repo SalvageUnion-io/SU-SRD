@@ -1,6 +1,6 @@
 /**
- * The standing gate for ADR-034 decision 2: **every local store has somewhere
- * on the server to live.**
+ * The standing gate for ADR-034 decision 2: **every kind of record a store
+ * holds has somewhere on the server to live.**
  *
  * ## Why this test exists rather than a code review habit
  *
@@ -10,23 +10,21 @@
  * a separate step that never happened, and nothing anywhere failed as a result.
  * A rule that only lives in prose gets followed until the day somebody is busy.
  *
- * So this asserts both halves: for every IndexedDB object store there is a
- * Convex table that could receive it, and a client commit path that actually
+ * So this asserts both halves: for every record kind (`RECORD_KINDS`) there is
+ * a Convex table that could receive it, and a client commit path that actually
  * writes to it (the store → commit-path table is in
  * `docs/ARCHITECTURE.md#areas`). The first catches the cheaper and more
  * common mistake: adding store number nine and forgetting the server entirely.
  *
  * ## Reading a failure
  *
- * If this fails you have added a local store with no server counterpart. The fix
- * is a Convex table, not an entry in the exemption list. The exemption list has
- * exactly one member and adding a second one needs a very good reason written
- * down beside it.
+ * If this fails you have added a local record kind with no server counterpart.
+ * The fix is a Convex table. There is no exemption list.
  */
 
 import { describe, expect, test } from 'bun:test'
 import schema from '../../convex/schema'
-import { STORE_NAMES } from '../../src/lib/db/stores'
+import { RECORD_KINDS } from '../../src/stores/records'
 
 /**
  * The little of a Convex column validator this test reads.
@@ -38,21 +36,8 @@ import { STORE_NAMES } from '../../src/lib/db/stores'
  */
 type ContainerColumn = { kind?: string; members?: readonly { kind?: string }[] }
 
-/**
- * Local stores that legitimately have no Convex counterpart.
- *
- * `workspaces` is the retired pre-ADR-030 container. The object store survives
- * only so migrations v10 and v13 still run against databases that predate the
- * split; nothing writes it and nothing reads it as live data, so there is
- * nothing for a server table to hold.
- *
- * `meta` holds no player data at all. It is one row ABOUT this browser's
- * cache — whose rows it holds and whether they predate accounts
- * (`src/lib/db/cacheMeta.ts`) — and a server copy of "what does this device
- * hold" would be a fact about a device, which is exactly what the server must
- * not need to know.
- */
-const NO_SERVER_COUNTERPART = new Set<string>(['workspaces', 'meta'])
+/** The table name each record kind's rows live under. */
+const KIND_NAMES = Object.values(RECORD_KINDS).map((k) => k.name)
 
 /** The tables the Convex schema actually declares. */
 function convexTables(): Set<string> {
@@ -60,20 +45,9 @@ function convexTables(): Set<string> {
 }
 
 describe('container parity — every local store can reach the server', () => {
-  test('every IndexedDB store has a Convex table, except the retired one and the cache meta', () => {
+  test('every record kind has a Convex table', () => {
     const tables = convexTables()
-    const orphans = Object.values(STORE_NAMES).filter(
-      (name) => !tables.has(name) && !NO_SERVER_COUNTERPART.has(name)
-    )
-
-    expect(orphans).toEqual([])
-  })
-
-  test('the exemption list has not quietly grown', () => {
-    // Named separately from the check above so that *widening the exemption*
-    // fails on its own line rather than hiding inside a passing parity test.
-    // Adding a store here is the exact move this file exists to make expensive.
-    expect([...NO_SERVER_COUNTERPART]).toEqual(['workspaces', 'meta'])
+    expect(KIND_NAMES.filter((name) => !tables.has(name))).toEqual([])
   })
 
   /**
@@ -82,7 +56,7 @@ describe('container parity — every local store can reach the server', () => {
    *
    * The check above asks only "does a Convex table exist with this name". Both
    * `mechPatterns` and `encounterNpcs` passed it from P0 onward while every
-   * client write went to IndexedDB and stopped there — the tables existed and
+   * client write went to the device and stopped there — the tables existed and
    * nothing wrote to them except the bulk claim at sign-in. The gate agreed
    * with the plan's `done`, and the plan's own body said the work was still
    * outstanding.
@@ -195,17 +169,9 @@ describe('container parity — every local store can reach the server', () => {
       'encounterNpcs',
       'changeLog',
     ])
-    const unmapped = Object.values(STORE_NAMES).filter(
-      (name) => tables.has(name) && !mapped.has(name) && !NO_SERVER_COUNTERPART.has(name)
-    )
+    const unmapped = KIND_NAMES.filter((name) => tables.has(name) && !mapped.has(name))
 
     expect(unmapped).toEqual([])
-  })
-
-  test('the exemption is still real — `workspaces` has no Convex table', () => {
-    // A negative control. If `workspaces` ever gains a server table the
-    // exemption is obsolete and should be deleted, not carried forward.
-    expect(convexTables().has('workspaces')).toBe(false)
   })
 
   /**
