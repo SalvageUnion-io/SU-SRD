@@ -100,7 +100,9 @@ function frameOf(userMade: boolean, selected: boolean): CSSProperties {
  * action-type stamp, cost pennant, the mode's affordance) and a paper body
  * whose first row is the facts and facets as Stats, then the traits as Tags
  * (E17: no "//" line), then the lead while browsing (E11). Fill follows kind
- * (E12): a "have" entity's tone, a "do" entity's tier tone, an action's ink.
+ * (E12): a "have" entity's tone, a "do" entity's ink banner with paper flecks
+ * (ruleset §3.1: the Core tier fill is rust's near twin); an ability's tier
+ * rides on its numeral and pennant.
  */
 export function Row({
   model,
@@ -116,7 +118,8 @@ export function Row({
   const peekAttrs = usePeekAttrs(peek ? model.ref : undefined)
   const down =
     slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
-  const paint = paintFor(model.tone, { down, texture: surface.texture })
+  const fill = model.kind.nature === 'do' ? 'ink' : model.tone
+  const paint = paintFor(fill, { down, texture: surface.texture })
   const userMade = !!(model.userMade || instance?.userMade || surface.userMade)
   const title = instance?.title ?? model.title
   const selected = mode.kind === 'select' && mode.selected

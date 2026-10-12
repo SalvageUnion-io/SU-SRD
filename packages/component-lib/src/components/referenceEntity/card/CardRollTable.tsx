@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { SURefObjectTable } from 'salvageunion-reference'
 import { resultForTable } from 'salvageunion-reference'
 import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
+import { useEntitySurface } from '../../../entity/entitySurfaceContext'
 import { d20ForTable } from '../../../utils/dice'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Button } from '../../chrome/Button'
@@ -56,6 +57,14 @@ const rangeLabel = (key: string) => key.replace('-', '–')
  * rest. The mark is the same whatever the
  * outcome, so the web never colours a roll by how it went (ruleset §3.4).
  *
+ * The rows are BANDED, paper and `--color-band-cream` in turn (ruleset §2,
+ * "RollTable banded d20"), so a long outcome's lines stay with their range.
+ *
+ * On a Reference surface (`EntitySurfaceValue.rolls` off — the SRD) there is
+ * no Roll: the matrix's Reference cell is the banded table under its stamp,
+ * and a rust button on a read-only page is the defect §3.1 names. The table
+ * still reads and still folds.
+ *
  * A COLUMNS table (a d20 × d20 grid) keeps the shared `RollTable`: its two
  * dice and five columns are a different shape from a banded table.
  */
@@ -87,6 +96,8 @@ export function CardRollTable({
   /** Called with the outcome's text (and its range key) on every roll. */
   onRollResult?: (text: string, key: string) => void
 }) {
+  const { rolls } = useEntitySurface()
+  const noRoll = disabled || !rolls
   const [expanded, setExpanded] = useState(!collapsible)
   const [rolled, setRolled] = useState<CardRoll | null>(() =>
     defaultRoll != null ? { roll: defaultRoll, key: resultForTable(table, defaultRoll).key } : null
@@ -100,7 +111,7 @@ export function CardRollTable({
           showCommand
           size={size === 'large' ? 'full' : 'compact'}
           collapsible={collapsible}
-          disabled={disabled}
+          disabled={noRoll}
         />
       </div>
     )
@@ -167,7 +178,7 @@ export function CardRollTable({
         >
           {name}
         </span>
-        {!disabled && (
+        {!noRoll && (
           <Button
             variant="primary"
             size="compact"
@@ -211,10 +222,11 @@ export function CardRollTable({
             padding: 0,
           }}
         >
-          {rows.map((row) => (
+          {rows.map((row, index) => (
             <RollRow
               key={row.key}
               row={row}
+              band={index % 2 === 1}
               size={size}
               rolled={rolled && row.key === rolled.key ? rolled.roll : undefined}
               faded={!!rolled && row.key !== rolled.key}
@@ -290,11 +302,14 @@ function RollReadout({
 /** One banded row: the range cell, then the outcome and its text. */
 function RollRow({
   row,
+  band,
   size,
   rolled,
   faded,
 }: {
   row: DigestedRollTable
+  /** Every other row wears the cream band. */
+  band: boolean
   size: CardSize
   /** The die, when this is the row it landed on. */
   rolled: number | undefined
@@ -308,7 +323,11 @@ function RollRow({
       style={{
         alignItems: 'stretch',
         // The hit is set in ink, the srd roll page's mark (`.srd-roll__row[data-rolled]`).
-        backgroundColor: marked ? 'var(--color-ink)' : 'var(--color-paper)',
+        backgroundColor: marked
+          ? 'var(--color-ink)'
+          : band
+            ? 'var(--color-band-cream)'
+            : 'var(--color-paper)',
         borderTop: 'var(--bw-hairline) solid var(--color-ink-20)',
         color: marked ? 'var(--color-paper)' : undefined,
         display: 'flex',

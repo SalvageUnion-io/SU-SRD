@@ -1,11 +1,13 @@
 /**
  * `/` — the landing page: the manual's Contents page (board 06).
  *
- * Search first, in the blue Contents band beside the title; then the book's
- * chapters as an index with their real entry counts, and the rules a table
- * reaches for as one more section under an ink band; beside them the "New to
- * the Union?" path into ITUN and the Discord bot. The band's
- * search is the page's search, so the Union bar carries none here.
+ * The title, then search: beside the title on the blue Contents band on a
+ * desktop, under the notch on a phone. Then one run of sections in reading
+ * order — the "New to the Union?" path into ITUN first, the book's chapters
+ * as an index with their real entry counts, the rules a table reaches for
+ * under an ink band, and the Discord bot last — set as columns on a desktop
+ * and one stack on a phone, so tab order is the order you see at both widths.
+ * The band's search is the page's search, so the Union bar carries none here.
  */
 
 import { ChapterBand } from 'component-lib'
@@ -94,23 +96,19 @@ function page(): PageResult {
           </ChapterBand>
         </div>
         <div className="srd-home__body" style={{ maxWidth: MEASURE }}>
-          <div className="srd-home__chapters">
-            {chapters.map((chapter) => (
-              <ContentsChapter
-                key={chapter.id}
-                id={chapter.id}
-                title={chapter.title}
-                tone={chapter.tone}
-                rows={chapter.rows}
-                total={chapter.total}
-              />
-            ))}
-            <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={atTheTable} />
-          </div>
-          <aside className="srd-home__aside" aria-label="Getting started">
-            <NewToTheUnion steps={steps} buildHref={ITUN_URL} />
-            <DiscordBot installHref={DISCORD_INSTALL_URL} aboutHref="/discord/" />
-          </aside>
+          <NewToTheUnion steps={steps} buildHref={ITUN_URL} />
+          {chapters.map((chapter) => (
+            <ContentsChapter
+              key={chapter.id}
+              id={chapter.id}
+              title={chapter.title}
+              tone={chapter.tone}
+              rows={chapter.rows}
+              total={chapter.total}
+            />
+          ))}
+          <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={atTheTable} />
+          <DiscordBot installHref={DISCORD_INSTALL_URL} aboutHref="/discord/" />
         </div>
       </div>
     ),
