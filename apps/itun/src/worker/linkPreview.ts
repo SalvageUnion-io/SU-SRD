@@ -53,6 +53,7 @@ import {
   sheetCard,
   titleCaseSlug,
 } from '../lib/linkPreview/previewSummary'
+import { pathInApp } from './basePath'
 import type { ShellMeta } from './shellMeta'
 
 export type PreviewEnv = {
@@ -151,21 +152,26 @@ async function resolve(
   return answer === undefined ? undefined : { kind: 'invite', route, answer }
 }
 
-/** The page address the card's foot prints: host and path, never a scheme. */
-function addressOf(origin: string, route: PreviewRoute): string {
+/**
+ * The page address the card's foot prints: host and path, never a scheme.
+ * `base` is the app's base path (`basePath.ts`), `''` at the root.
+ */
+function addressOf(origin: string, route: PreviewRoute, base: string): string {
   const host = new URL(origin).host
-  return route.type === 'sheet' ? `${host}/p/${route.kind}/${route.id}` : host
+  return route.type === 'sheet' ? `${host}${base}/p/${route.kind}/${route.id}` : host
 }
 
-function cardOf(resolved: Resolved, origin: string): PreviewCard | null {
+function cardOf(resolved: Resolved, origin: string, base: string): PreviewCard | null {
   if (resolved.kind === 'sheet') {
-    const address = addressOf(origin, resolved.route)
+    const address = addressOf(origin, resolved.route, base)
     return resolved.answer
       ? sheetCard(resolved.answer, titleCaseSlug, address)
       : privateCard(new URL(origin).host)
   }
   // A dead invite is not a private thing: it keeps the sitewide defaults.
-  return resolved.answer ? inviteCard(resolved.answer, addressOf(origin, resolved.route)) : null
+  return resolved.answer
+    ? inviteCard(resolved.answer, addressOf(origin, resolved.route, base))
+    : null
 }
 
 /** FNV-1a, as eight hex digits: a cache key, not a secret. */
@@ -197,18 +203,19 @@ export async function metaFor(
   route: PreviewRoute,
   url: URL,
   env: PreviewEnv,
-  fetchImpl: Fetch = fetch
+  fetchImpl: Fetch = fetch,
+  base = ''
 ): Promise<ShellMeta | null> {
   const resolved = await resolve(route, env, fetchImpl)
   if (resolved === undefined) return null
-  const card = cardOf(resolved, url.origin)
+  const card = cardOf(resolved, url.origin, base)
   if (card === null) return null
   const words = previewWords(card)
   return {
     ...words,
     url: `${url.origin}${url.pathname}`,
     ...(canRender(env)
-      ? { image: { url: `${url.origin}${imagePathOf(resolved)}`, alt: words.title } }
+      ? { image: { url: `${url.origin}${base}${imagePathOf(resolved)}`, alt: words.title } }
       : {}),
   }
 }
@@ -280,11 +287,12 @@ async function screenshot(
 export async function ogImage(
   request: Request,
   env: PreviewEnv,
-  deps: { cache: ImageCache | undefined; fetch?: Fetch }
+  deps: { cache: ImageCache | undefined; fetch?: Fetch; base?: string }
 ): Promise<Response> {
   const fetchImpl = deps.fetch ?? fetch
+  const base = deps.base ?? ''
   const url = new URL(request.url)
-  const target = surfaceOf(url.pathname)
+  const target = surfaceOf(pathInApp(url.pathname, base))
   if (target === null || !canRender(env)) return NOT_FOUND()
 
   let surface = target.surface
@@ -302,11 +310,11 @@ export async function ogImage(
     }
   }
 
-  const key = new Request(`${url.origin}${surface}.png?v=${version}`)
+  const key = new Request(`${url.origin}${base}${surface}.png?v=${version}`)
   const cached = await deps.cache?.match(key)
   if (cached) return cached
 
-  const png = await screenshot(env, `${url.origin}${surface}`, fetchImpl)
+  const png = await screenshot(env, `${url.origin}${base}${surface}`, fetchImpl)
   if (png === null) return NOT_FOUND()
   const response = new Response(png, {
     headers: {

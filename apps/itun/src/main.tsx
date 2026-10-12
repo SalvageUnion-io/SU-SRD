@@ -4,6 +4,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouteErrorComponent } from './components/shared/RouteErrors'
 import { RouteNotFound, RoutePending } from './components/shared/RouteFallbacks'
+import { BASE_PATH } from './lib/appUrl'
 import { deleteLegacyCache } from './lib/legacyCache'
 import {
   initBrowserObservability,
@@ -17,6 +18,9 @@ import { setEntityBackendAuthState } from './stores/entityBackend'
 
 const router = createRouter({
   routeTree,
+  // `/build` on salvageunion.io, the root on intheunionnow.com (refit S2,
+  // lib/site.ts). Routes and links stay root-relative; the router adds it.
+  basepath: BASE_PATH || '/',
   defaultNotFoundComponent: RouteNotFound,
   defaultPendingComponent: RoutePending,
   // Every route gets its own error boundary, so a crash in one route replaces

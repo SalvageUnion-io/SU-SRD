@@ -39,6 +39,7 @@ import {
   getEntitySlug,
 } from 'salvageunion-reference'
 import { api } from '../../../../convex/_generated/api'
+import { BASE_PATH } from '../../../lib/appUrl'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { serverMessage } from '../../../lib/connection/serverError'
 import { itunEntityHref } from '../../../lib/entityHref'
@@ -533,7 +534,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
           <UserMadeStamp label={`Made by ${madeBy}`} />
           <span style={FOOT_CHIP}>
             {sharedAt !== null ? `Shared ${sharedDate(sharedAt)} · ` : ''}
-            {`${window.location.host}${patternHref(pattern.id)}`}
+            {`${window.location.host}${BASE_PATH}${patternHref(pattern.id)}`}
           </span>
         </div>
       </footer>

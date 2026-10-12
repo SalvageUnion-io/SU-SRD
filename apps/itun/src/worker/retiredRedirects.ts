@@ -14,11 +14,15 @@
  * `wrangler.jsonc`'s `run_worker_first` names these prefixes and nothing else.
  * A path under one of them that names none of these shapes is a 404: it never
  * matched a route before either. Every target is a path with no origin, so the
- * redirect stays on whatever host (or, later, base path) served it.
+ * redirect stays on whatever host served it, under the same base path (refit
+ * S2: `/build` in the `one-domain` environment, whose `run_worker_first` is
+ * `patternsUnder('/build')`).
  *
  * `/s/:id` (ADR-036) is not here: its page explains a retired snapshot link and
  * has nowhere to send anyone, so it stays a route.
  */
+
+import { pathInApp } from './basePath'
 
 /**
  * The `run_worker_first` patterns: exactly the retired addresses. The routing
@@ -47,11 +51,22 @@ export function isRetiredPath(path: string): boolean {
   )
 }
 
-/** The 301 for a retired path, or a 404 when the path names no retired shape. */
-export function retiredRedirect(url: URL): Response {
-  const target = retiredTarget(url.pathname)
+/** `RETIRED_PATTERNS` under a base path: the `run_worker_first` list there. */
+export function patternsUnder(base: string): string[] {
+  return RETIRED_PATTERNS.map((pattern) => `${base}${pattern}`)
+}
+
+/**
+ * The 301 for a retired path, or a 404 when the path names no retired shape.
+ * `base` is the app's base path: stripped before matching, kept in the target.
+ */
+export function retiredRedirect(url: URL, base = ''): Response {
+  const target = retiredTarget(pathInApp(url.pathname, base))
   if (target === null) {
     return new Response('Not found', { status: 404, headers: { 'cache-control': 'no-store' } })
   }
-  return new Response(null, { status: 301, headers: { location: `${target}${url.search}` } })
+  return new Response(null, {
+    status: 301,
+    headers: { location: `${base}${target}${url.search}` },
+  })
 }

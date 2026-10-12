@@ -29,6 +29,7 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { appRoot } from '../../lib/appUrl'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { expiresIn, usedLine } from '../../lib/games/inviteExpiry'
 import { inviteUrl } from '../../lib/games/inviteLink'
@@ -171,7 +172,7 @@ export function InvitePanel({
   const [making, setMaking] = useState(false)
 
   const now = Date.now()
-  const origin = window.location.origin
+  const origin = appRoot()
 
   const copy = (token: string) => {
     // Through a resolved promise, so a clipboard API that throws rather than
