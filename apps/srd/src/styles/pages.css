@@ -908,6 +908,49 @@
   }
 }
 
+/*
+ * `compact` bands (`RollBands size="compact"`, the Mediator Screen): the same
+ * bands at the caption size, each label run in ahead of its text, on hairline
+ * rules. Whatever the screen width, they keep one line per band and never
+ * split, so these outrank the wide-screen and phone band rules.
+ */
+.srd-roll__bands[data-size='compact'] > .srd-roll__rows {
+  border-width: var(--bw-hairline);
+}
+
+.srd-roll__bands[data-size='compact'] .srd-roll__row {
+  display: flex;
+}
+
+.srd-roll__bands[data-size='compact'] .srd-roll__row + .srd-roll__row {
+  border-top-width: var(--bw-hairline);
+}
+
+.srd-roll__bands[data-size='compact'] .srd-roll__range {
+  border-right-width: var(--bw-hairline);
+  font-size: var(--text-base);
+  width: 3rem;
+}
+
+.srd-roll__bands[data-size='compact'] .srd-roll__body {
+  display: block;
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  padding: var(--space-6) var(--space-8);
+}
+
+.srd-roll__bands[data-size='compact'] .srd-roll__label {
+  display: inline;
+  font-size: inherit;
+  line-height: inherit;
+  margin-right: var(--space-4);
+}
+
+.srd-roll__bands[data-size='compact'] .srd-roll__value {
+  font-size: inherit;
+  line-height: inherit;
+}
+
 .srd-roll__panel {
   background-color: var(--color-paper);
   border: var(--bw-entity) solid var(--color-ink);
@@ -2248,4 +2291,162 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
   .srd-api__wide-cell {
     display: table-cell;
   }
+}
+
+/*
+ * The Mediator Screen (`/screen/`, `ScreenView.tsx`): the Quick Ref's tables
+ * as panels in balanced columns, one on a phone and up to four on a wide
+ * screen, each panel kept whole. A table's bands are the roll-table page's
+ * (`RollBands`) at `compact`: the caption size, each label run in ahead of
+ * its text, so the screen reads at a glance.
+ */
+.srd-screen__body {
+  column-gap: var(--space-12);
+  columns: 4 20rem;
+  margin-inline: auto;
+  padding: var(--space-24) var(--space-16) var(--space-32);
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .srd-screen__body {
+    padding-inline: var(--space-24);
+  }
+}
+
+/* Multi-column has no row gap, so each cell carries its own. */
+.srd-screen__cell {
+  break-inside: avoid;
+  margin-block-end: var(--space-12);
+}
+
+.srd-screen__panel {
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.srd-screen__head {
+  align-items: baseline;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  column-gap: var(--space-8);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: var(--space-6) var(--space-8) var(--space-8);
+}
+
+.srd-screen__section {
+  color: var(--color-paper-85);
+  font-family: var(--font-cond);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  grid-column: 1 / -1;
+  letter-spacing: var(--tracking-caps-snug);
+  text-transform: uppercase;
+}
+
+.srd-screen__title {
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.srd-screen__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.srd-screen__title a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.srd-screen__page {
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+}
+
+.srd-screen__controls {
+  align-items: center;
+  border-bottom: var(--bw-hairline) solid var(--color-ink);
+  display: flex;
+  gap: var(--space-8);
+  padding: var(--space-8);
+}
+
+.srd-screen__result {
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  margin: 0;
+  min-width: 0;
+  text-transform: uppercase;
+}
+
+.srd-screen__number {
+  border: var(--bw-hairline) solid var(--color-ink);
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  min-width: 2.25rem;
+  padding-inline: var(--space-4);
+  text-align: center;
+}
+
+/* The stamp over the bands, as on the roll-table page. */
+.srd-screen__table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8);
+}
+
+/* A reference panel: terms and their rules, or a procedure's steps. */
+.srd-screen__notes {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.srd-screen__note + .srd-screen__note,
+.srd-screen__steps + .srd-screen__steps {
+  border-top: var(--bw-hairline) solid var(--color-ink);
+}
+
+.srd-screen__term {
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  margin: 0;
+  padding: var(--space-6) var(--space-8) 0;
+  text-transform: uppercase;
+}
+
+.srd-screen__text {
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  margin: 0;
+  min-width: 0;
+  padding: var(--space-2) var(--space-8) var(--space-6);
+}
+
+/* A step's number sits inside the measure, so the list keeps the panel's 8px inset. */
+.srd-screen__step-list {
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  list-style-position: inside;
+  margin: 0;
+  padding: var(--space-4) var(--space-8) var(--space-8);
 }

@@ -9,13 +9,14 @@ import {
   splitRows,
 } from '../lib/rollTablePage'
 import { MentionProse } from './MentionProse'
+import { RollBands } from './RollBands'
 
 /**
  * RollTableView — a roll table's page, rolled and read (board 08b).
  *
- * The table on the left in the book's bands under its "ROLL THE DIE:" stamp;
- * on the right the "You rolled" panel: the number, the range it lands on, the
- * outcome and its text, and the earlier rolls. Roll again and the Randsum
+ * The table on the left in the book's bands under its "ROLL THE DIE:" stamp
+ * (`RollBands`); on the right the "You rolled" panel: the number, the range it
+ * lands on, the outcome and its text, and the earlier rolls. Roll again and the Randsum
  * credit sit under the panel's head, above the result, so the button stays
  * put whatever length the outcome's text runs to. The matching row is set in
  * ink with a "Rolled 14" tag. The die is not named: it is always a d20. A
@@ -40,11 +41,6 @@ export function RollTableView({ data, state, onRoll }: RollTableViewProps) {
   const live = !!onRoll
   const hit = roll === null ? undefined : rowForRoll(data.table, data.rows, roll)
   const outcomeOf = (n: number) => outcomeLabel(data.table, data.rows, n)
-  // A dense table splits in two down the middle, ranges on the outer edges.
-  const half = Math.ceil(data.rows.length / 2)
-  const halves = splitRows(data.rows)
-    ? [data.rows.slice(0, half), data.rows.slice(half)]
-    : [data.rows]
 
   return (
     <div className="srd-roll" data-density={rollTableDensity(data.rows, data.description)}>
@@ -124,43 +120,13 @@ export function RollTableView({ data, state, onRoll }: RollTableViewProps) {
             {paragraph}
           </p>
         ))}
-        <div className="srd-roll__stamp-row">
-          <span className="srd-roll__stamp">Roll the die:</span>
-          <span aria-hidden="true" className="srd-roll__leader" />
-          <span className="srd-roll__hint">Your result is marked in the table</span>
-        </div>
-        <div className="srd-roll__bands" data-split={halves.length > 1 ? 'true' : undefined}>
-          {halves.map((rows, side) => (
-            <ol
-              key={side === 0 ? 'left' : 'right'}
-              className="srd-roll__rows"
-              aria-label={side === 0 ? `${data.name} table` : `${data.name} table, continued`}
-              data-has-roll={hit ? 'true' : undefined}
-              data-side={side === 1 ? 'right' : undefined}
-            >
-              {rows.map((row) => {
-                const rolled = hit?.key === row.key
-                return (
-                  <li
-                    key={row.key}
-                    className="srd-roll__row"
-                    data-rolled={rolled ? 'true' : undefined}
-                    aria-current={rolled ? 'true' : undefined}
-                  >
-                    <span className="srd-roll__range">{rangeLabel(row.key)}</span>
-                    <div className="srd-roll__body">
-                      {row.label && <span className="srd-roll__label">{row.label}</span>}
-                      <span className="srd-roll__value">
-                        <MentionProse parts={row.value} />
-                      </span>
-                    </div>
-                    {rolled && <span className="srd-roll__tag">Rolled {roll}</span>}
-                  </li>
-                )
-              })}
-            </ol>
-          ))}
-        </div>
+        <RollBands
+          name={data.name}
+          rows={data.rows}
+          roll={roll}
+          hit={hit}
+          split={splitRows(data.rows)}
+        />
       </div>
     </div>
   )
