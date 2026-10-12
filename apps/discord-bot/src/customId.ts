@@ -23,9 +23,12 @@ const CUSTOM_ID_MAX = 100
  * table (shared by the roll subcommand's result and the lookup card's
  * "Roll on this table" button); `lookup` returns the `/su lookup` card for a
  * named roll-table (the "See table" button on a roll result); `post`
- * re-renders a PRIVATE roll publicly.
+ * re-renders a PRIVATE roll publicly; `table` answers privately with the
+ * whole table, the roll's row marked; `view` redraws a lookup card on another
+ * tab or page; `peek` (a select) answers with the picked pattern's card.
  *
- * `post` is the one action whose payload is a RESULT rather than a request.
+ * `post` and `table` are the actions whose payload is a RESULT rather than a
+ * request (`table` marks the row the roll landed on).
  * Every other button re-rolls, which is correct for them and wrong here: a
  * "post this to the channel" button that rolled again would share a different
  * outcome from the one the player just looked at, silently. Encoding the roll
@@ -33,7 +36,20 @@ const CUSTOM_ID_MAX = 100
  * backend — `resultForTable` is pure, so the same table and the same die give
  * the same entry forever.
  */
-export type ButtonAction = 'roll' | 'lookup' | 'post'
+export type ButtonAction = 'roll' | 'lookup' | 'post' | 'table' | 'view' | 'peek'
+
+const ACTIONS: ReadonlySet<string> = new Set<ButtonAction>([
+  'roll',
+  'lookup',
+  'post',
+  'table',
+  'view',
+  'peek',
+])
+
+function isButtonAction(action: string): action is ButtonAction {
+  return ACTIONS.has(action)
+}
 
 export type ParsedCustomId = { action: ButtonAction; payload: string }
 
@@ -53,9 +69,7 @@ export function parseCustomId(customId: string): ParsedCustomId | null {
   const parts = customId.split(':')
   if (parts.length < 3 || parts[0] !== CUSTOM_ID_NS) return null
   const action = parts[1]
-  if (action !== 'roll' && action !== 'lookup' && action !== 'post') {
-    return null
-  }
+  if (action === undefined || !isButtonAction(action)) return null
   return { action, payload: parts.slice(2).join(':') }
 }
 
@@ -68,6 +82,31 @@ export function parseCustomId(customId: string): ParsedCustomId | null {
  */
 export function encodeRollResult(tableName: string, rolls: number[]): string {
   return [tableName, ...rolls.map(String)].join('|')
+}
+
+/**
+ * A re-roll REQUEST: the table, and the Discord id of the one person who may
+ * press it — `<table>|<userId>`. Only the person who rolled re-rolls; anyone
+ * else rolls their own with `/su roll`. A bare table name (every button posted
+ * before this, and the lookup card's "Roll on this table", which is a first
+ * roll) carries no owner and stays open to anyone. Table names hold no `|`.
+ */
+export function encodeRollRequest(tableName: string, ownerId?: string, isPrivate = false): string {
+  if (!ownerId) return tableName
+  return isPrivate ? `${tableName}|${ownerId}|p` : `${tableName}|${ownerId}`
+}
+
+/** A decoded re-roll request. */
+export type RollRequest = { tableName: string; ownerId?: string; isPrivate: boolean }
+
+/**
+ * The inverse of {@link encodeRollRequest}. A re-roll shares its first roll's
+ * status: a trailing `|p` marks a private one, so its re-roll answers privately
+ * too.
+ */
+export function decodeRollRequest(payload: string): RollRequest {
+  const [tableName = '', ownerId, flag] = payload.split('|')
+  return ownerId ? { tableName, ownerId, isPrivate: flag === 'p' } : { tableName, isPrivate: false }
 }
 
 /** The inverse of {@link encodeRollResult}, or null if the payload is malformed. */

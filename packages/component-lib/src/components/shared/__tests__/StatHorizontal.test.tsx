@@ -25,8 +25,8 @@ describe('Stat (horizontal)', () => {
     const { container } = render(
       <Stat orientation="horizontal" label="SP" value={5} size="compact" />
     )
-    const textElements = container.querySelectorAll('.text-xs')
-    expect(textElements.length).toBeGreaterThan(0)
+    const label = within(container).getByText('SP')
+    expect(label.style.fontSize).toBe('0.75rem')
   })
 
   test('renders string values', () => {

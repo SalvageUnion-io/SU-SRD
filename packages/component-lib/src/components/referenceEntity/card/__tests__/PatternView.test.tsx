@@ -278,13 +278,13 @@ describe('pattern footer provenance', () => {
 })
 
 /**
- * The "Legal Starting Pattern" seam stamp. It rides the seam RIGHT of the
+ * The "Legal Starting Pattern" stamp. It sits in the header labels RIGHT of the
  * `[Chassis | …]` marker specifically so it survives the LISTING extent — the
  * pattern rows under a chassis are header-only, and that list is where a reader
  * choosing a starting mech actually looks. Driven purely by the stored
  * `legalStarting` data tag; never computed from tech level or salvage value.
  */
-describe('legal starting pattern seam stamp', () => {
+describe('legal starting pattern stamp', () => {
   const patternOf = (name: string): SURefObjectPattern => {
     const found = mule().patterns?.find((p) => p.name === name)
     if (!found) throw new Error(`${name} pattern fixture missing`)

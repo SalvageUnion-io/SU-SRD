@@ -136,6 +136,8 @@ smoke, bundle-budget, JSON API and axe-core (`a11y.e2e.ts`) specs against that
 Each entity page's `og:image` is `OgCard`, screenshotted by `bun --filter srd
 og:generate` (opt-in; it never fails the build). The rules load with its files:
 [`.claude/rules/srd-og-images.md`](../../.claude/rules/srd-og-images.md).
+Entity and pattern pages also carry a Discord Component Embed
+(`src/lib/componentEmbed.ts`): the bot's card, drawn for a pasted link.
 
 ## Changelog (generated)
 

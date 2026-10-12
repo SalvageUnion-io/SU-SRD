@@ -16,7 +16,7 @@ import { EntityPageStamps } from './EntityPageStamps'
  *
  * Entity, pattern and roll-table pages all wear it, so the three cannot drift.
  * `meta` comes from `resolveEntityPageMeta`, the same helpers the card's own
- * seam, header and footer read.
+ * labels, header and footer read.
  */
 
 /**

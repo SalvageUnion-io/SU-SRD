@@ -48,13 +48,13 @@ import {
 } from './bodyBlocks'
 import { interleaveBody } from './bodyInterleave'
 import { CardFacets } from './CardFacets'
+import { CardLabels } from './CardLabels'
 import { CardOuter } from './CardOuter'
 import { CardPage } from './CardPage'
 import { CardPennant } from './CardPennant'
 import type { CardProseContext } from './CardProse'
 import { CardProse, FoldedActionProse, PatternProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
-import { CardSeam } from './CardSeam'
 import { CardTopRail } from './CardTopRail'
 import { ChoiceRegion } from './ChoiceRegion'
 import type { BonusCell } from './cardCells'
@@ -127,7 +127,7 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * NPCs (ruleset §5, boards E1–E4). ONE anatomy across every size × extent ×
  * context:
  *
- *   seam type stamp · flush header · italic "//" line · body · footer
+ *   flush header (labels, then title) · italic "//" line · body · footer
  *
  * with TWO header fills, chosen by the reader's question and decided by data
  * shape (`isDoEntity`), never a schema prop:
@@ -147,8 +147,8 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  *
  * `ReferenceEntityCardInner` DECIDES — fill, depth, which sections a card
  * carries, what each one is fed — and composes. What each section LOOKS like
- * lives beside it, one module per section (audit PK-08): the seam
- * (`CardSeam`), the header (`EntityCardHeader`), the facets row
+ * lives beside it, one module per section (audit PK-08): the labels
+ * (`CardLabels`), the header (`EntityCardHeader`), the facets row
  * (`CardFacets`, E17), the Row and Token forms (`src/entity/`), the prose bands
  * (`CardProse`), the body interleave, choices (`ChoiceRegion`), the roll table
  * (`CardRollTable`), the cost pennant (`CardPennant`), the trays, inline
@@ -222,7 +222,7 @@ function npcHitPointsTail(entity: object): TokenFact | undefined {
 
 /**
  * The card's frame box: the frame lives on the INNER clipping element; the
- * OUTER div is overflow-visible only so the seam escapes the clip.
+ * OUTER div is overflow-visible only so the control rail escapes the clip.
  */
 function frameBoxStyle(frameStyle: CSSProperties): CSSProperties {
   return {
@@ -442,9 +442,9 @@ function ReferenceEntityCardInner({
   // The "Titanic Actions" entry is a meta-descriptor for the titanic-action
   // SYSTEM: its intro is its lead, its options the body.
   const isTitanicMeta = isAction && isTitanicAction(entity)
-  // The seam's TYPE stamp — on every card (board E1). A pattern reads
+  // The TYPE stamp — on every card (board E1). A pattern reads
   // "Pattern"; an ability carries its tree.
-  const seamType = kicker ?? (isPattern ? 'Pattern' : resolveSeamLabel(schemaName, entity))
+  const typeStamp = kicker ?? (isPattern ? 'Pattern' : resolveSeamLabel(schemaName, entity))
   const footerType =
     kicker ?? (isAction ? undefined : isPattern ? 'Pattern' : resolveEyebrow(schemaName).type)
   const provenance = resolveFooterProvenance(entity, pattern)
@@ -473,17 +473,17 @@ function ReferenceEntityCardInner({
   const foldedAction = resolveFoldedAction(foldableActions, entityName)
   const foldedActionFields: ActionFields | undefined = foldedAction ?? undefined
 
-  // The parent seal (e.g. GRANTS) takes the type stamp's place, so the seam
-  // keeps ONE stamp. A listing of one kind (`hide.seam`) drops the type stamp
-  // and the classification pills: the page already names them.
-  const seamless = !!hide?.seam && !parentSeal && !userMade && !isLegalStartingPatternCard
-  const seam = (
-    <CardSeam
+  // The LABELS, the head's first line: a parent seal (GRANTS) replaces the type
+  // stamp; a one-kind listing (`hide.seam`) drops it and the pills.
+  const unlabelled = !!hide?.seam && !parentSeal && !userMade && !isLegalStartingPatternCard
+  const labels = unlabelled ? undefined : (
+    <CardLabels
       seal={parentSeal}
-      typeStamp={parentSeal || hide?.seam ? undefined : seamType}
+      typeStamp={parentSeal || hide?.seam ? undefined : typeStamp}
       axisMarkers={hide?.seam ? [] : axisMarkers}
       legalStartingPattern={isLegalStartingPatternCard}
       userMade={userMade}
+      onInk={fill === 'ink'}
     />
   )
 
@@ -570,6 +570,7 @@ function ReferenceEntityCardInner({
       rightContent={rightContentProp ?? headerHint}
       stamps={facets.stamps}
       pennant={pennantNode}
+      labels={inline ? undefined : labels}
       size={size}
       band={inline}
       grain={grain}
@@ -659,7 +660,7 @@ function ReferenceEntityCardInner({
           }
         }
         row={{
-          seam: seamless ? null : seam,
+          labels: labels ?? null,
           rail: topRightRail,
           titleSlot,
           titleAs,
@@ -1112,7 +1113,7 @@ function ReferenceEntityCardInner({
   }
 
   // An INLINE action: the flush band, its "//" line, its body and its table —
-  // no frame, no seam, no footer (board E1).
+  // no frame, no labels, no footer (board E1).
   if (inline) {
     return (
       <section style={{ display: 'flex', flexDirection: 'column' }}>
@@ -1126,7 +1127,6 @@ function ReferenceEntityCardInner({
 
   return (
     <CardOuter {...outer}>
-      {seam}
       {topRightRail}
       <div style={frameBox}>
         {header}

@@ -18,7 +18,7 @@ import { ButtonStyle } from 'discord-api-types/v10'
 import type { SURefRollTable } from 'salvageunion-reference'
 import { searchIn } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerData } from './container.js'
-import { makeCustomId } from './customId.js'
+import { encodeRollRequest, makeCustomId } from './customId.js'
 import { NEUTRAL_ACCENT } from './format.js'
 import { rollHeadline } from './rollContainer.js'
 
@@ -80,10 +80,14 @@ export function unknownTableContainer(query: string, indexed: number): Container
 export function noEffectContainer(
   table: SURefRollTable,
   roll: number,
-  roller?: string
+  roller?: string,
+  /** The roller's Discord id: only they can roll again. */
+  ownerId?: string,
+  /** A private roll's re-roll is private too. */
+  isPrivate = false
 ): ContainerData {
   const name = table.name.toUpperCase()
-  const rerollId = makeCustomId('roll', table.name)
+  const rerollId = makeCustomId('roll', encodeRollRequest(table.name, ownerId, isPrivate))
   const buttons: ButtonSpec[] = rerollId
     ? [{ kind: 'action', customId: rerollId, label: '↻ Roll again', style: ButtonStyle.Primary }]
     : []
@@ -96,6 +100,28 @@ export function noEffectContainer(
       { kind: 'separator' },
       { kind: 'text', content: '-# this table only triggers on a 20' },
       ...(buttons.length > 0 ? [{ kind: 'buttons' as const, buttons }] : []),
+    ],
+  }
+}
+
+/**
+ * `/su lookup` found nothing. In the same system as a result, as the roll's
+ * unknown table is, and pointing at the way in that works. No suggestion
+ * buttons: the lookup already falls back to the top search hit, so reaching
+ * here means search had nothing to suggest.
+ */
+export function noEntryContainer(query: string): ContainerData {
+  return {
+    accent: NEUTRAL_ACCENT,
+    blocks: [
+      { kind: 'text', content: '-# NO SUCH ENTRY' },
+      { kind: 'text', content: `## ${query.toUpperCase()}` },
+      { kind: 'text', content: 'Nothing in the reference matches that name.' },
+      { kind: 'separator' },
+      {
+        kind: 'text',
+        content: '-# start typing in the `entity:` option for autocomplete',
+      },
     ],
   }
 }

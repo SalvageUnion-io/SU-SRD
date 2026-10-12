@@ -14,7 +14,7 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
 
 /**
  * CardPage — the card when it IS the page (`presentation="page"`, boards 07
- * and 08). No frame, seam, header or footer: the page's `ChapterBand` carries
+ * and 08). No frame, header or footer: the page's `ChapterBand` carries
  * the title and stamps, its `ChapterFoot` the citation. The line art is the
  * hero on the left; beside it the prose, the book's stat column and, beneath
  * the stats, the chassis ability; then everything the entity carries, full

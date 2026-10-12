@@ -1,9 +1,9 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import type { EntityInstance } from 'salvageunion-reference'
+import { CardLabels } from '../../components/referenceEntity/card/CardLabels'
 import type { CardOuterProps } from '../../components/referenceEntity/card/CardOuter'
 import { CardOuter } from '../../components/referenceEntity/card/CardOuter'
 import { CardPennant } from '../../components/referenceEntity/card/CardPennant'
-import { CardSeam } from '../../components/referenceEntity/card/CardSeam'
 import type { StatItem } from '../../components/shared/statsBarTypes'
 import { space } from '../../design/tokens'
 import { useEntitySurface } from '../entitySurfaceContext'
@@ -34,8 +34,8 @@ export type RowSlots = {
   outer?: CardOuterProps
   /** The card's frame (its weight, dash and selection ring). */
   frameStyle?: CSSProperties
-  /** The card's seam stamps; `null` for none. */
-  seam?: ReactNode
+  /** The card's labels (the head's first line); `null` for none. */
+  labels?: ReactNode
   /** The card's top-right control rail. */
   rail?: ReactNode
   titleSlot?: ReactNode
@@ -61,7 +61,7 @@ export type RowProps = {
   mode?: EntityMode
   /** The opening prose, in browse contexts only (E11). */
   lead?: boolean
-  /** Facts by key to leave out, `kind` for the seam stamp, `art` for the art column. */
+  /** Facts by key to leave out, `kind` for the type stamp, `art` for the art column. */
   omit?: readonly EntityOmit[]
   /** Hover, focus or a long press Peeks the Row (a pattern's loadout). Off in listings. */
   peek?: boolean
@@ -146,16 +146,17 @@ export function Row({
     ) : selected ? (
       <SelectedSeal word={mode.seal} />
     ) : undefined
-  const seam =
-    slots.seam !== undefined ? (
-      slots.seam
+  const labels =
+    slots.labels !== undefined ? (
+      slots.labels
     ) : omit.includes('kind') && !userMade ? null : (
-      <CardSeam
+      <CardLabels
         seal={undefined}
         typeStamp={omit.includes('kind') ? undefined : model.kind.stamp}
         axisMarkers={[]}
         legalStartingPattern={false}
         userMade={userMade}
+        onInk={paint.ink}
       />
     )
 
@@ -177,7 +178,7 @@ export function Row({
           hint={slots.hint}
           pennant={pennant}
           affordance={affordance}
-          seamed={!!seam}
+          labels={labels}
         />
         {hasBody && (
           <div
@@ -195,7 +196,6 @@ export function Row({
   )
   const parts = (
     <>
-      {seam}
       {slots.rail}
       {frame}
     </>

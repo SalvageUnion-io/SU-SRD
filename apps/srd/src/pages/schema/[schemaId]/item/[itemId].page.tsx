@@ -24,6 +24,7 @@ import {
 } from '../../../../components/RollTablePage'
 import { buildLinkFor } from '../../../../lib/buildLink'
 import { chapterForSchema } from '../../../../lib/chapters'
+import { componentEmbedFor } from '../../../../lib/componentEmbed'
 import { META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../../../lib/constants'
 import { itemHref, schemaHref } from '../../../../lib/entityHref'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../../../lib/gameData'
@@ -136,6 +137,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       title: `${itemName} - ${schemaName}${TITLE_SUFFIX}`,
       description: metaDescription,
       ...og,
+      componentEmbed: componentEmbedFor(item),
       canonical: canonicalUrl,
       ogType: 'article',
       structuredData,

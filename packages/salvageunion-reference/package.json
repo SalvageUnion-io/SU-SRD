@@ -30,13 +30,13 @@
     "./lib/zod.ts"
   ],
   "scripts": {
-    "build": "bun run generate:registry && bun run generate:json-schemas && bun run docs",
+    "build": "bun tools/ensureGenerated.ts --force",
     "docs": "bun tools/generateDocs.ts",
     "generate:registry": "bun tools/generateRegistry.ts",
     "generate:json-schemas": "bun tools/generateJsonSchemas.ts",
     "validate": "bun tools/validate.ts",
     "edit-data": "bun tools/edit-data.ts",
-    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "typecheck": "bun tools/ensureGenerated.ts && tsc --project tsconfig.json --noEmit",
     "test": "bun test",
     "clean": "rm -rf dist *.tsbuildinfo"
   },

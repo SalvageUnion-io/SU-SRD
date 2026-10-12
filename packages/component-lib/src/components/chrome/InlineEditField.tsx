@@ -1,4 +1,6 @@
+import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
+import { font, radius, space, weight } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { FieldError } from './FieldError'
 import { Input, Textarea } from './inputs'
@@ -35,7 +37,35 @@ type InlineEditFieldProps = {
   className?: string
 }
 
-const ERROR_SKIN = 'border-status-bad focus:ring-status-bad/25'
+const ERROR_SKIN = 'su-inline-edit__error'
+
+/**
+ * The readout — the tap target that opens the editor, so it keeps a 44px
+ * minimum in BOTH layouts. Its alignment and colour are `.su-inline-edit__readout`'s
+ * (callers and `Field` restyle them through the box).
+ * font-medium, not bold: a sheet is mostly filled-in fields, and at bold every
+ * value competed with the ink stamps labelling it.
+ */
+const READOUT = {
+  display: 'inline-flex',
+  fontFamily: font.body,
+  fontWeight: weight.medium,
+  minHeight: '2.75rem',
+} satisfies CSSProperties
+
+/** The wrapper of the plain (inline) shape: the same 44px minimum. */
+const PLAIN_WRAP = { display: 'inline-flex', minHeight: '2.75rem' } satisfies CSSProperties
+
+const SINGLE_LINE_EDITOR = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[4],
+  width: '100%',
+} satisfies CSSProperties
+
+const FULL_WIDTH = { width: '100%' } satisfies CSSProperties
+
+const NO_RESIZE = { resize: 'none' } satisfies CSSProperties
 
 // ---------------------------------------------------------------------------
 // Component — the pure edit-in-place engine. Labelling + the straddling stamp
@@ -138,18 +168,19 @@ export function InlineEditField({
               }
         }
         className={cn(
-          // The display state is the tap target that opens the editor, so it
-          // keeps a 44px minimum in BOTH layouts — dropping to min-h-9 would
-          // have silently shrunk it below the touch target.
-          // font-medium, not bold: a sheet is mostly filled-in fields, and at
-          // bold every value competed with the ink stamps labelling it.
-          'inline-flex min-h-11 items-center font-body font-medium text-ink',
-          // Bordered mode fills its value box; plain mode stays inline.
-          bordered && 'w-full rounded-card px-3',
-          !hasValue && 'font-normal text-wk-muted',
-          !readOnly &&
-            cn('cursor-pointer hover:bg-ink-8', INPUT_FOCUS, !bordered && 'rounded-card px-1')
+          'su-inline-edit__readout',
+          !hasValue && 'su-inline-edit__readout--empty',
+          !readOnly && cn('su-inline-edit__readout--editable', INPUT_FOCUS)
         )}
+        style={{
+          ...READOUT,
+          ...(!hasValue && { fontWeight: weight.normal }),
+          // Bordered mode fills its value box; plain mode stays inline.
+          ...(bordered
+            ? { borderRadius: radius.card, paddingInline: space[12], width: '100%' }
+            : !readOnly && { borderRadius: radius.card, paddingInline: space[4] }),
+          ...(!readOnly && { cursor: 'pointer' }),
+        }}
       >
         {hasValue ? value : (placeholder ?? '—')}
       </span>
@@ -173,13 +204,13 @@ export function InlineEditField({
             cancel()
           }
         }}
-        className="resize-none"
+        style={NO_RESIZE}
       />
     )
   } else {
     // Single-line editor — reuses Field's Input skin (paper / ink border / focus ring).
     inner = (
-      <span className="flex w-full flex-col gap-1">
+      <span style={SINGLE_LINE_EDITOR}>
         <Input
           ref={inputRef}
           type={type}
@@ -218,7 +249,11 @@ export function InlineEditField({
   if (!bordered) {
     // The wrapper carries the same 44px minimum as the display state it holds,
     // so an unlabelled field is a full touch target from the outside too.
-    return <span className={cn('inline-flex min-h-11', className)}>{inner}</span>
+    return (
+      <span className={className} style={PLAIN_WRAP}>
+        {inner}
+      </span>
+    )
   }
 
   // -------------------------------------------------------------------------
@@ -229,17 +264,12 @@ export function InlineEditField({
   // -------------------------------------------------------------------------
 
   if (editing) {
-    return <div className={cn('w-full', className)}>{inner}</div>
+    return (
+      <div className={className} style={FULL_WIDTH}>
+        {inner}
+      </div>
+    )
   }
 
-  return (
-    <div
-      className={cn(
-        'flex min-h-11 w-full items-center rounded-card border-chrome border-ink bg-paper',
-        className
-      )}
-    >
-      {inner}
-    </div>
-  )
+  return <div className={cn('su-inline-edit__box', className)}>{inner}</div>
 }

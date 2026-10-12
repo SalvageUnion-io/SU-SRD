@@ -1,5 +1,14 @@
 import type { ComponentPropsWithRef, CSSProperties, ReactNode } from 'react'
-import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import {
+  borderWidth,
+  color,
+  font,
+  fontSize,
+  radius,
+  space,
+  tracking,
+  weight,
+} from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { EDIT_CUE_HOVER_CLASS } from '../shared/editLanguage'
 import { Badge } from './Badge'
@@ -103,12 +112,55 @@ const TYPESET_PROSE = { ...TYPESET_VALUE, whiteSpace: 'pre-line' } satisfies CSS
 
 const TYPESET_PROMINENT = { ...TYPESET_VALUE, fontSize: fontSize.title } satisfies CSSProperties
 
-/** The ink `Input` skin as a value-box shell (paper bg, 1.5px ink border, 3px radius). */
-const FIELD_BOX =
-  'flex min-h-11 w-full items-center rounded-card border-chrome border-ink bg-paper px-3 font-body text-sm text-ink'
+/**
+ * The ink `Input` skin as a value-box shell (1.5px ink border, 3px radius) for
+ * the picker button. A writable value box is pencil, not print: its border is
+ * dashed (ruleset §1). Its paper fill changes on hover, so it is
+ * `.su-field__picker`'s.
+ */
+const PICKER_BOX = {
+  alignItems: 'center',
+  borderColor: color.ink,
+  borderRadius: radius.card,
+  borderStyle: 'dashed',
+  borderWidth: borderWidth.chrome,
+  color: color.ink,
+  cursor: 'pointer',
+  display: 'flex',
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+  minHeight: '2.75rem',
+  paddingInline: space[12],
+  textAlign: 'left',
+  width: '100%',
+} satisfies CSSProperties
 
-/** A writable value box is pencil, not print: its border is dashed (ruleset §1). */
-const WRITE_CUE = 'border-dashed'
+/** The `InlineEditField` box's dashed write cue (its border is a class there). */
+const WRITE_CUE = 'su-field__write-cue'
+
+/** The stamp's seat on the control's top border: left for the label, right for the action. */
+const SEAT = { alignItems: 'center', display: 'flex' } satisfies CSSProperties
+const LABEL_SEAT = { ...SEAT, left: space[8], width: 'fit-content' } satisfies CSSProperties
+const ACTION_SEAT = { ...SEAT, right: space[8] } satisfies CSSProperties
+
+const FIELD_ROOT = { display: 'block', position: 'relative' } satisfies CSSProperties
+const FIELD_ROOT_FILL = {
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%',
+  position: 'relative',
+} satisfies CSSProperties
+
+const VALUE_TEXT = {
+  flex: '1 1 0%',
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+const VALUE_FILLED = { ...VALUE_TEXT, fontWeight: weight.medium } satisfies CSSProperties
+const VALUE_EMPTY = { ...VALUE_TEXT, color: color.wkMuted } satisfies CSSProperties
 
 /**
  * Form field block (design-spec §2.5 `.field`) — the ONE labelled control. The
@@ -135,7 +187,7 @@ export function Field(props: FieldProps) {
     <Badge shape="stamp" size="mini">
       {label}
       {required && (
-        <span aria-hidden="true" className="ml-0.5">
+        <span aria-hidden="true" style={{ marginLeft: space[2] }}>
           *
         </span>
       )}
@@ -143,14 +195,16 @@ export function Field(props: FieldProps) {
   )
   // The action mirrors the stamp on the opposite seam — same border-riding plate.
   const action = labelAction ? (
-    <span className={cn(STAMP_SEAM, 'right-2 flex items-center')}>{labelAction}</span>
+    <span className={STAMP_SEAM} style={ACTION_SEAT}>
+      {labelAction}
+    </span>
   ) : null
 
   // ---- Static: the label wires to a caller-supplied control. -----------------
   if ('children' in props) {
     return (
-      <div className={cn('relative block', className)}>
-        <label htmlFor={props.htmlFor} className={cn(STAMP_SEAM, 'left-2 flex w-fit items-center')}>
+      <div className={className} style={FIELD_ROOT}>
+        <label htmlFor={props.htmlFor} className={STAMP_SEAM} style={LABEL_SEAT}>
           {stampBadge}
         </label>
         {action}
@@ -189,18 +243,16 @@ export function Field(props: FieldProps) {
   }
 
   const stamp = (
-    <span className={cn(STAMP_SEAM, 'left-2 flex w-fit items-center')}>{stampBadge}</span>
-  )
-  const valueSpan = (
-    <span className={cn('min-w-0 flex-1 truncate', value ? 'font-medium' : 'text-wk-muted')}>
-      {value || placeholder}
+    <span className={STAMP_SEAM} style={LABEL_SEAT}>
+      {stampBadge}
     </span>
   )
+  const valueSpan = <span style={value ? VALUE_FILLED : VALUE_EMPTY}>{value || placeholder}</span>
 
   // ---- Picker: a value box that opens a modal. -------------------------------
   if (onEditClick) {
     return (
-      <div className={cn('relative block', className)}>
+      <div className={className} style={FIELD_ROOT}>
         {stamp}
         {action}
         <button
@@ -218,12 +270,8 @@ export function Field(props: FieldProps) {
           // by both apps' print CSS, so the opt-in belongs on the markup.
           // A read-only Field is typeset, with no button to hide.
           data-print="keep"
-          className={cn(
-            FIELD_BOX,
-            WRITE_CUE,
-            'cursor-pointer text-left hover:bg-ink-8',
-            EDIT_CUE_HOVER_CLASS
-          )}
+          className={cn('su-field__picker', EDIT_CUE_HOVER_CLASS)}
+          style={PICKER_BOX}
         >
           {valueSpan}
         </button>
@@ -235,7 +283,7 @@ export function Field(props: FieldProps) {
   // A handler is the ONLY gate: if the caller can persist it, the reader can
   // edit it. (Without one the field was typeset above.)
   return (
-    <div className={cn('relative block', fill && 'flex h-full flex-col', className)}>
+    <div className={className} style={fill ? FIELD_ROOT_FILL : FIELD_ROOT}>
       {stamp}
       {action}
       <InlineEditField
@@ -251,10 +299,9 @@ export function Field(props: FieldProps) {
         className={cn(
           WRITE_CUE,
           EDIT_CUE_HOVER_CLASS,
-          fill &&
-            'h-full flex-1 items-stretch [&>span]:h-full [&>span]:items-start [&>span]:py-2.5',
+          fill && 'su-field__fill',
           // Reaches the readout through the box's class hook, like `fill`.
-          prominent && '[&>span]:text-xl'
+          prominent && 'su-field__prominent'
         )}
       />
     </div>
@@ -272,7 +319,7 @@ export { Input, Textarea } from './inputs'
 
 type SelectProps = ComponentPropsWithRef<'select'> & {
   /**
-   * Faux-select rung: strip the native disclosure (`appearance-none`) and draw a
+   * Faux-select rung: strip the native disclosure (`appearance: none`) and draw a
    * consistent ink chevron inside the field. This is the one sanctioned way to
    * customise the affordance — a caller that wants the styled arrow opts in here
    * rather than re-typing the skin with its own absolute-positioned glyph.
@@ -280,21 +327,35 @@ type SelectProps = ComponentPropsWithRef<'select'> & {
   chevron?: boolean
 }
 
+const CHEVRON_WRAP = { display: 'inline-block', position: 'relative' } satisfies CSSProperties
+
+const CHEVRON = {
+  color: color.wkMuted,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+  pointerEvents: 'none',
+  position: 'absolute',
+  right: space[12],
+  top: '50%',
+  translate: '0 -50%',
+} satisfies CSSProperties
+
 /**
  * Native `<select>` in the `Input` skin (design-spec §2.5): the app's
  * hand-copied `SELECT_CLASS` promoted to a real atom — same paper / 1.5px-ink /
  * 3px-radius / focus-ring chrome as `Input`, `Field`-wrappable, keeping the
- * native disclosure affordance. Compact call-sites pass `px-2 py-1.5` via
- * `className`; `chevron` swaps the native arrow for the styled faux-select one.
+ * native disclosure affordance. Its skin is `.su-text-input` + `.su-select`, all of
+ * it a class, so compact call-sites can override the padding via `className`;
+ * `chevron` swaps the native arrow for the styled faux-select one.
  */
 export function Select({ className, chevron = false, ref, ...props }: SelectProps) {
   const select = (
     <select
       ref={ref}
       className={cn(
-        'w-full min-h-11 rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink',
+        'su-text-input su-select',
         INPUT_FOCUS,
-        chevron && 'cursor-pointer appearance-none pr-8',
+        chevron && 'su-select--chevron',
         className
       )}
       {...props}
@@ -302,12 +363,9 @@ export function Select({ className, chevron = false, ref, ...props }: SelectProp
   )
   if (!chevron) return select
   return (
-    <span className="relative inline-block">
+    <span style={CHEVRON_WRAP}>
       {select}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-wk-muted"
-      >
+      <span aria-hidden="true" style={CHEVRON}>
         ▾
       </span>
     </span>

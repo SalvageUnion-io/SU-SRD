@@ -1,4 +1,3 @@
-import { cn } from '../../utils/cn'
 import { FOCUS_RING } from './interaction'
 
 /**
@@ -24,26 +23,21 @@ import { FOCUS_RING } from './interaction'
  */
 
 /**
- * Frame + interaction, minus the fill. `background` shorthand (not `bg-[…]`,
- * which compiles to `background-color`) because `--catalog-bg` may be a
- * gradient — the tech-level and ability-tier ramps — and `background-color`
- * silently drops a `linear-gradient()`, which once left those tiles unfilled
- * with unreadable paper text on the pale page ground.
+ * Frame + interaction, minus the fill (`.su-catalog-tile` in
+ * `styles/index.css`, hover lift and transition included). The fill uses the
+ * `background` shorthand, not `background-color`, because `--catalog-bg` may
+ * be a gradient — the tech-level and ability-tier ramps — and
+ * `background-color` silently drops a `linear-gradient()`, which once left
+ * those tiles unfilled with unreadable paper text on the pale page ground.
  */
-export const CATALOG_TILE_CHROME = cn(
-  'rounded-card border-chrome border-ink px-[15px] py-[13px] no-underline',
-  'transition-[box-shadow,transform] duration-[120ms]',
-  'hover:-translate-y-0.5 hover:shadow-[0_5px_18px_var(--color-ink-20)]',
-  FOCUS_RING
-)
+export const CATALOG_TILE_CHROME = `su-catalog-tile ${FOCUS_RING}`
 
 /** The coloured fill + paper text (the default, non-ghost tile). */
-export const CATALOG_TILE_FILL = '[background:var(--catalog-bg)] text-paper'
+export const CATALOG_TILE_FILL = 'su-catalog-tile--fill'
 
 /**
  * The optional name plate — a `--catalog-label` filled chip around the tile
- * name. `text-shadow:none` because the plate supplies the contrast the drop
+ * name. `text-shadow: none` because the plate supplies the contrast the drop
  * shadow was standing in for.
  */
-export const CATALOG_TILE_LABEL =
-  'inline-block rounded-badge bg-[var(--catalog-label)] px-[10px] py-0.5 [text-shadow:none]'
+export const CATALOG_TILE_LABEL = 'su-catalog-tile__label'

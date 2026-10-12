@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { cn } from '../../utils/cn'
+import type { CSSProperties, ReactNode } from 'react'
+import { color, font, fontSize } from '../../design/tokens'
 
 type FieldErrorProps = {
   /** The message. Renders nothing when null/undefined/false — call sites can pass a bare expression. */
@@ -20,12 +20,19 @@ type FieldErrorProps = {
   id?: string
 }
 
+const ERROR_LINE = {
+  color: color.statusBad,
+  display: 'block',
+  fontFamily: font.body,
+  fontSize: fontSize.caption,
+} satisfies CSSProperties
+
 /**
  * FieldError — the ONE single-message validation / advisory line.
  *
  * Never a hand-rolled `<p role="alert">`. Its colour is `danger`, not rust:
  * rust is the ACTION colour (buttons, AP costs, primary CTAs), and spending it on
- * errors overloads it. Its size is `text-caption` (13px), the house token for
+ * errors overloads it. Its size is `caption` (13px), the house token for
  * secondary explanatory copy — the same one `EmptyState` uses for its body — so
  * an error reads at one size everywhere.
  *
@@ -45,13 +52,9 @@ export function FieldError({ children, className, id }: FieldErrorProps) {
   // A block-level <span>, not a <p>: several call sites sit inside phrasing
   // content (InlineEditField wraps its editor and error in a <span>), where a
   // <p> is invalid nesting. A span carries role="alert" identically and, having
-  // no default margin, matches the `m-0` most call sites already specified.
+  // no default margin, matches the zero margin most call sites already specified.
   return (
-    <span
-      id={id}
-      role="alert"
-      className={cn('block font-body text-caption text-status-bad', className)}
-    >
+    <span id={id} role="alert" className={className} style={ERROR_LINE}>
       {children}
     </span>
   )

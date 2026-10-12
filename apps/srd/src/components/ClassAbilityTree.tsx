@@ -12,7 +12,7 @@ type ClassAbilityTreeProps = {
   classEntity: SURefClass
 }
 
-/** The tree's slab names the kind, so its Rows drop the seam stamp. */
+/** The tree's slab names the kind, so its Rows drop the type stamp. */
 const OMIT_KIND = ['kind'] as const
 
 /** The Workshop Manual page "Gaining Abilities" sits on: the brief cites it. */
@@ -158,7 +158,8 @@ function Or({ children = 'or' }: { children?: string }) {
  * What opens a path, as value cells: the class's own path names its tree and
  * that only this class walks it ("REQ | MECH-TECH · ENGINEER ONLY"); a hybrid
  * names the tree this class trains first, then each other tree that also
- * opens it under the class that owns it ("REQ | FORGING or HACKER | ELECTRONICS").
+ * opens it under the class that owns it, that class's cell in the class tone
+ * so it reads at a glance ("REQ | FORGING or HACKER | ELECTRONICS").
  */
 function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: SURefClass }) {
   if (!path.hybrid || !path.via) {
@@ -186,6 +187,8 @@ function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: 
             label={treeOwner(tree)?.name ?? 'Tree'}
             value={tree}
             size="compact"
+            bgColor="var(--color-pilot)"
+            textColor="var(--color-ink)"
           />
         </Fragment>
       ))}

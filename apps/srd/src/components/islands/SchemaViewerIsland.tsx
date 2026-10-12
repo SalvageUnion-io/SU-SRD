@@ -76,7 +76,7 @@ type ListingGroup = { key: string; label: string | undefined; items: SURefEntity
 /**
  * How a listing groups its entities, by data shape: abilities by tree, gear and
  * chassis by tech level, classes into base and hybrid. The group heading then
- * says what each card would otherwise repeat (the tree on its seam, its TL cell).
+ * says what each card would otherwise repeat (the tree on its type stamp, its TL cell).
  */
 type GroupBy = 'tree' | 'tl' | 'kind' | 'none'
 
@@ -244,7 +244,7 @@ function SchemaViewer({
   )
   const groupBy = resolveGroupBy(initialData, trees, orderedTechLevels)
   const groups = useMemo(() => groupEntities(filteredData, groupBy), [filteredData, groupBy])
-  // A single-kind listing: no seam stamp, and no TL cell when the tech level heads the group.
+  // A single-kind listing: no type stamp, and no TL cell when the tech level heads the group.
   const omit = useMemo(() => (groupBy === 'tl' ? ['kind', 'tech-level'] : ['kind']), [groupBy])
 
   const toggleTechLevel = (level: TechLevel) => {

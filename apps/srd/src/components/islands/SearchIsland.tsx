@@ -22,7 +22,7 @@ type SearchIslandProps = {
   variant?: 'bar' | 'hero'
 }
 
-/** The results column: Rows in link mode, room above each for its kind stamp. */
+/** The results column: Rows in link mode. */
 const RESULTS: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',

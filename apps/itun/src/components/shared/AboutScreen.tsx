@@ -35,7 +35,7 @@ export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: A
         </header>
 
         <section className="flex flex-col gap-3 font-body text-sm leading-relaxed text-ink">
-          <Slab as="h2" variant="solid" label="What is this?" className="mb-0" />
+          <Slab as="h2" variant="solid" label="What is this?" style={{ marginBottom: 0 }} />
           <p>
             <strong>In the Union Now</strong> is an unofficial, community-built character builder
             and game manager for{' '}

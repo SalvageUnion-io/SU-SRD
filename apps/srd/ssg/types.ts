@@ -24,6 +24,11 @@ export type DocumentMeta = {
   ogDescription?: string
   /** The page's `theme-color`: an entity's tone, so an unfurl's side bar matches its card. */
   themeColor?: string
+  /**
+   * The page's Discord Component Embed, as its JSON (`componentEmbedFor`):
+   * the card Discord draws for a pasted link to an entity page.
+   */
+  componentEmbed?: string
   structuredData?: StructuredData
   additionalStructuredData?: StructuredData[]
   noindex?: boolean

@@ -102,7 +102,7 @@ describe('ControlButtons', () => {
   // that stamp, so a row that mixed heights would read as unrelated chips.
   test('renders at the stamp rung', () => {
     render(<ControlButtons controls={[makeControl()]} />)
-    expect(screen.getByRole('button').innerHTML).toContain('text-badge')
+    expect(screen.getByRole('button').innerHTML).toContain('su-rung-label--mini')
   })
 
   test('empty controls array renders nothing', () => {
@@ -164,8 +164,7 @@ describe('ControlButtons', () => {
     expect(button.textContent).toBe('')
     // Stamp chrome at the same rung as a worded control (no fixed 28/32px
     // square), so an icon button and a worded one are interchangeable in a row.
-    expect(button.className).toContain('px-1')
-    expect(button.className).toContain('py-0.5')
+    expect(button.className).toContain('su-rung-pad--mini')
     // No fixed 28/32px square. Checked per class TOKEN rather than as a
     // substring, because a substring match also fires on any variant-prefixed
     // or pseudo-element utility that merely CONTAINS a size (`before:h-8`,

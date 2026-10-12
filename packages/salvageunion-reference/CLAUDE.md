@@ -13,12 +13,13 @@ package is the single source of truth for game data.
 
 ## Build & generated files
 
-No compile step: `bun run build:package` (from the repo root) regenerates everything generated,
-in order: `generate:registry` (`tools/generateRegistry.ts`), then
-`generate:json-schemas` (which imports the generated `zodSchemaMap`, so the
-registry must come first), then the docs generator.
-`bun run check generated` (`tools/check-generated.ts`, also at pre-push and in
-CI) re-runs them and fails on any drift, including a new untracked file.
+No compile step. `schemas/` and `lib/generated/` are **gitignored**: never
+commit them. `tools/ensureGenerated.ts` runs the registry, JSON-schema and docs
+generators when its input hash (Zod, registry, data, generators) is stale; it
+runs on postinstall, each consumer's `typecheck`, srd/ITUN `build`/`dev`, the
+test preload and `bun run check`. `bun run build:package` forces it.
+`bun run check generated` diffs the one committed output, `lib/index.ts`'s
+generated block.
 
 **Generated — never hand-edit** (an `Edit(...)` deny rule in
 `.claude/settings.json` blocks it):
@@ -115,8 +116,8 @@ SURefMetaEntity union membership are generated from that entry.
 The `schemas/index.json` catalog entry is **generated** by
 `tools/generateDocs.ts` (`itemCount`, `requiredFields`, `title`,
 `displayName`). Write the prose in the Zod schema's `.describe()` — it flows
-Zod → `schemas/<id>.schema.json` → `schemas/index.json`. Only the `meta` flag is
-carried over from the existing entry.
+Zod → `schemas/<id>.schema.json` → `schemas/index.json`. Its `meta` flag is the
+registry entry's `meta`.
 
 Everything else (the registries, `SURef*` types and unions, the static
 accessors) is generated from that manifest by `bun run build:package`.

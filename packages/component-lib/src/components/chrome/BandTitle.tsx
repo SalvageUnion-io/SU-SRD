@@ -1,5 +1,5 @@
-import type { ElementType, ReactNode } from 'react'
-import { cn } from '../../utils/cn'
+import type { CSSProperties, ElementType, ReactNode } from 'react'
+import { color, font, fontSize, tracking, weight } from '../../design/tokens'
 
 /**
  * The paper-on-tone title that sits in a `Card`'s header band.
@@ -11,7 +11,7 @@ import { cn } from '../../utils/cn'
  * cosmetic: **a stamp is intrinsically sized.** `w-fit` is what a stamp IS; it
  * is a plate cut to its text, which is what lets it ride a seam and sit at any
  * width without stretching. A band title is the opposite: it takes its width
- * from the band's flex track (`min-w-0 flex-1`) and truncates when the title
+ * from the band's flex track (`flex: 1`, `min-width: 0`) and truncates when the title
  * outgrows it, because the band also has to hold the controls next to it.
  *
  * Adding a truncating rung to the stamp would have made "sizes to its content"
@@ -36,10 +36,29 @@ export type BandTitleProps = {
   className?: string
 }
 
+/** Condensed bold caps that truncate rather than wrap. */
+const BASE = {
+  fontFamily: font.cond,
+  fontWeight: weight.bold,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  textTransform: 'uppercase',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+/** Take the band's remaining width. */
+const FILL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
+
 const VARIANT = {
-  lead: 'text-lg leading-none tracking-caps-tight text-paper',
-  mute: 'text-xs text-paper/60',
-} as const
+  lead: {
+    color: color.paper,
+    fontSize: fontSize.lg,
+    letterSpacing: tracking.capsTight,
+    lineHeight: 1,
+  },
+  // The inherited `xs` rung keeps the line-height it has always been paired with.
+  mute: { color: color.paper60, fontSize: fontSize.xs, lineHeight: 'calc(1 / 0.75)' },
+} as const satisfies Record<string, CSSProperties>
 
 export function BandTitle({
   children,
@@ -50,12 +69,8 @@ export function BandTitle({
 }: BandTitleProps) {
   return (
     <Tag
-      className={cn(
-        'truncate font-cond font-bold uppercase',
-        fill && 'min-w-0 flex-1',
-        VARIANT[variant],
-        className
-      )}
+      className={className}
+      style={{ ...BASE, ...(fill ? FILL : undefined), ...VARIANT[variant] }}
     >
       {children}
     </Tag>

@@ -34,6 +34,13 @@ core
 *.cpuprofile
 *.heapsnapshot
 
+# salvageunion-reference build output. Regenerated from lib/schemas/ by
+# packages/salvageunion-reference/tools/ensureGenerated.ts, which postinstall,
+# every consumer's typecheck/build/dev and the test preload run first.
+packages/salvageunion-reference/lib/generated/
+packages/salvageunion-reference/lib/.generated.lock/
+packages/salvageunion-reference/schemas/
+
 # Vite
 .vite
 apps/srd/.vite

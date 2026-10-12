@@ -1,4 +1,6 @@
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { color, font, fontSize, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { InlineEditField } from './InlineEditField'
 
@@ -18,10 +20,28 @@ function Live({
   return <InlineEditField value={value} onSave={setValue} {...props} />
 }
 
+const PAGE = {
+  backgroundColor: color.paper,
+  color: color.ink,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[32],
+  maxWidth: '28rem',
+  padding: space[32],
+} satisfies CSSProperties
+
+const CELL = { display: 'flex', flexDirection: 'column', gap: space[8] } satisfies CSSProperties
+
+const CELL_CAPTION = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.note,
+} satisfies CSSProperties
+
 function Cell({ caption, children }: { caption: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-2">
-      <span className="font-body text-note text-wk-muted">{caption}</span>
+    <div style={CELL}>
+      <span style={CELL_CAPTION}>{caption}</span>
       {children}
     </div>
   )
@@ -32,7 +52,7 @@ function Cell({ caption, children }: { caption: string; children: React.ReactNod
  * cancels. Real Salvage Union stats stand in for the values.
  */
 export const Default: Story = () => (
-  <div className="flex max-w-md flex-col gap-8 bg-paper p-8 text-ink">
+  <div style={PAGE}>
     <Cell caption="read — click .50 Cal's damage to edit (text)">
       <Live initial=".50 Cal Machine Gun" ariaLabel="Weapon name" />
     </Cell>

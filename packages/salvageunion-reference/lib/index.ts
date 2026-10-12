@@ -168,6 +168,17 @@ export { findEntityBySlug, getEntitySlug } from './slug.js'
 export { parseTraitReferences, plainTraitText, replaceTraitReferences } from './traitText.js'
 export { truncate } from './truncate.js'
 export { resultForColumnsTable, resultForTable } from './utils/resultForTable.js'
+export {
+  type DiscordBlock,
+  type DiscordCard,
+  discordAccent,
+  discordCard,
+  discordCardParts,
+  discordCiteLine,
+  escapeMarkdownLabel,
+  linkTraitReferences,
+  rangeLabel,
+} from './view/discordCard.js'
 // The entity VIEW MODEL (docs/design-system/entity-display-language.md): an
 // entity resolved once into what every form draws. Its parts are public too,
 // for component-lib's card helpers, which read them rather than keep a copy.

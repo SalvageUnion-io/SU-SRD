@@ -1,7 +1,3 @@
-import type { VariantProps } from 'class-variance-authority'
-import { cva } from 'class-variance-authority'
-import { cn } from '../../utils/cn'
-
 /**
  * Text is the PROSE primitive — running copy, reference paragraphs, asides.
  *
@@ -11,31 +7,28 @@ import { cn } from '../../utils/cn'
  * Badge is label-only (uppercase, condensed, `w-fit`, `leading-none`) and is
  * the wrong shape for wrapping prose — which is why Text exists.
  */
-const textVariants = cva('', {
-  variants: {
-    variant: {
-      default: 'font-body text-[var(--foreground)]',
-      // Body prose — reference-content paragraphs / labelled values.
-      body: 'break-words font-medium leading-snug whitespace-normal text-pretty text-ink',
-      // Centered italic aside (a rules "hint" / tip).
-      hint: 'max-w-full overflow-hidden break-words text-center font-normal italic leading-snug whitespace-normal text-pretty text-ink',
-      // Muted italic flavour text.
-      flavor:
-        // `ink-2`, not `wk-muted`, and deliberately the last such site. The two
-        // were used interchangeably for de-emphasised text purely by which app
-        // authored the file, and that split is now settled: `wk-muted` owns
-        // de-emphasised secondary copy (it is the tone with a written contrast
-        // argument covering paper and both workshop grounds). `ink-2` keeps only the
-        // role it is named for — the second rung of BODY ink — which is what
-        // this italic flavour variant is: prose to be read, set one step back
-        // from primary, not a de-emphasised label.
-        'break-words font-normal italic leading-snug whitespace-normal text-pretty text-ink-2',
-    },
-  },
-  defaultVariants: {
-    variant: 'default',
-  },
-})
+type TextVariant = 'default' | 'body' | 'hint' | 'flavor'
+
+/**
+ * Each variant is a `.su-text--*` class in `styles/index.css`, not a style
+ * object: callers restyle Text through `className` all the time (`text-paper`,
+ * `text-sm`, `text-left`, `mb-2`…), and an inline style would beat every one of
+ * those utilities. A stylesheet class keeps them winning, as tailwind-merge
+ * made them win before.
+ *
+ *   default  the body face in the page foreground
+ *   body     body prose — reference-content paragraphs / labelled values
+ *   hint     a centered italic aside (a rules "hint" / tip)
+ *   flavor   italic flavour text in `ink-2`, the second rung of BODY ink — prose
+ *            to be read, set one step back from primary, not a de-emphasised
+ *            label (`wk-muted` owns de-emphasised secondary copy)
+ */
+const VARIANT_CLASS: Record<TextVariant, string> = {
+  default: 'su-text su-text--default',
+  body: 'su-text su-text--body',
+  hint: 'su-text su-text--hint',
+  flavor: 'su-text su-text--flavor',
+}
 
 type TextProps = {
   children: React.ReactNode
@@ -52,8 +45,8 @@ type TextProps = {
    */
   as?: 'p' | 'span' | 'div' | 'label' | 'h1' | 'h2' | 'h3'
   ref?: React.Ref<HTMLElement>
-} & VariantProps<typeof textVariants> &
-  Omit<React.HTMLAttributes<HTMLElement>, 'children' | 'style'>
+  variant?: TextVariant | null
+} & Omit<React.HTMLAttributes<HTMLElement>, 'children' | 'style'>
 
 export function Text({
   variant,
@@ -67,7 +60,11 @@ export function Text({
   return (
     <Tag
       ref={ref as React.Ref<never>}
-      className={cn(textVariants({ variant }), className)}
+      className={
+        className
+          ? `${VARIANT_CLASS[variant ?? 'default']} ${className}`
+          : VARIANT_CLASS[variant ?? 'default']
+      }
       style={style}
       {...props}
     >
