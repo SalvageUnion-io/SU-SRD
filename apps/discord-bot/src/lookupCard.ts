@@ -13,7 +13,8 @@
  *
  * What the bot adds is controls only, all stateless (`customId.ts`): a **Roll
  * button** for the entry's own table and every table its actions roll on, so a
- * chained roll is one tap. Older messages' `su:view` tabs and `su:peek` picker
+ * chained roll is one tap, and a **Buy link** when the book the entry is
+ * printed in is for sale from Leyline Press (`buyLink`). Older messages' `su:view` tabs and `su:peek` picker
  * keep answering (buttons are permanent): a tab redraws this card, the picker
  * answers with the pattern's card.
  */
@@ -35,6 +36,7 @@ import {
   isSchemaName,
   nameToSlug,
   resolveFormerSlug,
+  SalvageUnionReference,
   toEntityModel,
 } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerData } from './container'
@@ -120,17 +122,39 @@ function rollButtons(hit: LookupHit): ButtonSpec[] {
   })
 }
 
+/**
+ * Where to buy the book an entry (or the pattern it names) is printed in, or
+ * null. A source's `purchaseLink` is the publisher's storefront: a Leyline
+ * Press product page, or its BackerKit store for the Starter Set and its
+ * booklets. Anything else — Mech Monday's link is a free community page — is
+ * not something to buy.
+ */
+export function buyLink(hit: LookupHit): string | null {
+  const source = hit.pattern?.source ?? hit.entity.source
+  const link = SalvageUnionReference.Sources.getByName(source)?.purchaseLink
+  if (!link) return null
+  const { hostname, pathname } = new URL(link)
+  const forSale =
+    (hostname === 'leyline.press' && pathname.startsWith('/products/')) ||
+    (hostname === 'www.backerkit.com' && pathname.includes('/leyline-press/'))
+  return forSale ? link : null
+}
+
 /** The entry's one card, as the Component Embed draws it, with no controls. */
 export function entityCard(hit: LookupHit): ContainerData {
   const card = discordEntryCard(hit.entity as SURefMetaEntity, hit.pattern)
   return { accent: discordAccent(card.tone), blocks: card.blocks }
 }
 
-/** The lookup card: the entry's one card, then its Roll buttons. */
+/** The lookup card: the entry's one card, then its Roll buttons and Buy link. */
 export function lookupCard(hit: LookupHit): ContainerData {
   const card = entityCard(hit)
-  const roll = rollButtons(hit)
-  return roll.length > 0
-    ? { ...card, blocks: [...card.blocks, { kind: 'buttons', buttons: roll }] }
+  const buy = buyLink(hit)
+  const controls: ButtonSpec[] = [
+    ...rollButtons(hit),
+    ...(buy ? [{ kind: 'link' as const, url: buy, label: 'Buy' }] : []),
+  ]
+  return controls.length > 0
+    ? { ...card, blocks: [...card.blocks, { kind: 'buttons', buttons: controls }] }
     : card
 }

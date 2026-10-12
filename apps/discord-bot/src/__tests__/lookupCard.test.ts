@@ -24,7 +24,7 @@ import type { ButtonSpec, ContainerData } from '../container'
 import { enforceContainerLimits } from '../container'
 import { NEUTRAL_ACCENT } from '../format'
 import type { LookupHit } from '../lookupCard'
-import { entityFromKey, lookupCard, lookupKey, viewPayloadKey } from '../lookupCard'
+import { buyLink, entityFromKey, lookupCard, lookupKey, viewPayloadKey } from '../lookupCard'
 import { cardText } from './cardText'
 
 type Entity = SURefEntity & { schemaName: SURefEnumSchemaName }
@@ -143,7 +143,7 @@ describe('lookupCard — tables and roll buttons', () => {
     expect(text).toContain('-# ROLL THE DIE:')
     expect(text).toContain('`20` **Reactor Overdrive**')
     expect(text).toContain('`11–19` **Reactor Overheat**')
-    expect(labels(card)).toEqual(['Roll on this table'])
+    expect(labels(card)).toEqual(['Roll on this table', 'Buy'])
   })
 
   test('a two-roll table prints each column with its entries', () => {
@@ -157,7 +157,7 @@ describe('lookupCard — tables and roll buttons', () => {
     const card = lookupCard(hit('abilities', 'counter-hacking'))
     expect(card.accent).toBe(0xef894f)
     expect(cardText(card)).toContain('-# ABILITY · ADVANCED HACKING TREE · REACTION · `1 AP`')
-    expect(labels(card)).toEqual(['Roll Counter-Hacking'])
+    expect(labels(card)).toEqual(['Roll Counter-Hacking', 'Buy'])
   })
 })
 
@@ -202,6 +202,41 @@ describe('lookupCard — patterns are entries of their own', () => {
     expect(viewPayloadKey('chassis::mule|patterns|2')).toBe('chassis::mule')
     expect(viewPayloadKey('chassis::mule|overview')).toBe('chassis::mule')
     expect(viewPayloadKey('chassis::mule|nonsense')).toBeNull()
+  })
+})
+
+describe('lookupCard — the Buy link', () => {
+  const WORKSHOP_MANUAL =
+    'https://leyline.press/products/salvage-union-core-book?variant=43991343956158'
+
+  test('an entry from a Leyline Press book links its store page, after the rolls', () => {
+    const card = lookupCard(hit('chassis', 'mule'))
+    expect(buttonsOf(card).at(-1)).toEqual({ kind: 'link', url: WORKSHOP_MANUAL, label: 'Buy' })
+  })
+
+  test('an adventure module and a Starter Set booklet link their own store pages', () => {
+    expect(buyLink(hit('bio-titans', 'apophis'))).toStartWith(
+      'https://leyline.press/products/rainmaker-adventure-module'
+    )
+    expect(buyLink(hit('bio-titans', 'ygdriss'))).toBe(
+      'https://www.backerkit.com/c/projects/leyline-press/salvage-union-starter-set'
+    )
+  })
+
+  test('a pattern links the book it is printed in, not its host’s', () => {
+    const hauler = entityFromKey('chassis::mule::hauler')
+    if (!hauler) throw new Error('no Hauler')
+    expect(buyLink(hauler)).toBe(WORKSHOP_MANUAL)
+  })
+
+  test('Mech Monday is not for sale, so it has no Buy link', () => {
+    expect(labels(lookupCard(hit('sources', 'mech-monday')))).not.toContain('Buy')
+    // Mech Monday patterns are hidden today, so only buyLink itself can see one.
+    const mule = hit('chassis', 'mule')
+    const all = ('patterns' in mule.entity ? mule.entity.patterns : undefined) ?? []
+    const appleseed = all.find((pattern) => pattern.name === 'Appleseed')
+    expect(appleseed?.source).toBe('Mech Monday')
+    expect(buyLink({ ...mule, pattern: appleseed })).toBeNull()
   })
 })
 
