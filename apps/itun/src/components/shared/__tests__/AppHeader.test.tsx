@@ -77,12 +77,12 @@ describe('AppHeader', () => {
   test('search is the bar’s slot, and its phone form sits beside the hamburger', () => {
     render(
       <AppHeader
-        search={<button type="button">Search the rules</button>}
+        search={<button type="button">Search the SRD</button>}
         mobileSearch={<button type="button">Search (phone)</button>}
       />
     )
     const header = within(screen.getByRole('banner'))
-    expect(header.getByRole('button', { name: 'Search the rules' })).toBeTruthy()
+    expect(header.getByRole('button', { name: 'Search the SRD' })).toBeTruthy()
     const phone = header.getByRole('button', { name: 'Search (phone)' })
     const hamburger = header.getByRole('button', { name: 'Open menu' })
     expect(phone.compareDocumentPosition(hamburger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -135,10 +135,12 @@ describe('AppHeader', () => {
     expect(nav.compareDocumentPosition(account) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  test('is one row: no product row under a compact bar', () => {
+  test('is the one Union bar: one nav, the same lockup as the SRD (refit S2)', () => {
     render(<AppHeader actions={<button type="button">Account menu</button>} />)
     expect(screen.getAllByRole('navigation', { name: 'Main navigation' })).toHaveLength(1)
-    expect(screen.getByRole('banner').getAttribute('data-density')).toBe('compact')
+    const banner = screen.getByRole('banner')
+    expect(banner.hasAttribute('data-density')).toBe(false)
+    expect(banner.querySelector('.su-union-bar__wordmark')?.textContent).toBe('SalvageUnion.io')
   })
 
   test('puts the mobile actions beside the hamburger, outside the desktop nav', () => {
@@ -171,11 +173,11 @@ describe('AppHeader', () => {
   test('puts the search in the bar, before the account control', () => {
     render(
       <AppHeader
-        search={<button type="button">Search the rules</button>}
+        search={<button type="button">Search the SRD</button>}
         actions={<button type="button">Account menu</button>}
       />
     )
-    const search = screen.getByRole('button', { name: 'Search the rules' })
+    const search = screen.getByRole('button', { name: 'Search the SRD' })
     const account = screen.getByRole('button', { name: 'Account menu' })
     expect(search.compareDocumentPosition(account) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     // One bar: there is no floating button anywhere else.

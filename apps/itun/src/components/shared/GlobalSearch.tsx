@@ -37,6 +37,7 @@ import {
   EntityExternalLinkProvider,
   EntitySurfaceProvider,
   SearchField,
+  SearchFieldTrigger,
   tokens,
   useDetailModal,
   useSearchCombobox,
@@ -52,7 +53,7 @@ import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 import { useGameDataLoaded } from './GameDataReady'
 
 /** The button's name, the panel's and the input's: one thing, one name. */
-const LABEL = 'Search the rules'
+const LABEL = 'Search the SRD'
 
 const BODY = {
   display: 'flex',
@@ -76,34 +77,6 @@ const LISTBOX = {
   // scrolls inside the panel rather than pushing it off the top.
   maxHeight: 'min(20rem, 50dvh)',
   overflowY: 'auto',
-} satisfies CSSProperties
-
-const TRIGGER_BAR = {
-  alignItems: 'center',
-  background: 'transparent',
-  borderColor: tokens.color.paper60,
-  borderRadius: tokens.radius.card,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.chrome,
-  color: tokens.color.paper,
-  cursor: 'pointer',
-  display: 'inline-flex',
-  flexShrink: 0,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.caption,
-  fontWeight: tokens.weight.bold,
-  gap: tokens.space[8],
-  height: 36,
-  letterSpacing: tokens.tracking.capsSnug,
-  paddingInline: tokens.space[12],
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
-const KEY_HINT = {
-  color: tokens.color.paper60,
-  fontFamily: tokens.font.body,
-  fontWeight: tokens.weight.medium,
-  letterSpacing: 0,
 } satisfies CSSProperties
 
 /** The phone's icon trigger, sized and toned for the ink bar over the ghost button. */
@@ -188,7 +161,7 @@ function openerFor(
 }
 
 type GlobalSearchProps = {
-  /** `bar` — the desktop "Search · ⌘K" trigger; `icon` — the phone's icon button. */
+  /** `bar` — the desktop search field (`SearchFieldTrigger`); `icon` — the phone's icon button. */
   variant?: 'bar' | 'icon'
   /** Whether the panel is open. Lifted to the root so the two triggers share it. */
   open: boolean
@@ -286,19 +259,15 @@ export function GlobalSearch({
 
   const trigger =
     variant === 'bar' ? (
-      <button
-        type="button"
+      // The SRD's search field, as a button (refit S2: one search entry in
+      // both tools); the panel opens below it.
+      <SearchFieldTrigger
+        label={LABEL}
         aria-label={LABEL}
         aria-keyshortcuts="Meta+K Control+K"
-        className="su-union-bar__search"
-        style={TRIGGER_BAR}
-      >
-        <Search size={16} aria-hidden="true" />
-        <span aria-hidden="true">Search</span>
-        <span aria-hidden="true" style={KEY_HINT}>
-          {shortcutHint()}
-        </span>
-      </button>
+        shortcut={shortcutHint()}
+        labelClassName="su-union-bar__search-input"
+      />
     ) : (
       <button
         type="button"

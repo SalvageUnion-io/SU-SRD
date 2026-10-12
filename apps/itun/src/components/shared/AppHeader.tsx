@@ -6,7 +6,7 @@ import { SRD_SITE_URL } from 'salvageunion-reference'
 
 /**
  * AppHeader — ITUN's preset of the shared Union bar (`AppBar`, ruleset §3.11):
- * the compact 48px bar on the **Build** side of the switcher, with ITUN's nav
+ * the one Union bar, on the **Build** side of the switcher, with ITUN's nav
  * inline — Shelves · Games · Starter Set — then the search slot and the
  * app-supplied `actions` (the account menu) at the end. Below `lg` the nav
  * collapses into the shared `NavDrawer`, with `mobileSearch` and
@@ -24,7 +24,7 @@ import { SRD_SITE_URL } from 'salvageunion-reference'
  * is no Games page; picking one sets what the Shelves hub shows — so it takes
  * its place in the nav as a slot.
  *
- * Search is a slot pair: `search` (the desktop "Search · ⌘K" trigger, in the
+ * Search is a slot pair: `search` (the desktop search field, in the
  * bar from `lg`) and `mobileSearch` (the phone's icon button, in the mobile
  * cluster before the account). Both are ITUN's `GlobalSearch`; there is no
  * floating search button.
@@ -121,7 +121,6 @@ export function AppHeader({
       product="build"
       referenceHref={SRD_SITE_URL}
       buildHref="/"
-      density="compact"
       LinkComponent={LinkComponent}
       navItems={[
         { label: 'Shelves', href: '/', active: onShelves },

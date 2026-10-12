@@ -33,9 +33,9 @@ function Harness({ variant = 'bar' }: { variant?: 'bar' | 'icon' }) {
 /** `useSearchCombobox`'s own `debounceMs` default. */
 const DEBOUNCE_MS = 150
 
-const trigger = () => screen.getByRole('button', { name: 'Search the rules' })
-const panel = () => screen.queryByRole('dialog', { name: 'Search the rules' })
-const input = () => screen.getByRole('combobox', { name: 'Search the rules' })
+const trigger = () => screen.getByRole('button', { name: 'Search the SRD' })
+const panel = () => screen.queryByRole('dialog', { name: 'Search the SRD' })
+const input = () => screen.getByRole('combobox', { name: 'Search the SRD' })
 
 async function openWithTrigger() {
   await act(async () => {

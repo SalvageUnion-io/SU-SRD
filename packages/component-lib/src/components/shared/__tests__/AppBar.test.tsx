@@ -38,35 +38,18 @@ describe('AppBar', () => {
     expect(screen.queryByRole('navigation', { name: 'Main navigation' })).toBeNull()
   })
 
-  test('full density puts the product nav on its own row, quiet links at its end', () => {
-    render(
-      <AppBar
-        product="reference"
-        referenceHref="/"
-        buildHref="/"
-        navItems={[{ label: 'Chassis', href: '/schema/chassis/', active: true }]}
-        secondaryItems={[{ label: 'About', href: '/about/' }]}
-      />
-    )
-    const row = screen.getByRole('navigation', { name: 'Main navigation' })
-    expect(row.className).toContain('su-union-bar__product-row')
-    const chassis = within(row).getByRole('link', { name: 'Chassis' })
-    expect(chassis.getAttribute('aria-current')).toBe('page')
-    expect(within(row).getByRole('link', { name: 'About' })).toBeTruthy()
-  })
-
-  test('compact density puts the nav inline, slots in their place', () => {
+  test('one geometry for both tools: nav inline, quiet links at the end, no density', () => {
     render(
       <AppBar
         product="build"
         referenceHref="https://salvageunion.io"
         buildHref="/"
-        density="compact"
         navItems={[
-          { label: 'Shelves', href: '/' },
+          { label: 'Shelves', href: '/', active: true },
           { id: 'games', node: <button type="button">Games</button> },
           { label: 'Starter Set', href: '/starter/' },
         ]}
+        secondaryItems={[{ label: 'About', href: '/about/' }]}
       />
     )
     const nav = screen.getByRole('navigation', { name: 'Main navigation' })
@@ -76,7 +59,15 @@ describe('AppBar', () => {
       'Games',
       'Starter Set',
     ])
-    expect(screen.getByRole('banner').getAttribute('data-density')).toBe('compact')
+    expect(within(nav).getByRole('link', { name: 'Shelves' }).getAttribute('aria-current')).toBe(
+      'page'
+    )
+    expect(within(nav).queryByRole('link', { name: 'About' })).toBeNull()
+    expect(screen.getByRole('link', { name: 'About' }).className).toContain('su-union-bar__quiet')
+    const banner = screen.getByRole('banner')
+    expect(banner.hasAttribute('data-density')).toBe(false)
+    // The same lockup in both tools (refit S2): the wordmark is always drawn.
+    expect(banner.querySelector('.su-union-bar__wordmark')).not.toBeNull()
   })
 
   test('"Buy the game" is an outline link out, in a new tab', () => {
