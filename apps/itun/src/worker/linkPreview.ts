@@ -5,8 +5,8 @@
  * ## The words
  *
  * An unfurl bot (`Discordbot/2.0`) asks for `/p/:kind/:appId` or
- * `/invite/:token` (the link ITUN and the bot hand out, issue 1255; the retired
- * `/join/:code` still unfurls for old links) without
+ * `/invite/:token` (the link ITUN and the bot hand out, issue 1255; an old
+ * `/join/:code` link 301s there first, `retiredRedirects.ts`) without
  * `Sec-Fetch-Mode: navigate`, so it reaches the Worker
  * rather than Static Assets' SPA fallback. `metaFor` asks Convex what a
  * stranger may see (`publicSheet.preview`, `publicSheet.invitePreview`), turns
@@ -85,9 +85,8 @@ export function previewRouteOf(path: string): PreviewRoute | null {
     return isPreviewKind(kind) && SEGMENT.test(id) ? { type: 'sheet', kind, id } : null
   }
   // `/invite/:token` is every invite link handed out today (`invitePath`, and
-  // the bot's DM); `/join/:code` only redirects now, but old links still unfurl.
-  // Either way the token is the invite's code.
-  if (parts.length === 2 && (parts[0] === 'invite' || parts[0] === 'join')) {
+  // the bot's DM); the token is the invite's code.
+  if (parts.length === 2 && parts[0] === 'invite') {
     const code = parts[1] ?? ''
     return SEGMENT.test(code) ? { type: 'invite', code } : null
   }

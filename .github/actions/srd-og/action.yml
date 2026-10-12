@@ -20,22 +20,22 @@ runs:
       shell: bash
       run: bun --filter srd og:install-browser
 
-    # The script re-renders only entities whose data changed since the cached
-    # manifest; it cannot see a rendering change. So the key's first half
-    # hashes everything that renders a card, and only a cache from an
-    # identical renderer is restored.
+    # Each cached PNG is keyed on its entity's JSON and the render key: a hash
+    # of the built bytes that draw the card (the og-card page, its CSS and
+    # fonts, the OgCardIsland chunk graph, never the data chunks), the script
+    # and the Playwright and sharp versions. A commit that changes none of those
+    # restores every card; an unknowable key falls back to the commit, which
+    # restores nothing and renders all of them.
     - name: Key the OG cache
       id: og-key
       shell: bash
+      working-directory: apps/srd
       env:
-        RENDER: >-
-          ${{ hashFiles('bun.lock', 'packages/component-lib/src/**',
-          'packages/component-lib/public/**', 'packages/salvageunion-reference/lib/**',
-          'packages/salvageunion-reference/schemas/**', 'apps/srd/src/**', 'apps/srd/ssg/**',
-          'apps/srd/scripts/**', 'apps/srd/public/**') }}
         DATA: ${{ hashFiles('packages/salvageunion-reference/data/**') }}
       run: |
-        echo "render=$RENDER" >> "$GITHUB_OUTPUT"
+        render=$(bun scripts/og-screenshots.ts --fingerprint) || render=""
+        [[ "$render" =~ ^[0-9a-f]{64}$ ]] || render=""
+        echo "render=${render:-commit-$GITHUB_SHA}" >> "$GITHUB_OUTPUT"
         echo "data=$DATA" >> "$GITHUB_OUTPUT"
 
     - name: Cache the OG renders

@@ -31,9 +31,9 @@ import { WayOutLink } from '../shared/WayOutLink'
  * The token lives in the URL rather than in `sessionStorage`, so it survives the
  * OAuth round trip and still works when pasted into a different browser.
  *
- * Old `/join/:code` links from Discord history land here too
- * (`routes/join/$code.tsx`): a live code joins like any link, and a dead or
- * unknown one gets the same explanation of invite links.
+ * Old `/join/:code` links from Discord history land here too (the Worker 301s
+ * them, `src/worker/retiredRedirects.ts`): a live code joins like any link, and
+ * a dead or unknown one gets the same explanation of invite links.
  */
 
 const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
