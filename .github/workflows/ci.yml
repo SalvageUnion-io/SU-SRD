@@ -1,13 +1,13 @@
 name: CI
 
 # The reasoning behind every non-obvious choice in this file is in
-# docs/ARCHITECTURE.md#ci-and-deploy (the incidents behind them are in git history). Read it
+# docs/ARCHITECTURE.md#areas (the incidents behind them are in git history). Read it
 # before changing a trigger, a path filter, a `needs:` edge or the aggregate
 # gate. Comments here say WHAT a step guards; the doc says WHY.
 
 on:
   # No `branches:` filter: it matches the PR's BASE, so it would give stacked
-  # PRs no checks at all — and `CI Success` is required (ARCHITECTURE.md#ci-triggers).
+  # PRs no checks at all — and `CI Success` is required (ARCHITECTURE.md#areas).
   # CI runs on PRs only: the ruleset requires `CI Success` on a branch that is
   # up to date with `main`, so a merged tree has already passed.
   pull_request:
@@ -26,7 +26,7 @@ concurrency:
 jobs:
   # ---------------------------------------------------------------------------
   # Which areas a change touches. `shared` affects everything; `docs` is prose
-  # and agent config only. See ARCHITECTURE.md#ci-path-filters before adding a path.
+  # and agent config only. See ARCHITECTURE.md#areas before adding a path.
   # ---------------------------------------------------------------------------
   changes:
     runs-on: ubuntu-latest
@@ -61,7 +61,7 @@ jobs:
               - 'test/**'
               - 'bunfig.toml'
               # root prose rendered by srd + itun and asserted on by
-              # component-lib tests — the #731 incident (ARCHITECTURE.md#ci-path-filters)
+              # component-lib tests — the #731 incident (ARCHITECTURE.md#areas)
               - 'ABOUT_JRVS.md'
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
@@ -319,7 +319,7 @@ jobs:
   # The single required check. Fails if any job failed or was cancelled; a
   # path-filtered skip passes. EVERY job above must be in `needs:` —
   # tools/check-workflows.ts (aggregator) enforces it. CodeQL and the PR title
-  # are required separately (ARCHITECTURE.md#ci-aggregate-gate).
+  # are required separately (ARCHITECTURE.md#areas).
   # ---------------------------------------------------------------------------
   quality-checks:
     name: CI Success

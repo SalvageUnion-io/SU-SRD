@@ -13,7 +13,7 @@ network rather than at the typo. The commands are trivial; the traps are not.
 
 The deployments and the seven deployment variables (what each is, what
 breaks when it is unset):
-[accounts and Games operations](../../../docs/ARCHITECTURE.md#accounts-and-games-operations).
+[accounts and Games operations](../../../docs/ARCHITECTURE.md#areas).
 This skill is the procedures.
 
 ## Before anything: which deployment?
@@ -128,7 +128,7 @@ answers everything looks identical to one correctly configured for Discord.
 
 Rotating the pair **signs every user out**; old sessions were signed by the key
 you replaced. Generate both together, in the formats the
-[deployment variables](../../../docs/ARCHITECTURE.md#deployment-variables)
+[deployment variables](../../../docs/ARCHITECTURE.md#areas)
 table gives, and write both:
 
 ```bash
