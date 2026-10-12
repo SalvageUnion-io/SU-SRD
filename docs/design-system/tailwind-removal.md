@@ -6,17 +6,17 @@ Live plan; each phase is its own PR series. Paths below are under `packages/comp
    No utilities, no `.pc-*`, no `@theme`; ITUN-only rules stay in ITUN because srd loads `index.css` too.
 2. **§2 The ratchets** — `tailwind-utility-file` and `pc-class-defined` (`bun run check styling`) count down in `tools/styling-baseline.json`, strict both ways.
    Every phase PR runs `bun tools/check-styling.ts --update-baseline`; only a pure file split may raise a count (`--allow-increase`). `--report` is the work-list.
-3. **§3 The phases** — strictly ordered: component-lib before the apps, the Dashboard after the groups it uses.
-   - **P0 Foundations** — done: tokens, `index.css`, the parity test, the one Tailwind entry, the `package-stylesheet-import` guard.
-   - **P1 Alpha modifiers** — `/NN` ports as `color-mix(in oklab, var(--color-x) NN%, transparent)` (`${color.x}` in a style object); an existing alpha rung wins.
-   - **P2 Atoms** — every file behind an `Atoms/*` story. Exit: none left in `--report`, the catalog renders identically (screenshot pair), baseline lowered.
-   - **P3 Containers** — `Containers/*`, same exit as P2.
-   - **P4 Compositions** — `Compositions/Entity`, `/Catalog`, `/Shell` and the flat leaves. Exit: no component-lib file left in the Tailwind list.
-   - **P5 Dashboard `.pc-*`** (open) — each rule to a style object or an ITUN stylesheet rule, never `index.css`; then delete `apps/itun/src/styles/dashboard.css`.
+3. **§3 The phases** (TW0–TW7; the `[design-refresh Pn]` commit tags are [another ledger](refresh-ledger.md)) — strictly ordered: component-lib before the apps, the Dashboard after the groups it uses.
+   - **TW0 Foundations** — done: tokens, `index.css`, the parity test, the one Tailwind entry, the `package-stylesheet-import` guard.
+   - **TW1 Alpha modifiers** — `/NN` ports as `color-mix(in oklab, var(--color-x) NN%, transparent)` (`${color.x}` in a style object); an existing alpha rung wins.
+   - **TW2 Atoms** — every file behind an `Atoms/*` story. Exit: none left in `--report`, the catalog renders identically (screenshot pair), baseline lowered.
+   - **TW3 Containers** — `Containers/*`, same exit as TW2.
+   - **TW4 Compositions** — `Compositions/Entity`, `/Catalog`, `/Shell` and the flat leaves. Exit: no component-lib file left in the Tailwind list.
+   - **TW5 Dashboard `.pc-*`** (open) — each rule to a style object or an ITUN stylesheet rule, never `index.css`; then delete `apps/itun/src/styles/dashboard.css`.
      Exit: `pc-class-defined` is 0, it and `pc-class-contract` are deleted, no `apps/itun/src/components/dashboard/` file in the Tailwind list.
-   - **P6 The apps** — `apps/itun`, then `apps/srd` (each srd PR carries a visual check). Prerequisite: an ADR recording the styling change.
+   - **TW6 The apps** — `apps/itun`, then `apps/srd` (each srd PR carries a visual check). Prerequisite: an ADR recording the styling change.
      Exit: `tailwind-utility-file` is 0 **and** no rendered element (srd HTML plus mounted islands, ITUN routes, every story; Playwright crawl) carries a class in built CSS's `@layer utilities`. An empty layer is not the check: Tailwind emits rules for words in comments.
-   - **P7 Remove Tailwind** — only once P6's DOM check passes. Drop the packages and Vite plugins, `@theme` becomes `:root`, `index.css` unlayered, the ratchet and `tools/lib/tailwindClasses.ts` deleted.
+   - **TW7 Remove Tailwind** — only once TW6's DOM check passes. Drop the packages and Vite plugins, `@theme` becomes `:root`, `index.css` unlayered, the ratchet and `tools/lib/tailwindClasses.ts` deleted.
      Exit: `grep -ri tailwind` finds only history; `bun run check` green.
 4. **§4 The rules every phase applies**
    1. **Split per property** — no stateful or responsive variant on that element: style object. Any (`:hover`, `:focus-visible`, `@media`, pseudo-elements…): a `.su-*` class, resting value included, since inline `style=` beats every stylesheet rule.

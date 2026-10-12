@@ -44,7 +44,6 @@ import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
 import { SheetModeToggle } from './SheetModeToggle'
 import { SheetPilot } from './SheetPilot'
-import type { SheetMode } from './sheetMode'
 import { useSheetMode } from './sheetMode'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps'
 
@@ -148,7 +147,7 @@ type SheetProps = {
    * the caller names nothing.
    */
   provenance?: string
-  /** Controls on the band beside Read | Edit (the Starter Set's "Make a copy"). */
+  /** Controls on the band (the Starter Set's "Make a copy"). */
   bandActions?: ReactNode
 }
 
@@ -156,9 +155,6 @@ type SheetProps = {
 const liveSheetHref = (kind: EntityRef['type'], id: string): string => `/sheet/${kind}/${id}`
 
 const NONE_WITHHELD: readonly WithheldUnit[] = []
-
-/** A sheet that is only ever read: Read pressed, nothing to switch to. */
-const READ_ONLY_MODE: SheetMode = { editing: false, setEditing: () => undefined }
 
 export function Sheet({
   kind,
@@ -358,15 +354,13 @@ export function Sheet({
     runWrite(() => storeState.update(kind, id, fields, LIVE_SHEET_MANUAL))
   }
 
-  // The band: the type stamps' provenance, and Read | Edit where the viewer
-  // may write — a crewmate's or the Starter Set's sheet is only ever read.
-  // The Starter Set's sheet (`bandActions`) prints the control too, Edit off,
-  // beside "Make a copy" (board 10).
+  // The band: the type stamps' provenance, and Read | Edit only where the
+  // viewer may write. A read-only sheet (`readOnlyProp`: the Starter Set's, a
+  // crewmate's, a public one) has nothing to switch to, so it prints no toggle
+  // at all — a disabled Edit was a control that could only say no.
   const modeToggle =
     sheetMode !== null && !readOnlyProp && !writesBlocked ? (
       <SheetModeToggle mode={sheetMode} kind={kind} />
-    ) : bandActions !== undefined ? (
-      <SheetModeToggle mode={READ_ONLY_MODE} kind={kind} editDisabled />
     ) : null
   const band: SheetBand = {
     provenance: provenance ?? (readOnlyProp ? 'read-only' : undefined),
