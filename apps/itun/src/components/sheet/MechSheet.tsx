@@ -155,6 +155,27 @@ const CONDITIONS_LABEL = {
 
 const COUNT = { fontVariantNumeric: 'tabular-nums' } satisfies CSSProperties
 
+/** The book's pattern behind an over-slot loadout (`computeMechCapacity`'s `asPrinted`). */
+type AsPrinted = { pattern: string; cite: string } | undefined
+
+/**
+ * An over-slot count is "as printed" when the loadout is a pattern the book
+ * prints over its chassis's slots: the count is the book's, not a mistake.
+ */
+function overAsPrinted(used: number, max: number, asPrinted: AsPrinted): boolean {
+  return asPrinted !== undefined && used > max
+}
+
+/** A section's "used/max slots", noted "as printed" (with its cite) when it is the book's. */
+function SlotCount({ used, max, asPrinted }: { used: number; max: number; asPrinted: AsPrinted }) {
+  const printed = overAsPrinted(used, max, asPrinted) ? asPrinted : undefined
+  return (
+    <span style={COUNT} title={printed ? `${printed.pattern}, ${printed.cite}` : undefined}>
+      {used}/{max} slots{printed ? ' · as printed' : ''}
+    </span>
+  )
+}
+
 const PARTNERS = {
   display: 'flex',
   flexDirection: 'column',
@@ -515,9 +536,11 @@ export function MechSheet({
       <SheetSectionSlab
         title="Systems"
         count={
-          <span style={COUNT}>
-            {capacity.systemSlotsUsed}/{capacity.systemSlotsMax} slots
-          </span>
+          <SlotCount
+            used={capacity.systemSlotsUsed}
+            max={capacity.systemSlotsMax}
+            asPrinted={capacity.asPrinted}
+          />
         }
         controls={
           readOnly ? undefined : (
@@ -531,9 +554,11 @@ export function MechSheet({
       <SheetSectionSlab
         title="Modules"
         count={
-          <span style={COUNT}>
-            {capacity.moduleSlotsUsed}/{capacity.moduleSlotsMax} slots
-          </span>
+          <SlotCount
+            used={capacity.moduleSlotsUsed}
+            max={capacity.moduleSlotsMax}
+            asPrinted={capacity.asPrinted}
+          />
         }
         controls={
           readOnly ? undefined : (
@@ -600,7 +625,17 @@ export function MechSheet({
           chosenLabel="Installed"
           emptyMessage="No systems match those filters."
           budget={[
-            { label: 'System Slots', used: capacity.systemSlotsUsed, max: capacity.systemSlotsMax },
+            {
+              label: overAsPrinted(
+                capacity.systemSlotsUsed,
+                capacity.systemSlotsMax,
+                capacity.asPrinted
+              )
+                ? 'System Slots · as printed'
+                : 'System Slots',
+              used: capacity.systemSlotsUsed,
+              max: capacity.systemSlotsMax,
+            },
             { label: 'Energy', used: model.currentEP, max: maxEP, tone: 'ap' },
           ]}
         />
@@ -622,7 +657,17 @@ export function MechSheet({
           chosenLabel="Installed"
           emptyMessage="No modules match those filters."
           budget={[
-            { label: 'Module Slots', used: capacity.moduleSlotsUsed, max: capacity.moduleSlotsMax },
+            {
+              label: overAsPrinted(
+                capacity.moduleSlotsUsed,
+                capacity.moduleSlotsMax,
+                capacity.asPrinted
+              )
+                ? 'Module Slots · as printed'
+                : 'Module Slots',
+              used: capacity.moduleSlotsUsed,
+              max: capacity.moduleSlotsMax,
+            },
             { label: 'Energy', used: model.currentEP, max: maxEP, tone: 'ap' },
           ]}
         />
