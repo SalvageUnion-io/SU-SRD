@@ -36,6 +36,16 @@ const HINT: CSSProperties = {
   whiteSpace: 'nowrap',
 }
 
+/** The one line that never wraps: tier, name, hint, stamps, pennant, affordance. */
+const LINE: CSSProperties = {
+  alignItems: 'center',
+  columnGap: space[8],
+  display: 'flex',
+  flex: '1 1 auto',
+  flexWrap: 'nowrap',
+  minWidth: 0,
+}
+
 export type HeadProps = {
   title: string
   titleAs?: ElementType
@@ -54,12 +64,12 @@ export type HeadProps = {
   pennant?: ReactNode
   /** The mode's affordance: the link chevron, the "Selected" seal. */
   affordance?: ReactNode
-  /** A stamp rides the seam above, so the band leaves it room. */
-  seamed?: boolean
+  /** The labels (`CardLabels`): a line of their own above the title. */
+  labels?: ReactNode
 }
 
 /**
- * HEAD — a Row's band, one line that never wraps: the tier, the name (two
+ * HEAD — a Row's band: its labels, when it has any, then one line that never wraps: the tier, the name (two
  * lines, then clamped), a hint, the action-type stamp (E17), the condition,
  * the cost pennant and the mode's affordance, in that order. The band wears
  * the paint (`paintFor`): the tone or ink, grey when down.
@@ -75,7 +85,7 @@ export function Head({
   hint,
   pennant,
   affordance,
-  seamed = false,
+  labels,
 }: HeadProps) {
   const ink = { color: paint.color }
   return (
@@ -85,41 +95,41 @@ export function Head({
       data-grain={paint.grain}
       style={{
         ...grainStyle(paint.grain),
-        alignItems: 'center',
         backgroundColor: paint.background,
         color: paint.color,
-        columnGap: space[8],
         display: 'flex',
-        flexWrap: 'nowrap',
+        flexDirection: 'column',
+        gap: space[6],
         minWidth: 0,
-        padding: seamed
-          ? `${space[14]} ${space[10]} ${space[8]}`
-          : `${space[6]} ${space[10]} ${space[6]}`,
+        padding: labels ? `${space[8]} ${space[10]}` : `${space[6]} ${space[10]}`,
       }}
     >
-      {tier && (
-        <span style={{ ...TITLE, display: 'inline', flex: 'none', opacity: 0.75 }}>{tier}</span>
-      )}
-      {titleSlot ?? (
-        <TitleTag className="su-entity-row__title" title={title} style={{ ...TITLE, ...ink }}>
-          {paint.nameOnPaper ? <span style={PAPER_NAME}>{title}</span> : title}
-        </TitleTag>
-      )}
-      {hint && <span style={HINT}>{hint}</span>}
-      {stamps.map((stamp) => (
-        <Badge
-          key={stamp}
-          shape="stamp"
-          size="mini"
-          surface={paint.ink ? 'inverse' : 'on-ink'}
-          style={{ flex: 'none', whiteSpace: 'nowrap' }}
-        >
-          {stamp}
-        </Badge>
-      ))}
-      {condition}
-      {pennant && <span style={{ display: 'flex', flex: 'none' }}>{pennant}</span>}
-      {affordance}
+      {labels}
+      <div className="su-entity-row__line" style={LINE}>
+        {tier && (
+          <span style={{ ...TITLE, display: 'inline', flex: 'none', opacity: 0.75 }}>{tier}</span>
+        )}
+        {titleSlot ?? (
+          <TitleTag className="su-entity-row__title" title={title} style={{ ...TITLE, ...ink }}>
+            {paint.nameOnPaper ? <span style={PAPER_NAME}>{title}</span> : title}
+          </TitleTag>
+        )}
+        {hint && <span style={HINT}>{hint}</span>}
+        {stamps.map((stamp) => (
+          <Badge
+            key={stamp}
+            shape="stamp"
+            size="mini"
+            surface={paint.ink ? 'inverse' : 'on-ink'}
+            style={{ flex: 'none', whiteSpace: 'nowrap' }}
+          >
+            {stamp}
+          </Badge>
+        ))}
+        {condition}
+        {pennant && <span style={{ display: 'flex', flex: 'none' }}>{pennant}</span>}
+        {affordance}
+      </div>
     </div>
   )
 }

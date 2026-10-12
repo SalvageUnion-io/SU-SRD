@@ -1,7 +1,7 @@
 /**
  * LinkedUnitLink — a linked unit in a sheet's read state (board 10, issue
  * 1255): the entity display language's ROW (`<Entity form="row">`) in link
- * mode. The kind stamp rides the top edge, the band is the unit's own tone
+ * mode. The kind stamp leads the head, the band is the unit's own tone
  * with its name, its first reading (`SP 9/9`) is the body's Stat, and the
  * whole Row opens that unit's sheet.
  *
