@@ -128,7 +128,7 @@
       "Edit(**/tools/styling-baseline.json)"
     ]
   },
-  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": ["context7", "convex"],
   "hooks": {
     "PostToolUse": [
       {

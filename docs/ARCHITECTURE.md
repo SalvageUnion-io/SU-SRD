@@ -958,10 +958,11 @@ identifier: **never** add a token, DSN, bot token, OAuth secret,
 | `convex` | stdio, `bunx convex@1.45.0 mcp start --project-dir apps/itun --disable-tools envSet,envRemove,run` | `~/.convex/config.json` | ITUN deployments |
 | `context7` | `https://mcp.context7.com/mcp` | none | version-pinned docs |
 
-`claude mcp list` is the only proof a server works. GitHub has no declared
-server (`https://api.githubcopilot.com/mcp/` lacks dynamic client
-registration): use `gh`, or a local-scope `~/.claude.json` entry with a
-`headersHelper`. `convex` refuses production unless flagged
+`enabledMcpjsonServers` holds `context7` and `convex`; opt into the OAuth
+three in `.claude/settings.local.json`.
+
+GitHub has no declared server (no dynamic client registration): use `gh`, or a
+local `headersHelper` entry. `convex` refuses production unless flagged
 (`--dangerously-enable-production-deployments`,
 `--cautiously-allow-production-pii`); never add either. Its pin matches
 `apps/itun/package.json`. It targets the local deployment named by
