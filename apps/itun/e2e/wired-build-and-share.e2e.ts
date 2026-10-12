@@ -14,9 +14,9 @@ import { expect, test } from './fixtures'
  *
  * **The two halves are two tests on purpose.** The wiring test is about the
  * live sheets; the share test is about the live public sheet
- * ([ADR-032](../../../docs/ARCHITECTURE.md#adr-032)), which is
+ * ([ADR-032](../../../docs/ARCHITECTURE.md#decisions)), which is
  * the only way to share
- * ([ADR-036](../../../docs/ARCHITECTURE.md#adr-036)).
+ * ([ADR-036](../../../docs/ARCHITECTURE.md#decisions)).
  *
  * Both are signed in (the default `test` from `fixtures.ts`), so both SKIP with
  * a stated reason in a build with no test sign-in seam and run for real in the
