@@ -1,25 +1,22 @@
 /**
- * entityStore — Zustand store over the db/ CRUD layer, the account's IndexedDB
- * cache of Convex (ADR-034).
+ * entityStore — Zustand store of the account's player entities, in memory: a
+ * projection of the Convex subscriptions (ADR-034; there is no device cache).
  *
- * Hydration strategy: lazy auto-hydration.
- * When list(type) is called and that type is not yet hydrated, hydrate(type)
- * is triggered automatically (returning a Promise the caller can await if they
- * need the result synchronously). This is more ergonomic than throwing "not
- * hydrated" because callers do not need to pre-call hydrate before every read.
- * Subsequent calls after hydration return the in-memory array synchronously
- * (no extra db round-trip).
+ * Hydration: rows arrive from the server (`ShelfSync`), and `hydrate(type)`
+ * resolves once they have, or at once when none are coming
+ * (`rowArrival.ts`). `list(type)` on a type not yet hydrated starts that wait
+ * and returns what is held; later reads are synchronous.
  *
- * Server first: create/update/delete commit to Convex, then write the
- * IndexedDB cache, then update the in-memory state via Zustand's set(). A
- * refused or failed write propagates to the caller and changes nothing local.
+ * Server first: create/update/delete commit to Convex, then update the
+ * in-memory state via Zustand's set(). A refused or failed write propagates
+ * to the caller and changes nothing local.
  *
  * Multi-tab: there is no tab-to-tab channel. Each tab hears another tab's
  * writes through its own Convex subscription: `ShelfSync` adopts creates and
- * edits and forgets deletes, the latter only where `lib/db/pruneRules.ts`
- * lets absence mean deletion. Crawler-bay edits go through updateCrawlerBay(),
- * which merges a single bay entry onto the freshest persisted record instead
- * of replacing the whole array from a possibly-stale in-memory copy.
+ * edits and forgets deletes, the latter only where `pruneRules.ts` lets
+ * absence mean deletion. Crawler-bay edits go through updateCrawlerBay(),
+ * which merges a single bay entry onto the record as held right now instead
+ * of replacing the whole array from a caller's possibly-stale copy.
  *
  * Integrity (plan 2.7): deleting a pilot/mech/crawler/NPC also prunes every
  * SoftLink whose `from` or `to` endpoint references it — no more orphaned
@@ -36,9 +33,6 @@ import { create } from 'zustand'
 import { staleWriteOf } from '../lib/connection/staleWrite'
 import type { ContainerFields } from '../lib/container'
 import { containerOf, moveTo, sameContainer } from '../lib/container'
-import * as db from '../lib/db/index'
-import type { StoreName } from '../lib/db/stores'
-import { STORE_NAMES } from '../lib/db/stores'
 import { linksClearedByMove } from '../lib/links/clearedByMove'
 import { LinkRefused } from '../lib/links/linkRefused'
 import {
@@ -58,12 +52,14 @@ import {
   commitEntityWrite,
   commitSoftLink,
   commitTransfer,
-  readableRows,
   requireWritableBackend,
   StaleWriteRefused,
 } from './entityBackend'
 import type { ChangeMeta } from './entityChangeLog'
 import { emitChangeLog } from './entityChangeLog'
+import type { RecordKind } from './records'
+import { parseServed, prepareCreate, prepareUpdate, RECORD_KINDS, upsertById } from './records'
+import { untilRowsArrive } from './rowArrival'
 import { noteVersion } from './serverVersions'
 import type { CreateInput, EntityForType, EntityType } from './types'
 
@@ -89,16 +85,13 @@ export type EntityState = {
   }
 
   /**
-   * Loads all records of the given type from IndexedDB into in-memory state
-   * (none signed out — see `readableRows`). Idempotent: subsequent calls when
-   * already hydrated are no-ops.
+   * Resolves once the given type's rows have arrived from the server, or at
+   * once when none are coming (`rowArrival.ts`). Idempotent.
    */
   hydrate: (type: EntityType) => Promise<void>
 
-  /**
-   * Re-reads the given type from IndexedDB even when already hydrated.
-   */
-  rehydrate: (type: EntityType) => Promise<void>
+  /** `ShelfSync`: the server's first answer for these types is in. */
+  markArrived: (types: readonly EntityType[]) => void
 
   /**
    * Sync list — returns the in-memory array.
@@ -110,12 +103,12 @@ export type EntityState = {
   /** Sync get — returns the entity by id or null. */
   get: <T extends EntityType>(type: T, id: string) => EntityForType<T> | null
 
-  /** Persists to db then updates in-memory state. Zod errors propagate. */
+  /** Commits to the server, then updates in-memory state. Zod errors propagate. */
   create: <T extends EntityType>(type: T, input: CreateInput<T>) => Promise<EntityForType<T>>
 
   /**
-   * Cache a row from the server of record under the id it already has
-   * (ADR-030 §1 — IndexedDB is the warm cache once you are signed in).
+   * Hold a row from the server of record under the id it already has
+   * (ADR-030 §1).
    *
    * This is the *only* write path that does not commit to the server, and that
    * is the point rather than an optimisation: the record came from the server,
@@ -140,7 +133,7 @@ export type EntityState = {
   forget: (type: EntityType, id: string) => Promise<void>
 
   /**
-   * Merges patch, persists to db, updates in-memory state, then appends a
+   * Merges patch, commits it, updates in-memory state, then appends a
    * Change Log entry per changed field (provenance, ADR-022). `meta` tags those
    * entries and is **required**: pick the constant for your surface from
    * `surfaceProvenance.ts` (`LIVE_SHEET_MANUAL`, `DASHBOARD_TXN`, …) rather than
@@ -157,8 +150,7 @@ export type EntityState = {
 
   /**
    * Merges a patch into ONE crawler bay entry (matched by bayRef) on top of
-   * the freshest persisted record — concurrent edits to different bays from
-   * different tabs never clobber each other's whole-array writes.
+   * the record as held right now — not a caller's copy of the whole array.
    * Throws when the crawler or the bay entry does not exist.
    */
   updateCrawlerBay: (
@@ -176,7 +168,7 @@ export type EntityState = {
   ) => Promise<Crawler>
 
   /**
-   * Deletes from db and removes from in-memory state. Deleting a
+   * Deletes on the server and from in-memory state. Deleting a
    * pilot/mech/crawler also deletes every SoftLink referencing it.
    */
   delete: (type: EntityType, id: string) => Promise<void>
@@ -184,7 +176,7 @@ export type EntityState = {
   /**
    * Cross-entity value transfer: validates every patch, commits all updates
    * and deletes to the server in ONE mutation (`entities.transfer`), then
-   * writes them in ONE IndexedDB transaction — all-or-nothing at both ends.
+   * applies them in ONE set() — all-or-nothing at both ends.
    * Use for flows that move value between entities — scrap-mech, cargo
    * stow/load, salvage hand-offs — where a partial write would duplicate or
    * destroy player data. Deletes cascade SoftLinks like delete().
@@ -207,36 +199,11 @@ export type TransferUpdate = {
 /** The entity types a transfer writes: a link is drawn by `create`, not moved. */
 type ContainedType = Exclude<EntityType, 'softLink'>
 
-/** Maps EntityType discriminant to its db accessor and Zustand state key. */
+/** Maps EntityType discriminant to its Zustand state key. */
 type StoreKey = 'pilots' | 'mechs' | 'crawlers' | 'npcs' | 'softLinks'
 
 function storeKeyFor(type: EntityType): StoreKey {
   return `${type}s`
-}
-
-/**
- * The db accessor surface entityStore needs, expressed against EntityForType
- * so call sites keep the discriminant↔record-type link without `as any`
- * adapters (gap 36).
- */
-type DbStoreApi<T extends EntityType> = {
-  list: () => Promise<EntityForType<T>[]>
-  get: (id: string) => Promise<EntityForType<T> | null>
-  create: (input: CreateInput<T>) => Promise<EntityForType<T>>
-  update: (id: string, patch: Partial<EntityForType<T>>) => Promise<EntityForType<T>>
-  prepareUpdate: (id: string, patch: Partial<EntityForType<T>>) => Promise<EntityForType<T>>
-  put: (record: EntityForType<T>) => Promise<EntityForType<T>>
-  delete: (id: string) => Promise<void>
-  /** `create` minus the write — see `lib/db/crud.ts`. */
-  prepareCreate: (input: CreateInput<T>) => Promise<EntityForType<T>>
-}
-
-const DB_STORES: { [K in EntityType]: DbStoreApi<K> } = {
-  pilot: db.pilots,
-  mech: db.mechs,
-  crawler: db.crawlers,
-  npc: db.npcs,
-  softLink: db.softLinks,
 }
 
 /**
@@ -320,34 +287,17 @@ async function refusalOf(
   return new StaleWriteRefused(stale.message, { cause: err })
 }
 
-/**
- * The IndexedDB store for one entity type — the account's cache.
- *
- * Every write reaches it only after `requireWritableBackend()` (or, for
- * `adopt`/`forget`, from a signed-in sync), so there is no other backend to
- * pick. Reads go through `readableRows`, which answers nothing signed out.
- */
-function dbStoreFor<T extends EntityType>(type: T): DbStoreApi<T> {
+/** The schema and stamps of one entity type's records. */
+function kindOf<T extends EntityType>(type: T): RecordKind<EntityForType<T>> {
   // Single correlated-union assertion: TS cannot carry the runtime
   // discriminant↔record-type invariant through the map lookup for a
   // generic T (microsoft/TypeScript#30581).
-  return DB_STORES[type] as DbStoreApi<T>
+  return RECORD_KINDS[type] as unknown as RecordKind<EntityForType<T>>
 }
 
-/** The IndexedDB object store holding one entity type. */
-function storeNameFor(type: EntityType): StoreName {
-  switch (type) {
-    case 'pilot':
-      return STORE_NAMES.pilots
-    case 'mech':
-      return STORE_NAMES.mechs
-    case 'crawler':
-      return STORE_NAMES.crawlers
-    case 'npc':
-      return STORE_NAMES.npcs
-    case 'softLink':
-      return STORE_NAMES.softLinks
-  }
+/** `links` without the ones touching any of `ids`: an entity's links go with it. */
+function withoutLinksTo(links: readonly SoftLink[], ids: ReadonlySet<string>): SoftLink[] {
+  return links.filter((l) => !ids.has(l.from?.id) && !ids.has(l.to?.id))
 }
 
 /**
@@ -366,24 +316,6 @@ function withActiveContainer<T extends EntityType>(type: T, input: CreateInput<T
   const rec = input as { gameId?: string | null }
   if (rec.gameId !== undefined) return input
   return { ...input, ...moveTo(getActiveContainer()) } as CreateInput<T>
-}
-
-/**
- * Put one link and delete others in this browser's copy, all or nothing: one
- * IndexedDB transaction, so a replace can never leave both the old assignment
- * and the new one on disk.
- */
-async function writeLinksLocally(
-  put: SoftLink | null,
-  deleteIds: readonly string[]
-): Promise<void> {
-  if (put === null && deleteIds.length === 0) return
-  await db.atomicWrite([
-    ...deleteIds.map((id) => ({ op: 'delete' as const, storeName: STORE_NAMES.softLinks, id })),
-    ...(put === null
-      ? []
-      : [{ op: 'put' as const, storeName: STORE_NAMES.softLinks, record: put }]),
-  ])
 }
 
 /**
@@ -421,7 +353,7 @@ async function createSoftLink(
     throw new LinkRefused(CROSS_CONTAINER_REFUSAL)
   }
 
-  const record = await dbStoreFor('softLink').prepareCreate(input)
+  const record = prepareCreate(RECORD_KINDS.softLink, input)
   await commitSoftLink('upsert', record)
 
   // Read AFTER the commit: the server may already have sent this link down
@@ -430,7 +362,6 @@ async function createSoftLink(
   const present = current.find((l) => sameLink(l, input)) ?? null
   const replaced = conflictingLinks(current, input)
   const replacedIds = new Set(replaced.map((l) => l.id))
-  await writeLinksLocally(present === null ? record : null, [...replacedIds])
 
   set((s) => ({
     softLinks: [
@@ -450,21 +381,20 @@ async function createSoftLink(
  * shown to share the new container, and `WiringSync` brings it back if the
  * server kept it.
  */
-async function pruneLinksAfterMove(
+function pruneLinksAfterMove(
   get: () => EntityState,
   set: (fn: (state: EntityState) => Partial<EntityState>) => void,
   moved: { type: Exclude<EntityType, 'softLink'>; id: string; gameId?: string | null }
-): Promise<void> {
+): void {
   // The same read a move's confirm makes (`assignmentsClearedByMove`), so what
   // the dialog named is what goes.
   const broken = linksClearedByMove(get(), moved, containerOf(moved))
   if (broken.length === 0) return
   const brokenIds = new Set(broken.map((l) => l.id))
-  await writeLinksLocally(null, [...brokenIds])
   set((s) => ({ softLinks: s.softLinks.filter((l) => !brokenIds.has(l.id)) }))
 }
 
-export const useEntityStore = create<EntityState>((set, get) => ({
+export const useEntityStore = create<EntityState>((set, get, api) => ({
   pilots: [],
   mechs: [],
   crawlers: [],
@@ -481,15 +411,15 @@ export const useEntityStore = create<EntityState>((set, get) => ({
   async hydrate(type) {
     const key = storeKeyFor(type)
     if (get().hydrated[key]) return
-    await get().rehydrate(type)
+    await untilRowsArrive(() => get().hydrated[key], api.subscribe)
+    get().markArrived([type])
   },
 
-  async rehydrate(type) {
-    const key = storeKeyFor(type)
-    const records = await readableRows(dbStoreFor(type))
+  markArrived(types) {
+    const keys = types.map(storeKeyFor).filter((key) => !get().hydrated[key])
+    if (keys.length === 0) return
     set((state) => ({
-      [key]: records,
-      hydrated: { ...state.hydrated, [key]: true },
+      hydrated: { ...state.hydrated, ...Object.fromEntries(keys.map((key) => [key, true])) },
     }))
   },
 
@@ -525,15 +455,13 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       return (await createSoftLink(get, set, input as CreateInput<'softLink'>)) as EntityForType<T>
     }
 
-    // Build the record WITHOUT persisting it, commit it, and only then write it
-    // locally. The order is the demotion: with Convex as the source of truth, a
-    // record the server refused does not exist, so it must not appear on the
-    // device either. `commitWrite` throws on refusal and this deliberately does
+    // Build the record, commit it, and only then hold it. With Convex as the
+    // source of truth, a record the server refused does not exist, so it must
+    // not appear here either. `commitWrite` throws on refusal and this deliberately does
     // not catch — the caller's write failed, and every caller already handles
     // that path for `WritesBlockedOffline`.
-    const record = await dbStoreFor(type).prepareCreate(withActiveContainer(type, input))
+    const record = prepareCreate(kindOf(type), withActiveContainer(type, input))
     await commitWrite(type, record)
-    await dbStoreFor(type).put(record)
 
     set((state) => ({
       [key]: [record, ...(state[key] as EntityForType<T>[])],
@@ -543,19 +471,11 @@ export const useEntityStore = create<EntityState>((set, get) => ({
 
   async adopt<T extends EntityType>(type: T, record: EntityForType<T>): Promise<EntityForType<T>> {
     const key = storeKeyFor(type)
-    // Deliberately no `requireWritableBackend()`: filling the cache is not a
-    // user write. A Disconnected reader must still be able to open what they
-    // already pulled down, and refusing here would make going offline lose
-    // access to a sheet rather than merely making it read-only.
-    const cached = await dbStoreFor(type).put(record)
-    set((state) => {
-      const list = state[key] as EntityForType<T>[]
-      const exists = list.some((e) => e.id === cached.id)
-      return {
-        [key]: exists ? list.map((e) => (e.id === cached.id ? cached : e)) : [cached, ...list],
-      }
-    })
-    return cached
+    // Deliberately no `requireWritableBackend()`: holding a server row is not a
+    // user write.
+    const held = parseServed(kindOf(type), record)
+    set((state) => ({ [key]: upsertById(state[key] as EntityForType<T>[], held) }))
+    return held
   },
 
   async forget(type, id) {
@@ -563,21 +483,14 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     if (type === 'softLink') {
       // A link has no links of its own to cascade. `WiringSync` forgets the
       // ones the server no longer holds through here.
-      await writeLinksLocally(null, [id])
       set((state) => ({ softLinks: state.softLinks.filter((l) => l.id !== id) }))
       return
     }
     // Local only, and cascading like `delete` does: a SoftLink pointing at an
-    // entity this browser no longer holds would render as a broken cross-link.
-    const prunedIds = await db.atomicWrite([
-      { op: 'delete', storeName: storeNameFor(type), id, pruneSoftLinks: true },
-    ])
-    if (prunedIds.length > 0) {
-      const pruned = new Set(prunedIds)
-      set((state) => ({ softLinks: state.softLinks.filter((l) => !pruned.has(l.id)) }))
-    }
+    // entity this tab no longer holds would render as a broken cross-link.
     set((state) => ({
       [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
+      softLinks: withoutLinksTo(state.softLinks, new Set([id])),
     }))
   },
 
@@ -592,11 +505,10 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     const before = get().get(type, id)
     requireWritableBackend()
 
-    // Same order as `create`: merge and validate, commit, then persist. A
+    // Same order as `create`: merge and validate, commit, then hold. A
     // refused edit leaves the local record exactly as it was.
-    const updated = await dbStoreFor(type).prepareUpdate(id, patch)
+    const updated = prepareUpdate(kindOf(type), before, id, patch)
     await commitWrite(type, updated, patch)
-    await dbStoreFor(type).put(updated)
 
     set((state) => ({
       [key]: (state[key] as EntityForType<T>[]).map((e) => (e.id === id ? updated : e)),
@@ -606,7 +518,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     if (type !== 'softLink' && before !== null) {
       const moved = updated as ContainerFields
       if (!sameContainer(containerOf(before as ContainerFields), containerOf(moved))) {
-        await pruneLinksAfterMove(get, set, {
+        pruneLinksAfterMove(get, set, {
           type: type as Exclude<EntityType, 'softLink'>,
           id,
           gameId: moved.gameId,
@@ -638,28 +550,29 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     // guarantee, since transfer() bypasses update().
     const withBefore = updates.map((u) => ({ ...u, before: get().get(u.type, u.id) }))
 
-    // Phase 1 — validate everything BEFORE touching disk. prepareUpdate
+    // Phase 1 — validate everything BEFORE changing anything. prepareUpdate
     // merges + strict-parses without writing, so a Zod failure on any patch
     // aborts the whole transfer with nothing changed.
-    const prepared = await Promise.all(
-      withBefore.map(async (u) => ({
-        type: u.type,
-        id: u.id,
-        patch: u.patch,
-        before: u.before,
-        record: await (
-          dbStoreFor(u.type).prepareUpdate as (id: string, patch: object) => Promise<{ id: string }>
-        )(u.id, u.patch),
-      }))
-    )
+    const prepared = withBefore.map((u) => ({
+      type: u.type,
+      id: u.id,
+      patch: u.patch,
+      before: u.before,
+      record: prepareUpdate(
+        kindOf(u.type) as RecordKind<{ id: string }>,
+        u.before as { id: string } | null,
+        u.id,
+        u.patch
+      ),
+    }))
 
-    // Phase 1b — commit the whole transfer to the server BEFORE touching disk,
+    // Phase 1b — commit the whole transfer to the server BEFORE changing anything,
     // as ONE mutation (`entities.transfer`). A transfer moves value BETWEEN
     // entities, so a half-applied one is not a stale record but a wrong
     // balance: a stow that lands on the mech and is refused on the crawler
     // loses the lot, a load duplicates it. The mutation is one transaction, so
     // a refusal on any record leaves every server row as it was, and throwing
-    // here leaves this browser untouched too. Links are read before the local
+    // here leaves this tab untouched too. Links are read before the local
     // delete, because the server addresses a link by its endpoints.
     try {
       await commitTransfer(
@@ -680,28 +593,14 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       )
     }
 
-    // Phase 2 — one IDB transaction for every put and delete.
-    const prunedIds = await db.atomicWrite([
-      ...prepared.map((pu) => ({
-        op: 'put' as const,
-        storeName: storeNameFor(pu.type),
-        record: pu.record,
-      })),
-      ...deletes.map((d) => ({
-        op: 'delete' as const,
-        storeName: storeNameFor(d.type),
-        id: d.id,
-        pruneSoftLinks: d.type !== 'softLink',
-      })),
-    ])
-
-    // Phase 3 — sync in-memory state, mirroring update()/delete().
+    // Phase 2 — apply it in one set(), mirroring update()/delete(): deleting an
+    // entity takes its links with it.
     const deletedByKey = new Map<StoreKey, Set<string>>()
     for (const d of deletes) {
       const key = storeKeyFor(d.type)
       deletedByKey.set(key, (deletedByKey.get(key) ?? new Set()).add(d.id))
     }
-    const pruned = new Set(prunedIds)
+    const goneEntities = new Set(deletes.filter((d) => d.type !== 'softLink').map((d) => d.id))
     set((state) => {
       const next: Partial<Record<StoreKey, unknown[]>> = {}
       for (const pu of prepared) {
@@ -713,14 +612,16 @@ export const useEntityStore = create<EntityState>((set, get) => ({
         const base = (next[key] ?? state[key]) as { id: string }[]
         next[key] = base.filter((e) => !ids.has(e.id))
       }
-      if (pruned.size > 0) {
-        const base = (next.softLinks ?? state.softLinks) as { id: string }[]
-        next.softLinks = base.filter((l) => !pruned.has(l.id))
+      if (goneEntities.size > 0) {
+        next.softLinks = withoutLinksTo(
+          (next.softLinks ?? state.softLinks) as SoftLink[],
+          goneEntities
+        )
       }
       return next as Partial<EntityState>
     })
 
-    // Phase 4 — provenance (ADR-022), as update() emits it. One entry per
+    // Phase 3 — provenance (ADR-022), as update() emits it. One entry per
     // changed field per updated entity. Deletes are not logged: the per-entity
     // log goes with the entity.
     for (const pu of prepared) {
@@ -736,9 +637,9 @@ export const useEntityStore = create<EntityState>((set, get) => ({
   },
 
   async updateCrawlerBay(crawlerId, bayRef, patch, index, meta) {
-    // Read the freshest persisted record — NOT the in-memory copy — so two
-    // tabs editing different bays merge instead of clobbering (plan 2.7).
-    const fresh = await db.crawlers.get(crawlerId)
+    // Read the record as held right now, not the caller's copy, so the merge
+    // lands on the latest bays (plan 2.7).
+    const fresh = get().get('crawler', crawlerId)
     if (fresh === null) {
       throw new Error(`[itun-store] Cannot update bay: crawler id="${crawlerId}" not found`)
     }
@@ -779,12 +680,10 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       })
     }
 
-    // Cascade: deleting an entity prunes its SoftLinks (plan 2.7, gap 9).
-    // The entity delete and its link pruning run in a single IDB transaction
-    // (`atomicWrite` with `pruneSoftLinks`) so a crash/error can never leave
-    // orphaned links or a half-applied delete — it is all-or-nothing on disk.
+    // Cascade: deleting an entity prunes its SoftLinks (plan 2.7, gap 9), in
+    // the same set() as the entity, so no orphaned link is ever shown.
     if (type !== 'softLink') {
-      // Commit the cascaded link deletes BEFORE the local transaction, and read
+      // Commit the cascaded link deletes BEFORE the local delete, and read
       // them first: a link is addressed on the server by its endpoints, so once
       // the local delete has run there is nothing left to name them by. This
       // is the same ordering `delete()` already uses for the entity itself,
@@ -802,22 +701,13 @@ export const useEntityStore = create<EntityState>((set, get) => ({
         await commitSoftLink('delete', link)
       }
 
-      const prunedIds = await db.atomicWrite([
-        { op: 'delete', storeName: storeNameFor(type), id, pruneSoftLinks: true },
-      ])
-      if (prunedIds.length > 0) {
-        const pruned = new Set(prunedIds)
-        set((state) => ({
-          softLinks: state.softLinks.filter((l) => !pruned.has(l.id)),
-        }))
-      }
       set((state) => ({
         [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
+        softLinks: withoutLinksTo(state.softLinks, new Set([id])),
       }))
       return
     }
 
-    await dbStoreFor(type).delete(id)
     set((state) => ({
       [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
     }))

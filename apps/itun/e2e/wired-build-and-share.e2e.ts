@@ -24,7 +24,7 @@ import { expect, test } from './fixtures'
  * and reading the page back is the deliberately unauthenticated
  * `publicSheet.get` — so the share test needs a Convex backend.
  *
- * IndexedDB persists across page navigations inside one context, so building
+ * The account's rows persist across page navigations inside one context, so building
  * entities before wiring works without state plumbing. Each test gets a fresh
  * context and a fresh account, which is why the second test builds its own
  * pilot rather than inheriting the first test's.

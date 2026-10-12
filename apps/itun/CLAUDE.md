@@ -5,9 +5,10 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 **Storage modes (Solo / Connected / Disconnected / Outdated) — read them before
 touching data.** They live in
 [`.claude/rules/itun-data-access.md`](../../.claude/rules/itun-data-access.md),
-which loads with the stores, hooks, `src/lib/db/`, `src/lib/connection/`,
-`convex/` and `e2e/`. In short: signed out, ITUN is read-only and reads
-nothing; signed in, Convex is the truth and IndexedDB its per-account cache.
+which loads with the stores, hooks, `src/lib/connection/`, `convex/` and
+`e2e/`. In short: signed out, ITUN is read-only and holds nothing; signed in,
+Convex is the truth and the stores hold its rows in memory. Nothing
+player-owned is kept on the device (D9: no IndexedDB).
 
 **One account-free way to share: the public sheet
 ([ADR-032](../../docs/ARCHITECTURE.md)).** A **live**
@@ -36,8 +37,8 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   there is no app-local `src/components/ui/`. Styling is the `component-lib`
   theme; Tailwind is being removed
   ([plan](../../docs/design-system/tailwind-removal.md)).
-- **PWA** (`vite-plugin-pwa`, **`registerType: 'prompt'`**) — installable,
-  offline-capable. It is `prompt` and must stay that way: `autoUpdate` force-sets
+- **PWA** (`vite-plugin-pwa`, **`registerType: 'prompt'`**) — installable;
+  the shell boots offline (signed out and empty: there is no data cache). It is `prompt` and must stay that way: `autoUpdate` force-sets
   `skipWaiting` + `clientsClaim` (a plugin assignment the `workbox` block
   cannot override), which activated a new worker under a live page and dropped
   the precache entries it was still resolving chunks against. Navigations are **network-first** (`src/lib/sw/workbox.ts`): online
@@ -50,19 +51,16 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 
 ## Persistence (read before touching data)
 
-- Player data lives in **Convex**; IndexedDB (`idb`, `src/lib/db/`) is a
-  per-account cache of it. Stores (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `npcs`, `softLinks`,
-  `mechPatterns`, `encounterNpcs`, and `meta`. The Change Log
+- Player data lives in **Convex** only; the stores hold this page load's rows
+  in memory. Record kinds (`src/stores/records.ts`): `pilots`, `mechs`, `crawlers`, `npcs`, `softLinks`,
+  `mechPatterns`, `encounterNpcs`. The Change Log
   ([ADR-022](../../docs/ARCHITECTURE.md)) has no device store: it is
   the Convex `changeLog` table, written by `commitChangeLog` and read by
   `changeLog.forEntity`.
 - **Zod schemas (`src/lib/schemas/`) are the source of truth** for entity shape;
-  the DB layer parses on read/write ([ADR-002](../../docs/ARCHITECTURE.md)).
-- Reads are strict: an unreadable cached row is skipped with a warning and
-  refilled from Convex. See `src/lib/db/crud.ts`.
-- A schema/version change bumps `DB_VERSION` (`src/lib/db/index.ts`) and
-  nothing else: the upgrade drops every store, and `ShelfSync` refills the
-  cache from Convex. No record is ever rewritten on the device.
+  every create, update and adopted server row parses strictly
+  (`src/stores/records.ts`); `ShelfSync` reports a row that does not parse and
+  carries on.
 - Records store **slug references** into `salvageunion-reference` (e.g.
   `classRef: 'salvager'` on a pilot), never copies of game data; resolve them
   against `SalvageUnionReference` at render time.
@@ -76,16 +74,16 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   nullable `gameId` and resolved through `src/lib/container.ts`. Filter with `containerOf` +
   `sameContainer`, and only when `mode === 'connected'`: signed out there is
   nothing to show, and Disconnected has no live Game list to filter against, so
-  it shows the cached pile whole. `Roster` shows Shelves at `/` (all you
+  it shows what it holds whole. `Roster` shows Shelves at `/` (all you
   keep, Games too) and a Game at `/games/$gameId`.
 - **Assignments** ([ADR-037](../../docs/ARCHITECTURE.md)):
   draw soft links only via `assignLink`; the rules are
   `src/lib/links/linkRules.ts`, shared with `convex/`.
-- **Lazy auto-hydration:** first `list(type)` loads the IndexedDB cache (nothing
-  signed out); later reads are synchronous
-  ([ADR-003](../../docs/ARCHITECTURE.md)).
-- **Server first:** `update`/`create`/`delete` commit to Convex, then the
-  IndexedDB cache, then in-memory state; a refused write changes nothing, and
+- **Hydration:** `hydrate(type)` waits for `ShelfSync`'s first answer, or
+  resolves at once when no rows are coming (`src/stores/rowArrival.ts`); reads
+  are synchronous ([ADR-003](../../docs/ARCHITECTURE.md)).
+- **Server first:** `update`/`create`/`delete` commit to Convex, then update
+  in-memory state; a refused write changes nothing, and
   other tabs hear it from Convex
   ([ADR-034](../../docs/ARCHITECTURE.md)).
 

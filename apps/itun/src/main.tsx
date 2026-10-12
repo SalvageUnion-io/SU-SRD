@@ -12,6 +12,7 @@ import {
 import { registerServiceWorker } from './lib/sw/register'
 import { installSoftUpdate, newBuild } from './lib/sw/softUpdate'
 import { routeTree } from './routeTree.gen'
+import { setEntityBackendAuthState } from './stores/entityBackend'
 
 const router = createRouter({
   routeTree,
@@ -43,6 +44,12 @@ void initBrowserObservability()
 // whose build no longer exists on the server — can be thrown by the very first
 // route the router resolves. See `installChunkRecovery` in observability/browser.
 installChunkRecovery()
+
+// Until `ConnectionProvider` reports, nobody knows yet whether there is a
+// session, so the stores treat the account's rows as on their way: a route
+// opened at boot waits for them (stores/rowArrival.ts) rather than rendering
+// an empty roster that fills a moment later.
+setEntityBackendAuthState({ signedIn: false, online: navigator.onLine, authSettled: false })
 
 const rootEl = document.getElementById('root')
 if (!rootEl) throw new Error('Root element not found')

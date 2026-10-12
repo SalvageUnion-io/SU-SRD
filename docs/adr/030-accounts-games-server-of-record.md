@@ -13,8 +13,9 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 30, which
 [ADR-034](../ARCHITECTURE.md#decisions) **partially supersedes it**,
 and the partial is the important word: §1 promises Solo mode — not signed in,
 IndexedDB as the source of truth — "must keep working forever", and **that one
-guarantee is withdrawn**. Persistence requires an account and IndexedDB is a
-cache of Convex. Everything else here — Games,
+guarantee is withdrawn**. Persistence requires an account, and since the D9
+decision ([spike](../spikes/d9-offline-cache.md)) nothing is kept on the device
+at all: no IndexedDB cache. Everything else here — Games,
 memberships, roles, ownership, the two containers, Convex as server of record —
 stands, so citing this ADR remains correct for all of it.
 
@@ -108,13 +109,13 @@ already ships a bot, which this makes a first-class authenticated client rather
 than something needing its own credential story.
 
 **Convex is the server of record.** A signed-in client reads through a reactive
-subscription and writes to Convex; IndexedDB is demoted from source of truth to a
-warm cache. Reactive subscriptions are the product feature here — synchronized
+subscription and writes to Convex; IndexedDB was demoted from source of truth to a
+warm cache, and the D9 decision then removed it. Reactive subscriptions are the product feature here — synchronized
 alerts and a live table are the point — not an add-on.
 
 This produces **three modes**, and every surface must be legible in all three.
 The current table — Solo is signed out and read-only, Connected writes to
-Convex, Disconnected is a read-only cache — is [data flow](../ARCHITECTURE.md#areas) and
+Convex, Disconnected keeps what is on screen, read-only — is [data flow](../ARCHITECTURE.md#areas) and
 [`apps/itun/CLAUDE.md`](../../apps/itun/CLAUDE.md). A **NOT CONNECTED** banner and
 read-only state are the honest cost of choosing a server of record, and only a
 signed-in user offline ever pays it.

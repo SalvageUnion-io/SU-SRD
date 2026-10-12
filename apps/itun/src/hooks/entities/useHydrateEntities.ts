@@ -50,11 +50,9 @@ export function useHydrateOnMount(hydrate: () => Promise<unknown>): boolean {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // A rejected hydration (e.g. a blocked or otherwise failed IndexedDB open)
-  // must surface as the root error boundary's recovery screen — NEVER an
-  // infinite loading skeleton. Re-throwing during render hands the error to the
-  // nearest router errorComponent (RootErrorComponent). See lib/db/index.ts's
-  // BlockedUpgradeError for the canonical case this guards against.
+  // A rejected hydration must surface as the nearest error boundary's recovery
+  // screen — NEVER an infinite loading skeleton. Re-throwing during render
+  // hands the error to the nearest router errorComponent.
   if (state.error !== NO_ERROR) throw state.error
 
   return state.hydrated

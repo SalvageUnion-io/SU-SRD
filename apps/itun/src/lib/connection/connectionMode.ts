@@ -105,7 +105,7 @@ export function isSettlingConnection(mode: ConnectionMode): boolean {
   return mode === 'connecting'
 }
 
-/** Whether reads/writes should be routed to Convex rather than IndexedDB. */
+/** Whether the server of record is in play: sync runs and writes may go up. */
 export function usesServerOfRecord(mode: ConnectionMode): boolean {
   return mode === 'connected'
 }

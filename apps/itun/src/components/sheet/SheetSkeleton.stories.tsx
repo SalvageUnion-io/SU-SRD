@@ -5,7 +5,7 @@ export default {
   title: 'Containers/Sheet Skeleton',
 }
 
-/** Live-sheet loading placeholder — shown while IndexedDB hydrates. */
+/** Live-sheet loading placeholder — shown while the account's rows arrive. */
 export const Default = () => (
   <div className="bg-paper p-4">
     <Caption>SheetSkeleton</Caption>

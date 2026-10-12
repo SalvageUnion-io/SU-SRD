@@ -96,7 +96,7 @@ type MechSheetProps = {
   chassis?: ChassisLike | null
   /**
    * Injectable store — defaults to useEntityStore.
-   * Pass a stub in tests to avoid Zustand/IndexedDB side effects.
+   * Pass a stub in tests to avoid Zustand side effects.
    */
   store?: typeof useEntityStore
   /** Suppresses every edit affordance (published snapshots). */
