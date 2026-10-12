@@ -29,7 +29,7 @@ describe('a Dashboard roll round-trips through the log', () => {
           gameId,
           {
             description: 'Scrapper · Heat Check 7 vs Heat 3: no overload',
-            result: { kind: 'heat-check', roll: 7, outcome: 'safe' },
+            result: { kind: 'heat-check', roll: 7, outcome: 'passed' },
           },
           200
         ),

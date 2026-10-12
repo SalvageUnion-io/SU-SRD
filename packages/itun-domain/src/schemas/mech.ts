@@ -6,22 +6,23 @@ import { PartnerInstanceSchema } from './partner'
 import { photoFields } from './photo'
 
 /**
- * Reactor Overload outcome categories (Core Book p.234-235). Distinct from the
+ * Reactor Overload outcome categories (Core Book p.235). Distinct from the
  * raw d20 roll: maps the table band to a deterministic mech effect.
  * - meltdown: roll 1 — mech destroyed
  * - system-destroyed: roll 2-5 — player marks a System destroyed
  * - module-destroyed: roll 6-10 — player marks a Module destroyed
  * - overheat: roll 11-19 — shutdown + Vulnerable + SP damage = current Heat
- * - safe: roll 20 — no effect
+ * - overdrive: roll 20 — Reactor Overdrive: a free additional action this
+ *   turn, or a free Push within 10 minutes (nothing to apply)
+ *
+ * The 20 was stored as `'safe'` before it took the book's name, so a mech
+ * saved with that `lastHeatCheck` still reads, as `'overdrive'`.
  */
 
-export const ReactorOverloadOutcomeSchema = z.enum([
-  'meltdown',
-  'system-destroyed',
-  'module-destroyed',
-  'overheat',
-  'safe',
-])
+export const ReactorOverloadOutcomeSchema = z.preprocess(
+  (value) => (value === 'safe' ? 'overdrive' : value),
+  z.enum(['meltdown', 'system-destroyed', 'module-destroyed', 'overheat', 'overdrive'])
+)
 
 // The outcome of `HeatCheckResultSchema` below, the shape of `lastHeatCheck`
 // that `heatCheckPatch` (lib/rules/heatCheck.ts) writes on every heat check.

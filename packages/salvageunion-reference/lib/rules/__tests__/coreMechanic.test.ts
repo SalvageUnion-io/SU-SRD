@@ -118,6 +118,26 @@ describe('describePushOutcome', () => {
 
   test('system-destroyed band prompts the player choice (ADR-007)', () => {
     const effect = performHeatCheck({ heat: 6, currentSP: 8, roll: seqRoll(3, 4) })
-    expect(describePushOutcome(6, effect)).toContain('mark one on the sheet')
+    const line = describePushOutcome(6, effect)
+    expect(line).toContain('System Overload: One of your Mech')
+    expect(line).toContain('Mark the System on the sheet.')
+  })
+
+  test('a 20 is Reactor Overdrive: the free action or Push, verbatim (p.235)', () => {
+    const effect = performHeatCheck({ heat: 6, currentSP: 8, roll: seqRoll(3, 20) })
+    expect(effect.result.outcome).toBe('overdrive')
+    expect(describePushOutcome(6, effect)).toBe(
+      '+2 Heat → 6. Heat Check 3 vs Heat 6 — OVERLOAD. Reactor Overload 20: Reactor ' +
+        "Overdrive: Your Mech's reactor goes into overdrive. Your Mech can take any " +
+        'additional action this turn or Push their next roll within 10 minutes for free.'
+    )
+  })
+
+  test('a 1 prints the whole meltdown row, area damage included (p.235)', () => {
+    const effect = performHeatCheck({ heat: 6, currentSP: 8, roll: seqRoll(3, 1) })
+    const line = describePushOutcome(6, effect)
+    expect(line).toContain('Reactor Overload 1: Reactor Overload: Your Mech')
+    expect(line).toContain("SP damage equal to your Mech's Maximum Heat Capacity")
+    expect(line).toEndWith('becomes Irradiated.')
   })
 })
