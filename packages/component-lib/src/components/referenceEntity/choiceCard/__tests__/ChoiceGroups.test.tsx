@@ -51,7 +51,7 @@ describe('ChoiceGroups — uncontrolled (ephemeral) state', () => {
     expect(screen.getByText('Ballistic')).toBeTruthy()
     expect(screen.getByText('Energy')).toBeTruthy()
     // New style: unchosen options carry no stamp; only a chosen option gets "Chosen".
-    expect(screen.queryByText('Chosen')).toBeNull()
+    expect(screen.queryByText(/^Chosen/)).toBeNull()
     expect(screen.getByRole('button', { name: /Ballistic/ }).getAttribute('aria-pressed')).toBe(
       'false'
     )
@@ -62,11 +62,11 @@ describe('ChoiceGroups — uncontrolled (ephemeral) state', () => {
     const ballistic = screen.getByRole('button', { name: /Ballistic/ })
     fireEvent.click(ballistic)
     expect(ballistic.getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByText('Chosen')).toBeTruthy()
+    expect(screen.getByText(/^Chosen/)).toBeTruthy()
 
     fireEvent.click(ballistic)
     expect(ballistic.getAttribute('aria-pressed')).toBe('false')
-    expect(screen.queryByText('Chosen')).toBeNull()
+    expect(screen.queryByText(/^Chosen/)).toBeNull()
   })
 })
 
@@ -153,7 +153,7 @@ describe('ChoiceGroups — free-text choice', () => {
     expect(field).toBeTruthy()
     // Free-text input cards carry no Chosen / Not Chosen status stamp.
     expect(screen.queryByText('Not Chosen')).toBeNull()
-    expect(screen.queryByText('Chosen')).toBeNull()
+    expect(screen.queryByText(/^Chosen/)).toBeNull()
 
     fireEvent.change(field, { target: { value: 'Rex' } })
     expect(field.value).toBe('Rex')

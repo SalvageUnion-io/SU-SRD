@@ -51,8 +51,9 @@ const rangeLabel = (key: string) => key.replace('-', '–')
  *
  * The result is a READOUT, not a row hunt: the number, the outcome and its
  * text in an ink strip under the bar, at reading size, open or not. An open
- * table also marks the matching row — the rules blue, an ink range cell and a
- * "Rolled" tag — and fades the rest. The mark is the same whatever the
+ * table also marks the matching row as the srd roll page does — set in ink,
+ * paper text, a paper range cell and a "Rolled N" pennant — and fades the
+ * rest. The mark is the same whatever the
  * outcome, so the web never colours a roll by how it went (ruleset §3.4).
  *
  * A COLUMNS table (a d20 × d20 grid) keeps the shared `RollTable`: its two
@@ -306,17 +307,19 @@ function RollRow({
       aria-current={marked ? 'true' : undefined}
       style={{
         alignItems: 'stretch',
-        backgroundColor: marked ? 'var(--color-wk-line)' : 'var(--color-paper)',
+        // The hit is set in ink, the srd roll page's mark (`.srd-roll__row[data-rolled]`).
+        backgroundColor: marked ? 'var(--color-ink)' : 'var(--color-paper)',
         borderTop: 'var(--bw-hairline) solid var(--color-ink-20)',
+        color: marked ? 'var(--color-paper)' : undefined,
         display: 'flex',
       }}
     >
       <span
         style={cond(fontSize.readout, {
           alignItems: 'center',
-          backgroundColor: marked ? 'var(--color-ink)' : 'var(--color-wk-bg)',
+          backgroundColor: marked ? 'var(--color-paper)' : 'var(--color-wk-bg)',
           borderRight: 'var(--bw-chrome) solid var(--color-ink)',
-          color: marked ? 'var(--color-paper)' : color.ink,
+          color: color.ink,
           display: 'flex',
           flex: 'none',
           fontVariantNumeric: 'tabular-nums',
@@ -359,9 +362,9 @@ function RollRow({
             {marked && (
               <span
                 style={cond(fontSize.caption, {
-                  backgroundColor: 'var(--color-ink)',
+                  backgroundColor: 'var(--color-paper)',
                   clipPath: 'polygon(18% 0, 100% 0, 100% 100%, 18% 100%, 0 50%)',
-                  color: 'var(--color-paper)',
+                  color: color.ink,
                   flex: 'none',
                   fontWeight: weight.extrabold,
                   padding: `3px ${space[6]} 3px ${space[14]}`,

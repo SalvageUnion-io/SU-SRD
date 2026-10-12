@@ -36,13 +36,15 @@ export function CardSeam({
         // edge. `clip` on x only, so the stamps still ride above the frame.
         style={{ maxWidth: 'calc(100% - 30px)', overflowX: 'clip' }}
       >
+        {/* The seal is the type stamp's own atom, in the parent's tone. */}
         {seal && (
-          <span
-            className="inline-block w-fit border border-ink px-1 py-0.5 font-cond text-badge font-bold uppercase leading-none tracking-caps-tight text-paper"
-            style={{ backgroundColor: seal.tone, lineHeight: 1 }}
+          <Badge
+            shape="stamp"
+            size="mini"
+            style={{ backgroundColor: seal.tone, whiteSpace: 'nowrap' }}
           >
             {seal.label}
-          </span>
+          </Badge>
         )}
         {typeStamp && (
           <Badge shape="stamp" size="mini" className="whitespace-nowrap">

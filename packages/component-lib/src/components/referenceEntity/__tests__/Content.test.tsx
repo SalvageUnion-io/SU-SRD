@@ -1,7 +1,8 @@
 /**
  * `Content` is the block renderer every entity card's prose goes through. Each
  * `type` maps to a different atom — a `cost` datavalue becomes an
- * ActivationCost, a `trait`/`keyword` datavalue becomes a tooltip-bearing Stat,
+ * ActivationCost, a `trait` or label-only `keyword` datavalue a tooltip-bearing
+ * tag, a measured one a Stat,
  * a heading becomes a Slab, `choice` markers are stripped entirely — and an
  * unhandled type silently falls through to plain prose. None of that mapping is
  * type-checked (the block `type` is a free string), so the branches are pinned
@@ -169,7 +170,7 @@ describe('Content — datavalues chips', () => {
     expect(screen.getByText('3 Hexes')).toBeTruthy()
   })
 
-  test('a trait datavalue renders its label as a stat chip', () => {
+  test('a trait datavalue renders its label as a tag', () => {
     render(
       <Content
         body={blocks({ type: 'datavalues', value: [{ type: 'trait', label: 'Anti-Personnel' }] })}
@@ -178,7 +179,19 @@ describe('Content — datavalues chips', () => {
     expect(screen.getByText('Anti-Personnel')).toBeTruthy()
   })
 
-  test('a keyword datavalue renders its label as a stat chip', () => {
+  test('a qualified trait datavalue reads as the book prints it', () => {
+    render(
+      <Content
+        body={blocks({
+          type: 'datavalues',
+          value: [{ type: 'trait', label: 'Explosive', value: 1 }],
+        })}
+      />
+    )
+    expect(screen.getByText('Explosive (1)')).toBeTruthy()
+  })
+
+  test('a label-only keyword datavalue renders its label as a tag', () => {
     render(
       <Content
         body={blocks({ type: 'datavalues', value: [{ type: 'keyword', label: 'Melee' }] })}

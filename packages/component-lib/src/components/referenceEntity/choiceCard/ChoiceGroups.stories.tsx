@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
 import type { Story } from '../../../stories/_harness'
+import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
+import type { EntityOption } from './ChoiceGroups'
 import { ChoiceGroups } from './ChoiceGroups'
 
 export default {
@@ -33,6 +35,27 @@ const nameChoice: SURefObjectChoice = {
 }
 const parent = { techLevel: 2 }
 
+/** An entity option as the card renders it (`ChoiceRegion`): its compact card. */
+const entityOption = (option: EntityOption) => (
+  <ReferenceEntityCard
+    size="medium"
+    extent="head"
+    depth={1}
+    data={option.entity}
+    selected={option.chosen}
+    selectionSeal="Chosen"
+    {...(option.readOnly
+      ? {}
+      : {
+          selectionRole: 'toggle' as const,
+          selectable: option.chosen,
+          disabled: option.disabled,
+          onCardClick: option.onToggle,
+          cardClickLabel: option.label,
+        })}
+  />
+)
+
 function Row({
   label,
   width = 'w-[500px]',
@@ -58,12 +81,18 @@ export const Types: Story = () => (
       — unselected vs a pre-seeded controlled selection.
     </p>
     <Row label="exclusive · unselected">
-      <ChoiceGroups choices={[weaponType]} parent={parent} toneColor="var(--color-tl-3)" />
+      <ChoiceGroups
+        choices={[weaponType]}
+        parent={parent}
+        renderEntityOption={entityOption}
+        toneColor="var(--color-tl-3)"
+      />
     </Row>
     <Row label="exclusive · selected (Ballistic)">
       <ChoiceGroups
         choices={[weaponType]}
         parent={parent}
+        renderEntityOption={entityOption}
         selections={{ 'weapon-type': ['Ballistic'] }}
         toneColor="var(--color-tl-3)"
       />
@@ -105,6 +134,7 @@ export const Composed: Story = () => (
       <ChoiceGroups
         choices={[weaponType, modification]}
         parent={parent}
+        renderEntityOption={entityOption}
         toneColor="var(--color-tl-3)"
       />
     </Row>
@@ -112,6 +142,7 @@ export const Composed: Story = () => (
       <ChoiceGroups
         choices={[weaponType, modification]}
         parent={parent}
+        renderEntityOption={entityOption}
         compact
         toneColor="var(--color-tl-3)"
       />
