@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { changelogFromLog, readChangelog } from './gitChangelog'
 
 const LOG = [
+  '2026-10-09\tfeat(itun,srd): release 3.0.0 (#1344)',
   '2026-10-08\tfeat(itun): the Starter Set is read-only reference (#1114)',
   '2026-10-08\tfix(srd): mount nothing when chunk recovery swallows an import (#1108)',
   '2026-10-08\tfix(itun)!: send an absent side as null (#1107)',
@@ -18,6 +19,11 @@ describe('changelogFromLog', () => {
   test('takes feat, fix and perf under the app’s own scope, one entry per day', () => {
     expect(itun).toEqual([
       {
+        date: '2026-10-09',
+        area: 'App',
+        items: ['release 3.0.0 ([#1344](https://github.com/SalvageUnion-io/SU-SRD/pull/1344))'],
+      },
+      {
         date: '2026-10-08',
         area: 'App',
         items: [
@@ -32,6 +38,11 @@ describe('changelogFromLog', () => {
   test('another app’s commits never leak in', () => {
     expect(changelogFromLog(LOG, 'srd', 'Site')).toEqual([
       {
+        date: '2026-10-09',
+        area: 'Site',
+        items: ['release 3.0.0 ([#1344](https://github.com/SalvageUnion-io/SU-SRD/pull/1344))'],
+      },
+      {
         date: '2026-10-08',
         area: 'Site',
         items: [
@@ -39,6 +50,13 @@ describe('changelogFromLog', () => {
         ],
       },
     ])
+  })
+
+  test('a title naming several scopes is each of theirs, and only theirs', () => {
+    expect(
+      changelogFromLog('2026-10-09\tfeat(itun,srd): both apps (#2)', 'srd', 'Site')
+    ).toHaveLength(1)
+    expect(changelogFromLog('2026-10-09\tfeat(itun,srd): both apps (#2)', 'bot', 'Bot')).toEqual([])
   })
 
   test('an empty log is no entries', () => {

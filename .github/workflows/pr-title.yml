@@ -29,9 +29,10 @@ jobs:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
           set -euo pipefail
-          # a conventional type, optional (scope), optional ! for a breaking
-          # change, then ": " and a non-empty description.
-          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9./-]+\))?!?: .+'
+          # a conventional type, optional (scope) or (scope,scope) for a change
+          # to several apps, optional ! for a breaking change, then ": " and a
+          # non-empty description.
+          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9./-]+(,[a-z0-9./-]+)*\))?!?: .+'
           if printf '%s' "$TITLE" | grep -qE "$pattern"; then
             echo "ok: $TITLE"
             exit 0

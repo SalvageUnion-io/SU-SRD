@@ -5426,8 +5426,8 @@ Nothing else consumed a version. Sentry tags every event with the deployed SHA
    entry per day with each PR linked. srd calls it during its SSR pass; ITUN's
    `vite.config.ts` inlines the result as `__ITUN_CHANGELOG__`.
 3. **The scope is the filter.** `feat(itun): …` appears on ITUN's page and
-   nowhere else; `feat(srd): …` on the SRD's. An unscoped title, or one scoped
-   to a package, appears on neither.
+   nowhere else; `feat(srd): …` on the SRD's; `feat(itun,srd): …` on
+   both. An unscoped title, or a package scope, appears on neither.
 
 ### Consequences
 
