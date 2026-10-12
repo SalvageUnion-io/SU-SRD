@@ -139,6 +139,12 @@ async function removeViaPicker(manage: RegExp, item: RegExp) {
   await click(item)
 }
 
+/**
+ * Each test renders a live sheet and drives its picker: 2.4 s to 5.0 s
+ * measured alone (junit, 4 cores), at or past Bun's 5 s default. A measured
+ * render cost, so each test takes the same 20 s budget (`20_000`) as
+ * SrdExplorer's searcher tests.
+ */
 describe('PilotSheet — soft warnings on ability edits', () => {
   test('a tree-order-breaking removal opens the dialog and persists nothing', async () => {
     const captured: CapturedUpdate[] = []
@@ -152,7 +158,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
     expect(screen.getByRole('button', { name: /save anyway/i })).toBeTruthy()
     // …and nothing has been written yet.
     expect(captured).toHaveLength(0)
-  })
+  }, 20_000)
 
   test('"Save anyway" persists the previewed patch — warnings never block', async () => {
     const captured: CapturedUpdate[] = []
@@ -164,7 +170,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
 
     expect(captured).toHaveLength(1)
     expect(captured[0]?.patch).toEqual({ abilities: [ABILITY_L2_SLUG] })
-  })
+  }, 20_000)
 
   test('cancelling discards the edit — nothing is persisted', async () => {
     const captured: CapturedUpdate[] = []
@@ -176,7 +182,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
 
     expect(captured).toHaveLength(0)
     expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
-  })
+  }, 20_000)
 
   test('a clean removal persists immediately with no dialog', async () => {
     const captured: CapturedUpdate[] = []
@@ -189,7 +195,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
     expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
     expect(captured).toHaveLength(1)
     expect(captured[0]?.patch).toEqual({ abilities: [ABILITY_L1_SLUG] })
-  })
+  }, 20_000)
 })
 
 describe('MechSheet — soft warnings on system removal', () => {
@@ -209,5 +215,5 @@ describe('MechSheet — soft warnings on system removal', () => {
     expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
     expect(captured).toHaveLength(1)
     expect(captured[0]?.patch).toEqual({ systems: [] })
-  })
+  }, 20_000)
 })
