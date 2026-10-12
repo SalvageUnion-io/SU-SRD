@@ -130,8 +130,8 @@ export function usePartnerCargo({
     )
     if (!result.ok) return result
 
-    // Both sides commit in ONE IndexedDB transaction: a crash between two
-    // sequential writes could vanish or duplicate the moved lot.
+    // Both sides commit in ONE transfer (one Convex mutation): two sequential
+    // writes could vanish or duplicate the moved lot.
     const updates: Parameters<typeof storeState.transfer>[0]['updates'] = []
     if (result.changed.carrier) {
       updates.push({

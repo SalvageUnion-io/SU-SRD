@@ -166,7 +166,7 @@ type PilotSheetProps = {
   pilot: Pilot
   /**
    * Injectable store — defaults to useEntityStore.
-   * Pass a stub in tests to avoid Zustand/IndexedDB side effects.
+   * Pass a stub in tests to avoid Zustand side effects.
    */
   store?: typeof useEntityStore
   /** When true, every edit affordance is suppressed (published snapshots). */

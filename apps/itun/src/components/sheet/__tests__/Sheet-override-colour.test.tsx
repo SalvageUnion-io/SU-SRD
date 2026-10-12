@@ -29,9 +29,9 @@ import {
   within,
 } from '@testing-library/react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Pilot } from '../../../lib/schemas/pilot'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
@@ -57,16 +57,8 @@ const basePilotInput = {
 /** The pilot sheet's override tone: `--tone-deep` (rust on the pilot sheet). */
 const OVERRIDE_TONE = 'var(--tone-deep)'
 
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
-  })
+beforeEach(() => {
+  resetStores()
 })
 
 // A failed query's default error pretty-prints its container — here the whole

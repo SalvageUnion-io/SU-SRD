@@ -1,16 +1,18 @@
 /**
  * Starter Set seed guards.
  *
- * The seed rows are written into IndexedDB by an upgrade migration that bypasses
- * crud.ts's Zod parse, and they reference the `salvageunion-reference` dataset
- * by hard-coded slug. These tests are the safety net for both:
+ * The seed rows are static templates (`starterSet.ts`), read as reference data
+ * and never stored; a player plays one only by copying it (`copyStarter.ts`).
+ * They reference the `salvageunion-reference` dataset by hard-coded slug. These
+ * tests are the safety net:
  *   1. Every row strict-parses its Zod schema (an invalid row fails CI, not a
- *      user's disk).
+ *      player's copy).
  *   2. Every reference ref still resolves (a dataset rename fails CI instead of
  *      silently orphaning a seeded mech/pilot/crawler).
- *   3. The v7 upgrade actually lands the whole roster and it re-parses.
+ *   3. Copying a template lands a fresh, parsing build in the store, in the
+ *      container the player chose, and leaves the template untouched.
  *
- * fake-indexeddb/auto and the reference dataset are preloaded via bunfig.toml.
+ * The reference dataset is preloaded via bunfig.toml.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
@@ -26,12 +28,12 @@ import {
   resolveModuleRef,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { SHELF } from '../../container'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
-import { _resetDbSingleton, clearCache, mechs, pilots } from '../../db/index'
 import { CrawlerSchema } from '../../schemas/crawler'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
@@ -231,21 +233,8 @@ describe('Starter Set seed — soft link integrity', () => {
 })
 
 describe('Starter Set — copying a template', () => {
-  beforeEach(async () => {
-    _resetDbSingleton()
-    await clearCache()
-    useEntityStore.setState({
-      pilots: [],
-      mechs: [],
-      crawlers: [],
-      softLinks: [],
-      hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
-    })
-  })
-
-  afterEach(async () => {
-    await clearCache()
-  })
+  beforeEach(resetStores)
+  afterEach(resetStores)
 
   const [pilotTemplate] = STARTER_PILOTS
   if (pilotTemplate === undefined) throw new Error('The Starter Set has no pilots')
@@ -253,7 +242,7 @@ describe('Starter Set — copying a template', () => {
   test('lands in your shelves as a build of the player’s own, and parses', async () => {
     const copied = await copyStarter('pilot', pilotTemplate.id, SHELF)
 
-    const [stored] = await pilots.list()
+    const [stored] = useEntityStore.getState().list('pilot')
     expect(stored?.id).toBe(copied.id)
     expect(stored?.name).toBe(pilotTemplate.name)
     expect(stored?.gameId).toBeNull()
@@ -262,7 +251,7 @@ describe('Starter Set — copying a template', () => {
 
   test('lands in the Game the player chose', async () => {
     await copyStarter('mech', STARTER_MECHS[0]?.id as string, { kind: 'game', gameId: 'g1' })
-    const [stored] = await mechs.list()
+    const [stored] = useEntityStore.getState().list('mech')
     expect(stored?.gameId).toBe('g1')
   })
 
@@ -279,7 +268,8 @@ describe('Starter Set — copying a template', () => {
     expect(first.id).not.toBe(pilotTemplate.id)
     expect(first.id).not.toBe(second.id)
     expect(first.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-/i)
-    for (const row of await pilots.list()) expect(row.seedRef).toBe(pilotTemplate.id)
+    for (const row of useEntityStore.getState().list('pilot'))
+      expect(row.seedRef).toBe(pilotTemplate.id)
   })
 
   test('leaves the template exactly as it was', async () => {
@@ -294,6 +284,6 @@ describe('Starter Set — copying a template', () => {
 
   test('copies nothing that is not in the Starter Set', async () => {
     await expect(copyStarter('pilot', 'not-a-template', SHELF)).rejects.toThrow(/no Starter Set/)
-    expect(await pilots.list()).toHaveLength(0)
+    expect(useEntityStore.getState().list('pilot')).toHaveLength(0)
   })
 })

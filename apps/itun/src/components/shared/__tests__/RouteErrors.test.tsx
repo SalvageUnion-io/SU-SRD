@@ -8,8 +8,7 @@ import {
   RouterProvider,
 } from '@tanstack/react-router'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { BlockedUpgradeError } from '../../../lib/db/index'
-import { isBlockedUpgrade, savedWorkCopy } from '../../../lib/routeErrorCopy'
+import { savedWorkCopy } from '../../../lib/routeErrorCopy'
 import { RootErrorComponent, RouteErrorComponent } from '../RouteErrors'
 
 /**
@@ -58,15 +57,6 @@ describe('savedWorkCopy says what an error does to the work, per backend', () =>
     for (const backend of ['remote', 'blocked', 'signedOut', null] as const) {
       expect(savedWorkCopy(backend)).not.toMatch(/in this browser/i)
     }
-  })
-})
-
-describe('isBlockedUpgrade', () => {
-  test('matches the class, and the name when the class did not survive', () => {
-    expect(isBlockedUpgrade(new BlockedUpgradeError())).toBe(true)
-    expect(isBlockedUpgrade({ name: 'BlockedUpgradeError' })).toBe(true)
-    expect(isBlockedUpgrade(new Error('other'))).toBe(false)
-    expect(isBlockedUpgrade(null)).toBe(false)
   })
 })
 
@@ -125,14 +115,5 @@ describe('RootErrorComponent', () => {
     expect(screen.getByText('Something went wrong')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Reload app' })).toBeTruthy()
     expect(screen.getByRole('alert').textContent).not.toMatch(/stored locally/i)
-  })
-
-  test('a blocked upgrade gets its own, self-serviceable copy', () => {
-    render(
-      <RootErrorComponent error={new BlockedUpgradeError()} reset={() => {}} info={undefined} />
-    )
-
-    expect(screen.getByText('Close the other tab')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Reload' })).toBeTruthy()
   })
 })

@@ -1,9 +1,8 @@
 /**
- * The rule that decides whether a cached row may be deleted (ADR-034, P4b).
+ * The rule that decides whether a held row may be dropped (ADR-034, P4b).
  *
- * Pruning — dropping local rows the server did not return — is what finally
- * makes "IndexedDB is a reflection of Convex" literally true rather than
- * aspirational. It is also the most destructive operation in the codebase, and
+ * Pruning — dropping local rows the server did not return — is what keeps the
+ * stores a reflection of Convex. It is also the most destructive operation in the codebase, and
  * the guard below is the kind that looks like defensive noise right up until
  * the day somebody removes it.
  *
@@ -13,8 +12,8 @@
  * opposite.
  */
 
-import type { ContainerFields } from '../container'
-import { containerOf } from '../container'
+import type { ContainerFields } from '../lib/container'
+import { containerOf } from '../lib/container'
 
 /**
  * May this pilot, mech or crawler be pruned, given `listMine` did not return it?
@@ -30,7 +29,7 @@ import { containerOf } from '../container'
  * communal crawler have no owner at all, so they are absent from that query
  * while being entirely legitimate. A Game row is therefore pruned only when
  * `knownMine`: this browser recorded a server version for it
- * (`stores/serverVersions.ts`), which only `listMine` or the owner's own write
+ * (`serverVersions.ts`), which only `listMine` or the owner's own write
  * does. Then its absence means it was deleted, or released to the crew, and in
  * both cases this browser's copy is no longer the caller's to hold — the same
  * reason `entityStore.forget` exists. The caller passes `false` for a crawler:

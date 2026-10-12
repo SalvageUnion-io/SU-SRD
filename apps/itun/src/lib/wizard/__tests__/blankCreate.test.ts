@@ -1,16 +1,16 @@
 /**
  * createBlank — the Blank escape hatch (wizard-refresh Phase 1).
  *
- * Contract per kind: yields a PERSISTED, schema-valid entity (the db layer's
+ * Contract per kind: yields a COMMITTED, schema-valid entity (the store's
  * strict Zod parse is the only gate), with and without the optional
- * escape-valve pick. fake-indexeddb/auto is preloaded via bunfig.toml.
+ * escape-valve pick.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
-import { _resetDbSingleton, clearCache } from '../../db/index'
 import { CrawlerSchema } from '../../schemas/crawler'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
@@ -19,26 +19,8 @@ import { createBlank } from '../blankCreate'
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
 withSignedInBackend()
 
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
-  })
-}
-
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
-})
-
-afterEach(async () => {
-  await clearCache()
-  resetEntityStore()
-})
+beforeEach(resetStores)
+afterEach(resetStores)
 
 describe('createBlank — pilot', () => {
   test('without a class pick: persists a schema-valid pilot with empty classRef', async () => {

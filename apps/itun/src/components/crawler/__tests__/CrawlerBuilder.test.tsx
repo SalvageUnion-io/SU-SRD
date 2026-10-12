@@ -9,22 +9,21 @@
  *   submit.
  *
  * Uses the real wizard, real SalvageUnionReference data, real Zod validation,
- * and a fake-indexeddb-backed entityStore (fake-indexeddb/auto and the
- * reference dataset are both preloaded via bunfig.toml).
+ * and the real in-memory entityStore, signed in with server commits stubbed
+ * (the reference dataset is preloaded via bunfig.toml).
  */
 
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { getEntitySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isWeaponSystem } from 'salvageunion-reference/rules'
-import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
+import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { must } from '../../__tests__/must'
 import { CrawlerBuilder } from '../CrawlerBuilder'
 
-// These assert durability — a write surviving a rehydrate or a direct read of
-// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
 withSignedInBackend()
 
 // ---------------------------------------------------------------------------
@@ -32,30 +31,12 @@ withSignedInBackend()
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
-// Store reset helpers
+// Store reset
 // ---------------------------------------------------------------------------
-
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: {
-      pilots: false,
-      mechs: false,
-      crawlers: false,
-      npcs: false,
-      softLinks: false,
-    },
-  })
-}
 
 beforeEach(async () => {
   sessionStorage.clear()
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
   await useEntityStore.getState().hydrate('crawler')
 })
 
@@ -64,8 +45,7 @@ afterEach(async () => {
     cleanup()
   })
   sessionStorage.clear()
-  await clearCache()
-  resetEntityStore()
+  resetStores()
 })
 
 // ---------------------------------------------------------------------------

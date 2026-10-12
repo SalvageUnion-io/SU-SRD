@@ -13,7 +13,7 @@ import type { Roll } from 'salvageunion-reference/rules'
  *     20    → a Mech Chassis, System, or Module at the area's TL, Damaged
  *             (randomised or chosen — a player/table call per ADR-007)
  *
- * This module is PURE: no React, no IndexedDB, no real randomness — the d20
+ * This module is PURE: no React, no store, no real randomness — the d20
  * is injected via the shared `Roll` type (same seam as heatCheck.ts). WHICH
  * item a jackpot yields is the table's call; this module never auto-picks one
  * (ADR-007).

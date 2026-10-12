@@ -14,7 +14,6 @@
 
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
-import { _resetDbSingleton, clearCache } from '../../lib/db/index'
 import type { TransferRemoval, TransferWrite } from '../entityBackend'
 import { withSignedInBackend } from './signedInBackend'
 
@@ -48,18 +47,11 @@ afterAll(() => {
 })
 
 const { useEntityStore } = await import('../entityStore')
+const { resetStores } = await import('./resetStores')
 const { LIVE_SHEET_MANUAL } = await import('../surfaceProvenance')
 
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
-  })
+beforeEach(() => {
+  resetStores()
   transfers.length = 0
   refuse = false
 })

@@ -1,5 +1,5 @@
 /**
- * `adopt` on a hydrated collection — the cache-fill path `ShelfSync` uses.
+ * `adopt` on a hydrated collection — the path `ShelfSync` fills the store by.
  *
  * These exist because a commit message claimed four of them and none had been
  * written. The write path they cover shipped with zero coverage while its own
@@ -8,19 +8,19 @@
  *
  * What `adopt` is for: `entities.listMine` returns the account's saved
  * patterns, so a signed-in player on a second device gets their pattern library
- * with their roster. It places a server record into the cache WITHOUT that
+ * with their roster. It places a server record into the store WITHOUT that
  * placement being mistaken for a user write and sent back up.
  *
  * Signed in, because that is the only place `ShelfSync` runs: signed out a
- * store reads nothing (`readableRows`), so a reload there shows no library by
+ * store holds nothing (`readableRows`), so there is no library there by
  * design.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
-import { _resetDbSingleton, clearCache } from '../../lib/db/index'
 import type { MechPattern } from '../../lib/schemas/pattern'
 import { usePatternStore } from '../patternStore'
+import { resetStores } from './resetStores'
 import { withSignedInBackend } from './signedInBackend'
 
 withSignedInBackend()
@@ -38,18 +38,16 @@ function pattern(id: string, name = 'Mule Pattern'): MechPattern {
   }
 }
 
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  usePatternStore.setState({ mechPatterns: [], hydrated: false })
+beforeEach(() => {
+  resetStores()
 })
 
-afterEach(async () => {
-  await clearCache()
+afterEach(() => {
+  resetStores()
 })
 
 describe('adopt', () => {
-  test('places a server record into the cache', async () => {
+  test('places a server record into the store', async () => {
     await usePatternStore.getState().adopt(pattern('p1'))
     expect(
       usePatternStore
@@ -68,27 +66,13 @@ describe('adopt', () => {
   })
 
   test('adopting an existing id replaces it in place', async () => {
-    // Server wins: the row that comes down is adopted over whatever the cache
+    // Server wins: the row that comes down is adopted over whatever the store
     // held. No merge — with one source of truth there is no second writer.
     await usePatternStore.getState().adopt(pattern('p1', 'Old Name'))
     await usePatternStore.getState().adopt(pattern('p1', 'New Name'))
     const rows = usePatternStore.getState().list()
     expect(rows).toHaveLength(1)
     expect(rows[0]?.name).toBe('New Name')
-  })
-
-  test('survives to disk, so a reload keeps the library', async () => {
-    // The whole point of the fix: the pattern library must still be there on
-    // the next boot, not just in this tab's memory.
-    await usePatternStore.getState().adopt(pattern('p1'))
-    usePatternStore.setState({ mechPatterns: [], hydrated: false })
-    await usePatternStore.getState().rehydrate()
-    expect(
-      usePatternStore
-        .getState()
-        .list()
-        .map((r) => r.id)
-    ).toEqual(['p1'])
   })
 
   test('a malformed body throws rather than writing a bad row', async () => {

@@ -38,7 +38,7 @@ export type EntityStoreMockOverrides = {
   softLinks?: SoftLink[]
   hydrated?: EntityState['hydrated']
   hydrate?: (type: EntityType) => Promise<void>
-  rehydrate?: (type: EntityType) => Promise<void>
+  markArrived?: (types: readonly EntityType[]) => void
   list?: (type: EntityType) => AnyEntity[]
   get?: (type: EntityType, id: string) => AnyEntity | null
   create?: (type: EntityType, input: CreateInput<EntityType>) => Promise<AnyEntity | null>
@@ -93,7 +93,7 @@ export function makeEntityStoreMock(
       softLinks: true,
     },
     hydrate: overrides.hydrate ?? (async () => {}),
-    rehydrate: overrides.rehydrate ?? (async () => {}),
+    markArrived: overrides.markArrived ?? (() => {}),
     list: overrides.list ? (overrides.list as EntityState['list']) : listOf,
     get: overrides.get
       ? (overrides.get as EntityState['get'])
