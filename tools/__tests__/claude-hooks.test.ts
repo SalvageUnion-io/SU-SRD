@@ -88,6 +88,14 @@ describe('settings.json deny rules', () => {
       denied: false,
     },
     'apps/itun/src/routeTree.gen.ts': { file: 'apps/itun/src/routeTree.gen.ts', denied: true },
+    'apps/srd/worker-configuration.d.ts': {
+      file: 'apps/srd/worker-configuration.d.ts',
+      denied: true,
+    },
+    'apps/itun/worker-configuration.d.ts': {
+      file: 'apps/itun/worker-configuration.d.ts',
+      denied: true,
+    },
     'apps/su-assets/worker-configuration.d.ts': {
       file: 'apps/su-assets/worker-configuration.d.ts',
       denied: true,

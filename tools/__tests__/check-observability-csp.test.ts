@@ -49,9 +49,9 @@ const CHECKED_FILES = [
   ITUN_HEADERS,
   'apps/itun/src/worker/index.ts',
   'apps/su-assets/wrangler.jsonc',
-  'apps/su-assets/src/worker.ts',
+  'apps/su-assets/src/worker/index.ts',
   'apps/discord-bot/wrangler.jsonc',
-  'apps/discord-bot/src/http/worker.ts',
+  'apps/discord-bot/src/worker/index.ts',
 ]
 
 let TREE = ''
@@ -180,7 +180,7 @@ describe('check-observability reads parsed source, not prose', () => {
 
   test('a Worker export unwrapped from withObservability fails', async () => {
     await withFileContents(
-      'apps/su-assets/src/worker.ts',
+      'apps/su-assets/src/worker/index.ts',
       (s) =>
         s.replace(
           "export default withObservability('su-assets', {",
@@ -189,7 +189,9 @@ describe('check-observability reads parsed source, not prose', () => {
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
-        expect(stderr).toContain("[su-assets-worker] apps/su-assets/src/worker.ts's default export")
+        expect(stderr).toContain(
+          "[su-assets-worker] apps/su-assets/src/worker/index.ts's default export"
+        )
       }
     )
   })

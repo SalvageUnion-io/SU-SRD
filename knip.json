@@ -100,7 +100,7 @@
       ]
     },
     "apps/su-assets": {
-      // The Worker entry (`src/worker.ts`) comes from wrangler.jsonc's `main`
+      // The Worker entry (`src/worker/index.ts`) comes from wrangler.jsonc's `main`
       // via knip's wrangler plugin. `project` must still cover `src/**`: when
       // it did not, the whole Worker and its test sat OUTSIDE knip's scope and
       // the gate passed by not looking.
@@ -108,7 +108,7 @@
       "includeEntryExports": false
     },
     "apps/discord-bot": {
-      // `src/http/worker.ts` (the Worker) comes from wrangler.jsonc's `main`
+      // `src/worker/index.ts` (the Worker) comes from wrangler.jsonc's `main`
       // via knip's wrangler plugin, and `src/deploy-commands.ts` from the
       // package.json scripts, so neither is listed. If the wrangler plugin
       // ever stops applying (wrangler removed from the root manifest), knip will

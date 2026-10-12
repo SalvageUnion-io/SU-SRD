@@ -44,8 +44,11 @@ refuses versions under three days old and makes `bun add` pin exactly.
 Bare `--parallel` and `--isolate` stay banned: both measured slower than serial
 (`--parallel` implies `--isolate`). `--parallel=N --no-isolate` is the measured
 win (the itun, srd and component-lib `test` scripts); `--changed` is the other
-flag that helps. Leave `test:coverage` serial: parallel coverage writes
-different lcov line counts.
+flag that helps. Keep each `test:coverage` process serial: `--parallel`
+coverage writes different lcov line counts. ITUN runs as fixed serial shards
+(`SHARDS` in `tools/run-coverage.ts`) whose lcov `tools/lib/lcov.ts` merges
+back to a serial run's exact `DA` lines; diff the merge against one serial run
+on the same commit, per file, before changing the split or the shard count.
 
 ## Generated files
 

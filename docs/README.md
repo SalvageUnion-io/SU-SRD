@@ -14,7 +14,7 @@ Intent → doc. "Areas N" and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITECT
 10. **Sharing** — ADR-032, ADR-036.
 11. **Accounts, Games, Convex** — ADR-030; Areas 14–16; procedures: the [`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill.
 12. **Invites, links between entities** — ADR-039, ADR-037.
-13. **Discord bot** — Areas 23; [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
+13. **Discord bot** — Areas 23; [its CLAUDE.md](../apps/discord-bot/CLAUDE.md), [ideas](architecture/discord-bot-refresh.md)
 14. **Package API, public dataset** — Areas 1–7; ADR-040, ADR-043.
 15. **srd build** — [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md); ADR-031.
 16. **Hosting, CI, deploys** — ADR-033; Areas 26–29.

@@ -7,10 +7,7 @@ import {
   resolveCardTone,
   resolveSchemaDomain,
 } from '../components/referenceEntity/card/entityCardTone'
-import {
-  borderColorFromHeaderBg,
-  onToneText,
-} from '../components/referenceEntity/referenceEntityHelpers'
+import { onTone } from '../components/referenceEntity/referenceEntityHelpers'
 import type { Rgb } from './contrast'
 import { contrastRatio, foregroundOn, resolveColor } from './contrast'
 import { color } from './tokens'
@@ -37,7 +34,7 @@ const opaque = (css: string): Rgb => {
 }
 const PAPER = opaque(color.paper)
 const INK = opaque(color.ink)
-const FOREGROUND = { 'text-paper': PAPER, 'text-ink': INK } as const
+const FOREGROUND = { paper: PAPER, ink: INK } as const
 
 describe('resolveColor', () => {
   test('reads the colour syntaxes the bands are painted with', () => {
@@ -85,9 +82,9 @@ describe('resolveColor', () => {
   test('an unresolvable band keeps the caller’s fallback', () => {
     expect(foregroundOn(undefined)).toBe('paper')
     expect(foregroundOn('var(--color-tl-1)')).toBe('ink')
-    expect(onToneText(undefined)).toBe('text-paper')
-    expect(onToneText('red', 'text-ink')).toBe('text-ink')
-    expect(onToneText('var(--color-tl-1)', 'text-paper')).toBe('text-ink')
+    expect(onTone(undefined)).toBe('paper')
+    expect(onTone('red', 'ink')).toBe('ink')
+    expect(onTone('var(--color-tl-1)', 'paper')).toBe('ink')
   })
 })
 
@@ -99,7 +96,7 @@ function everyCardTone(): Map<string, DomainTone> {
     const name = schema as SURefEnumSchemaName
     for (const entity of SalvageUnionReference.findAllIn(name, () => true)) {
       const tone = resolveCardTone(name, entity as SURefMetaEntity)
-      tones.set(borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'none', tone)
+      tones.set(tone.bgColor ?? tone.bg ?? 'none', tone)
     }
   }
   return tones
@@ -118,8 +115,7 @@ function everyHeader(): Band[] {
   const bands: Band[] = []
   const measure = (name: string, tone: DomainTone, isDown: boolean, fill: 'tone' | 'ink') => {
     const c = resolveCardColors({ tone, isDown, fill })
-    const css = borderColorFromHeaderBg(c.headerBg, c.headerBgColor) ?? ''
-    bands.push({ name, ground: resolveColor(css), foreground: c.onBandText })
+    bands.push({ name, ground: resolveColor(c.bandColor ?? ''), foreground: c.onBand })
   }
   for (const [base, tone] of everyCardTone()) {
     measure(`${base} solid header`, tone, false, 'tone')
@@ -159,7 +155,7 @@ describe('card band contrast', () => {
   test('each band prints in whichever of ink and paper contrasts more', () => {
     const wrong = header
       .filter((b) => {
-        const other = b.foreground === 'text-ink' ? PAPER : INK
+        const other = b.foreground === 'ink' ? PAPER : INK
         return contrastRatio(b.ground ?? PAPER, other) > ratio(b)
       })
       .map((b) => b.name)
@@ -168,7 +164,7 @@ describe('card band contrast', () => {
 
   test('the ink banner carries paper text far past 4.5:1', () => {
     const banner = header.find((b) => b.name === 'ink banner')
-    expect(banner?.foreground).toBe('text-paper')
+    expect(banner?.foreground).toBe('paper')
     expect(banner ? ratio(banner) : 0).toBeGreaterThan(10)
   })
 
@@ -219,12 +215,15 @@ describe('ink on colour — the refresh pairs', () => {
   })
 
   test('a crawler header paints the crawler band and prints paper on it', () => {
-    const crawler: DomainTone = { domain: 'crawler', bg: 'bg-crawler', bgColor: undefined }
+    const crawler: DomainTone = {
+      domain: 'crawler',
+      bg: 'var(--color-crawler)',
+      bgColor: undefined,
+    }
     const c = resolveCardColors({ tone: crawler, isDown: false, fill: 'tone' })
-    expect(c.headerBg).toBeUndefined()
-    expect(c.headerBgColor).toBe('var(--color-crawler-band)')
-    expect(c.onBandText).toBe('text-paper')
-    expect(onToneText('var(--color-crawler)')).toBe('text-paper')
+    expect(c.bandColor).toBe('var(--color-crawler-band)')
+    expect(c.onBand).toBe('paper')
+    expect(onTone('var(--color-crawler)')).toBe('paper')
     expect(contrastRatio(opaque(color.crawlerBand), PAPER)).toBeGreaterThanOrEqual(4.5)
   })
 

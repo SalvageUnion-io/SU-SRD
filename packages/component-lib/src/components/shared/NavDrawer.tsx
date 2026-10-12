@@ -2,7 +2,16 @@ import { Drawer } from '@base-ui/react/drawer'
 import { Menu, X } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useState } from 'react'
-import { borderWidth, color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import {
+  borderWidth,
+  color,
+  font,
+  fontSize,
+  radius,
+  space,
+  tracking,
+  weight,
+} from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { buttonVariants } from '../chrome/buttonVariants'
@@ -80,7 +89,7 @@ type NavDrawerProps = {
   LinkComponent?: ElementType
   /** Extra classes on the hamburger trigger (e.g. tint for a dark header). */
   triggerClassName?: string
-  /** Panel width class. Defaults to full-width; ITUN uses a narrower drawer. */
+  /** Panel width class. Without one the panel is full-width; ITUN uses a narrower drawer. */
   panelClassName?: string
 }
 
@@ -127,6 +136,77 @@ const VIEWPORT = {
   zIndex: 50,
 } satisfies CSSProperties
 
+/** Tailwind's `transition-colors`, ported verbatim (minus its `--tw-gradient-*` stops). */
+const TRANSITION_COLORS = {
+  transitionDuration: '150ms',
+  transitionProperty:
+    'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+} satisfies CSSProperties
+
+// The hamburger. Its padding and ink are on `.su-nav-drawer__trigger` instead,
+// because `triggerClassName` overrides them (ITUN passes `p-1.5`).
+const TRIGGER = { ...TRANSITION_COLORS, borderRadius: radius.panel } satisfies CSSProperties
+
+// The panel. Its width is on `.su-nav-drawer__panel` instead, because
+// `panelClassName` overrides it (ITUN passes `w-72`).
+const PANEL = {
+  backgroundColor: color.paper,
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%',
+  maxWidth: '85vw',
+  padding: space[16],
+} satisfies CSSProperties
+
+/** Visually hidden, still read (Tailwind's `sr-only`). */
+const SR_ONLY = {
+  borderWidth: 0,
+  clip: 'rect(0, 0, 0, 0)',
+  height: '1px',
+  margin: '-1px',
+  overflow: 'hidden',
+  padding: 0,
+  position: 'absolute',
+  whiteSpace: 'nowrap',
+  width: '1px',
+} satisfies CSSProperties
+
+const BRAND_ROW = {
+  alignItems: 'center',
+  display: 'flex',
+  justifyContent: 'space-between',
+  marginBottom: space[16],
+} satisfies CSSProperties
+
+// Its fill and ink change on hover, so those are on `.su-nav-drawer__close`.
+const CLOSE = {
+  ...TRANSITION_COLORS,
+  alignItems: 'center',
+  borderRadius: radius.panel,
+  display: 'flex',
+  justifyContent: 'center',
+  padding: space[4],
+} satisfies CSSProperties
+
+const BODY = {
+  display: 'flex',
+  flex: '1 1 0%',
+  flexDirection: 'column',
+  gap: space[8],
+  overflowY: 'auto',
+} satisfies CSSProperties
+
+const NAV = { display: 'flex', flexDirection: 'column', gap: space[8] } satisfies CSSProperties
+
+// Under the index, the nav links drop to the drawer's foot behind a rule.
+const NAV_UNDER_INDEX = {
+  ...NAV,
+  borderTop: `${borderWidth.hairline} solid ${color.wkFaint}`,
+  marginTop: 'auto',
+  paddingTop: space[16],
+} satisfies CSSProperties
+
 export function NavDrawer({
   brand,
   navItems,
@@ -136,7 +216,7 @@ export function NavDrawer({
   footItems,
   LinkComponent = 'a',
   triggerClassName,
-  panelClassName = 'w-full',
+  panelClassName,
 }: NavDrawerProps) {
   const [open, setOpen] = useState(false)
   const close = () => setOpen(false)
@@ -148,10 +228,8 @@ export function NavDrawer({
           <button
             type="button"
             aria-label="Open menu"
-            className={cn(
-              cn('rounded-md p-2 text-paper transition-colors', FOCUS_RING),
-              triggerClassName
-            )}
+            className={cn('su-nav-drawer__trigger', FOCUS_RING, triggerClassName)}
+            style={TRIGGER}
           >
             <Menu size={24} aria-hidden="true" />
           </button>
@@ -162,25 +240,21 @@ export function NavDrawer({
         <Drawer.Backdrop className="su-backdrop" />
         <Drawer.Viewport style={VIEWPORT}>
           <Drawer.Popup
-            className={cn(
-              'su-drawer flex h-full max-w-[85vw] flex-col bg-paper p-4',
-              panelClassName
-            )}
+            className={cn('su-drawer su-nav-drawer__panel', panelClassName)}
+            style={PANEL}
           >
-            <Drawer.Title className="sr-only">Navigation Menu</Drawer.Title>
+            <Drawer.Title style={SR_ONLY}>Navigation Menu</Drawer.Title>
 
             {/* Brand row: lockup | Close */}
-            <div className="mb-4 flex items-center justify-between">
+            <div style={BRAND_ROW}>
               {brand}
               <Drawer.Close
                 render={
                   <button
                     type="button"
                     aria-label="Close menu"
-                    className={cn(
-                      'flex items-center justify-center rounded-md p-1 text-ink/60 transition-colors hover:bg-ink/10 hover:text-ink',
-                      FOCUS_RING
-                    )}
+                    className={cn('su-nav-drawer__close', FOCUS_RING)}
+                    style={CLOSE}
                   >
                     <X size={22} aria-hidden="true" />
                   </button>
@@ -188,9 +262,9 @@ export function NavDrawer({
               />
             </div>
 
-            {search && <div className="mb-3 [&_input]:w-full [&_input]:focus:w-full">{search}</div>}
+            {search && <div className="su-nav-drawer__search">{search}</div>}
 
-            <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
+            <div style={BODY}>
               {extra && (
                 <div className="su-nav-drawer-extra" style={EXTRA}>
                   {extra(close)}
@@ -224,12 +298,7 @@ export function NavDrawer({
               ))}
 
               {/* Primary nav links */}
-              <div
-                className={cn(
-                  'flex flex-col gap-2',
-                  categories && categories.length > 0 && 'mt-auto border-t border-wk-faint pt-4'
-                )}
-              >
+              <div style={categories && categories.length > 0 ? NAV_UNDER_INDEX : NAV}>
                 {navItems.map((item) => {
                   // External items render a plain anchor in a new tab; internal
                   // ones route through LinkComponent. One element either way.
@@ -240,7 +309,7 @@ export function NavDrawer({
                       href={item.href}
                       className={cn(
                         buttonVariants({ variant: 'ghost' }),
-                        'w-full',
+                        'su-nav-drawer__link',
                         item.active && 'su-btn--here'
                       )}
                       onClick={close}
