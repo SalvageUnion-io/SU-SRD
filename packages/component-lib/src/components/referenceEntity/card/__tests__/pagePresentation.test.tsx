@@ -82,7 +82,7 @@ describe('the card as a page', () => {
   test('prints no title, seam or footer of its own: the page’s bands carry them', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
     // The page body is the whole render: no card frame around it.
-    expect(container.firstElementChild?.className).toBe('su-entity-page')
+    expect(container.firstElementChild?.classList.contains('su-entity-page')).toBe(true)
     expect(container.querySelector('h1')).toBeNull()
     // The only header fills are the framed chassis ability's, not the entity's.
     for (const fill of container.querySelectorAll('[data-fill]')) {

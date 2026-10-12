@@ -114,7 +114,7 @@ export function CardPage({
     !!hero || !!opening || !!subLine || !!body || bookStats.length > 0 || leadActions.length > 0
 
   return (
-    <div className="su-entity-page">
+    <div className={cn('su-entity-page', !!hero && 'su-entity-page--flow')}>
       {hasMain && (
         <div className={cn('su-entity-page__main', !!hero && 'su-entity-page__main--art')}>
           {hero && <div className="su-entity-page__art">{hero}</div>}
@@ -141,7 +141,7 @@ export function CardPage({
         </div>
       )}
       {table && <div className="su-entity-page__table">{table}</div>}
-      {abilitiesSection}
+      {abilitiesSection && <div className="su-entity-page__wide">{abilitiesSection}</div>}
       {!abilitiesSection && otherActions.length > 0 && (
         <section className="su-entity-page__section">
           <Slab as={sectionAs} variant="solid" label="Actions" count={otherActions.length} />
@@ -150,18 +150,20 @@ export function CardPage({
       )}
       {guide}
       {sections}
-      <PatternLinkRows
-        chassis={entity}
-        chassisName={action.hostName}
-        patterns={patterns}
-        sectionAs={sectionAs}
-        host={{
-          NestedCard,
-          hostDown: action.hostDown,
-          chassisName: action.chassisName,
-        }}
-      />
-      {after}
+      <div className="su-entity-page__wide">
+        <PatternLinkRows
+          chassis={entity}
+          chassisName={action.hostName}
+          patterns={patterns}
+          sectionAs={sectionAs}
+          host={{
+            NestedCard,
+            hostDown: action.hostDown,
+            chassisName: action.chassisName,
+          }}
+        />
+      </div>
+      <div className="su-entity-page__wide">{after}</div>
     </div>
   )
 }

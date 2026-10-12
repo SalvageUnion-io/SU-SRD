@@ -844,6 +844,7 @@ function ReferenceEntityCardInner({
     depth,
     size,
     isDown,
+    onPage,
     entityName,
     chassisName: resolvedChassisName,
     shownProse: printedProse,

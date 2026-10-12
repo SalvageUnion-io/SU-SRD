@@ -30,6 +30,8 @@ export type NestedCardHost = {
   /** The host's size: a child renders medium, or small inside a small card. */
   size: CardSize
   isDown: boolean
+  /** The host IS the page: its trays drop the frame inset (see `CardTray`). */
+  onPage?: boolean
   /** The host's display name (lets a nested action drop its ` (Host)` suffix). */
   entityName: string
   chassisName: string | undefined
@@ -60,11 +62,14 @@ const TRAY_MARGIN: Record<CardSize, string> = {
   small: `${space[2]} ${space[8]} ${space[8]}`,
 }
 
-const tray = (size: CardSize): CSSProperties => ({
+const tray = (size: CardSize, flush: boolean): CSSProperties => ({
   backgroundColor: 'var(--color-wk-bg)',
+  // Its own formatting context: beside a page's floated art the whole tray
+  // narrows, rather than its ground running under the image.
+  display: 'flow-root',
   border: 'var(--bw-hairline) solid var(--color-ink-20)',
   borderRadius: 'var(--radius-card)',
-  margin: TRAY_MARGIN[size],
+  margin: flush ? 0 : TRAY_MARGIN[size],
   padding: space[10],
 })
 
@@ -83,6 +88,7 @@ export function CardTray({
   count,
   size,
   as,
+  flush = false,
   children,
 }: {
   label: string
@@ -90,10 +96,12 @@ export function CardTray({
   size: CardSize
   /** A real heading when the card IS the page (`sectionHeadingLevel`). */
   as?: ElementType
+  /** On a page there is no frame to inset from: the tray spans the column. */
+  flush?: boolean
   children: ReactNode
 }) {
   return (
-    <div style={tray(size)}>
+    <div style={tray(size, flush)}>
       <Slab variant="solid" as={as} label={`${label} · ${count}`} />
       <div style={TRAY_STACK}>{children}</div>
     </div>
@@ -199,7 +207,13 @@ export function NestedCardGroup({
 }) {
   if (entities.length === 0) return null
   return (
-    <CardTray label={label} count={entities.length} size={host.size} as={sectionAs}>
+    <CardTray
+      label={label}
+      count={entities.length}
+      size={host.size}
+      as={sectionAs}
+      flush={host.onPage}
+    >
       <NestedCardList entities={entities} seal={seal} host={host} write={write} />
     </CardTray>
   )
@@ -218,6 +232,7 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
       label={drones.length === 1 ? 'Drone' : 'Drones'}
       count={drones.length}
       size={host.size}
+      flush={host.onPage}
     >
       {drones.map((droneInfo, index) => (
         <NestedCard
