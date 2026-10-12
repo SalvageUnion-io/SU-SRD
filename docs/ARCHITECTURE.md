@@ -703,9 +703,8 @@ without it). `src/lib/staticPaths.ts` drops meta schemas
 
 **Accessibility:** Biome's `a11y` group (`biome.jsonc`). Each app's
 `e2e/a11y.e2e.ts` (`tools/lib/a11yScan.ts`: axe-core WCAG 2.2 AA plus
-`best-practice`) scans the pages in `tools/a11y-baseline.json` and
-`tools/a11y-baseline-itun.json` at desktop and as a Pixel 7; a stale entry
-fails until a run with `A11Y_UPDATE_BASELINE=1`.
+`best-practice`) scans the pages its `PAGES` array lists at desktop and as a
+Pixel 7, and fails on any violation.
 Landmarks: labelled `<nav>`s in `AppBar.tsx` (switcher, product nav, and a
 breadcrumb trail shown once per width), `<main>` in `BaseLayout.tsx`,
 `Footer.tsx`. One `<h1>` per page (entity pages pass `titleAs="h1"` from `EntityView.tsx`
