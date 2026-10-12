@@ -1,5 +1,6 @@
 import type { SURefMetaEntity } from 'salvageunion-reference'
-import { missingArtCode, missingArtVariant, tornEdge } from './missingArtMark'
+import { missingArt } from 'salvageunion-reference'
+import { tornEdge } from './missingArtMark'
 
 /** The hero's faint list rows around the torn strip, as on the contents page. */
 const GHOST_ROWS = ['12%', '25%', '66%', '79%']
@@ -7,7 +8,7 @@ const GHOST_ROWS = ['12%', '25%', '66%', '79%']
 /**
  * MISSING ART — what stands in the art place when an entity has no artwork,
  * quoting how the Workshop Manual censors its systems and modules (ruleset §1).
- * One of three marks, chosen per entity (`missingArtVariant`), so the listing's
+ * One of three marks, chosen per entity by the entity model (`missingArt`), so the listing's
  * thumbnail and the page's hero always wear the same one:
  *
  * - `file`: a torn ink patch, REDACTED and a code line carrying the page;
@@ -19,7 +20,7 @@ const GHOST_ROWS = ['12%', '25%', '66%', '79%']
  * Layout is `index.css`'s `.su-missing-art*`.
  */
 export function MissingArt({ entity, hero = false }: { entity: SURefMetaEntity; hero?: boolean }) {
-  const variant = missingArtVariant(entity)
+  const { variant, code, short, seed } = missingArt(entity)
   const className = `su-missing-art su-missing-art--${variant}${hero ? ' su-missing-art--hero' : ''}`
 
   if (variant === 'removed') {
@@ -41,7 +42,7 @@ export function MissingArt({ entity, hero = false }: { entity: SURefMetaEntity; 
           <span
             className="su-missing-art__ink"
             style={{
-              clipPath: tornEdge(entity, {
+              clipPath: tornEdge(seed, {
                 depth: hero ? 16 : 22,
                 steps: hero ? 40 : 16,
                 sides: 'long',
@@ -54,13 +55,12 @@ export function MissingArt({ entity, hero = false }: { entity: SURefMetaEntity; 
     )
   }
 
-  const { code, short } = missingArtCode(entity)
   return (
     <span className={className} data-missing-art={variant} aria-hidden="true">
       <span
         className="su-missing-art__ink su-missing-art__patch"
         style={{
-          clipPath: tornEdge(entity, {
+          clipPath: tornEdge(seed, {
             depth: hero ? 3.5 : 7,
             steps: hero ? 44 : 18,
             sides: 'all',

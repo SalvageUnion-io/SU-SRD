@@ -30,9 +30,7 @@ export function isRulesBearing(data: unknown): boolean {
 }
 
 /** A titanic action (bio-titan "Titanic Actions") — gets its own full-width row. */
-export function isTitanicAction(action: { name?: string }): boolean {
-  return /titanic action/i.test(action.name ?? '')
-}
+export { isTitanicAction } from 'salvageunion-reference'
 
 /**
  * The element a card's section bands should render as.

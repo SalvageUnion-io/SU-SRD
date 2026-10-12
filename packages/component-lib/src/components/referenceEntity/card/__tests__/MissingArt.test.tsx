@@ -7,8 +7,8 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
-import { getAssetUrl, SalvageUnionReference } from 'salvageunion-reference'
-import { missingArtVariant, tornEdge } from '../missingArtMark'
+import { getAssetUrl, missingArt, SalvageUnionReference } from 'salvageunion-reference'
+import { tornEdge } from '../missingArtMark'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const need = <T,>(value: T | undefined, label: string): T => {
@@ -30,7 +30,7 @@ describe('missing art', () => {
     const variants = [...artless()]
       .sort((a, b) => tier(a) - tier(b))
       .slice(0, 6)
-      .map((item) => missingArtVariant(item))
+      .map((item) => missingArt(item).variant)
     expect(variants).toEqual(['file', 'row', 'removed', 'file', 'row', 'removed'])
   })
 
@@ -42,7 +42,7 @@ describe('missing art', () => {
       const page = render(
         <ReferenceEntityCard data={item} size="large" presentation="page" artSlot />
       )
-      expect(listed).toBe(missingArtVariant(item))
+      expect(listed).toBe(missingArt(item).variant)
       expect(mark(page.container)).toBe(listed)
       page.unmount()
     }
@@ -73,7 +73,8 @@ describe('missing art', () => {
     const a = need(artless()[0], 'art-less chassis')
     const b = need(artless()[1], 'second art-less chassis')
     const shape = { depth: 7, steps: 18, sides: 'all' } as const
-    expect(tornEdge(a, shape)).toBe(tornEdge(a, shape))
-    expect(tornEdge(a, shape)).not.toBe(tornEdge(b, shape))
+    const edge = (item: typeof a) => tornEdge(missingArt(item).seed, shape)
+    expect(edge(a)).toBe(edge(a))
+    expect(edge(a)).not.toBe(edge(b))
   })
 })

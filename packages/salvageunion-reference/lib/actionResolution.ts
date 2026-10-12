@@ -102,8 +102,8 @@ function extractActionsFromCarrier(
  * the action is something other than its entity. Matched as EITHER field rather
  * than `displayName ?? name` so the check is strictly additive.
  *
- * Kept in step with `resolveFoldedAction` in component-lib, which decides the
- * same question for the render core.
+ * Kept in step with `foldedActionOf` (`lib/view/parts/children.ts`), which
+ * decides the same question for the entity model and the card.
  *
  * @param entity - The entity to check
  * @returns The matching action or undefined
