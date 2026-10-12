@@ -2,11 +2,12 @@
 /**
  * Styling gates — `bun run check styling`.
  *
- * One engine (`tools/lib/ruleEngine.ts`), three rule sets:
+ * One engine (`tools/lib/ruleEngine.ts`), four rule sets:
  *
  *   - `tokens`   — design-token laws (tools/rules/designTokens.ts)
  *   - `styling`  — component-lib owns shared styling (tools/rules/stylingOwnership.ts)
  *   - `srd-css`  — srd's single stylesheet entry (tools/rules/srdCss.ts)
+ *   - `tone-ground` — no tech-level blue as a header ground (tools/rules/toneGround.ts)
  *
  * Why these gates exist at all: none of what they catch fails typecheck, lint or
  * a test. A deleted Tailwind token stops generating its utility, a stray app
@@ -19,7 +20,7 @@
  * improvement is slack that the next regression spends without anyone seeing.
  *
  * Usage:
- *   bun tools/check-styling.ts                      # all three sets
+ *   bun tools/check-styling.ts                      # every set
  *   bun tools/check-styling.ts --only=tokens        # one set (comma-separate for more)
  *   bun tools/check-styling.ts --update-baseline    # lower the ratchets to today's counts
  *   bun tools/check-styling.ts --update-baseline --allow-increase
@@ -36,12 +37,13 @@ import { evaluate, formatFailures, increases, ratchetCounts, readBaseline } from
 import { designTokens } from './rules/designTokens'
 import { srdCss } from './rules/srdCss'
 import { stylingOwnership } from './rules/stylingOwnership'
+import { toneGround } from './rules/toneGround'
 
 const ROOT = join(import.meta.dir, '..')
 const BASELINE_PATH = join(import.meta.dir, 'styling-baseline.json')
 const UPDATE = 'bun tools/check-styling.ts --update-baseline'
 
-export const RULE_SETS: readonly RuleSet[] = [designTokens, stylingOwnership, srdCss]
+export const RULE_SETS: readonly RuleSet[] = [designTokens, stylingOwnership, srdCss, toneGround]
 
 function selectedSets(argv: readonly string[]): RuleSet[] {
   const only = argv.find((a) => a.startsWith('--only='))?.slice('--only='.length)

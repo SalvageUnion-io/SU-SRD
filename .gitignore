@@ -89,3 +89,6 @@ apps/itun/test-results
 # errors the moment a dev server has run. Ignoring it keeps `bun run lint` from
 # depending on whether someone left a server up.
 .wrangler/
+
+# `bun run shot`'s screenshots (tools/shot.ts)
+/.shots/

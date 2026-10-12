@@ -1,5 +1,6 @@
 import type { ElementType, ReactNode } from 'react'
 import { useContext } from 'react'
+import { nameToSlug } from 'salvageunion-reference'
 import { InsidePeekContext } from '../../../entity/peekContext'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Badge } from '../../chrome/Badge'
@@ -38,7 +39,11 @@ function GuideNote({ text }: { text: string }) {
  *
  * Layout is `index.css`'s `.su-guide*`. On a page (`CardPage`'s `guide`) the
  * steps stand beside the prose rather than inside the card body, and take the
- * page's reading size and measure there.
+ * page's reading size and measure there. There (`page`) a long guide also gets
+ * its hierarchy and its way around: a section opens on an H2-scale head (the
+ * book's division, not a 12px stamp), every section and step is an anchor, and
+ * an "On this page" rail lists them — sticky in the page's empty right third
+ * on a wide screen, a folded disclosure above the steps on a phone.
  *
  * Read-only by design: this is the SRD's transcription of the procedure.
  * Walking a guide as an interactive wizard is ITUN's job (`DowntimeWizard`),
@@ -54,6 +59,7 @@ export function GuideSteps({
   collapsibleTables,
   chassisName,
   NestedCard,
+  page = false,
 }: {
   steps: ResolvedGuideStep[]
   prose: CardProseContext
@@ -66,6 +72,8 @@ export function GuideSteps({
   collapsibleTables: boolean
   chassisName: string | undefined
   NestedCard: NestedCard
+  /** The guide is its own page: H2 section heads, anchors and the rail. */
+  page?: boolean
 }) {
   // Terminal in a tooltip popup (ruleset §1): the step table carries controls.
   const insidePeek = useContext(InsidePeekContext)
@@ -73,6 +81,7 @@ export function GuideSteps({
   // With sections, a step heads one level below its section's slab.
   const hasSections = groups.some((group) => group.section !== undefined)
   const stepAs = hasSections ? headingBelow(sectionAs) : sectionAs
+  const anchors = page ? guideAnchors(groups) : undefined
 
   const renderStep = ({ step, number, entities, table, subGuide }: ResolvedGuideStep) => {
     const card = (option: (typeof entities)[number], index: number) => (
@@ -113,7 +122,13 @@ export function GuideSteps({
     }
     return (
       <li key={step.id} className="su-guide__step" data-optional={step.optional || undefined}>
-        <StepHead as={stepAs} number={number} name={step.name} optional={step.optional} />
+        <StepHead
+          as={stepAs}
+          id={anchors?.get(step.id)}
+          number={number}
+          name={step.name}
+          optional={step.optional}
+        />
         <div className="su-guide__body">
           {!ladder && stepProse}
           {options}
@@ -146,39 +161,127 @@ export function GuideSteps({
     )
   }
 
+  const body = groups.map((group) => {
+    const list = <ol className="su-guide__steps">{group.steps.map(renderStep)}</ol>
+    if (group.section === undefined) {
+      return <div key={group.key}>{list}</div>
+    }
+    const SectionHead = sectionAs ?? 'div'
+    return (
+      <section key={group.key} className="su-guide__section">
+        {page ? (
+          <SectionHead id={anchors?.get(sectionKey(group))} className="su-guide__section-head">
+            {group.section}
+          </SectionHead>
+        ) : (
+          <Slab variant="solid" label={group.section} as={sectionAs} />
+        )}
+        {list}
+      </section>
+    )
+  })
+
+  if (!anchors) return <div className="su-guide">{body}</div>
+
+  const contents = <GuideContents groups={groups} anchors={anchors} />
   return (
-    <div className="su-guide">
-      {groups.map((group) => {
-        const list = <ol className="su-guide__steps">{group.steps.map(renderStep)}</ol>
-        if (group.section === undefined) {
-          return <div key={group.key}>{list}</div>
-        }
-        return (
-          <section key={group.key} className="su-guide__section">
-            <Slab variant="solid" label={group.section} as={sectionAs} />
-            {list}
-          </section>
-        )
-      })}
+    <div className="su-guide su-guide--page">
+      {/* A phone folds the contents above the steps; a wide screen sets them
+          in the rail. Only one of the two is ever displayed. */}
+      <details className="su-guide__toc-fold">
+        <summary className="su-guide__toc-summary">On this page</summary>
+        {contents}
+      </details>
+      <div className="su-guide__flow">{body}</div>
+      <nav className="su-guide__rail" aria-label="On this page">
+        <p className="su-guide__toc-title" aria-hidden="true">
+          On this page
+        </p>
+        {contents}
+      </nav>
     </div>
+  )
+}
+
+/** A section's anchor key: its group's key is its first step's id. */
+const sectionKey = (group: StepGroup) => `section:${group.key}`
+
+/**
+ * Each section's and step's anchor, keyed by `sectionKey` or the step's id:
+ * the name as a slug, numbered on a repeat so every id is unique.
+ */
+function guideAnchors(groups: StepGroup[]): Map<string, string> {
+  const anchors = new Map<string, string>()
+  const used = new Map<string, number>()
+  const claim = (key: string, name: string) => {
+    const base = nameToSlug(name) || 'step'
+    const count = (used.get(base) ?? 0) + 1
+    used.set(base, count)
+    anchors.set(key, count === 1 ? base : `${base}-${count}`)
+  }
+  for (const group of groups) {
+    if (group.section !== undefined) claim(sectionKey(group), group.section)
+    for (const { step } of group.steps) claim(step.id, step.name)
+  }
+  return anchors
+}
+
+/**
+ * The rail's list: each section, then its numbered steps. Each link takes the
+ * 44px coarse-pointer floor through the shared hit area (ruleset §4.6), so the
+ * list keeps its reading rhythm.
+ */
+function GuideContents({ groups, anchors }: { groups: StepGroup[]; anchors: Map<string, string> }) {
+  const stepLinks = (group: StepGroup) => (
+    <ol className="su-guide__toc-steps">
+      {group.steps.map(({ step, number }) => (
+        <li key={step.id}>
+          <a className="su-guide__toc-link su-hit-area" href={`#${anchors.get(step.id)}`}>
+            <span className="su-guide__toc-num">{number}</span>
+            {step.name}
+          </a>
+        </li>
+      ))}
+    </ol>
+  )
+  return (
+    <ul className="su-guide__toc">
+      {groups.map((group) =>
+        group.section === undefined ? (
+          <li key={group.key}>{stepLinks(group)}</li>
+        ) : (
+          <li key={group.key}>
+            <a
+              className="su-guide__toc-link su-guide__toc-link--section su-hit-area"
+              href={`#${anchors.get(sectionKey(group))}`}
+            >
+              {group.section}
+            </a>
+            {stepLinks(group)}
+          </li>
+        )
+      )}
+    </ul>
   )
 }
 
 /** A step's banner: the ink how-to head, its numeral, then its name. */
 function StepHead({
   as,
+  id,
   number,
   name,
   optional,
 }: {
   as: ElementType | undefined
+  id: string | undefined
   number: number
   name: string
   optional: boolean | undefined
 }) {
   const Heading = as ?? 'div'
   return (
-    <Heading className="su-guide__head" style={grainStyle('paper')}>
+    <Heading id={id} className="su-guide__head" style={grainStyle('paper')}>
       <span className="su-guide__num">{number}</span>
       <span className="su-guide__name">{name}</span>
       {optional && (

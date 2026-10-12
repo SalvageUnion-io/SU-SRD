@@ -21,6 +21,7 @@ import { paintFor } from '../parts/paint'
 import { Tags } from '../parts/Tags'
 import type { TagItem } from '../parts/tagItems'
 import { traitTags } from '../parts/tagItems'
+import { usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
 
 /**
@@ -60,7 +61,10 @@ export type RowProps = {
   mode?: EntityMode
   /** The opening prose, in browse contexts only (E11). */
   lead?: boolean
+  /** Facts by key to leave out, `kind` for the seam stamp, `art` for the art column. */
   omit?: readonly EntityOmit[]
+  /** Hover, focus or a long press Peeks the Row (a pattern's loadout). Off in listings. */
+  peek?: boolean
   slots?: RowSlots
 }
 
@@ -96,7 +100,9 @@ function frameOf(userMade: boolean, selected: boolean): CSSProperties {
  * action-type stamp, cost pennant, the mode's affordance) and a paper body
  * whose first row is the facts and facets as Stats, then the traits as Tags
  * (E17: no "//" line), then the lead while browsing (E11). Fill follows kind
- * (E12): a "have" entity's tone, a "do" entity's tier tone, an action's ink.
+ * (E12): a "have" entity's tone, a "do" entity's ink banner with paper flecks
+ * (ruleset §3.1: the Core tier fill is rust's near twin); an ability's tier
+ * rides on its numeral and pennant.
  */
 export function Row({
   model,
@@ -104,13 +110,16 @@ export function Row({
   mode = READ,
   lead = false,
   omit = [],
+  peek = false,
   slots = {},
 }: RowProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
+  const peekAttrs = usePeekAttrs(peek ? model.ref : undefined)
   const down =
     slots.down ?? (instance?.condition === 'damaged' || instance?.condition === 'destroyed')
-  const paint = paintFor(model.tone, { down, texture: surface.texture })
+  const fill = model.kind.nature === 'do' ? 'ink' : model.tone
+  const paint = paintFor(fill, { down, texture: surface.texture })
   const userMade = !!(model.userMade || instance?.userMade || surface.userMade)
   const title = instance?.title ?? model.title
   const selected = mode.kind === 'select' && mode.selected
@@ -149,7 +158,7 @@ export function Row({
       data-user-made={userMade || undefined}
       style={{ ...frameOf(userMade, selected), ...slots.frameStyle }}
     >
-      {slots.art !== false && <Art art={model.art} />}
+      {slots.art !== false && !omit.includes('art') && <Art art={model.art} />}
       <div className="su-entity-row__main">
         <Head
           title={title}
@@ -204,6 +213,7 @@ export function Row({
       target={target}
       label={title}
       attrs={mode.kind === 'link' ? mode.attrs : undefined}
+      peek={peekAttrs}
       className="su-entity-row"
     >
       {parts}

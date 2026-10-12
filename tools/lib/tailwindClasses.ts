@@ -301,8 +301,8 @@ function literalText(lit: RegExpMatchArray): string {
  * class-list context, plus every token of any OTHER literal that is wholly a
  * class list (`isLooseClassList`). The second half is what stops a class
  * string held in a constant or a lookup map from escaping the ratchet — and
- * from passing the plan's P6 exit check only to lose its styling silently when
- * P7 removes Tailwind.
+ * from passing the plan's TW6 exit check only to lose its styling silently when
+ * TW7 removes Tailwind.
  */
 export function tailwindUtilitiesIn(src: string): string[] {
   const clean = stripComments(src)

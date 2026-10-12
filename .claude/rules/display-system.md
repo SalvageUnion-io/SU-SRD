@@ -6,7 +6,7 @@ paths:
 
 # Display System Rules
 
-See `docs/ARCHITECTURE.md#display-system` for the architecture, and
+See `docs/ARCHITECTURE.md#areas` for the architecture, and
 `docs/design-system/ruleset.md` for the governing design laws.
 
 Do not re-add prop tables or component lists here: state the rule, point at the
@@ -25,7 +25,7 @@ There are two, and the separation is a decision, not an accident:
   `ModalShell` is built on it.
 
 **They are NOT being merged** (and their `cardClick` fallback resolves
-first-wins vs last-wins); the assessment is `docs/ARCHITECTURE.md#display-system`.
+first-wins vs last-wins); the assessment is `docs/ARCHITECTURE.md#areas`.
 
 So: **do not add entity-card features to Card**, and do not route the
 entity card through it. Share the VOCABULARY (`displayMode`, the controls

@@ -3,16 +3,20 @@
  * SRD data:
  * - the steps are an ordered list whose every item opens on the how-to banner
  *   (numeral, then name) as a real heading;
- * - a `section` is a solid slab heading over its own list, the steps one
- *   heading level below it, numbering restarting inside it;
+ * - a `section` is a heading over its own list (on a page, the H2-scale head),
+ *   the steps one heading level below it, numbering restarting inside it;
+ * - on a page every section and step is an anchor, listed in an "On this
+ *   page" rail (and its phone fold), and a "p. N" the surface can resolve
+ *   links to the page that covers it;
  * - page pointers (`hint`) are left-aligned notes, and a run-in head (a
  *   value-only `label`, a sub-`heading`) becomes the stamp over its paragraph;
  * - on a page the steps stand as a page section, not inside the prose column.
  */
 import { describe, expect, test } from 'bun:test'
-import { render } from '@testing-library/react'
+import { render, within } from '@testing-library/react'
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { EntitySurfaceProvider } from '../../../../entity/EntitySurface'
 import { chunkGuideStepProse } from '../guideStepProse'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -137,14 +141,14 @@ describe('GuideSteps on the page', () => {
     expect(container.querySelector('.su-guide .text-center')).toBeNull()
   })
 
-  test('sections are slab headings over their own lists; steps head one level below', () => {
+  test('sections are H2 heads over their own lists; steps head one level below', () => {
     const downtime = guide('Crawler Downtime')
     const { container } = render(<ReferenceEntityCard data={downtime} presentation="page" />)
     const sections = [...container.querySelectorAll('section.su-guide__section')]
     const labels = downtime.steps.flatMap((step) => (step.section ? [step.section] : []))
     expect(sections).toHaveLength(labels.length)
     sections.forEach((section, index) => {
-      expect(section.querySelector('h2')?.textContent).toBe(labels[index])
+      expect(section.querySelector('h2.su-guide__section-head')?.textContent).toBe(labels[index])
       // Numbering restarts in every section.
       expect(section.querySelector('h3.su-guide__head .su-guide__num')?.textContent).toBe('1')
     })
@@ -171,6 +175,68 @@ describe('GuideSteps on the page', () => {
     )
     expect(container.querySelector('.su-entity-page__main')).toBeNull()
     expect(container.querySelector('.su-guide')).not.toBeNull()
+  })
+
+  test('"On this page" lists every section and step, each linking to its anchor', () => {
+    const downtime = guide('Crawler Downtime')
+    const { container } = render(<ReferenceEntityCard data={downtime} presentation="page" />)
+    const rail = container.querySelector('nav.su-guide__rail')
+    expect(rail?.getAttribute('aria-label')).toBe('On this page')
+    const links = within(rail as HTMLElement).getAllByRole('link')
+    const sections = new Set(downtime.steps.flatMap((step) => step.section ?? []))
+    expect(links).toHaveLength(downtime.steps.length + sections.size)
+    const ids = new Set<string>()
+    for (const link of links) {
+      const id = link.getAttribute('href')?.slice(1) ?? ''
+      expect(container.querySelector(`[id="${id}"]`)).not.toBeNull()
+      ids.add(id)
+    }
+    // Every anchor is unique.
+    expect(ids.size).toBe(links.length)
+    // The phone's fold carries the same list.
+    expect(container.querySelectorAll('details.su-guide__toc-fold a')).toHaveLength(links.length)
+  })
+
+  test('a card has no rail and no anchors', () => {
+    const { container } = render(<ReferenceEntityCard data={guide('Crawler Downtime')} />)
+    expect(container.querySelector('.su-guide__rail')).toBeNull()
+    expect(container.querySelector('.su-guide__head[id]')).toBeNull()
+  })
+
+  test('a "p. N" the surface resolves links to its page; the rest stay text', () => {
+    const heat = guide('Heat')
+    const overload = SalvageUnionReference.RollTables.getByName('Reactor Overload')
+    if (!overload) throw new Error('fixture missing: Reactor Overload')
+    const { container } = render(
+      <EntitySurfaceProvider
+        value={{
+          hrefFor: (ref) => `/schema/${ref.schemaName}/item/${ref.slug}/`,
+          pageRefs: {
+            235: [
+              {
+                ref: {
+                  schemaName: 'roll-tables',
+                  id: overload.id,
+                  slug: 'reactor-overload',
+                  name: overload.name,
+                },
+                noun: 'roll table',
+              },
+            ],
+          },
+        }}
+      >
+        <ReferenceEntityCard data={heat} presentation="page" />
+      </EntitySurfaceProvider>
+    )
+    const link = within(container).getByRole('link', { name: 'p. 235' })
+    expect(link.getAttribute('href')).toBe('/schema/roll-tables/item/reactor-overload/')
+  })
+
+  test("without an index, a page reference is the book's text", () => {
+    const { container } = render(<ReferenceEntityCard data={guide('Heat')} presentation="page" />)
+    expect(within(container).queryByRole('link', { name: 'p. 235' })).toBeNull()
+    expect(container.textContent).toContain('Reactor Overload Table p. 235')
   })
 
   test('a wide step table scrolls in its own box', () => {

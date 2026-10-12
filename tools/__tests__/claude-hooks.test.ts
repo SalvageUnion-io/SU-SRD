@@ -31,10 +31,9 @@ async function runHook(script: string, payload: unknown): Promise<number> {
 /** A hook blocks on exit 2; 0 allows. */
 const ALLOW = 0
 
-const settings: { permissions: { deny: string[] } } = await Bun.file(
-  join(ROOT, '.claude', 'settings.json')
-).json()
-const deny = settings.permissions.deny
+const settings: { permissions: { allow: string[]; ask: string[]; deny: string[] } } =
+  await Bun.file(join(ROOT, '.claude', 'settings.json')).json()
+const { allow, ask, deny } = settings.permissions
 
 /** The globs inside the `Edit(...)` deny rules. */
 const editGlobs = deny.flatMap((rule) => /^Edit\((.+)\)$/.exec(rule)?.[1] ?? [])
@@ -64,7 +63,6 @@ describe('settings.json deny rules', () => {
     ['an app component', 'apps/itun/src/components/Foo.tsx'],
     ['a tool', 'tools/check-path-filters.ts'],
     ['a doc', 'docs/README.md'],
-    ['the a11y baseline — new debt is accepted by hand, with a reason', 'tools/a11y-baseline.json'],
   ])('allow editing %s', (_label, path) => {
     expect(editDenied(path)).toBe(false)
   })
@@ -109,6 +107,23 @@ describe('settings.json deny rules', () => {
     expect(deny).toContain(`Bash(bunx ${pm}*)`)
   })
 
+  // `Bash(gh *)` and the git allow rules would otherwise run these unprompted;
+  // CLAUDE.md's Merging section forbids a hand rebase or a force push.
+  test.each([
+    'Bash(gh pr merge*)',
+    'Bash(gh pr close*)',
+    'Bash(gh release create*)',
+    'Bash(git rebase*)',
+    'Bash(git push --force-with-lease*)',
+    'Bash(git push * --force-with-lease*)',
+  ])('asks before %s', (rule) => {
+    expect(ask).toContain(rule)
+  })
+
+  test.each(['rebase', 'push --force-with-lease'])('never allows git %s outright', (cmd) => {
+    expect(allow.filter((rule) => rule.startsWith(`Bash(git ${cmd}`))).toEqual([])
+  })
+
   test.each(['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml'])(
     'gitignores a foreign lockfile: %s',
     async (lockfile) => {
@@ -135,36 +150,89 @@ describe('typecheck-scoped.sh', () => {
     expect(await runHook('typecheck-scoped.sh', { tool_input: {} })).toBe(ALLOW)
   })
 
-  // The fixture below stubs `typecheck`; this keeps the stub honest. The hook
-  // once called a script #995 had deleted, and a stubbed suite stayed green.
+  // The fixture below stubs every `typecheck`; these keep the stubs honest. The
+  // hook once called a script #995 had deleted, and a stubbed suite stayed green.
   test('the script the hook runs exists in the real root manifest', async () => {
     const manifest = await Bun.file(join(ROOT, 'package.json')).json()
     expect(manifest.scripts.typecheck).toBeString()
   })
 
-  // A throwaway git repo whose `typecheck` script is a stub, so the exit-code
-  // path and the root resolution are tested without running tsc.
+  test('every workspace the hook maps to exists and has a typecheck script', async () => {
+    const script = await Bun.file(join(HOOKS, 'typecheck-scoped.sh')).text()
+    const mapped = new Set(
+      [...script.matchAll(/TARGETS="([^"*]+)"/g)].flatMap((m) => m[1]?.split(' ') ?? [])
+    )
+    const real = new Map<string, unknown>()
+    for (const dir of ['apps/*', 'packages/*', 'tools']) {
+      for await (const path of new Bun.Glob(`${dir}/package.json`).scan(ROOT)) {
+        const manifest = await Bun.file(join(ROOT, path)).json()
+        real.set(manifest.name, manifest.scripts?.typecheck)
+        // A new workspace needs a line in the map, or its edits are never checked.
+        expect(script).toMatch(new RegExp(`\\n  ${path.replace('/package.json', '')}/\\*[ )]`))
+      }
+    }
+    expect(mapped.size).toBeGreaterThan(0)
+    for (const name of mapped) expect(real.get(name)).toBeString()
+  })
+})
+
+// A throwaway git repo that mirrors the workspace layout, with every
+// `typecheck` script stubbed to log its name, so the scoping, the exit codes
+// and the root resolution are tested without running tsc.
+describe('typecheck hooks against a stub workspace', () => {
   // Git hooks (lefthook's pre-push runs this suite) export GIT_DIR and friends,
-  // which would point `git init` and the hook's `rev-parse` at the outer repo.
+  // which would point `git init` and the hooks' `rev-parse` at the outer repo.
   const cleanEnv = Object.fromEntries(
     Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))
   )
 
-  async function fixture(script: string): Promise<{ dir: string; file: string }> {
-    const dir = mkdtempSync(join(tmpdir(), 'typecheck-hook-'))
-    mkdirSync(join(dir, 'tools'))
-    mkdirSync(join(dir, 'apps', 'srd'), { recursive: true })
-    writeFileSync(join(dir, 'package.json'), JSON.stringify({ scripts: { typecheck: script } }))
-    writeFileSync(join(dir, 'tools', 'x.ts'), 'export {}\n')
-    await Bun.spawn(['git', 'init', '-q', dir], { env: cleanEnv }).exited
-    return { dir, file: join(dir, 'tools', 'x.ts') }
+  const WORKSPACES = {
+    'apps/discord-bot': 'discord-bot',
+    'apps/itun': 'itun',
+    'apps/srd': 'srd',
+    'apps/su-assets': 'su-assets',
+    'packages/component-lib': 'component-lib',
+    'packages/observability': 'observability',
+    'packages/salvageunion-reference': 'salvageunion-reference',
+    tools: 'tools',
   }
 
-  async function runFrom(cwd: string, file_path: string) {
-    const proc = Bun.spawn([join(HOOKS, 'typecheck-scoped.sh')], {
+  /** `fail` names workspaces whose stub exits 1; `root` is the root script. */
+  async function fixture(opts: { fail?: string[]; root?: string } = {}) {
+    const dir = mkdtempSync(join(tmpdir(), 'typecheck-hook-'))
+    const log = join(dir, 'ran.log')
+    for (const [path, name] of Object.entries(WORKSPACES)) {
+      mkdirSync(join(dir, path, 'lib'), { recursive: true })
+      const stub = opts.fail?.includes(name)
+        ? `echo boom-from-${name} >&2; exit 1`
+        : `echo ${name} >> ${log}`
+      writeFileSync(
+        join(dir, path, 'package.json'),
+        JSON.stringify({ name, scripts: { typecheck: stub } })
+      )
+      writeFileSync(join(dir, path, 'lib', 'x.ts'), 'export {}\n')
+    }
+    writeFileSync(
+      join(dir, 'package.json'),
+      JSON.stringify({
+        name: 'root',
+        private: true,
+        workspaces: ['apps/*', 'packages/*', 'tools'],
+        scripts: { typecheck: opts.root ?? `echo ROOT >> ${log}` },
+      })
+    )
+    await Bun.spawn(['git', 'init', '-q', dir], { env: cleanEnv }).exited
+    const marker = join(dir, '.git', 'claude-typecheck-pending')
+    const ran = async () =>
+      (await Bun.file(log).exists()) ? (await Bun.file(log).text()).trim().split('\n').sort() : []
+    return { dir, marker, ran, cleanup: () => rmSync(dir, { recursive: true, force: true }) }
+  }
+
+  async function run(script: string, cwd: string, payload: unknown) {
+    const proc = Bun.spawn([join(HOOKS, script)], {
       cwd,
       env: cleanEnv,
-      stdin: new TextEncoder().encode(JSON.stringify({ tool_input: { file_path } })),
+      stdin: new TextEncoder().encode(JSON.stringify(payload)),
       stdout: 'pipe',
       stderr: 'pipe',
     })
@@ -176,27 +244,97 @@ describe('typecheck-scoped.sh', () => {
     }
   }
 
-  test('a failing typecheck exits 2 with the output on stderr, from any cwd', async () => {
-    const { dir, file } = await fixture('echo boom-from-tsc >&2; exit 1')
+  const edit = (dir: string, rel: string) =>
+    run('typecheck-scoped.sh', join(dir, 'apps', 'srd'), {
+      tool_input: { file_path: join(dir, rel) },
+    })
+
+  test.each([
+    ['an app', 'apps/itun/lib/x.ts', ['itun']],
+    ['the bot', 'apps/discord-bot/lib/x.ts', ['discord-bot']],
+    ['component-lib', 'packages/component-lib/lib/x.ts', ['component-lib', 'itun', 'srd', 'tools']],
+    [
+      'observability',
+      'packages/observability/lib/x.ts',
+      ['discord-bot', 'itun', 'observability', 'srd', 'su-assets', 'tools'],
+    ],
+    ['tools/lib', 'tools/lib/x.ts', ['itun', 'srd', 'tools']],
+  ])(
+    'an edit to %s checks it and its consumers, then asks for a full run',
+    async (_l, rel, expected) => {
+      const f = await fixture()
+      try {
+        const result = await edit(f.dir, rel)
+        expect(result).toEqual({ code: ALLOW, stdout: '', stderr: '' })
+        expect(await f.ran()).toEqual(expected)
+        expect(await Bun.file(f.marker).exists()).toBe(true)
+      } finally {
+        f.cleanup()
+      }
+    }
+  )
+
+  test('a salvageunion-reference edit runs the whole-repo typecheck and no marker', async () => {
+    const f = await fixture()
     try {
-      const result = await runFrom(join(dir, 'apps', 'srd'), file)
-      expect(result.code).toBe(2)
-      expect(result.stderr).toContain('boom-from-tsc')
-      expect(result.stdout).toBe('')
+      expect((await edit(f.dir, 'packages/salvageunion-reference/lib/x.ts')).code).toBe(ALLOW)
+      expect(await f.ran()).toEqual(['ROOT'])
+      expect(await Bun.file(f.marker).exists()).toBe(false)
     } finally {
-      rmSync(dir, { recursive: true, force: true })
+      f.cleanup()
     }
   })
 
-  test('a passing typecheck is silent', async () => {
-    const { dir, file } = await fixture('echo all-good')
+  test('a failing typecheck exits 2 with the output on stderr, from any cwd', async () => {
+    const f = await fixture({ fail: ['tools'] })
     try {
-      const result = await runFrom(join(dir, 'apps', 'srd'), file)
-      expect(result.code).toBe(ALLOW)
+      const result = await edit(f.dir, 'tools/lib/x.ts')
+      expect(result.code).toBe(2)
+      expect(result.stderr).toContain('boom-from-tools')
       expect(result.stdout).toBe('')
-      expect(result.stderr).toBe('')
     } finally {
-      rmSync(dir, { recursive: true, force: true })
+      f.cleanup()
     }
+  })
+
+  describe('typecheck-full.sh (Stop)', () => {
+    const stop = (dir: string, stop_hook_active = false) =>
+      run('typecheck-full.sh', dir, { stop_hook_active })
+
+    test('does nothing when no scoped check ran this turn', async () => {
+      const f = await fixture()
+      try {
+        expect((await stop(f.dir)).code).toBe(ALLOW)
+        expect(await f.ran()).toEqual([])
+      } finally {
+        f.cleanup()
+      }
+    })
+
+    test('runs the whole repo once after a scoped check, silently', async () => {
+      const f = await fixture()
+      try {
+        await edit(f.dir, 'apps/srd/lib/x.ts')
+        expect(await stop(f.dir)).toEqual({ code: ALLOW, stdout: '', stderr: '' })
+        expect(await f.ran()).toEqual(['ROOT', 'srd'])
+        expect(await Bun.file(f.marker).exists()).toBe(false)
+      } finally {
+        f.cleanup()
+      }
+    })
+
+    test('a failure exits 2 and keeps the marker; a continued stop is let through', async () => {
+      const f = await fixture({ root: 'echo boom-from-root >&2; exit 1' })
+      try {
+        await edit(f.dir, 'apps/srd/lib/x.ts')
+        const result = await stop(f.dir)
+        expect(result.code).toBe(2)
+        expect(result.stderr).toContain('boom-from-root')
+        expect(await Bun.file(f.marker).exists()).toBe(true)
+        expect((await stop(f.dir, true)).code).toBe(ALLOW)
+      } finally {
+        f.cleanup()
+      }
+    })
   })
 })
