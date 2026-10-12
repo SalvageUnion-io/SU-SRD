@@ -12,7 +12,8 @@
  * if the user needs to retry after a partial failure.
  */
 
-import { Button, FieldError, toast, tokens } from 'component-lib'
+import { Button, FieldError, toast } from 'component-lib'
+import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
 import type { MergeSummary } from '../../lib/export/mergeImport'
@@ -20,8 +21,18 @@ import { mergeImport } from '../../lib/export/mergeImport'
 import { parseImportBundle } from '../../lib/export/parseImportBundle'
 import { useEntityStore } from '../../stores/entityStore'
 
-/** The inline summary on the ink band (Shelves): paper, not muted ink. */
-const ON_INK = { color: tokens.color.paper } satisfies CSSProperties
+const STACK = { display: 'flex', flexDirection: 'column', gap: space[4] } satisfies CSSProperties
+
+/** The inline summary line. */
+const SUMMARY = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+} satisfies CSSProperties
+
+/** The same line on the ink band (Shelves): paper, not muted ink. */
+const SUMMARY_ON_INK = { ...SUMMARY, color: color.paper } satisfies CSSProperties
 
 /** The line an import leaves behind: what came in, and what was skipped. */
 function summaryText(summary: MergeSummary): string {
@@ -86,7 +97,7 @@ export function ImportButton({ className, onInk = false, onResult }: ImportButto
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div style={STACK}>
       <Button size="compact" disabled={busy} onClick={handleClick} className={className}>
         {busy ? 'Importing…' : 'Import'}
       </Button>
@@ -95,16 +106,14 @@ export function ImportButton({ className, onInk = false, onResult }: ImportButto
         ref={fileInputRef}
         type="file"
         accept=".json,application/json"
-        className="sr-only"
+        className="su-sr-only"
         aria-hidden="true"
         tabIndex={-1}
         onChange={(e) => void handleFileChange(e)}
       />
       {!onResult && <FieldError>{error}</FieldError>}
       {!onResult && summary && !error && (
-        <p className="font-body text-xs text-wk-muted" style={onInk ? ON_INK : undefined}>
-          {summaryText(summary)}
-        </p>
+        <p style={onInk ? SUMMARY_ON_INK : SUMMARY}>{summaryText(summary)}</p>
       )}
     </div>
   )

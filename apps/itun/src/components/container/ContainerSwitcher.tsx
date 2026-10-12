@@ -15,13 +15,29 @@
  */
 
 import { Select } from 'component-lib'
+import { color, font, fontSize, space, tracking, weight } from 'component-lib/design/tokens'
 import { useQuery } from 'convex/react'
 import type { Container } from 'itun-domain/container'
+import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 
 const SHELF_VALUE = 'shelf'
+
+const ROW = { alignItems: 'center', display: 'flex', gap: space[8] } satisfies CSSProperties
+
+const LABEL = {
+  color: color.ink,
+  fontFamily: font.cond,
+  fontSize: fontSize.caption,
+  fontWeight: weight.semibold,
+  letterSpacing: tracking.capsTight,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+/** Its height steps down from `sm` (`.container-select`, styles/controls.css). */
+const SELECT = { width: '200px' } satisfies CSSProperties
 
 type ContainerSwitcherProps = {
   activeContainer: Container
@@ -38,11 +54,8 @@ function ConnectedContainerSwitcher({ activeContainer, onSelect }: ContainerSwit
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <label
-        htmlFor="container-switcher"
-        className="font-cond text-caption font-semibold uppercase tracking-caps-tight text-ink"
-      >
+    <div style={ROW}>
+      <label htmlFor="container-switcher" style={LABEL}>
         Showing
       </label>
       {/* Faux-select (design-spec §2.5): the shared `Select` chevron rung — the
@@ -53,7 +66,8 @@ function ConnectedContainerSwitcher({ activeContainer, onSelect }: ContainerSwit
         id="container-switcher"
         value={serializeContainer(activeContainer)}
         onChange={handleChange}
-        className="w-[200px] sm:min-h-9"
+        className="container-select"
+        style={SELECT}
       >
         <option value={SHELF_VALUE}>Shelves</option>
         {/* `games` is undefined while the subscription is in flight. The

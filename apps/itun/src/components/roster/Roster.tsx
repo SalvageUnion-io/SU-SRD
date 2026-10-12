@@ -19,7 +19,9 @@
  * kept here so it survives switching between Games.
  */
 
-import { buttonVariants, cn, PageShell, RosterSkeleton } from 'component-lib'
+import { buttonVariants, PageShell, RosterSkeleton } from 'component-lib'
+import { borderWidth, color, font, fontSize, space } from 'component-lib/design/tokens'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useActiveContainer } from '../../stores/activeContainerStore'
@@ -34,6 +36,50 @@ import { AppLink } from '../shared/AppLink'
 import { Shelves } from '../shelves/Shelves'
 import { FrontDoor } from './FrontDoor'
 import type { SegmentKind } from './RosterColumn'
+
+/** The hub-controls band: a 2px ink rule beneath it. */
+const BAND = {
+  borderBottom: `${borderWidth.pill} solid ${color.ink}`,
+  paddingBottom: space[20],
+} satisfies CSSProperties
+
+/** The band's two clusters, pushed to either end and wrapping on a phone. */
+const BAND_ROW = {
+  alignItems: 'flex-end',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[16],
+  justifyContent: 'space-between',
+} satisfies CSSProperties
+
+const BAND_START = {
+  alignItems: 'flex-start',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[10],
+} satisfies CSSProperties
+
+const BAND_END = {
+  alignItems: 'flex-end',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[10],
+} satisfies CSSProperties
+
+const NO_UNDERLINE = { textDecorationLine: 'none' } satisfies CSSProperties
+
+const BAND_NOTE = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+  marginTop: space[10],
+} satisfies CSSProperties
+
+const INVITES = { marginTop: space[20] } satisfies CSSProperties
+
+/** A stable footprint, so the roster replacing the skeleton does not shift the page. */
+const HUB = { minHeight: '60vh' } satisfies CSSProperties
 
 export function Roster() {
   const activeContainer = useActiveContainer()
@@ -64,17 +110,18 @@ function GamePage({ gameId }: { gameId: string | null }) {
 
   return (
     <PageShell stack={false}>
-      <h1 className="sr-only">Game</h1>
-      <div className="border-b-2 border-ink pb-5">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="flex flex-wrap items-start gap-2.5">
+      <h1 className="su-sr-only">Game</h1>
+      <div style={BAND}>
+        <div style={BAND_ROW}>
+          <div style={BAND_START}>
             <ExportAllButton />
             <ImportButton />
             {/* The Starter Set: Leyline Press's pre-generated crew, read-only
                 reference you copy from rather than builds of your own. */}
             <AppLink
               href="/starter"
-              className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
+              className={buttonVariants({ variant: 'ghost', size: 'compact' })}
+              style={NO_UNDERLINE}
             >
               Starter Set
             </AppLink>
@@ -82,12 +129,12 @@ function GamePage({ gameId }: { gameId: string | null }) {
           {/* Where else to go, and how to get another table: the select lists
               Shelves and every Game, and "+ New game" adds one. Both render
               nothing outside Connected. */}
-          <div className="flex flex-wrap items-end gap-2.5">
+          <div style={BAND_END}>
             <ContainerSwitcher activeContainer={activeContainer} onSelect={showContainer} />
             <NewGameControl />
           </div>
         </div>
-        <p className="mt-2.5 font-body text-xs text-wk-muted">
+        <p style={BAND_NOTE}>
           {mode === 'connecting'
             ? 'Download a backup any time to keep a copy yourself.'
             : 'Saved to your account. A downloaded backup is still yours to keep.'}
@@ -96,13 +143,13 @@ function GamePage({ gameId }: { gameId: string | null }) {
 
       {/* Invites addressed to your Discord account (ADR-039) — answering one is
           how you get another table. Renders nothing when there are none. */}
-      <div className="mt-5">
+      <div style={INVITES}>
         <InvitationsForYou />
       </div>
 
       {/* Reserve a stable footprint so the roster replacing the skeleton
           doesn't shift the rest of the page. */}
-      <div className="min-h-[60vh]">
+      <div style={HUB}>
         {gameId === null ? (
           <RosterSkeleton />
         ) : (

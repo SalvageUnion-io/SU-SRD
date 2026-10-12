@@ -57,9 +57,11 @@
  */
 
 import { FieldError, Select } from 'component-lib'
+import { color, fontSize, space, weight } from 'component-lib/design/tokens'
 import { useQuery } from 'convex/react'
 import type { Container, ContainerFields } from 'itun-domain/container'
 import { containerOf, moveTo } from 'itun-domain/container'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -70,6 +72,21 @@ import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
 import type { Confirm } from '../shared/useConfirm'
 import { requestMove } from './requestMove'
+
+const ROW = { alignItems: 'center', display: 'flex', gap: space[8] } satisfies CSSProperties
+
+const LABEL = {
+  color: color.wkMuted,
+  fontSize: fontSize.sm,
+  fontWeight: weight.medium,
+  lineHeight: 'calc(1.25 / 0.875)',
+} satisfies CSSProperties
+
+/**
+ * Sized to its options. Its height steps down from `sm` and it fades when
+ * disabled (`.container-select`, `.move-to-container__select`).
+ */
+const SELECT = { width: 'auto' } satisfies CSSProperties
 
 type MoveToContainerControlProps = {
   entityType: AssignableType
@@ -150,8 +167,8 @@ function ConnectedMoveToContainerControl({
 
   return (
     <div className={className}>
-      <div className="flex items-center gap-2">
-        <label htmlFor={`container-move-${entityId}`} className="text-sm font-medium text-wk-muted">
+      <div style={ROW}>
+        <label htmlFor={`container-move-${entityId}`} style={LABEL}>
           In:
         </label>
         <Select
@@ -159,7 +176,8 @@ function ConnectedMoveToContainerControl({
           value={serializeContainer(current)}
           onChange={handleChange}
           disabled={pending || destinations.length <= 1}
-          className="w-auto disabled:opacity-50 sm:min-h-9"
+          className="container-select move-to-container__select"
+          style={SELECT}
           aria-label="Move to a game or your shelf"
         >
           {shelfOptions.map((d) => (
@@ -185,7 +203,7 @@ function ConnectedMoveToContainerControl({
           )}
         </Select>
       </div>
-      {error && <FieldError className="mt-1">{error}</FieldError>}
+      {error && <FieldError className="move-to-container__error">{error}</FieldError>}
     </div>
   )
 }

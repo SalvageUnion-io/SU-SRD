@@ -39,7 +39,8 @@
  * and replaced by generic copy rather than its raw message.
  */
 
-import { Button, cn, FieldError, ModalShell, Radio } from 'component-lib'
+import { Button, FieldError, ModalShell, Radio } from 'component-lib'
+import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { Container, ContainerFields } from 'itun-domain/container'
 import { containerOf, sameContainer } from 'itun-domain/container'
 import { parseCrawlerTechLevel } from 'itun-domain/crawlerLevel'
@@ -48,6 +49,7 @@ import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { EntityRef } from 'itun-domain/schemas/entity'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { useCrawlers, useMechs, usePilots } from '../../hooks/entities'
@@ -61,6 +63,34 @@ import { failureMessage } from '../shared/useConfirm'
 import type { SoftLinkStore } from './useSoftLinks'
 
 type Kind = EntityRef['type']
+
+const BODY = {
+  backgroundColor: color.paper,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[16],
+  padding: space[20],
+} satisfies CSSProperties
+
+const EMPTY = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+} satisfies CSSProperties
+
+const NOTE = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+} satisfies CSSProperties
+
+const ACTIONS = {
+  display: 'flex',
+  gap: space[8],
+  justifyContent: 'flex-end',
+} satisfies CSSProperties
 
 /** The store surface the picker reads and writes — injectable in tests. */
 export type AssignPickerStore = SoftLinkStore & {
@@ -314,7 +344,7 @@ export function AssignPicker({
 
   return (
     <>
-      <Button size={size} onClick={openDialog} className={cn(className)} aria-label={ariaLabel}>
+      <Button size={size} onClick={openDialog} className={className} aria-label={ariaLabel}>
         {label}
       </Button>
 
@@ -324,13 +354,13 @@ export function AssignPicker({
           if (!next) closeDialog()
         }}
         title={copy.title}
-        maxWidth="max-w-md"
+        maxWidth="assign-picker__dialog"
       >
-        <div className="flex flex-col gap-4 bg-paper p-5">
+        <div style={BODY}>
           {candidates.length === 0 ? (
-            <p className="font-body text-sm text-wk-muted">{emptyCopy(pick, scope, inScope > 0)}</p>
+            <p style={EMPTY}>{emptyCopy(pick, scope, inScope > 0)}</p>
           ) : (
-            <div className="space-y-2">
+            <div className="assign-picker__candidates">
               {candidates.map((c) => (
                 <Radio
                   key={c.id}
@@ -345,11 +375,11 @@ export function AssignPicker({
             </div>
           )}
 
-          <p className="font-body text-xs text-wk-muted">{copy.note}</p>
+          <p style={NOTE}>{copy.note}</p>
 
           {error && <FieldError>{error}</FieldError>}
 
-          <div className="flex justify-end gap-2">
+          <div style={ACTIONS}>
             <Button variant="ghost" size="compact" onClick={closeDialog} disabled={pending}>
               Cancel
             </Button>
