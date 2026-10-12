@@ -81,6 +81,10 @@
         { "pattern": "intheunionnow.com", "custom_domain": true },
         { "pattern": "www.intheunionnow.com", "custom_domain": true }
       ],
+      // Not inherited either: the deploy still fails while SENTRY_DSN is unset.
+      "secrets": {
+        "required": ["SENTRY_DSN"]
+      },
       // `vars` is not inherited: CONVEX_URL restated (the routing test holds
       // the two equal), plus the base the Worker strips and puts back.
       "vars": {
