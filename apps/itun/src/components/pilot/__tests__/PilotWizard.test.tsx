@@ -383,3 +383,19 @@ describe('PilotWizard — session drafts', () => {
     expect(sessionStorage.getItem('itun-wizard-draft:pilot:new')).toBeNull()
   }, 30000)
 })
+
+describe('PilotWizard — preselected class', () => {
+  it('starts on the deep-linked class (`?class=engineer`, resolved to its id)', async () => {
+    render(
+      <PilotWizard
+        onComplete={() => {}}
+        onCancel={() => {}}
+        preselectClassId={idOf('Engineer', SalvageUnionReference.Classes)}
+      />
+    )
+    await clickNext() // Stats → Class & Ability
+    expect(getPickByName('Engineer').getAttribute('aria-pressed')).toBe('true')
+    // The ability is still the player's pick.
+    expect(screen.getByText('Choose your first Ability to continue')).toBeTruthy()
+  }, 30000)
+})
