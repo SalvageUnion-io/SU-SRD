@@ -7,7 +7,8 @@ import { EntityPageStamps } from './EntityPageStamps'
 /**
  * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,
  * 08b): its chapter's band at the head, the title notched in and the type
- * stamps beside it; then the body. The page's foot band — the citation
+ * stamps right beside the notch (wrapping above it when a long name leaves no
+ * room: the band's `asideAt="notch"`); then the body. The page's foot band — the citation
  * ("p.112 · Salvage Union Workshop Manual · also in …") — is the site
  * `Footer`'s, so the page ends once: the page module hands `entityPageFoot`
  * to the layout as its `PageResult.foot`.
@@ -63,6 +64,7 @@ export function EntityPageFrame({
         tone={tone}
         measure={measure}
         aside={<EntityPageStamps meta={meta} />}
+        asideAt="notch"
         eyebrow={parent && <ParentLink {...parent} />}
       >
         {title}
