@@ -274,7 +274,11 @@ export function MechWizard({
             { source: 'Salvage Union Workshop Manual', page: 94 },
             'You start with 20 Tech 1 Scrap. You will use this Scrap to craft your first Mech. This is built out of a Tech 1 Mech Chassis and any number of Tech 1 Systems and Modules installed on the Mech Chassis. Any spare Scrap you have after this can be stored in your Union Crawler and be used later on in the game.'
           ),
-          cite: 'Core Book · p.94 · The Union Crawler p.212',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 94,
+            see: [{ label: 'The Union Crawler', page: 212 }],
+          },
         }
       case 'chassis':
         return {
@@ -282,7 +286,11 @@ export function MechWizard({
             { source: 'Salvage Union Workshop Manual', page: 94 },
             'Craft a Tech 1 Mech Chassis of your choice from the Mech Chassis Blueprints list. This costs an amount of Tech 1 Scrap equal to its Salvage Value as per the normal crafting rules. For example, a Mule Mech has a Salvage Value of 7 so would cost 7 Tech 1 Scrap to craft.'
           ),
-          cite: 'Core Book · p.94 · Mech Chassis pp.100–159',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 94,
+            see: [{ label: 'Mech Chassis', page: [100, 159] }],
+          },
         }
       case 'stats':
         return {
@@ -290,7 +298,11 @@ export function MechWizard({
             { source: 'Salvage Union Workshop Manual', page: 95 },
             'Your Mech has a set of statistics unique to its Chassis. This includes its Structure Points, Heat Capacity, Energy Points, System Slots, Module Slots, Salvage Value, Type, and Chassis Ability. Note these down on your Mech Sheet.'
           ),
-          cite: 'Core Book · p.95 · Mech statistics p.96',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 95,
+            see: [{ label: 'Mech statistics', page: 96 }],
+          },
         }
       case 'systems':
         return {
@@ -298,7 +310,11 @@ export function MechWizard({
             { source: 'Salvage Union Workshop Manual', page: 95 },
             'You now craft Tech 1 Systems from the System Blueprints list to install on your Mech. Each System costs its Salvage Value in Tech 1 Scrap to craft, as per the normal crafting rules. For example, a Locomotion System has a Salvage Value of 2, so costs 2 Tech 1 Scrap to craft. A Mech can only install as many Systems as it has System slots.'
           ),
-          cite: 'Core Book · p.95 · The System list p.162',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 95,
+            see: [{ label: 'The System list', page: 162 }],
+          },
         }
       case 'modules':
         return {
@@ -306,7 +322,11 @@ export function MechWizard({
             { source: 'Salvage Union Workshop Manual', page: 95 },
             'Next, you may craft Tech 1 Modules from the Module Blueprints list to install on your Mech. Each Module costs its Salvage Value in Tech 1 Scrap to craft, as per the normal crafting rules. For example, a Comms Module has a Salvage Value of 1, so costs 1 Tech 1 Scrap to craft. A Mech can only install as many Modules as it has Module Slots.'
           ),
-          cite: 'Core Book · p.95 · The Modules list p.188',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 95,
+            see: [{ label: 'The Modules list', page: 188 }],
+          },
         }
       case 'quirk':
         return {
@@ -314,7 +334,11 @@ export function MechWizard({
             { source: 'Salvage Union Workshop Manual', page: 95 },
             'In addition to the Systems and Modules you have installed in your Mech, you can also give it a unique Quirk that will make it stand out from other Mechs. For example, their comms and sensor array could look like rabbit ears or they might make beeping noises when being operated. Either roll on the Quirks Table or create one yourself.'
           ),
-          cite: 'Core Book · p.95 · Quirks Table p.208',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 95,
+            see: [{ label: 'Quirks Table', page: 208 }],
+          },
         }
       case 'appearance':
         return {
@@ -322,7 +346,11 @@ export function MechWizard({
             { source: 'Salvage Union Workshop Manual', page: 94 },
             'Describe the appearance of your Mech. The Mech Chassis is simply an example of the Mech in its stock form before a salvager gets their hands on it. Your Mech can take on any appearance that you can imagine.'
           ),
-          cite: 'Core Book · p.94 · Mech Appearance Table p.208',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 94,
+            see: [{ label: 'Mech Appearance Table', page: 208 }],
+          },
         }
       case 'pattern':
         return {
@@ -330,12 +358,16 @@ export function MechWizard({
             { source: 'Salvage Union Workshop Manual', page: 94 },
             'Finally give your Mech a unique pattern name that marks it as your own creation. This could be something like ‘Butcher’, ‘Slinky’, ‘Bullseye’, or ‘Roach’. For example: if you built a Mule with Zoom Optics and a Red Laser, you might want to call it a ‘Bullseye Pattern Mule’.'
           ),
-          cite: 'Core Book · p.94 · Pattern Name Table p.209',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 94,
+            see: [{ label: 'Pattern Name Table', page: 209 }],
+          },
         }
       case 'review':
         return {
           rule: 'Check the build, then create your Mech. Whatever Scrap you did not spend banks to your Union Crawler.',
-          cite: 'Core Book · pp.94–95',
+          cite: { source: 'Salvage Union Workshop Manual', page: [94, 95] },
         }
     }
   })()

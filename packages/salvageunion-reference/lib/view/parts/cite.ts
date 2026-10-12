@@ -1,25 +1,74 @@
 /**
  * An entity's CITATION: the book, booklet and page it is printed on, and its
- * reprints. Ported from component-lib's `provenance.ts`.
+ * reprints. Ported from component-lib's `provenance.ts`. A cite written in an
+ * app (a wizard step's rule, a blocked control's brief) comes here too, as
+ * `{ source, page }`, through `formatCite`.
  */
 
 import { getBooklet, getPageReference, getSource } from '../../entityFields'
 import type { SURefMetaEntity, SURefObjectAnyPattern } from '../../schemas/index'
 import type { EntityCite } from '../types'
 
+/**
+ * The core book: the `source` the data records, the name a cite prints (its
+ * title page, p.1, reads "Workshop Manual"), and the other names players call
+ * it by. An alias resolves to the book; it is never printed.
+ */
+const CORE_BOOK = {
+  source: 'Salvage Union Workshop Manual',
+  name: 'Workshop Manual',
+  aliases: ['Core Book'],
+} as const
+
+/** The name a cite prints for a book: the core book's one name, else the source as given. */
+function bookName(source: string): string {
+  const key = source.trim().toLowerCase()
+  const core = [CORE_BOOK.source, CORE_BOOK.name, ...CORE_BOOK.aliases]
+  return core.some((name) => name.toLowerCase() === key) ? CORE_BOOK.name : source
+}
+
+/** One page, or a span of pages `[first, last]`. */
+export type CitePage = number | readonly [number, number]
+
+/**
+ * A cite written by hand: the book and page a rule is printed on, then the
+ * pages it points the reader to (a list, a table) as `see`.
+ */
+export type BookCite = {
+  source: string
+  page: CitePage
+  see?: readonly { label: string; page: CitePage }[]
+}
+
+function pageLabel(page: CitePage): string {
+  return typeof page === 'number' ? `p.${page}` : `pp.${page[0]}–${page[1]}`
+}
+
+/** `Workshop Manual · p.18 · Pilot Stats p.20`: the book, its page, then each `see`. */
+export function formatCite({ source, page, see = [] }: BookCite): string {
+  return [
+    bookName(source),
+    pageLabel(page),
+    ...see.map((entry) => `${entry.label} ${pageLabel(entry.page)}`),
+  ].join(' · ')
+}
+
 /** A secondary printing: the book (and booklet) that reprinted it, and the page. */
 export type AdditionalSource = { source: string; booklet?: string; page: number }
 
 /**
- * `source (booklet) · p.N`, dropping absent parts; `undefined` when nothing is
- * known. A booklet means something only beside its source.
+ * `book (booklet) · p.N`, dropping absent parts; `undefined` when nothing is
+ * known. The book prints by its one name (`bookName`), so an entity's cite and
+ * a hand-written one name the core book alike. A booklet means something only
+ * beside its source.
  */
 export function formatProvenance(
   source: string | undefined,
   booklet: string | undefined,
   page: number | undefined
 ): string | undefined {
-  const book = source && booklet ? `${source} (${booklet})` : source
+  const name = source ? bookName(source) : undefined
+  const book = name && booklet ? `${name} (${booklet})` : name
   const parts = [book, page !== undefined ? `p.${page}` : undefined].filter(
     (part): part is string => !!part
   )

@@ -63,7 +63,7 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
     expect(meta.typeLabel).toBe('Chassis')
     expect(meta.techLevel).toBe('2')
     expect(meta.page).toBe(gopher().page)
-    expect(meta.citation).toStartWith('Salvage Union Workshop Manual')
+    expect(meta.citation).toStartWith('Workshop Manual')
     expect(meta.citation).toContain('also in Salvage Union Starter Set (PC) · p.26')
   })
 
@@ -93,7 +93,7 @@ describe('the card as a page', () => {
     for (const fill of container.querySelectorAll('[data-fill]')) {
       expect(fill.closest('.su-entity-page__lead, .su-pattern-rows')).not.toBeNull()
     }
-    expect(container.textContent).not.toContain('Salvage Union Workshop Manual')
+    expect(container.textContent).not.toContain('Workshop Manual')
   })
 
   test('the line art is the hero, beside the right column', () => {

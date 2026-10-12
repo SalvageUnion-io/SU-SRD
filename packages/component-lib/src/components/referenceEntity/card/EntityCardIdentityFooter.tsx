@@ -65,7 +65,7 @@ const truncate: CSSProperties = {
  * header alone (board E1).
  *
  * ONE row: the entity TYPE on the LEFT, provenance (source · page) on the
- * RIGHT — "Chassis … Salvage Union Workshop Manual · p.128". A SECOND,
+ * RIGHT — "Chassis … Workshop Manual · p.128". A SECOND,
  * right-aligned line follows when the entity carries reprints
  * (`additionalSources`) — "Also in  Salvage Union Starter Set (PH) · p.38".
  * A user-made card puts its `credit` ("Made by alxjrvs") where the source goes.

@@ -96,7 +96,7 @@ type MechPrompt =
  */
 const PUSH_RULE = (heat: number, cap: number): StepRule => ({
   rule: `Pushing adds 2 Heat before the roll, and a Mech can never exceed its Heat Cap. This Mech is at ${heat}/${cap} Heat, so a Push would take it past the Cap — vent or take a Heat Check first.`,
-  cite: 'Core Book · p.234',
+  cite: { source: 'Salvage Union Workshop Manual', page: 234 },
 })
 
 export function MechMajor({

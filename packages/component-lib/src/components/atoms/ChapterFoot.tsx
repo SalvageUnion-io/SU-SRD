@@ -14,7 +14,7 @@ import { Speckle } from './Speckle'
  * set large) and `end` (the book and section, or the site's own links).
  *
  * The SRD wears it twice: an entity page closes on its citation (board 07,
- * "p.112 · Salvage Union Workshop Manual") in its chapter's colour, and the
+ * "p.112 · Workshop Manual") in its chapter's colour, and the
  * site footer's licence row closes every page on the Union bar's ink.
  *
  * A foot band carries TEXT, so its colours are the ones text reads on (ruleset
