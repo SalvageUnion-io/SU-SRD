@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { Slab } from '../components/chrome/Slab'
+import { Slab } from '../components/atoms/Slab'
 import { fontSize, space } from '../design/tokens'
 import { InlineMarkdown } from './InlineMarkdown'
 import { parseMarkdownSection } from './parseMarkdownSection'

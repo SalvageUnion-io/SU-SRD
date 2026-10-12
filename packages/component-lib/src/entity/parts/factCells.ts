@@ -1,5 +1,5 @@
 import type { Fact } from 'salvageunion-reference'
-import type { StatItem } from '../../components/shared/statsBarTypes'
+import type { StatItem } from '../../components/containers/statsBarTypes'
 
 /**
  * The model's facts as Stat cells (E9, E17): the entity's own facts first

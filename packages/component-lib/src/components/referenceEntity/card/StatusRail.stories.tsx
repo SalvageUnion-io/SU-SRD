@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { space } from '../../../design/tokens'
 import type { Story } from '../../../stories/_harness'
 import { Caption } from '../../../stories/_harness'
-import type { EntityStatus } from '../../shared/entityStatus'
+import type { EntityStatus } from '../../atoms/entityStatus'
 import { StatusRail, StatusTriState } from './StatusRail'
 
 export default {

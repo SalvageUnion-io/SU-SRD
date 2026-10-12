@@ -1,7 +1,7 @@
 import { space } from '../../../design/tokens'
 import type { SizeRung } from '../../../styles/sizing'
-import { Stat } from '../../shared/Stat'
-import type { StatItem } from '../../shared/statsBarTypes'
+import { Stat } from '../../atoms/Stat'
+import type { StatItem } from '../../containers/statsBarTypes'
 
 type EntityCardStatBoxProps = {
   /** Every stat, in order. */

@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { statBlockRowStarts } from '../components/stat/pipRows'
+import { statBlockRowStarts } from '../components/atoms/pipRows'
 import {
   borderWidth,
   color,

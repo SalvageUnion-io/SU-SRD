@@ -1,6 +1,6 @@
 import type { EntityArt } from 'salvageunion-reference'
+import { assetSrcSetFor } from '../../components/compositions/assetSrcSet'
 import { MissingArtMark } from '../../components/referenceEntity/card/MissingArt'
-import { assetSrcSetFor } from '../../components/shared/assetSrcSet'
 
 /** A thumbnail: the 440 rendition covers it at any density. */
 const SIZES = '5rem'

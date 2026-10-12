@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 import { space } from '../../../design/tokens'
-import { Badge } from '../../chrome/Badge'
-import { CountStepper } from '../../chrome/CountStepper'
-import { CardControlRail } from '../../shared/CardControlRail'
-import type { EntityStatus } from '../../shared/entityStatus'
-import { foldStatusControl } from '../../shared/foldStatusControl'
+import { Badge } from '../../atoms/Badge'
+import { CountStepper } from '../../atoms/CountStepper'
+import type { EntityStatus } from '../../atoms/entityStatus'
+import { CardControlRail } from '../../containers/CardControlRail'
+import { foldStatusControl } from '../../containers/foldStatusControl'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 
 /**

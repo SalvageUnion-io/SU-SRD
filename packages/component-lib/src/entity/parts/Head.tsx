@@ -1,5 +1,5 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { Badge } from '../../components/chrome/Badge'
+import { Badge } from '../../components/atoms/Badge'
 import { grainStyle } from '../../components/referenceEntity/card/cardGrain'
 import { font, fontSize, space, tracking, weight } from '../../design/tokens'
 import type { Paint } from './paint'

@@ -7,10 +7,10 @@ import type {
   SURefObjectDamage,
   SURefObjectTrait,
 } from 'salvageunion-reference'
-import type { CardFootMeta } from '../../shared/Card'
-import type { CardExtent, CardSize } from '../../shared/displayMode'
-import type { EntityStatus } from '../../shared/entityStatus'
-import type { StatItem } from '../../shared/statsBarTypes'
+import type { EntityStatus } from '../../atoms/entityStatus'
+import type { CardFootMeta } from '../../containers/Card'
+import type { CardExtent, CardSize } from '../../containers/displayMode'
+import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 

@@ -10,8 +10,8 @@ import type { SURefMetaEntity, SURefObjectContentBlock } from 'salvageunion-refe
 import { headerFill, isAbility, parseContentBlockString } from 'salvageunion-reference'
 import type { Foreground } from '../../../design/contrast'
 import { cn } from '../../../utils/cn'
-import { activateOnKey, FOCUS_RING } from '../../chrome/interaction'
-import type { CardExtent, CardSize } from '../../shared/displayMode'
+import { activateOnKey, FOCUS_RING } from '../../atoms/interaction'
+import type { CardExtent, CardSize } from '../../containers/displayMode'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { onTone, textBand } from '../referenceEntityHelpers'
 import type { CardOuterProps } from './CardOuter'
@@ -182,7 +182,7 @@ export function resolveCardInteraction({
               }
             : {},
         }
-  // Selection state — the canonical SELECTION_RING (chrome/interaction.ts), the
+  // Selection state — the canonical SELECTION_RING (atoms/interaction.ts), the
   // same 3px ink ring the wizard Sel/PickCard draw. A non-layout-shifting
   // box-shadow that reads as a border, sitting just outside the frame.
   // The frame is INK on every card (the tone lives in the header band alone),

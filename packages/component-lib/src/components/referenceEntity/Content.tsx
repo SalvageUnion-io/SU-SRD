@@ -6,11 +6,11 @@ import { color, space, fontSize as typeScale, weight } from '../../design/tokens
 import { Tag } from '../../entity/parts/Tags'
 import { glossaryRef } from '../../entity/parts/tagItems'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
-import { Text } from '../base/Text'
-import { Badge } from '../chrome/Badge'
-import { Slab } from '../chrome/Slab'
-import { ActivationCost } from '../shared/ActivationCost'
-import { Stat } from '../shared/Stat'
+import { ActivationCost } from '../atoms/ActivationCost'
+import { Badge } from '../atoms/Badge'
+import { Slab } from '../atoms/Slab'
+import { Stat } from '../atoms/Stat'
+import { Text } from '../atoms/Text'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 
 /**

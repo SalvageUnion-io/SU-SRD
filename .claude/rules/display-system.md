@@ -1,6 +1,6 @@
 ---
 paths:
-  - packages/component-lib/src/components/shared/Card*
+  - packages/component-lib/src/components/*/Card*
   - packages/component-lib/src/components/referenceEntity/**
 ---
 
@@ -20,7 +20,7 @@ There are two, and the separation is a decision, not an accident:
   game data until phase 6. The printed-card spec: the frame on the inner
   clipping element so the control rail escapes the clip, the facets row (E17),
   an identity footer.
-- **`Card`** (`shared/`) — the generic four-band container (header /
+- **`Card`** (`containers/`) — the generic four-band container (header /
   sub-header / body / footer) that the poster, sheet and modal surfaces compose.
   `ModalShell` is built on it.
 
@@ -33,7 +33,7 @@ contract, `CardFootMeta`, `foldStatusControl`) — not the DOM.
 
 ## Sizing vocabulary
 
-Card size is TWO orthogonal axes, defined in `shared/displayMode.ts`:
+Card size is TWO orthogonal axes, defined in `containers/displayMode.ts`:
 
 - `size`: `large | medium | small` — how big it renders.
 - `extent`: `full | head | catalog` — how much of it renders.

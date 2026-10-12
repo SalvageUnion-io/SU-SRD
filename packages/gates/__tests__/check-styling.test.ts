@@ -224,9 +224,9 @@ describe('tokens rule set', () => {
 
   test('rust-allowlist: the allowlisted files and a Button-rust ignore line pass', () => {
     for (const file of [
-      'packages/component-lib/src/components/chrome/Button.tsx',
-      'packages/component-lib/src/components/chrome/buttonVariants.ts',
-      'packages/component-lib/src/components/chrome/InlineRef.tsx',
+      'packages/component-lib/src/components/atoms/Button.tsx',
+      'packages/component-lib/src/components/atoms/buttonVariants.ts',
+      'packages/component-lib/src/components/atoms/InlineRef.tsx',
       'packages/component-lib/src/styles/theme.css',
     ]) {
       expect(scan(file, 'bg-rust var(--color-rust)')['rust-allowlist']).toEqual([])
@@ -243,19 +243,19 @@ describe('tokens rule set', () => {
     for (const file of [
       'apps/itun/src/components/dashboard/MajorFrame.tsx',
       'apps/itun/src/styles/dashboard/instruments.css',
-      'packages/component-lib/src/components/chrome/Button.tsx',
-      'packages/component-lib/src/components/shared/KofiButton.tsx',
-      'packages/component-lib/src/components/chrome/buttonVariants.ts',
-      'packages/component-lib/src/components/chrome/Field.tsx',
-      'packages/component-lib/src/components/chrome/inputs.tsx',
-      'packages/component-lib/src/components/shared/SearchField.tsx',
-      'packages/component-lib/src/components/ui/tooltip.tsx',
+      'packages/component-lib/src/components/atoms/Button.tsx',
+      'packages/component-lib/src/components/atoms/KofiButton.tsx',
+      'packages/component-lib/src/components/atoms/buttonVariants.ts',
+      'packages/component-lib/src/components/atoms/Field.tsx',
+      'packages/component-lib/src/components/atoms/inputs.tsx',
+      'packages/component-lib/src/components/atoms/SearchField.tsx',
+      'packages/component-lib/src/components/atoms/Tooltip.tsx',
       'packages/component-lib/src/entity/PeekCard.tsx',
     ]) {
       expect(scan(file, ref)['texture-placement']?.length, file).toBe(2)
     }
     const onPaper = scan(
-      'packages/component-lib/src/components/chrome/BandTitle.tsx',
+      'packages/component-lib/src/components/atoms/BandTitle.tsx',
       '<div className="bg-paper"><svg><rect filter="url(#su-speck)" /></svg></div>\n' +
         "const s = { backgroundColor: color.paper, opacity: 'var(--texture-speck-opacity)' }"
     )
@@ -267,7 +267,7 @@ describe('tokens rule set', () => {
 
   test('texture-placement: speckle on a band or an ink ground passes', () => {
     const found = scan(
-      'packages/component-lib/src/components/chrome/BandTitle.tsx',
+      'packages/component-lib/src/components/atoms/BandTitle.tsx',
       [
         '<div className="bg-mech"><svg><rect filter="url(#su-blot)" /></svg></div>',
         'const s = { backgroundColor: color.ink, opacity: tokens.texture.fleckOpacity }',

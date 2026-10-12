@@ -110,10 +110,9 @@ const TEXTURE_FORBIDDEN: readonly RegExp[] = [
   /Button\w*\.tsx?$/,
   /\/buttonVariants\.ts$/,
   // Fields: the input primitives.
-  /\/chrome\/(?:Field|FieldError|InlineEditField|inputs|Sel|Checkbox|RadioCardGroup|CountStepper)\.tsx$/,
+  /\/(?:atoms|containers)\/(?:Field|FieldError|InlineEditField|inputs|Sel|Checkbox|RadioCardGroup|CountStepper)\.tsx$/,
   /\/SearchField\.tsx$/,
   // Tooltips: the tooltip primitive, and the Peek (the entity's compact card).
-  /\/ui\/tooltip\.tsx$/,
   /Tooltip\w*\.tsx$/,
   /\/entity\/Peek\w*\.tsx$/,
 ]
@@ -326,19 +325,19 @@ const EXEMPTIONS: Exemption[] = [
       'The TypeScript mirror of theme.css above: a token-definition file, so it is where colour is allowed to be a literal. Every value is ported verbatim from theme.css — nothing here is a new colour, and `src/design/__tests__/tokens.parity.test.ts` fails if the two ever disagree. The exemption is scoped to `raw-color` alone: an arbitrary radius, tracking or border width written here would still be a violation, because those ladders are token NAMES rather than literals even inside the file that defines them.',
   },
   {
-    file: 'packages/component-lib/src/components/chrome/Button.tsx',
+    file: 'packages/component-lib/src/components/atoms/Button.tsx',
     rules: ['rust-allowlist'],
     reason:
       'THE rust allowlist (ruleset §3.1): rust means "do something", and Button is the thing that does. Every action, the Dashboard cost-pennant button included, is painted here or by buttonVariants.',
   },
   {
-    file: 'packages/component-lib/src/components/chrome/buttonVariants.ts',
+    file: 'packages/component-lib/src/components/atoms/buttonVariants.ts',
     rules: ['rust-allowlist'],
     reason:
       "THE rust allowlist (ruleset §3.1): Button's class-string recipe, which links styled as buttons use. Its stylesheet half is `.su-btn--primary` in styles/index.css, whose rust lines carry a `design-tokens-ignore` naming this allowlist (the file is shared, so it cannot be exempted whole).",
   },
   {
-    file: 'packages/component-lib/src/components/chrome/InlineRef.tsx',
+    file: 'packages/component-lib/src/components/atoms/InlineRef.tsx',
     rules: ['rust-allowlist'],
     reason:
       'THE rust allowlist (ruleset §3.1): the one Reference exception — an inline link. Its paint lives in the stylesheet half, `.su-inline-ref--link` in styles/index.css, whose rust lines carry a `design-tokens-ignore` naming this allowlist; this entry keeps the component itself sanctioned to name rust.',
@@ -356,13 +355,13 @@ const EXEMPTIONS: Exemption[] = [
       "Not a web surface. The bot's embed accent is rust in lockstep with theme.css (`themeLockstep.test.ts`), and Discord renders it as a container edge, not a button or a link; the matches here are the doc comments that cite `--color-rust` as that lockstep's source. Discord's own palette rules are the bot's (ruleset §3.4), not this allowlist's.",
   },
   {
-    file: 'packages/component-lib/src/components/chrome/Slab.tsx',
+    file: 'packages/component-lib/src/components/atoms/Slab.tsx',
     rules: ['gradient'],
     reason:
       'Named exemption: the Slab dashed leader (a repeating-linear-gradient) is a deliberate control-panel shape built on ink tokens, kept on purpose.',
   },
   {
-    file: 'packages/component-lib/src/components/chrome/userMadeHatch.ts',
+    file: 'packages/component-lib/src/components/atoms/userMadeHatch.ts',
     rules: ['gradient'],
     reason:
       'The user-made hatch (ruleset §3.5 and §3.9): a HARD-STOP `repeating-linear-gradient(135deg, …)` — coincident stops on `--color-ink-20` over the band\'s own colour — so it paints rules and never blends. Ruled in the ruleset before it was built ("it joins EXEMPTIONS when it lands"); alone in its file so the exemption covers this one constant.',
@@ -401,10 +400,10 @@ const EXEMPTIONS: Exemption[] = [
       'Stories are specimens, not shipped surfaces — the same standing the Foundations catalog pages above already have, extended to the co-located ones so the rule does not depend on which directory a story happens to live in. Their literals are harness scaffolding: the --tone/--ground custom properties the consuming APP supplies at runtime (ModeDoor, VitalGauge), a dark backdrop to prove contrast against, a #ccc outline on a resize container (DashboardGrid/DashboardCanvas), and swatch props fed as data (FilterChip). Nothing here reaches a user, and tokenising a stand-in for app-supplied context would make the story demonstrate something other than what ships. Note the cost, since it is real: stories are where new surfaces get prototyped, so this is the one place drift can incubate un-flagged — a literal that graduates from a story into a component is caught at the component, not here. `gradient` is deliberately NOT on this list: a gradient is banned by §3.5 on shading grounds that a specimen does not escape, and the one sanctioned story gradient (CatalogTile.stories.tsx) is named individually below.',
   },
   {
-    file: 'packages/component-lib/src/components/chrome/catalogTile.ts',
+    file: 'packages/component-lib/src/components/atoms/catalogTileTreatment.ts',
     rules: ['gradient'],
     reason:
-      'Named exemption in ruleset §3.5: the srd catalog tile ramps (--catalog-bg) carry the tech-level and ability-tier ramps on the landing page. The ramp is a wayfinding cue, not decoration. The exemption moved here from shared/CatalogTile.tsx along with the treatment itself: the only match is the doc comment explaining WHY the fill must use the `background` shorthand — it names the `linear-gradient()` that `background-color` silently drops. That comment is the reason the bug stays fixed, so it is not reworded to dodge the regex.',
+      'Named exemption in ruleset §3.5: the srd catalog tile ramps (--catalog-bg) carry the tech-level and ability-tier ramps on the landing page. The ramp is a wayfinding cue, not decoration. The exemption moved here from atoms/CatalogTile.tsx along with the treatment itself: the only match is the doc comment explaining WHY the fill must use the `background` shorthand — it names the `linear-gradient()` that `background-color` silently drops. That comment is the reason the bug stays fixed, so it is not reworded to dodge the regex.',
   },
   {
     file: 'apps/srd/src/lib/catalogColors.ts',
@@ -413,7 +412,7 @@ const EXEMPTIONS: Exemption[] = [
       'Named exemption in ruleset §3.5: the source of the catalog tile ramps CatalogTile renders. Same wayfinding rationale.',
   },
   {
-    file: 'packages/component-lib/src/components/shared/CatalogTile.stories.tsx',
+    file: 'packages/component-lib/src/components/atoms/CatalogTile.stories.tsx',
     rules: ['gradient'],
     reason:
       'Ruleset §3.5 hard-stop pattern: the story restates the real tech-level ramp (six coincident-stop bands, no blending) because component-lib cannot import catalogColors from an app. Exempt for the same reason the component it demonstrates is.',
@@ -431,7 +430,7 @@ const EXEMPTIONS: Exemption[] = [
       "Not a border WEIGHT — a shape. The two matches (`border-x-[9px]`, `border-t-[14px]`) sit on an `h-0 w-0` span with `border-x-transparent`: the CSS-triangle idiom, drawing the caret under the wizard step marker. Those numbers are the triangle's half-width and height, so snapping them to the 1.5/2/2.5/3px weight ladder would not tidy a border, it would resize a glyph. The rule is right to look here and wrong about this one.",
   },
   {
-    file: 'packages/component-lib/src/components/shared/KofiButton.tsx',
+    file: 'packages/component-lib/src/components/atoms/KofiButton.tsx',
     rules: ['raw-color'],
     reason:
       "EXTERNAL BRAND colour, not ours. #2e66c4 is Ko-fi's blue, darkened: the widget sets its label in white on this fill, and Ko-fi's own #72a4f2 measured 2.5:1 against it where WCAG AA wants 4.5:1 (#2e66c4 gives 5.5:1 at nearly the same hue). The widget is recognisable BECAUSE it is blue, so resolving it to a Salvage Union token would misrepresent someone else's mark. This is the standing rule for third-party marks: a colour we source from an external brand keeps the external hue, and anything sourced to OUR design uses the canonical set. Note the prop is caller-overridable, so a consumer that wants a themed button already can.",

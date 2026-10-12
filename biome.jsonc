@@ -779,7 +779,7 @@
       "includes": [
         "apps/itun/src/main.tsx",
         "apps/srd/src/components/islands/OgCardIsland.tsx",
-        "packages/component-lib/src/components/shared/KofiButton.tsx"
+        "packages/component-lib/src/components/atoms/KofiButton.tsx"
       ],
       "linter": {
         "rules": {

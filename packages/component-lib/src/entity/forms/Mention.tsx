@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
-import { InlineRef } from '../../components/chrome/InlineRef'
+import { InlineRef } from '../../components/atoms/InlineRef'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { useInsidePeek, usePeekAttrs } from '../peekContext'
 

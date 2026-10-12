@@ -7,11 +7,11 @@ import { color, font, fontSize, space, tracking, weight } from '../../../design/
 import { useEntitySurface } from '../../../entity/entitySurfaceContext'
 import { d20ForTable } from '../../../utils/dice'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
-import { Button } from '../../chrome/Button'
-import type { DigestedRollTable } from '../../shared/digestRollTable'
-import { digestRollTable } from '../../shared/digestRollTable'
-import type { CardSize } from '../../shared/displayMode'
-import { RollTable } from '../../shared/RollTable'
+import { Button } from '../../atoms/Button'
+import type { DigestedRollTable } from '../../compositions/digestRollTable'
+import { digestRollTable } from '../../compositions/digestRollTable'
+import { RollTable } from '../../compositions/RollTable'
+import type { CardSize } from '../../containers/displayMode'
 
 /** A roll on this table: the die and the row it landed on. */
 export type CardRoll = { roll: number; key: string }

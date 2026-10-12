@@ -3,7 +3,7 @@ import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { color, space } from '../../design/tokens'
 import { cn } from '../../utils/cn'
-import { buttonVariants } from '../chrome/buttonVariants'
+import { buttonVariants } from '../atoms/buttonVariants'
 
 type EntityDetailDialogProps = {
   open: boolean

@@ -12,7 +12,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import type { StatItem } from '../../../shared/statsBarTypes'
+import type { StatItem } from '../../../containers/statsBarTypes'
 import { EntityCardHeader } from '../EntityCardHeader'
 
 // Real game content: the Salvaging Drill system and the Jury Rig ability.

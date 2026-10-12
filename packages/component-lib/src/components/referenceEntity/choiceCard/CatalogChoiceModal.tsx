@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import type { EntitySchemaName, SURefObjectChoice } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
-import { EntitySearcher } from '../../shared/EntitySearcher'
-import { ModalShell } from '../../shared/ModalShell'
-import { PICKER_MODAL_WIDTH } from '../../shared/pickerModalWidth'
+import { EntitySearcher } from '../../compositions/EntitySearcher'
+import { PICKER_MODAL_WIDTH } from '../../compositions/pickerModalWidth'
+import { ModalShell } from '../../containers/ModalShell'
 
 type CatalogChoiceModalProps = {
   open: boolean

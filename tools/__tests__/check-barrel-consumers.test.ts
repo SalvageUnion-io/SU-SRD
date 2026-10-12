@@ -20,22 +20,22 @@ import {
 describe('parseBarrel', () => {
   test('reads named, type, aliased and namespace re-exports, not comments', () => {
     const source = [
-      "export { Badge } from './components/chrome/Badge'",
-      "export type { BadgeTone } from './components/chrome/Badge'",
+      "export { Badge } from './components/atoms/Badge'",
+      "export type { BadgeTone } from './components/atoms/Badge'",
       'export {',
       '  FOCUS_RING,',
       '  type Ring,',
       '  INPUT_FOCUS as FOCUS_INPUT,',
-      "} from './components/chrome/interaction'",
+      "} from './components/atoms/interaction'",
       "export * as tokens from './design/tokens'",
       "// export { Gone } from './components/shared/Gone'",
     ].join('\n')
     expect(parseBarrel(source)).toEqual([
-      { name: 'Badge', specifier: './components/chrome/Badge' },
-      { name: 'BadgeTone', specifier: './components/chrome/Badge' },
-      { name: 'FOCUS_RING', specifier: './components/chrome/interaction' },
-      { name: 'Ring', specifier: './components/chrome/interaction' },
-      { name: 'FOCUS_INPUT', specifier: './components/chrome/interaction' },
+      { name: 'Badge', specifier: './components/atoms/Badge' },
+      { name: 'BadgeTone', specifier: './components/atoms/Badge' },
+      { name: 'FOCUS_RING', specifier: './components/atoms/interaction' },
+      { name: 'Ring', specifier: './components/atoms/interaction' },
+      { name: 'FOCUS_INPUT', specifier: './components/atoms/interaction' },
       { name: 'tokens', specifier: './design/tokens' },
     ])
   })

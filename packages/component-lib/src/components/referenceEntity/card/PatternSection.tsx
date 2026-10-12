@@ -1,7 +1,7 @@
 import type { ElementType, ReactNode } from 'react'
 import type { SURefMetaAction } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
-import { Slab } from '../../chrome/Slab'
+import { Slab } from '../../atoms/Slab'
 import { cardKey } from './cardHelpers'
 import type { NestedCardHost } from './NestedCards'
 import { PatternLoadout } from './PatternLoadout'

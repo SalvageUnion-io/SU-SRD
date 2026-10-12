@@ -17,7 +17,7 @@ import type {
   SURefObjectContentBlock,
 } from 'salvageunion-reference'
 import { actionFacets, facetCells } from 'salvageunion-reference'
-import type { StatItem } from '../../shared/statsBarTypes'
+import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
 import type { CardFacetCell } from './facetSplit'

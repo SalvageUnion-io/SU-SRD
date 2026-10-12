@@ -3,9 +3,9 @@ paths:
   - 'apps/srd/scripts/og*'
   - 'apps/srd/src/lib/ogCard.ts'
   - 'apps/srd/src/components/islands/OgCardIsland.tsx'
-  - 'packages/component-lib/src/components/shared/OgCard*'
-  - 'packages/component-lib/src/components/shared/ogCardText.ts'
-  - 'packages/component-lib/src/components/chrome/ChapterBand*'
+  - 'packages/component-lib/src/components/compositions/OgCard*'
+  - 'packages/component-lib/src/components/compositions/ogCardText.ts'
+  - 'packages/component-lib/src/components/atoms/ChapterBand*'
 ---
 
 # srd social preview images (og:image)

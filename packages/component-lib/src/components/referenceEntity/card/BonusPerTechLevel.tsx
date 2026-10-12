@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { space } from '../../../design/tokens'
-import { Stat } from '../../shared/Stat'
+import { Stat } from '../../atoms/Stat'
 import type { BonusCell } from './cardCells'
 
 const STACK = { display: 'flex', flexDirection: 'column', gap: space[6] } satisfies CSSProperties

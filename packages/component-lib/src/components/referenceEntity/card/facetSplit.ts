@@ -2,7 +2,7 @@ import type { FacetCell, SURefEnumSchemaName } from 'salvageunion-reference'
 import { actionTypeStamps } from '../../../entity/parts/actionStamps'
 import type { TagItem } from '../../../entity/parts/tagItems'
 import { glossaryRef } from '../../../entity/parts/tagItems'
-import type { StatItem } from '../../shared/statsBarTypes'
+import type { StatItem } from '../../containers/statsBarTypes'
 
 /**
  * One facet of the card — an action's type, range or damage, a trait, a

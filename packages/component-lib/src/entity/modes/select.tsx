@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { Badge } from '../../components/chrome/Badge'
-import { activateOnKey, FOCUS_RING } from '../../components/chrome/interaction'
-import { RadioCard } from '../../components/chrome/RadioCardGroup'
+import { Badge } from '../../components/atoms/Badge'
+import { activateOnKey, FOCUS_RING } from '../../components/atoms/interaction'
+import { RadioCard } from '../../components/containers/RadioCardGroup'
 import type { EntityMode } from '../types'
 
 type SelectMode = Extract<EntityMode, { kind: 'select' }>
