@@ -53,13 +53,12 @@ Learned from shipped replies (#976, #977):
   posting to the channel is the owner's act. `sheetVisibility.test.ts` holds it.
 - A private roll re-renders publicly only from the result encoded in its
   button — never by re-rolling.
-- A roll is always a NEW message, never a redraw; only its roller can
-  re-roll (`encodeRollRequest`).
+- A roll is always a NEW message, never a redraw; only its roller re-rolls,
+  as private as the first roll (`encodeRollRequest`).
 
 ## Buttons are permanent
 
-Posted messages keep their buttons forever. Retiring an action (as `/su check`
-was) means `parseCustomId` rejects it and the router answers "no longer
+Posted messages keep their buttons forever. Retiring an action means `parseCustomId` rejects it and the router answers "no longer
 supported" ephemerally — `retiredCheckButtons.test.ts` pins that. Never reuse a
 retired `su:<action>` name for something new.
 
