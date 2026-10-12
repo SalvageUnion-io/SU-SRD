@@ -31,8 +31,11 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * stuck onto it.
  *
  * `aside` sits at the right of the same row, on the band, bottom-aligned with
- * the notch (an entity's type stamps, a sheet's Read | Edit). Below `sm` it
- * stacks above the notch, where the band has room for it.
+ * the notch (a sheet's Read | Edit). Below `sm` it stacks above the notch,
+ * where the band has room for it. `asideAt="notch"` instead sets it right
+ * beside the notch at every width, after the title in reading order as in the
+ * DOM (an entity's type stamps, refit B4); when a long name leaves no room
+ * there it wraps above the notch, which stays on the band's foot.
  *
  * ## Colour map
  *
@@ -81,6 +84,11 @@ export type ChapterBandProps = {
   layout?: 'bleed' | 'inset'
   /** Right-hand content on the band, bottom-aligned with the notch. */
   aside?: ReactNode
+  /**
+   * Where `aside` sits: `end` (default), at the band's far end from `sm` and
+   * above the notch on a phone; `notch`, beside the notch at every width.
+   */
+  asideAt?: 'end' | 'notch'
   /**
    * The inner row's max inline size — the width of the content column under
    * the band, so the notch starts where the text does. Unset, the row spans
@@ -179,6 +187,7 @@ export function ChapterBand({
   as: Tag = 'h1',
   layout = 'bleed',
   aside,
+  asideAt = 'end',
   measure,
   id,
   eyebrow,
@@ -199,6 +208,7 @@ export function ChapterBand({
       data-user-made={userMade || undefined}
       data-scale={scale === 'og' ? 'og' : undefined}
       data-layout={bleed ? 'bleed' : undefined}
+      data-aside={aside && asideAt === 'notch' ? 'notch' : undefined}
       style={{
         ...ROOT,
         ...(bleed ? {} : INSET),

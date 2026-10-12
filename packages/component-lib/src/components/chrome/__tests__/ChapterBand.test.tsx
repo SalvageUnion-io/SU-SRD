@@ -46,6 +46,28 @@ describe('ChapterBand', () => {
     expect(screen.getByText('Mech Chassis')).toBeTruthy()
   })
 
+  test('`asideAt="notch"` marks the band, with the title before the aside in the DOM', () => {
+    const { container } = render(
+      <ChapterBand tone="mech" asideAt="notch" aside={<span>Chassis</span>}>
+        Mule
+      </ChapterBand>
+    )
+    const band = container.firstElementChild as HTMLElement
+    expect(band.dataset.aside).toBe('notch')
+    const heading = screen.getByRole('heading', { name: 'Mule' })
+    const stamp = screen.getByText('Chassis')
+    expect(heading.compareDocumentPosition(stamp) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  test('the aside sits at the far end by default', () => {
+    const { container } = render(
+      <ChapterBand tone="mech" aside={<span>Chassis</span>}>
+        Mule
+      </ChapterBand>
+    )
+    expect((container.firstElementChild as HTMLElement).dataset.aside).toBeUndefined()
+  })
+
   test('a canon band is solid: no hatch, no dashed notch', () => {
     const { container } = render(<ChapterBand tone="mech">Gopher</ChapterBand>)
     const band = container.firstElementChild as HTMLElement

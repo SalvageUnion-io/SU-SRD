@@ -7,6 +7,7 @@ import { evaluate, formatFailures, increases, listFiles, ratchetCounts } from '.
 import { fontSizePx, scanTokenSources } from '../rules/designTokens'
 import { SRD_CSS_ENTRY, srdCss } from '../rules/srdCss'
 import { stylingOwnership } from '../rules/stylingOwnership'
+import { DATA_DIR, PENDING_TL_GROUNDS, toneGround } from '../rules/toneGround'
 
 /**
  * `tools/check-styling.ts` gates merges on three rule sets. These tests pin the
@@ -415,5 +416,63 @@ describe('srd-css rule set', () => {
     expect(found['lib-css-import']?.map((f) => f.file)).toEqual([
       'packages/component-lib/src/A.tsx',
     ])
+  })
+})
+
+describe('tone-ground rule set', () => {
+  const gear = (techLevel: number | string) => ({
+    id: `id-${techLevel}`,
+    name: `TL ${techLevel}`,
+    techLevel,
+  })
+  /** Every pending schema present and still on the ramp, so only the case under test fires. */
+  const pending = Object.fromEntries(
+    Object.keys(PENDING_TL_GROUNDS).map((schema) => [
+      `${DATA_DIR}/${schema}.json`,
+      JSON.stringify([gear(1)]),
+    ])
+  )
+
+  test('systems and modules paint no TL ground at any tech level', () => {
+    const root = fixture({
+      ...pending,
+      [`${DATA_DIR}/systems.json`]: JSON.stringify([gear(1), gear(6), gear('B'), gear('N')]),
+      [`${DATA_DIR}/modules.json`]: JSON.stringify([gear(3)]),
+    })
+    expect(toneGround.scan(root)['tl-ground']).toEqual([])
+  })
+
+  test('a schema off the pending list that paints a TL ground fails, on its entity line', () => {
+    const root = fixture({
+      ...pending,
+      // An unlisted schema with a tech level falls through to the ramp.
+      [`${DATA_DIR}/widgets.json`]: '[\n  {"id": "w1", "name": "Widget", "techLevel": 2}\n]',
+    })
+    expect(toneGround.scan(root)['tl-ground']).toEqual([
+      {
+        file: `${DATA_DIR}/widgets.json`,
+        line: 2,
+        detail: 'widgets "Widget" paints its header on --color-tl-2',
+      },
+    ])
+  })
+
+  test('a pending schema that no longer paints a TL ground fails as stale', () => {
+    const root = fixture({
+      ...pending,
+      [`${DATA_DIR}/drones.json`]: JSON.stringify([{ id: 'd', name: 'No TL' }]),
+    })
+    const found = toneGround.scan(root)['tl-ground'] ?? []
+    expect(found.map((f) => f.detail)).toEqual([
+      'PENDING_TL_GROUNDS.drones is stale: no drones header paints a TL ground now',
+    ])
+  })
+
+  test('an ink-banner entity is never toned', () => {
+    const root = fixture({
+      ...pending,
+      [`${DATA_DIR}/systems.json`]: JSON.stringify([{ ...gear(2), actionSource: 'x' }]),
+    })
+    expect(toneGround.scan(root)['tl-ground']).toEqual([])
   })
 })
