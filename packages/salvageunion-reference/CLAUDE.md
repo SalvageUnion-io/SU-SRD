@@ -13,8 +13,7 @@ package is the single source of truth for game data.
 
 ## Build & generated files
 
-The package ships TypeScript source — there is no compile step.
-`bun run build:package` (from the repo root) regenerates everything generated,
+No compile step: `bun run build:package` (from the repo root) regenerates everything generated,
 in order: `generate:registry` (`tools/generateRegistry.ts`), then
 `generate:json-schemas` (which imports the generated `zodSchemaMap`, so the
 registry must come first), then the docs generator.
@@ -36,10 +35,8 @@ CI) re-runs them and fails on any drift, including a new untracked file.
   `// GENERATED:BEGIN` / `// GENERATED:END` (the rest of the file is
   hand-written)
 
-Everything else in `lib/` is hand-written: `lib/schemas/` (Zod), `lib/index.ts`,
-`lib/BaseModel.ts`, `lib/ModelFactory.ts`, `lib/LazyModel.ts`, `lib/naming.ts`,
-`lib/search.ts`, `lib/helpers.ts`, `lib/slug.ts`. Import types from
-`lib/schemas/index.ts`.
+Everything else in `lib/` is hand-written (Zod in `lib/schemas/`, JSON in
+`data/`). Import types from `lib/schemas/index.ts`.
 
 ### The public barrels are explicit lists
 
@@ -53,11 +50,8 @@ code imports from the module that owns the function — `entityFields.ts`,
 To expose a new name, add it to the barrel's list in the same change as its
 first outside consumer.
 
-`lib/schemas/objects.ts` → `lib/schemas/objects/*.ts` is still a re-export
-barrel, one file per schema family (`primitives`, `content`, `tables`,
-`sources`, `contributions`, `effects`, `systemModule`, `choices`, `npc`,
-`patterns`, `actions`, `entityBase`, `references`, `crawlerMutations`,
-`guides`). Its re-export list is **explicit on purpose** — a submodule may
+`lib/schemas/objects.ts` is still a re-export barrel over
+`lib/schemas/objects/*.ts`, one file per schema family. Its list is **explicit on purpose** — a submodule may
 export a helper its siblings need without that helper joining the package's
 public surface.
 
@@ -97,30 +91,9 @@ case that needs a predicate (Biome's `noModelFindByKey` plugin,
 
 A ref an app stores (a mech's chassis, a crawler's bays, a pilot's abilities)
 is a slug, and only a slug: read it with `Model.getBySlug` or the `/rules`
-resolvers (`resolveChassisRef`, `resolveCrawlerBayRef`, …).
-
-## Package Structure
-
-- `lib/` - TypeScript source (hand-written except `lib/generated/`)
-- `lib/schemas/` - Zod schemas, plus `registry.ts`, the manifest that drives codegen
-- `data/` - JSON data files
-- `schemas/` - JSON Schema files (generated)
-- `tools/` - validation and generation scripts
-
-## Model Access Pattern
-
-```typescript
-import { SalvageUnionReference, type SURefChassis } from 'salvageunion-reference'
-
-// All models extend BaseModel<T>, created via ModelFactory.
-// Address an entity through an INDEX — see "Looking an entity up" above.
-const chassis = SalvageUnionReference.Chassis.getById('some-id')
-const ironMongrel = SalvageUnionReference.Chassis.getBySlug('iron-mongrel')
-const allWeapons = SalvageUnionReference.Equipment.all()
-```
-
-`find` / `findAll` remain the right tool for a genuine PREDICATE — a filter over
-some other field (`findAll((e) => e.techLevel === 3)`), not an identity lookup.
+resolvers (`resolveChassisRef`, `resolveCrawlerBayRef`, …). `find` / `findAll`
+remain the right tool for a genuine PREDICATE over some other field
+(`findAll((e) => e.techLevel === 3)`), not an identity lookup.
 
 ## Adding New Data
 
@@ -145,14 +118,8 @@ The `schemas/index.json` catalog entry is **generated** by
 Zod → `schemas/<id>.schema.json` → `schemas/index.json`. Only the `meta` flag is
 carried over from the existing entry.
 
-Everything else (ModelFactory's
-`dataLoaders` / `zodSchemaMap` / `schemaDisplayNames`,
-`index.ts`'s `LazyModel` instances / `lazyModelMap` / `SchemaToEntityMap` /
-`SCHEMA_REGISTRY`, the `SURef*` entity types and unions, and the
-`SalvageUnionReference` static accessors) is
-generated from that manifest by `tools/generateRegistry.ts` — run via
-`bun run build:package` (it runs before `generate:json-schemas`, since that
-tool transitively imports the generated `zodSchemaMap`).
+Everything else (the registries, `SURef*` types and unions, the static
+accessors) is generated from that manifest by `bun run build:package`.
 
 Run the scaffold generator to print an exact, ready-to-paste checklist for
 the manual steps plus the manifest entry, derived from the live registry —
@@ -165,15 +132,11 @@ bun --filter salvageunion-reference scaffold:entity <schema-id> [Singular] [Plur
 
 See the header of `tools/scaffold-entity.ts` for full usage.
 
-`LazyModel` is generated
-into the class body (not a runtime base class / mixin) specifically so every
-static property stays a true _own_ property of `SalvageUnionReference`, which
-`lib/index.test.ts` depends on via `Object.getOwnPropertyNames`.
-
-`lib/registryConsistency.test.ts` independently re-verifies that every
-generated registry still covers the same schema-id key set — it isn't
-weakened by this generator, it's a second, structurally-different check on
-the generator's output.
+`LazyModel` is generated into the class body, not a runtime base class or
+mixin, so every static stays an _own_ property of `SalvageUnionReference`
+(`lib/index.test.ts` relies on it). `lib/registryConsistency.test.ts` is an
+independent second check that every generated registry covers the same
+schema ids.
 
 ## Testing & validation
 
