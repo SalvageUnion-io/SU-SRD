@@ -4,6 +4,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouteErrorComponent } from './components/shared/RouteErrors'
 import { RouteNotFound, RoutePending } from './components/shared/RouteFallbacks'
+import { deleteLegacyCache } from './lib/legacyCache'
 import {
   initBrowserObservability,
   installChunkRecovery,
@@ -44,6 +45,10 @@ void initBrowserObservability()
 // whose build no longer exists on the server — can be thrown by the very first
 // route the router resolves. See `installChunkRecovery` in observability/browser.
 installChunkRecovery()
+
+// D9 removed the device cache; a browser that ran an older build still holds
+// the last account's roster in IndexedDB. Delete it (lib/legacyCache.ts).
+deleteLegacyCache(typeof indexedDB === 'undefined' ? undefined : indexedDB)
 
 // Until `ConnectionProvider` reports, nobody knows yet whether there is a
 // session, so the stores treat the account's rows as on their way: a route
