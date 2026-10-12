@@ -24,7 +24,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need
 - Reuse shared components (`ReferenceEntityCard`, `Card`, …) before building one-off UI; check `component-lib` first.
 - Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `bun run shot <story-id|/route> --width phone|column|page [--dark]` prints PNGs to Read (ITUN: its stories). Prefer simple, well-understood CSS.
 - Default to compact, header-only, clickable listings for entity lists; never render nested entities as separate grids — render them inside the parent's expanded/modal view. Ask if unsure how much detail to show.
-- Styling is migrating off Tailwind ([plan](docs/design-system/tailwind-removal.md)); `bun run check styling` fails a change that raises the count of files carrying a Tailwind utility (a heuristic scan: class-list contexts plus class strings in constants and maps — not proof of absence; the plan's P6 exit adds the built-CSS check) or adds a `.pc-*` class.
+- Styling is migrating off Tailwind ([plan](docs/design-system/tailwind-removal.md)); `bun run check styling` fails a change that raises the count of files carrying a Tailwind utility (a heuristic scan: class-list contexts plus class strings in constants and maps — not proof of absence; TW6's exit adds the built-CSS check) or adds a `.pc-*` class.
 
 ## Build & Validation
 
@@ -117,6 +117,6 @@ The registry — ids, deployments, dashboards, how each server authenticates —
 
 ## Merging
 
-`main` requires linear history and status checks; there is **no merge queue**. Merge with `gh pr merge <pr> --squash` (or `--auto --squash`). The squash body is the PR body (repo setting `PR_BODY`); `git log --format='%h %s%n%b'` is the decision record.
+`main` requires linear history and status checks; **no merge queue**. Squash-merge: locally `gh pr merge <pr> --squash` (`--auto` too); in cloud, see [cloud sessions](docs/ARCHITECTURE.md#areas). The squash body is the PR body (`PR_BODY`); `git log --format='%h %s%n%b'` is the decision record.
 
-Dependent PRs land only as a `gh stack`: `submit --auto --open`, then `merge --squash`. After a merge beneath you, `gh stack sync`; never a hand rebase or `--force`. Stack state is per worktree (`gh stack checkout <pr|branch>` re-attaches; `init` needs its branch argument).
+Dependent PRs land only as a `gh stack`, local-only: `submit --auto --open`, then `merge --squash`; after a merge beneath you, `gh stack sync`. Never a hand rebase or `--force`. Stack state is per worktree (`gh stack checkout <pr>`).

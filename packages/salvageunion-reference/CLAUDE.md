@@ -121,16 +121,7 @@ carried over from the existing entry.
 Everything else (the registries, `SURef*` types and unions, the static
 accessors) is generated from that manifest by `bun run build:package`.
 
-Run the scaffold generator to print an exact, ready-to-paste checklist for
-the manual steps plus the manifest entry, derived from the live registry —
-it does not edit files, it tells you precisely what to add and where:
-
-```bash
-bun --filter salvageunion-reference scaffold:entity <schema-id> [Singular] [Plural] [--non-entity]
-# e.g. … scaffold:entity power-cores "Power Core" "Power Cores"
-```
-
-See the header of `tools/scaffold-entity.ts` for full usage.
+The step-by-step checklist is `.claude/rules/reference-new-schema.md`.
 
 `LazyModel` is generated into the class body, not a runtime base class or
 mixin, so every static stays an _own_ property of `SalvageUnionReference`
