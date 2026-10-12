@@ -1350,6 +1350,13 @@
   padding: 0;
 }
 
+/* Search's grid mixes kinds (a roll table beside a chassis), so its rows are
+   each line's own height: Rows still match across a line, but a lone row on a
+   phone is never stretched to the tallest hit's height. */
+.srd-listing__cards[data-mixed] {
+  grid-auto-rows: auto;
+}
+
 .srd-listing__fallback-row {
   align-items: center;
   background-color: var(--color-paper);
@@ -1395,6 +1402,30 @@
   flex: 1 1 16rem;
   max-width: 22rem;
   min-height: 44px;
+}
+
+.srd-rail form.srd-rail__search {
+  display: flex;
+}
+
+/* The search page's field fills its form, at the rail's 44px. */
+.srd-rail__search > .srd-rail__field {
+  flex: 1 1 auto;
+  min-height: 44px;
+}
+
+/* The field's clear button, in ink like the rest of the rail (the browser's
+   own is a blue glyph). */
+.srd-rail input[type='search']::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: var(--color-ink);
+  cursor: pointer;
+  height: 14px;
+  mask:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'><path d='M6 6l12 12M18 6L6 18'/></svg>")
+    center / contain no-repeat;
+  width: 14px;
 }
 
 .srd-rail__spring {
