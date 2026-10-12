@@ -126,6 +126,105 @@ const ACTIVE_SEGMENT = {
 
 const BAR_HEIGHT_PX = 58
 
+const ROOT = { background: 'var(--color-wk-bg)', minHeight: '100vh' } satisfies CSSProperties
+
+/** The sticky bar. Its gutter (`.su-sheet-gutter`) widens at sm. */
+const BAR = {
+  alignItems: 'center',
+  background: 'var(--color-wk-bg)',
+  columnGap: tokens.space[16],
+  display: 'flex',
+  flexWrap: 'wrap',
+  minHeight: `${BAR_HEIGHT_PX}px`,
+  paddingBlock: tokens.space[8],
+  position: 'sticky',
+  rowGap: tokens.space[4],
+  top: 0,
+  transitionDuration: '150ms',
+  transitionProperty: 'border-color, box-shadow',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  zIndex: 40,
+} satisfies CSSProperties
+
+/** Scrolled past the sentinel: the bar seams (rule + drop shadow). */
+const BAR_SEAMED = {
+  ...BAR,
+  borderBottom: `${tokens.borderWidth.pill} solid ${tokens.color.ink}`,
+  boxShadow: '0 2px 0 var(--color-ink), 0 14px 20px -18px var(--color-ink-50)',
+} satisfies CSSProperties
+
+const BAR_AT_REST = {
+  ...BAR,
+  borderBottom: `${tokens.borderWidth.pill} solid transparent`,
+} satisfies CSSProperties
+
+const STRIP = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+  minWidth: 0,
+  transitionDuration: '150ms',
+  transitionProperty: 'opacity, transform',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+} satisfies CSSProperties
+
+const STRIP_SHOWN = { ...STRIP, opacity: 1, translate: '0 0' } satisfies CSSProperties
+
+// At rest it is out of the flow as well as invisible: an invisible strip
+// still took the bar's first row on a phone and pushed Share and ⋯ onto a
+// row of their own.
+const STRIP_HIDDEN = {
+  ...STRIP,
+  opacity: 0,
+  pointerEvents: 'none',
+  position: 'absolute',
+  translate: '0 5px',
+  visibility: 'hidden',
+} satisfies CSSProperties
+
+const NAME_STAMP = {
+  display: 'block',
+  maxWidth: '100%',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+const BAR_END = {
+  alignItems: 'center',
+  display: 'flex',
+  flexShrink: 0,
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+  marginLeft: 'auto',
+} satisfies CSSProperties
+
+const BAR_ACTIONS = {
+  alignItems: 'center',
+  display: 'flex',
+  flexShrink: 0,
+  gap: tokens.space[10],
+} satisfies CSSProperties
+
+const LINK = { textDecoration: 'none' } satisfies CSSProperties
+
+const ICON = { height: '18px', width: '18px' } satisfies CSSProperties
+
+/** The phone switch row; its `display` (phones only) is `.su-sheet-live-segments`. */
+const SEGMENTS = {
+  gap: tokens.space[8],
+  order: 9999,
+  paddingBottom: tokens.space[4],
+  width: '100%',
+} satisfies CSSProperties
+
+const SEGMENT = { flex: '1 1 0%', textDecoration: 'none' } satisfies CSSProperties
+
+const SENTINEL = { height: '1px', width: '100%' } satisfies CSSProperties
+
+const BODY_FRAME = { position: 'relative' } satisfies CSSProperties
+
 /**
  * True once `target` has scrolled behind the sticky bar. Plain threshold
  * observer per S11; environments without IntersectionObserver (happy-dom,
@@ -178,11 +277,7 @@ export function LiveSheet({
   }))
 
   return (
-    <div
-      className={cn(`sheet--${variant}`, 'min-h-screen', className)}
-      style={{ background: 'var(--color-wk-bg)' }}
-      data-variant={variant}
-    >
+    <div className={cn(`sheet--${variant}`, className)} style={ROOT} data-variant={variant}>
       {/* Top bar — <header> is a print-stylesheet target (nav-hide rule).
           Always present (its back/share/overflow controls are always wanted),
           but UNSEAMED at rest: no bottom border while the sheet's own identity
@@ -198,15 +293,7 @@ export function LiveSheet({
           mech or pilot tone over paper made a pale blue-grey or pink bar that
           sat off the closed palette (ruleset §4.1). The entity's tone stays in
           the hero below. */}
-      <header
-        className={cn(
-          'sticky top-0 z-40 flex min-h-[58px] flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 transition-[border-color,box-shadow] duration-150 sm:px-[30px]',
-          condensed
-            ? 'border-b-2 border-ink shadow-[0_2px_0_var(--color-ink),0_14px_20px_-18px_var(--color-ink-50)]'
-            : 'border-b-2 border-transparent'
-        )}
-        style={{ background: 'var(--color-wk-bg)' }}
-      >
+      <header className="su-sheet-gutter" style={condensed ? BAR_SEAMED : BAR_AT_REST}>
         {back && (
           <>
             {/* Back — a bordered 38px icon button (poster `.iconbtn`), icon
@@ -214,9 +301,10 @@ export function LiveSheet({
             <AppLink
               href={back.href}
               aria-label={`Back to ${back.label.toLowerCase()}`}
-              className={cn(SHEET_ICONBTN_CLASS, 'no-underline')}
+              className={SHEET_ICONBTN_CLASS}
+              style={LINK}
             >
-              <ArrowLeft className="size-[18px]" aria-hidden="true" />
+              <ArrowLeft style={ICON} aria-hidden="true" />
             </AppLink>
           </>
         )}
@@ -230,22 +318,14 @@ export function LiveSheet({
           <div
             data-sheet-strip=""
             aria-hidden={!condensed}
-            className={cn(
-              'flex min-w-0 flex-wrap items-center gap-2 transition-[opacity,transform] duration-150',
-              // At rest it is out of the flow as well as invisible: an
-              // invisible strip still took the bar's first row on a phone and
-              // pushed Share and ⋯ onto a row of their own.
-              condensed
-                ? 'translate-y-0 opacity-100'
-                : 'pointer-events-none invisible absolute translate-y-[5px] opacity-0'
-            )}
+            style={condensed ? STRIP_SHOWN : STRIP_HIDDEN}
           >
             {/* The contents mount only while condensed: an invisible copy of
                 the name ahead of the hero h1 was the first match for a text
                 query, and a hidden duplicate is noise to every reader. */}
             {condensed && (
               <>
-                <Badge shape="stamp" size="full" className="block max-w-full truncate">
+                <Badge shape="stamp" size="full" style={NAME_STAMP}>
                   {name}
                 </Badge>
                 {stripItems.map((item) => (
@@ -256,7 +336,9 @@ export function LiveSheet({
                     value={item.max !== undefined ? `${item.value}/${item.max}` : item.value}
                     // U-5: non-priority readouts fold below sm so the condensed
                     // bar leads with Heat + SP on phones.
-                    className={item.mobilePriority === false ? 'hidden sm:inline-flex' : undefined}
+                    className={
+                      item.mobilePriority === false ? 'su-sheet-live-stat-fold' : undefined
+                    }
                   />
                 ))}
               </>
@@ -272,7 +354,7 @@ export function LiveSheet({
 
             `segments` already carries the wired set (it drives the mobile
             switcher below); the active one is this sheet, so it is skipped. */}
-        <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
+        <div style={BAR_END}>
           {condensed &&
             segments
               ?.filter((segment) => !segment.active)
@@ -280,7 +362,7 @@ export function LiveSheet({
                 <AppLink
                   key={segment.key}
                   href={segment.href}
-                  className="no-underline"
+                  style={LINK}
                   aria-label={`Open the wired ${segment.label.toLowerCase()}`}
                 >
                   {/* Tinted with the TARGET's ontology tone, not the current
@@ -293,7 +375,7 @@ export function LiveSheet({
                   </Badge>
                 </AppLink>
               ))}
-          <div className="flex shrink-0 items-center gap-2.5">{actions}</div>
+          <div style={BAR_ACTIONS}>{actions}</div>
         </div>
 
         {/* Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — full-width
@@ -302,20 +384,14 @@ export function LiveSheet({
             here-state is ink);
             the others navigate to their wired counterpart's sheet. */}
         {segments && segments.length > 1 && (
-          <nav
-            aria-label="Wired sheets"
-            className="order-last flex w-full gap-2 pb-1 sm:hidden print:hidden"
-          >
+          <nav aria-label="Wired sheets" className="su-sheet-live-segments" style={SEGMENTS}>
             {segments.map((segment) =>
               segment.active ? (
                 <span
                   key={segment.key}
                   aria-current="page"
-                  className={cn(
-                    buttonVariants({ variant: 'default', size: 'compact' }),
-                    'flex-1 no-underline'
-                  )}
-                  style={ACTIVE_SEGMENT}
+                  className={buttonVariants({ variant: 'default', size: 'compact' })}
+                  style={{ ...SEGMENT, ...ACTIVE_SEGMENT }}
                 >
                   {segment.label}
                 </span>
@@ -323,10 +399,8 @@ export function LiveSheet({
                 <AppLink
                   key={segment.key}
                   href={segment.href}
-                  className={cn(
-                    buttonVariants({ variant: 'default', size: 'compact' }),
-                    'flex-1 no-underline'
-                  )}
+                  className={buttonVariants({ variant: 'default', size: 'compact' })}
+                  style={SEGMENT}
                 >
                   {segment.label}
                 </AppLink>
@@ -338,7 +412,7 @@ export function LiveSheet({
 
       {/* Condense sentinel — the moment this scrolls under the sticky bar, the
           bar seams (border + shadow) and fills (name + vitals). */}
-      <div ref={topRef} aria-hidden="true" className="h-px w-full" />
+      <div ref={topRef} aria-hidden="true" style={SENTINEL} />
 
       {/* The chapter band (board 10): the sheet's one h1, notched into a band
           in its own tone with the speckle behind it; the type stamps and where
@@ -368,8 +442,8 @@ export function LiveSheet({
 
       {/* Body slabs. The body owns the hero, so it takes the hero's top
           padding. */}
-      <div className="relative">
-        <div className="px-4 pb-[34px] pt-4 sm:px-[30px] sm:pb-[60px] sm:pt-[22px]">
+      <div style={BODY_FRAME}>
+        <div className="su-sheet-live-body">
           {/* No "View in SRD →" on a sheet. The app-wide builder is provided at
               the root (GameDataReady), and every full entity card renders it in
               its foot band — which on a sheet is EVERY installed system, module

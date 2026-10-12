@@ -1,5 +1,7 @@
-import { Stat } from 'component-lib'
+import '../../styles/sheet.css'
+import { Stat, tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ConditionsEditor } from './ConditionsEditor'
@@ -9,6 +11,14 @@ import { SheetHero } from './SheetHero'
 export default {
   title: 'Compositions/Sheet Presentation',
 }
+
+const FRAME = {
+  backgroundColor: tokens.color.paper,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[40],
+  padding: tokens.space[16],
+} satisfies CSSProperties
 
 // Real SRD data — a mech sheet's hero is driven by a chassis.
 const chassis = SalvageUnionReference.Chassis.all()[0]
@@ -22,7 +32,7 @@ export const Default = () => {
   const [conditions, setConditions] = useState<string[]>(['Impaired'])
 
   return (
-    <div className="sheet--mech flex flex-col gap-10 bg-paper p-4">
+    <div className="sheet--mech" style={FRAME}>
       <div>
         <Caption>SheetHero — the poster identity band</Caption>
         <SheetHero

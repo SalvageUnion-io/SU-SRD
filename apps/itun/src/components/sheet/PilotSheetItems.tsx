@@ -69,6 +69,83 @@ const ABILITY_ACTIONS = {
   paddingTop: tokens.space[8],
 } satisfies CSSProperties
 
+const ROW_TEXT = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+} satisfies CSSProperties
+
+const TRUNCATE = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+/** An unresolved equipment slug: still shown, muted. */
+const UNRESOLVED_SLUG = {
+  ...ROW_TEXT,
+  ...TRUNCATE,
+  color: tokens.color.wkMuted,
+  flex: '1 1 0%',
+  minWidth: 0,
+} satisfies CSSProperties
+
+const ENTRY_TEXT = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
+
+const ENTRY_NAME = {
+  ...ROW_TEXT,
+  ...TRUNCATE,
+  color: tokens.color.ink,
+  fontWeight: tokens.weight.medium,
+} satisfies CSSProperties
+
+const ENTRY_QTY = {
+  color: tokens.color.wkMuted,
+  marginLeft: tokens.space[4],
+} satisfies CSSProperties
+
+const ENTRY_NOTE = {
+  ...TRUNCATE,
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+} satisfies CSSProperties
+
+const ADDER = {
+  alignItems: 'center',
+  border: `${tokens.borderWidth.chrome} dashed ${tokens.color.wkFaint}`,
+  borderRadius: tokens.radius.card,
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+  padding: tokens.space[10],
+} satisfies CSSProperties
+
+/** The adder's inputs, a rung smaller than the `Input` skin. */
+const COMPACT_INPUT = {
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+  paddingBlock: tokens.space[6],
+  paddingInline: tokens.space[8],
+} satisfies CSSProperties
+
+const NAME_INPUT = { ...COMPACT_INPUT, flex: '1 1 0%', width: '9rem' } satisfies CSSProperties
+
+const NUMBER_INPUT = { ...COMPACT_INPUT, width: '3.5rem' } satisfies CSSProperties
+
+const ADDER_LABEL = {
+  alignItems: 'center',
+  color: tokens.color.wkMuted,
+  display: 'flex',
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  gap: tokens.space[4],
+  letterSpacing: '0.025em',
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
 /** Per-item condition cycle (design §4.5: Intact → Damaged → Destroyed → Intact). */
 const CONDITION_CYCLE: Record<ItemCondition, ItemCondition> = {
   intact: 'damaged',
@@ -234,8 +311,8 @@ export function PilotEquipmentItem({
   if (!equipment) {
     // Unresolved slug — still shown, still counted (1 slot), still toggleable.
     return (
-      <Panel className="flex items-center gap-3 px-3 py-2.5">
-        <span className="min-w-0 flex-1 truncate font-body text-sm text-wk-muted">{slug}</span>
+      <Panel className="su-sheet-pilot-panel-row">
+        <span style={UNRESOLVED_SLUG}>{slug}</span>
         <Stat orientation="horizontal" label="Slots" value={1} />
         <StatusBadge
           status={condition}
@@ -360,13 +437,13 @@ type GenericEntryCardProps = {
 export function GenericEntryCard({ entry, onRemove }: GenericEntryCardProps) {
   const qty = entry.qty ?? 1
   return (
-    <Panel className="flex items-center gap-3 px-3 py-2.5">
-      <div className="min-w-0 flex-1">
-        <div className="truncate font-body text-sm font-medium text-ink">
+    <Panel className="su-sheet-pilot-panel-row">
+      <div style={ENTRY_TEXT}>
+        <div style={ENTRY_NAME}>
           {entry.name}
-          {qty > 1 && <span className="ml-1 text-wk-muted">×{qty}</span>}
+          {qty > 1 && <span style={ENTRY_QTY}>×{qty}</span>}
         </div>
-        {entry.note && <div className="truncate font-body text-xs text-wk-muted">{entry.note}</div>}
+        {entry.note && <div style={ENTRY_NOTE}>{entry.note}</div>}
       </div>
       <Stat orientation="horizontal" label="Slots" value={genericEntrySlots(entry)} />
       {onRemove && (
@@ -411,10 +488,8 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
     setQty(1)
   }
 
-  const compactInput = 'px-2 py-1.5 text-xs'
-
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-card border-chrome border-dashed border-wk-faint p-2.5">
+    <div style={ADDER}>
       <Button
         size="compact"
         aria-label="Add Scrap (3 slots)"
@@ -430,12 +505,9 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
         aria-label="New item name"
         placeholder="Item name"
         onChange={(e) => setName(e.target.value)}
-        className={`${compactInput} w-36 flex-1`}
+        style={NAME_INPUT}
       />
-      <label
-        htmlFor="new-item-slots"
-        className="flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-wide text-wk-muted"
-      >
+      <label htmlFor="new-item-slots" style={ADDER_LABEL}>
         Slots
         <Input
           id="new-item-slots"
@@ -445,13 +517,10 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           value={slots}
           aria-label="New item slot cost"
           onChange={(e) => setSlots(Number(e.target.value))}
-          className={`${compactInput} w-14`}
+          style={NUMBER_INPUT}
         />
       </label>
-      <label
-        htmlFor="new-item-qty"
-        className="flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-wide text-wk-muted"
-      >
+      <label htmlFor="new-item-qty" style={ADDER_LABEL}>
         Qty
         <Input
           id="new-item-qty"
@@ -461,7 +530,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           value={qty}
           aria-label="New item quantity"
           onChange={(e) => setQty(Math.max(1, Number(e.target.value)))}
-          className={`${compactInput} w-14`}
+          style={NUMBER_INPUT}
         />
       </label>
       <Button

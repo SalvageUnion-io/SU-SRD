@@ -1,0 +1,153 @@
+/* The mech sheet group's rules (TW-d): only what a style object cannot express. */
+
+/* ---- Shared sheet chrome (LiveSheet, Sheet, sheetChrome, SheetRailParts) ---- */
+
+/* `SHEET_ICONBTN_CLASS`'s square geometry over `buttonVariants`: a class
+   because the export is a class string (sheetChrome.ts). */
+.su-sheet-iconbtn {
+  flex-shrink: 0;
+  height: 38px;
+  padding: 0;
+  width: 38px;
+}
+
+/* A rail slot's share of the Linked Units row. `EntityRow` takes a className
+   and no style, so the static `flex` rides a class. */
+.su-sheet-rail-slot {
+  flex: 1 1 0%;
+}
+
+/* The sheet's page gutter — the sticky bar and the read-only crew banner. */
+.su-sheet-gutter {
+  padding-inline: var(--space-16);
+}
+
+/* The body column under the chapter band. */
+.su-sheet-live-body {
+  padding: var(--space-16) var(--space-16) 34px;
+}
+
+@media (width >= 40rem) {
+  .su-sheet-gutter {
+    padding-inline: 30px;
+  }
+
+  .su-sheet-live-body {
+    padding: 22px 30px 60px;
+  }
+}
+
+/* A condensed-bar readout that folds below sm (U-5: Heat + SP lead on phones). */
+.su-sheet-live-stat-fold {
+  display: none;
+}
+
+@media (width >= 40rem) {
+  .su-sheet-live-stat-fold {
+    display: inline-flex;
+  }
+}
+
+/* The phone's Pilot/Mech/Crawler switch: phones only, never on paper. */
+.su-sheet-live-segments {
+  display: flex;
+}
+
+@media (width >= 40rem) {
+  .su-sheet-live-segments {
+    display: none;
+  }
+}
+
+@media print {
+  .su-sheet-live-segments {
+    display: none;
+  }
+}
+
+/* Share in the bar: a 44px touch target on phones, the compact 36px from sm. */
+.su-sheet-share {
+  min-height: 2.75rem;
+}
+
+@media (width >= 40rem) {
+  .su-sheet-share {
+    min-height: 2.25rem;
+  }
+}
+
+/* ---- SheetHero ---- */
+
+/* Fields beside a 260px vitals column once the SHEET (its `@container`) is
+   wide enough; stacked below that. */
+.su-sheet-hero {
+  gap: 22px;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@container (width >= 48rem) {
+  .su-sheet-hero {
+    gap: var(--space-24);
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+}
+
+/* The fields card and its body: `SheetSectionCard` takes classes, no style. */
+.su-sheet-hero-fields {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.su-sheet-hero-fields-body {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ---- MechSheet ---- */
+
+/* The vitals stack: a dashed deep-tone rule between each gauge. */
+.su-sheet-mech-vitals > * + * {
+  border-color: color-mix(in srgb, var(--tone-deep) 40%, transparent);
+  border-style: dashed;
+  border-top-width: 1px;
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+/* Appearance takes the identity card's remaining height (`Field` takes a
+   className, no style). */
+.su-sheet-mech-fill {
+  flex: 1 1 0%;
+}
+
+/* Linked Units: stacked, side by side once the sheet is wide enough. */
+.su-sheet-mech-linked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+@container (width >= 48rem) {
+  .su-sheet-mech-linked {
+    flex-direction: row;
+  }
+}
+
+/* The repair confirm's width cap (`ModalShell`'s `maxWidth` is a class). */
+.su-sheet-mech-repair-modal {
+  max-width: 24rem;
+}
+
+/* MechIdentity: Chassis + Quirk share a row from sm. */
+.su-sheet-mech-chassis-row {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (width >= 40rem) {
+  .su-sheet-mech-chassis-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

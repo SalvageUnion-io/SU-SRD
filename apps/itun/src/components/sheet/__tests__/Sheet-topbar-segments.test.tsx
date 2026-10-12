@@ -161,8 +161,8 @@ describe('Sheet — mobile segment switch', () => {
     )
     const nav = screen.getByRole('navigation', { name: /wired sheets/i })
     expect(nav).toBeTruthy()
-    // mobile-only row, stitched into the sticky bar
-    expect(nav.className).toContain('sm:hidden')
+    // mobile-only row, stitched into the sticky bar (`display: none` from sm)
+    expect(nav.className).toContain('su-sheet-live-segments')
 
     // Active segment = the viewed kind: an INK plate, never the rust primary
     // (a here-state is ink), with aria-current, and not a link.

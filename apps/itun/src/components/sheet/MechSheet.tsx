@@ -61,9 +61,10 @@ import {
   MasonryColumns,
   ReferenceEntityCard,
   SheetSectionSlab,
+  tokens,
   VitalGauge,
 } from 'component-lib'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
@@ -86,6 +87,75 @@ import { PartnerCard } from './PartnerCard'
 import { SheetHero } from './SheetHero'
 import { SectionManageButton, SheetPickerModal } from './SheetSection'
 import { StorageManifest } from './StorageManifest'
+
+const EMPTY = {
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.caption,
+} satisfies CSSProperties
+
+/** The sheet column: an inline-size container (the poster regions query it). */
+const SHEET = {
+  containerType: 'inline-size',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[24],
+} satisfies CSSProperties
+
+/** Visually hidden, still read (Tailwind's `sr-only`). */
+const SR_ONLY = {
+  borderWidth: 0,
+  clip: 'rect(0, 0, 0, 0)',
+  height: '1px',
+  margin: '-1px',
+  overflow: 'hidden',
+  padding: 0,
+  position: 'absolute',
+  whiteSpace: 'nowrap',
+  width: '1px',
+} satisfies CSSProperties
+
+const FIELDS = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+  height: '100%',
+  minWidth: 0,
+} satisfies CSSProperties
+
+const ABILITIES = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+  minWidth: 0,
+} satisfies CSSProperties
+
+/** The gauge stack; the dashed rule between gauges is `.su-sheet-mech-vitals`. */
+const VITALS = { display: 'flex', flexDirection: 'column', width: '100%' } satisfies CSSProperties
+
+const CONDITIONS = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
+  width: '100%',
+} satisfies CSSProperties
+
+const CONDITIONS_LABEL = {
+  color: 'var(--tone-deep, var(--color-ink))',
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  letterSpacing: tokens.tracking.caps,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const COUNT = { fontVariantNumeric: 'tabular-nums' } satisfies CSSProperties
+
+const PARTNERS = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
 
 type MechSheetProps = {
   mech: Mech
@@ -167,9 +237,7 @@ export function MechSheet({
     const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
     if (slugs.length === 0) {
       return (
-        <p className="font-body text-caption text-wk-muted">
-          {kind === 'system' ? 'No systems installed.' : 'No modules installed.'}
-        </p>
+        <p style={EMPTY}>{kind === 'system' ? 'No systems installed.' : 'No modules installed.'}</p>
       )
     }
     // Keyed by occurrence, not index: removing one item must not remount (and
@@ -216,10 +284,11 @@ export function MechSheet({
       // `.sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
       // width, not the viewport.
-      className="sheet-section @container flex flex-col gap-6"
+      className="sheet-section"
+      style={SHEET}
     >
       {/* The hero already shows the name — this heading is for a11y/print. */}
-      <h2 id="mech-sheet-heading" className="sr-only">
+      <h2 id="mech-sheet-heading" style={SR_ONLY}>
         {mech.name}
       </h2>
 
@@ -239,7 +308,7 @@ export function MechSheet({
         // ability, its quirk. "Identity" named the shape, not the subject.
         fieldsTitle="Chassis"
         fields={
-          <div className="flex h-full min-w-0 flex-col gap-4">
+          <div style={FIELDS}>
             <MechIdentityPanel
               mech={mech}
               chassisName={model.chassisName}
@@ -263,7 +332,7 @@ export function MechSheet({
                 // choose here, so a fold would hide the one thing that
                 // distinguishes this chassis from another.
                 model.chassisAbilities.length > 0 ? (
-                  <div className="flex min-w-0 flex-col gap-4">
+                  <div style={ABILITIES}>
                     {model.chassisAbilities.map((ability, i) => {
                       // Activating an ability (spending its EP) is a Guided-Play
                       // transaction — it lives on the Dashboard, not the
@@ -321,12 +390,12 @@ export function MechSheet({
               fill
               onSave={readOnly ? undefined : actions.saveAppearance}
               placeholder="No appearance recorded."
-              className="flex-1"
+              className="su-sheet-mech-fill"
             />
           </div>
         }
         vitals={
-          <div className="flex w-full flex-col [&>*+*]:mt-[14px] [&>*+*]:border-t [&>*+*]:border-dashed [&>*+*]:border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] [&>*+*]:pt-[14px]">
+          <div className="su-sheet-mech-vitals" style={VITALS}>
             <VitalGauge
               label="SP"
               subLabel="Structure"
@@ -384,13 +453,8 @@ export function MechSheet({
             {/* Read leaves an empty field out and draws no control: Conditions
                 prints as chips only when there is one to read. */}
             {(!readOnly || readConditions.length > 0) && (
-              <div className="flex w-full flex-col gap-2">
-                <span
-                  className="font-cond text-badge font-bold uppercase tracking-caps"
-                  style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-                >
-                  Conditions
-                </span>
+              <div style={CONDITIONS}>
+                <span style={CONDITIONS_LABEL}>Conditions</span>
                 {readOnly ? (
                   <Conditions conditions={readConditions} />
                 ) : (
@@ -409,7 +473,7 @@ export function MechSheet({
       <SheetSectionSlab
         title="The Hold"
         count={
-          <span className="tabular-nums">
+          <span style={COUNT}>
             {cargo.usage.used}/{cargo.usage.cap} slots
           </span>
         }
@@ -429,7 +493,7 @@ export function MechSheet({
       <SheetSectionSlab
         title="Systems"
         count={
-          <span className="tabular-nums">
+          <span style={COUNT}>
             {capacity.systemSlotsUsed}/{capacity.systemSlotsMax} slots
           </span>
         }
@@ -445,7 +509,7 @@ export function MechSheet({
       <SheetSectionSlab
         title="Modules"
         count={
-          <span className="tabular-nums">
+          <span style={COUNT}>
             {capacity.moduleSlotsUsed}/{capacity.moduleSlotsMax} slots
           </span>
         }
@@ -467,7 +531,7 @@ export function MechSheet({
           Union Crawler, unlike a pilot's ability-granted partners. ===== */}
       {(mech.partners ?? []).length > 0 && (
         <SheetSectionSlab title="Partners">
-          <div className="flex flex-col gap-3">
+          <div style={PARTNERS}>
             {(mech.partners ?? []).map((partner) => (
               <PartnerCard
                 key={partner.id}
@@ -489,7 +553,7 @@ export function MechSheet({
           title="Linked Units"
           // Side by side: each linked unit is one roster row, and two of them
           // stack to a wasteful column on a sheet that has the width for both.
-          bodyClassName="flex flex-col gap-4 @3xl:flex-row"
+          bodyClassName="su-sheet-mech-linked"
         >
           {linkedUnits}
         </SheetSectionSlab>

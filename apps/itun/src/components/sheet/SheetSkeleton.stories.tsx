@@ -1,3 +1,5 @@
+import '../../styles/sheet.css'
+import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
 import { SheetSkeleton } from './SheetSkeleton'
 
@@ -7,7 +9,7 @@ export default {
 
 /** Live-sheet loading placeholder — shown while IndexedDB hydrates. */
 export const Default = () => (
-  <div className="bg-paper p-4">
+  <div style={{ backgroundColor: tokens.color.paper, padding: tokens.space[16] }}>
     <Caption>SheetSkeleton</Caption>
     <SheetSkeleton />
   </div>
