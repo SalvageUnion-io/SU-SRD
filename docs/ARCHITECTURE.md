@@ -32,6 +32,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Imports `itun-domain/botWire` as a type only: changing it is a cross-package change.
 9. **itun-domain**
    Zod schemas, link/crew/downtime rules and bot wire types for ITUN, Convex and the bot; import by subpath.
+   Rules: pure → reference `lib/rules`; shared → here; client → `apps/itun/src/lib/rules`; `check rules-home` bars Convex→`src/`.
 10. **Data flow and connection modes**
     Records store slug refs, resolved at render; ITUN preloads once in `GameDataReady.tsx`.
     `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).

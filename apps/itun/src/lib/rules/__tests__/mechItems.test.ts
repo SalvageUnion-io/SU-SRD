@@ -1,5 +1,5 @@
 /**
- * mechItemRules — pure helper tests (plan 4.5, S12).
+ * mechItems — pure helper tests (plan 4.5, S12).
  *
  * itemEconomy mines EP cost / Hot heat / Uses from real reference data;
  * repairScrapCost is half SV rounded DOWN (min 1, Core Book p.233); repairPoolTl finds the
@@ -9,7 +9,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { must } from '../../__tests__/must'
+import { must } from '../../../components/__tests__/must'
 import {
   cycleCondition,
   itemEconomy,
@@ -18,7 +18,7 @@ import {
   repairScrapCost,
   resolveModule,
   resolveSystem,
-} from '../mechItemRules'
+} from '../mechItems'
 
 describe('itemEconomy', () => {
   test('Smoke Machine: EP cost 2, no heat, no uses', () => {

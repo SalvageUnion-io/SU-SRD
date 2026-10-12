@@ -1,4 +1,4 @@
-import type { Roll } from 'salvageunion-reference/rules'
+import type { Roll } from './types'
 /**
  * Area Salvage rules (design-review R-3).
  *

@@ -97,6 +97,8 @@ export {
   resolveSystemRef,
 } from './resolveRefs'
 export { statesMechanicalChange } from './rulesBearing'
+export type { AreaSalvageResult } from './salvage'
+export { performAreaSalvage } from './salvage'
 export { scrapCostFor, tierUpgradeCost } from './scrap'
 export { evaluateSoftWarnings } from './softWarnings'
 export type {

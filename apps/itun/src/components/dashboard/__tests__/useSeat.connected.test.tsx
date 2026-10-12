@@ -57,7 +57,7 @@ const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 const { Toaster } = await import('component-lib')
 const { getEntitySlug, SalvageUnionReference } = await import('salvageunion-reference')
-const { buildPilotActions } = await import('../dashboardRules')
+const { buildPilotActions } = await import('../../../lib/rules/playActions')
 
 const GAME_ID = 'g-seat'
 const rook = pilotFixture({ id: 'seat-rook', name: 'Rook', gameId: GAME_ID })

@@ -40,7 +40,7 @@ Requires explicit player action (destructive, irreversible):
 - Any condition change on equipment (intact → damaged → destroyed), driven only
   by the player via the card's status badge (`StatusBadge` from
   `component-lib`, cycled by `cycleCondition` in
-  `apps/itun/src/components/sheet/mechItemRules.ts`) — see
+  `apps/itun/src/lib/rules/mechItems.ts`) — see
   [ADR-009](../ARCHITECTURE.md#decisions).
 - Destroying a Module or System from any source; catastrophic meltdown.
 

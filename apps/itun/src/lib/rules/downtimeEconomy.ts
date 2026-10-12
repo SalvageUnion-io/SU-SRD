@@ -1,8 +1,8 @@
 /**
- * dashboardEconomy — pure patch builders for the Downtime economy layers
+ * downtimeEconomy — pure patch builders for the Downtime economy layers
  * (F2/F3/F4 of the rules-parity plan, #599).
  *
- * Same contract as `dashboardRules`: nothing here touches React or the store.
+ * Same contract as `playActions`: nothing here touches React or the store.
  * Each function takes live numbers and returns the write-through patch(es) the
  * caller hands to `storeState.update` / `.transfer`, so the handlers stay
  * trivially testable and the ADR-006 pure-math boundary holds — `lib/rules/*`
@@ -18,17 +18,16 @@
 
 import type { Crawler, ScrapPool } from 'itun-domain/schemas/crawler'
 import type { Mech } from 'itun-domain/schemas/mech'
-import type { Roll } from 'salvageunion-reference/rules'
-import type { CraftableItem } from '../../lib/rules/crafting'
-import { craftedLot, craftQuote } from '../../lib/rules/crafting'
-import type { AreaSalvageResult } from '../../lib/rules/salvage'
-import { performAreaSalvage } from '../../lib/rules/salvage'
+import type { AreaSalvageResult, Roll } from 'salvageunion-reference/rules'
+import { performAreaSalvage } from 'salvageunion-reference/rules'
+import type { CraftableItem } from './crafting'
+import { craftedLot, craftQuote } from './crafting'
 import {
   depositScrapDeposits,
   handOffCargo,
   mechScrapComponents,
   scrapMechBreakdown,
-} from '../../lib/rules/scrapMech'
+} from './scrapMech'
 
 /** The crawler's numeric Tech Level, or undefined when the slug is unparseable. */
 export function crawlerTechLevelOf(crawler: Pick<Crawler, 'techLevel'>): number | undefined {

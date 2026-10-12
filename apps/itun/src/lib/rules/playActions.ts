@@ -1,5 +1,5 @@
 /**
- * dashboardRules — the Dashboard's thin, PURE driver over the existing rules engine
+ * playActions — the Dashboard's thin, PURE driver over the existing rules engine
  * (docs/architecture/dashboard.md §5). Nothing here touches React or the store: every function takes the
  * live numbers (+ an injectable `Roll`) and returns the `Partial<Mech>` /
  * `Partial<Pilot>` write-through patch the caller hands to
@@ -47,11 +47,11 @@ import {
   performPush,
   resolveChassisRef,
 } from 'salvageunion-reference/rules'
-import { heatCheckPatch } from '../../lib/rules/heatCheck'
-import type { RangeBand } from '../../lib/schemas/seat'
-import type { MechItemEconomy } from '../sheet/mechItemRules'
-import { resolveModule, resolveSystem } from '../sheet/mechItemRules'
-import { resolveEquipment } from '../sheet/pilotInventory'
+import { resolveEquipment } from '../../components/sheet/pilotInventory'
+import type { RangeBand } from '../schemas/seat'
+import { heatCheckPatch } from './heatCheck'
+import type { MechItemEconomy } from './mechItems'
+import { resolveModule, resolveSystem } from './mechItems'
 
 // ---------------------------------------------------------------------------
 // Reactor — Push / Heat Check / Vent / Shutdown (dashboard.md §5.1)
