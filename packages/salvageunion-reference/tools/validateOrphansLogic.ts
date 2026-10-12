@@ -127,6 +127,15 @@ function collectActionsFromEntities(entities: EntityEntry[]): string[] {
     if (Array.isArray(actions)) {
       names.push(...extractActionNames(actions))
     }
+    // A Bio-Titan pattern's `actions` are the ones it adds to its host.
+    if (Array.isArray(entity.patterns)) {
+      for (const pattern of entity.patterns) {
+        const patternActions = (pattern as Record<string, unknown>).actions
+        if (Array.isArray(patternActions)) {
+          names.push(...extractActionNames(patternActions))
+        }
+      }
+    }
   }
   return names
 }

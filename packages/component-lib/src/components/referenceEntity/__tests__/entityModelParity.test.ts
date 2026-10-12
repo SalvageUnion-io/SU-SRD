@@ -16,7 +16,7 @@ import type {
   EntityModel,
   SURefEnumSchemaName,
   SURefMetaEntity,
-  SURefObjectPattern,
+  SURefObjectAnyPattern,
   SURefObjectTable,
 } from 'salvageunion-reference'
 import {
@@ -27,6 +27,7 @@ import {
   getChoices,
   getModel,
   getPageReference,
+  getPatterns,
   getReferenceEntityName,
   getTechLevel,
   isAbility,
@@ -34,7 +35,6 @@ import {
   plainTraitText,
   resolveGrantedEntities,
   toEntityModel,
-  visiblePatterns,
 } from 'salvageunion-reference'
 import {
   buildHeaderStats,
@@ -371,10 +371,7 @@ describe('toEntityModel parity, every entity', () => {
 
 describe('toEntityModel parity, every chassis pattern', () => {
   const PATTERNS = (getModel('chassis')?.all() ?? []).flatMap((chassis) => {
-    const patterns: SURefObjectPattern[] =
-      'patterns' in chassis && Array.isArray(chassis.patterns)
-        ? visiblePatterns(chassis.patterns)
-        : []
+    const patterns: SURefObjectAnyPattern[] = getPatterns(chassis) ?? []
     return patterns.map((pattern) => ({ chassis: chassis as SURefMetaEntity, pattern }))
   })
 

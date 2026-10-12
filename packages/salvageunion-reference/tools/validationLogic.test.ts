@@ -431,6 +431,17 @@ describe('actions', () => {
     expect(errors[2]?.field).toBe('chassisAbilities')
   })
 
+  test('checks the actions a Bio-Titan pattern adds', () => {
+    const errors = findActionReferenceErrors({
+      'actions.json': [{ name: 'Heavy Strike' }],
+      'bio-titans.json': [
+        { name: 'T', actions: ['Heavy Strike'], patterns: [{ name: 'P', actions: ['Gone'] }] },
+      ],
+    })
+    expect(errors.map((e) => e.referencedName)).toEqual(['Gone'])
+    expect(errors[0]?.field).toBe('patterns[P].actions')
+  })
+
   test('files outside the referencing set are not read', () => {
     expect(
       findActionReferenceErrors({ 'keywords.json': [{ name: 'K', actions: ['Nope'] }] })

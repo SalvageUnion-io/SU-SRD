@@ -3,6 +3,7 @@ import { Badge } from '../../components/chrome/Badge'
 import { grainStyle } from '../../components/referenceEntity/card/cardGrain'
 import { font, fontSize, space, tracking, weight } from '../../design/tokens'
 import type { Paint } from './paint'
+import { PAPER_NAME } from './paint'
 
 /** The title: the row's room, two lines, then "…" (its full name in a tooltip). */
 const TITLE: CSSProperties = {
@@ -101,7 +102,7 @@ export function Head({
       )}
       {titleSlot ?? (
         <TitleTag className="su-entity-row__title" title={title} style={{ ...TITLE, ...ink }}>
-          {title}
+          {paint.nameOnPaper ? <span style={PAPER_NAME}>{title}</span> : title}
         </TitleTag>
       )}
       {hint && <span style={HINT}>{hint}</span>}

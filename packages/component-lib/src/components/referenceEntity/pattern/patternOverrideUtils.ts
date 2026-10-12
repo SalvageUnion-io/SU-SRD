@@ -1,8 +1,9 @@
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import {
   getPatterns,
   getSalvageValue,
   getTechLevelNumber,
+  isBioTitanPattern,
   normalizePatternName,
   SalvageUnionReference,
 } from 'salvageunion-reference'
@@ -17,11 +18,14 @@ type PatternItem = { name: string; count?: number }
 export function resolvePatternOverride(
   data: SURefEntity,
   patternOverride: PatternOverrideData
-): ReturnType<typeof getPatterns> extends (infer T)[] | undefined ? T | undefined : never {
+): SURefObjectPattern | undefined {
   const patterns = getPatterns(data)
   if (!patterns) return undefined
   const normalizedOverride = normalizePatternName(patternOverride.name)
-  return patterns.find((p) => normalizePatternName(p.name) === normalizedOverride)
+  for (const p of patterns) {
+    if (!isBioTitanPattern(p) && normalizePatternName(p.name) === normalizedOverride) return p
+  }
+  return undefined
 }
 
 /** Sum SV * TL for a list of pattern items (systems or modules). */

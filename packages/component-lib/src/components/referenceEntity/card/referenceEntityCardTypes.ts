@@ -3,8 +3,8 @@ import type {
   SURefEntity,
   SURefEnumSchemaName,
   SURefMetaEntity,
+  SURefObjectAnyPattern,
   SURefObjectDamage,
-  SURefObjectPattern,
   SURefObjectTrait,
 } from 'salvageunion-reference'
 import type { CardFootMeta } from '../../shared/Card'
@@ -41,7 +41,7 @@ export type ReferenceEntityCardProps = {
   /** CHASSIS TWO-RENDERINGS: when set (with a chassis `data`), the card renders
    * the PATTERN view — pattern name as the title, the pattern's systems/modules
    * loadout as nested cards (a `size="medium" extent="head"` pattern shows name + description). */
-  pattern?: SURefObjectPattern
+  pattern?: SURefObjectAnyPattern
   /**
    * PAGE — the card IS the page (boards 07, 08): an SRD entity page. The card
    * draws no frame, seam, header or footer, because the page's `ChapterBand`

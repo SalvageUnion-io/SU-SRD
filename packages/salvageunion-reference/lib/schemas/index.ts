@@ -21,6 +21,7 @@ export * from './objects.js'
 import type { SchemaNameSchema } from './enums.js'
 import type {
   AdvancedClassSchema,
+  BioTitanPatternSchema,
   ChoiceSchema,
   ContentBlockSchema,
   ContentSchema,
@@ -53,6 +54,9 @@ export type SURefObjectPatternSystemModule = z.infer<typeof PatternSystemModuleS
 export type SURefObjectSystemModule = z.infer<typeof SystemModuleSchema>
 export type SURefObjectChoice = z.infer<typeof ChoiceSchema>
 export type SURefObjectPattern = z.infer<typeof PatternSchema>
+export type SURefObjectBioTitanPattern = z.infer<typeof BioTitanPatternSchema>
+/** A pattern of either host: a mech pattern (on a chassis) or a Bio-Titan's. */
+export type SURefObjectAnyPattern = SURefObjectPattern | SURefObjectBioTitanPattern
 export type SURefObjectDamage = z.infer<typeof DamageSchema>
 export type SURefObjectBonusPerTechLevel = z.infer<typeof StatsSchema>
 export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>

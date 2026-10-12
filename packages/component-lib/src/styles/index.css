@@ -2090,6 +2090,16 @@ a.su-pattern-rows__row:hover {
   flex: none;
 }
 
+/* What the pattern changes (`PatternUniques`): its loadout tokens or its added
+   action cards, under the row's link rather than inside it (they are links of
+   their own), lined up with the paragraph above on a wide screen. */
+.su-pattern-rows__unique {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: 0 var(--space-12) var(--space-12);
+}
+
 .su-pattern-rows__more {
   border-top: var(--bw-hairline) solid var(--color-ink-15);
   color: var(--color-ink);
@@ -2132,6 +2142,12 @@ a.su-pattern-rows__row:hover {
 
   .su-pattern-rows__arrow {
     display: block;
+  }
+
+  /* Indented past the 200px name column and its gap; clear of the arrow. */
+  .su-pattern-rows__unique {
+    padding: 0 calc(var(--space-16) + 18px + var(--space-24)) var(--space-14)
+      calc(var(--space-16) + 200px + var(--space-24));
   }
 
   .su-pattern-rows__more {

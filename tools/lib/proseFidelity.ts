@@ -154,7 +154,8 @@ function dedupe(anchors: Anchor[]): Anchor[] {
  *
  * Actions carry no source of their own: they are printed under whatever
  * references them, so an action inherits the anchors of every entity that
- * lists it in `actions` or `chassisAbilities`.
+ * lists it in `actions` or `chassisAbilities` (or of the nested record that
+ * lists it, when that record carries its own `source`).
  */
 export function collectProse(dataDir = DATA_DIR): ProseItem[] {
   const files = readdirSync(dataDir)
@@ -167,16 +168,19 @@ export function collectProse(dataDir = DATA_DIR): ProseItem[] {
   const collectRefs = (v: unknown, anchors: Anchor[], chassisName: string | undefined) => {
     if (Array.isArray(v)) for (const x of v) collectRefs(x, anchors, chassisName)
     else if (v && typeof v === 'object') {
+      // A nested record with its own citation (a Bio-Titan pattern, printed in
+      // another book than its host) anchors the actions it lists, as in `walk`.
+      const here = typeof (v as Row).source === 'string' ? anchorsOf(v as Row) : anchors
       for (const [k, x] of Object.entries(v)) {
         if ((k === 'actions' || k === 'chassisAbilities') && Array.isArray(x)) {
           for (const n of x) {
             if (typeof n !== 'string') continue
             const o = owners.get(n) ?? { anchors: [], chassis: new Set<string>() }
-            o.anchors.push(...anchors)
+            o.anchors.push(...here)
             if (chassisName) o.chassis.add(chassisName)
             owners.set(n, o)
           }
-        } else collectRefs(x, anchors, chassisName)
+        } else collectRefs(x, here, chassisName)
       }
     }
   }

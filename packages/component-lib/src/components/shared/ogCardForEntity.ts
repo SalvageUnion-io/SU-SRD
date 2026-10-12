@@ -2,8 +2,8 @@ import type {
   SURefEnumSchemaName,
   SURefMetaAction,
   SURefMetaEntity,
+  SURefObjectAnyPattern,
   SURefObjectContentBlock,
-  SURefObjectPattern,
 } from 'salvageunion-reference'
 import {
   extractVisibleActions,
@@ -42,7 +42,7 @@ import type { OgCardProps, OgCardStat } from './ogCardText'
 export function ogCardForEntity(options: {
   schemaName: SURefEnumSchemaName
   entity: SURefMetaEntity
-  pattern?: SURefObjectPattern
+  pattern?: SURefObjectAnyPattern
   /** The address the foot prints: the page's bare path (`/chassis/scrapper`). */
   address: string
 }): OgCardProps {
@@ -124,7 +124,7 @@ function techLevelLabel(techLevel: number | 'B' | 'N' | undefined): string | und
 }
 
 function patternCount(entity: SURefMetaEntity): number {
-  const patterns = (entity as { patterns?: SURefObjectPattern[] }).patterns ?? []
+  const patterns = (entity as { patterns?: SURefObjectAnyPattern[] }).patterns ?? []
   return visiblePatterns(patterns).length
 }
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { createContext, useContext } from 'react'
-import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 
 /**
  * Builds a navigable href (show-page link) for an entity. The shape is the
@@ -73,7 +73,7 @@ export function useEntityExternalLink(entity: SURefEntity | undefined): ReactNod
  */
 export type PatternHrefBuilder = (
   chassis: SURefEntity,
-  pattern: SURefObjectPattern
+  pattern: SURefObjectAnyPattern
 ) => string | undefined
 
 const PatternHrefContext = createContext<PatternHrefBuilder | undefined>(undefined)
@@ -89,7 +89,7 @@ export function usePatternHrefBuilder(): PatternHrefBuilder | undefined {
 /** Resolve a pattern's page href via the provided builder (undefined when none). */
 export function usePatternHref(
   chassis: SURefEntity | undefined,
-  pattern: SURefObjectPattern | undefined
+  pattern: SURefObjectAnyPattern | undefined
 ): string | undefined {
   const builder = useContext(PatternHrefContext)
   return builder && chassis && pattern ? builder(chassis, pattern) : undefined

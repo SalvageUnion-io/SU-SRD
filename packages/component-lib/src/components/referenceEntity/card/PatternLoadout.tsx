@@ -95,7 +95,13 @@ export function PatternLoadout({
  * preview, crawlable. With no `EntityHrefProvider` above it the Token renders
  * inert rather than linking nowhere.
  */
-function LoadoutBadge({ data, hostDown }: { data: ReferenceCardEntity; hostDown?: boolean }) {
+export function LoadoutBadge({
+  data,
+  hostDown,
+}: {
+  data: ReferenceCardEntity
+  hostDown?: boolean
+}) {
   const href = useEntityHref(data as SURefEntity)
   return (
     <Entity

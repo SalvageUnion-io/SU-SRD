@@ -8,7 +8,7 @@ import { font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
-import { paintFor } from '../parts/paint'
+import { PAPER_NAME, paintFor } from '../parts/paint'
 import type { EntityMode, EntityRowModel } from '../types'
 
 /** The one fact a Token carries: `[TL | 2]`, `[LVL | 1]`, `[HP | 9]`. */
@@ -128,7 +128,9 @@ export function Token({
     >
       {userMade && <span style={VISUALLY_HIDDEN}>User-made </span>}
       <span style={kindStamp(paint.ink)}>{slots.kind ?? model.kind.type}</span>
-      <span style={NAME}>{title}</span>
+      <span style={NAME}>
+        {paint.nameOnPaper ? <span style={PAPER_NAME}>{title}</span> : title}
+      </span>
       {slots.pennant}
       {shown && (
         <Stat orientation="horizontal" label={shown.label} value={shown.value} size="mini" />

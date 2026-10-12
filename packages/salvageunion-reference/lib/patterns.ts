@@ -1,12 +1,17 @@
 /**
- * Mech patterns: reading a chassis's patterns, the hidden-pattern rule that
- * every render surface funnels through, and pattern-name normalisation.
+ * Patterns: reading a host's patterns (a chassis's mech patterns, a
+ * Bio-Titan's variants), the hidden-pattern rule that every render surface
+ * funnels through, and pattern-name normalisation.
  *
  * The package barrel (`lib/index.ts`) re-exports the names consumers use, by
  * name.
  */
 
-import type { SURefMetaEntity, SURefObjectPattern } from './schemas/index.js'
+import type {
+  SURefMetaEntity,
+  SURefObjectAnyPattern,
+  SURefObjectBioTitanPattern,
+} from './schemas/index.js'
 
 /**
  * Extract patterns from an entity
@@ -14,10 +19,21 @@ import type { SURefMetaEntity, SURefObjectPattern } from './schemas/index.js'
  * @returns The patterns or undefined
  */
 
-export function getPatterns(entity: SURefMetaEntity): SURefObjectPattern[] | undefined {
-  return 'patterns' in entity && Array.isArray(entity.patterns)
-    ? visiblePatterns(entity.patterns)
-    : undefined
+export function getPatterns(entity: SURefMetaEntity): SURefObjectAnyPattern[] | undefined {
+  if (!('patterns' in entity) || !Array.isArray(entity.patterns)) return undefined
+  const patterns: readonly SURefObjectAnyPattern[] = entity.patterns
+  return visiblePatterns(patterns)
+}
+
+/**
+ * A Bio-Titan pattern (it names the ACTIONS it adds) rather than a mech
+ * pattern (it installs systems and modules). Read off the shape, not the
+ * host's schema, so a surface handed a bare pattern can still tell.
+ */
+export function isBioTitanPattern(
+  pattern: SURefObjectAnyPattern
+): pattern is SURefObjectBioTitanPattern {
+  return 'actions' in pattern
 }
 
 /**

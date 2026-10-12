@@ -92,7 +92,8 @@ describe('nesting legibility', () => {
     render(<ReferenceEntityCard data={sestra()} />)
     const row = screen.getByRole('button', { name: 'Open Hover Locomotion System' })
     const title = within(row).getByText('Hover Locomotion System')
-    expect(title.getAttribute('title')).toBe('Hover Locomotion System')
+    // The full name rides the clamped title (on a TL band, around its paper chip).
+    expect(title.closest('[title]')?.getAttribute('title')).toBe('Hover Locomotion System')
     fireEvent.click(row)
     expect(screen.getByRole('dialog')).toBeTruthy()
   })

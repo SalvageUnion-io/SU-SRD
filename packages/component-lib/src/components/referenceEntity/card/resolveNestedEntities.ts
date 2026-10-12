@@ -1,7 +1,8 @@
-import type { SURefEntity, SURefMetaEntity, SURefObjectPattern } from 'salvageunion-reference'
+import type { SURefEntity, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import {
   droneOwnLoadout,
   getChassisAbilities,
+  isBioTitanPattern,
   nestedEntityGroups,
   patternGroups,
   resolveLoadout,
@@ -69,7 +70,8 @@ export function resolveChassisDrone(entity: SURefMetaEntity): DroneLoadout | und
  * ("Shield Drone") sit over a shared stat block ("Big Brother Drone"). Configs
  * that resolve to nothing are skipped rather than failing the whole pattern.
  */
-export function resolvePatternDrones(pattern: SURefObjectPattern): DroneLoadout[] {
+export function resolvePatternDrones(pattern: SURefObjectAnyPattern): DroneLoadout[] {
+  if (isBioTitanPattern(pattern)) return []
   return (pattern.drones ?? []).flatMap((config) => {
     const statBlockName = config.ref ?? config.name
     const drone = SalvageUnionReference.getByNameIn('drones', statBlockName)

@@ -99,3 +99,37 @@ export const PatternSchema = z
       .strict()
   )
   .describe('A preset mech loadout defining systems and modules for a chassis')
+
+/**
+ * Bio-Titan pattern — a named variant of a Bio-Titan that the book prints as
+ * "uses the stats of <Bio-Titan> with the following additional special rule"
+ * (Rainmaker p.80, the Hill Worm Pattern Typhon). A DELTA, not a stat block:
+ * the pattern inherits its Bio-Titan's Structure Points and actions, and
+ * `actions` names only what it adds — so a change to the base is never
+ * restated (and never drifts) across its patterns.
+ */
+export const BioTitanPatternSchema = z
+  .object({
+    name: NameSchema.describe('Name of this Bio-Titan pattern'),
+    content: ContentSchema.describe('Descriptive content for this pattern').optional(),
+    hidden: z
+      .boolean()
+      .describe(
+        'Withhold this pattern from every rendered surface while keeping the record in the dataset (the mech-pattern `hidden` convention).'
+      )
+      .optional(),
+    source: SourceSchema.describe('Source book for this pattern').optional(),
+    page: PositiveIntegerSchema.describe('Page number in the source book').optional(),
+    additionalSources: z
+      .array(AdditionalSourceSchema)
+      .describe('Other source books where this pattern is reprinted')
+      .optional(),
+    actions: z
+      .array(z.string())
+      .min(1)
+      .describe(
+        'Action names this pattern ADDS to its Bio-Titan; the base Structure Points and actions are inherited'
+      ),
+  })
+  .strict()
+  .describe("A Bio-Titan variant: the base Bio-Titan's stats plus the actions it adds")

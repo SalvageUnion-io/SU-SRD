@@ -1,7 +1,7 @@
 /**
  * Pure logic for action-reference validation in the Salvage Union data.
  * Checks that all action names referenced in data files exist in
- * actions.json (both `actions[]` and `chassisAbilities[]` fields).
+ * actions.json (`actions[]`, a pattern's `actions[]` and `chassisAbilities[]`).
  *
  * Pure over a caller-supplied data bag, so `tools/validate.ts` (the one CLI,
  * `--only=actions`) and the tests share one implementation.
@@ -73,8 +73,9 @@ export function findActionReferenceErrors(
     for (const entity of data) {
       const entityName = String(entity.name ?? entity.id ?? 'unknown')
 
-      if (entity.actions && Array.isArray(entity.actions)) {
-        for (const actionRef of entity.actions) {
+      const checkActionRefs = (refs: unknown, field: string) => {
+        if (!Array.isArray(refs)) return
+        for (const actionRef of refs) {
           if (typeof actionRef === 'string') {
             const actionName = actionRef
             if (!actionNames.has(actionName)) {
@@ -82,13 +83,22 @@ export function findActionReferenceErrors(
               errors.push({
                 file: filename,
                 entityName,
-                field: 'actions',
+                field,
                 referencedName: actionName,
                 message: `Action "${actionName}" not found in actions.json`,
                 suggestion: suggestion ? `Did you mean "${suggestion}"?` : undefined,
               })
             }
           }
+        }
+      }
+
+      checkActionRefs(entity.actions, 'actions')
+
+      // A Bio-Titan pattern names the actions it ADDS to its host.
+      if (Array.isArray(entity.patterns)) {
+        for (const pattern of entity.patterns as Record<string, unknown>[]) {
+          checkActionRefs(pattern.actions, `patterns[${String(pattern.name)}].actions`)
         }
       }
 

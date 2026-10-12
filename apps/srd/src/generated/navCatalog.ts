@@ -86,7 +86,7 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
         "id": "bio-titans",
         "displayName": "Bio-Titans",
         "href": "/schema/bio-titans/",
-        "count": 12
+        "count": 11
       },
       {
         "id": "creatures",

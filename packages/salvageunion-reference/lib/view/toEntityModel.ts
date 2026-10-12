@@ -4,7 +4,12 @@
  * language is `docs/design-system/entity-display-language.md`.
  */
 
-import { getChassisAbilities, getChoices } from '../actionResolution.js'
+import {
+  extractPatternActions,
+  extractVisibleActions,
+  getChassisAbilities,
+  getChoices,
+} from '../actionResolution.js'
 import { getAssetUrl } from '../assets.js'
 import { getReferenceEntityName, getTechLevel } from '../entityFields.js'
 import type { EntitySchemaName } from '../generated/schemaRegistry.generated.js'
@@ -15,8 +20,8 @@ import type {
   SURefEntity,
   SURefEnumSchemaName,
   SURefMetaEntity,
+  SURefObjectAnyPattern,
   SURefObjectContentBlock,
-  SURefObjectPattern,
 } from '../schemas/index.js'
 import { getEntitySlug } from '../slug.js'
 import { plainTraitText } from '../traitText.js'
@@ -131,7 +136,7 @@ function glossaryRef(schemaName: 'traits' | 'keywords', name: string): { ref?: E
 export function toEntityModel(
   entity: SURefMetaEntity,
   instance?: EntityInstance,
-  view?: { pattern?: SURefObjectPattern }
+  view?: { pattern?: SURefObjectAnyPattern }
 ): EntityModel {
   const pattern = view?.pattern
   const schemaName = (schemaNameOf(entity) ?? 'npcs') as SURefEnumSchemaName | 'actions'
@@ -143,8 +148,15 @@ export function toEntityModel(
 
   // The folded self-action supplies the facets, cost and table an entity
   // states as its own; an action states its own.
+  // A mech pattern's difference is its loadout (`children`); a Bio-Titan
+  // pattern's is the actions it adds, ahead of the ones it inherits.
   const { folded, others } = pattern
-    ? { folded: undefined, others: [] }
+    ? {
+        folded: undefined,
+        others: extractPatternActions(pattern).length
+          ? [...extractPatternActions(pattern), ...(extractVisibleActions(entity) ?? [])]
+          : [],
+      }
     : entityActions(entity, entityName)
   const action = isAction ? (entity as ActionFacets) : undefined
   const costSource = action ?? (folded as ActionFacets | undefined)

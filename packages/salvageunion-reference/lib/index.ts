@@ -41,6 +41,7 @@ import { invalidateSearchIndex } from './search.js'
 // ---------------------------------------------------------------------------
 
 export {
+  extractPatternActions,
   extractVisibleActions,
   getChassisAbilities,
   getChoices,
@@ -114,12 +115,19 @@ export {
 export { getInventorySlots } from './inventorySlots.js'
 export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory.js'
 export { nameToSlug } from './nameToSlug.js'
-export { getPatterns, normalizePatternName, visiblePatterns } from './patterns.js'
+export {
+  getPatterns,
+  isBioTitanPattern,
+  normalizePatternName,
+  visiblePatterns,
+} from './patterns.js'
 export { type ChoiceSelections, resolveChoiceView } from './resolveChoiceView.js'
 export { type RollOnTableOutcome, rollOnTable } from './rollOnTable.js'
 export { SchemaNotLoadedError } from './SchemaNotLoadedError.js'
 export type {
   SURefEnumSchemaName,
+  SURefObjectAnyPattern,
+  SURefObjectBioTitanPattern,
   SURefObjectBonusPerTechLevel,
   SURefObjectChoice,
   SURefObjectContent,

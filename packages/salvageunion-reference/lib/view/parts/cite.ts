@@ -4,7 +4,7 @@
  */
 
 import { getBooklet, getPageReference, getSource } from '../../entityFields.js'
-import type { SURefMetaEntity, SURefObjectPattern } from '../../schemas/index.js'
+import type { SURefMetaEntity, SURefObjectAnyPattern } from '../../schemas/index.js'
 import type { EntityCite } from '../types.js'
 
 /** A secondary printing: the book (and booklet) that reprinted it, and the page. */
@@ -54,12 +54,12 @@ export type Provenance = {
  */
 export function resolveProvenance(
   entity: SURefMetaEntity,
-  pattern?: SURefObjectPattern
+  pattern?: SURefObjectAnyPattern
 ): Provenance {
   if (pattern?.source) {
     return {
       source: pattern.source,
-      booklet: pattern.booklet,
+      booklet: 'booklet' in pattern ? pattern.booklet : undefined,
       page: pattern.page,
       additionalSources: resolveAdditionalSources(pattern.additionalSources),
     }
@@ -75,7 +75,7 @@ export function resolveProvenance(
 }
 
 /** The page's foot citation: the page, then the book and any reprints. */
-export function entityCite(entity: SURefMetaEntity, pattern?: SURefObjectPattern): EntityCite {
+export function entityCite(entity: SURefMetaEntity, pattern?: SURefObjectAnyPattern): EntityCite {
   const provenance = resolveProvenance(entity, pattern)
   const book = formatProvenance(provenance.source, provenance.booklet, undefined)
   const reprints = provenance.additionalSources

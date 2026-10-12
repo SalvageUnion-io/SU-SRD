@@ -7,10 +7,16 @@
 import type {
   SURefEntity,
   SURefEnumSchemaName,
+  SURefMetaAction,
   SURefMetaEntity,
-  SURefObjectPattern,
+  SURefObjectAnyPattern,
 } from 'salvageunion-reference'
-import { extractVisibleActions, getChassisAbilities, visiblePatterns } from 'salvageunion-reference'
+import {
+  extractPatternActions,
+  extractVisibleActions,
+  getChassisAbilities,
+  getPatterns,
+} from 'salvageunion-reference'
 import { isTitanicAction, MAX_DEPTH } from './cardHelpers'
 import type { DroneLoadout } from './resolveNestedEntities'
 import {
@@ -33,8 +39,8 @@ export function resolveNestedSections({
 }: {
   entity: SURefMetaEntity
   schemaName: SURefEnumSchemaName | 'actions'
-  /** Set on a PATTERN view, whose `entity` is the chassis. */
-  pattern: SURefObjectPattern | undefined
+  /** Set on a PATTERN view, whose `entity` is its host (chassis or Bio-Titan). */
+  pattern: SURefObjectAnyPattern | undefined
   isCatalog: boolean
   depth: number
   /** A granting ability's own actions belong to the granted entity. */
@@ -58,19 +64,21 @@ export function resolveNestedSections({
   // pattern view (a pattern's `entity` IS its chassis), so gate on `canExpand`,
   // not `canExpandEntity` (which excludes patterns).
   const chassisAbilityEntities = canExpand ? (getChassisAbilities(entity) ?? []) : []
-  const allActions =
-    canExpandEntity && !isGrantingAbility ? (extractVisibleActions(entity) ?? []) : []
+  // A pattern view keeps its host's actions: a Bio-Titan pattern INHERITS them
+  // (a chassis carries none, so its pattern view is unchanged).
+  const allActions = canExpand && !isGrantingAbility ? (extractVisibleActions(entity) ?? []) : []
 
   // PATTERN view: the chosen pattern's systems/modules loadout (its drones render
-  // as drone cards instead). BASIC chassis: the list of patterns. In the body, a
-  // pattern is always the FULL view (a listing row returns before the body).
+  // as drone cards instead), or the actions a Bio-Titan pattern adds. BASIC
+  // host: the list of patterns. In the body, a pattern is always the FULL view
+  // (a listing row returns before the body).
   const patternGroups = pattern
     ? resolvePatternGroups(pattern).filter((group) => group.label !== 'Drones')
     : []
-  const patternList: SURefObjectPattern[] =
-    !isPattern && !isCatalog && 'patterns' in entity && Array.isArray(entity.patterns)
-      ? visiblePatterns(entity.patterns)
-      : []
+  const patternActions: SURefMetaAction[] =
+    pattern && canExpand ? extractPatternActions(pattern) : []
+  const patternList: SURefObjectAnyPattern[] =
+    !isPattern && !isCatalog ? (getPatterns(entity) ?? []) : []
 
   // TITANIC actions always get their own full-width row (never the masonry).
   const titanicActions = allActions.filter(isTitanicAction)
@@ -106,6 +114,7 @@ export function resolveNestedSections({
     nestedGroups,
     chassisAbilityEntities,
     patternGroups,
+    patternActions,
     patternList,
     titanicActions,
     gridActions,

@@ -4,7 +4,7 @@ import {
   PatternHrefProvider,
   ReferenceEntityCard,
 } from 'component-lib'
-import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { getClassSelections } from '../lib/classSelections'
 import { srdEntityHref } from '../lib/entityHref'
 import { srdPatternHref } from '../lib/patternHref'
@@ -12,7 +12,7 @@ import { ClassAbilityTree } from './ClassAbilityTree'
 
 type EntityCardStaticProps = {
   item: SURefEntity
-  pattern?: SURefObjectPattern
+  pattern?: SURefObjectAnyPattern
   /** The schema keeps an art place: a censor mark when this item has no art. */
   artSlot?: boolean
 }

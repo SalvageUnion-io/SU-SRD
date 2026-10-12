@@ -29,7 +29,7 @@ function getReference() {
 describe('Bio-Titan / Iron Lady redistribution', () => {
   it('exposes the BioTitans model (renamed from Titans)', () => {
     const bioTitans = getReference().BioTitans.all()
-    expect(bioTitans.length).toBe(12)
+    expect(bioTitans.length).toBe(11)
     expect(bioTitans.some((t) => t.name === 'Scylla')).toBe(true)
   })
 

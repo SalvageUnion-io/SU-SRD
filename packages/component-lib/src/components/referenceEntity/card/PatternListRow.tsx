@@ -1,6 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 import type { ElementType } from 'react'
-import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { normalizePatternName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { cn } from '../../../utils/cn'
@@ -8,11 +8,13 @@ import { FOCUS_RING } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
 import { usePatternHref } from '../entityHrefContext'
 import { firstParagraphText } from './firstParagraphText'
+import { PatternUniques } from './PatternUniques'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
- * `PatternListRow` — one row of a chassis card's Patterns list, linking to the
- * pattern's own page.
+ * `PatternListRow` — one row of a host's (a chassis's or a Bio-Titan's)
+ * Patterns list, linking to the pattern's own page, with what the pattern
+ * changes beneath it (`PatternUniques`).
  *
  * A real `<a>`, not a click handler: a pattern page is a page like any other
  * entity's, so the row has to open in a new tab on middle-click, show its
@@ -23,6 +25,9 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  *
  * With no `PatternHrefProvider` above it (any app whose patterns have no pages)
  * the row renders exactly as it always did — inert, not a link to nowhere.
+ *
+ * The uniques sit OUTSIDE the anchor: their tokens and cards are links and
+ * controls of their own, which cannot nest inside another link.
  */
 export function PatternListRow({
   chassis,
@@ -34,7 +39,7 @@ export function PatternListRow({
 }: {
   chassis: ReferenceCardEntity
   chassisName: string
-  pattern: SURefObjectPattern
+  pattern: SURefObjectAnyPattern
   depth: number
   hostDown?: boolean
   NestedCard: NestedCard
@@ -51,19 +56,31 @@ export function PatternListRow({
       cardClickable={!!href}
     />
   )
-  if (!href) return card
   return (
-    <a
-      href={href}
-      aria-label={`${normalizePatternName(pattern.name)} — ${chassisName} pattern`}
-      className={cn('block rounded-card', FOCUS_RING)}
-    >
-      {card}
-    </a>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[6] }}>
+      {href ? (
+        <a
+          href={href}
+          aria-label={`${normalizePatternName(pattern.name)} — ${chassisName} pattern`}
+          className={cn('block rounded-card', FOCUS_RING)}
+        >
+          {card}
+        </a>
+      ) : (
+        card
+      )}
+      <PatternUniques
+        pattern={pattern}
+        depth={depth + 1}
+        hostDown={hostDown}
+        hostName={chassisName}
+        NestedCard={NestedCard}
+      />
+    </div>
   )
 }
 
-/** BASIC CHASSIS → the list of its patterns, as LISTING rows. The card puts
+/** BASIC HOST → the list of its patterns, as LISTING rows. The card puts
  * them in a "Patterns" tray, the same device as every other nested group. */
 export function PatternList({
   chassis,
@@ -75,7 +92,7 @@ export function PatternList({
 }: {
   chassis: ReferenceCardEntity
   chassisName: string
-  patterns: SURefObjectPattern[]
+  patterns: SURefObjectAnyPattern[]
   /** The depth the rows render at (the host's + 1). */
   depth: number
   hostDown: boolean
@@ -101,16 +118,19 @@ export function PatternList({
 /**
  * PAGE view — one pattern as a full-width link row (boards 07, 08): the
  * pattern's quoted name, its first paragraph and an arrow, with no underline.
- * The row is the link, so the whole width opens the pattern's page.
+ * The row is the link, so the whole width opens the pattern's page. Under it,
+ * aligned to the paragraph, what the pattern changes (`PatternUniques`).
  */
 function PatternLinkRow({
   chassis,
   chassisName,
   pattern,
+  host,
 }: {
   chassis: ReferenceCardEntity
   chassisName: string
-  pattern: SURefObjectPattern
+  pattern: SURefObjectAnyPattern
+  host: PatternRowsHost
 }) {
   const href = usePatternHref(chassis as SURefEntity, pattern)
   const name = normalizePatternName(pattern.name)
@@ -142,15 +162,31 @@ function PatternLinkRow({
       ) : (
         <div className="su-pattern-rows__row">{body}</div>
       )}
+      <PatternUniques
+        className="su-pattern-rows__unique"
+        pattern={pattern}
+        depth={1}
+        hostDown={host.hostDown}
+        hostName={chassisName}
+        chassisName={host.chassisName}
+        NestedCard={host.NestedCard}
+      />
     </li>
   )
+}
+
+/** What a page's pattern rows need to render each pattern's uniques. */
+type PatternRowsHost = {
+  NestedCard: NestedCard
+  hostDown: boolean
+  chassisName: string | undefined
 }
 
 /** How many patterns a phone shows before "Show all N patterns". */
 const PATTERNS_ON_A_PHONE = 2
 
 /**
- * PAGE view — a basic chassis's patterns under an ink section stamp with its
+ * PAGE view — a basic host's patterns under an ink section stamp with its
  * count (boards 07, 08). A phone shows the first two and a "Show all" link;
  * the link targets the list (`#patterns`) and `:target` opens the rest, so
  * the reveal ships no JavaScript and the static page stays static.
@@ -160,12 +196,14 @@ export function PatternLinkRows({
   chassisName,
   patterns,
   sectionAs,
+  host,
 }: {
   chassis: ReferenceCardEntity
   chassisName: string
-  patterns: SURefObjectPattern[]
+  patterns: SURefObjectAnyPattern[]
   /** A real heading on the page (`sectionHeadingLevel`). */
   sectionAs?: ElementType
+  host: PatternRowsHost
 }) {
   if (patterns.length === 0) return null
   const count = patterns.length
@@ -185,6 +223,7 @@ export function PatternLinkRows({
               chassis={chassis}
               chassisName={chassisName}
               pattern={pat}
+              host={host}
             />
           ))}
         </ul>

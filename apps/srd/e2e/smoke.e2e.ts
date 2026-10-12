@@ -164,9 +164,7 @@ test('a roll table page rolls and marks the result', async ({ page }) => {
 // Typhon") or one lead runs shorter.
 for (const width of [1440, 390]) {
   for (const schema of ['bio-titans', 'chassis']) {
-    test(`every Row in a /schema/${schema}/ grid is one height at ${width}px`, async ({
-      page,
-    }) => {
+    test(`every Row in a /schema/${schema}/ grid is one height at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto(`/schema/${schema}/`)
       const grid = page.locator('ul[data-entity-grid]').first()
