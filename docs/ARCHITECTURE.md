@@ -7,7 +7,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 ## Areas
 
 1. **Packages**
-   `salvageunion-reference` → `component-lib` → `srd` / `itun`; `itun-domain` → `itun` / `discord-bot`; `gates` → `tools/` and the apps' e2e.
+   `salvageunion-reference` → `component-lib` → `srd` / `itun` → `catalog`; `itun-domain` → `itun` / `discord-bot`; `gates` → `tools/` and the apps' e2e.
    Packages never import an app (`noRestrictedImports` in [`biome.jsonc`](../biome.jsonc)); deps use `workspace:*`.
 2. **salvageunion-reference**
    Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `SURef*` types, gitignored and rebuilt on install, typecheck, build and test (`ensureGenerated.ts`).
@@ -72,7 +72,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Entity forms (Mention, Token, Row, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
     `Card` is the generic container, never merged with it; app UI goes through `controls` and slot props, never schema props.
 23. **Component catalog**
-    `bun run stories` (port 61000) serves component-lib's `catalog.tsx` over the library's and both apps' stories.
+    `bun run stories` (port 61000) serves `apps/catalog`: component-lib's and both apps' stories.
     Story rules: [component-lib's CLAUDE.md](../packages/component-lib/CLAUDE.md), enforced by `story-coverage.test.ts`.
 24. **Discord bot as a Game client**
     `/su` commands call `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`) with `ITUN_BOT_SECRET`; `/su invite` is Discord-signed.

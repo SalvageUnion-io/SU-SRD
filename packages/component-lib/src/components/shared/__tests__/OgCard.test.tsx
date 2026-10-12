@@ -470,9 +470,6 @@ describe('OgCard', () => {
       const html = renderToStaticMarkup(<OgCard {...props} />)
       expect(html).toContain('font-family:&#x27;Barlow Semi Condensed&#x27;')
     }
-    // The catalog loads that face for the story, as the SRD's styles entry does.
-    const catalog = readFileSync(join(import.meta.dir, '../../../../catalog.tsx'), 'utf8')
-    expect(catalog).toContain('@fontsource/barlow-semi-condensed/700.css')
   })
 })
 

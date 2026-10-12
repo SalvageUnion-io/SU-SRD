@@ -1,7 +1,8 @@
 /**
- * The story taxonomy, read by both `story-coverage.test.ts` (which fails a
- * story titled outside it) and the catalog's sidebar (`catalog.tsx`, which
- * sorts by it). Group definitions live in component-lib's CLAUDE.md.
+ * The story taxonomy (`component-lib/stories/groups`): the story catalog's
+ * coverage guard fails a story titled outside it, its sidebar sorts by it, and
+ * `Styleguide.stories.tsx` documents it. Group definitions live in
+ * component-lib's CLAUDE.md.
  */
 
 /** Sanctioned top-level story groups, in sidebar order. */

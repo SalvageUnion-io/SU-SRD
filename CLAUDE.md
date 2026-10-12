@@ -66,13 +66,14 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static referenc
 
 - `apps/srd/` - Static SRD reference site: in-house SSG on Vite, React 19 islands. No auth, no backend. Read [`apps/srd/CLAUDE.md`](apps/srd/CLAUDE.md) first.
 - `apps/itun/` - Character builder & game manager (React 19, TanStack Router, Zustand, Convex, Vite). Read [`apps/itun/CLAUDE.md`](apps/itun/CLAUDE.md); storage modes and the account gate are [`.claude/rules/itun-data-access.md`](.claude/rules/itun-data-access.md) — **read it before touching data.**
+- `apps/catalog/` - Dev-only story catalog: `bun run stories`.
 - `apps/discord-bot/` - Discord bot on a Cloudflare Worker (HTTP interactions, Components V2 replies); also an ITUN Game client.
-- `apps/su-assets/` - Worker (`assets.salvageunion.io`) serving licensed artwork from the `su-lp-assets` R2 bucket, `-440`/`-880` sizes via Cloudflare Images. Image bytes never live in git; both apps' artwork depends on it (`ASSET_BASE_URL` in `packages/salvageunion-reference/lib/assets.ts`).
-- `packages/component-lib/` - Shared React component library (Base UI primitives, entity display system, typography, tokens). No build step.
+- `apps/su-assets/` - Worker (`assets.salvageunion.io`) serving licensed artwork from R2 `su-lp-assets`, `-440`/`-880` via Cloudflare Images. Image bytes never live in git; both apps' artwork depends on it (`ASSET_BASE_URL` in `packages/salvageunion-reference/lib/assets.ts`).
+- `packages/component-lib/` - Shared React components (Base UI primitives, entity display system, typography, tokens). No build step.
 - `packages/gates/` - The gates' library, imported by `tools/` and the apps' e2e.
 - `packages/itun-domain/` - schemas and rules shared by ITUN, Convex and the bot.
 - `packages/observability/` - Sentry wiring: `/cloudflare` for Workers, `/browser` for both apps.
-- `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data. Ships TS source; `schemas/` and `lib/generated/` are gitignored, generated on install, typecheck, build and test.
+- `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON game data. Ships TS source; `schemas/` and `lib/generated/` are gitignored, generated on install, typecheck, build and test.
 - `tools/` - The gates' CLI entry points and baselines: [`tools/CLAUDE.md`](tools/CLAUDE.md).
 
 **Dependency graph:**

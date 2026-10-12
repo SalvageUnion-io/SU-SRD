@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { Glob } from 'bun'
 import { readFileSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
-import { storyGroups, storySubgroups } from '../stories/_groups'
+import { storyGroups, storySubgroups } from 'component-lib/stories/groups'
 
 /**
  * Story catalog guard — the executable half of the story standard documented in
@@ -15,9 +15,14 @@ import { storyGroups, storySubgroups } from '../stories/_groups'
  * once: multi-component "gallery" story files that left their members invisible
  * in the sidebar, component stories squatting in `src/stories/`, and ad-hoc
  * sub-groups appearing under one group but not its siblings.
+ *
+ * It lives with the catalog, not in component-lib, because it reads the apps'
+ * story roots too, and the library knows nothing about its consumers. Its
+ * paths stay relative to component-lib's `src/` (SRC), whose barrel and
+ * `src/stories/` the coverage and co-location rules are about.
  */
 
-const SRC = join(import.meta.dir, '..')
+const SRC = join(import.meta.dir, '../../../../packages/component-lib/src')
 
 /**
  * Barrel-exported components that intentionally have no standalone story.
@@ -79,7 +84,7 @@ const barrel = read('index.ts')
 
 /**
  * App-owned component folders whose stories this catalog also serves (see
- * `catalog.tsx`). Components that only one app used were moved out of the
+ * `STORY_GLOBS`). Components that only one app used were moved out of the
  * library in the component-lib boundary audit (PK-02) and took their stories
  * with them; the catalog still shows them, so the taxonomy and co-location
  * rules below still apply to them. Paths are relative to SRC, like the rest.

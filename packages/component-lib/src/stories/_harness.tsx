@@ -4,7 +4,7 @@ import { color, font, fontSize, space, tracking } from '../design/tokens'
 /**
  * Shared story helpers.
  *
- * Every story renders on a global paper canvas provided by `catalog.tsx`,
+ * Every story renders on a global paper canvas provided by the story catalog,
  * so a story does not need its own outer paper wrapper. When a caption/frame
  * helper would otherwise be copy-pasted across story files, put it here and
  * import it instead of re-declaring it per file.

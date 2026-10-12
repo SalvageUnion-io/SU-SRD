@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 
 // Serves the dev-only story catalog (`bun run stories`): `index.html` mounts
-// `catalog.tsx`. Nothing builds it; the apps compile this
-// package's source with their own Vite configs.
+// `src/catalog.tsx`. Nothing builds it; `public/` holds the files the apps'
+// stories link at the site root (ITUN's logo mark, srd's Powered-by badge).
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -13,7 +13,7 @@ export default defineConfig({
     alias: [
       {
         find: /^(?:\.\.\/)+lib\/connection\/convexClient$/,
-        replacement: fileURLToPath(new URL('./catalogConvexClient.ts', import.meta.url)),
+        replacement: fileURLToPath(new URL('./src/convexClientStub.ts', import.meta.url)),
       },
     ],
   },

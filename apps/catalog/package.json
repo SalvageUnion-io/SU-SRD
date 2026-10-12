@@ -1,0 +1,23 @@
+{
+  "name": "catalog",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "license": "Salvage Union Open Game Licence 1.0b",
+  "scripts": {
+    "dev": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && vite",
+    "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
+    "test": "bun test",
+    "stories:ids": "bun listStories.ts"
+  },
+  "dependencies": {
+    "@fontsource/barlow": "catalog:",
+    "@fontsource/barlow-semi-condensed": "catalog:",
+    "component-lib": "workspace:*",
+    "itun": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "salvageunion-reference": "workspace:*",
+    "srd": "workspace:*"
+  }
+}
