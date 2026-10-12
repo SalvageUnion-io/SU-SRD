@@ -233,7 +233,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Proposed: below a 0.62 canvas scale the Dashboard renders a phone form over the same seat, models and enforcement.
     Amends ADR-038.
 46. **ADR-046 Styling is tokens, style objects and one stylesheet**
-    Accepted: `theme.css` tokens, `tokens.ts` objects, `index.css`; no Tailwind after TW7 ([plan](design-system/tailwind-removal.md)).
+    Accepted, built (TW0–TW7): `theme.css` tokens, `tokens.ts` objects, `index.css`; `styling`'s `no-tailwind` keeps Tailwind out.
 47. **ADR-047 One salvageunion.io edge Worker**
     Accepted, not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
     Supersedes ADR-043 decision 1; amends ADR-033. [Spike](spikes/o3-one-edge-worker.md).

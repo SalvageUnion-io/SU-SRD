@@ -18,7 +18,7 @@
  * Every rule is `zero` (any finding fails).
  */
 
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Exemption, Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { isExempt, listFiles } from '../lib/ruleEngine'
@@ -426,6 +426,66 @@ function scanPackageStylesheetImport(c: Corpus): Finding[] {
   return out
 }
 
+// ── Rule 5: no-tailwind ───────────────────────────────────────────────────────
+
+/** Every manifest a dependency can be declared in: the root and each workspace. */
+function manifests(root: string): string[] {
+  const glob = new Bun.Glob('{apps,packages}/*/package.json')
+  const found = [...glob.scanSync({ cwd: root, dot: false, followSymlinks: false })]
+  return ['package.json', ...found.sort()].filter((rel) => existsSync(join(root, rel)))
+}
+
+const TAILWIND_PACKAGE = /^(?:tailwindcss|@tailwindcss\/.+|tailwind-.+|.+-tailwindcss)$/
+const DEPENDENCY_FIELDS = [
+  'dependencies',
+  'devDependencies',
+  'peerDependencies',
+  'optionalDependencies',
+] as const
+
+/**
+ * The at-rules only Tailwind gives meaning to. `@layer utilities` is the layer
+ * its utilities compile into: TW6's exit was that no built page carried a class
+ * from one.
+ */
+const TAILWIND_AT_RULE =
+  /@(?:tailwind|apply|theme|utility|variant|custom-variant|source|plugin|config|reference)\b|@layer\s+utilities\b/
+
+/**
+ * Tailwind is gone (TW7, ADR-046) and this keeps it gone. TW6's exit was a
+ * one-off crawl of every built page and story for a class from built CSS's
+ * `@layer utilities`; it found none. A utility can only reach built CSS again
+ * through a Tailwind package (it generates them) or a Tailwind directive in
+ * a stylesheet (the compiler reads them), so this checks both sources, every
+ * workspace's manifest and every stylesheet under `apps/` and `packages/`, and
+ * needs no build to run.
+ */
+function scanNoTailwind(c: Corpus): Finding[] {
+  const out: Finding[] = []
+  for (const rel of manifests(c.root)) {
+    const manifest = JSON.parse(c.read(rel)) as Record<string, unknown>
+    const lines = c.read(rel).split('\n')
+    for (const field of DEPENDENCY_FIELDS) {
+      const deps = manifest[field]
+      if (deps === null || typeof deps !== 'object') continue
+      for (const name of Object.keys(deps)) {
+        if (!TAILWIND_PACKAGE.test(name)) continue
+        const line = lines.findIndex((l) => l.includes(`"${name}"`))
+        out.push({ file: rel, line: line + 1, detail: `${field} declares '${name}'` })
+      }
+    }
+  }
+  for (const rel of listFiles(c.root, ['apps', 'packages'], ['.css'])) {
+    stripCssComments(c.read(rel))
+      .split('\n')
+      .forEach((text, i) => {
+        const m = text.match(TAILWIND_AT_RULE)
+        if (m) out.push({ file: rel, line: i + 1, detail: `Tailwind directive '${m[0]}'` })
+      })
+  }
+  return out
+}
+
 type OwnershipRule = Rule & { scan: (c: Corpus) => Finding[] }
 
 const RULES: OwnershipRule[] = [
@@ -457,6 +517,13 @@ const RULES: OwnershipRule[] = [
     fix: "Every consumer imports 'component-lib/styles/entry.css' (the story catalog: './entry.css') and never index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
     scan: scanPackageStylesheetImport,
   },
+  {
+    id: 'no-tailwind',
+    mode: 'zero',
+    rule: 'ADR-046 §no utility framework: Tailwind stays removed (TW7)',
+    fix: "Remove the Tailwind package or directive. A value goes in theme.css (and tokens.ts), a style in a style object or a `.su-*` rule in index.css (an app's own stylesheet when only that app uses it); see .claude/rules/styling.md.",
+    scan: scanNoTailwind,
+  },
 ]
 
 // ── preconditions ───────────────────────────────────────────────────────────
@@ -473,6 +540,13 @@ function preflight(root: string): void {
   assertScanFloor('styling ownership (app CSS)', c.appCss.length, 2)
   assertScanFloor('styling ownership (app source)', c.appSource.length, 350)
   assertScanFloor('styling ownership (repo TS)', c.allTs.length, 800)
+  // `no-tailwind`: today 10 manifests (the root and nine workspaces) and 29 stylesheets.
+  assertScanFloor('styling ownership (manifests)', manifests(root).length, 5)
+  assertScanFloor(
+    'styling ownership (all CSS)',
+    listFiles(root, ['apps', 'packages'], ['.css']).length,
+    10
+  )
 
   /**
    * APP_DIRS is the set of apps whose LOCAL css this rule set audits, and it is
