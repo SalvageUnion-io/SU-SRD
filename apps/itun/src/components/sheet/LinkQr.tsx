@@ -11,13 +11,28 @@
  * sake (audit PK-07). Covered by `__tests__/ShareStatusDialog.connected.test.tsx`.
  */
 
+import { tokens } from 'component-lib'
 import QRCode from 'qrcode'
+import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
 
 type LinkQrProps = {
   /** Absolute URL to encode. */
   url: string
 }
+
+/** The 84px ink-framed paper tile, shared by the placeholder and the code. */
+const TILE = {
+  height: '84px',
+  width: '84px',
+  flexShrink: 0,
+  borderRadius: tokens.radius.card,
+  border: `${tokens.borderWidth.chrome} solid ${tokens.color.ink}`,
+  backgroundColor: tokens.color.paper,
+} satisfies CSSProperties
+
+/** The encoder's SVG fills the tile (`.su-sheet-qr > svg`). */
+const CODE = { ...TILE, padding: tokens.space[4] } satisfies CSSProperties
 
 export function LinkQr({ url }: LinkQrProps) {
   const [svg, setSvg] = useState<string | null>(null)
@@ -38,12 +53,7 @@ export function LinkQr({ url }: LinkQrProps) {
   }, [url])
 
   if (svg === null) {
-    return (
-      <div
-        aria-hidden="true"
-        className="h-[84px] w-[84px] shrink-0 motion-safe:animate-pulse rounded-card border-chrome border-ink bg-paper"
-      />
-    )
+    return <div aria-hidden="true" className="su-pulse" style={TILE} />
   }
 
   return (
@@ -51,7 +61,8 @@ export function LinkQr({ url }: LinkQrProps) {
       role="img"
       aria-label="QR code linking to this sheet"
       data-testid="share-qr"
-      className="h-[84px] w-[84px] shrink-0 rounded-card border-chrome border-ink bg-paper p-1 [&>svg]:h-full [&>svg]:w-full"
+      className="su-sheet-qr"
+      style={CODE}
       // Trusted markup: generated locally by the qrcode encoder from module
       // geometry — the URL is encoded as QR modules, never interpolated as HTML.
       // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG string is produced locally by the qrcode encoder from module geometry; no user-controlled HTML can reach it

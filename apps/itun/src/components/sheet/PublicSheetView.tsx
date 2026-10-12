@@ -12,8 +12,9 @@
  * anything the reader may not see.
  */
 
-import { buttonVariants, cn } from 'component-lib'
+import { buttonVariants, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { MechPatternSchema } from '../../lib/schemas/pattern'
 import { PublicPattern } from '../mech/Pattern/PublicPattern'
@@ -28,16 +29,37 @@ function isPublicKind(value: string): value is PublicKind {
   return (KINDS as readonly string[]).includes(value)
 }
 
+const NOT_AVAILABLE = {
+  marginInline: 'auto',
+  maxWidth: '64rem',
+  padding: tokens.space[24],
+} satisfies CSSProperties
+
+const TITLE = {
+  marginBottom: tokens.space[8],
+  fontSize: tokens.fontSize.xl,
+  lineHeight: 'calc(1.75 / 1.25)',
+  fontWeight: tokens.weight.bold,
+} satisfies CSSProperties
+
+const NOTE = {
+  marginBottom: tokens.space[16],
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+  color: tokens.color.wkMuted,
+} satisfies CSSProperties
+
+const LINK = { textDecoration: 'none' } satisfies CSSProperties
+
 function NotAvailable({ what = 'sheet' }: { what?: 'sheet' | 'pattern' }) {
   return (
-    <main className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-2 text-xl font-bold">This {what} isn&rsquo;t available</h1>
-      <p className="mb-4 text-sm text-wk-muted">
-        The link may be wrong, or its owner may have stopped sharing it.
-      </p>
+    <main style={NOT_AVAILABLE}>
+      <h1 style={TITLE}>This {what} isn&rsquo;t available</h1>
+      <p style={NOTE}>The link may be wrong, or its owner may have stopped sharing it.</p>
       <AppLink
         href="/"
-        className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
+        className={buttonVariants({ variant: 'ghost', size: 'compact' })}
+        style={LINK}
       >
         &larr; In The Union Now
       </AppLink>
