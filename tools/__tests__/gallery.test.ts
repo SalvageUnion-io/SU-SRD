@@ -13,6 +13,7 @@ import {
   pageEntity,
   parseGalleryArgs,
   resolvePath,
+  rootOf,
   routeOf,
   signedInTargets,
   signedOutTargets,
@@ -292,6 +293,13 @@ describe('routeOf', () => {
     expect(routeOf(itun, '/build/games/g1')).toBe('/games/g1')
     expect(routeOf(itun, 'https://example.com/a')).toBe('https://example.com/a')
     expect(routeOf('http://localhost:5173', '/sheet/pilot/x')).toBe('/sheet/pilot/x')
+  })
+})
+
+describe('rootOf', () => {
+  test("opens ITUN's root with its trailing slash, based or not", () => {
+    expect(rootOf('http://localhost:5173/build')).toBe('http://localhost:5173/build/')
+    expect(rootOf('http://localhost:5173')).toBe('http://localhost:5173/')
   })
 })
 
