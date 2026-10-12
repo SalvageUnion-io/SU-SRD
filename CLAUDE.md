@@ -119,6 +119,6 @@ The registry — ids, deployments, dashboards, how each server authenticates —
 
 ## Merging
 
-`main` requires linear history and status checks; there is **no merge queue**. Merge with `gh pr merge <pr> --squash` (or `--auto --squash`). The squash body is the PR body (repo setting `PR_BODY`); `git log --format='%h %s%n%b'` is the decision record.
+`main` requires linear history and status checks; **no merge queue**. Squash-merge: locally `gh pr merge <pr> --squash` (`--auto` too); in cloud, see [cloud sessions](docs/ARCHITECTURE.md#areas). The squash body is the PR body (`PR_BODY`); `git log --format='%h %s%n%b'` is the decision record.
 
-Dependent PRs land only as a `gh stack`: `submit --auto --open`, then `merge --squash`. After a merge beneath you, `gh stack sync`; never a hand rebase or `--force`. Stack state is per worktree (`gh stack checkout <pr|branch>` re-attaches; `init` needs its branch argument).
+Dependent PRs land only as a `gh stack`, local-only: `submit --auto --open`, then `merge --squash`; after a merge beneath you, `gh stack sync`. Never a hand rebase or `--force`. Stack state is per worktree (`gh stack checkout <pr>`).
