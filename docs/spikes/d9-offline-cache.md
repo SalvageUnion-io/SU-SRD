@@ -1,7 +1,21 @@
 # D9 spike: drop ITUN's IndexedDB cache, service worker and Disconnected mode?
 
-Status: **open, for the owner's decision.** A prototype, not a plan of record.
-Refit ledger item D9. Measured 2026-10-12 against a local Convex backend.
+Status: **decided 2026-10-12 — option 3.** Refit ledger item D9. Measured
+2026-10-12 against a local Convex backend.
+
+## Decision
+
+The owner chose [option 3](#options) on
+[#1383](https://github.com/SalvageUnion-io/SU-SRD/pull/1383#issuecomment-6124252683):
+
+- Reading sheets after a reload with no network is **not** a requirement.
+  Remove the IndexedDB cache and the Disconnected-after-reload path.
+- **Keep the PWA.** The service worker stays, so ITUN remains installable and
+  its shell boots offline.
+- **No production offline-reload check.** With offline reading not required,
+  its result would not change the decision.
+- The removal is its own PR. The prototype flag below was dropped before this
+  doc merged and is not the basis for it.
 
 ## Question
 
@@ -25,7 +39,7 @@ about 7k lines, the service worker, an offline e2e and four dependencies?
 Local backend (`convex dev`, anonymous local deployment, `ITUN_TEST_AUTH`), a
 `vite build` with `VITE_TEST_AUTH=true`, served from `dist` with production's
 `/assets/*` immutable `Cache-Control`. Headless Chromium 1194. One account, one
-pilot and one mech. Medians of 5. Script: `apps/itun/e2e/spike/d9-measure.ts`.
+pilot and one mech. Medians of 5. Script: see [Reproduce](#reproduce).
 
 **Cold load** — navigate to the pilot's sheet URL, time until its name renders:
 
@@ -87,19 +101,17 @@ runs signed out, so nothing in the suite would catch this.
   `registerType: 'prompt'`, soft update, chunk recovery against a stale
   precache.
 
-## The prototype
+## The prototype (removed)
 
-Default off. `localStorage.setItem('itun:convex-direct', '1')` and reload, or
-build with `VITE_ITUN_CONVEX_DIRECT=1` (`apps/itun/src/lib/spike/convexDirect.ts`).
-
-- `getDb()` returns an empty in-memory database (`src/lib/db/memoryDb.ts`)
-  instead of opening IndexedDB, so `makeHydratedCollection`, `entityStore` and
-  `entityBackend` keep their call shapes but hold only what the Convex
-  subscriptions (`listMine`, `listWiring`, via `ShelfSync`) delivered this load.
-- `main.tsx` registers no service worker and unregisters an existing one.
-- It does **not** rewrite the stores as `useQuery` selectors. A real removal
-  would: the stores become a projection of the subscriptions, and `adopt`,
-  `forget`, prune guards and version tracking go.
+Built for the measurement, then dropped once the decision was made; it lives
+in commit `ccd140c` in #1383's history. Behind a default-off flag (a
+`localStorage` key or a build variable), `getDb()` returned an empty
+in-memory database each load, so `makeHydratedCollection`, `entityStore` and
+`entityBackend` kept their call shapes but held only what the Convex
+subscriptions (`listMine`, `listWiring`, via `ShelfSync`) delivered; and
+`main.tsx` registered no service worker. It did **not** rewrite the stores as
+`useQuery` selectors. The removal will: the stores become a projection of the
+subscriptions, and `adopt`, `forget`, prune guards and version tracking go.
 
 ## Options
 
@@ -118,26 +130,21 @@ build with `VITE_ITUN_CONVEX_DIRECT=1` (`apps/itun/src/lib/spike/convexDirect.ts
 
 ## Recommendation
 
-**Option 3, after one check on production.** The measured offline benefit of
+**Option 3, after one check on production** (the owner chose option 3 and
+waived the check; see [Decision](#decision)). The measured offline benefit of
 the IndexedDB cache is zero today, and its rules are the most intricate in
 ITUN. The worker is cheaper to keep and keeps the PWA installable; an offline
 reload still boots the shell, empty, as it does today. Before deleting, reproduce the offline reload once against
 production with a Discord session; if it does show cached rows there, the
 finding is test-provider-specific and option 2 is the better fight.
 
-## What the owner needs to decide
-
-- Is reading sheets on a reload **with no network** a requirement? If yes:
-  option 2. If no: option 3 or 4.
-- Is an installable PWA a requirement? If no, option 4 over 3.
-- Who checks the production offline reload (a Discord-signed-in session,
-  DevTools offline, reload a sheet)?
-
 ## Reproduce
 
-From `apps/itun`, with a local backend carrying `ITUN_TEST_AUTH`, `JWKS`,
+The measurement script and its Playwright config were removed with the
+prototype; recover them from commit `ccd140c` in #1383's history (under the ITUN e2e folder,
+`spike/`). They need the prototype's flag for the flag-on half. From
+`apps/itun`, with a local backend carrying `ITUN_TEST_AUTH`, `JWKS`,
 `JWT_PRIVATE_KEY` and `SITE_URL` (the nightly `e2e-itun` job's provisioning
-step): build with `VITE_CONVEX_URL=<backend> VITE_TEST_AUTH=true bunx vite build`,
-serve `dist` on :4173 with SPA fallback and no CSP, then
-`bunx playwright test -c e2e/spike/d9.config.ts` (set `D9_CHROMIUM` to a
-Chromium binary if the pinned one is missing).
+step): build with `VITE_CONVEX_URL=<backend> VITE_TEST_AUTH=true`, serve
+`dist` on :4173 with SPA fallback and no CSP, and run the config with
+`bunx playwright test -c`.

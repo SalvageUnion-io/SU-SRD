@@ -19,11 +19,6 @@ interface ImportMetaEnv {
    * Unset in local dev — the release tag is simply omitted.
    */
   readonly VITE_COMMIT_REF?: string
-  /**
-   * D9 spike, default off: `'1'` builds ITUN with no device cache and no
-   * service worker (`src/lib/spike/convexDirect.ts`).
-   */
-  readonly VITE_ITUN_CONVEX_DIRECT?: string
 }
 
 interface ImportMeta {
