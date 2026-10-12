@@ -2,14 +2,12 @@ import type { ChapterTone } from 'component-lib'
 import { buttonVariants, CHAPTER_BAND_COLOR } from 'component-lib'
 
 /**
- * The home page as the manual's Contents page (board 06): the "New to the
- * Union?" path, then the book's chapters as an index, each headed by a band
- * in its colour with its real entry count, then the rules a table reaches for
- * under an ink band, and the Discord bot. They are siblings in one
- * `.srd-home__body`, set as CSS columns (a masonry that leaves no hole under
- * a short chapter) on a wide screen and one stack on a phone — one DOM order,
- * so reading and tab order follow what you see. Server-rendered and static:
- * every row is a plain link.
+ * The home page as the manual's Contents page (board 06): the book's chapters
+ * as an index, each headed by a band in its colour with its real entry count,
+ * then the rules a table reaches for under an ink band, set as CSS columns (a
+ * masonry that leaves no hole under a short chapter); and the "New to the
+ * Union?" path and the Discord bot in a right-hand sidebar, which leads the
+ * stack on a phone. Server-rendered and static: every row is a plain link.
  *
  * Rows are 36px for a fine pointer and 44px under `(pointer: coarse)` or on a phone width (the
  * repo's touch floor, ruleset §4.6) — `global.css`'s `.srd-contents__row`.
