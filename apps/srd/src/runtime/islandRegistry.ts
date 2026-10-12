@@ -51,6 +51,8 @@ export const islandRegistry = {
     import('../components/islands/SearchResultsIsland').then((m) =>
       asIsland(m.SearchResultsIsland)
     ),
+  DidYouMeanIsland: () =>
+    import('../components/islands/DidYouMeanIsland').then((m) => asIsland(m.DidYouMeanIsland)),
   OgCardIsland: () =>
     import('../components/islands/OgCardIsland').then((m) => asIsland(m.OgCardIsland)),
   PeekIsland: () => import('../components/islands/PeekIsland').then((m) => asIsland(m.PeekIsland)),
