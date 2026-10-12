@@ -188,6 +188,11 @@ export {
   linkTraitReferences,
   rangeLabel,
 } from './view/discordCard'
+export {
+  COMPONENT_EMBED_MAX_BYTES,
+  componentEmbedJson,
+  discordEntryCard,
+} from './view/discordEntryCard'
 // The entity VIEW MODEL (docs/design-system/entity-display-language.md): an
 // entity resolved once into what every form draws. Its parts are public too,
 // for component-lib's card helpers, which read them rather than keep a copy.

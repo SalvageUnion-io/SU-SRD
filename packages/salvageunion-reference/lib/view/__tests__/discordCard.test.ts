@@ -106,15 +106,25 @@ describe('linkTraitReferences', () => {
 })
 
 describe('discordCard', () => {
-  test('sheds whole parts to fit, keeps the head and the cite, and links the page', () => {
+  test('sheds a long table whole, keeps the head and the cite, and links the table', () => {
     const parts = partsFor('roll-tables', 'anomalous-zone')
     const card = discordCard(parts, { fits: (c) => discordCardTextLength(c) <= 1500 })
     const body = text(card)
     expect(discordCardTextLength(card)).toBeLessThanOrEqual(1500)
     expect(body).toContain('## [Anomalous Zone](')
-    expect(body).toContain('[The full entry on salvageunion.io](')
+    expect(body).toContain('[See the whole table on salvageunion.io](')
     expect(body).toContain(parts.cite)
-    expect(body).toContain('`20` **MELD BEHEMOTH**')
+    // Never its top rows alone: the whole table goes.
+    expect(body).not.toContain('ROLL THE DIE')
+    expect(body).not.toContain('`20` **MELD BEHEMOTH**')
+  })
+
+  test('a card that sheds more than its table links the full entry', () => {
+    const parts = partsFor('systems', 'mechapult')
+    expect(parts.prose.length).toBeGreaterThan(0)
+    const card = discordCard(parts, { fits: (c) => discordCardTextLength(c) <= 300 })
+    expect(text(card)).not.toContain('ROLL THE DIE')
+    expect(text(card)).toContain('[The full entry on salvageunion.io](')
   })
 
   test('marks the rolled row and keeps it while shedding', () => {

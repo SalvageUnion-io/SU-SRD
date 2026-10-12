@@ -372,7 +372,7 @@ describe('interaction dispatch', () => {
     expect(body.data?.content).toBeUndefined()
   })
 
-  test('a lookup tab redraws the message it sits on (UPDATE_MESSAGE)', async () => {
+  test('an older lookup tab redraws the message it sits on (UPDATE_MESSAGE)', async () => {
     const keys = await generateKeyPair()
     const { ctx, settled } = executionContext()
     const res = await worker.fetch(
@@ -383,7 +383,7 @@ describe('interaction dispatch', () => {
     await settled()
     const body = (await res.json()) as { type: number; data?: { components?: unknown[] } }
     expect(body.type).toBe(InteractionResponseType.UpdateMessage)
-    expect(JSON.stringify(body.data?.components)).toContain('PAGE 1 OF 3')
+    expect(JSON.stringify(body.data?.components)).toContain('## [Mule](')
   })
 
   test('the pattern picker reads the select value and answers privately', async () => {

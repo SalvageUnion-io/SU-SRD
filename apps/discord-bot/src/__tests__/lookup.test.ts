@@ -10,7 +10,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import { buildTableLookupMessage, lookupCommand } from '../commands/lookup'
+import { buildTableLookupMessage, lookupChoices, lookupCommand } from '../commands/lookup'
 import type { ReplyArg } from './fakeInteraction'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
@@ -56,7 +56,7 @@ describe('lookupCommand.execute', () => {
     expect(reply.flags).toBe(MessageFlags.IsComponentsV2)
   })
 
-  test('a choice for a retired slug answers with the host that now carries it', async () => {
+  test('a choice for a retired slug answers with the pattern that now carries it', async () => {
     // "Hill Worm Pattern Typhon" was its own Bio-Titan before it became Typhon's
     // pattern; an autocomplete value offered before then must still resolve.
     const { interaction, replies } = mockChatInput('bio-titans::hill-worm-pattern-typhon')
@@ -64,17 +64,25 @@ describe('lookupCommand.execute', () => {
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
     expect(containerTextOf(reply)).toContain(
-      '## [Typhon](https://salvageunion.io/schema/bio-titans/item/typhon)'
+      '## [Hill Worm](https://salvageunion.io/schema/bio-titans/item/typhon/pattern/hill-worm)'
     )
-    expect(containerTextOf(reply)).toContain('Hill Worm')
   })
 
-  test('free-typed "Hill Worm" finds Typhon, which carries the pattern', async () => {
+  test('free-typed "Hill Worm" is the pattern itself, its own entry', async () => {
     const { interaction, replies } = mockChatInput('Hill Worm')
     await lookupCommand.execute(interaction)
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
-    expect(containerTextOf(reply)).toContain('## [Typhon]')
+    expect(containerTextOf(reply)).toContain('-# PATTERN · TYPHON')
+    expect(containerTextOf(reply)).toContain('## [Hill Worm]')
+  })
+
+  test('autocomplete offers a pattern as an entry of its own, ahead of its host', () => {
+    const choices = lookupChoices('Hauler')
+    const pattern = choices.findIndex((choice) => choice.value === 'chassis::mule::hauler')
+    expect(choices[pattern]?.name).toBe('Hauler (Mule pattern)')
+    expect(choices[pattern + 1]?.value).toBe('chassis::mule')
+    expect(choices.length).toBeLessThanOrEqual(25)
   })
 
   test('free-typed text falls back to the top search hit', async () => {

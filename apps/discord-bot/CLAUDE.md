@@ -35,9 +35,9 @@ the bot uses.
 - `src/buttons.ts` + `src/customId.ts` - stateless button routing (`su:<action>:<payload>`)
 - `src/container.ts` - the Components V2 seam: pure `ContainerData` → `ContainerBuilder`,
   and `entityCard()`, the one render for sheets and Game cards
-- `src/lookupCard.ts` - the `/su lookup` card: the shared Discord card
-  (`discordCardParts` in `salvageunion-reference`, also the SRD's Component
-  Embed) plus tabs, pages, the pattern picker and roll buttons
+- `src/lookupCard.ts` - the `/su lookup` card: the entry's one Discord card
+  (`discordEntryCard` in `salvageunion-reference`, block for block the SRD's
+  Component Embed) plus its roll buttons. A pattern is its own entry.
 - `src/gameCards.ts` - Game cards (`data → entityCard`)
 - `src/termFinder.ts`, `src/commands/lookUpMessage.ts` - "Look up in Salvage
   Union", the message context menu

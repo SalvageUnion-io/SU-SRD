@@ -29,7 +29,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Each schema's `$id` is the URL it is served at; `api.salvageunion.io/v1` is decided, not built (ADR-043).
 8. **discord-bot** <a id="discord-bot"></a>
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
-   Imports `itun-domain/botWire` as a type only: changing it is a cross-package change. Bot and embed cards share `discordCard.ts`.
+   Imports `itun-domain/botWire` as a type only: changing it is a cross-package change. Lookup and embed: one card, `discordEntryCard`.
 9. **itun-domain** <a id="itun-domain"></a>
    Zod schemas, link/crew/downtime rules and bot wire types for ITUN, Convex and the bot; import by subpath.
    Rules: pure → reference `lib/rules`; shared → here; client → `apps/itun/src/lib/rules`; `check rules-home` bars Convex→`src/`.
