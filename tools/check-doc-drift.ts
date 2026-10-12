@@ -731,7 +731,7 @@ const RULE_BUDGET = 4_000
  */
 const OVER_BUDGET: Record<string, number> = {
   'apps/itun/CLAUDE.md': 11_751,
-  'CLAUDE.md': 10_936,
+  'CLAUDE.md': 10_923,
 }
 
 /**
