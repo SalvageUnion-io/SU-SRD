@@ -3104,10 +3104,7 @@ body {
  * ink ride along so `CountStepper` can re-skin them by class. */
 .su-step-btn {
   background-color: var(--color-paper);
-  /* Width and colour only: the frame has never drawn, because the `button`
-   * reset above sets `border: none` and no rule here sets a style back. */
-  border-color: var(--color-ink);
-  border-width: var(--bw-chrome);
+  /* Frameless by design: the `button` reset above sets `border: none`. */
   border-radius: var(--radius-card);
   color: var(--color-ink);
   min-height: 44px;
@@ -3202,11 +3199,12 @@ body {
 /* `CATALOG_TILE_*` (`chrome/catalogTile.ts`, used by `shared/CatalogTile.tsx`):
  * the tile frame and its hover lift. Only box-shadow and transform transition,
  * as before — the lift is the `translate` property, so it steps rather than
- * slides. No `border-style`, as before: the link tile takes `solid` from the
- * global reset, while the `<button>` tile (`onActivate`) takes `border: none`
- * from the `button` reset above and so draws no frame. */
+ * slides. The frame is explicit, so the link tile and the `<button>` tile
+ * (`onActivate`, which the `button` reset would leave frameless) match, and
+ * neither depends on Tailwind's preflight. */
 .su-catalog-tile {
   border-color: var(--color-ink);
+  border-style: solid;
   border-radius: var(--radius-card);
   border-width: var(--bw-chrome);
   padding-block: 13px;

@@ -745,9 +745,6 @@ function ValueBox({
       ...TRANSITION_COLORS,
       alignItems: 'center',
       borderRadius: radius.badge,
-      // Borderless, as it always rendered: its `border-chrome border-ink` set a
-      // width and colour but never a style, so the button's reset `none` held.
-      borderStyle: 'none',
       cursor: atLimit ? 'not-allowed' : 'pointer',
       display: 'flex',
       fontFamily: font.body,
