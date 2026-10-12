@@ -906,7 +906,7 @@ function ReferenceEntityCardInner({
     catalogLeadBlocks.length > 0 ||
     (!isSelfAction && !!foldedActionContent?.length && !hide?.content && !hide?.actions) ||
     (!hide?.damagedEffect && !!damagedEffect) ||
-    !!guideStepsNode ||
+    (!onPage && !!guideStepsNode) ||
     !!afterChoicesContent
 
   // ACTIONS — inline, flush. Below depth 1 they fold behind a chip.
@@ -955,7 +955,8 @@ function ReferenceEntityCardInner({
           />
         )}
       {!hide?.damagedEffect && damagedEffect && <DamagedEffectCallout effect={damagedEffect} />}
-      {guideStepsNode}
+      {/* On a page the steps stand as a page section (`CardPage`'s `guide`). */}
+      {!onPage && guideStepsNode}
       {/* SLOT: afterChoicesContent — appended just below the choices. */}
       {afterChoicesContent}
     </>
@@ -1067,6 +1068,7 @@ function ReferenceEntityCardInner({
         }
         table={rollTableNode}
         abilitiesSection={abilitiesSection}
+        guide={guideStepsNode}
         sections={nestedGroupsNode}
         patterns={hide?.patterns ? [] : patternList}
         after={
