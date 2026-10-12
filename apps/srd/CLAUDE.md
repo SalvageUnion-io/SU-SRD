@@ -2,10 +2,10 @@
 
 Static SRD reference site for Salvage Union game data. Read-only — choices render
 ephemerally/non-editably
-([ADR-010](../../docs/ARCHITECTURE.md#adr-010)).
+([ADR-010](../../docs/ARCHITECTURE.md#decisions)).
 
 > **srd is not an Astro app** — it runs on an in-house static-site generator in
-> [`ssg/`](ssg/) ([ADR-031](../../docs/ARCHITECTURE.md#adr-031), superseding
+> [`ssg/`](ssg/) ([ADR-031](../../docs/ARCHITECTURE.md#decisions), superseding
 > ADR-012). No `.astro` files, no `astro.config.mjs`, no `client:*` directives,
 > no file-based routing. The contract is [`ssg/DESIGN.md`](ssg/DESIGN.md) —
 > **read it first.** This file is the canonical statement of this; others point here.
@@ -205,7 +205,7 @@ pages agree on it. `scripts/og-screenshots.ts` screenshots it at 1200×630 into
 ## Changelog (generated)
 
 The `/changelog` page (`src/pages/changelog.page.tsx`) is rendered **at build time** from `main`'s
-history ([ADR-041](../../docs/ARCHITECTURE.md#adr-041)): `readChangelog('srd', 'Site')` from
+history ([ADR-041](../../docs/ARCHITECTURE.md#decisions)): `readChangelog('srd', 'Site')` from
 `component-lib/changelog/git` keeps the `feat`, `fix` and `perf` squash titles scoped `srd`, one
 entry per day, and the page renders them with `Changelog`. There is no file to edit: a PR reaches
 this page by its title, `feat(srd): …`. Another scope, or none, never shows here.

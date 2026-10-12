@@ -145,7 +145,7 @@ const MAX_ROLLS = 100
 /**
  * The Game's rolls, newest first: the Dashboard's (`source 'dashboard'`) and
  * the Discord bot's (`'discord-bot'`), which both write `entityType 'game'`,
- * `field 'roll'` rows ([ADR-038](../../../docs/ARCHITECTURE.md#adr-038) §2).
+ * `field 'roll'` rows ([ADR-038](../../../docs/ARCHITECTURE.md#decisions) §2).
  *
  * Reads only the newest `limit` rows off `by_game_field`, as
  * `proposals.alerts` does, so the subscription stays the same size however
