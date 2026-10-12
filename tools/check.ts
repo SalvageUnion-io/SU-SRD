@@ -396,10 +396,8 @@ async function main(argv: readonly string[]): Promise<number> {
   // half the checks read. Bring them current once, here, rather than letting
   // parallel checks race to do it. Imported here, not at the top, so the tests
   // that import this registry do not load it.
-  const { ensureGenerated } = await import(
-    '../packages/salvageunion-reference/tools/ensureGenerated'
-  )
-  ensureGenerated()
+  const reference = '../packages/salvageunion-reference/tools/ensureGenerated'
+  ;(await import(reference)).ensureGenerated()
 
   // Nothing streams on success: the table at the end is the whole report.
   const ci = process.env.GITHUB_ACTIONS === 'true'
