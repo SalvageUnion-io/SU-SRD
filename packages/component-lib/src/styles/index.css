@@ -1593,6 +1593,17 @@ body {
   }
 }
 
+/* `asideAt="notch"`: the aside right beside the notch, after it, at every
+   width. `wrap-reverse` keeps the notch on the band's foot: when a long name
+   leaves no room beside it the aside wraps ABOVE the notch, never under it
+   (and swaps the cross axis, so `flex-start` is the foot). */
+.su-chapter-band[data-aside='notch'] .su-chapter-band__row {
+  align-items: flex-start;
+  column-gap: var(--space-16);
+  flex-flow: row wrap-reverse;
+  justify-content: flex-start;
+}
+
 /* ══ The nav drawer's index (`components/shared/NavDrawer.tsx`) ═════════════
  *
  * A section stamp over compact rows (board 08): each row the full width, the
@@ -1740,6 +1751,13 @@ body {
   }
 }
 
+/* A lone stat on a band (an entity's Tech Level, `ChapterBand asideAt="notch"`)
+   is one cell, not a two-column grid whose empty column would push the aside
+   off the notch. */
+.su-chapter-band[data-aside='notch'] .su-stat-column {
+  grid-template-columns: auto;
+}
+
 /* ══ The entity page (`ReferenceEntityCard presentation="page"`) ════════════
  *
  * Boards 07 and 08. The card hands its title to the page's chapter band and
@@ -1748,9 +1766,11 @@ body {
  * beneath the stats, the chassis ability. Everything the entity carries after that (its table,
  * actions, nested trays, patterns) runs the full width beneath.
  *
- * A phone reads art, stats, prose, then the chassis ability (board 08). The
- * right column is `display: contents` there, so its children join the page's
- * flex column and `order` sets that sequence; from `lg` it is a column again.
+ * One content order at every width, the DOM's (refit B4): art, then a
+ * pattern's opening, the prose, the stat column and the chassis ability, so a
+ * keyboard and a screen reader meet them in the order the eye does. The right
+ * column is `display: contents` on a phone, so its children join the page's
+ * flex column; from `lg` it runs beside (and flows around) the art.
  */
 .su-entity-page {
   display: flex;
@@ -1768,11 +1788,7 @@ body {
   display: contents;
 }
 
-.su-entity-page__art {
-  order: 1;
-}
-
-/* A pattern page's pattern: on a phone it follows the art, before the stats.
+/* A pattern page's pattern, after the art and before the chassis prose.
    Its prose reads at the page's reading size, as the chassis prose under it does. */
 .su-entity-page__opening {
   display: flex;
@@ -1780,16 +1796,6 @@ body {
   font-size: var(--text-lg);
   gap: var(--space-12);
   line-height: 1.6;
-  order: 1;
-}
-
-.su-entity-page__stats {
-  order: 2;
-}
-
-/* A pattern page's loadout follows the stats (`PatternLoadoutRows`). */
-.su-entity-page__loadout {
-  order: 2;
 }
 
 .su-entity-page__prose {
@@ -1798,7 +1804,6 @@ body {
   font-size: var(--text-lg);
   gap: var(--space-8);
   line-height: 1.6;
-  order: 3;
 }
 
 /* The flavour line is set one step under the prose (boards 07, 08). */
@@ -1819,7 +1824,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
-  order: 4;
 }
 
 .su-entity-page__section {
@@ -1851,7 +1855,6 @@ body {
   .su-entity-page__main--art > .su-entity-page__art {
     flex: 1 1 0;
     min-width: 0;
-    order: 0;
   }
 
   .su-entity-page__side {
@@ -1860,10 +1863,6 @@ body {
     flex-direction: column;
     gap: var(--space-24);
     min-width: 0;
-  }
-
-  .su-entity-page__side > * {
-    order: 0;
   }
 }
 
@@ -2293,10 +2292,47 @@ body {
   display: block;
   height: auto;
   margin-inline: auto;
-  max-height: 70vh;
+  max-height: var(--su-hero-max-h);
   max-width: 100%;
   object-fit: contain;
   transition: opacity 300ms;
+}
+
+/* The tallest the art draws: most of a phone's screen; beside the flowing
+   page's text, capped lower (see `.su-entity-page--flow` below). */
+.su-entity-hero {
+  --su-hero-max-h: 70vh;
+}
+
+/* Cropped to the line art (`heroArtCrop`, refit B4): the artwork's canvas
+   carries a margin that differs per image, so the plate takes the ink's own
+   aspect (`--su-art-aspect`) and the window shows only the ink's box; the
+   image inside is scaled and offset by its inline style. The plate is as wide
+   as the art drawn at its tallest, or its column, whichever is narrower, so a
+   tall figure no longer sits in a wide box of empty paper. */
+.su-entity-hero--crop {
+  margin-inline: auto;
+  max-width: 100%;
+  width: calc(
+    var(--su-hero-max-h) *
+    var(--su-art-aspect) +
+    2 *
+    var(--space-16) +
+    2 *
+    var(--bw-hairline)
+  );
+}
+
+.su-entity-hero__window {
+  aspect-ratio: var(--su-art-aspect);
+  overflow: hidden;
+  position: relative;
+}
+
+.su-entity-hero__img--crop {
+  max-height: none;
+  max-width: none;
+  position: absolute;
 }
 
 /* ── Pattern rows (`PatternLinkRows`) ───────────────────────────────────────
@@ -2542,8 +2578,17 @@ body {
    hero's own rules: capped so a tall portrait does not hold the wide blocks
    (a class's ability tree) far down the page, and a censor mark kept squat. */
 @media (min-width: 64rem) {
-  .su-entity-page--flow .su-entity-hero__img {
-    max-height: 32rem;
+  .su-entity-page--flow .su-entity-hero {
+    --su-hero-max-h: 32rem;
+  }
+
+  /* Cropped art floats at its own width (up to the 42% column), so the text
+     beside it starts where the art ends. */
+  .su-entity-page--flow
+    > .su-entity-page__main--art
+    > .su-entity-page__art:has(.su-entity-hero--crop) {
+    max-width: 42%;
+    width: auto;
   }
 
   .su-entity-page--flow .su-missing-art--hero {

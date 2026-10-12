@@ -262,7 +262,7 @@ const base = {
    *
    *  A Tailwind `/NN` alpha with no rung here is never rounded to a
    *  neighbouring one: it ports as the `color-mix()` Tailwind already emits
-   *  for it (tailwind-removal plan, P1). */
+   *  for it (tailwind-removal plan, TW1). */
   ink85: 'rgb(40 32 25 / 0.85)',
   ink75: 'rgb(40 32 25 / 0.75)',
   /** ModalShell's scrim edge. */
