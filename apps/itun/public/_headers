@@ -1,12 +1,17 @@
-# Response headers for intheunionnow.com.
+# Response headers for ITUN at salvageunion.io/build (ADR-048).
 #
-# Copied verbatim into `dist/` by Vite's publicDir, and read by Workers Static
-# Assets (ADR-033). It is the app's ONLY source of security headers: Static
-# Assets answers every file and every navigation itself, in
-# single-page-application mode, and applies this file to all of them. The
-# Worker script runs only for a miss that is not a navigation (a missing chunk,
-# a crawler) and for the retired addresses it 301s (`run_worker_first`), and
-# builds no document that runs script.
+# Copied into `dist/build/` by Vite's publicDir, then moved to `dist/` with its
+# `/assets/*` rule scoped to `/build/assets/*` (vite.config.ts), and read by
+# Workers Static Assets (ADR-033). It is the app's ONLY source of security
+# headers: Static Assets answers every file and every navigation under `/build/`
+# itself, in single-page-application mode, and applies this file to all of
+# them. The Worker script runs under `/build/` only for a miss that is not a
+# navigation (a missing chunk, a crawler), and outside it for the old host's
+# 301s (`run_worker_first`), and builds no document that runs script.
+#
+# robots.txt is srd's (`salvageunion.io/robots.txt`, which allows `/build/`).
+# Shared sheets stay crawlable (ADR-032): a link pasted into Discord should
+# unfurl and resolve.
 #
 # `tools/check-observability.ts` requires the CSP here to allow Sentry's ingest
 # origin; tools/smoke-production.sh asserts the CSP and HSTS actually reach the

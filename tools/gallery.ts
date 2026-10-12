@@ -191,6 +191,16 @@ async function shootPage(page: Page, url: string, file: (view: string) => string
   }
 }
 
+/**
+ * A path the app rendered (`/build/sheet/pilot/x`) as the route the gallery's
+ * pages name (`/sheet/pilot/x`): `--itun` already carries ITUN's base
+ * (`http://localhost:5173/build`, ADR-048), and the targets append the route.
+ */
+export function routeOf(itun: string, path: string): string {
+  const base = new URL(itun).pathname.replace(/\/+$/, '')
+  return base !== '' && path.startsWith(`${base}/`) ? path.slice(base.length) : path
+}
+
 /** Signs a fresh test account up and gives it something to edit. */
 async function seed(page: Page, itun: string): Promise<Partial<Seeded>> {
   await page.goto(itun, { waitUntil: 'networkidle' })
@@ -224,13 +234,15 @@ async function seed(page: Page, itun: string): Promise<Partial<Seeded>> {
   await page.getByLabel('New game name').fill('The Long Haul')
   await page.getByRole('button', { name: 'Create', exact: true }).click()
   await page.waitForURL(/\/games\//, { timeout: 20_000 })
-  const game = new URL(page.url()).pathname
+  const game = routeOf(itun, new URL(page.url()).pathname)
   await page.goto(itun, { waitUntil: 'networkidle' })
-  const links = await page.evaluate(() =>
-    [...(globalThis as unknown as InPage).document.querySelectorAll('a[href]')].map(
-      (a) => a.getAttribute('href') ?? ''
+  const links = await page
+    .evaluate(() =>
+      [...(globalThis as unknown as InPage).document.querySelectorAll('a[href]')].map(
+        (a) => a.getAttribute('href') ?? ''
+      )
     )
-  )
+    .then((hrefs) => hrefs.map((href) => routeOf(itun, href)))
   const find = (prefix: string) => links.find((l) => l.startsWith(prefix))
   const seeded: Partial<Seeded> = {
     pilot: find('/sheet/pilot/'),
@@ -288,7 +300,8 @@ export function ogSource(
   | undefined {
   const entity = page.site === 'srd' ? pageEntity(page.path) : undefined
   if (entity) return { kind: 'card', entity }
-  if (image) return { kind: 'file', url: `${base}${new URL(image).pathname}` }
+  // The image's own path, base included, on the origin the gallery shot.
+  if (image) return { kind: 'file', url: `${new URL(base).origin}${new URL(image).pathname}` }
   return undefined
 }
 

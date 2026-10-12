@@ -40,6 +40,7 @@ import {
 import { Menu, Search } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
+import { MARK_SRC } from '../../lib/appUrl'
 import { AppLink } from '../shared/AppLink'
 import type { PinnedVital } from './PinnedVitals'
 import { PinnedVitals } from './PinnedVitals'
@@ -347,7 +348,7 @@ export function DashboardPhone({
         <div style={STICKY}>
           <header style={BAR}>
             <AppLink href={homeHref} aria-label="Return to the Game hub" style={STAMP_LINK}>
-              <img src="/logos/su-cargo-dark.svg" alt="" width={28} height={28} />
+              <img src={MARK_SRC} alt="" width={28} height={28} />
             </AppLink>
             <p style={GAME}>{gameName ? `Game · ${gameName}` : 'Dashboard'}</p>
             <button type="button" style={BAR_KEY} aria-label="Search the SRD" onClick={onSearch}>

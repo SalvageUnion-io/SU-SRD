@@ -52,6 +52,21 @@ check_header() {
   fi
 }
 
+# A redirect's status and its exact Location.
+check_redirect() {
+  local url="$1" want_status="$2" want_location="$3" label="$4"
+  local out got location
+  out=$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 20 "$url") || true
+  got=${out%% *}
+  location=${out#* }
+  if [ "$got" = "$want_status" ] && [ "$location" = "$want_location" ]; then
+    echo "  ok   $label ($got → $location)"
+  else
+    echo "  FAIL $label — wanted $want_status → $want_location, got ${got:-000} → ${location}" >&2
+    fail=1
+  fi
+}
+
 # A header value must NOT contain a fixed string; an absent header passes.
 check_header_lacks() {
   local url="$1" header="$2" label="$3" unwanted="$4"
@@ -76,7 +91,15 @@ check https://www.salvageunion.io/ 301 "srd www redirect"
 # standing up a second origin; only an explicit 301 assertion tells them apart.
 # itun's is checked for the same reason.
 check https://www.intheunionnow.com/ 301 "itun www redirect"
-check https://intheunionnow.com/ 200 "itun shell"
+# ITUN lives at salvageunion.io/build (ADR-048): a Workers route ahead of srd's
+# Custom Domain. intheunionnow.com, where it lived before, 301s every page to
+# the same page there, a retired address straight to where it lives now
+# (apps/itun/src/worker/legacyHost.ts).
+check https://salvageunion.io/build/ 200 "itun shell"
+check_redirect https://salvageunion.io/build 301 https://salvageunion.io/build/ "itun bare base to its directory"
+check_redirect https://intheunionnow.com/ 301 https://salvageunion.io/build/ "itun old host 301s to salvageunion.io/build"
+check_redirect https://intheunionnow.com/p/pilot/smoke?x=1 301 "https://salvageunion.io/build/p/pilot/smoke?x=1" "itun old link keeps its path and query"
+check_redirect https://intheunionnow.com/join/SMOKE 301 https://salvageunion.io/build/invite/SMOKE "itun retired /join link 301s straight to /invite (D6)"
 # Plain http must never be served. Always Use HTTPS is a zone toggle, not repo
 # config (ADR-033, "Configuration outside the repo"); without it every hostname
 # answers http with 200 and HSTS never reaches a first-time visitor.
@@ -90,22 +113,22 @@ check http://assets.salvageunion.io/robots.txt 301 "artwork http redirect"
 # the same host in the repo's CSP sources).
 check_header https://salvageunion.io/ content-security-policy "srd CSP reaches the browser and admits Sentry" ingest.de.sentry.io
 check_header https://salvageunion.io/ strict-transport-security "srd HSTS reaches the browser"
-check_header https://intheunionnow.com/ content-security-policy "itun CSP reaches the browser and admits Sentry" ingest.de.sentry.io
-check_header https://intheunionnow.com/ strict-transport-security "itun HSTS reaches the browser"
+check_header https://salvageunion.io/build/ content-security-policy "itun CSP reaches the browser and admits Sentry" ingest.de.sentry.io
+check_header https://salvageunion.io/build/ strict-transport-security "itun HSTS reaches the browser"
 # itun runs in single-page-application mode, so only its Worker keeps a missing
 # chunk from #759, where a missing hashed chunk answered `200 text/html` and the
 # `immutable` header pinned that HTML into the HTTP cache for a year. curl sends
 # no `Sec-Fetch-Mode: navigate`, so these two reach the Worker exactly as a
 # module import and an unfurl bot do.
-check https://intheunionnow.com/assets/index-DEADBEEF.js 404 "itun rotated chunk 404 (#759)"
-check https://intheunionnow.com/p/pilot/smoke 200 "itun client route without a navigation"
+check https://salvageunion.io/build/assets/index-DEADBEEF.js 404 "itun rotated chunk 404 (#759)"
+check https://salvageunion.io/build/p/pilot/smoke 200 "itun client route without a navigation"
 # `_headers` matches by path, not status, so its `/assets/*` rule would mark a
 # missing chunk's 404 `immutable` and a client that asks before a deploy
 # finishes would keep the 404 for a year. On both sites a Worker answers every
 # miss with `no-store` instead, where `_headers` does not reach
 # (apps/srd/src/worker/index.ts, apps/itun/src/worker/index.ts).
 check_header_lacks https://salvageunion.io/assets/index-DEADBEEF.js cache-control "srd rotated chunk 404 is not immutable" immutable
-check_header_lacks https://intheunionnow.com/assets/index-DEADBEEF.js cache-control "itun rotated chunk 404 is not immutable" immutable
+check_header_lacks https://salvageunion.io/build/assets/index-DEADBEEF.js cache-control "itun rotated chunk 404 is not immutable" immutable
 # A derivative, not the master: entity cards ask for `-440`/`-880` first. It
 # reaches Cloudflare Images only once the baked `-440`/`-880` objects are gone
 # from su-lp-assets; while one is stored, the Worker serves that copy.

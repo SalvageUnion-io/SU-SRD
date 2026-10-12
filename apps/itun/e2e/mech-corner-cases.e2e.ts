@@ -1,3 +1,4 @@
+import { at } from './_base'
 import { advanceUntilVisible, clickNext, fillIdentity, pickByName, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
@@ -15,7 +16,7 @@ import { expect, test } from './fixtures'
  */
 
 test('wizard gates progress until chassis + name are set', async ({ page }) => {
-  await page.goto('/mechs/new?mode=guided')
+  await page.goto(at('/mechs/new?mode=guided'))
   await waitForReady(page)
 
   const next = page.getByRole('button', { name: /^Next ·/ })
@@ -42,7 +43,7 @@ test('wizard gates progress until chassis + name are set', async ({ page }) => {
 })
 
 test('the craft steps show their scrap and slot budget trackers', async ({ page }) => {
-  await page.goto('/mechs/new?mode=guided')
+  await page.goto(at('/mechs/new?mode=guided'))
   await waitForReady(page)
 
   await pickByName(page, 'Mule')

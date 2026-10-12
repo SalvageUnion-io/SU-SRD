@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test'
+import { at } from './_base'
 import { buildPilot, editSheet, openSheetFor, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
@@ -124,7 +125,7 @@ test.describe('signed out: the shell', () => {
   test.use({ account: 'anonymous', serviceWorkers: 'allow' })
 
   test('the app opens and reads with the network cut', async ({ page, context }) => {
-    await page.goto('/')
+    await page.goto(at('/'))
     await waitForReady(page)
 
     const controlled = await ensureServiceWorkerControls(page)
@@ -165,7 +166,7 @@ test.describe('signed out: the shell', () => {
     page,
     context,
   }) => {
-    await page.goto('/')
+    await page.goto(at('/'))
     await waitForReady(page)
 
     const controlled = await ensureServiceWorkerControls(page)
@@ -186,7 +187,7 @@ test.describe('signed out: the shell', () => {
     // A REAL route this test has not visited: the SPA shell must serve it from
     // cache and route it. (A route that does not exist would assert only that
     // the offline not-found page carries the app title.)
-    await page.goto('/about')
+    await page.goto(at('/about'))
     await waitForReady(page)
     await expect(page).toHaveTitle(/In The Union Now/i)
     await expect(page.getByText(/page not found/i)).toHaveCount(0)

@@ -1,4 +1,5 @@
 import { e2eConfig } from '../../tools/lib/playwrightBase'
+import { SITE } from './src/lib/site'
 
 /**
  * ITUN's end-to-end suite: `tools/lib/playwrightBase.ts` with ITUN's port and
@@ -19,6 +20,8 @@ import { e2eConfig } from '../../tools/lib/playwrightBase'
  */
 export default e2eConfig({
   port: 5173,
+  // ITUN at salvageunion.io/build (ADR-048); specs open `at(route)` (e2e/_base.ts).
+  basePath: SITE.base,
   local: { timeout: 90_000, expect: 15_000 },
   external: { timeout: 150_000, expect: 20_000 },
 })

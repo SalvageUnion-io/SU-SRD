@@ -11,6 +11,7 @@ import {
   pageEntity,
   parseGalleryArgs,
   resolvePath,
+  routeOf,
   signedInTargets,
   signedOutTargets,
   writeGallery,
@@ -311,14 +312,28 @@ describe('ogSource', () => {
       name: 'x',
       note: '',
     }
-    expect(ogSource(itunPage, 'http://itun', 'https://intheunionnow.com/og.png')).toEqual({
+    expect(ogSource(itunPage, 'http://itun', 'https://salvageunion.io/og.png')).toEqual({
       kind: 'file',
       url: 'http://itun/og.png',
     })
+    // ITUN's --itun carries its base (ADR-048); the image's path already does too.
+    expect(
+      ogSource(itunPage, 'http://localhost:5173/build', 'https://salvageunion.io/build/og/x.png')
+    ).toEqual({ kind: 'file', url: 'http://localhost:5173/build/og/x.png' })
   })
 
   test('a page with no og:image and no card has no preview', () => {
     expect(ogSource(srdPage('/'), 'http://srd', undefined)).toBeUndefined()
+  })
+})
+
+describe('routeOf', () => {
+  test("takes ITUN's base off a path the app rendered, and leaves anything else", () => {
+    const itun = 'http://localhost:5173/build'
+    expect(routeOf(itun, '/build/sheet/pilot/x')).toBe('/sheet/pilot/x')
+    expect(routeOf(itun, '/build/games/g1')).toBe('/games/g1')
+    expect(routeOf(itun, 'https://example.com/a')).toBe('https://example.com/a')
+    expect(routeOf('http://localhost:5173', '/sheet/pilot/x')).toBe('/sheet/pilot/x')
   })
 })
 
@@ -454,7 +469,7 @@ describe('renderGallery, page by page', () => {
     const html = render([srdPage, itunIn, itunOut], run(), og)
     expect(html).toContain('Link previews <small>2 pages</small>')
     expect(html).toContain('salvageunion.io/schema/chassis/')
-    expect(html).toContain('intheunionnow.com/starter')
+    expect(html).toContain('salvageunion.io/build/starter')
     expect(html).toContain(`shots/${pageSlug(itunOut)}-og.png`)
     expect(html).toContain('<strong>Chassis</strong>')
     expect(html).toContain('No og:image')

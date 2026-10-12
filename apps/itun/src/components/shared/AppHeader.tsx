@@ -3,6 +3,7 @@ import { AppBar, Badge, NavDrawer } from 'component-lib'
 import { borderWidth, color } from 'component-lib/design/tokens'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { SRD_SITE_URL } from 'salvageunion-reference'
+import { MARK_SRC } from '../../lib/appUrl'
 
 /**
  * AppHeader — ITUN's preset of the shared Union bar (`AppBar`, ruleset §3.11):
@@ -122,6 +123,7 @@ export function AppHeader({
       referenceHref={SRD_SITE_URL}
       buildHref="/"
       LinkComponent={LinkComponent}
+      markSrc={MARK_SRC}
       navItems={[
         { label: 'Shelves', href: '/', active: onShelves },
         ...(games ? [{ id: 'games', node: games }] : []),

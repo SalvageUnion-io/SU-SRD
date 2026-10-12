@@ -4,6 +4,7 @@ import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { MARK_SRC } from '../../lib/appUrl'
 import { fullSheetCard } from '../../lib/linkPreview/previewStats'
 import type { PreviewKind } from '../../lib/linkPreview/previewSummary'
 import { inviteCard, isPreviewKind, privateCard } from '../../lib/linkPreview/previewSummary'
@@ -52,7 +53,7 @@ function Ready({ card }: { card: OgCardProps }) {
   }, [])
   return (
     <div style={FRAME}>
-      <OgCard {...card} />
+      <OgCard {...card} markSrc={MARK_SRC} />
     </div>
   )
 }

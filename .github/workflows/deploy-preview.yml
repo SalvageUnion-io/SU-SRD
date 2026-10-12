@@ -8,7 +8,7 @@ name: Deploy preview (Cloudflare)
 # Those runs still wait for the reviewer below, like a dispatch.
 #
 #   srd   https://preview-su-srd.alxjrvs.workers.dev
-#   itun  https://preview-su-itun.alxjrvs.workers.dev, against the staging
+#   itun  https://preview-su-itun.alxjrvs.workers.dev/build, against the staging
 #         Convex deployment perfect-donkey-72
 #
 # The last dispatch wins; the run's summary names the ref and commit the slot
@@ -51,7 +51,9 @@ permissions:
 env:
   PREVIEW_ALIAS: preview
   SRD_PREVIEW_URL: https://preview-su-srd.alxjrvs.workers.dev
-  ITUN_PREVIEW_URL: https://preview-su-itun.alxjrvs.workers.dev
+  # ITUN is served under /build (ADR-048), on the slot as in production; the
+  # slot's root 301s there.
+  ITUN_PREVIEW_URL: https://preview-su-itun.alxjrvs.workers.dev/build
   # The staging backend: the project's cloud dev deployment. Public, like
   # production's (docs/ARCHITECTURE.md#areas).
   STAGING_CONVEX_DEPLOYMENT: perfect-donkey-72
@@ -216,7 +218,7 @@ jobs:
         run: bunx convex deploy --cmd-url-env-var-name CANONICAL_CONVEX_URL --cmd "$URL_GUARD"
 
       # Every run: the OAuth callback redirects to SITE_URL, which must be the
-      # preview origin. Not a secret.
+      # preview's address, base included. Not a secret.
       - name: Point the staging backend's SITE_URL at the preview
         working-directory: apps/itun
         env:

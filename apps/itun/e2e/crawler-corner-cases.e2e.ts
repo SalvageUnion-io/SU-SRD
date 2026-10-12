@@ -1,3 +1,4 @@
+import { at } from './_base'
 import { advanceUntilVisible, clickNext, fillIdentity, pickByName, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
@@ -16,7 +17,7 @@ import { expect, test } from './fixtures'
  */
 
 test('wizard gates progress until type, armament and name are set', async ({ page }) => {
-  await page.goto('/crawlers/new?mode=guided')
+  await page.goto(at('/crawlers/new?mode=guided'))
   await waitForReady(page)
 
   const next = page.getByRole('button', { name: /^Next ·/ })
@@ -47,7 +48,7 @@ test('wizard gates progress until type, armament and name are set', async ({ pag
 })
 
 test('the Armament Bay offers weapons for a new (TL1) crawler', async ({ page }) => {
-  await page.goto('/crawlers/new?mode=guided')
+  await page.goto(at('/crawlers/new?mode=guided'))
   await waitForReady(page)
 
   await pickByName(page, 'Battle')

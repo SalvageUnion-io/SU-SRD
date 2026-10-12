@@ -46,12 +46,12 @@ bunx convex dev --configure existing --team alex-jarvis --project suref-itun \
   --dev-deployment local --once
 
 # Then, with `bun run dev:itun` running, in a second terminal:
-bunx @convex-dev/auth --web-server-url http://localhost:5173   # SITE_URL + JWT keys
+bunx @convex-dev/auth --web-server-url http://localhost:5173/build   # SITE_URL + JWT keys
 bunx convex env set ITUN_TEST_AUTH true
 ```
 
 To sign in, run `await __itunTestSignIn('<any email>', '<8+ char password>')`
-in the browser console on `http://localhost:5173`. Each call signs up a new
+in the browser console on `http://localhost:5173/build/`. Each call signs up a new
 password account (a repeated email is refused), and the session survives
 reloads. `bun run e2e:itun` starts `dev:itun` itself (or reuses a running one),
 so its signed-in specs fail until this setup is done.
@@ -75,13 +75,15 @@ so its signed-in specs fail until this setup is done.
 
 ```bash
 bunx convex env set --prod AUTH_DISCORD_ID <client-id>
-bunx convex env set --prod SITE_URL        <frontend origin>
+bunx convex env set --prod SITE_URL        https://salvageunion.io/build
 ```
 
 `AUTH_DISCORD_SECRET` and the `JWT_PRIVATE_KEY` / `JWKS` pair go in on stdin,
-as in the rotation sections below. `SITE_URL` is the **frontend** origin
-(`https://intheunionnow.com`), not `VITE_CONVEX_SITE_URL` and not the
-`.convex.site` host; nothing prompts for it. Without the JWT pair, sign-in
+as in the rotation sections below. `SITE_URL` is the **frontend** address,
+base included (`https://salvageunion.io/build`, ADR-048), not
+`VITE_CONVEX_SITE_URL` and not the `.convex.site` host; every production
+deploy of itun sets it (`deploy-cloudflare.yml`), so set it by hand only on a
+new deployment. Without the JWT pair, sign-in
 fails only after Discord redirects back, which the probe in step 3 never
 reaches, so check both by length.
 

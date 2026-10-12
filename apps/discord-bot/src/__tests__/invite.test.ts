@@ -123,7 +123,7 @@ describe('/su invite', () => {
     expect(dm?.userId).toBe('snowflake-sam')
     expect(dm?.payload.flags).toBe(MessageFlags.IsComponentsV2)
     expect(JSON.stringify(dm?.payload.components)).toContain(
-      'https://intheunionnow.com/invite/A1B2C3D4'
+      'https://salvageunion.io/build/invite/A1B2C3D4'
     )
 
     expect(calls.delivery).toEqual([['snowflake-vex', 'A1B2C3D4', 'sent', undefined]])
@@ -146,7 +146,7 @@ describe('/su invite', () => {
     ])
     const reply = fake.edits.at(-1)?.content ?? ''
     expect(reply).toContain('couldn’t DM them')
-    expect(reply).toContain('https://intheunionnow.com/invite/A1B2C3D4')
+    expect(reply).toContain('https://salvageunion.io/build/invite/A1B2C3D4')
     // Never posted to the channel on anyone's behalf.
     expect(fake.followUps).toHaveLength(0)
     expect(fake.replies).toHaveLength(0)
@@ -168,7 +168,7 @@ describe('/su invite', () => {
     expect(calls.delivery).toHaveLength(0)
     const reply = fake.edits.at(-1)?.content ?? ''
     expect(reply).toContain('haven’t sent it again')
-    expect(reply).toContain('https://intheunionnow.com/invite/A1B2C3D4')
+    expect(reply).toContain('https://salvageunion.io/build/invite/A1B2C3D4')
   })
 
   test('someone already seated is reported, and nobody is DMed', async () => {
@@ -224,7 +224,7 @@ describe('the DM', () => {
   test('says who, what, which seat and how long — and nothing about the crew', () => {
     const dm = buildInviteDm(
       { ...INVITED, role: 'mediator', grantCount: 2, expiresAt: NOW + 6 * DAY + 1 },
-      'https://intheunionnow.com',
+      'https://salvageunion.io/build',
       NOW
     )
     const text = JSON.stringify(dm)
@@ -245,14 +245,18 @@ describe('the DM', () => {
   })
 
   test('the button opens the invite link', () => {
-    expect(inviteUrl('https://intheunionnow.com/', 'A1B2C3D4')).toBe(
-      'https://intheunionnow.com/invite/A1B2C3D4'
+    expect(inviteUrl('https://salvageunion.io/build/', 'A1B2C3D4')).toBe(
+      'https://salvageunion.io/build/invite/A1B2C3D4'
     )
-    const dm = buildInviteDm(INVITED, 'https://intheunionnow.com', NOW)
+    const dm = buildInviteDm(INVITED, 'https://salvageunion.io/build', NOW)
     expect(dm.blocks.at(-1)).toEqual({
       kind: 'buttons',
       buttons: [
-        { kind: 'link', url: 'https://intheunionnow.com/invite/A1B2C3D4', label: 'Open invite' },
+        {
+          kind: 'link',
+          url: 'https://salvageunion.io/build/invite/A1B2C3D4',
+          label: 'Open invite',
+        },
       ],
     })
   })

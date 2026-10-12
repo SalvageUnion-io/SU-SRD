@@ -94,6 +94,7 @@ function env(over: Partial<Env> = {}): Env {
       },
     },
     CONVEX_URL,
+    BASE_PATH: '/build',
     CF_ACCOUNT_ID: 'acct',
     BROWSER_RENDERING_TOKEN: 'token',
     ...over,
@@ -102,7 +103,7 @@ function env(over: Partial<Env> = {}): Env {
 
 /** Discord's unfurler: no Sec-Fetch-Mode, so the request reaches the Worker. */
 const discordbot = (path: string) =>
-  new Request(`https://intheunionnow.com${path}`, {
+  new Request(`https://salvageunion.io/build${path}`, {
     headers: { 'user-agent': 'Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)' },
   })
 
@@ -134,9 +135,9 @@ describe('a Discordbot fetch of a shared pattern', () => {
     expect(meta(html, 'og:title')).toBe('Tow Rig')
     expect(meta(html, 'og:description')).toBe('Mech Pattern · Scrapper · Made by alxjrvs')
     expect(meta(html, 'theme-color')).toBe(color.mech)
-    expect(meta(html, 'og:url')).toBe('https://intheunionnow.com/p/pattern/pat-1')
+    expect(meta(html, 'og:url')).toBe('https://salvageunion.io/build/p/pattern/pat-1')
     expect(meta(html, 'og:image')).toBe(
-      `https://intheunionnow.com/og/pattern/pat-1.png?v=${versionOf(PATTERN)}`
+      `https://salvageunion.io/build/og/pattern/pat-1.png?v=${versionOf(PATTERN)}`
     )
     expect(meta(html, 'twitter:card')).toBe('summary_large_image')
     expect(html).toContain('<title>Tow Rig</title>')
@@ -153,7 +154,7 @@ describe('a Discordbot fetch of a pilot sheet', () => {
       "Pilot · Engineer · Rosa's pilot · Reclamation of the Wastes"
     )
     expect(meta(html, 'theme-color')).toBe(color.pilot)
-    expect(meta(html, 'og:image')).toStartWith('https://intheunionnow.com/og/pilot/p-1.png?v=')
+    expect(meta(html, 'og:image')).toStartWith('https://salvageunion.io/build/og/pilot/p-1.png?v=')
   })
 })
 
@@ -162,7 +163,7 @@ describe('a name with a $ in it', () => {
     const html = applyMeta(SHELL, {
       title: name,
       description: 'Pilot',
-      url: 'https://intheunionnow.com/p/pilot/p-1',
+      url: 'https://salvageunion.io/build/p/pilot/p-1',
       themeColor: color.pilot,
     })
     const escaped = name.replace(/&/g, '&amp;')
@@ -182,10 +183,10 @@ describe('a Discordbot fetch of a private sheet', () => {
     expect(meta(html, 'og:description')).toBe("Its owner hasn't shared this.")
     expect(meta(html, 'theme-color')).toBe(color.inkDeep)
     // One picture for every private thing: the URL does not carry the id.
-    expect(meta(html, 'og:image')).toBe('https://intheunionnow.com/og/private.png?v=1')
+    expect(meta(html, 'og:image')).toBe('https://salvageunion.io/build/og/private.png?v=1')
     // Nothing but the address the link already is: no kind, no maker, no Game.
     const block = html.slice(html.indexOf(META_START), html.indexOf(META_END))
-    expect(block.replace('https://intheunionnow.com/p/pilot/p-2', '')).not.toContain('p-2')
+    expect(block.replace('https://salvageunion.io/build/p/pilot/p-2', '')).not.toContain('p-2')
     expect(block).not.toContain('Pilot ·')
     expect(block).not.toContain('Made by')
   })
@@ -198,15 +199,18 @@ describe('a Discordbot fetch of an invite', () => {
     expect(meta(html, 'og:description')).toBe("You're invited · Player seat · Mediated by alxjrvs.")
     expect(meta(html, 'og:title')).not.toContain('K7QR2XA')
     expect(meta(html, 'og:description')).not.toContain('K7QR2XA')
-    expect(meta(html, 'og:url')).toBe('https://intheunionnow.com/invite/K7QR2XA')
+    expect(meta(html, 'og:url')).toBe('https://salvageunion.io/build/invite/K7QR2XA')
     expect(meta(html, 'theme-color')).toBe(color.crawler)
     expect(html).toContain('<title>Reclamation of the Wastes</title>')
   })
 
   it('sends an old /join/<code> link to /invite/<code> before unfurling, so the bot unfurls that', async () => {
-    const res = await worker.fetch(discordbot('/join/K7QR2XA'), env())
+    const old = new Request('https://intheunionnow.com/join/K7QR2XA', {
+      headers: { 'user-agent': 'Discordbot/2.0' },
+    })
+    const res = await worker.fetch(old, env())
     expect(res.status).toBe(301)
-    expect(res.headers.get('location')).toBe('/invite/K7QR2XA')
+    expect(res.headers.get('location')).toBe('https://salvageunion.io/build/invite/K7QR2XA')
   })
 
   it('keeps the sitewide defaults for a dead code', async () => {
@@ -264,13 +268,14 @@ function memoryCache(): ImageCache & { keys: string[] } {
   }
 }
 
-const imageRequest = (path: string) => new Request(`https://intheunionnow.com${path}`)
+const imageRequest = (path: string) => new Request(`https://salvageunion.io/build${path}`)
 
 describe('the picture route', () => {
   it('renders the current version once, then serves it from the cache', async () => {
     const cache = memoryCache()
     const fetchImpl = fakeFetch()
     const first = await ogImage(imageRequest('/og/pattern/pat-1.png?v=stale'), env(), {
+      base: '/build',
       cache,
       fetch: fetchImpl,
     })
@@ -278,15 +283,16 @@ describe('the picture route', () => {
     expect(first.headers.get('content-type')).toBe('image/png')
     // Keyed by the CURRENT version, whatever `v` the URL carried.
     expect(cache.keys).toEqual([
-      `https://intheunionnow.com/og/pattern/pat-1.png?v=${versionOf(PATTERN)}`,
+      `https://salvageunion.io/build/og/pattern/pat-1.png?v=${versionOf(PATTERN)}`,
     ])
     const shot = seen.find((r) => r.url.includes('/browser-rendering/screenshot'))
     expect(shot?.body).toMatchObject({
-      url: 'https://intheunionnow.com/og/pattern/pat-1',
+      url: 'https://salvageunion.io/build/og/pattern/pat-1',
       viewport: { width: 1200, height: 630 },
     })
 
     const again = await ogImage(imageRequest('/og/pattern/pat-1.png'), env(), {
+      base: '/build',
       cache,
       fetch: fakeFetch(),
     })
@@ -296,7 +302,11 @@ describe('the picture route', () => {
 
   it('an edit is a new version, so a new render', async () => {
     const cache = memoryCache()
-    await ogImage(imageRequest('/og/pattern/pat-1.png'), env(), { cache, fetch: fakeFetch() })
+    await ogImage(imageRequest('/og/pattern/pat-1.png'), env(), {
+      base: '/build',
+      cache,
+      fetch: fakeFetch(),
+    })
     const edited = {
       ...ANSWERS,
       'publicSheet:preview': {
@@ -304,6 +314,7 @@ describe('the picture route', () => {
       },
     }
     await ogImage(imageRequest('/og/pattern/pat-1.png'), env(), {
+      base: '/build',
       cache,
       fetch: fakeFetch(edited),
     })
@@ -312,15 +323,20 @@ describe('the picture route', () => {
 
   it('a thing made private gets the private card, never its old picture', async () => {
     const cache = memoryCache()
-    await ogImage(imageRequest('/og/pattern/pat-1.png'), env(), { cache, fetch: fakeFetch() })
+    await ogImage(imageRequest('/og/pattern/pat-1.png'), env(), {
+      base: '/build',
+      cache,
+      fetch: fakeFetch(),
+    })
     const madePrivate = { ...ANSWERS, 'publicSheet:preview': { 'pattern/pat-1': null } }
     const res = await ogImage(imageRequest('/og/pattern/pat-1.png'), env(), {
+      base: '/build',
       cache,
       fetch: fakeFetch(madePrivate),
     })
     expect(res.status).toBe(200)
     const shot = seen.find((r) => r.url.includes('/browser-rendering/screenshot'))
-    expect(shot?.body).toMatchObject({ url: 'https://intheunionnow.com/og/private' })
+    expect(shot?.body).toMatchObject({ url: 'https://salvageunion.io/build/og/private' })
   })
 
   it('404s without a renderer, a dead invite, or a failed render', async () => {
@@ -328,15 +344,17 @@ describe('the picture route', () => {
     const noToken = await ogImage(
       imageRequest('/og/pattern/pat-1.png'),
       env({ BROWSER_RENDERING_TOKEN: undefined }),
-      { cache, fetch: fakeFetch() }
+      { base: '/build', cache, fetch: fakeFetch() }
     )
     expect(noToken.status).toBe(404)
     const dead = await ogImage(imageRequest('/og/invite/DEADCODE.png'), env(), {
+      base: '/build',
       cache,
       fetch: fakeFetch(),
     })
     expect(dead.status).toBe(404)
     const failed = await ogImage(imageRequest('/og/pilot/p-1.png'), env(), {
+      base: '/build',
       cache,
       fetch: fakeFetch(ANSWERS, false),
     })

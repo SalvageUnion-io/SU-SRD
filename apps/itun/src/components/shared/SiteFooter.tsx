@@ -1,6 +1,7 @@
 import { Footer, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
+import { publicPath } from '../../lib/appUrl'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { AppLink } from './AppLink'
 
@@ -25,8 +26,8 @@ const LINKS = [
 /** Room between the page and its foot band, as the old hairline foot had. */
 const GAP = { marginTop: tokens.space[48] } satisfies CSSProperties
 
-/** The mark ships in ITUN's own `public/`, under whatever base the build has. */
-const MARK = `${import.meta.env.BASE_URL ?? '/'}Powered_by_Salvage_Black.webp`
+/** The mark ships in ITUN's own `public/`, under the base. */
+const MARK = publicPath('Powered_by_Salvage_Black.webp')
 
 export function SiteFooter() {
   const { mode } = useConnection()
