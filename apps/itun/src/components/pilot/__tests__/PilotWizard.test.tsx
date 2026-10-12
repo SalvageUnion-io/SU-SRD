@@ -202,7 +202,7 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     })
 
     expect(onComplete).toHaveBeenCalledTimes(1)
-  }, 30000)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -221,7 +221,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     expect(screen.getByTestId('ability-count').textContent).toContain('1 / 1')
     expect(getPickByName('Jury Rig').getAttribute('aria-pressed')).toBe('true')
     expect(getPickByName('Engineering Expertise').getAttribute('aria-pressed')).toBe('false')
-  }, 30000)
+  })
 
   it('changing class clears a now-illegal ability (cross-step invalidation)', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -231,7 +231,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     await pick('Soldier') // Mechanical Knowledge ∉ Soldier trees
     expect(screen.getByTestId('ability-count').textContent).toContain('0 / 1')
     expect(getNextButton().disabled).toBe(true)
-  }, 30000)
+  })
 
   it('keeps a still-legal ability across a class change (Salvager shares core trees)', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -240,7 +240,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     await pick('Engineering Expertise') // Mechanical Knowledge L1 — also a Salvager tree
     await pick('Salvager')
     expect(screen.getByTestId('ability-count').textContent).toContain('1 / 1')
-  }, 30000)
+  })
 
   it('offers the Salvager all 15 core-tree Level-1 abilities and no specialisation classes', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -270,7 +270,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     for (const ability of advanced) {
       expect(screen.queryByRole('button', { name: ability.name })).toBeNull()
     }
-  }, 30000)
+  })
 
   it('equipment count-stepper supports duplicates and the − removes a copy', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -297,7 +297,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     })
     expect(screen.getByTestId('equipment-count').textContent).toContain('1 / 2')
     expect(plus().disabled).toBe(false)
-  }, 30000)
+  })
 
   it('slot preview uses pilotInventory math, not pick count', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -307,7 +307,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     await clickNext()
     // 0 picks → 0 / 6 slots (base capacity).
     expect(screen.getByTestId('slot-preview').textContent).toContain('/ 6')
-  }, 30000)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -345,7 +345,7 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
     expect(getPickByName('Mass Field Maintenance').getAttribute('aria-pressed')).toBe('true')
     await clickNext() // → Equipment
     expect(screen.getByTestId('equipment-count').textContent).toContain('2 / 2')
-  }, 30000)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -381,5 +381,5 @@ describe('PilotWizard — session drafts', () => {
     })
     expect(onCancel).toHaveBeenCalledTimes(1)
     expect(sessionStorage.getItem('itun-wizard-draft:pilot:new')).toBeNull()
-  }, 30000)
+  })
 })

@@ -729,7 +729,7 @@ const RULE_BUDGET = 4_000
 const OVER_BUDGET: Record<string, number> = {
   'apps/itun/CLAUDE.md': 13_483,
   'apps/srd/CLAUDE.md': 11_724,
-  'CLAUDE.md': 11_797,
+  'CLAUDE.md': 11_745,
   'packages/component-lib/CLAUDE.md': 15_719,
   'packages/salvageunion-reference/CLAUDE.md': 9_309,
 }

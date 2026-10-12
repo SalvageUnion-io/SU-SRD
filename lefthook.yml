@@ -39,45 +39,9 @@ pre-push:
       run: bun tools/check.ts --profile=pre-push
 
     test:
-      # Runs only the test files the push can affect, via Bun's `--changed`,
-      # which selects by module graph rather than by path: editing
-      # packages/component-lib/src/components/shared/displayMode.ts selects 37 of
-      # component-lib's 84 test files (2.3s), and a push touching only docs
-      # selects none at all instead of paying the full ~32s.
-      #
-      # CRITICAL: `--changed` DOES NOT CROSS WORKSPACE BOUNDARIES, so it cannot
-      # be used alone here. Measured: edit
-      # packages/salvageunion-reference/lib/utilities.ts (since split into
-      # per-concern modules) and
-      # `bun --filter salvageunion-reference test --changed` correctly selects
-      # 27/49 — while `bun --filter component-lib test --changed` reports "no
-      # test files are affected" and runs ZERO, even though component-lib
-      # consumes that module. Relying on it for a shared-package edit would skip
-      # exactly the cross-app regressions this repo tells you to go looking for.
-      #
-      # So the shared surface is diffed FIRST and forces the full suite. The list
-      # mirrors ci.yml's `shared` path filter (which treats these as affecting
-      # everything) plus `apps/*/package.json`, since a dependency change in one
-      # app can still move the resolved tree for all of them. Only a change
-      # confined to app source takes the fast path.
-      #
-      # The base is the merge-base with origin/main — everything this branch is
-      # about to push, not just the last commit. On a long-lived branch that
-      # over-selects, which is the safe direction.
-      #
-      # The full suite here is `test:coverage`, CI's own gate (coverage floors
-      # included), so a floor breach fails the push rather than CI. The fast
-      # path is not a narrowing of that gate: CI runs it on every code PR.
-      # A missing base falls back to the full suite, never to "nothing to test".
-      run: |
-        base=$(git merge-base HEAD origin/main 2>/dev/null || true)
-        if [ -z "$base" ]; then
-          echo "pre-push: no origin/main to diff against — running CI's test gate"
-          bun run test:coverage
-        elif git diff --name-only "$base" -- packages test bunfig.toml package.json bun.lock 'apps/*/package.json' | grep -q .; then
-          echo "pre-push: shared code or dependency manifests changed — running CI's test gate"
-          echo "          (bun test --changed does not cross workspace boundaries)"
-          bun run test:coverage
-        else
-          bun --filter "*" test --changed="$base"
-        fi
+      # The changed workspaces' suites plus their dependents', from the
+      # manifest graph — Bun's `--changed` stops at a workspace boundary. No
+      # coverage: the floors are CI's gate alone. Running them here beside the
+      # checks took longer than CI and pushed tests past their 5 s budget.
+      # The why and the selection rules: tools/pre-push-test.ts.
+      run: bun tools/pre-push-test.ts

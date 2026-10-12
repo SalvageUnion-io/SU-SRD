@@ -182,7 +182,7 @@ describe('CrawlerBuilder — create mode', () => {
       expect(screen.getAllByText('Grizzled Veteran').length).toBeGreaterThan(0)
     })
     expect(getNextButton().disabled).toBe(false)
-  }, 30000)
+  })
 
   it('the Augmented type surfaces the +1 Training Point callout (text only)', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -192,7 +192,7 @@ describe('CrawlerBuilder — create mode', () => {
       expect(screen.getByText(/\+1 Training Point/)).toBeTruthy()
       expect(screen.getByText(/Augment ability tree only/)).toBeTruthy()
     })
-  }, 30000)
+  })
 
   it('step 2 displays fixed TL1 statistics with the derived SP breakdown (Battle 20 + 5 = 25)', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -206,7 +206,7 @@ describe('CrawlerBuilder — create mode', () => {
     // Display-only: no Tech Level input exists, Next is never gated here.
     expect(screen.queryByLabelText(/Tech Level/i)).toBeNull()
     expect(getNextButton().disabled).toBe(false)
-  }, 30000)
+  })
 
   it('TL-filters the Armament step to Tech 1 weapons only (non-weapons excluded)', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -225,7 +225,7 @@ describe('CrawlerBuilder — create mode', () => {
     // Higher-TL weapons are FILTERED OUT (never rendered), as are non-weapons.
     expect(screen.queryByRole('button', { name: tl2.name })).toBeNull()
     expect(screen.queryByRole('button', { name: nonWeapon.name })).toBeNull()
-  }, 30000)
+  })
 
   it('gates the Armament step on the minimum-1 weapon mount', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -242,7 +242,7 @@ describe('CrawlerBuilder — create mode', () => {
     const weapon = weaponSystemAtTL(1)
     await pick(weapon.name)
     expect(getNextButton().disabled).toBe(false)
-  }, 30000)
+  })
 
   it('hard-caps installs at the mutations-derived type allowance (Engineering = 1)', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -275,7 +275,7 @@ describe('CrawlerBuilder — create mode', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: must(second).name })).toBeTruthy()
     })
-  }, 30000)
+  })
 
   it('a Battle Crawler mounts two — and a type change re-clamps with a toast', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -301,7 +301,7 @@ describe('CrawlerBuilder — create mode', () => {
     await clickNext() // Statistics
     await clickNext() // -> Armament Bay
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('1 / 1')
-  }, 30000)
+  })
 
   it('walks every book step and creates a TL1 Battle crawler seeded at the DERIVED full SP', async () => {
     const onComplete = mock(() => {})
@@ -387,7 +387,7 @@ describe('CrawlerBuilder — create mode', () => {
       expect(c.bayChoices?.[getEntitySlug(battle)]?.[mottoId]).toEqual(['No retreat'])
     })
     expect(onComplete).toHaveBeenCalledTimes(1)
-  }, 30000)
+  })
 
   it('name gate: cannot reach Create with an empty name', async () => {
     render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
@@ -404,7 +404,7 @@ describe('CrawlerBuilder — create mode', () => {
     expect(getNextButton().disabled).toBe(true)
     expect(screen.getByText(/Name your Crawler to continue/i)).toBeTruthy()
     expect(useEntityStore.getState().list('crawler').length).toBe(0)
-  }, 30000)
+  })
 
   it('cancel calls onCancel', async () => {
     const onCancel = mock(() => {})
@@ -424,5 +424,5 @@ describe('CrawlerBuilder — create mode', () => {
 
     expect(screen.queryByLabelText('Bay entity slug')).toBeNull()
     expect(screen.queryByRole('button', { name: /Add Bay/i })).toBeNull()
-  }, 30000)
+  })
 })
