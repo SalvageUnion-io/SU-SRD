@@ -55,7 +55,7 @@ the corpus size, not just the finding count.
 
 | Script | Run by | Purpose | Baseline |
 | --- | --- | --- | --- |
-| `run-coverage.ts` | `test:coverage`: CI's `coverage` job, and pre-push when shared code or manifests change | Every workspace's suite (`tools/` included) under `bun test --coverage`, concurrently, each workspace's output printed whole under its name. Fails a workspace whose line coverage of its own files is under its floor. | `FLOORS` in the script. Add tests; lower a floor only on purpose, saying so in the PR. Raise one to lock in a gain. |
+| `run-coverage.ts` | `test:coverage`: CI's `coverage` job, and pre-push when shared code or manifests change | Every workspace's suite (`tools/` included) under `bun test --coverage`, concurrently, each workspace's output printed whole under its name. A workspace in `SHARDS` (ITUN) runs as serial shards whose lcov `lib/lcov.ts` merges to what one serial run reports. Fails a workspace whose line coverage of its own files is under its floor. | `FLOORS` in the script. Add tests; lower a floor only on purpose, saying so in the PR. Raise one to lock in a gain. |
 | `lib/a11yScan.ts` | each app's `e2e/a11y.e2e.ts`, in `build-srd` and `build-itun` in `ci.yml` (every srd / ITUN PR) | WCAG 2.2 AA scan (axe-core in the suite's own Playwright browser) of the pages each spec lists in `PAGES`, at desktop and as a Pixel 7. Fails on any violation. | — |
 | `deploy-surfaces.ts` | `.github/workflows/deploy-cloudflare.yml` | Diffs HEAD against the last successful deploy tag and decides which Cloudflare surfaces ship. Fails safe: when unsure it deploys everything. | — |
 | `environments.ts` | `e2e-nightly.yml` (`environments`); `--apply` by hand | The GitHub Environments declared once (branches, secret names, required reviewers) and compared against the live settings: no branch policy, a missing or repository-level secret, an undeclared Environment. `--apply` sets Environments and branch policies, never secrets. Its static half is `workflows`' `secrets-env`. | — |
@@ -75,6 +75,7 @@ the corpus size, not just the finding count.
 `lib/` holds the shared pieces: `ruleEngine.ts` (the styling engine: walk,
 exemptions, zero/ratchet verdicts), `scanFloor.ts`, `workspaceCoverage.ts`,
 `tailwindClasses.ts` (the Tailwind-file ratchet's detector),
+`lcov.ts` and `functionRanges.ts` (the coverage shard merge),
 `proseFidelity.ts` (prose collection, hashing and the fidelity lock format),
 `r2.ts` (R2 through `Bun.S3Client`, because `wrangler r2 object` cannot list)
 and `playwrightBase.ts` (the one Playwright config both apps' suites run).

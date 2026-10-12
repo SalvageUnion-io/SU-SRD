@@ -35,6 +35,7 @@ const { ConnectionContext } = await import('../../../lib/connection/connectionCo
 const { clearCache, _resetDbSingleton } = await import('../../../lib/db/index')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { usePatternStore } = await import('../../../stores/patternStore')
+const { useEncounterStore } = await import('../../../stores/encounterStore')
 const { Roster } = await import('../Roster')
 
 withSignedInBackend()
@@ -91,6 +92,9 @@ function resetEntityStore(): void {
     },
   })
   usePatternStore.setState({ mechPatterns: [], hydrated: false })
+  // The NPC shelf also lists encounter NPCs; an earlier file in the same
+  // process can leave some in memory.
+  useEncounterStore.setState({ encounterNpcs: [], hydrated: false })
 }
 
 /**
