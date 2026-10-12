@@ -11,6 +11,7 @@ import { Facts } from '../parts/Facts'
 import { factCells } from '../parts/factCells'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
+import { monogram, TECH_LEVEL_SCHEMAS } from '../parts/plate'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
 
 export type TileProps = {
@@ -35,26 +36,6 @@ const SIZES = '(min-width: 75rem) 18rem, 50vw'
 /** The su-assets derivative at one allowlisted width (`assetSrcSet`). */
 function derivative(url: string, width: 440 | 880): string {
   return url.replace(/\.webp$/, `-${width}.webp`)
-}
-
-/** The schemas whose entity IS a tech level: their plate is the numeral. */
-export const TECH_LEVEL_SCHEMAS: ReadonlySet<string> = new Set([
-  'tech-levels',
-  'crawler-tech-levels',
-])
-
-/**
- * The plate of a tile with no art place that is not a tech level (a crawler
- * type, a distance, a faction): the initials of the name's first two words that open
- * on a letter — "Trade Caravan" TC, "Close" C, "Crawler #693 Salvagers" CS.
- */
-export function monogram(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter((word) => /^\p{L}/u.test(word))
-    .slice(0, 2)
-    .map((word) => word.charAt(0).toUpperCase())
-    .join('')
 }
 
 /** The name on its cut-out of the paper below, in ink (ruleset, "Chapter band"). */

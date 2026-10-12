@@ -7,7 +7,7 @@ import { render } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { Entity } from '../Entity'
-import { monogram } from '../forms/Tile'
+import { monogram } from '../parts/plate'
 
 const need = <T,>(value: T | undefined, label: string): T => {
   if (value === undefined) throw new Error(`fixture missing: ${label}`)
