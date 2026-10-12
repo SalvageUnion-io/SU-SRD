@@ -60,6 +60,8 @@ export type FakeExecuteOptions = {
   signed?: SignedInteraction | null
   /** What `directMessage` answers. Delivered, by default. */
   dmOutcome?: DirectMessageOutcome
+  /** The message a context-menu command was used on; none by default. */
+  targetMessage?: { content: string; author?: string } | null
 }
 
 export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
@@ -89,6 +91,7 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
     },
     user: { id: options.userId ?? 'discord-tester', displayName: options.displayName },
     channelId: options.channelId === undefined ? 'chan-1' : options.channelId,
+    targetMessage: options.targetMessage ?? null,
     reply: (arg: ReplyArg) => {
       replies.push(arg)
       return Promise.resolve()

@@ -795,10 +795,10 @@ body {
   flex: 1 1 auto;
 }
 
-/* Two title lines (22px at 1.05), as content height, so the padding and the
-   seam's room stay each head's own and the name centres in the band. */
-[data-entity-grid] .su-entity-row__head {
-  box-sizing: content-box;
+/* Two title lines (22px at 1.05) on the head's title line, so the labels
+   above it and the band's padding stay each head's own and the name centres
+   in its line. */
+[data-entity-grid] .su-entity-row__line {
   min-height: calc(2.1 * var(--text-title));
 }
 
@@ -2137,11 +2137,10 @@ body {
   margin: 0;
 }
 
-/* The options a step selects from, as compact cards. The row gap clears the
- * type stamp each card wears on its top seam. */
+/* The options a step selects from, as compact cards. */
 .su-guide__cards {
   display: grid;
-  gap: var(--space-20) var(--space-12);
+  gap: var(--space-12);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
   padding-top: var(--space-12);
 }

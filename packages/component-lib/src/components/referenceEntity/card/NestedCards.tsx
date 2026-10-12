@@ -80,7 +80,7 @@ const TRAY_STACK: CSSProperties = { display: 'flex', flexDirection: 'column', ga
  * A TRAY of nested cards (board E2): a recessed tray in the page colour,
  * inside the parent's frame, headed by the section `Slab` — the ink stamp
  * naming the group and its count, then the dashed leader (ruleset §3.2: slabs
- * section). Containment and the seam stamp show the nesting; there is no
+ * section). Containment and the type stamp show the nesting; there is no
  * indent and no rail (ruleset §3.10).
  */
 export function CardTray({
@@ -273,7 +273,7 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
       droneLoadout={{ systems: droneInfo.systems, modules: droneInfo.modules }}
     />
   ))
-  // On a page the drone card's own seam stamp says what it is: no tray, no
+  // On a page the drone card's own type stamp says what it is: no tray, no
   // "Drone · 1" slab around it.
   if (host.onPage) return <div style={TRAY_STACK}>{cards}</div>
   return (

@@ -62,6 +62,11 @@ export type CommandExecuteInteraction = {
   }
   user: { id: string; displayName?: string }
   channelId: string | null
+  /**
+   * The message a message context-menu command was used on, or null for a
+   * slash command. Arrived with "Look up in Salvage Union".
+   */
+  targetMessage: { content: string; author?: string } | null
   reply(payload: ReplyPayload): Promise<unknown>
   deferReply(options?: { flags?: MessageFlags.Ephemeral }): Promise<unknown>
   editReply(payload: EditReplyPayload): Promise<unknown>
@@ -90,12 +95,18 @@ export type DirectMessageOutcome = { ok: true } | { ok: false; code: number | nu
  * interaction, while a test builds the members it actually uses with no cast.
  * `user`/`channelId`/`editReply` are here because a re-roll is a roll and is
  * attributed exactly like a slash-command one.
+ *
+ * `values` (a string select's picks, empty for a button) and `update` (redraw
+ * the message the control sits on, rather than post a new one) arrived with
+ * the lookup card's tabs, pages and pattern picker.
  */
 export type CommandButtonInteraction = {
   customId: string
+  values: readonly string[]
   user: { id: string; displayName?: string }
   channelId: string | null
   reply(payload: ReplyPayload): Promise<unknown>
+  update(payload: ReplyPayload): Promise<unknown>
   editReply(payload: EditReplyPayload): Promise<unknown>
 }
 

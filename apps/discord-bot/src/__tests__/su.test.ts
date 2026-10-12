@@ -13,8 +13,8 @@ import { suCommand } from '../commands/su.js'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
 
 describe('/su command', () => {
-  test('is the only registered top-level command', () => {
-    expect([...commands.keys()]).toEqual(['su'])
+  test('is the one slash command, beside the message context menu', () => {
+    expect([...commands.keys()]).toEqual(['su', 'Look up in Salvage Union'])
   })
 
   test('registers every subcommand, including the game group', () => {

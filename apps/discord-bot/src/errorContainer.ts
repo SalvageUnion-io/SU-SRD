@@ -99,3 +99,25 @@ export function noEffectContainer(
     ],
   }
 }
+
+/**
+ * `/su lookup` found nothing. In the same system as a result, as the roll's
+ * unknown table is, and pointing at the way in that works. No suggestion
+ * buttons: the lookup already falls back to the top search hit, so reaching
+ * here means search had nothing to suggest.
+ */
+export function noEntryContainer(query: string): ContainerData {
+  return {
+    accent: NEUTRAL_ACCENT,
+    blocks: [
+      { kind: 'text', content: '-# NO SUCH ENTRY' },
+      { kind: 'text', content: `## ${query.toUpperCase()}` },
+      { kind: 'text', content: 'Nothing in the reference matches that name.' },
+      { kind: 'separator' },
+      {
+        kind: 'text',
+        content: '-# start typing in the `entity:` option for autocomplete',
+      },
+    ],
+  }
+}

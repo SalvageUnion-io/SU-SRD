@@ -55,9 +55,9 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, never hand-assembled `<span>SP {n}</span>`.
       Game data renders through the shared primitives, never one-off markup.
    8. **§3.8 Ink on colour** — ink text on pilot and mech fills; no text pair under 4.5 : 1. Paper text on crawler uses `--color-crawler-band`; Denizens navy carries paper; TL blue is never a text ground.
-   9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): dashed frame, dashed User-made seam stamp, foot rule and pills, credit "Made by [user]", at every size.
+   9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): dashed frame, dashed User-made stamp in the head's labels, foot rule and pills, credit "Made by [user]", at every size.
       A full page adds a hard-stop hatched band, a dashed notch and a maker banner. One `userMade` flag (+ `madeBy`); canon-built units stay solid.
-   10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment and the seam stamp.
+   10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment and the type stamp.
    11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build; ITUN is the product name, spelled out on its front door; no off-site arrows between the two.
 4. **§4 Foundations** — the token layer, one home: `packages/component-lib/src/styles/theme.css`.
    1. **§4.1 Colour roles** — values in `theme.css` alone, one spelling each. `--color-paper` is the one light surface (pure white retired), `--color-wk-bg` the page ground (the cool `-2` is off-palette on screen: tokens rule `cool-ground`), `--color-band-cream` the one cream.
@@ -80,7 +80,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    9. **ConditionSwatch** — tri-state glyph: `ConditionSwatch`.
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs. The technique is StampSeam (§7.2): `STAMP_SEAM`.
-   - **The entity card: one anatomy, two header fills** — seam stamp, flush header (title left, value cells and action-type stamps right), the facets row (facet Stats then trait Tags, E17), body, foot. Tone header for things you have; ink banner for things you do, decided by data shape.
+   - **The entity card: one anatomy, two header fills** — a flush header whose first line is its labels (type stamp, classification pills, User-made; in flow, never riding the frame), then the title left, value cells and action-type stamps right), the facets row (facet Stats then trait Tags, E17), body, foot. Tone header for things you have; ink banner for things you do, decided by data shape.
    - **Actions sit inline** — flush ink bands, no Actions tray or stamp (on a Page, framed cards under an Actions slab); a roll table sits inline under a ROLL THE DIE: bar.
    - **Nesting legibility** — nested entities sit in a page-colour tray under counted stamp-and-leader labels, one tone each; large → medium → a Row at depth 2 (frames 3 → 2 → 1.5px).
      A child hides prose its parent shows; below depth 1, actions collapse to "Show N actions".
@@ -91,4 +91,4 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    4. **Must not merge** — Btn (do vs read), SlotGrid (places, not quantity), ConditionSwatch, RollTable, and band ≠ rider.
 7. **§7 Two inviolable laws**
    1. **§7.1 The value-cell law** — a label+value cell is ink on paper, set apart by a 1px ink frame, never a fill (never cream, white or tinted). A lone-label badge is frameless.
-   2. **§7.2 The StampSeam law** — a border-riding stamp centres on the line by its own height, never a fixed margin. It rides wells, callouts and Peek titles; never the Slab leader or a flush header band.
+   2. **§7.2 The StampSeam law** — a border-riding stamp centres on the line by its own height, never a fixed margin. It rides wells, callouts and Peek titles; never the Slab leader, a flush header band, or an entity's frame (its labels are the head's first line).
