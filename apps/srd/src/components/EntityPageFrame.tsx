@@ -43,6 +43,8 @@ type EntityPageFrameProps = {
   /** The page title: the entity's name, or a pattern's quoted name. */
   title: ReactNode
   tone: ChapterTone
+  /** The band colour when the page wears its own rather than its chapter's (`bandFillFor`). */
+  fill?: string
   meta: EntityPageMeta
   /** The inner row's max width; the roll-table page runs wider (board 08b). */
   measure?: string
@@ -56,6 +58,7 @@ type EntityPageFrameProps = {
 export function EntityPageFrame({
   title,
   tone,
+  fill,
   meta,
   measure = ENTITY_PAGE_MEASURE,
   parent,
@@ -66,6 +69,7 @@ export function EntityPageFrame({
     <article className="srd-entity">
       <ChapterBand
         tone={tone}
+        fill={fill}
         measure={measure}
         aside={<EntityPageStamps meta={meta} />}
         asideAt="notch"
@@ -95,12 +99,13 @@ export function EntityPageFrame({
 
 /**
  * The foot of the same page, for the layout's `Footer`: the frame's chapter
- * tone and measure, and the citation `meta` carries.
+ * tone (or its own `fill`) and measure, and the citation `meta` carries.
  */
 export function entityPageFoot(
   tone: ChapterTone,
   meta: EntityPageMeta,
-  measure: string = ENTITY_PAGE_MEASURE
+  measure: string = ENTITY_PAGE_MEASURE,
+  fill?: string
 ): PageFoot {
-  return { tone, page: meta.page, citation: meta.citation, measure }
+  return { tone, fill, page: meta.page, citation: meta.citation, measure }
 }

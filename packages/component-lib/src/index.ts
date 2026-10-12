@@ -196,6 +196,8 @@ export type { VitalGaugeBreakdown } from './components/stat/VitalGauge'
 export { VitalGauge } from './components/stat/VitalGauge'
 // UI primitives
 export { Toaster, toast } from './components/ui/toaster'
+/** Ink or paper: which foreground reads better on a band colour (the token scale, rgb or hex). */
+export { foregroundOn } from './design/contrast'
 /**
  * The styling foundation (#798, epic #802) — the target pattern Tailwind is
  * being removed in favour of. Namespaced rather than spread flat into this

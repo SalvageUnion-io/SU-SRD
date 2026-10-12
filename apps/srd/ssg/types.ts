@@ -74,6 +74,8 @@ export type DocumentShell = 'base' | 'bare'
  */
 export type PageFoot = {
   tone: ChapterTone
+  /** The band colour when the page wears its own rather than its chapter's (`bandFillFor`). */
+  fill?: string
   /** The page number the citation leads with (`p.112`). */
   page?: number
   /** The book, then any reprints, from `resolveEntityPageMeta`. */

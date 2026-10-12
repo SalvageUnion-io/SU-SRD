@@ -1,4 +1,5 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
+import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color } from '../../design/tokens'
 import type { ChapterTone } from './chapterBandColor'
 import { CHAPTER_BAND_COLOR } from './chapterBandColor'
@@ -39,6 +40,13 @@ export type ChapterFootProps = {
   end?: ReactNode
   /** Which chapter of the book the page belongs to. Defaults to `rules`. */
   tone?: ChapterTone
+  /**
+   * The band colour, for a tone outside the chapter map (a system's tech-level
+   * blue), as `ChapterBand`'s `fill`. Overrides `tone`; the text is whichever of
+   * ink and paper reads better on it, so a fill that carries neither at 4.5:1
+   * is the caller's to swap for a deeper shade.
+   */
+  fill?: string
   /** The inner row's max inline size, matching the band at the page's head. */
   measure?: string
   /** The element. `footer` for the site footer; `div` inside a page's `main`. */
@@ -60,18 +68,22 @@ export function ChapterFoot({
   start,
   end,
   tone = 'rules',
+  fill,
   measure,
   as: Tag = 'div',
   'aria-label': ariaLabel,
 }: ChapterFootProps) {
+  const band = fill
+    ? { background: fill, text: foregroundOn(fill, 'ink') === 'ink' ? color.ink : color.paper }
+    : FOOT_BAND[tone]
   return (
     <Tag
       className="su-chapter-foot"
       aria-label={ariaLabel}
       style={{
         ...ROOT,
-        backgroundColor: FOOT_BAND[tone].background,
-        color: FOOT_BAND[tone].text,
+        backgroundColor: band.background,
+        color: band.text,
       }}
     >
       <Speckle grain="ink" />

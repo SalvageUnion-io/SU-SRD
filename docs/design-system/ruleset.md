@@ -54,7 +54,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    6. **§3.6 Copy is 1:1 with real SRD data** — everywhere, catalog stories included.
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, never hand-assembled `<span>SP {n}</span>`.
       Game data renders through the shared primitives, never one-off markup.
-   8. **§3.8 Ink on colour** — ink text on pilot and mech fills; no text pair under 4.5 : 1. Paper text on crawler uses `--color-crawler-band`; Denizens navy carries paper; TL blue is never a text ground, bar the book's own: a system or module header wears its tech level's blue under the green Mech Workshop band, as the book heads each entry and index row (Core Book pp. 162–164, 188–190).
+   8. **§3.8 Ink on colour** — ink text on pilot and mech fills; no text pair under 4.5 : 1. Paper text on crawler uses `--color-crawler-band`; Denizens navy carries paper; TL blue is never a text ground, bar the book's: a system or module wears its TL blue (pp. 162–164, 188–190).
    9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): dashed frame, dashed User-made stamp in the head's labels, foot rule and pills, credit "Made by [user]", at every size.
       A full page adds a hard-stop hatched band, a dashed notch and a maker banner. One `userMade` flag (+ `madeBy`); canon-built units stay solid.
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment and the type stamp.
