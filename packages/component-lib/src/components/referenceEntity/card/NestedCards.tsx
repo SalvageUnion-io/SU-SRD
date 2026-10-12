@@ -2,9 +2,10 @@ import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useContext, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getReferenceEntityName } from 'salvageunion-reference'
-import { font, fontSize, space, tracking, weight } from '../../../design/tokens'
+import { space } from '../../../design/tokens'
 import { Button } from '../../chrome/Button'
 import { FOCUS_RING } from '../../chrome/interaction'
+import { Slab } from '../../chrome/Slab'
 import type { CardSize } from '../../shared/displayMode'
 import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
@@ -61,19 +62,19 @@ const tray = (size: CardSize): CSSProperties => ({
   backgroundColor: 'var(--color-wk-bg)',
   border: 'var(--bw-hairline) solid var(--color-ink-20)',
   borderRadius: 'var(--radius-card)',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[14],
   margin: TRAY_MARGIN[size],
   padding: space[10],
 })
 
+/** The tray's cards, stacked under its head (the Slab keeps its own margin). */
+const TRAY_STACK: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[14] }
+
 /**
  * A TRAY of nested cards (board E2): a recessed tray in the page colour,
- * inside the parent's frame, headed by a stamp-and-leader label naming the
- * group and its count — the book's section device at card scale. Containment
- * and the seam stamp show the nesting; there is no indent and no rail
- * (ruleset §3.10).
+ * inside the parent's frame, headed by the section `Slab` — the ink stamp
+ * naming the group and its count, then the dashed leader (ruleset §3.2: slabs
+ * section). Containment and the seam stamp show the nesting; there is no
+ * indent and no rail (ruleset §3.10).
  */
 export function CardTray({
   label,
@@ -89,33 +90,10 @@ export function CardTray({
   as?: ElementType
   children: ReactNode
 }) {
-  const Label = as ?? 'span'
   return (
     <div style={tray(size)}>
-      <div style={{ alignItems: 'center', display: 'flex', gap: space[8] }}>
-        <Label
-          style={{
-            backgroundColor: 'var(--color-ink)',
-            color: 'var(--color-paper)',
-            fontFamily: font.cond,
-            fontSize: size === 'small' ? fontSize.badge : fontSize.xs,
-            fontWeight: weight.bold,
-            letterSpacing: tracking.capsSnug,
-            lineHeight: 1.2,
-            margin: 0,
-            padding: `${space[2]} ${space[6]}`,
-            textTransform: 'uppercase',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {label} · {count}
-        </Label>
-        <span
-          aria-hidden="true"
-          style={{ borderTop: 'var(--bw-chrome) dashed var(--color-ink-40)', flex: 1 }}
-        />
-      </div>
-      {children}
+      <Slab variant="solid" as={as} label={`${label} · ${count}`} />
+      <div style={TRAY_STACK}>{children}</div>
     </div>
   )
 }

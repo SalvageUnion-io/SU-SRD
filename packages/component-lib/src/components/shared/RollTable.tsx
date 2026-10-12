@@ -263,14 +263,10 @@ function ResultActionBar({
     [onClear]
   )
 
-  // Shared box metrics so Copy / Reroll / Clear line up as equal-sized buttons:
-  // identical border, padding and text size (compact and non-compact each
-  // consistent). Only the fill colour differs per action.
-  const boxMetrics = cn(
-    'flex cursor-pointer items-center gap-1 border border-ink font-bold',
-    compact ? 'px-2 text-xs' : 'px-3 text-sm'
-  )
-  const iconSize = compact ? 'h-3 w-3' : 'h-3.5 w-3.5'
+  // Copy / Reroll / Clear are the shared `Button` at its mini rung, so they
+  // line up as equal-sized actions: Reroll is the roll (the rust primary, as on
+  // the card's own Roll), Copy and Clear the paper default.
+  const iconSize = compact ? 12 : 14
 
   return (
     <div
@@ -279,33 +275,19 @@ function ResultActionBar({
         compact ? 'gap-0.5' : 'gap-1'
       )}
     >
-      <button
-        type="button"
-        onClick={handleCopy}
-        className={cn(boxMetrics, 'bg-wk-faint text-ink hover:bg-wk-faint/80')}
-        aria-label="Copy result to clipboard"
-      >
+      <Button size="mini" onClick={handleCopy} aria-label="Copy result to clipboard">
         Copy
-        <Copy className={iconSize} />
-      </button>
-      <button
-        type="button"
-        onClick={handleReroll}
-        className={cn(boxMetrics, 'bg-ink text-paper hover:bg-brand-srd')}
-      >
+        <Copy aria-hidden="true" size={iconSize} />
+      </Button>
+      <Button variant="primary" size="mini" onClick={handleReroll}>
         Reroll
         <DiceIcon compact={compact} />
-      </button>
+      </Button>
       {onClear && (
-        <button
-          type="button"
-          onClick={handleClear}
-          className={cn(boxMetrics, 'bg-paper text-ink hover:bg-band-cream')}
-          aria-label="Clear result"
-        >
+        <Button size="mini" onClick={handleClear} aria-label="Clear result">
           Clear
-          <X className={iconSize} />
-        </button>
+          <X aria-hidden="true" size={iconSize} />
+        </Button>
       )}
     </div>
   )

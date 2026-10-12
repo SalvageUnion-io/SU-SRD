@@ -1,16 +1,18 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useCallback, useContext, useState } from 'react'
-import type { SURefObjectChoice } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectChoice } from 'salvageunion-reference'
+import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
+import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import type { CSSVarStyle } from '../../../styles/cssVars'
 import { cn } from '../../../utils/cn'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Badge } from '../../chrome/Badge'
-import { INPUT_FOCUS } from '../../chrome/interaction'
+import { FOCUS_RING, INPUT_FOCUS } from '../../chrome/interaction'
 import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import { CardRollTable } from '../card/CardRollTable'
-import { accentDeepColor } from '../referenceEntityHelpers'
-import type { ChoiceSelections } from './choiceSelectionHelpers'
+import { CardTopRail } from '../card/CardTopRail'
+import { onToneText, textBand } from '../referenceEntityHelpers'
+import type { ChoiceCardOption, ChoiceSelections } from './choiceSelectionHelpers'
 import {
   getChoiceCardOptions,
   getChoiceSourceKind,
@@ -23,12 +25,15 @@ import {
 /**
  * ChoiceGroups — the write-layer choice renderer in the NEW design language.
  *
- * A choice is just another nested group: a dashed `Slab` (the choice name) over a
- * masonry of compact option cards, in the SAME chrome as any nested card — a tone
- * band with a black name-tab (the option label) + a paper description body. The
- * selection layer is the exact write-layer idiom: dim-until-chosen (editable) and
- * the canonical `SELECTION_RING` when chosen. Read-only shows every option
- * full and static (the choices are readable; they just aren't choosable).
+ * A choice is just another nested group: a masonry of option cards in the
+ * compact card's anatomy. An option that IS an entity (a catalog shortlist —
+ * Ballistic / Energy, Thermal Optics…) is that entity's compact card
+ * (`renderEntityOption`); any other option takes the same anatomy — the ink
+ * frame, the tone head with its title, the paper body. The selection layer is
+ * the card's own write-layer idiom: dim-until-chosen (editable), the canonical
+ * `SELECTION_RING` and the "Chosen ✓" seal when chosen. Read-only shows every
+ * option full and static (the choices are readable; they just aren't
+ * choosable).
  *
  * One selection state machinery (controlled / ephemeral, id-keyed, cap
  * resolution) serves ITUN persistence and the SRD ephemeral case alike.
@@ -44,13 +49,55 @@ type ChoiceGroupsProps = {
   /** Static (readable, not choosable) — the SRD reference / snapshots. */
   readOnly?: boolean
   compact?: boolean
-  /** Parent tone as a raw CSS colour — the option-card band + Slab/frame colour. */
+  /** Parent tone as a raw CSS colour — the option-card head band. */
   toneColor?: string
+  /**
+   * Renders an option that resolves to an entity as that entity's compact card
+   * (the card supplies it, so this file never imports the card back). Absent,
+   * every option takes the plain option card.
+   */
+  renderEntityOption?: (option: EntityOption) => ReactNode
 }
 
-/** A selectable OPTION card — the NEW compact-card chrome (tone band + black
- *  name-tab + paper body), dim-until-chosen with the selection ring when chosen.
- *  The card grid is a deliberate break from the book's prose list. */
+/** An option that IS an entity, with its selection state, for `renderEntityOption`. */
+export type EntityOption = {
+  entity: SURefEntity
+  label: string
+  chosen: boolean
+  /** Static (readable, not choosable). */
+  readOnly: boolean
+  /** At-cap multi-select: an unchosen option can't be added until one is removed. */
+  disabled: boolean
+  onToggle: () => void
+}
+
+/** The entity a catalog option names, when its schema is loaded and holds it. */
+function resolveOptionEntity(option: ChoiceCardOption): SURefEntity | undefined {
+  if (!option.schema || !isSchemaName(option.schema)) return undefined
+  try {
+    const target = option.value.toLowerCase()
+    const found = SalvageUnionReference.findIn(
+      option.schema,
+      (e) => 'name' in e && String(e.name).toLowerCase() === target
+    )
+    return found && 'id' in found && typeof found.id === 'string'
+      ? (found as SURefEntity)
+      : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/** The option card's frame, by density — the compact card's ink frame (ruleset §5). */
+const FRAME_WIDTH = { regular: 'var(--bw-entity-compact)', compact: 'var(--bw-chrome)' }
+
+/**
+ * A selectable OPTION that is not an entity, in the compact card's anatomy
+ * (ruleset §5): an ink frame, the tone head with the option's title in ink or
+ * paper (whichever the tone carries), and the paper body. Dim-until-chosen,
+ * with the selection ring and the "Chosen ✓" seal when chosen — the entity
+ * card's own write layer.
+ */
 function ChoiceOption({
   label,
   description,
@@ -72,54 +119,73 @@ function ChoiceOption({
   compact?: boolean
 }): ReactNode {
   const parsedDescription = useParseTraitReferences(description ?? '')
-  const frameColor = accentDeepColor(undefined, toneColor) ?? 'var(--color-ink)'
-  const card = (
-    <div className="relative">
-      {chosen && (
-        <Badge shape="stamp" seam size="mini" className="right-2">
-          Chosen
-        </Badge>
-      )}
-      <div className="overflow-hidden rounded-card" style={{ border: `3px solid ${frameColor}` }}>
-        <div
-          className={cn('flex items-center', compact ? 'px-2 py-1' : 'px-2.5 py-1.5')}
-          style={{ backgroundColor: toneColor }}
-        >
-          <Badge shape="stamp" size={compact ? 'compact' : 'full'}>
-            {label}
-          </Badge>
-        </div>
-        {description && (
-          <div
-            className={cn(
-              'bg-paper leading-snug text-ink',
-              compact ? 'px-2.5 py-1.5 text-badge' : 'px-3 py-2 text-xs'
-            )}
-          >
-            {parsedDescription}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-  const wrap = cn(
-    'block rounded-card transition-opacity duration-150',
-    !readOnly && !chosen && 'opacity-45'
-  )
+  const band = textBand(toneColor)
+  const onBand = onToneText(band, 'text-ink') === 'text-paper' ? color.paper : color.ink
+  const button: CSSProperties = {
+    background: 'none',
+    border: 0,
+    borderRadius: 'var(--radius-card)',
+    color: 'inherit',
+    cursor: readOnly ? 'default' : disabled ? 'not-allowed' : 'pointer',
+    display: 'block',
+    font: 'inherit',
+    opacity: disabled ? 0.3 : !readOnly && !chosen ? 0.45 : 1,
+    padding: 0,
+    textAlign: 'left',
+    transition: 'opacity 150ms',
+    width: '100%',
+  }
+  const frame: CSSProperties = {
+    backgroundColor: 'var(--color-paper)',
+    borderColor: 'var(--color-ink)',
+    borderStyle: 'solid',
+    borderWidth: compact ? FRAME_WIDTH.compact : FRAME_WIDTH.regular,
+    borderRadius: 'var(--radius-card)',
+    boxShadow: chosen ? '0 0 0 3px var(--color-ink)' : undefined,
+    overflow: 'hidden',
+  }
+  const head: CSSProperties = {
+    backgroundColor: band ?? 'var(--color-ink)',
+    borderBottom: description ? 'var(--bw-chrome) solid var(--color-ink)' : undefined,
+    color: band ? onBand : color.paper,
+    fontFamily: font.cond,
+    fontSize: compact ? fontSize.caption : fontSize.lede,
+    fontWeight: weight.bold,
+    letterSpacing: tracking.capsTight,
+    lineHeight: 1.15,
+    padding: compact ? `${space[6]} ${space[8]}` : `${space[8]} ${space[10]}`,
+    textTransform: 'uppercase',
+  }
+  const body: CSSProperties = {
+    color: color.ink,
+    fontSize: compact ? fontSize.badge : fontSize.xs,
+    lineHeight: 1.375,
+    padding: compact ? `${space[6]} ${space[8]}` : `${space[8]} ${space[10]}`,
+  }
   return (
     <button
       type="button"
       aria-pressed={chosen}
       disabled={disabled}
       onClick={readOnly ? undefined : onToggle}
-      className={cn(
-        'w-full text-left',
-        wrap,
-        readOnly && 'cursor-default',
-        disabled && 'cursor-not-allowed opacity-30'
-      )}
+      className={FOCUS_RING}
+      style={button}
     >
-      {card}
+      <div style={{ position: 'relative' }}>
+        <CardTopRail
+          controls={undefined}
+          status={undefined}
+          onStatusClick={undefined}
+          subject={label}
+          selected={chosen}
+          selectionSeal="Chosen"
+          multiSelect={undefined}
+        />
+        <div style={frame}>
+          <div style={head}>{label}</div>
+          {description && <div style={body}>{parsedDescription}</div>}
+        </div>
+      </div>
     </button>
   )
 }
@@ -194,6 +260,7 @@ function ChoiceOptionGroup({
   readOnly,
   compact,
   toneColor,
+  renderEntityOption,
 }: {
   choice: SURefObjectChoice
   selected: string[]
@@ -203,6 +270,7 @@ function ChoiceOptionGroup({
   readOnly?: boolean
   compact?: boolean
   toneColor?: string
+  renderEntityOption?: (option: EntityOption) => ReactNode
 }): ReactNode {
   // Terminal in a tooltip popup (ruleset §1): the table's Roll/Show controls go.
   const insideTooltip = useContext(InsideTooltipContext)
@@ -273,23 +341,46 @@ function ChoiceOptionGroup({
   return (
     <div style={toneVar}>
       {counter && !readOnly && (
-        <div className="mb-1 font-body text-badge text-wk-muted">{counter}</div>
+        <div
+          style={{
+            color: color.wkMuted,
+            fontFamily: font.body,
+            fontSize: fontSize.badge,
+            marginBottom: space[4],
+          }}
+        >
+          {counter}
+        </div>
       )}
       <div className={cn('gap-1.5', compact ? 'columns-1' : 'columns-1 sm:columns-2')}>
         {options.map((option) => {
           const chosen = selected.includes(option.value)
+          const disabled = !readOnly && atCap && !chosen
+          const onToggle = () => onToggleOption(option.value)
+          const entity = renderEntityOption ? resolveOptionEntity(option) : undefined
           return (
             <div key={option.value} className="mb-1.5 break-inside-avoid pt-2.5">
-              <ChoiceOption
-                label={option.label}
-                description={option.description}
-                chosen={chosen}
-                readOnly={readOnly}
-                disabled={!readOnly && atCap && !chosen}
-                onToggle={() => onToggleOption(option.value)}
-                toneColor={toneColor}
-                compact={compact}
-              />
+              {entity && renderEntityOption ? (
+                renderEntityOption({
+                  entity,
+                  label: option.label,
+                  chosen,
+                  readOnly: !!readOnly,
+                  disabled,
+                  onToggle,
+                })
+              ) : (
+                <ChoiceOption
+                  label={option.label}
+                  description={option.description}
+                  chosen={chosen}
+                  readOnly={readOnly}
+                  disabled={disabled}
+                  onToggle={onToggle}
+                  toneColor={toneColor}
+                  compact={compact}
+                />
+              )}
             </div>
           )
         })}
@@ -306,6 +397,7 @@ export function ChoiceGroups({
   readOnly,
   compact,
   toneColor,
+  renderEntityOption,
 }: ChoiceGroupsProps) {
   const isControlled = controlled !== undefined
   const [internal, setInternal] = useState<ChoiceSelections>({})
@@ -356,6 +448,7 @@ export function ChoiceGroups({
           readOnly={readOnly}
           compact={compact}
           toneColor={toneColor}
+          renderEntityOption={renderEntityOption}
         />
       ))}
     </div>

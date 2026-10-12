@@ -8,13 +8,16 @@ import { Badge } from '../chrome/Badge'
 import { Slab } from '../chrome/Slab'
 import { ActivationCost } from '../shared/ActivationCost'
 import { Stat } from '../shared/Stat'
+import { EntityTooltip } from './EntityTooltip'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 
 /**
- * A single `datavalues` item — rendered as a horizontal Stat chip (the one
- * canonical stat/value atom). A `cost` item ("3 AP") uses the ActivationCost
- * atom; a `trait`/`keyword` item gets its entity hover-tooltip; everything else
- * is a plain label|value cell (value + unit when present).
+ * A single `datavalues` item. A `cost` item ("3 AP") uses the ActivationCost
+ * atom. A CITATION of a named rule — a trait ("Missile", "Explosive (1)", the
+ * book's qualified form) or a label-only keyword ("Turn Action") — is a tag
+ * (ruleset §3.2: tags cite), with that entry's hovercard. Anything with a
+ * `label | value` — a measured keyword ("Damage | 2 SP") included — is a
+ * horizontal Stat (§3.7), keeping its hovercard when it names a keyword.
  */
 function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?: boolean }) {
   if (item.type === 'cost') {
@@ -31,12 +34,19 @@ function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?
     return <ActivationCost cost={cost} currency={currency} compact={compact} />
   }
   const value = item.value != null && item.unit ? `${item.value} ${item.unit}` : item.value
+  if (item.type === 'trait' || (item.type === 'keyword' && value == null)) {
+    return (
+      <EntityTooltip
+        schemaName={item.type === 'trait' ? 'traits' : 'keywords'}
+        entityName={String(item.label)}
+        openDelay={300}
+      >
+        <Badge>{value == null ? item.label : `${item.label} (${value})`}</Badge>
+      </EntityTooltip>
+    )
+  }
   const entityTooltip =
-    item.type === 'trait'
-      ? { schemaName: 'traits' as const, label: item.label }
-      : item.type === 'keyword'
-        ? { schemaName: 'keywords' as const, label: item.label }
-        : undefined
+    item.type === 'keyword' ? { schemaName: 'keywords' as const, label: item.label } : undefined
   return (
     <Stat
       orientation="horizontal"

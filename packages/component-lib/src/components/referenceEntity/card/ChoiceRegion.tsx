@@ -73,6 +73,28 @@ export function ChoiceRegion({
         readOnly={!editableChoices}
         compact={compact}
         toneColor={toneColor}
+        // An option that IS an entity is its compact card (ruleset §5, nesting),
+        // carrying the option's selection the way a picker cell does.
+        renderEntityOption={(option) => (
+          <NestedCard
+            size="medium"
+            extent="head"
+            depth={depth + 1}
+            data={option.entity}
+            chassisName={chassisName}
+            selected={option.chosen}
+            selectionSeal="Chosen"
+            {...(option.readOnly
+              ? {}
+              : {
+                  selectionRole: 'toggle' as const,
+                  selectable: option.chosen,
+                  disabled: option.disabled,
+                  onCardClick: option.onToggle,
+                  cardClickLabel: option.label,
+                })}
+          />
+        )}
       />
     </div>
   )
