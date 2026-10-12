@@ -1,7 +1,7 @@
 name: PR gallery
 
 # Screenshots of the PR's own srd and ITUN builds — every page in
-# tools/lib/galleryPages.ts at desktop and phone, each srd page's link
+# packages/gates/lib/galleryPages.ts at desktop and phone, each srd page's link
 # preview, and ITUN signed in — uploaded as the `pr-gallery-<n>` artifact.
 # `pr-gallery-pages.yml` publishes the artifact to GitHub Pages at
 # /<owner>.github.io/<repo>/<n>/ once this run completes.

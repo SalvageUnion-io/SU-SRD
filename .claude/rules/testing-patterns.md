@@ -55,14 +55,14 @@ Two corollaries:
 `test/testing-library.ts`, which every workspace running component tests
 preloads, registers an `act()`-wrapped `afterEach(cleanup)` (it also clears
 `sessionStorage`/`localStorage`). A bare re-declaration unmounts without
-flushing pending React updates; `tools/biome/noBareCleanupHook.grit` fails it.
+flushing pending React updates; `noBareCleanupHook.grit` fails it.
 To unmount **mid-test** (e.g. asserting on a remount), call `cleanup()` inline.
 
 ### Never call `SalvageUnionReference.preload()` in a test file
 
 `test/reference-preload.ts` already loads every schema, and the loaded-schema
 set is module-global, so a narrow per-file list can pass only because a sibling
-file loaded everything; `tools/biome/noTestReferencePreload.grit`
+file loaded everything; `noTestReferencePreload.grit`
 fails it. The exceptions re-preload after `resetAllForTesting()` to assert on
 load behaviour, and biome.jsonc excludes each by path with its reason.
 
@@ -87,4 +87,4 @@ Entity fixtures come from `apps/itun/src/components/__tests__/fixtures.ts`
 (the Convex suites' via `apps/itun/test/convex/fixtures.ts`), stamped with
 `FIXTURE_NOW`; pass a distinct timestamp through overrides when needed. Never
 write `new Date().toISOString()` into a fixture:
-`tools/biome/noLiveClockFixture.grit` fails it.
+`noLiveClockFixture.grit` fails it.

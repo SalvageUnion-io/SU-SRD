@@ -30,10 +30,10 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import type { Browser, BrowserContext, Page } from '@playwright/test'
-import type { OgMeta } from './lib/galleryHtml'
-import { renderGallery } from './lib/galleryHtml'
-import type { GalleryPage } from './lib/galleryPages'
-import { GALLERY_SECTIONS, pageSlug } from './lib/galleryPages'
+import type { OgMeta } from 'gates/lib/galleryHtml'
+import { renderGallery } from 'gates/lib/galleryHtml'
+import type { GalleryPage } from 'gates/lib/galleryPages'
+import { GALLERY_SECTIONS, pageSlug } from 'gates/lib/galleryPages'
 import { launchBrowser } from './shot'
 
 export type GalleryArgs = {

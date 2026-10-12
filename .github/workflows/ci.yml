@@ -72,14 +72,12 @@ jobs:
               # schemas, link rules and wire types Convex and the client share
               - 'packages/itun-domain/**'
               # the build job's Playwright config and axe scan
-              - 'tools/lib/a11y*.ts'
-              - 'tools/lib/playwrightBase.ts'
+              - 'packages/gates/**'
             web:
               - *shared
               - 'apps/srd/**'
               - 'packages/component-lib/**'
-              - 'tools/lib/a11y*.ts'
-              - 'tools/lib/playwrightBase.ts'
+              - 'packages/gates/**'
             bot:
               - *shared
               - 'apps/discord-bot/**'

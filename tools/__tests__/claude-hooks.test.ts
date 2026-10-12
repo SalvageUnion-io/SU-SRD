@@ -200,6 +200,7 @@ describe('typecheck hooks against a stub workspace', () => {
     'apps/srd',
     'apps/su-assets',
     'packages/component-lib',
+    'packages/gates',
     'packages/itun-domain',
     'packages/observability',
     'packages/salvageunion-reference',
@@ -270,7 +271,7 @@ describe('typecheck hooks against a stub workspace', () => {
       'packages/itun-domain/lib/x.ts',
       ['ROOT packages/itun-domain apps/discord-bot apps/itun tools'],
     ],
-    ['tools/lib', 'tools/lib/x.ts', ['ROOT tools apps/srd apps/itun']],
+    ['gates', 'packages/gates/lib/x.ts', ['ROOT packages/gates apps/srd apps/itun tools']],
   ])(
     'an edit to %s checks it and its consumers in one run, then asks for a full run',
     async (_l, rel, expected) => {
@@ -300,7 +301,7 @@ describe('typecheck hooks against a stub workspace', () => {
   test('a failing typecheck exits 2 with the output on stderr, from any cwd', async () => {
     const f = await fixture({ root: 'echo boom-from-root >&2; exit 1' })
     try {
-      const result = await edit(f.dir, 'tools/lib/x.ts')
+      const result = await edit(f.dir, 'packages/gates/lib/x.ts')
       expect(result.code).toBe(2)
       expect(result.stderr).toContain('boom-from-root')
       expect(result.stdout).toBe('')
