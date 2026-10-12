@@ -1,5 +1,5 @@
 /**
- * Take Damage / Critical Damage / Critical Injury rules (design-review R-1).
+ * Take Damage / Critical Damage / Critical Injury rules.
  *
  * Salvage Union Core Book p.239-242 — damage intake, the most error-prone
  * live math in the game.

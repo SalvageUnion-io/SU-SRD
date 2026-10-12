@@ -1,5 +1,5 @@
 /**
- * Unit tests for crafting.ts — the Crafting Bay flow (design-review R-7;
+ * Unit tests for crafting.ts — the Crafting Bay flow (
  * Core Book p.222 + p.244).
  *
  * Pure arithmetic on hand-crafted pools/items — no reference data needed.

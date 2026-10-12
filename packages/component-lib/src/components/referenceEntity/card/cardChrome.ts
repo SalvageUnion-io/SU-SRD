@@ -1,7 +1,7 @@
 /**
  * The card's CHROME rules — how a card is coloured, framed and interacted
  * with, and what its header hint says, as opposed to the content it carries.
- * Split out of `ReferenceEntityCard.tsx` (audit PK-08); every function here is
+ * Split out of `ReferenceEntityCard.tsx`; every function here is
  * pure. The nodes they feed are `CardTopRail` and the header.
  */
 

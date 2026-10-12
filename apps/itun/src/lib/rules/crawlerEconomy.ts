@@ -1,5 +1,5 @@
 /**
- * Union Crawler economy actions (design-review R-4).
+ * Union Crawler economy actions.
  *
  * Salvage Union Core Book p.218-223 — the Downtime economy loop around the
  * crawler's shared scrap pool:

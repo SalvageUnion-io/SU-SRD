@@ -1,5 +1,5 @@
 /**
- * The committed data is already in its parsed form (audit PK-04).
+ * The committed data is already in its parsed form.
  *
  * `preload()` installs each data file as loaded, WITHOUT running it through
  * `z.array(schema).parse`. That is only equivalent to a validating load if

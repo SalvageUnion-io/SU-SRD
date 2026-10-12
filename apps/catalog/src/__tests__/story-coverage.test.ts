@@ -90,7 +90,7 @@ const barrel = read('index.ts')
 /**
  * App-owned component folders whose stories this catalog also serves (see
  * `STORY_GLOBS`). Components that only one app used were moved out of the
- * library in the component-lib boundary audit (PK-02) and took their stories
+ * library in the component-lib boundary audit and took their stories
  * with them; the catalog still shows them, so the taxonomy and co-location
  * rules below still apply to them. Paths are relative to SRC, like the rest.
  */

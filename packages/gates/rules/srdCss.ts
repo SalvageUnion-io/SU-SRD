@@ -37,7 +37,7 @@
  *    tests and the catalog-only `src/stories/` tree are exempt). A component-side
  *    `import './x.css'` rides the barrel into every consumer: that is how srd
  *    bundled — and its service worker precached — the dashboard's 20 KB of
- *    `.pc-*` rules that no srd page can use (audit PK-01). A component's
+ *    `.pc-*` rules that no srd page can use. A component's
  *    stylesheet is a package EXPORT (`component-lib/styles/*.css`) that the app
  *    which renders the component imports.
  *
@@ -88,7 +88,7 @@ const RULES: Rule[] = [
   {
     id: 'lib-css-import',
     mode: 'zero',
-    rule: 'component-lib ships no side-effect stylesheet import (audit PK-01)',
+    rule: 'component-lib ships no side-effect stylesheet import',
     fix:
       'Export the stylesheet instead (`component-lib/styles/<name>.css` in the package ' +
       '`exports`) and import it from the app that renders the component. A component-side ' +

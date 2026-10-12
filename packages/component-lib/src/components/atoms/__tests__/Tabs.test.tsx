@@ -1,6 +1,6 @@
 /**
- * Tabs — the tabs keyboard model the Dashboard's display relies on
- * (audit UX-15): arrows and Home/End move and select, and every tab
+ * Tabs — the tabs keyboard model the Dashboard's display relies on:
+ * arrows and Home/End move and select, and every tab
  * names the panel it controls.
  */
 import { describe, expect, it } from 'bun:test'

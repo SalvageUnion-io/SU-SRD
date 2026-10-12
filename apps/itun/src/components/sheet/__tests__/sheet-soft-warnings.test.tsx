@@ -1,5 +1,5 @@
 /**
- * Live Sheet soft warnings (REQ-012, ADR-021) — the wired-in behaviour of
+ * Live Sheet soft warnings (ADR-021) — the wired-in behaviour of
  * `useSoftWarnings` + `SoftWarningDialog`.
  *
  * Asserts the confirm-and-proceed contract on BUILD edits:

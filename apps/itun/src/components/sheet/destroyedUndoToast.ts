@@ -1,5 +1,5 @@
 /**
- * destroyedUndoToast — U-6 polish: cycling an item's status badge onto
+ * destroyedUndoToast — cycling an item's status badge onto
  * 'destroyed' mid-combat is jarring when it's a mis-tap, so the write goes
  * through immediately (the player stays in control per ADR-007) but a toast
  * offers a one-click Undo that restores the previous condition.

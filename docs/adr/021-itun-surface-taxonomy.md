@@ -107,7 +107,7 @@ Concretely it overrides:
 - The **Wizard's** former soft-warn-never-block behavior: the create path is now
   enforced Guided Creation (soft → hard; edit mode keeps the soft regime).
 - The **Live Sheet** hosting enforced play controls: Push, Heat Check, and using a
-  system ([ADR-008](../ARCHITECTURE.md#decisions)'s `activateItem`) relocate to
+  system ([ADR-008](../ARCHITECTURE.md#decisions)'s activation) relocate to
   the Dashboard; the Live Sheet becomes pure Free Edit plus overrides.
 
 Prior ADRs on **orthogonal concerns remain in force on their own subjects** —

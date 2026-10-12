@@ -1,6 +1,6 @@
 /**
  * Unit tests for downtime.ts — the Union Crawler Downtime Procedure
- * (Core Book p.227-228, design-review R-2). Every reset is covered:
+ * (Core Book p.227-228). Every reset is covered:
  * the Med Bay gate, mech restore/repair/recharge, pilot
  * heal/train/recharge, and the once-per-Downtime flag clears.
  *

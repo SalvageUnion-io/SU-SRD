@@ -1,5 +1,5 @@
 /**
- * Wizard draft persistence (audit item 3).
+ * Wizard draft persistence.
  *
  * Wizard form state is plain useState, so on its own a refresh, back-nav, PWA
  * autoUpdate reload, or mis-tap would silently destroy a multi-step build.

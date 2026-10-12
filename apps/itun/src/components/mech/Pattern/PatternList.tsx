@@ -4,7 +4,7 @@
  * Each pattern is a user-made Row (`<Entity form="row">` (dashed, stamped,
  * credited: ruleset §3.9) linking to its page, with a build button beneath.
  *
- * Data fetching: subscribes to usePatternStore (audit item 22) — patterns get
+ * Data fetching: subscribes to usePatternStore — patterns get
  * the same lazy hydration as every other collection.
  *
  * onInstantiated is forwarded from the route so navigation can happen at the

@@ -12,7 +12,7 @@
  * gets its own deploy, and two things stop that — a deploy that fails, and the
  * deploy concurrency group, which drops all but one queued run. Either way the
  * next deploy diffed a single commit and left the skipped commit's surface on
- * the old build, with every run green (audit CI-01). A tree diff against the recorded
+ * the old build, with every run green. A tree diff against the recorded
  * deploy is also right for a rollback dispatch to an OLDER commit.
  *
  * Fails SAFE in every direction: no record, `--force-all`, or any change to a

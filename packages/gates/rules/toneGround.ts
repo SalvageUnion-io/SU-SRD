@@ -49,8 +49,8 @@ export const BOOK_TL_GROUNDS: Readonly<Record<string, string>> = {
 /** Schemas whose headers still paint a TL ground, each with why. */
 export const PENDING_TL_GROUNDS: Readonly<Record<string, string>> = {
   equipment: 'pilot gear: its non-TL hue is an owner call (pilot orange?), not yet made',
-  drones: 'mech-adjacent gear: not in the audit item that moved systems and modules',
-  vehicles: 'crawler-adjacent gear: not in the audit item that moved systems and modules',
+  drones: 'mech-adjacent gear: not in the change that moved systems and modules',
+  vehicles: 'crawler-adjacent gear: not in the change that moved systems and modules',
   'tech-levels': 'the tech-level entry IS the level; whether it keeps its blue is an owner call',
 }
 

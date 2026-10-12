@@ -21,7 +21,7 @@
  * readout (bay status / upkeep / trading) is computed from the crawler and the
  * pure rules modules. `DowntimeWizardFrame` is the presentational half. They
  * were split across component-lib and ITUN, with ITUN its only consumer; one
- * file since the component-lib boundary audit (PK-03).
+ * file since the component-lib boundary audit.
  *
  * Restore WRITES (F5), to the pilot and the mech in the Minor slots, so Guided
  * Play applies the rule it describes.

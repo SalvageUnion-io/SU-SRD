@@ -51,7 +51,7 @@
 import { buttonVariants, EmptyState } from 'component-lib'
 import { ChevronLeft } from 'lucide-react'
 // The dashboard's `.su-dash-*` stylesheet. component-lib's dashboard components
-// import no CSS themselves — that rode the barrel into srd (audit PK-01) — so
+// import no CSS themselves — that rode the barrel into srd — so
 // the one app that renders a dashboard loads it here, and it lands in this
 // route's chunk rather than in every page's stylesheet.
 import '../../styles/dashboard.css'

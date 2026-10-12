@@ -1,5 +1,5 @@
 /**
- * Union Crawler Downtime Procedure (design-review R-2).
+ * Union Crawler Downtime Procedure.
  *
  * Salvage Union Core Book p.227-228 — the per-session bookkeeping loop that
  * today costs ~8 manual edits across three sheets. Rules summary:

@@ -13,7 +13,7 @@
  *
  * The two halves were split across component-lib and ITUN, with ITUN importing
  * the library's copy `as DisplayPanelView`, although ITUN was its only consumer.
- * They share one file now (component-lib boundary audit, PK-03).
+ * They share one file now.
  */
 
 import type { ReferenceEntityControl } from 'component-lib'

@@ -1,5 +1,5 @@
 /**
- * Tests for MechPattern schema and the patternStore CRUD (AC-1, AC-2, #192).
+ * Tests for MechPattern schema and the patternStore CRUD (#192).
  *
  * Covers:
  * - Schema validation: valid input passes, missing required fields throw
@@ -234,7 +234,7 @@ describe('patternStore — Zod rejection', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Instantiate path: pattern → fresh mech (AC-2)
+// Instantiate path: pattern → fresh mech
 // ---------------------------------------------------------------------------
 
 describe('instantiate from pattern — fresh mech with pattern fields', () => {

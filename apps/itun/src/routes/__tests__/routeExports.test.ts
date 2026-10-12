@@ -1,5 +1,5 @@
 /**
- * Route files export `Route` and nothing else (audit AP-11).
+ * Route files export `Route` and nothing else.
  *
  * `vite.config.ts` turns on TanStack Router's `autoCodeSplitting`, which moves
  * each route's component into its own lazily loaded chunk. It can only do that

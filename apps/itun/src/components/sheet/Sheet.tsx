@@ -2,7 +2,7 @@
  * Sheet — root live-sheet component on the Header C LiveSheet shell. Resolves
  * the entity + its SoftLink composition (the ported
  * resolver in composition.ts), then dispatches to ONE per-kind view
- * (SheetPilot / SheetMech / SheetCrawler — audit item 19):
+ * (SheetPilot / SheetMech / SheetCrawler):
  * hero = entity-card-writ-large with live trackers, linked entities as rail
  * chips (live mini stats, whole-chip navigation), variant sheet as the body.
  *

@@ -1,6 +1,6 @@
 /**
  * makeHydratedCollection — the shared skeleton behind every single-collection
- * Zustand store (audit item 22).
+ * Zustand store.
  *
  * encounterStore and patternStore both follow the same discipline: rows held
  * in memory, arriving from the server of record (`ShelfSync`; `hydrate()`

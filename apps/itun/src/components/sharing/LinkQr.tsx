@@ -8,7 +8,7 @@
  *
  * Lives in ITUN, not component-lib: ITUN is its only renderer, and keeping it
  * in the library meant the library's manifest declared `qrcode` for one app's
- * sake (audit PK-07). Covered by `__tests__/ShareStatusDialog.connected.test.tsx`.
+ * sake. Covered by `__tests__/ShareStatusDialog.connected.test.tsx`.
  */
 
 import { tokens } from 'component-lib'

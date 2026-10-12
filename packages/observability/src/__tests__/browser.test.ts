@@ -5,7 +5,7 @@ import { buildCaptureHint, createBrowserObservability } from '../browser'
 /**
  * `buildCaptureHint` was the whole of `observability/browser` — the piece the
  * itun and srd Sentry shims shared — and until this file it had no direct test.
- * `createBrowserObservability` (audit AP-12) is tested at the bottom.
+ * `createBrowserObservability` is tested at the bottom.
  * The package's only test covered `src/node.ts`, which is deleted along with the
  * Discord bot's Node gateway, so writing this was the alternative to leaving the
  * workspace with no tests at all.

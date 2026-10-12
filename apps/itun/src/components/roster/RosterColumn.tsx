@@ -101,7 +101,7 @@ export function RosterList({ labelledBy, children }: { labelledBy?: string; chil
   )
 }
 
-/** Entity-tone glyph shown above a column's empty state (design review U-6). */
+/** Entity-tone glyph shown above a column's empty state. */
 const EMPTY_ICON: Record<SegmentKind, ReactNode> = {
   pilot: <UserRound style={{ ...ICON, color: color.sheetPilotDeep }} />,
   mech: <Bot style={{ ...ICON, color: color.sheetMechDeep }} />,

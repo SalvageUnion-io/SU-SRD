@@ -1,5 +1,5 @@
 /**
- * ConditionsEditor — editable conditions block for the pilot live sheet (W2-3, #254).
+ * ConditionsEditor — editable conditions block for the pilot live sheet (#254).
  *
  * Composes the canonical `Conditions` chip row (chrome/Conditions — Badge-built
  * warn chips with × remove + the dashed '+ Add' affordance) inside the sheet's

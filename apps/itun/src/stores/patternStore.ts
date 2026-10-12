@@ -1,5 +1,5 @@
 /**
- * patternStore — Zustand store for saved MechPatterns (audit item 22).
+ * patternStore — Zustand store for saved MechPatterns.
  *
  * Patterns go through the shared collection slice, so every write commits to
  * the server of record before the store holds it.

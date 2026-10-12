@@ -1,6 +1,6 @@
 import type { Roll } from './types'
 /**
- * Area Salvage rules (design-review R-3).
+ * Area Salvage rules.
  *
  * Salvage Union Core Book pp. 244–248 — the game's title loop.
  *

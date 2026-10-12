@@ -5,7 +5,7 @@
  * `Route`: any other export stops TanStack Router's `autoCodeSplitting` from
  * moving the route component out of the entry chunk, which is how
  * `PublicSheet` and the whole sheet tree it renders ended up downloaded on
- * every route (audit AP-11). Tests render it directly.
+ * every route. Tests render it directly.
  *
  * A saved mech pattern joins the route as `/p/pattern/:appId` (issue 1276): its own
  * query and its own page (`PublicPattern`), the same "not available" for

@@ -69,7 +69,7 @@ export function useMechSheetActions({
   storeState,
   crawler,
 }: MechSheetActionsOptions): MechSheetActions {
-  // Soft warnings (REQ-012, ADR-021) on the one mech BUILD edit the rules
+  // Soft warnings (ADR-021) on the one mech BUILD edit the rules
   // evaluate: system removal. Play-state writes (SP/EP/heat, conditions, item
   // activation) deliberately bypass this — they are transient combat state.
   // `toSnapshot` is REQUIRED: Mech.systems is a slug array, while the rules
@@ -177,7 +177,7 @@ export function useMechSheetActions({
     const prevCondition = prev[slug] ?? 'intact'
     const next = cycleCondition(prevCondition)
     await setItemCondition(kind, slug, next)
-    // U-6: landing on 'destroyed' offers a one-tap Undo (mis-tap mid-combat).
+    // Landing on 'destroyed' offers a one-tap Undo (mis-tap mid-combat).
     if (next === 'destroyed') {
       const name = (kind === 'system' ? resolveSystem(slug) : resolveModule(slug))?.name ?? slug
       destroyedUndoToast(name, () => {

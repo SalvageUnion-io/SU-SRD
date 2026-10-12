@@ -1,5 +1,5 @@
 /**
- * Unit tests for capacity.ts — mech slot enforcement (AC-5, REQ-009).
+ * Unit tests for capacity.ts — mech slot enforcement.
  *
  * Uses REAL data from salvageunion-reference to verify that slot math
  * is computed against actual chassis caps and system slotsRequired values.

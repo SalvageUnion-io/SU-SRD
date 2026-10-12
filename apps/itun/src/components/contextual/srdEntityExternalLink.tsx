@@ -4,7 +4,7 @@ import { hasSRDPage } from '../../lib/srd-deep-link'
 import { ViewInSRDLink } from './ViewInSRDLink'
 
 /**
- * ITUN's app-wide "View in SRD →" cross-link builder (design review P-3).
+ * ITUN's app-wide "View in SRD →" cross-link builder.
  *
  * Supplied through component-lib's `EntityExternalLinkProvider` (wired in
  * `GameDataReady`), so every FULL — non-compact, non-listing — entity card,

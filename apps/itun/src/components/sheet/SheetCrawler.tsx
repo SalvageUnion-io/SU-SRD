@@ -1,12 +1,12 @@
 /**
  * SheetCrawler — the crawler branch of the live sheet (extracted from
- * Sheet.tsx, audit item 19; redesigned to the poster layout, Phase 2).
+ * Sheet.tsx), in the poster layout.
  *
  * The body owns the identity band now (Workshop-Manual layout): `CrawlerSheet`
  * renders the `SheetHero` band as its first region.
  * This component's remaining job is composing the economy band (the poster
  * `.econ` frame — `CrawlerEconFrame` — wrapping the SP `VitalGauge` + the
- * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges, the R-4 action entry points),
+ * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges, the economy action entry points),
  * which is handed to `CrawlerSheet` as `economy` and rendered as the identity
  * band's vitals rail, plus the docked-mech/lead-pilot rail content handed down
  * as `linkedUnits`. Owns the economy-dialog state (it was hoisted to Sheet
@@ -62,7 +62,7 @@ export function SheetCrawler({
   withheld,
   patch,
 }: SheetCrawlerProps) {
-  // Crawler-economy dialog behind the UPKEEP/UPGRADE/TRADE lozenges (R-4).
+  // Crawler-economy dialog behind the UPKEEP/UPGRADE/TRADE lozenges.
   const [econDialog, setEconDialog] = useState<CrawlerEconomyDialog | null>(null)
 
   const spParts = crawlerMaxSPParts(crawler)
@@ -106,7 +106,7 @@ export function SheetCrawler({
   // the Upgrade Pool fills toward 30× TL; the Trading Bay
   // sources TL+1 wares (p.223); crew leads = one per installed bay.
   // On editable sheets the actionable lozenges (Upkeep/Upgrade/Trade)
-  // are the R-4 action entry points (CrawlerEconomyControl); Tech LVL and
+  // are the economy action entry points (CrawlerEconomyControl); Tech LVL and
   // Crew are read-only readouts.
   const trading = bayGate(crawler, 'trading-bay')
   const econItems: EconLozItem[] = [

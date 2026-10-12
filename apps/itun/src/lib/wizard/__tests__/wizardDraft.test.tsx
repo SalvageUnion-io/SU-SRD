@@ -1,5 +1,5 @@
 /**
- * Wizard draft persistence (audit item 3): drafts mirror to sessionStorage,
+ * Wizard draft persistence: drafts mirror to sessionStorage,
  * restore on mount, and clear on demand. The full wizard integration
  * (restore after unmount, confirm-on-cancel) is covered in
  * PilotWizard-draft.test.tsx-style flows; these pin the primitive.

@@ -1,5 +1,5 @@
 /**
- * SheetActionsMenu — the sticky-bar "⋯" overflow (design review U-5).
+ * SheetActionsMenu — the sticky-bar "⋯" overflow.
  *
  * At small widths the condensed sheet bar is too crowded for every sheet
  * action, so Sheet.tsx folds the reads and admin moves (Print, Export, the

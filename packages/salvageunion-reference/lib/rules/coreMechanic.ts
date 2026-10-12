@@ -1,5 +1,5 @@
 /**
- * Core Mechanic d20 (design review R-6/U-3).
+ * Core Mechanic d20.
  *
  * Salvage Union Core Book p.232 / Quick Ref 2.0 p.1 — the game's single
  * resolution roll. Roll a d20 and read the band:

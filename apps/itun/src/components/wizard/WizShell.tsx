@@ -715,8 +715,8 @@ export function WizShell({
               full-width bar eating vertical space. The footer itself is
               click-through (pointer-events-none); only the ink action pill
               (mockup `.pill`) is interactive. Below the sm endpoint the pill
-              stacks with a full-width primary CTA on EVERY step (design review
-              U-6) — Back/Cancel share a row above it.
+              stacks with a full-width primary CTA on EVERY step — Back/Cancel
+              share a row above it.
 
               With a `footerHud`, the pill is MOUNTED inside a wide paper bar that
               also carries the step HUD (the mech Loadout gauges + chips) — one

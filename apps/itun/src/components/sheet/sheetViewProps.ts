@@ -1,5 +1,5 @@
 /**
- * Shared props contract for the three per-kind sheet views (audit item 19).
+ * Shared props contract for the three per-kind sheet views.
  * Sheet.tsx keeps the store subscription and composition resolution; views
  * receive resolved data + narrow write surfaces so they re-render on their
  * props, not on unrelated store writes.

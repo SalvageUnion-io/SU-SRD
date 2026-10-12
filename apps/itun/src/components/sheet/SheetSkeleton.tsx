@@ -1,6 +1,6 @@
 /**
  * SheetSkeleton — shimmer placeholder for /sheet/:kind/:id while the route
- * loader hydrates the entity store (design review U-2).
+ * loader hydrates the entity store.
  *
  * Mirrors the LiveSheet shell (sticky top bar → hero band → body slabs) so
  * the swap to the real sheet doesn't shift the page: same min-h-[58px] bar,

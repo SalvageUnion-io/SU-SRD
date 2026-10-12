@@ -1,5 +1,5 @@
 /**
- * Static-path generation (audit item 5): item pages exist ONLY for entity
+ * Static-path generation: item pages exist ONLY for entity
  * (non-meta) schemas. Meta schemas (actions, ability-tree-requirements,
  * catalog-categories) have no /schema/<id>/ listing page, so item pages for
  * them would be sitemap orphans whose breadcrumbs 404.

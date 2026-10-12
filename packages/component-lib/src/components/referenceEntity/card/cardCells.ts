@@ -3,7 +3,7 @@
  * stat cluster and the Bonus-per-Tech-Level box say, computed from the entity
  * without rendering anything.
  *
- * Split out of `ReferenceEntityCard.tsx` (audit PK-08). Everything here is a
+ * Split out of `ReferenceEntityCard.tsx`. Everything here is a
  * function of its arguments, so it is tested directly rather than through a
  * rendered card.
  */

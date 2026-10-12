@@ -1,6 +1,6 @@
 /**
  * CrawlerEconomyControl — the crawler-economy actions behind the hero's
- * UPKEEP / UPGRADE / TRADE spec lozenges (design-review R-4; Core Book
+ * UPKEEP / UPGRADE / TRADE spec lozenges (Core Book
  * p.218-223): Pay Upkeep (with the failed-Upkeep Deterioration roll),
  * Upgrade Crawler, the fixed-rate Scrap exchange, and the Trading Bay
  * availability roll.

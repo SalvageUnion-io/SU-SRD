@@ -1,5 +1,5 @@
 /**
- * Scrap economy rule utilities (REQ-014, REQ-015).
+ * Scrap economy rule utilities.
  *
  * Salvage Union uses a tiered scrap currency: each tech level (TL1–TL6) is a
  * distinct denomination. Scrap at a higher tech level is worth more, but the

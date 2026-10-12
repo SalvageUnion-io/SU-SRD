@@ -230,13 +230,13 @@ export const MechSchema = z
     partners: z.array(PartnerInstanceSchema).optional(),
 
     /**
-     * Per-system condition map (REQ-011 #240). Keyed by system slug.
+     * Per-system condition map (#240). Keyed by system slug.
      * When absent or key missing, the display layer defaults to 'intact'.
      */
     systemConditions: ItemConditionMapSchema.optional(),
 
     /**
-     * Per-module condition map (REQ-011 #240). Keyed by module slug.
+     * Per-module condition map (#240). Keyed by module slug.
      * When absent or key missing, the display layer defaults to 'intact'.
      */
     moduleConditions: ItemConditionMapSchema.optional(),
@@ -282,8 +282,8 @@ export const MechSchema = z
     lastHeatCheck: HeatCheckResultSchema.optional(),
 
     /**
-     * The most recent Critical Damage Table result (rolled on reaching 0 SP —
-     * design-review R-1). Additive optional field, snapshot-safe plain data.
+     * The most recent Critical Damage Table result (rolled on reaching 0
+     * SP). Additive optional field, snapshot-safe plain data.
      */
     lastCriticalDamage: CriticalDamageResultSchema.optional(),
     createdAt: z.string().datetime(),

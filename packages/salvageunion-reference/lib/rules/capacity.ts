@@ -1,5 +1,5 @@
 /**
- * Mech capacity rule enforcement (REQ-009).
+ * Mech capacity rule enforcement.
  *
  * Computes slot usage and surfaces violations. All operations are synchronous
  * and pure — same input always yields same output. No React, no IndexedDB.

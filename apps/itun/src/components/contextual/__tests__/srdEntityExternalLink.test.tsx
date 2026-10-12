@@ -1,5 +1,5 @@
 /**
- * Tests for srdEntityExternalLink (design review P-3).
+ * Tests for srdEntityExternalLink.
  *
  * The builder is ITUN's app-wide EntityExternalLinkProvider value: full entity
  * cards + detail modals render its node in their foot band. It must produce a

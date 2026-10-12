@@ -1,6 +1,6 @@
 /**
  * Which NESTED sections a card carries, and what goes in each — pure, split out
- * of `ReferenceEntityCard.tsx` (audit PK-08). The card renders what this
+ * of `ReferenceEntityCard.tsx`. The card renders what this
  * returns; nothing here renders.
  */
 

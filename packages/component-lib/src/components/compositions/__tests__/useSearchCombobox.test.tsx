@@ -1,5 +1,5 @@
 /**
- * useSearchCombobox — shared combobox logic (audit item 11).
+ * useSearchCombobox — shared combobox logic.
  * Consumer-shell behavior (dropdown vs dialog) is covered by the apps' own
  * SearchIsland/GlobalSearch tests; these pin the hook contract.
  */

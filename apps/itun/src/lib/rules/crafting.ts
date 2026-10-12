@@ -1,5 +1,5 @@
 /**
- * Crafting Bay rules (design-review R-7).
+ * Crafting Bay rules.
  *
  * Salvage Union Core Book p.222 + p.244:
  * - A Crafting Bay lets you craft any Mech Chassis, System, or Module of the

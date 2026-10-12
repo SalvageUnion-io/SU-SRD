@@ -1,8 +1,8 @@
 /**
  * Mobile-responsive regression tests for sheet components.
  *
- * AC-1: Sheet renders without horizontal overflow at 320px viewport width.
- * AC-5: the top-bar Share control and InlineEditField display state have ≥44px touch targets
+ * Sheet renders without horizontal overflow at 320px viewport width.
+ * The top-bar Share control and InlineEditField display state have ≥44px touch targets
  *       (verified via the coarse-pointer floor every `.su-btn` gets, the Share control
  *       included, and the inline `min-height: 2.75rem` on InlineEditField's display state).
  *
@@ -83,7 +83,7 @@ const fakeCrawler = crawlerFixture({
 })
 
 // ---------------------------------------------------------------------------
-// AC-1: No horizontal overflow at 320px
+// No horizontal overflow at 320px
 // ---------------------------------------------------------------------------
 
 describe('Mobile responsive — renders without error at 320px container', () => {
@@ -157,7 +157,7 @@ describe('Mobile responsive — renders without error at 320px container', () =>
 })
 
 // ---------------------------------------------------------------------------
-// AC-5: Touch targets ≥44px on mobile
+// Touch targets ≥44px on mobile
 // ---------------------------------------------------------------------------
 
 describe('Mobile responsive — 44px touch targets', () => {
@@ -185,7 +185,7 @@ describe('Mobile responsive — 44px touch targets', () => {
     expect((span as HTMLElement).style.minHeight).toBe('2.75rem')
   })
 
-  test('the top-bar Share control carries the 44px floor (AC-5 touch target)', () => {
+  test('the top-bar Share control carries the 44px touch-target floor', () => {
     render(
       <Sheet
         kind="pilot"

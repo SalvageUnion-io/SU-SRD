@@ -1,6 +1,5 @@
 /**
- * hooks/entities — the typed reactive read layer over the Zustand stores
- * (design review T-7).
+ * hooks/entities — the typed reactive read layer over the Zustand stores.
  *
  * Components subscribe through these hooks instead of ad-hoc
  * `useEntityStore((s) => …)` selectors; event handlers keep using

@@ -1,5 +1,5 @@
 /**
- * Condition tracking tests — REQ-011 (#240)
+ * Condition tracking tests (#240)
  *
  * Asserts that:
  *   1. Clicking a mech system ConditionToggle calls store.update with the
@@ -208,7 +208,7 @@ describe('MechSheet — module status badge (#240)', () => {
 // Pilot equipment condition tests
 // ---------------------------------------------------------------------------
 
-describe('PilotSheet — equipment condition toggle (REQ-011 #240)', () => {
+describe('PilotSheet — equipment condition toggle (#240)', () => {
   // Equipment condition now cycles via the card status badge:
   // aria label is `Status: <Label> — click to change`.
   test('clicking an equipment status badge calls store.update with equipmentConditions patch', async () => {

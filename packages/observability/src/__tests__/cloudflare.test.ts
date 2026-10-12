@@ -6,7 +6,7 @@ import { reportError, withObservability } from '../cloudflare'
  * reporting, and this surface has shipped reporting to NOTHING before: for the
  * entire Cloudflare cutover every Worker logged to `console.error` only, while
  * the checker that should have noticed stayed green (see the module header).
- * Until this file it had no test either (audit PK-12).
+ * Until this file it had no test either.
  *
  * So these drive the REAL `@sentry/cloudflare` SDK — no `mock.module`, which
  * is process-global in Bun and would only prove that our code calls a stub.

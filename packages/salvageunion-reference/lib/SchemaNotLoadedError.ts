@@ -5,7 +5,7 @@
  * state in some contexts (a read-only snapshot render that never preloads, a
  * unit test) — apart from a genuine fault. Before it existed, every consumer
  * that tolerated the not-loaded case did so with a bare `catch {}`, which
- * swallowed every OTHER error in the same block too (audit AP-15).
+ * swallowed every OTHER error in the same block too.
  */
 export class SchemaNotLoadedError extends Error {
   readonly schemaId: string

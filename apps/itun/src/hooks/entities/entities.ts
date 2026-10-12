@@ -1,5 +1,5 @@
 /**
- * Query hooks over entityStore (design review T-7).
+ * Query hooks over entityStore.
  *
  * Centralizes the reactive read layer: components subscribe through these
  * typed hooks instead of ad-hoc `useEntityStore((s) => …)` selectors. Each

@@ -1,6 +1,6 @@
 /**
  * What a Game roster row states as `label | value` — pure, so the roster
- * component only lays the stats out (split from `GameRoster.tsx`, audit AP-16).
+ * component only lays the stats out (split from `GameRoster.tsx`).
  */
 
 import { resolveChassisRef } from 'salvageunion-reference/rules'

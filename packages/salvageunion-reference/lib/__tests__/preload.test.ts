@@ -252,7 +252,7 @@ describe('SalvageUnionReference — access before preload throws', () => {
   })
 
   // Typed so consumers can tolerate THIS case without a bare `catch {}` that
-  // also swallows every genuine fault (audit AP-15).
+  // also swallows every genuine fault.
   it('throws a SchemaNotLoadedError carrying the schema id', () => {
     let caught: unknown
     try {

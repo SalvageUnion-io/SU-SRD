@@ -1,5 +1,5 @@
 /**
- * entityStore.transfer() — atomic cross-entity value transfers (audit item 2).
+ * entityStore.transfer() — atomic cross-entity value transfers.
  *
  * The load-bearing guarantees:
  *   1. update + delete spanning two stores commit together.

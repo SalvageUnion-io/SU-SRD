@@ -10,7 +10,7 @@
  *
  * ## Why it exists
  *
- * #1072 (audit-3 P2) declared `environment: production` on every job that reads
+ * #1072 declared `environment: production` on every job that reads
  * a deploy secret and added the static gate, on the premise that the secrets
  * live only in an Environment restricted to `main`. The settings half was a
  * manual step in the PR body and never happened: on 2026-10-07 `production`

@@ -465,8 +465,8 @@ type GenericEntryAdderProps = {
 }
 
 /**
- * Minimal generic-entry intake (design-review item: 'generic inventory
- * slot-cost entry'). '+ Scrap' is the rules-blessed shortcut (3 slots each);
+ * Minimal generic-entry intake (a generic inventory slot-cost
+ * entry). '+ Scrap' is the rules-blessed shortcut (3 slots each);
  * the free form covers everything else with an explicit slot cost.
  */
 export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {

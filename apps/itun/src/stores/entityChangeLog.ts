@@ -1,6 +1,6 @@
 /**
  * The entity store's Change Log emitter (ADR-022) — split out of
- * `entityStore.ts` (audit AP-16) because it is a self-contained concern: given
+ * `entityStore.ts` because it is a self-contained concern: given
  * a write's before/after images, work out which fields moved and send one
  * provenance row per field to the server of record, which holds the only copy.
  */

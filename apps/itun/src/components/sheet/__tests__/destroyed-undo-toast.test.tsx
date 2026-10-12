@@ -1,5 +1,5 @@
 /**
- * U-6 — destroyed-undo toast tests.
+ * Destroyed-undo toast tests.
  *
  * Cycling an item's status badge onto 'destroyed' persists the change (the
  * player stays in control per ADR-007) AND fires a toast whose Undo action
@@ -80,7 +80,7 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStor
   })
 }
 
-describe('MechSheet — destroyed-undo toast (U-6)', () => {
+describe('MechSheet — destroyed-undo toast', () => {
   test('cycling onto destroyed persists, toasts, and Undo restores the previous condition', async () => {
     const captured: CapturedUpdate[] = []
     render(

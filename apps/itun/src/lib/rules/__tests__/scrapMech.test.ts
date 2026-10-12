@@ -1,5 +1,5 @@
 /**
- * Unit tests for scrapMech.ts — the retire-a-mech helper (design-review R-7;
+ * Unit tests for scrapMech.ts — the retire-a-mech helper (
  * Core Book p.248 "Scrap" ability, p.245 destroyed-condition rule).
  *
  * Breakdown/deposit/hand-off tests are pure arithmetic on hand-crafted

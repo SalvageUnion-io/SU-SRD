@@ -1,6 +1,6 @@
 /**
  * SheetMech — the mech branch of the live sheet (extracted from
- * Sheet.tsx, audit item 19; redesigned to the poster layout, Phase 2).
+ * Sheet.tsx), in the poster layout.
  *
  * The body owns the identity band (Workshop-Manual layout): `MechSheet`
  * renders the `SheetHero` band as its first region. This
@@ -78,7 +78,7 @@ export function SheetMech({
   const ep = resolvePool(mech.currentEP, maxEP)
   const heat = resolveGauge(mech.currentHeat, maxHeat)
 
-  // U-5: on phones the condensed bar leads with Heat + SP; EP/Hold fold
+  // On phones the condensed bar leads with Heat + SP; EP/Hold fold
   // until the sm breakpoint.
   const strip: LiveSheetStripItem[] = [
     { key: 'sp', label: 'SP', stat: 'sp', value: sp, max: maxSP },

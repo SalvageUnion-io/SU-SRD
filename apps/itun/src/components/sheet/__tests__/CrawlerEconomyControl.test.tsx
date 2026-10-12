@@ -1,5 +1,5 @@
 /**
- * CrawlerEconomyControl — crawler economy action tests (design-review R-4).
+ * CrawlerEconomyControl — crawler economy action tests.
  *
  * ADR-007 coverage:
  *   1. Pay Upkeep auto-draws 5× TL Scrap from the pool and credits the

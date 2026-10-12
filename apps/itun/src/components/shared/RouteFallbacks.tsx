@@ -1,5 +1,5 @@
 /**
- * Router-level default fallbacks (audit item 7) and the "not found" panel they
+ * Router-level default fallbacks and the "not found" panel they
  * share with the sheet surfaces.
  *
  * Without them an unmatched URL hits TanStack's unstyled default and a slow

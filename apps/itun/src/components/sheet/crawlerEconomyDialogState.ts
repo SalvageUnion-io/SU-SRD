@@ -1,6 +1,6 @@
 /**
  * The state machines behind `CrawlerEconomyControl`'s Upkeep and Trading Bay
- * dialogs, as pure reducers (audit AP-16).
+ * dialogs, as pure reducers.
  *
  * Not a row of independent `useState`s, where every transition must set the
  * right subset by hand. The pairs that must move together are the easy ones to

@@ -1,5 +1,5 @@
 /**
- * Soft-warning rule evaluation (REQ-012).
+ * Soft-warning rule evaluation.
  *
  * Soft warnings are non-blocking rule violations surfaced at save time. The
  * user sees them in a confirm-and-proceed dialog and may dismiss them. They do

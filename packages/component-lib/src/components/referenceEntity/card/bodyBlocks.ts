@@ -1,6 +1,6 @@
 /**
  * What the card's BODY says, before any of it is rendered — pure, split out of
- * `ReferenceEntityCard.tsx` (audit PK-08).
+ * `ReferenceEntityCard.tsx`.
  */
 
 import type { SURefObjectContentBlock } from 'salvageunion-reference'

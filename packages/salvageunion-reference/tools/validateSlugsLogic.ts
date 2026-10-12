@@ -1,5 +1,5 @@
 /**
- * Pure logic for slug-uniqueness validation (audit item 4).
+ * Pure logic for slug-uniqueness validation.
  *
  * Entity URLs, deep links, and lookup helpers key on `nameToSlug(name)`
  * within a schema (srd routes /schema/[schemaId]/item/[slug],

@@ -143,7 +143,7 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
       rolldownOptions: {
         output: {
-          // Named groups for the code every route loads (audit AP-11).
+          // Named groups for the code every route loads.
           //
           // Left to itself, Rolldown folded React, component-lib, the reference
           // ORM and the rest of the initial graph into ONE ~600 KB chunk named

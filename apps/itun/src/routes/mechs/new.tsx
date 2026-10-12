@@ -17,7 +17,7 @@ export const Route = createFileRoute('/mechs/new')({
   },
   // No loader: the wizard renders inside GameDataReady, whose preload('all')
   // is already the gate for every route, so a per-route preload list here was
-  // pure repetition (audit AP-11).
+  // pure repetition.
   component: NewMechRoute,
 })
 

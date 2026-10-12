@@ -6,7 +6,7 @@
  * wrangler bundles with esbuild, which resolves workspace packages normally, so
  * this module imports `@sentry/cloudflare` itself and the four Workers get it
  * through one dependency declared in one place — a runtime `dependency` of this
- * package, not a devDependency (audit PK-07).
+ * package, not a devDependency.
  *
  * `@sentry/cloudflare` is built for workerd: it hooks `fetch` through a
  * wrapper instead of installing global instrumentation, and needs the

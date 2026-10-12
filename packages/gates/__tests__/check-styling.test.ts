@@ -62,7 +62,7 @@ describe('ruleEngine.evaluate', () => {
     expect(v.rules.find((r) => r.rule.id === 'r')?.problem).toBe('regressed')
   })
 
-  test('a ratchet fails when the count FALLS but the baseline was not lowered (PK-13)', () => {
+  test('a ratchet fails when the count FALLS but the baseline was not lowered', () => {
     const v = evaluate(SET, { z: [], r: finding(2) }, { r: 3 })
     expect(v.ok).toBe(false)
     expect(v.rules.find((r) => r.rule.id === 'r')?.problem).toBe('unrecorded-improvement')

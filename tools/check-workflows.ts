@@ -37,7 +37,7 @@
  *   deploy-order  in `deploy-cloudflare.yml`, the Convex push needs every
  *                 build job, every deploy job needs every build job and the
  *                 push, the smoke job needs every deploy job, and the deploy
- *                 record needs the smoke job to have SUCCEEDED (audit CI-12).
+ *                 record needs the smoke job to have SUCCEEDED.
  *                 A build job uploads an artifact built from source; a pass
  *                 that downloads one and re-uploads it (srd's OG render) is
  *                 not a build, and only what ships its output waits for it.
@@ -588,7 +588,7 @@ const SMOKE_SCRIPT = 'tools/smoke-production.sh'
 const EXPLICIT_STATUS = /\b(?:always|cancelled|failure)\(\)/
 
 /**
- * The deploy workflow's job graph keeps its orderings (audit CI-12):
+ * The deploy workflow's job graph keeps its orderings:
  *
  *   1. the job that pushes the Convex backend needs every build job (one that
  *      uploads an artifact and downloads none) — a failed build of ANY surface

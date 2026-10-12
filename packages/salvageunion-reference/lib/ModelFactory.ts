@@ -7,7 +7,7 @@
  * lib/schemas/registry.ts by tools/generateRegistry.ts into lib/generated/ —
  * run `bun run build:package` to regenerate after editing the manifest.
  *
- * ## The trusted load path (audit PK-04)
+ * ## The trusted load path
  *
  * The data files are committed, and CI validates every one of them against
  * its Zod schema (the `schemas` data check) and proves that a Zod parse returns each

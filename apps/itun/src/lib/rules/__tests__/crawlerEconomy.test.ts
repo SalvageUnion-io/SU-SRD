@@ -1,7 +1,7 @@
 /**
  * Unit tests for crawlerEconomy.ts — Upkeep, Deterioration, Upgrade quotes,
  * fixed-rate Scrap exchange, and the Trading Bay availability roll
- * (design-review R-4; Core Book p.218-223).
+ * (Core Book p.218-223).
  *
  * Upgrade-cost tests use REAL data from salvageunion-reference
  * (crawler-tech-levels.json); everything else is pure arithmetic on

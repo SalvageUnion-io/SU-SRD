@@ -215,7 +215,7 @@ describe('LiveSheet — strip values and syncStats', () => {
     expect(container.querySelector('.sheet--pilot')).toBeTruthy()
   })
 
-  test('mobilePriority:false strip items fold below sm (U-5)', () => {
+  test('mobilePriority:false strip items fold below sm', () => {
     renderShell({
       strip: [
         { key: 'sp', label: 'SP', stat: 'sp', value: 5, max: 8 },

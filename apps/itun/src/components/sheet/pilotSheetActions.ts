@@ -83,7 +83,7 @@ export function usePilotSheetActions({
   storeState,
   crawlerTechLevel,
 }: PilotSheetActionsOptions): PilotSheetActions {
-  // Soft warnings (REQ-012, ADR-021) on BUILD edits only — ability add/remove
+  // Soft warnings (ADR-021) on BUILD edits only — ability add/remove
   // and the class change. Advisory, never blocking: a clean edit saves straight
   // through and the dialog never appears. Vitals/live-play writes (HP, AP, TP,
   // conditions, uses, Spend AP) deliberately bypass this — they are transient
@@ -225,7 +225,7 @@ export function usePilotSheetActions({
     const prev = freshPilot().equipmentConditions ?? {}
     const prevCondition = prev[slug] ?? 'intact'
     await writeAwait({ equipmentConditions: { ...prev, [slug]: next } })
-    // U-6: landing on 'destroyed' offers a one-tap Undo (mis-tap mid-combat).
+    // Landing on 'destroyed' offers a one-tap Undo (mis-tap mid-combat).
     if (next === 'destroyed' && prevCondition !== 'destroyed') {
       const name = resolveEquipment(slug)?.name ?? slug
       destroyedUndoToast(name, () => {

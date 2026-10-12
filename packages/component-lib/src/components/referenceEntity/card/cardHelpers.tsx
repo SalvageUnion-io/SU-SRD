@@ -2,7 +2,7 @@
  * Pure helpers shared by `ReferenceEntityCard` and its section components.
  *
  * Each depends only on its arguments. They were lifted out of the card's body
- * — first to module scope, then (audit PK-08) into this module — because the
+ * — first to module scope, then into this module — because the
  * card's section components need them too, and a helper the sections import
  * from the card would make every section a circular dependency.
  */

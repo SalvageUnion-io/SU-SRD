@@ -1,6 +1,6 @@
 /**
- * encounterStore — Zustand store for the GM encounter tray (design-review
- * R-5). Tracks EncounterNpc instances (reference NPCs with live HP/SP,
+ * encounterStore — Zustand store for the GM encounter tray.
+ * Tracks EncounterNpc instances (reference NPCs with live HP/SP,
  * condition ticks, and Mediator roll history).
  *
  * Built on makeHydratedCollectionSlice (rows from the server, server-first

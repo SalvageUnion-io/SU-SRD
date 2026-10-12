@@ -1,5 +1,5 @@
 /**
- * encounterStore unit tests (design-review R-5).
+ * encounterStore unit tests.
  *
  * The store holds rows in memory only; it is reset in beforeEach/afterEach to
  * prevent inter-test state leakage.

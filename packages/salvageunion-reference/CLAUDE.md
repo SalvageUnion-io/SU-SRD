@@ -59,7 +59,7 @@ public surface.
 
 ### Loading is trusted — keep the data parse-stable
 
-`preload()` does **not** Zod-parse (audit PK-04): the committed files are
+`preload()` does **not** Zod-parse: the committed files are
 validated in CI, and `lib/__tests__/dataCanonical.test.ts` proves that parsing each one
 would return it unchanged. Two consequences:
 

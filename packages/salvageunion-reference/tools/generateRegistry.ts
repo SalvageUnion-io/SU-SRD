@@ -21,7 +21,7 @@
  *   - lib/generated/zodSchemaMap.generated.ts
  *       zodSchemaMap — the entity Zod schemas keyed by schema id. Kept in its
  *       own module because only tools and tests import it; the runtime loader
- *       never does, so the entity schemas stay out of client chunks (audit PK-04).
+ *       never does, so the entity schemas stay out of client chunks.
  *
  *   - lib/generated/entityTypes.generated.ts
  *       the SURef* entity type aliases (`z.infer` of each registry schema)

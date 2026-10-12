@@ -1,5 +1,5 @@
 /**
- * Registry consistency (audit item 23).
+ * Registry consistency.
  *
  * Adding a schema touches several hand-maintained registries: ModelFactory's
  * dataLoaders / schemaDisplayNames, the generated zodSchemaMap module, plus
@@ -55,8 +55,8 @@ describe('schema registry consistency', () => {
 })
 
 // ---------------------------------------------------------------------------
-// The SURef* entity types and unions are GENERATED from the registry (audit
-// PK-10). These pin the generated unions to the registry's flags, so a flag
+// The SURef* entity types and unions are GENERATED from the registry. These
+// pin the generated unions to the registry's flags, so a flag
 // edited without regenerating — or a generator bug — fails here rather than
 // silently widening or narrowing every consumer's types.
 // ---------------------------------------------------------------------------

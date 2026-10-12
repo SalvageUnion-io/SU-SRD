@@ -2,8 +2,8 @@ import { z } from 'salvageunion-reference/zod'
 import { containerFields } from './entity'
 
 /**
- * EncounterNpc — one tracked NPC instance on the GM encounter tray
- * (design-review R-5). Persisted like every entity: the `encounterNpcs` Convex
+ * EncounterNpc — one tracked NPC instance on the GM encounter tray.
+ * Persisted like every entity: the `encounterNpcs` Convex
  * table when signed in, nowhere when not;
  * container-scoped via the nullable `gameId` (ADR-030 §2).
  *

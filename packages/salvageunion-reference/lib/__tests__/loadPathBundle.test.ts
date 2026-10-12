@@ -1,5 +1,5 @@
 /**
- * The runtime graph never reaches Zod or the entity schemas (audit PK-04).
+ * The runtime graph never reaches Zod or the entity schemas.
  *
  * `preload()` installs the committed data without parsing it, so neither Zod nor
  * `lib/generated/zodSchemaMap.generated.ts` belongs in an app bundle. A single

@@ -62,7 +62,7 @@ export type LiveSheetStripItem = {
   max?: number
   /**
    * When false, this MiniStat hides below the sm breakpoint so the condensed
-   * bar keeps only the priority readouts (design review U-5 — Heat + SP
+   * bar keeps only the priority readouts (Heat + SP
    * first; EP/Hold fold on phones). Defaults to true (always shown).
    */
   mobilePriority?: boolean
@@ -334,7 +334,7 @@ export function LiveSheet({
                     orientation="horizontal"
                     label={item.label}
                     value={item.max !== undefined ? `${item.value}/${item.max}` : item.value}
-                    // U-5: non-priority readouts fold below sm so the condensed
+                    // Non-priority readouts fold below sm so the condensed
                     // bar leads with Heat + SP on phones.
                     className={
                       item.mobilePriority === false ? 'su-sheet-live-stat-fold' : undefined

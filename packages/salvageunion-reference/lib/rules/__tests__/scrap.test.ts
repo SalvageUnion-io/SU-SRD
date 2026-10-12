@@ -1,5 +1,5 @@
 /**
- * Unit tests for scrap.ts — scrap economy utilities (AC-5, REQ-014, REQ-015).
+ * Unit tests for scrap.ts — scrap economy utilities.
  *
  * Uses REAL data from salvageunion-reference for crawler tech level upgrade
  * costs, and hand-crafted fixtures for item-level tests.

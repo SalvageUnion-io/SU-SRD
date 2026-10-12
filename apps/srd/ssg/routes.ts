@@ -49,7 +49,7 @@ export const routes: RouteRegistration[] = [
   register(ogCardPage, { sitemap: false }),
   // `/greembeem` is not a route: it is a finished static document with no data
   // behind it any more, so it ships as `public/greembeem/index.html` and Vite
-  // copies it into dist like any other public file (audit AP-18).
+  // copies it into dist like any other public file.
 
   // ---------------------------------------------------------------------
   // Endpoints (llms.txt, search-index.json, schema/[schemaId].json) are NOT

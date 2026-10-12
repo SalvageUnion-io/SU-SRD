@@ -1,6 +1,6 @@
 /**
  * RosterSkeleton — shimmer placeholder for the Pilots/Mechs/Crawlers grid
- * while entityStore hydration is in flight (design review U-2).
+ * while entityStore hydration is in flight.
  *
  * Mirrors the hydrated layout (the same grid shell, `.su-roster-skeleton`, and
  * Row-shaped placeholders) so the swap to real content doesn't shift the

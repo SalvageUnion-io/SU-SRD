@@ -199,7 +199,7 @@ export const PilotSchema = z
     currentAP: z.number().int().min(0).optional(),
 
     /**
-     * Per-equipment condition map (REQ-011 #240). Keyed by equipment slug.
+     * Per-equipment condition map (#240). Keyed by equipment slug.
      * When absent or key missing, the display layer defaults to 'intact'.
      */
     equipmentConditions: ItemConditionMapSchema.optional(),
@@ -325,8 +325,8 @@ export const PilotSchema = z
     genericInventory: z.array(GenericInventoryEntrySchema).optional(),
 
     /**
-     * The most recent Critical Injury Table result (rolled on reaching 0 HP —
-     * design-review R-1). Additive optional field, snapshot-safe plain data.
+     * The most recent Critical Injury Table result (rolled on reaching 0
+     * HP). Additive optional field, snapshot-safe plain data.
      */
     lastCriticalInjury: CriticalInjuryResultSchema.optional(),
     createdAt: z.string().datetime(),

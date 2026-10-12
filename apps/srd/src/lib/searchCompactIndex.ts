@@ -9,7 +9,7 @@
  * The matching and ranking RULES are not implemented here. Tokenising, the
  * AND-of-tokens rule with its name-only typo forgiveness, and the name-priority
  * score tiers all come from `salvageunion-reference`'s `searchRanking.ts`, the
- * same functions the ORM `search()` calls (audit PK-11 — this file used to
+ * same functions the ORM `search()` calls (this file used to
  * re-implement the tiers inline). What differs is only the facts this matcher
  * has: with no per-field text it passes no description and no matched-field
  * count, so the ORM's `+10` description boost and `+5`-per-field refinement do

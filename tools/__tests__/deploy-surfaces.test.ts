@@ -26,7 +26,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
   })
 
   /**
-   * The CI-01 case. Commit A touched itun, commit B touched srd, and A's
+   * The skipped-deploy case. Commit A touched itun, commit B touched srd, and A's
    * deploy never ran. Diffing HEAD^..HEAD at B saw only srd; diffing from the
    * recorded deploy sees both.
    */

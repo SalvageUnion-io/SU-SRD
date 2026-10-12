@@ -34,7 +34,7 @@ export class BaseModel<T> {
     // Pre-stamp schemaName on each entity and build ID map.
     //
     // The stamp goes on a shallow COPY, never on `item` itself. The trusted
-    // load path (ModelFactory, audit PK-04) hands this constructor the rows of
+    // load path (ModelFactory) hands this constructor the rows of
     // the imported JSON module as-is — there is no Zod parse in between to
     // produce fresh objects any more — so stamping in place would write
     // `schemaName` into the module cache, where the next validating load of

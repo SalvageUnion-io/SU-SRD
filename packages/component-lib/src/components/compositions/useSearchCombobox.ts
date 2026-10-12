@@ -1,6 +1,6 @@
 /**
  * useSearchCombobox — the shared logic layer behind the SRD search
- * comboboxes (audit item 11).
+ * comboboxes.
  *
  * srd's SearchIsland (dropdown-under-input, URL navigation) and ITUN's
  * GlobalSearch (the Union bar's search dialog, detail-modal navigation) duplicated the

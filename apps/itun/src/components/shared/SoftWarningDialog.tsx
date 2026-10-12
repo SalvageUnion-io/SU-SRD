@@ -1,6 +1,6 @@
 /**
  * SoftWarningDialog — the confirm-and-proceed dialog for advisory rule
- * violations surfaced at save time (REQ-012, ADR-021).
+ * violations surfaced at save time (ADR-021).
  *
  * Soft warnings NEVER block: the Live Sheet is a free / override surface, so
  * this dialog only ever asks. "Save anyway" persists the previewed patch;

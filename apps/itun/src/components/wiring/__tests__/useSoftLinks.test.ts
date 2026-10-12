@@ -5,7 +5,7 @@
  * The hook is exercised via renderHook so that React's rules are satisfied,
  * but the store is controlled by the test.
  *
- * AC-3 coverage:
+ * Coverage:
  *   - assign() creates a SoftLink via store.create
  *   - unassign() removes a SoftLink via store.delete
  *   - orphan: after the target entity is removed from the store, the SoftLink

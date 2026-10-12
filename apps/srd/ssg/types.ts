@@ -62,7 +62,7 @@ export type DocumentMeta = {
  * and the island-props script are injected into the rendered string either way,
  * and the island-collection window is open around the render. A document
  * that needs neither assets nor islands is not a page at all: it is a static
- * file in `public/` (as `greembeem` is — audit AP-18).
+ * file in `public/` (as `greembeem` is).
  */
 export type DocumentShell = 'base' | 'bare'
 

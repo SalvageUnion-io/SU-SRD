@@ -1,7 +1,7 @@
 /**
  * The card's prose bands — every place `ReferenceEntityCard` hands content
  * blocks to `Content`, sharing ONE set of card-derived props so the five call
- * sites cannot drift (audit PK-08 split them out of the card body).
+ * sites cannot drift.
  */
 
 import type { CSSProperties } from 'react'
