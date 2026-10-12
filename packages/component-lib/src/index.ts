@@ -181,6 +181,7 @@ export { SlotGrid } from './components/shared/SlotGrid'
 export { SRDLink } from './components/shared/SRDLink'
 export type { StatState, StatTone } from './components/shared/Stat'
 export { Stat } from './components/shared/Stat'
+export { StatColumn } from './components/shared/StatColumn'
 /** The `statsOverride` element type — public because the prop that takes it is. */
 export type { StatItem } from './components/shared/statsBarTypes'
 export type { SearchComboboxResult } from './components/shared/useSearchCombobox'

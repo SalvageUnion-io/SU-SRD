@@ -92,7 +92,11 @@ export function CardPage({
   sectionAs,
   action,
 }: CardPageProps) {
-  const bookStats = stats ? buildBookStats(entity, stats) : []
+  // The page's band carries the Tech Level at full size (srd's
+  // `EntityPageStamps`), so the column does not print it twice.
+  const bookStats = stats
+    ? buildBookStats(entity, stats).filter((stat) => stat.key !== 'tech-level')
+    : []
   const { NestedCard } = action
   const actionCard = (data: ReferenceCardEntity, index: number, seal?: string) => (
     <NestedCard

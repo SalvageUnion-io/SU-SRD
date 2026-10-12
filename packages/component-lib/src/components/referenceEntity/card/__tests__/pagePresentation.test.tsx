@@ -97,13 +97,17 @@ describe('the card as a page', () => {
     expect(container.querySelector('.su-entity-page__art img')).not.toBeNull()
   })
 
-  test('the stat column reads the book’s labels, one cell per stat', () => {
+  test('the stat column reads the book’s labels, one cell per stat, Tech Level in the band', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
     const column = container.querySelector('dl.su-stat-column')
     expect(column?.getAttribute('aria-label')).toBe('Gopher stats')
     const terms = [...(column?.querySelectorAll('dt') ?? [])].map((el) => el.textContent)
     const values = [...(column?.querySelectorAll('dd') ?? [])].map((el) => el.textContent)
-    const expected = buildBookStats(gopher(), { techLevel: getTechLevel(gopher()) })
+    // The page's band carries the Tech Level at full size; the column leaves it out.
+    const expected = buildBookStats(gopher(), { techLevel: getTechLevel(gopher()) }).filter(
+      (s) => s.key !== 'tech-level'
+    )
+    expect(terms).not.toContain('Tech Level')
     expect(terms).toEqual(expected.map((s) => s.label))
     expect(values).toEqual(expected.map((s) => s.value))
   })

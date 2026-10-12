@@ -7,6 +7,25 @@ import { ReferenceEntityIsland } from '../ReferenceEntityIsland'
 
 const entitySchemas = getEntitySchemas()
 
+/**
+ * Whether the entity has anything for its page BODY to print. A name and a
+ * Tech Level alone (Camouflage Fatigues) is a whole page in its band: the
+ * title and the `TECH LEVEL` cell (`EntityPageStamps`), and an empty body.
+ */
+const BAND_ONLY = new Set([
+  'id',
+  'schemaName',
+  'source',
+  'page',
+  'name',
+  'techLevel',
+  'additionalSources',
+])
+const hasBody = (entity: object) =>
+  Object.entries(entity).some(
+    ([key, value]) => !BAND_ONLY.has(key) && !(Array.isArray(value) && value.length === 0)
+  )
+
 for (const schema of entitySchemas) {
   const model = getModel(schema.id)
   if (!model) continue
@@ -25,7 +44,7 @@ for (const schema of entitySchemas) {
       it(`renders "${entityName}" as its page's body`, () => {
         const { container } = render(<ReferenceEntityIsland item={entity} />)
         expect(container.querySelector('.su-entity-page')).not.toBeNull()
-        expect(container.textContent?.trim().length ?? 0).toBeGreaterThan(0)
+        if (hasBody(entity)) expect(container.textContent?.trim().length ?? 0).toBeGreaterThan(0)
       })
     }
 
