@@ -255,20 +255,23 @@ describe('every page ends on one footer (boards 06, 07)', () => {
     })
   }
 
+  /** The licence row: the Union bar's ink, the same on every page. */
+  const licence = () => backgrounds(page('/'), 'su-chapter-foot')[0]
+
   for (const [name, path] of book) {
-    it(`${name} ends in its own chapter’s band, not a second one`, () => {
+    it(`${name} cites itself in its own chapter’s band, over the one licence row`, () => {
       const html = page(path)
       const [head] = backgrounds(html, 'su-chapter-band')
       const feet = backgrounds(html, 'su-chapter-foot')
-      expect(feet.length).toBeGreaterThan(0)
-      expect(new Set(feet).size).toBe(1)
+      expect(feet).toHaveLength(2)
       if (path.startsWith('/schema/crawlers/')) {
         // The foot carries text, so it takes the deeper crawler pink (§3.8).
         expect(feet[0]).not.toBe(head)
-        expect(feet[0]).not.toBe(backgrounds(page('/'), 'su-chapter-foot')[0])
       } else {
         expect(feet[0]).toBe(head)
       }
+      expect(feet[1]).toBe(licence())
+      expect(feet[0]).not.toBe(feet[1])
     })
   }
 
@@ -277,24 +280,11 @@ describe('every page ends on one footer (boards 06, 07)', () => {
     expect(html).toMatch(/<footer[^>]*>[\s\S]*p\.112[\s\S]*<\/footer>/)
   })
 
-  for (const [name, path] of listings) {
-    it(`${name} ends in its chapter’s band, citing nothing`, () => {
-      const html = page(path)
-      const [head] = backgrounds(html, 'su-chapter-band')
-      const feet = backgrounds(html, 'su-chapter-foot')
-      expect(feet).toHaveLength(1)
-      expect(feet[0]).not.toBe(backgrounds(page('/'), 'su-chapter-foot')[0])
-      // A crawler foot carries text, so it takes the deeper pink (§3.8).
-      if (path.startsWith('/schema/crawlers')) expect(feet[0]).not.toBe(head)
-      else expect(feet[0]).toBe(head)
-    })
-  }
-
-  for (const [name, path] of site) {
-    it(`${name} ends on the one rules-blue band, citing nothing`, () => {
+  for (const [name, path] of [...listings, ...site]) {
+    it(`${name} ends on the one licence row, citing nothing`, () => {
       const feet = backgrounds(page(path), 'su-chapter-foot')
       expect(feet).toHaveLength(1)
-      expect(feet[0]).toBe(backgrounds(page('/'), 'su-chapter-foot')[0])
+      expect(feet[0]).toBe(licence())
     })
   }
 })
