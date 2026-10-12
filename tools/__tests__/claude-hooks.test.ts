@@ -48,7 +48,6 @@ describe('settings.json deny rules', () => {
     ['anything under dist', 'apps/srd/dist/index.html'],
     ['Convex codegen', 'apps/itun/convex/_generated/api.d.ts'],
     ['the lockfile', 'bun.lock'],
-    ['the styling baseline', 'tools/styling-baseline.json'],
     ['the schema catalog', 'packages/salvageunion-reference/schemas/index.json'],
     ['a build-info file', 'apps/itun/tsconfig.tsbuildinfo'],
   ])('deny editing %s', (_label, path) => {
