@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "packageManager": "bun@1.4.0",
+  "packageManager": "bun@1.4.2",
   "license": "https://leyline.press/pages/salvage-union-open-game-licence-1-0b",
   "workspaces": {
     "packages": [
@@ -41,7 +41,7 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@vitejs/plugin-react-swc": "4.3.3",
-    "bun-types": "1.4.0",
+    "bun-types": "1.4.2",
     "knip": "6.32.2",
     "lefthook": "2.1.10",
     "salvageunion-reference": "workspace:*",
