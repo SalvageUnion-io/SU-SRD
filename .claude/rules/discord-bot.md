@@ -15,11 +15,11 @@ a reply looks like.
 ## Every reply is a Components V2 container
 
 - Build a pure `ContainerData` and render it with `toContainer` in
-  `src/container.ts`. An entity surface (a lookup entry, a sheet, a game card)
-  goes through `entityCard()` — one render for that shape; anything else
-  authors its blocks in a `*Container.ts` builder. Never an `embeds:` payload —
-  with `MessageFlags.IsComponentsV2` Discord rejects `content` and `embeds`
-  outright.
+  `src/container.ts`. A reference entry uses the shared `discordCardParts`
+  (also the SRD's Component Embed); sheets and game cards `entityCard()`;
+  anything else authors its blocks in a `*Container.ts` builder. Never an
+  `embeds:` payload — with `MessageFlags.IsComponentsV2` Discord rejects
+  `content` and `embeds` outright.
 - **Limits are enforced once, in `toContainer`** (`enforceContainerLimits`,
   budgets in `V2_LIMIT`). They are server-side ceilings no installed package
   checks, so do not add a second guard; a builder that must fit (lookup) budgets
@@ -65,7 +65,8 @@ retired `su:<action>` name for something new.
 
 - Roll and neutral colours mirror `--color-roll-*` / `--color-rust` in
   `packages/component-lib/src/styles/theme.css`; change them together.
-  `themeLockstep.test.ts` fails when they diverge.
+  `themeLockstep.test.ts` fails when they diverge (entry tones:
+  `discordCard.test.ts`).
 - `degradedMode.test.ts` — the reference bot must keep working when In The
   Union Now does not answer. Do not let it regress.
 - Handlers take the narrow types in `src/commands/interactions.ts` (add a member
