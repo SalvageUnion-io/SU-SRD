@@ -50,6 +50,7 @@
         "@discordjs/rest": "2.6.3",
         "@randsum/roller": "catalog:",
         "@randsum/salvageunion": "catalog:",
+        "component-lib": "workspace:*",
         "discord-api-types": "0.38.53",
         "itun-domain": "workspace:*",
         "observability": "workspace:*",

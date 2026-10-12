@@ -1,5 +1,6 @@
 import type { ChapterTone } from 'component-lib'
 import { buttonVariants, CHAPTER_BAND_COLOR } from 'component-lib'
+import { PRODUCT } from 'component-lib/product'
 
 /**
  * The home page as the manual's Contents page (board 06): the book's chapters
@@ -123,7 +124,7 @@ export function NewToTheUnion({ steps, buildHref }: NewToTheUnionProps) {
         ))}
       </ol>
       <div className="srd-panel__foot">
-        <p>Ready to build? In The Union Now turns these pages into a live sheet for your crew.</p>
+        <p>Ready to build? {PRODUCT.name} turns these pages into a live sheet for your crew.</p>
         <a
           href={buildHref}
           className={`${buttonVariants({ variant: 'primary', size: 'full' })} srd-panel__cta`}

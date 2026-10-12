@@ -11,7 +11,9 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
 - **Library:** `@discordjs/builders` (commands + Components V2),
   `@discordjs/rest`, `discord-api-types`. **Not `discord.js`** — nothing here
   needs its gateway client.
-- **Data:** `salvageunion-reference` workspace package (standalone, no component-lib)
+- **Data:** `salvageunion-reference` workspace package. From `component-lib` it
+  imports only the dependency-free `component-lib/product` subpath (the product's
+  names), never the barrel.
 
 ## Runtime
 

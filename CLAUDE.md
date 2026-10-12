@@ -79,11 +79,11 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static referenc
 **Dependency graph:**
 
 ```
-salvageunion-reference (game data ORM)
-  └── component-lib (shared UI components)
-        ├── srd (static reference site)
-        └── itun (character builder + game manager)
-discord-bot (salvageunion-reference + itun-domain types)
+salvageunion-reference
+  └── component-lib
+        ├── srd
+        └── itun (its convex/: component-lib/product only)
+discord-bot (salvageunion-reference, itun-domain types, component-lib/product only)
 ```
 
 Each workspace's own `CLAUDE.md` loads when you work in it; "Build & Validation" above is the cross-package checklist, and [display system](docs/ARCHITECTURE.md#display) has the two card shells (`ReferenceEntityCard` for every SRD entity, `Card` for everything else).

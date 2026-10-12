@@ -156,8 +156,8 @@ test.describe('signed out: the shell', () => {
 
     // The shell renders from cache. This is the whole promise: an installed app
     // opens with no network.
-    await expect(page).toHaveTitle(/In The Union Now/i)
-    await expect(page.getByRole('heading', { level: 1, name: /^In The Union Now$/i })).toBeVisible()
+    await expect(page).toHaveTitle(/In the Union now/i)
+    await expect(page.getByRole('heading', { level: 1, name: /^In the Union now$/i })).toBeVisible()
 
     await context.setOffline(false)
   })
@@ -189,7 +189,7 @@ test.describe('signed out: the shell', () => {
     // the offline not-found page carries the app title.)
     await page.goto(at('/about'))
     await waitForReady(page)
-    await expect(page).toHaveTitle(/In The Union Now/i)
+    await expect(page).toHaveTitle(/In the Union now/i)
     await expect(page.getByText(/page not found/i)).toHaveCount(0)
 
     await context.setOffline(false)
@@ -246,7 +246,7 @@ test.describe('signed in: what a player keeps', () => {
       await page.reload()
       await waitForReady(page)
 
-      await expect(page).toHaveTitle(/In The Union Now/i)
+      await expect(page).toHaveTitle(/In the Union now/i)
       await expect(page.getByText('Not On This Device')).toHaveCount(0)
       const databases = await page.evaluate(async () =>
         (await indexedDB.databases()).map((d) => d.name)

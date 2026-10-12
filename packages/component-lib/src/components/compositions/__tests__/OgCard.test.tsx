@@ -176,7 +176,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Cargo', '6'],
       ],
       lines: ['Salvage Union Workshop Manual · p.104 · 5 patterns'],
-      wordmark: 'SalvageUnion.io',
+      wordmark: 'salvageunion.io',
       address: '/chassis/scrapper',
     },
   ],
@@ -193,7 +193,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         'You repair any number of damaged Mech Chassis, Vehicles, Systems, or Modules within Range to Intact Condition. They must be of a Tech Level equal to or lower than your Union Crawler.',
         'Salvage Union Workshop Manual · p.29',
       ],
-      wordmark: 'SalvageUnion.io',
+      wordmark: 'salvageunion.io',
       address: '/abilities/mass-field-repair',
     },
   ],
@@ -382,8 +382,8 @@ describe('OgCard', () => {
     expect(ogCardDescription(PRIVATE)).toBe("Its owner hasn't shared this.")
   })
 
-  test('the reference cards say SalvageUnion.io; the player cards say ITUN', () => {
-    expect(renderToStaticMarkup(<OgCard {...THING} />)).toContain('SalvageUnion.io')
+  test('the reference cards say salvageunion.io; the player cards say ITUN', () => {
+    expect(renderToStaticMarkup(<OgCard {...THING} />)).toContain('salvageunion.io')
     expect(renderToStaticMarkup(<OgCard {...SHEET} />)).toContain('ITUN')
   })
 

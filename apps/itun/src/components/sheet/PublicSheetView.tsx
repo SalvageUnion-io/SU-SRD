@@ -14,6 +14,7 @@
  */
 
 import { buttonVariants, tokens } from 'component-lib'
+import { PRODUCT } from 'component-lib/product'
 import { useQuery } from 'convex/react'
 import { NpcSchema } from 'itun-domain/schemas/npc'
 import { MechPatternSchema } from 'itun-domain/schemas/pattern'
@@ -64,7 +65,7 @@ function NotAvailable({ what = 'sheet' }: { what?: 'sheet' | 'pattern' | 'NPC' }
         className={buttonVariants({ variant: 'ghost', size: 'compact' })}
         style={LINK}
       >
-        &larr; In The Union Now
+        &larr; {PRODUCT.name}
       </AppLink>
     </main>
   )
@@ -108,7 +109,7 @@ function PublicNpcQuery({ appId }: { appId: string }) {
       npc={{ ...parsed.data, id: appId }}
       madeBy={result.madeBy ?? 'a player'}
       readOnly
-      back={{ href: '/', label: 'In The Union Now' }}
+      back={{ href: '/', label: PRODUCT.name }}
       readOnlyNote="A shared NPC, read-only. Only whoever made it can change it."
     />
   )

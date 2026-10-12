@@ -15,6 +15,7 @@
  */
 import type { OgCardProps } from 'component-lib'
 import { color } from 'component-lib/design/tokens'
+import { PRODUCT } from 'component-lib/product'
 
 /** The kinds of player thing a link previews. */
 export type PreviewKind = 'pilot' | 'mech' | 'crawler' | 'npc' | 'pattern'
@@ -166,7 +167,7 @@ export function inviteCard(answer: InvitePreviewAnswer, address: string): Previe
     tone: color.crawler,
     summary: answer.mediatedBy
       ? `Mediated by ${answer.mediatedBy}.`
-      : `A Salvage Union Game on ITUN.`,
+      : `A Salvage Union Game on ${PRODUCT.shortName}.`,
     terms: joinParts([
       `Link expires ${expiryDate(answer.expiresAt)}`,
       answer.requiresApproval ? 'the Mediator lets you in' : undefined,

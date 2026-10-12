@@ -83,6 +83,8 @@ jobs:
               - 'apps/discord-bot/**'
               # the bot's wire types (`itun-domain/botWire`, `import type`)
               - 'packages/itun-domain/**'
+              # the product's names (`component-lib/product`)
+              - 'packages/component-lib/**'
             assets:
               - *shared
               - 'apps/su-assets/**'

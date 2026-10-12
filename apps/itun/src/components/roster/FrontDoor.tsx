@@ -4,7 +4,7 @@
  * Signed out, ITUN is read-only (ADR-034 as amended): there is nothing of the
  * visitor's to list, so `/` is the front door instead —
  *
- *  - the **"In The Union Now" chapter band**, with what ITUN is, the sign-in,
+ *  - the **product-name chapter band** (`PRODUCT.name`), with what ITUN is, the sign-in,
  *    a way into a Starter Set sheet, and the one line about invite links (a
  *    Game is joined from a link, never a typed code);
  *  - **how it works**, in three steps: Create a Pilot → Create a Mech → Join
@@ -18,6 +18,7 @@
  */
 
 import { buttonVariants, ChapterBand, Slab, tokens } from 'component-lib'
+import { PRODUCT } from 'component-lib/product'
 import { STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
@@ -225,9 +226,13 @@ export function FrontDoor() {
     <main style={PAGE}>
       <ChapterBand
         measure={MEASURE}
-        eyebrow={<span style={KICKER}>ITUN · Beta · Your crew, from the Workshop Manual</span>}
+        eyebrow={
+          <span style={KICKER}>
+            {PRODUCT.shortName} · Beta · Your crew, from the Workshop Manual
+          </span>
+        }
       >
-        In The Union Now
+        {PRODUCT.name}
       </ChapterBand>
 
       <div style={{ ...COLUMN, paddingBlock: tokens.space[32] }}>

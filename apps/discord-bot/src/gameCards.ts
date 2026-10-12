@@ -1,3 +1,4 @@
+import { PRODUCT } from 'component-lib/product'
 import type { ItemCondition, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
   CONDITION_LABELS,
@@ -73,7 +74,7 @@ const CRITICAL = ROLL_COLORS.cascade
  */
 export const ITUN_ORIGIN = 'https://salvageunion.io/build'
 
-const FOOTER = 'In The Union Now'
+const FOOTER = PRODUCT.name
 
 /** The stats' short names, from the reference vocabulary the sheets print. */
 const HP = STAT_LABELS.hitPoints.short
@@ -306,7 +307,7 @@ export function denialMessage(
   switch (reason) {
     case 'unlinked':
       return [
-        '**You don’t have an In The Union Now account yet.**',
+        `**You don’t have an ${PRODUCT.name} account yet.**`,
         '',
         'Sign in with this same Discord account and the bot will recognise you here',
         'automatically — there’s nothing to copy across and no code to enter.',
@@ -347,7 +348,7 @@ function gameLines(games: GameSummary[], webUrl: string, currentGameId?: string)
 /** `/su me` — who the bot thinks you are, and what you are part of. */
 export function meCard(me: MeResult, webUrl: string, currentGameId?: string): ContainerData {
   return entityCard({
-    title: `${me.user.displayName} — In The Union Now`,
+    title: `${me.user.displayName} — ${PRODUCT.name}`,
     url: `${webUrl.replace(/\/+$/, '')}/account`,
     accent: NEUTRAL,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',

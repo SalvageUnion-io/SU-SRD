@@ -1,6 +1,7 @@
 import type { NavDrawerItem } from 'component-lib'
 import { AppBar, Badge, NavDrawer } from 'component-lib'
 import { borderWidth, color } from 'component-lib/design/tokens'
+import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { SRD_SITE_URL } from 'salvageunion-reference'
 import { MARK_SRC } from '../../lib/appUrl'
@@ -58,14 +59,17 @@ const BRAND_PLATE = { paddingInline: '6px' } satisfies CSSProperties
 // own ring would double the seam.
 const BRAND_PLATE_INVERSE = { ...BRAND_PLATE, boxShadow: 'none' } satisfies CSSProperties
 
+/** The product name in two plates: all but its last word, then the last word inverse. */
+const BRAND_SPLIT = PRODUCT.name.lastIndexOf(' ')
+
 /** ITUN's two-tone brand tag for the mobile drawer. */
 const ITUN_DRAWER_BRAND = (
   <span style={BRAND_FRAME}>
     <Badge shape="stamp" size="full" style={BRAND_PLATE}>
-      In the Union
+      {PRODUCT.name.slice(0, BRAND_SPLIT)}
     </Badge>
     <Badge shape="stamp" size="full" surface="inverse" style={BRAND_PLATE_INVERSE}>
-      Now
+      {PRODUCT.name.slice(BRAND_SPLIT + 1)}
     </Badge>
   </span>
 )

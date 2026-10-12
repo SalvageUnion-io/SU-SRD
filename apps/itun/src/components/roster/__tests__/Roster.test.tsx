@@ -156,7 +156,7 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
       render(<Roster />)
     })
 
-    expect(screen.getByRole('heading', { level: 1, name: 'In The Union Now' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'In the Union now' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Sign in to build' })).toBeTruthy()
     expect(screen.queryByRole('link', { name: /Create Pilot|New pilot/ })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Import' })).toBeNull()
