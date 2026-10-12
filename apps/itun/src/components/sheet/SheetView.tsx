@@ -33,7 +33,9 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
+import { tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import type { CSSProperties } from 'react'
 import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -51,6 +53,18 @@ import { SheetSkeleton } from './SheetSkeleton'
 import { SheetModeContext, useSheetModeStore } from './sheetMode'
 
 type SheetViewProps = { kind: SheetEntityKind; id: string }
+
+/** The read-only crew banner over a crewmate's sheet; its gutter is `.su-sheet-gutter`. */
+const CREW_NOTE = {
+  backgroundColor: tokens.color.caution,
+  borderBottom: `${tokens.borderWidth.pill} solid ${tokens.color.ink}`,
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  fontWeight: tokens.weight.semibold,
+  lineHeight: 'calc(1.25 / 0.875)',
+  paddingBlock: tokens.space[8],
+} satisfies CSSProperties
 
 /**
  * Names the tab after the entity, and follows a rename. The route's `head`
@@ -172,7 +186,8 @@ export function SheetView({ kind, id }: SheetViewProps) {
       <div
         role="note"
         aria-label="Read-only crew sheet"
-        className="border-b-2 border-ink bg-caution px-4 py-2 font-body text-sm font-semibold text-ink sm:px-[30px]"
+        className="su-sheet-gutter"
+        style={CREW_NOTE}
       >
         {kind === 'crawler'
           ? 'This is the crew’s crawler. Only the Mediator changes it; ask at the table.'

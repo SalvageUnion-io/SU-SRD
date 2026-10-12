@@ -19,24 +19,25 @@ describe('HButton', () => {
     render(<HButton>Edit</HButton>)
     const btn = screen.getByRole('button', { name: 'Edit' })
     expect(btn.getAttribute('type')).toBe('button')
-    // 44px coarse-pointer floor collapsing to the 32px design height at sm.
-    expect(btn.className).toContain('min-h-11')
-    expect(btn.className).toContain('sm:min-h-8')
-    expect(btn.className).toContain('print:hidden')
+    // The 44px coarse-pointer floor collapsing to the 32px design height at
+    // sm, and the print hide, are `.su-sheet-hbtn` (styles/sheet/chrome.css).
+    expect(btn.className).toContain('su-sheet-hbtn')
+    expect(btn.className).toContain('su-sheet-hbtn--edit')
+    expect(btn.style.borderWidth).toBe('2px')
   })
 
   test('done variant fills with the sheet deep tone', () => {
     render(<HButton variant="done">Done</HButton>)
     const btn = screen.getByRole('button', { name: 'Done' })
-    expect(btn.className).toContain('bg-[color:var(--tone-deep,var(--color-ink))]')
-    expect(btn.className).toContain('text-paper')
+    // The deep-tone fill and paper text (hovering to ink) are this class's.
+    expect(btn.className).toContain('su-sheet-hbtn--done')
   })
 
   test('add variant is a deep-tone outline', () => {
     render(<HButton variant="add">Add</HButton>)
     const btn = screen.getByRole('button', { name: 'Add' })
-    expect(btn.className).toContain('border-[color:var(--tone-deep,var(--color-ink))]')
-    expect(btn.className).toContain('bg-paper')
+    // A deep-tone border on paper, filling with the deep tone on hover.
+    expect(btn.className).toContain('su-sheet-hbtn--add')
   })
 })
 
@@ -61,7 +62,7 @@ describe('SectionManageButton', () => {
     // The button opens the picker, which both adds AND removes — "Add" undersold
     // it once the per-card ✕ was retired in favour of that one surface.
     expect(btn.textContent).toContain('Manage abilities')
-    expect(btn.className).toContain('border-[color:var(--tone-deep,var(--color-ink))]')
+    expect(btn.className).toContain('su-sheet-hbtn--add')
   })
 
   test('fires onClick when clicked', () => {

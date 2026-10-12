@@ -8,10 +8,13 @@
  * (railStats.ts) is the adapter that replaced it.
  */
 
-import { buttonVariants, cn } from 'component-lib'
+import { buttonVariants } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { AppLink } from '../shared/AppLink'
 import { EntityRow } from '../shared/EntityRow'
 import type { WithheldUnit } from './sheetViewProps'
+
+const LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 /**
  * A linked unit the reader may not see — a public sheet's assignment to
@@ -24,7 +27,7 @@ export function WithheldUnitRow({ unit, label }: { unit: WithheldUnit; label: st
   return (
     <EntityRow
       entityType={unit.kind}
-      className="flex-[1_1_0%]"
+      className="su-sheet-rail-slot"
       name={unit.name ?? 'Not shared'}
       meta={label}
       metaLine={unit.name === undefined ? undefined : 'Can’t be shown'}
@@ -45,10 +48,8 @@ export function RailCta({
   return (
     <AppLink
       href={href}
-      className={cn(
-        buttonVariants({ variant: primary ? 'primary' : 'default', size: 'compact' }),
-        'no-underline'
-      )}
+      className={buttonVariants({ variant: primary ? 'primary' : 'default', size: 'compact' })}
+      style={LINK}
     >
       {label}
     </AppLink>

@@ -5,8 +5,8 @@
  */
 
 import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from 'component-lib'
-import { Content, ReferenceEntityCard, useDetailModal } from 'component-lib'
-import type { ComponentProps, ReactNode } from 'react'
+import { Content, ReferenceEntityCard, tokens, useDetailModal } from 'component-lib'
+import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
@@ -55,6 +55,77 @@ const HIDE_DAMAGED_READ = { damagedEffect: true, choices: true } as const
  * catches that duplicate.
  */
 const WHEN_DAMAGED = /\b(?:is|becomes|are|become)\s+damaged\b/i
+
+/** The placeholder for a bay ref the catalog does not know. */
+const UNKNOWN_BAY = {
+  borderRadius: '0.25rem',
+  border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink}`,
+  padding: `${tokens.space[4]} ${tokens.space[8]}`,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 1.25 / 0.875,
+  color: tokens.color.wkMuted,
+} satisfies CSSProperties
+
+const DOCKS = {
+  margin: `0 0 ${tokens.space[6]}`,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.caption,
+  color: tokens.color.ink,
+} satisfies CSSProperties
+
+const BOLD = { fontWeight: tokens.weight.bold } satisfies CSSProperties
+
+const EXPAND_STACK = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+const DAMAGED_CALLOUT = {
+  borderRadius: tokens.radius.card,
+  border: `${tokens.borderWidth.chrome} solid ${tokens.color.statusBad}`,
+  backgroundColor: tokens.color.paper,
+  padding: `${tokens.space[12]} ${tokens.space[16]}`,
+  textAlign: 'center',
+} satisfies CSSProperties
+
+const DAMAGED_LABEL = {
+  marginBottom: tokens.space[4],
+  display: 'block',
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  lineHeight: 1,
+  letterSpacing: tokens.tracking.caps,
+  color: tokens.color.statusBad,
+} satisfies CSSProperties
+
+const DAMAGED_TEXT = {
+  margin: 0,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 1.375,
+  color: tokens.color.ink,
+} satisfies CSSProperties
+
+const TYPE_STACK = {
+  display: 'flex',
+  minWidth: 0,
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+/** Ability ∥ crew; the column template is `.su-sheet-crawler-type-grid` (it steps at @2xl). */
+const TYPE_GRID = {
+  display: 'grid',
+  minWidth: 0,
+  alignItems: 'start',
+  gap: tokens.space[12],
+} satisfies CSSProperties
 
 /** Split a bay's rules content into its always-true half and its damaged half. */
 function splitBayContent(content: unknown): { normal: unknown[]; damaged: string[] } {
@@ -150,11 +221,7 @@ export function CrawlerBayCard({
   const detail = useDetailModal(bay ?? undefined)
 
   if (!bay) {
-    return (
-      <div className="rounded border border-ink px-2 py-1 text-sm text-wk-muted">
-        {entry.bayRef}
-      </div>
-    )
+    return <div style={UNKNOWN_BAY}>{entry.bayRef}</div>
   }
 
   const condition = entry.condition ?? 'intact'
@@ -229,8 +296,8 @@ export function CrawlerBayCard({
   const crew = (
     <>
       {dockedMechName && (
-        <p className="m-0 mb-1.5 truncate font-body text-caption text-ink">
-          Docks <span className="font-bold">{dockedMechName}</span>
+        <p style={DOCKS}>
+          Docks <span style={BOLD}>{dockedMechName}</span>
         </p>
       )}
       {assigned ? (
@@ -306,21 +373,19 @@ export function CrawlerBayCard({
         footMeta={footMeta}
         expand={
           damaged && damagedText ? (
-            <div className="flex flex-col gap-3">
+            <div style={EXPAND_STACK}>
               {contents}
               {/* The damaged clause, centred: the card itself is greyed by its
                   `damaged` status, and this is the one thing the reader needs
                   off it while it is in that state. */}
-              <div className="rounded-card border-chrome border-status-bad bg-paper px-4 py-3 text-center">
-                <span className="mb-1 block font-cond text-badge font-bold uppercase leading-none tracking-caps text-status-bad">
-                  When Damaged
-                </span>
-                <p className="m-0 font-body text-sm leading-snug text-ink">{damagedText}</p>
+              <div style={DAMAGED_CALLOUT}>
+                <span style={DAMAGED_LABEL}>When Damaged</span>
+                <p style={DAMAGED_TEXT}>{damagedText}</p>
               </div>
               {crew}
             </div>
           ) : contents ? (
-            <div className="flex flex-col gap-3">
+            <div style={EXPAND_STACK}>
               {contents}
               {crew}
             </div>
@@ -472,9 +537,9 @@ export function CrawlerTypeCard({
   const description = <Content body={type.content as ComponentProps<typeof Content>['body']} />
 
   return (
-    <div className="flex min-w-0 flex-col gap-3">
+    <div style={TYPE_STACK}>
       {description}
-      <div className="grid min-w-0 grid-cols-1 items-start gap-3 @2xl:grid-cols-2">
+      <div className="su-sheet-crawler-type-grid" style={TYPE_GRID}>
         {ability}
         {crew}
       </div>

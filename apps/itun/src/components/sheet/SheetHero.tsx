@@ -9,7 +9,10 @@
  */
 
 import { cn, SheetSectionCard } from 'component-lib'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+
+/** The grid's columns and gap step up with the sheet's width (`.su-sheet-hero`). */
+const GRID = { display: 'grid' } satisfies CSSProperties
 
 type SheetHeroProps = {
   name: string
@@ -53,10 +56,8 @@ export function SheetHero({
       // always the SAME height whichever one is taller. `Card` is a flex
       // column with a `flex-1` body, so the shorter card grows its paper body
       // rather than leaving the frame short and the row ragged.
-      className={cn(
-        'grid grid-cols-1 gap-[22px] @3xl:grid-cols-[minmax(0,1fr)_260px] @3xl:gap-6',
-        className
-      )}
+      className={cn('su-sheet-hero', className)}
+      style={GRID}
     >
       {/* The OPENING sections are the only ones that keep a card container:
           they are the sheet's subject and its live state, so they read as
@@ -66,8 +67,8 @@ export function SheetHero({
         title={fieldsTitle}
         surface={surface}
         count={meta}
-        className="flex h-full flex-col"
-        bodyClassName="flex min-h-0 flex-1 flex-col"
+        className="su-sheet-hero-fields"
+        bodyClassName="su-sheet-hero-fields-body"
       >
         {fields}
       </SheetSectionCard>

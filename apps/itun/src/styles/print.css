@@ -188,8 +188,11 @@
   /* -------------------------------------------------------------------------
    * Border adjustments for ink-friendliness
    * ------------------------------------------------------------------------- */
+  /* A border ported off Tailwind is an inline style (TW6), so match that too:
+   * a stylesheet `!important` still beats a plain inline declaration. */
   .border,
-  [class*='border-'] {
+  [class*='border-'],
+  [style*='border'] {
     border-color: #000 !important;
   }
 

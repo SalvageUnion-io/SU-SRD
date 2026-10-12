@@ -123,7 +123,7 @@ export function SheetPilot({
       {composition.mech ? (
         <EntityRow
           entityType="mech"
-          className="flex-[1_1_0%]"
+          className="su-sheet-pilot-fill"
           name={composition.mech.name}
           sheetHref={hrefFor('mech', composition.mech.id)}
           linkAs={AppLink}
@@ -152,7 +152,7 @@ export function SheetPilot({
         <EntityRow
           empty
           entityType="mech"
-          className="flex-[1_1_0%]"
+          className="su-sheet-pilot-fill"
           roleLabel="Assigned Mech"
           message="No mech assigned — assign one of yours, or build one to track its loadout and heat from here."
           actions={
@@ -168,7 +168,7 @@ export function SheetPilot({
       {composition.crawler ? (
         <EntityRow
           entityType="crawler"
-          className="flex-[1_1_0%]"
+          className="su-sheet-pilot-fill"
           name={composition.crawler.name}
           sheetHref={hrefFor('crawler', composition.crawler.id)}
           linkAs={AppLink}
@@ -194,7 +194,7 @@ export function SheetPilot({
         <EntityRow
           empty
           entityType="crawler"
-          className="flex-[1_1_0%]"
+          className="su-sheet-pilot-fill"
           roleLabel="Home Crawler"
           message="No crawler linked. Set the crawler level by hand until your union home is wired in."
           mock={

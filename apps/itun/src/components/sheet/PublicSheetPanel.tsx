@@ -26,8 +26,9 @@
  * person deciding should be told that rather than left to infer it.
  */
 
-import { Button, FieldError } from 'component-lib'
+import { Button, FieldError, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { isServerRefusal, serverMessage } from '../../lib/connection/serverError'
@@ -38,16 +39,52 @@ type PublicSheetPanelProps = {
   /** The app-level entity id — what the public route is addressed by. */
   appId: string
   entityName: string
-  headingClass?: string
+  headingStyle?: CSSProperties
   /** Injectable clipboard writer for testing. */
   clipboardWriter?: (text: string) => Promise<void>
 }
+
+const MUTED_CAPTION = {
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.caption,
+} satisfies CSSProperties
+
+const STATUS = {
+  ...MUTED_CAPTION,
+  marginBottom: tokens.space[12],
+  lineHeight: 1.625,
+} satisfies CSSProperties
+
+const LINK_BLOCK = {
+  marginBottom: tokens.space[12],
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+const ROW = { display: 'flex', alignItems: 'center', gap: tokens.space[8] } satisfies CSSProperties
+
+const URL_TEXT = {
+  ...MUTED_CAPTION,
+  minWidth: 0,
+  flex: '1 1 0%',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+const NO_SHRINK = { flexShrink: 0 } satisfies CSSProperties
+
+const QR_ROW = { ...ROW, gap: tokens.space[12] } satisfies CSSProperties
+
+const QR_NOTE = { ...MUTED_CAPTION, marginBottom: 0 } satisfies CSSProperties
 
 export function PublicSheetPanel({
   kind,
   appId,
   entityName,
-  headingClass,
+  headingStyle,
   clipboardWriter = (text) => navigator.clipboard.writeText(text),
 }: PublicSheetPanelProps) {
   const setPublic = useMutation(api.publicSheet.setPublic)
@@ -89,9 +126,9 @@ export function PublicSheetPanel({
     // which is already inside ModalShell's Card — a Panel here would be a
     // border inside a border.
     <section>
-      <h2 className={headingClass}>Live public sheet</h2>
+      <h2 style={headingStyle}>Live public sheet</h2>
 
-      <p className="text-wk-muted mb-3 font-body text-caption leading-relaxed">
+      <p style={STATUS}>
         {isPublic === true ? (
           <>
             On. Anyone with this link reads {entityName} as it stands right now, and it follows
@@ -107,16 +144,14 @@ export function PublicSheetPanel({
       </p>
 
       {isPublic === true && (
-        <div className="mb-3 flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <code className="text-wk-muted min-w-0 flex-1 truncate font-body text-caption">
-              {url}
-            </code>
+        <div style={LINK_BLOCK}>
+          <div style={ROW}>
+            <code style={URL_TEXT}>{url}</code>
             <Button
               size="compact"
               onClick={() => void copy()}
               aria-label="Copy public sheet link"
-              className="shrink-0"
+              style={NO_SHRINK}
             >
               {copied ? '✓' : '⧉'}
             </Button>
@@ -126,11 +161,9 @@ export function PublicSheetPanel({
             no heading and no placeholder — it is simply there while there is a
             public link to encode.
           */}
-          <div className="flex items-center gap-3">
+          <div style={QR_ROW}>
             <LinkQr url={url} />
-            <p className="text-wk-muted mb-0 font-body text-caption">
-              Scan to open on another device.
-            </p>
+            <p style={QR_NOTE}>Scan to open on another device.</p>
           </div>
         </div>
       )}
@@ -145,7 +178,7 @@ export function PublicSheetPanel({
         {isPublic === null ? 'Checking…' : isPublic ? 'Stop sharing' : 'Publish live sheet'}
       </Button>
 
-      {error !== null && <FieldError className="mt-2">{error}</FieldError>}
+      {error !== null && <FieldError className="su-sheet-share-error">{error}</FieldError>}
     </section>
   )
 }
