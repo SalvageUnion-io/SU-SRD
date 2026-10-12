@@ -1,4 +1,11 @@
 {
   "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    // The workerd runtime globals come from the package; `wrangler types
+    // --include-runtime=false` writes only this Worker's `Env`. Under
+    // `skipLibCheck` a missing runtime type is not an error — `R2Bucket` would
+    // silently be `any` — so the package must stay listed here.
+    "types": ["@cloudflare/workers-types", "node", "bun-types"]
+  },
   "include": ["src/**/*.ts", "worker-configuration.d.ts"]
 }

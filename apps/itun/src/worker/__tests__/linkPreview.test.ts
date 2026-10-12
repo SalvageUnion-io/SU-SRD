@@ -203,19 +203,14 @@ describe('a Discordbot fetch of an invite', () => {
     expect(html).toContain('<title>Reclamation of the Wastes</title>')
   })
 
-  it('still unfurls an old /join/<code> link: names the Game, its Mediator and the expiry, never the code', async () => {
-    const html = await unfurl('/join/K7QR2XA')
-    expect(meta(html, 'og:title')).toBe('Reclamation of the Wastes')
-    expect(meta(html, 'og:description')).toBe("You're invited · Player seat · Mediated by alxjrvs.")
-    // The words never carry the code (the image URL does, as the link itself does).
-    expect(meta(html, 'og:title')).not.toContain('K7QR2XA')
-    expect(meta(html, 'og:description')).not.toContain('K7QR2XA')
-    expect(meta(html, 'theme-color')).toBe(color.crawler)
+  it('sends an old /join/<code> link to /invite/<code> before unfurling, so the bot unfurls that', async () => {
+    const res = await worker.fetch(discordbot('/join/K7QR2XA'), env())
+    expect(res.status).toBe(301)
+    expect(res.headers.get('location')).toBe('/invite/K7QR2XA')
   })
 
   it('keeps the sitewide defaults for a dead code', async () => {
     expect(meta(await unfurl('/invite/DEADCODE'), 'og:title')).toBe('In The Union Now')
-    expect(meta(await unfurl('/join/DEADCODE'), 'og:title')).toBe('In The Union Now')
   })
 })
 
@@ -246,7 +241,7 @@ describe('previewRouteOf', () => {
       type: 'invite',
       code: '0123456789ABCDEF',
     })
-    expect(previewRouteOf('/join/K7QR2XA')).toEqual({ type: 'invite', code: 'K7QR2XA' })
+    expect(previewRouteOf('/join/K7QR2XA')).toBeNull()
     expect(previewRouteOf('/invite')).toBeNull()
     expect(previewRouteOf('/p/npc/abc')).toBeNull()
     expect(previewRouteOf('/sheet/pilot/abc')).toBeNull()

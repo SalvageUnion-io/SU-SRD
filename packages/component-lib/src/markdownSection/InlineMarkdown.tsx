@@ -1,11 +1,8 @@
-import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
 import { InlineRef } from '../components/chrome/InlineRef'
 import { weight } from '../design/tokens'
 import type { InlineNode } from './parseMarkdownSection'
 import { parseInline } from './parseMarkdownSection'
-
-const LINK = { fontWeight: weight.semibold } satisfies CSSProperties
 
 /** Pair each run with its start offset in the text — a stable React key. */
 function withOffsets(nodes: InlineNode[]): Array<{ node: InlineNode; offset: number }> {
@@ -46,7 +43,7 @@ export function InlineMarkdown({ text }: InlineMarkdownProps) {
             href={node.href}
             target="_blank"
             rel="noopener noreferrer"
-            style={LINK}
+            style={{ fontWeight: weight.semibold }}
           >
             {node.text}
           </InlineRef>

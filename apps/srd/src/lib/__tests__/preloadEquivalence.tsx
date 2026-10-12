@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import {
   EntityDetailLinkProvider,
   EntityHrefProvider,
+  EntitySurfaceProvider,
   ReferenceEntityCard,
   Skeleton,
 } from 'component-lib'
@@ -10,11 +11,13 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import type { SURefEntity } from 'salvageunion-reference'
 import {
   getEntitySchemas,
+  getEntitySlug,
   getModel,
   resetAllForTesting,
   SalvageUnionReference,
 } from 'salvageunion-reference'
-import { srdEntityHref } from '../entityHref'
+import { EntityListingRow } from '../../components/islands/EntityListingRow'
+import { itemHref, srdEntityHref, srdHrefFor } from '../entityHref'
 import { getSchemaPreloadList } from '../schemaPreloadDeps'
 
 /**
@@ -31,6 +34,10 @@ import { getSchemaPreloadList } from '../schemaPreloadDeps'
  *
  * It renders to static markup, as the SSG does: the cards run no effects, so
  * the server string is the markup a page ships, without happy-dom's cost.
+ *
+ * The second check covers the LISTING: `SchemaViewerIsland` loads its list
+ * with `projection: 'list'` (actions without their prose), so every listing
+ * row must render the same from that projection as from the full corpus.
  *
  * The per-schema loop is split across `schemaPreloadDeps.<n>.test.tsx` so the
  * parallel runner can spread it over its workers: each file runs one shard.
@@ -62,6 +69,21 @@ function renderEntity(entity: SURefEntity): string {
           </Suspense>
         </EntityDetailLinkProvider>
       </EntityHrefProvider>
+    )
+  )
+}
+
+/** One listing row, as `SchemaViewerIsland` renders it. */
+function renderListingRow(schemaId: string, entity: SURefEntity): string {
+  return normalize(
+    renderToStaticMarkup(
+      <EntitySurfaceProvider value={{ hrefFor: srdHrefFor }}>
+        <EntityListingRow
+          entity={entity}
+          href={itemHref(schemaId, getEntitySlug(entity))}
+          omit={['kind']}
+        />
+      </EntitySurfaceProvider>
     )
   )
 }
@@ -106,10 +128,26 @@ export function describePreloadEquivalence(shard: number): void {
           resetAllForTesting()
           await SalvageUnionReference.preload('all')
         }
-        // Every entity of the schema, rendered twice: a whole-dataset render, not
-        // a unit test. The default 5 s cannot hold roll-tables once each card
-        // embeds its table (E4), with the coverage run's workspaces in parallel.
-      }, 30_000)
+      })
+
+      it(`${schema.id}: listing rows render identically from the list projection`, async () => {
+        const entities: SURefEntity[] = getModel(schema.id)?.all() ?? []
+        try {
+          const baseline = entities.map((entity) => renderListingRow(schema.id, entity))
+
+          resetAllForTesting()
+          await SalvageUnionReference.preload(preloadList, { projection: 'list' })
+          if (preloadList.includes('actions')) {
+            expect(SalvageUnionReference.isLoaded('actions')).toBe(false)
+          }
+          const listed = entities.map((entity) => renderListingRow(schema.id, entity))
+
+          expect(listed).toEqual(baseline)
+        } finally {
+          resetAllForTesting()
+          await SalvageUnionReference.preload('all')
+        }
+      })
     }
   })
 }

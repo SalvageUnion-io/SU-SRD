@@ -9,11 +9,11 @@ import { getActiveContainer, setActiveContainer } from '../../stores/activeConta
  *  - `/` is Shelves, so it shows the shelf whatever was showing before;
  *  - `/games/$gameId` is a Game's own page, and stays put — the Discord bot's
  *    game links and the read-only sheet's way back to "the crew" land on it;
- *  - `/games` redirects to Shelves;
  *  - `/mediator/$gameId` is the Mediator Dashboard again (issue 1278), and stays
  *    put without picking the Game: it is not a container's page;
- *  - the retired join-code page hands an old code to the invite link page;
- *  - the retired crew view still goes to the live sheet (`crewViewRedirect`).
+ *
+ * The retired `/games`, `/join/$code` and crew-view addresses are no longer
+ * routes: the Worker 301s them (`src/worker/retiredRedirects.ts`).
  *
  * `router.load()` runs every `beforeLoad` without rendering, which is all a
  * redirect needs and keeps the app shell out of this test.
@@ -39,20 +39,10 @@ describe('/', () => {
   })
 })
 
-describe('/games', () => {
-  test('redirects to Shelves', async () => {
-    expect(await landOn('/games')).toBe('/')
-  })
-})
-
 describe('/games/$gameId', () => {
   test('is the Game’s own page, and shows that Game', async () => {
     expect(await landOn('/games/g1')).toBe('/games/g1')
     expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g1' })
-  })
-
-  test('the crew view beneath it still opens the live sheet', async () => {
-    expect(await landOn('/games/g1/view/pilot/row-1')).toBe('/sheet/pilot/row-1')
   })
 })
 
@@ -60,11 +50,5 @@ describe('/mediator/$gameId', () => {
   test('is the Mediator Dashboard: it no longer redirects, and shows no container', async () => {
     expect(await landOn('/mediator/g2')).toBe('/mediator/g2')
     expect(getActiveContainer()).toEqual({ kind: 'shelf' })
-  })
-})
-
-describe('/join/$code', () => {
-  test('hands an old typed code to the invite link page, which joins or explains', async () => {
-    expect(await landOn('/join/A1B2C3D4')).toBe('/invite/A1B2C3D4')
   })
 })

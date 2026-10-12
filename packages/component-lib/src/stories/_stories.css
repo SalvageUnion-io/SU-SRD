@@ -32,6 +32,20 @@
 }
 
 /*
+ * Containers/Filter Row's name input: full width, then a fixed 16rem from
+ * Tailwind's `md` (48rem) — ported from `w-full md:w-64`.
+ */
+.su-story-filter-input {
+  width: 100%;
+}
+
+@media (min-width: 48rem) {
+  .su-story-filter-input {
+    width: 16rem;
+  }
+}
+
+/*
  * Reference Entity Card stories (Compositions/Entity): the side-by-side pair
  * (`grid-cols-1 lg:grid-cols-2`) and the catalog tile grids (`md:grid-cols-2`,
  * `md:grid-cols-3`). Display and gap are the stories' style objects; only the

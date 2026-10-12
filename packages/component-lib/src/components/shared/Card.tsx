@@ -1,5 +1,7 @@
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
 import { useCallback } from 'react'
+import { foregroundOn } from '../../design/contrast'
+import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { FOCUS_RING_ON_TONE } from '../chrome/interaction'
@@ -7,7 +9,7 @@ import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityC
 import {
   accentDeepColor,
   borderColorFromHeaderBg,
-  onTone,
+  textBand,
 } from '../referenceEntity/referenceEntityHelpers'
 import { CardControlRail } from './CardControlRail'
 import type { CardExtent, CardSize } from './displayMode'
@@ -63,7 +65,7 @@ type CardProps = {
   controls?: ReferenceEntityControl[]
   /** Grey header + reduced opacity for disabled state */
   disabled?: boolean
-  /** Override default body padding (default: "p-0") */
+  /** Extra classes on the body band, e.g. its padding (default: none). */
   bodyPadding?: string
   /**
    * Inline style on the body band. The case it exists for: a height-capped
@@ -116,7 +118,7 @@ function SubHeaderStats({
   suppressTooltips?: boolean
 }) {
   return (
-    <div className="flex items-center gap-0.5">
+    <div style={STATS_ROW}>
       {stats.map((stat) => {
         if (stat.value === undefined) return null
 
@@ -156,6 +158,76 @@ function SubHeaderStats({
     </div>
   )
 }
+
+const STATS_ROW = { display: 'flex', alignItems: 'center', gap: space[2] } satisfies CSSProperties
+
+/** The label stamp riding the top border. */
+const CALLOUT_ROW = {
+  position: 'absolute',
+  zIndex: 30,
+  marginLeft: space[12],
+  display: 'flex',
+  alignItems: 'center',
+  gap: space[4],
+} satisfies CSSProperties
+
+const SUB_HEADER = {
+  display: 'flex',
+  width: '100%',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  columnGap: space[6],
+  rowGap: space[4],
+  overflow: 'visible',
+} satisfies CSSProperties
+
+const FOOTER = {
+  display: 'flex',
+  width: '100%',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: space[8],
+  padding: `${space[4]} ${space[12]}`,
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  fontWeight: weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: tracking.capsTight,
+} satisfies CSSProperties
+
+const FOOT_META = {
+  marginLeft: 'auto',
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: space[6],
+} satisfies CSSProperties
+
+const FOOT_META_ENTRY = {
+  marginRight: space[4],
+  display: 'inline-flex',
+  alignItems: 'baseline',
+  gap: space[4],
+} satisfies CSSProperties
+
+const FOOT_META_LABEL = {
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  fontWeight: weight.bold,
+  textTransform: 'uppercase',
+  lineHeight: 1,
+  letterSpacing: tracking.capsTight,
+} satisfies CSSProperties
+
+const FOOT_META_VALUE = {
+  fontFamily: font.body,
+  fontSize: fontSize.caption,
+  fontWeight: weight.bold,
+  lineHeight: 1,
+} satisfies CSSProperties
+
+const FULL_WIDTH = { width: '100%' } satisfies CSSProperties
 
 export function Card({
   headerBg = '',
@@ -226,7 +298,6 @@ export function Card({
     [resolvedCardClick]
   )
 
-  const defaultBodyPadding = 'p-0'
   // Frame weight comes from the border glossary, not a literal: `entity` (3px)
   // for both compact and non-compact — the codex .a-card is 3px and .cx does
   // not override it — and `chrome` (1.5px) for a card nested inside another.
@@ -249,17 +320,19 @@ export function Card({
       tabIndex={resolvedCardClick ? 0 : undefined}
       className={cn(
         // Flat chrome (brand refresh P2a): no drop shadow and no hover lift — a card is
-        // printed on the page, and the 3px frame is its edge.
-        'relative flex shrink-0 flex-col overflow-visible rounded-card',
+        // printed on the page, and the 3px frame is its edge. `.su-card` is a
+        // class, not a style object, so a caller's `cardStyle.className` can
+        // still override it.
+        'su-card',
         cardStyle?.className,
-        disabled && 'opacity-50',
         // Button mode focuses ON TONE — a card's own background may be any
         // entity tone, including the near-black end of the tech-level ramp,
         // where the 25%-alpha rust ring disappears. See FOCUS_RING_ON_TONE.
-        resolvedCardClick && FOCUS_RING_ON_TONE,
-        isCardHoverable && 'cursor-pointer'
+        resolvedCardClick && FOCUS_RING_ON_TONE
       )}
       style={{
+        ...(disabled ? { opacity: 0.5 } : {}),
+        ...(isCardHoverable ? { cursor: 'pointer' } : {}),
         // A frame is drawn for a toned card OR one that asked for a border
         // outright; an untoned, unframed card still renders borderless.
         ...(headerBg || headerBgColor || borderColorProp
@@ -286,10 +359,10 @@ export function Card({
     >
       {hasCallout && (
         <div
-          className={cn(
-            'absolute z-30 ml-3 flex items-center gap-1',
-            isCompact ? 'top-0 -translate-y-1/2' : '-mt-2'
-          )}
+          style={{
+            ...CALLOUT_ROW,
+            ...(isCompact ? { top: 0, translate: '0 -50%' } : { marginTop: `-${space[8]}` }),
+          }}
         >
           {/* The seam stamp is ALWAYS the small (compact) size so it reads as a
               tag riding the border, subordinate to the header — never card
@@ -304,39 +377,28 @@ export function Card({
 
       {/* Inner wrapper clips backgrounds to border-radius. */}
       <div
-        className={cn('flex flex-1 overflow-hidden', !isListing && 'flex-col')}
-        style={{ borderRadius: `calc(var(--radius-card) - ${borderWidth})` }}
+        style={{
+          display: 'flex',
+          flex: 1,
+          overflow: 'hidden',
+          ...(isListing ? {} : { flexDirection: 'column' }),
+          borderRadius: `calc(var(--radius-card) - ${borderWidth})`,
+        }}
       >
         {/* Header wrapper — contains the content row. */}
-        <div className="w-full">
+        <div style={FULL_WIDTH}>
           {/* Content row — existing header layout */}
           {headerContent != null && (
             <div
-              className={cn(
-                'flex w-full flex-wrap justify-between gap-2 overflow-visible',
-                // Vertically centre the header content normally, but TOP-align it when
-                // the floating callout row is present (non-compact). Centring made the
-                // gap below the callout vary with header height — short headers
-                // (modules/systems) centred high and collided with the callout, tall
-                // ones (chassis) sat low. Top-aligning + a fixed top padding gives a
-                // consistent thin gap under the callout regardless of content height.
-                hasCallout ? 'items-start' : 'items-center',
-                // px-3 (12px) aligns the header content L/R extremes with the
-                // inset white body block (which uses mx-3) and the footer.
-                isCompact ? 'min-h-[34px] px-2.5 py-1.5' : 'min-h-[44px] px-3 py-2',
-                // Top padding clears the callout so the gap below it is consistent.
-                // Non-compact: the callout seam is now the small (compact) stamp,
-                // so pt-5 clears it uniformly with a thin gap and never runs into
-                // the title.
-                // Compact: callout sits centred on the edge (~8px of it below the
-                // top) → pt-3 ≈ 4px gap, tighter to suit dense listings.
-                !isCompact && hasCallout && 'pb-4 pt-5',
-                isCompact && hasCallout && 'pt-3',
-                headerBg,
-                headerStyleProp?.className,
-                headerStyleProp?.className && 'h-full'
-              )}
+              // `.su-card-head` (`styles/index.css`) is a class, not a style
+              // object, so a caller's `headerStyle.className` can override it
+              // (the Callout band drops the min-height). Its density and the
+              // callout clearance key off these two attributes.
+              data-compact={isCompact || undefined}
+              data-callout={hasCallout || undefined}
+              className={cn('su-card-head', headerBg, headerStyleProp?.className)}
               style={{
+                ...(headerStyleProp?.className ? { height: '100%' } : {}),
                 ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
                 ...headerStyleProp?.style,
               }}
@@ -352,11 +414,11 @@ export function Card({
               renders nothing when neither is present. */}
           {hasSubHeader && (
             <div
-              className={cn(
-                'flex w-full flex-wrap items-center gap-1.5 gap-y-1 overflow-visible',
-                isCompact ? 'px-2.5 py-1' : 'px-3 py-1.5'
-              )}
-              style={{ backgroundColor: subHeaderBg }}
+              style={{
+                ...SUB_HEADER,
+                padding: isCompact ? `${space[4]} ${space[10]}` : `${space[6]} ${space[12]}`,
+                backgroundColor: subHeaderBg,
+              }}
             >
               {subHeader}
               {hasStats && <SubHeaderStats stats={stats ?? []} compact={isCompact} />}
@@ -366,44 +428,38 @@ export function Card({
 
         {/* Body — hidden in listing mode */}
         {showBody && (
-          <div
-            className={cn(
-              'w-full flex-1 isolate bg-paper flex flex-col',
-              bodyPadding || defaultBodyPadding
-            )}
-            style={bodyStyle}
-          >
+          // A class, so a caller's `bodyPadding` classes can override it.
+          <div className={cn('su-card-body', bodyPadding)} style={bodyStyle}>
             {children}
           </div>
         )}
 
         {/* Expansion slot — after the body, before the footer (.ec__expand).
             Hidden in listing mode like the body. */}
-        {!isListing && expand && <div className="w-full">{expand}</div>}
+        {!isListing && expand && <div style={FULL_WIDTH}>{expand}</div>}
 
         {/* Footer — hidden in listing mode. Renders when there is footer
             content OR foot extras (actions/meta) to fold into the band. */}
         {!isListing && (footerContent || (footMeta && footMeta.length > 0)) && (
           <div
-            className={cn(
-              'flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-badge font-bold uppercase tracking-caps-tight',
+            style={{
+              ...FOOTER,
               // Ink or paper by contrast with the band actually painted.
-              onTone(subHeaderBg) === 'paper' ? 'text-paper' : 'text-ink'
-            )}
-            // Footer is the DARKER shade (matches the sub-header + the
-            // reference-entity footer), not the header tone.
-            style={{ backgroundColor: subHeaderBg }}
+              color:
+                foregroundOn(textBand(subHeaderBg), 'paper') === 'ink' ? color.ink : color.paper,
+              // Footer is the DARKER shade (matches the sub-header + the
+              // reference-entity footer), not the header tone.
+              backgroundColor: subHeaderBg,
+            }}
           >
             {footerContent}
             {footMeta && footMeta.length > 0 && (
-              <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
+              <div style={FOOT_META}>
                 {footMeta.map(({ label: metaLabel, value }, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: footMeta is a static per-render list; index disambiguates repeated labels
-                  <span key={`${metaLabel}-${i}`} className="mr-1 inline-flex items-baseline gap-1">
-                    <span className="font-cond text-badge font-bold uppercase leading-none tracking-caps-tight">
-                      {metaLabel}
-                    </span>
-                    <span className="font-body text-caption font-bold leading-none">{value}</span>
+                  <span key={`${metaLabel}-${i}`} style={FOOT_META_ENTRY}>
+                    <span style={FOOT_META_LABEL}>{metaLabel}</span>
+                    <span style={FOOT_META_VALUE}>{value}</span>
                   </span>
                 ))}
               </div>

@@ -6,7 +6,7 @@ import type { ReplyArg } from './fakeInteraction.js'
  * A fake button interaction, wired to the real router.
  *
  * Lives alongside `fakeInteraction.ts` and satisfies `CommandButtonInteraction`
- * structurally, so no cast is needed — the same contract `http/adapter.ts`
+ * structurally, so no cast is needed — the same contract `worker/adapter.ts`
  * (`makeButtonInteraction`) builds from the raw interaction.
  */
 export function buttonInteractionHandlerFor(customId: string): {

@@ -86,6 +86,30 @@ export const Default: Story = () => {
 }
 
 /**
+ * `mode="browse"` — a reference browser, not a picker: the same search, facets
+ * and pool, with no rail and no Status facet, and a card's click opens it. This
+ * is the category view of ITUN's Dashboard SRD Explorer.
+ */
+export const Browse: Story = () => {
+  const [opened, setOpened] = useState<string | undefined>(undefined)
+  return (
+    <div style={STACK}>
+      <Caption>Opened: {opened ?? 'nothing yet — click a card'}</Caption>
+      <EntitySearcher
+        schema="chassis"
+        mode="browse"
+        selected={[]}
+        onOpen={setOpened}
+        title="Chassis"
+        onClose={() => {}}
+      />
+    </div>
+  )
+}
+
+const STACK = { display: 'flex', flexDirection: 'column', gap: '12px' } satisfies CSSProperties
+
+/**
  * `mode="single"` — the exactly-one picker, shown on the largest entity in the
  * data. This is what ITUN's Change Chassis and Change Crawler Type modals
  * render. The two-column masonry gives each card its

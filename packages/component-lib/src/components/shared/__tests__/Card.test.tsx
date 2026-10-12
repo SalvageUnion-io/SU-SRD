@@ -81,11 +81,10 @@ describe('Card', () => {
       </Card>
     )
     const headerRow = headerRowAround('Header')
-    expect(headerRow.className).toContain('items-start')
-    // Non-compact callout clearance: the seam is the small (compact) stamp, so
-    // pt-5 clears it with a thin, consistent gap under the callout.
-    expect(headerRow.className).toContain('pt-5')
-    expect(headerRow.className).toContain('pb-4')
+    // Non-compact callout clearance (`.su-card-head[data-callout]`): top-aligned,
+    // 20px over / 16px under, so the seam stamp clears with a thin, consistent gap.
+    expect(headerRow.hasAttribute('data-callout')).toBe(true)
+    expect(headerRow.hasAttribute('data-compact')).toBe(false)
   })
 
   test('compact card WITH a callout uses pt-3 and top-aligns the header row', () => {
@@ -95,8 +94,8 @@ describe('Card', () => {
       </Card>
     )
     const headerRow = headerRowAround('Header')
-    expect(headerRow.className).toContain('pt-3')
-    expect(headerRow.className).toContain('items-start')
+    expect(headerRow.hasAttribute('data-callout')).toBe(true)
+    expect(headerRow.hasAttribute('data-compact')).toBe(true)
   })
 
   test('card WITHOUT any callout centres the header row and omits callout padding', () => {
@@ -106,11 +105,9 @@ describe('Card', () => {
       </Card>
     )
     const headerRow = headerRowAround('Header')
-    expect(headerRow.className).toContain('items-center')
-    // Only the callout-specific paddings should be absent (base px-3 py-* remain).
-    expect(headerRow.className).not.toContain('pt-4')
-    expect(headerRow.className).not.toContain('pb-4')
-    expect(headerRow.className).not.toContain('pt-3')
+    // The base `.su-card-head` (centred, px-3 py-2); no callout modifier.
+    expect(headerRow.className).toContain('su-card-head')
+    expect(headerRow.hasAttribute('data-callout')).toBe(false)
   })
 
   test('listing boolean hides body and footer', () => {
@@ -183,21 +180,21 @@ describe('Card', () => {
     expect(entity).toContain('calc(var(--radius-card) - var(--bw-entity))')
   })
 
-  test('default body padding is p-0', () => {
+  test('the body band carries only its own class by default', () => {
     const { container } = render(
       <Card headerBg="bg-mech" headerContent={<span>Header</span>}>
         <p>Body</p>
       </Card>
     )
-    const body = container.querySelector('.p-0')
-    expect(body).toBeTruthy()
+    const body = container.querySelector('.su-card-body')
+    expect(body?.className).toBe('su-card-body')
   })
 
   test('does not render body when children is undefined', () => {
     const { container } = render(
       <Card headerBg="bg-mech" headerContent={<span>Header only</span>} />
     )
-    expect(container.querySelector('.bg-paper')).toBeNull()
+    expect(container.querySelector('.su-card-body')).toBeNull()
   })
 
   test('disabled state keeps original header background and applies opacity', () => {
@@ -208,9 +205,9 @@ describe('Card', () => {
     )
     const header = headerRowAround('Disabled')
     expect(header.className).toContain('bg-mech')
-    // Outer wrapper gets opacity-50
+    // Outer wrapper dims to half opacity
     const wrapper = rootEl(container)
-    expect(wrapper.className).toContain('opacity-50')
+    expect(wrapper.style.opacity).toBe('0.5')
   })
 
   test('bodyPadding overrides default padding', () => {
@@ -219,9 +216,8 @@ describe('Card', () => {
         <p>Body</p>
       </Card>
     )
-    const body = container.querySelector('.p-4')
-    expect(body).toBeTruthy()
-    expect(container.querySelector('.p-0')).toBeNull()
+    const body = container.querySelector('.su-card-body')
+    expect(body?.className).toContain('p-4')
   })
 
   test('bodyStyle lands on the body band', () => {
@@ -279,7 +275,7 @@ describe('Card', () => {
     )
     const wrapper = rootEl(container)
     expect(wrapper.getAttribute('role')).toBe('button')
-    expect(wrapper.className).toContain('cursor-pointer')
+    expect(wrapper.style.cursor).toBe('pointer')
     fireEvent.click(wrapper)
     expect(clicked).toBe(true)
   })
@@ -369,9 +365,9 @@ describe('Card', () => {
       />
     )
     const wrapper = rootEl(container)
-    expect(wrapper.className).toContain('cursor-pointer')
-    expect(wrapper.className).not.toContain('scale')
-    expect(wrapper.className).not.toContain('translate')
+    expect(wrapper.style.cursor).toBe('pointer')
+    expect(wrapper.getAttribute('style')).not.toContain('scale')
+    expect(wrapper.getAttribute('style')).not.toContain('translate')
   })
 
   test('button mode exposes a focus-visible ring with contrast offset', () => {

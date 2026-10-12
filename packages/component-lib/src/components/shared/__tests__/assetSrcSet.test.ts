@@ -71,7 +71,7 @@ describe('assetSrcSetFor', () => {
 
   test('every width is one the origin will actually render', () => {
     // The contract this file shares with `ALLOWED_WIDTHS` in
-    // apps/su-assets/src/worker.ts. A width added here and not there is a 404,
+    // apps/su-assets/src/worker/index.ts. A width added here and not there is a 404,
     // which browsers resolve by quietly falling back to the master rather than
     // by telling anyone — so the two lists drifting apart is silent, and this
     // is the only place it can be caught.

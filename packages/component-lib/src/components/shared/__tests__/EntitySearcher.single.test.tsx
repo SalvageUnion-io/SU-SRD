@@ -21,6 +21,9 @@ describe('EntitySearcher — single mode', () => {
         selected={[chassis.id]}
         onToggle={() => {}}
         idOf={(i) => i.id}
+        // The bar is the subject; a pool of every chassis card took ~5 s to
+        // render on a 4-core runner, the whole default budget.
+        filter={(i) => i.id === chassis.id}
         chosenLabel="Chosen"
         railActions={<button type="button">Apply chassis</button>}
       />
@@ -29,7 +32,5 @@ describe('EntitySearcher — single mode', () => {
     expect(within(bar).getByTestId('rail-entry').textContent).toBe(chassis.name)
     expect(bar.querySelector('[aria-expanded]')).toBeNull()
     expect(within(bar).getByRole('button', { name: 'Apply chassis' })).toBeTruthy()
-    // Every chassis card in the results renders too: 1.6 s alone, past the
-    // default 5 s with the pre-push gates and every workspace in parallel.
-  }, 30_000)
+  })
 })

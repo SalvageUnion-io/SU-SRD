@@ -21,8 +21,8 @@ import { testConvex } from './harness'
  * silently comes back empty on a missing schema fails here too.
  *
  * The records cover every chassis and every class, each pilot holding its
- * whole class's abilities and each mech flown by one of them, with every
- * system and module installed and destroyed so a mech's status names each.
+ * whole class's abilities and each mech flown by one of them, every system
+ * and module installed and destroyed on one of them so a status names each.
  */
 
 afterEach(async () => {
@@ -73,10 +73,16 @@ function allDestroyed(refs: string[]) {
   return Object.fromEntries(refs.map((r) => [r, 'destroyed' as const]))
 }
 
+/** The items at `i`, `i + n`, `i + 2n`, …: one mech's share of a round-robin deal. */
+function share<T>(items: T[], i: number, n: number): T[] {
+  return items.filter((_, j) => j % n === i)
+}
+
 /**
- * Each chassis as a mech with every system and module installed and destroyed,
- * assigned to a pilot in turn. Destroyed items send `crew.vitals` through the
- * status's system and module lookups by name.
+ * Each chassis as a mech, assigned to a pilot in turn, with every system and
+ * module dealt round-robin across the mechs, installed and destroyed: each
+ * name goes once through the status's system and module lookups. (Installing
+ * every item on every mech made the seeding most of this file's runtime.)
  */
 async function seedMechs(player: User, gameId: Id<'games'>, pilotIds: string[]) {
   const systems = SalvageUnionReference.Systems.all().map((s) => nameToSlug(s.name))
@@ -84,6 +90,10 @@ async function seedMechs(player: User, gameId: Id<'games'>, pilotIds: string[]) 
   const chassis = SalvageUnionReference.Chassis.all()
   for (const [i, c] of chassis.entries()) {
     const id = `mech-${nameToSlug(c.name)}`
+    const mine = {
+      systems: share(systems, i, chassis.length),
+      modules: share(modules, i, chassis.length),
+    }
     await player.as.mutation(api.entities.upsertByAppId, {
       table: 'mechs',
       appId: id,
@@ -91,10 +101,9 @@ async function seedMechs(player: User, gameId: Id<'games'>, pilotIds: string[]) 
       body: {
         ...mechBody({ id, gameId }),
         chassisRef: nameToSlug(c.name),
-        systems,
-        modules,
-        systemConditions: allDestroyed(systems),
-        moduleConditions: allDestroyed(modules),
+        ...mine,
+        systemConditions: allDestroyed(mine.systems),
+        moduleConditions: allDestroyed(mine.modules),
       },
       expectedUpdatedAt: null,
     })
