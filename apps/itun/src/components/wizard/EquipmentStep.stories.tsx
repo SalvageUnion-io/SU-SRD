@@ -1,6 +1,10 @@
+import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { EquipmentStep } from './EquipmentStep'
+
+const FRAME: CSSProperties = { backgroundColor: tokens.color.paper, padding: tokens.space[16] }
 
 export default {
   title: 'Compositions/Wizard/Equipment Step',
@@ -10,7 +14,7 @@ export default {
 export const Default = () => {
   const [selected, setSelected] = useState<string[]>([])
   return (
-    <div className="sheet--pilot bg-paper p-4">
+    <div className="sheet--pilot" style={FRAME}>
       <Caption>EquipmentStep</Caption>
       <EquipmentStep
         selectedEquipment={selected}

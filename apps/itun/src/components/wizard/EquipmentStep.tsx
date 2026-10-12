@@ -2,6 +2,7 @@ import { EmptyState, MasonryColumns, ReferenceEntityCard } from 'component-lib'
 import type { SURefEquipment } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
+import { fullWidthStyle } from './wizardStyles'
 
 type SUREquipmentAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
@@ -50,7 +51,7 @@ export function EquipmentStep({
   const remaining = Math.max(0, budget - totalPicked)
 
   return (
-    <div className="w-full">
+    <div style={fullWidthStyle}>
       <MasonryColumns maxColumns={2}>
         {equipment.map((item) => {
           const slug = getEntitySlug(item)

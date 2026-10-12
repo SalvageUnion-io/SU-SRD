@@ -1,7 +1,19 @@
-import { Callout, EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from 'component-lib'
+import {
+  Callout,
+  EmptyState,
+  MasonryColumns,
+  ReferenceEntityCard,
+  Slab,
+  tokens,
+} from 'component-lib'
+import type { CSSProperties } from 'react'
 import type { SURefCrawler } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
+import '../../styles/wizard.css'
+import { fullWidthStyle, stepColumnStyle } from './wizardStyles'
+
+const bonusStyle: CSSProperties = { display: 'block', fontFamily: tokens.font.body }
 
 type CrawlerTypeSelectStepProps = {
   types: SURefCrawler[]
@@ -35,7 +47,7 @@ export function CrawlerTypeSelectStep({
   const isAugmented = selected?.id === AUGMENTED_CRAWLER_ID
 
   return (
-    <div className="w-full space-y-5">
+    <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
       <Slab variant="solid" label="Crawler Types" count="Choose 1" />
       <MasonryColumns maxColumns={2} radio ariaLabel="Crawler type">
         {types.map((type) => {
@@ -63,11 +75,11 @@ export function CrawlerTypeSelectStep({
       {selected ? (
         <>
           <Slab variant="solid" label="Your Crawler Type" count={selected.name} />
-          <div className="max-w-3xl space-y-3">
+          <div className="wiz-stack wiz-stack--12" style={stepColumnStyle}>
             <ReferenceEntityCard data={selected} />
             {isAugmented && (
               <Callout label="Augmented Bonus" tone="crawler">
-                <span className="block font-body">
+                <span style={bonusStyle}>
                   Every Pilot gains <strong>+1 Training Point</strong>, spendable on the{' '}
                   <strong>Augment ability tree only</strong>. Apply it on each Pilot&rsquo;s sheet
                   yourself — the wizard never writes to other characters.

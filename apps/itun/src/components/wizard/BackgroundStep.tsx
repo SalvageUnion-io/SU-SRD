@@ -1,6 +1,11 @@
-import { Field, Textarea } from 'component-lib'
+import { Field, Textarea, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
+import '../../styles/wizard.css'
 import { RollTableButton } from './RollTableButton'
 import type { RollTableDeps } from './rollTableHelpers'
+import { stepColumnStyle, textSmStyle } from './wizardStyles'
+
+const introStyle: CSSProperties = { ...textSmStyle, color: tokens.color.wkMuted }
 
 type BackgroundStepProps = {
   background: string
@@ -25,12 +30,12 @@ export function BackgroundStep({
   _rollDeps,
 }: BackgroundStepProps) {
   return (
-    <div className="max-w-3xl space-y-5">
-      <p className="text-sm text-wk-muted">
+    <div className="wiz-stack wiz-stack--20" style={stepColumnStyle}>
+      <p style={introStyle}>
         Describe your pilot&apos;s background. Roll for a random prompt or write your own story.
       </p>
       <Field label="Background" htmlFor="background-field">
-        <div className="space-y-2">
+        <div className="wiz-stack wiz-stack--8">
           <RollTableButton
             field="background"
             onRoll={(value) => onChange(value)}

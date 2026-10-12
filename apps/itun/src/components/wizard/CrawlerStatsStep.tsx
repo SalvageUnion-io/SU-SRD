@@ -1,7 +1,22 @@
-import { EmptyState, Stat } from 'component-lib'
+import { EmptyState, Stat, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import type { SURefCrawler, SURefMetaCrawlerTechLevel } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
+import '../../styles/wizard.css'
+import { fullWidthStyle } from './wizardStyles'
+
+const statRowStyle: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[16] }
+
+const proseStyle: CSSProperties = {
+  color: 'currentcolor',
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 1.625,
+  maxWidth: '64ch',
+}
+
+const paragraphStyle: CSSProperties = { margin: 0 }
 
 type CrawlerStatsStepProps = {
   /** The Tech Level 1 (Hamlet Crawler) entity — creation is fixed there. */
@@ -35,8 +50,8 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
   })
 
   return (
-    <div className="w-full space-y-5">
-      <div className="flex flex-wrap gap-4">
+    <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
+      <div style={statRowStyle}>
         <Stat label="TL" value={techLevel.techLevel} size="mini" />
         <Stat label="SP" value={sp.total} max={sp.total} size="mini" />
         <Stat label="UPKEEP" value={techLevel.upkeepCost ?? 0} size="mini" />
@@ -44,19 +59,19 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
         <Stat label="POOL" value={0} size="mini" />
       </div>
 
-      <div className="max-w-[64ch] space-y-1.5 font-body text-sm leading-relaxed text-current">
+      <div className="wiz-stack wiz-stack--6" style={proseStyle}>
         {sp.typeBonus > 0 && selectedType ? (
-          <p className="m-0" data-testid="sp-breakdown">
+          <p style={paragraphStyle} data-testid="sp-breakdown">
             Structure Points: {sp.base} + {sp.typeBonus} type bonus ({selectedType.name}) ={' '}
             <strong>{sp.total}</strong> — the bonus derives from your Crawler type, so it follows a
             type change automatically.
           </p>
         ) : (
-          <p className="m-0" data-testid="sp-breakdown">
+          <p style={paragraphStyle} data-testid="sp-breakdown">
             Structure Points: <strong>{sp.total}</strong> — the {techLevel.name} base.
           </p>
         )}
-        <p className="m-0">
+        <p style={paragraphStyle}>
           A new Crawler is a <strong>{techLevel.name}</strong>
           {typeof techLevel.populationMin === 'number' &&
           typeof techLevel.populationMax === 'number'

@@ -13,6 +13,7 @@ import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { EMPTY_MECH_FORM_STATE, mechFormToCreateInput } from '../../lib/wizard/mechFormState'
 import { withPreselection } from '../../lib/wizard/preselect'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
+import '../../styles/wizard.css'
 import { GainScrapStep } from '../wizard/GainScrapStep'
 import { MechFlavorStep } from '../wizard/MechFlavorStep'
 import type { StepRule } from '../wizard/RuleBrief'
@@ -388,7 +389,7 @@ export function MechWizard({
       footerNote={footerNote}
       submitLabel="Create Mech ✦"
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="mb-5" />
+      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="wiz-rule-brief" />
       {step === 'scrap' && <GainScrapStep />}
       {step === 'chassis' && (
         <MechChassisStep

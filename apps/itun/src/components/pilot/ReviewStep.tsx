@@ -1,7 +1,12 @@
-import { EmptyState, FieldError, KvRow, Panel, ReferenceEntityCard } from 'component-lib'
+import { EmptyState, FieldError, KvRow, Panel, ReferenceEntityCard, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
+import '../../styles/wizard.css'
+
+/** Recap and cards; the column split is `.wiz-review-grid`. */
+const REVIEW_GRID: CSSProperties = { display: 'grid', gap: tokens.space[24] }
 
 /**
  * Typed lookup surfaces for the injectable SUR seam — declared against the
@@ -58,17 +63,17 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
   ]
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">
+    <div className="wiz-review-grid" style={REVIEW_GRID}>
       {/* kv-panel */}
-      <Panel className="self-start p-4 text-sm">
+      <Panel className="wiz-review-panel wiz-review-panel--start">
         {rows.map(([k, v]) => (
           <KvRow key={k} label={k} value={v} />
         ))}
-        {submitError && <FieldError className="mt-3">{submitError}</FieldError>}
+        {submitError && <FieldError className="wiz-review-error">{submitError}</FieldError>}
       </Panel>
 
       {/* chosen cards */}
-      <div className="space-y-3">
+      <div className="wiz-stack wiz-stack--12">
         {chosenAbilities.map((ability) => (
           <ReferenceEntityCard
             key={ability.id}

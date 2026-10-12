@@ -1,8 +1,28 @@
-import { Callout, FieldError, KvRow, Panel, ReferenceEntityCard } from 'component-lib'
+import { Callout, FieldError, KvRow, Panel, ReferenceEntityCard, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import type { SURefCrawler, SURefMetaCrawlerTechLevel, SURefSystem } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
+import '../../styles/wizard.css'
+
+/** Recap and cards; the column split is `.wiz-review-grid`. */
+const REVIEW_GRID: CSSProperties = { display: 'grid', gap: tokens.space[24] }
+
+/** The recap column sits at the top of its row. */
+const RECAP: CSSProperties = { alignSelf: 'start' }
+
+/** The Augmented reminder's body copy. */
+const REMINDER: CSSProperties = { display: 'block', fontFamily: tokens.font.body }
+
+/** The empty-weapons line, in the surrounding text colour. */
+const EMPTY_LINE: CSSProperties = {
+  margin: 0,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+  color: 'currentcolor',
+}
 
 type CrawlerReviewStepProps = {
   form: CrawlerWizardFormState
@@ -72,18 +92,18 @@ export function CrawlerReviewStep({
   ]
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">
+    <div className="wiz-review-grid" style={REVIEW_GRID}>
       {/* kv-panel */}
-      <div className="space-y-3 self-start">
-        <Panel className="p-4 text-sm">
+      <div className="wiz-stack wiz-stack--12" style={RECAP}>
+        <Panel className="wiz-review-panel">
           {rows.map(([k, v]) => (
             <KvRow key={k} label={k} value={v} />
           ))}
-          {submitError && <FieldError className="mt-3">{submitError}</FieldError>}
+          {submitError && <FieldError className="wiz-review-error">{submitError}</FieldError>}
         </Panel>
         {isAugmented && (
           <Callout label="Reminder" tone="crawler">
-            <span className="block font-body">
+            <span style={REMINDER}>
               Every Pilot gains <strong>+1 Training Point</strong> (Augment ability tree only).
               Apply it on each Pilot&rsquo;s sheet yourself.
             </span>
@@ -92,7 +112,7 @@ export function CrawlerReviewStep({
       </div>
 
       {/* chosen cards */}
-      <div className="space-y-3">
+      <div className="wiz-stack wiz-stack--12">
         {selectedType && (
           <ReferenceEntityCard data={selectedType} size="medium" hide={{ choices: true }} />
         )}
@@ -105,9 +125,7 @@ export function CrawlerReviewStep({
             hide={{ actions: true, choices: true }}
           />
         ))}
-        {systems.length === 0 && (
-          <p className="m-0 font-body text-sm text-current">No weapons mounted.</p>
-        )}
+        {systems.length === 0 && <p style={EMPTY_LINE}>No weapons mounted.</p>}
       </div>
     </div>
   )
