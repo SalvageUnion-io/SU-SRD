@@ -165,7 +165,7 @@ export function SheetMech({
       {composition.pilot ? (
         <EntityRow
           entityType="pilot"
-          className="flex-[1_1_0%]"
+          className="su-sheet-rail-slot"
           name={composition.pilot.name}
           sheetHref={hrefFor('pilot', composition.pilot.id)}
           linkAs={AppLink}
@@ -196,7 +196,7 @@ export function SheetMech({
         <EntityRow
           empty
           entityType="pilot"
-          className="flex-[1_1_0%]"
+          className="su-sheet-rail-slot"
           roleLabel="Assigned Pilot"
           message="No pilot assigned. Link a pilot to speak for this machine."
           actions={
@@ -212,7 +212,7 @@ export function SheetMech({
       {composition.crawler ? (
         <EntityRow
           entityType="crawler"
-          className="flex-[1_1_0%]"
+          className="su-sheet-rail-slot"
           name={composition.crawler.name}
           sheetHref={hrefFor('crawler', composition.crawler.id)}
           linkAs={AppLink}
@@ -238,7 +238,7 @@ export function SheetMech({
         <EntityRow
           empty
           entityType="crawler"
-          className="flex-[1_1_0%]"
+          className="su-sheet-rail-slot"
           roleLabel="Home Crawler"
           message="No crawler assigned. A mech docks by its own assignment, separately from its pilot."
           actions={

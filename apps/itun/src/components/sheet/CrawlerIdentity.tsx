@@ -20,9 +20,10 @@
  * card strips them to avoid double-rendering.
  */
 
-import { cn, Field, ReferenceEntityCard, Stat } from 'component-lib'
+import { Field, ReferenceEntityCard, Stat, tokens } from 'component-lib'
 import { parseCrawlerTechLevel } from 'itun-domain/crawlerLevel'
 import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -33,6 +34,25 @@ import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerSheetItems'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps'
+
+const PANEL = { minWidth: 0 } satisfies CSSProperties
+
+const STACK = {
+  display: 'flex',
+  minWidth: 0,
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+/** Tech Level ∥ Type; the column template is `.su-sheet-crawler-identity-row` (it steps at sm). */
+const TYPE_ROW = {
+  display: 'grid',
+  alignItems: 'end',
+  columnGap: tokens.space[16],
+  rowGap: tokens.space[12],
+} satisfies CSSProperties
+
+const ABILITY = { minWidth: 0 } satisfies CSSProperties
 
 /** The standalone ability card never re-renders the action's choice UI. */
 const HIDE_CHOICES = { choices: true } as const
@@ -105,8 +125,8 @@ export function CrawlerIdentityPanel({
   }
 
   return (
-    <section aria-label="Crawler identity" className={cn('min-w-0', className)}>
-      <div className="flex min-w-0 flex-col gap-3">
+    <section aria-label="Crawler identity" className={className} style={PANEL}>
+      <div style={STACK}>
         {/* Name leads at full prominence (the crawler's own name, like a
             pilot's callsign). Tech Level sits to the LEFT of the type: it is
             the crawler's rung, read alongside what kind of crawler it is,
@@ -117,7 +137,7 @@ export function CrawlerIdentityPanel({
           onSave={canEdit ? saveName : undefined}
           prominent
         />
-        <div className="grid grid-cols-1 items-end gap-x-4 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)]">
+        <div className="su-sheet-crawler-identity-row" style={TYPE_ROW}>
           {/* A STAT, not a Field: the tech level is derived from the crawler's
               stored rung and never typed into, so it reads as a number plate
               like the mech's chassis stats — a field box implied an input.
@@ -150,7 +170,7 @@ export function CrawlerIdentityPanel({
             readOnly={readOnly}
             assigned={typeCrew}
             ability={abilities.map((ability) => (
-              <div key={ability.id} className="min-w-0">
+              <div key={ability.id} style={ABILITY}>
                 <ReferenceEntityCard data={ability} size="medium" foldTables hide={HIDE_CHOICES} />
               </div>
             ))}

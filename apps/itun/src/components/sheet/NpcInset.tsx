@@ -17,9 +17,54 @@
  * state, board 10).
  */
 
-import { cn, InlineEditField, Inset, Stat } from 'component-lib'
-import type { ReactNode } from 'react'
+import { InlineEditField, Inset, Stat, tokens } from 'component-lib'
+import type { CSSProperties, ReactNode } from 'react'
 import { NpcFactsEditor } from './NpcFactsEditor'
+
+const ROW = {
+  alignItems: 'baseline',
+  display: 'flex',
+  gap: tokens.space[6],
+} satisfies CSSProperties
+
+const ROW_LABEL = {
+  color: tokens.color.ink,
+  flexShrink: 0,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  letterSpacing: tokens.tracking.capsWide,
+  lineHeight: 1,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const ROW_VALUE = { margin: 0, minWidth: 0 } satisfies CSSProperties
+
+const ROW_VALUE_GROW = { flex: '1 1 0%' } satisfies CSSProperties
+
+const ROW_VALUE_PROSE = {
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.note,
+  lineHeight: 1.375,
+} satisfies CSSProperties
+
+const BODY = {
+  alignItems: 'flex-start',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+/** The id lines; their two-column split is a container query (`.su-sheet-npc-lines`). */
+const LINES = {
+  columnGap: tokens.space[16],
+  display: 'grid',
+  flex: '1 1 0%',
+  margin: 0,
+  minWidth: 0,
+  rowGap: tokens.space[4],
+} satisfies CSSProperties
 
 type NpcInsetProps = {
   /** Bay name — disambiguates aria-labels when several insets render at once. */
@@ -59,21 +104,19 @@ function NpcRow({
   grow?: boolean
   /** Skip the prose treatment — the cell hosts its own component. */
   plain?: boolean
-  /** Grid placement from the caller (e.g. spanning both columns). */
+  /** Grid placement from the caller (e.g. `.su-sheet-npc-wide`, spanning both columns). */
   className?: string
   children: ReactNode
 }) {
   return (
-    <div className={cn('flex items-baseline gap-1.5', className)}>
-      <dt className="shrink-0 font-cond text-badge font-bold uppercase leading-none tracking-caps-wide text-ink">
-        {label}
-      </dt>
+    <div className={className} style={ROW}>
+      <dt style={ROW_LABEL}>{label}</dt>
       <dd
-        className={cn(
-          'm-0 min-w-0',
-          grow && 'flex-1',
-          !plain && 'font-body text-note leading-snug text-wk-muted'
-        )}
+        style={{
+          ...ROW_VALUE,
+          ...(grow && ROW_VALUE_GROW),
+          ...(!plain && ROW_VALUE_PROSE),
+        }}
       >
         {children}
       </dd>
@@ -121,10 +164,10 @@ export function NpcInset({
               onSave={(next) => onNameChange(String(next))}
               type="text"
               ariaLabel={`Edit ${bayName} crew name`}
-              // `[&>span]:` reaches the READOUT: InlineEditField's own display
-              // span carries `text-ink`, which is invisible on this dark head
+              // `.su-sheet-npc-name > span` reaches the READOUT: InlineEditField's
+              // own display span is ink, which is invisible on this dark head
               // bar, and a colour on the wrapper alone never reached it.
-              className="text-paper [&>span]:text-paper [&>span]:opacity-100"
+              className="su-sheet-npc-name"
             />
           ) : (
             name || undefined
@@ -145,13 +188,13 @@ export function NpcInset({
             />
           ) : undefined
         }
-        bodyClassName="flex flex-wrap items-start gap-2"
+        bodyStyle={BODY}
       >
         {/* Keepsake and Motto SHARE a row: both are one short phrase, and each
             taking a full 44px row of its own made a four-row inset out of two
             lines of content. Detail and Facts keep their own rows — they grow. */}
         {hasBody && (
-          <dl className="m-0 grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 @md:grid-cols-2">
+          <dl className="su-sheet-npc-lines" style={LINES}>
             {showKeepsake && (
               <NpcRow label="Keepsake">
                 {onKeepsakeChange ? (
@@ -181,7 +224,7 @@ export function NpcInset({
               </NpcRow>
             )}
             {showDetail && (
-              <NpcRow label="Detail" grow className="@md:col-span-2">
+              <NpcRow label="Detail" grow className="su-sheet-npc-wide">
                 {onDetailChange ? (
                   <InlineEditField
                     multiline
@@ -196,7 +239,7 @@ export function NpcInset({
               </NpcRow>
             )}
             {showFacts && (
-              <NpcRow label="Facts" grow plain className="@md:col-span-2">
+              <NpcRow label="Facts" grow plain className="su-sheet-npc-wide">
                 <NpcFactsEditor
                   facts={facts}
                   onChange={(next) => onFactsChange?.(next)}

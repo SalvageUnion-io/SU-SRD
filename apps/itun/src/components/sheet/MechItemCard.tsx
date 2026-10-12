@@ -31,9 +31,10 @@
  */
 
 import type { ReferenceEntityControl } from 'component-lib'
-import { Button, ModalShell, ReferenceEntityCard, StatusBadge } from 'component-lib'
+import { Button, ModalShell, ReferenceEntityCard, StatusBadge, tokens } from 'component-lib'
 import type { ScrapPool } from 'itun-domain/schemas/crawler'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { MechItem, MechItemEconomy } from './mechItemRules'
 import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
@@ -49,6 +50,49 @@ import { CardRemoveButton } from './SheetSection'
  * sites look like they were maintaining something they were not.
  */
 const HIDE_CHOICES = { choices: true } as const
+
+/** The fallback chit for a slug that does not resolve. */
+const CHIT = {
+  alignItems: 'center',
+  backgroundColor: tokens.color.paper,
+  border: `${tokens.borderWidth.chrome} solid ${tokens.color.ink}`,
+  borderRadius: tokens.radius.card,
+  display: 'flex',
+  gap: tokens.space[8],
+  height: '100%',
+  justifyContent: 'space-between',
+  padding: `${tokens.space[8]} ${tokens.space[12]}`,
+} satisfies CSSProperties
+
+/** `text-sm` — its size and its own line-height. */
+const BODY_SM = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+} satisfies CSSProperties
+
+const CHIT_END = {
+  alignItems: 'center',
+  display: 'flex',
+  flexShrink: 0,
+  gap: tokens.space[6],
+} satisfies CSSProperties
+
+const CONFIRM = {
+  backgroundColor: tokens.color.paper,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+  padding: tokens.space[20],
+} satisfies CSSProperties
+
+const CONFIRM_ACTIONS = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+  justifyContent: 'flex-end',
+} satisfies CSSProperties
 
 type MechItemCardProps = {
   /** System/module slug as stored on the mech. */
@@ -109,9 +153,9 @@ export function MechItemCard({
     // Unresolvable slug: plain chit, never a crash. The status badge still
     // cycles so conditions stay editable for unknown items.
     return (
-      <div className="flex h-full items-center justify-between gap-2 rounded-card border-chrome border-ink bg-paper px-3 py-2">
-        <span className="font-body text-sm text-ink">{slug}</span>
-        <span className="flex shrink-0 items-center gap-1.5">
+      <div style={CHIT}>
+        <span style={BODY_SM}>{slug}</span>
+        <span style={CHIT_END}>
           <StatusBadge status={condition} onClick={readOnly ? undefined : onStatusCycle} />
           {!readOnly && onRemove && <CardRemoveButton name={slug} onRemove={onRemove} />}
         </span>
@@ -208,14 +252,14 @@ export function MechItemCard({
           if (!next) setConfirmingRepair(false)
         }}
         title={`Repair ${entity.name}`}
-        maxWidth="max-w-sm"
+        maxWidth="su-sheet-mech-repair-modal"
       >
-        <div className="flex flex-col gap-3 bg-paper p-5">
-          <p className="m-0 font-body text-sm text-ink">
+        <div style={CONFIRM}>
+          <p style={{ ...BODY_SM, margin: 0 }}>
             Repairing costs {cost} Scrap (Tech {Math.max(1, itemTl ?? 1)} or higher) from the
             crawler pool.
           </p>
-          <div className="flex flex-wrap justify-end gap-2">
+          <div style={CONFIRM_ACTIONS}>
             <Button
               size="compact"
               variant="primary"

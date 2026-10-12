@@ -24,11 +24,12 @@
  * signed-in player without a live connection is told that.
  */
 
-import { ModalShell } from 'component-lib'
+import { ModalShell, tokens } from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { SheetEntityKind } from 'itun-domain/schemas/entity'
 import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { CSSProperties } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { SignInControl } from '../account/SignInControl'
 import { PublicSheetPanel } from './PublicSheetPanel'
@@ -43,10 +44,38 @@ type ShareStatusDialogProps = {
   clipboardWriter?: (text: string) => Promise<void>
 }
 
-const PANEL_HEADING_CLASS =
-  'mb-3 font-cond text-caption font-semibold uppercase tracking-caps-snug text-ink'
+const PANEL_HEADING = {
+  marginBottom: tokens.space[12],
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.caption,
+  fontWeight: tokens.weight.semibold,
+  textTransform: 'uppercase',
+  letterSpacing: tokens.tracking.capsSnug,
+  color: tokens.color.ink,
+} satisfies CSSProperties
 
-const NOTE_CLASS = 'text-wk-muted mb-0 mt-0 font-body text-caption leading-relaxed'
+const NOTE = {
+  color: tokens.color.wkMuted,
+  marginBottom: 0,
+  marginTop: 0,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.caption,
+  lineHeight: 1.625,
+} satisfies CSSProperties
+
+/** The dialog body's stack; its padding steps up at `sm` (`.su-sheet-share-body`). */
+const BODY = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[20],
+} satisfies CSSProperties
+
+const SIGN_IN = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: tokens.space[12],
+} satisfies CSSProperties
 
 export function ShareStatusDialog({
   kind,
@@ -68,7 +97,7 @@ export function ShareStatusDialog({
       title="Share status"
       subtitle={entity.name}
       description={`Share ${entity.name} as a live, read-only page, or stop sharing it.`}
-      maxWidth="max-w-xl"
+      maxWidth="su-sheet-share-dialog"
     >
       {/*
         Sections, not Panels. ModalShell already frames this in a Card, and a
@@ -76,9 +105,9 @@ export function ShareStatusDialog({
         rules forbid. The padding was the Panel's; ModalShell's Card body
         supplies none.
       */}
-      <div className="flex flex-col gap-5 p-4 sm:p-5">
+      <div className="su-sheet-share-body" style={BODY}>
         {/* Read-only is the promise that holds whichever branch renders below. */}
-        <p className={NOTE_CLASS}>
+        <p style={NOTE}>
           Whoever has the link gets a read-only view of {entity.name} that keeps up with the sheet.
         </p>
 
@@ -87,19 +116,19 @@ export function ShareStatusDialog({
             kind={kind}
             appId={id}
             entityName={entity.name}
-            headingClass={PANEL_HEADING_CLASS}
+            headingStyle={PANEL_HEADING}
             clipboardWriter={clipboardWriter}
           />
         ) : mode === 'solo' ? (
-          <section className="flex flex-col items-start gap-3">
-            <p className={NOTE_CLASS}>
+          <section style={SIGN_IN}>
+            <p style={NOTE}>
               Sharing needs an account: the public page is served from your saved sheet, and an
               unsaved one has nothing to serve. No account is needed to read it.
             </p>
             <SignInControl />
           </section>
         ) : (
-          <p className={NOTE_CLASS}>
+          <p style={NOTE}>
             Sharing settings need a live connection to your account. Try again once you are
             connected.
           </p>

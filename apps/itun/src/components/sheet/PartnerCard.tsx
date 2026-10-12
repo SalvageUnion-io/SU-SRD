@@ -29,10 +29,17 @@
  */
 
 import type { ReferenceEntityControl, StatItem } from 'component-lib'
-import { Field, MasonryColumns, ReferenceEntityCard, summarizeBreakdown } from 'component-lib'
+import {
+  Field,
+  MasonryColumns,
+  ReferenceEntityCard,
+  summarizeBreakdown,
+  tokens,
+} from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { PartnerInstance } from 'itun-domain/schemas/partner'
+import type { CSSProperties } from 'react'
 import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
@@ -52,6 +59,33 @@ import { MechItemCard } from './MechItemCard'
 import { resolveModule, resolveSystem } from './mechItemRules'
 import { PartnerHold } from './PartnerHold'
 import { partnerDisplayName } from './partnerDisplay'
+
+const STACK = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+} satisfies CSSProperties
+
+const FIELDS = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+const ITEMS = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+const ITEMS_HEADING = {
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.caption,
+  fontWeight: tokens.weight.bold,
+  letterSpacing: tokens.tracking.caps,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
 
 type PartnerCardProps = {
   /**
@@ -226,10 +260,8 @@ export function PartnerCard({
     // Keyed by occurrence, not index — see occurrenceKeys.
     const keys = occurrenceKeys(slugs)
     return (
-      <div className="flex flex-col gap-2">
-        <h4 className="font-cond text-caption font-bold uppercase tracking-caps text-wk-muted">
-          {kind === 'system' ? 'Systems' : 'Modules'}
-        </h4>
+      <div style={ITEMS}>
+        <h4 style={ITEMS_HEADING}>{kind === 'system' ? 'Systems' : 'Modules'}</h4>
         {/* A partner's slot budget is small (3 systems on a Survey Drone), so a
             single column reads better than a masonry even at full width. */}
         <MasonryColumns maxColumns={1}>
@@ -275,8 +307,8 @@ export function PartnerCard({
       statsOverride={stats}
       controls={controls.length > 0 ? controls : undefined}
       afterExtraContent={
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-3">
+        <div style={STACK}>
+          <div style={FIELDS}>
             <Field
               label="Name"
               value={partner.name ?? ''}

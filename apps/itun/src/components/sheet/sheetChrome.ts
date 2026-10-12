@@ -15,9 +15,8 @@ import { buttonVariants, cn } from 'component-lib'
  * recipe is exported precisely for non-`<button>` elements, and one of these
  * two consumers is a link. Restating it by hand meant every Button change
  * (focus ring, disabled state, radius) silently skipped the app bar. Only the
- * square 38px geometry is layered on top.
+ * square 38px geometry is layered on top: `.su-sheet-iconbtn`
+ * (`styles/sheet/mech.css`), a class rather than a style object because this
+ * export is a class string.
  */
-export const SHEET_ICONBTN_CLASS = cn(
-  buttonVariants({ variant: 'default' }),
-  'size-[38px] shrink-0 p-0'
-)
+export const SHEET_ICONBTN_CLASS = cn(buttonVariants({ variant: 'default' }), 'su-sheet-iconbtn')

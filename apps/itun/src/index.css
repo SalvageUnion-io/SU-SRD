@@ -14,6 +14,8 @@
 @import './styles/npc.css';
 /* The Shelves band's paper-on-ink controls (board S1). */
 @import './styles/shelves.css';
+/* The live and public sheet (TW-d). */
+@import './styles/sheet.css';
 
 /*
  * ITUN's own components keep their stories beside them (the Dashboard

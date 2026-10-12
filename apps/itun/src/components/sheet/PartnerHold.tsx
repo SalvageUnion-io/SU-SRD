@@ -20,9 +20,9 @@
  * dropping it left the player with a button that appeared to do nothing.
  */
 
-import { Button, EmptyState, Stat } from 'component-lib'
+import { Button, EmptyState, Stat, tokens } from 'component-lib'
 import type { CargoLot } from 'itun-domain/schemas/cargoLot'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
 
@@ -33,13 +33,66 @@ type PartnerHoldProps = {
   readOnly?: boolean
 }
 
+const HOLD = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+} satisfies CSSProperties
+
+const SIDE_HEADING = {
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.caption,
+  fontWeight: tokens.weight.bold,
+  letterSpacing: tokens.tracking.caps,
+  marginBottom: tokens.space[4],
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const LOCKED_NOTE = {
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.caption,
+  marginBottom: tokens.space[4],
+} satisfies CSSProperties
+
+const LOT_LIST = { listStyleType: 'none' } satisfies CSSProperties
+
+/** A lot row; its rule's width drops on the last row (`.su-sheet-partner-lot`). */
+const LOT = {
+  alignItems: 'center',
+  borderBottomColor: tokens.color.ink10,
+  borderBottomStyle: 'solid',
+  display: 'flex',
+  gap: tokens.space[8],
+  paddingBlock: tokens.space[6],
+} satisfies CSSProperties
+
+const LOT_NAME = {
+  color: tokens.color.ink,
+  flex: '1 1 0%',
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+const LOT_UNITS = {
+  color: tokens.color.wkMuted,
+  flexShrink: 0,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.caption,
+  fontVariantNumeric: 'tabular-nums',
+} satisfies CSSProperties
+
 function LotRow({ lot, children }: { lot: CargoLot; children?: ReactNode }) {
   return (
-    <li className="flex items-center gap-2 border-b border-ink/10 py-1.5 last:border-b-0">
-      <span className="min-w-0 flex-1 truncate font-body text-sm text-ink">{lot.name}</span>
-      <span className="shrink-0 font-cond text-caption tabular-nums text-wk-muted">
-        {lot.units}
-      </span>
+    <li className="su-sheet-partner-lot" style={LOT}>
+      <span style={LOT_NAME}>{lot.name}</span>
+      <span style={LOT_UNITS}>{lot.units}</span>
       {children}
     </li>
   )
@@ -53,19 +106,17 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
   const loadBlocked = crawlerLocked ?? (usage.free <= 0 ? 'The hold is full.' : null)
 
   return (
-    <div className="flex flex-col gap-4">
+    <div style={HOLD}>
       {/* Over-capacity is shown honestly rather than clamped — same rule the
           mech Hold follows. */}
       <Stat label="Cargo" value={usage.used} max={usage.cap} />
 
       <div>
-        <h4 className="mb-1 font-cond text-caption font-bold uppercase tracking-caps text-wk-muted">
-          Carried
-        </h4>
+        <h4 style={SIDE_HEADING}>Carried</h4>
         {state.carrierLots.length === 0 ? (
           <EmptyState variant="quiet" body="Nothing carried." />
         ) : (
-          <ul className="list-none">
+          <ul style={LOT_LIST}>
             {state.carrierLots.map((lot) => (
               <LotRow key={lot.id} lot={lot}>
                 {editable && (
@@ -98,16 +149,12 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
           an empty "no crawler" panel would be noise on a partner sheet. */}
       {crawlerLinked && (
         <div>
-          <h4 className="mb-1 font-cond text-caption font-bold uppercase tracking-caps text-wk-muted">
-            Storage Bay
-          </h4>
-          {editable && crawlerLocked !== null && (
-            <p className="mb-1 font-body text-caption text-wk-muted">{crawlerLocked}</p>
-          )}
+          <h4 style={SIDE_HEADING}>Storage Bay</h4>
+          {editable && crawlerLocked !== null && <p style={LOCKED_NOTE}>{crawlerLocked}</p>}
           {state.depotLots.length === 0 ? (
             <EmptyState variant="quiet" body="The Storage Bay is empty." />
           ) : (
-            <ul className="list-none">
+            <ul style={LOT_LIST}>
               {state.depotLots.map((lot) => (
                 <LotRow key={lot.id} lot={lot}>
                   {editable && (

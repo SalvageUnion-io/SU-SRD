@@ -261,7 +261,7 @@ export function SheetCrawler({
             <EntityRow
               key={dockedMech.id}
               entityType="mech"
-              className="flex-[1_1_0%]"
+              className="su-sheet-crawler-grow"
               name={dockedMech.name}
               sheetHref={hrefFor('mech', dockedMech.id)}
               linkAs={AppLink}
@@ -282,7 +282,7 @@ export function SheetCrawler({
             <EntityRow
               empty
               entityType="mech"
-              className="flex-[1_1_0%]"
+              className="su-sheet-crawler-grow"
               roleLabel="Bay"
               message="Dock another mech."
               actions={
@@ -298,7 +298,7 @@ export function SheetCrawler({
         <EntityRow
           empty
           entityType="mech"
-          className="flex-[1_1_0%]"
+          className="su-sheet-crawler-grow"
           roleLabel="Docked Mechs"
           /* Says how a mech actually gets here: by its own assignment to this
              crawler (ADR-037), not by its pilot joining the crew. */
@@ -319,7 +319,7 @@ export function SheetCrawler({
             <EntityRow
               key={crewPilot.id}
               entityType="pilot"
-              className="flex-[1_1_0%]"
+              className="su-sheet-crawler-grow"
               name={crewPilot.name}
               sheetHref={hrefFor('pilot', crewPilot.id)}
               linkAs={AppLink}
@@ -342,7 +342,7 @@ export function SheetCrawler({
             <EntityRow
               empty
               entityType="pilot"
-              className="flex-[1_1_0%]"
+              className="su-sheet-crawler-grow"
               roleLabel="Crew"
               message="Bring another pilot aboard."
               actions={
@@ -358,7 +358,7 @@ export function SheetCrawler({
         <EntityRow
           empty
           entityType="pilot"
-          className="flex-[1_1_0%]"
+          className="su-sheet-crawler-grow"
           roleLabel="Pilots"
           message="No pilots wired to this crawler yet."
           /* Both verbs, because they answer different questions. `+ Create` was
