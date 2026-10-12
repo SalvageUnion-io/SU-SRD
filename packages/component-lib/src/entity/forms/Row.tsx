@@ -170,6 +170,7 @@ export function Row({
     <div
       className="su-entity-row__frame"
       data-user-made={userMade || undefined}
+      data-bodyless={!hasBody || undefined}
       style={{ ...frameOf(userMade, selected), ...slots.frameStyle }}
     >
       {slots.art !== false && !omit.includes('art') && <Art art={model.art} />}
