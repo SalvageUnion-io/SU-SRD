@@ -36,7 +36,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    1. **Vitals** — `VitalGauge`: sheet skin, Dashboard instrument, compact in the Peek; MiniStat in listings. TP is a counter (no cap, no gauge).
    2. **Caps and slots** — `Stat`, the printed number; an override is a dashed, logged control.
    3. **Condition** — tri-state toggle (Destroyed greys the card), a static glyph in listings, absent from Reference.
-   4. **Rolls** — `RollTable` under ROLL THE DIE:; the result is a readout plus a marked row (§3.4); Roll is a rust Button outside Reference and the Peek.
+   4. **Rolls** — `RollTable` under ROLL THE DIE:; the result is a readout plus a marked row (§3.4); Reference toasts it; Roll is a rust Button, Peek aside.
    5. **Cargo** — `SlotGrid` (dashed empty, solid filled); Reference shows the cap only. TL and Salvage are the TL-Salvage badge everywhere.
    6. **Cost, range, action type** — cost pennant, range badge (never interactive), action-type stamp (the deck's filter key).
    7. **Entity card** — the full card is THE canonical render; Listing is the Row, the Peek a compact Card (§1); a section header is a Slab.

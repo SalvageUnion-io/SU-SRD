@@ -25,10 +25,11 @@ import type { PageRefIndex } from './pageRefs'
  * - `userMade`: the dashed treatment, for a surface of player-made things.
  * - `linkAs`: the app's router link (ITUN's `AppLink`), for an in-app path, so
  *   a link-mode form navigates client-side; an external href stays an `<a>`.
- * - `rolls`: whether a roll table carries its Roll. A Reference surface (the
- *   SRD) turns it off: its matrix cell is the banded table under its stamp,
- *   and rust there would be an action on a read-only page (ruleset §1, §2,
- *   §3.1). The Live Sheet and the Dashboard roll.
+ * - `rolls`: whether a roll table carries its Roll. On by default: the Live
+ *   Sheet, the Dashboard and the SRD all roll.
+ * - `announceRoll`: where a roll's result shows. Absent, the card reads it out
+ *   in an ink strip under its bar (the Live Sheet); the SRD raises it as a
+ *   toast instead, so a roll on a reference page never reflows the page.
  * - `pageRefs`: the entities on each Workshop Manual page the prose cites, so a
  *   "p. 235" links to the page that covers it (`pageRefs.ts`). Absent, a
  *   reference stays text.
@@ -40,7 +41,22 @@ export type EntitySurfaceValue = {
   texture: boolean
   userMade: boolean
   rolls: boolean
+  announceRoll?: (roll: AnnouncedRoll) => void
   pageRefs?: PageRefIndex
+}
+
+/** A roll as a surface announces it: the table, the die and where it landed. */
+export type AnnouncedRoll = {
+  /** The table's name. */
+  table: string
+  /** The die. */
+  roll: number
+  /** The range it landed in, as the book prints it ("11–19"). */
+  range: string
+  /** The outcome's name, where the row has one ("Success"). */
+  label?: string
+  /** The outcome's text, trait references read as plain words. */
+  text: string
 }
 
 /** A router link: an anchor's attributes, a concrete `href`, its children. */
@@ -100,6 +116,7 @@ export function useEntitySurface(): EntitySurfaceValue {
       texture: own.texture ?? legacyTexture,
       userMade: own.userMade ?? false,
       rolls: own.rolls ?? true,
+      ...(own.announceRoll ? { announceRoll: own.announceRoll } : {}),
       ...(own.pageRefs ? { pageRefs: own.pageRefs } : {}),
     }),
     [own, entityHref, patternHref, linksOut, legacyTexture]

@@ -5,6 +5,7 @@ import {
   PatternHrefProvider,
   ReferenceEntityCard,
   Skeleton,
+  Toaster,
 } from 'component-lib'
 import { Suspense, useEffect, useMemo } from 'react'
 import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
@@ -95,6 +96,8 @@ export function ReferenceEntityIsland({
           </EntityHrefProvider>
         </Suspense>
       </GameDataGate>
+      {/* Where a roll on the card's tables lands (`ReferenceSurface`). */}
+      <Toaster />
     </IslandErrorBoundary>
   )
 }

@@ -3431,6 +3431,14 @@ body {
   color: var(--color-status-bad);
 }
 
+/* A toast's description reads in the toast's own paper. Sonner injects an
+   unlayered grey for it, which outranks any class in this layer. */
+.su-toast__description {
+  /* biome-ignore lint/complexity/noImportantStyles: Sonner's unlayered description colour outranks this layer */
+  color: inherit !important;
+  opacity: 0.85;
+}
+
 /* ── StatProvenance, Tooltip, Text ── */
 /* components/atoms/Text.tsx — every property a class, because callers restyle
  * Text through `className` (their utilities must keep winning). Two classes of
