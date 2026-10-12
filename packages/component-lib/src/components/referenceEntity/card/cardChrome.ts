@@ -141,7 +141,15 @@ export function resolveCardInteraction({
   outer: CardOuterProps
   frameStyle: CSSProperties
 } {
-  const resolvedCardClick = onCardClick ?? controls?.find((c) => c.cardClick)?.onClick
+  const clickControl = controls?.find((c) => c.cardClick)
+  const resolvedCardClick = onCardClick ?? clickControl?.onClick
+  // ONE CONTROL: when the click comes from a control the card SHOWS (a folded
+  // card's chevron), that control is the keyboard and screen-reader path, and
+  // the wrapper is a pointer convenience only — no role, no tab stop, no name.
+  // A `role="button"` wrapper around a visible button made two tab stops named
+  // the same, nested one interactive inside another, and turned the card's
+  // content presentational, so a screen reader could not read its stats.
+  const pointerOnly = !onCardClick && !!clickControl && !clickControl.hidden
   const isHoverable = !!resolvedCardClick || !!cardClickable
   // Classes, not a style object: a caller's `className` may override any of
   // these (`.su-ec-outer` in `styles/index.css`).
@@ -152,7 +160,7 @@ export function resolveCardInteraction({
     // Flat chrome (brand refresh P2a): a clickable card says so with the pointer, not by
     // lifting and scaling off the page.
     isHoverable && 'su-ec-outer--clickable',
-    resolvedCardClick && FOCUS_RING,
+    resolvedCardClick && !pointerOnly && FOCUS_RING,
     className
   )
   // Base a11y for a clickable card. A selection toggle announces its state:
@@ -162,6 +170,10 @@ export function resolveCardInteraction({
   // instead of its full text content. Navigation/add cards leave both unset and
   // stay a plain role=button.
   const label = cardClickLabel ? { 'aria-label': cardClickLabel } : {}
+  // A DISCLOSURE control on the card's rail (the fold chevron) controls the
+  // whole card, so the wrapper takes the id its `aria-controls` names.
+  const id = controls?.find((c) => c.ariaExpanded !== undefined)?.ariaControls
+  const idAttr = id ? { id } : {}
   const outer: CardOuterProps =
     resolvedCardClick && selectionRole === 'radio'
       ? {
@@ -171,16 +183,19 @@ export function resolveCardInteraction({
         }
       : {
           className: outerClassName,
-          interaction: resolvedCardClick
-            ? {
-                role: 'button' as const,
-                tabIndex: 0,
-                onClick: resolvedCardClick,
-                onKeyDown: activateOnKey(resolvedCardClick),
-                ...label,
-                ...(selectionRole && selected !== undefined ? { 'aria-pressed': selected } : {}),
-              }
-            : {},
+          interaction: !resolvedCardClick
+            ? idAttr
+            : pointerOnly
+              ? { ...idAttr, onClick: resolvedCardClick }
+              : {
+                  ...idAttr,
+                  role: 'button' as const,
+                  tabIndex: 0,
+                  onClick: resolvedCardClick,
+                  onKeyDown: activateOnKey(resolvedCardClick),
+                  ...label,
+                  ...(selectionRole && selected !== undefined ? { 'aria-pressed': selected } : {}),
+                },
         }
   // Selection state — the canonical SELECTION_RING (atoms/interaction.ts), the
   // same 3px ink ring the wizard Sel/PickCard draw. A non-layout-shifting
