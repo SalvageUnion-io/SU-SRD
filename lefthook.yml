@@ -36,7 +36,10 @@ pre-push:
       # job run, with a different profile. Do not add a gate here: add it to
       # that registry, and every path picks it up. `pre-push` = the fast profile
       # plus generated-file drift, the likeliest avoidable CI bounce.
-      run: bun tools/check.ts --profile=pre-push
+      # `nice`: the checks have no timeouts and the tests do, so the tests get
+      # the cores first. Without it itun's renders ran past the 5 s default
+      # beside typecheck, knip and biome on a 4-core machine.
+      run: nice -n 15 bun tools/check.ts --profile=pre-push
 
     test:
       # The changed workspaces' suites plus their dependents', from the
