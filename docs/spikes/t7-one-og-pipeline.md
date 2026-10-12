@@ -1,7 +1,7 @@
 # Spike T7: one OG image pipeline
 
-Refit ledger item T7, spike. **Status: decided again (2026-10-12): option B, after the
-round-2 re-measure below. Closed until a [re-open trigger](#recommendation) fires.** First round: option B, chosen 2026-10-12
+Refit ledger item T7, spike. **Status: decided round 2 (2026-10-12): B.** Closed until a
+[re-open trigger](#recommendation) fires. First round: option B, chosen 2026-10-12
 ([#1396](https://github.com/SalvageUnion-io/SU-SRD/pull/1396#issuecomment-6124251979)),
 re-open trigger "S2 moves ITUN to salvageunion.io/build". S2 has landed (#1423,
 #1426): ITUN is the Workers route `salvageunion.io/build*` on `su-itun`, its own
@@ -67,7 +67,7 @@ jobs, `og:generate` / `og:install-browser`, srd's `sharp`. S2 adds two variants:
 - **A1, in srd's Worker.** As round 1: an R2 binding and the two secrets on `su-srd`,
   a paid runtime API on the site that has no backend (ADR-033).
 - **A2, in ITUN's Worker.** `/build/og/ref/…png` answered by `ogImage`, which already
-  has the screenshot, the secrets and the route. **No new route or secret**; the
+  has the screenshot, the secrets and the route. **No new route or secret**: both secrets are set on `su-itun` (owner, 2026-10-12). The
   same-origin page it shoots is srd's `/og-card/`. But srd's unfurls then ship on
   ITUN's Worker and deploy leg, and a broken `su-itun` blanks every rule reference's
   preview: the coupling "merge the sites, not the code" (ADR-048) rules out. The
@@ -111,8 +111,8 @@ browser pictures equal, or the preview drifts from the page.
   `apps/srd/wrangler.jsonc` (and ITUN's, to replace its Cache API); `wrangler secret
   put CF_ACCOUNT_ID` and `BROWSER_RENDERING_TOKEN` on `su-srd` (ITUN's token can be
   reused); accept the BR bill; approve a post-deploy warm-sweep job.
-- **A2:** the bucket and ITUN binding as A1; confirm both secrets are set on
-  `su-itun` (they are optional there); accept srd unfurls depending on `su-itun`;
+- **A2:** the bucket and ITUN binding as A1; both secrets are already set on
+  `su-itun` (owner, 2026-10-12); accept srd unfurls depending on `su-itun`;
   approve the sweep. No new route or secret.
 - **B, C:** none.
 - **D:** none for infrastructure; a design call that the og-scale band may be
