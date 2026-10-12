@@ -448,7 +448,7 @@ describe('session-status.sh (SessionStart)', () => {
 
   const STUBS = {
     ok: `case "$*" in
-  *pulls*) echo '#42 feat: x (draft) → design-refresh https://example.test/pull/42' ;;
+  *pulls*) printf '%s\n' '#42 feat: x (draft) → design-refresh https://example.test/pull/42' design-refresh ;;
   *e2e-nightly*) echo 'success 2026-10-11 https://example.test/runs/1' ;;
 esac`,
     empty: 'exit 0',
@@ -473,6 +473,10 @@ esac`,
       }).exited
     await inWork('commit', '-q', '--allow-empty', '-m', 'base')
     await inWork('push', '-q', 'origin', 'main')
+    // A release branch one commit past main, and a branch cut from it.
+    await inWork('checkout', '-q', '-b', 'design-refresh')
+    await inWork('commit', '-q', '--allow-empty', '-m', 'release')
+    await inWork('push', '-q', 'origin', 'design-refresh')
     await inWork('checkout', '-q', '-b', 'feature')
     await inWork('commit', '-q', '--allow-empty', '-m', 'one')
     await inWork('commit', '-q', '--allow-empty', '-m', 'two')
@@ -490,7 +494,8 @@ esac`,
       .join(':')
     const bin = join(dir, 'bin')
     mkdirSync(bin)
-    for (const tool of ['git', 'sed', 'mktemp', 'head', 'grep', 'rm', 'sleep', 'touch', 'cat']) {
+    const tools = ['git', 'sed', 'mktemp', 'head', 'grep', 'rm', 'sleep', 'touch', 'cat', 'dirname']
+    for (const tool of [...tools, 'bun']) {
       const real = Bun.which(tool, { PATH: toolPath })
       if (real) await Bun.spawn(['ln', '-s', real, join(bin, tool)]).exited
     }
@@ -520,7 +525,9 @@ esac`,
       const { code, stdout, stderr } = await f.run()
       expect({ code, stderr }).toEqual({ code: ALLOW, stderr: '' })
       expect(stdout).toContain('[status] branch: feature\n')
-      expect(stdout).toContain('vs origin/main (just fetched): 2 ahead, 0 behind')
+      expect(stdout).toContain(
+        "vs origin/design-refresh (the PR's base; just fetched): 2 ahead, 0 behind"
+      )
       expect(stdout).toContain('open PR: #42 feat: x (draft) → design-refresh')
       expect(stdout).toContain('nightly E2E: success 2026-10-11')
     } finally {
@@ -534,6 +541,28 @@ esac`,
       const { stdout } = await f.run()
       expect(stdout).toContain('open PR: none for this branch')
       expect(stdout).toContain('nightly E2E: no runs yet')
+    } finally {
+      f.cleanup()
+    }
+  })
+
+  test('with no PR, counts against the nearer of main and design-refresh', async () => {
+    const f = await fixture('empty')
+    try {
+      const { stdout } = await f.run()
+      expect(stdout).toContain(
+        'vs origin/design-refresh (nearest of main and design-refresh; just fetched): 2 ahead, 0 behind'
+      )
+    } finally {
+      f.cleanup()
+    }
+  })
+
+  test('$SU_BASE overrides the PR', async () => {
+    const f = await fixture('ok')
+    try {
+      const { stdout } = await f.run({ SU_BASE: 'main' })
+      expect(stdout).toContain('vs origin/main (from $SU_BASE; just fetched): 3 ahead, 0 behind')
     } finally {
       f.cleanup()
     }
@@ -576,7 +605,9 @@ esac`,
       }).exited
       const { code, stdout, stderr } = await f.run()
       expect({ code, stderr }).toEqual({ code: ALLOW, stderr: '' })
-      expect(stdout).toContain('(fetch failed; as of the last fetch): 2 ahead, 0 behind')
+      expect(stdout).toContain(
+        "(the PR's base; fetch failed; as of the last fetch): 2 ahead, 0 behind"
+      )
     } finally {
       f.cleanup()
     }
