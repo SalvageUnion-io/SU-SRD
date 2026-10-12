@@ -156,6 +156,7 @@ export const CHECKS: readonly CheckSpec[] = [
       'the four Workers share one shape: src/worker/index.ts, one script set, Env types, equal shared wrangler keys',
     fix: 'make the app match the others (tools/check-workers.ts names each rule); a new Worker joins WORKER_APPS in tools/check-generated.ts',
     cmd: ['bun', 'tools/check-workers.ts'],
+    areas: ['code'],
     profiles: ALL,
   },
   {
