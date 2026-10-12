@@ -62,6 +62,7 @@
     "deploy-commands": "bun --filter discord-bot deploy-commands",
     "deploy-commands:global": "bun --filter discord-bot deploy-commands:global",
     "rules:extract": "bun tools/extract-rules.ts",
+    "rules:find": "bun tools/rules-find.ts",
     "typecheck": "su-ref-generate && tsc -b",
     "lint": "biome lint .",
     "format": "biome format --write .",

@@ -54,8 +54,8 @@
  * every book. A miss is aligned token-by-token against the likeliest passage
  * and the differences classified.
  *
- * Books are matched by FILENAME PATTERN, so a new edition dropped into
- * `rules/` is picked up without a code change (the latest by version wins).
+ * Books are matched by FILENAME PATTERN (`gates/lib/rulesBooks.ts`), so a new
+ * edition dropped into `rules/` is picked up without a code change.
  *
  * Requires the gitignored extract: `bun run rules:extract`. With none present
  * this exits 0 with a notice: a local check, not a CI gate. Where it looks: `findExtractDir` in `extract-rules.ts`.
@@ -66,7 +66,7 @@
  *       bun tools/check-rules-fidelity.ts --show=stat-mismatch          # stat blocks that differ
  *       bun tools/check-rules-fidelity.ts --summary  # drift summary as markdown (no book text)
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import type { Anchor, Lock, LockEntry, ProseItem, Reason } from 'gates/lib/proseFidelity'
 import {
@@ -80,6 +80,8 @@ import {
   VERDICTS,
   writeLockFile,
 } from 'gates/lib/proseFidelity'
+import type { BookSpec } from 'gates/lib/rulesBooks'
+import { pickFiles, readPages } from 'gates/lib/rulesBooks'
 import type { StatResult } from 'gates/lib/statFidelity'
 import { collectStats, parsePages, statContext, statVerdict } from 'gates/lib/statFidelity'
 import type { ProseRuleId } from 'salvageunion-reference/proseDeviations'
@@ -94,111 +96,6 @@ import {
 } from 'salvageunion-reference/proseDeviations'
 import type { Layer } from './extract-rules'
 import { findExtractDir, LAYER_DIR } from './extract-rules'
-
-// ---------------------------------------------------------------------------
-// Books
-// ---------------------------------------------------------------------------
-
-type BookSpec = {
-  /** Label used in output and in the lock's `editions`. */
-  id: string
-  /** The extract, matched by filename so a new edition needs no code change. */
-  file: RegExp
-  /**
-   * The data anchors this book answers for. Empty: a fallback-only text.
-   * `partial`: the anchor also covers material with no local text, so a miss
-   * there is `unverified-source`, not drift.
-   */
-  answers: { source: string; booklet?: string; partial?: boolean }[]
-  /** Load every matching file (a series of one-off PDFs), not only the latest edition. */
-  series?: boolean
-  /**
-   * For a series whose files each cover one thing: the entity a file covers,
-   * from its name. A record of that series is verifiable only when a file
-   * covers it (or what owns it); the series' other files are still searched.
-   */
-  scopeOf?: (file: string) => string | undefined
-}
-
-const STARTER = 'Salvage Union Starter Set'
-const BOOK_SPECS: BookSpec[] = [
-  {
-    id: 'Core Book',
-    // Anchored: the expansions share the "Digital Edition" suffix.
-    file: /^salvage union digital edition/i,
-    answers: [{ source: 'Salvage Union Workshop Manual' }],
-  },
-  { id: 'False Flag', file: /^false flag/i, answers: [{ source: 'False Flag' }] },
-  { id: 'Rainmaker', file: /^rainmaker/i, answers: [{ source: 'Rainmaker' }] },
-  {
-    id: 'We Were Here First!',
-    file: /^we were here first/i,
-    answers: [{ source: 'We Were Here First!' }],
-  },
-  {
-    id: 'Reclamation of the Wastes',
-    file: /^reclamation of the wastes/i,
-    answers: [{ source: 'Reclamation of the Wastes' }],
-  },
-  // The Starter Set is five booklets, each paginated from 1, so `booklet` picks
-  // the text. Its Asset Pack ("AP") holds the three adventure booklets, each
-  // also sold on its own, and a deck of item cards that has no local text.
-  {
-    id: 'Mech Monday',
-    file: /^mech monday/i,
-    // One file per chassis ("Mech Monday Mule Patterns", "… Goliath Template"),
-    // plus the transcribed blog posts. A chassis with no file of its own (the
-    // Scrapper patterns survive only as an image) stays unverified-source.
-    answers: [{ source: 'Mech Monday' }],
-    series: true,
-    scopeOf: (file) =>
-      file.match(/^mech monday (.+?) (?:patterns|template)\b/i)?.[1]?.toLowerCase(),
-  },
-  {
-    id: 'SUSS Core Rulebook',
-    file: /^suss core rulebook/i,
-    answers: [{ source: STARTER, booklet: 'CR' }],
-  },
-  {
-    id: 'SUSS Pilots Handbook',
-    file: /^suss pilots handbook/i,
-    answers: [{ source: STARTER, booklet: 'PH' }],
-  },
-  {
-    id: 'SUSS Parts Catalogue',
-    file: /^suss parts catalogue/i,
-    answers: [{ source: STARTER, booklet: 'PC' }],
-  },
-  {
-    id: 'SUSS Rules Reference',
-    file: /^suss rules reference/i,
-    answers: [{ source: STARTER, booklet: 'RR' }],
-  },
-  {
-    id: 'Relics of a Time Gone By',
-    file: /^relics of a time gone by/i,
-    answers: [
-      { source: 'Relics of a Time Gone By' },
-      { source: STARTER, booklet: 'AP', partial: true },
-    ],
-  },
-  {
-    id: "Thatcher's Mech Base",
-    file: /^thatcher'?s mech base/i,
-    answers: [
-      { source: "Thatcher's Mech Base" },
-      { source: STARTER, booklet: 'AP', partial: true },
-    ],
-  },
-  {
-    id: 'The Hive',
-    file: /^the hive/i,
-    answers: [{ source: 'The Hive' }, { source: STARTER, booklet: 'AP', partial: true }],
-  },
-  // Reprint core text; searched only as a fallback, never cited.
-  { id: 'Quick Ref Sheets', file: /^su_quick ref sheets digital/i, answers: [] },
-  { id: 'Quickstart', file: /^salvage union quickstart/i, answers: [] },
-]
 
 /** A cited page and its neighbours: a paragraph may run over a page break. */
 const NEAR = 2
@@ -254,20 +151,7 @@ function pageOfPos(starts: number[], nums: number[], pos: number): number {
 }
 
 function loadBook(spec: BookSpec, layer: Layer, path: string): Book {
-  const parts = readFileSync(path, 'utf8').split(/<!-- page (\d+) -->/)
-  const pages = new Map<number, string>()
-  // Lines that are only a page number, a slot/tech digit, a rotated stamp letter
-  // or two, or a "T2" tech tag are layout glyphs. Dropping them is a PDF-side
-  // clean-up, never a data one.
-  const GLYPH = /^\s*(\d{1,3}|(?![AI]$)[A-Z]{1,3}|T\d|[×x] _)\s*$/
-  for (let i = 1; i < parts.length; i += 2)
-    pages.set(
-      Number(parts[i]),
-      (parts[i + 1] ?? '')
-        .split('\n')
-        .filter((l) => !GLYPH.test(l))
-        .join('\n')
-    )
+  const pages = readPages(path, { dropGlyphs: true })
   const views = new Map<View, { text: string; starts: number[]; nums: number[] }>()
   for (const v of VIEWS) {
     let text = ''
@@ -337,22 +221,6 @@ function pageWindow(b: Book, page: number): [number, number] {
 // ---------------------------------------------------------------------------
 // Locating the extract
 // ---------------------------------------------------------------------------
-
-/**
- * The extract(s) for each book present: the latest edition (names compared
- * with numeric collation), or for a series every file.
- */
-function pickFiles(dir: string): Map<BookSpec, string[]> {
-  const files = readdirSync(dir).filter((f) => f.endsWith('.txt'))
-  const out = new Map<BookSpec, string[]>()
-  for (const spec of BOOK_SPECS) {
-    const found = files
-      .filter((f) => spec.file.test(f))
-      .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
-    if (found.length) out.set(spec, spec.series ? found.reverse() : found.slice(0, 1))
-  }
-  return out
-}
 
 // ---------------------------------------------------------------------------
 // Search

@@ -16,7 +16,7 @@ The record of the claude.ai/code environment (selector → Cloud); no CLI or API
 8. **Playwright.** The image's Chromium is older than `@playwright/test`'s: run e2e specs with `executablePath: '/opt/pw-browsers/chromium'`, never `playwright install`.
 9. **Setup script.** Paste the script below; it runs as root, must exit 0, and is snapshotted, so the hook is a no-op at start.
    It also caches the newest Convex local backend and dashboard in `~/.cache/convex` (the CLI's own download crashed through the proxy).
-10. **Rules text.** Attach private `SalvageUnion-io/su-rules` as a second repo (no secret or host needed); grep its `extracted/*.txt`.
+10. **Rules text.** Attach private `SalvageUnion-io/su-rules` as a second repo (no secret or host needed); `bun run rules:find` reads it.
     `bun run check:rules-fidelity` finds the sibling checkout itself.
 11. **Multi-repo.** The project dir is `/home/user`, so the script copies `.claude/settings.json` (hooks, deny list) there.
 

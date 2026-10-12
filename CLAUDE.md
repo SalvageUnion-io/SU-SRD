@@ -12,7 +12,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need
   - [ADR-021](docs/adr/021-itun-surface-taxonomy.md) — surface/mode taxonomy: **where a rule is enforced**.
   - [ADR-007](docs/adr/007-automation-boundary.md) — automation boundary; read before rules work.
 - **Hosting:** Cloudflare Workers + R2 — [ADR-033](docs/adr/033-hosting-on-cloudflare.md).
-- **Rules text:** gitignored here; the private repo `SalvageUnion-io/su-rules` is the source of record. Locally, `bun run rules:extract`, then grep `rules/extracted/*.txt`; in a cloud session or Routine, attach `su-rules` as a second repo and grep its committed `extracted/*.txt` (sibling checkout, no poppler; the rules checks find it there). Both carry `<!-- page N -->` markers for citations. There is no curated rules digest.
+- **Rules text:** gitignored here; the private repo `SalvageUnion-io/su-rules` is the source of record. Locally, `bun run rules:extract`; in a cloud session or Routine, attach `su-rules` as a second repo (sibling checkout, no poppler; the rules tools find it there). Then `bun run rules:find <term>` prints `Book p.N: …snippet…`, 2.0a books first (the `rules-lookup` agent). There is no curated rules digest.
 
 ## Critical Rules
 
