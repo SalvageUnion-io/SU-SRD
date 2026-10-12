@@ -15,11 +15,20 @@
  * stamping the mech.
  */
 
-import { Button, FieldError, ModalShell } from 'component-lib'
+import { Button, FieldError, ModalShell, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
 import type { MechPattern } from '../../../lib/schemas/pattern'
 import { useEntityStore } from '../../../stores/entityStore'
+import '../../../styles/wizard.css'
+import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from '../../wizard/wizardStyles'
+
+const ROOT = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[4],
+} satisfies CSSProperties
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern
@@ -46,7 +55,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div style={ROOT}>
       <Button
         type="button"
         size="compact"
@@ -62,14 +71,14 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
           if (!next) setConfirming(false)
         }}
         title={`Build a mech from ${pattern.name}?`}
-        maxWidth="max-w-md"
+        maxWidth="wiz-modal-md"
       >
-        <div className="flex flex-col gap-4 bg-paper p-5">
-          <div className="font-body text-sm text-wk-muted">
+        <div style={dialogBodyStyle}>
+          <div style={dialogNoteStyle}>
             This may exceed the starting rules — a freeform build, like Blank. It stamps the mech
             exactly as saved; edit freely on its live sheet.
           </div>
-          <div className="flex justify-end gap-2">
+          <div style={dialogActionsStyle}>
             <Button variant="ghost" size="compact" onClick={() => setConfirming(false)}>
               Cancel
             </Button>

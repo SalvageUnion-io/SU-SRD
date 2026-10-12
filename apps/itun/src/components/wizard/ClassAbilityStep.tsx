@@ -3,6 +3,8 @@ import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
 import { selectableClasses } from './classOptions'
+import '../../styles/wizard.css'
+import { fullWidthStyle } from './wizardStyles'
 
 type SURClassesAccessor = {
   all: () => unknown[]
@@ -84,7 +86,7 @@ export function ClassAbilityStep({
   )
 
   return (
-    <div className="w-full space-y-5">
+    <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
       <Slab variant="solid" label="Pilot Class" count="Choose 1" />
       <MasonryColumns maxColumns={2}>{legalClasses.map(renderClassCard)}</MasonryColumns>
 

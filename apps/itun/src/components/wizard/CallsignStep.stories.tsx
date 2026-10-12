@@ -1,6 +1,15 @@
+import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { CallsignStep } from './CallsignStep'
+
+const FRAME: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[32],
+  padding: tokens.space[16],
+}
 
 export default {
   title: 'Compositions/Wizard/Callsign Step',
@@ -11,7 +20,7 @@ export const Default = () => {
   const [name, setName] = useState('')
   const [callsign, setCallsign] = useState('')
   return (
-    <div className="sheet--pilot flex flex-col gap-8 p-4">
+    <div className="sheet--pilot" style={FRAME}>
       <div>
         <Caption>empty — both fields awaiting input or a roll</Caption>
         <CallsignStep

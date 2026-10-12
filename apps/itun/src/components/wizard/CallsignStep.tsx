@@ -1,6 +1,8 @@
 import { Field, Input } from 'component-lib'
+import '../../styles/wizard.css'
 import { RollTableButton } from './RollTableButton'
 import type { RollTableDeps } from './rollTableHelpers'
+import { fieldRowStyle, stepColumnStyle } from './wizardStyles'
 
 type CallsignStepProps = {
   name: string
@@ -18,7 +20,7 @@ type CallsignStepProps = {
  */
 export function CallsignStep({ name, callsign, onChange, _rollDeps }: CallsignStepProps) {
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="wiz-stack wiz-stack--20" style={stepColumnStyle}>
       <Field label="Name" required htmlFor="pilot-name">
         <Input
           id="pilot-name"
@@ -30,7 +32,7 @@ export function CallsignStep({ name, callsign, onChange, _rollDeps }: CallsignSt
         />
       </Field>
       <Field label="Callsign" required htmlFor="pilot-callsign">
-        <div className="flex gap-2">
+        <div style={fieldRowStyle}>
           <Input
             id="pilot-callsign"
             type="text"

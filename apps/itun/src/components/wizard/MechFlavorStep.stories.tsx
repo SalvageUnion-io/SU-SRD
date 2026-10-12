@@ -1,6 +1,10 @@
+import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { MechFlavorStep } from './MechFlavorStep'
+
+const FRAME: CSSProperties = { backgroundColor: tokens.color.paper, padding: tokens.space[16] }
 
 export default {
   title: 'Compositions/Mech Flavor Step',
@@ -10,7 +14,7 @@ export default {
 export const Default = () => {
   const [appearance, setAppearance] = useState('')
   return (
-    <div className="sheet--mech bg-paper p-4">
+    <div className="sheet--mech" style={FRAME}>
       <Caption>MechFlavorStep — appearance</Caption>
       <MechFlavorStep
         field="appearance"

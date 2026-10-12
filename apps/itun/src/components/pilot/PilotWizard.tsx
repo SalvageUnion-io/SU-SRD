@@ -29,6 +29,7 @@ import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell, WizTracker } from '../wizard/WizShell'
 import { ReviewStep } from './ReviewStep'
 import { StatsStep } from './StatsStep'
+import '../../styles/wizard.css'
 
 /** Book-order steps (Pilot Bay pp.18–19 + Review — plan §4.1). */
 const STEPS: readonly PilotWizardStepId[] = [
@@ -362,7 +363,7 @@ export function PilotWizard({
       footerNote={gate.ok ? undefined : gate.reason}
       submitLabel="Create Pilot ✦"
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="mb-5" />
+      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="wiz-rule-brief" />
       {step === 'stats' && <StatsStep />}
       {step === 'classAbility' && (
         <ClassAbilityStep

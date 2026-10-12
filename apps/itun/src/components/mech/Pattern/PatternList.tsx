@@ -36,6 +36,12 @@ const ROW = {
   gap: tokens.space[8],
 } satisfies CSSProperties
 
+const LOADING = {
+  color: tokens.color.wkMuted,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+} satisfies CSSProperties
+
 const LINK = { color: 'inherit', display: 'block', textDecoration: 'none' } satisfies CSSProperties
 
 type PatternListProps = {
@@ -60,7 +66,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
 
   if (isLoading) {
     return (
-      <p className="text-sm text-wk-muted" aria-live="polite">
+      <p style={LOADING} aria-live="polite">
         Loading patterns…
       </p>
     )
