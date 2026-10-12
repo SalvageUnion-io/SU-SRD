@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import { byTechLevelThenName, getUniqueTechLevels, techLevelRank } from './helpers.js'
-import { SalvageUnionReference } from './index.js'
+import { byTechLevelThenName, getUniqueTechLevels, techLevelRank } from './helpers'
+import { SalvageUnionReference } from './index'
 
 describe('techLevelRank', () => {
   it('keeps the numeric tiers in their own order', () => {

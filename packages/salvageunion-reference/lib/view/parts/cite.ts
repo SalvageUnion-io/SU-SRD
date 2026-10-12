@@ -3,9 +3,9 @@
  * reprints. Ported from component-lib's `provenance.ts`.
  */
 
-import { getBooklet, getPageReference, getSource } from '../../entityFields.js'
-import type { SURefMetaEntity, SURefObjectAnyPattern } from '../../schemas/index.js'
-import type { EntityCite } from '../types.js'
+import { getBooklet, getPageReference, getSource } from '../../entityFields'
+import type { SURefMetaEntity, SURefObjectAnyPattern } from '../../schemas/index'
+import type { EntityCite } from '../types'
 
 /** A secondary printing: the book (and booklet) that reprinted it, and the page. */
 export type AdditionalSource = { source: string; booklet?: string; page: number }

@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
-import { extractStaticEntitySummary } from '../helpers.js'
-import { SalvageUnionReference } from '../index.js'
-import { isColumnsTable } from './resultForTable.js'
-import { tableRows } from './tableRows.js'
+import { extractStaticEntitySummary } from '../helpers'
+import { SalvageUnionReference } from '../index'
+import { isColumnsTable } from './resultForTable'
+import { tableRows } from './tableRows'
 
 /**
  * Roll-table rows must survive into the static summary.

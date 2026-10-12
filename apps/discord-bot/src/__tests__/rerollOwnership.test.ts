@@ -5,11 +5,11 @@
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { buildPostedRollMessage, buildRollMessage } from '../commands/roll.js'
-import type { ContainerData } from '../container.js'
-import { decodeRollRequest, encodeRollRequest } from '../customId.js'
-import { noEffectContainer } from '../errorContainer.js'
-import { buttonInteractionHandlerFor } from './helpers.js'
+import { buildPostedRollMessage, buildRollMessage } from '../commands/roll'
+import type { ContainerData } from '../container'
+import { decodeRollRequest, encodeRollRequest } from '../customId'
+import { noEffectContainer } from '../errorContainer'
+import { buttonInteractionHandlerFor } from './helpers'
 
 const reroll = (data: ContainerData): string => {
   for (const block of data.blocks) {

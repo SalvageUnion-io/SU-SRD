@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { AllowlistEntry, OrphanResult } from './validateOrphansLogic.js'
+import type { AllowlistEntry, OrphanResult } from './validateOrphansLogic'
 import {
   collectReferencedActionNames,
   collectReferencedModuleNames,
@@ -14,7 +14,7 @@ import {
   partitionOrphansByAllowlist,
   ROOT_FILES,
   runOrphanCheck,
-} from './validateOrphansLogic.js'
+} from './validateOrphansLogic'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {

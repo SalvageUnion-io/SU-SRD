@@ -1,18 +1,9 @@
 {
-  // Extends the repo base like every sibling workspace, and typechecks on the
-  // repo's TypeScript 7. Only the options srd genuinely needs are set here.
-  "extends": "../../tsconfig.json",
+  // Extends the browser base like itun, and typechecks on the repo's
+  // TypeScript 7. Only the options srd genuinely needs are set here.
+  "extends": "../../tsconfig.dom.json",
   "compilerOptions": {
-    "target": "ESNext",
-    "allowImportingTsExtensions": true,
-
-    /* srd's own */
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "verbatimModuleSyntax": true,
-    "jsx": "react-jsx",
-    "skipLibCheck": true
+    "target": "ESNext"
   },
   // `e2e/**/*` + `playwright.config.ts`: Playwright transpiles specs without
   // type-checking them, and biome.jsonc disables the linter for both paths, so

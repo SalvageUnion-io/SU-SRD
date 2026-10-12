@@ -7,8 +7,8 @@
  * is caught here rather than silently mis-capping crawlers.
  */
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from '../index.js'
-import { isWeaponSystem } from './crawlerSystems.js'
+import { SalvageUnionReference } from '../index'
+import { isWeaponSystem } from './crawlerSystems'
 
 function systemByName(name: string) {
   const s = SalvageUnionReference.Systems.getByName(name)

@@ -2,15 +2,15 @@
  * Zod entity schemas - all 24 entity types
  */
 
-import { z } from '../zod.js'
+import { z } from '../zod'
 import {
   IdSchema,
   NameSchema,
   NonNegativeIntegerSchema,
   PositiveIntegerSchema,
   TechLevelSchema,
-} from './common.js'
-import { ActionTypeSchema, DamageTypeSchema, SchemaNameSchema, TreeSchema } from './enums.js'
+} from './common'
+import { ActionTypeSchema, DamageTypeSchema, SchemaNameSchema, TreeSchema } from './enums'
 import {
   ActionSchema,
   AdvancedClassSchema,
@@ -35,7 +35,7 @@ import {
   SystemModuleSchema,
   TableSchema,
   TraitSchema,
-} from './objects.js'
+} from './objects'
 
 /**
  * Ability level can be number 1-3 or 'L' (Legendary) or 'G' (Generic)

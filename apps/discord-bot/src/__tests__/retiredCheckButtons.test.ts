@@ -14,8 +14,8 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import { parseCustomId } from '../customId.js'
-import { buttonInteractionHandlerFor } from './helpers.js'
+import { parseCustomId } from '../customId'
+import { buttonInteractionHandlerFor } from './helpers'
 
 describe('buttons left behind by the retired /su check', () => {
   test('no longer parse', () => {

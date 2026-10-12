@@ -15,13 +15,13 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import { commands } from '../commands/index.js'
-import { setItunClient } from '../commands/itunReply.js'
-import { ITUN_ORIGIN, publicSheetUrl, sheetCard } from '../gameCards.js'
-import type { ItunClient } from '../itun/client.js'
-import type { EntityBody, SheetResult } from '../itun/types.js'
-import { blockStarting, cardText, cardTexts } from './cardText.js'
-import { fakeExecute } from './fakeInteraction.js'
+import { commands } from '../commands/index'
+import { setItunClient } from '../commands/itunReply'
+import { ITUN_ORIGIN, publicSheetUrl, sheetCard } from '../gameCards'
+import type { ItunClient } from '../itun/client'
+import type { EntityBody, SheetResult } from '../itun/types'
+import { blockStarting, cardText, cardTexts } from './cardText'
+import { fakeExecute } from './fakeInteraction'
 
 const WEB = ITUN_ORIGIN
 

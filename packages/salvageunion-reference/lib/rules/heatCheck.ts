@@ -30,7 +30,7 @@
  * to the player via the card status badge — this module never auto-picks.
  */
 
-import type { HeatCheckEffect, PushResult, ReactorOverloadOutcome, Roll } from './types.js'
+import type { HeatCheckEffect, PushResult, ReactorOverloadOutcome, Roll } from './types'
 
 /**
  * Clamps a heat value into [0, cap]. Heat can never exceed Heat Cap (rule 1).

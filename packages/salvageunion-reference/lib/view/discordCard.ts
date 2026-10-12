@@ -21,14 +21,14 @@
  * - children → a counted stamp over linked names (E6: a link, never a card).
  */
 
-import { srdEntityUrl } from '../assets.js'
-import { replaceChassisPlaceholder } from '../contentBlockHelpers.js'
-import { SalvageUnionReference } from '../index.js'
-import { nameToSlug } from '../nameToSlug.js'
-import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index.js'
-import { replaceTraitReferences } from '../traitText.js'
-import { toEntityModel } from './toEntityModel.js'
-import type { EntityModel, EntityRef, Fact, TraitMention } from './types.js'
+import { srdEntityUrl } from '../assets'
+import { replaceChassisPlaceholder } from '../contentBlockHelpers'
+import { SalvageUnionReference } from '../index'
+import { nameToSlug } from '../nameToSlug'
+import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index'
+import { replaceTraitReferences } from '../traitText'
+import { toEntityModel } from './toEntityModel'
+import type { EntityModel, EntityRef, Fact, TraitMention } from './types'
 
 /**
  * The accent stripe for each tone, as the `0xRRGGBB` integer Discord takes.

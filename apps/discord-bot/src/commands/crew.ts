@@ -1,9 +1,9 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
-import { crewCard, ITUN_ORIGIN, sheetCard } from '../gameCards.js'
-import type { EntityBody } from '../itun/types.js'
-import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-import { itun, respondWithItun } from './itunReply.js'
+import { crewCard, ITUN_ORIGIN, sheetCard } from '../gameCards'
+import type { EntityBody } from '../itun/types'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
+import { itun, respondWithItun } from './itunReply'
 
 /**
  * `/su crew` and `/su sheet` — the table's read surfaces (ADR-030 Phase 6).

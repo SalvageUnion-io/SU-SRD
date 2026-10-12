@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { getAssetUrl, SalvageUnionReference } from 'salvageunion-reference'
-import { ASSET_RENDER_WIDTHS, assetSrcSetFor } from '../assetSrcSet.ts'
+import { ASSET_RENDER_WIDTHS, assetSrcSetFor } from '../assetSrcSet'
 
 /**
  * Artwork `srcset`.

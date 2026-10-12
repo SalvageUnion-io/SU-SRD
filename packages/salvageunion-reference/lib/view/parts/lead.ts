@@ -3,10 +3,10 @@
  * component-lib's `compactLead.ts` / `firstParagraphText.ts`.
  */
 
-import { parseContentBlockString } from '../../contentBlockHelpers.js'
-import { isAbility } from '../../entityGuards.js'
-import type { SURefMetaEntity, SURefObjectContentBlock } from '../../schemas/index.js'
-import { plainTraitText } from '../../traitText.js'
+import { parseContentBlockString } from '../../contentBlockHelpers'
+import { isAbility } from '../../entityGuards'
+import type { SURefMetaEntity, SURefObjectContentBlock } from '../../schemas/index'
+import { plainTraitText } from '../../traitText'
 
 /** A content array's first paragraph, as text (references still marked up). */
 export function firstParagraphText(

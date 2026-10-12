@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import type { APIInteraction } from 'discord-api-types/v10'
 import { ApplicationCommandOptionType, InteractionType } from 'discord-api-types/v10'
-import { interactionName } from '../adapter.js'
+import { interactionName } from '../adapter'
 
 const as = (raw: unknown) => raw as APIInteraction
 

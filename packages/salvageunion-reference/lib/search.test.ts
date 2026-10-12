@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { resetAllForTesting, SalvageUnionReference } from './index.js'
-import { invalidateSearchIndex, search, searchIn } from './search.js'
+import { resetAllForTesting, SalvageUnionReference } from './index'
+import { invalidateSearchIndex, search, searchIn } from './search'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {

@@ -4,11 +4,11 @@
  * `entityCardTone.ts`, which now reads these.
  */
 
-import { isAbility } from '../../entityGuards.js'
-import { getDisplayName, getHybridClasses } from '../../helpers.js'
-import { SalvageUnionReference } from '../../index.js'
-import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index.js'
-import type { ClassKind, EntityDomain } from '../types.js'
+import { isAbility } from '../../entityGuards'
+import { getDisplayName, getHybridClasses } from '../../helpers'
+import { SalvageUnionReference } from '../../index'
+import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index'
+import type { ClassKind, EntityDomain } from '../types'
 
 /**
  * SCHEMA → DOMAIN, exhaustive over the schema enum, so a new schema fails to

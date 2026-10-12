@@ -7,9 +7,9 @@
  * `armour-plating`.
  */
 import { describe, expect, test } from 'bun:test'
-import { ITUN_ORIGIN, sheetCard } from '../gameCards.js'
-import type { EntityBody, SheetResult, SheetTable } from '../itun/types.js'
-import { blockStarting, cardHeading, cardText, cardTexts, cardUrl } from './cardText.js'
+import { ITUN_ORIGIN, sheetCard } from '../gameCards'
+import type { EntityBody, SheetResult, SheetTable } from '../itun/types'
+import { blockStarting, cardHeading, cardText, cardTexts, cardUrl } from './cardText'
 
 const WEB = ITUN_ORIGIN
 

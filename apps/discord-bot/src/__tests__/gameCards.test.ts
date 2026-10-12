@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { enforceContainerLimits } from '../container.js'
+import { enforceContainerLimits } from '../container'
 import {
   channelCard,
   crewCard,
@@ -11,9 +11,9 @@ import {
   ownerLabel,
   sheetUrl,
   shelfCard,
-} from '../gameCards.js'
-import type { CrewResult, OwnedEntity } from '../itun/types.js'
-import { blockStarting, cardText, cardTexts, cardUrl } from './cardText.js'
+} from '../gameCards'
+import type { CrewResult, OwnedEntity } from '../itun/types'
+import { blockStarting, cardText, cardTexts, cardUrl } from './cardText'
 
 /**
  * Card builders for the ITUN Game commands.

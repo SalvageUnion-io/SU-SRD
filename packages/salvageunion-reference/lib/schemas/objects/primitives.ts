@@ -7,9 +7,9 @@
  * bottom of the objects dependency graph.
  */
 
-import { z } from '../../zod.js'
-import { NonNegativeIntegerSchema, TechLevelSchema } from '../common.js'
-import { DamageTypeSchema } from '../enums.js'
+import { z } from '../../zod'
+import { NonNegativeIntegerSchema, TechLevelSchema } from '../common'
+import { DamageTypeSchema } from '../enums'
 
 /**
  * Special traits and properties of items, systems, or abilities

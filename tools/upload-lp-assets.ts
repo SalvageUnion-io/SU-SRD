@@ -30,7 +30,7 @@
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
-import { credentialsFromEnv, r2Client } from './lib/r2.ts'
+import { credentialsFromEnv, r2Client } from './lib/r2'
 
 const DEFAULT_BUCKET = 'su-lp-assets'
 

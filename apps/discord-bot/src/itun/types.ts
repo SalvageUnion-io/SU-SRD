@@ -6,7 +6,7 @@
  * every handler with. Change a `botClient` return shape and both sides fail to
  * compile until that file agrees. Importing cannot drag React into the Worker:
  * `import type` is erased at bundle time, and `botWire.ts` imports nothing at
- * all, so it type-checks cleanly under this workspace's `nodenext` settings.
+ * all, so it type-checks cleanly under this workspace's settings.
  *
  * What sharing does NOT buy is validation. This is still a network boundary and
  * the bot and the deployment ship separately, so every field is still read

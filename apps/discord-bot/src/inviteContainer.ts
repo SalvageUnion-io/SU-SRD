@@ -1,6 +1,6 @@
-import type { ContainerData } from './container.js'
-import { NEUTRAL_ACCENT } from './format.js'
-import type { InviteResult } from './itun/types.js'
+import type { ContainerData } from './container'
+import { NEUTRAL_ACCENT } from './format'
+import type { InviteResult } from './itun/types'
 
 /**
  * The DM `/su invite @user` sends (ADR-039) — pure `data → ContainerData`.

@@ -9,12 +9,12 @@
 // action-resolution module already imports this one (it needs
 // SalvageUnionReference), so going through the barrel would pull every other
 // utilities module into that cycle for no reason.
-import { extractActions, getChassisAbilities, invalidateActionMap } from './actionResolution.js'
-import type { ModelWithMetadata } from './BaseModel.js'
-import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated.js'
-import { lazyModelMap, SCHEMA_REGISTRY } from './generated/schemaRegistry.generated.js'
-import type { LazyModel } from './LazyModel.js'
-import type { LoadProjection } from './ModelFactory.js'
+import { extractActions, getChassisAbilities, invalidateActionMap } from './actionResolution'
+import type { ModelWithMetadata } from './BaseModel'
+import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated'
+import { lazyModelMap, SCHEMA_REGISTRY } from './generated/schemaRegistry.generated'
+import type { LazyModel } from './LazyModel'
+import type { LoadProjection } from './ModelFactory'
 import {
   getLoadedModel,
   installSchemas,
@@ -22,14 +22,14 @@ import {
   loadSchemas,
   resetLoadStateForTesting,
   toPascalCase,
-} from './ModelFactory.js'
+} from './ModelFactory'
 import type {
   SURefEntity,
   SURefEnumSchemaName,
   SURefMetaAction,
   SURefMetaEntity,
-} from './schemas/index.js'
-import { invalidateSearchIndex } from './search.js'
+} from './schemas/index'
+import { invalidateSearchIndex } from './search'
 
 // ---------------------------------------------------------------------------
 // Public API — every name below is re-exported EXPLICITLY, and each one has a
@@ -47,7 +47,7 @@ export {
   getChassisAbilities,
   getChoices,
   getTraits,
-} from './actionResolution.js'
+} from './actionResolution'
 export {
   getAssetUrl,
   SRD_SITE_URL,
@@ -55,12 +55,12 @@ export {
   srdEntityUrl,
   srdSchemaPath,
   srdSchemaUrl,
-} from './assets.js'
+} from './assets'
 export {
   parseContentBlockString,
   replaceChassisPlaceholder,
   resolveDataValueForTechLevel,
-} from './contentBlockHelpers.js'
+} from './contentBlockHelpers'
 export {
   getBioSalvageValue,
   getBlackMarket,
@@ -83,21 +83,21 @@ export {
   getTree,
   getUpgradeCost,
   getUpkeepCost,
-} from './entityFields.js'
+} from './entityFields'
 export {
   isAbility,
   isBaseAdvancedClass,
   isCoreClass,
   isEntityData,
   isKeyword,
-} from './entityGuards.js'
-export { type FormerSlug, formerSlugsIn, resolveFormerSlug } from './formerSlugs.js'
+} from './entityGuards'
+export { type FormerSlug, formerSlugsIn, resolveFormerSlug } from './formerSlugs'
 // Every SURef* entity type and the SURefEntity / SURefMetaEntity unions,
 // generated from lib/schemas/registry.ts. Exported as a family rather than
 // name by name: they are 1:1 with SchemaToEntityMap (below), so each is already
 // reachable as `SchemaToEntityMap['<id>']`, and a new registry entry should not
 // need a barrel edit to get its type.
-export type * from './generated/entityTypes.generated.js'
+export type * from './generated/entityTypes.generated'
 export {
   byTechLevelThenName,
   extractStaticEntitySummary,
@@ -113,19 +113,19 @@ export {
   resolveGrantedEntities,
   type StaticEntitySummary,
   techLevelRank,
-} from './helpers.js'
-export { getInventorySlots } from './inventorySlots.js'
-export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory.js'
-export { nameToSlug } from './nameToSlug.js'
+} from './helpers'
+export { getInventorySlots } from './inventorySlots'
+export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory'
+export { nameToSlug } from './nameToSlug'
 export {
   getPatterns,
   isBioTitanPattern,
   normalizePatternName,
   visiblePatterns,
-} from './patterns.js'
-export { type ChoiceSelections, resolveChoiceView } from './resolveChoiceView.js'
-export { type RollOnTableOutcome, rollOnTable } from './rollOnTable.js'
-export { SchemaNotLoadedError } from './SchemaNotLoadedError.js'
+} from './patterns'
+export { type ChoiceSelections, resolveChoiceView } from './resolveChoiceView'
+export { type RollOnTableOutcome, rollOnTable } from './rollOnTable'
+export { SchemaNotLoadedError } from './SchemaNotLoadedError'
 export type {
   SURefEnumSchemaName,
   SURefObjectAnyPattern,
@@ -142,7 +142,7 @@ export type {
   SURefObjectTable,
   SURefObjectTableContent,
   SURefObjectTrait,
-} from './schemas/index.js'
+} from './schemas/index'
 export {
   extractContentText,
   // Search primitives. Public because every consumer that needs them today had
@@ -154,7 +154,7 @@ export {
   type SearchResult,
   search,
   searchIn,
-} from './search.js'
+} from './search'
 // The pure matching + ranking rules both matchers share: the ORM `search()`
 // above and srd's compact client index (audit PK-11). No ORM import, so a
 // browser bundle pays only for these functions.
@@ -163,11 +163,11 @@ export {
   scoreSearchMatch,
   searchNameWords,
   tokenizeSearchQuery,
-} from './searchRanking.js'
-export { findEntityBySlug, getEntitySlug } from './slug.js'
-export { parseTraitReferences, plainTraitText, replaceTraitReferences } from './traitText.js'
-export { truncate } from './truncate.js'
-export { resultForColumnsTable, resultForTable } from './utils/resultForTable.js'
+} from './searchRanking'
+export { findEntityBySlug, getEntitySlug } from './slug'
+export { parseTraitReferences, plainTraitText, replaceTraitReferences } from './traitText'
+export { truncate } from './truncate'
+export { resultForColumnsTable, resultForTable } from './utils/resultForTable'
 export {
   type DiscordBlock,
   type DiscordCard,
@@ -178,11 +178,11 @@ export {
   escapeMarkdownLabel,
   linkTraitReferences,
   rangeLabel,
-} from './view/discordCard.js'
+} from './view/discordCard'
 // The entity VIEW MODEL (docs/design-system/entity-display-language.md): an
 // entity resolved once into what every form draws. Its parts are public too,
 // for component-lib's card helpers, which read them rather than keep a copy.
-export { missingArt, schemaHasArt } from './view/parts/art.js'
+export { missingArt, schemaHasArt } from './view/parts/art'
 export {
   droneOwnLoadout,
   foldedActionOf,
@@ -191,15 +191,15 @@ export {
   nestedEntityGroups,
   patternGroups,
   resolveLoadout,
-} from './view/parts/children.js'
+} from './view/parts/children'
 export {
   type AdditionalSource,
   formatProvenance,
   resolveAdditionalSources,
   resolveProvenance,
-} from './view/parts/cite.js'
-export { bookStats, entityStats } from './view/parts/facts.js'
-export { entityTone, guideTone, headerFill } from './view/parts/fill.js'
+} from './view/parts/cite'
+export { bookStats, entityStats } from './view/parts/facts'
+export { entityTone, guideTone, headerFill } from './view/parts/fill'
 export {
   classKind,
   classRequirements,
@@ -209,9 +209,9 @@ export {
   isDoEntity,
   schemaDomain,
   tierNumeral,
-} from './view/parts/kind.js'
-export { entityLead, firstParagraphText } from './view/parts/lead.js'
-export { resolveTable } from './view/parts/table.js'
+} from './view/parts/kind'
+export { entityLead, firstParagraphText } from './view/parts/lead'
+export { resolveTable } from './view/parts/table'
 export {
   actionFacets,
   type FacetCell,
@@ -219,8 +219,8 @@ export {
   formatActionType,
   formatCost,
   populationRange,
-} from './view/parts/traits.js'
-export { toEntityModel } from './view/toEntityModel.js'
+} from './view/parts/traits'
+export { toEntityModel } from './view/toEntityModel'
 export type {
   EntityArt,
   EntityChildGroup,
@@ -232,10 +232,10 @@ export type {
   EntityTable,
   Fact,
   TraitMention,
-} from './view/types.js'
+} from './view/types'
 
-import type { SearchOptions, SearchResult } from './search.js'
-import { search as searchFn, searchIn as searchInFn } from './search.js'
+import type { SearchOptions, SearchResult } from './search'
+import { search as searchFn, searchIn as searchInFn } from './search'
 
 // ---------------------------------------------------------------------------
 // Lazy model registry — LazyModel is defined in ./LazyModel.js; the ~27
@@ -612,7 +612,7 @@ export function resetAllForTesting(): void {
 // ---------------------------------------------------------------------------
 // Rules — pure game-rules logic (ADR-006) lives in ./rules/, exposed via the
 // 'salvageunion-reference/rules' subpath export (package.json), NOT re-exported
-// from this main barrel. Re-exporting `export * from './rules/index.js'` here
+// from this main barrel. Re-exporting `export * from './rules/index'` here
 // would make every consumer of the main package entrypoint (including ones
 // that never touch rules, like the Discord bot's lookup/roll commands)
 // transitively load all rules modules via ESM's eager re-export semantics —

@@ -7,14 +7,14 @@ import {
   toEntityModel,
   truncate,
 } from 'salvageunion-reference'
-import type { ContainerBlock, ContainerData } from '../container.js'
-import { toContainer } from '../container.js'
-import { makeCustomId } from '../customId.js'
-import { NEUTRAL_ACCENT } from '../format.js'
-import { lookupKey } from '../lookupCard.js'
-import type { FoundTerm } from '../termFinder.js'
-import { findTerms } from '../termFinder.js'
-import type { CommandExecuteInteraction } from './interactions.js'
+import type { ContainerBlock, ContainerData } from '../container'
+import { toContainer } from '../container'
+import { makeCustomId } from '../customId'
+import { NEUTRAL_ACCENT } from '../format'
+import { lookupKey } from '../lookupCard'
+import type { FoundTerm } from '../termFinder'
+import { findTerms } from '../termFinder'
+import type { CommandExecuteInteraction } from './interactions'
 
 /** The rules-blue band the glossary wears: an answer about words, not one entry. */
 const GLOSSARY_ACCENT = discordAccent('wk-line')

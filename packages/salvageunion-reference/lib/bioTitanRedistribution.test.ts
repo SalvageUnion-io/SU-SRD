@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import type { SalvageUnionReference as SURefType } from './index.js'
+import type { SalvageUnionReference as SURefType } from './index'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {
@@ -21,7 +21,7 @@ let SalvageUnionReference: typeof SURefType
 function getReference() {
   if (!SalvageUnionReference) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    SalvageUnionReference = require('./index.js').SalvageUnionReference
+    SalvageUnionReference = require('./index').SalvageUnionReference
   }
   return SalvageUnionReference
 }

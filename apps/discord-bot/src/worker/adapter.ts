@@ -46,7 +46,7 @@ import type {
   CommandExecuteInteraction,
   DirectMessageOutcome,
   SignedInteraction,
-} from '../commands/interactions.js'
+} from '../commands/interactions'
 
 /** What the Worker returns to Discord as the initial response. */
 export type InitialResponse = { type: number; data?: unknown }

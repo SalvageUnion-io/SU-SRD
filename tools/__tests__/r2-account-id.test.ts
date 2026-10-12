@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { accountIdFrom } from '../lib/r2.ts'
+import { accountIdFrom } from '../lib/r2'
 
 /**
  * `R2_ACCOUNT_ID` accepts the endpoint, not just the bare id.

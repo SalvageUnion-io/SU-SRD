@@ -1,4 +1,4 @@
-import type { SURefObjectTable, SURefObjectTableContent } from '../schemas/index.js'
+import type { SURefObjectTable, SURefObjectTableContent } from '../schemas/index'
 
 /**
  * Column range keys for columns-type tables

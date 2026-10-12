@@ -2,16 +2,16 @@
  * Search functionality for Salvage Union data
  */
 
-import { extractActions, extractPatternActions } from './actionResolution.js'
-import { getDataMaps, getSchemaCatalog } from './ModelFactory.js'
-import { getPatterns } from './patterns.js'
-import type { SURefEntity, SURefEnumSchemaName, SURefMetaEntity } from './schemas/index.js'
+import { extractActions, extractPatternActions } from './actionResolution'
+import { getDataMaps, getSchemaCatalog } from './ModelFactory'
+import { getPatterns } from './patterns'
+import type { SURefEntity, SURefEnumSchemaName, SURefMetaEntity } from './schemas/index'
 import {
   matchSearchTokens,
   scoreSearchMatch,
   searchNameWords,
   tokenizeSearchQuery,
-} from './searchRanking.js'
+} from './searchRanking'
 
 /** Lazily-built membership set: the non-meta schema catalog ids. */
 let indexableSchemaNames: ReadonlySet<string> | null = null

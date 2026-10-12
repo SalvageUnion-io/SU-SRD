@@ -4,7 +4,7 @@ import {
   scoreSearchMatch,
   searchNameWords,
   tokenizeSearchQuery,
-} from './searchRanking.js'
+} from './searchRanking'
 
 describe('tokenizeSearchQuery', () => {
   test('lowers, trims and splits on whitespace', () => {

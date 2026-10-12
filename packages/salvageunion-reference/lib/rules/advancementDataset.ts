@@ -11,10 +11,10 @@
  * Preload requirement: `classes` and `ability-tree-requirements`.
  */
 
-import { SalvageUnionReference } from '../index.js'
-import type { SURefClass } from '../schemas/index.js'
-import type { AdvancementClassInput, AdvancementDataset } from './advancement.js'
-import { hybridGrantedTrees } from './advancement.js'
+import { SalvageUnionReference } from '../index'
+import type { SURefClass } from '../schemas/index'
+import type { AdvancementClassInput, AdvancementDataset } from './advancement'
+import { hybridGrantedTrees } from './advancement'
 
 /** Narrow a reference class record to the primitives advancement reads. */
 export function toAdvancementClass(cls: SURefClass): AdvancementClassInput {

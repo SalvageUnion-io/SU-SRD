@@ -19,7 +19,7 @@
  * injected via the shared `Roll` type so tests are deterministic.
  */
 
-import type { HeatCheckEffect, Roll } from './types.js'
+import type { HeatCheckEffect, Roll } from './types'
 
 export type CoreRollBand = 'nailed' | 'success' | 'tough' | 'failure' | 'cascade'
 

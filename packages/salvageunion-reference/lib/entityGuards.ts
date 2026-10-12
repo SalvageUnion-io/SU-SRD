@@ -16,7 +16,7 @@ import type {
   SURefKeyword,
   SURefMetaEntity,
   SURefObjectAdvancedClass,
-} from './schemas/index.js'
+} from './schemas/index'
 
 // ============================================================================
 // TYPE GUARDS - Data shape

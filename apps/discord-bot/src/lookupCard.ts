@@ -41,9 +41,9 @@ import {
   resolveFormerSlug,
   toEntityModel,
 } from 'salvageunion-reference'
-import type { ButtonSpec, ContainerBlock, ContainerData } from './container.js'
-import { containerTextLength, V2_LIMIT } from './container.js'
-import { makeCustomId } from './customId.js'
+import type { ButtonSpec, ContainerBlock, ContainerData } from './container'
+import { containerTextLength, V2_LIMIT } from './container'
+import { makeCustomId } from './customId'
 
 /** An entity the lookup resolved, with the schema it came from. */
 export type LookupHit = {

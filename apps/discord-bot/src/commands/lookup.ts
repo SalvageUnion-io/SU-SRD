@@ -2,12 +2,12 @@ import type { ContainerBuilder, SlashCommandSubcommandBuilder } from '@discordjs
 import { MessageFlags } from 'discord-api-types/v10'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import { findEntityBySlug, nameToSlug, search } from 'salvageunion-reference'
-import type { ContainerData } from '../container.js'
-import { toContainer } from '../container.js'
-import { noEntryContainer } from '../errorContainer.js'
-import type { LookupHit, LookupView } from '../lookupCard.js'
-import { entityFromKey, lookupCard, lookupKey } from '../lookupCard.js'
-import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
+import type { ContainerData } from '../container'
+import { toContainer } from '../container'
+import { noEntryContainer } from '../errorContainer'
+import type { LookupHit, LookupView } from '../lookupCard'
+import { entityFromKey, lookupCard, lookupKey } from '../lookupCard'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
 
 /** A `/su lookup` reply ready for `interaction.reply`, or a user-facing error. */
 export type LookupMessage =

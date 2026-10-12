@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import { deriveLabel } from '../derivedLabel.js'
+import { deriveLabel } from '../derivedLabel'
 
 describe('deriveLabel', () => {
   test('promotes the leading sentence and leaves the rest for the body', () => {

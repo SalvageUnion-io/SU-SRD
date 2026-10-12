@@ -11,8 +11,8 @@
  * no I/O, no ORM writes, no mutation of inputs.
  */
 
-import { SalvageUnionReference } from '../index.js'
-import { resolveInstalledRef } from './resolveRefs.js'
+import { SalvageUnionReference } from '../index'
+import { resolveInstalledRef } from './resolveRefs'
 
 /** The stat keys a contribution may target. Mirrors `ContributionStatSchema`. */
 export type ContributionStat =

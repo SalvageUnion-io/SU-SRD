@@ -8,8 +8,8 @@
  * 15 core-tree Level-1 abilities.
  */
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from '../index.js'
-import type { SURefAbility, SURefChassis, SURefClass, SURefEquipment } from '../schemas/index.js'
+import { SalvageUnionReference } from '../index'
+import type { SURefAbility, SURefChassis, SURefClass, SURefEquipment } from '../schemas/index'
 import {
   CRAWLER_CREATION_MIN_WEAPONS,
   CRAWLER_CREATION_TECH_LEVEL,
@@ -33,7 +33,7 @@ import {
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,
   pilotEquipmentPicksRemaining,
-} from './creation.js'
+} from './creation'
 
 const CORE_CLASS_NAMES = ['Engineer', 'Hacker', 'Hauler', 'Salvager', 'Scout', 'Soldier'] as const
 

@@ -18,7 +18,7 @@
  * `--only=slugs`) and the tests share one implementation.
  */
 
-import { nameToSlug } from '../lib/nameToSlug.js'
+import { nameToSlug } from '../lib/nameToSlug'
 
 export type NamedEntity = { id?: string; name?: string; source?: string; page?: number }
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { findDuplicateKeys, findSelfCitations } from './validateDuplicateKeysLogic.js'
+import { findDuplicateKeys, findSelfCitations } from './validateDuplicateKeysLogic'
 
 describe('findDuplicateKeys', () => {
   test('finds a key spelled twice in one object, with its path and lines', () => {

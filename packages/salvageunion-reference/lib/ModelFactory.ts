@@ -22,14 +22,14 @@
  */
 
 import schemaIndex from '../schemas/index.json' with { type: 'json' }
-import { BaseModel } from './BaseModel.js'
+import { BaseModel } from './BaseModel'
 import {
   dataLoaders,
   listDataLoaders,
   schemaDisplayNames,
-} from './generated/modelFactoryRegistry.generated.js'
-import { toPascalCase } from './naming.js'
-import { SchemaNotLoadedError } from './SchemaNotLoadedError.js'
+} from './generated/modelFactoryRegistry.generated'
+import { toPascalCase } from './naming'
+import { SchemaNotLoadedError } from './SchemaNotLoadedError'
 
 export { schemaDisplayNames, toPascalCase }
 

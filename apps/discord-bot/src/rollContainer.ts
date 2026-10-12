@@ -65,9 +65,9 @@ import {
 } from 'salvageunion-reference'
 import type { CoreRollBand } from 'salvageunion-reference/rules'
 import { CORE_ROLL_BANDS, coreRollBand } from 'salvageunion-reference/rules'
-import type { ContainerBlock, ContainerData } from './container.js'
-import { deriveLabel } from './derivedLabel.js'
-import { NEUTRAL_ACCENT, ROLL_ATTRIBUTION, ROLL_COLORS } from './format.js'
+import type { ContainerBlock, ContainerData } from './container'
+import { deriveLabel } from './derivedLabel'
+import { NEUTRAL_ACCENT, ROLL_ATTRIBUTION, ROLL_COLORS } from './format'
 
 /** Longest value that reads as a headline rather than as body copy. */
 const INLINE_HEADLINE_MAX = 60

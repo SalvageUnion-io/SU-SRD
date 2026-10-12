@@ -12,9 +12,9 @@
  * consumers import.
  */
 
-import { getGrants } from './entityFields.js'
-import { getModel } from './helpers.js'
-import { getDataMaps } from './ModelFactory.js'
+import { getGrants } from './entityFields'
+import { getModel } from './helpers'
+import { getDataMaps } from './ModelFactory'
 import type {
   SURefEntity,
   SURefMetaAction,
@@ -23,7 +23,7 @@ import type {
   SURefObjectChoice,
   SURefObjectSystemModule,
   SURefObjectTrait,
-} from './schemas/index.js'
+} from './schemas/index'
 
 // Cached action map - built once since action data is static
 let _actionMap: Map<string, SURefMetaAction> | null = null

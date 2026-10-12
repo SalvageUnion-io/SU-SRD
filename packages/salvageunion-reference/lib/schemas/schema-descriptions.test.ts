@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { z } from '../zod.js'
+import { z } from '../zod'
 import {
   ActivationCostSchema,
   IdSchema,
@@ -14,7 +14,7 @@ import {
   NonNegativeIntegerSchema,
   PositiveIntegerSchema,
   TechLevelSchema,
-} from './common.js'
+} from './common'
 import {
   AbilitySchema,
   AbilityTreeRequirementSchema,
@@ -43,7 +43,7 @@ import {
   TechLevelEntitySchema,
   TraitEntitySchema,
   VehicleSchema,
-} from './entities.js'
+} from './entities'
 import {
   ActionTypeSchema,
   ContentTypeSchema,
@@ -53,8 +53,8 @@ import {
   SchemaNameSchema,
   SourceSchema,
   TreeSchema,
-} from './enums.js'
-import * as objectSchemaModule from './objects.js'
+} from './enums'
+import * as objectSchemaModule from './objects'
 
 type JsonSchemaObject = {
   description?: string

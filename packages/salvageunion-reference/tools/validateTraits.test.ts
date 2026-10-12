@@ -9,7 +9,7 @@ import {
   findTraitIssues,
   findUnknownTraitTypes,
   findUnresolvableRemoveTraitIssues,
-} from './validateTraitsLogic.js'
+} from './validateTraitsLogic'
 
 describe('collectTraitTypes', () => {
   it('collects trait types from a top-level traits[] array', () => {

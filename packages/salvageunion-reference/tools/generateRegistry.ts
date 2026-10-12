@@ -52,11 +52,11 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { toListRow } from '../lib/listProjection.js'
-import { toPascalCase } from '../lib/naming.js'
-import type { RegistryEntry } from '../lib/schemas/registry.js'
-import { registry } from '../lib/schemas/registry.js'
-import { formatWithBiome, TS_FORMAT_PATH } from './formatWithBiome.js'
+import { toListRow } from '../lib/listProjection'
+import { toPascalCase } from '../lib/naming'
+import type { RegistryEntry } from '../lib/schemas/registry'
+import { registry } from '../lib/schemas/registry'
+import { formatWithBiome, TS_FORMAT_PATH } from './formatWithBiome'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -120,10 +120,10 @@ function generateEntityTypes(entries: RegistryEntry[]): string {
 
   return (
     GENERATED_HEADER +
-    `import type { z } from '../zod.js'
+    `import type { z } from '../zod'
 import type {
 ${zodImports}
-} from '../schemas/entities.js'
+} from '../schemas/entities'
 
 // One alias per registry entry: the entity type is the schema's inferred type.
 ${aliases}
@@ -210,10 +210,10 @@ function generateZodSchemaMap(entries: RegistryEntry[]): string {
 
   return (
     GENERATED_HEADER +
-    `import type { z } from '../zod.js'
+    `import type { z } from '../zod'
 import {
 ${zodImports}
-} from '../schemas/index.js'
+} from '../schemas/index'
 
 /**
  * Zod schema map — the entity schemas keyed by schema id.
@@ -260,10 +260,10 @@ function generateSchemaRegistry(entries: RegistryEntry[]): string {
 
   return (
     GENERATED_HEADER +
-    `import { LazyModel } from '../LazyModel.js'
+    `import { LazyModel } from '../LazyModel'
 import type {
 ${typeImports}
-} from '../schemas/index.js'
+} from '../schemas/index'
 
 // Type mapping from schema names to entity types (includes entity schemas and meta schemas)
 export type SchemaToEntityMap = {

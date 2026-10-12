@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { auditParity, unresolvedFindings } from './validateParityLogic.js'
+import { auditParity, unresolvedFindings } from './validateParityLogic'
 
 const ability = (over: Record<string, unknown>) => ({
   name: 'Test Ability',

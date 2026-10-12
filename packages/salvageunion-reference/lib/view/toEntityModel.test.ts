@@ -5,11 +5,11 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { getModel } from '../helpers.js'
-import { EntitySchemaNames, SalvageUnionReference } from '../index.js'
-import type { SURefMetaEntity } from '../schemas/index.js'
-import { entityTone, headerFill } from './parts/fill.js'
-import { toEntityModel } from './toEntityModel.js'
+import { getModel } from '../helpers'
+import { EntitySchemaNames, SalvageUnionReference } from '../index'
+import type { SURefMetaEntity } from '../schemas/index'
+import { entityTone, headerFill } from './parts/fill'
+import { toEntityModel } from './toEntityModel'
 
 const need = <T>(value: T | undefined | null, label: string): T => {
   if (value == null) throw new Error(`fixture missing: ${label}`)

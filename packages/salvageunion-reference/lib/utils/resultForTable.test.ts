@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test'
-import type { SURefObjectTable, SURefRollTable } from '../index.js'
-import { malformed } from '../testing.js'
-import { isColumnsTable, resultForColumnsTable, resultForTable } from './resultForTable.js'
+import type { SURefObjectTable, SURefRollTable } from '../index'
+import { malformed } from '../testing'
+import { isColumnsTable, resultForColumnsTable, resultForTable } from './resultForTable'
 
 const mockStandardTable: SURefRollTable = {
   id: 'test-standard',

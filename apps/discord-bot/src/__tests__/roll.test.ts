@@ -7,10 +7,10 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import { buildRollMessage, buildSeeTableMessage, rollCommand } from '../commands/roll.js'
-import type { ContainerData } from '../container.js'
-import { cardText } from './cardText.js'
-import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
+import { buildRollMessage, buildSeeTableMessage, rollCommand } from '../commands/roll'
+import type { ContainerData } from '../container'
+import { cardText } from './cardText'
+import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
 /** Shared narrow-interaction fakes; see fakeInteraction.ts. */
 function mockChatInput(table: string | null) {

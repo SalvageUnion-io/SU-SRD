@@ -7,8 +7,8 @@
  */
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { join, resolve } from 'node:path'
-import { destinationFor } from '../export-lp-assets.ts'
-import { credentialsFromEnv, listObjects, r2Client } from '../lib/r2.ts'
+import { destinationFor } from '../export-lp-assets'
+import { credentialsFromEnv, listObjects, r2Client } from '../lib/r2'
 
 describe('credentialsFromEnv', () => {
   const NAMES = ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY'] as const

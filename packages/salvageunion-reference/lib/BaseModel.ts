@@ -1,4 +1,4 @@
-import { nameToSlug } from './nameToSlug.js'
+import { nameToSlug } from './nameToSlug'
 
 /**
  * Type for models with metadata properties

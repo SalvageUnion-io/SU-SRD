@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { registry } from '../lib/schemas/registry.js'
-import { formatWithBiome } from './formatWithBiome.js'
+import { registry } from '../lib/schemas/registry'
+import { formatWithBiome } from './formatWithBiome'
 
 /**
  * Every path below is anchored to THIS FILE, not to `process.cwd()`, so the

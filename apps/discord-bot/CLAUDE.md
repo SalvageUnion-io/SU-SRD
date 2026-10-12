@@ -72,8 +72,8 @@ against a linked account and a real membership. See
   which are **imported** (`import type`) from `itun-domain/botWire`
   (`packages/itun-domain/src/botWire.ts`) — the same declaration `botClient.ts`
   annotates its handlers with. Never copy a shape into the bot; add it there.
-  That module must stay import-free, because the bot type-checks it under
-  `nodenext`.
+  That module must stay import-free, so the bot's type-check never pulls in
+  Convex's generated model.
 - `src/gameCards.ts` — pure `data → ContainerData` card builders through
   `entityCard()`
 - `src/commands/itunReply.ts` — the shared defer / result-kind / ephemerality

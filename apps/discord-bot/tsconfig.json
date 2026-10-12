@@ -1,12 +1,5 @@
 {
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
-    // Runtime globals from the package, `Env` from `wrangler types
-    // --include-runtime=false`; see apps/su-assets/tsconfig.json.
-    "types": ["@cloudflare/workers-types", "node", "bun-types"]
-  },
+  "extends": "../../tsconfig.worker.json",
   "include": ["src/**/*.ts", "worker-configuration.d.ts"],
   "exclude": ["node_modules"]
 }

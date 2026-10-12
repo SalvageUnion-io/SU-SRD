@@ -17,9 +17,9 @@ import {
   getSystemSlots,
   getUpgradeCost,
   getUpkeepCost,
-} from '../../entityFields.js'
-import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index.js'
-import type { Fact } from '../types.js'
+} from '../../entityFields'
+import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index'
+import type { Fact } from '../types'
 
 type StatConfig = {
   getter: (data: SURefMetaEntity) => number | undefined

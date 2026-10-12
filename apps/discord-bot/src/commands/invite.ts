@@ -1,10 +1,10 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
-import { toContainer } from '../container.js'
-import { denialMessage, ITUN_ORIGIN } from '../gameCards.js'
-import { buildInviteDm, inviteUrl } from '../inviteContainer.js'
-import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-import { itun } from './itunReply.js'
+import { toContainer } from '../container'
+import { denialMessage, ITUN_ORIGIN } from '../gameCards'
+import { buildInviteDm, inviteUrl } from '../inviteContainer'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
+import { itun } from './itunReply'
 
 /**
  * `/su invite @user` — invite somebody to a Game by their Discord account

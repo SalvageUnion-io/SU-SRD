@@ -14,13 +14,13 @@
  */
 
 import { SlashCommandBuilder } from '@discordjs/builders'
-import { gamesCommand, meCommand, shelfCommand } from './account.js'
-import { crewCommand, sheetCommand } from './crew.js'
-import { gameCommand } from './game.js'
-import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-import { inviteCommand } from './invite.js'
-import { lookupCommand } from './lookup.js'
-import { rollCommand } from './roll.js'
+import { gamesCommand, meCommand, shelfCommand } from './account'
+import { crewCommand, sheetCommand } from './crew'
+import { gameCommand } from './game'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
+import { inviteCommand } from './invite'
+import { lookupCommand } from './lookup'
+import { rollCommand } from './roll'
 
 export const suCommand = {
   data: new SlashCommandBuilder()

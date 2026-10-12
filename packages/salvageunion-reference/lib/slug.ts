@@ -6,9 +6,9 @@
  * It reaches the loaded BaseModel directly via ModelFactory for entity lookups.
  */
 
-import { getLoadedModelBySchemaId } from './ModelFactory.js'
-import { nameToSlug } from './nameToSlug.js'
-import type { SURefEntity, SURefEnumSchemaName } from './schemas/index.js'
+import { getLoadedModelBySchemaId } from './ModelFactory'
+import { nameToSlug } from './nameToSlug'
+import type { SURefEntity, SURefEnumSchemaName } from './schemas/index'
 
 /**
  * Finds an entity in a schema by its slug

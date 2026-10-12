@@ -9,14 +9,14 @@ function defined<T>(value: T | null | undefined): T {
 }
 
 // Import SalvageUnionReference - use lazy getter to avoid initialization issues
-import type { SalvageUnionReference as SURefType } from './index.js'
+import type { SalvageUnionReference as SURefType } from './index'
 
 let SalvageUnionReference: typeof SURefType
 
 function getReference() {
   if (!SalvageUnionReference) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    SalvageUnionReference = require('./index.js').SalvageUnionReference
+    SalvageUnionReference = require('./index').SalvageUnionReference
   }
   return SalvageUnionReference
 }
@@ -28,8 +28,8 @@ import {
   getDamage,
   getRange,
   getTraits,
-} from './actionResolution.js'
-import { getDescription } from './entityFields.js'
+} from './actionResolution'
+import { getDescription } from './entityFields'
 
 describe('Action Property Getters', () => {
   describe('getDescription', () => {

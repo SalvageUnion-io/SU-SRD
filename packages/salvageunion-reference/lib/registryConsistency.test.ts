@@ -13,9 +13,9 @@
  * zodSchemaMap directly, so it is covered transitively.
  */
 import { describe, expect, test } from 'bun:test'
-import type { SchemaToEntityMap } from './generated/schemaRegistry.generated.js'
-import { zodSchemaMap } from './generated/zodSchemaMap.generated.js'
-import { _registryKeySets, getSchemaCatalog, schemaDisplayNames } from './ModelFactory.js'
+import type { SchemaToEntityMap } from './generated/schemaRegistry.generated'
+import { zodSchemaMap } from './generated/zodSchemaMap.generated'
+import { _registryKeySets, getSchemaCatalog, schemaDisplayNames } from './ModelFactory'
 import type {
   SURefCatalogCategory,
   SURefEntity,
@@ -23,8 +23,8 @@ import type {
   SURefMetaAction,
   SURefMetaCrawlerTechLevel,
   SURefMetaEntity,
-} from './schemas/index.js'
-import { registry } from './schemas/registry.js'
+} from './schemas/index'
+import { registry } from './schemas/registry'
 
 function sorted(keys: Iterable<string>): string[] {
   return [...keys].sort()

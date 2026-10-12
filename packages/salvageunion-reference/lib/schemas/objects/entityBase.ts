@@ -4,11 +4,11 @@
  * is embedded inside a class record.
  */
 
-import { z } from '../../zod.js'
-import { IdSchema, NameSchema, PositiveIntegerSchema } from '../common.js'
-import { SourceSchema, TreeSchema } from '../enums.js'
-import { ContentSchema } from './content.js'
-import { AdditionalSourceSchema } from './sources.js'
+import { z } from '../../zod'
+import { IdSchema, NameSchema, PositiveIntegerSchema } from '../common'
+import { SourceSchema, TreeSchema } from '../enums'
+import { ContentSchema } from './content'
+import { AdditionalSourceSchema } from './sources'
 
 /**
  * Basic entity with name, content, source, and page reference

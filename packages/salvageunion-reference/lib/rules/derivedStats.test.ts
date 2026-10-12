@@ -9,8 +9,8 @@
  * crawler-tech-levels data from salvageunion-reference.
  */
 import { describe, expect, it } from 'bun:test'
-import { getEntitySlug, SalvageUnionReference } from '../index.js'
-import type { ChassisStats } from './derivedStats.js'
+import { getEntitySlug, SalvageUnionReference } from '../index'
+import type { ChassisStats } from './derivedStats'
 import {
   crawlerMaxSP,
   crawlerMaxSPParts,
@@ -34,7 +34,7 @@ import {
   pilotMaxInventorySlotsParts,
   pinFor,
   unifiedMechConditions,
-} from './derivedStats.js'
+} from './derivedStats'
 
 // ---------------------------------------------------------------------------
 // Pilot
