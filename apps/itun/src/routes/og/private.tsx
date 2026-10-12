@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { LinkPreviewSurface } from '../components/shared/LinkPreviewSurface'
-import { pageTitle } from '../lib/pageTitle'
+import { LinkPreviewSurface } from '../../components/shared/LinkPreviewSurface'
+import { pageTitle } from '../../lib/pageTitle'
 
 /**
  * `/og/private` — the plain Private card (issue 1280), the one picture every

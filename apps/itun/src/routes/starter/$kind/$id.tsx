@@ -1,6 +1,6 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-import { StarterSheetView } from '../components/starterSet/StarterSheetView'
-import { pageTitle } from '../lib/pageTitle'
+import { StarterSheetView } from '../../../components/starterSet/StarterSheetView'
+import { pageTitle } from '../../../lib/pageTitle'
 
 /**
  * `/starter/$kind/$id` — one Starter Set build's sheet, read-only and open to
