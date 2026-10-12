@@ -3,7 +3,7 @@
 M1 is the Mediator's surface (`apps/itun/src/components/mediator/`); M2 is the Game page's sections (`apps/itun/src/components/games/`). Governing ADRs: 030 §3–§6, 038 and 021 in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 1. **§1 Reuse** — The server predates this surface; M1 and M2 recompose it and reuse `crewLines()` and `SavedIndicator`, never forking the Crew tab's vocabulary.
-2. **§2 Decisions** — Made by the design lead, owner to confirm:
+2. **§2 Decisions**
    1. **Q1 No new ADR** — ADR-038 §1 deferred this surface; every authority it uses is already granted, and it writes nothing a player owns.
    2. **Q2 Route** — `/mediator/$gameId`; ‹ returns to `/games/$gameId`. The player Dashboard is untouched.
    3. **Q3 Gate** — Connected Mediator: the surface; other members: one line and a link; Disconnected or Outdated: last data, controls disabled, not hidden.
@@ -22,11 +22,9 @@ M1 is the Mediator's surface (`apps/itun/src/components/mediator/`); M2 is the G
    12. **Q12 Invites** — Seat stamp, approval, expiry (1/7/14/30 days, default 7), uses, Copy, Revoke; approval unchecked by default; Asking to join: Let in or Decline.
    13. **Q13 The Game** — Who mediates, with Hand over (Appoint when nobody does), who organises, and Delete; Archive is the owner's call.
    14. **Q14 Tabs** — Opposition, Proposals, Tell the table, Tables (rolls private), SRD, Log.
-3. **§3 Phases** — P8a built (#1278). P8b: Show the table, rename, Discord channel line, grant names on join requests. Owner's call: Archive, presence, a below-cap heat warning.
-   - **P8a gate 1** — The Mediator proposes HP 6 → 4 with a reason, the player applies it, and the row reads Applied (`apps/itun/e2e/mediator-propose.e2e.ts`).
-   - **P8a gate 2** — An approval link: a second account asks, Let in seats them, their Game page loads (`apps/itun/e2e/invite-approval.e2e.ts`).
-4. **§4 Server additions** — `changeLog.reason`, Mediator-only `proposals.sent` (indexed) and `mediator.updateNpc` (clamped, parsed); tested in `apps/itun/test/convex/__tests__/mediatorDashboard.test.ts`.
-5. **§5 Status lines** — The ADR-030 and ADR-038 Status lines record this surface.
+3. **§3 Not built** — Show the table, rename, the Discord channel line, grant names on join requests. Undecided: Archive, presence, a below-cap heat warning.
+4. **§4 Server additions** — `changeLog.reason`, Mediator-only `proposals.sent` (indexed) and `mediator.updateNpc` (clamped, parsed).
+5. **§5 Tests** — Propose → apply → Applied (`apps/itun/e2e/mediator-propose.e2e.ts`); approval link → Let in → Game page (`apps/itun/e2e/invite-approval.e2e.ts`); server in `apps/itun/test/convex/__tests__/mediatorDashboard.test.ts`.
 6. **§6 M1 layout** — Rail; The table, Crawler minor, Downtime minor; tabs left, propose dock right. Ground ink-deep, instruments band-cream, display paper.
    Controls are 48 design units tall, so at least 38px at the 0.8 floor.
 7. **§7 Accessibility** — Base UI tabs; a seat card is a button whose label reads its whole line (▲ `aria-hidden`); polite live regions only; `ConfirmDialog` focuses Cancel.

@@ -14,10 +14,8 @@ carries a seat, a hand-out and an optional approval door; it may now also carry
 an **address**: one Discord account. Bearer codes are unchanged and remain the
 default.
 
-Built in two layers, each its own PR: the model and the invitee's side
-(`convex/model/invites.ts`, `invites.redeem` / `decline` / `forMe`, the hub's
-Invitations card), then `/su invite @user`, verified by Discord's own
-signature.
+Built: `convex/model/invites.ts`, `invites.redeem` / `decline` / `forMe`, the
+Invitations card on Shelves, and `/su invite @user`.
 
 ## Context
 
@@ -79,8 +77,8 @@ application's public key before it reads anything from the body. The
 Organizer's id and the invitee's id are then **attested by Discord**. Convex
 also rejects a stale timestamp and records the interaction id on the invite, so
 a replayed or retried interaction finds its invite instead of minting another.
-This is the bot-client doc's Option B, taken for the one operation that needs
-it; the rest of `/bot/*` is unchanged.
+This is the one `/bot/*` operation that does not trust the bearer secret; the
+rest of `/bot/*` is unchanged.
 
 The bot then DMs the invitee a link. A DM is **best effort** — Discord refuses
 one when the bot and the invitee share no server, or the invitee has closed
@@ -94,7 +92,7 @@ does not DM them again until a day after the last one was delivered — so the
 command cannot be used to make the bot message a person on repeat.
 
 **The DM is not the only way the invite arrives.** Because it is addressed to
-an account, the hub shows it to the addressee in an **Invitations** card
+an account, Shelves shows it to the addressee in an **Invitations** card
 (`invites.forMe`) the next time they open the app. A failed DM costs nothing.
 
 ### 4. Privacy

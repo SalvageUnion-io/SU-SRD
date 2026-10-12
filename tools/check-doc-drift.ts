@@ -905,7 +905,7 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/itun/CLAUDE.md': 11_751,
+  'apps/itun/CLAUDE.md': 11_686,
   'CLAUDE.md': 10_221,
 }
 

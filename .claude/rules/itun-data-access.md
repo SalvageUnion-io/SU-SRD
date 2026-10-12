@@ -40,10 +40,10 @@ await useEntityStore.getState().update('pilots', id, { hp: next }) // server-fir
 
 - **There is no anonymous backend.** `selectBackend()` (`src/stores/entityBackend.ts`)
   is `signedOut | remote | blocked`. `signedOut` holds nothing and refuses
-  writes; `blocked` is signed-in-and-offline or mid-handshake, read-only too. Check `canWrite`
-  before offering an edit affordance. A unit test that writes calls
+  writes; `blocked` is offline, mid-handshake or Outdated, read-only too.
+  Check `canWrite` before offering an edit affordance. A unit test that writes calls
   `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`).
-- **No device cache (D9).** Nothing player-owned goes in IndexedDB or
+- **[No device cache](../../docs/ARCHITECTURE.md#no-device-cache).** Nothing player-owned goes in IndexedDB or
   `localStorage`. `AccountReconciler` (root-mounted) mounts `ShelfSync` while
   Connected; `hydrate()` waits for its first answer (`src/stores/rowArrival.ts`),
   and a tab's rows go when its session ends (`src/stores/sessionRows.ts`).
