@@ -38,20 +38,19 @@ const mule = () => {
 const leafWithText = (text: string) =>
   screen.getAllByText((_, el) => el?.textContent === text).at(-1)
 
-describe('sub-header trait line', () => {
-  test('each trait segment arms its own hovercard', () => {
+describe('trait tags (E17)', () => {
+  test('each trait Tag arms its own hovercard', () => {
     render(<ReferenceEntityCard data={action('Beta Fission Gun')} />)
-    for (const segment of ['Burn (2)', 'Explosive (2)', 'Heavy', 'Uses (3)']) {
-      expect(leafWithText(segment)?.closest(TRIGGER)).toBeTruthy()
+    for (const name of ['Burn', 'Explosive', 'Heavy', 'Uses']) {
+      expect(leafWithText(name)?.closest(TRIGGER)).toBeTruthy()
     }
   })
 
-  test('arming the segments does not change what the line reads', () => {
-    // The trait line is book-fidelity text, not a row of stamps — restoring the
-    // hovercards must leave the " // " reading byte-identical.
+  test('there is no "//" line: the traits are Tags with their parameter cells', () => {
     const { container } = render(<ReferenceEntityCard data={action('Beta Fission Gun')} />)
-    const text = (container.textContent ?? '').replace(/\s+/g, ' ')
-    expect(text).toContain('Burn (2) // Explosive (2) // Heavy // Uses (3)')
+    expect(container.textContent).not.toContain('//')
+    const burn = leafWithText('Burn')?.parentElement
+    expect(burn?.textContent).toBe('Burn2')
   })
 
   test('a segment naming no known entity stays plain text', () => {

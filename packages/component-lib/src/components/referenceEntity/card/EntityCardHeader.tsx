@@ -2,6 +2,7 @@ import { ChevronRight } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { space } from '../../../design/tokens'
 import { cn } from '../../../utils/cn'
+import { Badge } from '../../chrome/Badge'
 import type { CardSize } from '../../shared/displayMode'
 import type { StatItem } from '../../shared/statsBarTypes'
 import { accentSurface } from '../referenceEntityHelpers'
@@ -32,6 +33,8 @@ type EntityCardHeaderProps = {
   stats: StatItem[]
   /** A one-line hint on the band (a pattern row's description), truncated. */
   rightContent?: ReactNode
+  /** The action-type stamps (E17), before the pennant. */
+  stamps?: string[]
   /** The cost pennant (read) or the pennant button (Dashboard), at the right. */
   pennant?: ReactNode
   /**
@@ -135,6 +138,7 @@ export function EntityCardHeader({
   numeral,
   stats,
   rightContent,
+  stamps = [],
   pennant,
   head = false,
   seamless = false,
@@ -186,7 +190,18 @@ export function EntityCardHeader({
     </span>
   ) : null
   const cells = stats.length > 0 && !head ? <EntityCardStatBox stats={stats} /> : null
-  const hasCluster = !!cells || !!pennant
+  const stampNodes = stamps.map((stamp) => (
+    <Badge
+      key={stamp}
+      shape="stamp"
+      size="mini"
+      surface={fill === 'ink' ? 'inverse' : 'on-ink'}
+      style={{ flex: 'none', whiteSpace: 'nowrap' }}
+    >
+      {stamp}
+    </Badge>
+  ))
+  const hasCluster = !!cells || !!pennant || stamps.length > 0
   const chevronNode = chevron ? (
     <ChevronRight
       aria-hidden="true"
@@ -234,6 +249,7 @@ export function EntityCardHeader({
         {numeralNode}
         {titleNode}
         {hint}
+        {stampNodes}
         {pennant && <div style={{ display: 'flex', flex: 'none' }}>{pennant}</div>}
         {chevronNode}
       </div>
@@ -268,6 +284,7 @@ export function EntityCardHeader({
           }}
         >
           {cells}
+          {stampNodes}
           {pennant}
         </div>
       )}

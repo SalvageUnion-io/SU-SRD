@@ -20,7 +20,7 @@ import { actionFacets, facetCells } from 'salvageunion-reference'
 import type { StatItem } from '../../shared/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
-import type { EntityCardSubHeaderCell } from './EntityCardSubHeader'
+import type { CardFacetCell } from './facetSplit'
 import type { ActionFields } from './referenceEntityCardTypes'
 
 /** The cost and action-type wording are the entity model's. */
@@ -39,13 +39,20 @@ const MODIFIED = 'var(--color-ink)'
  * sub-header cell: a named rule keeps its glossary hovercard, and a facet a
  * choice or the Tech Level changed wears the modified border.
  */
-function toSubHeaderCell(cell: FacetCell): EntityCardSubHeaderCell {
+function toSubHeaderCell(cell: FacetCell): CardFacetCell {
   return {
     key: cell.key,
     label: cell.label,
     ...(cell.value !== undefined ? { value: cell.value } : {}),
     ...(cell.mention ? { entityRef: cell.mention } : {}),
     ...(cell.modified ? { borderColor: MODIFIED } : {}),
+    facet: {
+      kind: cell.kind,
+      ...(cell.short ? { short: cell.short } : {}),
+      ...(cell.actionType ? { actionType: cell.actionType } : {}),
+      ...(cell.mention ? { mention: cell.mention } : {}),
+      ...(cell.modified ? { modified: true as const } : {}),
+    },
   }
 }
 
@@ -55,10 +62,7 @@ function toSubHeaderCell(cell: FacetCell): EntityCardSubHeaderCell {
  * prints a few abilities — "Turn Action (Mech) // Short Action (Pilot)"
  * (core book p.248-249), Mech first.
  */
-export function actionCells(
-  action: ActionFields,
-  mechActionType?: string
-): EntityCardSubHeaderCell[] {
+export function actionCells(action: ActionFields, mechActionType?: string): CardFacetCell[] {
   return actionFacets(action, mechActionType).map(toSubHeaderCell)
 }
 
@@ -241,7 +245,7 @@ export function resolveSubHeaderCells(options: {
   selections: ChoiceSelections | undefined
   perTechLevelByLabel: ReadonlyMap<string, number>
   effTechLevel: number | undefined
-}): EntityCardSubHeaderCell[] {
+}): CardFacetCell[] {
   return facetCells({
     entity: options.entity,
     entityName: options.entityName,

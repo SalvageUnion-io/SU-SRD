@@ -1,5 +1,6 @@
 import type { EntityHrefBuilder } from 'component-lib'
-import { getEntitySlug, srdEntityPath, srdSchemaPath } from 'salvageunion-reference'
+import type { EntityRef } from 'salvageunion-reference'
+import { getEntitySlug, nameToSlug, srdEntityPath, srdSchemaPath } from 'salvageunion-reference'
 
 /**
  * srd's TRAILING-SLASH policy over the shared route grammar.
@@ -51,4 +52,16 @@ export const srdEntityHref: EntityHrefBuilder = (entity) => {
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
   const isRecord = 'id' in entity && typeof entity.id === 'string' && entity.id.length > 0
   return schemaName && isRecord ? itemHref(schemaName, getEntitySlug(entity)) : undefined
+}
+
+/**
+ * srd's routes as the entity SURFACE's `hrefFor` (`EntitySurfaceProvider`):
+ * an entity's page, or a pattern's under its chassis. A synthetic ref (built
+ * from embedded data, no dataset row) has no page.
+ */
+export function srdHrefFor(ref: EntityRef): string | undefined {
+  if (ref.synthetic) return undefined
+  return ref.pattern
+    ? patternHref(ref.schemaName, ref.slug, nameToSlug(ref.pattern))
+    : itemHref(ref.schemaName, ref.slug)
 }

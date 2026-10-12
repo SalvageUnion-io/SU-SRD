@@ -1,12 +1,11 @@
 import type { ElementType } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
-import { getReferenceEntityName } from 'salvageunion-reference'
+import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
+import { Entity } from '../../../entity/Entity'
 import { cn } from '../../../utils/cn'
-import { FOCUS_RING } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
 import { useEntityHref } from '../entityHrefContext'
 import { cardKey } from './cardHelpers'
-import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
+import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 import type { NestedGroup } from './resolveNestedEntities'
 
 /**
@@ -27,12 +26,10 @@ export function PatternLoadout({
   groups,
   sectionAs,
   hostDown,
-  NestedCard,
 }: {
   groups: NestedGroup[]
   sectionAs: ElementType | undefined
   hostDown: boolean
-  NestedCard: NestedCard
 }) {
   return (
     <div className="grid grid-cols-1 gap-x-3 gap-y-1.5 sm:grid-cols-2">
@@ -64,7 +61,7 @@ export function PatternLoadout({
           >
             {group.entities.map((item, itemIndex) => (
               <li key={cardKey(item, itemIndex)} className="min-w-0">
-                <LoadoutBadge data={item} hostDown={hostDown} NestedCard={NestedCard} />
+                <LoadoutBadge data={item} hostDown={hostDown} />
               </li>
             ))}
           </ul>
@@ -75,9 +72,8 @@ export function PatternLoadout({
 }
 
 /**
- * `LoadoutBadge` — one installed system/module in a pattern's loadout, rendered
- * as the card's own SHORTFORM token (`size="small" extent="head"`) and linking
- * to that entity's page.
+ * `LoadoutBadge` — one installed system/module in a pattern's loadout: a
+ * TOKEN (E3), in link mode to that entity's page.
  *
  * A pattern is a BUILD LIST, not rules to read: its systems and modules are
  * ordinary catalogue entities whose full text lives on their own pages, and
@@ -86,8 +82,8 @@ export function PatternLoadout({
  * to six identical, full-length .50 Cal Machine Gun cards. The shortform badge
  * gives the build at a glance and one click through to any entry.
  *
- * The badge is the card at its smallest rung, NOT a hand-assembled chip: it
- * carries the entity's own tone band and classification tail, so the tone and
+ * The Token is the entity form for many on a line, NOT a hand-assembled chip:
+ * it carries the entity's own tone and its one fact (TL), so the tone and
  * tech-level read survive the compression for free.
  *
  * MULTIPLES REPEAT. Six machine guns are six badges, matching the loadout the
@@ -96,41 +92,19 @@ export function PatternLoadout({
  * whose whole job is showing it.
  *
  * A real `<a>`, for the same reasons as `PatternListRow`: middle-click, hover
- * preview, crawlable. With no `EntityHrefProvider` above it the badge renders
+ * preview, crawlable. With no `EntityHrefProvider` above it the Token renders
  * inert rather than linking nowhere.
  */
-function LoadoutBadge({
-  data,
-  hostDown,
-  NestedCard,
-}: {
-  data: ReferenceCardEntity
-  hostDown?: boolean
-  NestedCard: NestedCard
-}) {
+function LoadoutBadge({ data, hostDown }: { data: ReferenceCardEntity; hostDown?: boolean }) {
   const href = useEntityHref(data as SURefEntity)
-  const badge = (
-    <NestedCard
-      data={data}
-      size="small"
-      extent="head"
-      depth={1}
-      hostDown={hostDown}
-      cardClickable={!!href}
-    />
-  )
-  if (!href) return badge
   return (
-    // An explicit accessible name, for the same reason `PatternListRow` carries
-    // one: without it the anchor's name is scraped from the badge's contents and
-    // reads ".50 Cal Machine Gun TL 1" — the tech-level tail glued onto the name,
-    // six identical times over on Thunder Storm.
-    <a
-      href={href}
-      aria-label={getReferenceEntityName(data)}
-      className={cn('block rounded-card', FOCUS_RING)}
-    >
-      {badge}
-    </a>
+    <Entity
+      form="token"
+      entity={data as SURefMetaEntity}
+      // The Token's own accessible name is the entity's: never the tail glued
+      // onto it (".50 Cal Machine Gun TL 1", six times over on Thunder Storm).
+      mode={href ? { kind: 'link', href } : { kind: 'read' }}
+      {...(hostDown ? { instance: { condition: 'damaged' as const } } : {})}
+    />
   )
 }

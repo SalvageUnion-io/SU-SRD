@@ -6,6 +6,7 @@
  * ships to the browser as a small static JSON asset instead of the full
  * ~1.3 MB reference corpus.
  */
+import type { EntityRowModel } from 'component-lib'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 
 export type CompactSearchEntry = {
@@ -17,4 +18,11 @@ export type CompactSearchEntry = {
   /** Lowercased, concatenated searchable text (name + description/effect/
    *  goals/assets/weaknesses/content + resolved action content). */
   text: string
+  /**
+   * What a search result's Row draws (entity display language, §7 "Search"):
+   * the entity's model, slimmed to the Row's parts — no prose, no lead (a
+   * result shows none, E11), no stat glossary — so the index stays small and
+   * the browser still never loads the corpus.
+   */
+  model?: EntityRowModel
 }

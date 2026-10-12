@@ -137,20 +137,20 @@ describe('hybrid class requirements', () => {
 describe('class card rendering', () => {
   test('a hybrid renders its two requirement trees, joined by "or"', () => {
     render(<ReferenceEntityCard data={classByName('Cyborg')} />)
-    expect(
-      screen.getByText(/Requires Augmentation or Gladiatorial Combat/i, { exact: false })
-    ).toBeTruthy()
+    // A Stat cell (E17): `[REQ | Augmentation or Gladiatorial Combat]`.
+    expect(screen.getByText('REQ')).toBeTruthy()
+    expect(screen.getByText('Augmentation or Gladiatorial Combat')).toBeTruthy()
   })
 
   test('a base class renders no requirements at all', () => {
     render(<ReferenceEntityCard data={classByName('Soldier')} />)
-    expect(screen.queryByText(/Requires/i)).toBeNull()
+    expect(screen.queryByText('REQ')).toBeNull()
   })
 
   test('the Salvager stamps NON-ADVANCEABLE and asks for no trees', () => {
     render(<ReferenceEntityCard data={classByName('Salvager')} />)
     expect(screen.getByText('NON-ADVANCEABLE')).toBeTruthy()
-    expect(screen.queryByText(/Requires/i)).toBeNull()
+    expect(screen.queryByText('REQ')).toBeNull()
   })
 
   test('the kind stamp survives extent="catalog" — the deliberate exception', () => {

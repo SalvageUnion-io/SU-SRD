@@ -66,7 +66,10 @@ describe('useDetailModal — modal mode (no link provider)', () => {
   test('the dialog closes again via its close button', () => {
     render(<Harness data={system('Red Laser')} />)
     fireEvent.click(screen.getByLabelText('View details'))
-    fireEvent.click(screen.getByText('Close'))
+    // "Close" is also the laser's range (`[RNG | Close]`): the button's is the one.
+    const close = screen.getAllByText('Close').find((el) => el.closest('button'))
+    if (!close) throw new Error('no close button')
+    fireEvent.click(close)
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 

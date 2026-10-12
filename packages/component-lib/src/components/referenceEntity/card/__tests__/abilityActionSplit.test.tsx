@@ -3,7 +3,7 @@
  *
  * A handful of abilities cost a different action depending on whether you
  * perform them boarded or on foot, and the book prints both halves on one line —
- * "Turn Action (Mech) // Short Action (Pilot)" (core book p.248-249). The card
+ * "Turn (Mech) // Short (Pilot)" (core book p.248-249). The card
  * previously rendered only the Pilot half, unqualified, so a reader had no way to
  * tell the mech timing existed: `mechActionType` was stored on all seven split
  * abilities and read by nothing.
@@ -32,24 +32,24 @@ describe('ability card action split', () => {
   test('Scrap shows both halves, Mech first, as the book prints them', () => {
     const text = textOf(<ReferenceEntityCard data={ability('Scrap')} />)
 
-    expect(text).toContain('Turn Action (Mech)')
-    expect(text).toContain('Short Action (Pilot)')
-    expect(text.indexOf('Turn Action (Mech)')).toBeLessThan(text.indexOf('Short Action (Pilot)'))
+    expect(text).toContain('Turn (Mech)')
+    expect(text).toContain('Short (Pilot)')
+    expect(text.indexOf('Turn (Mech)')).toBeLessThan(text.indexOf('Short (Pilot)'))
   })
 
   test('Load shows its Turn/Short split', () => {
     const text = textOf(<ReferenceEntityCard data={ability('Load')} />)
 
-    expect(text).toContain('Turn Action (Mech)')
-    expect(text).toContain('Short Action (Pilot)')
+    expect(text).toContain('Turn (Mech)')
+    expect(text).toContain('Short (Pilot)')
   })
 
   // Repair is the common shape among the seven — Short in a Mech, Long on foot.
   test('Repair shows its Short/Long split', () => {
     const text = textOf(<ReferenceEntityCard data={ability('Repair')} />)
 
-    expect(text).toContain('Short Action (Mech)')
-    expect(text).toContain('Long Action (Pilot)')
+    expect(text).toContain('Short (Mech)')
+    expect(text).toContain('Long (Pilot)')
   })
 
   test('every ability carrying a mech variant renders both halves', () => {

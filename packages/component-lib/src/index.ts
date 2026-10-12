@@ -213,6 +213,14 @@ export { Toaster, toast } from './components/ui/toaster'
  * with its consumer, rather than restoring the speculative set.
  */
 export * as tokens from './design/tokens'
+// THE ENTITY DISPLAY LANGUAGE (docs/design-system/entity-display-language.md):
+// `<Entity form mode>` draws a game entity from its model; the surface supplies
+// how refs resolve, texture and the user-made treatment once.
+export type { EntityProps } from './entity/Entity'
+export { Entity } from './entity/Entity'
+export { EntitySurfaceProvider } from './entity/EntitySurface'
+export type { EntitySurfaceValue } from './entity/entitySurfaceContext'
+export type { EntityForm, EntityMode, EntityRowModel } from './entity/types'
 /** `CSSProperties` that also admits `--custom-property` keys (see styles/cssVars). */
 export type { CSSVarStyle } from './styles/cssVars'
 // Utilities — the ONE cn(): its tailwind-merge config knows the custom

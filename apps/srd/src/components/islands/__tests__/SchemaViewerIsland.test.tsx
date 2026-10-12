@@ -337,7 +337,7 @@ describe('SchemaViewerIsland', () => {
 
   // The listing's default is one compact card per entity (ruleset §1,
   // Listing); the Catalog toggle swaps in the artwork tiles.
-  describe('List | Catalog', () => {
+  describe('the listing (Rows in link mode)', () => {
     const chassisEntities = () => required(getModel('chassis'), 'chassis model').all()
     const renderChassis = () => {
       const entities = chassisEntities()
@@ -350,9 +350,9 @@ describe('SchemaViewerIsland', () => {
       )
     }
 
-    it('defaults to the list: one compact card per entity, each a named link', () => {
+    it('one Row per entity, each a named link, in an entity grid', () => {
       const { container } = renderChassis()
-      expect(screen.getByRole('button', { name: 'List' }).getAttribute('aria-pressed')).toBe('true')
+      expect(container.querySelector('.srd-listing__cards[data-entity-grid]')).toBeTruthy()
       const rows = container.querySelectorAll('.srd-listing__cards > li > a[aria-label]')
       expect(rows.length).toBe(chassisEntities().length)
     })
@@ -391,28 +391,19 @@ describe('SchemaViewerIsland', () => {
       expect(container.querySelector('.srd-rail__status')).toBeNull()
     })
 
-    it('Catalog swaps in the tiles and records the view in the URL', () => {
-      window.location.href = 'http://localhost/schema/chassis/'
+    it('the catalog view is retired: an old ?view=catalog link shows the list', () => {
+      window.location.href = 'http://localhost/schema/chassis/?view=catalog'
       const replaceSpy = spyOn(window.history, 'replaceState')
       try {
         const { container } = renderChassis()
-        fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
-        expect(container.querySelector('.srd-listing__cards')).toBeNull()
+        expect(screen.queryByRole('button', { name: 'Catalog' })).toBeNull()
+        expect(container.querySelector('.srd-listing__cards')).toBeTruthy()
         expect(container.querySelectorAll('a[aria-label]').length).toBe(chassisEntities().length)
         const urls = replaceSpy.mock.calls.map((c) => String(c[2]))
-        expect(urls.some((u) => u.includes('view=catalog'))).toBe(true)
+        expect(urls.some((u) => u.includes('view='))).toBe(false)
       } finally {
         replaceSpy.mockRestore()
       }
-    })
-
-    it('opens on the catalog when the URL asks for it (?view=catalog)', () => {
-      window.location.href = 'http://localhost/schema/chassis/?view=catalog'
-      const { container } = renderChassis()
-      expect(screen.getByRole('button', { name: 'Catalog' }).getAttribute('aria-pressed')).toBe(
-        'true'
-      )
-      expect(container.querySelector('.srd-listing__cards')).toBeNull()
     })
   })
 })

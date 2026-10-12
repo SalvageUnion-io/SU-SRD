@@ -1,4 +1,4 @@
-import { ReferenceEntityCard, Slab } from 'component-lib'
+import { Entity, Slab } from 'component-lib'
 import { useMemo } from 'react'
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import {
@@ -54,21 +54,22 @@ function resolveClassTrees(classEntity: SURefClass): ResolvedTrees {
   return { coreTrees: [], advancedTree: null, legendaryTree: null }
 }
 
+/** The tree's slab names the kind, so its Rows drop the seam stamp. */
+const OMIT_KIND = ['kind'] as const
+
 /**
- * One ability in its tree: the compact card as a real, same-tab link to the
+ * One ability in its tree: a Row in link mode, a real same-tab link to the
  * ability's page — the listing row's shape (`EntityListingRow`), so a crawler
- * follows it and a reader keeps their back button. The anchor carries the
- * interaction and the accessible name; `cardClickable` is the hover affordance.
+ * follows it and a reader keeps their back button.
  */
 function AbilityTreeListing({ ability }: { ability: SURefAbility }) {
   return (
-    <a
-      href={itemHref('abilities', getEntitySlug(ability))}
-      aria-label={ability.name}
-      className="srd-listing__row"
-    >
-      <ReferenceEntityCard data={ability} size="medium" extent="head" cardClickable />
-    </a>
+    <Entity
+      form="row"
+      entity={ability}
+      mode={{ kind: 'link', href: itemHref('abilities', getEntitySlug(ability)) }}
+      omit={OMIT_KIND}
+    />
   )
 }
 

@@ -44,7 +44,6 @@ import {
 } from '../card/cardCells'
 import { resolveHeaderFill, resolveHeaderHint } from '../card/cardChrome'
 import { isTitanicAction } from '../card/cardHelpers'
-import { compactLead } from '../card/compactLead'
 import { resolveCardTone } from '../card/entityCardTone'
 import { resolveEntityPageMeta } from '../card/entityPage'
 import { resolveNestedSections } from '../card/nestedSections'
@@ -259,7 +258,7 @@ describe('toEntityModel parity, every entity', () => {
   })
 
   test('lead is the card header hint, else the first paragraph, as plain text', () => {
-    // `compactLead` reads the model now; this is the formula the card used
+    // The Row's lead is the model's; this is the formula the compact card used
     // before it did (`resolveHeaderHint`'s hint, else the first paragraph).
     for (const row of ENTITIES) {
       const { schemaName, entity } = row
@@ -269,7 +268,6 @@ describe('toEntityModel parity, every entity', () => {
       })
       const lead = hintText || firstParagraphText('content' in entity ? entity.content : undefined)
       agree(label(row), toEntityModel(entity).lead, lead ? plainTraitText(lead) : undefined)
-      agree(label(row), compactLead(entity), toEntityModel(entity).lead)
     }
   })
 

@@ -1,5 +1,7 @@
 import type { SearchComboboxResult } from 'component-lib'
-import { SearchField, useSearchCombobox } from 'component-lib'
+import { Entity, SearchField, useSearchCombobox } from 'component-lib'
+import { space } from 'component-lib/design/tokens'
+import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import { itemHref, schemaHref } from '../../lib/entityHref'
@@ -20,6 +22,14 @@ type SearchIslandProps = {
   variant?: 'bar' | 'hero'
 }
 
+/** The results column: Rows in link mode, room above each for its kind stamp. */
+const RESULTS: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[12],
+  padding: `${space[12]} ${space[8]} ${space[8]}`,
+}
+
 /** Site URL for a combobox result: category listing or entity item page. */
 function resultUrl(result: SearchComboboxResult): string {
   if (result.kind === 'schema') return schemaHref(result.schemaId)
@@ -33,6 +43,8 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   // critical path. Unlike the reference-entity islands, search never
   // preloads the ORM at all — it matches against a small build-time index.
   const { ready, index, load } = useSearchIndex({ defer: true })
+  // Each entity result is drawn from the index's slim model (no corpus).
+  const models = useMemo(() => new Map(index.map((entry) => [entry.id, entry.model])), [index])
   const searchFn = useMemo(
     () => (options: Parameters<typeof searchCompactIndex>[1]) => searchCompactIndex(index, options),
     [index]
@@ -170,26 +182,41 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     <div
       id={listboxId}
       role="listbox"
-      className={`absolute top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-panel border border-wk-faint bg-paper shadow-lg ${hero ? 'left-0 w-full' : 'right-0 w-80'}`}
+      className={`srd-search-results absolute top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-panel border border-wk-faint bg-paper shadow-lg ${hero ? 'left-0 w-full' : 'right-0 w-80'}`}
     >
       {!ready ? (
         <div className="px-4 py-3 text-sm text-wk-muted">Loading search index…</div>
       ) : results.length > 0 ? (
-        results.map((result, index) => (
-          <a
-            key={result.id}
-            id={optionId(index)}
-            role="option"
-            aria-selected={index === selectedIndex}
-            href={resultUrl(result)}
-            className={`block px-4 py-3 text-sm transition-colors ${
-              index === selectedIndex ? 'bg-wk-bg' : 'hover:bg-wk-bg'
-            }`}
-          >
-            <div className="font-medium text-ink">{result.title}</div>
-            <div className="mt-0.5 text-xs text-wk-muted">{result.group}</div>
-          </a>
-        ))
+        // SEARCH (entity display language §7): every entity result is a Row
+        // in link mode, without the lead (E11); a category is a plain link.
+        <div style={RESULTS}>
+          {results.map((result, index) => {
+            const option = {
+              id: optionId(index),
+              role: 'option',
+              'aria-selected': index === selectedIndex,
+            } as const
+            const model = result.kind === 'entity' ? models.get(result.id) : undefined
+            return model ? (
+              <Entity
+                key={result.id}
+                form="row"
+                model={model}
+                mode={{ kind: 'link', href: resultUrl(result), attrs: option }}
+              />
+            ) : (
+              <a
+                key={result.id}
+                {...option}
+                href={resultUrl(result)}
+                className="block px-4 py-3 text-sm transition-colors hover:bg-wk-bg"
+              >
+                <div className="font-medium text-ink">{result.title}</div>
+                <div className="mt-0.5 text-xs text-wk-muted">{result.group}</div>
+              </a>
+            )
+          })}
+        </div>
       ) : (
         <div className="px-4 py-3 text-sm text-wk-muted">No results found</div>
       )}

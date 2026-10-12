@@ -14,6 +14,11 @@ const EntityHrefContext = createContext<EntityHrefBuilder | undefined>(undefined
 /** Provide an app-specific entity href builder to nested entity displays. */
 export const EntityHrefProvider = EntityHrefContext.Provider
 
+/** The provided entity href builder itself (`EntitySurface` bridges it). */
+export function useEntityHrefBuilder(): EntityHrefBuilder | undefined {
+  return useContext(EntityHrefContext)
+}
+
 /** Resolve an entity's href via the provided builder (undefined when none). */
 export function useEntityHref(entity: SURefEntity | undefined): string | undefined {
   const builder = useContext(EntityHrefContext)
@@ -75,6 +80,11 @@ const PatternHrefContext = createContext<PatternHrefBuilder | undefined>(undefin
 
 /** Provide an app-specific pattern-page href builder to nested entity displays. */
 export const PatternHrefProvider = PatternHrefContext.Provider
+
+/** The provided pattern href builder itself (`EntitySurface` bridges it). */
+export function usePatternHrefBuilder(): PatternHrefBuilder | undefined {
+  return useContext(PatternHrefContext)
+}
 
 /** Resolve a pattern's page href via the provided builder (undefined when none). */
 export function usePatternHref(
