@@ -1,3 +1,6 @@
+import { color } from '../../design/tokens'
+
+/** Paper by default; a caller's `className` takes over the colour entirely. */
 export function DetailIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -5,7 +8,8 @@ export function DetailIcon({ className }: { className?: string }) {
       height="14"
       viewBox="0 0 14 14"
       fill="none"
-      className={className ?? 'text-paper'}
+      className={className}
+      style={className === undefined ? { color: color.paper } : undefined}
       aria-hidden="true"
     >
       <rect

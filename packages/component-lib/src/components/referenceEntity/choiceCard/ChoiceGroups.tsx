@@ -91,6 +91,53 @@ function resolveOptionEntity(option: ChoiceCardOption): SURefEntity | undefined 
 /** The option card's frame, by density — the compact card's ink frame (ruleset §5). */
 const FRAME_WIDTH = { regular: 'var(--bw-entity-compact)', compact: 'var(--bw-chrome)' }
 
+/** A read-only chosen value, set as bold prose (`text-xs`, its line height included). */
+const chosenValueStyle = {
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: '1rem',
+  fontWeight: weight.bold,
+  color: color.ink,
+} satisfies CSSProperties
+
+/** One masonry cell: never split across columns; room above for the top rail. */
+const optionCellStyle = {
+  marginBottom: space[6],
+  breakInside: 'avoid',
+  paddingTop: space[10],
+} satisfies CSSProperties
+
+/**
+ * The free-text field's static geometry. Its border COLOUR lives on
+ * `.su-stampseal-field__input` (it darkens on `:focus`), so only the width and
+ * style are set here.
+ */
+const fieldStyle = {
+  width: '100%',
+  borderRadius: '0.25rem',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  backgroundColor: color.paper,
+  padding: `${space[14]} ${space[8]} ${space[4]}`,
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: '1rem',
+  color: color.ink,
+} satisfies CSSProperties
+
+/**
+ * The floating label's static half; `top` / `translate` / `opacity` follow the
+ * field's state, so they live on `.su-stampseal-field__label`.
+ */
+const fieldLabelStyle = {
+  pointerEvents: 'none',
+  position: 'absolute',
+  left: space[8],
+  transitionProperty: 'all',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  transitionDuration: '150ms',
+} satisfies CSSProperties
+
 /**
  * A selectable OPTION that is not an entity, in the compact card's anatomy
  * (ruleset §5): an ink frame, the tone head with the option's title in ink or
@@ -207,29 +254,24 @@ function StampsealField({
   multiline?: boolean
   onChange: (value: string) => void
 }): ReactNode {
-  const fieldClass = `peer w-full rounded border border-ink/20 bg-paper px-2 pt-3.5 pb-1 font-body text-xs text-ink focus:border-ink ${INPUT_FOCUS}`
+  const fieldClass = cn('su-stampseal-field__input', INPUT_FOCUS)
   const badge = (
     // A single space placeholder makes `:placeholder-shown` track "is empty".
-    <span
-      className={cn(
-        'pointer-events-none absolute left-2 top-0 -translate-y-1/2 transition-all duration-150',
-        // Empty + unfocused → sit inside the field like a placeholder…
-        'peer-placeholder-shown:top-3.5 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:opacity-60',
-        // …focused → snap back up to ride the border.
-        'peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:opacity-100'
-      )}
-    >
+    // The float (inside while empty, riding the border on focus or with a
+    // value) is the sibling selectors on `.su-stampseal-field__label`.
+    <span className="su-stampseal-field__label" style={fieldLabelStyle}>
       <Badge shape="stamp" size="mini">
         {label}
       </Badge>
     </span>
   )
   return (
-    <div className="relative">
+    <div style={{ position: 'relative' }}>
       {multiline ? (
         <textarea
           aria-label={label}
           className={fieldClass}
+          style={fieldStyle}
           rows={2}
           value={value}
           placeholder=" "
@@ -239,6 +281,7 @@ function StampsealField({
         <input
           aria-label={label}
           className={fieldClass}
+          style={fieldStyle}
           value={value}
           placeholder=" "
           onChange={(e) => onChange(e.target.value)}
@@ -283,7 +326,7 @@ function ChoiceOptionGroup({
   // box, no label, no repeated prompt.
   if (kind === 'text') {
     if (readOnly) {
-      return value ? <p className="font-body text-xs font-bold text-ink">{value}</p> : null
+      return value ? <p style={chosenValueStyle}>{value}</p> : null
     }
     return (
       <StampsealField
@@ -305,10 +348,10 @@ function ChoiceOptionGroup({
       : undefined
     const table = tableEntity && 'table' in tableEntity ? tableEntity.table : undefined
     return (
-      <div className="flex flex-col gap-1.5">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: space[6] }}>
         {readOnly ? (
           // A previously-chosen value (e.g. a snapshot) still shows as prose.
-          value && <p className="font-body text-xs font-bold text-ink">{value}</p>
+          value && <p style={chosenValueStyle}>{value}</p>
         ) : (
           // The field ALWAYS shows in editable — it holds the chosen value, and
           // rolling the table below fills it (RollTable.onRollResult).
@@ -352,14 +395,19 @@ function ChoiceOptionGroup({
           {counter}
         </div>
       )}
-      <div className={cn('gap-1.5', compact ? 'columns-1' : 'columns-1 sm:columns-2')}>
+      {/* Masonry columns: one, or two from `sm` unless compact — a class
+          (`.su-choice-options`), since the column count is responsive. */}
+      <div
+        className={cn('su-choice-options', !compact && 'su-choice-options--split')}
+        style={{ gap: space[6] }}
+      >
         {options.map((option) => {
           const chosen = selected.includes(option.value)
           const disabled = !readOnly && atCap && !chosen
           const onToggle = () => onToggleOption(option.value)
           const entity = renderEntityOption ? resolveOptionEntity(option) : undefined
           return (
-            <div key={option.value} className="mb-1.5 break-inside-avoid pt-2.5">
+            <div key={option.value} style={optionCellStyle}>
               {entity && renderEntityOption ? (
                 renderEntityOption({
                   entity,
@@ -436,7 +484,7 @@ export function ChoiceGroups({
 
   if (choices.length === 0) return null
   return (
-    <div className={cn('flex flex-col', compact ? 'gap-3' : 'gap-4')}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? space[12] : space[16] }}>
       {choices.map((choice) => (
         <ChoiceOptionGroup
           key={choice.id}
