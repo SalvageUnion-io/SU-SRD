@@ -2,7 +2,7 @@ import { Button, ModalShell, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import '../../styles/wizard.css'
-import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles'
+import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
 /** Sheet tone context — picks the `.sheet--{kind}` poster theming. */
 export type WizKind = 'pilot' | 'mech' | 'crawler'

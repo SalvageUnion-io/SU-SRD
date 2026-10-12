@@ -20,8 +20,9 @@ import {
   legalStartingPatterns,
   MECH_CREATION_SCRAP_CAP,
 } from 'salvageunion-reference/rules'
+import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import '../../styles/wizard.css'
-import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles'
+import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
 
 const HINT = {
   ...textSmStyle,
@@ -154,10 +155,9 @@ export function MechChassisStep({
       <MasonryColumns maxColumns={2} radio ariaLabel="Chassis">
         {chassisPool.map((chassis) => {
           const cost = chassis.salvageValue
-          const reason =
-            cost > MECH_CREATION_SCRAP_CAP
-              ? `Costs ${cost} scrap · ${MECH_CREATION_SCRAP_CAP} cap`
-              : undefined
+          const reason = chassisFitsCreationBudget(cost)
+            ? undefined
+            : `Costs ${cost} scrap · ${MECH_CREATION_SCRAP_CAP} cap`
           return (
             <ReferenceEntityCard
               key={chassis.id}

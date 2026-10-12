@@ -15,8 +15,8 @@ import { downtimeStepNames } from 'itun-domain/rules/downtime'
 import { createRef } from 'react'
 import type { MediatorTableView, MediatorTableWrites } from '../MediatorDashboardView'
 import { MediatorDashboardView } from '../MediatorDashboardView'
-import { readTrayNpc } from '../opposition'
-import { tableSeats } from '../seatCards'
+import { readTrayNpc } from '../opposition.model'
+import { tableSeats } from '../seatCards.model'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './tableFixture'
 
 const calls: { name: string; args: unknown[] }[] = []

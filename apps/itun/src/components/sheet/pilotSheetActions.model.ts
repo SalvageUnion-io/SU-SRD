@@ -33,16 +33,17 @@ import { useState } from 'react'
 import type { SoftWarning } from 'salvageunion-reference/rules'
 import { enrichPilotSnapshot, pilotMaxAP, resolvePool } from 'salvageunion-reference/rules'
 import { isPartnerEquipment, pilotPartnerSeeds, syncPartners } from '../../lib/rules/partnerGrants'
+import { resolveEquipment } from '../../lib/rules/pilotInventory'
+import { pilotActivationPatch } from '../../lib/rules/playActions'
 import { runWrite } from '../../lib/runWrite'
 import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
 import { changedFields, freshEntity } from './controlPrimitives'
-import { destroyedUndoToast } from './destroyedUndoToast'
+import { destroyedUndoToast } from './destroyedUndoToast.model'
 import type { UsedToggleKey } from './PilotIdentity'
-import { resolveAbility } from './pilotAbilities'
-import { resolveEquipment } from './pilotInventory'
-import type { SheetPatch, SheetStoreState } from './sheetViewProps'
+import { resolveAbility } from './pilotAbilities.model'
+import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
 
 type PilotSheetActionsOptions = {
   pilot: Pilot
@@ -242,9 +243,9 @@ export function usePilotSheetActions({
   async function handleSpendAP(cost: number) {
     const p = freshPilot()
     const current = resolvePool(p.currentAP, pilotMaxAP({ ...p, crawlerTechLevel }))
-    const next = Math.max(0, current - cost)
-    if (next === current) return
-    await writeAwait({ currentAP: next })
+    const patch = pilotActivationPatch({ apCost: cost, currentAP: current })
+    if (patch.currentAP === undefined || patch.currentAP === current) return
+    await writeAwait(patch)
   }
 
   async function handleAbilityUsedChange(slug: string, next: boolean) {

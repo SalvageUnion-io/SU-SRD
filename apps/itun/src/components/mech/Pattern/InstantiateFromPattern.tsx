@@ -22,7 +22,11 @@ import { useState } from 'react'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
 import { useEntityStore } from '../../../stores/entityStore'
 import '../../../styles/wizard.css'
-import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from '../../wizard/wizardStyles'
+import {
+  dialogActionsStyle,
+  dialogBodyStyle,
+  dialogNoteStyle,
+} from '../../wizard/wizardStyles.model'
 
 const ROOT = {
   display: 'flex',

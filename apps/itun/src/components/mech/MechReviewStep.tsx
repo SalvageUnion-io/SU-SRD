@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import '../../styles/wizard.css'
-import { textSmStyle } from '../wizard/wizardStyles'
+import { textSmStyle } from '../wizard/wizardStyles.model'
 import { SavePatternButton } from './Pattern/SavePatternButton'
 
 /** Columns are `.wiz-review-grid` (they change at lg). */

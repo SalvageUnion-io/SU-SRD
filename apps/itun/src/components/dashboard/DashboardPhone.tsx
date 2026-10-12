@@ -44,7 +44,7 @@ import { MARK_SRC } from '../../lib/appUrl'
 import { AppLink } from '../shared/AppLink'
 import type { PinnedVital } from './PinnedVitals'
 import { PinnedVitals } from './PinnedVitals'
-import type { SlotKind } from './slotLayout'
+import type { SlotKind } from './slotLayout.model'
 
 /** The order never changes, so a thumb learns it (D4). */
 const PHONE_TABS: readonly { kind: SlotKind; label: string }[] = [

@@ -30,7 +30,7 @@
  * snapshots have nothing to show; the control mounts only on editable
  * sheets. Pure logic lives in lib/rules/crawlerEconomy.ts (injectable d20);
  * the Upkeep and Trading Bay dialogs' UI state is a pair of pure reducers in
- * `crawlerEconomyDialogState.ts`.
+ * `crawlerEconomyDialogState.model.ts`.
  */
 
 import {
@@ -78,7 +78,7 @@ import {
   tradeReducer,
   tradeStep,
   upkeepReducer,
-} from './crawlerEconomyDialogState'
+} from './crawlerEconomyDialogState.model'
 
 /** The dialogs' width cap: `ModalShell` takes it as a class. */
 const DIALOG_WIDTH = 'su-sheet-crawler-dialog'

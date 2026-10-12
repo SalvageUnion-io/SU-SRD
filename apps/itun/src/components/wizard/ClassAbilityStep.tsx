@@ -2,9 +2,9 @@ import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from 'component
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import { selectableClasses } from './classOptions'
+import { selectableClasses } from './classOptions.model'
 import '../../styles/wizard.css'
-import { fullWidthStyle } from './wizardStyles'
+import { fullWidthStyle } from './wizardStyles.model'
 
 type SURClassesAccessor = {
   all: () => unknown[]

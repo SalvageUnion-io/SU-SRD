@@ -4,7 +4,7 @@ import type { SURefCrawler, SURefMetaCrawlerTechLevel } from 'salvageunion-refer
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import '../../styles/wizard.css'
-import { fullWidthStyle } from './wizardStyles'
+import { fullWidthStyle } from './wizardStyles.model'
 
 const statRowStyle: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[16] }
 

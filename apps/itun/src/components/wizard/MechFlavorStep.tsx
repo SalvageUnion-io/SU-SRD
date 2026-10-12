@@ -1,9 +1,9 @@
 import { Button, Field, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import '../../styles/wizard.css'
-import type { MechRollField, MechRollTableDeps } from './mechRollTables'
-import { rollForMechField } from './mechRollTables'
-import { stepColumnStyle } from './wizardStyles'
+import type { MechRollField, MechRollTableDeps } from './mechRollTables.model'
+import { rollForMechField } from './mechRollTables.model'
+import { stepColumnStyle } from './wizardStyles.model'
 
 const rollButtonStyle: CSSProperties = { flexShrink: 0 }
 

@@ -1,8 +1,8 @@
 import { Field, Input, Textarea } from 'component-lib'
 import '../../styles/wizard.css'
 import { RollTableButton } from './RollTableButton'
-import type { PilotRollField, RollTableDeps } from './rollTableHelpers'
-import { fieldRowStyle, stepColumnStyle } from './wizardStyles'
+import type { PilotRollField, RollTableDeps } from './rollTableHelpers.model'
+import { fieldRowStyle, stepColumnStyle } from './wizardStyles.model'
 
 type FlavorStepProps = {
   /** Which optional flavor fact this step edits (also the roll table). */

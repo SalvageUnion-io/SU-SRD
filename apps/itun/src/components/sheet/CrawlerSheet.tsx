@@ -82,8 +82,12 @@ import { useCargo } from '../../lib/cargo/useCargo'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { assignmentFor } from '../../lib/npcs/npcModel'
 import { crawlerTypeArt } from '../../lib/photos/defaultArt'
-import { drawFromPool, poolAvailableAtOrAbove, SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
-import { BAY_REPAIR_COST, resolveCrawlerSystem } from '../../lib/rules/crawlerItems'
+import { SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
+import {
+  bayRepairPatch,
+  bayRepairShortfall,
+  resolveCrawlerSystem,
+} from '../../lib/rules/crawlerItems'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
@@ -235,14 +239,12 @@ export function CrawlerSheet({
   const pool = crawler.scrapPool ?? {}
 
   // Repair affordability is advisory only — TL+ buckets count.
-  const repairable = poolAvailableAtOrAbove(pool, tl)
-  const repairShortfall = Math.max(0, BAY_REPAIR_COST - repairable)
+  const repairShortfall = bayRepairShortfall(pool, tl)
 
   /**
-   * Repair a damaged bay: decrement 5 Scrap starting at the crawler-TL
-   * bucket, spilling into higher buckets, then flip the bay Intact. A short
-   * pool still repairs — the shortfall is surfaced on the button, never a
-   * block.
+   * Repair a damaged bay (`bayRepairPatch`: 5 Scrap from the crawler-TL
+   * bucket up, then the bay flips Intact). A short pool still repairs — the
+   * shortfall is surfaced on the button, never a block.
    *
    * Tagged `LIVE_SHEET_TXN`: Scrap leaves the pool by a rule, so the Change Log
    * should not call it a hand edit. One of the three sanctioned Live-Sheet
@@ -251,20 +253,10 @@ export function CrawlerSheet({
   function repairBay(entry: CrawlerBayEntry, index: number) {
     if (readOnly) return
     const fresh = storeState.get('crawler', crawler.id) ?? crawler
-    // `partial` is what makes this the same draw the hand-rolled loop did:
-    // an empty or short pool spends what it has and the bay still repairs.
-    const drawn = drawFromPool(fresh.scrapPool ?? {}, tl, BAY_REPAIR_COST, { partial: true })
+    const { crawlerPatch, bayPatch } = bayRepairPatch(fresh.scrapPool ?? {}, tl)
+    runWrite(() => storeState.update('crawler', crawler.id, crawlerPatch, LIVE_SHEET_TXN))
     runWrite(() =>
-      storeState.update('crawler', crawler.id, { scrapPool: drawn.pool }, LIVE_SHEET_TXN)
-    )
-    runWrite(() =>
-      storeState.updateCrawlerBay(
-        crawler.id,
-        entry.bayRef,
-        { condition: 'intact' },
-        index,
-        LIVE_SHEET_TXN
-      )
+      storeState.updateCrawlerBay(crawler.id, entry.bayRef, bayPatch, index, LIVE_SHEET_TXN)
     )
   }
 

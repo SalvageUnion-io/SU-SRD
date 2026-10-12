@@ -9,7 +9,9 @@
 import { describe, expect, test } from 'bun:test'
 import {
   canActivateAction,
+  canPush,
   clampHeat,
+  PUSH_HEAT,
   performHeatCheck,
   performPush,
   reactorOverloadOutcome,
@@ -214,5 +216,20 @@ describe('canActivateAction', () => {
 
   test('returns false when already at cap with any cost', () => {
     expect(canActivateAction(10, 1, 10)).toBe(false)
+  })
+})
+
+describe('canPush', () => {
+  test('a Push adds 2 Heat (Core Book p.233)', () => {
+    expect(PUSH_HEAT).toBe(2)
+  })
+
+  test('refuses a Push that would take the Mech over its Heat Cap (p.234: cap 10 on 9 Heat)', () => {
+    expect(canPush(9, 10)).toBe(false)
+  })
+
+  test('allows a Push that lands exactly on the Heat Cap', () => {
+    expect(canPush(8, 10)).toBe(true)
+    expect(canPush(0, 10)).toBe(true)
   })
 })

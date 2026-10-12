@@ -28,14 +28,14 @@ import { runWrite } from '../../lib/runWrite'
 import { AppLink } from '../shared/AppLink'
 import { EntityRow } from '../shared/EntityRow'
 import { AssignPicker } from '../wiring/AssignPicker'
-import { mechStamp } from './bandStamps'
+import { mechStamp } from './bandStamps.model'
 import { LinkedUnitLink } from './LinkedUnitLink'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
-import { crawlerRailItems, pilotRailItems, rowStats } from './railStats'
+import { crawlerRailItems, pilotRailItems, rowStats } from './railStats.model'
 import { RailCta, WithheldUnitRow } from './SheetRailParts'
-import type { SheetViewCommonProps } from './sheetViewProps'
+import type { SheetViewCommonProps } from './sheetViewProps.model'
 
 type SheetMechProps = SheetViewCommonProps & {
   mech: Mech

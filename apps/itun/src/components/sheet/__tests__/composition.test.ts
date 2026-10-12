@@ -10,8 +10,8 @@ import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityLookupMock } from '../../__tests__/mockEntityStore'
-import type { EntityLookup } from '../composition'
-import { resolveSheetComposition } from '../composition'
+import type { EntityLookup } from '../composition.model'
+import { resolveSheetComposition } from '../composition.model'
 
 const now = FIXTURE_NOW
 

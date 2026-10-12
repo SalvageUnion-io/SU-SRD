@@ -46,11 +46,11 @@ import {
   performPush,
   resolveChassisRef,
 } from 'salvageunion-reference/rules'
-import { resolveEquipment } from '../../components/sheet/pilotInventory'
 import type { RangeBand } from '../schemas/seat'
 import { heatCheckPatch } from './heatCheck'
 import type { MechItemEconomy } from './mechItems'
 import { resolveModule, resolveSystem } from './mechItems'
+import { resolveEquipment } from './pilotInventory'
 
 // ---------------------------------------------------------------------------
 // Reactor — Push / Heat Check / Vent / Shutdown (dashboard.md §5.1)
@@ -518,6 +518,28 @@ export function economyForActivation(
   return { ...base, heat: hotHeatFor(action, hotX) }
 }
 
+/** Whether one activation's Hot Heat applies, and whether it fits under the Heat Cap. */
+export type ActivationHeatGate = { applies: boolean; ok: boolean }
+
+/**
+ * The Heat gate on one activation. Only an EP activation made from the cockpit
+ * makes Heat (a pilot on foot carries none), so only that one `applies`; it is
+ * `ok` when it adds no Heat or its Heat would not take the Mech past its Heat
+ * Cap (`canActivateAction`).
+ */
+export function activationHeatGate(args: {
+  currency: PlayActionCurrency
+  onFoot: boolean
+  heat: number
+  currentHeat: number
+  heatCap: number
+}): ActivationHeatGate {
+  const applies = args.currency === 'EP' && !args.onFoot
+  const ok =
+    !applies || args.heat <= 0 || canActivateAction(args.currentHeat, args.heat, args.heatCap)
+  return { applies, ok }
+}
+
 /**
  * Classify a rolled outcome for the Apply step (ADR-007). A Cascade Failure is
  * the destructive band — its severe consequence must NEVER be auto-written; the
@@ -549,7 +571,7 @@ export function pilotActivationPatch(args: { apCost: number; currentAP: number }
  * The write-through patch for one activation — spend EP, add Hot Heat (clamped
  * to cap), tick the Uses counter down. Applied by `useActionsDeck`; the Uses
  * map is the `itemUses` shape the sheet's hand edit (`setItemUses` in
- * `mechSheetActions.ts`) writes, so the Dashboard and the sheet can't drift.
+ * `mechSheetActions.model.ts`) writes, so the Dashboard and the sheet can't drift.
  */
 export function activationPatch(args: {
   slug: string

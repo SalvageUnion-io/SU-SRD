@@ -1,8 +1,8 @@
 import { Button, Field, Input, Panel, Slab, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
-import type { CrawlerRollTableDeps } from './crawlerRollTables'
-import { rollCrawlerName } from './crawlerRollTables'
+import type { CrawlerRollTableDeps } from './crawlerRollTables.model'
+import { rollCrawlerName } from './crawlerRollTables.model'
 import '../../styles/wizard.css'
 
 /** The step's column (`max-w-3xl`). */

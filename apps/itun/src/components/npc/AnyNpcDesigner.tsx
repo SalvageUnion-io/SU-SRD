@@ -62,7 +62,7 @@ import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/w
 import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { NpcCard } from './NpcCard'
-import { CAPS, COLUMN, COLUMNS, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles'
+import { CAPS, COLUMN, COLUMNS, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
 
 const STEP_INTRO: Record<NpcStepId, string> = {
   template:

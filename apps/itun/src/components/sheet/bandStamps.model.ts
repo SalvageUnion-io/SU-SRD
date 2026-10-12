@@ -7,7 +7,7 @@
 
 import { resolveClassName } from '../../lib/classRef'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import { mechChassisStats } from '../roster/rowStats'
+import { mechChassisStats } from '../roster/rowStats.model'
 
 export function pilotStamp(classRef: string): string | undefined {
   return resolveClassName(classRef) || undefined

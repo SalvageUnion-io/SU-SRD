@@ -9,7 +9,7 @@
  * reference data and build the entity-level controls (Load Into Mech / Full
  * sheet →). Downtime is the Game's, started by the Mediator from the rail
  * (`useDowntime`), so no card enters it. Rolls on a table go to the Game's log
- * (`dashboardRolls.ts`), which the Log tab reads.
+ * (`dashboardRolls.model.ts`), which the Log tab reads.
  *
  * The two halves were split across component-lib and ITUN, with ITUN importing
  * the library's copy `as DisplayPanelView`, although ITUN was its only consumer.
@@ -27,10 +27,10 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import { recordRoll } from './dashboardRolls'
+import { recordRoll } from './dashboardRolls.model'
 import { SrdExplorer } from './SrdExplorer'
 import { TablePickerOverlay } from './TablePickerOverlay'
-import type { PickableTable } from './tableCategories'
+import type { PickableTable } from './tableCategories.model'
 import type { MountState, SeatHandle } from './useSeat'
 
 const HIDE_CHOICES = { choices: true } as const

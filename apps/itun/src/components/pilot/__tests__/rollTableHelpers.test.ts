@@ -8,8 +8,8 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { RollTableDeps } from '../../wizard/rollTableHelpers'
-import { rollForPilotField, rollOnNamedTable } from '../../wizard/rollTableHelpers'
+import type { RollTableDeps } from '../../wizard/rollTableHelpers.model'
+import { rollForPilotField, rollOnNamedTable } from '../../wizard/rollTableHelpers.model'
 
 type StubTable = {
   id: string

@@ -4,12 +4,12 @@
  * build's read-only sheet (`/starter/:kind/:id`).
  *
  * The front door and the Starter Set page both list the same thirteen builds,
- * so both draw them with this one card (`starterShelves.ts` builds them).
+ * so both draw them with this one card (`starterShelves.model.ts` builds them).
  */
 
 import { Entity } from 'component-lib'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
-import type { StarterBuild } from './starterShelves'
+import type { StarterBuild } from './starterShelves.model'
 
 type StarterCardProps = { kind: StarterKind; build: StarterBuild }
 

@@ -14,7 +14,7 @@
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
 import { TestAuthBridge } from '../TestAuthBridge'
-import { TEST_SIGN_IN_GLOBAL, testAuthBridgeEnabled } from '../testAuthSeam'
+import { TEST_SIGN_IN_GLOBAL, testAuthBridgeEnabled } from '../testAuthSeam.model'
 
 describe('the seam is off unless a build asks for it', () => {
   test('the flag defaults to off', () => {

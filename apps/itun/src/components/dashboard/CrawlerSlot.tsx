@@ -29,6 +29,7 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
+import { craftableAtTl } from '../../lib/rules/crafting'
 import {
   crawlerUpgradeQuote,
   payUpkeep,
@@ -45,7 +46,7 @@ import { runWrite } from '../../lib/runWrite'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import type { StepRule } from '../wizard/RuleBrief'
 import { RuleBrief } from '../wizard/RuleBrief'
-import { recordRoll } from './dashboardRolls'
+import { recordRoll } from './dashboardRolls.model'
 import type { BandBay, MajorModel } from './MajorFrame'
 import { MajorFrame } from './MajorFrame'
 import { MinorFrame } from './MinorFrame'
@@ -107,7 +108,7 @@ function CraftBody({ crawler, store }: { crawler: Crawler; store: PlayStore }) {
         typeof i.name === 'string' &&
         typeof i.techLevel === 'number' &&
         typeof i.salvageValue === 'number' &&
-        i.techLevel <= crawlerTl
+        craftableAtTl(i.techLevel, crawlerTl)
     )
     .sort((a, b) => a.techLevel - b.techLevel || a.name.localeCompare(b.name))
 
@@ -208,7 +209,7 @@ export function CrawlerMajor({
         () => setPrompt({ kind: 'salvage', log })
       )
     // Every roll goes to the Game's log, whether or not it found scrap
-    // (`dashboardRolls.ts`).
+    // (`dashboardRolls.model.ts`).
     recordRoll(crawler, {
       description: `${crawler.name} · Area Salvage ${log}`,
       result: { kind: 'area-salvage', roll: result.roll, outcome: result.label },

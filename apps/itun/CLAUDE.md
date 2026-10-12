@@ -23,9 +23,9 @@ once, because the URL is derived rather than minted.
 static "retired" page and reads nothing. Nothing binds the `su-itun-snapshots`
 R2 bucket; deleting it is the owner's call, never an agent's.
 
-Every read-only sheet — a crewmate's at `/sheet/:kind/:id`, the public one —
-is the live `<Sheet readOnly>` over `src/components/sheet/readOnlySheetStore.ts`.
-Don't add another.
+Every read-only sheet (a crewmate's at `/sheet/:kind/:id`, the public one)
+is the live `<Sheet readOnly>` over `src/components/sheet/readOnlySheetStore.model.ts`.
+No others.
 
 ## Stack
 

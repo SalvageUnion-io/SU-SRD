@@ -1,7 +1,7 @@
 /**
  * Sheet — root live-sheet component on the Header C LiveSheet shell. Resolves
  * the entity + its SoftLink composition (the ported
- * resolver in composition.ts), then dispatches to ONE per-kind view
+ * resolver in composition.model.ts), then dispatches to ONE per-kind view
  * (SheetPilot / SheetMech / SheetCrawler):
  * hero = entity-card-writ-large with live trackers, linked entities as rail
  * chips (live mini stats, whole-chip navigation), variant sheet as the body.
@@ -36,19 +36,19 @@ import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 import { ChangeLogDrawer } from './ChangeLogDrawer'
-import type { EntityLookup } from './composition'
-import { resolveSheetComposition } from './composition'
+import type { EntityLookup } from './composition.model'
+import { resolveSheetComposition } from './composition.model'
 import type { LiveSheetSegment } from './LiveSheet'
 import { SheetActionsMenu } from './SheetActionsMenu'
 import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
 import { SheetModeToggle } from './SheetModeToggle'
 import { SheetPilot } from './SheetPilot'
-import { useSheetMode } from './sheetMode'
-import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps'
+import { useSheetMode } from './sheetMode.model'
+import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
 
 // Re-exported so existing consumers (tests) keep their import.
-export type { EntityLookup } from './composition'
+export type { EntityLookup } from './composition.model'
 
 /**
  * The sheet's own entity, resolved with its kind as a discriminant so the
@@ -131,10 +131,10 @@ type SheetProps = {
   pilotAbilities?: string[]
   /**
    * Entities the viewer may read but not edit — a Game's crewmates, from
-   * `listForGame` (`readOnlySheetStore.ts`). Linked units the store does not
+   * `listForGame` (`readOnlySheetStore.model.ts`). Linked units the store does not
    * hold resolve through it, so your crawler lists its whole crew and your
    * pilot shows the crewmate's mech flying them. Nothing on the sheet writes to
-   * what only this holds (`holds` in `sheetViewProps.ts`).
+   * what only this holds (`holds` in `sheetViewProps.model.ts`).
    */
   others?: EntityLookup
   /** Where a linked unit's View goes; the live sheet route when omitted. */
@@ -188,7 +188,7 @@ export function Sheet({
   // control lives in the ⋯ menu, which unmounts on the press that answers it.
   const { confirm, dialog: confirmDialog } = useConfirm()
   const { canWrite, settling } = useConnection()
-  // Read | Edit (`sheetMode.ts`): the route's choice, or always writable when
+  // Read | Edit (`sheetMode.model.ts`): the route's choice, or always writable when
   // nothing provides one (a test, a story).
   const sheetMode = useSheetMode()
   const editing = sheetMode === null || sheetMode.editing
@@ -251,7 +251,7 @@ export function Sheet({
   // clean-pilot.html `.bar-actions`): Share stays inline; Print,
   // Export and the container control tuck into the "⋯" overflow at every width — the app
   // bar's priority row is just Share + overflow.
-  // Read | Edit is the band's (`sheetMode.ts`): Read withdraws every write
+  // Read | Edit is the band's (`sheetMode.model.ts`): Read withdraws every write
   // affordance; Edit gives back the unified edit language (in-place fields,
   // collection add/remove, live pips).
   // Print/PDF export (#82/#258): the print stylesheet (index.css @media

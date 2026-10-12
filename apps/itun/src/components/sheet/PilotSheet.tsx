@@ -13,7 +13,7 @@
  *     controls in a row under it) and Linked Units (one line each in Read).
  * Ability-granted partners run full width under both columns.
  *
- * Read | Edit (`sheetMode.ts`) reaches here as `readOnly`: Read withdraws every
+ * Read | Edit (`sheetMode.model.ts`) reaches here as `readOnly`: Read withdraws every
  * write affordance exactly as a sheet the viewer cannot write does.
  *
  * Section containers follow the card-vs-slab rule (see `SheetSectionSlab`):
@@ -40,7 +40,7 @@
  * share it are its siblings:
  *   - `pilotSheet.model.ts` — everything derived (vitals maxima, provenance
  *     ledgers, the ability cards, inventory capacity, the linked crawler).
- *   - `pilotSheetActions.ts` — every write, all of them through one `write()`
+ *   - `pilotSheetActions.model.ts` — every write, all of them through one `write()`
  *     that reads the freshest record and handles the offline refusal.
  * Local UI state (which picker is open) stays here, because it is render state.
  *
@@ -84,7 +84,7 @@ import {
   PilotEquipmentItem,
 } from './PilotSheetItems'
 import { usePilotSheetModel } from './pilotSheet.model'
-import { usePilotSheetActions } from './pilotSheetActions'
+import { usePilotSheetActions } from './pilotSheetActions.model'
 import { SectionManageButton, SheetPickerModal } from './SheetSection'
 
 // ---------------------------------------------------------------------------

@@ -58,7 +58,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MechItemCard } from './MechItemCard'
 import { PartnerHold } from './PartnerHold'
-import { partnerDisplayName } from './partnerDisplay'
+import { partnerDisplayName } from './partnerDisplay.model'
 
 const STACK = {
   display: 'flex',

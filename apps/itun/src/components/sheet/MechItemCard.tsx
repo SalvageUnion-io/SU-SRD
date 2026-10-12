@@ -37,7 +37,13 @@ import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { MechItem, MechItemEconomy } from '../../lib/rules/mechItems'
-import { itemEconomy, repairPoolTl, repairScrapCost } from '../../lib/rules/mechItems'
+import {
+  itemEconomy,
+  itemUseBlocker,
+  itemUsesRemaining,
+  repairPoolTl,
+  repairScrapCost,
+} from '../../lib/rules/mechItems'
 import { CardRemoveButton } from './SheetSection'
 
 /**
@@ -165,23 +171,14 @@ export function MechItemCard({
 
   const economy = itemEconomy(entity)
   const { epCost, heat, maxUses } = economy
-  const remaining = maxUses > 0 ? Math.min(usesRemaining ?? maxUses, maxUses) : 0
+  const remaining = itemUsesRemaining(maxUses, usesRemaining)
   const cost = repairScrapCost(entity.salvageValue)
   // techLevel can be 'B'/'N' (Bio/Nano) — only numeric TLs map to pool buckets.
   const itemTl = typeof entity.techLevel === 'number' ? entity.techLevel : undefined
   const deductTl =
     scrapPool && scrapPoolLocked === null ? repairPoolTl(scrapPool, itemTl, cost) : null
 
-  const useDisabledReason =
-    condition === 'destroyed'
-      ? 'Destroyed — cannot be used'
-      : condition === 'damaged'
-        ? 'Damaged — repair before use'
-        : maxUses > 0 && remaining <= 0
-          ? 'No uses remaining'
-          : epCost > (currentEP ?? Number.POSITIVE_INFINITY)
-            ? `Not enough EP (needs ${epCost})`
-            : null
+  const useDisabledReason = itemUseBlocker({ condition, economy, remaining, currentEP })
   // "Use" (the EP/heat-spending activation) is offered only when a handler is
   // wired — the Dashboard passes one; the Free-Edit Live Sheet does not (ADR-021).
   const showUse = onUse !== undefined && (epCost > 0 || heat > 0 || maxUses > 0)

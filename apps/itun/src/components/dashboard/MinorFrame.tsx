@@ -16,7 +16,7 @@ import { Button } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { DashboardGauge } from './DashboardGauge'
 import type { BandGauge } from './MajorFrame'
-import { slotRule } from './slotLayout'
+import { slotRule } from './slotLayout.model'
 
 export type MinorModel = {
   fam: 'mech' | 'pilot' | 'crawler'

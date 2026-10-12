@@ -30,6 +30,7 @@ import {
   isPilotAbilityPickComplete,
   isPilotEquipmentPickComplete,
   isWeaponSystem,
+  MECH_CREATION_SCRAP_CAP,
   mechCreationBudget,
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,
@@ -329,6 +330,36 @@ export function mechCreationBudgetFor(form: MechWizardFormState): MechCreationBu
     return { sv: item?.salvageValue ?? 0, count }
   })
   return mechCreationBudget({ chassisSV: chassisSVOf(form.chassisName), loadout })
+}
+
+/**
+ * Whether a chassis fits the 20-Scrap creation budget on its own (Mech
+ * Workshop p.94). The chassis step dims one that does not, with the reason.
+ */
+export function chassisFitsCreationBudget(salvageValue: number): boolean {
+  return salvageValue <= MECH_CREATION_SCRAP_CAP
+}
+
+/**
+ * How many more copies of a System or Module the create flow can add: as many
+ * as BOTH the scrap left in the 20-Scrap budget and the slots left in this
+ * step's budget take (a free or slotless item is unbounded by that budget).
+ * The same arithmetic disables the stepper's `+`, dims the card, and is
+ * re-checked by the Review gate (`mechBudgetGate`).
+ */
+export function maxAddableCopies(
+  item: { salvageValue: number; slotsRequired: number },
+  budget: { scrapRemaining: number; slotsRemaining: number }
+): number {
+  const byScrap =
+    item.salvageValue > 0
+      ? Math.floor(budget.scrapRemaining / item.salvageValue)
+      : Number.POSITIVE_INFINITY
+  const bySlots =
+    item.slotsRequired > 0
+      ? Math.floor(budget.slotsRemaining / item.slotsRequired)
+      : Number.POSITIVE_INFINITY
+  return Math.max(0, Math.min(byScrap, bySlots))
 }
 
 function mechChassisGate(form: MechWizardFormState): StepGateResult {

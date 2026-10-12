@@ -12,8 +12,8 @@
 import { Callout, KvRow, RadioCardGroup, ReferenceEntityCard, Slab, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { SURefClass } from 'salvageunion-reference'
-import type { ClassPathConsequence } from './classPathOptions'
-import { classPathConsequence, classPathGroups } from './classPathOptions'
+import type { ClassPathConsequence } from '../../lib/rules/classPath'
+import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath'
 import '../../styles/wizard.css'
 
 /** An unreachable (off-ring) class, demoted but still pickable. */

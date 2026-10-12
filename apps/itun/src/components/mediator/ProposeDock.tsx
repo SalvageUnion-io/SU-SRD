@@ -28,10 +28,10 @@ import {
 } from 'itun-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useId, useState } from 'react'
-import { EYEBROW, MUTED, NUMBERS, VISUALLY_HIDDEN } from './mediatorStyles'
+import { EYEBROW, MUTED, NUMBERS, VISUALLY_HIDDEN } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
-import type { SentProposal } from './proposalLine'
-import { PROPOSAL_LIST } from './proposalLine'
+import type { SentProposal } from './proposalLine.model'
+import { PROPOSAL_LIST } from './proposalLine.model'
 
 const { color, space } = tokens
 

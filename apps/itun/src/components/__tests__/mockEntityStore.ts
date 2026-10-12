@@ -20,7 +20,7 @@ import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { create } from 'zustand'
 import type { ChangeMeta, EntityState, useEntityStore } from '../../stores/entityStore'
 import type { CreateInput, EntityForType, EntityType } from '../../stores/types'
-import type { EntityLookup } from '../sheet/composition'
+import type { EntityLookup } from '../sheet/composition.model'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 
 type AnyEntity = Pilot | Mech | Crawler | Npc | SoftLink

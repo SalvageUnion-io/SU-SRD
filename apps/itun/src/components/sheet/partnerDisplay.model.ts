@@ -1,7 +1,7 @@
 /**
  * Partner display helpers — pure functions, no JSX.
  *
- * Kept out of `PartnerCard.tsx` for the same reason `railStats.ts` is kept out
+ * Kept out of `PartnerCard.tsx` for the same reason `railStats.model.ts` is kept out
  * of `SheetRailParts.tsx`: a file that mixes component and non-component
  * exports breaks React Fast Refresh.
  */

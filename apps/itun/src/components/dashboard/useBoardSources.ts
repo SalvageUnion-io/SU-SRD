@@ -1,6 +1,6 @@
 /**
  * useBoardSources — what the Board menu reads from the pilot's Game
- * (`boardMenu.ts`; ADR-038 §3).
+ * (`boardMenu.model.ts`; ADR-038 §3).
  *
  * The menu lists mechs that are not the viewer's (a crewmate's, an unclaimed
  * spare), which never reach this browser's entity store, so it reads the Game
@@ -17,7 +17,7 @@ import type { Pilot } from 'itun-domain/schemas/pilot'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { BoardSources } from './boardMenu'
+import type { BoardSources } from './boardMenu.model'
 
 export function useBoardSources(pilot: Pilot | null): BoardSources {
   const { mode } = useConnection()

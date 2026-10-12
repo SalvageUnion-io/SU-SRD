@@ -20,9 +20,9 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import type { GaugeTone } from './DashboardGauge'
 import { DashboardGauge } from './DashboardGauge'
-import { useDashboardForm } from './dashboardForm'
+import { useDashboardForm } from './dashboardForm.model'
 import { PhoneMajorFrame } from './PhoneMajorFrame'
-import { slotRule } from './slotLayout'
+import { slotRule } from './slotLayout.model'
 
 /** Stable no-op, so the Escape effect doesn't re-bind when no overlay is open. */
 const NOOP = () => {

@@ -25,7 +25,7 @@ import type { StarterKind } from '../../lib/starterSet/copyStarter'
 import { STARTER_SET_PUBLISHER, starterTemplate } from '../../lib/starterSet/copyStarter'
 import { AppLink } from '../shared/AppLink'
 import { useConfirm } from '../shared/useConfirm'
-import { makeReadOnlySheetStore } from '../sheet/readOnlySheetStore'
+import { makeReadOnlySheetStore } from '../sheet/readOnlySheetStore.model'
 import { Sheet } from '../sheet/Sheet'
 import { MakeACopy } from './MakeACopy'
 

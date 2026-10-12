@@ -2,7 +2,7 @@
  * The Board control in the Pilot Major's Mount bay: the split button and the
  * mech menu its ▾ opens (ADR-038 §3; #1055).
  *
- * The menu's contents are `boardMenu.ts`'s, tested on their own in
+ * The menu's contents are `boardMenu.model.ts`'s, tested on their own in
  * `boardMenu.test.ts`; this drives what a player presses, and records what
  * reaches the seat with `fakeSeat`.
  */
@@ -10,7 +10,7 @@
 import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
-import type { BoardMenu, BoardOption } from '../boardMenu'
+import type { BoardMenu, BoardOption } from '../boardMenu.model'
 import { SlotRow } from '../SlotRow'
 import type { SeatHandle } from '../useSeat'
 import { fakeSeat } from './seatFixture'

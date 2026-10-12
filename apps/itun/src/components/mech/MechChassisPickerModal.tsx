@@ -19,7 +19,7 @@ import { Button, EntitySearcher, ModalShell } from 'component-lib'
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import '../../styles/wizard.css'
-import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from '../wizard/wizardStyles'
+import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from '../wizard/wizardStyles.model'
 
 type MechChassisPickerModalProps = {
   open: boolean

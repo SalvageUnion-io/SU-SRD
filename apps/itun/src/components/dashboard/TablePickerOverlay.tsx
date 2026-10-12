@@ -15,8 +15,8 @@
 
 import { Button, ModalShell } from 'component-lib'
 import type { RefObject } from 'react'
-import type { PickableTable } from './tableCategories'
-import { groupTablesByCategory, TABLE_CATEGORY_LABEL } from './tableCategories'
+import type { PickableTable } from './tableCategories.model'
+import { groupTablesByCategory, TABLE_CATEGORY_LABEL } from './tableCategories.model'
 
 const TITLE = 'Pick a roll table'
 

@@ -17,7 +17,7 @@ shows a retired page. `publicSheet.get` also returns the entity's direct
 assignments — a linked entity that is itself published with its name and body,
 any other by its kind alone ("Not shared"; publishing is each owner's opt-in,
 decision 2) — and the page renders the live `<Sheet readOnly>` over
-`readOnlySheetStore.ts`. Saved mech patterns join at `/p/pattern/:appId`
+`readOnlySheetStore.model.ts`. Saved mech patterns join at `/p/pattern/:appId`
 (decision 7), and built NPCs ([ADR-044](../ARCHITECTURE.md#decisions)) at
 `/p/npc/:appId`, maker credited. Every kind a player shares — pilot, mech,
 crawler, NPC, pattern — sets this from one "Who can see it" control (Only me,
@@ -103,7 +103,7 @@ no account to open, is always current, and requires no publishing step.
    `null` — not a refusal — for an entity that is not public, so a flipped-off
    sheet is indistinguishable from one that never existed.
 
-5. **Rendered by the machinery that already exists.** `readOnlySheetStore.ts`
+5. **Rendered by the machinery that already exists.** `readOnlySheetStore.model.ts`
    parses the entity against the Zod schemas behind a store whose every write
    throws, the store every read-only sheet uses; the public sheet adds no
    rendering code.

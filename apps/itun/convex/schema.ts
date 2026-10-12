@@ -87,7 +87,7 @@ export const crewSlot = v.union(
  *
  * `'game'` names no sheet: a table-wide alert (`proposals.broadcast`), a
  * recorded Discord roll (`botClient.recordRoll`) and a Dashboard roll
- * (`appendChangeLog`, from `dashboardRolls.ts`) are log rows about the Game
+ * (`appendChangeLog`, from `dashboardRolls.model.ts`) are log rows about the Game
  * itself rather than about anybody's sheet. Everything that reads a row's target must therefore handle a
  * row that names no entity table — see `ownableTableFor` in `proposals.ts`.
  *

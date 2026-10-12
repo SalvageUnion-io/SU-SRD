@@ -2,7 +2,8 @@
  * The Mediator Dashboard's pure halves (issue 1278,
  * docs/architecture/mediator-dashboard.md): the seat cards (Q5), the
  * proposal targets and values (Q8), how a sent proposal reads, and the
- * Opposition tray's instances and Morale roll (Q9).
+ * Opposition tray's instances (Q9). The Morale roll and what an NPC tracks
+ * are rules: `itun-domain/rules/opposition`.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -13,10 +14,10 @@ import {
   proposalTargets,
 } from 'itun-domain/games/proposals'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { instanceName, newTrayNpc, readTrayNpc, rollMorale, trackOf } from '../opposition'
-import type { SentProposal } from '../proposalLine'
-import { ago, proposalLine } from '../proposalLine'
-import { seatSummary, tableSeats } from '../seatCards'
+import { instanceName, newTrayNpc, readTrayNpc } from '../opposition.model'
+import type { SentProposal } from '../proposalLine.model'
+import { ago, proposalLine } from '../proposalLine.model'
+import { seatSummary, tableSeats } from '../seatCards.model'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './tableFixture'
 
 describe('the seat cards', () => {
@@ -140,7 +141,6 @@ describe('a sent proposal', () => {
 describe('the Opposition tray', () => {
   const NOW = '2026-10-09T12:00:00.000Z'
   const squad = SalvageUnionReference.Squads.all()[0]
-  const vehicle = SalvageUnionReference.Vehicles.all()[0]
 
   test('a new instance starts at full HP, by slug, with a numbered name when it repeats one', () => {
     if (squad === undefined) throw new Error('no squads in the reference')
@@ -176,11 +176,6 @@ describe('the Opposition tray', () => {
     expect(npc).toMatchObject({ name: 'Hill Worm Pattern Typhon', currentHp: 40, maxHp: 67 })
   })
 
-  test('a vehicle tracks SP', () => {
-    if (vehicle === undefined) throw new Error('no vehicles in the reference')
-    expect(trackOf(vehicle).statKind).toBe('sp')
-  })
-
   test('numbered names skip the ones taken', () => {
     expect(instanceName('Raider Band', [])).toBe('Raider Band')
     expect(instanceName('Raider Band', ['Raider Band', 'Raider Band 2'])).toBe('Raider Band 3')
@@ -198,15 +193,5 @@ describe('the Opposition tray', () => {
       down: false,
       lastRoll: null,
     })
-  })
-
-  test('Morale is a d20 on the reference table (p.268)', () => {
-    expect(rollMorale(() => 7, NOW)).toMatchObject({
-      table: 'morale',
-      roll: 7,
-      label: 'Fighting Retreat',
-      rolledAt: NOW,
-    })
-    expect(rollMorale(() => 20, NOW)?.label).toBe('Fight to the Death')
   })
 })

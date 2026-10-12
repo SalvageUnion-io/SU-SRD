@@ -18,7 +18,7 @@ import type { CargoLot } from 'itun-domain/schemas/cargoLot'
 import { useState } from 'react'
 import { usePatternStore } from '../../../stores/patternStore'
 import '../../../styles/wizard.css'
-import { dialogActionsStyle, dialogBodyStyle } from '../../wizard/wizardStyles'
+import { dialogActionsStyle, dialogBodyStyle } from '../../wizard/wizardStyles.model'
 
 type SavePatternButtonProps = {
   /** Name of the source mech — pre-fills the pattern name field. */

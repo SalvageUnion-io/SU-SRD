@@ -48,6 +48,7 @@ import type { CargoLot } from 'itun-domain/schemas/cargoLot'
 import { makeScrapLot, makeUnitLot, totalLotUnits } from 'itun-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
+import { loadableQty } from '../../lib/cargo/cargoTransfer'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 
@@ -483,12 +484,6 @@ function GraphPaper() {
   )
 }
 
-/** Per-unit slot cost of a bulk lot (mirrors the reducer's accounting). */
-function perUnitCost(lot: CargoLot): number {
-  if (lot.kind !== 'bulk' || lot.qty === undefined || lot.qty <= 0) return lot.units
-  return Math.max(1, Math.round(lot.units / lot.qty))
-}
-
 /**
  * The cap-checked move affordance shared by both Hold layouts — the single
  * source of the button label + disabled reason for the linear mech chit and
@@ -518,13 +513,8 @@ function moveAffordance(
     : cargo.crawlerLocked
 
   if (side === 'crawler' && disabledReason === null) {
-    const per = perUnitCost(lot)
-    const fitsQty =
-      lot.kind === 'bulk' && lot.qty !== undefined
-        ? Math.min(lot.qty, Math.floor(cargo.usage.free / per))
-        : lot.units <= cargo.usage.free
-          ? 1
-          : 0
+    // The reducer's own fit math, so the button and the load can't disagree.
+    const fitsQty = loadableQty(lot, cargo.usage.free)
     if (fitsQty <= 0) {
       disabledReason = `"${lot.name}" does not fit — ${cargo.usage.free} slots free.`
     }

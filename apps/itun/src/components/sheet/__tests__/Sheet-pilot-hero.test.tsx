@@ -29,7 +29,7 @@ import {
   makeSoftLinkStoreMock,
 } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
-import { pilotStamp } from '../bandStamps'
+import { pilotStamp } from '../bandStamps.model'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)

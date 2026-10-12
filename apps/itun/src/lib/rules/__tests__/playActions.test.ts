@@ -15,6 +15,7 @@ import type { PlayAction } from '../playActions'
 import {
   actionInRange,
   actionReachable,
+  activationHeatGate,
   activationPatch,
   buildMechActions,
   buildPilotActions,
@@ -387,5 +388,38 @@ describe('resolve flow helpers', () => {
     expect(coreMechanicRowText(8)).toStartWith('You succeed in your action, but at a cost.')
     expect(coreMechanicRowText(1)).toStartWith('Something has gone terribly wrong.')
     expect(coreMechanicRowText(20)).toStartWith('You have overcome the odds')
+  })
+})
+
+describe('activationHeatGate', () => {
+  const ctx = { currentHeat: 8, heatCap: 10 }
+
+  test('an EP activation from the cockpit makes Heat, and is refused past the Heat Cap', () => {
+    expect(activationHeatGate({ currency: 'EP', onFoot: false, heat: 2, ...ctx })).toEqual({
+      applies: true,
+      ok: true,
+    })
+    expect(activationHeatGate({ currency: 'EP', onFoot: false, heat: 3, ...ctx })).toEqual({
+      applies: true,
+      ok: false,
+    })
+  })
+
+  test('AP and on-foot activations make no Heat, so they always fit', () => {
+    expect(activationHeatGate({ currency: 'AP', onFoot: false, heat: 5, ...ctx })).toEqual({
+      applies: false,
+      ok: true,
+    })
+    expect(activationHeatGate({ currency: 'EP', onFoot: true, heat: 5, ...ctx })).toEqual({
+      applies: false,
+      ok: true,
+    })
+  })
+
+  test('an activation that adds no Heat fits even at an over-cap reading', () => {
+    expect(
+      activationHeatGate({ currency: 'EP', onFoot: false, heat: 0, currentHeat: 12, heatCap: 10 })
+        .ok
+    ).toBe(true)
   })
 })

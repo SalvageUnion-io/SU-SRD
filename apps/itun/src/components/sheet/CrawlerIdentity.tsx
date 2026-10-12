@@ -33,7 +33,7 @@ import { readReference } from '../../lib/readReference'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerSheetItems'
-import type { SheetPatch, SheetStoreState } from './sheetViewProps'
+import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
 
 const PANEL = { minWidth: 0 } satisfies CSSProperties
 

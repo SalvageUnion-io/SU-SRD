@@ -12,9 +12,9 @@
 import { tokens } from 'component-lib'
 import { PROPOSAL_STATE_WORD } from 'itun-domain/games/proposals'
 import type { CSSProperties } from 'react'
-import { NUMBERS } from './mediatorStyles'
-import type { SentProposal } from './proposalLine'
-import { ago, proposalLine } from './proposalLine'
+import { NUMBERS } from './mediatorStyles.model'
+import type { SentProposal } from './proposalLine.model'
+import { ago, proposalLine } from './proposalLine.model'
 
 const { borderWidth, color, font, fontSize, radius, space, tracking, weight } = tokens
 

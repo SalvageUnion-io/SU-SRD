@@ -25,7 +25,7 @@ import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { useEntityStore } from '../../stores/entityStore'
 import { AnyNpcDesigner } from './AnyNpcDesigner'
 import { CrewBoard } from './CrewBoard'
-import { EYEBROW, PAGE } from './npcStyles'
+import { EYEBROW, PAGE } from './npcStyles.model'
 
 export type NpcDesignerView = 'any' | 'crew'
 

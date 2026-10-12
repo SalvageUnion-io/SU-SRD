@@ -16,10 +16,10 @@ import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { ago } from '../mediator/proposalLine'
+import { ago } from '../mediator/proposalLine.model'
 import { failureMessage } from '../shared/useConfirm'
 import { HubSection } from './HubSection'
-import { HUB_COPY } from './hubStyles'
+import { HUB_COPY } from './hubStyles.model'
 
 const { borderWidth, color, font, fontSize, radius, space, weight } = tokens
 

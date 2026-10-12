@@ -34,10 +34,10 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { CrawlerReading } from '../mediator/crawlerReading'
+import type { CrawlerReading } from '../mediator/crawlerReading.model'
 import { failureMessage } from '../shared/useConfirm'
 import { HubSection } from './HubSection'
-import { HUB_COPY } from './hubStyles'
+import { HUB_COPY } from './hubStyles.model'
 
 const { borderWidth, color, font, fontSize, radius, space, tracking, weight } = tokens
 

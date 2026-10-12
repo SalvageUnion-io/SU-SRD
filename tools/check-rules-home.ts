@@ -13,14 +13,14 @@
  *   1. a file under `apps/itun/convex/` (not `_generated/`) imports a module
  *      that resolves into `apps/itun/src/`. Shared logic goes to `itun-domain`
  *      or `salvageunion-reference`;
- *   2. a non-test `.ts` file under `apps/itun/src/components/` is named like a
- *      rules or model module (`dashboardRules.ts`, `slotModels.ts`) without the
- *      view-model suffix `.model.ts`. A rule goes to a rules home (the
- *      reference's `lib/rules`, `itun-domain/src/rules`, ITUN's
- *      `src/lib/rules`); a view-model for one component stays beside it as
- *      `<name>.model.ts`.
+ *   2. a non-test `.ts` file under `apps/itun/src/components/` is neither a
+ *      hook (`useSeat.ts`) nor a view-model (`<name>.model.ts`). A rule goes
+ *      to a rules home (the reference's `lib/rules`, `itun-domain/src/rules`,
+ *      ITUN's `src/lib/rules`); a view-model for one component stays beside
+ *      it as `<name>.model.ts`, so a plain `dashboardRules.ts` or
+ *      `pilotInventory.ts` has nowhere to hide in a component folder.
  *
- * No baseline: both counts were zero when the gate landed.
+ * No baseline: both counts are zero.
  *
  * Usage: bun tools/check-rules-home.ts
  */
@@ -37,9 +37,9 @@ export const COMPONENTS_DIR = 'apps/itun/src/components'
 const CONVEX_FLOOR = 20
 const COMPONENTS_FLOOR = 280
 
-/** A rules- or model-named module: `fooRules.ts`, `foo.rules.ts`, `fooModel.ts`, `fooModels.ts`. */
-const RULES_NAME = /(?:rules|models?)\.ts$/i
 const VIEW_MODEL = /\.model\.ts$/
+/** A React hook module: `useSeat.ts`. */
+const HOOK = /(?:^|\/)use[A-Z][^/]*\.ts$/
 const TEST_FILE = /\.(?:test|spec|stories)\.tsx?$/
 
 /** Every specifier in `import … from`, `export … from`, `import(…)` and bare `import '…'`. */
@@ -81,14 +81,17 @@ export function convexClientImports(root: string): { scanned: number; problems: 
   return { scanned: files.length, problems }
 }
 
-/** Rules- or model-named logic files under `components/` that are not `*.model.ts`. */
+/** Non-test `.ts` files under `components/` that are neither a hook nor a `*.model.ts`. */
 export function misplacedRules(root: string): { scanned: number; problems: string[] } {
   const files = walk(join(root, COMPONENTS_DIR), (p) => p.endsWith(`${sep}node_modules`))
   const problems = files
     .map((f) => relative(root, f))
     .filter((f) => f.endsWith('.ts') && !TEST_FILE.test(f) && !f.split(sep).includes('__tests__'))
-    .filter((f) => RULES_NAME.test(f) && !VIEW_MODEL.test(f))
-    .map((f) => `${f} is rules-named inside components/`)
+    .filter((f) => !VIEW_MODEL.test(f) && !HOOK.test(f.split(sep).join('/')))
+    .map(
+      (f) =>
+        `${f} is neither a hook (use*.ts) nor a view-model (*.model.ts): move a rule to a rules home, or rename a view-model *.model.ts`
+    )
   return { scanned: files.length, problems }
 }
 
@@ -109,7 +112,7 @@ export function main(root: string, log = console.log, error = console.error): nu
     return 1
   }
   log(
-    `check-rules-home: ${convex.scanned} Convex files import nothing from ${CLIENT_SRC}/; ${components.scanned} component files hold no rules-named module`
+    `check-rules-home: ${convex.scanned} Convex files import nothing from ${CLIENT_SRC}/; ${components.scanned} component files hold only components, hooks and view-models`
   )
   return 0
 }

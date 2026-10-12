@@ -1,5 +1,9 @@
 /**
- * Grouping and consequence copy for the live sheet's Change Class picker.
+ * The consequences of a class change — implied origin, foreclosed hybrids,
+ * sealed trees, the `originClassRef` patch — and the grouping and copy the
+ * live sheet's Change Class picker shows them in. Advancement rules built on
+ * the reference's primitives; Core vs Advanced/Hybrid is the reference's own
+ * `isCoreClass` / `isBaseAdvancedClass`.
  *
  * Not one flat list of all eleven classes, which would offer a Hacker three
  * hybrids they cannot reach and say nothing about what changing would cost:
@@ -23,6 +27,7 @@
  */
 
 import type { SURefClass } from 'salvageunion-reference'
+import { isBaseAdvancedClass, isCoreClass } from 'salvageunion-reference'
 import type { AdvancementOption } from 'salvageunion-reference/rules'
 import {
   advancementOptionsFor,
@@ -63,10 +68,6 @@ export type ClassPathConsequence = {
   originChoices: readonly string[]
 }
 
-const isHybrid = (cls: SURefClass): boolean => 'hybrid' in cls && cls.hybrid === true
-const isCore = (cls: SURefClass): boolean =>
-  'coreTrees' in cls && Array.isArray(cls.coreTrees) && cls.coreTrees.length > 0
-
 /**
  * Shape the class list around where this pilot can actually go.
  *
@@ -106,10 +107,12 @@ export function classPathGroups(
   groups.push({
     kind: 'core',
     label: reachableNames.size > 0 ? 'Re-home to a Core Class' : 'Core Classes',
-    options: allClasses.filter(isCore).map((cls) => ({ cls, current: cls.id === currentClassRef })),
+    options: allClasses
+      .filter(isCoreClass)
+      .map((cls) => ({ cls, current: cls.id === currentClassRef })),
   })
 
-  const offRing = allClasses.filter((c) => isHybrid(c) && !reachableNames.has(c.name))
+  const offRing = allClasses.filter((c) => isBaseAdvancedClass(c) && !reachableNames.has(c.name))
   if (offRing.length > 0) {
     groups.push({
       kind: 'off-ring',
@@ -143,7 +146,7 @@ export function classPathConsequence(
   const pending = allClasses.find((c) => c.id === pendingRef)
   if (pending === undefined) return undefined
 
-  if (!isHybrid(pending)) {
+  if (!isBaseAdvancedClass(pending)) {
     return {
       title: pending.name,
       gain: resolveAdvancementTrees(data, undefined, pending.name).open,
@@ -156,7 +159,7 @@ export function classPathConsequence(
 
   const candidates = originsForHybrid(data, pending.name)
   const impliedOrigin =
-    current !== undefined && isCore(current) && candidates.includes(current.name)
+    current !== undefined && isCoreClass(current) && candidates.includes(current.name)
       ? current.name
       : undefined
 
@@ -210,7 +213,7 @@ export function classChangePatch(
   answeredOrigin: string | undefined
 ): { classRef: string; originClassRef?: string | undefined } {
   const pending = allClasses.find((c) => c.id === pendingRef)
-  if (pending === undefined || !isHybrid(pending)) {
+  if (pending === undefined || !isBaseAdvancedClass(pending)) {
     return { classRef: pendingRef, originClassRef: undefined }
   }
   return { classRef: pendingRef, originClassRef: answeredOrigin }

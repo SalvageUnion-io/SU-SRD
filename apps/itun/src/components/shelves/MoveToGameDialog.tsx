@@ -24,7 +24,7 @@ import { serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
-import { requestMove } from '../container/requestMove'
+import { requestMove } from '../container/requestMove.model'
 import type { Confirm } from '../shared/useConfirm'
 import { failureMessage } from '../shared/useConfirm'
 

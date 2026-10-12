@@ -1,11 +1,11 @@
 /**
- * Tests for classPathOptions.ts — how the Change Class picker is shaped and
+ * Tests for classPath.ts — how the Change Class picker is shaped and
  * what it promises before you confirm.
  */
 import { describe, expect, it } from 'bun:test'
 import type { SURefClass } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { classChangePatch, classPathConsequence, classPathGroups } from '../classPathOptions'
+import { classChangePatch, classPathConsequence, classPathGroups } from '../classPath'
 
 const all = () => SalvageUnionReference.Classes.all() as SURefClass[]
 const idOf = (name: string): string => {

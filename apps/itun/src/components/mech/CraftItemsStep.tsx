@@ -3,8 +3,9 @@ import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
+import { maxAddableCopies } from '../../lib/rules/creation'
 import '../../styles/wizard.css'
-import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles'
+import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
 
 const EMPTY_NOTE = {
   ...textSmStyle,
@@ -68,12 +69,7 @@ export function CraftItemsStep({
           // One more copy fits iff BOTH budgets take it (§5 single source of
           // truth: the same arithmetic disables the `+`, dims the card, and
           // is re-checked by the Review gate).
-          const byScrap = sv > 0 ? Math.floor(scrapRemaining / sv) : Number.POSITIVE_INFINITY
-          const bySlots =
-            slotsRequired > 0
-              ? Math.floor(slotsRemaining / slotsRequired)
-              : Number.POSITIVE_INFINITY
-          const maxAdd = Math.max(0, Math.min(byScrap, bySlots))
+          const maxAdd = maxAddableCopies(item, { scrapRemaining, slotsRemaining })
 
           const disabledReason =
             count === 0 && maxAdd === 0

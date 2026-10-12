@@ -66,6 +66,33 @@ export function itemEconomy(entity: MechItem): MechItemEconomy {
   return { epCost, heat, maxUses }
 }
 
+/** Uses left on an item: the stored count, capped at its max; 0 when it has no uses counter. */
+export function itemUsesRemaining(maxUses: number, usesRemaining: number | undefined): number {
+  return maxUses > 0 ? Math.min(usesRemaining ?? maxUses, maxUses) : 0
+}
+
+/**
+ * Why an installed item cannot be Used right now, or null when it can: a
+ * Destroyed item cannot be used, a Damaged one must be repaired first, an item
+ * with a uses counter needs a use left, and the activation needs the EP.
+ * `currentEP` undefined means the EP is not known here, so it does not block.
+ */
+export function itemUseBlocker(args: {
+  condition: ItemCondition
+  economy: MechItemEconomy
+  remaining: number
+  currentEP: number | undefined
+}): string | null {
+  const { condition, economy, remaining, currentEP } = args
+  if (condition === 'destroyed') return 'Destroyed — cannot be used'
+  if (condition === 'damaged') return 'Damaged — repair before use'
+  if (economy.maxUses > 0 && remaining <= 0) return 'No uses remaining'
+  if (economy.epCost > (currentEP ?? Number.POSITIVE_INFINITY)) {
+    return `Not enough EP (needs ${economy.epCost})`
+  }
+  return null
+}
+
 /**
  * Field-repair cost: half Salvage Value in Scrap, rounded DOWN, minimum 1.
  *

@@ -16,11 +16,13 @@ import { EMPTY_MECH_FORM_STATE } from '../../wizard/mechFormState'
 import type { PilotWizardFormState } from '../../wizard/pilotFormState'
 import { EMPTY_PILOT_FORM_STATE } from '../../wizard/pilotFormState'
 import {
+  chassisFitsCreationBudget,
   clampCrawlerCreationDraft,
   clampMechCreationDraft,
   clampPilotCreationDraft,
   crawlerCreationStepGate,
   crawlerWeaponSlotsFor,
+  maxAddableCopies,
   mechCreationBudgetFor,
   mechCreationStepGate,
   pilotCreationStepGate,
@@ -542,5 +544,59 @@ describe('clampCrawlerCreationDraft', () => {
     // Illegal entries (non-weapon, TL2) dropped; then w2 (newest) clamped.
     expect(clamped.systems).toEqual([w1])
     expect(removed.length).toBe(3)
+  })
+})
+
+describe('chassisFitsCreationBudget (20 Tech 1 Scrap, Mech Workshop p.94)', () => {
+  it('fits up to the cap and not past it', () => {
+    expect(chassisFitsCreationBudget(20)).toBe(true)
+    expect(chassisFitsCreationBudget(21)).toBe(false)
+  })
+})
+
+describe('maxAddableCopies', () => {
+  it('is bounded by whichever budget runs out first', () => {
+    expect(
+      maxAddableCopies(
+        { salvageValue: 2, slotsRequired: 1 },
+        { scrapRemaining: 7, slotsRemaining: 5 }
+      )
+    ).toBe(3)
+    expect(
+      maxAddableCopies(
+        { salvageValue: 1, slotsRequired: 2 },
+        { scrapRemaining: 7, slotsRemaining: 5 }
+      )
+    ).toBe(2)
+  })
+
+  it('is 0, never negative, when either budget is spent', () => {
+    expect(
+      maxAddableCopies(
+        { salvageValue: 3, slotsRequired: 1 },
+        { scrapRemaining: -2, slotsRemaining: 5 }
+      )
+    ).toBe(0)
+    expect(
+      maxAddableCopies(
+        { salvageValue: 1, slotsRequired: 2 },
+        { scrapRemaining: 5, slotsRemaining: 1 }
+      )
+    ).toBe(0)
+  })
+
+  it('a free or slotless item is unbounded by that budget', () => {
+    expect(
+      maxAddableCopies(
+        { salvageValue: 0, slotsRequired: 1 },
+        { scrapRemaining: 0, slotsRemaining: 4 }
+      )
+    ).toBe(4)
+    expect(
+      maxAddableCopies(
+        { salvageValue: 0, slotsRequired: 0 },
+        { scrapRemaining: 0, slotsRemaining: 0 }
+      )
+    ).toBe(Number.POSITIVE_INFINITY)
   })
 })

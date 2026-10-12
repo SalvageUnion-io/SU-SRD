@@ -10,7 +10,7 @@
  *    spare, or disabled with the reason.
  *  - A pilot with no assigned mech gets one button, "Board a mech ▾".
  *
- * Presentational: `boardMenu.ts` decides what is offered, and `PilotMajor`
+ * Presentational: `boardMenu.model.ts` decides what is offered, and `PilotMajor`
  * owns the menu, the claim confirm and the writes. The menu is a list of plain
  * buttons, not a `menu` role, because it is a dialog with no menu keyboard
  * model. Style objects only (ADR-046); every button is the
@@ -20,9 +20,9 @@
 import { Button } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useEffect, useId, useRef } from 'react'
-import type { BoardMenu, BoardOption } from './boardMenu'
-import { boardable } from './boardMenu'
-import { usePhoneForm } from './dashboardForm'
+import type { BoardMenu, BoardOption } from './boardMenu.model'
+import { boardable } from './boardMenu.model'
+import { usePhoneForm } from './dashboardForm.model'
 
 const SPLIT: CSSProperties = { display: 'flex', gap: '2px', minWidth: 0 }
 

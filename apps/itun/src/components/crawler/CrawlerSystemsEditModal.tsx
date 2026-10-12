@@ -20,6 +20,7 @@ import {
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
+import { craftableAtTl } from '../../lib/rules/crafting'
 
 type CrawlerSystemsEditModalProps = {
   open: boolean
@@ -75,7 +76,8 @@ export function CrawlerSystemsEditModal({
           const installed = crawler.systems.includes(nameToSlug(s.name))
           // Keep installed weapons visible/removable even above the current TL.
           if (installed) return isWeaponSystem(s)
-          if (typeof s.techLevel !== 'number' || tl === null || s.techLevel > tl) return false
+          if (typeof s.techLevel !== 'number' || tl === null || !craftableAtTl(s.techLevel, tl))
+            return false
           return isWeaponSystem(s)
         }}
         idOf={(item) => nameToSlug(item.name)}

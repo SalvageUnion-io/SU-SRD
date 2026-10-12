@@ -3,7 +3,7 @@ import { Caption } from 'component-lib/stories/harness'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { ClassAbilityStep } from './ClassAbilityStep'
-import { selectableClasses } from './classOptions'
+import { selectableClasses } from './classOptions.model'
 
 const FRAME: CSSProperties = { backgroundColor: tokens.color.paper, padding: tokens.space[16] }
 

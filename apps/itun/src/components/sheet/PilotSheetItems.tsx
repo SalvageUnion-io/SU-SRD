@@ -23,9 +23,13 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
+import {
+  equipmentMaxUses,
+  genericEntrySlots,
+  resolveEquipment,
+} from '../../lib/rules/pilotInventory'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
-import { equipmentMaxUses, genericEntrySlots, resolveEquipment } from './pilotInventory'
 import { CardRemoveButton } from './SheetSection'
 
 const HIDE_CHOICES = { choices: true } as const

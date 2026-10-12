@@ -1,8 +1,8 @@
 import { Field, Input } from 'component-lib'
 import '../../styles/wizard.css'
 import { RollTableButton } from './RollTableButton'
-import type { RollTableDeps } from './rollTableHelpers'
-import { fieldRowStyle, stepColumnStyle } from './wizardStyles'
+import type { RollTableDeps } from './rollTableHelpers.model'
+import { fieldRowStyle, stepColumnStyle } from './wizardStyles.model'
 
 type CallsignStepProps = {
   name: string

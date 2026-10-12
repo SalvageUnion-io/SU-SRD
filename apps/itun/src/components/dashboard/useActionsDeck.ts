@@ -17,7 +17,7 @@
  * **The resolve in progress lives on the seat** (`resolving`, ADR-038 §2):
  * which action, whether it is activated, the roll and whether it was applied.
  * So a reload mid-roll keeps the roll, and the crew watches it step by step.
- * Every roll and Push also goes to the Game's log (`dashboardRolls.ts`). What
+ * Every roll and Push also goes to the Game's log (`dashboardRolls.model.ts`). What
  * only this screen needs (a Hot X, the EP-or-AP choice, the Push readout)
  * stays component state.
  *
@@ -37,7 +37,7 @@ import { useState } from 'react'
 import type { CoreRollResult } from 'salvageunion-reference/rules'
 import {
   CORE_ROLL_BANDS,
-  canActivateAction,
+  canPush,
   coreRollBandLabel,
   describePushOutcome,
   mechMaxEP,
@@ -53,6 +53,7 @@ import type { MechItemEconomy } from '../../lib/rules/mechItems'
 import type { PlayAction, PlayActionCurrency, TimingTab } from '../../lib/rules/playActions'
 import {
   actionReachable,
+  activationHeatGate,
   activationPatch,
   buildMechActions,
   buildPilotActions,
@@ -74,13 +75,10 @@ import { RANGE_BANDS } from '../../lib/schemas/seat'
 import { useEntityStore } from '../../stores/entityStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import type { DeckListModel, DeckRow } from './DeckList'
-import { recordRoll } from './dashboardRolls'
+import { recordRoll } from './dashboardRolls.model'
 import type { ResolveModel } from './ResolvePanel'
 import type { PlayStore } from './SlotRow'
 import type { MountState } from './useSeat'
-
-/** The Heat a Push adds before its re-roll (Quick Ref p.233). */
-const PUSH_HEAT = 2
 
 export type ActionsDeckProps = {
   /** The boarded mech; on foot, the assigned one or null with none. */
@@ -299,9 +297,9 @@ export function useActionsDeck({
     const chassis = resolveChassisRef(mech.chassisRef)
     const fresh = s.get('mech', mech.id) ?? mech
     const cap = mechMaxHeat(fresh, chassis)
-    // Quick Ref p.233: no Push that would take Heat past the cap. The control
+    // Core Book p.234: no Push that would take Heat past the cap. The control
     // is disabled for it; this holds the line against a stale render too.
-    if (!canActivateAction(resolveGauge(fresh.currentHeat, cap), PUSH_HEAT, cap)) return
+    if (!canPush(resolveGauge(fresh.currentHeat, cap), cap)) return
     const {
       patch,
       effect,
@@ -354,11 +352,12 @@ export function useActionsDeck({
     }
     const eco = economyForActivation(action.economy, action.action, 1)
     const choice = hasCurrencyChoice(action.action) && !onFoot
-    const heatApplies = action.currency === 'EP' && !onFoot
-    const heatOk =
-      !heatApplies ||
-      eco.heat <= 0 ||
-      canActivateAction(heatCtx.currentHeat, eco.heat, heatCtx.heatCap)
+    const { ok: heatOk } = activationHeatGate({
+      currency: action.currency,
+      onFoot,
+      heat: eco.heat,
+      ...heatCtx,
+    })
     const reachable = actionReachable(action, range, heatCtx.currentHeat, heatCtx.heatCap)
     const payable = action.currency === 'EP' ? mech !== null : pilot != null
     if (choice || hasVariableHot(action.action) || !heatOk || !reachable || !payable) {
@@ -467,11 +466,12 @@ export function useActionsDeck({
     const effCurrency: PlayActionCurrency = currencyChoice ? currency : selected.currency
 
     // Heat projection + cap gate (EP activations only; pilots carry no Heat).
-    const heatApplies = effCurrency === 'EP' && !onFoot
-    const heatOk =
-      !heatApplies ||
-      eco.heat <= 0 ||
-      canActivateAction(heatCtx.currentHeat, eco.heat, heatCtx.heatCap)
+    const { applies: heatApplies, ok: heatOk } = activationHeatGate({
+      currency: effCurrency,
+      onFoot,
+      heat: eco.heat,
+      ...heatCtx,
+    })
     const projectedHeat = heatCtx.currentHeat + eco.heat
     const apUnavailable = effCurrency === 'AP' && !pilot
     const activateDisabled = activated || !heatOk || apUnavailable
@@ -479,9 +479,9 @@ export function useActionsDeck({
     // Core Book p.233: a pushed roll is not pushed again. A new roll clears
     // the Push readout, and with it this.
     const pushed = pushLog !== null
-    // Quick Ref p.233: a Push adds 2 Heat, and a mech never exceeds its Heat
-    // Cap, so it is refused where that would — as the Reactor bay refuses it.
-    const pushLocked = !canActivateAction(heatCtx.currentHeat, PUSH_HEAT, heatCtx.heatCap)
+    // Core Book pp.233–234: a Push adds 2 Heat, and a mech never exceeds its
+    // Heat Cap, so it is refused where that would — as the Reactor bay refuses it.
+    const pushLocked = !canPush(heatCtx.currentHeat, heatCtx.heatCap)
 
     const cost: string[] = []
     if (eco.epCost > 0) cost.push(`${eco.epCost} ${effCurrency}`)

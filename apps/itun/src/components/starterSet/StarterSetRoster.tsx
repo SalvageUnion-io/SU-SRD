@@ -24,7 +24,7 @@ import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/R
 import { useConfirm } from '../shared/useConfirm'
 import { CopyStarterSelect } from './CopyStarterSelect'
 import { StarterCard } from './StarterCard'
-import { starterShelves } from './starterShelves'
+import { starterShelves } from './starterShelves.model'
 
 const HEADER = {
   display: 'flex',

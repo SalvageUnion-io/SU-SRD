@@ -16,9 +16,9 @@
 
 import { Card, Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
-import type { CrawlerReading } from '../mediator/crawlerReading'
+import type { CrawlerReading } from '../mediator/crawlerReading.model'
 import { HubSection } from './HubSection'
-import type { SeatRow } from './seatRows'
+import type { SeatRow } from './seatRows.model'
 
 const { borderWidth, color, font, fontSize, radius, space, tracking, weight } = tokens
 

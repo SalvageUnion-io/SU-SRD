@@ -1,7 +1,7 @@
 import { Button } from 'component-lib'
 import type { CSSProperties } from 'react'
-import type { PilotRollField, RollTableDeps } from './rollTableHelpers'
-import { rollForPilotField, rollOnNamedTable } from './rollTableHelpers'
+import type { PilotRollField, RollTableDeps } from './rollTableHelpers.model'
+import { rollForPilotField, rollOnNamedTable } from './rollTableHelpers.model'
 
 const rollButtonStyle: CSSProperties = { alignSelf: 'center', flexShrink: 0 }
 

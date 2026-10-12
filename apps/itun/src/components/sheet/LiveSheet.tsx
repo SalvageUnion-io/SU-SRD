@@ -40,8 +40,8 @@ import { ArrowLeft } from 'lucide-react'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { AppLink } from '../shared/AppLink'
-import { SHEET_ICONBTN_CLASS } from './sheetChrome'
-import type { SheetBand } from './sheetViewProps'
+import { SHEET_ICONBTN_CLASS } from './sheetChrome.model'
+import type { SheetBand } from './sheetViewProps.model'
 
 export type SheetVariant = 'pilot' | 'mech' | 'crawler'
 

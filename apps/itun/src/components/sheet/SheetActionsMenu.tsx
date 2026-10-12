@@ -13,7 +13,7 @@
 import { cn, PopoverPanel } from 'component-lib'
 import { Ellipsis } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { SHEET_ICONBTN_CLASS } from './sheetChrome'
+import { SHEET_ICONBTN_CLASS } from './sheetChrome.model'
 
 const ICON = { height: '18px', width: '18px' } satisfies CSSProperties
 

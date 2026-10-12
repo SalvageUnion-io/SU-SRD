@@ -27,12 +27,12 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { readReference } from '../../lib/readReference'
-import type { ClassLike } from '../pilot/abilityTrees'
-import { treesFor } from '../pilot/abilityTrees'
+import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'
+import type { ClassLike } from '../pilot/abilityTrees.model'
+import { treesFor } from '../pilot/abilityTrees.model'
 import { useSoftLinks } from '../wiring/useSoftLinks'
-import { resolveAbility } from './pilotAbilities'
-import { pilotInventoryCapacity, pilotInventoryUsed } from './pilotInventory'
-import type { SheetStoreState } from './sheetViewProps'
+import { resolveAbility } from './pilotAbilities.model'
+import type { SheetStoreState } from './sheetViewProps.model'
 
 /**
  * The tree every pilot has regardless of class (Repair, Scrap, Mount, …).

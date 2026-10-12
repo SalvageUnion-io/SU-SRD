@@ -24,9 +24,9 @@ import { critInjuryPatch, describeCritInjury, pilotDamagePatch } from '../../lib
 import { runWrite } from '../../lib/runWrite'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import { BoardControl, BoardMenuList } from './BoardControl'
-import type { BoardMenu, BoardOption } from './boardMenu'
-import { usePhoneForm } from './dashboardForm'
-import { recordRoll } from './dashboardRolls'
+import type { BoardMenu, BoardOption } from './boardMenu.model'
+import { usePhoneForm } from './dashboardForm.model'
+import { recordRoll } from './dashboardRolls.model'
 import type { BandBay, MajorModel } from './MajorFrame'
 import { MajorFrame } from './MajorFrame'
 import { MinorFrame } from './MinorFrame'
@@ -91,7 +91,7 @@ export function PilotMajor({
   store: PlayStore
   /** The mech the seat has the pilot in, or null on foot. */
   boardedIn: string | null
-  /** What the Mount bay's Board control offers (`boardMenu.ts`). */
+  /** What the Mount bay's Board control offers (`boardMenu.model.ts`). */
   board: BoardMenu
   /** Board one of the player's own mechs. */
   onBoard: (mechId: string) => void
@@ -154,7 +154,7 @@ export function PilotMajor({
       () => store.update('pilot', pilot.id, patch, DASHBOARD_TXN),
       () => setPrompt({ kind: 'crit', effect, log })
     )
-    // The Game's log, for the crew's Log tab (`dashboardRolls.ts`).
+    // The Game's log, for the crew's Log tab (`dashboardRolls.model.ts`).
     recordRoll(pilot, {
       description: `${pilot.name} · ${log}`,
       result: {

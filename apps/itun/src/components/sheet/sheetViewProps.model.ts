@@ -11,7 +11,7 @@ import type { Mech } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import type { EntityState, useEntityStore } from '../../stores/entityStore'
-import type { EntityLookup, SheetComposition } from './composition'
+import type { EntityLookup, SheetComposition } from './composition.model'
 import type { LiveSheetSegment } from './LiveSheet'
 
 /** The store-state surface the views actually touch (injectable in tests). */

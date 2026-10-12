@@ -126,9 +126,24 @@ function scrapQtyOf(lot: CargoLot): number {
 }
 
 /** Per-item slot cost of a bulk lot (≥1; non-bulk lots cost their full units). */
-function perUnitCost(lot: CargoLot): number {
+export function perUnitCost(lot: CargoLot): number {
   if (lot.kind !== 'bulk' || lot.qty === undefined || lot.qty <= 0) return lot.units
   return Math.max(1, Math.round(lot.units / lot.qty))
+}
+
+/** Whether a lot splits on load: a bulk lot with a quantity. Anything else moves whole. */
+function isSplittable(lot: CargoLot): lot is CargoLot & { qty: number } {
+  return lot.kind === 'bulk' && lot.qty !== undefined
+}
+
+/**
+ * How much of a crawler-hold lot fits in `free` mech-hold slots: for a bulk
+ * lot, the items that fit (a partial load), never more than it holds; for a
+ * unit lot, which moves whole-or-not, 1 when it fits and 0 when it does not.
+ */
+export function loadableQty(lot: CargoLot, free: number): number {
+  if (!isSplittable(lot)) return lot.units <= free ? 1 : 0
+  return Math.max(0, Math.min(lot.qty, Math.floor(free / perUnitCost(lot))))
 }
 
 /**
@@ -254,9 +269,11 @@ function load(
   const { free } = carrierCargoUsage(state.carrierLots, state.carrierCargoCap)
   if (free <= 0) return { ok: false, reason: 'The mech hold has no free cargo slots.' }
 
+  const fits = loadableQty(lot, free)
+
   // Unit lots move whole-or-not.
-  if (lot.kind === 'unit' || lot.qty === undefined) {
-    if (lot.units > free) {
+  if (!isSplittable(lot)) {
+    if (fits === 0) {
       return {
         ok: false,
         reason: `"${lot.name}" needs ${lot.units} slots but only ${free} are free.`,
@@ -273,10 +290,9 @@ function load(
     }
   }
 
-  // Bulk lots split: move = min(requested, lot qty, what fits).
+  // Bulk lots split: move = min(requested, what fits of the lot).
   const per = perUnitCost(lot)
-  const fits = Math.floor(free / per)
-  const moveQty = Math.min(requestedQty ?? lot.qty, lot.qty, fits)
+  const moveQty = Math.min(requestedQty ?? lot.qty, fits)
   if (moveQty <= 0) {
     return {
       ok: false,

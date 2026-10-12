@@ -11,7 +11,7 @@ import type { SURefCrawler } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
 import '../../styles/wizard.css'
-import { fullWidthStyle, stepColumnStyle } from './wizardStyles'
+import { fullWidthStyle, stepColumnStyle } from './wizardStyles.model'
 
 const bonusStyle: CSSProperties = { display: 'block', fontFamily: tokens.font.body }
 

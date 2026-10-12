@@ -12,10 +12,10 @@
 import { Button, tokens } from 'component-lib'
 import { PROPOSALS_PAGE } from 'itun-domain/games/proposals'
 import type { CSSProperties } from 'react'
-import { MUTED } from './mediatorStyles'
+import { MUTED } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
-import type { SentProposal } from './proposalLine'
-import { PROPOSAL_LIST } from './proposalLine'
+import type { SentProposal } from './proposalLine.model'
+import { PROPOSAL_LIST } from './proposalLine.model'
 
 const { space } = tokens
 

@@ -11,7 +11,7 @@
  *  - **Readable but not yours** — a crewmate's pilot or mech, an unclaimed
  *    pre-gen, and for a player the Game's crawler, which is the Mediator's
  *    (ADR-038 §5) — the same `<Sheet>`, read-only, from a store built out of
- *    `entities.listForGame` (`readOnlySheetStore.ts`). Every body and link in
+ *    `entities.listForGame` (`readOnlySheetStore.model.ts`). Every body and link in
  *    the Game is in it, so the sheet shows their mech and crawler, and the query
  *    is reactive, so it stays current as they play. Nothing is adopted into the
  *    entity store: a crewmate's sheet there would be an editor whose every save
@@ -45,12 +45,12 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { pageTitle } from '../../lib/pageTitle'
 import { useEntityStore } from '../../stores/entityStore'
 import { NotFoundPanel } from '../shared/RouteFallbacks'
-import type { EntityLookup } from './composition'
-import type { GameListing } from './readOnlySheetStore'
-import { makeReadOnlySheetStore, sheetDataFromListing } from './readOnlySheetStore'
+import type { EntityLookup } from './composition.model'
+import type { GameListing } from './readOnlySheetStore.model'
+import { makeReadOnlySheetStore, sheetDataFromListing } from './readOnlySheetStore.model'
 import { Sheet } from './Sheet'
 import { SheetSkeleton } from './SheetSkeleton'
-import { SheetModeContext, useSheetModeStore } from './sheetMode'
+import { SheetModeContext, useSheetModeStore } from './sheetMode.model'
 
 type SheetViewProps = { kind: SheetEntityKind; id: string }
 
@@ -135,7 +135,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
   const crew = gameId === null ? undefined : { href: `/games/${gameId}`, label: 'the crew' }
 
   // Yours: the local copy, editable — unless the server says otherwise. It
-  // opens in Read, and the band's Read | Edit switches (`sheetMode.ts`).
+  // opens in Read, and the band's Read | Edit switches (`sheetMode.model.ts`).
   if (held !== null && (located == null || located.mayEdit)) {
     return (
       <SheetModeContext.Provider value={sheetMode}>

@@ -124,7 +124,7 @@ type PublicWithheld = { kind: Kind }
  * entity body and its direct assignments: the published ones in full (`linked`,
  * with the `links` that reach them), the rest by kind alone (`withheld`). The
  * client renders them through the live read-only sheet store every other
- * read-only surface uses (`readOnlySheetStore.ts`).
+ * read-only surface uses (`readOnlySheetStore.model.ts`).
  */
 export const get = query({
   args: { kind: kindValidator, appId: v.string() },

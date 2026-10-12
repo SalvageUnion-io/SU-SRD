@@ -4,7 +4,7 @@
  * ## Why this is its own module
  *
  * It began beside the read-only Zustand store that renders the result (now
- * `components/sheet/readOnlySheetStore.ts`). It moved here when the snapshot
+ * `components/sheet/readOnlySheetStore.model.ts`). It moved here when the snapshot
  * publish handler in the Cloudflare Worker needed the same parse, because that
  * store imports `zustand` and the entity store and esbuild follows the module,
  * not the call. Publishing is retired (ADR-036), so today every caller is a

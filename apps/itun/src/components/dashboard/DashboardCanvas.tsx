@@ -33,7 +33,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { CANVAS_H, CANVAS_W, isPhoneForm } from './dashboardForm'
+import { CANVAS_H, CANVAS_W, isPhoneForm } from './dashboardForm.model'
 
 // Uniform upscale cap — generous enough to fill a 4K display's height while
 // still guarding against an absurdly large render on giant panels (beyond which

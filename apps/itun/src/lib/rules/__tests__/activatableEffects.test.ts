@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { activatableEffects } from '../dashboardEffects'
+import { activatableEffects } from '../activatableEffects'
 
 describe('activatableEffects', () => {
   test('finds an activated contribution on an installed module', () => {

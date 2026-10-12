@@ -48,7 +48,7 @@ type AccountFixture = {
   account: 'signed-in' | 'anonymous'
 }
 
-/** Kept in step with `testAuthSeam.ts` by `TestAuthBridge.test.tsx`. */
+/** Kept in step with `testAuthSeam.model.ts` by `TestAuthBridge.test.tsx`. */
 const TEST_SIGN_IN_GLOBAL = '__itunTestSignIn'
 
 /** A fresh account per test — a reused one would inherit the last run's roster. */

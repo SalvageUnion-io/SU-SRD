@@ -1,5 +1,5 @@
 /**
- * SheetModeToggle — the sheet band's Read | Edit (board 10; `sheetMode.ts`).
+ * SheetModeToggle — the sheet band's Read | Edit (board 10; `sheetMode.model.ts`).
  *
  * Two buttons joined into one ink-framed control: the state you are in is the
  * ink plate, the other is paper. `aria-pressed` carries the state, so a screen
@@ -8,7 +8,7 @@
 
 import { tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
-import type { SheetMode } from './sheetMode'
+import type { SheetMode } from './sheetMode.model'
 
 /** The pair's row. The frame is the buttons' own, so the toggle stands exactly
  * as tall as its neighbours (`.su-page-action`); a frame on this row would add

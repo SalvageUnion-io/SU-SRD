@@ -3,7 +3,7 @@
  * ([ADR-032](../../../../../docs/adr/032-public-read-only-sheets.md)).
  *
  * Rendered by the same live `<Sheet>` as every other surface, from a store built
- * out of `publicSheet.get` (`readOnlySheetStore.ts`), so it adds no rendering
+ * out of `publicSheet.get` (`readOnlySheetStore.model.ts`), so it adds no rendering
  * code of its own. That query is reactive: the page reflects the sheet as it
  * stands right now, assignments included — its mech, its crawler, a crawler's
  * crew.
@@ -23,8 +23,8 @@ import { tokens } from 'component-lib'
 import type { EntityRef } from 'itun-domain/schemas/entity'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
-import type { PublicSheetAnswer } from './readOnlySheetStore'
-import { makeReadOnlySheetStore, sheetDataFromPublic } from './readOnlySheetStore'
+import type { PublicSheetAnswer } from './readOnlySheetStore.model'
+import { makeReadOnlySheetStore, sheetDataFromPublic } from './readOnlySheetStore.model'
 import { Sheet } from './Sheet'
 
 type PublicSheetProps = {

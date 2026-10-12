@@ -15,8 +15,8 @@
 
 import type { ReactNode } from 'react'
 import { createContext, useContext, useState } from 'react'
-import type { SlotKind } from './slotLayout'
-import { slotsFor } from './slotLayout'
+import type { SlotKind } from './slotLayout.model'
+import { slotsFor } from './slotLayout.model'
 import type { MountState } from './useSeat'
 
 /** The canvas's design size, in CSS px (ADR-038 §9). */

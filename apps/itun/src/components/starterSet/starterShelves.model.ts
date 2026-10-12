@@ -17,7 +17,7 @@ import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { readReference } from '../../lib/readReference'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
 import { unitRowModel } from '../../lib/units/unitModel'
-import { crawlerStats, mechChassisStats, pilotStats } from '../roster/rowStats'
+import { crawlerStats, mechChassisStats, pilotStats } from '../roster/rowStats.model'
 import type { EntityRowStat } from '../shared/EntityRow'
 
 export type StarterBuild = { id: string; name: string; model: EntityRowModel }

@@ -1,34 +1,22 @@
-import type { SURefClass } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefClass, SURefMetaEntity } from 'salvageunion-reference'
+import { isBaseAdvancedClass, isCoreClass, SalvageUnionReference } from 'salvageunion-reference'
 
 type SURClassesAccessor = {
   all: () => unknown[]
 }
 
 /**
- * Semantic base-class guard: only classes with a non-empty `coreTrees` field
- * are true base classes (Engineer, Hauler, etc.). Advanced/Hybrid
- * specialisation classes in salvageunion-reference do NOT expose coreTrees.
+ * A true base (Core) class: Engineer, Hauler, … — the reference's own
+ * `isCoreClass`, so the wizard and the Change Class picker share one test.
+ * The accessor is `unknown`-typed for its test seam, so the one cast is here.
  */
 function isBaseClass(cls: unknown): cls is SelectableBaseClass {
-  return (
-    typeof cls === 'object' &&
-    cls !== null &&
-    'coreTrees' in cls &&
-    Array.isArray(cls.coreTrees) &&
-    cls.coreTrees.length > 0
-  )
+  return isCoreClass(cls as SURefMetaEntity)
 }
 
-/** Advanced/Hybrid specialisation guard (advancedTree, no core trees). */
+/** An Advanced/Hybrid specialisation class — the reference's `isBaseAdvancedClass`. */
 function isSpecialisationClass(cls: unknown): cls is SURefClass {
-  return (
-    typeof cls === 'object' &&
-    cls !== null &&
-    'advancedTree' in cls &&
-    !isBaseClass(cls) &&
-    'name' in cls
-  )
+  return isBaseAdvancedClass(cls as SURefMetaEntity)
 }
 
 /** A base class as narrowed by `isBaseClass` — `coreTrees` guaranteed present. */

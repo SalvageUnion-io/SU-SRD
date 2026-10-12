@@ -25,7 +25,7 @@ import type { Mech } from 'itun-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
-import type { SheetPatch } from './sheetViewProps'
+import type { SheetPatch } from './sheetViewProps.model'
 
 const PANEL = { minWidth: 0 } satisfies CSSProperties
 

@@ -54,7 +54,7 @@ const { SheetView } = await import('../SheetView')
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
 const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
-const { useSheetModeStore } = await import('../sheetMode')
+const { useSheetModeStore } = await import('../sheetMode.model')
 
 afterAll(() => {
   useSheetModeStore.setState({ editing: false })

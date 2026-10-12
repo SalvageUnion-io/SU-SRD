@@ -15,8 +15,8 @@ import { buttonVariants, Stat, tokens } from 'component-lib'
 import { Maximize2 } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { AppLink } from '../shared/AppLink'
-import type { CrawlerReading } from './crawlerReading'
-import { BODY, bandTop, HEAD_ROW, HEADING, MUTED } from './mediatorStyles'
+import type { CrawlerReading } from './crawlerReading.model'
+import { BODY, bandTop, HEAD_ROW, HEADING, MUTED } from './mediatorStyles.model'
 
 const { color, space, weight } = tokens
 

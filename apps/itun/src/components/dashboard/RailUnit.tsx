@@ -11,7 +11,7 @@
 
 import { Badge, Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
-import type { SlotKind } from './slotLayout'
+import type { SlotKind } from './slotLayout.model'
 
 export type RailReading = { label: string; value: number; max?: number; pips?: boolean }
 

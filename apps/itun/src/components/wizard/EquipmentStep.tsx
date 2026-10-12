@@ -2,7 +2,7 @@ import { EmptyState, MasonryColumns, ReferenceEntityCard } from 'component-lib'
 import type { SURefEquipment } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
-import { fullWidthStyle } from './wizardStyles'
+import { fullWidthStyle } from './wizardStyles.model'
 
 type SUREquipmentAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]

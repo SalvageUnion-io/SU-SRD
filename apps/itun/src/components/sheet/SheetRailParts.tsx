@@ -5,14 +5,14 @@
  * `RailStatLine` lived here and is gone: the linked-unit slots render the
  * roster's `EntityRow` now, which takes flat `label | value` stat cells, so the
  * running-text join it existed to produce has no consumer. `rowStats`
- * (railStats.ts) is the adapter that replaced it.
+ * (railStats.model.ts) is the adapter that replaced it.
  */
 
 import { buttonVariants } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { AppLink } from '../shared/AppLink'
 import { EntityRow } from '../shared/EntityRow'
-import type { WithheldUnit } from './sheetViewProps'
+import type { WithheldUnit } from './sheetViewProps.model'
 
 const LINK = { textDecoration: 'none' } satisfies CSSProperties
 

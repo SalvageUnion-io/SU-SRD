@@ -36,7 +36,7 @@ import { inviteUrl } from '../../lib/games/inviteLink'
 import { ConvexPending } from '../shared/ConvexPending'
 import { failureMessage } from '../shared/useConfirm'
 import { HubSection } from './HubSection'
-import { HUB_COPY } from './hubStyles'
+import { HUB_COPY } from './hubStyles.model'
 
 const { borderWidth, color, font, fontSize, radius, space, tracking, weight } = tokens
 

@@ -10,12 +10,12 @@ import { coreMechanicRowText } from '../../lib/rules/playActions'
 import type { PhoneUnit } from './DashboardPhone'
 import { DashboardPhone } from './DashboardPhone'
 import type { DeckListModel } from './DeckList'
-import { DashboardFormContext } from './dashboardForm'
+import { DashboardFormContext } from './dashboardForm.model'
 import type { MajorModel } from './MajorFrame'
 import { MajorFrame } from './MajorFrame'
 import { PhoneDeck } from './PhoneDeck'
 import { PhoneResolve } from './PhoneResolve'
-import type { SlotKind } from './slotLayout'
+import type { SlotKind } from './slotLayout.model'
 
 export default { title: 'Compositions/Dashboard/Phone' }
 

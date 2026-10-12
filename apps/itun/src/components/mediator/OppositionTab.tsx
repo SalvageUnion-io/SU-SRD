@@ -34,9 +34,9 @@ import { useId, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { findEntityBySlug } from 'salvageunion-reference'
 import { SheetPickerModal } from '../sheet/SheetSection'
-import { BODY, EYEBROW, HEAD_ROW, MUTED, NUMBERS } from './mediatorStyles'
-import type { EncounterRefSchema, TrayNpc } from './opposition'
-import { OPPOSITION_SCHEMAS, slugOf } from './opposition'
+import { BODY, EYEBROW, HEAD_ROW, MUTED, NUMBERS } from './mediatorStyles.model'
+import type { EncounterRefSchema, TrayNpc } from './opposition.model'
+import { OPPOSITION_SCHEMAS, slugOf } from './opposition.model'
 
 const { borderWidth, color, font, fontSize, radius, space, weight } = tokens
 

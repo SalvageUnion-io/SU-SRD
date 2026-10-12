@@ -17,7 +17,7 @@
  * explicit extra step.
  *
  * Every roll here (Push, Heat Check, Critical Damage) also goes to the Game's
- * log (`dashboardRolls.ts`), where the crew's Log tab reads it.
+ * log (`dashboardRolls.model.ts`), where the crew's Log tab reads it.
  */
 
 import { CountStepper, heatDangerFrom, ReferenceEntityCard, rollForTable } from 'component-lib'
@@ -27,12 +27,14 @@ import { useEffect, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CriticalDamageEffect } from 'salvageunion-reference/rules'
 import {
+  canPush,
   describePushOutcome,
   mechMaxHeat,
   mechMaxSP,
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
+import { activatableEffects } from '../../lib/rules/activatableEffects'
 import {
   critDamagePatch,
   describeCritDamage,
@@ -47,9 +49,8 @@ import { runWrite } from '../../lib/runWrite'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import type { StepRule } from '../wizard/RuleBrief'
 import { RuleBrief } from '../wizard/RuleBrief'
-import { activatableEffects } from './dashboardEffects'
-import { usePhoneForm } from './dashboardForm'
-import { recordRoll } from './dashboardRolls'
+import { usePhoneForm } from './dashboardForm.model'
+import { recordRoll } from './dashboardRolls.model'
 import type { BandBay, BandButton, BandGauge, MajorModel } from './MajorFrame'
 import { MajorFrame, StorageBay } from './MajorFrame'
 import { MinorFrame } from './MinorFrame'
@@ -167,8 +168,8 @@ export function MechMajor({
 
   const fresh = () => store.get('mech', mech.id) ?? mech
 
-  // Core Book p.234 — can't Push if +2 Heat would exceed the Heat Cap.
-  const pushLocked = heat + 2 > maxHeat
+  // Core Book p.234 — can't Push if the Push's Heat would exceed the Heat Cap.
+  const pushLocked = !canPush(heat, maxHeat)
 
   // The rule a blocked control explains when the player reaches for it.
   const [blocked, setBlocked] = useState<StepRule | null>(null)

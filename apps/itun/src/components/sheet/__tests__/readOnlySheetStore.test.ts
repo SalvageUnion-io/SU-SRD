@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtures'
-import { makeReadOnlySheetStore, sheetDataFromListing } from '../readOnlySheetStore'
+import { makeReadOnlySheetStore, sheetDataFromListing } from '../readOnlySheetStore.model'
 
 /**
  * The read-only sheet store, fed from a Game's listing: every body filed under

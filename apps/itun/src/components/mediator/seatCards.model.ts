@@ -10,7 +10,7 @@
  * and hands them in.
  */
 
-import type { BoardSources } from '../dashboard/boardMenu'
+import type { BoardSources } from '../dashboard/boardMenu.model'
 import type { CrewLine, CrewVitals } from '../dashboard/useGameFeed'
 import { crewLines } from '../dashboard/useGameFeed'
 

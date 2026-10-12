@@ -6,7 +6,7 @@
  */
 
 import type { Id } from '../../../../convex/_generated/dataModel'
-import type { BoardSources } from '../../dashboard/boardMenu'
+import type { BoardSources } from '../../dashboard/boardMenu.model'
 import type { CrewVitals } from '../../dashboard/useGameFeed'
 
 const calm = { dead: false, injured: false, ejected: false }

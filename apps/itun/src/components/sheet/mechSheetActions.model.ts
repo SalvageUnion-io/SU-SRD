@@ -1,7 +1,7 @@
 /**
  * useMechSheetActions — every write the mech Live Sheet can make, in one place.
  *
- * The sibling of `pilotSheetActions.ts`, and the same rationale: nine handlers
+ * The sibling of `pilotSheetActions.model.ts`, and the same rationale: nine handlers
  * each re-spelling `storeState.update('mech', mech.id, …, LIVE_SHEET_MANUAL)`
  * is what made the offline-refusal wrapper a ~45-site edit. There is one
  * `write()` here, and one `writeAwait()` for the handlers that must sequence
@@ -30,8 +30,8 @@ import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
 import { changedFields, freshEntity } from './controlPrimitives'
-import { destroyedUndoToast } from './destroyedUndoToast'
-import type { SheetPatch, SheetStoreState } from './sheetViewProps'
+import { destroyedUndoToast } from './destroyedUndoToast.model'
+import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
 
 export type ItemKind = 'system' | 'module'
 

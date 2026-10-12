@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import '../../styles/wizard.css'
-import { fullWidthStyle } from '../wizard/wizardStyles'
+import { fullWidthStyle } from '../wizard/wizardStyles.model'
 
 const STAT_ROW = {
   display: 'flex',

@@ -3,7 +3,7 @@
  * (ADR-038 §3).
  *
  * Which entity holds the Major is the mount, and nothing else (`slotsFor` in
- * `slotLayout.ts`). The mount comes from the pilot's seat, and Downtime from
+ * `slotLayout.model.ts`). The mount comes from the pilot's seat, and Downtime from
  * the Game's `downtime` row (`useDowntime`): the Crawler is Major while a step
  * is running, for every member at once.
  *
@@ -27,14 +27,14 @@ import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import type { EntityState } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
-import type { BoardMenu } from './boardMenu'
-import { boardMenu, NO_BOARD_SOURCES } from './boardMenu'
+import type { BoardMenu } from './boardMenu.model'
+import { boardMenu, NO_BOARD_SOURCES } from './boardMenu.model'
 import type { CrawlerUpkeep } from './CrawlerSlot'
 import { CrawlerMajor, CrawlerMinor } from './CrawlerSlot'
 import { MechMajor, MechMinor } from './MechSlot'
 import { PilotMajor, PilotMinor } from './PilotSlot'
-import type { SlotKind } from './slotLayout'
-import { NO_CRAWLER, NO_MECH, slotsFor } from './slotLayout'
+import type { SlotKind } from './slotLayout.model'
+import { NO_CRAWLER, NO_MECH, slotsFor } from './slotLayout.model'
 import type { MountState, SeatHandle } from './useSeat'
 
 /** The store surface the slots need — injectable so tests can assert patches. */
@@ -61,7 +61,7 @@ export type SlotEntities = {
   boarded: boolean
   /** The pilot's seat: Board, Dismount, Eject and the activated effects. */
   seat: SeatHandle
-  /** What the Pilot's Board control offers (`boardMenu.ts`). */
+  /** What the Pilot's Board control offers (`boardMenu.model.ts`). */
   board: BoardMenu
   /** The viewer is the Game's Mediator, who alone runs the crawler. */
   mediator: boolean

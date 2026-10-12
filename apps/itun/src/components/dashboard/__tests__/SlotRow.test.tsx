@@ -12,8 +12,8 @@ import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtu
 import type { CrawlerUpkeep } from '../CrawlerSlot'
 import type { PlayStore } from '../SlotRow'
 import { SlotRow } from '../SlotRow'
-import type { SlotKind } from '../slotLayout'
-import { slotsFor } from '../slotLayout'
+import type { SlotKind } from '../slotLayout.model'
+import { slotsFor } from '../slotLayout.model'
 import type { MountState, SeatHandle } from '../useSeat'
 import { boardedSeat, fakeSeat } from './seatFixture'
 

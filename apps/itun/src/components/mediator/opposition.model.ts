@@ -1,23 +1,18 @@
 /**
- * The Opposition tab's rules (docs/architecture/mediator-dashboard.md Q9):
- * what a tray row reads as, how a reference entity becomes a tray instance,
- * and the Morale roll (Workshop Manual p.268).
+ * The Opposition tab's view-model (docs/architecture/mediator-dashboard.md
+ * Q9): what a tray row reads as, and how a reference entity becomes a tray
+ * instance. The rules it reads — what an NPC tracks, when it is down, the
+ * Morale roll — live in `itun-domain/rules/opposition`.
  *
- * Pure apart from the reference lookups, and the die is injected, so tests
- * pick the roll.
+ * Pure apart from the reference lookups.
  */
 
+import type { MoraleRoll } from 'itun-domain/rules/opposition'
+import { isDown, trackOf } from 'itun-domain/rules/opposition'
 import type { EncounterNpc } from 'itun-domain/schemas/encounterNpc'
 import { ENCOUNTER_REF_SCHEMAS } from 'itun-domain/schemas/encounterNpc'
 import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
-import {
-  findEntityBySlug,
-  getEntitySlug,
-  NO_EFFECT,
-  resolveFormerSlug,
-  rollOnTable,
-  SalvageUnionReference,
-} from 'salvageunion-reference'
+import { findEntityBySlug, getEntitySlug, resolveFormerSlug } from 'salvageunion-reference'
 
 export type EncounterRefSchema = (typeof ENCOUNTER_REF_SCHEMAS)[number]
 
@@ -30,8 +25,6 @@ export const OPPOSITION_SCHEMAS: ReadonlyArray<{ schema: EncounterRefSchema; lab
   { schema: 'bio-titans', label: 'Bio-Titans' },
   { schema: 'meld', label: 'Meld' },
 ]
-
-type MoraleRoll = NonNullable<EncounterNpc['lastMediatorRoll']>
 
 /** One tray row as the tab reads it. A row from before issue 1278 has only a name. */
 export type TrayNpc = {
@@ -81,22 +74,11 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
     currentHp,
     maxHp,
     statKind: body.statKind === 'sp' ? 'sp' : 'hp',
-    down: maxHp > 0 && currentHp <= 0,
+    down: isDown(currentHp, maxHp),
     lastRoll: roll && typeof roll.roll === 'number' ? roll : null,
     refSchema,
     refSlug,
   }
-}
-
-/** A reference entity's HP or SP, whichever it tracks. */
-export function trackOf(entity: SURefEntity): { maxHp: number; statKind: 'hp' | 'sp' } {
-  if ('structurePoints' in entity && typeof entity.structurePoints === 'number') {
-    return { maxHp: entity.structurePoints, statKind: 'sp' }
-  }
-  if ('hitPoints' in entity && typeof entity.hitPoints === 'number') {
-    return { maxHp: entity.hitPoints, statKind: 'hp' }
-  }
-  return { maxHp: 0, statKind: 'hp' }
 }
 
 /** "Raider Band", or "Raider Band 2" when the tray already has one. */
@@ -137,26 +119,5 @@ export function newTrayNpc(
     conditions: [],
     createdAt: now,
     updatedAt: now,
-  }
-}
-
-/**
- * Roll Morale: a d20 on the reference "Morale" table (p.268). Null when the
- * table cannot be read, so the button says so rather than inventing a result;
- * a roll that lands on no row reads `NO_EFFECT`, as everywhere else.
- */
-export function rollMorale(rollD20: () => number, now: string): MoraleRoll | null {
-  const table = SalvageUnionReference.RollTables.getByName('Morale')
-  const outcome = rollOnTable(table?.table, rollD20)
-  if (!outcome.success || outcome.kind === 'columns') return null
-  if (outcome.kind === 'no-effect') {
-    return { table: 'morale', roll: outcome.roll, value: NO_EFFECT, rolledAt: now }
-  }
-  return {
-    table: 'morale',
-    roll: outcome.roll,
-    ...(outcome.label === undefined ? {} : { label: outcome.label }),
-    value: outcome.value,
-    rolledAt: now,
   }
 }

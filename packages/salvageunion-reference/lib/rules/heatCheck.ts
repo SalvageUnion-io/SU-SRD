@@ -52,6 +52,18 @@ export function canActivateAction(currentHeat: number, heatCost: number, heatCap
   return currentHeat + heatCost <= heatCap
 }
 
+/** Heat a Push adds to the Mech (Core Book p.233). */
+export const PUSH_HEAT = 2
+
+/**
+ * Whether the Mech may Push: not when the Heat gained would take it over its
+ * Heat Cap (Core Book p.234 — a Mech with a Heat Capacity of 10 on 9 Heat
+ * cannot Push).
+ */
+export function canPush(currentHeat: number, heatCap: number): boolean {
+  return canActivateAction(currentHeat, PUSH_HEAT, heatCap)
+}
+
 /**
  * Maps a Reactor Overload Table d20 roll to its outcome band (p.235).
  *   1     → meltdown
@@ -158,7 +170,7 @@ type PushInput = {
  * Check at the new heat. Returns both the new heat and the check effect.
  */
 export function performPush({ heat, heatCap, currentSP, roll, now }: PushInput): PushResult {
-  const nextHeat = clampHeat(heat + 2, heatCap)
+  const nextHeat = clampHeat(heat + PUSH_HEAT, heatCap)
   const effect = performHeatCheck({ heat: nextHeat, currentSP, roll, now })
   return { nextHeat, effect }
 }

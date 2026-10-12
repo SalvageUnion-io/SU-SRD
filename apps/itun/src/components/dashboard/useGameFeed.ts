@@ -19,7 +19,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { SeatResolving } from '../../lib/schemas/seat'
-import type { BoardSources } from './boardMenu'
+import type { BoardSources } from './boardMenu.model'
 
 /** One roll on the Game's log (`changeLog.rolls`). */
 export type RollLine = {

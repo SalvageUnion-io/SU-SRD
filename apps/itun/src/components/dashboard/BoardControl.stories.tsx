@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { InstrumentStage } from './_dashboardStage'
 import { BoardControl, BoardMenuList } from './BoardControl'
-import type { BoardMenu, BoardOption } from './boardMenu'
+import type { BoardMenu, BoardOption } from './boardMenu.model'
 import type { BandOverlay } from './MajorFrame'
 import { MajorFrame } from './MajorFrame'
 

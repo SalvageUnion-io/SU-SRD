@@ -1,7 +1,7 @@
 /**
  * useMechSheetModel — everything the mech Live Sheet COMPUTES, in one place.
  *
- * Same split as the pilot body: this file derives, `mechSheetActions.ts`
+ * Same split as the pilot body: this file derives, `mechSheetActions.model.ts`
  * mutates, `MechSheet.tsx` renders. Nothing here writes to the store.
  *
  * The one thing worth knowing before editing: the injectable `chassis` prop is

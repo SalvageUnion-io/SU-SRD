@@ -26,7 +26,7 @@ import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterS
 import { SignInControl } from '../account/SignInControl'
 import { AppLink } from '../shared/AppLink'
 import { StarterCard } from '../starterSet/StarterCard'
-import { starterShelves } from '../starterSet/starterShelves'
+import { starterShelves } from '../starterSet/starterShelves.model'
 
 /** The width the band's notch and the content under it share. */
 const MEASURE = '75rem'

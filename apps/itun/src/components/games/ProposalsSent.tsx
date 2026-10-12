@@ -15,7 +15,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { ProposalsList } from '../mediator/ProposalsList'
 import { HubSection } from './HubSection'
-import { HUB_COPY } from './hubStyles'
+import { HUB_COPY } from './hubStyles.model'
 
 export function ProposalsSent({ gameId }: { gameId: Id<'games'> }) {
   const [limit, setLimit] = useState(PROPOSALS_PAGE)

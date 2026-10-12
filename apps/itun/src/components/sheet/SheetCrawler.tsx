@@ -26,7 +26,7 @@ import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AppLink } from '../shared/AppLink'
 import { EntityRow } from '../shared/EntityRow'
 import { AssignPicker } from '../wiring/AssignPicker'
-import { crawlerStamp } from './bandStamps'
+import { crawlerStamp } from './bandStamps.model'
 import type { EconLozItem } from './CrawlerEcon'
 import { CrawlerEconFrame } from './CrawlerEcon'
 import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
@@ -36,9 +36,15 @@ import { changedFields, freshEntity } from './controlPrimitives'
 import { LinkedUnitLink } from './LinkedUnitLink'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
-import { bayStates, mechRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
+import {
+  bayStates,
+  mechRailItems,
+  mechStatusPill,
+  pilotRailItems,
+  rowStats,
+} from './railStats.model'
 import { RailCta, WithheldUnitRow } from './SheetRailParts'
-import type { SheetViewCommonProps } from './sheetViewProps'
+import type { SheetViewCommonProps } from './sheetViewProps.model'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
 

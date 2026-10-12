@@ -11,8 +11,8 @@ import { Button, Field, Input, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import type { AlertLine } from '../dashboard/useGameFeed'
-import { BODY, EYEBROW, MUTED, NUMBERS } from './mediatorStyles'
-import { ago } from './proposalLine'
+import { BODY, EYEBROW, MUTED, NUMBERS } from './mediatorStyles.model'
+import { ago } from './proposalLine.model'
 
 const { borderWidth, color, radius, space } = tokens
 

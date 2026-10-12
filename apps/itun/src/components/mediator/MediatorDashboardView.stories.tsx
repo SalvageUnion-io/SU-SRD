@@ -3,9 +3,9 @@ import { downtimeStepNames } from 'itun-domain/rules/downtime'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './__tests__/tableFixture'
 import type { MediatorTableView, MediatorTableWrites } from './MediatorDashboardView'
 import { MediatorDashboardView } from './MediatorDashboardView'
-import { readTrayNpc } from './opposition'
-import type { SentProposal } from './proposalLine'
-import { tableSeats } from './seatCards'
+import { readTrayNpc } from './opposition.model'
+import type { SentProposal } from './proposalLine.model'
+import { tableSeats } from './seatCards.model'
 
 export default { title: 'Compositions/Dashboard/Mediator Dashboard View' }
 

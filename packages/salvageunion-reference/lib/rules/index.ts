@@ -87,7 +87,14 @@ export {
   resolvePoolStart,
   unifiedMechConditions,
 } from './derivedStats'
-export { canActivateAction, clampHeat, performHeatCheck, performPush } from './heatCheck'
+export {
+  canActivateAction,
+  canPush,
+  clampHeat,
+  PUSH_HEAT,
+  performHeatCheck,
+  performPush,
+} from './heatCheck'
 export { HOUSE_RULES } from './houseRules'
 export { enrichPilotSnapshot } from './pilotSnapshot'
 export {

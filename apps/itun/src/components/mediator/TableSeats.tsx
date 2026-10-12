@@ -22,8 +22,8 @@
 import { tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { AppLink } from '../shared/AppLink'
-import { EYEBROW, HEAD_ROW, HEADING, MUTED, NUMBERS, PANEL } from './mediatorStyles'
-import type { SeatCard } from './seatCards'
+import { EYEBROW, HEAD_ROW, HEADING, MUTED, NUMBERS, PANEL } from './mediatorStyles.model'
+import type { SeatCard } from './seatCards.model'
 
 const { borderWidth, color, font, fontSize, radius, space, tracking, weight } = tokens
 

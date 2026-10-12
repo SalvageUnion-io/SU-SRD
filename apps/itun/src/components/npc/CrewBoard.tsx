@@ -68,13 +68,23 @@ import {
 } from '../../lib/wizard/crewFormState'
 import { useActiveContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
-import { npcStats } from '../roster/rowStats'
+import { npcStats } from '../roster/rowStats.model'
 import { AppLink } from '../shared/AppLink'
 import { EntityRow } from '../shared/EntityRow'
 import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
 import { RollTableButton } from '../wizard/RollTableButton'
 import { NpcCard } from './NpcCard'
-import { CAPS, COLUMN, COLUMNS, HINT, LIST, NOTE, PENCIL, ROW, VISUALLY_HIDDEN } from './npcStyles'
+import {
+  CAPS,
+  COLUMN,
+  COLUMNS,
+  HINT,
+  LIST,
+  NOTE,
+  PENCIL,
+  ROW,
+  VISUALLY_HIDDEN,
+} from './npcStyles.model'
 import { useWide } from './useWide'
 
 /** The Game rule, said where an assignment would be made (D7). */

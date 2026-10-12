@@ -2,8 +2,8 @@ import { Field, Textarea, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import '../../styles/wizard.css'
 import { RollTableButton } from './RollTableButton'
-import type { RollTableDeps } from './rollTableHelpers'
-import { stepColumnStyle, textSmStyle } from './wizardStyles'
+import type { RollTableDeps } from './rollTableHelpers.model'
+import { stepColumnStyle, textSmStyle } from './wizardStyles.model'
 
 const introStyle: CSSProperties = { ...textSmStyle, color: tokens.color.wkMuted }
 

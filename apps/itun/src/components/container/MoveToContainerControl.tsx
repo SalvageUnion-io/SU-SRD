@@ -71,7 +71,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
 import type { Confirm } from '../shared/useConfirm'
-import { requestMove } from './requestMove'
+import { requestMove } from './requestMove.model'
 
 const ROW = { alignItems: 'center', display: 'flex', gap: space[8] } satisfies CSSProperties
 

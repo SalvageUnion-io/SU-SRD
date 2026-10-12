@@ -49,7 +49,7 @@ import type { ServedLink } from '../../lib/links/linkSync'
 import { softLinkFromServer } from '../../lib/links/linkSync'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
 import type { EntityState, EntityType, useEntityStore } from '../../stores/entityStore'
-import type { WithheldUnit } from './sheetViewProps'
+import type { WithheldUnit } from './sheetViewProps.model'
 
 /** Everything a read-only sheet can resolve: bodies by kind, and the links between them. */
 export type ReadOnlySheetData = {

@@ -44,7 +44,7 @@
  * This file is now the RENDER, and only the render. Its two siblings:
  *   - `mechSheet.model.ts` — the derived model (SP/EP/Heat maxima and their
  *     provenance ledgers, slot capacity, the chassis-stats strip, cargo).
- *   - `mechSheetActions.ts` — every write, all of them through one `write()`
+ *   - `mechSheetActions.model.ts` — every write, all of them through one `write()`
  *     that reads the freshest record and handles the offline refusal.
  *
  * Dep-injectable for tests: `chassis` (stats override), `store` (Zustand
@@ -84,8 +84,8 @@ import { MechIdentityPanel } from './MechIdentity'
 import { MechItemCard } from './MechItemCard'
 import type { ChassisLike } from './mechSheet.model'
 import { useMechSheetModel } from './mechSheet.model'
-import type { ItemKind } from './mechSheetActions'
-import { useMechSheetActions } from './mechSheetActions'
+import type { ItemKind } from './mechSheetActions.model'
+import { useMechSheetActions } from './mechSheetActions.model'
 import { PartnerCard } from './PartnerCard'
 import { PhotoBeside } from './PhotoBeside'
 import { SheetHero } from './SheetHero'

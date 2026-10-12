@@ -59,21 +59,30 @@ describe('convexClientImports', () => {
 })
 
 describe('misplacedRules', () => {
-  test('flags rules- and model-named modules, not view-models, tests or components', () => {
+  test('flags every non-hook .ts that is not a view-model; passes hooks, view-models, tests and components', () => {
     const root = tree({
       [`${COMPONENTS_DIR}/dashboard/dashboardRules.ts`]: '',
       [`${COMPONENTS_DIR}/dashboard/slotModels.ts`]: '',
       [`${COMPONENTS_DIR}/sheet/item.rules.ts`]: '',
+      [`${COMPONENTS_DIR}/sheet/pilotInventory.ts`]: '',
+      [`${COMPONENTS_DIR}/sheet/userBadge.ts`]: '',
       [`${COMPONENTS_DIR}/sheet/mechSheet.model.ts`]: '',
-      [`${COMPONENTS_DIR}/sheet/railStats.ts`]: '',
+      [`${COMPONENTS_DIR}/dashboard/useSeat.ts`]: '',
       [`${COMPONENTS_DIR}/dashboard/__tests__/SlotRow.rules.test.tsx`]: '',
       [`${COMPONENTS_DIR}/dashboard/__tests__/fooRules.ts`]: '',
+      [`${COMPONENTS_DIR}/dashboard/SlotRow.stories.ts`]: '',
       [`${COMPONENTS_DIR}/dashboard/RulesPanel.tsx`]: '',
     })
-    expect(misplacedRules(root).problems.sort()).toEqual([
-      `${COMPONENTS_DIR}/dashboard/dashboardRules.ts is rules-named inside components/`,
-      `${COMPONENTS_DIR}/dashboard/slotModels.ts is rules-named inside components/`,
-      `${COMPONENTS_DIR}/sheet/item.rules.ts is rules-named inside components/`,
+    expect(
+      misplacedRules(root)
+        .problems.map((p) => p.split(' is ')[0])
+        .sort()
+    ).toEqual([
+      `${COMPONENTS_DIR}/dashboard/dashboardRules.ts`,
+      `${COMPONENTS_DIR}/dashboard/slotModels.ts`,
+      `${COMPONENTS_DIR}/sheet/item.rules.ts`,
+      `${COMPONENTS_DIR}/sheet/pilotInventory.ts`,
+      `${COMPONENTS_DIR}/sheet/userBadge.ts`,
     ])
   })
 })
@@ -87,6 +96,25 @@ describe('main', () => {
         () => {}
       )
     ).toBe(0)
+  })
+
+  test('a plain .ts in a component folder fails it, naming the file', () => {
+    const files: Record<string, string> = {
+      [`${COMPONENTS_DIR}/sheet/pilotInventory.ts`]: '',
+    }
+    for (let i = 0; i < 300; i++) files[`${COMPONENTS_DIR}/sheet/Card${i}.tsx`] = ''
+    for (let i = 0; i < 30; i++) files[`${CONVEX_DIR}/m${i}.ts`] = ''
+    const errors: string[] = []
+    expect(
+      main(
+        tree(files),
+        () => {},
+        (line) => errors.push(line)
+      )
+    ).toBe(1)
+    expect(errors.join('\n')).toContain(
+      `${COMPONENTS_DIR}/sheet/pilotInventory.ts is neither a hook`
+    )
   })
 
   test('a tree without convex/ fails', () => {
