@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { cn } from '../../utils/cn'
+import type { CSSProperties, ReactNode } from 'react'
+import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
 import { Badge } from './Badge'
 
 type StampEmptyStateProps = {
@@ -33,6 +33,46 @@ type QuietEmptyStateProps = {
 
 type EmptyStateProps = StampEmptyStateProps | QuietEmptyStateProps
 
+const FRAME = {
+  display: 'flex',
+  flexDirection: 'column',
+  borderRadius: radius.card,
+  borderStyle: 'dashed',
+  borderWidth: borderWidth.chrome,
+} satisfies CSSProperties
+
+const QUIET = {
+  ...FRAME,
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: space[14],
+  borderColor: color.wkFaint,
+  padding: space[24],
+  textAlign: 'center',
+} satisfies CSSProperties
+
+const STAMP = {
+  ...FRAME,
+  alignItems: 'flex-start',
+  gap: space[12],
+  borderColor: color.ink40,
+  backgroundColor: color.paper,
+  padding: space[16],
+  textAlign: 'left',
+} satisfies CSSProperties
+
+const GLYPH = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+} satisfies CSSProperties
+
+const BODY = {
+  fontFamily: font.body,
+  fontSize: fontSize.caption,
+  color: color.wkMuted,
+} satisfies CSSProperties
+
 /**
  * EmptyState — the one empty-slot primitive (ruleset §"Empty state").
  *
@@ -54,18 +94,10 @@ export function EmptyState({
 }: EmptyStateProps) {
   const quiet = variant === 'quiet'
   return (
-    <div
-      className={cn(
-        'flex flex-col rounded-card border-chrome border-dashed',
-        quiet
-          ? 'items-center justify-center gap-3.5 border-wk-faint p-6 text-center'
-          : 'items-start gap-3 border-ink-40 bg-paper p-4 text-left',
-        className
-      )}
-    >
+    <div className={className} style={quiet ? QUIET : STAMP}>
       {quiet ? (
         icon && (
-          <span aria-hidden="true" className="flex items-center justify-center">
+          <span aria-hidden="true" style={GLYPH}>
             {icon}
           </span>
         )
@@ -74,7 +106,7 @@ export function EmptyState({
           {headline}
         </Badge>
       )}
-      {body && <p className="font-body text-caption text-wk-muted">{body}</p>}
+      {body && <p style={BODY}>{body}</p>}
       {action}
     </div>
   )

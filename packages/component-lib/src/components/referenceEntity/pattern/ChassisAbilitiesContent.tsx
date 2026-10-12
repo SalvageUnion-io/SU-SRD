@@ -1,9 +1,9 @@
 import type { SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { cn } from '../../../utils/cn'
+import { space } from '../../../design/tokens'
 import { Slab } from '../../chrome/Slab'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
-import { getReferenceEntitySpacing } from '../referenceEntityTypes'
+import { getReferenceEntitySpacing, stackClassName } from '../referenceEntityTypes'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 
 type ChassisAbilitiesContentProps = {
@@ -53,7 +53,7 @@ export function ChassisAbilitiesContent({
     : []
 
   return (
-    <div className={cn('mt-4', spacing.smallSpaceYClass)}>
+    <div className={stackClassName(spacing.smallGap)} style={{ marginTop: space[16] }}>
       {/* A chassis ability is an action: an inline ink band in the pattern card
           this section fills (board E2), not a framed card of its own. */}
       {chassisAbilities.map((ability) => (
@@ -74,9 +74,9 @@ export function ChassisAbilitiesContent({
             hide={{ actions: true, patterns: true }}
           />
           {(resolvedSystems.length > 0 || resolvedModules.length > 0) && (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="su-pattern-equipment" style={{ display: 'grid', gap: space[16] }}>
               {resolvedSystems.length > 0 && (
-                <div className={spacing.smallSpaceYClass}>
+                <div className={stackClassName(spacing.smallGap)}>
                   <Slab variant="solid" label="Systems" />
                   {resolvedSystems.map((entity, idx) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: static pattern list; index disambiguates duplicate system ids
@@ -85,7 +85,7 @@ export function ChassisAbilitiesContent({
                 </div>
               )}
               {resolvedModules.length > 0 && (
-                <div className={spacing.smallSpaceYClass}>
+                <div className={stackClassName(spacing.smallGap)}>
                   <Slab variant="solid" label="Modules" />
                   {resolvedModules.map((entity, idx) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: static pattern list; index disambiguates duplicate module ids

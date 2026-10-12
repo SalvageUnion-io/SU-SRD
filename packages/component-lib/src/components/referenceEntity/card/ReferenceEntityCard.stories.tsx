@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getChoices, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
+import { borderWidth, color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import { Mention } from '../../../entity/forms/Mention'
 import { PeekCard } from '../../../entity/PeekCard'
 import { PEEK_PLATE } from '../../../entity/peekPlate'
@@ -16,6 +17,54 @@ import { ReferenceEntityCard } from './ReferenceEntityCard'
 export default {
   title: 'Compositions/Entity/Reference Entity Card',
 }
+
+/** A column of blocks, `gap` apart, optionally padded. */
+const stack = (gap: string, padding?: string): CSSProperties => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap,
+  padding,
+})
+
+/** A grid whose columns come from a `.su-story-*` class (they change with width). */
+const grid = (gap: string, padding?: string): CSSProperties => ({ display: 'grid', gap, padding })
+
+const LABEL = {
+  fontFamily: font.cond,
+  fontSize: fontSize.sm,
+  lineHeight: '1.25rem',
+  fontWeight: weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: tracking.capsTight,
+  color: color.ink,
+} satisfies CSSProperties
+
+const CODE = {
+  fontFamily: font.body,
+  fontSize: fontSize.badge,
+  color: color.wkMuted,
+} satisfies CSSProperties
+
+const ROW = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'flex-start',
+  gap: space[12],
+  padding: space[16],
+} satisfies CSSProperties
+
+const RULED = {
+  borderBottom: `${borderWidth.hairline} solid ${color.ink10}`,
+  paddingBottom: space[24],
+} satisfies CSSProperties
+
+const NOTE = {
+  maxWidth: '65ch',
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: '1rem',
+  color: color.wkMuted,
+} satisfies CSSProperties
 
 /**
  * Real SRD entity lookup with a first-entry fallback (data drift safety) —
@@ -115,7 +164,7 @@ const idOf = (e: SURefEntity): string => e.id
 /** One entity rendered as the canonical card. */
 function One({ entity }: { entity: SURefEntity }): ReactNode {
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div style={stack(space[16], space[16])}>
       <ReferenceEntityCard data={entity} />
     </div>
   )
@@ -139,18 +188,17 @@ function Compare({
   editable: ReactNode
 }): ReactNode {
   return (
-    <div className="flex flex-col gap-2 p-4">
-      {label && (
-        <div className="font-cond text-sm font-bold uppercase tracking-caps-tight text-ink">
-          {label}
-        </div>
-      )}
-      <div className={sideBySide ? 'grid grid-cols-1 gap-4 lg:grid-cols-2' : 'flex flex-col gap-6'}>
-        <div className="flex flex-col gap-1">
+    <div style={stack(space[8], space[16])}>
+      {label && <div style={LABEL}>{label}</div>}
+      <div
+        className={sideBySide ? 'su-story-pair' : undefined}
+        style={sideBySide ? grid(space[16]) : stack(space[24])}
+      >
+        <div style={stack(space[4])}>
           <Caption>read-only</Caption>
           {readOnly}
         </div>
-        <div className="flex flex-col gap-1">
+        <div style={stack(space[4])}>
           <Caption>editable</Caption>
           {editable}
         </div>
@@ -173,7 +221,7 @@ export const EquipmentCard: Story = () => <One entity={equipment} />
 export const CrawlerBayCard: Story = () => <One entity={crawlerBay} />
 
 export const Gallery: Story = () => (
-  <div className="flex flex-col gap-10 p-4">
+  <div style={stack(space[40], space[16])}>
     {[ability, system, chassis, bioTitan, crawler, equipment, crawlerBay].map((entity) => (
       <ReferenceEntityCard key={idOf(entity)} data={entity} />
     ))}
@@ -187,7 +235,7 @@ export const Gallery: Story = () => (
  * above: the chassis drops its pattern list, the crawler bay drops its choice.
  */
 export const Catalog: Story = () => (
-  <div className="grid gap-4 p-4 md:grid-cols-2">
+  <div className="su-story-grid-2" style={grid(space[16], space[16])}>
     {[ability, system, chassis, bioTitan, crawler, equipment, crawlerBay].map((entity) => (
       <ReferenceEntityCard key={idOf(entity)} data={entity} size="medium" extent="catalog" />
     ))}
@@ -207,15 +255,15 @@ export const Catalog: Story = () => (
  * creation before they open anything.
  */
 export const ClassKinds: Story = () => (
-  <div className="flex flex-col gap-6 p-4">
+  <div style={stack(space[24], space[16])}>
     <Caption>full cards — base / hybrid / non-advanceable</Caption>
-    <div className="flex flex-col gap-10">
+    <div style={stack(space[40])}>
       {[baseClass, hybridClass, nonAdvanceableClass].map((entity) => (
         <ReferenceEntityCard key={idOf(entity)} data={entity} />
       ))}
     </div>
     <Caption>catalog tiles — the kind stamp survives</Caption>
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="su-story-grid-3" style={grid(space[16])}>
       {[baseClass, hybridClass, nonAdvanceableClass].map((entity) => (
         <ReferenceEntityCard key={idOf(entity)} data={entity} size="medium" extent="catalog" />
       ))}
@@ -230,15 +278,15 @@ export const ClassKinds: Story = () => (
  * which shows the overview (ability + a pattern LIST).
  */
 export const PatternCard: Story = () => (
-  <div className="flex flex-col gap-4 p-4">
-    <code className="font-body text-badge text-wk-muted">
+  <div style={stack(space[16], space[16])}>
+    <code style={CODE}>
       {chassis.name} · {surveyorPattern.name}
     </code>
     <ReferenceEntityCard data={chassis} pattern={surveyorPattern} />
     {/* A `legalStarting`-tagged pattern adds the "Legal Starting Pattern" stamp
         to the seam, right of the chassis marker — full card and listing row
         alike (the row is what the chassis page's Patterns list renders). */}
-    <code className="font-body text-badge text-wk-muted">
+    <code style={CODE}>
       {muleChassis.name} · {haulerPattern.name} (legal starting — full + listing)
     </code>
     <ReferenceEntityCard data={muleChassis} pattern={haulerPattern} />
@@ -253,7 +301,7 @@ export const PatternCard: Story = () => (
  * no tail. The whole entity collapses to one line, tone-coloured like the card.
  */
 export const BadgeMode: Story = () => (
-  <div className="flex flex-wrap items-start gap-3 p-4">
+  <div style={ROW}>
     <ReferenceEntityCard data={chassis} size="small" extent="head" />
     <ReferenceEntityCard data={system} size="small" extent="head" />
     <ReferenceEntityCard data={ability} size="small" extent="head" />
@@ -467,7 +515,7 @@ const isSelfActionMulti = (e: SURefEntity): boolean => {
 function ChoiceCompare({ entity }: { entity: SURefEntity }): ReactNode {
   const [selections, setSelections] = useState<ChoiceSelections>({})
   return (
-    <div className="border-b border-ink/10 pb-6">
+    <div style={RULED}>
       <Compare
         label={nameOf(entity)}
         sideBySide
@@ -492,8 +540,8 @@ export const ChoiceEntities: Story = () => {
     ...SalvageUnionReference.CrawlerBays.all(),
   ].filter((e) => hasChoices(e))
   return (
-    <div className="flex flex-col gap-6 p-4">
-      <p className="max-w-prose font-body text-xs text-wk-muted">
+    <div style={stack(space[24], space[16])}>
+      <p style={NOTE}>
         {entities.length} choice-bearing entities. Stage 7 — choices render inline (no sub-header
         hoist); a table choice (A.I. Personality) shows its prose + an expandable RollTable, a text
         choice a field, options/catalog as cards. read-only shows every option solid; editable is
@@ -515,15 +563,15 @@ export const CollapseEntities: Story = () => {
     ...SalvageUnionReference.Equipment.all(),
   ].filter((e) => isSelfActionMulti(e))
   return (
-    <div className="flex flex-col gap-4 p-4">
-      <p className="max-w-prose font-body text-xs text-wk-muted">
+    <div style={stack(space[16], space[16])}>
+      <p style={NOTE}>
         {entities.length} multi-action entities carrying a same-named action. Stage 6 — the
         self-action now folds into the card body regardless of count; every other action (Patch,
         System Repair, Project…) renders as its own card below.
       </p>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="su-story-pair" style={grid(space[16])}>
         {entities.map((e) => (
-          <div key={idOf(e)} className="flex flex-col gap-1">
+          <div key={idOf(e)} style={stack(space[4])}>
             <Caption>{nameOf(e)}</Caption>
             <ReferenceEntityCard data={e} />
           </div>

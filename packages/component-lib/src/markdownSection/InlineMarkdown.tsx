@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import { InlineRef } from '../components/chrome/InlineRef'
+import { weight } from '../design/tokens'
 import type { InlineNode } from './parseMarkdownSection'
 import { parseInline } from './parseMarkdownSection'
 
@@ -42,7 +43,7 @@ export function InlineMarkdown({ text }: InlineMarkdownProps) {
             href={node.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold"
+            style={{ fontWeight: weight.semibold }}
           >
             {node.text}
           </InlineRef>

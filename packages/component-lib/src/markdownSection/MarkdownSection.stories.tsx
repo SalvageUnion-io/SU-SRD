@@ -1,6 +1,7 @@
 import aboutMd from '../../../../ABOUT_JRVS.md?raw'
 import statementMd from '../../../../LLM_STATEMENT.md?raw'
 import thanksMd from '../../../../SPECIAL_THANKS.md?raw'
+import { space } from '../design/tokens'
 import type { Story } from '../stories/_harness'
 import { Caption } from '../stories/_harness'
 import { MarkdownSection } from './MarkdownSection'
@@ -18,7 +19,7 @@ export default { title: 'Containers/Markdown Section' }
  * line before it shows up here as literal dashes in a paragraph.
  */
 export const Default: Story = () => (
-  <div className="flex max-w-2xl flex-col gap-6">
+  <div style={{ display: 'flex', maxWidth: '42rem', flexDirection: 'column', gap: space[24] }}>
     <Caption>ABOUT_JRVS.md</Caption>
     <MarkdownSection markdown={aboutMd} />
     <Caption>SPECIAL_THANKS.md</Caption>

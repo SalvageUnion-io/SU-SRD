@@ -208,7 +208,7 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     })
 
     expect(onComplete).toHaveBeenCalledTimes(1)
-  }, 45000)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -233,7 +233,7 @@ describe('MechWizard — hard creation enforcement', () => {
     expect(
       screen.queryByRole('button', { name: `Add one ${must(higherTlSystem).name}` })
     ).toBeNull()
-  }, 45000)
+  })
 
   it('gates the chassis and the pattern name; systems/modules stay optional', async () => {
     render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -262,7 +262,7 @@ describe('MechWizard — hard creation enforcement', () => {
     expect(useEntityStore.getState().list('mech').length).toBe(0)
     await typeIdentity('Edit name / pattern', 'Iron Fist')
     expect(getNextButton().disabled).toBe(false)
-  }, 45000)
+  })
 
   it('changing the chassis refunds its scrap and wipes the loadout with a toast', async () => {
     render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
@@ -287,7 +287,7 @@ describe('MechWizard — hard creation enforcement', () => {
     // Loadout wiped — the Cargo Pod copy is gone (sr-only status readout).
     expect(screen.getByText('Cargo Pod count: 0')).toBeTruthy()
     expect(screen.getByTestId('system-slot-count').textContent).toContain('0 /')
-  }, 45000)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -341,5 +341,51 @@ describe('MechWizard — legalStarting pattern strip', () => {
       expect(m.systems).toEqual(expectedSystems)
       expect(m.modules).toEqual(expectedModules)
     })
-  }, 45000)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Deep-link preselection (`?chassis=` from an SRD chassis page)
+// ---------------------------------------------------------------------------
+
+describe('MechWizard — preselected chassis', () => {
+  it('starts on the deep-linked chassis, debited, with nothing to discard', async () => {
+    const onCancel = mock(() => {})
+    render(<MechWizard onComplete={() => {}} onCancel={onCancel} preselectChassis="mule" />)
+
+    expect(screen.getByTestId('scrap-remaining').textContent).toContain(
+      `${MECH_CREATION_SCRAP_CAP - mule().salvageValue} /`
+    )
+    await clickNext()
+    expect(screen.getByRole('radio', { name: 'Mule' }).getAttribute('aria-checked')).toBe('true')
+    expect(getNextButton().disabled).toBe(false)
+
+    // The preselection is the baseline: cancelling asks nothing.
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    })
+    expect(onCancel).toHaveBeenCalledTimes(1)
+  }, 30000)
+
+  it('never overrides the chassis of a build in progress', async () => {
+    const { unmount } = render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
+    await clickNext()
+    await pickRadio('Mule')
+    await act(async () => {
+      unmount()
+    })
+
+    const other = must(
+      SalvageUnionReference.Chassis.all().find((c) => c.techLevel === 1 && c.name !== 'Mule')
+    )
+    render(
+      <MechWizard
+        onComplete={() => {}}
+        onCancel={() => {}}
+        preselectChassis={nameToSlug(other.name)}
+      />
+    )
+    await clickNext()
+    expect(screen.getByRole('radio', { name: 'Mule' }).getAttribute('aria-checked')).toBe('true')
+  }, 30000)
 })

@@ -36,13 +36,31 @@ function renderSrd() {
   )
 }
 
+/** Every catalog tile: the buttons inside the category sections. */
+function tiles(container: HTMLElement): HTMLButtonElement[] {
+  return [...container.querySelectorAll('section button')].map(mustButton)
+}
+
 /** Find a catalog tile by its visible name. */
 function tile(container: HTMLElement, name: string): HTMLButtonElement {
+  return mustButton(tiles(container).find((b) => b.textContent?.trim() === name))
+}
+
+/** The category view is the shared EntitySearcher; its pool cards carry this. */
+function poolCards(container: HTMLElement): HTMLElement[] {
+  return [...container.querySelectorAll<HTMLElement>('.su-searcher__pool [role="button"]')]
+}
+
+/** The ◀ Back button of the entity view. */
+function back(container: HTMLElement): HTMLButtonElement {
   return mustButton(
-    [...container.querySelectorAll('.pc-srd-catalog-grid button')].find(
-      (b) => b.textContent?.trim() === name
-    )
+    [...container.querySelectorAll('button')].find((b) => b.textContent?.startsWith('◀'))
   )
+}
+
+/** The category view's close badge, which returns to the catalog. */
+function close(container: HTMLElement): HTMLButtonElement {
+  return mustButton(container.querySelector('button[aria-label="Close"]'))
 }
 
 const sections = () => buildCatalogSections()
@@ -53,15 +71,12 @@ describe('SrdExplorer', () => {
     expect(container.querySelector('input[role="combobox"]')).toBeTruthy()
 
     const expected = sections()
-    const headings = [...container.querySelectorAll('.pc-srd-catalog h2')].map((h) =>
-      h.textContent?.trim()
-    )
+    const headings = [...container.querySelectorAll('section h2')].map((h) => h.textContent?.trim())
     expect(headings).toEqual(expected.map((s) => s.label))
 
-    const tiles = [...container.querySelectorAll('.pc-srd-catalog-grid button')].map((b) =>
-      b.textContent?.trim()
+    expect(tiles(container).map((b) => b.textContent?.trim())).toEqual(
+      expected.flatMap((s) => s.schemas.map((c) => c.label))
     )
-    expect(tiles).toEqual(expected.flatMap((s) => s.schemas.map((c) => c.label)))
   })
 
   test('the catalog covers schemas the old hand-listed tiles missed', () => {
@@ -72,51 +87,50 @@ describe('SrdExplorer', () => {
     expect(tile(container, 'Traits')).toBeTruthy()
   })
 
-  test('picking a schema tile lists that category with rows', () => {
+  test('picking a schema tile lists that category in the shared searcher', () => {
     const { container } = renderSrd()
     fireEvent.click(tile(container, 'Chassis'))
-    expect(container.querySelector('.pc-srd-crumb-title')?.textContent).toContain('Chassis')
-    expect(container.querySelectorAll('.pc-srd-row').length).toBeGreaterThan(0)
-  })
+    expect(container.querySelector('.su-searcher')).toBeTruthy()
+    expect(container.textContent).toContain('Chassis')
+    expect(poolCards(container).length).toBeGreaterThan(0)
+    // A browser, not a picker: no selection rail.
+    expect(container.querySelector('.su-searcher__rail')).toBeNull()
+  }, 20_000)
 
-  test('picking a row drills into a reference card, back returns to the list', () => {
+  test('picking a card drills into a reference card, back returns to the list', () => {
     const { container } = renderSrd()
     fireEvent.click(tile(container, 'Chassis'))
-    fireEvent.click(mustButton(container.querySelector('.pc-srd-row')))
+    const [first] = poolCards(container)
+    if (!first) throw new Error('no pool cards')
+    const name = first.getAttribute('aria-label')
+    if (!name) throw new Error('pool card has no accessible name')
+    fireEvent.click(first)
     // The reference card renders; no longer a listing.
-    expect(container.querySelector('.pc-srd-entity')).toBeTruthy()
-    expect(container.querySelector('.pc-srd-rows')).toBeNull()
+    expect(container.querySelector('.su-searcher')).toBeNull()
+    expect(container.textContent).toContain(name)
     // Back returns to the Chassis listing.
-    const back = mustButton(
-      [...container.querySelectorAll('button')].find((b) => b.textContent?.startsWith('◀'))
-    )
-    fireEvent.click(back)
-    expect(container.querySelector('.pc-srd-crumb-title')?.textContent).toContain('Chassis')
-    expect(container.querySelectorAll('.pc-srd-row').length).toBeGreaterThan(0)
-  })
+    fireEvent.click(back(container))
+    expect(container.querySelector('.su-searcher')).toBeTruthy()
+    expect(poolCards(container).length).toBeGreaterThan(0)
+  }, 20_000)
 
   test('a flat (guide) tile opens that entity outright', () => {
     const { container } = renderSrd()
     fireEvent.click(tile(container, 'Heat'))
     // Guides are single entities, so there is no intermediate listing.
-    expect(container.querySelector('.pc-srd-entity')).toBeTruthy()
-    expect(container.querySelector('.pc-srd-rows')).toBeNull()
+    expect(container.querySelector('.su-searcher')).toBeNull()
+    expect(tiles(container)).toHaveLength(0)
+    expect(back(container)).toBeTruthy()
   })
 
-  test('category back affordance returns to the catalog', () => {
+  test('the category close badge returns to the catalog', () => {
     const { container } = renderSrd()
     fireEvent.click(tile(container, 'Systems'))
-    expect(container.querySelector('.pc-srd-rows')).toBeTruthy()
-    fireEvent.click(
-      mustButton(
-        [...container.querySelectorAll('button')].find((b) => b.textContent?.startsWith('◀'))
-      )
-    )
+    expect(container.querySelector('.su-searcher')).toBeTruthy()
+    fireEvent.click(close(container))
     // Back at the catalog.
-    expect(container.querySelectorAll('.pc-srd-catalog-grid button').length).toBe(
-      sections().reduce((n, s) => n + s.schemas.length, 0)
-    )
-  })
+    expect(tiles(container).length).toBe(sections().reduce((n, s) => n + s.schemas.length, 0))
+  }, 20_000)
 
   test('search surfaces results and picking an entity drills in', async () => {
     const { container } = renderSrd()
@@ -125,15 +139,13 @@ describe('SrdExplorer', () => {
     fireEvent.change(input, { target: { value: 'iron' } })
     // A result is a category button or an entity Row (link mode, an option).
     const result = await waitFor(() => {
-      const el = container.querySelector<HTMLElement>('.pc-srd-results [role="option"]')
+      const el = container.querySelector<HTMLElement>('[role="listbox"] [role="option"]')
       if (!el) throw new Error('no results yet')
       return el
     })
     fireEvent.click(result)
     // Either a category (schema hit) or an entity card — a schema hit lists,
     // an entity hit drills in. Both are valid; at minimum we left the home view.
-    const drilled =
-      container.querySelector('.pc-srd-entity') ?? container.querySelector('.pc-srd-list')
-    expect(drilled).toBeTruthy()
+    expect(container.querySelector('input[role="combobox"]')).toBeNull()
   })
 })

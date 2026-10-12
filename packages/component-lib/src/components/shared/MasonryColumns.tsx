@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 import { Children, useSyncExternalStore } from 'react'
 import { RadioCardGroup } from '../chrome/RadioCardGroup'
 
-const FLOW = 'flex items-start gap-4 print:block'
+/** `.su-masonry` (`styles/index.css`): it collapses to one block in print. */
+const FLOW = 'su-masonry'
 
 type MasonryColumnsProps = {
   children: ReactNode
@@ -67,7 +68,7 @@ function useColumnCount(): number {
  * within a breakpoint costs nothing. Cards are distributed round-robin, so
  * columns balance by count rather than exact height.
  *
- * Print collapses to a single stacked column (`print:block` + `print:w-full`).
+ * Print collapses to a single stacked column (`.su-masonry` in `styles/index.css`).
  */
 export function MasonryColumns({
   children,
@@ -85,7 +86,7 @@ export function MasonryColumns({
 
   const flow = columns.map((col, i) => (
     // biome-ignore lint/suspicious/noArrayIndexKey: columns are positional buckets — the index IS their identity
-    <div key={i} className="flex min-w-0 flex-1 flex-col gap-4 print:w-full">
+    <div key={i} className="su-masonry-column">
       {col}
     </div>
   ))

@@ -1,11 +1,9 @@
 import { ChevronRight } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { space } from '../../../design/tokens'
-import { cn } from '../../../utils/cn'
+import { font, space, tracking, weight } from '../../../design/tokens'
 import { Badge } from '../../chrome/Badge'
 import type { CardSize } from '../../shared/displayMode'
 import type { StatItem } from '../../shared/statsBarTypes'
-import { accentSurface } from '../referenceEntityHelpers'
 import type { HeaderFill } from './cardChrome'
 import type { CardGrain } from './cardGrain'
 import { grainStyle } from './cardGrain'
@@ -15,14 +13,13 @@ type EntityCardHeaderProps = {
   title: string
   /** TONE (things you have) or INK (things you do) — see `HeaderFill`. */
   fill: HeaderFill
-  /** The tone as a Tailwind bg class (tone fill only). */
-  bg: string | undefined
-  /** The band as a raw CSS colour — a guide tone, the ink banner, the damaged grey. */
-  bgColor: string | undefined
-  /** Title type-scale class from the DEPTH ladder (`titleSizeClass`). */
-  titleClass: string
-  /** On-band text colour class (`text-ink` / `text-paper`), resolved by contrast. */
-  titleTextClass?: string
+  /** The band's fill as a CSS colour — the tone, a guide tone, the ink banner,
+   *  the damaged grey. `undefined` leaves it paper. */
+  bandColor: string | undefined
+  /** Title font size from the DEPTH ladder (`titleSizeRung`), as a CSS value. */
+  titleSize: string
+  /** On-band text colour (ink or paper), resolved by contrast. */
+  titleColor?: string
   /** Write layer: a full replacement node for the title. */
   titleSlot?: ReactNode
   /** SEO: render the title as an `h1` (item pages) instead of the default `span`. */
@@ -109,6 +106,19 @@ const CLAMP_TWO: CSSProperties = {
   WebkitLineClamp: 2,
 }
 
+/**
+ * The title's caps face; its size and colour come from the band. No line
+ * height of its own: the title inherits the band's, which is what it rendered
+ * with under Tailwind (the size class after `leading-none` had tailwind-merge
+ * drop it).
+ */
+const TITLE_TYPE: CSSProperties = {
+  fontFamily: font.cond,
+  fontWeight: weight.extrabold,
+  textTransform: 'uppercase',
+  letterSpacing: tracking.capsTight,
+}
+
 /** A hint on a compact head (a pattern row's description) takes the room the title leaves. */
 const FILL: CSSProperties = { flex: '1 1 0', minWidth: 0 }
 
@@ -129,10 +139,9 @@ const FILL: CSSProperties = { flex: '1 1 0', minWidth: 0 }
 export function EntityCardHeader({
   title,
   fill,
-  bg,
-  bgColor,
-  titleClass,
-  titleTextClass = 'text-ink',
+  bandColor,
+  titleSize,
+  titleColor = 'var(--color-ink)',
   titleSlot,
   titleAs,
   numeral,
@@ -148,18 +157,13 @@ export function EntityCardHeader({
   ruled = false,
   chevron = false,
 }: EntityCardHeaderProps) {
-  const accent = accentSurface(bg, bgColor)
   const TitleTag = titleAs ?? 'span'
-  const titleType = cn(
-    'font-cond font-extrabold uppercase leading-none tracking-caps-tight',
-    titleTextClass,
-    titleClass
-  )
+  const titleType: CSSProperties = { ...TITLE_TYPE, color: titleColor, fontSize: titleSize }
   const titleNode = titleSlot ?? (
     <TitleTag
-      className={titleType}
       title={head ? title : undefined}
       style={{
+        ...titleType,
         // A compact head: the title takes the row and wraps to two lines
         // before it clamps (see `CLAMP_TWO`). Otherwise the title shares the
         // row with the cells on the right at medium and small, and only a
@@ -179,12 +183,15 @@ export function EntityCardHeader({
   )
   const hint = rightContent ? (
     <span
-      className={cn('font-body italic leading-snug', titleTextClass)}
-      style={
-        head
+      style={{
+        fontFamily: font.body,
+        fontStyle: 'italic',
+        lineHeight: 1.375,
+        color: titleColor,
+        ...(head
           ? { ...FILL, textAlign: 'right', ...ONE_LINE }
-          : { flex: '1 1 12rem', minWidth: 0, textAlign: 'right' }
-      }
+          : { flex: '1 1 12rem', minWidth: 0, textAlign: 'right' }),
+      }}
     >
       {rightContent}
     </span>
@@ -207,17 +214,14 @@ export function EntityCardHeader({
       aria-hidden="true"
       size={20}
       strokeWidth={3}
-      className={titleTextClass}
-      style={{ flex: 'none', marginLeft: hasCluster || head ? 0 : 'auto' }}
+      style={{ flex: 'none', color: titleColor, marginLeft: hasCluster || head ? 0 : 'auto' }}
     />
   ) : null
   const numeralNode = numeral ? (
-    <span className={titleType} style={{ flex: 'none', opacity: 0.75 }}>
-      {numeral}
-    </span>
+    <span style={{ ...titleType, flex: 'none', opacity: 0.75 }}>{numeral}</span>
   ) : null
   const bandStyle: CSSProperties = {
-    ...accent.style,
+    backgroundColor: bandColor ?? 'var(--color-paper)',
     ...grainStyle(grain),
     alignItems: 'center',
     ...(ruled
@@ -238,7 +242,6 @@ export function EntityCardHeader({
       <div
         data-fill={fill}
         data-grain={grain}
-        className={accent.className}
         style={{
           ...bandStyle,
           columnGap: space[8],
@@ -260,7 +263,6 @@ export function EntityCardHeader({
     <div
       data-fill={fill}
       data-grain={grain}
-      className={accent.className}
       style={{
         ...bandStyle,
         display: 'flex',

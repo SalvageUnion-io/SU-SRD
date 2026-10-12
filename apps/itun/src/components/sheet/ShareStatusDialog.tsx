@@ -9,7 +9,7 @@
  *
  * ## One way to share
  *
- * The live public sheet ([ADR-032](../../../../../docs/ARCHITECTURE.md#decisions))
+ * The live public sheet ([ADR-032](../../../../../docs/adr/032-public-read-only-sheets.md))
  * is the only account-free way to share
  * ([ADR-036](../../../../../docs/ARCHITECTURE.md#decisions)), so the dialog is
  * `PublicSheetPanel` — on/off, the link, a QR of it — and a sentence that

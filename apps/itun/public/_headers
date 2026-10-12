@@ -5,7 +5,8 @@
 # Assets answers every file and every navigation itself, in
 # single-page-application mode, and applies this file to all of them. The
 # Worker script runs only for a miss that is not a navigation (a missing chunk,
-# a crawler), and builds no document that runs script.
+# a crawler) and for the retired addresses it 301s (`run_worker_first`), and
+# builds no document that runs script.
 #
 # `tools/check-observability.ts` requires the CSP here to allow Sentry's ingest
 # origin; tools/smoke-production.sh asserts the CSP and HSTS actually reach the

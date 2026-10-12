@@ -4,11 +4,18 @@
  * sites cannot drift (audit PK-08 split them out of the card body).
  */
 
+import type { CSSProperties } from 'react'
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
 import { normalizePatternName } from 'salvageunion-reference'
+import { space } from '../../../design/tokens'
 import { Slab } from '../../chrome/Slab'
+import type { ContentFontSize } from '../Content'
 import { Content } from '../Content'
 import { stripHostParenthetical } from './stripHostParenthetical'
+
+/** A named prose block: its name tab over its prose. The block's bottom
+ *  margin (`.su-ec-block`) is a class: it drops on the last child. */
+const STACK = { display: 'flex', flexDirection: 'column', gap: space[6] } satisfies CSSProperties
 
 /** The card context every prose band renders with. */
 export type CardProseContext = {
@@ -17,12 +24,12 @@ export type CardProseContext = {
   compact: boolean
   /** Resolves `[(CHASSIS)]` tokens. */
   chassisName: string | undefined
-  headerBg: string | undefined
-  headerBgColor: string | undefined
-  /** Overrides the compact/regular size class. A page's prose passes `''` so it
-   * inherits `.su-entity-page__prose`'s reading size; a leaf size class would
-   * beat the inherited one. */
-  fontSize?: string
+  /** The card's tone as a CSS colour (a guide's own tone wins). */
+  toneColor: string | undefined
+  /** Overrides the compact/regular size. A page's prose passes `'inherit'` so it
+   * inherits `.su-entity-page__prose`'s reading size; a leaf size would beat the
+   * inherited one. */
+  fontSize?: ContentFontSize
 }
 
 /** A run of content blocks, rendered in the card's own prose styling. */
@@ -39,9 +46,8 @@ export function CardProse({
       body={body}
       compact={context.compact}
       chassisName={context.chassisName}
-      fontSize={context.fontSize ?? (context.compact ? 'text-xs' : 'text-sm')}
-      headerBg={context.headerBg}
-      headerBgColor={context.headerBgColor}
+      fontSize={context.fontSize ?? (context.compact ? 'xs' : 'sm')}
+      headerBgColor={context.toneColor}
     />
   )
 }
@@ -66,7 +72,7 @@ export function FoldedActionProse({
   context: CardProseContext
 }) {
   return (
-    <div className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
+    <div className="su-ec-block" style={STACK}>
       {action.name && action.name !== entityName && (
         <Slab
           variant="solid"
@@ -100,13 +106,13 @@ export function PatternProse({
 }) {
   if (onPage) return <CardProse body={content} context={context} />
   return (
-    <div className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
-      {/* `w-fit` scopes the title to ITSELF on a card: the solid Slab's leader
+    <div className="su-ec-block" style={STACK}>
+      {/* `.su-ec-name-tab` (fit-content) scopes the title to ITSELF on a card: the solid Slab's leader
           rule is `flex-1`, so at full width it ran a line clear across the
           card and read as a card-wide divider rather than a label on the
           pattern block below it. Shrink-to-fit collapses the rule to its
           `min-w-3` stub, leaving a tight name tab. */}
-      <Slab variant="solid" label={normalizePatternName(name)} className="w-fit" />
+      <Slab variant="solid" label={normalizePatternName(name)} className="su-ec-name-tab" />
       <CardProse body={content} context={context} />
     </div>
   )

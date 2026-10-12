@@ -179,7 +179,11 @@ describe('the declaration', () => {
       secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_PREVIEW_DEPLOY_KEY'],
       reviewers: ['alxjrvs'],
     })
-    expect(ENVIRONMENTS).toHaveLength(2)
+  })
+
+  test("github-pages admits main alone and holds no secret: its job runs main's code", () => {
+    expect(ENVIRONMENTS[2]).toEqual({ name: 'github-pages', branches: ['main'], secrets: [] })
+    expect(ENVIRONMENTS).toHaveLength(3)
   })
 
   test('no secret is allowed at repository level', () => {
@@ -236,7 +240,7 @@ describe('readLive', () => {
             ],
           },
           {
-            name: 'github-pages',
+            name: 'staging',
             deployment_branch_policy: { protected_branches: true, custom_branch_policies: false },
           },
           { name: 'old', deployment_branch_policy: null },
@@ -254,7 +258,7 @@ describe('readLive', () => {
           reviewers: ['owner', 'team:ops'],
         },
         {
-          name: 'github-pages',
+          name: 'staging',
           policy: 'protected',
           branches: null,
           secrets: null,
@@ -296,6 +300,7 @@ describe('apply', () => {
         branch_policies: [{ id: 7, name: 'release', type: 'branch' }],
       }),
       [`${E}/preview/deployment-branch-policies`]: ok({ branch_policies: [] }),
+      [`${E}/github-pages/deployment-branch-policies`]: ok({ branch_policies: [] }),
       'users/alxjrvs': ok({ id: 42 }),
     })
     expect(apply(api)).toEqual([
@@ -305,6 +310,8 @@ describe('apply', () => {
       'preview: custom deployment branch policy',
       'preview: requires alxjrvs',
       'preview: admits **/*',
+      'github-pages: custom deployment branch policy',
+      'github-pages: admits main',
     ])
     const writes = calls
       .filter((c) => c.args[0] === '-X')
@@ -319,6 +326,8 @@ describe('apply', () => {
         { deployment_branch_policy: policy, reviewers: [{ type: 'User', id: 42 }] },
       ],
       ['POST', `${E}/preview/deployment-branch-policies`, { name: '**/*', type: 'branch' }],
+      ['PUT', `${E}/github-pages`, { deployment_branch_policy: policy, reviewers: [] }],
+      ['POST', `${E}/github-pages/deployment-branch-policies`, { name: 'main', type: 'branch' }],
     ])
     expect(calls.some((c) => c.args.some((a) => a.includes('secrets')))).toBe(false)
   })
@@ -331,12 +340,16 @@ describe('apply', () => {
       [`${E}/preview/deployment-branch-policies`]: ok({
         branch_policies: [{ id: 2, name: '**/*', type: 'branch' }],
       }),
+      [`${E}/github-pages/deployment-branch-policies`]: ok({
+        branch_policies: [{ id: 3, name: 'main', type: 'branch' }],
+      }),
       'users/alxjrvs': ok({ id: 42 }),
     })
     expect(apply(api)).toEqual([
       'production: custom deployment branch policy',
       'preview: custom deployment branch policy',
       'preview: requires alxjrvs',
+      'github-pages: custom deployment branch policy',
     ])
   })
 })

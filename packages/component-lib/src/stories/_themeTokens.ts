@@ -15,11 +15,12 @@ export type ThemeToken = { name: string; value: string }
  */
 export function parseThemeTokens(css: string): ThemeToken[] {
   const source = css.replace(/\/\*[\s\S]*?\*\//g, '')
-  return [...source.matchAll(/(?:@theme|:root)\s*\{([^}]*)\}/g)].flatMap(([, block = '']) =>
-    [...block.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map(([, name = '', value = '']) => ({
-      name,
-      value: value.trim().replace(/\s+/g, ' '),
-    }))
+  return [...source.matchAll(/(?:@theme(?:\s+static)?|:root)\s*\{([^}]*)\}/g)].flatMap(
+    ([, block = '']) =>
+      [...block.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map(([, name = '', value = '']) => ({
+        name,
+        value: value.trim().replace(/\s+/g, ' '),
+      }))
   )
 }
 

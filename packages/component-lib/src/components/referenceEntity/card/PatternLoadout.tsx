@@ -9,6 +9,36 @@ import { cardKey } from './cardHelpers'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 import type { NestedGroup } from './resolveNestedEntities'
 
+/** The loadout grid's static half; its column count is `.su-pattern-loadout`. */
+const gridStyle = {
+  display: 'grid',
+  columnGap: space[12],
+  rowGap: space[6],
+} satisfies CSSProperties
+
+/**
+ * `minWidth: 0` is load-bearing: a grid item defaults to `min-width: auto`, so
+ * a column refuses to shrink below its widest badge and the card's
+ * `overflow-hidden` hard-clips it. "Electro-Magnetic Shield Projector" plus
+ * its TL tail overruns a two-column track.
+ */
+const columnStyle = {
+  display: 'flex',
+  minWidth: 0,
+  flexDirection: 'column',
+  gap: space[6],
+} satisfies CSSProperties
+
+const badgeListStyle = {
+  display: 'flex',
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+  flexWrap: 'wrap',
+  alignItems: 'flex-start',
+  gap: space[6],
+} satisfies CSSProperties
+
 /**
  * A pattern's LOADOUT — its Systems and Modules groups SIDE BY SIDE, each a
  * dashed Slab over a wrap of shortform badges (see `LoadoutBadge`).
@@ -33,35 +63,26 @@ export function PatternLoadout({
   hostDown: boolean
 }) {
   return (
-    <div className="grid grid-cols-1 gap-x-3 gap-y-1.5 sm:grid-cols-2">
+    <div className="su-pattern-loadout" style={gridStyle}>
       {groups.map((group, index) => (
         <div
           key={group.label}
-          className={cn(
-            // `min-w-0` is load-bearing: a grid item defaults to `min-width:
-            // auto`, so a column refuses to shrink below its widest badge and
-            // the card's `overflow-hidden` hard-clips it. "Electro-Magnetic
-            // Shield Projector" plus its TL tail overruns a two-column track.
-            'flex min-w-0 flex-col gap-1.5',
-            // A VERTICAL RULE between the columns. On the column itself rather
-            // than a third grid cell, so it spans whichever column is taller
-            // (Systems usually far outruns Modules) instead of standing at the
-            // height of an empty divider track. Suppressed on the first column
-            // and below `sm`, where the groups stack and the rule would sit
-            // across the flow rather than between two columns.
-            index > 0 && 'sm:border-l-chrome sm:border-ink/20 sm:pl-3'
-          )}
+          // A VERTICAL RULE between the columns (`--ruled`). On the column
+          // itself rather than a third grid cell, so it spans whichever column
+          // is taller (Systems usually far outruns Modules) instead of standing
+          // at the height of an empty divider track. Suppressed on the first
+          // column and below `sm`, where the groups stack and the rule would
+          // sit across the flow rather than between two columns.
+          className={cn(index > 0 && 'su-pattern-loadout__column--ruled')}
+          style={columnStyle}
         >
           <Slab variant="dashed" label={group.label} as={sectionAs} />
           {/* A real LIST: the loadout is a countable set of installed parts, so
               a screen reader should announce "list, 6 items" rather than a run
-              of anonymous links. `list-none` keeps the markers off. */}
-          <ul
-            aria-label={`${group.label} installed`}
-            className="flex list-none flex-wrap items-start gap-1.5"
-          >
+              of anonymous links. `listStyle: none` keeps the markers off. */}
+          <ul aria-label={`${group.label} installed`} style={badgeListStyle}>
             {group.entities.map((item, itemIndex) => (
-              <li key={cardKey(item, itemIndex)} className="min-w-0">
+              <li key={cardKey(item, itemIndex)} style={{ minWidth: 0 }}>
                 <LoadoutBadge data={item} hostDown={hostDown} />
               </li>
             ))}

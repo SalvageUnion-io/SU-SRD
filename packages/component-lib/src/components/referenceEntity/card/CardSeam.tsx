@@ -1,9 +1,18 @@
-import { cn } from '../../../utils/cn'
+import type { CSSProperties } from 'react'
+import { space } from '../../../design/tokens'
 import { Badge } from '../../chrome/Badge'
 import { STAMP_SEAM } from '../../chrome/stampSeam'
 import { Stat } from '../../shared/Stat'
 import type { AxisMarker } from './entityCardTone'
 import { UserMadeStamp } from './UserMadeStamp'
+
+/** A stamp that gives way with "…" when the seam runs out of room. */
+const TRUNCATE = {
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
 
 /**
  * SEAM — the stamps riding the card's top border (ruleset §7.2): the TYPE
@@ -30,11 +39,18 @@ export function CardSeam({
   return (
     <>
       <div
-        className={cn(STAMP_SEAM, 'left-[15px] flex items-center gap-1.5')}
+        className={STAMP_SEAM}
         // Never wider than the card: on a phone the stamps share the room and the
         // last (the Legal Starting Pattern) gives way, instead of running off the
         // edge. `clip` on x only, so the stamps still ride above the frame.
-        style={{ maxWidth: 'calc(100% - 30px)', overflowX: 'clip' }}
+        style={{
+          left: '15px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: space[6],
+          maxWidth: 'calc(100% - 30px)',
+          overflowX: 'clip',
+        }}
       >
         {/* The seal is the type stamp's own atom, in the parent's tone. */}
         {seal && (
@@ -47,7 +63,7 @@ export function CardSeam({
           </Badge>
         )}
         {typeStamp && (
-          <Badge shape="stamp" size="mini" className="whitespace-nowrap">
+          <Badge shape="stamp" size="mini" style={{ whiteSpace: 'nowrap' }}>
             {typeStamp}
           </Badge>
         )}
@@ -68,7 +84,7 @@ export function CardSeam({
           body) precisely so it survives the LISTING extent. Purely the stored
           `legalStarting` data tag, never computed from tech level or SV. */}
         {legalStartingPattern && (
-          <Badge shape="stamp" size="mini" className="min-w-0 truncate whitespace-nowrap">
+          <Badge shape="stamp" size="mini" style={TRUNCATE}>
             Legal Starting Pattern
           </Badge>
         )}
@@ -76,7 +92,10 @@ export function CardSeam({
       {/* The dashed stamp rides the RIGHT end of the seam (board P1), apart from
           the type stamp on the left. */}
       {userMade && (
-        <div className={cn(STAMP_SEAM, 'right-[15px] flex items-center')}>
+        <div
+          className={STAMP_SEAM}
+          style={{ right: '15px', display: 'flex', alignItems: 'center' }}
+        >
           <UserMadeStamp />
         </div>
       )}

@@ -69,7 +69,7 @@ describe('NotConnectedBanner', () => {
     expect(banner.textContent).toContain('read-only until the connection returns')
     // The warn pill: status-warn edge, ink text — never the failure red (issue 1255).
     const pill = banner.querySelector('li')
-    expect(pill?.className).toContain('border-status-warn')
-    expect(pill?.className).toContain('text-ink')
+    expect(pill?.style.borderColor).toBe('rgb(192, 122, 47)')
+    expect(pill?.style.color).toBe('rgb(40, 32, 25)')
   })
 })

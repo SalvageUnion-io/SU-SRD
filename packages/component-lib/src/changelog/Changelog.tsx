@@ -1,7 +1,36 @@
+import type { CSSProperties } from 'react'
 import { PageHeading } from '../components/chrome/PageHeading'
 import { Card } from '../components/shared/Card'
+import { color, font, fontSize, space } from '../design/tokens'
 import { InlineMarkdown } from '../markdownSection/InlineMarkdown'
-import { cn } from '../utils/cn'
+
+const EMPTY = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.caption,
+} satisfies CSSProperties
+
+const LIST = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[16],
+  listStyle: 'none',
+} satisfies CSSProperties
+
+const BODY = {
+  padding: `${space[4]} ${space[16]} ${space[12]}`,
+} satisfies CSSProperties
+
+// The bullets. Their spacing between items and their marker colour are child /
+// pseudo-element selectors, so those two are `.su-changelog__items`.
+const ITEMS = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  lineHeight: '1.25rem',
+  listStyleType: 'disc',
+  marginLeft: space[16],
+} satisfies CSSProperties
 
 /** One day of `main`'s history for one app (`gitChangelog.ts`). */
 export type ChangelogEntry = {
@@ -37,14 +66,14 @@ type ChangelogProps = {
 export function Changelog({ entries, className }: ChangelogProps) {
   if (entries.length === 0) {
     return (
-      <p className={cn('font-body text-caption text-wk-muted', className)}>
+      <p className={className} style={EMPTY}>
         No changelog entries yet.
       </p>
     )
   }
 
   return (
-    <ol className={cn('flex list-none flex-col gap-4', className)}>
+    <ol className={className} style={LIST}>
       {entries.map((entry) => (
         <li key={`${entry.area}-${entry.date}`}>
           <Card
@@ -52,22 +81,18 @@ export function Changelog({ entries, className }: ChangelogProps) {
             size="medium"
             frame="chrome"
             borderColor="var(--color-ink)"
-            bodyPadding="px-4 pb-3 pt-1"
+            bodyStyle={BODY}
             headerContent={
               // `h2`, not `h3`: each entry is a direct division of the
               // changelog, which has only its own `h1` above it. `h3` skipped a
               // level (h1 -> h3), the one heading-order violation left on the
               // site once entity pages gained real section headings.
-              <PageHeading
-                variant="subheading"
-                as="h2"
-                className="leading-tight tracking-caps-tight text-ink tabular-nums"
-              >
+              <PageHeading variant="subheading" as="h2" className="su-changelog__date">
                 <time dateTime={entry.date}>{entry.date}</time>
               </PageHeading>
             }
           >
-            <ul className="ml-4 list-disc space-y-1 font-body text-sm text-wk-muted marker:text-wk-muted">
+            <ul className="su-changelog__items" style={ITEMS}>
               {entry.items.map((item) => (
                 <li key={item}>
                   <InlineMarkdown text={item} />

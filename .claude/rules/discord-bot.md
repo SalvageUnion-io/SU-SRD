@@ -72,7 +72,7 @@ retired `su:<action>` name for something new.
   only when a handler reads it); extend the shared fakes in
   `src/__tests__/fakeInteraction.ts` rather than casting.
 
-Run `bun --filter discord-bot test`; `src/http/__tests__/replay.test.ts` drives
+Run `bun --filter discord-bot test`; `src/worker/__tests__/replay.test.ts` drives
 the Worker with signed, Discord-shaped payloads. There is no local loop against
 real Discord: the Interactions Endpoint URL is application-wide, so only the
 deployed Worker receives interactions, and a reply is first seen rendered once

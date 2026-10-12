@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Button } from '../chrome/Button'
 import { VitalGauge } from '../stat/VitalGauge'
@@ -17,11 +18,56 @@ const crawlerName = SalvageUnionReference.Crawlers.all()[0]?.name ?? 'Union Craw
 
 // Each story frames the primitive with the rule it embodies, then renders the
 // Inset the way ITUN actually mounts it — inside a parent card's expand slot.
+const STAGE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[16],
+  backgroundColor: color.wkBg,
+  padding: space[20],
+  fontFamily: font.body,
+  color: color.ink,
+} satisfies CSSProperties
+
+const RULE = {
+  maxWidth: '42rem',
+  fontSize: fontSize.xs,
+  lineHeight: 1.625,
+  color: color.wkMuted,
+} satisfies CSSProperties
+
+const CAPS = {
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  textTransform: 'uppercase',
+  lineHeight: 1,
+  letterSpacing: tracking.caps,
+} satisfies CSSProperties
+
+const ROLE = { ...CAPS, color: color.paper60 } satisfies CSSProperties
+
+const TERM = {
+  ...CAPS,
+  flexShrink: 0,
+  fontWeight: weight.bold,
+  color: color.ink,
+} satisfies CSSProperties
+
+const DEFINITION = {
+  margin: 0,
+  minWidth: 0,
+  fontFamily: font.body,
+  fontSize: fontSize.note,
+  lineHeight: 1.375,
+  color: color.wkMuted,
+} satisfies CSSProperties
+
+const ENTRY = { display: 'flex', alignItems: 'baseline', gap: space[6] } satisfies CSSProperties
+
 function Stage({ rule, children }: { rule: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-4 bg-wk-bg p-5 font-body text-ink">
-      <p className="max-w-2xl text-xs leading-relaxed text-wk-muted">{rule}</p>
-      <div className="max-w-md">{children}</div>
+    <div style={STAGE}>
+      <p style={RULE}>{rule}</p>
+      <div style={{ maxWidth: '28rem' }}>{children}</div>
     </div>
   )
 }
@@ -30,7 +76,7 @@ function Stage({ rule, children }: { rule: string; children: ReactNode }) {
  * box + optional rust action control (ruleset §3.7 — never hand-assembled). */
 function Loz({ label, value, action }: { label: string; value: number; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: space[4] }}>
       <Stat size="full" label={label} value={value} />
       {action}
     </div>
@@ -48,30 +94,27 @@ export const CrewLead: Story = () => (
       tone="crawler"
       tag="Crew"
       label="Ace"
-      headRight={
-        <span className="font-cond text-badge uppercase leading-none tracking-caps text-paper/60">
-          Greaser
-        </span>
-      }
-      bodyClassName="flex flex-wrap items-start gap-3"
+      headRight={<span style={ROLE}>Greaser</span>}
+      bodyStyle={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: space[12] }}
     >
       <Stat label="HP" value={3} max={4} size="mini" />
-      <dl className="m-0 min-w-0 flex-1 space-y-1.5">
-        <div className="flex items-baseline gap-1.5">
-          <dt className="shrink-0 font-cond text-badge font-bold uppercase leading-none tracking-caps text-ink">
-            Keepsake
-          </dt>
-          <dd className="m-0 min-w-0 font-body text-note leading-snug text-wk-muted">
-            A cracked brass compass
-          </dd>
+      <dl
+        style={{
+          margin: 0,
+          minWidth: 0,
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: space[6],
+        }}
+      >
+        <div style={ENTRY}>
+          <dt style={TERM}>Keepsake</dt>
+          <dd style={DEFINITION}>A cracked brass compass</dd>
         </div>
-        <div className="flex items-baseline gap-1.5">
-          <dt className="shrink-0 font-cond text-badge font-bold uppercase leading-none tracking-caps text-ink">
-            Motto
-          </dt>
-          <dd className="m-0 min-w-0 font-body text-note leading-snug text-wk-muted">
-            Never strand the crew.
-          </dd>
+        <div style={ENTRY}>
+          <dt style={TERM}>Motto</dt>
+          <dd style={DEFINITION}>Never strand the crew.</dd>
         </div>
       </dl>
     </Inset>
@@ -90,9 +133,20 @@ export const Economy: Story = () => (
     {/* sheet--crawler resolves --tone / --tone-deep so the gauge fills pink,
         exactly as a live crawler sheet mounts it. */}
     <div className="sheet--crawler">
-      <Inset tone="crawler" tag="Econ" label={crawlerName} bodyClassName="flex flex-col gap-3">
+      <Inset
+        tone="crawler"
+        tag="Econ"
+        label={crawlerName}
+        bodyStyle={{ display: 'flex', flexDirection: 'column', gap: space[12] }}
+      >
         <VitalGauge label="SP" value={20} max={20} caption={['Current', 'Max']} />
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(92px,1fr))] gap-2.5">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(92px, 1fr))',
+            gap: space[10],
+          }}
+        >
           <Loz label="Tech" value={1} />
           <Loz
             label="Upkeep"
