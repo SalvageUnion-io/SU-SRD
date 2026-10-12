@@ -1,7 +1,17 @@
 # D9 spike: drop ITUN's IndexedDB cache, service worker and Disconnected mode?
 
-Status: **open, for the owner's decision.** A prototype, not a plan of record.
-Refit ledger item D9. Measured 2026-10-12 against a local Convex backend.
+Status: **decided, option 3.** Refit ledger item D9. Measured 2026-10-12
+against a local Convex backend.
+
+## Decision (owner, 2026-10-12)
+
+- **Reading sheets after an offline reload is not a requirement.** Option 3:
+  remove IndexedDB and the Disconnected-after-reload path.
+- **Keep the service worker and the installable PWA.**
+- **No production offline-reload check**: the decision goes on this spike's
+  finding.
+- The removal is a separate PR. The prototype that took these measurements
+  is not merged: it is commit `ccd140c`, PR #1383's first (see "Reproduce").
 
 ## Question
 
@@ -25,7 +35,8 @@ about 7k lines, the service worker, an offline e2e and four dependencies?
 Local backend (`convex dev`, anonymous local deployment, `ITUN_TEST_AUTH`), a
 `vite build` with `VITE_TEST_AUTH=true`, served from `dist` with production's
 `/assets/*` immutable `Cache-Control`. Headless Chromium 1194. One account, one
-pilot and one mech. Medians of 5. Script: `apps/itun/e2e/spike/d9-measure.ts`.
+pilot and one mech. Medians of 5. Script: `apps/itun/e2e/spike/d9-measure.ts`
+(at `ccd140c`).
 
 **Cold load** — navigate to the pilot's sheet URL, time until its name renders:
 
@@ -87,9 +98,9 @@ runs signed out, so nothing in the suite would catch this.
   `registerType: 'prompt'`, soft update, chunk recovery against a stale
   precache.
 
-## The prototype
+## The prototype (removed; at `ccd140c`)
 
-Default off. `localStorage.setItem('itun:convex-direct', '1')` and reload, or
+Was default off. `localStorage.setItem('itun:convex-direct', '1')` and reload, or
 build with `VITE_ITUN_CONVEX_DIRECT=1` (`apps/itun/src/lib/spike/convexDirect.ts`).
 
 - `getDb()` returns an empty in-memory database (`src/lib/db/memoryDb.ts`)
@@ -118,25 +129,18 @@ build with `VITE_ITUN_CONVEX_DIRECT=1` (`apps/itun/src/lib/spike/convexDirect.ts
 
 ## Recommendation
 
-**Option 3, after one check on production.** The measured offline benefit of
-the IndexedDB cache is zero today, and its rules are the most intricate in
-ITUN. The worker is cheaper to keep and keeps the PWA installable; an offline
-reload still boots the shell, empty, as it does today. Before deleting, reproduce the offline reload once against
-production with a Discord session; if it does show cached rows there, the
+**Option 3, after one check on production** (the owner chose 3 without it).
+The measured offline benefit of the IndexedDB cache is zero today, and its
+rules are the most intricate in ITUN. The worker is cheaper to keep and keeps
+the PWA installable; an offline reload still boots the shell, empty, as it does
+today. Before deleting, reproduce the offline reload once against production
+with a Discord session; if it does show cached rows there, the
 finding is test-provider-specific and option 2 is the better fight.
-
-## What the owner needs to decide
-
-- Is reading sheets on a reload **with no network** a requirement? If yes:
-  option 2. If no: option 3 or 4.
-- Is an installable PWA a requirement? If no, option 4 over 3.
-- Who checks the production offline reload (a Discord-signed-in session,
-  DevTools offline, reload a sheet)?
 
 ## Reproduce
 
-From `apps/itun`, with a local backend carrying `ITUN_TEST_AUTH`, `JWKS`,
-`JWT_PRIVATE_KEY` and `SITE_URL` (the nightly `e2e-itun` job's provisioning
+Check out `ccd140c` (the prototype). From `apps/itun`, with a local backend
+carrying `ITUN_TEST_AUTH`, `JWKS`, `JWT_PRIVATE_KEY` and `SITE_URL` (the nightly `e2e-itun` job's provisioning
 step): build with `VITE_CONVEX_URL=<backend> VITE_TEST_AUTH=true bunx vite build`,
 serve `dist` on :4173 with SPA fallback and no CSP, then
 `bunx playwright test -c e2e/spike/d9.config.ts` (set `D9_CHROMIUM` to a
