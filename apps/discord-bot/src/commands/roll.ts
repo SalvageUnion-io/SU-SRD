@@ -64,10 +64,11 @@ export type RollMessage =
 function rollButtons(
   tableName: string,
   result: string,
-  ownerId: string | undefined,
+  /** Who rolled, and whether privately: a re-roll shares the roll's status. */
+  owner: { id: string | undefined; isPrivate: boolean },
   between: ButtonSpec[] = []
 ): ButtonSpec[] {
-  const rerollId = makeCustomId('roll', encodeRollRequest(tableName, ownerId))
+  const rerollId = makeCustomId('roll', encodeRollRequest(tableName, owner.id, owner.isPrivate))
   const tableId = makeCustomId('table', result) ?? makeCustomId('lookup', tableName)
   return [
     ...(rerollId
@@ -128,9 +129,16 @@ export function buildRollMessage(
     // here. That is not an error — it is "nothing happens", which is what the
     // book means. Only a table with no entries at all is a genuine fault.
     if (rolled !== null && Object.keys(table.table).length > 1) {
-      // A miss is a RESULT, so it stays public like any other roll.
-      const data = noEffectContainer(table, rolled, roller, ownerId)
-      return { flags: MessageFlags.IsComponentsV2, components: [toContainer(data)], data }
+      // A miss is a RESULT, so it is as public, or as private, as any roll.
+      const data = noEffectContainer(table, rolled, roller, ownerId, isPrivate)
+      return {
+        flags: isPrivate
+          ? MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+          : MessageFlags.IsComponentsV2,
+        components: [toContainer(data)],
+        data,
+        ...(isPrivate ? { ephemeral: true as const } : {}),
+      }
     }
     return { error: `Error rolling on table "${table.name}": ${outcome.error}` }
   }
@@ -151,7 +159,7 @@ export function buildRollMessage(
     buttons: rollButtons(
       table.name,
       result,
-      ownerId,
+      { id: ownerId, isPrivate },
       postId ? [{ kind: 'action', customId: postId, label: 'Post to channel' }] : []
     ),
   })
@@ -197,7 +205,11 @@ export function buildPostedRollMessage(
   if (!outcome.success) return { error: 'That roll can no longer be rendered.' }
 
   const data = buildRollContainerData(table, outcome, { roller })
-  data.blocks.push({ kind: 'buttons', buttons: rollButtons(table.name, payload, ownerId) })
+  // Posted, so public: its re-roll is public too.
+  data.blocks.push({
+    kind: 'buttons',
+    buttons: rollButtons(table.name, payload, { id: ownerId, isPrivate: false }),
+  })
 
   return {
     flags: MessageFlags.IsComponentsV2,

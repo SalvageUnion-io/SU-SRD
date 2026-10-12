@@ -91,15 +91,22 @@ export function encodeRollResult(tableName: string, rolls: number[]): string {
  * before this, and the lookup card's "Roll on this table", which is a first
  * roll) carries no owner and stays open to anyone. Table names hold no `|`.
  */
-export function encodeRollRequest(tableName: string, ownerId?: string): string {
-  return ownerId ? `${tableName}|${ownerId}` : tableName
+export function encodeRollRequest(tableName: string, ownerId?: string, isPrivate = false): string {
+  if (!ownerId) return tableName
+  return isPrivate ? `${tableName}|${ownerId}|p` : `${tableName}|${ownerId}`
 }
 
-/** The inverse of {@link encodeRollRequest}. */
-export function decodeRollRequest(payload: string): { tableName: string; ownerId?: string } {
-  const at = payload.lastIndexOf('|')
-  const ownerId = at === -1 ? '' : payload.slice(at + 1)
-  return ownerId ? { tableName: payload.slice(0, at), ownerId } : { tableName: payload }
+/** A decoded re-roll request. */
+export type RollRequest = { tableName: string; ownerId?: string; isPrivate: boolean }
+
+/**
+ * The inverse of {@link encodeRollRequest}. A re-roll shares its first roll's
+ * status: a trailing `|p` marks a private one, so its re-roll answers privately
+ * too.
+ */
+export function decodeRollRequest(payload: string): RollRequest {
+  const [tableName = '', ownerId, flag] = payload.split('|')
+  return ownerId ? { tableName, ownerId, isPrivate: flag === 'p' } : { tableName, isPrivate: false }
 }
 
 /** The inverse of {@link encodeRollResult}, or null if the payload is malformed. */
