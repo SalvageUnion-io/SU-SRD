@@ -17,10 +17,10 @@
 import { Select } from 'component-lib'
 import { color, font, fontSize, space, tracking, weight } from 'component-lib/design/tokens'
 import { useQuery } from 'convex/react'
+import type { Container } from 'itun-domain/container'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { Container } from '../../lib/container'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 
 const SHELF_VALUE = 'shelf'

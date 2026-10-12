@@ -13,8 +13,8 @@
 
 import { afterAll, describe, expect, test } from 'bun:test'
 import { act, render, screen } from '@testing-library/react'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import type { Pilot } from '../../../lib/schemas/pilot'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import { pilotFixture } from '../../__tests__/fixtures'
 

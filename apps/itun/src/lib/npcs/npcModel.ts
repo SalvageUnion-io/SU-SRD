@@ -16,14 +16,14 @@
  * copied into the record (D5): the description is what the player wrote.
  */
 
+import { slotKey } from 'itun-domain/links/linkRules'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Npc, NpcTemplateRef, NpcTrait } from 'itun-domain/schemas/npc'
+import type { CrewSlot, SoftLink } from 'itun-domain/schemas/softLink'
 import type { SURefNPC, SURefObjectChoice } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { resolvePool } from 'salvageunion-reference/rules'
-import { slotKey } from '../links/linkRules'
 import { readReference } from '../readReference'
-import type { Crawler } from '../schemas/crawler'
-import type { Npc, NpcTemplateRef, NpcTrait } from '../schemas/npc'
-import type { CrewSlot, SoftLink } from '../schemas/softLink'
 
 /** The parts of an NPC the renderers read — a saved record or a designer draft. */
 export type NpcView = Pick<

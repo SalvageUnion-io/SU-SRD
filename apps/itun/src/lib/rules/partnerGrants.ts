@@ -41,9 +41,9 @@
  * a pilot, whose partners are kitted out in play.
  */
 
+import type { PartnerInstance } from 'itun-domain/schemas/partner'
 import { nameToSlug, normalizePatternName, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
-import type { PartnerInstance } from '../schemas/partner'
 
 /**
  * An id-less partner: what a grant entitles the host to, before it becomes a

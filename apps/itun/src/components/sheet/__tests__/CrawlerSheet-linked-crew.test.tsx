@@ -9,8 +9,8 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { CrewAssignment } from '../../../lib/npcs/npcModel'
-import type { Crawler } from '../../../lib/schemas/crawler'
 import { expandCards } from '../../__tests__/expandCards'
 import { crawlerFixture, npcFixture, softLinkFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'

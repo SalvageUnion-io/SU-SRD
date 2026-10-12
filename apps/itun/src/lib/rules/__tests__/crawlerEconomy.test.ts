@@ -9,8 +9,8 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+import type { ScrapPool } from 'itun-domain/schemas/crawler'
 import type { Roll } from 'salvageunion-reference/rules'
-import type { ScrapPool } from '../../schemas/crawler'
 import {
   bayGate,
   contributeToUpgradePool,

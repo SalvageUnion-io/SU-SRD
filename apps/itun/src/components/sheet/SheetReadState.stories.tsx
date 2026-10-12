@@ -1,8 +1,8 @@
 import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import { STARTER_CRAWLERS, STARTER_MECHS } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { STARTER_CRAWLERS, STARTER_MECHS } from '../../lib/starterSet/starterSet'
 import { LinkedUnitLink } from './LinkedUnitLink'
 import { SheetModeToggle } from './SheetModeToggle'
 

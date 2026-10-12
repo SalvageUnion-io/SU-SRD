@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
+import { MechPatternSchema } from 'itun-domain/schemas/pattern'
 import { FIXTURE_NOW, mechFixture } from '../../../components/__tests__/fixtures'
-import { MechPatternSchema } from '../../schemas/pattern'
 import {
   asReferencePattern,
   mechFromPattern,

@@ -8,11 +8,11 @@
  * wizards' do.
  */
 
+import type { Npc, NpcTemplateRef, NpcTrait } from 'itun-domain/schemas/npc'
 import type { SURefNPC } from 'salvageunion-reference'
 import type { CreateInput } from '../../stores/types'
 import type { NpcStatFill } from '../npcs/npcModel'
 import { statFillFromReference } from '../npcs/npcModel'
-import type { Npc, NpcTemplateRef, NpcTrait } from '../schemas/npc'
 
 /** The designer's steps, in order (issue 1269 §4.1). */
 export const NPC_STEPS = ['template', 'stats', 'actions', 'identity', 'review'] as const

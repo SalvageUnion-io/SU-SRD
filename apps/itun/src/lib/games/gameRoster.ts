@@ -15,8 +15,8 @@
  * the server is right and this file is the bug.
  */
 
-import type { Container } from '../container'
-import { sameContainer } from '../container'
+import type { Container } from 'itun-domain/container'
+import { sameContainer } from 'itun-domain/container'
 import type { OwnerChip } from '../ownership/ownerChip'
 import { ownerChipFor } from '../ownership/ownerChip'
 

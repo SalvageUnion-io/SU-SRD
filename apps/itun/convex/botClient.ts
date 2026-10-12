@@ -1,16 +1,4 @@
 import { v } from 'convex/values'
-import type { Doc, Id } from './_generated/dataModel'
-import type { QueryCtx } from './_generated/server'
-import { internalQuery } from './_generated/server'
-import {
-  bindChannelAs,
-  bindingForChannel,
-  displayNameOf,
-  gamesForUser,
-  resolveActor,
-  unbindChannelAs,
-  userByDiscordId,
-} from './model/bot'
 import type {
   BindResult,
   BotDenialReason,
@@ -25,7 +13,19 @@ import type {
   RecordRollResult,
   SheetResult,
   ShelfResult,
-} from './model/botWire'
+} from 'itun-domain/botWire'
+import type { Doc, Id } from './_generated/dataModel'
+import type { QueryCtx } from './_generated/server'
+import { internalQuery } from './_generated/server'
+import {
+  bindChannelAs,
+  bindingForChannel,
+  displayNameOf,
+  gamesForUser,
+  resolveActor,
+  unbindChannelAs,
+  userByDiscordId,
+} from './model/bot'
 import { parseInviteInteraction } from './model/discordInteraction'
 import { internalMutation, primaryCrawlerOf } from './model/entities'
 import { liveDiscordInvite, mintInvite } from './model/invites'

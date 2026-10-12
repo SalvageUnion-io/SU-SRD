@@ -21,6 +21,8 @@
  */
 
 import { CountStepper, heatDangerFrom, ReferenceEntityCard, rollForTable } from 'component-lib'
+import { totalLotUnits } from 'itun-domain/schemas/cargoLot'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { useEffect, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CriticalDamageEffect } from 'salvageunion-reference/rules'
@@ -32,8 +34,6 @@ import {
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
 import { runWrite } from '../../lib/runWrite'
-import { totalLotUnits } from '../../lib/schemas/cargoLot'
-import type { Mech } from '../../lib/schemas/mech'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import type { StepRule } from '../wizard/RuleBrief'
 import { RuleBrief } from '../wizard/RuleBrief'

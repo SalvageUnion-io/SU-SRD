@@ -13,16 +13,16 @@
  */
 
 import { buttonVariants, tokens } from 'component-lib'
-import type { CSSProperties } from 'react'
-import type { EntityRef } from '../../lib/schemas/entity'
-import type { StarterKind } from '../../lib/starterSet/copyStarter'
-import { STARTER_SET_PUBLISHER, starterTemplate } from '../../lib/starterSet/copyStarter'
+import type { EntityRef } from 'itun-domain/schemas/entity'
 import {
   STARTER_CRAWLERS,
   STARTER_MECHS,
   STARTER_PILOTS,
   STARTER_SOFT_LINKS,
-} from '../../lib/starterSet/starterSet'
+} from 'itun-domain/starterSet/starterSet'
+import type { CSSProperties } from 'react'
+import type { StarterKind } from '../../lib/starterSet/copyStarter'
+import { STARTER_SET_PUBLISHER, starterTemplate } from '../../lib/starterSet/copyStarter'
 import { AppLink } from '../shared/AppLink'
 import { useConfirm } from '../shared/useConfirm'
 import { makeReadOnlySheetStore } from '../sheet/readOnlySheetStore'

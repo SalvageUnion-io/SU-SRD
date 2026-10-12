@@ -63,14 +63,14 @@
  */
 
 import { useQuery } from 'convex/react'
+import { containerOf } from 'itun-domain/container'
+import type { EncounterNpc } from 'itun-domain/schemas/encounterNpc'
+import type { MechPattern } from 'itun-domain/schemas/pattern'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
-import { containerOf } from '../../lib/container'
 import type { ServedRow } from '../../lib/links/linkSync'
 import { planCrawlerSync, planLinkSync, planRowSync } from '../../lib/links/linkSync'
 import { captureException } from '../../lib/observability'
-import type { EncounterNpc } from '../../lib/schemas/encounterNpc'
-import type { MechPattern } from '../../lib/schemas/pattern'
 import { useEncounterStore } from '../../stores/encounterStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'

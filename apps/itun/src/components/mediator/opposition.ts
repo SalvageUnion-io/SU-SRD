@@ -7,6 +7,8 @@
  * pick the roll.
  */
 
+import type { EncounterNpc } from 'itun-domain/schemas/encounterNpc'
+import { ENCOUNTER_REF_SCHEMAS } from 'itun-domain/schemas/encounterNpc'
 import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import {
   findEntityBySlug,
@@ -15,8 +17,6 @@ import {
   rollOnTable,
   SalvageUnionReference,
 } from 'salvageunion-reference'
-import type { EncounterNpc } from '../../lib/schemas/encounterNpc'
-import { ENCOUNTER_REF_SCHEMAS } from '../../lib/schemas/encounterNpc'
 
 export type EncounterRefSchema = (typeof ENCOUNTER_REF_SCHEMAS)[number]
 

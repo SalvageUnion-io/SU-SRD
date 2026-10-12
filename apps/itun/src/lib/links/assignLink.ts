@@ -17,12 +17,12 @@
  * rules to apply beyond who may write its `from` end, which the server checks.
  */
 
+import { resolveLinkType } from 'itun-domain/links/linkRules'
+import type { EntityRef } from 'itun-domain/schemas/entity'
+import type { CrewSlot, SoftLink } from 'itun-domain/schemas/softLink'
 import { useEntityStore } from '../../stores/entityStore'
 import { serverMessage } from '../connection/serverError'
-import type { EntityRef } from '../schemas/entity'
-import type { CrewSlot, SoftLink } from '../schemas/softLink'
 import { LinkRefused } from './linkRefused'
-import { resolveLinkType } from './linkRules'
 
 /** The write surface `assignLink` needs — the store, or a test double. */
 export type LinkWriter = {

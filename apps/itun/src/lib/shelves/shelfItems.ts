@@ -12,20 +12,20 @@
  * units linked to it, where it came from, and, for a pattern, who can see it.
  */
 
+import type { ContainerFields } from 'itun-domain/container'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { EncounterNpc } from 'itun-domain/schemas/encounterNpc'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Npc } from 'itun-domain/schemas/npc'
+import type { MechPattern } from 'itun-domain/schemas/pattern'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { resolveChassisRef, resolvePool } from 'salvageunion-reference/rules'
 import { resolveClassName } from '../classRef'
-import type { ContainerFields } from '../container'
 import { resolveCrawlerType } from '../crawlerRefs'
 import type { PatternVisibility } from '../patterns/patterns'
 import { patternChassis, patternLoadout, slotsUsed } from '../patterns/patterns'
 import { readReference } from '../readReference'
-import type { Crawler } from '../schemas/crawler'
-import type { EncounterNpc } from '../schemas/encounterNpc'
-import type { Mech } from '../schemas/mech'
-import type { Npc } from '../schemas/npc'
-import type { MechPattern } from '../schemas/pattern'
-import type { Pilot } from '../schemas/pilot'
-import type { SoftLink } from '../schemas/softLink'
 
 /** The Showing toggle: everything you keep, or only what is in no Game. */
 export type ShelfFilter = 'everything' | 'not-in-game'

@@ -12,8 +12,8 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { MechPatternSchema } from 'itun-domain/schemas/pattern'
 import { mechFromPattern } from '../../../../lib/patterns/patterns'
-import { MechPatternSchema } from '../../../../lib/schemas/pattern'
 import type { MonotonicClock } from '../../../../stores/__tests__/monotonicClock'
 import { installMonotonicClock } from '../../../../stores/__tests__/monotonicClock'
 import { resetStores } from '../../../../stores/__tests__/resetStores'

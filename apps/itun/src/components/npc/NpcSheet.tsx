@@ -18,12 +18,12 @@
  */
 
 import { Badge, Button, ChapterBand, Slab, Text, tokens, UserMadeStamp } from 'component-lib'
+import type { Npc } from 'itun-domain/schemas/npc'
+import type { CrewSlot } from 'itun-domain/schemas/softLink'
 import type { CSSProperties } from 'react'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import { isNpcDown, npcCurrentHP, slotPhrase } from '../../lib/npcs/npcModel'
 import { runWrite } from '../../lib/runWrite'
-import type { Npc } from '../../lib/schemas/npc'
-import type { CrewSlot } from '../../lib/schemas/softLink'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../container/MoveToContainerControl'

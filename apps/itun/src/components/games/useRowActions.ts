@@ -16,9 +16,9 @@
 
 import { toast } from 'component-lib'
 import { useMutation } from 'convex/react'
+import { moveTo, SHELF } from 'itun-domain/container'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { moveTo, SHELF } from '../../lib/container'
 import { copyForShelf } from '../../lib/copyEntity'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'

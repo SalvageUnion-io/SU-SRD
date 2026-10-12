@@ -20,9 +20,9 @@
  */
 
 import { tokens } from 'component-lib'
+import type { EntityRef } from 'itun-domain/schemas/entity'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
-import type { EntityRef } from '../../lib/schemas/entity'
 import type { PublicSheetAnswer } from './readOnlySheetStore'
 import { makeReadOnlySheetStore, sheetDataFromPublic } from './readOnlySheetStore'
 import { Sheet } from './Sheet'

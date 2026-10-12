@@ -15,9 +15,9 @@
  */
 
 import { Button, ModalShell, Text, toast, tokens } from 'component-lib'
+import type { Container, ContainerFields } from 'itun-domain/container'
+import { containerOf, moveTo, sameContainer } from 'itun-domain/container'
 import type { CSSProperties } from 'react'
-import type { Container, ContainerFields } from '../../lib/container'
-import { containerOf, moveTo, sameContainer } from '../../lib/container'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { serializeContainer } from '../../stores/activeContainerStore'

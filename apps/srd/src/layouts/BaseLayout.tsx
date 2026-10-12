@@ -11,7 +11,8 @@
  * make `ssg/` a runtime dependency of the app.
  */
 
-import type { ReactNode } from 'react'
+import { color } from 'component-lib/design/tokens'
+import type { CSSProperties, ReactNode } from 'react'
 import type { DocumentMeta, PageFoot } from '../../ssg/types'
 import { Footer } from '../components/Footer'
 import { TopNavigation } from '../components/TopNavigation'
@@ -34,6 +35,22 @@ const PAGES_WITH_SEARCH = new Set(['/', '/404/'])
 const SPECULATION_RULES = JSON.stringify({
   prefetch: [{ source: 'document', where: { href_matches: '/*' }, eagerness: 'moderate' }],
 })
+
+/** The page column: the bar, the content, the footer, at least a screen tall. */
+const PAGE = {
+  backgroundColor: color.paper,
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: '100vh',
+} satisfies CSSProperties
+
+/** The content, on the book's page ground, taking the column's spare height. */
+const MAIN = {
+  backgroundColor: color.wkBg,
+  display: 'flex',
+  flex: 1,
+  flexDirection: 'column',
+} satisfies CSSProperties
 
 export type BaseLayoutProps = {
   meta: DocumentMeta
@@ -162,7 +179,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         />
       </head>
       <body>
-        <div className="flex min-h-screen flex-col bg-paper">
+        <div style={PAGE}>
           {/*
             Skip link — WCAG 2.4.1. Must be the FIRST focusable thing in the
             document, so it sits above TopNavigation rather than inside it.
@@ -185,7 +202,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             thing the user just asked to skip. It does not add <main> to the tab
             order; -1 means "focusable by script or fragment, not by Tab".
           */}
-          <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col bg-wk-bg">
+          <main id="main-content" tabIndex={-1} style={MAIN}>
             {children}
           </main>
           <Footer poweredBySalvageUrl="/Powered_by_Salvage_Black.webp" foot={foot} />

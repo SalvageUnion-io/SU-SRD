@@ -27,13 +27,13 @@
  * between renders) do not stomp each other.
  */
 
+import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import type { GenericInventoryEntry, Pilot } from 'itun-domain/schemas/pilot'
 import { useState } from 'react'
 import type { SoftWarning } from 'salvageunion-reference/rules'
 import { enrichPilotSnapshot, pilotMaxAP, resolvePool } from 'salvageunion-reference/rules'
 import { isPartnerEquipment, pilotPartnerSeeds, syncPartners } from '../../lib/rules/partnerGrants'
 import { runWrite } from '../../lib/runWrite'
-import type { ItemCondition } from '../../lib/schemas/itemCondition'
-import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { useSoftWarnings } from '../shared/useSoftWarnings'

@@ -37,6 +37,11 @@ import {
   UserMadeStamp,
 } from 'component-lib'
 import { useQuery } from 'convex/react'
+import { containerOf, sameContainer } from 'itun-domain/container'
+import { slotKey } from 'itun-domain/links/linkRules'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Npc } from 'itun-domain/schemas/npc'
+import { NpcSchema } from 'itun-domain/schemas/npc'
 import type { CSSProperties, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
@@ -44,9 +49,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useCrawlers, useHydrateEntities, useNpcs, useSoftLinkList } from '../../hooks/entities'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { containerOf, sameContainer } from '../../lib/container'
 import { assignCrew } from '../../lib/links/assignLink'
-import { slotKey } from '../../lib/links/linkRules'
 import type { CrewAssignment, CrewSlotView } from '../../lib/npcs/npcModel'
 import {
   assignmentFor,
@@ -57,9 +60,6 @@ import {
 } from '../../lib/npcs/npcModel'
 import { npcNameGate } from '../../lib/rules/creation'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Npc } from '../../lib/schemas/npc'
-import { NpcSchema } from '../../lib/schemas/npc'
 import type { CrewDraft } from '../../lib/wizard/crewFormState'
 import {
   crewChoiceField,

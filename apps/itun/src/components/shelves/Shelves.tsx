@@ -41,6 +41,7 @@
 import { useRouter } from '@tanstack/react-router'
 import { buttonVariants, ChapterBand, RosterSkeleton, toast, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import type { MechPattern } from 'itun-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -60,7 +61,6 @@ import { downloadJson } from '../../lib/export/downloadJson'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { patternCopy, patternHref } from '../../lib/patterns/patterns'
-import type { MechPattern } from '../../lib/schemas/pattern'
 import type { PatternSharing, ShelfFilter, ShelfGame } from '../../lib/shelves/shelfItems'
 import {
   chassisFact,

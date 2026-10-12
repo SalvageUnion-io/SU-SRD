@@ -14,9 +14,9 @@
 
 import { buttonVariants, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import { MechPatternSchema } from 'itun-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
-import { MechPatternSchema } from '../../lib/schemas/pattern'
 import { PublicPattern } from '../mech/Pattern/PublicPattern'
 import { AppLink } from '../shared/AppLink'
 import { PublicSheet } from './PublicSheet'

@@ -7,7 +7,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { SHELF } from '../../lib/container'
+import { SHELF } from 'itun-domain/container'
 import {
   getActiveContainer,
   parseContainer,

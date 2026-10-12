@@ -67,9 +67,10 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static referenc
 - `apps/srd/` - Static SRD reference site: in-house SSG on Vite, React 19 islands. No auth, no backend. Read [`apps/srd/CLAUDE.md`](apps/srd/CLAUDE.md) first.
 - `apps/itun/` - Character builder & game manager (React 19, TanStack Router, Zustand, Convex, Vite). Read [`apps/itun/CLAUDE.md`](apps/itun/CLAUDE.md); storage modes and the account gate are [`.claude/rules/itun-data-access.md`](.claude/rules/itun-data-access.md) — **read it before touching data.**
 - `apps/discord-bot/` - Discord bot on a Cloudflare Worker (HTTP interactions, Components V2 replies); also an ITUN Game client.
-- `apps/su-assets/` - Cloudflare Worker (`assets.salvageunion.io`) serving licensed entity artwork from the `su-lp-assets` R2 bucket, with `-440`/`-880` derivatives from Cloudflare Images. Image bytes never live in git; entity-card artwork in both apps depends on it (`ASSET_BASE_URL` in `packages/salvageunion-reference/lib/assets.ts`).
+- `apps/su-assets/` - Worker (`assets.salvageunion.io`) serving licensed artwork from the `su-lp-assets` R2 bucket, `-440`/`-880` sizes via Cloudflare Images. Image bytes never live in git; both apps' artwork depends on it (`ASSET_BASE_URL` in `packages/salvageunion-reference/lib/assets.ts`).
 - `packages/component-lib/` - Shared React component library (Base UI primitives, entity display system, typography, tokens). No build step.
-- `packages/observability/` - Sentry wiring: `/cloudflare` for the four Workers, `/browser` for the two browser apps' shared helper.
+- `packages/itun-domain/` - schemas and rules shared by ITUN, Convex and the bot.
+- `packages/observability/` - Sentry wiring: `/cloudflare` for Workers, `/browser` for both apps.
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data. Ships TS source; `schemas/` and `lib/generated/` are gitignored, generated on install, typecheck, build and test.
 - `tools/` - The repo's gates and scripts: [`tools/CLAUDE.md`](tools/CLAUDE.md).
 
@@ -80,7 +81,7 @@ salvageunion-reference (game data ORM)
   └── component-lib (shared UI components)
         ├── srd (static reference site)
         └── itun (character builder + game manager)
-discord-bot (standalone, depends on salvageunion-reference)
+discord-bot (salvageunion-reference + itun-domain types)
 ```
 
 Each workspace's own `CLAUDE.md` loads when you work in it; "Build & Validation" above is the cross-package checklist, and [display system](docs/ARCHITECTURE.md#areas) has the two card shells (`ReferenceEntityCard` for every SRD entity, `Card` for everything else).

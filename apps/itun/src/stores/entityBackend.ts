@@ -1,4 +1,6 @@
 import type { FunctionArgs } from 'convex/server'
+import type { EntityRef } from 'itun-domain/schemas/entity'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import type { ConnectionMode } from '../lib/connection/connectionMode'
@@ -9,8 +11,6 @@ import {
 } from '../lib/connection/connectionMode'
 import { convexClient } from '../lib/connection/convexClient'
 import { captureException } from '../lib/observability'
-import type { EntityRef } from '../lib/schemas/entity'
-import type { SoftLink } from '../lib/schemas/softLink'
 import { knownVersion, noteVersion } from './serverVersions'
 
 /**

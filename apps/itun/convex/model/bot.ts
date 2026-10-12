@@ -1,6 +1,6 @@
+import type { BotDenial } from 'itun-domain/botWire'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
-import type { BotDenial } from './botWire'
 import { getMembership, NotAuthorized, requireOrganizerAs } from './permissions'
 
 /**

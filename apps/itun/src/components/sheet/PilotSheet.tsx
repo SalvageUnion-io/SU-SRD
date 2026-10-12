@@ -62,12 +62,12 @@ import {
   tokens,
   VitalGauge,
 } from 'component-lib'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { pinFor } from 'salvageunion-reference/rules'
-import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { ConditionsEditor } from './ConditionsEditor'

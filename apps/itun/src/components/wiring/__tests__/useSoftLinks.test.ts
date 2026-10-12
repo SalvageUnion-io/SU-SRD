@@ -14,8 +14,8 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
-import { resolveLinkType } from '../../../lib/links/linkRules'
-import type { SoftLink } from '../../../lib/schemas/softLink'
+import { resolveLinkType } from 'itun-domain/links/linkRules'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { must } from '../../__tests__/must'

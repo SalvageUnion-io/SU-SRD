@@ -7,13 +7,13 @@
  * results to persistence, MechItemCard renders them.
  */
 
+import type { ScrapPool } from 'itun-domain/schemas/crawler'
+import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { SURefMetaAction, SURefModule, SURefSystem } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
-import type { ScrapPool } from '../../lib/schemas/crawler'
-import type { ItemCondition } from '../../lib/schemas/itemCondition'
-import type { Mech } from '../../lib/schemas/mech'
 
 export type MechItem = SURefSystem | SURefModule
 

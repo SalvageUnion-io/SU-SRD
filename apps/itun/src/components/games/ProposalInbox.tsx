@@ -1,10 +1,10 @@
 import { Button, toast, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
+import { fieldLabel } from 'itun-domain/games/proposals'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { fieldLabel } from '../../lib/games/proposals'
 import { failureMessage } from '../shared/useConfirm'
 import { HubSection } from './HubSection'
 

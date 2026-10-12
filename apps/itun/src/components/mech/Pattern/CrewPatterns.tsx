@@ -9,11 +9,11 @@
 
 import { Entity, quotePatternName, Slab, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import { MechPatternSchema } from 'itun-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
-import { MechPatternSchema } from '../../../lib/schemas/pattern'
 import { AppLink } from '../../shared/AppLink'
 
 const LIST = {

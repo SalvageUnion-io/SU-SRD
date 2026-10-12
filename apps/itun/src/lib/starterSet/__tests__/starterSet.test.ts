@@ -16,6 +16,17 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { SHELF } from 'itun-domain/container'
+import { CrawlerSchema } from 'itun-domain/schemas/crawler'
+import { MechSchema } from 'itun-domain/schemas/mech'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
+import { SoftLinkSchema } from 'itun-domain/schemas/softLink'
+import {
+  STARTER_CRAWLERS,
+  STARTER_MECHS,
+  STARTER_PILOTS,
+  STARTER_SOFT_LINKS,
+} from 'itun-domain/starterSet/starterSet'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
   crawlerMaxSP,
@@ -32,15 +43,9 @@ import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
-import { SHELF } from '../../container'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
-import { CrawlerSchema } from '../../schemas/crawler'
-import { MechSchema } from '../../schemas/mech'
-import { PilotSchema } from '../../schemas/pilot'
-import { SoftLinkSchema } from '../../schemas/softLink'
 import { seedDefaultCrawlerBays } from '../../wizard/crawlerFormState'
 import { copyStarter } from '../copyStarter'
-import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS, STARTER_SOFT_LINKS } from '../starterSet'
 
 // Copying is a write, and building needs an account: these run signed in.
 withSignedInBackend()

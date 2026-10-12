@@ -4,10 +4,10 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
-import type { SoftLink } from '../../../lib/schemas/softLink'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityLookupMock } from '../../__tests__/mockEntityStore'
 import type { EntityLookup } from '../composition'

@@ -1,10 +1,10 @@
 import { tokens } from 'component-lib'
 import type { Story } from 'component-lib/stories/harness'
 import { Caption } from 'component-lib/stories/harness'
+import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { chassisFact, crawlerFact, kicker, pilotFact } from '../../lib/shelves/shelfItems'
-import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from '../../lib/starterSet/starterSet'
 import { ShelfItem } from './ShelfItem'
 
 export default {

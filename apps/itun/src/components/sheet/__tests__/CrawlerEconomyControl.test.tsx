@@ -19,8 +19,8 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { Roll } from 'salvageunion-reference/rules'
-import type { Crawler } from '../../../lib/schemas/crawler'
 import type { ChangeMeta } from '../../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
 import { crawlerFixture } from '../../__tests__/fixtures'

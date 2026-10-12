@@ -21,10 +21,10 @@
  */
 
 import { Button, EmptyState, Stat, tokens } from 'component-lib'
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
 import type { CSSProperties, ReactNode } from 'react'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
-import type { CargoLot } from '../../lib/schemas/cargoLot'
 
 type PartnerHoldProps = {
   cargo: UsePartnerCargoResult

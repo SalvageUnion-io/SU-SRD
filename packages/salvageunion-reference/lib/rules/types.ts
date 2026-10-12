@@ -218,7 +218,7 @@ export type EditSnapshot<T> = {
 // pure functions; see ./heatCheck.ts). These are "small outcome/result
 // record shapes, not full persisted records" (ADR-006) — a consumer's
 // Zod-inferred equivalents (e.g. ITUN's HeatCheckResultSchema /
-// ReactorOverloadOutcomeSchema in src/lib/schemas/mech.ts) satisfy them
+// ReactorOverloadOutcomeSchema in itun-domain's src/schemas/mech.ts) satisfy them
 // structurally. The union literals are kept byte-identical to ITUN's Zod
 // enums so a drift fails typecheck rather than silently diverging.
 // ---------------------------------------------------------------------------

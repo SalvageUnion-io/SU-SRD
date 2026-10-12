@@ -4,11 +4,11 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { Container } from '../../container'
-import { SHELF } from '../../container'
+import type { Container } from 'itun-domain/container'
+import { SHELF } from 'itun-domain/container'
+import type { LinkShape } from 'itun-domain/links/linkRules'
 import type { HeldEntities } from '../clearedByMove'
 import { assignmentsClearedByMove, linksClearedByMove } from '../clearedByMove'
-import type { LinkShape } from '../linkRules'
 
 function l(type: LinkShape['type'], from: string, to: string): LinkShape {
   const ends = {

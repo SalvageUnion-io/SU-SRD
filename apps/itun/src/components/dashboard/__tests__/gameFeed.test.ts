@@ -5,8 +5,8 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import type { MechStatus } from 'itun-domain/rules/crewStatus'
 import type { Id } from '../../../../convex/_generated/dataModel'
-import type { MechStatus } from '../../../lib/rules/crewStatus'
 import type { BoardSources } from '../boardMenu'
 import { rollLogEntry } from '../dashboardRolls'
 import type { CrewVitals } from '../useGameFeed'

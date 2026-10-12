@@ -71,7 +71,7 @@ describe('gauge', () => {
 describe('vital field names', () => {
   test('reads the CANONICAL schema spellings', () => {
     // The regression this guards is not hypothetical: `crew.vitals` shipped
-    // reading `currentHp` while apps/itun/src/lib/schemas/pilot.ts defines
+    // reading `currentHp` while packages/itun-domain/src/schemas/pilot.ts defines
     // `currentHP`, so every vital rendered as an em-dash indistinguishable
     // from an undamaged crew (#656). Nothing links these two workspaces at
     // build time, so only a test can hold the spelling.

@@ -7,6 +7,10 @@
  */
 
 import type { BadgeTone, StatState } from 'component-lib'
+import type { pilotingContext } from 'itun-domain/rules/pilotingContext'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import {
   crawlerMaxSP,
   mechMaxEP,
@@ -17,10 +21,6 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import type { pilotingContext } from '../../lib/rules/pilotingContext'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 
 /**
  * One reading on a rail line — plain builders below, NOT components.

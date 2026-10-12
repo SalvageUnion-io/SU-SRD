@@ -69,6 +69,8 @@ jobs:
               - *shared
               - 'apps/itun/**'
               - 'packages/component-lib/**'
+              # schemas, link rules and wire types Convex and the client share
+              - 'packages/itun-domain/**'
               # the build job's Playwright config and axe scan
               - 'tools/lib/a11y*.ts'
               - 'tools/lib/playwrightBase.ts'
@@ -81,9 +83,8 @@ jobs:
             bot:
               - *shared
               - 'apps/discord-bot/**'
-              # the bot's wire types are imported (`import type`) from here —
-              # apps/discord-bot/src/itun/types.ts
-              - 'apps/itun/convex/model/botWire.ts'
+              # the bot's wire types (`itun-domain/botWire`, `import type`)
+              - 'packages/itun-domain/**'
             assets:
               - *shared
               - 'apps/su-assets/**'

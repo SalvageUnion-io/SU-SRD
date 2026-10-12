@@ -1,5 +1,7 @@
 import type { NavDrawerCategory, NavDrawerItem } from 'component-lib'
 import { Badge, NavDrawer } from 'component-lib'
+import { borderWidth, color, fontSize, space } from 'component-lib/design/tokens'
+import type { CSSProperties } from 'react'
 import { NAV_CATALOG } from '../../generated/navCatalog'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import { SearchIsland } from './SearchIsland'
@@ -22,21 +24,36 @@ type MobileNavIslandProps = {
   currentPath?: string
 }
 
+/** The wordmark's frame: one ink rule around both stamps. */
+const BRAND_FRAME = {
+  borderColor: color.ink,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.hairline,
+  cursor: 'pointer',
+  display: 'inline-flex',
+  flexShrink: 0,
+} satisfies CSSProperties
+
+// 1.25rem sits above the stamp ladder's top rung (`full` = 0.875rem), so the
+// wordmark keeps an explicit size over the rung, inline over its class.
+const BRAND_STAMP = {
+  fontSize: fontSize.xl,
+  letterSpacing: '-0.025em',
+  lineHeight: 'calc(1.75 / 1.25)',
+  paddingBlock: space[2],
+  paddingInline: space[4],
+} satisfies CSSProperties
+
+// No inset ring: the frame above draws the ink rule.
+const BRAND_STAMP_INVERSE = { ...BRAND_STAMP, boxShadow: 'none' } satisfies CSSProperties
+
 const SRD_BRAND = (
   <a href="/">
-    <span className="inline-flex shrink-0 cursor-pointer border border-ink">
-      {/* `text-xl` sits above the stamp ladder's top rung (`full` = `text-sm`),
-          so the wordmark keeps an explicit font-size override. */}
-      <Badge shape="stamp" size="full" className="px-1 py-0.5 text-xl tracking-tight">
+    <span style={BRAND_FRAME}>
+      <Badge shape="stamp" size="full" style={BRAND_STAMP}>
         Salvage Union
       </Badge>
-      {/* `ring-0`: the outer span draws the ink frame. */}
-      <Badge
-        shape="stamp"
-        size="full"
-        surface="inverse"
-        className="px-1 py-0.5 text-xl tracking-tight ring-0"
-      >
+      <Badge shape="stamp" size="full" surface="inverse" style={BRAND_STAMP_INVERSE}>
         SRD
       </Badge>
     </span>

@@ -13,15 +13,15 @@
  * every caller is an adapter around it.
  */
 
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import { CrawlerSchema } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import { MechSchema } from 'itun-domain/schemas/mech'
+import type { Npc } from 'itun-domain/schemas/npc'
+import { NpcSchema } from 'itun-domain/schemas/npc'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
 import { isRecord } from '../isRecord'
-import type { Crawler } from './crawler'
-import { CrawlerSchema } from './crawler'
-import type { Mech } from './mech'
-import { MechSchema } from './mech'
-import type { Npc } from './npc'
-import { NpcSchema } from './npc'
-import type { Pilot } from './pilot'
-import { PilotSchema } from './pilot'
 
 /** A parsed frozen entity, or the reason it could not be parsed. */
 export type FrozenParse =

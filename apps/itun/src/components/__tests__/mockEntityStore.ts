@@ -11,13 +11,13 @@
  * itself uses (microsoft/TypeScript#30581).
  */
 
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { EntityRef } from 'itun-domain/schemas/entity'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Npc } from 'itun-domain/schemas/npc'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { create } from 'zustand'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { EntityRef } from '../../lib/schemas/entity'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Npc } from '../../lib/schemas/npc'
-import type { Pilot } from '../../lib/schemas/pilot'
-import type { SoftLink } from '../../lib/schemas/softLink'
 import type { ChangeMeta, EntityState, useEntityStore } from '../../stores/entityStore'
 import type { CreateInput, EntityForType, EntityType } from '../../stores/types'
 import type { EntityLookup } from '../sheet/composition'

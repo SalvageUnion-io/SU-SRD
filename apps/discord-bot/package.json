@@ -21,6 +21,7 @@
     "@randsum/roller": "catalog:",
     "@randsum/salvageunion": "catalog:",
     "discord-api-types": "0.38.53",
+    "itun-domain": "workspace:*",
     "observability": "workspace:*",
     "salvageunion-reference": "workspace:*"
   }

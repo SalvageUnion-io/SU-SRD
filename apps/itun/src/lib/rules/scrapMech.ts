@@ -20,13 +20,13 @@
  * on confirm, deposits the buckets and deletes the mech.
  */
 
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import type { ScrapPool } from 'itun-domain/schemas/crawler'
+import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import { addToScrapPool } from '../cargo/cargoTransfer'
 import { readReference } from '../readReference'
-import type { CargoLot } from '../schemas/cargoLot'
-import type { ScrapPool } from '../schemas/crawler'
-import type { ItemCondition } from '../schemas/itemCondition'
-import type { Mech } from '../schemas/mech'
 import type { PoolDraw } from './crawlerEconomy'
 
 export type ScrapMechComponentKind = 'chassis' | 'system' | 'module'

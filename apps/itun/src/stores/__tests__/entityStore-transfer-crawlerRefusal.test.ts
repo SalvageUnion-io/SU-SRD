@@ -17,14 +17,14 @@
 
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import { makeUnitLot } from 'itun-domain/schemas/cargoLot'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { api } from '../../../convex/_generated/api'
 import type { Ctx, User } from '../../../test/convex/fixtures'
 import { addCrawler, crawlerBody, mechBody, seedTable } from '../../../test/convex/fixtures'
 import { testConvex } from '../../../test/convex/harness'
-import type { CargoLot } from '../../lib/schemas/cargoLot'
-import { makeUnitLot } from '../../lib/schemas/cargoLot'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
 import { withSignedInBackend } from './signedInBackend'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.

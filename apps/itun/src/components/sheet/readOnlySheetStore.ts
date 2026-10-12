@@ -37,17 +37,17 @@
  * leaves no trace.
  */
 
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { EntityRef } from 'itun-domain/schemas/entity'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Npc } from 'itun-domain/schemas/npc'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { create } from 'zustand'
 import type { ServerCrawler, ServerOwnable } from '../../lib/games/gameRoster'
 import type { ServedLink } from '../../lib/links/linkSync'
 import { softLinkFromServer } from '../../lib/links/linkSync'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { EntityRef } from '../../lib/schemas/entity'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Npc } from '../../lib/schemas/npc'
-import type { Pilot } from '../../lib/schemas/pilot'
-import type { SoftLink } from '../../lib/schemas/softLink'
 import type { EntityState, EntityType, useEntityStore } from '../../stores/entityStore'
 import type { WithheldUnit } from './sheetViewProps'
 

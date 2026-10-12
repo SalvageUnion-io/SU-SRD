@@ -1,5 +1,5 @@
 import { useRouter } from '@tanstack/react-router'
-import type { Container } from '../../lib/container'
+import type { Container } from 'itun-domain/container'
 import { getActiveContainer, setActiveContainer } from '../../stores/activeContainerStore'
 
 /**

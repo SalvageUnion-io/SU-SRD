@@ -15,7 +15,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { PartnerInstance } from '../../schemas/partner'
+import type { PartnerInstance } from 'itun-domain/schemas/partner'
 import {
   partnerCap,
   partnerDerivedStats,

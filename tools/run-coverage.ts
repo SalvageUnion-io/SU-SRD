@@ -35,6 +35,7 @@ const FLOORS: Readonly<Record<string, number>> = {
   'apps/discord-bot': 95,
   'apps/su-assets': 89.5,
   'packages/observability': 99.5,
+  'packages/itun-domain': 96,
   tools: 82.5,
 }
 

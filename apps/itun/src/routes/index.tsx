@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { SHELF } from 'itun-domain/container'
 import { Roster } from '../components/roster/Roster'
-import { SHELF } from '../lib/container'
 import { pageTitle } from '../lib/pageTitle'
 import { setActiveContainer } from '../stores/activeContainerStore'
 

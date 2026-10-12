@@ -1,10 +1,11 @@
 import type { SearchComboboxResult } from 'component-lib'
 import { Entity, SearchField, useSearchCombobox } from 'component-lib'
-import { space } from 'component-lib/design/tokens'
+import { borderWidth, color, fontSize, radius, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import { itemHref, schemaHref } from '../../lib/entityHref'
+import { LIFT_SHADOW } from '../../lib/liftShadow'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { HERO_SEARCH_PLACEHOLDER, HeroSearchForm } from '../HeroSearch'
@@ -29,6 +30,55 @@ const RESULTS: CSSProperties = {
   gap: space[12],
   padding: `${space[12]} ${space[8]} ${space[8]}`,
 }
+
+/** The dropdown, hung under the field: full width in the hero, 20rem in the bar. */
+const LISTBOX = {
+  backgroundColor: color.paper,
+  borderColor: color.wkFaint,
+  borderRadius: radius.panel,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.hairline,
+  boxShadow: LIFT_SHADOW,
+  marginTop: space[4],
+  maxHeight: '24rem',
+  overflowY: 'auto',
+  position: 'absolute',
+  top: '100%',
+  zIndex: 50,
+} satisfies CSSProperties
+
+const LISTBOX_HERO = { ...LISTBOX, left: 0, width: '100%' } satisfies CSSProperties
+
+const LISTBOX_BAR = { ...LISTBOX, right: 0, width: '20rem' } satisfies CSSProperties
+
+const SMALL = { fontSize: fontSize.sm, lineHeight: 'calc(1.25 / 0.875)' } satisfies CSSProperties
+
+/** The loading and empty states. */
+const STATUS = {
+  ...SMALL,
+  color: color.wkMuted,
+  paddingBlock: space[12],
+  paddingInline: space[16],
+} satisfies CSSProperties
+
+/** A category result; its hover ground is `.srd-search__category` (pages.css). */
+const CATEGORY = {
+  ...SMALL,
+  display: 'block',
+  paddingBlock: space[12],
+  paddingInline: space[16],
+} satisfies CSSProperties
+
+const CATEGORY_TITLE = { color: color.ink, fontWeight: weight.medium } satisfies CSSProperties
+
+const CATEGORY_GROUP = {
+  color: color.wkMuted,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+  marginTop: space[2],
+} satisfies CSSProperties
+
+const RELATIVE = { position: 'relative' } satisfies CSSProperties
 
 /** Site URL for a combobox result: category listing or entity item page. */
 function resultUrl(result: SearchComboboxResult): string {
@@ -145,7 +195,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   }, [])
 
   const live = (
-    <div className="sr-only" aria-live="polite">
+    <div className="su-sr-only" aria-live="polite">
       {announcement}
     </div>
   )
@@ -167,7 +217,8 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         load()
         setDismissedResults(null)
       }}
-      className={hero ? undefined : 'w-56'}
+      // The bar's fixed width is a class, so the mobile sheet can widen it.
+      className={hero ? undefined : 'srd-search__input'}
       containerClassName={hero ? 'srd-hero-search__field' : undefined}
       glyphSize={hero ? 18 : undefined}
       {...inputProps}
@@ -179,13 +230,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   )
 
   const listbox = isOpen && (
-    <div
-      id={listboxId}
-      role="listbox"
-      className={`absolute top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-panel border border-wk-faint bg-paper shadow-lg ${hero ? 'left-0 w-full' : 'right-0 w-80'}`}
-    >
+    <div id={listboxId} role="listbox" style={hero ? LISTBOX_HERO : LISTBOX_BAR}>
       {!ready ? (
-        <div className="px-4 py-3 text-sm text-wk-muted">Loading search index…</div>
+        <div style={STATUS}>Loading search index…</div>
       ) : results.length > 0 ? (
         // SEARCH (entity display language §7): every entity result is a Row
         // in link mode, without the lead (E11); a category is a plain link.
@@ -209,16 +256,17 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
                 key={result.id}
                 {...option}
                 href={resultUrl(result)}
-                className="block px-4 py-3 text-sm transition-colors hover:bg-wk-bg"
+                className="srd-search__category"
+                style={CATEGORY}
               >
-                <div className="font-medium text-ink">{result.title}</div>
-                <div className="mt-0.5 text-xs text-wk-muted">{result.group}</div>
+                <div style={CATEGORY_TITLE}>{result.title}</div>
+                <div style={CATEGORY_GROUP}>{result.group}</div>
               </a>
             )
           })}
         </div>
       ) : (
-        <div className="px-4 py-3 text-sm text-wk-muted">No results found</div>
+        <div style={STATUS}>No results found</div>
       )}
     </div>
   )
@@ -235,7 +283,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     return (
       <IslandErrorBoundary>
         <HeroSearchForm onSubmit={onSubmit}>
-          <div className="srd-hero-search__box relative" ref={containerRef}>
+          <div className="srd-hero-search__box" ref={containerRef}>
             {live}
             {field}
             {listbox}
@@ -247,7 +295,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
 
   return (
     <IslandErrorBoundary>
-      <div className="relative" ref={containerRef}>
+      <div style={RELATIVE} ref={containerRef}>
         {live}
         {field}
         {listbox}

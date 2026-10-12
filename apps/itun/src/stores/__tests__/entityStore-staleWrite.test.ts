@@ -10,8 +10,8 @@
  */
 
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { staleWriteError } from 'itun-domain/connection/staleWrite'
 import { pilotFixture } from '../../components/__tests__/fixtures'
-import { staleWriteError } from '../../lib/connection/staleWrite'
 import { withSignedInBackend } from './signedInBackend'
 
 withSignedInBackend()

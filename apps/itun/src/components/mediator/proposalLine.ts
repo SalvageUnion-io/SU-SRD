@@ -7,9 +7,9 @@
 
 import { tokens } from 'component-lib'
 import type { FunctionReturnType } from 'convex/server'
+import { fieldLabel } from 'itun-domain/games/proposals'
 import type { CSSProperties } from 'react'
 import type { api } from '../../../convex/_generated/api'
-import { fieldLabel } from '../../lib/games/proposals'
 
 const { space } = tokens
 

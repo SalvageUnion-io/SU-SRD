@@ -21,9 +21,9 @@
  */
 
 import { Field, tokens } from 'component-lib'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import type { Mech } from '../../lib/schemas/mech'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import type { SheetPatch } from './sheetViewProps'
 

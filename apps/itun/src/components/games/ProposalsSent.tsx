@@ -9,10 +9,10 @@
  */
 
 import { useQuery } from 'convex/react'
+import { PROPOSALS_PAGE } from 'itun-domain/games/proposals'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { PROPOSALS_PAGE } from '../../lib/games/proposals'
 import { ProposalsList } from '../mediator/ProposalsList'
 import { HubSection } from './HubSection'
 import { HUB_COPY } from './hubStyles'

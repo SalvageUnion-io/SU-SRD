@@ -1,4 +1,5 @@
 import { toast } from 'component-lib'
+import { MechSchema } from 'itun-domain/schemas/mech'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { computeMechCapacity, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
@@ -8,7 +9,6 @@ import {
   mechCreationBudgetFor,
   mechCreationStepGate,
 } from '../../lib/rules/creation'
-import { MechSchema } from '../../lib/schemas/mech'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { EMPTY_MECH_FORM_STATE, mechFormToCreateInput } from '../../lib/wizard/mechFormState'
 import { withPreselection } from '../../lib/wizard/preselect'

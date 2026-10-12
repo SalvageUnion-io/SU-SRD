@@ -5,8 +5,23 @@
  */
 
 import { ChapterBand, InlineRef, Slab } from 'component-lib'
+import { space } from 'component-lib/design/tokens'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { TITLE_SUFFIX } from '../../lib/constants'
+import {
+  BOLD,
+  bulletList,
+  DOC_PAGE,
+  docMeasure,
+  LAST_UPDATED_STAMP,
+  proseColumn,
+  SMALL_PRINT,
+} from '../../lib/docPageStyles'
+
+const MEASURE = docMeasure('48rem', space[24])
+const BODY = proseColumn(space[16])
+const LIST = bulletList(space[4], 'padding')
+const LIST_AFTER_PROSE = { ...LIST, marginTop: space[8] }
 
 const LAST_UPDATED = '6 July 2026'
 
@@ -18,15 +33,13 @@ function page(): PageResult {
         'Privacy Policy for the Salvage Union Discord bot. The Bot is stateless and stores no personal data.',
     },
     children: (
-      <div className="flex w-full flex-1 flex-col pb-12">
+      <div style={DOC_PAGE}>
         <ChapterBand measure="48rem">Salvage Union Bot — Privacy Policy</ChapterBand>
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 pt-8">
-          <p className="text-xs uppercase tracking-caps-snug text-ink/60">
-            Last updated: {LAST_UPDATED}
-          </p>
+        <div style={MEASURE}>
+          <p style={LAST_UPDATED_STAMP}>Last updated: {LAST_UPDATED}</p>
 
-          <section className="flex flex-col gap-4 text-sm leading-relaxed">
-            <p className="font-bold">
+          <section style={BODY}>
+            <p style={BOLD}>
               Short version: the Bot does not have a database and does not store your personal data.
             </p>
 
@@ -36,7 +49,7 @@ function page(): PageResult {
                 Nothing persistent. The Bot is stateless. It responds to slash-command and button
                 interactions in real time and keeps no record of them afterward.
               </p>
-              <ul className="mt-2 flex list-disc flex-col gap-1 pl-5">
+              <ul style={LIST_AFTER_PROSE}>
                 <li>
                   The Bot requests only the “Guilds” gateway intent. It does <strong>not</strong>{' '}
                   read message content.
@@ -64,7 +77,7 @@ function page(): PageResult {
 
             <div>
               <Slab as="h2" variant="solid" label="Third parties" />
-              <ul className="flex list-disc flex-col gap-1 pl-5">
+              <ul style={LIST}>
                 <li>
                   <strong>Discord</strong> — your use of the Bot is also governed by Discord’s
                   Privacy Policy.
@@ -80,16 +93,16 @@ function page(): PageResult {
               <p>
                 Because we store no personal data, there is nothing to export or delete. For any
                 privacy questions, contact{' '}
-                <InlineRef href="mailto:privacy@salvageunion.io" className="font-bold">
+                <InlineRef href="mailto:privacy@salvageunion.io" style={BOLD}>
                   privacy@salvageunion.io
                 </InlineRef>
                 .
               </p>
             </div>
 
-            <p className="text-xs text-ink/60">
+            <p style={SMALL_PRINT}>
               See also the{' '}
-              <InlineRef href="/bot/terms" className="font-bold">
+              <InlineRef href="/bot/terms" style={BOLD}>
                 Terms of Service
               </InlineRef>
               .

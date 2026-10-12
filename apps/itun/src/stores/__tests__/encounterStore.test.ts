@@ -6,8 +6,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { SHELF } from 'itun-domain/container'
 import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
-import { SHELF } from '../../lib/container'
 import type { EncounterNpcCreateInput } from '../encounterStore'
 import { useEncounterStore } from '../encounterStore'
 import { resetStores } from './resetStores'

@@ -24,10 +24,10 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Pilot } from '../../../lib/schemas/pilot'
-import type { SoftLink } from '../../../lib/schemas/softLink'
 import { expandCards } from '../../__tests__/expandCards'
 import { crawlerFixture, FIXTURE_NOW, pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'

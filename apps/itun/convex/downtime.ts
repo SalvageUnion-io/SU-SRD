@@ -1,6 +1,6 @@
 import { v } from 'convex/values'
+import { isUpkeepStep, UPKEEP_STEP_NAME } from 'itun-domain/rules/downtime'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { isUpkeepStep, UPKEEP_STEP_NAME } from '../src/lib/rules/downtime'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'

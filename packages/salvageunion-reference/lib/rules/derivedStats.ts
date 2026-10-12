@@ -584,7 +584,7 @@ type CrawlerDerivationInput = {
  * Parse a crawler techLevel slug (e.g. "tech-3") to its numeric level (3).
  * Returns undefined when no digits are present.
  *
- * A duplicate of ITUN's `src/lib/crawlerLevel.ts#parseCrawlerTechLevel` — kept
+ * A duplicate of `itun-domain`'s `src/crawlerLevel.ts#parseCrawlerTechLevel` — kept
  * local rather than imported so this module has no dependency on an ITUN app
  * file. `crawlerLevel.ts` also owns `resolveEffectiveCrawlerLevel`, which
  * depends on ITUN's Pilot/Crawler Zod types and is out of this migration's

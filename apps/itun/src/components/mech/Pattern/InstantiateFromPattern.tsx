@@ -16,10 +16,10 @@
  */
 
 import { Button, FieldError, ModalShell, tokens } from 'component-lib'
+import type { MechPattern } from 'itun-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
-import type { MechPattern } from '../../../lib/schemas/pattern'
 import { useEntityStore } from '../../../stores/entityStore'
 import '../../../styles/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from '../../wizard/wizardStyles'

@@ -28,9 +28,9 @@ import {
   waitFor,
   within,
 } from '@testing-library/react'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Pilot } from '../../../lib/schemas/pilot'
 import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'

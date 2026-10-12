@@ -43,12 +43,13 @@ import {
   Stat,
   tokens,
 } from 'component-lib'
+import { parseCrawlerTechLevel } from 'itun-domain/crawlerLevel'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useReducer, useState } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
 import { crawlerMaxSP, resolvePool } from 'salvageunion-reference/rules'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
-import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
 import type { DeteriorationEffect } from '../../lib/rules/crawlerEconomy'
 import {
@@ -67,7 +68,6 @@ import {
   UPKEEP_SCRAP,
   upkeepShortfall,
 } from '../../lib/rules/crawlerEconomy'
-import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
 import { freshEntity } from './controlPrimitives'

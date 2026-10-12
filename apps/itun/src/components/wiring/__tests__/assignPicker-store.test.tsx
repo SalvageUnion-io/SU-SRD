@@ -17,9 +17,9 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import type { ReactElement } from 'react'
 import { ConnectionContext, SOLO_STATE } from '../../../lib/connection/connectionContext'
-import type { SoftLink } from '../../../lib/schemas/softLink'
 import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'

@@ -11,7 +11,8 @@
  */
 
 import { Button } from 'component-lib'
-import type { ReactNode } from 'react'
+import { fontSize, space } from 'component-lib/design/tokens'
+import type { CSSProperties, ReactNode } from 'react'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
@@ -197,6 +198,19 @@ export function useGameData(options?: {
   return { ready, error, load }
 }
 
+const FAILED = {
+  alignItems: 'flex-start',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[12],
+  padding: space[16],
+} satisfies CSSProperties
+
+const FAILED_MESSAGE = {
+  fontSize: fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+} satisfies CSSProperties
+
 /**
  * Gate component — renders children only after game data is preloaded.
  * Use this to wrap island content that depends on ORM calls.
@@ -221,8 +235,8 @@ export function GameDataGate({
   const { ready, error, load } = useGameData({ schemas, projection })
   if (error) {
     return (
-      <div className="flex flex-col items-start gap-3 p-4">
-        <p className="text-sm">Failed to load game data.</p>
+      <div style={FAILED}>
+        <p style={FAILED_MESSAGE}>Failed to load game data.</p>
         <Button variant="ghost" onClick={load}>
           Retry loading game data
         </Button>

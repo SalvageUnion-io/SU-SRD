@@ -71,14 +71,14 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   `patternStore` and `encounterStore`.
 - **There are no workspaces.** An entity lives in exactly one **container** — a
   shared **Game** or the owner's **Shelf** — encoded as one
-  nullable `gameId` and resolved through `src/lib/container.ts`. Filter with `containerOf` +
+  nullable `gameId` and resolved through `itun-domain/container`. Filter with `containerOf` +
   `sameContainer`, and only when `mode === 'connected'`: signed out there is
   nothing to show, and Disconnected has no live Game list to filter against, so
   it shows what it holds whole. `Roster` shows Shelves at `/` (all you
   keep, Games too) and a Game at `/games/$gameId`.
 - **Assignments** ([ADR-037](../../docs/ARCHITECTURE.md)):
   draw soft links only via `assignLink`; the rules are
-  `src/lib/links/linkRules.ts`, shared with `convex/`.
+  `itun-domain/links/linkRules`, shared with Convex.
 - **Hydration:** `hydrate(type)` waits for `ShelfSync`'s first answer, or
   resolves at once when no rows are coming (`src/stores/rowArrival.ts`); reads
   are synchronous ([ADR-003](../../docs/ARCHITECTURE.md)).

@@ -8,8 +8,12 @@
 
 import { Changelog, ChapterBand, InlineRef } from 'component-lib'
 import { readChangelog } from 'component-lib/changelog/git'
+import { space } from 'component-lib/design/tokens'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { BOLD, DOC_PAGE, docMeasure, PROSE } from '../lib/docPageStyles'
+
+const MEASURE = docMeasure('48rem', space[32])
 
 const TITLE = `Changelog${TITLE_SUFFIX}`
 const DESCRIPTION = 'Changes to the salvageunion.io reference site over time.'
@@ -39,17 +43,17 @@ function page(): PageResult {
       ],
     },
     children: (
-      <div className="flex w-full flex-1 flex-col pb-12">
+      <div style={DOC_PAGE}>
         <ChapterBand measure="48rem">Changelog</ChapterBand>
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 pt-8">
-          <p className="text-sm leading-relaxed">
+        <div style={MEASURE}>
+          <p style={PROSE}>
             Features, fixes and speed-ups to the SRD site, newest first. For full commit history see
             the{' '}
             <InlineRef
               href="https://github.com/SalvageUnion-io/SU-SRD/commits/main"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-bold"
+              style={BOLD}
             >
               GitHub repository
             </InlineRef>

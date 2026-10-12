@@ -18,12 +18,12 @@
  */
 
 import { useMutation, useQuery } from 'convex/react'
+import { containerOf } from 'itun-domain/container'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { containerOf } from '../../lib/container'
 import { reportWriteFailure } from '../../lib/runWrite'
-import type { Pilot } from '../../lib/schemas/pilot'
 import { WritesBlockedOffline } from '../../stores/entityBackend'
 import { reportRefusedWrite } from './useSeat'
 

@@ -12,11 +12,11 @@
  */
 
 import { Button, EntitySearcher, ModalShell, toast, tokens } from 'component-lib'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import type { Crawler } from '../../lib/schemas/crawler'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { EMPTY_CRAWLER_FORM_STATE } from '../../lib/wizard/crawlerFormState'

@@ -25,11 +25,11 @@
 
 import { Badge, buttonVariants, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import type { Container } from 'itun-domain/container'
+import { SHELF } from 'itun-domain/container'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { Container } from '../../lib/container'
-import { SHELF } from '../../lib/container'
 import type { HeaderMenuItem } from '../shared/HeaderMenu'
 import { HeaderMenu } from '../shared/HeaderMenu'
 import { useShowContainer } from './useShowContainer'

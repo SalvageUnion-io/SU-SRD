@@ -5,11 +5,11 @@
  * props, not on unrelated store writes.
  */
 
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { EntityRef } from 'itun-domain/schemas/entity'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { ReactNode } from 'react'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { EntityRef } from '../../lib/schemas/entity'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 import type { EntityState, useEntityStore } from '../../stores/entityStore'
 import type { EntityLookup, SheetComposition } from './composition'
 import type { LiveSheetSegment } from './LiveSheet'

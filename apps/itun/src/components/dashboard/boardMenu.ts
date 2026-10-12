@@ -18,7 +18,7 @@
  * why before pressing, not after.
  */
 
-import type { Mech } from '../../lib/schemas/mech'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { SeatMount, SeatResolving } from '../../lib/schemas/seat'
 
 /** A pilot or mech row as `entities.listForGame` returns it. */

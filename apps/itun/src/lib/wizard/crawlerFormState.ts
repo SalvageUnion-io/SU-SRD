@@ -14,11 +14,11 @@
  */
 
 import type { ChoiceSelections } from 'component-lib'
+import type { Crawler, CrawlerNpcState, ScrapPool } from 'itun-domain/schemas/crawler'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { ResolvedNpc } from '../crawlerRefs'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../crawlerRefs'
 import { readReference } from '../readReference'
-import type { Crawler, CrawlerNpcState, ScrapPool } from '../schemas/crawler'
 
 type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 

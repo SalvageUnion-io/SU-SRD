@@ -10,8 +10,8 @@
  */
 
 import { Button, tokens } from 'component-lib'
+import { PROPOSALS_PAGE } from 'itun-domain/games/proposals'
 import type { CSSProperties } from 'react'
-import { PROPOSALS_PAGE } from '../../lib/games/proposals'
 import { MUTED } from './mediatorStyles'
 import { ProposalRow } from './ProposalRow'
 import type { SentProposal } from './proposalLine'

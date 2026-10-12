@@ -29,6 +29,7 @@ import {
   UserMadeStamp,
 } from 'component-lib'
 import { useMutation } from 'convex/react'
+import type { MechPattern } from 'itun-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import {
@@ -50,7 +51,6 @@ import {
   patternLoadout,
   slotsUsed,
 } from '../../../lib/patterns/patterns'
-import type { MechPattern } from '../../../lib/schemas/pattern'
 import { deepLinkTo } from '../../../lib/srd-deep-link'
 import { useEntityStore } from '../../../stores/entityStore'
 import { usePatternStore } from '../../../stores/patternStore'

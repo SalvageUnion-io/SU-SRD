@@ -6,8 +6,8 @@
 
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import type { CargoLot } from '../../../lib/schemas/cargoLot'
-import type { Mech } from '../../../lib/schemas/mech'
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import type { PlayStore } from '../SlotRow'

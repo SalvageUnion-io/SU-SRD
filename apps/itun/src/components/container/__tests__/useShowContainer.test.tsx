@@ -8,8 +8,8 @@ import {
   RouterProvider,
 } from '@tanstack/react-router'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Container } from '../../../lib/container'
-import { containerHref } from '../../../lib/container'
+import type { Container } from 'itun-domain/container'
+import { containerHref } from 'itun-domain/container'
 import { getActiveContainer, setActiveContainer } from '../../../stores/activeContainerStore'
 import { useShowContainer } from '../useShowContainer'
 

@@ -14,8 +14,8 @@
  */
 
 import { Button, Field, FieldError, Input, ModalShell, toast } from 'component-lib'
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
 import { useState } from 'react'
-import type { CargoLot } from '../../../lib/schemas/cargoLot'
 import { usePatternStore } from '../../../stores/patternStore'
 import '../../../styles/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle } from '../../wizard/wizardStyles'

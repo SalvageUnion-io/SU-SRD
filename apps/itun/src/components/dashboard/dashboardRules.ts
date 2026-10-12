@@ -16,6 +16,9 @@
  * into the returned patch — they stay explicit player calls at the UI layer.
  */
 
+import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type {
   SURefAbility,
   SURefEquipment,
@@ -45,9 +48,6 @@ import {
   resolveChassisRef,
 } from 'salvageunion-reference/rules'
 import { heatCheckPatch } from '../../lib/rules/heatCheck'
-import type { ItemCondition } from '../../lib/schemas/itemCondition'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 import type { RangeBand } from '../../lib/schemas/seat'
 import type { MechItemEconomy } from '../sheet/mechItemRules'
 import { resolveModule, resolveSystem } from '../sheet/mechItemRules'

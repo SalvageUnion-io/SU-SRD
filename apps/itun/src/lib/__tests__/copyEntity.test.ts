@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
+import { containerOf } from 'itun-domain/container'
 import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
-import { containerOf } from '../container'
 import { copyForShelf, copyName } from '../copyEntity'
 
 /**
