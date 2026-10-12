@@ -25,7 +25,7 @@ const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
 const { useEntityStore } = await import('../../../stores/entityStore')
-const { STARTER_PILOTS } = await import('../../../lib/starterSet/starterSet')
+const { STARTER_PILOTS } = await import('itun-domain/starterSet/starterSet')
 const { StarterSheetView } = await import('../StarterSheetView')
 const { StarterSetRoster } = await import('../StarterSetRoster')
 

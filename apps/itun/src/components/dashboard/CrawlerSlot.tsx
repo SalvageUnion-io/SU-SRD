@@ -22,6 +22,9 @@
  */
 
 import { Button, rollForTable } from 'component-lib'
+import { UPKEEP_STEP_NAME } from 'itun-domain/rules/downtime'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -32,10 +35,7 @@ import {
   UPKEEP_SCRAP,
   upkeepShortfall,
 } from '../../lib/rules/crawlerEconomy'
-import { UPKEEP_STEP_NAME } from '../../lib/rules/downtime'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import type { StepRule } from '../wizard/RuleBrief'
 import { RuleBrief } from '../wizard/RuleBrief'

@@ -11,14 +11,14 @@
  * (ADR-002): every create, update and adopted server row parses strictly.
  */
 
+import { CrawlerSchema } from 'itun-domain/schemas/crawler'
+import { EncounterNpcSchema } from 'itun-domain/schemas/encounterNpc'
+import { MechSchema } from 'itun-domain/schemas/mech'
+import { NpcSchema } from 'itun-domain/schemas/npc'
+import { MechPatternSchema } from 'itun-domain/schemas/pattern'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
+import { SoftLinkSchema } from 'itun-domain/schemas/softLink'
 import type { z } from 'salvageunion-reference/zod'
-import { CrawlerSchema } from '../lib/schemas/crawler'
-import { EncounterNpcSchema } from '../lib/schemas/encounterNpc'
-import { MechSchema } from '../lib/schemas/mech'
-import { NpcSchema } from '../lib/schemas/npc'
-import { MechPatternSchema } from '../lib/schemas/pattern'
-import { PilotSchema } from '../lib/schemas/pilot'
-import { SoftLinkSchema } from '../lib/schemas/softLink'
 
 /** One kind of record: its schema, and whether it carries `updatedAt`. */
 export type RecordKind<T> = {

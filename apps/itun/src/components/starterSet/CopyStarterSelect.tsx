@@ -14,10 +14,10 @@
 
 import { Select, toast, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import { SHELF } from 'itun-domain/container'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { SHELF } from '../../lib/container'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
 import { copyStarter, STARTER_SET_PUBLISHER } from '../../lib/starterSet/copyStarter'

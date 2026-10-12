@@ -6,8 +6,8 @@
  * exports breaks React Fast Refresh.
  */
 
+import type { PartnerInstance } from 'itun-domain/schemas/partner'
 import { resolvePartnerStatBlock } from '../../lib/rules/partnerStats'
-import type { PartnerInstance } from '../../lib/schemas/partner'
 
 /** Display name: the instance's own, else the stat block's, else the raw ref. */
 export function partnerDisplayName(partner: PartnerInstance): string {

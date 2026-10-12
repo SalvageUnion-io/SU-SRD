@@ -21,10 +21,10 @@
  *     Injury *roll* when a hit hits 0, marking the mech Destroyed, and Eject.
  */
 
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 import type { EntityState } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import type { BoardMenu } from './boardMenu'

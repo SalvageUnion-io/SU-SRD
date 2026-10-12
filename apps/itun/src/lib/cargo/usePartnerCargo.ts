@@ -23,14 +23,14 @@
  * than half-built.
  */
 
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import type { PartnerWithHost } from '../partnerLookup'
 import { replacePartner } from '../partnerLookup'
 import { partnerDerivedStats } from '../rules/partnerStats'
-import type { CargoLot } from '../schemas/cargoLot'
-import type { Crawler } from '../schemas/crawler'
 import type {
   CargoBoundaryState,
   CargoTransferAction,

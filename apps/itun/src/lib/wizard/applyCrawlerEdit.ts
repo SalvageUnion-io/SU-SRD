@@ -19,9 +19,9 @@
  * touched here — only crew/type-owned fields.
  */
 
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { EntityState } from '../../stores/entityStore'
 import { WIZARD_TXN } from '../../stores/surfaceProvenance'
-import type { Crawler } from '../schemas/crawler'
 import type { CrawlerWizardFormState } from './crawlerFormState'
 import { crawlerFormCrewToPatches, defaultTypeNpcState } from './crawlerFormState'
 

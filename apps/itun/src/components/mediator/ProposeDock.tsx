@@ -18,16 +18,16 @@
  */
 
 import { Button, Field, Input, Select, tokens } from 'component-lib'
-import type { CSSProperties, RefObject } from 'react'
-import { useId, useState } from 'react'
-import type { ProposalField, ProposalTarget } from '../../lib/games/proposals'
+import type { ProposalField, ProposalTarget } from 'itun-domain/games/proposals'
 import {
   clampProposalValue,
   fieldLabel,
   PROPOSAL_FIELDS,
   PROPOSAL_REASON_MAX,
   PROPOSAL_STATE_WORD,
-} from '../../lib/games/proposals'
+} from 'itun-domain/games/proposals'
+import type { CSSProperties, RefObject } from 'react'
+import { useId, useState } from 'react'
 import { EYEBROW, MUTED, NUMBERS, VISUALLY_HIDDEN } from './mediatorStyles'
 import { ProposalRow } from './ProposalRow'
 import type { SentProposal } from './proposalLine'

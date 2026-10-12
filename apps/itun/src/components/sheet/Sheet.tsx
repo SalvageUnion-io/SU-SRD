@@ -17,14 +17,14 @@
  */
 
 import { buttonVariants, cn, tokens } from 'component-lib'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { EntityRef, SheetEntityKind } from 'itun-domain/schemas/entity'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { EntityRef, SheetEntityKind } from '../../lib/schemas/entity'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../container/MoveToContainerControl'

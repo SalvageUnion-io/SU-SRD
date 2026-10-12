@@ -1,0 +1,21 @@
+{
+  "name": "itun-domain",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "license": "Salvage Union Open Game Licence 1.0b",
+  "exports": {
+    "./*": {
+      "types": "./src/*.ts",
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "convex": "catalog:",
+    "salvageunion-reference": "workspace:*"
+  }
+}

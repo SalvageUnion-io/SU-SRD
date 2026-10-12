@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { GenericInventoryEntry, Pilot } from '../../../lib/schemas/pilot'
+import type { GenericInventoryEntry, Pilot } from 'itun-domain/schemas/pilot'
 import {
   equipmentMaxUses,
   equipmentSlotCost,

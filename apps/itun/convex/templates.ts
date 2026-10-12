@@ -4,7 +4,7 @@ import {
   STARTER_MECHS,
   STARTER_PILOTS,
   STARTER_SOFT_LINKS,
-} from '../src/lib/starterSet/starterSet'
+} from 'itun-domain/starterSet/starterSet'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
 import { mutation } from './model/entities'

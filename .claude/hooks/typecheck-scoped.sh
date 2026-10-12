@@ -46,6 +46,7 @@ case "$REL" in
   packages/salvageunion-reference/*) TARGETS="*" ;;
   packages/component-lib/*) TARGETS="component-lib srd itun tools" ;;
   packages/observability/*) TARGETS="observability discord-bot itun srd su-assets tools" ;;
+  packages/itun-domain/*) TARGETS="itun-domain discord-bot itun tools" ;;
   apps/discord-bot/*) TARGETS="discord-bot" ;;
   apps/itun/*) TARGETS="itun" ;;
   apps/srd/*) TARGETS="srd" ;;

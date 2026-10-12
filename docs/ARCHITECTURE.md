@@ -7,7 +7,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 ## Areas
 
 1. **Packages**
-   `salvageunion-reference` → `component-lib` → `srd` / `itun`; `discord-bot` uses the reference package only.
+   `salvageunion-reference` → `component-lib` → `srd` / `itun`; `itun-domain` → `itun` / `discord-bot`.
    Packages never import an app (`noRestrictedImports` in [`biome.jsonc`](../biome.jsonc)); deps use `workspace:*`.
 2. **salvageunion-reference**
    Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `SURef*` types, gitignored and rebuilt on install, typecheck, build and test (`ensureGenerated.ts`).
@@ -29,90 +29,92 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Each schema's `$id` is the URL it is served at; `api.salvageunion.io/v1` is decided, not built (ADR-043).
 8. **discord-bot**
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
-   Imports `apps/itun/convex/model/botWire.ts` as a type only: changing it is a cross-package change.
-9. **Data flow and connection modes**
-   Records store slug refs, resolved at render; ITUN preloads once in `GameDataReady.tsx`.
-   `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).
-10. **Convex, the server of record**
+   Imports `itun-domain/botWire` as a type only: changing it is a cross-package change.
+9. **itun-domain**
+   Zod schemas, link/crew/downtime rules and bot wire types for ITUN, Convex and the bot; import by subpath.
+10. **Data flow and connection modes**
+    Records store slug refs, resolved at render; ITUN preloads once in `GameDataReady.tsx`.
+    `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).
+11. **Convex, the server of record**
     `apps/itun/convex/`: bodies are opaque (`v.any()`), Zod parses before every mutation; an entity is in a Game or on a Shelf.
     Every store commits through a `commit*` in `apps/itun/src/stores/`; `containerParity.test.ts` asserts each has a table.
-11. **No device cache** (D9, [spike](spikes/d9-offline-cache.md))
+12. **No device cache** (D9, [spike](spikes/d9-offline-cache.md))
     No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable.
-12. **Zustand stores**
+13. **Zustand stores**
     `apps/itun/src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs.
     A refused write changes nothing; no TanStack Query, reads are `src/hooks/entities/` and `convex/react`.
-13. **Sharing**
+14. **Sharing**
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
     Snapshots are retired (ADR-036).
-14. **Convex deployments**
+15. **Convex deployments**
     Production `exuberant-porpoise-183` (frontend `https://intheunionnow.com`); staging `perfect-donkey-72`, the preview slot only.
     `bun run dev:itun` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
-15. **Convex environment**
+16. **Convex environment**
     Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `ITUN_BOT_SECRET`, `DISCORD_PUBLIC_KEY`.
     `ITUN_TEST_AUTH` never in production; `convex env list` prints values, so pipe it through `cut -d= -f1`.
-16. **Convex conventions**
+17. **Convex conventions**
     Mutations use `mutation` / `internalMutation` from `apps/itun/convex/model/entities.ts` (its triggers keep `games.summary`).
     Tell refusals from defects with `src/lib/connection/serverError.ts`; a one-off repair runs once from the dashboard, then is deleted.
-17. **Surfaces and enforcement (ADR-021)**
+18. **Surfaces and enforcement (ADR-021)**
     Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play (Dashboard), Frozen (`/p/`), Adjudicate (Mediator Dashboard).
     Lifecycle transactions are enforced in guided modes and bypassed in Free Edit; caps are overridable with a callout.
-18. **Live-Sheet transactions**
+19. **Live-Sheet transactions**
     A closed list: crawler Upkeep / Upgrade / Trade, bay Repair, item repair and uses; advisory, never blocking.
     Any new transaction goes on the Dashboard.
-19. **Change Log**
+20. **Change Log**
     Every write appends a `transaction` / `override` / `manual` row to Convex `changeLog` at `entityStore.update`.
     Read in `ChangeLogDrawer`; destruction waits for the player (ADR-007).
-20. **Combat loop**
+21. **Combat loop**
     A shared living sheet: no combat RPCs, turns or undo; the math is the reference package's `lib/rules/`, patches are the app's.
     Activation is a sequential write-through (ADR-008); item conditions change only by player action (ADR-009).
-21. **Display system**
+22. **Display system**
     Entity forms (Mention, Token, Row, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
     `Card` is the generic container, never merged with it; app UI goes through `controls` and slot props, never schema props.
-22. **Component catalog**
+23. **Component catalog**
     `bun run stories` (port 61000) serves component-lib's `catalog.tsx` over the library's and both apps' stories.
     Story rules: [component-lib's CLAUDE.md](../packages/component-lib/CLAUDE.md), enforced by `story-coverage.test.ts`.
-23. **Discord bot as a Game client**
+24. **Discord bot as a Game client**
     `/su` commands call `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`) with `ITUN_BOT_SECRET`; `/su invite` is Discord-signed.
     Reads widely, writes only existing mutations; Convex unreachable means every Game command answers `unavailable`.
-24. **SEO**
+25. **SEO**
     srd's head is `BaseLayout.tsx` from `DocumentMeta`; JSON-LD, `ssg/sitemap.ts`, `/llms.txt` (byte for byte), PWA via `ssg/pwa.ts`.
     No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot` (no hydration).
-25. **Accessibility**
+26. **Accessibility**
     Biome's a11y rules plus each app's `e2e/a11y.e2e.ts` (axe, WCAG 2.2 AA) over its `PAGES`, failing on any violation.
     Contrast is held by `design/contrast.test.ts`; coarse-pointer touch targets are 44px.
-26. **CI**
+27. **CI**
     `ci.yml` runs on every `pull_request` (no branch filter), path-filtered per app; `CI Success` must need every job.
     Static checks are `bun tools/check.ts --profile=ci`; tests are `bun run test:coverage` against per-workspace `FLOORS`.
-27. **Repository settings**
+28. **Repository settings**
     `main` ruleset (`MAIN_RULESET` in `tools/environments.ts`): linear history, strict `CI Success` + PR-title checks, CodeQL.
     Actions are allowlisted and SHA-pinned; both drift-checked nightly; no merge queue.
-28. **Deploy**
+29. **Deploy**
     `deploy-cloudflare.yml` on push to `main`: plan → build → `push-convex` → deploy → smoke → record (tag `deployed/cloudflare`).
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back.
-29. **Preview deploys**
+30. **Preview deploys**
     `gh workflow run deploy-preview.yml --ref <branch>` → `preview-su-srd` / `preview-su-itun.alxjrvs.workers.dev` on staging Convex.
     The owner approves the `preview` Environment; staging data persists across branches.
-30. **Dependencies**
+31. **Dependencies**
     Dependabot updates Actions only; Bun deps by hand, pinned exactly, with a 3-day `bunfig.toml` cooldown.
     Declare every import; a shared runtime package is a root `catalog:` entry, a shared dev tool a root devDependency.
-31. **Audit and overrides**
+32. **Audit and overrides**
     `bun run audit` fails any advisory (PRs touching manifests, and nightly); it ignores nothing.
     `overrides` are floors only, deleted once the dependent asks for the fixed version itself (`sharp`, until `miniflare` does).
-32. **Dead code**
+33. **Dead code**
     `bun run knip` with `includeEntryExports`; delete what it flags; `@public` and `@knipignore` are the only escape hatches.
-33. **MCP servers**
+34. **MCP servers**
     `.mcp.json` is secret-free: `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (local deployment), `context7`.
     Only `context7` and `convex` are enabled; opt into the OAuth three in `.claude/settings.local.json`. `claude mcp list` proves one works.
-34. **Cloud sessions**
+35. **Cloud sessions**
     `gh` is REST only (GraphQL gets 403): use `gh api` or `mcp__github__*`; no route means report it unread.
     Merge: `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash` or `mcp__github__merge_pull_request`; no `gh stack`. Environment, `su-rules`: [cloud-environment.md](ops/cloud-environment.md).
-35. **Cloudflare**
+36. **Cloudflare**
     Workers `su-srd` (`salvageunion.io`), `su-itun` (`intheunionnow.com`), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
     The account is shared with RANDSUM; re-derive from `apps/*/wrangler.jsonc` and `wrangler deployments list`.
-36. **Sentry**
+37. **Sentry**
     Org `susrd`, EU region; projects `srd`, `itun`, `itun-convex` (a Convex dashboard toggle), `workers`.
     `tools/check-observability.ts` guards DSN gating and CSP; change an app's CSP or region in every source together.
-37. **Convex and GitHub identifiers**
+38. **Convex and GitHub identifiers**
     Project `alex-jarvis:suref-itun`; `.convex.cloud` is the client, `.convex.site` HTTP actions (swapped, both read "unreachable").
     Repo `SalvageUnion-io/SU-SRD`, branch `main`; the deployed commit is the release (ADR-041).
 
@@ -205,7 +207,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Supersedes ADR-004; amends ADR-032.
 37. **ADR-037 The assignment model**
     Accepted: one-hop links `mech-to-pilot`, `pilot-to-crawler`, `mech-to-crawler`; a new link replaces conflicts; one container.
-    Amends ADR-030; amended by ADR-044. Code: `apps/itun/src/lib/links/linkRules.ts`.
+    Amends ADR-030; amended by ADR-044. Code: `packages/itun-domain/src/links/linkRules.ts`.
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
     Accepted, built: Game-only with a Mediator; a seat on the Game; Major / Minor slots; fixed 1280×800 canvas.
     Supersedes ADR-015; amended by ADR-045. As built: [dashboard.md](architecture/dashboard.md).

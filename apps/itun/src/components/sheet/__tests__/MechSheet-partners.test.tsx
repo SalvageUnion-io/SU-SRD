@@ -18,8 +18,8 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { mechPartnerSeeds, syncPartners } from '../../../lib/rules/partnerGrants'
-import type { Mech } from '../../../lib/schemas/mech'
 import { mechFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'

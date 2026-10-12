@@ -11,8 +11,8 @@
  */
 
 import { buttonVariants, Text, tokens } from 'component-lib'
+import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'itun-domain/starterSet/starterSet'
 import type { CSSProperties } from 'react'
-import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from '../../lib/starterSet/starterSet'
 import { AppLink } from '../shared/AppLink'
 
 const SECTION = {

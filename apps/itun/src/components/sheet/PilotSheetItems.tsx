@@ -17,12 +17,12 @@ import {
   StatusTriState,
   tokens,
 } from 'component-lib'
+import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
+import type { GenericInventoryEntry } from 'itun-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
-import type { ItemCondition } from '../../lib/schemas/itemCondition'
-import type { GenericInventoryEntry } from '../../lib/schemas/pilot'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { equipmentMaxUses, genericEntrySlots, resolveEquipment } from './pilotInventory'

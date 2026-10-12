@@ -16,10 +16,10 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { PilotSchema } from '../../../lib/schemas/pilot'
 import { parseCreateMode } from '../../../lib/wizard/createMode'
 import { installConvexMocks } from '../../__tests__/convexMock'
 

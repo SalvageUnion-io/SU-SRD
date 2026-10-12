@@ -14,7 +14,7 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'

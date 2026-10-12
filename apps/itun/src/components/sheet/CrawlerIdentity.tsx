@@ -21,15 +21,15 @@
  */
 
 import { Field, ReferenceEntityCard, Stat, tokens } from 'component-lib'
+import { parseCrawlerTechLevel } from 'itun-domain/crawlerLevel'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
-import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerSheetItems'

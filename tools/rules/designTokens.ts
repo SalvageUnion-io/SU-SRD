@@ -58,6 +58,7 @@ export const SCAN_DIRS = [
   'apps/discord-bot/src',
   'apps/su-assets/src',
   'packages/observability/src',
+  'packages/itun-domain/src',
 ]
 
 // greembeem (a MediaWiki-palette novelty page) ships as a static file under

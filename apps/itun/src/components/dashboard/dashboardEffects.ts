@@ -12,9 +12,9 @@
  * on the pilot's seat in the Game (ADR-038), never on the entity.
  */
 
+import type { Mech } from 'itun-domain/schemas/mech'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveInstalledRef } from 'salvageunion-reference/rules'
-import type { Mech } from '../../lib/schemas/mech'
 
 export type ActivatableEffect = {
   /** The declaring record's ref — the key play state toggles on. */

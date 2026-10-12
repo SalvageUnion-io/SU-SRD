@@ -9,6 +9,8 @@
  */
 
 import { EntitySearcher, ModalShell, PICKER_MODAL_WIDTH } from 'component-lib'
+import { parseCrawlerTechLevel } from 'itun-domain/crawlerLevel'
+import type { Crawler } from 'itun-domain/schemas/crawler'
 import { useMemo } from 'react'
 import type { SURefSystem } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
@@ -17,9 +19,7 @@ import {
   isWeaponSystem,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
-import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import type { Crawler } from '../../lib/schemas/crawler'
 
 type CrawlerSystemsEditModalProps = {
   open: boolean

@@ -6,13 +6,13 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   clampProposalValue,
   fieldLabel,
   normalizeReason,
   proposalTargets,
-} from '../../../lib/games/proposals'
+} from 'itun-domain/games/proposals'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { instanceName, newTrayNpc, readTrayNpc, rollMorale, trackOf } from '../opposition'
 import type { SentProposal } from '../proposalLine'
 import { ago, proposalLine } from '../proposalLine'

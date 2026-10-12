@@ -11,11 +11,11 @@
 
 import { ModalShell, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
+import type { EntityRef } from 'itun-domain/schemas/entity'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { ChangeLogKind } from '../../lib/schemas/changeLog'
-import type { EntityRef } from '../../lib/schemas/entity'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']

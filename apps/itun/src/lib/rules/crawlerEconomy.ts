@@ -33,11 +33,11 @@
  * module never picks for the player.
  */
 
+import { DOWNTIME_UPKEEP_SCRAP } from 'itun-domain/rules/downtime'
+import type { Crawler, ScrapPool } from 'itun-domain/schemas/crawler'
 import type { Roll, TechLevel } from 'salvageunion-reference/rules'
 import { tierUpgradeCost } from 'salvageunion-reference/rules'
 import { addToScrapPool, scrapPoolBucket } from '../cargo/cargoTransfer'
-import type { Crawler, ScrapPool } from '../schemas/crawler'
-import { DOWNTIME_UPKEEP_SCRAP } from './downtime'
 
 /**
  * The numeric scrap tech levels (pool bucket keys are tl1..tl6).

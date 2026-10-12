@@ -1,14 +1,14 @@
 import { customCtx, customMutation } from 'convex-helpers/server/customFunctions'
 import { Triggers } from 'convex-helpers/server/triggers'
-import type { LinkShape } from '../../src/lib/links/linkRules'
-import { conflictingLinks, LINK_ENDS, sameLink } from '../../src/lib/links/linkRules'
-import { CrawlerSchema } from '../../src/lib/schemas/crawler'
-import { EncounterNpcSchema } from '../../src/lib/schemas/encounterNpc'
-import { MechSchema } from '../../src/lib/schemas/mech'
-import { NpcSchema } from '../../src/lib/schemas/npc'
-import { MechPatternSchema } from '../../src/lib/schemas/pattern'
-import { PilotSchema } from '../../src/lib/schemas/pilot'
-import type { SoftLink } from '../../src/lib/schemas/softLink'
+import type { LinkShape } from 'itun-domain/links/linkRules'
+import { conflictingLinks, LINK_ENDS, sameLink } from 'itun-domain/links/linkRules'
+import { CrawlerSchema } from 'itun-domain/schemas/crawler'
+import { EncounterNpcSchema } from 'itun-domain/schemas/encounterNpc'
+import { MechSchema } from 'itun-domain/schemas/mech'
+import { NpcSchema } from 'itun-domain/schemas/npc'
+import { MechPatternSchema } from 'itun-domain/schemas/pattern'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import type { DataModel, Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 import {
@@ -347,7 +347,7 @@ export function linkIdOf(row: ContainedRow): string | undefined {
  * that is about *where*, not *how many*.
  *
  * The same Game, or the same owner's shelf. The second clause is the one
- * `lib/container.ts`'s `sameContainer` cannot express: every player's shelf has
+ * `itun-domain/container`'s `sameContainer` cannot express: every player's shelf has
  * the same `null` game id, and "My Stuff" is a solo Game per person, not one
  * shared bucket. A shelf row with no owner is the invalid row (ADR-030 §2), so
  * it shares a container with nothing.
@@ -475,7 +475,7 @@ export async function linksTouching(
  * The cardinality invariant's single server-side writer: `upsertSoftLink`, the
  * claim, and the primary-crawler auto-assignment all draw through here, so
  * "a pilot crews one crawler" cannot hold on one path and not another. The
- * rule itself is `conflictingLinks` (`src/lib/links/linkRules.ts`), shared with
+ * rule itself is `conflictingLinks` (`itun-domain/links/linkRules`), shared with
  * the client.
  *
  * The caller has already decided the link is allowed — who may draw it, and

@@ -23,17 +23,17 @@
 
 import { Button, ConfirmDialog, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
-import type { CSSProperties } from 'react'
-import { useState } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import { useConnection } from '../../lib/connection/connectionContext'
 import {
   DOWNTIME_UPKEEP_SCRAP,
   downtimeStepNames,
   isUpkeepStep,
   UPKEEP_STEP_NAME,
-} from '../../lib/rules/downtime'
+} from 'itun-domain/rules/downtime'
+import type { CSSProperties } from 'react'
+import { useState } from 'react'
+import { api } from '../../../convex/_generated/api'
+import type { Id } from '../../../convex/_generated/dataModel'
+import { useConnection } from '../../lib/connection/connectionContext'
 import type { CrawlerReading } from '../mediator/crawlerReading'
 import { failureMessage } from '../shared/useConfirm'
 import { HubSection } from './HubSection'

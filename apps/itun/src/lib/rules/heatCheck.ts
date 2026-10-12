@@ -6,8 +6,8 @@
  * into durable state).
  */
 
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { HeatCheckEffect } from 'salvageunion-reference/rules'
-import type { Mech } from '../schemas/mech'
 
 /**
  * The single write-path mapping from a resolved Heat Check effect to the mech

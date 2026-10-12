@@ -14,7 +14,7 @@
 import '@testing-library/jest-dom'
 import { describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'

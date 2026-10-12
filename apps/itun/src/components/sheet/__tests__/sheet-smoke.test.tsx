@@ -26,7 +26,7 @@
 
 import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Mech } from '../../../lib/schemas/mech'
+import type { Mech } from 'itun-domain/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { installConvexMocks } from '../../__tests__/convexMock'
 import {

@@ -17,7 +17,7 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Mech } from '../../../lib/schemas/mech'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { WritesBlockedOffline } from '../../../stores/entityBackend'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'

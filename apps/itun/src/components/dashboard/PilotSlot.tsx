@@ -12,6 +12,8 @@
  */
 
 import { CountStepper, rollForTable } from 'component-lib'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -19,8 +21,6 @@ import type { CriticalInjuryEffect } from 'salvageunion-reference/rules'
 import { pilotMaxHPParts, resolvePoolStart } from 'salvageunion-reference/rules'
 import { readReference } from '../../lib/readReference'
 import { runWrite } from '../../lib/runWrite'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Pilot } from '../../lib/schemas/pilot'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import { BoardControl, BoardMenuList } from './BoardControl'
 import type { BoardMenu, BoardOption } from './boardMenu'

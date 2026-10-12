@@ -69,8 +69,8 @@ against a linked account and a real membership. See
 [the bot as a Game client](../../docs/ARCHITECTURE.md#areas).
 
 - `src/itun/` — the client (`fetch`, no `convex` dependency) and the wire types,
-  which are **imported** (`import type`) from
-  `apps/itun/convex/model/botWire.ts` — the same declaration `botClient.ts`
+  which are **imported** (`import type`) from `itun-domain/botWire`
+  (`packages/itun-domain/src/botWire.ts`) — the same declaration `botClient.ts`
   annotates its handlers with. Never copy a shape into the bot; add it there.
   That module must stay import-free, because the bot type-checks it under
   `nodenext`.

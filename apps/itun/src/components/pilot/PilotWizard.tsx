@@ -1,4 +1,5 @@
 import { toast } from 'component-lib'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
@@ -11,7 +12,6 @@ import {
 import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../../lib/constants'
 import type { PilotWizardStepId } from '../../lib/rules/creation'
 import { clampPilotCreationDraft, pilotCreationStepGate } from '../../lib/rules/creation'
-import { PilotSchema } from '../../lib/schemas/pilot'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import { EMPTY_PILOT_FORM_STATE, pilotFormToCreateInput } from '../../lib/wizard/pilotFormState'
 import { withPreselection } from '../../lib/wizard/preselect'

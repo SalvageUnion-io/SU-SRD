@@ -14,9 +14,9 @@
  */
 
 import { tokens } from 'component-lib'
+import type { ProposalTarget } from 'itun-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useState } from 'react'
-import type { ProposalTarget } from '../../lib/games/proposals'
 import { DashboardCanvas } from '../dashboard/DashboardCanvas'
 import { DashboardGrid } from '../dashboard/DashboardGrid'
 import { DisplayPanelFrame } from '../dashboard/DisplayPanel'

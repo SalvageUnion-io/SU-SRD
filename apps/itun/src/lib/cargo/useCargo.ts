@@ -10,13 +10,13 @@
  * round-trip) live in cargoTransfer.ts.
  */
 
+import type { CargoLot } from 'itun-domain/schemas/cargoLot'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { mechMaxCargo } from 'salvageunion-reference/rules'
 import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import type { CargoLot } from '../schemas/cargoLot'
-import type { Crawler } from '../schemas/crawler'
-import type { Mech } from '../schemas/mech'
 import type {
   CargoBoundaryState,
   CargoTransferAction,

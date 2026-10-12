@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'bun:test'
+import { MechPatternSchema } from 'itun-domain/schemas/pattern'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import {
   crawlerFixture,
   FIXTURE_NOW,
   mechFixture,
   pilotFixture,
 } from '../../../components/__tests__/fixtures'
-import { MechPatternSchema } from '../../schemas/pattern'
-import type { SoftLink } from '../../schemas/softLink'
 import {
   builtTimes,
   chassisFact,

@@ -1,8 +1,8 @@
-import type { Crawler } from '../lib/schemas/crawler'
-import type { Mech } from '../lib/schemas/mech'
-import type { Npc } from '../lib/schemas/npc'
-import type { Pilot } from '../lib/schemas/pilot'
-import type { SoftLink } from '../lib/schemas/softLink'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
+import type { Npc } from 'itun-domain/schemas/npc'
+import type { Pilot } from 'itun-domain/schemas/pilot'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 
 /** The five entity types managed by entityStore. */
 export type EntityType = 'pilot' | 'mech' | 'crawler' | 'npc' | 'softLink'

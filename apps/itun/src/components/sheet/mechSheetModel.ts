@@ -13,6 +13,9 @@
 
 import type { ProvenanceLine } from 'component-lib'
 import { linesFromBreakdown } from 'component-lib'
+import { pilotingContext } from 'itun-domain/rules/pilotingContext'
+import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { Mech } from 'itun-domain/schemas/mech'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   computeMechCapacity,
@@ -24,9 +27,6 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { useCargo } from '../../lib/cargo/useCargo'
-import { pilotingContext } from '../../lib/rules/pilotingContext'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
 import type { useEntityStore } from '../../stores/entityStore'
 
 /** One lozenge of the chassis-stats strip: a code, a value, an optional max. */

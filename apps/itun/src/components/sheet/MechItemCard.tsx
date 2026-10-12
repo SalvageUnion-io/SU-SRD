@@ -32,10 +32,10 @@
 
 import type { ReferenceEntityControl } from 'component-lib'
 import { Button, ModalShell, ReferenceEntityCard, StatusBadge, tokens } from 'component-lib'
+import type { ScrapPool } from 'itun-domain/schemas/crawler'
+import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { ScrapPool } from '../../lib/schemas/crawler'
-import type { ItemCondition } from '../../lib/schemas/itemCondition'
 import type { MechItem, MechItemEconomy } from './mechItemRules'
 import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
 import { CardRemoveButton } from './SheetSection'

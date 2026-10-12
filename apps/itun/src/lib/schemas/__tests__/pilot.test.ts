@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
+import { PilotSchema } from 'itun-domain/schemas/pilot'
 import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../../constants'
-import { PilotSchema } from '../pilot'
 
 const validPilot = {
   id: 'pilot-001',

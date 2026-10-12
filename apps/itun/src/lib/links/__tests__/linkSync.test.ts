@@ -4,10 +4,10 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import type { Container } from 'itun-domain/container'
+import { SHELF } from 'itun-domain/container'
+import type { SoftLink } from 'itun-domain/schemas/softLink'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import type { Container } from '../../container'
-import { SHELF } from '../../container'
-import type { SoftLink } from '../../schemas/softLink'
 import type { ServedCrawler, ServedLink } from '../linkSync'
 import {
   planCrawlerSync,

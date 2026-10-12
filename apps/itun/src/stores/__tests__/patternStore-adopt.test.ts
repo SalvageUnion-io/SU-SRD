@@ -17,8 +17,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import type { MechPattern } from 'itun-domain/schemas/pattern'
 import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
-import type { MechPattern } from '../../lib/schemas/pattern'
 import { usePatternStore } from '../patternStore'
 import { resetStores } from './resetStores'
 import { withSignedInBackend } from './signedInBackend'

@@ -192,6 +192,7 @@ describe('typecheck hooks against a stub workspace', () => {
     'apps/srd': 'srd',
     'apps/su-assets': 'su-assets',
     'packages/component-lib': 'component-lib',
+    'packages/itun-domain': 'itun-domain',
     'packages/observability': 'observability',
     'packages/salvageunion-reference': 'salvageunion-reference',
     tools: 'tools',
@@ -257,6 +258,11 @@ describe('typecheck hooks against a stub workspace', () => {
       'observability',
       'packages/observability/lib/x.ts',
       ['discord-bot', 'itun', 'observability', 'srd', 'su-assets', 'tools'],
+    ],
+    [
+      'itun-domain',
+      'packages/itun-domain/lib/x.ts',
+      ['discord-bot', 'itun', 'itun-domain', 'tools'],
     ],
     ['tools/lib', 'tools/lib/x.ts', ['itun', 'srd', 'tools']],
   ])(

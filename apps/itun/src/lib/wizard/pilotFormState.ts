@@ -10,9 +10,9 @@
  * All functions are pure — no store, no React.
  */
 
+import type { Pilot } from 'itun-domain/schemas/pilot'
 import { pilotMaxAP, pilotMaxHP } from 'salvageunion-reference/rules'
 import { pilotPartnerSeeds, syncPartners } from '../rules/partnerGrants'
-import type { Pilot } from '../schemas/pilot'
 
 /** Shape of form state carried through the pilot wizard. */
 export type PilotWizardFormState = {
