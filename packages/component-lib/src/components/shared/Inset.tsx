@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { Badge } from '../chrome/Badge'
 import { Card } from './Card'
 
@@ -16,8 +17,39 @@ type InsetProps = {
   headRight?: ReactNode
   /** Extra classes on the padded body wrapper (e.g. a flex layout). */
   bodyClassName?: string
+  /** Inline style on the padded body wrapper — `bodyClassName`'s style-object twin. */
+  bodyStyle?: CSSProperties
   children: ReactNode
 }
+
+const HEAD = {
+  display: 'flex',
+  width: '100%',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: space[8],
+} satisfies CSSProperties
+
+const TITLE = {
+  minWidth: 0,
+  fontFamily: font.cond,
+  fontSize: fontSize.lede,
+  fontWeight: weight.bold,
+  textTransform: 'uppercase',
+  lineHeight: 1,
+  letterSpacing: tracking.capsTight,
+  color: color.paper,
+} satisfies CSSProperties
+
+const HEAD_RIGHT = {
+  marginLeft: 'auto',
+  display: 'flex',
+  flexShrink: 0,
+  alignItems: 'center',
+  gap: space[6],
+} satisfies CSSProperties
+
+const FRAME = { style: { backgroundColor: color.paper } }
 
 /**
  * Inset — a boxed sub-panel meant to sit inside a parent card's expand slot
@@ -33,7 +65,7 @@ type InsetProps = {
  * It is `Card`, configured — NOT a second frame implementation (ruleset §0: one
  * kind × one context = one primitive). A container with a header band over a
  * body band IS Card; the head bar is Card's header at the `small` density rung,
- * materialised ink (`headerBg="bg-ink"`, which also inks the frame), and drawn
+ * materialised ink (`headerBgColor` ink, which also inks the frame), and drawn
  * at the nested `chrome` frame weight (Card's `frame`).
  *
  * What Inset still owns, and why it is not a bare `Card` call at each site: the
@@ -42,7 +74,15 @@ type InsetProps = {
  * duplicate that markup at every call site — the thing this file exists to
  * prevent.
  */
-export function Inset({ label, tone, tag, headRight, bodyClassName, children }: InsetProps) {
+export function Inset({
+  label,
+  tone,
+  tag,
+  headRight,
+  bodyClassName,
+  bodyStyle,
+  children,
+}: InsetProps) {
   // An inset with nothing to say below its head bar is just the bar: no empty
   // padded strip under it (a read-state crew lead with every field blank).
   const hasBody = children !== null && children !== undefined && children !== false
@@ -50,22 +90,18 @@ export function Inset({ label, tone, tag, headRight, bodyClassName, children }: 
     <Card
       size="small"
       frame="chrome"
-      headerBg="bg-ink"
-      cardStyle={{ className: 'bg-paper' }}
-      bodyPadding={hasBody ? 'p-2.5' : 'p-0'}
+      headerBgColor="var(--color-ink)"
+      cardStyle={FRAME}
+      bodyStyle={hasBody ? { padding: space[10] } : undefined}
       headerContent={
-        <div className="flex w-full flex-wrap items-center gap-2">
+        <div style={HEAD}>
           {tag && (
             <Badge surface={tone ? 'tone' : 'ghost'} tone={tone}>
               {tag}
             </Badge>
           )}
-          <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none tracking-caps-tight text-paper">
-            {label}
-          </span>
-          {headRight != null && (
-            <span className="ml-auto flex shrink-0 items-center gap-1.5">{headRight}</span>
-          )}
+          <span style={TITLE}>{label}</span>
+          {headRight != null && <span style={HEAD_RIGHT}>{headRight}</span>}
         </div>
       }
     >
@@ -74,7 +110,11 @@ export function Inset({ label, tone, tag, headRight, bodyClassName, children }: 
           consumer's row layout (`flex flex-wrap items-start`) into it would
           leave `flex-col` standing — silently turning NpcInset's row into a
           column. Layering keeps every consumer's child layout exactly as it was. */}
-      {hasBody && <div className={bodyClassName}>{children}</div>}
+      {hasBody && (
+        <div className={bodyClassName} style={bodyStyle}>
+          {children}
+        </div>
+      )}
     </Card>
   )
 }
