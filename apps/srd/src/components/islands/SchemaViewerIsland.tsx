@@ -1,4 +1,12 @@
-import { Button, EmptyState, Entity, EntitySurfaceProvider, Skeleton, Slab } from 'component-lib'
+import {
+  Button,
+  EmptyState,
+  Entity,
+  EntitySurfaceProvider,
+  Skeleton,
+  Slab,
+  TECH_LEVEL_SCHEMAS,
+} from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getEntitySlug, getModel, getSource, getTechLevel, getTree } from 'salvageunion-reference'
@@ -65,7 +73,7 @@ type SchemaViewerIslandProps = {
    *  them. Without it the skeleton is a flat run of placeholders. */
   shape?: ListingShape
   /** A Catalog at every width (`CATALOG_LISTINGS`): one grid of tiles, each
-   *  its own tech level. The page passes it no tech levels, so it has no
+   *  on its own plate. The page passes it no tech levels, so it has no
    *  groups and no TL facet. */
   catalogOnly?: boolean
 }
@@ -185,10 +193,13 @@ function SchemaViewer({
   const groupBy = resolveGroupBy(initialData, trees, orderedTechLevels, schemaId)
   const groups = useMemo(() => groupEntities(filteredData, groupBy), [filteredData, groupBy])
   // A single-kind listing: no type stamp, and no TL cell when the tech level
-  // heads the group or is the tile's plate.
+  // heads the group or is the tile's plate (a tech-level listing's numeral).
   const omit = useMemo(
-    () => (groupBy === 'tl' || catalogOnly ? ['kind', 'tech-level'] : ['kind']),
-    [groupBy, catalogOnly]
+    () =>
+      groupBy === 'tl' || (catalogOnly && TECH_LEVEL_SCHEMAS.has(schemaId))
+        ? ['kind', 'tech-level']
+        : ['kind'],
+    [groupBy, catalogOnly, schemaId]
   )
 
   const toggleTechLevel = (level: TechLevel) => {

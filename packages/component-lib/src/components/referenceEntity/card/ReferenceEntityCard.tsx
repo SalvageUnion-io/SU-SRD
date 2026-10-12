@@ -264,7 +264,15 @@ function PageSubLine({
   return (
     <>
       {extra}
-      <CardFacets facets={facets} leading={children} size={size} flush linkable />
+      <CardFacets
+        facets={facets}
+        leading={children}
+        size={size}
+        flush
+        linkable
+        align="end"
+        className="su-entity-page__tags"
+      />
     </>
   )
 }
