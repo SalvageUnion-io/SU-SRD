@@ -71,10 +71,15 @@ describe('the cache key', () => {
     'apps/itun/scripts/generate-route-tree.ts',
     'apps/itun/src/routeTree.gen.ts',
     'apps/su-assets/wrangler.jsonc',
-    'apps/su-assets/src/worker.ts',
+    'apps/su-assets/src/worker/index.ts',
     'apps/su-assets/worker-configuration.d.ts',
     'apps/discord-bot/wrangler.jsonc',
     'apps/discord-bot/worker-configuration.d.ts',
+    'apps/itun/wrangler.jsonc',
+    'apps/itun/src/worker/index.ts',
+    'apps/itun/worker-configuration.d.ts',
+    'apps/srd/wrangler.jsonc',
+    'apps/srd/worker-configuration.d.ts',
     'node_modules/wrangler/package.json',
     'node_modules/zod/package.json',
     'node_modules/@tanstack/router-plugin/package.json',
@@ -89,6 +94,8 @@ describe('the cache key', () => {
   const routes = gen('itun route tree')
   const assets = gen('apps/su-assets worker types')
   const bot = gen('apps/discord-bot worker types')
+  const srd = gen('apps/srd worker types')
+  const itun = gen('apps/itun worker types')
 
   /** Touch `rel` and report which generators' keys moved. */
   const moved = (rel: string, content = `changed ${Math.random()}`) => {
@@ -118,11 +125,18 @@ describe('the cache key', () => {
     ['node_modules/@tanstack/router-plugin/package.json', [routes.label]],
     ['apps/su-assets/wrangler.jsonc', [assets.label]],
     ['apps/su-assets/.dev.vars', [assets.label]],
-    ['apps/su-assets/src/worker.ts', [assets.label]],
+    ['apps/su-assets/src/worker/index.ts', [assets.label]],
     ['apps/su-assets/worker-configuration.d.ts', [assets.label]],
     ['apps/discord-bot/wrangler.jsonc', [bot.label]],
     ['apps/discord-bot/worker-configuration.d.ts', [bot.label]],
-    ['node_modules/wrangler/package.json', [assets.label, bot.label]],
+    ['apps/itun/wrangler.jsonc', [itun.label]],
+    ['apps/itun/.env.local', [itun.label]],
+    ['apps/itun/src/worker/index.ts', [itun.label]],
+    ['apps/itun/worker-configuration.d.ts', [itun.label]],
+    ['apps/srd/wrangler.jsonc', [srd.label]],
+    ['apps/srd/worker-configuration.d.ts', [srd.label]],
+    ['apps/itun/src/main.tsx', []],
+    ['node_modules/wrangler/package.json', [srd.label, itun.label, assets.label, bot.label]],
     ['bun.lock', ALL],
     ['package.json', ALL],
     ['biome.jsonc', ALL],
