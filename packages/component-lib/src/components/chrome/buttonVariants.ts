@@ -7,7 +7,7 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * (e.g. links styled as buttons) so consumers don't re-inline the class string.
  * Lives in its own file so Button.tsx only exports components (react-refresh).
  *
- * ## Emits `.su-btn*` class names now, not Tailwind classes (#799, epic #802)
+ * ## Emits `.su-btn*` class names (#799, epic #802)
  *
  * Same three axes, same values, same defaults, same `(opts) => string`
  * signature — so **no call site moves**, including the ~30 in `apps/itun` and

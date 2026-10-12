@@ -12,7 +12,7 @@ const STAT_ROW = {
   gap: tokens.space[16],
 } satisfies CSSProperties
 
-/** The ability column (Tailwind's `max-w-2xl`). */
+/** The ability column (a 42rem measure). */
 const ABILITIES = { maxWidth: '42rem' } satisfies CSSProperties
 
 type MechStatsStepProps = {

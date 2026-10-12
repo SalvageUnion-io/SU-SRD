@@ -17,7 +17,7 @@ import { borderWidth, font, fontSize, radius, space, tracking, weight } from '..
  * `Tabs` › `TabList` › `Tab`…, then one `TabPanel` per tab. A panel renders
  * only while its tab is open.
  *
- * Styling follows tailwind-removal.md §4: static geometry and type as style
+ * Styling follows the per-property split (ADR-046): static geometry and type as style
  * objects, every colour (each of which changes on hover, focus or selection)
  * in `.su-tab` in `styles/index.css`.
  */

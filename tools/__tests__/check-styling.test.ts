@@ -304,34 +304,33 @@ describe('fontSizePx', () => {
   })
 })
 
+const ENTRY = 'packages/component-lib/src/styles/entry.css'
+
 const STYLING_BASE: Record<string, string> = {
-  'packages/component-lib/src/styles/tailwind.css':
-    "@layer theme, base, su-base, components, utilities;\n@import 'tailwindcss';\n@import './index.css' layer(su-base);\n",
-  'packages/component-lib/src/styles/catalog.css': "@import './tailwind.css';\n",
-  'apps/itun/src/index.css': "@import 'component-lib/styles/tailwind.css';\n",
-  'apps/srd/src/styles/global.css': "@import 'component-lib/styles/tailwind.css';\n",
-  // One retired `.pc-*` rule, so `pc-class-defined` (the ban) has a finding.
-  'apps/itun/src/styles/dashboard/DashboardCanvas.css':
-    '.su-dash-used { color: red }\n.pc-retired { color: red }\n',
+  [ENTRY]:
+    "@layer su-reset, su-base;\n@import './theme.css';\n@import './reset.css' layer(su-reset);\n@import './index.css' layer(su-base);\n",
+  'packages/component-lib/src/styles/catalog.css': "@import './entry.css';\n",
+  'apps/itun/src/index.css': "@import 'component-lib/styles/entry.css';\n",
+  'apps/srd/src/styles/global.css': "@import 'component-lib/styles/entry.css';\n",
+  'apps/itun/src/styles/dashboard/DashboardCanvas.css': '.su-dash-used { color: red }\n',
   'apps/itun/src/styles/dashboard/DashboardGrid.css': '',
   'apps/itun/src/styles/dashboard/instruments.css': '',
   'apps/itun/src/styles/dashboard/DashboardPhone.css': '',
   'apps/itun/src/components/dashboard/Thing.tsx':
-    'export const T = () => <div className="su-dash-used pc-retired" />\n',
+    'export const T = () => <div className="su-dash-used" />\n',
 }
 
 describe('styling rule set', () => {
-  test('a clean fixture has no zero-rule findings', () => {
+  test('a clean fixture has no findings', () => {
     const found = stylingOwnership.scan(fixture(STYLING_BASE))
     for (const id of [
       'app-theme',
       'dead-app-css',
-      'pc-class-contract',
+      'dash-class-contract',
       'package-stylesheet-import',
     ]) {
       expect(found[id]).toEqual([])
     }
-    expect(found['pc-class-defined']?.length).toBe(1)
   })
 
   test('an app @theme, dead app CSS and an undefined dashboard class are all found', () => {
@@ -347,42 +346,54 @@ describe('styling rule set', () => {
     expect(found['dead-app-css']?.map((f) => f.detail)).toEqual([
       '.never-used defined but never referenced in app source',
     ])
-    expect(found['pc-class-contract']?.map((f) => f.detail)[0]).toContain("'su-dash-missing'")
+    expect(found['dash-class-contract']?.map((f) => f.detail)[0]).toContain("'su-dash-missing'")
+  })
+
+  test('a dashboard class defined but never used is found', () => {
+    const found = stylingOwnership.scan(
+      fixture({
+        ...STYLING_BASE,
+        'apps/itun/src/styles/dashboard/DashboardGrid.css': '.su-dash-dead { color: red }\n',
+      })
+    )
+    expect(found['dash-class-contract']?.map((f) => f.detail)).toEqual([
+      "dashboard class '.su-dash-dead' defined but never referenced",
+    ])
   })
 
   test('an unlayered package stylesheet import is found', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'packages/component-lib/src/styles/tailwind.css':
-          "@import 'tailwindcss';\n@import './index.css';\n",
+        [ENTRY]:
+          "@layer su-reset;\n@import './reset.css' layer(su-reset);\n@import './index.css';\n",
       })
     )
     expect(found['package-stylesheet-import']?.[0]?.detail).toContain('WITHOUT a cascade layer')
   })
 
-  test('a consumer that compiles Tailwind itself is a second entry', () => {
+  test('a reset layered after the package stylesheet is found', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/srd/src/styles/global.css': "@import 'tailwindcss';\n",
+        [ENTRY]:
+          "@layer su-base, su-reset;\n@import './reset.css' layer(su-reset);\n@import './index.css' layer(su-base);\n",
+      })
+    )
+    expect(found['package-stylesheet-import']?.[0]?.detail).toContain('BEFORE')
+  })
+
+  test('a consumer that imports the package stylesheet itself is a second entry', () => {
+    const found = stylingOwnership.scan(
+      fixture({
+        ...STYLING_BASE,
+        'apps/srd/src/styles/global.css': "@import 'component-lib/styles/index.css';\n",
       })
     )
     expect(found['package-stylesheet-import']?.map((f) => f.detail)).toEqual([
-      'does not import the shared Tailwind entry (packages/component-lib/src/styles/tailwind.css)',
-      "imports 'tailwindcss' itself — a second Tailwind entry beside the shared one",
+      `does not import the shared stylesheet entry (${ENTRY})`,
+      'imports the package stylesheet or the reset itself — a second entry beside the shared one',
     ])
-  })
-
-  test('a Tailwind utility in UI source is counted once per file, tests excluded', () => {
-    const found = stylingOwnership.scan(
-      fixture({
-        ...STYLING_BASE,
-        'apps/itun/src/A.tsx': 'export const A = () => <div className="flex items-center p-2" />\n',
-        'apps/itun/src/A.test.tsx': 'expect("flex p-2")\n',
-      })
-    )
-    expect(found['tailwind-utility-file']?.map((f) => f.file)).toEqual(['apps/itun/src/A.tsx'])
   })
 })
 

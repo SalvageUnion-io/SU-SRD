@@ -43,7 +43,7 @@ export const DEFAULT_RUNG: SizeRung = 'compact'
 /**
  * Type scale per rung, as `.su-rung-*` classes (rules in `styles/index.css`,
  * over the `theme.css` type tokens). A class-string export, so stylesheet-only
- * and its class names are public API (tailwind-removal plan §4.3).
+ * and its class names are public API (ADR-046).
  *
  * `label` is the condensed-caps size used by stamps, eyebrows and column
  * headers; `body` is the prose size used for readable copy at that rung. They

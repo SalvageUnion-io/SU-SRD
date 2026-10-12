@@ -79,7 +79,7 @@ describe('Button', () => {
     const btn = screen.getByRole('button')
     expect(btn.hasAttribute('disabled')).toBe(true)
     // Asserted against the exported constant rather than its spelling: the
-    // vocabulary moved from Tailwind classes to `.su-*` names in #799, and a
+    // vocabulary moved from utility classes to `.su-*` names in #799, and a
     // test pinned to the spelling breaks on a rename that changes nothing.
     expect(btn.className).toContain(DISABLED)
     fireEvent.click(btn)

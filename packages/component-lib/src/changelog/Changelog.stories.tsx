@@ -7,7 +7,7 @@ import { Changelog } from './Changelog'
 
 export default { title: 'Compositions/Changelog' }
 
-/** Tailwind's `max-w-2xl`, ported verbatim. */
+/** The changelog's 42rem measure. */
 const STAGE = { maxWidth: '42rem' } satisfies CSSProperties
 
 // Real-shaped entries (one per day, newest first) as `gitChangelog.ts` reads

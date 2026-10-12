@@ -18,7 +18,7 @@ import { borderColorFromHeaderBg } from './referenceEntityHelpers'
  *
  * `xs` / `sm` are the inherited `text-xs` / `text-sm` rungs WITH their paired
  * line heights: the utilities this replaces set both, and — merged after
- * `Text`'s own `leading-snug` — tailwind-merge dropped the snug leading, so
+ * `Text`'s own `leading-snug` — the class merge dropped the snug leading, so
  * the rung's line height is what rendered. `inherit` sets nothing, leaving the
  * page's reading size and `Text`'s snug leading in charge.
  */

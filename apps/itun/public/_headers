@@ -38,8 +38,8 @@
   # executes. The built `dist/index.html` contains zero inline scripts (Vite
   # bundles every module; the PWA registration is external). If a build ever
   # needs one, give that script a sha256 hash here, the way apps/srd does.
-  # 'unsafe-inline' stays in style-src deliberately — Tailwind and React inline
-  # styles need it, and style injection is not script execution.
+  # 'unsafe-inline' stays in style-src deliberately — React's inline `style=`
+  # attributes need it, and style injection is not script execution.
   #
   # `https://storage.ko-fi.com` is the Ko-fi widget script (`KofiButton`).
   Content-Security-Policy: default-src 'self'; script-src 'self' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;

@@ -13,7 +13,7 @@ type EntityDetailDialogProps = {
   children: ReactNode
 }
 
-/** Visually hidden, still announced — Tailwind's `sr-only`. */
+/** Visually hidden, still announced. */
 const srOnly = {
   position: 'absolute',
   width: '1px',
@@ -42,19 +42,19 @@ const popupStyle = {
 } satisfies CSSProperties
 
 /**
- * Tailwind's `shadow-lg` tint, carried verbatim: neutral black at 10%. There is
+ * The large lift shadow's tint: neutral black at 10%. There is
  * no shadow token ladder to move it onto, and a warm-ink substitute would
  * re-tone the stamp's shadow, so it stays one literal, exempted on its line.
  */
-const shadowTint = 'rgb(0 0 0 / 0.1)' // design-tokens-ignore: Tailwind's shadow-lg tint, ported verbatim
+const shadowTint = 'rgb(0 0 0 / 0.1)' // design-tokens-ignore: the large lift shadow's tint, neutral black
 
 /**
  * The close stamp's static half. Its background (ink, ink-2 on hover) is
  * `.su-detail-dialog__close`, since it has a hover.
  *
- * The shadow is inline on purpose: the `shadow-lg` utility it replaces sat in
- * Tailwind's `utilities` layer, above `.su-focus-ring:focus-visible`, so the
- * stamp always wore this shadow — and an inline value keeps exactly that.
+ * The shadow is inline on purpose: the `shadow-lg` utility it replaced sat in
+ * a layer above `.su-focus-ring:focus-visible`, so the stamp always wore this
+ * shadow — and an inline value keeps exactly that.
  */
 const closeStyle = {
   position: 'absolute',

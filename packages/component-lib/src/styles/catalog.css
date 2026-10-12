@@ -1,18 +1,8 @@
 /*
- * The story catalog's stylesheet: the shared Tailwind entry, plus the sources
- * only the catalog renders.
+ * The story catalog's stylesheet: the shared entry, plus the app stylesheet
+ * only the catalog needs.
  */
-@import './tailwind.css';
+@import './entry.css';
 /* srd's page layouts, so its stories (Home Contents, Entity Page Frame, Roll
  * Table View) render as they do on the site. */
 @import '../../../../apps/srd/src/styles/pages.css';
-
-/* The catalog's own markup — the stories and Foundations pages the entry's
- * `@source not` leaves out of the apps. */
-@source '../**/*.stories.tsx';
-@source '../stories';
-/* App-owned components whose stories this catalog also serves (see
- * `../../catalog.tsx`). Without these, a class used only there would
- * render unstyled in the catalog while looking fine in the app. */
-@source '../../../../apps/itun/src/components';
-@source '../../../../apps/srd/src/components';

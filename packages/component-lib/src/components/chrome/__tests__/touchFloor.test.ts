@@ -6,9 +6,9 @@ import { join } from 'node:path'
  * The coarse-pointer touch floor (ruleset §4.6: every target is at least 44px
  * under a coarse pointer), as brand refresh P2a set it.
  *
- * Two copies exist on purpose: theme.css's is unlayered and outranks the
- * Tailwind utilities while both systems are live, index.css's is the one that
- * survives Tailwind's removal. Two hand-kept copies drift, so this pins them
+ * Two copies exist on purpose: theme.css's is unlayered and also outranks the
+ * apps' own stylesheets, index.css's travels with the package stylesheet
+ * wherever it is loaded. Two hand-kept copies drift, so this pins them
  * to one selector list, pins `.su-btn` (the anchors `buttonVariants` dresses
  * included) onto it, and pins the mini button and the interactive chip OFF it
  * and onto the hit-area pseudo-element instead, so they keep the size they

@@ -18,9 +18,9 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 4. **component-lib**
    TypeScript source, no build; `src/index.ts` barrel; tokens in `src/styles/theme.css`, mirrored by `src/design/tokens.ts`.
    A composition one app renders lives in that app; `bun run check barrel-consumers` enforces both halves.
-5. **Tailwind wiring**
-   One entry, `packages/component-lib/src/styles/tailwind.css` (`@source '..'`, `layer(su-base)`), imported by both apps.
-   Styling is migrating off Tailwind: [tailwind-removal.md](design-system/tailwind-removal.md).
+5. **Stylesheet wiring**
+   One entry, `packages/component-lib/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by the apps and the catalog.
+   App stylesheets stay unlayered, so they win; rules: `.claude/rules/styling.md`.
 6. **srd build**
    In-house Vite SSG with React islands ([DESIGN.md](../apps/srd/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.
    No `.css` import reachable from SSR (CSS enters via `src/runtime/styles.entry.ts`); no auth, router or Zustand.

@@ -15,7 +15,7 @@ type TooltipProps = {
 const POPUP: CSSProperties = {
   backgroundColor: color.ink,
   borderRadius: '0.375rem',
-  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', // design-tokens-ignore: Tailwind's shadow-md, ported verbatim
+  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', // design-tokens-ignore: the medium lift shadow, neutral black
   color: color.paper,
   fontSize: fontSize.xs,
   lineHeight: 'calc(1 / 0.75)',

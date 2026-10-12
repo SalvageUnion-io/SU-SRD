@@ -27,9 +27,8 @@ export function parseThemeTokens(css: string): ThemeToken[] {
 /**
  * A token's value with every `var(--x)` it names substituted from the same
  * set, so `--color-status-ok` swatches as the roll tier it aliases. A specimen
- * paints the resolved literal rather than `var(--name)` because Tailwind emits
- * only the theme variables some utility uses, and an unused token would
- * otherwise swatch as nothing.
+ * paints the resolved literal rather than `var(--name)`, so a swatch shows the
+ * value this file read, whatever the page it renders on declares.
  */
 export function resolveToken(value: string, tokens: readonly ThemeToken[], depth = 0): string {
   if (depth > 8) return value

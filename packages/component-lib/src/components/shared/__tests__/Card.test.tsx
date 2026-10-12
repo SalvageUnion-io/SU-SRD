@@ -384,7 +384,7 @@ describe('Card', () => {
     // stays visible on both the light and the dark end of the tech-level ramp.
     //
     // One assertion, on the exported constant, where there were four on the
-    // pieces of its Tailwind spelling (`ring-ink`, `ring-offset-2`,
+    // pieces of its old utility spelling (`ring-ink`, `ring-offset-2`,
     // `ring-offset-paper`). The vocabulary moved to `.su-*` names in #799, and
     // the ring's composition is the STYLESHEET's business now — what this test
     // is actually about is that a clickable Card reaches for the on-tone rung

@@ -35,7 +35,7 @@ import { ModalShell } from './ModalShell'
  *   `message` is written for a developer, and some (a redacted server error)
  *   are not fit to show at all. A caller with better words passes them.
  *
- * Styling is tokens in style objects (Tailwind-removal plan §4): nothing here
+ * Styling is tokens in style objects (ADR-046): nothing here
  * has a stateful variant, and the buttons bring their own `.su-btn` classes.
  */
 

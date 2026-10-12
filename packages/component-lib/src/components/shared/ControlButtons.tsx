@@ -40,7 +40,7 @@ const VARIANT: Record<
   ghost: { bg: color.paper, text: color.ink, inverseBg: color.ink, inverseText: color.paper },
 }
 
-/** Tailwind's `transition-colors`, ported verbatim (minus its `--tw-gradient-*` stops). */
+/** The colour transition: the colour properties over 150ms, standard easing. */
 const TRANSITION_COLORS = {
   transitionDuration: '150ms',
   transitionProperty:
@@ -172,8 +172,8 @@ function ControlButton({
   // is the bug:
   //
   //  - Where there IS a touch pointer, the utility was redundant. That rule is
-  //    unlayered, so it beats any Tailwind utility (those are in
-  //    `@layer utilities`) — the 44px box survives with or without this class,
+  //    unlayered, so it beats every layered rule — the 44px box survives with
+  //    or without this class,
   //    at every viewport width.
   //  - Where there is NOT — a narrow desktop window, a responsive-mode preview,
   //    a small laptop — the utility applied a touch floor to a mouse. That is

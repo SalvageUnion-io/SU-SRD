@@ -2074,10 +2074,9 @@ a.srd-class-path__head:hover .srd-class-path__chevron {
 
 /*
  * The site chrome's and the document pages' stateful parts — the hover,
- * breakpoint and descendant rules a style object cannot express (tailwind-
- * removal plan §4.1). Everything static on those elements is a style object in
- * the component or page. The hovers sit behind `(hover: hover)`, exactly as
- * the Tailwind `hover:` variants they replace did, so a tap never leaves one
+ * breakpoint and descendant rules a style object cannot express (ADR-046).
+ * Everything static on those elements is a style object in the component or
+ * page. The hovers sit behind `(hover: hover)`, so a tap never leaves one
  * stuck on a touch screen.
  */
 

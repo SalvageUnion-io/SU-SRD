@@ -3,10 +3,7 @@
     "raw-color": 0,
     "arbitrary-font-size": 0
   },
-  "styling": {
-    "tailwind-utility-file": 0,
-    "pc-class-defined": 0
-  },
+  "styling": {},
   "srd-css": {},
   "tone-ground": {}
 }

@@ -16,8 +16,7 @@ ephemerally/non-editably
   client bundle. No framework runtime ships to the browser beyond React.
 - **Output:** Static HTML (no server runtime, no SSR at request time, no auth,
   no backend)
-- **UI:** `component-lib` components and theme (Tailwind v4 while
-  [its removal](../../docs/design-system/tailwind-removal.md) runs)
+- **UI:** `component-lib` components, tokens and stylesheet (ADR-046)
 - **Components:** Shared components from `component-lib`; React islands for
   interactivity
 - **Game data:** `salvageunion-reference` workspace package

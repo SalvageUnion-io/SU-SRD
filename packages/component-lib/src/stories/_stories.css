@@ -17,7 +17,7 @@
 
 /*
  * The two-column specimen split on Foundations/Sizing. Ported verbatim from
- * `sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]` — Tailwind's `sm` breakpoint is
+ * `sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]` — the `sm` breakpoint is
  * 40rem, and below it the grid stays the single column a bare `grid` gives.
  */
 .su-story-split {
@@ -31,7 +31,7 @@
   }
 }
 
-/* Atoms/Mode Door — the two doors: one column, two from Tailwind's `sm`
+/* Atoms/Mode Door — the two doors: one column, two from the `sm` breakpoint
    (40rem). Ported from `grid-cols-1 sm:grid-cols-2`. */
 .su-story-door-grid {
   grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -43,7 +43,7 @@
   }
 }
 
-/* Atoms/Catalog Tile: two columns, three from Tailwind's `sm` (40rem). */
+/* Atoms/Catalog Tile: two columns, three from the `sm` breakpoint (40rem). */
 .su-story-catalog-grid {
   display: grid;
   gap: var(--space-12);
@@ -85,7 +85,7 @@
 
 /*
  * Containers/Filter Row's name input: full width, then a fixed 16rem from
- * Tailwind's `md` (48rem) — ported from `w-full md:w-64`.
+ * the `md` breakpoint (48rem) — ported from `w-full md:w-64`.
  */
 .su-story-filter-input {
   width: 100%;

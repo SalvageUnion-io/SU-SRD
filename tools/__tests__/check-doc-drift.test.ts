@@ -419,7 +419,7 @@ describe('checkMarkdownLinks', () => {
         '# Architecture',
         '## CI: reusing the PR’s run',
         '## Convex error reporting — a dashboard toggle',
-        '### `@tailwindcss/vite` pin',
+        '### `@vitejs/plugin-react` pin',
         '```md',
         '## Fenced is not a heading',
         '```',
@@ -429,7 +429,7 @@ describe('checkMarkdownLinks', () => {
       ].join('\n'),
       'docs/README.md': [
         '[a](ARCHITECTURE.md#ci-reusing-the-prs-run) [b](ARCHITECTURE.md#convex-error-reporting--a-dashboard-toggle)',
-        '[c](ARCHITECTURE.md#tailwindcssvite-pin) [d](ARCHITECTURE.md#notes-1) [e](ARCHITECTURE.md)',
+        '[c](ARCHITECTURE.md#vitejsplugin-react-pin) [d](ARCHITECTURE.md#notes-1) [e](ARCHITECTURE.md)',
         '[f](ARCHITECTURE.md#missing) [g](ARCHITECTURE.md#fenced-is-not-a-heading)',
       ].join('\n'),
     })

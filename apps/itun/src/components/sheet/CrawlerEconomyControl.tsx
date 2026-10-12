@@ -90,7 +90,7 @@ const BODY = {
   padding: tokens.space[20],
 } satisfies CSSProperties
 
-/** Body copy: Tailwind's `text-sm`, with its line height. */
+/** Body copy: the `text-sm` rung, with its line height. */
 const TEXT = {
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.sm,

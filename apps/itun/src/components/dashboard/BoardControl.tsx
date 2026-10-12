@@ -13,7 +13,7 @@
  * Presentational: `boardMenu.ts` decides what is offered, and `PilotMajor`
  * owns the menu, the claim confirm and the writes. The menu is a list of plain
  * buttons, not a `menu` role, because it is a dialog with no menu keyboard
- * model. Style objects only (tailwind-removal.md §4); every button is the
+ * model. Style objects only (ADR-046); every button is the
  * shared `Button`.
  */
 
