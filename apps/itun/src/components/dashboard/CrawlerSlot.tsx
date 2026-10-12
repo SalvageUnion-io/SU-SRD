@@ -21,7 +21,7 @@
  * through `transfer` as one all-or-nothing write (ADR-007).
  */
 
-import { rollForTable } from 'component-lib'
+import { Button, rollForTable } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -71,9 +71,9 @@ const CRAFT_LIST: CSSProperties = {
 }
 
 const CRAFT_ROW: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
+  width: '100%',
   justifyContent: 'space-between',
+  textAlign: 'left',
   gap: '12px',
 }
 
@@ -134,18 +134,16 @@ function CraftBody({ crawler, store }: { crawler: Crawler; store: PlayStore }) {
     <div style={CRAFT_LIST}>
       {note ? <p className="pc-resolve-log">{note}</p> : null}
       {items.slice(0, 40).map((item) => (
-        <button
+        <Button
           key={`${item.techLevel}-${item.name}`}
-          type="button"
           onClick={() => craft(item)}
-          className="pc-srd-row"
           style={CRAFT_ROW}
         >
           <span>{item.name}</span>
           <span style={CRAFT_COST}>
             T{item.techLevel} · {item.salvageValue} Scrap
           </span>
-        </button>
+        </Button>
       ))}
     </div>
   )

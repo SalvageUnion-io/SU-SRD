@@ -1,6 +1,6 @@
 /**
  * PublicSheetPanel — turn one sheet into a public, always-current page
- * ([ADR-032](../../../../../docs/ARCHITECTURE.md#decisions)).
+ * ([ADR-032](../../../../../docs/adr/032-public-read-only-sheets.md)).
  *
  * The whole of sharing
  * ([ADR-036](../../../../../docs/ARCHITECTURE.md#decisions)): this live,
