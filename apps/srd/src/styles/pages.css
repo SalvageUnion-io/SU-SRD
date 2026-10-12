@@ -1442,9 +1442,13 @@
   min-width: 0;
 }
 
-/* A tile's place while the data loads: the art box and the band's room. */
+/* A tile's place while the data loads: the art box, the band, the cells and
+   the lore line's three lines. A tile is a 3:4 art box over ~10rem of band
+   and cells, so its ratio drifts with the column; measured at 1280px and
+   1440px, chassis and NPC rows run 1:2.00–1:2.12, and 1:2.06 sits within
+   ~13px of each. The server-rendered names below take the same shape. */
 .srd-listing__tile-skeleton {
-  aspect-ratio: 3 / 5;
+  aspect-ratio: 1 / 2.06;
   background-color: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--color-ink-20);
   border-radius: var(--radius-card);
@@ -1455,13 +1459,14 @@
    the page from two columns to six. */
 @media (min-width: 75rem) {
   .srd-listing[data-art] .srd-listing__cards {
+    gap: var(--space-12);
     grid-auto-rows: auto;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
   }
 
   .srd-listing[data-art] .srd-listing__fallback-row {
     align-items: flex-end;
-    aspect-ratio: 3 / 5;
+    aspect-ratio: 1 / 2.06;
     padding-bottom: var(--space-12);
     white-space: normal;
   }
