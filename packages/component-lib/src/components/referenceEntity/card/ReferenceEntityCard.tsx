@@ -106,6 +106,7 @@ import type { NestedCardHost } from './NestedCards'
 import { ActionsChip, CardTray, DroneCards, InlineActions, NestedCardGroup } from './NestedCards'
 import { resolveNestedSections } from './nestedSections'
 import { PatternList } from './PatternListRow'
+import { PatternLoadoutRows } from './PatternLoadout'
 import { PatternSection } from './PatternSection'
 import { resolveFooterProvenance } from './provenance'
 import type {
@@ -1009,13 +1010,14 @@ function ReferenceEntityCardInner({
   const patternSection = isPattern ? (
     <PatternSection
       prose={patternProse}
-      groups={hide?.patterns ? [] : inFlowGroups}
+      groups={hide?.patterns || onPage ? [] : inFlowGroups}
       actions={hide?.actions ? [] : patternActions}
       padding={onPage ? '0' : BODY_PAD[size].open}
       sectionAs={sectionAs}
       host={nestedHost}
     />
   ) : null
+  const pageLoadout = isPattern && !hide?.patterns ? inFlowGroups : []
   // With no chassis ability to follow, the pattern leads the actions.
   const patternLeads = chassisAbilityEntities.length === 0
 
@@ -1074,6 +1076,7 @@ function ReferenceEntityCardInner({
         }
         body={bodyHasContent ? bodyContent : null}
         opening={patternSection}
+        loadout={<PatternLoadoutRows groups={pageLoadout} as={sectionAs} hostDown={isDown} />}
         bodyLabel={
           isPattern
             ? `${resolvedChassisName ?? entityName} ${isBioTitanPattern(pattern) ? 'Bio-Titan' : 'chassis'}`

@@ -15,7 +15,7 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { getTechLevel, SalvageUnionReference } from 'salvageunion-reference'
-import { PatternHrefProvider } from '../../entityHrefContext'
+import { EntityHrefProvider, PatternHrefProvider } from '../../entityHrefContext'
 import { buildBookStats } from '../../referenceEntityStatsConfig'
 import { resolveEntityPageMeta } from '../entityPage'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -132,6 +132,29 @@ describe('the card as a page', () => {
     const lead = container.querySelector('.su-entity-page__lead')
     expect(lead?.querySelector('.text-sm')).not.toBeNull()
     expect(lead?.querySelector('.text-xs')).toBeNull()
+  })
+
+  test('a pattern page lists its loadout under the stats as Rows that Peek', () => {
+    const chassis = gopher()
+    const pattern = need(
+      chassis.patterns?.find((p) => (p.systems?.length ?? 0) > 0),
+      'gopher pattern with systems'
+    )
+    const { container } = render(
+      <EntityHrefProvider value={() => '/entity/'}>
+        <ReferenceEntityCard data={chassis} pattern={pattern} presentation="page" />
+      </EntityHrefProvider>
+    )
+    const loadout = container.querySelector('.su-entity-page__loadout')
+    expect(loadout).not.toBeNull()
+    // After the stat column, never in the opening above the chassis's prose.
+    const stats = container.querySelector('.su-entity-page__stats')
+    if (stats && loadout) {
+      expect(stats.compareDocumentPosition(loadout) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
+    expect(container.querySelector('.su-entity-page__opening .su-entity-token')).toBeNull()
+    const rows = loadout?.querySelectorAll('.su-entity-row[data-peek]') ?? []
+    expect(rows.length).toBeGreaterThan(0)
   })
 
   test('patterns are full-width link rows, with a phone’s "Show all" link', () => {
