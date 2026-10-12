@@ -8,7 +8,7 @@ import { join, resolve } from 'node:path'
  * The bans on re-declaring what that layer gives (a per-file
  * `SalvageUnionReference.preload(...)`, a live clock in an ITUN fixture, a
  * single patched model accessor, a bare `afterEach(cleanup)`) are Biome
- * plugins in `tools/biome/`, matched on the syntax tree rather than by regex.
+ * plugins in `packages/gates/biome/`, matched on the syntax tree rather than by regex.
  * They assume the preload runs; this checks it does.
  *
  * Deliberately lives in component-lib rather than the repo root: `bun run test`

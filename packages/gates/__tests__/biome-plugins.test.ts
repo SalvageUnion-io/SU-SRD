@@ -1,5 +1,5 @@
 /**
- * The GritQL plugins in `tools/biome/` and the component-lib function-size cap
+ * The GritQL plugins in `packages/gates/biome/` and the component-lib function-size cap
  * are wired up by `includes` globs in biome.jsonc, and the real tree is clean.
  * A bad glob, or a Biome update that changes how plugins match, would make a
  * rule check nothing while `bun run check`
@@ -26,7 +26,7 @@ import {
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
-const REPO = join(import.meta.dir, '..', '..')
+const REPO = join(import.meta.dir, '..', '..', '..')
 const BIOME = join(REPO, 'node_modules', '.bin', 'biome')
 const CONFIG = readFileSync(join(REPO, 'biome.jsonc'), 'utf8')
 
@@ -107,9 +107,12 @@ let diagnostics: Diagnostic[] = []
 beforeAll(() => {
   root = mkdtempSync(join(tmpdir(), 'biome-plugins-'))
   writeFileSync(join(root, 'biome.jsonc'), CONFIG)
-  mkdirSync(join(root, 'tools', 'biome'), { recursive: true })
-  for (const grit of readdirSync(join(REPO, 'tools', 'biome'))) {
-    copyFileSync(join(REPO, 'tools', 'biome', grit), join(root, 'tools', 'biome', grit))
+  mkdirSync(join(root, 'packages', 'gates', 'biome'), { recursive: true })
+  for (const grit of readdirSync(join(REPO, 'packages', 'gates', 'biome'))) {
+    copyFileSync(
+      join(REPO, 'packages', 'gates', 'biome', grit),
+      join(root, 'packages', 'gates', 'biome', grit)
+    )
   }
   for (const [rel, text] of Object.entries(FIXTURES)) {
     mkdirSync(dirname(join(root, rel)), { recursive: true })

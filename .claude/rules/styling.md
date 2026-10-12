@@ -31,7 +31,7 @@ utility framework. What an editor needs:
 - **The one entry:** `packages/component-lib/src/styles/entry.css` declares
   `@layer su-reset, su-base;` and imports `theme.css`, `reset.css` into
   `su-reset` and `index.css` into `su-base`. The two apps and
-  `src/styles/catalog.css` import it, never `index.css` itself, and their own
+  `apps/catalog/src/catalog.css` import it, never `index.css` itself, and their own
   stylesheets stay unlayered so an app rule always outranks a package rule.
   `bun run check styling` (`package-stylesheet-import`) guards it. Catalog-only
   CSS goes in `src/stories/_stories.css`, not `index.css`.

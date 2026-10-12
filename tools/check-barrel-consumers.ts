@@ -15,7 +15,7 @@
  * renders: a product surface assembled from those primitives. The catalog
  * already files every public component under one of those groups (its
  * co-located story's meta title, held to the taxonomy by
- * `packages/component-lib/src/__tests__/story-coverage.test.ts`), so this check reads
+ * `apps/catalog/src/__tests__/story-coverage.test.ts`), so this check reads
  * the group from there rather than keeping a second list.
  *
  * Fails:
@@ -36,7 +36,7 @@
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve } from 'node:path'
-import { assertScanFloor } from './lib/scanFloor'
+import { assertScanFloor } from 'gates/lib/scanFloor'
 
 const ROOT = join(import.meta.dir, '..')
 const LIB_SRC = join(ROOT, 'packages/component-lib/src')
@@ -248,13 +248,21 @@ function walk(dir: string, keep: (path: string) => boolean, out: string[] = []):
 const isShippedSource = (path: string) =>
   /\.tsx?$/.test(path) && !/[\\/]__tests__[\\/]/.test(path) && !/\.(test|stories)\.tsx?$/.test(path)
 
-/** Every workspace whose manifest depends on component-lib. */
+/**
+ * Workspaces that depend on component-lib but ship nothing, so reaching an
+ * export proves no app renders it. The story catalog imports the barrel (its
+ * `PeekHost`) to render stories, which are no app's product.
+ */
+const SHIPS_NOTHING = new Set(['apps/catalog'])
+
+/** Every shipping workspace whose manifest depends on component-lib. */
 function consumingWorkspaces(): string[] {
   const found: string[] = []
   for (const group of ['apps', 'packages']) {
     for (const entry of readdirSync(join(ROOT, group))) {
       const manifest = join(ROOT, group, entry, 'package.json')
-      if (entry === 'component-lib' || !existsSync(manifest)) continue
+      if (entry === 'component-lib' || SHIPS_NOTHING.has(`${group}/${entry}`)) continue
+      if (!existsSync(manifest)) continue
       const pkg = JSON.parse(readFileSync(manifest, 'utf-8')) as {
         dependencies?: Record<string, string>
         devDependencies?: Record<string, string>

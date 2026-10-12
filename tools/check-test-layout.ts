@@ -28,7 +28,7 @@
 import { $ } from 'bun'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
-import { assertScanFloor } from './lib/scanFloor'
+import { assertScanFloor } from 'gates/lib/scanFloor'
 
 /** ~65% of today's count (544 test files): a catastrophe floor. */
 const TEST_FLOOR = 350

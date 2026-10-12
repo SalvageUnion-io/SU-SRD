@@ -111,7 +111,8 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'biome',
-    guards: 'lint, format, import order and the GritQL rules in tools/biome/ (`biome ci .`)',
+    guards:
+      'lint, format, import order and the GritQL rules in packages/gates/biome/ (`biome ci .`)',
     fix: '`bun run format`, then fix what remains',
     cmd: ['bunx', 'biome', 'ci', '.'],
     profiles: ALL,

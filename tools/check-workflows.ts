@@ -271,8 +271,11 @@ const APP_TO_FILTER: Record<string, string> = {
   'su-assets': 'assets',
 }
 
-/** Apps with no filter group, each with a reason and an exit condition. Empty. */
-const NO_FILTER_GROUP: Record<string, string> = {}
+/** Apps with no filter group, each with a reason and an exit condition. */
+const NO_FILTER_GROUP: Record<string, string> = {
+  catalog:
+    'The dev-only story catalog: no build or deploy job to gate, and its suite runs under `code`, which matches every `apps/**` path. Needs a group the day it gets a build job.',
+}
 
 /** The `dorny/paths-filter` groups in ci.yml's `changes` job, aliases expanded. */
 export function filterGroups(ci: Yaml): Map<string, string[]> {

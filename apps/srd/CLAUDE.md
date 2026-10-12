@@ -84,8 +84,8 @@ pages and ships no JS; leave that path alone.
   `Footer`'s: the page module returns `foot: entityPageFoot(...)` in its
   `PageResult`, and the footer ends the page in that chapter's band (a listing
   passes only the tone); other pages end on the rules-blue band.
-- Page layouts are `src/styles/pages.css`, imported by `global.css` and the
-  story catalog's `catalog.css`.
+- Page layouts are `src/styles/pages.css`, imported by `global.css` and
+  `apps/catalog/src/catalog.css`.
 
 ## Hard rules
 

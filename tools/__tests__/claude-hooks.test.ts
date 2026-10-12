@@ -195,11 +195,13 @@ describe('typecheck hooks against a stub workspace', () => {
   )
 
   const WORKSPACES = [
+    'apps/catalog',
     'apps/discord-bot',
     'apps/itun',
     'apps/srd',
     'apps/su-assets',
     'packages/component-lib',
+    'packages/gates',
     'packages/itun-domain',
     'packages/observability',
     'packages/salvageunion-reference',
@@ -255,10 +257,11 @@ describe('typecheck hooks against a stub workspace', () => {
   test.each([
     ['an app', 'apps/itun/lib/x.ts', ['ROOT apps/itun']],
     ['the bot', 'apps/discord-bot/lib/x.ts', ['ROOT apps/discord-bot']],
+    ['the catalog', 'apps/catalog/lib/x.ts', ['ROOT apps/catalog tools']],
     [
       'component-lib',
       'packages/component-lib/lib/x.ts',
-      ['ROOT packages/component-lib apps/srd apps/itun tools'],
+      ['ROOT packages/component-lib apps/srd apps/itun apps/catalog tools'],
     ],
     [
       'observability',
@@ -270,7 +273,7 @@ describe('typecheck hooks against a stub workspace', () => {
       'packages/itun-domain/lib/x.ts',
       ['ROOT packages/itun-domain apps/discord-bot apps/itun tools'],
     ],
-    ['tools/lib', 'tools/lib/x.ts', ['ROOT tools apps/srd apps/itun']],
+    ['gates', 'packages/gates/lib/x.ts', ['ROOT packages/gates apps/srd apps/itun tools']],
   ])(
     'an edit to %s checks it and its consumers in one run, then asks for a full run',
     async (_l, rel, expected) => {
@@ -300,7 +303,7 @@ describe('typecheck hooks against a stub workspace', () => {
   test('a failing typecheck exits 2 with the output on stderr, from any cwd', async () => {
     const f = await fixture({ root: 'echo boom-from-root >&2; exit 1' })
     try {
-      const result = await edit(f.dir, 'tools/lib/x.ts')
+      const result = await edit(f.dir, 'packages/gates/lib/x.ts')
       expect(result.code).toBe(2)
       expect(result.stderr).toContain('boom-from-root')
       expect(result.stdout).toBe('')

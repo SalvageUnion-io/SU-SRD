@@ -38,7 +38,9 @@ describe('selectWorkspaces', () => {
     }
   })
 
-  test('a file outside every workspace runs tools alone', () => {
+  test('a file outside every workspace runs the gates alone', () => {
+    const withGates = [...GRAPH, { dir: 'packages/gates', name: 'gates', deps: [] }]
+    expect(selectWorkspaces(['biome.jsonc'], withGates)).toEqual(['gates', 'tools'])
     expect(selectWorkspaces(['.github/workflows/ci.yml', 'docs/README.md'], GRAPH)).toEqual([
       'tools',
     ])
@@ -57,8 +59,9 @@ describe('selectWorkspaces', () => {
 describe('readWorkspaces, against this repo', () => {
   const graph = readWorkspaces()
 
-  test('finds every workspace, tools included', () => {
+  test('finds every workspace, tools and gates included', () => {
     expect(graph.map((ws) => ws.dir)).toContain('tools')
+    expect(graph.map((ws) => ws.dir)).toContain('packages/gates')
     expect(graph.map((ws) => ws.dir)).toContain('packages/salvageunion-reference')
     expect(graph.length).toBeGreaterThanOrEqual(8)
   })
@@ -69,9 +72,14 @@ describe('readWorkspaces, against this repo', () => {
     expect(deps('srd')).toEqual(expect.arrayContaining(['component-lib', 'observability']))
   })
 
-  test('a component-lib edit reaches both browser apps but not the Workers', () => {
+  test('a component-lib edit reaches both browser apps and the catalog but not the Workers', () => {
     const selected = selectWorkspaces(['packages/component-lib/src/index.ts'], graph)
-    expect(selected).toEqual(['component-lib', 'itun', 'srd', 'tools'])
+    expect(selected).toEqual(['catalog', 'component-lib', 'gates', 'itun', 'srd', 'tools'])
+  })
+
+  test("an app's edit runs the catalog, whose story guard reads that app's stories", () => {
+    expect(selectWorkspaces(['apps/itun/src/main.tsx'], graph)).toContain('catalog')
+    expect(selectWorkspaces(['apps/srd/src/main.tsx'], graph)).toContain('catalog')
   })
 
   test('a salvageunion-reference edit reaches every consumer', () => {

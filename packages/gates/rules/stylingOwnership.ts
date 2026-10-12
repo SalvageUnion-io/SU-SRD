@@ -27,7 +27,7 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
 // ── file gathering ─────────────────────────────────────────────────────────
 
-const APP_DIRS = ['apps/itun/src', 'apps/srd/src'] as const
+const APP_DIRS = ['apps/itun/src', 'apps/srd/src', 'apps/catalog/src'] as const
 const DASHBOARD_DIR = 'apps/itun/src/styles/dashboard'
 
 /** The file sets the rules share, gathered once per scan. Repo-relative paths. */
@@ -47,7 +47,11 @@ function corpus(root: string): Corpus {
     appCss: listFiles(root, APP_DIRS, ['.css']),
     // `.astro` was in this list until apps/srd moved off Astro.
     appSource: listFiles(root, APP_DIRS, ['.tsx', '.ts']),
-    allTs: listFiles(root, ['apps', 'packages'], ['.tsx', '.ts']),
+    // Not `packages/gates`: its rule sets and their fixtures name the classes
+    // they check, and would count as usages.
+    allTs: listFiles(root, ['apps', 'packages'], ['.tsx', '.ts']).filter(
+      (rel) => !rel.startsWith('packages/gates/')
+    ),
     read(rel) {
       let text = cache.get(rel)
       if (text === undefined) {
@@ -316,7 +320,7 @@ const STYLESHEET_ENTRY = 'packages/component-lib/src/styles/entry.css'
 const ENTRY_CONSUMERS = [
   'apps/itun/src/index.css',
   'apps/srd/src/styles/global.css',
-  'packages/component-lib/src/styles/catalog.css',
+  'apps/catalog/src/catalog.css',
 ] as const
 
 /**
@@ -355,7 +359,7 @@ function scanPackageStylesheetImport(c: Corpus): Finding[] {
 
   for (const rel of ENTRY_CONSUMERS) {
     const css = stripCssComments(c.read(rel))
-    if (!/@import\s+['"](?:component-lib\/styles|\.)\/entry\.css['"]/.test(css)) {
+    if (!/@import\s+['"]component-lib\/styles\/entry\.css['"]/.test(css)) {
       out.push({
         file: rel,
         line: 1,
@@ -450,7 +454,7 @@ const RULES: OwnershipRule[] = [
     id: 'package-stylesheet-import',
     mode: 'zero',
     rule: 'ruleset §the package stylesheet is the ONE stylesheet a consumer loads, layered under the apps (#799, epic #802)',
-    fix: "Every consumer imports 'component-lib/styles/entry.css' (the story catalog: './entry.css') and never index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
+    fix: "Every consumer (both apps and the story catalog) imports 'component-lib/styles/entry.css' and never index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
     scan: scanPackageStylesheetImport,
   },
 ]
@@ -462,7 +466,7 @@ function preflight(root: string): void {
   /**
    * Catastrophe floors for the file sets. Today: 3 app CSS files, ~510 app
    * source files, ~1,170 repo-wide TS files. Each is set
-   * far below the real count — see tools/lib/scanFloor.ts. `appCss` is only 3
+   * far below the real count — see packages/gates/lib/scanFloor.ts. `appCss` is only 3
    * files, so its floor is necessarily blunt; it still catches the directory
    * list going stale and the set collapsing to zero.
    */
@@ -476,7 +480,7 @@ function preflight(root: string): void {
    * they are written down: this is about an app owning styling it should not
    * own, and a workspace with no stylesheet cannot violate that. If any of
    * these ever grows a `.css` file, the exemption becomes stale and this
-   * assertion fails — which is the point. See tools/lib/workspaceCoverage.ts.
+   * assertion fails — which is the point. See packages/gates/lib/workspaceCoverage.ts.
    */
   assertCoversWorkspaces('styling ownership', APP_DIRS, {
     'apps/discord-bot':
@@ -487,6 +491,7 @@ function preflight(root: string): void {
     'packages/observability': 'Sentry wiring only; no components and no stylesheet.',
     'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',
     'packages/component-lib': 'is the OWNER this gate checks apps against, not an app to audit.',
+    'packages/gates': 'the gates themselves; no components and no stylesheet.',
   })
 }
 
@@ -494,7 +499,7 @@ export const stylingOwnership: RuleSet = {
   id: 'styling',
   label: 'styling ownership',
   rules: RULES,
-  exemptionsLive: 'tools/rules/stylingOwnership.ts',
+  exemptionsLive: 'packages/gates/rules/stylingOwnership.ts',
   preflight,
   scan(root) {
     const c = corpus(root)

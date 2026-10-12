@@ -81,7 +81,7 @@ row it was given — the rows are the imported JSON module's own objects now.
 `BaseModel` indexes `id` (eagerly) plus `name` and `slug` (lazily, on first
 use). Every way a caller can arrive has an indexed accessor, so there is no
 case that needs a predicate (Biome's `noModelFindByKey` plugin,
-`tools/biome/noModelFindByKey.grit`, rejects an identity `find` on a model):
+`packages/gates/biome/noModelFindByKey.grit`, rejects an identity `find` on a model):
 
 | You hold                                     | Use                                               |
 | -------------------------------------------- | ------------------------------------------------- |

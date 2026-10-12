@@ -8,6 +8,7 @@
     ".": "./src/index.ts",
     "./changelog/git": "./src/changelog/gitChangelog.ts",
     "./design/tokens": "./src/design/tokens.ts",
+    "./stories/groups": "./src/stories/_groups.ts",
     "./stories/harness": "./src/stories/_harness.tsx",
     "./styles/entry.css": "./src/styles/entry.css",
     "./styles/index.css": "./src/styles/index.css",
@@ -18,17 +19,13 @@
   ],
   "scripts": {
     "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
-    "test": "bun test --parallel=4 --no-isolate",
-    "stories": "vite",
-    "stories:ids": "bun listStories.ts"
+    "test": "bun test --parallel=4 --no-isolate"
   },
   "peerDependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@fontsource/barlow": "catalog:",
-    "@fontsource/barlow-semi-condensed": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

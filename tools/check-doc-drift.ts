@@ -32,8 +32,8 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { assertScanFloor } from 'gates/lib/scanFloor'
 import { CHECK_IDS } from './check'
-import { assertScanFloor } from './lib/scanFloor'
 
 const repoRoot = join(import.meta.dir, '..')
 

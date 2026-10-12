@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { discoverWorkspaceDirs } from './workspaceCoverage'
 
-const ROOT = join(import.meta.dir, '..', '..')
+const ROOT = join(import.meta.dir, '..', '..', '..')
 
 export type Workspace = {
   /** Repo-relative directory, e.g. `packages/component-lib`. */
@@ -31,10 +31,11 @@ export type Workspace = {
 const SHARED = [/^test\//, /^bunfig\.toml$/, /^package\.json$/, /^bun\.lock$/]
 
 /**
- * `tools/` holds the repo-wide gates, and its tests read the whole tree
- * (`.claude/`, workflows, every app's CSP), so any change at all runs it.
+ * `tools/` and `packages/gates` hold the repo-wide gates, and their tests read
+ * the whole tree (`.claude/`, workflows, biome.jsonc, every app's CSP), so any
+ * change at all runs them.
  */
-const ALWAYS = 'tools'
+const ALWAYS = ['gates', 'tools']
 
 /** Every workspace (`tools/` included) with its `workspace:` dependencies. */
 export function readWorkspaces(root: string = ROOT): Workspace[] {
@@ -69,7 +70,7 @@ export function selectWorkspaces(
   if (changed === null || changed.some((file) => SHARED.some((re) => re.test(file)))) return all
   if (changed.length === 0) return []
 
-  const selected = new Set<string>([ALWAYS])
+  const selected = new Set<string>(ALWAYS)
   for (const file of changed) {
     const owner = workspaces.find((ws) => file.startsWith(`${ws.dir}/`))
     if (owner) selected.add(owner.name)

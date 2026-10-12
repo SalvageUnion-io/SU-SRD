@@ -11,7 +11,7 @@
   // Rules Biome has no built-in for, written in GritQL. Each file states what
   // it matches and why.
   "plugins": [
-    "./tools/biome/noModelFindByKey.grit",
+    "./packages/gates/biome/noModelFindByKey.grit",
     // Shipped source in every workspace: `apps/*/src` and `packages/*/src`
     // match a new workspace without anyone listing it. Tests, stories and
     // test bootstraps run after a preload, so module-scope access is safe there.
@@ -19,7 +19,7 @@
     // `files.includes`), so every positive glob needs its leading `**/`: a bare
     // `apps/*/src/**` matches nothing and the rule silently checks no file.
     {
-      "path": "./tools/biome/noModuleScopeReferenceCall.grit",
+      "path": "./packages/gates/biome/noModuleScopeReferenceCall.grit",
       "includes": [
         "**/apps/*/src/**",
         "**/packages/*/src/**",
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "path": "./tools/biome/noInlinePoolDefault.grit",
+      "path": "./packages/gates/biome/noInlinePoolDefault.grit",
       "includes": [
         "**/apps/*/src/**",
         "**/packages/*/src/**",
@@ -49,11 +49,11 @@
       ]
     },
     {
-      "path": "./tools/biome/noBareCleanupHook.grit",
+      "path": "./packages/gates/biome/noBareCleanupHook.grit",
       "includes": ["**/*.test.ts", "**/*.test.tsx"]
     },
     {
-      "path": "./tools/biome/noTestReferencePreload.grit",
+      "path": "./packages/gates/biome/noTestReferencePreload.grit",
       "includes": [
         "**/*.test.ts",
         "**/*.test.tsx",
@@ -71,11 +71,11 @@
       ]
     },
     {
-      "path": "./tools/biome/noLiveClockFixture.grit",
+      "path": "./packages/gates/biome/noLiveClockFixture.grit",
       "includes": ["**/apps/itun/**/*.test.ts", "**/apps/itun/**/*.test.tsx"]
     },
     {
-      "path": "./tools/biome/noPartialModelPatch.grit",
+      "path": "./packages/gates/biome/noPartialModelPatch.grit",
       "includes": ["**/*.test.ts", "**/*.test.tsx"]
     }
   ],
@@ -424,7 +424,7 @@
         "rules": {
           "style": {
             "useComponentExportOnlyModules": "off",
-            // The catalog (component-lib's `catalog.tsx`) reads
+            // The catalog (`apps/catalog/src/catalog.tsx`) reads
             // a story file's `meta` as its DEFAULT export — a contract, not a
             // style choice. All 107 of the
             // repo's `export default`s outside `src/routes/` are this.
@@ -634,10 +634,10 @@
       }
     },
     {
-      // component-lib's story catalog is a page entry, not a module: it mounts
+      // The story catalog's entry is a page entry, not a module: it mounts
       // its own components and exports nothing, so there is no export for
       // Fast Refresh to keep.
-      "includes": ["packages/component-lib/catalog.tsx"],
+      "includes": ["apps/catalog/src/catalog.tsx"],
       "linter": {
         "rules": {
           "style": {

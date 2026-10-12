@@ -1,0 +1,5 @@
+[test]
+# Coverage counts this workspace's own files, not the other workspaces'
+# sources its tests load (tools/run-coverage.ts gates on this total). The
+# `tone-ground` rule set loads the reference ORM through `entityTone`.
+coveragePathIgnorePatterns = ["../**"]
