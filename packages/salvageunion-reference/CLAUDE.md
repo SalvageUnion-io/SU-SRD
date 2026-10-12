@@ -13,13 +13,12 @@ package is the single source of truth for game data.
 
 ## Build & generated files
 
-The package ships TypeScript source — there is no compile step.
-`bun run build:package` (from the repo root) regenerates everything generated,
-in order: `generate:registry` (`tools/generateRegistry.ts`), then
-`generate:json-schemas` (which imports the generated `zodSchemaMap`, so the
-registry must come first), then the docs generator.
-`bun run check generated` (`tools/check-generated.ts`, also at pre-push and in
-CI) re-runs them and fails on any drift, including a new untracked file.
+No compile step. `schemas/*.schema.json` and `lib/generated/` are
+**gitignored**: `tools/ensureGenerated.ts` regenerates them when its input
+hash is stale, run by postinstall, each consumer's `typecheck`, srd/ITUN
+`build`/`dev`, the test preload and `bun run check`. `bun run build:package`
+forces it, then the docs generator; `bun run check generated` diffs what
+stays committed (`schemas/index.json`, `lib/index.ts`'s generated block).
 
 **Generated — never hand-edit** (an `Edit(...)` deny rule in
 `.claude/settings.json` blocks it):

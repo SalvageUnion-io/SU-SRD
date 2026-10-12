@@ -52,7 +52,7 @@ release stream.
   `./zod` is the one Zod import ([ADR-013](#adr-013)).
   `./testing` is test-only: `entityFixture(schema, fields)` and
   `malformed<T>(value)`, never `as unknown as SURef*`. `./data/*` and
-  `./schemas/*` are the committed JSON files, which srd's
+  `./schemas/*` are the package's JSON files, which srd's
   `/schema/[id].json` and `/schema/[id].schema.json` serve verbatim
   (`apps/srd/src/lib/referenceFiles.ts`); each schema's `$id` is the URL it is
   served at.
@@ -65,7 +65,8 @@ release stream.
   into `lib/generated/entityTypes.generated.ts` from `lib/schemas/registry.ts`)
   and utilities such as `rollOnTable` and `resolveChoiceView`.
 - **Runtime deps** `zod`, `jsonc-parser`; none for dev. `schemas/*.schema.json`
-  is generated from `lib/schemas/`: edit those, then `bun run build:package`.
+  and `lib/generated/` are gitignored output of `lib/schemas/`, rebuilt on
+  install, typecheck, build and test (`ensureGenerated.ts`).
 - **Lazy loading.** One stable `LazyModel<T>` per schema;
   `preload('all' | ids[])` dynamic-imports in parallel and installs the backing
   model (`_install()`); idempotent; `isLoaded(id)`. Access before load, or an

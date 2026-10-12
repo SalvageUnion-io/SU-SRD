@@ -3,7 +3,8 @@
  * generateRegistry — codegen for the schema registration mechanism.
  *
  * Reads the single manifest (lib/schemas/registry.ts) and emits four
- * committed, human-reviewable generated files:
+ * gitignored, human-readable generated files (`tools/ensureGenerated.ts` runs
+ * this):
  *
  *   - lib/generated/modelFactoryRegistry.generated.ts
  *       dataLoaders (literal per-id `import()` calls — required for bundler
@@ -325,8 +326,8 @@ async function main() {
 
   // lib/generated/** is biome-ignored (same treatment as routeTree.gen.ts) so
   // it's never a format:check/lint requirement, but running it through the
-  // formatter anyway keeps the committed, human-reviewable output pleasant to
-  // review. Because Biome would return an ignored path untouched, these go
+  // formatter anyway keeps the human-readable output pleasant to
+  // read. Because Biome would return an ignored path untouched, these go
   // through the synthetic TS_FORMAT_PATH rather than their own paths.
   const formatGenerated = (source: string) => formatWithBiome(source, TS_FORMAT_PATH)
 

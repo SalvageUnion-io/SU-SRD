@@ -32,7 +32,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need
 After any cross-package change, run typecheck, tests and lint before calling the task done, and check every consuming app (Tailwind `@source` paths, imports).
 
 ```bash
-bun install              # first-time setup (generated files are committed; no compile step)
+bun install              # first-time setup; postinstall generates the reference schemas
 
 bun run dev              # srd dev server (ssg/dev.ts, same render path as prod)
 bun run dev:itun         # ITUN dev server on a local Convex backend
@@ -73,7 +73,7 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static referenc
 - `apps/su-assets/` - Cloudflare Worker (`assets.salvageunion.io`) serving licensed entity artwork from the `su-lp-assets` R2 bucket, with `-440`/`-880` derivatives from Cloudflare Images. Image bytes never live in git; entity-card artwork in both apps depends on it (`ASSET_BASE_URL` in `packages/salvageunion-reference/lib/assets.ts`).
 - `packages/component-lib/` - Shared React component library (Base UI primitives, entity display system, typography, tokens). No build step.
 - `packages/observability/` - Sentry wiring: `/cloudflare` for the four Workers, `/browser` for the two browser apps' shared helper.
-- `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data. Ships TS source; `bun run build:package` only regenerates schemas and registries — commit the result (CI fails on drift).
+- `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data. Ships TS source; `schemas/*.schema.json` and `lib/generated/` are gitignored, generated on install, typecheck, build and test.
 - `tools/` - The repo's gates and scripts: [`tools/CLAUDE.md`](tools/CLAUDE.md).
 
 **Dependency graph:**

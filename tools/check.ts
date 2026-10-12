@@ -43,6 +43,7 @@
 
 import { availableParallelism } from 'node:os'
 import { join } from 'node:path'
+import { ensureGenerated } from '../packages/salvageunion-reference/tools/ensureGenerated'
 
 export type Profile = 'full' | 'fast' | 'pre-push' | 'ci'
 export type Area = 'code' | 'docs' | 'deps'
@@ -78,7 +79,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'generated',
     guards:
-      'committed generated files match their generators (schemas, docs, registry, route tree)',
+      'committed generated files match their generators (schema catalog, registry block, route tree)',
     fix: 'commit the files it just regenerated; never hand-edit a generated file',
     cmd: ['bun', 'tools/check-generated.ts'],
     first: true,
@@ -391,6 +392,11 @@ async function main(argv: readonly string[]): Promise<number> {
   const label = opts.ids.length > 0 ? opts.ids.join(' ') : `profile ${opts.profile}`
   const areas = opts.areas === null ? '' : ` (areas: ${opts.areas.join(', ') || 'none'})`
   console.log(`Running ${specs.length} check(s) — ${label}${areas}`)
+
+  // The reference package's generated files are gitignored build output that
+  // half the checks read. Bring them current once, here, rather than letting
+  // parallel checks race to do it.
+  ensureGenerated()
 
   // Nothing streams on success: the table at the end is the whole report.
   const ci = process.env.GITHUB_ACTIONS === 'true'

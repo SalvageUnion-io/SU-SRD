@@ -2,10 +2,11 @@
 /**
  * Generated-file drift — `bun run check generated`.
  *
- * Several committed files are machine output: the reference package's JSON
- * schemas, catalog and registry (`bun run build:package`), the VS Code
- * schema map, ITUN's `src/routeTree.gen.ts`, and the `worker-configuration.d.ts`
- * that `wrangler types` writes for su-assets and the bot (their `Env` comes from
+ * Several committed files are machine output: the reference package's schema
+ * catalog and the static-accessor block in its `lib/index.ts`
+ * (`bun run build:package`; its JSON schemas and `lib/generated/` are
+ * gitignored build output, not checked here), ITUN's `src/routeTree.gen.ts`,
+ * and the `worker-configuration.d.ts` that `wrangler types` writes for su-assets and the bot (their `Env` comes from
  * wrangler.jsonc, so a binding added there without the code knowing fails
  * here). Each is regenerated here and then compared with what is committed. A
  * stale one fails.
@@ -39,8 +40,7 @@ const ROOT = join(import.meta.dir, '..')
 
 /** Every committed path a generator below writes. */
 export const GENERATED_PATHS = [
-  'packages/salvageunion-reference/schemas',
-  'packages/salvageunion-reference/lib/generated',
+  'packages/salvageunion-reference/schemas/index.json',
   'packages/salvageunion-reference/lib/index.ts',
   'apps/itun/src/routeTree.gen.ts',
   'apps/su-assets/worker-configuration.d.ts',
