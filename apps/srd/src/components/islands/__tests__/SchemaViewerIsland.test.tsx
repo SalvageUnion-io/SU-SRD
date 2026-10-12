@@ -9,6 +9,7 @@ import {
   getUniqueTechLevels,
   getUniqueTrees,
 } from 'salvageunion-reference'
+import { CATALOG_QUERY } from '../../../lib/listingView'
 import { SchemaViewerIsland } from '../SchemaViewerIsland'
 
 const entitySchemas = getEntitySchemas()
@@ -335,8 +336,9 @@ describe('SchemaViewerIsland', () => {
     }
   })
 
-  // The listing's default is one compact card per entity (ruleset §1,
-  // Listing); the Catalog toggle swaps in the artwork tiles.
+  // The listing draws one Row per entity; where the schema has art, a List |
+  // Catalog toggle swaps in the art-first Tiles, the default at a desktop
+  // measure (`listingView.ts`).
   describe('the listing (Rows in link mode)', () => {
     const chassisEntities = () => required(getModel('chassis'), 'chassis model').all()
     const renderChassis = () => {
@@ -346,6 +348,7 @@ describe('SchemaViewerIsland', () => {
           schemaId="chassis"
           techLevels={getUniqueTechLevels(entities)}
           sources={getUniqueSources(entities)}
+          hasArt
         />
       )
     }
@@ -391,19 +394,74 @@ describe('SchemaViewerIsland', () => {
       expect(container.querySelector('.srd-rail__status')).toBeNull()
     })
 
-    it('the catalog view is retired: an old ?view=catalog link shows the list', () => {
-      window.location.href = 'http://localhost/schema/chassis/?view=catalog'
+    it('below the desktop measure the List is the default, with a List | Catalog toggle', () => {
+      const { container } = renderChassis()
+      expect(screen.getByRole('button', { name: 'List' }).getAttribute('aria-pressed')).toBe('true')
+      expect(container.querySelector('.srd-listing__tiles')).toBeNull()
+    })
+
+    it('at the desktop measure the Catalog is the default: one art-first Tile per entity', () => {
+      const matchMedia = spyOn(window, 'matchMedia').mockImplementation(
+        (query: string) =>
+          ({
+            matches: query === CATALOG_QUERY,
+            media: query,
+            addEventListener: () => {},
+            removeEventListener: () => {},
+          }) as unknown as MediaQueryList
+      )
+      try {
+        const { container } = renderChassis()
+        expect(screen.getByRole('button', { name: 'Catalog' }).getAttribute('aria-pressed')).toBe(
+          'true'
+        )
+        expect(container.querySelector('.srd-listing__cards')).toBeNull()
+        const tiles = container.querySelectorAll('.srd-listing__tiles > li > a.su-entity-tile')
+        expect(tiles.length).toBe(chassisEntities().length)
+        // Art from the su-assets 440 derivative, lazy, its box sized before it loads.
+        const img = required(container.querySelector('.su-entity-tile__art img'), 'a tile image')
+        expect(img.getAttribute('src')).toMatch(
+          /^https:\/\/assets\.salvageunion\.io\/.+-440\.webp$/
+        )
+        expect(img.getAttribute('loading')).toBe('lazy')
+        // The reader's choice wins over the measure, and is remembered.
+        fireEvent.click(screen.getByRole('button', { name: 'List' }))
+        expect(container.querySelector('.srd-listing__tiles')).toBeNull()
+        expect(window.localStorage.getItem('srd:listing-view')).toBe('list')
+      } finally {
+        matchMedia.mockRestore()
+      }
+    })
+
+    it('a chosen view rides the URL, and a ?view= link opens on it', () => {
       const replaceSpy = spyOn(window.history, 'replaceState')
       try {
         const { container } = renderChassis()
-        expect(screen.queryByRole('button', { name: 'Catalog' })).toBeNull()
-        expect(container.querySelector('.srd-listing__cards')).toBeTruthy()
-        expect(container.querySelectorAll('a[aria-label]').length).toBe(chassisEntities().length)
+        fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
+        expect(container.querySelector('.srd-listing__tiles')).toBeTruthy()
         const urls = replaceSpy.mock.calls.map((c) => String(c[2]))
-        expect(urls.some((u) => u.includes('view='))).toBe(false)
+        expect(urls.some((u) => u.includes('view=catalog'))).toBe(true)
       } finally {
         replaceSpy.mockRestore()
       }
+      cleanup()
+      window.localStorage.clear()
+      window.location.href = 'http://localhost/schema/chassis/?view=catalog'
+      const { container } = renderChassis()
+      expect(container.querySelector('.srd-listing__tiles')).toBeTruthy()
+    })
+
+    it('a schema with no art has no Catalog', () => {
+      const actions = required(getModel('actions'), 'actions model').all()
+      render(
+        <SchemaViewerIsland
+          schemaId="actions"
+          techLevels={getUniqueTechLevels(actions)}
+          sources={getUniqueSources(actions)}
+          hasArt={false}
+        />
+      )
+      expect(screen.queryByRole('button', { name: 'Catalog' })).toBeNull()
     })
   })
 })

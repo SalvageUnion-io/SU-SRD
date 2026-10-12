@@ -1246,6 +1246,58 @@
   white-space: nowrap;
 }
 
+/*
+ * THE CATALOG (`data-view="catalog"`): the art-first Tiles (component-lib's
+ * `.su-entity-tile`), the default at a desktop measure where the schema has
+ * art (`lib/listingView.ts`, `CATALOG_QUERY`). Five or six across at the
+ * page's measure; a tile's art box holds 3:4 before its image loads.
+ */
+.srd-listing__tiles {
+  align-items: stretch;
+  display: grid;
+  gap: var(--space-12);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.srd-listing__tiles > li {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* A tile's place while the data loads: the art box and the band's room. */
+.srd-listing__tile-skeleton {
+  aspect-ratio: 3 / 5;
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink-20);
+  border-radius: var(--radius-card);
+}
+
+/* Before the island mounts, a listing with art sets its server-rendered names
+   on the Catalog's columns at the same measure, so the mount does not reflow
+   the page from two columns to six. */
+@media (min-width: 75rem) {
+  .srd-listing[data-art] .srd-listing__cards {
+    grid-auto-rows: auto;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
+  }
+
+  .srd-listing[data-art] .srd-listing__fallback-row {
+    align-items: flex-end;
+    aspect-ratio: 3 / 5;
+    padding-bottom: var(--space-12);
+    white-space: normal;
+  }
+}
+
+/* The List | Catalog toggle sits at the rail's end, beside the facets. */
+.srd-rail__view {
+  flex: none;
+}
+
 /* Visually hidden, still read: a fieldset's legend. */
 .srd-vh {
   clip-path: inset(50%);

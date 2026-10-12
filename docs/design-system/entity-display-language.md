@@ -37,6 +37,7 @@ carry texture, the user-made treatment); nothing passes it per call.
 | **Mention** | Name an entity in prose | The name in the prose's own type, linked where a route exists; hover or long-press opens a Peek |
 | **Token** | Identify one among many on a line | `[kind] name [one fact]`; one size; always opens its entity, and hover or long-press opens a Peek |
 | **Row** | Every list: scan, compare, choose, hold | Art column (≥ 18rem, schema has art), head (tier, name, cost pennant, mode slot), paper body (facts, traits, lead while browsing) |
+| **Tile** | Browse a schema with art by its artwork (the SRD listing's Catalog) | The art at 3:4 (or the censor mark), the tone band with the name notched into its foot in ink, then the facts as compact cells; link mode only |
 | **Card** | The whole entity, in place | Seam stamps, head, facts, prose, actions as bands, children as Rows, table as a roll bar, cite. Two densities by container: comfortable (≥ 30rem) and compact |
 | **Page** | The detail view: learn, cite, share | Chapter band, title and stamps, parent link, art as hero, prose, stat column, actions, children, table, patterns, foot citation. An SRD route; a drawer (desktop) or sheet (phone) in ITUN |
 
@@ -79,7 +80,7 @@ anatomy.
 Each is checkable; breaking one needs an amendment here first.
 
 - **E1** Choose the form by the job and the room, never by the app.
-- **E2** Every list of entities is a list of Rows (grid, masonry and columns are layout). The SRD catalog view is retired.
+- **E2** Every list of entities is a list of Rows (grid, masonry and columns are layout). The one exception is the SRD listing's Catalog, Tiles for a schema with art: the default at a desktop measure (≥ 75rem), with a List | Catalog toggle whose choice the reader keeps; the List stays the default below it.
 - **E3** Use a Token only when a Row will not fit: three or more on a line, or a slot under 12rem.
 - **E4** An entity named in prose is a Mention: Peek on hover or long-press, the Page on click. Never a chip, Stat or raw markup.
 - **E5** The detail view is always a Page: no large-card modals, no new-tab `window.open`.
@@ -116,7 +117,7 @@ Each is checkable; breaking one needs an amendment here first.
 
 | Question | Decision |
 | --- | --- |
-| SRD catalog view | Retired; listing Rows carry the art and the lore |
+| SRD catalog view | Restored as Tiles where the schema has art, the default at ≥ 75rem (refit B9); listing Rows carry the lore |
 | ITUN detail view | The Page in a right-hand drawer on desktop, a full-height sheet on phone |
 | "Do" entity fill | Tier tone as a Row; ink as a Card or Page |
 | Mentions in ITUN | Peek on hover or long-press; a click opens the Page |
@@ -132,5 +133,5 @@ Each is checkable; breaking one needs an amendment here first.
 | 2 Row + Token | The forms, link and select modes, the `ReferenceEntityCard` adapter for head and shortform | Listings, search, pickers, loadouts and bays on Row/Token |
 | 3 Mention + Peek | Every in-prose reference and trait; the tooltip card becomes the Peek | No raw `[[` markup in rendered HTML |
 | 4 Card + Hold | Card densities, the Row ⇄ Card disclosure, hold and count modes | Sheets, wizards, opposition and decks migrated |
-| 5 Page + instruments | The Page as route and panel, the Table instrument, guide Steps | One roll-table renderer; the catalog view removed |
+| 5 Page + instruments | The Page as route and panel, the Table instrument, guide Steps | One roll-table renderer |
 | 6 Delete | Remove `ReferenceEntityCard` and its axes; add the E15 lint | `card/` gone |

@@ -131,6 +131,35 @@ export const RowGrid: Story = () => (
   </ul>
 )
 
+/**
+ * The TILE: the SRD listing's Catalog, art first. Chassis with art and without
+ * (Kelpie's REMOVED stamp, Wader's REDACTED patch), the name notched into the
+ * tone band, the facts as compact cells.
+ */
+export const TileCatalog: Story = () => (
+  <ul
+    style={{
+      ...GRID,
+      gap: space[12],
+      gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr))',
+    }}
+  >
+    {['Mule', 'Mazona', 'Kelpie', 'Wader'].map((name) => {
+      const entity = need(SalvageUnionReference.Chassis.getByName(name), name)
+      return (
+        <li key={entity.id} style={{ display: 'flex' }}>
+          <Entity
+            form="tile"
+            entity={entity}
+            mode={{ kind: 'link', href: '#' }}
+            omit={['kind', 'tech-level']}
+          />
+        </li>
+      )
+    })}
+  </ul>
+)
+
 /** The TOKEN (E3): `[kind] name [fact]`, many to a line, as a pattern's loadout. */
 export const TokenLoadout: Story = () => {
   const mule = need(SalvageUnionReference.Chassis.getByName('Mule'), 'mule')
