@@ -96,7 +96,7 @@ export type EntityCite = {
   citation?: string
 }
 
-/** A player's copy of an entity. A placeholder until the Hold mode (phase 4). */
+/** A player's copy of an entity. No form draws one. */
 export type EntityInstance = {
   condition?: 'intact' | 'damaged' | 'destroyed'
   uses?: number

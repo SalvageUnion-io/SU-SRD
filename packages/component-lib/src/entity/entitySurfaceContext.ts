@@ -20,7 +20,7 @@ import type { PageRefIndex } from './pageRefs'
  *
  * - `hrefFor(ref)`: the entity's page, where the app has one (the SRD's
  *   routes). A synthetic ref (built from embedded data) never links.
- * - `openPage(ref)`: ITUN's Page opener (the drawer, phase 5).
+ * - `openPage(ref)`: ITUN's Page opener (the detail dialog).
  * - `texture`: whether bands wear the speckle; the Dashboard turns it off once.
  * - `userMade`: the dashed treatment, for a surface of player-made things.
  * - `linkAs`: the app's router link (ITUN's `AppLink`), for an in-app path, so
@@ -77,7 +77,7 @@ function recordOf(ref: EntityRef): SURefEntity | undefined {
 }
 
 /**
- * The ADAPTER onto the legacy providers (until phase 6): an app that still
+ * The ADAPTER onto the legacy providers: an app that still
  * supplies `EntityHrefProvider` / `PatternHrefProvider` and links out
  * (`EntityDetailLinkProvider`, the SRD) gets a surface `hrefFor` from them.
  */

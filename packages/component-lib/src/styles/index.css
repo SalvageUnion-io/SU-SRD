@@ -604,7 +604,7 @@ body {
   color: var(--color-ink-50);
 }
 
-/* ══ The entity forms: Row and Token (entity display language, phase 2) ════
+/* ══ The entity forms: Row and Token (entity display language) ═════════════
  *
  * `src/entity/forms/`. A ROW is an inline-size container, so its art column
  * appears by ROOM (E10): only once the row is 18rem wide, whatever the

@@ -37,9 +37,9 @@ export type EntityProps = EntitySource & {
 /**
  * `<Entity>` — THE way to draw a game entity (entity display language): the
  * entity resolves once into its model (`toEntityModel`), the FORM picks which
- * parts to draw and the MODE fills the form's slots. Phase 2 draws the Row,
- * the Token and the catalog's Tile; Mention, Card and Page follow, and until then
- * `ReferenceEntityCard` draws those.
+ * parts to draw and the MODE fills the form's slots. It draws the Row, the
+ * Token and the catalog's Tile; `<Mention>` draws a Mention, and
+ * `ReferenceEntityCard` the Card and Page.
  */
 export function Entity(props: EntityProps) {
   const { form, instance, mode, lead, omit, fact, peek, toned, titleAs } = props

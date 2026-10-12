@@ -43,7 +43,7 @@ import '../index.css'
 /**
  * The entity SURFACE every form in the app reads (entity display language §2):
  * a link-mode form navigates through the router (`AppLink`). The Page opener
- * is `EntityPageHost`'s, below (the detail dialog until the drawer, phase 5).
+ * is `EntityPageHost`'s, below (the detail dialog).
  */
 const ENTITY_SURFACE: Partial<EntitySurfaceValue> = { linkAs: AppLink }
 

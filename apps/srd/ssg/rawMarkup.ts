@@ -1,5 +1,5 @@
 /**
- * NO RAW MARKUP (entity display language E4, phase 3): every `[[Trait]]` the
+ * NO RAW MARKUP (entity display language E4): every `[[Trait]]` the
  * rules text carries renders as a Mention — a word linked to its page with its
  * Peek — and never as the markup itself. So no page the site emits may carry
  * `[[` in its rendered body.

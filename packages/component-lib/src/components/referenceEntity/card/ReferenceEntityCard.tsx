@@ -147,7 +147,7 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  *
  * `ReferenceEntityCardInner` DECIDES — fill, depth, which sections a card
  * carries, what each one is fed — and composes. What each section LOOKS like
- * lives beside it, one module per section (audit PK-08): the labels
+ * lives beside it, one module per section: the labels
  * (`CardLabels`), the header (`EntityCardHeader`), the facets row
  * (`CardFacets`, E17), the Row and Token forms (`src/entity/`), the prose bands
  * (`CardProse`), the body interleave, choices (`ChoiceRegion`), the roll table
@@ -278,7 +278,7 @@ function PageSubLine({
 }
 
 /**
- * The head extent as the entity forms (phase 2 adapter): the SHORTFORM
+ * The head extent as the entity forms (the adapter): the SHORTFORM
  * (`size="small" extent="head"`) is the Token, the COMPACT CARD the Row, each
  * given the slots this card resolved from its props.
  */
@@ -650,8 +650,8 @@ function ReferenceEntityCardInner({
   )
 
   // SHORTFORM (`size="small" extent="head"`) is the Token form, and the
-  // COMPACT CARD (`extent="head"`) the Row form: this card is their adapter
-  // until phase 6, translating its props into the forms' slots.
+  // COMPACT CARD (`extent="head"`) the Row form: this card is their adapter,
+  // translating its props into the forms' slots.
   if (isHead) {
     return (
       <HeadForm

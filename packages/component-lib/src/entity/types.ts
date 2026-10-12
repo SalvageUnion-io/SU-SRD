@@ -10,7 +10,7 @@ import type { EntityModel } from 'salvageunion-reference'
 
 /**
  * The five forms, smallest to largest, and `tile` — the catalog's art-first
- * card (a listing's Catalog view). Phase 2 draws `token`, `row` and `tile`.
+ * card (a listing's Catalog view). `<Entity>` draws `token`, `row` and `tile`.
  */
 export type EntityForm = 'mention' | 'token' | 'row' | 'tile' | 'card' | 'page'
 
@@ -28,7 +28,7 @@ export type EntityLinkAttrs = Omit<HTMLAttributes<HTMLElement>, 'children' | 'cl
  * - `link`: the whole surface opens the entity, with a chevron in the head. It
  *   resolves through the surface (`hrefFor`, then `openPage`); `href` or
  *   `onOpen` overrides it for a target the surface cannot name (a search
- *   result's page, ITUN's detail modal until the Page drawer lands).
+ *   result's page, ITUN's detail modal).
  * - `select`: the whole surface toggles; an ink ring and a "Selected" seal.
  */
 export type EntityMode =

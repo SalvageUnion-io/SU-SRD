@@ -26,7 +26,7 @@ import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
 
 /**
  * What the `ReferenceEntityCard` adapter resolves for itself (its `extent="head"`
- * props, translated), until phase 6 deletes it. A slot set here replaces what
+ * props, translated). A slot set here replaces what
  * the Row would derive from the model and the mode.
  */
 export type RowSlots = {

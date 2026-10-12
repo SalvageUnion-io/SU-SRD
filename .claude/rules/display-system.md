@@ -18,7 +18,7 @@ source for the roster.
 There are two, and the separation is a decision, not an accident:
 
 - **`ReferenceEntityCard`** (`referenceEntity/card/`) — the Card and Page for
-  game data until phase 6. The printed-card spec: the frame on the inner
+  game data. The printed-card spec: the frame on the inner
   clipping element so the control rail escapes the clip, the facets row (E17),
   an identity footer.
 - **`Card`** (`containers/`) — the generic four-band container (header /

@@ -44,7 +44,7 @@ export type EntityPageMeta = {
 /**
  * The band's cost pennant: the entity's own cost, else its self-named action's.
  *
- * KNOWN BUG, kept so the page does not change before the Page form (phase 5):
+ * KNOWN BUG, kept so the page does not change before the Page form:
  * unlike the card (and the entity model), this does not skip a GRANTING
  * ability, whose self-named action belongs to the item it grants — so the
  * band of Camo Suit, Knife Missile, Wingsuit… prints the granted item's cost.

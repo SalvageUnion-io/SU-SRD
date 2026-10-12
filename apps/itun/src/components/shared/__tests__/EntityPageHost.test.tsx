@@ -1,6 +1,6 @@
 /**
  * ITUN's Page opener (E4, E5): a Mention anywhere in the app is a button that
- * opens its entity — the detail dialog until the Page drawer lands — and it
+ * opens its entity — the detail dialog — and it
  * Peeks through the app's one PeekHost.
  */
 import { describe, expect, test } from 'bun:test'

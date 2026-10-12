@@ -1,7 +1,7 @@
 /**
  * PARITY: `toEntityModel` (salvageunion-reference `lib/view/`) against the
  * card's own helpers, for EVERY entity in every entity schema and every
- * chassis pattern — phase 1 of the entity display language
+ * chassis pattern — the entity display language's model
  * (`docs/design-system/entity-display-language.md`).
  *
  * The model is the one place an entity is resolved; these helpers are what
@@ -284,7 +284,7 @@ describe('toEntityModel parity, every entity', () => {
     for (const row of ENTITIES) {
       const model = toEntityModel(row.entity)
       const meta = resolveEntityPageMeta(row.entity)
-      // KNOWN BUG, kept until the Page form (phase 5): a GRANTING ability's
+      // KNOWN BUG, kept until the Page form: a GRANTING ability's
       // self-named action belongs to the item it grants (Camo Suit, Knife
       // Missile, Wingsuit…), so its card folds nothing and shows no pennant,
       // and the model follows the card. Today's page band still prints that

@@ -10,7 +10,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
  * `openPage`, so a Mention or a Tag anywhere in the app opens its entity, and
  * the app's one `PeekHost`, so they Peek on hover, focus or long-press.
  *
- * Until the Page drawer lands the Page is the detail dialog
+ * The Page is the detail dialog
  * (`useDetailModal`). Every route renders inside `GameDataReady`, so the
  * entity a ref names is already loaded.
  */

@@ -188,8 +188,8 @@ export function GlobalSearch({
   // panel so it survives the panel collapsing.
   const { control: detailControl, modal: detailModal } = useDetailModal(detailEntity)
 
-  // The Page opener every result Row reads (entity display language §2): until
-  // the Page drawer it is the detail modal.
+  // The Page opener every result Row reads (entity display language §2): the
+  // detail modal.
   const openEntity = useCallback(
     (entity: SURefEntity) => {
       onOpenChange(false)
