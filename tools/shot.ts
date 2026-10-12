@@ -162,7 +162,8 @@ async function assertStory(id: string) {
   process.exit(2)
 }
 
-async function launchBrowser() {
+/** The pinned Playwright's Chromium, the cloud image's, or `SHOT_CHROME_PATH` (also `tools/gallery.ts`'s). */
+export async function launchBrowser() {
   const { chromium } = await import('@playwright/test')
   const own = chromium.executablePath()
   const executablePath =

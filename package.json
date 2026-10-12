@@ -79,6 +79,7 @@
     "assets:crop": "bun tools/art-crop.ts",
     "stories": "bun --filter component-lib stories",
     "stories:ids": "bun packages/component-lib/listStories.ts",
+    "gallery": "bun tools/gallery.ts",
     "shot": "bun tools/shot.ts"
   }
 }
