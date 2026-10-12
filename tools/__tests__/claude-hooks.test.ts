@@ -386,10 +386,17 @@ esac`,
     // Only the tools the hook calls, so a real gh elsewhere on PATH stays out.
     const bin = join(dir, 'bin')
     mkdirSync(bin)
-    for (const tool of ['git', 'sed', 'mktemp', 'head', 'grep', 'rm', 'sleep', 'touch', 'cat']) {
+    for (const tool of ['sed', 'mktemp', 'head', 'grep', 'rm', 'sleep', 'touch', 'cat']) {
       const real = Bun.which(tool)
       if (real) await Bun.spawn(['ln', '-s', real, join(bin, tool)]).exited
     }
+    // git is exec'd, not symlinked: inside a git hook (pre-push) PATH starts
+    // with GIT_EXEC_PATH, so `which git` is `libexec/git-core/git`, and a
+    // RUNTIME_PREFIX git (Apple's) run through bin/git looks for its helpers in
+    // bin/../libexec/git-core — `git-upload-pack: command not found`, fetch fails.
+    const realGit = Bun.which('git')
+    if (realGit)
+      writeFileSync(join(bin, 'git'), `#!/bin/sh\nexec '${realGit}' "$@"\n`, { mode: 0o755 })
     if (gh) writeFileSync(join(bin, 'gh'), `#!/bin/bash\n${STUBS[gh]}\n`, { mode: 0o755 })
 
     const run = async (extraEnv: Record<string, string> = {}) => {
