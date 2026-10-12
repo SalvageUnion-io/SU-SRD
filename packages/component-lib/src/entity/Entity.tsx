@@ -24,6 +24,8 @@ export type EntityProps = EntitySource & {
   omit?: readonly EntityOmit[]
   /** Token only: the fact the context counts, in place of its default. */
   fact?: TokenFact | null
+  /** Row only: hover, focus or a long press Peeks it (a Token always does). */
+  peek?: boolean
 }
 
 /**
@@ -34,7 +36,7 @@ export type EntityProps = EntitySource & {
  * `ReferenceEntityCard` draws those.
  */
 export function Entity(props: EntityProps) {
-  const { form, instance, mode, lead, omit, fact } = props
+  const { form, instance, mode, lead, omit, fact, peek } = props
   const { entity, pattern } = props
   const ownModel = props.model
   const model = useMemo(
@@ -44,7 +46,9 @@ export function Entity(props: EntityProps) {
   if (!model) return null
   switch (form) {
     case 'row':
-      return <Row model={model} instance={instance} mode={mode} lead={lead} omit={omit} />
+      return (
+        <Row model={model} instance={instance} mode={mode} lead={lead} omit={omit} peek={peek} />
+      )
     case 'token':
       return <Token model={model} instance={instance} mode={mode} fact={fact} />
     default: {

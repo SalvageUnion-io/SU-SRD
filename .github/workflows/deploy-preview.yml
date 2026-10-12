@@ -9,7 +9,7 @@ name: Deploy preview (Cloudflare)
 #         Convex deployment perfect-donkey-72
 #
 # The last dispatch wins; the run's summary names the ref and commit the slot
-# now serves. docs/ARCHITECTURE.md#preview-deploys has the trade-offs.
+# now serves. docs/ARCHITECTURE.md#areas has the trade-offs.
 #
 # IT CANNOT MOVE PRODUCTION. Each Worker gets a new VERSION (`wrangler versions
 # upload --preview-alias preview`), never a deployment: production traffic
@@ -48,7 +48,7 @@ env:
   SRD_PREVIEW_URL: https://preview-su-srd.alxjrvs.workers.dev
   ITUN_PREVIEW_URL: https://preview-su-itun.alxjrvs.workers.dev
   # The staging backend: the project's cloud dev deployment. Public, like
-  # production's (docs/ARCHITECTURE.md#accounts-and-games-operations).
+  # production's (docs/ARCHITECTURE.md#areas).
   STAGING_CONVEX_DEPLOYMENT: perfect-donkey-72
   STAGING_CONVEX_URL: https://perfect-donkey-72.convex.cloud
   STAGING_CONVEX_SITE_URL: https://perfect-donkey-72.convex.site
