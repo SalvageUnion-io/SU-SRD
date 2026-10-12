@@ -23,6 +23,7 @@ import type {
 import { EntityPageFrame, entityPageFoot } from '../../../../../../components/EntityPageFrame'
 import { EntityView } from '../../../../../../components/EntityView'
 import { chapterForSchema } from '../../../../../../lib/chapters'
+import { componentEmbedFor } from '../../../../../../lib/componentEmbed'
 import { META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../../../../../lib/constants'
 import { itemHref, patternHref, schemaHref } from '../../../../../../lib/entityHref'
 import { getReferenceEntityData } from '../../../../../../lib/gameData'
@@ -111,6 +112,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       title: `${patternName} - ${hostName} Pattern${TITLE_SUFFIX}`,
       description: metaDescription,
       ...og,
+      componentEmbed: componentEmbedFor(host, pattern),
       canonical: canonicalUrl,
       ogType: 'article',
       structuredData,

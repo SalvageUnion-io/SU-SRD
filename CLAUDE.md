@@ -31,7 +31,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need
 After any cross-package change, run typecheck, tests and lint before calling the task done, and check every consuming app (Tailwind `@source` paths, imports).
 
 ```bash
-bun install              # first-time setup (generated files are committed; no compile step)
+bun install              # first-time setup; postinstall builds the reference schemas
 
 bun run dev              # srd dev server (ssg/dev.ts, same render path as prod)
 bun run dev:itun         # ITUN dev server on a local Convex backend
@@ -71,7 +71,7 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static referenc
 - `packages/component-lib/` - Shared React component library (Base UI primitives, entity display system, typography, tokens). No build step.
 - `packages/itun-domain/` - schemas and rules shared by ITUN, Convex and the bot.
 - `packages/observability/` - Sentry wiring: `/cloudflare` for Workers, `/browser` for both apps.
-- `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data. Ships TS source; `bun run build:package` only regenerates schemas and registries — commit the result (CI fails on drift).
+- `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data. Ships TS source; `schemas/` and `lib/generated/` are gitignored, generated on install, typecheck, build and test.
 - `tools/` - The repo's gates and scripts: [`tools/CLAUDE.md`](tools/CLAUDE.md).
 
 **Dependency graph:**
@@ -105,8 +105,9 @@ For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `la
 
 ## `.claude/`
 
-- **Rules** (`.claude/rules/`) load automatically by `paths:` when you touch matching files — testing, the display system, the ITUN router and data access, the Discord bot, and workspace manifests. There is nothing to open by hand.
+- **Rules** (`.claude/rules/`) load automatically by `paths:` when you touch matching files. There is nothing to open by hand.
 - **Skills** (`.claude/skills/`): `/convex-ops` (Convex setup, probes, rotations, repairs), `/open-pr` (PR title, body, cloud route, stacks).
+- **Agents** (`.claude/agents/`): `rules-lookup`, `design-reviewer`, `gate-fixer`.
 
 ## External Integrations & MCP Servers
 

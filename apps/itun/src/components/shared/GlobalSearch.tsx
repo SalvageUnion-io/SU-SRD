@@ -72,9 +72,7 @@ const HINT = {
 const LISTBOX = {
   display: 'flex',
   flexDirection: 'column',
-  // Room above each Row for its kind stamp.
   gap: tokens.space[12],
-  paddingTop: tokens.space[8],
   // Room for the whole result budget on a laptop; on a short screen the list
   // scrolls inside the panel rather than pushing it off the top.
   maxHeight: 'min(20rem, 50dvh)',

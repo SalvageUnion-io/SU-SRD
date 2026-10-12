@@ -11,7 +11,7 @@
     }
   },
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc --noEmit",
     "test": "bun test"
   },
   "dependencies": {

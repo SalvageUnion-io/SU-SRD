@@ -196,7 +196,7 @@ export function buildHeaderStats(options: {
         schemaName: schemaName === 'actions' ? undefined : schemaName,
         techLevel,
       })
-  // TECH LEVEL is a header headline stat (value box), NOT a seam pill — a
+  // TECH LEVEL is a header headline stat (value box), NOT a label pill — a
   // size-aware label ("Tech Level" full / "TL" compact), placed first in the
   // top-right cluster. `buildReferenceEntityStats` doesn't emit it, so add it.
   const techLevelStat: StatItem | undefined =

@@ -115,7 +115,7 @@ export function resolveTierNumeral(entity: SURefMetaEntity): string | undefined 
   return tierNumeral(entity)
 }
 
-/** The seam TYPE STAMP's wording ("Ability · Forging Tree"). */
+/** The TYPE STAMP's wording ("Ability · Forging Tree"). */
 export function resolveSeamLabel(
   schemaName: SURefEnumSchemaName | 'actions',
   entity: SURefMetaEntity
@@ -173,7 +173,7 @@ export type Eyebrow = { type: string }
 /**
  * Eyebrow = the schema TYPE stamp only (e.g. "Ability", "System"). The
  * categorical classification axis (ability tree, tech level) is not in this
- * Stamp — it rides the header's top-border seam instead, via
+ * Stamp — it sits beside it in the header's labels, via
  * {@link resolveAxisMarkers}.
  */
 export function resolveEyebrow(schemaName: SURefEnumSchemaName | 'actions'): Eyebrow {
@@ -230,10 +230,10 @@ export type AxisMarker = { label: string; value?: string }
  * - Everything else → `[]` (just the TYPE stamp, no axis pills).
  *
  * Numeric vitals (SP/EP/Heat/Structure) stay in the header's top-right stat
- * cluster; only this classification axis lives in the seam.
+ * cluster; only this classification axis lives in the header labels.
  */
 export function resolveAxisMarkers(entity: SURefMetaEntity): AxisMarker[] {
-  // An ABILITY carries no pill: its tree rides the seam's type stamp and its
+  // An ABILITY carries no pill: its tree rides the type stamp and its
   // level is the banner's tier numeral (`resolveSeamLabel`,
   // `resolveTierNumeral`). TECH LEVEL is a header stat.
   if (isAbility(entity)) return []
@@ -243,7 +243,7 @@ export function resolveAxisMarkers(entity: SURefMetaEntity): AxisMarker[] {
   // class listing page: a hybrid can't be taken at creation and the Salvager
   // never advances, so a reader scanning the index needs it before they open
   // anything. This is a deliberate, ruled exception to the catalog suppression,
-  // not an oversight — the seam is not gated on extent, so returning the marker
+  // not an oversight — the labels are not gated on extent, so returning the marker
   // here is what carries it onto the tile. Keep it that way.
   const classKind = resolveClassKind(entity)
   if (classKind) return [{ label: 'Class', value: classKind }]

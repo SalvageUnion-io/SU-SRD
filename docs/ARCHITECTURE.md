@@ -10,7 +10,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    `salvageunion-reference` → `component-lib` → `srd` / `itun`; `itun-domain` → `itun` / `discord-bot`.
    Packages never import an app (`noRestrictedImports` in [`biome.jsonc`](../biome.jsonc)); deps use `workspace:*`.
 2. **salvageunion-reference**
-   Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `SURef*` types (`bun run build:package`, commit).
+   Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `SURef*` types, gitignored and rebuilt on install, typecheck, build and test (`ensureGenerated.ts`).
    Exports `.`, `./rules`, `./zod`, `./testing`; `lib/index.ts` is an explicit barrel; refs are `schemaId::entityId`.
 3. **Lazy loading**
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`tools/biome/noModuleScopeReferenceCall.grit`).
@@ -31,8 +31,8 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
    Imports `itun-domain/botWire` as a type only: changing it is a cross-package change.
 9. **itun-domain**
-   `packages/itun-domain/src/`: the Zod schemas, link, crew and downtime rules and bot wire types Convex, ITUN and the bot share.
-   Imported by subpath (`itun-domain/schemas/pilot`); Convex functions stay in `apps/itun/convex/`; `botWire.ts` imports nothing.
+   Zod schemas, link, crew and downtime rules, bot wire types: shared by ITUN, Convex and bot.
+   Imported by subpath (`itun-domain/schemas/pilot`); Convex functions stay in `apps/itun/convex/`.
 10. **Data flow and connection modes**
     Records store slug refs, resolved at render; ITUN preloads once in `GameDataReady.tsx`.
     `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (cache, writes blocked).
@@ -133,7 +133,8 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 4. **ADR-004 Snapshot sharing via Netlify Functions**
    Superseded by ADR-036.
 5. **ADR-005 Game-data ORM**
-   Accepted: Zod is the one source of types, JSON Schema and validation; data loads lazily through a trusted `preload()`.
+   Accepted (amended 2026-10): Zod is the one source of types, JSON Schema and validation; data loads lazily through a trusted `preload()`.
+   Its output (`schemas/`, `lib/generated/`) is gitignored and rebuilt on install, typecheck, build and test: no `build:package` prerequisite.
 6. **ADR-006 Rules logic as pure functions in `salvageunion-reference/rules`**
    Accepted: state in, result out, consumers persist. Randsum is the only dice source; the package binds no RNG.
 7. **ADR-007 Automation boundary** · [full text](adr/007-automation-boundary.md)

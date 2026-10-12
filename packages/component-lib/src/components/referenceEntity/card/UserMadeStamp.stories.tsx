@@ -20,7 +20,7 @@ const ROW = { alignItems: 'center', display: 'flex', gap: space[12] } satisfies 
 export const Default: Story = () => (
   <div style={STACK}>
     <div style={ROW}>
-      <Caption>On a card&rsquo;s seam</Caption>
+      <Caption>In a card&rsquo;s labels</Caption>
       <UserMadeStamp />
     </div>
     <div style={ROW}>

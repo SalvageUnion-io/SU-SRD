@@ -31,7 +31,7 @@ export type ReferenceEntityCardProps = {
   /** Nesting level — 0 = full/solo, ≥1 = nested (compact, no footer, smaller
    * header, one step down per level). Threaded through the recursion. */
   depth?: number
-  /** A parent-provided stampseal prepended to the seam (before the entity's own
+  /** A parent-provided stampseal leading the header's labels (before the entity's own
    * type stamp), in a distinct tone — lets a group brand its nested cards
    * (e.g. GRANTS) without a separator row. */
   parentSeal?: { label: string; tone: string }
@@ -44,7 +44,7 @@ export type ReferenceEntityCardProps = {
   pattern?: SURefObjectAnyPattern
   /**
    * PAGE — the card IS the page (boards 07, 08): an SRD entity page. The card
-   * draws no frame, seam, header or footer, because the page's `ChapterBand`
+   * draws no frame, header or footer, because the page's `ChapterBand`
    * carries the title and stamps and its `ChapterFoot` the citation (both
    * resolved by `resolveEntityPageMeta`). The body lays out as a page: the line
    * art as the hero, the chassis ability, the prose and the book's stat column
@@ -54,7 +54,7 @@ export type ReferenceEntityCardProps = {
   presentation?: 'card' | 'page'
   /**
    * INLINE — this card is an action sitting inside its host card (board E1): a
-   * flush ink band, its "//" line and body, with no frame, seam or footer.
+   * flush ink band, its "//" line and body, with no frame, labels or footer.
    * Set by the host when it lays out its actions; not a consumer prop.
    */
   inline?: boolean
@@ -66,7 +66,7 @@ export type ReferenceEntityCardProps = {
   /**
    * USER-MADE (ruleset §3.9; issue 1276): something a player made that could pass
    * for the book — a mech pattern, an NPC. A dashed ink frame, a dashed
-   * User-made stamp on the seam, a dashed footer rule and a dashed pill, at
+   * User-made stamp in the header's labels, a dashed footer rule and a dashed pill, at
    * every size and extent. Canon-built units (pilots, mechs, crawlers) never
    * set it.
    */
@@ -80,7 +80,7 @@ export type ReferenceEntityCardProps = {
    */
   madeBy?: string
   /**
-   * Replaces the type stamp on the seam and the type label in the identity
+   * Replaces the type stamp in the header's labels and the type label in the identity
    * footer — "NPC · from Veteran", "Crawler crew · Med Bay". For a user-made
    * thing that says what it was built from; a canon entity's type is its own.
    */
@@ -246,9 +246,9 @@ export type ReferenceEntityCardHideConfig = {
   /** Suppress the entity's artwork (a preview that has none to show). */
   image?: boolean
   /**
-   * Suppress the seam's type stamp and classification pills — a listing of one
+   * Suppress the header's type stamp and classification pills — a listing of one
    * kind, whose page already names it. A seal, the User-made stamp and the
-   * Legal Starting Pattern stamp still ride the seam.
+   * Legal Starting Pattern stamp still show.
    */
   seam?: boolean
   /**

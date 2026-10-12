@@ -58,6 +58,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
     structuredData,
     additionalStructuredData,
     noindex = false,
+    componentEmbed,
     preloadImage,
     preloadImageSrcSet,
     preloadImageSizes,
@@ -103,6 +104,17 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         <meta name="twitter:title" content={ogTitle} />
         <meta name="twitter:description" content={ogDescription} />
         <meta name="twitter:image" content={ogImageUrl} />
+
+        {/* Discord's Component Embed: a pasted link to this page renders as the
+            bot's card (`src/lib/componentEmbed.ts`). Data, never run. */}
+        {componentEmbed ? (
+          <script
+            id="discord:component-embed"
+            type="application/json"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: Component Embed JSON, JSON.stringify + script-escaped
+            dangerouslySetInnerHTML={{ __html: escapeJsonForScript(componentEmbed) }}
+          />
+        ) : null}
 
         {noindex ? <meta name="robots" content="noindex, nofollow" /> : null}
 

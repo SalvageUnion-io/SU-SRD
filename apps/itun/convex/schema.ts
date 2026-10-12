@@ -21,7 +21,7 @@ import { v } from 'convex/values'
  *
  * `Pilot`, `Mech`, and `Crawler` are large Zod schemas in `src/lib/schemas/`,
  * and those schemas are the single source of truth — `schemas/*.schema.json` in
- * `salvageunion-reference` is already generated from Zod, and CI fails on drift.
+ * `salvageunion-reference` is already generated from Zod at build time.
  * Re-declaring every field as a Convex validator would fork that source of truth
  * into a second, hand-maintained copy that silently rots.
  *
