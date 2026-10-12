@@ -49,6 +49,14 @@ function treeRequirementTone(entity: SURefMetaEntity): string {
   return 'tier-core'
 }
 
+/**
+ * Mech gear — systems and modules — wears the Mech Workshop's green, the hue of
+ * the chapter it lives in (`--color-mech` carries ink at 5.1 : 1). Its tech
+ * level stays in the framed TECH LEVEL badge: a tech-level blue is the badge's
+ * ramp, never a text ground (ruleset §3.8).
+ */
+const MECH_GEAR: ReadonlySet<SURefEnumSchemaName | 'actions'> = new Set(['systems', 'modules'])
+
 const SCHEMA_TONE: Partial<Record<SURefEnumSchemaName, string>> = {
   chassis: 'mech',
   crawlers: 'crawler',
@@ -71,8 +79,8 @@ const SCHEMA_TONE: Partial<Record<SURefEnumSchemaName, string>> = {
 
 /**
  * The tone token. An ACTION is `ink`: it has no tone of its own. A guide wears
- * its authored tone; gear rides the tech-level ramp (`tl-1`…`tl-6`, `tl-b`,
- * `tl-n`); black-market goods are `ink-2`; abilities take their tier tone;
+ * its authored tone; mech gear (systems, modules) is `mech`, other gear rides
+ * the tech-level ramp (`tl-1`…`tl-6`, `tl-b`, `tl-n`); black-market goods are `ink-2`; abilities take their tier tone;
  * everything else its schema's hue.
  */
 export function entityTone(
@@ -84,10 +92,8 @@ export function entityTone(
   if (authored) return authored
   if (schemaDomain(schemaName) === 'gear') {
     const level = getTechLevel(entity)
-    if (level === 'B') return 'tl-b'
-    if (level === 'N') return 'tl-n'
-    const tone = techLevelTone(level)
-    if (tone) return tone
+    const tone = level === 'B' ? 'tl-b' : level === 'N' ? 'tl-n' : techLevelTone(level)
+    if (tone) return MECH_GEAR.has(schemaName) ? 'mech' : tone
   }
   if (getBlackMarket(entity) === true) return 'ink-2'
   const bySchema = SCHEMA_TONE[schemaName]

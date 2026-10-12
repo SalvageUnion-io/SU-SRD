@@ -124,10 +124,15 @@ type EntitySearcherProps = {
    * `aria-checked`. The emission contract is the same as `toggle` (the caller
    * replaces its selection rather than appending), so a single-select picker
    * differs only in a11y semantics, not in wiring.
+   * `browse`: nothing is chosen — a reference browser, not a picker (the
+   * Dashboard's SRD Explorer). No rail, no Status facet, no on-sheet count; a
+   * card's click emits `onOpen`.
    */
-  mode?: 'toggle' | 'count' | 'single'
+  mode?: 'toggle' | 'count' | 'single' | 'browse'
   /** toggle/single mode: add or remove (emits `idOf(item)` either way). */
   onToggle?: (ref: string) => void
+  /** browse mode: open a card (emits `idOf(item)`). */
+  onOpen?: (ref: string) => void
   /** count mode: append one copy (emits `idOf(item)`). */
   onAdd?: (ref: string) => void
   /** count mode: remove the chosen entry at `index` in `selected`. */
@@ -194,6 +199,7 @@ export function EntitySearcher({
   selected,
   mode = 'toggle',
   onToggle,
+  onOpen,
   onAdd,
   onRemove,
   idOf = nameOf,
@@ -267,7 +273,8 @@ export function EntitySearcher({
   const showTl = facets?.techLevel !== false && tlOptions.length >= 2
   const showTraits = facets?.traits !== false && traitOptions.length >= 2
   const showCat = !!facets?.category && catOptions.length >= 2
-  const showStatus = facets?.status !== false
+  const browse = mode === 'browse'
+  const showStatus = !browse && facets?.status !== false
 
   // Identity helpers — detection and emission share `idOf`.
   const countOf = (item: EntityLike) => selected.filter((ref) => ref === idOf(item)).length
@@ -367,8 +374,12 @@ export function EntitySearcher({
 
   const summaryNode = (
     <span className="whitespace-nowrap font-cond text-badge font-bold uppercase tracking-caps text-wk-muted">
-      <span className="text-ink">{totalOnSheet}</span> on sheet · showing {visible.length} of{' '}
-      {pool.length}
+      {!browse && (
+        <>
+          <span className="text-ink">{totalOnSheet}</span> on sheet ·{' '}
+        </>
+      )}
+      showing {visible.length} of {pool.length}
     </span>
   )
 
@@ -529,6 +540,18 @@ export function EntitySearcher({
               />
             )
           }
+          if (browse) {
+            return (
+              <ReferenceEntityCard
+                key={item.id}
+                data={item}
+                size="medium"
+                cardClickLabel={item.name}
+                onCardClick={() => onOpen?.(idOf(item))}
+                hide={cardHide}
+              />
+            )
+          }
           const isSelected = count > 0
           return (
             <ReferenceEntityCard
@@ -552,7 +575,7 @@ export function EntitySearcher({
   )
 
   const single = mode === 'single'
-  const rail = single ? (
+  const rail = browse ? null : single ? (
     <ChosenBar
       chosenLabel={chosenLabel}
       schema={schema}
@@ -620,7 +643,9 @@ export function EntitySearcher({
       cardStyle={{ style: FRAME_STYLE }}
       bodyStyle={BODY_STYLE}
     >
-      <div className={cn('su-searcher', single && 'su-searcher--bar')}>
+      {/* `--bar` is the one-scroll-container layout; browse, with no rail
+          column to sit beside, takes it too. */}
+      <div className={cn('su-searcher', (single || browse) && 'su-searcher--bar')}>
         {railFirst && rail}
         <div className="su-searcher__pool" style={POOL_STYLE}>
           <div style={SUMMARY_ROW_STYLE}>{summaryNode}</div>

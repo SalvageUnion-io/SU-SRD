@@ -34,7 +34,7 @@ the corpus size, not just the finding count.
 
 | Id | Script | Baseline |
 | --- | --- | --- |
-| `generated` | `check-generated.ts` (runs first and alone: it rewrites files) | — |
+| `generated` | `check-generated.ts` (runs first and alone: it rewrites files; off CI it skips generators whose inputs are unchanged, `--force` re-runs all) | — |
 | `test` | `bun run test` | — |
 | `typecheck` | `bun run typecheck` | — |
 | `knip` | `bun run knip` | — |
@@ -79,4 +79,4 @@ exemptions, zero/ratchet verdicts), `scanFloor.ts`, `workspaceCoverage.ts`,
 `proseFidelity.ts` (prose collection, hashing and the fidelity lock format),
 `r2.ts` (R2 through `Bun.S3Client`, because `wrangler r2 object` cannot list)
 and `playwrightBase.ts` (the one Playwright config both apps' suites run).
-`rules/` holds the three styling rule sets.
+`rules/` holds the styling rule sets.

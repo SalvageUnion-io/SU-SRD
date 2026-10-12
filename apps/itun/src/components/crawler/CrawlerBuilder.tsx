@@ -28,6 +28,7 @@ import {
   EMPTY_CRAWLER_FORM_STATE,
   seedDefaultCrawlerBays,
 } from '../../lib/wizard/crawlerFormState'
+import { withPreselection } from '../../lib/wizard/preselect'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { CrawlerStatsStep } from '../wizard/CrawlerStatsStep'
 import { CrawlerTypeSelectStep } from '../wizard/CrawlerTypeStep'
@@ -77,6 +78,8 @@ type CrawlerBuilderProps = {
   onCancel: () => void
   /** Leaves the guided flow for the blank Free-Edit path (P3.3). */
   onOffRules?: () => void
+  /** A crawler-type slug to start on (`?type=`), already checked by `preselectedCrawlerType`. */
+  preselectType?: string
 }
 
 /** Slot pips for the tracker tab: ●○ (capped so the tab stays a tab). */
@@ -106,7 +109,12 @@ function slotPips(used: number, max: number): string {
  *     `scrapPool` is an explicit optional input relocated to step 5;
  *   - there is no warnings Banner — nothing can be in violation.
  */
-export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuilderProps) {
+export function CrawlerBuilder({
+  onComplete,
+  onCancel,
+  onOffRules,
+  preselectType,
+}: CrawlerBuilderProps) {
   // Read straight from the ORM: this renders inside GameDataReady, whose
   // preload('all') has already resolved, so these are synchronous. crawlers
   // drives the type selection (and its mutations-derived budgets);
@@ -135,12 +143,19 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
   // once, by toast.
   const draftKey = wizardDraftKey('crawler')
   const clampRemovedRef = useRef<string[] | null>(null)
+  // A deep-linked pick (`?type=` — see `lib/wizard/preselect.ts`) seeds the
+  // fresh form and fills an empty draft; it is the baseline, so following the
+  // link alone leaves nothing to discard.
+  const baseline = useMemo(
+    () => withPreselection(EMPTY_CRAWLER_FORM_STATE, 'type', preselectType),
+    [preselectType]
+  )
   const [form, setForm] = useState<CrawlerWizardFormState>(() => {
     const draft = readWizardDraft<CrawlerWizardFormState>(draftKey)
-    if (!draft) return EMPTY_CRAWLER_FORM_STATE
+    if (!draft) return baseline
     const { form: clamped, removed } = clampCrawlerCreationDraft(draft)
     if (removed.length > 0) clampRemovedRef.current = removed
-    return clamped
+    return withPreselection(clamped, 'type', preselectType)
   })
   useEffect(() => {
     const removed = clampRemovedRef.current
@@ -149,7 +164,7 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
       toast.info(`Draft trimmed to the starting rules — removed ${removed.join(', ')}.`)
     }
   }, [])
-  const formDirty = useWizardDraftSync(draftKey, form, EMPTY_CRAWLER_FORM_STATE)
+  const formDirty = useWizardDraftSync(draftKey, form, baseline)
 
   // The step machine + the create submit, shared with the pilot and mech
   // wizards (`useWizardFlow`). `toCreateInput` is a closure rather than the

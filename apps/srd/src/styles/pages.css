@@ -528,6 +528,13 @@
   }
 }
 
+/* "Build with this" (`EntityPageFrame`'s `build`): one action, above the card at its end. */
+.srd-entity__build {
+  display: flex;
+  justify-content: flex-end;
+  margin-block-end: var(--space-12);
+}
+
 /*
  * A page's link back to what its entity is built on (`EntityPageFrame`'s
  * `parent`): on the chapter band above the title, an ink stamp naming the
