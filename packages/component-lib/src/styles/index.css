@@ -2443,10 +2443,10 @@ body {
 /* ── Pattern rows (`PatternLinkRows`) ───────────────────────────────────────
  * Each pattern is a card in the Row's language: its host's tone in the head
  * (the link, with the chevron), a paper body with the pattern's opening as a
- * clamped lead and its loadout Tokens (links of their own, so outside the
- * head's anchor). As many abreast as fit; a row of cards is one height. On a
- * phone only two show until "Show all" targets the list (`:target`), which
- * needs no script.
+ * clamped lead and its loadout, Systems beside Modules, one full-width Token
+ * a line (links of their own, so outside the head's anchor). One card a line.
+ * On a phone only two show until "Show all" targets the list (`:target`),
+ * which needs no script.
  */
 .su-pattern-rows {
   scroll-margin-top: var(--space-64);
@@ -2455,10 +2455,22 @@ body {
 .su-pattern-rows__list {
   display: grid;
   gap: var(--space-12);
-  grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+/* A pattern card's loadout on a page (`PatternLoadout fill`): each Token the
+   full width of its column, its name taking the slack so its fact sits at the
+   right edge. The pill sets no width of its own, so this needs no override. */
+.su-pattern-loadout--fill .su-entity-token {
+  display: flex;
+  width: 100%;
+}
+
+.su-pattern-loadout--fill .su-entity-token > span {
+  flex: 1 1 auto;
 }
 
 .su-pattern-rows__item {
