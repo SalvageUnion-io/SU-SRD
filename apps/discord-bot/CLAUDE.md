@@ -34,8 +34,14 @@ the bot uses.
 - `src/commands/` - Slash command definitions and handlers
 - `src/buttons.ts` + `src/customId.ts` - stateless button routing (`su:<action>:<payload>`)
 - `src/container.ts` - the Components V2 seam: pure `ContainerData` → `ContainerBuilder`,
-  and `entityCard()`, the one render for every entity surface
-- `src/lookupCard.ts`, `src/gameCards.ts` - entity cards (`data → entityCard`)
+  and `entityCard()`, the one render for sheets and Game cards
+- `src/lookupCard.ts` - the `/su lookup` card: the shared Discord card
+  (`discordCardParts` in `salvageunion-reference`, also the SRD's Component
+  Embed) plus tabs, pages, the pattern picker and roll buttons. Design:
+  [discord-bot-refresh.md](../../docs/architecture/discord-bot-refresh.md)
+- `src/gameCards.ts` - Game cards (`data → entityCard`)
+- `src/termFinder.ts`, `src/commands/lookUpMessage.ts` - "Look up in Salvage
+  Union", the message context menu
 - `src/rollContainer.ts`, `src/errorContainer.ts`, `src/inviteContainer.ts` -
   surfaces that author their own blocks
 - `src/deploy-commands.ts` - Command registration CLI (run from source); the
@@ -110,7 +116,8 @@ band). Two consequences worth knowing before editing it:
 
 **Per-sheet accents amend "colour carries one meaning".** Pilot / mech / crawler
 take their `--color-sheet-*` tones from `theme.css`; `CRITICAL` still wins where
-both apply. Rust remains the tone for every *non-sheet* reply.
+both apply. A reference card wears its entry's tone (`discordAccent`); rust
+stays only for system replies (errors, invites).
 
 **One link shape, one live sheet.** `sheetUrl` builds `/sheet/<kind>/<rowId>`
 from the Convex row id for every sheet the bot links — `/su my-stuff`, `/su crew`

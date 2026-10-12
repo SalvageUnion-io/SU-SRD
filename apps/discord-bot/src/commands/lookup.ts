@@ -1,24 +1,13 @@
 import type { ContainerBuilder, SlashCommandSubcommandBuilder } from '@discordjs/builders'
-import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
-import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
-import {
-  findEntityBySlug,
-  getEntitySlug,
-  isSchemaName,
-  nameToSlug,
-  resolveFormerSlug,
-  search,
-} from 'salvageunion-reference'
+import { MessageFlags } from 'discord-api-types/v10'
+import type { SURefEnumSchemaName } from 'salvageunion-reference'
+import { findEntityBySlug, nameToSlug, search } from 'salvageunion-reference'
 import type { ContainerData } from '../container.js'
 import { toContainer } from '../container.js'
-import { makeCustomId } from '../customId.js'
-import { lookupCard } from '../lookupCard.js'
+import { noEntryContainer } from '../errorContainer.js'
+import type { LookupHit, LookupView } from '../lookupCard.js'
+import { entityFromKey, lookupCard, lookupKey } from '../lookupCard.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-
-type Hit = {
-  schemaName: SURefEnumSchemaName
-  entity: SURefEntity & { schemaName: SURefEnumSchemaName }
-}
 
 /** A `/su lookup` reply ready for `interaction.reply`, or a user-facing error. */
 export type LookupMessage =
@@ -26,39 +15,16 @@ export type LookupMessage =
   | { error: string }
 
 /**
- * Build the lookup reply for a resolved entity: the rich card, plus a "Roll on
- * this table" button when the entity is itself a roll-table. Shared by the
- * `/su lookup` slash handler and the roll result's "See table" button.
+ * Build the lookup reply for a resolved entity, on a tab and page. Shared by
+ * the `/su lookup` slash handler, the tab and page buttons (which redraw it),
+ * the older "See table" buttons and the message context menu.
  */
 export function buildLookupMessage(
-  entity: SURefEntity & { schemaName: SURefEnumSchemaName },
-  schemaName: SURefEnumSchemaName
+  entity: LookupHit['entity'],
+  schemaName: SURefEnumSchemaName,
+  view?: LookupView
 ): { flags: number; components: [ContainerBuilder]; data: ContainerData } {
-  const data = lookupCard(entity, schemaName)
-
-  // A roll-table entity IS a rollable table — offer a one-click roll instead of
-  // making the user retype `/su roll table: <name>`. Reuses the same stateless
-  // `su:roll:<name>` button the roll results carry.
-  //
-  // Primary, not Secondary: rolling is the action, and this is the one control
-  // on the message. No ↻ repeat glyph: this is a FIRST roll, not a re-roll of
-  // something that never happened.
-  const tableName = 'name' in entity && entity.name ? String(entity.name) : null
-  const rollId = schemaName === 'roll-tables' && tableName ? makeCustomId('roll', tableName) : null
-  if (rollId) {
-    data.blocks.push({
-      kind: 'buttons',
-      buttons: [
-        {
-          kind: 'action',
-          customId: rollId,
-          label: 'Roll on this table',
-          style: ButtonStyle.Primary,
-        },
-      ],
-    })
-  }
-
+  const data = lookupCard(entity, schemaName, view)
   return { flags: MessageFlags.IsComponentsV2, components: [toContainer(data)], data }
 }
 
@@ -74,32 +40,6 @@ export function buildTableLookupMessage(tableName: string): LookupMessage {
     return { error: `Could not find table: "${tableName}".` }
   }
   return buildLookupMessage({ ...entity, schemaName: 'roll-tables' }, 'roll-tables')
-}
-
-/**
- * Stable autocomplete choice value: `schemaName::slug` (well under Discord's
- * 100-char value cap — the longest entity slug in the dataset is 44 chars).
- * search() indexes only non-meta schemas, so every hit has a live page on
- * salvageunion.io to deep-link.
- */
-function choiceValue(hit: Hit): string {
-  return `${hit.schemaName}::${getEntitySlug(hit.entity)}`
-}
-
-function findByChoiceValue(value: string): Hit | null {
-  const separator = value.indexOf('::')
-  if (separator === -1) return null
-  // The choice value round-trips through the Discord client, so validate the
-  // schema-name half at runtime rather than asserting — an unknown schema
-  // resolves to null exactly as findEntityBySlug would have returned.
-  const schemaName = value.slice(0, separator)
-  if (!isSchemaName(schemaName)) return null
-  const slug = value.slice(separator + 2)
-  // A choice offered before its slug was retired (ADR-043) — the Hill Worm,
-  // once its own Bio-Titan — answers with the host that now carries it.
-  const entity = findEntityBySlug(schemaName, slug) ?? resolveFormerSlug(schemaName, slug)?.host
-  if (!entity) return null
-  return { schemaName, entity: { ...entity, schemaName } }
 }
 
 export const lookupCommand = {
@@ -130,7 +70,10 @@ export const lookupCommand = {
           'name' in hit.entity && hit.entity.name ? String(hit.entity.name) : hit.entity.id
         return {
           name: name.slice(0, 100),
-          value: choiceValue({ schemaName: hit.schemaName, entity: hit.entity }),
+          value: lookupKey({
+            schemaName: hit.schemaName,
+            entity: { ...hit.entity, schemaName: hit.schemaName },
+          }),
         }
       })
     )
@@ -141,16 +84,20 @@ export const lookupCommand = {
 
     // Autocomplete selections arrive as `schemaName::slug`; free-typed text
     // falls back to the top search hit.
-    let hit = findByChoiceValue(input)
+    let hit = entityFromKey(input)
     if (!hit) {
       const [top] = search({ query: input, limit: 1 })
-      if (top) hit = { schemaName: top.schemaName, entity: top.entity }
+      if (top)
+        hit = { schemaName: top.schemaName, entity: { ...top.entity, schemaName: top.schemaName } }
     }
 
     if (!hit) {
+      // An in-system container with the closest entries as buttons, the same
+      // way back an unknown roll table offers. Errors are always ephemeral.
+      const data = noEntryContainer(input)
       await interaction.reply({
-        content: `No entity found for "${input}". Try the autocomplete suggestions.`,
-        flags: MessageFlags.Ephemeral,
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [toContainer(data)],
       })
       return
     }

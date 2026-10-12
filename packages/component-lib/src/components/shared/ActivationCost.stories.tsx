@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { color, font, fontSize, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { ActivationCost } from './ActivationCost'
 
@@ -7,23 +8,63 @@ export default {
 }
 
 // AP / EP / Variable are the real Salvage Union activation currencies.
+const CELL = {
+  alignItems: 'center',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[6],
+} satisfies CSSProperties
+
+const CELL_SLOT = {
+  alignItems: 'center',
+  display: 'flex',
+  minHeight: '44px',
+} satisfies CSSProperties
+
+const CELL_LABEL = { color: color.wkMuted, fontSize: fontSize.badge } satisfies CSSProperties
+
+const PAGE = {
+  backgroundColor: color.paper,
+  color: color.ink,
+  display: 'flex',
+  flexDirection: 'column',
+  fontFamily: font.body,
+  gap: space[16],
+  padding: space[20],
+} satisfies CSSProperties
+
+const LEDE = {
+  color: color.wkMuted,
+  fontSize: fontSize.xs,
+  lineHeight: 1.625,
+  maxWidth: '42rem',
+} satisfies CSSProperties
+
+const ROW = {
+  alignItems: 'flex-start',
+  columnGap: space[24],
+  display: 'flex',
+  flexWrap: 'wrap',
+  rowGap: space[20],
+} satisfies CSSProperties
+
 function Cell({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <div className="flex min-h-[44px] items-center">{children}</div>
-      <code className="text-badge text-wk-muted">{label}</code>
+    <div style={CELL}>
+      <div style={CELL_SLOT}>{children}</div>
+      <code style={CELL_LABEL}>{label}</code>
     </div>
   )
 }
 
 /** Every currency × cost at a glance — the AP / EP / Variable activation costs. */
 export const Default: Story = () => (
-  <div className="flex flex-col gap-4 bg-paper p-5 font-body text-ink">
-    <p className="max-w-2xl text-xs leading-relaxed text-wk-muted">
+  <div style={PAGE}>
+    <p style={LEDE}>
       The activation-cost pennant. currency is AP or EP; a non-numeric cost (Variable) renders as X.
       compact tightens it for rails and listings.
     </p>
-    <div className="flex flex-wrap items-start gap-x-6 gap-y-5">
+    <div style={ROW}>
       <Cell label="1 AP">
         <ActivationCost cost={1} currency="AP" />
       </Cell>

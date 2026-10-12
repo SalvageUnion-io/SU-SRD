@@ -31,6 +31,58 @@
   }
 }
 
+/* Atoms/Mode Door — the two doors: one column, two from Tailwind's `sm`
+   (40rem). Ported from `grid-cols-1 sm:grid-cols-2`. */
+.su-story-door-grid {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 40rem) {
+  .su-story-door-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Atoms/Catalog Tile: two columns, three from Tailwind's `sm` (40rem). */
+.su-story-catalog-grid {
+  display: grid;
+  gap: var(--space-12);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 48rem;
+}
+
+@media (min-width: 40rem) {
+  .su-story-catalog-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Atoms/SRD Link: a caller-styled link, as ITUN's foot band passes one. */
+.su-story-srd-link {
+  color: var(--color-pilot);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.su-story-srd-link--hover:hover {
+  opacity: 0.7;
+}
+
+/* Atoms/Search Field: the `/search` page's taller, larger container override
+ * (`containerClassName`), the inherited `sm` rung with its line-height. */
+.su-story-search-field--page {
+  font-size: var(--text-sm);
+  line-height: calc(1.25 / 0.875);
+  padding-block: var(--space-8);
+}
+
+/* Atoms/Stat: the sheet rail's vitals line weights each `Stat`'s plain reading. */
+.su-story-stat-rail b {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-bold);
+}
+
 /*
  * Containers/Filter Row's name input: full width, then a fixed 16rem from
  * Tailwind's `md` (48rem) — ported from `w-full md:w-64`.

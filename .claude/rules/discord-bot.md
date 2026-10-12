@@ -15,11 +15,11 @@ a reply looks like.
 ## Every reply is a Components V2 container
 
 - Build a pure `ContainerData` and render it with `toContainer` in
-  `src/container.ts`. An entity surface (a lookup entry, a sheet, a game card)
-  goes through `entityCard()` — one render for that shape; anything else
-  authors its blocks in a `*Container.ts` builder. Never an `embeds:` payload —
-  with `MessageFlags.IsComponentsV2` Discord rejects `content` and `embeds`
-  outright.
+  `src/container.ts`. A reference entry uses the shared `discordCardParts`
+  (also the SRD's Component Embed); sheets and game cards `entityCard()`;
+  anything else authors its blocks in a `*Container.ts` builder. Never an
+  `embeds:` payload — with `MessageFlags.IsComponentsV2` Discord rejects
+  `content` and `embeds` outright.
 - **Limits are enforced once, in `toContainer`** (`enforceContainerLimits`,
   budgets in `V2_LIMIT`). They are server-side ceilings no installed package
   checks, so do not add a second guard; a builder that must fit (lookup) budgets
@@ -29,7 +29,7 @@ a reply looks like.
 
 ## What Discord will and will not render
 
-Learned by shipping it and looking — each cost a PR (#976, #977):
+Learned from shipped replies (#976, #977):
 
 - `setAccentColor()` paints the container's **left edge only**. A
   `TextDisplay` is always default text colour, so a glyph "tinted by the tier"
@@ -53,6 +53,8 @@ Learned by shipping it and looking — each cost a PR (#976, #977):
   posting to the channel is the owner's act. `sheetVisibility.test.ts` holds it.
 - A private roll re-renders publicly only from the result encoded in its
   button — never by re-rolling.
+- A roll is always a NEW message, never a redraw; only its roller can
+  re-roll (`encodeRollRequest`).
 
 ## Buttons are permanent
 
@@ -65,7 +67,8 @@ retired `su:<action>` name for something new.
 
 - Roll and neutral colours mirror `--color-roll-*` / `--color-rust` in
   `packages/component-lib/src/styles/theme.css`; change them together.
-  `themeLockstep.test.ts` fails when they diverge.
+  `themeLockstep.test.ts` fails when they diverge (entry tones:
+  `discordCard.test.ts`).
 - `degradedMode.test.ts` — the reference bot must keep working when In The
   Union Now does not answer. Do not let it regress.
 - Handlers take the narrow types in `src/commands/interactions.ts` (add a member
@@ -76,5 +79,4 @@ Run `bun --filter discord-bot test`; `src/worker/__tests__/replay.test.ts` drive
 the Worker with signed, Discord-shaped payloads. There is no local loop against
 real Discord: the Interactions Endpoint URL is application-wide, so only the
 deployed Worker receives interactions, and a reply is first seen rendered once
-it ships. The tests prove structure; every rule in "What Discord will and will
-not render" was learned by looking at a shipped reply.
+it ships. The tests prove structure, not rendering.

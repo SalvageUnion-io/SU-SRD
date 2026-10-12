@@ -9,7 +9,7 @@ import type { CSSProperties } from 'react'
  * the Tech Level. Tech Level is the first thing a table asks of anything it
  * can field or buy, so it is not a chip here: it is the stat column's own cell
  * (`2 | TECH LEVEL`, the framed numeral beside the ink stamp), the size the
- * page body draws its stats, and the body leaves it out of its column. The same facts the card's seam and header show,
+ * page body draws its stats, and the body leaves it out of its column. The same facts the card's header shows,
  * resolved by `resolveEntityPageMeta` so the page cannot describe an entity
  * differently from its own card.
  */

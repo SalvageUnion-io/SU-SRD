@@ -3,7 +3,7 @@
  *
  * Rendered through the real card with real SRD data:
  * - have vs do picks the header fill by data shape;
- * - every card wears the seam type stamp; an ability adds its tree and its
+ * - every card wears the type stamp in its header; an ability adds its tree and its
  *   tier numeral;
  * - actions sit inline as flush ink bands, with no "Action" stamp;
  * - nested entities sit in a labelled tray, depth 2 is a one-line row that
@@ -39,7 +39,7 @@ describe('have vs do', () => {
     expect(isDoEntity(drill())).toBe(false)
   })
 
-  test('an ability is an ink banner: tree on the seam, tier numeral, cost pennant', () => {
+  test('an ability is an ink banner: tree in the labels, tier numeral, cost pennant', () => {
     const { container } = render(<ReferenceEntityCard data={juryRig()} />)
     expect(fills(container)[0]).toBe('ink')
     expect(screen.getByText('Ability · Forging Tree')).toBeTruthy()
@@ -47,10 +47,10 @@ describe('have vs do', () => {
     expect(screen.getByText('2 AP')).toBeTruthy()
   })
 
-  test('a system is a tone header with the type stamp on its seam at depth 0', () => {
+  test('a system is a tone header with the type stamp in its header at depth 0', () => {
     const { container } = render(<ReferenceEntityCard data={drill()} />)
     expect(fills(container)[0]).toBe('tone')
-    // The seam stamp and the footer both name the type.
+    // The type stamp and the footer both name the type.
     expect(screen.getAllByText('System').length).toBe(2)
   })
 })
@@ -115,7 +115,7 @@ describe('nesting legibility', () => {
 })
 
 describe('the user-made flag', () => {
-  test('dashes the frame and the footer rule, and stamps the seam', () => {
+  test('dashes the frame and the footer rule, and stamps the header', () => {
     const chassis = sestra()
     const pattern = need(chassis.patterns?.[0], 'pattern')
     const { container } = render(<ReferenceEntityCard data={chassis} pattern={pattern} userMade />)
@@ -149,11 +149,11 @@ describe('the user-made flag', () => {
     expect(screen.queryByText('Made by alxjrvs')).toBeNull()
   })
 
-  test('a kicker names what a user-made card was built from, on the seam and in the footer', () => {
+  test('a kicker names what a user-made card was built from, in the header and in the footer', () => {
     render(
       <ReferenceEntityCard data={sestra()} userMade madeBy="alxjrvs" kicker="NPC · from Veteran" />
     )
-    // The seam's type stamp and the footer's type label both read the kicker.
+    // The header's type stamp and the footer's type label both read the kicker.
     expect(screen.getAllByText('NPC · from Veteran')).toHaveLength(2)
   })
 

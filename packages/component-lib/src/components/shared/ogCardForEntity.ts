@@ -32,7 +32,7 @@ import type { OgCardProps, OgCardStat } from './ogCardText'
  *
  * Every field comes from the helper the entity card itself uses, so the
  * preview says what the page says: the tone (`resolveDomainTone`), have vs do
- * by data shape (`isDoEntity`), the seam's type stamp, the header's short stat
+ * by data shape (`isDoEntity`), the card's type stamp, the header's short stat
  * cells, the tier numeral, the cost pennant and the footer's provenance.
  *
  * A chassis PATTERN is its own thing with its own page, so it takes its own

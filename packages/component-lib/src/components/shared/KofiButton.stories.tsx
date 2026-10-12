@@ -1,3 +1,4 @@
+import { color, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { KofiButton } from './KofiButton'
 
@@ -12,7 +13,7 @@ export default {
  * the fallback link remains. (External-integration chrome — pending approval.)
  */
 export const Default: Story = () => (
-  <div className="bg-paper p-4">
+  <div style={{ backgroundColor: color.paper, padding: space[16] }}>
     <KofiButton code="C3Z82382ZC" />
   </div>
 )

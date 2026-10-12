@@ -51,6 +51,8 @@
     "wrangler": "4.147.0"
   },
   "scripts": {
+    "postinstall": "bun packages/salvageunion-reference/tools/ensureGenerated.ts",
+    "generate": "bun packages/salvageunion-reference/tools/ensureGenerated.ts --force",
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && bunx lefthook install || true",
     "dev": "bun --filter srd dev",
     "dev:itun": "bun --filter itun dev",

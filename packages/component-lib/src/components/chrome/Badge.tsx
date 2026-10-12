@@ -1,5 +1,5 @@
 import type { CSSProperties, ElementType, HTMLAttributes, ReactNode, Ref } from 'react'
-import { color } from '../../design/tokens'
+import { borderWidth, color, radius, space } from '../../design/tokens'
 import type { SizeRung } from '../../styles/sizing'
 import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
@@ -20,28 +20,37 @@ export type StampSize = SizeRung
 /** Stamp plate (`shape="stamp"`). */
 export type StampSurface = 'on-ink' | 'inverse' | 'on-tone'
 
+/*
+ * Every chip and stamp property lives in a `.su-badge*` class (`styles/index.css`),
+ * not a style object, although none of them has a stateful variant. Badge is the
+ * most-overridden atom in the system: call sites restyle padding, display, size,
+ * tracking, colour and the inset ring through `className`, and a caller's utility
+ * only beats the base while the base is a stylesheet rule — an inline style would
+ * silently win over every one of those overrides (tailwind-removal plan §6).
+ */
+
 /** Tone fills for `surface="tone"` — kind fills frame in ink, status fills self-border. */
 const BADGE_TONES: Record<BadgeTone, string> = {
-  pilot: 'border-ink bg-pilot text-ink',
-  mech: 'border-ink bg-mech text-ink',
+  pilot: 'su-badge--tone-pilot',
+  mech: 'su-badge--tone-mech',
   // Paper on the deeper crawler band (4.6 : 1, ruleset §3.8): plain crawler pink
   // carries neither paper (3.7) nor ink (4.2) at 4.5 : 1.
-  crawler: 'border-ink bg-crawler-band text-paper',
+  crawler: 'su-badge--tone-crawler',
   // Light enough for dark ink, like pilot and mech — crawler is the dark one.
-  game: 'border-ink bg-sheet-game text-ink',
-  ok: 'border-status-ok bg-status-ok text-paper',
-  warn: 'border-status-warn bg-status-warn text-paper',
-  bad: 'border-status-bad bg-status-bad text-paper',
+  game: 'su-badge--tone-game',
+  ok: 'su-badge--tone-ok',
+  warn: 'su-badge--tone-warn',
+  bad: 'su-badge--tone-bad',
 }
 
 /** Per-surface geometry — every chip is a fixed 22px, rounded-badge stamp-chip. */
 const BADGE_SURFACE: Record<BadgeSurface, string> = {
-  solid: 'px-[7px] bg-ink text-paper tracking-caps-snug',
-  ghost: 'px-[7px] bg-paper text-ink ring-1 ring-inset ring-ink-20 tracking-caps-snug',
-  outline: 'px-[9px] border-2 border-ink bg-paper text-ink tracking-caps',
-  tone: 'px-[9px] border-2 tracking-caps',
+  solid: 'su-badge--solid',
+  ghost: 'su-badge--ghost',
+  outline: 'su-badge--outline',
+  tone: 'su-badge--tone',
   // Its ground is a style object (`QUIET_GROUND`): nothing on a chip changes it.
-  quiet: 'px-2 text-wk-muted',
+  quiet: 'su-badge--quiet',
 }
 
 /**
@@ -64,10 +73,22 @@ const STAMP_SIZE: Record<StampSize, string> = {
 
 /** Stamp plate fills — the square label/header shape. */
 const STAMP_SURFACE: Record<StampSurface, string> = {
-  'on-ink': 'bg-ink text-paper',
-  inverse: 'bg-paper text-ink ring-1 ring-inset ring-ink',
-  'on-tone': 'bg-transparent text-ink',
+  'on-ink': 'su-badge--on-ink',
+  inverse: 'su-badge--inverse',
+  'on-tone': 'su-badge--on-tone',
 }
+
+/** The tech-level swatch: a 14px ink-ruled square before the label. */
+const SWATCH = {
+  borderColor: color.ink,
+  borderRadius: radius.pip,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.hairline,
+  display: 'block',
+  flexShrink: 0,
+  height: space[14],
+  width: space[14],
+} satisfies CSSProperties
 
 /** The rounded chip (default): a keyword / status / action-economy stamp-chip. */
 type BadgeChipProps = {
@@ -101,7 +122,7 @@ type BadgeChipProps = {
   /**
    * Render as a different element. The chip's escape hatch is interactivity:
    * `as="button"` turns the chip into a toggle. When overridden the chip gains
-   * `cursor-pointer` + the shared focus ring, and a `button` defaults to
+   * a pointer cursor + the shared focus ring, and a `button` defaults to
    * `type="button"`. The call site owns the toggle state — drive `surface`
    * (`solid` when pressed / `ghost` when not) and pass `aria-pressed` yourself,
    * so the Badge stays presentational.
@@ -135,10 +156,14 @@ type BadgeStampProps = {
    */
   seam?: boolean
   /**
-   * Override the baked-in `leading-none`. The stamp forces line-height 1 for
-   * crisp single-line labels/tabs; pass a Tailwind leading utility (e.g.
-   * `leading-[1.28]`) when the stamp is a wrapping display headline that needs
-   * breathing room between lines.
+   * Meant to override the stamp's line-height for a wrapping display headline
+   * (a Tailwind leading utility, e.g. `leading-[1.28]`). **Currently inert, as
+   * it always was:** it used to be merged ahead of the rung's `text-*` size,
+   * and tailwind-merge drops a leading class that precedes a font-size, so it
+   * never reached the DOM. The stamp's line-height is its rung's (`.su-rung-
+   * label--*`); a call site that needs another passes it through `className`
+   * or `style`, which do reach it. Kept so call sites compile; wiring it up is
+   * a visible change, not a port (tailwind-removal TW2).
    */
   leading?: string
   as?: ElementType
@@ -172,7 +197,7 @@ export function Badge(props: BadgeProps) {
       size = DEFAULT_RUNG,
       surface = 'on-ink',
       seam = false,
-      leading,
+      leading: _leading,
       as: Tag = 'span',
       className,
       shape: _shape,
@@ -187,10 +212,10 @@ export function Badge(props: BadgeProps) {
           // Size comes from `STAMP_SIZE[size]`, so the recipe supplies only the
           // caps role (font-cond / uppercase / bold / caps-tight).
           capsLabel(),
-          'inline-block w-fit',
-          // The stamp bakes in line-height:1 for crisp single-line labels; a
-          // `leading` override (e.g. a wrapping display headline) opts out.
-          leading ?? 'leading-none',
+          // No line-height of its own: the `leading-none` this once carried
+          // sat before the rung's `text-*` size, which tailwind-merge let
+          // win, so the line-height has always been the rung's.
+          'su-badge-stamp',
           STAMP_SIZE[size],
           STAMP_SURFACE[surface],
           seam && STAMP_SEAM,
@@ -226,11 +251,11 @@ export function Badge(props: BadgeProps) {
         // Tracking is a per-SURFACE decision here (`BADGE_SURFACE` picks
         // caps-snug or caps), so the recipe inherits rather than setting it.
         capsLabel({ size: 'badge', weight: 'semibold', tracking: 'inherit' }),
-        'inline-flex h-[22px] items-center rounded-badge leading-none',
-        swatch != null && 'gap-1.5',
+        'su-badge',
+        swatch != null && 'su-badge--swatch',
         // `su-hit-area`: an interactive chip stays 22px and reaches the 44px
         // coarse-pointer floor through a pseudo-element (ruleset §4.6).
-        interactive && cn('su-hit-area cursor-pointer', FOCUS_RING),
+        interactive && cn('su-hit-area su-badge--interactive', FOCUS_RING),
         BADGE_SURFACE[surface],
         surface === 'tone' && tone && BADGE_TONES[tone],
         className
@@ -243,13 +268,7 @@ export function Badge(props: BadgeProps) {
       }}
       {...rest}
     >
-      {swatch != null && (
-        <i
-          aria-hidden="true"
-          className="block h-3.5 w-3.5 shrink-0 rounded-pip border border-ink"
-          style={{ background: swatch }}
-        />
-      )}
+      {swatch != null && <i aria-hidden="true" style={{ ...SWATCH, background: swatch }} />}
       {children}
       {hasParam && (
         <span

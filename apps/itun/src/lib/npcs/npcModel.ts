@@ -135,7 +135,7 @@ function templateName(ref: NpcTemplateRef): string | null {
 }
 
 /**
- * The kicker the card wears on its seam and in its footer (D9): "NPC · from
+ * The kicker the card wears in its header labels and its footer (D9): "NPC · from
  * Veteran" for an NPC built from a reference template, "Crawler crew · Med Bay"
  * for crew, "NPC" for one started blank.
  */

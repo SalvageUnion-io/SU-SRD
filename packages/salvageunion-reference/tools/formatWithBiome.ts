@@ -2,10 +2,10 @@
  * formatWithBiome — format generated source through the repo's Biome binary.
  *
  * Biome is the single formatter, and the generators format *in-process*,
- * before writing, because their
- * output is committed and gated by `tools/check-generated.ts` (it regenerates, then fails on any diff).
- * Emitting unformatted source and letting a later `biome format --write` pass
- * fix it would make that gate fail on a clean tree.
+ * before writing: `lib/index.ts` is committed and gated by
+ * `tools/check-generated.ts`, `biome ci .` reads the gitignored `schemas/`
+ * too (Biome ignores `.gitignore`), and srd serves those bytes verbatim. A later `biome format --write` pass would leave a
+ * clean tree failing that gate.
  *
  * ## Why shell out instead of using a Biome API package
  *

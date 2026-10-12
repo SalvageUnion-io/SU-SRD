@@ -54,7 +54,7 @@ function resolveClassTrees(classEntity: SURefClass): ResolvedTrees {
   return { coreTrees: [], advancedTree: null, legendaryTree: null }
 }
 
-/** The tree's slab names the kind, so its Rows drop the seam stamp. */
+/** The tree's slab names the kind, so its Rows drop the type stamp. */
 const OMIT_KIND = ['kind'] as const
 
 /**

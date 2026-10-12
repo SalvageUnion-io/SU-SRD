@@ -5,7 +5,7 @@
  * The card at `presentation="page"` hands its title to the page's
  * `ChapterBand` and its footer to the page's `ChapterFoot`. Those two are the
  * app's chrome, so the app renders them, but what they SAY is the card's: the
- * seam's type stamp, the header's tier numeral, TL and cost pennant, and the
+ * type stamp, the header's tier numeral, TL and cost pennant, and the
  * identity footer's provenance. Reading them off the entity model
  * (`toEntityModel`), which the card's helpers read too, keeps a page from
  * describing an entity differently from its own card (one known exception:
@@ -24,7 +24,7 @@ import {
 import type { ActionFields } from './referenceEntityCardTypes'
 
 export type EntityPageMeta = {
-  /** The seam's type stamp: "Chassis", "Ability · Hacking Tree", "Pattern". */
+  /** The type stamp: "Chassis", "Ability · Hacking Tree", "Pattern". */
   typeLabel: string
   /** The Tech Level, as the header's TL cell reads it. */
   techLevel?: string

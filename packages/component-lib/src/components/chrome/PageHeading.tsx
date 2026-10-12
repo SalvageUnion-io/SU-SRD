@@ -1,5 +1,5 @@
-import type { ElementType, ReactNode, Ref } from 'react'
-import { cn } from '../../utils/cn'
+import type { CSSProperties, ElementType, ReactNode, Ref } from 'react'
+import { font, weight } from '../../design/tokens'
 
 type PageHeadingProps = {
   children: ReactNode
@@ -39,11 +39,24 @@ type PageHeadingProps = {
  * Per-page modifiers (e.g. `text-center`, `mb-2`) ride alongside via
  * `className`.
  */
-/** The two rungs, spelled once so the variant switch stays a lookup. */
+/**
+ * The two rungs, spelled once so the variant switch stays a lookup. Each
+ * rung's size, line-height and tracking are a `.su-page-heading--*` class
+ * rather than inline, because callers retune exactly those through
+ * `className` (the changelog's `leading-tight`, RecoveryPanel's
+ * `tracking-caps-tight`), and an inline style would beat their utility.
+ */
 const HEADING_VARIANTS = {
-  subheading: 'font-cond text-lg font-bold uppercase',
-  section: 'font-cond text-sm font-bold uppercase tracking-caps',
+  subheading: 'su-page-heading--subheading',
+  section: 'su-page-heading--section',
 } as const
+
+/** The face every rung shares. */
+const HEADING = {
+  fontFamily: font.cond,
+  fontWeight: weight.bold,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
 
 export function PageHeading({
   children,
@@ -56,7 +69,15 @@ export function PageHeading({
 }: PageHeadingProps) {
   const Tag = as ?? 'h2'
   return (
-    <Tag ref={ref} id={id} tabIndex={tabIndex} className={cn(HEADING_VARIANTS[variant], className)}>
+    <Tag
+      ref={ref}
+      id={id}
+      tabIndex={tabIndex}
+      className={
+        className ? `${HEADING_VARIANTS[variant]} ${className}` : HEADING_VARIANTS[variant]
+      }
+      style={HEADING}
+    >
       {children}
     </Tag>
   )

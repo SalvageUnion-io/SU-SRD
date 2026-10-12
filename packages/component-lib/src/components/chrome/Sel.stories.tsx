@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
@@ -9,6 +11,11 @@ import { Sel } from './Sel'
 export default {
   title: 'Atoms/Sel',
 }
+
+const stack = (gap: string) =>
+  ({ display: 'flex', flexDirection: 'column', gap }) satisfies CSSProperties
+
+const PAGE = { ...stack(space[24]), maxWidth: '28rem' } satisfies CSSProperties
 
 /**
  * Real SRD entity lookup (data drift safety) — throws instead of silently
@@ -35,10 +42,10 @@ export const Default: Story = () => {
   const [picked, setPicked] = useState(true)
   const [chosenClass, setChosenClass] = useState(pilotClassA.name)
   return (
-    <div className="flex max-w-md flex-col gap-6">
+    <div style={PAGE}>
       <div>
         <Caption>static (no onToggle)</Caption>
-        <div className="flex flex-col gap-3">
+        <div style={stack(space[12])}>
           <Sel selected={false}>
             <ReferenceEntityCard data={chassis} size="medium" />
           </Sel>
@@ -55,7 +62,7 @@ export const Default: Story = () => {
       </div>
       <div>
         <Caption>interactive — radio (aria-checked)</Caption>
-        <RadioCardGroup label="Pilot class" className="flex flex-col gap-3">
+        <RadioCardGroup label="Pilot class" style={stack(space[12])}>
           {[pilotClassA, pilotClassB].map((pilotClass) => (
             <Sel
               key={pilotClass.name}

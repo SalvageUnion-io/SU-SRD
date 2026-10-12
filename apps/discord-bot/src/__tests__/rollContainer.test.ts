@@ -11,7 +11,7 @@ import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import { buildPostedRollMessage, buildRollMessage } from '../commands/roll.js'
 import type { ContainerData } from '../container.js'
 import { NEUTRAL_ACCENT, ROLL_COLORS } from '../format.js'
-import { buildRollContainerData, isTieredTable, rollTableUrl } from '../rollContainer.js'
+import { buildRollContainerData, isTieredTable } from '../rollContainer.js'
 
 // No preload here. `apps/discord-bot/bunfig.toml` preloads
 // `../../test/reference-preload.ts`, which loads every schema once for the
@@ -159,16 +159,20 @@ describe('every roll renders the same furniture', () => {
     }
   })
 
-  test('one footer line, and it is the attribution', () => {
-    // A roll carries no provenance line (die, band, page): the die is already
-    // in the headline, so the only small print is the context line and the
-    // attribution.
+  test('three small lines: the context, where it landed, and the cite with the credit', () => {
     const small = text(rollOf('Crawler Damage', 14))
       .split('\n')
       .filter((line) => line.startsWith('-# '))
-    expect(small).toHaveLength(2) // context line + attribution
-    expect(small.at(-1)).toBe('-# Salvage Union Reference · Powered by Randsum.dev')
-    expect(text(rollOf('Crawler Damage', 14))).not.toContain('p.219')
+    expect(small).toHaveLength(3)
+    expect(small[1]).toBe('-# Lands on 11–19')
+    expect(small.at(-1)).toStartWith('-# Salvage Union Workshop Manual p.')
+    expect(small.at(-1)).toEndWith(' · Powered by Randsum.dev')
+  })
+
+  test('links the traits an outcome names, and never prints their markup', () => {
+    const body = text(rollOf('Reactor Overload', 14))
+    expect(body).toContain('[Vulnerable](https://salvageunion.io/schema/traits/item/vulnerable)')
+    expect(body).not.toContain('[[')
   })
 })
 
@@ -187,11 +191,6 @@ describe('context', () => {
   test('no Game signal when the roll was not recorded', () => {
     expect(text(rollOf('Core Mechanic', 14))).not.toContain('LOGGED TO')
   })
-})
-
-test('the See table link resolves to the reference site, with no trailing slash', () => {
-  const url = rollTableUrl(table('Core Mechanic'))
-  expect(url).toBe('https://salvageunion.io/schema/roll-tables/item/core-mechanic')
 })
 
 describe('a dramatic table miss is a result, not an error', () => {
