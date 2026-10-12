@@ -1,4 +1,6 @@
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import type { CSSVarStyle } from '../../styles/cssVars'
@@ -15,18 +17,38 @@ const SURFACE: CSSVarStyle = {
   '--tone': '#b8532a',
   '--ground': '#f3ece2',
   background: 'var(--ground)',
+  padding: space[32],
 }
+
+/** One column, two from Tailwind's `sm` (40rem) up: `.su-story-door-grid`. */
+const DOORS = { display: 'grid', gap: space[24], marginTop: space[16] } satisfies CSSProperties
+
+const CUSTOM_BUILD = {
+  backgroundColor: color.paper,
+  borderColor: color.ink,
+  borderRadius: radius.panel,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.chrome,
+  color: color.ink,
+  fontFamily: font.cond,
+  fontSize: fontSize.lg,
+  fontWeight: weight.bold,
+  lineHeight: 'calc(1.75 / 1.125)',
+  paddingBlock: space[12],
+  paddingInline: space[16],
+  textTransform: 'uppercase',
+} satisfies CSSProperties
 
 /** The two onboarding doors side by side, plus the ink-double Sel ring. */
 export const Default: Story = () => {
   const [chosen, setChosen] = useState<string | null>(null)
   return (
-    <div style={SURFACE} className="p-8">
+    <div style={SURFACE}>
       <Caption>
         Guided (filled tone + double-ink halo) and Blank (dashed paper escape hatch). Chosen:{' '}
         {chosen ?? 'none'}
       </Caption>
-      <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div className="su-story-door-grid" style={DOORS}>
         <ModeDoor
           variant="guided"
           tab="▶"
@@ -48,14 +70,12 @@ export const Default: Story = () => {
         </ModeDoor>
       </div>
 
-      <div className="mt-8">
+      <div style={{ marginTop: space[32] }}>
         <Caption>Sel ring="ink-double" — the custom-build door's selection halo.</Caption>
       </div>
-      <div className="mt-3 w-fit">
+      <div style={{ marginTop: space[12], width: 'fit-content' }}>
         <Sel selected ring="ink-double" ariaLabel="Custom build" onToggle={() => {}}>
-          <div className="rounded-panel border-chrome border-ink bg-paper px-4 py-3 font-cond text-lg font-bold uppercase text-ink">
-            Custom Build
-          </div>
+          <div style={CUSTOM_BUILD}>Custom Build</div>
         </Sel>
       </div>
     </div>

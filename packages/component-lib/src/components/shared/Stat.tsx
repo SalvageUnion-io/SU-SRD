@@ -1,9 +1,9 @@
-import type { ReactElement } from 'react'
+import type { CSSProperties, ReactElement } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
+import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { usePeekAttrs } from '../../entity/peekContext'
 import type { SizeRung } from '../../styles/sizing'
-import { cn } from '../../utils/cn'
 import type { StampSurface } from '../chrome/Badge'
 import { Badge } from '../chrome/Badge'
 import { FOCUS_RING } from '../chrome/interaction'
@@ -51,12 +51,34 @@ export type StatState = EntityStatus
 export type StatBorderState = 'default' | 'good' | 'modified' | 'caution' | 'critical'
 
 const STATE_BORDER: Record<StatBorderState, string> = {
-  default: 'border-ink',
-  good: 'border-mech',
-  modified: 'border-ink ring-1 ring-ink',
-  caution: 'border-status-warn',
-  critical: 'border-status-bad',
+  default: color.ink,
+  good: color.mech,
+  modified: color.ink,
+  caution: color.statusWarn,
+  critical: color.statusBad,
 }
+
+/** `modified`'s extra 1px ink ring rides a class, not the style object: on the
+ * clickable box an inline `box-shadow` would mask the shared focus ring. */
+const STATE_RING_CLASS = 'su-stat--modified'
+
+/** Joins the truthy class names (the plain-concatenation half of `cn`). */
+function classes(...names: (string | false | null | undefined)[]): string | undefined {
+  const joined = names.filter(Boolean).join(' ')
+  return joined === '' ? undefined : joined
+}
+
+/** Tailwind's `transition-colors`, ported verbatim. */
+const TRANSITION_COLORS = {
+  transitionDuration: '150ms',
+  transitionProperty:
+    'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+} satisfies CSSProperties
+
+/** The inherited `text-xs` / `text-sm` rungs carry Tailwind's paired line-height. */
+const LINE_HEIGHT_XS = 'calc(1 / 0.75)'
+const LINE_HEIGHT_SM = 'calc(1.25 / 0.875)'
 
 type StatValue = number | string
 
@@ -287,14 +309,16 @@ function HorizontalValue({
   truncate = false,
   className,
 }: HorizontalValueProps) {
-  const fontSize = size === 'mini' ? 'text-badge' : size === 'compact' ? 'text-xs' : 'text-sm'
-  const fontWeight =
-    size === 'mini' ? 'font-bold' : size === 'compact' ? 'font-normal' : 'font-semibold'
+  // Both halves of the cell take the rung's type; line-height is 1 throughout.
+  const plateType = {
+    fontSize: size === 'mini' ? fontSize.badge : size === 'compact' ? fontSize.xs : fontSize.sm,
+    fontWeight:
+      size === 'mini' ? weight.bold : size === 'compact' ? weight.normal : weight.semibold,
+    lineHeight: 1,
+    textTransform: 'uppercase',
+  } satisfies CSSProperties
   const mainSurface: StampSurface = inverse ? 'inverse' : 'on-ink'
   const valueSurface: StampSurface = inverse ? 'on-ink' : 'inverse'
-  // The CELL draws the single rounded border; the `inverse` plate's own inset
-  // ring would double it, so both halves suppress it with `ring-0`.
-  const plate = 'ring-0 leading-none'
 
   // The hover explanation rides the OUTERMOST node of whichever anatomy we
   // return, so it works on the bare cell, the running-text finish and the
@@ -331,31 +355,49 @@ function HorizontalValue({
 
   const cell = (
     <span
-      className={cn(
-        'shrink-0 grow-0 cursor-default items-stretch overflow-hidden whitespace-nowrap rounded-badge border',
-        STATE_BORDER[state],
-        inline ? 'inline-flex' : 'flex',
-        'w-fit',
-        truncate && 'min-w-0 shrink',
+      // `display` and `flex-shrink` stay in a class: callers override them by
+      // className (the sheet's condensed bar folds cells with `hidden sm:inline-flex`).
+      className={classes(
+        'su-stat-cell',
+        !inline && 'su-stat-cell--block',
+        truncate && 'su-stat-cell--truncate',
+        state === 'modified' && STATE_RING_CLASS,
         className
       )}
+      style={{
+        alignItems: 'stretch',
+        borderColor: STATE_BORDER[state],
+        borderRadius: radius.badge,
+        borderStyle: 'solid',
+        borderWidth: borderWidth.hairline,
+        cursor: 'default',
+        flexGrow: 0,
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        width: 'fit-content',
+        ...(truncate ? { minWidth: 0 } : undefined),
+      }}
     >
       <Badge
         shape="stamp"
         size="mini"
         surface={mainSurface}
-        className={cn(
-          // Stretch to the FULL cell height (overriding the stamp's w-fit
-          // inline-block) so the label's ink background always covers the whole
-          // cell, and center the text vertically — even when the row stretches it.
-          'flex items-center justify-center self-stretch uppercase',
-          fontSize,
-          fontWeight,
+        // Stretch to the FULL cell height (overriding the stamp's inline-block)
+        // so the label's ink background always covers the whole cell, and
+        // center the text vertically — even when the row stretches it. The
+        // CELL draws the single rounded border; the `inverse` plate's own
+        // inset ring would double it, so both halves suppress it.
+        style={{
+          ...plateType,
+          alignItems: 'center',
+          alignSelf: 'stretch',
+          boxShadow: 'none',
+          display: 'flex',
           // Two-line label cell (e.g. "Tech" / "Level") when a bottomLabel is set.
-          bottomLabel !== undefined && 'flex-col',
-          plate
-        )}
-        style={bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined}
+          ...(bottomLabel !== undefined ? { flexDirection: 'column' } : undefined),
+          justifyContent: 'center',
+          ...(bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined),
+        }}
       >
         {bottomLabel !== undefined ? (
           <>
@@ -371,18 +413,28 @@ function HorizontalValue({
           shape="stamp"
           size="mini"
           surface={valueSurface}
-          className={cn(
-            'flex items-center gap-px self-stretch uppercase',
-            fontSize,
-            fontWeight,
-            plate,
-            // A block, so the ellipsis applies (a flex box's text never gets one).
-            truncate && 'block min-w-0 truncate'
-          )}
+          style={{
+            ...plateType,
+            alignSelf: 'stretch',
+            boxShadow: 'none',
+            // A block when truncating, so the ellipsis applies (a flex box's
+            // text never gets one).
+            ...(truncate
+              ? {
+                  display: 'block',
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }
+              : { alignItems: 'center', display: 'flex', gap: '1px' }),
+          }}
         >
           {value}
           {max !== undefined && (
-            <span className={cn('font-normal', inverse ? 'text-paper/70' : 'text-wk-muted')}>
+            <span
+              style={{ color: inverse ? color.paper70 : color.wkMuted, fontWeight: weight.normal }}
+            >
               /{max}
             </span>
           )}
@@ -401,28 +453,46 @@ function HorizontalValue({
   const atMin = numericValue <= min
   const atMax = max !== undefined && numericValue >= max
   // Buttons sit SIDE BY SIDE after the value cell and stretch to its height, so
-  // the stepper adds no vertical height to the row.
-  const btnSize = size === 'compact' ? 'w-4 text-xs' : 'w-5 text-sm'
-  const btnResting = inverse ? 'border-paper bg-ink text-paper' : 'border-ink bg-paper text-ink'
-  const btnHover = inverse ? 'hover:bg-paper hover:text-ink' : 'hover:bg-ink hover:text-paper'
-  const btnBase =
-    'flex min-h-11 items-center justify-center rounded-badge border border-ink font-body font-bold leading-none transition-colors sm:min-h-0'
+  // the stepper adds no vertical height to the row. The resting fill/ink and
+  // the coarse-pointer 44px floor live in classes (they flip on hover / at sm).
+  const stepClass = (atLimit: boolean) =>
+    classes(
+      'su-stat-step',
+      inverse ? 'su-stat-step--on-ink' : 'su-stat-step--on-paper',
+      !atLimit && 'su-stat-step--live'
+    )
+  const stepStyle = (atLimit: boolean) =>
+    ({
+      ...TRANSITION_COLORS,
+      alignItems: 'center',
+      borderColor: inverse ? color.paper : color.ink,
+      borderRadius: radius.badge,
+      borderStyle: 'solid',
+      borderWidth: borderWidth.hairline,
+      cursor: atLimit ? 'not-allowed' : 'pointer',
+      display: 'flex',
+      fontFamily: font.body,
+      fontSize: size === 'compact' ? fontSize.xs : fontSize.sm,
+      fontWeight: weight.bold,
+      justifyContent: 'center',
+      lineHeight: size === 'compact' ? LINE_HEIGHT_XS : LINE_HEIGHT_SM,
+      width: size === 'compact' ? space[16] : space[20],
+      ...(atLimit ? { opacity: 0.3 } : undefined),
+    }) satisfies CSSProperties
 
   const stepName = stepperLabel ?? label
   return withHover(
-    <span className="inline-flex w-fit items-stretch gap-0.5">
+    <span
+      style={{ alignItems: 'stretch', display: 'inline-flex', gap: space[2], width: 'fit-content' }}
+    >
       {cell}
       <button
         type="button"
         aria-label={`Decrease ${stepName}`}
         onClick={() => onChange?.(Math.max(min, numericValue - step))}
         disabled={atMin}
-        className={cn(
-          btnBase,
-          btnSize,
-          btnResting,
-          atMin ? 'cursor-not-allowed opacity-30' : cn('cursor-pointer', btnHover)
-        )}
+        className={stepClass(atMin)}
+        style={stepStyle(atMin)}
       >
         −
       </button>
@@ -433,12 +503,8 @@ function HorizontalValue({
           onChange?.(max !== undefined ? Math.min(max, numericValue + step) : numericValue + step)
         }
         disabled={!!atMax}
-        className={cn(
-          btnBase,
-          btnSize,
-          btnResting,
-          atMax ? 'cursor-not-allowed opacity-30' : cn('cursor-pointer', btnHover)
-        )}
+        className={stepClass(!!atMax)}
+        style={stepStyle(!!atMax)}
       >
         +
       </button>
@@ -474,9 +540,9 @@ function ValueBox({
   const [isFlashing, setIsFlashing] = useState(false)
 
   const combinedAriaLabel = ariaLabel || (bottomLabel ? `${label} ${bottomLabel}` : String(label))
-  const trueBg = inverse ? 'bg-ink' : 'bg-paper'
-  const trueValueColor = inverse ? 'text-paper' : 'text-ink'
-  const mutedMaxColor = inverse ? 'text-paper/70' : 'text-wk-muted'
+  const trueBg = inverse ? color.ink : color.paper
+  const trueValueColor = inverse ? color.paper : color.ink
+  const mutedMaxColor = inverse ? color.paper70 : color.wkMuted
   const trueBorderColor = STATE_BORDER[state]
 
   useEffect(() => {
@@ -519,39 +585,58 @@ function ValueBox({
   const canEdit = mode === 'edit' && onChange !== undefined && Number.isFinite(numericValue)
   const atMin = numericValue <= min
   const atMax = max !== undefined && numericValue >= max
-  const btnSize =
-    size === 'mini' ? 'h-3 w-3 text-badge' : size === 'full' ? 'h-5 w-5 text-sm' : 'h-4 w-4 text-xs'
-  const btnResting = inverse ? 'border-paper bg-ink text-paper' : 'border-ink bg-paper text-ink'
-  const btnHover = inverse ? 'hover:bg-paper hover:text-ink' : 'hover:bg-ink hover:text-paper'
 
-  const boxSize =
-    size === 'mini' ? 'h-8 min-w-8 px-0.5' : size === 'full' ? 'h-16 min-w-16 px-1' : 'h-12 w-12'
-  const boxRadius = size === 'mini' ? 'rounded-card' : 'rounded-panel'
+  const boxSize: CSSProperties =
+    size === 'mini'
+      ? { height: space[32], minWidth: space[32], paddingInline: space[2] }
+      : size === 'full'
+        ? { height: space[64], minWidth: space[64], paddingInline: space[4] }
+        : { height: space[48], width: space[48] }
   // Disabled state: reduce overall opacity to signal disabled while preserving
-  // foreground/background contrast. The default bg-paper / text-ink pair
-  // has a 16:1 base ratio; at 60% opacity the effective ratio is ~9.6:1, still
-  // well above the WCAG AA threshold of 4.5:1 for normal text.
-  const disabledClass = disabled ? 'opacity-60' : ''
+  // foreground/background contrast. The default paper / ink pair has a 16:1
+  // base ratio; at 60% opacity the effective ratio is ~9.6:1, still well above
+  // the WCAG AA threshold of 4.5:1 for normal text.
+  const boxStyle = {
+    ...boxSize,
+    alignItems: 'center',
+    backgroundColor: trueBg,
+    borderColor: trueBorderColor,
+    borderRadius: size === 'mini' ? radius.card : radius.panel,
+    borderStyle: 'solid',
+    borderWidth: size === 'mini' ? borderWidth.hairline : borderWidth.chrome,
+    display: 'flex',
+    justifyContent: 'center',
+  } satisfies CSSProperties
 
   // The value readout: `current /max` (current prominent, /max muted) when a
-  // max is set, else the bare value. `text-ink` (or paper, inverted) stays
-  // on the wrapper so the fill/value colour is constant across states.
+  // max is set, else the bare value. The ink (or paper, inverted) stays on the
+  // wrapper so the fill/value colour is constant across states.
   const valueReadout = (
     <span
-      className={cn(
-        'flex w-full items-baseline justify-center gap-px overflow-hidden whitespace-nowrap text-center font-bold',
-        trueValueColor,
-        size === 'mini' ? 'text-xs' : size === 'full' ? 'text-display' : 'text-caption'
-      )}
+      style={{
+        alignItems: 'baseline',
+        color: trueValueColor,
+        display: 'flex',
+        fontSize:
+          size === 'mini' ? fontSize.xs : size === 'full' ? fontSize.display : fontSize.caption,
+        fontWeight: weight.bold,
+        gap: '1px',
+        justifyContent: 'center',
+        ...(size === 'mini' ? { lineHeight: LINE_HEIGHT_XS } : undefined),
+        overflow: 'hidden',
+        textAlign: 'center',
+        whiteSpace: 'nowrap',
+        width: '100%',
+      }}
     >
       {value}
       {max !== undefined && (
         <span
-          className={cn(
-            'font-normal',
-            mutedMaxColor,
-            size === 'mini' ? 'text-badge' : size === 'full' ? 'text-caption' : 'text-badge'
-          )}
+          style={{
+            color: mutedMaxColor,
+            fontSize: size === 'full' ? fontSize.caption : fontSize.badge,
+            fontWeight: weight.normal,
+          }}
         >
           /{max}
         </span>
@@ -559,16 +644,37 @@ function ValueBox({
     </span>
   )
 
+  // The stamps ride the box's top and bottom edges, overlapping it by 8px.
+  const labelStampStyle = {
+    alignSelf: 'center',
+    display: 'block',
+    fontSize: size === 'mini' ? fontSize.badge : fontSize.xs,
+    lineHeight: 1,
+    textTransform: 'uppercase',
+    transformOrigin: 'center',
+    whiteSpace: 'nowrap',
+    zIndex: 1,
+  } satisfies CSSProperties
+
+  const boxClass = classes(
+    state === 'modified' && STATE_RING_CLASS,
+    isFlashing && 'su-stat__box--flash'
+  )
+
   const box = (
     // biome-ignore lint/a11y/useSemanticElements: a <fieldset> would break the flex stat-box layout; role="group" carries the same semantics
     <div
       role="group"
-      className={cn(
-        'flex flex-col items-center gap-0 overflow-visible',
-        size === 'mini' ? 'min-w-8' : 'w-12',
-        disabledClass,
-        className
-      )}
+      className={className}
+      style={{
+        alignItems: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0,
+        overflow: 'visible',
+        ...(size === 'mini' ? { minWidth: space[32] } : { width: space[48] }),
+        ...(disabled ? { opacity: 0.6 } : undefined),
+      }}
       aria-label={combinedAriaLabel}
     >
       {/*
@@ -580,11 +686,7 @@ function ValueBox({
         ref={topLabelRef}
         shape="stamp"
         size="mini"
-        className={cn(
-          'block z-[1] -mb-2 origin-center self-center whitespace-nowrap uppercase',
-          size === 'mini' ? 'text-badge' : 'text-xs',
-          'leading-none'
-        )}
+        style={{ ...labelStampStyle, marginBottom: `-${space[8]}` }}
         id={labelId}
       >
         {label}
@@ -596,33 +698,21 @@ function ValueBox({
           onClick={onClick}
           disabled={disabled}
           aria-disabled={disabled || undefined}
-          className={cn(
-            'flex items-center justify-center border',
-            boxSize,
-            boxRadius,
-            trueBg,
-            trueBorderColor,
-            size === 'mini' ? 'border' : 'border-chrome',
-            disabled ? 'pointer-events-none' : cn('cursor-pointer hover:opacity-80', FOCUS_RING),
-            isFlashing && 'animate-[growShrink_3s_ease-out] motion-reduce:animate-none'
-          )}
+          className={classes(boxClass, !disabled && `su-stat__box--clickable ${FOCUS_RING}`)}
+          style={{
+            ...boxStyle,
+            // Above `mini` the clickable box has always rendered borderless: its
+            // `border-chrome` set a width but no style, so the button's reset
+            // `none` held (the div box takes `solid` from the universal reset).
+            ...(size === 'mini' ? undefined : { borderStyle: 'none' }),
+            ...(disabled ? { pointerEvents: 'none' } : { cursor: 'pointer' }),
+          }}
           aria-label={combinedAriaLabel}
         >
           {valueReadout}
         </button>
       ) : (
-        <div
-          ref={boxRef}
-          className={cn(
-            'flex items-center justify-center border',
-            boxSize,
-            boxRadius,
-            trueBg,
-            trueBorderColor,
-            size === 'mini' ? 'border' : 'border-chrome',
-            isFlashing && 'animate-[growShrink_3s_ease-out] motion-reduce:animate-none'
-          )}
-        >
+        <div ref={boxRef} className={boxClass} style={boxStyle}>
           {valueReadout}
         </div>
       )}
@@ -630,29 +720,64 @@ function ValueBox({
         ref={bottomLabelRef}
         shape="stamp"
         size="mini"
-        className={cn(
-          'block z-[1] -mt-2 origin-center self-center whitespace-nowrap uppercase',
-          size === 'mini' ? 'text-badge' : 'text-xs',
-          'leading-none',
-          !bottomLabel && 'invisible'
-        )}
+        style={{
+          ...labelStampStyle,
+          marginTop: `-${space[8]}`,
+          ...(bottomLabel ? undefined : { visibility: 'hidden' }),
+        }}
       >
         {bottomLabel || ' '}
       </Badge>
     </div>
   )
 
+  // The steppers' resting fill/ink and the coarse-pointer 44px floor live in
+  // classes (they flip on hover / at sm); the rest is static.
+  const stepClass = (atLimit: boolean) =>
+    classes(
+      'su-stat-step su-stat-step--square',
+      inverse ? 'su-stat-step--on-ink' : 'su-stat-step--on-paper',
+      !atLimit && 'su-stat-step--live'
+    )
+  const stepSide = size === 'mini' ? '12px' : size === 'full' ? space[20] : space[16]
+  const stepStyle = (atLimit: boolean) =>
+    ({
+      ...TRANSITION_COLORS,
+      alignItems: 'center',
+      borderRadius: radius.badge,
+      // Borderless, as it always rendered: its `border-chrome border-ink` set a
+      // width and colour but never a style, so the button's reset `none` held.
+      borderStyle: 'none',
+      cursor: atLimit ? 'not-allowed' : 'pointer',
+      display: 'flex',
+      fontFamily: font.body,
+      fontSize: size === 'mini' ? fontSize.badge : size === 'full' ? fontSize.sm : fontSize.xs,
+      fontWeight: weight.bold,
+      height: stepSide,
+      justifyContent: 'center',
+      lineHeight: 1,
+      width: stepSide,
+      ...(atLimit ? { opacity: 0.3 } : undefined),
+    }) satisfies CSSProperties
+
   // The ± column stretches to the box's full height and centres its buttons in
   // it, so the pair sits on the box's midline whatever the button count or size.
   //
   // Centring on the box centres on the value cell: the bottom label Badge is
-  // always rendered (merely `invisible` when there is no bottom label), so the
+  // always rendered (merely hidden when there is no bottom label), so the
   // box is symmetric about its cell, and no spacer stack has to track it.
   const content = canEdit ? (
-    <div className="flex items-stretch gap-0.5">
+    <div style={{ alignItems: 'stretch', display: 'flex', gap: space[2] }}>
       {box}
-      <div className="flex flex-col justify-center">
-        <div className="flex flex-col justify-center gap-0.5">
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: space[2],
+            justifyContent: 'center',
+          }}
+        >
           <button
             type="button"
             aria-label={`Increase ${stepperLabel ?? label}`}
@@ -660,9 +785,8 @@ function ValueBox({
               onChange?.(max !== undefined ? Math.min(max, numericValue + 1) : numericValue + 1)
             }
             disabled={!!atMax}
-            className={`flex min-h-11 min-w-11 items-center justify-center rounded-badge border-chrome font-body font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
-              atMax ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
-            }`}
+            className={stepClass(!!atMax)}
+            style={stepStyle(!!atMax)}
           >
             +
           </button>
@@ -671,9 +795,8 @@ function ValueBox({
             aria-label={`Decrease ${stepperLabel ?? label}`}
             onClick={() => onChange?.(Math.max(min, numericValue - 1))}
             disabled={atMin}
-            className={`flex min-h-11 min-w-11 items-center justify-center rounded-badge border-chrome font-body font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
-              atMin ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
-            }`}
+            className={stepClass(atMin)}
+            style={stepStyle(atMin)}
           >
             −
           </button>

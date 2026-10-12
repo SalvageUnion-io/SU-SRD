@@ -1,5 +1,5 @@
-import type { ElementType, ReactNode } from 'react'
-import { cn } from '../../utils/cn'
+import type { CSSProperties, ElementType, ReactNode } from 'react'
+import { borderWidth, color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { POSTER_STAMP } from './posterStamp'
 
 type SlabProps = {
@@ -21,6 +21,8 @@ type SlabProps = {
    */
   actions?: ReactNode
   className?: string
+  /** Merged over the row's own style — the way to retune its bottom margin. */
+  style?: CSSProperties
   /** For a region that names itself by its slab (`aria-labelledby`). */
   id?: string
   /**
@@ -42,6 +44,75 @@ type SlabProps = {
 }
 
 /**
+ * The row, bottom margin included. The margin is inline on purpose: a slab
+ * often sits in a `space-y-*` stack, whose child margin it must out-rank (as
+ * the old `mb-3.5` utility did by specificity). A caller that retunes the
+ * margin passes `style`, which merges over this.
+ */
+const ROW = {
+  alignItems: 'center',
+  display: 'flex',
+  gap: space[12],
+  marginBottom: space[14],
+} satisfies CSSProperties
+
+const COUNT = {
+  color: color.wkMuted,
+  flexShrink: 0,
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  fontWeight: weight.bold,
+  letterSpacing: 'normal',
+  lineHeight: 'calc(1 / 0.75)',
+  textTransform: 'none',
+} satisfies CSSProperties
+
+/** Composed with `POSTER_STAMP`, which supplies face, caps, weight and tracking. */
+const SOLID_LABEL = {
+  flexShrink: 0,
+  fontSize: fontSize.sm,
+  lineHeight: 1.625,
+  paddingBottom: '3px',
+  paddingInline: space[8],
+  paddingTop: space[2],
+} satisfies CSSProperties
+
+const DASHED_LABEL = {
+  color: 'var(--tone-deep, var(--color-ink))',
+  flexShrink: 0,
+  fontFamily: font.cond,
+  fontSize: fontSize.sm,
+  fontWeight: weight.bold,
+  letterSpacing: tracking.capsWide,
+  lineHeight: 'calc(1.25 / 0.875)',
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const SOLID_RULE = {
+  borderTopColor: color.ink50,
+  borderTopStyle: 'dashed',
+  borderTopWidth: borderWidth.hairline,
+  flex: '1 1 0%',
+  height: 0,
+  minWidth: space[12],
+} satisfies CSSProperties
+
+const DASHED_RULE = {
+  background:
+    'repeating-linear-gradient(90deg, var(--tone-deep, var(--color-ink)) 0 6px, transparent 6px 11px)',
+  flex: '1 1 0%',
+  height: space[2],
+  opacity: 0.4,
+} satisfies CSSProperties
+
+const ACTIONS = {
+  alignItems: 'center',
+  display: 'flex',
+  flexShrink: 0,
+  gap: space[6],
+} satisfies CSSProperties
+
+/**
  * The section header (ruleset §5 atom 7, "section stamp + leader rule";
  * design-spec §2.10 `.slab`): an uppercase cond label with a leader rule.
  * Default ('dashed') keeps the original tone-deep text + dashed rule; 'solid'
@@ -53,6 +124,7 @@ export function Slab({
   count,
   actions,
   className,
+  style,
   id,
   variant = 'dashed',
   countAt = 'end',
@@ -60,26 +132,15 @@ export function Slab({
   const isSolid = variant === 'solid'
   const countByLabel = !isSolid || countAt === 'label'
   const Label = as ?? 'span'
-  const countNode = count != null && (
-    <span className="shrink-0 font-body text-xs font-bold normal-case tracking-normal text-wk-muted">
-      {count}
-    </span>
-  )
+  const countNode = count != null && <span style={COUNT}>{count}</span>
   return (
-    <div className={cn('mb-3.5 flex items-center gap-3', className)}>
+    <div className={className} style={style ? { ...ROW, ...style } : ROW}>
       {isSolid ? (
-        <Label
-          id={id}
-          className={cn(POSTER_STAMP, 'shrink-0 px-2 pb-[3px] pt-[2px] text-sm leading-relaxed')}
-        >
+        <Label id={id} className={POSTER_STAMP} style={SOLID_LABEL}>
           {label}
         </Label>
       ) : (
-        <Label
-          id={id}
-          className="shrink-0 font-cond text-sm font-bold uppercase tracking-caps-wide"
-          style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-        >
+        <Label id={id} style={DASHED_LABEL}>
           {label}
         </Label>
       )}
@@ -87,25 +148,15 @@ export function Slab({
           end unless `countAt="label"` brings it beside the stamp. */}
       {countByLabel && countNode}
       {isSolid ? (
-        <span
-          aria-hidden="true"
-          className="h-0 min-w-3 flex-1 border-t border-dashed border-ink-50"
-        />
+        <span aria-hidden="true" style={SOLID_RULE} />
       ) : (
-        <span
-          aria-hidden="true"
-          className="h-0.5 flex-1 opacity-40"
-          style={{
-            background:
-              'repeating-linear-gradient(90deg, var(--tone-deep, var(--color-ink)) 0 6px, transparent 6px 11px)',
-          }}
-        />
+        <span aria-hidden="true" style={DASHED_RULE} />
       )}
       {!countByLabel && countNode}
       {/* A div, not a span: actions carry block-level content (the Ko-fi widget
           renders a div), and a div inside a span is invalid HTML. Both are flex
           items of the same row, so nothing moves. */}
-      {actions && <div className="flex shrink-0 items-center gap-1.5">{actions}</div>}
+      {actions && <div style={ACTIONS}>{actions}</div>}
     </div>
   )
 }

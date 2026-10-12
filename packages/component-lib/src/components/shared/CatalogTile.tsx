@@ -1,5 +1,6 @@
+import type { CSSProperties } from 'react'
+import { color, font, fontSize, tracking, weight } from '../../design/tokens'
 import type { CSSVarStyle } from '../../styles/cssVars'
-import { cn } from '../../utils/cn'
 import { CATALOG_TILE_CHROME, CATALOG_TILE_FILL, CATALOG_TILE_LABEL } from '../chrome/catalogTile'
 
 /**
@@ -38,22 +39,46 @@ type CatalogTileProps = {
 
 /** What the GRID tile adds to the shared chrome. The drawer tile is a
  *  full-width block instead, which is why this is not in the shared constant. */
-const TILE_LAYOUT = 'flex min-h-[54px] flex-col items-center justify-center'
+const TILE_LAYOUT = {
+  alignItems: 'center',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  minHeight: '54px',
+} satisfies CSSProperties
 
-const TILE_GHOST = 'bg-paper text-ink'
+const TILE_GHOST = { backgroundColor: color.paper, color: color.ink } satisfies CSSProperties
 
-// Type comes off the ladder: `text-lede` (15px) and `tracking-caps-tight`
-// (0.04em) replace a hand-set 16px size and 0.02em tracking — both arbitrary
-// bracket values of the kind the token guard tracks. The 1px and 0.02em deltas
-// are the price of being on the scale. (Named in prose rather than quoted in
-// their utility form on purpose: the guard reads comments, and a citation of
-// the thing you removed counts as the thing itself.)
-const NAME =
-  'font-cond text-lede font-semibold uppercase leading-[1.2] tracking-caps-tight text-paper [text-shadow:0_1px_2px_var(--color-ink-75)]'
+/** The `<button>` form (`onActivate`) spans its grid cell like the link does. */
+const TILE_BUTTON = { textAlign: 'center', width: '100%' } satisfies CSSProperties
 
-// Ghost name — cond/bold/uppercase at text-lg with no text-shadow (ink on paper
-// needs none).
-const NAME_GHOST = 'font-cond text-lg font-bold uppercase tracking-caps-tight text-ink'
+// Type comes off the ladder: the lede rung (15px) and caps-tight tracking
+// (0.04em) replace a hand-set 16px size and 0.02em tracking. The 1px and
+// 0.02em deltas are the price of being on the scale.
+const NAME = {
+  color: color.paper,
+  fontFamily: font.cond,
+  fontSize: fontSize.lede,
+  fontWeight: weight.semibold,
+  letterSpacing: tracking.capsTight,
+  lineHeight: 1.2,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+/** The drop shadow the bare name needs on a tone; the label plate replaces it. */
+const NAME_SHADOW = { textShadow: `0 1px 2px ${color.ink75}` } satisfies CSSProperties
+
+// Ghost name — cond/bold/uppercase at the inherited `lg` rung with no
+// text-shadow (ink on paper needs none).
+const NAME_GHOST = {
+  color: color.ink,
+  fontFamily: font.cond,
+  fontSize: fontSize.lg,
+  fontWeight: weight.bold,
+  letterSpacing: tracking.capsTight,
+  lineHeight: 'calc(1.75 / 1.125)',
+  textTransform: 'uppercase',
+} satisfies CSSProperties
 
 export function CatalogTile({
   href,
@@ -68,16 +93,19 @@ export function CatalogTile({
   const style: CSSVarStyle = {
     ...(catalogBg ? { '--catalog-bg': catalogBg } : {}),
     ...(catalogLabel ? { '--catalog-label': catalogLabel } : {}),
+    ...TILE_LAYOUT,
+    ...(isGhost ? TILE_GHOST : {}),
+    ...(onActivate ? TILE_BUTTON : {}),
   }
 
-  const className = cn(
-    CATALOG_TILE_CHROME,
-    TILE_LAYOUT,
-    isGhost ? TILE_GHOST : CATALOG_TILE_FILL,
-    onActivate && 'w-full text-center'
-  )
-  const label = (
-    <span className={isGhost ? NAME_GHOST : cn(NAME, catalogLabel && CATALOG_TILE_LABEL)}>
+  const className = isGhost ? CATALOG_TILE_CHROME : `${CATALOG_TILE_CHROME} ${CATALOG_TILE_FILL}`
+  const label = isGhost ? (
+    <span style={NAME_GHOST}>{name}</span>
+  ) : (
+    <span
+      className={catalogLabel ? CATALOG_TILE_LABEL : undefined}
+      style={catalogLabel ? NAME : { ...NAME, ...NAME_SHADOW }}
+    >
       {name}
     </span>
   )

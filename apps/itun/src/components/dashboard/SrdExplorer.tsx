@@ -152,7 +152,7 @@ function SrdHome({
         <div className="pc-srd-catalog">
           {sections.map((section) => (
             <div key={section.label}>
-              <Slab as="h2" variant="solid" label={section.label} className="mb-2" />
+              <Slab as="h2" variant="solid" label={section.label} style={{ marginBottom: '8px' }} />
               <div className="pc-srd-catalog-grid">
                 {section.schemas.map((card) => (
                   <CatalogTile

@@ -1,8 +1,17 @@
 import type { CSSProperties, KeyboardEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
+import {
+  borderWidth,
+  color,
+  font,
+  fontSize,
+  radius,
+  space,
+  tracking,
+  weight,
+} from '../../design/tokens'
 import type { SizeRung } from '../../styles/sizing'
-import { cn } from '../../utils/cn'
 import { capsLabel } from '../chrome/capsLabel'
 import { POSTER_STAMP } from '../chrome/posterStamp'
 import { Stat } from '../shared/Stat'
@@ -111,7 +120,181 @@ export type VitalGaugeProps = {
  *
  * Distinct from `StatBlock` (which keeps serving rail / NPC / tally / spec-strip
  * / snapshot-bay consumers). Themes per sheet via the `--tone*` CSS vars.
+ *
+ * Styling follows tailwind-removal.md §4: static geometry, type and colour as
+ * the style objects below; the hover-only halves (the segment lift, the muted
+ * glyphs that ink on hover, the provenance triggers, which take no `style`) as
+ * `.su-vital-gauge__*` in `styles/index.css`.
  */
+
+const TABULAR: CSSProperties = { fontVariantNumeric: 'tabular-nums' }
+
+/** An editable segment's static half; the hover lift is `.su-vital-gauge__pip`. */
+const PIP_BUTTON: CSSProperties = {
+  cursor: 'pointer',
+  padding: space[0],
+  transitionProperty: 'transform, translate, scale, rotate',
+  transitionDuration: '120ms',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+}
+
+// — compact —
+const C_READOUT: CSSProperties = {
+  display: 'flex',
+  minWidth: 0,
+  flex: 1,
+  flexDirection: 'column',
+  gap: space[4],
+}
+const C_HEAD: CSSProperties = {
+  display: 'flex',
+  alignItems: 'baseline',
+  justifyContent: 'space-between',
+  gap: space[8],
+}
+const C_LABEL: CSSProperties = { flexShrink: 0, lineHeight: 1 }
+const C_VALUE: CSSProperties = {
+  ...TABULAR,
+  flexShrink: 0,
+  whiteSpace: 'nowrap',
+  fontFamily: font.cond,
+  fontSize: fontSize.caption,
+  fontWeight: weight.bold,
+  lineHeight: 1,
+}
+const C_ROWS: CSSProperties = {
+  display: 'flex',
+  minWidth: 0,
+  flexDirection: 'column',
+  gap: '3px',
+}
+const C_ROW: CSSProperties = {
+  display: 'flex',
+  minWidth: 0,
+  justifyContent: 'center',
+  gap: '3px',
+}
+const C_PIP: CSSProperties = {
+  height: '14px',
+  width: 'calc((100% - 15px) / 6)',
+  minWidth: 0,
+  flexShrink: 0,
+  borderRadius: radius.badge,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.hairline,
+}
+const C_SHELL: CSSProperties = {
+  display: 'flex',
+  width: '100%',
+  alignItems: 'center',
+  gap: space[8],
+}
+const C_IMAGE: CSSProperties = { display: 'flex', minWidth: 0, flex: 1 }
+
+// — full —
+const ROOT: CSSProperties = { width: '100%', paddingBlock: space[4] }
+const HEAD: CSSProperties = {
+  marginBottom: space[8],
+  display: 'flex',
+  alignItems: 'baseline',
+  justifyContent: 'space-between',
+  gap: space[10],
+}
+const HEAD_LEFT: CSSProperties = {
+  display: 'flex',
+  minWidth: 0,
+  alignItems: 'baseline',
+  gap: space[6],
+}
+const STAMP: CSSProperties = {
+  padding: '0.1em 0.5em 0.16em',
+  fontSize: fontSize.caption,
+  lineHeight: 1.5,
+}
+const SUB_LABEL: CSSProperties = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  lineHeight: 1,
+  color: color.wkMuted,
+}
+const NUMERAL: CSSProperties = {
+  ...TABULAR,
+  whiteSpace: 'nowrap',
+  fontFamily: font.cond,
+  fontWeight: weight.bold,
+  lineHeight: 1,
+}
+const SLASH: CSSProperties = {
+  paddingInline: space[2],
+  fontStyle: 'normal',
+  fontSize: fontSize.readout,
+  color: color.ink75,
+}
+const MAX_INPUT: CSSProperties = {
+  ...TABULAR,
+  width: '56px',
+  borderRadius: radius.card,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.hairline,
+  borderColor: color.ink40,
+  backgroundColor: color.paper,
+  paddingInline: space[4],
+  textAlign: 'center',
+  fontSize: fontSize.readout,
+  color: color.ink,
+}
+const MAX_BUTTON: CSSProperties = {
+  cursor: 'pointer',
+  borderRadius: radius.badge,
+  paddingInline: space[2],
+  fontSize: fontSize.readout,
+  textDecorationLine: 'underline',
+  textDecorationStyle: 'dotted',
+  textUnderlineOffset: '2px',
+}
+const MAX_TEXT: CSSProperties = { fontSize: fontSize.readout, color: color.ink75 }
+const OVERRIDE_SUP: CSSProperties = {
+  marginLeft: space[2],
+  fontSize: fontSize.badge,
+  fontWeight: weight.bold,
+  color: 'var(--tone-deep)',
+}
+const REVERT: CSSProperties = {
+  marginLeft: space[4],
+  cursor: 'pointer',
+  verticalAlign: 'middle',
+  fontSize: fontSize.caption,
+  lineHeight: 1,
+}
+const PIP: CSSProperties = {
+  minHeight: 0,
+  minWidth: 0,
+  flex: 1,
+  borderWidth: borderWidth.chrome,
+  // `solid`: the base layer's `button { border: none }` leaves an editable
+  // segment with no border style, so an unlit pip vanished in Edit while Read
+  // drew it.
+  borderStyle: 'solid',
+  padding: space[0],
+}
+const PIP_DENSE: CSSProperties = { height: '18px', borderRadius: radius.badge }
+const PIP_ROOMY: CSSProperties = { height: '22px', borderRadius: radius.card }
+const CAPTION: CSSProperties = {
+  marginTop: space[6],
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: space[4],
+  lineHeight: 1,
+  color: color.ink75,
+}
+const CAPTION_OVERRIDE: CSSProperties = {
+  marginRight: 'auto',
+  letterSpacing: tracking.capsSnug,
+  color: 'var(--tone-deep)',
+}
+
 export function VitalGauge({
   label,
   subLabel,
@@ -219,41 +402,43 @@ export function VitalGauge({
 
   // Empty-segment fill differs by surface: recessed outline on a dark instrument
   // ground, paper on the light sheet.
-  const emptyFill = onDark ? 'border-paper-30 bg-transparent' : 'border-ink-50 bg-paper'
+  const emptyFill: CSSProperties = onDark
+    ? { borderColor: color.paper30, backgroundColor: 'transparent' }
+    : { borderColor: color.ink50, backgroundColor: color.paper }
   // An unlit pip past the redline keeps the empty ground and takes the
   // status-bad outline (boards D1, D4): the redline reads before the value
   // reaches it — on the sheet and the Dashboard alike, since both draw this gauge.
-  const redlineFill = onDark ? 'border-status-bad bg-transparent' : 'border-status-bad bg-paper'
-  const segFill = (state: ReturnType<typeof trackSegmentState>): string =>
+  const redlineFill: CSSProperties = {
+    borderColor: color.statusBad,
+    backgroundColor: onDark ? 'transparent' : color.paper,
+  }
+  const segFill = (state: ReturnType<typeof trackSegmentState>): CSSProperties =>
     state === 'off'
       ? emptyFill
       : state === 'redline'
         ? redlineFill
         : state === 'danger'
-          ? 'border-status-bad bg-status-bad'
-          : 'border-[var(--tone-deep)] bg-[var(--tone)]'
+          ? { borderColor: color.statusBad, backgroundColor: color.statusBad }
+          : { borderColor: 'var(--tone-deep)', backgroundColor: 'var(--tone)' }
 
   // COMPACT — the instrument bar (dashboard cue): label and value/max on one row,
   // the §4.5 pip rows beneath. No big numeral or caption.
   if (size === 'compact') {
     const readout = (
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
+      <div style={C_READOUT}>
         {/* Board D2: the label and the value share one row, the pips sit below. */}
-        <div className="flex items-baseline justify-between gap-2">
+        <div style={C_HEAD}>
           <span
-            className={cn(
-              capsLabel({ size: 'badge', tracking: 'caps' }),
-              'shrink-0 leading-none',
-              onDark ? 'text-paper' : 'text-ink'
-            )}
+            className={capsLabel({ size: 'badge', tracking: 'caps' })}
+            style={{ ...C_LABEL, color: onDark ? color.paper : color.ink }}
           >
             {label}
           </span>
           <span
-            className={cn(
-              'shrink-0 whitespace-nowrap font-cond text-caption font-bold leading-none tabular-nums',
-              isOver ? 'text-status-bad' : onDark ? 'text-paper' : 'text-ink'
-            )}
+            style={{
+              ...C_VALUE,
+              color: isOver ? color.statusBad : onDark ? color.paper : color.ink,
+            }}
           >
             {shown}/{max}
           </span>
@@ -265,17 +450,14 @@ export function VitalGauge({
          * Every pip is one sixth of the bay (less the gaps) whatever its row
          * holds, so a pip's width stays steady; a shorter row sits centred.
          */}
-        <div className="flex min-w-0 flex-col gap-[3px]">
+        <div style={C_ROWS}>
           {statBlockRowStarts(segCount).map((segRow) => (
-            <div key={segRow.start} className="flex min-w-0 justify-center gap-[3px]">
+            <div key={segRow.start} style={C_ROW}>
               {Array.from({ length: segRow.count }, (_, c) => {
                 const i = segRow.start + c
                 const state = trackSegmentState(i, shown, max, dangerFrom)
                 const on = segmentLit(state)
-                const segClass = cn(
-                  'h-[14px] w-[calc((100%-15px)/6)] min-w-0 shrink-0 rounded-badge border',
-                  segFill(state)
-                )
+                const segStyle: CSSProperties = { ...C_PIP, ...segFill(state) }
                 return editable ? (
                   <button
                     key={i}
@@ -283,13 +465,11 @@ export function VitalGauge({
                     data-pip={on ? 'on' : 'off'}
                     aria-label={`Set ${label} to ${i + 1}`}
                     onClick={() => setValue(pipClickValue(i, shown))}
-                    className={cn(
-                      segClass,
-                      'cursor-pointer p-0 transition-transform duration-[120ms] motion-safe:hover:-translate-y-px'
-                    )}
+                    className="su-vital-gauge__pip"
+                    style={{ ...segStyle, ...PIP_BUTTON }}
                   />
                 ) : (
-                  <span key={i} data-pip={on ? 'on' : 'off'} className={segClass} />
+                  <span key={i} data-pip={on ? 'on' : 'off'} style={segStyle} />
                 )
               })}
             </div>
@@ -312,10 +492,11 @@ export function VitalGauge({
         lines={provenance}
         total={max}
         overridden={isOverridden}
-        className={cn(
-          'inline-flex min-h-[24px] min-w-[24px] shrink-0 items-center justify-center border-0 text-badge leading-none',
-          onDark ? 'text-paper-60 hover:text-paper' : 'text-wk-muted hover:text-ink'
-        )}
+        className={
+          onDark
+            ? 'su-vital-gauge__prov-compact su-vital-gauge__prov-compact--on-dark'
+            : 'su-vital-gauge__prov-compact'
+        }
       >
         {isOverridden ? '*' : 'ⓘ'}
       </StatProvenance>
@@ -325,8 +506,8 @@ export function VitalGauge({
     // the readout alone and the trigger sits beside it.
     if (!editable && trigger) {
       return (
-        <div className={cn('flex w-full items-center gap-2', className)} style={style}>
-          <div role="img" aria-label={summary} className="flex min-w-0 flex-1">
+        <div className={className} style={{ ...C_SHELL, ...style }}>
+          <div role="img" aria-label={summary} style={C_IMAGE}>
             {readout}
           </div>
           {trigger}
@@ -340,8 +521,8 @@ export function VitalGauge({
         role={editable ? 'group' : 'img'}
         aria-label={summary}
         onKeyDown={editable ? onKeyDown : undefined}
-        className={cn('flex w-full items-center gap-2', className)}
-        style={style}
+        className={className}
+        style={{ ...C_SHELL, ...style }}
       >
         {readout}
         {trigger}
@@ -355,6 +536,7 @@ export function VitalGauge({
   const interactive = editable || editableMax
   const headerControl = provenance !== undefined || (isOverridden && onRevertOverride !== undefined)
   const trackIsImage = !interactive && headerControl
+  const trackGap = isDense ? '3px' : space[4]
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: role=group is a keyboard widget (arrow keys adjust the value); the segment buttons carry the click semantics
     // biome-ignore lint/a11y/useAriaPropsSupportedByRole: the role is dynamically group|img|none — each set with a label it supports — but biome can't resolve the ternary
@@ -362,26 +544,19 @@ export function VitalGauge({
       role={interactive ? 'group' : trackIsImage ? undefined : 'img'}
       aria-label={trackIsImage ? undefined : summary}
       onKeyDown={editable ? onKeyDown : undefined}
-      className={cn('w-full py-1', className)}
-      style={style}
+      className={className}
+      style={{ ...ROOT, ...style }}
     >
       {/* Label stamp + big numeral */}
-      <div className="mb-2 flex items-baseline justify-between gap-2.5">
-        <span className="flex min-w-0 items-baseline gap-1.5">
-          <span
-            className={cn(
-              POSTER_STAMP,
-              'px-[0.5em] pb-[0.16em] pt-[0.1em] text-caption leading-[1.5]'
-            )}
-          >
+      <div style={HEAD}>
+        <span style={HEAD_LEFT}>
+          <span className={POSTER_STAMP} style={STAMP}>
             {label}
           </span>
           {subLabel && (
             <span
-              className={cn(
-                capsLabel({ size: 'badge', weight: 'inherit', tracking: 'caps' }),
-                'truncate leading-none text-wk-muted'
-              )}
+              className={capsLabel({ size: 'badge', weight: 'inherit', tracking: 'caps' })}
+              style={SUB_LABEL}
             >
               {subLabel}
             </span>
@@ -399,13 +574,13 @@ export function VitalGauge({
             repo-wide one: WizShell, AppBar, CountStepper, ModeDoor and ITUN's
             PilotSheet all reach into the same empty band), not a local
             substitution. */}
-        <span className="whitespace-nowrap font-cond font-bold leading-none tabular-nums">
+        <span style={NUMERAL}>
           <b
-            className={cn(
-              'font-bold',
-              isOver ? 'text-status-bad' : 'text-ink',
-              isDense ? 'text-display' : 'text-display-lg'
-            )}
+            style={{
+              fontWeight: weight.bold,
+              color: isOver ? color.statusBad : color.ink,
+              fontSize: isDense ? fontSize.display : fontSize.displayLg,
+            }}
           >
             {shown}
           </b>
@@ -414,7 +589,7 @@ export function VitalGauge({
               3.64:1); the max sits on the same rung rather than a step above,
               because the hierarchy this gauge is built on is the 31px bold
               numeral against this whole cluster, not the 1-rung step inside it. */}
-          <i className={cn('px-0.5 not-italic text-readout text-ink-75')}>/</i>
+          <i style={SLASH}>/</i>
           {editingMax ? (
             <input
               ref={maxInputRef}
@@ -427,24 +602,19 @@ export function VitalGauge({
               onKeyDown={onMaxKeyDown}
               onBlur={commitMax}
               aria-label={`Set ${label} max`}
-              className={cn(
-                'w-14 rounded-card border border-ink-40 bg-paper px-1 text-center text-readout tabular-nums text-ink'
-              )}
+              style={MAX_INPUT}
             />
           ) : editableMax ? (
             <button
               type="button"
               onClick={beginEditMax}
               aria-label={`Override ${label} max (currently ${max})`}
-              className={cn(
-                'cursor-pointer rounded-badge px-0.5 text-readout underline decoration-dotted underline-offset-2',
-                isOverridden ? 'text-[var(--tone-deep)]' : 'text-ink-75'
-              )}
+              style={{ ...MAX_BUTTON, color: isOverridden ? 'var(--tone-deep)' : color.ink75 }}
             >
               {max}
             </button>
           ) : (
-            <span className={cn('text-readout text-ink-75')}>{max}</span>
+            <span style={MAX_TEXT}>{max}</span>
           )}
           {isOverridden &&
             (provenance ? (
@@ -453,15 +623,12 @@ export function VitalGauge({
                 lines={provenance}
                 total={max}
                 overridden
-                className="ml-0.5 border-b-0 align-super text-badge font-bold text-[var(--tone-deep)]"
+                className="su-vital-gauge__prov-mark"
               >
                 *
               </StatProvenance>
             ) : (
-              <sup
-                title={`Overridden from ${overriddenFrom}`}
-                className="ml-0.5 text-badge font-bold text-[var(--tone-deep)]"
-              >
+              <sup title={`Overridden from ${overriddenFrom}`} style={OVERRIDE_SUP}>
                 *
               </sup>
             ))}
@@ -470,7 +637,7 @@ export function VitalGauge({
               statLabel={`Max ${label}`}
               lines={provenance}
               total={max}
-              className="ml-1 border-b-0 align-middle text-badge leading-none text-wk-muted hover:text-ink"
+              className="su-vital-gauge__prov-info"
             >
               ⓘ
             </StatProvenance>
@@ -481,7 +648,8 @@ export function VitalGauge({
               onClick={onRevertOverride}
               aria-label={`Revert ${label} max to derived ${overriddenFrom}`}
               title={`Revert to derived (${overriddenFrom})`}
-              className="ml-1 cursor-pointer align-middle text-caption leading-none text-wk-muted hover:text-ink"
+              className="su-vital-gauge__revert"
+              style={REVERT}
             >
               ↺
             </button>
@@ -495,22 +663,19 @@ export function VitalGauge({
       <div
         role={trackIsImage ? 'img' : undefined}
         aria-label={trackIsImage ? summary : undefined}
-        className={cn('flex flex-col', isDense ? 'gap-[3px]' : 'gap-1')}
+        style={{ display: 'flex', flexDirection: 'column', gap: trackGap }}
       >
         {statBlockRowStarts(segCount).map((segRow) => (
-          <div key={segRow.start} className={cn('flex', isDense ? 'gap-[3px]' : 'gap-1')}>
+          <div key={segRow.start} style={{ display: 'flex', gap: trackGap }}>
             {Array.from({ length: segRow.count }).map((_, c) => {
               const i = segRow.start + c
               const state = trackSegmentState(i, shown, max, dangerFrom)
               const on = segmentLit(state)
-              const segClass = cn(
-                // `border-solid`: the base layer's `button { border: none }`
-                // leaves an editable segment with no border style, so an unlit
-                // pip vanished in Edit while Read drew it.
-                'min-h-0 min-w-0 flex-1 border-chrome border-solid p-0',
-                isDense ? 'h-[18px] rounded-badge' : 'h-[22px] rounded-card',
-                segFill(state)
-              )
+              const segStyle: CSSProperties = {
+                ...PIP,
+                ...(isDense ? PIP_DENSE : PIP_ROOMY),
+                ...segFill(state),
+              }
               return editable ? (
                 <button
                   key={i}
@@ -518,13 +683,11 @@ export function VitalGauge({
                   data-pip={on ? 'on' : 'off'}
                   aria-label={`Set ${label} to ${i + 1}`}
                   onClick={() => setValue(pipClickValue(i, shown))}
-                  className={cn(
-                    segClass,
-                    'cursor-pointer transition-transform duration-[120ms] motion-safe:hover:-translate-y-px'
-                  )}
+                  className="su-vital-gauge__pip"
+                  style={{ ...segStyle, ...PIP_BUTTON }}
                 />
               ) : (
-                <span key={i} data-pip={on ? 'on' : 'off'} className={segClass} />
+                <span key={i} data-pip={on ? 'on' : 'off'} style={segStyle} />
               )
             })}
           </div>
@@ -534,16 +697,10 @@ export function VitalGauge({
       {/* Caption — right-aligned Current / Max; an override note sits left. */}
       {(showCaption || isOverridden) && (
         <div
-          className={cn(
-            capsLabel({ size: 'badge', weight: 'semibold', tracking: 'eyebrow' }),
-            'mt-1.5 flex items-center justify-end gap-1 leading-none text-ink-75'
-          )}
+          className={capsLabel({ size: 'badge', weight: 'semibold', tracking: 'eyebrow' })}
+          style={CAPTION}
         >
-          {isOverridden && (
-            <span className="mr-auto tracking-caps-snug text-[var(--tone-deep)]">
-              overridden from {overriddenFrom}
-            </span>
-          )}
+          {isOverridden && <span style={CAPTION_OVERRIDE}>overridden from {overriddenFrom}</span>}
           {showCaption && (
             <>
               <span>{capLeft}</span>

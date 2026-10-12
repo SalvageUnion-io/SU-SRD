@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { color } from '../../../design/tokens'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
 import { ConditionChip, Conditions } from '../Conditions'
@@ -30,7 +31,7 @@ describe('Field / Input', () => {
     )
     expect(screen.getByLabelText(/Name/)).toBeTruthy()
     // The required mark rides inside the ink Stamp (white on ink), not a rust glyph.
-    expect(screen.getByText('*').closest('.bg-ink')).not.toBeNull()
+    expect(screen.getByText('*').closest('.su-badge--on-ink')).not.toBeNull()
   })
 
   test('input carries the focus ring classes', () => {
@@ -56,7 +57,7 @@ describe('Field / Input', () => {
     render(<Select aria-label="class" />)
     for (const label of ['motto', 'class']) {
       const el = screen.getByLabelText(label)
-      expect(el.className).toContain('border-ink')
+      expect(el.className).toContain('su-text-input')
       expect(el.className).toContain(INPUT_FOCUS)
     }
   })
@@ -72,8 +73,8 @@ describe('KvRow', () => {
   test('an empty value renders the muted "required" placeholder — never rust (§3.1)', () => {
     render(<KvRow label="Motto" value={null} />)
     const placeholder = screen.getByText('required')
-    expect(placeholder.className).toContain('text-ink-50')
-    expect(placeholder.className).not.toContain('text-rust')
+    expect(placeholder.style.color).toBe(color.ink50)
+    expect(placeholder.style.color).not.toBe(color.rust)
   })
 })
 
@@ -96,7 +97,7 @@ describe('ModeDoor', () => {
         Empty sheet.
       </ModeDoor>
     )
-    expect(screen.getByRole('button').className).toContain('border-dashed')
+    expect(screen.getByRole('button').style.borderStyle).toBe('dashed')
   })
 })
 
@@ -107,14 +108,14 @@ describe('Badge tone / quiet preset', () => {
         Crawler
       </Badge>
     )
-    expect(screen.getByText('Crawler').className).toContain('text-paper')
+    expect(screen.getByText('Crawler').className).toContain('su-badge--tone-crawler')
     cleanup()
     render(
       <Badge surface="tone" tone="pilot">
         Pilot
       </Badge>
     )
-    expect(screen.getByText('Pilot').className).toContain('bg-pilot')
+    expect(screen.getByText('Pilot').className).toContain('su-badge--tone-pilot')
   })
 
   test('status fills match border to fill', () => {
@@ -124,8 +125,8 @@ describe('Badge tone / quiet preset', () => {
       </Badge>
     )
     const pill = screen.getByText('Damaged')
-    expect(pill.className).toContain('bg-status-warn')
-    expect(pill.className).toContain('border-status-warn')
+    expect(pill.className).toContain('su-badge--tone')
+    expect(pill.className).toContain('su-badge--tone-warn')
   })
 
   test('the quiet preset renders a borderless keyword chip', () => {
@@ -137,10 +138,10 @@ describe('Badge tone / quiet preset', () => {
 describe('Panel / Row', () => {
   test('panel defaults to ink border, soft swaps to faint', () => {
     const { container } = render(<Panel>content</Panel>)
-    expect(container.firstElementChild?.className).toContain('border-ink')
+    expect(rootEl(container).style.borderColor).toBe(color.ink)
     cleanup()
     const { container: soft } = render(<Panel soft>content</Panel>)
-    expect(soft.firstElementChild?.className).toContain('border-wk-faint')
+    expect(rootEl(soft).style.borderColor).toBe(color.wkFaint)
   })
 
   test('row renders name, meta and trailing actions', () => {
@@ -162,7 +163,7 @@ describe('EmptyState', () => {
     const { container } = render(<EmptyState headline="No pilots yet" />)
     expect(container.firstElementChild?.className).toContain('border-dashed')
     const stamp = screen.getByText('No pilots yet')
-    expect(stamp.className).toContain('bg-ink')
+    expect(stamp.className).toContain('su-badge--on-ink')
   })
 
   test('quiet variant renders the centered faint dashed placeholder with message and CTA', () => {
@@ -211,17 +212,17 @@ describe('Conditions', () => {
 
   test('quiet tone is the neutral, prose-cased chip (no warn fill)', () => {
     const { container } = render(<ConditionChip label="Owes a debt" tone="quiet" />)
+    expect(rootEl(container).style.textTransform).toBe('none')
     const className = container.firstElementChild?.className ?? ''
-    expect(className).toContain('normal-case')
-    expect(className).not.toContain('bg-status-warn')
+    expect(className).not.toContain('su-badge--tone-warn')
   })
 
   test('inactive condition chip is paper, active is warn', () => {
     const { container } = render(<ConditionChip label="Burning" active={false} />)
-    expect(container.firstElementChild?.className).toContain('bg-paper')
+    expect(container.firstElementChild?.className).toContain('su-badge--outline')
     cleanup()
     const { container: active } = render(<ConditionChip label="Burning" />)
-    expect(active.firstElementChild?.className).toContain('bg-status-warn')
+    expect(active.firstElementChild?.className).toContain('su-badge--tone-warn')
   })
 })
 
@@ -229,8 +230,8 @@ describe('StepButton / Button xs', () => {
   test('stepbtn is a 24px square button', () => {
     render(<StepButton aria-label="Increase HP">+</StepButton>)
     const btn = screen.getByLabelText('Increase HP')
-    expect(btn.className).toContain('h-6')
-    expect(btn.className).toContain('w-6')
+    expect(btn.style.height).toBe('24px')
+    expect(btn.style.width).toBe('24px')
   })
 
   test('Button size="mini" renders the compact uppercase action (former MiniBtn)', () => {
@@ -248,8 +249,7 @@ describe('Stamp', () => {
   test('on-ink is the default surface; text is condensed uppercase', () => {
     render(<Badge shape="stamp">Mule</Badge>)
     const stamp = screen.getByText('Mule')
-    expect(stamp.className).toContain('bg-ink')
-    expect(stamp.className).toContain('text-paper')
+    expect(stamp.className).toContain('su-badge--on-ink')
     // One assertion, on the recipe's own output for the rungs a stamp uses,
     // where there were two on Tailwind spellings (`uppercase`, then
     // `tracking-caps-tight`). Both were describing the same fact — that a stamp
@@ -266,10 +266,9 @@ describe('Stamp', () => {
       </Badge>
     )
     const stamp = rootEl(container)
-    expect(stamp.className).toContain('bg-paper')
-    expect(stamp.className).toContain('text-ink')
+    expect(stamp.className).toContain('su-badge--inverse')
     // StampSeam: self-height-centred over the top border.
-    expect(stamp.className).toContain('-translate-y-1/2')
+    expect(stamp.className).toContain('su-stamp-seam')
   })
 })
 
@@ -291,7 +290,7 @@ describe('StatusBadge', () => {
   test('renders the status label with the matching fill', () => {
     const { container } = render(<StatusBadge status="damaged" />)
     expect(screen.getByText('Damaged')).toBeTruthy()
-    expect(container.firstElementChild?.className).toContain('bg-status-warn')
+    expect(container.firstElementChild?.className).toContain('su-badge--tone-warn')
   })
 
   test('becomes a button when a cycle handler is provided', () => {

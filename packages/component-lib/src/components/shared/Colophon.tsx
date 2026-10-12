@@ -55,7 +55,8 @@ export function Colophon({
             as="h2"
             variant="solid"
             label="Support the Project"
-            className="mb-0 w-full"
+            className="w-full"
+            style={{ marginBottom: 0 }}
             actions={<KofiButton code={kofiCode} />}
           />
           {footer}

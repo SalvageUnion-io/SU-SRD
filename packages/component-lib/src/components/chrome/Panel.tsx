@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { cn } from '../../utils/cn'
+import type { CSSProperties, ReactNode } from 'react'
+import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 
 type PanelProps = {
   children: ReactNode
@@ -10,6 +10,13 @@ type PanelProps = {
   'data-testid'?: string
 }
 
+const PANEL = {
+  backgroundColor: color.paper,
+  borderRadius: radius.panel,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.chrome,
+} satisfies CSSProperties
+
 /**
  * App-chrome panel (design-spec §2.10 `.panel`): 1.5px border, 6px radius,
  * paper ground. `soft` swaps to the faint border.
@@ -18,11 +25,8 @@ export function Panel({ children, soft = false, className, 'data-testid': testId
   return (
     <div
       data-testid={testId}
-      className={cn(
-        'rounded-panel border-chrome bg-paper',
-        soft ? 'border-wk-faint' : 'border-ink',
-        className
-      )}
+      className={className}
+      style={{ ...PANEL, borderColor: soft ? color.wkFaint : color.ink }}
     >
       {children}
     </div>
@@ -50,6 +54,48 @@ type RowProps = {
   className?: string
 }
 
+const ROW = {
+  backgroundColor: color.paper,
+  borderColor: color.ink,
+  borderRadius: radius.card,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.chrome,
+  display: 'flex',
+  gap: space[12],
+  paddingBlock: space[10],
+  paddingInline: space[12],
+} satisfies CSSProperties
+
+const ROW_TEXT = { minWidth: 0, flex: '1 1 0%' } satisfies CSSProperties
+
+const TRUNCATE = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+const ROW_NAME = {
+  color: color.ink,
+  fontFamily: font.body,
+  fontSize: fontSize.lede,
+  fontWeight: weight.medium,
+} satisfies CSSProperties
+
+const ROW_META = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+} satisfies CSSProperties
+
+const ROW_ACTIONS = {
+  alignItems: 'center',
+  display: 'flex',
+  flexShrink: 0,
+  flexWrap: 'wrap',
+  gap: space[6],
+} satisfies CSSProperties
+
 /**
  * Saved-build row (design-spec §2.10 `.row`): 1.5px ink frame, name + muted
  * meta caption + trailing actions.
@@ -57,23 +103,19 @@ type RowProps = {
 export function Row({ name, meta, actions, wrap = false, className }: RowProps) {
   return (
     <div
-      className={cn(
-        'flex gap-3 rounded-card border-chrome border-ink bg-paper px-3 py-2.5',
+      className={className}
+      style={{
+        ...ROW,
         // A wrapping row aligns its columns at the TOP: with two lines of meta,
         // centring pushes the trailing actions to the middle of the block.
-        wrap ? 'flex-wrap items-start' : 'items-center',
-        className
-      )}
+        ...(wrap ? { flexWrap: 'wrap', alignItems: 'flex-start' } : { alignItems: 'center' }),
+      }}
     >
-      <div className="min-w-0 flex-1">
-        <div className={cn('font-body text-lede font-medium text-ink', !wrap && 'truncate')}>
-          {name}
-        </div>
-        {meta && (
-          <div className={cn('font-body text-xs text-wk-muted', !wrap && 'truncate')}>{meta}</div>
-        )}
+      <div style={ROW_TEXT}>
+        <div style={wrap ? ROW_NAME : { ...ROW_NAME, ...TRUNCATE }}>{name}</div>
+        {meta && <div style={wrap ? ROW_META : { ...ROW_META, ...TRUNCATE }}>{meta}</div>}
       </div>
-      {actions && <div className="flex shrink-0 flex-wrap items-center gap-1.5">{actions}</div>}
+      {actions && <div style={ROW_ACTIONS}>{actions}</div>}
     </div>
   )
 }

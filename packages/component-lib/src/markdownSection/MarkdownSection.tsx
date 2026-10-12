@@ -27,7 +27,7 @@ export function MarkdownSection({ markdown, className }: MarkdownSectionProps) {
 
   return (
     <section className={cn('flex flex-col gap-3 text-sm leading-relaxed', className)}>
-      {heading && <Slab as="h2" variant="solid" label={heading} className="mb-0" />}
+      {heading && <Slab as="h2" variant="solid" label={heading} style={{ marginBottom: 0 }} />}
       {blocks.map((block) =>
         block.kind === 'list' ? (
           <ul key={block.items.join('|')} className="flex list-disc flex-col gap-1 pl-5">

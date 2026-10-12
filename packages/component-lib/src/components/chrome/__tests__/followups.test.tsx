@@ -8,7 +8,7 @@ import { InlineRef } from '../InlineRef'
 describe('Badge (unified) + presets', () => {
   test('solid is ink-on-paper; tone fills the surface', () => {
     render(<Badge>Ballistic</Badge>)
-    expect(screen.getByText('Ballistic').className).toContain('bg-ink')
+    expect(screen.getByText('Ballistic').className).toContain('su-badge--solid')
     cleanup()
     render(
       <Badge surface="tone" tone="bad">
@@ -16,27 +16,27 @@ describe('Badge (unified) + presets', () => {
       </Badge>
     )
     const bad = screen.getByText('Destroyed')
-    expect(bad.className).toContain('bg-status-bad')
-    expect(bad.className).toContain('border-status-bad')
+    expect(bad.className).toContain('su-badge--tone')
+    expect(bad.className).toContain('su-badge--tone-bad')
   })
 
   test('every badge shares the 22px height + 2px radius', () => {
     render(<Badge surface="quiet">Uses</Badge>)
     const chip = screen.getByText('Uses')
-    expect(chip.className).toContain('h-[22px]')
-    expect(chip.className).toContain('rounded-badge')
+    // `.su-badge` carries the 22px height and the badge radius (styles/index.css).
+    expect(chip.className).toContain('su-badge')
   })
 
   test('Badge / tone / quiet presets still render their signature fills', () => {
     render(<Badge>Armour</Badge>)
-    expect(screen.getByText('Armour').className).toContain('bg-ink')
+    expect(screen.getByText('Armour').className).toContain('su-badge--solid')
     cleanup()
     render(
       <Badge surface="tone" tone="mech">
         Mule
       </Badge>
     )
-    expect(screen.getByText('Mule').className).toContain('bg-mech')
+    expect(screen.getByText('Mule').className).toContain('su-badge--tone-mech')
     cleanup()
     render(<Badge surface="quiet">Uses</Badge>)
     expect(screen.getByText('Uses').style.backgroundColor).toBe(color.wkBg)

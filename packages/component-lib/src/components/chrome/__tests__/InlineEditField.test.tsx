@@ -283,7 +283,7 @@ describe('bordered value box', () => {
       <InlineEditField value="Roach-Boy" onSave={() => {}} ariaLabel="Callsign" bordered />
     )
     const box = container.firstElementChild as HTMLElement
-    expect(box.className).toContain('border-ink')
+    expect(box.className).toContain('su-inline-edit__box')
   })
 
   test('while editing the box does not draw a second border around the input', () => {
@@ -293,7 +293,7 @@ describe('bordered value box', () => {
     )
     openEditor()
     const box = container.firstElementChild as HTMLElement
-    expect(box.className).not.toContain('border-ink')
+    expect(box.className).not.toContain('su-inline-edit__box')
   })
 
   test('an awaited async save still returns to the readout', async () => {

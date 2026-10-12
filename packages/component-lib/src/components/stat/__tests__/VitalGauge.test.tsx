@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { color } from '../../../design/tokens'
 import { VitalGauge } from '../VitalGauge'
 
 /** Narrow a possibly-null query result, failing the test loudly if absent. */
@@ -32,7 +33,7 @@ describe('VitalGauge — render', () => {
     render(<VitalGauge label="HP" value={7} max={10} onChange={() => {}} />)
     const group = screen.getByRole('group', { name: 'HP 7 of 10' })
     expect(group.querySelectorAll('[data-pip]').length).toBe(10)
-    expect(group.querySelectorAll('[data-pip="on"]').length).toBe(7)
+    expect(group.querySelectorAll<HTMLElement>('[data-pip="on"]').length).toBe(7)
     expect(group.querySelectorAll('[data-pip="off"]').length).toBe(3)
   })
 
@@ -218,7 +219,7 @@ describe('VitalGauge — cap override (ADR-022)', () => {
     expect(screen.queryByText(/overridden from/i)).toBeNull()
     expect(screen.queryByRole('button', { name: /revert sp max/i })).toBeNull()
     const maxButton = screen.getByRole('button', { name: /override sp max/i })
-    expect(maxButton.className).not.toContain('text-[var(--tone-deep)]')
+    expect(maxButton.style.color).not.toBe('var(--tone-deep)')
     cleanup()
 
     render(
@@ -232,8 +233,8 @@ describe('VitalGauge — cap override (ADR-022)', () => {
         onRevertOverride={() => {}}
       />
     )
-    expect(screen.getByRole('button', { name: /override sp max/i }).className).toContain(
-      'text-[var(--tone-deep)]'
+    expect(screen.getByRole('button', { name: /override sp max/i }).style.color).toBe(
+      'var(--tone-deep)'
     )
     expect(screen.getByText('*')).toBeTruthy()
   })
@@ -256,33 +257,31 @@ describe('VitalGauge — danger', () => {
   test('lit segments at or past the danger index read status-bad', () => {
     render(<VitalGauge label="Heat" value={9} max={10} danger={7} onChange={() => {}} />)
     const group = screen.getByRole('group', { name: 'Heat 9 of 10' })
-    const segments = Array.from(group.querySelectorAll('[data-pip="on"]'))
+    const segments = Array.from(group.querySelectorAll<HTMLElement>('[data-pip="on"]'))
     expect(segments.length).toBe(9)
     // Segments 8 and 9 (index 7, 8) are past the danger line → red fill.
-    const dangerSegs = segments.filter((s) => must(s).className.includes('bg-status-bad'))
+    const dangerSegs = segments.filter((s) => must(s).style.backgroundColor === color.statusBad)
     expect(dangerSegs.length).toBe(2)
     // Segments below the danger line keep the accent tone.
-    const toneSegs = segments.filter((s) => must(s).className.includes('bg-[var(--tone)]'))
+    const toneSegs = segments.filter((s) => must(s).style.backgroundColor === 'var(--tone)')
     expect(toneSegs.length).toBe(7)
   })
 
   test('the cap reads as a Cap | N Stat chip beside the stamp', () => {
     render(<VitalGauge label="Heat" value={0} max={8} cap={8} readOnly />)
     const track = screen.getByRole('img', { name: 'Heat 0 of 8' })
-    const cap = Array.from(track.querySelectorAll('span')).find(
-      (s) => s.textContent === 'Cap8' && s.className.includes('rounded-badge')
-    )
+    const cap = Array.from(track.querySelectorAll('span')).find((s) => s.textContent === 'Cap8')
     expect(cap).toBeDefined()
   })
 
   test('unlit segments past the danger index carry the status-bad outline', () => {
     render(<VitalGauge label="Heat" value={0} max={8} danger={5} readOnly />)
     const track = screen.getByRole('img', { name: 'Heat 0 of 8' })
-    const unlit = Array.from(track.querySelectorAll('[data-pip="off"]'))
+    const unlit = Array.from(track.querySelectorAll<HTMLElement>('[data-pip="off"]'))
     expect(unlit.length).toBe(8)
-    const redline = unlit.filter((s) => must(s).className.includes('border-status-bad'))
+    const redline = unlit.filter((s) => must(s).style.borderColor === color.statusBad)
     expect(redline.length).toBe(3)
-    expect(redline.every((s) => !must(s).className.includes('bg-status-bad'))).toBe(true)
+    expect(redline.every((s) => must(s).style.backgroundColor !== color.statusBad)).toBe(true)
   })
 })
 

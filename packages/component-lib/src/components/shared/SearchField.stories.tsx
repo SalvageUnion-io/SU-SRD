@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
+import '../../stories/_stories.css'
 import { SearchField } from './SearchField'
 
 export default {
@@ -15,11 +17,11 @@ export const Default: Story = () => {
   const [a, setA] = useState('')
   const [b, setB] = useState('Iron Mongrel')
   return (
-    <div className="flex max-w-[900px] flex-col gap-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[24], maxWidth: '900px' }}>
       <SearchField
         aria-label="Search the SRD"
         placeholder="Search…"
-        className="w-52"
+        style={{ width: '13rem' }}
         value={a}
         onChange={(e) => setA(e.target.value)}
       />
@@ -28,7 +30,7 @@ export const Default: Story = () => {
         aria-label="Search the SRD"
         placeholder="Search the SRD…"
         glyphSize={16}
-        containerClassName="py-2 text-sm"
+        containerClassName="su-story-search-field--page"
         value={b}
         onChange={(e) => setB(e.target.value)}
       />
