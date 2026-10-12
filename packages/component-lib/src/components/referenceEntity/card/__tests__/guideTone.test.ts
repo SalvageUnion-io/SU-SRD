@@ -90,12 +90,24 @@ describe('guide tone — no other domain is disturbed', () => {
     }
   })
 
-  test('gear still rides the tech-level ramp', () => {
-    const system = SalvageUnionReference.Systems.all().find((s) => typeof s.techLevel === 'number')
-    if (!system) throw new Error('no system with a numeric tech level')
-    const tone = resolveDomainTone('systems', system)
+  test('equipment still rides the tech-level ramp', () => {
+    const item = SalvageUnionReference.Equipment.all().find((e) => typeof e.techLevel === 'number')
+    if (!item) throw new Error('no equipment with a numeric tech level')
+    const tone = resolveDomainTone('equipment', item)
     expect(tone.bg).toMatch(/^bg-tl-/)
     expect(tone.bgColor).toBeUndefined()
+  })
+
+  test('systems and modules are mech green, never a tech-level ground (§3.8)', () => {
+    for (const [schemaName, all] of [
+      ['systems', SalvageUnionReference.Systems.all()],
+      ['modules', SalvageUnionReference.Modules.all()],
+    ] as const) {
+      for (const entity of all) {
+        const tone = resolveDomainTone(schemaName, entity)
+        expect(tone.bg === 'bg-mech' || tone.bg === 'bg-ink-2').toBe(true)
+      }
+    }
   })
 
   test('a mech still resolves to the mech domain hue', () => {

@@ -731,7 +731,7 @@ const OVER_BUDGET: Record<string, number> = {
   'apps/srd/CLAUDE.md': 11_724,
   'CLAUDE.md': 11_797,
   'packages/component-lib/CLAUDE.md': 15_719,
-  'packages/salvageunion-reference/CLAUDE.md': 9_309,
+  'packages/salvageunion-reference/CLAUDE.md': 8_922,
 }
 
 /**

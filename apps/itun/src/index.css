@@ -8,6 +8,8 @@
 @import './styles/print.css';
 /* HeaderMenu's hover/open/highlight colours (the per-property split rule). */
 @import './styles/headerMenu.css';
+/* GlobalSearch's result-row hover/selected ground. */
+@import './styles/globalSearch.css';
 /* The NPC designer's responsive rules (step strip, phone preview). */
 @import './styles/npc.css';
 /* The Shelves band's paper-on-ink controls (board S1). */

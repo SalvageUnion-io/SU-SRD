@@ -31,10 +31,9 @@ async function runHook(script: string, payload: unknown): Promise<number> {
 /** A hook blocks on exit 2; 0 allows. */
 const ALLOW = 0
 
-const settings: { permissions: { deny: string[] } } = await Bun.file(
-  join(ROOT, '.claude', 'settings.json')
-).json()
-const deny = settings.permissions.deny
+const settings: { permissions: { allow: string[]; ask: string[]; deny: string[] } } =
+  await Bun.file(join(ROOT, '.claude', 'settings.json')).json()
+const { allow, ask, deny } = settings.permissions
 
 /** The globs inside the `Edit(...)` deny rules. */
 const editGlobs = deny.flatMap((rule) => /^Edit\((.+)\)$/.exec(rule)?.[1] ?? [])
@@ -102,6 +101,23 @@ describe('settings.json deny rules', () => {
   test.each(['npm', 'yarn', 'pnpm'])('denies %s, directly and behind bunx', (pm) => {
     expect(deny).toContain(`Bash(${pm} *)`)
     expect(deny).toContain(`Bash(bunx ${pm}*)`)
+  })
+
+  // `Bash(gh *)` and the git allow rules would otherwise run these unprompted;
+  // CLAUDE.md's Merging section forbids a hand rebase or a force push.
+  test.each([
+    'Bash(gh pr merge*)',
+    'Bash(gh pr close*)',
+    'Bash(gh release create*)',
+    'Bash(git rebase*)',
+    'Bash(git push --force-with-lease*)',
+    'Bash(git push * --force-with-lease*)',
+  ])('asks before %s', (rule) => {
+    expect(ask).toContain(rule)
+  })
+
+  test.each(['rebase', 'push --force-with-lease'])('never allows git %s outright', (cmd) => {
+    expect(allow.filter((rule) => rule.startsWith(`Bash(git ${cmd}`))).toEqual([])
   })
 
   test.each(['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml'])(

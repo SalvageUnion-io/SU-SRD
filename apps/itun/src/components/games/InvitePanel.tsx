@@ -93,7 +93,7 @@ const META: CSSProperties = { fontFamily: font.body, fontSize: fontSize.sm, colo
 const URL_BOX: CSSProperties = {
   display: 'block',
   padding: `${space[8]} ${space[10]}`,
-  background: color.wkBg2,
+  background: color.wkBg,
   borderRadius: radius.card,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: fontSize.sm,
