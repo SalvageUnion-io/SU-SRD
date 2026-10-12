@@ -10,23 +10,22 @@
  *  - **how it works**, in three steps: Create a Pilot → Create a Mech → Join
  *    or make a Crawler. Playing a Game happens from the Crawler, so it is not a
  *    step of its own;
- *  - **the Starter Set** as clickable rows, one column per kind, each row
- *    opening its read-only sheet, with one Leyline Press credit for the
- *    section rather than a stamp on every row.
+ *  - **the Starter Set** as `StarterCard`s (the card `/starter` lists them
+ *    with), one column per kind, each opening its read-only sheet, with one
+ *    Leyline Press credit for the section rather than a stamp on every card.
  *
  * Style objects and tokens only (tailwind-removal.md).
  */
 
 import { buttonVariants, ChapterBand, Slab, tokens } from 'component-lib'
-import { ChevronRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { resolveClassName } from '../../lib/classRef'
 import type { StarterKind } from '../../lib/starterSet/copyStarter'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/copyStarter'
-import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from '../../lib/starterSet/starterSet'
+import { STARTER_PILOTS } from '../../lib/starterSet/starterSet'
 import { SignInControl } from '../account/SignInControl'
 import { AppLink } from '../shared/AppLink'
-import { crawlerStats, mechChassisStats } from './rowStats'
+import { StarterCard } from '../starterSet/StarterCard'
+import { starterShelves } from '../starterSet/starterShelves'
 
 /** The width the band's notch and the content under it share. */
 const MEASURE = '75rem'
@@ -159,20 +158,19 @@ const CREDIT = {
 } satisfies CSSProperties
 
 const SHELF = {
-  backgroundColor: tokens.color.paper,
-  borderColor: tokens.color.ink,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.chrome,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[10],
 } satisfies CSSProperties
 
+/** The shelf's head over a rule in the kind's tone: the kind, seen before it is read. */
 const SHELF_HEAD = {
   alignItems: 'baseline',
-  borderBottomColor: tokens.color.ink20,
   borderBottomStyle: 'solid',
-  borderBottomWidth: tokens.borderWidth.hairline,
+  borderBottomWidth: tokens.space[6],
   display: 'flex',
   justifyContent: 'space-between',
-  padding: `${tokens.space[12]} ${tokens.space[14]}`,
+  paddingBottom: tokens.space[4],
 } satisfies CSSProperties
 
 const SHELF_TITLE = {
@@ -189,96 +187,19 @@ const SHELF_COUNT = {
   fontWeight: tokens.weight.bold,
 } satisfies CSSProperties
 
-const ROWS = { listStyle: 'none', margin: 0, padding: 0 } satisfies CSSProperties
-
-const ROW = {
-  alignItems: 'center',
-  borderTopColor: tokens.color.ink15,
-  borderTopStyle: 'solid',
-  borderTopWidth: tokens.borderWidth.hairline,
-  color: tokens.color.ink,
+const CARDS = {
   display: 'flex',
-  gap: tokens.space[12],
-  minHeight: '48px',
-  padding: `0 ${tokens.space[14]}`,
-  textDecoration: 'none',
+  flexDirection: 'column',
+  gap: tokens.space[10],
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
 } satisfies CSSProperties
 
-const ROW_NAME = {
-  flex: '1 1 auto',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.readout,
-  fontWeight: tokens.weight.bold,
-  minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  textTransform: 'uppercase',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
-const ROW_DETAIL = {
-  color: tokens.color.ink75,
-  flexShrink: 0,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-} satisfies CSSProperties
-
-/** The tone rule along a shelf's top: the kind, seen before it is read. */
 const TONE: Record<StarterKind, string> = {
   pilot: tokens.color.pilot,
   mech: tokens.color.mech,
   crawler: tokens.color.crawler,
-}
-
-type StarterRow = { id: string; name: string; detail: string }
-
-type StarterShelf = { kind: StarterKind; title: string; rows: StarterRow[] }
-
-/** "Scrapper · TL 1" — the facts a row is told apart by. */
-function mechDetail(chassisRef: string): string {
-  const stats = mechChassisStats(chassisRef) ?? []
-  const chassis = stats.find((s) => s.label === 'Chassis')?.value
-  const tl = stats.find((s) => s.label === 'TL')?.value
-  return [chassis, tl === undefined ? undefined : `TL ${tl}`].filter(Boolean).join(' · ')
-}
-
-function crawlerDetail(techLevel: string, bays: number): string {
-  const stats = crawlerStats(techLevel, bays)
-  const tl = stats.find((s) => s.label === 'TL')?.value
-  return [tl === undefined ? undefined : `TL ${tl}`, `${bays} bays`].filter(Boolean).join(' · ')
-}
-
-/** The Starter Set's three shelves, built from the static seed (no reference reads but names). */
-function starterShelves(): StarterShelf[] {
-  return [
-    {
-      kind: 'pilot',
-      title: 'Pilots',
-      rows: STARTER_PILOTS.map((p) => ({
-        id: p.id,
-        name: p.name,
-        detail: resolveClassName(p.classRef),
-      })),
-    },
-    {
-      kind: 'mech',
-      title: 'Mechs',
-      rows: STARTER_MECHS.map((m) => ({
-        id: m.id,
-        name: m.name,
-        detail: mechDetail(m.chassisRef),
-      })),
-    },
-    {
-      kind: 'crawler',
-      title: STARTER_CRAWLERS.length === 1 ? 'Crawler' : 'Crawlers',
-      rows: STARTER_CRAWLERS.map((c) => ({
-        id: c.id,
-        name: c.name,
-        detail: crawlerDetail(c.techLevel, c.crawlerBays?.length ?? 0),
-      })),
-    },
-  ]
 }
 
 const STEPS = [
@@ -362,29 +283,16 @@ export function FrontDoor() {
               <section
                 key={shelf.kind}
                 aria-label={`Starter Set ${shelf.title.toLowerCase()}`}
-                style={{
-                  ...SHELF,
-                  borderTopColor: TONE[shelf.kind],
-                  borderTopWidth: tokens.space[10],
-                }}
+                style={SHELF}
               >
-                <div style={SHELF_HEAD}>
+                <div style={{ ...SHELF_HEAD, borderBottomColor: TONE[shelf.kind] }}>
                   <h3 style={SHELF_TITLE}>{shelf.title}</h3>
-                  <span style={SHELF_COUNT}>{shelf.rows.length}</span>
+                  <span style={SHELF_COUNT}>{shelf.builds.length}</span>
                 </div>
-                <ul style={ROWS}>
-                  {shelf.rows.map((row) => (
-                    <li key={row.id}>
-                      <AppLink
-                        href={`/starter/${shelf.kind}/${row.id}`}
-                        className="su-focus-ring"
-                        style={ROW}
-                        aria-label={`Read ${row.name}`}
-                      >
-                        <span style={ROW_NAME}>{row.name}</span>
-                        <span style={ROW_DETAIL}>{row.detail}</span>
-                        <ChevronRight size={16} aria-hidden="true" />
-                      </AppLink>
+                <ul style={CARDS}>
+                  {shelf.builds.map((build) => (
+                    <li key={build.id}>
+                      <StarterCard kind={shelf.kind} build={build} />
                     </li>
                   ))}
                 </ul>
