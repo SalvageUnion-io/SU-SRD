@@ -67,8 +67,8 @@ describe('⤢ overlay', () => {
   test("opens the entity's Major controls over the display, and takes focus", async () => {
     const { dialog } = await openMech()
     // Portalled into the display region, not the document body: the Major's
-    // `.pc-*` styling needs the canvas's `.pc-root` scope.
-    expect(dialog.closest('.pc-root')).toBeTruthy()
+    // `.su-dash-*` styling needs the canvas's `.su-dash-root` scope.
+    expect(dialog.closest('.su-dash-root')).toBeTruthy()
     expect(dialog.contains(document.activeElement)).toBe(true)
     // The parked mech's Reactor and Chassis, without boarding it.
     expect(within(dialog).getByText('Reactor')).toBeTruthy()

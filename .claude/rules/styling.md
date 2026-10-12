@@ -14,8 +14,8 @@ Tailwind is being removed. **The plan and its phases live in
 - **Target pattern:** `packages/component-lib/src/design/tokens.ts` (typed
   scale) + `packages/component-lib/src/styles/index.css` (the one stylesheet
   every consumer loads; `.su-*` classes over the `theme.css` tokens). The
-  Dashboard's `.pc-*` rules are ITUN's (`apps/itun/src/styles/dashboard/`),
-  not component-lib's.
+  Dashboard's `.su-dash-*` rules (the old `.pc-*`) are ITUN's
+  (`apps/itun/src/styles/dashboard/`), not component-lib's.
 - **The split is per-PROPERTY.** A property with no stateful or responsive
   variant on that element → style object. A property with **any** (`:hover`,
   `:focus-visible`, `:disabled`, `@media`, pseudo-elements, sibling selectors)

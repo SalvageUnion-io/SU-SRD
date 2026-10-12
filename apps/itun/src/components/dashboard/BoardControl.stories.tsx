@@ -60,7 +60,7 @@ function MountBay({ menu }: { menu: BoardMenu }) {
             title: 'Claim and board',
             onClose,
             body: (
-              <p className="pc-resolve-log">
+              <p className="su-dash-resolve-log">
                 {prompt.option.name} is an unclaimed spare. Claim it to make it yours in this Game,
                 then board it. Boarding doesn’t assign it to Rook.
               </p>

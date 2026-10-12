@@ -8,7 +8,7 @@
  * moving the slots. The caller is handed the ⤢ button itself, so the overlay
  * can give focus back to it when it closes.
  *
- * Style objects only, no new `.pc-*` class (tailwind-removal.md §4): nothing
+ * Style objects only, no new `.su-dash-*` class (tailwind-removal.md §4): nothing
  * here has a hover or focus state of its own; ⤢ is the shared `Button`.
  */
 
@@ -137,7 +137,7 @@ export function MinorFrame({
         </Button>
       </div>
       {view.gauges.length > 0 && (
-        <div className="pc-bay-gauges">
+        <div className="su-dash-bay-gauges">
           {view.gauges.map((g) => (
             <DashboardGauge
               key={g.label}

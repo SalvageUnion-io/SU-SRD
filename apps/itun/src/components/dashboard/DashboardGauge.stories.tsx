@@ -1,6 +1,14 @@
+import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { InstrumentStage } from './_dashboardStage'
 import { DashboardGauge } from './DashboardGauge'
+
+const STACK_16 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+} satisfies CSSProperties
 
 export default { title: 'Compositions/Dashboard/Gauge' }
 
@@ -10,7 +18,7 @@ export default { title: 'Compositions/Dashboard/Gauge' }
  * redline. Values are the real Salvage Union vitals a mech/pilot tracks.
  */
 export const Default = () => (
-  <div className="flex flex-col gap-4">
+  <div style={STACK_16}>
     <Caption>
       Instrument gauges — one gauge primitive (VitalGauge), warm-paper cockpit skin.
     </Caption>
