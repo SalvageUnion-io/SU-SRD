@@ -1,5 +1,6 @@
-import type { ElementType } from 'react'
+import type { CSSProperties, ElementType } from 'react'
 import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
+import { space } from '../../../design/tokens'
 import { Entity } from '../../../entity/Entity'
 import { cn } from '../../../utils/cn'
 import { Slab } from '../../chrome/Slab'
@@ -110,6 +111,70 @@ export function LoadoutBadge({
       // The Token's own accessible name is the entity's: never the tail glued
       // onto it (".50 Cal Machine Gun TL 1", six times over on Thunder Storm).
       mode={href ? { kind: 'link', href } : { kind: 'read' }}
+      {...(hostDown ? { instance: { condition: 'damaged' as const } } : {})}
+    />
+  )
+}
+
+const LOADOUT_PAGE: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[16] }
+
+const LOADOUT_GROUP: CSSProperties = { display: 'flex', flexDirection: 'column', gap: space[8] }
+
+/** Rows two or three abreast as the column allows, every one of a group the same height. */
+const LOADOUT_ROWS: CSSProperties = {
+  display: 'grid',
+  gap: space[8],
+  gridTemplateColumns: 'repeat(auto-fill, minmax(16rem, 1fr))',
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+}
+
+/**
+ * A pattern PAGE's loadout, under its stats: each group (Systems, Modules) a
+ * solid Slab with its count over a grid of ROWS, one form up from the card's
+ * Tokens. On its own page the build is the subject, so each part shows its
+ * head and facts, links to its page and Peeks its whole card (the Row's
+ * `peek`). No art column: the page's hero is the pattern's.
+ */
+export function PatternLoadoutRows({
+  groups,
+  as: sectionAs,
+  hostDown,
+}: {
+  groups: NestedGroup[]
+  /** The groups' heading element on a page (`sectionHeadingLevel`). */
+  as: ElementType | undefined
+  hostDown: boolean
+}) {
+  if (groups.length === 0) return null
+  return (
+    <div className="su-entity-page__loadout" style={LOADOUT_PAGE}>
+      {groups.map((group) => (
+        <section key={group.label} style={LOADOUT_GROUP}>
+          <Slab variant="solid" as={sectionAs} label={group.label} count={group.entities.length} />
+          <ul aria-label={`${group.label} installed`} data-entity-grid="" style={LOADOUT_ROWS}>
+            {group.entities.map((item, index) => (
+              <li key={cardKey(item, index)} style={{ minWidth: 0 }}>
+                <LoadoutRow data={item} hostDown={hostDown} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  )
+}
+
+function LoadoutRow({ data, hostDown }: { data: ReferenceCardEntity; hostDown: boolean }) {
+  const href = useEntityHref(data as SURefEntity)
+  return (
+    <Entity
+      form="row"
+      entity={data as SURefMetaEntity}
+      mode={href ? { kind: 'link', href } : { kind: 'read' }}
+      omit={['art']}
+      peek
       {...(hostDown ? { instance: { condition: 'damaged' as const } } : {})}
     />
   )

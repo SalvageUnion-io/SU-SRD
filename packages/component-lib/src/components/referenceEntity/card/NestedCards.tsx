@@ -257,29 +257,32 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
       </CardTray>
     )
   }
+  const cards = drones.map((droneInfo, index) => (
+    <NestedCard
+      key={`drone-${droneInfo.instanceName ?? index}`}
+      size={nestedChildSize(host.size)}
+      depth={host.depth + 1}
+      hostDown={host.isDown}
+      data={droneInfo.drone}
+      chassisName={host.chassisName}
+      shownProse={host.shownProse}
+      // A pattern-named instance ('Shield Drone') titles the card; the stat
+      // block it rides on ('Big Brother Drone') still supplies every stat,
+      // trait and content block below.
+      titleOverride={droneInfo.instanceName}
+      droneLoadout={{ systems: droneInfo.systems, modules: droneInfo.modules }}
+    />
+  ))
+  // On a page the drone card's own seam stamp says what it is: no tray, no
+  // "Drone · 1" slab around it.
+  if (host.onPage) return <div style={TRAY_STACK}>{cards}</div>
   return (
     <CardTray
       label={drones.length === 1 ? 'Drone' : 'Drones'}
       count={drones.length}
       size={host.size}
-      flush={host.onPage}
     >
-      {drones.map((droneInfo, index) => (
-        <NestedCard
-          key={`drone-${droneInfo.instanceName ?? index}`}
-          size={nestedChildSize(host.size)}
-          depth={host.depth + 1}
-          hostDown={host.isDown}
-          data={droneInfo.drone}
-          chassisName={host.chassisName}
-          shownProse={host.shownProse}
-          // A pattern-named instance ('Shield Drone') titles the card; the stat
-          // block it rides on ('Big Brother Drone') still supplies every stat,
-          // trait and content block below.
-          titleOverride={droneInfo.instanceName}
-          droneLoadout={{ systems: droneInfo.systems, modules: droneInfo.modules }}
-        />
-      ))}
+      {cards}
     </CardTray>
   )
 }

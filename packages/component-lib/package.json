@@ -18,7 +18,7 @@
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "bun test",
+    "test": "bun test --parallel=4 --no-isolate",
     "stories": "vite",
     "stories:ids": "bun listStories.ts"
   },
