@@ -1,3 +1,4 @@
+import { at } from './_base'
 import {
   advanceUntilVisible,
   choiceCardByName,
@@ -23,7 +24,7 @@ import { expect, test } from './fixtures'
  * registering.
  */
 test('Next opens only once both class and first ability are picked', async ({ page }) => {
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
   // "Your Stats" precedes the Class step, so walk to the class cards first.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
@@ -46,7 +47,7 @@ test('Next opens only once both class and first ability are picked', async ({ pa
 })
 
 test('every base class renders a selectable row', async ({ page }) => {
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
   // "Your Stats" precedes the Class step, so walk to the class cards first.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
@@ -65,7 +66,7 @@ test('every base class renders a selectable row', async ({ page }) => {
 })
 
 test('selecting Engineer reveals its abilities in the detail pane', async ({ page }) => {
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
   // "Your Stats" precedes the Class step, so walk to the class cards first.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))

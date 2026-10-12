@@ -18,8 +18,7 @@ import { setEntityBackendAuthState } from './stores/entityBackend'
 
 const router = createRouter({
   routeTree,
-  // `/build` on salvageunion.io, the root on intheunionnow.com (refit S2,
-  // lib/site.ts). Routes and links stay root-relative; the router adds it.
+  // `/build`: ITUN at salvageunion.io/build (ADR-048, lib/site.ts). Routes and links stay root-relative; the router adds it.
   basepath: BASE_PATH || '/',
   defaultNotFoundComponent: RouteNotFound,
   defaultPendingComponent: RoutePending,

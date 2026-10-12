@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import { at, BASE } from './_base'
 
 /**
  * Shared helpers for ITUN end-to-end tests.
@@ -65,7 +66,7 @@ export async function gotoStable(page: Page, path: string): Promise<void> {
   let lastError: unknown
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
-      await page.goto(path)
+      await page.goto(at(path))
       return
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
@@ -248,7 +249,7 @@ export async function fillIdentity(page: Page, label: string, value: string): Pr
 
 /** Shelves at `/`, or a Game's own page: where a finished build returns to. */
 function isContainerPage(pathname: string): boolean {
-  return pathname === '/' || /^\/games\/[^/]+\/?$/.test(pathname)
+  return pathname === at('/') || new RegExp(`^${BASE}/games/[^/]+/?$`).test(pathname)
 }
 
 /**

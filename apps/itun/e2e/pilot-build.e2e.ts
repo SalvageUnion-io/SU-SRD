@@ -1,3 +1,4 @@
+import { at } from './_base'
 import { advanceUntilVisible, clickNext, editSheet, pickByName, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
@@ -15,7 +16,7 @@ import { expect, test } from './fixtures'
  * the test to whatever the app currently does.
  */
 test('build a pilot from scratch, then edit to add a second ability', async ({ page }) => {
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
 
   // Step 1: Your Stats — derived starting values, nothing to choose.
@@ -103,7 +104,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   await expect(page.getByText('Talk Shop').first()).toBeVisible({
     timeout: 15_000,
   })
-  await page.goto('/')
+  await page.goto(at('/'))
   await waitForReady(page)
   // One sheet link on the roster. Matched by href rather than by label for the
   // reason above — and by href specifically because this asserts a COUNT across
@@ -112,7 +113,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
 })
 
 test('the creation ability budget caps at one pick', async ({ page }) => {
-  await page.goto('/pilots/new?mode=guided')
+  await page.goto(at('/pilots/new?mode=guided'))
   await waitForReady(page)
 
   await pickByName(page, 'Engineer')

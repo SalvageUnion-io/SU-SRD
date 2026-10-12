@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { scanPages } from 'gates/lib/a11yScan'
+import { at } from './_base'
 
 /**
  * WCAG 2.2 AA on every route in `PAGES`, signed out, at desktop and as a
@@ -7,7 +8,7 @@ import { scanPages } from 'gates/lib/a11yScan'
  */
 
 /**
- * The anonymous routes a build with no Convex backend can render — the same
+ * The anonymous routes (app paths; `at` puts them under `/build`) a build with no Convex backend can render — the same
  * build the PR-blocking smoke specs run against.
  */
 const PAGES = [
@@ -30,7 +31,7 @@ test('no accessibility violations', async ({ browser, baseURL }, testInfo) => {
   const { results, violations } = await scanPages({
     browser,
     baseURL: baseURL ?? '',
-    pages: PAGES,
+    pages: PAGES.map(at),
     // The reference-data gate's loading screen has no <main>.
     ready: 'main',
   })

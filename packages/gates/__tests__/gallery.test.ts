@@ -122,7 +122,7 @@ describe('renderGallery, page by page', () => {
     const html = render([srdPage, itunIn, itunOut], run(), og)
     expect(html).toContain('Link previews <small>2 pages</small>')
     expect(html).toContain('salvageunion.io/schema/chassis/')
-    expect(html).toContain('intheunionnow.com/starter')
+    expect(html).toContain('salvageunion.io/build/starter')
     expect(html).toContain(`shots/${pageSlug(itunOut)}-og.png`)
     expect(html).toContain('<strong>Chassis</strong>')
     expect(html).toContain('No og:image')

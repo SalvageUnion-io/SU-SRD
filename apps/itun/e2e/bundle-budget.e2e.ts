@@ -1,3 +1,4 @@
+import { at } from './_base'
 import { waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
@@ -87,7 +88,7 @@ async function captureJsTotals(
   page: import('@playwright/test').Page,
   path: string
 ): Promise<JsTotals> {
-  await page.goto(path)
+  await page.goto(at(path))
   await waitForReady(page)
   await page.waitForLoadState('networkidle')
 

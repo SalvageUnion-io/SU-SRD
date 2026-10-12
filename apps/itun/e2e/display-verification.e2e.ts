@@ -1,3 +1,4 @@
+import { at } from './_base'
 import { advanceUntilVisible, buildPilot, openSheetFor, pickByName, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
@@ -12,7 +13,7 @@ import { expect, test } from './fixtures'
 
 test.describe('class step displays meaningful class info', () => {
   test('class card surfaces ability tree names', async ({ page }) => {
-    await page.goto('/pilots/new?mode=guided')
+    await page.goto(at('/pilots/new?mode=guided'))
     await waitForReady(page)
 
     // Master-detail: selecting a class row renders its full card + ability
@@ -25,7 +26,7 @@ test.describe('class step displays meaningful class info', () => {
   })
 
   test('selected class reveals trees + abilities listing', async ({ page }) => {
-    await page.goto('/pilots/new?mode=guided')
+    await page.goto(at('/pilots/new?mode=guided'))
     await waitForReady(page)
     await pickByName(page, 'Engineer')
 
@@ -38,7 +39,7 @@ test.describe('class step displays meaningful class info', () => {
 
 test.describe('ability cards show their descriptions', () => {
   test('Engineering Expertise card includes its rules text', async ({ page }) => {
-    await page.goto('/pilots/new?mode=guided')
+    await page.goto(at('/pilots/new?mode=guided'))
     await waitForReady(page)
     // The first-Ability pool lives on the SAME step as the class, so the
     // ability's rules text is on screen as soon as a class is picked; a
@@ -56,7 +57,7 @@ test.describe('ability cards show their descriptions', () => {
 
 test.describe('chassis cards show stats from the SRD', () => {
   test('Mule chassis card renders its name and at least one stat', async ({ page }) => {
-    await page.goto('/mechs/new?mode=guided')
+    await page.goto(at('/mechs/new?mode=guided'))
     await waitForReady(page)
 
     // The mech wizard opens on the informational "Gain Scrap" step, so the

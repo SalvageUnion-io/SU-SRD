@@ -68,7 +68,8 @@ jobs:
         uses: ./.github/actions/convex-backend
 
       # As e2e-nightly.yml's `e2e-itun`: a JWT keypair on the deployment, the
-      # test sign-in, and SITE_URL as the frontend origin the gallery uses.
+      # test sign-in, and SITE_URL as the frontend address the gallery uses
+      # (ITUN under /build, ADR-048).
       - name: Provision auth keys and deployment env
         working-directory: apps/itun
         env:
@@ -86,7 +87,7 @@ jobs:
           bunx convex env set JWKS --from-file jwks.json
           rm -f jwt.key jwks.json
           bunx convex env set ITUN_TEST_AUTH true
-          bunx convex env set SITE_URL http://localhost:5173
+          bunx convex env set SITE_URL http://localhost:5173/build
 
       - name: Push functions and build itun against the backend
         working-directory: apps/itun
@@ -119,7 +120,7 @@ jobs:
         run: |
           (cd apps/srd/dist && python3 -m http.server 4321 --bind 127.0.0.1 > /tmp/srd.log 2>&1 &)
           (cd apps/itun && bunx vite preview --port 5173 --strictPort > /tmp/itun.log 2>&1 &)
-          for url in http://127.0.0.1:4321/ http://localhost:5173/; do
+          for url in http://127.0.0.1:4321/ http://localhost:5173/build/; do
             for _ in $(seq 1 60); do curl -sf -o /dev/null "$url" && break; sleep 1; done
             curl -sf -o /dev/null "$url" || {
               echo "::error::$url never answered"
@@ -136,7 +137,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha }}
         run: >-
-          bun run gallery --srd http://127.0.0.1:4321 --itun http://localhost:5173
+          bun run gallery --srd http://127.0.0.1:4321 --itun http://localhost:5173/build
           --signed-in ${PR_NUMBER:+--pr "$PR_NUMBER"} --sha "$HEAD_SHA" --out gallery
 
       # The tour keeps 90 days: Pages republishes the newest one on every

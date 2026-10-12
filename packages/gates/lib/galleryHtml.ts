@@ -98,7 +98,7 @@ function ogCard(page: GallerySection['pages'][number], og: OgMeta | undefined): 
       : '<span class="og__none">No og:image</span>'
   }</span>
   <div class="og__text">
-    <span class="og__site">${page.site === 'srd' ? 'salvageunion.io' : 'intheunionnow.com'}${escapeHtml(page.path)}</span>
+    <span class="og__site">${page.site === 'srd' ? 'salvageunion.io' : 'salvageunion.io/build'}${escapeHtml(page.path)}</span>
     <strong>${escapeHtml(og?.title ?? page.name)}</strong>
     <span>${escapeHtml(og?.description ?? '')}</span>
   </div>

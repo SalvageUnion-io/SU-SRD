@@ -91,7 +91,7 @@ export const Default: Story = () => (
       <AppBar
         product="reference"
         referenceHref="/"
-        buildHref="https://intheunionnow.com"
+        buildHref="https://salvageunion.io/build/"
         search={srdSearch}
         buyHref={BUY}
         breadcrumbs={[
@@ -106,7 +106,7 @@ export const Default: Story = () => (
       <AppBar
         product="reference"
         referenceHref="/"
-        buildHref="https://intheunionnow.com"
+        buildHref="https://salvageunion.io/build/"
         search={srdSearch}
         buyHref={BUY}
       />

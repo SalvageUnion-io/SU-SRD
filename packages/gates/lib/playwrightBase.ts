@@ -34,13 +34,24 @@ type Budget = { timeout: number; expect: number }
 export type AppE2E = {
   /** The port the app's dev server and `preview` listen on. */
   port: number
+  /**
+   * The path the app is served under, when not the root (ITUN's `/build/`,
+   * ADR-048): where the readiness check asks, since its dev server answers
+   * nothing above it. `baseURL` stays the origin; specs put the path on.
+   */
+  basePath?: string
   /** Per-test and per-assertion budgets against the local server. */
   local: Budget
   /** The same against a deployed origin (`E2E_BASE_URL`); defaults to `local`. */
   external?: Budget
 }
 
-export function e2eConfig({ port, local, external = local }: AppE2E): PlaywrightTestConfig {
+export function e2eConfig({
+  port,
+  basePath = '/',
+  local,
+  external = local,
+}: AppE2E): PlaywrightTestConfig {
   const ci = Boolean(process.env.CI)
   const externalBaseURL = process.env.E2E_BASE_URL
   const budget = externalBaseURL ? external : local
@@ -73,7 +84,7 @@ export function e2eConfig({ port, local, external = local }: AppE2E): Playwright
       ? undefined
       : {
           command: ci ? '[ -d dist ] || bun run build; bun run preview' : 'bun run dev',
-          url,
+          url: `${url}${basePath}`,
           reuseExistingServer: !ci,
           timeout: 240_000,
           // wrangler logs every request to stdout; a failure to start is stderr.

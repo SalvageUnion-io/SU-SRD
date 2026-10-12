@@ -80,6 +80,12 @@ type AppBarProps = {
   buildHref: string
   /** Link component for the brand + internal links. Defaults to a plain anchor. */
   LinkComponent?: ElementType
+  /**
+   * The SU mark's URL. The app's own copy: ITUN serves its files under
+   * `/build/` (ADR-048), so the root's is srd's on one origin and missing on
+   * any other.
+   */
+  markSrc?: string
   viewTransitionName?: string
   /** The product's own nav (desktop), inline beside the switcher. */
   navItems?: AppBarNavEntry[]
@@ -237,6 +243,7 @@ export function AppBar({
   referenceHref,
   buildHref,
   LinkComponent = 'a',
+  markSrc = '/logos/su-cargo-dark.svg',
   viewTransitionName,
   navItems = [],
   secondaryItems = [],
@@ -292,7 +299,7 @@ export function AppBar({
               same name drawn, so it is hidden from the accessibility tree. */}
           <LinkComponent href="/" className={`su-union-bar__brand ${FOCUS_RING}`} style={BRAND}>
             <img
-              src="/logos/su-cargo-dark.svg"
+              src={markSrc}
               alt="Salvage Union"
               width={40}
               height={40}

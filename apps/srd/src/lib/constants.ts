@@ -3,8 +3,12 @@
 // dataset owns it now, beside ASSET_BASE_URL, so a domain change is one edit.
 export { SRD_SITE_URL as SITE_URL } from 'salvageunion-reference'
 
-/** In The Union Now — the companion character builder & game manager. */
-export const ITUN_URL = 'https://intheunionnow.com'
+/**
+ * In The Union Now — the companion character builder & game manager, served
+ * beside the SRD at salvageunion.io/build (ADR-048). Absolute, so a link built
+ * from it reads the same in llms.txt, a Discord embed or the dev server.
+ */
+export const ITUN_URL = 'https://salvageunion.io/build/'
 
 /**
  * The SURef Discord bot's install link. The client id is public by design —

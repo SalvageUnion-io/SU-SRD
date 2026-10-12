@@ -135,7 +135,7 @@ describe('limit enforcement', () => {
 describe('entityCard', () => {
   const card = {
     title: 'Rustjaw',
-    url: 'https://intheunionnow.com/games/g1',
+    url: 'https://salvageunion.io/build/games/g1',
     accent: 0x7a978a,
     description: '*Mule*',
     fields: [
@@ -150,7 +150,7 @@ describe('entityCard', () => {
     expect(entityCard(card)).toEqual({
       accent: 0x7a978a,
       blocks: [
-        { kind: 'text', content: '## [Rustjaw](https://intheunionnow.com/games/g1)' },
+        { kind: 'text', content: '## [Rustjaw](https://salvageunion.io/build/games/g1)' },
         { kind: 'text', content: '*Mule*' },
         // Consecutive inline fields run together as one rail.
         { kind: 'text', content: '**SP** 8/12\n**Heat** 3/6' },
@@ -172,7 +172,7 @@ describe('entityCard', () => {
     const blocks = entityCard({ ...card, thumbnail: art }).blocks
     expect(blocks[0]).toEqual({
       kind: 'section',
-      text: ['## [Rustjaw](https://intheunionnow.com/games/g1)', '*Mule*'],
+      text: ['## [Rustjaw](https://salvageunion.io/build/games/g1)', '*Mule*'],
       thumbnail: { url: art, description: 'Rustjaw' },
     })
     expect(blocks[1]).toEqual({ kind: 'text', content: '**SP** 8/12\n**Heat** 3/6' })

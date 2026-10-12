@@ -3,6 +3,7 @@ import { color, font, fontSize, radius, space, tracking, weight } from 'componen
 import type { CSSProperties, ReactNode } from 'react'
 import { Suspense, use, useEffect, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { MARK_SRC } from '../../lib/appUrl'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 
 /**
@@ -135,7 +136,7 @@ function GameDataFallback() {
   return (
     <div role="status" aria-live="polite" style={FALLBACK}>
       <img
-        src="/logos/su-cargo-dark.svg"
+        src={MARK_SRC}
         alt=""
         width={96}
         height={96}

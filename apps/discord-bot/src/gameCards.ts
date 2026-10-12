@@ -60,10 +60,11 @@ const NEUTRAL = NEUTRAL_ACCENT
 const CRITICAL = ROLL_COLORS.cascade
 
 /**
- * The canonical In The Union Now web origin. Cards link back here; it is only
- * ever used to build a URL, never called.
+ * Where In The Union Now is served, base included: salvageunion.io/build
+ * (ADR-048). Cards link back here by appending a route; it is only ever used
+ * to build a URL, never called. Old intheunionnow.com links 301 here.
  */
-export const ITUN_ORIGIN = 'https://intheunionnow.com'
+export const ITUN_ORIGIN = 'https://salvageunion.io/build'
 
 const FOOTER = 'In The Union Now'
 
