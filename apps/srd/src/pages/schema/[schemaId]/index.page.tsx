@@ -4,7 +4,7 @@
  * Headed by its chapter's band (the schema's plural name notched in), then the
  * listing, in the groups the book prints them in: one Row per entity, or where
  * the schema has art an art-first Tile (the Catalog, the default at a desktop
- * measure; `lib/listingView.ts`). A `CATALOG_LISTINGS` schema (tech levels) is
+ * measure; `lib/listingView.ts`). A `CATALOG_LISTINGS` schema (the two tech-level tables) is
  * a Catalog at every width, one grid with no groups. It ends on the same
  * chapter's band (`foot`), as an entity page does.
  *
