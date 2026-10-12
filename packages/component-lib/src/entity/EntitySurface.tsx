@@ -6,7 +6,8 @@ import { EntitySurfaceContext } from './entitySurfaceContext'
 
 /**
  * Supply (part of) the SURFACE to every entity form below (`EntitySurfaceValue`):
- * how a ref resolves, the Page opener, texture and the user-made treatment. A
+ * how a ref resolves, the Page opener, texture, the user-made treatment,
+ * whether roll tables roll, and the page-reference index. A
  * nested provider overrides only what it sets. Setting `texture` also reaches
  * the legacy `ReferenceEntityCard`s inside, so a surface turns the speckle off
  * once.
@@ -19,7 +20,7 @@ export function EntitySurfaceProvider({
   children: ReactNode
 }) {
   const parent = useContext(EntitySurfaceContext)
-  const { hrefFor, openPage, linkAs, texture, userMade } = value
+  const { hrefFor, openPage, linkAs, texture, userMade, rolls, pageRefs } = value
   const merged = useMemo(
     () => ({
       ...parent,
@@ -28,8 +29,10 @@ export function EntitySurfaceProvider({
       ...(linkAs ? { linkAs } : {}),
       ...(texture !== undefined ? { texture } : {}),
       ...(userMade !== undefined ? { userMade } : {}),
+      ...(rolls !== undefined ? { rolls } : {}),
+      ...(pageRefs ? { pageRefs } : {}),
     }),
-    [parent, hrefFor, openPage, linkAs, texture, userMade]
+    [parent, hrefFor, openPage, linkAs, texture, userMade, rolls, pageRefs]
   )
   const provided = (
     <EntitySurfaceContext.Provider value={merged}>{children}</EntitySurfaceContext.Provider>
