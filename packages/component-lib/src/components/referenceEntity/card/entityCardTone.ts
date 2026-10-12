@@ -1,5 +1,6 @@
 import type { EntityDomain, SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import {
+  bayKind,
   classKind,
   classRequirements,
   entityStamp,
@@ -225,6 +226,8 @@ export type AxisMarker = { label: string; value?: string }
  * - CLASSES → ONE `[Class | <KIND>]` pill naming which kind of class it is
  *   (BASE / HYBRID / NON-ADVANCEABLE), same `[label | value]` vocabulary as the
  *   pattern card's `[Chassis | Little Sestra]`.
+ * - CRAWLER BAYS → ONE `[Bay | Standard]` or `[Bay | Expansion]` pill, from
+ *   the stored `expansion` tag.
  * - TECH-LEVEL-ABLE entities (systems/modules/equipment/drones/vehicles — any
  *   entity carrying a `techLevel`) → `[Tech Level | <n>]`.
  * - Everything else → `[]` (just the TYPE stamp, no axis pills).
@@ -237,7 +240,7 @@ export function resolveAxisMarkers(entity: SURefMetaEntity): AxisMarker[] {
   // level is the banner's tier numeral (`resolveSeamLabel`,
   // `resolveTierNumeral`). TECH LEVEL is a header stat.
   if (isAbility(entity)) return []
-  // CLASS KIND — the one axis pill that survives `extent="catalog"`. Catalog
+  // CLASS KIND — an axis pill that survives `extent="catalog"`. Catalog
   // tiles otherwise suppress card chrome, but WHICH KIND of class a tile is
   // (base / hybrid / non-advanceable) is the single most load-bearing fact on a
   // class listing page: a hybrid can't be taken at creation and the Salvager
@@ -247,5 +250,10 @@ export function resolveAxisMarkers(entity: SURefMetaEntity): AxisMarker[] {
   // here is what carries it onto the tile. Keep it that way.
   const classKind = resolveClassKind(entity)
   if (classKind) return [{ label: 'Class', value: classKind }]
+  // BAY KIND survives the catalog for the same reason: whether a bay comes
+  // with every Union Crawler or is added in play is what the bay index is
+  // scanned for.
+  const bay = bayKind(entity)
+  if (bay) return [{ label: 'Bay', value: bay }]
   return []
 }

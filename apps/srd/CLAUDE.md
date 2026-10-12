@@ -82,8 +82,8 @@ pages and ships no JS; leave that path alone.
   then the body. The body is the card at `presentation="page"`, or for a d20
   table `RollTablePage` (Randsum rolls). The page's citation is the site
   `Footer`'s: the page module returns `foot: entityPageFoot(...)` in its
-  `PageResult`, and the footer ends the page in that chapter's band (a listing
-  passes only the tone); other pages end on the rules-blue band.
+  `PageResult`, and the footer cites it in that chapter's band; under it, as on
+  every other page, the licence row ends the page in the Union bar's ink.
 - Page layouts are `src/styles/pages.css`, imported by `global.css` and
   `apps/catalog/src/catalog.css`.
 

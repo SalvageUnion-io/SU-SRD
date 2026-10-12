@@ -8,7 +8,7 @@ import { isAbility } from '../../entityGuards'
 import { getDisplayName, getHybridClasses } from '../../helpers'
 import { SalvageUnionReference } from '../../index'
 import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index'
-import type { ClassKind, EntityDomain } from '../types'
+import type { BayKind, ClassKind, EntityDomain } from '../types'
 
 /**
  * SCHEMA → DOMAIN, exhaustive over the schema enum, so a new schema fails to
@@ -103,6 +103,16 @@ export function classKind(entity: SURefMetaEntity): ClassKind | undefined {
   if ('hybrid' in entity && entity.hybrid === true) return 'HYBRID'
   if ('advanceable' in entity && entity.advanceable === false) return 'NON-ADVANCEABLE'
   return 'BASE'
+}
+
+/**
+ * Which kind of crawler bay, read off the stored `expansion` tag every bay
+ * carries: Standard (on every Union Crawler, Core Book p.221) or Expansion
+ * (built or found in play). `undefined` for anything without the tag.
+ */
+export function bayKind(entity: SURefMetaEntity): BayKind | undefined {
+  if (entity == null || typeof entity !== 'object' || !('expansion' in entity)) return undefined
+  return entity.expansion === true ? 'Expansion' : 'Standard'
 }
 
 /** The trees a HYBRID class advances from, read by the class's own name. */

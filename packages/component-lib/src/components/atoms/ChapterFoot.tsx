@@ -3,6 +3,7 @@ import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color } from '../../design/tokens'
 import type { ChapterTone } from './chapterBandColor'
 import { CHAPTER_BAND_COLOR } from './chapterBandColor'
+import type { SpeckleGrain } from './Speckle'
 import { Speckle } from './Speckle'
 
 /**
@@ -13,8 +14,8 @@ import { Speckle } from './Speckle'
  * set large) and `end` (the book and section, or the site's own links).
  *
  * The SRD wears it twice: an entity page closes on its citation (board 07,
- * "p.112 · Salvage Union Workshop Manual"), and the site footer is the
- * Contents chapter's foot band (board 06).
+ * "p.112 · Salvage Union Workshop Manual") in its chapter's colour, and the
+ * site footer's licence row closes every page on the Union bar's ink.
  *
  * A foot band carries TEXT, so its colours are the ones text reads on (ruleset
  * §3.8, "ink on colour"): ink on the rules blue, pilot and mech; paper on the
@@ -47,6 +48,8 @@ export type ChapterFootProps = {
    * is the caller's to swap for a deeper shade.
    */
   fill?: string
+  /** The speckle: `ink` grain on a colour band, `paper` flecks on ink (default follows `tone`). */
+  grain?: SpeckleGrain
   /** The inner row's max inline size, matching the band at the page's head. */
   measure?: string
   /** The element. `footer` for the site footer; `div` inside a page's `main`. */
@@ -69,6 +72,7 @@ export function ChapterFoot({
   end,
   tone = 'rules',
   fill,
+  grain,
   measure,
   as: Tag = 'div',
   'aria-label': ariaLabel,
@@ -86,7 +90,7 @@ export function ChapterFoot({
         color: band.text,
       }}
     >
-      <Speckle grain="ink" />
+      <Speckle grain={grain ?? (tone === 'ink' ? 'paper' : 'ink')} />
       <div className="su-chapter-foot__row" style={measure ? { maxWidth: measure } : undefined}>
         {start != null && <div className="su-chapter-foot__start">{start}</div>}
         {end != null && <div className="su-chapter-foot__end">{end}</div>}

@@ -96,52 +96,60 @@ describe('Footer', () => {
     })
   }
 
-  test('with no foot, ends on the rules-blue band and cites nothing', () => {
+  test('with no foot, ends on the licence row alone and cites nothing', () => {
     const { container } = render(<Footer links={LINKS} poweredBySalvageUrl="/mark.webp" />)
     const bands = container.querySelectorAll('.su-chapter-foot')
     expect(bands).toHaveLength(1)
     expect(container.querySelector('.su-chapter-foot__start')?.textContent).not.toMatch(/^p\.\d/)
   })
 
-  test('a book page ends on its chapter’s band, the citation above the licence', () => {
+  test('a book page cites itself in its chapter’s band, above the licence row', () => {
     const { container } = render(
       <Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={GOPHER} />
     )
     const bands = Array.from(container.querySelectorAll<HTMLElement>('.su-chapter-foot'))
     expect(bands).toHaveLength(2)
-    expect(bands[0]?.style.backgroundColor).toBe(bands[1]?.style.backgroundColor)
+    expect(bands[0]?.style.backgroundColor).not.toBe(bands[1]?.style.backgroundColor)
     expect(within(bands[0] as HTMLElement).getByText('p.112')).toBeTruthy()
     expect(within(bands[0] as HTMLElement).getByText(GOPHER.citation as string)).toBeTruthy()
+    expect(bands[1]?.querySelector('.su-footer__legal')).not.toBeNull()
     for (const band of bands) {
       const row = band.querySelector<HTMLElement>('.su-chapter-foot__row')
       expect(row?.style.maxWidth).toBe('75rem')
     }
   })
 
-  test('a book page with nothing to cite still takes its chapter’s tone', () => {
-    const plain = render(<Footer links={LINKS} poweredBySalvageUrl="/mark.webp" />).container
-    const rules = plain.querySelector<HTMLElement>('.su-chapter-foot')?.style.backgroundColor
-    plain.remove()
-    const { container } = render(
-      <Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={{ tone: 'mech' }} />
-    )
-    const bands = container.querySelectorAll<HTMLElement>('.su-chapter-foot')
-    expect(bands).toHaveLength(1)
-    expect(bands[0]?.style.backgroundColor).not.toBe(rules)
+  // The licence row matches the Union bar on every page of both tools: the
+  // chapter's colour is the citation's alone, never the site footer's.
+  test('keeps the licence row one colour whatever the page’s chapter', () => {
+    const licenceBand = (foot?: FooterFoot) => {
+      const { container, unmount } = render(
+        <Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={foot} />
+      )
+      const bands = container.querySelectorAll<HTMLElement>('.su-chapter-foot')
+      const background = bands[bands.length - 1]?.style.backgroundColor
+      unmount()
+      return background
+    }
+    const site = licenceBand()
+    expect(site).toBeTruthy()
+    for (const tone of ['rules', 'pilot', 'mech', 'crawler', 'denizen', 'ink'] as const) {
+      expect(licenceBand({ tone })).toBe(site)
+      expect(licenceBand({ ...GOPHER, tone })).toBe(site)
+    }
+    expect(licenceBand({ ...GOPHER, fill: '#3a6ea5' })).toBe(site)
   })
 
-  test('on a band that carries paper text, the mark reverses to paper', () => {
-    for (const tone of ['denizen', 'crawler'] as const) {
+  test('reverses the mark to paper on the ink licence row, on every page', () => {
+    for (const foot of [undefined, GOPHER, { tone: 'denizen' } as const]) {
       const { unmount } = render(
-        <Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={{ tone }} />
+        <Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={foot} />
       )
       expect(screen.getByAltText('Powered by Salvage').className).toContain(
         'su-footer__mark--paper'
       )
       unmount()
     }
-    render(<Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={GOPHER} />)
-    expect(screen.getByAltText('Powered by Salvage').className).not.toContain('--paper')
   })
 })
 

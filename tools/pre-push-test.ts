@@ -11,9 +11,12 @@
  * `--parallel=4 --no-isolate`) holds the default budgets.
  *
  * Selection is by workspace graph (`lib/workspaceGraph.ts`), not Bun's
- * `--changed`, which does not cross workspace boundaries. The base is the
- * merge-base with origin/main, so the whole branch counts, not just the last
- * commit. No base runs every workspace, never none.
+ * `--changed`, which does not cross workspace boundaries. The diff starts at
+ * the merge-base with the branch this one merges into (`lib/baseBranch.ts`:
+ * `$SU_BASE`, the open PR's base, the upstream, else the nearer of main and
+ * design-refresh), so the whole branch counts, not just the last commit, and a
+ * branch off design-refresh is not charged with design-refresh's diff against
+ * main. No base runs every workspace, never none.
  *
  *   bun tools/pre-push-test.ts            run the selection
  *   bun tools/pre-push-test.ts --dry-run  print it and exit
@@ -21,15 +24,19 @@
 
 import { $ } from 'bun'
 import { join } from 'node:path'
+import { describeBase, resolveBaseBranch } from 'gates/lib/baseBranch'
 import { readWorkspaces, selectWorkspaces } from 'gates/lib/workspaceGraph'
 
 const root = join(import.meta.dir, '..')
 
+const base = await resolveBaseBranch({ cwd: root })
+
 async function changedFiles(): Promise<string[] | null> {
-  const base = await $`git merge-base HEAD origin/main`.nothrow().quiet()
-  if (base.exitCode !== 0) return null
+  if (!base) return null
+  const mergeBase = await $`git merge-base HEAD ${base.ref}`.cwd(root).nothrow().quiet()
+  if (mergeBase.exitCode !== 0) return null
   // Against the working tree, as before: an uncommitted edit still counts.
-  const diff = await $`git diff --name-only ${base.text().trim()}`.quiet()
+  const diff = await $`git diff --name-only ${mergeBase.text().trim()}`.cwd(root).quiet()
   return diff.text().split('\n').filter(Boolean)
 }
 
@@ -37,7 +44,12 @@ const changed = await changedFiles()
 const workspaces = readWorkspaces()
 const selected = selectWorkspaces(changed, workspaces)
 
-if (changed === null) console.log('pre-push: no origin/main to diff against — every workspace')
+if (changed === null) {
+  const missing = base ? `no ${base.ref} to diff against` : 'no base branch found'
+  console.log(`pre-push: ${missing} — every workspace`)
+} else if (base) {
+  console.log(`pre-push: diffing against ${base.ref} (${describeBase(base)})`)
+}
 if (selected.length === 0) {
   console.log('pre-push: no workspace changed — no tests to run')
   process.exit(0)

@@ -65,3 +65,14 @@ describe('roll tables by chapter', () => {
     }
   })
 })
+
+describe('crawler bay listing groups', () => {
+  test('groups the bays into Standard, then Expansion', () => {
+    const groups = defaultGroups(SalvageUnionReference.CrawlerBays.all(), [], [5], 'crawler-bays')
+    expect(groups.map((group) => [group.label, group.items.length])).toEqual([
+      ['Standard Bays', 10],
+      ['Expansion Bays', 4],
+    ])
+    expect(groups[0]?.items.map((bay) => bay.name)).toContain('Med Bay')
+  })
+})
