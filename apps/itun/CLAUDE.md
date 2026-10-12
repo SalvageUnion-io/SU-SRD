@@ -2,47 +2,22 @@
 
 React app for building and running Salvage Union pilots, mechs, and crawlers.
 
-**Storage modes — read before touching data.** This file owns them;
-[ADR-030](../../docs/ARCHITECTURE.md#adr-030),
-[ADR-034](../../docs/ARCHITECTURE.md#adr-034) and
-[ADR-035](../../docs/ARCHITECTURE.md#adr-035) record why.
-
-| Mode | When | Source of truth |
-| --- | --- | --- |
-| **Solo** | not signed in — in **every** build, CI and `bun run dev` included | nothing: **read-only** — writes are refused (`signedOut`); no Dashboard |
-| **Connected** | signed in, online | Convex; IndexedDB is a cache |
-| **Disconnected** | signed in, offline | read-only — not a write queue |
-| **Outdated** | bundle below `build.floor` | read-only until it reloads |
-
-- Resolve the mode via `src/lib/connection/`, never `navigator.onLine` or an
-  auth flag.
-- **No IndexedDB store without a Convex commit seam:** `storeSeams.test.ts`.
-- **There is no anonymous backend.** `selectBackend()` is
-  `signedOut | remote | blocked`; signed out, every store reads empty
-  (`readableRows`), never IndexedDB. A unit test that needs durability calls
-  `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`); an e2e
-  spec signs in through `e2e/fixtures.ts`.
-- **The cache follows the account; nothing goes up from it.**
-  `AccountReconciler` (root-mounted) makes the cache the signed-in account's
-  (`claimCacheFor` in `src/lib/account/cacheOwner.ts`) and then mounts
-  `ShelfSync`; signed out it renders nothing. No surface uploads rows from
-  IndexedDB: every cached row came from the server or from a write it accepted.
-- **A container written twice must be written together** — the row's `gameId`
-  column and the body's `gameId`. Where they disagree, the column is the
-  authority.
-- **e2e durability specs need an account.** Without `VITE_TEST_AUTH` in the
-  build and `ITUN_TEST_AUTH` on the deployment they SKIP; the nightly `e2e-itun` job provisions a throwaway Convex backend and
-  runs them for real. See `e2e/fixtures.ts`.
+**Storage modes (Solo / Connected / Disconnected / Outdated) — read them before
+touching data.** They live in
+[`.claude/rules/itun-data-access.md`](../../.claude/rules/itun-data-access.md),
+which loads with the stores, hooks, `src/lib/db/`, `src/lib/connection/`,
+`convex/` and `e2e/`. In short: signed out, ITUN is read-only and reads
+nothing; signed in, Convex is the truth and IndexedDB its per-account cache.
 
 **One account-free way to share: the public sheet
-([ADR-032](../../docs/ARCHITECTURE.md#adr-032)).** A **live**
+([ADR-032](../../docs/ARCHITECTURE.md)).** A **live**
 read-only page at `/p/:kind/:appId`, opt-in per entity via the `publicRead`
 Convex column, served by one deliberately unauthenticated query
 (`convex/publicSheet.ts`). Off by default; turning it off revokes everywhere at
 once, because the URL is derived rather than minted.
 
 **Snapshots are retired**
-([ADR-036](../../docs/ARCHITECTURE.md#adr-036)): an old `/s/:id` link shows a
+([ADR-036](../../docs/ARCHITECTURE.md)): an old `/s/:id` link shows a
 static "retired" page and reads nothing. Nothing binds the `su-itun-snapshots`
 R2 bucket; deleting it is the owner's call, never an agent's.
 
@@ -78,13 +53,11 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 - Player data lives in **Convex**; IndexedDB (`idb`, `src/lib/db/`) is a
   per-account cache of it. Stores (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `npcs`, `softLinks`,
   `mechPatterns`, `encounterNpcs`, and `meta`. The Change Log
-  ([ADR-022](../../docs/ARCHITECTURE.md#adr-022)) has no device store: it is
+  ([ADR-022](../../docs/ARCHITECTURE.md)) has no device store: it is
   the Convex `changeLog` table, written by `commitChangeLog` and read by
   `changeLog.forEntity`.
-- **The cache is one account's** (`src/lib/account/cacheOwner.ts`): sign-out
-  or another account empties it.
 - **Zod schemas (`src/lib/schemas/`) are the source of truth** for entity shape;
-  the DB layer parses on read/write ([ADR-002](../../docs/ARCHITECTURE.md#adr-002)).
+  the DB layer parses on read/write ([ADR-002](../../docs/ARCHITECTURE.md)).
 - Reads are strict: an unreadable cached row is skipped with a warning and
   refilled from Convex. See `src/lib/db/crud.ts`.
 - A schema/version change bumps `DB_VERSION` (`src/lib/db/index.ts`) and
@@ -105,18 +78,16 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   nothing to show, and Disconnected has no live Game list to filter against, so
   it shows the cached pile whole. `Roster` shows Shelves at `/` (all you
   keep, Games too) and a Game at `/games/$gameId`.
-- **Assignments** ([ADR-037](../../docs/ARCHITECTURE.md#adr-037)):
+- **Assignments** ([ADR-037](../../docs/ARCHITECTURE.md)):
   draw soft links only via `assignLink`; the rules are
   `src/lib/links/linkRules.ts`, shared with `convex/`.
 - **Lazy auto-hydration:** first `list(type)` loads the IndexedDB cache (nothing
   signed out); later reads are synchronous
-  ([ADR-003](../../docs/ARCHITECTURE.md#adr-003)).
+  ([ADR-003](../../docs/ARCHITECTURE.md)).
 - **Server first:** `update`/`create`/`delete` commit to Convex, then the
   IndexedDB cache, then in-memory state; a refused write changes nothing, and
   other tabs hear it from Convex
-  ([ADR-034](../../docs/ARCHITECTURE.md#adr-034)).
-- Route persistent entity state through the store, **never** through a
-  separate query cache (see `.claude/rules/itun-data-access.md`).
+  ([ADR-034](../../docs/ARCHITECTURE.md)).
 
 ## Combat / rules
 
@@ -132,22 +103,22 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   `heatCheckOncePatch`, `pushPatch`, `mechDamagePatch`, …) and applied by
   `useActionsDeck.ts` and the slots (`MechSlot.tsx`, `PilotSlot.tsx`,
   `CrawlerSlot.tsx`) as one write-through
-  ([ADR-008](../../docs/ARCHITECTURE.md#adr-008),
-  [ADR-021](../../docs/ARCHITECTURE.md#adr-021)).
+  ([ADR-008](../../docs/ARCHITECTURE.md),
+  [ADR-021](../../docs/ARCHITECTURE.md)).
 - Non-destructive heat-check outcomes auto-apply; destructive condition changes
   stay player-driven via the card status badge (`StatusBadge` from
   `component-lib`, wired through `MechItemCard.tsx` → `cycleItemCondition` in
   `src/components/sheet/MechSheet.tsx`)
-  ([ADR-007](../../docs/ARCHITECTURE.md#adr-007),
-  [ADR-009](../../docs/ARCHITECTURE.md#adr-009)).
+  ([ADR-007](../../docs/ARCHITECTURE.md),
+  [ADR-009](../../docs/ARCHITECTURE.md)).
 - The one sheet-local play control is `CrawlerEconomyControl.tsx`.
-- Full picture: [combat loop](../../docs/ARCHITECTURE.md#combat-loop).
+- Full picture: [combat loop](../../docs/ARCHITECTURE.md#areas).
 
 ## Conventions
 
 - Reuse `component-lib` components before building new UI; choices stay
   persistence-agnostic in the shared library — ITUN owns the selections
-  ([ADR-010](../../docs/ARCHITECTURE.md#adr-010)).
+  ([ADR-010](../../docs/ARCHITECTURE.md)).
 - **Do not add a Sentry SDK to `convex/`.** The browser bundle
   (`src/lib/observability.ts`) and the Worker (`src/worker/index.ts`, via
   `observability/cloudflare`) each own one; Convex uses its first-party

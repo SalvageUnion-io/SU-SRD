@@ -1,5 +1,15 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { color, space } from '../../design/tokens'
 import { cn } from '../../utils/cn'
+
+const GROUND = { minHeight: '100vh', backgroundColor: color.wkBg } satisfies CSSProperties
+
+const STACK = {
+  ...GROUND,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[24],
+} satisfies CSSProperties
 
 /**
  * The full-bleed page shell: the `<main>` landmark every top-level app screen
@@ -26,11 +36,10 @@ export type PageShellProps = {
 export function PageShell({ children, stack = true, className }: PageShellProps) {
   return (
     <main
-      className={cn(
-        'min-h-screen bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12',
-        stack && 'flex flex-col gap-6',
-        className
-      )}
+      // The gutters are `.su-page-shell`'s: a full-bleed `ChapterBand` reads
+      // them to reach the shell's edges.
+      className={cn('su-page-shell', className)}
+      style={stack ? STACK : GROUND}
     >
       {children}
     </main>

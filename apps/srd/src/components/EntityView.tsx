@@ -5,7 +5,7 @@
  * card that needs a click handler. Those render to HTML at build time and ship
  * no JS at all — the real `ReferenceEntityCard`, not a simplified stand-in.
  *
- * A minority embed something genuinely interactive (a roll table's Roll button,
+ * A minority embed something genuinely interactive (a roll table's Table toggle,
  * a disclosure, a nested-entity click target). Those keep an island:
  * a `client="visible"` card gated on a browser-side preload, paired with
  * `StaticEntityContent` so crawlers and no-JS readers still get the text.
@@ -29,6 +29,7 @@ import { getEntitySlug, schemaHasArt } from 'salvageunion-reference'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
 import { itemHref } from '../lib/entityHref'
 import { extractStaticEntitySummary } from '../lib/gameData'
+import { pageRefIndexFor } from '../lib/pageRefIndex'
 import { patternStaticSummary } from '../lib/patternSummary'
 import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
 import { Island } from '../runtime/Island'
@@ -44,8 +45,9 @@ type EntityViewProps = {
 
 export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
   const artSlot = schemaHasArt(schemaId)
+  const pageRefs = pageRefIndexFor(item)
   if (!cardNeedsHydration(item, pattern)) {
-    return <EntityCardStatic item={item} pattern={pattern} artSlot={artSlot} />
+    return <EntityCardStatic item={item} pattern={pattern} artSlot={artSlot} pageRefs={pageRefs} />
   }
 
   // The fallback draws its references as Mentions, so it keeps their markup.
@@ -64,6 +66,7 @@ export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
           pattern,
           preloadSchemas: getSchemaPreloadList(schemaId),
           artSlot,
+          pageRefs,
         }}
       />
       <StaticEntityContent

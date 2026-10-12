@@ -115,8 +115,8 @@ export function sortStories<T extends StoryRef>(stories: readonly T[]): T[] {
  * meta title is the first `title:` after `export default` (as the coverage
  * guard reads it), and each `export const` / `export function` is a story,
  * which `story-coverage.test.ts`'s conventions make true of every story file.
- * Template literals are blanked first: a code sample in one (the Styleguide's)
- * holds an `export const` that is not a story.
+ * Template literals are blanked first: a code sample in one may hold an
+ * `export const` that is not a story.
  */
 export function storiesInSource(file: string): StoryRef[] {
   const source = file.replace(/`(?:\\[\s\S]|[^`\\])*`/g, '``')

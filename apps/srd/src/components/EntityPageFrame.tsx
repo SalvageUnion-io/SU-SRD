@@ -1,13 +1,15 @@
 import type { ChapterTone, EntityPageMeta } from 'component-lib'
-import { ChapterBand } from 'component-lib'
+import { buttonVariants, ChapterBand } from 'component-lib'
 import type { ReactNode } from 'react'
 import type { PageFoot } from '../../ssg/types'
+import type { BuildLink } from '../lib/buildLink'
 import { EntityPageStamps } from './EntityPageStamps'
 
 /**
  * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,
  * 08b): its chapter's band at the head, the title notched in and the type
- * stamps beside it; then the body. The page's foot band — the citation
+ * stamps right beside the notch (wrapping above it when a long name leaves no
+ * room: the band's `asideAt="notch"`); then the body. The page's foot band — the citation
  * ("p.112 · Salvage Union Workshop Manual · also in …") — is the site
  * `Footer`'s, so the page ends once: the page module hands `entityPageFoot`
  * to the layout as its `PageResult.foot`.
@@ -46,6 +48,8 @@ type EntityPageFrameProps = {
   measure?: string
   /** What the entity is built on, linked above the title: a pattern's chassis. */
   parent?: { label: string; name: string; href: string }
+  /** "Build with this": the deep link into ITUN's builder (`buildLinkFor`), atop the body. */
+  build?: BuildLink | null
   children: ReactNode
 }
 
@@ -55,6 +59,7 @@ export function EntityPageFrame({
   meta,
   measure = ENTITY_PAGE_MEASURE,
   parent,
+  build,
   children,
 }: EntityPageFrameProps) {
   return (
@@ -63,11 +68,25 @@ export function EntityPageFrame({
         tone={tone}
         measure={measure}
         aside={<EntityPageStamps meta={meta} />}
+        asideAt="notch"
         eyebrow={parent && <ParentLink {...parent} />}
       >
         {title}
       </ChapterBand>
       <div className="srd-entity__body" style={{ maxWidth: measure }}>
+        {build && (
+          // A link that looks like the shared Button (`buttonVariants`, as the
+          // home page's "Build a pilot"): same tab, no off-site arrow — the
+          // Reference and Build are one union (ruleset §3.11).
+          <div className="srd-entity__build">
+            <a
+              href={build.href}
+              className={buttonVariants({ variant: 'primary', size: 'compact' })}
+            >
+              {build.label}
+            </a>
+          </div>
+        )}
         {children}
       </div>
     </article>

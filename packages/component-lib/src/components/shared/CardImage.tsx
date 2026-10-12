@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { CARD_IMAGE_CONTAINER_WIDTH, cardImageSizes, heroImageSizes } from './cardImageSizes'
+import { heroArtCrop } from './heroArtCrop'
 
 type CardImageProps = {
   url?: string
@@ -38,6 +40,17 @@ type CardImageProps = {
  * one. When one does, it arrives as a deliberate design whose destructive
  * action uses the danger tone, never an ONTOLOGY hue (ruleset §3.3).
  */
+/** The artwork fades in once loaded. */
+const IMG = {
+  display: 'block',
+  height: 'auto',
+  width: '100%',
+  objectFit: 'contain',
+  transitionProperty: 'opacity',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  transitionDuration: '300ms',
+} satisfies CSSProperties
+
 export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageProps) {
   const [showImage, setShowImage] = useState(true)
   // The fade-in is a CLIENT-ONLY enhancement, so it starts already-`loaded` on
@@ -84,21 +97,29 @@ export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageP
     : CARD_IMAGE_CONTAINER_WIDTH.normal
 
   if (hero) {
-    return (
-      <figure className="su-entity-hero">
-        <img
-          ref={imgRef}
-          src={url}
-          srcSet={srcSet}
-          sizes={srcSet ? heroImageSizes() : undefined}
-          alt={alt}
-          className="su-entity-hero__img"
-          style={{ opacity: loaded ? 1 : 0 }}
-          decoding="async"
-          onLoad={() => setLoaded(true)}
-          onError={() => setShowImage(false)}
-        />
+    // Cropped to the line art where its box is known (`heroArtCrop`): the
+    // plate takes the ink's aspect and the canvas's empty margin falls outside.
+    const crop = heroArtCrop(url)
+    const img = (
+      <img
+        ref={imgRef}
+        src={url}
+        srcSet={srcSet}
+        sizes={srcSet ? heroImageSizes() : undefined}
+        alt={alt}
+        className={crop ? 'su-entity-hero__img su-entity-hero__img--crop' : 'su-entity-hero__img'}
+        style={{ ...crop?.image, opacity: loaded ? 1 : 0 }}
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        onError={() => setShowImage(false)}
+      />
+    )
+    return crop ? (
+      <figure className="su-entity-hero su-entity-hero--crop" style={crop.frame}>
+        <div className="su-entity-hero__window">{img}</div>
       </figure>
+    ) : (
+      <figure className="su-entity-hero">{img}</figure>
     )
   }
 
@@ -110,8 +131,11 @@ export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageP
       style={{ width: containerWidth, maxWidth: '100%', shapeOutside: 'margin-box' }}
     >
       <div
-        className="relative overflow-hidden"
-        style={loaded ? undefined : { minHeight: compact ? 120 : 200 }}
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          ...(loaded ? {} : { minHeight: compact ? 120 : 200 }),
+        }}
       >
         <img
           ref={imgRef}
@@ -126,8 +150,7 @@ export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageP
           // so it is that width except on a viewport narrower than the card.
           sizes={srcSet ? cardImageSizes(compact) : undefined}
           alt={alt}
-          className="block h-auto w-full object-contain transition-opacity duration-300"
-          style={{ opacity: loaded ? 1 : 0 }}
+          style={{ ...IMG, opacity: loaded ? 1 : 0 }}
           loading="lazy"
           decoding="async"
           onLoad={() => setLoaded(true)}

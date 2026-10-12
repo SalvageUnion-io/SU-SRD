@@ -19,8 +19,8 @@
  *   full      everything — `bun run check`
  *   fast      the ~12s inner loop: no test suite, no network, no
  *             regeneration — `bun run check:fast`
- *   pre-push  fast + generated-file drift (the suite runs separately, scoped by
- *             `--changed` — see lefthook.yml)
+ *   pre-push  fast + generated-file drift (the suite runs separately, scoped
+ *             by the workspace graph — see tools/pre-push-test.ts)
  *   ci        everything except the test suite, which runs in CI's own
  *             `coverage` job
  *
@@ -136,8 +136,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'doc-drift',
     guards:
-      'cited paths, bun scripts and markdown links exist (live docs plus each ADR Status and Decision); no agent doc repeats a retired claim; each ADR once in ARCHITECTURE.md and named in the Status of any ADR it amends; agent-doc size budgets',
-    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); state the current design instead of a retired claim; keep each ADR one bare `## ADR-NNN` under # Decisions; add the amending ADR to the amended one\'s Status; cut a doc over its size budget',
+      'cited paths, bun scripts and markdown links exist; no agent doc repeats a retired claim; each ADR once in ARCHITECTURE.md and named in the entry of any ADR it amends; ARCHITECTURE.md entries are a headline plus at most two lines; doc size budgets',
+    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); state the current design instead of a retired claim; keep entry N of ## Decisions as ADR-N, and link a docs/adr/NNN-slug.md full text (status front-matter) from its headline; add the amending ADR to the amended one\'s entry; cut an entry to two lines or a doc to its size budget',
     cmd: ['bun', 'tools/check-doc-drift.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
@@ -148,6 +148,15 @@ export const CHECKS: readonly CheckSpec[] = [
     fix: 'change the CSP and Sentry wiring in every source for that app together',
     cmd: ['bun', 'tools/check-observability.ts'],
     areas: REPO_INVARIANT,
+    profiles: ALL,
+  },
+  {
+    id: 'workers',
+    guards:
+      'the four Workers share one shape: src/worker/index.ts, one script set, Env types, equal shared wrangler keys',
+    fix: 'make the app match the others (tools/check-workers.ts names each rule); a new Worker joins WORKER_APPS in tools/check-generated.ts',
+    cmd: ['bun', 'tools/check-workers.ts'],
+    areas: ['code'],
     profiles: ALL,
   },
   {
@@ -197,9 +206,9 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'audit',
     guards: 'no advisory, at any severity, in the dependency tree',
-    fix: 'upgrade or override the vulnerable package (docs/ARCHITECTURE.md#dependency-audit)',
+    fix: 'upgrade or override the vulnerable package (docs/ARCHITECTURE.md#areas)',
     // The root `audit` script, which e2e-nightly.yml's `audit` job also runs:
-    // one command, one suppression list (docs/ARCHITECTURE.md#dependency-audit).
+    // one command, one suppression list (docs/ARCHITECTURE.md#areas).
     cmd: ['bun', 'run', 'audit'],
     // A PR that moves neither bun.lock nor a manifest cannot change the tree;
     // the nightly run catches a new advisory against the unchanged one.

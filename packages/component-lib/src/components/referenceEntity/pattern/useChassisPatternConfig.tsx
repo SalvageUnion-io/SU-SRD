@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useMemo } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import {
@@ -6,7 +6,7 @@ import {
   normalizePatternName,
   SalvageUnionReference,
 } from 'salvageunion-reference'
-import { cn } from '../../../utils/cn'
+import { space, fontSize as typeScale, weight } from '../../../design/tokens'
 import { Badge } from '../../chrome/Badge'
 import { Slab } from '../../chrome/Slab'
 import { Stat } from '../../shared/Stat'
@@ -14,11 +14,36 @@ import type { StatItem } from '../../shared/statsBarTypes'
 import { Content } from '../Content'
 import type { ReferenceEntityCardHideConfig } from '../card/referenceEntityCardTypes'
 import type { PatternOverrideData } from '../referenceEntityTypes'
-import { getReferenceEntityFontSizes, getReferenceEntitySpacing } from '../referenceEntityTypes'
+import {
+  getReferenceEntityFontSizes,
+  getReferenceEntitySpacing,
+  stackClassName,
+} from '../referenceEntityTypes'
 import { ChassisAbilitiesContent } from './ChassisAbilitiesContent'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 import { computeSvOverride, resolvePatternOverride } from './patternOverrideUtils'
 import { quotePatternName } from './quotePatternName'
+
+/**
+ * The pattern-header stamps' overrides on the mini stamp: a `text-xs` /
+ * `text-sm` size at line-height 1, block, pinned to the row's top.
+ */
+const headerStampStyle = (size: 'xs' | 'sm', fontWeight: number, opacity?: number) =>
+  ({
+    display: 'block',
+    alignSelf: 'flex-start',
+    fontSize: typeScale[size],
+    lineHeight: 1,
+    fontWeight,
+    textTransform: 'uppercase',
+    opacity,
+  }) satisfies CSSProperties
+
+const stampRowStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: space[8],
+} satisfies CSSProperties
 
 type ChassisPatternConfig = {
   /** Override the title to the quoted pattern name */
@@ -128,32 +153,25 @@ export function useChassisPatternConfig(
 
   const abilitiesSection =
     hasChassisAbilities || overridePatternData ? (
-      <div className={spacing.sectionSpaceYClass}>
+      <div className={stackClassName(spacing.sectionGap)}>
         {overridePatternData && (
-          <div className={spacing.smallSpaceYClass}>
+          <div className={stackClassName(spacing.smallGap)}>
             {/*
              * The row is `items-center`, so `self-start` is load-bearing: these
              * three stamps carry different font sizes and must stay TOP aligned,
-             * not centred against the tallest. `leading-none` trails the font
-             * size, which would otherwise reinstate its own line-height.
+             * not centred against the tallest. The line-height of 1 is set with
+             * the font size, which would otherwise bring its own.
              */}
-            <div className="flex items-center gap-2">
+            <div style={stampRowStyle}>
               <Badge
                 shape="stamp"
                 size="mini"
-                className={cn(
-                  compact ? 'text-xs' : 'text-sm',
-                  'block self-start font-bold uppercase leading-none'
-                )}
+                style={headerStampStyle(compact ? 'xs' : 'sm', weight.bold)}
               >
                 {normalizePatternName(overridePatternData.name)}
               </Badge>
               {overridePatternData.page && (
-                <Badge
-                  shape="stamp"
-                  size="mini"
-                  className="block self-start text-xs font-semibold uppercase leading-none"
-                >
+                <Badge shape="stamp" size="mini" style={headerStampStyle('xs', weight.semibold)}>
                   Page {overridePatternData.page}
                 </Badge>
               )}
@@ -161,7 +179,7 @@ export function useChassisPatternConfig(
                 <Badge
                   shape="stamp"
                   size="mini"
-                  className="block self-start text-xs font-semibold uppercase leading-none opacity-70"
+                  style={headerStampStyle('xs', weight.semibold, 0.7)}
                 >
                   {overridePatternData.source}
                 </Badge>
@@ -194,9 +212,9 @@ export function useChassisPatternConfig(
 
   const afterExtraContent =
     hasSystems || hasModules ? (
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="su-pattern-equipment" style={{ display: 'grid', gap: space[16] }}>
         {hasSystems && (
-          <div className={spacing.smallSpaceYClass}>
+          <div className={stackClassName(spacing.smallGap)}>
             <Slab variant="solid" label="Systems" />
             {resolvedSystems.map((entity, idx) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: static pattern list; index disambiguates duplicate system ids
@@ -205,7 +223,7 @@ export function useChassisPatternConfig(
           </div>
         )}
         {hasModules && (
-          <div className={spacing.smallSpaceYClass}>
+          <div className={stackClassName(spacing.smallGap)}>
             <Slab variant="solid" label="Modules" />
             {resolvedModules.map((entity, idx) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: static pattern list; index disambiguates duplicate module ids

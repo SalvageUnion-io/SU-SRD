@@ -24,9 +24,9 @@ function frame(container: HTMLElement): HTMLElement {
   return el
 }
 
-/** The header band — identified by the callout's tightened padding pair. */
+/** The header band — Card's header row. */
 function bands(el: HTMLElement) {
-  return el.querySelectorAll('.px-3.py-1\\.5')
+  return el.querySelectorAll('.su-card-head')
 }
 
 describe('Callout', () => {

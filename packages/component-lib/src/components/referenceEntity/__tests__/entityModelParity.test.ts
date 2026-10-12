@@ -111,10 +111,9 @@ const EXPECTED_MARK = new Map<SURefMetaEntity, string>(
   })
 )
 
-/** The theme token a card tone paints, read back out of its class or colour. */
+/** The theme token a card tone paints, read back out of its colour. */
 function toneToken(tone: { bg: string | undefined; bgColor: string | undefined }) {
-  if (tone.bgColor) return tone.bgColor.match(/^var\(--color-(.+)\)$/)?.[1]
-  return tone.bg?.replace(/^bg-/, '')
+  return (tone.bgColor ?? tone.bg)?.match(/^var\(--color-(.+)\)$/)?.[1]
 }
 
 /** How many of the model's facts are the head's: Tech Level and the stats. */
@@ -148,7 +147,7 @@ describe('toEntityModel parity, every entity', () => {
       agree(label(row), model.tone, schemaName === 'actions' ? 'ink' : toneToken(tone))
       const doFill = model.kind.nature === 'do' ? 'ink' : 'tone'
       agree(label(row), resolveHeaderFill(entity, 'full'), doFill)
-      agree(label(row), resolveHeaderFill(entity, 'head'), isAbility(entity) ? 'tone' : doFill)
+      agree(label(row), resolveHeaderFill(entity, 'head'), doFill)
     }
   })
 

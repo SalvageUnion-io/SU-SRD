@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { color, font, fontSize, space, tracking } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import type { BannerWarning } from './Banner'
 import { Banner } from './Banner'
@@ -7,11 +8,25 @@ export default {
   title: 'Containers/Banner',
 }
 
+const FRAME = {
+  maxWidth: '28rem',
+  backgroundColor: color.paper,
+  padding: space[16],
+} satisfies CSSProperties
+
+const LABEL = {
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  textTransform: 'uppercase',
+  letterSpacing: tracking.caps,
+  color: color.wkMuted,
+} satisfies CSSProperties
+
 /** Story-caption: names the variant under each cluster. */
 function Cluster({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="font-cond text-badge uppercase tracking-caps text-wk-muted">{label}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[6] }}>
+      <span style={LABEL}>{label}</span>
       {children}
     </div>
   )
@@ -37,8 +52,8 @@ const AUTOSAVE_WARNING: BannerWarning = {
  * every row is purely informational; the Banner is advisory and never blocks.
  */
 export const Default: Story = () => (
-  <div className="max-w-md bg-paper p-4">
-    <div className="flex flex-col gap-6">
+  <div style={FRAME}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[24] }}>
       <Cluster label="info">
         <Banner warnings={[LEGAL_PATTERN_WARNING]} />
       </Cluster>
@@ -54,14 +69,14 @@ export const Default: Story = () => (
 
 /** Multiple severities stacked in one strip. */
 export const Stacked: Story = () => (
-  <div className="max-w-md bg-paper p-4">
+  <div style={FRAME}>
     <Banner warnings={[LEGAL_PATTERN_WARNING, NO_EP_WARNING]} />
   </div>
 )
 
 /** Empty `warnings` renders nothing — a zero-DOM strip. */
 export const Empty: Story = () => (
-  <div className="max-w-md bg-paper p-4">
+  <div style={FRAME}>
     <Cluster label="warnings={[]} — renders nothing">
       <Banner warnings={[]} />
     </Cluster>

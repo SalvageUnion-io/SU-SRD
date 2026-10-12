@@ -1,8 +1,15 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useMemo } from 'react'
 import { parseTraitReferences as parseTraitRefs } from 'salvageunion-reference'
+import { space } from '../design/tokens'
+import { useEntitySurface } from '../entity/entitySurfaceContext'
 import { Mention } from '../entity/forms/Mention'
+import { findPageRefs, resolvePageRef } from '../entity/pageRefs'
 import { mentionRef } from '../entity/parts/tagItems'
+import { useInsidePeek } from '../entity/peekContext'
+
+/** The blank line a `\n\n` paragraph break renders as. */
+const PARAGRAPH_BREAK = { display: 'block', height: space[12] } satisfies CSSProperties
 
 /**
  * One in-prose trait reference: a MENTION (entity display language E4). The
@@ -30,6 +37,11 @@ function TraitRef({ name, param }: { name: string; param?: string }) {
  * 1. Simple traits: [[trait-name]] -> a Mention reading "trait-name"
  * 2. Traits with parameters: [[[Trait Name] (parameter)]] -> a Mention reading "Trait Name (parameter)"
  *
+ * And the book's page references: where the surface supplies `pageRefs` (the
+ * SRD), a "p. 235" that resolves (`resolvePageRef`) is a Mention of the entity
+ * covering that page, reading "p. 235". One that does not, and every one
+ * inside a Peek (terminal, E16), stays text.
+ *
  * Performance: Uses useMemo to prevent re-parsing on every render
  * Returns original text as-is if no bracket notation found (common case)
  *
@@ -37,6 +49,9 @@ function TraitRef({ name, param }: { name: string; param?: string }) {
  * @returns Original text string if no matches, or array of React nodes (strings and Mentions) if matches found
  */
 export function useParseTraitReferences(text: string | undefined): ReactNode {
+  const { pageRefs: pageIndex } = useEntitySurface()
+  const insidePeek = useInsidePeek()
+  const pageRefIndex = insidePeek ? undefined : pageIndex
   return useMemo(() => {
     if (!text) {
       return null
@@ -44,8 +59,9 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
 
     const hasTraits = text.includes('[[')
     const hasParagraphBreaks = text.includes('\n\n')
+    const hasPageRefs = !!pageRefIndex && text.includes('p.')
 
-    if (!hasTraits && !hasParagraphBreaks) {
+    if (!hasTraits && !hasParagraphBreaks && !hasPageRefs) {
       return text
     }
 
@@ -76,7 +92,16 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
       param: r.parameter,
     }))
 
-    for (const seg of [...traits, ...breaks].sort((a, b) => a.start - b.start)) {
+    // A reference is resolved from the prose before it, read with any trait
+    // markup in place: a `[[Name]]` still contains the name.
+    const pages = pageRefIndex
+      ? findPageRefs(text).flatMap((m) => {
+          const ref = resolvePageRef(pageRefIndex, m.page, text.slice(0, m.start))
+          return ref ? [{ ...m, kind: 'page' as const, ref }] : []
+        })
+      : []
+
+    for (const seg of [...traits, ...breaks, ...pages].sort((a, b) => a.start - b.start)) {
       // A paragraph break inside a trait reference cannot happen, but a
       // defensive skip keeps a pathological overlap from duplicating prose.
       if (seg.start < currentIndex) continue
@@ -84,7 +109,13 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
         nodes.push(text.substring(currentIndex, seg.start))
       }
       if (seg.kind === 'break') {
-        nodes.push(<span key={`break-${seg.start}`} className="block h-3" />)
+        nodes.push(<span key={`break-${seg.start}`} style={PARAGRAPH_BREAK} />)
+      } else if (seg.kind === 'page') {
+        nodes.push(
+          <Mention key={`page-${seg.start}`} entityRef={seg.ref}>
+            {text.substring(seg.start, seg.end)}
+          </Mention>
+        )
       } else {
         nodes.push(<TraitRef key={`trait-${seg.start}`} name={seg.name} param={seg.param} />)
       }
@@ -96,5 +127,5 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
     }
 
     return nodes.length === 0 ? text : nodes
-  }, [text])
+  }, [text, pageRefIndex])
 }

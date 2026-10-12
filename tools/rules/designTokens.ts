@@ -17,7 +17,7 @@
  *
  * ## Zero rules and the two ratchets
  *
- * Nine rules are `zero`: any finding fails. Three of them landed with the brand
+ * Ten rules are `zero`: any finding fails. Three of them landed with the brand
  * refresh's tokens (#1251) and hold the Workshop Manual canon the ruleset
  * ratified in #1250: `rust-allowlist` (§3.1), `type-floor` (§4.6) and
  * `texture-placement` (§3.5). Each landed with its backlog fixed, not
@@ -274,6 +274,22 @@ export const TOKEN_RULES: TokenRule[] = [
       TEXTURE_FORBIDDEN.some((zone) => zone.test(file)) || PAPER_GROUND.test(line),
   },
   {
+    id: 'cool-ground',
+    mode: 'zero',
+    rule: 'ruleset §4.1 — one workshop ground; the cool `wk-bg-2` is off the closed palette',
+    // The pale blue-grey (#d7e6ee) is what the page ground was before the brand
+    // refresh moved it to the book's warm paper (#1250). It survived as a
+    // second "ground" on a quiet chip and a search row, which put the cool
+    // palette back on a warm page. Every spelling counts: the custom property,
+    // a Tailwind utility under any prefix, and the `color.wkBg2` token key.
+    // "Print" means the print stylesheet only (`apps/itun/src/styles/print.css`,
+    // all of it inside `@media print`), which whites the token out for paper;
+    // theme.css / tokens.ts still DEFINE it and are exempt below like every
+    // other definition rule.
+    fix: 'Use the workshop ground: `color.wkBg` / `var(--color-wk-bg)` for the step off paper, or `color.paper` / `var(--color-paper)` for the surface itself.',
+    pattern: /--color-wk-bg-2(?![\w-])|(?<![\w-])[a-z]+(?:-[trblxy])?-wk-bg-2(?![\w-])|\bwkBg2\b/g,
+  },
+  {
     id: 'pure-white',
     mode: 'zero',
     rule: 'ruleset §4.1 — pure white is retired; paper (#fbfaf7) is the one light surface',
@@ -289,13 +305,19 @@ export const TOKEN_RULES: TokenRule[] = [
 const EXEMPTIONS: Exemption[] = [
   {
     file: 'packages/component-lib/src/styles/theme.css',
-    rules: ['raw-color', 'arbitrary-border-width', 'arbitrary-radius', 'rust-allowlist'],
+    rules: [
+      'raw-color',
+      'arbitrary-border-width',
+      'arbitrary-radius',
+      'rust-allowlist',
+      'cool-ground',
+    ],
     reason:
       'The token definitions themselves — this file is where colour is allowed to be a literal, and where `--color-rust` is DEFINED (rust-allowlist governs who paints with it, not where it is declared). arbitrary-border-width and arbitrary-radius are exempt for a different reason: the file authors no borders and no radii at all, it DEFINES the --bw-* and --radius-* ladders. Their only matches are the prose in each ladder doc-comment ("never `border-[1.5px]`", "never rounded-[Npx]") — the rule text quoting the form it forbids. Rewording those comments to dodge the regex would make the canon harder to read to satisfy a lint.',
   },
   {
     file: 'packages/component-lib/src/design/tokens.ts',
-    rules: ['raw-color', 'rust-allowlist'],
+    rules: ['raw-color', 'rust-allowlist', 'cool-ground'],
     reason:
       'The TypeScript mirror of theme.css above: a token-definition file, so it is where colour is allowed to be a literal. Every value is ported verbatim from theme.css — nothing here is a new colour, and `src/design/tokens.parity.test.ts` fails if the two ever disagree. The exemption is scoped to `raw-color` alone: an arbitrary radius, tracking or border width written here would still be a violation, because those ladders are token NAMES rather than literals even inside the file that defines them.',
   },
@@ -351,9 +373,10 @@ const EXEMPTIONS: Exemption[] = [
       'arbitrary-border-width',
       'pure-white',
       'gradient',
+      'cool-ground',
     ],
     reason:
-      'Foundations catalog pages render token specimens and deliberately show off-system values as counter-examples. rust-allowlist is on the list because Foundations/Theme specimens the rust swatch itself — a token page that could not show the action colour would be missing a token. arbitrary-border-width is on the list for exactly that reason: the sole match is Theme.stories.tsx printing the border ladder\'s own caption, "never border-[1.5px]" — the counter-example is the content. (This entry is the directory, so it also covers the non-story helper here, _harness.tsx.)',
+      'Foundations catalog pages render token specimens and deliberately show off-system values as counter-examples. rust-allowlist is on the list because Foundations/Theme specimens the rust swatch itself — a token page that could not show the action colour would be missing a token. arbitrary-border-width is on the list for exactly that reason: the sole match is Theme.stories.tsx printing the border ladder\'s own caption, "never border-[1.5px]" — the counter-example is the content. cool-ground is on the list for the same reason: Foundations/Theme swatches every key on the scale, `wkBg2` included, until the token itself is retired. (This entry is the directory, so it also covers the non-story helper here, _harness.tsx.)',
   },
   {
     file: '.stories.tsx',
@@ -405,9 +428,9 @@ const EXEMPTIONS: Exemption[] = [
   },
   {
     file: 'apps/itun/src/styles/print.css',
-    rules: ['raw-color', 'pure-white'],
+    rules: ['raw-color', 'pure-white', 'cool-ground'],
     reason:
-      'PRINT MEDIA. Inside `@media print` the surface is physical paper and the ink is real ink, so #fff / #000 are the correct values rather than the screen palette — warm paper (#fbfaf7) printed as a fill wastes toner and reads grey. theme.css already carves out exactly this exception in its paper note ("the only remaining #ffffff is one scoped exception: the @media print sheet"); this is that exception, in the app that owns the sheet.',
+      'PRINT MEDIA. Inside `@media print` the surface is physical paper and the ink is real ink, so #fff / #000 are the correct values rather than the screen palette — warm paper (#fbfaf7) printed as a fill wastes toner and reads grey. theme.css already carves out exactly this exception in its paper note ("the only remaining #ffffff is one scoped exception: the @media print sheet"); this is that exception, in the app that owns the sheet. cool-ground rides along because the print sheet whites `--color-wk-bg-2` out with the other themed grounds, so nothing that still reads it prints a tint.',
   },
   {
     file: 'apps/itun/src/index.css',

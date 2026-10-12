@@ -34,7 +34,7 @@ the corpus size, not just the finding count.
 
 | Id | Script | Baseline |
 | --- | --- | --- |
-| `generated` | `check-generated.ts` (runs first and alone: it rewrites files) | — |
+| `generated` | `check-generated.ts` (runs first and alone: it rewrites files; off CI it skips generators whose inputs are unchanged, `--force` re-runs all) | — |
 | `test` | `bun run test` | — |
 | `typecheck` | `bun run typecheck` | — |
 | `knip` | `bun run knip` | — |
@@ -43,6 +43,7 @@ the corpus size, not just the finding count.
 | `rules-fidelity` | `check-fidelity-lock.ts`: fails a prose string whose text has no verdict in the lock (`--prune` drops entries for deleted strings). Needs no book; the verdicts come from `check-rules-fidelity.ts --update` | `packages/salvageunion-reference/fidelity.lock.json` |
 | `doc-drift` | `check-doc-drift.ts` | `OVER_BUDGET`, `COLLAPSED_DOCS` and `RETIRED_CLAIMS` in the script |
 | `observability` | `check-observability.ts` | — |
+| `workers` | `check-workers.ts` | — |
 | `convex-callers` | `check-convex-callers.ts` (also: `api.d.ts` registers exactly the modules on disk) | — |
 | `client-contract` | `check-client-contract.ts` (`--write` records the snapshot; refuses a breaking change without a raised `BUILD_FLOOR`) | `convex-client-contract.json` |
 | `barrel-consumers` | `check-barrel-consumers.ts` | `SINGLE_APP` in the script (storyless helpers only) |
@@ -55,10 +56,11 @@ the corpus size, not just the finding count.
 
 | Script | Run by | Purpose | Baseline |
 | --- | --- | --- | --- |
-| `run-coverage.ts` | `test:coverage`: CI's `coverage` job, and pre-push when shared code or manifests change | Every workspace's suite (`tools/` included) under `bun test --coverage`, concurrently, each workspace's output printed whole under its name. Fails a workspace whose line coverage of its own files is under its floor. | `FLOORS` in the script. Add tests; lower a floor only on purpose, saying so in the PR. Raise one to lock in a gain. |
+| `run-coverage.ts` | `test:coverage`: CI's `coverage` job only (pre-push runs `pre-push-test.ts`: the changed workspaces and their dependents, no coverage) | Every workspace's suite (`tools/` included) under `bun test --coverage`, concurrently, each workspace's output printed whole under its name. Fails a workspace whose line coverage of its own files is under its floor. | `FLOORS` in the script. Add tests; lower a floor only on purpose, saying so in the PR. Raise one to lock in a gain. |
 | `lib/a11yScan.ts` | each app's `e2e/a11y.e2e.ts`, in `build-srd` and `build-itun` in `ci.yml` (every srd / ITUN PR) | WCAG 2.2 AA scan (axe-core in the suite's own Playwright browser) of the pages each spec lists in `PAGES`, at desktop and as a Pixel 7. Fails on any violation. | — |
 | `deploy-surfaces.ts` | `.github/workflows/deploy-cloudflare.yml` | Diffs HEAD against the last successful deploy tag and decides which Cloudflare surfaces ship. Fails safe: when unsure it deploys everything. | — |
 | `environments.ts` | `e2e-nightly.yml` (`environments`); `--apply` by hand | The GitHub Environments declared once (branches, secret names, required reviewers) and compared against the live settings: no branch policy, a missing or repository-level secret, an undeclared Environment. `--apply` sets Environments and branch policies, never secrets. Its static half is `workflows`' `secrets-env`. | — |
+| `gallery.ts`, `gallery-pages.ts` | `pr-gallery.yml`, then `pr-gallery-pages.yml` | `gallery` shoots `lib/galleryPages.ts` (desktop, phone, OG cards, ITUN signed in on a throwaway Convex). `gallery-pages` builds the Pages site from each open PR's `pr-gallery-<n>` artifact. | — |
 | `smoke-production.sh` | `deploy-cloudflare.yml` (`smoke` job) and `e2e-nightly.yml` (`production-smoke`) | Curls every production surface: status codes, www and http→https redirects, CSP/HSTS reaching the browser, the rotated-chunk 404 (and that it is not `immutable`), artwork robots.txt, bot token health. Runs every check, then exits 1 if any failed. | — |
 
 ## Local-only and by hand
@@ -67,14 +69,17 @@ the corpus size, not just the finding count.
 | --- | --- | --- |
 | `extract-rules.ts` | `rules:extract` | Rules PDFs in `rules/` to `rules/extracted/*.txt` with page markers, plus a content-stream-order layer in `rules/extracted/raw/` for the fidelity check. The PDFs are gitignored here (source of record: the private `su-rules` repo, extract committed); no-ops without them. |
 | `check-rules-fidelity.ts` | `check:rules-fidelity` | Every prose string against the books: verbatim, an allowlisted deviation (`lib/proseDeviations.ts` in the package), authored, or unverified drift. `--update` rewrites the lock the `rules-fidelity` gate reads; `--show=<reason>` lists strings with diffs; `--summary` prints a drift summary for a PR body. Needs the extract: `findExtractDir` in `extract-rules.ts` takes `RULES_EXTRACT_DIR`, then `rules/extracted` here, the main checkout's, or a sibling `su-rules` checkout's. |
-| `check-printed-names.ts` | `check:printed-names` | Entity names and pages against the Core Book index. Advisory; needs the extract (found as above). Run after a data import. |
 | `export-lp-assets.ts` | `assets:export` | Backs up the `su-lp-assets` R2 bucket locally and proves the copy byte-exact — the only backup path for the licensed artwork. Needs R2 credentials. |
 | `upload-lp-assets.ts` | `assets:upload` | The artwork ingest path into `su-lp-assets`. Needs R2 credentials. |
+| `art-crop.ts` | `assets:crop` | Measures each artwork's ink box from its `-440` derivative and writes component-lib's `heroArtCrop.data.ts`, which the entity page's hero crops to. Re-run after adding or replacing art; unmeasured art renders whole. |
+| `shot.ts` | `shot` | A headless full-page PNG of a story (`?mode=canvas`, catalog on 61000) or an srd `/route` (dev on 4321) at a `WIDTH_PRESETS` width, `--dark` emulated. Reuses a server already on the port, else starts and stops one. Writes to the gitignored `.shots/` (or `--out`) and prints each path. |
 
 `lib/` holds the shared pieces: `ruleEngine.ts` (the styling engine: walk,
 exemptions, zero/ratchet verdicts), `scanFloor.ts`, `workspaceCoverage.ts`,
+`workspaceGraph.ts` (the manifests' `workspace:` edges, for pre-push),
 `tailwindClasses.ts` (the Tailwind-file ratchet's detector),
+`lcov.ts` (shard merge),
 `proseFidelity.ts` (prose collection, hashing and the fidelity lock format),
 `r2.ts` (R2 through `Bun.S3Client`, because `wrangler r2 object` cannot list)
 and `playwrightBase.ts` (the one Playwright config both apps' suites run).
-`rules/` holds the three styling rule sets.
+`rules/` holds the styling rule sets.
