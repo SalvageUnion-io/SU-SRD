@@ -302,6 +302,7 @@ describe('toEntityModel parity, every entity', () => {
           code: `UNION_ARCHIVE._${page}`,
           short: `P.${page}`,
           seed: art.kind === 'missing' ? art.seed : undefined,
+          backdrop: art.kind === 'missing' ? art.backdrop : undefined,
         })
         agree(label(row), missingArt(entity), art)
       } else {
