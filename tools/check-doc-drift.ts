@@ -795,7 +795,7 @@ const OVER_BUDGET: Record<string, number> = {
  */
 const COLLAPSED_DOCS: Record<string, number> = {
   'apps/srd/ssg/DESIGN.md': 5_400,
-  'docs/ARCHITECTURE.md': 19_000,
+  'docs/ARCHITECTURE.md': 19_500,
   'docs/README.md': 2_000,
   'docs/architecture/dashboard.md': 3_000,
   'docs/architecture/mediator-dashboard.md': 4_500,

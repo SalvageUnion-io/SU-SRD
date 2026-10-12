@@ -1,11 +1,13 @@
 # Spike O3: one salvageunion.io edge Worker
 
-Refit ledger item O3, a spike for the owner to decide. Nothing here changes
+Refit ledger item O3. **Decided 2026-10-12: option B, recorded as
+[ADR-047](../ARCHITECTURE.md#decisions)**; the shared quota is accepted and
+`assets.` stays its own Worker. Nothing here changes
 production: no `wrangler.jsonc`, workflow, `_headers` or route is edited, and
 the prototype (`apps/srd/src/worker/edgeHost.ts`) is imported only by its test.
 
 **Recommendation: fold `api.` into the srd Worker (option B). Keep `assets.` as
-its own Worker. Supersede ADR-043 decision 1 with the entry proposed below.**
+its own Worker. Supersede ADR-043 decision 1 (ADR-047).**
 That leaves four deployables, not three: salvageunion.io (with `api.`),
 `assets.salvageunion.io`, intheunionnow.com and the bot. Folding `assets.` too
 costs more than the Worker it saves (see option D).
@@ -193,7 +195,7 @@ is free: delete the route line. After that:
 
 ## Owner steps (in order, when `/v1` is ready to open)
 
-1. Decide: B, or C as written. If B, merge the superseding entry below.
+1. Decided: B (ADR-047).
 2. Confirm no DNS record exists for `api.salvageunion.io` (wrangler's custom
    domain attach creates it and fails with 409 if one exists, as with `www`
    in ADR-033).
@@ -207,19 +209,11 @@ is free: delete the route line. After that:
 6. For S2, later: add the `salvageunion.io/build*` route to `su-itun` in its
    own PR, after S2's spike.
 
-## Proposed superseding entry
+## The superseding entry
 
-Not added to [ARCHITECTURE.md](../ARCHITECTURE.md); for the owner to accept:
-
-```md
-46. **ADR-046 One salvageunion.io edge Worker**
-    Proposed: `su-srd` also serves `api.salvageunion.io`; `/v1` is static in srd's `dist/`, three shared paths run the script.
-    Supersedes ADR-043 decision 1 (no `apps/api`); amends ADR-033. Spike: [o3-one-edge-worker.md](spikes/o3-one-edge-worker.md).
-```
-
-ADR-043's entry would then read "amended by ADR-046" (its other decisions
-stand), and ADR-033's "amended by ADR-046". The entry number is whatever is
-next when it lands.
+ADR-047 in [ARCHITECTURE.md](../ARCHITECTURE.md#decisions) records the
+decision; ADR-043's entry names decision 1 as superseded, ADR-033's names the
+amendment. Wiring `planEdgeRequest` into `index.ts` waits for `/v1`.
 
 ## Not decided here
 
