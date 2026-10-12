@@ -1,9 +1,5 @@
 /**
  * Enforces the printed-name section of the prose-deviation allowlist, `proseDeviations.ts`.
- *
- * The list lives in its own module because `tools/check-printed-names.ts` reads
- * it too — the scan suppresses names already recorded here, so its output is
- * only ever findings nobody has ruled on yet.
  */
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from './index.js'
