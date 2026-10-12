@@ -33,8 +33,11 @@ const HEADER = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[8],
-  marginTop: tokens.space[32],
 } satisfies CSSProperties
+
+// Under the signed-out Roster's sign-in panel the h2 keeps its distance; on its
+// own page the band leads the shell and bleeds to the masthead.
+const SUB_HEADER = { ...HEADER, marginTop: tokens.space[32] } satisfies CSSProperties
 
 const ROW = { listStyle: 'none' } satisfies CSSProperties
 
@@ -82,9 +85,9 @@ export function StarterSetRoster({ headingLevel = 'h2' }: StarterSetRosterProps)
 
   return (
     <section aria-label="Starter Set">
-      <div style={HEADER}>
+      <div style={headingLevel === 'h1' ? HEADER : SUB_HEADER}>
         {headingLevel === 'h1' ? (
-          <ChapterBand>Starter Set</ChapterBand>
+          <ChapterBand layout="bleed">Starter Set</ChapterBand>
         ) : (
           <PageHeading>Starter Set</PageHeading>
         )}

@@ -1497,6 +1497,30 @@ body {
   }
 }
 
+/* ══ The page shell (`components/chrome/PageShell.tsx`) ══════════════════════
+ *
+ * The shell's gutters, as custom properties as well as its padding, so a child
+ * that bleeds to the shell's edges (a `ChapterBand`) can undo exactly them.
+ */
+.su-page-shell {
+  --su-page-gutter-inline: var(--space-16);
+  --su-page-gutter-block: var(--space-20);
+  padding: var(--su-page-gutter-block) var(--su-page-gutter-inline);
+}
+
+@media (min-width: 40rem) {
+  .su-page-shell {
+    --su-page-gutter-inline: var(--space-32);
+    --su-page-gutter-block: var(--space-40);
+  }
+}
+
+@media (min-width: 64rem) {
+  .su-page-shell {
+    --su-page-gutter-inline: var(--space-48);
+  }
+}
+
 /* ══ The chapter band (`components/chrome/ChapterBand.tsx`) ═════════════════
  *
  * Layout only — the band's colour, its speckle and the notch's ink on the page
@@ -1504,6 +1528,15 @@ body {
  * sets the title at hero; from `sm` they share one row and the title is the
  * chapter size.
  */
+/* `layout="bleed"` (the default): out to the page shell's edges and up to its
+   top, by the shell's own gutters. Outside a `PageShell` the properties are
+   unset and the band simply fills its container. */
+.su-chapter-band[data-layout='bleed'] {
+  margin-inline: calc(-1 * var(--su-page-gutter-inline, 0px));
+  margin-top: calc(-1 * var(--su-page-gutter-block, 0px));
+  width: calc(100% + 2 * var(--su-page-gutter-inline, 0px));
+}
+
 .su-chapter-band__row {
   align-items: flex-start;
   display: flex;

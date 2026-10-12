@@ -3,9 +3,11 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { color, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
+import { Text } from '../base/Text'
 import { UserMadeStamp } from '../referenceEntity/card/UserMadeStamp'
 import { Badge } from './Badge'
 import { ChapterBand } from './ChapterBand'
+import { PageShell } from './PageShell'
 
 export default {
   title: 'Atoms/Chapter Band',
@@ -145,4 +147,25 @@ export const UserMade: Story = () => (
       </ChapterBand>
     </div>
   </div>
+)
+
+/**
+ * `layout="bleed"`, the default: a band leading a `PageShell` cancels the
+ * shell's gutters, out to its edges and up to its top, so the band meets the
+ * masthead as it does on the SRD (ITUN's Starter Set). Widen the canvas past
+ * `sm` and `lg` to watch it follow the shell's gutters.
+ */
+export const Bleed: Story = () => (
+  <PageShell>
+    <ChapterBand>Starter Set</ChapterBand>
+    <Text variant="body">The pre-generated crew of Reclamation of the Wastes.</Text>
+  </PageShell>
+)
+
+/** `layout="inset"`: the band stays inside its container's box, the shell's gutters around it. */
+export const Inset: Story = () => (
+  <PageShell>
+    <ChapterBand layout="inset">Starter Set</ChapterBand>
+    <Text variant="body">The pre-generated crew of Reclamation of the Wastes.</Text>
+  </PageShell>
 )
