@@ -1,9 +1,10 @@
+import type { CSSProperties } from 'react'
 import type { SURefObjectContentBlock, SURefObjectDataValue } from 'salvageunion-reference'
 import { parseContentBlockString } from 'salvageunion-reference'
 import { statesMechanicalChange } from 'salvageunion-reference/rules'
+import { color, space, fontSize as typeScale, weight } from '../../design/tokens'
 import { Tag } from '../../entity/parts/Tags'
 import { glossaryRef } from '../../entity/parts/tagItems'
-import { cn } from '../../utils/cn'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { Text } from '../base/Text'
 import { Badge } from '../chrome/Badge'
@@ -11,6 +12,49 @@ import { Slab } from '../chrome/Slab'
 import { ActivationCost } from '../shared/ActivationCost'
 import { Stat } from '../shared/Stat'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
+
+/**
+ * The reading size a `Content` run is set in.
+ *
+ * `xs` / `sm` are the inherited `text-xs` / `text-sm` rungs WITH their paired
+ * line heights: the utilities this replaces set both, and — merged after
+ * `Text`'s own `leading-snug` — tailwind-merge dropped the snug leading, so
+ * the rung's line height is what rendered. `inherit` sets nothing, leaving the
+ * page's reading size and `Text`'s snug leading in charge.
+ */
+export type ContentFontSize = 'xs' | 'sm' | 'inherit'
+
+const FONT_SIZE_STYLE: Record<ContentFontSize, CSSProperties> = {
+  xs: { fontSize: typeScale.xs, lineHeight: '1rem' },
+  sm: { fontSize: typeScale.sm, lineHeight: '1.25rem' },
+  inherit: {},
+}
+
+const breakWord = { overflowWrap: 'break-word' } satisfies CSSProperties
+
+const sectionStyle = { marginTop: space[8] } satisfies CSSProperties
+
+const dataValuesStyle = {
+  display: 'flex',
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: space[4],
+} satisfies CSSProperties
+
+/** The rules-bearing spine (heavier solid ink) on a paragraph the app applies (ADR-029). */
+const rulesBearingStyle = {
+  borderLeft: `4px solid ${color.ink}`,
+  paddingLeft: space[8],
+} satisfies CSSProperties
+
+const listItemStyle = {
+  display: 'flex',
+  gap: space[8],
+  marginBottom: space[4],
+} satisfies CSSProperties
+
+const labelStampStyle = { display: 'block', marginBottom: space[4] } satisfies CSSProperties
 
 /**
  * A single `datavalues` item. A `cost` item ("3 AP") uses the ActivationCost
@@ -70,8 +114,8 @@ function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?
 type ContentProps = {
   /** The content blocks to render. */
   body: SURefObjectContentBlock[]
-  /** Font size for content (Tailwind class) */
-  fontSize?: string
+  /** Reading size for the content (`'inherit'` keeps the page's own). */
+  fontSize?: ContentFontSize
   /** Whether to use compact styling */
   compact?: boolean
   /** Chassis name to replace [(CHASSIS)] placeholder with */
@@ -109,7 +153,7 @@ type ContentProps = {
  */
 export function Content({
   body: rawContent,
-  fontSize = 'text-sm',
+  fontSize = 'sm',
   compact = false,
   chassisName,
   rulesBearing = false,
@@ -196,7 +240,7 @@ export function Content({
         const contentBlocks = isLeadingHeading ? section.blocks.slice(1) : section.blocks
 
         return (
-          <div key={`section-${firstBlock?.originalIndex ?? -1}`} className="mt-2">
+          <div key={`section-${firstBlock?.originalIndex ?? -1}`} style={sectionStyle}>
             {headingBlock && (
               <ContentBlock
                 block={headingBlock.block}
@@ -207,7 +251,11 @@ export function Content({
               />
             )}
             {labelText && (
-              <Text variant="body" as="div" className={cn('mb-2', fontSize)}>
+              <Text
+                variant="body"
+                as="div"
+                style={{ marginBottom: space[8], ...FONT_SIZE_STYLE[fontSize] }}
+              >
                 {labelText}
               </Text>
             )}
@@ -240,7 +288,7 @@ function ContentBlock({
   rulesBearing = false,
 }: {
   block: SURefObjectContentBlock
-  fontSize: string
+  fontSize: ContentFontSize
   compact: boolean
   chassisName?: string
   /** See `ContentProps.rulesBearing`. */
@@ -248,6 +296,7 @@ function ContentBlock({
 }) {
   const type = block.type || 'paragraph'
   const blockValue = block.value
+  const sizeStyle = FONT_SIZE_STYLE[fontSize]
 
   // Always parse the string value for the hook (even if we don't use it for datavalues)
   // This ensures React hooks are called in the same order every render
@@ -260,7 +309,7 @@ function ContentBlock({
       return null
     }
     return (
-      <div className="flex flex-row flex-wrap items-center gap-1">
+      <div style={dataValuesStyle}>
         {blockValue.map((item, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: datavalues come from static reference content blocks and never reorder
           <DataValueChip key={index} item={item} compact={compact} />
@@ -280,8 +329,12 @@ function ContentBlock({
         <Text
           variant="body"
           as="div"
-          className={cn('mb-1', fontSize, bearing && 'border-l-4 border-solid border-ink pl-2')}
-          style={{ overflowWrap: 'break-word' }}
+          style={{
+            marginBottom: space[4],
+            ...sizeStyle,
+            ...(bearing ? rulesBearingStyle : {}),
+            ...breakWord,
+          }}
           {...(bearing
             ? {
                 'data-rules-bearing': 'true',
@@ -307,17 +360,14 @@ function ContentBlock({
       // the following" effect options) are just the dash + body. The flex + gap
       // gives a hanging indent so wrapped lines align under the text, not the dash.
       return (
-        <div className={cn('mb-1 flex gap-2', fontSize)}>
-          <span aria-hidden className="select-none">
+        <div style={{ ...listItemStyle, ...sizeStyle }}>
+          <span aria-hidden style={{ userSelect: 'none' }}>
             -
           </span>
-          <Text
-            variant="body"
-            as="div"
-            className={cn('flex-1', fontSize)}
-            style={{ overflowWrap: 'break-word' }}
-          >
-            {block.label ? <span className="font-bold">{String(block.label)}: </span> : null}
+          <Text variant="body" as="div" style={{ flex: 1, ...sizeStyle, ...breakWord }}>
+            {block.label ? (
+              <span style={{ fontWeight: weight.bold }}>{String(block.label)}: </span>
+            ) : null}
             {parsedValue}
           </Text>
         </div>
@@ -325,7 +375,7 @@ function ContentBlock({
     }
     case 'hint':
       return (
-        <Text variant="hint" as="div" className={fontSize} style={{ overflowWrap: 'break-word' }}>
+        <Text variant="hint" as="div" style={{ ...sizeStyle, ...breakWord }}>
           {parsedValue}
         </Text>
       )
@@ -336,8 +386,7 @@ function ContentBlock({
           variant="flavor"
           as="div"
           data-prose="flavor"
-          className={cn('mb-1', fontSize)}
-          style={{ overflowWrap: 'break-word' }}
+          style={{ marginBottom: space[4], ...sizeStyle, ...breakWord }}
         >
           {parsedValue}
         </Text>
@@ -347,11 +396,11 @@ function ContentBlock({
       return (
         <div>
           {block.label && (
-            <Badge shape="stamp" size="compact" className="mb-1 block">
+            <Badge shape="stamp" size="compact" style={labelStampStyle}>
               {block.label}
             </Badge>
           )}
-          <Text variant="body" as="div" className={fontSize}>
+          <Text variant="body" as="div" style={sizeStyle}>
             {parsedValue}
           </Text>
         </div>
@@ -360,7 +409,7 @@ function ContentBlock({
     default:
       // Fallback for unknown types — render as body prose.
       return (
-        <Text variant="body" as="div" className={fontSize}>
+        <Text variant="body" as="div" style={sizeStyle}>
           {parsedValue}
         </Text>
       )

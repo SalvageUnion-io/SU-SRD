@@ -6,9 +6,9 @@
  * the same stored tone for the card the tile opens. These tests pin both halves
  * of that contract:
  *
- * 1. the hue arrives as `bgColor` (a raw CSS colour the card applies inline),
- *    NOT as `bg` (a Tailwind class) — the two are threaded to different props,
- *    and only `bgColor` wins over the domain class in `accentSurface`;
+ * 1. the hue arrives as `bgColor` (the guide's own colour), NOT as `bg` (the
+ *    domain tone) — `bgColor` wins over `bg` on the band, and only `bgColor`
+ *    reaches a choice region as its tone;
  * 2. no OTHER domain is disturbed — the guide branch is a data-shape check on a
  *    field nothing else carries, so gear must still ride the tech-level ramp and
  *    the remaining glossary schemas must still resolve to ink.
@@ -47,10 +47,10 @@ describe('guide tone — the card matches the index tile', () => {
     }
   })
 
-  test('the hue rides bgColor, never a Tailwind bg class', () => {
-    // `bg` and `bgColor` reach different props: `accentSurface` puts `bg` on
-    // className and `bgColor` on an inline style. Leaving a stale domain class
-    // on `bg` would paint the glossary ink underneath the authored hue.
+  test('the hue rides bgColor, never the domain tone', () => {
+    // `bg` and `bgColor` reach different places: only `bgColor` is a choice
+    // region's tone. Leaving a stale domain tone on `bg` would paint the
+    // glossary ink wherever the authored hue does not reach.
     for (const guide of guides) {
       const tone = resolveDomainTone('guides', guide)
       expect(tone.bg).toBeUndefined()
@@ -79,13 +79,13 @@ describe('guide tone — no other domain is disturbed', () => {
     // transparent header band.
     const tone = resolveDomainTone('guides', malformed<SURefMetaEntity>({ guideTone: 'nonsense' }))
     expect(tone.bgColor).toBeUndefined()
-    expect(tone.bg).toBe('bg-ink-2')
+    expect(tone.bg).toBe('var(--color-ink-2)')
   })
 
   test('the remaining glossary schemas still resolve to ink', () => {
     for (const schemaName of ['traits', 'keywords', 'distances'] as SURefEnumSchemaName[]) {
       const tone = resolveDomainTone(schemaName, malformed<SURefMetaEntity>({}))
-      expect(tone.bg).toBe('bg-ink-2')
+      expect(tone.bg).toBe('var(--color-ink-2)')
       expect(tone.bgColor).toBeUndefined()
     }
   })
@@ -94,7 +94,7 @@ describe('guide tone — no other domain is disturbed', () => {
     const item = SalvageUnionReference.Equipment.all().find((e) => typeof e.techLevel === 'number')
     if (!item) throw new Error('no equipment with a numeric tech level')
     const tone = resolveDomainTone('equipment', item)
-    expect(tone.bg).toMatch(/^bg-tl-/)
+    expect(tone.bg).toMatch(/^var\(--color-tl-/)
     expect(tone.bgColor).toBeUndefined()
   })
 
@@ -105,7 +105,7 @@ describe('guide tone — no other domain is disturbed', () => {
     ] as const) {
       for (const entity of all) {
         const tone = resolveDomainTone(schemaName, entity)
-        expect(tone.bg === 'bg-mech' || tone.bg === 'bg-ink-2').toBe(true)
+        expect(tone.bg === 'var(--color-mech)' || tone.bg === 'var(--color-ink-2)').toBe(true)
       }
     }
   })
@@ -114,7 +114,7 @@ describe('guide tone — no other domain is disturbed', () => {
     const [chassis] = SalvageUnionReference.Chassis.all()
     if (!chassis) throw new Error('the dataset ships no chassis')
     const tone = resolveDomainTone('chassis', chassis)
-    expect(tone.bg).toBe('bg-mech')
+    expect(tone.bg).toBe('var(--color-mech)')
     expect(tone.bgColor).toBeUndefined()
   })
 })

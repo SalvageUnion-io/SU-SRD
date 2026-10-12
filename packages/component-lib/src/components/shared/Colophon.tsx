@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { fontSize, space } from '../../design/tokens'
 import { MarkdownSection } from '../../markdownSection/MarkdownSection'
 import { cn } from '../../utils/cn'
 import { Slab } from '../chrome/Slab'
@@ -19,6 +20,21 @@ type ColophonProps = {
   /** Block modifiers (each app supplies its own body colour/spacing). */
   className?: string
 }
+
+// Two columns from `md` up: the column template is `.su-colophon`, the rest is
+// static. Consumers' `className` adds spacing/colour, none of it these.
+const ROOT = { display: 'grid', gap: space[32] } satisfies CSSProperties
+
+const COLUMN = { display: 'flex', flexDirection: 'column', gap: space[32] } satisfies CSSProperties
+
+const SUPPORT = {
+  alignItems: 'flex-start',
+  display: 'flex',
+  flexDirection: 'column',
+  fontSize: fontSize.sm,
+  gap: space[12],
+  lineHeight: 1.625,
+} satisfies CSSProperties
 
 /**
  * Colophon — who made this, how, and how to support it; shared by both about
@@ -44,19 +60,18 @@ export function Colophon({
   className,
 }: ColophonProps) {
   return (
-    <div className={cn('grid gap-8 md:grid-cols-2', className)}>
-      <div className="flex flex-col gap-8">
+    <div className={cn('su-colophon', className)} style={ROOT}>
+      <div style={COLUMN}>
         <MarkdownSection markdown={aboutMarkdown} />
 
         <MarkdownSection markdown={specialThanksMarkdown} />
 
-        <section className="flex flex-col items-start gap-3 text-sm leading-relaxed">
+        <section style={SUPPORT}>
           <Slab
             as="h2"
             variant="solid"
             label="Support the Project"
-            className="w-full"
-            style={{ marginBottom: 0 }}
+            className="su-colophon__support-slab"
             actions={<KofiButton code={kofiCode} />}
           />
           {footer}

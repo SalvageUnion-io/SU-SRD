@@ -34,9 +34,8 @@ describe('EntityCardHeader — two fills', () => {
       <EntityCardHeader
         title="Salvaging Drill"
         fill="tone"
-        bg="bg-tl-2"
-        bgColor={undefined}
-        titleClass="text-display-lg"
+        bandColor="var(--color-tl-2)"
+        titleSize="31px"
         stats={stats}
         size="large"
         grain="ink"
@@ -45,7 +44,7 @@ describe('EntityCardHeader — two fills', () => {
     )
     const header = band('Salvaging Drill')
     expect(header.dataset.fill).toBe('tone')
-    expect(header.className).toContain('bg-tl-2')
+    expect(header.style.backgroundColor).toBe('var(--color-tl-2)')
     // The speckle rides the band (happy-dom drops the SVG background image
     // itself, so the grain is read off the band's marker).
     expect(header.dataset.grain).toBe('ink')
@@ -62,10 +61,9 @@ describe('EntityCardHeader — two fills', () => {
       <EntityCardHeader
         title="Jury Rig"
         fill="ink"
-        bg={undefined}
-        bgColor="var(--color-ink)"
-        titleClass="text-display"
-        titleTextClass="text-paper"
+        bandColor="var(--color-ink)"
+        titleSize="26px"
+        titleColor="var(--color-paper)"
         numeral="1"
         stats={[]}
         pennant={<span>2 AP</span>}
@@ -78,7 +76,7 @@ describe('EntityCardHeader — two fills', () => {
     expect(header.dataset.grain).toBe('paper')
     const numeral = screen.getByText('1')
     // Same type as the title, slightly dimmed.
-    expect(numeral.className).toContain('text-display')
+    expect(numeral.style.fontSize).toBe('26px')
     expect(numeral.style.opacity).toBe('0.75')
     // Order: numeral, title, then the pennant.
     const text = header.textContent ?? ''
@@ -91,9 +89,8 @@ describe('EntityCardHeader — two fills', () => {
       <EntityCardHeader
         title="Salvaging Drill"
         fill="tone"
-        bg="bg-tl-2"
-        bgColor={undefined}
-        titleClass="text-title"
+        bandColor="var(--color-tl-2)"
+        titleSize="22px"
         stats={stats}
         size="medium"
       />
@@ -108,9 +105,8 @@ describe('EntityCardHeader — the compact head', () => {
       <EntityCardHeader
         title="Electro-Magnetic Shield Projector"
         fill="tone"
-        bg="bg-tl-4"
-        bgColor={undefined}
-        titleClass="text-title"
+        bandColor="var(--color-tl-4)"
+        titleSize="22px"
         stats={stats}
         size="medium"
         head
@@ -133,9 +129,8 @@ describe('EntityCardHeader — the compact head', () => {
       <EntityCardHeader
         title="Jury Rig"
         fill="ink"
-        bg={undefined}
-        bgColor="var(--color-ink)"
-        titleClass="text-title"
+        bandColor="var(--color-ink)"
+        titleSize="22px"
         numeral="1"
         stats={[]}
         pennant={<span>2 AP</span>}
@@ -159,9 +154,8 @@ describe('EntityCardHeader — the compact head', () => {
       <EntityCardHeader
         title="Cargo Pod"
         fill="tone"
-        bg="bg-tl-1"
-        bgColor={undefined}
-        titleClass="text-title"
+        bandColor="var(--color-tl-1)"
+        titleSize="22px"
         stats={[]}
         size="medium"
         head
@@ -176,9 +170,8 @@ describe('EntityCardHeader — the compact head', () => {
       <EntityCardHeader
         title="Coolant Flush"
         fill="tone"
-        bg="bg-tl-1"
-        bgColor={undefined}
-        titleClass="text-title"
+        bandColor="var(--color-tl-1)"
+        titleSize="22px"
         stats={[]}
         size="medium"
       />

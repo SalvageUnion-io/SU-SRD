@@ -7,7 +7,10 @@
  * its own; `src/design/tokens.ts` mirrors them for style objects, and
  * `src/design/tokens.parity.test.ts` fails if the two disagree. Edit both.
  */
-@theme {
+/* `static`: Tailwind otherwise emits only the variables some utility uses, and
+   a component moved onto a style object reads `var(--color-tl-2)` with no
+   utility left to keep it alive. Every token is emitted, used or not. */
+@theme static {
   /* === Typography === */
   /* TWO faces, no aliases: Barlow for body/values, Barlow Semi Condensed for
      all-caps chrome. */

@@ -156,34 +156,32 @@ describe('bodyBlocks', () => {
 })
 
 describe('cardChrome', () => {
-  const tone = { domain: 'gear' as const, bg: 'bg-x', bgColor: 'red' }
+  const tone = { domain: 'gear' as const, bg: 'var(--color-x)', bgColor: 'red' }
 
   test('a tone header reads ink or paper by its own contrast', () => {
     // TL1 is light: ink on its header.
-    const tl1 = { domain: 'gear' as const, bg: 'bg-tl-1', bgColor: undefined }
-    expect(resolveCardColors({ tone: tl1, isDown: false, fill: 'tone' })).toMatchObject({
-      onBandText: 'text-ink',
-      headerBg: 'bg-tl-1',
+    const tl1 = { domain: 'gear' as const, bg: 'var(--color-tl-1)', bgColor: undefined }
+    expect(resolveCardColors({ tone: tl1, isDown: false, fill: 'tone' })).toEqual({
+      onBand: 'ink',
+      bandColor: 'var(--color-tl-1)',
     })
-    // A band it cannot resolve reads paper, the solid-tone case.
-    expect(resolveCardColors({ tone, isDown: false, fill: 'tone' })).toMatchObject({
-      onBandText: 'text-paper',
-      headerBg: 'bg-x',
-      headerBgColor: 'red',
+    // A band it cannot resolve reads paper, the solid-tone case; a guide's
+    // own colour wins over the domain tone.
+    expect(resolveCardColors({ tone, isDown: false, fill: 'tone' })).toEqual({
+      onBand: 'paper',
+      bandColor: 'red',
     })
   })
 
   test('an ink header is the ink banner whatever the tone; a damaged one is grey', () => {
     expect(resolveCardColors({ tone, isDown: false, fill: 'ink' })).toEqual({
-      onBandText: 'text-paper',
-      headerBg: undefined,
-      headerBgColor: 'var(--color-ink)',
+      onBand: 'paper',
+      bandColor: 'var(--color-ink)',
     })
     for (const fill of ['tone', 'ink'] as const) {
       const down = resolveCardColors({ tone, isDown: true, fill })
-      expect(down.onBandText).toBe('text-ink')
-      expect(down.headerBg).toBeUndefined()
-      expect(down.headerBgColor).toContain('color-mix')
+      expect(down.onBand).toBe('ink')
+      expect(down.bandColor).toContain('color-mix')
     }
   })
 
