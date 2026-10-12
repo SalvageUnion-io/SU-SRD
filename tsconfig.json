@@ -1,42 +1,22 @@
 {
-  "compilerOptions": {
-    /* Strict Type-Checking Options */
-    "strict": true,
-
-    /* Additional Checks */
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-
-    /* Module Resolution Options */
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-
-    /* Emit: none. Every project is a type-check; bundlers do the building. */
-    "noEmit": true,
-
-    /* Interop Constraints */
-    "isolatedModules": true,
-    "allowJs": false,
-    "checkJs": false,
-
-    /* Language and Environment */
-    "target": "ES2022",
-    "lib": ["ES2022"],
-    "module": "ESNext",
-    "moduleDetection": "force",
-    "types": ["node", "bun-types"],
-
-    /* Type Checking */
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-
-    /* Incremental builds */
-    "incremental": true
-  }
+  // The solution: `bun run typecheck` is one `tsc -b` over these references,
+  // so every file is checked once. Consumers read a referenced library through
+  // its declarations instead of re-checking its source. Options live in
+  // tsconfig.base.json (via tsconfig.dom.json / tsconfig.worker.json).
+  //
+  // Build mode will not reference a `noEmit` project (TS6310), so the four
+  // libraries are `composite` and emit declarations only, into the gitignored
+  // `.tsbuild/`; the apps and tools stay `noEmit`.
+  "files": [],
+  "references": [
+    { "path": "packages/salvageunion-reference" },
+    { "path": "packages/observability" },
+    { "path": "packages/itun-domain" },
+    { "path": "packages/component-lib" },
+    { "path": "apps/srd" },
+    { "path": "apps/itun" },
+    { "path": "apps/discord-bot" },
+    { "path": "apps/su-assets" },
+    { "path": "tools" }
+  ]
 }

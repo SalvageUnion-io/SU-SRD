@@ -6,10 +6,16 @@
   // Before `tools/` was a workspace this file was `tsconfig.tools.json` at the
   // root, run beside `bun --filter "*" typecheck` by a second process, because
   // nothing else type-checked either directory: a type error in a gate could
-  // merge green. As a workspace, `bun --filter "*" typecheck` reaches it.
-  "extends": "../tsconfig.json",
+  // merge green. As a workspace it is a reference of the root solution
+  // tsconfig.json, so `bun run typecheck` (`tsc -b`) reaches it.
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2022"]
   },
-  "include": ["**/*.ts", "../test/**/*.ts"]
+  "include": ["**/*.ts", "../test/**/*.ts"],
+  "references": [
+    { "path": "../packages/component-lib" },
+    { "path": "../packages/observability" },
+    { "path": "../packages/salvageunion-reference" }
+  ]
 }

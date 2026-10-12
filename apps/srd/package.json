@@ -6,7 +6,7 @@
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
     "dev": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && bun ssg/dev.ts",
-    "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc --noEmit -p tsconfig.json",
+    "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
     "build": "bun run typecheck && bun ssg/build.ts",
     "og:generate": "bun ssg/build.ts && OG_SCREENSHOTS=1 bun scripts/og-screenshots.ts",
     "og:install-browser": "playwright install chromium",

@@ -2,10 +2,14 @@
 # PostToolUse hook for Edit and Write: typecheck the edited workspace and its
 # consumers after a TypeScript edit.
 #
-# The edited file maps to a set of workspaces (see `case "$REL"` below), run
-# with `bun --filter`. Measured warm (TS 7, incremental): itun ~1.7 s, srd
-# ~1.2 s, discord-bot ~0.6 s, tools ~0.7 s; a component-lib edit (four
-# projects) ~3.8 s; a salvageunion-reference edit runs every project, ~4.7 s.
+# The edited file maps to a set of projects (see `case "$REL"` below), checked
+# by ONE `tsc -b` — never one process per project, which would race to build
+# the shared libraries' declarations into `.tsbuild/`. A referenced library is
+# built first only when it is out of date. Measured warm (TS 7, build mode):
+# an edit inside a project ~0.4–1.6 s (su-assets, tools, srd, itun,
+# discord-bot); a component-lib or salvageunion-reference edit that keeps its
+# declarations ~0.7–0.9 s, one that changes them re-checks the consumers:
+# component-lib ~8 s, salvageunion-reference (every project) ~13 s.
 #
 # A scoped edit also leaves a marker in the git dir, so `typecheck-full.sh`
 # (the Stop hook) runs the whole-repo typecheck once at the end of the turn and
@@ -39,19 +43,19 @@ REL="${DIR#"$ROOT"}/$(basename "$FILE_PATH")"
 REL="${REL#/}"
 cd "$ROOT" || exit 0
 
-# The edited workspace plus every workspace that imports it. `tools` typechecks
+# The edited project plus every project that imports it. `tools` typechecks
 # `test/` too and imports every package; srd's and itun's e2e configs import
 # `tools/lib`. Repo-root config belongs to no project — leave it to CI.
 case "$REL" in
   packages/salvageunion-reference/*) TARGETS="*" ;;
-  packages/component-lib/*) TARGETS="component-lib srd itun tools" ;;
-  packages/observability/*) TARGETS="observability discord-bot itun srd su-assets tools" ;;
-  packages/itun-domain/*) TARGETS="itun-domain discord-bot itun tools" ;;
-  apps/discord-bot/*) TARGETS="discord-bot" ;;
-  apps/itun/*) TARGETS="itun" ;;
-  apps/srd/*) TARGETS="srd" ;;
-  apps/su-assets/*) TARGETS="su-assets" ;;
-  tools/lib/*) TARGETS="tools srd itun" ;;
+  packages/component-lib/*) TARGETS="packages/component-lib apps/srd apps/itun tools" ;;
+  packages/observability/*) TARGETS="packages/observability apps/discord-bot apps/itun apps/srd apps/su-assets tools" ;;
+  packages/itun-domain/*) TARGETS="packages/itun-domain apps/discord-bot apps/itun tools" ;;
+  apps/discord-bot/*) TARGETS="apps/discord-bot" ;;
+  apps/itun/*) TARGETS="apps/itun" ;;
+  apps/srd/*) TARGETS="apps/srd" ;;
+  apps/su-assets/*) TARGETS="apps/su-assets" ;;
+  tools/lib/*) TARGETS="tools apps/srd apps/itun" ;;
   tools/* | test/*) TARGETS="tools" ;;
   *) exit 0 ;;
 esac
@@ -60,9 +64,9 @@ if [ "$TARGETS" = "*" ]; then
   OUTPUT=$(bun run typecheck 2>&1)
   STATUS=$?
 else
-  FILTERS=()
-  for target in $TARGETS; do FILTERS+=(--filter "$target"); done
-  OUTPUT=$(bun "${FILTERS[@]}" typecheck 2>&1)
+  # The root script with paths appended: `tsc -b <projects>`.
+  # shellcheck disable=SC2086 # TARGETS is a space-separated list of paths
+  OUTPUT=$(bun run typecheck $TARGETS 2>&1)
   STATUS=$?
   # Ask the Stop hook for one whole-repo pass at the end of the turn.
   touch "$(git rev-parse --git-path claude-typecheck-pending)" 2>/dev/null

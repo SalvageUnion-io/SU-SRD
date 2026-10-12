@@ -1,7 +1,8 @@
 #!/bin/bash
-# Stop hook: the whole-repo `bun run typecheck` (~4.7 s warm), once per turn
-# and only when `typecheck-scoped.sh` checked a scoped set during it. It is the
-# backstop for any consumer the per-edit map misses.
+# Stop hook: the whole-repo `bun run typecheck` (one `tsc -b`, ~0.2 s warm
+# with nothing changed), once per turn and only when `typecheck-scoped.sh`
+# checked a scoped set during it. It is the backstop for any consumer the
+# per-edit map misses.
 #
 # Silent on success. On failure the tail goes to stderr with exit 2, which
 # keeps Claude working on the errors. The marker stays until a run passes, and
