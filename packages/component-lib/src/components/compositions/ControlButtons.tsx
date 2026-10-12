@@ -225,6 +225,8 @@ function ControlButton({
         }}
         title={control.title ?? control.ariaLabel}
         aria-label={control.ariaLabel}
+        aria-expanded={control.ariaExpanded}
+        aria-controls={control.ariaControls}
         disabled={isDisabled}
         aria-disabled={isDisabled || undefined}
         onClick={isDisabled ? undefined : (e) => onClickWithStop(e, onClick)}
@@ -246,6 +248,8 @@ function ControlButton({
       }}
       title={control.title ?? control.ariaLabel}
       aria-label={control.ariaLabel}
+      aria-expanded={control.ariaExpanded}
+      aria-controls={control.ariaControls}
       disabled={isDisabled}
       aria-disabled={isDisabled || undefined}
       onClick={isDisabled ? undefined : (e) => onClickWithStop(e, onClick)}

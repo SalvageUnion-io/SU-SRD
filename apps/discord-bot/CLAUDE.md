@@ -11,7 +11,9 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
 - **Library:** `@discordjs/builders` (commands + Components V2),
   `@discordjs/rest`, `discord-api-types`. **Not `discord.js`** — nothing here
   needs its gateway client.
-- **Data:** `salvageunion-reference` workspace package (standalone, no component-lib)
+- **Data:** `salvageunion-reference` workspace package. From `component-lib` it
+  imports only the dependency-free `component-lib/product` subpath (the product's
+  names), never the barrel.
 
 ## Runtime
 
@@ -37,8 +39,7 @@ the bot uses.
   and `entityCard()`, the one render for sheets and Game cards
 - `src/lookupCard.ts` - the `/su lookup` card: the shared Discord card
   (`discordCardParts` in `salvageunion-reference`, also the SRD's Component
-  Embed) plus tabs, pages, the pattern picker and roll buttons. Design:
-  [discord-bot-refresh.md](../../docs/architecture/discord-bot-refresh.md)
+  Embed) plus tabs, pages, the pattern picker and roll buttons
 - `src/gameCards.ts` - Game cards (`data → entityCard`)
 - `src/termFinder.ts`, `src/commands/lookUpMessage.ts` - "Look up in Salvage
   Union", the message context menu
@@ -66,7 +67,7 @@ The bot is also an authenticated ITUN Game client. It reaches Convex through a
 `/bot/*` HTTP route with a bearer credential that authenticates the **bot**,
 never the **actor** — every call carries a Discord id that the server resolves
 against a linked account and a real membership. See
-[the bot as a Game client](../../docs/ARCHITECTURE.md#areas).
+[the bot as a Game client](../../docs/ARCHITECTURE.md#bot-game-client).
 
 - `src/itun/` — the client (`fetch`, no `convex` dependency) and the wire types,
   which are **imported** (`import type`) from `itun-domain/botWire`

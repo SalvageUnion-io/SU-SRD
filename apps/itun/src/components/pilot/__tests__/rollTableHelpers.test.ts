@@ -42,6 +42,22 @@ describe('rollForPilotField', () => {
     expect(result).toBeNull()
   })
 
+  test('a roll that lands on no row reads "No effect", as on the SRD and in the bot', async () => {
+    const result = await rollForPilotField(
+      'callsign',
+      makeDeps(
+        {
+          id: 'rt-callsign',
+          name: 'Callsign Table',
+          schemaName: 'roll-tables',
+          table: { '20': { value: 'Ghost' } },
+        },
+        5
+      )
+    )
+    expect(result).toBe('No effect')
+  })
+
   test('returns the rolled value for a valid roll', async () => {
     const result = await rollForPilotField(
       'callsign',

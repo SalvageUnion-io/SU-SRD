@@ -2,8 +2,8 @@
  * Each entity page's DISCORD COMPONENT EMBED: the container Discord draws in
  * place of a link preview when someone pastes the page's URL. It is the same
  * card the bot's `/su lookup` sends (`discordCardParts`, from the entity model),
- * so a pasted link and a lookup read as one product. The design is
- * `docs/architecture/discord-bot-refresh.md`.
+ * so a pasted link and a lookup read as one product
+ * (`docs/ARCHITECTURE.md#discord-bot`).
  *
  * Discord reads it from `<script id="discord:component-embed"
  * type="application/json">` in the head, without running any script: one

@@ -14,10 +14,11 @@ package is the single source of truth for game data.
 ## Build & generated files
 
 No compile step. `schemas/` and `lib/generated/` are **gitignored**: never
-commit them. `tools/ensureGenerated.ts` runs the registry, JSON-schema and docs
-generators when its input hash (Zod, registry, data, generators) is stale; it
-runs on postinstall, each consumer's `typecheck`, srd/ITUN `build`/`dev`, the
-test preload and `bun run check`. `bun run build:package` forces it.
+commit them. `tools/ensureGenerated.ts`, the package's `su-ref-generate` bin,
+runs the registry, JSON-schema and docs generators when its input hash (Zod,
+registry, data, generators) is stale; it runs once per run on postinstall, the
+root `typecheck`/`test`/`build`, each app's `dev`, the test preload and
+`bun run check` — never pasted into a workspace's `typecheck`. `bun run build:package` forces it.
 `bun run check generated` diffs the one committed output, `lib/index.ts`'s
 generated block.
 
@@ -104,7 +105,9 @@ this package; `add` mints the id) is the one writer of `data/`, then
 from the source word-for-word: descriptions and effects are verbatim, never
 paraphrased. Gate `rules-fidelity` enforces it: run
 `bun run check:rules-fidelity --update`; exceptions go in
-`lib/proseDeviations.ts`.
+`lib/proseDeviations.ts`. Book text quoted in TypeScript (a wizard rule, a stat
+hint) is wrapped in `bookQuote({ source, page }, '…')` (`lib/bookQuote.ts`), so
+the same gate holds it to the book.
 
 ## Adding a New Entity **Type** (schema)
 

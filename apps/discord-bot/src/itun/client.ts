@@ -1,3 +1,4 @@
+import { PRODUCT } from 'component-lib/product'
 import type { SignedInteraction } from '../commands/interactions'
 import type {
   BindResult,
@@ -121,11 +122,11 @@ export function interpret<T>(status: number, body: unknown): ItunResult<T> {
     // not something to word as a permissions denial.
     return {
       kind: 'unavailable',
-      message: 'In The Union Now rejected this bot’s credentials.',
+      message: `${PRODUCT.name} rejected this bot’s credentials.`,
     }
   }
   if (status !== 200) {
-    return { kind: 'unavailable', message: 'In The Union Now could not be reached.' }
+    return { kind: 'unavailable', message: `${PRODUCT.name} could not be reached.` }
   }
   if ((body as { ok?: unknown } | null)?.ok === true) {
     return { kind: 'ok', value: body as T }
@@ -137,12 +138,12 @@ export function interpret<T>(status: number, body: unknown): ItunResult<T> {
       message: body.message ?? 'That is not available to you.',
     }
   }
-  return { kind: 'unavailable', message: 'In The Union Now returned an unexpected response.' }
+  return { kind: 'unavailable', message: `${PRODUCT.name} returned an unexpected response.` }
 }
 
 const UNCONFIGURED: ItunResult<never> = {
   kind: 'unavailable',
-  message: 'In The Union Now is not configured for this bot.',
+  message: `${PRODUCT.name} is not configured for this bot.`,
 }
 
 /**
@@ -181,7 +182,7 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
     } catch {
       // Timeout or network failure: the bot's Degraded mode, by design. It is
       // worded to the user as an outage, and ITUN's own monitoring owns it.
-      return { kind: 'unavailable', message: 'In The Union Now could not be reached.' }
+      return { kind: 'unavailable', message: `${PRODUCT.name} could not be reached.` }
     }
   }
 
@@ -207,7 +208,7 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
       const body: unknown = await response.json().catch(() => null)
       return interpret<T>(response.status, body)
     } catch {
-      return { kind: 'unavailable', message: 'In The Union Now could not be reached.' }
+      return { kind: 'unavailable', message: `${PRODUCT.name} could not be reached.` }
     }
   }
 

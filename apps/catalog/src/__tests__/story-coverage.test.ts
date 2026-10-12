@@ -6,7 +6,7 @@ import { storyGroups, storySubgroups } from 'component-lib/stories/groups'
 
 /**
  * Story catalog guard — the executable half of the story standard documented in
- * `docs/ARCHITECTURE.md#areas` and `component-lib/CLAUDE.md`.
+ * `docs/ARCHITECTURE.md#catalog` and `component-lib/CLAUDE.md`.
  *
  * The standard, in one line: ONE public component = ONE co-located story file =
  * ONE nav leaf, titled `Group[/Sub-group]/Component Title Case`.

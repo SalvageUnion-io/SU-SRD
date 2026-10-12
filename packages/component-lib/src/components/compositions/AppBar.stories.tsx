@@ -2,6 +2,7 @@ import { ChevronDown, Search } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { PRODUCT } from '../../product'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { Avatar } from '../atoms/Avatar'
@@ -181,7 +182,7 @@ export const Default: Story = () => (
             >
               <Avatar src={null} name={PLAYER} size={32} />
             </button>
-            <NavDrawer brand={<span>In the Union Now</span>} navItems={itunDrawerNav} />
+            <NavDrawer brand={<span>{PRODUCT.name}</span>} navItems={itunDrawerNav} />
           </>
         }
       />

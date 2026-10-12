@@ -8,6 +8,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import {
+  checkAreaCitations,
   checkBacktickedPathsExist,
   checkDecisions,
   checkDocSizes,
@@ -413,7 +414,7 @@ describe('checkMarkdownLinks', () => {
     expect(failures[1]).toContain('docs/adrs/ADR-014.md:9 links to `../missing.md`')
   })
 
-  it('fails an anchor that is no heading in the target or the same file', () => {
+  it('fails an anchor that is no heading or <a id> in the target or the same file', () => {
     const root = fixture({
       'docs/ARCHITECTURE.md': [
         '# Architecture',
@@ -426,18 +427,82 @@ describe('checkMarkdownLinks', () => {
         '## Notes',
         '## Notes',
         '[here](#missing) and [also](#notes-1)',
+        '1. **CI** <a id="ci"></a> `<a id="in-code"></a>`',
       ].join('\n'),
       'docs/README.md': [
         '[a](ARCHITECTURE.md#ci-reusing-the-prs-run) [b](ARCHITECTURE.md#convex-error-reporting--a-dashboard-toggle)',
         '[c](ARCHITECTURE.md#vitejsplugin-react-pin) [d](ARCHITECTURE.md#notes-1) [e](ARCHITECTURE.md)',
         '[f](ARCHITECTURE.md#missing) [g](ARCHITECTURE.md#fenced-is-not-a-heading)',
+        '[h](ARCHITECTURE.md#ci) [i](ARCHITECTURE.md#in-code)',
       ].join('\n'),
     })
     const { failures } = checkMarkdownLinks(root, ['docs/README.md', 'docs/ARCHITECTURE.md'])
     expect(failures).toEqual([
-      'docs/README.md:3 links to `ARCHITECTURE.md#missing`, whose #missing is no heading in docs/ARCHITECTURE.md.',
-      'docs/README.md:3 links to `ARCHITECTURE.md#fenced-is-not-a-heading`, whose #fenced-is-not-a-heading is no heading in docs/ARCHITECTURE.md.',
-      'docs/ARCHITECTURE.md:10 links to `#missing`, whose #missing is no heading in docs/ARCHITECTURE.md.',
+      'docs/README.md:3 links to `ARCHITECTURE.md#missing`, whose #missing is no heading or anchor in docs/ARCHITECTURE.md.',
+      'docs/README.md:3 links to `ARCHITECTURE.md#fenced-is-not-a-heading`, whose #fenced-is-not-a-heading is no heading or anchor in docs/ARCHITECTURE.md.',
+      'docs/README.md:4 links to `ARCHITECTURE.md#in-code`, whose #in-code is no heading or anchor in docs/ARCHITECTURE.md.',
+      'docs/ARCHITECTURE.md:10 links to `#missing`, whose #missing is no heading or anchor in docs/ARCHITECTURE.md.',
+    ])
+  })
+})
+
+describe('checkAreaCitations', () => {
+  const doc = (areas: string): string =>
+    ['# Architecture', '', '## Areas', '', areas, '## Decisions', ''].join('\n')
+
+  it('passes anchored Areas cited by slug, and the section headings', () => {
+    const root = fixture({
+      'docs/ARCHITECTURE.md': doc(
+        '1. **CI** <a id="ci"></a>\n   Runs.\n2. **Repository settings** <a id="repo-settings"></a>\n   Pinned.\n'
+      ),
+      'ci.yml': '# why: docs/ARCHITECTURE.md#ci and ARCHITECTURE.md#repo-settings.\n',
+      'docs/README.md': '[CI](ARCHITECTURE.md#ci); [ADRs](ARCHITECTURE.md#decisions).\n',
+    })
+    const result = checkAreaCitations(root, ['ci.yml', 'docs/README.md'])
+    expect(result.failures).toEqual([])
+    expect(result.ok).toContain('2 Areas anchored; 4 ARCHITECTURE.md# citations in 2 files')
+  })
+
+  it('fails an Area with no anchor, a repeated or malformed one', () => {
+    const root = fixture({
+      'docs/ARCHITECTURE.md': doc(
+        [
+          '1. **CI** <a id="ci"></a>',
+          '2. **Deploy**',
+          '3. **Previews** <a id="ci"></a>',
+          '4. **Sentry** <a id="Sentry"></a>',
+          '',
+        ].join('\n')
+      ),
+    })
+    expect(checkAreaCitations(root, []).failures).toEqual([
+      'docs/ARCHITECTURE.md:6 is an Area with no anchor. End its headline line with ` <a id="slug"></a>` (lowercase, hyphenated).',
+      'docs/ARCHITECTURE.md:7 repeats the anchor #ci. Give each Area its own.',
+      'docs/ARCHITECTURE.md:8 is an Area with no anchor. End its headline line with ` <a id="slug"></a>` (lowercase, hyphenated).',
+    ])
+  })
+
+  it('fails an Area cited by number, by title, by the whole section, or by a slug that does not exist', () => {
+    const root = fixture({
+      'docs/ARCHITECTURE.md': doc('1. **CI** <a id="ci"></a>\n'),
+      'docs/README.md': 'Combat: Areas 17\u201320; settings: Area 9.\n[x](ARCHITECTURE.md#areas)\n',
+      'tools/x.ts':
+        '// see docs/ARCHITECTURE.md#ci-runs.\n// docs/ARCHITECTURE.md ("CI gate"); ARCHITECTURE.md § CI\n',
+    })
+    expect(checkAreaCitations(root, ['docs/README.md', 'tools/x.ts']).failures).toEqual([
+      'docs/README.md:1 cites "Areas 17" by number, which shifts when an Area is inserted. Cite its anchor: `ARCHITECTURE.md#slug`.',
+      'docs/README.md:1 cites "Area 9" by number, which shifts when an Area is inserted. Cite its anchor: `ARCHITECTURE.md#slug`.',
+      "docs/README.md:2 cites ARCHITECTURE.md#areas, the whole section. Cite the Area's own anchor.",
+      'tools/x.ts:1 cites ARCHITECTURE.md#ci-runs, which is no heading or anchor in docs/ARCHITECTURE.md.',
+      'tools/x.ts:2 cites ARCHITECTURE.md by a section title (` ("`), which nothing resolves. Cite its anchor: `ARCHITECTURE.md#slug`.',
+      'tools/x.ts:2 cites ARCHITECTURE.md by a section title (` §`), which nothing resolves. Cite its anchor: `ARCHITECTURE.md#slug`.',
+    ])
+  })
+
+  it('fails a doc with no Areas', () => {
+    const root = fixture({ 'docs/ARCHITECTURE.md': doc('') })
+    expect(checkAreaCitations(root, []).failures).toEqual([
+      'docs/ARCHITECTURE.md has no numbered entries under `## Areas`.',
     ])
   })
 })

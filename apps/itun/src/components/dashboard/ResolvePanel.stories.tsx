@@ -1,7 +1,7 @@
 import { Caption } from 'component-lib/stories/harness'
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { CORE_ROLL_BANDS } from 'salvageunion-reference/rules'
+import { CORE_ROLL_BANDS, coreRollBandLabel } from 'salvageunion-reference/rules'
 import { coreMechanicRowText } from '../../lib/rules/playActions'
 import { InstrumentStage } from './_dashboardStage'
 import { ResolvePanel } from './ResolvePanel'
@@ -52,7 +52,7 @@ export const Default = () => {
                   band: 'tough',
                   bandRange: tough.range,
                   destructive: false,
-                  bandLabel: tough.label,
+                  bandLabel: coreRollBandLabel(tough.band),
                   bandSummary: coreMechanicRowText(8),
                 },
                 pushLog: null,

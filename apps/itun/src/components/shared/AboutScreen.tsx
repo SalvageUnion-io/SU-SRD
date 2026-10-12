@@ -1,5 +1,5 @@
 /**
- * AboutScreen — the /about page for In the Union Now.
+ * AboutScreen — the /about page for the product (`PRODUCT.name`).
  *
  * Static content page: what ITUN is, its local-first stance, links to the SRD
  * and the official game, the shared `HouseRules` list, and the shared `Colophon` (author bio, special thanks,
@@ -10,6 +10,7 @@
 
 import { ChapterBand, Colophon, HouseRules, InlineRef, Slab } from 'component-lib'
 import { borderWidth, color, font, fontSize, space, weight } from 'component-lib/design/tokens'
+import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties } from 'react'
 
 type AboutScreenProps = {
@@ -86,15 +87,15 @@ export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: A
         <header style={HEADER}>
           <ChapterBand>About</ChapterBand>
           <p style={LEDE}>
-            In the Union Now — a character builder &amp; game manager for Salvage Union.
+            {PRODUCT.name} — a character builder &amp; game manager for Salvage Union.
           </p>
         </header>
 
         <section style={PROSE}>
           <Slab as="h2" variant="solid" label="What is this?" style={{ marginBottom: 0 }} />
           <p>
-            <strong>In the Union Now</strong> is an unofficial, community-built character builder
-            and game manager for{' '}
+            <strong>{PRODUCT.name}</strong> is an unofficial, community-built character builder and
+            game manager for{' '}
             <InlineRef
               href="https://leyline.press/pages/salvage-union"
               target="_blank"

@@ -92,7 +92,7 @@ async function dispatch(
   }
 
   // One line per interaction, so usage can be counted per command in Workers
-  // Logs (docs/spikes/d12-bot-command-usage.md).
+  // Logs (D12, docs/ARCHITECTURE.md#bot-game-client).
   console.log(JSON.stringify({ evt: 'interaction', type: raw.type, name: interactionName(raw) }))
 
   let work: Promise<void>

@@ -32,7 +32,7 @@
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import { nameToSlug } from '../packages/salvageunion-reference/lib/nameToSlug'
+import { nameToSlug } from 'salvageunion-reference'
 
 const REPO = resolve(import.meta.dir, '..')
 const DATA = join(REPO, 'packages/salvageunion-reference/data')

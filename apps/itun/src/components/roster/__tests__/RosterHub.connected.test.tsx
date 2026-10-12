@@ -112,6 +112,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     // The Invited banner (ADR-039); none addressed to this viewer.
     'invites:forMe': [],
     'shelf:patternSharing': [],
+    'shelf:sharedByLink': [],
     ...over,
   }
 }

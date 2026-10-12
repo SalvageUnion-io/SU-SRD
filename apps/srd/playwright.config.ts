@@ -1,4 +1,5 @@
-import { e2eConfig } from 'gates/lib/playwrightBase'
+import { e2eConfig } from 'gates/playwright'
+import { portFor } from 'gates/ports'
 
 /**
  * srd's end-to-end suite: `packages/gates/lib/playwrightBase.ts` with srd's port and
@@ -6,4 +7,4 @@ import { e2eConfig } from 'gates/lib/playwrightBase'
  * intent, so a cold navigation can take a while; 60 s leaves headroom without
  * masking a real hang.
  */
-export default e2eConfig({ port: 4321, local: { timeout: 60_000, expect: 15_000 } })
+export default e2eConfig({ port: portFor('srd'), local: { timeout: 60_000, expect: 15_000 } })

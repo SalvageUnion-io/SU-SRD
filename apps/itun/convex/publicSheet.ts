@@ -55,19 +55,32 @@ import { NotAuthorized, requireTableRunner, requireUser } from './model/permissi
  * has no assignments and no maxima, and it has a second audience — a Game's
  * crew — that a sheet reaches through the Game view instead. The rules above
  * hold for it unchanged: no listing, and private reads as nonexistent.
+ *
+ * ## Built NPCs join it
+ *
+ * A built NPC (ADR-044) is owned exactly like a pilot, so it publishes exactly
+ * like one: the same `publicRead` opt-in, the same owner-only gate, and its own
+ * page at `/p/npc/:appId`. Its page credits its maker (ruleset §3.9), so `get`
+ * names them for an NPC, as `pattern` does for a pattern.
  */
 
-/** The three tables a public sheet can be. Never widened to `encounterNpcs`. */
+/** The four tables a public sheet can be. Never widened to `encounterNpcs`. */
 const KIND_TO_TABLE = {
   pilot: 'pilots',
   mech: 'mechs',
   crawler: 'crawlers',
+  npc: 'npcs',
 } as const
 
 type Kind = keyof typeof KIND_TO_TABLE
 type PublicTable = (typeof KIND_TO_TABLE)[Kind]
 
-const kindValidator = v.union(v.literal('pilot'), v.literal('mech'), v.literal('crawler'))
+const kindValidator = v.union(
+  v.literal('pilot'),
+  v.literal('mech'),
+  v.literal('crawler'),
+  v.literal('npc')
+)
 
 /** Look one entity up by the client-minted app id the URL carries. */
 async function byAppId(
@@ -122,6 +135,8 @@ export const get = query({
     kind: Kind
     body: unknown
     pilotAbilities?: string[]
+    /** An NPC's maker, for its "Made by" credit (ruleset §3.9). */
+    madeBy?: string
     links: PublicLink[]
     linked: PublicLinked[]
     withheld: PublicWithheld[]
@@ -135,6 +150,11 @@ export const get = query({
       kind: args.kind,
       body: row.body,
       ...(args.kind === 'mech' ? { pilotAbilities: await pilotAbilitiesForMech(ctx, row) } : {}),
+      ...(args.kind === 'npc'
+        ? {
+            madeBy: displayNameOf(row.ownerId ? await ctx.db.get(row.ownerId) : null) ?? 'a player',
+          }
+        : {}),
       ...(await assignmentsOf(ctx, row, args.appId)),
     }
   },
@@ -160,8 +180,9 @@ async function assignmentsOf(
   const withheld = new Map<string, PublicWithheld>()
   for (const link of await linksTouching(ctx, appId)) {
     const far = link.from.id === appId ? link.to : link.from
-    // A built NPC has no public sheet yet (ADR-044), so its crew link is not
-    // one a public crawler page can show.
+    // A public crawler page draws its book crew line, not a built NPC's
+    // (ADR-044): an NPC is read on its own page, so its crew link is not one
+    // a public sheet shows.
     if (far.type === 'npc') continue
     const target = await resolveLinkEnd(ctx, far, row.gameId)
     if (target === null || !sameContainerRows(row, target)) continue
@@ -187,7 +208,13 @@ async function assignmentsOf(
 function nameOf(body: unknown, kind: Kind): string {
   const name = (body as { name?: unknown } | null)?.name
   if (typeof name === 'string' && name.length > 0) return name
-  return kind === 'pilot' ? 'Pilot' : kind === 'mech' ? 'Mech' : 'Crawler'
+  return kind === 'pilot'
+    ? 'Pilot'
+    : kind === 'mech'
+      ? 'Mech'
+      : kind === 'crawler'
+        ? 'Crawler'
+        : 'NPC'
 }
 
 /**
@@ -272,7 +299,7 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
 /**
  * Whether the caller may publish this entity.
  *
- * Two different gates, because the entities differ. A pilot or mech is owned,
+ * Two different gates, because the entities differ. A pilot, mech or NPC is owned,
  * so publishing is the owner's call and nobody else's — deliberately NOT
  * `assertMayWrite`'s ctx-free sibling being reused loosely, but the same rule:
  * there is no Mediator override, because making somebody else's character
@@ -418,13 +445,14 @@ export const pattern = query({
 })
 
 /**
- * The kinds of player thing a link can preview (issue 1280): the three sheets
+ * The kinds of player thing a link can preview (issue 1280): the four sheets
  * and a shared mech pattern.
  */
 const previewKindValidator = v.union(
   v.literal('pilot'),
   v.literal('mech'),
   v.literal('crawler'),
+  v.literal('npc'),
   v.literal('pattern')
 )
 

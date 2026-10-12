@@ -73,5 +73,5 @@ a unit test rendering a Convex consumer mocks the hooks with
   proposals, crew vitals) — check `apps/itun/convex/` first.
 - Add a query cache: entity reads are the hooks in `src/hooks/entities/`.
 
-More: [data flow](../../docs/ARCHITECTURE.md#areas),
-[accounts](../../docs/ARCHITECTURE.md#areas).
+More: [data flow](../../docs/ARCHITECTURE.md#data-flow),
+[accounts](../../docs/ARCHITECTURE.md#convex).

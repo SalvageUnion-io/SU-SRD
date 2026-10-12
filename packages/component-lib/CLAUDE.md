@@ -7,7 +7,7 @@ Shared React component library consumed by both `srd` and `itun`.
 - **No build step** - exports TypeScript source through the `src/index.ts` barrel, named exports only ([ADR-011](../../docs/ARCHITECTURE.md#decisions))
 - **Data-source agnostic** - keep components free of any backend/persistence dependency; consumers inject behavior via slot props, and choice components are persistence-agnostic ([ADR-010](../../docs/ARCHITECTURE.md#decisions))
 - Vite in consuming apps handles `.ts/.tsx` compilation
-- **`sideEffects` is CSS only** (`package.json`): bundlers drop any module whose exports go unused. Never rely on an import running code; if a module truly must, add it to that list ([dependencies](../../docs/ARCHITECTURE.md#areas))
+- **`sideEffects` is CSS only** (`package.json`): bundlers drop any module whose exports go unused. Never rely on an import running code; if a module truly must, add it to that list ([dependencies](../../docs/ARCHITECTURE.md#dependencies))
 - **Design intent:** [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) is the source of truth ("board 05c" names one of its boards); [`ruleset.md`](../../docs/design-system/ruleset.md) codifies it and yields where they disagree
 
 ## Styling
@@ -22,7 +22,7 @@ component.
 
 No roster here: the barrel, [`src/index.ts`](src/index.ts), is the public API and the only
 list of exports — read it. The rules for that surface (what may be exported, what consumers may
-import): [packages and contracts](../../docs/ARCHITECTURE.md#areas). The rendered catalog:
+import): [component-lib](../../docs/ARCHITECTURE.md#component-lib). The rendered catalog:
 [`apps/catalog`](../../apps/catalog/) (`bun run stories`).
 
 ## Entity Display System
@@ -33,9 +33,9 @@ Apps inject their renderers through **generic slot props** (`afterExtraContent`,
 
 ## Stories
 
-**The standard, in one line: ONE public component = ONE co-located story file = ONE nav leaf, titled `Group[/Sub-group]/Component Title Case`.** The catalog's `story-coverage.test.ts` enforces every clause; explained in [component catalog](../../docs/ARCHITECTURE.md#areas).
+**The standard, in one line: ONE public component = ONE co-located story file = ONE nav leaf, titled `Group[/Sub-group]/Component Title Case`.** The catalog's `story-coverage.test.ts` enforces every clause; explained in [component catalog](../../docs/ARCHITECTURE.md#catalog).
 
-- **The catalog also serves the apps' own components.** A composition only one app renders lives in that app's `src/components/`, story beside it; the catalog globs both ([component-lib](../../docs/ARCHITECTURE.md#areas)). A primitive (an Atom or a Container) stays here however many apps render it. The story's group is the classification: `bun run check barrel-consumers` fails a barrel export only one app reaches whose story files it under `Compositions/`. The rules below apply to app stories too (the guard scans all three roots); coverage is this package's barrel only. App stories take `Story` and `Caption` from `component-lib/stories/harness`.
+- **The catalog also serves the apps' own components.** A composition only one app renders lives in that app's `src/components/`, story beside it; the catalog globs both ([component-lib](../../docs/ARCHITECTURE.md#component-lib)). A primitive (an Atom or a Container) stays here however many apps render it. The story's group is the classification: `bun run check barrel-consumers` fails a barrel export only one app reaches whose story files it under `Compositions/`. The rules below apply to app stories too (the guard scans all three roots); coverage is this package's barrel only. App stories take `Story` and `Caption` from `component-lib/stories/harness`.
 - **Coverage, in lockstep:** every barrel-exported visual component must be **imported by a story file in its own directory** (a story that merely names it gives it no page). Add a public component to `src/index.ts` and its story in the same change. The only escape is the guard's `ALLOWLIST`, for genuine internal sub-parts shown through their parent, each with a one-line rationale; the guard fails on **stale** entries, so prune it when you story or delete one.
 - **No multi-component gallery story files.** A story file demonstrates exactly one component; a file rendering several siblings leaves all but one with **no sidebar entry**.
 - **`src/stories/` is for catalog pages only** — the flat `Foundations/*` set `Styleguide`, `Theme`, `Typography`, `Layout`, `Sizing`, `RenderingMatrix`, plus underscore scaffolding (`_harness.tsx`, `_groups.ts`, `_stories.css`, `_themeTokens.ts`, `_foundations.tsx`). No subdirectories; any other `*.stories.tsx` there fails the guard.
