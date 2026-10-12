@@ -11,9 +11,8 @@
  * Workspaces run side by side, but each Bun process stays serial: a parallel
  * (`--parallel`) Bun coverage run counts lines differently. A workspace in
  * `SHARDS` instead splits its test files across that many serial processes, run
- * at once, and merges their lcov with the most hits per line (`lib/lcov.ts`);
- * the merge gives the same LF and LH per file as one serial run, and the floor
- * applies to it. Output is buffered per job and printed whole, so every failure
+ * at once, and merges their lcov (`lib/lcov.ts`) back to what one serial run
+ * reports, line for line; the floor applies to the merge. Output is buffered per job and printed whole, so every failure
  * reads under its workspace's name.
  */
 
@@ -23,8 +22,6 @@ import { join } from 'node:path'
 import { functionRanges } from './lib/functionRanges'
 import { mergeLcov } from './lib/lcov'
 import { assertCoversWorkspaces } from './lib/workspaceCoverage'
-
-const root = join(import.meta.dir, '..')
 
 /**
  * Minimum line coverage per workspace, in percent. Raise a floor to lock in a
@@ -69,7 +66,7 @@ const TEST_FILES = new Bun.Glob('**/*{.test,_test,.spec,_spec}.{js,jsx,ts,tsx,mj
  * against a single serial run (the PR that introduced it shows the diff);
  * re-check before changing it or a shard count.
  */
-function shardTestFiles(cwd: string, count: number): string[][] {
+export function shardTestFiles(cwd: string, count: number): string[][] {
   const files = [...TEST_FILES.scanSync({ cwd })]
     .filter(
       (path) => !path.split('/').some((part) => part === 'node_modules' || part.startsWith('.'))
@@ -79,8 +76,6 @@ function shardTestFiles(cwd: string, count: number): string[][] {
     files.filter((_, i) => i % count === shard).map((path) => `./${path}`)
   )
 }
-
-assertCoversWorkspaces('coverage floors', Object.keys(FLOORS))
 
 /** Line coverage from lcov text, or undefined when it records no lines. */
 function lineCoverage(lcov: string): number | undefined {
@@ -93,19 +88,23 @@ function lineCoverage(lcov: string): number | undefined {
   return found > 0 ? (hit / found) * 100 : undefined
 }
 
-type Result = { name: string; ok: boolean; verdict: string }
+type Result = { name: string; ok: boolean; verdict: string; output: string }
 
-async function runJob(name: string, floor: number): Promise<Result> {
+/** Where a job runs, and the `bun` it runs (a stub, in the script's tests). */
+export type JobOptions = { root: string; shards?: number; bun?: readonly string[] }
+
+/** One workspace's coverage run (or its shards, merged) against its floor. */
+export async function runJob(name: string, floor: number, options: JobOptions): Promise<Result> {
+  const { root, shards: shardCount = 1, bun = ['bun'] } = options
   // A stale lcov from an earlier run must not stand in for this one.
   rmSync(join(root, name, 'coverage'), { recursive: true, force: true })
   const cwd = join(root, name)
   const started = performance.now()
-  const shardCount = SHARDS[name] ?? 1
   const runs =
     shardCount === 1
-      ? [$`bun test ${coverageArgs('coverage')} 2>&1`.cwd(cwd).nothrow().quiet()]
+      ? [$`${bun} test ${coverageArgs('coverage')} 2>&1`.cwd(cwd).nothrow().quiet()]
       : shardTestFiles(cwd, shardCount).map((files, i) =>
-          $`bun test ${coverageArgs(`coverage/shard-${i + 1}`)} ${files} 2>&1`
+          $`${bun} test ${coverageArgs(`coverage/shard-${i + 1}`)} ${files} 2>&1`
             .cwd(cwd)
             .nothrow()
             .quiet()
@@ -142,18 +141,27 @@ async function runJob(name: string, floor: number): Promise<Result> {
         ? `NO COVERAGE: tests passed in ${took} but coverage/lcov.info holds no lines`
         : `${pct.toFixed(2)}% of lines, floor ${floor}%${ok ? '' : ' (BELOW FLOOR)'}, ${verdict}`
   }
-  console.log(`\n━━━━ ${name}: ${verdict} ━━━━\n${stdout.trimEnd()}`)
-  return { name, ok, verdict }
+  return { name, ok, verdict, output: `\n━━━━ ${name}: ${verdict} ━━━━\n${stdout.trimEnd()}` }
 }
 
-const results = await Promise.all(Object.entries(FLOORS).map(([dir, floor]) => runJob(dir, floor)))
-
-const width = Math.max(...results.map((r) => r.name.length))
-const summary = results.map((r) => `${r.ok ? '✓' : '✗'} ${r.name.padEnd(width)}  ${r.verdict}`)
-console.log(`\n${summary.join('\n')}`)
-if (process.env.GITHUB_STEP_SUMMARY) {
-  const block = `## Tests and coverage\n\n\`\`\`\n${summary.join('\n')}\n\`\`\`\n`
-  appendFileSync(process.env.GITHUB_STEP_SUMMARY, block)
+async function main(): Promise<void> {
+  assertCoversWorkspaces('coverage floors', Object.keys(FLOORS))
+  const root = join(import.meta.dir, '..')
+  const results = await Promise.all(
+    Object.entries(FLOORS).map(async ([dir, floor]) => {
+      const result = await runJob(dir, floor, { root, shards: SHARDS[dir] })
+      console.log(result.output)
+      return result
+    })
+  )
+  const width = Math.max(...results.map((r) => r.name.length))
+  const summary = results.map((r) => `${r.ok ? '✓' : '✗'} ${r.name.padEnd(width)}  ${r.verdict}`)
+  console.log(`\n${summary.join('\n')}`)
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    const block = `## Tests and coverage\n\n\`\`\`\n${summary.join('\n')}\n\`\`\`\n`
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, block)
+  }
+  if (results.some((r) => !r.ok)) process.exit(1)
 }
 
-if (results.some((r) => !r.ok)) process.exit(1)
+if (import.meta.main) await main()
