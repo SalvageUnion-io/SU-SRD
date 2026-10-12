@@ -84,9 +84,10 @@ describe('the card as a page', () => {
     // The page body is the whole render: no card frame around it.
     expect(container.firstElementChild?.classList.contains('su-entity-page')).toBe(true)
     expect(container.querySelector('h1')).toBeNull()
-    // The only header fills are the framed chassis ability's, not the entity's.
+    // The only header fills are the framed chassis ability's and the pattern
+    // cards' heads, never the entity's own.
     for (const fill of container.querySelectorAll('[data-fill]')) {
-      expect(fill.closest('.su-entity-page__lead')).not.toBeNull()
+      expect(fill.closest('.su-entity-page__lead, .su-pattern-rows')).not.toBeNull()
     }
     expect(container.textContent).not.toContain('Salvage Union Workshop Manual')
   })
