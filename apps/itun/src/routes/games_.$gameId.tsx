@@ -19,9 +19,6 @@ import { setActiveContainer } from '../stores/activeContainerStore'
  *
  * Picked only on a real navigation, never a preload, so hovering a link
  * cannot change what the hub shows.
- *
- * The trailing `_` on `games_` keeps this route out of `/games`'s layout, whose
- * `beforeLoad` redirects.
  */
 export const Route = createFileRoute('/games_/$gameId')({
   head: () => ({ meta: [{ title: pageTitle('Game') }] }),
