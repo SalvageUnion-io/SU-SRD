@@ -1497,6 +1497,30 @@ body {
   }
 }
 
+/* ══ The page shell (`components/chrome/PageShell.tsx`) ══════════════════════
+ *
+ * The shell's gutters, as custom properties as well as its padding, so a child
+ * that bleeds to the shell's edges (a `ChapterBand`) can undo exactly them.
+ */
+.su-page-shell {
+  --su-page-gutter-inline: var(--space-16);
+  --su-page-gutter-block: var(--space-20);
+  padding: var(--su-page-gutter-block) var(--su-page-gutter-inline);
+}
+
+@media (min-width: 40rem) {
+  .su-page-shell {
+    --su-page-gutter-inline: var(--space-32);
+    --su-page-gutter-block: var(--space-40);
+  }
+}
+
+@media (min-width: 64rem) {
+  .su-page-shell {
+    --su-page-gutter-inline: var(--space-48);
+  }
+}
+
 /* ══ The chapter band (`components/chrome/ChapterBand.tsx`) ═════════════════
  *
  * Layout only — the band's colour, its speckle and the notch's ink on the page
@@ -1504,6 +1528,21 @@ body {
  * sets the title at hero; from `sm` they share one row and the title is the
  * chapter size.
  */
+/* `layout="bleed"` (the default) fills its container; a band that is a page
+   shell's first child also reaches out to the shell's edges and up to its top,
+   by the shell's own gutters. The gutter properties inherit to every
+   descendant, so this selector, not their presence, is what stops a band
+   deeper in the shell (mid-page, in a column) from bleeding past its box. */
+.su-chapter-band[data-layout='bleed'] {
+  width: 100%;
+}
+
+.su-page-shell > .su-chapter-band[data-layout='bleed']:first-child {
+  margin-inline: calc(-1 * var(--su-page-gutter-inline));
+  margin-top: calc(-1 * var(--su-page-gutter-block));
+  width: calc(100% + 2 * var(--su-page-gutter-inline));
+}
+
 .su-chapter-band__row {
   align-items: flex-start;
   display: flex;
@@ -1634,6 +1673,10 @@ body {
  * The book's framed numeral beside its ink stamp. Two cells to a row on a
  * phone; from `sm`, as many 200px cells as fit (two beside the entity art).
  * `row-reverse` draws the numeral first while the source reads label, value.
+ * The stamp is sized to its label, not to the cell: the rest of the cell is
+ * paper, so a column of stats reads as numerals with tags (the book's weight)
+ * rather than as solid ink bars that outweigh the title and the art. It may
+ * still shrink and wrap when the cell is narrower than the label.
  */
 .su-stat-column {
   display: grid;
@@ -1670,7 +1713,7 @@ body {
   background-color: var(--color-ink);
   color: var(--color-paper);
   display: flex;
-  flex: 1;
+  flex: 0 1 auto;
   font-family: var(--font-cond);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
@@ -2072,6 +2115,159 @@ body {
 
   .su-entity-page > .su-guide .su-guide__name {
     font-size: var(--text-readout);
+  }
+}
+
+/*
+ * A guide on its own page (`GuideSteps`'s `page`): the hierarchy and the rail.
+ *
+ * A section ("Post-Session") opens on the page's H2: condensed caps at the
+ * display size over a chrome rule, a rung above the step banners it holds —
+ * where it was a 12px stamp, below them. Every head is an anchor target.
+ *
+ * The contents ("On this page") are a sticky rail in the column's right third
+ * on a wide screen, beside the 52rem measure; narrower, the same list folds
+ * into a disclosure above the steps, so a phone never scrolls sideways.
+ */
+.su-guide__section-head {
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-display);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.1;
+  margin: 0 0 var(--space-16);
+  padding-bottom: var(--space-6);
+  text-transform: uppercase;
+}
+
+.su-guide--page .su-guide__section {
+  gap: 0;
+}
+
+.su-guide--page .su-guide__section + .su-guide__section {
+  margin-top: var(--space-24);
+}
+
+.su-guide--page .su-guide__section-head,
+.su-guide--page .su-guide__head {
+  scroll-margin-top: var(--space-24);
+}
+
+.su-guide__flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  min-width: 0;
+}
+
+.su-guide__toc-fold {
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.su-guide__toc-summary {
+  cursor: pointer;
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  min-height: 44px;
+  padding: var(--space-12) var(--space-16);
+  text-transform: uppercase;
+}
+
+.su-guide__rail {
+  display: none;
+}
+
+.su-guide__toc-title {
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  margin: 0 0 var(--space-8);
+  padding-bottom: var(--space-6);
+  text-transform: uppercase;
+}
+
+.su-guide__toc,
+.su-guide__toc-steps {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-guide__toc {
+  gap: var(--space-8);
+}
+
+.su-guide__toc-fold > .su-guide__toc {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+  padding: var(--space-8) var(--space-16) var(--space-12);
+}
+
+.su-guide__toc-link {
+  align-items: baseline;
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  display: flex;
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-2);
+  text-decoration: none;
+}
+
+.su-guide__toc-link:hover {
+  text-decoration: underline;
+}
+
+.su-guide__toc-link:focus-visible {
+  outline: 3px solid transparent;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+.su-guide__toc-link--section {
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+.su-guide__toc-num {
+  flex: none;
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  min-width: 1.5ch;
+}
+
+@media (min-width: 72rem) {
+  .su-entity-page > .su-guide--page {
+    align-items: start;
+    column-gap: var(--space-48);
+    display: grid;
+    grid-template-columns: minmax(0, 52rem) minmax(12rem, 16rem);
+    max-width: none;
+  }
+
+  .su-guide--page .su-guide__toc-fold {
+    display: none;
+  }
+
+  .su-guide--page .su-guide__rail {
+    display: block;
+    font-size: var(--text-sm);
+    line-height: 1.4;
+    max-height: calc(100vh - var(--space-48));
+    overflow-y: auto;
+    position: sticky;
+    top: var(--space-24);
   }
 }
 

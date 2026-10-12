@@ -23,7 +23,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need
 ## UI Development
 
 - Reuse shared components (`ReferenceEntityCard`, `Card`, …) before building one-off UI; check `component-lib` first.
-- Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `.claude/launch.json` starts `srd` (4321), `itun` (5173) and `stories` (61000, the component catalog) in the browser preview. Prefer simple, well-understood CSS.
+- Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `bun run shot <story-id|/route> --width phone|column|page [--dark]` prints PNGs to Read (ITUN: its stories). Prefer simple, well-understood CSS.
 - Default to compact, header-only, clickable listings for entity lists; never render nested entities as separate grids — render them inside the parent's expanded/modal view. Ask if unsure how much detail to show.
 - Styling is migrating off Tailwind ([plan](docs/design-system/tailwind-removal.md)); `bun run check styling` fails a change that raises the count of files carrying a Tailwind utility (a heuristic scan: class-list contexts plus class strings in constants and maps — not proof of absence; the plan's P6 exit adds the built-CSS check) or adds a `.pc-*` class.
 
@@ -114,7 +114,7 @@ For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `la
 
 The registry — ids, deployments, dashboards, how each server authenticates — is [services](docs/ARCHITECTURE.md#services-and-agent-tooling). [`.mcp.json`](.mcp.json) declares `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (stdio, targets the **local** deployment `bun run dev:itun` runs, from `CONVEX_DEPLOYMENT` in `apps/itun/.env.local`) and `context7` (version-pinned library docs — this repo runs ahead of training data; versions: the manifests).
 
-- `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Authenticate each server locally (OAuth on first connect).
+- `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Only `context7` and `convex` are enabled; opt into the rest [locally](docs/ARCHITECTURE.md#mcp-servers).
 - `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI. In a cloud session `gh` is preinstalled and authenticated by the GitHub proxy, but only REST answers (`gh api`); GraphQL subcommands such as `gh pr` and `gh issue` get 403, so use `gh api` or the session's `mcp__github__*` tools — see [cloud sessions](docs/ARCHITECTURE.md#cloud-sessions).
 - **Sentry fails silently.** No DSN means Vite tree-shakes the SDK out; a `connect-src` missing the ingest origin blocks every event. `tools/check-observability.ts` (the `observability` check) checks DSN gating, each app's CSP source against `SENTRY_INGEST_HOST`, and that each Worker wraps its export with `withObservability` and grants `nodejs_als`. **Change the CSP or Sentry region in every source for that app together.**
 

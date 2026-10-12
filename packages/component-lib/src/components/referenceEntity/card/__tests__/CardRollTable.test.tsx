@@ -5,6 +5,7 @@
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { EntitySurfaceProvider } from '../../../../entity/EntitySurface'
 import { CardRollTable } from '../CardRollTable'
 
 const coreMechanic = () => {
@@ -97,5 +98,42 @@ describe('CardRollTable', () => {
     )
     expect(screen.queryByRole('button', { name: /on this table/ })).toBeNull()
     expect(screen.getAllByRole('listitem').length).toBe(5)
+  })
+
+  test('a Reference surface reads and folds the table, with no Roll (ruleset §2)', () => {
+    render(
+      <EntitySurfaceProvider value={{ rolls: false }}>
+        <CardRollTable
+          table={coreMechanic()}
+          name="Core Mechanic"
+          size="large"
+          collapsible={false}
+          disabled={false}
+        />
+      </EntitySurfaceProvider>
+    )
+    expect(screen.queryByRole('button', { name: /on this table/ })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Hide the Core Mechanic table' })).toBeTruthy()
+    expect(screen.getAllByRole('listitem').length).toBe(5)
+  })
+
+  test('the rows are banded d20: paper, then the cream band, in turn', () => {
+    render(
+      <CardRollTable
+        table={coreMechanic()}
+        name="Core Mechanic"
+        size="medium"
+        collapsible={false}
+        disabled={false}
+      />
+    )
+    const fills = screen.getAllByRole('listitem').map((row) => row.style.backgroundColor)
+    expect(fills).toEqual([
+      'var(--color-paper)',
+      'var(--color-band-cream)',
+      'var(--color-paper)',
+      'var(--color-band-cream)',
+      'var(--color-paper)',
+    ])
   })
 })

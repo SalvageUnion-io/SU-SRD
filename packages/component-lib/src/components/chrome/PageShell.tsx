@@ -27,7 +27,9 @@ export function PageShell({ children, stack = true, className }: PageShellProps)
   return (
     <main
       className={cn(
-        'min-h-screen bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12',
+        // The gutters are `.su-page-shell`'s: a full-bleed `ChapterBand` reads
+        // them to reach the shell's edges.
+        'su-page-shell min-h-screen bg-wk-bg',
         stack && 'flex flex-col gap-6',
         className
       )}

@@ -19,8 +19,12 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  *
  * ## Layout
  *
- * The band fills its container's width. Set it as the first child of a
- * full-width region and it is full-bleed; `measure` caps the inner row so the
+ * The band is full-bleed by default (`layout="bleed"`): it fills its
+ * container, and as a `PageShell`'s first child it also cancels the shell's
+ * gutters, out to the shell's edges and up to its top, so the band meets the
+ * masthead the way it does on the SRD. Anywhere deeper in the shell it only
+ * fills its container. `layout="inset"` keeps even a leading band inside the
+ * shell's gutters. `measure` caps the inner row so the
  * notch lines up with the column of content under it. The notch's bottom edge
  * IS the band's bottom edge, and it is painted in the page ground
  * (`--color-wk-bg`), so the title reads as cut out of the band rather than
@@ -70,6 +74,11 @@ export type ChapterBandProps = {
   tone?: ChapterTone
   /** The heading element. Defaults to `h1`: the band is the page's title. */
   as?: ElementType
+  /**
+   * `bleed` (default): full-bleed, cancelling a `PageShell`'s gutters when it
+   * is the shell's first child. `inset`: inside its container's box.
+   */
+  layout?: 'bleed' | 'inset'
   /** Right-hand content on the band, bottom-aligned with the notch. */
   aside?: ReactNode
   /**
@@ -107,8 +116,12 @@ export type ChapterBandProps = {
 const ROOT = {
   isolation: 'isolate',
   position: 'relative',
-  width: '100%',
 } satisfies CSSProperties
+
+// A bleed band's width is the stylesheet's (`.su-chapter-band[data-layout]`):
+// leading a page shell it widens by the shell's gutters, which a style object
+// cannot read per breakpoint.
+const INSET = { width: '100%' } satisfies CSSProperties
 
 // The user-made notch: the same cut-out, framed in dashes on three sides — the
 // fourth is the band's foot, which the notch sits flush on.
@@ -164,6 +177,7 @@ export function ChapterBand({
   children,
   tone = 'rules',
   as: Tag = 'h1',
+  layout = 'bleed',
   aside,
   measure,
   id,
@@ -174,6 +188,8 @@ export function ChapterBand({
   scale = 'page',
   titleSize,
 }: ChapterBandProps) {
+  // A link preview is a picture at one size: it never bleeds.
+  const bleed = layout === 'bleed' && scale === 'page'
   const titleStyle = userMade
     ? { ...TITLE, ...userMadeTitle(scale === 'og' ? OG_DASH : DASH) }
     : TITLE
@@ -182,8 +198,10 @@ export function ChapterBand({
       className="su-chapter-band"
       data-user-made={userMade || undefined}
       data-scale={scale === 'og' ? 'og' : undefined}
+      data-layout={bleed ? 'bleed' : undefined}
       style={{
         ...ROOT,
+        ...(bleed ? {} : INSET),
         backgroundColor: fill ?? CHAPTER_BAND_COLOR[tone],
         ...(userMade ? { backgroundImage: USER_MADE_HATCH } : {}),
       }}
