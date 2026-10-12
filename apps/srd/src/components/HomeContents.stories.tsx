@@ -1,5 +1,8 @@
+import { assetSrcSetFor } from 'component-lib'
+import { assetUrl } from 'salvageunion-reference'
 import { buildChapters } from '../lib/chapters'
 import { DISCORD_INSTALL_URL, ITUN_URL } from '../lib/constants'
+import type { ContentsArt } from './HomeContents'
 import { ContentsChapter, DiscordBot, NewToTheUnion } from './HomeContents'
 
 export default {
@@ -24,6 +27,18 @@ const STEPS = [
   },
 ]
 
+/** The chapter openers' artwork, as the home page resolves it (`index.page.tsx`). */
+const ART: Partial<Record<string, ContentsArt>> = Object.fromEntries(
+  Object.entries({
+    'pilot-bay': 'classes/hacker.webp',
+    'mech-workshop': 'chassis/mule.webp',
+    denizens: 'bio-titans/tyrant.webp',
+  }).map(([id, key]) => {
+    const src = assetUrl(key)
+    return [id, { src, srcSet: assetSrcSetFor(src) }]
+  })
+)
+
 const AT_THE_TABLE = [
   { label: 'The Core Mechanic', href: '/schema/roll-tables/item/core-mechanic/' },
   { label: 'Heat', href: '/schema/guides/item/heat/' },
@@ -34,18 +49,19 @@ const AT_THE_TABLE = [
 
 /**
  * The SRD home as the manual's Contents page (board 06): the "Getting started"
- * aside — the "New to the Union?" path and the Discord bot — beside the book's
- * chapters as an index, each with its colour band and real entry counts (from
- * `buildChapters`, the same source the nav drawer is frozen from), then "At
- * the table" under an ink band. The aside is a right-hand sidebar on a wide
- * screen and leads the stack on a phone. Rows are 36px for a mouse and 44px
- * for a finger.
+ * aside — the "New to the Union?" path — and the Discord bot beside the book's
+ * chapters as an index, each opened by its colour band and, for Pilot Bay,
+ * Mech Workshop and Denizens, a piece of su-assets artwork, with real entry
+ * counts (from `buildChapters`, the same source the nav drawer is frozen
+ * from), then "At the table" under an ink band. The aside and the bot are a
+ * right-hand sidebar on a wide screen; on a phone the aside leads the stack
+ * and the bot follows the index. Rows are 36px for a mouse and 44px for a
+ * finger.
  */
 export const Default = () => (
   <div className="srd-home__body">
     <aside className="srd-home__aside" aria-label="Getting started">
       <NewToTheUnion steps={STEPS} buildHref={ITUN_URL} />
-      <DiscordBot installHref={DISCORD_INSTALL_URL} aboutHref="/discord/" />
     </aside>
     <div className="srd-home__index">
       {buildChapters().map((chapter) => (
@@ -56,9 +72,13 @@ export const Default = () => (
           tone={chapter.tone}
           rows={chapter.rows}
           total={chapter.total}
+          art={ART[chapter.id]}
         />
       ))}
       <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={AT_THE_TABLE} />
+    </div>
+    <div className="srd-home__discord">
+      <DiscordBot installHref={DISCORD_INSTALL_URL} aboutHref="/discord/" />
     </div>
   </div>
 )

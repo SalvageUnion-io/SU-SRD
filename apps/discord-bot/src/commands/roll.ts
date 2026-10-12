@@ -11,7 +11,7 @@ import {
 import type { ButtonSpec, ContainerData } from '../container'
 import { containerTextLength, toContainer, V2_LIMIT } from '../container'
 import { decodeRollResult, encodeRollRequest, encodeRollResult, makeCustomId } from '../customId'
-import { d20ForTable, rollD20 } from '../dice'
+import { dieForTable, rollD20 } from '../dice'
 import { noEffectContainer, unknownTableContainer } from '../errorContainer'
 import { buildRollContainerData } from '../rollContainer'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
@@ -95,7 +95,7 @@ export function buildRollMessage(
   tableName: string,
   roller?: string,
   /**
-   * The die. Injectable for tests; production passes `d20ForTable(tableName)`,
+   * The die. Injectable for tests; production passes `dieForTable(tableName)`,
    * which is @randsum/salvageunion's `rollTable` for a named table.
    */
   d20: () => number = rollD20,
@@ -116,31 +116,23 @@ export function buildRollMessage(
   }
 
   // rollOnTable (salvageunion-reference, ADR-006) owns the flat-vs-columns
-  // branch — shared with ITUN's pilot-identity roll buttons. Capture what was
-  // rolled so a miss can be told apart from a malformed table.
-  let rolled: number | null = null
-  const outcome = rollOnTable(table.table, () => {
-    const value = d20()
-    rolled ??= value
-    return value
-  })
-  if (!outcome.success) {
+  // branch and what counts as "no effect" — shared with the SRD and ITUN.
+  const outcome = rollOnTable(table.table, d20)
+  if (!outcome.success) return { error: `Error rolling on table "${table.name}": ${outcome.error}` }
+  if (outcome.kind === 'no-effect') {
     // A `dramatic` table carries only a `20` key, so 19 of every 20 rolls land
     // here. That is not an error — it is "nothing happens", which is what the
-    // book means. Only a table with no entries at all is a genuine fault.
-    if (rolled !== null && Object.keys(table.table).length > 1) {
-      // A miss is a RESULT, so it is as public, or as private, as any roll.
-      const data = noEffectContainer(table, rolled, roller, ownerId, isPrivate)
-      return {
-        flags: isPrivate
-          ? MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
-          : MessageFlags.IsComponentsV2,
-        components: [toContainer(data)],
-        data,
-        ...(isPrivate ? { ephemeral: true as const } : {}),
-      }
+    // book means. A miss is a RESULT, so it is as public, or as private, as
+    // any roll.
+    const data = noEffectContainer(table, outcome.roll, roller, ownerId, isPrivate)
+    return {
+      flags: isPrivate
+        ? MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+        : MessageFlags.IsComponentsV2,
+      components: [toContainer(data)],
+      data,
+      ...(isPrivate ? { ephemeral: true as const } : {}),
     }
-    return { error: `Error rolling on table "${table.name}": ${outcome.error}` }
   }
 
   const data = buildRollContainerData(table, outcome, { roller })
@@ -202,7 +194,9 @@ export function buildPostedRollMessage(
   // Replay the recorded dice in order — one for a flat table, two for columns.
   const queue = [...decoded.rolls]
   const outcome = rollOnTable(table.table, () => queue.shift() ?? 1)
-  if (!outcome.success) return { error: 'That roll can no longer be rendered.' }
+  // Only a row is ever posted: a no-effect roll carries no Post button.
+  if (!outcome.success || outcome.kind === 'no-effect')
+    return { error: 'That roll can no longer be rendered.' }
 
   const data = buildRollContainerData(table, outcome, { roller })
   // Posted, so public: its re-roll is public too.
@@ -309,7 +303,7 @@ export const rollCommand = {
     const message = buildRollMessage(
       tableName,
       interaction.user.displayName,
-      await d20ForTable(tableName),
+      await dieForTable(tableName),
       isPrivate,
       interaction.user.id
     )

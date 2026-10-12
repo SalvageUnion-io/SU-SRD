@@ -19,6 +19,8 @@
  * tag and a default tag can never both survive for a parser to choose between.
  */
 
+import { PRODUCT } from 'component-lib/product'
+
 /** Everything the shell's meta block says for one route. */
 export type ShellMeta = {
   title: string
@@ -60,7 +62,7 @@ export function renderMeta(meta: ShellMeta): string {
     `<meta name="theme-color" content="${escapeAttr(meta.themeColor)}" />`,
     `<meta name="description" content="${description}" />`,
     `<meta property="og:type" content="website" />`,
-    `<meta property="og:site_name" content="In The Union Now" />`,
+    `<meta property="og:site_name" content="${escapeAttr(PRODUCT.name)}" />`,
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
     `<meta property="og:url" content="${url}" />`,
@@ -94,7 +96,7 @@ export function applyMeta(shell: string, meta: ShellMeta): string {
   const withMeta = shell.slice(0, start) + renderMeta(meta) + shell.slice(end + META_END.length)
 
   // The <title> is outside the block (it is not `og:` metadata); a link that
-  // unfurls correctly while its tab says "In The Union Now" is half the fix.
+  // unfurls correctly while its tab says the bare product name is half the fix.
   // A function replacer: a string one reads `$&`, `$'` and `` $` `` in a
   // player-typed name as replacement patterns, splicing the document into
   // the title and ending the <head> early.

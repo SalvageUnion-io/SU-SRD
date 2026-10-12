@@ -12,6 +12,7 @@ import {
   GUARD_STEP,
   loadContext,
   runnerCalls,
+  runningBunToCompare,
   toolIsPinned,
   WORKFLOW_CHECKS,
 } from '../check-workflows'
@@ -400,6 +401,12 @@ describe('bun-version', () => {
     expect(checkBunVersion(ctx({ running: '1.3.11' })).failures[0]).toContain(
       'running Bun is 1.3.11'
     )
+  })
+
+  test('the running Bun is compared in CI only', () => {
+    expect(runningBunToCompare({ CI: 'true' }, '1.4.2')).toBe('1.4.2')
+    expect(runningBunToCompare({}, '1.4.2')).toBeNull()
+    expect(runningBunToCompare({ CI: '' }, '1.4.2')).toBeNull()
   })
 
   test('bun-types drift, or no bun-types at all, fails', () => {

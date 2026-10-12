@@ -208,10 +208,25 @@ describe('typecheck hooks against a stub workspace', () => {
     'tools',
   ].map((path) => [path, path.split('/').at(-1)] as const)
 
-  /** `root` replaces the root script, which otherwise logs `ROOT` and its arguments. */
-  async function fixture(opts: { root?: string } = {}) {
+  /**
+   * `root` replaces the root script, which otherwise logs `ROOT` and its
+   * arguments. `install` leaves out `node_modules` (a fresh worktree) and puts
+   * a `bun` first on PATH whose `install` logs `INSTALL` and its arguments,
+   * then runs the given body; anything else goes to the real Bun.
+   */
+  async function fixture(opts: { root?: string; install?: string } = {}) {
     const dir = mkdtempSync(join(tmpdir(), 'typecheck-hook-'))
     const log = join(dir, 'ran.log')
+    const bin = join(dir, 'bin')
+    if (opts.install === undefined) mkdirSync(join(dir, 'node_modules'))
+    else {
+      mkdirSync(bin)
+      writeFileSync(
+        join(bin, 'bun'),
+        `#!/bin/bash\nif [ "$1" = install ]; then echo "INSTALL $*" >> ${log}; ${opts.install}; fi\nexec ${process.execPath} "$@"\n`,
+        { mode: 0o755 }
+      )
+    }
     for (const [path, name] of WORKSPACES) {
       mkdirSync(join(dir, path, 'lib'), { recursive: true })
       writeFileSync(join(dir, path, 'package.json'), JSON.stringify({ name }))
@@ -228,15 +243,24 @@ describe('typecheck hooks against a stub workspace', () => {
     )
     await Bun.spawn(['git', 'init', '-q', dir], { env: cleanEnv }).exited
     const marker = join(dir, '.git', 'claude-typecheck-pending')
-    const ran = async () =>
-      (await Bun.file(log).exists()) ? (await Bun.file(log).text()).trim().split('\n').sort() : []
-    return { dir, marker, ran, cleanup: () => rmSync(dir, { recursive: true, force: true }) }
+    /** What ran, in the order it ran. */
+    const ranInOrder = async () =>
+      (await Bun.file(log).exists()) ? (await Bun.file(log).text()).trim().split('\n') : []
+    const ran = async () => (await ranInOrder()).sort()
+    return {
+      dir,
+      marker,
+      ran,
+      ranInOrder,
+      cleanup: () => rmSync(dir, { recursive: true, force: true }),
+    }
   }
 
-  async function run(script: string, cwd: string, payload: unknown) {
+  /** Runs a hook from `cwd` inside the fixture `dir`, its `bin/` (if any) first on PATH. */
+  async function run(script: string, dir: string, cwd: string, payload: unknown) {
     const proc = Bun.spawn([join(HOOKS, script)], {
       cwd,
-      env: cleanEnv,
+      env: { ...cleanEnv, PATH: `${join(dir, 'bin')}:${cleanEnv.PATH}` },
       stdin: new TextEncoder().encode(JSON.stringify(payload)),
       stdout: 'pipe',
       stderr: 'pipe',
@@ -250,7 +274,7 @@ describe('typecheck hooks against a stub workspace', () => {
   }
 
   const edit = (dir: string, rel: string) =>
-    run('typecheck-scoped.sh', join(dir, 'apps', 'srd'), {
+    run('typecheck-scoped.sh', dir, join(dir, 'apps', 'srd'), {
       tool_input: { file_path: join(dir, rel) },
     })
 
@@ -273,7 +297,11 @@ describe('typecheck hooks against a stub workspace', () => {
       'packages/itun-domain/lib/x.ts',
       ['ROOT packages/itun-domain apps/discord-bot apps/itun tools'],
     ],
-    ['gates', 'packages/gates/lib/x.ts', ['ROOT packages/gates apps/srd apps/itun tools']],
+    [
+      'gates',
+      'packages/gates/lib/x.ts',
+      ['ROOT packages/gates apps/srd apps/itun apps/catalog tools'],
+    ],
   ])(
     'an edit to %s checks it and its consumers in one run, then asks for a full run',
     async (_l, rel, expected) => {
@@ -312,9 +340,40 @@ describe('typecheck hooks against a stub workspace', () => {
     }
   })
 
+  test('a fresh worktree installs once with the frozen lockfile, then typechecks', async () => {
+    const f = await fixture({ install: 'mkdir -p node_modules; exit 0' })
+    try {
+      expect(await edit(f.dir, 'apps/srd/lib/x.ts')).toEqual({
+        code: ALLOW,
+        stdout: '',
+        stderr: '',
+      })
+      expect((await edit(f.dir, 'apps/srd/lib/x.ts')).code).toBe(ALLOW)
+      expect(await f.ranInOrder()).toEqual([
+        'INSTALL install --frozen-lockfile',
+        'ROOT apps/srd',
+        'ROOT apps/srd',
+      ])
+    } finally {
+      f.cleanup()
+    }
+  })
+
+  test('a failed install exits 2 with its output and skips the typecheck', async () => {
+    const f = await fixture({ install: 'echo lockfile-out-of-date >&2; exit 1' })
+    try {
+      const result = await edit(f.dir, 'apps/srd/lib/x.ts')
+      expect(result.code).toBe(2)
+      expect(result.stderr).toContain('lockfile-out-of-date')
+      expect(await f.ran()).toEqual(['INSTALL install --frozen-lockfile'])
+    } finally {
+      f.cleanup()
+    }
+  })
+
   describe('typecheck-full.sh (Stop)', () => {
     const stop = (dir: string, stop_hook_active = false) =>
-      run('typecheck-full.sh', dir, { stop_hook_active })
+      run('typecheck-full.sh', dir, dir, { stop_hook_active })
 
     test('does nothing when no scoped check ran this turn', async () => {
       const f = await fixture()
@@ -333,6 +392,32 @@ describe('typecheck hooks against a stub workspace', () => {
         expect(await stop(f.dir)).toEqual({ code: ALLOW, stdout: '', stderr: '' })
         expect(await f.ran()).toEqual(['ROOT', 'ROOT apps/srd'])
         expect(await Bun.file(f.marker).exists()).toBe(false)
+      } finally {
+        f.cleanup()
+      }
+    })
+
+    test('a fresh worktree installs once with the frozen lockfile, then typechecks', async () => {
+      const f = await fixture({ install: 'mkdir -p node_modules; exit 0' })
+      try {
+        writeFileSync(f.marker, '')
+        expect(await stop(f.dir)).toEqual({ code: ALLOW, stdout: '', stderr: '' })
+        expect(await f.ranInOrder()).toEqual(['INSTALL install --frozen-lockfile', 'ROOT'])
+        expect(await Bun.file(f.marker).exists()).toBe(false)
+      } finally {
+        f.cleanup()
+      }
+    })
+
+    test('a failed install exits 2 with its output, skips the typecheck, keeps the marker', async () => {
+      const f = await fixture({ install: 'echo lockfile-out-of-date >&2; exit 1' })
+      try {
+        writeFileSync(f.marker, '')
+        const result = await stop(f.dir)
+        expect(result.code).toBe(2)
+        expect(result.stderr).toContain('lockfile-out-of-date')
+        expect(await f.ranInOrder()).toEqual(['INSTALL install --frozen-lockfile'])
+        expect(await Bun.file(f.marker).exists()).toBe(true)
       } finally {
         f.cleanup()
       }

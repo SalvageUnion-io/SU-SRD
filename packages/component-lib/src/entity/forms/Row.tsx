@@ -9,7 +9,7 @@ import { space } from '../../design/tokens'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkChevron, LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
-import { SelectedSeal, SelectSurface } from '../modes/select'
+import { SelectCheck, SelectedSeal, SelectSurface } from '../modes/select'
 import { SELECTED_RING } from '../modes/selectedRing'
 import { Art } from '../parts/Art'
 import { actionTypeStamps } from '../parts/actionStamps'
@@ -143,6 +143,12 @@ export function Row({
   const affordance =
     slots.chevron || target.href || target.onOpen ? (
       <LinkChevron />
+    ) : mode.kind === 'select' && mode.role === 'toggle' && !slots.outer ? (
+      // A toggle's control is a real checkbox; the seal still marks the pick.
+      <>
+        {selected && <SelectedSeal word={mode.seal} />}
+        <SelectCheck mode={mode} label={mode.label ?? title} accent={paint.color} />
+      </>
     ) : selected ? (
       <SelectedSeal word={mode.seal} />
     ) : undefined

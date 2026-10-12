@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, font, space, tracking, weight } from '../../design/tokens'
+import { PRODUCT } from '../../product'
 import { ChapterBand } from '../atoms/ChapterBand'
 import { Speckle } from '../atoms/Speckle'
 import { PENNANT_SHAPE, USER_MADE_TITLE } from '../referenceEntity/card/cardChrome'
@@ -269,7 +270,7 @@ function UnionFoot({
       <Speckle grain="paper" />
       <div style={LOCKUP}>
         <img src={markSrc} alt="" width={56} height={56} />
-        <span style={WORDMARK}>{reference ? 'SalvageUnion.io' : 'ITUN'}</span>
+        <span style={WORDMARK}>{reference ? PRODUCT.wordmark : PRODUCT.shortName}</span>
       </div>
       <span style={ADDRESS}>{address}</span>
     </div>
@@ -299,7 +300,7 @@ export function OgCard({
   const reference = REFERENCE_KINDS.has(props.kind)
   const title = ogCardTitle(props)
   const printed = ogCardPrintedTitle(props)
-  const kicker = props.kind === 'private' ? 'ITUN' : props.kicker
+  const kicker = props.kind === 'private' ? PRODUCT.shortName : props.kicker
   const byline = bylineOf(props)
 
   const end =

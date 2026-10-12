@@ -8,12 +8,13 @@
  * A minority embed something genuinely interactive (a roll table's Table toggle,
  * a disclosure, a nested-entity click target). Those keep an island:
  * a `client="visible"` card gated on a browser-side preload, paired with
- * `StaticEntityContent` so crawlers and no-JS readers still get the text.
+ * `StaticEntityContent` so crawlers, no-JS readers and a reader waiting on the
+ * preload all get the text.
  *
  * The island cannot simply be dropped for them. `useGameData`'s server snapshot
  * is hardcoded `false` on purpose, so the card the browser renders on its first
- * pass is a skeleton, not the entity — server-rendering the island would put a
- * skeleton in the HTML and nothing else. Hence `ssr={false}` (and therefore no
+ * pass is empty, not the entity — server-rendering the island would put
+ * nothing in the HTML. Hence `ssr={false}` (and therefore no
  * children: the island component never enters the SSR module graph), with
  * `StaticEntityContent` as the SEO / no-JS path beside it.
  *

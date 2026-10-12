@@ -266,7 +266,15 @@ export function Card({
   // Resolve card-level click: onCardClick prop → fallback to controls with
   // cardClick (when multiple controls set it, the last one wins).
   const cardClickControls = !onCardClick && controls ? controls.filter((c) => c.cardClick) : []
-  const resolvedCardClick = onCardClick ?? cardClickControls.at(-1)?.onClick
+  const clickControl = cardClickControls.at(-1)
+  const resolvedCardClick = onCardClick ?? clickControl?.onClick
+  // ONE CONTROL: when the click comes from a control the card SHOWS, that
+  // control is the keyboard and screen-reader path and the card is a pointer
+  // convenience only — no role, tab stop or key handler. A `role="button"`
+  // card around a visible button is two tab stops for one action, and its
+  // content goes presentational. Only a click no visible control carries
+  // (`onCardClick`, a hidden control) makes the card itself the button.
+  const surfaceIsButton = !!resolvedCardClick && !(clickControl && !clickControl.hidden)
 
   // Hover effect when card is clickable (via handler or boolean flag)
   const isCardHoverable = !!resolvedCardClick
@@ -314,10 +322,10 @@ export function Card({
   const rendersFooter = !isListing && Boolean(footerContent || (footMeta && footMeta.length > 0))
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: role="button" + tabIndex + keyboard handler are applied whenever resolvedCardClick makes the card interactive
+    // biome-ignore lint/a11y/noStaticElementInteractions: role="button" + tabIndex + keyboard handler are applied whenever the card itself is the button; otherwise a visible control inside carries the same click for the keyboard
     <div
-      role={resolvedCardClick ? 'button' : undefined}
-      tabIndex={resolvedCardClick ? 0 : undefined}
+      role={surfaceIsButton ? 'button' : undefined}
+      tabIndex={surfaceIsButton ? 0 : undefined}
       className={cn(
         // Flat chrome (brand refresh P2a): no drop shadow and no hover lift — a card is
         // printed on the page, and the 3px frame is its edge. `.su-card` is a
@@ -328,7 +336,7 @@ export function Card({
         // Button mode focuses ON TONE — a card's own background may be any
         // entity tone, including the near-black end of the tech-level ramp,
         // where the 25%-alpha rust ring disappears. See FOCUS_RING_ON_TONE.
-        resolvedCardClick && FOCUS_RING_ON_TONE
+        surfaceIsButton && FOCUS_RING_ON_TONE
       )}
       style={{
         ...(disabled ? { opacity: 0.5 } : {}),
@@ -355,7 +363,7 @@ export function Card({
         ...cardStyle?.style,
       }}
       onClick={resolvedCardClick}
-      onKeyDown={resolvedCardClick ? handleCardKeyDown : undefined}
+      onKeyDown={surfaceIsButton ? handleCardKeyDown : undefined}
     >
       {hasCallout && (
         <div

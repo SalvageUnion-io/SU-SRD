@@ -557,6 +557,18 @@ body {
   width: 36px;
 }
 
+/*
+ * A show page's top controls, one height in both apps: the srd entity page's
+ * "Build with this", the ITUN sheet bar's back, Share, "⋯" and phone switch,
+ * and the sheet band's Read | Edit and "Make a copy". Each was sized by its
+ * own rung (a compact link, a 38px square, a 40px toggle, a full button), so a
+ * row of them stepped. Height only: each keeps its own padding and type. Under
+ * a coarse pointer the 44px floor lifts them all alike.
+ */
+.su-page-action {
+  height: var(--space-40);
+}
+
 /* ══ The entity card's cost pennant as the action button ════════════════════
  *
  * In the Dashboard the pennant on an action's ink banner IS the action button
@@ -3813,6 +3825,14 @@ body {
 .su-control-icon__glyph {
   height: var(--space-12);
   width: var(--space-12);
+}
+
+/* A folded card's chevron (`ReferenceEntityCard` `collapsible`): the card's ONE
+   fold control, so it takes the WCAG 2.2 minimum target (24px) a stamp's 24×20
+   misses. A coarse pointer lifts it to 44px through the shared touch floor. */
+.su-card-fold {
+  min-height: var(--space-24);
+  min-width: var(--space-24);
 }
 
 /* NavDrawer (`compositions/NavDrawer.tsx`). The trigger's padding and ink, and the

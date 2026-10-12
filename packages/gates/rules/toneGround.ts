@@ -33,11 +33,8 @@
 
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type {
-  SURefEnumSchemaName,
-  SURefMetaEntity,
-} from '../../salvageunion-reference/lib/schemas/index'
-import { entityTone, headerFill } from '../../salvageunion-reference/lib/view/parts/fill'
+import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
+import { entityTone, headerFill } from 'salvageunion-reference'
 import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 

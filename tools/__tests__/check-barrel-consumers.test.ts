@@ -180,8 +180,8 @@ describe('explain', () => {
 describe('census of this repository', () => {
   const repo = census()
 
-  test('reads the barrel, both consuming apps and the stories', () => {
-    expect(repo.workspaces).toEqual(['apps/itun', 'apps/srd'])
+  test('reads the barrel, every consuming app and the stories', () => {
+    expect(repo.workspaces).toEqual(['apps/discord-bot', 'apps/itun', 'apps/srd'])
     expect(repo.exports.length).toBeGreaterThan(60)
     expect(repo.scanned).toBeGreaterThan(270)
     expect(repo.stories.size).toBeGreaterThan(40)

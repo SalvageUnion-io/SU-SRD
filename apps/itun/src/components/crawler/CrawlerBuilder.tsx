@@ -8,7 +8,7 @@ import type {
   SURefMetaCrawlerTechLevel,
   SURefSystem,
 } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { bookQuote, SalvageUnionReference } from 'salvageunion-reference'
 import {
   crawlerMaxSP,
   isLegalCreationCrawlerWeapon,
@@ -273,17 +273,18 @@ export function CrawlerBuilder({
     return system ? isWeaponSystem(system) : false
   }).length
 
-  // Per-step RuleBrief: the Core Book's own Union Crawler copy, pp.212–213.
+  // Per-step RuleBrief: the Core Book's own Union Crawler copy, pp.212–213,
+  // each quote a `bookQuote` so the rules-fidelity lock holds it to the book.
   const stepRule: StepRule = (() => {
     switch (step) {
       case 'type':
         return {
           rule: (
             <>
-              Once all players have created their Pilot and Mech, the final step is for everyone to
-              create the Union Crawler they share. Your Crawler type provides a unique Ability that
-              only it can do, as well as a special NPC who resides on the Crawler and confers their
-              own bonuses.{' '}
+              {bookQuote(
+                { source: 'Salvage Union Workshop Manual', page: 212 },
+                'Once all players have created their Pilot and Mech, the final step is for everyone to create the Union Crawler they share. Your Crawler type provides a unique Ability that only it can do, as well as a special NPC who resides on the Crawler and confers their own bonuses.'
+              )}{' '}
               <span style={MUTED}>
                 (You have {pilotCount} Pilot{pilotCount === 1 ? '' : 's'} and {mechCount} Mech
                 {mechCount === 1 ? '' : 's'} saved so far — context only, never a blocker.)
@@ -294,22 +295,34 @@ export function CrawlerBuilder({
         }
       case 'stats':
         return {
-          rule: 'Your Crawler has a set of statistics based on its Tech Level. This includes its Structure Points, Upkeep, and Upgrade cost. Note these down on your Crawler Sheet.',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 212 },
+            'Your Crawler has a set of statistics based on its Tech Level. This includes its Structure Points, Upkeep, and Upgrade cost. Note these down on your Crawler Sheet.'
+          ),
           cite: 'Core Book · p.212 · Crawler Stats p.218',
         }
       case 'weapons':
         return {
-          rule: 'A Union Crawler can mount a single Weapons System in its Armament Bay. To start, this can be any Tech 1 Weapons System of the players’ choice — a Battle Crawler mounts two. Note this down on your Crawler Sheet.',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 213 },
+            'A Union Crawler can mount a single Weapons System in its Armament Bay. To start, this can be any Tech 1 Weapons System of the players’ choice — a Battle Crawler mounts two. Note this down on your Crawler Sheet.'
+          ),
           cite: 'Core Book · p.213 · The System list p.162',
         }
       case 'crew':
         return {
-          rule: 'The Crawler is made of a number of Bays. Each Bay has an NPC assigned to it based on their experience and skill in operating the Bay. You can flesh them out with a Name, Background, Keepsake, and Motto. Each has 4 HP.',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 213 },
+            'The Crawler is made of a number of Bays. Each Bay has an NPC assigned to it based on their experience and skill in operating the Bay. You can flesh them out with a Name, Background, Keepsake, and Motto. Each has 4 HP.'
+          ),
           cite: 'Core Book · p.213 · The Crawler Bay list p.221',
         }
       case 'identity':
         return {
-          rule: 'Provide your Union Crawler with a unique name and tag. For example, Crawler #132 is also known as ‘Tin Lizzy’. Note these down on your Crawler Sheet. The Scrap Pool below holds the group’s banked Scrap — including whatever your Pilots didn’t spend crafting their Mechs.',
+          rule: bookQuote(
+            { source: 'Salvage Union Workshop Manual', page: 212 },
+            'Provide your Union Crawler with a unique name and tag. For example, Crawler #132 is also known as ‘Tin Lizzy’. Note these down on your Crawler Sheet. The Scrap Pool below holds the group’s banked Scrap — including whatever your Pilots didn’t spend crafting their Mechs.'
+          ),
           cite: 'Core Book · p.212 · The Crawler Names Table p.226',
         }
       case 'review':

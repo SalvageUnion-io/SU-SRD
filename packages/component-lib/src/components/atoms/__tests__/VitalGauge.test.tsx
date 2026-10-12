@@ -14,6 +14,11 @@ function must<T>(value: T | null | undefined): T {
   return value
 }
 
+/** The editable track's segment at 0-based `index` — pointer-only, so no role. */
+function pip(slider: HTMLElement, index: number): HTMLElement {
+  return must(slider.querySelector<HTMLElement>(`[data-pip-index="${index}"]`))
+}
+
 describe('VitalGauge — render', () => {
   test('renders label, numeral, max and default caption', () => {
     render(<VitalGauge label="HP" value={7} max={10} onChange={() => {}} />)
@@ -48,14 +53,14 @@ describe('VitalGauge — click to set', () => {
     const onChange = mock((v: number) => v)
     render(<VitalGauge label="HP" value={7} max={10} onChange={onChange} />)
     // Clicking segment 7 (index 6, currently the top-lit pip) sets HP to 6.
-    fireEvent.click(screen.getByLabelText('Set HP to 7'))
+    fireEvent.click(pip(screen.getByRole('slider', { name: 'HP' }), 6))
     expect(onChange).toHaveBeenLastCalledWith(6)
   })
 
   test('clicking an unlit segment fills up to it', () => {
     const onChange = mock((v: number) => v)
     render(<VitalGauge label="HP" value={4} max={10} onChange={onChange} />)
-    fireEvent.click(screen.getByLabelText('Set HP to 9'))
+    fireEvent.click(pip(screen.getByRole('slider', { name: 'HP' }), 8))
     expect(onChange).toHaveBeenLastCalledWith(9)
   })
 
@@ -63,8 +68,60 @@ describe('VitalGauge — click to set', () => {
     const onChange = mock((v: number) => v)
     render(<VitalGauge label="AP" value={4} max={5} onChange={onChange} />)
     // Clicking the last unlit segment fills to max 5.
-    fireEvent.click(screen.getByLabelText('Set AP to 5'))
+    fireEvent.click(pip(screen.getByRole('slider', { name: 'AP' }), 4))
     expect(onChange).toHaveBeenLastCalledWith(5)
+  })
+
+  test('a click between segments sets nothing', () => {
+    const onChange = mock((v: number) => v)
+    render(<VitalGauge label="HP" value={4} max={10} onChange={onChange} />)
+    fireEvent.click(screen.getByRole('slider', { name: 'HP' }))
+    expect(onChange).not.toHaveBeenCalled()
+  })
+})
+
+// One tab stop per gauge, not one per pip: the editable track is a slider and
+// its segments are pointer-only (a slider's children are presentational).
+describe('VitalGauge — slider', () => {
+  test.each(['full', 'compact'] as const)(
+    'a %s editable gauge is ONE focusable slider carrying the value',
+    (size) => {
+      render(<VitalGauge label="Cargo" value={5} max={16} onChange={() => {}} size={size} />)
+      const slider = screen.getByRole('slider', { name: 'Cargo' })
+      expect(slider.tabIndex).toBe(0)
+      expect(slider.getAttribute('aria-valuemin')).toBe('0')
+      expect(slider.getAttribute('aria-valuemax')).toBe('16')
+      expect(slider.getAttribute('aria-valuenow')).toBe('5')
+      expect(slider.getAttribute('aria-valuetext')).toBe('Cargo 5 of 16')
+      // No pip is a control or a tab stop.
+      expect(slider.querySelectorAll('[data-pip]').length).toBe(16)
+      expect(slider.querySelectorAll('button, [tabindex]').length).toBe(0)
+      cleanup()
+    }
+  )
+
+  test('the value text names the redline once a lit segment passes it', () => {
+    const { rerender } = render(
+      <VitalGauge label="Heat" value={4} max={6} danger={4} onChange={() => {}} />
+    )
+    const slider = screen.getByRole('slider', { name: 'Heat' })
+    expect(slider.getAttribute('aria-valuetext')).toBe('Heat 4 of 6')
+    rerender(<VitalGauge label="Heat" value={5} max={6} danger={4} onChange={() => {}} />)
+    expect(slider.getAttribute('aria-valuetext')).toBe('Heat 5 of 6, over redline')
+  })
+
+  test('a read-only gauge has no slider', () => {
+    render(<VitalGauge label="HP" value={7} max={10} readOnly />)
+    expect(screen.queryByRole('slider')).toBeNull()
+  })
+
+  test('arrow keys on the max override do not move the value', () => {
+    const onChange = mock((v: number) => v)
+    render(<VitalGauge label="SP" value={9} max={13} onChange={onChange} onMaxChange={() => {}} />)
+    fireEvent.keyDown(screen.getByRole('button', { name: /override sp max/i }), {
+      key: 'ArrowUp',
+    })
+    expect(onChange).not.toHaveBeenCalled()
   })
 })
 
@@ -72,21 +129,21 @@ describe('VitalGauge — keyboard', () => {
   test('ArrowUp / ArrowRight increment, ArrowDown / ArrowLeft decrement', () => {
     const onChange = mock((v: number) => v)
     render(<VitalGauge label="HP" value={5} max={10} onChange={onChange} />)
-    const group = screen.getByRole('group', { name: 'HP 5 of 10' })
-    fireEvent.keyDown(group, { key: 'ArrowUp' })
+    const slider = screen.getByRole('slider', { name: 'HP' })
+    fireEvent.keyDown(slider, { key: 'ArrowUp' })
     expect(onChange).toHaveBeenLastCalledWith(6)
-    fireEvent.keyDown(group, { key: 'ArrowDown' })
+    fireEvent.keyDown(slider, { key: 'ArrowDown' })
     expect(onChange).toHaveBeenLastCalledWith(4)
-    fireEvent.keyDown(group, { key: 'End' })
+    fireEvent.keyDown(slider, { key: 'End' })
     expect(onChange).toHaveBeenLastCalledWith(10)
-    fireEvent.keyDown(group, { key: 'Home' })
+    fireEvent.keyDown(slider, { key: 'Home' })
     expect(onChange).toHaveBeenLastCalledWith(0)
   })
 
   test('keyboard clamps at the bounds', () => {
     const onChange = mock((v: number) => v)
     render(<VitalGauge label="HP" value={0} max={10} onChange={onChange} />)
-    fireEvent.keyDown(screen.getByRole('group', { name: 'HP 0 of 10' }), { key: 'ArrowDown' })
+    fireEvent.keyDown(screen.getByRole('slider', { name: 'HP' }), { key: 'ArrowDown' })
     expect(onChange).toHaveBeenLastCalledWith(0)
   })
 })

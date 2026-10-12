@@ -31,6 +31,7 @@ export type { CoreRollBand, CoreRollResult } from './coreMechanic'
 export {
   CORE_ROLL_BANDS,
   coreRollBand,
+  coreRollBandLabel,
   describeOverloadOutcome,
   describePushOutcome,
   performCoreRoll,

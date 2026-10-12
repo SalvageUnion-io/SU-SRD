@@ -47,14 +47,19 @@ import { readdirSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createServer as createHttpServer } from 'node:http'
 import { fileURLToPath } from 'node:url'
+import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { ViteDevServer } from 'vite'
 import { createServer as createViteServer } from 'vite'
 import type { BuildAssets } from './document'
 import type { EndpointRegistration, ResolvedEndpoint } from './endpoints'
 import type { ErasedRoute, RouteRegistration } from './render'
 
-/** Repo convention: srd's dev server lives on 4321 and is restarted in place. */
-const PORT = Number(process.env.PORT ?? 4321)
+/**
+ * Repo convention: srd's dev server lives on this checkout's port (4321 in the
+ * primary checkout, offset in a worktree: `packages/gates/lib/ports.ts`) and is
+ * restarted in place. An explicit `PORT` wins.
+ */
+const PORT = Number(process.env.PORT ?? portFor('srd'))
 
 const viteConfigFile = fileURLToPath(new URL('./vite.config.ts', import.meta.url))
 
@@ -281,6 +286,8 @@ async function main(): Promise<void> {
   // "Cannot GET /…" until the process is restarted. Handling the fall-through
   // out here, and reading `vite.middlewares` per request, survives that.
   const server = createHttpServer((req, res) => {
+    // Names this checkout, so `bun run shot` can refuse another checkout's server.
+    res.setHeader(CHECKOUT_HEADER, CHECKOUT_ROOT)
     vite.middlewares(req, res, () => {
       if (req.method !== 'GET' && req.method !== 'HEAD') {
         res.statusCode = 405
@@ -294,8 +301,9 @@ async function main(): Promise<void> {
 
   server.on('error', (error: NodeJS.ErrnoException) => {
     if (error.code === 'EADDRINUSE') {
-      // The repo convention is one dev server, restarted in place on 4321 —
-      // so this is a stop-and-fix, never a silent hop to the next free port.
+      // The repo convention is one dev server per checkout, restarted in place
+      // on its own port — so this is a stop-and-fix, never a silent hop to the
+      // next free port.
       console.error(`[dev] port ${PORT} is already in use — stop the other dev server first`)
       process.exit(1)
     }

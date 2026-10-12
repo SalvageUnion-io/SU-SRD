@@ -1,6 +1,6 @@
 ---
 name: convex-ops
-description: Use when setting up or checking an ITUN Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot replies "In The Union Now is not configured for this bot", answers `unavailable` or `unauthorized`, or its `/health` returns 503, when a Convex tool says "No CONVEX_DEPLOYMENT set", when rotating JWT_PRIVATE_KEY/JWKS or AUTH_DISCORD_SECRET, when running a one-off data repair, or when enabling or re-verifying Convex error reporting to Sentry.
+description: Use when setting up or checking an ITUN Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot replies "In the Union now is not configured for this bot", answers `unavailable` or `unauthorized`, or its `/health` returns 503, when a Convex tool says "No CONVEX_DEPLOYMENT set", when rotating JWT_PRIVATE_KEY/JWKS or AUTH_DISCORD_SECRET, when running a one-off data repair, or when enabling or re-verifying Convex error reporting to Sentry.
 allowed-tools: Bash, Read
 ---
 
@@ -13,7 +13,7 @@ network rather than at the typo. The commands are trivial; the traps are not.
 
 The deployments and the seven deployment variables (what each is, what
 breaks when it is unset):
-[accounts and Games operations](../../../docs/ARCHITECTURE.md#areas).
+[accounts and Games operations](../../../docs/ARCHITECTURE.md#deployments).
 This skill is the procedures.
 
 ## Before anything: which deployment?
@@ -130,7 +130,7 @@ answers everything looks identical to one correctly configured for Discord.
 
 Rotating the pair **signs every user out**; old sessions were signed by the key
 you replaced. Generate both together, in the formats the
-[deployment variables](../../../docs/ARCHITECTURE.md#areas)
+[deployment variables](../../../docs/ARCHITECTURE.md#convex-env)
 table gives, and write both:
 
 ```bash
