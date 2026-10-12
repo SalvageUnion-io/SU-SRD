@@ -1,17 +1,14 @@
 /**
- * NO RAW MARKUP (entity display language E4, phase 3): every `[[Trait]]` the
- * rules text carries renders as a Mention — a word linked to its page with its
- * Peek — and never as the markup itself. So no page the site emits may carry
- * `[[` in its rendered body.
- *
- * Island props (`<script type="application/json">`) are data, not rendered
- * text: an island's entity travels raw and its client render draws the
- * Mentions, so script bodies are left out of the scan.
+ * NO RAW MARKUP (entity display language E4, phase 3). The corpus-wide scan is
+ * a post-render assertion in `ssg/build.ts` (`build-srd` renders every page
+ * anyway); this suite covers the scan itself and one page's Mention, without
+ * rendering the corpus a second time.
  */
 
 import { describe, expect, it } from 'bun:test'
 import { ELDRIDGE_COAST_MAP } from '../../src/lib/builtAssets'
 import type { BuildAssets } from '../document'
+import { assertNoRawMarkup, findRawMarkup, renderedBody } from '../rawMarkup'
 import { routes } from '../routes'
 
 const ASSETS: BuildAssets = {
@@ -20,35 +17,59 @@ const ASSETS: BuildAssets = {
   built: { [ELDRIDGE_COAST_MAP]: '/assets/eldridge-coast-map.webp' },
 }
 
-/** The rendered body: everything after `<body`, without its script blocks. */
-function renderedBody(html: string): string {
-  return html.slice(html.indexOf('<body')).replace(/<script\b[\s\S]*?<\/script>/g, '')
-}
+describe('the raw-markup scan', () => {
+  it('finds [[ in a page body, with its context', () => {
+    const html = '<html><head></head><body><p>Deals [[Burn (X)]] damage.</p></body></html>'
+    expect(findRawMarkup(html)).toContain('[[Burn (X)]]')
+  })
+
+  it('ignores [[ in the head and in script blocks (island props are data)', () => {
+    const html =
+      '<html><head><title>[[x]]</title></head><body><p>Clean.</p>' +
+      '<script type="application/json">{"text":"[[Burn]]"}</script></body></html>'
+    expect(findRawMarkup(html)).toBeUndefined()
+  })
+
+  it('refuses the build when any page carried raw markup', () => {
+    expect(() => assertNoRawMarkup([])).not.toThrow()
+    expect(() => assertNoRawMarkup(['/a/: …[[Burn]]…'])).toThrow(/1 page\(s\) render raw/)
+  })
+})
+
+const pages = routes.flatMap((route) => route.resolve())
+const renderRoute = (route: string): string =>
+  pages.find((p) => p.route === route)?.render(ASSETS) ?? ''
 
 describe('rendered pages', () => {
-  it('carry no raw [[markup]] in any page body', () => {
-    const offenders: string[] = []
-    let pages = 0
-    for (const route of routes) {
-      for (const page of route.resolve()) {
-        pages++
-        const body = renderedBody(page.render(ASSETS))
-        const at = body.indexOf('[[')
-        if (at >= 0) offenders.push(`${page.route}: …${body.slice(Math.max(0, at - 60), at + 40)}…`)
-      }
-    }
-    // A scan that rendered nothing would pass vacuously.
-    expect(pages).toBeGreaterThan(900)
-    expect(offenders).toEqual([])
-  }, 300_000)
-
   it('draws a rules-text trait as a Mention linked to its page, with its Peek', () => {
-    const page = routes
-      .flatMap((route) => route.resolve())
-      .find((p) => p.route === '/schema/roll-tables/item/mechapult')
-    const body = renderedBody(page?.render(ASSETS) ?? '')
-    expect(body).toMatch(
+    const html = renderRoute('/schema/roll-tables/item/mechapult')
+    expect(renderedBody(html)).toMatch(
       /<a href="\/schema\/traits\/item\/burn\/" class="su-inline-ref su-inline-ref--link" data-peek="traits:[^"]+">Burn \(X\)<\/a>/
     )
+    expect(findRawMarkup(html)).toBeUndefined()
+  })
+
+  // One page per render path the sample above does not reach: the build scan
+  // covers every page, these keep each path's markup under test.
+  it.each([
+    [
+      'a hybrid class, its trees and their owners',
+      '/schema/classes/item/fabricator',
+      '<dt>Hybrid</dt>',
+    ],
+    [
+      'a two-roll columns table',
+      '/schema/roll-tables/item/callsign-table',
+      'data-island="ColumnsTableIsland"',
+    ],
+    [
+      'a static fallback with a Traits line',
+      '/schema/abilities/item/auto-turret',
+      'srd-static__label">Traits:',
+    ],
+  ])('renders %s without raw markup', (_label, route, marker) => {
+    const html = renderRoute(route)
+    expect(renderedBody(html)).toContain(marker)
+    expect(findRawMarkup(html)).toBeUndefined()
   })
 })

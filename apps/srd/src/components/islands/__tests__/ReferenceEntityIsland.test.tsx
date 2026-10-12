@@ -26,32 +26,34 @@ const hasBody = (entity: object) =>
     ([key, value]) => !BAND_ONLY.has(key) && !(Array.isArray(value) && value.length === 0)
   )
 
+/**
+ * One entity per schema: every schema's page body and compact card draw
+ * through the island. The whole corpus is rendered by `ssg/build.ts`
+ * (`build-srd`), so this sweep does not draw every entity a second time. The
+ * entity sampled is the first with a body, so the body assertion has teeth.
+ */
 for (const schema of entitySchemas) {
   const model = getModel(schema.id)
   if (!model) continue
 
   const entities = model.all()
-  const firstEntity = entities[0]
-  if (!firstEntity) continue
+  const sample = entities.find(hasBody) ?? entities[0]
+  if (!sample) continue
+  const sampleName = getName(sample) ?? sample.id
 
   describe(`${schema.displayName} (${schema.id})`, () => {
-    for (const entity of entities) {
-      const entityName = getName(entity) ?? entity.id
+    // The island is the body of the entity's page (`presentation="page"`):
+    // its title is the page's chapter band, outside the island
+    // (`EntityPageFrame`), so what it must render is the page body.
+    it(`renders "${sampleName}" as its page's body`, () => {
+      const { container } = render(<ReferenceEntityIsland item={sample} />)
+      expect(container.querySelector('.su-entity-page')).not.toBeNull()
+      if (hasBody(sample)) expect(container.textContent?.trim().length ?? 0).toBeGreaterThan(0)
+    })
 
-      // The island is the body of the entity's page (`presentation="page"`):
-      // its title is the page's chapter band, outside the island
-      // (`EntityPageFrame`), so what it must render is the page body.
-      it(`renders "${entityName}" as its page's body`, () => {
-        const { container } = render(<ReferenceEntityIsland item={entity} />)
-        expect(container.querySelector('.su-entity-page')).not.toBeNull()
-        if (hasBody(entity)) expect(container.textContent?.trim().length ?? 0).toBeGreaterThan(0)
-      })
-    }
-
-    it(`renders first entity in compact mode`, () => {
-      const { container } = render(<ReferenceEntityIsland item={firstEntity} compact />)
-      const entityName = getName(firstEntity) ?? firstEntity.id
-      expect(container.textContent).toContain(entityName)
+    it(`renders "${sampleName}" in compact mode`, () => {
+      const { container } = render(<ReferenceEntityIsland item={sample} compact />)
+      expect(container.textContent).toContain(sampleName)
     })
   })
 }
