@@ -7,8 +7,8 @@
  * `packages/` meant every push: 97 s against CI's 88 s, beside the pre-push
  * checks on four cores. The contention pushed renders past Bun's 5 s default,
  * and #1343 records three refused pushes and a 1.6 s test given a 30 s budget to get
- * through. A plain run of each workspace's own `test` script (the heavy three
- * are `--parallel=4 --no-isolate`) holds the default budgets.
+ * through. A plain run of each workspace's own `test` script (every one is
+ * `--parallel=4 --no-isolate`) holds the default budgets.
  *
  * Selection is by workspace graph (`lib/workspaceGraph.ts`), not Bun's
  * `--changed`, which does not cross workspace boundaries. The base is the

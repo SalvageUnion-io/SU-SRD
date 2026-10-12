@@ -191,8 +191,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'test-layout',
     guards:
-      'every *.test.ts(x) sits in a __tests__/ directory; the root bunfig preload is the union of the workspace preloads',
-    fix: "git mv the test into a __tests__/ beside its subject (deepen its relative paths); copy the named preload into the root bunfig.toml in its workspace's order",
+      'every *.test.ts(x) sits in a __tests__/ directory; every workspace has the one test script',
+    fix: "git mv the test into a __tests__/ beside its subject (deepen its relative paths); set the workspace's test script to TEST_SCRIPT (tools/check-test-layout.ts)",
     cmd: ['bun', 'tools/check-test-layout.ts'],
     areas: ['code'],
     profiles: ALL,

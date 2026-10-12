@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && vite",
     "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
-    "test": "bun test",
+    "test": "bun test --parallel=4 --no-isolate",
     "stories:ids": "bun listStories.ts"
   },
   "dependencies": {

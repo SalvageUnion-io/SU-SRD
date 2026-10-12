@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import {
   main,
-  preloadDrift,
-  readPreload,
+  scriptDrift,
   siblingTests,
-  workspacePreloads,
+  TEST_SCRIPT,
+  workspaceTestScripts,
 } from '../check-test-layout'
 
 const ROOT = join(import.meta.dir, '..', '..')
@@ -22,6 +22,8 @@ function tree(files: Record<string, string>): string {
   }
   return root
 }
+
+const manifest = (test?: string) => JSON.stringify({ scripts: test ? { test } : {} })
 
 afterAll(() => {
   for (const t of temps) rmSync(t, { recursive: true, force: true })
@@ -42,55 +44,36 @@ describe('siblingTests', () => {
   })
 })
 
-describe('readPreload', () => {
-  test('reads a list, a single string, or none', () => {
-    expect(readPreload('[test]\npreload = ["./a.ts", "./b.ts"]')).toEqual(['./a.ts', './b.ts'])
-    expect(readPreload('[test]\npreload = "./a.ts"')).toEqual(['./a.ts'])
-    expect(readPreload('[install]\nexact = true')).toEqual([])
-  })
-})
-
-describe('preloadDrift', () => {
-  const workspaces = [
-    { dir: 'apps/x', preload: ['./test/env.ts', '../../test/dom.ts', './test/stub.ts'] },
-    { dir: 'packages/y', preload: ['../../test/dom.ts'] },
-  ]
-
-  test('passes the exact union, each workspace in its own order', () => {
-    expect(
-      preloadDrift(
-        '/r',
-        ['./apps/x/test/env.ts', './test/dom.ts', './apps/x/test/stub.ts'],
-        workspaces
-      )
-    ).toEqual([])
-  })
-
-  test('names a missing preload, an extra one and a reordered workspace', () => {
-    expect(
-      preloadDrift('/r', ['./test/dom.ts', './apps/x/test/env.ts', './test/gone.ts'], workspaces)
-    ).toEqual([
-      'root preload is missing ./apps/x/test/stub.ts (from apps/x/bunfig.toml)',
-      "root preload reorders apps/x/bunfig.toml's: apps/x/test/env.ts, test/dom.ts",
-      'root preload lists ./test/gone.ts, which no workspace preloads',
+describe('workspaceTestScripts', () => {
+  test('reads apps/*, packages/* and tools manifests, skipping a directory without one', () => {
+    const root = tree({
+      'apps/b/package.json': manifest('bun test'),
+      'apps/a/package.json': manifest(TEST_SCRIPT),
+      'apps/c/README.md': '',
+      'packages/p/package.json': manifest(),
+      'tools/package.json': manifest(TEST_SCRIPT),
+    })
+    expect(workspaceTestScripts(root)).toEqual([
+      { dir: 'apps/a', script: TEST_SCRIPT },
+      { dir: 'apps/b', script: 'bun test' },
+      { dir: 'packages/p', script: undefined },
+      { dir: 'tools', script: TEST_SCRIPT },
     ])
   })
 })
 
-describe('workspacePreloads', () => {
-  test('reads apps/*, packages/* and tools bunfigs, skipping a workspace without one', () => {
-    const root = tree({
-      'apps/b/bunfig.toml': '[test]\npreload = ["../../test/dom.ts"]',
-      'apps/a/bunfig.toml': '[test]\ncoveragePathIgnorePatterns = ["../**"]',
-      'apps/c/package.json': '{}',
-      'packages/p/bunfig.toml': '[test]\npreload = "./x.ts"',
-      'tools/bunfig.toml': '[test]',
-    })
-    expect(workspacePreloads(root)).toEqual([
-      { dir: 'apps/a', preload: [] },
-      { dir: 'apps/b', preload: ['../../test/dom.ts'] },
-      { dir: 'packages/p', preload: ['./x.ts'] },
-      { dir: 'tools', preload: [] },
+describe('scriptDrift', () => {
+  test('names every other form, and passes the one script or none', () => {
+    expect(
+      scriptDrift([
+        { dir: 'apps/a', script: TEST_SCRIPT },
+        { dir: 'apps/b', script: 'bun test' },
+        { dir: 'apps/c', script: 'bun test --parallel' },
+        { dir: 'packages/p', script: undefined },
+      ])
+    ).toEqual([
+      `apps/b/package.json's test script is "bun test"`,
+      `apps/c/package.json's test script is "bun test --parallel"`,
     ])
   })
 })
@@ -99,16 +82,17 @@ describe('main', () => {
   const quiet = () => {}
   const manyTests = Array.from({ length: 400 }, (_, i) => `apps/a/src/__tests__/t${i}.test.ts`)
 
-  test('passes the real repo: its root preload matches the workspaces', () => {
+  test('passes the real repo: every workspace uses the one test script', () => {
     const logs: string[] = []
     expect(main(ROOT, manyTests, (m) => logs.push(m), quiet)).toBe(0)
     expect(logs[0]).toContain('400 test files sit in __tests__/')
+    expect(logs[0]).toContain(TEST_SCRIPT)
   })
 
-  test('fails a sibling test and a drifted root preload, naming both', () => {
+  test('fails a sibling test and a second test-script form, naming both', () => {
     const root = tree({
-      'bunfig.toml': '[test]\npreload = []',
-      'apps/a/bunfig.toml': '[test]\npreload = ["./test/stub.ts"]',
+      'apps/a/package.json': manifest('bun test'),
+      'packages/p/package.json': manifest(TEST_SCRIPT),
     })
     const errors: string[] = []
     expect(
@@ -117,7 +101,7 @@ describe('main', () => {
     expect(errors).toEqual([
       'check-test-layout: 2 problem(s):',
       '  apps/a/src/Card.test.tsx is outside a __tests__/ directory',
-      '  root preload is missing ./apps/a/test/stub.ts (from apps/a/bunfig.toml)',
+      `  apps/a/package.json's test script is "bun test"`,
     ])
   })
 })

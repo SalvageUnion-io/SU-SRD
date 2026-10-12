@@ -6,7 +6,7 @@
   "description": "Cloudflare Worker serving licensed entity artwork from the su-lp-assets R2 bucket, with -440/-880 derivatives rendered on demand through Cloudflare Images",
   "scripts": {
     "typecheck": "tsc -b",
-    "test": "bun test",
+    "test": "bun test --parallel=4 --no-isolate",
     "deploy": "wrangler deploy",
     "worker:bundle": "wrangler deploy --dry-run",
     "dev": "wrangler dev",

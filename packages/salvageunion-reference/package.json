@@ -37,7 +37,7 @@
     "validate": "bun tools/validate.ts",
     "edit-data": "bun tools/edit-data.ts",
     "typecheck": "bun tools/ensureGenerated.ts && tsc -b",
-    "test": "bun test",
+    "test": "bun test --parallel=4 --no-isolate",
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "license": "SEE LICENSE IN LICENCE",

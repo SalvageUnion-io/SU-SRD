@@ -6,7 +6,7 @@
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
     "typecheck": "bun ../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
-    "test": "bun test"
+    "test": "bun test --parallel=4 --no-isolate"
   },
   "devDependencies": {
     "gates": "workspace:*"

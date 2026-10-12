@@ -16,7 +16,7 @@
   },
   "scripts": {
     "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
-    "test": "bun test"
+    "test": "bun test --parallel=4 --no-isolate"
   },
   "devDependencies": {
     "axe-core": "4.13.0",
