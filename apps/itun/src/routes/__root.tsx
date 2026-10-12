@@ -133,8 +133,7 @@ function RootComponent() {
               <GameDataReady>
                 <Outlet />
               </GameDataReady>
-              {/* About and Changelog for a signed-out desktop, which has neither
-                the drawer nor the account menu that carry them elsewhere. */}
+              {/* The shared page foot, on every route (refit F1). */}
               <SiteFooter />
             </EntityPageHost>
           </CopyFeedbackProvider>

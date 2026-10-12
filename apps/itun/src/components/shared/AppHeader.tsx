@@ -15,8 +15,8 @@ import { MARK_SRC } from '../../lib/appUrl'
  *
  * About and Changelog are not destinations in the nav: they sit at the
  * drawer's foot (issue 1255), in the account menu on a signed-in desktop, and
- * in the page foot on a signed-out one (`SiteFooter`). The bar never carries
- * them, signed in or out (board 09's bar has neither).
+ * in the page foot on every page (`SiteFooter`). The bar never carries them,
+ * signed in or out (board 09's bar has neither).
  *
  * The switcher replaces the old "SRD ↗" link: the reference is the other tab
  * of the same bar, not an off-site destination.
