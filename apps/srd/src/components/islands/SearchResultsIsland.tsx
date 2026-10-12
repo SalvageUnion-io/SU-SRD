@@ -1,4 +1,6 @@
-import { Badge, FilterRow, SearchField, schemaPluralLabel } from 'component-lib'
+import { Badge, Entity, FilterRow, SearchField, schemaPluralLabel } from 'component-lib'
+import { space } from 'component-lib/design/tokens'
+import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import type { SearchResult } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
@@ -9,6 +11,16 @@ import { useSearchIndex } from '../../lib/useSearchIndex'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 const PARAM_QUERY = 'q'
+
+/** The results: a column of Rows, room above each for its kind stamp. */
+const RESULTS: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[16],
+  listStyle: 'none',
+  margin: 0,
+  padding: `${space[8]} 0 0`,
+}
 
 /** Read the `?q=` term from the current URL (window-guarded for safety). */
 function readQueryParam(): string {
@@ -110,6 +122,7 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
     schemaFacet && facets.some((f) => f.schemaName === schemaFacet) ? schemaFacet : null
 
   const visible = activeFacet ? results.filter((r) => r.schemaName === activeFacet) : results
+  const models = useMemo(() => new Map(index.map((entry) => [entry.id, entry.model])), [index])
 
   if (!trimmed) {
     return <p className="text-sm text-wk-muted">Enter a search term to see results.</p>
@@ -155,20 +168,21 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
         </FilterRow>
       )}
 
-      <ul className="flex flex-col divide-y divide-wk-faint rounded-card border border-wk-faint bg-paper">
-        {visible.map((result) => (
-          <li key={result.entityId}>
-            <a
-              href={resultUrl(result)}
-              className="flex items-center justify-between gap-3 px-4 py-3 no-underline transition-colors hover:bg-wk-bg"
-            >
-              <span className="font-medium text-ink">{result.entityName}</span>
-              <span className="shrink-0 font-cond text-xs uppercase tracking-wide text-wk-muted">
-                {schemaLabel(result)}
-              </span>
-            </a>
-          </li>
-        ))}
+      {/* SEARCH (entity display language §7): every result is a Row in link
+          mode, without the lead (E11). */}
+      <ul style={RESULTS}>
+        {visible.map((result) => {
+          const model = models.get(result.entityId)
+          return (
+            <li key={result.entityId}>
+              {model ? (
+                <Entity form="row" model={model} mode={{ kind: 'link', href: resultUrl(result) }} />
+              ) : (
+                <a href={resultUrl(result)}>{result.entityName}</a>
+              )}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

@@ -64,7 +64,7 @@ export function PatternUniques({
         <ul aria-label={`${name} loadout`} style={TOKENS}>
           {loadout.map((item, index) => (
             <li key={cardKey(item, index)} style={{ minWidth: 0 }}>
-              <LoadoutBadge data={item} hostDown={hostDown} NestedCard={NestedCard} />
+              <LoadoutBadge data={item} hostDown={hostDown} />
             </li>
           ))}
         </ul>

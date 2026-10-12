@@ -1207,26 +1207,24 @@
   gap: var(--space-6);
 }
 
+/* An entity grid (`data-entity-grid`): every Row in it is one height, at
+   every width, and its heads end on one line (component-lib's entity forms).
+   The rows here are equal (`1fr`) and each Row stretches to fill its cell. */
 .srd-listing__cards {
-  /* The compact card's art column, wider here so the line art reads at a
-     glance; the art fills it top to bottom. */
+  /* The Row's art column, wider here so the line art reads at a glance; the
+     art fills it top to bottom. */
   --su-head-art-min: 7rem;
   --su-head-art-min-phone: 6rem;
   --su-head-art-width: 6.5rem;
   --su-head-art-width-phone: 5rem;
-  align-items: start;
+  align-items: stretch;
   display: grid;
   gap: var(--space-8);
+  grid-auto-rows: 1fr;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--srd-listing-min)), 1fr));
   list-style: none;
   margin: 0;
   padding: 0;
-}
-
-.srd-listing__row {
-  color: inherit;
-  display: block;
-  text-decoration: none;
 }
 
 .srd-listing__fallback-row {

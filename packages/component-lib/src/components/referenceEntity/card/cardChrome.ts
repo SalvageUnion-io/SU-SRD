@@ -27,7 +27,7 @@ export const USER_MADE_TITLE = 'Made by a player, not from the Workshop Manual'
 
 /** The flat grey header of a damaged/destroyed card: ink half-mixed into paper —
  * the same warm material at distance. */
-const GREY_HEADER = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper))'
+export const GREY_HEADER = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper))'
 
 /**
  * The header's two fills (ruleset §5, board E1): a TONE header for things you

@@ -13,7 +13,7 @@
  */
 
 import type { ProvenanceLine, VitalGaugeBreakdown } from 'component-lib'
-import { Badge, Button, ReferenceEntityCard } from 'component-lib'
+import { Badge, Button, Entity } from 'component-lib'
 import { radius } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
@@ -295,7 +295,7 @@ function BayBody({ bay }: { bay: BandBay }) {
           {bay.chips.map((c) =>
             c.entity ? (
               <li key={c.text}>
-                <ReferenceEntityCard data={c.entity} size="small" extent="head" texture={false} />
+                <Entity form="token" entity={c.entity} />
               </li>
             ) : (
               <li

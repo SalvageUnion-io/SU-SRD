@@ -59,6 +59,7 @@ import type {
 import { SalvageUnionReference, searchIn, techLevelRank } from 'salvageunion-reference'
 import type { TechLevel } from 'salvageunion-reference/rules'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
+import { Entity } from '../../entity/Entity'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { BandTitle } from '../chrome/BandTitle'
@@ -171,6 +172,11 @@ type EntitySearcherProps = {
 }
 
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
+
+/** A card `hide` as the Row's `omit`: the kind stamp, and any stat keys. */
+function omitOf(hide: ReferenceEntityCardHideConfig): string[] {
+  return [...(hide.seam ? ['kind'] : []), ...(hide.statKeys ?? [])]
+}
 
 /** The default `idOf`: module-level, so it is one function across renders. */
 const nameOf = (item: EntityLike) => item.name
@@ -1108,7 +1114,7 @@ function SelectionRail({
               style={RAIL_ENTRY_STYLE}
             >
               <div style={RAIL_ENTRY_BODY_STYLE}>
-                <ReferenceEntityCard data={entry.entity} size="medium" extent="head" hide={hide} />
+                <Entity form="row" entity={entry.entity} omit={omitOf(hide)} />
                 {entry.total > 1 && (
                   <span
                     className={capsLabel({ size: 'badge', tracking: 'caps' })}

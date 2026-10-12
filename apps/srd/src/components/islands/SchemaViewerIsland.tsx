@@ -1,28 +1,18 @@
 import {
   Button,
   EmptyState,
-  EntityDetailLinkProvider,
-  EntityHrefProvider,
-  MasonryColumns,
+  EntitySurfaceProvider,
   SearchField,
   Select,
   Skeleton,
   Slab,
 } from 'component-lib'
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import {
-  getEntitySlug,
-  getModel,
-  getSource,
-  getTechLevel,
-  getTree,
-  schemaHasArt,
-} from 'salvageunion-reference'
-import { itemHref, srdEntityHref } from '../../lib/entityHref'
+import { getEntitySlug, getModel, getSource, getTechLevel, getTree } from 'salvageunion-reference'
+import { itemHref, srdHrefFor } from '../../lib/entityHref'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate } from '../../lib/useGameData'
-import { EntityCatalogTile } from './EntityCatalogTile'
 import { EntityListingRow } from './EntityListingRow'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
@@ -32,19 +22,12 @@ const PARAM_TECH_LEVEL = 'tl'
 const PARAM_SOURCE = 'source'
 const PARAM_TREE = 'tree'
 const PARAM_NAME = 'q'
-const PARAM_VIEW = 'view'
-
 /**
- * How the listing lays its entities out (ruleset §1, the Listing context):
- * `list` — one compact card each (`extent="head"`), the default, so a listing
- * reads as a scannable index; `catalog` — the artwork tiles.
+ * The retired catalog view's parameter (entity display language, E2: listing
+ * Rows carry the art and the lore). An old `?view=catalog` link shows the list,
+ * and the island drops the parameter from the URL.
  */
-export type ListingView = 'list' | 'catalog'
-
-/** The view a URL asks for: `?view=catalog`, else the list. */
-export function readListingView(): ListingView {
-  return readUrlParam(PARAM_VIEW) === 'catalog' ? 'catalog' : 'list'
-}
+const PARAM_RETIRED_VIEW = 'view'
 
 /**
  * Read a single query-param value from the current URL. SSR-safe: the SSG
@@ -173,7 +156,7 @@ export function SchemaViewerIsland({ preloadSchemas, ...props }: SchemaViewerIsl
         schemas={preloadSchemas}
         fallback={
           <div className="srd-listing">
-            <ul className="srd-listing__cards">
+            <ul className="srd-listing__cards" data-entity-grid="">
               {Array.from({ length: 9 }, (_, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: static 9-item skeleton placeholder list, never reordered — index is stable
                 <li key={i}>
@@ -208,7 +191,6 @@ function SchemaViewer({
   const [sourceFilter, setSourceFilter] = useState(() => readUrlChoice(PARAM_SOURCE))
   const [treeFilter, setTreeFilter] = useState(() => readUrlChoice(PARAM_TREE))
   const [nameFilter, setNameFilter] = useState(() => readUrlParam(PARAM_NAME))
-  const [view, setView] = useState<ListingView>(readListingView)
   // On a phone the facets fold behind one button (the CSS decides when).
   const [facetsOpen, setFacetsOpen] = useState(false)
 
@@ -227,14 +209,14 @@ function SchemaViewer({
     setOrDelete(PARAM_SOURCE, sourceFilter)
     setOrDelete(PARAM_TREE, treeFilter)
     setOrDelete(PARAM_NAME, nameFilter)
-    setOrDelete(PARAM_VIEW, view === 'catalog' ? 'catalog' : '')
+    params.delete(PARAM_RETIRED_VIEW)
     const qs = params.toString()
     const nextUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname
     const currentUrl = `${window.location.pathname}${window.location.search}`
     if (nextUrl !== currentUrl) {
       window.history.replaceState(window.history.state, '', nextUrl)
     }
-  }, [techLevelFilters, sourceFilter, treeFilter, nameFilter, view])
+  }, [techLevelFilters, sourceFilter, treeFilter, nameFilter])
 
   const filteredData = useMemo(() => {
     const name = nameFilter.toLowerCase()
@@ -256,13 +238,8 @@ function SchemaViewer({
   )
   const groupBy = resolveGroupBy(initialData, trees, orderedTechLevels)
   const groups = useMemo(() => groupEntities(filteredData, groupBy), [filteredData, groupBy])
-  // Where some entities have art, every card keeps the column so names align.
-  const artSlot = useMemo(() => schemaHasArt(schemaId), [schemaId])
   // A single-kind listing: no seam stamp, and no TL cell when the tech level heads the group.
-  const cardHide = useMemo(
-    () => ({ seam: true, statKeys: groupBy === 'tl' ? ['tech-level'] : undefined }),
-    [groupBy]
-  )
+  const omit = useMemo(() => (groupBy === 'tl' ? ['kind', 'tech-level'] : ['kind']), [groupBy])
 
   const toggleTechLevel = (level: TechLevel) => {
     setTechLevelFilters((prev) => {
@@ -293,8 +270,8 @@ function SchemaViewer({
 
   return (
     <div className="srd-listing" data-wide={WIDE_LISTINGS.has(schemaId) || undefined}>
-      {/* THE RAIL — one row of 44px controls: search, the TL badge, the menus,
-          then List | Catalog. On a phone the facets fold behind Filters. */}
+      {/* THE RAIL — one row of 44px controls: search, the TL badge, the menus.
+          On a phone the facets fold behind Filters. */}
       <div className="srd-rail" data-open={facetsOpen || undefined}>
         {hasNameFilter && (
           <SearchField
@@ -321,20 +298,6 @@ function SchemaViewer({
           </button>
         )}
         <span className="srd-rail__spring" />
-        <fieldset className="srd-seg">
-          <legend className="srd-vh">View</legend>
-          {(['list', 'catalog'] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              className="srd-seg__option su-focus-ring"
-              aria-pressed={view === option}
-              onClick={() => setView(option)}
-            >
-              {option === 'list' ? 'List' : 'Catalog'}
-            </button>
-          ))}
-        </fieldset>
         {hasFacets && (
           <div className="srd-rail__facets" id="srd-rail-facets">
             {hasTechLevels && (
@@ -463,44 +426,28 @@ function SchemaViewer({
           }
         />
       ) : (
-        <EntityHrefProvider value={srdEntityHref}>
-          <EntityDetailLinkProvider value={true}>
-            {view === 'catalog' ? (
-              <MasonryColumns>
-                {filteredData.map((item: SURefEntity) => (
-                  <Suspense key={item.id} fallback={<Skeleton mode="card" compact />}>
-                    <EntityCatalogTile
-                      entity={item}
-                      href={itemHref(schemaId, getEntitySlug(item))}
-                    />
-                  </Suspense>
-                ))}
-              </MasonryColumns>
-            ) : (
-              <div className="srd-listing__groups">
-                {groups.map((group) => (
-                  <section key={group.key} className="srd-listing__group" aria-label={group.label}>
-                    {group.label && (
-                      <Slab variant="solid" label={group.label} count={group.items.length} />
-                    )}
-                    <ul className="srd-listing__cards">
-                      {group.items.map((item: SURefEntity) => (
-                        <li key={item.id}>
-                          <EntityListingRow
-                            entity={item}
-                            href={itemHref(schemaId, getEntitySlug(item))}
-                            hide={cardHide}
-                            artSlot={artSlot}
-                          />
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                ))}
-              </div>
-            )}
-          </EntityDetailLinkProvider>
-        </EntityHrefProvider>
+        <EntitySurfaceProvider value={{ hrefFor: srdHrefFor }}>
+          <div className="srd-listing__groups">
+            {groups.map((group) => (
+              <section key={group.key} className="srd-listing__group" aria-label={group.label}>
+                {group.label && (
+                  <Slab variant="solid" label={group.label} count={group.items.length} />
+                )}
+                <ul className="srd-listing__cards" data-entity-grid="">
+                  {group.items.map((item: SURefEntity) => (
+                    <li key={item.id}>
+                      <EntityListingRow
+                        entity={item}
+                        href={itemHref(schemaId, getEntitySlug(item))}
+                        omit={omit}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </EntitySurfaceProvider>
       )}
     </div>
   )

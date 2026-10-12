@@ -21,16 +21,38 @@
 // this module is Node-only and already loads the ORM, so importing them costs
 // nothing and keeps the index's field extraction byte-identical to the
 // ORM-backed `search()` it mirrors.
+import type { EntityRowModel } from 'component-lib'
+import type { SURefEntity } from 'salvageunion-reference'
 import {
   extractContentText,
   getEntitySlug,
   isSchemaName,
   patternSearchText,
+  toEntityModel,
 } from 'salvageunion-reference'
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 const TEXT_FIELDS = ['description', 'effect', 'goals', 'assets', 'weaknesses'] as const
+
+/** The Row's parts of an entity's model, for a search result (no lead, no hints). */
+function rowModel(entity: SURefEntity): EntityRowModel {
+  const m = toEntityModel(entity)
+  return {
+    ref: m.ref,
+    title: m.title,
+    kind: m.kind,
+    tone: m.tone,
+    facts: m.facts.map(({ hint: _hint, ...fact }) => fact),
+    traits: m.traits,
+    art: m.art,
+    ...(m.tier ? { tier: m.tier } : {}),
+    ...(m.techLevel != null ? { techLevel: m.techLevel } : {}),
+    ...(m.cost ? { cost: m.cost } : {}),
+    ...(m.actionType ? { actionType: m.actionType } : {}),
+    ...(m.mechActionType ? { mechActionType: m.mechActionType } : {}),
+  }
+}
 
 export function buildSearchIndexEntries(): CompactSearchEntry[] {
   const entries: CompactSearchEntry[] = []
@@ -78,6 +100,7 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
         schemaName: schema.id,
         schemaTitle: schema.title,
         text: parts.join(' ').toLowerCase(),
+        model: rowModel(entity),
       })
     }
   }

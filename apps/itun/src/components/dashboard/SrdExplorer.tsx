@@ -23,6 +23,7 @@ import {
   Button,
   buildCatalogSections,
   CatalogTile,
+  Entity,
   Input,
   ReferenceEntityCard,
   Slab,
@@ -30,7 +31,7 @@ import {
 } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
+import { isSchemaName, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 
 const HIDE_CHOICES = { choices: true } as const
 
@@ -106,21 +107,41 @@ function SrdHome({
         </div>
         {open ? (
           <div className="pc-srd-results" id={listboxId} role="listbox">
-            {results.map((r, i) => (
-              <button
-                key={r.id}
-                type="button"
-                id={optionId(i)}
-                role="option"
-                aria-selected={i === selectedIndex}
-                className="pc-srd-result"
-                data-active={i === selectedIndex ? '' : undefined}
-                onClick={() => submit(r)}
-              >
-                <span className="pc-srd-result-title">{r.title}</span>
-                <span className="pc-srd-result-group">{r.group}</span>
-              </button>
-            ))}
+            {/* SEARCH (entity display language §7): every result is a Row in
+                link mode, without the lead; a category opens its listing. */}
+            {results.map((r, i) =>
+              r.kind === 'entity' ? (
+                <Entity
+                  key={r.id}
+                  form="row"
+                  model={toEntityModel(r.entity)}
+                  mode={{
+                    kind: 'link',
+                    onOpen: () => submit(r),
+                    attrs: {
+                      id: optionId(i),
+                      role: 'option',
+                      tabIndex: -1,
+                      'aria-selected': i === selectedIndex,
+                    },
+                  }}
+                />
+              ) : (
+                <button
+                  key={r.id}
+                  type="button"
+                  id={optionId(i)}
+                  role="option"
+                  aria-selected={i === selectedIndex}
+                  className="pc-srd-result"
+                  data-active={i === selectedIndex ? '' : undefined}
+                  onClick={() => submit(r)}
+                >
+                  <span className="pc-srd-result-title">{r.title}</span>
+                  <span className="pc-srd-result-group">{r.group}</span>
+                </button>
+              )
+            )}
           </div>
         ) : hasSearched && query.trim() ? (
           <div className="pc-srd-noresults">No matches.</div>

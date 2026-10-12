@@ -40,12 +40,7 @@ export function PatternSection({
     <div style={{ display: 'flex', flexDirection: 'column', gap: space[6], padding }}>
       {prose}
       {groups.length > 0 && (
-        <PatternLoadout
-          groups={groups}
-          sectionAs={sectionAs}
-          hostDown={host.isDown}
-          NestedCard={NestedCard}
-        />
+        <PatternLoadout groups={groups} sectionAs={sectionAs} hostDown={host.isDown} />
       )}
       {actions.length > 0 && (
         <>

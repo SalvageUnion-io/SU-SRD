@@ -18,6 +18,7 @@ import { useNavigate } from '@tanstack/react-router'
 import {
   Button,
   ChapterBand,
+  Entity,
   quotePatternName,
   ReferenceEntityCard,
   Slab,
@@ -30,7 +31,6 @@ import {
 import { useMutation } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
 import {
   extractStaticEntitySummary,
   getAssetUrl,
@@ -48,7 +48,6 @@ import {
   patternCopy,
   patternHref,
   patternLoadout,
-  slotsStats,
   slotsUsed,
 } from '../../../lib/patterns/patterns'
 import type { MechPattern } from '../../../lib/schemas/pattern'
@@ -317,10 +316,6 @@ function sharedDate(at: number): string {
 }
 
 /** Open a loadout part's reference page, when the book has one for it. */
-function openInReference(part: SURefEntity): (() => void) | undefined {
-  const href = itunEntityHref(part)
-  return href ? () => window.location.assign(href) : undefined
-}
 
 export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const { pattern, madeBy, sharedAt, builtCount, mine, visibility } = answer
@@ -522,12 +517,10 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
             {parts.map((part, index) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: a loadout may carry the same part twice
               <li key={`${part.id}-${index}`}>
-                <ReferenceEntityCard
-                  data={part}
-                  size="medium"
-                  extent="head"
-                  statsOverride={slotsStats(part)}
-                  onCardClick={openInReference(part)}
+                <Entity
+                  form="row"
+                  entity={part}
+                  mode={{ kind: 'link', href: itunEntityHref(part) }}
                 />
               </li>
             ))}

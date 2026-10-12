@@ -157,3 +157,25 @@ test('a roll table page rolls and marks the result', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Roll again' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Randsum.dev' })).toBeVisible()
 })
+
+// (g) A listing grid lays its Rows out as equals (entity display language,
+// "entity grid"): every Row in a grid is the same height, at a desktop width
+// and a phone's, even where one name wraps (Bio-Titans' "Hill Worm Pattern
+// Typhon") or one lead runs shorter.
+for (const width of [1440, 390]) {
+  for (const schema of ['bio-titans', 'chassis']) {
+    test(`every Row in a /schema/${schema}/ grid is one height at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto(`/schema/${schema}/`)
+      const grid = page.locator('ul[data-entity-grid]').first()
+      await expect(grid.locator('a[aria-label]').first()).toBeVisible({ timeout: 30_000 })
+      const heights = await page.$$eval('ul[data-entity-grid]', (grids) =>
+        grids.map((g) => [...g.children].map((li) => li.getBoundingClientRect().height))
+      )
+      expect(heights.length).toBeGreaterThan(0)
+      for (const rows of heights) {
+        expect(Math.max(...rows) - Math.min(...rows)).toBeLessThanOrEqual(1)
+      }
+    })
+  }
+}

@@ -1,7 +1,7 @@
 /**
  * PatternList — lists all saved MechPatterns via the patternStore.
  *
- * Each pattern is a user-made `ReferenceEntityCard` row (dashed, stamped,
+ * Each pattern is a user-made Row (`<Entity form="row">` (dashed, stamped,
  * credited: ruleset §3.9) linking to its page, with a build button beneath.
  *
  * Data fetching: subscribes to usePatternStore (audit item 22) — patterns get
@@ -11,7 +11,7 @@
  * route boundary.
  */
 
-import { EmptyState, ReferenceEntityCard, Text, tokens } from 'component-lib'
+import { EmptyState, Entity, quotePatternName, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'
@@ -88,14 +88,12 @@ export function PatternList({ onInstantiated }: PatternListProps) {
                 style={LINK}
                 aria-label={`View pattern ${pattern.name}`}
               >
-                <ReferenceEntityCard
-                  data={chassis}
+                <Entity
+                  form="row"
+                  entity={chassis}
                   pattern={asReferencePattern(pattern)}
-                  size="medium"
-                  extent="head"
-                  userMade
-                  madeBy={madeBy}
-                  cardClickable
+                  instance={{ title: quotePatternName(pattern.name), userMade: true }}
+                  lead
                 />
                 {/* A header-only row has no footer, so the credit sits beneath it. */}
                 <Text variant="hint">Made by {madeBy}</Text>

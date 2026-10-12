@@ -593,21 +593,46 @@ body {
   color: var(--color-ink-50);
 }
 
-/* ══ The compact card's art column ══════════════════════════════════════════
+/* ══ The entity forms: Row and Token (entity display language, phase 2) ════
  *
- * `extent="head"` (ruleset §1 Listing): a portrait thumbnail beside the head
- * row and the body, the card's full height, ruled off in ink. A listing may
- * size the column through `--su-head-art-width` / `--su-head-art-min` (and
- * their `-phone` pair) on an ancestor (srd's `.srd-listing__cards`). The line art is
- * printed on white, so `multiply` lays it onto the paper. Narrower on a phone.
- * `ReferenceEntityCard.tsx`.
+ * `src/entity/forms/`. A ROW is an inline-size container, so its art column
+ * appears by ROOM (E10): only once the row is 18rem wide, whatever the
+ * viewport. Its floor is a Token's ceiling (E3, 12rem), so a Row in a
+ * shrink-wrapped slot never collapses to nothing. A link-mode Row is an `<a>`
+ * and keeps the page's ink, not a link's colour or underline.
  */
-.su-ec-head-art {
+.su-entity-row {
+  color: inherit;
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  min-width: 12rem;
+  position: relative;
+  text-decoration: none;
+}
+
+.su-entity-row__frame {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.su-entity-row__main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* The art column: the row's full height, ruled off in ink. A listing may size
+   it through `--su-head-art-width` / `--su-head-art-min` on an ancestor. The
+   line art is printed on white, so `multiply` lays it onto the paper. */
+.su-entity-row__art {
   align-items: center;
   align-self: stretch;
   background-color: var(--color-paper);
   border-right: var(--bw-chrome) solid var(--color-ink);
-  display: flex;
+  display: none;
   flex: none;
   justify-content: center;
   min-height: var(--su-head-art-min, 4.75rem);
@@ -615,8 +640,7 @@ body {
   width: var(--su-head-art-width, 4rem);
 }
 
-/* The art fills the column top to bottom, however tall the card grows. */
-.su-ec-head-art img {
+.su-entity-row__art img {
   height: calc(100% - 2 * var(--space-4));
   inset: var(--space-4);
   mix-blend-mode: multiply;
@@ -625,11 +649,61 @@ body {
   width: calc(100% - 2 * var(--space-4));
 }
 
+@container (min-width: 18rem) {
+  .su-entity-row__art {
+    display: flex;
+  }
+}
+
 @media (max-width: 40rem) {
-  .su-ec-head-art {
+  .su-entity-row__art {
     min-height: var(--su-head-art-min-phone, 4.25rem);
     width: var(--su-head-art-width-phone, 3.5rem);
   }
+}
+
+/* A Row as a listbox option (a search's results): the option the arrow keys
+   highlight wears the ink selection ring, as a selected Row does. */
+.su-entity-row[aria-selected='true'] {
+  border-radius: var(--radius-card);
+  box-shadow: 0 0 0 3px var(--color-ink);
+}
+
+.su-entity-token {
+  color: inherit;
+  display: inline-flex;
+  max-width: 100%;
+  text-decoration: none;
+}
+
+/*
+ * AN ENTITY GRID (`data-entity-grid` on the list): every Row in it is the same
+ * height, and the parts line up. The grid's rows are equal, each cell's Row
+ * fills it (the paper body grows, the art runs the full height), and every
+ * head reserves its title's two lines, so the heads end on one line and the
+ * bodies start on one, even when one name wraps. Outside a grid a Row is its
+ * own height.
+ */
+[data-entity-grid] {
+  align-items: stretch;
+  grid-auto-rows: 1fr;
+}
+
+[data-entity-grid] > * {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+[data-entity-grid] > * > * {
+  flex: 1 1 auto;
+}
+
+/* Two title lines (22px at 1.05), as content height, so the padding and the
+   seam's room stay each head's own and the name centres in the band. */
+[data-entity-grid] .su-entity-row__head {
+  box-sizing: content-box;
+  min-height: calc(2.1 * var(--text-title));
 }
 
 /* ══ Missing art: the manual's censor marks ═════════════════════════════════

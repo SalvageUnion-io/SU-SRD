@@ -1,4 +1,4 @@
-import type { SURefMetaEntity } from 'salvageunion-reference'
+import type { EntityArt, SURefMetaEntity } from 'salvageunion-reference'
 import { missingArt } from 'salvageunion-reference'
 import { tornEdge } from './missingArtMark'
 
@@ -20,7 +20,18 @@ const GHOST_ROWS = ['12%', '25%', '66%', '79%']
  * Layout is `index.css`'s `.su-missing-art*`.
  */
 export function MissingArt({ entity, hero = false }: { entity: SURefMetaEntity; hero?: boolean }) {
-  const { variant, code, short, seed } = missingArt(entity)
+  return <MissingArtMark mark={missingArt(entity)} hero={hero} />
+}
+
+/** The censor mark the entity model chose (`EntityArt`'s `missing` arm). */
+export function MissingArtMark({
+  mark,
+  hero = false,
+}: {
+  mark: Omit<Extract<EntityArt, { kind: 'missing' }>, 'kind'>
+  hero?: boolean
+}) {
+  const { variant, code, short, seed } = mark
   const className = `su-missing-art su-missing-art--${variant}${hero ? ' su-missing-art--hero' : ''}`
 
   if (variant === 'removed') {

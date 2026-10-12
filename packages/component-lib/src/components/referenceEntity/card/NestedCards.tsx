@@ -1,10 +1,11 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useContext, useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
 import { getReferenceEntityName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import { Entity } from '../../../entity/Entity'
+import type { EntityMode } from '../../../entity/types'
 import { Button } from '../../chrome/Button'
-import { FOCUS_RING } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
 import type { CardSize } from '../../shared/displayMode'
 import { InsideTooltipContext } from '../../ui/insideTooltipContext'
@@ -20,6 +21,7 @@ import type {
   ReferenceEntityCardHideConfig,
 } from './referenceEntityCardTypes'
 import type { DroneLoadout } from './resolveNestedEntities'
+import { stripHostParenthetical } from './stripHostParenthetical'
 
 /** What every nested card inherits from the card that nests it. */
 export type NestedCardHost = {
@@ -118,7 +120,7 @@ export function NestedCardList({
   const depth = host.depth + 1
   return entities.map((nested, index) =>
     depth >= 2 ? (
-      <NestedRow key={cardKey(nested, index)} data={nested} depth={depth} host={host} />
+      <NestedRow key={cardKey(nested, index)} data={nested} host={host} />
     ) : (
       <NestedCard
         key={cardKey(nested, index)}
@@ -138,59 +140,39 @@ export function NestedCardList({
 }
 
 /**
- * A DEPTH-2 child: the header-only, one-line, clickable row (board E2). It
- * opens the entity instead of expanding in place — the detail page where the
- * app links out (srd, an `EntityDetailLinkProvider` and an href), else the
- * detail modal (ITUN).
+ * A DEPTH-2 child: a Row (board E2, entity display language E6), the third
+ * level as a link. It opens the entity instead of expanding in place — the
+ * detail page where the app links out (srd, an `EntityDetailLinkProvider` and
+ * an href), else the detail modal (ITUN). A synthesised entity (no dataset
+ * row) and a Row inside a tooltip are read-only.
  */
-export function NestedRow({
-  data,
-  depth,
-  host,
-}: {
-  data: ReferenceCardEntity
-  depth: number
-  host: NestedCardHost
-}) {
+export function NestedRow({ data, host }: { data: ReferenceCardEntity; host: NestedCardHost }) {
   const { NestedCard } = host
   const [open, setOpen] = useState(false)
   const insideTooltip = useContext(InsideTooltipContext)
   const href = useEntityHref(data as SURefEntity)
   const linkOut = useEntityDetailLink() && !!href
-  const name = getReferenceEntityName(data) ?? 'Entity details'
-  const row = (onCardClick?: () => void) => (
-    <NestedCard
-      size={nestedChildSize(host.size)}
-      extent="head"
-      depth={depth}
-      hostDown={host.isDown}
-      data={data}
-      hostName={host.entityName}
-      chassisName={host.chassisName}
-      onCardClick={onCardClick}
-      cardClickLabel={onCardClick ? `Open ${name}` : undefined}
-    />
-  )
-  // Terminal in a tooltip popup: the row reads, it does not open anything.
-  if (insideTooltip) return row()
-  if (linkOut) {
-    return (
-      <a
-        href={href}
-        aria-label={`Open ${name}`}
-        className={FOCUS_RING}
-        style={{ color: 'inherit', display: 'block', textDecoration: 'none' }}
-      >
-        {row()}
-      </a>
-    )
-  }
+  const entityName = getReferenceEntityName(data) ?? 'Entity details'
+  // A nested ACTION drops its ` (Host)` suffix: its host is right above it.
+  const title = stripHostParenthetical(entityName, host.entityName)
+  const instance = { title, ...(host.isDown ? { condition: 'damaged' as const } : {}) }
+  const mode: EntityMode = insideTooltip
+    ? { kind: 'read' }
+    : linkOut
+      ? { kind: 'link', href, attrs: { 'aria-label': `Open ${entityName}` } }
+      : {
+          kind: 'link',
+          onOpen: () => setOpen(true),
+          attrs: { 'aria-label': `Open ${entityName}` },
+        }
   return (
     <>
-      {row(() => setOpen(true))}
-      <EntityDetailDialog open={open} onOpenChange={setOpen} title={name}>
-        <NestedCard data={data} chassisName={host.chassisName} />
-      </EntityDetailDialog>
+      <Entity form="row" entity={data as SURefMetaEntity} instance={instance} mode={mode} />
+      {mode.kind === 'link' && mode.onOpen && (
+        <EntityDetailDialog open={open} onOpenChange={setOpen} title={entityName}>
+          <NestedCard data={data} chassisName={host.chassisName} />
+        </EntityDetailDialog>
+      )}
     </>
   )
 }

@@ -83,6 +83,13 @@ type BadgeChipProps = {
    */
   swatch?: string
   /**
+   * A PARAMETER cell after the label, ruled off on paper: the TAG form a
+   * trait takes on an entity (`[Burn | 2]`, entity display language E17). A
+   * tag names a rule and its parameter; a measured `label | value` is still a
+   * Stat.
+   */
+  param?: ReactNode
+  /**
    * Render as a different element. The chip's escape hatch is interactivity:
    * `as="button"` turns the chip into a toggle. When overridden the chip gains
    * `cursor-pointer` + the shared focus ring, and a `button` defaults to
@@ -192,13 +199,16 @@ export function Badge(props: BadgeProps) {
     surface = 'solid',
     tone,
     swatch,
+    param,
     as: Tag = 'span',
     className,
     shape: _shape,
     ref,
+    style,
     ...rest
   } = props
   const interactive = Tag !== 'span'
+  const hasParam = param != null && param !== ''
   return (
     <Tag
       ref={ref}
@@ -216,6 +226,8 @@ export function Badge(props: BadgeProps) {
         surface === 'tone' && tone && BADGE_TONES[tone],
         className
       )}
+      // The parameter cell runs to the chip's right edge.
+      style={hasParam ? { ...style, overflow: 'hidden', paddingInlineEnd: 0 } : style}
       {...rest}
     >
       {swatch != null && (
@@ -226,6 +238,23 @@ export function Badge(props: BadgeProps) {
         />
       )}
       {children}
+      {hasParam && (
+        <span
+          style={{
+            alignItems: 'center',
+            alignSelf: 'stretch',
+            backgroundColor: 'var(--color-paper)',
+            borderInlineStart: 'var(--bw-hairline) solid currentColor',
+            color: 'var(--color-ink)',
+            display: 'flex',
+            fontVariantNumeric: 'tabular-nums',
+            marginInlineStart: 'var(--space-6)',
+            padding: '0 var(--space-6)',
+          }}
+        >
+          {param}
+        </span>
+      )}
     </Tag>
   )
 }

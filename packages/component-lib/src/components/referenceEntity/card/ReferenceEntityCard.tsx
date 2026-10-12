@@ -2,9 +2,11 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useContext, useState } from 'react'
 import type {
+  EntityInstance,
   SURefEntity,
   SURefEnumSchemaName,
   SURefMetaEntity,
+  SURefObjectAnyPattern,
   SURefObjectChoice,
   SURefObjectContentBlock,
 } from 'salvageunion-reference'
@@ -18,9 +20,14 @@ import {
   isBioTitanPattern,
   resolveActivationCurrency,
   resolveGrantedEntities,
+  toEntityModel,
 } from 'salvageunion-reference'
 import { isLegalStartingPattern } from 'salvageunion-reference/rules'
 import { space } from '../../../design/tokens'
+import type { RowSlots } from '../../../entity/forms/Row'
+import { Row } from '../../../entity/forms/Row'
+import type { TokenFact, TokenSlots } from '../../../entity/forms/Token'
+import { Token } from '../../../entity/forms/Token'
 import { Badge } from '../../chrome/Badge'
 import { assetSrcSetFor } from '../../shared/assetSrcSet'
 import { CardImage } from '../../shared/CardImage'
@@ -31,7 +38,6 @@ import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import { useEntityExternalLink } from '../entityHrefContext'
 import { quotePatternName } from '../pattern/quotePatternName'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
-import { accentSurface } from '../referenceEntityHelpers'
 import { BonusPerTechLevel } from './BonusPerTechLevel'
 import {
   choiceKey,
@@ -41,6 +47,7 @@ import {
   resolveBodyLayout,
 } from './bodyBlocks'
 import { interleaveBody } from './bodyInterleave'
+import { CardFacets } from './CardFacets'
 import { CardOuter } from './CardOuter'
 import { CardPage } from './CardPage'
 import { CardPennant } from './CardPennant'
@@ -48,11 +55,8 @@ import type { CardProseContext } from './CardProse'
 import { CardProse, FoldedActionProse, PatternProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
 import { CardSeam } from './CardSeam'
-import type { ShortformTail } from './CardShortform'
-import { CardShortform } from './CardShortform'
 import { CardTopRail } from './CardTopRail'
 import { ChoiceRegion } from './ChoiceRegion'
-import { CompactCardFrame } from './CompactCard'
 import type { BonusCell } from './cardCells'
 import {
   bonusCells,
@@ -82,12 +86,9 @@ import { CardTextureContext } from './cardTexture'
 import { resolveCatalogLeadBlocks } from './catalogLead'
 import type { AnchoredContentBlock } from './choiceAnchoring'
 import { anchorBonusMarker, anchorChoiceMarkers } from './choiceAnchoring'
-import { compactLead } from './compactLead'
 import { DamagedEffectCallout } from './DamagedEffectCallout'
 import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
-import type { EntityCardSubHeaderCell } from './EntityCardSubHeader'
-import { EntityCardSubHeader } from './EntityCardSubHeader'
 import type { AxisMarker } from './entityCardTone'
 import {
   resolveAxisMarkers,
@@ -97,8 +98,10 @@ import {
   resolveTierNumeral,
   titleSizeClass,
 } from './entityCardTone'
+import type { SplitFacets } from './facetSplit'
+import { splitFacets } from './facetSplit'
 import { GuideSteps } from './GuideSteps'
-import { MissingArt, MissingHero } from './MissingArt'
+import { MissingHero } from './MissingArt'
 import type { NestedCardHost } from './NestedCards'
 import { ActionsChip, CardTray, DroneCards, InlineActions, NestedCardGroup } from './NestedCards'
 import { resolveNestedSections } from './nestedSections'
@@ -144,8 +147,8 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * `ReferenceEntityCardInner` DECIDES — fill, depth, which sections a card
  * carries, what each one is fed — and composes. What each section LOOKS like
  * lives beside it, one module per section (audit PK-08): the seam
- * (`CardSeam`), the header (`EntityCardHeader`), the "//" line
- * (`EntityCardSubHeader`), the shortform (`CardShortform`), the prose bands
+ * (`CardSeam`), the header (`EntityCardHeader`), the facets row
+ * (`CardFacets`, E17), the Row and Token forms (`src/entity/`), the prose bands
  * (`CardProse`), the body interleave, choices (`ChoiceRegion`), the roll table
  * (`CardRollTable`), the cost pennant (`CardPennant`), the trays, inline
  * actions and depth rows (`NestedCards`). The pure cell/stat builders are in
@@ -207,7 +210,7 @@ function bodyClassName(isDown: boolean, hasArt: boolean): string | undefined {
 }
 
 /** An NPC's shortform stat: its hit points (or structure points), as `HP 9`. */
-function npcHitPointsTail(entity: object): ShortformTail | undefined {
+function npcHitPointsTail(entity: object): TokenFact | undefined {
   if (!('schemaName' in entity) || entity.schemaName !== 'npcs') return undefined
   if (!('hitPoints' in entity) || typeof entity.hitPoints !== 'number') return undefined
   return {
@@ -237,34 +240,59 @@ function shortformTail(
   numeral: string | undefined,
   techLevel: number | 'B' | 'N' | undefined,
   entity: object,
-  axisMarker: ShortformTail | undefined
-): ShortformTail | undefined {
+  axisMarker: TokenFact | undefined
+): TokenFact | undefined {
   if (numeral) return { label: 'LVL', value: numeral }
   if (techLevel != null) return { label: 'TL', value: String(techLevel) }
   return npcHitPointsTail(entity) ?? axisMarker
 }
 
-/** A page's "//" line, on the prose's own left edge, after any `subtitleExtra`. */
+/** A page's facets row (E17): the Tags lead the prose column, after any `subtitleExtra`. */
 function PageSubLine({
   extra,
-  cells,
+  facets,
   size,
   children,
 }: {
   extra: ReactNode
-  cells: EntityCardSubHeaderCell[]
+  facets: SplitFacets
   size: CardSize
-  /** The line's leading stamp ("Suggested"). */
+  /** The row's leading stamp ("Suggested"). */
   children: ReactNode
 }) {
   return (
     <>
       {extra}
-      {(cells.length > 0 || !!children) && (
-        <EntityCardSubHeader cells={cells} leading={children} size={size} flush="block" />
-      )}
+      <CardFacets facets={facets} leading={children} size={size} flush linkable />
     </>
   )
+}
+
+/**
+ * The head extent as the entity forms (phase 2 adapter): the SHORTFORM
+ * (`size="small" extent="head"`) is the Token, the COMPACT CARD the Row, each
+ * given the slots this card resolved from its props.
+ */
+function HeadForm({
+  entity,
+  pattern,
+  instance,
+  lead,
+  shared,
+  token,
+  row,
+}: {
+  entity: SURefMetaEntity
+  pattern: SURefObjectAnyPattern | undefined
+  instance: EntityInstance
+  lead: boolean
+  shared: Pick<RowSlots, 'outer' | 'frameStyle' | 'down'>
+  token: Pick<TokenSlots, 'kind' | 'fact' | 'pennant'> | false
+  row: RowSlots
+}) {
+  const model = toEntityModel(entity, undefined, { pattern })
+  if (token) return <Token model={model} instance={instance} slots={{ ...shared, ...token }} />
+  return <Row model={model} instance={instance} lead={lead} slots={{ ...shared, ...row }} />
 }
 
 function ReferenceEntityCardInner({
@@ -521,9 +549,11 @@ function ReferenceEntityCardInner({
     perTechLevelByLabel,
     effTechLevel,
   })
-  const hasSubLine = !!suggestedNode || cells.length > 0
+  // E17: the action type is a head stamp, the facets Stat cells, the traits Tags.
+  const facets = splitFacets(cells)
+  const hasSubLine = !!suggestedNode || facets.facts.length > 0 || facets.tags.length > 0
 
-  // THE COMPACT CARD (`extent="head"`): see `CompactCard.tsx`.
+  // The head extent is the Row (and, small, the Token): see below.
   const isHead = extent === 'head'
   const header = (
     <EntityCardHeader
@@ -536,16 +566,14 @@ function ReferenceEntityCardInner({
       titleClass={titleClass}
       titleTextClass={onBandText}
       numeral={numeral}
-      stats={isHead ? [] : effectiveHeaderStats}
+      stats={effectiveHeaderStats}
       rightContent={rightContentProp ?? headerHint}
+      stamps={facets.stamps}
       pennant={pennantNode}
-      head={isHead}
-      seamless={isHead && seamless}
       size={size}
       band={inline}
       grain={grain}
-      ruled={!inline && !isHead}
-      chevron={isHead && !inline && (!!onCardClick || !!cardClickable)}
+      ruled={!inline}
     />
   )
 
@@ -612,50 +640,44 @@ function ReferenceEntityCardInner({
     />
   )
 
-  // SHORTFORM — the one-pill token (`size="small" extent="head"`).
-  if (size === 'small' && extent === 'head') {
-    const tail = shortformTail(numeral, techLevel, entity, axisMarkers[0])
+  // SHORTFORM (`size="small" extent="head"`) is the Token form, and the
+  // COMPACT CARD (`extent="head"`) the Row form: this card is their adapter
+  // until phase 6, translating its props into the forms' slots.
+  if (isHead) {
     return (
-      <CardShortform
-        outer={outer}
-        accent={accentSurface(headerBg, headerBgColor)}
-        frameStyle={frameStyle}
-        onBandText={onBandText}
-        ink={fill === 'ink'}
-        typeLabel={kicker ?? resolveEyebrow(schemaName).type}
-        name={name}
-        tail={tail}
-        pennant={isAction ? pennantNode : undefined}
-        userMade={userMade}
+      <HeadForm
+        entity={entity}
+        pattern={pattern}
+        instance={{ title: name, ...(userMade ? { userMade } : {}) }}
+        lead={leadProse && !hide?.content}
+        shared={{ outer, frameStyle, down: isDown }}
+        token={
+          size === 'small' && {
+            kind: kicker ?? resolveEyebrow(schemaName).type,
+            fact: shortformTail(numeral, techLevel, entity, axisMarkers[0]) ?? null,
+            pennant: isAction ? pennantNode : undefined,
+          }
+        }
+        row={{
+          seam: seamless ? null : seam,
+          rail: topRightRail,
+          titleSlot,
+          titleAs,
+          facts: [...effectiveHeaderStats, ...facets.facts],
+          tags: facets.tags,
+          stamps: facets.stamps,
+          leading: suggestedNode,
+          hint: rightContentProp ?? headerHint,
+          pennant: pennantNode,
+          chevron: !inline && (!!onCardClick || !!cardClickable),
+          art: !(isPattern || inline || hide?.image),
+          bodyless: inline || isPatternListing,
+        }}
       />
     )
   }
 
   const frameBox = frameBoxStyle(frameStyle)
-
-  if (isHead) {
-    return (
-      <CardOuter {...outer}>
-        {!seamless && seam}
-        {topRightRail}
-        <CompactCardFrame
-          frameStyle={frameBox}
-          art={isPattern || hide?.image ? undefined : assetUrl}
-          artSrcSet={assetSrcSet}
-          missingArt={keepsArt && <MissingArt entity={entity} />}
-          header={header}
-          body={{
-            stats: effectiveHeaderStats,
-            cells,
-            leading: suggestedNode,
-            lead: leadProse && !hide?.content ? compactLead(entity) : undefined,
-          }}
-          bodyless={inline || isPatternListing}
-          size={size}
-        />
-      </CardOuter>
-    )
-  }
 
   // BODY — content + nested groups. A granting ability collapses its own
   // content AND actions (they belong to the granted entity); its description
@@ -1044,7 +1066,7 @@ function ReferenceEntityCardInner({
         otherActions={hide?.actions ? [] : [...gridActions, ...titanicActions]}
         subLine={
           (subtitleExtra || hasSubLine) && (
-            <PageSubLine extra={subtitleExtra} cells={cells} size={size}>
+            <PageSubLine extra={subtitleExtra} facets={facets} size={size}>
               {suggestedNode}
             </PageSubLine>
           )
@@ -1092,7 +1114,7 @@ function ReferenceEntityCardInner({
     return (
       <section style={{ display: 'flex', flexDirection: 'column' }}>
         {header}
-        <EntityCardSubHeader cells={cells} leading={suggestedNode} size={size} />
+        <CardFacets facets={facets} leading={suggestedNode} size={size} />
         {body}
         {rollTableNode}
       </section>
@@ -1111,7 +1133,7 @@ function ReferenceEntityCardInner({
             {subtitleExtra}
           </div>
         )}
-        <EntityCardSubHeader cells={cells} leading={suggestedNode} size={size} />
+        <CardFacets facets={facets} leading={suggestedNode} size={size} />
         {body}
         {rollTableNode}
         {patternLeads && patternSection}

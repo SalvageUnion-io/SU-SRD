@@ -7,7 +7,7 @@
  * ask the server.
  */
 
-import { ReferenceEntityCard, Slab, tokens } from 'component-lib'
+import { Entity, quotePatternName, Slab, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'
@@ -55,14 +55,12 @@ export function CrewPatterns() {
               style={LINK}
               aria-label={`${pattern.name}, made by ${madeBy}, shared in ${gameName}`}
             >
-              <ReferenceEntityCard
-                data={chassis}
+              <Entity
+                form="row"
+                entity={chassis}
                 pattern={asReferencePattern(pattern)}
-                size="medium"
-                extent="head"
-                userMade
-                madeBy={madeBy}
-                cardClickable
+                instance={{ title: quotePatternName(pattern.name), userMade: true }}
+                lead
               />
             </AppLink>
           </li>

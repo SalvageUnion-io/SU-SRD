@@ -29,12 +29,14 @@
  */
 
 import { Popover } from '@base-ui/react/popover'
-import type { SearchComboboxResult } from 'component-lib'
+import type { EntitySurfaceValue, SearchComboboxResult } from 'component-lib'
 import {
   buttonVariants,
   cn,
   EmptyState,
+  Entity,
   EntityExternalLinkProvider,
+  EntitySurfaceProvider,
   SearchField,
   tokens,
   useDetailModal,
@@ -44,6 +46,7 @@ import { Search } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
+import { toEntityModel } from 'salvageunion-reference'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
@@ -69,7 +72,9 @@ const HINT = {
 const LISTBOX = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[4],
+  // Room above each Row for its kind stamp.
+  gap: tokens.space[12],
+  paddingTop: tokens.space[8],
   // Room for the whole result budget on a laptop; on a short screen the list
   // scrolls inside the panel rather than pushing it off the top.
   maxHeight: 'min(20rem, 50dvh)',
@@ -125,6 +130,14 @@ function shortcutHint(): string {
   return mac ? '⌘K' : 'Ctrl K'
 }
 
+/** A result's Page opener: the entity it already holds, opened in the detail view. */
+function openerFor(
+  entity: SURefEntity,
+  open: (entity: SURefEntity) => void
+): EntitySurfaceValue['openPage'] {
+  return () => open(entity)
+}
+
 type GlobalSearchProps = {
   /** `bar` — the desktop "Search · ⌘K" trigger; `icon` — the phone's icon button. */
   variant?: 'bar' | 'icon'
@@ -153,6 +166,17 @@ export function GlobalSearch({
   // panel so it survives the panel collapsing.
   const { control: detailControl, modal: detailModal } = useDetailModal(detailEntity)
 
+  // The Page opener every result Row reads (entity display language §2): until
+  // the Page drawer (phase 5) it is the detail modal.
+  const openEntity = useCallback(
+    (entity: SURefEntity) => {
+      onOpenChange(false)
+      setDetailEntity(entity)
+      detailControl.onClick?.()
+    },
+    [detailControl, onOpenChange]
+  )
+
   const pick = useCallback(
     (result: SearchComboboxResult) => {
       if (result.kind === 'schema') {
@@ -160,11 +184,9 @@ export function GlobalSearch({
         window.open(deepLinkToSchema(result.schemaId), '_blank', 'noopener,noreferrer')
         return
       }
-      onOpenChange(false)
-      setDetailEntity(result.entity)
-      detailControl.onClick?.()
+      openEntity(result.entity)
     },
-    [detailControl, onOpenChange]
+    [openEntity]
   )
 
   const {
@@ -287,29 +309,53 @@ export function GlobalSearch({
                       aria-label="Search results"
                       style={LISTBOX}
                     >
-                      {results.map((result, index) => (
-                        <button
-                          key={result.id}
-                          id={optionId(index)}
-                          type="button"
-                          role="option"
-                          aria-selected={index === selectedIndex}
-                          onClick={() => submit(result)}
-                          className={`flex w-full cursor-pointer items-baseline justify-between gap-3 rounded-card border-chrome px-3 py-2 text-left transition-colors ${
-                            index === selectedIndex
-                              ? 'border-ink bg-wk-bg-2'
-                              : 'border-transparent hover:bg-wk-bg-2'
-                          }`}
-                        >
-                          <span className="min-w-0 truncate font-body text-sm font-medium text-ink">
-                            {result.title}
-                          </span>
-                          <span className="shrink-0 font-cond text-xs font-semibold uppercase tracking-caps-snug text-wk-muted">
-                            {result.group}
-                            {result.kind === 'schema' && <span aria-hidden="true"> &#8599;</span>}
-                          </span>
-                        </button>
-                      ))}
+                      {results.map((result, index) =>
+                        // SEARCH (entity display language §7): an entity result
+                        // is a Row in link mode, without the lead; a category
+                        // row opens the SRD site.
+                        result.kind === 'entity' ? (
+                          <EntitySurfaceProvider
+                            key={result.id}
+                            value={{ openPage: openerFor(result.entity, openEntity) }}
+                          >
+                            <Entity
+                              form="row"
+                              model={toEntityModel(result.entity)}
+                              mode={{
+                                kind: 'link',
+                                attrs: {
+                                  id: optionId(index),
+                                  role: 'option',
+                                  tabIndex: -1,
+                                  'aria-selected': index === selectedIndex,
+                                },
+                              }}
+                            />
+                          </EntitySurfaceProvider>
+                        ) : (
+                          <button
+                            key={result.id}
+                            id={optionId(index)}
+                            type="button"
+                            role="option"
+                            aria-selected={index === selectedIndex}
+                            onClick={() => submit(result)}
+                            className={`flex w-full cursor-pointer items-baseline justify-between gap-3 rounded-card border-chrome px-3 py-2 text-left transition-colors ${
+                              index === selectedIndex
+                                ? 'border-ink bg-wk-bg-2'
+                                : 'border-transparent hover:bg-wk-bg-2'
+                            }`}
+                          >
+                            <span className="min-w-0 truncate font-body text-sm font-medium text-ink">
+                              {result.title}
+                            </span>
+                            <span className="shrink-0 font-cond text-xs font-semibold uppercase tracking-caps-snug text-wk-muted">
+                              {result.group}
+                              <span aria-hidden="true"> &#8599;</span>
+                            </span>
+                          </button>
+                        )
+                      )}
                     </div>
                   ) : (
                     <EmptyState variant="quiet" body="No results found" />

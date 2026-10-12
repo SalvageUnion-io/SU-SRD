@@ -61,7 +61,12 @@ describe('actions sit inline', () => {
     // The card's own tone header, then one ink band per action.
     expect(fills(container)).toEqual(['tone', 'ink', 'ink'])
     expect(screen.queryByText('Action')).toBeNull()
-    expect(container.textContent).toContain('Turn Action // Range: Close // Damage: 1 SP // Melee')
+    // E17: the action type is a head stamp, the facets Stat cells, the traits Tags.
+    expect(container.textContent).not.toContain('//')
+    expect(screen.getAllByText('Turn').length).toBeGreaterThan(0)
+    expect(container.textContent).toContain('RNGClose')
+    expect(container.textContent).toContain('DMG1 SP')
+    expect(screen.getAllByText('Melee').length).toBeGreaterThan(0)
   })
 
   test('below depth 1 they fold behind a "Show N actions" chip', () => {
@@ -87,7 +92,8 @@ describe('nesting legibility', () => {
     render(<ReferenceEntityCard data={sestra()} />)
     const row = screen.getByRole('button', { name: 'Open Hover Locomotion System' })
     const title = within(row).getByText('Hover Locomotion System')
-    expect(title.getAttribute('title')).toBe('Hover Locomotion System')
+    // The full name rides the clamped title (on a TL band, around its paper chip).
+    expect(title.closest('[title]')?.getAttribute('title')).toBe('Hover Locomotion System')
     fireEvent.click(row)
     expect(screen.getByRole('dialog')).toBeTruthy()
   })

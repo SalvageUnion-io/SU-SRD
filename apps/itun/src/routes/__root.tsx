@@ -1,5 +1,12 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
-import { CopyFeedbackProvider, EntityHrefProvider, Toaster, toast } from 'component-lib'
+import type { EntitySurfaceValue } from 'component-lib'
+import {
+  CopyFeedbackProvider,
+  EntityHrefProvider,
+  EntitySurfaceProvider,
+  Toaster,
+  toast,
+} from 'component-lib'
 import { useState } from 'react'
 import { AccountReconciler } from '../components/account/AccountReconciler'
 import {
@@ -32,6 +39,13 @@ import '../index.css'
 
 // The root boundary is the last resort — every other route gets its own via
 // the router's `defaultErrorComponent` (main.tsx). See RouteErrors.tsx.
+/**
+ * The entity SURFACE every form in the app reads (entity display language §2):
+ * a link-mode form navigates through the router (`AppLink`). The Page opener
+ * joins it with the Page drawer (phase 5).
+ */
+const ENTITY_SURFACE: Partial<EntitySurfaceValue> = { linkAs: AppLink }
+
 export const Route = createRootRoute({
   // The default tab title; a page with its own sets it in its route's `head`.
   head: () => ({ meta: [{ title: pageTitle() }] }),
@@ -89,7 +103,8 @@ function RootComponent() {
     <AppConvexProvider>
       <HeadContent />
       <EntityHrefProvider value={itunEntityHref}>
-        {/* The shared brand header renders on every route but the Dashboard,
+        <EntitySurfaceProvider value={ENTITY_SURFACE}>
+          {/* The shared brand header renders on every route but the Dashboard,
           which draws its own bar (ADR-045) — including the live sheet
           (/sheet/*) and public sheet (/p/*) surfaces, which sit below it and
           keep their own sticky control bar. It renders ONE level above
@@ -97,29 +112,30 @@ function RootComponent() {
           GameDataReady.tsx's doc comment: brand chrome touches no reference
           data, so it paints immediately instead of sitting behind the full
           preload. */}
-        <NotConnectedBanner />
-        {/* The account gate (ADR-034 decision 1) and the migration off
+          <NotConnectedBanner />
+          {/* The account gate (ADR-034 decision 1) and the migration off
             device-only storage (ADR-035), as one surface: says what is at
             stake while signed out, moves it into the account on sign-in, and
             keeps the local cache filled from the server. Above the game-data
             gate because it is a fact about the SESSION and the BROWSER, not
             about any route — and it must stay mounted across the sign-in flip,
             which is exactly when its work runs. */}
-        <AccountReconciler />
-        {/* A test seam, compiled out of production builds — see its header. */}
-        <TestAuthBridge />
-        {/* Above the header, not just the routes: the search in AppHeader opens
+          <AccountReconciler />
+          {/* A test seam, compiled out of production builds — see its header. */}
+          <TestAuthBridge />
+          {/* Above the header, not just the routes: the search in AppHeader opens
             entity detail modals whose RollTables raise the same Copy toast. */}
-        <CopyFeedbackProvider value={toastCopied}>
-          {onDashboard ? null : <RootHeader pathname={pathname} />}
-          <GameDataReady>
-            <Outlet />
-          </GameDataReady>
-          {/* About and Changelog for a signed-out desktop, which has neither
+          <CopyFeedbackProvider value={toastCopied}>
+            {onDashboard ? null : <RootHeader pathname={pathname} />}
+            <GameDataReady>
+              <Outlet />
+            </GameDataReady>
+            {/* About and Changelog for a signed-out desktop, which has neither
               the drawer nor the account menu that carry them elsewhere. */}
-          <SiteFooter />
-        </CopyFeedbackProvider>
-        <Toaster />
+            <SiteFooter />
+          </CopyFeedbackProvider>
+          <Toaster />
+        </EntitySurfaceProvider>
       </EntityHrefProvider>
     </AppConvexProvider>
   )

@@ -17,6 +17,7 @@
 import {
   Button,
   ChapterBand,
+  Entity,
   Field,
   FieldError,
   Input,
@@ -43,7 +44,7 @@ import {
   patternChassis,
   patternFromMech,
   patternLoadout,
-  slotsStats,
+  slotsFact,
   slotsUsed,
 } from '../../../lib/patterns/patterns'
 import { usePatternStore } from '../../../stores/patternStore'
@@ -267,14 +268,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
             A pattern keeps the chassis and its loadout. Damage, Heat and cargo stay on the mech; a
             new mech built from the pattern starts fresh.
           </Text>
-          {chassis && (
-            <ReferenceEntityCard
-              data={chassis}
-              size="medium"
-              extent="head"
-              hide={{ patterns: true }}
-            />
-          )}
+          {chassis && <Entity form="row" entity={chassis} />}
           <LoadoutList label="Systems" count={systemsCount} items={loadout.systems} />
           <LoadoutList label="Modules" count={modulesCount} items={loadout.modules} />
           <Text variant="hint">
@@ -435,12 +429,7 @@ function LoadoutList({
         {items.map((item, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: a loadout may carry the same part twice
           <li key={`${item.id}-${index}`}>
-            <ReferenceEntityCard
-              data={item}
-              size="small"
-              extent="head"
-              statsOverride={slotsStats(item)}
-            />
+            <Entity form="token" entity={item} fact={slotsFact(item)} />
           </li>
         ))}
       </ul>

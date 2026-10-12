@@ -8,6 +8,7 @@
 import type { ChoiceSelections, ReferenceEntityControl } from 'component-lib'
 import {
   Button,
+  Entity,
   Input,
   Panel,
   ReferenceEntityCard,
@@ -272,15 +273,7 @@ export function PilotEquipmentItem({
   // (board 10). It is the item in BOTH states: the name always wins, and is
   // never ellipsized to make room for a control. A damaged item's pill greys,
   // as its card's header does.
-  const pill = (
-    <ReferenceEntityCard
-      data={equipment}
-      size="small"
-      extent="head"
-      status={condition}
-      selections={selections}
-    />
-  )
+  const pill = <Entity form="token" entity={equipment} instance={{ condition }} />
 
   // Read state: the pill and nothing else. Uses, condition and choices are
   // the Edit state's.
