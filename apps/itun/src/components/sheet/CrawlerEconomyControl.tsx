@@ -33,7 +33,17 @@
  * `crawlerEconomyDialogState.ts`.
  */
 
-import { Button, FieldError, ModalShell, rollForTable, Select, Slab, Stat } from 'component-lib'
+import {
+  Button,
+  FieldError,
+  ModalShell,
+  rollForTable,
+  Select,
+  Slab,
+  Stat,
+  tokens,
+} from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useReducer, useState } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
 import { crawlerMaxSP, resolvePool } from 'salvageunion-reference/rules'
@@ -68,6 +78,96 @@ import {
   tradeStep,
   upkeepReducer,
 } from './crawlerEconomyDialogState'
+
+/** The dialogs' width cap: `ModalShell` takes it as a class. */
+const DIALOG_WIDTH = 'su-sheet-crawler-dialog'
+
+const BODY = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+  backgroundColor: tokens.color.paper,
+  padding: tokens.space[20],
+} satisfies CSSProperties
+
+/** Body copy: Tailwind's `text-sm`, with its line height. */
+const TEXT = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 1.25 / 0.875,
+  color: tokens.color.ink,
+} satisfies CSSProperties
+
+const MUTED = { ...TEXT, color: tokens.color.wkMuted } satisfies CSSProperties
+
+const TEXT_TIGHT = { ...TEXT, margin: 0 } satisfies CSSProperties
+
+const TEXT_AFTER = { ...TEXT, marginTop: tokens.space[8] } satisfies CSSProperties
+
+const FOOT = {
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+const FOOT_ONE = { display: 'flex', justifyContent: 'flex-end' } satisfies CSSProperties
+
+const STACK_12 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+const ROW = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+const CONTRIBUTE_LABEL = {
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 1 / 0.75,
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: tokens.tracking.capsSnug,
+  color: tokens.color.ink,
+} satisfies CSSProperties
+
+const SMALL = { fontSize: tokens.fontSize.xs, lineHeight: 1 / 0.75 } satisfies CSSProperties
+
+const PICKERS = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'flex-end',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+const PICKER_LABEL = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[4],
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: tokens.tracking.caps,
+  color: tokens.color.ink,
+} satisfies CSSProperties
+
+/** A compact select: tighter than the `Select` skin's own padding. */
+const PICKER = { padding: `${tokens.space[6]} ${tokens.space[8]}` } satisfies CSSProperties
+
+const QTY = { display: 'inline-flex', paddingBottom: tokens.space[4] } satisfies CSSProperties
+
+const ACTION_ROW = {
+  marginTop: tokens.space[8],
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: tokens.space[12],
+} satisfies CSSProperties
 
 /** Which economy dialog is open (the lozenge that was clicked). */
 export type CrawlerEconomyDialog = 'upkeep' | 'upgrade' | 'trade'
@@ -225,14 +325,14 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
       }}
       title="Pay Upkeep"
       subtitle={`${UPKEEP_SCRAP}× Tech ${tl} Scrap per Downtime`}
-      maxWidth="max-w-md"
+      maxWidth={DIALOG_WIDTH}
     >
-      <div className="flex flex-col gap-4 bg-paper p-5">
-        <p className="font-body text-sm text-wk-muted">
+      <div style={BODY}>
+        <p style={MUTED}>
           Upkeep costs {UPKEEP_SCRAP} Scrap of Tech {tl} or higher each Downtime. Paying it credits
           the Upgrade Pool in full; failing to pay rolls the Crawler Deterioration Table.
         </p>
-        <p className="font-body text-sm text-ink">
+        <p style={TEXT}>
           Pool holds <strong>{available}</strong> scrap at Tech {tl}+.
         </p>
 
@@ -244,7 +344,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
         )}
 
         {result && (
-          <p role="status" className="font-body text-sm text-ink">
+          <p role="status" style={TEXT}>
             {result}
           </p>
         )}
@@ -254,7 +354,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
           </FieldError>
         )}
 
-        <div className="flex justify-end gap-2">
+        <div style={FOOT}>
           <Button variant="ghost" size="compact" onClick={onClose}>
             {done ? 'Done' : 'Cancel'}
           </Button>
@@ -341,11 +441,11 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
         if (!next) onClose()
       }}
       title="Upgrade Crawler"
-      maxWidth="max-w-md"
+      maxWidth={DIALOG_WIDTH}
     >
-      <div className="flex flex-col gap-4 bg-paper p-5">
+      <div style={BODY}>
         {quote ? (
-          <div className="flex flex-col gap-3">
+          <div style={STACK_12}>
             <p>
               Upgrading from Tech {quote.fromTl} to Tech {quote.toTl} consumes{' '}
               <strong>{quote.cost}</strong> from the Upgrade Pool (currently{' '}
@@ -358,10 +458,8 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
                 below to fill it.
               </FieldError>
             )}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-cond text-xs font-bold uppercase tracking-caps-snug text-ink">
-                Contribute scrap (Tech {tl}+)
-              </span>
+            <div style={ROW}>
+              <span style={CONTRIBUTE_LABEL}>Contribute scrap (Tech {tl}+)</span>
               <Stat
                 orientation="horizontal"
                 size="compact"
@@ -385,7 +483,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
                 Add to Upgrade Pool
               </Button>
             </div>
-            <p className="text-xs">
+            <p style={SMALL}>
               Pool holds {contributable} scrap at Tech {tl}+.
             </p>
           </div>
@@ -394,7 +492,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
             Tech 6 is the highest level of Union Crawler — it cannot be upgraded further (p.218).
           </p>
         )}
-        <div className="flex justify-end gap-2">
+        <div style={FOOT}>
           <Button variant="ghost" size="compact" onClick={onClose}>
             Cancel
           </Button>
@@ -467,14 +565,10 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
       }}
       title="Trading Bay"
       subtitle={`Scrap exchange & Downtime sourcing · Tech ${tl} crawler`}
-      maxWidth="max-w-md"
+      maxWidth={DIALOG_WIDTH}
     >
-      <div className="flex flex-col gap-4 bg-paper p-5">
-        {!gate.present && (
-          <p className="font-body text-sm text-wk-muted">
-            No Trading Bay is installed on this crawler.
-          </p>
-        )}
+      <div style={BODY}>
+        {!gate.present && <p style={MUTED}>No Trading Bay is installed on this crawler.</p>}
         {gate.damaged && (
           <FieldError>
             The Trading Bay is Damaged — Scrap cannot be traded and the Trading Bay Table cannot be
@@ -490,15 +584,12 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                 label="Trade Scrap"
                 count="fixed equal-value rates · no bartering"
               />
-              <div className="flex flex-wrap items-end gap-3">
-                <label
-                  htmlFor="trade-from-tl"
-                  className="flex flex-col gap-1 font-cond text-badge font-bold uppercase tracking-caps text-ink"
-                >
+              <div style={PICKERS}>
+                <label htmlFor="trade-from-tl" style={PICKER_LABEL}>
                   From
                   <Select
                     id="trade-from-tl"
-                    className="px-2 py-1.5"
+                    style={PICKER}
                     value={fromTl}
                     onChange={(e) => dispatch({ type: 'pickFrom', tl: Number(e.target.value) })}
                   >
@@ -509,14 +600,11 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                     ))}
                   </Select>
                 </label>
-                <label
-                  htmlFor="trade-to-tl"
-                  className="flex flex-col gap-1 font-cond text-badge font-bold uppercase tracking-caps text-ink"
-                >
+                <label htmlFor="trade-to-tl" style={PICKER_LABEL}>
                   To
                   <Select
                     id="trade-to-tl"
-                    className="px-2 py-1.5"
+                    style={PICKER}
                     value={toTl}
                     onChange={(e) => dispatch({ type: 'pickTo', tl: Number(e.target.value) })}
                   >
@@ -527,7 +615,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                     ))}
                   </Select>
                 </label>
-                <span className="inline-flex pb-1">
+                <span style={QTY}>
                   <Stat
                     orientation="horizontal"
                     size="compact"
@@ -541,8 +629,8 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                   />
                 </span>
               </div>
-              <div className="mt-2 flex flex-wrap items-center gap-3">
-                <p className="m-0 font-body text-sm text-ink" data-testid="trade-preview">
+              <div style={ACTION_ROW}>
+                <p style={TEXT_TIGHT} data-testid="trade-preview">
                   {fromTl === toTl
                     ? 'Pick two different Tech Levels.'
                     : toCount === null
@@ -566,7 +654,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                 </Button>
               </div>
               {convertNote && (
-                <p role="status" className="mt-2 font-body text-sm text-ink">
+                <p role="status" style={TEXT_AFTER}>
                   {convertNote}
                 </p>
               )}
@@ -578,17 +666,17 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                 label="Source Wares"
                 count={`once per Downtime · wares are Tech ${tradingSourceTl(tl)}`}
               />
-              <p className="font-body text-sm text-wk-muted">
+              <p style={MUTED}>
                 Once per Downtime, roll to see what the wastelanders brought to trade — always one
                 Tech Level above the crawler. Buying costs an item&rsquo;s Salvage Value in Scrap of
                 its Tech Level.
               </p>
-              <div className="mt-2 flex flex-wrap items-center gap-3">
+              <div style={ACTION_ROW}>
                 <Button size="compact" variant="primary" onClick={handleAvailabilityRoll}>
                   Roll Availability (d20)
                 </Button>
                 {availability && (
-                  <p role="status" className="m-0 font-body text-sm text-ink">
+                  <p role="status" style={TEXT_TIGHT}>
                     Rolled {availability.roll}:{' '}
                     {TRADING_AVAILABILITY_LABEL[availability.availability]}
                     {availability.availability !== 'nothing' && ` (Tech ${availability.sourceTl})`}
@@ -599,7 +687,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
           </>
         )}
 
-        <div className="flex justify-end">
+        <div style={FOOT_ONE}>
           <Button variant="ghost" size="compact" onClick={onClose}>
             Close
           </Button>

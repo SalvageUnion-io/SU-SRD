@@ -21,8 +21,8 @@
  * and builds the readout data; this only renders it.
  */
 
-import { Button, Stat } from 'component-lib'
-import type { ReactNode } from 'react'
+import { Button, Stat, tokens } from 'component-lib'
+import type { CSSProperties, ReactNode } from 'react'
 
 export type EconLozItem = {
   /** Stat label, e.g. 'Upkeep'. */
@@ -48,6 +48,43 @@ export type EconLozItem = {
   }
 }
 
+const FRAME = {
+  display: 'flex',
+  width: '100%',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+} satisfies CSSProperties
+
+const READOUTS = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: tokens.space[10],
+} satisfies CSSProperties
+
+const ACTIONS = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+const LOZ = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: tokens.space[4],
+} satisfies CSSProperties
+
+const CAPTION = {
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.semibold,
+  textTransform: 'uppercase',
+  letterSpacing: tokens.tracking.capsWide,
+  color: tokens.color.ink55,
+} satisfies CSSProperties
+
 type CrawlerEconFrameProps = {
   /** The SP `VitalGauge`. */
   gauge: ReactNode
@@ -62,11 +99,11 @@ export function CrawlerEconFrame({ gauge, upgrade, items }: CrawlerEconFrameProp
   const readouts = items.filter((item) => !item.actionOnly)
   return (
     // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the vitals column; a <section> here would become a region landmark once named
-    <div role="group" aria-label="Crawler vitals" className="flex w-full flex-col gap-4">
+    <div role="group" aria-label="Crawler vitals" style={FRAME}>
       {gauge}
       {upgrade}
       {readouts.length > 0 && (
-        <div className="grid grid-cols-2 gap-2.5">
+        <div style={READOUTS}>
           {readouts.map((item) => (
             <EconLoz key={item.label} item={item} />
           ))}
@@ -76,7 +113,7 @@ export function CrawlerEconFrame({ gauge, upgrade, items }: CrawlerEconFrameProp
         // Centred: the row sits under a stack of gauges and stat plates that are
         // themselves centred in the column, so a left-aligned button row hung
         // off the edge of everything above it.
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div style={ACTIONS}>
           {actions.map((item) => (
             <Button
               key={item.label}
@@ -98,17 +135,13 @@ export function CrawlerEconFrame({ gauge, upgrade, items }: CrawlerEconFrameProp
 /** One economy readout: a Stat value box, its caption, and the optional rust action. */
 function EconLoz({ item }: { item: EconLozItem }) {
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div style={LOZ}>
       {/* `full`: these readouts ARE the panel — the Scrap / Tech Level / Crew
           figures are meant to be read at a glance, not as annotations. Without
           the rung they rendered at 13px, which lost the poster weight the
           hand-rolled lozenge had. */}
       <Stat size="full" label={item.label} value={item.value} max={item.max} />
-      {item.caption && (
-        <span className="font-cond text-badge font-semibold uppercase tracking-caps-wide text-ink/55">
-          {item.caption}
-        </span>
-      )}
+      {item.caption && <span style={CAPTION}>{item.caption}</span>}
     </div>
   )
 }

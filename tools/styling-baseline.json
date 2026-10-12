@@ -1,10 +1,10 @@
 {
   "tokens": {
-    "raw-color": 21,
+    "raw-color": 0,
     "arbitrary-font-size": 2
   },
   "styling": {
-    "tailwind-utility-file": 113,
+    "tailwind-utility-file": 46,
     "pc-class-defined": 0
   },
   "srd-css": {},

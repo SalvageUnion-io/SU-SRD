@@ -150,8 +150,8 @@ describe('LiveSheet — condense strip gating (S11)', () => {
     renderShell()
     const wrapper = stripWrapper()
     expect(wrapper.getAttribute('aria-hidden')).toBe('true')
-    expect(wrapper.className).toContain('pointer-events-none')
-    expect(wrapper.className).toContain('opacity-0')
+    expect(wrapper.style.pointerEvents).toBe('none')
+    expect(wrapper.style.opacity).toBe('0')
   })
 
   test('hero scrolled out: strip fades in, aria-hidden lifts, pointer events return', () => {
@@ -164,8 +164,8 @@ describe('LiveSheet — condense strip gating (S11)', () => {
 
     const wrapper = stripWrapper()
     expect(wrapper.getAttribute('aria-hidden')).toBe('false')
-    expect(wrapper.className).not.toContain('pointer-events-none')
-    expect(wrapper.className).toContain('opacity-100')
+    expect(wrapper.style.pointerEvents).toBe('')
+    expect(wrapper.style.opacity).toBe('1')
     // Live stat readout present in the condensed bar. The kind pill is NOT —
     // the gutter wordmark carries the sheet's kind now.
     expect(screen.getByText('7/10')).toBeTruthy()
@@ -192,9 +192,10 @@ describe('LiveSheet — condense strip gating (S11)', () => {
     expect(observerCallbacks.length).toBe(0)
   })
 
-  test('transition classes are present for the CSS fade', () => {
+  test('the strip transitions opacity for the CSS fade', () => {
     renderShell()
-    expect(stripWrapper().className).toContain('transition-')
+    expect(stripWrapper().style.transitionProperty).toContain('opacity')
+    expect(stripWrapper().style.transitionDuration).toBe('150ms')
   })
 })
 
@@ -224,12 +225,11 @@ describe('LiveSheet — strip values and syncStats', () => {
     act(() => {
       must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
-    // Priority readout always visible; non-priority carries the fold classes.
-    // The fold class rides the outer stat cell (the value text's parent).
-    // Use classList tokens, not substring — the cell also carries `overflow-hidden`.
-    expect(must(screen.getByText('5/8').parentElement).classList.contains('hidden')).toBe(false)
-    const folded = must(screen.getByText('3/4').parentElement)
-    expect(folded.classList.contains('hidden')).toBe(true)
-    expect(folded.classList.contains('sm:inline-flex')).toBe(true)
+    // Priority readout always visible; non-priority carries the fold class
+    // (`.su-sheet-live-stat-fold`: hidden, inline-flex from sm). It rides the
+    // outer stat cell (the value text's parent).
+    const fold = 'su-sheet-live-stat-fold'
+    expect(must(screen.getByText('5/8').parentElement).classList.contains(fold)).toBe(false)
+    expect(must(screen.getByText('3/4').parentElement).classList.contains(fold)).toBe(true)
   })
 })

@@ -1,5 +1,7 @@
-import { Button } from 'component-lib'
+import '../../styles/sheet.css'
+import { Button, tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { NpcFactsEditor } from './NpcFactsEditor'
 import { NpcInset } from './NpcInset'
@@ -9,13 +11,21 @@ export default {
   title: 'Compositions/NPC Inset',
 }
 
+const STAGE = {
+  backgroundColor: tokens.color.paper,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[32],
+  padding: tokens.space[16],
+} satisfies CSSProperties
+
 /** A crawler bay's resident NPC — every field inline-editable in place. */
 export const Default = () => {
   const [name, setName] = useState('Sparks')
   const [hp, setHp] = useState(8)
   const [facts, setFacts] = useState<string[]>(['Owes the Union a favour'])
   return (
-    <div className="sheet--crawler flex flex-col gap-8 bg-paper p-4">
+    <div className="sheet--crawler" style={STAGE}>
       <div>
         <Caption>NpcInset — editable</Caption>
         <NpcInset

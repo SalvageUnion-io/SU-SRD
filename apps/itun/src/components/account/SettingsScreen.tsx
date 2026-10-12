@@ -1,5 +1,7 @@
 import { Button, Card, ChapterBand, Input, PageHeading, Text } from 'component-lib'
+import { space } from 'component-lib/design/tokens'
 import { useMutation, useQuery } from 'convex/react'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -19,6 +21,31 @@ import { SignInControl } from './SignInControl'
  * it away, let me erase it — and splitting those across surfaces is how one of
  * them quietly never ships.
  */
+
+const STACK = { display: 'flex', flexDirection: 'column', gap: space[24] } satisfies CSSProperties
+
+const CARD_BODY = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[12],
+  padding: space[16],
+} satisfies CSSProperties
+
+const CARD_PAD = { padding: space[16] } satisfies CSSProperties
+
+const ACTIONS = { display: 'flex', gap: space[8] } satisfies CSSProperties
+
+// The hint variant centres; these asides read as body copy under a heading.
+const HINT = { textAlign: 'left' } satisfies CSSProperties
+
+const PAGE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[24],
+  marginInline: 'auto',
+  maxWidth: '42rem',
+  padding: space[16],
+} satisfies CSSProperties
 
 function download(filename: string, data: unknown): void {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -45,13 +72,13 @@ function SignedInAccount() {
   const value = name ?? me.displayName ?? ''
 
   return (
-    <div className="flex flex-col gap-6">
+    <div style={STACK}>
       <Card>
-        <div className="flex flex-col gap-3 p-4">
+        <div style={CARD_BODY}>
           <PageHeading variant="section" as="h2">
             Display name
           </PageHeading>
-          <Text variant="hint" className="text-left">
+          <Text variant="hint" style={HINT}>
             Shown on every entity you own. Defaults to your Discord name; clearing this falls back
             to it rather than to blank.
           </Text>
@@ -76,11 +103,11 @@ function SignedInAccount() {
       </Card>
 
       <Card>
-        <div className="flex flex-col gap-3 p-4">
+        <div style={CARD_BODY}>
           <PageHeading variant="section" as="h2">
             Your data
           </PageHeading>
-          <Text variant="hint" className="text-left">
+          <Text variant="hint" style={HINT}>
             Downloads everything you own. Crewmates' characters and the shared crawler are not
             included — you can see them, but they are not yours to take.
           </Text>
@@ -98,18 +125,18 @@ function SignedInAccount() {
       </Card>
 
       <Card>
-        <div className="flex flex-col gap-3 p-4">
+        <div style={CARD_BODY}>
           <PageHeading variant="section" as="h2">
             Delete account
           </PageHeading>
-          <Text variant="hint" className="text-left">
+          <Text variant="hint" style={HINT}>
             Your pilots and mechs are deleted. Games you are in survive — the shared crawler stays,
             and if you organise a game the role passes to the longest-standing member. Download your
             data first; this cannot be undone.
           </Text>
           <div>
             {confirming ? (
-              <div className="flex gap-2">
+              <div style={ACTIONS}>
                 <Button variant="danger" size="compact" onClick={() => void deleteAccount({})}>
                   Permanently delete
                 </Button>
@@ -137,7 +164,7 @@ function SettingsBody() {
   if (mode === 'disconnected') {
     return (
       <Card>
-        <div className="p-4">
+        <div style={CARD_PAD}>
           <Text>
             Your account is unreachable right now. Reconnect to change your profile or download your
             data.
@@ -149,12 +176,12 @@ function SettingsBody() {
 
   return (
     <Card>
-      <div className="flex flex-col gap-3 p-4">
+      <div style={CARD_BODY}>
         <Text>
           You are not signed in. Signed out, In the Union Now is read-only: you can browse the
           Starter Set, but building anything needs an account.
         </Text>
-        <Text variant="hint" className="text-left">
+        <Text variant="hint" style={HINT}>
           Signing in saves your builds to your account, carries them between devices, and lets you
           join a game with other people.
         </Text>
@@ -168,7 +195,7 @@ function SettingsBody() {
 
 export function SettingsScreen() {
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4">
+    <main style={PAGE}>
       <ChapterBand>Settings</ChapterBand>
       <SettingsBody />
     </main>

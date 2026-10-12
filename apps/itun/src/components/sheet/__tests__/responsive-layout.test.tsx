@@ -105,7 +105,7 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
     // The crawler body's region flow is a single column.
     const flow = container.querySelector('section[aria-label$="crawler sheet"] > div')
     expect(flow).toBeTruthy()
-    expect((flow as HTMLElement).className).toContain('flex-col')
+    expect((flow as HTMLElement).style.flexDirection).toBe('column')
     // The storage band is present. Asserted on its CONTENT rather than the
     // words "Storage Bay": storage now renders inside the Storage Bay's own bay
     // card when that bay is installed, and as a standalone band when it is not
@@ -131,7 +131,7 @@ describe('Sheet responsive layout — single entity', () => {
     expect(container.querySelector('.sheet--mech')).toBeTruthy()
     const header = container.querySelector('header')
     expect(header).toBeTruthy()
-    expect((header as HTMLElement).className).toContain('sticky')
+    expect((header as HTMLElement).style.position).toBe('sticky')
   })
 
   test('pilot-only Sheet renders the pilot-toned shell with a sticky header', () => {
@@ -146,7 +146,7 @@ describe('Sheet responsive layout — single entity', () => {
     expect(container.querySelector('.sheet--pilot')).toBeTruthy()
     const header = container.querySelector('header')
     expect(header).toBeTruthy()
-    expect((header as HTMLElement).className).toContain('sticky')
+    expect((header as HTMLElement).style.position).toBe('sticky')
   })
 })
 
@@ -159,7 +159,7 @@ describe('CrawlerSheet responsive layout — body section', () => {
     const { container } = render(<CrawlerSheet crawler={fakeCrawler} />)
     const section = container.querySelector('section')
     expect(section).toBeTruthy()
-    expect((section as HTMLElement).className).toContain('flex-col')
+    expect((section as HTMLElement).style.flexDirection).toBe('column')
   })
 })
 

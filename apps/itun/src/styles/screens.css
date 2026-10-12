@@ -1,0 +1,79 @@
+/*
+ * screens.css — TW-g (tailwind-removal TW6): the stateful/responsive half of the
+ * ITUN components listed below; their static styling is style objects over
+ * component-lib tokens. Loaded by `index.css`, and by the AboutScreen and
+ * AppHeader stories.
+ *
+ *   - `components/shared/AboutScreen.tsx` and `routes/changelog.tsx` —
+ *     `.info-screen`, the page frame whose padding steps up at `sm` and `lg`;
+ *     `.about-screen__colophon`, because `Colophon` takes a class, not a style.
+ *   - `components/account/SignInControl.tsx` — `.sign-in-control--dark`, the
+ *     ghost Button recoloured for the dark masthead (hover included).
+ *   - `components/shared/AppHeader.tsx` — `.app-header__drawer-trigger` /
+ *     `.app-header__drawer-panel`, NavDrawer's `triggerClassName` /
+ *     `panelClassName`, which override `.su-nav-drawer__*` rules.
+ *
+ * These rules are unlayered, so they outrank component-lib's `su-base` layer —
+ * which is what the overrides above rely on.
+ */
+
+/* About + Changelog page frame: 16px/32px, then 32px/48px from `sm`, and 48px
+   inline from `lg`. */
+.info-screen {
+  padding-block: var(--space-32);
+  padding-inline: var(--space-16);
+}
+@media (width >= 40rem) {
+  .info-screen {
+    padding-block: var(--space-48);
+    padding-inline: var(--space-32);
+  }
+}
+@media (width >= 64rem) {
+  .info-screen {
+    padding-inline: var(--space-48);
+  }
+}
+
+/* The About page's Colophon: an ink rule above, body type in ink. */
+.about-screen__colophon {
+  border-top-color: var(--color-ink);
+  border-top-style: solid;
+  border-top-width: 2px;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  padding-top: var(--space-24);
+}
+
+/* Sign in / out on the dark masthead: a paper hairline at 40% that goes to full
+   paper with a faint paper wash on hover. Background is restated at rest so the
+   ghost variant's ink-wash hover never shows through. */
+.sign-in-control--dark {
+  background-color: transparent;
+  border-color: color-mix(in srgb, var(--color-paper) 40%, transparent);
+  color: var(--color-paper);
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .sign-in-control--dark {
+    border-color: color-mix(in oklab, var(--color-paper) 40%, transparent);
+  }
+}
+@media (hover: hover) {
+  .sign-in-control--dark:hover {
+    background-color: color-mix(in srgb, var(--color-paper) 10%, transparent);
+    border-color: var(--color-paper);
+  }
+  @supports (color: color-mix(in lab, red, red)) {
+    .sign-in-control--dark:hover {
+      background-color: color-mix(in oklab, var(--color-paper) 10%, transparent);
+    }
+  }
+}
+
+/* The mobile drawer: a 6px hamburger and an 18rem panel. */
+.app-header__drawer-trigger {
+  padding: var(--space-6);
+}
+.app-header__drawer-panel {
+  width: 18rem;
+}

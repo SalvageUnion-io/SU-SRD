@@ -18,8 +18,43 @@
  * affordance — facts render as plain chips (published snapshots).
  */
 
-import { Conditions, cn, INPUT_FOCUS } from 'component-lib'
+import { Conditions, INPUT_FOCUS, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useChipDraft } from './useChipDraft'
+
+/** The sheet's bordered well around the chip row. */
+const WELL = {
+  alignItems: 'center',
+  backgroundColor: tokens.color.paper,
+  border: `${tokens.borderWidth.chrome} solid ${tokens.color.ink}`,
+  borderRadius: '0.25rem',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[6],
+  minHeight: '2.5rem',
+  padding: tokens.space[8],
+} satisfies CSSProperties
+
+const EMPTY = {
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+} satisfies CSSProperties
+
+/** The new-fact input, set in the quiet chip's prose-cased type. */
+const DRAFT_INPUT = {
+  backgroundColor: tokens.color.paper,
+  border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink}`,
+  borderRadius: tokens.radius.badge,
+  color: tokens.color.ink,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  letterSpacing: tokens.tracking.capsTight,
+  paddingBlock: tokens.space[2],
+  paddingInline: tokens.space[6],
+  width: '10rem',
+} satisfies CSSProperties
 
 type NpcFactsEditorProps = {
   facts: ReadonlyArray<string>
@@ -48,10 +83,8 @@ export function NpcFactsEditor({
   }
 
   return (
-    <div className="flex min-h-10 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-paper p-2">
-      {facts.length === 0 && !draft.adding && (
-        <span className="font-body text-xs text-wk-muted">No facts yet</span>
-      )}
+    <div style={WELL}>
+      {facts.length === 0 && !draft.adding && <span style={EMPTY}>No facts yet</span>}
 
       {/* Only rendered when it has chips or the '+ Add' affordance to show —
           an empty row would still count as a flex item and double the gap. */}
@@ -70,10 +103,8 @@ export function NpcFactsEditor({
         <input
           {...draft.inputProps}
           aria-label={`New ${npcLabel} fact`}
-          className={cn(
-            'w-40 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge tracking-caps-tight text-ink',
-            INPUT_FOCUS
-          )}
+          className={INPUT_FOCUS}
+          style={DRAFT_INPUT}
         />
       )}
     </div>

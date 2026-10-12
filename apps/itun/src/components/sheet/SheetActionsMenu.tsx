@@ -12,8 +12,10 @@
 
 import { cn, PopoverPanel } from 'component-lib'
 import { Ellipsis } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { SHEET_ICONBTN_CLASS } from './sheetChrome'
+
+const ICON = { height: '18px', width: '18px' } satisfies CSSProperties
 
 type SheetActionsMenuProps = {
   /** The actions — buttons and controls, not menu items. */
@@ -32,9 +34,9 @@ export function SheetActionsMenu({ children, className }: SheetActionsMenuProps)
         <button
           type="button"
           aria-label="More actions"
-          className={cn(SHEET_ICONBTN_CLASS, 'cursor-pointer', className)}
+          className={cn(SHEET_ICONBTN_CLASS, className)}
         >
-          <Ellipsis className="size-[18px]" aria-hidden="true" />
+          <Ellipsis style={ICON} aria-hidden="true" />
         </button>
       }
     >

@@ -13,17 +13,78 @@
  * accessibility regression, not a consolidation.
  */
 
-import { buttonVariants, cn } from 'component-lib'
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import { buttonVariants } from 'component-lib'
+import {
+  borderWidth,
+  color,
+  font,
+  fontSize,
+  radius,
+  space,
+  tracking,
+  weight,
+} from 'component-lib/design/tokens'
+import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import { AppLink } from './AppLink'
 
+const SHELL = {
+  alignItems: 'center',
+  backgroundColor: color.wkBg,
+  display: 'flex',
+  justifyContent: 'center',
+  minHeight: '100dvh',
+  padding: space[24],
+} satisfies CSSProperties
+
+/** The 404 card; its padding opens up from `sm` (routeStates.css). */
+const PANEL = {
+  alignItems: 'flex-start',
+  backgroundColor: color.paper,
+  borderColor: color.ink,
+  borderRadius: radius.panel,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.chrome,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[16],
+  maxWidth: '36rem',
+  width: '100%',
+} satisfies CSSProperties
+
+const PANEL_TITLE = {
+  color: color.ink,
+  fontFamily: font.cond,
+  fontSize: fontSize.xl,
+  fontWeight: weight.bold,
+  letterSpacing: tracking.capsTight,
+  lineHeight: '1.75rem',
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const PANEL_MESSAGE = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  lineHeight: '1.25rem',
+} satisfies CSSProperties
+
+const BACK_LINK = { textDecorationLine: 'none' } satisfies CSSProperties
+
+/** The pending line; it breathes with the shared skeleton pulse (`su-pulse`). */
+const PENDING = {
+  color: color.wkMuted,
+  fontFamily: font.cond,
+  fontSize: fontSize.sm,
+  fontWeight: weight.bold,
+  letterSpacing: tracking.caps,
+  lineHeight: '1.25rem',
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
 /** Full-viewport centering shell every standalone panel screen sits in. */
-function FullPageShell({ className, children, ...rest }: ComponentPropsWithoutRef<'main'>) {
+function FullPageShell({ children, ...rest }: ComponentPropsWithoutRef<'main'>) {
   return (
-    <main
-      className={cn('flex min-h-dvh items-center justify-center bg-wk-bg p-6', className)}
-      {...rest}
-    >
+    <main style={SHELL} {...rest}>
       {children}
     </main>
   )
@@ -49,14 +110,13 @@ export function NotFoundPanel({
 }: NotFoundPanelProps) {
   return (
     <FullPageShell>
-      <div className="flex w-full max-w-xl flex-col items-start gap-4 rounded-panel border-chrome border-ink bg-paper p-6 sm:p-8">
-        <h1 className="font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
-          {title}
-        </h1>
-        <p className="font-body text-sm text-wk-muted">{message}</p>
+      <div className="not-found-panel" style={PANEL}>
+        <h1 style={PANEL_TITLE}>{title}</h1>
+        <p style={PANEL_MESSAGE}>{message}</p>
         <AppLink
           href={back.href}
-          className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
+          className={buttonVariants({ variant: 'ghost', size: 'compact' })}
+          style={BACK_LINK}
         >
           &larr; Back to {back.label}
         </AppLink>
@@ -79,7 +139,7 @@ export function RouteNotFound() {
 export function RoutePending() {
   return (
     <FullPageShell aria-busy="true" aria-live="polite">
-      <p className="motion-safe:animate-pulse font-cond text-sm font-bold uppercase tracking-caps text-wk-muted">
+      <p className="su-pulse" style={PENDING}>
         Loading…
       </p>
     </FullPageShell>

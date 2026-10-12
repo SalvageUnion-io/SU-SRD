@@ -123,6 +123,42 @@ function TpBlock({
   )
 }
 
+const TP_ROW = {
+  alignItems: 'baseline',
+  display: 'flex',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+/** A Vitals caps label: the badge rung, set solid. */
+const CAPS_LABEL = {
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  letterSpacing: tokens.tracking.caps,
+  lineHeight: 1,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const TP_LABEL = { ...CAPS_LABEL, color: tokens.color.wkMuted } satisfies CSSProperties
+
+const TP_VALUE = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.displayLg,
+  fontVariantNumeric: 'tabular-nums',
+  fontWeight: tokens.weight.bold,
+  lineHeight: 1,
+  marginLeft: 'auto',
+} satisfies CSSProperties
+
+/** The Conditions label over the chip row, in the sheet's deep tone. */
+const CONDITIONS_LABEL = {
+  ...CAPS_LABEL,
+  color: 'var(--tone-deep, var(--color-ink))',
+  display: 'block',
+  marginBottom: tokens.space[8],
+} satisfies CSSProperties
+
 /**
  * TP in the read state (board 10): a typeset row, the same anatomy as the HP
  * and AP rows above it — stamp, label, then the value at the right. No
@@ -130,16 +166,12 @@ function TpBlock({
  */
 function TpReadRow({ value }: { value: number }) {
   return (
-    <div role="img" aria-label={`Training Points ${value}`} className="flex items-baseline gap-2">
+    <div role="img" aria-label={`Training Points ${value}`} style={TP_ROW}>
       <Badge shape="stamp" size="full">
         TP
       </Badge>
-      <span className="font-cond text-badge font-bold uppercase leading-none tracking-caps text-wk-muted">
-        Training Points
-      </span>
-      <b className="ml-auto font-cond text-display-lg font-bold leading-none tabular-nums text-ink">
-        {value}
-      </b>
+      <span style={TP_LABEL}>Training Points</span>
+      <b style={TP_VALUE}>{value}</b>
     </div>
   )
 }
@@ -157,6 +189,93 @@ const FREE_SLOT = {
 
 /** No more boxes than fit a line or two of the narrow column. */
 const FREE_SLOT_BOXES = 8
+
+/** The sheet body; `container-type` scopes the region grid to its own width. */
+const BODY = {
+  containerType: 'inline-size',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[24],
+} satisfies CSSProperties
+
+const DEAD = {
+  backgroundColor: tokens.color.paper,
+  border: `${tokens.borderWidth.entity} solid ${tokens.color.statusBad}`,
+  borderRadius: tokens.radius.card,
+  paddingBlock: tokens.space[12],
+  paddingInline: tokens.space[16],
+} satisfies CSSProperties
+
+const DEAD_TITLE = {
+  color: tokens.color.statusBad,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.lg,
+  fontWeight: tokens.weight.bold,
+  letterSpacing: tokens.tracking.caps,
+  lineHeight: 'calc(1.75 / 1.125)',
+  margin: 0,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+const DEAD_BODY = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+  margin: 0,
+} satisfies CSSProperties
+
+/** The region grid; its two columns from the container's 5xl are `.su-sheet-pilot-regions`. */
+const REGIONS = {
+  alignItems: 'start',
+  display: 'grid',
+  gap: tokens.space[24],
+} satisfies CSSProperties
+
+const MIN_W_0 = { minWidth: 0 } satisfies CSSProperties
+
+const STACK_8 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+const STACK_12 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+const STACK_16 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+} satisfies CSSProperties
+
+const STACK_20 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[20],
+} satisfies CSSProperties
+
+/** The Vitals rows; the dashed rule between them is `.su-sheet-pilot-vitals`. */
+const VITALS = { display: 'flex', flexDirection: 'column', width: '100%' } satisfies CSSProperties
+
+const TP_AND_CONDITIONS = {
+  alignItems: 'flex-start',
+  display: 'flex',
+  gap: tokens.space[12],
+  minWidth: 0,
+  width: '100%',
+} satisfies CSSProperties
+
+const CONDITIONS_CELL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
+
+const OVER_CAPACITY = { color: tokens.color.statusBad } satisfies CSSProperties
+
+const PILLS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
+
+const ADDER_ROW = { marginTop: tokens.space[12] } satisfies CSSProperties
 
 // ---------------------------------------------------------------------------
 // PilotSheet
@@ -232,19 +351,15 @@ export function PilotSheet({
       // `.sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
       // width, not the viewport.
-      className="sheet-section @container flex flex-col gap-6"
+      className="sheet-section"
+      style={BODY}
     >
       {/* Dead state (rules A2: max HP 0 = death). Display-only — the record
           stays editable so an erroneous injury can be removed. */}
       {model.dead && (
-        <div
-          role="alert"
-          className="rounded-card border-entity border-status-bad bg-paper px-4 py-3"
-        >
-          <p className="m-0 font-cond text-lg font-bold uppercase tracking-caps text-status-bad">
-            Killed in Action
-          </p>
-          <p className="m-0 font-body text-sm text-ink">
+        <div role="alert" style={DEAD}>
+          <p style={DEAD_TITLE}>Killed in Action</p>
+          <p style={DEAD_BODY}>
             Injuries have reduced this pilot&rsquo;s maximum HP to 0. Remove an injury below if this
             was a bookkeeping error — otherwise, raise a glass.
           </p>
@@ -262,8 +377,8 @@ export function PilotSheet({
           and `order` lifts the vitals above the abilities (identity, vitals,
           abilities, inventory, linked units); from 5xl the columns return and
           every `order` resets. */}
-      <div className="grid grid-cols-1 items-start gap-6 @5xl:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="contents @5xl:flex @5xl:min-w-0 @5xl:flex-col @5xl:gap-6">
+      <div className="su-sheet-pilot-regions" style={REGIONS}>
+        <div className="su-sheet-pilot-column">
           <SheetSectionCard
             title="Identity"
             surface={readOnly ? 'paper' : 'frame'}
@@ -284,7 +399,7 @@ export function PilotSheet({
           {/* ===== Abilities — the Generic tree, then the ones this pilot owns =====
               A SLAB, not a card: the grid is entity cards, which carry their own
               frame. */}
-          <div className="order-1 min-w-0 @5xl:order-none">
+          <div className="su-sheet-pilot-order-1" style={MIN_W_0}>
             <SheetSectionSlab
               title="Abilities"
               // The rule's caption names the trees the cards come from (board 10).
@@ -298,7 +413,7 @@ export function PilotSheet({
               {model.abilityCards.length === 0 && model.unresolvedAbilities.length === 0 ? (
                 <EmptyState variant="quiet" body="No abilities learned yet." />
               ) : (
-                <div className="flex flex-col gap-5">
+                <div style={STACK_20}>
                   {/* The Generic tree every pilot has, then what this pilot owns,
                     each a full medium card so the action and range line and the
                     body read in Read. */}
@@ -311,9 +426,9 @@ export function PilotSheet({
                   )}
 
                   {model.unresolvedAbilities.length > 0 && (
-                    <div className="flex flex-col gap-2">
+                    <div style={STACK_8}>
                       {model.unresolvedAbilities.map((slug) => (
-                        <Panel key={slug} className="px-3 py-2.5 font-body text-sm text-wk-muted">
+                        <Panel key={slug} className="su-sheet-pilot-panel-text">
                           {slug}
                         </Panel>
                       ))}
@@ -324,9 +439,9 @@ export function PilotSheet({
             </SheetSectionSlab>
           </div>
         </div>
-        <div className="contents @5xl:flex @5xl:min-w-0 @5xl:flex-col @5xl:gap-6">
+        <div className="su-sheet-pilot-column">
           <SheetSectionCard title="Vitals" surface={readOnly ? 'paper' : 'frame'}>
-            <div className="flex w-full flex-col [&>*+*]:mt-[14px] [&>*+*]:border-t [&>*+*]:border-dashed [&>*+*]:border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] [&>*+*]:pt-[14px]">
+            <div className="su-sheet-pilot-vitals" style={VITALS}>
               <VitalGauge
                 label="HP"
                 value={hp}
@@ -373,13 +488,8 @@ export function PilotSheet({
                   {/* Read leaves an empty field out: Conditions prints only
                       when there is one to read. */}
                   {pilot.conditions.length > 0 && (
-                    <div className="min-w-0">
-                      <span
-                        className="mb-2 block font-cond text-badge font-bold uppercase leading-none tracking-caps"
-                        style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-                      >
-                        Conditions
-                      </span>
+                    <div style={MIN_W_0}>
+                      <span style={CONDITIONS_LABEL}>Conditions</span>
                       <Conditions conditions={[...pilot.conditions]} />
                     </div>
                   )}
@@ -389,19 +499,14 @@ export function PilotSheet({
                 // well past the identity card beside it; TP is a single narrow
                 // plate and Conditions is a short chip list, so neither needs a
                 // full row of its own and pairing them squares the two cards up.
-                <div className="flex w-full min-w-0 items-start gap-3">
+                <div style={TP_AND_CONDITIONS}>
                   <TpBlock
                     value={tp}
                     onChange={(v) => actions.patchPilot({ trainingPoints: v })}
                     editable
                   />
-                  <div className="min-w-0 flex-1">
-                    <span
-                      className="mb-2 block font-cond text-badge font-bold uppercase leading-none tracking-caps"
-                      style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-                    >
-                      Conditions
-                    </span>
+                  <div style={CONDITIONS_CELL}>
+                    <span style={CONDITIONS_LABEL}>Conditions</span>
                     <ConditionsEditor
                       conditions={pilot.conditions}
                       onChange={actions.handleConditionsChange}
@@ -413,11 +518,11 @@ export function PilotSheet({
             </div>
           </SheetSectionCard>
           {/* ===== Inventory (full-width band, printed pilot sheet bottom) ===== */}
-          <div className="order-2 min-w-0 @5xl:order-none">
+          <div className="su-sheet-pilot-order-2" style={MIN_W_0}>
             <SheetSectionSlab
               title="Inventory"
               count={
-                <span className={model.overCapacity ? 'text-status-bad' : undefined}>
+                <span style={model.overCapacity ? OVER_CAPACITY : undefined}>
                   {model.slotsUsed} / {model.slotsCap} slots
                 </span>
               }
@@ -432,7 +537,7 @@ export function PilotSheet({
               ) : readOnly ? (
                 // Read (board 10): the shortform pills, then a dashed box per
                 // slot still free, so capacity reads at a glance.
-                <div className="flex flex-wrap gap-2">
+                <div style={PILLS}>
                   {model.ordinaryEquipment.map((slug) => (
                     <PilotEquipmentItem
                       key={slug}
@@ -467,7 +572,7 @@ export function PilotSheet({
               ) : (
                 // Edit: one item to a row, each its pill with the controls under
                 // it — the narrow column has no room for two cards side by side.
-                <div className="flex flex-col gap-4">
+                <div style={STACK_16}>
                   {model.ordinaryEquipment.map((slug) => (
                     <PilotEquipmentItem
                       key={slug}
@@ -512,7 +617,7 @@ export function PilotSheet({
                 </div>
               )}
               {!readOnly && (
-                <div className="mt-3">
+                <div style={ADDER_ROW}>
                   <GenericEntryAdder
                     onAdd={(entry) => {
                       void actions.handleGenericInventoryChange([...model.genericInventory, entry])
@@ -526,11 +631,11 @@ export function PilotSheet({
           {/* ===== Linked Units — the assigned mech and the home crawler =====
               One line each in Read (board 10); full rows with Assign in Edit. */}
           {linkedUnits && (
-            <div className="order-2 min-w-0 @5xl:order-none">
+            <div className="su-sheet-pilot-order-2" style={MIN_W_0}>
               <SheetSectionSlab
                 id="linked-units"
                 title="Linked Units"
-                bodyClassName="flex flex-col gap-4"
+                bodyClassName="su-sheet-pilot-stack-16"
               >
                 {linkedUnits}
               </SheetSectionSlab>
@@ -545,7 +650,7 @@ export function PilotSheet({
           among the pilot's carried gear. */}
       {model.partners.length > 0 && (
         <SheetSectionSlab title="Partners" count={model.partners.length}>
-          <div className="flex flex-col gap-3">
+          <div style={STACK_12}>
             {model.partners.map((partner) => (
               <PartnerCard
                 key={partner.id}

@@ -24,7 +24,8 @@ export const srdEntityExternalLink: EntityExternalLinkBuilder = (entity) => {
       schemaName={schemaName}
       slug={getEntitySlug(entity)}
       entityName={entityName}
-      className="underline decoration-1 underline-offset-2 transition-opacity hover:opacity-70"
+      // `.srd-entity-external-link` (styles/entityRow.css): it fades on hover.
+      className="srd-entity-external-link"
     />
   )
 }

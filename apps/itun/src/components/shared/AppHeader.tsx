@@ -1,6 +1,7 @@
 import type { NavDrawerItem } from 'component-lib'
 import { AppBar, Badge, NavDrawer } from 'component-lib'
-import type { ElementType, ReactNode } from 'react'
+import { borderWidth, color } from 'component-lib/design/tokens'
+import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { SRD_SITE_URL } from 'salvageunion-reference'
 
 /**
@@ -41,15 +42,28 @@ import { SRD_SITE_URL } from 'salvageunion-reference'
 
 const BUY_HREF = 'https://leyline.press/collections/salvage-union'
 
+const BRAND_FRAME = {
+  borderColor: color.ink,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.hairline,
+  display: 'inline-flex',
+  flexShrink: 0,
+} satisfies CSSProperties
+
+// Narrower than the full rung's 8px inline padding.
+const BRAND_PLATE = { paddingInline: '6px' } satisfies CSSProperties
+
+// No inset ring: the outer span draws the ink frame, so the inverse plate's
+// own ring would double the seam.
+const BRAND_PLATE_INVERSE = { ...BRAND_PLATE, boxShadow: 'none' } satisfies CSSProperties
+
 /** ITUN's two-tone brand tag for the mobile drawer. */
 const ITUN_DRAWER_BRAND = (
-  <span className="inline-flex shrink-0 border border-ink">
-    <Badge shape="stamp" size="full" className="px-1.5">
+  <span style={BRAND_FRAME}>
+    <Badge shape="stamp" size="full" style={BRAND_PLATE}>
       In the Union
     </Badge>
-    {/* `ring-0`: the outer span draws the ink frame, so the inverse plate's own
-        ring would double the seam. */}
-    <Badge shape="stamp" size="full" surface="inverse" className="px-1.5 ring-0">
+    <Badge shape="stamp" size="full" surface="inverse" style={BRAND_PLATE_INVERSE}>
       Now
     </Badge>
   </span>
@@ -126,8 +140,10 @@ export function AppHeader({
             footItems={aboutLinks}
             extra={drawerExtra}
             LinkComponent={LinkComponent}
-            triggerClassName="p-1.5"
-            panelClassName="w-72"
+            // NavDrawer takes classes, not styles, here: its own padding and
+            // width are stylesheet rules these override (`styles/screens.css`).
+            triggerClassName="app-header__drawer-trigger"
+            panelClassName="app-header__drawer-panel"
           />
         </>
       }

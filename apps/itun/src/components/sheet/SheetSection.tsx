@@ -19,8 +19,16 @@
  * section-edit fields and per-card controls (StatBlocks carry no cue).
  */
 
-import { Button, cn, FOCUS_RING, Glyph, ModalShell, PICKER_MODAL_WIDTH } from 'component-lib'
-import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from 'react'
+import {
+  Button,
+  cn,
+  FOCUS_RING,
+  Glyph,
+  ModalShell,
+  PICKER_MODAL_WIDTH,
+  tokens,
+} from 'component-lib'
+import type { ComponentPropsWithoutRef, CSSProperties, ReactElement, ReactNode } from 'react'
 import { cloneElement, isValidElement } from 'react'
 
 // ---------------------------------------------------------------------------
@@ -28,19 +36,35 @@ import { cloneElement, isValidElement } from 'react'
 // :384-411). 2px border, radius 3, paper fill, 10.5px cond bold caps; the
 // `edit` default hovers to an ink fill, `done` is a filled deep-tone chip, and
 // `add` is a deep-tone outline with a circled-plus that fills on hover. The
-// 44px coarse-pointer floor (min-h-11) collapses to the 32px design height at
-// `sm`.
+// 44px coarse-pointer floor collapses to the 32px design height at `sm`.
+//
+// Everything with a hover, breakpoint or print variant — display, min-height
+// and the variant colours — is `.su-sheet-hbtn` in `styles/sheet/chrome.css`;
+// the rest is the style object below.
 // ---------------------------------------------------------------------------
 
 type HButtonVariant = 'edit' | 'done' | 'add'
 
-const HBTN_BASE = `inline-flex cursor-pointer items-center gap-1.5 rounded-card border-2 px-3 font-cond text-badge font-bold uppercase leading-none tracking-caps-wide whitespace-nowrap transition-colors min-h-11 sm:min-h-8 ${FOCUS_RING} print:hidden`
-
-const HBTN_VARIANT: Record<HButtonVariant, string> = {
-  edit: 'border-ink bg-paper text-ink hover:bg-ink hover:text-paper',
-  done: 'border-[color:var(--tone-deep,var(--color-ink))] bg-[color:var(--tone-deep,var(--color-ink))] text-paper hover:border-ink hover:bg-ink',
-  add: 'border-[color:var(--tone-deep,var(--color-ink))] bg-paper text-[color:var(--tone-deep,var(--color-ink))] hover:bg-[color:var(--tone-deep,var(--color-ink))] hover:text-paper',
-}
+const HBTN = {
+  cursor: 'pointer',
+  alignItems: 'center',
+  gap: tokens.space[6],
+  borderRadius: tokens.radius.card,
+  borderStyle: 'solid',
+  borderWidth: tokens.borderWidth.pill,
+  paddingInline: tokens.space[12],
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  textTransform: 'uppercase',
+  lineHeight: 1,
+  letterSpacing: tokens.tracking.capsWide,
+  whiteSpace: 'nowrap',
+  transitionProperty:
+    'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  transitionDuration: '150ms',
+} satisfies CSSProperties
 
 type HButtonProps = ComponentPropsWithoutRef<'button'> & {
   variant?: HButtonVariant
@@ -50,12 +74,18 @@ type HButtonProps = ComponentPropsWithoutRef<'button'> & {
 export function HButton({
   variant = 'edit',
   className,
+  style,
   type = 'button',
   children,
   ...props
 }: HButtonProps) {
   return (
-    <button type={type} className={cn(HBTN_BASE, HBTN_VARIANT[variant], className)} {...props}>
+    <button
+      type={type}
+      className={cn('su-sheet-hbtn', `su-sheet-hbtn--${variant}`, FOCUS_RING, className)}
+      style={{ ...HBTN, ...style }}
+      {...props}
+    >
       {children}
     </button>
   )
@@ -72,6 +102,19 @@ type SectionManageButtonProps = {
   className?: string
 }
 
+/** The circled plus: a 16px ring in the button's own colour. */
+const MANAGE_RING = {
+  display: 'flex',
+  height: tokens.space[16],
+  width: tokens.space[16],
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: tokens.radius.full,
+  border: `${tokens.borderWidth.pill} solid currentColor`,
+} satisfies CSSProperties
+
+const MANAGE_GLYPH = { height: tokens.space[8], width: tokens.space[8] } satisfies CSSProperties
+
 /**
  * Always-visible, always-ENABLED '+ Add' for a collection section header.
  * // TODO(redesign): rule-gate add/remove (TP / maxAbilities / slots / scrap
@@ -85,8 +128,8 @@ export function SectionManageButton({ label, onClick, className }: SectionManage
       onClick={onClick}
       className={className}
     >
-      <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-current">
-        <Glyph name="plus" className="h-2 w-2" />
+      <span style={MANAGE_RING}>
+        <Glyph name="plus" style={MANAGE_GLYPH} />
       </span>
       Manage {label}
     </HButton>
@@ -114,7 +157,7 @@ export function CardRemoveButton({ name, onRemove, className }: CardRemoveButton
       variant="danger"
       aria-label={`Remove ${name}`}
       onClick={onRemove}
-      className={cn('min-h-11 sm:min-h-6 print:hidden', className)}
+      className={cn('su-sheet-remove', className)}
     >
       &#10005; Remove
     </Button>
@@ -124,6 +167,11 @@ export function CardRemoveButton({ name, onRemove, className }: CardRemoveButton
 // ---------------------------------------------------------------------------
 // The ONE shared picker modal (collections + single-select pickers)
 // ---------------------------------------------------------------------------
+
+const PICKER_BODY = {
+  backgroundColor: tokens.color.paper,
+  padding: tokens.space[20],
+} satisfies CSSProperties
 
 type SheetPickerModalProps = {
   open: boolean
@@ -197,9 +245,9 @@ export function SheetPickerModal({
         if (!next) onClose()
       }}
       title={title}
-      maxWidth={maxWidth ?? 'max-w-[80vw]'}
+      maxWidth={maxWidth ?? 'su-sheet-picker-framed'}
     >
-      <div className="bg-paper p-5">{children}</div>
+      <div style={PICKER_BODY}>{children}</div>
     </ModalShell>
   )
 }
