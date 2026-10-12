@@ -12,7 +12,10 @@ name: PR gallery pages
 # gallery.json names that PR.
 #
 # Pages serves one site, so each run rebuilds all of it from every open PR's
-# newest artifact: a closed PR's gallery drops out at the next deploy.
+# newest artifact (a closed PR's gallery drops out at the next deploy) and from
+# the newest `preview-tour` a main run uploaded, at /tour/. A tour run
+# (`pr-gallery.yml` after a production deploy: event `workflow_run`) carries
+# no PR, so it rebuilds the site and links nothing.
 #
 # Owner setup, once: Settings → Pages → Source: GitHub Actions. The
 # `github-pages` Environment's branch policy is main (tools/environments.ts),
@@ -35,7 +38,8 @@ jobs:
   publish:
     name: Publish the PR galleries
     if: >-
-      github.event.workflow_run.event == 'pull_request' &&
+      (github.event.workflow_run.event == 'pull_request' ||
+        github.event.workflow_run.event == 'workflow_run') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest

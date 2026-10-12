@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from './index.js'
+import { SalvageUnionReference } from './index'
 
 describe('SalvageUnionReference.getAllBySchemaNames', () => {
   it('should return tagged results for a single schema', () => {

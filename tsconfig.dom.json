@@ -1,0 +1,10 @@
+{
+  // Shared base for the browser apps (srd, itun) and the packages they render
+  // through (component-lib, observability): the repo base plus the DOM and JSX.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "verbatimModuleSyntax": true,
+    "jsx": "react-jsx"
+  }
+}

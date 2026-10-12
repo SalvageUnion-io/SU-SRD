@@ -8,9 +8,9 @@
  * names its children by `EntityRef`, never by nesting their models.
  */
 
-import type { EntitySchemaName } from '../generated/schemaRegistry.generated.js'
-import type { SURefObjectContentBlock, SURefObjectTable } from '../schemas/index.js'
-import type { TableRow } from '../utils/tableRows.js'
+import type { EntitySchemaName } from '../generated/schemaRegistry.generated'
+import type { SURefObjectContentBlock, SURefObjectTable } from '../schemas/index'
+import type { TableRow } from '../utils/tableRows'
 
 /** An entity as something a form can name and link. */
 export type EntityRef = {

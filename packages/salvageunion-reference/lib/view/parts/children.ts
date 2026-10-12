@@ -4,17 +4,17 @@
  * `resolveNestedEntities.ts`, `resolveFoldedAction.ts` and `nestedSections.ts`.
  */
 
-import { extractVisibleActions } from '../../actionResolution.js'
-import { isAbility } from '../../entityGuards.js'
-import { resolveGrantedEntities } from '../../helpers.js'
-import { SalvageUnionReference } from '../../index.js'
-import { isBioTitanPattern } from '../../patterns.js'
+import { extractVisibleActions } from '../../actionResolution'
+import { isAbility } from '../../entityGuards'
+import { resolveGrantedEntities } from '../../helpers'
+import { SalvageUnionReference } from '../../index'
+import { isBioTitanPattern } from '../../patterns'
 import type {
   SURefEntity,
   SURefMetaAction,
   SURefMetaEntity,
   SURefObjectAnyPattern,
-} from '../../schemas/index.js'
+} from '../../schemas/index'
 
 /** A labelled group of nested entities. */
 export type NestedGroup = { label: string; entities: SURefEntity[] }

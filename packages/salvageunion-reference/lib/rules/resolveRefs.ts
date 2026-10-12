@@ -13,14 +13,14 @@
  * (the app root's GameDataReady gate guarantees this).
  */
 
-import { SalvageUnionReference } from '../index.js'
+import { SalvageUnionReference } from '../index'
 import type {
   SURefChassis,
   SURefCrawler,
   SURefCrawlerBay,
   SURefModule,
   SURefSystem,
-} from '../schemas/index.js'
+} from '../schemas/index'
 
 /**
  * A resolved row: the entity plus the `schemaName` `BaseModel` stamps on it.

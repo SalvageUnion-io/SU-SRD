@@ -1,4 +1,4 @@
-import { statesMechanicalChange } from '../lib/rules/rulesBearing.js'
+import { statesMechanicalChange } from '../lib/rules/rulesBearing'
 
 /**
  * Rules-parity audit (ADR-029 §5) — does content DENOTE the mechanical change

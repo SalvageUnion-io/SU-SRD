@@ -15,7 +15,7 @@
  * "core tree" are the rules' own boundaries, source is not.
  */
 
-import { scrapCostFor } from './scrap.js'
+import { scrapCostFor } from './scrap'
 
 /**
  * The ability shape creation legality reads (level 1–3 | 'L' | 'G' + tree).

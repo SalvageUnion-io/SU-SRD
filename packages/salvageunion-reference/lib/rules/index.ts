@@ -21,23 +21,23 @@
  * the package are listed; add a name when something imports it.
  */
 
-export type { AdvancementOption } from './advancement.js'
-export { advancementOptionsFor, originsForHybrid, resolveAdvancementTrees } from './advancement.js'
-export { liveAdvancementDataset, offeredAbilityTrees } from './advancementDataset.js'
-export { computeMechCapacity } from './capacity.js'
-export { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities } from './choiceCatalog.js'
-export { abilityContributions, sumContributions } from './contributions.js'
-export type { CoreRollBand, CoreRollResult } from './coreMechanic.js'
+export type { AdvancementOption } from './advancement'
+export { advancementOptionsFor, originsForHybrid, resolveAdvancementTrees } from './advancement'
+export { liveAdvancementDataset, offeredAbilityTrees } from './advancementDataset'
+export { computeMechCapacity } from './capacity'
+export { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities } from './choiceCatalog'
+export { abilityContributions, sumContributions } from './contributions'
+export type { CoreRollBand, CoreRollResult } from './coreMechanic'
 export {
   CORE_ROLL_BANDS,
   coreRollBand,
   describeOverloadOutcome,
   describePushOutcome,
   performCoreRoll,
-} from './coreMechanic.js'
-export { computeCrawlerCapacity } from './crawlerCapacity.js'
-export { isWeaponSystem } from './crawlerSystems.js'
-export type { CrawlerMutationInput, MechCreationBudget } from './creation.js'
+} from './coreMechanic'
+export { computeCrawlerCapacity } from './crawlerCapacity'
+export { isWeaponSystem } from './crawlerSystems'
+export type { CrawlerMutationInput, MechCreationBudget } from './creation'
 export {
   crawlerMaxSpBonus,
   crawlerWeaponSlots,
@@ -59,8 +59,8 @@ export {
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,
   pilotEquipmentPicksRemaining,
-} from './creation.js'
-export type { ChassisStats, StatBreakdown } from './derivedStats.js'
+} from './creation'
+export type { ChassisStats, StatBreakdown } from './derivedStats'
 export {
   crawlerMaxSP,
   crawlerMaxSPParts,
@@ -85,9 +85,9 @@ export {
   resolvePool,
   resolvePoolStart,
   unifiedMechConditions,
-} from './derivedStats.js'
-export { canActivateAction, clampHeat, performHeatCheck, performPush } from './heatCheck.js'
-export { enrichPilotSnapshot } from './pilotSnapshot.js'
+} from './derivedStats'
+export { canActivateAction, clampHeat, performHeatCheck, performPush } from './heatCheck'
+export { enrichPilotSnapshot } from './pilotSnapshot'
 export {
   resolveChassisRef,
   resolveCrawlerBayRef,
@@ -95,22 +95,24 @@ export {
   resolveInstalledRef,
   resolveModuleRef,
   resolveSystemRef,
-} from './resolveRefs.js'
-export { statesMechanicalChange } from './rulesBearing.js'
-export { scrapCostFor, tierUpgradeCost } from './scrap.js'
-export { evaluateSoftWarnings } from './softWarnings.js'
+} from './resolveRefs'
+export { statesMechanicalChange } from './rulesBearing'
+export type { AreaSalvageResult } from './salvage'
+export { performAreaSalvage } from './salvage'
+export { scrapCostFor, tierUpgradeCost } from './scrap'
+export { evaluateSoftWarnings } from './softWarnings'
 export type {
   CriticalDamageEffect,
   CriticalInjuryEffect,
   MechDamageEffect,
   PilotDamageEffect,
-} from './takeDamage.js'
+} from './takeDamage'
 export {
   applyMechDamage,
   applyPilotDamage,
   performCriticalDamage,
   performCriticalInjury,
-} from './takeDamage.js'
+} from './takeDamage'
 export type {
   HeatCheckEffect,
   MechSnapshot,
@@ -119,4 +121,4 @@ export type {
   SoftWarning,
   SoftWarningContext,
   TechLevel,
-} from './types.js'
+} from './types'

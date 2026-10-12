@@ -1,6 +1,6 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-import { LinkPreviewSurface } from '../components/shared/LinkPreviewSurface'
-import { pageTitle } from '../lib/pageTitle'
+import { LinkPreviewSurface } from '../../../components/shared/LinkPreviewSurface'
+import { pageTitle } from '../../../lib/pageTitle'
 
 /**
  * `/og/$kind/$id` — the render surface of a player thing's link preview

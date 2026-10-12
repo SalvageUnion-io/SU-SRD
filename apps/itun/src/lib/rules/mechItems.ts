@@ -1,5 +1,5 @@
 /**
- * mechItemRules — pure helpers for the mech sheet's per-item action economy
+ * mechItems — pure helpers for the mech sheet's per-item action economy
  * (plan 4.5, S12; rules B10–B13 and Repair: "damaged → Intact for half
  * Salvage Value in Scrap (min 1, Scrap TL ≥ item)").
  *
@@ -13,7 +13,7 @@ import type { Mech } from 'itun-domain/schemas/mech'
 import type { SURefMetaAction, SURefModule, SURefSystem } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
-import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
+import { scrapPoolBucket } from '../cargo/cargoTransfer'
 
 export type MechItem = SURefSystem | SURefModule
 

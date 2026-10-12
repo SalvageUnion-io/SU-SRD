@@ -3,11 +3,11 @@
  * and downtime procedures (ADR-021: a guide is never a wizard).
  */
 
-import { z } from '../../zod.js'
-import { IdSchema, NameSchema, NonNegativeIntegerSchema } from '../common.js'
-import { ChoiceConstraintsSchema, ChoiceOptionSchema } from './choices.js'
-import { ContentSchema } from './content.js'
-import { SchemaNameWithActionsSchema } from './references.js'
+import { z } from '../../zod'
+import { IdSchema, NameSchema, NonNegativeIntegerSchema } from '../common'
+import { ChoiceConstraintsSchema, ChoiceOptionSchema } from './choices'
+import { ContentSchema } from './content'
+import { SchemaNameWithActionsSchema } from './references'
 
 /**
  * Filter criteria for selecting entities in a guide step

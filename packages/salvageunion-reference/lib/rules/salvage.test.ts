@@ -6,8 +6,8 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { Roll } from 'salvageunion-reference/rules'
-import { AREA_SALVAGE_LABEL, areaSalvageBand, performAreaSalvage } from '../salvage'
+import { AREA_SALVAGE_LABEL, areaSalvageBand, performAreaSalvage } from './salvage'
+import type { Roll } from './types'
 
 /** Returns a Roll that always yields `value`, ignoring `sides`. */
 function fixedRoll(value: number): Roll {

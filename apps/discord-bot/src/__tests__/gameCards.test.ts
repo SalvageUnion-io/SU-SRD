@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { enforceContainerLimits } from '../container.js'
+import { enforceContainerLimits } from '../container'
 import {
   channelCard,
   crewCard,
@@ -11,9 +11,9 @@ import {
   ownerLabel,
   sheetUrl,
   shelfCard,
-} from '../gameCards.js'
-import type { CrewResult, OwnedEntity } from '../itun/types.js'
-import { blockStarting, cardText, cardTexts, cardUrl } from './cardText.js'
+} from '../gameCards'
+import type { CrewResult, OwnedEntity } from '../itun/types'
+import { blockStarting, cardText, cardTexts, cardUrl } from './cardText'
 
 /**
  * Card builders for the ITUN Game commands.
@@ -295,7 +295,7 @@ describe('crewCard', () => {
 
 describe('deep links', () => {
   test('a game links to its own route, not a query string', () => {
-    // /games/$gameId is the real TanStack route (games_.$gameId.tsx). A link
+    // /games/$gameId is the real TanStack route (games_/$gameId.tsx). A link
     // that 404s reads as the app having lost the game, not as the bot guessing.
     expect(gameUrl(WEB, 'g1')).toBe(`${WEB}/games/g1`)
   })

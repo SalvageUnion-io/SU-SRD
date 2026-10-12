@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PageShell } from 'component-lib'
-import { StarterSetRoster } from '../components/starterSet/StarterSetRoster'
-import { pageTitle } from '../lib/pageTitle'
+import { StarterSetRoster } from '../../components/starterSet/StarterSetRoster'
+import { pageTitle } from '../../lib/pageTitle'
 
 /**
  * `/starter` — the Starter Set, Leyline Press's pre-generated crew, as a

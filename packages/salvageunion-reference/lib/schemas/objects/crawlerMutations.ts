@@ -3,7 +3,7 @@
  * (e.g. the Battle crawler's extra weapon slot and SP bonus).
  */
 
-import { z } from '../../zod.js'
+import { z } from '../../zod'
 
 /**
  * Mutation type for crawler type bonuses (e.g. Battle crawler's extra weapon slot + SP)

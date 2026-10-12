@@ -4,7 +4,7 @@
  * The numeric half lives in `contributions.ts`.
  */
 
-import { z } from '../../zod.js'
+import { z } from '../../zod'
 
 /**
  * Whose state an effect changes (ADR-029).

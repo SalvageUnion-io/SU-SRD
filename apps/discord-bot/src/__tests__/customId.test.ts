@@ -9,7 +9,7 @@
  * must still render — just without a re-roll button).
  */
 import { describe, expect, test } from 'bun:test'
-import { makeCustomId, parseCustomId } from '../customId.js'
+import { makeCustomId, parseCustomId } from '../customId'
 
 describe('makeCustomId / parseCustomId', () => {
   test('roundtrips a namespaced action + payload', () => {

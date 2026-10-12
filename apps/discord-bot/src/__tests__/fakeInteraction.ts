@@ -3,7 +3,7 @@ import type {
   CommandExecuteInteraction,
   DirectMessageOutcome,
   SignedInteraction,
-} from '../commands/interactions.js'
+} from '../commands/interactions'
 
 /**
  * Fakes for the narrow interaction contracts in `commands/interactions.ts`.

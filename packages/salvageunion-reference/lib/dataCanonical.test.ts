@@ -14,9 +14,9 @@
  * `preload()`: that puts Zod and every schema back in both client bundles.
  */
 import { describe, expect, test } from 'bun:test'
-import { dataLoaders } from './generated/modelFactoryRegistry.generated.js'
-import { zodSchemaMap } from './generated/zodSchemaMap.generated.js'
-import { z } from './zod.js'
+import { dataLoaders } from './generated/modelFactoryRegistry.generated'
+import { zodSchemaMap } from './generated/zodSchemaMap.generated'
+import { z } from './zod'
 
 const schemaIds = Object.keys(dataLoaders)
 

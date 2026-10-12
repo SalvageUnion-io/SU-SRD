@@ -17,7 +17,7 @@
  * row (`downtime.spendUpkeep`, idempotent), and only the call that claimed it
  * draws the Scrap, so a second press or a second tab never charges twice.
  *
- * Rules run through `dashboardEconomy.ts`; the destructive Scrap Mech commits
+ * Rules run through `lib/rules/downtimeEconomy.ts`; the destructive Scrap Mech commits
  * through `transfer` as one all-or-nothing write (ADR-007).
  */
 
@@ -35,22 +35,22 @@ import {
   UPKEEP_SCRAP,
   upkeepShortfall,
 } from '../../lib/rules/crawlerEconomy'
-import { runWrite } from '../../lib/runWrite'
-import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
-import type { StepRule } from '../wizard/RuleBrief'
-import { RuleBrief } from '../wizard/RuleBrief'
 import {
   areaSalvageOutcome,
   craftOutcome,
   crawlerTechLevelOf,
   scrapMechOutcome,
-} from './dashboardEconomy'
+} from '../../lib/rules/downtimeEconomy'
+import { runWrite } from '../../lib/runWrite'
+import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import type { StepRule } from '../wizard/RuleBrief'
+import { RuleBrief } from '../wizard/RuleBrief'
 import { recordRoll } from './dashboardRolls'
 import type { BandBay, MajorModel } from './MajorFrame'
 import { MajorFrame } from './MajorFrame'
 import { MinorFrame } from './MinorFrame'
 import type { PlayStore } from './SlotRow'
-import { bayConditions, crawlerMinorModel, hullGauge, scrapLine } from './slotModels'
+import { bayConditions, crawlerMinorModel, hullGauge, scrapLine } from './slots.model'
 
 export function CrawlerMinor({
   crawler,

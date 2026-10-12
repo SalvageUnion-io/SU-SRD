@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import worker from '../index.js'
+import worker from '../index'
 
 /**
  * The `/health` endpoint.

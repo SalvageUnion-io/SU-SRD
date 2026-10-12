@@ -3,11 +3,11 @@
  * share this schema; only the stamped `schemaName` tells them apart.
  */
 
-import { z } from '../../zod.js'
-import { NonNegativeIntegerSchema, TechLevelSchema } from '../common.js'
-import { ContributionSchema } from './contributions.js'
-import { ChoiceEffectSchema } from './effects.js'
-import { StatsSchema } from './primitives.js'
+import { z } from '../../zod'
+import { NonNegativeIntegerSchema, TechLevelSchema } from '../common'
+import { ContributionSchema } from './contributions'
+import { ChoiceEffectSchema } from './effects'
+import { StatsSchema } from './primitives'
 
 /**
  * A system or module that can be installed on a mech

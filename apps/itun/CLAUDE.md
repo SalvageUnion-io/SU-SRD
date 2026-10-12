@@ -96,7 +96,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   `Partial<Mech>`). Every die is component-lib's Randsum `utils/dice.ts`.
 - **Play actions live on the Dashboard, not the Live Sheet.** Activation and
   heat check are assembled as patches in
-  `src/components/dashboard/dashboardRules.ts` (`activationPatch`,
+  `src/lib/rules/playActions.ts` (`activationPatch`,
   `heatCheckOncePatch`, `pushPatch`, `mechDamagePatch`, …) and applied by
   `useActionsDeck.ts` and the slots (`MechSlot.tsx`, `PilotSlot.tsx`,
   `CrawlerSlot.tsx`) as one write-through

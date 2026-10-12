@@ -13,7 +13,7 @@ import {
   craftOutcome,
   crawlerTechLevelOf,
   scrapMechOutcome,
-} from '../dashboardEconomy'
+} from '../downtimeEconomy'
 
 const crawler = (over: Record<string, unknown> = {}) => ({
   techLevel: 'tech-3',

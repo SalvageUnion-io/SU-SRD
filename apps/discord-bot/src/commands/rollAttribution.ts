@@ -1,9 +1,9 @@
 import { MessageFlags } from 'discord-api-types/v10'
 import { reportError } from 'observability/cloudflare'
-import type { ContainerData } from '../container.js'
-import { toContainer } from '../container.js'
-import type { EditReplyPayload } from './interactions.js'
-import { itun } from './itunReply.js'
+import type { ContainerData } from '../container'
+import { toContainer } from '../container'
+import type { EditReplyPayload } from './interactions'
+import { itun } from './itunReply'
 
 /**
  * Recording a Discord roll against the bound Game (ADR-030 Phase 6).

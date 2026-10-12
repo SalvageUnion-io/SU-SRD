@@ -3,10 +3,10 @@
  * distinct from the standalone `npcs` entity schema.
  */
 
-import { z } from '../../zod.js'
-import { NameSchema, NonNegativeIntegerSchema } from '../common.js'
-import { ChoicesSchema } from './choices.js'
-import { ContentSchema } from './content.js'
+import { z } from '../../zod'
+import { NameSchema, NonNegativeIntegerSchema } from '../common'
+import { ChoicesSchema } from './choices'
+import { ContentSchema } from './content'
 
 /**
  * NPC associated with an entity

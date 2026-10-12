@@ -8,19 +8,19 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { getModel } from '../helpers.js'
-import { EntitySchemaNames, findEntityBySlug } from '../index.js'
-import { getPatterns } from '../patterns.js'
-import type { SURefEnumSchemaName, SURefMetaEntity } from '../schemas/index.js'
-import type { DiscordCard } from './discordCard.js'
+import { getModel } from '../helpers'
+import { EntitySchemaNames, findEntityBySlug } from '../index'
+import { getPatterns } from '../patterns'
+import type { SURefEnumSchemaName, SURefMetaEntity } from '../schemas/index'
+import type { DiscordCard } from './discordCard'
 import {
   DISCORD_TONE_ACCENT,
   discordCard,
   discordCardParts,
   discordCardTextLength,
   linkTraitReferences,
-} from './discordCard.js'
-import { toEntityModel } from './toEntityModel.js'
+} from './discordCard'
+import { toEntityModel } from './toEntityModel'
 
 const need = <T>(value: T | undefined | null, label: string): T => {
   if (value == null) throw new Error(`fixture missing: ${label}`)

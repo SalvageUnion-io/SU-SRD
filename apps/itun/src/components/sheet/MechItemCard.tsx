@@ -36,8 +36,8 @@ import type { ScrapPool } from 'itun-domain/schemas/crawler'
 import type { ItemCondition } from 'itun-domain/schemas/itemCondition'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { MechItem, MechItemEconomy } from './mechItemRules'
-import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
+import type { MechItem, MechItemEconomy } from '../../lib/rules/mechItems'
+import { itemEconomy, repairPoolTl, repairScrapCost } from '../../lib/rules/mechItems'
 import { CardRemoveButton } from './SheetSection'
 
 /**

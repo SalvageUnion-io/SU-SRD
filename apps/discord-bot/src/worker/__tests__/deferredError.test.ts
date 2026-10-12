@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { InteractionResponseType } from 'discord-api-types/v10'
-import { ResponseSink, webhookRoutes } from '../adapter.js'
+import { ResponseSink, webhookRoutes } from '../adapter'
 
 /**
  * A deferred command that throws must still say something.

@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'bun:test'
-import { BaseModel } from './BaseModel.js'
+import { BaseModel } from './BaseModel'
 import {
   getPageReference,
   getSalvageValue,
   getSlotsRequired,
   getTechLevel,
   getTechLevelNumber,
-} from './entityFields.js'
-import { isAbility } from './entityGuards.js'
-import { EntitySchemaNames, SalvageUnionReference, SchemaToModelMap } from './index.js'
+} from './entityFields'
+import { isAbility } from './entityGuards'
+import { EntitySchemaNames, SalvageUnionReference, SchemaToModelMap } from './index'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {
@@ -250,7 +250,7 @@ describe('SalvageUnionReference.findAllIn', () => {
   })
 
   it('should find all systems with a specific trait', async () => {
-    const { extractActions } = await import('./actionResolution.js')
+    const { extractActions } = await import('./actionResolution')
     const energySystems = SalvageUnionReference.findAllIn('systems', (s) => {
       const resolvedActions = extractActions(s)
       return (

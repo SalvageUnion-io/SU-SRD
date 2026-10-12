@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import { inviteCommand } from '../commands/invite.js'
-import { setItunClient } from '../commands/itunReply.js'
-import type { InvitedResult } from '../inviteContainer.js'
-import { buildInviteDm, inviteUrl } from '../inviteContainer.js'
-import type { ItunClient } from '../itun/client.js'
-import { createItunClient } from '../itun/client.js'
-import type { InviteResult, ItunResult } from '../itun/types.js'
-import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
+import { inviteCommand } from '../commands/invite'
+import { setItunClient } from '../commands/itunReply'
+import type { InvitedResult } from '../inviteContainer'
+import { buildInviteDm, inviteUrl } from '../inviteContainer'
+import type { ItunClient } from '../itun/client'
+import { createItunClient } from '../itun/client'
+import type { InviteResult, ItunResult } from '../itun/types'
+import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
 /**
  * `/su invite @user` (ADR-039 §3).

@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'bun:test'
-import { checkAllFiles, checkFile, validateUUID } from './checkUniqueIdsLogic.js'
-import { CHECK_IDS, selectChecks } from './selectChecks.js'
-import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
-import { findReferenceErrors } from './validateReferencesLogic.js'
-import { findSlugCollisions } from './validateSlugsLogic.js'
+import { checkAllFiles, checkFile, validateUUID } from './checkUniqueIdsLogic'
+import { CHECK_IDS, selectChecks } from './selectChecks'
+import { findActionReferenceErrors } from './validateActionReferencesLogic'
+import { findReferenceErrors } from './validateReferencesLogic'
+import { findSlugCollisions } from './validateSlugsLogic'
 
 /**
  * Fixture tests for the four data validators that gate merges through

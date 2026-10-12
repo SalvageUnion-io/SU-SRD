@@ -9,7 +9,7 @@ One pilot's live-play surface in a Game (`apps/itun/src/components/dashboard/`).
 3. **§3 Reuse** — The display draws SRD entities with `ReferenceEntityCard` and tables with `RollTable`; never fork it.
 4. **§4 State** — Vitals, uses and cargo persist on the records through `entityStore.update`; mount, range, resolving and ejected live on the seat (`apps/itun/convex/seats.ts`).
    Rolls are Game rows in the change log, Downtime is the Game's `downtime` row, and maxima and crew status are derived, never stored.
-5. **§5 Rules** — A thin driver over `packages/salvageunion-reference/lib/rules`; `dashboardRules.ts` is glue, never math. Destructive results are the player's act (ADR-007).
+5. **§5 Rules** — A thin driver over `packages/salvageunion-reference/lib/rules`; `apps/itun/src/lib/rules/playActions.ts` is glue, never math. Destructive results are the player's act (ADR-007).
    - **§5.2 Action activation** — Activate → Roll → optional Push → Apply, economy derived per action; `useActionsDeck` feeds `DeckList` and `ResolvePanel`.
 6. **§6 Components** — Store-wired containers build view models their presentational halves render; the Game arrives through `useSeat`, `useBoardSources`, `useGameFeed` and `useDowntime`.
    New styling is style objects over tokens, plus ITUN `.su-dash-*` rules only where a state needs one (ADR-046).

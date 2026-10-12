@@ -33,13 +33,6 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
-import { runWrite } from '../../lib/runWrite'
-import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
-import type { StepRule } from '../wizard/RuleBrief'
-import { RuleBrief } from '../wizard/RuleBrief'
-import { activatableEffects } from './dashboardEffects'
-import { usePhoneForm } from './dashboardForm'
-import { recordRoll } from './dashboardRolls'
 import {
   critDamagePatch,
   describeCritDamage,
@@ -49,12 +42,19 @@ import {
   pushPatch,
   shutdownTogglePatch,
   VENT_PATCH,
-} from './dashboardRules'
+} from '../../lib/rules/playActions'
+import { runWrite } from '../../lib/runWrite'
+import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import type { StepRule } from '../wizard/RuleBrief'
+import { RuleBrief } from '../wizard/RuleBrief'
+import { activatableEffects } from './dashboardEffects'
+import { usePhoneForm } from './dashboardForm'
+import { recordRoll } from './dashboardRolls'
 import type { BandBay, BandButton, BandGauge, MajorModel } from './MajorFrame'
 import { MajorFrame, StorageBay } from './MajorFrame'
 import { MinorFrame } from './MinorFrame'
 import type { DamagePrompt, PlayStore } from './SlotRow'
-import { mechMinorModel, mechStats } from './slotModels'
+import { mechMinorModel, mechStats } from './slots.model'
 
 export function MechMinor({
   mech,

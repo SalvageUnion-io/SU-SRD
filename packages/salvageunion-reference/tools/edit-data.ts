@@ -25,9 +25,9 @@
 
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { EntityMatcher } from './editDataLogic.js'
-import { addEntity, setField, withId } from './editDataLogic.js'
-import { dataDir } from './loadData.js'
+import type { EntityMatcher } from './editDataLogic'
+import { addEntity, setField, withId } from './editDataLogic'
+import { dataDir } from './loadData'
 
 function parseArgs(argv: string[]): { flags: Record<string, string>; positional: string[] } {
   const flags: Record<string, string> = {}

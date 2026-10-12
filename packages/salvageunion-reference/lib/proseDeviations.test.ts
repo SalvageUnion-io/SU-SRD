@@ -2,9 +2,9 @@
  * Enforces the printed-name section of the prose-deviation allowlist, `proseDeviations.ts`.
  */
 import { describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from './index.js'
-import type { NameDeviation } from './proseDeviations.js'
-import { NAME_DEVIATIONS } from './proseDeviations.js'
+import { SalvageUnionReference } from './index'
+import type { NameDeviation } from './proseDeviations'
+import { NAME_DEVIATIONS } from './proseDeviations'
 
 const named = (schema: NameDeviation['schema'], name: string) =>
   SalvageUnionReference[schema].all().find((e) => 'name' in e && e.name === name)

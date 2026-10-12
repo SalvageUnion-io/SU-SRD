@@ -10,8 +10,8 @@
  * the system references. So a system is a weapon iff any of its resolved
  * actions deals damage (the action has a `damage` payload).
  */
-import { SalvageUnionReference } from '../index.js'
-import type { SURefSystem } from '../schemas/index.js'
+import { SalvageUnionReference } from '../index'
+import type { SURefSystem } from '../schemas/index'
 
 /**
  * True when `system` is a Weapons System — i.e. at least one of its resolved

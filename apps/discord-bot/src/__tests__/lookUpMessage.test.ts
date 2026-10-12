@@ -5,10 +5,10 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import { lookUpMessageCommand, lookUpMessageContainer } from '../commands/lookUpMessage.js'
-import { findTerms } from '../termFinder.js'
-import { cardText } from './cardText.js'
-import { fakeExecute } from './fakeInteraction.js'
+import { lookUpMessageCommand, lookUpMessageContainer } from '../commands/lookUpMessage'
+import { findTerms } from '../termFinder'
+import { cardText } from './cardText'
+import { fakeExecute } from './fakeInteraction'
 
 describe('findTerms', () => {
   test('finds a trait and a roll-table row a player quotes, in order', () => {

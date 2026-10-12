@@ -1,8 +1,8 @@
 import type { SlashCommandSubcommandGroupBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
-import { channelCard, denialMessage, ITUN_ORIGIN } from '../gameCards.js'
-import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-import { itun, respondWithItun } from './itunReply.js'
+import { channelCard, denialMessage, ITUN_ORIGIN } from '../gameCards'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
+import { itun, respondWithItun } from './itunReply'
 
 /**
  * `/su game bind | unbind | info` — the channel↔Game link (ADR-030 Phase 6).

@@ -10,9 +10,9 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import { buildTableLookupMessage, lookupCommand } from '../commands/lookup.js'
-import type { ReplyArg } from './fakeInteraction.js'
-import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
+import { buildTableLookupMessage, lookupCommand } from '../commands/lookup'
+import type { ReplyArg } from './fakeInteraction'
+import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
 /** Shared narrow-interaction fakes; see fakeInteraction.ts. */
 function mockChatInput(entity: string) {

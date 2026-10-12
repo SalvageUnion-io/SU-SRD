@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import { createItunClient, interpret } from '../itun/client.js'
+import { createItunClient, interpret } from '../itun/client'
 
 /**
  * The bot's ITUN client.

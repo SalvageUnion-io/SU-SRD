@@ -11,7 +11,7 @@ import type {
   SURefMetaEntity,
   SURefObjectAnyPattern,
   SURefObjectBioTitanPattern,
-} from './schemas/index.js'
+} from './schemas/index'
 
 /**
  * Extract patterns from an entity

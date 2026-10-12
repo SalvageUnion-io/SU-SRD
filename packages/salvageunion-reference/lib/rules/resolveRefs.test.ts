@@ -3,7 +3,7 @@
  * Uses real reference data: preloaded via the shared test preload.
  */
 import { describe, expect, test } from 'bun:test'
-import { getEntitySlug, SalvageUnionReference } from '../index.js'
+import { getEntitySlug, SalvageUnionReference } from '../index'
 import {
   resolveChassisRef,
   resolveCrawlerBayRef,
@@ -11,7 +11,7 @@ import {
   resolveInstalledRef,
   resolveModuleRef,
   resolveSystemRef,
-} from './resolveRefs.js'
+} from './resolveRefs'
 
 const first = <T>(rows: readonly T[]): T => {
   const row = rows[0]

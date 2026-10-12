@@ -29,7 +29,7 @@
  *   - the Bio `SheetDescription` section (#409) — folded into the Identity
  *     card instead as an extra field (see `PilotIdentityPanel`'s Bio field).
  *   - the Crawler Level slab (#410) — `resolveEffectiveCrawlerLevel` is
- *     PRESERVED (in `pilotSheetModel`, still scaling the Modification-style
+ *     PRESERVED (in `pilotSheet.model`, still scaling the Modification-style
  *     choice caps); only the manual-fallback editor UI is dropped.
  * The always-live Vitals gauges and per-card activation (Spend AP, Use /
  * Restock, condition cycling) are KEPT — only the play-control PANELS drop.
@@ -38,7 +38,7 @@
  *
  * This file is now the RENDER, and only the render. The two jobs that used to
  * share it are its siblings:
- *   - `pilotSheetModel.ts` — everything derived (vitals maxima, provenance
+ *   - `pilotSheet.model.ts` — everything derived (vitals maxima, provenance
  *     ledgers, the ability cards, inventory capacity, the linked crawler).
  *   - `pilotSheetActions.ts` — every write, all of them through one `write()`
  *     that reads the freshest record and handles the offline refusal.
@@ -80,8 +80,8 @@ import {
   PilotAbilityItem,
   PilotEquipmentItem,
 } from './PilotSheetItems'
+import { usePilotSheetModel } from './pilotSheet.model'
 import { usePilotSheetActions } from './pilotSheetActions'
-import { usePilotSheetModel } from './pilotSheetModel'
 import { SectionManageButton, SheetPickerModal } from './SheetSection'
 
 // ---------------------------------------------------------------------------

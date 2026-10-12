@@ -12,15 +12,15 @@
  * The package barrel (`lib/index.ts`) re-exports the names consumers use.
  */
 
-import { getModel } from './helpers.js'
-import { getLoadedModelBySchemaId } from './ModelFactory.js'
-import { getPatterns } from './patterns.js'
+import { getModel } from './helpers'
+import { getLoadedModelBySchemaId } from './ModelFactory'
+import { getPatterns } from './patterns'
 import type {
   SURefEntity,
   SURefEnumSchemaName,
   SURefMetaEntity,
   SURefObjectAnyPattern,
-} from './schemas/index.js'
+} from './schemas/index'
 
 /** A slug no row carries any more, and the pattern it now names. */
 export type FormerSlug = {

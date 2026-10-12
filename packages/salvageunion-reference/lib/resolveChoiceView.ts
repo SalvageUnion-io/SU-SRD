@@ -27,7 +27,7 @@ import type {
   SURefObjectContentBlock,
   SURefObjectDataValue,
   SURefObjectTrait,
-} from './schemas/index.js'
+} from './schemas/index'
 
 /**
  * Selections keyed by choice id, each holding the selected option values.

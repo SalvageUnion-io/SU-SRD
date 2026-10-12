@@ -124,7 +124,7 @@ describe('hydration directives', () => {
       // A fresh process is the only place this is observable — the test preload
       // has already loaded everything in THIS one.
       const probe = `
-        await import('./src/components/EntityView.tsx')
+        await import('./src/components/EntityView')
         const { SalvageUnionReference } = await import('salvageunion-reference')
         console.log(SalvageUnionReference.isLoaded('chassis') ? 'loaded' : 'not-loaded')
       `

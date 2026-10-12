@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { registry } from '../lib/schemas/registry.js'
-import { ensureGenerated, inputsHash } from './ensureGenerated.js'
+import { registry } from '../lib/schemas/registry'
+import { ensureGenerated, inputsHash } from './ensureGenerated'
 
 const PACKAGE_DIR = join(import.meta.dir, '..')
 

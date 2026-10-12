@@ -8,17 +8,17 @@
  * (SURefObject*), which have no registry entry, are written below.
  */
 
-import type { z } from '../zod.js'
+import type { z } from '../zod'
 
-export type * from '../generated/entityTypes.generated.js'
-export * from './common.js'
-export * from './entities.js'
+export type * from '../generated/entityTypes.generated'
+export * from './common'
+export * from './entities'
 // Re-export all schemas
-export * from './enums.js'
-export * from './objects.js'
+export * from './enums'
+export * from './objects'
 
 // Import schemas for type inference
-import type { SchemaNameSchema } from './enums.js'
+import type { SchemaNameSchema } from './enums'
 import type {
   AdvancedClassSchema,
   BioTitanPatternSchema,
@@ -36,7 +36,7 @@ import type {
   TableContentSchema,
   TableSchema,
   TraitSchema,
-} from './objects.js'
+} from './objects'
 
 // Inferred types, exported under the SURef* prefix used across the monorepo.
 

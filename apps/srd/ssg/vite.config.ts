@@ -13,7 +13,7 @@ import react from '@vitejs/plugin-react-swc'
 import { sentrySourcemaps } from 'observability/vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
-import { WORKBOX_OPTIONS } from './pwa.ts'
+import { WORKBOX_OPTIONS } from './pwa'
 
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
 const outDir = fileURLToPath(new URL('../dist', import.meta.url))

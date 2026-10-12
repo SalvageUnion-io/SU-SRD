@@ -42,7 +42,7 @@
  * ## What lives where
  *
  * This file is now the RENDER, and only the render. Its two siblings:
- *   - `mechSheetModel.ts` — the derived model (SP/EP/Heat maxima and their
+ *   - `mechSheet.model.ts` — the derived model (SP/EP/Heat maxima and their
  *     provenance ledgers, slot capacity, the chassis-stats strip, cargo).
  *   - `mechSheetActions.ts` — every write, all of them through one `write()`
  *     that reads the freshest record and handles the offline refusal.
@@ -71,6 +71,7 @@ import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
+import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
@@ -78,11 +79,10 @@ import { EntityGridRow } from './EntityGrid'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
 import { MechItemCard } from './MechItemCard'
-import { resolveModule, resolveSystem } from './mechItemRules'
+import type { ChassisLike } from './mechSheet.model'
+import { useMechSheetModel } from './mechSheet.model'
 import type { ItemKind } from './mechSheetActions'
 import { useMechSheetActions } from './mechSheetActions'
-import type { ChassisLike } from './mechSheetModel'
-import { useMechSheetModel } from './mechSheetModel'
 import { PartnerCard } from './PartnerCard'
 import { SheetHero } from './SheetHero'
 import { SectionManageButton, SheetPickerModal } from './SheetSection'

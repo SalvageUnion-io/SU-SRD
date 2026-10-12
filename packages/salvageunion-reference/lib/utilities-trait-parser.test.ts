@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { findEntityBySlug, getDataMaps, nameToSlug } from './index.js'
-import { parseTraitReferences, plainTraitText, replaceTraitReferences } from './traitText.js'
+import { findEntityBySlug, getDataMaps, nameToSlug } from './index'
+import { parseTraitReferences, plainTraitText, replaceTraitReferences } from './traitText'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {

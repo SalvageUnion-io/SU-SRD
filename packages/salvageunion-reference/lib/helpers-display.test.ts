@@ -12,10 +12,10 @@ import {
   normalizeSchemaName,
   resolveActivationCurrency,
   resolveGrantedEntities,
-} from './helpers.js'
-import type { SURefEntity } from './index.js'
-import { SalvageUnionReference } from './index.js'
-import { entityFixture, malformed } from './testing.js'
+} from './helpers'
+import type { SURefEntity } from './index'
+import { SalvageUnionReference } from './index'
+import { entityFixture, malformed } from './testing'
 
 /**
  * The read layer both apps go through: schema lookup, grant resolution, facet

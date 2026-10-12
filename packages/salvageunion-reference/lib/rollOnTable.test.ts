@@ -8,9 +8,9 @@ function defined<T>(value: T | null | undefined): T {
   return value
 }
 
-import { SalvageUnionReference } from './index.js'
-import { rollOnTable } from './rollOnTable.js'
-import { isColumnsTable } from './utils/resultForTable.js'
+import { SalvageUnionReference } from './index'
+import { rollOnTable } from './rollOnTable'
+import { isColumnsTable } from './utils/resultForTable'
 
 function fixedRoller(...rolls: number[]) {
   const queue = [...rolls]

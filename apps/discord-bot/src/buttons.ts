@@ -10,16 +10,16 @@
  */
 
 import { MessageFlags } from 'discord-api-types/v10'
-import type { CommandButtonInteraction } from './commands/interactions.js'
-import type { LookupMessage } from './commands/lookup.js'
-import { buildLookupMessage, buildTableLookupMessage } from './commands/lookup.js'
-import { buildPostedRollMessage, buildRollMessage, buildSeeTableMessage } from './commands/roll.js'
-import { attributeRoll } from './commands/rollAttribution.js'
-import type { ContainerData } from './container.js'
-import { toContainer } from './container.js'
-import { decodeRollRequest, parseCustomId } from './customId.js'
-import { d20ForTable } from './dice.js'
-import { entityFromKey, parseViewPayload, patternPeek } from './lookupCard.js'
+import type { CommandButtonInteraction } from './commands/interactions'
+import type { LookupMessage } from './commands/lookup'
+import { buildLookupMessage, buildTableLookupMessage } from './commands/lookup'
+import { buildPostedRollMessage, buildRollMessage, buildSeeTableMessage } from './commands/roll'
+import { attributeRoll } from './commands/rollAttribution'
+import type { ContainerData } from './container'
+import { toContainer } from './container'
+import { decodeRollRequest, parseCustomId } from './customId'
+import { d20ForTable } from './dice'
+import { entityFromKey, parseViewPayload, patternPeek } from './lookupCard'
 
 /**
  * A `su:lookup` payload: an entry key (`schemaName::slug`, from "Post to

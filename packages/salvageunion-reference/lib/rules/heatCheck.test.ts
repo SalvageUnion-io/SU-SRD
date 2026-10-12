@@ -13,8 +13,8 @@ import {
   performHeatCheck,
   performPush,
   reactorOverloadOutcome,
-} from './heatCheck.js'
-import type { Roll } from './types.js'
+} from './heatCheck'
+import type { Roll } from './types'
 
 /** Returns a Roll that yields the given values in order, ignoring `sides`. */
 function seqRoll(...values: number[]): Roll {

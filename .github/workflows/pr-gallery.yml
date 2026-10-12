@@ -13,22 +13,41 @@ name: PR gallery
 # staging or production backend. Publishing, which needs `pages: write`, runs
 # in the separate `workflow_run` workflow, from main's code.
 #
+# THE PREVIEW TOUR is the same gallery shot from main after every successful
+# production deploy (the `workflow_run` trigger), uploaded as `preview-tour`;
+# `pr-gallery-pages.yml` publishes it at /<owner>.github.io/<repo>/tour/. Only
+# a push deploy counts: a dispatched rollback deploys an older commit than the
+# one this would check out, so the last tour stands rather than mislabel one.
+#
 # Not a required check: a red gallery never blocks a merge.
+#
+# zizmor's dangerous-triggers is suppressed: the `workflow_run` leg fires only
+# for a same-repository push to main, checks out that commit, and holds the
+# same read-only token and no secret as the PR leg.
 on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+  workflow_run: # zizmor: ignore[dangerous-triggers]
+    workflows: [Deploy (Cloudflare)]
+    types: [completed]
 
 permissions: {}
 
 concurrency:
-  group: pr-gallery-${{ github.event.pull_request.number }}
+  group: pr-gallery-${{ github.event.pull_request.number || 'tour' }}
   cancel-in-progress: true
 
 jobs:
   shoot:
     name: Shoot the PR gallery
-    if: ${{ !github.event.pull_request.draft }}
+    if: >-
+      (github.event_name == 'pull_request' && !github.event.pull_request.draft) ||
+      (github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 40
     permissions:
@@ -37,6 +56,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # The deployed commit on the tour leg; the PR's merge commit otherwise.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
 
       - name: Setup Bun
@@ -108,21 +129,25 @@ jobs:
             }
           done
 
+      # A tour passes no --pr: its gallery.json carries `pr: null`, which is
+      # how gallery-pages.ts tells the tour from a PR's gallery.
       - name: Shoot the gallery
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha }}
         run: >-
           bun run gallery --srd http://127.0.0.1:4321 --itun http://localhost:5173
-          --signed-in --pr "$PR_NUMBER" --sha "$HEAD_SHA" --out gallery
+          --signed-in ${PR_NUMBER:+--pr "$PR_NUMBER"} --sha "$HEAD_SHA" --out gallery
 
+      # The tour keeps 90 days: Pages republishes the newest one on every
+      # rebuild, so a stretch with no deploy must not expire it.
       - name: Upload the gallery
         if: ${{ !cancelled() && hashFiles('gallery/index.html') != '' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: pr-gallery-${{ github.event.pull_request.number }}
+          name: ${{ github.event.pull_request.number && format('pr-gallery-{0}', github.event.pull_request.number) || 'preview-tour' }}
           path: gallery
-          retention-days: 30
+          retention-days: ${{ github.event.pull_request.number && 30 || 90 }}
 
       - name: Link the gallery from the run summary
         if: ${{ !cancelled() && hashFiles('gallery/index.html') != '' }}
@@ -132,11 +157,16 @@ jobs:
           REPO: ${{ github.event.repository.name }}
         run: |
           owner=$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')
+          if [ -n "$PR_NUMBER" ]; then
+            title="PR gallery" path="$PR_NUMBER" artifact="pr-gallery-$PR_NUMBER"
+          else
+            title="Preview tour" path="tour" artifact="preview-tour"
+          fi
           {
-            echo "### PR gallery"
+            echo "### $title"
             echo ""
             echo "Published by **PR gallery pages** once this run completes:"
-            echo "https://${owner}.github.io/${REPO}/${PR_NUMBER}/"
+            echo "https://${owner}.github.io/${REPO}/${path}/"
             echo ""
-            echo "The \`pr-gallery-${PR_NUMBER}\` artifact above holds the same files."
+            echo "The \`${artifact}\` artifact above holds the same files."
           } >> "$GITHUB_STEP_SUMMARY"

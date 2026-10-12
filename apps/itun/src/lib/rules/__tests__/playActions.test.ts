@@ -1,5 +1,5 @@
 /**
- * Tests for dashboardRules — the Dashboard's pure patch builders. Each function is
+ * Tests for playActions — the Dashboard's pure patch builders. Each function is
  * driven with an injected deterministic `Roll` and asserted on the exact
  * `Partial<Mech>` / `Partial<Pilot>` it produces, so the Phase-5 button/action
  * handlers can't drift from the rules engine (ADR-006/ADR-007).
@@ -10,8 +10,8 @@
 import { describe, expect, test } from 'bun:test'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
-import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
-import type { PlayAction } from '../dashboardRules'
+import { mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
+import type { PlayAction } from '../playActions'
 import {
   actionInRange,
   actionReachable,
@@ -36,7 +36,7 @@ import {
   shutdownTogglePatch,
   tabMatchesAction,
   VENT_PATCH,
-} from '../dashboardRules'
+} from '../playActions'
 
 /** A deterministic roller that returns the queued values, then 20. */
 function seqRoll(values: number[]): Roll {

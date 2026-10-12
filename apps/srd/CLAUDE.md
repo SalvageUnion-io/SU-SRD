@@ -55,7 +55,8 @@ export const aboutPage: PageModule = {
 }
 ```
 
-It only builds if it is imported and `register(…)`ed in
+Files are kebab-case, `[param]`s as in `pattern` (which sets the URL). It only
+builds if it is imported and `register(…)`ed in
 [`ssg/routes.ts`](ssg/routes.ts). That file is the one place to read to know what
 the site emits. A finished document with no data behind it is not a route at
 all — `/greembeem` ships as `public/greembeem/index.html`, which Vite copies
@@ -112,7 +113,7 @@ smoke, bundle-budget, JSON API and axe-core (`a11y.e2e.ts`) specs against that
 ## Key Directories
 
 - `ssg/` - the static-site generator (build-time only)
-- `src/pages/` - `*.page.tsx` route modules, registered in `ssg/routes.ts`
+- `src/pages/` - `*.page.tsx` route modules (above)
 - `src/endpoints/` - `*.ts` endpoint modules (JSON, llms.txt, search index)
 - `src/runtime/` - `Island.tsx`, `islandRegistry.ts`, `islands.client.ts`,
   `styles.entry.ts`, `assets.entry.ts`

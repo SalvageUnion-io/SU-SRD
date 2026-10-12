@@ -5,9 +5,9 @@
  * stay in `theme.css`, since this package knows no CSS.
  */
 
-import { getBlackMarket, getTechLevel, getTechLevelNumber } from '../../entityFields.js'
-import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index.js'
-import { isDoEntity, isHybridTree, schemaDomain } from './kind.js'
+import { getBlackMarket, getTechLevel, getTechLevelNumber } from '../../entityFields'
+import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index'
+import { isDoEntity, isHybridTree, schemaDomain } from './kind'
 
 /** A guide's authored `guideTone` name → the token it paints. */
 const GUIDE_TONE: Record<string, string> = {

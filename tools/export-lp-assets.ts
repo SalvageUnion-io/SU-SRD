@@ -49,7 +49,7 @@
 import { createHash } from 'node:crypto'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve, sep } from 'node:path'
-import { credentialsFromEnv, listObjects, r2Client } from './lib/r2.ts'
+import { credentialsFromEnv, listObjects, r2Client } from './lib/r2'
 
 const DEFAULT_BUCKET = 'su-lp-assets'
 

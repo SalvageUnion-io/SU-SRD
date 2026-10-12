@@ -19,7 +19,7 @@ import type {
   PilotSnapshot,
   SoftWarning,
   SoftWarningContext,
-} from './types.js'
+} from './types'
 
 // ---------------------------------------------------------------------------
 // Internal helpers

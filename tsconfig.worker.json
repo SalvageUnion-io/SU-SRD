@@ -1,0 +1,12 @@
+{
+  // Shared base for the Worker-only code (discord-bot, su-assets) and the
+  // packages the bot imports (salvageunion-reference, itun-domain): the repo
+  // base plus the workerd runtime globals. `wrangler types
+  // --include-runtime=false` writes only each Worker's `Env`; under
+  // `skipLibCheck` a missing runtime type is not an error — `R2Bucket` would
+  // silently be `any` — so the package must stay listed here.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["@cloudflare/workers-types", "node", "bun-types"]
+  }
+}

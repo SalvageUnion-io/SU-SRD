@@ -9,12 +9,12 @@
  * package-internal.
  */
 
-import { z } from '../../zod.js'
-import { IdSchema, NameSchema, NonNegativeIntegerSchema } from '../common.js'
-import { DamageTypeSchema, SchemaNameSchema } from '../enums.js'
-import { ContentSchema } from './content.js'
-import { ChoiceEffectSchema } from './effects.js'
-import { SystemModuleSchema } from './systemModule.js'
+import { z } from '../../zod'
+import { IdSchema, NameSchema, NonNegativeIntegerSchema } from '../common'
+import { DamageTypeSchema, SchemaNameSchema } from '../enums'
+import { ContentSchema } from './content'
+import { ChoiceEffectSchema } from './effects'
+import { SystemModuleSchema } from './systemModule'
 
 /**
  * Choice options schema

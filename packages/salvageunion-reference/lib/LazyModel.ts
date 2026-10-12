@@ -1,5 +1,5 @@
-import { BaseModel } from './BaseModel.js'
-import { SchemaNotLoadedError } from './SchemaNotLoadedError.js'
+import { BaseModel } from './BaseModel'
+import { SchemaNotLoadedError } from './SchemaNotLoadedError'
 
 /**
  * A BaseModel subclass that guards all data-access methods behind a load

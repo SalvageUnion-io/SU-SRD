@@ -8,13 +8,13 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { abilityContributions, resolveAmount, sumContributions } from './contributions.js'
+import { abilityContributions, resolveAmount, sumContributions } from './contributions'
 import {
   mechMaxCargoParts,
   mechMaxHeatParts,
   mechMaxSPParts,
   pilotMaxHPParts,
-} from './derivedStats.js'
+} from './derivedStats'
 
 describe('resolveAmount', () => {
   it('passes a plain integer through', () => {

@@ -32,6 +32,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Imports `itun-domain/botWire` as a type only: changing it is a cross-package change.
 9. **itun-domain**
    Zod schemas, link/crew/downtime rules and bot wire types for ITUN, Convex and the bot; import by subpath.
+   Rules: pure → reference `lib/rules`; shared → here; client → `apps/itun/src/lib/rules`; `check rules-home` bars Convex→`src/`.
 10. **Data flow and connection modes**
     Records store slug refs, resolved at render; ITUN preloads once in `GameDataReady.tsx`.
     `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).
@@ -39,7 +40,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `apps/itun/convex/`: bodies are opaque (`v.any()`), Zod parses before every mutation; an entity is in a Game or on a Shelf.
     Every store commits through a `commit*` in `apps/itun/src/stores/`; `containerParity.test.ts` asserts each has a table.
 12. **No device cache** (D9, [spike](spikes/d9-offline-cache.md))
-    No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable.
+    No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/offline.e2e.ts` pins both offline cases.
 13. **Zustand stores**
     `apps/itun/src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs.
     A refused write changes nothing; no TanStack Query, reads are `src/hooks/entities/` and `convex/react`.
@@ -92,7 +93,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `deploy-cloudflare.yml` on push to `main`: plan → build → `push-convex` → deploy → smoke → record (tag `deployed/cloudflare`).
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back.
 30. **Preview deploys**
-    `gh workflow run deploy-preview.yml --ref <branch>` → `preview-su-srd` / `preview-su-itun.alxjrvs.workers.dev` on staging Convex.
+    `gh workflow run deploy-preview.yml --ref <branch>`, and each `design-refresh` push → `preview-su-srd` / `preview-su-itun.alxjrvs.workers.dev` on staging Convex.
     The owner approves the `preview` Environment; staging data persists across branches.
 31. **Dependencies**
     Dependabot updates Actions only; Bun deps by hand, pinned exactly, with a 3-day `bunfig.toml` cooldown.

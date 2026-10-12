@@ -5,8 +5,7 @@
  *
  * Rejected:
  *   - Storing patterns as a flag/boolean on Mech records: would require a
- *     WHERE-like filter on every mech list query (IDB has no native index on
- *     boolean columns without an explicit index creation step). Couples two
+ *     WHERE-like filter on every mech list query. Couples two
  *     logically separate concerns: "live mech" vs "reusable template".
  *
  * Accepted:

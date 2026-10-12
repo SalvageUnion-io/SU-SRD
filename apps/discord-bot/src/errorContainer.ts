@@ -17,10 +17,10 @@
 import { ButtonStyle } from 'discord-api-types/v10'
 import type { SURefRollTable } from 'salvageunion-reference'
 import { searchIn } from 'salvageunion-reference'
-import type { ButtonSpec, ContainerData } from './container.js'
-import { encodeRollRequest, makeCustomId } from './customId.js'
-import { NEUTRAL_ACCENT } from './format.js'
-import { rollHeadline } from './rollContainer.js'
+import type { ButtonSpec, ContainerData } from './container'
+import { encodeRollRequest, makeCustomId } from './customId'
+import { NEUTRAL_ACCENT } from './format'
+import { rollHeadline } from './rollContainer'
 
 /** How many recovery buttons to offer. Three fits one row without crowding. */
 const SUGGESTIONS = 3

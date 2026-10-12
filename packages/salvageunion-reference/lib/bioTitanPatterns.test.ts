@@ -6,10 +6,10 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { extractPatternActions } from './actionResolution.js'
-import { resolveFormerSlug } from './formerSlugs.js'
-import { SalvageUnionReference } from './index.js'
-import { getPatterns, isBioTitanPattern } from './patterns.js'
+import { extractPatternActions } from './actionResolution'
+import { resolveFormerSlug } from './formerSlugs'
+import { SalvageUnionReference } from './index'
+import { getPatterns, isBioTitanPattern } from './patterns'
 
 function typhon() {
   const found = SalvageUnionReference.BioTitans.getByName('Typhon')

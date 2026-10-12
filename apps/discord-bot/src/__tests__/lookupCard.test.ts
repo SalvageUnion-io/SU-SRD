@@ -19,11 +19,11 @@ import {
   isSchemaName,
   SalvageUnionReference,
 } from 'salvageunion-reference'
-import type { ButtonSpec, ContainerData } from '../container.js'
-import { enforceContainerLimits } from '../container.js'
-import { NEUTRAL_ACCENT } from '../format.js'
-import { lookupCard, parseViewPayload, patternPeek } from '../lookupCard.js'
-import { cardText } from './cardText.js'
+import type { ButtonSpec, ContainerData } from '../container'
+import { enforceContainerLimits } from '../container'
+import { NEUTRAL_ACCENT } from '../format'
+import { lookupCard, parseViewPayload, patternPeek } from '../lookupCard'
+import { cardText } from './cardText'
 
 type Entity = SURefEntity & { schemaName: SURefEnumSchemaName }
 

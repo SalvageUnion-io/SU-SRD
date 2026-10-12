@@ -1,6 +1,6 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-import { PublicSheetView } from '../components/sheet/PublicSheetView'
-import { pageTitle } from '../lib/pageTitle'
+import { PublicSheetView } from '../../../components/sheet/PublicSheetView'
+import { pageTitle } from '../../../lib/pageTitle'
 
 /**
  * `/p/$kind/$appId` — one published sheet, readable with no account

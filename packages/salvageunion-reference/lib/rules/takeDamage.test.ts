@@ -17,8 +17,8 @@ import {
   performCriticalDamage,
   performCriticalInjury,
   pilotEffectiveDamage,
-} from './takeDamage.js'
-import type { Roll } from './types.js'
+} from './takeDamage'
+import type { Roll } from './types'
 
 /** Returns a Roll that yields the given values in order, ignoring `sides`. */
 function seqRoll(...values: number[]): Roll {

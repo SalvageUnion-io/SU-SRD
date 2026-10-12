@@ -9,19 +9,19 @@
  * `actionType`, `facts` and `traits`.
  */
 
-import { getTraits } from '../../actionResolution.js'
-import { resolveDataValueForTechLevel } from '../../contentBlockHelpers.js'
-import { isAbility } from '../../entityGuards.js'
-import type { ChoiceSelections } from '../../resolveChoiceView.js'
-import { resolveChoiceView } from '../../resolveChoiceView.js'
+import { getTraits } from '../../actionResolution'
+import { resolveDataValueForTechLevel } from '../../contentBlockHelpers'
+import { isAbility } from '../../entityGuards'
+import type { ChoiceSelections } from '../../resolveChoiceView'
+import { resolveChoiceView } from '../../resolveChoiceView'
 import type {
   SURefMetaEntity,
   SURefObjectChoice,
   SURefObjectContentBlock,
   SURefObjectDamage,
   SURefObjectTrait,
-} from '../../schemas/index.js'
-import { classRequirements } from './kind.js'
+} from '../../schemas/index'
+import { classRequirements } from './kind'
 
 /** The fields an action states about itself. */
 export type ActionFacets = {

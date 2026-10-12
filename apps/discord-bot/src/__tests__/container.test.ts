@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
-import type { ContainerData } from '../container.js'
+import type { ContainerData } from '../container'
 import {
   containerComponentCount,
   containerTextLength,
@@ -8,7 +8,7 @@ import {
   entityCard,
   toContainer,
   V2_LIMIT,
-} from '../container.js'
+} from '../container'
 
 const base: ContainerData = {
   accent: 0x4b86a0,

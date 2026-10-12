@@ -5,9 +5,9 @@
  * is computed against actual chassis caps and system slotsRequired values.
  */
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from '../index.js'
-import { computeMechCapacity } from './capacity.js'
-import type { MechInput } from './types.js'
+import { SalvageUnionReference } from '../index'
+import { computeMechCapacity } from './capacity'
+import type { MechInput } from './types'
 
 // ---------------------------------------------------------------------------
 // Reference data fixtures (real data — verified against chassis.json)
