@@ -13,8 +13,13 @@
  * because its artifact is HTML its author wrote, served from this
  * repository's Pages origin.
  *
+ * The Preview Tour — the same gallery shot from main after each production
+ * deploy (`pr-gallery.yml`'s `workflow_run` leg) — is unpacked to
+ * `<site-dir>/tour/` from the newest `preview-tour` artifact a main run of
+ * this repository uploaded, and the index links it first.
+ *
  * An artifact is data, not trust: its `gallery.json` must name the PR it was
- * filed under, or it is skipped.
+ * filed under (a tour's names none), or it is skipped.
  */
 
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
@@ -27,6 +32,9 @@ export type PullRequest = {
   head: { sha: string; repo: { full_name: string } | null }
   html_url: string
 }
+
+/** The Preview Tour's line in the index. */
+export type TourEntry = { sha: string; capturedAt: string }
 
 export type IndexEntry = {
   number: number
@@ -41,8 +49,12 @@ export function publishable(prs: readonly PullRequest[], repo: string): PullRequ
   return prs.filter((pr) => pr.head.repo?.full_name === repo)
 }
 
-/** The site's front page: one row per published gallery, newest PR first. */
-export function renderIndex(entries: readonly IndexEntry[], repo: string): string {
+/** The site's front page: the Preview Tour when there is one, then one row per published gallery, newest PR first. */
+export function renderIndex(
+  entries: readonly IndexEntry[],
+  repo: string,
+  tour?: TourEntry
+): string {
   const rows = [...entries]
     .sort((a, b) => b.number - a.number)
     .map(
@@ -71,7 +83,13 @@ span a { color: var(--ink-2); }
 </head>
 <body>
 <h1>PR galleries</h1>
-<p>Screenshots of every open pull request to main in ${escapeHtml(repo)}, rebuilt on each push.</p>
+${
+  tour
+    ? `<ul><li><a href="./tour/"><strong>Preview tour</strong> main, as last deployed</a>
+      <span>${escapeHtml(tour.sha.slice(0, 7))} · ${escapeHtml(tour.capturedAt)}</span></li></ul>
+`
+    : ''
+}<p>Screenshots of every open pull request to main in ${escapeHtml(repo)}, rebuilt on each push.</p>
 ${entries.length ? `<ul>\n${rows}\n</ul>` : '<p>No open pull request has a gallery yet.</p>'}
 </body>
 </html>
@@ -100,20 +118,37 @@ export function readGalleryMeta(dir: string, pr: PullRequest): IndexEntry | unde
   }
 }
 
+/**
+ * The index entry for the Preview Tour unpacked to `dir`, or undefined when its
+ * `gallery.json` is missing, unreadable or names a PR (a PR's gallery, not the tour).
+ */
+export function readTourMeta(dir: string): TourEntry | undefined {
+  let meta: { pr?: unknown; sha?: unknown; capturedAt?: unknown }
+  try {
+    meta = JSON.parse(readFileSync(join(dir, 'gallery.json'), 'utf8'))
+  } catch {
+    return undefined
+  }
+  if (meta?.pr !== null || typeof meta.sha !== 'string') return undefined
+  return { sha: meta.sha, capturedAt: typeof meta.capturedAt === 'string' ? meta.capturedAt : '' }
+}
+
 /** Where the site's galleries come from: GitHub in `main`, a stand-in in the tests. */
 export type GallerySource = {
   /** The open PRs to main. */
   openPrs(): Promise<PullRequest[]>
   /** Unpacks a PR's newest gallery artifact into `dir`; false (with the reason logged) when there is none to unpack. */
   unpack(pr: PullRequest, dir: string): Promise<boolean>
+  /** Unpacks the newest Preview Tour main uploaded into `dir`; false (with the reason logged) when there is none. */
+  unpackTour(dir: string): Promise<boolean>
 }
 
-/** Rebuilds the whole site in `site`: each publishable PR's gallery under `<n>/`, then the index. */
+/** Rebuilds the whole site in `site`: the Preview Tour under `tour/`, each publishable PR's gallery under `<n>/`, then the index. */
 export async function buildSite(
   site: string,
   repo: string,
   source: GallerySource
-): Promise<{ published: IndexEntry[]; open: number }> {
+): Promise<{ published: IndexEntry[]; open: number; tour?: TourEntry }> {
   rmSync(site, { recursive: true, force: true })
   mkdirSync(site, { recursive: true })
   const prs = publishable(await source.openPrs(), repo)
@@ -131,9 +166,17 @@ export async function buildSite(
     }
     published.push(entry)
   }
-  writeFileSync(join(site, 'index.html'), renderIndex(published, repo))
+  const tourDir = join(site, 'tour')
+  mkdirSync(tourDir, { recursive: true })
+  const tourUnpacked = await source.unpackTour(tourDir)
+  const tour = tourUnpacked ? readTourMeta(tourDir) : undefined
+  if (!tour) {
+    if (tourUnpacked) console.warn('[gallery-pages] tour: gallery.json is not a tour; skipped')
+    rmSync(tourDir, { recursive: true, force: true })
+  }
+  writeFileSync(join(site, 'index.html'), renderIndex(published, repo, tour))
   writeFileSync(join(site, '.nojekyll'), '')
-  return { published, open: prs.length }
+  return { published, open: prs.length, ...(tour ? { tour } : {}) }
 }
 
 async function api<T>(path: string, token: string): Promise<T> {
@@ -144,9 +187,54 @@ async function api<T>(path: string, token: string): Promise<T> {
   return (await res.json()) as T
 }
 
-type Artifact = { name: string; expired: boolean; archive_download_url: string }
+type Artifact = {
+  name: string
+  expired: boolean
+  archive_download_url: string
+  workflow_run?: { head_branch?: string; repository_id?: number; head_repository_id?: number }
+}
 
-/** The galleries as GitHub holds them: each PR's newest unexpired `pr-gallery-<n>` artifact. */
+/** Downloads `artifact` and unzips it into `dir`; false (with the reason logged under `label`) when either fails. */
+async function unpackArtifact(
+  artifact: Artifact,
+  dir: string,
+  token: string,
+  label: string
+): Promise<boolean> {
+  const zip = await fetch(artifact.archive_download_url, {
+    headers: { authorization: `Bearer ${token}` },
+  })
+  if (!zip.ok) {
+    console.warn(`[gallery-pages] ${label}: download → ${zip.status}`)
+    return false
+  }
+  const file = `${dir}.zip`
+  await Bun.write(file, await zip.arrayBuffer())
+  const unzip = Bun.spawnSync(['unzip', '-q', '-o', file, '-d', dir])
+  rmSync(file)
+  if (unzip.exitCode !== 0) {
+    console.warn(`[gallery-pages] ${label}: unzip failed`)
+    return false
+  }
+  return true
+}
+
+/**
+ * Whether a `preview-tour` artifact came from a main run of this repository.
+ * A PR can edit its own copy of `pr-gallery.yml` to upload one under that name,
+ * so the name alone proves nothing; its run's head branch and repository do.
+ */
+export function isMainTour(artifact: Artifact): boolean {
+  const run = artifact.workflow_run
+  return (
+    !artifact.expired &&
+    run?.head_branch === 'main' &&
+    run.repository_id !== undefined &&
+    run.head_repository_id === run.repository_id
+  )
+}
+
+/** The galleries as GitHub holds them: each PR's newest unexpired `pr-gallery-<n>` artifact, and main's newest `preview-tour`. */
 export function githubSource(repo: string, token: string): GallerySource {
   return {
     openPrs: () =>
@@ -158,22 +246,19 @@ export function githubSource(repo: string, token: string): GallerySource {
       )
       const artifact = artifacts.find((a) => !a.expired)
       if (!artifact) return false
-      const zip = await fetch(artifact.archive_download_url, {
-        headers: { authorization: `Bearer ${token}` },
-      })
-      if (!zip.ok) {
-        console.warn(`[gallery-pages] #${pr.number}: download → ${zip.status}`)
+      return unpackArtifact(artifact, dir, token, `#${pr.number}`)
+    },
+    async unpackTour(dir) {
+      const { artifacts } = await api<{ artifacts: Artifact[] }>(
+        `/repos/${repo}/actions/artifacts?name=preview-tour&per_page=20`,
+        token
+      )
+      const artifact = artifacts.find(isMainTour)
+      if (!artifact) {
+        console.warn('[gallery-pages] tour: no unexpired preview-tour from main')
         return false
       }
-      const file = `${dir}.zip`
-      await Bun.write(file, await zip.arrayBuffer())
-      const unzip = Bun.spawnSync(['unzip', '-q', '-o', file, '-d', dir])
-      rmSync(file)
-      if (unzip.exitCode !== 0) {
-        console.warn(`[gallery-pages] #${pr.number}: unzip failed`)
-        return false
-      }
-      return true
+      return unpackArtifact(artifact, dir, token, 'tour')
     },
   }
 }
@@ -192,8 +277,9 @@ export async function main(
     )
     return 2
   }
-  const { published, open } = await buildSite(resolve(dir), repo, githubSource(repo, token))
+  const { published, open, tour } = await buildSite(resolve(dir), repo, githubSource(repo, token))
   console.log(`[gallery-pages] ${published.length} of ${open} open PRs published`)
+  console.log(`[gallery-pages] preview tour: ${tour ? tour.sha.slice(0, 7) : 'none'}`)
   return 0
 }
 

@@ -116,7 +116,7 @@ const changeLogState = v.union(
 
 /**
  * Mirrors `RANGE_BANDS` (src/lib/schemas/seat.ts) — ADR-038. Exported for
- * `test/convex/seatSchemaParity.test.ts`, which keeps the two in step.
+ * `test/convex/__tests__/seatSchemaParity.test.ts`, which keeps the two in step.
  */
 export const seatRange = v.union(
   v.literal('Close'),

@@ -32,6 +32,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Imports `itun-domain/botWire` as a type only: changing it is a cross-package change.
 9. **itun-domain**
    Zod schemas, link/crew/downtime rules and bot wire types for ITUN, Convex and the bot; import by subpath.
+   Rules: pure → reference `lib/rules`; shared → here; client → `apps/itun/src/lib/rules`; `check rules-home` bars Convex→`src/`.
 10. **Data flow and connection modes**
     Records store slug refs, resolved at render; ITUN preloads once in `GameDataReady.tsx`.
     `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).
@@ -81,7 +82,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot` (no hydration).
 26. **Accessibility**
     Biome's a11y rules plus each app's `e2e/a11y.e2e.ts` (axe, WCAG 2.2 AA) over its `PAGES`, failing on any violation.
-    Contrast is held by `design/contrast.test.ts`; coarse-pointer touch targets are 44px.
+    Contrast is held by `design/__tests__/contrast.test.ts`; coarse-pointer touch targets are 44px.
 27. **CI**
     `ci.yml` runs on every `pull_request` (no branch filter), path-filtered per app; `CI Success` must need every job.
     Static checks are `bun tools/check.ts --profile=ci`; tests are `bun run test:coverage` against per-workspace `FLOORS`.

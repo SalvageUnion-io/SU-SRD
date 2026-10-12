@@ -320,7 +320,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'packages/component-lib/src/design/tokens.ts',
     rules: ['raw-color', 'rust-allowlist', 'cool-ground'],
     reason:
-      'The TypeScript mirror of theme.css above: a token-definition file, so it is where colour is allowed to be a literal. Every value is ported verbatim from theme.css — nothing here is a new colour, and `src/design/tokens.parity.test.ts` fails if the two ever disagree. The exemption is scoped to `raw-color` alone: an arbitrary radius, tracking or border width written here would still be a violation, because those ladders are token NAMES rather than literals even inside the file that defines them.',
+      'The TypeScript mirror of theme.css above: a token-definition file, so it is where colour is allowed to be a literal. Every value is ported verbatim from theme.css — nothing here is a new colour, and `src/design/__tests__/tokens.parity.test.ts` fails if the two ever disagree. The exemption is scoped to `raw-color` alone: an arbitrary radius, tracking or border width written here would still be a violation, because those ladders are token NAMES rather than literals even inside the file that defines them.',
   },
   {
     file: 'packages/component-lib/src/components/chrome/Button.tsx',

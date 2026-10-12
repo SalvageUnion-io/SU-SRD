@@ -15,9 +15,6 @@ bun run check:fast            # the inner loop: no suite, no network
 bun run check styling data    # just these; `bun run check --list` prints every id, what it guards and its fix
 ```
 
-A failing check prints its fix hint under its failure banner, then its own
-output.
-
 **Adding a gate:** first prefer what already fails the build: the typecheck, a
 Biome rule, a package `exports` map, the isolated linker. A new gate script
 cites, in its header, the incident it prevents. Register it in `CHECKS` (id,
@@ -46,6 +43,8 @@ the corpus size, not just the finding count.
 | `workers` | `check-workers.ts` | — |
 | `convex-callers` | `check-convex-callers.ts` (also: `api.d.ts` registers exactly the modules on disk) | — |
 | `client-contract` | `check-client-contract.ts` (`--write` records the snapshot; refuses a breaking change without a raised `BUILD_FLOOR`) | `convex-client-contract.json` |
+| `rules-home` | `check-rules-home.ts` | — |
+| `test-layout` | `check-test-layout.ts` | — |
 | `barrel-consumers` | `check-barrel-consumers.ts` | `SINGLE_APP` in the script (storyless helpers only) |
 | `workflows` | `check-workflows.ts` (`--only=` runs a subset) | — |
 | `styling` | `check-styling.ts` (`--report` lists every finding) | `styling-baseline.json` |
@@ -60,8 +59,8 @@ the corpus size, not just the finding count.
 | `lib/a11yScan.ts` | each app's `e2e/a11y.e2e.ts`, in `build-srd` and `build-itun` in `ci.yml` (every srd / ITUN PR) | WCAG 2.2 AA scan (axe-core in the suite's own Playwright browser) of the pages each spec lists in `PAGES`, at desktop and as a Pixel 7. Fails on any violation. | — |
 | `deploy-surfaces.ts` | `.github/workflows/deploy-cloudflare.yml` | Diffs HEAD against the last successful deploy tag and decides which Cloudflare surfaces ship. Fails safe: when unsure it deploys everything. | — |
 | `environments.ts` | `e2e-nightly.yml` (`environments`); `--apply` by hand | The GitHub Environments declared once (branches, secret names, required reviewers) and compared against the live settings: no branch policy, a missing or repository-level secret, an undeclared Environment. `--apply` sets Environments and branch policies, never secrets. Its static half is `workflows`' `secrets-env`. | — |
-| `gallery.ts`, `gallery-pages.ts` | `pr-gallery.yml`, then `pr-gallery-pages.yml` | `gallery` shoots `lib/galleryPages.ts` (desktop, phone, OG cards, ITUN signed in on a throwaway Convex). `gallery-pages` builds the Pages site from each open PR's `pr-gallery-<n>` artifact. | — |
-| `smoke-production.sh` | `deploy-cloudflare.yml` (`smoke` job) and `e2e-nightly.yml` (`production-smoke`) | Curls every production surface: status codes, www and http→https redirects, CSP/HSTS reaching the browser, the rotated-chunk 404 (and that it is not `immutable`), artwork robots.txt, bot token health. Runs every check, then exits 1 if any failed. | — |
+| `gallery.ts`, `gallery-pages.ts` | `pr-gallery.yml` (PRs; main per deploy), then `pr-gallery-pages.yml` | `gallery` shoots `lib/galleryPages.ts` (desktop, phone, OG, ITUN signed in). `gallery-pages` builds Pages from open PRs' `pr-gallery-<n>`, main's `preview-tour` at `/tour/`. | — |
+| `smoke-production.sh` | `deploy-cloudflare.yml` (`smoke` job) and `e2e-nightly.yml` (`production-smoke`) | Curls every production surface: status codes, www and http→https redirects, CSP/HSTS reaching the browser, the rotated-chunk 404 (and that it is not `immutable`), artwork robots.txt, bot token health. | — |
 
 ## Local-only and by hand
 

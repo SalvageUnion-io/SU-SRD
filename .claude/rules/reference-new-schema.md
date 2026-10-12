@@ -16,7 +16,7 @@ script). For a new schema `<id>` (kebab-case, not already in `lib/schemas/regist
    `SURefEntity` / `SURefMetaEntity` unions — both are generated.
    - A rules-metadata schema (like actions) that stays out of `SURefEntity`
      gets `excludeFromEntityUnion: true` AND a `SURefMeta*` type name
-     (`lib/registryConsistency.test.ts` requires both), and joins that test's
+     (`lib/__tests__/registryConsistency.test.ts` requires both), and joins that test's
      `MetaOnly` union.
    - A non-entity schema (`entity: false`, like catalog-categories) also joins
      the test's hard-coded non-entity list and its

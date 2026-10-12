@@ -59,7 +59,7 @@ public surface.
 ### Loading is trusted — keep the data parse-stable
 
 `preload()` does **not** Zod-parse (audit PK-04): the committed files are
-validated in CI, and `lib/dataCanonical.test.ts` proves that parsing each one
+validated in CI, and `lib/__tests__/dataCanonical.test.ts` proves that parsing each one
 would return it unchanged. Two consequences:
 
 - **Write every default into the data.** A `.default()` value missing from a
@@ -70,7 +70,7 @@ would return it unchanged. Two consequences:
   from the runtime graph, statically or dynamically.** Either puts Zod and
   every entity schema back in both client bundles (srd then ships Zod again;
   itun keeps a Zod chunk regardless for its own `src/lib/schemas`, but regains
-  every entity schema), and `lib/loadPathBundle.test.ts` fails. Tools and tests
+  every entity schema), and `lib/__tests__/loadPathBundle.test.ts` fails. Tools and tests
   may import them directly.
 
 `BaseModel` stamps `schemaName` on a shallow copy of each row, never on the
@@ -126,14 +126,14 @@ The step-by-step checklist is `.claude/rules/reference-new-schema.md`.
 
 `LazyModel` is generated into the class body, not a runtime base class or
 mixin, so every static stays an _own_ property of `SalvageUnionReference`
-(`lib/index.test.ts` relies on it). `lib/registryConsistency.test.ts` is an
+(`lib/__tests__/index.test.ts` relies on it). `lib/__tests__/registryConsistency.test.ts` is an
 independent second check that every generated registry covers the same
 schema ids.
 
 ## Testing & validation
 
 - `bun --filter salvageunion-reference test` — schema compliance
-  (`lib/dataCanonical.test.ts`) and data integrity
+  (`lib/__tests__/dataCanonical.test.ts`) and data integrity
 - `bun run check data` (from the root) — every data check: IDs, slugs,
   cross-references, action references, orphans, traits, parity
 - `bun run validate -- --only=ids,slugs` (in this package) — just the named

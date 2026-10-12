@@ -26,7 +26,7 @@ Tailwind is being removed. **The plan and its phases live in
   `DISABLED` / `SELECTION_RING*` vocabulary) are stylesheet-only, and their
   `.su-*` names are public API. The exemption does not extend to components.
 - **Edit `tokens.ts` and `theme.css` together** — `theme.css` is the one
-  token set, and `src/design/tokens.parity.test.ts` fails if they disagree.
+  token set, and `src/design/__tests__/tokens.parity.test.ts` fails if they disagree.
 - **Do not add Tailwind or `.pc-*` classes.** `bun run check styling` ratchets
   `tailwind-utility-file` down and holds `pc-class-defined` at 0; if you
   removed Tailwind, lower the baseline with `--update-baseline` in the same PR.

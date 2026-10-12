@@ -41,7 +41,7 @@ const TEST_FILE = 'apps/itun/src/__biome_fixture__/x.test.tsx'
 /** A test file outside ITUN, where a live clock is not banned. */
 const OTHER_TEST = 'apps/srd/src/__biome_fixture__/y.test.ts'
 /** A file that asserts on load behaviour, excluded from the preload ban by path. */
-const EXEMPT_TEST = 'packages/salvageunion-reference/lib/preload.test.ts'
+const EXEMPT_TEST = 'packages/salvageunion-reference/lib/__tests__/preload.test.ts'
 const BIG_LIB = 'packages/component-lib/src/__biome_fixture__/big.tsx'
 const BIG_APP = 'apps/itun/src/__biome_fixture__/big.tsx'
 
