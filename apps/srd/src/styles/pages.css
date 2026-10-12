@@ -13,8 +13,8 @@
 
 /*
  * The home page — the manual's Contents page (board 06, `index.page.tsx` and
- * `components/HomeContents.tsx`). A 1360px measure: three chapter columns and
- * the "New to the Union?" panels beside them, all one column on a phone.
+ * `components/HomeContents.tsx`). A 1360px measure. First-timer content
+ * first: the title, the search, "New to the Union?", then the index.
  */
 .srd-home__lede {
   display: flex;
@@ -30,12 +30,29 @@
   margin: 0;
 }
 
-/* Between the phone and the desktop the lede has no room beside the title,
-   so the band keeps the phone's stack (lede above the notch). */
-@media (min-width: 40rem) and (max-width: 63.99rem) {
+/* Below the desktop the lede has no room beside the title, so it follows the
+   title instead of riding above it (the band's own stack is column-reverse):
+   the title notched into the band's foot, then the lede and search on the
+   page ground the notch is cut from. The aside spans the row's padding so the
+   ground runs edge to edge. */
+@media (max-width: 63.99rem) {
   .srd-home__band .su-chapter-band__row {
     align-items: flex-start;
-    flex-direction: column-reverse;
+    flex-direction: column;
+  }
+
+  .srd-home__band .su-chapter-band__aside {
+    align-self: stretch;
+    background-color: var(--color-wk-bg);
+    margin-inline: calc(-1 * var(--space-16));
+    padding: var(--space-16) var(--space-16) 0;
+  }
+}
+
+@media (min-width: 40rem) and (max-width: 63.99rem) {
+  .srd-home__band .su-chapter-band__aside {
+    margin-inline: calc(-1 * var(--space-24));
+    padding-inline: var(--space-24);
   }
 }
 
@@ -50,49 +67,25 @@
   }
 }
 
+/* The sections in one flow: up to four columns of at least 16rem, filled
+   down then across and balanced, so no column ends on a hole; one column on
+   a phone. Multi-column has no row gap, so each section carries its own. */
 .srd-home__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-28);
+  column-gap: var(--space-28);
+  columns: 4 16rem;
   margin-inline: auto;
   padding: var(--space-24) var(--space-16) var(--space-32);
   width: 100%;
 }
 
-.srd-home__chapters {
-  align-content: start;
-  display: grid;
-  gap: var(--space-20) var(--space-28);
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-  min-width: 0;
-}
-
-.srd-home__aside {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-14);
-  min-width: 0;
+.srd-home__body > * {
+  break-inside: avoid;
+  margin-block-end: var(--space-24);
 }
 
 @media (min-width: 40rem) {
   .srd-home__body {
     padding-inline: var(--space-24);
-  }
-}
-
-@media (min-width: 64rem) {
-  .srd-home__body {
-    align-items: flex-start;
-    flex-direction: row;
-  }
-
-  .srd-home__chapters {
-    flex: 1 1 0;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .srd-home__aside {
-    flex: 0 0 20rem;
   }
 }
 
@@ -1610,4 +1603,113 @@
   .srd-rail {
     display: none;
   }
+}
+
+/*
+ * A class page's ability trees (`components/ClassAbilityTree.tsx`): the
+ * "Abilities" section slab, then a row of the Core trees (three across from
+ * 40rem) and a row of the Advanced + Legendary trees (two across).
+ *
+ * Each sequential tree draws the book's track (ruleset, "Where the screen
+ * departs from print"): a thick pipe down the tree's left with a stub into
+ * each tier's Row, so tiers 1-2-3 read as one chain trained in order. It is a
+ * diagram beside the Rows, never a left border on a card (§3.10). The pipe is
+ * one segment per tier: the first starts at its stub, the last ends at its
+ * stub, and each but the last runs down through the gap to the next tier.
+ * `data-track` picks the tier hue; a Legendary tree (pick one) has none.
+ */
+.srd-ability-tree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.srd-ability-tree__row {
+  display: grid;
+  gap: var(--space-16);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 40rem) {
+  .srd-ability-tree__row[data-columns='3'] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .srd-ability-tree__row[data-columns='2'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.srd-ability-tree__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding-top: var(--space-8);
+}
+
+.srd-ability-tree__track {
+  /* The pipe's centre line, its weight, the gap it bridges between tiers, and
+     how far down a Row its stub lands (the middle of a one-line head). */
+  --srd-track-x: var(--space-6);
+  --srd-track-weight: var(--space-6);
+  --srd-track-gap: var(--space-16);
+  --srd-track-node: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--srd-track-gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.srd-ability-tree__track[data-track='core'] {
+  --srd-track-color: var(--color-tier-core);
+}
+
+.srd-ability-tree__track[data-track='advanced'] {
+  --srd-track-color: var(--color-pilot);
+}
+
+.srd-ability-tree__tier {
+  position: relative;
+}
+
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier {
+  padding-left: var(--space-20);
+}
+
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier::before,
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier::after {
+  background: var(--srd-track-color);
+  content: '';
+  position: absolute;
+}
+
+/* The pipe segment. */
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier::before {
+  bottom: calc(-1 * var(--srd-track-gap));
+  left: calc(var(--srd-track-x) - var(--srd-track-weight) / 2);
+  top: 0;
+  width: var(--srd-track-weight);
+}
+
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier:first-child::before {
+  top: var(--srd-track-node);
+}
+
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier:last-child::before {
+  bottom: auto;
+  height: calc(var(--srd-track-node) + var(--srd-track-weight) / 2);
+}
+
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier:first-child:last-child::before {
+  content: none;
+}
+
+/* The stub from the pipe into the tier's Row. */
+.srd-ability-tree__track[data-track] > .srd-ability-tree__tier::after {
+  height: var(--srd-track-weight);
+  left: calc(var(--srd-track-x) - var(--srd-track-weight) / 2);
+  right: calc(100% - var(--space-20));
+  top: calc(var(--srd-track-node) - var(--srd-track-weight) / 2);
 }
