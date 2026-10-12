@@ -1,7 +1,11 @@
+import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { ClassAbilityStep } from './ClassAbilityStep'
 import { selectableClasses } from './classOptions'
+
+const FRAME: CSSProperties = { backgroundColor: tokens.color.paper, padding: tokens.space[16] }
 
 export default {
   title: 'Compositions/Wizard/Class Ability Step',
@@ -14,7 +18,7 @@ export const Default = () => {
   const [classId, setClassId] = useState(base[0]?.id ?? '')
   const [selectedAbilities, setSelectedAbilities] = useState<string[]>([])
   return (
-    <div className="sheet--pilot bg-paper p-4">
+    <div className="sheet--pilot" style={FRAME}>
       <Caption>ClassAbilityStep</Caption>
       <ClassAbilityStep
         classId={classId}

@@ -11,8 +11,9 @@
  * guards the change.
  */
 
-import { Button, EntitySearcher, ModalShell, toast } from 'component-lib'
+import { Button, EntitySearcher, ModalShell, toast, tokens } from 'component-lib'
 import type { Crawler } from 'itun-domain/schemas/crawler'
+import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
@@ -20,6 +21,31 @@ import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { EMPTY_CRAWLER_FORM_STATE } from '../../lib/wizard/crawlerFormState'
 import type { EntityState } from '../../stores/entityStore'
+import '../../styles/wizard.css'
+
+/** The confirm dialog's body. */
+const CONFIRM_BODY: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+  backgroundColor: tokens.color.paper,
+  padding: tokens.space[20],
+}
+
+/** The confirm dialog's consequence copy. */
+const CONFIRM_COPY: CSSProperties = {
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+  color: tokens.color.wkMuted,
+}
+
+/** Cancel / confirm, right-aligned. */
+const CONFIRM_ACTIONS: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: tokens.space[8],
+}
 
 type CrawlerTypeEditModalProps = {
   open: boolean
@@ -87,7 +113,7 @@ export function CrawlerTypeEditModal({
           if (!next) onClose()
         }}
         title="Change Crawler Type"
-        maxWidth="max-w-5xl"
+        maxWidth="wiz-modal-5xl"
         bare
       >
         <EntitySearcher
@@ -133,15 +159,15 @@ export function CrawlerTypeEditModal({
         }}
         title="Change crawler type?"
         tone="danger"
-        maxWidth="max-w-md"
+        maxWidth="wiz-modal-md"
       >
-        <div className="flex flex-col gap-4 bg-paper p-5">
-          <div className="font-body text-sm text-wk-muted">
+        <div style={CONFIRM_BODY}>
+          <div style={CONFIRM_COPY}>
             Change to <strong>{selectedEntity?.name}</strong>? This resets the crawler's special NPC
             to the new type's default (its name, description and HP are cleared) and drops the old
             type's Keepsake/Motto. Your bays and their crew are kept.
           </div>
-          <div className="flex justify-end gap-2">
+          <div style={CONFIRM_ACTIONS}>
             <Button
               variant="ghost"
               size="compact"

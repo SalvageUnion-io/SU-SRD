@@ -1,7 +1,16 @@
-import { MasonryColumns, ReferenceEntityCard, Slab } from 'component-lib'
+import { MasonryColumns, ReferenceEntityCard, Slab, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
+import '../../styles/wizard.css'
+import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles'
+
+const EMPTY_NOTE = {
+  ...textSmStyle,
+  color: 'currentcolor',
+  fontFamily: tokens.font.body,
+} satisfies CSSProperties
 
 type CraftItemsStepProps = {
   /** Which dataset this step crafts from (against its own slot budget). */
@@ -46,7 +55,7 @@ export function CraftItemsStep({
   const noun = kind === 'systems' ? 'System' : 'Module'
 
   return (
-    <div className="w-full space-y-5">
+    <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
       <Slab variant="solid" label={`Tech 1 ${noun}s`} count="Duplicates allowed" />
       <MasonryColumns maxColumns={2}>
         {items.map((item) => {
@@ -110,9 +119,7 @@ export function CraftItemsStep({
           )
         })}
       </MasonryColumns>
-      {items.length === 0 && (
-        <p className="font-body text-sm text-current">No Tech 1 {kind} found.</p>
-      )}
+      {items.length === 0 && <p style={EMPTY_NOTE}>No Tech 1 {kind} found.</p>}
     </div>
   )
 }

@@ -6,6 +6,24 @@
  * subordinate to the CTA — shown only while a gate is actively blocking.
  */
 
+import { tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
+import '../../styles/wizard.css'
+
+/** Static half; the colour, which brightens on hover, is `.wiz-off-rules`. */
+const escapeStyle: CSSProperties = {
+  cursor: 'pointer',
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.semibold,
+  letterSpacing: tokens.tracking.caps,
+  textDecorationLine: 'underline',
+  textDecorationStyle: 'dotted',
+  textTransform: 'uppercase',
+  textUnderlineOffset: '2px',
+  whiteSpace: 'nowrap',
+}
+
 type OffRulesEscapeProps = {
   /** Leaves the guided flow for the blank Free-Edit path. */
   onEscape: () => void
@@ -13,11 +31,7 @@ type OffRulesEscapeProps = {
 
 export function OffRulesEscape({ onEscape }: OffRulesEscapeProps) {
   return (
-    <button
-      type="button"
-      onClick={onEscape}
-      className="cursor-pointer whitespace-nowrap font-cond text-badge font-semibold uppercase tracking-caps text-paper/70 underline decoration-dotted underline-offset-2 hover:text-paper"
-    >
+    <button type="button" onClick={onEscape} className="wiz-off-rules" style={escapeStyle}>
       Off-rules build? Build it on the Live Sheet →
     </button>
   )

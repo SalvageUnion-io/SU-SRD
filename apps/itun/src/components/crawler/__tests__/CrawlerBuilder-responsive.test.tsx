@@ -26,7 +26,9 @@ async function renderBuilder() {
 describe('CrawlerBuilder — responsive wizard layout', () => {
   test('renders the WizShell row layout (stacked on mobile, rail beside panes at lg)', async () => {
     const { container } = await renderBuilder()
-    const shell = container.querySelector('[class*="lg:flex-row"]')
+    // The rail/pane row: a column on a phone, a row from lg (`.wiz-body` in
+    // styles/wizard.css).
+    const shell = container.querySelector('.wiz-body')
     expect(shell).toBeTruthy()
   })
 

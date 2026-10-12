@@ -1,6 +1,9 @@
 import { Button } from 'component-lib'
+import type { CSSProperties } from 'react'
 import type { PilotRollField, RollTableDeps } from './rollTableHelpers'
 import { rollForPilotField, rollOnNamedTable } from './rollTableHelpers'
+
+const rollButtonStyle: CSSProperties = { alignSelf: 'center', flexShrink: 0 }
 
 type RollTableButtonProps = (
   | {
@@ -51,7 +54,7 @@ export function RollTableButton({
       size="compact"
       glyph="⚄"
       onClick={handleClick}
-      className="shrink-0 self-center"
+      style={rollButtonStyle}
       aria-label={ariaLabel}
     >
       {label}

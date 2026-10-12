@@ -1,7 +1,19 @@
-import { EmptyState, ReferenceEntityCard, Slab, Stat } from 'component-lib'
+import { EmptyState, ReferenceEntityCard, Slab, Stat, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
+import '../../styles/wizard.css'
+import { fullWidthStyle } from '../wizard/wizardStyles'
+
+const STAT_ROW = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[16],
+} satisfies CSSProperties
+
+/** The ability column (Tailwind's `max-w-2xl`). */
+const ABILITIES = { maxWidth: '42rem' } satisfies CSSProperties
 
 type MechStatsStepProps = {
   /** Chassis slug ref from the wizard form ('' while unchosen). */
@@ -33,8 +45,8 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
   }
 
   return (
-    <div className="w-full space-y-5">
-      <div className="flex flex-wrap gap-4">
+    <div className="wiz-stack wiz-stack--20" style={fullWidthStyle}>
+      <div style={STAT_ROW}>
         <Stat
           label="SP"
           value={chassis.structurePoints}
@@ -52,7 +64,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
       {chassisAbilities.length > 0 && (
         <>
           <Slab variant="solid" label="Chassis Ability" count={chassis.name} />
-          <div className="max-w-2xl space-y-3">
+          <div className="wiz-stack wiz-stack--12" style={ABILITIES}>
             {chassisAbilities.map((ability) => (
               <ReferenceEntityCard
                 key={ability.id}

@@ -15,11 +15,16 @@
  */
 
 import { Button, Field, FieldError, Input, ModalShell, Select } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { byTechLevelThenName, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { readReference } from '../../lib/readReference'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { createBlank } from '../../lib/wizard/blankCreate'
+import '../../styles/wizard.css'
+import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles'
+
+const noteStyle: CSSProperties = { ...dialogNoteStyle, margin: 0 }
 
 type BlankCreateDialogProps = {
   kind: BlankCreateKind
@@ -125,10 +130,10 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
         if (!next) onClose()
       }}
       title={`Blank ${label}`}
-      maxWidth="max-w-md"
+      maxWidth="wiz-modal-md"
     >
-      <div className="flex flex-col gap-4 bg-paper p-5">
-        <p className="m-0 font-body text-sm text-wk-muted">
+      <div style={dialogBodyStyle}>
+        <p style={noteStyle}>
           An empty sheet — no steps, no limits. Fill in the rest on the live sheet.
         </p>
 
@@ -192,7 +197,7 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
 
         {error && <FieldError>{error}</FieldError>}
 
-        <div className="flex justify-end gap-2">
+        <div style={dialogActionsStyle}>
           <Button variant="ghost" size="compact" onClick={onClose} disabled={pending}>
             Cancel
           </Button>
