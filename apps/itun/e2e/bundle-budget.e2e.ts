@@ -183,7 +183,7 @@ test.describe('bundle-size budget', () => {
     // An unknown id on purpose: the sheet route renders its own "not found"
     // state (src/components/sheet/Sheet.tsx) *after* downloading the whole
     // route chunk, so this measures the route's real JS cost without paying
-    // for a full wizard run to seed IndexedDB first.
+    // for a full wizard run to seed an entity first.
     const CEILING = 2_590_000
     const totals = await captureJsTotals(page, '/sheet/pilot/budget-probe')
     report('/sheet/pilot/:id', totals, CEILING)

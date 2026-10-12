@@ -6,7 +6,6 @@ preload = [
   "../../test/happydom.ts",
   "../../test/testing-library.ts",
   "../../test/reference-preload.ts",
-  "fake-indexeddb/auto",
   "./test/convexClientStub.ts",
 ]
 

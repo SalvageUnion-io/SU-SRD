@@ -50,7 +50,7 @@
 
 import { buttonVariants, EmptyState } from 'component-lib'
 import { ChevronLeft } from 'lucide-react'
-// The dashboard's `.pc-*` stylesheet. component-lib's dashboard components
+// The dashboard's `.su-dash-*` stylesheet. component-lib's dashboard components
 // import no CSS themselves — that rode the barrel into srd (audit PK-01) — so
 // the one app that renders a dashboard loads it here, and it lands in this
 // route's chunk rather than in every page's stylesheet.
@@ -264,8 +264,8 @@ function DashboardView({
       <DashboardCanvas>
         <DashboardGrid
           rail={<span>Pilot not found</span>}
-          primary={<div className="pc-placeholder">{`No pilot with id “${pilotId}”.`}</div>}
-          display={<div className="pc-fill">—</div>}
+          primary={<div className="su-dash-placeholder">{`No pilot with id “${pilotId}”.`}</div>}
+          display={<div className="su-dash-fill">—</div>}
         />
       </DashboardCanvas>
     )

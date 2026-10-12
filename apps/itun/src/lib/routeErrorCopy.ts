@@ -4,20 +4,6 @@
  */
 
 import type { BackendKind } from '../stores/entityBackend'
-import { BlockedUpgradeError } from './db/index'
-
-/**
- * A blocked IndexedDB upgrade (this site open in another tab on an older
- * build) is a distinct, self-serviceable failure with its own copy. Matched on
- * name too, so a structured clone or a re-wrapped error across the router
- * boundary still hits.
- */
-export function isBlockedUpgrade(error: unknown): boolean {
-  return (
-    error instanceof BlockedUpgradeError ||
-    (error as { name?: string } | null)?.name === 'BlockedUpgradeError'
-  )
-}
 
 /**
  * What an error does to the player's work — which depends on where that work

@@ -1,6 +1,14 @@
+import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { InstrumentStage } from './_dashboardStage'
 import { SrdExplorer } from './SrdExplorer'
+
+const STACK_16 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+} satisfies CSSProperties
 
 export default { title: 'Compositions/Dashboard/SRD Explorer' }
 
@@ -13,11 +21,11 @@ export default { title: 'Compositions/Dashboard/SRD Explorer' }
  * the dark instrument stage, exactly as it sits in the live Dashboard display.
  */
 export const Default = () => (
-  <div className="flex flex-col gap-4">
+  <div style={STACK_16}>
     <Caption>SRD Explorer — search + the SRD catalog → in-panel reference cards.</Caption>
     <InstrumentStage width={560}>
       <div
-        className="pc-display-light"
+        className="su-dash-display-light"
         style={{ height: 480, borderRadius: 'var(--radius-panel)' }}
       >
         <SrdExplorer />

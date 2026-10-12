@@ -1,5 +1,5 @@
 /**
- * Narrow an unknown JSON/IndexedDB value to a keyed record. Note: arrays are
+ * Narrow an unknown JSON value to a keyed record. Note: arrays are
  * `typeof 'object'` too, so callers that must exclude them pair this with
  * `!Array.isArray(...)` (matching the historical inline checks this guard
  * replaces).

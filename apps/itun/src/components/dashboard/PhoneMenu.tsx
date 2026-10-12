@@ -12,7 +12,7 @@
  *
  * `ModalShell` traps focus, closes on Escape and hands focus back to ≡ or
  * search. The dialog portals out of the Dashboard, so its content carries the
- * `.pc-root` scope the panels' `.pc-*` rules key off.
+ * `.su-dash-root` scope the panels' `.su-dash-*` rules key off.
  */
 
 import { Button, buttonVariants, ModalShell } from 'component-lib'
@@ -181,7 +181,7 @@ export function PhoneMenu({
       bare
       fullscreen
     >
-      <div className="pc-root su-dash-phone" style={SHEET}>
+      <div className="su-dash-root su-dash-phone" style={SHEET}>
         <div style={HEAD}>
           {view !== 'menu' && (
             <Button

@@ -1,6 +1,6 @@
 # D9 spike: drop ITUN's IndexedDB cache, service worker and Disconnected mode?
 
-Status: **decided 2026-10-12 — option 3.** Refit ledger item D9. Measured
+Status: **decided 2026-10-12 — option 3; implemented by D9b.** Refit ledger item D9. Measured
 2026-10-12 against a local Convex backend.
 
 ## Decision

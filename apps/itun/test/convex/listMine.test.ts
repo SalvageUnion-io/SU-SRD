@@ -1,5 +1,5 @@
 /**
- * `entities.listMine` — the read that makes "IndexedDB is a cache" true.
+ * `entities.listMine` — the read that fills the stores (`ShelfSync`).
  *
  * Without it a signed-in player on a second device would see an empty roster
  * while their builds sat in Convex. These tests pin the two things that are

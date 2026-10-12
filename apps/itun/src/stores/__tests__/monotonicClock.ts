@@ -1,26 +1,25 @@
-import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
 
 /**
  * A deterministic wall clock for the tests that care about record ordering.
  *
- * `crud.ts` stamps `createdAt` / `updatedAt` with `new Date().toISOString()`,
- * and `list()` sorts on `createdAt`. Tests that wanted two records in a known
+ * `records.ts` stamps `createdAt` / `updatedAt` with `new Date().toISOString()`,
+ * and a store prepends each new record. Tests that wanted two records in a known
  * order used to sleep 5ms between the writes and hope the clock had ticked —
  * fourteen of them, betting on host clock resolution and paying ~70ms per run
  * for the privilege. Worse, they were flaky *by construction*: a coarse timer
  * makes two writes share a millisecond and the ordering assertion fails for a
  * reason that has nothing to do with the code under test.
  *
- * There is no injectable now-source in the db layer (that would be a
+ * There is no injectable now-source in the stores (that would be a
  * production API change on the write path of every entity), so this replaces
  * the global instead — narrowly:
  *
  *  - `new Date()` (no args) returns the cursor and advances it.
  *  - `Date.now()` does the same.
  *  - **Every other form is untouched.** `new Date(isoString)` still parses,
- *    which is what `crud.ts`'s sort and every assertion here rely on, and
- *    instances are real `Date`s (`Reflect.construct` on the original), so
- *    `instanceof` and structured-clone into fake-indexeddb both still work.
+ *    which every assertion here relies on, and instances are real `Date`s
+ *    (`Reflect.construct` on the original), so `instanceof` still works.
  *
  * Install in `beforeAll` and restore in `afterAll` — `globalThis.Date` is
  * process-wide, so a clock left installed follows every later test file.

@@ -18,7 +18,7 @@ const convexMocks = await installConvexMocks({
 const { ChangeLogDrawer } = await import('../ChangeLogDrawer')
 const { Sheet } = await import('../Sheet')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { _resetDbSingleton, clearCache } = await import('../../../lib/db/index')
+const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
 const { useEntityStore } = await import('../../../stores/entityStore')
 
@@ -57,17 +57,9 @@ const basePilotInput = {
   conditions: [],
 }
 
-beforeEach(async () => {
+beforeEach(() => {
   setQueryAnswers({})
-  _resetDbSingleton()
-  await clearCache()
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
-  })
+  resetStores()
 })
 
 describe('ChangeLogDrawer', () => {

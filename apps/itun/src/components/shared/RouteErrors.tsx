@@ -3,8 +3,8 @@
  *
  * - **`RootErrorComponent`** is the last resort, on the root route. It replaces
  *   the whole app — header included — because what failed may be the chrome
- *   itself (a rejected game-data preload behind the root gate, a blocked
- *   IndexedDB upgrade), so the only honest recovery is a reload.
+ *   itself (a rejected game-data preload behind the root gate), so the only
+ *   honest recovery is a reload.
  * - **`RouteErrorComponent`** is the router's `defaultErrorComponent`, so every
  *   other route gets its own boundary. A throw inside the Dashboard, a sheet or
  *   a Game replaces only that route's content, leaves the header in place to
@@ -22,7 +22,7 @@ import { useRouter } from '@tanstack/react-router'
 import { RecoveryPanel } from 'component-lib'
 import { borderWidth, color, fontSize, radius, space } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
-import { isBlockedUpgrade, savedWorkCopy } from '../../lib/routeErrorCopy'
+import { savedWorkCopy } from '../../lib/routeErrorCopy'
 import type { BackendKind } from '../../stores/entityBackend'
 import { selectBackend } from '../../stores/entityBackend'
 
@@ -36,9 +36,6 @@ function currentBackend(): BackendKind | null {
     return null
   }
 }
-
-const BLOCKED_UPGRADE_MESSAGE =
-  'In the Union Now is open in another browser tab running an older version, which is blocking this one from loading. Close every other In the Union Now tab, then reload. Your saved data is safe.'
 
 const ERROR_DUMP = {
   backgroundColor: color.wkBg,
@@ -80,21 +77,12 @@ function DevErrorDump({ error }: { error: unknown }): ReactNode {
 
 /** Top-level error boundary: replaces the whole app and offers a reload. */
 export function RootErrorComponent({ error }: ErrorComponentProps) {
-  const blocked = isBlockedUpgrade(error)
-
   return (
     <main style={ROOT_SHELL}>
       <RecoveryPanel
-        title={blocked ? 'Close the other tab' : 'Something went wrong'}
-        message={
-          blocked
-            ? BLOCKED_UPGRADE_MESSAGE
-            : `The app hit an unexpected error. ${savedWorkCopy(currentBackend())}`
-        }
-        action={{
-          label: blocked ? 'Reload' : 'Reload app',
-          onClick: () => window.location.reload(),
-        }}
+        title="Something went wrong"
+        message={`The app hit an unexpected error. ${savedWorkCopy(currentBackend())}`}
+        action={{ label: 'Reload app', onClick: () => window.location.reload() }}
       >
         <DevErrorDump error={error} />
       </RecoveryPanel>
@@ -110,18 +98,6 @@ export function RootErrorComponent({ error }: ErrorComponentProps) {
  */
 export function RouteErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter()
-
-  if (isBlockedUpgrade(error)) {
-    return (
-      <div style={ROUTE_SHELL}>
-        <RecoveryPanel
-          title="Close the other tab"
-          message={BLOCKED_UPGRADE_MESSAGE}
-          action={{ label: 'Reload', onClick: () => window.location.reload() }}
-        />
-      </div>
-    )
-  }
 
   return (
     <div style={ROUTE_SHELL}>

@@ -5,8 +5,7 @@
  * import, and a unit test has no deployment to reach: a real client would
  * queue every mutation behind a connection that never opens, so a signed-in
  * store write (`withSignedInBackend()`) would never settle. Here every server
- * commit lands, at version 1 — the store, the IndexedDB cache and hydration
- * all run for real.
+ * commit lands, at version 1 — the stores run for real.
  *
  * A file that needs to see or refuse the writes replaces this with its own
  * through `installConvexMocks({ convexClient })`

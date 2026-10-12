@@ -1,8 +1,16 @@
+import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { InstrumentStage } from './_dashboardStage'
 import type { ReadyPip } from './DowntimeWizard'
 import { DowntimeWizardFrame } from './DowntimeWizard'
+
+const STACK_16 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+} satisfies CSSProperties
 
 export default { title: 'Compositions/Dashboard/Downtime Wizard' }
 
@@ -27,7 +35,7 @@ function Wizard({ mediator }: { mediator: boolean }) {
   return (
     <InstrumentStage width={560}>
       <div
-        className="pc-display-light"
+        className="su-dash-display-light"
         style={{ height: 520, borderRadius: 'var(--radius-panel)' }}
       >
         <DowntimeWizardFrame
@@ -54,7 +62,7 @@ function Wizard({ mediator }: { mediator: boolean }) {
 
 /** A player: "I'm done", and the table waits for the Mediator. */
 export const Player = () => (
-  <div className="flex flex-col gap-4">
+  <div style={STACK_16}>
     <Caption>Downtime, a player — the Game's step, the ready pips, and I'm done.</Caption>
     <Wizard mediator={false} />
   </div>
@@ -62,7 +70,7 @@ export const Player = () => (
 
 /** The Mediator: Next step moves every member's Dashboard on. */
 export const Mediator = () => (
-  <div className="flex flex-col gap-4">
+  <div style={STACK_16}>
     <Caption>Downtime, the Mediator — Next step moves the whole table on.</Caption>
     <Wizard mediator />
   </div>

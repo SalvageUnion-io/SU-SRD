@@ -1,7 +1,7 @@
 import { useAuthActions } from '@convex-dev/auth/react'
 import { Button } from 'component-lib'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { useSignOutAndForget } from './useSignOutAndForget'
+import { useSignOut } from './useSignOut'
 
 /**
  * The dark-masthead treatment: a paper hairline on the near-black bar.
@@ -40,7 +40,7 @@ export function SignInControl({
   size = 'compact',
 }: SignInControlProps) {
   const { signIn } = useAuthActions()
-  const signOut = useSignOutAndForget()
+  const signOut = useSignOut()
   const { mode } = useConnection()
 
   if (mode === 'connected') {

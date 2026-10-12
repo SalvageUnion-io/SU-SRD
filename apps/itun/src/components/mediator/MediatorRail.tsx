@@ -6,7 +6,7 @@
  *
  * The attention count is a polite live region, so a seat going red is heard
  * without being shouted (docs/architecture/mediator-dashboard.md §7).
- * Presentational; the region wrapper is `DashboardGrid`'s `.pc-rail`.
+ * Presentational; the region wrapper is `DashboardGrid`'s `.su-dash-rail`.
  */
 
 import { Badge, buttonVariants, tokens } from 'component-lib'

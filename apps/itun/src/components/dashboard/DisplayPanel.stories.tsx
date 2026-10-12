@@ -1,7 +1,15 @@
+import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { InstrumentStage } from './_dashboardStage'
 import { DisplayPanelFrame } from './DisplayPanel'
+
+const STACK_16 = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+} satisfies CSSProperties
 
 export default { title: 'Compositions/Dashboard/Display Panel' }
 
@@ -14,11 +22,11 @@ export default { title: 'Compositions/Dashboard/Display Panel' }
 export const Default = () => {
   const chassis = SalvageUnionReference.Chassis.all()[0]
   return (
-    <div className="flex flex-col gap-4">
+    <div style={STACK_16}>
       <Caption>Main display — a chassis reference card with entity-level foot controls.</Caption>
       <InstrumentStage width={560}>
         <div
-          className="pc-display-light"
+          className="su-dash-display-light"
           style={{ height: 520, borderRadius: 'var(--radius-panel)' }}
         >
           <DisplayPanelFrame

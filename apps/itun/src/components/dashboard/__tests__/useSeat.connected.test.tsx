@@ -599,7 +599,7 @@ describe("the Dashboard's display: the deck, the tabs and the table (plan layer 
       expect(screen.getByRole('tab', { name: 'Resolve' }).getAttribute('aria-selected')).toBe(
         'true'
       )
-      expect(container.querySelector('.pc-deck-d20')?.textContent).toBe('14')
+      expect(container.querySelector('.su-dash-deck-d20')?.textContent).toBe('14')
 
       await act(async () => {
         screen.getByText('Roll').click()

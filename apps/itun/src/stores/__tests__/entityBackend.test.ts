@@ -2,11 +2,12 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { CONNECTION_MODES } from '../../lib/connection/connectionMode'
 import {
   backendForMode,
+  backendSettling,
   crawlerPatchArgs,
-  readableRows,
   requireWritableBackend,
   selectBackend,
   setEntityBackendAuthState,
+  subscribeBackend,
   WritesBlockedOffline,
 } from '../entityBackend'
 
@@ -14,7 +15,7 @@ import {
  * Backend selection (ADR-030 §1, ADR-034 decision 1).
  *
  * Three answers, two of them refusals: `signedOut` for anybody not signed
- * in (read-only, and reads nothing), `remote` for a Connected session, `blocked` while Disconnected or still
+ * in (read-only, and holds nothing), `remote` for a Connected session, `blocked` while Disconnected or still
  * settling the auth handshake. The tests below pin that no combination of
  * inputs yields a durable anonymous backend.
  */
@@ -150,41 +151,24 @@ describe('backendForMode — the whole rule', () => {
   })
 })
 
-describe('readableRows — what a store may show', () => {
-  /** A cache that records whether it was read. */
-  function cache() {
-    const read = { count: 0 }
-    return {
-      read,
-      list: async () => {
-        read.count += 1
-        return [{ id: 'on-disk' }]
-      },
-    }
-  }
-
-  test('signed out shows nothing, and does not even read the cache', async () => {
-    // The cache may still hold the last account's rows.
-    const c = cache()
-    expect(await readableRows(c)).toEqual([])
-    expect(c.read.count).toBe(0)
+describe('subscribeBackend — the stores hear every push', () => {
+  test('a listener runs on each push until it unsubscribes', () => {
+    let heard = 0
+    const stop = subscribeBackend(() => {
+      heard += 1
+    })
+    setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
+    setEntityBackendAuthState({ signedIn: true, online: false, authSettled: true })
+    stop()
+    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+    expect(heard).toBe(2)
   })
 
-  test('signed in, or blocked, shows the cache', async () => {
-    setEntityBackendAuthState({
-      signedIn: true,
-      online: true,
-      authSettled: true,
-    })
-    expect(await readableRows(cache())).toEqual([{ id: 'on-disk' }])
-    // Disconnected is read-only, not blind: what was pulled down stays open.
-    setEntityBackendAuthState({
-      signedIn: true,
-      online: false,
-      authSettled: true,
-    })
-    expect(selectBackend()).toBe('blocked')
-    expect(await readableRows(cache())).toEqual([{ id: 'on-disk' }])
+  test('backendSettling is true only for the handshake', () => {
+    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: false })
+    expect(backendSettling()).toBe(true)
+    setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
+    expect(backendSettling()).toBe(false)
   })
 })
 

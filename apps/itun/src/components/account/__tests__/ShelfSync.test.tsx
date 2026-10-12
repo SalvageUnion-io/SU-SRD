@@ -29,9 +29,8 @@ const { ShelfSync } = await import('../ShelfSync')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { usePatternStore } = await import('../../../stores/patternStore')
 const { useEncounterStore } = await import('../../../stores/encounterStore')
-const { forgetVersions } = await import('../../../stores/serverVersions')
 const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
-const db = await import('../../../lib/db/index')
+const { resetStores } = await import('../../../stores/__tests__/resetStores')
 
 afterAll(() => {
   convexMocks.restore()
@@ -85,20 +84,37 @@ function serve(roster: Partial<typeof EMPTY_ROSTER>) {
   })
 }
 
-beforeEach(async () => {
+beforeEach(() => {
   mutations.length = 0
-  forgetVersions()
-  db._resetDbSingleton()
-  await db.clearCache()
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
+  resetStores()
+})
+
+describe('the stores wait for the first answer', () => {
+  test('hydrate resolves only once ShelfSync has applied listMine and listWiring', async () => {
+    serve({ pilots: [{ appId: 'p1', updatedAt: 1, body: pilotFixture({ id: 'p1' }) }] as never[] })
+    let arrived = false
+    render(<ShelfSync />)
+    const waiting = Promise.all([
+      useEntityStore.getState().hydrate('pilot'),
+      useEntityStore.getState().hydrate('softLink'),
+      usePatternStore.getState().hydrate(),
+      useEncounterStore.getState().hydrate(),
+    ]).then(() => {
+      arrived = true
+    })
+
+    await act(async () => {
+      await waiting
+    })
+    expect(arrived).toBe(true)
+    // What arrived is there when hydrate resolves — no empty roster first.
+    expect(
+      useEntityStore
+        .getState()
+        .list('pilot')
+        .map((p) => p.id)
+    ).toEqual(['p1'])
   })
-  usePatternStore.setState({ mechPatterns: [], hydrated: true })
-  useEncounterStore.setState({ encounterNpcs: [], hydrated: true })
 })
 
 describe('a delete made in another tab leaves this one', () => {

@@ -1,25 +1,23 @@
 /**
  * entityStore unit tests.
  *
- * fake-indexeddb/auto is preloaded via bunfig.toml — no explicit import needed.
- * Each test gets a clean store by calling clearCache() in beforeEach and
- * resetting the Zustand store state manually.
+ * The store holds rows in memory only; each test starts from `resetStores()`.
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import type { MonotonicClock } from '../../lib/db/__tests__/monotonicClock'
-import { installMonotonicClock } from '../../lib/db/__tests__/monotonicClock'
-import { _resetDbSingleton, clearCache, pilots as dbPilots } from '../../lib/db/index'
+import { pilotFixture } from '../../components/__tests__/fixtures'
 import { useEntityStore } from '../entityStore'
 import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
+import type { CreateInput } from '../types'
+import type { MonotonicClock } from './monotonicClock'
+import { installMonotonicClock } from './monotonicClock'
+import { resetStores } from './resetStores'
 import { withSignedInBackend } from './signedInBackend'
 
-// These assert durability — a write surviving a rehydrate or a direct read of
-// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+// These write, and only the signed-in backend writes. See signedInBackend.ts.
 withSignedInBackend()
 
-// `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
-// sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and
+// `createdAt` / `updatedAt` come from `new Date()` inside `records.ts`. A monotonic clock makes consecutive writes distinct and
 // ordered by construction, so the ordering assertions below need no sleeping.
 let clock: MonotonicClock
 
@@ -50,30 +48,16 @@ const basePilotInput = {
   conditions: [],
 }
 
-/** Reset the Zustand entity store to its initial (un-hydrated) state. */
-function resetEntityStore(): void {
-  useEntityStore.setState({
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
-  })
-}
-
 // ---------------------------------------------------------------------------
 // Setup / teardown
 // ---------------------------------------------------------------------------
 
-beforeEach(async () => {
-  _resetDbSingleton()
-  await clearCache()
-  resetEntityStore()
+beforeEach(() => {
+  resetStores()
 })
 
-afterEach(async () => {
-  await clearCache()
-  resetEntityStore()
+afterEach(() => {
+  resetStores()
 })
 
 // ---------------------------------------------------------------------------
@@ -81,15 +65,15 @@ afterEach(async () => {
 // ---------------------------------------------------------------------------
 
 describe('entityStore — hydration', () => {
-  test('empty db: hydrate then list returns []', async () => {
+  test('nothing arrived: hydrate then list returns []', async () => {
     await useEntityStore.getState().hydrate('pilot')
     const pilots = useEntityStore.getState().list('pilot')
     expect(pilots).toEqual([])
   })
 
-  test('pre-seeded db: hydrate populates in-memory state', async () => {
-    await dbPilots.create({ ...basePilotInput, name: 'Alpha' })
-    await dbPilots.create({ ...basePilotInput, name: 'Beta' })
+  test('adopted server rows are what a hydrated list returns', async () => {
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'a', name: 'Alpha' }))
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'b', name: 'Beta' }))
 
     await useEntityStore.getState().hydrate('pilot')
     const pilots = useEntityStore.getState().list('pilot')
@@ -101,7 +85,7 @@ describe('entityStore — hydration', () => {
   })
 
   test('hydrate is idempotent — calling twice does not duplicate entries', async () => {
-    await dbPilots.create(basePilotInput)
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'a' }))
 
     await useEntityStore.getState().hydrate('pilot')
     await useEntityStore.getState().hydrate('pilot') // second call should be no-op
@@ -116,7 +100,7 @@ describe('entityStore — hydration', () => {
 // ---------------------------------------------------------------------------
 
 describe('entityStore — create', () => {
-  test('create writes to db and updates in-memory state', async () => {
+  test('create commits and updates in-memory state', async () => {
     await useEntityStore.getState().hydrate('pilot')
     const created = await useEntityStore.getState().create('pilot', basePilotInput)
 
@@ -127,16 +111,12 @@ describe('entityStore — create', () => {
     const pilots = useEntityStore.getState().list('pilot')
     expect(pilots.length).toBe(1)
     expect(pilots[0]?.id).toBe(created.id)
-
-    // db also has it
-    const fromDb = await dbPilots.get(created.id)
-    expect(fromDb).not.toBeNull()
-    expect(fromDb?.name).toBe('Yara Voss')
+    expect(created.createdAt).toBe(created.updatedAt)
   })
 })
 
 describe('entityStore — update', () => {
-  test('update merges patch and writes through to db', async () => {
+  test('update merges the patch and bumps updatedAt', async () => {
     await useEntityStore.getState().hydrate('pilot')
     const created = await useEntityStore.getState().create('pilot', basePilotInput)
 
@@ -157,15 +137,19 @@ describe('entityStore — update', () => {
     // In-memory state is updated
     const inMemory = useEntityStore.getState().get('pilot', created.id)
     expect(inMemory?.name).toBe('New Name')
+    expect(updated.updatedAt > created.updatedAt).toBe(true)
+    expect(updated.createdAt).toBe(created.createdAt)
+  })
 
-    // db has the new value
-    const fromDb = await dbPilots.get(created.id)
-    expect(fromDb?.name).toBe('New Name')
+  test('update of a record the store does not hold throws', async () => {
+    await expect(
+      useEntityStore.getState().update('pilot', 'missing', { name: 'X' }, LIVE_SHEET_MANUAL)
+    ).rejects.toThrow(/not found/)
   })
 })
 
 describe('entityStore — delete', () => {
-  test('delete removes from db and in-memory state', async () => {
+  test('delete removes it from in-memory state', async () => {
     await useEntityStore.getState().hydrate('pilot')
     const created = await useEntityStore.getState().create('pilot', basePilotInput)
 
@@ -174,10 +158,6 @@ describe('entityStore — delete', () => {
     // In-memory gone
     const pilots = useEntityStore.getState().list('pilot')
     expect(pilots.length).toBe(0)
-
-    // db also gone
-    const fromDb = await dbPilots.get(created.id)
-    expect(fromDb).toBeNull()
   })
 })
 
@@ -186,14 +166,14 @@ describe('entityStore — delete', () => {
 // ---------------------------------------------------------------------------
 
 describe('entityStore — Zod error propagation', () => {
-  test('create propagates Zod validation error from db layer', async () => {
+  test('create propagates the Zod validation error', async () => {
     await useEntityStore.getState().hydrate('pilot')
 
     const badInput = { ...basePilotInput } as Record<string, unknown>
     delete badInput.classRef // required field
 
     await expect(
-      useEntityStore.getState().create('pilot', badInput as Parameters<typeof dbPilots.create>[0])
+      useEntityStore.getState().create('pilot', badInput as CreateInput<'pilot'>)
     ).rejects.toThrow()
   })
 })
