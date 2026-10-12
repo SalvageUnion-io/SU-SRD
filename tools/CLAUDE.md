@@ -72,7 +72,7 @@ the corpus size, not just the finding count.
 | `export-lp-assets.ts` | `assets:export` | Backs up the `su-lp-assets` R2 bucket locally and proves the copy byte-exact — the only backup path for the licensed artwork. Needs R2 credentials. |
 | `upload-lp-assets.ts` | `assets:upload` | The artwork ingest path into `su-lp-assets`. Needs R2 credentials. |
 | `art-crop.ts` | `assets:crop` | Measures each artwork's ink box from its `-440` derivative and writes component-lib's `heroArtCrop.data.ts`, which the entity page's hero crops to. Re-run after adding or replacing art; unmeasured art renders whole. |
-| `shot.ts` | `shot` | A headless full-page PNG of a story (`?mode=canvas`, catalog on 61000) or an srd `/route` (dev on 4321) at a `WIDTH_PRESETS` width, `--dark` emulated. Reuses a server already on the port, else starts and stops one. Writes to the gitignored `.shots/` (or `--out`) and prints each path. |
+| `shot.ts` | `shot` | A headless full-page PNG of a story (`?mode=canvas`, `apps/catalog` on 61000) or an srd `/route` (dev on 4321) at a `WIDTH_PRESETS` width, `--dark` emulated. Reuses a server already on the port, else starts and stops one. Writes to the gitignored `.shots/` (or `--out`) and prints each path. |
 
 `packages/gates` holds the shared library (`lib/`: rule engine, scan floors,
 workspace graph, lcov merge, prose fidelity, R2, the Playwright base), the

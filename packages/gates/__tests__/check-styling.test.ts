@@ -309,7 +309,7 @@ const ENTRY = 'packages/component-lib/src/styles/entry.css'
 const STYLING_BASE: Record<string, string> = {
   [ENTRY]:
     "@layer su-reset, su-base;\n@import './theme.css';\n@import './reset.css' layer(su-reset);\n@import './index.css' layer(su-base);\n",
-  'packages/component-lib/src/styles/catalog.css': "@import './entry.css';\n",
+  'apps/catalog/src/catalog.css': "@import 'component-lib/styles/entry.css';\n",
   'apps/itun/src/index.css': "@import 'component-lib/styles/entry.css';\n",
   'apps/srd/src/styles/global.css': "@import 'component-lib/styles/entry.css';\n",
   'apps/itun/src/styles/dashboard/DashboardCanvas.css': '.su-dash-used { color: red }\n',

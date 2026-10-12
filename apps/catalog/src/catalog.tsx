@@ -1,11 +1,12 @@
 /// <reference types="vite/client" />
+
+import { PeekHost } from 'component-lib'
+import { color, font, fontSize, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Component, Fragment, StrictMode, Suspense, use, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { color, font, fontSize, space, weight } from './src/design/tokens'
-import { PeekHost } from './src/entity/Peek'
-import type { CatalogRoute, StoryRef } from './src/stories/_catalogRoute'
+import type { CatalogRoute, StoryRef } from './catalogRoute'
 import {
   parseRoute,
   routeHref,
@@ -13,8 +14,8 @@ import {
   storyId,
   storyLabel,
   WIDTH_PRESETS,
-} from './src/stories/_catalogRoute'
-import './src/styles/catalog.css'
+} from './catalogRoute'
+import './catalog.css'
 // The faces the apps ship (apps/srd/src/runtime/styles.entry.ts, ITUN's
 // __root.tsx), so a story draws in the product's type at the product's text
 // widths, not a fallback.
@@ -28,22 +29,24 @@ import '@fontsource/barlow-semi-condensed/700.css'
 
 /**
  * The component catalog: a dev-only page (`bun run stories`) that this
- * package's Vite server mounts from `index.html`. It renders every story file
- * in the library and in the two apps' component folders, one story at a time
+ * app's Vite server mounts from `index.html`. It renders every story file in
+ * component-lib and in the two apps' component folders, one story at a time
  * on the paper ground. A story is addressed as `?story=<id>`; `&mode=canvas`
  * drops the sidebar and toolbar, `&width=phone|column|page|<px>` fixes the
  * story's container width, and `?mode=index` lists every id
- * (`src/stories/_catalogRoute.ts`). `#<id>` still selects a story.
+ * (`catalogRoute.ts`). `#<id>` still selects a story.
  * `bun run stories:ids` prints the ids without a browser (`listStories.ts`).
  */
 
 type StoryFile = { default: { title: string } } & Record<string, unknown>
 type Entry = StoryRef & { Story: () => ReactNode }
 
+// Literal, as `import.meta.glob` requires: `STORY_GLOBS` (`storyRoots.ts`)
+// is the same list for the tools that read story files without Vite.
 const files = import.meta.glob<StoryFile>([
-  './src/**/*.stories.tsx',
-  '../../apps/itun/src/components/**/*.stories.tsx',
-  '../../apps/srd/src/components/**/*.stories.tsx',
+  '../../../packages/component-lib/src/**/*.stories.tsx',
+  '../../../apps/itun/src/components/**/*.stories.tsx',
+  '../../../apps/srd/src/components/**/*.stories.tsx',
 ])
 
 const DEFAULT_STORY = 'foundations--styleguide--overview'
@@ -185,7 +188,7 @@ function Catalog() {
     stories[0]
 
   useEffect(() => {
-    document.title = active ? `${active.id} · stories` : 'component-lib stories'
+    document.title = active ? `${active.id} · stories` : 'story catalog'
   }, [active])
 
   if (route.mode === 'index') return <Index stories={stories} />

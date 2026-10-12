@@ -18,7 +18,7 @@
  * - A server already answering on the port is reused; otherwise this starts
  *   one and stops it afterwards.
  * - `--width` is the catalog's preset (`WIDTH_PRESETS` in
- *   `packages/component-lib/src/stories/_catalogRoute.ts`): the viewport width,
+ *   `apps/catalog/src/catalogRoute.ts`): the viewport width,
  *   and for a story its container width too. The capture is the full page.
  * - `--dark` emulates `prefers-color-scheme: dark`.
  * - PNGs go to the gitignored `.shots/` (or `--out`); each path is printed for
@@ -33,7 +33,7 @@ import { join, resolve } from 'node:path'
 
 const REPO = resolve(import.meta.dir, '..')
 
-/** Mirrors `WIDTH_PRESETS` in component-lib's `_catalogRoute.ts`. */
+/** Mirrors `WIDTH_PRESETS` in the catalog's `catalogRoute.ts`. */
 export const WIDTHS = { phone: 375, column: 480, page: 1200 } as const
 type Width = keyof typeof WIDTHS
 
@@ -149,7 +149,7 @@ async function ensureServer(server: Server): Promise<() => void> {
  * own listing first.
  */
 async function assertStory(id: string) {
-  const list = Bun.spawnSync(['bun', 'packages/component-lib/listStories.ts'], { cwd: REPO })
+  const list = Bun.spawnSync(['bun', 'apps/catalog/listStories.ts'], { cwd: REPO })
   const ids = list.stdout
     .toString()
     .split('\n')

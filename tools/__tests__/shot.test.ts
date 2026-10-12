@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { resolve } from 'node:path'
-import { WIDTH_PRESETS } from '../../packages/component-lib/src/stories/_catalogRoute'
+import { WIDTH_PRESETS } from '../../apps/catalog/src/catalogRoute'
 import { fileName, parseArgs, planShot, WIDTHS } from '../shot'
 
 /**

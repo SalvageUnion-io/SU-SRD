@@ -424,7 +424,7 @@
         "rules": {
           "style": {
             "useComponentExportOnlyModules": "off",
-            // The catalog (component-lib's `catalog.tsx`) reads
+            // The catalog (`apps/catalog/src/catalog.tsx`) reads
             // a story file's `meta` as its DEFAULT export — a contract, not a
             // style choice. All 107 of the
             // repo's `export default`s outside `src/routes/` are this.
@@ -634,10 +634,10 @@
       }
     },
     {
-      // component-lib's story catalog is a page entry, not a module: it mounts
+      // The story catalog's entry is a page entry, not a module: it mounts
       // its own components and exports nothing, so there is no export for
       // Fast Refresh to keep.
-      "includes": ["packages/component-lib/catalog.tsx"],
+      "includes": ["apps/catalog/src/catalog.tsx"],
       "linter": {
         "rules": {
           "style": {

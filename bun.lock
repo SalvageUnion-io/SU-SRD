@@ -24,6 +24,20 @@
         "wrangler": "4.147.0",
       },
     },
+    "apps/catalog": {
+      "name": "catalog",
+      "version": "0.0.0",
+      "dependencies": {
+        "@fontsource/barlow": "catalog:",
+        "@fontsource/barlow-semi-condensed": "catalog:",
+        "component-lib": "workspace:*",
+        "itun": "workspace:*",
+        "react": "catalog:",
+        "react-dom": "catalog:",
+        "salvageunion-reference": "workspace:*",
+        "srd": "workspace:*",
+      },
+    },
     "apps/discord-bot": {
       "name": "discord-bot",
       "version": "0.0.1",
@@ -111,8 +125,6 @@
         "sonner": "2.0.8",
       },
       "devDependencies": {
-        "@fontsource/barlow": "catalog:",
-        "@fontsource/barlow-semi-condensed": "catalog:",
         "react": "catalog:",
         "react-dom": "catalog:",
       },
@@ -998,6 +1010,8 @@
     "camelcase": ["camelcase@5.3.1", "", {}, "sha512-L28STB170nwWS63UjtlEOE3dldQApaJXZkOI1uMFfzf3rRuPegHaHesyee+YxQ+W6SvRDQV6UrdOdRiR153wJg=="],
 
     "caniuse-lite": ["caniuse-lite@1.0.30001809", "", {}, "sha512-xxWVywk6a6Arlk+hymeycyn/VgqEfLDxupvhH/xiY5SJ/18kmi9o6MiO320DCUzypORHLtvh0I4i04tUhCNHNQ=="],
+
+    "catalog": ["catalog@workspace:apps/catalog"],
 
     "chokidar": ["chokidar@5.0.0", "", { "dependencies": { "readdirp": "^5.0.0" } }, "sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw=="],
 

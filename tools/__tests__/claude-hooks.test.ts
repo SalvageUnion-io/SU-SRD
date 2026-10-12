@@ -195,6 +195,7 @@ describe('typecheck hooks against a stub workspace', () => {
   )
 
   const WORKSPACES = [
+    'apps/catalog',
     'apps/discord-bot',
     'apps/itun',
     'apps/srd',
@@ -256,10 +257,11 @@ describe('typecheck hooks against a stub workspace', () => {
   test.each([
     ['an app', 'apps/itun/lib/x.ts', ['ROOT apps/itun']],
     ['the bot', 'apps/discord-bot/lib/x.ts', ['ROOT apps/discord-bot']],
+    ['the catalog', 'apps/catalog/lib/x.ts', ['ROOT apps/catalog tools']],
     [
       'component-lib',
       'packages/component-lib/lib/x.ts',
-      ['ROOT packages/component-lib apps/srd apps/itun tools'],
+      ['ROOT packages/component-lib apps/srd apps/itun apps/catalog tools'],
     ],
     [
       'observability',

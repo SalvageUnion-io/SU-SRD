@@ -1,4 +1,4 @@
-import { storyGroups, storySubgroups } from './_groups'
+import { storyGroups, storySubgroups } from 'component-lib/stories/groups'
 
 /**
  * The story catalog's addressing, shared by `catalog.tsx` (which renders it)

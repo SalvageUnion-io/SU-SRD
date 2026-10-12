@@ -27,7 +27,7 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
 // ── file gathering ─────────────────────────────────────────────────────────
 
-const APP_DIRS = ['apps/itun/src', 'apps/srd/src'] as const
+const APP_DIRS = ['apps/itun/src', 'apps/srd/src', 'apps/catalog/src'] as const
 const DASHBOARD_DIR = 'apps/itun/src/styles/dashboard'
 
 /** The file sets the rules share, gathered once per scan. Repo-relative paths. */
@@ -320,7 +320,7 @@ const STYLESHEET_ENTRY = 'packages/component-lib/src/styles/entry.css'
 const ENTRY_CONSUMERS = [
   'apps/itun/src/index.css',
   'apps/srd/src/styles/global.css',
-  'packages/component-lib/src/styles/catalog.css',
+  'apps/catalog/src/catalog.css',
 ] as const
 
 /**
@@ -359,7 +359,7 @@ function scanPackageStylesheetImport(c: Corpus): Finding[] {
 
   for (const rel of ENTRY_CONSUMERS) {
     const css = stripCssComments(c.read(rel))
-    if (!/@import\s+['"](?:component-lib\/styles|\.)\/entry\.css['"]/.test(css)) {
+    if (!/@import\s+['"]component-lib\/styles\/entry\.css['"]/.test(css)) {
       out.push({
         file: rel,
         line: 1,
@@ -454,7 +454,7 @@ const RULES: OwnershipRule[] = [
     id: 'package-stylesheet-import',
     mode: 'zero',
     rule: 'ruleset §the package stylesheet is the ONE stylesheet a consumer loads, layered under the apps (#799, epic #802)',
-    fix: "Every consumer imports 'component-lib/styles/entry.css' (the story catalog: './entry.css') and never index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
+    fix: "Every consumer (both apps and the story catalog) imports 'component-lib/styles/entry.css' and never index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
     scan: scanPackageStylesheetImport,
   },
 ]

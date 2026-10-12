@@ -65,6 +65,15 @@
       "project": ["src/**/*.{ts,tsx}"],
       "includeEntryExports": true
     },
+    "apps/catalog": {
+      // No `entry`: knip's Vite plugin finds `src/catalog.tsx` through
+      // `index.html`, and `listStories.ts` through the `stories:ids` script.
+      "project": ["src/**/*.{ts,tsx}"],
+      // Not imported by name: the catalog globs their story files. Declared so
+      // the workspace graph (pre-push, typecheck hooks) runs the story guard
+      // when either app changes.
+      "ignoreDependencies": ["itun", "srd"]
+    },
     "apps/srd": {
       // `ssg/build.ts` is the in-house static-site generator's entry (it reaches
       // routes -> pages -> layouts). `src/runtime/*.entry`-style files are
