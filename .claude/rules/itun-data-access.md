@@ -63,8 +63,8 @@ const members = useQuery(api.games.members, { gameId })
 
 - **Add an IndexedDB store without a Convex commit seam** —
   `apps/itun/src/lib/db/__tests__/storeSeams.test.ts` fails on one.
-  [ADR-034](../../docs/ARCHITECTURE.md#adr-034) and
-  [ADR-035](../../docs/ARCHITECTURE.md#adr-035) make Convex
+  [ADR-034](../../docs/ARCHITECTURE.md#decisions) and
+  [ADR-035](../../docs/ARCHITECTURE.md#decisions) make Convex
   the only source of truth; a row with no Convex counterpart is a defect. If
   the schema cannot say where a record lives, **the schema moves** (#871:
   `crawlers` gained `ownerId` and a nullable `gameId`).
@@ -77,5 +77,5 @@ const members = useQuery(api.games.members, { gameId })
 - Add a query cache: entity reads are the typed hooks in `src/hooks/entities/` over the stores, and Connected reads
   use `convex/react`.
 
-Full picture: [data flow](../../docs/ARCHITECTURE.md#data-flow),
-[accounts](../../docs/ARCHITECTURE.md#accounts-and-games-operations).
+Full picture: [data flow](../../docs/ARCHITECTURE.md#areas),
+[accounts](../../docs/ARCHITECTURE.md#areas).

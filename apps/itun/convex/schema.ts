@@ -6,7 +6,7 @@ import { v } from 'convex/values'
  * Convex schema for ITUN accounts, Games, and entity ownership.
  *
  * This is the server of record introduced by ADR-030, which
- * supersedes ADR-001's "no backend, no auth". See docs/ARCHITECTURE.md#data-flow
+ * supersedes ADR-001's "no backend, no auth". See docs/ARCHITECTURE.md#areas
  * and ADR-030 for the full record; the short version of what this file assumes:
  *
  *   - Two containers, not one (ADR-030 §2). An entity lives in a shared `games` row OR
@@ -172,7 +172,7 @@ function containerTable() {
       appId: v.optional(v.string()),
       /**
        * Whether this entity is readable by anybody, with no account
-       * ([ADR-032](../../../docs/ARCHITECTURE.md#adr-032)).
+       * ([ADR-032](../../../docs/ARCHITECTURE.md#decisions)).
        *
        * A column rather than a body field because it is a **visibility** fact,
        * which is server state in the same way `gameId` and `ownerId` are — and
@@ -506,7 +506,7 @@ export default defineSchema({
   /** Mediator-owned and Mediator-visible. The one thing that must stay hidden. */
   /**
    * An NPC, in exactly one of the two containers everything else uses
-   * ([ADR-034](../../../docs/ARCHITECTURE.md#adr-034)
+   * ([ADR-034](../../../docs/ARCHITECTURE.md#decisions)
    * decision 2).
    *
    * In a Game (`gameId` set, `ownerId: null`) it is the **Mediator's prepared

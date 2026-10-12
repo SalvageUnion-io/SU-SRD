@@ -2,8 +2,8 @@
 
 Discord bot for rolling on Salvage Union random tables. Standalone consumer of
 `salvageunion-reference` — it reuses the same pure rules/data logic the apps do
-([ADR-006](../../docs/ARCHITECTURE.md#adr-006)) and preloads the dataset
-at startup ([ADR-005](../../docs/ARCHITECTURE.md#adr-005)).
+([ADR-006](../../docs/ARCHITECTURE.md#decisions)) and preloads the dataset
+at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
 
 ## Stack
 
@@ -60,7 +60,7 @@ The bot is also an authenticated ITUN Game client. It reaches Convex through a
 `/bot/*` HTTP route with a bearer credential that authenticates the **bot**,
 never the **actor** — every call carries a Discord id that the server resolves
 against a linked account and a real membership. See
-[the bot as a Game client](../../docs/ARCHITECTURE.md#discord-bot-as-a-game-client).
+[the bot as a Game client](../../docs/ARCHITECTURE.md#areas).
 
 - `src/itun/` — the client (`fetch`, no `convex` dependency) and the wire types,
   which are **imported** (`import type`) from
@@ -89,7 +89,7 @@ does not exist.
 
 **Maxima are derived here, not fetched.** `gameCards.ts` derives max
 HP/SP/Heat via `salvageunion-reference/rules`
-([ADR-006](../../docs/ARCHITECTURE.md#adr-006)). Convex's `crew.vitals` now
+([ADR-006](../../docs/ARCHITECTURE.md#decisions)). Convex's `crew.vitals` now
 derives them too, with the same rules; moving the bot onto those is #1068.
 
 **`/su sheet` is the live sheet folded into a message.** `gameCards.ts` maps it

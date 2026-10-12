@@ -5,7 +5,7 @@ import { linkIdOf } from './entities'
 
 /**
  * Seat helpers shared by `seats.ts` and every path that would otherwise orphan
- * a seat ([ADR-038](../../../../docs/ARCHITECTURE.md#adr-038) §2).
+ * a seat ([ADR-038](../../../../docs/ARCHITECTURE.md#decisions) §2).
  *
  * A seat is keyed on a pilot's app id inside one Game and points at its boarded
  * mech by app id, the way soft-link ends do. Neither end is a foreign key, so
