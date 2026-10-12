@@ -423,16 +423,29 @@ function tableLines(
   )
 }
 
+/** What a card still holds while it sheds, and what it has shed. */
+type CardContent = {
+  prose: string[]
+  actions: DiscordAction[]
+  rows: DiscordTableRow[]
+  children: DiscordChildGroup[]
+  /** The whole table went, so the card links to it. */
+  tableShed: boolean
+  /** Anything other than the table went, so the card links the full entry. */
+  otherShed: boolean
+}
+
+/** The link a shed card closes on: the whole table when that is all it lost. */
+function shedLink(content: CardContent, url: string): string {
+  return content.tableShed && !content.otherShed
+    ? `[See the whole table on salvageunion.io](${url})`
+    : `[The full entry on salvageunion.io](${url})`
+}
+
 function build(
   parts: DiscordCardParts,
   options: DiscordCardOptions,
-  content: {
-    prose: string[]
-    actions: DiscordAction[]
-    rows: DiscordTableRow[]
-    children: DiscordChildGroup[]
-  },
-  shed: boolean
+  content: CardContent
 ): DiscordCard {
   const blocks: DiscordBlock[] = []
   const head = parts.head.join('\n')
@@ -465,8 +478,8 @@ function build(
     })
   }
 
-  if (shed && parts.url) {
-    blocks.push({ kind: 'text', content: `[The full entry on salvageunion.io](${parts.url})` })
+  if ((content.tableShed || content.otherShed) && parts.url) {
+    blocks.push({ kind: 'text', content: shedLink(content, parts.url) })
   }
   blocks.push({ kind: 'separator' })
   blocks.push({ kind: 'text', content: parts.cite })
@@ -475,34 +488,50 @@ function build(
 
 /**
  * Assemble a card from its parts and shed it to fit: children first, then
- * actions from the end, then table rows from the low end, then prose from the
- * end. A shed card says so and links the page, so nothing is lost, only moved.
- * Whole parts go, never half a sentence; the head and the cite always stay.
+ * actions from the end, then the table, then prose from the end. A shed card
+ * says so and links the page, so nothing is lost, only moved. Whole parts go,
+ * never half a sentence; the head and the cite always stay.
+ *
+ * A table goes WHOLE: a long one is read on its page ("See the whole table"),
+ * never cut to its top rows. The one exception is a table with a rolled row
+ * (`markedRow`), which keeps that row and sheds the others from the end.
  */
 export function discordCard(
   parts: DiscordCardParts,
   options: DiscordCardOptions = {}
 ): DiscordCard {
-  const content = {
+  const content: CardContent = {
     prose: [...parts.prose],
     actions: [...parts.actions],
     rows: [...(parts.table?.rows ?? [])],
     children: [...parts.children],
+    tableShed: false,
+    otherShed: false,
   }
   const fits = options.fits ?? (() => true)
-  let card = build(parts, options, content, false)
+  let card = build(parts, options, content)
   while (!fits(card)) {
-    if (content.children.length > 0) content.children.pop()
-    else if (content.actions.length > 0) content.actions.pop()
-    else if (content.rows.length > 1) {
+    if (content.children.length > 0) {
+      content.children.pop()
+      content.otherShed = true
+    } else if (content.actions.length > 0) {
+      content.actions.pop()
+      content.otherShed = true
+    } else if (options.markedRow === undefined && content.rows.length > 0) {
+      content.rows = []
+      content.tableShed = true
+    } else if (content.rows.length > 1) {
       const marked = content.rows.findIndex((row) => row.key === options.markedRow)
       // Keep the rolled row: drop the furthest other row from the end.
       const drop =
         content.rows.length - 1 === marked ? content.rows.length - 2 : content.rows.length - 1
       content.rows.splice(drop, 1)
-    } else if (content.prose.length > 0) content.prose.pop()
-    else break
-    card = build(parts, options, content, true)
+      content.otherShed = true
+    } else if (content.prose.length > 0) {
+      content.prose.pop()
+      content.otherShed = true
+    } else break
+    card = build(parts, options, content)
   }
   return card
 }
