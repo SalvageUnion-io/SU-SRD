@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test'
-import { scanPages } from '../../../tools/lib/a11yScan'
+import { scanPages } from 'gates/lib/a11yScan'
 import { at } from './_base'
 
 /**
  * WCAG 2.2 AA on every route in `PAGES`, signed out, at desktop and as a
- * Pixel 7 (`tools/lib/a11yScan.ts`). Fails on any violation.
+ * Pixel 7 (`packages/gates/lib/a11yScan.ts`). Fails on any violation.
  */
 
 /**

@@ -2,12 +2,12 @@
 /**
  * Styling gates — `bun run check styling`.
  *
- * One engine (`tools/lib/ruleEngine.ts`), four rule sets:
+ * One engine (`packages/gates/lib/ruleEngine.ts`), four rule sets:
  *
- *   - `tokens`   — design-token laws (tools/rules/designTokens.ts)
- *   - `styling`  — component-lib owns shared styling (tools/rules/stylingOwnership.ts)
- *   - `srd-css`  — srd's single stylesheet entry (tools/rules/srdCss.ts)
- *   - `tone-ground` — no tech-level blue as a header ground (tools/rules/toneGround.ts)
+ *   - `tokens`   — design-token laws (packages/gates/rules/designTokens.ts)
+ *   - `styling`  — component-lib owns shared styling (packages/gates/rules/stylingOwnership.ts)
+ *   - `srd-css`  — srd's single stylesheet entry (packages/gates/rules/srdCss.ts)
+ *   - `tone-ground` — no tech-level blue as a header ground (packages/gates/rules/toneGround.ts)
  *
  * Why these gates exist at all: none of what they catch fails typecheck, lint or
  * a test. A deleted token leaves its `var()` resolving to nothing, a stray app
@@ -15,7 +15,7 @@
  * ships. Each rule set's header carries its full reasoning.
  *
  * A rule is `zero` (any finding fails) or a `ratchet` counted against
- * `tools/styling-baseline.json`. A ratchet fails when its count RISES, and also
+ * `tools/baselines/styling-baseline.json`. A ratchet fails when its count RISES, and also
  * when it FALLS without the baseline falling with it — an unrecorded
  * improvement is slack that the next regression spends without anyone seeing.
  *
@@ -26,21 +26,27 @@
  *   bun tools/check-styling.ts --update-baseline --allow-increase
  *                                                   # ONLY in a commit that makes a rule stricter,
  *                                                   # or that splits files without adding a
- *                                                   # utility (see tools/lib/ruleEngine.ts)
+ *                                                   # utility (see packages/gates/lib/ruleEngine.ts)
  *   bun tools/check-styling.ts --report             # print every finding; never fails
  */
 
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { Baseline, RuleSet } from './lib/ruleEngine'
-import { evaluate, formatFailures, increases, ratchetCounts, readBaseline } from './lib/ruleEngine'
-import { designTokens } from './rules/designTokens'
-import { srdCss } from './rules/srdCss'
-import { stylingOwnership } from './rules/stylingOwnership'
-import { toneGround } from './rules/toneGround'
+import type { Baseline, RuleSet } from 'gates/lib/ruleEngine'
+import {
+  evaluate,
+  formatFailures,
+  increases,
+  ratchetCounts,
+  readBaseline,
+} from 'gates/lib/ruleEngine'
+import { designTokens } from 'gates/rules/designTokens'
+import { srdCss } from 'gates/rules/srdCss'
+import { stylingOwnership } from 'gates/rules/stylingOwnership'
+import { toneGround } from 'gates/rules/toneGround'
 
 const ROOT = join(import.meta.dir, '..')
-const BASELINE_PATH = join(import.meta.dir, 'styling-baseline.json')
+const BASELINE_PATH = join(import.meta.dir, 'baselines', 'styling-baseline.json')
 const UPDATE = 'bun tools/check-styling.ts --update-baseline'
 
 export const RULE_SETS: readonly RuleSet[] = [designTokens, stylingOwnership, srdCss, toneGround]
@@ -98,7 +104,7 @@ function main(argv: readonly string[]): void {
     }
     const ordered = Object.fromEntries(RULE_SETS.map((s) => [s.id, next[s.id] ?? {}]))
     writeFileSync(BASELINE_PATH, `${JSON.stringify(ordered, null, 2)}\n`)
-    console.log(`✓ baseline written: tools/styling-baseline.json`)
+    console.log(`✓ baseline written: tools/baselines/styling-baseline.json`)
     for (const set of sets) {
       for (const [id, n] of Object.entries(ordered[set.id] ?? {}))
         console.log(`   ${set.id}/${id}: ${n}`)

@@ -4,7 +4,7 @@ Done: the record of the migration; each phase was its own PR series. Paths below
 
 1. **§1 End state (reached)** — one system: `src/styles/theme.css` for values (mirrored by `src/design/tokens.ts`), `src/styles/index.css` for every rule a style object cannot express.
    No utilities, no `.pc-*`, no `@theme`; ITUN-only rules stay in ITUN because srd loads `index.css` too. The working rules are `.claude/rules/styling.md`.
-2. **§2 The ratchets (retired in TW7)** — `tailwind-utility-file` and `pc-class-defined` counted down in `tools/styling-baseline.json`, strict both ways, to 0.
+2. **§2 The ratchets (retired in TW7)** — `tailwind-utility-file` and `pc-class-defined` counted down in `tools/baselines/styling-baseline.json`, strict both ways, to 0.
 3. **§3 The phases** (TW0–TW7; the `[design-refresh Pn]` commit tags are [another ledger](refresh-ledger.md)) — strictly ordered: component-lib before the apps, the Dashboard after the groups it uses.
    - **TW0 Foundations** — done: tokens, `index.css`, the parity test, the one Tailwind entry, the `package-stylesheet-import` guard.
    - **TW1 Alpha modifiers** — applied file by file with each group (TW2 onward): `/NN` ports as `color-mix(in oklab, var(--color-x) NN%, transparent)` (`${color.x}` in a style object); an existing alpha rung wins.
@@ -14,7 +14,7 @@ Done: the record of the migration; each phase was its own PR series. Paths below
    - **TW5 Dashboard `.pc-*`** — done (TW-f): every rule renamed to an ITUN `.su-dash-*` rule in `apps/itun/src/styles/dashboard/`, none in `index.css`; `dashboard.css` stays as the ordered import bundle.
      Exit met: `pc-class-defined` is 0 and kept until TW7 as the ban on any `.pc-*` class; `pc-class-contract` now checks `su-dash-*` (used ⇔ defined); no `apps/itun/src/components/dashboard/` file in the Tailwind list.
    - **TW6 The apps** — done (TW-d, TW-e, TW-g, TW-h; [ADR-046](../ARCHITECTURE.md#decisions)). Exit met (TW-i): `tailwind-utility-file` 0, and a Playwright crawl of every srd page, the signed-out ITUN routes and every story found no element carrying a class from built CSS's `@layer utilities`; the one live hit (the toaster's icon colour) moved to `.su-toast--*`.
-   - **TW7 Remove Tailwind** — done (TW-i): packages, Vite plugins and `tailwind-merge` dropped; `@theme` is `:root`; `entry.css` layers `reset.css` (the preflight, adapted) and `index.css` under the unlayered apps; the ratchets and `tools/lib/tailwindClasses.ts` deleted; `pc-class-contract` is `dash-class-contract`. Exit met: `grep -ri tailwind` finds only history; `bun run check` green.
+   - **TW7 Remove Tailwind** — done (TW-i): packages, Vite plugins and `tailwind-merge` dropped; `@theme` is `:root`; `entry.css` layers `reset.css` (the preflight, adapted) and `index.css` under the unlayered apps; the ratchets and `packages/gates/lib/tailwindClasses.ts` deleted; `pc-class-contract` is `dash-class-contract`. Exit met: `grep -ri tailwind` finds only history; `bun run check` green.
 4. **§4 The rules every phase applies**
    1. **Split per property** — no stateful or responsive variant on that element: style object. Any (`:hover`, `:focus-visible`, `@media`, pseudo-elements…): a `.su-*` class, resting value included, since inline `style=` beats every stylesheet rule.
    2. **No `.pc-*` class** — new Dashboard UI is style objects over `tokens.ts` plus `.su-*` / ITUN `.su-dash-*` classes.

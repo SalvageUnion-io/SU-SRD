@@ -1,8 +1,8 @@
-import { e2eConfig } from '../../tools/lib/playwrightBase'
+import { e2eConfig } from 'gates/lib/playwrightBase'
 import { SITE } from './src/lib/site'
 
 /**
- * ITUN's end-to-end suite: `tools/lib/playwrightBase.ts` with ITUN's port and
+ * ITUN's end-to-end suite: `packages/gates/lib/playwrightBase.ts` with ITUN's port and
  * budgets.
  *
  * The first navigation per test pulls in salvageunion-reference (a large JSON

@@ -3,7 +3,7 @@
  *
  * ## Why this exists, and why `assertScanFloor` is not enough
  *
- * `tools/lib/scanFloor.ts` catches a scanned directory that was RENAMED, MOVED
+ * `packages/gates/lib/scanFloor.ts` catches a scanned directory that was RENAMED, MOVED
  * or DELETED — the count collapses and the floor trips. It is structurally
  * blind to the opposite failure: a workspace that was never in the list at all.
  * Adding a workspace only makes the count go UP, so the floor is satisfied
@@ -41,7 +41,7 @@
 import { existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
-const ROOT = join(import.meta.dir, '..', '..')
+const ROOT = join(import.meta.dir, '..', '..', '..')
 
 /** Every workspace directory, discovered rather than listed. */
 export function discoverWorkspaceDirs(): string[] {

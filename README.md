@@ -12,7 +12,8 @@ A Bun monorepo of tools for **Salvage Union**, the tabletop RPG by
 - `packages/salvageunion-reference` — the schema-validated game dataset and its
   TypeScript ORM; `packages/component-lib` — the shared React components;
   `packages/observability` — the Sentry wiring; `packages/itun-domain` — the
-  schemas and rules ITUN's client, its Convex backend and the bot share.
+  schemas and rules ITUN's client, its Convex backend and the bot share;
+  `packages/gates` — the library behind the repo's gates, run from `tools/`.
 
 ## Working in it
 

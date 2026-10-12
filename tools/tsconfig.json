@@ -15,6 +15,7 @@
   "include": ["**/*.ts", "../test/**/*.ts"],
   "references": [
     { "path": "../packages/component-lib" },
+    { "path": "../packages/gates" },
     { "path": "../packages/observability" },
     { "path": "../packages/salvageunion-reference" }
   ]

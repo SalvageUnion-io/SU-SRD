@@ -36,8 +36,8 @@ import { join } from 'node:path'
 import type {
   SURefEnumSchemaName,
   SURefMetaEntity,
-} from '../../packages/salvageunion-reference/lib/schemas/index'
-import { entityTone, headerFill } from '../../packages/salvageunion-reference/lib/view/parts/fill'
+} from '../../salvageunion-reference/lib/schemas/index'
+import { entityTone, headerFill } from '../../salvageunion-reference/lib/view/parts/fill'
 import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 
@@ -122,7 +122,7 @@ export const toneGround: RuleSet = {
   id: 'tone-ground',
   label: 'tech-level grounds',
   rules: RULES,
-  exemptionsLive: 'tools/rules/toneGround.ts (BOOK_TL_GROUNDS, PENDING_TL_GROUNDS)',
+  exemptionsLive: 'packages/gates/rules/toneGround.ts (BOOK_TL_GROUNDS, PENDING_TL_GROUNDS)',
   preflight(root) {
     assertScanFloor('tone-ground (header grounds)', headerGrounds(root).length, 500)
   },
@@ -143,7 +143,7 @@ export const toneGround: RuleSet = {
     for (const schema of Object.keys(PENDING_TL_GROUNDS)) {
       if (present.has(schema) && !painted.has(schema)) {
         findings.push({
-          file: 'tools/rules/toneGround.ts',
+          file: 'packages/gates/rules/toneGround.ts',
           line: 1,
           detail: `PENDING_TL_GROUNDS.${schema} is stale: no ${schema} header paints a TL ground now`,
         })

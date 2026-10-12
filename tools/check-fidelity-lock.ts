@@ -33,8 +33,8 @@ import {
   readLockFile,
   VERDICTS,
   writeLockFile,
-} from './lib/proseFidelity'
-import { assertScanFloor } from './lib/scanFloor'
+} from 'gates/lib/proseFidelity'
+import { assertScanFloor } from 'gates/lib/scanFloor'
 
 /** ~65% of the 5,359 strings the dataset held when this gate was written. */
 const PROSE_FLOOR = 3500

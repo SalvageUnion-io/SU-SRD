@@ -24,6 +24,7 @@
   ],
   "references": [
     { "path": "../../packages/component-lib" },
+    { "path": "../../packages/gates" },
     { "path": "../../packages/itun-domain" },
     { "path": "../../packages/observability" },
     { "path": "../../packages/salvageunion-reference" }

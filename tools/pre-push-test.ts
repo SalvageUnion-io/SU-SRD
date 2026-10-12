@@ -21,7 +21,7 @@
 
 import { $ } from 'bun'
 import { join } from 'node:path'
-import { readWorkspaces, selectWorkspaces } from './lib/workspaceGraph'
+import { readWorkspaces, selectWorkspaces } from 'gates/lib/workspaceGraph'
 
 const root = join(import.meta.dir, '..')
 
