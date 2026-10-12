@@ -58,7 +58,16 @@ import type {
 } from 'salvageunion-reference'
 import { SalvageUnionReference, searchIn, techLevelRank } from 'salvageunion-reference'
 import type { TechLevel } from 'salvageunion-reference/rules'
-import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
+import {
+  borderWidth,
+  color,
+  font,
+  fontSize,
+  radius,
+  space,
+  tracking,
+  weight,
+} from '../../design/tokens'
 import { Entity } from '../../entity/Entity'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
@@ -341,13 +350,8 @@ export function EntitySearcher({
 
   // ---- Sub-parts of the searcher Card ----
   const searchInput = (
-    <label
-      className={cn(
-        'flex w-full items-center gap-2 rounded-card border-chrome border-ink bg-paper px-3 py-2',
-        FOCUS_WITHIN
-      )}
-    >
-      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="opacity-70">
+    <label className={FOCUS_WITHIN} style={SEARCH_FIELD_STYLE}>
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style={SEARCH_ICON_STYLE}>
         <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="2" />
         <line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" strokeWidth="2" />
       </svg>
@@ -360,14 +364,15 @@ export function EntitySearcher({
         autoComplete="off"
         // `text-base`, not `text-sm`: iOS Safari zooms the viewport on a focused
         // control below 16px. See the note in `chrome/inputs.tsx`.
-        className="w-full bg-transparent font-body text-base text-ink outline-none placeholder:text-wk-muted"
+        className="su-searcher__input"
+        style={SEARCH_INPUT_STYLE}
       />
     </label>
   )
 
   const summaryNode = (
-    <span className="whitespace-nowrap font-cond text-badge font-bold uppercase tracking-caps text-wk-muted">
-      <span className="text-ink">{totalOnSheet}</span> on sheet · showing {visible.length} of{' '}
+    <span style={SUMMARY_STYLE}>
+      <span style={INK_STYLE}>{totalOnSheet}</span> on sheet · showing {visible.length} of{' '}
       {pool.length}
     </span>
   )
@@ -457,11 +462,11 @@ export function EntitySearcher({
   // Wide sub-header: the facet rows, with the search field on the final row
   // spaced OPPOSITE the "Show" facet.
   const floatingSubHeader = (
-    <div className="flex w-full flex-col gap-2">
+    <div style={WIDE_SUBHEADER_STYLE}>
       {facetRowConfigs.map(renderFacetRow)}
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <div style={WIDE_SEARCH_ROW_STYLE}>
         {showRowConfig ? renderFacetRow(showRowConfig) : <span aria-hidden="true" />}
-        <div className="w-full sm:w-[280px]">{searchInput}</div>
+        <div className="su-searcher__search-slot">{searchInput}</div>
       </div>
     </div>
   )
@@ -510,7 +515,7 @@ export function EntitySearcher({
   )
 
   const poolNode = (
-    <div className="min-w-0">
+    <div style={MIN_W_0_STYLE}>
       <MasonryColumns
         maxColumns={2}
         radio={mode === 'single'}
@@ -545,9 +550,7 @@ export function EntitySearcher({
           )
         })}
       </MasonryColumns>
-      {visible.length === 0 && (
-        <p className="mt-3 font-body text-sm text-wk-muted">{emptyMessage}</p>
-      )}
+      {visible.length === 0 && <p style={POOL_EMPTY_STYLE}>{emptyMessage}</p>}
     </div>
   )
 
@@ -586,19 +589,21 @@ export function EntitySearcher({
   // rail, laid out by the `.su-searcher` classes (see the header comment).
   return (
     <Card
-      headerBg="bg-pilot"
-      bodyPadding="p-0"
+      // The CSS variable, not `color.pilot`: it is the exact string the old
+      // `headerBg="bg-pilot"` derived, so Card's border and deep-band
+      // colour-mix come out the same.
+      headerBgColor="var(--color-pilot)"
       headerContent={
-        <div className="flex w-full items-center gap-3">
+        <div style={HEADER_ROW_STYLE}>
           {/* Column, so `fill` is off on both — `flex-1` inside a flex-col
               would grow the title vertically, not claim the band's width.
               The wrapper takes the track instead and the titles truncate. */}
-          <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
-            <BandTitle fill={false} className="max-w-full">
+          <div style={HEADER_TITLES_STYLE}>
+            <BandTitle fill={false} className="su-searcher__band-title">
               {title}
             </BandTitle>
             {subtitle && (
-              <BandTitle variant="mute" fill={false} className="max-w-full">
+              <BandTitle variant="mute" fill={false} className="su-searcher__band-title">
                 {subtitle}
               </BandTitle>
             )}
@@ -609,7 +614,7 @@ export function EntitySearcher({
               size="iconOnly"
               onClick={onClose}
               aria-label="Close"
-              className="rounded-badge font-cond font-bold"
+              style={CLOSE_STYLE}
             >
               ✕
             </Button>
@@ -697,6 +702,86 @@ const FRAME_STYLE = {
     'calc(100dvh - 4rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
 } satisfies CSSProperties
 const BODY_STYLE = { minHeight: 0 } satisfies CSSProperties
+
+/** The search field's frame. The focus ring is `FOCUS_WITHIN`'s box-shadow,
+ * the one property that changes, so everything here is static. */
+const SEARCH_FIELD_STYLE = {
+  display: 'flex',
+  width: '100%',
+  alignItems: 'center',
+  gap: space[8],
+  borderRadius: radius.card,
+  border: `${borderWidth.chrome} solid ${color.ink}`,
+  backgroundColor: color.paper,
+  padding: `${space[8]} ${space[12]}`,
+} satisfies CSSProperties
+const SEARCH_ICON_STYLE = { opacity: 0.7 } satisfies CSSProperties
+/** `color` is not here: the placeholder recolours it, so it lives in
+ * `.su-searcher__input` (styles/index.css), resting value included. */
+const SEARCH_INPUT_STYLE = {
+  width: '100%',
+  backgroundColor: 'transparent',
+  fontFamily: font.body,
+  fontSize: fontSize.base,
+  lineHeight: '1.5rem',
+  outlineStyle: 'none',
+} satisfies CSSProperties
+
+const SUMMARY_STYLE = {
+  whiteSpace: 'nowrap',
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  fontWeight: weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: tracking.caps,
+  color: color.wkMuted,
+} satisfies CSSProperties
+const INK_STYLE = { color: color.ink } satisfies CSSProperties
+const MIN_W_0_STYLE = { minWidth: 0 } satisfies CSSProperties
+const POOL_EMPTY_STYLE = {
+  marginTop: space[12],
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  lineHeight: '1.25rem',
+  color: color.wkMuted,
+} satisfies CSSProperties
+
+/** Wide: the facet rows, then the Show row with the search field opposite it.
+ * The search slot's width is responsive, so it is `.su-searcher__search-slot`. */
+const WIDE_SUBHEADER_STYLE = {
+  display: 'flex',
+  width: '100%',
+  flexDirection: 'column',
+  gap: space[8],
+} satisfies CSSProperties
+const WIDE_SEARCH_ROW_STYLE = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  columnGap: space[16],
+  rowGap: space[8],
+} satisfies CSSProperties
+
+const HEADER_ROW_STYLE = {
+  display: 'flex',
+  width: '100%',
+  alignItems: 'center',
+  gap: space[12],
+} satisfies CSSProperties
+const HEADER_TITLES_STYLE = {
+  display: 'flex',
+  minWidth: 0,
+  flex: '1 1 0%',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: space[2],
+} satisfies CSSProperties
+const CLOSE_STYLE = {
+  borderRadius: radius.badge,
+  fontFamily: font.cond,
+  fontWeight: weight.bold,
+} satisfies CSSProperties
 
 const NARROW_SUBHEADER_STYLE = {
   display: 'flex',
@@ -883,6 +968,66 @@ const BAR_ACTIONS_STYLE = {
   marginLeft: 'auto',
 } satisfies CSSProperties
 
+const COUNT_CARD_STYLE = { borderRadius: radius.panel } satisfies CSSProperties
+/** The installed ring — a 3px ink spread, as the `shadow-[…]` it ports drew. */
+const COUNT_CARD_INSTALLED_STYLE = {
+  ...COUNT_CARD_STYLE,
+  boxShadow: `0 0 0 3px ${color.ink}`,
+} satisfies CSSProperties
+const COUNT_FOOT_STYLE = {
+  marginTop: space[6],
+  display: 'flex',
+  alignItems: 'center',
+  gap: space[8],
+  paddingLeft: space[4],
+  paddingRight: space[4],
+} satisfies CSSProperties
+const COUNT_LABEL_STYLE = {
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  fontWeight: weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: tracking.caps,
+  color: color.ink,
+} satisfies CSSProperties
+
+const BUDGET_LABEL_STYLE = {
+  margin: space[0],
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  fontWeight: weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: tracking.capsWide,
+  color: color.ink,
+} satisfies CSSProperties
+const BUDGET_VALUE_STYLE = {
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: '1rem',
+  fontWeight: weight.bold,
+} satisfies CSSProperties
+const BUDGET_VALUE_OVER_STYLE = {
+  ...BUDGET_VALUE_STYLE,
+  color: color.statusBad,
+} satisfies CSSProperties
+const PIP_STACK_STYLE = {
+  marginTop: space[6],
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[4],
+} satisfies CSSProperties
+const PIP_ROW_STYLE = { display: 'flex', gap: space[4] } satisfies CSSProperties
+
+function pipStyle(borderColor: string, backgroundColor: string): CSSProperties {
+  return {
+    width: '13px',
+    height: '13px',
+    borderRadius: radius.badge,
+    border: `${borderWidth.chrome} solid ${borderColor}`,
+    backgroundColor,
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Count-mode card (duplicates legal — Add / Add another; remove in the rail)
 // ---------------------------------------------------------------------------
@@ -900,14 +1045,10 @@ function CountCard({
 }) {
   const installed = count > 0
   return (
-    <div className={cn('rounded-panel', installed && 'shadow-[0_0_0_3px_var(--color-ink)]')}>
+    <div style={installed ? COUNT_CARD_INSTALLED_STYLE : COUNT_CARD_STYLE}>
       <ReferenceEntityCard data={entity} size="medium" hide={hide} />
-      <div className="mt-1.5 flex items-center gap-2 px-1">
-        {installed && (
-          <span className="font-cond text-badge font-bold uppercase tracking-caps text-ink">
-            {count} Added
-          </span>
-        )}
+      <div style={COUNT_FOOT_STYLE}>
+        {installed && <span style={COUNT_LABEL_STYLE}>{count} Added</span>}
         <Button size="mini" onClick={onAdd} aria-label={`Add ${entity.name}`}>
           {installed ? '+ Add another' : '+ Add'}
         </Button>
@@ -1237,23 +1378,19 @@ function BudgetTrack({
   const isOver = value > max
   // AP is the pilot's resource, so its pips fill pilot inside an ink frame —
   // never rust, which only an action may wear (ruleset §3.1).
-  const fill = tone === 'ap' ? 'border-ink bg-pilot' : 'border-ink bg-ink'
+  const fill = tone === 'ap' ? color.pilot : color.ink
   return (
     <div>
-      <p className="font-cond text-badge font-bold uppercase tracking-caps-wide text-ink">
+      <p style={BUDGET_LABEL_STYLE}>
         {label} ·{' '}
-        <span className={cn('font-body text-xs font-bold', isOver && 'text-status-bad')}>
+        <span style={isOver ? BUDGET_VALUE_OVER_STYLE : BUDGET_VALUE_STYLE}>
           {value} / {max}
         </span>
       </p>
       {total > 0 && (
-        <div
-          className="mt-1.5 flex flex-col gap-1"
-          role="img"
-          aria-label={`${label} ${value} of ${max}`}
-        >
+        <div style={PIP_STACK_STYLE} role="img" aria-label={`${label} ${value} of ${max}`}>
           {statBlockRowStarts(total).map(({ count, start }) => (
-            <div key={start} className="flex gap-1">
+            <div key={start} style={PIP_ROW_STYLE}>
               {Array.from({ length: count }).map((_, c) => {
                 const i = start + c
                 const on = i < value
@@ -1262,14 +1399,13 @@ function BudgetTrack({
                   <span
                     key={i}
                     data-pip={on ? 'on' : 'off'}
-                    className={cn(
-                      'h-[13px] w-[13px] rounded-badge border-chrome',
+                    style={
                       on
                         ? over
-                          ? 'border-status-bad bg-status-bad'
-                          : fill
-                        : 'border-ink bg-transparent'
-                    )}
+                          ? pipStyle(color.statusBad, color.statusBad)
+                          : pipStyle(color.ink, fill)
+                        : pipStyle(color.ink, 'transparent')
+                    }
                   />
                 )
               })}
