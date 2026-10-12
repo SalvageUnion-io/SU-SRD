@@ -31,7 +31,6 @@
   ],
   "scripts": {
     "build": "bun run generate:registry && bun run generate:json-schemas && bun run docs",
-    "scaffold:entity": "bun tools/scaffold-entity.ts",
     "docs": "bun tools/generateDocs.ts",
     "generate:registry": "bun tools/generateRegistry.ts",
     "generate:json-schemas": "bun tools/generateJsonSchemas.ts",
