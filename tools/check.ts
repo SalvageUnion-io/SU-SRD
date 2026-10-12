@@ -19,8 +19,8 @@
  *   full      everything — `bun run check`
  *   fast      the ~12s inner loop: no test suite, no network, no
  *             regeneration — `bun run check:fast`
- *   pre-push  fast + generated-file drift (the suite runs separately, scoped by
- *             `--changed` — see lefthook.yml)
+ *   pre-push  fast + generated-file drift (the suite runs separately, scoped
+ *             by the workspace graph — see tools/pre-push-test.ts)
  *   ci        everything except the test suite, which runs in CI's own
  *             `coverage` job
  *
