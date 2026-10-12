@@ -73,12 +73,12 @@ export type ChapterBandProps = {
   /** Which chapter of the book the page belongs to. Defaults to `rules`. */
   tone?: ChapterTone
   /** The heading element. Defaults to `h1`: the band is the page's title. */
+  as?: ElementType
   /**
    * `bleed` (default): full-bleed, cancelling a `PageShell`'s gutters when it
    * is the shell's first child. `inset`: inside its container's box.
    */
   layout?: 'bleed' | 'inset'
-  as?: ElementType
   /** Right-hand content on the band, bottom-aligned with the notch. */
   aside?: ReactNode
   /**
