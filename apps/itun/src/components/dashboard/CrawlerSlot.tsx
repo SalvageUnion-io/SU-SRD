@@ -86,7 +86,7 @@ const CRAFT_COST: CSSProperties = {
 /** Cited when an action needs a numeric crawler Tech Level and the slug has none. */
 const NO_TECH_LEVEL_RULE: StepRule = {
   rule: "This Crawler's Tech Level cannot be read, so the Tech Level of the Scrap it would find is undefined. Set a numeric Tech Level on the Crawler sheet first.",
-  cite: 'Core Book · p.245',
+  cite: { source: 'Salvage Union Workshop Manual', page: 245 },
 }
 
 /**
@@ -229,7 +229,7 @@ export function CrawlerMajor({
         kind: 'blocked',
         rule: {
           rule: `Upkeep is ${UPKEEP_SCRAP} Scrap of Tech ${tl} or higher, and the pool is ${upkeepShortfall(fresh().scrapPool ?? {}, tl)} short. Unpaid Upkeep is a roll on the Crawler Deterioration table, on the crawler sheet.`,
-          cite: 'Core Book · p.218',
+          cite: { source: 'Salvage Union Workshop Manual', page: 218 },
         },
       })
       return

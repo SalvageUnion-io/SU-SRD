@@ -291,7 +291,11 @@ export function CrawlerBuilder({
               </span>
             </>
           ),
-          cite: 'Core Book · p.212 · Crawler types pp.216–217',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 212,
+            see: [{ label: 'Crawler types', page: [216, 217] }],
+          },
         }
       case 'stats':
         return {
@@ -299,7 +303,11 @@ export function CrawlerBuilder({
             { source: 'Salvage Union Workshop Manual', page: 212 },
             'Your Crawler has a set of statistics based on its Tech Level. This includes its Structure Points, Upkeep, and Upgrade cost. Note these down on your Crawler Sheet.'
           ),
-          cite: 'Core Book · p.212 · Crawler Stats p.218',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 212,
+            see: [{ label: 'Crawler Stats', page: 218 }],
+          },
         }
       case 'weapons':
         return {
@@ -307,7 +315,11 @@ export function CrawlerBuilder({
             { source: 'Salvage Union Workshop Manual', page: 213 },
             'A Union Crawler can mount a single Weapons System in its Armament Bay. To start, this can be any Tech 1 Weapons System of the players’ choice — a Battle Crawler mounts two. Note this down on your Crawler Sheet.'
           ),
-          cite: 'Core Book · p.213 · The System list p.162',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 213,
+            see: [{ label: 'The System list', page: 162 }],
+          },
         }
       case 'crew':
         return {
@@ -315,7 +327,11 @@ export function CrawlerBuilder({
             { source: 'Salvage Union Workshop Manual', page: 213 },
             'The Crawler is made of a number of Bays. Each Bay has an NPC assigned to it based on their experience and skill in operating the Bay. You can flesh them out with a Name, Background, Keepsake, and Motto. Each has 4 HP.'
           ),
-          cite: 'Core Book · p.213 · The Crawler Bay list p.221',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 213,
+            see: [{ label: 'The Crawler Bay list', page: 221 }],
+          },
         }
       case 'identity':
         return {
@@ -323,12 +339,16 @@ export function CrawlerBuilder({
             { source: 'Salvage Union Workshop Manual', page: 212 },
             'Provide your Union Crawler with a unique name and tag. For example, Crawler #132 is also known as ‘Tin Lizzy’. Note these down on your Crawler Sheet. The Scrap Pool below holds the group’s banked Scrap — including whatever your Pilots didn’t spend crafting their Mechs.'
           ),
-          cite: 'Core Book · p.212 · The Crawler Names Table p.226',
+          cite: {
+            source: 'Salvage Union Workshop Manual',
+            page: 212,
+            see: [{ label: 'The Crawler Names Table', page: 226 }],
+          },
         }
       case 'review':
         return {
           rule: 'Check the build, then create your Crawler.',
-          cite: 'Core Book · pp.212–213',
+          cite: { source: 'Salvage Union Workshop Manual', page: [212, 213] },
         }
     }
   })()

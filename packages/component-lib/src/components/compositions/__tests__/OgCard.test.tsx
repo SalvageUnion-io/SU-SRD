@@ -175,7 +175,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['MOD', '2'],
         ['Cargo', '6'],
       ],
-      lines: ['Salvage Union Workshop Manual · p.104 · 5 patterns'],
+      lines: ['Workshop Manual · p.104 · 5 patterns'],
       wordmark: 'salvageunion.io',
       address: '/chassis/scrapper',
     },
@@ -191,7 +191,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
       cells: [],
       lines: [
         'You repair any number of damaged Mech Chassis, Vehicles, Systems, or Modules within Range to Intact Condition. They must be of a Tech Level equal to or lower than your Union Crawler.',
-        'Salvage Union Workshop Manual · p.29',
+        'Workshop Manual · p.29',
       ],
       wordmark: 'salvageunion.io',
       address: '/abilities/mass-field-repair',

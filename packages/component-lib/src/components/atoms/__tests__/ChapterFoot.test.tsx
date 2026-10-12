@@ -10,9 +10,9 @@ import { CHAPTER_BAND_COLOR } from '../chapterBandColor'
  */
 describe('ChapterFoot', () => {
   test('carries the citation: the page number at its start, the book at its end', () => {
-    render(<ChapterFoot tone="mech" start="p.112" end="Salvage Union Workshop Manual" />)
+    render(<ChapterFoot tone="mech" start="p.112" end="Workshop Manual" />)
     expect(screen.getByText('p.112').className).toBe('su-chapter-foot__start')
-    expect(screen.getByText('Salvage Union Workshop Manual').className).toBe('su-chapter-foot__end')
+    expect(screen.getByText('Workshop Manual').className).toBe('su-chapter-foot__end')
   })
 
   test('wears its chapter’s band colour, as the head band does', () => {
