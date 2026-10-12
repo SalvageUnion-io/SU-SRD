@@ -9,6 +9,8 @@
  */
 
 import { ChapterBand, Colophon, InlineRef, Slab } from 'component-lib'
+import { borderWidth, color, font, fontSize, space, weight } from 'component-lib/design/tokens'
+import type { CSSProperties } from 'react'
 
 type AboutScreenProps = {
   /** The build the app is running: the deployed commit's short SHA (ADR-041).
@@ -23,18 +25,72 @@ type AboutScreenProps = {
   specialThanks: string
 }
 
+/*
+ * Static styling is style objects; the page's padding steps up at `sm` and
+ * `lg`, so it is `.info-screen` (`styles/screens.css`), resting value included.
+ * The Colophon takes no `style`, so its rule and type are
+ * `.about-screen__colophon` there too.
+ */
+const PAGE = {
+  backgroundColor: color.wkBg,
+  minHeight: '100vh',
+} satisfies CSSProperties
+
+const COLUMN = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[32],
+  marginInline: 'auto',
+  maxWidth: '48rem',
+  width: '100%',
+} satisfies CSSProperties
+
+const HEADER = {
+  borderBottomColor: color.ink,
+  borderBottomStyle: 'solid',
+  borderBottomWidth: borderWidth.pill,
+  paddingBottom: space[20],
+} satisfies CSSProperties
+
+const LEDE = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  lineHeight: '1.25rem',
+  marginTop: space[8],
+} satisfies CSSProperties
+
+const PROSE = {
+  color: color.ink,
+  display: 'flex',
+  flexDirection: 'column',
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  gap: space[12],
+  lineHeight: 1.625,
+} satisfies CSSProperties
+
+const LINK = { fontWeight: weight.semibold } satisfies CSSProperties
+
+const BUILD = {
+  color: color.wkMuted,
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  lineHeight: '1rem',
+} satisfies CSSProperties
+
 export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: AboutScreenProps) {
   return (
-    <main className="min-h-screen bg-wk-bg px-4 py-8 sm:px-8 sm:py-12 lg:px-12">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
-        <header className="border-b-2 border-ink pb-5">
+    <main className="info-screen" style={PAGE}>
+      <div style={COLUMN}>
+        <header style={HEADER}>
           <ChapterBand>About</ChapterBand>
-          <p className="mt-2 font-body text-sm text-wk-muted">
+          <p style={LEDE}>
             In the Union Now — a character builder &amp; game manager for Salvage Union.
           </p>
         </header>
 
-        <section className="flex flex-col gap-3 font-body text-sm leading-relaxed text-ink">
+        <section style={PROSE}>
           <Slab as="h2" variant="solid" label="What is this?" style={{ marginBottom: 0 }} />
           <p>
             <strong>In the Union Now</strong> is an unofficial, community-built character builder
@@ -43,7 +99,7 @@ export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: A
               href="https://leyline.press/pages/salvage-union"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold"
+              style={LINK}
             >
               Salvage Union
             </InlineRef>
@@ -52,7 +108,7 @@ export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: A
               href="https://leyline.press"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold"
+              style={LINK}
             >
               Leyline Press
             </InlineRef>
@@ -70,7 +126,7 @@ export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: A
               href="https://salvageunion.io"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold"
+              style={LINK}
             >
               salvageunion.io
             </InlineRef>
@@ -84,7 +140,7 @@ export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: A
               href="https://leyline.press/pages/salvage-union-open-game-licence-1-0b"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold"
+              style={LINK}
             >
               Salvage Union Open Game Licence 1.0b
             </InlineRef>
@@ -99,8 +155,8 @@ export function AboutScreen({ build, aboutJrvs, llmStatement, specialThanks }: A
           llmMarkdown={llmStatement}
           specialThanksMarkdown={specialThanks}
           kofiCode="C3Z82382ZC"
-          className="border-t-2 border-ink pt-6 font-body text-ink"
-          footer={<p className="font-body text-xs text-wk-muted">Build {build}</p>}
+          className="about-screen__colophon"
+          footer={<p style={BUILD}>Build {build}</p>}
         />
       </div>
     </main>

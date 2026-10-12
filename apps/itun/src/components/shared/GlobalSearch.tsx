@@ -32,7 +32,6 @@ import { Popover } from '@base-ui/react/popover'
 import type { EntitySurfaceValue, SearchComboboxResult } from 'component-lib'
 import {
   buttonVariants,
-  cn,
   EmptyState,
   Entity,
   EntityExternalLinkProvider,
@@ -105,6 +104,58 @@ const KEY_HINT = {
   fontFamily: tokens.font.body,
   fontWeight: tokens.weight.medium,
   letterSpacing: 0,
+} satisfies CSSProperties
+
+/** The phone's icon trigger, sized and toned for the ink bar over the ghost button. */
+const TRIGGER_ICON = {
+  borderColor: 'transparent',
+  borderRadius: tokens.radius.panel,
+  color: tokens.color.paper,
+  height: '2.75rem',
+  width: '2.75rem',
+} satisfies CSSProperties
+
+/** A category row; its ground and edge follow hover and the keyboard selection (globalSearch.css). */
+const OPTION = {
+  alignItems: 'baseline',
+  borderRadius: tokens.radius.card,
+  borderStyle: 'solid',
+  borderWidth: tokens.borderWidth.chrome,
+  cursor: 'pointer',
+  display: 'flex',
+  gap: tokens.space[12],
+  justifyContent: 'space-between',
+  paddingBlock: tokens.space[8],
+  paddingInline: tokens.space[12],
+  textAlign: 'left',
+  transitionDuration: '150ms',
+  transitionProperty:
+    'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  width: '100%',
+} satisfies CSSProperties
+
+const OPTION_TITLE = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  fontWeight: tokens.weight.medium,
+  lineHeight: '1.25rem',
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
+
+const OPTION_GROUP = {
+  color: tokens.color.wkMuted,
+  flexShrink: 0,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.xs,
+  fontWeight: tokens.weight.semibold,
+  letterSpacing: tokens.tracking.capsSnug,
+  lineHeight: '1rem',
+  textTransform: 'uppercase',
 } satisfies CSSProperties
 
 const POSITIONER = { zIndex: 60 } satisfies CSSProperties
@@ -252,10 +303,8 @@ export function GlobalSearch({
       <button
         type="button"
         aria-label={LABEL}
-        className={cn(
-          buttonVariants({ variant: 'ghost', size: 'iconOnly' }),
-          'size-11 rounded-panel border-transparent text-paper hover:bg-paper/15'
-        )}
+        className={`${buttonVariants({ variant: 'ghost', size: 'iconOnly' })} global-search-icon`}
+        style={TRIGGER_ICON}
       >
         <Search size={22} aria-hidden="true" />
       </button>
@@ -275,7 +324,7 @@ export function GlobalSearch({
           >
             <Popover.Popup aria-label={LABEL} style={PANEL} initialFocus={inputRef}>
               <div style={BODY}>
-                <div className="sr-only" aria-live="polite">
+                <div className="su-sr-only" aria-live="polite">
                   {announcement}
                 </div>
 
@@ -338,14 +387,11 @@ export function GlobalSearch({
                             role="option"
                             aria-selected={index === selectedIndex}
                             onClick={() => submit(result)}
-                            className={`global-search-option flex w-full cursor-pointer items-baseline justify-between gap-3 rounded-card border-chrome px-3 py-2 text-left transition-colors ${
-                              index === selectedIndex ? 'border-ink' : 'border-transparent'
-                            }`}
+                            className="global-search-option"
+                            style={OPTION}
                           >
-                            <span className="min-w-0 truncate font-body text-sm font-medium text-ink">
-                              {result.title}
-                            </span>
-                            <span className="shrink-0 font-cond text-xs font-semibold uppercase tracking-caps-snug text-wk-muted">
+                            <span style={OPTION_TITLE}>{result.title}</span>
+                            <span style={OPTION_GROUP}>
                               {result.group}
                               <span aria-hidden="true"> &#8599;</span>
                             </span>

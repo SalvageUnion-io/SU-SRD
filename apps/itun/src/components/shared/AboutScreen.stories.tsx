@@ -2,6 +2,7 @@ import type { Story } from 'component-lib/stories/harness'
 import aboutMd from '../../../../../ABOUT_JRVS.md?raw'
 import statementMd from '../../../../../LLM_STATEMENT.md?raw'
 import thanksMd from '../../../../../SPECIAL_THANKS.md?raw'
+import '../../styles/screens.css'
 import { AboutScreen } from './AboutScreen'
 
 export default {

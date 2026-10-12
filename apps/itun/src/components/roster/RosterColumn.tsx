@@ -12,7 +12,8 @@
  * switching between Games.
  */
 
-import { Button, buttonVariants, cn, EmptyState, Slab } from 'component-lib'
+import { Button, buttonVariants, EmptyState, Slab } from 'component-lib'
+import { color, space } from 'component-lib/design/tokens'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { AppLink } from '../shared/AppLink'
@@ -39,6 +40,24 @@ const SELECTED: CSSProperties = {
   color: 'var(--color-paper)',
 }
 
+/** A segment fills its share of the row, at the 44px touch target. */
+const SEGMENT = { flex: 1, minHeight: '2.75rem' } satisfies CSSProperties
+
+/** The switch row; it hides from `md` up (`.segment-switch`, styles/controls.css). */
+const SWITCH = { gap: space[8], marginTop: space[20] } satisfies CSSProperties
+
+/** The grid's gutter; its columns and top margin change at `md` (`.roster-grid`). */
+const GRID = { display: 'grid', gap: space[32] } satisfies CSSProperties
+
+const LIST = { display: 'flex', flexDirection: 'column', gap: space[10] } satisfies CSSProperties
+
+const NO_UNDERLINE = { textDecorationLine: 'none' } satisfies CSSProperties
+
+/** The Slab row wraps its controls under the stamp on a narrow column. */
+const HEAD = { flexWrap: 'wrap', marginBottom: space[12] } satisfies CSSProperties
+
+const ICON = { height: '28px', width: '28px' } satisfies CSSProperties
+
 /** Mobile-endpoint segmented Pilot/Mech/Crawler switch (design §3.7). */
 export function SegmentSwitch({
   active,
@@ -48,15 +67,14 @@ export function SegmentSwitch({
   onChange: (kind: SegmentKind) => void
 }) {
   return (
-    <div className="mt-5 flex gap-2 md:hidden">
+    <div className="segment-switch" style={SWITCH}>
       {SEGMENTS.map((seg) => (
         <Button
           key={seg.kind}
           size="compact"
           aria-pressed={active === seg.kind}
-          style={active === seg.kind ? SELECTED : undefined}
+          style={active === seg.kind ? { ...SEGMENT, ...SELECTED } : SEGMENT}
           onClick={() => onChange(seg.kind)}
-          className="min-h-11 flex-1"
         >
           {seg.label}
         </Button>
@@ -67,13 +85,17 @@ export function SegmentSwitch({
 
 /** One column on a phone, three from `md` up. */
 export function RosterGrid({ children }: { children: ReactNode }) {
-  return <div className="mt-5 grid grid-cols-1 gap-8 md:mt-6 md:grid-cols-3">{children}</div>
+  return (
+    <div className="roster-grid" style={GRID}>
+      {children}
+    </div>
+  )
 }
 
 /** A column's rows; `labelledBy` names a sub-list (a Game's YOURS group). */
 export function RosterList({ labelledBy, children }: { labelledBy?: string; children: ReactNode }) {
   return (
-    <ul aria-labelledby={labelledBy} className="flex flex-col gap-2.5">
+    <ul aria-labelledby={labelledBy} style={LIST}>
       {children}
     </ul>
   )
@@ -81,9 +103,9 @@ export function RosterList({ labelledBy, children }: { labelledBy?: string; chil
 
 /** Entity-tone glyph shown above a column's empty state (design review U-6). */
 const EMPTY_ICON: Record<SegmentKind, ReactNode> = {
-  pilot: <UserRound className="size-7 text-sheet-pilot-deep" />,
-  mech: <Bot className="size-7 text-sheet-mech-deep" />,
-  crawler: <Warehouse className="size-7 text-sheet-crawler-deep" />,
+  pilot: <UserRound style={{ ...ICON, color: color.sheetPilotDeep }} />,
+  mech: <Bot style={{ ...ICON, color: color.sheetMechDeep }} />,
+  crawler: <Warehouse style={{ ...ICON, color: color.sheetCrawlerDeep }} />,
 }
 
 type RosterColumnProps = {
@@ -113,7 +135,7 @@ export function RosterColumn({
 }: RosterColumnProps) {
   const headingId = `${kind}s-heading`
   return (
-    <section aria-labelledby={headingId} className={cn(!active && 'hidden md:block')}>
+    <section aria-labelledby={headingId} className={active ? undefined : 'roster-column--inactive'}>
       {/* The column heading is the ink section stamp (`Slab`), its controls at
           the end of the leader rule. */}
       <Slab
@@ -121,8 +143,7 @@ export function RosterColumn({
         id={headingId}
         variant="solid"
         label={title}
-        className="flex-wrap"
-        style={{ marginBottom: '12px' }}
+        style={HEAD}
         actions={
           headExtra !== undefined || (create !== undefined && !empty) ? (
             <>
@@ -133,10 +154,8 @@ export function RosterColumn({
                 <AppLink
                   href={create.href}
                   onClick={create.onClick}
-                  className={cn(
-                    buttonVariants({ variant: 'default', size: 'compact' }),
-                    'no-underline'
-                  )}
+                  className={buttonVariants({ variant: 'default', size: 'compact' })}
+                  style={NO_UNDERLINE}
                 >
                   + {create.label}
                 </AppLink>
@@ -155,10 +174,8 @@ export function RosterColumn({
               <AppLink
                 href={create.href}
                 onClick={create.onClick}
-                className={cn(
-                  buttonVariants({ variant: 'primary', size: 'compact' }),
-                  'no-underline'
-                )}
+                className={buttonVariants({ variant: 'primary', size: 'compact' })}
+                style={NO_UNDERLINE}
               >
                 {create.label}
               </AppLink>

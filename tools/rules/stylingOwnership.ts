@@ -94,14 +94,7 @@ function appOf(relPath: string): string | null {
  * Sanctioned exceptions. Each entry needs a reason — an exemption without a
  * justification is just a silent hole in the guardrail.
  */
-const EXEMPTIONS: Exemption[] = [
-  {
-    file: 'apps/itun/src/index.css',
-    rules: ['app-theme'],
-    reason:
-      'The one surviving app-local `@theme` block: `--animate-loader-slide`, a genuinely app-only indeterminate-loader animation with a single consumer (GameDataReady). It defines no reserved-namespace design token — only an `--animate-*` keyframe binding — so it is not shared styling the library should own. NOTE this exempts the block from the "no @theme in an app" clause ONLY; the separate reserved-token-definition clause is NOT exempted here, so adding a `--color-*`/`--text-*`/etc. inside this block would still fail.',
-  },
-]
+const EXEMPTIONS: Exemption[] = []
 
 // ── shared CSS helpers ───────────────────────────────────────────────────────
 

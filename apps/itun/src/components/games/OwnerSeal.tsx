@@ -1,5 +1,23 @@
-import { Badge, cn } from 'component-lib'
+import { Badge } from 'component-lib'
+import { tracking } from 'component-lib/design/tokens'
+import type { CSSProperties } from 'react'
 import type { OwnerChip } from '../../lib/ownership/ownerChip'
+
+const STAMP = { letterSpacing: tracking.capsWide } satisfies CSSProperties
+
+/**
+ * The pressable seal's bare button. Its cursor, lift and fade change on hover or
+ * when disabled, so they are `.owner-seal__claim`'s (styles/controls.css).
+ */
+const CLAIM = {
+  backgroundColor: 'transparent',
+  borderStyle: 'solid',
+  borderWidth: 0,
+  padding: 0,
+  transitionDuration: '200ms',
+  transitionProperty: 'transform, translate, scale, rotate',
+  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+} satisfies CSSProperties
 
 /**
  * The ownership seal: one stamp in the row's top-right corner saying who holds
@@ -41,7 +59,7 @@ export function OwnerSeal({
   // sits beside, so it reads as a mark stamped ON the record rather than as
   // another chip floating near the corner.
   const stamp = (
-    <Badge shape="stamp" size="mini" className="tracking-caps-wide">
+    <Badge shape="stamp" size="mini" style={STAMP}>
       {owner.label}
     </Badge>
   )
@@ -57,10 +75,8 @@ export function OwnerSeal({
       onClick={onClaim}
       disabled={disabled}
       aria-label={`${owner.label} — pick this up`}
-      className={cn(
-        'cursor-pointer border-0 bg-transparent p-0',
-        'transition-transform duration-200 hover:-translate-y-px disabled:cursor-default disabled:opacity-50'
-      )}
+      className="owner-seal__claim"
+      style={CLAIM}
     >
       {stamp}
     </button>
