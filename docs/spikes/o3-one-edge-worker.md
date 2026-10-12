@@ -36,7 +36,7 @@ Checked against Cloudflare's docs (2026-10):
    (globs, `!` exceptions). Paths only, never hosts.
 3. **Static asset requests are free and unlimited; a script invocation counts**
    against the Free plan's 100k requests/day, shared with RANDSUM
-   ([ADR-033](adr/033-hosting-on-cloudflare.md) §6).
+   ([ADR-033](../adr/033-hosting-on-cloudflare.md) §6).
 4. **Workers Caching (`cache.enabled`, which `su-assets` uses) bills every
    request, static asset hits included**, at the Worker request rate.
 5. **`_headers` matches absolute URLs** (`https://api.salvageunion.io/*`), so
