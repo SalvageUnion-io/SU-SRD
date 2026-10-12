@@ -1,4 +1,5 @@
-import type { ElementType, HTMLAttributes, ReactNode, Ref } from 'react'
+import type { CSSProperties, ElementType, HTMLAttributes, ReactNode, Ref } from 'react'
+import { color } from '../../design/tokens'
 import type { SizeRung } from '../../styles/sizing'
 import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
@@ -39,8 +40,16 @@ const BADGE_SURFACE: Record<BadgeSurface, string> = {
   ghost: 'px-[7px] bg-paper text-ink ring-1 ring-inset ring-ink-20 tracking-caps-snug',
   outline: 'px-[9px] border-2 border-ink bg-paper text-ink tracking-caps',
   tone: 'px-[9px] border-2 tracking-caps',
-  quiet: 'px-2 bg-wk-bg-2 text-wk-muted',
+  // Its ground is a style object (`QUIET_GROUND`): nothing on a chip changes it.
+  quiet: 'px-2 text-wk-muted',
 }
+
+/**
+ * The quiet chip's ground: the workshop step off paper (ruleset §4.1). It was
+ * the cool `wk-bg-2` until the brand refresh warmed the page; the `cool-ground`
+ * token rule keeps that tone out.
+ */
+const QUIET_GROUND = { backgroundColor: color.wkBg } satisfies CSSProperties
 
 /**
  * Stamp geometry per rung, COMPOSED from the ladder rather than restated, so a
@@ -227,7 +236,11 @@ export function Badge(props: BadgeProps) {
         className
       )}
       // The parameter cell runs to the chip's right edge.
-      style={hasParam ? { ...style, overflow: 'hidden', paddingInlineEnd: 0 } : style}
+      style={{
+        ...(surface === 'quiet' ? QUIET_GROUND : undefined),
+        ...style,
+        ...(hasParam ? { overflow: 'hidden', paddingInlineEnd: 0 } : undefined),
+      }}
       {...rest}
     >
       {swatch != null && (

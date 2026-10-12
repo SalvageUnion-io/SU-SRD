@@ -275,6 +275,23 @@ describe('tokens rule set', () => {
     )
     expect(found['texture-placement']).toEqual([])
   })
+
+  test('cool-ground: wk-bg-2 by any spelling fails, outside the print sheet', () => {
+    const text = [
+      "className='bg-wk-bg-2 hover:bg-wk-bg-2 border-wk-bg-2'",
+      'background: var(--color-wk-bg-2);',
+      'const s = { backgroundColor: color.wkBg2 }',
+      'bg-wk-bg text-wk-muted bg-wk-bg-20', // the warm ground and look-alikes pass
+    ].join('\n')
+    expect(scan('apps/itun/src/x.tsx', text)['cool-ground']?.map((f) => f.detail)).toEqual([
+      'bg-wk-bg-2',
+      'bg-wk-bg-2',
+      'border-wk-bg-2',
+      '--color-wk-bg-2',
+      'wkBg2',
+    ])
+    expect(scan('apps/itun/src/styles/print.css', text)['cool-ground']).toEqual([])
+  })
 })
 
 describe('fontSizePx', () => {
