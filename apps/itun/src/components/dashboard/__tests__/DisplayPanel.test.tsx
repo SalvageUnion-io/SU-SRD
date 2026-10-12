@@ -175,7 +175,7 @@ describe('DisplayPanel', () => {
     // (asserted there against `buildCatalogSections`); here we only care that
     // the real explorer mounted.
     expect(container.querySelector('input[role="combobox"]')).toBeTruthy()
-    expect(container.querySelectorAll('.pc-srd-catalog-grid button').length).toBeGreaterThan(0)
+    expect(container.querySelectorAll('section button').length).toBeGreaterThan(0)
     expect(container.querySelector('.pc-display-note')).toBeNull()
   })
 })
