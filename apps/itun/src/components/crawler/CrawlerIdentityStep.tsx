@@ -1,7 +1,27 @@
-import { Button, Field, Input, Panel, Slab } from 'component-lib'
+import { Button, Field, Input, Panel, Slab, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
 import type { CrawlerRollTableDeps } from './crawlerRollTables'
 import { rollCrawlerName } from './crawlerRollTables'
+import '../../styles/wizard.css'
+
+/** The step's column (`max-w-3xl`). */
+const COLUMN: CSSProperties = { maxWidth: '48rem' }
+
+/** The Roll button keeps its width beside the field label. */
+const NO_SHRINK: CSSProperties = { flexShrink: 0 }
+
+/** The Scrap Pool's hint under its Slab. */
+const SCRAP_HINT: CSSProperties = {
+  margin: `${tokens.space[2]} 0 0`,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
+  color: tokens.color.wkMuted,
+}
+
+/** The bucket inputs; the column count is `.wiz-scrap-grid`. */
+const SCRAP_GRID: CSSProperties = { display: 'grid', gap: tokens.space[12] }
 
 const SCRAP_BUCKETS = ['tl1', 'tl2', 'tl3', 'tl4', 'tl5', 'tl6'] as const
 
@@ -42,14 +62,14 @@ export function CrawlerIdentityStep({
   }
 
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="wiz-stack wiz-stack--20" style={COLUMN}>
       <Field
         label="Crawler Name"
         value={name}
         onSave={(next) => onChange({ name: next })}
         placeholder="e.g. Crawler #132, aka ‘Tin Lizzy’"
         labelAction={
-          <Button size="compact" glyph="⚄" onClick={handleRoll} className="shrink-0">
+          <Button size="compact" glyph="⚄" onClick={handleRoll} style={NO_SHRINK}>
             Roll
           </Button>
         }
@@ -63,16 +83,16 @@ export function CrawlerIdentityStep({
         placeholder="What the crawler is, its build and history."
       />
 
-      <Panel soft className="space-y-4 p-4">
+      <Panel soft className="wiz-stack wiz-stack--16 wiz-scrap-panel">
         <header>
           <Slab label="Scrap Pool" />
-          <p className="mt-0.5 font-body text-xs text-wk-muted">
+          <p style={SCRAP_HINT}>
             The group&rsquo;s banked Scrap, bucketed by tech level — including whatever your Pilots
             didn&rsquo;t spend crafting their Mechs. Optional; leave at 0 for a fresh start.
           </p>
         </header>
 
-        <div className="grid grid-cols-3 gap-3 md:grid-cols-6">
+        <div className="wiz-scrap-grid" style={SCRAP_GRID}>
           {SCRAP_BUCKETS.map((bucket, i) => {
             const id = `crawler-scrap-${bucket}`
             return (

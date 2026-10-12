@@ -12,9 +12,11 @@
  * the chooser reads as a sibling surface, not a bolted-on screen.
  */
 
-import { cn, ModeDoor } from 'component-lib'
+import { ModeDoor, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { AppLink } from '../shared/AppLink'
+import '../../styles/wizard.css'
 
 type CreateModeChooserProps = {
   kind: BlankCreateKind
@@ -46,31 +48,75 @@ const GUIDED_COPY: Record<BlankCreateKind, { body: string; cite: string }> = {
   },
 }
 
+const screenStyle: CSSProperties = { background: 'var(--ground)', minHeight: '100dvh' }
+
+/** Its inline padding widens at `sm` (`.wiz-chooser-band`). */
+const bandStyle: CSSProperties = {
+  background: 'var(--tone)',
+  borderBottom: `4px solid color-mix(in oklab, var(--color-paper) 95%, transparent)`,
+  paddingBottom: tokens.space[14],
+  paddingTop: tokens.space[28],
+}
+
+const bannerStyle: CSSProperties = {
+  color: tokens.color.paper,
+  fontFamily: tokens.font.cond,
+  fontSize: 'clamp(34px, 5.2vw, 54px)',
+  fontWeight: tokens.weight.bold,
+  letterSpacing: tokens.tracking.capsTight,
+  lineHeight: 0.98,
+  margin: 0,
+  textShadow: '0 2px 0 var(--color-ink-20)',
+  textTransform: 'uppercase',
+}
+
+const bandTailStyle: CSSProperties = { background: 'var(--tone)', height: tokens.space[10] }
+
+/** Its padding grows at `sm` (`.wiz-chooser-body`). */
+const bodyStyle: CSSProperties = { marginInline: 'auto', maxWidth: '56rem', width: '100%' }
+
+/** Its fill dims on hover, so the background is `.wiz-chooser-pattern`'s. */
+const patternLinkStyle: CSSProperties = {
+  borderRadius: tokens.radius.badge,
+  color: tokens.color.paper,
+  display: 'block',
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.bold,
+  letterSpacing: '0.1em',
+  lineHeight: 1.625,
+  marginInline: 'auto',
+  marginTop: tokens.space[24],
+  maxWidth: '92%',
+  padding: `${tokens.space[8]} ${tokens.space[16]}`,
+  textAlign: 'center',
+  textDecorationLine: 'none',
+  textTransform: 'uppercase',
+  width: 'fit-content',
+}
+
+const patternAccentStyle: CSSProperties = { color: tokens.color.pilot }
+
 export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooserProps) {
   const label = KIND_LABEL[kind]
   const guided = GUIDED_COPY[kind]
 
   return (
     <section
-      className={cn(`sheet--${kind}`, 'min-h-dvh')}
-      style={{ background: 'var(--ground)' }}
+      className={`sheet--${kind}`}
+      style={screenStyle}
       aria-label={`New ${label.toLowerCase()} — choose how to create`}
     >
       {/* Poster band (mockup `.band` + `.banner`): tone ground, white
           condensed banner, a white rule then a tone bandtail below it. */}
-      <header
-        className="border-b-4 border-paper/95 px-5 pb-3.5 pt-7 sm:px-7"
-        style={{ background: 'var(--tone)' }}
-      >
-        <h1 className="m-0 font-cond text-[clamp(34px,5.2vw,54px)] font-bold uppercase leading-[0.98] tracking-caps-tight text-paper [text-shadow:0_2px_0_var(--color-ink-20)]">
-          New {label}
-        </h1>
+      <header className="wiz-band" style={bandStyle}>
+        <h1 style={bannerStyle}>New {label}</h1>
       </header>
-      <div className="h-2.5" style={{ background: 'var(--tone)' }} aria-hidden="true" />
+      <div style={bandTailStyle} aria-hidden="true" />
 
-      <div className="mx-auto w-full max-w-4xl px-6 py-8 sm:px-8 sm:py-10">
+      <div className="wiz-chooser-body" style={bodyStyle}>
         {/* The two doors (mockup `.choosegrid`). */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-5">
+        <div className="wiz-chooser-doors">
           <ModeDoor
             variant="guided"
             tab="▶"
@@ -96,13 +142,10 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
             (mockup `.thirdnote`, made actionable: links to the existing
             /mechs/patterns flow). */}
         {kind === 'mech' && (
-          <AppLink
-            href="/mechs/patterns"
-            className="mx-auto mt-6 block w-fit max-w-[92%] rounded-badge bg-ink px-4 py-2 text-center font-cond text-badge font-bold uppercase leading-relaxed tracking-widest text-paper no-underline hover:bg-ink/85"
-          >
+          <AppLink href="/mechs/patterns" className="wiz-chooser-pattern" style={patternLinkStyle}>
             A third door in the Blank family —{' '}
-            <span className="text-pilot">Instantiate from Pattern</span> · stamp a saved pattern,
-            then edit freely
+            <span style={patternAccentStyle}>Instantiate from Pattern</span> · stamp a saved
+            pattern, then edit freely
           </AppLink>
         )}
       </div>

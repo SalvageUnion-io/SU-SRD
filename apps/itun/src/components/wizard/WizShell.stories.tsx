@@ -1,6 +1,15 @@
+import { tokens } from 'component-lib'
 import type { Story } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { WizShell, WizTracker } from './WizShell'
+
+const COPY: CSSProperties = {
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 'calc(1.25 / 0.875)',
+}
 
 export default {
   title: 'Compositions/Wizard/Wiz Shell',
@@ -32,7 +41,7 @@ export const Default: Story = () => {
       onCancel={() => {}}
       submitLabel="Create Pilot ✦"
     >
-      <p className="font-body text-sm text-wk-muted">
+      <p style={COPY}>
         Choose from your Class's ability list. Each ability defines what your Pilot can do outside
         the cockpit.
       </p>

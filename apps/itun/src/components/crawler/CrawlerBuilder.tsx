@@ -1,5 +1,6 @@
-import { toast } from 'component-lib'
+import { toast, tokens } from 'component-lib'
 import { CrawlerSchema } from 'itun-domain/schemas/crawler'
+import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type {
   SURefCrawler,
@@ -40,6 +41,10 @@ import { WizShell, WizTracker } from '../wizard/WizShell'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'
+import '../../styles/wizard.css'
+
+/** The RuleBrief's muted aside (the saved pilot/mech count). */
+const MUTED: CSSProperties = { color: tokens.color.wkMuted }
 
 /** Book-order steps (Union Crawler pp.212–213 + Review — plan §4.3). */
 const STEPS: readonly CrawlerWizardStepId[] = [
@@ -279,7 +284,7 @@ export function CrawlerBuilder({
               create the Union Crawler they share. Your Crawler type provides a unique Ability that
               only it can do, as well as a special NPC who resides on the Crawler and confers their
               own bonuses.{' '}
-              <span className="text-wk-muted">
+              <span style={MUTED}>
                 (You have {pilotCount} Pilot{pilotCount === 1 ? '' : 's'} and {mechCount} Mech
                 {mechCount === 1 ? '' : 's'} saved so far — context only, never a blocker.)
               </span>
@@ -342,7 +347,7 @@ export function CrawlerBuilder({
       footerNote={footerNote}
       submitLabel="Create Crawler ✦"
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="mb-5" />
+      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="wiz-rule-brief" />
       {step === 'type' && (
         <CrawlerTypeSelectStep types={types} selectedType={form.type} onSelect={selectType} />
       )}

@@ -1,5 +1,5 @@
-import { SheetSectionCard } from 'component-lib'
-import type { ReactNode } from 'react'
+import { SheetSectionCard, tokens } from 'component-lib'
+import type { CSSProperties, ReactNode } from 'react'
 
 /** Per-step rule metadata carried by each wizard's step table. */
 export type StepRule = {
@@ -11,6 +11,15 @@ export type StepRule = {
 
 type RuleBriefProps = StepRule & {
   className?: string
+}
+
+const ruleStyle: CSSProperties = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 1.625,
+  margin: 0,
+  maxWidth: '70ch',
 }
 
 /**
@@ -28,7 +37,7 @@ export function RuleBrief({ rule, cite, className }: RuleBriefProps) {
   return (
     <section aria-label="The rule" className={className}>
       <SheetSectionCard title="The Rule" source={cite}>
-        <p className="m-0 max-w-[70ch] font-body text-sm leading-relaxed text-ink">{rule}</p>
+        <p style={ruleStyle}>{rule}</p>
       </SheetSectionCard>
     </section>
   )

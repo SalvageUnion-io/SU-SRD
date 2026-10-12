@@ -13,10 +13,12 @@
  * toast so the user can retry without losing the dialog state.
  */
 
-import { Button, cn, Field, FieldError, Input, ModalShell, toast } from 'component-lib'
+import { Button, Field, FieldError, Input, ModalShell, toast } from 'component-lib'
 import type { CargoLot } from 'itun-domain/schemas/cargoLot'
 import { useState } from 'react'
 import { usePatternStore } from '../../../stores/patternStore'
+import '../../../styles/wizard.css'
+import { dialogActionsStyle, dialogBodyStyle } from '../../wizard/wizardStyles'
 
 type SavePatternButtonProps = {
   /** Name of the source mech — pre-fills the pattern name field. */
@@ -85,12 +87,7 @@ export function SavePatternButton({
 
   return (
     <>
-      <Button
-        type="button"
-        onClick={handleOpen}
-        className={cn(className)}
-        aria-label="Save as pattern"
-      >
+      <Button type="button" onClick={handleOpen} className={className} aria-label="Save as pattern">
         Save as pattern
       </Button>
 
@@ -100,9 +97,9 @@ export function SavePatternButton({
           if (!next) handleCancel()
         }}
         title="Save as pattern"
-        maxWidth="max-w-md"
+        maxWidth="wiz-modal-md"
       >
-        <div className="flex flex-col gap-4 bg-paper p-5">
+        <div style={dialogBodyStyle}>
           <Field label="Pattern name" htmlFor="pattern-name-input">
             <Input
               id="pattern-name-input"
@@ -119,7 +116,7 @@ export function SavePatternButton({
 
           {saveError && <FieldError>{saveError}</FieldError>}
 
-          <div className="flex justify-end gap-2">
+          <div style={dialogActionsStyle}>
             <Button
               type="button"
               variant="ghost"

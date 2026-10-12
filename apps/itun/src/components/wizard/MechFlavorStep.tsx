@@ -1,6 +1,18 @@
-import { Button, Field } from 'component-lib'
+import { Button, Field, tokens } from 'component-lib'
+import type { CSSProperties } from 'react'
+import '../../styles/wizard.css'
 import type { MechRollField, MechRollTableDeps } from './mechRollTables'
 import { rollForMechField } from './mechRollTables'
+import { stepColumnStyle } from './wizardStyles'
+
+const rollButtonStyle: CSSProperties = { flexShrink: 0 }
+
+const noteStyle: CSSProperties = {
+  color: 'currentcolor',
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.caption,
+  margin: 0,
+}
 
 type MechFlavorStepProps = {
   /** Which flavor fact this step edits (also picks the d20 roll table). */
@@ -40,7 +52,7 @@ export function MechFlavorStep({
   }
 
   return (
-    <div className="max-w-3xl space-y-3">
+    <div className="wiz-stack wiz-stack--12" style={stepColumnStyle}>
       <Field
         label={label}
         value={value}
@@ -48,12 +60,12 @@ export function MechFlavorStep({
         multiline={multiline}
         placeholder={placeholder}
         labelAction={
-          <Button size="compact" glyph="⚄" onClick={handleRoll} className="shrink-0">
+          <Button size="compact" glyph="⚄" onClick={handleRoll} style={rollButtonStyle}>
             Roll
           </Button>
         }
       />
-      {note && <p className="m-0 font-body text-caption text-current">{note}</p>}
+      {note && <p style={noteStyle}>{note}</p>}
     </div>
   )
 }

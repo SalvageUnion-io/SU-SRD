@@ -1,6 +1,8 @@
 import { Field, Input, Textarea } from 'component-lib'
+import '../../styles/wizard.css'
 import { RollTableButton } from './RollTableButton'
 import type { PilotRollField, RollTableDeps } from './rollTableHelpers'
+import { fieldRowStyle, stepColumnStyle } from './wizardStyles'
 
 type FlavorStepProps = {
   /** Which optional flavor fact this step edits (also the roll table). */
@@ -32,10 +34,10 @@ export function FlavorStep({
 }: FlavorStepProps) {
   const id = `pilot-${field}`
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="wiz-stack wiz-stack--20" style={stepColumnStyle}>
       <Field label={label} htmlFor={id}>
         {multiline ? (
-          <div className="space-y-2">
+          <div className="wiz-stack wiz-stack--8">
             <RollTableButton
               field={field}
               onRoll={onChange}
@@ -51,7 +53,7 @@ export function FlavorStep({
             />
           </div>
         ) : (
-          <div className="flex gap-2">
+          <div style={fieldRowStyle}>
             <Input
               id={id}
               type="text"

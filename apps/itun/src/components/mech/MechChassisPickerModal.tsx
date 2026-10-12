@@ -18,6 +18,8 @@
 import { Button, EntitySearcher, ModalShell } from 'component-lib'
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
+import '../../styles/wizard.css'
+import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from '../wizard/wizardStyles'
 
 type MechChassisPickerModalProps = {
   open: boolean
@@ -72,7 +74,7 @@ export function MechChassisPickerModal({
         open={open && !confirming}
         onOpenChange={onOpenChange}
         title="Change Chassis"
-        maxWidth="max-w-5xl"
+        maxWidth="wiz-modal-5xl"
         bare
       >
         <EntitySearcher
@@ -115,13 +117,13 @@ export function MechChassisPickerModal({
         }}
         title="Change chassis?"
         tone="danger"
-        maxWidth="max-w-md"
+        maxWidth="wiz-modal-md"
       >
-        <div className="flex flex-col gap-4 bg-paper p-5">
-          <div className="font-body text-sm text-wk-muted">
+        <div style={dialogBodyStyle}>
+          <div style={dialogNoteStyle}>
             Changing chassis clears the current loadout (pattern, systems, and modules). Continue?
           </div>
-          <div className="flex justify-end gap-2">
+          <div style={dialogActionsStyle}>
             <Button variant="ghost" size="compact" onClick={() => setConfirming(false)}>
               Cancel
             </Button>

@@ -1,7 +1,17 @@
+import { tokens } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { FlavorStep } from './FlavorStep'
 import { RollTableButton } from './RollTableButton'
+
+const FRAME: CSSProperties = {
+  backgroundColor: tokens.color.paper,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[32],
+  padding: tokens.space[16],
+}
 
 export default {
   title: 'Compositions/Wizard/Flavor Step',
@@ -11,7 +21,7 @@ export default {
 export const Default = () => {
   const [motto, setMotto] = useState('')
   return (
-    <div className="sheet--pilot flex flex-col gap-8 bg-paper p-4">
+    <div className="sheet--pilot" style={FRAME}>
       <div>
         <Caption>FlavorStep — motto</Caption>
         <FlavorStep
