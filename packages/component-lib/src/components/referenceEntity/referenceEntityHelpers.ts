@@ -60,8 +60,3 @@ export function textBand(band: string | undefined): string | undefined {
 export function onTone(band: string | undefined, fallback: Foreground = 'paper'): Foreground {
   return foregroundOn(textBand(band), fallback)
 }
-
-/** `onTone` as the CSS colour it names. */
-export function onToneColor(band: string | undefined, fallback: Foreground = 'paper'): string {
-  return onTone(band, fallback) === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'
-}
