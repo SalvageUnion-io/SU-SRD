@@ -46,7 +46,7 @@ Id · title — where code cites it (`board NN`); "—" means no code cites it. 
 4. **06** SRD home — `HomeContents`, `HeroSearch`, `index.page`, `Footer`, `chapters`, `ChapterFoot`, `Slab`.
 5. **07** SRD entity page — `EntityPageFrame`, `EntityPageStamps`, `CardPage`, `entityPage`, `CardImage`. **08** Entity, phone — `NavDrawer`, `EntityCardStatic`.
 6. **08b** SRD roll table — `RollTablePage`, `RollTableView`, `RollTableIsland`, `rollTablePage`, `columnsTablePage`.
-7. **E1** Card size × extent — `referenceEntity/card/` head, seam, pennant, facets, tone. **E2** Nesting — `NestedCards`, `bodyBlocks`.
+7. **E1** Card size × extent — `referenceEntity/card/` head, labels, pennant, facets, tone. **E2** Nesting — `NestedCards`, `bodyBlocks`.
 8. **E3** Five contexts — `StatusRail`, `CardPennant`, `peekPlate`. **E4** Embedded roll table — `CardRollTable`.
 9. **09** ITUN front door — `FrontDoor`, `Roster`, `AppHeader`, `SiteFooter`. **10** Pilot sheet, printed — ITUN `components/sheet/`, `Field`.
 10. **D1–D5** Dashboard: boarded, Crew tab, Downtime, phone Mech tab, phone resolve — ITUN `components/dashboard/`, `VitalGauge`, `pipRows`.
