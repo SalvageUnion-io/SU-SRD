@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
+import { color } from '../../../design/tokens'
 import { Badge } from '../Badge'
 import { EmptyState } from '../EmptyState'
 import { InlineRef } from '../InlineRef'
@@ -38,7 +39,7 @@ describe('Badge (unified) + presets', () => {
     expect(screen.getByText('Mule').className).toContain('bg-mech')
     cleanup()
     render(<Badge surface="quiet">Uses</Badge>)
-    expect(screen.getByText('Uses').className).toContain('bg-wk-bg-2')
+    expect(screen.getByText('Uses').style.backgroundColor).toBe(color.wkBg)
   })
 })
 
@@ -58,7 +59,7 @@ describe('EmptyState', () => {
 
   test('the frame is dashed (fillable)', () => {
     const { container } = render(<EmptyState headline="Empty" />)
-    expect(container.firstElementChild?.className).toContain('border-dashed')
+    expect((container.firstElementChild as HTMLElement | null)?.style.borderStyle).toBe('dashed')
   })
 })
 

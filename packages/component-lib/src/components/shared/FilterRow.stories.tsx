@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { getSource, getTechLevel, getTree, SalvageUnionReference } from 'salvageunion-reference'
+import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
 import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { Badge } from '../chrome/Badge'
@@ -14,6 +16,20 @@ import { FilterRow } from './FilterRow'
 export default {
   title: 'Containers/Filter Row',
 }
+
+const GROUP = { display: 'flex', flexDirection: 'column', gap: space[6] } satisfies CSSProperties
+
+/** Full width, then 16rem from `md` (`.su-story-filter-input`, `_stories.css`). */
+const INPUT = {
+  borderRadius: radius.card,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.hairline,
+  borderColor: color.ink,
+  backgroundColor: color.paper,
+  padding: `${space[4]} ${space[8]}`,
+  fontFamily: font.body,
+  fontSize: fontSize.caption,
+} satisfies CSSProperties
 
 const systems = SalvageUnionReference.Systems.all()
 const techLevels = [...new Set(systems.map(getTechLevel).filter((tl) => tl !== undefined))].sort(
@@ -49,8 +65,8 @@ export const Default: Story = () => {
   }
 
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
+    <div style={{ display: 'flex', maxWidth: '48rem', flexDirection: 'column', gap: space[24] }}>
+      <div style={GROUP}>
         <Caption>Name — an arbitrary control (search input), not just chips</Caption>
         <FilterRow label="Name">
           <input
@@ -59,12 +75,13 @@ export const Default: Story = () => {
             onChange={(e) => setNameFilter(e.target.value)}
             placeholder="Filter by name…"
             aria-label="Filter items by name"
-            className="w-full rounded-card border border-ink bg-paper px-2 py-1 font-body text-caption md:w-64"
+            className="su-story-filter-input"
+            style={INPUT}
           />
         </FilterRow>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div style={GROUP}>
         <Caption>Tech Level — swatch chips coloured from the TL palette</Caption>
         <FilterRow label="Tech Level">
           <Badge
@@ -92,7 +109,7 @@ export const Default: Story = () => {
         </FilterRow>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div style={GROUP}>
         <Caption>Source — plain chips; the run wraps under the label</Caption>
         <FilterRow label="Source">
           <Badge
@@ -119,7 +136,7 @@ export const Default: Story = () => {
         </FilterRow>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div style={GROUP}>
         <Caption>Tree — the abilities-only facet</Caption>
         <FilterRow label="Tree">
           <Badge

@@ -1,26 +1,11 @@
-import type { CSSProperties } from 'react'
 import type { Foreground } from '../../design/contrast'
 import { foregroundOn } from '../../design/contrast'
 
 /**
- * The card's accent surface: a Tailwind bg class (or the white fallback) plus an
- * optional inline backgroundColor for dynamic per-source accents. Shared by the
- * body wrapper, the interactive footer wrapper, and ReferenceEntityFooter so the
- * `headerBg || 'bg-paper'` + `headerBgColor` fallback lives in one place.
- */
-export function accentSurface(
-  headerBg: string | undefined,
-  headerBgColor: string | undefined
-): { className: string; style: CSSProperties | undefined } {
-  return {
-    className: headerBg || 'bg-paper',
-    style: headerBgColor ? { backgroundColor: headerBgColor } : undefined,
-  }
-}
-
-/**
- * Derive a CSS color value from a Tailwind bg class (e.g. 'bg-pilot' → 'var(--color-pilot)').
- * Returns undefined when headerBg is falsy so callers can skip border styling.
+ * Derive a CSS color value from a `Card` `headerBg` class (e.g. 'bg-pilot' →
+ * 'var(--color-pilot)'); a raw `headerBgColor` wins. Returns undefined when both
+ * are falsy so callers can skip border styling. The entity card passes its tone
+ * as `headerBgColor`.
  */
 export function borderColorFromHeaderBg(
   headerBg: string | undefined,
@@ -46,11 +31,6 @@ export function accentDeepColor(
   return base ? `color-mix(in srgb, ${base} 60%, black)` : undefined
 }
 
-/** The text-colour class for each foreground a band may print in. */
-export type OnToneText = 'text-ink' | 'text-paper'
-
-const ON_TONE_TEXT: Record<Foreground, OnToneText> = { ink: 'text-ink', paper: 'text-paper' }
-
 /**
  * Tones that carry neither ink nor paper at 4.5:1, each with the deeper band
  * painted in its place wherever text sits on it (ruleset §3.8). Crawler pink
@@ -70,16 +50,13 @@ export function textBand(band: string | undefined): string | undefined {
 }
 
 /**
- * The text class for a tone band (header, sub-header, footer): ink or paper,
+ * The foreground for a tone band (header, sub-header, footer): ink or paper,
  * whichever contrasts more with the band actually painted — see
  * `design/contrast.ts`. `fallback` covers a band the arithmetic cannot resolve.
  *
  * The crawler case: a band that carries text is painted `textBand(band)`, so
  * crawler pink is measured as the crawler band it becomes, and reads paper.
  */
-export function onToneText(
-  band: string | undefined,
-  fallback: OnToneText = 'text-paper'
-): OnToneText {
-  return ON_TONE_TEXT[foregroundOn(textBand(band), fallback === 'text-ink' ? 'ink' : 'paper')]
+export function onTone(band: string | undefined, fallback: Foreground = 'paper'): Foreground {
+  return foregroundOn(textBand(band), fallback)
 }

@@ -1,0 +1,142 @@
+name: PR gallery
+
+# Screenshots of the PR's own srd and ITUN builds — every page in
+# tools/lib/galleryPages.ts at desktop and phone, each srd page's link
+# preview, and ITUN signed in — uploaded as the `pr-gallery-<n>` artifact.
+# `pr-gallery-pages.yml` publishes the artifact to GitHub Pages at
+# /<owner>.github.io/<repo>/<n>/ once this run completes.
+#
+# READ-ONLY on purpose: this runs the PR's code, so it holds no write token and
+# no secret. ITUN is built against a THROWAWAY self-hosted Convex backend with
+# the test sign-in (the same setup as e2e-nightly.yml's `e2e-itun`), so the
+# gallery can sign a fresh account up and edit characters without touching the
+# staging or production backend. Publishing, which needs `pages: write`, runs
+# in the separate `workflow_run` workflow, from main's code.
+#
+# Not a required check: a red gallery never blocks a merge.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions: {}
+
+concurrency:
+  group: pr-gallery-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  shoot:
+    name: Shoot the PR gallery
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Start a throwaway Convex backend
+        id: convex
+        uses: ./.github/actions/convex-backend
+
+      # As e2e-nightly.yml's `e2e-itun`: a JWT keypair on the deployment, the
+      # test sign-in, and SITE_URL as the frontend origin the gallery uses.
+      - name: Provision auth keys and deployment env
+        working-directory: apps/itun
+        env:
+          CONVEX_SELF_HOSTED_URL: ${{ steps.convex.outputs.url }}
+          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.convex.outputs.admin-key }}
+        run: |
+          bun -e '
+            const { generateKeyPairSync } = await import("node:crypto")
+            const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 })
+            const jwk = publicKey.export({ format: "jwk" })
+            await Bun.write("jwt.key", privateKey.export({ type: "pkcs8", format: "pem" }))
+            await Bun.write("jwks.json", JSON.stringify({ keys: [{ ...jwk, use: "sig", alg: "RS256" }] }))
+          '
+          bunx convex env set JWT_PRIVATE_KEY --from-file jwt.key
+          bunx convex env set JWKS --from-file jwks.json
+          rm -f jwt.key jwks.json
+          bunx convex env set ITUN_TEST_AUTH true
+          bunx convex env set SITE_URL http://localhost:5173
+
+      - name: Push functions and build itun against the backend
+        working-directory: apps/itun
+        env:
+          CONVEX_SELF_HOSTED_URL: ${{ steps.convex.outputs.url }}
+          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.convex.outputs.admin-key }}
+          VITE_TEST_AUTH: 'true'
+        run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
+
+      - name: Build srd
+        run: bun --filter srd build
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        run: bunx playwright install chromium
+
+      # srd is static files: a plain server answers `/route/` with its
+      # index.html. ITUN is a single-page app: `vite preview` falls back to
+      # index.html for its routes. `vite preview` loads apps/itun/vite.config.ts,
+      # which refuses to start without VITE_CONVEX_URL (the build already
+      # carries it; the config only checks it is set), so pass the same URL.
+      - name: Serve both builds
+        env:
+          VITE_CONVEX_URL: ${{ steps.convex.outputs.url }}
+        run: |
+          (cd apps/srd/dist && python3 -m http.server 4321 --bind 127.0.0.1 > /tmp/srd.log 2>&1 &)
+          (cd apps/itun && bunx vite preview --port 5173 --strictPort > /tmp/itun.log 2>&1 &)
+          for url in http://127.0.0.1:4321/ http://localhost:5173/; do
+            for _ in $(seq 1 60); do curl -sf -o /dev/null "$url" && break; sleep 1; done
+            curl -sf -o /dev/null "$url" || {
+              echo "::error::$url never answered"
+              echo "--- /tmp/srd.log"; cat /tmp/srd.log
+              echo "--- /tmp/itun.log"; cat /tmp/itun.log
+              exit 1
+            }
+          done
+
+      - name: Shoot the gallery
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: >-
+          bun run gallery --srd http://127.0.0.1:4321 --itun http://localhost:5173
+          --signed-in --pr "$PR_NUMBER" --sha "$HEAD_SHA" --out gallery
+
+      - name: Upload the gallery
+        if: ${{ !cancelled() && hashFiles('gallery/index.html') != '' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pr-gallery-${{ github.event.pull_request.number }}
+          path: gallery
+          retention-days: 30
+
+      - name: Link the gallery from the run summary
+        if: ${{ !cancelled() && hashFiles('gallery/index.html') != '' }}
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+        run: |
+          owner=$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')
+          {
+            echo "### PR gallery"
+            echo ""
+            echo "Published by **PR gallery pages** once this run completes:"
+            echo "https://${owner}.github.io/${REPO}/${PR_NUMBER}/"
+            echo ""
+            echo "The \`pr-gallery-${PR_NUMBER}\` artifact above holds the same files."
+          } >> "$GITHUB_STEP_SUMMARY"

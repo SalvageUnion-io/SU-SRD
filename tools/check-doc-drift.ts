@@ -15,6 +15,9 @@
  *            in docs/ARCHITECTURE.md (`N. **ADR-NNN Title**`), none missing or
  *            repeated, docs/adrs/ stays gone, and an entry that amends,
  *            supersedes or reverses another is named in that other entry.
+ *            An ADR whose full text is kept (the ones code cites by §) is
+ *            one `docs/adr/NNN-slug.md` with `status` front-matter and a
+ *            `# ADR-NNN: Title`, linked from entry N's headline.
  *   shape    a terse doc (`TERSE_DOCS`) is numbered entries under `## `
  *            sections: a bold headline, then at most two lines.
  *   links    every relative markdown link in a tracked `.md` file resolves,
@@ -444,7 +447,10 @@ export function checkReferencedScripts(root: string): CheckResult {
 export const RETIRED_CLAIMS: [RegExp, string][] = [
   [/local-first/i, 'ITUN is account-gated: persistence requires an account (ADR-034)'],
   [/no auth\/backend|do not introduce a backend/i, 'Convex is the server of record (ADR-030)'],
-  [/in-memory (?:backend|only)/i, 'signed out, ITUN is read-only: see apps/itun/CLAUDE.md'],
+  [
+    /in-memory (?:backend|only)/i,
+    'signed out, ITUN is read-only: see .claude/rules/itun-data-access.md',
+  ],
   [/\bEntityDisplay\b|\bDisplayCard\b/, 'the card shells are ReferenceEntityCard and Card'],
   [/prettier/i, 'Biome is the only formatter'],
   [/"bun test"/, 'the gate is `bun run test`'],
@@ -628,6 +634,56 @@ export function missingBackReferences(source: string): string[] {
   return failures
 }
 
+/** Where an ADR's full text lives when it is kept: `docs/adr/NNN-slug.md`. */
+const ADR_DIR = 'docs/adr'
+const ADR_FILE = /^(\d{3})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/
+const ADR_STATUSES = ['proposed', 'accepted', 'superseded-in-part']
+
+/** Every way a `docs/adr/` file breaks the layout or loses its entry's link. */
+function adrFileFailures(root: string, source: string): { count: number; failures: string[] } {
+  const failures: string[] = []
+  const dir = join(root, ADR_DIR)
+  const names = existsSync(dir) ? readdirSync(dir).sort() : []
+  const entries = new Map(adrEntries(source).map((entry) => [entry.adr, entry]))
+  const seen = new Map<number, string>()
+  for (const name of names) {
+    const doc = `${ADR_DIR}/${name}`
+    const m = name.match(ADR_FILE)
+    if (!m) {
+      failures.push(`${doc} is not an ADR file. Name it \`NNN-slug.md\` (lowercase, hyphenated).`)
+      continue
+    }
+    const n = Number(m[1])
+    const other = seen.get(n)
+    if (other) failures.push(`${adrId(n)} has two files, ${other} and ${doc}. Keep one.`)
+    seen.set(n, doc)
+    const entry = entries.get(n)
+    if (entry === undefined) {
+      failures.push(`${doc} has no ${adrId(n)} entry under \`## Decisions\` in ${DECISIONS_DOC}.`)
+    } else if (!(entry.lines[0] ?? '').includes(`](adr/${name})`)) {
+      failures.push(
+        `${DECISIONS_DOC}:${entry.start + 1} is ${adrId(n)}, whose full text is ${doc}: link it from the headline (\`· [full text](adr/${name})\`).`
+      )
+    }
+    const lines = read(root, doc).split('\n')
+    const close = lines[0] === '---' ? lines.indexOf('---', 1) : -1
+    const status = lines.slice(1, close).find((line) => line.startsWith('status:'))
+    const value = status?.slice('status:'.length).trim() ?? ''
+    if (close === -1 || !ADR_STATUSES.includes(value)) {
+      failures.push(
+        `${doc} needs front-matter \`---\` / \`status: <${ADR_STATUSES.join(' | ')}>\` / \`---\` (a superseded ADR keeps only its entry).`
+      )
+    }
+    const title = lines.slice(close + 1).find((line) => line.trim() !== '') ?? ''
+    if (!title.startsWith(`# ${adrId(n)}: `)) {
+      failures.push(
+        `${doc} opens on "${title}"; its first line after the front-matter is \`# ${adrId(n)}: Title\`.`
+      )
+    }
+  }
+  return { count: seen.size, failures }
+}
+
 export function checkDecisions(root: string, floor: number = ADR_FLOOR): CheckResult {
   const failures: string[] = []
   if (existsSync(join(root, 'docs/adrs'))) {
@@ -671,8 +727,10 @@ export function checkDecisions(root: string, floor: number = ADR_FLOOR): CheckRe
       )
   }
   failures.push(...missingBackReferences(source))
+  const files = adrFileFailures(root, source)
+  failures.push(...files.failures)
   return {
-    ok: `${count.size} ADRs, ${adrId(1)} to ${adrId(highest)}, once each under ## Decisions in ${DECISIONS_DOC}, every amendment named in the entry it amends`,
+    ok: `${count.size} ADRs, ${adrId(1)} to ${adrId(highest)}, once each under ## Decisions in ${DECISIONS_DOC}, every amendment named in the entry it amends; ${files.count} full-text ADR files, each linked from its entry`,
     failures,
   }
 }
@@ -727,11 +785,8 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/itun/CLAUDE.md': 13_483,
-  'apps/srd/CLAUDE.md': 11_724,
-  'CLAUDE.md': 11_797,
-  'packages/component-lib/CLAUDE.md': 15_719,
-  'packages/salvageunion-reference/CLAUDE.md': 9_309,
+  'apps/itun/CLAUDE.md': 11_751,
+  'CLAUDE.md': 10_862,
 }
 
 /**
@@ -746,6 +801,7 @@ const COLLAPSED_DOCS: Record<string, number> = {
   'docs/architecture/mediator-dashboard.md': 4_500,
   'docs/architecture/npc-builder.md': 2_000,
   'docs/design-system/entity-display-language.md': 6_000,
+  'docs/design-system/refresh-ledger.md': 6_500,
   'docs/design-system/ruleset.md': 13_000,
   'docs/design-system/tailwind-removal.md': 4_500,
   'docs/ops/cloud-environment.md': 3_800,

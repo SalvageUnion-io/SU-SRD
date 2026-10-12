@@ -31,7 +31,7 @@ Canonical URLs always carry a trailing slash.
 2. **`ssr` is an SEO / no-JS choice, default `false`.** `true` server-renders markup into the placeholder; it is replaced on mount, so it cannot mismatch.
 3. **`<Island name client props ssr>` emits one placeholder.** `<div data-island data-client data-island-id>`; `client` is `load | idle | visible | only`.
 4. **Props ship once per page.** One `<script type="application/json" data-island-props>`, keyed by `data-island-id`.
-5. **Scheduling.** `load`/`only` mount at once, `idle` on `requestIdleCallback` (200ms timeout fallback), `visible` on first intersection.
+5. **Scheduling.** `load`/`only` mount at once, `idle` on `requestIdleCallback` with a 2 s `timeout` (200ms `setTimeout` where it is missing), `visible` on first intersection.
 6. **The registry uses static dynamic imports.** `src/runtime/islandRegistry.ts`, so Rollup code-splits each island.
 7. **Props designed out.** An island whose props would repeat on every page computes them in its own chunk: `MobileNavIsland` takes none; `SchemaViewerIsland` reads its preloaded schema.
 

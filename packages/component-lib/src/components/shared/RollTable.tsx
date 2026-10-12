@@ -1,8 +1,18 @@
 import { Copy, X } from 'lucide-react'
-import type { Dispatch, ReactNode, SetStateAction } from 'react'
+import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefObjectTable, SURefObjectTableContent } from 'salvageunion-reference'
 import { resultForColumnsTable, resultForTable } from 'salvageunion-reference'
+import {
+  borderWidth,
+  color,
+  font,
+  fontSize,
+  radius,
+  space,
+  tracking,
+  weight,
+} from '../../design/tokens'
 import type { SizeRung } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
 import { d20ForTable, rollD20 } from '../../utils/dice'
@@ -16,6 +26,64 @@ import type { RollTableType } from './digestRollTable'
 import { digestRollTable } from './digestRollTable'
 
 type ColumnsTableData = Extract<SURefObjectTable, { type: 'columns' }>
+
+/*
+ * Styling is tokens in style objects (Tailwind-removal plan §4). The three
+ * properties with a `:hover` — the expand toggle's colour, the title trigger's
+ * border and fill — live in `.su-roll-table__*` (styles/index.css), resting
+ * value included. `RollTable` takes no `className`, so no consumer override
+ * has to survive here.
+ */
+
+/**
+ * Tailwind's inherited type rungs: a size AND its paired line height, which
+ * `text-xs` … `text-2xl` set together. Kept as Tailwind's own unitless ratios
+ * (not the px they resolve to), so a child that changes its font size still
+ * inherits the same factor it did under the utility.
+ */
+const TYPE = {
+  xs: { fontSize: fontSize.xs, lineHeight: 'calc(1 / 0.75)' },
+  sm: { fontSize: fontSize.sm, lineHeight: 'calc(1.25 / 0.875)' },
+  base: { fontSize: fontSize.base, lineHeight: 'calc(1.5 / 1)' },
+  lg: { fontSize: fontSize.lg, lineHeight: 'calc(1.75 / 1.125)' },
+  '2xl': { fontSize: fontSize['2xl'], lineHeight: 'calc(2 / 1.5)' },
+} as const satisfies Record<string, CSSProperties>
+
+/** Tailwind's default transition easing (`transition-*` with no `ease-*`). */
+const EASE_DEFAULT = 'cubic-bezier(0.4, 0, 0.2, 1)'
+
+const VISUALLY_HIDDEN = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: space[0],
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  borderWidth: space[0],
+} satisfies CSSProperties
+
+const BOLD = { fontWeight: weight.bold } satisfies CSSProperties
+
+/** The 2px pilot-light frame both variants draw round the band + rows. */
+const FRAME_STYLE = {
+  borderRadius: radius.card,
+  border: `${borderWidth.pill} solid ${color.pilotLight}`,
+} satisfies CSSProperties
+
+const OUTER_STYLE = { position: 'relative', overflow: 'visible' } satisfies CSSProperties
+
+const TABLE_STYLE = { width: '100%', borderCollapse: 'collapse' } satisfies CSSProperties
+
+/** Codex `.a-rt` alternating full-row bands: tone tint / warm paper. */
+const bandColor = (index: number) => (index % 2 === 0 ? color.pilotLight : color.bandCream)
+
+/** Codex `.a-rt` row hairline. */
+const ROW_RULE = `${borderWidth.hairline} solid ${color.ink10}`
+
+/** The lifted, ink-shadowed look of the rolled row / cell. */
+const LIFT_SHADOW = `0 14px 40px ${color.ink85}`
 
 /**
  * Turns the header title into the surface's TABLE PICKER trigger.
@@ -68,6 +136,38 @@ type RollTableDisplayProps = {
   titleSelect?: RollTableTitleSelect
 }
 
+/*
+ * The header band. Inline, so each property outranks the stamp's own geometry
+ * classes it replaces (`inline-block w-fit`, the compact rung's padding, the
+ * caps-tight tracking) — what the band's tailwind-merged `className` did before.
+ */
+const HEADER_BAND_STYLE = {
+  display: 'flex',
+  width: '100%',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: space[8],
+  paddingInline: space[10],
+  paddingBlock: space[6],
+  letterSpacing: tracking.capsSnug,
+} satisfies CSSProperties
+
+const HEADER_TITLE_STYLE = {
+  display: 'inline-flex',
+  minWidth: 0,
+  alignItems: 'center',
+  gap: space[12],
+} satisfies CSSProperties
+
+const HEADER_ACTION_STYLE = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: space[8],
+} satisfies CSSProperties
+
+/** Widens the mini rung's 8px inline padding; inline beats `.su-btn--mini`. */
+const ROLL_BUTTON_STYLE = { paddingInline: '11px' } satisfies CSSProperties
+
 /**
  * The roll-table header band — the ink bar carrying the expand toggle, the
  * table name and the rust Roll button.
@@ -99,26 +199,21 @@ function RollTableHeader({
   if (!showHeader) return null
   const title = tableName || 'Roll table'
   return (
-    <Badge
-      shape="stamp"
-      as="div"
-      size="compact"
-      className="flex w-full items-center justify-between gap-2 px-2.5 py-1.5 tracking-caps-snug"
-    >
-      <span className="inline-flex min-w-0 items-center gap-3">
+    <Badge shape="stamp" as="div" size="compact" style={HEADER_BAND_STYLE}>
+      <span style={HEADER_TITLE_STYLE}>
         {collapsible && (
           <ExpandToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
         )}
         {titleSelect ? <TitleSelect title={title} select={titleSelect} /> : title}
       </span>
       {!disabled && (
-        <span className="inline-flex items-center gap-2">
+        <span style={HEADER_ACTION_STYLE}>
           Roll the Die
           <Button
             variant="primary"
             size="mini"
             onClick={handleRoll}
-            className="px-[11px]"
+            style={ROLL_BUTTON_STYLE}
             aria-label="Roll on this table"
             title="Roll on this table"
           >
@@ -139,12 +234,59 @@ function Caret({ flipped }: { flipped?: boolean }) {
       height="10"
       viewBox="0 0 12 12"
       aria-hidden="true"
-      className={cn('shrink-0 transition-transform', flipped && 'rotate-180')}
+      style={{
+        flexShrink: 0,
+        transitionProperty: 'transform, translate, scale, rotate',
+        transitionTimingFunction: EASE_DEFAULT,
+        transitionDuration: '150ms',
+        rotate: flipped ? '180deg' : undefined,
+      }}
     >
       <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" />
     </svg>
   )
 }
+
+/** Its colour (paper at 80%, full paper on hover) is `.su-roll-table__toggle`. */
+const EXPAND_TOGGLE_STYLE = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: space[4],
+  fontFamily: font.cond,
+  fontSize: fontSize.badge,
+  fontWeight: weight.bold,
+  textTransform: 'uppercase',
+  letterSpacing: tracking.capsTight,
+} satisfies CSSProperties
+
+/**
+ * Its border colour and fill change on hover, so they are
+ * `.su-roll-table__title-select`; the focus ring is `FOCUS_RING_ON_TONE`'s.
+ */
+const TITLE_SELECT_STYLE = {
+  display: 'inline-flex',
+  minWidth: 0,
+  cursor: 'pointer',
+  alignItems: 'center',
+  gap: space[6],
+  borderRadius: radius.badge,
+  borderWidth: borderWidth.hairline,
+  borderStyle: 'solid',
+  paddingInline: space[8],
+  paddingBlock: space[2],
+  textAlign: 'left',
+  // `uppercase` is NOT redundant with the band: the UA reset gives
+  // `button` its own `text-transform: none`, so without it the trigger
+  // reads Title Case beside a band that is otherwise all caps.
+  textTransform: 'uppercase',
+  color: color.paper,
+} satisfies CSSProperties
+
+const TRUNCATE = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} satisfies CSSProperties
 
 /**
  * The expand/collapse control shown in a collapsible roll-table header. It sits
@@ -156,10 +298,8 @@ function ExpandToggle({ expanded, onToggle }: { expanded: boolean; onToggle: () 
       type="button"
       onClick={onToggle}
       aria-expanded={expanded}
-      className={cn(
-        'inline-flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-caps-tight text-paper/80 hover:text-paper',
-        FOCUS_RING_ON_TONE
-      )}
+      className={cn('su-roll-table__toggle', FOCUS_RING_ON_TONE)}
+      style={EXPAND_TOGGLE_STYLE}
     >
       {expanded ? 'Hide' : 'Show'}
       <Caret flipped={expanded} />
@@ -181,15 +321,10 @@ function TitleSelect({ title, select }: { title: string; select: RollTableTitleS
       aria-haspopup="dialog"
       aria-expanded={select.open ?? false}
       aria-label={select.ariaLabel ?? `Choose a roll table (current: ${title})`}
-      className={cn(
-        // `uppercase` is NOT redundant with the band: the UA reset gives
-        // `button` its own `text-transform: none`, so without it the trigger
-        // reads Title Case beside a band that is otherwise all caps.
-        'inline-flex min-w-0 cursor-pointer items-center gap-1.5 rounded-badge border border-paper/40 px-2 py-0.5 text-left uppercase text-paper hover:border-paper hover:bg-paper/10',
-        FOCUS_RING_ON_TONE
-      )}
+      className={cn('su-roll-table__title-select', FOCUS_RING_ON_TONE)}
+      style={TITLE_SELECT_STYLE}
     >
-      <span className="truncate">{title}</span>
+      <span style={TRUNCATE}>{title}</span>
       <Caret flipped={select.open} />
     </button>
   )
@@ -206,8 +341,8 @@ function RollTableDescription({
 }) {
   const parsed = useParseTraitReferences(value)
   return (
-    <div className={cn('text-ink', compact ? 'text-xs' : 'text-base')}>
-      {label && <span className="font-bold">{label}: </span>}
+    <div style={{ color: color.ink, ...(compact ? TYPE.xs : TYPE.base) }}>
+      {label && <span style={BOLD}>{label}: </span>}
       {parsed}
     </div>
   )
@@ -270,10 +405,16 @@ function ResultActionBar({
 
   return (
     <div
-      className={cn(
-        'absolute bottom-[-26px] left-1/2 z-[2] flex -translate-x-1/2 items-center',
-        compact ? 'gap-0.5' : 'gap-1'
-      )}
+      style={{
+        position: 'absolute',
+        bottom: '-26px',
+        left: '50%',
+        zIndex: 2,
+        display: 'flex',
+        translate: '-50% 0',
+        alignItems: 'center',
+        gap: compact ? space[2] : space[4],
+      }}
     >
       <Button size="mini" onClick={handleCopy} aria-label="Copy result to clipboard">
         Copy
@@ -327,19 +468,26 @@ function CollapsedResultSlideout({
 }) {
   if (!show) return null
   return (
-    <div className="relative">
+    <div style={{ position: 'relative' }}>
       <div
-        className={cn(
-          'grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out',
-          hasResult ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-        )}
+        style={{
+          display: 'grid',
+          overflow: 'hidden',
+          transitionProperty: 'grid-template-rows',
+          transitionDuration: '300ms',
+          // Tailwind's `ease-out` rung.
+          transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
+          gridTemplateRows: hasResult ? '1fr' : '0fr',
+        }}
       >
-        <div className="min-h-0">
+        <div style={{ minHeight: 0 }}>
           <div
-            className={cn(
-              'border-t-2 border-pilot-light bg-band-cream',
-              compact ? 'px-2 py-1.5' : 'px-3 py-2'
-            )}
+            style={{
+              borderTop: `${borderWidth.pill} solid ${color.pilotLight}`,
+              backgroundColor: color.bandCream,
+              paddingInline: compact ? space[8] : space[12],
+              paddingBlock: compact ? space[6] : space[8],
+            }}
           >
             {children}
           </div>
@@ -356,6 +504,50 @@ function CollapsedResultSlideout({
     </div>
   )
 }
+
+/** The gap between a standard row's roll cell and its result. */
+const rowGap = (compact?: boolean) => (compact ? space[4] : space[8])
+
+/** Codex `.a-rt .band`: fixed 52px roll column, centred, with a right hairline. */
+const rollCellStyle = (compact?: boolean) =>
+  ({
+    display: 'flex',
+    width: '52px',
+    flexShrink: 0,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'stretch',
+    borderRight: `${borderWidth.hairline} solid ${color.ink20}`,
+    fontWeight: weight.normal,
+    fontVariantNumeric: 'tabular-nums',
+    paddingBlock: compact ? space[4] : space[8],
+  }) satisfies CSSProperties
+
+/**
+ * The roll number. Line height is the size rung's own, NOT 1: the class list
+ * this replaces carried `leading-none`, but `cn()` dropped it in favour of the
+ * `text-sm` / `text-lg` that followed (tailwind-merge treats a font-size
+ * utility as resetting the line height), so the rendered number never had it.
+ */
+const rollKeyStyle = (compact?: boolean) =>
+  ({
+    whiteSpace: 'nowrap',
+    textAlign: 'center',
+    fontWeight: weight.bold,
+    color: color.ink,
+    ...(compact ? TYPE.sm : TYPE.lg),
+  }) satisfies CSSProperties
+
+const resultCellStyle = (compact?: boolean) =>
+  ({
+    display: 'flex',
+    flex: 4,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    paddingBlock: compact ? space[2] : space[4],
+  }) satisfies CSSProperties
 
 const COLUMN_KEYS = ['1-4', '5-8', '9-12', '13-16', '17-20'] as const
 
@@ -425,12 +617,12 @@ function ColumnsRollTable({
   }
 
   return (
-    <div className="relative overflow-visible">
-      <div className="sr-only" aria-live="assertive" role="status">
+    <div style={OUTER_STYLE}>
+      <div style={VISUALLY_HIDDEN} aria-live="assertive" role="status">
         {rollAnnouncement}
       </div>
 
-      <div className="rounded-card border-2 border-pilot-light">
+      <div style={FRAME_STYLE}>
         <RollTableHeader
           showHeader={showHeader}
           collapsible={collapsible}
@@ -451,25 +643,29 @@ function ColumnsRollTable({
           onClear={handleClear}
         >
           {/* Mirror the expanded cell: bold roll `#` then the result text. */}
-          <div className={cn('text-left text-ink', compact ? 'text-xs' : 'text-base')}>
-            <span className="font-bold">{result?.entryKey}:</span> {result?.value}
+          <div style={{ textAlign: 'left', color: color.ink, ...(compact ? TYPE.xs : TYPE.base) }}>
+            <span style={BOLD}>{result?.entryKey}:</span> {result?.value}
           </div>
         </CollapsedResultSlideout>
 
         {expanded && (
-          <div className="overflow-visible">
-            <table className="w-full border-collapse">
-              <caption className="sr-only">{tableName || 'Columns roll table'}</caption>
+          <div style={{ overflow: 'visible' }}>
+            <table style={TABLE_STYLE}>
+              <caption style={VISUALLY_HIDDEN}>{tableName || 'Columns roll table'}</caption>
               <thead>
                 <tr>
                   {COLUMN_KEYS.map((colKey) => (
                     <th
                       key={colKey}
                       scope="col"
-                      className={cn(
-                        'text-left font-bold text-ink',
-                        compact ? 'px-2 py-1 text-lg' : 'px-3 py-2 text-2xl'
-                      )}
+                      style={{
+                        textAlign: 'left',
+                        fontWeight: weight.bold,
+                        color: color.ink,
+                        paddingInline: compact ? space[8] : space[12],
+                        paddingBlock: compact ? space[4] : space[8],
+                        ...(compact ? TYPE.lg : TYPE['2xl']),
+                      }}
                     >
                       ({colKey.replace('-', ' - ')})
                     </th>
@@ -482,11 +678,7 @@ function ColumnsRollTable({
                   return (
                     <tr
                       key={entryNum}
-                      className={cn(
-                        // Codex `.a-rt` alternating bands: tone tint / warm paper + row hairline.
-                        'border-b border-ink/10',
-                        i % 2 === 0 ? 'bg-pilot-light' : 'bg-band-cream'
-                      )}
+                      style={{ borderBottom: ROW_RULE, backgroundColor: bandColor(i) }}
                     >
                       {COLUMN_KEYS.map((colKey) => {
                         const entry = getColumnEntry(tableData, colKey, entryNum)
@@ -498,12 +690,24 @@ function ColumnsRollTable({
                           <td
                             key={colKey + entryNum}
                             ref={isHighlighted ? highlightedRef : null}
-                            className={cn(
-                              'relative text-left text-ink transition-all duration-200',
-                              compact ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-base',
-                              isHighlighted &&
-                                'z-[1] scale-[1.04] cursor-pointer outline-4 outline-ink shadow-[0_14px_40px_var(--color-ink-85)]'
-                            )}
+                            style={{
+                              position: 'relative',
+                              textAlign: 'left',
+                              color: color.ink,
+                              transitionProperty: 'all',
+                              transitionTimingFunction: EASE_DEFAULT,
+                              transitionDuration: '200ms',
+                              paddingInline: compact ? space[8] : space[12],
+                              paddingBlock: compact ? space[2] : space[4],
+                              ...(compact ? TYPE.xs : TYPE.base),
+                              ...(isHighlighted && {
+                                zIndex: 1,
+                                scale: '1.04',
+                                cursor: 'pointer',
+                                outline: `4px solid ${color.ink}`,
+                                boxShadow: LIFT_SHADOW,
+                              }),
+                            }}
                             onClick={isHighlighted ? handleClear : undefined}
                             onKeyDown={
                               isHighlighted
@@ -518,7 +722,7 @@ function ColumnsRollTable({
                             aria-selected={isHighlighted || undefined}
                             tabIndex={isHighlighted ? 0 : undefined}
                           >
-                            <span className="font-bold">{entryNum}:</span> {entry?.value}
+                            <span style={BOLD}>{entryNum}:</span> {entry?.value}
                             {isHighlighted && (
                               <ResultActionBar
                                 compact={compact}
@@ -612,13 +816,21 @@ function StandardRollTable({
     : ''
 
   return (
-    <div className="relative overflow-visible">
+    <div style={OUTER_STYLE}>
       {/* Screen reader announcement for roll results */}
-      <div className="sr-only" aria-live="assertive" role="status">
+      <div style={VISUALLY_HIDDEN} aria-live="assertive" role="status">
         {rollAnnouncement}
       </div>
 
-      <div className="overflow-visible rounded-card border-2 border-pilot-light transition-opacity duration-200">
+      <div
+        style={{
+          ...FRAME_STYLE,
+          overflow: 'visible',
+          transitionProperty: 'opacity',
+          transitionTimingFunction: EASE_DEFAULT,
+          transitionDuration: '200ms',
+        }}
+      >
         <RollTableHeader
           showHeader={showHeader}
           collapsible={collapsible}
@@ -638,28 +850,18 @@ function StandardRollTable({
           onClear={handleClearHighlight}
         >
           {/* Mirror the expanded row: the 52px roll `#` cell + the description. */}
-          <div className={cn('flex flex-row flex-wrap', compact ? 'gap-1' : 'gap-2')}>
-            <div
-              className={cn(
-                'flex w-[52px] shrink-0 flex-col items-center justify-center self-stretch border-r border-ink/20 font-normal tabular-nums',
-                compact ? 'py-1' : 'py-2'
-              )}
-            >
-              <Text
-                className={cn(
-                  'whitespace-nowrap text-center font-bold leading-none text-ink',
-                  compact ? 'text-sm' : 'text-lg'
-                )}
-              >
-                {highlightedEntry?.key}
-              </Text>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: rowGap(compact),
+            }}
+          >
+            <div style={rollCellStyle(compact)}>
+              <Text style={rollKeyStyle(compact)}>{highlightedEntry?.key}</Text>
             </div>
-            <div
-              className={cn(
-                'flex flex-[4] flex-row flex-wrap items-center',
-                compact ? 'py-0.5' : 'py-1'
-              )}
-            >
+            <div style={resultCellStyle(compact)}>
               <RollTableDescription
                 label={highlightedEntry?.label ?? null}
                 value={highlightedEntry?.value ?? ''}
@@ -669,9 +871,9 @@ function StandardRollTable({
           </div>
         </CollapsedResultSlideout>
         {expanded && (
-          <table className="w-full border-collapse">
-            <caption className="sr-only">{tableName || 'Roll table'}</caption>
-            <thead className="sr-only">
+          <table style={TABLE_STYLE}>
+            <caption style={VISUALLY_HIDDEN}>{tableName || 'Roll table'}</caption>
+            <thead style={VISUALLY_HIDDEN}>
               <tr>
                 <th scope="col">Roll</th>
                 <th scope="col">Result</th>
@@ -681,8 +883,6 @@ function StandardRollTable({
               {digestedTable.map(({ label, value, key }, index) => {
                 if (key === 'type') return null
                 const isHighlighted = highlightedKey === key
-                // Codex `.a-rt` alternating full-row bands: tone tint / warm paper.
-                const bgColor = index % 2 === 0 ? 'bg-pilot-light' : 'bg-band-cream'
 
                 return (
                   <tr
@@ -690,13 +890,24 @@ function StandardRollTable({
                     key={key}
                     aria-selected={isHighlighted || undefined}
                     tabIndex={isHighlighted ? 0 : undefined}
-                    className={cn(
-                      'relative flex flex-row flex-wrap border-b border-ink/10 transition-all duration-200',
-                      bgColor,
-                      isHighlighted &&
-                        'z-[1] scale-[1.04] cursor-pointer shadow-[0_0_0_4px_var(--color-ink-85),0_14px_40px_var(--color-ink-85)]',
-                      compact ? 'gap-1' : 'gap-2'
-                    )}
+                    style={{
+                      position: 'relative',
+                      display: 'flex',
+                      flexDirection: 'row',
+                      flexWrap: 'wrap',
+                      borderBottom: ROW_RULE,
+                      transitionProperty: 'all',
+                      transitionTimingFunction: EASE_DEFAULT,
+                      transitionDuration: '200ms',
+                      backgroundColor: bandColor(index),
+                      gap: rowGap(compact),
+                      ...(isHighlighted && {
+                        zIndex: 1,
+                        scale: '1.04',
+                        cursor: 'pointer',
+                        boxShadow: `0 0 0 4px ${color.ink85}, ${LIFT_SHADOW}`,
+                      }),
+                    }}
                     onClick={isHighlighted ? handleClearHighlight : undefined}
                     onKeyDown={
                       isHighlighted
@@ -710,7 +921,7 @@ function StandardRollTable({
                     }
                   >
                     {isHighlighted && (
-                      <td className="contents">
+                      <td style={{ display: 'contents' }}>
                         <ResultActionBar
                           compact={compact}
                           resultText={label ? `${label}: ${value}` : value}
@@ -718,29 +929,10 @@ function StandardRollTable({
                         />
                       </td>
                     )}
-                    <th
-                      scope="row"
-                      className={cn(
-                        // Codex `.a-rt .band`: fixed 52px roll column, centred, with a right hairline.
-                        'flex w-[52px] shrink-0 flex-col items-center justify-center self-stretch border-r border-ink/20 font-normal tabular-nums',
-                        compact ? 'py-1' : 'py-2'
-                      )}
-                    >
-                      <Text
-                        className={cn(
-                          'whitespace-nowrap text-center font-bold leading-none text-ink',
-                          compact ? 'text-sm' : 'text-lg'
-                        )}
-                      >
-                        {key}
-                      </Text>
+                    <th scope="row" style={rollCellStyle(compact)}>
+                      <Text style={rollKeyStyle(compact)}>{key}</Text>
                     </th>
-                    <td
-                      className={cn(
-                        'flex flex-[4] flex-row flex-wrap items-center',
-                        compact ? 'py-0.5' : 'py-1'
-                      )}
-                    >
+                    <td style={resultCellStyle(compact)}>
                       <RollTableDescription label={label} value={value} compact={compact} />
                     </td>
                   </tr>

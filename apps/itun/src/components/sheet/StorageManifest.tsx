@@ -300,11 +300,12 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
         </span>
       </span>
 
-      {/* Units cost cell — tinted ground (not a border) separates it from the
-          name cell and, in turn, sets the move button off on its other edge. */}
+      {/* Units cost cell — the workshop step off paper (not a border)
+          separates it from the name cell and, in turn, sets the move button
+          off on its other edge. */}
       <span
         className="flex w-9 shrink-0 flex-col items-center justify-center py-1"
-        style={{ background: 'var(--ground-2)' }}
+        style={{ background: 'var(--color-wk-bg)' }}
       >
         <span className="font-body text-lede font-bold leading-none text-ink">{lot.units}</span>
         <span className="font-cond text-badge uppercase text-wk-muted">U</span>
@@ -515,10 +516,12 @@ export function StorageManifest({
         cardStyle={{ className: 'shadow-[0_2px_8px_-3px_var(--color-ink-50)]' }}
         bodyPadding="p-0"
       >
-        {/* Capacity strip */}
+        {/* Capacity strip — paper, like the rest of the Hold body: the
+            tone-tinted ground it once wore was off the closed palette
+            (ruleset §4.1). */}
         <div
           className="flex flex-wrap items-center gap-3 border-b-2 border-ink px-3 py-2"
-          style={{ background: 'var(--ground-2)' }}
+          style={{ background: 'var(--color-paper)' }}
         >
           {side === 'mech' ? (
             <>
@@ -629,7 +632,7 @@ export function StorageManifest({
             'flex flex-col gap-2 rounded-card border-2 p-3',
             linkedCounterpart !== null ? 'border-ink' : 'border-dashed border-wk-faint'
           )}
-          style={{ background: 'var(--ground-2)' }}
+          style={{ background: 'var(--color-paper)' }}
         >
           <span
             className="font-cond text-badge font-bold uppercase tracking-caps"

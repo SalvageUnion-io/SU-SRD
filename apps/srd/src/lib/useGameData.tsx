@@ -18,6 +18,14 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 /** A preload request: every schema (`'all'`), or an explicit subset. */
 export type SchemaList = string[] | 'all'
 
+/**
+ * Which copy of each schema to load: every field (`'full'`, the default), or a
+ * listing's `'list'` projection — `actions` without its prose (see
+ * `salvageunion-reference`'s `lib/listProjection.ts`). Only a consumer that
+ * never prints an action's prose may ask for `'list'`.
+ */
+export type Projection = 'full' | 'list'
+
 type PreloadState = { promise: Promise<void> | null; done: boolean }
 
 const preloadStates = new Map<string, PreloadState>()
@@ -34,8 +42,9 @@ export function resetPreloadForTests(): void {
 }
 
 /** Stable cache/listener key for a schema list — order-independent. */
-function keyFor(schemas: SchemaList): string {
-  return schemas === 'all' ? 'all' : [...schemas].sort().join(',')
+function keyFor(schemas: SchemaList, projection: Projection): string {
+  const list = schemas === 'all' ? 'all' : [...schemas].sort().join(',')
+  return projection === 'full' ? list : `${projection}:${list}`
 }
 
 function emitReady(key: string): void {
@@ -59,18 +68,23 @@ function subscribeReady(key: string, onChange: () => void): () => void {
   }
 }
 
-/** True once every schema in the list has been preloaded. */
-function isSchemaListLoaded(schemas: SchemaList): boolean {
-  if (schemas === 'all') return SalvageUnionReference.isLoaded('chassis')
-  return schemas.every((schema) => SalvageUnionReference.isLoaded(schema))
+/** True once every schema in the list has been preloaded (in that projection). */
+function isSchemaListLoaded(schemas: SchemaList, projection: Projection): boolean {
+  if (schemas === 'all') {
+    return (
+      SalvageUnionReference.isLoaded('chassis') &&
+      SalvageUnionReference.isLoaded('actions', { projection })
+    )
+  }
+  return schemas.every((schema) => SalvageUnionReference.isLoaded(schema, { projection }))
 }
 
 /**
  * Client snapshot: ready once this key's shared preload has resolved (or the
  * data was already loaded at mount).
  */
-function getReadySnapshot(key: string, schemas: SchemaList): boolean {
-  return (preloadStates.get(key)?.done ?? false) || isSchemaListLoaded(schemas)
+function getReadySnapshot(key: string, schemas: SchemaList, projection: Projection): boolean {
+  return (preloadStates.get(key)?.done ?? false) || isSchemaListLoaded(schemas, projection)
 }
 
 /**
@@ -85,8 +99,8 @@ function getReadyServerSnapshot(): boolean {
   return false
 }
 
-function ensurePreloaded(key: string, schemas: SchemaList): Promise<void> {
-  if (isSchemaListLoaded(schemas)) {
+function ensurePreloaded(key: string, schemas: SchemaList, projection: Projection): Promise<void> {
+  if (isSchemaListLoaded(schemas, projection)) {
     const state = preloadStates.get(key) ?? { promise: null, done: false }
     state.done = true
     preloadStates.set(key, state)
@@ -100,7 +114,7 @@ function ensurePreloaded(key: string, schemas: SchemaList): Promise<void> {
   let promise = state.promise
   if (!promise) {
     const pending = state
-    promise = SalvageUnionReference.preload(schemas).then(() => {
+    promise = SalvageUnionReference.preload(schemas, { projection }).then(() => {
       pending.done = true
       emitReady(key)
     })
@@ -117,6 +131,8 @@ function ensurePreloaded(key: string, schemas: SchemaList): Promise<void> {
  * @param options.schemas Which schemas to preload — defaults to `'all'`.
  * Pass the per-route list from `schemaPreloadDeps.ts` to load only what the
  * page actually needs instead of the full corpus.
+ * @param options.projection `'list'` for a listing that never prints an
+ * action's prose — see {@link Projection}. Defaults to `'full'`.
  *
  * Note: the preload promise is shared per exact schema list, so `defer` only
  * keeps data off the critical path on pages that render *no* eager consumer
@@ -125,18 +141,26 @@ function ensurePreloaded(key: string, schemas: SchemaList): Promise<void> {
  * preload on mount and the deferred consumer simply rides the in-flight
  * promise — by design, not a missed optimization.
  */
-export function useGameData(options?: { defer?: boolean; schemas?: SchemaList }): {
+export function useGameData(options?: {
+  defer?: boolean
+  schemas?: SchemaList
+  projection?: Projection
+}): {
   ready: boolean
   error: Error | null
   load: () => void
 } {
   const schemas = options?.schemas ?? 'all'
+  const projection = options?.projection ?? 'full'
   // Order-independent, primitive dependency key — safe even when callers pass
   // a fresh array literal each render (as build-time-computed props do).
-  const key = keyFor(schemas)
+  const key = keyFor(schemas, projection)
 
   const subscribe = useCallback((onChange: () => void) => subscribeReady(key, onChange), [key])
-  const getSnapshot = useCallback(() => getReadySnapshot(key, schemas), [key, schemas])
+  const getSnapshot = useCallback(
+    () => getReadySnapshot(key, schemas, projection),
+    [key, schemas, projection]
+  )
   // `ready` is read through useSyncExternalStore so the server (and the first
   // hydration render) always sees the fallback while the client tracks the live
   // preload state — keeping hydration consistent without seeding state from a
@@ -145,13 +169,13 @@ export function useGameData(options?: { defer?: boolean; schemas?: SchemaList })
   const [wanted, setWanted] = useState(!options?.defer)
   const [error, setError] = useState<Error | null>(null)
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `key` is the stable, order-independent identity of `schemas` — depending on the (often fresh-per-render) array itself would re-run the effect every render
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `key` is the stable, order-independent identity of `schemas` and `projection` — depending on the (often fresh-per-render) array itself would re-run the effect every render
   useEffect(() => {
     // After a failure, `error` blocks re-fetching until load() clears it —
     // clearing it re-runs this effect, which retries the (reset) preload.
     if (ready || !wanted || error) return
     let cancelled = false
-    ensurePreloaded(key, schemas).catch((e: unknown) => {
+    ensurePreloaded(key, schemas, projection).catch((e: unknown) => {
       // Reset this key's state so a retry issues a fresh request instead of
       // re-awaiting the same rejection.
       preloadStates.set(key, { promise: null, done: false })
@@ -183,15 +207,18 @@ export function GameDataGate({
   children,
   fallback,
   schemas,
+  projection,
 }: {
   children: ReactNode
   fallback?: ReactNode
   /** Which schemas to preload — defaults to `'all'`. See `useGameData`. */
   schemas?: SchemaList
+  /** Which copy of each schema — defaults to `'full'`. See `useGameData`. */
+  projection?: Projection
 }) {
   // useGameData keys its preload effect off `keyFor(schemas)` (content-, not
   // reference-based), so a fresh `[...]` array literal each render is safe.
-  const { ready, error, load } = useGameData({ schemas })
+  const { ready, error, load } = useGameData({ schemas, projection })
   if (error) {
     return (
       <div className="flex flex-col items-start gap-3 p-4">

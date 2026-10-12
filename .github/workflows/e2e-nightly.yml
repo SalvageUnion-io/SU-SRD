@@ -226,17 +226,7 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # WARN-ONLY until the owner drops `Analyze (javascript-typescript)` from
-      # the live `main` ruleset's required statuses. MAIN_RULESET leaves it out
-      # on purpose (CodeQL gates through `code_scanning`), `--apply` never edits
-      # rulesets, and that one known drift had this job red every night. A
-      # nightly that is always red gets ignored, new drift included. So a drift
-      # surfaces as a warning on the run, not a failure and not the tracking
-      # issue. Once `bun tools/environments.ts` reports no drift, delete
-      # `continue-on-error` and the next step so a drift fails the run again.
       - name: Compare live Environments and the main ruleset against tools/environments.ts
-        id: compare
-        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -244,13 +234,6 @@ jobs:
           CONVEX_PREVIEW_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: bun tools/environments.ts --secrets-from-env
-
-      - name: Warn on drift
-        if: steps.compare.outcome == 'failure'
-        run: |
-          msg='Live settings drift from tools/environments.ts; see the step above. Warn-only for now.'
-          echo "::warning title=environments drift::${msg}"
-          echo "⚠️ ${msg}" >> "$GITHUB_STEP_SUMMARY"
 
   # ONE notifier, computed from `needs` rather than restated in two inverted
   # `if:` expressions. The two-job version drifted twice: a job was added to

@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { color } from '../../../design/tokens'
 import type { ReferenceEntityControl } from '../../referenceEntity/referenceEntityControlTypes'
 import { ControlButtons } from '../ControlButtons'
 
@@ -26,21 +27,43 @@ describe('ControlButtons', () => {
 
   test('defaults to primary variant (black bg)', () => {
     render(<ControlButtons controls={[makeControl()]} />)
-    const button = screen.getByRole('button')
-    expect(button.innerHTML).toContain('bg-ink')
+    const segment = screen.getByText('Test')
+    expect(segment.style.backgroundColor).toBe(color.ink)
+    expect(segment.style.color).toBe(color.paper)
   })
 
-  test('applies danger variant classes', () => {
+  test('applies danger variant colours', () => {
     render(<ControlButtons controls={[makeControl({ variant: 'danger' })]} />)
-    const button = screen.getByRole('button')
     // The sanctioned destructive/state red — NOT the adversary ontology hue.
-    expect(button.innerHTML).toContain('bg-status-bad')
+    expect(screen.getByText('Test').style.backgroundColor).toBe(color.statusBad)
   })
 
-  test('applies ghost variant classes', () => {
+  test('applies ghost variant colours', () => {
     render(<ControlButtons controls={[makeControl({ variant: 'ghost' })]} />)
-    const button = screen.getByRole('button')
-    expect(button.innerHTML).toContain('bg-paper')
+    expect(screen.getByText('Test').style.backgroundColor).toBe(color.paper)
+  })
+
+  test('a live worded control brightens on hover; a disabled one does not', () => {
+    const { unmount } = render(<ControlButtons controls={[makeControl()]} />)
+    expect(screen.getByRole('button').classList.contains('su-control-button--live')).toBe(true)
+    unmount()
+    render(<ControlButtons controls={[makeControl({ disabled: true })]} />)
+    expect(screen.getByRole('button').classList.contains('su-control-button--live')).toBe(false)
+  })
+
+  test('a link control flips its colours on hover through its class', () => {
+    render(
+      <ControlButtons
+        controls={[
+          { key: 'go', label: 'Open', ariaLabel: 'Open the chassis', href: '/schema/chassis/' },
+        ]}
+      />
+    )
+    const link = screen.getByRole('link')
+    // Fill and ink are stateful, so they are the class's, never inline.
+    expect(link.classList.contains('su-control-link')).toBe(true)
+    expect(link.style.backgroundColor).toBe('')
+    expect(link.style.color).toBe('')
   })
 
   test('fires onClick with stopPropagation', () => {
@@ -105,8 +128,8 @@ describe('ControlButtons', () => {
   test('disabled control renders with grey styling', () => {
     render(<ControlButtons controls={[makeControl({ disabled: true })]} />)
     const button = screen.getByRole('button')
-    expect(button.className).toContain('cursor-not-allowed')
-    expect(button.innerHTML).toContain('bg-wk-faint')
+    expect(button.style.cursor).toBe('not-allowed')
+    expect(screen.getByText('Test').style.backgroundColor).toBe(color.wkFaint)
   })
 
   test('disabled control does not fire onClick', () => {
@@ -170,9 +193,11 @@ describe('ControlButtons', () => {
     // Remove is the one control in the rail that DESTROYS something; in
     // paper-and-ink it read like the fold chevron beside it.
     const button = screen.getByLabelText('Remove Charge')
-    expect(button.className).toContain('bg-status-bad')
-    expect(button.className).toContain('border-status-bad')
-    expect(button.className).not.toContain('bg-paper')
+    expect(button.style.backgroundColor).toBe(color.statusBad)
+    expect(button.style.borderColor).toBe(color.statusBad)
+    // Not the paper stamp's class, which would paint it paper-and-ink.
+    expect(button.classList.contains('su-control-icon--plain')).toBe(false)
+    expect(button.classList.contains('su-control-button--live')).toBe(true)
   })
 
   test('icon-only control carries no width-keyed tap floor of its own', () => {

@@ -136,6 +136,14 @@ export function PilotIdentityPanel({
   const allClasses = [...base, ...specialisations]
 
   const canEdit = patch !== undefined
+  // The band's title is the name; a callsign that only repeats it adds nothing
+  // in Read. Edit always shows it: it is the callsign's edit surface.
+  const showCallsign =
+    canEdit || pilot.callsign.trim().toLowerCase() !== pilot.name.trim().toLowerCase()
+  // In Read a Field with no value renders nothing, so the left column can be
+  // empty (a Starter pilot: callsign is the name, no pronouns). Drop it then,
+  // rather than leave half the card blank beside the Motto column.
+  const leftColumn = canEdit || showCallsign || (pilot.pronouns ?? '').trim() !== ''
 
   /** Persist a trimmed freeform field (empty allowed). */
   const saveText = (field: keyof Pilot) => (next: string) => {
@@ -182,35 +190,48 @@ export function PilotIdentityPanel({
           — spreading them independently pulled Keepsake/Background out of line
           with Callsign/Class, since each column distributes its own slack. All
           the leftover height goes to the Bio instead. */}
-      <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-        <div className="flex min-w-0 flex-col gap-3">
-          {/* Callsign and Class lead TOGETHER, at the same prominence: what a
+      <div className={cn('grid grid-cols-1 gap-x-4 gap-y-3', leftColumn && 'sm:grid-cols-2')}>
+        {leftColumn && (
+          <div className="flex min-w-0 flex-col gap-3">
+            {/* Callsign and Class lead TOGETHER, at the same prominence: what a
               pilot is called and what they do are the two facts you identify
               them by. Name lives here too, in Edit: this is the pilot's name edit
-              surface (the band's title mirrors it). */}
-          <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+              surface (the band's title mirrors it).
+
+              Read prints only what the band does not: its eyebrow stamps the
+              class and its title is the name, so Class goes, and Callsign goes
+              when it is the name. Repeating them straight under the band read
+              as a subtitle saying the title twice. */}
+            {(canEdit || showCallsign) && (
+              <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+                {showCallsign && (
+                  <Field
+                    label="Callsign"
+                    value={pilot.callsign}
+                    onSave={canEdit ? saveRequired('callsign') : undefined}
+                    prominent
+                  />
+                )}
+                {canEdit && (
+                  <Field
+                    label="Class"
+                    value={resolveClassName(pilot.classRef)}
+                    onEditClick={openClassPicker}
+                    prominent
+                  />
+                )}
+              </div>
+            )}
+            {/* Read omits the name: it is the band's title (board 10). */}
+            {canEdit && <Field label="Name" value={pilot.name} onSave={saveRequired('name')} />}
             <Field
-              label="Callsign"
-              value={pilot.callsign}
-              onSave={canEdit ? saveRequired('callsign') : undefined}
-              prominent
-            />
-            <Field
-              label="Class"
-              value={resolveClassName(pilot.classRef)}
-              onEditClick={canEdit ? openClassPicker : undefined}
-              prominent
+              label="Pronouns"
+              value={pilot.pronouns ?? ''}
+              onSave={canEdit ? saveText('pronouns') : undefined}
+              placeholder="—"
             />
           </div>
-          {/* Read omits the name: it is the band's title (board 10). */}
-          {canEdit && <Field label="Name" value={pilot.name} onSave={saveRequired('name')} />}
-          <Field
-            label="Pronouns"
-            value={pilot.pronouns ?? ''}
-            onSave={canEdit ? saveText('pronouns') : undefined}
-            placeholder="—"
-          />
-        </div>
+        )}
         <div className="flex min-w-0 flex-col gap-3">
           <Field
             label="Motto"
