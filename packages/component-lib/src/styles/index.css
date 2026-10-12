@@ -1741,6 +1741,193 @@ body {
   }
 }
 
+/* ══ Guide steps (`GuideSteps`) ═════════════════════════════════════════════
+ *
+ * A guide's procedure as the book prints a how-to: an ordered list whose every
+ * step opens on an ink banner with a rounded tail (ruleset §4.4 — one of the
+ * two places rounding copies the book), numeral then name, the same device as
+ * the home page's "New to the Union?" steps. A `section` is a solid `Slab`
+ * over the steps it holds. Under the banner everything keeps the banner's left
+ * edge: prose, the page-pointer notes, the option cards, the table.
+ *
+ * On an entity page (`presentation="page"`, `CardPage`'s `guide`) the steps
+ * take the prose column's measure and reading size, so they continue the
+ * introduction above them rather than restarting at card size.
+ */
+.su-guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  min-width: 0;
+}
+
+.su-guide__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.su-guide__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-guide__step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+/* The how-to banner: ink, paper flecks (`grainStyle`), a rounded tail. It
+ * hugs its words, so a step reads as a heading and not as a bar. */
+.su-guide__head {
+  align-items: center;
+  align-self: flex-start;
+  background-color: var(--color-ink);
+  border-radius: 0 var(--radius-full) var(--radius-full) 0;
+  color: var(--color-paper);
+  display: flex;
+  gap: var(--space-12);
+  margin: 0;
+  max-width: 100%;
+  min-height: 40px;
+  padding: var(--space-4) var(--space-24) var(--space-4) var(--space-12);
+}
+
+.su-guide__num {
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+}
+
+.su-guide__name {
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.15;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.su-guide__head > :last-child:not(.su-guide__name) {
+  flex: none;
+}
+
+.su-guide__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+/* A page pointer ("Full details on Pilot Stats can be found on p. 20."): on
+ * the left edge with the prose, one step back from it. */
+.su-guide__note {
+  color: var(--color-wk-muted);
+  font-size: 0.9em;
+  font-style: italic;
+  margin: 0;
+}
+
+/* The options a step selects from, as compact cards. The row gap clears the
+ * type stamp each card wears on its top seam. */
+.su-guide__cards {
+  display: grid;
+  gap: var(--space-20) var(--space-12);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  padding-top: var(--space-12);
+}
+
+/* A progression ladder (crawler tech levels) reads down a narrow column
+ * beside the step's prose; on a phone it follows the prose. */
+.su-guide__ladder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.su-guide__ladder-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+  padding-top: var(--space-12);
+}
+
+.su-guide__ladder-prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+@media (min-width: 48rem) {
+  /* The ladder stands on the left of the prose it illustrates. */
+  .su-guide__ladder {
+    align-items: flex-start;
+    flex-direction: row-reverse;
+  }
+
+  .su-guide__ladder-cards {
+    flex: 0 0 40%;
+    min-width: 0;
+  }
+
+  .su-guide__ladder-prose {
+    flex: 1 1 0;
+  }
+}
+
+/* A wide table (Callsign's five columns) scrolls in its own box. */
+.su-guide__table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.su-entity-page > .su-guide {
+  font-size: var(--text-lg);
+  line-height: 1.6;
+  max-width: 52rem;
+}
+
+.su-entity-page > .su-guide .su-guide__steps {
+  gap: var(--space-40);
+}
+
+.su-entity-page > .su-guide .su-guide__step {
+  gap: var(--space-16);
+}
+
+.su-entity-page > .su-guide .su-guide__head {
+  min-height: 48px;
+  padding-left: var(--space-16);
+}
+
+.su-entity-page > .su-guide .su-guide__num {
+  font-size: var(--text-display);
+}
+
+.su-entity-page > .su-guide .su-guide__name {
+  font-size: var(--text-xl);
+}
+
+@media (max-width: 40rem) {
+  .su-entity-page > .su-guide {
+    font-size: 17px;
+  }
+
+  .su-entity-page > .su-guide .su-guide__name {
+    font-size: var(--text-readout);
+  }
+}
+
 /* The hero: the line art on a paper plate, the full width of its column. */
 .su-entity-hero {
   background-color: var(--color-paper);

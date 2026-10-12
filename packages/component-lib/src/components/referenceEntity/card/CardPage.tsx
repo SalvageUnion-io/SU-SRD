@@ -54,6 +54,8 @@ type CardPageProps = {
   table: ReactNode
   /** A consumer's replacement for the actions (`abilitiesSection`). */
   abilitiesSection: ReactNode
+  /** A guide's steps (`GuideSteps`): on a page they follow the prose, full section. */
+  guide?: ReactNode
   /** The pattern view's prose and loadout, and the nested trays. */
   sections: ReactNode
   /** A basic chassis's patterns, as full-width link rows. */
@@ -83,6 +85,7 @@ export function CardPage({
   stats,
   table,
   abilitiesSection,
+  guide,
   sections,
   patterns,
   after,
@@ -105,31 +108,38 @@ export function CardPage({
     />
   )
 
+  // A page with nothing to lead with (a guide whose words are all in its steps,
+  // "Salvaging") opens on its sections, not on an empty row and its gap.
+  const hasMain =
+    !!hero || !!opening || !!subLine || !!body || bookStats.length > 0 || leadActions.length > 0
+
   return (
     <div className="su-entity-page">
-      <div className={cn('su-entity-page__main', !!hero && 'su-entity-page__main--art')}>
-        {hero && <div className="su-entity-page__art">{hero}</div>}
-        <div className="su-entity-page__side">
-          {opening && <div className="su-entity-page__opening">{opening}</div>}
-          {(subLine || body) && (
-            <div className="su-entity-page__prose">
-              {bodyLabel && <Slab as={sectionAs} variant="solid" label={bodyLabel} />}
-              {subLine}
-              {body}
-            </div>
-          )}
-          {bookStats.length > 0 && (
-            <div className="su-entity-page__stats">
-              <StatColumn stats={bookStats} label={`${name} stats`} />
-            </div>
-          )}
-          {leadActions.length > 0 && (
-            <div className="su-entity-page__lead">
-              {leadActions.map((data, index) => actionCard(data, index, 'Chassis Ability'))}
-            </div>
-          )}
+      {hasMain && (
+        <div className={cn('su-entity-page__main', !!hero && 'su-entity-page__main--art')}>
+          {hero && <div className="su-entity-page__art">{hero}</div>}
+          <div className="su-entity-page__side">
+            {opening && <div className="su-entity-page__opening">{opening}</div>}
+            {(subLine || body) && (
+              <div className="su-entity-page__prose">
+                {bodyLabel && <Slab as={sectionAs} variant="solid" label={bodyLabel} />}
+                {subLine}
+                {body}
+              </div>
+            )}
+            {bookStats.length > 0 && (
+              <div className="su-entity-page__stats">
+                <StatColumn stats={bookStats} label={`${name} stats`} />
+              </div>
+            )}
+            {leadActions.length > 0 && (
+              <div className="su-entity-page__lead">
+                {leadActions.map((data, index) => actionCard(data, index, 'Chassis Ability'))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
       {table && <div className="su-entity-page__table">{table}</div>}
       {abilitiesSection}
       {!abilitiesSection && otherActions.length > 0 && (
@@ -138,6 +148,7 @@ export function CardPage({
           {otherActions.map((data, index) => actionCard(data, index))}
         </section>
       )}
+      {guide}
       {sections}
       <PatternLinkRows
         chassis={entity}
