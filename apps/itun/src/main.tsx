@@ -9,6 +9,7 @@ import {
   installChunkRecovery,
   reactRootErrorHandlers,
 } from './lib/observability'
+import { convexDirectEnabled } from './lib/spike/convexDirect'
 import { registerServiceWorker } from './lib/sw/register'
 import { installSoftUpdate, newBuild } from './lib/sw/softUpdate'
 import { routeTree } from './routeTree.gen'
@@ -61,12 +62,24 @@ createRoot(rootEl, reactRootErrorHandlers).render(
 // A breaking deploy's build floor reloads an open tab at once
 // (lib/connection/buildFloor.ts); a compatible one waits for its next page
 // change (lib/sw/softUpdate.ts).
-registerServiceWorker(registerSW, {
-  // This module IS the entry chunk, so its URL carries this build's content
-  // hash — which is what the server's current shell is compared against.
-  entryChunk: new URL(import.meta.url).pathname,
-  onNewBuild: newBuild.markLive,
-})
+if (convexDirectEnabled()) {
+  // D9 spike (docs/spikes/d9-offline-cache.md): no worker, and drop one an
+  // earlier load installed, so the measurement sees the network as it is.
+  void navigator.serviceWorker
+    ?.getRegistrations()
+    .then((registrations) => Promise.all(registrations.map((r) => r.unregister())))
+    .catch((err: unknown) => {
+      // A spike convenience: a worker left behind only skews the measurement.
+      console.warn('[d9] could not unregister the service worker', err)
+    })
+} else {
+  registerServiceWorker(registerSW, {
+    // This module IS the entry chunk, so its URL carries this build's content
+    // hash — which is what the server's current shell is compared against.
+    entryChunk: new URL(import.meta.url).pathname,
+    onNewBuild: newBuild.markLive,
+  })
+}
 
 // A compatible new build is picked up at the next page change, as a full load
 // of that page (lib/sw/softUpdate.ts). Nothing reloads under the player.

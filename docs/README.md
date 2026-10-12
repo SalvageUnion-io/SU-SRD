@@ -22,3 +22,4 @@ Intent → doc. "Areas N" and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITECT
 18. **Domain transfer** — [domain-transfer.md](ops/domain-transfer.md) (one-off runbook).
 19. **A Salvage Union rule** — `bun run rules:extract`, then grep `rules/extracted/*.txt` (cloud: the attached `su-rules` repo).
 20. **Per-package guidance** — each workspace's `CLAUDE.md` loads when you work there; path rules in [`.claude/rules/`](../.claude/rules/).
+21. **Offline cache decision (spike)** — [d9-offline-cache.md](spikes/d9-offline-cache.md).

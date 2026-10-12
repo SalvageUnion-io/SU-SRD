@@ -30,9 +30,11 @@ import { NpcSchema } from '../schemas/npc'
 import { MechPatternSchema } from '../schemas/pattern'
 import { PilotSchema } from '../schemas/pilot'
 import { SoftLinkSchema } from '../schemas/softLink'
+import { convexDirectEnabled } from '../spike/convexDirect'
 import type { CacheMeta } from './cacheMeta'
 import { CACHE_META_ID, cacheMetaRecord, parseCacheMeta } from './cacheMeta'
 import { makeStore } from './crud'
+import { openMemoryDatabase } from './memoryDb'
 import { STORE_NAMES } from './stores'
 
 /**
@@ -165,6 +167,10 @@ export async function requestPersistentStorage(): Promise<void> {
 
 /** Lazy singleton accessor for the app database — module-private. */
 function getDb(): Promise<IDBPDatabase> {
+  if (dbPromise === null && convexDirectEnabled()) {
+    // D9 spike: no device cache — an empty in-memory one per page load.
+    dbPromise = Promise.resolve(openMemoryDatabase(Object.values(STORE_NAMES)))
+  }
   if (dbPromise === null) {
     const opening = openItunDatabase()
     dbPromise = opening
