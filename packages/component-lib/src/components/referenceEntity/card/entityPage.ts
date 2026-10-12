@@ -12,7 +12,7 @@
  * `bandCost`).
  */
 
-import type { SURefMetaEntity, SURefObjectPattern } from 'salvageunion-reference'
+import type { SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import {
   extractVisibleActions,
   foldedActionOf,
@@ -63,7 +63,7 @@ function bandCost(entity: SURefMetaEntity): string | undefined {
 /** What an entity's page says around its body, read off its entity model. */
 export function resolveEntityPageMeta(
   entity: SURefMetaEntity,
-  pattern?: SURefObjectPattern
+  pattern?: SURefObjectAnyPattern
 ): EntityPageMeta {
   const model = toEntityModel(entity, undefined, { pattern })
   return {

@@ -99,7 +99,7 @@ export function PatternLoadout({
  * preview, crawlable. With no `EntityHrefProvider` above it the badge renders
  * inert rather than linking nowhere.
  */
-function LoadoutBadge({
+export function LoadoutBadge({
   data,
   hostDown,
   NestedCard,

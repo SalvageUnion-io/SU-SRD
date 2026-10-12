@@ -1,6 +1,10 @@
 import { OgCard } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
-import type { SURefEntity, SURefEnumSchemaName, SURefObjectPattern } from 'salvageunion-reference'
+import type {
+  SURefEntity,
+  SURefEnumSchemaName,
+  SURefObjectAnyPattern,
+} from 'salvageunion-reference'
 import {
   getEntitySlug,
   nameToSlug,
@@ -88,11 +92,11 @@ function OgCardResolved() {
   // chassis's VISIBLE patterns, keyed by nameToSlug. A pattern target that
   // doesn't resolve must not silently fall back to the chassis tile — that would
   // ship the wrong card — so it reports MISSING below and is skipped.
-  const pattern = useMemo<SURefObjectPattern | null>(() => {
+  const pattern = useMemo<SURefObjectAnyPattern | null>(() => {
     if (!entity || !target.pattern) return null
     // `patterns` lives on chassis only, so it isn't on the SURefEntity union —
     // read it through a narrow accessor rather than widening the union.
-    const patterns = (entity as { patterns?: SURefObjectPattern[] }).patterns ?? []
+    const patterns = (entity as { patterns?: SURefObjectAnyPattern[] }).patterns ?? []
     return visiblePatterns(patterns).find((p) => nameToSlug(p.name) === target.pattern) ?? null
   }, [entity, target.pattern])
 

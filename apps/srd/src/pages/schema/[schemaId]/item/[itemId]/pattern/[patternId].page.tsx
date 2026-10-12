@@ -1,14 +1,18 @@
 /**
- * `/schema/[schemaId]/item/[itemId]/pattern/[patternId]` — a chassis pattern's
- * own page.
+ * `/schema/[schemaId]/item/[itemId]/pattern/[patternId]` — a pattern's own
+ * page: a chassis's mech pattern or a Bio-Titan's variant.
  *
- * `schemaId` is always `chassis`; it stays a param so the route sits inside the
- * existing `/schema/<schema>/item/<item>/` tree and its breadcrumbs resolve
- * like every other page's.
+ * `schemaId` is the host's schema, so the route sits inside the existing
+ * `/schema/<schema>/item/<item>/` tree and its breadcrumbs resolve like every
+ * other page's.
  */
 
 import { assetSrcSetFor, heroImageSizes, resolveEntityPageMeta } from 'component-lib'
-import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import type {
+  EnhancedSchemaMetadata,
+  SURefEntity,
+  SURefObjectAnyPattern,
+} from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
 import type {
   PageModule,
@@ -29,31 +33,32 @@ import { getPatternStaticPaths } from '../../../../../../lib/staticPaths'
 type Params = { schemaId: string; itemId: string; patternId: string }
 
 type Props = {
-  chassis: SURefEntity
-  pattern: SURefObjectPattern
-  chassisName: string
+  host: SURefEntity
+  schema: EnhancedSchemaMetadata
+  pattern: SURefObjectAnyPattern
+  hostName: string
   patternName: string
 }
 
 function page({ params, props }: RouteContext<Params, Props>): PageResult {
-  const { chassis, pattern, chassisName, patternName } = props
+  const { host, schema, pattern, hostName, patternName } = props
   const { schemaId, itemId, patternId } = params
 
   const canonicalUrl = `${SITE_URL}${patternHref(schemaId, itemId, patternId)}`
-  const chassisUrl = `${SITE_URL}${itemHref(schemaId, itemId)}`
+  const hostUrl = `${SITE_URL}${itemHref(schemaId, itemId)}`
+  const pluralName = schema.displayNamePlural || schema.displayName || 'Items'
 
-  const displayData = getReferenceEntityData(chassis)
-  const summary = patternStaticSummary(chassis, pattern)
+  const displayData = getReferenceEntityData(host)
+  const summary = patternStaticSummary(host, pattern)
   const chapter = chapterForSchema(schemaId)
-  const pageMeta = resolveEntityPageMeta(chassis, pattern)
+  const pageMeta = resolveEntityPageMeta(host, pattern)
 
-  // The PATTERN's own prose (`summary.description`), not the leading chassis
-  // prose — otherwise every pattern of a chassis ships the same meta description
-  // as the chassis page and as each other.
+  // The PATTERN's own prose (`summary.description`), not the leading host
+  // prose — otherwise every pattern of a host ships the same meta description
+  // as the host page and as each other.
   const firstParagraph = summary.description
   const metaDescription = truncate(
-    firstParagraph ||
-      `${patternName}: a ${chassisName} Pattern for the Salvage Union tabletop RPG.`,
+    firstParagraph || `${patternName}: a ${hostName} Pattern for the Salvage Union tabletop RPG.`,
     META_DESCRIPTION_MAX
   )
 
@@ -69,13 +74,13 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       'SRD',
       'System Reference Document',
       'Pattern',
-      chassisName,
+      hostName,
       patternName,
     ],
     isPartOf: {
       '@type': 'ItemPage',
-      name: `${chassisName} - Salvage Union SRD`,
-      url: chassisUrl,
+      name: `${hostName} - Salvage Union SRD`,
+      url: hostUrl,
     },
     mainEntity: {
       '@type': 'Thing',
@@ -99,11 +104,11 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 
   // The preview's words and colour come from the card its image is
   // screenshotted from (issue 1280).
-  const og = ogMetaFor(ogCardFor(schemaId, itemId, chassis, pattern, patternId))
+  const og = ogMetaFor(ogCardFor(schemaId, itemId, host, pattern, patternId))
 
   return {
     meta: {
-      title: `${patternName} - ${chassisName} Pattern${TITLE_SUFFIX}`,
+      title: `${patternName} - ${hostName} Pattern${TITLE_SUFFIX}`,
       description: metaDescription,
       ...og,
       canonical: canonicalUrl,
@@ -118,8 +123,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         ...(chapter.href === '/'
           ? []
           : [{ name: chapter.title, url: `${SITE_URL}${chapter.href}` }]),
-        { name: 'Chassis', url: `${SITE_URL}${schemaHref(schemaId)}` },
-        { name: chassisName, url: chassisUrl },
+        { name: pluralName, url: `${SITE_URL}${schemaHref(schemaId)}` },
+        { name: hostName, url: hostUrl },
         { name: patternName, url: canonicalUrl },
       ],
     },
@@ -129,12 +134,12 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         title={`“${patternName}”`}
         tone={chapter.tone}
         meta={pageMeta}
-        parent={{ label: 'Pattern of', name: chassisName, href: itemHref(schemaId, itemId) }}
+        parent={{ label: 'Pattern of', name: hostName, href: itemHref(schemaId, itemId) }}
       >
         {/* The pattern renders through the same Entity unit as every other page —
             the interactive island card (in its pattern view) plus the static
             SEO / no-JS sub-content. */}
-        <EntityView item={chassis} schemaId={schemaId} pattern={pattern} />
+        <EntityView item={host} schemaId={schemaId} pattern={pattern} />
       </EntityPageFrame>
     ),
   }

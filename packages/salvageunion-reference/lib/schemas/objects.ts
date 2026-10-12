@@ -43,6 +43,7 @@ export { AdvancedClassSchema, BaseEntitySchema } from './objects/entityBase.js'
 export { GuideStepSchema, GuideToneSchema, GuideTypeSchema } from './objects/guides.js'
 export { NpcSchema } from './objects/npc.js'
 export {
+  BioTitanPatternSchema,
   PatternDroneConfigSchema,
   PatternSchema,
   PatternSystemModuleSchema,

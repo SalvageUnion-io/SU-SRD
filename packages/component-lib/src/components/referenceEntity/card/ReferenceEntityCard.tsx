@@ -15,6 +15,7 @@ import {
   getReferenceEntityName,
   getTechLevel,
   isAbility,
+  isBioTitanPattern,
   resolveActivationCurrency,
   resolveGrantedEntities,
 } from 'salvageunion-reference'
@@ -102,7 +103,7 @@ import type { NestedCardHost } from './NestedCards'
 import { ActionsChip, CardTray, DroneCards, InlineActions, NestedCardGroup } from './NestedCards'
 import { resolveNestedSections } from './nestedSections'
 import { PatternList } from './PatternListRow'
-import { PatternLoadout } from './PatternLoadout'
+import { PatternSection } from './PatternSection'
 import { resolveFooterProvenance } from './provenance'
 import type {
   ActionFields,
@@ -426,7 +427,8 @@ function ReferenceEntityCardInner({
         : []
       : resolveAxisMarkers(entity)
   // "Legal Starting Pattern" is a STORED data tag on the pattern.
-  const isLegalStartingPatternCard = isPattern && isLegalStartingPattern(pattern.legalStarting)
+  const isLegalStartingPatternCard =
+    isPattern && 'legalStarting' in pattern && isLegalStartingPattern(pattern.legalStarting)
   const numeral = resolveTierNumeral(entity)
 
   // The SELF-action — an action named like its entity — folds into the card:
@@ -683,6 +685,7 @@ function ReferenceEntityCardInner({
     nestedGroups,
     chassisAbilityEntities,
     patternGroups,
+    patternActions,
     patternList,
     titanicActions,
     gridActions,
@@ -976,31 +979,22 @@ function ReferenceEntityCardInner({
     </div>
   ) : null
 
-  // PATTERN view → the pattern's own prose, then its side-by-side loadout of
-  // shortform badges. On a card it follows the chassis ability (chassis →
-  // ability → pattern → loadout); on a page it leads (`CardPage`'s `opening`).
-  const showLoadout = isPattern && !hide?.patterns && inFlowGroups.length > 0
-  const patternSection =
-    patternProse || showLoadout ? (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: space[6],
-          padding: onPage ? 0 : BODY_PAD[size].open,
-        }}
-      >
-        {patternProse}
-        {showLoadout && (
-          <PatternLoadout
-            groups={inFlowGroups}
-            sectionAs={sectionAs}
-            hostDown={isDown}
-            NestedCard={ReferenceEntityCardInner}
-          />
-        )}
-      </div>
-    ) : null
+  // PATTERN view → the pattern's own prose, then what it changes. On a card
+  // it follows the chassis ability (chassis → ability → pattern → loadout) and
+  // leads any other action (a Bio-Titan pattern → its added actions → the
+  // actions it inherits); on a page it leads (`CardPage`'s `opening`).
+  const patternSection = isPattern ? (
+    <PatternSection
+      prose={patternProse}
+      groups={hide?.patterns ? [] : inFlowGroups}
+      actions={hide?.actions ? [] : patternActions}
+      padding={onPage ? '0' : BODY_PAD[size].open}
+      sectionAs={sectionAs}
+      host={nestedHost}
+    />
+  ) : null
+  // With no chassis ability to follow, the pattern leads the actions.
+  const patternLeads = chassisAbilityEntities.length === 0
 
   // NESTED ENTITIES — each group in its tray, on a card or a page alike.
   const nestedGroupsNode = (
@@ -1057,7 +1051,11 @@ function ReferenceEntityCardInner({
         }
         body={bodyHasContent ? bodyContent : null}
         opening={patternSection}
-        bodyLabel={isPattern ? `${resolvedChassisName ?? entityName} chassis` : undefined}
+        bodyLabel={
+          isPattern
+            ? `${resolvedChassisName ?? entityName} ${isBioTitanPattern(pattern) ? 'Bio-Titan' : 'chassis'}`
+            : undefined
+        }
         stats={
           hide?.stats
             ? null
@@ -1116,8 +1114,9 @@ function ReferenceEntityCardInner({
         <EntityCardSubHeader cells={cells} leading={suggestedNode} size={size} />
         {body}
         {rollTableNode}
+        {patternLeads && patternSection}
         {actionsNode}
-        {patternSection}
+        {!patternLeads && patternSection}
         {nestedGroupsNode}
         {/* BASIC CHASSIS → its patterns as head rows. */}
         {!hide?.patterns && patternList.length > 0 && (

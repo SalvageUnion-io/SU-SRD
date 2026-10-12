@@ -19,6 +19,7 @@ import type {
   SURefEntity,
   SURefMetaAction,
   SURefMetaEntity,
+  SURefObjectAnyPattern,
   SURefObjectChoice,
   SURefObjectSystemModule,
   SURefObjectTrait,
@@ -54,11 +55,11 @@ export function extractActions(entity: SURefMetaEntity): SURefMetaAction[] | und
 
 /**
  * Internal widened form of {@link extractActions}: also accepts a bare
- * `SURefObjectSystemModule` (an `actions` carrier that is not itself an
- * entity), so system-module callers don't need an entity assertion.
+ * `SURefObjectSystemModule` or a Bio-Titan pattern (`actions` carriers that are
+ * not themselves entities), so those callers don't need an entity assertion.
  */
 function extractActionsFromCarrier(
-  entity: SURefMetaEntity | SURefObjectSystemModule
+  entity: SURefMetaEntity | SURefObjectSystemModule | SURefObjectAnyPattern
 ): SURefMetaAction[] | undefined {
   if (!('actions' in entity) || !Array.isArray(entity.actions)) {
     return undefined
@@ -88,6 +89,17 @@ function extractActionsFromCarrier(
   }
 
   return resolved.length > 0 ? resolved : undefined
+}
+
+/**
+ * The visible actions a pattern ADDS to its host — a Bio-Titan pattern's
+ * `actions`, resolved. A mech pattern adds none (its difference is its
+ * systems and modules), so it resolves to an empty list.
+ */
+
+export function extractPatternActions(pattern: SURefObjectAnyPattern): SURefMetaAction[] {
+  if (!('actions' in pattern)) return []
+  return (extractActionsFromCarrier(pattern) ?? []).filter((action) => !action.hidden)
 }
 
 /**

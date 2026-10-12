@@ -8,11 +8,12 @@ import { extractVisibleActions } from '../../actionResolution.js'
 import { isAbility } from '../../entityGuards.js'
 import { resolveGrantedEntities } from '../../helpers.js'
 import { SalvageUnionReference } from '../../index.js'
+import { isBioTitanPattern } from '../../patterns.js'
 import type {
   SURefEntity,
   SURefMetaAction,
   SURefMetaEntity,
-  SURefObjectPattern,
+  SURefObjectAnyPattern,
 } from '../../schemas/index.js'
 
 /** A labelled group of nested entities. */
@@ -82,9 +83,12 @@ export function nestedEntityGroups(entity: SURefMetaEntity): NestedGroup[] {
  * A pattern's loadout, grouped: Systems, Modules, Drones. MULTIPLICITY IS
  * PRESERVED — one entry per installed copy, whether the data says `count` or
  * repeats the entry; an explicit `count: 0` installs nothing. A drone resolves
- * through `ref ?? name` (an instance name over a shared stat block).
+ * through `ref ?? name` (an instance name over a shared stat block). A
+ * Bio-Titan pattern has no loadout, so it groups to nothing.
  */
-export function patternGroups(pattern: SURefObjectPattern): NestedGroup[] {
+export function patternGroups(pattern: SURefObjectAnyPattern): NestedGroup[] {
+  // A Bio-Titan pattern installs nothing: its difference is the actions it adds.
+  if (isBioTitanPattern(pattern)) return []
   const groups = new Map<string, SURefEntity[]>()
   const push = (label: string, candidate: SURefEntity | undefined, count = 1): void => {
     if (!candidate) return

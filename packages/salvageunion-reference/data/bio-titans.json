@@ -40,6 +40,20 @@
         "type": "paragraph",
         "value": "Vengeance of the earth. This terrifying spiked worm can even swallow a Colossus whole. Some believe the spirits of miners in the Ferrous Range, who died in industrial accidents, summoned this being in vengeance."
       }
+    ],
+    "patterns": [
+      {
+        "name": "Hill Worm",
+        "source": "Rainmaker",
+        "page": 80,
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A bloated, heavily armoured, insatiably hungry worm that lurks beneath the Wild Hills."
+          }
+        ],
+        "actions": ["Metallic Reconstitution"]
+      }
     ]
   },
   {
@@ -185,31 +199,6 @@
       {
         "type": "paragraph",
         "value": "A mutated, snake-like Bio-Titan that can crush a Mech within its coiled flesh. Its scintillating scales throw off enemy targets and allow it to hide and wait in ambush for its prey."
-      }
-    ]
-  },
-  {
-    "id": "4bfca8cc-9f66-489f-a002-74fbf4e47a21",
-    "source": "Rainmaker",
-    "page": 80,
-    "name": "Hill Worm Pattern Typhon",
-    "actions": [
-      "Metallic Reconstitution",
-      "Burrower",
-      "Armour Plating (Typhon)",
-      "Swallow Whole",
-      "Spiked Carapace",
-      "Titanic Actions (Typhon)"
-    ],
-    "structurePoints": 67,
-    "content": [
-      {
-        "type": "paragraph",
-        "value": "A bloated, heavily armoured, insatiably hungry worm that lurks beneath the Wild Hills."
-      },
-      {
-        "type": "paragraph",
-        "value": "Vengeance of the earth. This terrifying spiked worm can even swallow a Colossus whole. Some believe the spirits of miners in the Ferrous Range, who died in industrial accidents, summoned this being in vengeance."
       }
     ]
   },

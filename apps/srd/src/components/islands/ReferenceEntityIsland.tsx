@@ -6,7 +6,7 @@ import {
   Skeleton,
 } from 'component-lib'
 import { Suspense, useEffect, useMemo } from 'react'
-import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 import { getClassSelections } from '../../lib/classSelections'
 import { srdEntityHref } from '../../lib/entityHref'
 import { srdPatternHref } from '../../lib/patternHref'
@@ -20,7 +20,7 @@ type ReferenceEntityIslandProps = {
   compact?: boolean
   /** Render one of `item`'s patterns (chassis only) instead of the chassis
    *  itself — the pattern page's view. */
-  pattern?: SURefObjectPattern
+  pattern?: SURefObjectAnyPattern
   /** Which schemas to preload — defaults to `'all'`. Pass the per-route list
    *  from `../../lib/schemaPreloadDeps.ts` to load only what this item needs. */
   preloadSchemas?: SchemaList

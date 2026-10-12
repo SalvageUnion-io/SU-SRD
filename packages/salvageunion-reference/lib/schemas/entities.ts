@@ -15,6 +15,7 @@ import {
   ActionSchema,
   AdvancedClassSchema,
   BaseEntitySchema,
+  BioTitanPatternSchema,
   ChassisStatsSchema,
   ChoicesSchema,
   CombatEntitySchema,
@@ -94,12 +95,17 @@ export const MetaActionSchema = ActionSchema.describe(
  * Instinctual, mech-scale creatures (e.g. Scylla, Typhon, Chrysalis) with a
  * structurePoints + actions statblock — actions often include a "Titanic
  * Actions" entry. Bio-salvage extracted from a Bio-Titan equals its starting
- * Structure Points (derived at the display layer).
+ * Structure Points (derived at the display layer). A Bio-Titan may carry
+ * `patterns` — variants that add actions to its stats (`BioTitanPatternSchema`).
  */
 export const BioTitanSchema = BaseEntitySchema.extend({
   structurePoints: StructurePointsSchema.describe('Structure points of this bio-titan'),
   actions: z.array(z.string()).describe('Action names this bio-titan can perform'),
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
+  patterns: z
+    .array(BioTitanPatternSchema)
+    .describe('Named variants of this bio-titan, each adding actions to its stats')
+    .optional(),
 })
   .strict()
   .describe('Mech-scale biological monsters')

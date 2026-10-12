@@ -197,10 +197,10 @@ pages agree on it. `scripts/og-screenshots.ts` screenshots it at 1200×630 into
   (OgCard, ChapterBand, fonts, dimensions); entity data changes invalidate on their own.
   The deploy's `og-srd` job keys its persisted copy of this cache on every
   render input as well, so there a rendering change starts cold regardless.
-- Chassis **patterns** are covered as entities in their own right — a pattern has
+- **Patterns** (a chassis's, a Bio-Titan's) are covered as entities in their own right — a pattern has
   its own page, card view and provenance, so it gets its own card at
   `…/item/{itemId}/pattern/{patternId}.og.png` rather than inheriting the
-  chassis image.
+  host's image.
 
 ## Changelog (generated)
 

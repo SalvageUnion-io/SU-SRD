@@ -2,7 +2,7 @@ import type { ElementType, ReactNode } from 'react'
 import type {
   SURefEnumSchemaName,
   SURefMetaEntity,
-  SURefObjectPattern,
+  SURefObjectAnyPattern,
 } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { Slab } from '../../chrome/Slab'
@@ -56,10 +56,10 @@ type CardPageProps = {
   abilitiesSection: ReactNode
   /** A guide's steps (`GuideSteps`): on a page they follow the prose, full section. */
   guide?: ReactNode
-  /** The pattern view's prose and loadout, and the nested trays. */
+  /** The nested trays. */
   sections: ReactNode
-  /** A basic chassis's patterns, as full-width link rows. */
-  patterns: SURefObjectPattern[]
+  /** A basic host's patterns, as full-width link rows. */
+  patterns: SURefObjectAnyPattern[]
   /** `afterExtraContent` and `expand`. */
   after: ReactNode
   sectionAs?: ElementType
@@ -155,6 +155,11 @@ export function CardPage({
         chassisName={action.hostName}
         patterns={patterns}
         sectionAs={sectionAs}
+        host={{
+          NestedCard,
+          hostDown: action.hostDown,
+          chassisName: action.chassisName,
+        }}
       />
       {after}
     </div>

@@ -19,7 +19,7 @@ import {
 import type {
   SURefEnumSchemaName,
   SURefMetaEntity,
-  SURefObjectPattern,
+  SURefObjectAnyPattern,
 } from 'salvageunion-reference'
 import { itemHref, patternHref } from './entityHref'
 
@@ -37,7 +37,7 @@ export function ogCardFor(
   schemaId: string,
   itemId: string,
   entity: SURefMetaEntity,
-  pattern?: SURefObjectPattern,
+  pattern?: SURefObjectAnyPattern,
   patternId?: string
 ): OgCardProps {
   const href =

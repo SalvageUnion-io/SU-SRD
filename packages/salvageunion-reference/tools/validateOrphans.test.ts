@@ -132,6 +132,21 @@ describe('collectReferencedActionNames', () => {
     expect(refs.has('Crush')).toBe(true)
   })
 
+  it('collects the actions a Bio-Titan pattern adds', () => {
+    const otherEntities = [
+      { name: 'Bio Titan', actions: ['Crush'], patterns: [{ name: 'P', actions: ['Regrow'] }] },
+    ]
+    const refs = collectReferencedActionNames({
+      systems: [],
+      modules: [],
+      abilities: [],
+      equipment: [],
+      chassis: [],
+      otherEntities,
+    })
+    expect(refs.has('Regrow')).toBe(true)
+  })
+
   it('handles entities with no actions field gracefully', () => {
     const refs = collectReferencedActionNames({
       systems: [{ id: 'x', name: 'No Actions System' }],

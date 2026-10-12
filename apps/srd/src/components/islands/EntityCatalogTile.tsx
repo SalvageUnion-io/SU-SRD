@@ -1,5 +1,5 @@
 import { ReferenceEntityCard } from 'component-lib'
-import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
 
 type EntityCatalogTileProps = {
   entity: SURefEntity
@@ -8,7 +8,7 @@ type EntityCatalogTileProps = {
   /** Render one of `entity`'s patterns (chassis only) as the subject instead of
    *  the chassis itself — the pattern is its own kind of entity, with its own
    *  page, card view and provenance, so it gets its own tile. */
-  pattern?: SURefObjectPattern
+  pattern?: SURefObjectAnyPattern
 }
 
 /**

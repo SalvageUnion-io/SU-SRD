@@ -12,7 +12,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectAnyPattern, SURefObjectPattern } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference, visiblePatterns } from 'salvageunion-reference'
 import { EntityHrefProvider, PatternHrefProvider } from '../../entityHrefContext'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -25,7 +25,7 @@ const mule = () => {
 }
 
 /** Stands in for srd's route builder. */
-const testPatternHref = (chassis: SURefEntity, pattern: SURefObjectPattern) =>
+const testPatternHref = (chassis: SURefEntity, pattern: SURefObjectAnyPattern) =>
   `/chassis/${'name' in chassis ? nameToSlug(String(chassis.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
 
 describe('chassis pattern rows', () => {
@@ -307,5 +307,63 @@ describe('legal starting pattern seam stamp', () => {
     const tagged = (chassis.patterns ?? []).filter((p) => p.legalStarting === true)
     expect(tagged.length).toBeGreaterThan(0)
     expect(screen.getAllByText('Legal Starting Pattern').length).toBe(tagged.length)
+  })
+})
+
+/**
+ * A HOST'S PATTERN ROWS SHOW WHAT EACH PATTERN CHANGES. The host's stats and
+ * abilities are shared by every pattern, so a row carries only the difference:
+ * a mech pattern's loadout as shortform tokens, a Bio-Titan pattern's added
+ * actions as embedded cards. Both sit beside the row's link, never inside it —
+ * they are links and controls of their own.
+ */
+describe('pattern rows show what each pattern changes', () => {
+  const typhon = () => {
+    const found = SalvageUnionReference.BioTitans.getByName('Typhon')
+    if (!found) throw new Error('Typhon fixture missing')
+    return found
+  }
+  const testHref = (host: SURefEntity, pattern: SURefObjectAnyPattern) =>
+    `/${'name' in host ? nameToSlug(String(host.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
+
+  for (const presentation of ['card', 'page'] as const) {
+    test(`a mech pattern row lists its loadout as tokens (${presentation})`, () => {
+      render(<ReferenceEntityCard data={mule()} presentation={presentation} />)
+      const loadout = screen.getByRole('list', { name: 'Hauler loadout' })
+      expect(loadout.textContent).toContain('Transport Hold')
+      expect(loadout.textContent).toContain('Reactor Flare')
+    })
+
+    test(`a Bio-Titan pattern row embeds the action it adds (${presentation})`, () => {
+      render(
+        <PatternHrefProvider value={testHref}>
+          <ReferenceEntityCard data={typhon()} presentation={presentation} />
+        </PatternHrefProvider>
+      )
+      const row = screen.getByRole('link', { name: 'Hill Worm — Typhon pattern' })
+      const added = screen.getByText('Metallic Reconstitution')
+      expect(added).toBeTruthy()
+      // The embedded card is not nested inside the row's link.
+      expect(row.contains(added)).toBe(false)
+    })
+  }
+})
+
+describe('Bio-Titan pattern view', () => {
+  test('reads pattern prose → its added action → the actions it inherits', () => {
+    const host = SalvageUnionReference.BioTitans.getByName('Typhon')
+    const pattern = host?.patterns?.find((p) => p.name === 'Hill Worm')
+    if (!host || !pattern) throw new Error('Hill Worm fixture missing')
+
+    const { container } = render(<ReferenceEntityCard data={host} pattern={pattern} size="large" />)
+    const text = container.textContent ?? ''
+
+    const patternProse = text.indexOf('lurks beneath the Wild Hills')
+    const added = text.indexOf('Metallic Reconstitution')
+    const inherited = text.indexOf('Burrower')
+    for (const index of [patternProse, added, inherited]) expect(index).toBeGreaterThan(-1)
+    expect(patternProse).toBeLessThan(added)
+    expect(added).toBeLessThan(inherited)
+    expect(screen.getByText('Pattern Actions')).toBeTruthy()
   })
 })
