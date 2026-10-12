@@ -3,12 +3,14 @@
  *
  * A roll on a named Salvage Union table (one of @randsum/salvageunion's
  * `SALVAGE_UNION_TABLE_NAMES`) comes from that package's `rollTable(name)`;
- * every other table gets @randsum/roller's d20. Only the total crosses back:
- * `rollOnTable` resolves the row against the workspace data with it, so the
- * reply's text is always ours.
+ * every other table gets @randsum/roller's d20. Which is which is
+ * salvageunion-reference's `d20ForTable`, the one the web apps use too. Only
+ * the total crosses back: `rollOnTable` resolves the row against the workspace
+ * data with it, so the reply's text is always ours.
  */
 
 import { roll } from '@randsum/roller'
+import { d20ForTable } from 'salvageunion-reference'
 
 /** One d20, rolled by @randsum/roller. */
 export function rollD20(): number {
@@ -24,9 +26,7 @@ export function rollD20(): number {
  * `SalvageUnionReference.RollTables`, which throws until it is loaded: a static
  * import would evaluate before `worker/index.ts`'s top-level `preload('all')`.
  */
-export async function d20ForTable(tableName: string): Promise<() => number> {
+export async function dieForTable(tableName: string): Promise<() => number> {
   const { SALVAGE_UNION_TABLE_NAMES, rollTable } = await import('@randsum/salvageunion')
-  const wanted = tableName.toLowerCase()
-  const named = SALVAGE_UNION_TABLE_NAMES.find((name) => name.toLowerCase() === wanted)
-  return named === undefined ? rollD20 : () => rollTable(named).total
+  return d20ForTable(tableName, { names: SALVAGE_UNION_TABLE_NAMES, rollTable, rollD20 })
 }

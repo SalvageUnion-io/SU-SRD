@@ -15,7 +15,7 @@ const coreMechanic = () => {
   return data
 }
 
-/** A die that shows these faces in turn, served the way `d20ForTable` serves one. */
+/** A die that shows these faces in turn, served the way `dieForTable` serves one. */
 const dice = (...faces: number[]) => {
   let i = 0
   const die = () => faces[i++ % faces.length] ?? 1

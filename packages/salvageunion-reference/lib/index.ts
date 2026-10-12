@@ -126,7 +126,13 @@ export {
   visiblePatterns,
 } from './patterns'
 export { type ChoiceSelections, resolveChoiceView } from './resolveChoiceView'
-export { type RollOnTableOutcome, rollOnTable } from './rollOnTable'
+export {
+  d20ForTable,
+  NO_EFFECT,
+  type RollOnTableOutcome,
+  rollOnTable,
+  type TableDice,
+} from './rollOnTable'
 export { SchemaNotLoadedError } from './SchemaNotLoadedError'
 export type {
   SURefEnumSchemaName,

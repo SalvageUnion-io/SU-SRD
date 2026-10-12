@@ -4,9 +4,9 @@
  */
 
 import type { TableDie } from 'component-lib'
-import { d20ForTable } from 'component-lib'
+import { dieForTable } from 'component-lib'
 import type { SURefRollTable } from 'salvageunion-reference'
-import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
+import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 
 /** Roll IDs for pilot wizard identity fields. */
 export const PILOT_ROLL_TABLE_NAMES = {
@@ -24,7 +24,7 @@ export type PilotRollField = keyof typeof PILOT_ROLL_TABLE_NAMES
  */
 export type RollTableDeps = {
   findTable: (name: string) => (SURefRollTable & { schemaName: string }) | undefined
-  /** The die for a table, by name (component-lib's `d20ForTable`). */
+  /** The die for a table, by name (component-lib's `dieForTable`). */
   d20For: (tableName: string) => Promise<TableDie>
 }
 
@@ -35,12 +35,13 @@ export type RollTableDeps = {
  */
 const defaultRollTableDeps: RollTableDeps = {
   findTable: (name) => SalvageUnionReference.RollTables.getByName(name),
-  d20For: d20ForTable,
+  d20For: dieForTable,
 }
 
 /**
  * Rolls a d20 (1–20 inclusive) and returns the result string for the given
- * pilot field. Returns null if the table cannot be found or the roll fails.
+ * pilot field (`NO_EFFECT` when it lands on no row). Returns null if the
+ * table cannot be found or the roll fails.
  */
 export function rollForPilotField(
   field: PilotRollField,
@@ -52,8 +53,8 @@ export function rollForPilotField(
 /**
  * Rolls on any roll table by its name — the one a choice's data points at
  * (`source.rollTable`, e.g. the Augmented crawler's "A.I. Personality"), so a
- * Roll appears only where the data has a table (P7 D1). Null when the table
- * cannot be found or the roll fails.
+ * Roll appears only where the data has a table (P7 D1). `NO_EFFECT` when the
+ * roll lands on no row; null when the table cannot be found or is broken.
  */
 export async function rollOnNamedTable(
   tableName: string,
@@ -68,6 +69,8 @@ export async function rollOnNamedTable(
   // from the workspace table by the die's total, whichever die it was.
   const outcome = rollOnTable(table.table, await deps.d20For(table.name))
   if (!outcome.success) return null
+  // A roll that lands on no row reads as it does on the SRD and in the bot.
+  if (outcome.kind === 'no-effect') return NO_EFFECT
 
   return outcome.label ? `${outcome.label}: ${outcome.value}` : outcome.value
 }

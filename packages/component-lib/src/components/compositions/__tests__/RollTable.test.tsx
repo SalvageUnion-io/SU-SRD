@@ -9,7 +9,7 @@
  *
  *  - **The die.** `RollTable.tsx` takes its dice from `utils/dice` inline with
  *    no injected roller, so that module is replaced here with the real one
- *    plus a `rollD20` and a `d20ForTable` that serve a queue of chosen d20
+ *    plus a `rollD20` and a `dieForTable` that serve a queue of chosen d20
  *    values. `mock.module` is process-global (see
  *    `.claude/rules/testing-patterns.md`), hence the capture-before-mock and
  *    the `afterAll` restore — every other dice import must keep the real
@@ -60,7 +60,7 @@ const asked: string[] = []
 mock.module('../../../utils/dice', () => ({
   ...realDice,
   rollD20: () => nextRoll(),
-  d20ForTable: async (tableName: string) => {
+  dieForTable: async (tableName: string) => {
     asked.push(tableName)
     return () => nextRoll()
   },

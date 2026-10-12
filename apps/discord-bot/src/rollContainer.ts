@@ -179,7 +179,7 @@ function headlineAndBody(
  * ("11–19"), or on a two-roll table the column and the entry. The tier word
  * and the label say what happened; this says which row of the book it is.
  */
-function landsOn(outcome: Extract<RollOnTableOutcome, { success: true }>): string {
+function landsOn(outcome: Extract<RollOnTableOutcome, { kind: 'flat' | 'columns' }>): string {
   return outcome.kind === 'columns'
     ? `Column ${rangeLabel(outcome.columnKey)} · entry ${rangeLabel(String(outcome.entryKey))}`
     : `Lands on ${rangeLabel(outcome.key)}`
@@ -194,7 +194,7 @@ function landsOn(outcome: Extract<RollOnTableOutcome, { success: true }>): strin
  */
 export function buildRollContainerData(
   table: SURefRollTable,
-  outcome: Extract<RollOnTableOutcome, { success: true }>,
+  outcome: Extract<RollOnTableOutcome, { kind: 'flat' | 'columns' }>,
   context: RollContext = {}
 ): ContainerData {
   const tiered = isTieredTable(table)

@@ -7,7 +7,7 @@
  */
 
 import type { EntityRef, SURefObjectTable } from 'salvageunion-reference'
-import { parseTraitReferences, resultForTable } from 'salvageunion-reference'
+import { NO_EFFECT, parseTraitReferences, resultForTable } from 'salvageunion-reference'
 
 /**
  * Prose with its trait references resolved at build time: plain runs, and
@@ -131,7 +131,7 @@ export function rowForRoll(
  */
 export function outcomeLabel(table: SURefObjectTable, rows: RollTableRow[], roll: number): string {
   const row = rowForRoll(table, rows, roll)
-  return row ? (row.label ?? `Roll ${roll}`) : 'No effect'
+  return row ? (row.label ?? `Roll ${roll}`) : NO_EFFECT
 }
 
 export type RollState = {
