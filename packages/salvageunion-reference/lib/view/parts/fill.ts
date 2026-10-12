@@ -6,7 +6,6 @@
  */
 
 import { getBlackMarket, getTechLevel, getTechLevelNumber } from '../../entityFields.js'
-import { isAbility } from '../../entityGuards.js'
 import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index.js'
 import { isDoEntity, isHybridTree, schemaDomain } from './kind.js'
 
@@ -103,11 +102,10 @@ export function entityTone(
 export type HeaderFill = 'tone' | 'ink'
 
 /**
- * Which fill a header takes in a form (E12): things you do are the ink banner,
- * except an ABILITY in a Row, which wears its tier tone as the book's
- * ability-tree spreads do. An action is ink everywhere.
+ * Which fill a header takes in a form (E12): things you do are the ink banner
+ * in every form, a Row included (ruleset §3.1: the Core tier fill is rust's
+ * near twin); an ability's tier rides on its numeral and pennant.
  */
-export function headerFill(entity: SURefMetaEntity, form: 'row' | 'card' | 'page'): HeaderFill {
-  if (form === 'row' && isAbility(entity)) return 'tone'
+export function headerFill(entity: SURefMetaEntity, _form: 'row' | 'card' | 'page'): HeaderFill {
   return isDoEntity(entity) ? 'ink' : 'tone'
 }
