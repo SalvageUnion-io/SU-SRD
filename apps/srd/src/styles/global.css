@@ -26,6 +26,12 @@
    (`Button`, `AppBar`, `ChapterBand` / `Slab`, `CatalogTile`); no srd
    class restates them. */
 
+/* The rare WIKI link (`WikiLinkIsland`) renders nothing ninety-nine loads in
+   a hundred; its empty placeholder would still take a flex gap in the bar. */
+[data-island='WikiLinkIsland']:empty {
+  display: none;
+}
+
 /* Shadow wrapper — clip-path kills box-shadow, so shadow lives here */
 .pilot-panel-shadow {
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3))

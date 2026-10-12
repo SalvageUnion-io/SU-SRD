@@ -197,7 +197,9 @@ describe('hydration directives', () => {
       const { islands, props } = renderIslands(<TopNavigation />)
 
       expect(islands.map((i) => `${i.name}:${i.client}`)).toEqual([
+        'WikiLinkIsland:idle',
         'SearchIsland:idle',
+        'WikiLinkIsland:idle',
         'MobileSearchIsland:idle',
         'MobileNavIsland:idle',
       ])
