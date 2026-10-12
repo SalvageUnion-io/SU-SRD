@@ -178,6 +178,15 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
+    id: 'rules-home',
+    guards:
+      'Convex imports nothing from apps/itun/src/; no rules- or model-named module sits in apps/itun/src/components/',
+    fix: 'move shared logic to itun-domain or salvageunion-reference; move a rule to a lib/rules home, or name a one-component view-model `<name>.model.ts`',
+    cmd: ['bun', 'tools/check-rules-home.ts'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
     id: 'barrel-consumers',
     guards:
       'every component-lib export has an app importer, and none is a composition only one app renders',

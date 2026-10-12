@@ -45,6 +45,7 @@ import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import type { PartnerWithHost } from '../../lib/partnerLookup'
 import { replacePartner } from '../../lib/partnerLookup'
+import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import {
   partnerCap,
   partnerDerivedStats,
@@ -56,7 +57,6 @@ import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MechItemCard } from './MechItemCard'
-import { resolveModule, resolveSystem } from './mechItemRules'
 import { PartnerHold } from './PartnerHold'
 import { partnerDisplayName } from './partnerDisplay'
 

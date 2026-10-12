@@ -1,5 +1,5 @@
 /**
- * slotModels — the pure half of the slot row: each entity's numbers, and its
+ * slots.model — the pure half of the slot row: each entity's numbers, and its
  * Minor as a `MinorModel` (ADR-038 §3). No
  * React and no store, so the stories render the real derivations and a
  * Minor and the Major it opens into read the same maxima.
@@ -23,7 +23,7 @@ import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
 import { readReference } from '../../lib/readReference'
 import { SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
-import { crawlerTechLevelOf } from './dashboardEconomy'
+import { crawlerTechLevelOf } from '../../lib/rules/downtimeEconomy'
 import type { BandGauge } from './MajorFrame'
 import type { MinorModel } from './MinorFrame'
 

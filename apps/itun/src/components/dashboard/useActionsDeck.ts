@@ -48,15 +48,8 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
-import { runWrite } from '../../lib/runWrite'
-import type { RangeBand, SeatResolving } from '../../lib/schemas/seat'
-import { RANGE_BANDS } from '../../lib/schemas/seat'
-import { useEntityStore } from '../../stores/entityStore'
-import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
-import type { MechItemEconomy } from '../sheet/mechItemRules'
-import type { DeckListModel, DeckRow } from './DeckList'
-import { recordRoll } from './dashboardRolls'
-import type { PlayAction, PlayActionCurrency, TimingTab } from './dashboardRules'
+import type { MechItemEconomy } from '../../lib/rules/mechItems'
+import type { PlayAction, PlayActionCurrency, TimingTab } from '../../lib/rules/playActions'
 import {
   actionReachable,
   activationPatch,
@@ -73,7 +66,14 @@ import {
   reachSummary,
   TIMING_TABS,
   tabMatchesAction,
-} from './dashboardRules'
+} from '../../lib/rules/playActions'
+import { runWrite } from '../../lib/runWrite'
+import type { RangeBand, SeatResolving } from '../../lib/schemas/seat'
+import { RANGE_BANDS } from '../../lib/schemas/seat'
+import { useEntityStore } from '../../stores/entityStore'
+import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import type { DeckListModel, DeckRow } from './DeckList'
+import { recordRoll } from './dashboardRolls'
 import type { ResolveModel } from './ResolvePanel'
 import type { PlayStore } from './SlotRow'
 import type { MountState } from './useSeat'

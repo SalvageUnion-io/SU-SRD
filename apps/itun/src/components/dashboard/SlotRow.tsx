@@ -11,8 +11,8 @@
  * `CrawlerSlot`); this file only places them. `SlotMajor` is also what the ⤢
  * overlay renders, so a Minor opens into exactly the controls its Major has.
  *
- * Every band runs its verbs through the pure rules engine (`dashboardRules.ts` /
- * `dashboardEconomy.ts` → `lib/rules/*`) and the entity store under the
+ * Every band runs its verbs through the pure rules engine (`lib/rules/playActions.ts` /
+ * `lib/rules/downtimeEconomy.ts`) and the entity store under the
  * ADR-007 automation boundary:
  *
  *   - Auto-apply (single click): Push, Heat Check, Vent, Shutdown toggle, the

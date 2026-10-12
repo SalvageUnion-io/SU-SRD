@@ -12,11 +12,11 @@
 
 import type { Mech } from 'itun-domain/schemas/mech'
 import { unifiedMechConditions } from 'salvageunion-reference/rules'
+import { mechConditionsPatch } from '../../lib/rules/mechItems'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { ConditionsEditor } from './ConditionsEditor'
 import { freshEntity } from './controlPrimitives'
-import { mechConditionsPatch } from './mechItemRules'
 
 type MechConditionsEditorProps = {
   mech: Mech

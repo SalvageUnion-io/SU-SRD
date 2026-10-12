@@ -11,12 +11,12 @@ import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
+import { BAY_REPAIR_COST } from '../../lib/rules/crawlerItems'
 import { runWrite } from '../../lib/runWrite'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { LinkedCrewInset } from '../npc/LinkedCrewInset'
 import { useEntityChoices } from '../shared/useEntityChoices'
-import { BAY_REPAIR_COST } from './crawlerSheetItemRules'
 import { NpcInset } from './NpcInset'
 
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
