@@ -43,7 +43,6 @@
 
 import { availableParallelism } from 'node:os'
 import { join } from 'node:path'
-import { ensureGenerated } from '../packages/salvageunion-reference/tools/ensureGenerated'
 
 export type Profile = 'full' | 'fast' | 'pre-push' | 'ci'
 export type Area = 'code' | 'docs' | 'deps'
@@ -395,7 +394,11 @@ async function main(argv: readonly string[]): Promise<number> {
 
   // The reference package's generated files are gitignored build output that
   // half the checks read. Bring them current once, here, rather than letting
-  // parallel checks race to do it.
+  // parallel checks race to do it. Imported here, not at the top, so the tests
+  // that import this registry do not load it.
+  const { ensureGenerated } = await import(
+    '../packages/salvageunion-reference/tools/ensureGenerated'
+  )
   ensureGenerated()
 
   // Nothing streams on success: the table at the end is the whole report.
