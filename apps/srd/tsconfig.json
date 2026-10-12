@@ -17,5 +17,10 @@
     "playwright.config.ts"
   ],
   // `include` is explicit, but a stale build output must never be typechecked.
-  "exclude": ["dist"]
+  "exclude": ["dist"],
+  "references": [
+    { "path": "../../packages/component-lib" },
+    { "path": "../../packages/observability" },
+    { "path": "../../packages/salvageunion-reference" }
+  ]
 }

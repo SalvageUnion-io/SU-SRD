@@ -157,28 +157,36 @@ describe('typecheck-scoped.sh', () => {
     expect(manifest.scripts.typecheck).toBeString()
   })
 
-  test('every workspace the hook maps to exists and has a typecheck script', async () => {
+  test('every project the hook maps to is a reference of the root solution', async () => {
     const script = await Bun.file(join(HOOKS, 'typecheck-scoped.sh')).text()
     const mapped = new Set(
       [...script.matchAll(/TARGETS="([^"*]+)"/g)].flatMap((m) => m[1]?.split(' ') ?? [])
     )
-    const real = new Map<string, unknown>()
+    // Comment-stripped: the solution tsconfig.json is JSONC.
+    const solution = (await Bun.file(join(ROOT, 'tsconfig.json')).text()).replace(
+      /^\s*\/\/.*$/gm,
+      ''
+    )
+    const references = new Set(
+      (JSON.parse(solution) as { references: { path: string }[] }).references.map((r) => r.path)
+    )
     for (const dir of ['apps/*', 'packages/*', 'tools']) {
       for await (const path of new Bun.Glob(`${dir}/package.json`).scan(ROOT)) {
-        const manifest = await Bun.file(join(ROOT, path)).json()
-        real.set(manifest.name, manifest.scripts?.typecheck)
+        const project = path.replace('/package.json', '')
         // A new workspace needs a line in the map, or its edits are never checked.
-        expect(script).toMatch(new RegExp(`\\n  ${path.replace('/package.json', '')}/\\*[ )]`))
+        expect(script).toMatch(new RegExp(`\\n  ${project}/\\*[ )]`))
+        expect(references).toContain(project)
       }
     }
     expect(mapped.size).toBeGreaterThan(0)
-    for (const name of mapped) expect(real.get(name)).toBeString()
+    for (const project of mapped) expect(references).toContain(project)
   })
 })
 
-// A throwaway git repo that mirrors the workspace layout, with every
-// `typecheck` script stubbed to log its name, so the scoping, the exit codes
-// and the root resolution are tested without running tsc.
+// A throwaway git repo that mirrors the workspace layout, with the root
+// `typecheck` stubbed to log the projects it was handed (Bun appends a script's
+// arguments to its last command), so the scoping, the exit codes and the root
+// resolution are tested without running tsc.
 describe('typecheck hooks against a stub workspace', () => {
   // Git hooks (lefthook's pre-push runs this suite) export GIT_DIR and friends,
   // which would point `git init` and the hooks' `rev-parse` at the outer repo.
@@ -186,31 +194,25 @@ describe('typecheck hooks against a stub workspace', () => {
     Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))
   )
 
-  const WORKSPACES = {
-    'apps/discord-bot': 'discord-bot',
-    'apps/itun': 'itun',
-    'apps/srd': 'srd',
-    'apps/su-assets': 'su-assets',
-    'packages/component-lib': 'component-lib',
-    'packages/itun-domain': 'itun-domain',
-    'packages/observability': 'observability',
-    'packages/salvageunion-reference': 'salvageunion-reference',
-    tools: 'tools',
-  }
+  const WORKSPACES = [
+    'apps/discord-bot',
+    'apps/itun',
+    'apps/srd',
+    'apps/su-assets',
+    'packages/component-lib',
+    'packages/itun-domain',
+    'packages/observability',
+    'packages/salvageunion-reference',
+    'tools',
+  ].map((path) => [path, path.split('/').at(-1)] as const)
 
-  /** `fail` names workspaces whose stub exits 1; `root` is the root script. */
-  async function fixture(opts: { fail?: string[]; root?: string } = {}) {
+  /** `root` replaces the root script, which otherwise logs `ROOT` and its arguments. */
+  async function fixture(opts: { root?: string } = {}) {
     const dir = mkdtempSync(join(tmpdir(), 'typecheck-hook-'))
     const log = join(dir, 'ran.log')
-    for (const [path, name] of Object.entries(WORKSPACES)) {
+    for (const [path, name] of WORKSPACES) {
       mkdirSync(join(dir, path, 'lib'), { recursive: true })
-      const stub = opts.fail?.includes(name)
-        ? `echo boom-from-${name} >&2; exit 1`
-        : `echo ${name} >> ${log}`
-      writeFileSync(
-        join(dir, path, 'package.json'),
-        JSON.stringify({ name, scripts: { typecheck: stub } })
-      )
+      writeFileSync(join(dir, path, 'package.json'), JSON.stringify({ name }))
       writeFileSync(join(dir, path, 'lib', 'x.ts'), 'export {}\n')
     }
     writeFileSync(
@@ -251,22 +253,26 @@ describe('typecheck hooks against a stub workspace', () => {
     })
 
   test.each([
-    ['an app', 'apps/itun/lib/x.ts', ['itun']],
-    ['the bot', 'apps/discord-bot/lib/x.ts', ['discord-bot']],
-    ['component-lib', 'packages/component-lib/lib/x.ts', ['component-lib', 'itun', 'srd', 'tools']],
+    ['an app', 'apps/itun/lib/x.ts', ['ROOT apps/itun']],
+    ['the bot', 'apps/discord-bot/lib/x.ts', ['ROOT apps/discord-bot']],
+    [
+      'component-lib',
+      'packages/component-lib/lib/x.ts',
+      ['ROOT packages/component-lib apps/srd apps/itun tools'],
+    ],
     [
       'observability',
       'packages/observability/lib/x.ts',
-      ['discord-bot', 'itun', 'observability', 'srd', 'su-assets', 'tools'],
+      ['ROOT packages/observability apps/discord-bot apps/itun apps/srd apps/su-assets tools'],
     ],
     [
       'itun-domain',
       'packages/itun-domain/lib/x.ts',
-      ['discord-bot', 'itun', 'itun-domain', 'tools'],
+      ['ROOT packages/itun-domain apps/discord-bot apps/itun tools'],
     ],
-    ['tools/lib', 'tools/lib/x.ts', ['itun', 'srd', 'tools']],
+    ['tools/lib', 'tools/lib/x.ts', ['ROOT tools apps/srd apps/itun']],
   ])(
-    'an edit to %s checks it and its consumers, then asks for a full run',
+    'an edit to %s checks it and its consumers in one run, then asks for a full run',
     async (_l, rel, expected) => {
       const f = await fixture()
       try {
@@ -292,11 +298,11 @@ describe('typecheck hooks against a stub workspace', () => {
   })
 
   test('a failing typecheck exits 2 with the output on stderr, from any cwd', async () => {
-    const f = await fixture({ fail: ['tools'] })
+    const f = await fixture({ root: 'echo boom-from-root >&2; exit 1' })
     try {
       const result = await edit(f.dir, 'tools/lib/x.ts')
       expect(result.code).toBe(2)
-      expect(result.stderr).toContain('boom-from-tools')
+      expect(result.stderr).toContain('boom-from-root')
       expect(result.stdout).toBe('')
     } finally {
       f.cleanup()
@@ -322,7 +328,7 @@ describe('typecheck hooks against a stub workspace', () => {
       try {
         await edit(f.dir, 'apps/srd/lib/x.ts')
         expect(await stop(f.dir)).toEqual({ code: ALLOW, stdout: '', stderr: '' })
-        expect(await f.ran()).toEqual(['ROOT', 'srd'])
+        expect(await f.ran()).toEqual(['ROOT', 'ROOT apps/srd'])
         expect(await Bun.file(f.marker).exists()).toBe(false)
       } finally {
         f.cleanup()

@@ -1,5 +1,10 @@
 {
   "extends": "../../tsconfig.worker.json",
   "include": ["src/**/*.ts", "worker-configuration.d.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "references": [
+    { "path": "../../packages/itun-domain" },
+    { "path": "../../packages/observability" },
+    { "path": "../../packages/salvageunion-reference" }
+  ]
 }

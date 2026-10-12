@@ -17,7 +17,7 @@
     "**/*.css"
   ],
   "scripts": {
-    "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc --noEmit",
+    "typecheck": "bun ../../packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
     "test": "bun test --parallel=4 --no-isolate",
     "stories": "vite",
     "stories:ids": "bun listStories.ts"

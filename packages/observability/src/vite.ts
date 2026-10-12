@@ -29,10 +29,18 @@ export function warnUploadFailed(error: unknown): void {
 }
 
 /**
+ * Spelled out because Sentry does not export its plugin type, and the
+ * declaration `tsc -b` emits for this package must name it (TS4058).
+ */
+type SourcemapPlugin =
+  | ReturnType<typeof sentryVitePlugin>[number]
+  | { name: string; config: () => { build: { sourcemap: 'hidden' } } }
+
+/**
  * @param outDir the build's output directory; its `.map` files are deleted
  *   once uploaded, so the maps never ship.
  */
-export function sentrySourcemaps(outDir: string) {
+export function sentrySourcemaps(outDir: string): SourcemapPlugin[] {
   const authToken = process.env.SENTRY_AUTH_TOKEN
   if (!authToken) return []
 

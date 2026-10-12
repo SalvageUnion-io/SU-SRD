@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    /* Strict Type-Checking Options */
+    "strict": true,
+
+    /* Additional Checks */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    /* Module Resolution Options */
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+
+    /* Emit: none. Every project is a type-check; bundlers do the building. */
+    "noEmit": true,
+
+    /* Interop Constraints */
+    "isolatedModules": true,
+    "allowJs": false,
+    "checkJs": false,
+
+    /* Language and Environment */
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "types": ["node", "bun-types"],
+
+    /* Type Checking */
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Incremental builds */
+    "incremental": true
+  }
+}

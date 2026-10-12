@@ -63,7 +63,7 @@
     "deploy-commands": "bun --filter discord-bot deploy-commands",
     "deploy-commands:global": "bun --filter discord-bot deploy-commands:global",
     "rules:extract": "bun tools/extract-rules.ts",
-    "typecheck": "bun --filter \"*\" typecheck",
+    "typecheck": "bun packages/salvageunion-reference/tools/ensureGenerated.ts && tsc -b",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "format:check": "biome format .",
