@@ -37,7 +37,7 @@
  * This file declares no token of its own. Every value it reads is a
  * `theme.css` custom property (`--color-*`, `--text-*`, `--space-*`, …), the
  * one token set, which `src/design/tokens.ts` mirrors for style objects and
- * `src/design/tokens.parity.test.ts` holds in step. So `theme.css` loads
+ * `src/design/__tests__/tokens.parity.test.ts` holds in step. So `theme.css` loads
  * before this file wherever it is used (`styles/tailwind.css` does both).
  */
 

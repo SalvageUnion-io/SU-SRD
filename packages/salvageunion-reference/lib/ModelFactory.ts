@@ -11,14 +11,14 @@
  *
  * The data files are committed, and CI validates every one of them against
  * its Zod schema (the `schemas` data check) and proves that a Zod parse returns each
- * file UNCHANGED (`lib/dataCanonical.test.ts`: no defaults left to fill, no
+ * file UNCHANGED (`lib/__tests__/dataCanonical.test.ts`: no defaults left to fill, no
  * unknown keys to strip). Re-running `z.array(schema).parse` on every load was
  * therefore pure repetition — and it was most of the cost: ~87% of a
  * `preload('all')`, in every browser tab and every Worker isolate, plus the
  * entity schemas in both client bundles.
  *
  * So every load is trusted: this module never imports Zod or the schema map,
- * which keeps both out of client bundles (`lib/loadPathBundle.test.ts`).
+ * which keeps both out of client bundles (`lib/__tests__/loadPathBundle.test.ts`).
  */
 
 import schemaIndex from '../schemas/index.json' with { type: 'json' }
@@ -106,7 +106,7 @@ async function loadSingleSchema(schemaId: string, projection: LoadProjection): P
   const dataLoader = dataLoaders[schemaId]
   if (!dataLoader) throw new Error(`No loader found for schema ID: ${schemaId}`)
 
-  // Trusted: the committed file IS the parsed form (lib/dataCanonical.test.ts).
+  // Trusted: the committed file IS the parsed form (lib/__tests__/dataCanonical.test.ts).
   registerSchema(schemaId, await dataLoader())
 }
 
@@ -232,7 +232,7 @@ export function getDataMaps(): {
 /**
  * Registry key set, exported for the consistency test ONLY — the loader map
  * itself stays private (it must remain static-literal for bundler-analyzable
- * dynamic imports). lib/registryConsistency.test.ts checks it against
+ * dynamic imports). lib/__tests__/registryConsistency.test.ts checks it against
  * zodSchemaMap, which it imports from the generated module directly: a
  * static import of that module here would put the schemas back in every
  * client bundle.

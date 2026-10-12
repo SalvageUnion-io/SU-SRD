@@ -7,7 +7,7 @@
  *
  * Two independent flags have to be wrong at once for the seam to be reachable:
  * `VITE_TEST_AUTH` in the build (this file) and `ITUN_TEST_AUTH` on the
- * deployment (`test/convex/authProviders.test.ts`). Each is pinned separately so
+ * deployment (`test/convex/__tests__/authProviders.test.ts`). Each is pinned separately so
  * neither can drift into the other's blind spot.
  */
 

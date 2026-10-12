@@ -3,7 +3,7 @@
  * the server's version, and tells the player to make the change again.
  *
  * `entities.upsertByAppId` refuses a whole-body write made against a version
- * the row has moved past (`test/convex/appId.test.ts` pins that half). This is
+ * the row has moved past (`test/convex/__tests__/appId.test.ts` pins that half). This is
  * the client half: the refusal carries the server's row, the store adopts it,
  * and the write still fails — with copy a player can act on rather than "That
  * change could not be saved."

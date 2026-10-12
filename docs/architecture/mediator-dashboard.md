@@ -25,7 +25,7 @@ M1 is the Mediator's surface (`apps/itun/src/components/mediator/`); M2 is the G
 3. **§3 Phases** — P8a built (#1278). P8b: Show the table, rename, Discord channel line, grant names on join requests. Owner's call: Archive, presence, a below-cap heat warning.
    - **P8a gate 1** — The Mediator proposes HP 6 → 4 with a reason, the player applies it, and the row reads Applied (`apps/itun/e2e/mediator-propose.e2e.ts`).
    - **P8a gate 2** — An approval link: a second account asks, Let in seats them, their Game page loads (`apps/itun/e2e/invite-approval.e2e.ts`).
-4. **§4 Server additions** — `changeLog.reason`, Mediator-only `proposals.sent` (indexed) and `mediator.updateNpc` (clamped, parsed); tested in `apps/itun/test/convex/mediatorDashboard.test.ts`.
+4. **§4 Server additions** — `changeLog.reason`, Mediator-only `proposals.sent` (indexed) and `mediator.updateNpc` (clamped, parsed); tested in `apps/itun/test/convex/__tests__/mediatorDashboard.test.ts`.
 5. **§5 Status lines** — The ADR-030 and ADR-038 Status lines record this surface.
 6. **§6 M1 layout** — Rail; The table, Crawler minor, Downtime minor; tabs left, propose dock right. Ground ink-deep, instruments band-cream, display paper.
    Controls are 48 design units tall, so at least 38px at the 0.8 floor.

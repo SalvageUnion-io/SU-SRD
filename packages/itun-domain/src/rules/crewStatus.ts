@@ -23,7 +23,7 @@ import { pilotingContext } from './pilotingContext'
  * The server serves these to the whole crew (`crew.vitals`, read by the Crew
  * tab), and the Dashboard's own slots read the same maxima (`slots.model.ts`),
  * so the ▲ on the Crew tab, a crewmate's row and the player's own Minor agree.
- * `test/convex/crewStatus.test.ts` holds the two sides to it on shared
+ * `test/convex/__tests__/crewStatus.test.ts` holds the two sides to it on shared
  * fixtures.
  *
  * Pure. It reads the abilities, chassis, systems and modules schemas, so they

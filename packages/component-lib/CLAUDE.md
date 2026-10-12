@@ -33,7 +33,7 @@ Apps inject their renderers through **generic slot props** (`afterExtraContent`,
 
 ## Stories
 
-**The standard, in one line: ONE public component = ONE co-located story file = ONE nav leaf, titled `Group[/Sub-group]/Component Title Case`.** `src/story-coverage.test.ts` enforces every clause; explained in [component catalog](../../docs/ARCHITECTURE.md#areas).
+**The standard, in one line: ONE public component = ONE co-located story file = ONE nav leaf, titled `Group[/Sub-group]/Component Title Case`.** `story-coverage.test.ts` enforces every clause; explained in [component catalog](../../docs/ARCHITECTURE.md#areas).
 
 - **The catalog also serves the apps' own components.** A composition only one app renders lives in that app's `src/components/`, story beside it; `catalog.tsx` globs both ([component-lib](../../docs/ARCHITECTURE.md#areas)). A primitive (an Atom or a Container) stays here however many apps render it. The story's group is the classification: `bun run check barrel-consumers` fails a barrel export only one app reaches whose story files it under `Compositions/`. The rules below apply to app stories too (the guard scans all three roots); coverage is this package's barrel only. App stories take `Story` and `Caption` from `component-lib/stories/harness`.
 - **Coverage, in lockstep:** every barrel-exported visual component must be **imported by a story file in its own directory** (a story that merely names it gives it no page). Add a public component to `src/index.ts` and its story in the same change. The only escape is the guard's `ALLOWLIST`, for genuine internal sub-parts shown through their parent, each with a one-line rationale; the guard fails on **stale** entries, so prune it when you story or delete one.

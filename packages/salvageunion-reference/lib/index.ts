@@ -288,7 +288,7 @@ export const SchemaToDisplayName = Object.fromEntries(
  * Data is loaded lazily. Call `SalvageUnionReference.preload('all')` (or a
  * specific array of schema IDs) before accessing any model.
  */
-// biome-ignore lint/complexity/noStaticOnlyClass: `SalvageUnionReference.{Model}` static accessors are the package's public API (consumed across all apps); the generator injects statics into this class body, and lib/index.test.ts asserts they are own properties of the class.
+// biome-ignore lint/complexity/noStaticOnlyClass: `SalvageUnionReference.{Model}` static accessors are the package's public API (consumed across all apps); the generator injects statics into this class body, and lib/__tests__/index.test.ts asserts they are own properties of the class.
 export class SalvageUnionReference {
   // Static model properties — these are LazyModel instances that throw until
   // preload() is called. Each is exposed under its public ModelWithMetadata
@@ -300,7 +300,7 @@ export class SalvageUnionReference {
   // injected verbatim between the markers. It is intentionally still real,
   // hand-inspectable class-body source (not a runtime mixin/base class) so
   // every property below stays a true *own* property of this class — see
-  // lib/index.test.ts's `Object.getOwnPropertyNames(SalvageUnionReference)`.
+  // lib/__tests__/index.test.ts's `Object.getOwnPropertyNames(SalvageUnionReference)`.
   // GENERATED:BEGIN — see tools/generateRegistry.ts
   static Abilities: ModelWithMetadata<SchemaToEntityMap['abilities']> = lazyModelMap.abilities
   static AbilityTreeRequirements: ModelWithMetadata<

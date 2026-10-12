@@ -63,7 +63,7 @@ a unit test rendering a Convex consumer mocks the hooks with
 ## Do not
 
 - **Add a record kind without a Convex table and commit seam** —
-  `apps/itun/test/convex/containerParity.test.ts` fails on one. A row with
+  `apps/itun/test/convex/__tests__/containerParity.test.ts` fails on one. A row with
   no Convex counterpart is a defect; if the schema cannot say where a record
   lives, **the schema moves**.
 - Add a Convex-backed collection by hand: copy the `commit` seam on
